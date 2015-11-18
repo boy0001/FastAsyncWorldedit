@@ -1,0 +1,32 @@
+name: FastAsyncWorldEdit
+main: com.boydti.fawe.bukkit.FaweBukkit
+version: 1.1.4
+description: Fast Async WorldEdit plugin
+authors: [Empire92]
+loadbefore: [WorldEdit]
+load: STARTUP
+database: false
+#softdepend: [WorldGuard, PlotSquared, MCore, Factions, GriefPrevention, Residence, Towny, PlotMe, PreciousStones]
+commands:
+  wea:
+    description: (FAWE) Bypass WorldEdit processing and area restrictions
+    aliases: [weanywhere,worldeditanywhere,/wea,/weanywhere,/worldeditanywhere]
+    usage: "Vault is required for the toggle. Optionally, you can set the permission fawe.bypass"
+  fixlighting:
+    description: (FAWE) Fix the lighting in your current chunk
+    aliases: [/fixlighting]
+  stream:
+    description: (FAWE) Stream a schematic into the world
+    aliases: [/stream]
+  wrg:
+    description: (FAWE) Select your current WorldEdit Region.
+    aliases: [/wrg,wer,/wer,worldeditregion,/worldeditregion,/region]
+permissions:
+  fawe.bypass:
+    default: false
+  fawe.admin:
+    default: false
+  fawe.stream:
+    default: false
+  fawe.fixlighting:
+    default: false
