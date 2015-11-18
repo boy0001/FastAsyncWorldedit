@@ -240,7 +240,9 @@ public class EditSession implements Extent {
         String name = actor.getName();
         FawePlayer<Object> fp = FawePlayer.wrap(name);
         LocalSession session = fp.getSession();
-        fastmode = session.hasFastMode();
+        if (fastmode = session.hasFastMode()) {
+            session.clearHistory();
+        }
         if (fp.hasWorldEditBypass()) {
             // Bypass skips processing and area restrictions
             extent = new FastWorldEditExtent(world, thread);
