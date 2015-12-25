@@ -92,19 +92,20 @@ public class Fawe {
      * The platform specific implementation
      */
     private final IFawe IMP;
-    private final Thread thread;
+    private Thread thread = Thread.currentThread();
     
     private Fawe(final IFawe implementation) {
         IMP = implementation;
         
         this.thread = Thread.currentThread();
-
         /*
          * Implementation dependent stuff
          */
         setupConfigs();
         setupCommands();
         
+        // TODO command event - queue?
+
         TaskManager.IMP = IMP.getTaskManager();
         SetBlockQueue.IMP.queue = IMP.getQueue();
         
@@ -206,21 +207,9 @@ public class Fawe {
     
     /*
      * TODO FIXME
-     *  - Speed up chunk changes i.e. more than 1 chunk a tick
      *  - Async packet sending
-     *  - Block logging
-     *  - Investigate instance.clearSessions() / move to after manual session clearing
      *  - Redo WEManager delay / command queue
      *  - Support older versions of bukkit
      *  - Optimize lighting updates / chunk sending 
-     * 
-     * TESTING:
-     *  - Undo / Redo
-     *  - lighting
-     *  - streaming
-     *  - That history is kept after relog
-     *  - Brush delay
-     *  - Chunk loading for edits outside an area
-     * 
      */
 }

@@ -20,10 +20,8 @@ import com.boydti.fawe.object.FaweLocation;
 import com.boydti.fawe.util.SetBlockQueue;
 import com.boydti.fawe.util.TaskManager;
 import com.sk89q.jnbt.ByteArrayTag;
-import com.sk89q.jnbt.CompoundTag;
 import com.sk89q.jnbt.IntTag;
 import com.sk89q.jnbt.NBTInputStream;
-import com.sk89q.jnbt.NamedTag;
 import com.sk89q.jnbt.ShortTag;
 import com.sk89q.jnbt.Tag;
 import com.sk89q.worldedit.world.biome.BaseBiome;
@@ -198,11 +196,10 @@ public class FaweAPI {
      */
     public static void streamSchematic(InputStream is, FaweLocation loc) throws IOException {
         NBTInputStream stream = new NBTInputStream(new GZIPInputStream(is));
-        NamedTag name = stream.readNamedTag();
+        Tag tag = stream.readTag();
         stream.close();
 
-        CompoundTag tag = (CompoundTag) name.getTag();
-        Map<String, Tag> tagMap = tag.getValue();
+        Map<String, Tag> tagMap = (Map<String, Tag>) tag.getValue();
 
         short width = ShortTag.class.cast(tagMap.get("Width")).getValue();
         short length = ShortTag.class.cast(tagMap.get("Length")).getValue();
@@ -216,7 +213,6 @@ public class FaweAPI {
         int y_offset = loc.y + IntTag.class.cast(tagMap.get("WEOffsetY")).getValue();
         int z_offset = loc.z + IntTag.class.cast(tagMap.get("WEOffsetZ")).getValue();
         
-        name = null;
         tagMap = null;
         tag = null;
 

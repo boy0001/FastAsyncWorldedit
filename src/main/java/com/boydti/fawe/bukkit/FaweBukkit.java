@@ -1,10 +1,12 @@
 package com.boydti.fawe.bukkit;
 
 import java.io.File;
+import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.Collection;
 
 import org.bukkit.Bukkit;
+import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -52,6 +54,13 @@ public class FaweBukkit extends JavaPlugin implements IFawe {
     public void onEnable() {
         try {
             Fawe.set(this);
+            try {
+                Class<?> clazz = Class.forName("org.spigotmc.AsyncCatcher");
+                Field field = clazz.getDeclaredField("enabled");
+                field.set(null, false);
+            } catch (Throwable e) {
+                e.printStackTrace();
+            }
         } catch (Exception e) {
             e.printStackTrace();
             getServer().shutdown();
@@ -60,7 +69,7 @@ public class FaweBukkit extends JavaPlugin implements IFawe {
 
     @Override
     public void debug(final String s) {
-        getLogger().info(s);
+        getLogger().info(ChatColor.translateAlternateColorCodes('&', s));
     }
     
     @Override
@@ -94,7 +103,7 @@ public class FaweBukkit extends JavaPlugin implements IFawe {
         try {
             vault = new VaultUtil();
         } catch (final Throwable e) {
-            e.printStackTrace();
+            debug("&cPlease install vault!");
         }
     }
     

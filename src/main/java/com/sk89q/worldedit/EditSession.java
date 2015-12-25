@@ -240,7 +240,9 @@ public class EditSession implements Extent {
         String name = actor.getName();
         FawePlayer<Object> fp = FawePlayer.wrap(name);
         LocalSession session = fp.getSession();
-        fastmode = session.hasFastMode();
+        if (fastmode = session.hasFastMode()) {
+            session.clearHistory();
+        }
         if (fp.hasWorldEditBypass()) {
             // Bypass skips processing and area restrictions
             extent = new FastWorldEditExtent(world, thread);
@@ -255,18 +257,6 @@ public class EditSession implements Extent {
                 return;
             }
         } else {
-            if (MemUtil.isMemoryLimited()) {
-                BBC.WORLDEDIT_OOM.send(fp);
-                if (Perm.hasPermission(fp, "worldedit.fast")) {
-                    BBC.WORLDEDIT_OOM_ADMIN.send(fp);
-                }
-                // Memory limit reached; return null extent
-                extent = new NullExtent();
-                bypassReorderHistory = extent;
-                bypassHistory = extent;
-                bypassNone = extent;
-                return;
-            }
             HashSet<RegionWrapper> mask = WEManager.IMP.getMask(fp);
             if (mask.size() == 0) {
                 if (Perm.hasPermission(fp, "fawe.admin")) {
@@ -295,6 +285,19 @@ public class EditSession implements Extent {
                 bypassHistory = extent;
                 bypassNone = extent;
                 return;
+            } else {
+                if (MemUtil.isMemoryLimited()) {
+                    BBC.WORLDEDIT_OOM.send(fp);
+                    if (Perm.hasPermission(fp, "worldedit.fast")) {
+                        BBC.WORLDEDIT_OOM_ADMIN.send(fp);
+                    }
+                    // Memory limit reached; return null extent
+                    extent = new NullExtent();
+                    bypassReorderHistory = extent;
+                    bypassHistory = extent;
+                    bypassNone = extent;
+                    return;
+                }
             }
             // Perform memory checks after reorder
             extent = new SafeExtentWrapper(fp, extent);

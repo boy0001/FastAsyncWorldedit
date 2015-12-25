@@ -34,7 +34,9 @@ public class BukkitPlayer extends FawePlayer<Player> {
     
     @Override
     public void setPermission(final String perm, final boolean flag) {
-        if (flag) {
+        if (Fawe.<FaweBukkit> imp().getVault() == null) {
+            parent.addAttachment(Fawe.<FaweBukkit> imp()).setPermission("fawe.bypass", flag);
+        } else if (flag) {
             Fawe.<FaweBukkit> imp().getVault().permission.playerAdd(parent, perm);
         } else {
             Fawe.<FaweBukkit> imp().getVault().permission.playerRemove(parent, perm);

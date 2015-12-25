@@ -51,7 +51,7 @@ public class FastWorldEditExtent extends AbstractDelegateExtent {
         }
         synchronized (thread) {
             lastVector = position.toBlockVector();
-            return lastBlock = super.getLazyBlock(position);
+            return lastBlock = super.getBlock(position);
         }
     }
 

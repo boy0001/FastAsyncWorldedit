@@ -32,6 +32,7 @@ import com.boydti.fawe.bukkit.v0.BukkitQueue_0;
 import com.boydti.fawe.config.Settings;
 import com.boydti.fawe.object.ChunkLoc;
 import com.boydti.fawe.object.FaweChunk;
+import com.boydti.fawe.object.FawePlayer;
 import com.boydti.fawe.object.IntegerPair;
 import com.boydti.fawe.util.MemUtil;
 import com.boydti.fawe.util.ReflectionUtils.RefClass;
@@ -432,9 +433,12 @@ public class BukkitQueue_1_8 extends BukkitQueue_0 {
         HashMap<String, HashMap<IntegerPair, Integer>> players = new HashMap<>();
         for (final Player player : Bukkit.getOnlinePlayers()) {
             // Clear history
-            final LocalSession session = Fawe.get().getWorldEdit().getSession(player.getName());
-            session.clearHistory();
-            session.setClipboard(null);
+            FawePlayer<Object> fp = FawePlayer.wrap(player);
+            LocalSession s = fp.getSession();
+            if (s != null) {
+                s.clearHistory();
+                s.setClipboard(null);
+            }
             final Location loc = player.getLocation();
             final World worldObj = loc.getWorld();
             final String world = worldObj.getName();
@@ -472,6 +476,7 @@ public class BukkitQueue_1_8 extends BukkitQueue_0 {
                 }
             }
         }
+        Fawe.get().getWorldEdit().clearSessions();
         for (final World world : Bukkit.getWorlds()) {
             final String name = world.getName();
             final HashMap<IntegerPair, Integer> map = players.get(name);

@@ -10,7 +10,7 @@ import com.boydti.fawe.bukkit.FaweBukkit;
 import com.boydti.fawe.object.FawePlayer;
 import com.massivecraft.factions.entity.BoardColl;
 import com.massivecraft.factions.entity.Faction;
-import com.massivecraft.massivecore.ps.PS;
+import com.massivecraft.mcore.ps.PS;
 
 public class FactionsFeature extends BukkitMaskManager implements Listener {
     FaweBukkit plugin;
