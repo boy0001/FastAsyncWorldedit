@@ -10,7 +10,7 @@ import com.boydti.fawe.bukkit.FaweBukkit;
 import com.boydti.fawe.object.FawePlayer;
 import com.massivecraft.factions.entity.BoardColl;
 import com.massivecraft.factions.entity.Faction;
-import com.massivecraft.mcore.ps.PS;
+import com.massivecraft.massivecore.ps.PS;
 
 public class FactionsFeature extends BukkitMaskManager implements Listener {
     FaweBukkit plugin;
@@ -27,7 +27,8 @@ public class FactionsFeature extends BukkitMaskManager implements Listener {
     public FaweMask getMask(final FawePlayer<Player> fp) {
         final Player player = fp.parent;
         final Location loc = player.getLocation();
-        final Faction fac = BoardColl.get().getFactionAt(PS.valueOf(loc));
+        PS ps = PS.valueOf(loc);
+        final Faction fac = BoardColl.get().getFactionAt(ps);
         if (fac != null) {
             if (fac.getOnlinePlayers().contains(player)) {
                 if (fac.getComparisonName().equals("wilderness") == false) {

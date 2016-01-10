@@ -6,9 +6,11 @@ import java.util.List;
 import com.boydti.fawe.config.BBC;
 import com.boydti.fawe.config.Settings;
 import com.boydti.fawe.util.MainUtil;
-import com.boydti.fawe.util.SetBlockQueue;
+import com.boydti.fawe.util.SetQueue;
+import com.boydti.fawe.util.TaskManager;
 import com.boydti.fawe.util.WEManager;
 import com.sk89q.worldedit.BlockVector;
+import com.sk89q.worldedit.EditSession;
 import com.sk89q.worldedit.Vector;
 import com.sk89q.worldedit.Vector2D;
 import com.sk89q.worldedit.WorldEditException;
@@ -55,7 +57,7 @@ public class ProcessedWEExtent extends AbstractDelegateExtent {
     }
     
     @Override
-    public Entity createEntity(Location location, BaseEntity entity) {
+    public Entity createEntity(final Location location, final BaseEntity entity) {
         if (Eblocked) {
             return null;
         }
@@ -65,15 +67,21 @@ public class ProcessedWEExtent extends AbstractDelegateExtent {
             MainUtil.sendAdmin(BBC.WORLDEDIT_DANGEROUS_WORLDEDIT.format(world + ": " + location.getBlockX() + "," + location.getBlockY() + "," + location.getBlockZ(), user));
         }
         if (WEManager.IMP.maskContains(mask, location.getBlockX(), location.getBlockZ())) {
-            synchronized (thread) {
-                return super.createEntity(location, entity);
-            }
+            TaskManager.IMP.task(new Runnable() {
+                @Override
+                public void run() {
+                    ProcessedWEExtent.super.createEntity(location, entity);
+                }
+            });
         }
         return null;
     }
     
     @Override
     public BaseBiome getBiome(Vector2D position) {
+        if (!SetQueue.IMP.isChunkLoaded(world, position.getBlockX() >> 4, position.getBlockZ() >> 4)) {
+            return EditSession.nullBiome;
+        }
         synchronized (thread) {
             return super.getBiome(position);
         }
@@ -86,6 +94,9 @@ public class ProcessedWEExtent extends AbstractDelegateExtent {
     public BaseBlock getLazyBlock(Vector position) {
         if (lastBlock != null && lastVector.equals(position.toBlockVector())) {
             return lastBlock;
+        }
+        if (!SetQueue.IMP.isChunkLoaded(world, position.getBlockX() >> 4, position.getBlockZ() >> 4)) {
+            return EditSession.nullBlock;
         }
         synchronized (thread) {
             lastVector = position.toBlockVector();
@@ -109,9 +120,7 @@ public class ProcessedWEExtent extends AbstractDelegateExtent {
     
     @Override
     public BaseBlock getBlock(Vector position) {
-        synchronized (thread) {
-            return super.getLazyBlock(position);
-        }
+        return getLazyBlock(position);
     }
 
     @Override
@@ -172,7 +181,7 @@ public class ProcessedWEExtent extends AbstractDelegateExtent {
                         }
                         return false;
                     }
-                    SetBlockQueue.IMP.setBlock(world, x, location.getBlockY(), z, id, (byte) block.getData());
+                    SetQueue.IMP.setBlock(world, x, location.getBlockY(), z, id, (byte) block.getData());
                 }
                 break;
             }
@@ -271,11 +280,11 @@ public class ProcessedWEExtent extends AbstractDelegateExtent {
                         case 190:
                         case 191:
                         case 192: {
-                            SetBlockQueue.IMP.setBlock(world, x, y, z, id);
+                            SetQueue.IMP.setBlock(world, x, y, z, id);
                             break;
                         }
                         default: {
-                            SetBlockQueue.IMP.setBlock(world, x, y, z, id, (byte) block.getData());
+                            SetQueue.IMP.setBlock(world, x, y, z, id, (byte) block.getData());
                             break;
                         }
                     }
@@ -290,7 +299,7 @@ public class ProcessedWEExtent extends AbstractDelegateExtent {
     @Override
     public boolean setBiome(final Vector2D position, final BaseBiome biome) {
         if (WEManager.IMP.maskContains(mask, position.getBlockX(), position.getBlockZ())) {
-            SetBlockQueue.IMP.setBiome(world, position.getBlockX(), position.getBlockZ(), biome);
+            SetQueue.IMP.setBiome(world, position.getBlockX(), position.getBlockZ(), biome);
         }
         return false;
     }

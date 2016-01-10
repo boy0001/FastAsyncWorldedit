@@ -1,7 +1,7 @@
 package com.boydti.fawe.object;
 
 import com.boydti.fawe.config.Settings;
-import com.boydti.fawe.util.SetBlockQueue;
+import com.boydti.fawe.util.SetQueue;
 import com.sk89q.worldedit.world.biome.BaseBiome;
 
 public abstract class FaweChunk<T> {
@@ -27,11 +27,11 @@ public abstract class FaweChunk<T> {
         if (chunk == null) {
             throw new IllegalArgumentException("Chunk location cannot be null!");
         }
-        SetBlockQueue.IMP.queue.setChunk(this);
+        SetQueue.IMP.queue.setChunk(this);
     }
     
     public void fixLighting() {
-        SetBlockQueue.IMP.queue.fixLighting(this, Settings.FIX_ALL_LIGHTING);
+        SetQueue.IMP.queue.fixLighting(this, Settings.FIX_ALL_LIGHTING);
     }
 
     public void fill(int id, byte data) {

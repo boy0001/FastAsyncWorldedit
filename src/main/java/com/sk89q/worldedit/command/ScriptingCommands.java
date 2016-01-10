@@ -24,7 +24,7 @@ import static com.sk89q.minecraft.util.commands.Logging.LogMode.ALL;
 
 import java.io.File;
 
-import com.boydti.fawe.util.SetBlockQueue;
+import com.boydti.fawe.util.SetQueue;
 import com.boydti.fawe.util.TaskManager;
 import com.sk89q.minecraft.util.commands.Command;
 import com.sk89q.minecraft.util.commands.CommandContext;
@@ -69,7 +69,7 @@ public class ScriptingCommands {
         
         final File dir = worldEdit.getWorkingDirectoryFile(worldEdit.getConfiguration().scriptsDir);
         final File f = worldEdit.getSafeOpenFile(player, dir, name, "js", "js");
-        SetBlockQueue.IMP.addTask(new Runnable() {
+        SetQueue.IMP.addTask(new Runnable() {
             @Override
             public void run() {
                 TaskManager.IMP.async(new Runnable() {
@@ -107,7 +107,7 @@ public class ScriptingCommands {
         final File dir = worldEdit.getWorkingDirectoryFile(worldEdit.getConfiguration().scriptsDir);
         final File f = worldEdit.getSafeOpenFile(player, dir, lastScript, "js", "js");
         
-        SetBlockQueue.IMP.addTask(new Runnable() {
+        SetQueue.IMP.addTask(new Runnable() {
             @Override
             public void run() {
                 TaskManager.IMP.async(new Runnable() {

@@ -1,6 +1,6 @@
 package com.boydti.fawe.object;
 
-import com.boydti.fawe.util.SetBlockQueue;
+import com.boydti.fawe.util.SetQueue;
 
 /**
  */
@@ -40,6 +40,6 @@ public class FaweLocation {
     }
     
     public void setBlockAsync(short id, byte data) {
-        SetBlockQueue.IMP.setBlock(world, x, y, z, id, data);
+        SetQueue.IMP.setBlock(world, x, y, z, id, data);
     }
 }

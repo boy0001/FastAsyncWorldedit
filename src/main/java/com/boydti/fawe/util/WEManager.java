@@ -86,7 +86,7 @@ public class WEManager {
                             TaskManager.IMP.later(new Runnable() {
                                 @Override
                                 public void run() {
-                                    SetBlockQueue.IMP.addTask(new Runnable() {
+                                    SetQueue.IMP.addTask(new Runnable() {
                                         @Override
                                         public void run() {
                                             if ((System.currentTimeMillis() - start) > 1000) {
@@ -106,7 +106,7 @@ public class WEManager {
     }
     
     public boolean delay(final FawePlayer<?> player, final Runnable whenDone, final boolean delayed, final boolean onlyDelayedExecution) {
-        final boolean free = SetBlockQueue.IMP.addTask(null);
+        final boolean free = SetQueue.IMP.addTask(null);
         if (free) {
             if (delayed) {
                 if (whenDone != null) {
@@ -123,7 +123,7 @@ public class WEManager {
             if (!delayed && (player != null)) {
                 BBC.WORLDEDIT_DELAYED.send(player);
             }
-            SetBlockQueue.IMP.addTask(whenDone);
+            SetQueue.IMP.addTask(whenDone);
         }
         return true;
     }

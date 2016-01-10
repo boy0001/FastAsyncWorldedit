@@ -19,7 +19,7 @@
 
 package com.sk89q.worldedit.function.operation;
 
-import com.boydti.fawe.util.SetBlockQueue;
+import com.boydti.fawe.util.SetQueue;
 import com.boydti.fawe.util.TaskManager;
 import com.sk89q.worldedit.MaxChangedBlocksException;
 import com.sk89q.worldedit.WorldEditException;
@@ -85,7 +85,7 @@ public final class Operations {
             }
             return;
         }
-        SetBlockQueue.IMP.addTask(new Runnable() {
+        SetQueue.IMP.addTask(new Runnable() {
             @Override
             public void run() {
                 TaskManager.IMP.async(new Runnable() {

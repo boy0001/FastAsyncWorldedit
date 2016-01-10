@@ -16,6 +16,8 @@ public abstract class FaweQueue {
     public abstract void setChunk(FaweChunk<?> chunk);
     
     public abstract boolean fixLighting(FaweChunk<?> chunk, boolean fixAll);
+    
+    public abstract boolean isChunkLoaded(String world, int x, int z);
 
     /**
      * Gets the FaweChunk and sets the requested blocks
@@ -28,7 +30,7 @@ public abstract class FaweQueue {
         // Set memory limited
         MemUtil.memoryLimitedTask();
         // Clear block placement
-        SetBlockQueue.IMP.queue.clear();
+        SetQueue.IMP.queue.clear();
         Fawe.get().getWorldEdit().clearSessions();
         // GC
         System.gc();

@@ -2,8 +2,10 @@ package com.boydti.fawe.object;
 
 import java.util.List;
 
-import com.boydti.fawe.util.SetBlockQueue;
+import com.boydti.fawe.util.SetQueue;
+import com.boydti.fawe.util.TaskManager;
 import com.sk89q.worldedit.BlockVector;
+import com.sk89q.worldedit.EditSession;
 import com.sk89q.worldedit.Vector;
 import com.sk89q.worldedit.Vector2D;
 import com.sk89q.worldedit.WorldEditException;
@@ -28,14 +30,21 @@ public class FastWorldEditExtent extends AbstractDelegateExtent {
     }
     
     @Override
-    public Entity createEntity(Location location, BaseEntity entity) {
-        synchronized (thread) {
-            return super.createEntity(location, entity);
-        }
+    public Entity createEntity(final Location location, final BaseEntity entity) {
+        TaskManager.IMP.task(new Runnable() {
+            @Override
+            public void run() {
+                FastWorldEditExtent.super.createEntity(location, entity);
+            }
+        });
+        return null;
     }
     
     @Override
     public BaseBiome getBiome(Vector2D position) {
+        if (!SetQueue.IMP.isChunkLoaded(world, position.getBlockX() >> 4, position.getBlockZ() >> 4)) {
+            return EditSession.nullBiome;
+        }
         synchronized (thread) {
             return super.getBiome(position);
         }
@@ -48,6 +57,9 @@ public class FastWorldEditExtent extends AbstractDelegateExtent {
     public BaseBlock getLazyBlock(Vector position) {
         if (lastBlock != null && lastVector.equals(position.toBlockVector())) {
             return lastBlock;
+        }
+        if (!SetQueue.IMP.isChunkLoaded(world, position.getBlockX() >> 4, position.getBlockZ() >> 4)) {
+            return EditSession.nullBlock;
         }
         synchronized (thread) {
             lastVector = position.toBlockVector();
@@ -71,14 +83,12 @@ public class FastWorldEditExtent extends AbstractDelegateExtent {
     
     @Override
     public BaseBlock getBlock(Vector position) {
-        synchronized (thread) {
-            return super.getLazyBlock(position);
-        }
+        return getLazyBlock(position);
     }
     
     @Override
     public boolean setBiome(Vector2D position, BaseBiome biome) {
-        SetBlockQueue.IMP.setBiome(world, position.getBlockX(), position.getBlockZ(), biome);
+        SetQueue.IMP.setBiome(world, position.getBlockX(), position.getBlockZ(), biome);
         return true;
     }
     
@@ -173,11 +183,11 @@ public class FastWorldEditExtent extends AbstractDelegateExtent {
             case 190:
             case 191:
             case 192: {
-                SetBlockQueue.IMP.setBlock(world, x, y, z, id);
+                SetQueue.IMP.setBlock(world, x, y, z, id);
                 return true;
             }
             default: {
-                SetBlockQueue.IMP.setBlock(world, x, y, z, id, (byte) block.getData());
+                SetQueue.IMP.setBlock(world, x, y, z, id, (byte) block.getData());
                 return true;
             }
         }

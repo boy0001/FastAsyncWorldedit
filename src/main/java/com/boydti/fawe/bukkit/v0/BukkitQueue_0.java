@@ -1,8 +1,10 @@
 package com.boydti.fawe.bukkit.v0;
 
 import java.util.ArrayDeque;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentHashMap;
@@ -10,10 +12,15 @@ import java.util.concurrent.ConcurrentHashMap;
 import org.bukkit.Bukkit;
 import org.bukkit.Chunk;
 import org.bukkit.Location;
+import org.bukkit.World;
 import org.bukkit.event.EventHandler;
+import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.event.world.ChunkLoadEvent;
+import org.bukkit.event.world.ChunkUnloadEvent;
+import org.bukkit.event.world.WorldLoadEvent;
+import org.bukkit.event.world.WorldUnloadEvent;
 import org.bukkit.plugin.Plugin;
 
 import com.boydti.fawe.Fawe;
@@ -21,7 +28,7 @@ import com.boydti.fawe.config.Settings;
 import com.boydti.fawe.object.ChunkLoc;
 import com.boydti.fawe.object.FaweChunk;
 import com.boydti.fawe.util.FaweQueue;
-import com.boydti.fawe.util.SetBlockQueue;
+import com.boydti.fawe.util.SetQueue;
 import com.boydti.fawe.util.TaskManager;
 import com.sk89q.worldedit.world.biome.BaseBiome;
 
@@ -29,6 +36,8 @@ public abstract class BukkitQueue_0 extends FaweQueue implements Listener {
     
     private final HashMap<ChunkLoc, FaweChunk<Chunk>> toLight = new HashMap<>();
     
+    private final HashMap<String, HashSet<Long>> loaded = new HashMap<>();
+
     public BukkitQueue_0() {
         TaskManager.IMP.task(new Runnable() {
             @Override
@@ -36,35 +45,101 @@ public abstract class BukkitQueue_0 extends FaweQueue implements Listener {
                 Bukkit.getPluginManager().registerEvents(BukkitQueue_0.this, (Plugin) Fawe.imp());
             }
         });
+        for (World world : Bukkit.getWorlds()) {
+            for (Chunk chunk : world.getLoadedChunks()) {
+                addLoaded(chunk);
+            }
+        }
     }
     
-    @EventHandler
+    @EventHandler(ignoreCancelled = true, priority = EventPriority.MONITOR)
+    public void onWorldLoad(WorldLoadEvent event) {
+        World world = event.getWorld();
+        for (Chunk chunk : world.getLoadedChunks()) {
+            addLoaded(chunk);
+        }
+    }
+    
+    @EventHandler(ignoreCancelled = true, priority = EventPriority.MONITOR)
+    public void onWorldUnload(WorldUnloadEvent event) {
+        loaded.remove(event.getWorld().getName());
+    }
+
+    public void addLoaded(Chunk chunk) {
+        String world = chunk.getWorld().getName();
+        long x = chunk.getX();
+        long z = chunk.getZ();
+        long id = x << 32 | z & 0xFFFFFFFFL;
+        HashSet<Long> map = loaded.get(world);
+        if (map != null) {
+            map.add(id);
+        } else {
+            map = new HashSet<>(Arrays.asList(id));
+            loaded.put(world, map);
+        }
+    }
+    
+    public void removeLoaded(Chunk chunk) {
+        String world = chunk.getWorld().getName();
+        long x = chunk.getX();
+        long z = chunk.getZ();
+        long id = x << 32 | z & 0xFFFFFFFFL;
+        HashSet<Long> map = loaded.get(world);
+        if (map != null) {
+            map.remove(id);
+        }
+    }
+    
+    @Override
+    public boolean isChunkLoaded(String world, int x, int z) {
+        long id = (long) x << 32 | z & 0xFFFFFFFFL;
+        HashSet<Long> map = loaded.get(world);
+        if (map != null) {
+            return map.contains(id);
+        }
+        return false;
+        
+    };
+
+    @EventHandler(ignoreCancelled = true, priority = EventPriority.MONITOR)
     public void onMove(PlayerMoveEvent event) {
         Location loc = event.getTo();
         if (!loc.getChunk().equals(event.getFrom().getChunk())) {
             Chunk chunk = loc.getChunk();
             ChunkLoc cl = new ChunkLoc(chunk.getWorld().getName(), chunk.getX(), chunk.getZ());
+            FaweChunk<Chunk> fc = toLight.remove(cl);
+            if (fc != null) {
+                if (fixLighting(fc, Settings.FIX_ALL_LIGHTING)) {
+                    return;
+                }
+            }
         }
     }
     
-    @EventHandler
+    @EventHandler(ignoreCancelled = true, priority = EventPriority.MONITOR)
     public void onChunkLoad(ChunkLoadEvent event) {
+        Chunk chunk = event.getChunk();
+        addLoaded(chunk);
         if (toLight.size() == 0) {
             return;
         }
-        Chunk chunk = event.getChunk();
         ChunkLoc loc = new ChunkLoc(chunk.getWorld().getName(), chunk.getX(), chunk.getZ());
         for (int x = -1; x <= 1; x++) {
             for (int z = -1; z <= 1; z++) {
                 ChunkLoc a = new ChunkLoc(loc.world, loc.x + x, loc.z + z);
-                if (toLight.containsKey(a)) {
-                    if (fixLighting(toLight.get(a), Settings.FIX_ALL_LIGHTING)) {
-                        toLight.remove(a);
+                FaweChunk<Chunk> fc = toLight.remove(a);
+                if (fc != null) {
+                    if (fixLighting(fc, Settings.FIX_ALL_LIGHTING)) {
                         return;
                     }
                 }
             }
         }
+    }
+    
+    @EventHandler(ignoreCancelled = true, priority = EventPriority.MONITOR)
+    public void onChunkUnload(ChunkUnloadEvent event) {
+        removeLoaded(event.getChunk());
     }
 
     private final ConcurrentHashMap<ChunkLoc, FaweChunk<Chunk>> blocks = new ConcurrentHashMap<>();
@@ -118,7 +193,7 @@ public abstract class BukkitQueue_0 extends FaweQueue implements Listener {
             }
             final Iterator<Entry<ChunkLoc, FaweChunk<Chunk>>> iter = blocks.entrySet().iterator();
             final FaweChunk<Chunk> toReturn = iter.next().getValue();
-            if (SetBlockQueue.IMP.isWaiting()) {
+            if (SetQueue.IMP.isWaiting()) {
                 return null;
             }
             iter.remove();
@@ -145,7 +220,7 @@ public abstract class BukkitQueue_0 extends FaweQueue implements Listener {
         }
         toUpdate.add(fc);
         // Fix lighting
-        SetBlockQueue.IMP.addTask(new Runnable() {
+        SetQueue.IMP.addTask(new Runnable() {
             
             @Override
             public void run() {

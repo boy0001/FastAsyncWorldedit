@@ -6,9 +6,9 @@ import java.util.concurrent.atomic.AtomicInteger;
 import com.boydti.fawe.object.FaweChunk;
 import com.sk89q.worldedit.world.biome.BaseBiome;
 
-public class SetBlockQueue {
+public class SetQueue {
     
-    public static final SetBlockQueue IMP = new SetBlockQueue();
+    public static final SetQueue IMP = new SetQueue();
     
     public FaweQueue queue;
     
@@ -18,7 +18,7 @@ public class SetBlockQueue {
     private long last;
     private long last2;
 
-    public SetBlockQueue() {
+    public SetQueue() {
         TaskManager.IMP.repeat(new Runnable() {
             @Override
             public void run() {
@@ -110,7 +110,7 @@ public class SetBlockQueue {
      * @return
      */
     public boolean setBlock(final String world, final int x, final int y, final int z, final short id, final byte data) {
-        SetBlockQueue.IMP.setWaiting();
+        SetQueue.IMP.setWaiting();
         return queue.setBlock(world, x, y, z, id, data);
     }
     
@@ -123,7 +123,7 @@ public class SetBlockQueue {
      * @return
      */
     public boolean setBlock(final String world, final int x, final int y, final int z, final short id) {
-        SetBlockQueue.IMP.setWaiting();
+        SetQueue.IMP.setWaiting();
         return queue.setBlock(world, x, y, z, id, (byte) 0);
     }
     
@@ -137,7 +137,11 @@ public class SetBlockQueue {
      * @return
      */
     public boolean setBiome(final String world, final int x, final int z, BaseBiome biome) {
-        SetBlockQueue.IMP.setWaiting();
+        SetQueue.IMP.setWaiting();
         return queue.setBiome(world, x, z, biome);
+    }
+    
+    public boolean isChunkLoaded(String world, int x, int z) {
+        return queue.isChunkLoaded(world, x, z);
     }
 }

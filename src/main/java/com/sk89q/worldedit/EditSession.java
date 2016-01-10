@@ -161,6 +161,9 @@ public class EditSession implements Extent {
     private boolean fastmode;
     private Mask oldMask;
     
+    public static BaseBiome nullBiome = new BaseBiome(0);
+    public static BaseBlock nullBlock = new BaseBlock(0);
+
     /**
      * Create a new instance.
      *

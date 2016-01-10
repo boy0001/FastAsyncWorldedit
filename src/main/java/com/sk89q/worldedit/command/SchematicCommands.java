@@ -33,7 +33,7 @@ import java.util.Comparator;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import com.boydti.fawe.util.SetBlockQueue;
+import com.boydti.fawe.util.SetQueue;
 import com.boydti.fawe.util.TaskManager;
 import com.sk89q.minecraft.util.commands.Command;
 import com.sk89q.minecraft.util.commands.CommandContext;
@@ -98,7 +98,7 @@ public class SchematicCommands {
             return;
         }
         
-        SetBlockQueue.IMP.addTask(new Runnable() {
+        SetQueue.IMP.addTask(new Runnable() {
             @Override
             public void run() {
                 TaskManager.IMP.async(new Runnable() {
@@ -167,7 +167,7 @@ public class SchematicCommands {
             target = clipboard;
         }
         
-        SetBlockQueue.IMP.addTask(new Runnable() {
+        SetQueue.IMP.addTask(new Runnable() {
             @Override
             public void run() {
                 TaskManager.IMP.async(new Runnable() {

@@ -20,7 +20,7 @@ import com.boydti.fawe.config.BBC;
 import com.boydti.fawe.config.Settings;
 import com.boydti.fawe.util.Lag;
 import com.boydti.fawe.util.MemUtil;
-import com.boydti.fawe.util.SetBlockQueue;
+import com.boydti.fawe.util.SetQueue;
 import com.boydti.fawe.util.TaskManager;
 import com.boydti.fawe.util.WEManager;
 import com.boydti.fawe.util.WESubscriber;
@@ -107,7 +107,7 @@ public class Fawe {
         // TODO command event - queue?
 
         TaskManager.IMP = IMP.getTaskManager();
-        SetBlockQueue.IMP.queue = IMP.getQueue();
+        SetQueue.IMP.queue = IMP.getQueue();
         
         // Delayed setup
         TaskManager.IMP.later(new Runnable() {

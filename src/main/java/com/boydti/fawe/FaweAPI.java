@@ -17,7 +17,7 @@ import org.bukkit.Material;
 import com.boydti.fawe.object.ChunkLoc;
 import com.boydti.fawe.object.FaweChunk;
 import com.boydti.fawe.object.FaweLocation;
-import com.boydti.fawe.util.SetBlockQueue;
+import com.boydti.fawe.util.SetQueue;
 import com.boydti.fawe.util.TaskManager;
 import com.sk89q.jnbt.ByteArrayTag;
 import com.sk89q.jnbt.IntTag;
@@ -40,7 +40,7 @@ public class FaweAPI {
      * @param m
      */
     public static void setBlockAsync(final Location loc, final Material m) {
-        SetBlockQueue.IMP.setBlock(loc.getWorld().getName(), loc.getBlockX(), loc.getBlockY(), loc.getBlockZ(), (short) m.getId());
+        SetQueue.IMP.setBlock(loc.getWorld().getName(), loc.getBlockX(), loc.getBlockY(), loc.getBlockZ(), (short) m.getId());
     }
     
     /**
@@ -53,7 +53,7 @@ public class FaweAPI {
      * @param data
      */
     public static void setBlockAsync(final String world, final int x, final int y, final int z, final short id, final byte data) {
-        SetBlockQueue.IMP.setBlock(world, x, y, z, id, data);
+        SetQueue.IMP.setBlock(world, x, y, z, id, data);
     }
     
     /**
@@ -65,7 +65,7 @@ public class FaweAPI {
      * @param data
      */
     public static void setBiomeAsync(final String world, final int x, final int z, BaseBiome biome) {
-        SetBlockQueue.IMP.setBiome(world, x, z, biome);
+        SetQueue.IMP.setBiome(world, x, z, biome);
     }
 
     /**
@@ -74,7 +74,7 @@ public class FaweAPI {
      * @param biome
      */
     public static void setBiomeAsync(Location loc, BaseBiome biome) {
-        SetBlockQueue.IMP.setBiome(loc.getWorld().getName(), loc.getBlockX(), loc.getBlockZ(), biome);
+        SetQueue.IMP.setBiome(loc.getWorld().getName(), loc.getBlockX(), loc.getBlockZ(), biome);
     }
     
     /**
@@ -86,7 +86,7 @@ public class FaweAPI {
      * @return
      */
     public static FaweChunk<?> createChunk() {
-        return SetBlockQueue.IMP.queue.getChunk(new ChunkLoc(null, 0, 0));
+        return SetQueue.IMP.queue.getChunk(new ChunkLoc(null, 0, 0));
     }
     
     /**
@@ -116,7 +116,7 @@ public class FaweAPI {
      * @param loc
      */
     public static void fixLighting(ChunkLoc loc, boolean fixAll) {
-        SetBlockQueue.IMP.queue.fixLighting(SetBlockQueue.IMP.queue.getChunk(loc), fixAll);
+        SetQueue.IMP.queue.fixLighting(SetQueue.IMP.queue.getChunk(loc), fixAll);
     }
     
     /**
@@ -126,7 +126,7 @@ public class FaweAPI {
      */
     public static void fixLighting(Chunk chunk, boolean fixAll) {
         ChunkLoc loc = new ChunkLoc(chunk.getWorld().getName(), chunk.getX(), chunk.getZ());
-        SetBlockQueue.IMP.queue.fixLighting(SetBlockQueue.IMP.queue.getChunk(loc), fixAll);
+        SetQueue.IMP.queue.fixLighting(SetQueue.IMP.queue.getChunk(loc), fixAll);
     }
     
     /**
@@ -322,6 +322,6 @@ public class FaweAPI {
      * @param whenDone
      */
     public static void addTask(final Runnable whenDone) {
-        SetBlockQueue.IMP.addTask(whenDone);
+        SetQueue.IMP.addTask(whenDone);
     }
 }

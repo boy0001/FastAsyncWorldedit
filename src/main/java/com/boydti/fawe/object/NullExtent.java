@@ -3,6 +3,7 @@ package com.boydti.fawe.object;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.sk89q.worldedit.EditSession;
 import com.sk89q.worldedit.Vector;
 import com.sk89q.worldedit.Vector2D;
 import com.sk89q.worldedit.WorldEditException;
@@ -17,23 +18,19 @@ import com.sk89q.worldedit.world.biome.BaseBiome;
 
 public class NullExtent implements Extent {
     
-    private final BaseBiome nullBiome = new BaseBiome(0);
-    
-    private final BaseBlock nullBlock = new BaseBlock(0);
-    
     @Override
     public BaseBiome getBiome(final Vector2D arg0) {
-        return nullBiome;
+        return EditSession.nullBiome;
     }
     
     @Override
     public BaseBlock getBlock(final Vector arg0) {
-        return nullBlock;
+        return EditSession.nullBlock;
     }
     
     @Override
     public BaseBlock getLazyBlock(final Vector arg0) {
-        return nullBlock;
+        return EditSession.nullBlock;
     }
     
     @Override
