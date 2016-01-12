@@ -251,7 +251,6 @@ public class FaweAPI {
                         case 47:
                         case 48:
                         case 49:
-                        case 50:
                         case 51:
                         case 55:
                         case 56:
@@ -265,8 +264,6 @@ public class FaweAPI {
                         case 11:
                         case 73:
                         case 74:
-                        case 75:
-                        case 76:
                         case 78:
                         case 79:
                         case 80:

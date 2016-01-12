@@ -43,7 +43,7 @@ public class FixLighting extends FaweCommand {
         for (int x = minX; x <= maxX; x++) {
             for (int z = minZ; z <= maxZ; z++) {
                 ChunkLoc cl = new ChunkLoc(loc.world, x, z);
-                FaweAPI.fixLighting(new ChunkLoc(loc.world, x >> 4, z >> 4), Settings.FIX_ALL_LIGHTING);
+                FaweAPI.fixLighting(cl, Settings.FIX_ALL_LIGHTING);
                 count++;
             }
         }

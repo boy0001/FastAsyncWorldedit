@@ -131,10 +131,8 @@ public class BukkitChunk_1_8 extends FaweChunk<Chunk> {
             case 11:
             case 39:
             case 40:
-            case 50:
             case 51:
             case 74:
-            case 76:
             case 89:
             case 122:
             case 124:
@@ -168,7 +166,7 @@ public class BukkitChunk_1_8 extends FaweChunk<Chunk> {
             case 8:
             case 9:
             case 73:
-            case 75:
+
             case 78:
             case 79:
             case 80:
@@ -203,6 +201,7 @@ public class BukkitChunk_1_8 extends FaweChunk<Chunk> {
                 vs[j] = (char) (id << 4);
                 return;
             case 130:
+            case 76:
             case 62:
                 relight[i]++;
             case 54:
@@ -210,6 +209,7 @@ public class BukkitChunk_1_8 extends FaweChunk<Chunk> {
             case 61:
             case 65:
             case 68:
+            case 50:
                 if (data < 2) {
                     data = 2;
                 }

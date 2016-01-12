@@ -59,7 +59,12 @@ public class FastWorldEditExtent extends AbstractDelegateExtent {
             return lastBlock;
         }
         if (!SetQueue.IMP.isChunkLoaded(world, position.getBlockX() >> 4, position.getBlockZ() >> 4)) {
-            return EditSession.nullBlock;
+            try {
+                lastVector = position.toBlockVector();
+                return lastBlock = super.getBlock(position);
+            } catch (Throwable e) {
+                return EditSession.nullBlock;
+            }
         }
         synchronized (thread) {
             lastVector = position.toBlockVector();
@@ -121,7 +126,6 @@ public class FastWorldEditExtent extends AbstractDelegateExtent {
             case 47:
             case 48:
             case 49:
-            case 50:
             case 51:
             case 52:
             case 54:
@@ -139,8 +143,6 @@ public class FastWorldEditExtent extends AbstractDelegateExtent {
             case 11:
             case 73:
             case 74:
-            case 75:
-            case 76:
             case 78:
             case 79:
             case 80:
