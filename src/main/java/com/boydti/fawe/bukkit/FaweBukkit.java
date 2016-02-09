@@ -49,7 +49,7 @@ public class FaweBukkit extends JavaPlugin implements IFawe {
         }
         return worldedit;
     }
-
+    
     @Override
     public void onEnable() {
         try {
@@ -66,7 +66,7 @@ public class FaweBukkit extends JavaPlugin implements IFawe {
             getServer().shutdown();
         }
     }
-
+    
     @Override
     public void debug(final String s) {
         getLogger().info(ChatColor.translateAlternateColorCodes('&', s));
@@ -146,22 +146,34 @@ public class FaweBukkit extends JavaPlugin implements IFawe {
         final Plugin worldguardPlugin = Bukkit.getServer().getPluginManager().getPlugin("WorldGuard");
         final ArrayList<FaweMaskManager> managers = new ArrayList<>();
         if ((worldguardPlugin != null) && worldguardPlugin.isEnabled()) {
-            managers.add(new Worldguard(worldguardPlugin, this));
-            Fawe.debug("Plugin 'WorldGuard' found. Using it now.");
+            try {
+                managers.add(new Worldguard(worldguardPlugin, this));
+                Fawe.debug("Plugin 'WorldGuard' found. Using it now.");
+            } catch (Throwable e) {
+                e.printStackTrace();
+            }
         } else {
             Fawe.debug("Plugin 'WorldGuard' not found. Worldguard features disabled.");
         }
         final Plugin plotmePlugin = Bukkit.getServer().getPluginManager().getPlugin("PlotMe");
         if ((plotmePlugin != null) && plotmePlugin.isEnabled()) {
-            managers.add(new PlotMeFeature(plotmePlugin, this));
-            Fawe.debug("Plugin 'PlotMe' found. Using it now.");
+            try {
+                managers.add(new PlotMeFeature(plotmePlugin, this));
+                Fawe.debug("Plugin 'PlotMe' found. Using it now.");
+            } catch (Throwable e) {
+                e.printStackTrace();
+            }
         } else {
             Fawe.debug("Plugin 'PlotMe' not found. PlotMe features disabled.");
         }
         final Plugin townyPlugin = Bukkit.getServer().getPluginManager().getPlugin("Towny");
         if ((townyPlugin != null) && townyPlugin.isEnabled()) {
-            managers.add(new TownyFeature(townyPlugin, this));
-            Fawe.debug("Plugin 'Towny' found. Using it now.");
+            try {
+                managers.add(new TownyFeature(townyPlugin, this));
+                Fawe.debug("Plugin 'Towny' found. Using it now.");
+            } catch (Throwable e) {
+                e.printStackTrace();
+            }
         } else {
             Fawe.debug("Plugin 'Towny' not found. Towny features disabled.");
         }
@@ -179,29 +191,45 @@ public class FaweBukkit extends JavaPlugin implements IFawe {
         }
         final Plugin residencePlugin = Bukkit.getServer().getPluginManager().getPlugin("Residence");
         if ((residencePlugin != null) && residencePlugin.isEnabled()) {
-            managers.add(new ResidenceFeature(residencePlugin, this));
-            Fawe.debug("Plugin 'Residence' found. Using it now.");
+            try {
+                managers.add(new ResidenceFeature(residencePlugin, this));
+                Fawe.debug("Plugin 'Residence' found. Using it now.");
+            } catch (Throwable e) {
+                e.printStackTrace();
+            }
         } else {
             Fawe.debug("Plugin 'Residence' not found. Factions features disabled.");
         }
         final Plugin griefpreventionPlugin = Bukkit.getServer().getPluginManager().getPlugin("GriefPrevention");
         if ((griefpreventionPlugin != null) && griefpreventionPlugin.isEnabled()) {
-            managers.add(new GriefPreventionFeature(griefpreventionPlugin, this));
-            Fawe.debug("Plugin 'GriefPrevention' found. Using it now.");
+            try {
+                managers.add(new GriefPreventionFeature(griefpreventionPlugin, this));
+                Fawe.debug("Plugin 'GriefPrevention' found. Using it now.");
+            } catch (Throwable e) {
+                e.printStackTrace();
+            }
         } else {
             Fawe.debug("Plugin 'GriefPrevention' not found. GriefPrevention features disabled.");
         }
         final Plugin plotsquaredPlugin = Bukkit.getServer().getPluginManager().getPlugin("PlotSquared");
         if ((plotsquaredPlugin != null) && plotsquaredPlugin.isEnabled()) {
-            managers.add(new PlotSquaredFeature(plotsquaredPlugin, this));
-            Fawe.debug("Plugin 'PlotSquared' found. Using it now.");
+            try {
+                managers.add(new PlotSquaredFeature(plotsquaredPlugin, this));
+                Fawe.debug("Plugin 'PlotSquared' found. Using it now.");
+            } catch (Throwable e) {
+                e.printStackTrace();
+            }
         } else {
             Fawe.debug("Plugin 'PlotSquared' not found. PlotSquared features disabled.");
         }
         final Plugin preciousstonesPlugin = Bukkit.getServer().getPluginManager().getPlugin("PreciousStones");
         if ((preciousstonesPlugin != null) && preciousstonesPlugin.isEnabled()) {
-            managers.add(new PreciousStonesFeature(preciousstonesPlugin, this));
-            Fawe.debug("Plugin 'PreciousStones' found. Using it now.");
+            try {
+                managers.add(new PreciousStonesFeature(preciousstonesPlugin, this));
+                Fawe.debug("Plugin 'PreciousStones' found. Using it now.");
+            } catch (Throwable e) {
+                e.printStackTrace();
+            }
         } else {
             Fawe.debug("Plugin 'PreciousStones' not found. PreciousStones features disabled.");
         }

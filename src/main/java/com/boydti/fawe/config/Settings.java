@@ -21,6 +21,7 @@ public class Settings {
     public static boolean COMMAND_PROCESSOR = false;
     public static List<String> WE_BLACKLIST = Arrays.asList("cs", ".s", "restore", "snapshot", "delchunks", "listchunks");
     public static long MEM_FREE = 95;
+    public static boolean ENABLE_HARD_LIMIT = true;
     
     public static void setup(final File file) {
         if (!file.exists()) {
@@ -42,6 +43,7 @@ public class Settings {
         options.put("command-blacklist", WE_BLACKLIST);
         options.put("command-processor", COMMAND_PROCESSOR);
         options.put("max-memory-percent", MEM_FREE);
+        options.put("crash-mitigation", ENABLE_HARD_LIMIT);
         options.put("fix-all-lighting", FIX_ALL_LIGHTING);
         
         for (final Entry<String, Object> node : options.entrySet()) {
@@ -58,6 +60,7 @@ public class Settings {
         MEM_FREE = config.getInt("max-memory-percent");
         REQUIRE_SELECTION = config.getBoolean("require-selection-in-mask");
         WE_BLACKLIST = config.getStringList("command-blacklist");
+        ENABLE_HARD_LIMIT = config.getBoolean("crash-mitigation");
         
 
         try {

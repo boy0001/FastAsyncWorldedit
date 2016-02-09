@@ -8,7 +8,7 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     </properties>
     <artifactId>FastAsyncWorldEdit</artifactId>
-    <version>1.3.0</version>
+    <version>1.3.1</version>
     <name>FastAsyncWorldEdit</name>
     <packaging>jar</packaging>
     <build>
@@ -114,12 +114,12 @@
     </build>
     <repositories>
         <repository>
-            <id>techcable-repo</id>
-            <url>http://repo.techcable.net/content/groups/public/</url>
-        </repository>
-        <repository>
             <id>empcraft-repo</id>
             <url>http://empcraft.com/maven2</url>
+        </repository>
+        <repository>
+            <id>techcable-repo</id>
+            <url>http://repo.techcable.net/content/groups/public/</url>
         </repository>
         <repository>
             <id>spigot-repo</id>

@@ -3,6 +3,7 @@ package com.boydti.fawe.util;
 import java.util.ArrayDeque;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import com.boydti.fawe.config.Settings;
 import com.boydti.fawe.object.FaweChunk;
 import com.sk89q.worldedit.world.biome.BaseBiome;
 
@@ -25,7 +26,7 @@ public class SetQueue {
                 if (!MemUtil.isMemoryFree()) {
                     final int mem = MemUtil.calculateMemory();
                     if (mem != Integer.MAX_VALUE) {
-                        if (mem <= 1) {
+                        if (mem <= 1 && Settings.ENABLE_HARD_LIMIT) {
                             queue.saveMemory();
                             return;
                         }

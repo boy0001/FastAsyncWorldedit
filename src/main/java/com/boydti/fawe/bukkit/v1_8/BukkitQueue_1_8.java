@@ -56,7 +56,6 @@ public class BukkitQueue_1_8 extends BukkitQueue_0 {
     private final RefClass classCraftPlayer = getRefClass("{cb}.entity.CraftPlayer");
     private final RefClass classCraftChunk = getRefClass("{cb}.CraftChunk");
     private final RefClass classWorld = getRefClass("{nms}.World");
-    private final RefClass classCraftWorld = getRefClass("{cb}.CraftWorld");
     private final RefField mustSave = classChunk.getField("mustSave");
     private final RefClass classBlockPosition = getRefClass("{nms}.BlockPosition");
     private final RefClass classChunkSection = getRefClass("{nms}.ChunkSection");
@@ -71,7 +70,6 @@ public class BukkitQueue_1_8 extends BukkitQueue_0 {
     private RefConstructor classChunkSectionConstructor;
     private RefMethod methodX;
     private RefMethod methodAreNeighborsLoaded;
-    private RefMethod methodD;
     private RefField fieldSections;
     private RefField fieldWorld;
     private RefMethod methodGetIdArray;
@@ -88,7 +86,6 @@ public class BukkitQueue_1_8 extends BukkitQueue_0 {
             send = classConnection.getMethod("sendPacket", classPacket.getRealClass());
             classBlockPositionConstructor = classBlockPosition.getConstructor(int.class, int.class, int.class);
             methodX = classWorld.getMethod("x", classBlockPosition.getRealClass());
-            methodD = classChunk.getMethod("d", int.class, int.class, int.class);
             fieldSections = classChunk.getField("sections");
             fieldWorld = classChunk.getField("world");
             methodGetIdArray = classChunkSection.getMethod("getIdArray");
