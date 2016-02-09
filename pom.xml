@@ -123,7 +123,7 @@
         </repository>
         <repository>
             <id>spigot-repo</id>
-            <url>http://hub.spigotmc.org/nexus/content/groups/public/</url>
+            <url>https://hub.spigotmc.org/nexus/content/repositories/snapshots/</url>
         </repository>
         <repository>
             <id>confuser-repo</id>
@@ -163,7 +163,7 @@
         <dependency>
             <groupId>org.bukkit</groupId>
             <artifactId>bukkit</artifactId>
-            <version>1.8.3-R0.1-SNAPSHOT</version>
+            <version>1.8.8-R0.1-SNAPSHOT</version>
         </dependency>
         <dependency>
             <groupId>org.PrimeSoft</groupId>
