@@ -12,6 +12,7 @@ commands:
     description: (FAWE) Bypass WorldEdit processing and area restrictions
     aliases: [weanywhere,worldeditanywhere,/wea,/weanywhere,/worldeditanywhere]
     usage: "Vault is required for the toggle. Optionally, you can set the permission fawe.bypass"
+    permission: fawe.admin
   fixlighting:
     description: (FAWE) Fix the lighting in your current chunk
     aliases: [/fixlighting]
