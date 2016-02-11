@@ -20,6 +20,7 @@ public enum BBC {
      * Can use multiple arguments %s, %s1, %s2, %s3 etc
      */
     COMMAND_SYNTAX("&cUsage: &7%s0", "Error"),
+    NO_PERM("&cYou are lacking the permission node: %s0", "Error"),
     SCHEMATIC_NOT_FOUND("&cSchematic not found: &7%s0", "Error"),
     SCHEMATIC_PASTING("&7The schematic is pasting. This cannot be undone.", "Info"),
     FIX_LIGHTING_CHUNK("&7Lighting has been fixed in your current chunk. Relog to see the affect.", "Info"),
