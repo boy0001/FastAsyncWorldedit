@@ -34,5 +34,5 @@ permissions:
     default: op
   fawe.fixlighting:
     default: op
-  fawe.worldeditregion
+  fawe.worldeditregion:
     default: op
