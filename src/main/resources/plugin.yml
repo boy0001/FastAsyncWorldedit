@@ -15,18 +15,23 @@ commands:
   fixlighting:
     description: (FAWE) Fix the lighting in your current chunk
     aliases: [/fixlighting]
+    permission: fawe.fixlighting
   stream:
     description: (FAWE) Stream a schematic into the world
     aliases: [/stream]
+    permission: fawe.stream
   wrg:
     description: (FAWE) Select your current WorldEdit Region.
     aliases: [/wrg,wer,/wer,worldeditregion,/worldeditregion,/region]
+    permission: fawe.worldeditregion
 permissions:
   fawe.bypass:
     default: false
   fawe.admin:
-    default: false
+    default: op
   fawe.stream:
-    default: false
+    default: op
   fawe.fixlighting:
-    default: false
+    default: op
+  fawe.worldeditregion:
+    default: op
