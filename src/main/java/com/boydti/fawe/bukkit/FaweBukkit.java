@@ -24,6 +24,7 @@ import com.boydti.fawe.bukkit.regions.TownyFeature;
 import com.boydti.fawe.bukkit.regions.Worldguard;
 import com.boydti.fawe.bukkit.v1_8.BukkitEditSessionWrapper_1_8;
 import com.boydti.fawe.bukkit.v1_8.BukkitQueue_1_8;
+import com.boydti.fawe.bukkit.v1_9.BukkitQueue_1_9;
 import com.boydti.fawe.object.EditSessionWrapper;
 import com.boydti.fawe.object.FaweCommand;
 import com.boydti.fawe.object.FawePlayer;
@@ -133,9 +134,38 @@ public class FaweBukkit extends JavaPlugin implements IFawe {
     
     @Override
     public FaweQueue getQueue() {
+        if (Fawe.get().checkVersion(getServerVersion(), 1, 9, 0)) {
+            try {
+                return new BukkitQueue_1_9();
+            } catch (Throwable e) {
+                e.printStackTrace();
+            }
+        }
         return new BukkitQueue_1_8();
     }
     
+    private int[] version;
+
+    public int[] getServerVersion() {
+        if (version == null) {
+            try {
+                version = new int[3];
+                final String[] split = Bukkit.getBukkitVersion().split("-")[0].split("\\.");
+                version[0] = Integer.parseInt(split[0]);
+                version[1] = Integer.parseInt(split[1]);
+                if (split.length == 3) {
+                    version[2] = Integer.parseInt(split[2]);
+                }
+            } catch (NumberFormatException e) {
+                e.printStackTrace();
+                Fawe.debug(StringMan.getString(Bukkit.getBukkitVersion()));
+                Fawe.debug(StringMan.getString(Bukkit.getBukkitVersion().split("-")[0].split("\\.")));
+                return new int[] { Integer.MAX_VALUE, 0, 0 };
+            }
+        }
+        return version;
+    }
+
     @Override
     public EditSessionWrapper getEditSessionWrapper(final EditSession session) {
         return new BukkitEditSessionWrapper_1_8(session);

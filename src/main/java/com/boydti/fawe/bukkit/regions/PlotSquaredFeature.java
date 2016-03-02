@@ -15,7 +15,6 @@ import com.intellectualcrafters.plot.PS;
 import com.intellectualcrafters.plot.object.Plot;
 import com.intellectualcrafters.plot.object.PlotId;
 import com.intellectualcrafters.plot.object.PlotPlayer;
-import com.intellectualcrafters.plot.util.MainUtil;
 import com.plotsquared.bukkit.BukkitMain;
 
 public class PlotSquaredFeature extends BukkitMaskManager implements Listener {
@@ -37,7 +36,7 @@ public class PlotSquaredFeature extends BukkitMaskManager implements Listener {
             final String world = loc.getWorld();
             int min = Integer.MAX_VALUE;
             for (final Plot p : pp.getPlots()) {
-                if (p.world.equals(world)) {
+                if (p.getArea().worldname.equals(world)) {
                     final double d = p.getHome().getEuclideanDistanceSquared(loc);
                     if (d < min) {
                         min = (int) d;
@@ -57,8 +56,8 @@ public class PlotSquaredFeature extends BukkitMaskManager implements Listener {
                 }
                 if (hasPerm) {
                     final World world = fp.parent.getWorld();
-                    final com.intellectualcrafters.plot.object.RegionWrapper region = MainUtil.getLargestRegion(plot);
-                    final HashSet<com.intellectualcrafters.plot.object.RegionWrapper> regions = MainUtil.getRegions(plot);
+                    final com.intellectualcrafters.plot.object.RegionWrapper region = plot.getLargestRegion();
+                    final HashSet<com.intellectualcrafters.plot.object.RegionWrapper> regions = plot.getRegions();
                     
                     final Location pos1 = new Location(world, region.minX, 0, region.minZ);
                     final Location pos2 = new Location(world, region.maxX, 256, region.maxZ);

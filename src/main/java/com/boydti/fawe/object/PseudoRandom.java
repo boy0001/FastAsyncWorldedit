@@ -1,6 +1,9 @@
 package com.boydti.fawe.object;
 
 public class PseudoRandom {
+    
+    public static PseudoRandom random = new PseudoRandom();
+
     private long state;
     
     public PseudoRandom() {
