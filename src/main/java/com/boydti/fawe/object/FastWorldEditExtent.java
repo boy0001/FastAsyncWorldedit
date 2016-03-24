@@ -128,7 +128,6 @@ public class FastWorldEditExtent extends AbstractDelegateExtent {
             case 49:
             case 51:
             case 52:
-            case 55:
             case 56:
             case 57:
             case 58:
