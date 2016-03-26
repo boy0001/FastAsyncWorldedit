@@ -73,6 +73,8 @@ public class BukkitQueue_1_8 extends BukkitQueue_0 {
     private RefField fieldSections;
     private RefField fieldWorld;
     private RefMethod methodGetIdArray;
+    private RefMethod methodGetWorld;
+    private RefField tileEntityUnload;
     
     private final HashMap<String, FaweGenerator_1_8> worldMap = new HashMap<>();
     
@@ -91,6 +93,8 @@ public class BukkitQueue_1_8 extends BukkitQueue_0 {
             methodGetIdArray = classChunkSection.getMethod("getIdArray");
             methodAreNeighborsLoaded = classChunk.getMethod("areNeighborsLoaded", int.class);
             classChunkSectionConstructor = classChunkSection.getConstructor(int.class, boolean.class, char[].class);
+            this.tileEntityUnload = classWorld.getField("c");
+            this.methodGetWorld = classChunk.getMethod("getWorld");
         } catch (final NoSuchMethodException e) {
             e.printStackTrace();
         }
@@ -299,6 +303,7 @@ public class BukkitQueue_1_8 extends BukkitQueue_0 {
             // Sections
             final Method getHandele = chunk.getClass().getDeclaredMethod("getHandle");
             final Object c = getHandele.invoke(chunk);
+            Object w = methodGetWorld.of(c).call();
             final Class<? extends Object> clazz = c.getClass();
             final Field sf = clazz.getDeclaredField("sections");
             sf.setAccessible(true);
@@ -307,6 +312,7 @@ public class BukkitQueue_1_8 extends BukkitQueue_0 {
             
             final Object[] sections = (Object[]) sf.get(c);
             final HashMap<?, ?> tiles = (HashMap<?, ?>) tf.get(c);
+            List<Object> tilesUnload = (List<Object>) tileEntityUnload.of(w).get();
             final List<?>[] entities = (List<?>[]) ef.get(c);
             
             Method xm = null;
@@ -335,6 +341,7 @@ public class BukkitQueue_1_8 extends BukkitQueue_0 {
                     continue;
                 }
                 if (array[k] != 0) {
+                    tilesUnload.add(tile.getValue());
                     iter.remove();
                 }
             }

@@ -75,6 +75,8 @@ public class BukkitQueue_1_9 extends BukkitQueue_0 {
     private final RefMethod methodGetCombinedId;
     private final RefMethod methodGetByCombinedId;
     private final Object air;
+    private final RefMethod methodGetWorld;
+    private final RefField tileEntityUnload;
     
     private final RefMethod methodGetHandlePlayer;
     private final RefField connection;
@@ -99,6 +101,8 @@ public class BukkitQueue_1_9 extends BukkitQueue_0 {
         methodAreNeighborsLoaded = classChunk.getMethod("areNeighborsLoaded", int.class);
         classChunkSectionConstructor = classChunkSection.getConstructor(int.class, boolean.class, char[].class);
         air = methodGetByCombinedId.call(0);
+        this.tileEntityUnload = classWorld.getField("tileEntityListUnload");
+        this.methodGetWorld = classChunk.getMethod("getWorld");
     }
     
     @Override
@@ -310,6 +314,7 @@ public class BukkitQueue_1_9 extends BukkitQueue_0 {
             // Sections
             final Method getHandele = chunk.getClass().getDeclaredMethod("getHandle");
             final Object c = getHandele.invoke(chunk);
+            Object w = methodGetWorld.of(c).call();
             final Class<? extends Object> clazz = c.getClass();
             final Field sf = clazz.getDeclaredField("sections");
             sf.setAccessible(true);
@@ -318,6 +323,7 @@ public class BukkitQueue_1_9 extends BukkitQueue_0 {
 
             final Object[] sections = (Object[]) sf.get(c);
             final HashMap<?, ?> tiles = (HashMap<?, ?>) tf.get(c);
+            List<Object> tilesUnload = (List<Object>) tileEntityUnload.of(w).get();
             final List<?>[] entities = (List<?>[]) ef.get(c);
 
             Method xm = null;
@@ -346,6 +352,7 @@ public class BukkitQueue_1_9 extends BukkitQueue_0 {
                     continue;
                 }
                 if (array[k] != 0) {
+                    tilesUnload.add(tile.getValue());
                     iter.remove();
                 }
             }

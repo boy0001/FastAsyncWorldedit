@@ -133,10 +133,6 @@ public class Fawe {
         TaskManager.IMP.repeat(lag, 100);
     }
     
-    public boolean checkVersion(final int[] version, final int major, final int minor, final int minor2) {
-        return (version[0] > major) || ((version[0] == major) && (version[1] > minor)) || ((version[0] == major) && (version[1] == minor) && (version[2] >= minor2));
-    }
-
     private void setupEvents() {
         WorldEdit.getInstance().getEventBus().register(new WESubscriber());
         if (Settings.COMMAND_PROCESSOR) {

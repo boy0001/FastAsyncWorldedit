@@ -12,6 +12,7 @@ import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import com.boydti.fawe.Fawe;
+import com.boydti.fawe.FaweAPI;
 import com.boydti.fawe.IFawe;
 import com.boydti.fawe.bukkit.regions.FactionsFeature;
 import com.boydti.fawe.bukkit.regions.FactionsUUIDFeature;
@@ -134,7 +135,7 @@ public class FaweBukkit extends JavaPlugin implements IFawe {
     
     @Override
     public FaweQueue getQueue() {
-        if (Fawe.get().checkVersion(getServerVersion(), 1, 9, 0)) {
+        if (FaweAPI.checkVersion(getServerVersion(), 1, 9, 0)) {
             try {
                 return new BukkitQueue_1_9();
             } catch (Throwable e) {

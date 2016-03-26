@@ -35,6 +35,18 @@ import com.sk89q.worldedit.world.biome.BaseBiome;
 public class FaweAPI {
     
     /**
+     * Compare two versions
+     * @param version
+     * @param major
+     * @param minor
+     * @param minor2
+     * @return true if version is >= major, minor, minor2
+     */
+    public static boolean checkVersion(final int[] version, final int major, final int minor, final int minor2) {
+        return (version[0] > major) || ((version[0] == major) && (version[1] > minor)) || ((version[0] == major) && (version[1] == minor) && (version[2] >= minor2));
+    }
+    
+    /**
      * Set a block at a location asynchronously
      * @param loc
      * @param m
