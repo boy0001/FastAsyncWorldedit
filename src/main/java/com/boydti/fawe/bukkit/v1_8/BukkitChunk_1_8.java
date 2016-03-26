@@ -157,7 +157,6 @@ public class BukkitChunk_1_8 extends FaweChunk<Chunk> {
             case 47:
             case 48:
             case 49:
-            case 55:
             case 56:
             case 57:
             case 58:
@@ -166,7 +165,6 @@ public class BukkitChunk_1_8 extends FaweChunk<Chunk> {
             case 8:
             case 9:
             case 73:
-
             case 78:
             case 79:
             case 80:

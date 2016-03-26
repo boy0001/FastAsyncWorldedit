@@ -237,7 +237,6 @@ public class FaweGenerator_1_8 extends ChunkGenerator implements Listener {
                             case 48:
                             case 49:
                             case 51:
-                            case 55:
                             case 56:
                             case 57:
                             case 58:

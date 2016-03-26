@@ -79,7 +79,6 @@ public class HistoryExtent extends AbstractDelegateExtent {
                     case 51:
                     case 52:
                     case 54:
-                    case 55:
                     case 56:
                     case 57:
                     case 58:
