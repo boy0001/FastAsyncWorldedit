@@ -323,8 +323,8 @@ public class BukkitQueue_1_9 extends BukkitQueue_0 {
 
             final Object[] sections = (Object[]) sf.get(c);
             final HashMap<?, ?> tiles = (HashMap<?, ?>) tf.get(c);
-            List<Object> tilesUnload = (List<Object>) tileEntityUnload.of(w).get();
-            final List<?>[] entities = (List<?>[]) ef.get(c);
+            Collection<Object> tilesUnload = (Collection<Object>) tileEntityUnload.of(w).get();
+            final Collection<?>[] entities = (Collection<?>[]) ef.get(c);
 
             Method xm = null;
             Method ym = null;
