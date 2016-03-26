@@ -46,7 +46,7 @@ public class PlotSquaredFeature extends BukkitMaskManager implements Listener {
             }
         }
         if (plot != null) {
-            final PlotId id = plot.id;
+            final PlotId id = plot.getId();
             boolean hasPerm = false;
             if (plot.owner != null) {
                 if (plot.owner.equals(pp.getUUID())) {
