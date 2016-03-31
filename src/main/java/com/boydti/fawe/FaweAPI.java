@@ -208,7 +208,7 @@ public class FaweAPI {
      */
     public static void streamSchematic(InputStream is, FaweLocation loc) throws IOException {
         NBTInputStream stream = new NBTInputStream(new GZIPInputStream(is));
-        Tag tag = stream.readTag();
+        Tag tag = stream.readNamedTag().getTag();
         stream.close();
 
         Map<String, Tag> tagMap = (Map<String, Tag>) tag.getValue();

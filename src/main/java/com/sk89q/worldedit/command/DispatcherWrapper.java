@@ -16,10 +16,6 @@ import com.sk89q.worldedit.util.command.CommandMapping;
 import com.sk89q.worldedit.util.command.Description;
 import com.sk89q.worldedit.util.command.Dispatcher;
 
-/**
- *
- * @author SBPrime
- */
 public class DispatcherWrapper implements Dispatcher {
     private final Dispatcher parent;
     
@@ -61,8 +57,10 @@ public class DispatcherWrapper implements Dispatcher {
         return parent.contains(alias);
     }
     
+    
+    
     @Override
-    public boolean call(final String arguments, final CommandLocals locals, final String[] parentCommands) throws CommandException {
+    public Object call(final String arguments, final CommandLocals locals, final String[] parentCommands) throws CommandException {
         TaskManager.IMP.async(new Runnable() {
             @Override
             public void run() {

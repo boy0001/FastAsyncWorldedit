@@ -9,7 +9,6 @@ import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -31,7 +30,6 @@ import org.bukkit.generator.ChunkGenerator;
 import com.boydti.fawe.Fawe;
 import com.boydti.fawe.FaweCache;
 import com.boydti.fawe.bukkit.v0.BukkitQueue_0;
-import com.boydti.fawe.config.Settings;
 import com.boydti.fawe.object.ChunkLoc;
 import com.boydti.fawe.object.FaweChunk;
 import com.boydti.fawe.object.FawePlayer;
@@ -43,16 +41,13 @@ import com.boydti.fawe.util.ReflectionUtils.RefConstructor;
 import com.boydti.fawe.util.ReflectionUtils.RefField;
 import com.boydti.fawe.util.ReflectionUtils.RefMethod;
 import com.boydti.fawe.util.ReflectionUtils.RefMethod.RefExecutor;
+import com.intellectualcrafters.plot.util.TaskManager;
 import com.sk89q.worldedit.LocalSession;
 
 public class BukkitQueue_1_9 extends BukkitQueue_0 {
     
-    private final RefClass classEntityPlayer = getRefClass("{nms}.EntityPlayer");
     private final RefClass classMapChunk = getRefClass("{nms}.PacketPlayOutMapChunk");
-    private final RefClass classPacket = getRefClass("{nms}.Packet");
-    private final RefClass classConnection = getRefClass("{nms}.PlayerConnection");
     private final RefClass classChunk = getRefClass("{nms}.Chunk");
-    private final RefClass classCraftPlayer = getRefClass("{cb}.entity.CraftPlayer");
     private final RefClass classCraftChunk = getRefClass("{cb}.CraftChunk");
     private final RefClass classWorld = getRefClass("{nms}.World");
     private final RefField mustSave = classChunk.getField("mustSave");
@@ -70,22 +65,13 @@ public class BukkitQueue_1_9 extends BukkitQueue_0 {
     private final RefField fieldSections;
     private final RefField fieldWorld;
     private final RefMethod methodGetBlocks;
-    private final RefMethod methodGetType;
     private final RefMethod methodSetType;
-    private final RefMethod methodGetCombinedId;
     private final RefMethod methodGetByCombinedId;
     private final Object air;
     private final RefMethod methodGetWorld;
-    private final RefField tileEntityUnload;
-    
-    private final RefMethod methodGetHandlePlayer;
-    private final RefField connection;
-    private final RefMethod send;
+    private final RefField tileEntityListTick;
     
     public BukkitQueue_1_9() throws NoSuchMethodException, RuntimeException {
-        methodGetHandlePlayer = classCraftPlayer.getMethod("getHandle");
-        connection = classEntityPlayer.getField("playerConnection");
-        send = classConnection.getMethod("sendPacket", classPacket.getRealClass());
         methodGetHandleChunk = classCraftChunk.getMethod("getHandle");
         methodInitLighting = classChunk.getMethod("initLighting");
         MapChunk = classMapChunk.getConstructor(classChunk.getRealClass(), boolean.class, int.class);
@@ -93,74 +79,24 @@ public class BukkitQueue_1_9 extends BukkitQueue_0 {
         methodW = classWorld.getMethod("w", classBlockPosition.getRealClass());
         fieldSections = classChunk.getField("sections");
         fieldWorld = classChunk.getField("world");
-        methodGetCombinedId = classBlock.getMethod("getCombinedId", classIBlockData.getRealClass());
         methodGetByCombinedId = classBlock.getMethod("getByCombinedId", int.class);
         methodGetBlocks = classChunkSection.getMethod("getBlocks");
-        methodGetType = classChunkSection.getMethod("getType", int.class, int.class, int.class);
         methodSetType = classChunkSection.getMethod("setType", int.class, int.class, int.class, classIBlockData.getRealClass());
         methodAreNeighborsLoaded = classChunk.getMethod("areNeighborsLoaded", int.class);
         classChunkSectionConstructor = classChunkSection.getConstructor(int.class, boolean.class, char[].class);
         air = methodGetByCombinedId.call(0);
-        this.tileEntityUnload = classWorld.getField("tileEntityListUnload");
+        this.tileEntityListTick = classWorld.getField("tileEntityListTick");
         this.methodGetWorld = classChunk.getMethod("getWorld");
     }
     
     @Override
     public Collection<FaweChunk<Chunk>> sendChunk(final Collection<FaweChunk<Chunk>> fcs) {
-        final HashMap<FaweChunk<Chunk>, Object> packets = new HashMap<>();
-        final HashMap<String, ArrayList<FaweChunk<Chunk>>> map = new HashMap<>();
-
-        for (final FaweChunk<Chunk> fc : fcs) {
-            String world = fc.getChunkLoc().world;
-            ArrayList<FaweChunk<Chunk>> list = map.get(world);
-            if (list == null) {
-                list = new ArrayList<>();
-                map.put(world, list);
-            }
-            list.add(fc);
-        }
-        final int view = Bukkit.getServer().getViewDistance();
-        for (final Player player : Bukkit.getOnlinePlayers()) {
-            final String world = player.getWorld().getName();
-            final ArrayList<FaweChunk<Chunk>> list = map.get(world);
-            if (list == null) {
-                continue;
-            }
-            final Location loc = player.getLocation();
-            final int cx = loc.getBlockX() >> 4;
-            final int cz = loc.getBlockZ() >> 4;
-            final Object entity = methodGetHandlePlayer.of(player).call();
-            
-            for (final FaweChunk<Chunk> fc : list) {
-                final int dx = Math.abs(cx - fc.getChunkLoc().x);
-                final int dz = Math.abs(cz - fc.getChunkLoc().z);
-                if ((dx > view) || (dz > view)) {
-                    continue;
-                }
-                RefExecutor con = send.of(connection.of(entity).get());
-                Object packet = packets.get(fc);
-                if (packet == null) {
-                    final Object c = methodGetHandleChunk.of(fc.getChunk()).call();
-                    packet = MapChunk.create(c, true, 65535);
-                    packets.put(fc, packet);
-                    con.call(packet);
-                } else {
-                    con.call(packet);
-                }
-            }
-        }
-        final HashSet<FaweChunk<Chunk>> chunks = new HashSet<FaweChunk<Chunk>>();
         for (FaweChunk<Chunk> fc : fcs) {
             Chunk chunk = fc.getChunk();
-            chunk.unload(true, false);
-            chunk.load();
             ChunkLoc loc = fc.getChunkLoc();
             chunk.getWorld().refreshChunk(loc.x, loc.z);
-            if (!fixLighting(fc, Settings.FIX_ALL_LIGHTING)) {
-                chunks.add(fc);
-            }
         }
-        return chunks;
+        return new ArrayList<>();
     }
     
     @Override
@@ -170,30 +106,10 @@ public class BukkitQueue_1_9 extends BukkitQueue_0 {
             final Chunk chunk = bc.getChunk();
             if (!chunk.isLoaded()) {
                 chunk.load(false);
-            } else {
-                chunk.unload(true, false);
-                chunk.load(false);
             }
-
             // Initialize lighting
             final Object c = methodGetHandleChunk.of(chunk).call();
             
-            if (fixAll && !(boolean) methodAreNeighborsLoaded.of(c).call(1)) {
-                World world = chunk.getWorld();
-                ChunkLoc wrapper = bc.getChunkLoc();
-                String worldname = wrapper.world;
-                for (int x = wrapper.x - 1; x <= wrapper.x + 1; x++) {
-                    for (int z = wrapper.z - 1; z <= wrapper.z + 1; z++) {
-                        if (x != 0 && z != 0) {
-                            Chunk other = world.getChunkAt(x, z);
-                            while (!other.isLoaded()) {
-                                other.load(true);
-                            }
-                        }
-                    }
-                }
-            }
-
             methodInitLighting.of(c).call();
 
             if ((bc.getTotalRelight() == 0 && !fixAll)) {
@@ -216,6 +132,9 @@ public class BukkitQueue_1_9 extends BukkitQueue_0 {
                     continue;
                 }
                 final int[] array = bc.getIdArray(j);
+                if (array == null) {
+                    continue;
+                }
                 int l = PseudoRandom.random.random(2);
                 for (int k = 0; k < array.length; k++) {
                     final int i = array[k];
@@ -303,10 +222,9 @@ public class BukkitQueue_1_9 extends BukkitQueue_0 {
 
     @Override
     public boolean setComponents(final FaweChunk<Chunk> pc) {
-        BukkitChunk_1_9 fs = (BukkitChunk_1_9) pc;
+        final BukkitChunk_1_9 fs = (BukkitChunk_1_9) pc;
         Chunk chunk = pc.getChunk();
         final World world = chunk.getWorld();
-        ChunkLoc wrapper = pc.getChunkLoc();
         chunk.load(true);
         try {
             final boolean flag = world.getEnvironment() == Environment.NORMAL;
@@ -323,7 +241,6 @@ public class BukkitQueue_1_9 extends BukkitQueue_0 {
 
             final Object[] sections = (Object[]) sf.get(c);
             final HashMap<?, ?> tiles = (HashMap<?, ?>) tf.get(c);
-            Collection<Object> tilesUnload = (Collection<Object>) tileEntityUnload.of(w).get();
             final Collection<?>[] entities = (Collection<?>[]) ef.get(c);
 
             Method xm = null;
@@ -331,6 +248,7 @@ public class BukkitQueue_1_9 extends BukkitQueue_0 {
             Method zm = null;
 
             // Trim tiles
+            boolean removed = false;
             final Set<Entry<?, ?>> entryset = (Set<Entry<?, ?>>) (Set<?>) tiles.entrySet();
             final Iterator<Entry<?, ?>> iter = entryset.iterator();
             while (iter.hasNext()) {
@@ -352,9 +270,12 @@ public class BukkitQueue_1_9 extends BukkitQueue_0 {
                     continue;
                 }
                 if (array[k] != 0) {
-                    tilesUnload.add(tile.getValue());
+                    removed = true;
                     iter.remove();
                 }
+            }
+            if (removed) {
+                ((Collection) this.tileEntityListTick.of(w).get()).clear();
             }
 
             // Trim entities
@@ -438,6 +359,13 @@ public class BukkitQueue_1_9 extends BukkitQueue_0 {
                 }
             }
         }
+        TaskManager.runTaskLater(new Runnable() {
+            @Override
+            public void run() {
+                ChunkLoc loc = fs.getChunkLoc();
+                world.refreshChunk(loc.x, loc.z);
+            }
+        }, 1);
         return true;
     }
     

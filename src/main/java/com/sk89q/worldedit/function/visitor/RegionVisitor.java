@@ -20,6 +20,7 @@
 package com.sk89q.worldedit.function.visitor;
 
 import java.util.Iterator;
+import java.util.List;
 
 import com.sk89q.worldedit.BlockVector;
 import com.sk89q.worldedit.WorldEditException;
@@ -65,6 +66,11 @@ public class RegionVisitor implements Operation {
     @Override
     public void cancel() {}
     
+    @Override
+    public void addStatusMessages(List<String> messages) {
+        messages.add(getAffected() + " blocks affected");
+    }
+
     public static Class<?> inject() {
         return Operations.class;
     }

@@ -22,6 +22,8 @@ package com.sk89q.worldedit.function.visitor;
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
 
+import java.util.List;
+
 import com.sk89q.worldedit.Vector;
 import com.sk89q.worldedit.Vector2D;
 import com.sk89q.worldedit.WorldEditException;
@@ -124,6 +126,9 @@ public class LayerVisitor implements Operation {
     @Override
     public void cancel() {}
     
+    @Override
+    public void addStatusMessages(List<String> messages) {}
+
     public static Class<?> inject() {
         return Operations.class;
     }

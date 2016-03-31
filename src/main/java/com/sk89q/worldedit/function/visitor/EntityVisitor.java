@@ -22,6 +22,7 @@ package com.sk89q.worldedit.function.visitor;
 import static com.google.common.base.Preconditions.checkNotNull;
 
 import java.util.Iterator;
+import java.util.List;
 
 import com.sk89q.worldedit.WorldEditException;
 import com.sk89q.worldedit.entity.Entity;
@@ -73,8 +74,12 @@ public class EntityVisitor implements Operation {
     @Override
     public void cancel() {}
     
+    @Override
+    public void addStatusMessages(List<String> messages) {
+        messages.add(getAffected() + " blocks affected");
+    }
+    
     public static Class<?> inject() {
         return Operations.class;
     }
-    
 }

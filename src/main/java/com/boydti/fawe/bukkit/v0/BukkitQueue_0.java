@@ -11,12 +11,10 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import org.bukkit.Bukkit;
 import org.bukkit.Chunk;
-import org.bukkit.Location;
 import org.bukkit.World;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
-import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.event.world.ChunkLoadEvent;
 import org.bukkit.event.world.ChunkUnloadEvent;
 import org.bukkit.event.world.WorldLoadEvent;
@@ -33,8 +31,6 @@ import com.boydti.fawe.util.TaskManager;
 import com.sk89q.worldedit.world.biome.BaseBiome;
 
 public abstract class BukkitQueue_0 extends FaweQueue implements Listener {
-    
-    private final HashMap<ChunkLoc, FaweChunk<Chunk>> toLight = new HashMap<>();
     
     private final HashMap<String, HashSet<Long>> loaded = new HashMap<>();
 
@@ -98,42 +94,14 @@ public abstract class BukkitQueue_0 extends FaweQueue implements Listener {
             return map.contains(id);
         }
         return false;
-        
     };
-
-    @EventHandler(ignoreCancelled = true, priority = EventPriority.MONITOR)
-    public void onMove(PlayerMoveEvent event) {
-        Location loc = event.getTo();
-        if (!loc.getChunk().equals(event.getFrom().getChunk())) {
-            Chunk chunk = loc.getChunk();
-            ChunkLoc cl = new ChunkLoc(chunk.getWorld().getName(), chunk.getX(), chunk.getZ());
-            FaweChunk<Chunk> fc = toLight.remove(cl);
-            if (fc != null) {
-                if (fixLighting(fc, Settings.FIX_ALL_LIGHTING)) {
-                    return;
-                }
-            }
-        }
-    }
     
     @EventHandler(ignoreCancelled = true, priority = EventPriority.MONITOR)
     public void onChunkLoad(ChunkLoadEvent event) {
         Chunk chunk = event.getChunk();
         addLoaded(chunk);
-        if (toLight.size() == 0) {
-            return;
-        }
-        ChunkLoc loc = new ChunkLoc(chunk.getWorld().getName(), chunk.getX(), chunk.getZ());
-        for (int x = -1; x <= 1; x++) {
-            for (int z = -1; z <= 1; z++) {
-                ChunkLoc a = new ChunkLoc(loc.world, loc.x + x, loc.z + z);
-                FaweChunk<Chunk> fc = toLight.remove(a);
-                if (fc != null) {
-                    if (fixLighting(fc, Settings.FIX_ALL_LIGHTING)) {
-                        return;
-                    }
-                }
-            }
+        if (Settings.FIX_ALL_LIGHTING) {
+            fixLighting(getChunk(new ChunkLoc(chunk.getWorld().getName(), chunk.getX(), chunk.getZ())), false);
         }
     }
     
@@ -218,21 +186,6 @@ public abstract class BukkitQueue_0 extends FaweQueue implements Listener {
         if (!setComponents(fc)) {
             return false;
         }
-        toUpdate.add(fc);
-        // Fix lighting
-        SetQueue.IMP.addTask(new Runnable() {
-            
-            @Override
-            public void run() {
-                if (toUpdate.size() == 0) {
-                    return;
-                }
-                for (FaweChunk<Chunk> fc : sendChunk(toUpdate)) {
-                    toLight.put(fc.getChunkLoc(), fc);
-                }
-                toUpdate.clear();
-            }
-        });
         return true;
     }
     

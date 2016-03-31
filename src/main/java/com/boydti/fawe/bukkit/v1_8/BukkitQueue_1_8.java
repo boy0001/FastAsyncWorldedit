@@ -74,7 +74,7 @@ public class BukkitQueue_1_8 extends BukkitQueue_0 {
     private RefField fieldWorld;
     private RefMethod methodGetIdArray;
     private RefMethod methodGetWorld;
-    private RefField tileEntityUnload;
+    private RefField tileEntityListTick;
     
     private final HashMap<String, FaweGenerator_1_8> worldMap = new HashMap<>();
     
@@ -93,7 +93,7 @@ public class BukkitQueue_1_8 extends BukkitQueue_0 {
             methodGetIdArray = classChunkSection.getMethod("getIdArray");
             methodAreNeighborsLoaded = classChunk.getMethod("areNeighborsLoaded", int.class);
             classChunkSectionConstructor = classChunkSection.getConstructor(int.class, boolean.class, char[].class);
-            this.tileEntityUnload = classWorld.getField("c");
+            this.tileEntityListTick = classWorld.getField("tileEntityList");
             this.methodGetWorld = classChunk.getMethod("getWorld");
         } catch (final NoSuchMethodException e) {
             e.printStackTrace();
@@ -184,10 +184,6 @@ public class BukkitQueue_1_8 extends BukkitQueue_0 {
             // Initialize lighting
             final Object c = methodGetHandleChunk.of(chunk).call();
             
-            if (!(boolean) methodAreNeighborsLoaded.of(c).call(1)) {
-                return false;
-            }
-            
             methodInitLighting.of(c).call();
 
             if ((bc.getTotalRelight() == 0 && !fixAll)) {
@@ -210,6 +206,9 @@ public class BukkitQueue_1_8 extends BukkitQueue_0 {
                     continue;
                 }
                 final char[] array = getIdArray(section);
+                if (array == null) {
+                    continue;
+                }
                 int l = FaweCache.RANDOM.random(2);
                 for (int k = 0; k < array.length; k++) {
                     final int i = array[k];
@@ -312,7 +311,6 @@ public class BukkitQueue_1_8 extends BukkitQueue_0 {
             
             final Object[] sections = (Object[]) sf.get(c);
             final HashMap<?, ?> tiles = (HashMap<?, ?>) tf.get(c);
-            Collection<Object> tilesUnload = (Collection<Object>) tileEntityUnload.of(w).get();
             final Collection<?>[] entities = (Collection<?>[]) ef.get(c);
             
             Method xm = null;
@@ -320,6 +318,7 @@ public class BukkitQueue_1_8 extends BukkitQueue_0 {
             Method zm = null;
             
             // Trim tiles
+            boolean removed = false;
             final Set<Entry<?, ?>> entryset = (Set<Entry<?, ?>>) (Set<?>) tiles.entrySet();
             final Iterator<Entry<?, ?>> iter = entryset.iterator();
             while (iter.hasNext()) {
@@ -341,9 +340,12 @@ public class BukkitQueue_1_8 extends BukkitQueue_0 {
                     continue;
                 }
                 if (array[k] != 0) {
-                    tilesUnload.add(tile.getValue());
+                    removed = true;
                     iter.remove();
                 }
+            }
+            if (removed) {
+                ((Collection) this.tileEntityListTick.of(w).get()).clear();
             }
             
             // Trim entities
