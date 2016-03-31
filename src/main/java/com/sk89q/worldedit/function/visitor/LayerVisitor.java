@@ -44,13 +44,13 @@ import com.sk89q.worldedit.regions.FlatRegion;
  * each layer.</p>
  */
 public class LayerVisitor implements Operation {
-    
+
     private final LayerFunction function;
     private Mask2D mask = Masks.alwaysTrue2D();
     private final int minY;
     private final int maxY;
     private final Iterable<Vector2D> iterator;
-    
+
     /**
      * Create a new visitor.
      *
@@ -66,9 +66,9 @@ public class LayerVisitor implements Operation {
         this.minY = minY;
         this.maxY = maxY;
         this.function = function;
-        iterator = flatRegion.asFlatRegion();
+        this.iterator = flatRegion.asFlatRegion();
     }
-    
+
     /**
      * Get the mask that determines which columns within the flat region
      * will be visited.
@@ -76,9 +76,9 @@ public class LayerVisitor implements Operation {
      * @return a 2D mask
      */
     public Mask2D getMask() {
-        return mask;
+        return this.mask;
     }
-    
+
     /**
      * Set the mask that determines which columns within the flat region
      * will be visited.
@@ -89,32 +89,32 @@ public class LayerVisitor implements Operation {
         checkNotNull(mask);
         this.mask = mask;
     }
-    
+
     @Override
     public Operation resume(final RunContext run) throws WorldEditException {
-        for (final Vector2D column : iterator) {
-            if (!mask.test(column)) {
+        for (final Vector2D column : this.iterator) {
+            if (!this.mask.test(column)) {
                 continue;
             }
-            
+
             // Abort if we are underground
-            if (function.isGround(column.toVector(maxY + 1))) {
+            if (this.function.isGround(column.toVector(this.maxY + 1))) {
                 return null;
             }
-            
+
             boolean found = false;
             int groundY = 0;
-            for (int y = maxY; y >= minY; --y) {
+            for (int y = this.maxY; y >= this.minY; --y) {
                 final Vector test = column.toVector(y);
                 if (!found) {
-                    if (function.isGround(test)) {
+                    if (this.function.isGround(test)) {
                         found = true;
                         groundY = y;
                     }
                 }
-                
+
                 if (found) {
-                    if (!function.apply(test, groundY - y)) {
+                    if (!this.function.apply(test, groundY - y)) {
                         break;
                     }
                 }
@@ -122,12 +122,12 @@ public class LayerVisitor implements Operation {
         }
         return null;
     }
-    
+
     @Override
     public void cancel() {}
-    
+
     @Override
-    public void addStatusMessages(List<String> messages) {}
+    public void addStatusMessages(final List<String> messages) {}
 
     public static Class<?> inject() {
         return Operations.class;

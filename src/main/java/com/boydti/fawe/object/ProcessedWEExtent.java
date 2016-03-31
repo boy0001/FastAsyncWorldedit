@@ -26,7 +26,7 @@ import com.sk89q.worldedit.world.biome.BaseBiome;
 
 public class ProcessedWEExtent extends AbstractDelegateExtent {
     private Extent parent;
-    
+
     private boolean BSblocked = false;
     private boolean Eblocked = false;
     private int BScount = 0;
@@ -38,8 +38,8 @@ public class ProcessedWEExtent extends AbstractDelegateExtent {
     private final String world;
     private final HashSet<RegionWrapper> mask;
     private final Thread thread;
-    
-    public ProcessedWEExtent(World world, Thread thread, FawePlayer<?> player, HashSet<RegionWrapper> mask, int max) {
+
+    public ProcessedWEExtent(final World world, final Thread thread, final FawePlayer<?> player, final HashSet<RegionWrapper> mask, final int max) {
         super(world);
         this.user = player;
         this.world = world.getName();
@@ -47,26 +47,26 @@ public class ProcessedWEExtent extends AbstractDelegateExtent {
         this.mask = mask;
         this.thread = thread;
     }
-    
-    public void setMax(int max) {
+
+    public void setMax(final int max) {
         this.max = max != -1 ? max : Integer.MAX_VALUE;
     }
 
-    public void setParent(Extent parent) {
+    public void setParent(final Extent parent) {
         this.parent = parent;
     }
-    
+
     @Override
     public Entity createEntity(final Location location, final BaseEntity entity) {
-        if (Eblocked) {
+        if (this.Eblocked) {
             return null;
         }
-        Ecount++;
-        if (Ecount > Settings.MAX_ENTITIES) {
-            Eblocked = true;
-            MainUtil.sendAdmin(BBC.WORLDEDIT_DANGEROUS_WORLDEDIT.format(world + ": " + location.getBlockX() + "," + location.getBlockY() + "," + location.getBlockZ(), user));
+        this.Ecount++;
+        if (this.Ecount > Settings.MAX_ENTITIES) {
+            this.Eblocked = true;
+            MainUtil.sendAdmin(BBC.WORLDEDIT_DANGEROUS_WORLDEDIT.format(this.world + ": " + location.getBlockX() + "," + location.getBlockY() + "," + location.getBlockZ(), this.user));
         }
-        if (WEManager.IMP.maskContains(mask, location.getBlockX(), location.getBlockZ())) {
+        if (WEManager.IMP.maskContains(this.mask, location.getBlockX(), location.getBlockZ())) {
             TaskManager.IMP.task(new Runnable() {
                 @Override
                 public void run() {
@@ -76,56 +76,56 @@ public class ProcessedWEExtent extends AbstractDelegateExtent {
         }
         return null;
     }
-    
+
     @Override
-    public BaseBiome getBiome(Vector2D position) {
-        if (!SetQueue.IMP.isChunkLoaded(world, position.getBlockX() >> 4, position.getBlockZ() >> 4)) {
+    public BaseBiome getBiome(final Vector2D position) {
+        if (!SetQueue.IMP.isChunkLoaded(this.world, position.getBlockX() >> 4, position.getBlockZ() >> 4)) {
             return EditSession.nullBiome;
         }
-        synchronized (thread) {
+        synchronized (this.thread) {
             return super.getBiome(position);
         }
     }
-    
+
     private BaseBlock lastBlock;
     private BlockVector lastVector;
-    
+
     @Override
-    public BaseBlock getLazyBlock(Vector position) {
-        if (lastBlock != null && lastVector.equals(position.toBlockVector())) {
-            return lastBlock;
+    public BaseBlock getLazyBlock(final Vector position) {
+        if ((this.lastBlock != null) && this.lastVector.equals(position.toBlockVector())) {
+            return this.lastBlock;
         }
-        if (!SetQueue.IMP.isChunkLoaded(world, position.getBlockX() >> 4, position.getBlockZ() >> 4)) {
+        if (!SetQueue.IMP.isChunkLoaded(this.world, position.getBlockX() >> 4, position.getBlockZ() >> 4)) {
             try {
-                lastVector = position.toBlockVector();
-                return lastBlock = super.getBlock(position);
-            } catch (Throwable e) {
+                this.lastVector = position.toBlockVector();
+                return this.lastBlock = super.getBlock(position);
+            } catch (final Throwable e) {
                 return EditSession.nullBlock;
             }
         }
-        synchronized (thread) {
-            lastVector = position.toBlockVector();
-            return lastBlock = super.getLazyBlock(position);
+        synchronized (this.thread) {
+            this.lastVector = position.toBlockVector();
+            return this.lastBlock = super.getLazyBlock(position);
         }
     }
-    
+
     @Override
     public List<? extends Entity> getEntities() {
-        synchronized (thread) {
+        synchronized (this.thread) {
             return super.getEntities();
         }
     }
-    
+
     @Override
-    public List<? extends Entity> getEntities(Region region) {
-        synchronized (thread) {
+    public List<? extends Entity> getEntities(final Region region) {
+        synchronized (this.thread) {
             return super.getEntities(region);
         }
     }
-    
+
     @Override
-    public BaseBlock getBlock(Vector position) {
-        return getLazyBlock(position);
+    public BaseBlock getBlock(final Vector position) {
+        return this.getLazyBlock(position);
     }
 
     @Override
@@ -168,25 +168,25 @@ public class ProcessedWEExtent extends AbstractDelegateExtent {
             case 33:
             case 151:
             case 178: {
-                if (BSblocked) {
+                if (this.BSblocked) {
                     return false;
                 }
-                BScount++;
-                if (BScount > Settings.MAX_BLOCKSTATES) {
-                    BSblocked = true;
-                    MainUtil.sendAdmin(BBC.WORLDEDIT_DANGEROUS_WORLDEDIT.format(world + ": " + location.getBlockX() + "," + location.getBlockY() + "," + location.getBlockZ(), user));
+                this.BScount++;
+                if (this.BScount > Settings.MAX_BLOCKSTATES) {
+                    this.BSblocked = true;
+                    MainUtil.sendAdmin(BBC.WORLDEDIT_DANGEROUS_WORLDEDIT.format(this.world + ": " + location.getBlockX() + "," + location.getBlockY() + "," + location.getBlockZ(), this.user));
                 }
                 final int x = location.getBlockX();
                 final int z = location.getBlockZ();
-                if (WEManager.IMP.maskContains(mask, x, z)) {
-                    if (count++ > max) {
-                        if (parent != null) {
-                            WEManager.IMP.cancelEdit(parent);
-                            parent = null;
+                if (WEManager.IMP.maskContains(this.mask, x, z)) {
+                    if (this.count++ > this.max) {
+                        if (this.parent != null) {
+                            WEManager.IMP.cancelEdit(this.parent);
+                            this.parent = null;
                         }
                         return false;
                     }
-                    SetQueue.IMP.setBlock(world, x, location.getBlockY(), z, id, (byte) block.getData());
+                    SetQueue.IMP.setBlock(this.world, x, location.getBlockY(), z, id, (byte) block.getData());
                 }
                 break;
             }
@@ -194,10 +194,10 @@ public class ProcessedWEExtent extends AbstractDelegateExtent {
                 final int x = location.getBlockX();
                 final int y = location.getBlockY();
                 final int z = location.getBlockZ();
-                if (WEManager.IMP.maskContains(mask, location.getBlockX(), location.getBlockZ())) {
-                    if (count++ > max) {
-                        WEManager.IMP.cancelEdit(parent);
-                        parent = null;
+                if (WEManager.IMP.maskContains(this.mask, location.getBlockX(), location.getBlockZ())) {
+                    if (this.count++ > this.max) {
+                        WEManager.IMP.cancelEdit(this.parent);
+                        this.parent = null;
                         return false;
                     }
                     switch (id) {
@@ -281,26 +281,26 @@ public class ProcessedWEExtent extends AbstractDelegateExtent {
                         case 190:
                         case 191:
                         case 192: {
-                            SetQueue.IMP.setBlock(world, x, y, z, id);
+                            SetQueue.IMP.setBlock(this.world, x, y, z, id);
                             break;
                         }
                         default: {
-                            SetQueue.IMP.setBlock(world, x, y, z, id, (byte) block.getData());
+                            SetQueue.IMP.setBlock(this.world, x, y, z, id, (byte) block.getData());
                             break;
                         }
                     }
                     return true;
                 }
             }
-            
+
         }
         return false;
     }
-    
+
     @Override
     public boolean setBiome(final Vector2D position, final BaseBiome biome) {
-        if (WEManager.IMP.maskContains(mask, position.getBlockX(), position.getBlockZ())) {
-            SetQueue.IMP.setBiome(world, position.getBlockX(), position.getBlockZ(), biome);
+        if (WEManager.IMP.maskContains(this.mask, position.getBlockX(), position.getBlockZ())) {
+            SetQueue.IMP.setBiome(this.world, position.getBlockX(), position.getBlockZ(), biome);
         }
         return false;
     }

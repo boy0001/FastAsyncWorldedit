@@ -14,7 +14,7 @@ import com.boydti.fawe.object.FawePlayer;
 import com.boydti.fawe.util.StringMan;
 
 public enum BBC {
-    
+
     /*
      * Things to note about this class:
      * Can use multiple arguments %s, %s1, %s2, %s3 etc
@@ -46,7 +46,7 @@ public enum BBC {
     OOM(
     "&8[&cCritical&8] &cDetected low memory i.e. < 1%. FAWE will take the following actions:\n&8 - &7Terminate WE block placement\n&8 - &7Clear WE history\n&8 - &7Unload non essential chunks\n&8 - &7Kill entities\n&8 - &7Garbage collect\n&cIgnore this if trying to crash server.\n&7Note: Low memory is likely (but not necessarily) caused by WE",
     "Error");
-    
+
     private static final HashMap<String, String> replacements = new HashMap<>();
     /**
      * Translated
@@ -64,7 +64,7 @@ public enum BBC {
      * Should the string be prefixed?
      */
     private boolean prefix;
-    
+
     /**
      * Constructor for custom strings.
      */
@@ -73,7 +73,7 @@ public enum BBC {
          * use setCustomString();
          */
     }
-    
+
     /**
      * Constructor
      *
@@ -82,13 +82,13 @@ public enum BBC {
      */
     BBC(final String d, final boolean prefix, final String cat) {
         this.d = d;
-        if (s == null) {
-            s = d;
+        if (this.s == null) {
+            this.s = d;
         }
         this.prefix = prefix;
         this.cat = cat.toLowerCase();
     }
-    
+
     /**
      * Constructor
      *
@@ -97,9 +97,9 @@ public enum BBC {
     BBC(final String d, final String cat) {
         this(d, true, cat.toLowerCase());
     }
-    
+
     public String format(final Object... args) {
-        String m = s;
+        String m = this.s;
         for (int i = args.length - 1; i >= 0; i--) {
             if (args[i] == null) {
                 continue;
@@ -111,7 +111,7 @@ public enum BBC {
         }
         return m;
     }
-    
+
     public static void load(final File file) {
         try {
             if (!file.exists()) {
@@ -178,34 +178,34 @@ public enum BBC {
             e.printStackTrace();
         }
     }
-    
+
     public String s() {
-        return s;
+        return this.s;
     }
-    
+
     public boolean usePrefix() {
-        return prefix;
+        return this.prefix;
     }
-    
+
     /**
      * @return translated and color decoded
      *
      * @see org.bukkit.ChatColor#translateAlternateColorCodes(char, String)
      */
     public String translated() {
-        return ChatColor.translateAlternateColorCodes('&', s());
+        return ChatColor.translateAlternateColorCodes('&', this.s());
     }
-    
+
     public String getCat() {
-        return cat;
+        return this.cat;
     }
-    
+
     public void send(final FawePlayer<?> player, final Object... args) {
         if (player == null) {
-            Fawe.debug(format(args));
+            Fawe.debug(this.format(args));
         } else {
-            player.sendMessage(format(args));
+            player.sendMessage(this.format(args));
         }
     }
-    
+
 }

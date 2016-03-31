@@ -29,7 +29,7 @@ import com.sk89q.worldedit.regions.Region;
 
 @Deprecated
 public class WEListener implements Listener {
-    
+
     public final HashSet<String> rad1 = new HashSet<>(Arrays.asList("forestgen", "pumpkins", "drain", "fixwater", "fixlava", "replacenear", "snow", "thaw", "ex", "butcher", "size"));
     public final HashSet<String> rad2 = new HashSet<>(Arrays.asList("fill", "fillr", "removenear", "remove"));
     public final HashSet<String> rad2_1 = new HashSet<>(Arrays.asList("hcyl", "cyl"));
@@ -37,7 +37,7 @@ public class WEListener implements Listener {
     public final HashSet<String> rad2_3 = new HashSet<>(Arrays.asList("brush smooth"));
     public final HashSet<String> rad3_1 = new HashSet<>(Arrays.asList("brush gravity"));
     public final HashSet<String> rad3_2 = new HashSet<>(Arrays.asList("brush sphere", "brush cylinder"));
-    
+
     public final HashSet<String> region = new HashSet<>(Arrays.asList("move", "set", "replace", "overlay", "walls", "outline", "deform", "hollow", "smooth", "naturalize", "paste", "count", "distr",
     "copy", "cut", "green", "setbiome"));
     public final HashSet<String> regionExtend = new HashSet<>(Arrays.asList("stack"));
@@ -45,7 +45,7 @@ public class WEListener implements Listener {
     public final HashSet<String> unsafe1 = new HashSet<>(Arrays.asList("cs", ".s", "restore", "snapshot", "delchunks", "listchunks"));
     public final HashSet<String> restricted = new HashSet<>(Arrays.asList("up"));
     public final HashSet<String> other = new HashSet<>(Arrays.asList("undo", "redo", "schematic", "schem", "count"));
-    
+
     public boolean checkCommand(final List<String> list, final String cmd) {
         for (final String identifier : list) {
             if (("/" + identifier).equals(cmd) || ("//" + identifier).equals(cmd) || ("/worldedit:/" + identifier).equals(cmd) || ("/worldedit:" + identifier).equals(cmd)) {
@@ -54,7 +54,7 @@ public class WEListener implements Listener {
         }
         return false;
     }
-    
+
     public String reduceCmd(final String cmd, final boolean single) {
         if (cmd.startsWith("/worldedit:/")) {
             return cmd.substring(12);
@@ -70,7 +70,7 @@ public class WEListener implements Listener {
         }
         return cmd;
     }
-    
+
     public int getInt(final String s) {
         try {
             int max = 0;
@@ -86,7 +86,7 @@ public class WEListener implements Listener {
             return 0;
         }
     }
-    
+
     public boolean checkVolume(final FawePlayer<Player> player, final long volume, final long max, final Cancellable e) {
         if (volume > max) {
             MainUtil.sendMessage(FawePlayer.wrap(player.getName()), BBC.WORLDEDIT_VOLUME.s().replaceAll("%current%", volume + "").replaceAll("%max%", max + ""));
@@ -97,14 +97,14 @@ public class WEListener implements Listener {
         }
         return true;
     }
-    
+
     public boolean checkSelection(final FawePlayer<Player> player, final int modifier, final long max, final Cancellable e) {
-        LocalSession session = Fawe.get().getWorldEdit().getSession(player.getName());
-        LocalWorld w = BukkitUtil.getLocalWorld(player.parent.getWorld());
+        final LocalSession session = Fawe.get().getWorldEdit().getSession(player.getName());
+        final LocalWorld w = BukkitUtil.getLocalWorld(player.parent.getWorld());
         Region selection = null;
         try {
             selection = session.getSelection(w);
-        } catch (IncompleteRegionException e2) {}
+        } catch (final IncompleteRegionException e2) {}
         if (selection == null) {
             return true;
         }
@@ -139,9 +139,9 @@ public class WEListener implements Listener {
             }
         }
         final long volume = Math.abs((pos1.getBlockX() - pos2.getBlockX()) * (pos1.getBlockY() - pos2.getBlockY()) * (pos1.getBlockZ() - pos2.getBlockZ())) * modifier;
-        return checkVolume(player, volume, max, e);
+        return this.checkVolume(player, volume, max, e);
     }
-    
+
     @EventHandler(priority = EventPriority.LOWEST, ignoreCancelled = true)
     public boolean onPlayerCommand(final PlayerCommandPreprocessEvent e) {
         final FawePlayer<Player> player = FawePlayer.wrap(e.getPlayer());
@@ -149,65 +149,65 @@ public class WEListener implements Listener {
         final String cmd = message.toLowerCase();
         final boolean single = true;
         final String[] split = cmd.split(" ");
-        
+
         final long maxVolume = Settings.WE_MAX_VOLUME;
         final long maxIterations = Settings.WE_MAX_ITERATIONS;
         //        if (player.hasPermission("fawe.bypass")) {
         //            return true;
         //        }
         if (split.length >= 2) {
-            final String reduced = reduceCmd(split[0], single);
-            final String reduced2 = reduceCmd(split[0] + " " + split[1], single);
-            if (rad1.contains(reduced)) {
+            final String reduced = this.reduceCmd(split[0], single);
+            final String reduced2 = this.reduceCmd(split[0] + " " + split[1], single);
+            if (this.rad1.contains(reduced)) {
                 if (WEManager.IMP.delay(player, message)) {
                     e.setCancelled(true);
                     return true;
                 }
-                final long volume = getInt(split[1]) * 256;
-                return checkVolume(player, volume, maxVolume, e);
+                final long volume = this.getInt(split[1]) * 256;
+                return this.checkVolume(player, volume, maxVolume, e);
             }
-            if (rad2.contains(reduced)) {
+            if (this.rad2.contains(reduced)) {
                 if (WEManager.IMP.delay(player, message)) {
                     e.setCancelled(true);
                     return true;
                 }
                 if (split.length >= 3) {
-                    final long volume = getInt(split[2]) * 256;
-                    return checkVolume(player, volume, maxVolume, e);
+                    final long volume = this.getInt(split[2]) * 256;
+                    return this.checkVolume(player, volume, maxVolume, e);
                 }
                 return true;
             }
-            if (rad2_1.contains(reduced)) {
+            if (this.rad2_1.contains(reduced)) {
                 if (WEManager.IMP.delay(player, message)) {
                     e.setCancelled(true);
                     return true;
                 }
                 if (split.length >= 4) {
-                    final long volume = getInt(split[2]) * getInt(split[3]);
-                    return checkVolume(player, volume, maxVolume, e);
+                    final long volume = this.getInt(split[2]) * this.getInt(split[3]);
+                    return this.checkVolume(player, volume, maxVolume, e);
                 }
                 return true;
             }
-            if (rad2_2.contains(reduced)) {
+            if (this.rad2_2.contains(reduced)) {
                 if (WEManager.IMP.delay(player, message)) {
                     e.setCancelled(true);
                     return true;
                 }
                 if (split.length >= 3) {
-                    final long radius = getInt(split[2]);
+                    final long radius = this.getInt(split[2]);
                     final long volume = radius * radius;
-                    return checkVolume(player, volume, maxVolume, e);
+                    return this.checkVolume(player, volume, maxVolume, e);
                 }
                 return true;
             }
-            if (rad2_3.contains(reduced2)) {
+            if (this.rad2_3.contains(reduced2)) {
                 if (WEManager.IMP.delay(player, message)) {
                     e.setCancelled(true);
                     return true;
                 }
                 if (split.length >= 3) {
                     if (split.length == 4) {
-                        final int iterations = getInt(split[3]);
+                        final int iterations = this.getInt(split[3]);
                         if (iterations > maxIterations) {
                             MainUtil.sendMessage(player, BBC.WORLDEDIT_ITERATIONS.s().replaceAll("%current%", iterations + "").replaceAll("%max%", maxIterations + ""));
                             e.setCancelled(true);
@@ -217,13 +217,13 @@ public class WEListener implements Listener {
                             return true;
                         }
                     }
-                    final long radius = getInt(split[2]);
+                    final long radius = this.getInt(split[2]);
                     final long volume = radius * radius;
-                    return checkVolume(player, volume, maxVolume, e);
+                    return this.checkVolume(player, volume, maxVolume, e);
                 }
                 return true;
             }
-            if (rad3_1.contains(reduced2)) {
+            if (this.rad3_1.contains(reduced2)) {
                 if (WEManager.IMP.delay(player, message)) {
                     e.setCancelled(true);
                     return true;
@@ -233,13 +233,13 @@ public class WEListener implements Listener {
                     if (split[i].equalsIgnoreCase("-h")) {
                         i = 3;
                     }
-                    final long radius = getInt(split[i]);
+                    final long radius = this.getInt(split[i]);
                     final long volume = radius * radius;
-                    return checkVolume(player, volume, maxVolume, e);
+                    return this.checkVolume(player, volume, maxVolume, e);
                 }
                 return true;
             }
-            if (rad3_2.contains(reduced2)) {
+            if (this.rad3_2.contains(reduced2)) {
                 if (WEManager.IMP.delay(player, message)) {
                     e.setCancelled(true);
                     return true;
@@ -249,21 +249,21 @@ public class WEListener implements Listener {
                     if (split[i].equalsIgnoreCase("-h")) {
                         i = 4;
                     }
-                    final long radius = getInt(split[i]);
+                    final long radius = this.getInt(split[i]);
                     final long volume = radius * radius;
-                    return checkVolume(player, volume, maxVolume, e);
+                    return this.checkVolume(player, volume, maxVolume, e);
                 }
                 return true;
             }
-            if (regionExtend.contains(reduced)) {
+            if (this.regionExtend.contains(reduced)) {
                 if (WEManager.IMP.delay(player, message)) {
                     e.setCancelled(true);
                     return true;
                 }
-                return checkSelection(player, getInt(split[1]), maxVolume, e);
+                return this.checkSelection(player, this.getInt(split[1]), maxVolume, e);
             }
         }
-        final String reduced = reduceCmd(split[0], single);
+        final String reduced = this.reduceCmd(split[0], single);
         if (Settings.WE_BLACKLIST.contains(reduced)) {
             BBC.WORLDEDIT_UNSAFE.send(player);
             e.setCancelled(true);
@@ -271,9 +271,9 @@ public class WEListener implements Listener {
                 BBC.WORLDEDIT_BYPASS.send(player);
             }
         }
-        if (restricted.contains(reduced)) {
+        if (this.restricted.contains(reduced)) {
             final HashSet<RegionWrapper> mask = WEManager.IMP.getMask(player);
-            Location loc = player.parent.getLocation();
+            final Location loc = player.parent.getLocation();
             for (final RegionWrapper region : mask) {
                 if (region.isIn(loc.getBlockX(), loc.getBlockZ())) {
                     if (WEManager.IMP.delay(player, message)) {
@@ -287,20 +287,20 @@ public class WEListener implements Listener {
             BBC.REQUIRE_SELECTION_IN_MASK.send(player);
             return true;
         }
-        if (region.contains(reduced)) {
+        if (this.region.contains(reduced)) {
             if (WEManager.IMP.delay(player, message)) {
                 e.setCancelled(true);
                 return true;
             }
-            return checkSelection(player, 1, maxVolume, e);
+            return this.checkSelection(player, 1, maxVolume, e);
         }
-        if (unregioned.contains(reduced)) {
+        if (this.unregioned.contains(reduced)) {
             if (WEManager.IMP.delay(player, message)) {
                 e.setCancelled(true);
                 return true;
             }
         }
-        if (other.contains(reduced)) {
+        if (this.other.contains(reduced)) {
             if (WEManager.IMP.delay(player, message)) {
                 e.setCancelled(true);
                 return true;

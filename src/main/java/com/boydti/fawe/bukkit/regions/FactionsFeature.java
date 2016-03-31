@@ -15,19 +15,19 @@ import com.massivecraft.massivecore.ps.PS;
 public class FactionsFeature extends BukkitMaskManager implements Listener {
     FaweBukkit plugin;
     Plugin factions;
-    
+
     public FactionsFeature(final Plugin factionsPlugin, final FaweBukkit p3) {
         super(factionsPlugin.getName());
-        factions = factionsPlugin;
-        plugin = p3;
+        this.factions = factionsPlugin;
+        this.plugin = p3;
         BoardColl.get();
     }
-    
+
     @Override
     public FaweMask getMask(final FawePlayer<Player> fp) {
         final Player player = fp.parent;
         final Location loc = player.getLocation();
-        PS ps = PS.valueOf(loc);
+        final PS ps = PS.valueOf(loc);
         final Faction fac = BoardColl.get().getFactionAt(ps);
         if (fac != null) {
             if (fac.getOnlinePlayers().contains(player)) {

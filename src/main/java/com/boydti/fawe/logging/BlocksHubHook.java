@@ -15,10 +15,10 @@ public class BlocksHubHook {
 
     public BlocksHubHook() {
         this.hub = (BlocksHub) Bukkit.getServer().getPluginManager().getPlugin("BlocksHub");
-        this.api = hub.getApi();
+        this.api = this.hub.getApi();
     }
-    
-    public Extent getLoggingExtent(Extent parent, ChangeSet set, FawePlayer<?> player) {
-        return new LoggingExtent(parent, set, (FawePlayer<Player>) player, api);
+
+    public Extent getLoggingExtent(final Extent parent, final ChangeSet set, final FawePlayer<?> player) {
+        return new LoggingExtent(parent, set, (FawePlayer<Player>) player, this.api);
     }
 }

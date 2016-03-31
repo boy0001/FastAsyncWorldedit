@@ -9,55 +9,55 @@ import org.bukkit.plugin.Plugin;
 import com.boydti.fawe.util.TaskManager;
 
 public class BukkitTaskMan extends TaskManager {
-    
+
     private final Plugin plugin;
-    
-    public BukkitTaskMan(Plugin plugin) {
+
+    public BukkitTaskMan(final Plugin plugin) {
         this.plugin = plugin;
     }
 
     @Override
     public int repeat(final Runnable r, final int interval) {
-        return plugin.getServer().getScheduler().scheduleSyncRepeatingTask(plugin, r, interval, interval);
+        return this.plugin.getServer().getScheduler().scheduleSyncRepeatingTask(this.plugin, r, interval, interval);
     }
-    
+
     @Override
     public int repeatAsync(final Runnable r, final int interval) {
-        return plugin.getServer().getScheduler().scheduleAsyncRepeatingTask(plugin, r, interval, interval);
+        return this.plugin.getServer().getScheduler().scheduleAsyncRepeatingTask(this.plugin, r, interval, interval);
     }
-    
+
     public MutableInt index = new MutableInt(0);
     public HashMap<Integer, Integer> tasks = new HashMap<>();
-    
+
     @Override
     public void async(final Runnable r) {
         if (r == null) {
             return;
         }
-        plugin.getServer().getScheduler().runTaskAsynchronously(plugin, r).getTaskId();
+        this.plugin.getServer().getScheduler().runTaskAsynchronously(this.plugin, r).getTaskId();
     }
-    
+
     @Override
     public void task(final Runnable r) {
         if (r == null) {
             return;
         }
-        plugin.getServer().getScheduler().runTask(plugin, r).getTaskId();
+        this.plugin.getServer().getScheduler().runTask(this.plugin, r).getTaskId();
     }
-    
+
     @Override
     public void later(final Runnable r, final int delay) {
         if (r == null) {
             return;
         }
-        plugin.getServer().getScheduler().runTaskLater(plugin, r, delay).getTaskId();
+        this.plugin.getServer().getScheduler().runTaskLater(this.plugin, r, delay).getTaskId();
     }
-    
+
     @Override
     public void laterAsync(final Runnable r, final int delay) {
-        plugin.getServer().getScheduler().runTaskLaterAsynchronously(plugin, r, delay);
+        this.plugin.getServer().getScheduler().runTaskLaterAsynchronously(this.plugin, r, delay);
     }
-    
+
     @Override
     public void cancel(final int task) {
         if (task != -1) {

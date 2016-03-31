@@ -17,7 +17,7 @@ public class Lag implements Runnable {
      */
     @SuppressWarnings("unused")
     public static long LT = 0L;
-    
+
     /**
      * Get the server TPS
      *
@@ -26,7 +26,7 @@ public class Lag implements Runnable {
     public static double getTPS() {
         return Math.round(getTPS(100)) > 20.0D ? 20.0D : Math.round(getTPS(100));
     }
-    
+
     /**
      * Return the tick per second (measured in $ticks)
      *
@@ -42,7 +42,7 @@ public class Lag implements Runnable {
         final long e = System.currentTimeMillis() - T[t];
         return ticks / (e / 1000.0D);
     }
-    
+
     /**
      * Get number of ticks since
      *
@@ -54,7 +54,7 @@ public class Lag implements Runnable {
         final long t = T[tI % T.length];
         return System.currentTimeMillis() - t;
     }
-    
+
     /**
      * Get lag percentage
      *
@@ -63,7 +63,7 @@ public class Lag implements Runnable {
     public static double getPercentage() {
         return Math.round((1.0D - (Lag.getTPS() / 20.0D)) * 100.0D);
     }
-    
+
     /**
      * Get TPS percentage (of 20)
      *
@@ -72,7 +72,7 @@ public class Lag implements Runnable {
     public static double getFullPercentage() {
         return getTPS() * 5.0D;
     }
-    
+
     @Override
     public void run() {
         T[TC % T.length] = System.currentTimeMillis();

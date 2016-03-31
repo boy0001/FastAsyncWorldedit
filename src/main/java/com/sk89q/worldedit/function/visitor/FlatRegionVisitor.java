@@ -35,11 +35,11 @@ import com.sk89q.worldedit.regions.FlatRegion;
  * Applies region functions to columns in a {@link FlatRegion}.
  */
 public class FlatRegionVisitor implements Operation {
-    
+
     private final FlatRegionFunction function;
     private final int affected = 0;
     private final Iterable<Vector2D> iterator;
-    
+
     /**
      * Create a new visitor.
      *
@@ -50,36 +50,36 @@ public class FlatRegionVisitor implements Operation {
         checkNotNull(flatRegion);
         checkNotNull(function);
         this.function = function;
-        iterator = flatRegion.asFlatRegion();
+        this.iterator = flatRegion.asFlatRegion();
     }
-    
+
     /**
      * Get the number of affected objects.
      *
      * @return the number of affected
      */
     public int getAffected() {
-        return affected;
+        return this.affected;
     }
-    
+
     @Override
     public Operation resume(final RunContext run) throws WorldEditException {
-        for (final Vector2D pt : iterator) {
-            function.apply(pt);
+        for (final Vector2D pt : this.iterator) {
+            this.function.apply(pt);
         }
         return null;
     }
-    
+
     @Override
     public void cancel() {}
-    
+
     @Override
-    public void addStatusMessages(List<String> messages) {
-        messages.add(getAffected() + " columns affected");
+    public void addStatusMessages(final List<String> messages) {
+        messages.add(this.getAffected() + " columns affected");
     }
 
     public static Class<?> inject() {
         return Operations.class;
     }
-    
+
 }

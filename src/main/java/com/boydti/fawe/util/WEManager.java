@@ -14,11 +14,11 @@ import com.sk89q.worldedit.extent.AbstractDelegateExtent;
 import com.sk89q.worldedit.extent.Extent;
 
 public class WEManager {
-    
+
     public final static WEManager IMP = new WEManager();
-    
+
     public final ArrayDeque<FaweMaskManager> managers = new ArrayDeque<>();
-    
+
     public void cancelEdit(Extent parent) {
         try {
             final Field field = AbstractDelegateExtent.class.getDeclaredField("extent");
@@ -29,7 +29,7 @@ public class WEManager {
         }
         parent = null;
     }
-    
+
     public boolean maskContains(final HashSet<RegionWrapper> mask, final int x, final int z) {
         for (final RegionWrapper region : mask) {
             if ((x >= region.minX) && (x <= region.maxX) && (z >= region.minZ) && (z <= region.maxZ)) {
@@ -38,14 +38,14 @@ public class WEManager {
         }
         return false;
     }
-    
+
     public HashSet<RegionWrapper> getMask(final FawePlayer<?> player) {
         final HashSet<RegionWrapper> regions = new HashSet<>();
         if (player.hasPermission("fawe.bypass")) {
             regions.add(new RegionWrapper(Integer.MIN_VALUE, Integer.MAX_VALUE, Integer.MIN_VALUE, Integer.MAX_VALUE));
             return regions;
         }
-        for (final FaweMaskManager manager : managers) {
+        for (final FaweMaskManager manager : this.managers) {
             if (player.hasPermission("fawe." + manager.getKey())) {
                 final FaweMask mask = manager.getMask(player);
                 if (mask != null) {
@@ -55,23 +55,23 @@ public class WEManager {
         }
         return regions;
     }
-    
+
     public boolean intersects(final RegionWrapper region1, final RegionWrapper region2) {
         return (region1.minX <= region2.maxX) && (region1.maxX >= region2.minX) && (region1.minZ <= region2.maxZ) && (region1.maxZ >= region2.minZ);
     }
-    
+
     public boolean regionContains(final RegionWrapper selection, final HashSet<RegionWrapper> mask) {
         for (final RegionWrapper region : mask) {
-            if (intersects(region, selection)) {
+            if (this.intersects(region, selection)) {
                 return true;
             }
         }
         return false;
     }
-    
+
     public boolean delay(final FawePlayer<?> player, final String command) {
         final long start = System.currentTimeMillis();
-        return delay(player, new Runnable() {
+        return this.delay(player, new Runnable() {
             @Override
             public void run() {
                 try {
@@ -104,7 +104,7 @@ public class WEManager {
             }
         }, false, false);
     }
-    
+
     public boolean delay(final FawePlayer<?> player, final Runnable whenDone, final boolean delayed, final boolean onlyDelayedExecution) {
         final boolean free = SetQueue.IMP.addTask(null);
         if (free) {

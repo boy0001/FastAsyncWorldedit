@@ -36,9 +36,9 @@ import com.sk89q.worldedit.function.operation.Operations;
  * <p>This is used by {@code //fill}.</p>
  */
 public class DownwardVisitor extends RecursiveVisitor {
-    
+
     private final int baseY;
-    
+
     /**
      * Create a new visitor.
      *
@@ -49,10 +49,10 @@ public class DownwardVisitor extends RecursiveVisitor {
     public DownwardVisitor(final Mask mask, final RegionFunction function, final int baseY) {
         super(mask, function);
         checkNotNull(mask);
-        
+
         this.baseY = baseY;
-        
-        final Collection<Vector> directions = getDirections();
+
+        final Collection<Vector> directions = this.getDirections();
         directions.clear();
         directions.add(new Vector(1, 0, 0));
         directions.add(new Vector(-1, 0, 0));
@@ -60,13 +60,13 @@ public class DownwardVisitor extends RecursiveVisitor {
         directions.add(new Vector(0, 0, -1));
         directions.add(new Vector(0, -1, 0));
     }
-    
+
     @Override
     protected boolean isVisitable(final Vector from, final Vector to) {
         final int fromY = from.getBlockY();
-        return ((fromY == baseY) || (to.subtract(from).getBlockY() < 0)) && super.isVisitable(from, to);
+        return ((fromY == this.baseY) || (to.subtract(from).getBlockY() < 0)) && super.isVisitable(from, to);
     }
-    
+
     public static Class<?> inject() {
         return Operations.class;
     }

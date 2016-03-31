@@ -8,24 +8,24 @@ import com.sk89q.worldedit.extent.Extent;
 import com.sk89q.worldedit.history.changeset.ChangeSet;
 
 public class BukkitEditSessionWrapper_0 extends EditSessionWrapper {
-    
+
     private BlocksHubHook hook;
 
-    public BukkitEditSessionWrapper_0(EditSession session) {
+    public BukkitEditSessionWrapper_0(final EditSession session) {
         super(session);
         try {
             this.hook = new BlocksHubHook();
-        } catch (Throwable e) {
-            
+        } catch (final Throwable e) {
+
         }
     }
-    
+
     @Override
-    public Extent getHistoryExtent(Extent parent, ChangeSet set, FawePlayer<?> player) {
-        if (hook != null) {
-            return hook.getLoggingExtent(parent, set, player);
+    public Extent getHistoryExtent(final Extent parent, final ChangeSet set, final FawePlayer<?> player) {
+        if (this.hook != null) {
+            return this.hook.getLoggingExtent(parent, set, player);
         }
         return super.getHistoryExtent(parent, set, player);
     }
-    
+
 }

@@ -30,28 +30,28 @@ import com.boydti.fawe.object.ChunkLoc;
 
 public class FaweGenerator_1_8 extends ChunkGenerator implements Listener {
     private boolean events;
-    
+
     private final ChunkGenerator parent;
     private final List<BlockPopulator> pops;
     private final Object provider;
-    
+
     private short[][] ids;
     private byte[][] data;
     private Map<?, ?> tiles;
     private List<?>[] entities;
     private Biome[][] biomes;
-    
+
     private final World world;
-    
+
     private final BukkitQueue_1_8 queue;
-    
+
     private void registerEvents() {
-        if (events) {
+        if (this.events) {
             return;
         }
         Bukkit.getPluginManager().registerEvents(this, Fawe.<FaweBukkit> imp());
     }
-    
+
     @EventHandler
     private void onPopulate(final ChunkPopulateEvent event) {
         final World world = event.getWorld();
@@ -62,20 +62,20 @@ public class FaweGenerator_1_8 extends ChunkGenerator implements Listener {
                 return;
             }
             fawe.populate(event.getChunk());
-            decouple((FaweGenerator_1_8) gen, world);
+            this.decouple((FaweGenerator_1_8) gen, world);
         }
     }
-    
+
     public void setBlock(final short[][] result, final int x, final int y, final int z, final short blkid) {
         if (result[FaweCache.CACHE_I[y][x][z]] == null) {
             result[FaweCache.CACHE_I[y][x][z]] = new short[4096];
         }
         result[FaweCache.CACHE_I[y][x][z]][FaweCache.CACHE_J[y][x][z]] = blkid;
     }
-    
+
     public void setBlock(final short[][] result, final int x, final int y, final int z, final short[] blkid) {
         if (blkid.length == 1) {
-            setBlock(result, x, y, z, blkid[0]);
+            this.setBlock(result, x, y, z, blkid[0]);
         }
         final short id = blkid[FaweCache.RANDOM.random(blkid.length)];
         if (result[FaweCache.CACHE_I[y][x][z]] == null) {
@@ -83,16 +83,16 @@ public class FaweGenerator_1_8 extends ChunkGenerator implements Listener {
         }
         result[FaweCache.CACHE_I[y][x][z]][FaweCache.CACHE_J[y][x][z]] = id;
     }
-    
+
     public void setBlocks(final short[][] ids, final byte[][] data, final int x, final int z) {
         this.ids = ids;
         this.data = data == null ? new byte[16][] : data;
-        if (parent == null) {
-            inject(this, world);
+        if (this.parent == null) {
+            this.inject(this, this.world);
         }
-        world.regenerateChunk(x, z);
+        this.world.regenerateChunk(x, z);
     }
-    
+
     /**
      * Regenerate chunk with the provided id / data / block count<br>
      *  - You can provide null for datas / count but it will be marginally slower
@@ -111,7 +111,7 @@ public class FaweGenerator_1_8 extends ChunkGenerator implements Listener {
         }
         final int x = chunk.getX();
         final int z = chunk.getZ();
-        
+
         boolean skip = true;
         for (int i = 0; i < 16; i++) {
             if (count[i] < 4096) {
@@ -119,18 +119,18 @@ public class FaweGenerator_1_8 extends ChunkGenerator implements Listener {
                 break;
             }
         }
-        
+
         if (!skip) {
             try {
                 chunk.load(true);
-                biomes = new Biome[16][16];
+                this.biomes = new Biome[16][16];
                 final int X = x << 4;
                 final int Z = z << 4;
                 for (int xx = 0; xx < 16; xx++) {
                     final int xxx = X + x;
                     for (int zz = 0; zz < 16; zz++) {
                         final int zzz = Z + zz;
-                        biomes[xx][zz] = world.getBiome(xxx, zzz);
+                        this.biomes[xx][zz] = this.world.getBiome(xxx, zzz);
                     }
                 }
                 final Method getHandele = chunk.getClass().getDeclaredMethod("getHandle");
@@ -140,15 +140,15 @@ public class FaweGenerator_1_8 extends ChunkGenerator implements Listener {
                 sf.setAccessible(true);
                 final Field tf = clazz.getDeclaredField("tileEntities");
                 final Field ef = clazz.getDeclaredField("entitySlices");
-                
+
                 final Object[] sections = (Object[]) sf.get(c);
                 final HashMap<?, ?> tiles = (HashMap<?, ?>) tf.get(c);
                 final List<?>[] entities = (List<?>[]) ef.get(c);
-                
+
                 Method xm = null;
                 Method ym = null;
                 Method zm = null;
-                
+
                 // Copy entities / blockstates
                 final Set<Entry<?, ?>> entryset = (Set<Entry<?, ?>>) (Set<?>) tiles.entrySet();
                 final Iterator<Entry<?, ?>> iter = entryset.iterator();
@@ -173,7 +173,7 @@ public class FaweGenerator_1_8 extends ChunkGenerator implements Listener {
                         iter.remove();
                     }
                 }
-                
+
                 this.tiles = tiles;
                 // Trim entities
                 for (int i = 0; i < 16; i++) {
@@ -182,7 +182,7 @@ public class FaweGenerator_1_8 extends ChunkGenerator implements Listener {
                     }
                 }
                 this.entities = entities;
-                
+
                 // Efficiently merge sections
                 Method getIdArray = null;
                 for (int j = 0; j < sections.length; j++) {
@@ -315,7 +315,7 @@ public class FaweGenerator_1_8 extends ChunkGenerator implements Listener {
                         datas[j][k] = db;
                     }
                 }
-                
+
             } catch (final Throwable e) {
                 e.printStackTrace();
                 return;
@@ -323,19 +323,19 @@ public class FaweGenerator_1_8 extends ChunkGenerator implements Listener {
         }
         // Execute
         this.ids = ids;
-        data = datas;
-        if (parent == null) {
-            inject(this, world);
+        this.data = datas;
+        if (this.parent == null) {
+            this.inject(this, this.world);
         }
-        world.regenerateChunk(x, z);
+        this.world.regenerateChunk(x, z);
     }
-    
+
     public void inject(final FaweGenerator_1_8 gen, final World world) {
-        queue.setGenerator(world, gen);
-        queue.setPopulator(world, new ArrayList<BlockPopulator>());
-        queue.setProvider(world, null);
+        this.queue.setGenerator(world, gen);
+        this.queue.setPopulator(world, new ArrayList<BlockPopulator>());
+        this.queue.setProvider(world, null);
     }
-    
+
     public void decouple(final FaweGenerator_1_8 gen, final World world) {
         gen.data = null;
         gen.ids = null;
@@ -343,32 +343,32 @@ public class FaweGenerator_1_8 extends ChunkGenerator implements Listener {
         gen.entities = null;
         gen.biomes = null;
         if (gen.parent == null) {
-            queue.setGenerator(world, gen.parent);
-            queue.setPopulator(world, gen.pops);
+            this.queue.setGenerator(world, gen.parent);
+            this.queue.setPopulator(world, gen.pops);
             if (gen.provider != null) {
-                queue.setProvider(world, gen.provider);
+                this.queue.setProvider(world, gen.provider);
             }
         }
     }
-    
+
     public FaweGenerator_1_8(final BukkitQueue_1_8 queue, final World world) {
         this.queue = queue;
         this.world = world;
-        parent = world.getGenerator();
-        pops = world.getPopulators();
-        if (parent == null) {
-            provider = queue.getProvider(world);
+        this.parent = world.getGenerator();
+        this.pops = world.getPopulators();
+        if (this.parent == null) {
+            this.provider = queue.getProvider(world);
         } else {
-            provider = null;
+            this.provider = null;
         }
-        registerEvents();
+        this.registerEvents();
     }
-    
+
     @Override
     public short[][] generateExtBlockSections(final World world, final Random random, final int x, final int z, final BiomeGrid biomes) {
         short[][] result;
-        if (ids != null) {
-            result = ids;
+        if (this.ids != null) {
+            result = this.ids;
             if ((biomes != null) && (this.biomes != null)) {
                 for (int i = 0; i < 16; i++) {
                     for (int j = 0; j < 16; j++) {
@@ -376,17 +376,17 @@ public class FaweGenerator_1_8 extends ChunkGenerator implements Listener {
                     }
                 }
             }
-        } else if (parent != null) {
-            result = parent.generateExtBlockSections(world, random, x, z, biomes);
+        } else if (this.parent != null) {
+            result = this.parent.generateExtBlockSections(world, random, x, z, biomes);
         } else {
             result = null;
         }
         return result;
     }
-    
+
     public void populate(final Chunk chunk) {
-        for (int i = 0; i < data.length; i++) {
-            final byte[] section = data[i];
+        for (int i = 0; i < this.data.length; i++) {
+            final byte[] section = this.data[i];
             if (section == null) {
                 continue;
             }
@@ -401,54 +401,54 @@ public class FaweGenerator_1_8 extends ChunkGenerator implements Listener {
                 chunk.getBlock(x, y, z).setData(v != -1 ? v : 0, false);
             }
         }
-        if ((tiles != null) || (entities != null)) {
-            queue.setEntitiesAndTiles(chunk, entities, tiles);
+        if ((this.tiles != null) || (this.entities != null)) {
+            this.queue.setEntitiesAndTiles(chunk, this.entities, this.tiles);
         }
         final BukkitChunk_1_8 fc = new BukkitChunk_1_8(new ChunkLoc(chunk.getWorld().getName(), chunk.getX(), chunk.getZ()));
         fc.chunk = chunk;
-        queue.fixLighting(fc, Settings.FIX_ALL_LIGHTING);
+        this.queue.fixLighting(fc, Settings.FIX_ALL_LIGHTING);
     }
-    
+
     @Override
     public byte[] generate(final World world, final Random random, final int x, final int z) {
-        if (ids == null) {
+        if (this.ids == null) {
             try {
-                parent.generate(world, random, x, z);
+                this.parent.generate(world, random, x, z);
             } catch (final Throwable e) {
                 return null;
             }
         }
         return null;
     }
-    
+
     @Override
     public byte[][] generateBlockSections(final World world, final Random random, final int x, final int z, final BiomeGrid biomes) {
-        if ((ids == null) && (parent != null)) {
-            return parent.generateBlockSections(world, random, x, z, biomes);
+        if ((this.ids == null) && (this.parent != null)) {
+            return this.parent.generateBlockSections(world, random, x, z, biomes);
         }
         return null;
     }
-    
+
     @Override
     public boolean canSpawn(final World world, final int x, final int z) {
-        if (parent != null) {
-            return parent.canSpawn(world, x, z);
+        if (this.parent != null) {
+            return this.parent.canSpawn(world, x, z);
         }
         return true;
     }
-    
+
     @Override
     public List<BlockPopulator> getDefaultPopulators(final World world) {
-        if ((ids == null) && (parent != null)) {
-            return parent.getDefaultPopulators(world);
+        if ((this.ids == null) && (this.parent != null)) {
+            return this.parent.getDefaultPopulators(world);
         }
         return null;
     }
-    
+
     @Override
     public Location getFixedSpawnLocation(final World world, final Random random) {
-        if ((ids == null) && (parent != null)) {
-            return parent.getFixedSpawnLocation(world, random);
+        if ((this.ids == null) && (this.parent != null)) {
+            return this.parent.getFixedSpawnLocation(world, random);
         }
         return null;
     }

@@ -49,13 +49,13 @@ import com.sk89q.worldedit.function.operation.RunContext;
  * those points.</p>
  */
 public abstract class BreadthFirstSearch implements Operation {
-    
+
     private final RegionFunction function;
     private final Queue<BlockVector> queue = new ArrayDeque<BlockVector>();
     private final Set<BlockVector> visited = new HashSet<BlockVector>();
     private final List<Vector> directions = new ArrayList<Vector>();
     private int affected = 0;
-    
+
     /**
      * Create a new instance.
      *
@@ -64,9 +64,9 @@ public abstract class BreadthFirstSearch implements Operation {
     protected BreadthFirstSearch(final RegionFunction function) {
         checkNotNull(function);
         this.function = function;
-        addAxes();
+        this.addAxes();
     }
-    
+
     /**
      * Get the list of directions will be visited.
      *
@@ -80,31 +80,31 @@ public abstract class BreadthFirstSearch implements Operation {
      * @return the list of directions
      */
     protected Collection<Vector> getDirections() {
-        return directions;
+        return this.directions;
     }
-    
+
     /**
      * Add the directions along the axes as directions to visit.
      */
     protected void addAxes() {
-        directions.add(new Vector(0, -1, 0));
-        directions.add(new Vector(0, 1, 0));
-        directions.add(new Vector(-1, 0, 0));
-        directions.add(new Vector(1, 0, 0));
-        directions.add(new Vector(0, 0, -1));
-        directions.add(new Vector(0, 0, 1));
+        this.directions.add(new Vector(0, -1, 0));
+        this.directions.add(new Vector(0, 1, 0));
+        this.directions.add(new Vector(-1, 0, 0));
+        this.directions.add(new Vector(1, 0, 0));
+        this.directions.add(new Vector(0, 0, -1));
+        this.directions.add(new Vector(0, 0, 1));
     }
-    
+
     /**
      * Add the diagonal directions as directions to visit.
      */
     protected void addDiagonal() {
-        directions.add(new Vector(1, 0, 1));
-        directions.add(new Vector(-1, 0, -1));
-        directions.add(new Vector(1, 0, -1));
-        directions.add(new Vector(-1, 0, 1));
+        this.directions.add(new Vector(1, 0, 1));
+        this.directions.add(new Vector(-1, 0, -1));
+        this.directions.add(new Vector(1, 0, -1));
+        this.directions.add(new Vector(-1, 0, 1));
     }
-    
+
     /**
      * Add the given location to the list of locations to visit, provided
      * that it has not been visited. The position passed to this method
@@ -121,12 +121,12 @@ public abstract class BreadthFirstSearch implements Operation {
      */
     public void visit(final Vector position) {
         final BlockVector blockVector = position.toBlockVector();
-        if (!visited.contains(blockVector)) {
-            queue.add(blockVector);
-            visited.add(blockVector);
+        if (!this.visited.contains(blockVector)) {
+            this.queue.add(blockVector);
+            this.visited.add(blockVector);
         }
     }
-    
+
     /**
      * Try to visit the given 'to' location.
      *
@@ -135,14 +135,14 @@ public abstract class BreadthFirstSearch implements Operation {
      */
     private void visit(final Vector from, final Vector to) {
         final BlockVector blockVector = to.toBlockVector();
-        if (!visited.contains(blockVector)) {
-            visited.add(blockVector);
-            if (isVisitable(from, to)) {
-                queue.add(blockVector);
+        if (!this.visited.contains(blockVector)) {
+            this.visited.add(blockVector);
+            if (this.isVisitable(from, to)) {
+                this.queue.add(blockVector);
             }
         }
     }
-    
+
     /**
      * Return whether the given 'to' block should be visited, starting from the
      * 'from' block.
@@ -152,40 +152,40 @@ public abstract class BreadthFirstSearch implements Operation {
      * @return true if the 'to' block should be visited
      */
     protected abstract boolean isVisitable(final Vector from, final Vector to);
-    
+
     /**
      * Get the number of affected objects.
      *
      * @return the number of affected
      */
     public int getAffected() {
-        return affected;
+        return this.affected;
     }
-    
+
     @Override
     public Operation resume(final RunContext run) throws WorldEditException {
         Vector position;
-        while ((position = queue.poll()) != null) {
-            if (function.apply(position)) {
-                affected++;
+        while ((position = this.queue.poll()) != null) {
+            if (this.function.apply(position)) {
+                this.affected++;
             }
-            
-            for (final Vector dir : directions) {
-                visit(position, position.add(dir));
+
+            for (final Vector dir : this.directions) {
+                this.visit(position, position.add(dir));
             }
         }
         return null;
     }
-    
+
     @Override
     public void cancel() {}
-    
+
     public static Class<?> inject() {
         return Operations.class;
     }
-    
+
     @Override
-    public void addStatusMessages(List<String> messages) {
-        messages.add(getAffected() + " blocks affected");
+    public void addStatusMessages(final List<String> messages) {
+        messages.add(this.getAffected() + " blocks affected");
     }
 }

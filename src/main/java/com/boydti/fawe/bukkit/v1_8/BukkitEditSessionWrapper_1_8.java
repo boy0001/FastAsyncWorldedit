@@ -13,50 +13,50 @@ import com.sk89q.worldedit.Vector;
 import com.sk89q.worldedit.blocks.BlockType;
 
 public class BukkitEditSessionWrapper_1_8 extends BukkitEditSessionWrapper_0 {
-    
+
     private final RefClass classCraftWorld = getRefClass("{cb}.CraftWorld");
     private final RefClass classChunk = getRefClass("{nms}.Chunk");
     private final RefClass classWorld = getRefClass("{nms}.World");
-    
+
     private RefMethod worldGetHandle;
     private RefMethod methodGetChunkAt;
     private RefField heightMap;
     private Object nmsWorld;
-    
+
     private int lastXMin;
     private int lastZMin;
     private Object lastChunk;
-    
+
     public BukkitEditSessionWrapper_1_8(final EditSession session) {
         super(session);
         try {
-            worldGetHandle = classCraftWorld.getMethod("getHandle");
-            methodGetChunkAt = classWorld.getMethod("getChunkAt", int.class, int.class);
-            heightMap = classChunk.getField("heightMap");
-            nmsWorld = worldGetHandle.of(Bukkit.getWorld(session.getWorld().getName())).call();
+            this.worldGetHandle = this.classCraftWorld.getMethod("getHandle");
+            this.methodGetChunkAt = this.classWorld.getMethod("getChunkAt", int.class, int.class);
+            this.heightMap = this.classChunk.getField("heightMap");
+            this.nmsWorld = this.worldGetHandle.of(Bukkit.getWorld(session.getWorld().getName())).call();
         } catch (final Exception e) {
             e.printStackTrace();
         }
     }
-    
+
     @Override
     public int getHighestTerrainBlock(final int x, final int z, final int minY, final int maxY, final boolean naturalOnly) {
         final int bx = x >> 4;
         final int bz = z >> 4;
         int[] heights;
-        if ((lastChunk == null) || (bx != lastXMin) || (bz != lastZMin)) {
-            lastXMin = bx;
-            lastZMin = bz;
-            lastChunk = methodGetChunkAt.of(nmsWorld).call(bx, bz);
+        if ((this.lastChunk == null) || (bx != this.lastXMin) || (bz != this.lastZMin)) {
+            this.lastXMin = bx;
+            this.lastZMin = bz;
+            this.lastChunk = this.methodGetChunkAt.of(this.nmsWorld).call(bx, bz);
         }
-        if (lastChunk != null) {
-            heights = (int[]) heightMap.of(lastChunk).get();
+        if (this.lastChunk != null) {
+            heights = (int[]) this.heightMap.of(this.lastChunk).get();
             final int lx = x & 15;
             final int lz = z & 15;
             final int height = heights[((lz << 4) | lx)];
             if ((height <= maxY) && (height >= minY)) {
                 final Vector pt = new Vector(x, height, z);
-                final int id = session.getBlockType(pt);
+                final int id = this.session.getBlockType(pt);
                 if (naturalOnly ? BlockType.isNaturalTerrainBlock(id, 0) : !BlockType.canPassThrough(id, 0)) {
                     return height;
                 }
@@ -64,7 +64,7 @@ public class BukkitEditSessionWrapper_1_8 extends BukkitEditSessionWrapper_0 {
         }
         for (int y = maxY; y >= minY; --y) {
             final Vector pt = new Vector(x, y, z);
-            final int id = session.getBlockType(pt);
+            final int id = this.session.getBlockType(pt);
             int data;
             switch (id) {
                 case 0: {
@@ -160,5 +160,5 @@ public class BukkitEditSessionWrapper_1_8 extends BukkitEditSessionWrapper_0 {
         }
         return minY;
     }
-    
+
 }

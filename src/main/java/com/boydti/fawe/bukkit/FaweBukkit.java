@@ -37,53 +37,53 @@ import com.sk89q.worldedit.EditSession;
 import com.sk89q.worldedit.bukkit.WorldEditPlugin;
 
 public class FaweBukkit extends JavaPlugin implements IFawe {
-    
+
     private VaultUtil vault;
     private WorldEditPlugin worldedit;
-    
+
     public VaultUtil getVault() {
-        return vault;
+        return this.vault;
     }
-    
+
     public WorldEditPlugin getWorldEditPlugin() {
-        if (worldedit == null) {
-            worldedit = (WorldEditPlugin) Bukkit.getPluginManager().getPlugin("WorldEdit");
+        if (this.worldedit == null) {
+            this.worldedit = (WorldEditPlugin) Bukkit.getPluginManager().getPlugin("WorldEdit");
         }
-        return worldedit;
+        return this.worldedit;
     }
-    
+
     @Override
     public void onEnable() {
         try {
             Fawe.set(this);
             try {
-                Class<?> clazz = Class.forName("org.spigotmc.AsyncCatcher");
-                Field field = clazz.getDeclaredField("enabled");
+                final Class<?> clazz = Class.forName("org.spigotmc.AsyncCatcher");
+                final Field field = clazz.getDeclaredField("enabled");
                 field.set(null, false);
-            } catch (Throwable e) {
+            } catch (final Throwable e) {
                 e.printStackTrace();
             }
-        } catch (Exception e) {
+        } catch (final Exception e) {
             e.printStackTrace();
-            getServer().shutdown();
+            this.getServer().shutdown();
         }
     }
-    
+
     @Override
     public void debug(final String s) {
-        getLogger().info(ChatColor.translateAlternateColorCodes('&', s));
+        this.getLogger().info(ChatColor.translateAlternateColorCodes('&', s));
     }
-    
+
     @Override
     public File getDirectory() {
-        return getDataFolder();
+        return this.getDataFolder();
     }
-    
+
     @Override
     public void setupCommand(final String label, final FaweCommand cmd) {
-        getCommand(label).setExecutor(new BukkitCommand(cmd));
+        this.getCommand(label).setExecutor(new BukkitCommand(cmd));
     }
-    
+
     @Override
     public FawePlayer<Player> wrap(final Object obj) {
         if (obj.getClass() == String.class) {
@@ -94,26 +94,26 @@ public class FaweBukkit extends JavaPlugin implements IFawe {
             return null;
         }
     }
-    
+
     @Override
     public void setupWEListener() {
-        getServer().getPluginManager().registerEvents(new WEListener(), this);
+        this.getServer().getPluginManager().registerEvents(new WEListener(), this);
     }
-    
+
     @Override
     public void setupVault() {
         try {
-            vault = new VaultUtil();
+            this.vault = new VaultUtil();
         } catch (final Throwable e) {
-            debug("&cPlease install vault!");
+            this.debug("&cPlease install vault!");
         }
     }
-    
+
     @Override
     public TaskManager getTaskManager() {
         return new BukkitTaskMan(this);
     }
-    
+
     @Override
     public int[] getVersion() {
         try {
@@ -127,51 +127,51 @@ public class FaweBukkit extends JavaPlugin implements IFawe {
             return version;
         } catch (final Exception e) {
             e.printStackTrace();
-            debug(StringMan.getString(Bukkit.getBukkitVersion()));
-            debug(StringMan.getString(Bukkit.getBukkitVersion().split("-")[0].split("\\.")));
+            this.debug(StringMan.getString(Bukkit.getBukkitVersion()));
+            this.debug(StringMan.getString(Bukkit.getBukkitVersion().split("-")[0].split("\\.")));
             return new int[] { Integer.MAX_VALUE, 0, 0 };
         }
     }
-    
+
     @Override
     public FaweQueue getQueue() {
-        if (FaweAPI.checkVersion(getServerVersion(), 1, 9, 0)) {
+        if (FaweAPI.checkVersion(this.getServerVersion(), 1, 9, 0)) {
             try {
                 return new BukkitQueue_1_9();
-            } catch (Throwable e) {
+            } catch (final Throwable e) {
                 e.printStackTrace();
             }
         }
         return new BukkitQueue_1_8();
     }
-    
+
     private int[] version;
 
     public int[] getServerVersion() {
-        if (version == null) {
+        if (this.version == null) {
             try {
-                version = new int[3];
+                this.version = new int[3];
                 final String[] split = Bukkit.getBukkitVersion().split("-")[0].split("\\.");
-                version[0] = Integer.parseInt(split[0]);
-                version[1] = Integer.parseInt(split[1]);
+                this.version[0] = Integer.parseInt(split[0]);
+                this.version[1] = Integer.parseInt(split[1]);
                 if (split.length == 3) {
-                    version[2] = Integer.parseInt(split[2]);
+                    this.version[2] = Integer.parseInt(split[2]);
                 }
-            } catch (NumberFormatException e) {
+            } catch (final NumberFormatException e) {
                 e.printStackTrace();
                 Fawe.debug(StringMan.getString(Bukkit.getBukkitVersion()));
                 Fawe.debug(StringMan.getString(Bukkit.getBukkitVersion().split("-")[0].split("\\.")));
                 return new int[] { Integer.MAX_VALUE, 0, 0 };
             }
         }
-        return version;
+        return this.version;
     }
 
     @Override
     public EditSessionWrapper getEditSessionWrapper(final EditSession session) {
         return new BukkitEditSessionWrapper_1_8(session);
     }
-    
+
     @Override
     public Collection<FaweMaskManager> getMaskManagers() {
         final Plugin worldguardPlugin = Bukkit.getServer().getPluginManager().getPlugin("WorldGuard");
@@ -180,7 +180,7 @@ public class FaweBukkit extends JavaPlugin implements IFawe {
             try {
                 managers.add(new Worldguard(worldguardPlugin, this));
                 Fawe.debug("Plugin 'WorldGuard' found. Using it now.");
-            } catch (Throwable e) {
+            } catch (final Throwable e) {
                 e.printStackTrace();
             }
         } else {
@@ -191,7 +191,7 @@ public class FaweBukkit extends JavaPlugin implements IFawe {
             try {
                 managers.add(new PlotMeFeature(plotmePlugin, this));
                 Fawe.debug("Plugin 'PlotMe' found. Using it now.");
-            } catch (Throwable e) {
+            } catch (final Throwable e) {
                 e.printStackTrace();
             }
         } else {
@@ -202,7 +202,7 @@ public class FaweBukkit extends JavaPlugin implements IFawe {
             try {
                 managers.add(new TownyFeature(townyPlugin, this));
                 Fawe.debug("Plugin 'Towny' found. Using it now.");
-            } catch (Throwable e) {
+            } catch (final Throwable e) {
                 e.printStackTrace();
             }
         } else {
@@ -225,7 +225,7 @@ public class FaweBukkit extends JavaPlugin implements IFawe {
             try {
                 managers.add(new ResidenceFeature(residencePlugin, this));
                 Fawe.debug("Plugin 'Residence' found. Using it now.");
-            } catch (Throwable e) {
+            } catch (final Throwable e) {
                 e.printStackTrace();
             }
         } else {
@@ -236,7 +236,7 @@ public class FaweBukkit extends JavaPlugin implements IFawe {
             try {
                 managers.add(new GriefPreventionFeature(griefpreventionPlugin, this));
                 Fawe.debug("Plugin 'GriefPrevention' found. Using it now.");
-            } catch (Throwable e) {
+            } catch (final Throwable e) {
                 e.printStackTrace();
             }
         } else {
@@ -247,7 +247,7 @@ public class FaweBukkit extends JavaPlugin implements IFawe {
             try {
                 managers.add(new PlotSquaredFeature(plotsquaredPlugin, this));
                 Fawe.debug("Plugin 'PlotSquared' found. Using it now.");
-            } catch (Throwable e) {
+            } catch (final Throwable e) {
                 e.printStackTrace();
             }
         } else {
@@ -258,7 +258,7 @@ public class FaweBukkit extends JavaPlugin implements IFawe {
             try {
                 managers.add(new PreciousStonesFeature(preciousstonesPlugin, this));
                 Fawe.debug("Plugin 'PreciousStones' found. Using it now.");
-            } catch (Throwable e) {
+            } catch (final Throwable e) {
                 e.printStackTrace();
             }
         } else {

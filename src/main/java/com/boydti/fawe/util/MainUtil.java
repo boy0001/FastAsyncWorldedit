@@ -20,7 +20,7 @@ public class MainUtil {
             player.sendMessage(message);
         }
     }
-    
+
     public static void sendAdmin(final String s) {
         for (final Player player : Bukkit.getOnlinePlayers()) {
             if (player.hasPermission("fawe.admin")) {

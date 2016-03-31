@@ -19,16 +19,16 @@ import com.sk89q.worldedit.world.World;
 import com.sk89q.worldedit.world.biome.BaseBiome;
 
 public class FastWorldEditExtent extends AbstractDelegateExtent {
-    
+
     private final String world;
     private final Thread thread;
-    
-    public FastWorldEditExtent(World world, Thread thread) {
+
+    public FastWorldEditExtent(final World world, final Thread thread) {
         super(world);
         this.thread = thread;
         this.world = world.getName();
     }
-    
+
     @Override
     public Entity createEntity(final Location location, final BaseEntity entity) {
         TaskManager.IMP.task(new Runnable() {
@@ -39,70 +39,70 @@ public class FastWorldEditExtent extends AbstractDelegateExtent {
         });
         return null;
     }
-    
+
     @Override
-    public BaseBiome getBiome(Vector2D position) {
-        if (!SetQueue.IMP.isChunkLoaded(world, position.getBlockX() >> 4, position.getBlockZ() >> 4)) {
+    public BaseBiome getBiome(final Vector2D position) {
+        if (!SetQueue.IMP.isChunkLoaded(this.world, position.getBlockX() >> 4, position.getBlockZ() >> 4)) {
             return EditSession.nullBiome;
         }
-        synchronized (thread) {
+        synchronized (this.thread) {
             return super.getBiome(position);
         }
     }
-    
+
     private BaseBlock lastBlock;
     private BlockVector lastVector;
 
     @Override
-    public BaseBlock getLazyBlock(Vector position) {
-        if (lastBlock != null && lastVector.equals(position.toBlockVector())) {
-            return lastBlock;
+    public BaseBlock getLazyBlock(final Vector position) {
+        if ((this.lastBlock != null) && this.lastVector.equals(position.toBlockVector())) {
+            return this.lastBlock;
         }
-        if (!SetQueue.IMP.isChunkLoaded(world, position.getBlockX() >> 4, position.getBlockZ() >> 4)) {
+        if (!SetQueue.IMP.isChunkLoaded(this.world, position.getBlockX() >> 4, position.getBlockZ() >> 4)) {
             try {
-                lastVector = position.toBlockVector();
-                return lastBlock = super.getBlock(position);
-            } catch (Throwable e) {
+                this.lastVector = position.toBlockVector();
+                return this.lastBlock = super.getBlock(position);
+            } catch (final Throwable e) {
                 return EditSession.nullBlock;
             }
         }
-        synchronized (thread) {
-            lastVector = position.toBlockVector();
-            return lastBlock = super.getBlock(position);
+        synchronized (this.thread) {
+            this.lastVector = position.toBlockVector();
+            return this.lastBlock = super.getBlock(position);
         }
     }
 
     @Override
     public List<? extends Entity> getEntities() {
-        synchronized (thread) {
+        synchronized (this.thread) {
             return super.getEntities();
         }
     }
-    
+
     @Override
-    public List<? extends Entity> getEntities(Region region) {
-        synchronized (thread) {
+    public List<? extends Entity> getEntities(final Region region) {
+        synchronized (this.thread) {
             return super.getEntities(region);
         }
     }
-    
+
     @Override
-    public BaseBlock getBlock(Vector position) {
-        return getLazyBlock(position);
+    public BaseBlock getBlock(final Vector position) {
+        return this.getLazyBlock(position);
     }
-    
+
     @Override
-    public boolean setBiome(Vector2D position, BaseBiome biome) {
-        SetQueue.IMP.setBiome(world, position.getBlockX(), position.getBlockZ(), biome);
+    public boolean setBiome(final Vector2D position, final BaseBiome biome) {
+        SetQueue.IMP.setBiome(this.world, position.getBlockX(), position.getBlockZ(), biome);
         return true;
     }
-    
+
     @Override
-    public boolean setBlock(Vector location, BaseBlock block) throws WorldEditException {
-        short id = (short) block.getId();
-        int x = location.getBlockX();
-        int y = location.getBlockY();
-        int z = location.getBlockZ();
+    public boolean setBlock(final Vector location, final BaseBlock block) throws WorldEditException {
+        final short id = (short) block.getId();
+        final int x = location.getBlockX();
+        final int y = location.getBlockY();
+        final int z = location.getBlockZ();
         switch (id) {
             case 0:
             case 2:
@@ -183,14 +183,14 @@ public class FastWorldEditExtent extends AbstractDelegateExtent {
             case 190:
             case 191:
             case 192: {
-                SetQueue.IMP.setBlock(world, x, y, z, id);
+                SetQueue.IMP.setBlock(this.world, x, y, z, id);
                 return true;
             }
             default: {
-                SetQueue.IMP.setBlock(world, x, y, z, id, (byte) block.getData());
+                SetQueue.IMP.setBlock(this.world, x, y, z, id, (byte) block.getData());
                 return true;
             }
         }
     }
-    
+
 }

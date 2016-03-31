@@ -40,9 +40,9 @@ import com.sk89q.worldedit.entity.Player;
  * Commands related to scripting.
  */
 public class ScriptingCommands {
-    
+
     private final WorldEdit worldEdit;
-    
+
     /**
      * Create a new instance.
      *
@@ -52,23 +52,23 @@ public class ScriptingCommands {
         checkNotNull(worldEdit);
         this.worldEdit = worldEdit;
     }
-    
+
     @Command(aliases = { "cs" }, usage = "<filename> [args...]", desc = "Execute a CraftScript", min = 1, max = -1)
     @CommandPermissions("worldedit.scripting.execute")
     @Logging(ALL)
     public void execute(final Player player, final LocalSession session, final EditSession editSession, final CommandContext args) throws WorldEditException {
         final String[] scriptArgs = args.getSlice(1);
         final String name = args.getString(0);
-        
+
         if (!player.hasPermission("worldedit.scripting.execute." + name)) {
             player.printError("You don't have permission to use that script.");
             return;
         }
-        
+
         session.setLastScript(name);
-        
-        final File dir = worldEdit.getWorkingDirectoryFile(worldEdit.getConfiguration().scriptsDir);
-        final File f = worldEdit.getSafeOpenFile(player, dir, name, "js", "js");
+
+        final File dir = this.worldEdit.getWorkingDirectoryFile(this.worldEdit.getConfiguration().scriptsDir);
+        final File f = this.worldEdit.getSafeOpenFile(player, dir, name, "js", "js");
         SetQueue.IMP.addTask(new Runnable() {
             @Override
             public void run() {
@@ -76,7 +76,7 @@ public class ScriptingCommands {
                     @Override
                     public void run() {
                         try {
-                            worldEdit.runScript(player, f, scriptArgs);
+                            ScriptingCommands.this.worldEdit.runScript(player, f, scriptArgs);
                         } catch (final WorldEditException ex) {
                             player.printError("Error while executing CraftScript.");
                         }
@@ -85,28 +85,28 @@ public class ScriptingCommands {
             }
         });
     }
-    
+
     @Command(aliases = { ".s" }, usage = "[args...]", desc = "Execute last CraftScript", min = 0, max = -1)
     @CommandPermissions("worldedit.scripting.execute")
     @Logging(ALL)
     public void executeLast(final Player player, final LocalSession session, final EditSession editSession, final CommandContext args) throws WorldEditException {
         final String lastScript = session.getLastScript();
-        
+
         if (!player.hasPermission("worldedit.scripting.execute." + lastScript)) {
             player.printError("You don't have permission to use that script.");
             return;
         }
-        
+
         if (lastScript == null) {
             player.printError("Use /cs with a script name first.");
             return;
         }
-        
+
         final String[] scriptArgs = args.getSlice(0);
-        
-        final File dir = worldEdit.getWorkingDirectoryFile(worldEdit.getConfiguration().scriptsDir);
-        final File f = worldEdit.getSafeOpenFile(player, dir, lastScript, "js", "js");
-        
+
+        final File dir = this.worldEdit.getWorkingDirectoryFile(this.worldEdit.getConfiguration().scriptsDir);
+        final File f = this.worldEdit.getSafeOpenFile(player, dir, lastScript, "js", "js");
+
         SetQueue.IMP.addTask(new Runnable() {
             @Override
             public void run() {
@@ -114,7 +114,7 @@ public class ScriptingCommands {
                     @Override
                     public void run() {
                         try {
-                            worldEdit.runScript(player, f, scriptArgs);
+                            ScriptingCommands.this.worldEdit.runScript(player, f, scriptArgs);
                         } catch (final WorldEditException ex) {
                             player.printError("Error while executing CraftScript.");
                         }
@@ -123,7 +123,7 @@ public class ScriptingCommands {
             }
         });
     }
-    
+
     public static Class<?> inject() {
         return ScriptingCommands.class;
     }

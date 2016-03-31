@@ -28,9 +28,9 @@ import com.sk89q.worldedit.WorldEditException;
  * Operation helper methods.
  */
 public final class Operations {
-    
+
     private Operations() {}
-    
+
     /**
      * Complete a given operation synchronously until it completes.
      *
@@ -42,7 +42,7 @@ public final class Operations {
             operation = operation.resume(new RunContext());
         }
     }
-    
+
     /**
      * Complete a given operation synchronously until it completes. Catch all
      * errors that is not {@link MaxChangedBlocksException} for legacy reasons.
@@ -59,7 +59,7 @@ public final class Operations {
             e.printStackTrace();
         }
     }
-    
+
     /**
      * Complete a given operation synchronously until it completes. Re-throw all
      * {@link com.sk89q.worldedit.WorldEditException} exceptions as
@@ -76,7 +76,7 @@ public final class Operations {
             e.printStackTrace();
         }
     }
-    
+
     public static void completeSmart(final Operation op, final Runnable whenDone, final boolean threadsafe) {
         if (!threadsafe) {
             completeBlindly(op);
@@ -105,7 +105,7 @@ public final class Operations {
             };
         });
     }
-    
+
     public static Class<?> inject() {
         return Operations.class;
     }

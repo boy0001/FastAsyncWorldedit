@@ -30,7 +30,7 @@ import com.sk89q.worldedit.function.operation.Operations;
  * A {@link RecursiveVisitor} that goes orthogonally to the side and down, but never up.
  */
 public class NonRisingVisitor extends RecursiveVisitor {
-    
+
     /**
      * Create a new recursive visitor.
      *
@@ -39,7 +39,7 @@ public class NonRisingVisitor extends RecursiveVisitor {
      */
     public NonRisingVisitor(final Mask mask, final RegionFunction function) {
         super(mask, function);
-        final Collection<Vector> directions = getDirections();
+        final Collection<Vector> directions = this.getDirections();
         directions.clear();
         directions.add(new Vector(1, 0, 0));
         directions.add(new Vector(-1, 0, 0));
@@ -47,9 +47,9 @@ public class NonRisingVisitor extends RecursiveVisitor {
         directions.add(new Vector(0, 0, -1));
         directions.add(new Vector(0, -1, 0));
     }
-    
+
     public static Class<?> inject() {
         return Operations.class;
     }
-    
+
 }

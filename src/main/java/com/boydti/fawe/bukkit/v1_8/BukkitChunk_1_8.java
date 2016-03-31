@@ -11,57 +11,57 @@ import com.boydti.fawe.object.FaweChunk;
 import com.sk89q.worldedit.world.biome.BaseBiome;
 
 public class BukkitChunk_1_8 extends FaweChunk<Chunk> {
-    
+
     private char[][] ids;
-    
+
     private final short[] count;
     private final short[] air;
     private final short[] relight;
     private int[][] biomes;
-    
+
     public Chunk chunk;
-    
+
     /**
      * A FaweSections object represents a chunk and the blocks that you wish to change in it.
      */
     protected BukkitChunk_1_8(final ChunkLoc chunk) {
         super(chunk);
-        ids = new char[16][];
-        count = new short[16];
-        air = new short[16];
-        relight = new short[16];
+        this.ids = new char[16][];
+        this.count = new short[16];
+        this.air = new short[16];
+        this.relight = new short[16];
     }
-    
+
     @Override
     public Chunk getChunk() {
-        if (chunk == null) {
-            final ChunkLoc cl = getChunkLoc();
-            chunk = Bukkit.getWorld(cl.world).getChunkAt(cl.x, cl.z);
+        if (this.chunk == null) {
+            final ChunkLoc cl = this.getChunkLoc();
+            this.chunk = Bukkit.getWorld(cl.world).getChunkAt(cl.x, cl.z);
         }
-        return chunk;
+        return this.chunk;
     }
-    
+
     @Override
     public void setChunkLoc(final ChunkLoc loc) {
         super.setChunkLoc(loc);
-        chunk = null;
+        this.chunk = null;
     }
-    
+
     /**
      * Get the number of block changes in a specified section
      * @param i
      * @return
      */
     public int getCount(final int i) {
-        return count[i];
-    }
-    
-    public int getAir(final int i) {
-        return air[i];
+        return this.count[i];
     }
 
-    public void setCount(int i, short value) {
-        count[i] = value;
+    public int getAir(final int i) {
+        return this.air[i];
+    }
+
+    public void setCount(final int i, final short value) {
+        this.count[i] = value;
     }
 
     /**
@@ -70,61 +70,62 @@ public class BukkitChunk_1_8 extends FaweChunk<Chunk> {
      * @return
      */
     public int getRelight(final int i) {
-        return relight[i];
+        return this.relight[i];
     }
 
     public int getTotalCount() {
         int total = 0;
         for (int i = 0; i < 16; i++) {
-            total += count[i];
+            total += this.count[i];
         }
         return total;
     }
-    
+
     public int getTotalRelight() {
-        if (getTotalCount() == 0 && biomes == null) {
-            Arrays.fill(count, (short) 1);
-            Arrays.fill(relight, Short.MAX_VALUE);
+        if ((this.getTotalCount() == 0) && (this.biomes == null)) {
+            Arrays.fill(this.count, (short) 1);
+            Arrays.fill(this.relight, Short.MAX_VALUE);
             return Short.MAX_VALUE;
         }
         int total = 0;
         for (int i = 0; i < 16; i++) {
-            total += relight[i];
+            total += this.relight[i];
         }
         return total;
     }
-    
+
     /**
      * Get the raw data for a section
      * @param i
      * @return
      */
     public char[] getIdArray(final int i) {
-        return ids[i];
+        return this.ids[i];
     }
-    
+
     public void clear() {
-        ids = null;
-        biomes = null;
+        this.ids = null;
+        this.biomes = null;
     }
+
     public int[][] getBiomeArray() {
-        return biomes;
+        return this.biomes;
     }
 
     @Override
     public void setBlock(final int x, final int y, final int z, final int id, byte data) {
         final int i = FaweCache.CACHE_I[y][x][z];
         final int j = FaweCache.CACHE_J[y][x][z];
-        char[] vs = ids[i];
+        char[] vs = this.ids[i];
         if (vs == null) {
-            vs = ids[i] = new char[4096];
-            count[i]++;
+            vs = this.ids[i] = new char[4096];
+            this.count[i]++;
         } else if (vs[j] == 0) {
-            count[i]++;
+            this.count[i]++;
         }
         switch (id) {
             case 0:
-                air[i]++;
+                this.air[i]++;
                 vs[j] = (char) 1;
                 return;
             case 10:
@@ -138,7 +139,7 @@ public class BukkitChunk_1_8 extends FaweChunk<Chunk> {
             case 124:
             case 138:
             case 169:
-                relight[i]++;
+                this.relight[i]++;
             case 2:
             case 4:
             case 13:
@@ -201,7 +202,7 @@ public class BukkitChunk_1_8 extends FaweChunk<Chunk> {
             case 130:
             case 76:
             case 62:
-                relight[i]++;
+                this.relight[i]++;
             case 54:
             case 146:
             case 61:
@@ -216,15 +217,15 @@ public class BukkitChunk_1_8 extends FaweChunk<Chunk> {
                 return;
         }
     }
-    
+
     @Override
-    public void setBiome(int x, int z, BaseBiome biome) {
-        if (biomes == null) {
-            biomes = new int[16][];
+    public void setBiome(final int x, final int z, final BaseBiome biome) {
+        if (this.biomes == null) {
+            this.biomes = new int[16][];
         }
-        int[] index = biomes[x];
+        int[] index = this.biomes[x];
         if (index == null) {
-            index = biomes[x] = new int[16];
+            index = this.biomes[x] = new int[16];
         }
         index[z] = biome.getId();
     }

@@ -31,9 +31,9 @@ import com.sk89q.worldedit.function.operation.Operations;
  * determine where a block should be visited.
  */
 public class RecursiveVisitor extends BreadthFirstSearch {
-    
+
     private final Mask mask;
-    
+
     /**
      * Create a new recursive visitor.
      *
@@ -45,12 +45,12 @@ public class RecursiveVisitor extends BreadthFirstSearch {
         checkNotNull(mask);
         this.mask = mask;
     }
-    
+
     @Override
     protected boolean isVisitable(final Vector from, final Vector to) {
-        return mask.test(to);
+        return this.mask.test(to);
     }
-    
+
     public static Class<?> inject() {
         return Operations.class;
     }

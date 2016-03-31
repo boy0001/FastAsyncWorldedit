@@ -17,12 +17,12 @@ import com.massivecraft.factions.Faction;
 
 public class FactionsUUIDFeature extends BukkitMaskManager implements Listener {
     private final Board instance;
-    
+
     public FactionsUUIDFeature(final Plugin factionsPlugin, final FaweBukkit p3) {
         super(factionsPlugin.getName());
-        instance = Board.getInstance();
+        this.instance = Board.getInstance();
     }
-    
+
     @Override
     public FaweMask getMask(final FawePlayer<Player> fp) {
         final Player player = fp.parent;
@@ -30,47 +30,47 @@ public class FactionsUUIDFeature extends BukkitMaskManager implements Listener {
         final boolean perm = Perm.hasPermission(FawePlayer.wrap(player), "fawe.factions.wilderness");
         final RegionWrapper locs = new RegionWrapper(chunk.getX(), chunk.getX(), chunk.getZ(), chunk.getZ());
         final World world = player.getWorld();
-        
+
         int count = 32;
-        
-        if (isAdded(locs, world, player, perm)) {
+
+        if (this.isAdded(locs, world, player, perm)) {
             boolean hasPerm = true;
-            
+
             RegionWrapper chunkSelection;
             while (hasPerm && (count > 0)) {
                 count--;
-                
+
                 hasPerm = false;
-                
+
                 chunkSelection = new RegionWrapper(locs.maxX + 1, locs.maxX + 1, locs.minZ, locs.maxZ);
-                
-                if (isAdded(chunkSelection, world, player, perm)) {
+
+                if (this.isAdded(chunkSelection, world, player, perm)) {
                     locs.maxX += 1;
                     hasPerm = true;
                 }
-                
+
                 chunkSelection = new RegionWrapper(locs.minX - 1, locs.minX - 1, locs.minZ, locs.maxZ);
-                
-                if (isAdded(chunkSelection, world, player, perm)) {
+
+                if (this.isAdded(chunkSelection, world, player, perm)) {
                     locs.minX -= 1;
                     hasPerm = true;
                 }
-                
+
                 chunkSelection = new RegionWrapper(locs.minX, locs.maxX, locs.maxZ + 1, locs.maxZ + 1);
-                
-                if (isAdded(chunkSelection, world, player, perm)) {
+
+                if (this.isAdded(chunkSelection, world, player, perm)) {
                     locs.maxZ += 1;
                     hasPerm = true;
                 }
-                
+
                 chunkSelection = new RegionWrapper(locs.minX, locs.maxX, locs.minZ - 1, locs.minZ - 1);
-                
-                if (isAdded(chunkSelection, world, player, perm)) {
+
+                if (this.isAdded(chunkSelection, world, player, perm)) {
                     locs.minZ -= 1;
                     hasPerm = true;
                 }
             }
-            
+
             final Location pos1 = new Location(world, locs.minX << 4, 1, locs.minZ << 4);
             final Location pos2 = new Location(world, 15 + (locs.maxX << 4), 256, 15 + (locs.maxZ << 4));
             return new FaweMask(pos1, pos2) {
@@ -82,11 +82,11 @@ public class FactionsUUIDFeature extends BukkitMaskManager implements Listener {
         }
         return null;
     }
-    
+
     public boolean isAdded(final RegionWrapper locs, final World world, final Player player, final boolean perm) {
         for (int x = locs.minX; x <= locs.maxX; x++) {
             for (int z = locs.minZ; z <= locs.maxZ; z++) {
-                final Faction fac = instance.getFactionAt(new FLocation(world.getName(), x, z));
+                final Faction fac = this.instance.getFactionAt(new FLocation(world.getName(), x, z));
                 if (fac == null) {
                     return false;
                 }

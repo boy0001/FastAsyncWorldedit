@@ -31,40 +31,40 @@ import com.sk89q.worldedit.util.Location;
  * Logs changes to BlocksHub
  */
 public class LoggingExtent extends AbstractDelegateExtent {
-    
+
     private final ChangeSet changeSet;
     private final IBlocksHubApi api;
     private final String playerName;
     private final World world;
     private final org.bukkit.Location loc;
-    
+
     /**
      * Create a new instance.
      *
      * @param extent the extent
      * @param changeSet the change set
-     * @param api 
-     * @param player 
+     * @param api
+     * @param player
      * @param thread
      */
-    public LoggingExtent(final Extent extent, final ChangeSet changeSet, FawePlayer<Player> player, IBlocksHubApi api) {
+    public LoggingExtent(final Extent extent, final ChangeSet changeSet, final FawePlayer<Player> player, final IBlocksHubApi api) {
         super(extent);
         checkNotNull(changeSet);
         this.changeSet = changeSet;
         this.api = api;
         this.playerName = player.getName();
         this.world = player.parent.getWorld();
-        this.loc = new org.bukkit.Location(world, 0, 0, 0);
+        this.loc = new org.bukkit.Location(this.world, 0, 0, 0);
     }
-    
+
     @Override
     public synchronized boolean setBlock(final Vector location, final BaseBlock block) throws WorldEditException {
         if (super.setBlock(location, block)) {
             BaseBlock previous;
             try {
-                previous = getBlock(location);
+                previous = this.getBlock(location);
             } catch (final Exception e) {
-                previous = getBlock(location);
+                previous = this.getBlock(location);
             }
             final int id_p = previous.getId();
             final int id_b = block.getId();
@@ -152,47 +152,47 @@ public class LoggingExtent extends AbstractDelegateExtent {
                     if (id_p == id_b) {
                         return false;
                     }
-                    loc.setX(location.getX());
-                    loc.setY(location.getY());
-                    loc.setZ(location.getZ());
-                    api.logBlock(playerName, world, loc, id_p, (byte) 0, id_b, (byte) 0);
+                    this.loc.setX(location.getX());
+                    this.loc.setY(location.getY());
+                    this.loc.setZ(location.getZ());
+                    this.api.logBlock(this.playerName, this.world, this.loc, id_p, (byte) 0, id_b, (byte) 0);
                 default:
-                    int data_p = previous.getData();
-                    int data_b = block.getData();
-                    if (id_p == id_b && data_b == data_p) {
+                    final int data_p = previous.getData();
+                    final int data_b = block.getData();
+                    if ((id_p == id_b) && (data_b == data_p)) {
                         return false;
                     }
-                    loc.setX(location.getX());
-                    loc.setY(location.getY());
-                    loc.setZ(location.getZ());
-                    api.logBlock(playerName, world, loc, id_p, (byte) data_p, id_b, (byte) data_b);
+                    this.loc.setX(location.getX());
+                    this.loc.setY(location.getY());
+                    this.loc.setZ(location.getZ());
+                    this.api.logBlock(this.playerName, this.world, this.loc, id_p, (byte) data_p, id_b, (byte) data_b);
             }
-            changeSet.add(new BlockChange(location.toBlockVector(), previous, block));
+            this.changeSet.add(new BlockChange(location.toBlockVector(), previous, block));
             return true;
         }
         return false;
     }
-    
+
     @Nullable
     @Override
     public Entity createEntity(final Location location, final BaseEntity state) {
         final Entity entity = super.createEntity(location, state);
         if (state != null) {
-            changeSet.add(new EntityCreate(location, state, entity));
+            this.changeSet.add(new EntityCreate(location, state, entity));
         }
         return entity;
     }
-    
+
     @Override
     public List<? extends Entity> getEntities() {
-        return wrapEntities(super.getEntities());
+        return this.wrapEntities(super.getEntities());
     }
-    
+
     @Override
     public List<? extends Entity> getEntities(final Region region) {
-        return wrapEntities(super.getEntities(region));
+        return this.wrapEntities(super.getEntities(region));
     }
-    
+
     private List<? extends Entity> wrapEntities(final List<? extends Entity> entities) {
         final List<Entity> newList = new ArrayList<Entity>(entities.size());
         for (final Entity entity : entities) {
@@ -200,44 +200,44 @@ public class LoggingExtent extends AbstractDelegateExtent {
         }
         return newList;
     }
-    
+
     private class TrackedEntity implements Entity {
         private final Entity entity;
-        
+
         private TrackedEntity(final Entity entity) {
             this.entity = entity;
         }
-        
+
         @Override
         public BaseEntity getState() {
-            return entity.getState();
+            return this.entity.getState();
         }
-        
+
         @Override
         public Location getLocation() {
-            return entity.getLocation();
+            return this.entity.getLocation();
         }
-        
+
         @Override
         public Extent getExtent() {
-            return entity.getExtent();
+            return this.entity.getExtent();
         }
-        
+
         @Override
         public boolean remove() {
-            final Location location = entity.getLocation();
-            final BaseEntity state = entity.getState();
-            final boolean success = entity.remove();
+            final Location location = this.entity.getLocation();
+            final BaseEntity state = this.entity.getState();
+            final boolean success = this.entity.remove();
             if ((state != null) && success) {
-                changeSet.add(new EntityRemove(location, state));
+                LoggingExtent.this.changeSet.add(new EntityRemove(location, state));
             }
             return success;
         }
-        
+
         @Nullable
         @Override
         public <T> T getFacet(final Class<? extends T> cls) {
-            return entity.getFacet(cls);
+            return this.entity.getFacet(cls);
         }
     }
 }

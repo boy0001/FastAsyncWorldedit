@@ -43,11 +43,11 @@ import com.sk89q.worldedit.world.registry.WorldData;
  * @see Transform
  */
 public class FlattenedClipboardTransform {
-    
+
     private final Clipboard original;
     private final Transform transform;
     private final WorldData worldData;
-    
+
     /**
      * Create a new instance.
      *
@@ -63,19 +63,20 @@ public class FlattenedClipboardTransform {
         this.transform = transform;
         this.worldData = worldData;
     }
-    
+
     /**
      * Get the transformed region.
      *
      * @return the transformed region
      */
     public Region getTransformedRegion() {
-        final Region region = original.getRegion();
+        final Region region = this.original.getRegion();
         final Vector minimum = region.getMinimumPoint();
         final Vector maximum = region.getMaximumPoint();
-        
-        final Transform transformAround = new CombinedTransform(new AffineTransform().translate(original.getOrigin().multiply(-1)), transform, new AffineTransform().translate(original.getOrigin()));
-        
+
+        final Transform transformAround = new CombinedTransform(new AffineTransform().translate(this.original.getOrigin().multiply(-1)), this.transform, new AffineTransform().translate(this.original
+        .getOrigin()));
+
         final Vector[] corners = new Vector[] {
         minimum,
         maximum,
@@ -85,32 +86,32 @@ public class FlattenedClipboardTransform {
         maximum.setX(minimum.getX()),
         maximum.setY(minimum.getY()),
         maximum.setZ(minimum.getZ()) };
-        
+
         for (int i = 0; i < corners.length; i++) {
             corners[i] = transformAround.apply(corners[i]);
         }
-        
+
         Vector newMinimum = corners[0];
         Vector newMaximum = corners[0];
-        
+
         for (int i = 1; i < corners.length; i++) {
             newMinimum = Vector.getMinimum(newMinimum, corners[i]);
             newMaximum = Vector.getMaximum(newMaximum, corners[i]);
         }
-        
+
         // After transformation, the points may not really sit on a block,
         // so we should expand the region for edge cases
         newMinimum = newMinimum.setX(Math.floor(newMinimum.getX()));
         newMinimum = newMinimum.setY(Math.floor(newMinimum.getY()));
         newMinimum = newMinimum.setZ(Math.floor(newMinimum.getZ()));
-        
+
         newMaximum = newMaximum.setX(Math.ceil(newMaximum.getX()));
         newMaximum = newMaximum.setY(Math.ceil(newMaximum.getY()));
         newMaximum = newMaximum.setZ(Math.ceil(newMaximum.getZ()));
-        
+
         return new CuboidRegion(newMinimum, newMaximum);
     }
-    
+
     /**
      * Create an operation to copy from the original clipboard to the given extent.
      *
@@ -118,12 +119,12 @@ public class FlattenedClipboardTransform {
      * @return the operation
      */
     public Operation copyTo(final Extent target) {
-        final BlockTransformExtent extent = new BlockTransformExtent(original, transform, worldData.getBlockRegistry());
-        final ForwardExtentCopy copy = new ForwardExtentCopy(extent, original.getRegion(), original.getOrigin(), target, original.getOrigin());
-        copy.setTransform(transform);
+        final BlockTransformExtent extent = new BlockTransformExtent(this.original, this.transform, this.worldData.getBlockRegistry());
+        final ForwardExtentCopy copy = new ForwardExtentCopy(extent, this.original.getRegion(), this.original.getOrigin(), target, this.original.getOrigin());
+        copy.setTransform(this.transform);
         return copy;
     }
-    
+
     /**
      * Create a new instance to bake the transform with.
      *
@@ -135,5 +136,5 @@ public class FlattenedClipboardTransform {
     public static FlattenedClipboardTransform transform(final Clipboard original, final Transform transform, final WorldData worldData) {
         return new FlattenedClipboardTransform(original, transform, worldData);
     }
-    
+
 }

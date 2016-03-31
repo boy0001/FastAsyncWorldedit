@@ -14,14 +14,14 @@ import com.boydti.fawe.object.FawePlayer;
 public class ResidenceFeature extends BukkitMaskManager implements Listener {
     FaweBukkit plugin;
     Plugin residence;
-    
+
     public ResidenceFeature(final Plugin residencePlugin, final FaweBukkit p3) {
         super(residencePlugin.getName());
-        residence = residencePlugin;
-        plugin = p3;
-        
+        this.residence = residencePlugin;
+        this.plugin = p3;
+
     }
-    
+
     @Override
     public FaweMask getMask(final FawePlayer<Player> fp) {
         final Player player = fp.parent;

@@ -35,11 +35,11 @@ import com.sk89q.worldedit.function.operation.RunContext;
  * Visits entities as provided by an {@code Iterator}.
  */
 public class EntityVisitor implements Operation {
-    
+
     private final EntityFunction function;
     private final int affected = 0;
     private final Iterator<? extends Entity> iterator;
-    
+
     /**
      * Create a new instance.
      *
@@ -49,36 +49,36 @@ public class EntityVisitor implements Operation {
     public EntityVisitor(final Iterator<? extends Entity> iterator, final EntityFunction function) {
         checkNotNull(iterator);
         checkNotNull(function);
-        
+
         this.function = function;
         this.iterator = iterator;
     }
-    
+
     /**
      * Get the number of affected objects.
      *
      * @return the number of affected
      */
     public int getAffected() {
-        return affected;
+        return this.affected;
     }
-    
+
     @Override
     public Operation resume(final RunContext run) throws WorldEditException {
-        while (iterator.hasNext()) {
-            function.apply(iterator.next());
+        while (this.iterator.hasNext()) {
+            this.function.apply(this.iterator.next());
         }
         return null;
     }
-    
+
     @Override
     public void cancel() {}
-    
+
     @Override
-    public void addStatusMessages(List<String> messages) {
-        messages.add(getAffected() + " blocks affected");
+    public void addStatusMessages(final List<String> messages) {
+        messages.add(this.getAffected() + " blocks affected");
     }
-    
+
     public static Class<?> inject() {
         return Operations.class;
     }

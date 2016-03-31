@@ -11,38 +11,38 @@ import com.sk89q.worldedit.Vector;
 import com.sk89q.worldedit.regions.Region;
 
 public class FixLighting extends FaweCommand {
-    
+
     public FixLighting() {
         super("fawe.fixlighting");
     }
-    
+
     @Override
     public boolean execute(final FawePlayer player, final String... args) {
         if (player == null) {
             return false;
         }
-        FaweLocation loc = player.getLocation();
-        Region selection = player.getSelection();
+        final FaweLocation loc = player.getLocation();
+        final Region selection = player.getSelection();
         if (selection == null) {
             FaweAPI.fixLighting(new ChunkLoc(loc.world, loc.x >> 4, loc.z >> 4), Settings.FIX_ALL_LIGHTING);
             BBC.FIX_LIGHTING_CHUNK.send(player);
             return true;
         }
-        int cx = loc.x >> 4;
-        int cz = loc.z >> 4;
-        Vector bot = selection.getMinimumPoint();
-        Vector top = selection.getMaximumPoint();
-        
-        int minX = Math.max(cx - 8, bot.getBlockX() >> 4);
-        int minZ = Math.max(cz - 8, bot.getBlockZ() >> 4);
-        
-        int maxX = Math.min(cx + 8, top.getBlockX() >> 4);
-        int maxZ = Math.min(cz + 8, top.getBlockZ() >> 4);
-        
+        final int cx = loc.x >> 4;
+        final int cz = loc.z >> 4;
+        final Vector bot = selection.getMinimumPoint();
+        final Vector top = selection.getMaximumPoint();
+
+        final int minX = Math.max(cx - 8, bot.getBlockX() >> 4);
+        final int minZ = Math.max(cz - 8, bot.getBlockZ() >> 4);
+
+        final int maxX = Math.min(cx + 8, top.getBlockX() >> 4);
+        final int maxZ = Math.min(cz + 8, top.getBlockZ() >> 4);
+
         int count = 0;
         for (int x = minX; x <= maxX; x++) {
             for (int z = minZ; z <= maxZ; z++) {
-                ChunkLoc cl = new ChunkLoc(loc.world, x, z);
+                final ChunkLoc cl = new ChunkLoc(loc.world, x, z);
                 FaweAPI.fixLighting(cl, Settings.FIX_ALL_LIGHTING);
                 count++;
             }

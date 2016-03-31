@@ -14,13 +14,13 @@ import com.boydti.fawe.object.FawePlayer;
 public class GriefPreventionFeature extends BukkitMaskManager implements Listener {
     FaweBukkit plugin;
     Plugin griefprevention;
-    
+
     public GriefPreventionFeature(final Plugin griefpreventionPlugin, final FaweBukkit p3) {
         super(griefpreventionPlugin.getName());
-        griefprevention = griefpreventionPlugin;
-        plugin = p3;
+        this.griefprevention = griefpreventionPlugin;
+        this.plugin = p3;
     }
-    
+
     @Override
     public FaweMask getMask(final FawePlayer<Player> fp) {
         final Player player = fp.parent;
@@ -41,6 +41,6 @@ public class GriefPreventionFeature extends BukkitMaskManager implements Listene
             }
         }
         return null;
-        
+
     }
 }

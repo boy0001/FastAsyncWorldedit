@@ -8,9 +8,9 @@ import com.sk89q.worldedit.history.change.Change;
 import com.sk89q.worldedit.history.changeset.ChangeSet;
 
 public class FaweChangeSet implements ChangeSet {
-    
+
     private final ArrayDeque<Change> changes = new ArrayDeque<>();
-    
+
     @Override
     public void add(final Change change) {
         if (change.getClass() == BlockChange.class) {
@@ -21,24 +21,24 @@ public class FaweChangeSet implements ChangeSet {
             //            int x = pos.getBlockX();
             //            int y = pos.getBlockY();
             //            int z = pos.getBlockZ();
-            changes.add(bc);
+            this.changes.add(bc);
         } else {
-            changes.add(change);
+            this.changes.add(change);
         }
     }
-    
+
     @Override
     public Iterator<Change> backwardIterator() {
-        return changes.descendingIterator();
+        return this.changes.descendingIterator();
     }
-    
+
     @Override
     public Iterator<Change> forwardIterator() {
-        return changes.iterator();
+        return this.changes.iterator();
     }
-    
+
     @Override
     public int size() {
-        return changes.size();
+        return this.changes.size();
     }
 }

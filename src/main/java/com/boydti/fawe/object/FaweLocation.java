@@ -5,20 +5,19 @@ import com.boydti.fawe.util.SetQueue;
 /**
  */
 public class FaweLocation {
-    
-    
+
     public final int x;
     public final int y;
     public final int z;
     public final String world;
-    
-    public FaweLocation(String world, int x, int y, int z) {
+
+    public FaweLocation(final String world, final int x, final int y, final int z) {
         this.world = world;
         this.x = x;
         this.y = y;
         this.z = z;
     }
-    
+
     @Override
     public boolean equals(final Object obj) {
         if (this == obj) {
@@ -27,19 +26,19 @@ public class FaweLocation {
         if (obj == null) {
             return false;
         }
-        if (getClass() != obj.getClass()) {
+        if (this.getClass() != obj.getClass()) {
             return false;
         }
         final FaweLocation other = (FaweLocation) obj;
-        return ((x == other.x) && (y == other.y) && (z == other.z) && (world.equals(other.world)));
+        return ((this.x == other.x) && (this.y == other.y) && (this.z == other.z) && (this.world.equals(other.world)));
     }
-    
+
     @Override
     public int hashCode() {
-        return x << 8 + z << 4 + y;
+        return this.x << (8 + this.z) << (4 + this.y);
     }
-    
-    public void setBlockAsync(short id, byte data) {
-        SetQueue.IMP.setBlock(world, x, y, z, id, data);
+
+    public void setBlockAsync(final short id, final byte data) {
+        SetQueue.IMP.setBlock(this.world, this.x, this.y, this.z, id, data);
     }
 }

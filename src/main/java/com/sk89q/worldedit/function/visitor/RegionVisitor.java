@@ -34,45 +34,45 @@ import com.sk89q.worldedit.regions.Region;
  * Utility class to apply region functions to {@link com.sk89q.worldedit.regions.Region}.
  */
 public class RegionVisitor implements Operation {
-    
+
     private final RegionFunction function;
     private final int affected = 0;
-    
+
     private final Iterator<BlockVector> iterator;
-    
+
     public RegionVisitor(final Region region, final RegionFunction function) {
         this.function = function;
-        iterator = region.iterator();
-        
+        this.iterator = region.iterator();
+
     }
-    
+
     /**
      * Get the number of affected objects.
      *
      * @return the number of affected
      */
     public int getAffected() {
-        return affected;
+        return this.affected;
     }
-    
+
     @Override
     public Operation resume(final RunContext run) throws WorldEditException {
-        while (iterator.hasNext()) {
-            function.apply(iterator.next());
+        while (this.iterator.hasNext()) {
+            this.function.apply(this.iterator.next());
         }
         return null;
     }
-    
+
     @Override
     public void cancel() {}
-    
+
     @Override
-    public void addStatusMessages(List<String> messages) {
-        messages.add(getAffected() + " blocks affected");
+    public void addStatusMessages(final List<String> messages) {
+        messages.add(this.getAffected() + " blocks affected");
     }
 
     public static Class<?> inject() {
         return Operations.class;
     }
-    
+
 }

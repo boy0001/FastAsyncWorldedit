@@ -5,17 +5,17 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import com.boydti.fawe.config.Settings;
 
 public class MemUtil {
-    
+
     private static AtomicBoolean memory = new AtomicBoolean(false);
-    
+
     public static boolean isMemoryFree() {
         return !memory.get();
     }
-    
+
     public static boolean isMemoryLimited() {
         return memory.get();
     }
-    
+
     public static int calculateMemory() {
         final long heapSize = Runtime.getRuntime().totalMemory();
         final long heapMaxSize = Runtime.getRuntime().maxMemory();
@@ -30,11 +30,11 @@ public class MemUtil {
         }
         return size;
     }
-    
+
     public static void memoryLimitedTask() {
         memory.set(true);
     }
-    
+
     public static void memoryPlentifulTask() {
         memory.set(false);
     }

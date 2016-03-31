@@ -19,14 +19,14 @@ import com.plotsquared.bukkit.BukkitMain;
 
 public class PlotSquaredFeature extends BukkitMaskManager implements Listener {
     FaweBukkit plugin;
-    
+
     public PlotSquaredFeature(final Plugin plotPlugin, final FaweBukkit p3) {
         super(plotPlugin.getName());
-        plugin = p3;
+        this.plugin = p3;
         BukkitMain.worldEdit = null;
         PS.get().worldedit = null;
     }
-    
+
     @Override
     public FaweMask getMask(final FawePlayer<Player> fp) {
         final PlotPlayer pp = PlotPlayer.wrap(fp.parent);
@@ -58,10 +58,10 @@ public class PlotSquaredFeature extends BukkitMaskManager implements Listener {
                     final World world = fp.parent.getWorld();
                     final com.intellectualcrafters.plot.object.RegionWrapper region = plot.getLargestRegion();
                     final HashSet<com.intellectualcrafters.plot.object.RegionWrapper> regions = plot.getRegions();
-                    
+
                     final Location pos1 = new Location(world, region.minX, 0, region.minZ);
                     final Location pos2 = new Location(world, region.maxX, 256, region.maxZ);
-                    
+
                     final HashSet<RegionWrapper> faweRegions = new HashSet<RegionWrapper>();
                     for (final com.intellectualcrafters.plot.object.RegionWrapper current : regions) {
                         faweRegions.add(new RegionWrapper(current.minX, current.maxX, current.minZ, current.maxZ));
@@ -71,7 +71,7 @@ public class PlotSquaredFeature extends BukkitMaskManager implements Listener {
                         public String getName() {
                             return "PLOT^2:" + id;
                         }
-                        
+
                         @Override
                         public HashSet<RegionWrapper> getRegions() {
                             return faweRegions;

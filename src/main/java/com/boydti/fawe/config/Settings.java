@@ -11,7 +11,7 @@ import java.util.Map.Entry;
 import org.bukkit.configuration.file.YamlConfiguration;
 
 public class Settings {
-    
+
     public static int MAX_BLOCKSTATES = 1337;
     public static int MAX_ENTITIES = 1337;
     public static long WE_MAX_ITERATIONS = 1000;
@@ -22,7 +22,7 @@ public class Settings {
     public static List<String> WE_BLACKLIST = Arrays.asList("cs", ".s", "restore", "snapshot", "delchunks", "listchunks");
     public static long MEM_FREE = 95;
     public static boolean ENABLE_HARD_LIMIT = true;
-    
+
     public static void setup(final File file) {
         if (!file.exists()) {
             file.getParentFile().mkdirs();
@@ -33,7 +33,7 @@ public class Settings {
             }
         }
         final YamlConfiguration config = YamlConfiguration.loadConfiguration(file);
-        
+
         final Map<String, Object> options = new HashMap<>();
         options.put("max-blockstates", MAX_BLOCKSTATES);
         options.put("max-entities", MAX_ENTITIES);
@@ -45,7 +45,7 @@ public class Settings {
         options.put("max-memory-percent", MEM_FREE);
         options.put("crash-mitigation", ENABLE_HARD_LIMIT);
         options.put("fix-all-lighting", FIX_ALL_LIGHTING);
-        
+
         for (final Entry<String, Object> node : options.entrySet()) {
             if (!config.contains(node.getKey())) {
                 config.set(node.getKey(), node.getValue());
@@ -61,7 +61,6 @@ public class Settings {
         REQUIRE_SELECTION = config.getBoolean("require-selection-in-mask");
         WE_BLACKLIST = config.getStringList("command-blacklist");
         ENABLE_HARD_LIMIT = config.getBoolean("crash-mitigation");
-        
 
         try {
             config.save(file);

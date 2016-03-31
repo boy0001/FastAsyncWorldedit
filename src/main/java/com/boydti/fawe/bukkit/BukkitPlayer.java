@@ -12,56 +12,56 @@ import com.boydti.fawe.object.FaweLocation;
 import com.boydti.fawe.object.FawePlayer;
 
 public class BukkitPlayer extends FawePlayer<Player> {
-    
+
     public BukkitPlayer(final Player parent) {
         super(parent);
     }
-    
+
     @Override
     public String getName() {
-        return parent.getName();
+        return this.parent.getName();
     }
-    
+
     @Override
     public UUID getUUID() {
-        return parent.getUniqueId();
+        return this.parent.getUniqueId();
     }
-    
+
     @Override
     public boolean hasPermission(final String perm) {
-        return parent.hasPermission(perm);
+        return this.parent.hasPermission(perm);
     }
-    
+
     @Override
     public void setPermission(final String perm, final boolean flag) {
         if (Fawe.<FaweBukkit> imp().getVault() == null) {
-            parent.addAttachment(Fawe.<FaweBukkit> imp()).setPermission("fawe.bypass", flag);
+            this.parent.addAttachment(Fawe.<FaweBukkit> imp()).setPermission("fawe.bypass", flag);
         } else if (flag) {
-            Fawe.<FaweBukkit> imp().getVault().permission.playerAdd(parent, perm);
+            Fawe.<FaweBukkit> imp().getVault().permission.playerAdd(this.parent, perm);
         } else {
-            Fawe.<FaweBukkit> imp().getVault().permission.playerRemove(parent, perm);
+            Fawe.<FaweBukkit> imp().getVault().permission.playerRemove(this.parent, perm);
         }
     }
-    
+
     @Override
     public void sendMessage(final String message) {
-        parent.sendMessage(ChatColor.translateAlternateColorCodes('&', message));
+        this.parent.sendMessage(ChatColor.translateAlternateColorCodes('&', message));
     }
-    
+
     @Override
     public void executeCommand(final String cmd) {
-        Bukkit.getServer().dispatchCommand(parent, cmd);
+        Bukkit.getServer().dispatchCommand(this.parent, cmd);
     }
-    
+
     @Override
     public FaweLocation getLocation() {
-        Location loc = parent.getLocation();
+        final Location loc = this.parent.getLocation();
         return new FaweLocation(loc.getWorld().getName(), loc.getBlockX(), loc.getBlockY(), loc.getBlockZ());
     }
-    
+
     @Override
     public com.sk89q.worldedit.entity.Player getPlayer() {
-        return Fawe.<FaweBukkit> imp().getWorldEditPlugin().wrapPlayer(parent);
+        return Fawe.<FaweBukkit> imp().getWorldEditPlugin().wrapPlayer(this.parent);
     }
-    
+
 }

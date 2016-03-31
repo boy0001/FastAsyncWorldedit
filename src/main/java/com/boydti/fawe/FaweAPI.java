@@ -33,7 +33,7 @@ import com.sk89q.worldedit.world.biome.BaseBiome;
  *  FaweAPI.[some method]
  */
 public class FaweAPI {
-    
+
     /**
      * Compare two versions
      * @param version
@@ -45,7 +45,7 @@ public class FaweAPI {
     public static boolean checkVersion(final int[] version, final int major, final int minor, final int minor2) {
         return (version[0] > major) || ((version[0] == major) && (version[1] > minor)) || ((version[0] == major) && (version[1] == minor) && (version[2] >= minor2));
     }
-    
+
     /**
      * Set a block at a location asynchronously
      * @param loc
@@ -54,7 +54,7 @@ public class FaweAPI {
     public static void setBlockAsync(final Location loc, final Material m) {
         SetQueue.IMP.setBlock(loc.getWorld().getName(), loc.getBlockX(), loc.getBlockY(), loc.getBlockZ(), (short) m.getId());
     }
-    
+
     /**
      * Set a block at a location asynchronously
      * @param world
@@ -67,7 +67,7 @@ public class FaweAPI {
     public static void setBlockAsync(final String world, final int x, final int y, final int z, final short id, final byte data) {
         SetQueue.IMP.setBlock(world, x, y, z, id, data);
     }
-    
+
     /**
      * Set a biome at a location asynchronously
      * @param world
@@ -76,7 +76,7 @@ public class FaweAPI {
      * @param id
      * @param data
      */
-    public static void setBiomeAsync(final String world, final int x, final int z, BaseBiome biome) {
+    public static void setBiomeAsync(final String world, final int x, final int z, final BaseBiome biome) {
         SetQueue.IMP.setBiome(world, x, z, biome);
     }
 
@@ -85,10 +85,10 @@ public class FaweAPI {
      * @param loc
      * @param biome
      */
-    public static void setBiomeAsync(Location loc, BaseBiome biome) {
+    public static void setBiomeAsync(final Location loc, final BaseBiome biome) {
         SetQueue.IMP.setBiome(loc.getWorld().getName(), loc.getBlockX(), loc.getBlockZ(), biome);
     }
-    
+
     /**
      * This will return a FaweChunk object that can be modified.<br>
      *  - The FaweChunk object can be reused if you want identical changes across chunks<br>
@@ -100,47 +100,47 @@ public class FaweAPI {
     public static FaweChunk<?> createChunk() {
         return SetQueue.IMP.queue.getChunk(new ChunkLoc(null, 0, 0));
     }
-    
+
     /**
      * @see #createChunk()
      * @param data
      * @param location
      */
-    public static void setChunkAsync(FaweChunk<?> data, ChunkLoc location) {
+    public static void setChunkAsync(final FaweChunk<?> data, final ChunkLoc location) {
         data.setChunkLoc(location);
         data.addToQueue();
     }
-    
+
     /**
      * @see #createChunk()
      * @param data
      * @param chunk
      */
-    public static void setChunkAsync(FaweChunk<?> data, Chunk chunk) {
-        ChunkLoc loc = new ChunkLoc(chunk.getWorld().getName(), chunk.getX(), chunk.getZ());
+    public static void setChunkAsync(final FaweChunk<?> data, final Chunk chunk) {
+        final ChunkLoc loc = new ChunkLoc(chunk.getWorld().getName(), chunk.getX(), chunk.getZ());
         data.setChunkLoc(loc);
         data.addToQueue();
     }
-    
+
     /**
      * Fix the lighting at a chunk location.<br>
      *  - The fixAll parameter determines if extensive relighting should occur (slow)
      * @param loc
      */
-    public static void fixLighting(ChunkLoc loc, boolean fixAll) {
+    public static void fixLighting(final ChunkLoc loc, final boolean fixAll) {
         SetQueue.IMP.queue.fixLighting(SetQueue.IMP.queue.getChunk(loc), fixAll);
     }
-    
+
     /**
      * Fix the lighting at a chunk.<br>
      *  - The fixAll parameter determines if extensive relighting should occur (slow)
      * @param chunk
      */
-    public static void fixLighting(Chunk chunk, boolean fixAll) {
-        ChunkLoc loc = new ChunkLoc(chunk.getWorld().getName(), chunk.getX(), chunk.getZ());
+    public static void fixLighting(final Chunk chunk, final boolean fixAll) {
+        final ChunkLoc loc = new ChunkLoc(chunk.getWorld().getName(), chunk.getX(), chunk.getZ());
         SetQueue.IMP.queue.fixLighting(SetQueue.IMP.queue.getChunk(loc), fixAll);
     }
-    
+
     /**
      * If a schematic is too large to be pasted normally<br>
      *  - Skips any block history
@@ -150,10 +150,10 @@ public class FaweAPI {
      * @return
      */
     public static void streamSchematicAsync(final File file, final Location loc) {
-        FaweLocation fl = new FaweLocation(loc.getWorld().getName(), loc.getBlockX(), loc.getBlockY(), loc.getBlockZ());
+        final FaweLocation fl = new FaweLocation(loc.getWorld().getName(), loc.getBlockX(), loc.getBlockY(), loc.getBlockZ());
         streamSchematicAsync(file, fl);
     }
-    
+
     /**
      * If a schematic is too large to be pasted normally<br>
      *  - Skips any block history
@@ -167,15 +167,15 @@ public class FaweAPI {
             @Override
             public void run() {
                 try {
-                    FileInputStream is = new FileInputStream(file);
+                    final FileInputStream is = new FileInputStream(file);
                     streamSchematic(is, loc);
-                } catch (IOException e) {
+                } catch (final IOException e) {
                     e.printStackTrace();
                 }
             }
         });
     }
-    
+
     /**
      * If a schematic is too large to be pasted normally<br>
      *  - Skips any block history
@@ -188,16 +188,16 @@ public class FaweAPI {
             @Override
             public void run() {
                 try {
-                    ReadableByteChannel rbc = Channels.newChannel(url.openStream());
+                    final ReadableByteChannel rbc = Channels.newChannel(url.openStream());
                     final InputStream is = Channels.newInputStream(rbc);
                     streamSchematic(is, loc);
-                } catch (IOException e) {
+                } catch (final IOException e) {
                     e.printStackTrace();
                 }
             }
         });
     }
-    
+
     /**
      * If a schematic is too large to be pasted normally<br>
      *  - Skips any block history
@@ -206,25 +206,25 @@ public class FaweAPI {
      * @param loc
      * @throws IOException
      */
-    public static void streamSchematic(InputStream is, FaweLocation loc) throws IOException {
-        NBTInputStream stream = new NBTInputStream(new GZIPInputStream(is));
+    public static void streamSchematic(final InputStream is, final FaweLocation loc) throws IOException {
+        final NBTInputStream stream = new NBTInputStream(new GZIPInputStream(is));
         Tag tag = stream.readNamedTag().getTag();
         stream.close();
 
         Map<String, Tag> tagMap = (Map<String, Tag>) tag.getValue();
 
-        short width = ShortTag.class.cast(tagMap.get("Width")).getValue();
-        short length = ShortTag.class.cast(tagMap.get("Length")).getValue();
-        short height = ShortTag.class.cast(tagMap.get("Height")).getValue();
+        final short width = ShortTag.class.cast(tagMap.get("Width")).getValue();
+        final short length = ShortTag.class.cast(tagMap.get("Length")).getValue();
+        final short height = ShortTag.class.cast(tagMap.get("Height")).getValue();
         byte[] ids = ByteArrayTag.class.cast(tagMap.get("Blocks")).getValue();
         byte[] datas = ByteArrayTag.class.cast(tagMap.get("Data")).getValue();
-        
-        String world = loc.world;
-        
-        int x_offset = loc.x + IntTag.class.cast(tagMap.get("WEOffsetX")).getValue();
-        int y_offset = loc.y + IntTag.class.cast(tagMap.get("WEOffsetY")).getValue();
-        int z_offset = loc.z + IntTag.class.cast(tagMap.get("WEOffsetZ")).getValue();
-        
+
+        final String world = loc.world;
+
+        final int x_offset = loc.x + IntTag.class.cast(tagMap.get("WEOffsetX")).getValue();
+        final int y_offset = loc.y + IntTag.class.cast(tagMap.get("WEOffsetY")).getValue();
+        final int z_offset = loc.z + IntTag.class.cast(tagMap.get("WEOffsetZ")).getValue();
+
         tagMap = null;
         tag = null;
 
@@ -236,11 +236,11 @@ public class FaweAPI {
             final int i1 = y * width * length;
             for (int z = 0; z < length; z++) {
                 final int i2 = (z * width) + i1;
-                int zz = z_offset + z;
+                final int zz = z_offset + z;
                 for (int x = 0; x < width; x++) {
                     final int i = i2 + x;
-                    int xx = x_offset + x;
-                    short id = (short) (ids[i] & 0xFF);
+                    final int xx = x_offset + x;
+                    final short id = (short) (ids[i] & 0xFF);
                     switch (id) {
                         case 0:
                         case 2:
@@ -318,7 +318,7 @@ public class FaweAPI {
                 }
             }
         }
-        
+
         ids = null;
         datas = null;
         System.gc();

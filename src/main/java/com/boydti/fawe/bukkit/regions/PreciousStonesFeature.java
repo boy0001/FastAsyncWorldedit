@@ -17,14 +17,14 @@ import com.boydti.fawe.object.FawePlayer;
 public class PreciousStonesFeature extends BukkitMaskManager implements Listener {
     FaweBukkit plugin;
     Plugin preciousstones;
-    
+
     public PreciousStonesFeature(final Plugin preciousstonesPlugin, final FaweBukkit p3) {
         super(preciousstonesPlugin.getName());
-        preciousstones = preciousstonesPlugin;
-        plugin = p3;
-        
+        this.preciousstones = preciousstonesPlugin;
+        this.plugin = p3;
+
     }
-    
+
     @Override
     public FaweMask getMask(final FawePlayer<Player> fp) {
         final Player player = fp.parent;

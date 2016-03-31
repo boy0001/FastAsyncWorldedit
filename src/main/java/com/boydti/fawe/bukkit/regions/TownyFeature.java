@@ -17,19 +17,19 @@ import com.palmergames.bukkit.towny.object.WorldCoord;
 public class TownyFeature extends BukkitMaskManager implements Listener {
     FaweBukkit plugin;
     Plugin towny;
-    
+
     public TownyFeature(final Plugin townyPlugin, final FaweBukkit p3) {
         super(townyPlugin.getName());
-        towny = townyPlugin;
-        plugin = p3;
+        this.towny = townyPlugin;
+        this.plugin = p3;
     }
-    
+
     @Override
     public FaweMask getMask(final FawePlayer<Player> fp) {
         final Player player = fp.parent;
         final Location location = player.getLocation();
         try {
-            final PlayerCache cache = ((Towny) towny).getCache(player);
+            final PlayerCache cache = ((Towny) this.towny).getCache(player);
             final WorldCoord mycoord = cache.getLastTownBlock();
             if (mycoord == null) {
                 return null;
@@ -44,7 +44,7 @@ public class TownyFeature extends BukkitMaskManager implements Listener {
                             isMember = true;
                         }
                     } catch (final Exception e) {
-                        
+
                     }
                     if (!isMember) {
                         if (player.hasPermission("fawe.towny.*")) {

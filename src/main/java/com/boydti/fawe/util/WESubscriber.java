@@ -5,8 +5,7 @@ import com.sk89q.worldedit.util.eventbus.EventHandler.Priority;
 import com.sk89q.worldedit.util.eventbus.Subscribe;
 
 public class WESubscriber {
-    
+
     @Subscribe(priority = Priority.VERY_EARLY)
-    public void onEditSession(final EditSessionEvent event) {
-    }
+    public void onEditSession(final EditSessionEvent event) {}
 }

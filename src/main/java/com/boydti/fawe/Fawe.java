@@ -43,7 +43,7 @@ public class Fawe {
      * The FAWE instance;
      */
     private static Fawe INSTANCE;
-    
+
     /**
      * Get the implementation specific class
      * @return
@@ -52,7 +52,7 @@ public class Fawe {
     public static <T extends IFawe> T imp() {
         return INSTANCE != null ? (T) INSTANCE.IMP : null;
     }
-    
+
     /**
      * Get the implementation independent class
      * @return
@@ -60,7 +60,7 @@ public class Fawe {
     public static Fawe get() {
         return INSTANCE;
     }
-    
+
     /**
      * Setup Fawe
      * @param implementation
@@ -75,7 +75,7 @@ public class Fawe {
         }
         INSTANCE = new Fawe(implementation);
     }
-    
+
     /**
      * Write something to the console
      * @param s
@@ -87,79 +87,79 @@ public class Fawe {
             System.out.print(s);
         }
     }
-    
+
     /**
      * The platform specific implementation
      */
     private final IFawe IMP;
     private Thread thread = Thread.currentThread();
-    
+
     private Fawe(final IFawe implementation) {
-        IMP = implementation;
-        
+        this.IMP = implementation;
+
         this.thread = Thread.currentThread();
         /*
          * Implementation dependent stuff
          */
-        setupConfigs();
-        setupCommands();
-        
+        this.setupConfigs();
+        this.setupCommands();
+
         // TODO command event - queue?
 
-        TaskManager.IMP = IMP.getTaskManager();
-        SetQueue.IMP.queue = IMP.getQueue();
-        
+        TaskManager.IMP = this.IMP.getTaskManager();
+        SetQueue.IMP.queue = this.IMP.getQueue();
+
         // Delayed setup
         TaskManager.IMP.later(new Runnable() {
             @Override
             public void run() {
                 // worldedit
-                WEManager.IMP.managers.addAll(IMP.getMaskManagers());
-                worldedit = WorldEdit.getInstance();
+                WEManager.IMP.managers.addAll(Fawe.this.IMP.getMaskManagers());
+                Fawe.this.worldedit = WorldEdit.getInstance();
                 // Events
-                setupEvents();
-                IMP.setupVault();
+                Fawe.this.setupEvents();
+                Fawe.this.IMP.setupVault();
             }
         }, 0);
-        
+
         /*
          * Instance independent stuff
          */
-        setupInjector();
-        setupMemoryListener();
-        
+        this.setupInjector();
+        this.setupMemoryListener();
+
         // Lag
         final Lag lag = new Lag();
         TaskManager.IMP.repeat(lag, 100);
     }
-    
+
     private void setupEvents() {
         WorldEdit.getInstance().getEventBus().register(new WESubscriber());
         if (Settings.COMMAND_PROCESSOR) {
-            IMP.setupWEListener();
+            this.IMP.setupWEListener();
         }
     }
-    
+
     private void setupCommands() {
-        IMP.setupCommand("wea", new Wea());
-        IMP.setupCommand("fixlighting", new FixLighting());
-        IMP.setupCommand("stream", new Stream());
-        IMP.setupCommand("wrg", new WorldEditRegion());
+        this.IMP.setupCommand("wea", new Wea());
+        this.IMP.setupCommand("fixlighting", new FixLighting());
+        this.IMP.setupCommand("stream", new Stream());
+        this.IMP.setupCommand("wrg", new WorldEditRegion());
     }
-    
+
     private void setupConfigs() {
         // Setting up config.yml
-        Settings.setup(new File(IMP.getDirectory(), "config.yml"));
+        Settings.setup(new File(this.IMP.getDirectory(), "config.yml"));
         // Setting up message.yml
-        BBC.load(new File(IMP.getDirectory(), "message.yml"));
+        BBC.load(new File(this.IMP.getDirectory(), "message.yml"));
     }
-    
+
     private WorldEdit worldedit;
-    
+
     public WorldEdit getWorldEdit() {
-        return worldedit;
+        return this.worldedit;
     }
-    
+
     private void setupInjector() {
         EditSession.inject();
         Operations.inject();
@@ -174,7 +174,7 @@ public class Fawe {
         RecursiveVisitor.inject();
         RegionVisitor.inject();
     }
-    
+
     private void setupMemoryListener() {
         final MemoryMXBean memBean = ManagementFactory.getMemoryMXBean();
         final NotificationEmitter ne = (NotificationEmitter) memBean;
@@ -196,20 +196,20 @@ public class Fawe {
                 }
                 final long alert = (max * Settings.MEM_FREE) / 100;
                 mp.setUsageThreshold(alert);
-                
+
             }
         }
     }
-    
+
     public Thread getMainThread() {
-        return thread;
+        return this.thread;
     }
-    
+
     /*
      * TODO FIXME
      *  - Async packet sending
      *  - Redo WEManager delay / command queue
      *  - Support older versions of bukkit
-     *  - Optimize lighting updates / chunk sending 
+     *  - Optimize lighting updates / chunk sending
      */
 }
