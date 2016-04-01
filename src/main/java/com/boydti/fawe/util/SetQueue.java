@@ -9,15 +9,30 @@ import com.sk89q.worldedit.world.biome.BaseBiome;
 
 public class SetQueue {
 
+    /**
+     * The implementation specific queue
+     */
     public static final SetQueue IMP = new SetQueue();
 
     public FaweQueue queue;
 
+    /**
+     * Track the time in ticks
+     */
     private final AtomicInteger time_waiting = new AtomicInteger(2);
     private final AtomicInteger time_current = new AtomicInteger(0);
-    private final ArrayDeque<Runnable> runnables = new ArrayDeque<>();
+    
+    /**
+     * Used to calculate elapsed time in milliseconds and ensure block placement doesn't lag the server 
+     */
     private long last;
     private long last2;
+    
+    /**
+     * A queue of tasks that will run when the queue is empty
+     */
+    private final ArrayDeque<Runnable> runnables = new ArrayDeque<>();
+
 
     public SetQueue() {
         TaskManager.IMP.repeat(new Runnable() {
@@ -144,5 +159,18 @@ public class SetQueue {
 
     public boolean isChunkLoaded(final String world, final int x, final int z) {
         return this.queue.isChunkLoaded(world, x, z);
+    }
+    
+    /**
+     * Add a task to run when the chunk is set<br>
+     * @throws IllegalArgumentException if the chunk is not in the queue
+     * @param world
+     * @param x
+     * @param y
+     * @param z
+     * @param runnable
+     */
+    public void addTask(String world, int x, int y, int z, Runnable runnable) {
+        this.queue.addTask(world, x, y, z, runnable);
     }
 }

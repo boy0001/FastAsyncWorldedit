@@ -28,6 +28,10 @@ import com.boydti.fawe.bukkit.FaweBukkit;
 import com.boydti.fawe.config.Settings;
 import com.boydti.fawe.object.ChunkLoc;
 
+/**
+ * Please ignore
+ */
+@Deprecated
 public class FaweGenerator_1_8 extends ChunkGenerator implements Listener {
     private boolean events;
 

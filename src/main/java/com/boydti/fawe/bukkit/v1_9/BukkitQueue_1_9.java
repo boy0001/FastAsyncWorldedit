@@ -30,6 +30,7 @@ import org.bukkit.generator.ChunkGenerator;
 import com.boydti.fawe.Fawe;
 import com.boydti.fawe.FaweCache;
 import com.boydti.fawe.bukkit.v0.BukkitQueue_0;
+import com.boydti.fawe.config.Settings;
 import com.boydti.fawe.object.ChunkLoc;
 import com.boydti.fawe.object.FaweChunk;
 import com.boydti.fawe.object.FawePlayer;
@@ -41,7 +42,7 @@ import com.boydti.fawe.util.ReflectionUtils.RefConstructor;
 import com.boydti.fawe.util.ReflectionUtils.RefField;
 import com.boydti.fawe.util.ReflectionUtils.RefMethod;
 import com.boydti.fawe.util.ReflectionUtils.RefMethod.RefExecutor;
-import com.intellectualcrafters.plot.util.TaskManager;
+import com.boydti.fawe.util.TaskManager;
 import com.sk89q.worldedit.LocalSession;
 
 public class BukkitQueue_1_9 extends BukkitQueue_0 {
@@ -56,12 +57,10 @@ public class BukkitQueue_1_9 extends BukkitQueue_0 {
     private final RefClass classBlock = getRefClass("{nms}.Block");
     private final RefClass classIBlockData = getRefClass("{nms}.IBlockData");
     private final RefMethod methodGetHandleChunk;
-    private final RefConstructor MapChunk;
     private final RefMethod methodInitLighting;
     private final RefConstructor classBlockPositionConstructor;
     private final RefConstructor classChunkSectionConstructor;
     private final RefMethod methodW;
-    private final RefMethod methodAreNeighborsLoaded;
     private final RefField fieldSections;
     private final RefField fieldWorld;
     private final RefMethod methodGetBlocks;
@@ -74,7 +73,6 @@ public class BukkitQueue_1_9 extends BukkitQueue_0 {
     public BukkitQueue_1_9() throws NoSuchMethodException, RuntimeException {
         this.methodGetHandleChunk = this.classCraftChunk.getMethod("getHandle");
         this.methodInitLighting = this.classChunk.getMethod("initLighting");
-        this.MapChunk = this.classMapChunk.getConstructor(this.classChunk.getRealClass(), boolean.class, int.class);
         this.classBlockPositionConstructor = this.classBlockPosition.getConstructor(int.class, int.class, int.class);
         this.methodW = this.classWorld.getMethod("w", this.classBlockPosition.getRealClass());
         this.fieldSections = this.classChunk.getField("sections");
@@ -82,7 +80,6 @@ public class BukkitQueue_1_9 extends BukkitQueue_0 {
         this.methodGetByCombinedId = this.classBlock.getMethod("getByCombinedId", int.class);
         this.methodGetBlocks = this.classChunkSection.getMethod("getBlocks");
         this.methodSetType = this.classChunkSection.getMethod("setType", int.class, int.class, int.class, this.classIBlockData.getRealClass());
-        this.methodAreNeighborsLoaded = this.classChunk.getMethod("areNeighborsLoaded", int.class);
         this.classChunkSectionConstructor = this.classChunkSection.getConstructor(int.class, boolean.class, char[].class);
         this.air = this.methodGetByCombinedId.call(0);
         this.tileEntityListTick = this.classWorld.getField("tileEntityListTick");
@@ -92,11 +89,16 @@ public class BukkitQueue_1_9 extends BukkitQueue_0 {
     @Override
     public Collection<FaweChunk<Chunk>> sendChunk(final Collection<FaweChunk<Chunk>> fcs) {
         for (final FaweChunk<Chunk> fc : fcs) {
-            final Chunk chunk = fc.getChunk();
-            final ChunkLoc loc = fc.getChunkLoc();
-            chunk.getWorld().refreshChunk(loc.x, loc.z);
+            sendChunk(fc);
         }
         return new ArrayList<>();
+    }
+    
+    public void sendChunk(FaweChunk<Chunk> fc) {
+        fixLighting(fc, Settings.FIX_ALL_LIGHTING);
+        final Chunk chunk = fc.getChunk();
+        final ChunkLoc loc = fc.getChunkLoc();
+        chunk.getWorld().refreshChunk(loc.x, loc.z);
     }
 
     @Override
@@ -358,18 +360,28 @@ public class BukkitQueue_1_9 extends BukkitQueue_0 {
                 }
             }
         }
-        TaskManager.runTaskLater(new Runnable() {
+        TaskManager.IMP.later(new Runnable() {
             @Override
             public void run() {
-                final ChunkLoc loc = fs.getChunkLoc();
-                world.refreshChunk(loc.x, loc.z);
+                sendChunk(fs);
             }
         }, 1);
         return true;
     }
 
+    /**
+     * This method is called when the server is < 1% available memory (i.e. likely to crash)<br>
+     *  - You can disable this in the conifg<br>
+     *  - Will try to free up some memory<br>
+     *  - Clears the queue<br>
+     *  - Clears worldedit history<br>
+     *  - Clears entities<br>
+     *  - Unloads chunks in vacant worlds<br>
+     *  - Unloads non visible chunks<br>
+     */
     @Override
     public void clear() {
+        // Clear the queue
         super.clear();
         ArrayDeque<Chunk> toUnload = new ArrayDeque<>();
         final int distance = Bukkit.getViewDistance() + 2;
@@ -463,31 +475,6 @@ public class BukkitQueue_1_9 extends BukkitQueue_0 {
         }
         toUnload = null;
         players = null;
-        System.gc();
-        System.gc();
-        free = MemUtil.calculateMemory();
-        if (free > 1) {
-            return;
-        }
-        Collection<? extends Player> online = Bukkit.getOnlinePlayers();
-        if (online.size() > 0) {
-            online.iterator().next().kickPlayer("java.lang.OutOfMemoryError");
-        }
-        online = null;
-        System.gc();
-        System.gc();
-        free = MemUtil.calculateMemory();
-        if ((free > 1) || (Bukkit.getOnlinePlayers().size() > 0)) {
-            return;
-        }
-        for (final World world : Bukkit.getWorlds()) {
-            final String name = world.getName();
-            for (final Chunk chunk : world.getLoadedChunks()) {
-                this.unloadChunk(name, chunk);
-            }
-        }
-        System.gc();
-        System.gc();
     }
 
     public Object newChunkSection(final int i, final boolean flag, final char[] ids) {

@@ -27,6 +27,16 @@ import com.sk89q.worldedit.LocalWorld;
 import com.sk89q.worldedit.bukkit.BukkitUtil;
 import com.sk89q.worldedit.regions.Region;
 
+/**
+ * Kinda a really messy class I just copied over from an old project<br>
+ *  - Still works, so cbf cleaning it up<br>
+ *  - Completely optional to have this class enabled since things get cancelled further down anyway<br>
+ *  - Useful since it informs the player why an edit changed no blocks etc.<br>
+ *  - Predicts the number of blocks changed and cancels the edit if it's too large<br>
+ *  - Predicts where the edit will effect and cancels it if it's outside a region<br>
+ *  - Restricts the brush iteration limit<br>
+ *  @deprecated as I plan on replacing it at some point
+ */
 @Deprecated
 public class WEListener implements Listener {
 

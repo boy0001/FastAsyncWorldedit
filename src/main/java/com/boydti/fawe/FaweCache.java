@@ -13,6 +13,7 @@ public class FaweCache {
     public final static short[] CACHE_ID = new short[65535];
     public final static byte[] CACHE_DATA = new byte[65535];
 
+    // Faster than java random (since the game just needs to look random)
     public final static PseudoRandom RANDOM = new PseudoRandom();
 
     static {

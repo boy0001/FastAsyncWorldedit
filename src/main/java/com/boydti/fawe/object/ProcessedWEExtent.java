@@ -187,8 +187,21 @@ public class ProcessedWEExtent extends AbstractDelegateExtent {
                         return false;
                     }
                     SetQueue.IMP.setBlock(this.world, x, location.getBlockY(), z, id, (byte) block.getData());
+                    if (block.hasNbtData()) {
+                        SetQueue.IMP.addTask(this.world, x, location.getBlockY(), z, new Runnable() {
+                            @Override
+                            public void run() {
+                                try {
+                                    ProcessedWEExtent.super.setBlock(location, block);
+                                } catch (WorldEditException e) {
+                                    e.printStackTrace();
+                                }
+                            }
+                        });
+                    }
+                    return true;
                 }
-                break;
+                return false;
             }
             default: {
                 final int x = location.getBlockX();
@@ -282,19 +295,17 @@ public class ProcessedWEExtent extends AbstractDelegateExtent {
                         case 191:
                         case 192: {
                             SetQueue.IMP.setBlock(this.world, x, y, z, id);
-                            break;
+                            return true;
                         }
                         default: {
                             SetQueue.IMP.setBlock(this.world, x, y, z, id, (byte) block.getData());
-                            break;
+                            return true;
                         }
                     }
-                    return true;
                 }
+                return false;
             }
-
         }
-        return false;
     }
 
     @Override

@@ -145,6 +145,7 @@ public class FaweAPI {
      * If a schematic is too large to be pasted normally<br>
      *  - Skips any block history
      *  - Ignores some block data
+     *  - No, it's not streaming it from disk, but it is a lot faster
      * @param file
      * @param loc
      * @return
@@ -202,6 +203,7 @@ public class FaweAPI {
      * If a schematic is too large to be pasted normally<br>
      *  - Skips any block history
      *  - Ignores some block data
+     *  - Not actually streaming from disk, but it does skip a lot of overhead
      * @param is
      * @param loc
      * @throws IOException
@@ -321,8 +323,6 @@ public class FaweAPI {
 
         ids = null;
         datas = null;
-        System.gc();
-        System.gc();
     }
 
     /**

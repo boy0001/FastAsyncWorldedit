@@ -1,5 +1,7 @@
 package com.boydti.fawe.object;
 
+import java.util.ArrayDeque;
+
 import com.boydti.fawe.config.Settings;
 import com.boydti.fawe.util.SetQueue;
 import com.sk89q.worldedit.world.biome.BaseBiome;
@@ -7,6 +9,8 @@ import com.sk89q.worldedit.world.biome.BaseBiome;
 public abstract class FaweChunk<T> {
 
     private ChunkLoc chunk;
+
+    private final ArrayDeque<Runnable> tasks = new ArrayDeque<Runnable>();
 
     /**
      * A FaweSections object represents a chunk and the blocks that you wish to change in it.
@@ -42,6 +46,19 @@ public abstract class FaweChunk<T> {
                 }
             }
         }
+    }
+
+    public void addTask(Runnable run) {
+        if (run != null) {
+            tasks.add(run);
+        }
+    }
+    
+    public void executeTasks() {
+        for (Runnable task : tasks) {
+            task.run();
+        }
+        tasks.clear();
     }
 
     public abstract T getChunk();

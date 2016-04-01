@@ -34,6 +34,10 @@ public class BukkitPlayer extends FawePlayer<Player> {
 
     @Override
     public void setPermission(final String perm, final boolean flag) {
+        /*
+         *  Permissions are used to managing WorldEdit region restrictions
+         *   - The `/wea` command will give/remove the required bypass permission
+         */
         if (Fawe.<FaweBukkit> imp().getVault() == null) {
             this.parent.addAttachment(Fawe.<FaweBukkit> imp()).setPermission("fawe.bypass", flag);
         } else if (flag) {

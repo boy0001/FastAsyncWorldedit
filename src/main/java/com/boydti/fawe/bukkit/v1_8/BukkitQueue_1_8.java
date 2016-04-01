@@ -431,8 +431,19 @@ public class BukkitQueue_1_8 extends BukkitQueue_0 {
         return false;
     }
 
+    /**
+     * This method is called when the server is < 1% available memory (i.e. likely to crash)<br>
+     *  - You can disable this in the conifg<br>
+     *  - Will try to free up some memory<br>
+     *  - Clears the queue<br>
+     *  - Clears worldedit history<br>
+     *  - Clears entities<br>
+     *  - Unloads chunks in vacant worlds<br>
+     *  - Unloads non visible chunks<br>
+     */
     @Override
     public void clear() {
+        // Clear the queue
         super.clear();
         ArrayDeque<Chunk> toUnload = new ArrayDeque<>();
         final int distance = Bukkit.getViewDistance() + 2;
@@ -526,31 +537,6 @@ public class BukkitQueue_1_8 extends BukkitQueue_0 {
         }
         toUnload = null;
         players = null;
-        System.gc();
-        System.gc();
-        free = MemUtil.calculateMemory();
-        if (free > 1) {
-            return;
-        }
-        Collection<? extends Player> online = Bukkit.getOnlinePlayers();
-        if (online.size() > 0) {
-            online.iterator().next().kickPlayer("java.lang.OutOfMemoryError");
-        }
-        online = null;
-        System.gc();
-        System.gc();
-        free = MemUtil.calculateMemory();
-        if ((free > 1) || (Bukkit.getOnlinePlayers().size() > 0)) {
-            return;
-        }
-        for (final World world : Bukkit.getWorlds()) {
-            final String name = world.getName();
-            for (final Chunk chunk : world.getLoadedChunks()) {
-                this.unloadChunk(name, chunk);
-            }
-        }
-        System.gc();
-        System.gc();
     }
 
     public Object newChunkSection(final int i, final boolean flag, final char[] ids) {

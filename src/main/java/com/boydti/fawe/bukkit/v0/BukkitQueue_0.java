@@ -30,9 +30,20 @@ import com.boydti.fawe.util.SetQueue;
 import com.boydti.fawe.util.TaskManager;
 import com.sk89q.worldedit.world.biome.BaseBiome;
 
+/**
+ * The base object for 
+ */
 public abstract class BukkitQueue_0 extends FaweQueue implements Listener {
 
+    /**
+     * Map of loaded chunks for quicker checking
+     */
     private final HashMap<String, HashSet<Long>> loaded = new HashMap<>();
+    
+    /**
+     * Map of chunks in the queue
+     */
+    private final ConcurrentHashMap<ChunkLoc, FaweChunk<Chunk>> blocks = new ConcurrentHashMap<>();
 
     public BukkitQueue_0() {
         TaskManager.IMP.task(new Runnable() {
@@ -109,8 +120,17 @@ public abstract class BukkitQueue_0 extends FaweQueue implements Listener {
     public void onChunkUnload(final ChunkUnloadEvent event) {
         this.removeLoaded(event.getChunk());
     }
-
-    private final ConcurrentHashMap<ChunkLoc, FaweChunk<Chunk>> blocks = new ConcurrentHashMap<>();
+    
+    @Override
+    public void addTask(String world, int x, int y, int z, Runnable runnable) {
+        // TODO Auto-generated method stub
+        final ChunkLoc wrap = new ChunkLoc(world, x >> 4, z >> 4);
+        FaweChunk<Chunk> result = this.blocks.get(wrap);
+        if (result == null) {
+            throw new IllegalArgumentException("Task must be accompanied by a block change or manually adding to queue!");
+        }
+        result.addTask(runnable);
+    }
 
     @Override
     public boolean setBlock(final String world, int x, final int y, int z, final short id, final byte data) {
@@ -186,6 +206,7 @@ public abstract class BukkitQueue_0 extends FaweQueue implements Listener {
         if (!this.setComponents(fc)) {
             return false;
         }
+        fc.executeTasks();
         return true;
     }
 

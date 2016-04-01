@@ -7,6 +7,7 @@ import com.boydti.fawe.object.FaweChunk;
 import com.sk89q.worldedit.world.biome.BaseBiome;
 
 public abstract class FaweQueue {
+
     public abstract boolean setBlock(final String world, final int x, final int y, final int z, final short id, final byte data);
 
     public abstract boolean setBiome(final String world, final int x, final int z, final BaseBiome biome);
@@ -38,5 +39,10 @@ public abstract class FaweQueue {
         // Unload chunks
     }
 
+    /**
+     * This method is called when the server is < 1% available memory
+     */
     protected abstract void clear();
+    
+    public abstract void addTask(String world, int x, int y, int z, Runnable runnable);
 }

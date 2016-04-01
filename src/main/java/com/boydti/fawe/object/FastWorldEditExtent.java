@@ -4,6 +4,7 @@ import java.util.List;
 
 import com.boydti.fawe.util.SetQueue;
 import com.boydti.fawe.util.TaskManager;
+import com.sk89q.jnbt.CompoundTag;
 import com.sk89q.worldedit.BlockVector;
 import com.sk89q.worldedit.EditSession;
 import com.sk89q.worldedit.Vector;
@@ -104,6 +105,58 @@ public class FastWorldEditExtent extends AbstractDelegateExtent {
         final int y = location.getBlockY();
         final int z = location.getBlockZ();
         switch (id) {
+            case 54:
+            case 130:
+            case 142:
+            case 27:
+            case 137:
+            case 52:
+            case 154:
+            case 84:
+            case 25:
+            case 144:
+            case 138:
+            case 176:
+            case 177:
+            case 63:
+            case 119:
+            case 68:
+            case 323:
+            case 117:
+            case 116:
+            case 28:
+            case 66:
+            case 157:
+            case 61:
+            case 62:
+            case 140:
+            case 146:
+            case 149:
+            case 150:
+            case 158:
+            case 23:
+            case 123:
+            case 124:
+            case 29:
+            case 33:
+            case 151:
+            case 178: {
+                SetQueue.IMP.setBlock(this.world, x, y, z, id, (byte) block.getData());
+                if (block.hasNbtData()) {
+                    final CompoundTag nbt = block.getNbtData();
+                    SetQueue.IMP.addTask(this.world, x, y, z, new Runnable() {
+                        @Override
+                        public void run() {
+                            try {
+                                FastWorldEditExtent.super.setBlock(location, block);
+                            } catch (WorldEditException e) {
+                                e.printStackTrace();
+                            }
+                        }
+                    });
+                }
+                return true;
+            }
             case 0:
             case 2:
             case 4:
@@ -113,7 +166,6 @@ public class FastWorldEditExtent extends AbstractDelegateExtent {
             case 20:
             case 21:
             case 22:
-            case 25:
             case 30:
             case 32:
             case 37:
@@ -127,13 +179,10 @@ public class FastWorldEditExtent extends AbstractDelegateExtent {
             case 48:
             case 49:
             case 51:
-            case 52:
             case 56:
             case 57:
             case 58:
             case 60:
-            case 61:
-            case 62:
             case 7:
             case 8:
             case 9:
@@ -147,7 +196,6 @@ public class FastWorldEditExtent extends AbstractDelegateExtent {
             case 81:
             case 82:
             case 83:
-            case 84:
             case 85:
             case 87:
             case 88:
@@ -157,16 +205,10 @@ public class FastWorldEditExtent extends AbstractDelegateExtent {
             case 110:
             case 112:
             case 113:
-            case 117:
             case 121:
             case 122:
-            case 123:
-            case 124:
             case 129:
             case 133:
-            case 138:
-            case 137:
-            case 140:
             case 165:
             case 166:
             case 169:
@@ -174,8 +216,6 @@ public class FastWorldEditExtent extends AbstractDelegateExtent {
             case 172:
             case 173:
             case 174:
-            case 176:
-            case 177:
             case 181:
             case 182:
             case 188:

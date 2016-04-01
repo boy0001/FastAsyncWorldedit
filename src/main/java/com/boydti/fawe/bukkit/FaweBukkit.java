@@ -95,11 +95,24 @@ public class FaweBukkit extends JavaPlugin implements IFawe {
         }
     }
 
+    /**
+     * Kinda a really messy class I just copied over from an old project<br>
+     *  - Still works, so cbf cleaning it up<br>
+     *  - Completely optional to have this class enabled since things get cancelled further down anyway<br>
+     *  - Useful since it informs the player why an edit changed no blocks etc.<br>
+     *  - Predicts the number of blocks changed and cancels the edit if it's too large<br>
+     *  - Predicts where the edit will effect and cancels it if it's outside a region<br>
+     *  - Restricts the brush iteration limit<br>
+     */
     @Override
     public void setupWEListener() {
         this.getServer().getPluginManager().registerEvents(new WEListener(), this);
     }
 
+    /**
+     * Vault isn't required, but used for setting player permissions (WorldEdit bypass)
+     * @return
+     */
     @Override
     public void setupVault() {
         try {
@@ -109,6 +122,9 @@ public class FaweBukkit extends JavaPlugin implements IFawe {
         }
     }
 
+    /**
+     * The task manager handles sync/async tasks
+     */
     @Override
     public TaskManager getTaskManager() {
         return new BukkitTaskMan(this);
@@ -133,6 +149,13 @@ public class FaweBukkit extends JavaPlugin implements IFawe {
         }
     }
 
+    /**
+     * The FaweQueue is a core part of block placement<br>
+     *  - The queue returned here is used in the SetQueue class (SetQueue handles the implementation specific queue)<br>
+     *  - Block changes are grouped by chunk (as it's more efficient for lighting/packet sending)<br>
+     *  - The FaweQueue returned here will provide the wrapper around the chunk object (FaweChunk)<br>
+     *  - When a block change is requested, the SetQueue will first check if the chunk exists in the queue, or it will create and add it<br>
+     */
     @Override
     public FaweQueue getQueue() {
         if (FaweAPI.checkVersion(this.getServerVersion(), 1, 9, 0)) {
@@ -167,11 +190,17 @@ public class FaweBukkit extends JavaPlugin implements IFawe {
         return this.version;
     }
 
+    /**
+     * The EditSessionWrapper should have the same functionality as the normal EditSessionWrapper but with some optimizations
+     */
     @Override
     public EditSessionWrapper getEditSessionWrapper(final EditSession session) {
         return new BukkitEditSessionWrapper_1_8(session);
     }
 
+    /**
+     * A mask manager handles region restrictions e.g. PlotSquared plots / WorldGuard regions
+     */
     @Override
     public Collection<FaweMaskManager> getMaskManagers() {
         final Plugin worldguardPlugin = Bukkit.getServer().getPluginManager().getPlugin("WorldGuard");
