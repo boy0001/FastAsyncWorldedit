@@ -46,7 +46,6 @@ import com.boydti.fawe.object.EditSessionWrapper;
 import com.boydti.fawe.object.FawePlayer;
 import com.boydti.fawe.object.NullChangeSet;
 import com.boydti.fawe.object.RegionWrapper;
-import com.boydti.fawe.object.changeset.CPUOptimizedHistory;
 import com.boydti.fawe.object.changeset.DiskStorageHistory;
 import com.boydti.fawe.object.changeset.MemoryOptimizedHistory;
 import com.boydti.fawe.object.extent.FastWorldEditExtent;
@@ -244,8 +243,7 @@ public class EditSession implements Extent {
             this.changeSet = new NullChangeSet();
             return;
         }
-        
-        this.changeSet = Settings.STORE_HISTORY_ON_DISK ? new DiskStorageHistory(actor.getUniqueId().toString()) : Settings.COMPRESS_HISTORY ? new MemoryOptimizedHistory() : new CPUOptimizedHistory();
+        this.changeSet = Settings.STORE_HISTORY_ON_DISK ? new DiskStorageHistory(actor.getUniqueId().toString()) : new MemoryOptimizedHistory();
         Extent extent;
         final String name = actor.getName();
         final FawePlayer<Object> fp = FawePlayer.wrap(name);

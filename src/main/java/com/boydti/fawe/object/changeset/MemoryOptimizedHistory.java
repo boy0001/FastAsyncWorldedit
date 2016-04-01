@@ -3,6 +3,8 @@ package com.boydti.fawe.object.changeset;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -12,6 +14,7 @@ import java.util.zip.GZIPInputStream;
 import java.util.zip.GZIPOutputStream;
 
 import com.boydti.fawe.FaweCache;
+import com.boydti.fawe.config.Settings;
 import com.boydti.fawe.util.MainUtil;
 import com.boydti.fawe.util.ReflectionUtils;
 import com.google.common.collect.Iterators;
@@ -37,7 +40,7 @@ public class MemoryOptimizedHistory implements ChangeSet, FlushableChangeSet {
     
     private byte[] ids;
     private ByteArrayOutputStream idsStream;
-    private GZIPOutputStream idsStreamZip;
+    private OutputStream idsStreamZip;
     
     private ArrayDeque<Change> entities;
     
@@ -71,7 +74,7 @@ public class MemoryOptimizedHistory implements ChangeSet, FlushableChangeSet {
                 int idTo = to.getId();
                 int combinedTo = (FaweCache.hasData(idTo) ? ((idTo << 4) + to.getData()) : (idTo << 4));
                 CompoundTag nbtTo = FaweCache.hasNBT(idTo) ? to.getNbtData() : null;
-                GZIPOutputStream stream = getBAOS(x, y, z);
+                OutputStream stream = getBAOS(x, y, z);
                 //x
                 stream.write((x - ox) & 0xff);
                 stream.write(((x - ox) >> 8) & 0xff);
@@ -119,12 +122,12 @@ public class MemoryOptimizedHistory implements ChangeSet, FlushableChangeSet {
         }
     }
     
-    private GZIPOutputStream getBAOS(int x, int y, int z) throws IOException {
+    private OutputStream getBAOS(int x, int y, int z) throws IOException {
         if (idsStreamZip != null) {
             return idsStreamZip;
         }
         idsStream = new ByteArrayOutputStream(9216);
-        idsStreamZip = new GZIPOutputStream(idsStream, true);
+        idsStreamZip = Settings.COMPRESS_HISTORY ? new GZIPOutputStream(idsStream, true) : idsStream;
         ox = x;
         oz = z;
         return idsStreamZip;
@@ -139,7 +142,8 @@ public class MemoryOptimizedHistory implements ChangeSet, FlushableChangeSet {
             if (ids == null) {
                 idsIterator = new ArrayList().iterator();
             } else {
-                final GZIPInputStream gis = new GZIPInputStream(new ByteArrayInputStream(ids));
+                ByteArrayInputStream bais = new ByteArrayInputStream(ids);
+                final InputStream gis = Settings.COMPRESS_HISTORY ? new GZIPInputStream(bais) : bais;
                 idsIterator = new Iterator<Change>() {
                     
                     private final Iterator<CompoundTag> lastFromIter = fromTags != null ? fromTags.iterator() : null;

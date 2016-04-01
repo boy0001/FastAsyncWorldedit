@@ -4,6 +4,8 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.Map;
@@ -13,6 +15,7 @@ import java.util.zip.GZIPOutputStream;
 
 import com.boydti.fawe.Fawe;
 import com.boydti.fawe.FaweCache;
+import com.boydti.fawe.config.Settings;
 import com.boydti.fawe.util.MainUtil;
 import com.boydti.fawe.util.ReflectionUtils;
 import com.sk89q.jnbt.CompoundTag;
@@ -53,7 +56,7 @@ public class DiskStorageHistory implements ChangeSet, FlushableChangeSet {
      * [contents]...
      * { short rel x, short rel z, unsigned byte y, short combinedFrom, short combinedTo }
      */
-    private GZIPOutputStream osBD;
+    private OutputStream osBD;
 
     // NBT From
     private NBTOutputStream osNBTF;
@@ -159,7 +162,7 @@ public class DiskStorageHistory implements ChangeSet, FlushableChangeSet {
             int idTo = to.getId();
             int combinedTo = (FaweCache.hasData(idTo) ? ((idTo << 4) + to.getData()) : (idTo << 4));
             CompoundTag nbtTo = FaweCache.hasNBT(idTo) ? to.getNbtData() : null;
-            GZIPOutputStream stream = getBAOS(x, y, z);
+            OutputStream stream = getBAOS(x, y, z);
             //x
             stream.write((x - ox) & 0xff);
             stream.write(((x - ox) >> 8) & 0xff);
@@ -197,13 +200,14 @@ public class DiskStorageHistory implements ChangeSet, FlushableChangeSet {
         }
     }
     
-    private GZIPOutputStream getBAOS(int x, int y, int z) throws IOException {
+    private OutputStream getBAOS(int x, int y, int z) throws IOException {
         if (osBD != null) {
             return osBD;
         }
         bdFile.getParentFile().mkdirs();
         bdFile.createNewFile();
-        osBD = new GZIPOutputStream(new FileOutputStream(bdFile), true);
+        FileOutputStream stream = new FileOutputStream(bdFile);
+        osBD = Settings.COMPRESS_HISTORY ? new GZIPOutputStream(stream, true) : stream;
         ox = x;
         oz = z;
         osBD.write((byte) (ox >> 24));
@@ -277,7 +281,8 @@ public class DiskStorageHistory implements ChangeSet, FlushableChangeSet {
                 final NBTInputStream nbtf = osNBTF != null ? new NBTInputStream(new GZIPInputStream(new FileInputStream(nbtfFile))) : null;
                 final NBTInputStream nbtt = osNBTT != null ? new NBTInputStream(new GZIPInputStream(new FileInputStream(nbttFile))) : null;
 
-                final GZIPInputStream gis = new GZIPInputStream(new FileInputStream(bdFile));
+                FileInputStream fis = new FileInputStream(bdFile);
+                final InputStream gis = Settings.COMPRESS_HISTORY ? new GZIPInputStream(fis) : fis;
                 gis.skip(8);
                 return new Iterator<Change>() {
 
