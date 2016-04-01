@@ -36,7 +36,7 @@ import com.sk89q.worldedit.regions.Region;
 public class RegionVisitor implements Operation {
 
     private final RegionFunction function;
-    private final int affected = 0;
+    private int affected = 0;
 
     private final Iterator<BlockVector> iterator;
 
@@ -58,7 +58,9 @@ public class RegionVisitor implements Operation {
     @Override
     public Operation resume(final RunContext run) throws WorldEditException {
         while (this.iterator.hasNext()) {
-            this.function.apply(this.iterator.next());
+            if (this.function.apply(this.iterator.next())) {
+                affected++;
+            }
         }
         return null;
     }

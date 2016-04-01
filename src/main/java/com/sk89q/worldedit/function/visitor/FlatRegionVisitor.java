@@ -37,7 +37,7 @@ import com.sk89q.worldedit.regions.FlatRegion;
 public class FlatRegionVisitor implements Operation {
 
     private final FlatRegionFunction function;
-    private final int affected = 0;
+    private int affected = 0;
     private final Iterable<Vector2D> iterator;
 
     /**
@@ -65,7 +65,9 @@ public class FlatRegionVisitor implements Operation {
     @Override
     public Operation resume(final RunContext run) throws WorldEditException {
         for (final Vector2D pt : this.iterator) {
-            this.function.apply(pt);
+            if (this.function.apply(pt)) {
+                affected++;
+            }
         }
         return null;
     }

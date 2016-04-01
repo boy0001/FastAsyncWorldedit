@@ -42,15 +42,16 @@ import com.boydti.fawe.Fawe;
 import com.boydti.fawe.FaweCache;
 import com.boydti.fawe.config.BBC;
 import com.boydti.fawe.object.EditSessionWrapper;
-import com.boydti.fawe.object.FastWorldEditExtent;
 import com.boydti.fawe.object.FawePlayer;
-import com.boydti.fawe.object.NullExtent;
-import com.boydti.fawe.object.ProcessedWEExtent;
 import com.boydti.fawe.object.RegionWrapper;
+import com.boydti.fawe.object.changeset.DiskStorageHistory;
+import com.boydti.fawe.object.extent.FastWorldEditExtent;
+import com.boydti.fawe.object.extent.NullExtent;
+import com.boydti.fawe.object.extent.ProcessedWEExtent;
+import com.boydti.fawe.object.extent.SafeExtentWrapper;
 import com.boydti.fawe.util.ExtentWrapper;
 import com.boydti.fawe.util.MemUtil;
 import com.boydti.fawe.util.Perm;
-import com.boydti.fawe.util.SafeExtentWrapper;
 import com.boydti.fawe.util.TaskManager;
 import com.boydti.fawe.util.WEManager;
 import com.sk89q.worldedit.blocks.BaseBlock;
@@ -100,7 +101,6 @@ import com.sk89q.worldedit.function.visitor.RecursiveVisitor;
 import com.sk89q.worldedit.function.visitor.RegionVisitor;
 import com.sk89q.worldedit.history.UndoContext;
 import com.sk89q.worldedit.history.change.BlockChange;
-import com.sk89q.worldedit.history.changeset.BlockOptimizedHistory;
 import com.sk89q.worldedit.history.changeset.ChangeSet;
 import com.sk89q.worldedit.internal.expression.Expression;
 import com.sk89q.worldedit.internal.expression.ExpressionException;
@@ -149,7 +149,7 @@ public class EditSession implements Extent {
     }
 
     protected final World world;
-    private final ChangeSet changeSet = new BlockOptimizedHistory();
+    private final ChangeSet changeSet;
     private final EditSessionWrapper wrapper;
     private MultiStageReorder reorderExtent;
     private @Nullable Extent changeSetExtent;
@@ -214,6 +214,8 @@ public class EditSession implements Extent {
         this.thread = Fawe.get().getMainThread();
         this.world = world;
         this.wrapper = Fawe.imp().getEditSessionWrapper(this);
+        //        this.changeSet = new BlockOptimizedHistory();
+        this.changeSet = new DiskStorageHistory();
 
         // Invalid; return null extent
         if (world == null) {

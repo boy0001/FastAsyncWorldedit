@@ -1,4 +1,4 @@
-package com.boydti.fawe.object;
+package com.boydti.fawe.object.extent;
 
 import java.util.ArrayList;
 import java.util.List;

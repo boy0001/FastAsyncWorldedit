@@ -1,10 +1,12 @@
-package com.boydti.fawe.object;
+package com.boydti.fawe.object.extent;
 
 import java.util.HashSet;
 import java.util.List;
 
 import com.boydti.fawe.config.BBC;
 import com.boydti.fawe.config.Settings;
+import com.boydti.fawe.object.FawePlayer;
+import com.boydti.fawe.object.RegionWrapper;
 import com.boydti.fawe.util.MainUtil;
 import com.boydti.fawe.util.SetQueue;
 import com.boydti.fawe.util.TaskManager;

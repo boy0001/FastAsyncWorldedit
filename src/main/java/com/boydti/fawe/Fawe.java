@@ -28,6 +28,7 @@ import com.sk89q.worldedit.EditSession;
 import com.sk89q.worldedit.WorldEdit;
 import com.sk89q.worldedit.command.SchematicCommands;
 import com.sk89q.worldedit.command.ScriptingCommands;
+import com.sk89q.worldedit.extension.platform.CommandManager;
 import com.sk89q.worldedit.function.operation.Operations;
 import com.sk89q.worldedit.function.visitor.BreadthFirstSearch;
 import com.sk89q.worldedit.function.visitor.DownwardVisitor;
@@ -212,6 +213,8 @@ public class Fawe {
         NonRisingVisitor.inject();
         RecursiveVisitor.inject();
         RegionVisitor.inject();
+        CommandManager.inject();
+        //        DispatcherWrapper.inject();
     }
 
     private void setupMemoryListener() {

@@ -37,7 +37,7 @@ import com.sk89q.worldedit.function.operation.RunContext;
 public class EntityVisitor implements Operation {
 
     private final EntityFunction function;
-    private final int affected = 0;
+    private int affected = 0;
     private final Iterator<? extends Entity> iterator;
 
     /**
@@ -66,7 +66,9 @@ public class EntityVisitor implements Operation {
     @Override
     public Operation resume(final RunContext run) throws WorldEditException {
         while (this.iterator.hasNext()) {
-            this.function.apply(this.iterator.next());
+            if (this.function.apply(this.iterator.next())) {
+                affected++;
+            }
         }
         return null;
     }

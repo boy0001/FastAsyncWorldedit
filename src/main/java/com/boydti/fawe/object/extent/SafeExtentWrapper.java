@@ -1,7 +1,10 @@
-package com.boydti.fawe.util;
+package com.boydti.fawe.object.extent;
 
 import com.boydti.fawe.config.BBC;
 import com.boydti.fawe.object.FawePlayer;
+import com.boydti.fawe.util.MemUtil;
+import com.boydti.fawe.util.Perm;
+import com.boydti.fawe.util.WEManager;
 import com.sk89q.worldedit.Vector;
 import com.sk89q.worldedit.WorldEditException;
 import com.sk89q.worldedit.blocks.BaseBlock;

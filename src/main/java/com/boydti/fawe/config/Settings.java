@@ -10,6 +10,8 @@ import java.util.Map.Entry;
 
 import org.bukkit.configuration.file.YamlConfiguration;
 
+import com.sk89q.worldedit.LocalSession;
+
 public class Settings {
 
     public static int MAX_BLOCKSTATES = 1337;
@@ -22,6 +24,7 @@ public class Settings {
     public static List<String> WE_BLACKLIST = Arrays.asList("cs", ".s", "restore", "snapshot", "delchunks", "listchunks");
     public static long MEM_FREE = 95;
     public static boolean ENABLE_HARD_LIMIT = true;
+    public static boolean STORE_HISTORY_ON_DISK = true;
 
     public static void setup(final File file) {
         if (!file.exists()) {
@@ -45,6 +48,7 @@ public class Settings {
         options.put("max-memory-percent", MEM_FREE);
         options.put("crash-mitigation", ENABLE_HARD_LIMIT);
         options.put("fix-all-lighting", FIX_ALL_LIGHTING);
+        options.put("store-history-on-disk", STORE_HISTORY_ON_DISK);
 
         for (final Entry<String, Object> node : options.entrySet()) {
             if (!config.contains(node.getKey())) {
@@ -61,6 +65,9 @@ public class Settings {
         REQUIRE_SELECTION = config.getBoolean("require-selection-in-mask");
         WE_BLACKLIST = config.getStringList("command-blacklist");
         ENABLE_HARD_LIMIT = config.getBoolean("crash-mitigation");
+        if (STORE_HISTORY_ON_DISK = config.getBoolean("store-history-on-disk")) {
+            LocalSession.MAX_HISTORY_SIZE = Integer.MAX_VALUE;
+        }
 
         try {
             config.save(file);
