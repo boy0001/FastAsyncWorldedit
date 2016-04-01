@@ -8,6 +8,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 
 import org.bukkit.Bukkit;
 import org.bukkit.Server;
@@ -53,6 +54,18 @@ public class ReflectionUtils {
                     preClassM += "." + verM;
                 }
             } catch (final Exception ignored) {}
+        }
+    }
+    
+    public static <T, V> Map<T, V> getMap(Map<T, V> map) {
+        try {
+            Class<? extends Map> clazz = map.getClass();
+            Field m = clazz.getDeclaredField("m");
+            m.setAccessible(true);
+            return (Map<T, V>) m.get(map);
+        } catch (Throwable e) {
+            e.printStackTrace();
+            return map;
         }
     }
 

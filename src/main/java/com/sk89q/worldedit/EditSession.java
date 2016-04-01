@@ -41,10 +41,14 @@ import javax.annotation.Nullable;
 import com.boydti.fawe.Fawe;
 import com.boydti.fawe.FaweCache;
 import com.boydti.fawe.config.BBC;
+import com.boydti.fawe.config.Settings;
 import com.boydti.fawe.object.EditSessionWrapper;
 import com.boydti.fawe.object.FawePlayer;
+import com.boydti.fawe.object.NullChangeSet;
 import com.boydti.fawe.object.RegionWrapper;
+import com.boydti.fawe.object.changeset.CPUOptimizedHistory;
 import com.boydti.fawe.object.changeset.DiskStorageHistory;
+import com.boydti.fawe.object.changeset.MemoryOptimizedHistory;
 import com.boydti.fawe.object.extent.FastWorldEditExtent;
 import com.boydti.fawe.object.extent.NullExtent;
 import com.boydti.fawe.object.extent.ProcessedWEExtent;
@@ -215,7 +219,6 @@ public class EditSession implements Extent {
         this.world = world;
         this.wrapper = Fawe.imp().getEditSessionWrapper(this);
         //        this.changeSet = new BlockOptimizedHistory();
-        this.changeSet = new DiskStorageHistory();
 
         // Invalid; return null extent
         if (world == null) {
@@ -223,6 +226,7 @@ public class EditSession implements Extent {
             this.bypassReorderHistory = extent;
             this.bypassHistory = extent;
             this.bypassNone = extent;
+            this.changeSet = new NullChangeSet();
             return;
         }
         final Actor actor = event.getActor();
@@ -237,9 +241,11 @@ public class EditSession implements Extent {
             this.bypassReorderHistory = extent;
             this.bypassHistory = extent;
             this.bypassNone = extent;
+            this.changeSet = new NullChangeSet();
             return;
         }
-
+        
+        this.changeSet = Settings.STORE_HISTORY_ON_DISK ? new DiskStorageHistory(actor.getUniqueId().toString()) : Settings.COMPRESS_HISTORY ? new MemoryOptimizedHistory() : new CPUOptimizedHistory();
         Extent extent;
         final String name = actor.getName();
         final FawePlayer<Object> fp = FawePlayer.wrap(name);

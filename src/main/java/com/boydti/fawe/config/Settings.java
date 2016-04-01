@@ -24,7 +24,8 @@ public class Settings {
     public static List<String> WE_BLACKLIST = Arrays.asList("cs", ".s", "restore", "snapshot", "delchunks", "listchunks");
     public static long MEM_FREE = 95;
     public static boolean ENABLE_HARD_LIMIT = true;
-    public static boolean STORE_HISTORY_ON_DISK = true;
+    public static boolean STORE_HISTORY_ON_DISK = false;
+    public static boolean COMPRESS_HISTORY = false;
 
     public static void setup(final File file) {
         if (!file.exists()) {
@@ -48,7 +49,8 @@ public class Settings {
         options.put("max-memory-percent", MEM_FREE);
         options.put("crash-mitigation", ENABLE_HARD_LIMIT);
         options.put("fix-all-lighting", FIX_ALL_LIGHTING);
-        options.put("store-history-on-disk", STORE_HISTORY_ON_DISK);
+        options.put("history.use-disk", STORE_HISTORY_ON_DISK);
+        options.put("history.compress", COMPRESS_HISTORY);
 
         for (final Entry<String, Object> node : options.entrySet()) {
             if (!config.contains(node.getKey())) {
@@ -65,7 +67,8 @@ public class Settings {
         REQUIRE_SELECTION = config.getBoolean("require-selection-in-mask");
         WE_BLACKLIST = config.getStringList("command-blacklist");
         ENABLE_HARD_LIMIT = config.getBoolean("crash-mitigation");
-        if (STORE_HISTORY_ON_DISK = config.getBoolean("store-history-on-disk")) {
+        COMPRESS_HISTORY = config.getBoolean("history.compress");
+        if (STORE_HISTORY_ON_DISK = config.getBoolean("history.use-disk")) {
             LocalSession.MAX_HISTORY_SIZE = Integer.MAX_VALUE;
         }
 

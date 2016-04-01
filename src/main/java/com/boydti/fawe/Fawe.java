@@ -19,12 +19,14 @@ import com.boydti.fawe.command.WorldEditRegion;
 import com.boydti.fawe.config.BBC;
 import com.boydti.fawe.config.Settings;
 import com.boydti.fawe.util.Lag;
+import com.boydti.fawe.util.MainUtil;
 import com.boydti.fawe.util.MemUtil;
 import com.boydti.fawe.util.SetQueue;
 import com.boydti.fawe.util.TaskManager;
 import com.boydti.fawe.util.WEManager;
 import com.boydti.fawe.util.WESubscriber;
 import com.sk89q.worldedit.EditSession;
+import com.sk89q.worldedit.LocalSession;
 import com.sk89q.worldedit.WorldEdit;
 import com.sk89q.worldedit.command.SchematicCommands;
 import com.sk89q.worldedit.command.ScriptingCommands;
@@ -38,11 +40,9 @@ import com.sk89q.worldedit.function.visitor.LayerVisitor;
 import com.sk89q.worldedit.function.visitor.NonRisingVisitor;
 import com.sk89q.worldedit.function.visitor.RecursiveVisitor;
 import com.sk89q.worldedit.function.visitor.RegionVisitor;
-
-/**
- * Simplified overview:
- * 
- * [ WorldEdit action]
+import com.sk89q.worldedit.history.change.EntityCreate;
+import com.sk89q.worldedit.history.change.EntityRemove;
+ [ WorldEdit action]
  *       |
  *      \|/
  * [ EditSession ] - The change is processed (area restrictions, change limit, block type) 
@@ -148,6 +148,9 @@ public class Fawe {
 
         TaskManager.IMP = this.IMP.getTaskManager();
         SetQueue.IMP.queue = this.IMP.getQueue();
+        
+        // Delete old history
+        MainUtil.deleteDirectory(new File(IMP.getDirectory(), "history"));
 
         // Delayed setup
         TaskManager.IMP.later(new Runnable() {
@@ -214,7 +217,9 @@ public class Fawe {
         RecursiveVisitor.inject();
         RegionVisitor.inject();
         CommandManager.inject();
-        //        DispatcherWrapper.inject();
+        EntityCreate.inject();
+        EntityRemove.inject();
+        LocalSession.inject();
     }
 
     private void setupMemoryListener() {
