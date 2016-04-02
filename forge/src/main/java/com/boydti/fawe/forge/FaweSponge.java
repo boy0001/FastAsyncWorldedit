@@ -61,7 +61,7 @@ public class FaweSponge implements IFawe {
 
     @Override
     public File getDirectory() {
-        return new File("mods/FastAsyncWorldEdit");
+        return new File("config/FastAsyncWorldEdit");
     }
 
     @Override
