@@ -1,0 +1,53 @@
+dependencies {
+    compile project(':core')
+    compile 'org.bukkit:bukkit:1.9-R0.1-SNAPSHOT'
+    compile 'org.mcstats.bukkit:metrics:R7'
+    compile 'net.milkbowl.vault:VaultAPI:1.5'
+    compile 'javax.websocket:javax.websocket-api:1.1'
+    compile 'org.spongepowered:spongeapi:2.1-SNAPSHOT'
+    compile 'org.bukkit:bukkit:1.9-R0.1-SNAPSHOT'
+    compile 'org.PrimeSoft:blockshub:1.2'
+    compile 'com.massivecraft:factions:2.8.0'
+    compile 'com.drtshock:factions:1.6.9.5'
+    compile 'me.ryanhamshire:GriefPrevention:11.5.2'
+    compile 'com.massivecraft:mcore:7.0.1'
+    compile 'net.sacredlabyrinth.Phaed:PreciousStones:9.6.6'
+    compile 'net.jzx7:regios:5.9.9'
+    compile 'com.bekvon.bukkit:residence:2.6.6.6'
+    compile 'com.palmergames.bukkit:towny:0.84.0.9'
+    compile 'com.worldcretornica:plotme_core:0.16.3'
+    compile 'junit:junit:4.11'
+
+}
+
+sourceCompatibility = 1.7
+targetCompatibility = 1.7
+
+processResources {
+    from('src/main/resources') {
+        include 'plugin.yml'
+        expand(
+            name: project.parent.name,
+            version: project.parent.version
+        )
+    }
+}
+
+apply plugin: 'com.github.johnrengelman.shadow'
+// We only want the shadow jar produced
+jar.enabled = false
+shadowJar {
+    dependencies {
+        include(dependency(':core'))
+        include(dependency('org.mcstats.bukkit:metrics:R7'))
+    }
+    relocate 'org.mcstats', 'com.plotsquared.stats'
+    archiveName = "${parent.name}-${project.name}-${parent.version}.jar"
+    destinationDir = file '../target'
+}
+shadowJar.doLast {
+    task ->
+    ant.checksum file: task.archivePath
+}
+
+build.dependsOn(shadowJar);

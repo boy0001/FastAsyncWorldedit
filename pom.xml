@@ -12,104 +12,53 @@
     <name>FastAsyncWorldEdit</name>
     <packaging>jar</packaging>
     <build>
-        <finalName>FastAsyncWorldEdit-Uber</finalName>
-        <sourceDirectory>src/main/java</sourceDirectory>
+        <finalName>FastAsyncWorldEdit-Bukkit-${project.version}</finalName>
+        <sourceDirectory>Bukkit/src/main/java</sourceDirectory>
         <resources>
-            <resource>
-                <filtering>true</filtering>
-                <excludes>
-                    <exclude>LICENSE</exclude>
-                </excludes>
-                <directory>${basedir}/src/main/resources/</directory>
-            </resource>
-            <resource>
-                <filtering>false</filtering>
-                <includes>
-                    <include>LICENSE</include>
-                </includes>
-                <directory>${basedir}/src/main/resources/</directory>
-            </resource>
+	      <resource>
+	        <filtering>true</filtering>
+	        <includes>
+	          <include>**/*.*</include>
+	        </includes>
+	        <directory>bukkit/src/main/resources/</directory>
+	      </resource>
+	      <resource>
+	        <filtering>false</filtering>
+	        <includes>
+	          <include>**/*.*</include>
+	        </includes>
+	        <directory>core/src/main/resources/</directory>
+	      </resource>
         </resources>
         <plugins>
-            <plugin>
-                <artifactId>maven-jar-plugin</artifactId>
-                <version>2.3.2</version>
-                <executions>
-					<execution>
-                        <id>bukkit</id>
-                        <goals>
-                            <goal>jar</goal>
-                        </goals>
-                        <phase>package</phase>
-                        <configuration>
-                            <finalName>FastAsyncWorldEdit-Bukkit</finalName>
-                            <excludes>
-                                <exclude>**/com/boydti/fawe/forge/**</exclude>
-                                <exclude>**/com/boydti/fawe/sponge/**</exclude>
-                            </excludes>
-                        </configuration>
-                    </execution>
-                    <execution>
-                        <id>forge</id>
-                        <goals>
-                            <goal>jar</goal>
-                        </goals>
-                        <phase>package</phase>
-                        <configuration>
-                            <finalName>FastAsyncWorldEdit-Forge</finalName>
-                            <excludes>
-                                <exclude>**/com/boydti/fawe/bukkit/**</exclude>
-                                <exclude>**/com/boydti/fawe/sponge/**</exclude>
-                            </excludes>
-                        </configuration>
-                    </execution>
-                    <execution>
-                        <id>sponge</id>
-                        <goals>
-                            <goal>jar</goal>
-                        </goals>
-                        <phase>package</phase>
-                        <configuration>
-                            <finalName>FastAsyncWorldEdit-Sponge</finalName>
-                            <excludes>
-                                <exclude>**/com/boydti/fawe/bukkit/**</exclude>
-                                <exclude>**/com/boydti/fawe/forge/**</exclude>
-                            </excludes>
-                        </configuration>
-                    </execution>
-                    <execution>
-                        <id>api</id>
-                        <goals>
-                            <goal>jar</goal>
-                        </goals>
-                        <phase>package</phase>
-                        <configuration>
-                            <finalName>FastAsyncWorldEdit-Null</finalName>
-                            <excludes>
-                                <exclude>**/com/boydti/fawe/bukkit/**</exclude>
-                                <exclude>**/com/boydti/fawe/forge/**</exclude>
-                                <exclude>**/com/boydti/fawe/sponge/**</exclude>
-                            </excludes>
-                        </configuration>
-                    </execution>
-                </executions>
-            </plugin>
-            <plugin>
-                <artifactId>maven-compiler-plugin</artifactId>
-                <version>2.3.2</version>
-                <configuration>
-                    <source>1.7</source>
-                    <target>1.7</target>
-                </configuration>
-            </plugin>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-javadoc-plugin</artifactId>
-                <version>2.10.3</version>
-                <configuration>
-                    <additionalparam>-Xdoclint:none</additionalparam>
-                </configuration>
-            </plugin>
+	      <plugin>
+	        <artifactId>maven-compiler-plugin</artifactId>
+	        <version>2.3.2</version>
+	        <configuration>
+	          <excludes>
+	            <exclude>**/forge/src/main/**/*.*</exclude>
+	          </excludes>
+	          <source>1.7</source>
+	          <target>1.7</target>
+	        </configuration>
+	      </plugin>
+	      <plugin>
+	        <groupId>org.codehaus.mojo</groupId>
+	        <artifactId>build-helper-maven-plugin</artifactId>
+	        <executions>
+	          <execution>
+	            <phase>generate-sources</phase>
+	            <goals>
+	              <goal>add-source</goal>
+	            </goals>
+	            <configuration>
+	              <sources>
+	                <source>core/src/main/java</source>
+	              </sources>
+	            </configuration>
+	          </execution>
+	        </executions>
+	      </plugin>
         </plugins>
     </build>
     <repositories>
@@ -235,11 +184,6 @@
             <scope>compile</scope>
         </dependency>
         <dependency>
-            <groupId>org.apache.commons</groupId>
-            <artifactId>commons-math3</artifactId>
-            <version>3.2</version>
-        </dependency>
-        <dependency>
             <groupId>junit</groupId>
             <artifactId>junit</artifactId>
             <version>4.11</version>
@@ -249,11 +193,6 @@
             <artifactId>VaultAPI</artifactId>
             <version>1.5</version>
             <scope>provided</scope>
-        </dependency>
-        <dependency>
-            <groupId>com.google.code.gson</groupId>
-            <artifactId>gson</artifactId>
-            <version>2.3.1</version>
         </dependency>
     </dependencies>
 </project>

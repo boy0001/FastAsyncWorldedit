@@ -1,0 +1,11 @@
+dependencies {
+    testCompile 'junit:junit:4.12'
+    compile 'org.yaml:snakeyaml:1.16'
+    compile 'com.google.code.gson:gson:2.2.4'
+}
+
+sourceCompatibility = 1.7
+targetCompatibility = 1.7
+
+jar.archiveName="FastAsyncWorldEdit-API-${parent.version}.jar"
+jar.destinationDir = file '../target'

@@ -8,3 +8,5 @@
 *.project
 *.classpath
 /target/
+/.gradle
+/.idea
