@@ -9,6 +9,7 @@ import com.intellectualcrafters.plot.object.Plot;
 import com.intellectualcrafters.plot.object.PlotId;
 import com.intellectualcrafters.plot.object.PlotPlayer;
 import com.intellectualcrafters.plot.object.RegionWrapper;
+import com.sk89q.worldedit.BlockVector;
 import java.util.HashSet;
 
 public class PlotSquaredFeature extends FaweMaskManager {
@@ -48,14 +49,14 @@ public class PlotSquaredFeature extends FaweMaskManager {
                     RegionWrapper region = plot.getLargestRegion();
                     HashSet<RegionWrapper> regions = plot.getRegions();
 
-                    final Location pos1 = new Location(world, region.minX, 0, region.minZ);
-                    final Location pos2 = new Location(world, region.maxX, 256, region.maxZ);
+                    final BlockVector pos1 = new BlockVector(region.minX, 0, region.minZ);
+                    final BlockVector pos2 = new BlockVector(region.maxX, 256, region.maxZ);
 
                     final HashSet<com.boydti.fawe.object.RegionWrapper> faweRegions = new HashSet<com.boydti.fawe.object.RegionWrapper>();
                     for (final com.intellectualcrafters.plot.object.RegionWrapper current : regions) {
                         faweRegions.add(new com.boydti.fawe.object.RegionWrapper(current.minX, current.maxX, current.minZ, current.maxZ));
                     }
-                    return new BukkitMask(pos1, pos2) {
+                    return new FaweMask(pos1, pos2) {
                         @Override
                         public String getName() {
                             return "PLOT^2:" + id;

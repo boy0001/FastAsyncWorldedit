@@ -19,25 +19,6 @@
 
 package com.sk89q.worldedit;
 
-import static com.google.common.base.Preconditions.checkArgument;
-import static com.google.common.base.Preconditions.checkNotNull;
-import static com.sk89q.worldedit.regions.Regions.asFlatRegion;
-import static com.sk89q.worldedit.regions.Regions.maximumBlockY;
-import static com.sk89q.worldedit.regions.Regions.minimumBlockY;
-
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-
-import javax.annotation.Nullable;
-
 import com.boydti.fawe.Fawe;
 import com.boydti.fawe.FaweCache;
 import com.boydti.fawe.config.BBC;
@@ -47,6 +28,7 @@ import com.boydti.fawe.object.FawePlayer;
 import com.boydti.fawe.object.NullChangeSet;
 import com.boydti.fawe.object.RegionWrapper;
 import com.boydti.fawe.object.changeset.DiskStorageHistory;
+import com.boydti.fawe.object.changeset.FaweChangeSet;
 import com.boydti.fawe.object.changeset.MemoryOptimizedHistory;
 import com.boydti.fawe.object.extent.FastWorldEditExtent;
 import com.boydti.fawe.object.extent.NullExtent;
@@ -130,6 +112,24 @@ import com.sk89q.worldedit.util.collection.DoubleArrayList;
 import com.sk89q.worldedit.util.eventbus.EventBus;
 import com.sk89q.worldedit.world.World;
 import com.sk89q.worldedit.world.biome.BaseBiome;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import javax.annotation.Nullable;
+
+
+import static com.google.common.base.Preconditions.checkArgument;
+import static com.google.common.base.Preconditions.checkNotNull;
+import static com.sk89q.worldedit.regions.Regions.asFlatRegion;
+import static com.sk89q.worldedit.regions.Regions.maximumBlockY;
+import static com.sk89q.worldedit.regions.Regions.minimumBlockY;
 
 /**
  * An {@link Extent} that handles history, {@link BlockBag}s, change limits,
@@ -152,7 +152,7 @@ public class EditSession implements Extent {
     }
 
     protected final World world;
-    private final ChangeSet changeSet;
+    private final FaweChangeSet changeSet;
     private final EditSessionWrapper wrapper;
     private MultiStageReorder reorderExtent;
     private @Nullable Extent changeSetExtent;

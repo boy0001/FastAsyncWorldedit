@@ -1,13 +1,12 @@
-package com.boydti.fawe.logging;
-
-import org.PrimeSoft.blocksHub.BlocksHub;
-import org.PrimeSoft.blocksHub.IBlocksHubApi;
-import org.bukkit.Bukkit;
-import org.bukkit.entity.Player;
+package com.boydti.fawe.bukkit.logging;
 
 import com.boydti.fawe.object.FawePlayer;
 import com.sk89q.worldedit.extent.Extent;
 import com.sk89q.worldedit.history.changeset.ChangeSet;
+import org.PrimeSoft.blocksHub.BlocksHub;
+import org.PrimeSoft.blocksHub.IBlocksHubApi;
+import org.bukkit.Bukkit;
+import org.bukkit.entity.Player;
 
 public class BlocksHubHook {
     private final BlocksHub hub;

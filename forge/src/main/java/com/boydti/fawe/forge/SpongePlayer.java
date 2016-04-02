@@ -29,12 +29,13 @@ public class SpongePlayer extends FawePlayer<Player> {
 
     @Override
     public boolean hasPermission(final String perm) {
-        return this.parent.hasPermission(perm);
+        Object meta = getMeta(perm);
+        return meta instanceof Boolean ? (boolean) meta : this.parent.hasPermission(perm);
     }
 
     @Override
     public void setPermission(final String perm, final boolean flag) {
-        throw new UnsupportedOperationException("WIP NOT IMPLEMENTED YET TODO"); // TODO FIXME
+        setMeta(perm, flag);
     }
 
     @Override
@@ -58,4 +59,8 @@ public class SpongePlayer extends FawePlayer<Player> {
         return (com.sk89q.worldedit.entity.Player) Fawe.<FaweSponge> imp().getWorldEditPlugin().wrap((EntityPlayerMP) this.parent);
     }
 
+    @Override
+    public boolean hasWorldEditBypass() {
+        return hasPermission("fawe.bypass") || getMeta("fawe.bypass") == Boolean.TRUE;
+    }
 }

@@ -3,43 +3,35 @@ package com.boydti.fawe.forge;
 import com.boydti.fawe.Fawe;
 import com.boydti.fawe.IFawe;
 import com.boydti.fawe.config.BBC;
+import com.boydti.fawe.forge.v0.SpongeEditSessionWrapper_0;
+import com.boydti.fawe.forge.v1_8.SpongeQueue_1_8;
 import com.boydti.fawe.object.EditSessionWrapper;
 import com.boydti.fawe.object.FaweCommand;
 import com.boydti.fawe.object.FawePlayer;
 import com.boydti.fawe.regions.FaweMaskManager;
 import com.boydti.fawe.util.FaweQueue;
 import com.boydti.fawe.util.TaskManager;
-import com.google.inject.Inject;
-import com.intellectualcrafters.plot.config.C;
-import com.intellectualcrafters.plot.config.Settings;
 import com.sk89q.worldedit.EditSession;
 import com.sk89q.worldedit.forge.ForgeWorldEdit;
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashSet;
+import java.util.Set;
 import org.mcstats.Metrics;
-import org.slf4j.Logger;
-import org.spongepowered.api.Game;
-import org.spongepowered.api.Server;
-import org.spongepowered.api.event.Listener;
-import org.spongepowered.api.event.game.state.GameAboutToStartServerEvent;
-import org.spongepowered.api.plugin.Plugin;
-import org.spongepowered.api.plugin.PluginContainer;
-import org.spongepowered.api.profile.GameProfileManager;
+import org.spongepowered.api.Sponge;
+import org.spongepowered.api.entity.living.player.Player;
 import org.spongepowered.api.text.serializer.TextSerializers;
 
-@Plugin(id = "com.boydti.fawe", name = "FastAsyncWorldEdit", description = "Lagless WorldEdit, Area restrictions, Memory mangement, Block logging", url = "https://github.com/boy0001/FastAsyncWorldedit", version = "3.3.4")
+
+import static org.spongepowered.api.Sponge.getGame;
+
 public class FaweSponge implements IFawe {
-    public PluginContainer plugin;
+
+    public final SpongeMain plugin;
+
     public FaweSponge instance;
-
-    @Inject
-    private Logger logger;
-    @Inject
-    private Game game;
-    private Server server;
-
-    private GameProfileManager resolver;
 
     private ForgeWorldEdit worldedit;
 
@@ -50,46 +42,21 @@ public class FaweSponge implements IFawe {
         return this.worldedit;
     }
 
-    public Game getGame() {
-        return this.game;
-    }
-
-    public Server getServer() {
-        return this.server;
-    }
-
-    public GameProfileManager getResolver() {
-        if (this.resolver == null) {
-            this.resolver = this.game.getServer().getGameProfileManager();
-        }
-        return this.resolver;
-    }
-
-    @Listener
-    public void onServerAboutToStart(GameAboutToStartServerEvent event) {
-        debug("FAWE: Server init");
+    public FaweSponge(SpongeMain plugin) {
         instance = this;
-        plugin = this.game.getPluginManager().fromInstance(this).get();
-        this.server = this.game.getServer();
+        this.plugin = plugin;
         try {
             Fawe.set(this);
         } catch (final Throwable e) {
             e.printStackTrace();
-            this.getServer().shutdown();
         }
+        TaskManager.IMP.later(() -> SpongeUtil.initBiomeCache(), 0);
     }
 
     @Override
     public void debug(String message) {
-        message = C.format(message, C.replacements);
-        if (!Settings.CONSOLE_COLOR) {
-            message = message.replaceAll('\u00a7' + "[a-z|0-9]", "");
-        }
-        if (this.server == null) {
-            this.logger.info(message);
-            return;
-        }
-        this.server.getConsole().sendMessage(TextSerializers.LEGACY_FORMATTING_CODE.deserialize(BBC.color(message)));
+        message = BBC.color(message);
+        Sponge.getServer().getConsole().sendMessage(TextSerializers.LEGACY_FORMATTING_CODE.deserialize(BBC.color(message)));
     }
 
     @Override
@@ -99,57 +66,83 @@ public class FaweSponge implements IFawe {
 
     @Override
     public void setupCommand(String label, FaweCommand cmd) {
-
+        getGame().getCommandManager().register(plugin, new SpongeCommand(cmd), label);
     }
 
     @Override
     public FawePlayer wrap(Object obj) {
-        return null;
+        if (obj.getClass() == String.class) {
+            String name = (String) obj;
+            FawePlayer existing = Fawe.get().getCachedPlayer(name);
+            if (existing != null) {
+                return existing;
+            }
+            Player player = Sponge.getServer().getPlayer(name).orElseGet(null);
+            return player != null ? new SpongePlayer(player) : null;
+        } else if (obj instanceof Player) {
+            Player player = (Player) obj;
+            FawePlayer existing = Fawe.get().getCachedPlayer(player.getName());
+            return existing != null ? existing : new SpongePlayer(player);
+        } else {
+            return null;
+        }
     }
 
     @Override
     public void setupWEListener() {
-
+        // Do nothing
     }
 
     @Override
     public void setupVault() {
-
+        debug("[FAWE] Permission hook not implemented yet!");
     }
 
     @Override
     public TaskManager getTaskManager() {
-        return null;
+        return new SpongeTaskMan(plugin);
     }
 
     @Override
     public int[] getVersion() {
-        return new int[0];
+        debug("[FAWE] Checking minecraft version: Sponge: ");
+        String version = Sponge.getGame().getPlatform().getMinecraftVersion().getName();
+        String[] split = version.split("\\.");
+        return new int[]{Integer.parseInt(split[0]), Integer.parseInt(split[1]), split.length == 3 ? Integer.parseInt(split[2]) : 0};
     }
 
     @Override
     public FaweQueue getQueue() {
-        return null;
+        return new SpongeQueue_1_8();
     }
 
     @Override
     public EditSessionWrapper getEditSessionWrapper(EditSession session) {
-        return null;
+        return new SpongeEditSessionWrapper_0(session);
     }
 
     @Override
     public Collection<FaweMaskManager> getMaskManagers() {
-        return null;
+        return new ArrayList<>();
     }
 
     @Override
     public void startMetrics() {
         try {
-            Metrics metrics = new Metrics(this.game, this.plugin);
+            Metrics metrics = new Metrics(Sponge.getGame(), Sponge.getPluginManager().fromInstance(plugin).get());
             metrics.start();
-            debug(C.PREFIX.s() + "&6Metrics enabled.");
+            debug("[FAWE] &6Metrics enabled.");
         } catch (IOException e) {
-            debug(C.PREFIX.s() + "&cFailed to load up metrics.");
+            debug("[FAWE] &cFailed to load up metrics.");
         }
+    }
+
+    @Override
+    public Set<FawePlayer> getPlayers() {
+        HashSet<FawePlayer> players = new HashSet<>();
+        for (Player player : Sponge.getServer().getOnlinePlayers()) {
+            players.add(wrap(player));
+        }
+        return players;
     }
 }

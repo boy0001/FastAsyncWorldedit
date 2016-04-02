@@ -1,12 +1,13 @@
 package com.boydti.fawe.object;
 
+import com.boydti.fawe.object.changeset.FaweChangeSet;
+import com.sk89q.worldedit.Vector;
+import com.sk89q.worldedit.blocks.BaseBlock;
+import com.sk89q.worldedit.history.change.Change;
 import java.util.ArrayList;
 import java.util.Iterator;
 
-import com.sk89q.worldedit.history.change.Change;
-import com.sk89q.worldedit.history.changeset.ChangeSet;
-
-public class NullChangeSet implements ChangeSet {
+public class NullChangeSet implements FaweChangeSet {
     
     @Override
     public void add(Change change) {}
@@ -25,5 +26,10 @@ public class NullChangeSet implements ChangeSet {
     public int size() {
         return 0;
     }
-    
+
+    @Override
+    public void flush() {}
+
+    @Override
+    public void add(Vector location, BaseBlock from, BaseBlock to) {}
 }

@@ -19,18 +19,7 @@
 
 package com.sk89q.worldedit;
 
-import static com.google.common.base.Preconditions.checkNotNull;
-
-import java.util.Calendar;
-import java.util.HashMap;
-import java.util.LinkedList;
-import java.util.Map;
-import java.util.TimeZone;
-import java.util.concurrent.atomic.AtomicBoolean;
-
-import javax.annotation.Nullable;
-
-import com.boydti.fawe.object.changeset.FlushableChangeSet;
+import com.boydti.fawe.object.changeset.FaweChangeSet;
 import com.sk89q.jchronic.Chronic;
 import com.sk89q.jchronic.Options;
 import com.sk89q.jchronic.utils.Span;
@@ -57,6 +46,16 @@ import com.sk89q.worldedit.session.ClipboardHolder;
 import com.sk89q.worldedit.session.request.Request;
 import com.sk89q.worldedit.world.World;
 import com.sk89q.worldedit.world.snapshot.Snapshot;
+import java.util.Calendar;
+import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.Map;
+import java.util.TimeZone;
+import java.util.concurrent.atomic.AtomicBoolean;
+import javax.annotation.Nullable;
+
+
+import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * Stores session information.
@@ -200,8 +199,8 @@ public class LocalSession {
             history.remove(historyPointer);
         }
         ChangeSet set = editSession.getChangeSet();
-        if (set instanceof FlushableChangeSet) {
-            ((FlushableChangeSet) set).flush();
+        if (set instanceof FaweChangeSet) {
+            ((FaweChangeSet) set).flush();
         }
         history.add(editSession);
         while (history.size() > MAX_HISTORY_SIZE) {

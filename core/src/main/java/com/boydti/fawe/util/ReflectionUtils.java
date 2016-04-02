@@ -9,7 +9,6 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
-
 import org.bukkit.Bukkit;
 import org.bukkit.Server;
 
@@ -32,7 +31,7 @@ public class ReflectionUtils {
      */
     private static boolean forge = false;
     /** check server version and class names */
-    static {
+    public static void init() {
         if (Bukkit.getServer() != null) {
             if (Bukkit.getVersion().contains("MCPC") || Bukkit.getVersion().contains("Forge")) {
                 forge = true;
@@ -221,6 +220,9 @@ public class ReflectionUtils {
      * @throws RuntimeException if no class found
      */
     public static RefClass getRefClass(final String... classes) throws RuntimeException {
+        if (preClassM == null) {
+            init();
+        }
         for (String className : classes) {
             try {
                 className = className.replace("{cb}", preClassB).replace("{nms}", preClassM).replace("{nm}", "net.minecraft");

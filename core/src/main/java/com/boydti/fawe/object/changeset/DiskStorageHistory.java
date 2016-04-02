@@ -1,5 +1,24 @@
 package com.boydti.fawe.object.changeset;
 
+import com.boydti.fawe.Fawe;
+import com.boydti.fawe.FaweCache;
+import com.boydti.fawe.config.Settings;
+import com.boydti.fawe.util.MainUtil;
+import com.boydti.fawe.util.ReflectionUtils;
+import com.sk89q.jnbt.CompoundTag;
+import com.sk89q.jnbt.IntTag;
+import com.sk89q.jnbt.NBTInputStream;
+import com.sk89q.jnbt.NBTOutputStream;
+import com.sk89q.jnbt.NamedTag;
+import com.sk89q.jnbt.Tag;
+import com.sk89q.worldedit.BlockVector;
+import com.sk89q.worldedit.Vector;
+import com.sk89q.worldedit.blocks.BaseBlock;
+import com.sk89q.worldedit.history.change.BlockChange;
+import com.sk89q.worldedit.history.change.Change;
+import com.sk89q.worldedit.history.change.EntityCreate;
+import com.sk89q.worldedit.history.change.EntityRemove;
+import com.sk89q.worldedit.history.changeset.ChangeSet;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
@@ -13,25 +32,6 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.zip.GZIPInputStream;
 import java.util.zip.GZIPOutputStream;
 
-import com.boydti.fawe.Fawe;
-import com.boydti.fawe.FaweCache;
-import com.boydti.fawe.config.Settings;
-import com.boydti.fawe.util.MainUtil;
-import com.boydti.fawe.util.ReflectionUtils;
-import com.sk89q.jnbt.CompoundTag;
-import com.sk89q.jnbt.IntTag;
-import com.sk89q.jnbt.NBTInputStream;
-import com.sk89q.jnbt.NBTOutputStream;
-import com.sk89q.jnbt.NamedTag;
-import com.sk89q.jnbt.Tag;
-import com.sk89q.worldedit.BlockVector;
-import com.sk89q.worldedit.blocks.BaseBlock;
-import com.sk89q.worldedit.history.change.BlockChange;
-import com.sk89q.worldedit.history.change.Change;
-import com.sk89q.worldedit.history.change.EntityCreate;
-import com.sk89q.worldedit.history.change.EntityRemove;
-import com.sk89q.worldedit.history.changeset.ChangeSet;
-
 /**
  * Store the change on disk
  *  - High disk usage
@@ -39,7 +39,7 @@ import com.sk89q.worldedit.history.changeset.ChangeSet;
  *  - Minimal memory usage
  *  - Slow
  */
-public class DiskStorageHistory implements ChangeSet, FlushableChangeSet {
+public class DiskStorageHistory implements ChangeSet, FaweChangeSet {
     
     private final File bdFile;
     private final File nbtfFile;
@@ -108,7 +108,7 @@ public class DiskStorageHistory implements ChangeSet, FlushableChangeSet {
         if ((change instanceof BlockChange)) {
             add((BlockChange) change);
         } else {
-            System.out.print("[FAWE] Does not support " + change + " yet! (Please bug Empire92)");
+            Fawe.debug("[FAWE] Does not support " + change + " yet! (Please bug Empire92)");
         }
     }
     
@@ -136,29 +136,18 @@ public class DiskStorageHistory implements ChangeSet, FlushableChangeSet {
             e.printStackTrace();
         }
     }
-    
-    public void add(EntityCreate change) {
-        
-    }
-    
-    public void add(EntityRemove change) {
 
+    @Override
+    public void add(Vector location, BaseBlock from, BaseBlock to) {
+        add(location.getBlockX(), location.getBlockY(), location.getBlockZ(), from, to);
     }
 
-    public void add(BlockChange change) {
+    public void add(int x, int y, int z, BaseBlock from, BaseBlock to) {
         try {
-            BlockVector loc = change.getPosition();
-            int x = loc.getBlockX();
-            int y = loc.getBlockY();
-            int z = loc.getBlockZ();
-    
-            BaseBlock from = change.getPrevious();
-            BaseBlock to = change.getCurrent();
-    
             int idfrom = from.getId();
             int combinedFrom = (FaweCache.hasData(idfrom) ? ((idfrom << 4) + from.getData()) : (idfrom << 4));
             CompoundTag nbtFrom = FaweCache.hasNBT(idfrom) ? from.getNbtData() : null;
-    
+
             int idTo = to.getId();
             int combinedTo = (FaweCache.hasData(idTo) ? ((idTo << 4) + to.getData()) : (idTo << 4));
             CompoundTag nbtTo = FaweCache.hasNBT(idTo) ? to.getNbtData() : null;
@@ -177,7 +166,7 @@ public class DiskStorageHistory implements ChangeSet, FlushableChangeSet {
             //to
             stream.write((combinedTo) & 0xff);
             stream.write(((combinedTo) >> 8) & 0xff);
-                
+
             if (nbtFrom != null && MainUtil.isValidTag(nbtFrom)) {
                 Map<String, Tag> value = ReflectionUtils.getMap(nbtFrom.getValue());
                 value.put("x", new IntTag(x));
@@ -186,7 +175,7 @@ public class DiskStorageHistory implements ChangeSet, FlushableChangeSet {
                 NBTOutputStream nbtos = getNBTFOS(x, y, z);
                 nbtos.writeNamedTag(osNBTFI.getAndIncrement() + "", nbtFrom);
             }
-            
+
             if (nbtTo != null && MainUtil.isValidTag(nbtTo)) {
                 Map<String, Tag> value = ReflectionUtils.getMap(nbtTo.getValue());
                 value.put("x", new IntTag(x));
@@ -195,6 +184,28 @@ public class DiskStorageHistory implements ChangeSet, FlushableChangeSet {
                 NBTOutputStream nbtos = getNBTTOS(x, y, z);
                 nbtos.writeNamedTag(osNBTTI.getAndIncrement() + "", nbtTo);
             }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void add(EntityCreate change) {
+        // TODO
+    }
+    
+    public void add(EntityRemove change) {
+        // TODO
+    }
+
+    public void add(BlockChange change) {
+        try {
+            BlockVector loc = change.getPosition();
+            int x = loc.getBlockX();
+            int y = loc.getBlockY();
+            int z = loc.getBlockZ();
+            BaseBlock from = change.getPrevious();
+            BaseBlock to = change.getCurrent();
+            add(x, y, z, from, to);
         } catch (Exception e) {
             e.printStackTrace();
         }

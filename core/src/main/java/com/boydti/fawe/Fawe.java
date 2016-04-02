@@ -1,23 +1,13 @@
 package com.boydti.fawe;
 
-import java.io.File;
-import java.lang.management.ManagementFactory;
-import java.lang.management.MemoryMXBean;
-import java.lang.management.MemoryPoolMXBean;
-import java.lang.management.MemoryUsage;
-import java.util.List;
-
-import javax.management.InstanceAlreadyExistsException;
-import javax.management.Notification;
-import javax.management.NotificationEmitter;
-import javax.management.NotificationListener;
-
 import com.boydti.fawe.command.FixLighting;
 import com.boydti.fawe.command.Stream;
 import com.boydti.fawe.command.Wea;
 import com.boydti.fawe.command.WorldEditRegion;
 import com.boydti.fawe.config.BBC;
 import com.boydti.fawe.config.Settings;
+import com.boydti.fawe.object.FawePlayer;
+import com.boydti.fawe.regions.general.PlotSquaredFeature;
 import com.boydti.fawe.util.Lag;
 import com.boydti.fawe.util.MainUtil;
 import com.boydti.fawe.util.MemUtil;
@@ -42,6 +32,17 @@ import com.sk89q.worldedit.function.visitor.RecursiveVisitor;
 import com.sk89q.worldedit.function.visitor.RegionVisitor;
 import com.sk89q.worldedit.history.change.EntityCreate;
 import com.sk89q.worldedit.history.change.EntityRemove;
+import java.io.File;
+import java.lang.management.ManagementFactory;
+import java.lang.management.MemoryMXBean;
+import java.lang.management.MemoryPoolMXBean;
+import java.lang.management.MemoryUsage;
+import java.util.List;
+import java.util.concurrent.ConcurrentHashMap;
+import javax.management.InstanceAlreadyExistsException;
+import javax.management.Notification;
+import javax.management.NotificationEmitter;
+import javax.management.NotificationListener;
 
 /**[ WorldEdit action]
 *       |
@@ -159,6 +160,9 @@ public class Fawe {
             public void run() {
                 // worldedit
                 WEManager.IMP.managers.addAll(Fawe.this.IMP.getMaskManagers());
+                try {
+                    WEManager.IMP.managers.add(new PlotSquaredFeature());
+                } catch (Throwable e) {}
                 Fawe.this.worldedit = WorldEdit.getInstance();
                 // Events
                 Fawe.this.setupEvents();
@@ -256,6 +260,20 @@ public class Fawe {
 
     public Thread getMainThread() {
         return this.thread;
+    }
+
+    private ConcurrentHashMap<String, FawePlayer> players = new ConcurrentHashMap<>();
+
+    public <T> void register(FawePlayer<T> player) {
+        players.put(player.getName(), player);
+    }
+
+    public <T> void unregister(String name) {
+        players.remove(name);
+    }
+
+    public FawePlayer getCachedPlayer(String name) {
+        return players.get(name);
     }
 
     /*

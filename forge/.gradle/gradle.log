@@ -1,0 +1,93 @@
+#################################################
+         ForgeGradle 2.1-SNAPSHOT-unknown        
+  https://github.com/MinecraftForge/ForgeGradle  
+#################################################
+               Powered by MCP unknown               
+             http://modcoderpack.com             
+         by: Searge, ProfMobius, Fesh0r,         
+         R4wk, ZeuX, IngisKahn, bspkrs           
+#################################################
+Version string 'unspecified' does not match SemVer specification 
+You should try SemVer : http://semver.org/
+:forge:deobfCompileDummyTask
+:core:compileJava
+:forge:deobfProvidedDummyTask
+:forge:extractDependencyATs SKIPPED
+:forge:extractMcpDatawarning: [options] bootstrap class path not set in conjunction with -source 1.7
+ SKIPPED
+:forge:extractMcpMappings SKIPPED
+:forge:genSrgs SKIPPED
+:forge:getVersionJson
+:forge:downloadServer SKIPPED
+:forge:splitServerJarNote: Some input files use or override a deprecated API.
+Note: Recompile with -Xlint:deprecation for details.
+Note: Some input files use unchecked or unsafe operations.
+Note: Recompile with -Xlint:unchecked for details.
+1 warning
+
+:core:processResources UP-TO-DATE
+:core:classes
+:core:jar
+:forge:splitServerJar SKIPPED
+:forge:deobfMcMCP SKIPPED
+:forge:sourceApiJava UP-TO-DATE
+:forge:compileApiJava UP-TO-DATE
+:forge:processApiResources UP-TO-DATE
+:forge:apiClasses UP-TO-DATE
+:forge:sourceMainJava UP-TO-DATE
+:forge:compileJavaC:\Users\Jesse\.gradle\caches\modules-2\files-2.1\com.sk89q.worldedit\worldedit-forge-mc1.8.9\6.1.1\dffd7e1882eba256eb2132fe315682c1d26522b1\worldedit-forge-mc1.8.9-6.1.1.jar(com/sk89q/worldedit/forge/ForgeWorldEdit.class): warning: Cannot find annotation method 'modid()' in type 'Mod': class file for net.minecraftforge.fml.common.Mod not found
+C:\Users\Jesse\.gradle\caches\modules-2\files-2.1\com.sk89q.worldedit\worldedit-forge-mc1.8.9\6.1.1\dffd7e1882eba256eb2132fe315682c1d26522b1\worldedit-forge-mc1.8.9-6.1.1.jar(com/sk89q/worldedit/forge/ForgeWorldEdit.class): warning: Cannot find annotation method 'name()' in type 'Mod'
+C:\Users\Jesse\.gradle\caches\modules-2\files-2.1\com.sk89q.worldedit\worldedit-forge-mc1.8.9\6.1.1\dffd7e1882eba256eb2132fe315682c1d26522b1\worldedit-forge-mc1.8.9-6.1.1.jar(com/sk89q/worldedit/forge/ForgeWorldEdit.class): warning: Cannot find annotation method 'version()' in type 'Mod'
+C:\Users\Jesse\.gradle\caches\modules-2\files-2.1\com.sk89q.worldedit\worldedit-forge-mc1.8.9\6.1.1\dffd7e1882eba256eb2132fe315682c1d26522b1\worldedit-forge-mc1.8.9-6.1.1.jar(com/sk89q/worldedit/forge/ForgeWorldEdit.class): warning: Cannot find annotation method 'acceptableRemoteVersions()' in type 'Mod'
+C:\Users\Jesse\.gradle\caches\modules-2\files-2.1\com.sk89q.worldedit\worldedit-forge-mc1.8.9\6.1.1\dffd7e1882eba256eb2132fe315682c1d26522b1\worldedit-forge-mc1.8.9-6.1.1.jar(com/sk89q/worldedit/forge/ForgeWorldEdit.class): warning: Cannot find annotation method 'dependencies()' in type 'Mod'
+C:\Users\Jesse\.gradle\caches\modules-2\files-2.1\com.sk89q.worldedit\worldedit-forge-mc1.8.9\6.1.1\dffd7e1882eba256eb2132fe315682c1d26522b1\worldedit-forge-mc1.8.9-6.1.1.jar(com/sk89q/worldedit/forge/ForgeWorldEdit.class): warning: Cannot find annotation method 'acceptedMinecraftVersions()' in type 'Mod'
+C:\Users\Jesse\.gradle\caches\modules-2\files-2.1\com.sk89q.worldedit\worldedit-forge-mc1.8.9\6.1.1\dffd7e1882eba256eb2132fe315682c1d26522b1\worldedit-forge-mc1.8.9-6.1.1.jar(com/sk89q/worldedit/forge/ForgeWorldEdit.class): warning: Cannot find annotation method 'value()' in type 'Instance': class file for net.minecraftforge.fml.common.Mod$Instance not found
+C:\Users\Jesse\.gradle\caches\modules-2\files-2.1\com.sk89q.worldedit\worldedit-forge-mc1.8.9\6.1.1\dffd7e1882eba256eb2132fe315682c1d26522b1\worldedit-forge-mc1.8.9-6.1.1.jar(com/sk89q/worldedit/forge/ForgeWorldEdit.class): warning: Cannot find annotation method 'serverSide()' in type 'SidedProxy': class file for net.minecraftforge.fml.common.SidedProxy not found
+C:\Users\Jesse\.gradle\caches\modules-2\files-2.1\com.sk89q.worldedit\worldedit-forge-mc1.8.9\6.1.1\dffd7e1882eba256eb2132fe315682c1d26522b1\worldedit-forge-mc1.8.9-6.1.1.jar(com/sk89q/worldedit/forge/ForgeWorldEdit.class): warning: Cannot find annotation method 'clientSide()' in type 'SidedProxy'
+C:\Users\Jesse\.gradle\caches\modules-2\files-2.1\com.sk89q.worldedit\worldedit-forge-mc1.8.9\6.1.1\dffd7e1882eba256eb2132fe315682c1d26522b1\worldedit-forge-mc1.8.9-6.1.1.jar(com/sk89q/worldedit/forge/ForgeWorldEdit.class): warning: Cannot find annotation method 'modid()' in type 'Mod': class file for net.minecraftforge.fml.common.Mod not found
+C:\Users\Jesse\.gradle\caches\modules-2\files-2.1\com.sk89q.worldedit\worldedit-forge-mc1.8.9\6.1.1\dffd7e1882eba256eb2132fe315682c1d26522b1\worldedit-forge-mc1.8.9-6.1.1.jar(com/sk89q/worldedit/forge/ForgeWorldEdit.class): warning: Cannot find annotation method 'name()' in type 'Mod'
+C:\Users\Jesse\.gradle\caches\modules-2\files-2.1\com.sk89q.worldedit\worldedit-forge-mc1.8.9\6.1.1\dffd7e1882eba256eb2132fe315682c1d26522b1\worldedit-forge-mc1.8.9-6.1.1.jar(com/sk89q/worldedit/forge/ForgeWorldEdit.class): warning: Cannot find annotation method 'version()' in type 'Mod'
+C:\Users\Jesse\.gradle\caches\modules-2\files-2.1\com.sk89q.worldedit\worldedit-forge-mc1.8.9\6.1.1\dffd7e1882eba256eb2132fe315682c1d26522b1\worldedit-forge-mc1.8.9-6.1.1.jar(com/sk89q/worldedit/forge/ForgeWorldEdit.class): warning: Cannot find annotation method 'acceptableRemoteVersions()' in type 'Mod'
+C:\Users\Jesse\.gradle\caches\modules-2\files-2.1\com.sk89q.worldedit\worldedit-forge-mc1.8.9\6.1.1\dffd7e1882eba256eb2132fe315682c1d26522b1\worldedit-forge-mc1.8.9-6.1.1.jar(com/sk89q/worldedit/forge/ForgeWorldEdit.class): warning: Cannot find annotation method 'dependencies()' in type 'Mod'
+C:\Users\Jesse\.gradle\caches\modules-2\files-2.1\com.sk89q.worldedit\worldedit-forge-mc1.8.9\6.1.1\dffd7e1882eba256eb2132fe315682c1d26522b1\worldedit-forge-mc1.8.9-6.1.1.jar(com/sk89q/worldedit/forge/ForgeWorldEdit.class): warning: Cannot find annotation method 'acceptedMinecraftVersions()' in type 'Mod'
+C:\Users\Jesse\.gradle\caches\modules-2\files-2.1\com.sk89q.worldedit\worldedit-forge-mc1.8.9\6.1.1\dffd7e1882eba256eb2132fe315682c1d26522b1\worldedit-forge-mc1.8.9-6.1.1.jar(com/sk89q/worldedit/forge/ForgeWorldEdit.class): warning: Cannot find annotation method 'value()' in type 'Instance': class file for net.minecraftforge.fml.common.Mod$Instance not found
+C:\Users\Jesse\.gradle\caches\modules-2\files-2.1\com.sk89q.worldedit\worldedit-forge-mc1.8.9\6.1.1\dffd7e1882eba256eb2132fe315682c1d26522b1\worldedit-forge-mc1.8.9-6.1.1.jar(com/sk89q/worldedit/forge/ForgeWorldEdit.class): warning: Cannot find annotation method 'serverSide()' in type 'SidedProxy': class file for net.minecraftforge.fml.common.SidedProxy not found
+C:\Users\Jesse\.gradle\caches\modules-2\files-2.1\com.sk89q.worldedit\worldedit-forge-mc1.8.9\6.1.1\dffd7e1882eba256eb2132fe315682c1d26522b1\worldedit-forge-mc1.8.9-6.1.1.jar(com/sk89q/worldedit/forge/ForgeWorldEdit.class): warning: Cannot find annotation method 'clientSide()' in type 'SidedProxy'
+Note: Writing plugin metadata to file:/C:/Users/Jesse/Desktop/OTHER/GitHub/FastAsyncWorldEdit/forge/build/classes/main/mcmod.info
+C:\Users\Jesse\.gradle\caches\modules-2\files-2.1\com.sk89q.worldedit\worldedit-forge-mc1.8.9\6.1.1\dffd7e1882eba256eb2132fe315682c1d26522b1\worldedit-forge-mc1.8.9-6.1.1.jar(com/sk89q/worldedit/forge/ForgeWorldEdit.class): warning: Cannot find annotation method 'modid()' in type 'Mod': class file for net.minecraftforge.fml.common.Mod not found
+C:\Users\Jesse\.gradle\caches\modules-2\files-2.1\com.sk89q.worldedit\worldedit-forge-mc1.8.9\6.1.1\dffd7e1882eba256eb2132fe315682c1d26522b1\worldedit-forge-mc1.8.9-6.1.1.jar(com/sk89q/worldedit/forge/ForgeWorldEdit.class): warning: Cannot find annotation method 'name()' in type 'Mod'
+C:\Users\Jesse\.gradle\caches\modules-2\files-2.1\com.sk89q.worldedit\worldedit-forge-mc1.8.9\6.1.1\dffd7e1882eba256eb2132fe315682c1d26522b1\worldedit-forge-mc1.8.9-6.1.1.jar(com/sk89q/worldedit/forge/ForgeWorldEdit.class): warning: Cannot find annotation method 'version()' in type 'Mod'
+C:\Users\Jesse\.gradle\caches\modules-2\files-2.1\com.sk89q.worldedit\worldedit-forge-mc1.8.9\6.1.1\dffd7e1882eba256eb2132fe315682c1d26522b1\worldedit-forge-mc1.8.9-6.1.1.jar(com/sk89q/worldedit/forge/ForgeWorldEdit.class): warning: Cannot find annotation method 'acceptableRemoteVersions()' in type 'Mod'
+C:\Users\Jesse\.gradle\caches\modules-2\files-2.1\com.sk89q.worldedit\worldedit-forge-mc1.8.9\6.1.1\dffd7e1882eba256eb2132fe315682c1d26522b1\worldedit-forge-mc1.8.9-6.1.1.jar(com/sk89q/worldedit/forge/ForgeWorldEdit.class): warning: Cannot find annotation method 'dependencies()' in type 'Mod'
+C:\Users\Jesse\.gradle\caches\modules-2\files-2.1\com.sk89q.worldedit\worldedit-forge-mc1.8.9\6.1.1\dffd7e1882eba256eb2132fe315682c1d26522b1\worldedit-forge-mc1.8.9-6.1.1.jar(com/sk89q/worldedit/forge/ForgeWorldEdit.class): warning: Cannot find annotation method 'acceptedMinecraftVersions()' in type 'Mod'
+C:\Users\Jesse\.gradle\caches\modules-2\files-2.1\com.sk89q.worldedit\worldedit-forge-mc1.8.9\6.1.1\dffd7e1882eba256eb2132fe315682c1d26522b1\worldedit-forge-mc1.8.9-6.1.1.jar(com/sk89q/worldedit/forge/ForgeWorldEdit.class): warning: Cannot find annotation method 'value()' in type 'Instance': class file for net.minecraftforge.fml.common.Mod$Instance not found
+C:\Users\Jesse\.gradle\caches\modules-2\files-2.1\com.sk89q.worldedit\worldedit-forge-mc1.8.9\6.1.1\dffd7e1882eba256eb2132fe315682c1d26522b1\worldedit-forge-mc1.8.9-6.1.1.jar(com/sk89q/worldedit/forge/ForgeWorldEdit.class): warning: Cannot find annotation method 'serverSide()' in type 'SidedProxy': class file for net.minecraftforge.fml.common.SidedProxy not found
+C:\Users\Jesse\.gradle\caches\modules-2\files-2.1\com.sk89q.worldedit\worldedit-forge-mc1.8.9\6.1.1\dffd7e1882eba256eb2132fe315682c1d26522b1\worldedit-forge-mc1.8.9-6.1.1.jar(com/sk89q/worldedit/forge/ForgeWorldEdit.class): warning: Cannot find annotation method 'clientSide()' in type 'SidedProxy'
+Note: Some input files use or override a deprecated API.
+Note: Recompile with -Xlint:deprecation for details.
+Note: Some input files use unchecked or unsafe operations.
+Note: Recompile with -Xlint:unchecked for details.
+27 warnings
+
+:forge:processResources UP-TO-DATE
+:forge:classes
+:forge:jar
+:forge:sourceTestJava UP-TO-DATE
+:forge:compileTestJava UP-TO-DATE
+:forge:processTestResources UP-TO-DATE
+:forge:testClasses UP-TO-DATE
+:forge:test UP-TO-DATE
+:forge:reobfJar
+:forge:shadowJar
+:forge:reobfShadowJar
+:forge:extractRangemapReplacedMain
+C:\Users\Jesse\Desktop\OTHER\GitHub\FastAsyncWorldEdit\forge\build\sources\main\java
+:forge:retromapReplacedMain UP-TO-DATE
+:forge:sourceJar UP-TO-DATE
+:forge:assemble
+:forge:check UP-TO-DATE
+:forge:build
+
+BUILD SUCCESSFUL
+
+Total time: 38.081 secs

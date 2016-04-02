@@ -1,31 +1,5 @@
 package com.boydti.fawe.bukkit.v1_8;
 
-import static com.boydti.fawe.util.ReflectionUtils.getRefClass;
-
-import java.lang.reflect.Field;
-import java.lang.reflect.Method;
-import java.util.ArrayDeque;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
-import java.util.Set;
-
-import org.bukkit.Bukkit;
-import org.bukkit.Chunk;
-import org.bukkit.Location;
-import org.bukkit.Material;
-import org.bukkit.World;
-import org.bukkit.World.Environment;
-import org.bukkit.entity.Entity;
-import org.bukkit.entity.Player;
-import org.bukkit.generator.BlockPopulator;
-import org.bukkit.generator.ChunkGenerator;
-
 import com.boydti.fawe.Fawe;
 import com.boydti.fawe.FaweCache;
 import com.boydti.fawe.bukkit.v0.BukkitQueue_0;
@@ -40,11 +14,36 @@ import com.boydti.fawe.util.ReflectionUtils.RefConstructor;
 import com.boydti.fawe.util.ReflectionUtils.RefField;
 import com.boydti.fawe.util.ReflectionUtils.RefMethod;
 import com.boydti.fawe.util.ReflectionUtils.RefMethod.RefExecutor;
+import com.boydti.fawe.util.TaskManager;
 import com.sk89q.worldedit.LocalSession;
 import com.sk89q.worldedit.LocalWorld;
 import com.sk89q.worldedit.Vector2D;
 import com.sk89q.worldedit.bukkit.BukkitUtil;
 import com.sk89q.worldedit.world.biome.BaseBiome;
+import java.lang.reflect.Field;
+import java.lang.reflect.Method;
+import java.util.ArrayDeque;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Set;
+import org.bukkit.Bukkit;
+import org.bukkit.Chunk;
+import org.bukkit.Location;
+import org.bukkit.Material;
+import org.bukkit.World;
+import org.bukkit.World.Environment;
+import org.bukkit.entity.Entity;
+import org.bukkit.entity.Player;
+import org.bukkit.generator.BlockPopulator;
+import org.bukkit.generator.ChunkGenerator;
+
+
+import static com.boydti.fawe.util.ReflectionUtils.getRefClass;
 
 public class BukkitQueue_1_8 extends BukkitQueue_0 {
 
@@ -116,60 +115,35 @@ public class BukkitQueue_1_8 extends BukkitQueue_0 {
 
     @Override
     public Collection<FaweChunk<Chunk>> sendChunk(final Collection<FaweChunk<Chunk>> fcs) {
-        final HashMap<FaweChunk<Chunk>, Object> packets = new HashMap<>();
-        final HashMap<String, ArrayList<FaweChunk<Chunk>>> map = new HashMap<>();
-
         for (final FaweChunk<Chunk> fc : fcs) {
-            final String world = fc.getChunkLoc().world;
-            ArrayList<FaweChunk<Chunk>> list = map.get(world);
-            if (list == null) {
-                list = new ArrayList<>();
-                map.put(world, list);
-            }
-            list.add(fc);
+            sendChunk(fc);
         }
+        return new ArrayList<>();
+    }
+
+    public void sendChunk(FaweChunk<Chunk> fc) {
+        fixLighting(fc, Settings.FIX_ALL_LIGHTING);
+        Chunk chunk = fc.getChunk();
+        World world = chunk.getWorld();
         final int view = Bukkit.getServer().getViewDistance();
+        int cx = chunk.getX();
+        int cz = chunk.getZ();
         for (final Player player : Bukkit.getOnlinePlayers()) {
-            final String world = player.getWorld().getName();
-            final ArrayList<FaweChunk<Chunk>> list = map.get(world);
-            if (list == null) {
+            if (!player.getWorld().equals(world)) {
                 continue;
             }
             final Location loc = player.getLocation();
-            final int cx = loc.getBlockX() >> 4;
-            final int cz = loc.getBlockZ() >> 4;
+            final int px = loc.getBlockX() >> 4;
+            final int pz = loc.getBlockZ() >> 4;
+            if ((Math.abs(cx - px) > view) || (Math.abs(cz - pz) > view)) {
+                continue;
+            }
             final Object entity = this.methodGetHandlePlayer.of(player).call();
-
-            for (final FaweChunk<Chunk> fc : list) {
-                final int dx = Math.abs(cx - fc.getChunkLoc().x);
-                final int dz = Math.abs(cz - fc.getChunkLoc().z);
-                if ((dx > view) || (dz > view)) {
-                    continue;
-                }
-                final RefExecutor con = this.send.of(this.connection.of(entity).get());
-                Object packet = packets.get(fc);
-                if (packet == null) {
-                    final Object c = this.methodGetHandleChunk.of(fc.getChunk()).call();
-                    packet = this.MapChunk.create(c, true, 65535);
-                    packets.put(fc, packet);
-                    con.call(packet);
-                } else {
-                    con.call(packet);
-                }
-            }
+            final RefExecutor con = this.send.of(this.connection.of(entity).get());
+            final Object c = this.methodGetHandleChunk.of(fc.getChunk()).call();
+            Object packet = this.MapChunk.create(c, false, 65535);
+            con.call(packet);
         }
-        final HashSet<FaweChunk<Chunk>> chunks = new HashSet<FaweChunk<Chunk>>();
-        for (final FaweChunk<Chunk> fc : fcs) {
-            final Chunk chunk = fc.getChunk();
-            chunk.unload(true, false);
-            chunk.load();
-            final ChunkLoc loc = fc.getChunkLoc();
-            chunk.getWorld().refreshChunk(loc.x, loc.z);
-            if (!this.fixLighting(fc, Settings.FIX_ALL_LIGHTING)) {
-                chunks.add(fc);
-            }
-        }
-        return chunks;
     }
 
     @Override
@@ -424,6 +398,13 @@ public class BukkitQueue_1_8 extends BukkitQueue_0 {
 
             // Clear
             fs.clear();
+
+            TaskManager.IMP.later(new Runnable() {
+                @Override
+                public void run() {
+                    sendChunk(fs);
+                }
+            }, 1);
             return true;
         } catch (final Exception e) {
             e.printStackTrace();

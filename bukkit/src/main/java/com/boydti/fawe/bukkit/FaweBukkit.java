@@ -28,13 +28,18 @@ import java.io.File;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashSet;
+import java.util.Set;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
+import org.bukkit.event.EventHandler;
+import org.bukkit.event.Listener;
+import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.java.JavaPlugin;
 
-public class FaweBukkit extends JavaPlugin implements IFawe {
+public class FaweBukkit extends JavaPlugin implements IFawe, Listener {
 
     private VaultUtil vault;
     private WorldEditPlugin worldedit;
@@ -53,6 +58,7 @@ public class FaweBukkit extends JavaPlugin implements IFawe {
     @Override
     public void onEnable() {
         try {
+            Bukkit.getPluginManager().registerEvents(this, this);
             Fawe.set(this);
             try {
                 final Class<?> clazz = Class.forName("org.spigotmc.AsyncCatcher");
@@ -85,9 +91,16 @@ public class FaweBukkit extends JavaPlugin implements IFawe {
     @Override
     public FawePlayer<Player> wrap(final Object obj) {
         if (obj.getClass() == String.class) {
-            return new BukkitPlayer(Bukkit.getPlayer((String) obj));
+            String name = (String) obj;
+            FawePlayer existing = Fawe.get().getCachedPlayer(name);
+            if (existing != null) {
+                return existing;
+            }
+            return new BukkitPlayer(Bukkit.getPlayer(name));
         } else if (obj instanceof Player) {
-            return new BukkitPlayer((Player) obj);
+            Player player = (Player) obj;
+            FawePlayer existing = Fawe.get().getCachedPlayer(player.getName());
+            return existing != null ? existing : new BukkitPlayer(player);
         } else {
             return null;
         }
@@ -98,6 +111,15 @@ public class FaweBukkit extends JavaPlugin implements IFawe {
         Metrics metrics = new Metrics(this);
         metrics.start();
         debug("&6Metrics enabled.");
+    }
+
+    @Override
+    public Set<FawePlayer> getPlayers() {
+        HashSet<FawePlayer> players = new HashSet<>();
+        for (Player player : Bukkit.getServer().getOnlinePlayers()) {
+            players.add(wrap(player));
+        }
+        return players;
     }
 
     /**
@@ -299,5 +321,10 @@ public class FaweBukkit extends JavaPlugin implements IFawe {
             Fawe.debug("Plugin 'PreciousStones' not found. PreciousStones features disabled.");
         }
         return managers;
+    }
+
+    @EventHandler
+    public void onPlayerQuit(PlayerQuitEvent event) {
+        Fawe.get().unregister(event.getPlayer().getName());
     }
 }

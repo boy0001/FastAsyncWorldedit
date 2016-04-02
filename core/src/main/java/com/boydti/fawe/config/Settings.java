@@ -8,7 +8,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
-import org.bukkit.configuration.file.YamlConfiguration;
+import com.boydti.fawe.configuration.file.YamlConfiguration;
 
 import com.sk89q.worldedit.LocalSession;
 
@@ -26,6 +26,7 @@ public class Settings {
     public static boolean ENABLE_HARD_LIMIT = true;
     public static boolean STORE_HISTORY_ON_DISK = false;
     public static boolean COMPRESS_HISTORY = false;
+    public static boolean METRICS = true;
 
     public static void setup(final File file) {
         if (!file.exists()) {
@@ -51,6 +52,7 @@ public class Settings {
         options.put("fix-all-lighting", FIX_ALL_LIGHTING);
         options.put("history.use-disk", STORE_HISTORY_ON_DISK);
         options.put("history.compress", COMPRESS_HISTORY);
+        options.put("metrics", METRICS);
 
         for (final Entry<String, Object> node : options.entrySet()) {
             if (!config.contains(node.getKey())) {
@@ -67,6 +69,7 @@ public class Settings {
         REQUIRE_SELECTION = config.getBoolean("require-selection-in-mask");
         WE_BLACKLIST = config.getStringList("command-blacklist");
         ENABLE_HARD_LIMIT = config.getBoolean("crash-mitigation");
+        METRICS = config.getBoolean("metrics");
         COMPRESS_HISTORY = config.getBoolean("history.compress");
         if (STORE_HISTORY_ON_DISK = config.getBoolean("history.use-disk")) {
             LocalSession.MAX_HISTORY_SIZE = Integer.MAX_VALUE;

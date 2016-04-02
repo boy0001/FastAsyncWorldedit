@@ -1,15 +1,4 @@
-package com.boydti.fawe.logging;
-
-import static com.google.common.base.Preconditions.checkNotNull;
-
-import java.util.ArrayList;
-import java.util.List;
-
-import javax.annotation.Nullable;
-
-import org.PrimeSoft.blocksHub.IBlocksHubApi;
-import org.bukkit.World;
-import org.bukkit.entity.Player;
+package com.boydti.fawe.bukkit.logging;
 
 import com.boydti.fawe.object.FawePlayer;
 import com.sk89q.worldedit.Vector;
@@ -25,9 +14,18 @@ import com.sk89q.worldedit.history.change.EntityRemove;
 import com.sk89q.worldedit.history.changeset.ChangeSet;
 import com.sk89q.worldedit.regions.Region;
 import com.sk89q.worldedit.util.Location;
+import java.util.ArrayList;
+import java.util.List;
+import javax.annotation.Nullable;
+import org.PrimeSoft.blocksHub.IBlocksHubApi;
+import org.bukkit.World;
+import org.bukkit.entity.Player;
+
+
+import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
- * Stores changes to a {@link ChangeSet}.
+ * Stores changes to a {@link com.sk89q.worldedit.history.changeset.ChangeSet}.
  * Logs changes to BlocksHub
  */
 public class LoggingExtent extends AbstractDelegateExtent {

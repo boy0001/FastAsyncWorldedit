@@ -1,18 +1,14 @@
 package com.boydti.fawe.util;
 
-import java.io.File;
-import java.util.Map.Entry;
-
-import org.bukkit.Bukkit;
-import org.bukkit.ChatColor;
-import org.bukkit.entity.Player;
-
 import com.boydti.fawe.Fawe;
+import com.boydti.fawe.config.BBC;
 import com.boydti.fawe.object.FawePlayer;
 import com.sk89q.jnbt.CompoundTag;
 import com.sk89q.jnbt.EndTag;
 import com.sk89q.jnbt.ListTag;
 import com.sk89q.jnbt.Tag;
+import java.io.File;
+import java.util.Map.Entry;
 
 public class MainUtil {
     /*
@@ -20,7 +16,7 @@ public class MainUtil {
      *  e.g. sending messages
      */
     public static void sendMessage(final FawePlayer<?> player, String message) {
-        message = ChatColor.translateAlternateColorCodes('&', message);
+        message = BBC.color(message);
         if (player == null) {
             Fawe.debug(message);
         } else {
@@ -29,7 +25,7 @@ public class MainUtil {
     }
 
     public static void sendAdmin(final String s) {
-        for (final Player player : Bukkit.getOnlinePlayers()) {
+        for (final FawePlayer<?> player : Fawe.imp().getPlayers()) {
             if (player.hasPermission("fawe.admin")) {
                 player.sendMessage(s);
             }

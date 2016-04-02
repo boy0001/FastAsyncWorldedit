@@ -1,5 +1,6 @@
 package com.boydti.fawe.object.changeset;
 
+import com.sk89q.worldedit.Vector;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -33,7 +34,7 @@ import com.sk89q.worldedit.history.changeset.ChangeSet;
  *  - High CPU usage
  *  - Low memory usage
  */
-public class MemoryOptimizedHistory implements ChangeSet, FlushableChangeSet {
+public class MemoryOptimizedHistory implements ChangeSet, FaweChangeSet {
     
     private ArrayDeque<CompoundTag> fromTags;
     private ArrayDeque<CompoundTag> toTags;
@@ -54,66 +55,73 @@ public class MemoryOptimizedHistory implements ChangeSet, FlushableChangeSet {
     }
 
     @Override
+    public void add(Vector location, BaseBlock from, BaseBlock to) {
+        add(location.getBlockX(), location.getBlockY(), location.getBlockZ(), from, to);
+    }
+
+    public void add(int x, int y, int z, BaseBlock from, BaseBlock to) {
+        try {
+            int idfrom = from.getId();
+            int combinedFrom = (FaweCache.hasData(idfrom) ? ((idfrom << 4) + from.getData()) : (idfrom << 4));
+            CompoundTag nbtFrom = FaweCache.hasNBT(idfrom) ? from.getNbtData() : null;
+
+            int idTo = to.getId();
+            int combinedTo = (FaweCache.hasData(idTo) ? ((idTo << 4) + to.getData()) : (idTo << 4));
+            CompoundTag nbtTo = FaweCache.hasNBT(idTo) ? to.getNbtData() : null;
+            OutputStream stream = getBAOS(x, y, z);
+            //x
+            stream.write((x - ox) & 0xff);
+            stream.write(((x - ox) >> 8) & 0xff);
+            //z
+            stream.write((z - oz) & 0xff);
+            stream.write(((z - oz) >> 8) & 0xff);
+            //y
+            stream.write((byte) y);
+            //from
+            stream.write((combinedFrom) & 0xff);
+            stream.write(((combinedFrom) >> 8) & 0xff);
+            //to
+            stream.write((combinedTo) & 0xff);
+            stream.write(((combinedTo) >> 8) & 0xff);
+
+            if (nbtFrom != null && MainUtil.isValidTag(nbtFrom)) {
+                Map<String, Tag> value = ReflectionUtils.getMap(nbtFrom.getValue());
+                value.put("x", new IntTag(x));
+                value.put("y", new IntTag(y));
+                value.put("z", new IntTag(z));
+                if (fromTags == null) {
+                    fromTags = new ArrayDeque<>();
+                }
+                fromTags.add(nbtFrom);
+            }
+
+            if (nbtTo != null && MainUtil.isValidTag(nbtTo)) {
+                Map<String, Tag> value = ReflectionUtils.getMap(nbtTo.getValue());
+                value.put("x", new IntTag(x));
+                value.put("y", new IntTag(y));
+                value.put("z", new IntTag(z));
+                if (toTags == null) {
+                    toTags = new ArrayDeque<>();
+                }
+                toTags.add(nbtTo);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    @Override
     public void add(Change arg) {
         size.incrementAndGet();
         if ((arg instanceof BlockChange)) {
-            try {
                 BlockChange change = (BlockChange) arg;
                 BlockVector loc = change.getPosition();
                 int x = loc.getBlockX();
                 int y = loc.getBlockY();
                 int z = loc.getBlockZ();
-                
                 BaseBlock from = change.getPrevious();
                 BaseBlock to = change.getCurrent();
-                
-                int idfrom = from.getId();
-                int combinedFrom = (FaweCache.hasData(idfrom) ? ((idfrom << 4) + from.getData()) : (idfrom << 4));
-                CompoundTag nbtFrom = FaweCache.hasNBT(idfrom) ? from.getNbtData() : null;
-                
-                int idTo = to.getId();
-                int combinedTo = (FaweCache.hasData(idTo) ? ((idTo << 4) + to.getData()) : (idTo << 4));
-                CompoundTag nbtTo = FaweCache.hasNBT(idTo) ? to.getNbtData() : null;
-                OutputStream stream = getBAOS(x, y, z);
-                //x
-                stream.write((x - ox) & 0xff);
-                stream.write(((x - ox) >> 8) & 0xff);
-                //z
-                stream.write((z - oz) & 0xff);
-                stream.write(((z - oz) >> 8) & 0xff);
-                //y
-                stream.write((byte) y);
-                //from
-                stream.write((combinedFrom) & 0xff);
-                stream.write(((combinedFrom) >> 8) & 0xff);
-                //to
-                stream.write((combinedTo) & 0xff);
-                stream.write(((combinedTo) >> 8) & 0xff);
-                
-                if (nbtFrom != null && MainUtil.isValidTag(nbtFrom)) {
-                    Map<String, Tag> value = ReflectionUtils.getMap(nbtFrom.getValue());
-                    value.put("x", new IntTag(x));
-                    value.put("y", new IntTag(y));
-                    value.put("z", new IntTag(z));
-                    if (fromTags == null) {
-                        fromTags = new ArrayDeque<>();
-                    }
-                    fromTags.add(nbtFrom);
-                }
-                
-                if (nbtTo != null && MainUtil.isValidTag(nbtTo)) {
-                    Map<String, Tag> value = ReflectionUtils.getMap(nbtTo.getValue());
-                    value.put("x", new IntTag(x));
-                    value.put("y", new IntTag(y));
-                    value.put("z", new IntTag(z));
-                    if (toTags == null) {
-                        toTags = new ArrayDeque<>();
-                    }
-                    toTags.add(nbtTo);
-                }
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
+                add(x, y, z, from, to);
         } else {
             if (entities == null) {
                 entities = new ArrayDeque<>();

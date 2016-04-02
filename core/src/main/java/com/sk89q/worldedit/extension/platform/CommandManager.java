@@ -19,16 +19,6 @@
 
 package com.sk89q.worldedit.extension.platform;
 
-import static com.google.common.base.Preconditions.checkNotNull;
-import static com.sk89q.worldedit.util.command.composition.LegacyCommandAdapter.adapt;
-
-import java.io.File;
-import java.io.IOException;
-import java.util.logging.FileHandler;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-import java.util.regex.Pattern;
-
 import com.boydti.fawe.util.SetQueue;
 import com.boydti.fawe.util.TaskManager;
 import com.google.common.base.Joiner;
@@ -88,6 +78,16 @@ import com.sk89q.worldedit.util.formatting.ColorCodeBuilder;
 import com.sk89q.worldedit.util.formatting.component.CommandUsageBox;
 import com.sk89q.worldedit.util.logging.DynamicStreamHandler;
 import com.sk89q.worldedit.util.logging.LogFormat;
+import java.io.File;
+import java.io.IOException;
+import java.util.logging.FileHandler;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import java.util.regex.Pattern;
+
+
+import static com.google.common.base.Preconditions.checkNotNull;
+import static com.sk89q.worldedit.util.command.composition.LegacyCommandAdapter.adapt;
 
 /**
  * Handles the registration and invocation of commands.
@@ -271,12 +271,12 @@ public final class CommandManager {
                     if (editSession != null) {
                         session.remember(editSession);
                         editSession.flushQueue();
-                        long time = System.currentTimeMillis() - start;
+                        final long time = System.currentTimeMillis() - start;
                         if (time > 5 && editSession.size() != 0) {
                             SetQueue.IMP.addTask(new Runnable() {
                                 @Override
                                 public void run() {
-                                    actor.print("[FAWE] Action complete");
+                                    actor.print("[FAWE] Action completed in " + (time / 1000d) + " seconds");
                                 }
                             });
                         }
