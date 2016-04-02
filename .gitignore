@@ -10,3 +10,4 @@
 /target/
 /.gradle
 /.idea
+/forge/build

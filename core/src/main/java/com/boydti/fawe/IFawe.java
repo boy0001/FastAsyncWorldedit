@@ -33,4 +33,6 @@ public interface IFawe {
     public EditSessionWrapper getEditSessionWrapper(final EditSession session);
 
     public Collection<FaweMaskManager> getMaskManagers();
+
+    public void startMetrics();
 }

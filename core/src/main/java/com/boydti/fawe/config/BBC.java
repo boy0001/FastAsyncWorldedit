@@ -179,6 +179,10 @@ public enum BBC {
         }
     }
 
+    public static String color(String string) {
+        return StringMan.replaceFromMap(string, replacements);
+    }
+
     public String s() {
         return this.s;
     }

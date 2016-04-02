@@ -1,15 +1,13 @@
 package com.boydti.fawe.bukkit;
 
+import com.boydti.fawe.Fawe;
+import com.boydti.fawe.object.FaweLocation;
+import com.boydti.fawe.object.FawePlayer;
 import java.util.UUID;
-
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
-
-import com.boydti.fawe.Fawe;
-import com.boydti.fawe.object.FaweLocation;
-import com.boydti.fawe.object.FawePlayer;
 
 public class BukkitPlayer extends FawePlayer<Player> {
 

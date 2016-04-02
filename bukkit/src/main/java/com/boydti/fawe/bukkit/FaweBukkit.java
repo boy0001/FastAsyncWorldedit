@@ -1,16 +1,5 @@
 package com.boydti.fawe.bukkit;
 
-import java.io.File;
-import java.lang.reflect.Field;
-import java.util.ArrayList;
-import java.util.Collection;
-
-import org.bukkit.Bukkit;
-import org.bukkit.ChatColor;
-import org.bukkit.entity.Player;
-import org.bukkit.plugin.Plugin;
-import org.bukkit.plugin.java.JavaPlugin;
-
 import com.boydti.fawe.Fawe;
 import com.boydti.fawe.FaweAPI;
 import com.boydti.fawe.IFawe;
@@ -35,6 +24,15 @@ import com.boydti.fawe.util.StringMan;
 import com.boydti.fawe.util.TaskManager;
 import com.sk89q.worldedit.EditSession;
 import com.sk89q.worldedit.bukkit.WorldEditPlugin;
+import java.io.File;
+import java.lang.reflect.Field;
+import java.util.ArrayList;
+import java.util.Collection;
+import org.bukkit.Bukkit;
+import org.bukkit.ChatColor;
+import org.bukkit.entity.Player;
+import org.bukkit.plugin.Plugin;
+import org.bukkit.plugin.java.JavaPlugin;
 
 public class FaweBukkit extends JavaPlugin implements IFawe {
 
@@ -63,7 +61,7 @@ public class FaweBukkit extends JavaPlugin implements IFawe {
             } catch (final Throwable e) {
                 e.printStackTrace();
             }
-        } catch (final Exception e) {
+        } catch (final Throwable e) {
             e.printStackTrace();
             this.getServer().shutdown();
         }
@@ -93,6 +91,13 @@ public class FaweBukkit extends JavaPlugin implements IFawe {
         } else {
             return null;
         }
+    }
+
+    @Override
+    public void startMetrics() {
+        Metrics metrics = new Metrics(this);
+        metrics.start();
+        debug("&6Metrics enabled.");
     }
 
     /**
