@@ -1,10 +1,7 @@
 package com.boydti.fawe.object.extent;
 
-import java.util.List;
-
 import com.boydti.fawe.util.SetQueue;
 import com.boydti.fawe.util.TaskManager;
-import com.sk89q.jnbt.CompoundTag;
 import com.sk89q.worldedit.BlockVector;
 import com.sk89q.worldedit.EditSession;
 import com.sk89q.worldedit.Vector;
@@ -18,6 +15,7 @@ import com.sk89q.worldedit.regions.Region;
 import com.sk89q.worldedit.util.Location;
 import com.sk89q.worldedit.world.World;
 import com.sk89q.worldedit.world.biome.BaseBiome;
+import java.util.List;
 
 public class FastWorldEditExtent extends AbstractDelegateExtent {
 
@@ -141,9 +139,7 @@ public class FastWorldEditExtent extends AbstractDelegateExtent {
             case 33:
             case 151:
             case 178: {
-                SetQueue.IMP.setBlock(this.world, x, y, z, id, (byte) block.getData());
                 if (block.hasNbtData()) {
-                    final CompoundTag nbt = block.getNbtData();
                     SetQueue.IMP.addTask(this.world, x, y, z, new Runnable() {
                         @Override
                         public void run() {

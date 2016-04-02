@@ -188,7 +188,6 @@ public class ProcessedWEExtent extends AbstractDelegateExtent {
                         }
                         return false;
                     }
-                    SetQueue.IMP.setBlock(this.world, x, location.getBlockY(), z, id, (byte) block.getData());
                     if (block.hasNbtData()) {
                         SetQueue.IMP.addTask(this.world, x, location.getBlockY(), z, new Runnable() {
                             @Override

@@ -33,11 +33,17 @@ public abstract class SpongeQueue_0 extends FaweQueue {
 
     @Override
     public void addTask(String world, int x, int y, int z, Runnable runnable) {
-        // TODO Auto-generated method stub
         final ChunkLoc wrap = new ChunkLoc(world, x >> 4, z >> 4);
         FaweChunk<Chunk> result = this.blocks.get(wrap);
         if (result == null) {
-            throw new IllegalArgumentException("Task must be accompanied by a block change or manually adding to queue!");
+            result = this.getChunk(wrap);
+            result.addTask(runnable);
+            final FaweChunk<Chunk> previous = this.blocks.put(wrap, result);
+            if (previous == null) {
+                return;
+            }
+            this.blocks.put(wrap, previous);
+            result = previous;
         }
         result.addTask(runnable);
     }

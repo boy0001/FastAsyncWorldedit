@@ -11,3 +11,4 @@
 /.gradle
 /.idea
 /forge/build
+forge/.gradle/gradle.log

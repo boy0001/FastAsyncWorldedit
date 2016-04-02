@@ -81,7 +81,6 @@ public class SpongeQueue_1_8 extends SpongeQueue_0 {
         Chunk spongeChunk = fc.getChunk();
         net.minecraft.world.World nmsWorld = (net.minecraft.world.World) spongeChunk.getWorld();
         ChunkLoc wrapper = fc.getChunkLoc();
-        spongeChunk.loadChunk(true);
         try {
             boolean flag = !nmsWorld.provider.getHasNoSky();
             // Sections
@@ -151,7 +150,7 @@ public class SpongeQueue_1_8 extends SpongeQueue_0 {
                     fs.setCount(j, Short.MAX_VALUE);
                 }
             }
-            // Clear
+//            // Clear
         } catch (Throwable e) {
             e.printStackTrace();
         }
