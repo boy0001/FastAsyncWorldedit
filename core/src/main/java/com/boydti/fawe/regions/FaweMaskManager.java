@@ -1,6 +1,5 @@
 package com.boydti.fawe.regions;
 
-import com.boydti.fawe.bukkit.regions.FaweMask;
 import com.boydti.fawe.object.FawePlayer;
 
 public abstract class FaweMaskManager<T> {

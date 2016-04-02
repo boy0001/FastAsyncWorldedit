@@ -6,7 +6,6 @@ dependencies {
     compile 'javax.websocket:javax.websocket-api:1.1'
     compile 'org.spongepowered:spongeapi:2.1-SNAPSHOT'
     compile 'org.bukkit:bukkit:1.9-R0.1-SNAPSHOT'
-    compile 'org.PrimeSoft:blockshub:1.2'
     compile 'com.massivecraft:factions:2.8.0'
     compile 'com.drtshock:factions:1.6.9.5'
     compile 'me.ryanhamshire:GriefPrevention:11.5.2'

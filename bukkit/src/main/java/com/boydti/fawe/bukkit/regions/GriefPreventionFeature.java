@@ -22,7 +22,7 @@ public class GriefPreventionFeature extends BukkitMaskManager implements Listene
     }
 
     @Override
-    public FaweMask getMask(final FawePlayer<Player> fp) {
+    public BukkitMask getMask(final FawePlayer<Player> fp) {
         final Player player = fp.parent;
         final Location location = player.getLocation();
         final Claim claim = GriefPrevention.instance.dataStore.getClaimAt(location, true, null);
@@ -32,7 +32,7 @@ public class GriefPreventionFeature extends BukkitMaskManager implements Listene
                 claim.getGreaterBoundaryCorner().getBlockX();
                 final Location pos1 = new Location(location.getWorld(), claim.getLesserBoundaryCorner().getBlockX(), 0, claim.getLesserBoundaryCorner().getBlockZ());
                 final Location pos2 = new Location(location.getWorld(), claim.getGreaterBoundaryCorner().getBlockX(), 256, claim.getGreaterBoundaryCorner().getBlockZ());
-                return new FaweMask(pos1, pos2) {
+                return new BukkitMask(pos1, pos2) {
                     @Override
                     public String getName() {
                         return "CLAIM:" + claim.toString();

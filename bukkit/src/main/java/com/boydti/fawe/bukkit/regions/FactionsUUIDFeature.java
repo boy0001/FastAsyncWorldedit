@@ -24,7 +24,7 @@ public class FactionsUUIDFeature extends BukkitMaskManager implements Listener {
     }
 
     @Override
-    public FaweMask getMask(final FawePlayer<Player> fp) {
+    public BukkitMask getMask(final FawePlayer<Player> fp) {
         final Player player = fp.parent;
         final Chunk chunk = player.getLocation().getChunk();
         final boolean perm = Perm.hasPermission(FawePlayer.wrap(player), "fawe.factions.wilderness");
@@ -73,7 +73,7 @@ public class FactionsUUIDFeature extends BukkitMaskManager implements Listener {
 
             final Location pos1 = new Location(world, locs.minX << 4, 1, locs.minZ << 4);
             final Location pos2 = new Location(world, 15 + (locs.maxX << 4), 256, 15 + (locs.maxZ << 4));
-            return new FaweMask(pos1, pos2) {
+            return new BukkitMask(pos1, pos2) {
                 @Override
                 public String getName() {
                     return "CHUNK:" + pos1.getChunk().getX() + "," + pos1.getChunk().getZ();

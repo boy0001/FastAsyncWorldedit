@@ -24,7 +24,7 @@ public class FactionsFeature extends BukkitMaskManager implements Listener {
     }
 
     @Override
-    public FaweMask getMask(final FawePlayer<Player> fp) {
+    public BukkitMask getMask(final FawePlayer<Player> fp) {
         final Player player = fp.parent;
         final Location loc = player.getLocation();
         final PS ps = PS.valueOf(loc);
@@ -35,7 +35,7 @@ public class FactionsFeature extends BukkitMaskManager implements Listener {
                     final Chunk chunk = loc.getChunk();
                     final Location pos1 = new Location(loc.getWorld(), chunk.getX() * 16, 0, chunk.getZ() * 16);
                     final Location pos2 = new Location(loc.getWorld(), (chunk.getX() * 16) + 15, 156, (chunk.getZ() * 16) + 15);
-                    return new FaweMask(pos1, pos2) {
+                    return new BukkitMask(pos1, pos2) {
                         @Override
                         public String getName() {
                             return "CHUNK:" + loc.getChunk().getX() + "," + loc.getChunk().getZ();

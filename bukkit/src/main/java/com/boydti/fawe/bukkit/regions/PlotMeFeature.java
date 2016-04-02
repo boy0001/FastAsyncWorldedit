@@ -25,7 +25,7 @@ public class PlotMeFeature extends BukkitMaskManager implements Listener {
     }
 
     @Override
-    public FaweMask getMask(final FawePlayer<Player> fp) {
+    public BukkitMask getMask(final FawePlayer<Player> fp) {
         final Player player = fp.parent;
         final Location location = player.getLocation();
         final Plot plot = this.plotme.getPlotMeCoreManager().getPlotById(new BukkitPlayer(player));
@@ -38,7 +38,7 @@ public class PlotMeFeature extends BukkitMaskManager implements Listener {
             .getGenManager(player.getWorld().getName()).bottomZ(plot.getId(), new BukkitWorld(player.getWorld())));
             final Location pos2 = new Location(location.getWorld(), this.plotme.getGenManager(player.getWorld().getName()).topX(plot.getId(), new BukkitWorld(player.getWorld())), 256, this.plotme
             .getGenManager(player.getWorld().getName()).topZ(plot.getId(), new BukkitWorld(player.getWorld())));
-            return new FaweMask(pos1, pos2) {
+            return new BukkitMask(pos1, pos2) {
                 @Override
                 public String getName() {
                     return plot.getId();

@@ -28,7 +28,7 @@ public class PlotSquaredFeature extends BukkitMaskManager implements Listener {
     }
 
     @Override
-    public FaweMask getMask(final FawePlayer<Player> fp) {
+    public BukkitMask getMask(final FawePlayer<Player> fp) {
         final PlotPlayer pp = PlotPlayer.wrap(fp.parent);
         Plot plot = pp.getCurrentPlot();
         if (plot == null) {
@@ -66,7 +66,7 @@ public class PlotSquaredFeature extends BukkitMaskManager implements Listener {
                     for (final com.intellectualcrafters.plot.object.RegionWrapper current : regions) {
                         faweRegions.add(new RegionWrapper(current.minX, current.maxX, current.minZ, current.maxZ));
                     }
-                    return new FaweMask(pos1, pos2) {
+                    return new BukkitMask(pos1, pos2) {
                         @Override
                         public String getName() {
                             return "PLOT^2:" + id;

@@ -20,7 +20,7 @@ subprojects {
     apply plugin: 'idea'
 
     dependencies {
-        compile(group: 'com.sk89q', name: 'worldedit', version:'6.0.0-SNAPSHOT') {
+        compile(group: 'com.sk89q.worldedit', name: 'worldedit-core', version:'6.1.1-SNAPSHOT') {
             exclude(module: 'bukkit-classloader-check')
         }
         compile 'com.sk89q:worldguard:6.0.0-SNAPSHOT'

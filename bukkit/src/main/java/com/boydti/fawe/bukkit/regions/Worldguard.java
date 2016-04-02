@@ -72,14 +72,14 @@ public class Worldguard extends BukkitMaskManager implements Listener {
     }
 
     @Override
-    public FaweMask getMask(final FawePlayer<Player> fp) {
+    public BukkitMask getMask(final FawePlayer<Player> fp) {
         final Player player = fp.parent;
         final Location location = player.getLocation();
         final ProtectedRegion myregion = this.isowner(player, location);
         if (myregion != null) {
             final Location pos1 = new Location(location.getWorld(), myregion.getMinimumPoint().getBlockX(), myregion.getMinimumPoint().getBlockY(), myregion.getMinimumPoint().getBlockZ());
             final Location pos2 = new Location(location.getWorld(), myregion.getMaximumPoint().getBlockX(), myregion.getMaximumPoint().getBlockY(), myregion.getMaximumPoint().getBlockZ());
-            return new FaweMask(pos1, pos2) {
+            return new BukkitMask(pos1, pos2) {
                 @Override
                 public String getName() {
                     return myregion.getId();

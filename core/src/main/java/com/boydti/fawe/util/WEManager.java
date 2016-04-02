@@ -1,17 +1,16 @@
 package com.boydti.fawe.util;
 
-import java.lang.reflect.Field;
-import java.util.ArrayDeque;
-import java.util.HashSet;
-
-import com.boydti.fawe.bukkit.regions.FaweMask;
 import com.boydti.fawe.config.BBC;
 import com.boydti.fawe.object.FawePlayer;
 import com.boydti.fawe.object.RegionWrapper;
 import com.boydti.fawe.object.extent.NullExtent;
+import com.boydti.fawe.regions.FaweMask;
 import com.boydti.fawe.regions.FaweMaskManager;
 import com.sk89q.worldedit.extent.AbstractDelegateExtent;
 import com.sk89q.worldedit.extent.Extent;
+import java.lang.reflect.Field;
+import java.util.ArrayDeque;
+import java.util.HashSet;
 
 public class WEManager {
 

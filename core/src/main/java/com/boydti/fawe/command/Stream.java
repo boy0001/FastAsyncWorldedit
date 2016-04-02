@@ -28,7 +28,7 @@ public class Stream extends FaweCommand {
         }
         final File file = Fawe.get().getWorldEdit().getWorkingDirectoryFile(Fawe.get().getWorldEdit().getConfiguration().saveDir + File.separator + args[0]);
         if (!file.exists()) {
-            BBC.SCHEMATIC_NOT_FOUND.send(player, args);
+            BBC.SCHEMATIC_NOT_FOUND.send(player, args[0]);
             return false;
         }
         FaweAPI.streamSchematicAsync(file, player.getLocation());
