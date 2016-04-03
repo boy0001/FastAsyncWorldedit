@@ -2,6 +2,8 @@ package com.boydti.fawe.object;
 
 import com.boydti.fawe.FaweCache;
 import com.boydti.fawe.object.changeset.FaweChangeSet;
+import com.boydti.fawe.util.FaweQueue;
+import com.boydti.fawe.util.SetQueue;
 import com.sk89q.worldedit.Vector;
 import com.sk89q.worldedit.WorldEditException;
 import com.sk89q.worldedit.blocks.BaseBlock;
@@ -27,6 +29,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
 public class HistoryExtent extends AbstractDelegateExtent {
 
     private final com.boydti.fawe.object.changeset.FaweChangeSet changeSet;
+    private final FaweQueue queue;
 
     /**
      * Create a new instance.
@@ -34,33 +37,39 @@ public class HistoryExtent extends AbstractDelegateExtent {
      * @param extent the extent
      * @param changeSet the change set
      */
-    public HistoryExtent(final Extent extent, final FaweChangeSet changeSet) {
+    public HistoryExtent(final String world, final Extent extent, final FaweChangeSet changeSet) {
         super(extent);
+        this.queue = SetQueue.IMP.getQueue(world);
         checkNotNull(changeSet);
         this.changeSet = changeSet;
     }
 
     @Override
-    public synchronized boolean setBlock(final Vector location, final BaseBlock block) throws WorldEditException {
+    public boolean setBlock(final Vector location, final BaseBlock block) throws WorldEditException {
         if (super.setBlock(location, block)) {
-            BaseBlock previous;
-            try {
-                previous = this.getBlock(location);
-            } catch (final Exception e) {
-                previous = this.getBlock(location);
-            }
-            final int id_p = previous.getId();
-            final int id_b = block.getId();
-            if (id_p == id_b) {
-                if (FaweCache.hasData(id_p)) {
-                    if (previous.getData() == block.getData()) {
-                        return false;
-                    }
-                } else {
+            int x = location.getBlockX();
+            int y = location.getBlockY();
+            int z = location.getBlockZ();
+            int combined = queue.getCombinedId4Data(x, y, z);
+            int id = (combined >> 4);
+            if (id == block.getId()) {
+                if (!FaweCache.hasData(id)) {
+                    return false;
+                }
+                int data = id & 0xF;
+                if (data == block.getData()) {
                     return false;
                 }
             }
-            this.changeSet.add(location, previous, block);
+            if (!FaweCache.hasNBT(id)) {
+                if (FaweCache.hasNBT(block.getId())) {
+                    this.changeSet.add(x, y, z, combined, block);
+                } else {
+                    this.changeSet.add(x, y, z, combined, (block.getId() << 4) + block.getData());
+                }
+            } else {
+                this.changeSet.add(location, getBlock(location), block);
+            }
             return true;
         }
         return false;

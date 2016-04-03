@@ -1,5 +1,14 @@
 package com.boydti.fawe;
 
+import com.boydti.fawe.object.FaweLocation;
+import com.boydti.fawe.util.FaweQueue;
+import com.boydti.fawe.util.SetQueue;
+import com.boydti.fawe.util.TaskManager;
+import com.sk89q.jnbt.ByteArrayTag;
+import com.sk89q.jnbt.IntTag;
+import com.sk89q.jnbt.NBTInputStream;
+import com.sk89q.jnbt.ShortTag;
+import com.sk89q.jnbt.Tag;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -9,22 +18,9 @@ import java.nio.channels.Channels;
 import java.nio.channels.ReadableByteChannel;
 import java.util.Map;
 import java.util.zip.GZIPInputStream;
-
 import org.bukkit.Chunk;
 import org.bukkit.Location;
 import org.bukkit.Material;
-
-import com.boydti.fawe.object.ChunkLoc;
-import com.boydti.fawe.object.FaweChunk;
-import com.boydti.fawe.object.FaweLocation;
-import com.boydti.fawe.util.SetQueue;
-import com.boydti.fawe.util.TaskManager;
-import com.sk89q.jnbt.ByteArrayTag;
-import com.sk89q.jnbt.IntTag;
-import com.sk89q.jnbt.NBTInputStream;
-import com.sk89q.jnbt.ShortTag;
-import com.sk89q.jnbt.Tag;
-import com.sk89q.worldedit.world.biome.BaseBiome;
 
 /**
  * The FaweAPI class offers a few useful functions.<br>
@@ -68,77 +64,69 @@ public class FaweAPI {
         SetQueue.IMP.setBlock(world, x, y, z, id, data);
     }
 
-    /**
-     * Set a biome at a location asynchronously
-     * @param world
-     * @param x
-     * @param z
-     * @param id
-     * @param data
-     */
-    public static void setBiomeAsync(final String world, final int x, final int z, final BaseBiome biome) {
-        SetQueue.IMP.setBiome(world, x, z, biome);
+//    /**
+//     * Set a biome at a location asynchronously
+//     * @param world
+//     * @param x
+//     * @param z
+//     * @param id
+//     * @param data
+//     */
+//    public static void setBiomeAsync(final String world, final int x, final int z, final BaseBiome biome) {
+//        SetQueue.IMP.setBiome(world, x, z, biome);
+//    }
+//
+//    /**
+//     * Set a biome at a location asynchronously
+//     * @param loc
+//     * @param biome
+//     */
+//    public static void setBiomeAsync(final Location loc, final BaseBiome biome) {
+//        SetQueue.IMP.setBiome(loc.getWorld().getName(), loc.getBlockX(), loc.getBlockZ(), biome);
+//    }
+//
+//    /**
+//     * This will return a FaweChunk object that can be modified.<br>
+//     *  - The FaweChunk object can be reused if you want identical changes across chunks<br>
+//     *  - This is additive modification.<br>
+//     *  - First use {@link FaweChunk#fill(int, byte)} (e.g. with air) for absolute modification<br>
+//     * When ready, use {@link #setChunk(FaweChunk, ChunkLoc)}
+//     * @return
+//     */
+//    public static FaweChunk<?> createChunk() {
+//        return SetQueue.IMP.queue.getChunk(new ChunkLoc(null, 0, 0));
+//    }
+//
+//    /**
+//     * @see #createChunk()
+//     * @param data
+//     * @param location
+//     */
+//    public static void setChunkAsync(final FaweChunk<?> data, final ChunkLoc location) {
+//        data.setChunkLoc(location);
+//        data.addToQueue();
+//    }
+//
+//    /**
+//     * @see #createChunk()
+//     * @param data
+//     * @param chunk
+//     */
+//    public static void setChunkAsync(final FaweChunk<?> data, final Chunk chunk) {
+//        final ChunkLoc loc = new ChunkLoc(chunk.getWorld().getName(), chunk.getX(), chunk.getZ());
+//        data.setChunkLoc(loc);
+//        data.addToQueue();
+//    }
+//
+    public static void fixLighting(String world, int x, int z, final boolean fixAll) {
+        FaweQueue queue = SetQueue.IMP.getQueue(world);
+        queue.fixLighting(queue.getChunk(x, z), fixAll);
     }
 
-    /**
-     * Set a biome at a location asynchronously
-     * @param loc
-     * @param biome
-     */
-    public static void setBiomeAsync(final Location loc, final BaseBiome biome) {
-        SetQueue.IMP.setBiome(loc.getWorld().getName(), loc.getBlockX(), loc.getBlockZ(), biome);
-    }
 
-    /**
-     * This will return a FaweChunk object that can be modified.<br>
-     *  - The FaweChunk object can be reused if you want identical changes across chunks<br>
-     *  - This is additive modification.<br>
-     *  - First use {@link FaweChunk#fill(int, byte)} (e.g. with air) for absolute modification<br>
-     * When ready, use {@link #setChunk(FaweChunk, ChunkLoc)}
-     * @return
-     */
-    public static FaweChunk<?> createChunk() {
-        return SetQueue.IMP.queue.getChunk(new ChunkLoc(null, 0, 0));
-    }
-
-    /**
-     * @see #createChunk()
-     * @param data
-     * @param location
-     */
-    public static void setChunkAsync(final FaweChunk<?> data, final ChunkLoc location) {
-        data.setChunkLoc(location);
-        data.addToQueue();
-    }
-
-    /**
-     * @see #createChunk()
-     * @param data
-     * @param chunk
-     */
-    public static void setChunkAsync(final FaweChunk<?> data, final Chunk chunk) {
-        final ChunkLoc loc = new ChunkLoc(chunk.getWorld().getName(), chunk.getX(), chunk.getZ());
-        data.setChunkLoc(loc);
-        data.addToQueue();
-    }
-
-    /**
-     * Fix the lighting at a chunk location.<br>
-     *  - The fixAll parameter determines if extensive relighting should occur (slow)
-     * @param loc
-     */
-    public static void fixLighting(final ChunkLoc loc, final boolean fixAll) {
-        SetQueue.IMP.queue.fixLighting(SetQueue.IMP.queue.getChunk(loc), fixAll);
-    }
-
-    /**
-     * Fix the lighting at a chunk.<br>
-     *  - The fixAll parameter determines if extensive relighting should occur (slow)
-     * @param chunk
-     */
     public static void fixLighting(final Chunk chunk, final boolean fixAll) {
-        final ChunkLoc loc = new ChunkLoc(chunk.getWorld().getName(), chunk.getX(), chunk.getZ());
-        SetQueue.IMP.queue.fixLighting(SetQueue.IMP.queue.getChunk(loc), fixAll);
+        FaweQueue queue = SetQueue.IMP.getQueue(chunk.getWorld().getName());
+        queue.fixLighting(queue.getChunk(chunk.getX(), chunk.getZ()), fixAll);
     }
 
     /**

@@ -8,4 +8,8 @@ public interface FaweChangeSet extends ChangeSet {
     void flush();
 
     void add(Vector location, BaseBlock from, BaseBlock to);
+
+    void add(int x, int y, int z, int combinedId4DataFrom, BaseBlock to);
+
+    void add(int x, int y, int z, int combinedId4DataFrom, int combinedId4DataTo);
 }

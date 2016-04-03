@@ -1,6 +1,5 @@
 package com.boydti.fawe.forge.v0;
 
-import com.boydti.fawe.object.ChunkLoc;
 import com.boydti.fawe.object.FaweChunk;
 import com.boydti.fawe.util.FaweQueue;
 import com.boydti.fawe.util.SetQueue;
@@ -22,70 +21,70 @@ public abstract class SpongeQueue_0 extends FaweQueue {
     /**
      * Map of chunks in the queue
      */
-    private final ConcurrentHashMap<ChunkLoc, FaweChunk<Chunk>> blocks = new ConcurrentHashMap<>();
+    private final ConcurrentHashMap<Long, FaweChunk<Chunk>> blocks = new ConcurrentHashMap<>();
+
+    public SpongeQueue_0(String world) {
+        super(world);
+    }
 
     @Override
-    public boolean isChunkLoaded(String worldName, int x, int z) {
-        World world = Sponge.getServer().getWorld(worldName).get();
+    public boolean isChunkLoaded(int x, int z) {
+        World world = Sponge.getServer().getWorld(this.world).get();
         Chunk chunk = world.getChunk(x << 4, 0, z << 4).orElse(null);
         return chunk != null && chunk.isLoaded();
     }
 
     @Override
-    public void addTask(String world, int x, int y, int z, Runnable runnable) {
-        final ChunkLoc wrap = new ChunkLoc(world, x >> 4, z >> 4);
-        FaweChunk<Chunk> result = this.blocks.get(wrap);
+    public void addTask(int x, int z, Runnable runnable) {
+        long pair = (long) (x) << 32 | (z) & 0xFFFFFFFFL;
+        FaweChunk<Chunk> result = this.blocks.get(pair);
         if (result == null) {
-            result = this.getChunk(wrap);
+            result = this.getChunk(x, z);
             result.addTask(runnable);
-            final FaweChunk<Chunk> previous = this.blocks.put(wrap, result);
+            final FaweChunk<Chunk> previous = this.blocks.put(pair, result);
             if (previous == null) {
                 return;
             }
-            this.blocks.put(wrap, previous);
+            this.blocks.put(pair, previous);
             result = previous;
         }
         result.addTask(runnable);
     }
 
     @Override
-    public boolean setBlock(final String world, int x, final int y, int z, final short id, final byte data) {
+    public boolean setBlock(int x, final int y, int z, final short id, final byte data) {
         if ((y > 255) || (y < 0)) {
             return false;
         }
-        final ChunkLoc wrap = new ChunkLoc(world, x >> 4, z >> 4);
-        x = x & 15;
-        z = z & 15;
-        FaweChunk<Chunk> result = this.blocks.get(wrap);
+        long pair = (long) (x >> 4) << 32 | (z >> 4) & 0xFFFFFFFFL;
+        FaweChunk<Chunk> result = this.blocks.get(pair);
         if (result == null) {
-            result = this.getChunk(wrap);
-            result.setBlock(x, y, z, id, data);
-            final FaweChunk<Chunk> previous = this.blocks.put(wrap, result);
+            result = this.getChunk(x >> 4, z >> 4);
+            result.setBlock(x & 15, y, z & 15, id, data);
+            final FaweChunk<Chunk> previous = this.blocks.put(pair, result);
             if (previous == null) {
                 return true;
             }
-            this.blocks.put(wrap, previous);
+            this.blocks.put(pair, previous);
             result = previous;
         }
-        result.setBlock(x, y, z, id, data);
+        result.setBlock(x & 15, y, z & 15, id, data);
         return true;
     }
 
     @Override
-    public boolean setBiome(final String world, int x, int z, final BaseBiome biome) {
-        final ChunkLoc wrap = new ChunkLoc(world, x >> 4, z >> 4);
-        x = x & 15;
-        z = z & 15;
-        FaweChunk<Chunk> result = this.blocks.get(wrap);
+    public boolean setBiome(int x, int z, final BaseBiome biome) {
+        long pair = (long) (x >> 4) << 32 | (z >> 4) & 0xFFFFFFFFL;
+        FaweChunk<Chunk> result = this.blocks.get(pair);
         if (result == null) {
-            result = this.getChunk(wrap);
-            final FaweChunk<Chunk> previous = this.blocks.put(wrap, result);
+            result = this.getChunk(x >> 4, z >> 4);
+            final FaweChunk<Chunk> previous = this.blocks.put(pair, result);
             if (previous != null) {
-                this.blocks.put(wrap, previous);
+                this.blocks.put(pair, previous);
                 result = previous;
             }
         }
-        result.setBiome(x, z, biome);
+        result.setBiome(x & 15, z & 15, biome);
         return true;
     }
 
@@ -95,7 +94,7 @@ public abstract class SpongeQueue_0 extends FaweQueue {
             if (this.blocks.size() == 0) {
                 return null;
             }
-            final Iterator<Map.Entry<ChunkLoc, FaweChunk<Chunk>>> iter = this.blocks.entrySet().iterator();
+            final Iterator<Map.Entry<Long, FaweChunk<Chunk>>> iter = this.blocks.entrySet().iterator();
             final FaweChunk<Chunk> toReturn = iter.next().getValue();
             if (SetQueue.IMP.isWaiting()) {
                 return null;
@@ -133,7 +132,7 @@ public abstract class SpongeQueue_0 extends FaweQueue {
 
     @Override
     public void setChunk(final FaweChunk<?> chunk) {
-        this.blocks.put(chunk.getChunkLoc(), (FaweChunk<Chunk>) chunk);
+        this.blocks.put(chunk.longHash(), (FaweChunk<Chunk>) chunk);
     }
 
     public abstract Collection<FaweChunk<Chunk>> sendChunk(final Collection<FaweChunk<Chunk>> fcs);
@@ -141,7 +140,7 @@ public abstract class SpongeQueue_0 extends FaweQueue {
     public abstract boolean setComponents(final FaweChunk<Chunk> fc);
 
     @Override
-    public abstract FaweChunk<Chunk> getChunk(final ChunkLoc wrap);
+    public abstract FaweChunk<Chunk> getChunk(int x, int z);
 
     @Override
     public abstract boolean fixLighting(final FaweChunk<?> fc, final boolean fixAll);

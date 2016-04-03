@@ -2,23 +2,28 @@ package com.boydti.fawe.util;
 
 import com.boydti.fawe.Fawe;
 import com.boydti.fawe.config.BBC;
-import com.boydti.fawe.object.ChunkLoc;
 import com.boydti.fawe.object.FaweChunk;
 import com.sk89q.worldedit.world.biome.BaseBiome;
 
 public abstract class FaweQueue {
 
-    public abstract boolean setBlock(final String world, final int x, final int y, final int z, final short id, final byte data);
+    public final String world;
 
-    public abstract boolean setBiome(final String world, final int x, final int z, final BaseBiome biome);
+    public FaweQueue(String world) {
+        this.world = world;
+    }
 
-    public abstract FaweChunk<?> getChunk(final ChunkLoc wrap);
+    public abstract boolean setBlock(final int x, final int y, final int z, final short id, final byte data);
+
+    public abstract boolean setBiome(final int x, final int z, final BaseBiome biome);
+
+    public abstract FaweChunk<?> getChunk(int x, int z);
 
     public abstract void setChunk(final FaweChunk<?> chunk);
 
     public abstract boolean fixLighting(final FaweChunk<?> chunk, final boolean fixAll);
 
-    public abstract boolean isChunkLoaded(final String world, final int x, final int z);
+    public abstract boolean isChunkLoaded(final int x, final int z);
 
     /**
      * Gets the FaweChunk and sets the requested blocks
@@ -31,7 +36,7 @@ public abstract class FaweQueue {
         // Set memory limited
         MemUtil.memoryLimitedTask();
         // Clear block placement
-        SetQueue.IMP.queue.clear();
+        clear();
         Fawe.get().getWorldEdit().clearSessions();
         // GC
         System.gc();
@@ -44,5 +49,7 @@ public abstract class FaweQueue {
      */
     protected abstract void clear();
     
-    public abstract void addTask(String world, int x, int y, int z, Runnable runnable);
+    public abstract void addTask(int x, int z, Runnable runnable);
+
+    public abstract int getCombinedId4Data(int x, int y, int z);
 }

@@ -4,7 +4,6 @@ import com.boydti.fawe.Fawe;
 import com.boydti.fawe.FaweCache;
 import com.boydti.fawe.bukkit.v0.BukkitQueue_0;
 import com.boydti.fawe.config.Settings;
-import com.boydti.fawe.object.ChunkLoc;
 import com.boydti.fawe.object.FaweChunk;
 import com.boydti.fawe.object.FawePlayer;
 import com.boydti.fawe.object.IntegerPair;
@@ -75,9 +74,8 @@ public class BukkitQueue_1_8 extends BukkitQueue_0 {
     private RefMethod methodGetWorld;
     private RefField tileEntityListTick;
 
-    private final HashMap<String, FaweGenerator_1_8> worldMap = new HashMap<>();
-
-    public BukkitQueue_1_8() {
+    public BukkitQueue_1_8(String world) {
+        super(world);
         try {
             this.methodGetHandlePlayer = this.classCraftPlayer.getMethod("getHandle");
             this.methodGetHandleChunk = this.classCraftChunk.getMethod("getHandle");
@@ -97,20 +95,6 @@ public class BukkitQueue_1_8 extends BukkitQueue_0 {
         } catch (final NoSuchMethodException e) {
             e.printStackTrace();
         }
-    }
-
-    public FaweGenerator_1_8 getFaweGenerator(final World world) {
-        final ChunkGenerator gen = world.getGenerator();
-        if ((gen != null) && (gen instanceof FaweGenerator_1_8)) {
-            return (FaweGenerator_1_8) gen;
-        }
-        FaweGenerator_1_8 faweGen = this.worldMap.get(world.getName());
-        if (faweGen != null) {
-            return faweGen;
-        }
-        faweGen = new FaweGenerator_1_8(this, world);
-        this.worldMap.put(world.getName(), faweGen);
-        return faweGen;
     }
 
     @Override
@@ -264,6 +248,37 @@ public class BukkitQueue_1_8 extends BukkitQueue_0 {
         return array[j] >> 4;
     }
 
+    private int lcx = Integer.MIN_VALUE;
+    private int lcz = Integer.MIN_VALUE;
+    private int lcy = Integer.MIN_VALUE;
+    private Object lc;
+    private char[] ls;
+    private World bukkitWorld;
+
+    @Override
+    public int getCombinedId4Data(int x, int y, int z) {
+        int cx = x >> 4;
+        int cz = z >> 4;
+        int cy = y >> 4;
+        if (cx != lcx || cz != lcz) {
+            if (bukkitWorld == null) {
+                bukkitWorld = Bukkit.getServer().getWorld(world);
+            }
+            lcx = cx;
+            lcz = cz;
+            lc = methodGetHandleChunk.of(bukkitWorld.getChunkAt(cx, cz)).call();
+        } else if (cy == lcy) {
+            return ls != null ? ls[FaweCache.CACHE_J[y][x & 15][z & 15]] : 0;
+        }
+        Object storage = ((Object[]) fieldSections.of(lc).get())[cy];
+        if (storage == null) {
+            ls = null;
+            return 0;
+        }
+        ls = getIdArray(storage);
+        return ls[FaweCache.CACHE_J[y][x & 15][z & 15]];
+    }
+
     @Override
     public boolean setComponents(final FaweChunk<Chunk> fc) {
         try {
@@ -373,8 +388,8 @@ public class BukkitQueue_1_8 extends BukkitQueue_0 {
             final int[][] biomes = fs.getBiomeArray();
             if (biomes != null) {
                 final LocalWorld lw = BukkitUtil.getLocalWorld(world);
-                final int X = fs.getChunkLoc().x << 4;
-                final int Z = fs.getChunkLoc().z << 4;
+                final int X = fs.getX() << 4;
+                final int Z = fs.getZ() << 4;
                 final BaseBiome bb = new BaseBiome(0);
                 int last = 0;
                 for (int x = 0; x < 16; x++) {
@@ -529,8 +544,8 @@ public class BukkitQueue_1_8 extends BukkitQueue_0 {
     }
 
     @Override
-    public FaweChunk<Chunk> getChunk(final ChunkLoc wrap) {
-        return new BukkitChunk_1_8(wrap);
+    public FaweChunk<Chunk> getChunk(int x, int z) {
+        return new BukkitChunk_1_8(this, x, z);
     }
 
     public boolean unloadChunk(final String world, final Chunk chunk) {

@@ -112,8 +112,8 @@ public class FaweSponge implements IFawe {
     }
 
     @Override
-    public FaweQueue getQueue() {
-        return new SpongeQueue_1_8();
+    public FaweQueue getNewQueue(String world) {
+        return new SpongeQueue_1_8(world);
     }
 
     @Override

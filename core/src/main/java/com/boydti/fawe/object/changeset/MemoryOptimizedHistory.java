@@ -54,20 +54,10 @@ public class MemoryOptimizedHistory implements ChangeSet, FaweChangeSet {
         size = new AtomicInteger();
     }
 
+
     @Override
-    public void add(Vector location, BaseBlock from, BaseBlock to) {
-        add(location.getBlockX(), location.getBlockY(), location.getBlockZ(), from, to);
-    }
-
-    public void add(int x, int y, int z, BaseBlock from, BaseBlock to) {
+    public void add(int x, int y, int z, int combinedFrom, int combinedTo) {
         try {
-            int idfrom = from.getId();
-            int combinedFrom = (FaweCache.hasData(idfrom) ? ((idfrom << 4) + from.getData()) : (idfrom << 4));
-            CompoundTag nbtFrom = FaweCache.hasNBT(idfrom) ? from.getNbtData() : null;
-
-            int idTo = to.getId();
-            int combinedTo = (FaweCache.hasData(idTo) ? ((idTo << 4) + to.getData()) : (idTo << 4));
-            CompoundTag nbtTo = FaweCache.hasNBT(idTo) ? to.getNbtData() : null;
             OutputStream stream = getBAOS(x, y, z);
             //x
             stream.write((x - ox) & 0xff);
@@ -83,7 +73,39 @@ public class MemoryOptimizedHistory implements ChangeSet, FaweChangeSet {
             //to
             stream.write((combinedTo) & 0xff);
             stream.write(((combinedTo) >> 8) & 0xff);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
 
+    @Override
+    public void add(int x, int y, int z, int combinedId4DataFrom, BaseBlock to) {
+        int idTo = to.getId();
+        int combinedTo = (FaweCache.hasData(idTo) ? ((idTo << 4) + to.getData()) : (idTo << 4));
+        CompoundTag nbtTo = FaweCache.hasNBT(idTo) ? to.getNbtData() : null;
+        add(x, y, z, combinedId4DataFrom, combinedTo);
+        if (nbtTo != null && MainUtil.isValidTag(nbtTo)) {
+            Map<String, Tag> value = ReflectionUtils.getMap(nbtTo.getValue());
+            value.put("x", new IntTag(x));
+            value.put("y", new IntTag(y));
+            value.put("z", new IntTag(z));
+            if (toTags == null) {
+                toTags = new ArrayDeque<>();
+            }
+            toTags.add(nbtTo);
+        }
+    }
+
+    @Override
+    public void add(Vector loc, BaseBlock from, BaseBlock to) {
+        try {
+            int x = loc.getBlockX();
+            int y = loc.getBlockY();
+            int z = loc.getBlockZ();
+
+            int idfrom = from.getId();
+            int combinedFrom = (FaweCache.hasData(idfrom) ? ((idfrom << 4) + from.getData()) : (idfrom << 4));
+            CompoundTag nbtFrom = FaweCache.hasNBT(idfrom) ? from.getNbtData() : null;
             if (nbtFrom != null && MainUtil.isValidTag(nbtFrom)) {
                 Map<String, Tag> value = ReflectionUtils.getMap(nbtFrom.getValue());
                 value.put("x", new IntTag(x));
@@ -94,17 +116,7 @@ public class MemoryOptimizedHistory implements ChangeSet, FaweChangeSet {
                 }
                 fromTags.add(nbtFrom);
             }
-
-            if (nbtTo != null && MainUtil.isValidTag(nbtTo)) {
-                Map<String, Tag> value = ReflectionUtils.getMap(nbtTo.getValue());
-                value.put("x", new IntTag(x));
-                value.put("y", new IntTag(y));
-                value.put("z", new IntTag(z));
-                if (toTags == null) {
-                    toTags = new ArrayDeque<>();
-                }
-                toTags.add(nbtTo);
-            }
+            add(x, y, z, combinedFrom, to);
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -116,12 +128,9 @@ public class MemoryOptimizedHistory implements ChangeSet, FaweChangeSet {
         if ((arg instanceof BlockChange)) {
                 BlockChange change = (BlockChange) arg;
                 BlockVector loc = change.getPosition();
-                int x = loc.getBlockX();
-                int y = loc.getBlockY();
-                int z = loc.getBlockZ();
                 BaseBlock from = change.getPrevious();
                 BaseBlock to = change.getCurrent();
-                add(x, y, z, from, to);
+                add(loc, from, to);
         } else {
             if (entities == null) {
                 entities = new ArrayDeque<>();

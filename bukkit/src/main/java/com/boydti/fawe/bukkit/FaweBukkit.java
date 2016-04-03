@@ -184,15 +184,15 @@ public class FaweBukkit extends JavaPlugin implements IFawe, Listener {
      *  - When a block change is requested, the SetQueue will first check if the chunk exists in the queue, or it will create and add it<br>
      */
     @Override
-    public FaweQueue getQueue() {
+    public FaweQueue getNewQueue(String world) {
         if (FaweAPI.checkVersion(this.getServerVersion(), 1, 9, 0)) {
             try {
-                return new BukkitQueue_1_9();
+                return new BukkitQueue_1_9(world);
             } catch (final Throwable e) {
                 e.printStackTrace();
             }
         }
-        return new BukkitQueue_1_8();
+        return new BukkitQueue_1_8(world);
     }
 
     private int[] version;

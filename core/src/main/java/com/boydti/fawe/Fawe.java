@@ -11,7 +11,6 @@ import com.boydti.fawe.regions.general.PlotSquaredFeature;
 import com.boydti.fawe.util.Lag;
 import com.boydti.fawe.util.MainUtil;
 import com.boydti.fawe.util.MemUtil;
-import com.boydti.fawe.util.SetQueue;
 import com.boydti.fawe.util.TaskManager;
 import com.boydti.fawe.util.WEManager;
 import com.boydti.fawe.util.WESubscriber;
@@ -153,8 +152,7 @@ public class Fawe {
         if (Settings.METRICS) {
             this.IMP.startMetrics();
         }
-        SetQueue.IMP.queue = this.IMP.getQueue();
-        
+
         // Delete old history
         MainUtil.deleteDirectory(new File(IMP.getDirectory(), "history"));
 

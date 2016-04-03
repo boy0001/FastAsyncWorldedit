@@ -1,6 +1,7 @@
 package com.boydti.fawe.object.extent;
 
 import com.boydti.fawe.FaweCache;
+import com.boydti.fawe.util.FaweQueue;
 import com.boydti.fawe.util.SetQueue;
 import com.boydti.fawe.util.TaskManager;
 import com.sk89q.worldedit.BlockVector;
@@ -20,13 +21,13 @@ import java.util.List;
 
 public class FastWorldEditExtent extends AbstractDelegateExtent {
 
-    private final String world;
     private final Thread thread;
+    private final FaweQueue queue;
 
     public FastWorldEditExtent(final World world, final Thread thread) {
         super(world);
         this.thread = thread;
-        this.world = world.getName();
+        this.queue = SetQueue.IMP.getQueue(world.getName());
     }
 
     @Override
@@ -42,7 +43,7 @@ public class FastWorldEditExtent extends AbstractDelegateExtent {
 
     @Override
     public BaseBiome getBiome(final Vector2D position) {
-        if (!SetQueue.IMP.isChunkLoaded(this.world, position.getBlockX() >> 4, position.getBlockZ() >> 4)) {
+        if (!queue.isChunkLoaded(position.getBlockX() >> 4, position.getBlockZ() >> 4)) {
             return EditSession.nullBiome;
         }
         synchronized (this.thread) {
@@ -58,7 +59,7 @@ public class FastWorldEditExtent extends AbstractDelegateExtent {
         if ((this.lastBlock != null) && this.lastVector.equals(position.toBlockVector())) {
             return this.lastBlock;
         }
-        if (!SetQueue.IMP.isChunkLoaded(this.world, position.getBlockX() >> 4, position.getBlockZ() >> 4)) {
+        if (!queue.isChunkLoaded(position.getBlockX() >> 4, position.getBlockZ() >> 4)) {
             try {
                 this.lastVector = position.toBlockVector();
                 return this.lastBlock = super.getBlock(position);
@@ -93,7 +94,7 @@ public class FastWorldEditExtent extends AbstractDelegateExtent {
 
     @Override
     public boolean setBiome(final Vector2D position, final BaseBiome biome) {
-        SetQueue.IMP.setBiome(this.world, position.getBlockX(), position.getBlockZ(), biome);
+        queue.setBiome(position.getBlockX(), position.getBlockZ(), biome);
         return true;
     }
 
@@ -141,7 +142,7 @@ public class FastWorldEditExtent extends AbstractDelegateExtent {
             case 151:
             case 178: {
                 if (block.hasNbtData()) {
-                    SetQueue.IMP.addTask(this.world, x, y, z, new Runnable() {
+                    queue.addTask(x >> 4, z >> 4, new Runnable() {
                         @Override
                         public void run() {
                             try {
@@ -153,7 +154,7 @@ public class FastWorldEditExtent extends AbstractDelegateExtent {
                     });
                     return true;
                 }
-                SetQueue.IMP.setBlock(this.world, x, y, z, id, FaweCache.hasData(id) ? (byte) block.getData() : 0);
+                queue.setBlock(x, y, z, id, FaweCache.hasData(id) ? (byte) block.getData() : 0);
                 return true;
             }
             case 0:
@@ -222,11 +223,11 @@ public class FastWorldEditExtent extends AbstractDelegateExtent {
             case 190:
             case 191:
             case 192: {
-                SetQueue.IMP.setBlock(this.world, x, y, z, id);
+                queue.setBlock(x, y, z, id, (byte) 0);
                 return true;
             }
             default: {
-                SetQueue.IMP.setBlock(this.world, x, y, z, id, (byte) block.getData());
+                queue.setBlock(x, y, z, id, (byte) block.getData());
                 return true;
             }
         }

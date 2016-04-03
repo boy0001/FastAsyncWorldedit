@@ -9,62 +9,28 @@
 #################################################
 Version string 'unspecified' does not match SemVer specification 
 You should try SemVer : http://semver.org/
-Cookie rejected [JSESSIONID="26E6D52C45F2EEB46889F1A779E2FC24", version:0, domain:maven.sk89q.com, path:/artifactory/, expiry:null] Illegal 'path' attribute "/artifactory/". Path of origin: "/repo/org/spongepowered/spongeapi/"
-Download http://repo.spongepowered.org/maven/org/spongepowered/spongeapi/4.1.0-SNAPSHOT/spongeapi-4.1.0-20160402.223304-15.jar
 :core:compileJava
-:bukkit:processResources
 :forge:deobfCompileDummyTask
 :forge:deobfProvidedDummyTask
 :forge:extractDependencyATs SKIPPED
 :forge:extractMcpData
-:bukkit:processTestResources UP-TO-DATE
-warning: [options] bootstrap class path not set in conjunction with -source 1.7
+:core:compileJava UP-TO-DATE
+:core:processResources UP-TO-DATE
+:core:classes UP-TO-DATE
+:core:jar UP-TO-DATE
 :forge:extractMcpData SKIPPED
 :forge:extractMcpMappings SKIPPED
 :forge:genSrgs SKIPPED
 :forge:getVersionJson
 :forge:downloadServer SKIPPED
-:forge:splitServerJarNote: Some input files use or override a deprecated API.
-Note: Recompile with -Xlint:deprecation for details.
-Note: Some input files use unchecked or unsafe operations.
-Note: Recompile with -Xlint:unchecked for details.
-1 warning
-
-:core:processResources UP-TO-DATE
-:core:classes
-:core:jar
-:bukkit:compileJava
-:core:assemble
-:core:compileTestJava UP-TO-DATE
-:core:processTestResources UP-TO-DATE
-:core:testClasses UP-TO-DATE
-:core:test UP-TO-DATE
-:core:check UP-TO-DATE
-:core:build
-warning: [options] bootstrap class path not set in conjunction with -source 1.7
 :forge:splitServerJar SKIPPED
 :forge:deobfMcMCP SKIPPED
 :forge:sourceApiJava UP-TO-DATE
 :forge:compileApiJava UP-TO-DATE
 :forge:processApiResources UP-TO-DATE
 :forge:apiClasses UP-TO-DATE
-:forge:sourceMainJava
-:forge:compileJavaNote: Some input files use or override a deprecated API.
-Note: Recompile with -Xlint:deprecation for details.
-Note: Some input files use unchecked or unsafe operations.
-Note: Recompile with -Xlint:unchecked for details.
-1 warning
-
-:bukkit:classes
-:bukkit:jar SKIPPED
-:bukkit:assemble UP-TO-DATE
-:bukkit:compileTestJava UP-TO-DATE
-:bukkit:testClasses UP-TO-DATE
-:bukkit:test UP-TO-DATE
-:bukkit:check UP-TO-DATE
-:bukkit:shadowJar
-:bukkit:build
-C:\Users\Jesse\.gradle\caches\modules-2\files-2.1\com.sk89q.worldedit\worldedit-forge-mc1.8.9\6.1.1\dffd7e1882eba256eb2132fe315682c1d26522b1\worldedit-forge-mc1.8.9-6.1.1.jar(com/sk89q/worldedit/forge/ForgeWorldEdit.class): warning: Cannot find annotation method 'modid()' in type 'Mod': class file for net.minecraftforge.fml.common.Mod not found
+:forge:sourceMainJava UP-TO-DATE
+:forge:compileJavaC:\Users\Jesse\.gradle\caches\modules-2\files-2.1\com.sk89q.worldedit\worldedit-forge-mc1.8.9\6.1.1\dffd7e1882eba256eb2132fe315682c1d26522b1\worldedit-forge-mc1.8.9-6.1.1.jar(com/sk89q/worldedit/forge/ForgeWorldEdit.class): warning: Cannot find annotation method 'modid()' in type 'Mod': class file for net.minecraftforge.fml.common.Mod not found
 C:\Users\Jesse\.gradle\caches\modules-2\files-2.1\com.sk89q.worldedit\worldedit-forge-mc1.8.9\6.1.1\dffd7e1882eba256eb2132fe315682c1d26522b1\worldedit-forge-mc1.8.9-6.1.1.jar(com/sk89q/worldedit/forge/ForgeWorldEdit.class): warning: Cannot find annotation method 'name()' in type 'Mod'
 C:\Users\Jesse\.gradle\caches\modules-2\files-2.1\com.sk89q.worldedit\worldedit-forge-mc1.8.9\6.1.1\dffd7e1882eba256eb2132fe315682c1d26522b1\worldedit-forge-mc1.8.9-6.1.1.jar(com/sk89q/worldedit/forge/ForgeWorldEdit.class): warning: Cannot find annotation method 'version()' in type 'Mod'
 C:\Users\Jesse\.gradle\caches\modules-2\files-2.1\com.sk89q.worldedit\worldedit-forge-mc1.8.9\6.1.1\dffd7e1882eba256eb2132fe315682c1d26522b1\worldedit-forge-mc1.8.9-6.1.1.jar(com/sk89q/worldedit/forge/ForgeWorldEdit.class): warning: Cannot find annotation method 'acceptableRemoteVersions()' in type 'Mod'
@@ -97,6 +63,7 @@ Note: Recompile with -Xlint:deprecation for details.
 Note: Some input files use unchecked or unsafe operations.
 Note: Recompile with -Xlint:unchecked for details.
 27 warnings
+
 :forge:processResources UP-TO-DATE
 :forge:classes
 :forge:jar
@@ -110,13 +77,12 @@ Note: Recompile with -Xlint:unchecked for details.
 :forge:reobfShadowJar
 :forge:extractRangemapReplacedMain
 C:\Users\Jesse\Desktop\OTHER\GitHub\FastAsyncWorldEdit\forge\build\sources\main\java
-:forge:retromapReplacedMain
-remapping source...
-:forge:sourceJar
+:forge:retromapReplacedMain UP-TO-DATE
+:forge:sourceJar UP-TO-DATE
 :forge:assemble
 :forge:check UP-TO-DATE
 :forge:build
 
 BUILD SUCCESSFUL
 
-Total time: 1 mins 21.422 secs
+Total time: 36.184 secs

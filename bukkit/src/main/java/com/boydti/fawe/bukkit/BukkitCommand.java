@@ -27,5 +27,4 @@ public class BukkitCommand implements CommandExecutor {
         this.cmd.execute(plr, args);
         return true;
     }
-
 }

@@ -314,7 +314,6 @@ public class EditSession implements Extent {
         // Include history, masking and memory checking.
         Extent wrapped;
         extent = wrapped = this.wrapExtent(extent, eventBus, event, Stage.BEFORE_CHANGE);
-        extent = this.reorderExtent = new MultiStageReorder(extent, false);
         extent = this.wrapExtent(extent, eventBus, event, Stage.BEFORE_REORDER);
         extent = this.changeSetExtent = this.wrapper.getHistoryExtent(extent, this.changeSet, fp);
         final Player skp = (Player) actor;
@@ -335,7 +334,7 @@ public class EditSession implements Extent {
         extent = this.wrapExtent(extent, eventBus, event, Stage.BEFORE_HISTORY);
         extent = new SafeExtentWrapper(fp, extent);
         this.bypassReorderHistory = wrapped;
-        this.bypassHistory = this.reorderExtent;
+        this.bypassHistory = wrapped;
         this.bypassNone = extent;
         return;
     }

@@ -32,4 +32,10 @@ public class NullChangeSet implements FaweChangeSet {
 
     @Override
     public void add(Vector location, BaseBlock from, BaseBlock to) {}
+
+    @Override
+    public void add(int x, int y, int z, int combinedId4DataFrom, BaseBlock to) {}
+
+    @Override
+    public void add(int x, int y, int z, int combinedId4DataFrom, int combinedId4DataTo) {}
 }

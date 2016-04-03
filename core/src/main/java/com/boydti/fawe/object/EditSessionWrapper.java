@@ -27,6 +27,6 @@ public class EditSessionWrapper {
     }
 
     public Extent getHistoryExtent(final Extent parent, FaweChangeSet set, final FawePlayer<?> player) {
-        return new HistoryExtent(parent, set);
+        return new HistoryExtent(player.getLocation().world, parent, set);
     }
 }

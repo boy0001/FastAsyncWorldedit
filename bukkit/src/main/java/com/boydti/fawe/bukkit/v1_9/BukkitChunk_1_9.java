@@ -1,14 +1,12 @@
 package com.boydti.fawe.bukkit.v1_9;
 
+import com.boydti.fawe.FaweCache;
+import com.boydti.fawe.object.FaweChunk;
+import com.boydti.fawe.util.FaweQueue;
+import com.sk89q.worldedit.world.biome.BaseBiome;
 import java.util.Arrays;
-
 import org.bukkit.Bukkit;
 import org.bukkit.Chunk;
-
-import com.boydti.fawe.FaweCache;
-import com.boydti.fawe.object.ChunkLoc;
-import com.boydti.fawe.object.FaweChunk;
-import com.sk89q.worldedit.world.biome.BaseBiome;
 
 public class BukkitChunk_1_9 extends FaweChunk<Chunk> {
 
@@ -24,8 +22,8 @@ public class BukkitChunk_1_9 extends FaweChunk<Chunk> {
     /**
      * A FaweSections object represents a chunk and the blocks that you wish to change in it.
      */
-    protected BukkitChunk_1_9(final ChunkLoc chunk) {
-        super(chunk);
+    protected BukkitChunk_1_9(FaweQueue parent, int x, int z) {
+        super(parent, x, z);
         this.ids = new int[16][];
         this.count = new short[16];
         this.air = new short[16];
@@ -35,15 +33,14 @@ public class BukkitChunk_1_9 extends FaweChunk<Chunk> {
     @Override
     public Chunk getChunk() {
         if (this.chunk == null) {
-            final ChunkLoc cl = this.getChunkLoc();
-            this.chunk = Bukkit.getWorld(cl.world).getChunkAt(cl.x, cl.z);
+            this.chunk = Bukkit.getWorld(getParent().world).getChunkAt(getX(), getZ());
         }
         return this.chunk;
     }
 
     @Override
-    public void setChunkLoc(final ChunkLoc loc) {
-        super.setChunkLoc(loc);
+    public void setLoc(final FaweQueue parent, int x, int z) {
+        super.setLoc(parent, x, z);
         this.chunk = null;
     }
 

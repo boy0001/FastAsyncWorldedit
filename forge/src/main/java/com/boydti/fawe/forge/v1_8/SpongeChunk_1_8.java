@@ -1,8 +1,8 @@
 package com.boydti.fawe.forge.v1_8;
 
 import com.boydti.fawe.FaweCache;
-import com.boydti.fawe.object.ChunkLoc;
 import com.boydti.fawe.object.FaweChunk;
+import com.boydti.fawe.util.FaweQueue;
 import com.sk89q.worldedit.world.biome.BaseBiome;
 import java.util.Arrays;
 import org.spongepowered.api.Sponge;
@@ -17,21 +17,27 @@ public class SpongeChunk_1_8 extends FaweChunk<Chunk> {
     public int[][] biomes;
     public Chunk chunk;
 
-    public SpongeChunk_1_8(ChunkLoc chunk) {
-        super(chunk);
+    public SpongeChunk_1_8(FaweQueue parent, int x, int z) {
+        super(parent, x, z);
         this.ids = new char[16][];
         this.count = new short[16];
         this.air = new short[16];
         this.relight = new short[16];
     }
 
+
     @Override
     public Chunk getChunk() {
         if (this.chunk == null) {
-            ChunkLoc cl = getChunkLoc();
-            this.chunk = Sponge.getServer().getWorld(cl.world).get().getChunk(cl.x, 0, cl.z).get();
+            this.chunk = Sponge.getServer().getWorld(getParent().world).get().getChunk(getX(), 0, getZ()).get();
         }
         return this.chunk;
+    }
+
+    @Override
+    public void setLoc(final FaweQueue parent, int x, int z) {
+        super.setLoc(parent, x, z);
+        this.chunk = null;
     }
 
     /**
@@ -211,7 +217,7 @@ public class SpongeChunk_1_8 extends FaweChunk<Chunk> {
 
     @Override
     public FaweChunk clone() {
-        SpongeChunk_1_8 toReturn = new SpongeChunk_1_8(getChunkLoc());
+        SpongeChunk_1_8 toReturn = new SpongeChunk_1_8(getParent(), getX(), getZ());
         toReturn.air = this.air.clone();
         toReturn.count = this.count.clone();
         toReturn.relight = this.relight.clone();

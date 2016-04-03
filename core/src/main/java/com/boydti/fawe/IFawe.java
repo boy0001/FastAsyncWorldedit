@@ -28,7 +28,7 @@ public interface IFawe {
 
     public int[] getVersion();
 
-    public FaweQueue getQueue();
+    public FaweQueue getNewQueue(String world);
 
     public EditSessionWrapper getEditSessionWrapper(final EditSession session);
 

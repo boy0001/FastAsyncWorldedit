@@ -4,7 +4,6 @@ import com.boydti.fawe.FaweCache;
 import com.boydti.fawe.config.Settings;
 import com.boydti.fawe.forge.SpongeUtil;
 import com.boydti.fawe.forge.v0.SpongeQueue_0;
-import com.boydti.fawe.object.ChunkLoc;
 import com.boydti.fawe.object.FaweChunk;
 import com.boydti.fawe.object.PseudoRandom;
 import com.boydti.fawe.util.TaskManager;
@@ -30,6 +29,12 @@ import org.spongepowered.api.world.Location;
 import org.spongepowered.api.world.World;
 
 public class SpongeQueue_1_8 extends SpongeQueue_0 {
+
+    public World spongeWorld;
+
+    public SpongeQueue_1_8(String world) {
+        super(world);
+    }
 
     @Override
     public Collection<FaweChunk<Chunk>> sendChunk(Collection<FaweChunk<Chunk>> fcs) {
@@ -75,12 +80,41 @@ public class SpongeQueue_1_8 extends SpongeQueue_0 {
         }
     }
 
+    private int lcx = Integer.MIN_VALUE;
+    private int lcz = Integer.MIN_VALUE;
+    private int lcy = Integer.MIN_VALUE;
+    private net.minecraft.world.chunk.Chunk lc;
+    private char[] ls;
+
+    @Override
+    public int getCombinedId4Data(int x, int y, int z) {
+        int cx = x >> 4;
+        int cz = z >> 4;
+        int cy = y >> 4;
+        if (cx != lcx || cz != lcz) {
+            if (spongeWorld == null) {
+                spongeWorld = Sponge.getServer().getWorld(world).get();
+            }
+            lcx = cx;
+            lcz = cz;
+            lc = (net.minecraft.world.chunk.Chunk) spongeWorld.getChunk(cx, 0, cz).get();
+        } else if (cy == lcy) {
+            return ls != null ? ls[FaweCache.CACHE_J[y][x & 15][z & 15]] : 0;
+        }
+        ExtendedBlockStorage storage = lc.getBlockStorageArray()[cy];
+        if (storage == null) {
+            ls = null;
+            return 0;
+        }
+        ls = storage.getData();
+        return ls[FaweCache.CACHE_J[y][x & 15][z & 15]];
+    }
+
     @Override
     public boolean setComponents(FaweChunk<Chunk> fc) {
         SpongeChunk_1_8 fs = (SpongeChunk_1_8) fc;
         Chunk spongeChunk = fc.getChunk();
         net.minecraft.world.World nmsWorld = (net.minecraft.world.World) spongeChunk.getWorld();
-        ChunkLoc wrapper = fc.getChunkLoc();
         try {
             boolean flag = !nmsWorld.provider.getHasNoSky();
             // Sections
@@ -181,11 +215,12 @@ public class SpongeQueue_1_8 extends SpongeQueue_0 {
 
     /**
      * This should be overridden by any specialized queues.
-     * @param wrap
+     * @param x
+     * @param z
      */
     @Override
-    public SpongeChunk_1_8 getChunk(ChunkLoc wrap) {
-        return new SpongeChunk_1_8(wrap);
+    public SpongeChunk_1_8 getChunk(int x, int z) {
+        return new SpongeChunk_1_8(this, x, z);
     }
 
     @Override
@@ -208,10 +243,9 @@ public class SpongeQueue_1_8 extends SpongeQueue_0 {
             }
             ExtendedBlockStorage[] sections = nmsChunk.getBlockStorageArray();
             net.minecraft.world.World nmsWorld = nmsChunk.getWorld();
-            ChunkLoc loc = pc.getChunkLoc();
 
-            int X = loc.x << 4;
-            int Z = loc.z << 4;
+            int X = pc.getX() << 4;
+            int Z = pc.getZ() << 4;
 
 
             for (int j = 0; j < sections.length; j++) {

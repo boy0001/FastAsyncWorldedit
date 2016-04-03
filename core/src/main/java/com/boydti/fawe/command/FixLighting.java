@@ -3,7 +3,6 @@ package com.boydti.fawe.command;
 import com.boydti.fawe.FaweAPI;
 import com.boydti.fawe.config.BBC;
 import com.boydti.fawe.config.Settings;
-import com.boydti.fawe.object.ChunkLoc;
 import com.boydti.fawe.object.FaweCommand;
 import com.boydti.fawe.object.FaweLocation;
 import com.boydti.fawe.object.FawePlayer;
@@ -24,7 +23,7 @@ public class FixLighting extends FaweCommand {
         final FaweLocation loc = player.getLocation();
         final Region selection = player.getSelection();
         if (selection == null) {
-            FaweAPI.fixLighting(new ChunkLoc(loc.world, loc.x >> 4, loc.z >> 4), Settings.FIX_ALL_LIGHTING);
+            FaweAPI.fixLighting(loc.world, loc.x >> 4, loc.z >> 4, Settings.FIX_ALL_LIGHTING);
             BBC.FIX_LIGHTING_CHUNK.send(player);
             return true;
         }
@@ -42,8 +41,7 @@ public class FixLighting extends FaweCommand {
         int count = 0;
         for (int x = minX; x <= maxX; x++) {
             for (int z = minZ; z <= maxZ; z++) {
-                final ChunkLoc cl = new ChunkLoc(loc.world, x, z);
-                FaweAPI.fixLighting(cl, Settings.FIX_ALL_LIGHTING);
+                FaweAPI.fixLighting(loc.world, x, z, Settings.FIX_ALL_LIGHTING);
                 count++;
             }
         }

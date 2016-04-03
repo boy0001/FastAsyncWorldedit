@@ -1,11 +1,15 @@
 package com.boydti.fawe.util;
 
-import java.util.ArrayDeque;
-import java.util.concurrent.atomic.AtomicInteger;
-
+import com.boydti.fawe.Fawe;
 import com.boydti.fawe.config.Settings;
 import com.boydti.fawe.object.FaweChunk;
 import com.sk89q.worldedit.world.biome.BaseBiome;
+import java.util.ArrayDeque;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicInteger;
 
 public class SetQueue {
 
@@ -14,7 +18,7 @@ public class SetQueue {
      */
     public static final SetQueue IMP = new SetQueue();
 
-    public FaweQueue queue;
+    public final Map<String, FaweQueue> queues;
 
     /**
      * Track the time in ticks
@@ -35,6 +39,7 @@ public class SetQueue {
 
 
     public SetQueue() {
+        queues = new ConcurrentHashMap<>();
         TaskManager.IMP.repeat(new Runnable() {
             @Override
             public void run() {
@@ -42,7 +47,9 @@ public class SetQueue {
                     final int mem = MemUtil.calculateMemory();
                     if (mem != Integer.MAX_VALUE) {
                         if ((mem <= 1) && Settings.ENABLE_HARD_LIMIT) {
-                            SetQueue.this.queue.saveMemory();
+                            for (FaweQueue queue : getQueues()) {
+                                queue.saveMemory();
+                            }
                             return;
                         }
                         if (SetQueue.this.forceChunkSet()) {
@@ -60,7 +67,7 @@ public class SetQueue {
                     if (SetQueue.this.isWaiting()) {
                         return;
                     }
-                    final FaweChunk<?> current = SetQueue.this.queue.next();
+                    final FaweChunk<?> current = next();
                     if (current == null) {
                         SetQueue.this.time_waiting.set(Math.max(SetQueue.this.time_waiting.get(), SetQueue.this.time_current.get() - 2));
                         SetQueue.this.tasks();
@@ -72,9 +79,42 @@ public class SetQueue {
         }, 1);
     }
 
+    public List<FaweQueue> getQueues() {
+        List<FaweQueue> list = new ArrayList<>(queues.size());
+        try {
+            for (Map.Entry<String, FaweQueue> entry : queues.entrySet()) {
+                list.add(entry.getValue());
+            }
+        }
+        catch (Exception e) {
+            e.printStackTrace();
+        }
+        return list;
+    }
+
+    public FaweQueue getQueue(String world) {
+        FaweQueue queue = queues.get(world);
+        if (queue != null) {
+            return queue;
+        }
+        queue = Fawe.imp().getNewQueue(world);
+        queues.put(world, queue);
+        return queue;
+    }
+
+    public FaweChunk<?> next() {
+        for (Map.Entry<String, FaweQueue> entry : queues.entrySet()) {
+            FaweQueue queue = entry.getValue();
+            final FaweChunk<?> set = queue.next();
+            if (set != null ) {
+                return set;
+            }
+        }
+        return null;
+    }
+
     public boolean forceChunkSet() {
-        final FaweChunk<?> set = this.queue.next();
-        return set != null;
+        return next() != null;
     }
 
     public boolean isWaiting() {
@@ -125,9 +165,10 @@ public class SetQueue {
      * @param data
      * @return
      */
+    @Deprecated
     public boolean setBlock(final String world, final int x, final int y, final int z, final short id, final byte data) {
         SetQueue.IMP.setWaiting();
-        return this.queue.setBlock(world, x, y, z, id, data);
+        return getQueue(world).setBlock(x, y, z, id, data);
     }
 
     /**
@@ -138,27 +179,28 @@ public class SetQueue {
      * @param id
      * @return
      */
+    @Deprecated
     public boolean setBlock(final String world, final int x, final int y, final int z, final short id) {
         SetQueue.IMP.setWaiting();
-        return this.queue.setBlock(world, x, y, z, id, (byte) 0);
+        return getQueue(world).setBlock(x, y, z, id, (byte) 0);
     }
 
     /**
      * @param world
      * @param x
-     * @param y
      * @param z
-     * @param id
-     * @param data
+     * @param biome
      * @return
      */
+    @Deprecated
     public boolean setBiome(final String world, final int x, final int z, final BaseBiome biome) {
         SetQueue.IMP.setWaiting();
-        return this.queue.setBiome(world, x, z, biome);
+        return getQueue(world).setBiome(x, z, biome);
     }
 
+    @Deprecated
     public boolean isChunkLoaded(final String world, final int x, final int z) {
-        return this.queue.isChunkLoaded(world, x, z);
+        return getQueue(world).isChunkLoaded(x, z);
     }
     
     /**
@@ -170,7 +212,8 @@ public class SetQueue {
      * @param z
      * @param runnable
      */
+    @Deprecated
     public void addTask(String world, int x, int y, int z, Runnable runnable) {
-        this.queue.addTask(world, x, y, z, runnable);
+        getQueue(world).addTask(x >> 4, z >> 4, runnable);
     }
 }

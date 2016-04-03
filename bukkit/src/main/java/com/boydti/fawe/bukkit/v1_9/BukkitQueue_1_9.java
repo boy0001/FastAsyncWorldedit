@@ -4,7 +4,6 @@ import com.boydti.fawe.Fawe;
 import com.boydti.fawe.FaweCache;
 import com.boydti.fawe.bukkit.v0.BukkitQueue_0;
 import com.boydti.fawe.config.Settings;
-import com.boydti.fawe.object.ChunkLoc;
 import com.boydti.fawe.object.FaweChunk;
 import com.boydti.fawe.object.FawePlayer;
 import com.boydti.fawe.object.IntegerPair;
@@ -64,12 +63,15 @@ public class BukkitQueue_1_9 extends BukkitQueue_0 {
     private final RefField fieldWorld;
     private final RefMethod methodGetBlocks;
     private final RefMethod methodSetType;
+    private final RefMethod methodGetType;
     private final RefMethod methodGetByCombinedId;
+    private final RefMethod methodGetCombinedId;
     private final Object air;
     private final RefMethod methodGetWorld;
     private final RefField tileEntityListTick;
 
-    public BukkitQueue_1_9() throws NoSuchMethodException, RuntimeException {
+    public BukkitQueue_1_9(String world) throws NoSuchMethodException, RuntimeException {
+        super(world);
         this.methodGetHandleChunk = this.classCraftChunk.getMethod("getHandle");
         this.methodInitLighting = this.classChunk.getMethod("initLighting");
         this.classBlockPositionConstructor = this.classBlockPosition.getConstructor(int.class, int.class, int.class);
@@ -79,10 +81,12 @@ public class BukkitQueue_1_9 extends BukkitQueue_0 {
         this.methodGetByCombinedId = this.classBlock.getMethod("getByCombinedId", int.class);
         this.methodGetBlocks = this.classChunkSection.getMethod("getBlocks");
         this.methodSetType = this.classChunkSection.getMethod("setType", int.class, int.class, int.class, this.classIBlockData.getRealClass());
+        this.methodGetType = this.classChunk.getMethod("a", int.class, int.class, int.class);
         this.classChunkSectionConstructor = this.classChunkSection.getConstructor(int.class, boolean.class, char[].class);
         this.air = this.methodGetByCombinedId.call(0);
         this.tileEntityListTick = this.classWorld.getField("tileEntityListTick");
         this.methodGetWorld = this.classChunk.getMethod("getWorld");
+        this.methodGetCombinedId = classBlock.getMethod("getCombinedId", classIBlockData.getRealClass());
     }
 
     @Override
@@ -92,12 +96,11 @@ public class BukkitQueue_1_9 extends BukkitQueue_0 {
         }
         return new ArrayList<>();
     }
-    
+
     public void sendChunk(FaweChunk<Chunk> fc) {
         fixLighting(fc, Settings.FIX_ALL_LIGHTING);
         final Chunk chunk = fc.getChunk();
-        final ChunkLoc loc = fc.getChunkLoc();
-        chunk.getWorld().refreshChunk(loc.x, loc.z);
+        chunk.getWorld().refreshChunk(fc.getX(), fc.getZ());
     }
 
     @Override
@@ -187,10 +190,10 @@ public class BukkitQueue_1_9 extends BukkitQueue_0 {
 
     public boolean isSurrounded(final int[][] sections, final int x, final int y, final int z) {
         return this.isSolid(this.getId(sections, x, y + 1, z))
-        && this.isSolid(this.getId(sections, x + 1, y - 1, z))
-        && this.isSolid(this.getId(sections, x - 1, y, z))
-        && this.isSolid(this.getId(sections, x, y, z + 1))
-        && this.isSolid(this.getId(sections, x, y, z - 1));
+                && this.isSolid(this.getId(sections, x + 1, y - 1, z))
+                && this.isSolid(this.getId(sections, x - 1, y, z))
+                && this.isSolid(this.getId(sections, x, y, z + 1))
+                && this.isSolid(this.getId(sections, x, y, z - 1));
     }
 
     public boolean isSolid(final int i) {
@@ -219,6 +222,35 @@ public class BukkitQueue_1_9 extends BukkitQueue_0 {
 
     public Object getBlocks(final Object obj) {
         return this.methodGetBlocks.of(obj).call();
+    }
+
+    private int lcx = Integer.MIN_VALUE;
+    private int lcz = Integer.MIN_VALUE;
+    private int lcy = Integer.MIN_VALUE;
+    private RefExecutor lc;
+    private World bukkitWorld;
+
+    @Override
+    public int getCombinedId4Data(int x, int y, int z) {
+        try {
+            int cx = x >> 4;
+            int cz = z >> 4;
+            int cy = y >> 4;
+            if (cx != lcx || cz != lcz) {
+                if (bukkitWorld == null) {
+                    bukkitWorld = Bukkit.getServer().getWorld(world);
+                }
+                lcx = cx;
+                lcz = cz;
+                lc = methodGetType.of(methodGetHandleChunk.of(bukkitWorld.getChunkAt(cx, cz)).call());
+            }
+            int combined = (int) methodGetCombinedId.call(lc.call(x & 15, y, z & 15));
+            return ((combined & 4095) << 4) + (combined >> 12);
+        }
+        catch (Throwable e) {
+            e.printStackTrace();
+        }
+        return 0;
     }
 
     @Override
@@ -302,7 +334,7 @@ public class BukkitQueue_1_9 extends BukkitQueue_0 {
                         final int combined = newArray[i];
                         final int id = combined & 4095;
                         final int data = combined >> 12;
-                    array[i] = (char) ((id << 4) + data);
+                        array[i] = (char) ((id << 4) + data);
                     }
                     section = sections[j] = this.newChunkSection(j << 4, flag, array);
                     continue;
@@ -481,8 +513,8 @@ public class BukkitQueue_1_9 extends BukkitQueue_0 {
     }
 
     @Override
-    public FaweChunk<Chunk> getChunk(final ChunkLoc wrap) {
-        return new BukkitChunk_1_9(wrap);
+    public FaweChunk<Chunk> getChunk(int x, int z) {
+        return new BukkitChunk_1_9(this, x, z);
     }
 
     public boolean unloadChunk(final String world, final Chunk chunk) {
