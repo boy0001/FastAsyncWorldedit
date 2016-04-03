@@ -1,5 +1,6 @@
 package com.boydti.fawe.object.extent;
 
+import com.boydti.fawe.FaweCache;
 import com.boydti.fawe.util.SetQueue;
 import com.boydti.fawe.util.TaskManager;
 import com.sk89q.worldedit.BlockVector;
@@ -150,7 +151,9 @@ public class FastWorldEditExtent extends AbstractDelegateExtent {
                             }
                         }
                     });
+                    return true;
                 }
+                SetQueue.IMP.setBlock(this.world, x, y, z, id, FaweCache.hasData(id) ? (byte) block.getData() : 0);
                 return true;
             }
             case 0:

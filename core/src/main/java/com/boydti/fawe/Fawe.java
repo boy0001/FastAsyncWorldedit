@@ -21,6 +21,7 @@ import com.sk89q.worldedit.WorldEdit;
 import com.sk89q.worldedit.command.SchematicCommands;
 import com.sk89q.worldedit.command.ScriptingCommands;
 import com.sk89q.worldedit.extension.platform.CommandManager;
+import com.sk89q.worldedit.extent.clipboard.BlockArrayClipboard;
 import com.sk89q.worldedit.function.operation.Operations;
 import com.sk89q.worldedit.function.visitor.BreadthFirstSearch;
 import com.sk89q.worldedit.function.visitor.DownwardVisitor;
@@ -149,6 +150,9 @@ public class Fawe {
         // TODO command event - queue?
 
         TaskManager.IMP = this.IMP.getTaskManager();
+        if (Settings.METRICS) {
+            this.IMP.startMetrics();
+        }
         SetQueue.IMP.queue = this.IMP.getQueue();
         
         // Delete old history
@@ -224,6 +228,7 @@ public class Fawe {
         EntityCreate.inject();
         EntityRemove.inject();
         LocalSession.inject();
+        BlockArrayClipboard.inject();
         try {
             CommandManager.inject();
         } catch (Throwable e) {

@@ -21,17 +21,19 @@ public class ReflectionUtils {
     /**
      * prefix of bukkit classes
      */
-    private static String preClassB = "org.bukkit.craftbukkit";
+    private static String preClassB;
     /**
      * prefix of minecraft classes
      */
-    private static String preClassM = "net.minecraft.server";
+    private static String preClassM = null;
     /**
      * boolean value, TRUE if server uses forge or MCPC+
      */
     private static boolean forge = false;
     /** check server version and class names */
     public static void init() {
+        preClassM = "net.minecraft.server";
+        preClassB = "org.bukkit.craftbukkit";
         if (Bukkit.getServer() != null) {
             if (Bukkit.getVersion().contains("MCPC") || Bukkit.getVersion().contains("Forge")) {
                 forge = true;
@@ -52,7 +54,9 @@ public class ReflectionUtils {
                     final String verM = pas[3];
                     preClassM += "." + verM;
                 }
-            } catch (final Exception ignored) {}
+            } catch (final Exception ignored) {
+                ignored.printStackTrace();
+            }
         }
     }
     

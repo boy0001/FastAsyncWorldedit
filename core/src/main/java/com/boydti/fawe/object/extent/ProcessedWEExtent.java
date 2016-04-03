@@ -1,5 +1,6 @@
 package com.boydti.fawe.object.extent;
 
+import com.boydti.fawe.FaweCache;
 import java.util.HashSet;
 import java.util.List;
 
@@ -199,7 +200,9 @@ public class ProcessedWEExtent extends AbstractDelegateExtent {
                                 }
                             }
                         });
+                        return true;
                     }
+                    SetQueue.IMP.setBlock(this.world, x, location.getBlockY(), z, id, FaweCache.hasData(id) ? (byte) block.getData() : 0);
                     return true;
                 }
                 return false;

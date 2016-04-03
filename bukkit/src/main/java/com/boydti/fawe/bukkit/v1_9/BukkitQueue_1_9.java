@@ -1,32 +1,5 @@
 package com.boydti.fawe.bukkit.v1_9;
 
-import static com.boydti.fawe.util.ReflectionUtils.getRefClass;
-
-import java.lang.reflect.Field;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
-import java.util.ArrayDeque;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
-import java.util.Set;
-
-import org.bukkit.Bukkit;
-import org.bukkit.Chunk;
-import org.bukkit.Location;
-import org.bukkit.Material;
-import org.bukkit.World;
-import org.bukkit.World.Environment;
-import org.bukkit.block.Biome;
-import org.bukkit.entity.Entity;
-import org.bukkit.entity.Player;
-import org.bukkit.generator.BlockPopulator;
-import org.bukkit.generator.ChunkGenerator;
-
 import com.boydti.fawe.Fawe;
 import com.boydti.fawe.FaweCache;
 import com.boydti.fawe.bukkit.v0.BukkitQueue_0;
@@ -44,6 +17,32 @@ import com.boydti.fawe.util.ReflectionUtils.RefMethod;
 import com.boydti.fawe.util.ReflectionUtils.RefMethod.RefExecutor;
 import com.boydti.fawe.util.TaskManager;
 import com.sk89q.worldedit.LocalSession;
+import java.lang.reflect.Field;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+import java.util.ArrayDeque;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Set;
+import org.bukkit.Bukkit;
+import org.bukkit.Chunk;
+import org.bukkit.Location;
+import org.bukkit.Material;
+import org.bukkit.World;
+import org.bukkit.World.Environment;
+import org.bukkit.block.Biome;
+import org.bukkit.entity.Entity;
+import org.bukkit.entity.Player;
+import org.bukkit.generator.BlockPopulator;
+import org.bukkit.generator.ChunkGenerator;
+
+
+import static com.boydti.fawe.util.ReflectionUtils.getRefClass;
 
 public class BukkitQueue_1_9 extends BukkitQueue_0 {
 
@@ -143,7 +142,7 @@ public class BukkitQueue_1_9 extends BukkitQueue_0 {
                     if (i < 16) {
                         continue;
                     }
-                    final short id = (short) (i >> 4);
+                    final short id = (short) (i & 0xFFF);
                     switch (id) { // Lighting
                         default:
                             if (!fixAll) {
