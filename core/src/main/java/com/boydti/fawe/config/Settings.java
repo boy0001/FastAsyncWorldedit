@@ -25,7 +25,8 @@ public class Settings {
     public static long MEM_FREE = 95;
     public static boolean ENABLE_HARD_LIMIT = true;
     public static boolean STORE_HISTORY_ON_DISK = false;
-    public static boolean COMPRESS_HISTORY = false;
+    public static int COMPRESSION_LEVEL = 0;
+    public static int BUFFER_SIZE = 59049;
     public static boolean METRICS = true;
 
     public static void setup(final File file) {
@@ -51,7 +52,7 @@ public class Settings {
         options.put("crash-mitigation", ENABLE_HARD_LIMIT);
         options.put("fix-all-lighting", FIX_ALL_LIGHTING);
         options.put("history.use-disk", STORE_HISTORY_ON_DISK);
-        options.put("history.compress", COMPRESS_HISTORY);
+        options.put("history.compress", false);
         options.put("metrics", METRICS);
 
         for (final Entry<String, Object> node : options.entrySet()) {
@@ -70,7 +71,8 @@ public class Settings {
         WE_BLACKLIST = config.getStringList("command-blacklist");
         ENABLE_HARD_LIMIT = config.getBoolean("crash-mitigation");
         METRICS = config.getBoolean("metrics");
-        COMPRESS_HISTORY = config.getBoolean("history.compress");
+        COMPRESSION_LEVEL = config.getInt("history.compression-level", config.getBoolean("history.compress") ? 1 : 0);
+        BUFFER_SIZE = config.getInt("history.buffer-size", 59049);
         if (STORE_HISTORY_ON_DISK = config.getBoolean("history.use-disk")) {
             LocalSession.MAX_HISTORY_SIZE = Integer.MAX_VALUE;
         }

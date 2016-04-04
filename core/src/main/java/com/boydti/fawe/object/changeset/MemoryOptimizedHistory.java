@@ -1,19 +1,6 @@
 package com.boydti.fawe.object.changeset;
 
-import com.sk89q.worldedit.Vector;
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.util.ArrayDeque;
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.Map;
-import java.util.concurrent.atomic.AtomicInteger;
-import java.util.zip.GZIPInputStream;
-import java.util.zip.GZIPOutputStream;
-
+import com.boydti.fawe.Fawe;
 import com.boydti.fawe.FaweCache;
 import com.boydti.fawe.config.Settings;
 import com.boydti.fawe.util.MainUtil;
@@ -23,10 +10,23 @@ import com.sk89q.jnbt.CompoundTag;
 import com.sk89q.jnbt.IntTag;
 import com.sk89q.jnbt.Tag;
 import com.sk89q.worldedit.BlockVector;
+import com.sk89q.worldedit.Vector;
 import com.sk89q.worldedit.blocks.BaseBlock;
 import com.sk89q.worldedit.history.change.BlockChange;
 import com.sk89q.worldedit.history.change.Change;
 import com.sk89q.worldedit.history.changeset.ChangeSet;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.util.ArrayDeque;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.Map;
+import net.jpountz.lz4.LZ4Factory;
+import net.jpountz.lz4.LZ4InputStream;
+import net.jpountz.lz4.LZ4OutputStream;
 
 /**
  * ChangeSet optimized for low memory usage
@@ -40,23 +40,27 @@ public class MemoryOptimizedHistory implements ChangeSet, FaweChangeSet {
     private ArrayDeque<CompoundTag> toTags;
     
     private byte[] ids;
+    private Object lock;
+    private int decompressedLength;
+
     private ByteArrayOutputStream idsStream;
     private OutputStream idsStreamZip;
-    
+
     private ArrayDeque<Change> entities;
-    
+
     int ox;
     int oz;
 
-    private final AtomicInteger size;
+    private int size;
     
     public MemoryOptimizedHistory() {
-        size = new AtomicInteger();
+
     }
 
 
     @Override
     public void add(int x, int y, int z, int combinedFrom, int combinedTo) {
+        size++;
         try {
             OutputStream stream = getBAOS(x, y, z);
             //x
@@ -124,7 +128,6 @@ public class MemoryOptimizedHistory implements ChangeSet, FaweChangeSet {
 
     @Override
     public void add(Change arg) {
-        size.incrementAndGet();
         if ((arg instanceof BlockChange)) {
                 BlockChange change = (BlockChange) arg;
                 BlockVector loc = change.getPosition();
@@ -143,8 +146,14 @@ public class MemoryOptimizedHistory implements ChangeSet, FaweChangeSet {
         if (idsStreamZip != null) {
             return idsStreamZip;
         }
-        idsStream = new ByteArrayOutputStream(9216);
-        idsStreamZip = Settings.COMPRESS_HISTORY ? new GZIPOutputStream(idsStream, true) : idsStream;
+        LZ4Factory factory = LZ4Factory.fastestInstance();
+        idsStream = new ByteArrayOutputStream(Settings.BUFFER_SIZE);
+        idsStreamZip = new LZ4OutputStream(idsStream, Settings.BUFFER_SIZE, factory.fastCompressor());
+        if (Settings.COMPRESSION_LEVEL > 0) {
+//            Deflater deflater = new Deflater(Math.min(9, Settings.COMPRESSION_LEVEL), true);
+//            idsStreamZip = new DeflaterOutputStream(idsStreamZip, deflater, true);
+            idsStreamZip = new LZ4OutputStream(idsStreamZip, Settings.BUFFER_SIZE, factory.highCompressor());
+        }
         ox = x;
         oz = z;
         return idsStreamZip;
@@ -153,6 +162,13 @@ public class MemoryOptimizedHistory implements ChangeSet, FaweChangeSet {
     @SuppressWarnings("resource")
     public Iterator<Change> getIterator(final boolean dir) {
         flush();
+        if (lock != null) {
+            try {
+                lock.wait();
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        }
         try {
             Iterator<Change> idsIterator;
             Iterator<Change> entsIterator = entities != null ? entities.iterator() : new ArrayList().iterator();
@@ -160,9 +176,13 @@ public class MemoryOptimizedHistory implements ChangeSet, FaweChangeSet {
                 idsIterator = new ArrayList().iterator();
             } else {
                 ByteArrayInputStream bais = new ByteArrayInputStream(ids);
-                final InputStream gis = Settings.COMPRESS_HISTORY ? new GZIPInputStream(bais) : bais;
+                final InputStream gis;
+                if (Settings.COMPRESSION_LEVEL > 0) {
+                    gis = new LZ4InputStream(new LZ4InputStream(bais));
+                } else {
+                    gis = new LZ4InputStream(bais);
+                }
                 idsIterator = new Iterator<Change>() {
-                    
                     private final Iterator<CompoundTag> lastFromIter = fromTags != null ? fromTags.iterator() : null;
                     private final Iterator<CompoundTag> lastToIter = toTags != null ? toTags.iterator() : null;
                     private CompoundTag lastFrom = read(lastFromIter);
@@ -253,7 +273,7 @@ public class MemoryOptimizedHistory implements ChangeSet, FaweChangeSet {
     
     @Override
     public int size() {
-        return size.get();
+        return size;
     }
     
     @Override
@@ -264,6 +284,14 @@ public class MemoryOptimizedHistory implements ChangeSet, FaweChangeSet {
                 idsStreamZip.flush();
                 idsStreamZip.close();
                 ids = idsStream.toByteArray();
+                // Estimate
+                int total = 0x18 * size;
+                int ratio = total / ids.length;
+                int saved = total - ids.length;
+                if (ratio > 3) {
+                    // TODO remove this debug message
+                    Fawe.debug("[FAWE] History compressed. Saved ~ " + saved + "b (" + ratio + "x smaller)");
+                }
                 idsStream = null;
                 idsStreamZip = null;
             } catch (IOException e) {

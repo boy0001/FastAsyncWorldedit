@@ -18,6 +18,9 @@ commands:
   stream:
     description: (FAWE) Stream a schematic into the world
     aliases: [/stream]
+  fawe:
+    description: (FAWE) Reload the plugin
+    aliases: [/fawe,/fawereload]
   wrg:
     description: (FAWE) Select your current WorldEdit Region.
     aliases: [/wrg,wer,/wer,worldeditregion,/worldeditregion,/region]
@@ -29,4 +32,6 @@ permissions:
   fawe.stream:
     default: false
   fawe.fixlighting:
+    default: false
+  fawe.reload:
     default: false

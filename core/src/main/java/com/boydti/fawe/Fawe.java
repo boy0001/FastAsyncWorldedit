@@ -1,6 +1,7 @@
 package com.boydti.fawe;
 
 import com.boydti.fawe.command.FixLighting;
+import com.boydti.fawe.command.Reload;
 import com.boydti.fawe.command.Stream;
 import com.boydti.fawe.command.Wea;
 import com.boydti.fawe.command.WorldEditRegion;
@@ -43,6 +44,7 @@ import javax.management.InstanceAlreadyExistsException;
 import javax.management.Notification;
 import javax.management.NotificationEmitter;
 import javax.management.NotificationListener;
+import net.jpountz.util.Native;
 
 /**[ WorldEdit action]
 *       |
@@ -195,9 +197,10 @@ public class Fawe {
         this.IMP.setupCommand("fixlighting", new FixLighting());
         this.IMP.setupCommand("stream", new Stream());
         this.IMP.setupCommand("wrg", new WorldEditRegion());
+        this.IMP.setupCommand("fawe", new Reload());
     }
 
-    private void setupConfigs() {
+    public void setupConfigs() {
         // Setting up config.yml
         Settings.setup(new File(this.IMP.getDirectory(), "config.yml"));
         // Setting up message.yml
@@ -232,6 +235,11 @@ public class Fawe {
         } catch (Throwable e) {
             e.printStackTrace();
             IMP.debug("Incompatible version of WorldEdit, please update the plugin or contact the Author!");
+        }
+        try {
+            Native.load();
+        } catch (Throwable e) {
+            e.printStackTrace();
         }
     }
 

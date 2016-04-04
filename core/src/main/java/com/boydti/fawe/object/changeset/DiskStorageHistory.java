@@ -31,6 +31,10 @@ import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.zip.GZIPInputStream;
 import java.util.zip.GZIPOutputStream;
+import net.jpountz.lz4.LZ4Compressor;
+import net.jpountz.lz4.LZ4Factory;
+import net.jpountz.lz4.LZ4InputStream;
+import net.jpountz.lz4.LZ4OutputStream;
 
 /**
  * Store the change on disk
@@ -232,7 +236,14 @@ public class DiskStorageHistory implements ChangeSet, FaweChangeSet {
         bdFile.getParentFile().mkdirs();
         bdFile.createNewFile();
         FileOutputStream stream = new FileOutputStream(bdFile);
-        osBD = Settings.COMPRESS_HISTORY ? new GZIPOutputStream(stream, true) : stream;
+        LZ4Factory factory = LZ4Factory.fastestInstance();
+        LZ4Compressor compressor = factory.fastCompressor();
+        osBD = new LZ4OutputStream(stream, Settings.BUFFER_SIZE, factory.fastCompressor());
+        if (Settings.COMPRESSION_LEVEL > 0) {
+//            Deflater deflater = new Deflater(Math.min(9, Settings.COMPRESSION_LEVEL), true);
+//            osBD = new DeflaterOutputStream(osBD, deflater, true);
+            osBD = new LZ4OutputStream(osBD, Settings.BUFFER_SIZE, factory.highCompressor());
+        }
         ox = x;
         oz = z;
         osBD.write((byte) (ox >> 24));
@@ -307,7 +318,14 @@ public class DiskStorageHistory implements ChangeSet, FaweChangeSet {
                 final NBTInputStream nbtt = osNBTT != null ? new NBTInputStream(new GZIPInputStream(new FileInputStream(nbttFile))) : null;
 
                 FileInputStream fis = new FileInputStream(bdFile);
-                final InputStream gis = Settings.COMPRESS_HISTORY ? new GZIPInputStream(fis) : fis;
+                LZ4Factory factory = LZ4Factory.fastestInstance();
+                LZ4Compressor compressor = factory.fastCompressor();
+                final InputStream gis;
+                if (Settings.COMPRESSION_LEVEL > 0) {
+                    gis = new LZ4InputStream(new LZ4InputStream(fis));
+                } else {
+                    gis = new LZ4InputStream(fis);
+                }
                 gis.skip(8);
                 return new Iterator<Change>() {
 
