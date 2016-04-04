@@ -278,6 +278,10 @@ public class LocalSession {
         return null;
     }
 
+    public int getSize() {
+        return history.size();
+    }
+
     /**
      * Get the default region selector.
      *

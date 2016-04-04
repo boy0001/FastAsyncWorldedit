@@ -19,12 +19,11 @@
 
 package com.sk89q.worldedit.function.visitor;
 
-import java.util.Collection;
-
 import com.sk89q.worldedit.Vector;
 import com.sk89q.worldedit.function.RegionFunction;
 import com.sk89q.worldedit.function.mask.Mask;
 import com.sk89q.worldedit.function.operation.Operations;
+import java.util.Collection;
 
 /**
  * A {@link RecursiveVisitor} that goes orthogonally to the side and down, but never up.

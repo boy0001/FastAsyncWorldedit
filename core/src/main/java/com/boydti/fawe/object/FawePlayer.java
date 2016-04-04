@@ -1,16 +1,22 @@
 package com.boydti.fawe.object;
 
-import java.util.HashSet;
-import java.util.UUID;
-
 import com.boydti.fawe.Fawe;
+import com.boydti.fawe.config.Settings;
+import com.boydti.fawe.object.changeset.DiskStorageHistory;
 import com.boydti.fawe.util.WEManager;
+import com.sk89q.worldedit.EditSession;
 import com.sk89q.worldedit.IncompleteRegionException;
 import com.sk89q.worldedit.LocalSession;
+import com.sk89q.worldedit.WorldEdit;
 import com.sk89q.worldedit.entity.Player;
 import com.sk89q.worldedit.regions.Region;
 import com.sk89q.worldedit.regions.RegionSelector;
 import com.sk89q.worldedit.regions.selector.CuboidRegionSelector;
+import com.sk89q.worldedit.world.World;
+import java.io.File;
+import java.util.ArrayDeque;
+import java.util.HashSet;
+import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
 public abstract class FawePlayer<T> {
@@ -30,6 +36,35 @@ public abstract class FawePlayer<T> {
     public FawePlayer(final T parent) {
         this.parent = parent;
         Fawe.get().register(this);
+        if (getSession() == null || getPlayer() == null || session.getSize() != 0 || !Settings.STORE_HISTORY_ON_DISK) {
+            return;
+        }
+        try {
+            UUID uuid = getUUID();
+            for (World world : WorldEdit.getInstance().getServer().getWorlds()) {
+                ArrayDeque<Integer> editIds = new ArrayDeque<>();
+                File folder = new File(Fawe.imp().getDirectory(), "history" + File.separator + world.getName() + File.separator + uuid);
+                if (folder.isDirectory()) {
+                    for (File file : folder.listFiles()) {
+                        if (file.getName().endsWith(".bd")) {
+                            int index = Integer.parseInt(file.getName().split("\\.")[0]);
+                            editIds.add(index);
+                        }
+                    }
+                }
+                if (editIds.size() > 0) {
+                    Fawe.debug("[FAWE] Indexing " + editIds.size() + " history objects for " + getName());
+                    for (int index : editIds) {
+                        DiskStorageHistory set = new DiskStorageHistory(world, uuid, index);
+                        EditSession edit = set.toEditSession(getPlayer());
+                        session.remember(edit);
+                    }
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            Fawe.debug("Failed to load history for: " + getName());
+        }
     }
 
     public abstract String getName();
@@ -57,7 +92,7 @@ public abstract class FawePlayer<T> {
     }
 
     public LocalSession getSession() {
-        return (this.session != null || this.getPlayer() == null) ? this.session : Fawe.get().getWorldEdit().getSession(this.getPlayer());
+        return (this.session != null || this.getPlayer() == null) ? this.session : (session = Fawe.get().getWorldEdit().getSession(this.getPlayer()));
     }
 
     public HashSet<RegionWrapper> getCurrentRegions() {

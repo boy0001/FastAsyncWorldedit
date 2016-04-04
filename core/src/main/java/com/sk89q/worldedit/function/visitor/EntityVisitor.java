@@ -19,17 +19,17 @@
 
 package com.sk89q.worldedit.function.visitor;
 
-import static com.google.common.base.Preconditions.checkNotNull;
-
-import java.util.Iterator;
-import java.util.List;
-
 import com.sk89q.worldedit.WorldEditException;
 import com.sk89q.worldedit.entity.Entity;
 import com.sk89q.worldedit.function.EntityFunction;
 import com.sk89q.worldedit.function.operation.Operation;
 import com.sk89q.worldedit.function.operation.Operations;
 import com.sk89q.worldedit.function.operation.RunContext;
+import java.util.Iterator;
+import java.util.List;
+
+
+import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * Visits entities as provided by an {@code Iterator}.

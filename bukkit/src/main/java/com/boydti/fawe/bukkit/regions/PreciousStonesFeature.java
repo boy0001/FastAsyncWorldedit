@@ -1,18 +1,15 @@
 package com.boydti.fawe.bukkit.regions;
 
+import com.boydti.fawe.bukkit.FaweBukkit;
+import com.boydti.fawe.object.FawePlayer;
 import java.util.List;
-
 import net.sacredlabyrinth.Phaed.PreciousStones.FieldFlag;
 import net.sacredlabyrinth.Phaed.PreciousStones.PreciousStones;
 import net.sacredlabyrinth.Phaed.PreciousStones.vectors.Field;
-
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Listener;
 import org.bukkit.plugin.Plugin;
-
-import com.boydti.fawe.bukkit.FaweBukkit;
-import com.boydti.fawe.object.FawePlayer;
 
 public class PreciousStonesFeature extends BukkitMaskManager implements Listener {
     FaweBukkit plugin;

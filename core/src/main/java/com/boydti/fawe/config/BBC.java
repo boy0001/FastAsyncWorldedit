@@ -1,6 +1,7 @@
 package com.boydti.fawe.config;
 
 import com.boydti.fawe.Fawe;
+import com.boydti.fawe.configuration.file.YamlConfiguration;
 import com.boydti.fawe.object.FawePlayer;
 import com.boydti.fawe.util.StringMan;
 import java.io.File;
@@ -8,7 +9,6 @@ import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Set;
-import com.boydti.fawe.configuration.file.YamlConfiguration;
 
 public enum BBC {
 

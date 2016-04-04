@@ -1,15 +1,13 @@
 package com.boydti.fawe.bukkit.regions;
 
+import com.boydti.fawe.bukkit.FaweBukkit;
+import com.boydti.fawe.object.FawePlayer;
 import me.ryanhamshire.GriefPrevention.Claim;
 import me.ryanhamshire.GriefPrevention.GriefPrevention;
-
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Listener;
 import org.bukkit.plugin.Plugin;
-
-import com.boydti.fawe.bukkit.FaweBukkit;
-import com.boydti.fawe.object.FawePlayer;
 
 public class GriefPreventionFeature extends BukkitMaskManager implements Listener {
     FaweBukkit plugin;

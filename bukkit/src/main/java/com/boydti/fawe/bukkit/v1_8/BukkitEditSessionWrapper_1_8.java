@@ -1,9 +1,5 @@
 package com.boydti.fawe.bukkit.v1_8;
 
-import static com.boydti.fawe.util.ReflectionUtils.getRefClass;
-
-import org.bukkit.Bukkit;
-
 import com.boydti.fawe.bukkit.v0.BukkitEditSessionWrapper_0;
 import com.boydti.fawe.util.ReflectionUtils.RefClass;
 import com.boydti.fawe.util.ReflectionUtils.RefField;
@@ -11,6 +7,10 @@ import com.boydti.fawe.util.ReflectionUtils.RefMethod;
 import com.sk89q.worldedit.EditSession;
 import com.sk89q.worldedit.Vector;
 import com.sk89q.worldedit.blocks.BlockType;
+import org.bukkit.Bukkit;
+
+
+import static com.boydti.fawe.util.ReflectionUtils.getRefClass;
 
 public class BukkitEditSessionWrapper_1_8 extends BukkitEditSessionWrapper_0 {
 

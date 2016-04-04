@@ -54,7 +54,6 @@ import com.sk89q.worldedit.extent.Extent;
 import com.sk89q.worldedit.extent.MaskingExtent;
 import com.sk89q.worldedit.extent.buffer.ForgetfulExtentBuffer;
 import com.sk89q.worldedit.extent.inventory.BlockBag;
-import com.sk89q.worldedit.extent.reorder.MultiStageReorder;
 import com.sk89q.worldedit.extent.world.SurvivalModeExtent;
 import com.sk89q.worldedit.function.GroundFunction;
 import com.sk89q.worldedit.function.RegionMaskingFilter;
@@ -152,9 +151,8 @@ public class EditSession implements Extent {
     }
 
     protected final World world;
-    private final FaweChangeSet changeSet;
+    private FaweChangeSet changeSet;
     private final EditSessionWrapper wrapper;
-    private MultiStageReorder reorderExtent;
     private @Nullable Extent changeSetExtent;
     private MaskingExtent maskingExtent;
     private @Nullable ProcessedWEExtent processed;
@@ -243,14 +241,11 @@ public class EditSession implements Extent {
             this.changeSet = new NullChangeSet();
             return;
         }
-        this.changeSet = Settings.STORE_HISTORY_ON_DISK ? new DiskStorageHistory(actor.getUniqueId().toString()) : new MemoryOptimizedHistory();
+        this.changeSet = Settings.STORE_HISTORY_ON_DISK ? new DiskStorageHistory(world, actor.getUniqueId()) : new MemoryOptimizedHistory();
         Extent extent;
         final String name = actor.getName();
         final FawePlayer<Object> fp = FawePlayer.wrap(name);
         final LocalSession session = fp.getSession();
-        if (this.fastmode = (session == null ? false : session.hasFastMode())) {
-            session.clearHistory();
-        }
         if (fp.hasWorldEditBypass()) {
             // Bypass skips processing and area restrictions
             extent = new FastWorldEditExtent(world, this.thread);
@@ -370,6 +365,11 @@ public class EditSession implements Extent {
         return this.changeSet;
     }
 
+    public void setChangeSet(FaweChangeSet set) {
+        changes = -1;
+        this.changeSet = set;
+    }
+
     /**
      * Get the maximum number of blocks that can be changed. -1 will be returned
      * if it the limit disabled.
@@ -398,16 +398,13 @@ public class EditSession implements Extent {
      * @return whether the queue is enabled
      */
     public boolean isQueueEnabled() {
-        return (this.reorderExtent != null) && this.reorderExtent.isEnabled();
+        return false;
     }
 
     /**
      * Queue certain types of block for better reproduction of those blocks.
      */
     public void enableQueue() {
-        if (this.reorderExtent != null) {
-            this.reorderExtent.setEnabled(true);
-        }
     }
 
     /**
@@ -416,9 +413,6 @@ public class EditSession implements Extent {
     public void disableQueue() {
         if (this.isQueueEnabled()) {
             this.flushQueue();
-        }
-        if (this.reorderExtent != null) {
-            this.reorderExtent.setEnabled(true);
         }
     }
 

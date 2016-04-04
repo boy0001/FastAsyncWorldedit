@@ -1,12 +1,11 @@
 package com.boydti.fawe.command;
 
-import java.io.File;
-
 import com.boydti.fawe.Fawe;
 import com.boydti.fawe.FaweAPI;
 import com.boydti.fawe.config.BBC;
 import com.boydti.fawe.object.FaweCommand;
 import com.boydti.fawe.object.FawePlayer;
+import java.io.File;
 
 public class Stream extends FaweCommand {
 

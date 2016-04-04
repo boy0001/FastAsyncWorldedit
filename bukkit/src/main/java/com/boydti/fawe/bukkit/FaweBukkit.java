@@ -7,7 +7,6 @@ import com.boydti.fawe.bukkit.regions.FactionsFeature;
 import com.boydti.fawe.bukkit.regions.FactionsUUIDFeature;
 import com.boydti.fawe.bukkit.regions.GriefPreventionFeature;
 import com.boydti.fawe.bukkit.regions.PlotMeFeature;
-import com.boydti.fawe.bukkit.regions.PlotSquaredFeature;
 import com.boydti.fawe.bukkit.regions.PreciousStonesFeature;
 import com.boydti.fawe.bukkit.regions.ResidenceFeature;
 import com.boydti.fawe.bukkit.regions.TownyFeature;
@@ -297,17 +296,6 @@ public class FaweBukkit extends JavaPlugin implements IFawe, Listener {
             }
         } else {
             Fawe.debug("Plugin 'GriefPrevention' not found. GriefPrevention features disabled.");
-        }
-        final Plugin plotsquaredPlugin = Bukkit.getServer().getPluginManager().getPlugin("PlotSquared");
-        if ((plotsquaredPlugin != null) && plotsquaredPlugin.isEnabled()) {
-            try {
-                managers.add(new PlotSquaredFeature(plotsquaredPlugin, this));
-                Fawe.debug("Plugin 'PlotSquared' found. Using it now.");
-            } catch (final Throwable e) {
-                e.printStackTrace();
-            }
-        } else {
-            Fawe.debug("Plugin 'PlotSquared' not found. PlotSquared features disabled.");
         }
         final Plugin preciousstonesPlugin = Bukkit.getServer().getPluginManager().getPlugin("PreciousStones");
         if ((preciousstonesPlugin != null) && preciousstonesPlugin.isEnabled()) {

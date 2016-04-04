@@ -1,7 +1,7 @@
 package net.jpountz.lz4;
 
-import java.io.OutputStream;
 import java.io.IOException;
+import java.io.OutputStream;
 
 public class LZ4OutputStream extends OutputStream {
     private static final LZ4Factory lz4Factory = LZ4Factory.fastestInstance();

@@ -1,7 +1,5 @@
 package com.boydti.fawe.configuration.serialization;
 
-import com.boydti.fawe.configuration.serialization.DelegateDeserialization;
-import com.boydti.fawe.configuration.serialization.SerializableAs;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;

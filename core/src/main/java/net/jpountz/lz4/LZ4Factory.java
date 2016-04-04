@@ -18,9 +18,10 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.util.Arrays;
-
 import net.jpountz.util.Native;
 import net.jpountz.util.Utils;
+
+
 import static net.jpountz.lz4.LZ4Constants.DEFAULT_COMPRESSION_LEVEL;
 import static net.jpountz.lz4.LZ4Constants.MAX_COMPRESSION_LEVEL;
 
@@ -242,12 +243,6 @@ public final class LZ4Factory {
    * @deprecated use {@link #fastDecompressor()} */
   public LZ4Decompressor decompressor() {
     return fastDecompressor();
-  }
-
-  /** Prints the fastest instance. */
-  public static void main(String[] args) {
-    System.out.println("Fastest instance is " + fastestInstance());
-    System.out.println("Fastest Java instance is " + fastestJavaInstance());
   }
 
   @Override

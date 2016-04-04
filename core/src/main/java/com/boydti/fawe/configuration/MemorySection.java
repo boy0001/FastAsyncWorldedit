@@ -1,6 +1,5 @@
 package com.boydti.fawe.configuration;
 
-import com.boydti.fawe.configuration.ConfigurationSection;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;

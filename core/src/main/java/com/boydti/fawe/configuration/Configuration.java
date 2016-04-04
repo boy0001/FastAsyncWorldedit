@@ -1,7 +1,5 @@
 package com.boydti.fawe.configuration;
 
-import com.boydti.fawe.configuration.ConfigurationOptions;
-import com.boydti.fawe.configuration.ConfigurationSection;
 import java.util.Map;
 
 /**

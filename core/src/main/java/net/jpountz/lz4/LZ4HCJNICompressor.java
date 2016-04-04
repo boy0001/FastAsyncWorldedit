@@ -14,12 +14,12 @@ package net.jpountz.lz4;
  * limitations under the License.
  */
 
-import static net.jpountz.lz4.LZ4Constants.DEFAULT_COMPRESSION_LEVEL;
-
 import java.nio.ByteBuffer;
-
 import net.jpountz.util.ByteBufferUtils;
 import net.jpountz.util.SafeUtils;
+
+
+import static net.jpountz.lz4.LZ4Constants.DEFAULT_COMPRESSION_LEVEL;
 
 /**
  * High compression {@link LZ4Compressor}s implemented with JNI bindings to the

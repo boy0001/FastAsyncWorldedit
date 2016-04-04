@@ -1,8 +1,7 @@
 package com.boydti.fawe.util;
 
-import java.util.concurrent.atomic.AtomicBoolean;
-
 import com.boydti.fawe.config.Settings;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 public class MemUtil {
 

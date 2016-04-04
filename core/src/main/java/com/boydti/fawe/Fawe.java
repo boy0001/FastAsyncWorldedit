@@ -10,7 +10,6 @@ import com.boydti.fawe.config.Settings;
 import com.boydti.fawe.object.FawePlayer;
 import com.boydti.fawe.regions.general.PlotSquaredFeature;
 import com.boydti.fawe.util.Lag;
-import com.boydti.fawe.util.MainUtil;
 import com.boydti.fawe.util.MemUtil;
 import com.boydti.fawe.util.TaskManager;
 import com.boydti.fawe.util.WEManager;
@@ -155,8 +154,8 @@ public class Fawe {
             this.IMP.startMetrics();
         }
 
-        // Delete old history
-        MainUtil.deleteDirectory(new File(IMP.getDirectory(), "history"));
+//        // Delete old history
+//        MainUtil.deleteDirectory(new File(IMP.getDirectory(), "history"));
 
         // Delayed setup
         TaskManager.IMP.later(new Runnable() {

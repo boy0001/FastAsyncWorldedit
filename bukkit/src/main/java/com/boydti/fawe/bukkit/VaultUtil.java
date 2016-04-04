@@ -1,7 +1,6 @@
 package com.boydti.fawe.bukkit;
 
 import net.milkbowl.vault.permission.Permission;
-
 import org.bukkit.Bukkit;
 import org.bukkit.plugin.RegisteredServiceProvider;
 

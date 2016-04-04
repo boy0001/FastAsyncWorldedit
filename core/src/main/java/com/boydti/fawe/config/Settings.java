@@ -1,5 +1,7 @@
 package com.boydti.fawe.config;
 
+import com.boydti.fawe.configuration.file.YamlConfiguration;
+import com.sk89q.worldedit.LocalSession;
 import java.io.File;
 import java.io.IOException;
 import java.util.Arrays;
@@ -7,10 +9,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-
-import com.boydti.fawe.configuration.file.YamlConfiguration;
-
-import com.sk89q.worldedit.LocalSession;
 
 public class Settings {
 
@@ -26,7 +24,7 @@ public class Settings {
     public static boolean ENABLE_HARD_LIMIT = true;
     public static boolean STORE_HISTORY_ON_DISK = false;
     public static int COMPRESSION_LEVEL = 0;
-    public static int BUFFER_SIZE = 59049;
+    public static int BUFFER_SIZE = 531441;
     public static boolean METRICS = true;
 
     public static void setup(final File file) {

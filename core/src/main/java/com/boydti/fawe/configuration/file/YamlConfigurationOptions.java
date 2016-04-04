@@ -1,8 +1,5 @@
 package com.boydti.fawe.configuration.file;
 
-import com.boydti.fawe.configuration.file.FileConfigurationOptions;
-import com.boydti.fawe.configuration.file.YamlConfiguration;
-
 /**
  * Various settings for controlling the input and output of a {@link
  * com.boydti.fawe.configuration.file.YamlConfiguration}

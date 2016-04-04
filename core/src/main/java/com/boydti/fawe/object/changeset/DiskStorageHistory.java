@@ -12,13 +12,18 @@ import com.sk89q.jnbt.NBTOutputStream;
 import com.sk89q.jnbt.NamedTag;
 import com.sk89q.jnbt.Tag;
 import com.sk89q.worldedit.BlockVector;
+import com.sk89q.worldedit.EditSession;
+import com.sk89q.worldedit.EditSessionFactory;
 import com.sk89q.worldedit.Vector;
+import com.sk89q.worldedit.WorldEdit;
 import com.sk89q.worldedit.blocks.BaseBlock;
+import com.sk89q.worldedit.entity.Player;
 import com.sk89q.worldedit.history.change.BlockChange;
 import com.sk89q.worldedit.history.change.Change;
 import com.sk89q.worldedit.history.change.EntityCreate;
 import com.sk89q.worldedit.history.change.EntityRemove;
 import com.sk89q.worldedit.history.changeset.ChangeSet;
+import com.sk89q.worldedit.world.World;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
@@ -28,6 +33,7 @@ import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.Map;
+import java.util.UUID;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.zip.GZIPInputStream;
 import java.util.zip.GZIPOutputStream;
@@ -45,11 +51,11 @@ import net.jpountz.lz4.LZ4OutputStream;
  */
 public class DiskStorageHistory implements ChangeSet, FaweChangeSet {
     
-    private final File bdFile;
-    private final File nbtfFile;
-    private final File nbttFile;
-    private final File entfFile;
-    private final File enttFile;
+    private File bdFile;
+    private File nbtfFile;
+    private File nbttFile;
+    private File entfFile;
+    private File enttFile;
     
     /*
      * Block data
@@ -85,25 +91,48 @@ public class DiskStorageHistory implements ChangeSet, FaweChangeSet {
     private int ox;
     private int oz;
 
-    private final AtomicInteger size;
-    
-    public DiskStorageHistory(String name) {
+    private AtomicInteger size = new AtomicInteger();
+    private World world;
+
+    public DiskStorageHistory(World world, UUID uuid) {
         size = new AtomicInteger();
-        String base = "history" + File.separator + name;
+        String base = "history" + File.separator + world.getName() + File.separator + uuid;
         File folder = new File(Fawe.imp().getDirectory(), base);
-        int i;
-        for (i = 0;; i++) {
-            File test = new File(folder, i + ".bd");
-            if (!test.exists()) {
-                base += File.separator + i;
-                nbtfFile = new File(Fawe.imp().getDirectory(), base + ".nbtf");
-                nbttFile = new File(Fawe.imp().getDirectory(), base + ".nbtt");
-                entfFile = new File(Fawe.imp().getDirectory(), base + ".entf");
-                enttFile = new File(Fawe.imp().getDirectory(), base + ".entt");
-                bdFile = new File(Fawe.imp().getDirectory(), base + ".bd");
-                break;
+        int max = 0;
+        if (folder.exists()) {
+            for (File file : folder.listFiles()) {
+                String name = file.getName().split("\\.")[0];
+                if (name.matches("\\d+")) {
+                    int index = Integer.parseInt(name);
+                    if (index > max) {
+                        max = index;
+                    }
+                }
             }
         }
+        init(world, uuid, ++max);
+    }
+
+    public DiskStorageHistory(World world, UUID uuid, int index) {
+        init(world, uuid, index);
+    }
+
+    public void init(World world, UUID uuid, int i) {
+        this.world = world;
+        String base = "history" + File.separator + world.getName() + File.separator + uuid;
+        base += File.separator + i;
+        nbtfFile = new File(Fawe.imp().getDirectory(), base + ".nbtf");
+        nbttFile = new File(Fawe.imp().getDirectory(), base + ".nbtt");
+        entfFile = new File(Fawe.imp().getDirectory(), base + ".entf");
+        enttFile = new File(Fawe.imp().getDirectory(), base + ".entt");
+        bdFile = new File(Fawe.imp().getDirectory(), base + ".bd");
+    }
+
+    public EditSession toEditSession(Player player) {
+        EditSessionFactory factory = WorldEdit.getInstance().getEditSessionFactory();
+        EditSession edit = factory.getEditSession(world, -1, null, player);
+        edit.setChangeSet(this);
+        return edit;
     }
     
     @Override
@@ -240,8 +269,6 @@ public class DiskStorageHistory implements ChangeSet, FaweChangeSet {
         LZ4Compressor compressor = factory.fastCompressor();
         osBD = new LZ4OutputStream(stream, Settings.BUFFER_SIZE, factory.fastCompressor());
         if (Settings.COMPRESSION_LEVEL > 0) {
-//            Deflater deflater = new Deflater(Math.min(9, Settings.COMPRESSION_LEVEL), true);
-//            osBD = new DeflaterOutputStream(osBD, deflater, true);
             osBD = new LZ4OutputStream(osBD, Settings.BUFFER_SIZE, factory.highCompressor());
         }
         ox = x;
@@ -310,12 +337,12 @@ public class DiskStorageHistory implements ChangeSet, FaweChangeSet {
         flush();
         try {
             if (bdFile.exists()) {
-                if (osNBTF != null) {
+                if (nbtfFile.exists()) {
                     NBTInputStream os = new NBTInputStream(new GZIPInputStream(new FileInputStream(nbtfFile)));
                     NamedTag tag = os.readNamedTag();
                 }
-                final NBTInputStream nbtf = osNBTF != null ? new NBTInputStream(new GZIPInputStream(new FileInputStream(nbtfFile))) : null;
-                final NBTInputStream nbtt = osNBTT != null ? new NBTInputStream(new GZIPInputStream(new FileInputStream(nbttFile))) : null;
+                final NBTInputStream nbtf = nbtfFile.exists() ? new NBTInputStream(new GZIPInputStream(new FileInputStream(nbtfFile))) : null;
+                final NBTInputStream nbtt = nbttFile.exists() ? new NBTInputStream(new GZIPInputStream(new FileInputStream(nbttFile))) : null;
 
                 FileInputStream fis = new FileInputStream(bdFile);
                 LZ4Factory factory = LZ4Factory.fastestInstance();
@@ -326,7 +353,8 @@ public class DiskStorageHistory implements ChangeSet, FaweChangeSet {
                 } else {
                     gis = new LZ4InputStream(fis);
                 }
-                gis.skip(8);
+                ox = ((gis.read() << 24) + (gis.read() << 16) + (gis.read() << 8) + (gis.read() << 0));
+                oz = ((gis.read() << 24) + (gis.read() << 16) + (gis.read() << 8) + (gis.read() << 0));
                 return new Iterator<Change>() {
 
                     private CompoundTag lastFrom = read(nbtf);
@@ -338,7 +366,9 @@ public class DiskStorageHistory implements ChangeSet, FaweChangeSet {
                             try {
                                 NamedTag nt = stream.readNamedTag();
                                 return nt != null ? ((CompoundTag) nt.getTag()) : null;
-                            } catch (IOException e) {}
+                            } catch (IOException e) {
+                                e.printStackTrace();
+                            }
                         }
                         return null;
                     }
@@ -428,5 +458,4 @@ public class DiskStorageHistory implements ChangeSet, FaweChangeSet {
         flush();
         return size.get();
     }
-
 }

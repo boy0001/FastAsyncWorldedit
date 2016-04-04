@@ -1,8 +1,8 @@
 package net.jpountz.lz4;
 
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.io.IOException;
 
 public class LZ4StreamHelper {
    static void writeLength(int length, OutputStream os) throws IOException {

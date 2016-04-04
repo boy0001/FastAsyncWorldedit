@@ -14,6 +14,9 @@ package net.jpountz.lz4;
  * limitations under the License.
  */
 
+import java.nio.ByteOrder;
+
+
 import static net.jpountz.lz4.LZ4Constants.COPY_LENGTH;
 import static net.jpountz.lz4.LZ4Constants.LAST_LITERALS;
 import static net.jpountz.lz4.LZ4Constants.ML_BITS;
@@ -28,8 +31,6 @@ import static net.jpountz.util.UnsafeUtils.writeInt;
 import static net.jpountz.util.UnsafeUtils.writeLong;
 import static net.jpountz.util.UnsafeUtils.writeShort;
 import static net.jpountz.util.Utils.NATIVE_BYTE_ORDER;
-
-import java.nio.ByteOrder;
 
 enum LZ4UnsafeUtils {
   ;

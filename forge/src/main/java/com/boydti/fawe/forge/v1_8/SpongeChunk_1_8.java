@@ -7,6 +7,7 @@ import com.sk89q.worldedit.world.biome.BaseBiome;
 import java.util.Arrays;
 import org.spongepowered.api.Sponge;
 import org.spongepowered.api.world.Chunk;
+import org.spongepowered.api.world.World;
 
 public class SpongeChunk_1_8 extends FaweChunk<Chunk> {
 
@@ -29,7 +30,8 @@ public class SpongeChunk_1_8 extends FaweChunk<Chunk> {
     @Override
     public Chunk getChunk() {
         if (this.chunk == null) {
-            this.chunk = Sponge.getServer().getWorld(getParent().world).get().getChunk(getX(), 0, getZ()).get();
+            World world = Sponge.getServer().getWorld(getParent().world).get();
+            this.chunk = world.loadChunk(getX(), 0, getZ(), true).get();
         }
         return this.chunk;
     }

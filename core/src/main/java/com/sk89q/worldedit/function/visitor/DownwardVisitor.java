@@ -19,14 +19,14 @@
 
 package com.sk89q.worldedit.function.visitor;
 
-import static com.google.common.base.Preconditions.checkNotNull;
-
-import java.util.Collection;
-
 import com.sk89q.worldedit.Vector;
 import com.sk89q.worldedit.function.RegionFunction;
 import com.sk89q.worldedit.function.mask.Mask;
 import com.sk89q.worldedit.function.operation.Operations;
+import java.util.Collection;
+
+
+import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * Visits adjacent points on the same X-Z plane as long as the points

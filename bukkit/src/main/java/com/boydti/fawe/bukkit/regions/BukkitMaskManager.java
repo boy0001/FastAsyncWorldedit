@@ -1,8 +1,7 @@
 package com.boydti.fawe.bukkit.regions;
 
-import org.bukkit.entity.Player;
-
 import com.boydti.fawe.regions.FaweMaskManager;
+import org.bukkit.entity.Player;
 
 public abstract class BukkitMaskManager extends FaweMaskManager<Player> {
 

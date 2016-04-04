@@ -16,7 +16,6 @@ package net.jpountz.lz4;
 
 
 import java.nio.ByteBuffer;
-
 import net.jpountz.util.ByteBufferUtils;
 import net.jpountz.util.SafeUtils;
 

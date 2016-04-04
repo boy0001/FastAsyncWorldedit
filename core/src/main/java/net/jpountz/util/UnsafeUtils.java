@@ -14,12 +14,12 @@ package net.jpountz.util;
  * limitations under the License.
  */
 
-import static net.jpountz.util.Utils.NATIVE_BYTE_ORDER;
-
 import java.lang.reflect.Field;
 import java.nio.ByteOrder;
-
 import sun.misc.Unsafe;
+
+
+import static net.jpountz.util.Utils.NATIVE_BYTE_ORDER;
 
 public enum UnsafeUtils {
   ;

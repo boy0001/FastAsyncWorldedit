@@ -71,9 +71,6 @@ public enum Native {
       return;
     }
     String resourceName = resourceName();
-    System.out.println("NAME: " + resourceName);
-    System.out.println("WORK: " + Fawe.class.getResourceAsStream("/LICENSE"));
-    System.out.println("WORK: " + Fawe.class.getResourceAsStream("/win32/amd64/liblz4-java.so"));
     InputStream is = Fawe.class.getResourceAsStream(resourceName);
     if (is == null) {
       throw new UnsupportedOperationException("Unsupported OS/arch, cannot find " + resourceName + ". Please try building from source.");

@@ -1,17 +1,16 @@
 package net.jpountz.lz4;
 
-import static junit.framework.Assert.assertEquals;
-
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Random;
-
 import junit.framework.Assert;
-
 import org.junit.Before;
 import org.junit.Test;
+
+
+import static junit.framework.Assert.assertEquals;
 
 public class LZ4StreamTest {
 

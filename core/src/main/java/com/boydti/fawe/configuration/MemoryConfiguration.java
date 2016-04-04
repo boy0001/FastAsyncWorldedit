@@ -1,9 +1,5 @@
 package com.boydti.fawe.configuration;
 
-import com.boydti.fawe.configuration.Configuration;
-import com.boydti.fawe.configuration.ConfigurationSection;
-import com.boydti.fawe.configuration.MemoryConfigurationOptions;
-import com.boydti.fawe.configuration.MemorySection;
 import java.util.Map;
 
 /**

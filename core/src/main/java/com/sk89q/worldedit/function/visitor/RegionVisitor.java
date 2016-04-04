@@ -19,9 +19,6 @@
 
 package com.sk89q.worldedit.function.visitor;
 
-import java.util.Iterator;
-import java.util.List;
-
 import com.sk89q.worldedit.BlockVector;
 import com.sk89q.worldedit.WorldEditException;
 import com.sk89q.worldedit.function.RegionFunction;
@@ -29,6 +26,8 @@ import com.sk89q.worldedit.function.operation.Operation;
 import com.sk89q.worldedit.function.operation.Operations;
 import com.sk89q.worldedit.function.operation.RunContext;
 import com.sk89q.worldedit.regions.Region;
+import java.util.Iterator;
+import java.util.List;
 
 /**
  * Utility class to apply region functions to {@link com.sk89q.worldedit.regions.Region}.

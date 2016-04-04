@@ -1,12 +1,10 @@
 package com.boydti.fawe.bukkit;
 
+import com.boydti.fawe.util.TaskManager;
 import java.util.HashMap;
-
 import org.apache.commons.lang.mutable.MutableInt;
 import org.bukkit.Bukkit;
 import org.bukkit.plugin.Plugin;
-
-import com.boydti.fawe.util.TaskManager;
 
 public class BukkitTaskMan extends TaskManager {
 

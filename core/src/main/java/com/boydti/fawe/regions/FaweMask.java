@@ -1,10 +1,9 @@
 package com.boydti.fawe.regions;
 
+import com.boydti.fawe.object.RegionWrapper;
 import com.sk89q.worldedit.BlockVector;
 import java.util.Arrays;
 import java.util.HashSet;
-
-import com.boydti.fawe.object.RegionWrapper;
 
 public class FaweMask {
     private String description = null;

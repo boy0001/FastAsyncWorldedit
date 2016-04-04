@@ -1,7 +1,5 @@
 package com.boydti.fawe.configuration;
 
-import com.boydti.fawe.configuration.ConfigurationOptions;
-
 /**
  * Various settings for controlling the input and output of a {@link
  * com.boydti.fawe.configuration.MemoryConfiguration}
