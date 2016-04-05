@@ -40,11 +40,7 @@ public class PlotSquaredFeature extends FaweMaskManager {
             final PlotId id = plot.getId();
             boolean hasPerm = false;
             if (plot.owner != null) {
-                if (plot.owner.equals(pp.getUUID())) {
-                    hasPerm = true;
-                } else if (plot.isAdded(pp.getUUID()) && pp.hasPermission("fawe.plotsquared.member")) {
-                    hasPerm = true;
-                }
+                hasPerm = plot.isOwner(pp.getUUID()) || plot.getTrusted().contains(pp.getUUID()) || (plot.getMembers().contains(pp.getUUID()) && pp.hasPermission("fawe.plotsquared.member"));
                 if (hasPerm) {
                     RegionWrapper region = plot.getLargestRegion();
                     HashSet<RegionWrapper> regions = plot.getRegions();

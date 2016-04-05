@@ -3,6 +3,7 @@ package com.boydti.fawe.bukkit;
 import com.boydti.fawe.Fawe;
 import com.boydti.fawe.config.BBC;
 import com.boydti.fawe.config.Settings;
+import com.boydti.fawe.object.FaweLimit;
 import com.boydti.fawe.object.FawePlayer;
 import com.boydti.fawe.object.RegionWrapper;
 import com.boydti.fawe.util.MainUtil;
@@ -157,9 +158,9 @@ public class WEListener implements Listener {
         final String cmd = message.toLowerCase();
         final boolean single = true;
         final String[] split = cmd.split(" ");
-
-        final long maxVolume = Settings.WE_MAX_VOLUME;
-        final long maxIterations = Settings.WE_MAX_ITERATIONS;
+        FaweLimit limit = player.getLimit();
+        final long maxVolume = limit.MAX_FAILS + limit.MAX_CHANGES;
+        final long maxIterations = limit.MAX_ITERATIONS;
         //        if (player.hasPermission("fawe.bypass")) {
         //            return true;
         //        }

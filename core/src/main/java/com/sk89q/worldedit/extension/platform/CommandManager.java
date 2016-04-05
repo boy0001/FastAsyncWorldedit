@@ -19,6 +19,9 @@
 
 package com.sk89q.worldedit.extension.platform;
 
+import com.boydti.fawe.Fawe;
+import com.boydti.fawe.config.BBC;
+import com.boydti.fawe.object.FawePlayer;
 import com.boydti.fawe.util.SetQueue;
 import com.boydti.fawe.util.TaskManager;
 import com.google.common.base.Joiner;
@@ -235,7 +238,17 @@ public final class CommandManager {
                 locals.put("arguments", event.getArguments());
                 
                 long start = System.currentTimeMillis();
-                
+                FawePlayer fp;
+                if (actor.isPlayer()) {
+                    fp = Fawe.imp().wrap(actor.getName());
+                    if (fp.getMeta("fawe_action") != null) {
+                        BBC.WORLDEDIT_COMMAND_LIMIT.send(fp);
+                        return;
+                    }
+                    fp.setMeta("fawe_action", true);
+                } else {
+                    fp = null;
+                }
                 try {
                     dispatcher.call(Joiner.on(" ").join(split), locals, new String[0]);
                 } catch (CommandPermissionsException e) {
@@ -266,6 +279,9 @@ public final class CommandManager {
                         log.log(Level.SEVERE, "An unknown error occurred", e);
                     }
                 } finally {
+                    if (fp != null) {
+                        fp.deleteMeta("fawe_action");
+                    }
                     EditSession editSession = locals.get(EditSession.class);
                     
                     if (editSession != null) {

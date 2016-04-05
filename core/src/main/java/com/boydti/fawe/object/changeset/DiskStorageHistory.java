@@ -175,11 +175,13 @@ public class DiskStorageHistory implements ChangeSet, FaweChangeSet {
         try {
             OutputStream stream = getBAOS(x, y, z);
             //x
-            stream.write((x - ox) & 0xff);
-            stream.write(((x - ox) >> 8) & 0xff);
+            x-=ox;
+            stream.write((x) & 0xff);
+            stream.write(((x) >> 8) & 0xff);
             //z
-            stream.write((z - oz) & 0xff);
-            stream.write(((z - oz) >> 8) & 0xff);
+            z-=oz;
+            stream.write((z) & 0xff);
+            stream.write(((z) >> 8) & 0xff);
             //y
             stream.write((byte) y);
             //from
@@ -375,8 +377,8 @@ public class DiskStorageHistory implements ChangeSet, FaweChangeSet {
 
                     public Change read() {
                         try {
-                            int x = gis.read() + (gis.read() << 8) + ox;
-                            int z = gis.read() + (gis.read() << 8) + oz;
+                            int x = ((byte) gis.read() & 0xFF) + ((byte) gis.read() << 8) + ox;
+                            int z = ((byte) gis.read() & 0xFF) + ((byte) gis.read() << 8) + oz;
                             int y = gis.read() & 0xff;
                             int from1 = gis.read();
                             int from2 = gis.read();

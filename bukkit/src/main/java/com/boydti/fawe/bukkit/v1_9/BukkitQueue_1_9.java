@@ -242,6 +242,9 @@ public class BukkitQueue_1_9 extends BukkitQueue_0 {
                 }
                 lcx = cx;
                 lcz = cz;
+                if (!bukkitWorld.isChunkLoaded(cx, cz)) {
+                    return 0;
+                }
                 lc = methodGetType.of(methodGetHandleChunk.of(bukkitWorld.getChunkAt(cx, cz)).call());
             }
             int combined = (int) methodGetCombinedId.call(lc.call(x & 15, y, z & 15));

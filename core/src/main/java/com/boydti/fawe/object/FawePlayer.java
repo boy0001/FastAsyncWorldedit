@@ -27,7 +27,7 @@ public abstract class FawePlayer<T> {
     /**
      * The metadata map.
      */
-    private ConcurrentHashMap<String, Object> meta;
+    private volatile ConcurrentHashMap<String, Object> meta;
 
     public static <T> FawePlayer<T> wrap(final Object obj) {
         return Fawe.imp().wrap(obj);
@@ -65,6 +65,10 @@ public abstract class FawePlayer<T> {
             e.printStackTrace();
             Fawe.debug("Failed to load history for: " + getName());
         }
+    }
+
+    public FaweLimit getLimit() {
+        return Settings.getLimit(this);
     }
 
     public abstract String getName();

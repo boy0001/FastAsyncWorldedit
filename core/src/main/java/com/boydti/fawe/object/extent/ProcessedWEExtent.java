@@ -1,13 +1,10 @@
 package com.boydti.fawe.object.extent;
 
 import com.boydti.fawe.FaweCache;
-import com.boydti.fawe.config.BBC;
-import com.boydti.fawe.config.Settings;
+import com.boydti.fawe.object.FaweLimit;
 import com.boydti.fawe.object.FawePlayer;
 import com.boydti.fawe.object.RegionWrapper;
 import com.boydti.fawe.util.FaweQueue;
-import com.boydti.fawe.util.MainUtil;
-import com.boydti.fawe.util.SetQueue;
 import com.boydti.fawe.util.TaskManager;
 import com.boydti.fawe.util.WEManager;
 import com.sk89q.worldedit.BlockVector;
@@ -29,30 +26,18 @@ import java.util.List;
 
 public class ProcessedWEExtent extends AbstractDelegateExtent {
     private final FaweQueue queue;
+    private final FaweLimit limit;
     private Extent parent;
 
-    private boolean BSblocked = false;
-    private boolean Eblocked = false;
-    private int BScount = 0;
-    private int Ecount = 0;
-    private int count = 0;
-
-    private int max;
     private final FawePlayer<?> user;
     private final HashSet<RegionWrapper> mask;
-    private final Thread thread;
 
-    public ProcessedWEExtent(final World world, final Thread thread, final FawePlayer<?> player, final HashSet<RegionWrapper> mask, final int max) {
+    public ProcessedWEExtent(final World world, final FawePlayer<?> player, final HashSet<RegionWrapper> mask, FaweLimit limit, FaweQueue queue) {
         super(world);
         this.user = player;
-        this.queue = SetQueue.IMP.getQueue(world.getName());
-        this.max = max != -1 ? max : Integer.MAX_VALUE;
+        this.queue = queue;
         this.mask = mask;
-        this.thread = thread;
-    }
-
-    public void setMax(final int max) {
-        this.max = max != -1 ? max : Integer.MAX_VALUE;
+        this.limit = limit;
     }
 
     public void setParent(final Extent parent) {
@@ -61,13 +46,8 @@ public class ProcessedWEExtent extends AbstractDelegateExtent {
 
     @Override
     public Entity createEntity(final Location location, final BaseEntity entity) {
-        if (this.Eblocked) {
+        if (limit.MAX_ENTITIES-- < 0) {
             return null;
-        }
-        this.Ecount++;
-        if (this.Ecount > Settings.MAX_ENTITIES) {
-            this.Eblocked = true;
-            MainUtil.sendAdmin(BBC.WORLDEDIT_DANGEROUS_WORLDEDIT.format(queue.world + ": " + location.getBlockX() + "," + location.getBlockY() + "," + location.getBlockZ(), this.user));
         }
         if (WEManager.IMP.maskContains(this.mask, location.getBlockX(), location.getBlockZ())) {
             TaskManager.IMP.task(new Runnable() {
@@ -85,9 +65,7 @@ public class ProcessedWEExtent extends AbstractDelegateExtent {
         if (!queue.isChunkLoaded(position.getBlockX() >> 4, position.getBlockZ() >> 4)) {
             return EditSession.nullBiome;
         }
-        synchronized (this.thread) {
-            return super.getBiome(position);
-        }
+        return super.getBiome(position);
     }
 
     private BaseBlock lastBlock;
@@ -95,6 +73,9 @@ public class ProcessedWEExtent extends AbstractDelegateExtent {
 
     @Override
     public BaseBlock getLazyBlock(final Vector position) {
+//        TODO get fast!
+//        TODO caches base blocks
+
         if ((this.lastBlock != null) && this.lastVector.equals(position.toBlockVector())) {
             return this.lastBlock;
         }
@@ -106,24 +87,18 @@ public class ProcessedWEExtent extends AbstractDelegateExtent {
                 return EditSession.nullBlock;
             }
         }
-        synchronized (this.thread) {
-            this.lastVector = position.toBlockVector();
-            return this.lastBlock = super.getLazyBlock(position);
-        }
+        this.lastVector = position.toBlockVector();
+        return super.getLazyBlock(position);
     }
 
     @Override
     public List<? extends Entity> getEntities() {
-        synchronized (this.thread) {
-            return super.getEntities();
-        }
+        return super.getEntities();
     }
 
     @Override
     public List<? extends Entity> getEntities(final Region region) {
-        synchronized (this.thread) {
-            return super.getEntities(region);
-        }
+        return super.getEntities(region);
     }
 
     @Override
@@ -171,18 +146,13 @@ public class ProcessedWEExtent extends AbstractDelegateExtent {
             case 33:
             case 151:
             case 178: {
-                if (this.BSblocked) {
+                if (limit.MAX_BLOCKSTATES-- < 0) {
                     return false;
-                }
-                this.BScount++;
-                if (this.BScount > Settings.MAX_BLOCKSTATES) {
-                    this.BSblocked = true;
-                    MainUtil.sendAdmin(BBC.WORLDEDIT_DANGEROUS_WORLDEDIT.format(queue.world + ": " + location.getBlockX() + "," + location.getBlockY() + "," + location.getBlockZ(), this.user));
                 }
                 final int x = location.getBlockX();
                 final int z = location.getBlockZ();
                 if (WEManager.IMP.maskContains(this.mask, x, z)) {
-                    if (this.count++ > this.max) {
+                    if (limit.MAX_CHANGES-- < 0) {
                         if (this.parent != null) {
                             WEManager.IMP.cancelEdit(this.parent);
                             this.parent = null;
@@ -204,6 +174,11 @@ public class ProcessedWEExtent extends AbstractDelegateExtent {
                     }
                     queue.setBlock(x, location.getBlockY(), z, id, FaweCache.hasData(id) ? (byte) block.getData() : 0);
                     return true;
+                } else if (limit.MAX_FAILS-- < 0) {
+                    if (this.parent != null) {
+                        WEManager.IMP.cancelEdit(this.parent);
+                        this.parent = null;
+                    }
                 }
                 return false;
             }
@@ -212,7 +187,7 @@ public class ProcessedWEExtent extends AbstractDelegateExtent {
                 final int y = location.getBlockY();
                 final int z = location.getBlockZ();
                 if (WEManager.IMP.maskContains(this.mask, location.getBlockX(), location.getBlockZ())) {
-                    if (this.count++ > this.max) {
+                    if (limit.MAX_CHANGES--<0) {
                         WEManager.IMP.cancelEdit(this.parent);
                         this.parent = null;
                         return false;
@@ -305,6 +280,11 @@ public class ProcessedWEExtent extends AbstractDelegateExtent {
                             queue.setBlock(x, y, z, id, (byte) block.getData());
                             return true;
                         }
+                    }
+                } else if (limit.MAX_FAILS-- < 0) {
+                    if (this.parent != null) {
+                        WEManager.IMP.cancelEdit(this.parent);
+                        this.parent = null;
                     }
                 }
                 return false;

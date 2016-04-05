@@ -64,11 +64,13 @@ public class MemoryOptimizedHistory implements ChangeSet, FaweChangeSet {
         try {
             OutputStream stream = getBAOS(x, y, z);
             //x
-            stream.write((x - ox) & 0xff);
-            stream.write(((x - ox) >> 8) & 0xff);
+            x -= ox;
+            z -= oz;
+            stream.write((x & 0xff));
+            stream.write(((x >> 8) & 0xff));
             //z
-            stream.write((z - oz) & 0xff);
-            stream.write(((z - oz) >> 8) & 0xff);
+            stream.write((z & 0xff));
+            stream.write( ((z >> 8) & 0xff));
             //y
             stream.write((byte) y);
             //from
@@ -150,8 +152,6 @@ public class MemoryOptimizedHistory implements ChangeSet, FaweChangeSet {
         idsStream = new ByteArrayOutputStream(Settings.BUFFER_SIZE);
         idsStreamZip = new LZ4OutputStream(idsStream, Settings.BUFFER_SIZE, factory.fastCompressor());
         if (Settings.COMPRESSION_LEVEL > 0) {
-//            Deflater deflater = new Deflater(Math.min(9, Settings.COMPRESSION_LEVEL), true);
-//            idsStreamZip = new DeflaterOutputStream(idsStreamZip, deflater, true);
             idsStreamZip = new LZ4OutputStream(idsStreamZip, Settings.BUFFER_SIZE, factory.highCompressor());
         }
         ox = x;
@@ -198,8 +198,8 @@ public class MemoryOptimizedHistory implements ChangeSet, FaweChangeSet {
                     
                     public Change read() {
                         try {
-                            int x = gis.read() + (gis.read() << 8) + ox;
-                            int z = gis.read() + (gis.read() << 8) + oz;
+                            int x = ((byte) gis.read() & 0xFF) + ((byte) gis.read() << 8) + ox;
+                            int z = ((byte) gis.read() & 0xFF) + ((byte) gis.read() << 8) + oz;
                             int y = gis.read() & 0xff;
                             int from1 = gis.read();
                             int from2 = gis.read();

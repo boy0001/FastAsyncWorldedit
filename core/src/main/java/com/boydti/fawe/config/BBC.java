@@ -24,6 +24,7 @@ public enum BBC {
     FIX_LIGHTING_SELECTION("&7Lighting has been fixed in %s0 chunks. Relog to see the affect.", "Info"),
     NO_REGION("&cYou have no current WorldEdit region", "Error"),
     SET_REGION("&7Selection set to your current WorldEdit region", "Info"),
+    WORLDEDIT_COMMAND_LIMIT("&7Please wait until your current action completes", "Info"),
     WORLDEDIT_DELAYED("&7Please wait while we process your WorldEdit action...", "Info"),
     WORLDEDIT_RUN("&7Apologies for the delay. Now executing: %s", "Info"),
     WORLDEDIT_COMPLETE("&7WorldEdit action completed.", "Info"),

@@ -1,6 +1,7 @@
 package com.boydti.fawe.object;
 
 import com.boydti.fawe.object.changeset.FaweChangeSet;
+import com.boydti.fawe.util.FaweQueue;
 import com.sk89q.worldedit.EditSession;
 import com.sk89q.worldedit.Vector;
 import com.sk89q.worldedit.blocks.BlockType;
@@ -26,7 +27,7 @@ public class EditSessionWrapper {
         return minY;
     }
 
-    public Extent getHistoryExtent(final Extent parent, FaweChangeSet set, final FawePlayer<?> player) {
-        return new HistoryExtent(player.getLocation().world, parent, set);
+    public Extent getHistoryExtent(String world, FaweLimit limit, Extent parent, FaweChangeSet set, FaweQueue queue, FawePlayer<?> player) {
+        return new HistoryExtent(world, limit, parent, set, queue);
     }
 }

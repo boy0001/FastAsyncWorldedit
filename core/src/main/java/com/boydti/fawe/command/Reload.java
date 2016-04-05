@@ -3,6 +3,7 @@ package com.boydti.fawe.command;
 import com.boydti.fawe.Fawe;
 import com.boydti.fawe.object.FaweCommand;
 import com.boydti.fawe.object.FawePlayer;
+import com.boydti.fawe.util.MainUtil;
 
 public class Reload extends FaweCommand {
 
@@ -13,7 +14,7 @@ public class Reload extends FaweCommand {
     @Override
     public boolean execute(final FawePlayer player, final String... args) {
         Fawe.get().setupConfigs();
-        player.sendMessage("&d[FAWE] Reloaded configuration");
+        MainUtil.sendMessage(player, "&d[FAWE] Reloaded configuration");
         return true;
     }
 }

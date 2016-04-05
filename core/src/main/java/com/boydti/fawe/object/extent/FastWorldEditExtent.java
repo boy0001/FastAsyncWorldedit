@@ -2,7 +2,6 @@ package com.boydti.fawe.object.extent;
 
 import com.boydti.fawe.FaweCache;
 import com.boydti.fawe.util.FaweQueue;
-import com.boydti.fawe.util.SetQueue;
 import com.boydti.fawe.util.TaskManager;
 import com.sk89q.worldedit.BlockVector;
 import com.sk89q.worldedit.EditSession;
@@ -21,13 +20,11 @@ import java.util.List;
 
 public class FastWorldEditExtent extends AbstractDelegateExtent {
 
-    private final Thread thread;
     private final FaweQueue queue;
 
-    public FastWorldEditExtent(final World world, final Thread thread) {
+    public FastWorldEditExtent(final World world, FaweQueue queue) {
         super(world);
-        this.thread = thread;
-        this.queue = SetQueue.IMP.getQueue(world.getName());
+        this.queue = queue;
     }
 
     @Override
@@ -46,9 +43,7 @@ public class FastWorldEditExtent extends AbstractDelegateExtent {
         if (!queue.isChunkLoaded(position.getBlockX() >> 4, position.getBlockZ() >> 4)) {
             return EditSession.nullBiome;
         }
-        synchronized (this.thread) {
-            return super.getBiome(position);
-        }
+        return super.getBiome(position);
     }
 
     private BaseBlock lastBlock;
@@ -67,24 +62,18 @@ public class FastWorldEditExtent extends AbstractDelegateExtent {
                 return EditSession.nullBlock;
             }
         }
-        synchronized (this.thread) {
-            this.lastVector = position.toBlockVector();
-            return this.lastBlock = super.getBlock(position);
-        }
+        this.lastVector = position.toBlockVector();
+        return this.lastBlock = super.getBlock(position);
     }
 
     @Override
     public List<? extends Entity> getEntities() {
-        synchronized (this.thread) {
-            return super.getEntities();
-        }
+        return super.getEntities();
     }
 
     @Override
     public List<? extends Entity> getEntities(final Region region) {
-        synchronized (this.thread) {
-            return super.getEntities(region);
-        }
+        return super.getEntities(region);
     }
 
     @Override

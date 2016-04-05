@@ -26,7 +26,6 @@ public class WEManager {
         } catch (final Exception e) {
             e.printStackTrace();
         }
-        parent = null;
     }
 
     public boolean maskContains(final HashSet<RegionWrapper> mask, final int x, final int z) {

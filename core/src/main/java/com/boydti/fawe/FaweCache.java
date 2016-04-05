@@ -1,6 +1,7 @@
 package com.boydti.fawe;
 
 import com.boydti.fawe.object.PseudoRandom;
+import com.sk89q.worldedit.blocks.BaseBlock;
 
 public class FaweCache {
     public final static short[][][] CACHE_I = new short[256][16][16];
@@ -12,6 +13,8 @@ public class FaweCache {
 
     public final static short[] CACHE_ID = new short[65535];
     public final static byte[] CACHE_DATA = new byte[65535];
+
+    public final static BaseBlock[] CACHE_BLOCK = new BaseBlock[Short.MAX_VALUE];
 
     // Faster than java random (since the game just needs to look random)
     public final static PseudoRandom RANDOM = new PseudoRandom();
@@ -35,6 +38,12 @@ public class FaweCache {
         final int k = i & 0xF;
         CACHE_ID[i] = (short) j;
         CACHE_DATA[i] = (byte) k;
+        }
+
+        for (int i = 0; i < Short.MAX_VALUE; i++) {
+            int id = i >> 4;
+            int data = i & 0xf;
+            CACHE_BLOCK[i] = new BaseBlock(id, data);
         }
     }
     

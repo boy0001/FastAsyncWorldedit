@@ -19,7 +19,6 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
-import org.mcstats.Metrics;
 import org.spongepowered.api.Sponge;
 import org.spongepowered.api.entity.living.player.Player;
 import org.spongepowered.api.text.serializer.TextSerializers;
@@ -129,7 +128,7 @@ public class FaweSponge implements IFawe {
     @Override
     public void startMetrics() {
         try {
-            Metrics metrics = new Metrics(Sponge.getGame(), Sponge.getPluginManager().fromInstance(plugin).get());
+            SpongeMetrics metrics = new SpongeMetrics(Sponge.getGame(), Sponge.getPluginManager().fromInstance(plugin).get());
             metrics.start();
             debug("[FAWE] &6Metrics enabled.");
         } catch (IOException e) {

@@ -3,7 +3,6 @@ package com.boydti.fawe.object;
 import com.boydti.fawe.FaweCache;
 import com.boydti.fawe.object.changeset.FaweChangeSet;
 import com.boydti.fawe.util.FaweQueue;
-import com.boydti.fawe.util.SetQueue;
 import com.sk89q.worldedit.Vector;
 import com.sk89q.worldedit.WorldEditException;
 import com.sk89q.worldedit.blocks.BaseBlock;
@@ -30,6 +29,7 @@ public class HistoryExtent extends AbstractDelegateExtent {
 
     private final com.boydti.fawe.object.changeset.FaweChangeSet changeSet;
     private final FaweQueue queue;
+    private final FaweLimit limit;
 
     /**
      * Create a new instance.
@@ -37,9 +37,10 @@ public class HistoryExtent extends AbstractDelegateExtent {
      * @param extent the extent
      * @param changeSet the change set
      */
-    public HistoryExtent(final String world, final Extent extent, final FaweChangeSet changeSet) {
+    public HistoryExtent(final String world, FaweLimit limit, final Extent extent, final FaweChangeSet changeSet, FaweQueue queue) {
         super(extent);
-        this.queue = SetQueue.IMP.getQueue(world);
+        this.limit = limit;
+        this.queue = queue;
         checkNotNull(changeSet);
         this.changeSet = changeSet;
     }

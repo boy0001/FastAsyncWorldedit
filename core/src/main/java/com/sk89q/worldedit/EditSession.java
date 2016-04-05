@@ -24,6 +24,7 @@ import com.boydti.fawe.FaweCache;
 import com.boydti.fawe.config.BBC;
 import com.boydti.fawe.config.Settings;
 import com.boydti.fawe.object.EditSessionWrapper;
+import com.boydti.fawe.object.FaweLimit;
 import com.boydti.fawe.object.FawePlayer;
 import com.boydti.fawe.object.NullChangeSet;
 import com.boydti.fawe.object.RegionWrapper;
@@ -35,8 +36,10 @@ import com.boydti.fawe.object.extent.NullExtent;
 import com.boydti.fawe.object.extent.ProcessedWEExtent;
 import com.boydti.fawe.object.extent.SafeExtentWrapper;
 import com.boydti.fawe.util.ExtentWrapper;
+import com.boydti.fawe.util.FaweQueue;
 import com.boydti.fawe.util.MemUtil;
 import com.boydti.fawe.util.Perm;
+import com.boydti.fawe.util.SetQueue;
 import com.boydti.fawe.util.TaskManager;
 import com.boydti.fawe.util.WEManager;
 import com.sk89q.worldedit.blocks.BaseBlock;
@@ -153,14 +156,14 @@ public class EditSession implements Extent {
     protected final World world;
     private FaweChangeSet changeSet;
     private final EditSessionWrapper wrapper;
-    private @Nullable Extent changeSetExtent;
     private MaskingExtent maskingExtent;
-    private @Nullable ProcessedWEExtent processed;
     private final Extent bypassReorderHistory;
     private final Extent bypassHistory;
     private final Extent bypassNone;
     private boolean fastmode;
     private Mask oldMask;
+    private FaweLimit limit = FaweLimit.MAX;
+    private FaweQueue queue;
 
     public static BaseBiome nullBiome = new BaseBiome(0);
     public static BaseBlock nullBlock = new BaseBlock(0);
@@ -190,8 +193,6 @@ public class EditSession implements Extent {
         this(WorldEdit.getInstance().getEventBus(), world, maxBlocks, blockBag, new EditSessionEvent(world, null, maxBlocks, null));
     }
 
-    private final Thread thread;
-
     private int changes = 0;
     private int maxBlocks;
     private BlockBag blockBag;
@@ -212,7 +213,6 @@ public class EditSession implements Extent {
 
         this.blockBag = blockBag;
         this.maxBlocks = maxBlocks;
-        this.thread = Fawe.get().getMainThread();
         this.world = world;
         this.wrapper = Fawe.imp().getEditSessionWrapper(this);
         //        this.changeSet = new BlockOptimizedHistory();
@@ -227,10 +227,10 @@ public class EditSession implements Extent {
             return;
         }
         final Actor actor = event.getActor();
-
+        this.queue = SetQueue.IMP.getQueue(world.getName());
         // Not a player; bypass history
         if ((actor == null) || !actor.isPlayer()) {
-            Extent extent = new FastWorldEditExtent(world, this.thread);
+            Extent extent = new FastWorldEditExtent(world, queue);
             // Everything bypasses
             extent = this.wrapExtent(extent, eventBus, event, Stage.BEFORE_CHANGE);
             extent = this.wrapExtent(extent, eventBus, event, Stage.BEFORE_REORDER);
@@ -246,9 +246,10 @@ public class EditSession implements Extent {
         final String name = actor.getName();
         final FawePlayer<Object> fp = FawePlayer.wrap(name);
         final LocalSession session = fp.getSession();
+        this.fastmode = session.hasFastMode();
         if (fp.hasWorldEditBypass()) {
             // Bypass skips processing and area restrictions
-            extent = new FastWorldEditExtent(world, this.thread);
+            extent = new FastWorldEditExtent(world, queue);
             if (this.hasFastMode()) {
                 // Fastmode skips history and memory checks
                 extent = this.wrapExtent(extent, eventBus, event, Stage.BEFORE_CHANGE);
@@ -260,6 +261,7 @@ public class EditSession implements Extent {
                 return;
             }
         } else {
+            this.limit = fp.getLimit();
             final HashSet<RegionWrapper> mask = WEManager.IMP.getMask(fp);
             if (mask.size() == 0) {
                 if (Perm.hasPermission(fp, "fawe.admin")) {
@@ -275,7 +277,8 @@ public class EditSession implements Extent {
                 return;
             }
             // Process the WorldEdit action
-            extent = this.processed = new ProcessedWEExtent(world, this.thread, fp, mask, maxBlocks);
+            ProcessedWEExtent processed = new ProcessedWEExtent(world, fp, mask, limit, queue);
+            extent = processed;
             if (this.hasFastMode()) {
                 // Fastmode skips history, masking, and memory checks
                 extent = this.wrapExtent(extent, eventBus, event, Stage.BEFORE_CHANGE);
@@ -283,7 +286,7 @@ public class EditSession implements Extent {
                 extent = this.wrapExtent(extent, eventBus, event, Stage.BEFORE_HISTORY);
                 extent = new ExtentWrapper(extent);
                 // Set the parent. This allows efficient cancelling
-                this.processed.setParent(extent);
+                processed.setParent(extent);
                 this.bypassReorderHistory = extent;
                 this.bypassHistory = extent;
                 this.bypassNone = extent;
@@ -304,13 +307,13 @@ public class EditSession implements Extent {
             }
             // Perform memory checks after reorder
             extent = new SafeExtentWrapper(fp, extent);
-            this.processed.setParent(extent);
+            processed.setParent(extent);
         }
         // Include history, masking and memory checking.
         Extent wrapped;
         extent = wrapped = this.wrapExtent(extent, eventBus, event, Stage.BEFORE_CHANGE);
         extent = this.wrapExtent(extent, eventBus, event, Stage.BEFORE_REORDER);
-        extent = this.changeSetExtent = this.wrapper.getHistoryExtent(extent, this.changeSet, fp);
+        extent = this.wrapper.getHistoryExtent(world.getName(), limit, extent, this.changeSet, queue, fp);
         final Player skp = (Player) actor;
         final int item = skp.getItemInHand();
         boolean hasMask = session.getMask() != null;
@@ -386,10 +389,7 @@ public class EditSession implements Extent {
      * @param limit the limit (&gt;= 0) or -1 for no limit
      */
     public void setBlockChangeLimit(final int limit) {
-        if (this.processed != null) {
-            this.maxBlocks = limit;
-            this.processed.setMax(limit);
-        }
+        // Nothing
     }
 
     /**
@@ -531,9 +531,7 @@ public class EditSession implements Extent {
 
     @Override
     public BaseBiome getBiome(final Vector2D position) {
-        synchronized (this.thread) {
-            return this.bypassNone.getBiome(position);
-        }
+        return this.bypassNone.getBiome(position);
     }
 
     @Override
@@ -544,16 +542,19 @@ public class EditSession implements Extent {
 
     @Override
     public BaseBlock getLazyBlock(final Vector position) {
-        synchronized (this.thread) {
-            return this.world.getBlock(position);
+        if (limit != null && limit.MAX_CHECKS-- < 0) {
+            return nullBlock;
         }
+        int combinedId4Data = queue.getCombinedId4Data(position.getBlockX(), position.getBlockY(), position.getBlockZ());
+        if (!FaweCache.hasNBT(combinedId4Data >> 4)) {
+            return FaweCache.CACHE_BLOCK[combinedId4Data];
+        }
+        return this.world.getLazyBlock(position);
     }
 
     @Override
-    public synchronized BaseBlock getBlock(final Vector position) {
-        synchronized (this.thread) {
-            return this.world.getBlock(position);
-        }
+    public BaseBlock getBlock(final Vector position) {
+        return this.getLazyBlock(position);
     }
 
     /**
@@ -564,10 +565,12 @@ public class EditSession implements Extent {
      * @deprecated Use {@link #getLazyBlock(Vector)} or {@link #getBlock(Vector)}
      */
     @Deprecated
-    public synchronized int getBlockType(final Vector position) {
-        synchronized (this.thread) {
-            return this.world.getBlockType(position);
+    public int getBlockType(final Vector position) {
+        if (limit != null && limit.MAX_CHECKS-- < 0) {
+            return 0;
         }
+        int combinedId4Data = queue.getCombinedId4Data(position.getBlockX(), position.getBlockY(), position.getBlockZ());
+        return combinedId4Data >> 4;
     }
 
     /**
@@ -578,10 +581,12 @@ public class EditSession implements Extent {
      * @deprecated Use {@link #getLazyBlock(Vector)} or {@link #getBlock(Vector)}
      */
     @Deprecated
-    public synchronized int getBlockData(final Vector position) {
-        synchronized (this.thread) {
-            return this.world.getBlockData(position);
+    public int getBlockData(final Vector position) {
+        if (limit != null && limit.MAX_CHECKS-- < 0) {
+            return 0;
         }
+        int combinedId4Data = queue.getCombinedId4Data(position.getBlockX(), position.getBlockY(), position.getBlockZ());
+        return combinedId4Data & 0xF;
     }
 
     /**
@@ -593,7 +598,7 @@ public class EditSession implements Extent {
      */
     @Deprecated
     public BaseBlock rawGetBlock(final Vector position) {
-        return this.getBlock(position);
+        return this.getLazyBlock(position);
     }
 
     /**
