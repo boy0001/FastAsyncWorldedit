@@ -88,6 +88,9 @@ public class SpongeQueue_1_8 extends SpongeQueue_0 {
 
     @Override
     public int getCombinedId4Data(int x, int y, int z) {
+        if (y < 0 || y > 255) {
+            return 0;
+        }
         int cx = x >> 4;
         int cz = z >> 4;
         int cy = y >> 4;

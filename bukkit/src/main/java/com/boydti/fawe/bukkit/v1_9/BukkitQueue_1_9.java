@@ -232,6 +232,9 @@ public class BukkitQueue_1_9 extends BukkitQueue_0 {
 
     @Override
     public int getCombinedId4Data(int x, int y, int z) {
+        if (y < 0 || y > 255) {
+            return 0;
+        }
         try {
             int cx = x >> 4;
             int cz = z >> 4;
