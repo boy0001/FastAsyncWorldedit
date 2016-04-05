@@ -2,6 +2,7 @@ package com.boydti.fawe.object.changeset;
 
 import com.boydti.fawe.Fawe;
 import com.boydti.fawe.FaweCache;
+import com.boydti.fawe.config.BBC;
 import com.boydti.fawe.config.Settings;
 import com.boydti.fawe.util.MainUtil;
 import com.boydti.fawe.util.ReflectionUtils;
@@ -141,7 +142,7 @@ public class DiskStorageHistory implements ChangeSet, FaweChangeSet {
         if ((change instanceof BlockChange)) {
             add((BlockChange) change);
         } else {
-            Fawe.debug("[FAWE] Does not support " + change + " yet! (Please bug Empire92)");
+            Fawe.debug(BBC.PREFIX.s() + "Does not support " + change + " yet! (Please bug Empire92)");
         }
     }
     

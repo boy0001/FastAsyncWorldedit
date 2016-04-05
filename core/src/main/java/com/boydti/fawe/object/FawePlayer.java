@@ -1,6 +1,7 @@
 package com.boydti.fawe.object;
 
 import com.boydti.fawe.Fawe;
+import com.boydti.fawe.config.BBC;
 import com.boydti.fawe.config.Settings;
 import com.boydti.fawe.object.changeset.DiskStorageHistory;
 import com.boydti.fawe.util.WEManager;
@@ -53,7 +54,7 @@ public abstract class FawePlayer<T> {
                     }
                 }
                 if (editIds.size() > 0) {
-                    Fawe.debug("[FAWE] Indexing " + editIds.size() + " history objects for " + getName());
+                    Fawe.debug(BBC.PREFIX.s() + " Indexing " + editIds.size() + " history objects for " + getName());
                     for (int index : editIds) {
                         DiskStorageHistory set = new DiskStorageHistory(world, uuid, index);
                         EditSession edit = set.toEditSession(getPlayer());

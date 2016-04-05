@@ -292,7 +292,7 @@ public final class CommandManager {
                             SetQueue.IMP.addTask(new Runnable() {
                                 @Override
                                 public void run() {
-                                    actor.print("[FAWE] Action completed in " + (time / 1000d) + " seconds");
+                                    actor.print(BBC.PREFIX.s() + " Action completed in " + (time / 1000d) + " seconds");
                                 }
                             });
                         }

@@ -2,6 +2,7 @@ package com.boydti.fawe.object.changeset;
 
 import com.boydti.fawe.Fawe;
 import com.boydti.fawe.FaweCache;
+import com.boydti.fawe.config.BBC;
 import com.boydti.fawe.config.Settings;
 import com.boydti.fawe.util.MainUtil;
 import com.boydti.fawe.util.ReflectionUtils;
@@ -290,7 +291,7 @@ public class MemoryOptimizedHistory implements ChangeSet, FaweChangeSet {
                 int saved = total - ids.length;
                 if (ratio > 3) {
                     // TODO remove this debug message
-                    Fawe.debug("[FAWE] History compressed. Saved ~ " + saved + "b (" + ratio + "x smaller)");
+                    Fawe.debug(BBC.PREFIX.s() + "History compressed. Saved ~ " + saved + "b (" + ratio + "x smaller)");
                 }
                 idsStream = null;
                 idsStreamZip = null;
