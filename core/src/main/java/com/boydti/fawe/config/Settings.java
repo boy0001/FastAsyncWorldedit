@@ -24,6 +24,8 @@ public class Settings {
     public static int COMPRESSION_LEVEL = 0;
     public static int BUFFER_SIZE = 531441;
     public static boolean METRICS = true;
+    public static int CHUNK_WAIT = 0;
+    public static boolean REGION_RESTRICTIONS = true;
 
     public static HashMap<String, FaweLimit> limits;
 
@@ -66,6 +68,9 @@ public class Settings {
         options.put("fix-all-lighting", FIX_ALL_LIGHTING);
         options.put("history.use-disk", STORE_HISTORY_ON_DISK);
         options.put("history.compress", false);
+        options.put("history.chunk-wait-ms", CHUNK_WAIT);
+        options.put("history.buffer-size", BUFFER_SIZE);
+        options.put("region-restrictions", REGION_RESTRICTIONS);
         options.put("metrics", METRICS);
 
         // Default limit
@@ -91,9 +96,11 @@ public class Settings {
         REQUIRE_SELECTION = config.getBoolean("require-selection-in-mask");
         WE_BLACKLIST = config.getStringList("command-blacklist");
         ENABLE_HARD_LIMIT = config.getBoolean("crash-mitigation");
+        REGION_RESTRICTIONS = config.getBoolean("region-restrictions");
         METRICS = config.getBoolean("metrics");
         COMPRESSION_LEVEL = config.getInt("history.compression-level", config.getBoolean("history.compress") ? 1 : 0);
-        BUFFER_SIZE = config.getInt("history.buffer-size", 59049);
+        BUFFER_SIZE = config.getInt("history.buffer-size", BUFFER_SIZE);
+        CHUNK_WAIT = config.getInt("history.chunk-wait-ms");
         if (STORE_HISTORY_ON_DISK = config.getBoolean("history.use-disk")) {
             LocalSession.MAX_HISTORY_SIZE = Integer.MAX_VALUE;
         }

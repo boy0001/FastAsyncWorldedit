@@ -549,7 +549,11 @@ public class EditSession implements Extent {
         if (!FaweCache.hasNBT(combinedId4Data >> 4)) {
             return FaweCache.CACHE_BLOCK[combinedId4Data];
         }
-        return this.world.getLazyBlock(position);
+        try {
+            return this.world.getLazyBlock(position);
+        } catch (Throwable e) {
+            return FaweCache.CACHE_BLOCK[combinedId4Data];
+        }
     }
 
     @Override

@@ -74,7 +74,7 @@ public class BukkitQueue_1_8 extends BukkitQueue_0 {
     private RefMethod methodGetWorld;
     private RefField tileEntityListTick;
 
-    public BukkitQueue_1_8(String world) {
+    public BukkitQueue_1_8(final String world) {
         super(world);
         try {
             this.methodGetHandlePlayer = this.classCraftPlayer.getMethod("getHandle");
@@ -95,6 +95,69 @@ public class BukkitQueue_1_8 extends BukkitQueue_0 {
         } catch (final NoSuchMethodException e) {
             e.printStackTrace();
         }
+        TaskManager.IMP.repeat(new Runnable() {
+            @Override
+            public void run() {
+                synchronized (loadQueue) {
+                    while (loadQueue.size() > 0) {
+                        IntegerPair loc = loadQueue.poll();
+                        if (bukkitWorld == null) {
+                            bukkitWorld = Bukkit.getServer().getWorld(world);
+                        }
+                        if (!bukkitWorld.isChunkLoaded(loc.x, loc.z)) {
+                            bukkitWorld.loadChunk(loc.x, loc.z);
+                        }
+                    }
+                    loadQueue.notifyAll();
+                }
+            }
+        }, 1);
+    }
+
+    private ArrayDeque<IntegerPair> loadQueue = new ArrayDeque<>();
+
+    @Override
+    public int getCombinedId4Data(int x, int y, int z) {
+        if (y < 0 || y > 255) {
+            return 0;
+        }
+        int cx = x >> 4;
+        int cz = z >> 4;
+        int cy = y >> 4;
+        if (cx != lcx || cz != lcz) {
+            if (bukkitWorld == null) {
+                bukkitWorld = Bukkit.getServer().getWorld(world);
+            }
+            lcx = cx;
+            lcz = cz;
+            if (!bukkitWorld.isChunkLoaded(cx, cz)) {
+                if (Settings.CHUNK_WAIT > 0) {
+                    synchronized (loadQueue) {
+                        loadQueue.add(new IntegerPair(cx, cz));
+                        try {
+                            loadQueue.wait(Settings.CHUNK_WAIT);
+                        } catch (InterruptedException e) {
+                            e.printStackTrace();
+                        }
+                    }
+                    if (!bukkitWorld.isChunkLoaded(cx, cz)) {
+                        return 0;
+                    }
+                } else {
+                    return 0;
+                }
+            }
+            lc = methodGetHandleChunk.of(bukkitWorld.getChunkAt(cx, cz)).call();
+        } else if (cy == lcy) {
+            return ls != null ? ls[FaweCache.CACHE_J[y][x & 15][z & 15]] : 0;
+        }
+        Object storage = ((Object[]) fieldSections.of(lc).get())[cy];
+        if (storage == null) {
+            ls = null;
+            return 0;
+        }
+        ls = getIdArray(storage);
+        return ls[FaweCache.CACHE_J[y][x & 15][z & 15]];
     }
 
     @Override
@@ -254,36 +317,6 @@ public class BukkitQueue_1_8 extends BukkitQueue_0 {
     private Object lc;
     private char[] ls;
     private World bukkitWorld;
-
-    @Override
-    public int getCombinedId4Data(int x, int y, int z) {
-        if (y < 0 || y > 255) {
-            return 0;
-        }
-        int cx = x >> 4;
-        int cz = z >> 4;
-        int cy = y >> 4;
-        if (cx != lcx || cz != lcz) {
-            if (bukkitWorld == null) {
-                bukkitWorld = Bukkit.getServer().getWorld(world);
-            }
-            lcx = cx;
-            lcz = cz;
-            if (!bukkitWorld.isChunkLoaded(cx, cz)) {
-                return 0;
-            }
-            lc = methodGetHandleChunk.of(bukkitWorld.getChunkAt(cx, cz)).call();
-        } else if (cy == lcy) {
-            return ls != null ? ls[FaweCache.CACHE_J[y][x & 15][z & 15]] : 0;
-        }
-        Object storage = ((Object[]) fieldSections.of(lc).get())[cy];
-        if (storage == null) {
-            ls = null;
-            return 0;
-        }
-        ls = getIdArray(storage);
-        return ls[FaweCache.CACHE_J[y][x & 15][z & 15]];
-    }
 
     @Override
     public boolean setComponents(final FaweChunk<Chunk> fc) {

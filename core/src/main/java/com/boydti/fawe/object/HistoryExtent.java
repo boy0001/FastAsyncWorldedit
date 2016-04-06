@@ -69,7 +69,11 @@ public class HistoryExtent extends AbstractDelegateExtent {
                     this.changeSet.add(x, y, z, combined, (block.getId() << 4) + block.getData());
                 }
             } else {
-                this.changeSet.add(location, getBlock(location), block);
+                try {
+                    this.changeSet.add(location, getBlock(location), block);
+                } catch (Throwable e) {
+                    this.changeSet.add(x, y, z, combined, block);
+                }
             }
             return true;
         }

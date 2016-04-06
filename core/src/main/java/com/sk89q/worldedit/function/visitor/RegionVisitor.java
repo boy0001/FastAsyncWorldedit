@@ -19,14 +19,13 @@
 
 package com.sk89q.worldedit.function.visitor;
 
-import com.sk89q.worldedit.BlockVector;
+import com.sk89q.worldedit.Vector;
 import com.sk89q.worldedit.WorldEditException;
 import com.sk89q.worldedit.function.RegionFunction;
 import com.sk89q.worldedit.function.operation.Operation;
 import com.sk89q.worldedit.function.operation.Operations;
 import com.sk89q.worldedit.function.operation.RunContext;
 import com.sk89q.worldedit.regions.Region;
-import java.util.Iterator;
 import java.util.List;
 
 /**
@@ -34,15 +33,13 @@ import java.util.List;
  */
 public class RegionVisitor implements Operation {
 
+    private final Region region;
     private final RegionFunction function;
     private int affected = 0;
 
-    private final Iterator<BlockVector> iterator;
-
-    public RegionVisitor(final Region region, final RegionFunction function) {
+    public RegionVisitor(Region region, RegionFunction function) {
+        this.region = region;
         this.function = function;
-        this.iterator = region.iterator();
-
     }
 
     /**
@@ -56,11 +53,12 @@ public class RegionVisitor implements Operation {
 
     @Override
     public Operation resume(final RunContext run) throws WorldEditException {
-        while (this.iterator.hasNext()) {
-            if (this.function.apply(this.iterator.next())) {
+        for (Vector pt : region) {
+            if (function.apply(pt)) {
                 affected++;
             }
         }
+
         return null;
     }
 

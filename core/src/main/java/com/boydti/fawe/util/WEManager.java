@@ -1,6 +1,7 @@
 package com.boydti.fawe.util;
 
 import com.boydti.fawe.config.BBC;
+import com.boydti.fawe.config.Settings;
 import com.boydti.fawe.object.FawePlayer;
 import com.boydti.fawe.object.RegionWrapper;
 import com.boydti.fawe.object.extent.NullExtent;
@@ -39,7 +40,7 @@ public class WEManager {
 
     public HashSet<RegionWrapper> getMask(final FawePlayer<?> player) {
         final HashSet<RegionWrapper> regions = new HashSet<>();
-        if (player.hasPermission("fawe.bypass")) {
+        if (player.hasPermission("fawe.bypass") || !Settings.REGION_RESTRICTIONS) {
             regions.add(new RegionWrapper(Integer.MIN_VALUE, Integer.MAX_VALUE, Integer.MIN_VALUE, Integer.MAX_VALUE));
             return regions;
         }

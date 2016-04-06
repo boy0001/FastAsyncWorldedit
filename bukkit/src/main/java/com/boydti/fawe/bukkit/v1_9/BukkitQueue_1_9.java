@@ -70,7 +70,7 @@ public class BukkitQueue_1_9 extends BukkitQueue_0 {
     private final RefMethod methodGetWorld;
     private final RefField tileEntityListTick;
 
-    public BukkitQueue_1_9(String world) throws NoSuchMethodException, RuntimeException {
+    public BukkitQueue_1_9(final String world) throws NoSuchMethodException, RuntimeException {
         super(world);
         this.methodGetHandleChunk = this.classCraftChunk.getMethod("getHandle");
         this.methodInitLighting = this.classChunk.getMethod("initLighting");
@@ -87,6 +87,71 @@ public class BukkitQueue_1_9 extends BukkitQueue_0 {
         this.tileEntityListTick = this.classWorld.getField("tileEntityListTick");
         this.methodGetWorld = this.classChunk.getMethod("getWorld");
         this.methodGetCombinedId = classBlock.getMethod("getCombinedId", classIBlockData.getRealClass());
+        TaskManager.IMP.repeat(new Runnable() {
+            @Override
+            public void run() {
+                synchronized (loadQueue) {
+                    if (loadQueue.size() > 0) {
+                        Fawe.debug("Loading " + loadQueue.size() + " chunks.");
+                    }
+                    while (loadQueue.size() > 0) {
+                        IntegerPair loc = loadQueue.poll();
+                        if (bukkitWorld == null) {
+                            bukkitWorld = Bukkit.getServer().getWorld(world);
+                        }
+                        if (!bukkitWorld.isChunkLoaded(loc.x, loc.z)) {
+                            bukkitWorld.loadChunk(loc.x, loc.z);
+                        }
+                    }
+                    loadQueue.notifyAll();
+                }
+            }
+        }, 1);
+    }
+
+    private ArrayDeque<IntegerPair> loadQueue = new ArrayDeque<>();
+
+    @Override
+    public int getCombinedId4Data(int x, int y, int z) {
+        if (y < 0 || y > 255) {
+            return 0;
+        }
+        try {
+            int cx = x >> 4;
+            int cz = z >> 4;
+            int cy = y >> 4;
+            if (cx != lcx || cz != lcz) {
+                if (bukkitWorld == null) {
+                    bukkitWorld = Bukkit.getServer().getWorld(world);
+                }
+                lcx = cx;
+                lcz = cz;
+                if (!bukkitWorld.isChunkLoaded(cx, cz)) {
+                    if (Settings.CHUNK_WAIT > 0) {
+                        synchronized (loadQueue) {
+                            loadQueue.add(new IntegerPair(cx, cz));
+                            try {
+                                loadQueue.wait(Settings.CHUNK_WAIT);
+                            } catch (InterruptedException e) {
+                                e.printStackTrace();
+                            }
+                        }
+                        if (!bukkitWorld.isChunkLoaded(cx, cz)) {
+                            return 0;
+                        }
+                    } else {
+                        return 0;
+                    }
+                }
+                lc = methodGetType.of(methodGetHandleChunk.of(bukkitWorld.getChunkAt(cx, cz)).call());
+            }
+            int combined = (int) methodGetCombinedId.call(lc.call(x & 15, y, z & 15));
+            return ((combined & 4095) << 4) + (combined >> 12);
+        }
+        catch (Throwable e) {
+            e.printStackTrace();
+        }
+        return 0;
     }
 
     @Override
@@ -229,35 +294,6 @@ public class BukkitQueue_1_9 extends BukkitQueue_0 {
     private int lcy = Integer.MIN_VALUE;
     private RefExecutor lc;
     private World bukkitWorld;
-
-    @Override
-    public int getCombinedId4Data(int x, int y, int z) {
-        if (y < 0 || y > 255) {
-            return 0;
-        }
-        try {
-            int cx = x >> 4;
-            int cz = z >> 4;
-            int cy = y >> 4;
-            if (cx != lcx || cz != lcz) {
-                if (bukkitWorld == null) {
-                    bukkitWorld = Bukkit.getServer().getWorld(world);
-                }
-                lcx = cx;
-                lcz = cz;
-                if (!bukkitWorld.isChunkLoaded(cx, cz)) {
-                    return 0;
-                }
-                lc = methodGetType.of(methodGetHandleChunk.of(bukkitWorld.getChunkAt(cx, cz)).call());
-            }
-            int combined = (int) methodGetCombinedId.call(lc.call(x & 15, y, z & 15));
-            return ((combined & 4095) << 4) + (combined >> 12);
-        }
-        catch (Throwable e) {
-            e.printStackTrace();
-        }
-        return 0;
-    }
 
     @Override
     public boolean setComponents(final FaweChunk<Chunk> pc) {

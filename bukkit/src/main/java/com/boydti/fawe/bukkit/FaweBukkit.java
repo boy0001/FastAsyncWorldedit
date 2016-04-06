@@ -24,7 +24,6 @@ import com.boydti.fawe.util.TaskManager;
 import com.sk89q.worldedit.EditSession;
 import com.sk89q.worldedit.bukkit.WorldEditPlugin;
 import java.io.File;
-import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
@@ -59,13 +58,6 @@ public class FaweBukkit extends JavaPlugin implements IFawe, Listener {
         try {
             Bukkit.getPluginManager().registerEvents(this, this);
             Fawe.set(this);
-            try {
-                final Class<?> clazz = Class.forName("org.spigotmc.AsyncCatcher");
-                final Field field = clazz.getDeclaredField("enabled");
-                field.set(null, false);
-            } catch (final Throwable e) {
-                e.printStackTrace();
-            }
         } catch (final Throwable e) {
             e.printStackTrace();
             this.getServer().shutdown();

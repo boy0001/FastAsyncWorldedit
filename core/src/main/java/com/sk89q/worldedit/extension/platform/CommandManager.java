@@ -237,7 +237,7 @@ public final class CommandManager {
                 locals.put(Actor.class, actor);
                 locals.put("arguments", event.getArguments());
                 
-                long start = System.currentTimeMillis();
+                final long start = System.currentTimeMillis();
                 FawePlayer fp;
                 if (actor.isPlayer()) {
                     fp = Fawe.imp().wrap(actor.getName());
@@ -292,6 +292,7 @@ public final class CommandManager {
                             SetQueue.IMP.addTask(new Runnable() {
                                 @Override
                                 public void run() {
+                                    final long time = System.currentTimeMillis() - start;
                                     actor.print(BBC.PREFIX.s() + " Action completed in " + (time / 1000d) + " seconds");
                                 }
                             });

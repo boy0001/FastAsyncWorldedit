@@ -28,7 +28,10 @@ public class PlotSquaredFeature extends FaweMaskManager {
             int min = Integer.MAX_VALUE;
             for (final Plot p : pp.getPlots()) {
                 if (p.getArea().worldname.equals(world)) {
-                    final double d = p.getHome().getEuclideanDistanceSquared(loc);
+                    Location bot = p.getBottomAbs();
+                    Location top = p.getTopAbs();
+                    Location center = new Location(bot.getWorld(), (bot.getX() + top.getX())/2, 0, (bot.getZ() + top.getZ()) / 2);
+                    final double d = center.getEuclideanDistanceSquared(loc);
                     if (d < min) {
                         min = (int) d;
                         plot = p;

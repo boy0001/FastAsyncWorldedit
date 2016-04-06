@@ -5,9 +5,11 @@ import com.boydti.fawe.config.Settings;
 import com.boydti.fawe.forge.SpongeUtil;
 import com.boydti.fawe.forge.v0.SpongeQueue_0;
 import com.boydti.fawe.object.FaweChunk;
+import com.boydti.fawe.object.IntegerPair;
 import com.boydti.fawe.object.PseudoRandom;
 import com.boydti.fawe.util.TaskManager;
 import com.flowpowered.math.vector.Vector3i;
+import java.util.ArrayDeque;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.Map;
@@ -34,6 +36,69 @@ public class SpongeQueue_1_8 extends SpongeQueue_0 {
 
     public SpongeQueue_1_8(String world) {
         super(world);
+        TaskManager.IMP.repeat(() -> {
+            synchronized (loadQueue) {
+                while (loadQueue.size() > 0) {
+                    IntegerPair loc = loadQueue.poll();
+                    if (spongeWorld == null) {
+                        spongeWorld = Sponge.getServer().getWorld(world).get();
+                    }
+                    Chunk chunk = spongeWorld.getChunk(loc.x, 0, loc.z).orElse(null);
+                    if (chunk == null || !chunk.isLoaded()) {
+                        spongeWorld.loadChunk(loc.x, 0, loc.z, true);
+                    }
+                }
+                loadQueue.notifyAll();
+            }
+        }, 1);
+    }
+
+    private ArrayDeque<IntegerPair> loadQueue = new ArrayDeque<>();
+
+    @Override
+    public int getCombinedId4Data(int x, int y, int z) {
+        if (y < 0 || y > 255) {
+            return 0;
+        }
+        int cx = x >> 4;
+        int cz = z >> 4;
+        int cy = y >> 4;
+        if (cx != lcx || cz != lcz) {
+            if (spongeWorld == null) {
+                spongeWorld = Sponge.getServer().getWorld(world).get();
+            }
+            lcx = cx;
+            lcz = cz;
+            Chunk chunk = spongeWorld.getChunk(cx, 0, cz).orElse(null);
+            if (chunk == null || !chunk.isLoaded()) {
+                if (Settings.CHUNK_WAIT > 0) {
+                    synchronized (loadQueue) {
+                        loadQueue.add(new IntegerPair(cx, cz));
+                        try {
+                            loadQueue.wait(Settings.CHUNK_WAIT);
+                        } catch (InterruptedException e) {
+                            e.printStackTrace();
+                        }
+                    }
+                    chunk = spongeWorld.getChunk(cx, 0, cz).orElse(null);
+                    if (chunk == null || !chunk.isLoaded()) {
+                        return 0;
+                    }
+                } else {
+                    return 0;
+                }
+            }
+            lc = (net.minecraft.world.chunk.Chunk) chunk;
+        } else if (cy == lcy) {
+            return ls != null ? ls[FaweCache.CACHE_J[y][x & 15][z & 15]] : 0;
+        }
+        ExtendedBlockStorage storage = lc.getBlockStorageArray()[cy];
+        if (storage == null) {
+            ls = null;
+            return 0;
+        }
+        ls = storage.getData();
+        return ls[FaweCache.CACHE_J[y][x & 15][z & 15]];
     }
 
     @Override
@@ -85,33 +150,6 @@ public class SpongeQueue_1_8 extends SpongeQueue_0 {
     private int lcy = Integer.MIN_VALUE;
     private net.minecraft.world.chunk.Chunk lc;
     private char[] ls;
-
-    @Override
-    public int getCombinedId4Data(int x, int y, int z) {
-        if (y < 0 || y > 255) {
-            return 0;
-        }
-        int cx = x >> 4;
-        int cz = z >> 4;
-        int cy = y >> 4;
-        if (cx != lcx || cz != lcz) {
-            if (spongeWorld == null) {
-                spongeWorld = Sponge.getServer().getWorld(world).get();
-            }
-            lcx = cx;
-            lcz = cz;
-            lc = (net.minecraft.world.chunk.Chunk) spongeWorld.getChunk(cx, 0, cz).get();
-        } else if (cy == lcy) {
-            return ls != null ? ls[FaweCache.CACHE_J[y][x & 15][z & 15]] : 0;
-        }
-        ExtendedBlockStorage storage = lc.getBlockStorageArray()[cy];
-        if (storage == null) {
-            ls = null;
-            return 0;
-        }
-        ls = storage.getData();
-        return ls[FaweCache.CACHE_J[y][x & 15][z & 15]];
-    }
 
     @Override
     public boolean setComponents(FaweChunk<Chunk> fc) {
