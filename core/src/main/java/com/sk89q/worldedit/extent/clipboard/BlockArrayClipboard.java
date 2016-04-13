@@ -29,6 +29,7 @@ import com.sk89q.worldedit.blocks.BaseBlock;
 import com.sk89q.worldedit.blocks.BlockID;
 import com.sk89q.worldedit.entity.BaseEntity;
 import com.sk89q.worldedit.entity.Entity;
+import com.sk89q.worldedit.extent.Extent;
 import com.sk89q.worldedit.function.operation.Operation;
 import com.sk89q.worldedit.regions.Region;
 import com.sk89q.worldedit.util.Location;
@@ -304,9 +305,15 @@ public class BlockArrayClipboard implements Clipboard {
     /**
      * Stores entity data.
      */
-    private class ClipboardEntity extends StoredEntity {
+    private class ClipboardEntity implements Entity {
+        private final Location location;
+        private final BaseEntity entity;
+
         ClipboardEntity(Location location, BaseEntity entity) {
-            super(location, entity);
+            checkNotNull(location);
+            checkNotNull(entity);
+            this.location = location;
+            this.entity = new BaseEntity(entity);
         }
 
         @Override
@@ -319,6 +326,31 @@ public class BlockArrayClipboard implements Clipboard {
         public <T> T getFacet(Class<? extends T> cls) {
             return null;
         }
+
+        /**
+         * Get the entity state. This is not a copy.
+         *
+         * @return the entity
+         */
+        BaseEntity getEntity() {
+            return entity;
+        }
+
+        @Override
+        public BaseEntity getState() {
+            return new BaseEntity(entity);
+        }
+
+        @Override
+        public Location getLocation() {
+            return location;
+        }
+
+        @Override
+        public Extent getExtent() {
+            return location.getExtent();
+        }
+
     }
 
     public static Class<?> inject() {

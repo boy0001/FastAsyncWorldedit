@@ -61,7 +61,7 @@ public class SetQueue {
                         return;
                     }
                 }
-                final long free = 50 + Math.min((50 + SetQueue.this.last) - (SetQueue.this.last = System.currentTimeMillis()), SetQueue.this.last2 - System.currentTimeMillis());
+                final long free = Settings.ALLOCATE + 50 + Math.min((50 + SetQueue.this.last) - (SetQueue.this.last = System.currentTimeMillis()), SetQueue.this.last2 - System.currentTimeMillis());
                 SetQueue.this.time_current.incrementAndGet();
                 do {
                     if (SetQueue.this.isWaiting()) {

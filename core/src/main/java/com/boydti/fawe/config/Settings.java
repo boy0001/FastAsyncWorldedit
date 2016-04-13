@@ -26,6 +26,7 @@ public class Settings {
     public static boolean METRICS = true;
     public static int CHUNK_WAIT = 0;
     public static boolean REGION_RESTRICTIONS = true;
+    public static int ALLOCATE = 0;
 
     public static HashMap<String, FaweLimit> limits;
 
@@ -71,6 +72,7 @@ public class Settings {
         options.put("history.chunk-wait-ms", CHUNK_WAIT);
         options.put("history.buffer-size", BUFFER_SIZE);
         options.put("region-restrictions", REGION_RESTRICTIONS);
+        options.put("queue.extra-time-ms", ALLOCATE);
         options.put("metrics", METRICS);
 
         // Default limit
@@ -101,6 +103,7 @@ public class Settings {
         COMPRESSION_LEVEL = config.getInt("history.compression-level", config.getBoolean("history.compress") ? 1 : 0);
         BUFFER_SIZE = config.getInt("history.buffer-size", BUFFER_SIZE);
         CHUNK_WAIT = config.getInt("history.chunk-wait-ms");
+        ALLOCATE = config.getInt("queue.extra-time-ms");
         if (STORE_HISTORY_ON_DISK = config.getBoolean("history.use-disk")) {
             LocalSession.MAX_HISTORY_SIZE = Integer.MAX_VALUE;
         }

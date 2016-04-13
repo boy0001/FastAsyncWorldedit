@@ -1,5 +1,9 @@
 package com.boydti.fawe.util;
 
+import com.intellectualcrafters.plot.object.RunnableVal;
+import java.util.Collection;
+import java.util.Iterator;
+
 public abstract class TaskManager {
 
     public static TaskManager IMP;
@@ -17,4 +21,24 @@ public abstract class TaskManager {
     public abstract void laterAsync(final Runnable r, final int delay);
 
     public abstract void cancel(final int task);
+
+    public <T> void objectTask(Collection<T> objects, final RunnableVal<T> task, final Runnable whenDone) {
+        final Iterator<T> iterator = objects.iterator();
+        task(new Runnable() {
+            @Override
+            public void run() {
+                long start = System.currentTimeMillis();
+                boolean hasNext;
+                while ((hasNext = iterator.hasNext()) && System.currentTimeMillis() - start < 5) {
+                    task.value = iterator.next();
+                    task.run();
+                }
+                if (!hasNext) {
+                    later(whenDone, 1);
+                } else {
+                    later(this, 1);
+                }
+            }
+        });
+    }
 }

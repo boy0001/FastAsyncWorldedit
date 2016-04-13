@@ -42,6 +42,7 @@ import com.boydti.fawe.util.Perm;
 import com.boydti.fawe.util.SetQueue;
 import com.boydti.fawe.util.TaskManager;
 import com.boydti.fawe.util.WEManager;
+import com.intellectualcrafters.plot.object.RunnableVal;
 import com.sk89q.worldedit.blocks.BaseBlock;
 import com.sk89q.worldedit.blocks.BlockID;
 import com.sk89q.worldedit.blocks.BlockType;
@@ -114,6 +115,7 @@ import com.sk89q.worldedit.util.collection.DoubleArrayList;
 import com.sk89q.worldedit.util.eventbus.EventBus;
 import com.sk89q.worldedit.world.World;
 import com.sk89q.worldedit.world.biome.BaseBiome;
+import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -542,15 +544,19 @@ public class EditSession implements Extent {
 
     @Override
     public BaseBlock getLazyBlock(final Vector position) {
+        return getLazyBlock(position.getBlockX(), position.getBlockY(), position.getBlockZ());
+    }
+
+    public BaseBlock getLazyBlock(int x, int y, int z) {
         if (limit != null && limit.MAX_CHECKS-- < 0) {
             return nullBlock;
         }
-        int combinedId4Data = queue.getCombinedId4Data(position.getBlockX(), position.getBlockY(), position.getBlockZ());
+        int combinedId4Data = queue.getCombinedId4Data(x, y, z);
         if (!FaweCache.hasNBT(combinedId4Data >> 4)) {
             return FaweCache.CACHE_BLOCK[combinedId4Data];
         }
         try {
-            return this.world.getLazyBlock(position);
+            return this.world.getLazyBlock(new Vector(x, y, z));
         } catch (Throwable e) {
             return FaweCache.CACHE_BLOCK[combinedId4Data];
         }
@@ -2031,31 +2037,42 @@ public class EditSession implements Extent {
      * @return number of trees created
      * @throws MaxChangedBlocksException thrown if too many blocks are changed
      */
-    public int makeForest(final Vector basePosition, final int size, final double density, final TreeGenerator treeGenerator) throws MaxChangedBlocksException {
+    public int makeForest(final Vector basePosition, final int size, final double density, final TreeGenerator treeGenerator) {
+        final ArrayDeque<Vector> trees = new ArrayDeque<>();
         for (int x = basePosition.getBlockX() - size; x <= (basePosition.getBlockX() + size); ++x) {
             for (int z = basePosition.getBlockZ() - size; z <= (basePosition.getBlockZ() + size); ++z) {
                 // Don't want to be in the ground
-                if (!this.getBlock(new Vector(x, basePosition.getBlockY(), z)).isAir()) {
+                if (!this.getLazyBlock(x, basePosition.getBlockY(), z).isAir()) {
                     continue;
                 }
                 // The gods don't want a tree here
                 if (FaweCache.RANDOM.random(65536) >= (density * 65536)) {
                     continue;
                 } // def 0.05
-
-                for (int y = basePosition.getBlockY(); y >= (basePosition.getBlockY() - 10); --y) {
-                    // Check if we hit the ground
-                    final int t = this.getBlock(new Vector(x, y, z)).getType();
-                    if ((t == BlockID.GRASS) || (t == BlockID.DIRT)) {
-                        treeGenerator.generate(this, new Vector(x, y + 1, z));
-                        break;
-                    } else if (t == BlockID.SNOW) {
-                        this.setBlock(new Vector(x, y, z), new BaseBlock(BlockID.AIR));
-                    } else if (t != BlockID.AIR) { // Trees won't grow on this!
-                        break;
-                    }
-                }
+                trees.add(new Vector(x, 0, z));
             }
+        }
+        if (trees.size() > 0) {
+            TaskManager.IMP.objectTask(trees, new RunnableVal<Vector>() {
+                @Override
+                public void run(Vector vector) {
+                    try {
+                        for (int y = basePosition.getBlockY(); y >= (basePosition.getBlockY() - 10); --y) {
+                            vector = new Vector(vector.getX(), y, vector.getZ());
+                            final int t = getBlock(vector).getType();
+                            if ((t == BlockID.GRASS) || (t == BlockID.DIRT)) {
+                                treeGenerator.generate(EditSession.this, new Vector(vector.getX(), y + 1, vector.getZ()));
+                                break;
+                            } else if (t == BlockID.SNOW) {
+                                setBlock(vector, new BaseBlock(BlockID.AIR));
+                            } else if (t != BlockID.AIR) { // Trees won't grow on this!
+                                break;
+                            }
+                        }
+                    }
+                    catch (MaxChangedBlocksException ignore) {}
+                }
+            }, null);
         }
         return this.changes = -1;
     }

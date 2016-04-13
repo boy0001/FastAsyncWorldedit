@@ -148,47 +148,10 @@ public class FaweBukkit extends JavaPlugin implements IFawe, Listener {
         return new BukkitTaskMan(this);
     }
 
-    @Override
-    public int[] getVersion() {
-        try {
-            final int[] version = new int[3];
-            final String[] split = Bukkit.getBukkitVersion().split("-")[0].split("\\.");
-            version[0] = Integer.parseInt(split[0]);
-            version[1] = Integer.parseInt(split[1]);
-            if (split.length == 3) {
-                version[2] = Integer.parseInt(split[2]);
-            }
-            return version;
-        } catch (final Exception e) {
-            e.printStackTrace();
-            this.debug(StringMan.getString(Bukkit.getBukkitVersion()));
-            this.debug(StringMan.getString(Bukkit.getBukkitVersion().split("-")[0].split("\\.")));
-            return new int[] { Integer.MAX_VALUE, 0, 0 };
-        }
-    }
-
-    /**
-     * The FaweQueue is a core part of block placement<br>
-     *  - The queue returned here is used in the SetQueue class (SetQueue handles the implementation specific queue)<br>
-     *  - Block changes are grouped by chunk (as it's more efficient for lighting/packet sending)<br>
-     *  - The FaweQueue returned here will provide the wrapper around the chunk object (FaweChunk)<br>
-     *  - When a block change is requested, the SetQueue will first check if the chunk exists in the queue, or it will create and add it<br>
-     */
-    @Override
-    public FaweQueue getNewQueue(String world) {
-        if (FaweAPI.checkVersion(this.getServerVersion(), 1, 9, 0)) {
-            try {
-                return new BukkitQueue_1_9(world);
-            } catch (final Throwable e) {
-                e.printStackTrace();
-            }
-        }
-        return new BukkitQueue_1_8(world);
-    }
-
     private int[] version;
 
-    public int[] getServerVersion() {
+    @Override
+    public int[] getVersion() {
         if (this.version == null) {
             try {
                 this.version = new int[3];
@@ -206,6 +169,25 @@ public class FaweBukkit extends JavaPlugin implements IFawe, Listener {
             }
         }
         return this.version;
+    }
+
+    /**
+     * The FaweQueue is a core part of block placement<br>
+     *  - The queue returned here is used in the SetQueue class (SetQueue handles the implementation specific queue)<br>
+     *  - Block changes are grouped by chunk (as it's more efficient for lighting/packet sending)<br>
+     *  - The FaweQueue returned here will provide the wrapper around the chunk object (FaweChunk)<br>
+     *  - When a block change is requested, the SetQueue will first check if the chunk exists in the queue, or it will create and add it<br>
+     */
+    @Override
+    public FaweQueue getNewQueue(String world) {
+        if (FaweAPI.checkVersion(this.getVersion(), 1, 9, 0)) {
+            try {
+                return new BukkitQueue_1_9(world);
+            } catch (final Throwable e) {
+                e.printStackTrace();
+            }
+        }
+        return new BukkitQueue_1_8(world);
     }
 
     /**

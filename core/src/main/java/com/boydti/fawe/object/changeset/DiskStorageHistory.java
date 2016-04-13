@@ -340,10 +340,6 @@ public class DiskStorageHistory implements ChangeSet, FaweChangeSet {
         flush();
         try {
             if (bdFile.exists()) {
-                if (nbtfFile.exists()) {
-                    NBTInputStream os = new NBTInputStream(new GZIPInputStream(new FileInputStream(nbtfFile)));
-                    NamedTag tag = os.readNamedTag();
-                }
                 final NBTInputStream nbtf = nbtfFile.exists() ? new NBTInputStream(new GZIPInputStream(new FileInputStream(nbtfFile))) : null;
                 final NBTInputStream nbtt = nbttFile.exists() ? new NBTInputStream(new GZIPInputStream(new FileInputStream(nbttFile))) : null;
 

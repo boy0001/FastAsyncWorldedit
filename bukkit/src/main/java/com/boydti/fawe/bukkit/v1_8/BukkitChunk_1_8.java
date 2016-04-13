@@ -100,11 +100,6 @@ public class BukkitChunk_1_8 extends FaweChunk<Chunk> {
         return this.ids[i];
     }
 
-    public void clear() {
-        this.ids = null;
-        this.biomes = null;
-    }
-
     public int[][] getBiomeArray() {
         return this.biomes;
     }

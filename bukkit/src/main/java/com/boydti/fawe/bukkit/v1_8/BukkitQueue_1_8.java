@@ -449,10 +449,6 @@ public class BukkitQueue_1_8 extends BukkitQueue_0 {
                     }
                 }
             }
-
-            // Clear
-            fs.clear();
-
             TaskManager.IMP.later(new Runnable() {
                 @Override
                 public void run() {
