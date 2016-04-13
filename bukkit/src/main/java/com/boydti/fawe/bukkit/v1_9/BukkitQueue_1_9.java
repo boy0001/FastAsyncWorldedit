@@ -128,16 +128,20 @@ public class BukkitQueue_1_9 extends BukkitQueue_0 {
                 lcz = cz;
                 if (!bukkitWorld.isChunkLoaded(cx, cz)) {
                     if (Settings.CHUNK_WAIT > 0) {
-                        synchronized (loadQueue) {
-                            loadQueue.add(new IntegerPair(cx, cz));
-                            try {
-                                loadQueue.wait(Settings.CHUNK_WAIT);
-                            } catch (InterruptedException e) {
-                                e.printStackTrace();
+                        if (Thread.currentThread() != Fawe.get().getMainThread()) {
+                            synchronized (loadQueue) {
+                                loadQueue.add(new IntegerPair(cx, cz));
+                                try {
+                                    loadQueue.wait(Settings.CHUNK_WAIT);
+                                } catch (InterruptedException e) {
+                                    e.printStackTrace();
+                                }
                             }
-                        }
-                        if (!bukkitWorld.isChunkLoaded(cx, cz)) {
-                            return 0;
+                            if (!bukkitWorld.isChunkLoaded(cx, cz)) {
+                                return 0;
+                            }
+                        } else {
+                            bukkitWorld.loadChunk(cx, cz, true);
                         }
                     } else {
                         return 0;

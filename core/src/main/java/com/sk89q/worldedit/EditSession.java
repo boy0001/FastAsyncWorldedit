@@ -42,6 +42,7 @@ import com.boydti.fawe.util.Perm;
 import com.boydti.fawe.util.SetQueue;
 import com.boydti.fawe.util.TaskManager;
 import com.boydti.fawe.util.WEManager;
+import com.boydti.fawe.wrappers.WorldWrapper;
 import com.intellectualcrafters.plot.object.RunnableVal;
 import com.sk89q.worldedit.blocks.BaseBlock;
 import com.sk89q.worldedit.blocks.BlockID;
@@ -113,6 +114,7 @@ import com.sk89q.worldedit.util.Countable;
 import com.sk89q.worldedit.util.TreeGenerator;
 import com.sk89q.worldedit.util.collection.DoubleArrayList;
 import com.sk89q.worldedit.util.eventbus.EventBus;
+import com.sk89q.worldedit.world.AbstractWorld;
 import com.sk89q.worldedit.world.World;
 import com.sk89q.worldedit.world.biome.BaseBiome;
 import java.util.ArrayDeque;
@@ -155,7 +157,7 @@ public class EditSession implements Extent {
         BEFORE_HISTORY, BEFORE_REORDER, BEFORE_CHANGE
     }
 
-    protected final World world;
+    private World world;
     private FaweChangeSet changeSet;
     private final EditSessionWrapper wrapper;
     private MaskingExtent maskingExtent;
@@ -208,17 +210,13 @@ public class EditSession implements Extent {
      * @param blockBag an optional {@link BlockBag} to use, otherwise null
      * @param event the event to call with the extent
      */
-    public EditSession(final EventBus eventBus, final World world, final int maxBlocks, @Nullable final BlockBag blockBag, final EditSessionEvent event) {
+    public EditSession(final EventBus eventBus, World world, final int maxBlocks, @Nullable final BlockBag blockBag, final EditSessionEvent event) {
         checkNotNull(eventBus);
         checkArgument(maxBlocks >= -1, "maxBlocks >= -1 required");
         checkNotNull(event);
-
+        // Wrap world
         this.blockBag = blockBag;
         this.maxBlocks = maxBlocks;
-        this.world = world;
-        this.wrapper = Fawe.imp().getEditSessionWrapper(this);
-        //        this.changeSet = new BlockOptimizedHistory();
-
         // Invalid; return null extent
         if (world == null) {
             final Extent extent = new NullExtent();
@@ -226,10 +224,13 @@ public class EditSession implements Extent {
             this.bypassHistory = extent;
             this.bypassNone = extent;
             this.changeSet = new NullChangeSet();
+            this.wrapper = Fawe.imp().getEditSessionWrapper(this);
             return;
         }
         final Actor actor = event.getActor();
-        this.queue = SetQueue.IMP.getQueue(world.getName());
+        this.queue = SetQueue.IMP.getNewQueue(world.getName());
+        this.world = (world = new WorldWrapper((AbstractWorld) world));
+        this.wrapper = Fawe.imp().getEditSessionWrapper(this);
         // Not a player; bypass history
         if ((actor == null) || !actor.isPlayer()) {
             Extent extent = new FastWorldEditExtent(world, queue);
@@ -337,6 +338,10 @@ public class EditSession implements Extent {
         this.bypassHistory = wrapped;
         this.bypassNone = extent;
         return;
+    }
+
+    public FaweQueue getQueue() {
+        return queue;
     }
 
     private Extent wrapExtent(final Extent extent, final EventBus eventBus, EditSessionEvent event, final Stage stage) {
@@ -853,6 +858,9 @@ public class EditSession implements Extent {
             @Override
             public void run() {
                 Operations.completeBlindly(EditSession.this.commit());
+                if (queue != null) {
+                    queue.enqueue();
+                }
             }
         });
     }
@@ -2069,10 +2077,15 @@ public class EditSession implements Extent {
                                 break;
                             }
                         }
+                    } catch (MaxChangedBlocksException ignore) {
                     }
-                    catch (MaxChangedBlocksException ignore) {}
                 }
-            }, null);
+            }, new Runnable() {
+                @Override
+                public void run() {
+                    queue.enqueue();
+                }
+            });
         }
         return this.changes = -1;
     }

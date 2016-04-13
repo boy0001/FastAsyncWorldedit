@@ -16,6 +16,7 @@ import com.boydti.fawe.util.WEManager;
 import com.boydti.fawe.util.WESubscriber;
 import com.sk89q.worldedit.EditSession;
 import com.sk89q.worldedit.LocalSession;
+import com.sk89q.worldedit.Vector;
 import com.sk89q.worldedit.WorldEdit;
 import com.sk89q.worldedit.command.SchematicCommands;
 import com.sk89q.worldedit.command.ScriptingCommands;
@@ -32,6 +33,7 @@ import com.sk89q.worldedit.function.visitor.RecursiveVisitor;
 import com.sk89q.worldedit.function.visitor.RegionVisitor;
 import com.sk89q.worldedit.history.change.EntityCreate;
 import com.sk89q.worldedit.history.change.EntityRemove;
+import com.sk89q.worldedit.regions.CuboidRegion;
 import java.io.File;
 import java.lang.management.ManagementFactory;
 import java.lang.management.MemoryMXBean;
@@ -154,9 +156,6 @@ public class Fawe {
             this.IMP.startMetrics();
         }
 
-//        // Delete old history
-//        MainUtil.deleteDirectory(new File(IMP.getDirectory(), "history"));
-
         // Delayed setup
         TaskManager.IMP.later(new Runnable() {
             @Override
@@ -229,6 +228,8 @@ public class Fawe {
         EntityRemove.inject();
         LocalSession.inject();
         BlockArrayClipboard.inject();
+        CuboidRegion.inject();
+        Vector.inject();
         try {
             CommandManager.inject();
         } catch (Throwable e) {

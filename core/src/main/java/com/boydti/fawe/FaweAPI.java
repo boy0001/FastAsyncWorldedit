@@ -20,7 +20,6 @@ import java.util.Map;
 import java.util.zip.GZIPInputStream;
 import org.bukkit.Chunk;
 import org.bukkit.Location;
-import org.bukkit.Material;
 
 /**
  * The FaweAPI class offers a few useful functions.<br>
@@ -42,90 +41,14 @@ public class FaweAPI {
         return (version[0] > major) || ((version[0] == major) && (version[1] > minor)) || ((version[0] == major) && (version[1] == minor) && (version[2] >= minor2));
     }
 
-    /**
-     * Set a block at a location asynchronously
-     * @param loc
-     * @param m
-     */
-    public static void setBlockAsync(final Location loc, final Material m) {
-        SetQueue.IMP.setBlock(loc.getWorld().getName(), loc.getBlockX(), loc.getBlockY(), loc.getBlockZ(), (short) m.getId());
-    }
-
-    /**
-     * Set a block at a location asynchronously
-     * @param world
-     * @param x
-     * @param y
-     * @param z
-     * @param id
-     * @param data
-     */
-    public static void setBlockAsync(final String world, final int x, final int y, final int z, final short id, final byte data) {
-        SetQueue.IMP.setBlock(world, x, y, z, id, data);
-    }
-
-//    /**
-//     * Set a biome at a location asynchronously
-//     * @param world
-//     * @param x
-//     * @param z
-//     * @param id
-//     * @param data
-//     */
-//    public static void setBiomeAsync(final String world, final int x, final int z, final BaseBiome biome) {
-//        SetQueue.IMP.setBiome(world, x, z, biome);
-//    }
-//
-//    /**
-//     * Set a biome at a location asynchronously
-//     * @param loc
-//     * @param biome
-//     */
-//    public static void setBiomeAsync(final Location loc, final BaseBiome biome) {
-//        SetQueue.IMP.setBiome(loc.getWorld().getName(), loc.getBlockX(), loc.getBlockZ(), biome);
-//    }
-//
-//    /**
-//     * This will return a FaweChunk object that can be modified.<br>
-//     *  - The FaweChunk object can be reused if you want identical changes across chunks<br>
-//     *  - This is additive modification.<br>
-//     *  - First use {@link FaweChunk#fill(int, byte)} (e.g. with air) for absolute modification<br>
-//     * When ready, use {@link #setChunk(FaweChunk, ChunkLoc)}
-//     * @return
-//     */
-//    public static FaweChunk<?> createChunk() {
-//        return SetQueue.IMP.queue.getChunk(new ChunkLoc(null, 0, 0));
-//    }
-//
-//    /**
-//     * @see #createChunk()
-//     * @param data
-//     * @param location
-//     */
-//    public static void setChunkAsync(final FaweChunk<?> data, final ChunkLoc location) {
-//        data.setChunkLoc(location);
-//        data.addToQueue();
-//    }
-//
-//    /**
-//     * @see #createChunk()
-//     * @param data
-//     * @param chunk
-//     */
-//    public static void setChunkAsync(final FaweChunk<?> data, final Chunk chunk) {
-//        final ChunkLoc loc = new ChunkLoc(chunk.getWorld().getName(), chunk.getX(), chunk.getZ());
-//        data.setChunkLoc(loc);
-//        data.addToQueue();
-//    }
-//
     public static void fixLighting(String world, int x, int z, final boolean fixAll) {
-        FaweQueue queue = SetQueue.IMP.getQueue(world);
+        FaweQueue queue = SetQueue.IMP.getNewQueue(world);
         queue.fixLighting(queue.getChunk(x, z), fixAll);
     }
 
 
     public static void fixLighting(final Chunk chunk, final boolean fixAll) {
-        FaweQueue queue = SetQueue.IMP.getQueue(chunk.getWorld().getName());
+        FaweQueue queue = SetQueue.IMP.getNewQueue(chunk.getWorld().getName());
         queue.fixLighting(queue.getChunk(chunk.getX(), chunk.getZ()), fixAll);
     }
 
@@ -218,6 +141,8 @@ public class FaweAPI {
         tagMap = null;
         tag = null;
 
+        FaweQueue queue = SetQueue.IMP.getNewQueue(loc.world);
+
         for (int y = 0; y < height; y++) {
             final int yy = y_offset + y;
             if (yy > 255) {
@@ -298,16 +223,18 @@ public class FaweAPI {
                         case 190:
                         case 191:
                         case 192:
-                            setBlockAsync(world, xx, yy, zz, id, (byte) 0);
+                            queue.setBlock(xx, yy, zz, id, (byte) 0);
                             break;
                         default: {
-                            setBlockAsync(world, xx, yy, zz, id, datas[i]);
+                            queue.setBlock(xx, yy, zz, id, datas[i]);
                             break;
                         }
                     }
                 }
             }
         }
+
+        queue.enqueue();
 
         ids = null;
         datas = null;

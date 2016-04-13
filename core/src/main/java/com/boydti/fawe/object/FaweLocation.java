@@ -1,8 +1,7 @@
 package com.boydti.fawe.object;
 
-import com.boydti.fawe.util.SetQueue;
+/**
 
-/**
  */
 public class FaweLocation {
 
@@ -36,9 +35,5 @@ public class FaweLocation {
     @Override
     public int hashCode() {
         return this.x << (8 + this.z) << (4 + this.y);
-    }
-
-    public void setBlockAsync(final short id, final byte data) {
-        SetQueue.IMP.setBlock(this.world, this.x, this.y, this.z, id, data);
     }
 }

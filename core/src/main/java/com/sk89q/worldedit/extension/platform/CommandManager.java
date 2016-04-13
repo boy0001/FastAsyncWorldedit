@@ -24,6 +24,7 @@ import com.boydti.fawe.config.BBC;
 import com.boydti.fawe.object.FawePlayer;
 import com.boydti.fawe.util.SetQueue;
 import com.boydti.fawe.util.TaskManager;
+import com.boydti.fawe.wrappers.PlayerWrapper;
 import com.google.common.base.Joiner;
 import com.sk89q.minecraft.util.commands.CommandException;
 import com.sk89q.minecraft.util.commands.CommandLocals;
@@ -59,6 +60,7 @@ import com.sk89q.worldedit.command.composition.DeformCommand;
 import com.sk89q.worldedit.command.composition.PaintCommand;
 import com.sk89q.worldedit.command.composition.SelectionCommand;
 import com.sk89q.worldedit.command.composition.ShapedBrushCommand;
+import com.sk89q.worldedit.entity.Player;
 import com.sk89q.worldedit.event.platform.CommandEvent;
 import com.sk89q.worldedit.event.platform.CommandSuggestionEvent;
 import com.sk89q.worldedit.function.factory.Deform;
@@ -234,7 +236,11 @@ public final class CommandManager {
                 LocalConfiguration config = worldEdit.getConfiguration();
                 
                 CommandLocals locals = new CommandLocals();
-                locals.put(Actor.class, actor);
+                if (actor != null && actor.isPlayer()) {
+                    locals.put(Actor.class, new PlayerWrapper((Player) actor));
+                } else {
+                    locals.put(Actor.class, actor);
+                }
                 locals.put("arguments", event.getArguments());
                 
                 final long start = System.currentTimeMillis();

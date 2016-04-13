@@ -3,12 +3,9 @@ package com.boydti.fawe.util;
 import com.boydti.fawe.Fawe;
 import com.boydti.fawe.config.Settings;
 import com.boydti.fawe.object.FaweChunk;
-import com.sk89q.worldedit.world.biome.BaseBiome;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
 
 public class SetQueue {
@@ -18,7 +15,7 @@ public class SetQueue {
      */
     public static final SetQueue IMP = new SetQueue();
 
-    public final Map<String, FaweQueue> queues;
+    public final ArrayDeque<FaweQueue> queues;
 
     /**
      * Track the time in ticks
@@ -39,7 +36,7 @@ public class SetQueue {
 
 
     public SetQueue() {
-        queues = new ConcurrentHashMap<>();
+        queues = new ArrayDeque();
         TaskManager.IMP.repeat(new Runnable() {
             @Override
             public void run() {
@@ -79,34 +76,24 @@ public class SetQueue {
         }, 1);
     }
 
-    public List<FaweQueue> getQueues() {
-        List<FaweQueue> list = new ArrayList<>(queues.size());
-        try {
-            for (Map.Entry<String, FaweQueue> entry : queues.entrySet()) {
-                list.add(entry.getValue());
-            }
-        }
-        catch (Exception e) {
-            e.printStackTrace();
-        }
-        return list;
+    public void enqueue(FaweQueue queue) {
+        queues.add(queue);
     }
 
-    public FaweQueue getQueue(String world) {
-        FaweQueue queue = queues.get(world);
-        if (queue != null) {
-            return queue;
-        }
-        queue = Fawe.imp().getNewQueue(world);
-        queues.put(world, queue);
-        return queue;
+    public List<FaweQueue> getQueues() {
+        return new ArrayList<>(queues);
+    }
+
+    public FaweQueue getNewQueue(String world) {
+        return Fawe.imp().getNewQueue(world);
     }
 
     public FaweChunk<?> next() {
-        for (Map.Entry<String, FaweQueue> entry : queues.entrySet()) {
-            FaweQueue queue = entry.getValue();
+        while (queues.size() > 0) {
+            FaweQueue queue = queues.poll();
             final FaweChunk<?> set = queue.next();
-            if (set != null ) {
+            if (set != null) {
+                queues.add(queue);
                 return set;
             }
         }
@@ -154,66 +141,5 @@ public class SetQueue {
             runnable.run();
         }
         return true;
-    }
-
-    /**
-     * @param world
-     * @param x
-     * @param y
-     * @param z
-     * @param id
-     * @param data
-     * @return
-     */
-    @Deprecated
-    public boolean setBlock(final String world, final int x, final int y, final int z, final short id, final byte data) {
-        SetQueue.IMP.setWaiting();
-        return getQueue(world).setBlock(x, y, z, id, data);
-    }
-
-    /**
-     * @param world
-     * @param x
-     * @param y
-     * @param z
-     * @param id
-     * @return
-     */
-    @Deprecated
-    public boolean setBlock(final String world, final int x, final int y, final int z, final short id) {
-        SetQueue.IMP.setWaiting();
-        return getQueue(world).setBlock(x, y, z, id, (byte) 0);
-    }
-
-    /**
-     * @param world
-     * @param x
-     * @param z
-     * @param biome
-     * @return
-     */
-    @Deprecated
-    public boolean setBiome(final String world, final int x, final int z, final BaseBiome biome) {
-        SetQueue.IMP.setWaiting();
-        return getQueue(world).setBiome(x, z, biome);
-    }
-
-    @Deprecated
-    public boolean isChunkLoaded(final String world, final int x, final int z) {
-        return getQueue(world).isChunkLoaded(x, z);
-    }
-    
-    /**
-     * Add a task to run when the chunk is set<br>
-     * @throws IllegalArgumentException if the chunk is not in the queue
-     * @param world
-     * @param x
-     * @param y
-     * @param z
-     * @param runnable
-     */
-    @Deprecated
-    public void addTask(String world, int x, int y, int z, Runnable runnable) {
-        getQueue(world).addTask(x >> 4, z >> 4, runnable);
     }
 }

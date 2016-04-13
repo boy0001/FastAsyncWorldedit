@@ -25,6 +25,8 @@ public abstract class FaweQueue {
 
     public abstract boolean isChunkLoaded(final int x, final int z);
 
+    public abstract boolean regenerateChunk(int x, int z);
+
     /**
      * Gets the FaweChunk and sets the requested blocks
      * @return
@@ -52,4 +54,8 @@ public abstract class FaweQueue {
     public abstract void addTask(int x, int z, Runnable runnable);
 
     public abstract int getCombinedId4Data(int x, int y, int z);
+
+    public void enqueue() {
+        SetQueue.IMP.enqueue(this);
+    }
 }

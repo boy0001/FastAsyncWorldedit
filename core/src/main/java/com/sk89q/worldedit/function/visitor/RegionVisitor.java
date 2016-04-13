@@ -58,7 +58,6 @@ public class RegionVisitor implements Operation {
                 affected++;
             }
         }
-
         return null;
     }
 

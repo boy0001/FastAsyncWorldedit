@@ -20,6 +20,7 @@
 package com.sk89q.worldedit;
 
 import com.boydti.fawe.object.changeset.FaweChangeSet;
+import com.boydti.fawe.util.SetQueue;
 import com.sk89q.jchronic.Chronic;
 import com.sk89q.jchronic.Options;
 import com.sk89q.jchronic.utils.Span;
@@ -190,6 +191,10 @@ public class LocalSession {
      */
     public void remember(EditSession editSession) {
         checkNotNull(editSession);
+
+        if (editSession.getQueue() != null) {
+            SetQueue.IMP.enqueue(editSession.getQueue());
+        }
 
         // Don't store anything if no changes were made
         if (editSession.size() == 0) return;

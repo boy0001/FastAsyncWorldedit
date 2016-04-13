@@ -13,6 +13,7 @@ import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentHashMap;
 import org.bukkit.Bukkit;
 import org.bukkit.Chunk;
+import org.bukkit.World;
 import org.bukkit.event.Listener;
 import org.bukkit.plugin.Plugin;
 
@@ -20,6 +21,8 @@ import org.bukkit.plugin.Plugin;
  * The base object for 
  */
 public abstract class BukkitQueue_0 extends FaweQueue implements Listener {
+
+    protected World bukkitWorld;
 
     /**
      * Map of chunks in the queue
@@ -46,6 +49,14 @@ public abstract class BukkitQueue_0 extends FaweQueue implements Listener {
 //        }
 //        return false;
     };
+
+    @Override
+    public boolean regenerateChunk(int x, int z) {
+        if (bukkitWorld == null) {
+            bukkitWorld = Bukkit.getServer().getWorld(world);
+        }
+        return bukkitWorld.regenerateChunk(x, z);
+    }
 
     @Override
     public void addTask(int x, int z, Runnable runnable) {

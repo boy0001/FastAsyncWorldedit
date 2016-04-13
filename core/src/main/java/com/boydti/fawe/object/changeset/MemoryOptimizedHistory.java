@@ -224,9 +224,8 @@ public class MemoryOptimizedHistory implements ChangeSet, FaweChangeSet {
                             }
                             BlockVector position = new BlockVector(x, y, z);
                             return dir ? new BlockChange(position, to, from) : new BlockChange(position, from, to);
-                        } catch (Exception e) {
-                            return null;
-                        }
+                        } catch (Exception ignore) {}
+                        return null;
                     }
                     
                     @Override
