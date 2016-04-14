@@ -1,10 +1,10 @@
 package com.boydti.fawe.wrappers;
 
 import com.boydti.fawe.FaweCache;
+import com.boydti.fawe.object.RunnableVal;
 import com.boydti.fawe.object.changeset.FaweChangeSet;
 import com.boydti.fawe.util.FaweQueue;
 import com.boydti.fawe.util.TaskManager;
-import com.intellectualcrafters.plot.object.RunnableVal;
 import com.sk89q.worldedit.BlockVector2D;
 import com.sk89q.worldedit.EditSession;
 import com.sk89q.worldedit.MaxChangedBlocksException;

@@ -9,9 +9,11 @@ import com.boydti.fawe.object.IntegerPair;
 import com.boydti.fawe.object.PseudoRandom;
 import com.boydti.fawe.util.TaskManager;
 import com.flowpowered.math.vector.Vector3i;
+import java.lang.reflect.Field;
 import java.util.ArrayDeque;
 import java.util.Collection;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
@@ -23,7 +25,11 @@ import net.minecraft.network.play.server.S21PacketChunkData;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.BlockPos;
 import net.minecraft.util.ClassInheritanceMultiMap;
+import net.minecraft.util.LongHashMap;
+import net.minecraft.world.ChunkCoordIntPair;
+import net.minecraft.world.chunk.IChunkProvider;
 import net.minecraft.world.chunk.storage.ExtendedBlockStorage;
+import net.minecraft.world.gen.ChunkProviderServer;
 import org.spongepowered.api.Sponge;
 import org.spongepowered.api.entity.living.player.Player;
 import org.spongepowered.api.world.Chunk;
@@ -274,9 +280,6 @@ public class SpongeQueue_1_8 extends SpongeQueue_0 {
                 if (!spongeChunk.loadChunk(false)) {
                     return false;
                 }
-            } else {
-                spongeChunk.unloadChunk();
-                spongeChunk.loadChunk(false);
             }
             nmsChunk.generateSkylightMap();
             if (bc.getTotalRelight() == 0 && !fixAll) {
@@ -339,6 +342,50 @@ public class SpongeQueue_1_8 extends SpongeQueue_0 {
                             nmsWorld.checkLight(pos);
                     }
                 }
+            }
+            return true;
+        } catch (Throwable e) {
+            e.printStackTrace();
+        }
+        return false;
+    }
+
+    @Override
+    public boolean regenerateChunk(int x, int z) {
+        if (spongeWorld == null) {
+            spongeWorld = Sponge.getServer().getWorld(world).get();
+        }
+        try {
+            net.minecraft.world.World nmsWorld = (net.minecraft.world.World) spongeWorld;
+            IChunkProvider provider = nmsWorld.getChunkProvider();
+            if (!(provider instanceof ChunkProviderServer)) {
+                return false;
+            }
+            ChunkProviderServer chunkServer = (ChunkProviderServer) provider;
+            Field chunkProviderField = chunkServer.getClass().getDeclaredField("field_73246_d");
+            chunkProviderField.setAccessible(true);
+            IChunkProvider chunkProvider = (IChunkProvider) chunkProviderField.get(chunkServer);
+            long pos = ChunkCoordIntPair.chunkXZ2Int(x, z);
+            net.minecraft.world.chunk.Chunk mcChunk;
+            if (chunkServer.chunkExists(x, z)) {
+                mcChunk = chunkServer.loadChunk(x, z);
+                mcChunk.onChunkUnload();
+            }
+            Field droppedChunksSetField = chunkServer.getClass().getDeclaredField("field_73248_b");
+            droppedChunksSetField.setAccessible(true);
+            Set droppedChunksSet = (Set) droppedChunksSetField.get(chunkServer);
+            droppedChunksSet.remove(pos);
+            Field id2ChunkMapField = chunkServer.getClass().getDeclaredField("field_73244_f");
+            id2ChunkMapField.setAccessible(true);
+            LongHashMap<net.minecraft.world.chunk.Chunk> id2ChunkMap = (LongHashMap<net.minecraft.world.chunk.Chunk>) id2ChunkMapField.get(chunkServer);
+            id2ChunkMap.remove(pos);
+            mcChunk = chunkProvider.provideChunk(x, z);
+            id2ChunkMap.add(pos, mcChunk);
+            List<net.minecraft.world.chunk.Chunk> loadedChunks = chunkServer.func_152380_a();
+            loadedChunks.add(mcChunk);
+            if (mcChunk != null) {
+                mcChunk.onChunkLoad();
+                mcChunk.populateChunk(chunkProvider, chunkProvider, x, z);
             }
             return true;
         } catch (Throwable e) {

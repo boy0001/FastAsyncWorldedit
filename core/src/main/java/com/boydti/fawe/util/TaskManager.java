@@ -1,6 +1,6 @@
 package com.boydti.fawe.util;
 
-import com.intellectualcrafters.plot.object.RunnableVal;
+import com.boydti.fawe.object.RunnableVal;
 import java.util.Collection;
 import java.util.Iterator;
 

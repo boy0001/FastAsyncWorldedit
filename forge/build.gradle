@@ -54,6 +54,7 @@ processResources {
                 'mcVersion': project.minecraft.version
     }
 }
+
 shadowJar {
     dependencies {
         include(dependency(':core'))
