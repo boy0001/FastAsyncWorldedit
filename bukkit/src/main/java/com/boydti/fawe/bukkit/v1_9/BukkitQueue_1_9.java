@@ -149,6 +149,9 @@ public class BukkitQueue_1_9 extends BukkitQueue_0 {
                 }
                 lc = methodGetType.of(methodGetHandleChunk.of(bukkitWorld.getChunkAt(cx, cz)).call());
             }
+            if (lc == null) {
+                return 0;
+            }
             int combined = (int) methodGetCombinedId.call(lc.call(x & 15, y, z & 15));
             return ((combined & 4095) << 4) + (combined >> 12);
         }

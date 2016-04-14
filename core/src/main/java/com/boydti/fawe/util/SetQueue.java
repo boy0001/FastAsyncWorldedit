@@ -6,7 +6,6 @@ import com.boydti.fawe.object.FaweChunk;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.atomic.AtomicInteger;
 
 public class SetQueue {
 
@@ -15,19 +14,15 @@ public class SetQueue {
      */
     public static final SetQueue IMP = new SetQueue();
 
-    public final ArrayDeque<FaweQueue> queues;
+    public final ArrayDeque<FaweQueue> activeQueues;
+    public final ArrayDeque<FaweQueue> inactiveQueues;
 
     /**
-     * Track the time in ticks
-     */
-    private final AtomicInteger time_waiting = new AtomicInteger(2);
-    private final AtomicInteger time_current = new AtomicInteger(0);
-    
-    /**
-     * Used to calculate elapsed time in milliseconds and ensure block placement doesn't lag the server 
+     * Used to calculate elapsed time in milliseconds and ensure block placement doesn't lag the server
      */
     private long last;
-    private long last2;
+    private long secondLast;
+    private long lastSuccess;
     
     /**
      * A queue of tasks that will run when the queue is empty
@@ -36,7 +31,8 @@ public class SetQueue {
 
 
     public SetQueue() {
-        queues = new ArrayDeque();
+        activeQueues = new ArrayDeque();
+        inactiveQueues = new ArrayDeque<>();
         TaskManager.IMP.repeat(new Runnable() {
             @Override
             public void run() {
@@ -52,49 +48,82 @@ public class SetQueue {
                         if (SetQueue.this.forceChunkSet()) {
                             System.gc();
                         } else {
-                            SetQueue.this.time_current.incrementAndGet();
                             SetQueue.this.tasks();
                         }
                         return;
                     }
                 }
-                final long free = Settings.ALLOCATE + 50 + Math.min((50 + SetQueue.this.last) - (SetQueue.this.last = System.currentTimeMillis()), SetQueue.this.last2 - System.currentTimeMillis());
-                SetQueue.this.time_current.incrementAndGet();
+                final long free = Settings.ALLOCATE + 50 + Math.min((50 + SetQueue.this.last) - (SetQueue.this.last = System.currentTimeMillis()), SetQueue.this.secondLast - System.currentTimeMillis());
                 do {
-                    if (SetQueue.this.isWaiting()) {
-                        return;
-                    }
                     final FaweChunk<?> current = next();
                     if (current == null) {
-                        SetQueue.this.time_waiting.set(Math.max(SetQueue.this.time_waiting.get(), SetQueue.this.time_current.get() - 2));
+                        lastSuccess = last;
                         SetQueue.this.tasks();
                         return;
                     }
-                } while (((SetQueue.this.last2 = System.currentTimeMillis()) - SetQueue.this.last) < free);
-                SetQueue.this.time_waiting.set(SetQueue.this.time_current.get() - 1);
+                } while (((SetQueue.this.secondLast = System.currentTimeMillis()) - SetQueue.this.last) < free);
             }
         }, 1);
     }
 
     public void enqueue(FaweQueue queue) {
-        queues.add(queue);
+        inactiveQueues.remove(queue);
+        activeQueues.add(queue);
     }
 
     public List<FaweQueue> getQueues() {
-        return new ArrayList<>(queues);
+        return new ArrayList<>(activeQueues);
     }
 
-    public FaweQueue getNewQueue(String world) {
-        return Fawe.imp().getNewQueue(world);
+    public FaweQueue getNewQueue(String world, boolean autoqueue) {
+        FaweQueue queue = Fawe.imp().getNewQueue(world);
+        if (autoqueue) {
+            inactiveQueues.add(queue);
+        }
+        return queue;
     }
 
     public FaweChunk<?> next() {
-        while (queues.size() > 0) {
-            FaweQueue queue = queues.poll();
+        while (activeQueues.size() > 0) {
+            FaweQueue queue = activeQueues.poll();
             final FaweChunk<?> set = queue.next();
             if (set != null) {
-                queues.add(queue);
+                activeQueues.add(queue);
                 return set;
+            }
+        }
+        if (inactiveQueues.size() > 0) {
+            ArrayList<FaweQueue> tmp = new ArrayList<>(inactiveQueues);
+            if (Settings.QUEUE_MAX_WAIT != -1) {
+                long now = System.currentTimeMillis();
+                long diff = now - lastSuccess;
+                if (diff > Settings.QUEUE_MAX_WAIT) {
+                    for (FaweQueue queue : tmp) {
+                        FaweChunk result = queue.next();
+                        if (result != null) {
+                            return result;
+                        }
+                    }
+                    if (diff > Settings.QUEUE_DISCARD_AFTER) {
+                        // These edits never finished
+                        inactiveQueues.clear();
+                    }
+                    return null;
+                }
+            }
+            if (Settings.QUEUE_SIZE != -1) {
+                int total = 0;
+                for (FaweQueue queue : tmp) {
+                    total += queue.size();
+                }
+                if (total > Settings.QUEUE_SIZE) {
+                    for (FaweQueue queue : tmp) {
+                        FaweChunk result = queue.next();
+                        if (result != null) {
+                            return result;
+                        }
+                    }
+                }
             }
         }
         return null;
@@ -104,16 +133,8 @@ public class SetQueue {
         return next() != null;
     }
 
-    public boolean isWaiting() {
-        return this.time_waiting.get() >= this.time_current.get();
-    }
-
     public boolean isDone() {
-        return (this.time_waiting.get() + 1) < this.time_current.get();
-    }
-
-    public void setWaiting() {
-        this.time_waiting.set(this.time_current.get() + 1);
+        return activeQueues.size() == 0 && inactiveQueues.size() == 0;
     }
 
     public boolean addTask(final Runnable whenDone) {

@@ -2,12 +2,9 @@ package com.boydti.fawe.forge.v0;
 
 import com.boydti.fawe.object.FaweChunk;
 import com.boydti.fawe.util.FaweQueue;
-import com.boydti.fawe.util.SetQueue;
 import com.sk89q.worldedit.world.biome.BaseBiome;
 import java.util.ArrayDeque;
 import java.util.Collection;
-import java.util.Iterator;
-import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import org.spongepowered.api.Sponge;
 import org.spongepowered.api.world.Chunk;
@@ -22,6 +19,7 @@ public abstract class SpongeQueue_0 extends FaweQueue {
      * Map of chunks in the queue
      */
     private final ConcurrentHashMap<Long, FaweChunk<Chunk>> blocks = new ConcurrentHashMap<>();
+    private ArrayDeque<FaweChunk<Chunk>> chunks = new ArrayDeque<>();
 
     public SpongeQueue_0(String world) {
         super(world);
@@ -43,6 +41,7 @@ public abstract class SpongeQueue_0 extends FaweQueue {
             result.addTask(runnable);
             final FaweChunk<Chunk> previous = this.blocks.put(pair, result);
             if (previous == null) {
+                chunks.add(result);
                 return;
             }
             this.blocks.put(pair, previous);
@@ -63,6 +62,7 @@ public abstract class SpongeQueue_0 extends FaweQueue {
             result.setBlock(x & 15, y, z & 15, id, data);
             final FaweChunk<Chunk> previous = this.blocks.put(pair, result);
             if (previous == null) {
+                chunks.add(result);
                 return true;
             }
             this.blocks.put(pair, previous);
@@ -94,18 +94,23 @@ public abstract class SpongeQueue_0 extends FaweQueue {
             if (this.blocks.size() == 0) {
                 return null;
             }
-            final Iterator<Map.Entry<Long, FaweChunk<Chunk>>> iter = this.blocks.entrySet().iterator();
-            final FaweChunk<Chunk> toReturn = iter.next().getValue();
-            if (SetQueue.IMP.isWaiting()) {
-                return null;
+            synchronized (blocks) {
+                FaweChunk<Chunk> chunk = chunks.poll();
+                if (chunk != null) {
+                    blocks.remove(chunk.longHash());
+                    this.execute(chunk);
+                    return chunk;
+                }
             }
-            iter.remove();
-            this.execute(toReturn);
-            return toReturn;
-        } catch (final Throwable e) {
+        } catch (Throwable e) {
             e.printStackTrace();
-            return null;
         }
+        return null;
+    }
+
+    @Override
+    public int size() {
+        return chunks.size();
     }
 
     private final ArrayDeque<FaweChunk<Chunk>> toUpdate = new ArrayDeque<>();
@@ -132,7 +137,11 @@ public abstract class SpongeQueue_0 extends FaweQueue {
 
     @Override
     public void setChunk(final FaweChunk<?> chunk) {
-        this.blocks.put(chunk.longHash(), (FaweChunk<Chunk>) chunk);
+        FaweChunk<Chunk> previous = this.blocks.put(chunk.longHash(), (FaweChunk<Chunk>) chunk);
+        if (previous != null) {
+            chunks.remove(previous);
+        }
+        chunks.add((FaweChunk<Chunk>) chunk);
     }
 
     public abstract Collection<FaweChunk<Chunk>> sendChunk(final Collection<FaweChunk<Chunk>> fcs);

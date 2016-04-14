@@ -348,36 +348,62 @@ public class CuboidRegion extends AbstractRegion implements FlatRegion {
             private Vector min = getMinimumPoint();
             private Vector max = getMaximumPoint();
 
-            int minX = min.getBlockX();
-            int minY = min.getBlockY();
-            int minZ = min.getBlockZ();
+            int bx = min.getBlockX();
+            int by = min.getBlockY();
+            int bz = min.getBlockZ();
 
-            int maxX = max.getBlockX();
-            int maxY = max.getBlockY();
-            int maxZ = max.getBlockZ();
+            int tx = max.getBlockX();
+            int ty = max.getBlockY();
+            int tz = max.getBlockZ();
 
-            private int nextX = min.getBlockX();
-            private int nextY = min.getBlockY();
-            private int nextZ = min.getBlockZ();
+            private int x = min.getBlockX();
+            private int y = min.getBlockY();
+            private int z = min.getBlockZ();
+
+            int cx = x >> 4;
+            int cz = z >> 4;
+            int cbx = Math.max(bx, cx << 4);
+            int cbz = Math.max(bz, cz << 4);
+            int ctx = Math.min(tx, 15 + (cx << 4));
+            int ctz = Math.min(tz, 15 + (cz << 4));
+
+            public boolean hasNext = true;
 
             @Override
             public boolean hasNext() {
-                return (nextX != Integer.MIN_VALUE);
+                return hasNext;
             }
 
             @Override
             public BlockVector next() {
-                if (!hasNext()) throw new java.util.NoSuchElementException();
-                v.x = nextX;
-                v.y = nextY;
-                v.z = nextZ;
-                if (++nextX > maxX) {
-                    nextX = minX;
-                    if (++nextY > maxY) {
-                        nextY = minY;
-                        if (++nextZ > maxZ) {
-                            nextX = Integer.MIN_VALUE;
+                v.x = x;
+                v.y = y;
+                v.z = z;
+                if (++x > ctx) {
+                    if (++z > ctz) {
+                        if (++y > ty) {
+                            y = by;
+                            if (x > tx) {
+                                x = bx;
+                                if (z > tz) {
+                                    hasNext = false;
+                                    return v;
+                                }
+                            } else {
+                                z = cbz;
+                            }
+                            cx = x >> 4;
+                            cz = z >> 4;
+                            cbx = Math.max(bx, cx << 4);
+                            cbz = Math.max(bz, cz << 4);
+                            ctx = Math.min(tx, 15 + (cx << 4));
+                            ctz = Math.min(tz, 15 + (cz << 4));
+                        } else {
+                            x = cbx;
+                            z = cbz;
                         }
+                    } else {
+                        x = cbx;
                     }
                 }
                 return v;

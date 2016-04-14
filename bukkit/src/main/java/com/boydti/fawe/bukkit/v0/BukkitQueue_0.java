@@ -3,13 +3,10 @@ package com.boydti.fawe.bukkit.v0;
 import com.boydti.fawe.Fawe;
 import com.boydti.fawe.object.FaweChunk;
 import com.boydti.fawe.util.FaweQueue;
-import com.boydti.fawe.util.SetQueue;
 import com.boydti.fawe.util.TaskManager;
 import com.sk89q.worldedit.world.biome.BaseBiome;
 import java.util.ArrayDeque;
 import java.util.Collection;
-import java.util.Iterator;
-import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentHashMap;
 import org.bukkit.Bukkit;
 import org.bukkit.Chunk;
@@ -28,6 +25,7 @@ public abstract class BukkitQueue_0 extends FaweQueue implements Listener {
      * Map of chunks in the queue
      */
     private ConcurrentHashMap<Long, FaweChunk<Chunk>> blocks = new ConcurrentHashMap<>();
+    private ArrayDeque<FaweChunk<Chunk>> chunks = new ArrayDeque<>();
 
     public BukkitQueue_0(String world) {
         super(world);
@@ -41,7 +39,10 @@ public abstract class BukkitQueue_0 extends FaweQueue implements Listener {
 
     @Override
     public boolean isChunkLoaded(int x, int z) {
-        return Bukkit.getWorld(world).isChunkLoaded(x, z);
+        if (bukkitWorld == null) {
+            bukkitWorld = Bukkit.getServer().getWorld(world);
+        }
+        return bukkitWorld.isChunkLoaded(x, z);
 //        long id = ((long) x << 32) | (z & 0xFFFFFFFFL);
 //        HashSet<Long> map = this.loaded.get(world);
 //        if (map != null) {
@@ -67,6 +68,7 @@ public abstract class BukkitQueue_0 extends FaweQueue implements Listener {
             result.addTask(runnable);
             FaweChunk<Chunk> previous = this.blocks.put(pair, result);
             if (previous == null) {
+                chunks.add(result);
                 return;
             }
             this.blocks.put(pair, previous);
@@ -87,6 +89,7 @@ public abstract class BukkitQueue_0 extends FaweQueue implements Listener {
             result.setBlock(x & 15, y, z & 15, id, data);
             FaweChunk<Chunk> previous = this.blocks.put(pair, result);
             if (previous == null) {
+                chunks.add(result);
                 return true;
             }
             this.blocks.put(pair, previous);
@@ -106,6 +109,8 @@ public abstract class BukkitQueue_0 extends FaweQueue implements Listener {
             if (previous != null) {
                 this.blocks.put(pair, previous);
                 result = previous;
+            } else {
+                chunks.add(result);
             }
         }
         result.setBiome(x & 15, z & 15, biome);
@@ -118,18 +123,23 @@ public abstract class BukkitQueue_0 extends FaweQueue implements Listener {
             if (this.blocks.size() == 0) {
                 return null;
             }
-            Iterator<Entry<Long, FaweChunk<Chunk>>> iter = this.blocks.entrySet().iterator();
-            FaweChunk<Chunk> toReturn = iter.next().getValue();
-            if (SetQueue.IMP.isWaiting()) {
-                return null;
+            synchronized (blocks) {
+                FaweChunk<Chunk> chunk = chunks.poll();
+                if (chunk != null) {
+                    blocks.remove(chunk.longHash());
+                    this.execute(chunk);
+                    return chunk;
+                }
             }
-            iter.remove();
-            this.execute(toReturn);
-            return toReturn;
         } catch (Throwable e) {
             e.printStackTrace();
-            return null;
         }
+        return null;
+    }
+
+    @Override
+    public int size() {
+        return chunks.size();
     }
 
     private ArrayDeque<FaweChunk<Chunk>> toUpdate = new ArrayDeque<>();
@@ -156,7 +166,11 @@ public abstract class BukkitQueue_0 extends FaweQueue implements Listener {
 
     @Override
     public void setChunk(FaweChunk<?> chunk) {
-        this.blocks.put(chunk.longHash(), (FaweChunk<Chunk>) chunk);
+        FaweChunk<Chunk> previous = this.blocks.put(chunk.longHash(), (FaweChunk<Chunk>) chunk);
+        if (previous != null) {
+            chunks.remove(previous);
+        }
+        chunks.add((FaweChunk<Chunk>) chunk);
     }
 
     public abstract Collection<FaweChunk<Chunk>> sendChunk(Collection<FaweChunk<Chunk>> fcs);

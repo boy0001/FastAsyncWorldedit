@@ -232,7 +232,7 @@ public class EditSession implements Extent {
         }
         final Actor actor = event.getActor();
 
-        this.queue = SetQueue.IMP.getNewQueue(world.getName());
+        this.queue = SetQueue.IMP.getNewQueue(world.getName(), true);
         this.world = (world = new WorldWrapper((AbstractWorld) world));
         this.wrapper = Fawe.imp().getEditSessionWrapper(this);
         // Not a player; bypass history

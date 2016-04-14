@@ -155,6 +155,9 @@ public class BukkitQueue_1_8 extends BukkitQueue_0 {
         } else if (cy == lcy) {
             return ls != null ? ls[FaweCache.CACHE_J[y][x & 15][z & 15]] : 0;
         }
+        if (lc == null) {
+            return 0;
+        }
         Object storage = ((Object[]) fieldSections.of(lc).get())[cy];
         if (storage == null) {
             ls = null;

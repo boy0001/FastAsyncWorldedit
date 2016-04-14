@@ -27,6 +27,9 @@ public class Settings {
     public static int CHUNK_WAIT = 0;
     public static boolean REGION_RESTRICTIONS = true;
     public static int ALLOCATE = 0;
+    public static int QUEUE_SIZE = 64;
+    public static int QUEUE_MAX_WAIT = 1000;
+    public static int QUEUE_DISCARD_AFTER = 60000;
 
     public static HashMap<String, FaweLimit> limits;
 
@@ -73,6 +76,9 @@ public class Settings {
         options.put("history.buffer-size", BUFFER_SIZE);
         options.put("region-restrictions", REGION_RESTRICTIONS);
         options.put("queue.extra-time-ms", ALLOCATE);
+        options.put("queue.target-size", QUEUE_SIZE);
+        options.put("queue.max-wait-ms", QUEUE_MAX_WAIT);
+        options.put("queue.discard-after-ms", QUEUE_DISCARD_AFTER);
         options.put("metrics", METRICS);
 
         // Default limit
@@ -85,8 +91,6 @@ public class Settings {
             FaweLimit limit = new FaweLimit();
             limit.load(config.getConfigurationSection("limits." + key), defaultLimit, false);
         }
-
-
         for (final Entry<String, Object> node : options.entrySet()) {
             if (!config.contains(node.getKey())) {
                 config.set(node.getKey(), node.getValue());
@@ -104,6 +108,9 @@ public class Settings {
         BUFFER_SIZE = config.getInt("history.buffer-size", BUFFER_SIZE);
         CHUNK_WAIT = config.getInt("history.chunk-wait-ms");
         ALLOCATE = config.getInt("queue.extra-time-ms");
+        QUEUE_SIZE = config.getInt("queue.target-size");
+        QUEUE_MAX_WAIT = config.getInt("queue.max-wait-ms");
+        QUEUE_DISCARD_AFTER = config.getInt("queue.discard-after-ms");
         if (STORE_HISTORY_ON_DISK = config.getBoolean("history.use-disk")) {
             LocalSession.MAX_HISTORY_SIZE = Integer.MAX_VALUE;
         }

@@ -42,13 +42,13 @@ public class FaweAPI {
     }
 
     public static void fixLighting(String world, int x, int z, final boolean fixAll) {
-        FaweQueue queue = SetQueue.IMP.getNewQueue(world);
+        FaweQueue queue = SetQueue.IMP.getNewQueue(world, false);
         queue.fixLighting(queue.getChunk(x, z), fixAll);
     }
 
 
     public static void fixLighting(final Chunk chunk, final boolean fixAll) {
-        FaweQueue queue = SetQueue.IMP.getNewQueue(chunk.getWorld().getName());
+        FaweQueue queue = SetQueue.IMP.getNewQueue(chunk.getWorld().getName(), false);
         queue.fixLighting(queue.getChunk(chunk.getX(), chunk.getZ()), fixAll);
     }
 
@@ -141,7 +141,7 @@ public class FaweAPI {
         tagMap = null;
         tag = null;
 
-        FaweQueue queue = SetQueue.IMP.getNewQueue(loc.world);
+        FaweQueue queue = SetQueue.IMP.getNewQueue(loc.world, true);
 
         for (int y = 0; y < height; y++) {
             final int yy = y_offset + y;

@@ -55,6 +55,8 @@ public abstract class FaweQueue {
 
     public abstract int getCombinedId4Data(int x, int y, int z);
 
+    public abstract int size();
+
     public void enqueue() {
         SetQueue.IMP.enqueue(this);
     }
