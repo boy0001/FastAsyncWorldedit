@@ -2,6 +2,7 @@ package com.boydti.fawe.object.extent;
 
 import com.boydti.fawe.FaweCache;
 import com.boydti.fawe.util.FaweQueue;
+import com.boydti.fawe.util.MainUtil;
 import com.boydti.fawe.util.TaskManager;
 import com.sk89q.worldedit.BlockVector;
 import com.sk89q.worldedit.EditSession;
@@ -93,6 +94,12 @@ public class FastWorldEditExtent extends FaweExtent {
         final int y = location.getBlockY();
         final int z = location.getBlockZ();
         switch (id) {
+            case 63:
+            case 68:
+                if (block.hasNbtData() && !MainUtil.isValidSign(block.getNbtData())) {
+                    queue.setBlock(x, y, z, id, FaweCache.hasData(id) ? (byte) block.getData() : 0);
+                    return true;
+                }
             case 54:
             case 130:
             case 142:
@@ -106,9 +113,7 @@ public class FastWorldEditExtent extends FaweExtent {
             case 138:
             case 176:
             case 177:
-            case 63:
             case 119:
-            case 68:
             case 323:
             case 117:
             case 116:

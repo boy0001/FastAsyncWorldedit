@@ -5,6 +5,7 @@ import com.boydti.fawe.object.FaweLimit;
 import com.boydti.fawe.object.FawePlayer;
 import com.boydti.fawe.object.RegionWrapper;
 import com.boydti.fawe.util.FaweQueue;
+import com.boydti.fawe.util.MainUtil;
 import com.boydti.fawe.util.TaskManager;
 import com.boydti.fawe.util.WEManager;
 import com.sk89q.worldedit.BlockVector;
@@ -108,7 +109,13 @@ public class ProcessedWEExtent extends FaweExtent {
     @Override
     public boolean setBlock(final Vector location, final BaseBlock block) throws WorldEditException {
         final short id = (short) block.getType();
+        boolean nbt = true;
         switch (id) {
+            case 63:
+            case 68:
+                if (block.hasNbtData() && !MainUtil.isValidSign(block.getNbtData())) {
+                    nbt = false;
+                }
             case 54:
             case 130:
             case 142:
@@ -122,9 +129,7 @@ public class ProcessedWEExtent extends FaweExtent {
             case 138:
             case 176:
             case 177:
-            case 63:
             case 119:
-            case 68:
             case 323:
             case 117:
             case 116:
@@ -158,7 +163,7 @@ public class ProcessedWEExtent extends FaweExtent {
                         }
                         return false;
                     }
-                    if (block.hasNbtData()) {
+                    if (block.hasNbtData() && nbt) {
                         final Vector loc = new Vector(location.x, location.y, location.z);
                         queue.addTask(x >> 4, z >> 4, new Runnable() {
                             @Override

@@ -8,6 +8,7 @@ import com.sk89q.jnbt.EndTag;
 import com.sk89q.jnbt.ListTag;
 import com.sk89q.jnbt.Tag;
 import java.io.File;
+import java.util.Map;
 import java.util.Map.Entry;
 
 public class MainUtil {
@@ -53,12 +54,13 @@ public class MainUtil {
         if (tag instanceof EndTag) {
             return false;
         }
-        if (tag instanceof ListTag) {
-            if (((ListTag) tag).getType() == EndTag.class) {
+        else if (tag instanceof ListTag) {
+            ListTag lt = (ListTag) tag;
+            if ((lt).getType() == EndTag.class) {
                 return false;
             }
         }
-        if (tag instanceof CompoundTag) {
+        else if (tag instanceof CompoundTag) {
             for (Entry<String, Tag> entry : ((CompoundTag) tag).getValue().entrySet()) {
                 if (!isValidTag(entry.getValue())) {
                     return false;
@@ -66,5 +68,10 @@ public class MainUtil {
             }
         }
         return true;
+    }
+
+    public static boolean isValidSign(CompoundTag tag) {
+        Map<String, Tag> values = tag.getValue();
+        return values.size() > 4 && values.containsKey("Text1");
     }
 }
