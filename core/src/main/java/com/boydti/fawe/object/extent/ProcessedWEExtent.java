@@ -15,7 +15,6 @@ import com.sk89q.worldedit.WorldEditException;
 import com.sk89q.worldedit.blocks.BaseBlock;
 import com.sk89q.worldedit.entity.BaseEntity;
 import com.sk89q.worldedit.entity.Entity;
-import com.sk89q.worldedit.extent.AbstractDelegateExtent;
 import com.sk89q.worldedit.extent.Extent;
 import com.sk89q.worldedit.regions.Region;
 import com.sk89q.worldedit.util.Location;
@@ -24,7 +23,7 @@ import com.sk89q.worldedit.world.biome.BaseBiome;
 import java.util.HashSet;
 import java.util.List;
 
-public class ProcessedWEExtent extends AbstractDelegateExtent {
+public class ProcessedWEExtent extends FaweExtent {
     private final FaweQueue queue;
     private final FaweLimit limit;
     private Extent parent;
@@ -160,11 +159,12 @@ public class ProcessedWEExtent extends AbstractDelegateExtent {
                         return false;
                     }
                     if (block.hasNbtData()) {
+                        final Vector loc = new Vector(location.x, location.y, location.z);
                         queue.addTask(x >> 4, z >> 4, new Runnable() {
                             @Override
                             public void run() {
                                 try {
-                                    ProcessedWEExtent.super.setBlock(location, block);
+                                    ProcessedWEExtent.super.setBlock(loc, block);
                                 } catch (WorldEditException e) {
                                     e.printStackTrace();
                                 }
@@ -298,5 +298,10 @@ public class ProcessedWEExtent extends AbstractDelegateExtent {
             queue.setBiome(position.getBlockX(), position.getBlockZ(), biome);
         }
         return false;
+    }
+
+    @Override
+    public boolean contains(int x, int y, int z) {
+        return WEManager.IMP.maskContains(this.mask, x, z);
     }
 }

@@ -33,6 +33,7 @@ import com.boydti.fawe.object.changeset.DiskStorageHistory;
 import com.boydti.fawe.object.changeset.FaweChangeSet;
 import com.boydti.fawe.object.changeset.MemoryOptimizedHistory;
 import com.boydti.fawe.object.extent.FastWorldEditExtent;
+import com.boydti.fawe.object.extent.FaweExtent;
 import com.boydti.fawe.object.extent.NullExtent;
 import com.boydti.fawe.object.extent.ProcessedWEExtent;
 import com.boydti.fawe.object.extent.SafeExtentWrapper;
@@ -160,6 +161,7 @@ public class EditSession implements Extent {
     private World world;
     private FaweChangeSet changeSet;
     private final EditSessionWrapper wrapper;
+    private FaweExtent faweExtent;
     private MaskingExtent maskingExtent;
     private final Extent bypassReorderHistory;
     private final Extent bypassHistory;
@@ -214,6 +216,7 @@ public class EditSession implements Extent {
         checkNotNull(eventBus);
         checkArgument(maxBlocks >= -1, "maxBlocks >= -1 required");
         checkNotNull(event);
+
         // Wrap world
         this.blockBag = blockBag;
         this.maxBlocks = maxBlocks;
@@ -228,12 +231,13 @@ public class EditSession implements Extent {
             return;
         }
         final Actor actor = event.getActor();
+
         this.queue = SetQueue.IMP.getNewQueue(world.getName());
         this.world = (world = new WorldWrapper((AbstractWorld) world));
         this.wrapper = Fawe.imp().getEditSessionWrapper(this);
         // Not a player; bypass history
         if ((actor == null) || !actor.isPlayer()) {
-            Extent extent = new FastWorldEditExtent(world, queue);
+            Extent extent = (this.faweExtent = new FastWorldEditExtent(world, queue));
             // Everything bypasses
             extent = this.wrapExtent(extent, eventBus, event, Stage.BEFORE_CHANGE);
             extent = this.wrapExtent(extent, eventBus, event, Stage.BEFORE_REORDER);
@@ -252,7 +256,7 @@ public class EditSession implements Extent {
         this.fastmode = session.hasFastMode();
         if (fp.hasWorldEditBypass()) {
             // Bypass skips processing and area restrictions
-            extent = new FastWorldEditExtent(world, queue);
+            extent = (this.faweExtent = new FastWorldEditExtent(world, queue));
             if (this.hasFastMode()) {
                 // Fastmode skips history and memory checks
                 extent = this.wrapExtent(extent, eventBus, event, Stage.BEFORE_CHANGE);
@@ -280,7 +284,7 @@ public class EditSession implements Extent {
                 return;
             }
             // Process the WorldEdit action
-            ProcessedWEExtent processed = new ProcessedWEExtent(world, fp, mask, limit, queue);
+            ProcessedWEExtent processed = (ProcessedWEExtent) (this.faweExtent = new ProcessedWEExtent(world, fp, mask, limit, queue));
             extent = processed;
             if (this.hasFastMode()) {
                 // Fastmode skips history, masking, and memory checks
@@ -447,6 +451,10 @@ public class EditSession implements Extent {
         } else {
             this.maskingExtent.setMask(mask);
         }
+    }
+
+    public FaweExtent getFaweExtent() {
+        return this.faweExtent;
     }
 
     /**

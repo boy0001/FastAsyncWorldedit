@@ -3,6 +3,7 @@ package com.boydti.fawe.wrappers;
 import com.boydti.fawe.FaweCache;
 import com.boydti.fawe.object.RunnableVal;
 import com.boydti.fawe.object.changeset.FaweChangeSet;
+import com.boydti.fawe.object.extent.FaweExtent;
 import com.boydti.fawe.util.FaweQueue;
 import com.boydti.fawe.util.TaskManager;
 import com.sk89q.worldedit.BlockVector2D;
@@ -180,6 +181,7 @@ public class WorldWrapper extends AbstractWorld {
     public boolean regenerate(final Region region, EditSession session) {
         final FaweQueue queue = session.getQueue();
         final FaweChangeSet fcs = (FaweChangeSet) session.getChangeSet();
+        final FaweExtent fe = session.getFaweExtent();
         session.setChangeSet(fcs);
         final CuboidRegion cb = (CuboidRegion) region;
         final boolean cuboid = region instanceof CuboidRegion;
@@ -193,7 +195,14 @@ public class WorldWrapper extends AbstractWorld {
                 int bz = cz << 4;
                 Vector cmin = new Vector(bx, 0, bz);
                 Vector cmax = cmin.add(15, getMaxY(), 15);
-                if (cuboid && region.contains(cmin) && region.contains(cmax)) {
+                boolean containsBot1 = (fe != null && fe.contains(cmin.getBlockX(), cmin.getBlockY(), cmin.getBlockZ()));
+                boolean containsBot2 = region.contains(cmin);
+                boolean containsTop1 = (fe != null && fe.contains(cmax.getBlockX(), cmax.getBlockY(), cmax.getBlockZ()));
+                boolean containsTop2 = region.contains(cmax);
+                if (fe == null || (containsBot2 && containsTop2 && !containsBot1 && !containsTop1)) {
+                    return;
+                }
+                if (cuboid && containsBot1 && containsBot2 && containsTop1 && containsTop2) {
                     if (fcs != null) {
                         for (int x = 0; x < 16; x++) {
                             int xx = x + bx;
@@ -224,13 +233,13 @@ public class WorldWrapper extends AbstractWorld {
                             for (int y = 0; y < getMaxY() + 1; y++) {
                                 final Vector loc = new Vector(xx, y, zz);
                                 int from = queue.getCombinedId4Data(xx, y, zz);
-                                if (region.contains(loc)) {
+                                boolean contains = (fe != null && fe.contains(xx, y, zz)) && region.contains(loc);
+                                if (contains) {
                                     if (fcs != null) {
                                         if (!FaweCache.hasNBT(from >> 4)) {
                                             fcs.add(xx, y, zz, from, 0);
                                         } else {
                                             try {
-
                                                 BaseBlock block = getLazyBlock(loc);
                                                 fcs.add(loc, block, FaweCache.CACHE_BLOCK[0]);
                                             } catch (Throwable e) {
@@ -245,18 +254,20 @@ public class WorldWrapper extends AbstractWorld {
                                         queue.setBlock(xx, y, zz, id, data);
                                     } else {
                                         try {
-                                            final BaseBlock block = getLazyBlock(loc);
+                                            final BaseBlock block = getBlock(loc);
+                                            final Vector v = new Vector(loc.x, loc.y, loc.z);
                                             queue.addTask(cx, cz, new Runnable() {
                                                 @Override
                                                 public void run() {
                                                     try {
-                                                        setBlock(loc, block, false);
+                                                        setBlock(v, block, false);
                                                     } catch (WorldEditException e) {
                                                         e.printStackTrace();
                                                     }
                                                 }
                                             });
                                         } catch (Throwable e) {
+                                            e.printStackTrace();
                                             queue.setBlock(xx, y, zz, id, data);
                                         }
                                     }

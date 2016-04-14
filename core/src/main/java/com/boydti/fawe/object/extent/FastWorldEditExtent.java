@@ -11,14 +11,13 @@ import com.sk89q.worldedit.WorldEditException;
 import com.sk89q.worldedit.blocks.BaseBlock;
 import com.sk89q.worldedit.entity.BaseEntity;
 import com.sk89q.worldedit.entity.Entity;
-import com.sk89q.worldedit.extent.AbstractDelegateExtent;
 import com.sk89q.worldedit.regions.Region;
 import com.sk89q.worldedit.util.Location;
 import com.sk89q.worldedit.world.World;
 import com.sk89q.worldedit.world.biome.BaseBiome;
 import java.util.List;
 
-public class FastWorldEditExtent extends AbstractDelegateExtent {
+public class FastWorldEditExtent extends FaweExtent {
 
     private final FaweQueue queue;
 
@@ -131,11 +130,12 @@ public class FastWorldEditExtent extends AbstractDelegateExtent {
             case 151:
             case 178: {
                 if (block.hasNbtData()) {
+                    final Vector loc = new Vector(location.x, location.y, location.z);
                     queue.addTask(x >> 4, z >> 4, new Runnable() {
                         @Override
                         public void run() {
                             try {
-                                FastWorldEditExtent.super.setBlock(location, block);
+                                FastWorldEditExtent.super.setBlock(loc, block);
                             } catch (WorldEditException e) {
                                 e.printStackTrace();
                             }
@@ -222,4 +222,8 @@ public class FastWorldEditExtent extends AbstractDelegateExtent {
         }
     }
 
+    @Override
+    public boolean contains(int x, int y, int z) {
+        return true;
+    }
 }
