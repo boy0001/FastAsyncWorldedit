@@ -1,5 +1,6 @@
 package com.boydti.fawe.forge.v1_8;
 
+import com.boydti.fawe.Fawe;
 import com.boydti.fawe.FaweCache;
 import com.boydti.fawe.config.Settings;
 import com.boydti.fawe.forge.SpongeUtil;
@@ -77,7 +78,10 @@ public class SpongeQueue_1_8 extends SpongeQueue_0 {
             lcz = cz;
             Chunk chunk = spongeWorld.getChunk(cx, 0, cz).orElse(null);
             if (chunk == null || !chunk.isLoaded()) {
-                if (Settings.CHUNK_WAIT > 0) {
+                boolean sync = Thread.currentThread() == Fawe.get().getMainThread();
+                if (sync) {
+                    chunk = spongeWorld.loadChunk(cx, 0, cz, true).orElse(null);
+                } else if (Settings.CHUNK_WAIT > 0) {
                     synchronized (loadQueue) {
                         loadQueue.add(new IntegerPair(cx, cz));
                         try {
