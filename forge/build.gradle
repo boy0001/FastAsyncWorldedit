@@ -61,7 +61,7 @@ shadowJar {
         include(dependency('org.mcstats.sponge:metrics:R8-SNAPSHOT'))
     }
     relocate 'org.mcstats', 'com.boydti.fawe.stats'
-    archiveName = "${parent.name}-${project.name}-${parent.version}.jar"
+    archiveName = "${parent.name}-${project.name}.jar"
     destinationDir = file '../target'
 }
 shadowJar.doLast {

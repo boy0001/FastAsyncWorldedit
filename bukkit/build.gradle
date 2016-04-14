@@ -41,7 +41,7 @@ shadowJar {
         include(dependency('org.mcstats.bukkit:metrics:R7'))
     }
     relocate 'org.mcstats', 'com.plotsquared.stats'
-    archiveName = "${parent.name}-${project.name}-${parent.version}.jar"
+    archiveName = "${parent.name}-${project.name}.jar"
     destinationDir = file '../target'
 }
 shadowJar.doLast {
