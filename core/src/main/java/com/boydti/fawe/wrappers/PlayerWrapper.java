@@ -1,11 +1,18 @@
 package com.boydti.fawe.wrappers;
 
+import com.boydti.fawe.Fawe;
+import com.sk89q.worldedit.EditSession;
+import com.sk89q.worldedit.EditSessionFactory;
+import com.sk89q.worldedit.LocalSession;
+import com.sk89q.worldedit.MaxChangedBlocksException;
 import com.sk89q.worldedit.PlayerDirection;
 import com.sk89q.worldedit.Vector;
+import com.sk89q.worldedit.WorldEdit;
 import com.sk89q.worldedit.WorldEditException;
 import com.sk89q.worldedit.WorldVector;
 import com.sk89q.worldedit.WorldVectorFace;
 import com.sk89q.worldedit.blocks.BaseBlock;
+import com.sk89q.worldedit.blocks.BlockType;
 import com.sk89q.worldedit.entity.BaseEntity;
 import com.sk89q.worldedit.entity.Player;
 import com.sk89q.worldedit.extent.Extent;
@@ -94,27 +101,82 @@ public class PlayerWrapper implements Player {
 
     @Override
     public boolean ascendToCeiling(int clearance) {
-        return parent.ascendToCeiling(clearance);
+        return ascendToCeiling(clearance, true);
     }
 
     @Override
     public boolean ascendToCeiling(int clearance, boolean alwaysGlass) {
-        return parent.ascendToCeiling(clearance, alwaysGlass);
+        Vector pos = getBlockIn();
+        int x = pos.getBlockX();
+        int initialY = Math.max(0, pos.getBlockY());
+        int y = Math.max(0, pos.getBlockY() + 2);
+        int z = pos.getBlockZ();
+        World world = getPosition().getWorld();
+
+        // No free space above
+        if (world.getBlockType(new Vector(x, y, z)) != 0) {
+            return false;
+        }
+
+        while (y <= world.getMaxY()) {
+            // Found a ceiling!
+            if (!BlockType.canPassThrough(world.getBlock(new Vector(x, y, z)))) {
+                int platformY = Math.max(initialY, y - 3 - clearance);
+                floatAt(x, platformY + 1, z, alwaysGlass);
+                return true;
+            }
+
+            ++y;
+        }
+
+        return false;
     }
 
     @Override
     public boolean ascendUpwards(int distance) {
-        return parent.ascendUpwards(distance);
+        return ascendUpwards(distance, true);
     }
 
     @Override
     public boolean ascendUpwards(int distance, boolean alwaysGlass) {
-        return parent.ascendUpwards(distance, alwaysGlass);
+        final Vector pos = getBlockIn();
+        final int x = pos.getBlockX();
+        final int initialY = Math.max(0, pos.getBlockY());
+        int y = Math.max(0, pos.getBlockY() + 1);
+        final int z = pos.getBlockZ();
+        final int maxY = Math.min(getWorld().getMaxY() + 1, initialY + distance);
+        final World world = getPosition().getWorld();
+
+        while (y <= world.getMaxY() + 2) {
+            if (!BlockType.canPassThrough(world.getBlock(new Vector(x, y, z)))) {
+                break; // Hit something
+            } else if (y > maxY + 1) {
+                break;
+            } else if (y == maxY + 1) {
+                floatAt(x, y - 1, z, alwaysGlass);
+                return true;
+            }
+
+            ++y;
+        }
+
+        return false;
     }
 
     @Override
     public void floatAt(int x, int y, int z, boolean alwaysGlass) {
-        parent.floatAt(x, y, z, alwaysGlass);
+        EditSessionFactory factory = WorldEdit.getInstance().getEditSessionFactory();
+        EditSession edit = factory.getEditSession(parent.getWorld(), -1, null, this);
+        try {
+            edit.setBlock(new Vector(x, y - 1, z), new BaseBlock( BlockType.GLASS.getID()));
+            LocalSession session = Fawe.get().getWorldEdit().getSession(this);
+            if (session != null) {
+                session.remember(edit);
+            }
+        } catch (MaxChangedBlocksException e) {
+            e.printStackTrace();
+        }
+        setPosition(new Vector(x + 0.5, y, z + 0.5));
     }
 
     @Override
