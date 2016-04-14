@@ -166,6 +166,7 @@ public class EditSession implements Extent {
     private final Extent bypassReorderHistory;
     private final Extent bypassHistory;
     private final Extent bypassNone;
+    private SurvivalModeExtent lazySurvivalExtent;
     private boolean fastmode;
     private Mask oldMask;
     private FaweLimit limit = FaweLimit.MAX;
@@ -478,7 +479,10 @@ public class EditSession implements Extent {
      * @return the survival simulation extent
      */
     public SurvivalModeExtent getSurvivalExtent() {
-        return null;
+        if (this.lazySurvivalExtent == null) {
+            this.lazySurvivalExtent = new SurvivalModeExtent(bypassReorderHistory, world);
+        }
+        return lazySurvivalExtent;
     }
 
     /**
