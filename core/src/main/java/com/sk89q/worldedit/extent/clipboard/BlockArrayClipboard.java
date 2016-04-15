@@ -50,12 +50,23 @@ import static com.google.common.base.Preconditions.checkNotNull;
 public class BlockArrayClipboard implements Clipboard {
 
     private final Region region;
-    private final short[][][] blocks;
+
+    // x,z,y+15>>4 | y&15
+    private final byte[][] ids;
+    private byte[][] datas;
+    private final Vector d;
+
+
+
     private final HashMap<IntegerTrio, CompoundTag> nbtMap;
     private final List<ClipboardEntity> entities = new ArrayList<ClipboardEntity>();
     private int mx;
     private int my;
     private int mz;
+
+    private int dx;
+    private int dxz;
+
     private Vector origin;
 
     /**
@@ -68,8 +79,10 @@ public class BlockArrayClipboard implements Clipboard {
     public BlockArrayClipboard(Region region) {
         checkNotNull(region);
         this.region = region.clone();
-        Vector dimensions = getDimensions();
-        blocks = new short[dimensions.getBlockX()][dimensions.getBlockY()][dimensions.getBlockZ()];
+        this.d = getDimensions();
+        this.dx = d.getBlockX();
+        this.dxz = dx * d.getBlockZ();
+        ids = new byte[dx * d.getBlockZ() * ((d.getBlockY() + 15) >>  4)][];
         nbtMap = new HashMap<>();
         this.origin = region.getMinimumPoint();
         this.mx = origin.getBlockX();
@@ -134,16 +147,31 @@ public class BlockArrayClipboard implements Clipboard {
     @Override
     public BaseBlock getBlock(Vector position) {
         if (region.contains(position)) {
-            int x = position.getBlockX();
-            int y = position.getBlockY();
-            int z = position.getBlockZ();
-            short combined = blocks[x - mx][y - my][z - mz];
-            int id = combined >> 4;
-            int data = combined & 0xF;
-            BaseBlock block = new BaseBlock(id, data);
+            int x = position.getBlockX() - mx;
+            int y = position.getBlockY() - my;
+            int z = position.getBlockZ() - mz;
+            int i = x + z * dx + (y >> 4) * dxz;
+            byte[] idArray = ids[i];
+            if (idArray == null) {
+                return FaweCache.CACHE_BLOCK[0];
+            }
+            int y2 = y & 0xF;
+            int id = idArray[y2] & 0xFF;
+            BaseBlock block;
+            if (!FaweCache.hasData(id) || datas == null) {
+                block = FaweCache.CACHE_BLOCK[id << 4];
+            } else {
+                byte[] dataArray = datas[i];
+                if (dataArray == null) {
+                    block = FaweCache.CACHE_BLOCK[id << 4];
+                } else {
+                    block = FaweCache.CACHE_BLOCK[(id << 4) + dataArray[y2]];
+                }
+            }
             if (FaweCache.hasNBT(id)) {
                 CompoundTag nbt = nbtMap.get(new IntegerTrio(x, y, z));
                 if (nbt != null) {
+                    block = new BaseBlock(block.getId(), block.getData());
                     block.setNbtData(nbt);
                 }
             }
@@ -162,10 +190,12 @@ public class BlockArrayClipboard implements Clipboard {
     public boolean setBlock(Vector location, BaseBlock block) throws WorldEditException {
         if (region.contains(location)) {
             final int id = block.getId();
-            final int x = location.getBlockX();
-            final int y = location.getBlockY();
-            final int z = location.getBlockZ();
+            final int x = location.getBlockX() - mx;
+            final int y = location.getBlockY() - my;
+            final int z = location.getBlockZ() - mz;
             switch (id) {
+                case 0:
+                    return true;
                 case 54:
                 case 130:
                 case 142:
@@ -201,13 +231,34 @@ public class BlockArrayClipboard implements Clipboard {
                 case 29:
                 case 33:
                 case 151:
-                case 178:
+                case 178: {
                     if (block.hasNbtData()) {
                         nbtMap.put(new IntegerTrio(x, y, z), block.getNbtData());
                     }
-                    blocks[x - mx][y - my][z - mz] = (short) ((id << 4) + (block.getData()));
+                    int i = x + z * dx + (y >> 4) * dxz;
+                    int y2 = y & 0xF;
+                    byte[] idArray = ids[i];
+                    if (idArray == null) {
+                        idArray = new byte[16];
+                        ids[i] = idArray;
+                    }
+                    idArray[y2] = (byte) id;
+                    if (FaweCache.hasData(id)) {
+                        int data = block.getData();
+                        if (data == 0) {
+                            return true;
+                        }
+                        if (datas == null) {
+                            datas = new byte[dx * d.getBlockZ() * ((d.getBlockY() + 15) >> 4)][];
+                        }
+                        byte[] dataArray = datas[i];
+                        if (dataArray == null) {
+                            dataArray = datas[i] = new byte[16];
+                        }
+                        dataArray[y2] = (byte) data;
+                    }
                     return true;
-                case 0:
+                }
                 case 2:
                 case 4:
                 case 13:
@@ -273,11 +324,37 @@ public class BlockArrayClipboard implements Clipboard {
                 case 190:
                 case 191:
                 case 192: {
-                    blocks[x - mx][y - my][z - mz] = (short) (id << 4);
+                    int i = x + z * dx + (y >> 4) * dxz;
+                    int y2 = y & 0xF;
+                    byte[] idArray = ids[i];
+                    if (idArray == null) {
+                        idArray = new byte[16];
+                        ids[i] = idArray;
+                    }
+                    idArray[y2] = (byte) id;
                     return true;
                 }
                 default: {
-                    blocks[x - mx][y - my][z - mz] = (short) ((id << 4) + (block.getData()));
+                    int i = x + z * dx + (y >> 4) * dxz;
+                    int y2 = y & 0xF;
+                    byte[] idArray = ids[i];
+                    if (idArray == null) {
+                        idArray = new byte[16];
+                        ids[i] = idArray;
+                    }
+                    idArray[y2] = (byte) id;
+                    int data = block.getData();
+                    if (data == 0) {
+                        return true;
+                    }
+                    if (datas == null) {
+                        datas = new byte[dx * d.getBlockZ() * ((d.getBlockY() + 15) >> 4)][];
+                    }
+                    byte[] dataArray = datas[i];
+                    if (dataArray == null) {
+                        dataArray = datas[i] = new byte[16];
+                    }
+                    dataArray[y2] = (byte) data;
                     return true;
                 }
             }
