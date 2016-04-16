@@ -113,7 +113,6 @@ import com.sk89q.worldedit.regions.shape.RegionShape;
 import com.sk89q.worldedit.regions.shape.WorldEditExpressionEnvironment;
 import com.sk89q.worldedit.util.Countable;
 import com.sk89q.worldedit.util.TreeGenerator;
-import com.sk89q.worldedit.util.collection.DoubleArrayList;
 import com.sk89q.worldedit.util.eventbus.EventBus;
 import com.sk89q.worldedit.world.AbstractWorld;
 import com.sk89q.worldedit.world.World;
@@ -2255,43 +2254,25 @@ public class EditSession implements Extent {
     public int deformRegion(final Region region, final Vector zero, final Vector unit, final String expressionString) throws ExpressionException, MaxChangedBlocksException {
         final Expression expression = Expression.compile(expressionString, "x", "y", "z");
         expression.optimize();
-
         final RValue x = expression.getVariable("x", false);
         final RValue y = expression.getVariable("y", false);
         final RValue z = expression.getVariable("z", false);
-
         final WorldEditExpressionEnvironment environment = new WorldEditExpressionEnvironment(this, unit, zero);
         expression.setEnvironment(environment);
-
-        final DoubleArrayList<BlockVector, BaseBlock> queue = new DoubleArrayList<BlockVector, BaseBlock>(false);
-
-        for (final BlockVector position : region) {
+        int affected = 0;
+        for (BlockVector position : region) {
             // offset, scale
             final Vector scaled = position.subtract(zero).divide(unit);
-
             // transform
             expression.evaluate(scaled.getX(), scaled.getY(), scaled.getZ());
-
             final BlockVector sourcePosition = environment.toWorld(x.getValue(), y.getValue(), z.getValue());
-
             // read block from world
-            final BaseBlock material = new BaseBlock(this.world.getBlockType(sourcePosition), this.world.getBlockData(sourcePosition));
-
+            BaseBlock material = FaweCache.CACHE_BLOCK[this.queue.getCombinedId4Data(sourcePosition.getBlockX(), sourcePosition.getBlockY(), sourcePosition.getBlockZ())];
             // queue operation
-            queue.put(position, material);
-        }
-
-        int affected = 0;
-        for (final Map.Entry<BlockVector, BaseBlock> entry : queue) {
-            final BlockVector position = entry.getKey();
-            final BaseBlock material = entry.getValue();
-
-            // set at new position
             if (this.setBlock(position, material)) {
                 ++affected;
             }
         }
-
         return affected;
     }
 

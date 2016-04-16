@@ -34,7 +34,7 @@ public final class Operations {
     /**
      * Complete a given operation synchronously until it completes.
      *
-     * @param op operation to execute
+     * @param operation operation to execute
      * @throws WorldEditException WorldEdit exception
      */
     public static void complete(Operation operation) throws WorldEditException {
@@ -47,7 +47,7 @@ public final class Operations {
      * Complete a given operation synchronously until it completes. Catch all
      * errors that is not {@link MaxChangedBlocksException} for legacy reasons.
      *
-     * @param op operation to execute
+     * @param operation operation to execute
      * @throws MaxChangedBlocksException thrown when too many blocks have been changed
      */
     public static void completeLegacy(Operation operation) throws MaxChangedBlocksException {
@@ -65,7 +65,7 @@ public final class Operations {
      * {@link com.sk89q.worldedit.WorldEditException} exceptions as
      * {@link java.lang.RuntimeException}s.
      *
-     * @param op operation to execute
+     * @param operation operation to execute
      */
     public static void completeBlindly(Operation operation) {
         try {

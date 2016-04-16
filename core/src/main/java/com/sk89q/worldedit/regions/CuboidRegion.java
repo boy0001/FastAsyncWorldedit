@@ -416,6 +416,45 @@ public class CuboidRegion extends AbstractRegion implements FlatRegion {
         };
     }
 
+    public Iterator<BlockVector> iterator_old() {
+        final BlockVector v = new BlockVector(0,0,0);
+        return new Iterator<BlockVector>() {
+            private Vector min = getMinimumPoint();
+            private Vector max = getMaximumPoint();
+            private int nextX = min.getBlockX();
+            private int nextY = min.getBlockY();
+            private int nextZ = min.getBlockZ();
+
+            @Override
+            public boolean hasNext() {
+                return (nextX != Integer.MIN_VALUE);
+            }
+
+            @Override
+            public BlockVector next() {
+                v.x = nextX;
+                v.y = nextY;
+                v.z = nextZ;
+                if (++nextX > max.getBlockX()) {
+                    nextX = min.getBlockX();
+                    if (++nextY > max.getBlockY()) {
+                        nextY = min.getBlockY();
+                        if (++nextZ > max.getBlockZ()) {
+                            nextX = Integer.MIN_VALUE;
+                        }
+                    }
+                }
+                return v;
+            }
+
+            @Override
+            public void remove() {
+                throw new UnsupportedOperationException();
+            }
+        };
+    }
+
+
     @Override
     public Iterable<Vector2D> asFlatRegion() {
         return new Iterable<Vector2D>() {
