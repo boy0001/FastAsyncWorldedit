@@ -176,6 +176,7 @@ public abstract class FawePlayer<T> {
     }
 
     public void unregister() {
+        WorldEdit.getInstance().removeSession(getPlayer());
         Fawe.get().unregister(getName());
     }
 }

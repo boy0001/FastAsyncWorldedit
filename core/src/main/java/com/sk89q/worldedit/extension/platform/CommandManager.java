@@ -85,6 +85,7 @@ import com.sk89q.worldedit.util.logging.DynamicStreamHandler;
 import com.sk89q.worldedit.util.logging.LogFormat;
 import java.io.File;
 import java.io.IOException;
+import java.lang.reflect.Field;
 import java.util.logging.FileHandler;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -236,25 +237,31 @@ public final class CommandManager {
                 LocalConfiguration config = worldEdit.getConfiguration();
                 
                 CommandLocals locals = new CommandLocals();
-                if (actor != null && actor.isPlayer()) {
-                    locals.put(Actor.class, new PlayerWrapper((Player) actor));
-                } else {
-                    locals.put(Actor.class, actor);
-                }
-                locals.put("arguments", event.getArguments());
-                
-                final long start = System.currentTimeMillis();
                 FawePlayer fp;
-                if (actor.isPlayer()) {
-                    fp = Fawe.imp().wrap(actor.getName());
+                if (actor != null && actor.isPlayer()) {
+                    try {
+                        Field fieldBasePlayer = actor.getClass().getDeclaredField("basePlayer");
+                        fieldBasePlayer.setAccessible(true);
+                        Player player = (Player) fieldBasePlayer.get(actor);
+                        Field fieldPlayer = player.getClass().getDeclaredField("player");
+                        fieldPlayer.setAccessible(true);
+                        fp = Fawe.imp().wrap(fieldPlayer.get(player));
+                    } catch (Throwable e) {
+                        e.printStackTrace();
+                        fp = Fawe.imp().wrap(actor.getName());
+                    }
                     if (fp.getMeta("fawe_action") != null) {
                         BBC.WORLDEDIT_COMMAND_LIMIT.send(fp);
                         return;
                     }
                     fp.setMeta("fawe_action", true);
+                    locals.put(Actor.class, new PlayerWrapper((Player) actor));
                 } else {
+                    locals.put(Actor.class, actor);
                     fp = null;
                 }
+                locals.put("arguments", event.getArguments());
+                final long start = System.currentTimeMillis();
                 try {
                     dispatcher.call(Joiner.on(" ").join(split), locals, new String[0]);
                 } catch (CommandPermissionsException e) {

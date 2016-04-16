@@ -183,7 +183,6 @@ public class WorldWrapper extends AbstractWorld {
         final FaweChangeSet fcs = (FaweChangeSet) session.getChangeSet();
         final FaweExtent fe = session.getFaweExtent();
         session.setChangeSet(fcs);
-        final CuboidRegion cb = (CuboidRegion) region;
         final boolean cuboid = region instanceof CuboidRegion;
         Set<Vector2D> chunks = region.getChunks();
         TaskManager.IMP.objectTask(chunks, new RunnableVal<Vector2D>() {
