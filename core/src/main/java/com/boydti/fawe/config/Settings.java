@@ -6,6 +6,7 @@ import com.boydti.fawe.object.FawePlayer;
 import com.sk89q.worldedit.LocalSession;
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
@@ -30,6 +31,7 @@ public class Settings {
     public static int QUEUE_SIZE = 64;
     public static int QUEUE_MAX_WAIT = 1000;
     public static int QUEUE_DISCARD_AFTER = 60000;
+    public static List<String> ALLOWED_3RDPARTY_EXTENTS;
 
     public static HashMap<String, FaweLimit> limits;
 
@@ -79,6 +81,7 @@ public class Settings {
         options.put("queue.target-size", QUEUE_SIZE);
         options.put("queue.max-wait-ms", QUEUE_MAX_WAIT);
         options.put("queue.discard-after-ms", QUEUE_DISCARD_AFTER);
+        options.put("extent.allowed-plugins", new ArrayList<String>());
         options.put("metrics", METRICS);
 
         // Default limit
@@ -111,6 +114,9 @@ public class Settings {
         QUEUE_SIZE = config.getInt("queue.target-size");
         QUEUE_MAX_WAIT = config.getInt("queue.max-wait-ms");
         QUEUE_DISCARD_AFTER = config.getInt("queue.discard-after-ms");
+
+        ALLOWED_3RDPARTY_EXTENTS = config.getStringList("extent.allowed-plugins");
+
         if (STORE_HISTORY_ON_DISK = config.getBoolean("history.use-disk")) {
             LocalSession.MAX_HISTORY_SIZE = Integer.MAX_VALUE;
         }

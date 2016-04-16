@@ -354,6 +354,12 @@ public class EditSession implements Extent {
         eventBus.post(event);
         final Extent toReturn = event.getExtent();
         if (toReturn != extent) {
+            String className = toReturn.getClass().getName().toLowerCase();
+            for (String allowed : Settings.ALLOWED_3RDPARTY_EXTENTS) {
+                if (className.contains(allowed.toLowerCase())) {
+                    return toReturn;
+                }
+            }
             Fawe.debug("&cPotentially inefficient WorldEdit extent: " + toReturn.getClass().getCanonicalName());
             Fawe.debug("&8 - &7For area restrictions, it is recommended to use the FaweAPI");
             Fawe.debug("&8 - &7Ignore this if not an area restriction");
