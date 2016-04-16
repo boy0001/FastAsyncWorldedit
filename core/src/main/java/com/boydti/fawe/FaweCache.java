@@ -1,6 +1,7 @@
 package com.boydti.fawe;
 
 import com.boydti.fawe.object.PseudoRandom;
+import com.sk89q.worldedit.CuboidClipboard;
 import com.sk89q.worldedit.blocks.BaseBlock;
 
 public class FaweCache {
@@ -43,7 +44,34 @@ public class FaweCache {
         for (int i = 0; i < Short.MAX_VALUE; i++) {
             int id = i >> 4;
             int data = i & 0xf;
-            CACHE_BLOCK[i] = new BaseBlock(id, data);
+            CACHE_BLOCK[i] = new BaseBlock(id, data) {
+                @Override
+                public void setData(int data) {
+                    throw new IllegalStateException("Cannot set data");
+                }
+
+                @Override
+                public void setId(int id) {
+                    throw new IllegalStateException("Cannot set id");
+                }
+
+                @Override
+                public BaseBlock flip() {
+                    BaseBlock clone = new BaseBlock(getId(), getData(), getNbtData());
+                    return clone.flip();
+                }
+
+                @Override
+                public BaseBlock flip(CuboidClipboard.FlipDirection direction) {
+                    BaseBlock clone = new BaseBlock(getId(), getData(), getNbtData());
+                    return clone.flip(direction);
+                }
+
+                @Override
+                public boolean hasWildcardData() {
+                    return true;
+                }
+            };
         }
     }
     

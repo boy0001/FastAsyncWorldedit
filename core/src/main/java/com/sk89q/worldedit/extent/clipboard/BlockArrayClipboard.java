@@ -54,9 +54,7 @@ public class BlockArrayClipboard implements Clipboard {
     // x,z,y+15>>4 | y&15
     private final byte[][] ids;
     private byte[][] datas;
-    private final Vector d;
-
-
+    private final Vector size;
 
     private final HashMap<IntegerTrio, CompoundTag> nbtMap;
     private final List<ClipboardEntity> entities = new ArrayList<ClipboardEntity>();
@@ -79,10 +77,10 @@ public class BlockArrayClipboard implements Clipboard {
     public BlockArrayClipboard(Region region) {
         checkNotNull(region);
         this.region = region.clone();
-        this.d = getDimensions();
-        this.dx = d.getBlockX();
-        this.dxz = dx * d.getBlockZ();
-        ids = new byte[dx * d.getBlockZ() * ((d.getBlockY() + 15) >>  4)][];
+        this.size = getDimensions();
+        this.dx = size.getBlockX();
+        this.dxz = dx * size.getBlockZ();
+        ids = new byte[dx * size.getBlockZ() * ((size.getBlockY() + 15) >>  4)][];
         nbtMap = new HashMap<>();
         this.origin = region.getMinimumPoint();
         this.mx = origin.getBlockX();
@@ -249,7 +247,7 @@ public class BlockArrayClipboard implements Clipboard {
                             return true;
                         }
                         if (datas == null) {
-                            datas = new byte[dx * d.getBlockZ() * ((d.getBlockY() + 15) >> 4)][];
+                            datas = new byte[dx * size.getBlockZ() * ((size.getBlockY() + 15) >> 4)][];
                         }
                         byte[] dataArray = datas[i];
                         if (dataArray == null) {
@@ -348,7 +346,7 @@ public class BlockArrayClipboard implements Clipboard {
                         return true;
                     }
                     if (datas == null) {
-                        datas = new byte[dx * d.getBlockZ() * ((d.getBlockY() + 15) >> 4)][];
+                        datas = new byte[dx * size.getBlockZ() * ((size.getBlockY() + 15) >> 4)][];
                     }
                     byte[] dataArray = datas[i];
                     if (dataArray == null) {
