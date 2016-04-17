@@ -248,7 +248,7 @@ public class EditSession implements Extent {
             this.changeSet = new NullChangeSet();
             return;
         }
-        this.changeSet = Settings.STORE_HISTORY_ON_DISK ? new DiskStorageHistory(world, actor.getUniqueId()) : new MemoryOptimizedHistory();
+        this.changeSet = Settings.STORE_HISTORY_ON_DISK ? new DiskStorageHistory(world, actor.getUniqueId()) : new MemoryOptimizedHistory(actor);
         Extent extent;
         final String name = actor.getName();
         final FawePlayer<Object> fp = FawePlayer.wrap(name);
@@ -2089,7 +2089,7 @@ public class EditSession implements Extent {
                                 treeGenerator.generate(EditSession.this, new Vector(vector.getX(), y + 1, vector.getZ()));
                                 break;
                             } else if (t == BlockID.SNOW) {
-                                setBlock(vector, new BaseBlock(BlockID.AIR));
+                                setBlock(vector, nullBlock);
                             } else if (t != BlockID.AIR) { // Trees won't grow on this!
                                 break;
                             }
@@ -2192,7 +2192,7 @@ public class EditSession implements Extent {
                     for (int z = minZ; z <= maxZ; ++z) {
                         final Vector pt = new Vector(x, y, z);
 
-                        final BaseBlock blk = new BaseBlock(this.getBlockType(pt), this.getBlockData(pt));
+                        final BaseBlock blk = FaweCache.getBlock(this.getBlockType(pt), this.getBlockData(pt));
 
                         if (map.containsKey(blk)) {
                             map.get(blk).increment();
@@ -2206,7 +2206,7 @@ public class EditSession implements Extent {
             }
         } else {
             for (final Vector pt : region) {
-                final BaseBlock blk = new BaseBlock(this.getBlockType(pt), this.getBlockData(pt));
+                final BaseBlock blk = FaweCache.getBlock(this.getBlockType(pt), this.getBlockData(pt));
 
                 if (map.containsKey(blk)) {
                     map.get(blk).increment();
@@ -2246,7 +2246,7 @@ public class EditSession implements Extent {
                         return null;
                     }
 
-                    return new BaseBlock((int) typeVariable.getValue(), (int) dataVariable.getValue());
+                    return FaweCache.getBlock((int) typeVariable.getValue(), (int) dataVariable.getValue());
                 } catch (final Exception e) {
                     EditSession.this.log.log(Level.WARNING, "Failed to create shape", e);
                     return null;

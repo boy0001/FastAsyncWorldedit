@@ -379,20 +379,22 @@ public class DiskStorageHistory implements ChangeSet, FaweChangeSet {
                             int y = gis.read() & 0xff;
                             int from1 = gis.read();
                             int from2 = gis.read();
-                            BaseBlock from = new BaseBlock(((from2 << 4) + (from1 >> 4)), (from1 & 0xf));
+                            BaseBlock from = FaweCache.getBlock(((from2 << 4) + (from1 >> 4)), (from1 & 0xf));
                             if (lastFrom != null && FaweCache.hasNBT(from.getId())) {
                                 Map<String, Tag> t = lastFrom.getValue();
                                 if (((IntTag) t.get("x")).getValue() == x && ((IntTag) t.get("z")).getValue() == z && ((IntTag) t.get("y")).getValue() == y) {
+                                    from = new BaseBlock(from.getId(), from.getData());
                                     from.setNbtData(lastFrom);
                                     lastFrom = read(nbtf);
                                 }
                             }
                             int to1 = gis.read();
                             int to2 = gis.read();
-                            BaseBlock to = new BaseBlock(((to2 << 4) + (to1 >> 4)), (to1 & 0xf));
+                            BaseBlock to = FaweCache.getBlock(((to2 << 4) + (to1 >> 4)), (to1 & 0xf));
                             if (lastTo != null && FaweCache.hasNBT(to.getId())) {
                                 Map<String, Tag> t = lastTo.getValue();
                                 if (((IntTag) t.get("x")).getValue() == x && ((IntTag) t.get("z")).getValue() == z && ((IntTag) t.get("y")).getValue() == y) {
+                                    to = new BaseBlock(to.getId(), to.getData());
                                     to.setNbtData(lastTo);
                                     lastTo = read(nbtt);
                                 }
@@ -432,7 +434,7 @@ public class DiskStorageHistory implements ChangeSet, FaweChangeSet {
                     
                     @Override
                     public void remove() {
-                        throw new IllegalArgumentException("CANNOT REMIVE");
+                        throw new IllegalArgumentException("CANNOT REMOVE");
                     }
                 };
             }

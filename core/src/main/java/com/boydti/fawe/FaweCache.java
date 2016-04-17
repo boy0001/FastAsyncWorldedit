@@ -20,6 +20,10 @@ public class FaweCache {
     // Faster than java random (since the game just needs to look random)
     public final static PseudoRandom RANDOM = new PseudoRandom();
 
+    public static BaseBlock getBlock(int id, int data) {
+        return CACHE_BLOCK[(id << 4) + data];
+    }
+
     static {
         for (int x = 0; x < 16; x++) {
             for (int z = 0; z < 16; z++) {

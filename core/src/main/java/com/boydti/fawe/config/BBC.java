@@ -42,6 +42,7 @@ public enum BBC {
     WORLDEDIT_OOM("&cYour WorldEdit action was cancelled due to low memory.", "Info"),
     WORLDEDIT_OOM_ADMIN("&cPossible options:\n&8 - &7//fast\n&8 - &7Do smaller edits\n&8 - &7Allocate more memory\n&8 - &7Disable this safeguard", "Info"),
     NOT_PLAYER("&cYou must be a player to perform this action!", "Error"),
+    COMPRESSED("History compressed. Saved ~ %s0b (%s1x smaller)", "Info"),
     OOM(
     "&8[&cCritical&8] &cDetected low memory i.e. < 1%. FAWE will take the following actions:\n&8 - &7Terminate WE block placement\n&8 - &7Clear WE history\n&8 - &7Unload non essential chunks\n&8 - &7Kill entities\n&8 - &7Garbage collect\n&cIgnore this if trying to crash server.\n&7Note: Low memory is likely (but not necessarily) caused by WE",
     "Error");

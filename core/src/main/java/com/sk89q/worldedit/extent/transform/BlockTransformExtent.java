@@ -91,7 +91,7 @@ public class BlockTransformExtent extends AbstractDelegateExtent {
 
     @Override
     public boolean setBlock(Vector location, BaseBlock block) throws WorldEditException {
-        return super.setBlock(location, transformBlock(new BaseBlock(block), true));
+        return super.setBlock(location, transformBlock(block, true));
     }
 
 

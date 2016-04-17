@@ -13,6 +13,7 @@ import com.sk89q.jnbt.Tag;
 import com.sk89q.worldedit.BlockVector;
 import com.sk89q.worldedit.Vector;
 import com.sk89q.worldedit.blocks.BaseBlock;
+import com.sk89q.worldedit.extension.platform.Actor;
 import com.sk89q.worldedit.history.change.BlockChange;
 import com.sk89q.worldedit.history.change.Change;
 import com.sk89q.worldedit.history.changeset.ChangeSet;
@@ -36,7 +37,8 @@ import net.jpountz.lz4.LZ4OutputStream;
  *  - Low memory usage
  */
 public class MemoryOptimizedHistory implements ChangeSet, FaweChangeSet {
-    
+
+    private final Actor actor;
     private ArrayDeque<CompoundTag> fromTags;
     private ArrayDeque<CompoundTag> toTags;
     
@@ -54,8 +56,8 @@ public class MemoryOptimizedHistory implements ChangeSet, FaweChangeSet {
 
     private int size;
     
-    public MemoryOptimizedHistory() {
-
+    public MemoryOptimizedHistory(Actor actor) {
+        this.actor = actor;
     }
 
 
@@ -204,20 +206,22 @@ public class MemoryOptimizedHistory implements ChangeSet, FaweChangeSet {
                             int y = gis.read() & 0xff;
                             int from1 = gis.read();
                             int from2 = gis.read();
-                            BaseBlock from = new BaseBlock(((from2 << 4) + (from1 >> 4)), (from1 & 0xf));
+                            BaseBlock from = FaweCache.getBlock(((from2 << 4) + (from1 >> 4)), (from1 & 0xf));
                             if (lastFrom != null && FaweCache.hasNBT(from.getId())) {
                                 Map<String, Tag> t = lastFrom.getValue();
                                 if (((IntTag) t.get("x")).getValue() == x && ((IntTag) t.get("z")).getValue() == z && ((IntTag) t.get("y")).getValue() == y) {
+                                    from = new BaseBlock(from.getId(), from.getData());
                                     from.setNbtData(lastFrom);
                                     lastFrom = read(lastFromIter);
                                 }
                             }
                             int to1 = gis.read();
                             int to2 = gis.read();
-                            BaseBlock to = new BaseBlock(((to2 << 4) + (to1 >> 4)), (to1 & 0xf));
+                            BaseBlock to = FaweCache.getBlock(((to2 << 4) + (to1 >> 4)), (to1 & 0xf));
                             if (lastTo != null && FaweCache.hasNBT(to.getId())) {
                                 Map<String, Tag> t = lastTo.getValue();
                                 if (((IntTag) t.get("x")).getValue() == x && ((IntTag) t.get("z")).getValue() == z && ((IntTag) t.get("y")).getValue() == y) {
+                                    to = new BaseBlock(to.getId(), to.getData());
                                     to.setNbtData(lastTo);
                                     lastTo = read(lastToIter);
                                 }
@@ -250,7 +254,7 @@ public class MemoryOptimizedHistory implements ChangeSet, FaweChangeSet {
                     
                     @Override
                     public void remove() {
-                        throw new IllegalArgumentException("CANNOT REMIVE");
+                        throw new IllegalArgumentException("CANNOT REMOVE");
                     }
                 };
             }
@@ -284,13 +288,29 @@ public class MemoryOptimizedHistory implements ChangeSet, FaweChangeSet {
                 idsStreamZip.flush();
                 idsStreamZip.close();
                 ids = idsStream.toByteArray();
-                // Estimate
-                int total = 0x18 * size;
-                int ratio = total / ids.length;
-                int saved = total - ids.length;
-                if (ratio > 3) {
-                    // TODO remove this debug message
-                    Fawe.debug(BBC.PREFIX.s() + "History compressed. Saved ~ " + saved + "b (" + ratio + "x smaller)");
+                /*
+                 * BlockVector
+                 * - reference to the object --> 8 bytes
+                 * - object header (java internals) --> 8 bytes
+                 * - double x, y, z --> 24 bytes
+                *
+                 * BaseBlock
+                 * - reference to the object --> 8 bytes
+                 * - object header (java internals) --> 8 bytes
+                 * - short id, data --> 4 bytes
+                 * - NBTCompound (assuming null) --> 4 bytes
+                 *
+                 * There are usually two lists for the block changes:
+                 * 2 * BlockVector + 2 * BaseBlock = 128b
+                 *
+                 * This compares FAWE's usage to standard WE.
+                 */
+                int total = 128 * size;
+                int current = ids.length + 16;
+                int ratio = total / current;
+                int saved = total - current;
+                if (ratio > 3 && Thread.currentThread() != Fawe.get().getMainThread() && actor != null && actor.isPlayer() && actor.getSessionKey().isActive() && BBC.COMPRESSED.s().length() > 0) {
+                    actor.print(BBC.PREFIX.s() + " " + BBC.COMPRESSED.format(saved, ratio));
                 }
                 idsStream = null;
                 idsStreamZip = null;
