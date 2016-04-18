@@ -58,6 +58,7 @@ public class BukkitQueue_1_8 extends BukkitQueue_0 {
     private final RefClass classBlockPosition = getRefClass("{nms}.BlockPosition");
     private final RefClass classChunkSection = getRefClass("{nms}.ChunkSection");
 
+    private RefMethod methodRecalcBlockCounts;
     private RefMethod methodGetHandlePlayer;
     private RefMethod methodGetHandleChunk;
     private RefConstructor MapChunk;
@@ -92,6 +93,7 @@ public class BukkitQueue_1_8 extends BukkitQueue_0 {
             this.classChunkSectionConstructor = this.classChunkSection.getConstructor(int.class, boolean.class, char[].class);
             this.tileEntityListTick = this.classWorld.getField("tileEntityList");
             this.methodGetWorld = this.classChunk.getMethod("getWorld");
+            this.methodRecalcBlockCounts = this.classChunkSection.getMethod("recalcBlockCounts");
         } catch (final NoSuchMethodException e) {
             e.printStackTrace();
         }
@@ -277,6 +279,7 @@ public class BukkitQueue_1_8 extends BukkitQueue_0 {
                             relight.call(pos);
                     }
                 }
+                methodRecalcBlockCounts.of(section).call();
             }
             return true;
         } catch (final Throwable e) {
