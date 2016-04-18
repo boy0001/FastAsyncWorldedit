@@ -279,7 +279,6 @@ public class BukkitQueue_1_8 extends BukkitQueue_0 {
                             relight.call(pos);
                     }
                 }
-                methodRecalcBlockCounts.of(section).call();
             }
             return true;
         } catch (final Throwable e) {
@@ -429,6 +428,7 @@ public class BukkitQueue_1_8 extends BukkitQueue_0 {
                 if (fill) {
                     fs.setCount(j, Short.MAX_VALUE);
                 }
+                methodRecalcBlockCounts.of(section).call();
             }
 
             // Biomes
