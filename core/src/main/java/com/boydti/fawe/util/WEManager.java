@@ -2,6 +2,7 @@ package com.boydti.fawe.util;
 
 import com.boydti.fawe.config.BBC;
 import com.boydti.fawe.config.Settings;
+import com.boydti.fawe.object.FaweLocation;
 import com.boydti.fawe.object.FawePlayer;
 import com.boydti.fawe.object.RegionWrapper;
 import com.boydti.fawe.object.extent.NullExtent;
@@ -42,6 +43,7 @@ public class WEManager {
         final HashSet<RegionWrapper> regions = new HashSet<>();
         if (player.hasPermission("fawe.bypass") || !Settings.REGION_RESTRICTIONS) {
             regions.add(new RegionWrapper(Integer.MIN_VALUE, Integer.MAX_VALUE, Integer.MIN_VALUE, Integer.MAX_VALUE));
+            player.deleteMeta("lastmask");
             return regions;
         }
         for (final FaweMaskManager manager : this.managers) {
@@ -52,6 +54,20 @@ public class WEManager {
                 }
             }
         }
+        if (regions.size() == 0) {
+            HashSet<RegionWrapper> mask = player.<HashSet<RegionWrapper>>getMeta("lastmask");
+            if (mask != null) {
+                FaweLocation loc = player.getLocation();
+                for (RegionWrapper region : mask) {
+                    if (region.isIn(loc.x, loc.z)) {
+                        player.deleteMeta("lastmask");
+                        return regions;
+                    }
+                }
+                return mask;
+            }
+        }
+        player.setMeta("lastmask", regions);
         return regions;
     }
 
