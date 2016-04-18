@@ -11,13 +11,13 @@ import com.boydti.fawe.object.PseudoRandom;
 import com.boydti.fawe.util.TaskManager;
 import com.flowpowered.math.vector.Vector3i;
 import java.lang.reflect.Field;
-import java.util.ArrayDeque;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
+import java.util.concurrent.LinkedBlockingDeque;
 import net.minecraft.block.Block;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.EntityPlayerMP;
@@ -60,7 +60,7 @@ public class SpongeQueue_1_8 extends SpongeQueue_0 {
         }, 1);
     }
 
-    private ArrayDeque<IntegerPair> loadQueue = new ArrayDeque<>();
+    private LinkedBlockingDeque<IntegerPair> loadQueue = new LinkedBlockingDeque<>();
 
     @Override
     public int getCombinedId4Data(int x, int y, int z) {

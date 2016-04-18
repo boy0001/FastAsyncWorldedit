@@ -3,9 +3,9 @@ package com.boydti.fawe.util;
 import com.boydti.fawe.Fawe;
 import com.boydti.fawe.config.Settings;
 import com.boydti.fawe.object.FaweChunk;
-import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.LinkedBlockingDeque;
 
 public class SetQueue {
 
@@ -14,8 +14,8 @@ public class SetQueue {
      */
     public static final SetQueue IMP = new SetQueue();
 
-    public final ArrayDeque<FaweQueue> activeQueues;
-    public final ArrayDeque<FaweQueue> inactiveQueues;
+    public final LinkedBlockingDeque<FaweQueue> activeQueues;
+    public final LinkedBlockingDeque<FaweQueue> inactiveQueues;
 
     /**
      * Used to calculate elapsed time in milliseconds and ensure block placement doesn't lag the server
@@ -27,12 +27,12 @@ public class SetQueue {
     /**
      * A queue of tasks that will run when the queue is empty
      */
-    private final ArrayDeque<Runnable> runnables = new ArrayDeque<>();
+    private final LinkedBlockingDeque<Runnable> runnables = new LinkedBlockingDeque<>();
 
 
     public SetQueue() {
-        activeQueues = new ArrayDeque();
-        inactiveQueues = new ArrayDeque<>();
+        activeQueues = new LinkedBlockingDeque();
+        inactiveQueues = new LinkedBlockingDeque<>();
         TaskManager.IMP.repeat(new Runnable() {
             @Override
             public void run() {
@@ -156,7 +156,7 @@ public class SetQueue {
         if (this.runnables.size() == 0) {
             return false;
         }
-        final ArrayDeque<Runnable> tmp = this.runnables.clone();
+        final LinkedBlockingDeque<Runnable> tmp = new LinkedBlockingDeque<>(this.runnables);
         this.runnables.clear();
         for (final Runnable runnable : tmp) {
             runnable.run();

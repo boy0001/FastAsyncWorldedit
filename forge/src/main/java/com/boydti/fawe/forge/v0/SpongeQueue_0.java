@@ -3,9 +3,9 @@ package com.boydti.fawe.forge.v0;
 import com.boydti.fawe.object.FaweChunk;
 import com.boydti.fawe.util.FaweQueue;
 import com.sk89q.worldedit.world.biome.BaseBiome;
-import java.util.ArrayDeque;
 import java.util.Collection;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.LinkedBlockingDeque;
 import org.spongepowered.api.Sponge;
 import org.spongepowered.api.world.Chunk;
 import org.spongepowered.api.world.World;
@@ -19,7 +19,7 @@ public abstract class SpongeQueue_0 extends FaweQueue {
      * Map of chunks in the queue
      */
     private final ConcurrentHashMap<Long, FaweChunk<Chunk>> blocks = new ConcurrentHashMap<>();
-    private ArrayDeque<FaweChunk<Chunk>> chunks = new ArrayDeque<>();
+    private LinkedBlockingDeque<FaweChunk<Chunk>> chunks = new LinkedBlockingDeque<>();
 
     public SpongeQueue_0(String world) {
         super(world);
@@ -113,7 +113,7 @@ public abstract class SpongeQueue_0 extends FaweQueue {
         return chunks.size();
     }
 
-    private final ArrayDeque<FaweChunk<Chunk>> toUpdate = new ArrayDeque<>();
+    private final LinkedBlockingDeque<FaweChunk<Chunk>> toUpdate = new LinkedBlockingDeque<>();
 
     public boolean execute(final FaweChunk<Chunk> fc) {
         if (fc == null) {

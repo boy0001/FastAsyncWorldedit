@@ -28,6 +28,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
+import java.util.concurrent.LinkedBlockingDeque;
 import org.bukkit.Bukkit;
 import org.bukkit.Chunk;
 import org.bukkit.Location;
@@ -109,7 +110,7 @@ public class BukkitQueue_1_9 extends BukkitQueue_0 {
         }, 1);
     }
 
-    private ArrayDeque<IntegerPair> loadQueue = new ArrayDeque<>();
+    private LinkedBlockingDeque<IntegerPair> loadQueue = new LinkedBlockingDeque<>();
 
     @Override
     public int getCombinedId4Data(int x, int y, int z) {

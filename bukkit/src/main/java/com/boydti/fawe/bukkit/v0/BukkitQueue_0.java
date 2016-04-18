@@ -8,6 +8,7 @@ import com.sk89q.worldedit.world.biome.BaseBiome;
 import java.util.ArrayDeque;
 import java.util.Collection;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.LinkedBlockingDeque;
 import org.bukkit.Bukkit;
 import org.bukkit.Chunk;
 import org.bukkit.World;
@@ -25,7 +26,7 @@ public abstract class BukkitQueue_0 extends FaweQueue implements Listener {
      * Map of chunks in the queue
      */
     private ConcurrentHashMap<Long, FaweChunk<Chunk>> blocks = new ConcurrentHashMap<>();
-    private ArrayDeque<FaweChunk<Chunk>> chunks = new ArrayDeque<>();
+    private LinkedBlockingDeque<FaweChunk<Chunk>> chunks = new LinkedBlockingDeque<>();
 
     public BukkitQueue_0(String world) {
         super(world);
@@ -142,7 +143,7 @@ public abstract class BukkitQueue_0 extends FaweQueue implements Listener {
         return chunks.size();
     }
 
-    private ArrayDeque<FaweChunk<Chunk>> toUpdate = new ArrayDeque<>();
+    private LinkedBlockingDeque<FaweChunk<Chunk>> toUpdate = new LinkedBlockingDeque<>();
 
     public boolean execute(FaweChunk<Chunk> fc) {
         if (fc == null) {
