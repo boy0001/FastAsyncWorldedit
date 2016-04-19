@@ -98,7 +98,7 @@ public class BukkitQueue_1_9 extends BukkitQueue_0 {
                             bukkitWorld = Bukkit.getServer().getWorld(world);
                         }
                         if (!bukkitWorld.isChunkLoaded(loc.x, loc.z)) {
-                            bukkitWorld.loadChunk(loc.x, loc.z);
+                            bukkitWorld.loadChunk(loc.x, loc.z, true);
                         }
                     }
                     loadQueue.notifyAll();
@@ -166,10 +166,20 @@ public class BukkitQueue_1_9 extends BukkitQueue_0 {
         return new ArrayList<>();
     }
 
-    public void sendChunk(FaweChunk<Chunk> fc) {
-        fixLighting(fc, Settings.FIX_ALL_LIGHTING);
-        final Chunk chunk = fc.getChunk();
-        chunk.getWorld().refreshChunk(fc.getX(), fc.getZ());
+    public void sendChunk(final FaweChunk<Chunk> fc) {
+        TaskManager.IMP.task(new Runnable() {
+            @Override
+            public void run() {
+                fixLighting(fc, Settings.FIX_ALL_LIGHTING);
+                TaskManager.IMP.task(new Runnable() {
+                    @Override
+                    public void run() {
+                        final Chunk chunk = fc.getChunk();
+                        chunk.getWorld().refreshChunk(fc.getX(), fc.getZ());
+                    }
+                }, false);
+            }
+        }, Settings.ASYNC_LIGHTING);
     }
 
     @Override

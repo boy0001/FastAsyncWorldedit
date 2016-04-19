@@ -108,7 +108,7 @@ public class BukkitQueue_1_8 extends BukkitQueue_0 {
                             bukkitWorld = Bukkit.getServer().getWorld(world);
                         }
                         if (!bukkitWorld.isChunkLoaded(loc.x, loc.z)) {
-                            bukkitWorld.loadChunk(loc.x, loc.z);
+                            bukkitWorld.loadChunk(loc.x, loc.z, true);
                         }
                     }
                     loadQueue.notifyAll();
@@ -177,29 +177,39 @@ public class BukkitQueue_1_8 extends BukkitQueue_0 {
         return new ArrayList<>();
     }
 
-    public void sendChunk(FaweChunk<Chunk> fc) {
-        fixLighting(fc, Settings.FIX_ALL_LIGHTING);
-        Chunk chunk = fc.getChunk();
-        World world = chunk.getWorld();
-        final int view = Bukkit.getServer().getViewDistance();
-        int cx = chunk.getX();
-        int cz = chunk.getZ();
-        for (final Player player : Bukkit.getOnlinePlayers()) {
-            if (!player.getWorld().equals(world)) {
-                continue;
+    public void sendChunk(final FaweChunk<Chunk> fc) {
+        TaskManager.IMP.task(new Runnable() {
+            @Override
+            public void run() {
+                fixLighting(fc, Settings.FIX_ALL_LIGHTING);
+                TaskManager.IMP.task(new Runnable() {
+                    @Override
+                    public void run() {
+                        Chunk chunk = fc.getChunk();
+                        World world = chunk.getWorld();
+                        final int view = Bukkit.getServer().getViewDistance();
+                        int cx = chunk.getX();
+                        int cz = chunk.getZ();
+                        for (final Player player : Bukkit.getOnlinePlayers()) {
+                            if (!player.getWorld().equals(world)) {
+                                continue;
+                            }
+                            final Location loc = player.getLocation();
+                            final int px = loc.getBlockX() >> 4;
+                            final int pz = loc.getBlockZ() >> 4;
+                            if ((Math.abs(cx - px) > view) || (Math.abs(cz - pz) > view)) {
+                                continue;
+                            }
+                            final Object entity = methodGetHandlePlayer.of(player).call();
+                            final RefExecutor con = send.of(connection.of(entity).get());
+                            final Object c = methodGetHandleChunk.of(fc.getChunk()).call();
+                            Object packet = MapChunk.create(c, false, 65535);
+                            con.call(packet);
+                        }
+                    }
+                }, false);
             }
-            final Location loc = player.getLocation();
-            final int px = loc.getBlockX() >> 4;
-            final int pz = loc.getBlockZ() >> 4;
-            if ((Math.abs(cx - px) > view) || (Math.abs(cz - pz) > view)) {
-                continue;
-            }
-            final Object entity = this.methodGetHandlePlayer.of(player).call();
-            final RefExecutor con = this.send.of(this.connection.of(entity).get());
-            final Object c = this.methodGetHandleChunk.of(fc.getChunk()).call();
-            Object packet = this.MapChunk.create(c, false, 65535);
-            con.call(packet);
-        }
+        }, Settings.ASYNC_LIGHTING);
     }
 
     @Override

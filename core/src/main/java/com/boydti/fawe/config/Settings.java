@@ -16,7 +16,6 @@ import java.util.Map.Entry;
 public class Settings {
 
     public static boolean REQUIRE_SELECTION = false;
-    public static boolean FIX_ALL_LIGHTING = true;
     public static boolean COMMAND_PROCESSOR = false;
     public static List<String> WE_BLACKLIST = Arrays.asList("cs", ".s", "restore", "snapshot", "delchunks", "listchunks");
     public static long MEM_FREE = 95;
@@ -32,6 +31,9 @@ public class Settings {
     public static int QUEUE_MAX_WAIT = 1000;
     public static int QUEUE_DISCARD_AFTER = 60000;
     public static List<String> ALLOWED_3RDPARTY_EXTENTS;
+
+    public static boolean FIX_ALL_LIGHTING = true;
+    public static boolean ASYNC_LIGHTING = true;
 
     public static HashMap<String, FaweLimit> limits;
 
@@ -71,7 +73,8 @@ public class Settings {
         options.put("command-processor", COMMAND_PROCESSOR);
         options.put("max-memory-percent", MEM_FREE);
         options.put("crash-mitigation", ENABLE_HARD_LIMIT);
-        options.put("fix-all-lighting", FIX_ALL_LIGHTING);
+        options.put("lighting.fix-all", FIX_ALL_LIGHTING);
+        options.put("lighting.async", ASYNC_LIGHTING);
         options.put("history.use-disk", STORE_HISTORY_ON_DISK);
         options.put("history.compress", false);
         options.put("history.chunk-wait-ms", CHUNK_WAIT);
@@ -99,7 +102,8 @@ public class Settings {
                 config.set(node.getKey(), node.getValue());
             }
         }
-        FIX_ALL_LIGHTING = config.getBoolean("fix-all-lighting");
+        FIX_ALL_LIGHTING = config.getBoolean("lighting.fix-all");
+        ASYNC_LIGHTING = config.getBoolean("lighting.async");
         COMMAND_PROCESSOR = config.getBoolean("command-processor");
         MEM_FREE = config.getInt("max-memory-percent");
         REQUIRE_SELECTION = config.getBoolean("require-selection-in-mask");

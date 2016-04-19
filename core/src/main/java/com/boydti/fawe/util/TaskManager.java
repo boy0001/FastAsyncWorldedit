@@ -1,5 +1,6 @@
 package com.boydti.fawe.util;
 
+import com.boydti.fawe.Fawe;
 import com.boydti.fawe.object.RunnableVal;
 import java.util.Collection;
 import java.util.Iterator;
@@ -15,6 +16,20 @@ public abstract class TaskManager {
     public abstract void async(final Runnable r);
 
     public abstract void task(final Runnable r);
+
+    public void task(final Runnable r, boolean async) {
+        if (async) {
+            async(r);
+        } else {
+            if (Fawe.get().getMainThread() == Thread.currentThread()) {
+                if (r != null) {
+                    r.run();
+                }
+            } else {
+                task(r);
+            }
+        }
+    }
 
     public abstract void later(final Runnable r, final int delay);
 

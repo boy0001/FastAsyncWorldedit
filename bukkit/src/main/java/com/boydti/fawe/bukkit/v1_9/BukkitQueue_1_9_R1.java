@@ -60,7 +60,7 @@ public class BukkitQueue_1_9_R1 extends BukkitQueue_0 {
                             bukkitWorld = Bukkit.getServer().getWorld(world);
                         }
                         if (!bukkitWorld.isChunkLoaded(loc.x, loc.z)) {
-                            bukkitWorld.loadChunk(loc.x, loc.z);
+                            bukkitWorld.loadChunk(loc.x, loc.z, true);
                         }
                     }
                     loadQueue.notifyAll();
@@ -117,6 +117,9 @@ public class BukkitQueue_1_9_R1 extends BukkitQueue_0 {
                 ChunkSection nibble = chunkSections[cy];
                 lastSection = nibble != null ? nibble.getBlocks() : null;
             } else if (cy != lcy) {
+                if (chunkSections == null) {
+                    return 0;
+                }
                 ChunkSection nibble = chunkSections[cy];
                 lastSection = nibble != null ? nibble.getBlocks() : null;
             }
@@ -146,10 +149,20 @@ public class BukkitQueue_1_9_R1 extends BukkitQueue_0 {
         return new ArrayList<>();
     }
 
-    public void sendChunk(FaweChunk<Chunk> fc) {
-        fixLighting(fc, Settings.FIX_ALL_LIGHTING);
-        final Chunk chunk = fc.getChunk();
-        chunk.getWorld().refreshChunk(fc.getX(), fc.getZ());
+    public void sendChunk(final FaweChunk<Chunk> fc) {
+        TaskManager.IMP.task(new Runnable() {
+            @Override
+            public void run() {
+                fixLighting(fc, Settings.FIX_ALL_LIGHTING);
+                TaskManager.IMP.task(new Runnable() {
+                    @Override
+                    public void run() {
+                        final Chunk chunk = fc.getChunk();
+                        chunk.getWorld().refreshChunk(fc.getX(), fc.getZ());
+                    }
+                }, false);
+            }
+        }, Settings.ASYNC_LIGHTING);
     }
 
     @Override
@@ -375,6 +388,8 @@ public class BukkitQueue_1_9_R1 extends BukkitQueue_0 {
                             int data = lastId & 0xF;
                             IBlockData ibd = Block.getById(id).fromLegacyData(data);
                             lastBit = palette.a(ibd);
+                            palette = (DataPalette) fieldPalette.get(nibble);
+                            bits = (DataBits) fieldBits.get(nibble);
                         }
                         bits.a(i, lastBit);
                     }
@@ -390,19 +405,20 @@ public class BukkitQueue_1_9_R1 extends BukkitQueue_0 {
                         case 0:
                             int existingBit = bits.a(k);
                             if (existingBit != lastBit) {
+                                palette = (DataPalette) fieldPalette.get(nibble);
+                                bits = (DataBits) fieldBits.get(nibble);
                                 lastBit = existingBit;
                                 IBlockData ibd = palette.a(existingBit);
-                                if (ibd != null) {
-                                    Block block = ibd.getBlock();
-                                    int id = Block.getId(block);
-                                    if (FaweCache.hasData(id)) {
-                                        lastId = (id << 4) + block.toLegacyData(ibd);
-                                    } else {
-                                        lastId = id << 4;
-                                    }
-                                } else {
+                                if (ibd == null) {
                                     fill = false;
                                     continue;
+                                }
+                                Block block = ibd.getBlock();
+                                int id = Block.getId(block);
+                                if (FaweCache.hasData(id)) {
+                                    lastId = (id << 4) + block.toLegacyData(ibd);
+                                } else {
+                                    lastId = id << 4;
                                 }
                             }
                             if (lastId != 0) {
@@ -420,6 +436,8 @@ public class BukkitQueue_1_9_R1 extends BukkitQueue_0 {
                                 int data = lastId & 0xF;
                                 IBlockData ibd = Block.getById(id).fromLegacyData(data);
                                 lastBit = palette.a(ibd);
+                                palette = (DataPalette) fieldPalette.get(nibble);
+                                bits = (DataBits) fieldBits.get(nibble);
                             }
                             bits.a(k, lastBit);
                             continue;
@@ -433,6 +451,8 @@ public class BukkitQueue_1_9_R1 extends BukkitQueue_0 {
                                 int data = lastId & 0xF;
                                 IBlockData ibd = Block.getById(id).fromLegacyData(data);
                                 lastBit = palette.a(ibd);
+                                palette = (DataPalette) fieldPalette.get(nibble);
+                                bits = (DataBits) fieldBits.get(nibble);
                             }
                             bits.a(k, lastBit);
                             continue;
