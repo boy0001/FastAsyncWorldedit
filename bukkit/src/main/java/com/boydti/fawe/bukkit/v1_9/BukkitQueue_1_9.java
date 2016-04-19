@@ -170,10 +170,13 @@ public class BukkitQueue_1_9 extends BukkitQueue_0 {
         TaskManager.IMP.task(new Runnable() {
             @Override
             public void run() {
-                fixLighting(fc, Settings.FIX_ALL_LIGHTING);
+                final boolean result = fixLighting(fc, Settings.FIX_ALL_LIGHTING) || !Settings.ASYNC_LIGHTING;
                 TaskManager.IMP.task(new Runnable() {
                     @Override
                     public void run() {
+                        if (!result) {
+                            fixLighting(fc, Settings.FIX_ALL_LIGHTING);
+                        }
                         final Chunk chunk = fc.getChunk();
                         chunk.getWorld().refreshChunk(fc.getX(), fc.getZ());
                     }
@@ -188,6 +191,9 @@ public class BukkitQueue_1_9 extends BukkitQueue_0 {
             final BukkitChunk_1_9 bc = (BukkitChunk_1_9) pc;
             final Chunk chunk = bc.getChunk();
             if (!chunk.isLoaded()) {
+                if (Fawe.get().getMainThread() != Thread.currentThread()) {
+                    return false;
+                }
                 chunk.load(false);
             }
             // Initialize lighting
