@@ -421,7 +421,7 @@ public class CuboidClipboard {
         final int shiftX = sizeRotated.getX() < 0 ? -sizeRotated.getBlockX() - 1 : 0;
         final int shiftZ = sizeRotated.getZ() < 0 ? -sizeRotated.getBlockZ() - 1 : 0;
 
-        CuboidClipboard cloned = new CuboidClipboard(sizeRotated);
+        CuboidClipboard cloned = new CuboidClipboard(sizeRotated.positive().round());
 
         BaseBlock air = FaweCache.CACHE_BLOCK[0];
 
@@ -437,10 +437,16 @@ public class CuboidClipboard {
                     }
                     if (reverse) {
                         for (int i = 0; i < numRotations; ++i) {
+                            if (block.hasWildcardData()) {
+                                block = new BaseBlock(block);
+                            }
                             block.rotate90Reverse();
                         }
                     } else {
                         for (int i = 0; i < numRotations; ++i) {
+                            if (block.hasWildcardData()) {
+                                block = new BaseBlock(block);
+                            }
                             block.rotate90();
                         }
                     }
@@ -456,6 +462,8 @@ public class CuboidClipboard {
                 Math.abs(sizeRotated.getBlockZ()));
         offset = offset.transform2D(angle, 0, 0, 0, 0)
                 .subtract(shiftX, 0, shiftZ);
+        dx = cloned.dx;
+        dxz = cloned.dxz;
     }
 
     /**
