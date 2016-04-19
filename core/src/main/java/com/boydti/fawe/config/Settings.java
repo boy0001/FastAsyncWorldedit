@@ -24,7 +24,7 @@ public class Settings {
     public static int COMPRESSION_LEVEL = 0;
     public static int BUFFER_SIZE = 531441;
     public static boolean METRICS = true;
-    public static int CHUNK_WAIT = 0;
+    public static int CHUNK_WAIT = 100;
     public static boolean REGION_RESTRICTIONS = true;
     public static int ALLOCATE = 0;
     public static int QUEUE_SIZE = 64;

@@ -42,29 +42,52 @@ public abstract class FawePlayer<T> {
         }
         try {
             UUID uuid = getUUID();
-            for (World world : WorldEdit.getInstance().getServer().getWorlds()) {
-                ArrayDeque<Integer> editIds = new ArrayDeque<>();
-                File folder = new File(Fawe.imp().getDirectory(), "history" + File.separator + world.getName() + File.separator + uuid);
-                if (folder.isDirectory()) {
-                    for (File file : folder.listFiles()) {
-                        if (file.getName().endsWith(".bd")) {
-                            int index = Integer.parseInt(file.getName().split("\\.")[0]);
-                            editIds.add(index);
-                        }
-                    }
-                }
-                if (editIds.size() > 0) {
-                    Fawe.debug(BBC.PREFIX.s() + " Indexing " + editIds.size() + " history objects for " + getName());
-                    for (int index : editIds) {
-                        DiskStorageHistory set = new DiskStorageHistory(world, uuid, index);
-                        EditSession edit = set.toEditSession(getPlayer());
-                        session.remember(edit);
-                    }
+            String currentWorldName = getLocation().world;
+            World world = getWorld();
+            if (world != null) {
+                if (world.getName().equals(currentWorldName)) {
+                    getSession().clearHistory();
+                    loadSessionFromDisk(world);
                 }
             }
         } catch (Exception e) {
             e.printStackTrace();
             Fawe.debug("Failed to load history for: " + getName());
+        }
+    }
+
+    public World getWorld() {
+        String currentWorldName = getLocation().world;
+        for (World world : WorldEdit.getInstance().getServer().getWorlds()) {
+            if (world.getName().equals(currentWorldName)) {
+                return world;
+            }
+        }
+        return null;
+    }
+
+    public void loadSessionFromDisk(World world) {
+        if (world == null) {
+            return;
+        }
+        UUID uuid = getUUID();
+        ArrayDeque<Integer> editIds = new ArrayDeque<>();
+        File folder = new File(Fawe.imp().getDirectory(), "history" + File.separator + world.getName() + File.separator + uuid);
+        if (folder.isDirectory()) {
+            for (File file : folder.listFiles()) {
+                if (file.getName().endsWith(".bd")) {
+                    int index = Integer.parseInt(file.getName().split("\\.")[0]);
+                    editIds.add(index);
+                }
+            }
+        }
+        if (editIds.size() > 0) {
+            Fawe.debug(BBC.PREFIX.s() + " Indexing " + editIds.size() + " history objects for " + getName());
+            for (int index : editIds) {
+                DiskStorageHistory set = new DiskStorageHistory(world, uuid, index);
+                EditSession edit = set.toEditSession(getPlayer());
+                session.remember(edit);
+            }
         }
     }
 
@@ -176,6 +199,8 @@ public abstract class FawePlayer<T> {
     }
 
     public void unregister() {
+        getSession().setClipboard(null);
+        getSession().clearHistory();
         WorldEdit.getInstance().removeSession(getPlayer());
         Fawe.get().unregister(getName());
     }

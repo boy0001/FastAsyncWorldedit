@@ -15,6 +15,7 @@ import com.boydti.fawe.bukkit.v1_8.BukkitEditSessionWrapper_1_8;
 import com.boydti.fawe.bukkit.v1_8.BukkitQueue_1_8;
 import com.boydti.fawe.bukkit.v1_9.BukkitQueue_1_9;
 import com.boydti.fawe.bukkit.v1_9.BukkitQueue_1_9_R1;
+import com.boydti.fawe.config.Settings;
 import com.boydti.fawe.object.EditSessionWrapper;
 import com.boydti.fawe.object.FaweCommand;
 import com.boydti.fawe.object.FawePlayer;
@@ -34,6 +35,7 @@ import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
+import org.bukkit.event.player.PlayerChangedWorldEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -293,6 +295,19 @@ public class FaweBukkit extends JavaPlugin implements IFawe, Listener {
 
     @EventHandler
     public void onPlayerQuit(PlayerQuitEvent event) {
+        Player player = event.getPlayer();
+        FawePlayer fp = FawePlayer.wrap(player);
+        fp.unregister();
         Fawe.get().unregister(event.getPlayer().getName());
+    }
+
+    @EventHandler
+    public void onPlayerChangedWorld(PlayerChangedWorldEvent event) {
+        Player player = event.getPlayer();
+        FawePlayer fp = FawePlayer.wrap(player);
+        if (Settings.STORE_HISTORY_ON_DISK) {
+            fp.getSession().clearHistory();
+            fp.loadSessionFromDisk(fp.getWorld());
+        }
     }
 }
