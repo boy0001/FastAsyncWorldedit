@@ -3,21 +3,16 @@ package com.boydti.fawe.bukkit.v1_9;
 import com.boydti.fawe.Fawe;
 import com.boydti.fawe.FaweCache;
 import com.boydti.fawe.bukkit.v0.BukkitQueue_0;
+import com.boydti.fawe.bukkit.v1_8.BukkitChunk_1_8;
 import com.boydti.fawe.config.Settings;
 import com.boydti.fawe.object.FaweChunk;
 import com.boydti.fawe.object.FawePlayer;
 import com.boydti.fawe.object.IntegerPair;
 import com.boydti.fawe.object.PseudoRandom;
 import com.boydti.fawe.util.MemUtil;
-import com.boydti.fawe.util.ReflectionUtils.RefClass;
-import com.boydti.fawe.util.ReflectionUtils.RefConstructor;
-import com.boydti.fawe.util.ReflectionUtils.RefField;
-import com.boydti.fawe.util.ReflectionUtils.RefMethod;
-import com.boydti.fawe.util.ReflectionUtils.RefMethod.RefExecutor;
 import com.boydti.fawe.util.TaskManager;
 import com.sk89q.worldedit.LocalSession;
 import java.lang.reflect.Field;
-import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
@@ -27,8 +22,15 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.Set;
 import java.util.concurrent.LinkedBlockingDeque;
+import net.minecraft.server.v1_9_R1.Block;
+import net.minecraft.server.v1_9_R1.BlockPosition;
+import net.minecraft.server.v1_9_R1.ChunkSection;
+import net.minecraft.server.v1_9_R1.DataBits;
+import net.minecraft.server.v1_9_R1.DataPalette;
+import net.minecraft.server.v1_9_R1.DataPaletteBlock;
+import net.minecraft.server.v1_9_R1.IBlockData;
+import net.minecraft.server.v1_9_R1.TileEntity;
 import org.bukkit.Bukkit;
 import org.bukkit.Chunk;
 import org.bukkit.Location;
@@ -36,58 +38,18 @@ import org.bukkit.Material;
 import org.bukkit.World;
 import org.bukkit.World.Environment;
 import org.bukkit.block.Biome;
+import org.bukkit.craftbukkit.v1_9_R1.CraftChunk;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.generator.BlockPopulator;
 import org.bukkit.generator.ChunkGenerator;
 
+public class BukkitQueue_1_9_R1 extends BukkitQueue_0 {
 
-import static com.boydti.fawe.util.ReflectionUtils.getRefClass;
+    private IBlockData air = Block.getByCombinedId(0);
 
-public class BukkitQueue_1_9 extends BukkitQueue_0 {
-
-    private final RefClass classMapChunk = getRefClass("{nms}.PacketPlayOutMapChunk");
-    private final RefClass classChunk = getRefClass("{nms}.Chunk");
-    private final RefClass classCraftChunk = getRefClass("{cb}.CraftChunk");
-    private final RefClass classWorld = getRefClass("{nms}.World");
-    private final RefField mustSave = this.classChunk.getField("mustSave");
-    private final RefClass classBlockPosition = getRefClass("{nms}.BlockPosition");
-    private final RefClass classChunkSection = getRefClass("{nms}.ChunkSection");
-    private final RefClass classBlock = getRefClass("{nms}.Block");
-    private final RefClass classIBlockData = getRefClass("{nms}.IBlockData");
-    private final RefMethod methodGetHandleChunk;
-    private final RefMethod methodInitLighting;
-    private final RefConstructor classBlockPositionConstructor;
-    private final RefConstructor classChunkSectionConstructor;
-    private final RefMethod methodW;
-    private final RefField fieldSections;
-    private final RefField fieldWorld;
-    private final RefMethod methodGetBlocks;
-    private final RefMethod methodSetType;
-    private final RefMethod methodGetType;
-    private final RefMethod methodGetByCombinedId;
-    private final RefMethod methodGetCombinedId;
-    private final Object air;
-    private final RefMethod methodGetWorld;
-    private final RefField tileEntityListTick;
-
-    public BukkitQueue_1_9(final String world) throws NoSuchMethodException, RuntimeException {
+    public BukkitQueue_1_9_R1(final String world) throws NoSuchMethodException, RuntimeException {
         super(world);
-        this.methodGetHandleChunk = this.classCraftChunk.getMethod("getHandle");
-        this.methodInitLighting = this.classChunk.getMethod("initLighting");
-        this.classBlockPositionConstructor = this.classBlockPosition.getConstructor(int.class, int.class, int.class);
-        this.methodW = this.classWorld.getMethod("w", this.classBlockPosition.getRealClass());
-        this.fieldSections = this.classChunk.getField("sections");
-        this.fieldWorld = this.classChunk.getField("world");
-        this.methodGetByCombinedId = this.classBlock.getMethod("getByCombinedId", int.class);
-        this.methodGetBlocks = this.classChunkSection.getMethod("getBlocks");
-        this.methodSetType = this.classChunkSection.getMethod("setType", int.class, int.class, int.class, this.classIBlockData.getRealClass());
-        this.methodGetType = this.classChunk.getMethod("a", int.class, int.class, int.class);
-        this.classChunkSectionConstructor = this.classChunkSection.getConstructor(int.class, boolean.class, char[].class);
-        this.air = this.methodGetByCombinedId.call(0);
-        this.tileEntityListTick = this.classWorld.getField("tileEntityListTick");
-        this.methodGetWorld = this.classChunk.getMethod("getWorld");
-        this.methodGetCombinedId = classBlock.getMethod("getCombinedId", classIBlockData.getRealClass());
         TaskManager.IMP.repeat(new Runnable() {
             @Override
             public void run() {
@@ -108,6 +70,12 @@ public class BukkitQueue_1_9 extends BukkitQueue_0 {
     }
 
     private LinkedBlockingDeque<IntegerPair> loadQueue = new LinkedBlockingDeque<>();
+
+    private int lcx = Integer.MIN_VALUE;
+    private int lcz = Integer.MIN_VALUE;
+    private int lcy = Integer.MIN_VALUE;
+    private ChunkSection[] chunkSections;
+    private DataPaletteBlock lastSection;
 
     @Override
     public int getCombinedId4Data(int x, int y, int z) {
@@ -144,13 +112,25 @@ public class BukkitQueue_1_9 extends BukkitQueue_0 {
                         return 0;
                     }
                 }
-                lc = methodGetType.of(methodGetHandleChunk.of(bukkitWorld.getChunkAt(cx, cz)).call());
+                CraftChunk chunk = (CraftChunk) bukkitWorld.getChunkAt(cx, cz);
+                chunkSections = chunk.getHandle().getSections();
+                ChunkSection nibble = chunkSections[cy];
+                lastSection = nibble != null ? nibble.getBlocks() : null;
+            } else if (cy != lcy) {
+                ChunkSection nibble = chunkSections[cy];
+                lastSection = nibble != null ? nibble.getBlocks() : null;
             }
-            if (lc == null) {
+            if (lastSection == null) {
                 return 0;
             }
-            int combined = (int) methodGetCombinedId.call(lc.call(x & 15, y, z & 15));
-            return ((combined & 4095) << 4) + (combined >> 12);
+            IBlockData ibd = lastSection.a(x & 15, y & 15, z & 15);
+            Block block = ibd.getBlock();
+            int id = Block.getId(block);
+            if (FaweCache.hasData(id)) {
+                return (id << 4) + block.toLegacyData(ibd);
+            } else {
+                return id << 4;
+            }
         }
         catch (Throwable e) {
             e.printStackTrace();
@@ -175,27 +155,26 @@ public class BukkitQueue_1_9 extends BukkitQueue_0 {
     @Override
     public boolean fixLighting(final FaweChunk<?> pc, final boolean fixAll) {
         try {
-            final BukkitChunk_1_9 bc = (BukkitChunk_1_9) pc;
+            final BukkitChunk_1_8 bc = (BukkitChunk_1_8) pc;
             final Chunk chunk = bc.getChunk();
             if (!chunk.isLoaded()) {
                 chunk.load(false);
             }
             // Initialize lighting
-            final Object c = this.methodGetHandleChunk.of(chunk).call();
-
-            this.methodInitLighting.of(c).call();
+            net.minecraft.server.v1_9_R1.Chunk c = ((CraftChunk) chunk).getHandle();
+            c.initLighting();
 
             if (((bc.getTotalRelight() == 0) && !fixAll)) {
                 return true;
             }
 
-            final Object[] sections = (Object[]) this.fieldSections.of(c).get();
-            final Object w = this.fieldWorld.of(c).get();
+            ChunkSection[] sections = c.getSections();
+            net.minecraft.server.v1_9_R1.World w = c.world;
 
             final int X = chunk.getX() << 4;
             final int Z = chunk.getZ() << 4;
 
-            final RefExecutor relight = this.methodW.of(w);
+            BlockPosition.MutableBlockPosition pos = new BlockPosition.MutableBlockPosition(0, 0, 0);
             for (int j = 0; j < sections.length; j++) {
                 final Object section = sections[j];
                 if (section == null) {
@@ -204,7 +183,7 @@ public class BukkitQueue_1_9 extends BukkitQueue_0 {
                 if (((bc.getRelight(j) == 0) && !fixAll) || (bc.getCount(j) == 0) || ((bc.getCount(j) >= 4096) && (bc.getAir(j) == 0))) {
                     continue;
                 }
-                final int[] array = bc.getIdArray(j);
+                final char[] array = bc.getIdArray(j);
                 if (array == null) {
                     continue;
                 }
@@ -214,8 +193,10 @@ public class BukkitQueue_1_9 extends BukkitQueue_0 {
                     if (i < 16) {
                         continue;
                     }
-                    final short id = (short) (i & 0xFFF);
+                    final short id = (short) (i >> 4);
                     switch (id) { // Lighting
+                        case 0:
+                            continue;
                         default:
                             if (!fixAll) {
                                 continue;
@@ -245,8 +226,8 @@ public class BukkitQueue_1_9 extends BukkitQueue_0 {
                             if (this.isSurrounded(bc.getIdArrays(), x, y, z)) {
                                 continue;
                             }
-                            final Object pos = this.classBlockPositionConstructor.create(X + x, y, Z + z);
-                            relight.call(pos);
+                            pos.c(X + x, y, Z + z);
+                            w.w(pos);
                     }
                 }
             }
@@ -257,7 +238,7 @@ public class BukkitQueue_1_9 extends BukkitQueue_0 {
         return false;
     }
 
-    public boolean isSurrounded(final int[][] sections, final int x, final int y, final int z) {
+    public boolean isSurrounded(final char[][] sections, final int x, final int y, final int z) {
         return this.isSolid(this.getId(sections, x, y + 1, z))
                 && this.isSolid(this.getId(sections, x + 1, y - 1, z))
                 && this.isSolid(this.getId(sections, x - 1, y, z))
@@ -273,7 +254,7 @@ public class BukkitQueue_1_9 extends BukkitQueue_0 {
         return false;
     }
 
-    public int getId(final int[][] sections, final int x, final int y, final int z) {
+    public int getId(final char[][] sections, final int x, final int y, final int z) {
         if ((x < 0) || (x > 15) || (z < 0) || (z > 15)) {
             return 1;
         }
@@ -281,27 +262,29 @@ public class BukkitQueue_1_9 extends BukkitQueue_0 {
             return 1;
         }
         final int i = FaweCache.CACHE_I[y][x][z];
-        final int[] section = sections[i];
+        final char[] section = sections[i];
         if (section == null) {
             return 0;
         }
         final int j = FaweCache.CACHE_J[y][x][z];
-        return section[j];
+        return section[j] >> 4;
     }
 
-    public Object getBlocks(final Object obj) {
-        return this.methodGetBlocks.of(obj).call();
-    }
-
-    private int lcx = Integer.MIN_VALUE;
-    private int lcz = Integer.MIN_VALUE;
-    private int lcy = Integer.MIN_VALUE;
-    private RefExecutor lc;
     private World bukkitWorld;
+
+    public void setCount(int tickingBlockCount, int nonEmptyBlockCount, ChunkSection section) throws NoSuchFieldException, IllegalAccessException {
+        Class<? extends ChunkSection> clazz = section.getClass();
+        Field fieldTickingBlockCount = clazz.getDeclaredField("tickingBlockCount");
+        Field fieldNonEmptyBlockCount = clazz.getDeclaredField("nonEmptyBlockCount");
+        fieldTickingBlockCount.setAccessible(true);
+        fieldNonEmptyBlockCount.setAccessible(true);
+        fieldTickingBlockCount.set(section, tickingBlockCount);
+        fieldNonEmptyBlockCount.set(section, nonEmptyBlockCount);
+    }
 
     @Override
     public boolean setComponents(final FaweChunk<Chunk> pc) {
-        final BukkitChunk_1_9 fs = (BukkitChunk_1_9) pc;
+        final BukkitChunk_1_8 fs = (BukkitChunk_1_8) pc;
         final Chunk chunk = pc.getChunk();
         final World world = chunk.getWorld();
         chunk.load(true);
@@ -309,52 +292,42 @@ public class BukkitQueue_1_9 extends BukkitQueue_0 {
             final boolean flag = world.getEnvironment() == Environment.NORMAL;
 
             // Sections
-            final Method getHandele = chunk.getClass().getDeclaredMethod("getHandle");
-            final Object c = getHandele.invoke(chunk);
-            final Object w = this.methodGetWorld.of(c).call();
-            final Class<? extends Object> clazz = c.getClass();
-            final Field sf = clazz.getDeclaredField("sections");
-            sf.setAccessible(true);
-            final Field tf = clazz.getDeclaredField("tileEntities");
-            final Field ef = clazz.getDeclaredField("entitySlices");
+            net.minecraft.server.v1_9_R1.Chunk c = ((CraftChunk) chunk).getHandle();
+            net.minecraft.server.v1_9_R1.World w = c.world;
+            ChunkSection[] sections = c.getSections();
 
-            final Object[] sections = (Object[]) sf.get(c);
-            final HashMap<?, ?> tiles = (HashMap<?, ?>) tf.get(c);
+            Class<? extends net.minecraft.server.v1_9_R1.Chunk> clazzChunk = c.getClass();
+            final Field ef = clazzChunk.getDeclaredField("entitySlices");
             final Collection<?>[] entities = (Collection<?>[]) ef.get(c);
-
-            Method xm = null;
-            Method ym = null;
-            Method zm = null;
 
             // Trim tiles
             boolean removed = false;
-            final Set<Entry<?, ?>> entryset = (Set<Entry<?, ?>>) (Set<?>) tiles.entrySet();
-            final Iterator<Entry<?, ?>> iter = entryset.iterator();
-            while (iter.hasNext()) {
-                final Entry<?, ?> tile = iter.next();
-                final Object pos = tile.getKey();
-                if (xm == null) {
-                    final Class<? extends Object> clazz2 = pos.getClass().getSuperclass();
-                    xm = clazz2.getDeclaredMethod("getX");
-                    ym = clazz2.getDeclaredMethod("getY");
-                    zm = clazz2.getDeclaredMethod("getZ");
-                }
-                final int lx = (int) xm.invoke(pos) & 15;
-                final int ly = (int) ym.invoke(pos);
-                final int lz = (int) zm.invoke(pos) & 15;
-                final int j = FaweCache.CACHE_I[ly][lx][lz];
-                final int k = FaweCache.CACHE_J[ly][lx][lz];
-                final int[] array = fs.getIdArray(j);
-                if (array == null) {
-                    continue;
-                }
-                if (array[k] != 0) {
-                    removed = true;
-                    iter.remove();
+            Map<BlockPosition, TileEntity> tiles = c.getTileEntities();
+            if (fs.getTotalCount() >= 65536) {
+                tiles.clear();
+                removed = true;
+            } else {
+                Iterator<Entry<BlockPosition, TileEntity>> iter = tiles.entrySet().iterator();
+                while (iter.hasNext()) {
+                    Entry<BlockPosition, TileEntity> tile = iter.next();
+                    BlockPosition pos = tile.getKey();
+                    final int lx = pos.getX() & 15;
+                    final int ly = pos.getY();
+                    final int lz = pos.getZ() & 15;
+                    final int j = FaweCache.CACHE_I[ly][lx][lz];
+                    final int k = FaweCache.CACHE_J[ly][lx][lz];
+                    final char[] array = fs.getIdArray(j);
+                    if (array == null) {
+                        continue;
+                    }
+                    if (array[k] != 0) {
+                        removed = true;
+                        iter.remove();
+                    }
                 }
             }
             if (removed) {
-                ((Collection) this.tileEntityListTick.of(w).get()).clear();
+                w.tileEntityListTick.clear();
             }
 
             // Trim entities
@@ -369,45 +342,99 @@ public class BukkitQueue_1_9 extends BukkitQueue_0 {
                 if (fs.getCount(j) == 0) {
                     continue;
                 }
-                final int[] newArray = fs.getIdArray(j);
-                if (newArray == null) {
+                final char[] array = fs.getIdArray(j);
+                if (array == null) {
                     continue;
                 }
-                Object section = sections[j];
-                if ((section == null) || (fs.getCount(j) >= 4096)) {
-                    final char[] array = new char[4096];
-                    for (int i = 0; i < newArray.length; i++) {
-                        final int combined = newArray[i];
-                        final int id = combined & 4095;
-                        final int data = combined >> 12;
-                        array[i] = (char) ((id << 4) + data);
+                ChunkSection section = sections[j];
+                if (section == null) {
+                    sections[j] = new ChunkSection(j << 4, flag, array);
+                    continue;
+                }
+                DataPaletteBlock nibble = section.getBlocks();
+
+                Field fieldBits = nibble.getClass().getDeclaredField("b");
+                fieldBits.setAccessible(true);
+                DataBits bits = (DataBits) fieldBits.get(nibble);
+
+                Field fieldPalette = nibble.getClass().getDeclaredField("c");
+                fieldPalette.setAccessible(true);
+                DataPalette palette = (DataPalette) fieldPalette.get(nibble);
+
+                if (fs.getCount(j) >= 4096) {
+                    int tickingBlockCount = 0;
+                    int nonEmptyBlockCount = fs.getCount(j) - fs.getAir(j);
+                    setCount(tickingBlockCount, nonEmptyBlockCount, section);
+                    int lastId = -1;
+                    int lastBit = -1;
+                    for (int i = 0; i < array.length; i++) {
+                        int value = array[i];
+                        if (value != lastId) {
+                            lastId = value;
+                            int id = lastId >> 4;
+                            int data = lastId & 0xF;
+                            IBlockData ibd = Block.getById(id).fromLegacyData(data);
+                            lastBit = palette.a(ibd);
+                        }
+                        bits.a(i, lastBit);
                     }
-                    section = sections[j] = this.newChunkSection(j << 4, flag, array);
                     continue;
                 }
-                this.getBlocks(section);
-                final RefExecutor setType = this.methodSetType.of(section);
                 boolean fill = true;
-                for (int k = 0; k < newArray.length; k++) {
-                    final int n = newArray[k];
-                    switch (n) {
+                int nonEmptyBlockCount = 0;
+                int lastId = -1;
+                int lastBit = -1;
+                for (int k = 0; k < array.length; k++) {
+                    final char combined = array[k];
+                    switch (combined) {
                         case 0:
-                            fill = false;
+                            int existingBit = bits.a(k);
+                            if (existingBit != lastBit) {
+                                lastBit = existingBit;
+                                IBlockData ibd = palette.a(existingBit);
+                                if (ibd != null) {
+                                    Block block = ibd.getBlock();
+                                    int id = Block.getId(block);
+                                    if (FaweCache.hasData(id)) {
+                                        lastId = (id << 4) + block.toLegacyData(ibd);
+                                    } else {
+                                        lastId = id << 4;
+                                    }
+                                } else {
+                                    fill = false;
+                                    continue;
+                                }
+                            }
+                            if (lastId != 0) {
+                                nonEmptyBlockCount++;
+                            } else {
+                                fill = false;
+                            }
                             continue;
-                        case -1: {
+                        case 1: {
                             fill = false;
-                            final int x = FaweCache.CACHE_X[j][k];
-                            final int y = FaweCache.CACHE_Y[j][k];
-                            final int z = FaweCache.CACHE_Z[j][k];
-                            setType.call(x, y & 15, z, this.air);
+                            int value = 0;
+                            if (value != lastId) {
+                                lastId = value;
+                                int id = lastId >> 4;
+                                int data = lastId & 0xF;
+                                IBlockData ibd = Block.getById(id).fromLegacyData(data);
+                                lastBit = palette.a(ibd);
+                            }
+                            bits.a(k, lastBit);
                             continue;
                         }
                         default: {
-                            final int x = FaweCache.CACHE_X[j][k];
-                            final int y = FaweCache.CACHE_Y[j][k];
-                            final int z = FaweCache.CACHE_Z[j][k];
-                            final Object iblock = this.methodGetByCombinedId.call(n);
-                            setType.call(x, y & 15, z, iblock);
+                            nonEmptyBlockCount++;
+                            int value = combined;
+                            if (value != lastId) {
+                                lastId = value;
+                                int id = lastId >> 4;
+                                int data = lastId & 0xF;
+                                IBlockData ibd = Block.getById(id).fromLegacyData(data);
+                                lastBit = palette.a(ibd);
+                            }
+                            bits.a(k, lastBit);
                             continue;
                         }
                     }
@@ -415,12 +442,13 @@ public class BukkitQueue_1_9 extends BukkitQueue_0 {
                 if (fill) {
                     fs.setCount(j, Short.MAX_VALUE);
                 }
+                setCount(0, nonEmptyBlockCount, section);
             }
             // Clear
-        } catch (IllegalAccessException | IllegalArgumentException | NoSuchMethodException | SecurityException | InvocationTargetException | NoSuchFieldException e) {
+        } catch (Throwable e) {
             e.printStackTrace();
         }
-        final int[][] biomes = fs.biomes;
+        final int[][] biomes = fs.getBiomeArray();
         final Biome[] values = Biome.values();
         if (biomes != null) {
             for (int x = 0; x < 16; x++) {
@@ -554,18 +582,14 @@ public class BukkitQueue_1_9 extends BukkitQueue_0 {
         players = null;
     }
 
-    public Object newChunkSection(final int i, final boolean flag, final char[] ids) {
-        return this.classChunkSectionConstructor.create(i, flag, ids);
-    }
-
     @Override
     public FaweChunk<Chunk> getChunk(int x, int z) {
-        return new BukkitChunk_1_9(this, x, z);
+        return new BukkitChunk_1_8(this, x, z);
     }
 
     public boolean unloadChunk(final String world, final Chunk chunk) {
-        final Object c = this.methodGetHandleChunk.of(chunk).call();
-        this.mustSave.of(c).set(false);
+        net.minecraft.server.v1_9_R1.Chunk c = ((CraftChunk) chunk).getHandle();
+        c.mustSave = false;
         if (chunk.isLoaded()) {
             chunk.unload(false, false);
         }

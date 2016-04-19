@@ -14,6 +14,7 @@ import com.boydti.fawe.bukkit.regions.Worldguard;
 import com.boydti.fawe.bukkit.v1_8.BukkitEditSessionWrapper_1_8;
 import com.boydti.fawe.bukkit.v1_8.BukkitQueue_1_8;
 import com.boydti.fawe.bukkit.v1_9.BukkitQueue_1_9;
+import com.boydti.fawe.bukkit.v1_9.BukkitQueue_1_9_R1;
 import com.boydti.fawe.object.EditSessionWrapper;
 import com.boydti.fawe.object.FaweCommand;
 import com.boydti.fawe.object.FawePlayer;
@@ -181,6 +182,11 @@ public class FaweBukkit extends JavaPlugin implements IFawe, Listener {
     @Override
     public FaweQueue getNewQueue(String world) {
         if (FaweAPI.checkVersion(this.getVersion(), 1, 9, 0)) {
+            try {
+                return new BukkitQueue_1_9_R1(world);
+            } catch (Throwable e) {
+                e.printStackTrace();
+            }
             try {
                 return new BukkitQueue_1_9(world);
             } catch (final Throwable e) {

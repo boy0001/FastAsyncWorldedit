@@ -22,7 +22,7 @@ public class BukkitChunk_1_8 extends FaweChunk<Chunk> {
     /**
      * A FaweSections object represents a chunk and the blocks that you wish to change in it.
      */
-    protected BukkitChunk_1_8(FaweQueue parent, int x, int z) {
+    public BukkitChunk_1_8(FaweQueue parent, int x, int z) {
         super(parent, x, z);
         this.ids = new char[16][];
         this.count = new short[16];
@@ -98,6 +98,10 @@ public class BukkitChunk_1_8 extends FaweChunk<Chunk> {
      */
     public char[] getIdArray(final int i) {
         return this.ids[i];
+    }
+
+    public char[][] getIdArrays() {
+        return this.ids;
     }
 
     public int[][] getBiomeArray() {

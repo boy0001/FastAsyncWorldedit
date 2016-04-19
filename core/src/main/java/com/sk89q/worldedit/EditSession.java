@@ -271,11 +271,6 @@ public class EditSession implements Extent {
             this.limit = fp.getLimit();
             final HashSet<RegionWrapper> mask = WEManager.IMP.getMask(fp);
             if (mask.size() == 0) {
-                if (Perm.hasPermission(fp, "fawe.admin")) {
-                    BBC.WORLDEDIT_BYPASS.send(fp);
-                } else {
-                    BBC.WORLDEDIT_EXTEND.send(fp);
-                }
                 // No allowed area; return null extent
                 extent = new NullExtent();
                 this.bypassReorderHistory = extent;
