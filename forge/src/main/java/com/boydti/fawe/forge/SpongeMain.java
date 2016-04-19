@@ -18,7 +18,7 @@ import org.spongepowered.api.plugin.PluginContainer;
 import org.spongepowered.api.profile.GameProfileManager;
 import org.spongepowered.api.world.World;
 
-@Plugin(id = "com.boydti.fawe", name = "FastAsyncWorldEdit", description = "Lagless WorldEdit, Area restrictions, Memory mangement, Block logging", url = "https://github.com/boy0001/FastAsyncWorldedit", version = "3.3.16")
+@Plugin(id = "com.boydti.fawe", name = "FastAsyncWorldEdit", description = "Lagless WorldEdit, Area restrictions, Memory mangement, Block logging", url = "https://github.com/boy0001/FastAsyncWorldedit", version = "3.3.17")
 public class SpongeMain {
     public PluginContainer plugin;
 
