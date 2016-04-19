@@ -177,8 +177,8 @@ public class CuboidClipboard {
         return getBlock(position);
     }
 
-    public boolean setBlock(Vector location, BaseBlock block) {
-        return setBlock(location.getBlockX(),location.getBlockY(),location.getBlockZ(), block);
+    public void setBlock(Vector location, BaseBlock block) {
+        setBlock(location.getBlockX(),location.getBlockY(),location.getBlockZ(), block);
     }
 
     public boolean setBlock(int x, int y, int z, BaseBlock block) {
