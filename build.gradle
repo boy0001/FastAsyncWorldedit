@@ -10,7 +10,7 @@ buildscript {
 }
 
 group = 'com.boydti.fawe'
-version = '3.3.15'
+version = '3.3.16'
 description = """FastAsyncWorldEdit"""
 
 subprojects {
