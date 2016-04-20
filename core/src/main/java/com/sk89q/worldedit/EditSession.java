@@ -118,6 +118,7 @@ import com.sk89q.worldedit.util.eventbus.EventBus;
 import com.sk89q.worldedit.world.AbstractWorld;
 import com.sk89q.worldedit.world.World;
 import com.sk89q.worldedit.world.biome.BaseBiome;
+import java.lang.reflect.Field;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -235,6 +236,19 @@ public class EditSession implements Extent {
         }
         this.actor = event.getActor();
         this.queue = SetQueue.IMP.getNewQueue(world.getName(), true);
+        // Set the world of the event to the actual world (workaround for CoreProtect)
+        try {
+            Class<? extends EditSessionEvent> eventClass = event.getClass();
+            Field fieldWorld = eventClass.getDeclaredField("world");
+            fieldWorld.setAccessible(true);
+            if (world instanceof WorldWrapper) {
+                fieldWorld.set(event, ((WorldWrapper) world).getParent());
+            } else {
+                fieldWorld.set(event, world);
+            }
+        } catch (Throwable e) {
+            e.printStackTrace();
+        }
         this.world = (world = new WorldWrapper((AbstractWorld) world));
         this.wrapper = Fawe.imp().getEditSessionWrapper(this);
         // Not a player; bypass history

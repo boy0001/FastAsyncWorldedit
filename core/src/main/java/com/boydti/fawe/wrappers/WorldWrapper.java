@@ -40,6 +40,10 @@ public class WorldWrapper extends AbstractWorld {
         this.parent = parent;
     }
 
+    public AbstractWorld getParent() {
+        return parent instanceof WorldWrapper ? ((WorldWrapper) parent).getParent() : parent;
+    }
+
     @Override
     public boolean useItem(Vector position, BaseItem item, Direction face) {
         return parent.useItem(position, item, face);

@@ -57,7 +57,7 @@ public class MainUtil {
             public void run(File file) {
                 long age = now - file.lastModified();
                 if (age > timeDiff) {
-                    System.out.println("Deleting file: " + file);
+                    Fawe.debug("Deleting file: " + file);
                     file.delete();
                 }
             }
@@ -73,7 +73,7 @@ public class MainUtil {
                     if (file.isDirectory()) {
                         deleteDirectory(files[i]);
                     } else {
-                        System.out.println("Deleting file: " + file);
+                        Fawe.debug("Deleting file: " + file);
                         file.delete();
                     }
                 }
