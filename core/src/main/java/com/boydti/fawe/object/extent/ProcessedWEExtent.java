@@ -1,6 +1,7 @@
 package com.boydti.fawe.object.extent;
 
 import com.boydti.fawe.FaweCache;
+import com.boydti.fawe.config.BBC;
 import com.boydti.fawe.object.FaweLimit;
 import com.boydti.fawe.object.FawePlayer;
 import com.boydti.fawe.object.RegionWrapper;
@@ -151,6 +152,10 @@ public class ProcessedWEExtent extends FaweExtent {
             case 151:
             case 178: {
                 if (limit.MAX_BLOCKSTATES-- < 0) {
+                    if (this.parent != null) {
+                        WEManager.IMP.cancelEdit(this.parent, BBC.WORLDEDIT_CANCEL_REASON_MAX_TILES);
+                        this.parent = null;
+                    }
                     return false;
                 }
                 final int x = location.getBlockX();
@@ -158,7 +163,7 @@ public class ProcessedWEExtent extends FaweExtent {
                 if (WEManager.IMP.maskContains(this.mask, x, z)) {
                     if (limit.MAX_CHANGES-- < 0) {
                         if (this.parent != null) {
-                            WEManager.IMP.cancelEdit(this.parent);
+                            WEManager.IMP.cancelEdit(this.parent, BBC.WORLDEDIT_CANCEL_REASON_MAX_CHANGES);
                             this.parent = null;
                         }
                         return false;
@@ -181,7 +186,7 @@ public class ProcessedWEExtent extends FaweExtent {
                     return true;
                 } else if (limit.MAX_FAILS-- < 0) {
                     if (this.parent != null) {
-                        WEManager.IMP.cancelEdit(this.parent);
+                        WEManager.IMP.cancelEdit(this.parent, BBC.WORLDEDIT_CANCEL_REASON_MAX_FAILS);
                         this.parent = null;
                     }
                 }
@@ -192,8 +197,8 @@ public class ProcessedWEExtent extends FaweExtent {
                 final int y = location.getBlockY();
                 final int z = location.getBlockZ();
                 if (WEManager.IMP.maskContains(this.mask, location.getBlockX(), location.getBlockZ())) {
-                    if (limit.MAX_CHANGES--<0) {
-                        WEManager.IMP.cancelEdit(this.parent);
+                    if (limit.MAX_CHANGES -- <0) {
+                        WEManager.IMP.cancelEdit(this.parent, BBC.WORLDEDIT_CANCEL_REASON_MAX_CHANGES);
                         this.parent = null;
                         return false;
                     }
@@ -288,7 +293,7 @@ public class ProcessedWEExtent extends FaweExtent {
                     }
                 } else if (limit.MAX_FAILS-- < 0) {
                     if (this.parent != null) {
-                        WEManager.IMP.cancelEdit(this.parent);
+                        WEManager.IMP.cancelEdit(this.parent, BBC.WORLDEDIT_CANCEL_REASON_MAX_FAILS);
                         this.parent = null;
                     }
                 }

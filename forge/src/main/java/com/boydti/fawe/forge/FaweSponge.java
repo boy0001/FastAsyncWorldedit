@@ -144,4 +144,9 @@ public class FaweSponge implements IFawe {
         }
         return players;
     }
+
+    @Override
+    public String getPlatform() {
+        return "sponge";
+    }
 }

@@ -40,6 +40,16 @@ public enum BBC {
     WORLDEDIT_UNMASKED("&6Your WorldEdit is now unrestricted.", "Info"),
     WORLDEDIT_RESTRICTED("&6Your WorldEdit is now restricted.", "Info"),
     WORLDEDIT_OOM("&cYour WorldEdit action was cancelled due to low memory.", "Info"),
+
+    WORLDEDIT_CANCEL_REASON("&cYour WorldEdit action was cancelled:&7 %s0&c.", "Cancel"),
+    WORLDEDIT_CANCEL_REASON_LOW_MEMORY("Low memory", "Cancel"),
+    WORLDEDIT_CANCEL_REASON_MAX_CHANGES("Too many blocks changed", "Cancel"),
+    WORLDEDIT_CANCEL_REASON_MAX_CHECKS("Too many block checks", "Cancel"),
+    WORLDEDIT_CANCEL_REASON_MAX_TILES("Too many blockstates", "Cancel"),
+    WORLDEDIT_CANCEL_REASON_MAX_ENTITIES("Too many entities", "Cancel"),
+    WORLDEDIT_CANCEL_REASON_MAX_ITERATIONS("Max iterations", "Cancel"),
+    WORLDEDIT_CANCEL_REASON_MAX_FAILS("Outside allowed region", "Cancel"),
+
     WORLDEDIT_OOM_ADMIN("&cPossible options:\n&8 - &7//fast\n&8 - &7Do smaller edits\n&8 - &7Allocate more memory\n&8 - &7Disable this safeguard", "Info"),
     NOT_PLAYER("&cYou must be a player to perform this action!", "Error"),
     COMPRESSED("History compressed. Saved ~ %s0b (%s1x smaller)", "Info"),

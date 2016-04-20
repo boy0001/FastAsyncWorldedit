@@ -5,9 +5,11 @@ import com.boydti.fawe.config.Settings;
 import com.boydti.fawe.object.FaweLocation;
 import com.boydti.fawe.object.FawePlayer;
 import com.boydti.fawe.object.RegionWrapper;
+import com.boydti.fawe.object.exception.FaweException;
 import com.boydti.fawe.object.extent.NullExtent;
 import com.boydti.fawe.regions.FaweMask;
 import com.boydti.fawe.regions.FaweMaskManager;
+import com.sk89q.worldedit.WorldEditException;
 import com.sk89q.worldedit.extent.AbstractDelegateExtent;
 import com.sk89q.worldedit.extent.Extent;
 import java.lang.reflect.Field;
@@ -20,7 +22,7 @@ public class WEManager {
 
     public final ArrayDeque<FaweMaskManager> managers = new ArrayDeque<>();
 
-    public void cancelEdit(Extent parent) {
+    public void cancelEdit(Extent parent, BBC reason) throws WorldEditException {
         try {
             final Field field = AbstractDelegateExtent.class.getDeclaredField("extent");
             field.setAccessible(true);
@@ -28,6 +30,7 @@ public class WEManager {
         } catch (final Exception e) {
             e.printStackTrace();
         }
+        throw new FaweException(reason);
     }
 
     public boolean maskContains(final HashSet<RegionWrapper> mask, final int x, final int z) {

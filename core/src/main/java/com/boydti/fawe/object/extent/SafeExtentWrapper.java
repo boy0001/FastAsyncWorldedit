@@ -29,7 +29,7 @@ public class SafeExtentWrapper extends AbstractDelegateExtent {
                         BBC.WORLDEDIT_OOM_ADMIN.send(this.player);
                     }
                 }
-                WEManager.IMP.cancelEdit(this);
+                WEManager.IMP.cancelEdit(this, BBC.WORLDEDIT_CANCEL_REASON_LOW_MEMORY);
                 return false;
             }
             return true;

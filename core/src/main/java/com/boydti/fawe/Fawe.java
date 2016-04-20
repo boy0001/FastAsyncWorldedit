@@ -240,14 +240,52 @@ public class Fawe {
         try {
             CommandManager.inject();
         } catch (Throwable e) {
+            debug("====== UPDATE WORLDEDIT TO 6.1.1 ======");
             e.printStackTrace();
-            IMP.debug("Incompatible version of WorldEdit, please update the plugin or contact the Author!");
+            debug("=======================================");
+            debug("Update the plugin, or contact the Author!");
+            if (IMP.getPlatform().equals("bukkit")) {
+                debug(" - http://builds.enginehub.org/job/worldedit?branch=master");
+            } else {
+                debug(" - http://builds.enginehub.org/job/worldedit?branch=forge-archive%2F1.8.9 (FORGE)");
+                debug(" - https://ci.minecrell.net/job/worldedit-spongevanilla/ (SV)");
+            }
+            debug("=======================================");
         }
         try {
             Native.load();
+            String arch = System.getenv("PROCESSOR_ARCHITECTURE");
+            String wow64Arch = System.getenv("PROCESSOR_ARCHITEW6432");
+            boolean x86OS = arch.endsWith("64") || wow64Arch != null && wow64Arch.endsWith("64") ? false : true;
+            boolean x86JVM = System.getProperty("sun.arch.data.model").equals("32");
+            if (x86OS != x86JVM) {
+                debug("====== UPGRADE TO 64-BIT JAVA ======");
+                debug("You are running 32-bit Java on a 64-bit machine");
+                debug(" - This is a recommendation");
+                debug("====================================");
+            }
         } catch (Throwable e) {
+            debug("====== LZ4 COMPRESSION BINDING NOT FOUND ======");
             e.printStackTrace();
+            debug("===============================================");
+            debug("FAWE will still work, but some things may be slower");
+            debug(" - Try updating your JVM / OS");
+            debug(" - Report this issue if you cannot resolve it");
+            debug("===============================================");
         }
+        if (getJavaVersion() < 1.8) {
+            debug("====== UPGRADE TO JAVA 8 ======");
+            debug("You are running " + System.getProperty("java.version"));
+            debug(" - This is a recommendation");
+            debug("====================================");
+        }
+    }
+
+    static double getJavaVersion () {
+        String version = System.getProperty("java.version");
+        int pos = version.indexOf('.');
+        pos = version.indexOf('.', pos+1);
+        return Double.parseDouble (version.substring (0, pos));
     }
 
     private void setupMemoryListener() {

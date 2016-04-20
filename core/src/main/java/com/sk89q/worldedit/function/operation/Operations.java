@@ -19,8 +19,6 @@
 
 package com.sk89q.worldedit.function.operation;
 
-import com.boydti.fawe.util.SetQueue;
-import com.boydti.fawe.util.TaskManager;
 import com.sk89q.worldedit.MaxChangedBlocksException;
 import com.sk89q.worldedit.WorldEditException;
 
@@ -72,38 +70,17 @@ public final class Operations {
             while (operation != null) {
                 operation = operation.resume(new RunContext());
             }
-        } catch (final Exception e) {
-            e.printStackTrace();
+        } catch (WorldEditException e) {
+            throw new RuntimeException(e);
         }
     }
 
     public static void completeSmart(final Operation op, final Runnable whenDone, final boolean threadsafe) {
-        if (!threadsafe) {
-            completeBlindly(op);
-            if (whenDone != null) {
-                whenDone.run();
-            }
-            return;
+        completeBlindly(op);
+        if (whenDone != null) {
+            whenDone.run();
         }
-        SetQueue.IMP.addTask(new Runnable() {
-            @Override
-            public void run() {
-                TaskManager.IMP.async(new Runnable() {
-                    @Override
-                    public void run() {
-                        Operation operation = op;
-                        while (operation != null) {
-                            try {
-                                operation = operation.resume(new RunContext());
-                            } catch (final Exception e) {
-                                e.printStackTrace();
-                            }
-                        }
-                        TaskManager.IMP.task(whenDone);
-                    }
-                });
-            };
-        });
+        return;
     }
 
     public static Class<?> inject() {

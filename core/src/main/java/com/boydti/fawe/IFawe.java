@@ -37,4 +37,6 @@ public interface IFawe {
     public void startMetrics();
 
     public Set<FawePlayer> getPlayers();
+
+    public String getPlatform();
 }

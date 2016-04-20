@@ -310,4 +310,9 @@ public class FaweBukkit extends JavaPlugin implements IFawe, Listener {
             fp.loadSessionFromDisk(fp.getWorld());
         }
     }
+
+    @Override
+    public String getPlatform() {
+        return "bukkit";
+    }
 }

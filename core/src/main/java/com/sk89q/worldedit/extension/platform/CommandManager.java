@@ -22,6 +22,7 @@ package com.sk89q.worldedit.extension.platform;
 import com.boydti.fawe.Fawe;
 import com.boydti.fawe.config.BBC;
 import com.boydti.fawe.object.FawePlayer;
+import com.boydti.fawe.object.exception.FaweException;
 import com.boydti.fawe.util.SetQueue;
 import com.boydti.fawe.util.TaskManager;
 import com.boydti.fawe.wrappers.PlayerWrapper;
@@ -279,10 +280,15 @@ public final class CommandManager {
                         actor.printError("Usage: " + e.getSimpleUsageString("/"));
                     }
                 } catch (WrappedCommandException e) {
-                    Throwable t = e.getCause();
-                    actor.printError("Please report this error: [See console]");
-                    actor.printRaw(t.getClass().getName() + ": " + t.getMessage());
-                    log.log(Level.SEVERE, "An unexpected error while handling a WorldEdit command", t);
+                    FaweException faweException = FaweException.get(e);
+                    if (faweException != null) {
+                        actor.printError(BBC.PREFIX.s() + " " + BBC.WORLDEDIT_CANCEL_REASON.format(faweException.getMessage()));
+                    } else {
+                        Throwable t = e.getCause();
+                        actor.printError("Please report this error: [See console]");
+                        actor.printRaw(t.getClass().getName() + ": " + t.getMessage());
+                        log.log(Level.SEVERE, "An unexpected error while handling a WorldEdit command", t);
+                    }
                 } catch (CommandException e) {
                     String message = e.getMessage();
                     if (message != null) {

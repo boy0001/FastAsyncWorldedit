@@ -40,6 +40,12 @@ public class Settings {
 
     public static FaweLimit getLimit(FawePlayer player) {
         FaweLimit limit = new FaweLimit();
+        limit.MAX_CHANGES = 0;
+        limit.MAX_FAILS = 0;
+        limit.MAX_CHECKS = 0;
+        limit.MAX_ENTITIES = 0;
+        limit.MAX_BLOCKSTATES = 0;
+        limit.MAX_ITERATIONS = 0;
         for (Entry<String, FaweLimit> entry : limits.entrySet()) {
             String key = entry.getKey();
             if (key.equals("default") || player.hasPermission("fawe.limit." + key)) {
@@ -98,6 +104,7 @@ public class Settings {
         for (String key : config.getConfigurationSection("limits").getKeys(false)) {
             FaweLimit limit = new FaweLimit();
             limit.load(config.getConfigurationSection("limits." + key), defaultLimit, false);
+            limits.put(key, limit);
         }
         for (final Entry<String, Object> node : options.entrySet()) {
             if (!config.contains(node.getKey())) {

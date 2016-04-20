@@ -32,6 +32,7 @@ import com.boydti.fawe.object.RunnableVal;
 import com.boydti.fawe.object.changeset.DiskStorageHistory;
 import com.boydti.fawe.object.changeset.FaweChangeSet;
 import com.boydti.fawe.object.changeset.MemoryOptimizedHistory;
+import com.boydti.fawe.object.exception.FaweException;
 import com.boydti.fawe.object.extent.FastWorldEditExtent;
 import com.boydti.fawe.object.extent.FaweExtent;
 import com.boydti.fawe.object.extent.NullExtent;
@@ -566,7 +567,7 @@ public class EditSession implements Extent {
 
     public BaseBlock getLazyBlock(int x, int y, int z) {
         if (limit != null && limit.MAX_CHECKS-- < 0) {
-            return nullBlock;
+            throw new FaweException(BBC.WORLDEDIT_CANCEL_REASON_MAX_CHECKS);
         }
         int combinedId4Data = queue.getCombinedId4Data(x, y, z);
         if (!FaweCache.hasNBT(combinedId4Data >> 4)) {
@@ -594,7 +595,7 @@ public class EditSession implements Extent {
     @Deprecated
     public int getBlockType(final Vector position) {
         if (limit != null && limit.MAX_CHECKS-- < 0) {
-            return 0;
+            throw new FaweException(BBC.WORLDEDIT_CANCEL_REASON_MAX_CHECKS);
         }
         int combinedId4Data = queue.getCombinedId4Data(position.getBlockX(), position.getBlockY(), position.getBlockZ());
         return combinedId4Data >> 4;
@@ -610,7 +611,7 @@ public class EditSession implements Extent {
     @Deprecated
     public int getBlockData(final Vector position) {
         if (limit != null && limit.MAX_CHECKS-- < 0) {
-            return 0;
+            throw new FaweException(BBC.WORLDEDIT_CANCEL_REASON_MAX_CHECKS);
         }
         int combinedId4Data = queue.getCombinedId4Data(position.getBlockX(), position.getBlockY(), position.getBlockZ());
         return combinedId4Data & 0xF;
@@ -866,15 +867,10 @@ public class EditSession implements Extent {
      * Finish off the queue.
      */
     public void flushQueue() {
-        TaskManager.IMP.async(new Runnable() {
-            @Override
-            public void run() {
-                Operations.completeBlindly(EditSession.this.commit());
-                if (queue != null) {
-                    queue.enqueue();
-                }
-            }
-        });
+        Operations.completeBlindly(EditSession.this.commit());
+        if (queue != null) {
+            queue.enqueue();
+        }
     }
 
     @Override
@@ -962,35 +958,30 @@ public class EditSession implements Extent {
         checkArgument(radius >= 0, "radius >= 0");
         checkArgument(depth >= 1, "depth >= 1");
 
-        TaskManager.IMP.async(new Runnable() {
+        final MaskIntersection mask = new MaskIntersection(new RegionMask(new EllipsoidRegion(null, origin, new Vector(radius, radius, radius))), new BoundedHeightMask(Math.max(
+        (origin.getBlockY() - depth) + 1, 0), Math.min(EditSession.this.getWorld().getMaxY(), origin.getBlockY())), Masks.negate(new ExistingBlockMask(EditSession.this)));
+
+        // Want to replace blocks
+        final BlockReplace replace = new BlockReplace(EditSession.this, Patterns.wrap(pattern));
+
+        // Pick how we're going to visit blocks
+        RecursiveVisitor visitor;
+        if (recursive) {
+            visitor = new RecursiveVisitor(mask, replace);
+        } else {
+            visitor = new DownwardVisitor(mask, replace, origin.getBlockY());
+        }
+
+        // Start at the origin
+        visitor.visit(origin);
+
+        // Execute
+        Operations.completeSmart(visitor, new Runnable() {
             @Override
             public void run() {
-                final MaskIntersection mask = new MaskIntersection(new RegionMask(new EllipsoidRegion(null, origin, new Vector(radius, radius, radius))), new BoundedHeightMask(Math.max(
-                (origin.getBlockY() - depth) + 1, 0), Math.min(EditSession.this.getWorld().getMaxY(), origin.getBlockY())), Masks.negate(new ExistingBlockMask(EditSession.this)));
-
-                // Want to replace blocks
-                final BlockReplace replace = new BlockReplace(EditSession.this, Patterns.wrap(pattern));
-
-                // Pick how we're going to visit blocks
-                RecursiveVisitor visitor;
-                if (recursive) {
-                    visitor = new RecursiveVisitor(mask, replace);
-                } else {
-                    visitor = new DownwardVisitor(mask, replace, origin.getBlockY());
-                }
-
-                // Start at the origin
-                visitor.visit(origin);
-
-                // Execute
-                Operations.completeSmart(visitor, new Runnable() {
-                    @Override
-                    public void run() {
-                        EditSession.this.flushQueue();
-                    }
-                }, true);
+                EditSession.this.flushQueue();
             }
-        });
+        }, true);
         return this.changes = -1;
     }
 
@@ -1083,20 +1074,14 @@ public class EditSession implements Extent {
     public int setBlocks(final Region region, final Pattern pattern) throws MaxChangedBlocksException {
         checkNotNull(region);
         checkNotNull(pattern);
-
-        TaskManager.IMP.async(new Runnable() {
+        final BlockReplace replace = new BlockReplace(EditSession.this, Patterns.wrap(pattern));
+        final RegionVisitor visitor = new RegionVisitor(region, replace);
+        Operations.completeSmart(visitor, new Runnable() {
             @Override
             public void run() {
-                final BlockReplace replace = new BlockReplace(EditSession.this, Patterns.wrap(pattern));
-                final RegionVisitor visitor = new RegionVisitor(region, replace);
-                Operations.completeSmart(visitor, new Runnable() {
-                    @Override
-                    public void run() {
-                        EditSession.this.flushQueue();
-                    }
-                }, true);
+                EditSession.this.flushQueue();
             }
-        });
+        }, true);
         return this.changes = -1;
     }
 
@@ -1146,21 +1131,15 @@ public class EditSession implements Extent {
         checkNotNull(region);
         checkNotNull(mask);
         checkNotNull(pattern);
-
-        TaskManager.IMP.async(new Runnable() {
+        final BlockReplace replace = new BlockReplace(EditSession.this, Patterns.wrap(pattern));
+        final RegionMaskingFilter filter = new RegionMaskingFilter(mask, replace);
+        final RegionVisitor visitor = new RegionVisitor(region, filter);
+        Operations.completeSmart(visitor, new Runnable() {
             @Override
             public void run() {
-                final BlockReplace replace = new BlockReplace(EditSession.this, Patterns.wrap(pattern));
-                final RegionMaskingFilter filter = new RegionMaskingFilter(mask, replace);
-                final RegionVisitor visitor = new RegionVisitor(region, filter);
-                Operations.completeSmart(visitor, new Runnable() {
-                    @Override
-                    public void run() {
-                        EditSession.this.flushQueue();
-                    }
-                }, true);
+                EditSession.this.flushQueue();
             }
-        });
+        }, true);
         return this.changes = -1;
     }
 
@@ -1335,22 +1314,16 @@ public class EditSession implements Extent {
     public int overlayCuboidBlocks(final Region region, final Pattern pattern) throws MaxChangedBlocksException {
         checkNotNull(region);
         checkNotNull(pattern);
-
-        TaskManager.IMP.async(new Runnable() {
+        final BlockReplace replace = new BlockReplace(EditSession.this, Patterns.wrap(pattern));
+        final RegionOffset offset = new RegionOffset(new Vector(0, 1, 0), replace);
+        final GroundFunction ground = new GroundFunction(new ExistingBlockMask(EditSession.this), offset);
+        final LayerVisitor visitor = new LayerVisitor(asFlatRegion(region), minimumBlockY(region), maximumBlockY(region), ground);
+        Operations.completeSmart(visitor, new Runnable() {
             @Override
             public void run() {
-                final BlockReplace replace = new BlockReplace(EditSession.this, Patterns.wrap(pattern));
-                final RegionOffset offset = new RegionOffset(new Vector(0, 1, 0), replace);
-                final GroundFunction ground = new GroundFunction(new ExistingBlockMask(EditSession.this), offset);
-                final LayerVisitor visitor = new LayerVisitor(asFlatRegion(region), minimumBlockY(region), maximumBlockY(region), ground);
-                Operations.completeSmart(visitor, new Runnable() {
-                    @Override
-                    public void run() {
-                        EditSession.this.flushQueue();
-                    }
-                }, true);
+                EditSession.this.flushQueue();
             }
-        });
+        }, true);
         return this.changes = -1;
     }
 
@@ -1364,22 +1337,15 @@ public class EditSession implements Extent {
      */
     public int naturalizeCuboidBlocks(final Region region) throws MaxChangedBlocksException {
         checkNotNull(region);
-
-        TaskManager.IMP.async(new Runnable() {
-
+        final Naturalizer naturalizer = new Naturalizer(EditSession.this);
+        final FlatRegion flatRegion = Regions.asFlatRegion(region);
+        final LayerVisitor visitor = new LayerVisitor(flatRegion, minimumBlockY(region), maximumBlockY(region), naturalizer);
+        Operations.completeSmart(visitor, new Runnable() {
             @Override
             public void run() {
-                final Naturalizer naturalizer = new Naturalizer(EditSession.this);
-                final FlatRegion flatRegion = Regions.asFlatRegion(region);
-                final LayerVisitor visitor = new LayerVisitor(flatRegion, minimumBlockY(region), maximumBlockY(region), naturalizer);
-                Operations.completeSmart(visitor, new Runnable() {
-                    @Override
-                    public void run() {
-                        EditSession.this.flushQueue();
-                    }
-                }, true);
+                EditSession.this.flushQueue();
             }
-        });
+        }, true);
         return this.changes = -1;
     }
 
@@ -1397,26 +1363,20 @@ public class EditSession implements Extent {
         checkNotNull(region);
         checkNotNull(dir);
         checkArgument(count >= 1, "count >= 1 required");
-
-        TaskManager.IMP.async(new Runnable() {
+        final Vector size = region.getMaximumPoint().subtract(region.getMinimumPoint()).add(1, 1, 1);
+        final Vector to = region.getMinimumPoint();
+        final ForwardExtentCopy copy = new ForwardExtentCopy(EditSession.this, region, EditSession.this, to);
+        copy.setRepetitions(count);
+        copy.setTransform(new AffineTransform().translate(dir.multiply(size)));
+        if (!copyAir) {
+            copy.setSourceMask(new ExistingBlockMask(EditSession.this));
+        }
+        Operations.completeSmart(copy, new Runnable() {
             @Override
             public void run() {
-                final Vector size = region.getMaximumPoint().subtract(region.getMinimumPoint()).add(1, 1, 1);
-                final Vector to = region.getMinimumPoint();
-                final ForwardExtentCopy copy = new ForwardExtentCopy(EditSession.this, region, EditSession.this, to);
-                copy.setRepetitions(count);
-                copy.setTransform(new AffineTransform().translate(dir.multiply(size)));
-                if (!copyAir) {
-                    copy.setSourceMask(new ExistingBlockMask(EditSession.this));
-                }
-                Operations.completeSmart(copy, new Runnable() {
-                    @Override
-                    public void run() {
-                        EditSession.this.flushQueue();
-                    }
-                }, true);
+                EditSession.this.flushQueue();
             }
-        });
+        }, true);
         return this.changes = -1;
     }
 
@@ -1435,39 +1395,33 @@ public class EditSession implements Extent {
         checkNotNull(region);
         checkNotNull(dir);
         checkArgument(distance >= 1, "distance >= 1 required");
+        final Vector to = region.getMinimumPoint();
 
-        TaskManager.IMP.async(new Runnable() {
+        // Remove the original blocks
+        final com.sk89q.worldedit.function.pattern.Pattern pattern = replacement != null ? new BlockPattern(replacement) : new BlockPattern(new BaseBlock(BlockID.AIR));
+        final BlockReplace remove = new BlockReplace(EditSession.this, pattern);
+
+        // Copy to a buffer so we don't destroy our original before we can copy all the blocks from it
+        final ForgetfulExtentBuffer buffer = new ForgetfulExtentBuffer(EditSession.this, new RegionMask(region));
+        final ForwardExtentCopy copy = new ForwardExtentCopy(EditSession.this, region, buffer, to);
+        copy.setTransform(new AffineTransform().translate(dir.multiply(distance)));
+        copy.setSourceFunction(remove); // Remove
+        copy.setRemovingEntities(true);
+        if (!copyAir) {
+            copy.setSourceMask(new ExistingBlockMask(EditSession.this));
+        }
+
+        // Then we need to copy the buffer to the world
+        final BlockReplace replace = new BlockReplace(EditSession.this, buffer);
+        final RegionVisitor visitor = new RegionVisitor(buffer.asRegion(), replace);
+
+        final OperationQueue operation = new OperationQueue(copy, visitor);
+        Operations.completeSmart(operation, new Runnable() {
             @Override
             public void run() {
-                final Vector to = region.getMinimumPoint();
-
-                // Remove the original blocks
-                final com.sk89q.worldedit.function.pattern.Pattern pattern = replacement != null ? new BlockPattern(replacement) : new BlockPattern(new BaseBlock(BlockID.AIR));
-                final BlockReplace remove = new BlockReplace(EditSession.this, pattern);
-
-                // Copy to a buffer so we don't destroy our original before we can copy all the blocks from it
-                final ForgetfulExtentBuffer buffer = new ForgetfulExtentBuffer(EditSession.this, new RegionMask(region));
-                final ForwardExtentCopy copy = new ForwardExtentCopy(EditSession.this, region, buffer, to);
-                copy.setTransform(new AffineTransform().translate(dir.multiply(distance)));
-                copy.setSourceFunction(remove); // Remove
-                copy.setRemovingEntities(true);
-                if (!copyAir) {
-                    copy.setSourceMask(new ExistingBlockMask(EditSession.this));
-                }
-
-                // Then we need to copy the buffer to the world
-                final BlockReplace replace = new BlockReplace(EditSession.this, buffer);
-                final RegionVisitor visitor = new RegionVisitor(buffer.asRegion(), replace);
-
-                final OperationQueue operation = new OperationQueue(copy, visitor);
-                Operations.completeSmart(operation, new Runnable() {
-                    @Override
-                    public void run() {
-                        EditSession.this.flushQueue();
-                    }
-                }, true);
+                EditSession.this.flushQueue();
             }
-        });
+        }, true);
         return this.changes = -1;
     }
 
@@ -1497,31 +1451,25 @@ public class EditSession implements Extent {
     public int drainArea(final Vector origin, final double radius) throws MaxChangedBlocksException {
         checkNotNull(origin);
         checkArgument(radius >= 0, "radius >= 0 required");
+        final MaskIntersection mask = new MaskIntersection(new BoundedHeightMask(0, EditSession.this.getWorld().getMaxY()), new RegionMask(new EllipsoidRegion(null, origin, new Vector(radius,
+        radius, radius))), EditSession.this.getWorld().createLiquidMask());
 
-        TaskManager.IMP.async(new Runnable() {
+        final BlockReplace replace = new BlockReplace(EditSession.this, new BlockPattern(new BaseBlock(BlockID.AIR)));
+        final RecursiveVisitor visitor = new RecursiveVisitor(mask, replace);
+
+        // Around the origin in a 3x3 block
+        for (final BlockVector position : CuboidRegion.fromCenter(origin, 1)) {
+            if (mask.test(position)) {
+                visitor.visit(position);
+            }
+        }
+
+        Operations.completeSmart(visitor, new Runnable() {
             @Override
             public void run() {
-                final MaskIntersection mask = new MaskIntersection(new BoundedHeightMask(0, EditSession.this.getWorld().getMaxY()), new RegionMask(new EllipsoidRegion(null, origin, new Vector(radius,
-                radius, radius))), EditSession.this.getWorld().createLiquidMask());
-
-                final BlockReplace replace = new BlockReplace(EditSession.this, new BlockPattern(new BaseBlock(BlockID.AIR)));
-                final RecursiveVisitor visitor = new RecursiveVisitor(mask, replace);
-
-                // Around the origin in a 3x3 block
-                for (final BlockVector position : CuboidRegion.fromCenter(origin, 1)) {
-                    if (mask.test(position)) {
-                        visitor.visit(position);
-                    }
-                }
-
-                Operations.completeSmart(visitor, new Runnable() {
-                    @Override
-                    public void run() {
-                        EditSession.this.flushQueue();
-                    }
-                }, true);
+                EditSession.this.flushQueue();
             }
-        });
+        }, true);
         return this.changes = -1;
     }
 
@@ -1538,39 +1486,32 @@ public class EditSession implements Extent {
     public int fixLiquid(final Vector origin, final double radius, final int moving, final int stationary) throws MaxChangedBlocksException {
         checkNotNull(origin);
         checkArgument(radius >= 0, "radius >= 0 required");
+        // Our origins can only be liquids
+        final BlockMask liquidMask = new BlockMask(EditSession.this, new BaseBlock(moving, -1), new BaseBlock(stationary, -1));
 
-        TaskManager.IMP.async(new Runnable() {
+        // But we will also visit air blocks
+        final MaskIntersection blockMask = new MaskUnion(liquidMask, new BlockMask(EditSession.this, new BaseBlock(BlockID.AIR)));
 
+        // There are boundaries that the routine needs to stay in
+        final MaskIntersection mask = new MaskIntersection(new BoundedHeightMask(0, Math.min(origin.getBlockY(), EditSession.this.getWorld().getMaxY())), new RegionMask(new EllipsoidRegion(
+        null, origin, new Vector(radius, radius, radius))), blockMask);
+
+        final BlockReplace replace = new BlockReplace(EditSession.this, new BlockPattern(new BaseBlock(stationary)));
+        final NonRisingVisitor visitor = new NonRisingVisitor(mask, replace);
+
+        // Around the origin in a 3x3 block
+        for (final BlockVector position : CuboidRegion.fromCenter(origin, 1)) {
+            if (liquidMask.test(position)) {
+                visitor.visit(position);
+            }
+        }
+
+        Operations.completeSmart(visitor, new Runnable() {
             @Override
             public void run() {
-                // Our origins can only be liquids
-                final BlockMask liquidMask = new BlockMask(EditSession.this, new BaseBlock(moving, -1), new BaseBlock(stationary, -1));
-
-                // But we will also visit air blocks
-                final MaskIntersection blockMask = new MaskUnion(liquidMask, new BlockMask(EditSession.this, new BaseBlock(BlockID.AIR)));
-
-                // There are boundaries that the routine needs to stay in
-                final MaskIntersection mask = new MaskIntersection(new BoundedHeightMask(0, Math.min(origin.getBlockY(), EditSession.this.getWorld().getMaxY())), new RegionMask(new EllipsoidRegion(
-                null, origin, new Vector(radius, radius, radius))), blockMask);
-
-                final BlockReplace replace = new BlockReplace(EditSession.this, new BlockPattern(new BaseBlock(stationary)));
-                final NonRisingVisitor visitor = new NonRisingVisitor(mask, replace);
-
-                // Around the origin in a 3x3 block
-                for (final BlockVector position : CuboidRegion.fromCenter(origin, 1)) {
-                    if (liquidMask.test(position)) {
-                        visitor.visit(position);
-                    }
-                }
-
-                Operations.completeSmart(visitor, new Runnable() {
-                    @Override
-                    public void run() {
-                        EditSession.this.flushQueue();
-                    }
-                }, true);
+                EditSession.this.flushQueue();
             }
-        });
+        }, true);
         return this.changes = -1;
     }
 
@@ -2020,30 +1961,24 @@ public class EditSession implements Extent {
      * @throws MaxChangedBlocksException thrown if too many blocks are changed
      */
     public int makePumpkinPatches(final Vector position, final int apothem) throws MaxChangedBlocksException {
+        // We want to generate pumpkins
+        final GardenPatchGenerator generator = new GardenPatchGenerator(EditSession.this);
+        generator.setPlant(GardenPatchGenerator.getPumpkinPattern());
 
-        TaskManager.IMP.async(new Runnable() {
+        // In a region of the given radius
+        final FlatRegion region = new CuboidRegion(EditSession.this.getWorld(), // Causes clamping of Y range
+        position.add(-apothem, -5, -apothem), position.add(apothem, 10, apothem));
+        final double density = 0.02;
+
+        final GroundFunction ground = new GroundFunction(new ExistingBlockMask(EditSession.this), generator);
+        final LayerVisitor visitor = new LayerVisitor(region, minimumBlockY(region), maximumBlockY(region), ground);
+        visitor.setMask(new NoiseFilter2D(new RandomNoise(), density));
+        Operations.completeSmart(visitor, new Runnable() {
             @Override
             public void run() {
-                // We want to generate pumpkins
-                final GardenPatchGenerator generator = new GardenPatchGenerator(EditSession.this);
-                generator.setPlant(GardenPatchGenerator.getPumpkinPattern());
-
-                // In a region of the given radius
-                final FlatRegion region = new CuboidRegion(EditSession.this.getWorld(), // Causes clamping of Y range
-                position.add(-apothem, -5, -apothem), position.add(apothem, 10, apothem));
-                final double density = 0.02;
-
-                final GroundFunction ground = new GroundFunction(new ExistingBlockMask(EditSession.this), generator);
-                final LayerVisitor visitor = new LayerVisitor(region, minimumBlockY(region), maximumBlockY(region), ground);
-                visitor.setMask(new NoiseFilter2D(new RandomNoise(), density));
-                Operations.completeSmart(visitor, new Runnable() {
-                    @Override
-                    public void run() {
-                        EditSession.this.flushQueue();
-                    }
-                }, true);
+                EditSession.this.flushQueue();
             }
-        });
+        }, true);
         return this.changes = -1;
     }
 

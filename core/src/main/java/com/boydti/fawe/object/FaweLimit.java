@@ -51,4 +51,9 @@ public class FaweLimit {
         }
         return changed;
     }
+
+    @Override
+    public String toString() {
+        return MAX_CHANGES + "";
+    }
 }
