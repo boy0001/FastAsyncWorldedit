@@ -22,12 +22,12 @@ public class BukkitEditSessionWrapper_0 extends EditSessionWrapper {
     }
 
     @Override
-    public Extent getHistoryExtent(String world, FaweLimit limit, Extent parent, FaweChangeSet set, FaweQueue queue, FawePlayer<?> player) {
+    public Extent getHistoryExtent(EditSession session, FaweLimit limit, Extent parent, FaweChangeSet set, FaweQueue queue, FawePlayer<?> player) {
         if (this.hook != null) {
             // If we are doing logging, return a custom logging extent
             return this.hook.getLoggingExtent(parent, set, player);
         }
         // Otherwise return the normal history extent
-        return super.getHistoryExtent(world, limit, parent, set, queue, player);
+        return super.getHistoryExtent(session, limit, parent, set, queue, player);
     }
 }

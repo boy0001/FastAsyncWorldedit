@@ -178,7 +178,7 @@ public class WorldWrapper extends AbstractWorld {
     }
 
     @Override
-    public boolean regenerate(final Region region, EditSession session) {
+    public boolean regenerate(final Region region, final EditSession session) {
         final FaweQueue queue = session.getQueue();
         final FaweChangeSet fcs = (FaweChangeSet) session.getChangeSet();
         final FaweExtent fe = session.getFaweExtent();
@@ -208,7 +208,7 @@ public class WorldWrapper extends AbstractWorld {
                             for (int z = 0; z < 16; z++) {
                                 int zz = z + bz;
                                 for (int y = 0; y < getMaxY() + 1; y++) {
-                                    int from = queue.getCombinedId4Data(xx, y, zz);
+                                    int from = queue.getCombinedId4DataDebug(xx, y, zz, 0, session);
                                     if (!FaweCache.hasNBT(from >> 4)) {
                                         fcs.add(xx, y, zz, from, 0);
                                     } else {

@@ -159,6 +159,7 @@ public class EditSession implements Extent {
     }
 
     private World world;
+    private Actor actor;
     private FaweChangeSet changeSet;
     private final EditSessionWrapper wrapper;
     private FaweExtent faweExtent;
@@ -231,8 +232,7 @@ public class EditSession implements Extent {
             this.wrapper = Fawe.imp().getEditSessionWrapper(this);
             return;
         }
-        final Actor actor = event.getActor();
-
+        this.actor = event.getActor();
         this.queue = SetQueue.IMP.getNewQueue(world.getName(), true);
         this.world = (world = new WorldWrapper((AbstractWorld) world));
         this.wrapper = Fawe.imp().getEditSessionWrapper(this);
@@ -316,7 +316,7 @@ public class EditSession implements Extent {
         Extent wrapped;
         extent = wrapped = this.wrapExtent(extent, eventBus, event, Stage.BEFORE_CHANGE);
         extent = this.wrapExtent(extent, eventBus, event, Stage.BEFORE_REORDER);
-        extent = this.wrapper.getHistoryExtent(world.getName(), limit, extent, this.changeSet, queue, fp);
+        extent = this.wrapper.getHistoryExtent(this, limit, extent, this.changeSet, queue, fp);
         final Player skp = (Player) actor;
         final int item = skp.getItemInHand();
         boolean hasMask = session.getMask() != null;
@@ -338,6 +338,12 @@ public class EditSession implements Extent {
         this.bypassHistory = wrapped;
         this.bypassNone = extent;
         return;
+    }
+
+    public void debug(String message) {
+        if (actor != null && message != null && message.length() > 0) {
+            actor.print(BBC.PREFIX.s() + " " + message);
+        }
     }
 
     public FaweQueue getQueue() {
@@ -569,7 +575,7 @@ public class EditSession implements Extent {
         if (limit != null && limit.MAX_CHECKS-- < 0) {
             throw new FaweException(BBC.WORLDEDIT_CANCEL_REASON_MAX_CHECKS);
         }
-        int combinedId4Data = queue.getCombinedId4Data(x, y, z);
+        int combinedId4Data = queue.getCombinedId4DataDebug(x, y, z, 0, this);
         if (!FaweCache.hasNBT(combinedId4Data >> 4)) {
             return FaweCache.CACHE_BLOCK[combinedId4Data];
         }
@@ -597,7 +603,7 @@ public class EditSession implements Extent {
         if (limit != null && limit.MAX_CHECKS-- < 0) {
             throw new FaweException(BBC.WORLDEDIT_CANCEL_REASON_MAX_CHECKS);
         }
-        int combinedId4Data = queue.getCombinedId4Data(position.getBlockX(), position.getBlockY(), position.getBlockZ());
+        int combinedId4Data = queue.getCombinedId4DataDebug(position.getBlockX(), position.getBlockY(), position.getBlockZ(), 0, this);
         return combinedId4Data >> 4;
     }
 
@@ -613,7 +619,7 @@ public class EditSession implements Extent {
         if (limit != null && limit.MAX_CHECKS-- < 0) {
             throw new FaweException(BBC.WORLDEDIT_CANCEL_REASON_MAX_CHECKS);
         }
-        int combinedId4Data = queue.getCombinedId4Data(position.getBlockX(), position.getBlockY(), position.getBlockZ());
+        int combinedId4Data = queue.getCombinedId4DataDebug(position.getBlockX(), position.getBlockY(), position.getBlockZ(), 0, this);
         return combinedId4Data & 0xF;
     }
 
@@ -2203,7 +2209,7 @@ public class EditSession implements Extent {
             expression.evaluate(scaled.getX(), scaled.getY(), scaled.getZ());
             final BlockVector sourcePosition = environment.toWorld(x.getValue(), y.getValue(), z.getValue());
             // read block from world
-            BaseBlock material = FaweCache.CACHE_BLOCK[this.queue.getCombinedId4Data(sourcePosition.getBlockX(), sourcePosition.getBlockY(), sourcePosition.getBlockZ())];
+            BaseBlock material = FaweCache.CACHE_BLOCK[this.queue.getCombinedId4DataDebug(sourcePosition.getBlockX(), sourcePosition.getBlockY(), sourcePosition.getBlockZ(), 0, this)];
             // queue operation
             if (this.setBlock(position, material)) {
                 ++affected;

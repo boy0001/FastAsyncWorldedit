@@ -24,4 +24,10 @@ public class FaweException extends RuntimeException {
         }
         return get(cause);
     }
+
+    public static class FaweChunkLoadException extends FaweException {
+        public FaweChunkLoadException() {
+            super(BBC.WORLDEDIT_FAILED_LOAD_CHUNK);
+        }
+    }
 }

@@ -27,7 +27,7 @@ public class EditSessionWrapper {
         return minY;
     }
 
-    public Extent getHistoryExtent(String world, FaweLimit limit, Extent parent, FaweChangeSet set, FaweQueue queue, FawePlayer<?> player) {
-        return new HistoryExtent(world, limit, parent, set, queue);
+    public Extent getHistoryExtent(EditSession session, FaweLimit limit, Extent parent, FaweChangeSet set, FaweQueue queue, FawePlayer<?> player) {
+        return new HistoryExtent(session, limit, parent, set, queue);
     }
 }

@@ -3,6 +3,7 @@ package com.boydti.fawe.object;
 import com.boydti.fawe.FaweCache;
 import com.boydti.fawe.object.changeset.FaweChangeSet;
 import com.boydti.fawe.util.FaweQueue;
+import com.sk89q.worldedit.EditSession;
 import com.sk89q.worldedit.Vector;
 import com.sk89q.worldedit.WorldEditException;
 import com.sk89q.worldedit.blocks.BaseBlock;
@@ -30,6 +31,7 @@ public class HistoryExtent extends AbstractDelegateExtent {
     private final com.boydti.fawe.object.changeset.FaweChangeSet changeSet;
     private final FaweQueue queue;
     private final FaweLimit limit;
+    private final EditSession session;
 
     /**
      * Create a new instance.
@@ -37,12 +39,13 @@ public class HistoryExtent extends AbstractDelegateExtent {
      * @param extent the extent
      * @param changeSet the change set
      */
-    public HistoryExtent(final String world, FaweLimit limit, final Extent extent, final FaweChangeSet changeSet, FaweQueue queue) {
+    public HistoryExtent(final EditSession session, FaweLimit limit, final Extent extent, final FaweChangeSet changeSet, FaweQueue queue) {
         super(extent);
         this.limit = limit;
         this.queue = queue;
         checkNotNull(changeSet);
         this.changeSet = changeSet;
+        this.session = session;
     }
 
     @Override
@@ -51,7 +54,7 @@ public class HistoryExtent extends AbstractDelegateExtent {
             int x = location.getBlockX();
             int y = location.getBlockY();
             int z = location.getBlockZ();
-            int combined = queue.getCombinedId4Data(x, y, z);
+            int combined = queue.getCombinedId4DataDebug(x, y, z, 0, session);
             int id = (combined >> 4);
             if (id == block.getId()) {
                 if (!FaweCache.hasData(id)) {

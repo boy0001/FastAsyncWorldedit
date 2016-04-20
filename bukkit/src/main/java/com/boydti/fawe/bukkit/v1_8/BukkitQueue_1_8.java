@@ -7,6 +7,7 @@ import com.boydti.fawe.config.Settings;
 import com.boydti.fawe.object.FaweChunk;
 import com.boydti.fawe.object.FawePlayer;
 import com.boydti.fawe.object.IntegerPair;
+import com.boydti.fawe.object.exception.FaweException;
 import com.boydti.fawe.util.MemUtil;
 import com.boydti.fawe.util.ReflectionUtils.RefClass;
 import com.boydti.fawe.util.ReflectionUtils.RefConstructor;
@@ -120,7 +121,7 @@ public class BukkitQueue_1_8 extends BukkitQueue_0 {
     private LinkedBlockingDeque<IntegerPair> loadQueue = new LinkedBlockingDeque<>();
 
     @Override
-    public int getCombinedId4Data(int x, int y, int z) {
+    public int getCombinedId4Data(int x, int y, int z) throws FaweException.FaweChunkLoadException {
         if (y < 0 || y > 255) {
             return 0;
         }
@@ -147,7 +148,7 @@ public class BukkitQueue_1_8 extends BukkitQueue_0 {
                         }
                     }
                     if (!bukkitWorld.isChunkLoaded(cx, cz)) {
-                        return 0;
+                        throw new FaweException.FaweChunkLoadException();
                     }
                 } else {
                     return 0;

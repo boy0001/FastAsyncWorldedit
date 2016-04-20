@@ -9,6 +9,7 @@ import com.boydti.fawe.object.FaweChunk;
 import com.boydti.fawe.object.FawePlayer;
 import com.boydti.fawe.object.IntegerPair;
 import com.boydti.fawe.object.PseudoRandom;
+import com.boydti.fawe.object.exception.FaweException;
 import com.boydti.fawe.util.MemUtil;
 import com.boydti.fawe.util.TaskManager;
 import com.sk89q.worldedit.LocalSession;
@@ -78,67 +79,61 @@ public class BukkitQueue_1_9_R1 extends BukkitQueue_0 {
     private DataPaletteBlock lastSection;
 
     @Override
-    public int getCombinedId4Data(int x, int y, int z) {
+    public int getCombinedId4Data(int x, int y, int z) throws FaweException.FaweChunkLoadException {
         if (y < 0 || y > 255) {
             return 0;
         }
-        try {
-            int cx = x >> 4;
-            int cz = z >> 4;
-            int cy = y >> 4;
-            if (cx != lcx || cz != lcz) {
-                if (bukkitWorld == null) {
-                    bukkitWorld = Bukkit.getServer().getWorld(world);
-                }
-                lcx = cx;
-                lcz = cz;
-                if (!bukkitWorld.isChunkLoaded(cx, cz)) {
-                    boolean sync = Thread.currentThread() == Fawe.get().getMainThread();
-                    if (sync) {
-                        bukkitWorld.loadChunk(cx, cz, true);
-                    } else if (Settings.CHUNK_WAIT > 0) {
-                        synchronized (loadQueue) {
-                            loadQueue.add(new IntegerPair(cx, cz));
-                            try {
-                                loadQueue.wait(Settings.CHUNK_WAIT);
-                            } catch (InterruptedException e) {
-                                e.printStackTrace();
-                            }
+        int cx = x >> 4;
+        int cz = z >> 4;
+        int cy = y >> 4;
+        if (cx != lcx || cz != lcz) {
+            if (bukkitWorld == null) {
+                bukkitWorld = Bukkit.getServer().getWorld(world);
+            }
+            lcx = cx;
+            lcz = cz;
+            if (!bukkitWorld.isChunkLoaded(cx, cz)) {
+                boolean sync = Thread.currentThread() == Fawe.get().getMainThread();
+                if (sync) {
+                    bukkitWorld.loadChunk(cx, cz, true);
+                } else if (Settings.CHUNK_WAIT > 0) {
+                    synchronized (loadQueue) {
+                        loadQueue.add(new IntegerPair(cx, cz));
+                        try {
+                            loadQueue.wait(Settings.CHUNK_WAIT);
+                        } catch (InterruptedException e) {
+                            e.printStackTrace();
                         }
-                        if (!bukkitWorld.isChunkLoaded(cx, cz)) {
-                            return 0;
-                        }
-                    } else {
-                        return 0;
                     }
-                }
-                CraftChunk chunk = (CraftChunk) bukkitWorld.getChunkAt(cx, cz);
-                chunkSections = chunk.getHandle().getSections();
-                ChunkSection nibble = chunkSections[cy];
-                lastSection = nibble != null ? nibble.getBlocks() : null;
-            } else if (cy != lcy) {
-                if (chunkSections == null) {
+                    if (!bukkitWorld.isChunkLoaded(cx, cz)) {
+                        throw new FaweException.FaweChunkLoadException();
+                    }
+                } else {
                     return 0;
                 }
-                ChunkSection nibble = chunkSections[cy];
-                lastSection = nibble != null ? nibble.getBlocks() : null;
             }
-            if (lastSection == null) {
+            CraftChunk chunk = (CraftChunk) bukkitWorld.getChunkAt(cx, cz);
+            chunkSections = chunk.getHandle().getSections();
+            ChunkSection nibble = chunkSections[cy];
+            lastSection = nibble != null ? nibble.getBlocks() : null;
+        } else if (cy != lcy) {
+            if (chunkSections == null) {
                 return 0;
             }
-            IBlockData ibd = lastSection.a(x & 15, y & 15, z & 15);
-            Block block = ibd.getBlock();
-            int id = Block.getId(block);
-            if (FaweCache.hasData(id)) {
-                return (id << 4) + block.toLegacyData(ibd);
-            } else {
-                return id << 4;
-            }
+            ChunkSection nibble = chunkSections[cy];
+            lastSection = nibble != null ? nibble.getBlocks() : null;
         }
-        catch (Throwable e) {
-            e.printStackTrace();
+        if (lastSection == null) {
+            return 0;
         }
-        return 0;
+        IBlockData ibd = lastSection.a(x & 15, y & 15, z & 15);
+        Block block = ibd.getBlock();
+        int id = Block.getId(block);
+        if (FaweCache.hasData(id)) {
+            return (id << 4) + block.toLegacyData(ibd);
+        } else {
+            return id << 4;
+        }
     }
 
     @Override

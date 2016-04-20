@@ -8,6 +8,7 @@ import com.boydti.fawe.object.FaweChunk;
 import com.boydti.fawe.object.FawePlayer;
 import com.boydti.fawe.object.IntegerPair;
 import com.boydti.fawe.object.PseudoRandom;
+import com.boydti.fawe.object.exception.FaweException;
 import com.boydti.fawe.util.MemUtil;
 import com.boydti.fawe.util.ReflectionUtils.RefClass;
 import com.boydti.fawe.util.ReflectionUtils.RefConstructor;
@@ -110,52 +111,46 @@ public class BukkitQueue_1_9 extends BukkitQueue_0 {
     private LinkedBlockingDeque<IntegerPair> loadQueue = new LinkedBlockingDeque<>();
 
     @Override
-    public int getCombinedId4Data(int x, int y, int z) {
+    public int getCombinedId4Data(int x, int y, int z)  throws FaweException.FaweChunkLoadException {
         if (y < 0 || y > 255) {
             return 0;
         }
-        try {
-            int cx = x >> 4;
-            int cz = z >> 4;
-            int cy = y >> 4;
-            if (cx != lcx || cz != lcz) {
-                if (bukkitWorld == null) {
-                    bukkitWorld = Bukkit.getServer().getWorld(world);
-                }
-                lcx = cx;
-                lcz = cz;
-                if (!bukkitWorld.isChunkLoaded(cx, cz)) {
-                    boolean sync = Thread.currentThread() == Fawe.get().getMainThread();
-                    if (sync) {
-                        bukkitWorld.loadChunk(cx, cz, true);
-                    } else if (Settings.CHUNK_WAIT > 0) {
-                        synchronized (loadQueue) {
-                            loadQueue.add(new IntegerPair(cx, cz));
-                            try {
-                                loadQueue.wait(Settings.CHUNK_WAIT);
-                            } catch (InterruptedException e) {
-                                e.printStackTrace();
-                            }
+        int cx = x >> 4;
+        int cz = z >> 4;
+        int cy = y >> 4;
+        if (cx != lcx || cz != lcz) {
+            if (bukkitWorld == null) {
+                bukkitWorld = Bukkit.getServer().getWorld(world);
+            }
+            lcx = cx;
+            lcz = cz;
+            if (!bukkitWorld.isChunkLoaded(cx, cz)) {
+                boolean sync = Thread.currentThread() == Fawe.get().getMainThread();
+                if (sync) {
+                    bukkitWorld.loadChunk(cx, cz, true);
+                } else if (Settings.CHUNK_WAIT > 0) {
+                    synchronized (loadQueue) {
+                        loadQueue.add(new IntegerPair(cx, cz));
+                        try {
+                            loadQueue.wait(Settings.CHUNK_WAIT);
+                        } catch (InterruptedException e) {
+                            e.printStackTrace();
                         }
-                        if (!bukkitWorld.isChunkLoaded(cx, cz)) {
-                            return 0;
-                        }
-                    } else {
-                        return 0;
                     }
+                    if (!bukkitWorld.isChunkLoaded(cx, cz)) {
+                        throw new FaweException.FaweChunkLoadException();
+                    }
+                } else {
+                    return 0;
                 }
-                lc = methodGetType.of(methodGetHandleChunk.of(bukkitWorld.getChunkAt(cx, cz)).call());
             }
-            if (lc == null) {
-                return 0;
-            }
-            int combined = (int) methodGetCombinedId.call(lc.call(x & 15, y, z & 15));
-            return ((combined & 4095) << 4) + (combined >> 12);
+            lc = methodGetType.of(methodGetHandleChunk.of(bukkitWorld.getChunkAt(cx, cz)).call());
         }
-        catch (Throwable e) {
-            e.printStackTrace();
+        if (lc == null) {
+            return 0;
         }
-        return 0;
+        int combined = (int) methodGetCombinedId.call(lc.call(x & 15, y, z & 15));
+        return ((combined & 4095) << 4) + (combined >> 12);
     }
 
     @Override

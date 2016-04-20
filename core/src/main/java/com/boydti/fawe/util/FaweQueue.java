@@ -3,6 +3,8 @@ package com.boydti.fawe.util;
 import com.boydti.fawe.Fawe;
 import com.boydti.fawe.config.BBC;
 import com.boydti.fawe.object.FaweChunk;
+import com.boydti.fawe.object.exception.FaweException;
+import com.sk89q.worldedit.EditSession;
 import com.sk89q.worldedit.world.biome.BaseBiome;
 
 public abstract class FaweQueue {
@@ -53,7 +55,24 @@ public abstract class FaweQueue {
     
     public abstract void addTask(int x, int z, Runnable runnable);
 
-    public abstract int getCombinedId4Data(int x, int y, int z);
+    public abstract int getCombinedId4Data(int x, int y, int z) throws FaweException.FaweChunkLoadException;
+
+    public int getCombinedId4Data(int x, int y, int z, int def) {
+        try {
+            return getCombinedId4Data(x, y, z);
+        } catch (FaweException ignore) {
+            return def;
+        }
+    }
+
+    public int getCombinedId4DataDebug(int x, int y, int z, int def, EditSession session) {
+        try {
+            return getCombinedId4Data(x, y, z);
+        } catch (FaweException ignore) {
+            session.debug(BBC.WORLDEDIT_FAILED_LOAD_CHUNK.format(x >> 4, z >> 4));
+            return def;
+        }
+    }
 
     public abstract int size();
 

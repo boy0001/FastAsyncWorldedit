@@ -8,6 +8,7 @@ import com.boydti.fawe.forge.v0.SpongeQueue_0;
 import com.boydti.fawe.object.FaweChunk;
 import com.boydti.fawe.object.IntegerPair;
 import com.boydti.fawe.object.PseudoRandom;
+import com.boydti.fawe.object.exception.FaweException;
 import com.boydti.fawe.util.TaskManager;
 import com.flowpowered.math.vector.Vector3i;
 import java.lang.reflect.Field;
@@ -63,7 +64,7 @@ public class SpongeQueue_1_8 extends SpongeQueue_0 {
     private LinkedBlockingDeque<IntegerPair> loadQueue = new LinkedBlockingDeque<>();
 
     @Override
-    public int getCombinedId4Data(int x, int y, int z) {
+    public int getCombinedId4Data(int x, int y, int z) throws FaweException.FaweChunkLoadException {
         if (y < 0 || y > 255) {
             return 0;
         }
@@ -92,7 +93,7 @@ public class SpongeQueue_1_8 extends SpongeQueue_0 {
                     }
                     chunk = spongeWorld.getChunk(cx, 0, cz).orElse(null);
                     if (chunk == null || !chunk.isLoaded()) {
-                        return 0;
+                        throw new FaweException.FaweChunkLoadException();
                     }
                 } else {
                     return 0;
