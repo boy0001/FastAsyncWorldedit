@@ -21,6 +21,7 @@ public class Settings {
     public static long MEM_FREE = 95;
     public static boolean ENABLE_HARD_LIMIT = true;
     public static boolean STORE_HISTORY_ON_DISK = false;
+    public static int DELETE_HISTORY_AFTER_DAYS = 7;
     public static int COMPRESSION_LEVEL = 0;
     public static int BUFFER_SIZE = 531441;
     public static boolean METRICS = true;
@@ -79,6 +80,7 @@ public class Settings {
         options.put("history.compress", false);
         options.put("history.chunk-wait-ms", CHUNK_WAIT);
         options.put("history.buffer-size", BUFFER_SIZE);
+        options.put("history.delete-after-days", DELETE_HISTORY_AFTER_DAYS);
         options.put("region-restrictions", REGION_RESTRICTIONS);
         options.put("queue.extra-time-ms", ALLOCATE);
         options.put("queue.target-size", QUEUE_SIZE);
@@ -112,6 +114,7 @@ public class Settings {
         REGION_RESTRICTIONS = config.getBoolean("region-restrictions");
         METRICS = config.getBoolean("metrics");
         COMPRESSION_LEVEL = config.getInt("history.compression-level", config.getBoolean("history.compress") ? 1 : 0);
+        DELETE_HISTORY_AFTER_DAYS = config.getInt("history.delete-after-days");
         BUFFER_SIZE = config.getInt("history.buffer-size", BUFFER_SIZE);
         CHUNK_WAIT = config.getInt("history.chunk-wait-ms");
         ALLOCATE = config.getInt("queue.extra-time-ms");

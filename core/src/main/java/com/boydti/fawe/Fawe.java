@@ -10,6 +10,7 @@ import com.boydti.fawe.config.Settings;
 import com.boydti.fawe.object.FawePlayer;
 import com.boydti.fawe.regions.general.PlotSquaredFeature;
 import com.boydti.fawe.util.Lag;
+import com.boydti.fawe.util.MainUtil;
 import com.boydti.fawe.util.MemUtil;
 import com.boydti.fawe.util.TaskManager;
 import com.boydti.fawe.util.WEManager;
@@ -43,6 +44,7 @@ import java.lang.management.MemoryPoolMXBean;
 import java.lang.management.MemoryUsage;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.TimeUnit;
 import javax.management.InstanceAlreadyExistsException;
 import javax.management.Notification;
 import javax.management.NotificationEmitter;
@@ -143,12 +145,13 @@ public class Fawe {
 
     private Fawe(final IFawe implementation) {
         this.IMP = implementation;
-
         this.thread = Thread.currentThread();
         /*
          * Implementation dependent stuff
          */
         this.setupConfigs();
+        MainUtil.deleteOlder(new File(IMP.getDirectory(), "history"), TimeUnit.DAYS.toMillis(Settings.DELETE_HISTORY_AFTER_DAYS));
+
         this.setupCommands();
 
         // TODO command event - queue?

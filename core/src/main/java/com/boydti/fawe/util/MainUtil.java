@@ -3,6 +3,7 @@ package com.boydti.fawe.util;
 import com.boydti.fawe.Fawe;
 import com.boydti.fawe.config.BBC;
 import com.boydti.fawe.object.FawePlayer;
+import com.boydti.fawe.object.RunnableVal;
 import com.sk89q.jnbt.CompoundTag;
 import com.sk89q.jnbt.EndTag;
 import com.sk89q.jnbt.ListTag;
@@ -33,16 +34,47 @@ public class MainUtil {
         }
         Fawe.debug(s);
     }
+
+    public static void iterateFiles(File directory, RunnableVal<File> task) {
+        if (directory.exists()) {
+            File[] files = directory.listFiles();
+            if (null != files) {
+                for (int i = 0; i < files.length; i++) {
+                    if (files[i].isDirectory()) {
+                        iterateFiles(files[i], task);
+                    } else {
+                        task.run(files[i]);
+                    }
+                }
+            }
+        }
+    }
+
+    public static void deleteOlder(File directory, final long timeDiff) {
+        final long now = System.currentTimeMillis();
+        iterateFiles(directory, new RunnableVal<File>() {
+            @Override
+            public void run(File file) {
+                long age = now - file.lastModified();
+                if (age > timeDiff) {
+                    System.out.println("Deleting file: " + file);
+                    file.delete();
+                }
+            }
+        });
+    }
     
     public static boolean deleteDirectory(File directory) {
         if (directory.exists()) {
             File[] files = directory.listFiles();
             if (null != files) {
                 for (int i = 0; i < files.length; i++) {
-                    if (files[i].isDirectory()) {
+                    File file = files[i];
+                    if (file.isDirectory()) {
                         deleteDirectory(files[i]);
                     } else {
-                        files[i].delete();
+                        System.out.println("Deleting file: " + file);
+                        file.delete();
                     }
                 }
             }
