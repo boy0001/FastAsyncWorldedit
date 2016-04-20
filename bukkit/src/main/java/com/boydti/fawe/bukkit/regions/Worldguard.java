@@ -39,7 +39,7 @@ public class Worldguard extends BukkitMaskManager implements Listener {
         final com.sk89q.worldguard.LocalPlayer localplayer = this.worldguard.wrapPlayer(player);
         RegionManager manager = this.worldguard.getRegionManager(player.getWorld());
         final ProtectedRegion global = manager.getRegion("__global__");
-        if (isAllowed(localplayer, global)) {
+        if (global != null && isAllowed(localplayer, global)) {
             return global;
         }
         final ApplicableRegionSet regions = manager.getApplicableRegions(player.getLocation());
@@ -52,7 +52,7 @@ public class Worldguard extends BukkitMaskManager implements Listener {
     }
 
     public boolean isAllowed(LocalPlayer localplayer, ProtectedRegion region) {
-        if (region.isOwner(localplayer)) {
+        if (region.isOwner(localplayer) || region.isOwner(localplayer.getName())) {
             return true;
         } else if (region.getId().toLowerCase().equals(localplayer.getName().toLowerCase())) {
             return true;
@@ -70,8 +70,15 @@ public class Worldguard extends BukkitMaskManager implements Listener {
         final Location location = player.getLocation();
         final ProtectedRegion myregion = this.getRegion(player, location);
         if (myregion != null) {
-            final Location pos1 = new Location(location.getWorld(), myregion.getMinimumPoint().getBlockX(), myregion.getMinimumPoint().getBlockY(), myregion.getMinimumPoint().getBlockZ());
-            final Location pos2 = new Location(location.getWorld(), myregion.getMaximumPoint().getBlockX(), myregion.getMaximumPoint().getBlockY(), myregion.getMaximumPoint().getBlockZ());
+            final Location pos1;
+            final Location pos2;
+            if (myregion.getId().equals("__global__")) {
+                pos1 = new Location(location.getWorld(), Integer.MIN_VALUE, 0, Integer.MIN_VALUE);
+                pos2 = new Location(location.getWorld(), Integer.MAX_VALUE, 255, Integer.MAX_VALUE);
+            } else {
+                pos1 = new Location(location.getWorld(), myregion.getMinimumPoint().getBlockX(), myregion.getMinimumPoint().getBlockY(), myregion.getMinimumPoint().getBlockZ());
+                pos2 = new Location(location.getWorld(), myregion.getMaximumPoint().getBlockX(), myregion.getMaximumPoint().getBlockY(), myregion.getMaximumPoint().getBlockZ());
+            }
             return new BukkitMask(pos1, pos2) {
                 @Override
                 public String getName() {
