@@ -5,7 +5,6 @@ import com.boydti.fawe.object.FaweChunk;
 import com.boydti.fawe.util.FaweQueue;
 import com.boydti.fawe.util.TaskManager;
 import com.sk89q.worldedit.world.biome.BaseBiome;
-import java.util.ArrayDeque;
 import java.util.Collection;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.LinkedBlockingDeque;
@@ -78,25 +77,35 @@ public abstract class BukkitQueue_0 extends FaweQueue implements Listener {
         result.addTask(runnable);
     }
 
+    private FaweChunk lastChunk;
+    private int lastX = Integer.MIN_VALUE;
+    private int lastZ = Integer.MIN_VALUE;
+
     @Override
     public boolean setBlock(int x, int y, int z, short id, byte data) {
         if ((y > 255) || (y < 0)) {
             return false;
         }
-        long pair = (long) (x >> 4) << 32 | (z >> 4) & 0xFFFFFFFFL;
-        FaweChunk<Chunk> result = this.blocks.get(pair);
-        if (result == null) {
-            result = this.getChunk(x >> 4, z >> 4);
-            result.setBlock(x & 15, y, z & 15, id, data);
-            FaweChunk<Chunk> previous = this.blocks.put(pair, result);
-            if (previous == null) {
-                chunks.add(result);
-                return true;
+        int cx = x >> 4;
+        int cz = z >> 4;
+        if (cx != lastX || cz != lastZ) {
+            lastX = cx;
+            lastZ = cz;
+            long pair = (long) (cx) << 32 | (cz) & 0xFFFFFFFFL;
+            lastChunk = this.blocks.get(pair);
+            if (lastChunk == null) {
+                lastChunk = this.getChunk(x >> 4, z >> 4);
+                lastChunk.setBlock(x & 15, y, z & 15, id, data);
+                FaweChunk<Chunk> previous = this.blocks.put(pair, lastChunk);
+                if (previous == null) {
+                    chunks.add(lastChunk);
+                    return true;
+                }
+                this.blocks.put(pair, previous);
+                lastChunk = previous;
             }
-            this.blocks.put(pair, previous);
-            result = previous;
         }
-        result.setBlock(x & 15, y, z & 15, id, data);
+        lastChunk.setBlock(x & 15, y, z & 15, id, data);
         return true;
     }
 
@@ -120,6 +129,8 @@ public abstract class BukkitQueue_0 extends FaweQueue implements Listener {
 
     @Override
     public FaweChunk<Chunk> next() {
+        lastX = Integer.MIN_VALUE;
+        lastZ = Integer.MIN_VALUE;
         try {
             if (this.blocks.size() == 0) {
                 return null;

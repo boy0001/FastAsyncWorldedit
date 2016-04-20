@@ -1,6 +1,7 @@
 package com.boydti.fawe.object.extent;
 
-import com.sk89q.worldedit.EditSession;
+import com.boydti.fawe.config.BBC;
+import com.boydti.fawe.object.exception.FaweException;
 import com.sk89q.worldedit.Vector;
 import com.sk89q.worldedit.Vector2D;
 import com.sk89q.worldedit.WorldEditException;
@@ -19,17 +20,17 @@ public class NullExtent implements Extent {
 
     @Override
     public BaseBiome getBiome(final Vector2D arg0) {
-        return EditSession.nullBiome;
+        throw new FaweException(BBC.WORLDEDIT_CANCEL_REASON_MAX_FAILS);
     }
 
     @Override
     public BaseBlock getBlock(final Vector arg0) {
-        return EditSession.nullBlock;
+        throw new FaweException(BBC.WORLDEDIT_CANCEL_REASON_MAX_FAILS);
     }
 
     @Override
     public BaseBlock getLazyBlock(final Vector arg0) {
-        return EditSession.nullBlock;
+        throw new FaweException(BBC.WORLDEDIT_CANCEL_REASON_MAX_FAILS);
     }
 
     @Override
@@ -39,17 +40,17 @@ public class NullExtent implements Extent {
 
     @Override
     public boolean setBiome(final Vector2D arg0, final BaseBiome arg1) {
-        return false;
+        throw new FaweException(BBC.WORLDEDIT_CANCEL_REASON_MAX_FAILS);
     }
 
     @Override
     public boolean setBlock(final Vector arg0, final BaseBlock arg1) throws WorldEditException {
-        return false;
+        throw new FaweException(BBC.WORLDEDIT_CANCEL_REASON_MAX_FAILS);
     }
 
     @Override
     public Entity createEntity(final Location arg0, final BaseEntity arg1) {
-        return null;
+        throw new FaweException(BBC.WORLDEDIT_CANCEL_REASON_MAX_FAILS);
     }
 
     @Override

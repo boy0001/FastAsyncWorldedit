@@ -49,7 +49,7 @@ public enum BBC {
     WORLDEDIT_CANCEL_REASON_MAX_ENTITIES("Too many entities", "Cancel"),
     WORLDEDIT_CANCEL_REASON_MAX_ITERATIONS("Max iterations", "Cancel"),
     WORLDEDIT_CANCEL_REASON_MAX_FAILS("Outside allowed region", "Cancel"),
-    WORLDEDIT_FAILED_LOAD_CHUNK("&cFailed to load chunk: &7%s0;%s1&c. Try increasing chunk-wait.", "Cancel"),
+    WORLDEDIT_FAILED_LOAD_CHUNK("&cSkipped loading chunk: &7%s0;%s1&c. Try increasing chunk-wait.", "Cancel"),
 
     WORLDEDIT_OOM_ADMIN("&cPossible options:\n&8 - &7//fast\n&8 - &7Do smaller edits\n&8 - &7Allocate more memory\n&8 - &7Disable this safeguard", "Info"),
     NOT_PLAYER("&cYou must be a player to perform this action!", "Error"),

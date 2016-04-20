@@ -29,6 +29,8 @@ public final class Operations {
 
     private Operations() {}
 
+    private static RunContext context = new RunContext();
+
     /**
      * Complete a given operation synchronously until it completes.
      *
@@ -36,9 +38,11 @@ public final class Operations {
      * @throws WorldEditException WorldEdit exception
      */
     public static void complete(Operation operation) throws WorldEditException {
-        while (operation != null) {
-            operation = operation.resume(new RunContext());
-        }
+        try {
+            while (true) {
+                operation = operation.resume(context);
+            }
+        } catch (NullPointerException ignore) {}
     }
 
     /**
@@ -50,12 +54,12 @@ public final class Operations {
      */
     public static void completeLegacy(Operation operation) throws MaxChangedBlocksException {
         try {
-            while (operation != null) {
-                operation = operation.resume(new RunContext());
+            while (true) {
+                operation = operation.resume(context);
             }
         } catch (final WorldEditException e) {
             e.printStackTrace();
-        }
+        } catch (NullPointerException ignore) {}
     }
 
     /**
@@ -67,12 +71,12 @@ public final class Operations {
      */
     public static void completeBlindly(Operation operation) {
         try {
-            while (operation != null) {
-                operation = operation.resume(new RunContext());
+            while (true) {
+                operation = operation.resume(context);
             }
         } catch (WorldEditException e) {
             throw new RuntimeException(e);
-        }
+        } catch (NullPointerException ignore) {}
     }
 
     public static void completeSmart(final Operation op, final Runnable whenDone, final boolean threadsafe) {

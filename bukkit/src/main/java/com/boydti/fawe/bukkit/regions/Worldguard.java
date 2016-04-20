@@ -2,7 +2,7 @@ package com.boydti.fawe.bukkit.regions;
 
 import com.boydti.fawe.bukkit.FaweBukkit;
 import com.boydti.fawe.object.FawePlayer;
-import com.sk89q.worldedit.BlockVector;
+import com.sk89q.worldguard.LocalPlayer;
 import com.sk89q.worldguard.bukkit.WorldGuardPlugin;
 import com.sk89q.worldguard.protection.ApplicableRegionSet;
 import com.sk89q.worldguard.protection.managers.RegionManager;
@@ -35,46 +35,40 @@ public class Worldguard extends BukkitMaskManager implements Listener {
 
     }
 
-    public ProtectedRegion isowner(final Player player, final Location location) {
+    public ProtectedRegion getRegion(final Player player, final Location loc) {
         final com.sk89q.worldguard.LocalPlayer localplayer = this.worldguard.wrapPlayer(player);
-        final RegionManager manager = this.worldguard.getRegionManager(player.getWorld());
+        RegionManager manager = this.worldguard.getRegionManager(player.getWorld());
+        final ProtectedRegion global = manager.getRegion("__global__");
+        if (isAllowed(localplayer, global)) {
+            return global;
+        }
         final ApplicableRegionSet regions = manager.getApplicableRegions(player.getLocation());
         for (final ProtectedRegion region : regions) {
-            if (region.isOwner(localplayer)) {
-                return region;
-            } else if (region.getId().toLowerCase().equals(player.getName().toLowerCase())) {
-                return region;
-            } else if (region.getId().toLowerCase().contains(player.getName().toLowerCase() + "//")) {
-                return region;
-            } else if (region.isOwner("*")) {
+            if (isAllowed(localplayer, region)) {
                 return region;
             }
         }
         return null;
     }
 
-    public ProtectedRegion getregion(final Player player, final BlockVector location) {
-        final com.sk89q.worldguard.LocalPlayer localplayer = this.worldguard.wrapPlayer(player);
-        final ApplicableRegionSet regions = this.worldguard.getRegionManager(player.getWorld()).getApplicableRegions(location);
-        for (final ProtectedRegion region : regions) {
-            if (region.isOwner(localplayer)) {
-                return region;
-            } else if (region.getId().toLowerCase().equals(player.getName().toLowerCase())) {
-                return region;
-            } else if (region.getId().toLowerCase().contains(player.getName().toLowerCase() + "//")) {
-                return region;
-            } else if (region.isOwner("*")) {
-                return region;
-            }
+    public boolean isAllowed(LocalPlayer localplayer, ProtectedRegion region) {
+        if (region.isOwner(localplayer)) {
+            return true;
+        } else if (region.getId().toLowerCase().equals(localplayer.getName().toLowerCase())) {
+            return true;
+        } else if (region.getId().toLowerCase().contains(localplayer.getName().toLowerCase() + "//")) {
+            return true;
+        } else if (region.isOwner("*")) {
+            return true;
         }
-        return null;
+        return false;
     }
 
     @Override
     public BukkitMask getMask(final FawePlayer<Player> fp) {
         final Player player = fp.parent;
         final Location location = player.getLocation();
-        final ProtectedRegion myregion = this.isowner(player, location);
+        final ProtectedRegion myregion = this.getRegion(player, location);
         if (myregion != null) {
             final Location pos1 = new Location(location.getWorld(), myregion.getMinimumPoint().getBlockX(), myregion.getMinimumPoint().getBlockY(), myregion.getMinimumPoint().getBlockZ());
             final Location pos2 = new Location(location.getWorld(), myregion.getMaximumPoint().getBlockX(), myregion.getMaximumPoint().getBlockY(), myregion.getMaximumPoint().getBlockZ());
