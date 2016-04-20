@@ -14,3 +14,4 @@
 forge/.gradle/gradle.log
 *.log
 /lib
+/core/build
