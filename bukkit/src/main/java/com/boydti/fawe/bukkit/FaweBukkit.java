@@ -202,18 +202,17 @@ public class FaweBukkit extends JavaPlugin implements IFawe, Listener {
                 }
             }
             return new BukkitQueue_1_8(world);
-        } catch (Throwable e) {
-            if (hasNMS) {
-                debug("====== NO NMS BLOCK PLACER FOUND ======");
-                debug("FAWE couldn't find a fast block placer");
-                debug("Bukkit version: " + Bukkit.getVersion());
-                debug("Supported NMS versions: 1.8, 1.9");
-                debug("Fallback placer: " + BukkitQueue_All.class);
-                debug("=======================================");
-                hasNMS = false;
-            }
-            return new BukkitQueue_All(world);
+        } catch (Throwable ignore) {}
+        if (hasNMS) {
+            debug("====== NO NMS BLOCK PLACER FOUND ======");
+            debug("FAWE couldn't find a fast block placer");
+            debug("Bukkit version: " + Bukkit.getVersion());
+            debug("Supported NMS versions: 1.8, 1.9");
+            debug("Fallback placer: " + BukkitQueue_All.class);
+            debug("=======================================");
+            hasNMS = false;
         }
+        return new BukkitQueue_All(world);
     }
 
     /**

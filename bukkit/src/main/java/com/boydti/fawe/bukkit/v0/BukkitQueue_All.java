@@ -85,6 +85,7 @@ public class BukkitQueue_All extends BukkitQueue_0 {
             startSet();
             final BukkitChunk_1_8 fs = ((BukkitChunk_1_8) fc);
             final Chunk chunk = fs.getChunk();
+            chunk.load(true);
             final World world = chunk.getWorld();
             char[][] sections = fs.getIdArrays();
             boolean done = false;
@@ -283,7 +284,7 @@ public class BukkitQueue_All extends BukkitQueue_0 {
             lastSection = getCachedSection(lastChunk, cy);
         }
 
-        if (lastChunk == null) {
+        if (lastSection == null) {
             return 0;
         }
         return getCombinedId4Data(lastSection, x, y, z);
