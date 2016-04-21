@@ -166,9 +166,8 @@ public class Fawe {
         TaskManager.IMP.later(new Runnable() {
             @Override
             public void run() {
-                // worldedit
-                WEManager.IMP.managers.addAll(Fawe.this.IMP.getMaskManagers());
                 try {
+                    WEManager.IMP.managers.addAll(Fawe.this.IMP.getMaskManagers());
                     WEManager.IMP.managers.add(new PlotSquaredFeature());
                 } catch (Throwable e) {}
                 Fawe.this.worldedit = WorldEdit.getInstance();

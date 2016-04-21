@@ -4,6 +4,7 @@ import com.boydti.fawe.Fawe;
 import com.boydti.fawe.FaweAPI;
 import com.boydti.fawe.IFawe;
 import com.boydti.fawe.bukkit.regions.FactionsFeature;
+import com.boydti.fawe.bukkit.regions.FactionsOneFeature;
 import com.boydti.fawe.bukkit.regions.FactionsUUIDFeature;
 import com.boydti.fawe.bukkit.regions.GriefPreventionFeature;
 import com.boydti.fawe.bukkit.regions.PlotMeFeature;
@@ -252,8 +253,18 @@ public class FaweBukkit extends JavaPlugin implements IFawe, Listener {
                 managers.add(new FactionsFeature(factionsPlugin, this));
                 Fawe.debug("Plugin 'Factions' found. Using it now.");
             } catch (final Throwable e) {
-                managers.add(new FactionsUUIDFeature(factionsPlugin, this));
-                Fawe.debug("Plugin 'FactionsUUID' found. Using it now.");
+                try {
+                    managers.add(new FactionsUUIDFeature(factionsPlugin, this));
+                    Fawe.debug("Plugin 'FactionsUUID' found. Using it now.");
+                } catch (Throwable e2) {
+                    try {
+                        managers.add(new FactionsOneFeature(factionsPlugin, this));
+                        Fawe.debug("Plugin 'FactionsUUID' found. Using it now.");
+                    } catch (Throwable e3) {
+                        e.printStackTrace();
+                    }
+
+                }
             }
         } else {
             Fawe.debug("Plugin 'Factions' not found. Factions features disabled.");
