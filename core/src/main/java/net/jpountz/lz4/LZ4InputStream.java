@@ -75,6 +75,10 @@ public class LZ4InputStream extends InputStream {
         return n - numBytesRemainingToSkip;
     }
 
+    public boolean hasBytesAvailableInDecompressedBuffer(int bytes) {
+        return decompressedBufferPosition + bytes <= decompressedBufferLength;
+    }
+
     private boolean ensureBytesAvailableInDecompressedBuffer() throws IOException {
         while (decompressedBufferPosition >= decompressedBufferLength) {
             if (!fillBuffer()) {

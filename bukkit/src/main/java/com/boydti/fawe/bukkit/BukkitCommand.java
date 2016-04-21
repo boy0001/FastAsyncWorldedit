@@ -23,7 +23,7 @@ public class BukkitCommand implements CommandExecutor {
             BBC.NO_PERM.send(plr, this.cmd.getPerm());
             return true;
         }
-        this.cmd.execute(plr, args);
+        this.cmd.executeSafe(plr, args);
         return true;
     }
 }

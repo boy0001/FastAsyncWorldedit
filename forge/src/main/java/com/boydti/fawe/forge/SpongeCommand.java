@@ -30,7 +30,7 @@ public class SpongeCommand implements CommandCallable {
             BBC.NO_PERM.send(plr, this.cmd.getPerm());
             return CommandResult.success();
         }
-        this.cmd.execute(plr, args.split(" "));
+        this.cmd.executeSafe(plr, args.split(" "));
         return CommandResult.success();
     }
 

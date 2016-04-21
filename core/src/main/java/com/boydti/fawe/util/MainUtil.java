@@ -139,7 +139,7 @@ public class MainUtil {
         return time;
     }
 
-    public static List<DiskStorageHistory> getBDFiles(FaweLocation origin, UUID user, int radius, long timediff) {
+    public static List<DiskStorageHistory> getBDFiles(FaweLocation origin, UUID user, int radius, long timediff, boolean shallow) {
         File history = new File(Fawe.imp().getDirectory(), "history" + File.separator + origin.world);
         if (!history.exists()) {
             return new ArrayList<>();
@@ -168,6 +168,9 @@ public class MainUtil {
                 }
             }
         }
+        if (files.size() > 512) {
+            return null;
+        }
         World world = origin.getWorld();
         Collections.sort(files, new Comparator<File>() {
             @Override
@@ -180,11 +183,12 @@ public class MainUtil {
         for (File file : files) {
             UUID uuid = UUID.fromString(file.getParentFile().getName());
             DiskStorageHistory dsh = new DiskStorageHistory(world, uuid, Integer.parseInt(file.getName().split("\\.")[0]));
-            int[] headerAndFooter = dsh.readHeaderAndFooter(new RegionWrapper(origin.x - 512, origin.x + 512, origin.z - 512, origin.z + 512));
-            RegionWrapper region = new RegionWrapper(headerAndFooter[0], headerAndFooter[2], headerAndFooter[1], headerAndFooter[3]);
+            DiskStorageHistory.DiskStorageSummary summary = dsh.summarize(new RegionWrapper(origin.x - 512, origin.x + 512, origin.z - 512, origin.z + 512), shallow);
+            RegionWrapper region = new RegionWrapper(summary.minX, summary.maxX, summary.minZ, summary.maxZ);
             if (region.distance(origin.x, origin.z) <= radius) {
                 result.add(dsh);
             }
+
         }
         return result;
     }

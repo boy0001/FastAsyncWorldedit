@@ -34,6 +34,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.UUID;
@@ -355,19 +356,21 @@ public class DiskStorageHistory implements ChangeSet, FaweChangeSet {
         return osENTT;
     }
 
-    int fx;
-    int fz;
 
-    public int[] readHeaderAndFooter(RegionWrapper requiredRegion) {
-        if (fx == 0 && fz == 0 && bdFile.exists()) {
+    private DiskStorageSummary summary;
+
+    public DiskStorageSummary summarize(RegionWrapper requiredRegion, boolean shallow) {
+        if (summary != null) {
+            return summary;
+        }
+        if (bdFile.exists()) {
             if ((ox != 0 || oz != 0) && !requiredRegion.isIn(ox, oz)) {
-                return new int[] {ox, oz, ox, oz};
+                return summary = new DiskStorageSummary(ox, oz);
             }
-            try {
-                FileInputStream fis = new FileInputStream(bdFile);
+            try (FileInputStream fis = new FileInputStream(bdFile)) {
                 LZ4Factory factory = LZ4Factory.fastestInstance();
                 LZ4Compressor compressor = factory.fastCompressor();
-                final InputStream gis;
+                final LZ4InputStream gis;
                 if (Settings.COMPRESSION_LEVEL > 0) {
                     gis = new LZ4InputStream(new LZ4InputStream(fis));
                 } else {
@@ -375,37 +378,31 @@ public class DiskStorageHistory implements ChangeSet, FaweChangeSet {
                 }
                 ox = ((gis.read() << 24) + (gis.read() << 16) + (gis.read() << 8) + (gis.read() << 0));
                 oz = ((gis.read() << 24) + (gis.read() << 16) + (gis.read() << 8) + (gis.read() << 0));
+                summary = new DiskStorageSummary(ox, oz);
                 if (!requiredRegion.isIn(ox, oz)) {
                     fis.close();
                     gis.close();
-                    return new int[] {ox, oz, ox, oz};
+                    return summary;
                 }
-                byte[] even = new byte[9];
-                byte[] odd = new byte[9];
-                byte[] result = null;
+                byte[] buffer = new byte[9];
                 int i = 0;
-                while (true) {
-                    if ((i++ & 1) == 0) {
-                        if (gis.read(even) == -1) {
-                            result = odd;
-                            break;
-                        }
-                    } else {
-                        if (gis.read(odd) == -1) {
-                            result = even;
-                            break;
-                        }
+                while (!shallow || gis.hasBytesAvailableInDecompressedBuffer(9)) {
+                    if (gis.read(buffer) == -1) {
+                        fis.close();
+                        gis.close();
+                        return summary;
                     }
+                    int x = ((byte) buffer[0] & 0xFF) + ((byte) buffer[1] << 8) + ox;
+                    int z = ((byte) buffer[2] & 0xFF) + ((byte) buffer[3] << 8) + oz;
+                    int combined1 = buffer[7];
+                    int combined2 = buffer[8];
+                    summary.add(x, z, ((combined2 << 4) + (combined1 >> 4)));
                 }
-                fx = ((byte) result[0] & 0xFF) + ((byte) result[1] << 8) + ox;
-                fz = ((byte) result[2] & 0xFF) + ((byte) result[3] << 8) + oz;
-                fis.close();
-                gis.close();
             } catch (IOException e) {
                 e.printStackTrace();
             }
         }
-        return new int[] {ox, oz, fx, fz};
+        return summary;
     }
 
     public IntegerPair readHeader() {
@@ -554,5 +551,73 @@ public class DiskStorageHistory implements ChangeSet, FaweChangeSet {
     public int size() {
         flush();
         return size.get();
+    }
+
+    public static class DiskStorageSummary {
+
+        private final int z;
+        private final int x;
+        public int[] blocks;
+
+        public int minX;
+        public int minZ;
+
+        public int maxX;
+        public int maxZ;
+
+        public DiskStorageSummary(int x, int z) {
+            blocks = new int[256];
+            this.x = x;
+            this.z = z;
+            minX = x;
+            maxX = x;
+            minZ = z;
+            maxZ = z;
+        }
+
+        public void add(int x, int z, int id) {
+            blocks[id]++;
+            if (x < minX) {
+                minX = x;
+            } else if (x > maxX) {
+                maxX = x;
+            }
+            if (z < minZ) {
+                minZ = z;
+            } else if (z > maxZ) {
+                maxZ = z;
+            }
+        }
+
+        public HashMap<Integer, Integer> getBlocks() {
+            HashMap<Integer, Integer> map = new HashMap<>();
+            for (int i = 0; i < blocks.length; i++) {
+                if (blocks[i] != 0) {
+                    map.put(i, blocks[i]);
+                }
+            }
+            return map;
+        }
+
+        public Map<Integer, Double> getPercents() {
+            HashMap<Integer, Integer> map = getBlocks();
+            int count = getSize();
+            HashMap<Integer, Double> newMap = new HashMap<Integer, Double>();
+            for (Map.Entry<Integer, Integer> entry : map.entrySet()) {
+                int id = entry.getKey();
+                int changes = entry.getValue();
+                double percent = ((changes * 1000l) / count) / 10d;
+                newMap.put(id, percent);
+            }
+            return newMap;
+        }
+
+        public int getSize() {
+            int count = 0;
+            for (int i = 0; i < blocks.length; i++) {
+                count += blocks[i];
+            }
+            return count;
+        }
     }
 }
