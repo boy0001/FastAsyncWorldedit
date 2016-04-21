@@ -11,7 +11,6 @@ import com.boydti.fawe.object.changeset.DiskStorageHistory;
 import com.boydti.fawe.util.MainUtil;
 import com.boydti.fawe.util.MathMan;
 import com.boydti.fawe.util.SetQueue;
-import com.boydti.fawe.util.TaskManager;
 import com.sk89q.worldedit.EditSession;
 import com.sk89q.worldedit.blocks.ItemType;
 import com.sk89q.worldedit.world.World;
@@ -105,74 +104,69 @@ public class Rollback extends FaweCommand {
                         SetQueue.IMP.addTask(this);
                     }
                 };
-                TaskManager.IMP.async(task);
+                task.run();
             }
         }
         return true;
     }
 
     public void rollback(final FawePlayer player, final boolean shallow, final String[] args, final RunnableVal<List<DiskStorageHistory>> result) {
-        TaskManager.IMP.async(new Runnable() {
-            @Override
-            public void run() {
-                UUID user = null;
-                int radius = Integer.MAX_VALUE;
-                long time = Long.MAX_VALUE;
-                for (int i = 0; i < args.length; i++) {
-                    String[] split = args[i].split(":");
-                    if (split.length != 2) {
-                        BBC.COMMAND_SYNTAX.send(player, "/frb <info|undo> u:<uuid> r:<radius> t:<time>");
+        UUID user = null;
+        int radius = Integer.MAX_VALUE;
+        long time = Long.MAX_VALUE;
+        for (int i = 0; i < args.length; i++) {
+            String[] split = args[i].split(":");
+            if (split.length != 2) {
+                BBC.COMMAND_SYNTAX.send(player, "/frb <info|undo> u:<uuid> r:<radius> t:<time>");
+                return;
+            }
+            switch (split[0].toLowerCase()) {
+                case "username":
+                case "user":
+                case "u": {
+                    try {
+                        if (split[1].length() > 16) {
+                            user = UUID.fromString(split[1]);
+                        } else {
+                            user = Fawe.imp().getUUID(split[1]);
+                        }
+                    } catch (IllegalArgumentException e) {}
+                    if (user == null) {
+                        player.sendMessage("&dInvalid user: " + split[1]);
                         return;
                     }
-                    switch (split[0].toLowerCase()) {
-                        case "username":
-                        case "user":
-                        case "u": {
-                            try {
-                                if (split[1].length() > 16) {
-                                    user = UUID.fromString(split[1]);
-                                } else {
-                                    user = Fawe.imp().getUUID(split[1]);
-                                }
-                            } catch (IllegalArgumentException e) {}
-                            if (user == null) {
-                                player.sendMessage("&dInvalid user: " + split[1]);
-                                return;
-                            }
-                            break;
-                        }
-                        case "r":
-                        case "radius": {
-                            if (!MathMan.isInteger(split[1])) {
-                                player.sendMessage("&dInvalid radius: " + split[1]);
-                                return;
-                            }
-                            radius = Integer.parseInt(split[1]);
-                            break;
-                        }
-                        case "t":
-                        case "time": {
-                            time = MainUtil.timeToSec(split[1]) * 1000;
-                            break;
-                        }
-                        default: {
-                            BBC.COMMAND_SYNTAX.send(player, "/frb <info|undo> u:<uuid> r:<radius> t:<time>");
-                            return;
-                        }
+                    break;
+                }
+                case "r":
+                case "radius": {
+                    if (!MathMan.isInteger(split[1])) {
+                        player.sendMessage("&dInvalid radius: " + split[1]);
+                        return;
                     }
+                    radius = Integer.parseInt(split[1]);
+                    break;
                 }
-                FaweLocation origin = player.getLocation();
-                List<DiskStorageHistory> edits = MainUtil.getBDFiles(origin, user, radius, time, shallow);
-                if (edits == null) {
-                    player.sendMessage("&cToo broad, try refining your search!");
+                case "t":
+                case "time": {
+                    time = MainUtil.timeToSec(split[1]) * 1000;
+                    break;
+                }
+                default: {
+                    BBC.COMMAND_SYNTAX.send(player, "/frb <info|undo> u:<uuid> r:<radius> t:<time>");
                     return;
                 }
-                if (edits.size() == 0) {
-                    player.sendMessage("&cNo edits found!");
-                    return;
-                }
-                result.run(edits);
             }
-        });
+        }
+        FaweLocation origin = player.getLocation();
+        List<DiskStorageHistory> edits = MainUtil.getBDFiles(origin, user, radius, time, shallow);
+        if (edits == null) {
+            player.sendMessage("&cToo broad, try refining your search!");
+            return;
+        }
+        if (edits.size() == 0) {
+            player.sendMessage("&cNo edits found!");
+            return;
+        }
+        result.run(edits);
     }
 }

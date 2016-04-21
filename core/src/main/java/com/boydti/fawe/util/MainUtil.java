@@ -164,15 +164,12 @@ public class MainUtil {
                 if (file.getName().endsWith(".bd")) {
                     if (timediff > Integer.MAX_VALUE || now - file.lastModified() <= timediff) {
                         files.add(file);
-                        if (files.size() > 64) {
+                        if (files.size() > 2048) {
                             return null;
                         }
                     }
                 }
             }
-        }
-        if (files.size() > 64) {
-            return null;
         }
         World world = origin.getWorld();
         Collections.sort(files, new Comparator<File>() {
@@ -190,8 +187,10 @@ public class MainUtil {
             RegionWrapper region = new RegionWrapper(summary.minX, summary.maxX, summary.minZ, summary.maxZ);
             if (region.distance(origin.x, origin.z) <= radius) {
                 result.add(dsh);
+                if (result.size() > 64) {
+                    return null;
+                }
             }
-
         }
         return result;
     }

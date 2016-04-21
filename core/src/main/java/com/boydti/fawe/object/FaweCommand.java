@@ -1,6 +1,7 @@
 package com.boydti.fawe.object;
 
 import com.boydti.fawe.config.BBC;
+import com.boydti.fawe.util.TaskManager;
 
 public abstract class FaweCommand<T> {
     public final String perm;
@@ -20,13 +21,18 @@ public abstract class FaweCommand<T> {
         } else {
             if (player.getMeta("fawe_action") != null) {
                 BBC.WORLDEDIT_COMMAND_LIMIT.send(player);
-                return false;
+                return true;
             }
             player.setMeta("fawe_action", true);
-            boolean result = execute(player, args);
-            player.deleteMeta("fawe_action");
-            return result;
+            TaskManager.IMP.async(new Runnable() {
+                @Override
+                public void run() {
+                    execute(player, args);
+                    player.deleteMeta("fawe_action");
+                }
+            });
         }
+        return true;
     }
 
     public abstract boolean execute(final FawePlayer<T> player, final String... args);

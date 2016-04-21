@@ -394,8 +394,8 @@ public class DiskStorageHistory implements ChangeSet, FaweChangeSet {
                     }
                     int x = ((byte) buffer[0] & 0xFF) + ((byte) buffer[1] << 8) + ox;
                     int z = ((byte) buffer[2] & 0xFF) + ((byte) buffer[3] << 8) + oz;
-                    int combined1 = buffer[7];
-                    int combined2 = buffer[8];
+                    int combined1 = buffer[7] & 0xFF;
+                    int combined2 = buffer[8] & 0xFF;
                     summary.add(x, z, ((combined2 << 4) + (combined1 >> 4)));
                 }
             } catch (IOException e) {
