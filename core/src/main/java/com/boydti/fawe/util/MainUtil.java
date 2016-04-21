@@ -22,6 +22,9 @@ import java.util.Map.Entry;
 import java.util.UUID;
 
 public class MainUtil {
+
+    private MainUtil() {}
+
     /*
      * Generic non plugin related utils
      *  e.g. sending messages

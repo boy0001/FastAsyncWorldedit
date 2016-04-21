@@ -5,6 +5,8 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 public class MemUtil {
 
+    private MemUtil() {}
+
     private static AtomicBoolean memory = new AtomicBoolean(false);
 
     public static boolean isMemoryFree() {

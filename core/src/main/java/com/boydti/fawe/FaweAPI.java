@@ -29,6 +29,8 @@ import org.bukkit.Location;
  */
 public class FaweAPI {
 
+    private FaweAPI() {}
+
     /**
      * Compare two versions
      * @param version

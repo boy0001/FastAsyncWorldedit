@@ -17,6 +17,8 @@ public class SpongeUtil {
     private static HashMap<String, Integer> biomeMap;
     public static Map<Integer, BiomeData> biomeData;
 
+    private SpongeUtil() {}
+
     public static void initBiomeCache() {
         try {
             Class<?> clazz = Class.forName("com.sk89q.worldedit.forge.ForgeBiomeRegistry");
