@@ -12,6 +12,7 @@ import com.boydti.fawe.bukkit.regions.PreciousStonesFeature;
 import com.boydti.fawe.bukkit.regions.ResidenceFeature;
 import com.boydti.fawe.bukkit.regions.TownyFeature;
 import com.boydti.fawe.bukkit.regions.Worldguard;
+import com.boydti.fawe.bukkit.v0.BukkitQueue_All;
 import com.boydti.fawe.bukkit.v1_8.BukkitEditSessionWrapper_1_8;
 import com.boydti.fawe.bukkit.v1_8.BukkitQueue_1_8;
 import com.boydti.fawe.bukkit.v1_9.BukkitQueue_1_9;
@@ -176,6 +177,8 @@ public class FaweBukkit extends JavaPlugin implements IFawe, Listener {
         return this.version;
     }
 
+    private boolean hasNMS = true;
+
     /**
      * The FaweQueue is a core part of block placement<br>
      *  - The queue returned here is used in the SetQueue class (SetQueue handles the implementation specific queue)<br>
@@ -185,19 +188,32 @@ public class FaweBukkit extends JavaPlugin implements IFawe, Listener {
      */
     @Override
     public FaweQueue getNewQueue(String world) {
-        if (FaweAPI.checkVersion(this.getVersion(), 1, 9, 0)) {
-            try {
-                return new BukkitQueue_1_9_R1(world);
-            } catch (Throwable e) {
-                e.printStackTrace();
+        try {
+            if (FaweAPI.checkVersion(this.getVersion(), 1, 9, 0)) {
+                try {
+                    return new BukkitQueue_1_9_R1(world);
+                } catch (Throwable e) {
+                    e.printStackTrace();
+                }
+                try {
+                    return new BukkitQueue_1_9(world);
+                } catch (final Throwable e) {
+                    e.printStackTrace();
+                }
             }
-            try {
-                return new BukkitQueue_1_9(world);
-            } catch (final Throwable e) {
-                e.printStackTrace();
+            return new BukkitQueue_1_8(world);
+        } catch (Throwable e) {
+            if (hasNMS) {
+                debug("====== NO NMS BLOCK PLACER FOUND ======");
+                debug("FAWE couldn't find a fast block placer");
+                debug("Bukkit version: " + Bukkit.getVersion());
+                debug("Supported NMS versions: 1.8, 1.9");
+                debug("Fallback placer: " + BukkitQueue_All.class);
+                debug("=======================================");
+                hasNMS = false;
             }
+            return new BukkitQueue_All(world);
         }
-        return new BukkitQueue_1_8(world);
     }
 
     /**
