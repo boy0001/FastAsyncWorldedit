@@ -164,11 +164,14 @@ public class MainUtil {
                 if (file.getName().endsWith(".bd")) {
                     if (timediff > Integer.MAX_VALUE || now - file.lastModified() <= timediff) {
                         files.add(file);
+                        if (files.size() > 64) {
+                            return null;
+                        }
                     }
                 }
             }
         }
-        if (files.size() > 512) {
+        if (files.size() > 64) {
             return null;
         }
         World world = origin.getWorld();
