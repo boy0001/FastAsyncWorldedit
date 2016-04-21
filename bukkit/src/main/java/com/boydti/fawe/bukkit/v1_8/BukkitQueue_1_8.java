@@ -2,12 +2,11 @@ package com.boydti.fawe.bukkit.v1_8;
 
 import com.boydti.fawe.Fawe;
 import com.boydti.fawe.FaweCache;
-import com.boydti.fawe.bukkit.v0.BukkitQueue_0;
+import com.boydti.fawe.bukkit.v0.BukkitQueue_All;
 import com.boydti.fawe.config.Settings;
 import com.boydti.fawe.object.FaweChunk;
 import com.boydti.fawe.object.FawePlayer;
 import com.boydti.fawe.object.IntegerPair;
-import com.boydti.fawe.object.exception.FaweException;
 import com.boydti.fawe.util.MemUtil;
 import com.boydti.fawe.util.ReflectionUtils.RefClass;
 import com.boydti.fawe.util.ReflectionUtils.RefConstructor;
@@ -31,7 +30,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
-import java.util.concurrent.LinkedBlockingDeque;
 import org.bukkit.Bukkit;
 import org.bukkit.Chunk;
 import org.bukkit.Location;
@@ -46,7 +44,7 @@ import org.bukkit.generator.ChunkGenerator;
 
 import static com.boydti.fawe.util.ReflectionUtils.getRefClass;
 
-public class BukkitQueue_1_8 extends BukkitQueue_0 {
+public class BukkitQueue_1_8 extends BukkitQueue_All {
 
     private final RefClass classEntityPlayer = getRefClass("{nms}.EntityPlayer");
     private final RefClass classMapChunk = getRefClass("{nms}.PacketPlayOutMapChunk");
@@ -99,75 +97,23 @@ public class BukkitQueue_1_8 extends BukkitQueue_0 {
         } catch (final NoSuchMethodException e) {
             e.printStackTrace();
         }
-        TaskManager.IMP.repeat(new Runnable() {
-            @Override
-            public void run() {
-                synchronized (loadQueue) {
-                    while (loadQueue.size() > 0) {
-                        IntegerPair loc = loadQueue.poll();
-                        if (bukkitWorld == null) {
-                            bukkitWorld = Bukkit.getServer().getWorld(world);
-                        }
-                        if (!bukkitWorld.isChunkLoaded(loc.x, loc.z)) {
-                            bukkitWorld.loadChunk(loc.x, loc.z, true);
-                        }
-                    }
-                    loadQueue.notifyAll();
-                }
-            }
-        }, 1);
     }
 
-    private LinkedBlockingDeque<IntegerPair> loadQueue = new LinkedBlockingDeque<>();
+    public Object getCachedChunk(int cx, int cz) {
+        return methodGetHandleChunk.of(bukkitWorld.getChunkAt(cx, cz)).call();
+    }
 
-    @Override
-    public int getCombinedId4Data(int x, int y, int z) throws FaweException.FaweChunkLoadException {
-        if (y < 0 || y > 255) {
-            return 0;
-        }
-        int cx = x >> 4;
-        int cz = z >> 4;
-        int cy = y >> 4;
-        if (cx != lcx || cz != lcz) {
-            if (bukkitWorld == null) {
-                bukkitWorld = Bukkit.getServer().getWorld(world);
-            }
-            lcx = cx;
-            lcz = cz;
-            if (!bukkitWorld.isChunkLoaded(cx, cz)) {
-                boolean sync = Thread.currentThread() == Fawe.get().getMainThread();
-                if (sync) {
-                    bukkitWorld.loadChunk(cx, cz, true);
-                } else if (Settings.CHUNK_WAIT > 0) {
-                    synchronized (loadQueue) {
-                        loadQueue.add(new IntegerPair(cx, cz));
-                        try {
-                            loadQueue.wait(Settings.CHUNK_WAIT);
-                        } catch (InterruptedException e) {
-                            e.printStackTrace();
-                        }
-                    }
-                    if (!bukkitWorld.isChunkLoaded(cx, cz)) {
-                        throw new FaweException.FaweChunkLoadException();
-                    }
-                } else {
-                    return 0;
-                }
-            }
-            lc = methodGetHandleChunk.of(bukkitWorld.getChunkAt(cx, cz)).call();
-        } else if (cy == lcy) {
-            return ls != null ? ls[FaweCache.CACHE_J[y][x & 15][z & 15]] : 0;
-        }
-        if (lc == null) {
-            return 0;
-        }
-        Object storage = ((Object[]) fieldSections.of(lc).get())[cy];
+    public Object getCachedSection(Object chunk, int cy) {
+        Object storage = ((Object[]) fieldSections.of(chunk).get())[cy];
         if (storage == null) {
-            ls = null;
-            return 0;
+            return null;
         }
-        ls = getIdArray(storage);
-        return ls[FaweCache.CACHE_J[y][x & 15][z & 15]];
+        return getIdArray(storage);
+    }
+
+    public int getCombinedId4Data(Object section, int x, int y, int z) {
+        char[] ls = (char[]) section;
+        return ls != null ? ls[FaweCache.CACHE_J[y][x & 15][z & 15]] : 0;
     }
 
     @Override
@@ -336,12 +282,6 @@ public class BukkitQueue_1_8 extends BukkitQueue_0 {
         final int j = FaweCache.CACHE_J[y][x][z];
         return array[j] >> 4;
     }
-
-    private int lcx = Integer.MIN_VALUE;
-    private int lcz = Integer.MIN_VALUE;
-    private int lcy = Integer.MIN_VALUE;
-    private Object lc;
-    private char[] ls;
 
     @Override
     public boolean setComponents(final FaweChunk<Chunk> fc) {

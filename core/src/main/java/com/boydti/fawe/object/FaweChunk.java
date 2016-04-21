@@ -48,7 +48,7 @@ public abstract class FaweChunk<T> {
         return x << 16 | z & 0xFFFF;
     }
 
-    public void addToQueue(String world) {
+    public void addToQueue() {
         parent.setChunk(this);
     }
 

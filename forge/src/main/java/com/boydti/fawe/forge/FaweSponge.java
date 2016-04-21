@@ -19,8 +19,11 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.UUID;
 import org.spongepowered.api.Sponge;
 import org.spongepowered.api.entity.living.player.Player;
+import org.spongepowered.api.profile.GameProfile;
+import org.spongepowered.api.profile.GameProfileManager;
 import org.spongepowered.api.text.serializer.TextSerializers;
 
 
@@ -148,5 +151,27 @@ public class FaweSponge implements IFawe {
     @Override
     public String getPlatform() {
         return "sponge";
+    }
+
+    @Override
+    public UUID getUUID(String name) {
+        try {
+            GameProfileManager pm = Sponge.getServer().getGameProfileManager();
+            GameProfile profile = pm.get(name).get();
+            return profile != null ? profile.getUniqueId() : null;
+        } catch (Exception e) {
+            return null;
+        }
+    }
+
+    @Override
+    public String getName(UUID uuid) {
+        try {
+            GameProfileManager pm = Sponge.getServer().getGameProfileManager();
+            GameProfile profile = pm.get(uuid).get();
+            return profile != null ? profile.getName().orElse(null) : null;
+        } catch (Exception e) {
+            return null;
+        }
     }
 }

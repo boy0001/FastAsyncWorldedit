@@ -2,14 +2,13 @@ package com.boydti.fawe.bukkit.v1_9;
 
 import com.boydti.fawe.Fawe;
 import com.boydti.fawe.FaweCache;
-import com.boydti.fawe.bukkit.v0.BukkitQueue_0;
+import com.boydti.fawe.bukkit.v0.BukkitQueue_All;
 import com.boydti.fawe.bukkit.v1_8.BukkitChunk_1_8;
 import com.boydti.fawe.config.Settings;
 import com.boydti.fawe.object.FaweChunk;
 import com.boydti.fawe.object.FawePlayer;
 import com.boydti.fawe.object.IntegerPair;
 import com.boydti.fawe.object.PseudoRandom;
-import com.boydti.fawe.object.exception.FaweException;
 import com.boydti.fawe.util.MemUtil;
 import com.boydti.fawe.util.TaskManager;
 import com.sk89q.worldedit.LocalSession;
@@ -23,7 +22,6 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.concurrent.LinkedBlockingDeque;
 import net.minecraft.server.v1_9_R1.Block;
 import net.minecraft.server.v1_9_R1.BlockPosition;
 import net.minecraft.server.v1_9_R1.ChunkSection;
@@ -45,87 +43,27 @@ import org.bukkit.entity.Player;
 import org.bukkit.generator.BlockPopulator;
 import org.bukkit.generator.ChunkGenerator;
 
-public class BukkitQueue_1_9_R1 extends BukkitQueue_0 {
+public class BukkitQueue_1_9_R1 extends BukkitQueue_All {
 
     private IBlockData air = Block.getByCombinedId(0);
 
     public BukkitQueue_1_9_R1(final String world) throws NoSuchMethodException, RuntimeException {
         super(world);
-        TaskManager.IMP.repeat(new Runnable() {
-            @Override
-            public void run() {
-                synchronized (loadQueue) {
-                    while (loadQueue.size() > 0) {
-                        IntegerPair loc = loadQueue.poll();
-                        if (bukkitWorld == null) {
-                            bukkitWorld = Bukkit.getServer().getWorld(world);
-                        }
-                        if (!bukkitWorld.isChunkLoaded(loc.x, loc.z)) {
-                            bukkitWorld.loadChunk(loc.x, loc.z, true);
-                        }
-                    }
-                    loadQueue.notifyAll();
-                }
-            }
-        }, 1);
     }
 
-    private LinkedBlockingDeque<IntegerPair> loadQueue = new LinkedBlockingDeque<>();
+    public Object getCachedChunk(int cx, int cz) {
+        CraftChunk chunk = (CraftChunk) bukkitWorld.getChunkAt(cx, cz);
+        return chunk.getHandle().getSections();
+    }
 
-    private int lcx = Integer.MIN_VALUE;
-    private int lcz = Integer.MIN_VALUE;
-    private int lcy = Integer.MIN_VALUE;
-    private ChunkSection[] chunkSections;
-    private DataPaletteBlock lastSection;
+    public Object getCachedSection(Object chunk, int cy) {
+        ChunkSection[] chunkSections = (ChunkSection[]) chunk;
+        ChunkSection nibble = chunkSections[cy];
+        return nibble != null ? nibble.getBlocks() : null;
+    }
 
-    @Override
-    public int getCombinedId4Data(int x, int y, int z) throws FaweException.FaweChunkLoadException {
-        if (y < 0 || y > 255) {
-            return 0;
-        }
-        int cx = x >> 4;
-        int cz = z >> 4;
-        int cy = y >> 4;
-        if (cx != lcx || cz != lcz) {
-            if (bukkitWorld == null) {
-                bukkitWorld = Bukkit.getServer().getWorld(world);
-            }
-            lcx = cx;
-            lcz = cz;
-            if (!bukkitWorld.isChunkLoaded(cx, cz)) {
-                boolean sync = Thread.currentThread() == Fawe.get().getMainThread();
-                if (sync) {
-                    bukkitWorld.loadChunk(cx, cz, true);
-                } else if (Settings.CHUNK_WAIT > 0) {
-                    synchronized (loadQueue) {
-                        loadQueue.add(new IntegerPair(cx, cz));
-                        try {
-                            loadQueue.wait(Settings.CHUNK_WAIT);
-                        } catch (InterruptedException e) {
-                            e.printStackTrace();
-                        }
-                    }
-                    if (!bukkitWorld.isChunkLoaded(cx, cz)) {
-                        throw new FaweException.FaweChunkLoadException();
-                    }
-                } else {
-                    return 0;
-                }
-            }
-            CraftChunk chunk = (CraftChunk) bukkitWorld.getChunkAt(cx, cz);
-            chunkSections = chunk.getHandle().getSections();
-            ChunkSection nibble = chunkSections[cy];
-            lastSection = nibble != null ? nibble.getBlocks() : null;
-        } else if (cy != lcy) {
-            if (chunkSections == null) {
-                return 0;
-            }
-            ChunkSection nibble = chunkSections[cy];
-            lastSection = nibble != null ? nibble.getBlocks() : null;
-        }
-        if (lastSection == null) {
-            return 0;
-        }
+    public int getCombinedId4Data(Object section, int x, int y, int z) {
+        DataPaletteBlock lastSection = (DataPaletteBlock) section;
         IBlockData ibd = lastSection.a(x & 15, y & 15, z & 15);
         Block block = ibd.getBlock();
         int id = Block.getId(block);
@@ -283,8 +221,6 @@ public class BukkitQueue_1_9_R1 extends BukkitQueue_0 {
         final int j = FaweCache.CACHE_J[y][x][z];
         return section[j] >> 4;
     }
-
-    private World bukkitWorld;
 
     public void setCount(int tickingBlockCount, int nonEmptyBlockCount, ChunkSection section) throws NoSuchFieldException, IllegalAccessException {
         Class<? extends ChunkSection> clazz = section.getClass();
