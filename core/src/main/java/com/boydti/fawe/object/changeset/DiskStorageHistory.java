@@ -4,6 +4,8 @@ import com.boydti.fawe.Fawe;
 import com.boydti.fawe.FaweCache;
 import com.boydti.fawe.config.BBC;
 import com.boydti.fawe.config.Settings;
+import com.boydti.fawe.object.IntegerPair;
+import com.boydti.fawe.object.RegionWrapper;
 import com.boydti.fawe.util.MainUtil;
 import com.boydti.fawe.util.ReflectionUtils;
 import com.sk89q.jnbt.CompoundTag;
@@ -51,7 +53,8 @@ import net.jpountz.lz4.LZ4OutputStream;
  *  - Slow
  */
 public class DiskStorageHistory implements ChangeSet, FaweChangeSet {
-    
+
+    private UUID uuid;
     private File bdFile;
     private File nbtfFile;
     private File nbttFile;
@@ -95,6 +98,14 @@ public class DiskStorageHistory implements ChangeSet, FaweChangeSet {
     private AtomicInteger size = new AtomicInteger();
     private World world;
 
+    public void deleteFiles() {
+        bdFile.delete();
+        nbtfFile.delete();
+        nbttFile.delete();
+        entfFile.delete();
+        enttFile.delete();
+    }
+
     public DiskStorageHistory(World world, UUID uuid) {
         size = new AtomicInteger();
         String base = "history" + File.separator + world.getName() + File.separator + uuid;
@@ -119,6 +130,7 @@ public class DiskStorageHistory implements ChangeSet, FaweChangeSet {
     }
 
     public void init(World world, UUID uuid, int i) {
+        this.uuid = uuid;
         this.world = world;
         String base = "history" + File.separator + world.getName() + File.separator + uuid;
         base += File.separator + i;
@@ -127,6 +139,14 @@ public class DiskStorageHistory implements ChangeSet, FaweChangeSet {
         entfFile = new File(Fawe.imp().getDirectory(), base + ".entf");
         enttFile = new File(Fawe.imp().getDirectory(), base + ".entt");
         bdFile = new File(Fawe.imp().getDirectory(), base + ".bd");
+    }
+
+    public UUID getUUID() {
+        return uuid;
+    }
+
+    public File getBDFile() {
+        return bdFile;
     }
 
     public EditSession toEditSession(Player player) {
@@ -333,6 +353,82 @@ public class DiskStorageHistory implements ChangeSet, FaweChangeSet {
         osENTT = new NBTOutputStream(osENTTG);
         osENTTI = new AtomicInteger();
         return osENTT;
+    }
+
+    int fx;
+    int fz;
+
+    public int[] readHeaderAndFooter(RegionWrapper requiredRegion) {
+        if (fx == 0 && fz == 0 && bdFile.exists()) {
+            if ((ox != 0 || oz != 0) && !requiredRegion.isIn(ox, oz)) {
+                return new int[] {ox, oz, ox, oz};
+            }
+            try {
+                FileInputStream fis = new FileInputStream(bdFile);
+                LZ4Factory factory = LZ4Factory.fastestInstance();
+                LZ4Compressor compressor = factory.fastCompressor();
+                final InputStream gis;
+                if (Settings.COMPRESSION_LEVEL > 0) {
+                    gis = new LZ4InputStream(new LZ4InputStream(fis));
+                } else {
+                    gis = new LZ4InputStream(fis);
+                }
+                ox = ((gis.read() << 24) + (gis.read() << 16) + (gis.read() << 8) + (gis.read() << 0));
+                oz = ((gis.read() << 24) + (gis.read() << 16) + (gis.read() << 8) + (gis.read() << 0));
+                if (!requiredRegion.isIn(ox, oz)) {
+                    fis.close();
+                    gis.close();
+                    return new int[] {ox, oz, ox, oz};
+                }
+                byte[] even = new byte[9];
+                byte[] odd = new byte[9];
+                byte[] result = null;
+                int i = 0;
+                while (true) {
+                    if ((i++ & 1) == 0) {
+                        if (gis.read(even) == -1) {
+                            result = odd;
+                            break;
+                        }
+                    } else {
+                        if (gis.read(odd) == -1) {
+                            result = even;
+                            break;
+                        }
+                    }
+                }
+                fx = ((byte) result[0] & 0xFF) + ((byte) result[1] << 8) + ox;
+                fz = ((byte) result[2] & 0xFF) + ((byte) result[3] << 8) + oz;
+                fis.close();
+                gis.close();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+        return new int[] {ox, oz, fx, fz};
+    }
+
+    public IntegerPair readHeader() {
+        if (ox == 0 && oz == 0 && bdFile.exists()) {
+            try {
+                FileInputStream fis = new FileInputStream(bdFile);
+                LZ4Factory factory = LZ4Factory.fastestInstance();
+                LZ4Compressor compressor = factory.fastCompressor();
+                final InputStream gis;
+                if (Settings.COMPRESSION_LEVEL > 0) {
+                    gis = new LZ4InputStream(new LZ4InputStream(fis));
+                } else {
+                    gis = new LZ4InputStream(fis);
+                }
+                ox = ((gis.read() << 24) + (gis.read() << 16) + (gis.read() << 8) + (gis.read() << 0));
+                oz = ((gis.read() << 24) + (gis.read() << 16) + (gis.read() << 8) + (gis.read() << 0));
+                fis.close();
+                gis.close();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+        return new IntegerPair(ox, oz);
     }
 
     @SuppressWarnings("resource")

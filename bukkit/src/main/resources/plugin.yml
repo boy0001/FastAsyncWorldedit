@@ -24,6 +24,9 @@ commands:
   wrg:
     description: (FAWE) Select your current WorldEdit Region.
     aliases: [/wrg,wer,/wer,worldeditregion,/worldeditregion,/region]
+  frb:
+    description: (FAWE) Rollback an edit
+    aliases: [fawerollback,fawerb,/uu,/rb,/frb,/fawerollback,/fawerb]
 permissions:
   fawe.bypass:
     default: false

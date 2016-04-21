@@ -15,8 +15,10 @@ import com.sk89q.worldedit.regions.RegionSelector;
 import com.sk89q.worldedit.regions.selector.CuboidRegionSelector;
 import com.sk89q.worldedit.world.World;
 import java.io.File;
-import java.util.ArrayDeque;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashSet;
+import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -30,7 +32,7 @@ public abstract class FawePlayer<T> {
      */
     private volatile ConcurrentHashMap<String, Object> meta;
 
-    public static <T> FawePlayer<T> wrap(final Object obj) {
+    public static <V> FawePlayer<V> wrap(final Object obj) {
         return Fawe.imp().wrap(obj);
     }
 
@@ -71,7 +73,7 @@ public abstract class FawePlayer<T> {
             return;
         }
         UUID uuid = getUUID();
-        ArrayDeque<Integer> editIds = new ArrayDeque<>();
+        List<Integer> editIds = new ArrayList<>();
         File folder = new File(Fawe.imp().getDirectory(), "history" + File.separator + world.getName() + File.separator + uuid);
         if (folder.isDirectory()) {
             for (File file : folder.listFiles()) {
@@ -81,6 +83,7 @@ public abstract class FawePlayer<T> {
                 }
             }
         }
+        Collections.sort(editIds);
         if (editIds.size() > 0) {
             Fawe.debug(BBC.PREFIX.s() + " Indexing " + editIds.size() + " history objects for " + getName());
             for (int index : editIds) {
@@ -169,20 +172,20 @@ public abstract class FawePlayer<T> {
 
     /**
      * Get the metadata for a key.
-     * @param <T>
+     * @param <V>
      * @param key
      * @return
      */
-    public <T> T getMeta(String key) {
+    public <V> V getMeta(String key) {
         if (this.meta != null) {
-            return (T) this.meta.get(key);
+            return (V) this.meta.get(key);
         }
         return null;
     }
 
-    public <T> T getMeta(String key, T def) {
+    public <V> V getMeta(String key, V def) {
         if (this.meta != null) {
-            T value = (T) this.meta.get(key);
+            V value = (V) this.meta.get(key);
             return value == null ? def : value;
         }
         return def;

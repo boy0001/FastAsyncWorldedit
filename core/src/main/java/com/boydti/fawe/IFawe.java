@@ -10,6 +10,7 @@ import com.sk89q.worldedit.EditSession;
 import java.io.File;
 import java.util.Collection;
 import java.util.Set;
+import java.util.UUID;
 
 public interface IFawe {
     public void debug(final String s);
@@ -39,4 +40,8 @@ public interface IFawe {
     public Set<FawePlayer> getPlayers();
 
     public String getPlatform();
+
+    public UUID getUUID(String name);
+
+    public String getName(UUID uuid);
 }

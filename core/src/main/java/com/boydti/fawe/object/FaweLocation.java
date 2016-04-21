@@ -1,5 +1,8 @@
 package com.boydti.fawe.object;
 
+import com.sk89q.worldedit.WorldEdit;
+import com.sk89q.worldedit.world.World;
+
 /**
 
  */
@@ -30,6 +33,15 @@ public class FaweLocation {
         }
         final FaweLocation other = (FaweLocation) obj;
         return ((this.x == other.x) && (this.y == other.y) && (this.z == other.z) && (this.world.equals(other.world)));
+    }
+
+    public World getWorld() {
+        for (World world : WorldEdit.getInstance().getServer().getWorlds()) {
+            if (world.getName().equals(this.world)) {
+                return world;
+            }
+        }
+        return null;
     }
 
     @Override

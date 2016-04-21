@@ -30,6 +30,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.UUID;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
@@ -314,5 +315,15 @@ public class FaweBukkit extends JavaPlugin implements IFawe, Listener {
     @Override
     public String getPlatform() {
         return "bukkit";
+    }
+
+    @Override
+    public UUID getUUID(String name) {
+        return Bukkit.getOfflinePlayer(name).getUniqueId();
+    }
+
+    @Override
+    public String getName(UUID uuid) {
+        return Bukkit.getOfflinePlayer(uuid).getName();
     }
 }
