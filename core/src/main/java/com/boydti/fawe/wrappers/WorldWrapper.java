@@ -90,28 +90,73 @@ public class WorldWrapper extends AbstractWorld {
     }
 
     @Override
-    public boolean generateTree(EditSession editSession, Vector pt) throws MaxChangedBlocksException {
-        return parent.generateTree(editSession, pt);
+    public boolean generateTree(final EditSession editSession, final Vector pt) throws MaxChangedBlocksException {
+        return TaskManager.IMP.sync(new RunnableVal<Boolean>() {
+            @Override
+            public void run(Boolean ignore) {
+                try {
+                    this.value = parent.generateTree(editSession, pt);
+                } catch (MaxChangedBlocksException e) {
+                    e.printStackTrace();
+                }
+            }
+        });
     }
 
     @Override
-    public boolean generateBigTree(EditSession editSession, Vector pt) throws MaxChangedBlocksException {
-        return parent.generateBigTree(editSession, pt);
+    public boolean generateBigTree(final EditSession editSession, final Vector pt) throws MaxChangedBlocksException {
+        return TaskManager.IMP.sync(new RunnableVal<Boolean>() {
+            @Override
+            public void run(Boolean ignore) {
+                try {
+                    this.value = parent.generateBigTree(editSession, pt);
+                } catch (MaxChangedBlocksException e) {
+                    e.printStackTrace();
+                }
+            }
+        });
     }
 
     @Override
-    public boolean generateBirchTree(EditSession editSession, Vector pt) throws MaxChangedBlocksException {
-        return parent.generateBirchTree(editSession, pt);
+    public boolean generateBirchTree(final EditSession editSession, final Vector pt) throws MaxChangedBlocksException {
+        return TaskManager.IMP.sync(new RunnableVal<Boolean>() {
+            @Override
+            public void run(Boolean ignore) {
+                try {
+                    this.value = parent.generateBirchTree(editSession, pt);
+                } catch (MaxChangedBlocksException e) {
+                    e.printStackTrace();
+                }
+            }
+        });
     }
 
     @Override
-    public boolean generateRedwoodTree(EditSession editSession, Vector pt) throws MaxChangedBlocksException {
-        return parent.generateRedwoodTree(editSession, pt);
+    public boolean generateRedwoodTree(final EditSession editSession, final Vector pt) throws MaxChangedBlocksException {
+        return TaskManager.IMP.sync(new RunnableVal<Boolean>() {
+            @Override
+            public void run(Boolean ignore) {
+                try {
+                    this.value = parent.generateRedwoodTree(editSession, pt);
+                } catch (MaxChangedBlocksException e) {
+                    e.printStackTrace();
+                }
+            }
+        });
     }
 
     @Override
-    public boolean generateTallRedwoodTree(EditSession editSession, Vector pt) throws MaxChangedBlocksException {
-        return parent.generateTallRedwoodTree(editSession, pt);
+    public boolean generateTallRedwoodTree(final EditSession editSession, final Vector pt) throws MaxChangedBlocksException {
+        return TaskManager.IMP.sync(new RunnableVal<Boolean>() {
+            @Override
+            public void run(Boolean ignore) {
+                try {
+                    this.value = parent.generateTallRedwoodTree(editSession, pt);
+                } catch (MaxChangedBlocksException e) {
+                    e.printStackTrace();
+                }
+            }
+        });
     }
 
     @Override
@@ -293,8 +338,17 @@ public class WorldWrapper extends AbstractWorld {
     }
 
     @Override
-    public boolean generateTree(TreeGenerator.TreeType type, EditSession editSession, Vector position) throws MaxChangedBlocksException {
-        return parent.generateTree(type, editSession, position);
+    public boolean generateTree(final TreeGenerator.TreeType type, final EditSession editSession, final Vector position) throws MaxChangedBlocksException {
+        return TaskManager.IMP.sync(new RunnableVal<Boolean>() {
+            @Override
+            public void run(Boolean ignore) {
+                try {
+                    this.value = parent.generateTree(editSession, position);
+                } catch (MaxChangedBlocksException e) {
+                    e.printStackTrace();
+                }
+            }
+        });
     }
 
     @Override

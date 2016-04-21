@@ -56,4 +56,38 @@ public abstract class TaskManager {
             }
         });
     }
+
+    public <T> T sync(final RunnableVal<T> function) {
+        if (Fawe.get().getMainThread() == Thread.currentThread()) {
+            function.run();
+            return function.value;
+        }
+        RunnableVal<RuntimeException> run = new RunnableVal<RuntimeException>() {
+            @Override
+            public void run(RuntimeException value) {
+                try {
+                    function.run();
+                } catch (RuntimeException e) {
+                    this.value = e;
+                } catch (Throwable neverHappens) {
+                    neverHappens.printStackTrace();
+                }
+                synchronized (function) {
+                    function.notifyAll();
+                }
+            }
+        };
+        TaskManager.IMP.task(run);
+        if (run.value != null) {
+            throw run.value;
+        }
+        try {
+            synchronized (function) {
+                function.wait(15000);
+            }
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+        return function.value;
+    }
 }

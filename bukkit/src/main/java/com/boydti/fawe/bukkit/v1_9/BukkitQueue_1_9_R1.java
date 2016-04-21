@@ -185,7 +185,9 @@ public class BukkitQueue_1_9_R1 extends BukkitQueue_All {
             }
             return true;
         } catch (final Throwable e) {
-            e.printStackTrace();
+            if (Thread.currentThread() == Fawe.get().getMainThread()) {
+                e.printStackTrace();
+            }
         }
         return false;
     }
