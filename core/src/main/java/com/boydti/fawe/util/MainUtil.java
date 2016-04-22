@@ -13,6 +13,9 @@ import java.util.Map;
 import java.util.Map.Entry;
 
 public class MainUtil {
+
+    private MainUtil() {}
+
     /*
      * Generic non plugin related utils
      *  e.g. sending messages

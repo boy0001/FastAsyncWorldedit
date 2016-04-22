@@ -38,6 +38,8 @@ public class Settings {
 
     public static HashMap<String, FaweLimit> limits;
 
+    private Settings() {}
+
     public static FaweLimit getLimit(FawePlayer player) {
         FaweLimit limit = new FaweLimit();
         limit.MAX_CHANGES = 0;

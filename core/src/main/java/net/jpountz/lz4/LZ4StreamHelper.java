@@ -5,7 +5,10 @@ import java.io.InputStream;
 import java.io.OutputStream;
 
 public class LZ4StreamHelper {
-   static void writeLength(int length, OutputStream os) throws IOException {
+
+    private LZ4StreamHelper() {}
+
+    static void writeLength(int length, OutputStream os) throws IOException {
         int b1 = ((length & 0xff000000) >> 24);
         int b2 = ((length & 0x00ff0000) >> 16);
         int b3 = ((length & 0x0000ff00) >>  8);

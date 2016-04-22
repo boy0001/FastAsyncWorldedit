@@ -9,6 +9,9 @@ import java.util.Map.Entry;
 import java.util.Set;
 
 public class StringMan {
+
+    private StringMan() {}
+
     public static String replaceFromMap(final String string, final Map<String, String> replacements) {
         final StringBuilder sb = new StringBuilder(string);
         int size = string.length();

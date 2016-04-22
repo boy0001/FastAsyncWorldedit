@@ -30,6 +30,9 @@ public class ReflectionUtils {
      * boolean value, TRUE if server uses forge or MCPC+
      */
     private static boolean forge = false;
+
+    private ReflectionUtils() {}
+
     /** check server version and class names */
     public static void init() {
         preClassM = "net.minecraft.server";

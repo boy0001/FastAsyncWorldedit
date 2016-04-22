@@ -10,6 +10,8 @@ public class MathMan {
     private static final float INV_ATAN2_DIM_MINUS_1 = 1.0f / (ATAN2_DIM - 1);
     private static final float[] atan2 = new float[ATAN2_COUNT];
 
+    private MathMan() {}
+
     static {
         for (int i = 0; i < ATAN2_DIM; i++) {
             for (int j = 0; j < ATAN2_DIM; j++) {

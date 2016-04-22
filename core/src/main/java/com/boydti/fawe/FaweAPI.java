@@ -51,6 +51,8 @@ import org.bukkit.Location;
  */
 public class FaweAPI {
 
+    private FaweAPI() {}
+
     /**
      * The TaskManager has some useful methods for doing things asynchronously
      * @return TaskManager
