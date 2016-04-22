@@ -262,7 +262,6 @@ public class BukkitQueue_All extends BukkitQueue_0 {
                 } else {
                     average = ((average * 15) + diff) / 16;
                 }
-                System.out.println(average);
             }
             lastChunk = getCachedChunk(cx, cz);
             lastSection = getCachedSection(lastChunk, cy);
