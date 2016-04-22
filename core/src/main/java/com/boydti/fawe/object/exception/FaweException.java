@@ -15,10 +15,10 @@ public class FaweException extends RuntimeException {
     }
 
     public static FaweException get(Throwable e) {
-        Throwable cause = e.getCause();
-        if (cause instanceof FaweException) {
-            return (FaweException) cause;
+        if (e instanceof FaweException) {
+            return (FaweException) e;
         }
+        Throwable cause = e.getCause();
         if (cause == null) {
             return null;
         }

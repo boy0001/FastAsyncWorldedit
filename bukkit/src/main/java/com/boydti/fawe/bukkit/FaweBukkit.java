@@ -23,11 +23,14 @@ import com.boydti.fawe.object.FaweCommand;
 import com.boydti.fawe.object.FawePlayer;
 import com.boydti.fawe.regions.FaweMaskManager;
 import com.boydti.fawe.util.FaweQueue;
+import com.boydti.fawe.util.ReflectionUtils;
 import com.boydti.fawe.util.StringMan;
 import com.boydti.fawe.util.TaskManager;
 import com.sk89q.worldedit.EditSession;
 import com.sk89q.worldedit.bukkit.WorldEditPlugin;
 import java.io.File;
+import java.lang.reflect.Field;
+import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
@@ -64,6 +67,14 @@ public class FaweBukkit extends JavaPlugin implements IFawe, Listener {
         try {
             Bukkit.getPluginManager().registerEvents(this, this);
             Fawe.set(this);
+            if (Bukkit.getVersion().contains("git-Spigot") && FaweAPI.checkVersion(this.getVersion(), 1, 7, 10)) {
+                debug("====== USE PAPER SPIGOT ======");
+                debug("DOWNLOAD: https://tcpr.ca/downloads/paperspigot");
+                debug("GUIDE: https://www.spigotmc.org/threads/21726/");
+                debug(" - This is only a recommendation");
+                debug("==============================");
+            }
+
         } catch (final Throwable e) {
             e.printStackTrace();
             this.getServer().shutdown();
@@ -204,6 +215,19 @@ public class FaweBukkit extends JavaPlugin implements IFawe, Listener {
             return new BukkitQueue_1_8(world);
         } catch (Throwable ignore) {}
         if (hasNMS) {
+            try {
+                ReflectionUtils.init();
+                Field fieldDirtyCount = ReflectionUtils.getRefClass("{nms}.PlayerChunk").getField("dirtyCount").getRealField();
+                fieldDirtyCount.setAccessible(true);
+                int mod = fieldDirtyCount.getModifiers();
+                if ((mod & Modifier.VOLATILE) == 0) {
+                    Field modifiersField = Field.class.getDeclaredField("modifiers");
+                    modifiersField.setAccessible(true);
+                    modifiersField.setInt(fieldDirtyCount, mod + Modifier.VOLATILE);
+                }
+            } catch (Throwable e) {
+                e.printStackTrace();
+            }
             debug("====== NO NMS BLOCK PLACER FOUND ======");
             debug("FAWE couldn't find a fast block placer");
             debug("Bukkit version: " + Bukkit.getVersion());

@@ -46,6 +46,10 @@ public class RegionWrapper {
         return minZ - z;
     }
 
+    public boolean intersects(RegionWrapper other) {
+        return other.minX <= this.maxX && other.maxX >= this.minX && other.minZ <= this.maxZ && other.maxZ >= this.minZ;
+    }
+
     public int distance(int x, int z) {
         if (isIn(x, z)) {
             return 0;

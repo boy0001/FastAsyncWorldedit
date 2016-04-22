@@ -6,6 +6,7 @@ import com.boydti.fawe.bukkit.v1_8.BukkitChunk_1_8;
 import com.boydti.fawe.config.Settings;
 import com.boydti.fawe.object.FaweChunk;
 import com.boydti.fawe.object.IntegerPair;
+import com.boydti.fawe.object.RunnableVal;
 import com.boydti.fawe.object.exception.FaweException;
 import com.boydti.fawe.util.TaskManager;
 import com.sk89q.worldedit.LocalWorld;
@@ -14,7 +15,6 @@ import com.sk89q.worldedit.bukkit.BukkitUtil;
 import com.sk89q.worldedit.world.biome.BaseBiome;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.concurrent.LinkedBlockingDeque;
 import org.bukkit.Bukkit;
 import org.bukkit.Chunk;
 import org.bukkit.World;
@@ -26,27 +26,9 @@ import org.bukkit.plugin.Plugin;
 import org.spigotmc.AsyncCatcher;
 
 public class BukkitQueue_All extends BukkitQueue_0 {
-    public final LinkedBlockingDeque<IntegerPair> loadQueue = new LinkedBlockingDeque<>();
 
     public BukkitQueue_All(final String world) {
         super(world);
-        TaskManager.IMP.repeat(new Runnable() {
-            @Override
-            public void run() {
-                synchronized (loadQueue) {
-                    while (loadQueue.size() > 0) {
-                        IntegerPair loc = loadQueue.poll();
-                        if (bukkitWorld == null) {
-                            bukkitWorld = Bukkit.getServer().getWorld(world);
-                        }
-                        if (!bukkitWorld.isChunkLoaded(loc.x, loc.z)) {
-                            bukkitWorld.loadChunk(loc.x, loc.z, true);
-                        }
-                    }
-                    loadQueue.notifyAll();
-                }
-            }
-        }, 1);
         if (getClass() == BukkitQueue_All.class) {
             TaskManager.IMP.task(new Runnable() {
                 @Override
@@ -213,10 +195,6 @@ public class BukkitQueue_All extends BukkitQueue_0 {
         return true;
     }
 
-    public void loadChunk(IntegerPair chunk) {
-        loadQueue.add(chunk);
-    }
-
     public int lastChunkX = Integer.MIN_VALUE;
     public int lastChunkZ = Integer.MIN_VALUE;
     public int lastChunkY = Integer.MIN_VALUE;
@@ -241,6 +219,15 @@ public class BukkitQueue_All extends BukkitQueue_0 {
         return combined;
     }
 
+    private final RunnableVal<IntegerPair> loadChunk = new RunnableVal<IntegerPair>() {
+        @Override
+        public void run(IntegerPair coord) {
+            bukkitWorld.loadChunk(coord.x, coord.z, true);
+        }
+    };
+
+    long average = 0;
+
     @Override
     public int getCombinedId4Data(int x, int y, int z) throws FaweException.FaweChunkLoadException {
         if (y < 0 || y > 255) {
@@ -256,24 +243,26 @@ public class BukkitQueue_All extends BukkitQueue_0 {
             lastChunkX = cx;
             lastChunkZ = cz;
             if (!bukkitWorld.isChunkLoaded(cx, cz)) {
+                long start = System.currentTimeMillis();
                 boolean sync = Thread.currentThread() == Fawe.get().getMainThread();
                 if (sync) {
                     bukkitWorld.loadChunk(cx, cz, true);
                 } else if (Settings.CHUNK_WAIT > 0) {
-                    synchronized (loadQueue) {
-                        loadQueue.add(new IntegerPair(cx, cz));
-                        try {
-                            loadQueue.wait(Settings.CHUNK_WAIT);
-                        } catch (InterruptedException e) {
-                            e.printStackTrace();
-                        }
-                    }
+                    loadChunk.value = new IntegerPair(cx, cz);
+                    TaskManager.IMP.sync(loadChunk, Settings.CHUNK_WAIT);
                     if (!bukkitWorld.isChunkLoaded(cx, cz)) {
                         throw new FaweException.FaweChunkLoadException();
                     }
                 } else {
                     return 0;
                 }
+                long diff = System.currentTimeMillis() - start;
+                if (average == 0) {
+                    average = diff;
+                } else {
+                    average = ((average * 15) + diff) / 16;
+                }
+                System.out.println(average);
             }
             lastChunk = getCachedChunk(cx, cz);
             lastSection = getCachedSection(lastChunk, cy);

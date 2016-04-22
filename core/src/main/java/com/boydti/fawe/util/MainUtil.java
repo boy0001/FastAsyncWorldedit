@@ -2,24 +2,15 @@ package com.boydti.fawe.util;
 
 import com.boydti.fawe.Fawe;
 import com.boydti.fawe.config.BBC;
-import com.boydti.fawe.object.FaweLocation;
 import com.boydti.fawe.object.FawePlayer;
-import com.boydti.fawe.object.RegionWrapper;
 import com.boydti.fawe.object.RunnableVal;
-import com.boydti.fawe.object.changeset.DiskStorageHistory;
 import com.sk89q.jnbt.CompoundTag;
 import com.sk89q.jnbt.EndTag;
 import com.sk89q.jnbt.ListTag;
 import com.sk89q.jnbt.Tag;
-import com.sk89q.worldedit.world.World;
 import java.io.File;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.UUID;
 
 public class MainUtil {
     /*
@@ -137,62 +128,6 @@ public class MainUtil {
             }
         }
         return time;
-    }
-
-    public static List<DiskStorageHistory> getBDFiles(FaweLocation origin, UUID user, int radius, long timediff, boolean shallow) {
-        File history = new File(Fawe.imp().getDirectory(), "history" + File.separator + origin.world);
-        if (!history.exists()) {
-            return new ArrayList<>();
-        }
-        long now = System.currentTimeMillis();
-        ArrayList<File> files = new ArrayList<>();
-        for (File userFile : history.listFiles()) {
-            if (!userFile.isDirectory()) {
-                continue;
-            }
-            UUID userUUID;
-            try {
-                userUUID = UUID.fromString(userFile.getName());
-            } catch (IllegalArgumentException e) {
-                continue;
-            }
-            if (user != null && !userUUID.equals(user)) {
-                continue;
-            }
-            ArrayList<Integer> ids = new ArrayList<>();
-            for (File file : userFile.listFiles()) {
-                if (file.getName().endsWith(".bd")) {
-                    if (timediff > Integer.MAX_VALUE || now - file.lastModified() <= timediff) {
-                        files.add(file);
-                        if (files.size() > 2048) {
-                            return null;
-                        }
-                    }
-                }
-            }
-        }
-        World world = origin.getWorld();
-        Collections.sort(files, new Comparator<File>() {
-            @Override
-            public int compare(File a, File b) {
-                long value = a.lastModified() - b.lastModified();
-                return value == 0 ? 0 : value < 0 ? 1 : -1;
-            }
-        });
-        ArrayList<DiskStorageHistory> result = new ArrayList<>();
-        for (File file : files) {
-            UUID uuid = UUID.fromString(file.getParentFile().getName());
-            DiskStorageHistory dsh = new DiskStorageHistory(world, uuid, Integer.parseInt(file.getName().split("\\.")[0]));
-            DiskStorageHistory.DiskStorageSummary summary = dsh.summarize(new RegionWrapper(origin.x - 512, origin.x + 512, origin.z - 512, origin.z + 512), shallow);
-            RegionWrapper region = new RegionWrapper(summary.minX, summary.maxX, summary.minZ, summary.maxZ);
-            if (region.distance(origin.x, origin.z) <= radius) {
-                result.add(dsh);
-                if (result.size() > 64) {
-                    return null;
-                }
-            }
-        }
-        return result;
     }
 
     public static void deleteOlder(File directory, final long timeDiff) {

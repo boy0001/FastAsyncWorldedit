@@ -130,7 +130,7 @@ public class DiskStorageHistory implements ChangeSet, FaweChangeSet {
         init(world, uuid, index);
     }
 
-    public void init(World world, UUID uuid, int i) {
+    private void init(World world, UUID uuid, int i) {
         this.uuid = uuid;
         this.world = world;
         String base = "history" + File.separator + world.getName() + File.separator + uuid;

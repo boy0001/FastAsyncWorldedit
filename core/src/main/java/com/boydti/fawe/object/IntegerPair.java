@@ -20,6 +20,11 @@ public class IntegerPair {
     }
 
     @Override
+    public String toString() {
+        return x + "," + z;
+    }
+
+    @Override
     public boolean equals(final Object obj) {
         if (this == obj) {
             return true;

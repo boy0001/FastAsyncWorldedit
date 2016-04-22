@@ -24,6 +24,7 @@ import com.sk89q.worldedit.WorldEdit;
 import com.sk89q.worldedit.command.SchematicCommands;
 import com.sk89q.worldedit.command.ScriptingCommands;
 import com.sk89q.worldedit.extension.platform.CommandManager;
+import com.sk89q.worldedit.extension.platform.PlatformManager;
 import com.sk89q.worldedit.extent.clipboard.BlockArrayClipboard;
 import com.sk89q.worldedit.extent.transform.BlockTransformExtent;
 import com.sk89q.worldedit.function.operation.Operations;
@@ -240,6 +241,7 @@ public class Fawe {
         Vector.inject();
         try {
             CommandManager.inject();
+            PlatformManager.inject();
         } catch (Throwable e) {
             debug("====== UPDATE WORLDEDIT TO 6.1.1 ======");
             e.printStackTrace();
@@ -255,16 +257,18 @@ public class Fawe {
         }
         try {
             Native.load();
-            String arch = System.getenv("PROCESSOR_ARCHITECTURE");
-            String wow64Arch = System.getenv("PROCESSOR_ARCHITEW6432");
-            boolean x86OS = arch.endsWith("64") || wow64Arch != null && wow64Arch.endsWith("64") ? false : true;
-            boolean x86JVM = System.getProperty("sun.arch.data.model").equals("32");
-            if (x86OS != x86JVM) {
-                debug("====== UPGRADE TO 64-BIT JAVA ======");
-                debug("You are running 32-bit Java on a 64-bit machine");
-                debug(" - This is a recommendation");
-                debug("====================================");
-            }
+            try {
+                String arch = System.getenv("PROCESSOR_ARCHITECTURE");
+                String wow64Arch = System.getenv("PROCESSOR_ARCHITEW6432");
+                boolean x86OS = arch.endsWith("64") || wow64Arch != null && wow64Arch.endsWith("64") ? false : true;
+                boolean x86JVM = System.getProperty("sun.arch.data.model").equals("32");
+                if (x86OS != x86JVM) {
+                    debug("====== UPGRADE TO 64-BIT JAVA ======");
+                    debug("You are running 32-bit Java on a 64-bit machine");
+                    debug(" - This is only a recommendation");
+                    debug("====================================");
+                }
+            } catch (Throwable ignore) {}
         } catch (Throwable e) {
             debug("====== LZ4 COMPRESSION BINDING NOT FOUND ======");
             e.printStackTrace();
@@ -277,7 +281,7 @@ public class Fawe {
         if (getJavaVersion() < 1.8) {
             debug("====== UPGRADE TO JAVA 8 ======");
             debug("You are running " + System.getProperty("java.version"));
-            debug(" - This is a recommendation");
+            debug(" - This is only a recommendation");
             debug("====================================");
         }
     }

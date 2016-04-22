@@ -15,6 +15,7 @@ import com.sk89q.worldedit.regions.RegionSelector;
 import com.sk89q.worldedit.regions.selector.CuboidRegionSelector;
 import com.sk89q.worldedit.world.World;
 import java.io.File;
+import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
@@ -32,7 +33,35 @@ public abstract class FawePlayer<T> {
      */
     private volatile ConcurrentHashMap<String, Object> meta;
 
+    /**
+     * Wrap some object into a FawePlayer<br>
+     *     - org.bukkit.entity.Player
+     *     - org.spongepowered.api.entity.living.player
+     *     - com.sk89q.worldedit.entity.Player
+     *     - String (name)
+     *     - UUID (player UUID)
+     * @param obj
+     * @param <V>
+     * @return
+     */
     public static <V> FawePlayer<V> wrap(final Object obj) {
+        if (obj == null) {
+            return null;
+        }
+        if (obj instanceof Player) {
+            Player actor = (Player) obj;
+            try {
+                Field fieldBasePlayer = actor.getClass().getDeclaredField("basePlayer");
+                fieldBasePlayer.setAccessible(true);
+                Player player = (Player) fieldBasePlayer.get(actor);
+                Field fieldPlayer = player.getClass().getDeclaredField("player");
+                fieldPlayer.setAccessible(true);
+                return Fawe.imp().wrap(fieldPlayer.get(player));
+            } catch (Throwable e) {
+                e.printStackTrace();
+                return Fawe.imp().wrap(actor.getName());
+            }
+        }
         return Fawe.imp().wrap(obj);
     }
 
@@ -49,7 +78,7 @@ public abstract class FawePlayer<T> {
             if (world != null) {
                 if (world.getName().equals(currentWorldName)) {
                     getSession().clearHistory();
-                    loadSessionFromDisk(world);
+                    loadSessionsFromDisk(world);
                 }
             }
         } catch (Exception e) {
@@ -58,6 +87,10 @@ public abstract class FawePlayer<T> {
         }
     }
 
+    /**
+     * Get the current World
+     * @return
+     */
     public World getWorld() {
         String currentWorldName = getLocation().world;
         for (World world : WorldEdit.getInstance().getServer().getWorlds()) {
@@ -68,7 +101,12 @@ public abstract class FawePlayer<T> {
         return null;
     }
 
-    public void loadSessionFromDisk(World world) {
+    /**
+     * Load all the undo EditSession's from disk for a world <br>
+     *     - Usually already called when a player joins or changes world
+     * @param world
+     */
+    public void loadSessionsFromDisk(World world) {
         if (world == null) {
             return;
         }
@@ -94,26 +132,68 @@ public abstract class FawePlayer<T> {
         }
     }
 
+    /**
+     * Get the player's limit
+     * @return
+     */
     public FaweLimit getLimit() {
         return Settings.getLimit(this);
     }
 
+    /**
+     * Get the player's name
+     * @return
+     */
     public abstract String getName();
 
+    /**
+     * Get the player's UUID
+     * @return
+     */
     public abstract UUID getUUID();
 
+    /**
+     * Check the player's permission
+     * @param perm
+     * @return
+     */
     public abstract boolean hasPermission(final String perm);
 
+    /**
+     * Set a permission (requires Vault)
+     * @param perm
+     * @param flag
+     */
     public abstract void setPermission(final String perm, final boolean flag);
 
+    /**
+     * Send a message to the player
+     * @param message
+     */
     public abstract void sendMessage(final String message);
 
+    /**
+     * Have the player execute a command
+     * @param substring
+     */
     public abstract void executeCommand(final String substring);
 
+    /**
+     * Get the player's location
+     * @return
+     */
     public abstract FaweLocation getLocation();
 
+    /**
+     * Get the WorldEdit player object
+     * @return
+     */
     public abstract Player getPlayer();
 
+    /**
+     * Get the player's current selection (or null)
+     * @return
+     */
     public Region getSelection() {
         try {
             return this.getSession().getSelection(this.getPlayer().getWorld());
@@ -122,20 +202,36 @@ public abstract class FawePlayer<T> {
         }
     }
 
+    /**
+     * Get the player's current LocalSession
+     * @return
+     */
     public LocalSession getSession() {
         return (this.session != null || this.getPlayer() == null) ? this.session : (session = Fawe.get().getWorldEdit().getSession(this.getPlayer()));
     }
 
+    /**
+     * Get the player's current allowed WorldEdit regions
+     * @return
+     */
     public HashSet<RegionWrapper> getCurrentRegions() {
         return WEManager.IMP.getMask(this);
     }
 
+    /**
+     * Set the player's WorldEdit selection to the following CuboidRegion
+     * @param region
+     */
     public void setSelection(final RegionWrapper region) {
         final Player player = this.getPlayer();
         final RegionSelector selector = new CuboidRegionSelector(player.getWorld(), region.getBottomVector(), region.getTopVector());
         this.getSession().setRegionSelector(player.getWorld(), selector);
     }
 
+    /**
+     * Get the largest region in the player's allowed WorldEdit region
+     * @return
+     */
     public RegionWrapper getLargestRegion() {
         int area = 0;
         RegionWrapper max = null;
@@ -154,6 +250,10 @@ public abstract class FawePlayer<T> {
         return this.getName();
     }
 
+    /**
+     * Check if the player has WorldEdit bypass enabled
+     * @return
+     */
     public boolean hasWorldEditBypass() {
         return this.hasPermission("fawe.bypass");
     }
@@ -183,6 +283,13 @@ public abstract class FawePlayer<T> {
         return null;
     }
 
+    /**
+     * Get the metadata for a specific key (or return the default provided)
+     * @param key
+     * @param def
+     * @param <V>
+     * @return
+     */
     public <V> V getMeta(String key, V def) {
         if (this.meta != null) {
             V value = (V) this.meta.get(key);
@@ -201,6 +308,10 @@ public abstract class FawePlayer<T> {
         return this.meta == null ? null : this.meta.remove(key);
     }
 
+    /**
+     * Unregister this player (delets all metadata etc)
+     *  - Usually called on logout
+     */
     public void unregister() {
         getSession().setClipboard(null);
         getSession().clearHistory();
