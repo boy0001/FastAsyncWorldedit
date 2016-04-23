@@ -43,7 +43,6 @@ public class LoggingExtent extends AbstractDelegateExtent {
      * @param changeSet the change set
      * @param api
      * @param player
-     * @param thread
      */
     public LoggingExtent(final Extent extent, final ChangeSet changeSet, final FawePlayer<Player> player, final IBlocksHubApi api) {
         super(extent);

@@ -28,13 +28,12 @@ import com.boydti.fawe.util.StringMan;
 import com.boydti.fawe.util.TaskManager;
 import com.sk89q.worldedit.EditSession;
 import com.sk89q.worldedit.bukkit.WorldEditPlugin;
+import com.sk89q.worldedit.world.World;
 import java.io.File;
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.HashSet;
-import java.util.Set;
 import java.util.UUID;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
@@ -119,15 +118,6 @@ public class FaweBukkit extends JavaPlugin implements IFawe, Listener {
         Metrics metrics = new Metrics(this);
         metrics.start();
         debug("&6Metrics enabled.");
-    }
-
-    @Override
-    public Set<FawePlayer> getPlayers() {
-        HashSet<FawePlayer> players = new HashSet<>();
-        for (Player player : Bukkit.getServer().getOnlinePlayers()) {
-            players.add(wrap(player));
-        }
-        return players;
     }
 
     /**
@@ -237,6 +227,11 @@ public class FaweBukkit extends JavaPlugin implements IFawe, Listener {
             hasNMS = false;
         }
         return new BukkitQueue_All(world);
+    }
+
+    @Override
+    public String getWorldName(World world) {
+        return world.getName();
     }
 
     /**
@@ -358,7 +353,7 @@ public class FaweBukkit extends JavaPlugin implements IFawe, Listener {
         FawePlayer fp = FawePlayer.wrap(player);
         if (Settings.STORE_HISTORY_ON_DISK) {
             fp.getSession().clearHistory();
-            fp.loadSessionFromDisk(fp.getWorld());
+            fp.loadSessionsFromDisk(fp.getWorld());
         }
     }
 

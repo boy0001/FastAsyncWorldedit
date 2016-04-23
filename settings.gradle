@@ -1,3 +1,3 @@
 rootProject.name = 'FastAsyncWorldEdit'
 
-include 'core', 'bukkit', 'forge'
+include 'core', 'bukkit', 'forge189', 'forge1710', 'sponge'

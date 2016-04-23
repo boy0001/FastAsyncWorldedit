@@ -34,6 +34,10 @@ public class PlayerWrapper implements Player {
         this.parent = parent;
     }
 
+    public Player getParent() {
+        return parent;
+    }
+
     @Override
     public World getWorld() {
         return new WorldWrapper((AbstractWorld) parent.getWorld());

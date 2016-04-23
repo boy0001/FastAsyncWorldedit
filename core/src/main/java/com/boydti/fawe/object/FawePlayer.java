@@ -1,10 +1,13 @@
 package com.boydti.fawe.object;
 
 import com.boydti.fawe.Fawe;
+import com.boydti.fawe.FaweAPI;
 import com.boydti.fawe.config.BBC;
 import com.boydti.fawe.config.Settings;
 import com.boydti.fawe.object.changeset.DiskStorageHistory;
+import com.boydti.fawe.util.TaskManager;
 import com.boydti.fawe.util.WEManager;
+import com.boydti.fawe.wrappers.PlayerWrapper;
 import com.sk89q.worldedit.EditSession;
 import com.sk89q.worldedit.IncompleteRegionException;
 import com.sk89q.worldedit.LocalSession;
@@ -50,16 +53,27 @@ public abstract class FawePlayer<T> {
         }
         if (obj instanceof Player) {
             Player actor = (Player) obj;
-            try {
-                Field fieldBasePlayer = actor.getClass().getDeclaredField("basePlayer");
-                fieldBasePlayer.setAccessible(true);
-                Player player = (Player) fieldBasePlayer.get(actor);
-                Field fieldPlayer = player.getClass().getDeclaredField("player");
-                fieldPlayer.setAccessible(true);
-                return Fawe.imp().wrap(fieldPlayer.get(player));
-            } catch (Throwable e) {
-                e.printStackTrace();
-                return Fawe.imp().wrap(actor.getName());
+            if (obj.getClass().getSimpleName().equals("PlayerProxy")) {
+                try {
+                    Field fieldBasePlayer = actor.getClass().getDeclaredField("basePlayer");
+                    fieldBasePlayer.setAccessible(true);
+                    Player player = (Player) fieldBasePlayer.get(actor);
+                    return wrap(player);
+                } catch (Throwable e) {
+                    e.printStackTrace();
+                    return Fawe.imp().wrap(actor.getName());
+                }
+            } else if (obj instanceof PlayerWrapper){
+                return wrap(((PlayerWrapper) obj).getParent());
+            } else {
+                try {
+                    Field fieldPlayer = actor.getClass().getDeclaredField("player");
+                    fieldPlayer.setAccessible(true);
+                    return wrap(fieldPlayer.get(actor));
+                } catch (Throwable e) {
+                    e.printStackTrace();
+                    return Fawe.imp().wrap(actor.getName());
+                }
             }
         }
         return Fawe.imp().wrap(obj);
@@ -92,13 +106,7 @@ public abstract class FawePlayer<T> {
      * @return
      */
     public World getWorld() {
-        String currentWorldName = getLocation().world;
-        for (World world : WorldEdit.getInstance().getServer().getWorlds()) {
-            if (world.getName().equals(currentWorldName)) {
-                return world;
-            }
-        }
-        return null;
+        return FaweAPI.getWorld(getLocation().world);
     }
 
     /**
@@ -106,30 +114,39 @@ public abstract class FawePlayer<T> {
      *     - Usually already called when a player joins or changes world
      * @param world
      */
-    public void loadSessionsFromDisk(World world) {
+    public void loadSessionsFromDisk(final World world) {
         if (world == null) {
             return;
         }
-        UUID uuid = getUUID();
-        List<Integer> editIds = new ArrayList<>();
-        File folder = new File(Fawe.imp().getDirectory(), "history" + File.separator + world.getName() + File.separator + uuid);
-        if (folder.isDirectory()) {
-            for (File file : folder.listFiles()) {
-                if (file.getName().endsWith(".bd")) {
-                    int index = Integer.parseInt(file.getName().split("\\.")[0]);
-                    editIds.add(index);
+        TaskManager.IMP.async(new Runnable() {
+            @Override
+            public void run() {
+                UUID uuid = getUUID();
+                List<Integer> editIds = new ArrayList<>();
+                File folder = new File(Fawe.imp().getDirectory(), "history" + File.separator + world.getName() + File.separator + uuid);
+                if (folder.isDirectory()) {
+                    for (File file : folder.listFiles()) {
+                        if (file.getName().endsWith(".bd")) {
+                            int index = Integer.parseInt(file.getName().split("\\.")[0]);
+                            editIds.add(index);
+                        }
+                    }
+                }
+                Collections.sort(editIds);
+                if (editIds.size() > 0) {
+                    Fawe.debug(BBC.PREFIX.s() + " Indexing " + editIds.size() + " history objects for " + getName());
+                    for (int index : editIds) {
+                        DiskStorageHistory set = new DiskStorageHistory(world, uuid, index);
+                        EditSession edit = set.toEditSession(getPlayer());
+                        if (world.equals(getWorld())) {
+                            session.remember(edit);
+                        } else {
+                            return;
+                        }
+                    }
                 }
             }
-        }
-        Collections.sort(editIds);
-        if (editIds.size() > 0) {
-            Fawe.debug(BBC.PREFIX.s() + " Indexing " + editIds.size() + " history objects for " + getName());
-            for (int index : editIds) {
-                DiskStorageHistory set = new DiskStorageHistory(world, uuid, index);
-                EditSession edit = set.toEditSession(getPlayer());
-                session.remember(edit);
-            }
-        }
+        });
     }
 
     /**

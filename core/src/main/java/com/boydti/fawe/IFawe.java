@@ -7,9 +7,9 @@ import com.boydti.fawe.regions.FaweMaskManager;
 import com.boydti.fawe.util.FaweQueue;
 import com.boydti.fawe.util.TaskManager;
 import com.sk89q.worldedit.EditSession;
+import com.sk89q.worldedit.world.World;
 import java.io.File;
 import java.util.Collection;
-import java.util.Set;
 import java.util.UUID;
 
 public interface IFawe {
@@ -31,13 +31,13 @@ public interface IFawe {
 
     public FaweQueue getNewQueue(String world);
 
+    public String getWorldName(World world);
+
     public EditSessionWrapper getEditSessionWrapper(final EditSession session);
 
     public Collection<FaweMaskManager> getMaskManagers();
 
     public void startMetrics();
-
-    public Set<FawePlayer> getPlayers();
 
     public String getPlatform();
 

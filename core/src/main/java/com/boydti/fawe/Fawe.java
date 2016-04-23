@@ -44,6 +44,7 @@ import java.lang.management.ManagementFactory;
 import java.lang.management.MemoryMXBean;
 import java.lang.management.MemoryPoolMXBean;
 import java.lang.management.MemoryUsage;
+import java.util.Collection;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
@@ -154,14 +155,11 @@ public class Fawe {
         this.setupConfigs();
         MainUtil.deleteOlder(new File(IMP.getDirectory(), "history"), TimeUnit.DAYS.toMillis(Settings.DELETE_HISTORY_AFTER_DAYS));
 
-        this.setupCommands();
-
-        // TODO command event - queue?
-
         TaskManager.IMP = this.IMP.getTaskManager();
         if (Settings.METRICS) {
             this.IMP.startMetrics();
         }
+        this.setupCommands();
 
         // Delayed setup
         TaskManager.IMP.later(new Runnable() {
@@ -335,6 +333,10 @@ public class Fawe {
 
     public FawePlayer getCachedPlayer(String name) {
         return players.get(name);
+    }
+
+    public Collection<FawePlayer> getCachedPlayers() {
+        return players.values();
     }
 
     /*

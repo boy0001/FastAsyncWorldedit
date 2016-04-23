@@ -1,6 +1,6 @@
 package com.boydti.fawe.object;
 
-import com.sk89q.worldedit.WorldEdit;
+import com.boydti.fawe.FaweAPI;
 import com.sk89q.worldedit.world.World;
 
 /**
@@ -36,12 +36,7 @@ public class FaweLocation {
     }
 
     public World getWorld() {
-        for (World world : WorldEdit.getInstance().getServer().getWorlds()) {
-            if (world.getName().equals(this.world)) {
-                return world;
-            }
-        }
-        return null;
+        return FaweAPI.getWorld(world);
     }
 
     @Override

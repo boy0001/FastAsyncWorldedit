@@ -30,7 +30,7 @@ public class Stream extends FaweCommand {
             BBC.SCHEMATIC_NOT_FOUND.send(player, args[0]);
             return false;
         }
-        FaweAPI.streamSchematicAsync(file, player.getLocation());
+        FaweAPI.streamSchematic(file, player.getLocation());
         BBC.SCHEMATIC_PASTING.send(player);
         return true;
     }

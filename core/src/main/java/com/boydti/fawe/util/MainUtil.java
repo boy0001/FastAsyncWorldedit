@@ -27,7 +27,7 @@ public class MainUtil {
     }
 
     public static void sendAdmin(final String s) {
-        for (final FawePlayer<?> player : Fawe.imp().getPlayers()) {
+        for (final FawePlayer<?> player : Fawe.get().getCachedPlayers()) {
             if (player.hasPermission("fawe.admin")) {
                 player.sendMessage(s);
             }

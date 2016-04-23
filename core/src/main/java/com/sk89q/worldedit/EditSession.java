@@ -235,7 +235,7 @@ public class EditSession implements Extent {
             return;
         }
         this.actor = event.getActor();
-        this.queue = SetQueue.IMP.getNewQueue(world.getName(), true);
+        this.queue = SetQueue.IMP.getNewQueue(Fawe.imp().getWorldName(world), true);
         // Set the world of the event to the actual world (workaround for CoreProtect)
         try {
             Class<? extends EditSessionEvent> eventClass = event.getClass();
@@ -266,8 +266,7 @@ public class EditSession implements Extent {
         }
         this.changeSet = Settings.STORE_HISTORY_ON_DISK ? new DiskStorageHistory(world, actor.getUniqueId()) : new MemoryOptimizedHistory(actor);
         Extent extent;
-        final String name = actor.getName();
-        final FawePlayer<Object> fp = FawePlayer.wrap(name);
+        final FawePlayer<Object> fp = FawePlayer.wrap(actor);
         final LocalSession session = fp.getSession();
         this.fastmode = session.hasFastMode();
         if (fp.hasWorldEditBypass()) {
@@ -372,6 +371,12 @@ public class EditSession implements Extent {
         final Extent toReturn = event.getExtent();
         if (toReturn != extent) {
             String className = toReturn.getClass().getName().toLowerCase();
+            if (className.contains("coreprotect")) {
+                Fawe.debug("&cUnsafe extent detected: " + toReturn.getClass().getCanonicalName() + " !");
+                Fawe.debug("&8 - &7Use BlocksHub instead");
+                Fawe.debug("&8 - &7Or use FAWE rollback");
+                return extent;
+            }
             for (String allowed : Settings.ALLOWED_3RDPARTY_EXTENTS) {
                 if (className.contains(allowed.toLowerCase())) {
                     return toReturn;

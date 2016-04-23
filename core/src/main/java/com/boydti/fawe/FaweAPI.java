@@ -87,6 +87,15 @@ public class FaweAPI {
         return SetQueue.IMP.getNewQueue(worldName, autoqueue);
     }
 
+    public static World getWorld(String worldName) {
+        for (World current : WorldEdit.getInstance().getServer().getWorlds()) {
+            if (Fawe.imp().getWorldName(current).equals(worldName)) {
+                return current;
+            }
+        }
+        return null;
+    }
+
     /**
      * Get a list of supported protection plugin masks.
      * @return Set of FaweMaskManager
@@ -155,13 +164,7 @@ public class FaweAPI {
         }
         String worldName = path[path.length - 3];
         String uuidString = path[path.length - 2];
-        World world = null;
-        for (World current : WorldEdit.getInstance().getServer().getWorlds()) {
-            if (current.getName().equals(worldName)) {
-                world = current;
-                break;
-            }
-        }
+        World world = getWorld(worldName);
         if (world == null) {
             throw new IllegalArgumentException("Corresponding world does not exist: " + worldName);
         }

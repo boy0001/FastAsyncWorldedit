@@ -10,8 +10,11 @@
 /target/
 /.gradle
 /.idea
-/forge/build
-forge/.gradle/gradle.log
 *.log
+gradle.log
 /lib
 /core/build
+/forge189/build
+/forge1710/build
+/sponge/build
+/bukkit/build

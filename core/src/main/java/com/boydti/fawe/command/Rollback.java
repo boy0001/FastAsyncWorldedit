@@ -1,6 +1,7 @@
 package com.boydti.fawe.command;
 
 import com.boydti.fawe.Fawe;
+import com.boydti.fawe.FaweAPI;
 import com.boydti.fawe.config.BBC;
 import com.boydti.fawe.object.FaweCommand;
 import com.boydti.fawe.object.FaweLocation;
@@ -158,7 +159,7 @@ public class Rollback extends FaweCommand {
             }
         }
         FaweLocation origin = player.getLocation();
-        List<DiskStorageHistory> edits = MainUtil.getBDFiles(origin, user, radius, time, shallow);
+        List<DiskStorageHistory> edits = FaweAPI.getBDFiles(origin, user, radius, time, shallow);
         if (edits == null) {
             player.sendMessage("&cToo broad, try refining your search!");
             return;
