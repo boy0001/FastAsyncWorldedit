@@ -21,6 +21,8 @@ public class Settings {
     public static long MEM_FREE = 95;
     public static boolean ENABLE_HARD_LIMIT = true;
     public static boolean STORE_HISTORY_ON_DISK = false;
+    public static boolean STORE_CLIPBOARD_ON_DISK = false;
+
     public static int DELETE_HISTORY_AFTER_DAYS = 7;
     public static int COMPRESSION_LEVEL = 0;
     public static int BUFFER_SIZE = 531441;
@@ -83,6 +85,7 @@ public class Settings {
         options.put("crash-mitigation", ENABLE_HARD_LIMIT);
         options.put("lighting.fix-all", FIX_ALL_LIGHTING);
         options.put("lighting.async", ASYNC_LIGHTING);
+        options.put("clipboard.use-disk", STORE_CLIPBOARD_ON_DISK);
         options.put("history.use-disk", STORE_HISTORY_ON_DISK);
         options.put("history.compress", false);
         options.put("history.chunk-wait-ms", CHUNK_WAIT);
@@ -132,7 +135,7 @@ public class Settings {
         QUEUE_DISCARD_AFTER = config.getInt("queue.discard-after-ms");
         ALLOWED_3RDPARTY_EXTENTS = config.getStringList("extent.allowed-plugins");
         EXTENT_DEBUG = config.getBoolean("extent.debug");
-
+        STORE_CLIPBOARD_ON_DISK = config.getBoolean("clipboard.use-disk");
 
         if (STORE_HISTORY_ON_DISK = config.getBoolean("history.use-disk")) {
             LocalSession.MAX_HISTORY_SIZE = Integer.MAX_VALUE;

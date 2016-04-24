@@ -19,6 +19,8 @@
 
 package com.sk89q.worldedit.extent.clipboard;
 
+import com.boydti.fawe.config.Settings;
+import com.boydti.fawe.object.clipboard.DiskOptimizedClipboard;
 import com.boydti.fawe.object.clipboard.FaweClipboard;
 import com.boydti.fawe.object.clipboard.MemoryOptimizedClipboard;
 import com.sk89q.worldedit.EditSession;
@@ -73,7 +75,7 @@ public class BlockArrayClipboard implements Clipboard {
         checkNotNull(region);
         this.region = region.clone();
         this.size = getDimensions();
-        this.IMP = new MemoryOptimizedClipboard(size.getBlockX(), size.getBlockY(), size.getBlockZ());
+        this.IMP = Settings.STORE_CLIPBOARD_ON_DISK ? new DiskOptimizedClipboard(size.getBlockX(), size.getBlockY(), size.getBlockZ()) : new MemoryOptimizedClipboard(size.getBlockX(), size.getBlockY(), size.getBlockZ());
         this.origin = region.getMinimumPoint();
         this.mx = origin.getBlockX();
         this.my = origin.getBlockY();
