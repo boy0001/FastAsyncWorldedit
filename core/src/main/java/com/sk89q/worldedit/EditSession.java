@@ -160,20 +160,20 @@ public class EditSession implements Extent {
         BEFORE_HISTORY, BEFORE_REORDER, BEFORE_CHANGE
     }
 
-    private World world;
-    private Actor actor;
-    private FaweChangeSet changeSet;
-    private final EditSessionWrapper wrapper;
-    private FaweExtent faweExtent;
-    private MaskingExtent maskingExtent;
-    private final Extent bypassReorderHistory;
-    private final Extent bypassHistory;
-    private final Extent bypassNone;
-    private SurvivalModeExtent lazySurvivalExtent;
-    private boolean fastmode;
-    private Mask oldMask;
-    private FaweLimit limit = FaweLimit.MAX;
-    private FaweQueue queue;
+    public World world;
+    public Actor actor;
+    public FaweChangeSet changeSet;
+    public EditSessionWrapper wrapper;
+    public FaweExtent faweExtent;
+    public MaskingExtent maskingExtent;
+    public Extent bypassReorderHistory;
+    public Extent bypassHistory;
+    public Extent bypassNone;
+    public SurvivalModeExtent lazySurvivalExtent;
+    public boolean fastmode;
+    public Mask oldMask;
+    public FaweLimit limit = FaweLimit.MAX;
+    public FaweQueue queue;
 
     public static BaseBiome nullBiome = new BaseBiome(0);
     public static BaseBlock nullBlock = new BaseBlock(0);
@@ -220,13 +220,13 @@ public class EditSession implements Extent {
         checkNotNull(eventBus);
         checkArgument(maxBlocks >= -1, "maxBlocks >= -1 required");
         checkNotNull(event);
-
+        this.actor = event.getActor();
         // Wrap world
         this.blockBag = blockBag;
         this.maxBlocks = maxBlocks;
         // Invalid; return null extent
         if (world == null) {
-            final Extent extent = new NullExtent();
+            FaweExtent extent = faweExtent = new NullExtent(world, BBC.WORLDEDIT_CANCEL_REASON_MAX_FAILS);
             this.bypassReorderHistory = extent;
             this.bypassHistory = extent;
             this.bypassNone = extent;
@@ -234,8 +234,8 @@ public class EditSession implements Extent {
             this.wrapper = Fawe.imp().getEditSessionWrapper(this);
             return;
         }
-        this.actor = event.getActor();
         this.queue = SetQueue.IMP.getNewQueue(Fawe.imp().getWorldName(world), true);
+        queue.addEditSession(this);
         // Set the world of the event to the actual world (workaround for CoreProtect)
         try {
             Class<? extends EditSessionEvent> eventClass = event.getClass();
@@ -266,7 +266,7 @@ public class EditSession implements Extent {
         }
         this.changeSet = Settings.STORE_HISTORY_ON_DISK ? new DiskStorageHistory(world, actor.getUniqueId()) : new MemoryOptimizedHistory(actor);
         Extent extent;
-        final FawePlayer<Object> fp = FawePlayer.wrap(actor);
+        final FawePlayer fp = FawePlayer.wrap(actor);
         final LocalSession session = fp.getSession();
         this.fastmode = session.hasFastMode();
         if (fp.hasWorldEditBypass()) {
@@ -287,7 +287,7 @@ public class EditSession implements Extent {
             final HashSet<RegionWrapper> mask = WEManager.IMP.getMask(fp);
             if (mask.size() == 0) {
                 // No allowed area; return null extent
-                extent = new NullExtent();
+                extent = faweExtent = new NullExtent(world, BBC.WORLDEDIT_CANCEL_REASON_MAX_FAILS);
                 this.bypassReorderHistory = extent;
                 this.bypassHistory = extent;
                 this.bypassNone = extent;
@@ -310,12 +310,12 @@ public class EditSession implements Extent {
                 return;
             } else {
                 if (MemUtil.isMemoryLimited()) {
-                    BBC.WORLDEDIT_OOM.send(fp);
+                    fp.sendMessage(BBC.WORLDEDIT_CANCEL_REASON.format(BBC.WORLDEDIT_CANCEL_REASON_LOW_MEMORY.s()));
                     if (Perm.hasPermission(fp, "worldedit.fast")) {
                         BBC.WORLDEDIT_OOM_ADMIN.send(fp);
                     }
                     // Memory limit reached; return null extent
-                    extent = new NullExtent();
+                    extent = faweExtent = new NullExtent(world, BBC.WORLDEDIT_CANCEL_REASON_MAX_FAILS);
                     this.bypassReorderHistory = extent;
                     this.bypassHistory = extent;
                     this.bypassNone = extent;
@@ -370,11 +370,14 @@ public class EditSession implements Extent {
         eventBus.post(event);
         final Extent toReturn = event.getExtent();
         if (toReturn != extent) {
-            String className = toReturn.getClass().getName().toLowerCase();
+            String className = toReturn.getClass().getSimpleName().toLowerCase();
             if (className.contains("coreprotect")) {
-                Fawe.debug("&cUnsafe extent detected: " + toReturn.getClass().getCanonicalName() + " !");
-                Fawe.debug("&8 - &7Use BlocksHub instead");
-                Fawe.debug("&8 - &7Or use FAWE rollback");
+                if (Settings.EXTENT_DEBUG) {
+                    Fawe.debug("&cUnsafe extent detected: " + toReturn.getClass().getCanonicalName() + " !");
+                    Fawe.debug("&8 - &7Use BlocksHub instead");
+                    Fawe.debug("&8 - &7Or use FAWE rollback");
+                    Fawe.debug("&8 - &7Change `extent.debug: false` to hide this message");
+                }
                 return extent;
             }
             for (String allowed : Settings.ALLOWED_3RDPARTY_EXTENTS) {
@@ -382,11 +385,13 @@ public class EditSession implements Extent {
                     return toReturn;
                 }
             }
-            Fawe.debug("&cPotentially inefficient WorldEdit extent: " + toReturn.getClass().getCanonicalName());
-            Fawe.debug("&8 - &7For area restrictions, it is recommended to use the FaweAPI");
-            Fawe.debug("&8 - &7Ignore this if not an area restriction");
+            if (Settings.EXTENT_DEBUG) {
+                Fawe.debug("&cPotentially inefficient WorldEdit extent: " + toReturn.getClass().getSimpleName());
+                Fawe.debug("&8 - &7For area restrictions, it is recommended to use the FaweAPI");
+                Fawe.debug("&8 - &7To allow this plugin add it to the FAWE `allowed-plugins` list");
+            }
         }
-        return toReturn;
+        return extent;
     }
 
     /**

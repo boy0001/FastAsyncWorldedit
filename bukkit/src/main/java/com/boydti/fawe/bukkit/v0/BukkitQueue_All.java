@@ -256,12 +256,6 @@ public class BukkitQueue_All extends BukkitQueue_0 {
                 } else {
                     return 0;
                 }
-                long diff = System.currentTimeMillis() - start;
-                if (average == 0) {
-                    average = diff;
-                } else {
-                    average = ((average * 15) + diff) / 16;
-                }
             }
             lastChunk = getCachedChunk(cx, cz);
             lastSection = getCachedSection(lastChunk, cy);

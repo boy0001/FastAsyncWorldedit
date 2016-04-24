@@ -4,6 +4,7 @@ import com.sk89q.worldedit.extent.AbstractDelegateExtent;
 import com.sk89q.worldedit.extent.Extent;
 
 public abstract class FaweExtent extends AbstractDelegateExtent {
+
     /**
      * Create a new instance.
      *

@@ -27,6 +27,9 @@ commands:
   frb:
     description: (FAWE) Rollback an edit
     aliases: [fawerollback,fawerb,/uu,/rb,/frb,/fawerollback,/fawerb]
+  fcancel:
+    description: (FAWE) Cancel your edit
+    aliases: [fawecancel,/fcancel,/cancel,/fawecancel]
 permissions:
   fawe.bypass:
     default: false

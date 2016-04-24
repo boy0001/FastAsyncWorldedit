@@ -165,6 +165,7 @@ public abstract class BukkitQueue_0 extends FaweQueue implements Listener {
     @Override
     public void clear() {
         this.blocks.clear();
+        this.chunks.clear();
     }
 
     @Override

@@ -5,9 +5,15 @@ import com.boydti.fawe.util.TaskManager;
 
 public abstract class FaweCommand<T> {
     public final String perm;
+    public final boolean safe;
 
-    public FaweCommand(final String perm) {
+    public FaweCommand(String perm) {
+        this(perm, true);
+    }
+
+    public FaweCommand(final String perm, final boolean safe) {
         this.perm = perm;
+        this.safe = safe;
     }
 
     public String getPerm() {
@@ -15,7 +21,7 @@ public abstract class FaweCommand<T> {
     }
 
     public boolean executeSafe(final FawePlayer<T> player, final String... args) {
-        if (player == null) {
+        if (player == null || !safe) {
             execute(player, args);
             return true;
         } else {

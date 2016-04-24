@@ -6,13 +6,31 @@ import com.boydti.fawe.object.FaweChunk;
 import com.boydti.fawe.object.exception.FaweException;
 import com.sk89q.worldedit.EditSession;
 import com.sk89q.worldedit.world.biome.BaseBiome;
+import java.util.HashSet;
+import java.util.Set;
+import java.util.concurrent.LinkedBlockingDeque;
 
 public abstract class FaweQueue {
 
     public final String world;
+    public LinkedBlockingDeque<EditSession> sessions;
 
     public FaweQueue(String world) {
         this.world = world;
+    }
+
+    public void addEditSession(EditSession session) {
+        if (session == null) {
+            return;
+        }
+        if (this.sessions == null) {
+            sessions = new LinkedBlockingDeque<>();
+        }
+        sessions.add(session);
+    }
+
+    public Set<EditSession> getEditSessions() {
+        return sessions == null ? new HashSet<EditSession>() : new HashSet<>(sessions);
     }
 
     public abstract boolean setBlock(final int x, final int y, final int z, final short id, final byte data);
@@ -51,7 +69,7 @@ public abstract class FaweQueue {
     /**
      * This method is called when the server is < 1% available memory
      */
-    protected abstract void clear();
+    public abstract void clear();
     
     public abstract void addTask(int x, int z, Runnable runnable);
 

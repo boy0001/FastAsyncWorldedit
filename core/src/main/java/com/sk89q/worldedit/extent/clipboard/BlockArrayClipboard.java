@@ -19,9 +19,8 @@
 
 package com.sk89q.worldedit.extent.clipboard;
 
-import com.boydti.fawe.FaweCache;
-import com.boydti.fawe.object.IntegerTrio;
-import com.sk89q.jnbt.CompoundTag;
+import com.boydti.fawe.object.clipboard.FaweClipboard;
+import com.boydti.fawe.object.clipboard.MemoryOptimizedClipboard;
 import com.sk89q.worldedit.EditSession;
 import com.sk89q.worldedit.Vector;
 import com.sk89q.worldedit.Vector2D;
@@ -29,14 +28,12 @@ import com.sk89q.worldedit.WorldEditException;
 import com.sk89q.worldedit.blocks.BaseBlock;
 import com.sk89q.worldedit.entity.BaseEntity;
 import com.sk89q.worldedit.entity.Entity;
-import com.sk89q.worldedit.extent.Extent;
 import com.sk89q.worldedit.function.operation.Operation;
 import com.sk89q.worldedit.regions.Region;
 import com.sk89q.worldedit.util.Location;
 import com.sk89q.worldedit.world.biome.BaseBiome;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
 import javax.annotation.Nullable;
 
@@ -51,13 +48,11 @@ public class BlockArrayClipboard implements Clipboard {
 
     private final Region region;
 
-    // x,z,y+15>>4 | y&15
-    private final byte[][] ids;
-    private byte[][] datas;
+    public FaweClipboard IMP;
+
     private final Vector size;
 
-    private final HashMap<IntegerTrio, CompoundTag> nbtMap;
-    private final List<ClipboardEntity> entities = new ArrayList<ClipboardEntity>();
+
     private int mx;
     private int my;
     private int mz;
@@ -78,14 +73,13 @@ public class BlockArrayClipboard implements Clipboard {
         checkNotNull(region);
         this.region = region.clone();
         this.size = getDimensions();
-        this.dx = size.getBlockX();
-        this.dxz = dx * size.getBlockZ();
-        ids = new byte[dx * size.getBlockZ() * ((size.getBlockY() + 15) >>  4)][];
-        nbtMap = new HashMap<>();
+        this.IMP = new MemoryOptimizedClipboard(size.getBlockX(), size.getBlockY(), size.getBlockZ());
         this.origin = region.getMinimumPoint();
         this.mx = origin.getBlockX();
         this.my = origin.getBlockY();
         this.mz = origin.getBlockZ();
+
+
     }
 
     @Override
@@ -121,7 +115,7 @@ public class BlockArrayClipboard implements Clipboard {
     @Override
     public List<? extends Entity> getEntities(Region region) {
         List<Entity> filtered = new ArrayList<Entity>();
-        for (Entity entity : entities) {
+        for (Entity entity : getEntities()) {
             if (region.contains(entity.getLocation().toVector())) {
                 filtered.add(entity);
             }
@@ -131,15 +125,13 @@ public class BlockArrayClipboard implements Clipboard {
 
     @Override
     public List<? extends Entity> getEntities() {
-        return Collections.unmodifiableList(entities);
+        return IMP.getEntities();
     }
 
     @Nullable
     @Override
     public Entity createEntity(Location location, BaseEntity entity) {
-        ClipboardEntity ret = new ClipboardEntity(location, entity);
-        entities.add(ret);
-        return ret;
+        return IMP.createEntity(location.getExtent(), location.getX(), location.getY(), location.getZ(), location.getYaw(), location.getPitch(), entity);
     }
 
     @Override
@@ -148,34 +140,8 @@ public class BlockArrayClipboard implements Clipboard {
             int x = position.getBlockX() - mx;
             int y = position.getBlockY() - my;
             int z = position.getBlockZ() - mz;
-            int i = x + z * dx + (y >> 4) * dxz;
-            byte[] idArray = ids[i];
-            if (idArray == null) {
-                return FaweCache.CACHE_BLOCK[0];
-            }
-            int y2 = y & 0xF;
-            int id = idArray[y2] & 0xFF;
-            BaseBlock block;
-            if (!FaweCache.hasData(id) || datas == null) {
-                block = FaweCache.CACHE_BLOCK[id << 4];
-            } else {
-                byte[] dataArray = datas[i];
-                if (dataArray == null) {
-                    block = FaweCache.CACHE_BLOCK[id << 4];
-                } else {
-                    block = FaweCache.CACHE_BLOCK[(id << 4) + dataArray[y2]];
-                }
-            }
-            if (FaweCache.hasNBT(id)) {
-                CompoundTag nbt = nbtMap.get(new IntegerTrio(x, y, z));
-                if (nbt != null) {
-                    block = new BaseBlock(block.getId(), block.getData());
-                    block.setNbtData(nbt);
-                }
-            }
-            return block;
+            return IMP.getBlock(x, y, z);
         }
-
         return EditSession.nullBlock;
     }
 
@@ -199,172 +165,7 @@ public class BlockArrayClipboard implements Clipboard {
         x -= mx;
         y -= my;
         z -= mz;
-        final int id = block.getId();
-        switch (id) {
-            case 0:
-                return true;
-            case 54:
-            case 130:
-            case 142:
-            case 27:
-            case 137:
-            case 52:
-            case 154:
-            case 84:
-            case 25:
-            case 144:
-            case 138:
-            case 176:
-            case 177:
-            case 63:
-            case 119:
-            case 68:
-            case 323:
-            case 117:
-            case 116:
-            case 28:
-            case 66:
-            case 157:
-            case 61:
-            case 62:
-            case 140:
-            case 146:
-            case 149:
-            case 150:
-            case 158:
-            case 23:
-            case 123:
-            case 124:
-            case 29:
-            case 33:
-            case 151:
-            case 178: {
-                if (block.hasNbtData()) {
-                    nbtMap.put(new IntegerTrio(x, y, z), block.getNbtData());
-                }
-                int i = x + z * dx + (y >> 4) * dxz;
-                int y2 = y & 0xF;
-                byte[] idArray = ids[i];
-                if (idArray == null) {
-                    idArray = new byte[16];
-                    ids[i] = idArray;
-                }
-                idArray[y2] = (byte) id;
-                if (FaweCache.hasData(id)) {
-                    int data = block.getData();
-                    if (data == 0) {
-                        return true;
-                    }
-                    if (datas == null) {
-                        datas = new byte[dx * size.getBlockZ() * ((size.getBlockY() + 15) >> 4)][];
-                    }
-                    byte[] dataArray = datas[i];
-                    if (dataArray == null) {
-                        dataArray = datas[i] = new byte[16];
-                    }
-                    dataArray[y2] = (byte) data;
-                }
-                return true;
-            }
-            case 2:
-            case 4:
-            case 13:
-            case 14:
-            case 15:
-            case 20:
-            case 21:
-            case 22:
-            case 30:
-            case 32:
-            case 37:
-            case 39:
-            case 40:
-            case 41:
-            case 42:
-            case 45:
-            case 46:
-            case 47:
-            case 48:
-            case 49:
-            case 51:
-            case 56:
-            case 57:
-            case 58:
-            case 60:
-            case 7:
-            case 8:
-            case 9:
-            case 10:
-            case 11:
-            case 73:
-            case 74:
-            case 78:
-            case 79:
-            case 80:
-            case 81:
-            case 82:
-            case 83:
-            case 85:
-            case 87:
-            case 88:
-            case 101:
-            case 102:
-            case 103:
-            case 110:
-            case 112:
-            case 113:
-            case 121:
-            case 122:
-            case 129:
-            case 133:
-            case 165:
-            case 166:
-            case 169:
-            case 170:
-            case 172:
-            case 173:
-            case 174:
-            case 181:
-            case 182:
-            case 188:
-            case 189:
-            case 190:
-            case 191:
-            case 192: {
-                int i = x + z * dx + (y >> 4) * dxz;
-                int y2 = y & 0xF;
-                byte[] idArray = ids[i];
-                if (idArray == null) {
-                    idArray = new byte[16];
-                    ids[i] = idArray;
-                }
-                idArray[y2] = (byte) id;
-                return true;
-            }
-            default: {
-                int i = x + z * dx + (y >> 4) * dxz;
-                int y2 = y & 0xF;
-                byte[] idArray = ids[i];
-                if (idArray == null) {
-                    idArray = new byte[16];
-                    ids[i] = idArray;
-                }
-                idArray[y2] = (byte) id;
-                int data = block.getData();
-                if (data == 0) {
-                    return true;
-                }
-                if (datas == null) {
-                    datas = new byte[dx * size.getBlockZ() * ((size.getBlockY() + 15) >> 4)][];
-                }
-                byte[] dataArray = datas[i];
-                if (dataArray == null) {
-                    dataArray = datas[i] = new byte[16];
-                }
-                dataArray[y2] = (byte) data;
-                return true;
-            }
-        }
+        return IMP.setBlock(x, y, z, block);
     }
 
     @Override
@@ -381,57 +182,6 @@ public class BlockArrayClipboard implements Clipboard {
     @Override
     public Operation commit() {
         return null;
-    }
-
-    /**
-     * Stores entity data.
-     */
-    private class ClipboardEntity implements Entity {
-        private final Location location;
-        private final BaseEntity entity;
-
-        ClipboardEntity(Location location, BaseEntity entity) {
-            checkNotNull(location);
-            checkNotNull(entity);
-            this.location = location;
-            this.entity = new BaseEntity(entity);
-        }
-
-        @Override
-        public boolean remove() {
-            return entities.remove(this);
-        }
-
-        @Nullable
-        @Override
-        public <T> T getFacet(Class<? extends T> cls) {
-            return null;
-        }
-
-        /**
-         * Get the entity state. This is not a copy.
-         *
-         * @return the entity
-         */
-        BaseEntity getEntity() {
-            return entity;
-        }
-
-        @Override
-        public BaseEntity getState() {
-            return new BaseEntity(entity);
-        }
-
-        @Override
-        public Location getLocation() {
-            return location;
-        }
-
-        @Override
-        public Extent getExtent() {
-            return location.getExtent();
-        }
-
     }
 
     public static Class<?> inject() {

@@ -21,19 +21,17 @@ public class ReflectionUtils {
     /**
      * prefix of bukkit classes
      */
-    private static String preClassB;
+    private static volatile String preClassB = null;
     /**
      * prefix of minecraft classes
      */
-    private static String preClassM = null;
+    private static volatile String preClassM = null;
     /**
      * boolean value, TRUE if server uses forge or MCPC+
      */
     private static boolean forge = false;
     /** check server version and class names */
     public static void init() {
-        preClassM = "net.minecraft.server";
-        preClassB = "org.bukkit.craftbukkit";
         if (Bukkit.getServer() != null) {
             if (Bukkit.getVersion().contains("MCPC") || Bukkit.getVersion().contains("Forge")) {
                 forge = true;
@@ -43,7 +41,7 @@ public class ReflectionUtils {
             String[] pas = bukkitServerClass.getName().split("\\.");
             if (pas.length == 5) {
                 final String verB = pas[3];
-                preClassB += "." + verB;
+                preClassB = "org.bukkit.craftbukkit." + verB;
             }
             try {
                 final Method getHandle = bukkitServerClass.getDeclaredMethod("getHandle");
@@ -52,7 +50,7 @@ public class ReflectionUtils {
                 pas = handleServerClass.getName().split("\\.");
                 if (pas.length == 5) {
                     final String verM = pas[3];
-                    preClassM += "." + verM;
+                    preClassM = "net.minecraft.server." + verM;
                 }
             } catch (final Exception ignored) {
                 ignored.printStackTrace();
@@ -233,7 +231,7 @@ public class ReflectionUtils {
                 return getRefClass(Class.forName(className));
             } catch (final ClassNotFoundException ignored) {}
         }
-        throw new RuntimeException("no class found");
+        throw new RuntimeException("no class found: " + classes[0].replace("{cb}", preClassB).replace("{nms}", preClassM).replace("{nm}", "net.minecraft"));
     }
 
     /**

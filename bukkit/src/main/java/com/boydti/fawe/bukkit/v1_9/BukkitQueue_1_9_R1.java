@@ -444,7 +444,8 @@ public class BukkitQueue_1_9_R1 extends BukkitQueue_All {
      *  - Unloads non visible chunks<br>
      */
     @Override
-    public void clear() {
+    public void saveMemory() {
+        super.saveMemory();
         // Clear the queue
         super.clear();
         ArrayDeque<Chunk> toUnload = new ArrayDeque<>();

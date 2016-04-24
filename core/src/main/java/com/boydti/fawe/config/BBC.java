@@ -39,9 +39,9 @@ public enum BBC {
     WORLDEDIT_BYPASSED("&7Currently bypassing WorldEdit restriction.", "Info"),
     WORLDEDIT_UNMASKED("&6Your WorldEdit is now unrestricted.", "Info"),
     WORLDEDIT_RESTRICTED("&6Your WorldEdit is now restricted.", "Info"),
-    WORLDEDIT_OOM("&cYour WorldEdit action was cancelled due to low memory.", "Info"),
-
+    WORLDEDIT_CANCEL_COUNT("&cCancelled %s0 edits.", "Cancel"),
     WORLDEDIT_CANCEL_REASON("&cYour WorldEdit action was cancelled:&7 %s0&c.", "Cancel"),
+    WORLDEDIT_CANCEL_REASON_MANUAL("Manual cancellation", "Cancel"),
     WORLDEDIT_CANCEL_REASON_LOW_MEMORY("Low memory", "Cancel"),
     WORLDEDIT_CANCEL_REASON_MAX_CHANGES("Too many blocks changed", "Cancel"),
     WORLDEDIT_CANCEL_REASON_MAX_CHECKS("Too many block checks", "Cancel"),

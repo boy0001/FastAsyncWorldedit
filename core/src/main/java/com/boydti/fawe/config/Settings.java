@@ -32,6 +32,7 @@ public class Settings {
     public static int QUEUE_MAX_WAIT = 1000;
     public static int QUEUE_DISCARD_AFTER = 60000;
     public static List<String> ALLOWED_3RDPARTY_EXTENTS;
+    public static boolean EXTENT_DEBUG = true;
 
     public static boolean FIX_ALL_LIGHTING = true;
     public static boolean ASYNC_LIGHTING = true;
@@ -93,6 +94,7 @@ public class Settings {
         options.put("queue.max-wait-ms", QUEUE_MAX_WAIT);
         options.put("queue.discard-after-ms", QUEUE_DISCARD_AFTER);
         options.put("extent.allowed-plugins", new ArrayList<String>());
+        options.put("extent.debug", EXTENT_DEBUG);
         options.put("metrics", METRICS);
 
         // Default limit
@@ -128,8 +130,9 @@ public class Settings {
         QUEUE_SIZE = config.getInt("queue.target-size");
         QUEUE_MAX_WAIT = config.getInt("queue.max-wait-ms");
         QUEUE_DISCARD_AFTER = config.getInt("queue.discard-after-ms");
-
         ALLOWED_3RDPARTY_EXTENTS = config.getStringList("extent.allowed-plugins");
+        EXTENT_DEBUG = config.getBoolean("extent.debug");
+
 
         if (STORE_HISTORY_ON_DISK = config.getBoolean("history.use-disk")) {
             LocalSession.MAX_HISTORY_SIZE = Integer.MAX_VALUE;

@@ -24,7 +24,7 @@ public class SafeExtentWrapper extends AbstractDelegateExtent {
         if (super.setBlock(location, block)) {
             if (MemUtil.isMemoryLimited()) {
                 if (this.player != null) {
-                    BBC.WORLDEDIT_OOM.send(this.player);
+                    player.sendMessage(BBC.WORLDEDIT_CANCEL_REASON.format(BBC.WORLDEDIT_CANCEL_REASON_LOW_MEMORY.s()));
                     if (Perm.hasPermission(this.player, "worldedit.fast")) {
                         BBC.WORLDEDIT_OOM_ADMIN.send(this.player);
                     }

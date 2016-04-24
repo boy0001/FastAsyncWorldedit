@@ -16,41 +16,48 @@ import com.sk89q.worldedit.world.biome.BaseBiome;
 import java.util.ArrayList;
 import java.util.List;
 
-public class NullExtent implements Extent {
+public class NullExtent extends FaweExtent {
+
+    private final BBC reason;
+
+    /**
+     * Create a new instance.
+     *
+     * @param extent the extent
+     */
+    public NullExtent(Extent extent, BBC failReason) {
+        super(extent);
+        this.reason = failReason;
+    }
 
     @Override
     public BaseBiome getBiome(final Vector2D arg0) {
-        throw new FaweException(BBC.WORLDEDIT_CANCEL_REASON_MAX_FAILS);
+        throw new FaweException(reason);
     }
 
     @Override
     public BaseBlock getBlock(final Vector arg0) {
-        throw new FaweException(BBC.WORLDEDIT_CANCEL_REASON_MAX_FAILS);
+        throw new FaweException(reason);
     }
 
     @Override
     public BaseBlock getLazyBlock(final Vector arg0) {
-        throw new FaweException(BBC.WORLDEDIT_CANCEL_REASON_MAX_FAILS);
-    }
-
-    @Override
-    public Operation commit() {
-        return null;
+        throw new FaweException(reason);
     }
 
     @Override
     public boolean setBiome(final Vector2D arg0, final BaseBiome arg1) {
-        throw new FaweException(BBC.WORLDEDIT_CANCEL_REASON_MAX_FAILS);
+        throw new FaweException(reason);
     }
 
     @Override
     public boolean setBlock(final Vector arg0, final BaseBlock arg1) throws WorldEditException {
-        throw new FaweException(BBC.WORLDEDIT_CANCEL_REASON_MAX_FAILS);
+        throw new FaweException(reason);
     }
 
     @Override
     public Entity createEntity(final Location arg0, final BaseEntity arg1) {
-        throw new FaweException(BBC.WORLDEDIT_CANCEL_REASON_MAX_FAILS);
+        throw new FaweException(reason);
     }
 
     @Override
@@ -73,4 +80,16 @@ public class NullExtent implements Extent {
         return new Vector(0, 0, 0);
     }
 
+    @Override
+    public boolean contains(int x, int y, int z) { return false; }
+
+    @Override
+    protected Operation commitBefore() {
+        return null;
+    }
+
+    @Override
+    public Extent getExtent() {
+        return this;
+    }
 }

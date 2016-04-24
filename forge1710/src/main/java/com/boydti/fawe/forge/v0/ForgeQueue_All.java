@@ -318,6 +318,7 @@ public class ForgeQueue_All extends FaweQueue {
     @Override
     public void clear() {
         this.blocks.clear();
+        this.chunks.clear();
     }
 
     @Override

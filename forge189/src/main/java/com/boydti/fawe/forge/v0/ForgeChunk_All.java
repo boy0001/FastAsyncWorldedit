@@ -194,7 +194,6 @@ public class ForgeChunk_All extends FaweChunk<Chunk> {
             case 61:
             case 65:
             case 68:
-            case 50:
                 if (data < 2) {
                     data = 2;
                 }

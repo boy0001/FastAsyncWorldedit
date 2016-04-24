@@ -40,7 +40,7 @@ public class SetQueue {
                     final int mem = MemUtil.calculateMemory();
                     if (mem != Integer.MAX_VALUE) {
                         if ((mem <= 1) && Settings.ENABLE_HARD_LIMIT) {
-                            for (FaweQueue queue : getQueues()) {
+                            for (FaweQueue queue : getAllQueues()) {
                                 queue.saveMemory();
                             }
                             return;
@@ -71,8 +71,19 @@ public class SetQueue {
         activeQueues.add(queue);
     }
 
-    public List<FaweQueue> getQueues() {
+    public List<FaweQueue> getAllQueues() {
+        ArrayList<FaweQueue> list = new ArrayList<FaweQueue>(activeQueues.size() + inactiveQueues.size());
+        list.addAll(inactiveQueues);
+        list.addAll(activeQueues);
+        return list;
+    }
+
+    public List<FaweQueue> getActiveQueues() {
         return new ArrayList<>(activeQueues);
+    }
+
+    public List<FaweQueue> getInactiveQueues() {
+        return new ArrayList<>(inactiveQueues);
     }
 
     public FaweQueue getNewQueue(String world, boolean autoqueue) {
@@ -96,6 +107,9 @@ public class SetQueue {
             ArrayList<FaweQueue> tmp = new ArrayList<>(inactiveQueues);
             if (Settings.QUEUE_MAX_WAIT != -1) {
                 long now = System.currentTimeMillis();
+                if (lastSuccess == 0) {
+                    lastSuccess = now;
+                }
                 long diff = now - lastSuccess;
                 if (diff > Settings.QUEUE_MAX_WAIT) {
                     for (FaweQueue queue : tmp) {

@@ -206,7 +206,6 @@ public class FaweBukkit extends JavaPlugin implements IFawe, Listener {
         } catch (Throwable ignore) {}
         if (hasNMS) {
             try {
-                ReflectionUtils.init();
                 Field fieldDirtyCount = ReflectionUtils.getRefClass("{nms}.PlayerChunk").getField("dirtyCount").getRealField();
                 fieldDirtyCount.setAccessible(true);
                 int mod = fieldDirtyCount.getModifiers();

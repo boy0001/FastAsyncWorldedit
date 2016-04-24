@@ -142,6 +142,7 @@ public abstract class SpongeQueue_0 extends FaweQueue {
     @Override
     public void clear() {
         this.blocks.clear();
+        this.chunks.clear();
     }
 
     @Override

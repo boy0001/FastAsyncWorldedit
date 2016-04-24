@@ -1,5 +1,6 @@
 package com.boydti.fawe;
 
+import com.boydti.fawe.command.Cancel;
 import com.boydti.fawe.command.FixLighting;
 import com.boydti.fawe.command.Reload;
 import com.boydti.fawe.command.Rollback;
@@ -201,6 +202,7 @@ public class Fawe {
         this.IMP.setupCommand("wrg", new WorldEditRegion());
         this.IMP.setupCommand("fawe", new Reload());
         this.IMP.setupCommand("frb", new Rollback());
+        this.IMP.setupCommand("fcancel", new Cancel());
     }
 
     public void setupConfigs() {
