@@ -99,12 +99,12 @@ public class DiskOptimizedClipboard extends FaweClipboard {
             }
             raf.read(buffer);
             last = i;
-            int id = ((buffer[1] << 4) + (buffer[0] >> 4));
+            int id = ((((int) buffer[1] & 0xFF) << 4) + (((int) buffer[0] & 0xFF) >> 4));
             BaseBlock block;
             if (!FaweCache.hasData(id)) {
                 block = FaweCache.CACHE_BLOCK[id << 4];
             } else {
-                block = FaweCache.CACHE_BLOCK[(id << 4) + (buffer[0] & 0xf)];
+                block = FaweCache.CACHE_BLOCK[(id << 4) + (buffer[0] & 0xF)];
             }
             if (FaweCache.hasNBT(id)) {
                 CompoundTag nbt = nbtMap.get(new IntegerTrio(x, y, z));
@@ -135,7 +135,7 @@ public class DiskOptimizedClipboard extends FaweClipboard {
             final int data = block.getData();
             int combined = (id << 4) + data;
             buffer[0] = (byte) ((combined) & 0xff);
-            buffer[1] = (byte) (((combined) >> 8) & 0xff);
+            buffer[1] = (byte) (((combined) >> 8) & 0xFF);
             raf.write(buffer);
             if (FaweCache.hasNBT(id)) {
                 nbtMap.put(new IntegerTrio(x, y, z), block.getNbtData());
