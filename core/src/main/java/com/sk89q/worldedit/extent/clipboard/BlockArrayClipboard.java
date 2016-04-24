@@ -78,8 +78,6 @@ public class BlockArrayClipboard implements Clipboard {
         this.mx = origin.getBlockX();
         this.my = origin.getBlockY();
         this.mz = origin.getBlockZ();
-
-
     }
 
     @Override

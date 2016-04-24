@@ -458,9 +458,7 @@ public class DiskStorageHistory implements ChangeSet, FaweChangeSet {
                             try {
                                 NamedTag nt = stream.readNamedTag();
                                 return nt != null ? ((CompoundTag) nt.getTag()) : null;
-                            } catch (IOException e) {
-                                e.printStackTrace();
-                            }
+                            } catch (IOException ignore) {}
                         }
                         return null;
                     }

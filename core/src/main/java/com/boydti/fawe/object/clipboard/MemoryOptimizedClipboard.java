@@ -61,8 +61,15 @@ public class MemoryOptimizedClipboard extends FaweClipboard {
     public boolean setBlock(int x, int y, int z, BaseBlock block) {
         final int id = block.getId();
         switch (id) {
-            case 0:
+            case 0: {
+                int i = x + z * width + (y >> 4) * area;
+                byte[] idArray = ids[i];
+                if (idArray != null) {
+                    int y2 = y & 0xF;
+                    idArray[y2] = 0;
+                }
                 return true;
+            }
             case 54:
             case 130:
             case 142:

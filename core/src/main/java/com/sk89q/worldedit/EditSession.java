@@ -605,8 +605,10 @@ public class EditSession implements Extent {
             return FaweCache.CACHE_BLOCK[combinedId4Data];
         }
         try {
-            return this.world.getLazyBlock(new Vector(x, y, z));
+            BaseBlock block = this.world.getBlock(new Vector(x, y, z));
+            return block;
         } catch (Throwable e) {
+            e.printStackTrace();
             return FaweCache.CACHE_BLOCK[combinedId4Data];
         }
     }
@@ -1464,7 +1466,7 @@ public class EditSession implements Extent {
                 EditSession.this.flushQueue();
             }
         }, true);
-        return this.changes = visitor.getAffected();
+        return this.changes = copy.getAffected();
     }
 
     /**
