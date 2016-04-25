@@ -145,7 +145,7 @@ public class ClipboardCommands {
         Operations.completeLegacy(copy);
         session.setClipboard(new ClipboardHolder(clipboard, editSession.getWorld().getWorldData()));
 
-        player.print(region.getArea() + " block(s) were copied.");
+        player.print(region.getArea() + " block(s) were copied. Note: For faster copying use //lazycopy");
     }
 
     @Command(

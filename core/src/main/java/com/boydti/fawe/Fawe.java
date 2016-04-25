@@ -22,6 +22,7 @@ import com.sk89q.worldedit.EditSession;
 import com.sk89q.worldedit.LocalSession;
 import com.sk89q.worldedit.Vector;
 import com.sk89q.worldedit.WorldEdit;
+import com.sk89q.worldedit.command.BrushCommands;
 import com.sk89q.worldedit.command.ClipboardCommands;
 import com.sk89q.worldedit.command.SchematicCommands;
 import com.sk89q.worldedit.command.ScriptingCommands;
@@ -223,6 +224,7 @@ public class Fawe {
     private void setupInjector() {
         EditSession.inject();
         Operations.inject();
+        BrushCommands.inject();
         ClipboardCommands.inject();
         SchematicCommands.inject();
         ScriptingCommands.inject();

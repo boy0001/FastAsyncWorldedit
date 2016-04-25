@@ -52,7 +52,7 @@ public class Settings {
         limit.MAX_ITERATIONS = 0;
         for (Entry<String, FaweLimit> entry : limits.entrySet()) {
             String key = entry.getKey();
-            if (key.equals("default") || player.hasPermission("fawe.limit." + key)) {
+            if (key.equals("default") || (player != null && player.hasPermission("fawe.limit." + key))) {
                 FaweLimit newLimit = entry.getValue();
                 limit.MAX_CHANGES = Math.max(limit.MAX_CHANGES, newLimit.MAX_CHANGES != -1 ? newLimit.MAX_CHANGES : Integer.MAX_VALUE);
                 limit.MAX_BLOCKSTATES = Math.max(limit.MAX_BLOCKSTATES, newLimit.MAX_BLOCKSTATES != -1 ? newLimit.MAX_BLOCKSTATES : Integer.MAX_VALUE);
