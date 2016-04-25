@@ -35,6 +35,24 @@ public class MainUtil {
         Fawe.debug(s);
     }
 
+    public static void warnDeprecated(Class... alternatives) {
+        StackTraceElement[] stack = new RuntimeException().getStackTrace();
+        if (stack.length > 1) {
+            try {
+                StackTraceElement creatorElement = stack[stack.length - 2];
+                String className = creatorElement.getClassName();
+                Class clazz = Class.forName(className);
+                String creator = clazz.getSimpleName();
+                String packageName = clazz.getPackage().getName();
+
+                StackTraceElement deprecatedElement = stack[stack.length - 1];
+                String myName = Class.forName(deprecatedElement.getFileName()).getSimpleName();
+                Fawe.debug("@" + creator + " from " + packageName +": " + myName + " is deprecated.");
+                Fawe.debug(" - Alternatives: " + StringMan.getString(alternatives));
+            } catch (Throwable ignore) {}
+        }
+    }
+
     public static void iterateFiles(File directory, RunnableVal<File> task) {
         if (directory.exists()) {
             File[] files = directory.listFiles();

@@ -13,6 +13,10 @@ import java.util.HashSet;
 import java.util.List;
 
 public class MemoryOptimizedClipboard extends FaweClipboard {
+    protected int length;
+    protected int height;
+    protected int width;
+    protected int area;
 
     // x,z,y+15>>4 | y&15
     private final byte[][] ids;
@@ -21,10 +25,13 @@ public class MemoryOptimizedClipboard extends FaweClipboard {
     private final HashSet<ClipboardEntity> entities;
 
     public MemoryOptimizedClipboard(int width, int height, int length) {
-        super(width, height, length);
+        this.width = width;
+        this.height = height;
+        this.length = length;
+        this.area = width * length;
         ids = new byte[width * length * ((height + 15) >>  4)][];
         nbtMap = new HashMap<>();
-        entities = new HashSet<ClipboardEntity>();
+        entities = new HashSet<>();
     }
 
     @Override

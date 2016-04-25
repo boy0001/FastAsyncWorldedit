@@ -20,6 +20,8 @@
 package com.sk89q.worldedit;
 
 import com.boydti.fawe.object.changeset.FaweChangeSet;
+import com.boydti.fawe.object.clipboard.DiskOptimizedClipboard;
+import com.boydti.fawe.util.FaweQueue;
 import com.boydti.fawe.util.SetQueue;
 import com.sk89q.jchronic.Chronic;
 import com.sk89q.jchronic.Options;
@@ -32,6 +34,8 @@ import com.sk89q.worldedit.command.tool.SinglePickaxe;
 import com.sk89q.worldedit.command.tool.Tool;
 import com.sk89q.worldedit.entity.Player;
 import com.sk89q.worldedit.extension.platform.Actor;
+import com.sk89q.worldedit.extent.clipboard.BlockArrayClipboard;
+import com.sk89q.worldedit.extent.clipboard.Clipboard;
 import com.sk89q.worldedit.extent.inventory.BlockBag;
 import com.sk89q.worldedit.function.mask.Mask;
 import com.sk89q.worldedit.function.mask.Masks;
@@ -190,10 +194,16 @@ public class LocalSession {
      * @param editSession the edit session
      */
     public void remember(EditSession editSession) {
-        checkNotNull(editSession);
+        remember(editSession, history.size());
+    }
 
+    public void remember(EditSession editSession, int index) {
+        // Enqueue it
         if (editSession.getQueue() != null) {
-            SetQueue.IMP.enqueue(editSession.getQueue());
+            FaweQueue queue = editSession.getQueue();
+            if (queue.size() > 0) {
+                SetQueue.IMP.enqueue(editSession.getQueue());
+            }
         }
 
         // Don't store anything if no changes were made
@@ -207,7 +217,7 @@ public class LocalSession {
         if (set instanceof FaweChangeSet) {
             ((FaweChangeSet) set).flush();
         }
-        history.add(editSession);
+        history.add(Math.max(0, Math.min(index, history.size())), editSession);
         while (history.size() > MAX_HISTORY_SIZE) {
             history.remove(0);
         }
@@ -456,6 +466,15 @@ public class LocalSession {
      * @param clipboard the clipboard, or null if the clipboard is to be cleared
      */
     public void setClipboard(@Nullable ClipboardHolder clipboard) {
+        if (this.clipboard != null && clipboard != null) {
+            Clipboard clip = clipboard.getClipboard();
+            if (clip instanceof BlockArrayClipboard) {
+                BlockArrayClipboard bac = (BlockArrayClipboard) clip;
+                if (bac.IMP instanceof DiskOptimizedClipboard) {
+                    ((DiskOptimizedClipboard) bac.IMP).flush();
+                }
+            }
+        }
         this.clipboard = clipboard;
     }
 

@@ -37,6 +37,7 @@ import com.sk89q.worldedit.world.biome.BaseBiome;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.UUID;
 import javax.annotation.Nullable;
 
 
@@ -64,6 +65,17 @@ public class BlockArrayClipboard implements Clipboard {
 
     private Vector origin;
 
+    public BlockArrayClipboard(Region region) {
+        checkNotNull(region);
+        this.region = region.clone();
+        this.size = getDimensions();
+        this.IMP = Settings.STORE_CLIPBOARD_ON_DISK ? new DiskOptimizedClipboard(size.getBlockX(), size.getBlockY(), size.getBlockZ()) : new MemoryOptimizedClipboard(size.getBlockX(), size.getBlockY(), size.getBlockZ());
+        this.origin = region.getMinimumPoint();
+        this.mx = origin.getBlockX();
+        this.my = origin.getBlockY();
+        this.mz = origin.getBlockZ();
+    }
+
     /**
      * Create a new instance.
      *
@@ -71,11 +83,22 @@ public class BlockArrayClipboard implements Clipboard {
      *
      * @param region the bounding region
      */
-    public BlockArrayClipboard(Region region) {
+    public BlockArrayClipboard(Region region, UUID clipboardId) {
         checkNotNull(region);
         this.region = region.clone();
         this.size = getDimensions();
-        this.IMP = Settings.STORE_CLIPBOARD_ON_DISK ? new DiskOptimizedClipboard(size.getBlockX(), size.getBlockY(), size.getBlockZ()) : new MemoryOptimizedClipboard(size.getBlockX(), size.getBlockY(), size.getBlockZ());
+        this.IMP = Settings.STORE_CLIPBOARD_ON_DISK ? new DiskOptimizedClipboard(size.getBlockX(), size.getBlockY(), size.getBlockZ(), clipboardId) : new MemoryOptimizedClipboard(size.getBlockX(), size.getBlockY(), size.getBlockZ());
+        this.origin = region.getMinimumPoint();
+        this.mx = origin.getBlockX();
+        this.my = origin.getBlockY();
+        this.mz = origin.getBlockZ();
+    }
+
+    public BlockArrayClipboard(Region region, DiskOptimizedClipboard clipboard) {
+        checkNotNull(region);
+        this.region = region.clone();
+        this.size = getDimensions();
+        this.IMP = clipboard;
         this.origin = region.getMinimumPoint();
         this.mx = origin.getBlockX();
         this.my = origin.getBlockY();
@@ -95,6 +118,7 @@ public class BlockArrayClipboard implements Clipboard {
     @Override
     public void setOrigin(Vector origin) {
         this.origin = origin;
+        IMP.setOrigin(origin.subtract(region.getMinimumPoint()));
     }
 
     @Override

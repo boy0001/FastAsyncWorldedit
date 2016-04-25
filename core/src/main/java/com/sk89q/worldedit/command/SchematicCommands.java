@@ -37,6 +37,7 @@ import com.sk89q.worldedit.extent.clipboard.Clipboard;
 import com.sk89q.worldedit.extent.clipboard.io.ClipboardFormat;
 import com.sk89q.worldedit.extent.clipboard.io.ClipboardReader;
 import com.sk89q.worldedit.extent.clipboard.io.ClipboardWriter;
+import com.sk89q.worldedit.extent.clipboard.io.SchematicReader;
 import com.sk89q.worldedit.function.operation.Operations;
 import com.sk89q.worldedit.math.transform.Transform;
 import com.sk89q.worldedit.session.ClipboardHolder;
@@ -117,9 +118,13 @@ public class SchematicCommands {
                                 final ClipboardReader reader = format.getReader(bis);
 
                                 final WorldData worldData = player.getWorld().getWorldData();
-                                final Clipboard clipboard = reader.read(player.getWorld().getWorldData());
+                                final Clipboard clipboard;
+                                if (reader instanceof SchematicReader) {
+                                    clipboard = ((SchematicReader) reader).read(player.getWorld().getWorldData(), player.getUniqueId());
+                                } else {
+                                    clipboard = reader.read(player.getWorld().getWorldData());
+                                }
                                 session.setClipboard(new ClipboardHolder(clipboard, worldData));
-
                                 log.info(player.getName() + " loaded " + filePath);
                                 player.print(filename + " loaded. Paste it with //paste");
                             }
@@ -160,7 +165,7 @@ public class SchematicCommands {
         // If we have a transform, bake it into the copy
         if (!transform.isIdentity()) {
             final FlattenedClipboardTransform result = FlattenedClipboardTransform.transform(clipboard, transform, holder.getWorldData());
-            target = new BlockArrayClipboard(result.getTransformedRegion());
+            target = new BlockArrayClipboard(result.getTransformedRegion(), player.getUniqueId());
             target.setOrigin(clipboard.getOrigin());
             Operations.completeLegacy(result.copyTo(target));
         } else {

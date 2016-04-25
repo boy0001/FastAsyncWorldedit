@@ -22,6 +22,7 @@ import com.sk89q.worldedit.EditSession;
 import com.sk89q.worldedit.LocalSession;
 import com.sk89q.worldedit.Vector;
 import com.sk89q.worldedit.WorldEdit;
+import com.sk89q.worldedit.command.ClipboardCommands;
 import com.sk89q.worldedit.command.SchematicCommands;
 import com.sk89q.worldedit.command.ScriptingCommands;
 import com.sk89q.worldedit.extension.platform.CommandManager;
@@ -155,6 +156,7 @@ public class Fawe {
          */
         this.setupConfigs();
         MainUtil.deleteOlder(new File(IMP.getDirectory(), "history"), TimeUnit.DAYS.toMillis(Settings.DELETE_HISTORY_AFTER_DAYS));
+        MainUtil.deleteOlder(new File(IMP.getDirectory(), "clipboard"), TimeUnit.DAYS.toMillis(Settings.DELETE_CLIPBOARD_AFTER_DAYS));
 
         TaskManager.IMP = this.IMP.getTaskManager();
         if (Settings.METRICS) {
@@ -221,6 +223,7 @@ public class Fawe {
     private void setupInjector() {
         EditSession.inject();
         Operations.inject();
+        ClipboardCommands.inject();
         SchematicCommands.inject();
         ScriptingCommands.inject();
         BreadthFirstSearch.inject();

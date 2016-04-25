@@ -44,6 +44,7 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.annotation.Nullable;
@@ -71,6 +72,10 @@ public class SchematicReader implements ClipboardReader {
 
     @Override
     public Clipboard read(WorldData data) throws IOException {
+        return read(data, UUID.randomUUID());
+    }
+
+    public Clipboard read(WorldData data, UUID clipboardId) throws IOException {
         // Schematic tag
         NamedTag rootTag = inputStream.readNamedTag();
         if (!rootTag.getName().equals("Schematic")) {
@@ -171,7 +176,7 @@ public class SchematicReader implements ClipboardReader {
             tileEntitiesMap.put(vec, values);
         }
 
-        BlockArrayClipboard clipboard = new BlockArrayClipboard(region);
+        BlockArrayClipboard clipboard = new BlockArrayClipboard(region, clipboardId);
         clipboard.setOrigin(origin);
 
         // Don't log a torrent of errors

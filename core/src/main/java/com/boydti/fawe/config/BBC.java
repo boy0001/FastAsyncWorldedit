@@ -51,6 +51,10 @@ public enum BBC {
     WORLDEDIT_CANCEL_REASON_MAX_FAILS("Outside allowed region", "Cancel"),
     WORLDEDIT_FAILED_LOAD_CHUNK("&cSkipped loading chunk: &7%s0;%s1&c. Try increasing chunk-wait.", "Cancel"),
 
+    LOADING_CLIPBOARD("&dLoading clipboard from disk, please wait.", "History"),
+    INDEXING_HISTORY("&dIndexing %s history objects on disk, please wait.", "History"),
+    INDEXING_COMPLETE("&dIndexing complete. Took: %s seconds!", "History"),
+
     WORLDEDIT_OOM_ADMIN("&cPossible options:\n&8 - &7//fast\n&8 - &7Do smaller edits\n&8 - &7Allocate more memory\n&8 - &7Disable this safeguard", "Info"),
     NOT_PLAYER("&cYou must be a player to perform this action!", "Error"),
     COMPRESSED("History compressed. Saved ~ %s0b (%s1x smaller)", "Info"),

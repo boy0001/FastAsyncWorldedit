@@ -1,5 +1,6 @@
 package com.boydti.fawe.object.clipboard;
 
+import com.sk89q.worldedit.Vector;
 import com.sk89q.worldedit.blocks.BaseBlock;
 import com.sk89q.worldedit.entity.BaseEntity;
 import com.sk89q.worldedit.entity.Entity;
@@ -12,18 +13,6 @@ import javax.annotation.Nullable;
 import static com.google.common.base.Preconditions.checkNotNull;
 
 public abstract class FaweClipboard {
-    public final int length;
-    public final int height;
-    public final int width;
-    public final int area;
-
-    public FaweClipboard(int width, int height, int length) {
-        this.width = width;
-        this.height = height;
-        this.length = length;
-        this.area = width * length;
-    }
-
     public abstract BaseBlock getBlock(int x, int y, int z);
 
     public abstract boolean setBlock(int x, int y, int z, BaseBlock block);
@@ -33,6 +22,8 @@ public abstract class FaweClipboard {
     public abstract List<? extends Entity> getEntities();
 
     public abstract boolean remove(ClipboardEntity clipboardEntity);
+
+    public void setOrigin(Vector offset) {} // Do nothing
 
     /**
      * Stores entity data.

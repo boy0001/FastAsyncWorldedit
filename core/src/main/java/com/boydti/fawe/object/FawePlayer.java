@@ -5,6 +5,7 @@ import com.boydti.fawe.FaweAPI;
 import com.boydti.fawe.config.BBC;
 import com.boydti.fawe.config.Settings;
 import com.boydti.fawe.object.changeset.DiskStorageHistory;
+import com.boydti.fawe.object.clipboard.DiskOptimizedClipboard;
 import com.boydti.fawe.util.TaskManager;
 import com.boydti.fawe.util.WEManager;
 import com.boydti.fawe.wrappers.PlayerWrapper;
@@ -13,10 +14,13 @@ import com.sk89q.worldedit.IncompleteRegionException;
 import com.sk89q.worldedit.LocalSession;
 import com.sk89q.worldedit.WorldEdit;
 import com.sk89q.worldedit.entity.Player;
+import com.sk89q.worldedit.extent.clipboard.Clipboard;
 import com.sk89q.worldedit.regions.Region;
 import com.sk89q.worldedit.regions.RegionSelector;
 import com.sk89q.worldedit.regions.selector.CuboidRegionSelector;
+import com.sk89q.worldedit.session.ClipboardHolder;
 import com.sk89q.worldedit.world.World;
+import com.sk89q.worldedit.world.registry.WorldData;
 import java.io.File;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
@@ -95,9 +99,30 @@ public abstract class FawePlayer<T> {
                     loadSessionsFromDisk(world);
                 }
             }
+            loadClipboardFromDisk();
         } catch (Exception e) {
             e.printStackTrace();
             Fawe.debug("Failed to load history for: " + getName());
+        }
+    }
+
+    public void loadClipboardFromDisk() {
+        try {
+            File file = new File(Fawe.imp().getDirectory(), "clipboard" + File.separator + getUUID());
+            if (file.exists()) {
+                DiskOptimizedClipboard doc = new DiskOptimizedClipboard(file);
+                Player player = getPlayer();
+                LocalSession session = getSession();
+                if (player != null && session != null) {
+                    sendMessage("&d" + BBC.PREFIX.s() + " " + BBC.LOADING_CLIPBOARD.s());
+                    WorldData worldData = player.getWorld().getWorldData();
+                    Clipboard clip = doc.toClipboard();
+                    ClipboardHolder holder = new ClipboardHolder(clip, worldData);
+                    getSession().setClipboard(holder);
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
         }
     }
 
@@ -118,35 +143,38 @@ public abstract class FawePlayer<T> {
         if (world == null) {
             return;
         }
-        TaskManager.IMP.async(new Runnable() {
-            @Override
-            public void run() {
-                UUID uuid = getUUID();
-                List<Integer> editIds = new ArrayList<>();
-                File folder = new File(Fawe.imp().getDirectory(), "history" + File.separator + world.getName() + File.separator + uuid);
-                if (folder.isDirectory()) {
-                    for (File file : folder.listFiles()) {
-                        if (file.getName().endsWith(".bd")) {
-                            int index = Integer.parseInt(file.getName().split("\\.")[0]);
-                            editIds.add(index);
-                        }
-                    }
+        final long start = System.currentTimeMillis();
+        final UUID uuid = getUUID();
+        final List<Integer> editIds = new ArrayList<>();
+        final File folder = new File(Fawe.imp().getDirectory(), "history" + File.separator + world.getName() + File.separator + uuid);
+        if (folder.isDirectory()) {
+            for (File file : folder.listFiles()) {
+                if (file.getName().endsWith(".bd")) {
+                    int index = Integer.parseInt(file.getName().split("\\.")[0]);
+                    editIds.add(index);
                 }
-                Collections.sort(editIds);
-                if (editIds.size() > 0) {
-                    Fawe.debug(BBC.PREFIX.s() + " Indexing " + editIds.size() + " history objects for " + getName());
-                    for (int index : editIds) {
+            }
+        }
+        if (editIds.size() > 0) {
+            sendMessage("&d" + BBC.PREFIX.s() + " " + BBC.INDEXING_HISTORY.format(editIds.size()));
+            TaskManager.IMP.async(new Runnable() {
+                @Override
+                public void run() {
+                    Collections.sort(editIds);
+                    for (int i = editIds.size() - 1; i >= 0; i--) {
+                        int index = editIds.get(i);
                         DiskStorageHistory set = new DiskStorageHistory(world, uuid, index);
                         EditSession edit = set.toEditSession(getPlayer());
                         if (world.equals(getWorld())) {
-                            session.remember(edit);
+                            session.remember(edit, 0);
                         } else {
                             return;
                         }
                     }
+                    sendMessage("&d" + BBC.PREFIX.s() + " " + BBC.INDEXING_COMPLETE.format((System.currentTimeMillis() - start) / 1000d));
                 }
-            }
-        });
+            });
+        }
     }
 
     /**

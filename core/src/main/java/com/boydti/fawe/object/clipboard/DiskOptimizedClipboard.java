@@ -2,14 +2,19 @@ package com.boydti.fawe.object.clipboard;
 
 import com.boydti.fawe.Fawe;
 import com.boydti.fawe.FaweCache;
+import com.boydti.fawe.config.Settings;
+import com.boydti.fawe.object.BufferedRandomAccessFile;
 import com.boydti.fawe.object.IntegerTrio;
 import com.boydti.fawe.util.TaskManager;
 import com.sk89q.jnbt.CompoundTag;
 import com.sk89q.worldedit.EditSession;
+import com.sk89q.worldedit.Vector;
 import com.sk89q.worldedit.blocks.BaseBlock;
 import com.sk89q.worldedit.entity.BaseEntity;
 import com.sk89q.worldedit.entity.Entity;
 import com.sk89q.worldedit.extent.Extent;
+import com.sk89q.worldedit.extent.clipboard.BlockArrayClipboard;
+import com.sk89q.worldedit.regions.CuboidRegion;
 import java.io.File;
 import java.io.IOException;
 import java.io.RandomAccessFile;
@@ -28,28 +33,122 @@ import java.util.UUID;
  */
 public class DiskOptimizedClipboard extends FaweClipboard {
 
+    private static int HEADER_SIZE = 10;
+
+    protected int length;
+    protected int height;
+    protected int width;
+    protected int area;
+
     private final HashMap<IntegerTrio, CompoundTag> nbtMap;
     private final HashSet<ClipboardEntity> entities;
     private final File file;
     private final byte[] buffer;
 
-    private volatile RandomAccessFile raf;
+    private volatile BufferedRandomAccessFile raf;
     private long lastAccessed;
     private int last;
 
+    public DiskOptimizedClipboard(int width, int height, int length, UUID uuid) {
+        this(width, height, length, new File(Fawe.imp().getDirectory(), "clipboard" + File.separator + uuid));
+    }
+
+    public DiskOptimizedClipboard(File file) {
+        nbtMap = new HashMap<>();
+        entities = new HashSet<>();this.buffer = new byte[2];
+        this.file = file;
+        this.lastAccessed = System.currentTimeMillis();
+        try {
+            this.raf = new BufferedRandomAccessFile(file, "rw", Settings.BUFFER_SIZE);
+            raf.setLength(file.length());
+            long size = (raf.length() - HEADER_SIZE) / 2;
+            raf.seek(0);
+            last = -1;
+            raf.read(buffer);
+            width = (((buffer[1] & 0xFF) << 8) + ((buffer[0] & 0xFF)));
+            raf.read(buffer);
+            length = (((buffer[1] & 0xFF) << 8) + ((buffer[0] & 0xFF)));
+            height = (int) (size / (width * length));
+            area = width * length;
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        autoCloseTask();
+    }
+
+    public BlockArrayClipboard toClipboard() {
+        try {
+            CuboidRegion region = new CuboidRegion(new Vector(0, 0, 0), new Vector(width - 1, height - 1, length - 1)) {
+                @Override
+                public boolean contains(Vector position) {
+                    return true;
+                }
+            };
+            if (raf == null) {
+                open();
+            }
+            raf.seek(4);
+            last = -1;
+            int ox = (((byte) raf.read() << 8) | ((byte) raf.read()) & 0xFF);
+            int oy = (((byte) raf.read() << 8) | ((byte) raf.read()) & 0xFF);
+            int oz = (((byte) raf.read() << 8) | ((byte) raf.read()) & 0xFF);
+            BlockArrayClipboard clipboard = new BlockArrayClipboard(region, this);
+            clipboard.setOrigin(new Vector(ox, oy, oz));
+            return clipboard;
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
+    @Override
+    public void setOrigin(Vector offset) {
+        try {
+            if (raf == null) {
+                open();
+            }
+            raf.seek(4);
+            last = -1;
+            raf.write((byte) (offset.getBlockX() >> 8));
+            raf.write((byte) (offset.getBlockX()));
+
+            raf.write((byte) (offset.getBlockY() >> 8));
+            raf.write((byte) (offset.getBlockY()));
+
+            raf.write((byte) (offset.getBlockZ() >> 8));
+            raf.write((byte) (offset.getBlockZ()));
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
     public DiskOptimizedClipboard(int width, int height, int length, File file) {
-        super(width, height, length);
         nbtMap = new HashMap<>();
         entities = new HashSet<>();
         this.file = file;
         this.buffer = new byte[2];
         this.lastAccessed = System.currentTimeMillis();
+        this.width = width;
+        this.height = height;
+        this.length = length;
+        this.area = width * length;
         try {
             if (!file.exists()) {
                 file.getParentFile().mkdirs();
-                file.createNewFile();
             }
+            file.createNewFile();
         } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void flush() {
+        try {
+            raf.close();
+            raf = null;
+            file.setWritable(true);
+            System.gc();
+        } catch (IOException e) {
             e.printStackTrace();
         }
     }
@@ -58,25 +157,43 @@ public class DiskOptimizedClipboard extends FaweClipboard {
         this(width, height, length, new File(Fawe.imp().getDirectory(), "clipboard" + File.separator + UUID.randomUUID()));
     }
 
-
+    public void close() {
+        try {
+            RandomAccessFile tmp = raf;
+            raf = null;
+            tmp.close();
+            tmp = null;
+            System.gc();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
 
     public void open() throws IOException {
-        this.raf = new RandomAccessFile(file, "rw");
+        if (raf != null) {
+            close();
+        }
+        this.raf = new BufferedRandomAccessFile(file, "rw", Settings.BUFFER_SIZE);
         long size = width * height * length * 2l;
         if (raf.length() != size) {
-            raf.setLength(size);
+            raf.setLength(size + HEADER_SIZE);
+            // write length etc
+            raf.seek(0);
+            last = 0;
+            raf.write((width) & 0xff);
+            raf.write(((width) >> 8) & 0xff);
+            raf.write((length) & 0xff);
+            raf.write(((length) >> 8) & 0xff);
         }
+        autoCloseTask();
+    }
+
+    private void autoCloseTask() {
         TaskManager.IMP.laterAsync(new Runnable() {
             @Override
             public void run() {
                 if (raf != null && System.currentTimeMillis() - lastAccessed > 10000) {
-                    try {
-                        RandomAccessFile tmp = raf;
-                        raf = null;
-                        tmp.close();
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    }
+                    close();
                 } else if (raf == null) {
                     return;
                 } else {
@@ -95,7 +212,7 @@ public class DiskOptimizedClipboard extends FaweClipboard {
             lastAccessed = System.currentTimeMillis();
             int i = x + z * width + y * area;
             if (i != last + 1) {
-                raf.seek(i << 1);
+                raf.seek((HEADER_SIZE) + (i << 1));
             }
             raf.read(buffer);
             last = i;
@@ -129,8 +246,9 @@ public class DiskOptimizedClipboard extends FaweClipboard {
             lastAccessed = System.currentTimeMillis();
             int i = x + z * width + y * area;
             if (i != last + 1) {
-                raf.seek(i << 1);
+                raf.seek((HEADER_SIZE) + (i << 1));
             }
+            last = i;
             final int id = block.getId();
             final int data = block.getData();
             int combined = (id << 4) + data;

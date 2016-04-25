@@ -21,12 +21,14 @@ package com.sk89q.worldedit;
 
 import com.boydti.fawe.FaweCache;
 import com.boydti.fawe.object.IntegerTrio;
+import com.boydti.fawe.util.MainUtil;
 import com.sk89q.jnbt.CompoundTag;
 import com.sk89q.worldedit.blocks.BaseBlock;
 import com.sk89q.worldedit.blocks.BlockID;
 import com.sk89q.worldedit.command.ClipboardCommands;
 import com.sk89q.worldedit.command.SchematicCommands;
 import com.sk89q.worldedit.extent.Extent;
+import com.sk89q.worldedit.extent.clipboard.BlockArrayClipboard;
 import com.sk89q.worldedit.extent.clipboard.Clipboard;
 import com.sk89q.worldedit.function.operation.ForwardExtentCopy;
 import com.sk89q.worldedit.regions.CuboidRegion;
@@ -76,7 +78,7 @@ public class CuboidClipboard {
     public byte[][] ids;
     public byte[][] datas;
     public HashMap<IntegerTrio, CompoundTag> nbtMap;
-    public List<CopiedEntity> entities = new ArrayList<CopiedEntity>();
+    public List<CopiedEntity> entities = new ArrayList<>();
 
     public Vector size;
     private int dx;
@@ -91,6 +93,7 @@ public class CuboidClipboard {
      */
     public CuboidClipboard(Vector size) {
         checkNotNull(size);
+        MainUtil.warnDeprecated(BlockArrayClipboard.class);
         origin = new Vector();
         offset = new Vector();
         this.size = size;
