@@ -7,7 +7,7 @@ https://www.spigotmc.org/resources/13932/
 ## IRC
 Meet us on `irc.esper.net` in the `#IntellectualCrafters` channel or use the [Webchat to join through browser](http://webchat.esper.net/?nick=&channels=IntellectualCrafters).
 
-## Releases:
+## Releases
 You can find the most recent stable releases on GitHub  
 https://github.com/boy0001/FastAsyncWorldedit/releases
 
