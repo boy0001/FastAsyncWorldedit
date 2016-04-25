@@ -10,6 +10,7 @@ import com.boydti.fawe.util.TaskManager;
 import com.boydti.fawe.util.WEManager;
 import com.boydti.fawe.wrappers.PlayerWrapper;
 import com.sk89q.worldedit.EditSession;
+import com.sk89q.worldedit.EmptyClipboardException;
 import com.sk89q.worldedit.IncompleteRegionException;
 import com.sk89q.worldedit.LocalSession;
 import com.sk89q.worldedit.WorldEdit;
@@ -113,6 +114,11 @@ public abstract class FawePlayer<T> {
                 DiskOptimizedClipboard doc = new DiskOptimizedClipboard(file);
                 Player player = getPlayer();
                 LocalSession session = getSession();
+                try {
+                    if (session.getClipboard() != null) {
+                        return;
+                    }
+                } catch (EmptyClipboardException e) {}
                 if (player != null && session != null) {
                     sendMessage("&d" + BBC.PREFIX.s() + " " + BBC.LOADING_CLIPBOARD.s());
                     WorldData worldData = player.getWorld().getWorldData();

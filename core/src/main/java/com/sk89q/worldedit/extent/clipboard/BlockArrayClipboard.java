@@ -94,7 +94,7 @@ public class BlockArrayClipboard implements Clipboard {
         this.mz = origin.getBlockZ();
     }
 
-    public BlockArrayClipboard(Region region, DiskOptimizedClipboard clipboard) {
+    public BlockArrayClipboard(Region region, FaweClipboard clipboard) {
         checkNotNull(region);
         this.region = region.clone();
         this.size = getDimensions();

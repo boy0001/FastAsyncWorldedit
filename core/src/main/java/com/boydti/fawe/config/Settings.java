@@ -24,7 +24,7 @@ public class Settings {
     public static boolean STORE_CLIPBOARD_ON_DISK = false;
 
     public static int DELETE_HISTORY_AFTER_DAYS = 7;
-    public static int DELETE_CLIPBOARD_AFTER_DAYS = 0;
+    public static int DELETE_CLIPBOARD_AFTER_DAYS = 1;
     public static int COMPRESSION_LEVEL = 0;
     public static int BUFFER_SIZE = 531441;
     public static boolean METRICS = true;

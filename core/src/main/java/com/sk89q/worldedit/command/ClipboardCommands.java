@@ -19,6 +19,7 @@
 
 package com.sk89q.worldedit.command;
 
+import com.boydti.fawe.object.clipboard.LazyClipboard;
 import com.sk89q.minecraft.util.commands.Command;
 import com.sk89q.minecraft.util.commands.CommandPermissions;
 import com.sk89q.minecraft.util.commands.Logging;
@@ -27,6 +28,8 @@ import com.sk89q.worldedit.LocalSession;
 import com.sk89q.worldedit.Vector;
 import com.sk89q.worldedit.WorldEdit;
 import com.sk89q.worldedit.WorldEditException;
+import com.sk89q.worldedit.blocks.BaseBlock;
+import com.sk89q.worldedit.entity.Entity;
 import com.sk89q.worldedit.entity.Player;
 import com.sk89q.worldedit.extension.platform.Actor;
 import com.sk89q.worldedit.extent.clipboard.BlockArrayClipboard;
@@ -46,6 +49,8 @@ import com.sk89q.worldedit.regions.selector.CuboidRegionSelector;
 import com.sk89q.worldedit.session.ClipboardHolder;
 import com.sk89q.worldedit.util.command.binding.Switch;
 import com.sk89q.worldedit.util.command.parametric.Optional;
+import java.util.List;
+
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.sk89q.minecraft.util.commands.Logging.LogMode.PLACEMENT;
@@ -67,6 +72,50 @@ public class ClipboardCommands {
         checkNotNull(worldEdit);
         this.worldEdit = worldEdit;
     }
+
+
+
+    @Command(
+            aliases = { "/lazycopy" },
+            flags = "em",
+            desc = "Lazily copy the selection to the clipboard",
+            help = "Lazily copy the selection to the clipboard\n" +
+                    "Flags:\n" +
+                    "  -e controls whether entities are copied\n" +
+                    "  -m sets a source mask so that excluded blocks become air\n" +
+                    "WARNING: Pasting entities cannot yet be undone!",
+            max = 0
+    )
+    @CommandPermissions("worldedit.clipboard.lazycopy")
+    public void lazyCopy(Player player, LocalSession session, final EditSession editSession,
+                         @Selection final Region region, @Switch('e') boolean copyEntities,
+                         @Switch('m') Mask mask) throws WorldEditException {
+
+        Vector origin = region.getMinimumPoint();
+        final int mx = origin.getBlockX();
+        final int my = origin.getBlockY();
+        final int mz = origin.getBlockZ();
+        LazyClipboard lazyClipboard = new LazyClipboard() {
+            @Override
+            public BaseBlock getBlock(int x, int y, int z) {
+                int xx = mx + x;
+                int yy = my + y;
+                int zz = mz + z;
+                return editSession.getLazyBlock(xx, yy, zz);
+            }
+
+            @Override
+            public List<? extends Entity> getEntities() {
+                return editSession.getEntities(region);
+            }
+        };
+
+        BlockArrayClipboard clipboard = new BlockArrayClipboard(region, lazyClipboard);
+        clipboard.setOrigin(session.getPlacementPosition(player));
+        session.setClipboard(new ClipboardHolder(clipboard, editSession.getWorld().getWorldData()));
+        player.print(region.getArea() + " block(s) were not copied. I'll do it later, promise!");
+    }
+
 
     @Command(
             aliases = { "/copy" },
