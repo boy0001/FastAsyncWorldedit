@@ -81,4 +81,8 @@ public class RegionWrapper {
     public Vector getTopVector() {
         return new Vector(this.maxX, 255, this.maxZ);
     }
+
+    public boolean contains(RegionWrapper current) {
+        return current.minX >= minX && current.maxX <= maxX && current.minZ >= minZ && current.maxZ <= maxZ;
+    }
 }

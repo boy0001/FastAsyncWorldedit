@@ -217,17 +217,26 @@ public class SpongeChunk_1_8 extends FaweChunk<Chunk> {
     }
 
     @Override
-    public FaweChunk clone() {
+    public FaweChunk<Chunk> copy(boolean shallow) {
         SpongeChunk_1_8 toReturn = new SpongeChunk_1_8(getParent(), getX(), getZ());
-        toReturn.air = this.air.clone();
-        toReturn.count = this.count.clone();
-        toReturn.relight = this.relight.clone();
-        toReturn.ids = new char[this.ids.length][];
-        for (int i = 0; i < this.ids.length; i++) {
-            char[] matrix = this.ids[i];
-            if (matrix != null) {
-                toReturn.ids[i] = new char[matrix.length];
-                System.arraycopy(matrix, 0, toReturn.ids[i], 0, matrix.length);
+        if (shallow) {
+            toReturn.ids = ids;
+            toReturn.air = air;
+            toReturn.biomes = biomes;
+            toReturn.chunk = chunk;
+            toReturn.count = count;
+            toReturn.relight = relight;
+        } else {
+            toReturn.air = this.air.clone();
+            toReturn.count = this.count.clone();
+            toReturn.relight = this.relight.clone();
+            toReturn.ids = new char[this.ids.length][];
+            for (int i = 0; i < this.ids.length; i++) {
+                char[] matrix = this.ids[i];
+                if (matrix != null) {
+                    toReturn.ids[i] = new char[matrix.length];
+                    System.arraycopy(matrix, 0, toReturn.ids[i], 0, matrix.length);
+                }
             }
         }
         return toReturn;

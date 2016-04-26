@@ -143,6 +143,10 @@ public class FaweAPI {
         } catch (WorldEditException ignore) {}
     }
 
+    public static void addMaskManager(FaweMaskManager maskMan) {
+        WEManager.IMP.managers.add(maskMan);
+    }
+
     /**
      * Get the DiskStorageHistory object representing a File
      * @param file

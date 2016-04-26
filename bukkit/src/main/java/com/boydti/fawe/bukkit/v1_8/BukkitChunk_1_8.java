@@ -3,6 +3,7 @@ package com.boydti.fawe.bukkit.v1_8;
 import com.boydti.fawe.FaweCache;
 import com.boydti.fawe.object.FaweChunk;
 import com.boydti.fawe.util.FaweQueue;
+import com.boydti.fawe.util.MainUtil;
 import com.sk89q.worldedit.world.biome.BaseBiome;
 import java.util.Arrays;
 import org.bukkit.Bukkit;
@@ -12,9 +13,9 @@ public class BukkitChunk_1_8 extends FaweChunk<Chunk> {
 
     private char[][] ids;
 
-    private final short[] count;
-    private final short[] air;
-    private final short[] relight;
+    private short[] count;
+    private short[] air;
+    private short[] relight;
     private int[][] biomes;
 
     public Chunk chunk;
@@ -223,5 +224,26 @@ public class BukkitChunk_1_8 extends FaweChunk<Chunk> {
             index = this.biomes[x] = new int[16];
         }
         index[z] = biome.getId();
+    }
+
+    @Override
+    public FaweChunk<Chunk> copy(boolean shallow) {
+        BukkitChunk_1_8 copy = new BukkitChunk_1_8(getParent(), getX(), getZ());
+        if (shallow) {
+            copy.ids = ids;
+            copy.air = air;
+            copy.biomes = biomes;
+            copy.chunk = chunk;
+            copy.count = count;
+            copy.relight = relight;
+        } else {
+            copy.ids = (char[][]) MainUtil.copyNd(ids);
+            copy.air = air.clone();
+            copy.biomes = biomes.clone();
+            copy.chunk = chunk;
+            copy.count = count.clone();
+            copy.relight = relight.clone();
+        }
+        return copy;
     }
 }

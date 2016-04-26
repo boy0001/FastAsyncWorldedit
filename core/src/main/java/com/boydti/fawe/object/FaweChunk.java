@@ -56,11 +56,31 @@ public abstract class FaweChunk<T> {
         parent.fixLighting(this, Settings.FIX_ALL_LIGHTING);
     }
 
-    public void fill(final int id, final byte data) {
-        for (int x = 0; x < 16; x++) {
-            for (int y = 0; y < 256; y++) {
-                for (int z = 0; z < 16; z++) {
-                    this.setBlock(x, y, z, id, data);
+    /**
+     * Fill this chunk with a block
+     * @param id
+     * @param data
+     */
+    public void fill(int id, byte data) {
+        fillCuboid(0, 15, 0, 255, 0, 15, id, data);
+    }
+
+    /**
+     * Fill a cuboid in this chunk with a block
+     * @param x1
+     * @param x2
+     * @param y1
+     * @param y2
+     * @param z1
+     * @param z2
+     * @param id
+     * @param data
+     */
+    public void fillCuboid(int x1, int x2, int y1, int y2, int z1, int z2, int id, byte data) {
+        for (int x = x1; x <= x2; x++) {
+            for (int y = y1; y <= y2; y++) {
+                for (int z = z1; z <= z2; z++) {
+                    setBlock(x, y, z, id, data);
                 }
             }
         }
@@ -92,4 +112,6 @@ public abstract class FaweChunk<T> {
         }
         return longHash() != ((FaweChunk) obj).longHash();
     }
+
+    public abstract FaweChunk<T> copy(boolean shallow);
 }

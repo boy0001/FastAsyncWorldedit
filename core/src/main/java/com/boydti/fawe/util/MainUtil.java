@@ -3,12 +3,14 @@ package com.boydti.fawe.util;
 import com.boydti.fawe.Fawe;
 import com.boydti.fawe.config.BBC;
 import com.boydti.fawe.object.FawePlayer;
+import com.boydti.fawe.object.RegionWrapper;
 import com.boydti.fawe.object.RunnableVal;
 import com.sk89q.jnbt.CompoundTag;
 import com.sk89q.jnbt.EndTag;
 import com.sk89q.jnbt.ListTag;
 import com.sk89q.jnbt.Tag;
 import java.io.File;
+import java.lang.reflect.Array;
 import java.util.Map;
 import java.util.Map.Entry;
 
@@ -65,6 +67,65 @@ public class MainUtil {
                     }
                 }
             }
+        }
+    }
+
+    /**
+     * The int[] will be in the form: [chunkx, chunkz, pos1x, pos1z, pos2x, pos2z, isedge] and will represent the bottom and top parts of the chunk
+     */
+    public static void chunkTaskSync(RegionWrapper region, final RunnableVal<int[]> task) {
+        final int p1x = region.minX;
+        final int p1z = region.minZ;
+        final int p2x = region.maxX;
+        final int p2z = region.maxZ;
+        final int bcx = p1x >> 4;
+        final int bcz = p1z >> 4;
+        final int tcx = p2x >> 4;
+        final int tcz = p2z >> 4;
+        task.value = new int[7];
+        for (int x = bcx; x <= tcx; x++) {
+            for (int z = bcz; z <= tcz; z++) {
+                task.value[0] = x;
+                task.value[1] = z;
+                task.value[2] = task.value[0] << 4;
+                task.value[3] = task.value[1] << 4;
+                task.value[4] = task.value[2] + 15;
+                task.value[5] = task.value[3] + 15;
+                task.value[6] = 0;
+                if (task.value[0] == bcx) {
+                    task.value[2] = p1x;
+                    task.value[6] = 1;
+                }
+                if (task.value[0] == tcx) {
+                    task.value[4] = p2x;
+                    task.value[6] = 1;
+                }
+                if (task.value[1] == bcz) {
+                    task.value[3] = p1z;
+                    task.value[6] = 1;
+                }
+                if (task.value[1] == tcz) {
+                    task.value[5] = p2z;
+                    task.value[6] = 1;
+                }
+                task.run();
+            }
+        }
+    }
+
+    public static Object copyNd(Object arr) {
+        if (arr.getClass().isArray()) {
+            int innerArrayLength = Array.getLength(arr);
+            Class component = arr.getClass().getComponentType();
+            Object newInnerArray = Array.newInstance(component, innerArrayLength);
+            //copy each elem of the array
+            for (int i = 0; i < innerArrayLength; i++) {
+                Object elem = copyNd(Array.get(arr, i));
+                Array.set(newInnerArray, i, elem);
+            }
+            return newInnerArray;
+        } else {
+            return arr;//cant deep copy an opac object??
         }
     }
 
@@ -202,6 +263,11 @@ public class MainUtil {
 
     public static boolean isValidSign(CompoundTag tag) {
         Map<String, Tag> values = tag.getValue();
-        return values.size() > 4 && values.containsKey("Text1");
+        if (values.size() > 4 && values.containsKey("Text1")) {
+            Tag text1 = values.get("Text1");
+            Object value = text1.getValue();
+            return value != null && value instanceof String && ((String) value).length() > 0;
+        }
+        return false;
     }
 }

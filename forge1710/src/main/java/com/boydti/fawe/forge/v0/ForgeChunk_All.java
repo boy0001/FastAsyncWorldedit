@@ -3,6 +3,7 @@ package com.boydti.fawe.forge.v0;
 import com.boydti.fawe.FaweCache;
 import com.boydti.fawe.object.FaweChunk;
 import com.boydti.fawe.util.FaweQueue;
+import com.boydti.fawe.util.MainUtil;
 import com.sk89q.worldedit.world.biome.BaseBiome;
 import java.util.Arrays;
 import net.minecraft.world.World;
@@ -229,25 +230,25 @@ public class ForgeChunk_All extends FaweChunk<Chunk> {
     }
 
     @Override
-    public FaweChunk clone() {
-        ForgeChunk_All toReturn = new ForgeChunk_All(getParent(), getX(), getZ());
-        toReturn.air = this.air.clone();
-        toReturn.count = this.count.clone();
-        toReturn.relight = this.relight.clone();
-        toReturn.ids = new byte[this.ids.length][];
-        for (int i = 0; i < this.ids.length; i++) {
-            byte[] matrix = this.ids[i];
-            if (matrix != null) {
-                toReturn.ids[i] = new byte[matrix.length];
-                System.arraycopy(matrix, 0, toReturn.ids[i], 0, matrix.length);
-            }
+    public FaweChunk<Chunk> copy(boolean shallow) {
+        ForgeChunk_All copy = new ForgeChunk_All(getParent(), getX(), getZ());
+        if (shallow) {
+            copy.ids = ids;
+            copy.datas = datas;
+            copy.air = air;
+            copy.biomes = biomes;
+            copy.chunk = chunk;
+            copy.count = count;
+            copy.relight = relight;
+        } else {
+            copy.ids = (byte[][]) MainUtil.copyNd(ids);
+            copy.datas = datas.clone();
+            copy.air = air.clone();
+            copy.biomes = biomes.clone();
+            copy.chunk = chunk;
+            copy.count = count.clone();
+            copy.relight = relight.clone();
         }
-        toReturn.datas = new NibbleArray[16];
-        for (int i = 0; i < this.datas.length; i++) {
-            if (datas[i] != null) {
-                toReturn.datas[i] = datas[i];
-            }
-        }
-        return toReturn;
+        return copy;
     }
 }

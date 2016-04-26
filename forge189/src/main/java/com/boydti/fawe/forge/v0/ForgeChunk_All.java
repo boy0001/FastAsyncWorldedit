@@ -3,6 +3,7 @@ package com.boydti.fawe.forge.v0;
 import com.boydti.fawe.FaweCache;
 import com.boydti.fawe.object.FaweChunk;
 import com.boydti.fawe.util.FaweQueue;
+import com.boydti.fawe.util.MainUtil;
 import com.sk89q.worldedit.world.biome.BaseBiome;
 import java.util.Arrays;
 import net.minecraft.world.World;
@@ -230,5 +231,26 @@ public class ForgeChunk_All extends FaweChunk<Chunk> {
             }
         }
         return toReturn;
+    }
+
+    @Override
+    public FaweChunk<Chunk> copy(boolean shallow) {
+        ForgeChunk_All copy = new ForgeChunk_All(getParent(), getX(), getZ());
+        if (shallow) {
+            copy.ids = ids;
+            copy.air = air;
+            copy.biomes = biomes;
+            copy.chunk = chunk;
+            copy.count = count;
+            copy.relight = relight;
+        } else {
+            copy.ids = (char[][]) MainUtil.copyNd(ids);
+            copy.air = air.clone();
+            copy.biomes = biomes.clone();
+            copy.chunk = chunk;
+            copy.count = count.clone();
+            copy.relight = relight.clone();
+        }
+        return copy;
     }
 }

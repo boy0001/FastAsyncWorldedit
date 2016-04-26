@@ -61,7 +61,7 @@ public class DiskOptimizedClipboard extends FaweClipboard {
         try {
             this.raf = new BufferedRandomAccessFile(file, "rw", Settings.BUFFER_SIZE);
             raf.setLength(file.length());
-            long size = (raf.length() - HEADER_SIZE) / 2;
+            long size = (raf.length() - HEADER_SIZE) >> 1;
             raf.seek(0);
             last = -1;
             raf.read(buffer);
@@ -101,6 +101,26 @@ public class DiskOptimizedClipboard extends FaweClipboard {
         return null;
     }
 
+    public DiskOptimizedClipboard(int width, int height, int length, File file) {
+        nbtMap = new HashMap<>();
+        entities = new HashSet<>();
+        this.file = file;
+        this.buffer = new byte[2];
+        this.lastAccessed = System.currentTimeMillis();
+        this.width = width;
+        this.height = height;
+        this.length = length;
+        this.area = width * length;
+        try {
+            if (!file.exists()) {
+                file.getParentFile().mkdirs();
+            }
+            file.createNewFile();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
     @Override
     public void setOrigin(Vector offset) {
         try {
@@ -118,26 +138,6 @@ public class DiskOptimizedClipboard extends FaweClipboard {
             raf.write((byte) (offset.getBlockZ() >> 8));
             raf.write((byte) (offset.getBlockZ()));
         } catch (IOException e) {
-            e.printStackTrace();
-        }
-    }
-
-    public DiskOptimizedClipboard(int width, int height, int length, File file) {
-        nbtMap = new HashMap<>();
-        entities = new HashSet<>();
-        this.file = file;
-        this.buffer = new byte[2];
-        this.lastAccessed = System.currentTimeMillis();
-        this.width = width;
-        this.height = height;
-        this.length = length;
-        this.area = width * length;
-        try {
-            if (!file.exists()) {
-                file.getParentFile().mkdirs();
-            }
-            file.createNewFile();
-        } catch (Exception e) {
             e.printStackTrace();
         }
     }

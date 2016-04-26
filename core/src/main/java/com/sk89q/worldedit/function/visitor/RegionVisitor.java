@@ -33,9 +33,9 @@ import java.util.List;
  */
 public class RegionVisitor implements Operation {
 
-    private final Region region;
-    private final RegionFunction function;
-    private int affected = 0;
+    public final Region region;
+    public final RegionFunction function;
+    public int affected = 0;
 
     public RegionVisitor(Region region, RegionFunction function) {
         this.region = region;

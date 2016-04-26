@@ -3,6 +3,7 @@ dependencies {
     compile 'org.yaml:snakeyaml:1.16'
     compile 'com.google.code.gson:gson:2.2.4'
     compile 'org.PrimeSoft:blockshub:1.2'
+    compile 'net.fabiozumbi12:redprotect:1.9.6'
 }
 
 task deleteTarget {

@@ -26,6 +26,7 @@ import com.sk89q.worldedit.command.BrushCommands;
 import com.sk89q.worldedit.command.ClipboardCommands;
 import com.sk89q.worldedit.command.SchematicCommands;
 import com.sk89q.worldedit.command.ScriptingCommands;
+import com.sk89q.worldedit.command.composition.SelectionCommand;
 import com.sk89q.worldedit.extension.platform.CommandManager;
 import com.sk89q.worldedit.extension.platform.PlatformManager;
 import com.sk89q.worldedit.extent.clipboard.BlockArrayClipboard;
@@ -222,12 +223,23 @@ public class Fawe {
     }
 
     private void setupInjector() {
+        /*
+         * Modify the sessions
+         *  - EditSession supports custom queue and a lot of optimizations
+         *  - LocalSession supports VirtualPlayers and undo on disk
+         */
         EditSession.inject();
-        Operations.inject();
+        LocalSession.inject();
+        // Commands
+        /*
+         *
+         */
         BrushCommands.inject();
         ClipboardCommands.inject();
         SchematicCommands.inject();
         ScriptingCommands.inject();
+        SelectionCommand.inject();
+        // Visitors
         BreadthFirstSearch.inject();
         DownwardVisitor.inject();
         EntityVisitor.inject();
@@ -236,14 +248,20 @@ public class Fawe {
         NonRisingVisitor.inject();
         RecursiveVisitor.inject();
         RegionVisitor.inject();
+        // Entity create/remove
         EntityCreate.inject();
         EntityRemove.inject();
-        LocalSession.inject();
+        // Clipboards
         BlockArrayClipboard.inject();
-        CuboidRegion.inject();
         CuboidClipboard.inject();
+        // Regions
+        CuboidRegion.inject();
+        // Extents
         BlockTransformExtent.inject();
+        // Vector
         Vector.inject();
+        // Operations
+        Operations.inject();
         try {
             CommandManager.inject();
             PlatformManager.inject();
