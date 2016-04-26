@@ -1,6 +1,8 @@
 package com.boydti.fawe.wrappers;
 
 import com.boydti.fawe.Fawe;
+import com.boydti.fawe.object.RunnableVal;
+import com.boydti.fawe.util.TaskManager;
 import com.sk89q.worldedit.EditSession;
 import com.sk89q.worldedit.EditSessionFactory;
 import com.sk89q.worldedit.LocalSession;
@@ -237,8 +239,13 @@ public class PlayerWrapper implements Player {
     }
 
     @Override
-    public boolean passThroughForwardWall(int range) {
-        return parent.passThroughForwardWall(range);
+    public boolean passThroughForwardWall(final int range) {
+        return TaskManager.IMP.sync(new RunnableVal<Boolean>() {
+            @Override
+            public void run(Boolean value) {
+                this.value = parent.passThroughForwardWall(range);
+            }
+        });
     }
 
     @Override

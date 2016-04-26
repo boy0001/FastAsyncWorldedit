@@ -153,6 +153,7 @@ public class LoggingExtent extends AbstractDelegateExtent {
                     this.loc.setY(location.getY());
                     this.loc.setZ(location.getZ());
                     this.api.logBlock(this.playerName, this.world, this.loc, id_p, (byte) 0, id_b, (byte) 0);
+                    break;
                 default:
                     final int data_p = previous.getData();
                     final int data_b = block.getData();
@@ -163,6 +164,7 @@ public class LoggingExtent extends AbstractDelegateExtent {
                     this.loc.setY(location.getY());
                     this.loc.setZ(location.getZ());
                     this.api.logBlock(this.playerName, this.world, this.loc, id_p, (byte) data_p, id_b, (byte) data_b);
+                    break;
             }
             this.changeSet.add(new BlockChange(location.toBlockVector(), previous, block));
             return true;
