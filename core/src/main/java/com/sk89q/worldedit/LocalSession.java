@@ -207,7 +207,7 @@ public class LocalSession {
         }
 
         // Don't store anything if no changes were made
-        if (editSession.size() == 0) return;
+        if (editSession.size() == 0 || editSession.hasFastMode()) return;
 
         // Destroy any sessions after this undo point
         while (historyPointer < history.size()) {
