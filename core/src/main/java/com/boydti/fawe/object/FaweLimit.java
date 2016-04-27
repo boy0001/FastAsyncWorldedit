@@ -52,6 +52,17 @@ public class FaweLimit {
         return changed;
     }
 
+    public FaweLimit copy() {
+        FaweLimit limit = new FaweLimit();
+        limit.MAX_CHANGES = MAX_CHANGES;
+        limit.MAX_BLOCKSTATES = MAX_BLOCKSTATES;
+        limit.MAX_CHECKS = MAX_CHECKS;
+        limit.MAX_ENTITIES = MAX_ENTITIES;
+        limit.MAX_FAILS = MAX_FAILS;
+        limit.MAX_ITERATIONS = MAX_ITERATIONS;
+        return limit;
+    }
+
     @Override
     public String toString() {
         return MAX_CHANGES + "";

@@ -172,11 +172,11 @@ public class EditSession implements Extent {
     public SurvivalModeExtent lazySurvivalExtent;
     public boolean fastmode;
     public Mask oldMask;
-    public FaweLimit limit = FaweLimit.MAX;
+    public FaweLimit limit = FaweLimit.MAX.copy();
     public FaweQueue queue;
 
     public static BaseBiome nullBiome = new BaseBiome(0);
-    public static BaseBlock nullBlock = new BaseBlock(0);
+    public static BaseBlock nullBlock = FaweCache.CACHE_BLOCK[0];
 
     /**
      * Create a new instance.
@@ -720,8 +720,9 @@ public class EditSession implements Extent {
      * @return whether the block changed
      */
     public boolean rawSetBlock(final Vector position, final BaseBlock block) {
+        this.changes++;
         try {
-            return this.setBlock(position, block, Stage.BEFORE_CHANGE);
+            return this.bypassHistory.setBlock(position, block);
         } catch (final WorldEditException e) {
             throw new RuntimeException("Unexpected exception", e);
         }
@@ -735,8 +736,9 @@ public class EditSession implements Extent {
      * @return whether the block changed
      */
     public boolean smartSetBlock(final Vector position, final BaseBlock block) {
+        this.changes++;
         try {
-            return this.setBlock(position, block, Stage.BEFORE_REORDER);
+            return this.bypassReorderHistory.setBlock(position, block);
         } catch (final WorldEditException e) {
             throw new RuntimeException("Unexpected exception", e);
         }
@@ -744,8 +746,9 @@ public class EditSession implements Extent {
 
     @Override
     public boolean setBlock(final Vector position, final BaseBlock block) throws MaxChangedBlocksException {
+        this.changes++;
         try {
-            return this.setBlock(position, block, Stage.BEFORE_HISTORY);
+            return this.bypassNone.setBlock(position, block);
         } catch (final MaxChangedBlocksException e) {
             throw e;
         } catch (final WorldEditException e) {

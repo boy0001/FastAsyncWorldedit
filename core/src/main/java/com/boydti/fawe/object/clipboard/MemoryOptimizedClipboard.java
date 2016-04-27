@@ -34,9 +34,14 @@ public class MemoryOptimizedClipboard extends FaweClipboard {
         entities = new HashSet<>();
     }
 
+    private int ylast;
+    private int ylasti;
+    private int zlast;
+    private int zlasti;
+
     @Override
     public BaseBlock getBlock(int x, int y, int z) {
-        int i = x + z * width + (y >> 4) * area;
+        int i = x + ((ylast == y) ? ylasti : (ylasti = ((ylast = y) >> 4) * area)) + ((zlast == z) ? zlasti : (zlasti = (zlast = z) * width));
         byte[] idArray = ids[i];
         if (idArray == null) {
             return FaweCache.CACHE_BLOCK[0];
@@ -69,7 +74,7 @@ public class MemoryOptimizedClipboard extends FaweClipboard {
         final int id = block.getId();
         switch (id) {
             case 0: {
-                int i = x + z * width + (y >> 4) * area;
+                int i = x + ((ylast == y) ? ylasti : (ylasti = ((ylast = y) >> 4) * area)) + ((zlast == z) ? zlasti : (zlasti = (zlast = z) * width));
                 byte[] idArray = ids[i];
                 if (idArray != null) {
                     int y2 = y & 0xF;
@@ -116,7 +121,7 @@ public class MemoryOptimizedClipboard extends FaweClipboard {
                 if (block.hasNbtData()) {
                     nbtMap.put(new IntegerTrio(x, y, z), block.getNbtData());
                 }
-                int i = x + z * width + (y >> 4) * area;
+                int i = x + ((ylast == y) ? ylasti : (ylasti = ((ylast = y) >> 4) * area)) + ((zlast == z) ? zlasti : (zlasti = (zlast = z) * width));
                 int y2 = y & 0xF;
                 byte[] idArray = ids[i];
                 if (idArray == null) {
@@ -205,7 +210,7 @@ public class MemoryOptimizedClipboard extends FaweClipboard {
             case 190:
             case 191:
             case 192: {
-                int i = x + z * width + (y >> 4) * area;
+                int i = x + ((ylast == y) ? ylasti : (ylasti = ((ylast = y) >> 4) * area)) + ((zlast == z) ? zlasti : (zlasti = (zlast = z) * width));
                 int y2 = y & 0xF;
                 byte[] idArray = ids[i];
                 if (idArray == null) {
@@ -216,7 +221,7 @@ public class MemoryOptimizedClipboard extends FaweClipboard {
                 return true;
             }
             default: {
-                int i = x + z * width + (y >> 4) * area;
+                int i = x + ((ylast == y) ? ylasti : (ylasti = ((ylast = y) >> 4) * area)) + ((zlast == z) ? zlasti : (zlasti = (zlast = z) * width));
                 int y2 = y & 0xF;
                 byte[] idArray = ids[i];
                 if (idArray == null) {

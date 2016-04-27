@@ -36,7 +36,7 @@ public class Settings {
     public static int QUEUE_DISCARD_AFTER = 60000;
     public static List<String> ALLOWED_3RDPARTY_EXTENTS;
     public static boolean EXTENT_DEBUG = true;
-
+    public static int UNSAFE_PARALLEL_THREADS = 1;
     public static boolean FIX_ALL_LIGHTING = true;
     public static boolean ASYNC_LIGHTING = true;
 
@@ -94,6 +94,7 @@ public class Settings {
         options.put("history.buffer-size", BUFFER_SIZE);
         options.put("history.delete-after-days", DELETE_HISTORY_AFTER_DAYS);
         options.put("region-restrictions", REGION_RESTRICTIONS);
+        options.put("queue.parallel-threads", UNSAFE_PARALLEL_THREADS);
         options.put("queue.extra-time-ms", ALLOCATE);
         options.put("queue.target-size", QUEUE_SIZE);
         options.put("queue.max-wait-ms", QUEUE_MAX_WAIT);
@@ -134,6 +135,7 @@ public class Settings {
         ALLOCATE = config.getInt("queue.extra-time-ms");
         QUEUE_SIZE = config.getInt("queue.target-size");
         QUEUE_MAX_WAIT = config.getInt("queue.max-wait-ms");
+        UNSAFE_PARALLEL_THREADS = config.getInt("queue.parallel-threads");
         QUEUE_DISCARD_AFTER = config.getInt("queue.discard-after-ms");
         ALLOWED_3RDPARTY_EXTENTS = config.getStringList("extent.allowed-plugins");
         EXTENT_DEBUG = config.getBoolean("extent.debug");

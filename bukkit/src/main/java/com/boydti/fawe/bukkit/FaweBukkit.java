@@ -190,6 +190,16 @@ public class FaweBukkit extends JavaPlugin implements IFawe, Listener {
     @Override
     public FaweQueue getNewQueue(String world) {
         try {
+            Field fieldDirtyCount = ReflectionUtils.getRefClass("{nms}.PlayerChunk").getField("dirtyCount").getRealField();
+            fieldDirtyCount.setAccessible(true);
+            int mod = fieldDirtyCount.getModifiers();
+            if ((mod & Modifier.VOLATILE) == 0) {
+                Field modifiersField = Field.class.getDeclaredField("modifiers");
+                modifiersField.setAccessible(true);
+                modifiersField.setInt(fieldDirtyCount, mod + Modifier.VOLATILE);
+            }
+        } catch (Throwable ignore) {}
+        try {
             if (FaweAPI.checkVersion(this.getVersion(), 1, 9, 0)) {
                 try {
                     return new BukkitQueue_1_9_R1(world);
@@ -205,18 +215,6 @@ public class FaweBukkit extends JavaPlugin implements IFawe, Listener {
             return new BukkitQueue_1_8(world);
         } catch (Throwable ignore) {}
         if (hasNMS) {
-            try {
-                Field fieldDirtyCount = ReflectionUtils.getRefClass("{nms}.PlayerChunk").getField("dirtyCount").getRealField();
-                fieldDirtyCount.setAccessible(true);
-                int mod = fieldDirtyCount.getModifiers();
-                if ((mod & Modifier.VOLATILE) == 0) {
-                    Field modifiersField = Field.class.getDeclaredField("modifiers");
-                    modifiersField.setAccessible(true);
-                    modifiersField.setInt(fieldDirtyCount, mod + Modifier.VOLATILE);
-                }
-            } catch (Throwable e) {
-                e.printStackTrace();
-            }
             debug("====== NO NMS BLOCK PLACER FOUND ======");
             debug("FAWE couldn't find a fast block placer");
             debug("Bukkit version: " + Bukkit.getVersion());

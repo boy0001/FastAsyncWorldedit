@@ -203,14 +203,19 @@ public class DiskOptimizedClipboard extends FaweClipboard {
         }, 200);
     }
 
+    private int ylast;
+    private int ylasti;
+    private int zlast;
+    private int zlasti;
+
+
     @Override
     public BaseBlock getBlock(int x, int y, int z) {
         try {
             if (raf == null) {
                 open();
             }
-            lastAccessed = System.currentTimeMillis();
-            int i = x + z * width + y * area;
+            int i = x + ((ylast == y) ? ylasti : (ylasti = ((ylast = y)) * area)) + ((zlast == z) ? zlasti : (zlasti = (zlast = z) * width));
             if (i != last + 1) {
                 raf.seek((HEADER_SIZE) + (i << 1));
             }
@@ -244,7 +249,7 @@ public class DiskOptimizedClipboard extends FaweClipboard {
                 open();
             }
             lastAccessed = System.currentTimeMillis();
-            int i = x + z * width + y * area;
+            int i = x + ((ylast == y) ? ylasti : (ylasti = ((ylast = y)) * area)) + ((zlast == z) ? zlasti : (zlasti = (zlast = z) * width));
             if (i != last + 1) {
                 raf.seek((HEADER_SIZE) + (i << 1));
             }

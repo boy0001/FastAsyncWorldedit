@@ -169,6 +169,10 @@ public class BlockArrayClipboard implements Clipboard {
         return EditSession.nullBlock;
     }
 
+    public BaseBlock getBlockAbs(int x, int y, int z) {
+        return IMP.getBlock(x, y, z);
+    }
+
     @Override
     public BaseBlock getLazyBlock(Vector position) {
         return getBlock(position);

@@ -19,14 +19,6 @@
 
 package com.sk89q.worldedit.command.composition;
 
-import com.boydti.fawe.object.FaweChunk;
-import com.boydti.fawe.object.FawePlayer;
-import com.boydti.fawe.object.NullChangeSet;
-import com.boydti.fawe.object.RegionWrapper;
-import com.boydti.fawe.object.RunnableVal;
-import com.boydti.fawe.util.FaweQueue;
-import com.boydti.fawe.util.MainUtil;
-import com.boydti.fawe.util.WEManager;
 import com.google.common.base.Joiner;
 import com.google.common.collect.Lists;
 import com.sk89q.minecraft.util.commands.CommandException;
@@ -36,25 +28,16 @@ import com.sk89q.worldedit.EditSession;
 import com.sk89q.worldedit.IncompleteRegionException;
 import com.sk89q.worldedit.LocalSession;
 import com.sk89q.worldedit.WorldEdit;
-import com.sk89q.worldedit.blocks.BaseBlock;
 import com.sk89q.worldedit.entity.Player;
 import com.sk89q.worldedit.extension.platform.Actor;
 import com.sk89q.worldedit.function.Contextual;
 import com.sk89q.worldedit.function.EditContext;
-import com.sk89q.worldedit.function.RegionFunction;
-import com.sk89q.worldedit.function.block.BlockReplace;
 import com.sk89q.worldedit.function.operation.Operation;
 import com.sk89q.worldedit.function.operation.Operations;
-import com.sk89q.worldedit.function.pattern.BlockPattern;
-import com.sk89q.worldedit.function.pattern.Pattern;
-import com.sk89q.worldedit.function.visitor.RegionVisitor;
-import com.sk89q.worldedit.regions.CuboidRegion;
 import com.sk89q.worldedit.regions.Region;
 import com.sk89q.worldedit.util.command.argument.CommandArgs;
 import com.sk89q.worldedit.util.command.composition.CommandExecutor;
 import com.sk89q.worldedit.util.command.composition.SimpleCommand;
-import java.lang.reflect.Field;
-import java.util.HashSet;
 import java.util.List;
 
 
@@ -99,60 +82,60 @@ public class SelectionCommand extends SimpleCommand<Operation> {
                 Operation operation = operationFactory.createFromContext(editContext);
 
                 // Shortcut
-                if (selection instanceof CuboidRegion && editSession.hasFastMode() && operation instanceof RegionVisitor) {
-                    CuboidRegion cuboid = (CuboidRegion) selection;
-                    RegionFunction function = ((RegionVisitor) operation).function;
-                    RegionWrapper current = new RegionWrapper(cuboid.getMinimumPoint(), cuboid.getMaximumPoint());
-                    FawePlayer fp = FawePlayer.wrap(player);
-                    HashSet<RegionWrapper> mask = WEManager.IMP.getMask(fp);
-
-                    if (function instanceof BlockReplace && mask.size() == 1 && mask.iterator().next().contains(current)) {
-                        try {
-                            BlockReplace replace = ((BlockReplace) function);
-                            Field field = replace.getClass().getDeclaredField("pattern");
-                            field.setAccessible(true);
-                            Pattern pattern = (Pattern) field.get(replace);
-                            if (pattern instanceof BlockPattern) {
-                                BaseBlock block = ((BlockPattern) pattern).getBlock();
-                                final FaweQueue queue = editSession.getQueue();
-                                final int minY = cuboid.getMinimumY();
-                                final int maxY = cuboid.getMaximumY();
-
-                                final int id = block.getId();
-                                final byte data = (byte) block.getData();
-                                final FaweChunk<?> fc = queue.getChunk(0, 0);
-                                fc.fillCuboid(0, 15, minY, maxY, 0, 15, id, data);
-
-                                int bcx = (current.minX) >>  4;
-                                int bcz = (current.minZ) >>  4;
-
-                                int tcx = (current.maxX) >>  4;
-                                int tcz = (current.maxZ) >>  4;
-                                // [chunkx, chunkz, pos1x, pos1z, pos2x, pos2z, isedge]
-                                MainUtil.chunkTaskSync(current, new RunnableVal<int[]>() {
-                                    @Override
-                                    public void run(int[] value) {
-                                        FaweChunk newChunk;
-                                        if (value[6] == 0) {
-                                            newChunk = fc.copy(true);
-                                            newChunk.setLoc(queue, value[0], value[1]);
-                                        } else {
-                                            newChunk = queue.getChunk(value[0], value[1]);
-                                            newChunk.fillCuboid(value[2] & 15, value[4] & 15, minY, maxY, value[3] & 15, value[5] & 15, id, data);
-                                        }
-                                        newChunk.addToQueue();
-                                    }
-                                });
-                                queue.enqueue();
-                                editSession.setChangeSet(new NullChangeSet());
-                                actor.print("[FAWE] Finished queueing " + cuboid.getArea() + " blocks.");
-                                return null;
-                            }
-                        } catch (Throwable e) {
-                            e.printStackTrace();
-                        }
-                    }
-                }
+//                if (selection instanceof CuboidRegion && editSession.hasFastMode() && operation instanceof RegionVisitor) {
+//                    CuboidRegion cuboid = (CuboidRegion) selection;
+//                    RegionFunction function = ((RegionVisitor) operation).function;
+//                    RegionWrapper current = new RegionWrapper(cuboid.getMinimumPoint(), cuboid.getMaximumPoint());
+//                    FawePlayer fp = FawePlayer.wrap(player);
+//                    HashSet<RegionWrapper> mask = WEManager.IMP.getMask(fp);
+//
+//                    if (function instanceof BlockReplace && mask.size() == 1 && mask.iterator().next().contains(current)) {
+//                        try {
+//                            BlockReplace replace = ((BlockReplace) function);
+//                            Field field = replace.getClass().getDeclaredField("pattern");
+//                            field.setAccessible(true);
+//                            Pattern pattern = (Pattern) field.get(replace);
+//                            if (pattern instanceof BlockPattern) {
+//                                BaseBlock block = ((BlockPattern) pattern).getBlock();
+//                                final FaweQueue queue = editSession.getQueue();
+//                                final int minY = cuboid.getMinimumY();
+//                                final int maxY = cuboid.getMaximumY();
+//
+//                                final int id = block.getId();
+//                                final byte data = (byte) block.getData();
+//                                final FaweChunk<?> fc = queue.getChunk(0, 0);
+//                                fc.fillCuboid(0, 15, minY, maxY, 0, 15, id, data);
+//
+//                                int bcx = (current.minX) >>  4;
+//                                int bcz = (current.minZ) >>  4;
+//
+//                                int tcx = (current.maxX) >>  4;
+//                                int tcz = (current.maxZ) >>  4;
+//                                // [chunkx, chunkz, pos1x, pos1z, pos2x, pos2z, isedge]
+//                                MainUtil.chunkTaskSync(current, new RunnableVal<int[]>() {
+//                                    @Override
+//                                    public void run(int[] value) {
+//                                        FaweChunk newChunk;
+//                                        if (value[6] == 0) {
+//                                            newChunk = fc.copy(true);
+//                                            newChunk.setLoc(queue, value[0], value[1]);
+//                                        } else {
+//                                            newChunk = queue.getChunk(value[0], value[1]);
+//                                            newChunk.fillCuboid(value[2] & 15, value[4] & 15, minY, maxY, value[3] & 15, value[5] & 15, id, data);
+//                                        }
+//                                        newChunk.addToQueue();
+//                                    }
+//                                });
+//                                queue.enqueue();
+//                                editSession.setChangeSet(new NullChangeSet());
+//                                actor.print("[FAWE] Finished queueing " + cuboid.getArea() + " blocks.");
+//                                return null;
+//                            }
+//                        } catch (Throwable e) {
+//                            e.printStackTrace();
+//                        }
+//                    }
+//                }
                 Operations.completeBlindly(operation);
 
                 List<String> messages = Lists.newArrayList();
