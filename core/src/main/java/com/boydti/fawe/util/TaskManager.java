@@ -48,15 +48,20 @@ public abstract class TaskManager {
         if (async) {
             async(r);
         } else {
-            if (Fawe.get().getMainThread() == Thread.currentThread()) {
-                if (r != null) {
-                    r.run();
-                }
-            } else {
-                task(r);
-            }
+            r.run();
         }
     }
+
+    public void sync(final Runnable r, boolean async) {
+        if (async) {
+            async(r);
+        } else if (r != null && Thread.currentThread() == Fawe.get().getMainThread()){
+            r.run();
+        } else {
+            task(r);
+        }
+    }
+
 
     /**
      * Run a task later on the main thread

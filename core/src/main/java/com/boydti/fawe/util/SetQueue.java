@@ -4,8 +4,6 @@ import com.boydti.fawe.Fawe;
 import com.boydti.fawe.config.Settings;
 import com.boydti.fawe.object.FaweChunk;
 import com.boydti.fawe.object.RunnableVal2;
-import java.lang.reflect.Field;
-import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.LinkedBlockingDeque;
@@ -55,6 +53,7 @@ public class SetQueue {
             @Override
             public void run() {
                 if (inactiveQueues.size() == 0 && activeQueues.size() == 0) {
+                    lastSuccess = System.currentTimeMillis();
                     tasks();
                     return;
                 }
@@ -81,21 +80,11 @@ public class SetQueue {
                     return;
                 }
                 if (Settings.UNSAFE_PARALLEL_THREADS <= 1) {
+                    SET_TASK.value2.startSet(false);
                     SET_TASK.run();
+                    SET_TASK.value2.endSet(false);
                 } else {
-                    boolean timingsEnabled = true;
-                    try {
-                        Field fieldEnabled = Class.forName("co.aikar.timings.Timings").getDeclaredField("timingsEnabled");
-                        fieldEnabled.setAccessible(true);
-                        timingsEnabled = (boolean) fieldEnabled.get(null);
-                        if (timingsEnabled) {
-                            fieldEnabled.set(null, false);
-                            Method methodCheck = Class.forName("co.aikar.timings.TimingsManager").getDeclaredMethod("recheckEnabled");
-                            methodCheck.setAccessible(true);
-                            methodCheck.invoke(null);
-                        }
-                    } catch (Throwable ignore) {ignore.printStackTrace();}
-                    try { Class.forName("org.spigotmc.AsyncCatcher").getField("enabled").set(null, false); } catch (Throwable ignore) {}
+                    SET_TASK.value2.startSet(true);
                     ArrayList<Thread> threads = new ArrayList<Thread>();
                     for (int i = 0; i < Settings.UNSAFE_PARALLEL_THREADS; i++) {
                         threads.add(new Thread(SET_TASK));
@@ -110,9 +99,7 @@ public class SetQueue {
                             e.printStackTrace();
                         }
                     }
-                    try {Field fieldEnabled = Class.forName("co.aikar.timings.Timings").getDeclaredField("timingsEnabled");fieldEnabled.setAccessible(true);fieldEnabled.set(null, timingsEnabled);
-                    } catch (Throwable ignore) {ignore.printStackTrace();}
-                    try { Class.forName("org.spigotmc.AsyncCatcher").getField("enabled").set(null, true); } catch (Throwable ignore) {}
+                    SET_TASK.value2.endSet(true);
                 }
             }
         }, 1);
@@ -120,7 +107,14 @@ public class SetQueue {
 
     public void enqueue(FaweQueue queue) {
         inactiveQueues.remove(queue);
-        activeQueues.add(queue);
+        if (queue.size() > 0 && !activeQueues.contains(queue)) {
+            activeQueues.add(queue);
+        }
+    }
+
+    public void dequeue(FaweQueue queue) {
+        inactiveQueues.remove(queue);
+        activeQueues.remove(queue);
     }
 
     public List<FaweQueue> getAllQueues() {
@@ -150,6 +144,7 @@ public class SetQueue {
         while (activeQueues.size() > 0) {
             FaweQueue queue = activeQueues.peek();
             if (queue != null && queue.size() > 0) {
+                queue.modified = System.currentTimeMillis();
                 return queue;
             } else {
                 activeQueues.poll();
@@ -157,25 +152,21 @@ public class SetQueue {
         }
         if (inactiveQueues.size() > 0) {
             ArrayList<FaweQueue> tmp = new ArrayList<>(inactiveQueues);
-            if (Settings.QUEUE_MAX_WAIT != -1) {
+            if (Settings.QUEUE_MAX_WAIT >= 0) {
                 long now = System.currentTimeMillis();
-                if (lastSuccess == 0) {
-                    lastSuccess = now;
-                }
-                long diff = now - lastSuccess;
-                if (diff > Settings.QUEUE_MAX_WAIT) {
-                    for (FaweQueue queue : tmp) {
-                        if (queue != null && queue.size() > 0) {
-                            return queue;
-                        } else {
-                            activeQueues.poll();
+                if (lastSuccess != 0) {
+                    long diff = now - lastSuccess;
+                    if (diff > Settings.QUEUE_MAX_WAIT) {
+                        for (FaweQueue queue : tmp) {
+                            if (queue != null && queue.size() > 0) {
+                                queue.modified = now;
+                                return queue;
+                            } else if (now - queue.modified > Settings.QUEUE_DISCARD_AFTER) {
+                                inactiveQueues.remove(queue);
+                            }
                         }
+                        return null;
                     }
-                    if (diff > Settings.QUEUE_DISCARD_AFTER) {
-                        // These edits never finished
-                        inactiveQueues.clear();
-                    }
-                    return null;
                 }
             }
             if (Settings.QUEUE_SIZE != -1) {
@@ -186,9 +177,8 @@ public class SetQueue {
                 if (total > Settings.QUEUE_SIZE) {
                     for (FaweQueue queue : tmp) {
                         if (queue != null && queue.size() > 0) {
+                            queue.modified = System.currentTimeMillis();
                             return queue;
-                        } else {
-                            activeQueues.poll();
                         }
                     }
                 }

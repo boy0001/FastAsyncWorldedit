@@ -119,7 +119,7 @@ public class SpongeQueue_1_8 extends SpongeQueue_0 {
             @Override
             public void run() {
                 final boolean result = fixLighting(fc, Settings.FIX_ALL_LIGHTING) || !Settings.ASYNC_LIGHTING;
-                TaskManager.IMP.task(new Runnable() {
+                TaskManager.IMP.sync(new Runnable() {
                     @Override
                     public void run() {
                         if (!result) {

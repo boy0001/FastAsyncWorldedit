@@ -45,8 +45,6 @@ import org.bukkit.generator.ChunkGenerator;
 
 public class BukkitQueue_1_9_R1 extends BukkitQueue_All {
 
-    private IBlockData air = Block.getByCombinedId(0);
-
     public BukkitQueue_1_9_R1(final String world) throws NoSuchMethodException, RuntimeException {
         super(world);
     }
@@ -87,7 +85,7 @@ public class BukkitQueue_1_9_R1 extends BukkitQueue_All {
             @Override
             public void run() {
                 final boolean result = fixLighting(fc, Settings.FIX_ALL_LIGHTING) || !Settings.ASYNC_LIGHTING;
-                TaskManager.IMP.task(new Runnable() {
+                TaskManager.IMP.sync(new Runnable() {
                     @Override
                     public void run() {
                         if (!result) {
@@ -304,7 +302,6 @@ public class BukkitQueue_1_9_R1 extends BukkitQueue_All {
                     continue;
                 }
                 DataPaletteBlock nibble = section.getBlocks();
-
                 Field fieldBits = nibble.getClass().getDeclaredField("b");
                 fieldBits.setAccessible(true);
                 DataBits bits = (DataBits) fieldBits.get(nibble);
@@ -424,12 +421,7 @@ public class BukkitQueue_1_9_R1 extends BukkitQueue_All {
                 }
             }
         }
-        TaskManager.IMP.later(new Runnable() {
-            @Override
-            public void run() {
-                sendChunk(fs);
-            }
-        }, 1);
+        sendChunk(fs);
         return true;
     }
 

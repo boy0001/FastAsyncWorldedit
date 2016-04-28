@@ -2,7 +2,11 @@ package com.boydti.fawe.object.clipboard;
 
 import com.boydti.fawe.FaweCache;
 import com.boydti.fawe.object.IntegerTrio;
+import com.boydti.fawe.object.RunnableVal2;
 import com.sk89q.jnbt.CompoundTag;
+import com.sk89q.worldedit.BlockVector;
+import com.sk89q.worldedit.EditSession;
+import com.sk89q.worldedit.Vector;
 import com.sk89q.worldedit.blocks.BaseBlock;
 import com.sk89q.worldedit.entity.BaseEntity;
 import com.sk89q.worldedit.entity.Entity;
@@ -67,6 +71,63 @@ public class MemoryOptimizedClipboard extends FaweClipboard {
             }
         }
         return block;
+    }
+
+    @Override
+    public void forEach(final RunnableVal2<Vector,BaseBlock> task, boolean air) {
+        BlockVector pos = new BlockVector(0, 0, 0);
+        int y1max = ((height + 15) >>  4);
+        for (int x = 0; x < width; x++) {
+            int i1 = x;
+            for (int z = 0; z < length; z++) {
+                int i2 = i1 + z * width;
+                for (int y = 0; y < y1max; y++) {
+                    int y1 = y << 4;
+                    int i = i2 + y * area;
+                    byte[] idArray = ids[i];
+                    if (idArray == null) {
+                        if (!air) {
+                            continue;
+                        }
+                        for (int y2 = 0; y2 < 16; y2++) {
+                            pos.x = x;
+                            pos.z = z;
+                            pos.y = y1 + y2;
+                            task.run(pos, EditSession.nullBlock);
+                        }
+                        continue;
+                    }
+                    for (int y2 = 0; y2 < idArray.length; y2++) {
+                        int id = idArray[y2] & 0xFF;
+                        if (id == 0 && !air) {
+                            continue;
+                        }
+                        pos.x = x;
+                        pos.z = z;
+                        pos.y = y1 + y2;
+                        BaseBlock block;
+                        if (!FaweCache.hasData(id) || datas == null) {
+                            block = FaweCache.CACHE_BLOCK[id << 4];
+                        } else {
+                            byte[] dataArray = datas[i];
+                            if (dataArray == null) {
+                                block = FaweCache.CACHE_BLOCK[id << 4];
+                            } else {
+                                block = FaweCache.CACHE_BLOCK[(id << 4) + dataArray[y2]];
+                            }
+                        }
+                        if (FaweCache.hasNBT(id)) {
+                            CompoundTag nbt = nbtMap.get(new IntegerTrio((int) pos.x, (int) pos.y, (int) pos.z));
+                            if (nbt != null) {
+                                block = new BaseBlock(block.getId(), block.getData());
+                                block.setNbtData(nbt);
+                            }
+                        }
+                        task.run(pos, block);
+                    }
+                }
+            }
+        }
     }
 
     @Override

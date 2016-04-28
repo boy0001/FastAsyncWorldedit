@@ -13,6 +13,8 @@ import com.sk89q.worldedit.LocalWorld;
 import com.sk89q.worldedit.Vector2D;
 import com.sk89q.worldedit.bukkit.BukkitUtil;
 import com.sk89q.worldedit.world.biome.BaseBiome;
+import java.lang.reflect.Field;
+import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Collection;
 import org.bukkit.Bukkit;
@@ -53,6 +55,35 @@ public class BukkitQueue_All extends BukkitQueue_0 {
     public void onItemSpawn(ItemSpawnEvent event) {
         if (physicsFreeze) {
             event.setCancelled(true);
+        }
+    }
+
+    private volatile boolean timingsEnabled;
+
+    @Override
+    public void startSet(boolean parallel) {
+        if (parallel) {
+            try {
+                Field fieldEnabled = Class.forName("co.aikar.timings.Timings").getDeclaredField("timingsEnabled");
+                fieldEnabled.setAccessible(true);
+                timingsEnabled = (boolean) fieldEnabled.get(null);
+                if (timingsEnabled) {
+                    fieldEnabled.set(null, false);
+                    Method methodCheck = Class.forName("co.aikar.timings.TimingsManager").getDeclaredMethod("recheckEnabled");
+                    methodCheck.setAccessible(true);
+                    methodCheck.invoke(null);
+                }
+            } catch (Throwable ignore) {}
+            try { Class.forName("org.spigotmc.AsyncCatcher").getField("enabled").set(null, false); } catch (Throwable ignore) {}
+        }
+    }
+
+    @Override
+    public void endSet(boolean parallel) {
+        if (parallel) {
+            try {Field fieldEnabled = Class.forName("co.aikar.timings.Timings").getDeclaredField("timingsEnabled");fieldEnabled.setAccessible(true);fieldEnabled.set(null, timingsEnabled);
+            } catch (Throwable ignore) {ignore.printStackTrace();}
+            try { Class.forName("org.spigotmc.AsyncCatcher").getField("enabled").set(null, true); } catch (Throwable ignore) {}
         }
     }
 

@@ -1,5 +1,6 @@
 package com.boydti.fawe.object.clipboard;
 
+import com.boydti.fawe.object.RunnableVal2;
 import com.sk89q.worldedit.Vector;
 import com.sk89q.worldedit.blocks.BaseBlock;
 import com.sk89q.worldedit.entity.BaseEntity;
@@ -24,6 +25,8 @@ public abstract class FaweClipboard {
     public abstract boolean remove(ClipboardEntity clipboardEntity);
 
     public void setOrigin(Vector offset) {} // Do nothing
+
+    public abstract void forEach(final RunnableVal2<Vector,BaseBlock> task, boolean air);
 
     /**
      * Stores entity data.

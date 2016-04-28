@@ -14,6 +14,7 @@ public abstract class FaweQueue {
 
     public final String world;
     public LinkedBlockingDeque<EditSession> sessions;
+    public long modified = System.currentTimeMillis();
 
     public FaweQueue(String world) {
         this.world = world;
@@ -46,6 +47,10 @@ public abstract class FaweQueue {
     public abstract boolean isChunkLoaded(final int x, final int z);
 
     public abstract boolean regenerateChunk(int x, int z);
+
+    public void startSet(boolean parallel) {}
+
+    public void endSet(boolean parallel) {}
 
     /**
      * Gets the FaweChunk and sets the requested blocks

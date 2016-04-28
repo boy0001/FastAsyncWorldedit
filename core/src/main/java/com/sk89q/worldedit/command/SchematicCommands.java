@@ -98,48 +98,37 @@ public class SchematicCommands {
             player.printError("Unknown schematic format: " + formatName);
             return;
         }
+        final Closer closer = Closer.create();
+        try {
+            final String filePath = f.getCanonicalPath();
+            final String dirPath = dir.getCanonicalPath();
 
-        SetQueue.IMP.addTask(new Runnable() {
-            @Override
-            public void run() {
-                TaskManager.IMP.async(new Runnable() {
-                    @Override
-                    public void run() {
-                        final Closer closer = Closer.create();
-                        try {
-                            final String filePath = f.getCanonicalPath();
-                            final String dirPath = dir.getCanonicalPath();
+            if (!filePath.substring(0, dirPath.length()).equals(dirPath)) {
+                player.printError("Clipboard file could not read or it does not exist.");
+            } else {
+                final FileInputStream fis = closer.register(new FileInputStream(f));
+                final BufferedInputStream bis = closer.register(new BufferedInputStream(fis));
+                final ClipboardReader reader = format.getReader(bis);
 
-                            if (!filePath.substring(0, dirPath.length()).equals(dirPath)) {
-                                player.printError("Clipboard file could not read or it does not exist.");
-                            } else {
-                                final FileInputStream fis = closer.register(new FileInputStream(f));
-                                final BufferedInputStream bis = closer.register(new BufferedInputStream(fis));
-                                final ClipboardReader reader = format.getReader(bis);
-
-                                final WorldData worldData = player.getWorld().getWorldData();
-                                final Clipboard clipboard;
-                                if (reader instanceof SchematicReader) {
-                                    clipboard = ((SchematicReader) reader).read(player.getWorld().getWorldData(), player.getUniqueId());
-                                } else {
-                                    clipboard = reader.read(player.getWorld().getWorldData());
-                                }
-                                session.setClipboard(new ClipboardHolder(clipboard, worldData));
-                                log.info(player.getName() + " loaded " + filePath);
-                                player.print(filename + " loaded. Paste it with //paste");
-                            }
-                        } catch (final IOException e) {
-                            player.printError("Schematic could not read or it does not exist: " + e.getMessage());
-                            log.log(Level.WARNING, "Failed to load a saved clipboard", e);
-                        } finally {
-                            try {
-                                closer.close();
-                            } catch (final IOException ignored) {}
-                        }
-                    }
-                });
+                final WorldData worldData = player.getWorld().getWorldData();
+                final Clipboard clipboard;
+                if (reader instanceof SchematicReader) {
+                    clipboard = ((SchematicReader) reader).read(player.getWorld().getWorldData(), player.getUniqueId());
+                } else {
+                    clipboard = reader.read(player.getWorld().getWorldData());
+                }
+                session.setClipboard(new ClipboardHolder(clipboard, worldData));
+                log.info(player.getName() + " loaded " + filePath);
+                player.print(filename + " loaded. Paste it with //paste");
             }
-        });
+        } catch (final IOException e) {
+            player.printError("Schematic could not read or it does not exist: " + e.getMessage());
+            log.log(Level.WARNING, "Failed to load a saved clipboard", e);
+        } finally {
+            try {
+                closer.close();
+            } catch (final IOException ignored) {}
+        }
     }
 
     @Command(aliases = { "save" }, usage = "[<format>] <filename>", desc = "Save a schematic into your clipboard")

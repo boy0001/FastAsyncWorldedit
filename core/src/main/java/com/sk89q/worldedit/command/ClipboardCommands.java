@@ -19,6 +19,7 @@
 
 package com.sk89q.worldedit.command;
 
+import com.boydti.fawe.object.RunnableVal2;
 import com.boydti.fawe.object.clipboard.LazyClipboard;
 import com.sk89q.minecraft.util.commands.Command;
 import com.sk89q.minecraft.util.commands.CommandPermissions;
@@ -26,6 +27,7 @@ import com.sk89q.minecraft.util.commands.Logging;
 import com.sk89q.worldedit.BlockVector;
 import com.sk89q.worldedit.EditSession;
 import com.sk89q.worldedit.LocalSession;
+import com.sk89q.worldedit.MaxChangedBlocksException;
 import com.sk89q.worldedit.Vector;
 import com.sk89q.worldedit.WorldEdit;
 import com.sk89q.worldedit.WorldEditException;
@@ -38,11 +40,13 @@ import com.sk89q.worldedit.extent.clipboard.Clipboard;
 import com.sk89q.worldedit.function.block.BlockReplace;
 import com.sk89q.worldedit.function.mask.Mask;
 import com.sk89q.worldedit.function.operation.ForwardExtentCopy;
+import com.sk89q.worldedit.function.operation.Operation;
 import com.sk89q.worldedit.function.operation.Operations;
 import com.sk89q.worldedit.function.pattern.Pattern;
 import com.sk89q.worldedit.internal.annotation.Direction;
 import com.sk89q.worldedit.internal.annotation.Selection;
 import com.sk89q.worldedit.math.transform.AffineTransform;
+import com.sk89q.worldedit.math.transform.Transform;
 import com.sk89q.worldedit.regions.CuboidRegion;
 import com.sk89q.worldedit.regions.Region;
 import com.sk89q.worldedit.regions.RegionSelector;
@@ -109,6 +113,19 @@ public class ClipboardCommands {
             @Override
             public List<? extends Entity> getEntities() {
                 return editSession.getEntities(region);
+            }
+
+            @Override
+            public void forEach(RunnableVal2<Vector, BaseBlock> task, boolean air) {
+                Iterator<BlockVector> iter = region.iterator();
+                while (iter.hasNext()) {
+                    BlockVector pos = iter.next();
+                    BaseBlock block = getBlock((int) pos.x, (int) pos.y, (int) pos.z);
+                    if (!air && block == EditSession.nullBlock) {
+                        continue;
+                    }
+                    task.run(pos, block);
+                }
             }
         };
 
@@ -198,13 +215,63 @@ public class ClipboardCommands {
     )
     @CommandPermissions("worldedit.clipboard.paste")
     @Logging(PLACEMENT)
-    public void paste(Player player, LocalSession session, EditSession editSession,
+    public void paste(Player player, LocalSession session, final EditSession editSession,
+                      @Switch('a') boolean ignoreAirBlocks, @Switch('o') boolean atOrigin,
+                      @Switch('s') boolean selectPasted) throws WorldEditException {
+        ClipboardHolder holder = session.getClipboard();
+        if (holder.getTransform().isIdentity()) {
+            place(player, session, editSession, ignoreAirBlocks, atOrigin, selectPasted);
+            return;
+        }
+
+        Clipboard clipboard = holder.getClipboard();
+        Region region = clipboard.getRegion();
+        Vector to = atOrigin ? clipboard.getOrigin() : session.getPlacementPosition(player);
+        Operation operation = holder
+                .createPaste(editSession, editSession.getWorld().getWorldData())
+                .to(to)
+                .ignoreAirBlocks(ignoreAirBlocks)
+                .build();
+        Operations.completeLegacy(operation);
+
+        if (selectPasted) {
+            Vector max = to.add(region.getMaximumPoint().subtract(region.getMinimumPoint()));
+            RegionSelector selector = new CuboidRegionSelector(player.getWorld(), to, max);
+            session.setRegionSelector(player.getWorld(), selector);
+            selector.learnChanges();
+            selector.explainRegionAdjust(player, session);
+        }
+
+        player.print("The clipboard has been pasted at " + to);
+    }
+
+    @Command(
+            aliases = { "/place" },
+            usage = "",
+            flags = "sao",
+            desc = "Place the clipboard's contents",
+            help =
+                    "Places the clipboard's contents.\n" +
+                            "Flags:\n" +
+                            "  -a skips air blocks\n" +
+                            "  -o pastes at the original position\n" +
+                            "  -s selects the region after pasting",
+            min = 0,
+            max = 0
+    )
+
+    // Skips all transforms
+    @CommandPermissions("worldedit.clipboard.place")
+    @Logging(PLACEMENT)
+    public void place(Player player, LocalSession session, final EditSession editSession,
                       @Switch('a') boolean ignoreAirBlocks, @Switch('o') boolean atOrigin,
                       @Switch('s') boolean selectPasted) throws WorldEditException {
         ClipboardHolder holder = session.getClipboard();
         Clipboard clipboard = holder.getClipboard();
         Region region = clipboard.getRegion().clone();
         Vector origin = clipboard.getOrigin();
+        final Transform transform = holder.getTransform();
+        // Optimize for CuboidRegion
         if (region instanceof CuboidRegion) {
             CuboidRegion cuboid = (CuboidRegion) region;
             Vector min = cuboid.getMinimumPoint();
@@ -213,30 +280,28 @@ public class ClipboardCommands {
             cuboid.setPos1(new Vector(0, 0, 0));
         }
         Vector to = atOrigin ? origin : session.getPlacementPosition(player);
-        int mx = region.getMinimumPoint().getBlockX();
-        int my = region.getMinimumPoint().getBlockY();
-        int mz = region.getMinimumPoint().getBlockZ();
-        int tx = to.getBlockX() - origin.getBlockX();
-        int ty = to.getBlockY() - origin.getBlockY();
-        int tz = to.getBlockZ() - origin.getBlockZ();
-        Iterator<BlockVector> iter = region.iterator();
+        final int tx = to.getBlockX() - origin.getBlockX();
+        final int ty = to.getBlockY() - origin.getBlockY();
+        final int tz = to.getBlockZ() - origin.getBlockZ();
+        // Optimize for BlockArrayClipboard
         if (clipboard instanceof BlockArrayClipboard) {
             BlockArrayClipboard bac = (BlockArrayClipboard) clipboard;
-            while (iter.hasNext()) {
-                BlockVector loc = iter.next();
-                int x = (int) loc.x;
-                int y = (int) loc.y;
-                int z = (int) loc.z;
-                BaseBlock block = bac.getBlockAbs(x, y, z);
-                if (block == EditSession.nullBlock && ignoreAirBlocks) {
-                    continue;
+            bac.IMP.forEach(new RunnableVal2<Vector, BaseBlock>() {
+                @Override
+                public void run(Vector pos, BaseBlock block) {
+                    pos.x += tx;
+                    pos.y += ty;
+                    pos.z += tz;
+                    try {
+                        editSession.setBlock(pos, block);
+                    } catch (MaxChangedBlocksException e) {
+                        throw new RuntimeException(e);
+                    }
                 }
-                loc.x += tx;
-                loc.y += ty;
-                loc.z += tz;
-                editSession.setBlock(loc, block);
-            }
+            }, !ignoreAirBlocks);
         } else {
+            // Generic optimization for unknown region type
+            Iterator<BlockVector> iter = region.iterator();
             while (iter.hasNext()) {
                 BlockVector loc = iter.next();
                 BaseBlock block = clipboard.getBlock(loc);
@@ -246,7 +311,7 @@ public class ClipboardCommands {
                 loc.x += tx;
                 loc.y += ty;
                 loc.z += tz;
-                editSession.setBlock(loc, block);
+                editSession.setBlock(transform.apply(loc), block);
             }
         }
         // entities
@@ -260,7 +325,7 @@ public class ClipboardCommands {
             selector.learnChanges();
             selector.explainRegionAdjust(player, session);
         }
-        player.print("The clipboard has been pasted at " + to);
+        player.print("The clipboard has been placed at " + to);
     }
 
     @Command(

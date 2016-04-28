@@ -51,6 +51,7 @@ public class Cancel extends FaweCommand {
                         session.bypassReorderHistory = nullExtent;
                         session.faweExtent = nullExtent;
                         queue.clear();
+                        SetQueue.IMP.dequeue(queue);
                     }
                 }
             }
