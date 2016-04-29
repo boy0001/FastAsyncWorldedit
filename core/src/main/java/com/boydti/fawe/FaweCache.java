@@ -5,7 +5,13 @@ import com.sk89q.worldedit.CuboidClipboard;
 import com.sk89q.worldedit.blocks.BaseBlock;
 
 public class FaweCache {
+    /**
+     * y | x | z
+     */
     public final static short[][][] CACHE_I = new short[256][16][16];
+    /**
+     * y | x | z
+     */
     public final static short[][][] CACHE_J = new short[256][16][16];
 
     public final static byte[][] CACHE_X = new byte[16][4096];
@@ -105,13 +111,10 @@ public class FaweCache {
             case 49:
             case 51:
             case 52:
-            case 54:
             case 56:
             case 57:
             case 58:
             case 60:
-            case 61:
-            case 62:
             case 7:
             case 8:
             case 9:

@@ -105,6 +105,8 @@ public abstract class FaweChunk<T> {
 
     public abstract void setBiome(final int x, final int z, final BaseBiome biome);
 
+    public void optimize() {}
+
     @Override
     public boolean equals(final Object obj) {
         if ((obj == null) || obj.hashCode() != hashCode() || !(obj instanceof FaweChunk)) {

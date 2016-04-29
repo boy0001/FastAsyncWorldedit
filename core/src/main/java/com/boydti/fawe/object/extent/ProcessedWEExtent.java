@@ -47,7 +47,7 @@ public class ProcessedWEExtent extends FaweExtent {
 
     @Override
     public Entity createEntity(final Location location, final BaseEntity entity) {
-        if (limit.MAX_ENTITIES-- < 0) {
+        if (limit.MAX_ENTITIES-- < 0 || entity == null) {
             return null;
         }
         if (WEManager.IMP.maskContains(this.mask, location.getBlockX(), location.getBlockZ())) {
@@ -227,13 +227,10 @@ public class ProcessedWEExtent extends FaweExtent {
                         case 49:
                         case 51:
                         case 52:
-                        case 54:
                         case 56:
                         case 57:
                         case 58:
                         case 60:
-                        case 61:
-                        case 62:
                         case 7:
                         case 8:
                         case 9:

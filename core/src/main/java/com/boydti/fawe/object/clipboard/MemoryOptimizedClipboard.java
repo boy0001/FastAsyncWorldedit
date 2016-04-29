@@ -24,6 +24,7 @@ public class MemoryOptimizedClipboard extends FaweClipboard {
 
     // x,z,y+15>>4 | y&15
     private final byte[][] ids;
+    private final byte[] heights;
     private byte[][] datas;
     private final HashMap<IntegerTrio, CompoundTag> nbtMap;
     private final HashSet<ClipboardEntity> entities;
@@ -33,6 +34,10 @@ public class MemoryOptimizedClipboard extends FaweClipboard {
         this.height = height;
         this.length = length;
         this.area = width * length;
+        heights = new byte[(height + 15) >>  4];
+        for (int y = 0; y < ((height + 15) >>  4); y++) {
+            heights[y] = (byte) Math.min(16, height - (y << 4));
+        }
         ids = new byte[width * length * ((height + 15) >>  4)][];
         nbtMap = new HashMap<>();
         entities = new HashSet<>();
@@ -186,7 +191,7 @@ public class MemoryOptimizedClipboard extends FaweClipboard {
                 int y2 = y & 0xF;
                 byte[] idArray = ids[i];
                 if (idArray == null) {
-                    idArray = new byte[16];
+                    idArray = new byte[heights[ylast >> 4]];
                     ids[i] = idArray;
                 }
                 idArray[y2] = (byte) id;
@@ -200,7 +205,7 @@ public class MemoryOptimizedClipboard extends FaweClipboard {
                     }
                     byte[] dataArray = datas[i];
                     if (dataArray == null) {
-                        dataArray = datas[i] = new byte[16];
+                        dataArray = datas[i] = new byte[heights[ylast >> 4]];
                     }
                     dataArray[y2] = (byte) data;
                 }
@@ -275,7 +280,7 @@ public class MemoryOptimizedClipboard extends FaweClipboard {
                 int y2 = y & 0xF;
                 byte[] idArray = ids[i];
                 if (idArray == null) {
-                    idArray = new byte[16];
+                    idArray = new byte[heights[ylast >> 4]];
                     ids[i] = idArray;
                 }
                 idArray[y2] = (byte) id;
@@ -286,7 +291,7 @@ public class MemoryOptimizedClipboard extends FaweClipboard {
                 int y2 = y & 0xF;
                 byte[] idArray = ids[i];
                 if (idArray == null) {
-                    idArray = new byte[16];
+                    idArray = new byte[heights[ylast >> 4]];
                     ids[i] = idArray;
                 }
                 idArray[y2] = (byte) id;
@@ -299,7 +304,7 @@ public class MemoryOptimizedClipboard extends FaweClipboard {
                 }
                 byte[] dataArray = datas[i];
                 if (dataArray == null) {
-                    dataArray = datas[i] = new byte[16];
+                    dataArray = datas[i] = new byte[heights[ylast >> 4]];
                 }
                 dataArray[y2] = (byte) data;
                 return true;

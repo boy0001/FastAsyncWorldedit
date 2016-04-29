@@ -46,12 +46,11 @@ import com.sk89q.worldedit.function.pattern.Pattern;
 import com.sk89q.worldedit.internal.annotation.Direction;
 import com.sk89q.worldedit.internal.annotation.Selection;
 import com.sk89q.worldedit.math.transform.AffineTransform;
-import com.sk89q.worldedit.math.transform.Transform;
-import com.sk89q.worldedit.regions.CuboidRegion;
 import com.sk89q.worldedit.regions.Region;
 import com.sk89q.worldedit.regions.RegionSelector;
 import com.sk89q.worldedit.regions.selector.CuboidRegionSelector;
 import com.sk89q.worldedit.session.ClipboardHolder;
+import com.sk89q.worldedit.util.Location;
 import com.sk89q.worldedit.util.command.binding.Switch;
 import com.sk89q.worldedit.util.command.parametric.Optional;
 import java.util.Iterator;
@@ -97,17 +96,18 @@ public class ClipboardCommands {
                          @Selection final Region region, @Switch('e') boolean copyEntities,
                          @Switch('m') Mask mask) throws WorldEditException {
 
-        Vector origin = region.getMinimumPoint();
+        final Vector origin = region.getMinimumPoint();
         final int mx = origin.getBlockX();
         final int my = origin.getBlockY();
         final int mz = origin.getBlockZ();
         LazyClipboard lazyClipboard = new LazyClipboard() {
             @Override
             public BaseBlock getBlock(int x, int y, int z) {
-                int xx = mx + x;
-                int yy = my + y;
-                int zz = mz + z;
-                return editSession.getLazyBlock(xx, yy, zz);
+                return editSession.getLazyBlock(mx + x, my + y, mz + z);
+            }
+
+            public BaseBlock getBlockAbs(int x, int y, int z) {
+                return editSession.getLazyBlock(x, y, z);
             }
 
             @Override
@@ -120,10 +120,13 @@ public class ClipboardCommands {
                 Iterator<BlockVector> iter = region.iterator();
                 while (iter.hasNext()) {
                     BlockVector pos = iter.next();
-                    BaseBlock block = getBlock((int) pos.x, (int) pos.y, (int) pos.z);
+                    BaseBlock block = getBlockAbs((int) pos.x, (int) pos.y, (int) pos.z);
                     if (!air && block == EditSession.nullBlock) {
                         continue;
                     }
+                    pos.x -= mx;
+                    pos.y -= my;
+                    pos.z -= mz;
                     task.run(pos, block);
                 }
             }
@@ -269,29 +272,24 @@ public class ClipboardCommands {
         ClipboardHolder holder = session.getClipboard();
         Clipboard clipboard = holder.getClipboard();
         Region region = clipboard.getRegion().clone();
-        Vector origin = clipboard.getOrigin();
-        final Transform transform = holder.getTransform();
-        // Optimize for CuboidRegion
-        if (region instanceof CuboidRegion) {
-            CuboidRegion cuboid = (CuboidRegion) region;
-            Vector min = cuboid.getMinimumPoint();
-            origin = origin.subtract(cuboid.getMinimumPoint());
-            cuboid.setPos2(cuboid.getMaximumPoint().subtract(min));
-            cuboid.setPos1(new Vector(0, 0, 0));
-        }
-        Vector to = atOrigin ? origin : session.getPlacementPosition(player);
-        final int tx = to.getBlockX() - origin.getBlockX();
-        final int ty = to.getBlockY() - origin.getBlockY();
-        final int tz = to.getBlockZ() - origin.getBlockZ();
+
+
+        final Vector bot = clipboard.getMinimumPoint();
+        final Vector origin = clipboard.getOrigin();
+        final Vector to = atOrigin ? origin : session.getPlacementPosition(player);
         // Optimize for BlockArrayClipboard
         if (clipboard instanceof BlockArrayClipboard) {
+            // To is relative to the world origin (player loc + small clipboard offset) (As the positions supplied are relative to the clipboard min)
+            final int relx = to.getBlockX() + bot.getBlockX() - origin.getBlockX();
+            final int rely = to.getBlockY() + bot.getBlockY() - origin.getBlockY();
+            final int relz = to.getBlockZ() + bot.getBlockZ() - origin.getBlockZ();
             BlockArrayClipboard bac = (BlockArrayClipboard) clipboard;
             bac.IMP.forEach(new RunnableVal2<Vector, BaseBlock>() {
                 @Override
                 public void run(Vector pos, BaseBlock block) {
-                    pos.x += tx;
-                    pos.y += ty;
-                    pos.z += tz;
+                    pos.x += relx;
+                    pos.y += rely;
+                    pos.z += relz;
                     try {
                         editSession.setBlock(pos, block);
                     } catch (MaxChangedBlocksException e) {
@@ -300,7 +298,10 @@ public class ClipboardCommands {
                 }
             }, !ignoreAirBlocks);
         } else {
-            // Generic optimization for unknown region type
+            // To must be relative to the clipboard origin ( player location - clipboard origin ) (as the locations supplied are relative to the world origin)
+            final int relx = to.getBlockX() - origin.getBlockX();
+            final int rely = to.getBlockY() - origin.getBlockY();
+            final int relz = to.getBlockZ() - origin.getBlockZ();
             Iterator<BlockVector> iter = region.iterator();
             while (iter.hasNext()) {
                 BlockVector loc = iter.next();
@@ -308,15 +309,21 @@ public class ClipboardCommands {
                 if (block == EditSession.nullBlock && ignoreAirBlocks) {
                     continue;
                 }
-                loc.x += tx;
-                loc.y += ty;
-                loc.z += tz;
-                editSession.setBlock(transform.apply(loc), block);
+                loc.x += relx;
+                loc.y += rely;
+                loc.z += relz;
+                editSession.setBlock(loc, block);
             }
         }
+        // Entity offset is the paste location subtract the clipboard origin (entity's location is already relative to the world origin)
+        final int entityOffsetX = to.getBlockX() - origin.getBlockX();
+        final int entityOffsetY = to.getBlockY() - origin.getBlockY();
+        final int entityOffsetZ = to.getBlockZ() - origin.getBlockZ();
         // entities
         for (Entity entity : clipboard.getEntities()) {
-            editSession.createEntity(entity.getLocation(), entity.getState());
+            Location pos = entity.getLocation();
+            Location newPos = new Location(pos.getExtent(), pos.getX() + entityOffsetX, pos.getY() + entityOffsetY, pos.getZ() + entityOffsetZ, pos.getYaw(), pos.getPitch());
+            editSession.createEntity(newPos, entity.getState());
         }
         if (selectPasted) {
             Vector max = to.add(region.getMaximumPoint().subtract(region.getMinimumPoint()));

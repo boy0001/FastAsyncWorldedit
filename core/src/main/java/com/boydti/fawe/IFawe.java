@@ -29,7 +29,7 @@ public interface IFawe {
 
     public int[] getVersion();
 
-    public FaweQueue getNewQueue(String world);
+    public FaweQueue getNewQueue(String world, boolean fast);
 
     public String getWorldName(World world);
 

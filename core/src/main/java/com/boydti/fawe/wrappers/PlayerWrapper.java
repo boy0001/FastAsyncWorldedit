@@ -2,6 +2,7 @@ package com.boydti.fawe.wrappers;
 
 import com.boydti.fawe.Fawe;
 import com.boydti.fawe.object.RunnableVal;
+import com.boydti.fawe.util.SetQueue;
 import com.boydti.fawe.util.TaskManager;
 import com.sk89q.worldedit.EditSession;
 import com.sk89q.worldedit.EditSessionFactory;
@@ -170,7 +171,7 @@ public class PlayerWrapper implements Player {
     }
 
     @Override
-    public void floatAt(int x, int y, int z, boolean alwaysGlass) {
+    public void floatAt(final int x, final int y, final int z, final boolean alwaysGlass) {
         EditSessionFactory factory = WorldEdit.getInstance().getEditSessionFactory();
         EditSession edit = factory.getEditSession(parent.getWorld(), -1, null, this);
         try {
@@ -182,7 +183,12 @@ public class PlayerWrapper implements Player {
         } catch (MaxChangedBlocksException e) {
             e.printStackTrace();
         }
-        setPosition(new Vector(x + 0.5, y, z + 0.5));
+        SetQueue.IMP.addTask(new Runnable() {
+            @Override
+            public void run() {
+                setPosition(new Vector(x + 0.5, y, z + 0.5));
+            }
+        });
     }
 
     @Override

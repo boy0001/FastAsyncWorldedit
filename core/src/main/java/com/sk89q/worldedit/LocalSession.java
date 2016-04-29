@@ -52,8 +52,10 @@ import com.sk89q.worldedit.session.request.Request;
 import com.sk89q.worldedit.world.World;
 import com.sk89q.worldedit.world.snapshot.Snapshot;
 import java.util.Calendar;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedList;
+import java.util.List;
 import java.util.Map;
 import java.util.TimeZone;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -76,7 +78,7 @@ public class LocalSession {
     // Session related
     private transient RegionSelector selector = new CuboidRegionSelector();
     private transient boolean placeAtPos1 = false;
-    private transient LinkedList<EditSession> history = new LinkedList<EditSession>();
+    private transient List<EditSession> history = Collections.synchronizedList(new LinkedList<EditSession>());
     private transient int historyPointer = 0;
     private transient ClipboardHolder clipboard;
     private transient boolean toolControl = true;
@@ -194,10 +196,10 @@ public class LocalSession {
      * @param editSession the edit session
      */
     public void remember(EditSession editSession) {
-        remember(editSession, history.size());
+        remember(editSession, true);
     }
 
-    public void remember(EditSession editSession, int index) {
+    public void remember(EditSession editSession, boolean append) {
         // Enqueue it
         if (editSession.getQueue() != null) {
             FaweQueue queue = editSession.getQueue();
@@ -217,7 +219,11 @@ public class LocalSession {
         if (set instanceof FaweChangeSet) {
             ((FaweChangeSet) set).flush();
         }
-        history.add(Math.max(0, Math.min(index, history.size())), editSession);
+        if (append) {
+            history.add(editSession);
+        } else {
+            history.add(0, editSession);
+        }
         while (history.size() > MAX_HISTORY_SIZE) {
             history.remove(0);
         }

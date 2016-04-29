@@ -29,12 +29,14 @@ public class FastWorldEditExtent extends FaweExtent {
 
     @Override
     public Entity createEntity(final Location location, final BaseEntity entity) {
-        TaskManager.IMP.task(new Runnable() {
-            @Override
-            public void run() {
-                FastWorldEditExtent.super.createEntity(location, entity);
-            }
-        });
+        if (entity != null) {
+            TaskManager.IMP.task(new Runnable() {
+                @Override
+                public void run() {
+                    FastWorldEditExtent.super.createEntity(location, entity);
+                }
+            });
+        }
         return null;
     }
 

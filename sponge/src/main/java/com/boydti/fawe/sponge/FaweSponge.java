@@ -2,13 +2,14 @@ package com.boydti.fawe.sponge;
 
 import com.boydti.fawe.Fawe;
 import com.boydti.fawe.IFawe;
-import com.boydti.fawe.config.BBC;
 import com.boydti.fawe.SpongeCommand;
-import com.boydti.fawe.v1_8.SpongeQueue_1_8;
+import com.boydti.fawe.config.BBC;
 import com.boydti.fawe.object.EditSessionWrapper;
 import com.boydti.fawe.object.FaweCommand;
 import com.boydti.fawe.object.FawePlayer;
 import com.boydti.fawe.regions.FaweMaskManager;
+import com.boydti.fawe.sponge.v1_8.SpongeQueue_1_8;
+import com.boydti.fawe.sponge.v1_8.SpongeQueue_ALL;
 import com.boydti.fawe.util.FaweQueue;
 import com.boydti.fawe.util.TaskManager;
 import com.sk89q.worldedit.EditSession;
@@ -112,8 +113,15 @@ public class FaweSponge implements IFawe {
     }
 
     @Override
-    public FaweQueue getNewQueue(String world) {
-        return new SpongeQueue_1_8(world);
+    public FaweQueue getNewQueue(String world, boolean fast) {
+        if (fast) {
+            try {
+                return new SpongeQueue_1_8(world);
+            } catch (Throwable e) {
+                e.printStackTrace();
+            }
+        }
+        return new SpongeQueue_ALL(world);
     }
 
     @Override

@@ -172,7 +172,7 @@ public abstract class FawePlayer<T> {
                         DiskStorageHistory set = new DiskStorageHistory(world, uuid, index);
                         EditSession edit = set.toEditSession(getPlayer());
                         if (world.equals(getWorld())) {
-                            session.remember(edit, 0);
+                            session.remember(edit, false);
                         } else {
                             return;
                         }
@@ -184,7 +184,7 @@ public abstract class FawePlayer<T> {
     }
 
     /**
-     * Get the player's limit
+ * Get the player's limit
      * @return
      */
     public FaweLimit getLimit() {

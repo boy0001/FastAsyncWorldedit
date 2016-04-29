@@ -1,0 +1,25 @@
+dependencies {
+    compile project(':core')
+    compile 'net.milkbowl.vault:VaultAPI:1.5'
+    compile 'com.massivecraft:factions:2.8.0'
+    compile 'com.drtshock:factions:1.6.9.5'
+    compile 'com.factionsone:FactionsOne:1.2.2'
+    compile 'me.ryanhamshire:GriefPrevention:11.5.2'
+    compile 'com.massivecraft:mcore:7.0.1'
+    compile 'net.sacredlabyrinth.Phaed:PreciousStones:10.0.4-SNAPSHOT'
+    compile 'net.jzx7:regios:5.9.9'
+    compile 'com.bekvon.bukkit:residence:2.6.6.6'
+    compile 'com.palmergames.bukkit:towny:0.84.0.9'
+    compile 'com.worldcretornica:plotme_core:0.16.3'
+    compile 'junit:junit:4.11'
+}
+
+processResources {
+    from('src/main/resources') {
+        include 'plugin.yml'
+        expand(
+                name: project.parent.name,
+                version: project.parent.version
+        )
+    }
+}

@@ -122,6 +122,7 @@ public class SelectionCommand extends SimpleCommand<Operation> {
                                 final byte data = (byte) block.getData();
                                 final FaweChunk<?> fc = queue.getChunk(0, 0);
                                 fc.fillCuboid(0, 15, minY, maxY, 0, 15, id, data);
+                                fc.optimize();
 
                                 int bcx = (current.minX) >>  4;
                                 int bcz = (current.minZ) >>  4;

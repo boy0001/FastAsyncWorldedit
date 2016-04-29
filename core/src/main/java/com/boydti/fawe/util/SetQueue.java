@@ -108,6 +108,7 @@ public class SetQueue {
     public void enqueue(FaweQueue queue) {
         inactiveQueues.remove(queue);
         if (queue.size() > 0 && !activeQueues.contains(queue)) {
+            queue.optimize();
             activeQueues.add(queue);
         }
     }
@@ -132,8 +133,8 @@ public class SetQueue {
         return new ArrayList<>(inactiveQueues);
     }
 
-    public FaweQueue getNewQueue(String world, boolean autoqueue) {
-        FaweQueue queue = Fawe.imp().getNewQueue(world);
+    public FaweQueue getNewQueue(String world, boolean fast, boolean autoqueue) {
+        FaweQueue queue = Fawe.imp().getNewQueue(world, fast);
         if (autoqueue) {
             inactiveQueues.add(queue);
         }
@@ -155,18 +156,15 @@ public class SetQueue {
             if (Settings.QUEUE_MAX_WAIT >= 0) {
                 long now = System.currentTimeMillis();
                 if (lastSuccess != 0) {
-                    long diff = now - lastSuccess;
-                    if (diff > Settings.QUEUE_MAX_WAIT) {
-                        for (FaweQueue queue : tmp) {
-                            if (queue != null && queue.size() > 0) {
-                                queue.modified = now;
-                                return queue;
-                            } else if (now - queue.modified > Settings.QUEUE_DISCARD_AFTER) {
-                                inactiveQueues.remove(queue);
-                            }
+                    for (FaweQueue queue : tmp) {
+                        if (queue != null && queue.size() > 0 && now - queue.modified > Settings.QUEUE_MAX_WAIT) {
+                            queue.modified = now;
+                            return queue;
+                        } else if (now - queue.modified > Settings.QUEUE_DISCARD_AFTER) {
+                            inactiveQueues.remove(queue);
                         }
-                        return null;
                     }
+                    return null;
                 }
             }
             if (Settings.QUEUE_SIZE != -1) {

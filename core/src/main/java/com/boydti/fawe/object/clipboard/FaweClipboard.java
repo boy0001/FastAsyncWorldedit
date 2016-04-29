@@ -26,6 +26,11 @@ public abstract class FaweClipboard {
 
     public void setOrigin(Vector offset) {} // Do nothing
 
+    /**
+     * The locations provided are relative to the clipboard min
+     * @param task
+     * @param air
+     */
     public abstract void forEach(final RunnableVal2<Vector,BaseBlock> task, boolean air);
 
     /**

@@ -34,6 +34,8 @@ public abstract class FaweQueue {
         return sessions == null ? new HashSet<EditSession>() : new HashSet<>(sessions);
     }
 
+    public void optimize() {}
+
     public abstract boolean setBlock(final int x, final int y, final int z, final short id, final byte data);
 
     public abstract boolean setBiome(final int x, final int z, final BaseBiome biome);

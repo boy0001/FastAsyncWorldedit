@@ -84,7 +84,7 @@ public class FaweAPI {
      * @return
      */
     public FaweQueue createQueue(String worldName, boolean autoqueue) {
-        return SetQueue.IMP.getNewQueue(worldName, autoqueue);
+        return SetQueue.IMP.getNewQueue(worldName, true, autoqueue);
     }
 
     public static World getWorld(String worldName) {
@@ -295,7 +295,7 @@ public class FaweAPI {
      * @param fixAll
      */
     public static void fixLighting(String world, int x, int z, final boolean fixAll) {
-        FaweQueue queue = SetQueue.IMP.getNewQueue(world, false);
+        FaweQueue queue = SetQueue.IMP.getNewQueue(world, true, false);
         queue.fixLighting(queue.getChunk(x, z), fixAll);
     }
 
@@ -305,7 +305,7 @@ public class FaweAPI {
      * @param fixAll
      */
     public static void fixLighting(final Chunk chunk, final boolean fixAll) {
-        FaweQueue queue = SetQueue.IMP.getNewQueue(chunk.getWorld().getName(), false);
+        FaweQueue queue = SetQueue.IMP.getNewQueue(chunk.getWorld().getName(), true, false);
         queue.fixLighting(queue.getChunk(chunk.getX(), chunk.getZ()), fixAll);
     }
 
@@ -388,7 +388,7 @@ public class FaweAPI {
         tagMap = null;
         tag = null;
 
-        FaweQueue queue = SetQueue.IMP.getNewQueue(loc.world, true);
+        FaweQueue queue = SetQueue.IMP.getNewQueue(loc.world, true, true);
 
         for (int y = 0; y < height; y++) {
             final int yy = y_offset + y;

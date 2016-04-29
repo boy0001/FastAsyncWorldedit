@@ -2,24 +2,18 @@ package com.boydti.fawe.forge.v0;
 
 import com.boydti.fawe.Fawe;
 import com.boydti.fawe.FaweCache;
-import com.boydti.fawe.config.Settings;
+import com.boydti.fawe.example.NMSMappedFaweQueue;
 import com.boydti.fawe.forge.ForgePlayer;
 import com.boydti.fawe.object.FaweChunk;
 import com.boydti.fawe.object.FawePlayer;
 import com.boydti.fawe.object.IntegerPair;
 import com.boydti.fawe.object.PseudoRandom;
 import com.boydti.fawe.object.RunnableVal;
-import com.boydti.fawe.object.exception.FaweException;
-import com.boydti.fawe.util.FaweQueue;
-import com.boydti.fawe.util.TaskManager;
-import com.sk89q.worldedit.world.biome.BaseBiome;
 import java.lang.reflect.Field;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.LinkedBlockingDeque;
 import net.minecraft.block.Block;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.network.NetHandlerPlayServer;
@@ -38,39 +32,55 @@ import net.minecraft.world.chunk.NibbleArray;
 import net.minecraft.world.chunk.storage.ExtendedBlockStorage;
 import net.minecraft.world.gen.ChunkProviderServer;
 
-public class ForgeQueue_All extends FaweQueue {
-
-    private World forgeWorld;
-
-    private ConcurrentHashMap<Long, FaweChunk<Chunk>> blocks = new ConcurrentHashMap<>();
-    private LinkedBlockingDeque<FaweChunk<Chunk>> chunks = new LinkedBlockingDeque<>();
+public class ForgeQueue_All extends NMSMappedFaweQueue<World, Chunk, Chunk, ExtendedBlockStorage> {
 
     public ForgeQueue_All(final String world) {
         super(world);
     }
 
     @Override
-    public boolean isChunkLoaded(int x, int z) {
-        return getWorld().getChunkProvider().chunkExists(x, z);
+    public boolean loadChunk(World world, int x, int z, boolean generate) {
+        return getCachedChunk(world, x, z) != null;
     }
 
-    public World getWorld() {
-        if (forgeWorld != null) {
-            return forgeWorld;
+    @Override
+    public Chunk getCachedChunk(World world, int cx, int cz) {
+        Chunk chunk = world.getChunkProvider().provideChunk(cx, cz);
+        if (chunk != null && !chunk.isChunkLoaded) {
+            chunk.onChunkLoad();
         }
+        return chunk;
+    }
+
+    @Override
+    public int getCombinedId4Data(ExtendedBlockStorage ls, int x, int y, int z) {
+        byte[] ids = ls.getBlockLSBArray();
+        NibbleArray datasNibble = ls.getBlockMSBArray();
+        int i = FaweCache.CACHE_J[y & 15][x & 15][z & 15];
+        int combined = (ids[i] << 4) + (datasNibble == null ? 0 : datasNibble.get(x & 15, y & 15, z & 15));
+        return combined;
+    }
+
+    @Override
+    public boolean isChunkLoaded(World world, int x, int z) {
+        return world.getChunkProvider().chunkExists(x, z);
+    }
+
+    @Override
+    public World getWorld(String world) {
         WorldServer[] worlds = MinecraftServer.getServer().worldServers;
         for (WorldServer ws : worlds) {
             if (ws.provider.getDimensionName().equals(world)) {
-                return forgeWorld = ws;
+                return ws;
             }
         }
         return null;
     }
 
     @Override
-    public boolean regenerateChunk(int x, int z) {
+    public boolean regenerateChunk(World world, int x, int z) {
         try {
-            IChunkProvider provider = getWorld().getChunkProvider();
+            IChunkProvider provider = world.getChunkProvider();
             if (!(provider instanceof ChunkProviderServer)) {
                 return false;
             }
@@ -88,7 +98,7 @@ public class ForgeQueue_All extends FaweQueue {
                 u = ChunkProviderServer.class.getDeclaredField("chunksToUnload");
             }
             u.setAccessible(true);
-            Set<?> unloadQueue = (Set<?>) u.get(chunkServer);
+            Set unloadQueue = (Set) u.get(chunkServer);
             Field m;
             try {
                 m = ChunkProviderServer.class.getDeclaredField("field_73244_f"); // loadedChunkHashMap
@@ -104,7 +114,7 @@ public class ForgeQueue_All extends FaweQueue {
                 lc = ChunkProviderServer.class.getDeclaredField("loadedChunks");
             }
             lc.setAccessible(true);
-            @SuppressWarnings("unchecked") List<Chunk> loaded = (List<Chunk>) lc.get(chunkServer);
+            @SuppressWarnings("unchecked") List loaded = (List) lc.get(chunkServer);
             Field p;
             try {
                 p = ChunkProviderServer.class.getDeclaredField("field_73246_d"); // currentChunkProvider
@@ -134,30 +144,6 @@ public class ForgeQueue_All extends FaweQueue {
         return true;
     }
 
-    @Override
-    public void addTask(int x, int z, Runnable runnable) {
-        long pair = (long) (x) << 32 | (z) & 0xFFFFFFFFL;
-        FaweChunk<Chunk> result = this.blocks.get(pair);
-        if (result == null) {
-            result = this.getChunk(x, z);
-            result.addTask(runnable);
-            FaweChunk<Chunk> previous = this.blocks.put(pair, result);
-            if (previous == null) {
-                chunks.add(result);
-                return;
-            }
-            this.blocks.put(pair, previous);
-            result = previous;
-        }
-        result.addTask(runnable);
-    }
-
-    private int lcx = Integer.MIN_VALUE;
-    private int lcz = Integer.MIN_VALUE;
-    private int lcy = Integer.MIN_VALUE;
-    private net.minecraft.world.chunk.Chunk lc;
-    private ExtendedBlockStorage ls;
-
     private final RunnableVal<IntegerPair> loadChunk = new RunnableVal<IntegerPair>() {
         @Override
         public void run(IntegerPair loc) {
@@ -170,215 +156,39 @@ public class ForgeQueue_All extends FaweQueue {
     };
 
     @Override
-    public int getCombinedId4Data(int x, int y, int z) throws FaweException.FaweChunkLoadException {
-        if (y < 0 || y > 255) {
-            return 0;
-        }
-        int cx = x >> 4;
-        int cz = z >> 4;
-        int cy = y >> 4;
-        if (cx != lcx || cz != lcz) {
-            World world = getWorld();
-            lcx = cx;
-            lcz = cz;
-            IChunkProvider provider = world.getChunkProvider();
-            Chunk chunk;
-            if (!provider.chunkExists(cx, cz)) {
-                boolean sync = Thread.currentThread() == Fawe.get().getMainThread();
-                if (sync) {
-                    chunk = provider.provideChunk(cx, cz);
-                } else if (Settings.CHUNK_WAIT > 0) {
-                    loadChunk.value = new IntegerPair(cx, cz);
-                    TaskManager.IMP.sync(loadChunk, Settings.CHUNK_WAIT);
-                    if (!provider.chunkExists(cx, cz)) {
-                        throw new FaweException.FaweChunkLoadException();
-                    }
-                    chunk = provider.provideChunk(cx, cz);
-                } else {
-                    return 0;
-                }
-            } else {
-                chunk = provider.provideChunk(cx, cz);
-            }
-            lc = chunk;
-            ls = lc.getBlockStorageArray()[cy];
-        } else if (cy != lcy) {
-            if (lc == null) {
-                return 0;
-            }
-            ls = lc.getBlockStorageArray()[cy];
-        }
-        if (ls == null) {
-            ls = null;
-            return 0;
-        }
-        byte[] ids = ls.getBlockLSBArray();
-        NibbleArray datasNibble = ls.getBlockMSBArray();
-        int i = FaweCache.CACHE_J[y & 15][x & 15][z & 15];
-        int combined = (ids[i] << 4) + (datasNibble == null ? 0 : datasNibble.get(x & 15, y & 15, z & 15));
-        return combined;
-    }
-
-    private FaweChunk lastChunk;
-    private int lastX = Integer.MIN_VALUE;
-    private int lastZ = Integer.MIN_VALUE;
-
-    @Override
-    public boolean setBlock(int x, int y, int z, short id, byte data) {
-        if ((y > 255) || (y < 0)) {
-            return false;
-        }
-        int cx = x >> 4;
-        int cz = z >> 4;
-        if (cx != lastX || cz != lastZ) {
-            lastX = cx;
-            lastZ = cz;
-            long pair = (long) (cx) << 32 | (cz) & 0xFFFFFFFFL;
-            lastChunk = this.blocks.get(pair);
-            if (lastChunk == null) {
-                lastChunk = this.getChunk(x >> 4, z >> 4);
-                lastChunk.setBlock(x & 15, y, z & 15, id, data);
-                FaweChunk<Chunk> previous = this.blocks.put(pair, lastChunk);
-                if (previous == null) {
-                    chunks.add(lastChunk);
-                    return true;
-                }
-                this.blocks.put(pair, previous);
-                lastChunk = previous;
-            }
-        }
-        lastChunk.setBlock(x & 15, y, z & 15, id, data);
-        return true;
-    }
-
-    @Override
-    public boolean setBiome(int x, int z, BaseBiome biome) {
-        long pair = (long) (x >> 4) << 32 | (z >> 4) & 0xFFFFFFFFL;
-        FaweChunk<Chunk> result = this.blocks.get(pair);
-        if (result == null) {
-            result = this.getChunk(x >> 4, z >> 4);
-            FaweChunk<Chunk> previous = this.blocks.put(pair, result);
-            if (previous != null) {
-                this.blocks.put(pair, previous);
-                result = previous;
-            } else {
-                chunks.add(result);
-            }
-        }
-        result.setBiome(x & 15, z & 15, biome);
-        return true;
-    }
-
-    @Override
-    public FaweChunk<Chunk> next() {
-        lastX = Integer.MIN_VALUE;
-        lastZ = Integer.MIN_VALUE;
-        try {
-            if (this.blocks.size() == 0) {
-                return null;
-            }
-            synchronized (blocks) {
-                FaweChunk<Chunk> chunk = chunks.poll();
-                if (chunk != null) {
-                    blocks.remove(chunk.longHash());
-                    this.execute(chunk);
-                    return chunk;
-                }
-            }
-        } catch (Throwable e) {
-            e.printStackTrace();
-        }
-        return null;
-    }
-
-    @Override
-    public int size() {
-        return chunks.size();
-    }
-
-    private LinkedBlockingDeque<FaweChunk<Chunk>> toUpdate = new LinkedBlockingDeque<>();
-
-    public boolean execute(FaweChunk<Chunk> fc) {
-        if (fc == null) {
-            return false;
-        }
-        // Load chunk
-        Chunk chunk = fc.getChunk();
+    public void refreshChunk(World world, Chunk chunk) {
         if (!chunk.isChunkLoaded) {
-            chunk.onChunkLoad();
+            return;
         }
-        // Set blocks / entities / biome
-        if (!this.setComponents(fc)) {
-            return false;
-        }
-        fc.executeTasks();
-        return true;
-    }
-
-    @Override
-    public void clear() {
-        this.blocks.clear();
-        this.chunks.clear();
-    }
-
-    @Override
-    public void setChunk(FaweChunk<?> chunk) {
-        FaweChunk<Chunk> previous = this.blocks.put(chunk.longHash(), (FaweChunk<Chunk>) chunk);
-        if (previous != null) {
-            chunks.remove(previous);
-        }
-        chunks.add((FaweChunk<Chunk>) chunk);
-    }
-
-    public void sendChunk(final FaweChunk<Chunk> fc) {
-        TaskManager.IMP.task(new Runnable() {
-            @Override
-            public void run() {
-                final boolean result = fixLighting(fc, Settings.FIX_ALL_LIGHTING) || !Settings.ASYNC_LIGHTING;
-                TaskManager.IMP.sync(new Runnable() {
-                    @Override
-                    public void run() {
-                        if (!result) {
-                            fixLighting(fc, Settings.FIX_ALL_LIGHTING);
-                        }
-                        Chunk chunk = fc.getChunk();
-                        if (!chunk.isChunkLoaded) {
-                            return;
-                        }
-                        World world = chunk.worldObj;
-                        ChunkCoordIntPair pos = chunk.getChunkCoordIntPair();
-                        int cx = pos.chunkXPos;
-                        int cz = pos.chunkZPos;
-                        for (FawePlayer fp : Fawe.get().getCachedPlayers()) {
-                            ForgePlayer forgePlayer = (ForgePlayer) fp;
-                            EntityPlayerMP player = forgePlayer.parent;
-                            if (!player.worldObj.equals(world)) {
-                                continue;
-                            }
-                            int view = MinecraftServer.getServer().getConfigurationManager().getViewDistance();
-                            EntityPlayerMP nmsPlayer = (EntityPlayerMP) player;
-                            ChunkCoordinates loc = player.getPlayerCoordinates();
-                            int px = loc.posX >> 4;
-                            int pz = loc.posZ >> 4;
-                            int dx = Math.abs(cx - (loc.posX >> 4));
-                            int dz = Math.abs(cz - (loc.posZ >> 4));
-                            if ((dx > view) || (dz > view)) {
-                                continue;
-                            }
-                            NetHandlerPlayServer con = nmsPlayer.playerNetServerHandler;
-                            con.sendPacket(new S21PacketChunkData(chunk, false, 65535));
-                            // Try sending true, 0 first
-                            // Try bulk chunk packet
-                        }
-                    }
-                }, false);
+        ChunkCoordIntPair pos = chunk.getChunkCoordIntPair();
+        int cx = pos.chunkXPos;
+        int cz = pos.chunkZPos;
+        for (FawePlayer fp : Fawe.get().getCachedPlayers()) {
+            ForgePlayer forgePlayer = (ForgePlayer) fp;
+            EntityPlayerMP player = forgePlayer.parent;
+            if (!player.worldObj.equals(world)) {
+                continue;
             }
-        }, Settings.ASYNC_LIGHTING);
+            int view = MinecraftServer.getServer().getConfigurationManager().getViewDistance();
+            EntityPlayerMP nmsPlayer = (EntityPlayerMP) player;
+            ChunkCoordinates loc = player.getPlayerCoordinates();
+            int px = loc.posX >> 4;
+            int pz = loc.posZ >> 4;
+            int dx = Math.abs(cx - (loc.posX >> 4));
+            int dz = Math.abs(cz - (loc.posZ >> 4));
+            if ((dx > view) || (dz > view)) {
+                continue;
+            }
+            NetHandlerPlayServer con = nmsPlayer.playerNetServerHandler;
+            con.sendPacket(new S21PacketChunkData(chunk, false, 65535));
+            // Try sending true, 0 first
+            // Try bulk chunk packet
+        }
     }
 
-    public boolean setComponents(FaweChunk<Chunk> fc) {
+    public boolean setComponents(FaweChunk fc) {
         ForgeChunk_All fs = (ForgeChunk_All) fc;
-        Chunk forgeChunk = fc.getChunk();
+        Chunk forgeChunk = fs.getChunk();
         net.minecraft.world.World nmsWorld = forgeChunk.worldObj;
         try {
             boolean flag = !nmsWorld.provider.hasNoSky;
@@ -485,12 +295,12 @@ public class ForgeQueue_All extends FaweQueue {
     }
 
     @Override
-    public FaweChunk<Chunk> getChunk(int x, int z) {
+    public FaweChunk getChunk(int x, int z) {
         return new ForgeChunk_All(this, x, z);
     }
 
     @Override
-    public boolean fixLighting(FaweChunk<?> chunk, boolean fixAll) {
+    public boolean fixLighting(FaweChunk chunk, boolean fixAll) {
         try {
             ForgeChunk_All fc = (ForgeChunk_All) chunk;
             Chunk forgeChunk = fc.getChunk();

@@ -22,7 +22,6 @@ public class Settings {
     public static boolean ENABLE_HARD_LIMIT = true;
     public static boolean STORE_HISTORY_ON_DISK = false;
     public static boolean STORE_CLIPBOARD_ON_DISK = false;
-
     public static int DELETE_HISTORY_AFTER_DAYS = 7;
     public static int DELETE_CLIPBOARD_AFTER_DAYS = 1;
     public static int COMPRESSION_LEVEL = 0;
@@ -39,6 +38,8 @@ public class Settings {
     public static int UNSAFE_PARALLEL_THREADS = 1;
     public static boolean FIX_ALL_LIGHTING = true;
     public static boolean ASYNC_LIGHTING = true;
+    public static int PHYSICS_PER_TICK = 1337;
+    public static int ITEMS_PER_TICK = 1337;
 
     public static HashMap<String, FaweLimit> limits;
 
@@ -103,6 +104,9 @@ public class Settings {
         options.put("extent.debug", EXTENT_DEBUG);
         options.put("metrics", METRICS);
 
+        options.put("tick-limiter.physics", PHYSICS_PER_TICK);
+        options.put("tick-limiter.items", ITEMS_PER_TICK);
+
         // Default limit
         FaweLimit defaultLimit = new FaweLimit();
         if (!config.contains("limits.default")) {
@@ -141,6 +145,9 @@ public class Settings {
         EXTENT_DEBUG = config.getBoolean("extent.debug");
         STORE_CLIPBOARD_ON_DISK = config.getBoolean("clipboard.use-disk");
         DELETE_CLIPBOARD_AFTER_DAYS = config.getInt("clipboard.delete-after-days");
+        PHYSICS_PER_TICK = config.getInt("tick-limiter.physics");
+        ITEMS_PER_TICK = config.getInt("tick-limiter.items");
+
         if (STORE_HISTORY_ON_DISK = config.getBoolean("history.use-disk")) {
             LocalSession.MAX_HISTORY_SIZE = Integer.MAX_VALUE;
         }

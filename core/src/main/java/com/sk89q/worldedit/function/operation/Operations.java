@@ -53,13 +53,7 @@ public final class Operations {
      * @throws MaxChangedBlocksException thrown when too many blocks have been changed
      */
     public static void completeLegacy(Operation operation) throws MaxChangedBlocksException {
-        try {
-            while (true) {
-                operation = operation.resume(context);
-            }
-        } catch (final WorldEditException e) {
-            e.printStackTrace();
-        } catch (NullPointerException ignore) {}
+        completeBlindly(operation);
     }
 
     /**

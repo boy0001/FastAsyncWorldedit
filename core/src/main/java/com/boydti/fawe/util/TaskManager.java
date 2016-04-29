@@ -39,12 +39,12 @@ public abstract class TaskManager {
     public abstract void task(final Runnable r);
 
     /**
-     * Run a task on either the main thread or asynchronously
+     * Run a task on the current thread or asynchronously
      *  - If it's already the main thread, it will jst call run()
      * @param r
      * @param async
      */
-    public void task(final Runnable r, boolean async) {
+    public void taskNow(final Runnable r, boolean async) {
         if (async) {
             async(r);
         } else {
@@ -52,11 +52,29 @@ public abstract class TaskManager {
         }
     }
 
-    public void sync(final Runnable r, boolean async) {
+    /**
+     * Run a task as soon as possible on the main thread, or now async
+     * @param r
+     * @param async
+     */
+    public void taskSyncNow(final Runnable r, boolean async) {
         if (async) {
             async(r);
         } else if (r != null && Thread.currentThread() == Fawe.get().getMainThread()){
             r.run();
+        } else {
+            task(r);
+        }
+    }
+
+    /**
+     * Run a task on the main thread at the next tick or now async
+     * @param r
+     * @param async
+     */
+    public void taskSyncSoon(final Runnable r, boolean async) {
+        if (async) {
+            async(r);
         } else {
             task(r);
         }

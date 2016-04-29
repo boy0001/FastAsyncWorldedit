@@ -234,8 +234,6 @@ public class EditSession implements Extent {
             this.wrapper = Fawe.imp().getEditSessionWrapper(this);
             return;
         }
-        this.queue = SetQueue.IMP.getNewQueue(Fawe.imp().getWorldName(world), true);
-        queue.addEditSession(this);
         // Set the world of the event to the actual world (workaround for CoreProtect)
         try {
             Class<? extends EditSessionEvent> eventClass = event.getClass();
@@ -262,6 +260,8 @@ public class EditSession implements Extent {
             this.bypassHistory = extent;
             this.bypassNone = extent;
             this.changeSet = new NullChangeSet();
+            this.queue = SetQueue.IMP.getNewQueue(Fawe.imp().getWorldName(world), true, true);
+            queue.addEditSession(this);
             return;
         }
         this.changeSet = Settings.STORE_HISTORY_ON_DISK ? new DiskStorageHistory(world, actor.getUniqueId()) : new MemoryOptimizedHistory(actor);
@@ -270,6 +270,8 @@ public class EditSession implements Extent {
         final LocalSession session = fp.getSession();
         this.fastmode = session.hasFastMode();
         if (fp.hasWorldEditBypass()) {
+            this.queue = SetQueue.IMP.getNewQueue(Fawe.imp().getWorldName(world), true, true);
+            queue.addEditSession(this);
             // Bypass skips processing and area restrictions
             extent = (this.faweExtent = new FastWorldEditExtent(world, queue));
             if (this.hasFastMode()) {
@@ -283,6 +285,8 @@ public class EditSession implements Extent {
                 return;
             }
         } else {
+            this.queue = SetQueue.IMP.getNewQueue(Fawe.imp().getWorldName(world), false, true);
+            queue.addEditSession(this);
             this.limit = fp.getLimit();
             final HashSet<RegionWrapper> mask = WEManager.IMP.getMask(fp);
             if (mask.size() == 0) {
@@ -1533,21 +1537,31 @@ public class EditSession implements Extent {
     public int fixLiquid(final Vector origin, final double radius, final int moving, final int stationary) throws MaxChangedBlocksException {
         checkNotNull(origin);
         checkArgument(radius >= 0, "radius >= 0 required");
+
         // Our origins can only be liquids
-        final BlockMask liquidMask = new BlockMask(EditSession.this, new BaseBlock(moving, -1), new BaseBlock(stationary, -1));
+        BlockMask liquidMask = new BlockMask(
+                this,
+                new BaseBlock(moving, -1),
+                new BaseBlock(stationary, -1));
 
         // But we will also visit air blocks
-        final MaskIntersection blockMask = new MaskUnion(liquidMask, new BlockMask(EditSession.this, new BaseBlock(BlockID.AIR)));
+        MaskIntersection blockMask =
+                new MaskUnion(liquidMask,
+                        new BlockMask(
+                                this,
+                                new BaseBlock(BlockID.AIR)));
 
         // There are boundaries that the routine needs to stay in
-        final MaskIntersection mask = new MaskIntersection(new BoundedHeightMask(0, Math.min(origin.getBlockY(), EditSession.this.getWorld().getMaxY())), new RegionMask(new EllipsoidRegion(
-        null, origin, new Vector(radius, radius, radius))), blockMask);
+        MaskIntersection mask = new MaskIntersection(
+                new BoundedHeightMask(0, Math.min(origin.getBlockY(), getWorld().getMaxY())),
+                new RegionMask(new EllipsoidRegion(null, origin, new Vector(radius, radius, radius))),
+                blockMask);
 
-        final BlockReplace replace = new BlockReplace(EditSession.this, new BlockPattern(new BaseBlock(stationary)));
-        final NonRisingVisitor visitor = new NonRisingVisitor(mask, replace);
+        BlockReplace replace = new BlockReplace(this, new BlockPattern(new BaseBlock(stationary)));
+        NonRisingVisitor visitor = new NonRisingVisitor(mask, replace);
 
         // Around the origin in a 3x3 block
-        for (final BlockVector position : CuboidRegion.fromCenter(origin, 1)) {
+        for (BlockVector position : CuboidRegion.fromCenter(origin, 1)) {
             if (liquidMask.test(position)) {
                 visitor.visit(position);
             }
@@ -1559,7 +1573,7 @@ public class EditSession implements Extent {
                 EditSession.this.flushQueue();
             }
         }, true);
-        return this.changes = visitor.getAffected();
+        return visitor.getAffected();
     }
 
     /**

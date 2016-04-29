@@ -197,15 +197,16 @@ public class ForgeChunk_All extends FaweChunk<Chunk> {
             case 130:
             case 76:
             case 62:
+            case 50:
                 this.relight[i]++;
             case 54:
             case 146:
             case 61:
             case 65:
             case 68:
-                if (data < 2) {
-                    data = 2;
-                }
+//                if (data < 2) {
+//                    data = 2;
+//                }
             default:
                 vs[j] = (byte) id;
                 NibbleArray dataArray = datas[i];
