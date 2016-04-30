@@ -9,6 +9,9 @@ buildscript {
     }
 }
 
+apply plugin: 'java'
+clean { delete "target" }
+
 group = 'com.boydti.fawe'
 version = '3.4.2'
 description = """FastAsyncWorldEdit"""

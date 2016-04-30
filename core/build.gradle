@@ -6,12 +6,6 @@ dependencies {
     compile 'net.fabiozumbi12:redprotect:1.9.6'
 }
 
-task deleteTarget {
-    delete "target"
-}
-
-clean.dependsOn(deleteTarget)
-
 sourceCompatibility = 1.7
 targetCompatibility = 1.7
 

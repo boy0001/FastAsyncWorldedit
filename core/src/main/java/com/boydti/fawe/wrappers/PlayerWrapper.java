@@ -2,7 +2,6 @@ package com.boydti.fawe.wrappers;
 
 import com.boydti.fawe.Fawe;
 import com.boydti.fawe.object.RunnableVal;
-import com.boydti.fawe.util.SetQueue;
 import com.boydti.fawe.util.TaskManager;
 import com.sk89q.worldedit.EditSession;
 import com.sk89q.worldedit.EditSessionFactory;
@@ -82,8 +81,13 @@ public class PlayerWrapper implements Player {
     }
 
     @Override
-    public void findFreePosition(WorldVector searchPos) {
-        parent.findFreePosition(searchPos);
+    public void findFreePosition(final WorldVector searchPos) {
+        TaskManager.IMP.sync(new RunnableVal<Boolean>() {
+            @Override
+            public void run(Boolean value) {
+                parent.findFreePosition(searchPos);
+            }
+        });
     }
 
     @Override
@@ -93,17 +97,32 @@ public class PlayerWrapper implements Player {
 
     @Override
     public void findFreePosition() {
-        parent.findFreePosition();
+        TaskManager.IMP.sync(new RunnableVal<Boolean>() {
+            @Override
+            public void run(Boolean value) {
+                parent.findFreePosition();
+            }
+        });
     }
 
     @Override
     public boolean ascendLevel() {
-        return parent.ascendLevel();
+        return TaskManager.IMP.sync(new RunnableVal<Boolean>() {
+            @Override
+            public void run(Boolean value) {
+                this.value = parent.ascendLevel();
+            }
+        });
     }
 
     @Override
     public boolean descendLevel() {
-        return parent.descendLevel();
+        return TaskManager.IMP.sync(new RunnableVal<Boolean>() {
+            @Override
+            public void run(Boolean value) {
+                this.value = parent.descendLevel();
+            }
+        });
     }
 
     @Override
@@ -173,7 +192,7 @@ public class PlayerWrapper implements Player {
     @Override
     public void floatAt(final int x, final int y, final int z, final boolean alwaysGlass) {
         EditSessionFactory factory = WorldEdit.getInstance().getEditSessionFactory();
-        EditSession edit = factory.getEditSession(parent.getWorld(), -1, null, this);
+        final EditSession edit = factory.getEditSession(parent.getWorld(), -1, null, this);
         try {
             edit.setBlock(new Vector(x, y - 1, z), new BaseBlock( BlockType.GLASS.getID()));
             LocalSession session = Fawe.get().getWorldEdit().getSession(this);
@@ -183,9 +202,10 @@ public class PlayerWrapper implements Player {
         } catch (MaxChangedBlocksException e) {
             e.printStackTrace();
         }
-        SetQueue.IMP.addTask(new Runnable() {
+        TaskManager.IMP.sync(new RunnableVal<Object>() {
             @Override
-            public void run() {
+            public void run(Object value) {
+                edit.queue.next();
                 setPosition(new Vector(x + 0.5, y, z + 0.5));
             }
         });
@@ -217,8 +237,13 @@ public class PlayerWrapper implements Player {
     }
 
     @Override
-    public WorldVector getSolidBlockTrace(int range) {
-        return parent.getSolidBlockTrace(range);
+    public WorldVector getSolidBlockTrace(final int range) {
+        return TaskManager.IMP.sync(new RunnableVal<WorldVector>() {
+            @Override
+            public void run(WorldVector value) {
+                this.value = parent.getSolidBlockTrace(range);
+            }
+        });
     }
 
     @Override

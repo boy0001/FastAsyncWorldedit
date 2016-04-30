@@ -251,6 +251,8 @@ public class EditSession implements Extent {
         this.wrapper = Fawe.imp().getEditSessionWrapper(this);
         // Not a player; bypass history
         if ((actor == null) || !actor.isPlayer()) {
+            this.queue = SetQueue.IMP.getNewQueue(Fawe.imp().getWorldName(world), true, true);
+            queue.addEditSession(this);
             Extent extent = (this.faweExtent = new FastWorldEditExtent(world, queue));
             // Everything bypasses
             extent = this.wrapExtent(extent, eventBus, event, Stage.BEFORE_CHANGE);
@@ -260,8 +262,6 @@ public class EditSession implements Extent {
             this.bypassHistory = extent;
             this.bypassNone = extent;
             this.changeSet = new NullChangeSet();
-            this.queue = SetQueue.IMP.getNewQueue(Fawe.imp().getWorldName(world), true, true);
-            queue.addEditSession(this);
             return;
         }
         this.changeSet = Settings.STORE_HISTORY_ON_DISK ? new DiskStorageHistory(world, actor.getUniqueId()) : new MemoryOptimizedHistory(actor);
@@ -318,6 +318,7 @@ public class EditSession implements Extent {
                     if (Perm.hasPermission(fp, "worldedit.fast")) {
                         BBC.WORLDEDIT_OOM_ADMIN.send(fp);
                     }
+
                     // Memory limit reached; return null extent
                     extent = faweExtent = new NullExtent(world, BBC.WORLDEDIT_CANCEL_REASON_MAX_FAILS);
                     this.bypassReorderHistory = extent;
@@ -851,8 +852,7 @@ public class EditSession implements Extent {
                 editSession.flushQueue();
             }
         }, true);
-        editSession.changes = 0;
-        this.changes = 0;
+        editSession.changes = changes;
     }
 
     /**
@@ -869,8 +869,7 @@ public class EditSession implements Extent {
                 editSession.flushQueue();
             }
         }, true);
-        editSession.changes = 0;
-        this.changes = 0;
+        editSession.changes = changes;
     }
 
     /**
@@ -1211,7 +1210,7 @@ public class EditSession implements Extent {
 
         final Vector center = region.getCenter();
         final Region centerRegion = new CuboidRegion(this.getWorld(), // Causes clamping of Y range
-        new Vector((int) center.getX(), (int) center.getY(), (int) center.getZ()), center.toBlockVector());
+                center.floor(), center.ceil());
         return this.setBlocks(centerRegion, pattern);
     }
 
@@ -1541,8 +1540,8 @@ public class EditSession implements Extent {
         // Our origins can only be liquids
         BlockMask liquidMask = new BlockMask(
                 this,
-                new BaseBlock(moving, -1),
-                new BaseBlock(stationary, -1));
+                FaweCache.getBlock(moving, 0),
+                FaweCache.getBlock(stationary, 0));
 
         // But we will also visit air blocks
         MaskIntersection blockMask =
@@ -1557,7 +1556,7 @@ public class EditSession implements Extent {
                 new RegionMask(new EllipsoidRegion(null, origin, new Vector(radius, radius, radius))),
                 blockMask);
 
-        BlockReplace replace = new BlockReplace(this, new BlockPattern(new BaseBlock(stationary)));
+        BlockReplace replace = new BlockReplace(this, new BlockPattern(FaweCache.getBlock(stationary, 0)));
         NonRisingVisitor visitor = new NonRisingVisitor(mask, replace);
 
         // Around the origin in a 3x3 block

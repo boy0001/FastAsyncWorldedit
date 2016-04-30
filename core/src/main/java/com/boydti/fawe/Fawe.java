@@ -228,54 +228,62 @@ public class Fawe {
          *  - EditSession supports custom queue and a lot of optimizations
          *  - LocalSession supports VirtualPlayers and undo on disk
          */
-        EditSession.inject();
-        LocalSession.inject();
-        // Commands
-        /*
-         *
-         */
-        BrushCommands.inject();
-        ClipboardCommands.inject();
-        SchematicCommands.inject();
-        ScriptingCommands.inject();
-        SelectionCommand.inject();
-        // Visitors
-        BreadthFirstSearch.inject();
-        DownwardVisitor.inject();
-        EntityVisitor.inject();
-        FlatRegionVisitor.inject();
-        LayerVisitor.inject();
-        NonRisingVisitor.inject();
-        RecursiveVisitor.inject();
-        RegionVisitor.inject();
-        // Entity create/remove
-        EntityCreate.inject();
-        EntityRemove.inject();
-        // Clipboards
-        BlockArrayClipboard.inject();
-        CuboidClipboard.inject();
-        // Regions
-        CuboidRegion.inject();
-        // Extents
-        BlockTransformExtent.inject();
-        // Vector
-        Vector.inject();
-        // Operations
-        Operations.inject();
         try {
-            CommandManager.inject();
-            PlatformManager.inject();
+            EditSession.inject();
+            LocalSession.inject();
+            // Commands
+            BrushCommands.inject();
+            ClipboardCommands.inject();
+            SchematicCommands.inject();
+            ScriptingCommands.inject();
+            SelectionCommand.inject();
+            // Visitors
+            BreadthFirstSearch.inject();
+            DownwardVisitor.inject();
+            EntityVisitor.inject();
+            FlatRegionVisitor.inject();
+            LayerVisitor.inject();
+            NonRisingVisitor.inject();
+            RecursiveVisitor.inject();
+            RegionVisitor.inject();
+            // Entity create/remove
+            EntityCreate.inject();
+            EntityRemove.inject();
+            // Clipboards
+            BlockArrayClipboard.inject();
+            CuboidClipboard.inject();
+            // Regions
+            CuboidRegion.inject();
+            // Extents
+            BlockTransformExtent.inject();
+            // Vector
+            Vector.inject();
+            // Operations
+            Operations.inject();
+            try {
+                CommandManager.inject();
+                PlatformManager.inject();
+            } catch (Throwable e) {
+                debug("====== UPDATE WORLDEDIT TO 6.1.1 ======");
+                e.printStackTrace();
+                debug("=======================================");
+                debug("Update the plugin, or contact the Author!");
+                if (IMP.getPlatform().equals("bukkit")) {
+                    debug(" - http://builds.enginehub.org/job/worldedit?branch=master");
+                } else {
+                    debug(" - http://builds.enginehub.org/job/worldedit?branch=forge-archive%2F1.8.9 (FORGE)");
+                    debug(" - https://ci.minecrell.net/job/worldedit-spongevanilla/ (SV)");
+                }
+                debug("=======================================");
+            }
         } catch (Throwable e) {
-            debug("====== UPDATE WORLDEDIT TO 6.1.1 ======");
+            debug("====== FAWE FAILED TO INITIALIZE ======");
             e.printStackTrace();
             debug("=======================================");
-            debug("Update the plugin, or contact the Author!");
-            if (IMP.getPlatform().equals("bukkit")) {
-                debug(" - http://builds.enginehub.org/job/worldedit?branch=master");
-            } else {
-                debug(" - http://builds.enginehub.org/job/worldedit?branch=forge-archive%2F1.8.9 (FORGE)");
-                debug(" - https://ci.minecrell.net/job/worldedit-spongevanilla/ (SV)");
-            }
+            debug("Things to check: ");
+            debug(" - AsyncWorldEdit/WorldEditRegions isn't installed");
+            debug(" - Any other errors in the startup log");
+            debug(" - Contact Empire92 for assistance!");
             debug("=======================================");
         }
         try {

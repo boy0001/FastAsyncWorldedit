@@ -120,7 +120,7 @@ public abstract class BreadthFirstSearch implements Operation {
      * @param position the position
      */
     public void visit(final Vector position) {
-        final BlockVector blockVector = position.toBlockVector();
+        final BlockVector blockVector = new BlockVector(position);
         if (!this.visited.contains(blockVector)) {
             this.queue.add(blockVector);
             this.visited.add(blockVector);
