@@ -27,6 +27,7 @@ import com.sk89q.worldedit.command.ClipboardCommands;
 import com.sk89q.worldedit.command.SchematicCommands;
 import com.sk89q.worldedit.command.ScriptingCommands;
 import com.sk89q.worldedit.command.composition.SelectionCommand;
+import com.sk89q.worldedit.command.tool.brush.GravityBrush;
 import com.sk89q.worldedit.extension.platform.CommandManager;
 import com.sk89q.worldedit.extension.platform.PlatformManager;
 import com.sk89q.worldedit.extent.clipboard.BlockArrayClipboard;
@@ -237,6 +238,8 @@ public class Fawe {
             SchematicCommands.inject();
             ScriptingCommands.inject();
             SelectionCommand.inject();
+            // Brushes
+            GravityBrush.inject();
             // Visitors
             BreadthFirstSearch.inject();
             DownwardVisitor.inject();
