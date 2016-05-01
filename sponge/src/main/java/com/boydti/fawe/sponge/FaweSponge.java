@@ -96,7 +96,7 @@ public class FaweSponge implements IFawe {
 
     @Override
     public void setupVault() {
-        debug(BBC.PREFIX.s() + "Permission hook not implemented yet!");
+        debug("Permission hook not implemented yet!");
     }
 
     @Override

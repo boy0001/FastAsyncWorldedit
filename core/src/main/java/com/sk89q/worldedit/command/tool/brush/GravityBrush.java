@@ -23,7 +23,6 @@ import com.sk89q.worldedit.EditSession;
 import com.sk89q.worldedit.MaxChangedBlocksException;
 import com.sk89q.worldedit.Vector;
 import com.sk89q.worldedit.blocks.BaseBlock;
-import com.sk89q.worldedit.blocks.BlockID;
 import com.sk89q.worldedit.function.pattern.Pattern;
 
 public class GravityBrush implements Brush {
@@ -37,7 +36,6 @@ public class GravityBrush implements Brush {
     @Override
     public void build(EditSession editSession, Vector position, Pattern pattern, double sizeDouble) throws MaxChangedBlocksException {
         int size = (int) sizeDouble;
-        BaseBlock air = new BaseBlock(BlockID.AIR, 0);
         int endY = position.getBlockY() + size;
         int startPerformY = Math.max(0, position.getBlockY() - size);
         int startCheckY = fullHeight ? 0 : startPerformY;

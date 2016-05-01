@@ -19,6 +19,7 @@
 
 package com.sk89q.worldedit.command;
 
+import com.boydti.fawe.config.BBC;
 import com.boydti.fawe.object.RunnableVal2;
 import com.boydti.fawe.object.clipboard.LazyClipboard;
 import com.sk89q.minecraft.util.commands.Command;
@@ -135,7 +136,7 @@ public class ClipboardCommands {
         BlockArrayClipboard clipboard = new BlockArrayClipboard(region, lazyClipboard);
         clipboard.setOrigin(session.getPlacementPosition(player));
         session.setClipboard(new ClipboardHolder(clipboard, editSession.getWorld().getWorldData()));
-        player.print(region.getArea() + " block(s) were not copied. I'll do it later, promise!");
+        BBC.COMMAND_COPY.send(player, region.getArea());
     }
 
 
@@ -167,7 +168,7 @@ public class ClipboardCommands {
         Operations.completeLegacy(copy);
         session.setClipboard(new ClipboardHolder(clipboard, editSession.getWorld().getWorldData()));
 
-        player.print(region.getArea() + " block(s) were copied. Note: For faster copying use //lazycopy");
+        BBC.COMMAND_COPY.send(player, region.getArea());
     }
 
     @Command(
@@ -199,7 +200,7 @@ public class ClipboardCommands {
         Operations.completeLegacy(copy);
         session.setClipboard(new ClipboardHolder(clipboard, editSession.getWorld().getWorldData()));
 
-        player.print(region.getArea() + " block(s) were copied.");
+        BBC.COMMAND_COPY.send(player, region.getArea());
     }
 
     @Command(
@@ -244,8 +245,7 @@ public class ClipboardCommands {
             selector.learnChanges();
             selector.explainRegionAdjust(player, session);
         }
-
-        player.print("The clipboard has been pasted at " + to);
+        BBC.COMMAND_PASTE.send(player, to);
     }
 
     @Command(
@@ -332,7 +332,7 @@ public class ClipboardCommands {
             selector.learnChanges();
             selector.explainRegionAdjust(player, session);
         }
-        player.print("The clipboard has been placed at " + to);
+        BBC.COMMAND_PASTE.send(player, to);
     }
 
     @Command(
@@ -357,7 +357,7 @@ public class ClipboardCommands {
         transform = transform.rotateX(-(xRotate != null ? xRotate : 0));
         transform = transform.rotateZ(-(zRotate != null ? zRotate : 0));
         holder.setTransform(holder.getTransform().combine(transform));
-        player.print("The clipboard copy has been rotated.");
+        BBC.COMMAND_ROTATE.send(player);
     }
 
     @Command(
@@ -377,7 +377,7 @@ public class ClipboardCommands {
         AffineTransform transform = new AffineTransform();
         transform = transform.scale(direction.positive().multiply(-2).add(1, 1, 1));
         holder.setTransform(holder.getTransform().combine(transform));
-        player.print("The clipboard copy has been flipped.");
+        BBC.COMMAND_FLIPPED.send(player);
     }
 
     @Command(
@@ -416,7 +416,7 @@ public class ClipboardCommands {
     @CommandPermissions("worldedit.clipboard.clear")
     public void clearClipboard(Player player, LocalSession session, EditSession editSession) throws WorldEditException {
         session.setClipboard(null);
-        player.print("Clipboard cleared.");
+        BBC.CLIPBOARD_CLEARED.send(player);
     }
     public static Class<?> inject() {
         return ClipboardCommands.class;

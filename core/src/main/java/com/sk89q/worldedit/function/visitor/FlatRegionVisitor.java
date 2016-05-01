@@ -19,6 +19,7 @@
 
 package com.sk89q.worldedit.function.visitor;
 
+import com.boydti.fawe.config.BBC;
 import com.sk89q.worldedit.Vector2D;
 import com.sk89q.worldedit.WorldEditException;
 import com.sk89q.worldedit.function.FlatRegionFunction;
@@ -77,7 +78,7 @@ public class FlatRegionVisitor implements Operation {
 
     @Override
     public void addStatusMessages(final List<String> messages) {
-        messages.add(this.getAffected() + " columns affected");
+        messages.add(BBC.VISITOR_FLAT.format(getAffected()));
     }
 
     public static Class<?> inject() {

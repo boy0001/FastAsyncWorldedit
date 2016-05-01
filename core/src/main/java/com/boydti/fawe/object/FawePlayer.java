@@ -120,7 +120,7 @@ public abstract class FawePlayer<T> {
                     }
                 } catch (EmptyClipboardException e) {}
                 if (player != null && session != null) {
-                    sendMessage("&d" + BBC.PREFIX.s() + " " + BBC.LOADING_CLIPBOARD.s());
+                    BBC.LOADING_CLIPBOARD.send(this);
                     WorldData worldData = player.getWorld().getWorldData();
                     Clipboard clip = doc.toClipboard();
                     ClipboardHolder holder = new ClipboardHolder(clip, worldData);
@@ -162,7 +162,7 @@ public abstract class FawePlayer<T> {
             }
         }
         if (editIds.size() > 0) {
-            sendMessage("&d" + BBC.PREFIX.s() + " " + BBC.INDEXING_HISTORY.format(editIds.size()));
+            BBC.INDEXING_HISTORY.send(this, editIds.size());
             TaskManager.IMP.async(new Runnable() {
                 @Override
                 public void run() {
@@ -177,7 +177,7 @@ public abstract class FawePlayer<T> {
                             return;
                         }
                     }
-                    sendMessage("&d" + BBC.PREFIX.s() + " " + BBC.INDEXING_COMPLETE.format((System.currentTimeMillis() - start) / 1000d));
+                    BBC.INDEXING_COMPLETE.send(FawePlayer.this, (System.currentTimeMillis() - start) / 1000d);
                 }
             });
         }

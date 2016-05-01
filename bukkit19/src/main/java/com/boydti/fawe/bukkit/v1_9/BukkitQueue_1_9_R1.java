@@ -43,8 +43,17 @@ import org.bukkit.generator.ChunkGenerator;
 
 public class BukkitQueue_1_9_R1 extends BukkitQueue_0<Chunk, ChunkSection[], DataPaletteBlock> {
 
+    private IBlockData air;
+
     public BukkitQueue_1_9_R1(final String world) {
         super(world);
+        try {
+            Field fieldAir = DataPaletteBlock.class.getDeclaredField("a");
+            fieldAir.setAccessible(true);
+            air = (IBlockData) fieldAir.get(null);
+        } catch (Throwable e) {
+            e.printStackTrace();
+        }
     }
 
     @Override
@@ -315,9 +324,12 @@ public class BukkitQueue_1_9_R1 extends BukkitQueue_0<Chunk, ChunkSection[], Dat
                             char combinedId = array[FaweCache.CACHE_J[y][x][z]];
                             switch (combinedId) {
                                 case 0:
+                                    IBlockData existing = nibble.a(x, y, z);
+                                    if (existing != air) {
+                                        nonEmptyBlockCount++;
+                                    }
                                     continue;
                                 case 1:
-                                    // TODO check existing
                                     nibble.setBlock(x, y, z, Blocks.AIR.getBlockData());
                                     continue;
                                 default:

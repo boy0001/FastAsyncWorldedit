@@ -409,7 +409,7 @@ public class PlatformManager {
         } catch (Throwable e) {
             FaweException faweException = FaweException.get(e);
             if (faweException != null) {
-                actor.printError(BBC.PREFIX.s() + " " + BBC.WORLDEDIT_CANCEL_REASON.format(faweException.getMessage()));
+                BBC.WORLDEDIT_CANCEL_REASON.send(actor, faweException.getMessage());
             } else {
                 actor.printError("Please report this error: [See console]");
                 actor.printRaw(e.getClass().getName() + ": " + e.getMessage());
@@ -496,7 +496,7 @@ public class PlatformManager {
         } catch (Throwable e) {
             FaweException faweException = FaweException.get(e);
             if (faweException != null) {
-                player.printError(BBC.PREFIX.s() + " " + BBC.WORLDEDIT_CANCEL_REASON.format(faweException.getMessage()));
+                BBC.WORLDEDIT_CANCEL_REASON.send(player, faweException.getMessage());
             } else {
                 player.printError("Please report this error: [See console]");
                 player.printRaw(e.getClass().getName() + ": " + e.getMessage());

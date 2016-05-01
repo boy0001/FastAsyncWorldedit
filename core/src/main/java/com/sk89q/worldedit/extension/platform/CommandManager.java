@@ -268,7 +268,7 @@ public final class CommandManager {
                 } catch (WrappedCommandException e) {
                     FaweException faweException = FaweException.get(e);
                     if (faweException != null) {
-                        actor.printError(BBC.PREFIX.s() + " " + BBC.WORLDEDIT_CANCEL_REASON.format(faweException.getMessage()));
+                        BBC.WORLDEDIT_CANCEL_REASON.send(actor, faweException.getMessage());
                     } else {
                         Throwable t = e.getCause();
                         actor.printError("Please report this error: [See console]");
@@ -298,7 +298,7 @@ public final class CommandManager {
                                 @Override
                                 public void run() {
                                     final long time = System.currentTimeMillis() - start;
-                                    actor.print(BBC.PREFIX.s() + " Action completed in " + (time / 1000d) + " seconds");
+                                    BBC.ACTION_COMPLETE.send(actor, (time / 1000d));
                                 }
                             });
                         }

@@ -22,6 +22,7 @@ package com.sk89q.worldedit;
 import com.boydti.fawe.object.changeset.FaweChangeSet;
 import com.boydti.fawe.object.clipboard.DiskOptimizedClipboard;
 import com.boydti.fawe.util.FaweQueue;
+import com.boydti.fawe.util.MainUtil;
 import com.boydti.fawe.util.SetQueue;
 import com.sk89q.jchronic.Chronic;
 import com.sk89q.jchronic.Options;
@@ -217,7 +218,11 @@ public class LocalSession {
         }
         ChangeSet set = editSession.getChangeSet();
         if (set instanceof FaweChangeSet) {
-            ((FaweChangeSet) set).flush();
+            FaweChangeSet fcs = (FaweChangeSet) set;
+            if (fcs.flush() && append) {
+                MainUtil.sendCompressedMessage(fcs, editSession.actor);
+            }
+
         }
         if (append) {
             history.add(editSession);

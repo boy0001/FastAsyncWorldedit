@@ -77,7 +77,7 @@ public abstract class CharFaweChunk<T> extends FaweChunk<T> {
     public int getTotalCount() {
         int total = 0;
         for (int i = 0; i < 16; i++) {
-            total += this.count[i];
+            total += Math.min(4096, this.count[i]);
         }
         return total;
     }

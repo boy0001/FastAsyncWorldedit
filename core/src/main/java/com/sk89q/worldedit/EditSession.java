@@ -359,10 +359,8 @@ public class EditSession implements Extent {
         return;
     }
 
-    public void debug(String message) {
-        if (actor != null && message != null && message.length() > 0) {
-            actor.print(BBC.PREFIX.s() + " " + message);
-        }
+    public void debug(BBC message, Object... args) {
+        message.send(actor, args);
     }
 
     public FaweQueue getQueue() {

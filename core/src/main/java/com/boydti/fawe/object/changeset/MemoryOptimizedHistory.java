@@ -1,8 +1,6 @@
 package com.boydti.fawe.object.changeset;
 
-import com.boydti.fawe.Fawe;
 import com.boydti.fawe.FaweCache;
-import com.boydti.fawe.config.BBC;
 import com.boydti.fawe.config.Settings;
 import com.boydti.fawe.util.MainUtil;
 import com.boydti.fawe.util.ReflectionUtils;
@@ -281,43 +279,26 @@ public class MemoryOptimizedHistory implements ChangeSet, FaweChangeSet {
     }
     
     @Override
-    public void flush() {
+    public boolean flush() {
         if (idsStreamZip != null) {
             try {
                 idsStream.flush();
                 idsStreamZip.flush();
                 idsStreamZip.close();
                 ids = idsStream.toByteArray();
-                /*
-                 * BlockVector
-                 * - reference to the object --> 8 bytes
-                 * - object header (java internals) --> 8 bytes
-                 * - double x, y, z --> 24 bytes
-                *
-                 * BaseBlock
-                 * - reference to the object --> 8 bytes
-                 * - object header (java internals) --> 8 bytes
-                 * - short id, data --> 4 bytes
-                 * - NBTCompound (assuming null) --> 4 bytes
-                 *
-                 * There are usually two lists for the block changes:
-                 * 2 * BlockVector + 2 * BaseBlock = 128b
-                 *
-                 * This compares FAWE's usage to standard WE.
-                 */
-                int total = 128 * size;
-                int current = ids.length + 16;
-                int ratio = total / current;
-                int saved = total - current;
-                if (ratio > 3 && Thread.currentThread() != Fawe.get().getMainThread() && actor != null && actor.isPlayer() && actor.getSessionKey().isActive() && BBC.COMPRESSED.s().length() > 0) {
-                    actor.print(BBC.PREFIX.s() + " " + BBC.COMPRESSED.format(saved, ratio));
-                }
                 idsStream = null;
                 idsStreamZip = null;
             } catch (IOException e) {
                 e.printStackTrace();
             }
+            return true;
         }
+        return false;
     }
-    
+
+    @Override
+    public int getCompressedSize() {
+        return ids == null ? 0 : ids.length;
+    }
+
 }

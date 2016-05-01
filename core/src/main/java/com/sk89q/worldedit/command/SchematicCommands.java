@@ -19,6 +19,7 @@
 
 package com.sk89q.worldedit.command;
 
+import com.boydti.fawe.config.BBC;
 import com.boydti.fawe.util.SetQueue;
 import com.boydti.fawe.util.TaskManager;
 import com.sk89q.minecraft.util.commands.Command;
@@ -119,7 +120,7 @@ public class SchematicCommands {
                 }
                 session.setClipboard(new ClipboardHolder(clipboard, worldData));
                 log.info(player.getName() + " loaded " + filePath);
-                player.print(filename + " loaded. Paste it with //paste");
+                BBC.SCHEMATIC_LOADED.send(player, filename);
             }
         } catch (final IOException e) {
             player.printError("Schematic could not read or it does not exist: " + e.getMessage());
@@ -183,7 +184,7 @@ public class SchematicCommands {
                             final ClipboardWriter writer = closer.register(format.getWriter(bos));
                             writer.write(target, holder.getWorldData());
                             log.info(player.getName() + " saved " + f.getCanonicalPath());
-                            player.print(filename + " saved.");
+                            BBC.SCHEMATIC_SAVED.send(player, filename);
                         } catch (final IOException e) {
                             player.printError("Schematic could not written: " + e.getMessage());
                             log.log(Level.WARNING, "Failed to write a saved clipboard", e);
@@ -219,7 +220,7 @@ public class SchematicCommands {
                     return;
                 }
 
-                player.print(filename + " has been deleted.");
+                BBC.SCHEMATIC_DELETE.send(player, filename);
             }
         });
     }
@@ -227,7 +228,7 @@ public class SchematicCommands {
     @Command(aliases = { "formats", "listformats", "f" }, desc = "List available formats", max = 0)
     @CommandPermissions("worldedit.schematic.formats")
     public void formats(final Actor actor) throws WorldEditException {
-        actor.print("Available clipboard formats (Name: Lookup names)");
+        BBC.SCHEMATIC_FORMAT.send(actor);
         StringBuilder builder;
         boolean first = true;
         for (final ClipboardFormat format : ClipboardFormat.values()) {
@@ -284,8 +285,7 @@ public class SchematicCommands {
                 return result;
             }
         });
-
-        actor.print("Available schematics (Filename (Format)):");
+        BBC.SCHEMATIC_LIST.send(actor);
         actor.print(this.listFiles("", files));
     }
 

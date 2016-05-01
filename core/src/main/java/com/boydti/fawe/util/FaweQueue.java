@@ -94,7 +94,7 @@ public abstract class FaweQueue {
         try {
             return getCombinedId4Data(x, y, z);
         } catch (FaweException ignore) {
-            session.debug(BBC.WORLDEDIT_FAILED_LOAD_CHUNK.format(x >> 4, z >> 4));
+            session.debug(BBC.WORLDEDIT_FAILED_LOAD_CHUNK, x >> 4, z >> 4);
             return def;
         }
     }

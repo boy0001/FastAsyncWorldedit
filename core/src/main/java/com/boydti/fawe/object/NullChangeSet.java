@@ -28,7 +28,14 @@ public class NullChangeSet implements FaweChangeSet {
     }
 
     @Override
-    public void flush() {}
+    public boolean flush() {
+        return false;
+    }
+
+    @Override
+    public int getCompressedSize() {
+        return 0;
+    }
 
     @Override
     public void add(Vector location, BaseBlock from, BaseBlock to) {}

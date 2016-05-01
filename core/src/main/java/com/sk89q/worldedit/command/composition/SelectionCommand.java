@@ -19,6 +19,7 @@
 
 package com.sk89q.worldedit.command.composition;
 
+import com.boydti.fawe.config.BBC;
 import com.boydti.fawe.object.FaweChunk;
 import com.boydti.fawe.object.FawePlayer;
 import com.boydti.fawe.object.NullChangeSet;
@@ -138,15 +139,24 @@ public class SelectionCommand extends SimpleCommand<Operation> {
                                             newChunk = fc.copy(true);
                                             newChunk.setLoc(queue, value[0], value[1]);
                                         } else {
-                                            newChunk = queue.getChunk(value[0], value[1]);
-                                            newChunk.fillCuboid(value[2] & 15, value[4] & 15, minY, maxY, value[3] & 15, value[5] & 15, id, data);
+                                            int bx = value[2] & 15;
+                                            int tx = value[4] & 15;
+                                            int bz = value[3] & 15;
+                                            int tz = value[4] & 15;
+                                            if (bx == 0 && tx == 15 && bz == 0 && tz == 15) {
+                                                newChunk = fc.copy(true);
+                                                newChunk.setLoc(queue, value[0], value[1]);
+                                            } else {
+                                                newChunk = queue.getChunk(value[0], value[1]);
+                                                newChunk.fillCuboid(value[2] & 15, value[4] & 15, minY, maxY, value[3] & 15, value[5] & 15, id, data);
+                                            }
                                         }
                                         newChunk.addToQueue();
                                     }
                                 });
                                 queue.enqueue();
                                 editSession.setChangeSet(new NullChangeSet());
-                                actor.print("[FAWE] Finished queueing " + cuboid.getArea() + " blocks.");
+                                BBC.OPERATION.send(actor, BBC.VISITOR_BLOCK.format(cuboid.getArea()));
                                 return null;
                             }
                         } catch (Throwable e) {
@@ -159,9 +169,9 @@ public class SelectionCommand extends SimpleCommand<Operation> {
                 List<String> messages = Lists.newArrayList();
                 operation.addStatusMessages(messages);
                 if (messages.isEmpty()) {
-                    actor.print("Operation completed.");
+                    BBC.OPERATION.send(actor, 0);
                 } else {
-                    actor.print("Operation completed (" + Joiner.on(", ").join(messages) + ").");
+                    BBC.OPERATION.send(actor, Joiner.on(", ").join(messages));
                 }
 
                 return operation;

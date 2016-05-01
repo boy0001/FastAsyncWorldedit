@@ -19,6 +19,7 @@
 
 package com.sk89q.worldedit.function.visitor;
 
+import com.boydti.fawe.config.BBC;
 import com.sk89q.worldedit.Vector;
 import com.sk89q.worldedit.WorldEditException;
 import com.sk89q.worldedit.function.RegionFunction;
@@ -66,7 +67,7 @@ public class RegionVisitor implements Operation {
 
     @Override
     public void addStatusMessages(final List<String> messages) {
-        messages.add(this.getAffected() + " blocks affected");
+        messages.add(BBC.VISITOR_BLOCK.format(getAffected()));
     }
 
     public static Class<?> inject() {

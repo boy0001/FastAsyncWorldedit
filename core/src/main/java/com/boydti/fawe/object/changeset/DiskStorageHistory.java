@@ -2,7 +2,6 @@ package com.boydti.fawe.object.changeset;
 
 import com.boydti.fawe.Fawe;
 import com.boydti.fawe.FaweCache;
-import com.boydti.fawe.config.BBC;
 import com.boydti.fawe.config.Settings;
 import com.boydti.fawe.object.IntegerPair;
 import com.boydti.fawe.object.RegionWrapper;
@@ -96,7 +95,7 @@ public class DiskStorageHistory implements ChangeSet, FaweChangeSet {
     private int ox;
     private int oz;
 
-    private AtomicInteger size = new AtomicInteger();
+    private int size;
     private World world;
 
     public void deleteFiles() {
@@ -108,7 +107,6 @@ public class DiskStorageHistory implements ChangeSet, FaweChangeSet {
     }
 
     public DiskStorageHistory(World world, UUID uuid) {
-        size = new AtomicInteger();
         String base = "history" + File.separator + world.getName() + File.separator + uuid;
         File folder = new File(Fawe.imp().getDirectory(), base);
         int max = 0;
@@ -159,29 +157,32 @@ public class DiskStorageHistory implements ChangeSet, FaweChangeSet {
     
     @Override
     public void add(Change change) {
-        size.incrementAndGet();
         if ((change instanceof BlockChange)) {
             add((BlockChange) change);
         } else {
-            Fawe.debug(BBC.PREFIX.s() + "Does not support " + change + " yet! (Please bug Empire92)");
+            Fawe.debug("Does not support " + change + " yet! (Please bug Empire92)");
         }
     }
     
     @Override
-    public void flush() {
+    public boolean flush() {
+        boolean flushed = false;
         try {
             if (osBD != null) {
+                flushed = true;
                 osBD.flush();
                 osBD.close();
                 osBD = null;
             }
             if (osNBTF != null) {
+                flushed = true;
                 osNBTFG.flush();
                 osNBTF.close();
                 osNBTF = null;
                 osNBTFG = null;
             }
             if (osNBTT != null) {
+                flushed = true;
                 osNBTTG.flush();
                 osNBTT.close();
                 osNBTT = null;
@@ -190,10 +191,17 @@ public class DiskStorageHistory implements ChangeSet, FaweChangeSet {
         } catch (Exception e) {
             e.printStackTrace();
         }
+        return flushed;
+    }
+
+    @Override
+    public int getCompressedSize() {
+        return bdFile.exists() ? (int) bdFile.length() : 0;
     }
 
     @Override
     public void add(int x, int y, int z, int combinedFrom, int combinedTo) {
+        size++;
         try {
             OutputStream stream = getBAOS(x, y, z);
             //x
@@ -548,7 +556,7 @@ public class DiskStorageHistory implements ChangeSet, FaweChangeSet {
     @Override
     public int size() {
         flush();
-        return size.get();
+        return size;
     }
 
     public static class DiskStorageSummary {

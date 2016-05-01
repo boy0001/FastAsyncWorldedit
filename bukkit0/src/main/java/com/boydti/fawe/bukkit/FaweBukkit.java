@@ -248,8 +248,6 @@ public class FaweBukkit implements IFawe, Listener {
             } catch (final Throwable e) {
                 e.printStackTrace();
             }
-        } else {
-            Fawe.debug("Plugin 'WorldGuard' not found. Worldguard features disabled.");
         }
         final Plugin plotmePlugin = Bukkit.getServer().getPluginManager().getPlugin("PlotMe");
         if ((plotmePlugin != null) && plotmePlugin.isEnabled()) {
@@ -259,8 +257,6 @@ public class FaweBukkit implements IFawe, Listener {
             } catch (final Throwable e) {
                 e.printStackTrace();
             }
-        } else {
-            Fawe.debug("Plugin 'PlotMe' not found. PlotMe features disabled.");
         }
         final Plugin townyPlugin = Bukkit.getServer().getPluginManager().getPlugin("Towny");
         if ((townyPlugin != null) && townyPlugin.isEnabled()) {
@@ -270,8 +266,6 @@ public class FaweBukkit implements IFawe, Listener {
             } catch (final Throwable e) {
                 e.printStackTrace();
             }
-        } else {
-            Fawe.debug("Plugin 'Towny' not found. Towny features disabled.");
         }
         final Plugin factionsPlugin = Bukkit.getServer().getPluginManager().getPlugin("Factions");
         if ((factionsPlugin != null) && factionsPlugin.isEnabled()) {
@@ -292,8 +286,6 @@ public class FaweBukkit implements IFawe, Listener {
 
                 }
             }
-        } else {
-            Fawe.debug("Plugin 'Factions' not found. Factions features disabled.");
         }
         final Plugin residencePlugin = Bukkit.getServer().getPluginManager().getPlugin("Residence");
         if ((residencePlugin != null) && residencePlugin.isEnabled()) {
@@ -303,8 +295,6 @@ public class FaweBukkit implements IFawe, Listener {
             } catch (final Throwable e) {
                 e.printStackTrace();
             }
-        } else {
-            Fawe.debug("Plugin 'Residence' not found. Factions features disabled.");
         }
         final Plugin griefpreventionPlugin = Bukkit.getServer().getPluginManager().getPlugin("GriefPrevention");
         if ((griefpreventionPlugin != null) && griefpreventionPlugin.isEnabled()) {
@@ -314,8 +304,6 @@ public class FaweBukkit implements IFawe, Listener {
             } catch (final Throwable e) {
                 e.printStackTrace();
             }
-        } else {
-            Fawe.debug("Plugin 'GriefPrevention' not found. GriefPrevention features disabled.");
         }
         final Plugin preciousstonesPlugin = Bukkit.getServer().getPluginManager().getPlugin("PreciousStones");
         if ((preciousstonesPlugin != null) && preciousstonesPlugin.isEnabled()) {
@@ -325,8 +313,6 @@ public class FaweBukkit implements IFawe, Listener {
             } catch (final Throwable e) {
                 e.printStackTrace();
             }
-        } else {
-            Fawe.debug("Plugin 'PreciousStones' not found. PreciousStones features disabled.");
         }
         return managers;
     }

@@ -5,10 +5,12 @@ import com.boydti.fawe.config.BBC;
 import com.boydti.fawe.object.FawePlayer;
 import com.boydti.fawe.object.RegionWrapper;
 import com.boydti.fawe.object.RunnableVal;
+import com.boydti.fawe.object.changeset.FaweChangeSet;
 import com.sk89q.jnbt.CompoundTag;
 import com.sk89q.jnbt.EndTag;
 import com.sk89q.jnbt.ListTag;
 import com.sk89q.jnbt.Tag;
+import com.sk89q.worldedit.extension.platform.Actor;
 import java.io.File;
 import java.lang.reflect.Array;
 import java.util.Map;
@@ -35,6 +37,44 @@ public class MainUtil {
             }
         }
         Fawe.debug(s);
+    }
+
+    public static void sendCompressedMessage(FaweChangeSet set, Actor actor)
+    {
+        try {
+            int elements = set.size();
+            int compressedSize = set.getCompressedSize();
+            /*
+             * BlockVector
+             * - reference to the object --> 8 bytes
+             * - object header (java internals) --> 8 bytes
+             * - double x, y, z --> 24 bytes
+             *
+             * BaseBlock
+             * - reference to the object --> 8 bytes
+             * - object header (java internals) --> 8 bytes
+             * - short id, data --> 4 bytes
+             * - NBTCompound (assuming null) --> 4 bytes
+             *
+             * There are usually two lists for the block changes:
+             * 2 * BlockVector + 2 * BaseBlock = 128b
+             *
+             * WE has a lot more overhead, this is just a generous lower bound
+             *
+             * This compares FAWE's usage to standard WE.
+             */
+            int total = 128 * elements;
+            int current = compressedSize;
+
+            int ratio = total / current;
+            int saved = total - current;
+
+            if (ratio > 3 && Thread.currentThread() != Fawe.get().getMainThread() && actor != null && actor.isPlayer() && actor.getSessionKey().isActive()) {
+                BBC.COMPRESSED.send(actor, saved, ratio);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     public static void warnDeprecated(Class... alternatives) {

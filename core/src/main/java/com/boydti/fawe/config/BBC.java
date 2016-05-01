@@ -4,6 +4,7 @@ import com.boydti.fawe.Fawe;
 import com.boydti.fawe.configuration.file.YamlConfiguration;
 import com.boydti.fawe.object.FawePlayer;
 import com.boydti.fawe.util.StringMan;
+import com.sk89q.worldedit.extension.platform.Actor;
 import java.io.File;
 import java.util.EnumSet;
 import java.util.HashMap;
@@ -16,14 +17,10 @@ public enum BBC {
      * Things to note about this class:
      * Can use multiple arguments %s, %s1, %s2, %s3 etc
      */
-    PREFIX("[FAWE]", "Info"),
-    COMMAND_SYNTAX("&cUsage: &7%s0", "Error"),
-    NO_PERM("&cYou are lacking the permission node: %s0", "Error"),
-    SCHEMATIC_NOT_FOUND("&cSchematic not found: &7%s0", "Error"),
+    PREFIX("&8(&5&lFAWE&8)&7", "Info"),
     SCHEMATIC_PASTING("&7The schematic is pasting. This cannot be undone.", "Info"),
     FIX_LIGHTING_CHUNK("&7Lighting has been fixed in your current chunk. Relog to see the affect.", "Info"),
     FIX_LIGHTING_SELECTION("&7Lighting has been fixed in %s0 chunks. Relog to see the affect.", "Info"),
-    NO_REGION("&cYou have no current WorldEdit region", "Error"),
     SET_REGION("&7Selection set to your current WorldEdit region", "Info"),
     WORLDEDIT_COMMAND_LIMIT("&7Please wait until your current action completes", "Info"),
     WORLDEDIT_DELAYED("&7Please wait while we process your WorldEdit action...", "Info"),
@@ -39,6 +36,76 @@ public enum BBC {
     WORLDEDIT_BYPASSED("&7Currently bypassing WorldEdit restriction.", "Info"),
     WORLDEDIT_UNMASKED("&6Your WorldEdit is now unrestricted.", "Info"),
     WORLDEDIT_RESTRICTED("&6Your WorldEdit is now restricted.", "Info"),
+    WORLDEDIT_OOM_ADMIN("&cPossible options:\n&8 - &7//fast\n&8 - &7Do smaller edits\n&8 - &7Allocate more memory\n&8 - &7Disable this safeguard", "Info"),
+    COMPRESSED("History compressed. Saved ~ %s0b (%s1x smaller)", "Info"),
+    ACTION_COMPLETE("Action completed in %s0 seconds", "Info"),
+
+    COMMAND_COPY("%s0 blocks were copied", "WorldEdit.Copy"),
+    COMMAND_PASTE("The clipboard has been pasted at %s0", "WorldEdit.Paste"),
+    COMMAND_ROTATE("The clipboard has been rotated", "WorldEdit.Rotate"),
+    COMMAND_FLIPPED("The clipboard has been flipped", "WorldEdit.Flip"),
+    COMMAND_REGEN("Region regenerated.", "WorldEdit.Regen"),
+    COMMAND_TREE("%s0 trees created.", "WorldEdit.Tree"),
+    COMMAND_FLORA("%s0 flora created.", "WorldEdit.Flora"),
+    COMMAND_HISTORY_CLEAR("History cleared", "WorldEdit.History"),
+    COMMAND_REDO_FAIL("Nothing left to redo.", "WorldEdit.History"),
+    COMMAND_REDO_SUCCESS("Redo successful.", "WorldEdit.History"),
+    COMMAND_UNDO_FAIL("Nothing left to undo.", "WorldEdit.History"),
+    COMMAND_UNDO_SUCCESS("Undo successful.", "WorldEdit.History"),
+
+    OPERATION("Operation complete (%s0)", "WorldEdit.Operation"),
+
+    SELECTION_WAND("Left click: select pos #1; Right click: select pos #2", "WorldEdit.Selection"),
+    SELECTION_WAND_DISABLE("Edit wand disabled.", "WorldEdit.Selection"),
+    SELECTION_WAND_ENABLE("Edit wand enabled.", "WorldEdit.Selection"),
+    SELECTION_CHUNK("Chunk selected (%s0)", "WorldEdit.Selection"),
+    SELECTION_CHUNKS("Chunks selected (%s0) - (%s1)", "WorldEdit.Selection"),
+    SELECTION_CONTRACT("Region contracted %s0 blocks.", "WorldEdit.Selection"),
+    SELECTION_COUNT("Counted %s0 blocks.", "WorldEdit.Selection"),
+    SELECTION_DISTR("# total blocks: %s0", "WorldEdit.Selection"),
+    SELECTION_EXPAND("Region expanded %s0 blocks", "WorldEdit.Selection"),
+    SELECTION_EXPAND_VERT("Region expanded %s0 blocks (top to bottom)", "WorldEdit.Selection"),
+    SELECTION_INSET("Region inset", "WorldEdit.Selection"),
+    SELECTION_OUTSET("Region outset", "WorldEdit.Selection"),
+    SELECTION_SHIFT("Region shifted", "WorldEdit.Selection"),
+    SELECTION_CLEARED("Selection cleared", "WorldEdit.Selection"),
+
+    BRUSH_BUTCHER("Butcher brush equiped (%s0)", "WorldEdit.Brush"),
+    BRUSH_CLIPBOARD("Clipboard brush shape equipped", "WorldEdit.Brush"),
+    BRUSH_CYLINDER("Cylinder brush shape equipped (%s0 by %s1).", "WorldEdit.Brush"),
+    BRUSH_EXTINGUISHER("Extinguisher equipped (%s0).", "WorldEdit.Brush"),
+    BRUSH_GRAVITY("Gravity brush equipped (%s0)", "WorldEdit.Brush"),
+    BRUSH_HEIGHT("Height brush equipped (%s0)", "WorldEdit.Brush"),
+    BRUSH_HEIGHT_INVALID("Invalid height map file (%s0)", "WorldEdit.Brush"),
+    BRUSH_SMOOTH("Smooth brush equipped (%s0 x %s1 using %s2).", "WorldEdit.Brush"),
+    BRUSH_SPHERE("Sphere brush shape equipped (%s0).", "WorldEdit.Brush"),
+
+    SCHEMATIC_DELETE("%s0 has been deleted.", "Worldedit.Schematic"),
+    SCHEMATIC_FORMAT("Available clipboard formats (Name: Lookup names)", "Worldedit.Schematic"),
+    SCHEMATIC_LIST("Available schematics (Filename (Format)):", "Worldedit.Schematic"),
+    SCHEMATIC_LOADED("%s0 loaded. Paste it with //paste", "Worldedit.Schematic"),
+    SCHEMATIC_SAVED("%s0 saved.", "Worldedit.Schematic"),
+
+    CLIPBOARD_CLEARED("Clipboard cleared", "WorldEdit.Clipboard"),
+
+    VISITOR_BLOCK("%s0 blocks affected", "WorldEdit.Visitor"),
+    VISITOR_ENTITY("%s0 entities affected", "WorldEdit.Visitor"),
+    VISITOR_FLAT("%s0 columns affected", "WorldEdit.Visitor"),
+
+    SELECTOR_CUBOID_POS1("First position set to %s0 %s1.", "WorldEdit.Selector"),
+    SELECTOR_CUBOID_POS2("Second position set to %s0 %s1.", "WorldEdit.Selector"),
+
+
+
+    COMMAND_SYNTAX("&cUsage: &7%s0", "Error"),
+    NO_PERM("&cYou are lacking the permission node: %s0", "Error"),
+    SCHEMATIC_NOT_FOUND("&cSchematic not found: &7%s0", "Error"),
+    NO_REGION("&cYou have no current WorldEdit region", "Error"),
+    NOT_PLAYER("&cYou must be a player to perform this action!", "Error"),
+    OOM(
+            "&8[&cCritical&8] &cDetected low memory i.e. < 1%. FAWE will take the following actions:\n&8 - &7Terminate WE block placement\n&8 - &7Clear WE history\n&8 - &7Unload non essential chunks\n&8 - &7Kill entities\n&8 - &7Garbage collect\n&cIgnore this if trying to crash server.\n&7Note: Low memory is likely (but not necessarily) caused by WE",
+            "Error"),
+
     WORLDEDIT_CANCEL_COUNT("&cCancelled %s0 edits.", "Cancel"),
     WORLDEDIT_CANCEL_REASON("&cYour WorldEdit action was cancelled:&7 %s0&c.", "Cancel"),
     WORLDEDIT_CANCEL_REASON_MANUAL("Manual cancellation", "Cancel"),
@@ -51,16 +118,15 @@ public enum BBC {
     WORLDEDIT_CANCEL_REASON_MAX_FAILS("Outside allowed region", "Cancel"),
     WORLDEDIT_FAILED_LOAD_CHUNK("&cSkipped loading chunk: &7%s0;%s1&c. Try increasing chunk-wait.", "Cancel"),
 
-    LOADING_CLIPBOARD("&dLoading clipboard from disk, please wait.", "History"),
-    INDEXING_HISTORY("&dIndexing %s history objects on disk, please wait.", "History"),
-    INDEXING_COMPLETE("&dIndexing complete. Took: %s seconds!", "History"),
+    LOADING_CLIPBOARD("Loading clipboard from disk, please wait.", "History"),
+    INDEXING_HISTORY("Indexing %s history objects on disk, please wait.", "History"),
+    INDEXING_COMPLETE("Indexing complete. Took: %s seconds!", "History"),
 
-    WORLDEDIT_OOM_ADMIN("&cPossible options:\n&8 - &7//fast\n&8 - &7Do smaller edits\n&8 - &7Allocate more memory\n&8 - &7Disable this safeguard", "Info"),
-    NOT_PLAYER("&cYou must be a player to perform this action!", "Error"),
-    COMPRESSED("History compressed. Saved ~ %s0b (%s1x smaller)", "Info"),
-    OOM(
-    "&8[&cCritical&8] &cDetected low memory i.e. < 1%. FAWE will take the following actions:\n&8 - &7Terminate WE block placement\n&8 - &7Clear WE history\n&8 - &7Unload non essential chunks\n&8 - &7Kill entities\n&8 - &7Garbage collect\n&cIgnore this if trying to crash server.\n&7Note: Low memory is likely (but not necessarily) caused by WE",
-    "Error");
+
+
+
+    ;
+
 
     private static final HashMap<String, String> replacements = new HashMap<>();
     /**
@@ -194,6 +260,19 @@ public enum BBC {
         }
     }
 
+    @Override
+    public String toString() {
+        return s();
+    }
+
+    public boolean isEmpty() {
+        return length() == 0;
+    }
+
+    public int length() {
+        return toString().length();
+    }
+
     public static String color(String string) {
         return StringMan.replaceFromMap(string, replacements);
     }
@@ -210,11 +289,25 @@ public enum BBC {
         return this.cat;
     }
 
-    public void send(final FawePlayer<?> player, final Object... args) {
-        if (player == null) {
-            Fawe.debug(this.format(args));
+    public void send(Actor actor, final Object... args) {
+        if (isEmpty()) {
+            return;
+        }
+        if (actor == null) {
+            Fawe.debug((PREFIX.isEmpty() ? "" : PREFIX.s() + " ") + this.format(args));
         } else {
-            player.sendMessage(this.format(args));
+            actor.print((PREFIX.isEmpty() ? "" : PREFIX.s() + " ") + this.format(args));
+        }
+    }
+
+    public void send(final FawePlayer<?> player, final Object... args) {
+        if (isEmpty()) {
+            return;
+        }
+        if (player == null) {
+            Fawe.debug((PREFIX.isEmpty() ? "" : PREFIX.s() + " ") + this.format(args));
+        } else {
+            player.sendMessage((PREFIX.isEmpty() ? "" : PREFIX.s() + " ") + this.format(args));
         }
     }
 

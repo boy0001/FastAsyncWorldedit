@@ -4,7 +4,6 @@ import com.boydti.fawe.FaweCache;
 import com.boydti.fawe.example.CharFaweChunk;
 import com.boydti.fawe.util.FaweQueue;
 import java.lang.reflect.Field;
-import java.lang.reflect.Method;
 import net.minecraft.server.v1_9_R1.Block;
 import net.minecraft.server.v1_9_R1.DataBits;
 import net.minecraft.server.v1_9_R1.DataPalette;
@@ -51,28 +50,29 @@ public class BukkitChunk_1_9 extends CharFaweChunk<Chunk> {
                     if (current == null) {
                         continue;
                     }
-                    DataPaletteBlock paletteBlock = new DataPaletteBlock();
                     // Clone palette
-                    DataPalette currentPalette = (DataPalette) fieldPalette.get(paletteBlock);
+                    DataPalette currentPalette = (DataPalette) fieldPalette.get(current);
                     if (!(currentPalette instanceof DataPaletteGlobal)) {
-                        try {
-                            Method resize = DataPaletteBlock.class.getDeclaredMethod("b", int.class);
-                            resize.setAccessible(true);
-                            resize.invoke(paletteBlock, 128);
-                        } catch (Throwable e) {
-                            e.printStackTrace();
-                        }
+                        current.a(128, null);
                     }
-                    currentPalette = (DataPalette) fieldPalette.get(paletteBlock);
+                    DataPaletteBlock paletteBlock = new DataPaletteBlock();
+                    currentPalette = (DataPalette) fieldPalette.get(current);
+                    if (!(currentPalette instanceof DataPaletteGlobal)) {
+                        throw new RuntimeException("Palette must be global!");
+                    }
                     fieldPalette.set(paletteBlock, currentPalette);
                     // Clone size
                     fieldSize.set(paletteBlock, fieldSize.get(current));
-                    // Clone pallete
+                    // Clone palette
                     DataBits currentBits = (DataBits) fieldBits.get(current);
                     DataBits newBits = new DataBits(1, 0);
                     for (Field field : DataBits.class.getDeclaredFields()) {
                         field.setAccessible(true);
-                        field.set(newBits, field.get(currentBits));
+                        Object currentValue = field.get(currentBits);
+                        if (currentValue instanceof long[]) {
+                            currentValue = ((long[]) currentValue).clone();
+                        }
+                        field.set(newBits, currentValue);
                     }
                     fieldBits.set(paletteBlock, newBits);
                     value.sectionPalettes[i] = paletteBlock;

@@ -24,6 +24,8 @@ import com.sk89q.worldedit.Vector;
 import com.sk89q.worldedit.WorldEdit;
 import com.sk89q.worldedit.command.BrushCommands;
 import com.sk89q.worldedit.command.ClipboardCommands;
+import com.sk89q.worldedit.command.HistoryCommands;
+import com.sk89q.worldedit.command.RegionCommands;
 import com.sk89q.worldedit.command.SchematicCommands;
 import com.sk89q.worldedit.command.ScriptingCommands;
 import com.sk89q.worldedit.command.composition.SelectionCommand;
@@ -44,6 +46,7 @@ import com.sk89q.worldedit.function.visitor.RegionVisitor;
 import com.sk89q.worldedit.history.change.EntityCreate;
 import com.sk89q.worldedit.history.change.EntityRemove;
 import com.sk89q.worldedit.regions.CuboidRegion;
+import com.sk89q.worldedit.regions.selector.CuboidRegionSelector;
 import java.io.File;
 import java.lang.management.ManagementFactory;
 import java.lang.management.MemoryMXBean;
@@ -174,6 +177,7 @@ public class Fawe {
                 try {
                     WEManager.IMP.managers.addAll(Fawe.this.IMP.getMaskManagers());
                     WEManager.IMP.managers.add(new PlotSquaredFeature());
+                    Fawe.debug("Plugin 'PlotSquared' found. Using it now.");
                 } catch (Throwable e) {}
                 Fawe.this.worldedit = WorldEdit.getInstance();
                 // Events
@@ -238,8 +242,12 @@ public class Fawe {
             SchematicCommands.inject();
             ScriptingCommands.inject();
             SelectionCommand.inject();
+            RegionCommands.inject();
+            HistoryCommands.inject();
             // Brushes
             GravityBrush.inject();
+            // Selectors
+            CuboidRegionSelector.inject();
             // Visitors
             BreadthFirstSearch.inject();
             DownwardVisitor.inject();

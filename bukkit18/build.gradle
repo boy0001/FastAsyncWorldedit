@@ -9,6 +9,7 @@ jar.enabled = false
 shadowJar {
     dependencies {
         include(dependency(':bukkit0'))
+        include(dependency(':core'))
     }
     archiveName = "${parent.name}-${project.name}.jar"
     destinationDir = file '../target'

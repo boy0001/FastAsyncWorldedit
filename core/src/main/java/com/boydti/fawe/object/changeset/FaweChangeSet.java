@@ -5,7 +5,9 @@ import com.sk89q.worldedit.blocks.BaseBlock;
 import com.sk89q.worldedit.history.changeset.ChangeSet;
 
 public interface FaweChangeSet extends ChangeSet {
-    void flush();
+    boolean flush();
+
+    int getCompressedSize();
 
     void add(Vector location, BaseBlock from, BaseBlock to);
 

@@ -19,9 +19,12 @@
 
 package com.sk89q.worldedit.command;
 
+import com.boydti.fawe.Fawe;
+import com.boydti.fawe.config.BBC;
 import com.boydti.fawe.config.Settings;
 import com.boydti.fawe.object.FaweLimit;
 import com.boydti.fawe.object.FawePlayer;
+import com.boydti.fawe.object.brush.HeightBrush;
 import com.sk89q.minecraft.util.commands.Command;
 import com.sk89q.minecraft.util.commands.CommandContext;
 import com.sk89q.minecraft.util.commands.CommandPermissions;
@@ -51,6 +54,8 @@ import com.sk89q.worldedit.function.pattern.Pattern;
 import com.sk89q.worldedit.session.ClipboardHolder;
 import com.sk89q.worldedit.util.command.binding.Switch;
 import com.sk89q.worldedit.util.command.parametric.Optional;
+import java.io.File;
+
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
@@ -96,8 +101,7 @@ public class BrushCommands {
         } else {
             tool.setBrush(new SphereBrush(), "worldedit.brush.sphere");
         }
-
-        player.print(String.format("Sphere brush shape equipped (%.0f).", radius));
+        BBC.BRUSH_SPHERE.send(player, radius);
     }
 
     @Command(
@@ -126,8 +130,7 @@ public class BrushCommands {
         } else {
             tool.setBrush(new CylinderBrush(height), "worldedit.brush.cylinder");
         }
-
-        player.print(String.format("Cylinder brush shape equipped (%.0f by %d).", radius, height));
+        BBC.BRUSH_CYLINDER.send(player, radius, height);
     }
 
     @Command(
@@ -154,8 +157,7 @@ public class BrushCommands {
 
         BrushTool tool = session.getBrushTool(player.getItemInHand());
         tool.setBrush(new ClipboardBrush(holder, ignoreAir, usingOrigin), "worldedit.brush.clipboard");
-
-        player.print("Clipboard brush shape equipped.");
+        BBC.BRUSH_CLIPBOARD.send(player);
     }
 
     @Command(
@@ -183,8 +185,7 @@ public class BrushCommands {
         tool.setSize(radius);
         tool.setBrush(new SmoothBrush(iterations, naturalBlocksOnly), "worldedit.brush.smooth");
 
-        player.print(String.format("Smooth brush equipped (%.0f x %dx, using " + (naturalBlocksOnly ? "natural blocks only" : "any block") + ").",
-                radius, iterations));
+        BBC.BRUSH_SMOOTH.send(player, radius, iterations, (naturalBlocksOnly ? "natural blocks only" : "any block"));
     }
 
     @Command(
@@ -204,8 +205,7 @@ public class BrushCommands {
         tool.setSize(radius);
         tool.setMask(new BlockMask(editSession, new BaseBlock(BlockID.FIRE)));
         tool.setBrush(new SphereBrush(), "worldedit.brush.ex");
-
-        player.print(String.format("Extinguisher equipped (%.0f).", radius));
+        BBC.BRUSH_EXTINGUISHER.send(player, radius);
     }
 
     @Command(
@@ -227,9 +227,27 @@ public class BrushCommands {
         BrushTool tool = session.getBrushTool(player.getItemInHand());
         tool.setSize(radius);
         tool.setBrush(new GravityBrush(fromMaxY), "worldedit.brush.gravity");
+        BBC.BRUSH_GRAVITY.send(player, radius);
+    }
 
-        player.print(String.format("Gravity brush equipped (%.0f).",
-                radius));
+    @Command(
+            aliases = { "height", "high" },
+            usage = "[radius] [file] [rotation] [yscale]",
+            flags = "h",
+            desc = "Height brush",
+            help =
+                    "This brush raises land.\n",
+            min = 0,
+            max = 4
+    )
+    @CommandPermissions("worldedit.brush.height")
+    public void heightBrush(Player player, LocalSession session, EditSession editSession, @Optional("5") double radius, @Optional("") final String filename, @Optional("0") final int rotation, @Optional("1") final double yscale) throws WorldEditException {
+        worldEdit.checkMaxBrushRadius(radius);
+        File file = new File(Fawe.imp().getDirectory(), "heightmap" + File.separator + (filename.endsWith(".png") ? filename : filename + ".png"));
+        BrushTool tool = session.getBrushTool(player.getItemInHand());
+        tool.setSize(radius);
+        tool.setBrush(new HeightBrush(file, rotation, yscale), "worldedit.brush.height");
+        BBC.BRUSH_HEIGHT.send(player, radius);
     }
 
     @Command(
@@ -274,8 +292,7 @@ public class BrushCommands {
         BrushTool tool = session.getBrushTool(player.getItemInHand());
         tool.setSize(radius);
         tool.setBrush(new ButcherBrush(flags), "worldedit.brush.butcher");
-
-        player.print(String.format("Butcher brush equipped (%.0f).", radius));
+        BBC.BRUSH_BUTCHER.send(player, radius);
     }
 
     public static Class<?> inject() {
