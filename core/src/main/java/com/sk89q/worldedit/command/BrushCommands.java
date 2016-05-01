@@ -237,7 +237,7 @@ public class BrushCommands {
             desc = "Height brush",
             help =
                     "This brush raises land.\n",
-            min = 0,
+            min = 1,
             max = 4
     )
     @CommandPermissions("worldedit.brush.height")

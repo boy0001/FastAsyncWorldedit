@@ -13,7 +13,7 @@ apply plugin: 'java'
 clean { delete "target" }
 
 group = 'com.boydti.fawe'
-version = '3.4.2'
+version = '3.4.3'
 description = """FastAsyncWorldEdit"""
 
 subprojects {

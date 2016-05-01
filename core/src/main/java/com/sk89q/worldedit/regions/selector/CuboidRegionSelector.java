@@ -169,9 +169,9 @@ public class CuboidRegionSelector extends com.sk89q.worldedit.regions.CuboidRegi
         checkNotNull(pos);
 
         if (position1 != null && position2 != null) {
-            BBC.SELECTOR_CUBOID_POS2.send(player, position1, "(" + region.getArea() + ")");
+            BBC.SELECTOR_CUBOID_POS2.send(player, position2, "(" + region.getArea() + ")");
         } else {
-            BBC.SELECTOR_CUBOID_POS2.send(player, position1, "");
+            BBC.SELECTOR_CUBOID_POS2.send(player, position2, "");
         }
 
         session.dispatchCUIEvent(player, new SelectionPointEvent(1, pos, getArea()));

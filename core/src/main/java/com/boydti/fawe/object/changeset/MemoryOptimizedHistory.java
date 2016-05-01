@@ -2,6 +2,7 @@ package com.boydti.fawe.object.changeset;
 
 import com.boydti.fawe.FaweCache;
 import com.boydti.fawe.config.Settings;
+import com.boydti.fawe.object.io.FastByteArrayOutputStream;
 import com.boydti.fawe.util.MainUtil;
 import com.boydti.fawe.util.ReflectionUtils;
 import com.google.common.collect.Iterators;
@@ -16,7 +17,6 @@ import com.sk89q.worldedit.history.change.BlockChange;
 import com.sk89q.worldedit.history.change.Change;
 import com.sk89q.worldedit.history.changeset.ChangeSet;
 import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -44,7 +44,7 @@ public class MemoryOptimizedHistory implements ChangeSet, FaweChangeSet {
     private Object lock;
     private int decompressedLength;
 
-    private ByteArrayOutputStream idsStream;
+    private FastByteArrayOutputStream idsStream;
     private OutputStream idsStreamZip;
 
     private ArrayDeque<Change> entities;
@@ -150,7 +150,7 @@ public class MemoryOptimizedHistory implements ChangeSet, FaweChangeSet {
             return idsStreamZip;
         }
         LZ4Factory factory = LZ4Factory.fastestInstance();
-        idsStream = new ByteArrayOutputStream(Settings.BUFFER_SIZE);
+        idsStream = new FastByteArrayOutputStream(Settings.BUFFER_SIZE);
         idsStreamZip = new LZ4OutputStream(idsStream, Settings.BUFFER_SIZE, factory.fastCompressor());
         if (Settings.COMPRESSION_LEVEL > 0) {
             idsStreamZip = new LZ4OutputStream(idsStreamZip, Settings.BUFFER_SIZE, factory.highCompressor());
