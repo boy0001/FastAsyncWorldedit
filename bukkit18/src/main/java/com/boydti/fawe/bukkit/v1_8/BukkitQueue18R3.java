@@ -133,16 +133,13 @@ public class BukkitQueue18R3 extends BukkitQueue_0<Chunk, ChunkSection[], char[]
                     continue;
                 }
                 char[] currentArray = section.getIdArray();
-                boolean fill = true;
                 int solid = 0;
                 for (int k = 0; k < newArray.length; k++) {
                     char n = newArray[k];
                     switch (n) {
                         case 0:
-                            fill = false;
                             continue;
                         case 1:
-                            fill = false;
                             if (currentArray[k] > 1) {
                                 solid++;
                             }
@@ -155,9 +152,6 @@ public class BukkitQueue18R3 extends BukkitQueue_0<Chunk, ChunkSection[], char[]
                     }
                 }
                 setCount(0, solid, section);
-                if (fill) {
-                    fs.setCount(j, Short.MAX_VALUE);
-                }
             }
 //            // Clear
         } catch (Throwable e) {
@@ -205,7 +199,7 @@ public class BukkitQueue18R3 extends BukkitQueue_0<Chunk, ChunkSection[], char[]
         int view = Bukkit.getViewDistance();
         for (FawePlayer fp : Fawe.get().getCachedPlayers()) {
             BukkitPlayer bukkitPlayer = (BukkitPlayer) fp;
-            if (!bukkitPlayer.getWorld().equals(world)) {
+            if (!bukkitPlayer.parent.getWorld().equals(world)) {
                 continue;
             }
             net.minecraft.server.v1_8_R3.EntityPlayer nmsPlayer = ((CraftPlayer) bukkitPlayer.parent).getHandle();

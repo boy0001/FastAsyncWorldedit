@@ -57,9 +57,7 @@ public class SpongeQueue_1_8 extends NMSMappedFaweQueue<World, net.minecraft.wor
             }
             NetHandlerPlayServer con = nmsPlayer.playerNetServerHandler;
             net.minecraft.world.chunk.Chunk  nmsChunk = (net.minecraft.world.chunk.Chunk) chunk;
-            con.sendPacket(new S21PacketChunkData(nmsChunk, false, 65535));
-            // Try sending true, 0 first
-            // Try bulk chunk packet
+            con.sendPacket(new S21PacketChunkData(chunk, false, 65535));
         }
     }
 

@@ -11,7 +11,6 @@ import net.minecraft.server.v1_9_R1.DataPalette;
 import net.minecraft.server.v1_9_R1.DataPaletteBlock;
 import net.minecraft.server.v1_9_R1.DataPaletteGlobal;
 import net.minecraft.server.v1_9_R1.IBlockData;
-import org.bukkit.Bukkit;
 import org.bukkit.Chunk;
 
 public class BukkitChunk_1_9 extends CharFaweChunk<Chunk> {
@@ -31,7 +30,7 @@ public class BukkitChunk_1_9 extends CharFaweChunk<Chunk> {
 
     @Override
     public Chunk getNewChunk() {
-        return Bukkit.getWorld(getParent().world).getChunkAt(getX(), getZ());
+        return ((BukkitQueue_1_9_R1) getParent()).getWorld().getChunkAt(getX(), getZ());
     }
 
     @Override

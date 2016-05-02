@@ -190,11 +190,11 @@ public abstract class BukkitQueue_0<CHUNK, CHUNKSECTIONS, SECTION> extends NMSMa
     }
 
     @Override
-    public FaweChunk getChunk(final int x, final int z) {
+    public FaweChunk getChunk(int x, int z) {
         return new CharFaweChunk<Chunk>(this, x, z) {
             @Override
             public Chunk getNewChunk() {
-                return getWorld().getChunkAt(x, z);
+                return BukkitQueue_0.this.getWorld().getChunkAt(getX(), getZ());
             }
         };
     }
