@@ -56,7 +56,7 @@ public class BukkitChunk_1_9 extends CharFaweChunk<Chunk> {
                     if (!(currentPalette instanceof DataPaletteGlobal)) {
                         current.a(128, null);
                     }
-                    DataPaletteBlock paletteBlock = new DataPaletteBlock();
+                    DataPaletteBlock paletteBlock = newDataPaletteBlock();
                     currentPalette = (DataPalette) fieldPalette.get(current);
                     if (!(currentPalette instanceof DataPaletteGlobal)) {
                         throw new RuntimeException("Palette must be global!");
@@ -85,6 +85,19 @@ public class BukkitChunk_1_9 extends CharFaweChunk<Chunk> {
         return value;
     }
 
+    public DataPaletteBlock newDataPaletteBlock() {
+        try {
+            return new DataPaletteBlock();
+        } catch (Throwable e) {
+            try {
+                Constructor<DataPaletteBlock> constructor = DataPaletteBlock.class.getDeclaredConstructor(IBlockData[].class);
+                return constructor.newInstance((Object) null);
+            } catch (Throwable e2) {
+                throw new RuntimeException(e2);
+            }
+        }
+    }
+
     public void optimize() {
         if (sectionPalettes != null) {
             return;
@@ -97,17 +110,7 @@ public class BukkitChunk_1_9 extends CharFaweChunk<Chunk> {
                 if (sectionPalettes == null) {
                     sectionPalettes = new DataPaletteBlock[16];
                 }
-                DataPaletteBlock palette;
-                try {
-                    palette = sectionPalettes[layer] = new DataPaletteBlock();
-                } catch (Throwable e) {
-                    try {
-                        Constructor<DataPaletteBlock> constructor = DataPaletteBlock.class.getDeclaredConstructor(IBlockData[].class);
-                        palette = sectionPalettes[layer] = constructor.newInstance(null);
-                    } catch (Throwable e2) {
-                        throw new RuntimeException(e2);
-                    }
-                }
+                DataPaletteBlock palette = newDataPaletteBlock();
                 char[] blocks = getIdArray(layer);
                 for (int y = 0; y < 16; y++) {
                     for (int z = 0; z < 16; z++) {

@@ -236,10 +236,10 @@ public class BukkitQueue_1_9_R1 extends BukkitQueue_0<Chunk, ChunkSection[], Dat
             try {
                 if (array == null) {
                     Constructor<ChunkSection> constructor = ChunkSection.class.getDeclaredConstructor(int.class, boolean.class, IBlockData[].class);
-                    return constructor.newInstance(y2, flag, null);
+                    return constructor.newInstance(y2, flag, (IBlockData[]) null);
                 } else {
                     Constructor<ChunkSection> constructor = ChunkSection.class.getDeclaredConstructor(int.class, boolean.class, char[].class, IBlockData[].class);
-                    return constructor.newInstance(y2, flag, array, null);
+                    return constructor.newInstance(y2, flag, array, (IBlockData[]) null);
                 }
             } catch (Throwable e2) {
                 throw new RuntimeException(e2);
@@ -311,12 +311,12 @@ public class BukkitQueue_1_9_R1 extends BukkitQueue_0<Chunk, ChunkSection[], Dat
                 ChunkSection section = sections[j];
                 if (section == null) {
                     if (fs.sectionPalettes != null && fs.sectionPalettes[j] != null) {
-                        section = sections[j] = new ChunkSection(j << 4, flag);
+                        section = sections[j] = newChunkSection(j << 4, flag, null);
                         setPalette(section, fs.sectionPalettes[j]);
                         setCount(0, count - fs.getAir(j), section);
                         continue;
                     } else {
-                        sections[j] = new ChunkSection(j << 4, flag, array);
+                        sections[j] = newChunkSection(j << 4, flag, array);
                     }
                     continue;
                 } else if (count >= 4096) {
@@ -325,7 +325,7 @@ public class BukkitQueue_1_9_R1 extends BukkitQueue_0<Chunk, ChunkSection[], Dat
                         setCount(0, count - fs.getAir(j), section);
                         continue;
                     } else {
-                        sections[j] = new ChunkSection(j << 4, flag, array);
+                        sections[j] = newChunkSection(j << 4, flag, array);
                     }
                     continue;
                 }
