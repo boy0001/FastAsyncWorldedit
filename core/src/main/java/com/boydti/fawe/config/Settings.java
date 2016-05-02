@@ -7,7 +7,6 @@ import com.sk89q.worldedit.LocalSession;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -15,9 +14,9 @@ import java.util.Map.Entry;
 
 public class Settings {
 
-    public static boolean REQUIRE_SELECTION = false;
-    public static boolean COMMAND_PROCESSOR = false;
-    public static List<String> WE_BLACKLIST = Arrays.asList("cs", ".s", "restore", "snapshot", "delchunks", "listchunks");
+//    public static boolean REQUIRE_SELECTION = false;
+//    public static boolean COMMAND_PROCESSOR = false;
+//    public static List<String> WE_BLACKLIST = Arrays.asList("cs", ".s", "restore", "snapshot", "delchunks", "listchunks");
     public static long MEM_FREE = 95;
     public static boolean ENABLE_HARD_LIMIT = true;
     public static boolean STORE_HISTORY_ON_DISK = false;
@@ -80,9 +79,9 @@ public class Settings {
         limits = new HashMap<>();
 
         final Map<String, Object> options = new HashMap<>();
-        options.put("require-selection-in-mask", REQUIRE_SELECTION);
-        options.put("command-blacklist", WE_BLACKLIST);
-        options.put("command-processor", COMMAND_PROCESSOR);
+//        options.put("require-selection-in-mask", REQUIRE_SELECTION);
+//        options.put("command-blacklist", WE_BLACKLIST);
+//        options.put("command-processor", COMMAND_PROCESSOR);
         options.put("max-memory-percent", MEM_FREE);
         options.put("crash-mitigation", ENABLE_HARD_LIMIT);
         options.put("lighting.fix-all", FIX_ALL_LIGHTING);
@@ -125,10 +124,10 @@ public class Settings {
         }
         FIX_ALL_LIGHTING = config.getBoolean("lighting.fix-all");
         ASYNC_LIGHTING = config.getBoolean("lighting.async");
-        COMMAND_PROCESSOR = config.getBoolean("command-processor");
         MEM_FREE = config.getInt("max-memory-percent");
-        REQUIRE_SELECTION = config.getBoolean("require-selection-in-mask");
-        WE_BLACKLIST = config.getStringList("command-blacklist");
+//        COMMAND_PROCESSOR = config.getBoolean("command-processor");
+//        REQUIRE_SELECTION = config.getBoolean("require-selection-in-mask");
+//        WE_BLACKLIST = config.getStringList("command-blacklist");
         ENABLE_HARD_LIMIT = config.getBoolean("crash-mitigation");
         REGION_RESTRICTIONS = config.getBoolean("region-restrictions");
         METRICS = config.getBoolean("metrics");

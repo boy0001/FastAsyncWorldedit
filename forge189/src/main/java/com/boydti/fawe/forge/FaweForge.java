@@ -85,11 +85,6 @@ public class FaweForge implements IFawe {
     }
 
     @Override
-    public void setupWEListener() {
-        // Do nothing
-    }
-
-    @Override
     public void setupVault() {
         // Do nothing
     }

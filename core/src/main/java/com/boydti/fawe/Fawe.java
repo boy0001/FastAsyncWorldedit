@@ -199,9 +199,6 @@ public class Fawe {
 
     private void setupEvents() {
         WorldEdit.getInstance().getEventBus().register(new WESubscriber());
-        if (Settings.COMMAND_PROCESSOR) {
-            this.IMP.setupWEListener();
-        }
     }
 
     private void setupCommands() {

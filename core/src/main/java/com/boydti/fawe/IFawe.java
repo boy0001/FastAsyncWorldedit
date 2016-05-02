@@ -21,8 +21,6 @@ public interface IFawe {
 
     public FawePlayer wrap(final Object obj);
 
-    public void setupWEListener();
-
     public void setupVault();
 
     public TaskManager getTaskManager();

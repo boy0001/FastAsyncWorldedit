@@ -10,10 +10,10 @@ import com.sk89q.worldedit.Vector;
 import com.sk89q.worldedit.blocks.BaseBlock;
 import com.sk89q.worldedit.command.tool.BrushTool;
 import com.sk89q.worldedit.command.tool.brush.Brush;
+import com.sk89q.worldedit.extent.clipboard.Clipboard;
 import com.sk89q.worldedit.function.mask.Mask;
 import com.sk89q.worldedit.function.mask.Masks;
 import com.sk89q.worldedit.function.pattern.Pattern;
-import com.sk89q.worldedit.regions.CuboidRegion;
 import java.awt.image.BufferedImage;
 import java.awt.image.Raster;
 import java.io.File;
@@ -27,23 +27,32 @@ public class HeightBrush implements Brush {
     double yscale = 1;
     private final BrushTool tool;
 
-    public HeightBrush(File file, int rotation, double yscale, BrushTool tool, EditSession session, CuboidRegion selection) {
+    public HeightBrush(File file, int rotation, double yscale, BrushTool tool, EditSession session, Clipboard clipboard) {
         this.tool = tool;
         this.rotation = (rotation / 90) % 4;
         this.yscale = yscale;
         if (file == null || !file.exists()) {
-            if (file.getName().equalsIgnoreCase("#selection.png") && selection != null) {
-                byte[][] heightArray = new byte[selection.getWidth()][selection.getLength()];
-                int minX = selection.getMinimumPoint().getBlockX();
-                int minZ = selection.getMinimumPoint().getBlockZ();
-                int minY = selection.getMinimumY() - 1;
-                int maxY = selection.getMaximumY() + 1;
-                int selHeight = selection.getHeight();
-                for (Vector pos : selection) {
+            // Since I can't be bothered using separate args, we'll get it from the filename
+            if (file.getName().equalsIgnoreCase("#clipboard.png") && clipboard != null) {
+                Vector dim = clipboard.getDimensions();
+                byte[][] heightArray = new byte[dim.getBlockX()][dim.getBlockZ()];
+                int minX = clipboard.getMinimumPoint().getBlockX();
+                int minZ = clipboard.getMinimumPoint().getBlockZ();
+                int minY = clipboard.getMinimumPoint().getBlockY();
+                int maxY = clipboard.getMaximumPoint().getBlockY();
+                int clipHeight = maxY - minY + 1;
+                for (Vector pos : clipboard.getRegion()) {
                     int xx = pos.getBlockX();
                     int zz = pos.getBlockZ();
-                    int worldPointHeight = session.getHighestTerrainBlock(xx, zz, minY, maxY);
-                    int pointHeight = Math.min(255, (256 * (worldPointHeight - minY)) / selHeight);
+                    int highestY = 0;
+                    for (int y = minY; y <= maxY; y++) {
+                        pos.y = y;
+                        BaseBlock block = clipboard.getBlock(pos);
+                        if (block != EditSession.nullBlock) {
+                            highestY = y + 1;
+                        }
+                    }
+                    int pointHeight = Math.min(255, (256 * (highestY - minY)) / clipHeight);
                     int x = xx - minX;
                     int z = zz - minZ;
                     heightArray[x][z] = (byte) pointHeight;

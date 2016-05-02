@@ -124,20 +124,6 @@ public class FaweBukkit implements IFawe, Listener {
     }
 
     /**
-     * Kinda a really messy class I just copied over from an old project<br>
-     *  - Still works, so cbf cleaning it up<br>
-     *  - Completely optional to have this class enabled since things get cancelled further down anyway<br>
-     *  - Useful since it informs the player why an edit changed no blocks etc.<br>
-     *  - Predicts the number of blocks changed and cancels the edit if it's too large<br>
-     *  - Predicts where the edit will effect and cancels it if it's outside a region<br>
-     *  - Restricts the brush iteration limit<br>
-     */
-    @Override
-    public void setupWEListener() {
-        Bukkit.getServer().getPluginManager().registerEvents(new WEListener(), plugin);
-    }
-
-    /**
      * Vault isn't required, but used for setting player permissions (WorldEdit bypass)
      * @return
      */

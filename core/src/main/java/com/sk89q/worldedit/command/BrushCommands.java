@@ -29,7 +29,7 @@ import com.sk89q.minecraft.util.commands.Command;
 import com.sk89q.minecraft.util.commands.CommandContext;
 import com.sk89q.minecraft.util.commands.CommandPermissions;
 import com.sk89q.worldedit.EditSession;
-import com.sk89q.worldedit.IncompleteRegionException;
+import com.sk89q.worldedit.EmptyClipboardException;
 import com.sk89q.worldedit.LocalConfiguration;
 import com.sk89q.worldedit.LocalSession;
 import com.sk89q.worldedit.Vector;
@@ -52,7 +52,6 @@ import com.sk89q.worldedit.extent.clipboard.Clipboard;
 import com.sk89q.worldedit.function.mask.BlockMask;
 import com.sk89q.worldedit.function.pattern.BlockPattern;
 import com.sk89q.worldedit.function.pattern.Pattern;
-import com.sk89q.worldedit.regions.CuboidRegion;
 import com.sk89q.worldedit.session.ClipboardHolder;
 import com.sk89q.worldedit.util.command.binding.Switch;
 import com.sk89q.worldedit.util.command.parametric.Optional;
@@ -234,7 +233,7 @@ public class BrushCommands {
 
     @Command(
             aliases = { "height", "heightmap" },
-            usage = "[radius] [file|#selection|null] [rotation] [yscale]",
+            usage = "[radius] [file|#clipboard|null] [rotation] [yscale]",
             flags = "h",
             desc = "Height brush",
             help =
@@ -249,9 +248,8 @@ public class BrushCommands {
         BrushTool tool = session.getBrushTool(player.getItemInHand());
         tool.setSize(radius);
         try {
-            tool.setBrush(new HeightBrush(file, rotation, yscale, tool, editSession, (CuboidRegion) session.getSelection(player.getWorld())), "worldedit.brush.height");
-        } catch (IncompleteRegionException ignore) {
-            ignore.printStackTrace();
+            tool.setBrush(new HeightBrush(file, rotation, yscale, tool, editSession, session.getClipboard().getClipboard()), "worldedit.brush.height");
+        } catch (EmptyClipboardException ignore) {
             tool.setBrush(new HeightBrush(file, rotation, yscale, tool, editSession, null), "worldedit.brush.height");
         }
         BBC.BRUSH_HEIGHT.send(player, radius);

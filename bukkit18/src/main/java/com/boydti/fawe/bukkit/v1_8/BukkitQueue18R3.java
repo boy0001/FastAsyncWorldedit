@@ -75,6 +75,12 @@ public class BukkitQueue18R3 extends BukkitQueue_0<Chunk, ChunkSection[], char[]
     }
 
     @Override
+    public char[] getCachedSection(ChunkSection[] chunkSections, int cy) {
+        ChunkSection section = chunkSections[cy];
+        return section == null ? null : section.getIdArray();
+    }
+
+    @Override
     public boolean setComponents(FaweChunk fc) {
         CharFaweChunk<Chunk> fs = (CharFaweChunk<Chunk>) fc;
         CraftChunk chunk = (CraftChunk) fs.getChunk();

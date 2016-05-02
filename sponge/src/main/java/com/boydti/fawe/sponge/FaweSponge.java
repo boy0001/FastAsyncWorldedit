@@ -90,11 +90,6 @@ public class FaweSponge implements IFawe {
     }
 
     @Override
-    public void setupWEListener() {
-        // Do nothing
-    }
-
-    @Override
     public void setupVault() {
         debug("Permission hook not implemented yet!");
     }
