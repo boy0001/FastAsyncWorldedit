@@ -26,7 +26,7 @@ public class WEManager {
         try {
             final Field field = AbstractDelegateExtent.class.getDeclaredField("extent");
             field.setAccessible(true);
-            field.set(parent, new NullExtent((Extent) field.get(parent), reason));
+            field.set(parent, new NullExtent(reason));
         } catch (final Exception e) {
             e.printStackTrace();
         }
@@ -40,6 +40,22 @@ public class WEManager {
             }
         }
         return false;
+    }
+
+    public boolean maskContains(RegionWrapper[] mask, final int x, final int z) {
+        switch (mask.length) {
+            case 0:
+                return false;
+            case 1:
+                return mask[0].isIn(x, z);
+            default:
+                for (final RegionWrapper region : mask) {
+                    if (region.isIn(x, z)) {
+                        return true;
+                    }
+                }
+                return false;
+        }
     }
 
     public HashSet<RegionWrapper> getMask(final FawePlayer<?> player) {

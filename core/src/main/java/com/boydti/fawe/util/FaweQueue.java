@@ -54,6 +54,16 @@ public abstract class FaweQueue {
 
     public void endSet(boolean parallel) {}
 
+    public int cancel() {
+        int count = 0;
+        for (EditSession session : sessions) {
+            if (session.cancel()) {
+                count++;
+            }
+        }
+        return count;
+    }
+
     /**
      * Gets the FaweChunk and sets the requested blocks
      * @return

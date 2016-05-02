@@ -11,10 +11,10 @@ import com.sk89q.worldedit.blocks.BaseBlock;
 import com.sk89q.worldedit.extent.AbstractDelegateExtent;
 import com.sk89q.worldedit.extent.Extent;
 
-public class SafeExtentWrapper extends AbstractDelegateExtent {
+public class MemoryCheckingExtent extends AbstractDelegateExtent {
     private final FawePlayer<?> player;
 
-    public SafeExtentWrapper(final FawePlayer<?> player, final Extent extent) {
+    public MemoryCheckingExtent(final FawePlayer<?> player, final Extent extent) {
         super(extent);
         this.player = player;
     }

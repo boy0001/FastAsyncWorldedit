@@ -152,6 +152,7 @@ public class DiskStorageHistory implements ChangeSet, FaweChangeSet {
         EditSessionFactory factory = WorldEdit.getInstance().getEditSessionFactory();
         EditSession edit = factory.getEditSession(world, -1, null, player);
         edit.setChangeSet(this);
+        edit.dequeue();
         return edit;
     }
     

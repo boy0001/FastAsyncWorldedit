@@ -12,13 +12,14 @@ import com.sk89q.worldedit.WorldEditException;
 import com.sk89q.worldedit.blocks.BaseBlock;
 import com.sk89q.worldedit.entity.BaseEntity;
 import com.sk89q.worldedit.entity.Entity;
+import com.sk89q.worldedit.extent.AbstractDelegateExtent;
 import com.sk89q.worldedit.regions.Region;
 import com.sk89q.worldedit.util.Location;
 import com.sk89q.worldedit.world.World;
 import com.sk89q.worldedit.world.biome.BaseBiome;
 import java.util.List;
 
-public class FastWorldEditExtent extends FaweExtent {
+public class FastWorldEditExtent extends AbstractDelegateExtent {
 
     private final FaweQueue queue;
 
@@ -227,10 +228,5 @@ public class FastWorldEditExtent extends FaweExtent {
                 return true;
             }
         }
-    }
-
-    @Override
-    public boolean contains(int x, int y, int z) {
-        return true;
     }
 }

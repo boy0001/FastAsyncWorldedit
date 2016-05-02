@@ -79,26 +79,34 @@ public class SetQueue {
                 if (SET_TASK.value2 == null) {
                     return;
                 }
-                if (Settings.UNSAFE_PARALLEL_THREADS <= 1) {
-                    SET_TASK.value2.startSet(false);
-                    SET_TASK.run();
-                    SET_TASK.value2.endSet(false);
-                } else {
-                    SET_TASK.value2.startSet(true);
-                    ArrayList<Thread> threads = new ArrayList<Thread>();
-                    for (int i = 0; i < Settings.UNSAFE_PARALLEL_THREADS; i++) {
-                        threads.add(new Thread(SET_TASK));
-                    }
-                    for (Thread thread : threads) {
-                        thread.start();
-                    }
-                    for (Thread thread : threads) {
-                        try {
-                            thread.join();
-                        } catch (InterruptedException e) {
-                            e.printStackTrace();
+                if (Thread.currentThread() != Fawe.get().getMainThread()) {
+                    throw new IllegalStateException("This shouldn't be possible for placement to occur off the main thread");
+                }
+                // Disable the async catcher as it can't discern async vs parallel
+                SET_TASK.value2.startSet(true);
+                try {
+                    if (Settings.UNSAFE_PARALLEL_THREADS <= 1) {
+                        SET_TASK.run();
+                    } else {
+                        ArrayList<Thread> threads = new ArrayList<Thread>();
+                        for (int i = 0; i < Settings.UNSAFE_PARALLEL_THREADS; i++) {
+                            threads.add(new Thread(SET_TASK));
+                        }
+                        for (Thread thread : threads) {
+                            thread.start();
+                        }
+                        for (Thread thread : threads) {
+                            try {
+                                thread.join();
+                            } catch (InterruptedException e) {
+                                e.printStackTrace();
+                            }
                         }
                     }
+                } catch (Throwable e) {
+                    e.printStackTrace();
+                } finally {
+                    // Enable it again (note that we are still on the main thread)
                     SET_TASK.value2.endSet(true);
                 }
             }

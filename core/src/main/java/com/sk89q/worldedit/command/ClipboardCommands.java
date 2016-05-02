@@ -47,6 +47,7 @@ import com.sk89q.worldedit.function.pattern.Pattern;
 import com.sk89q.worldedit.internal.annotation.Direction;
 import com.sk89q.worldedit.internal.annotation.Selection;
 import com.sk89q.worldedit.math.transform.AffineTransform;
+import com.sk89q.worldedit.regions.CuboidRegion;
 import com.sk89q.worldedit.regions.Region;
 import com.sk89q.worldedit.regions.RegionSelector;
 import com.sk89q.worldedit.regions.selector.CuboidRegionSelector;
@@ -278,7 +279,7 @@ public class ClipboardCommands {
         final Vector origin = clipboard.getOrigin();
         final Vector to = atOrigin ? origin : session.getPlacementPosition(player);
         // Optimize for BlockArrayClipboard
-        if (clipboard instanceof BlockArrayClipboard) {
+        if (clipboard instanceof BlockArrayClipboard && region instanceof CuboidRegion) {
             // To is relative to the world origin (player loc + small clipboard offset) (As the positions supplied are relative to the clipboard min)
             final int relx = to.getBlockX() + bot.getBlockX() - origin.getBlockX();
             final int rely = to.getBlockY() + bot.getBlockY() - origin.getBlockY();

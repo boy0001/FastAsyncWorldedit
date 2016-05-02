@@ -34,11 +34,10 @@ import com.boydti.fawe.object.changeset.FaweChangeSet;
 import com.boydti.fawe.object.changeset.MemoryOptimizedHistory;
 import com.boydti.fawe.object.exception.FaweException;
 import com.boydti.fawe.object.extent.FastWorldEditExtent;
-import com.boydti.fawe.object.extent.FaweExtent;
+import com.boydti.fawe.object.extent.FaweRegionExtent;
+import com.boydti.fawe.object.extent.MemoryCheckingExtent;
 import com.boydti.fawe.object.extent.NullExtent;
 import com.boydti.fawe.object.extent.ProcessedWEExtent;
-import com.boydti.fawe.object.extent.SafeExtentWrapper;
-import com.boydti.fawe.util.ExtentWrapper;
 import com.boydti.fawe.util.FaweQueue;
 import com.boydti.fawe.util.MemUtil;
 import com.boydti.fawe.util.Perm;
@@ -118,7 +117,6 @@ import com.sk89q.worldedit.util.eventbus.EventBus;
 import com.sk89q.worldedit.world.AbstractWorld;
 import com.sk89q.worldedit.world.World;
 import com.sk89q.worldedit.world.biome.BaseBiome;
-import java.lang.reflect.Field;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -164,8 +162,9 @@ public class EditSession implements Extent {
     public Actor actor;
     public FaweChangeSet changeSet;
     public EditSessionWrapper wrapper;
-    public FaweExtent faweExtent;
     public MaskingExtent maskingExtent;
+    public FaweRegionExtent regionExtent;
+    public Extent primaryExtent;
     public Extent bypassReorderHistory;
     public Extent bypassHistory;
     public Extent bypassNone;
@@ -204,7 +203,6 @@ public class EditSession implements Extent {
     }
 
     private int changes = 0;
-    private int maxBlocks;
     private BlockBag blockBag;
 
     /**
@@ -220,13 +218,14 @@ public class EditSession implements Extent {
         checkNotNull(eventBus);
         checkArgument(maxBlocks >= -1, "maxBlocks >= -1 required");
         checkNotNull(event);
+
         this.actor = event.getActor();
-        // Wrap world
+        // TODO block bag
         this.blockBag = blockBag;
-        this.maxBlocks = maxBlocks;
-        // Invalid; return null extent
+
+        // Invalid world: return null extent
         if (world == null) {
-            FaweExtent extent = faweExtent = new NullExtent(world, BBC.WORLDEDIT_CANCEL_REASON_MAX_FAILS);
+            NullExtent extent = new NullExtent(BBC.WORLDEDIT_CANCEL_REASON_MAX_FAILS);
             this.bypassReorderHistory = extent;
             this.bypassHistory = extent;
             this.bypassNone = extent;
@@ -234,26 +233,18 @@ public class EditSession implements Extent {
             this.wrapper = Fawe.imp().getEditSessionWrapper(this);
             return;
         }
-        // Set the world of the event to the actual world (workaround for CoreProtect)
-        try {
-            Class<? extends EditSessionEvent> eventClass = event.getClass();
-            Field fieldWorld = eventClass.getDeclaredField("world");
-            fieldWorld.setAccessible(true);
-            if (world instanceof WorldWrapper) {
-                fieldWorld.set(event, ((WorldWrapper) world).getParent());
-            } else {
-                fieldWorld.set(event, world);
-            }
-        } catch (Throwable e) {
-            e.printStackTrace();
-        }
+
+        // Wrap the world
         this.world = (world = new WorldWrapper((AbstractWorld) world));
+
+        // Delegate some methods to an implementation specific class
         this.wrapper = Fawe.imp().getEditSessionWrapper(this);
+
         // Not a player; bypass history
         if ((actor == null) || !actor.isPlayer()) {
             this.queue = SetQueue.IMP.getNewQueue(Fawe.imp().getWorldName(world), true, true);
             queue.addEditSession(this);
-            Extent extent = (this.faweExtent = new FastWorldEditExtent(world, queue));
+            Extent extent = primaryExtent = new FastWorldEditExtent(world, queue);
             // Everything bypasses
             extent = this.wrapExtent(extent, eventBus, event, Stage.BEFORE_CHANGE);
             extent = this.wrapExtent(extent, eventBus, event, Stage.BEFORE_REORDER);
@@ -264,8 +255,9 @@ public class EditSession implements Extent {
             this.changeSet = new NullChangeSet();
             return;
         }
-        this.changeSet = Settings.STORE_HISTORY_ON_DISK ? new DiskStorageHistory(world, actor.getUniqueId()) : new MemoryOptimizedHistory(actor);
+
         Extent extent;
+        HashSet<RegionWrapper> mask;
         final FawePlayer fp = FawePlayer.wrap(actor);
         final LocalSession session = fp.getSession();
         this.fastmode = session.hasFastMode();
@@ -273,7 +265,7 @@ public class EditSession implements Extent {
             this.queue = SetQueue.IMP.getNewQueue(Fawe.imp().getWorldName(world), true, true);
             queue.addEditSession(this);
             // Bypass skips processing and area restrictions
-            extent = (this.faweExtent = new FastWorldEditExtent(world, queue));
+            extent = primaryExtent = new FastWorldEditExtent(world, queue);
             if (this.hasFastMode()) {
                 // Fastmode skips history and memory checks
                 extent = this.wrapExtent(extent, eventBus, event, Stage.BEFORE_CHANGE);
@@ -284,30 +276,28 @@ public class EditSession implements Extent {
                 this.bypassNone = extent;
                 return;
             }
+            mask = null;
         } else {
             this.queue = SetQueue.IMP.getNewQueue(Fawe.imp().getWorldName(world), false, true);
             queue.addEditSession(this);
             this.limit = fp.getLimit();
-            final HashSet<RegionWrapper> mask = WEManager.IMP.getMask(fp);
+            mask = WEManager.IMP.getMask(fp);
             if (mask.size() == 0) {
                 // No allowed area; return null extent
-                extent = faweExtent = new NullExtent(world, BBC.WORLDEDIT_CANCEL_REASON_MAX_FAILS);
+                extent = new NullExtent(BBC.WORLDEDIT_CANCEL_REASON_MAX_FAILS);
                 this.bypassReorderHistory = extent;
                 this.bypassHistory = extent;
                 this.bypassNone = extent;
                 return;
             }
-            // Process the WorldEdit action
-            ProcessedWEExtent processed = (ProcessedWEExtent) (this.faweExtent = new ProcessedWEExtent(world, fp, mask, limit, queue));
-            extent = processed;
+            extent = primaryExtent = new FastWorldEditExtent(world, queue);
             if (this.hasFastMode()) {
                 // Fastmode skips history, masking, and memory checks
                 extent = this.wrapExtent(extent, eventBus, event, Stage.BEFORE_CHANGE);
                 extent = this.wrapExtent(extent, eventBus, event, Stage.BEFORE_REORDER);
+                // Restrictions
+                extent = new ProcessedWEExtent(extent, mask, limit);
                 extent = this.wrapExtent(extent, eventBus, event, Stage.BEFORE_HISTORY);
-                extent = new ExtentWrapper(extent);
-                // Set the parent. This allows efficient cancelling
-                processed.setParent(extent);
                 this.bypassReorderHistory = extent;
                 this.bypassHistory = extent;
                 this.bypassNone = extent;
@@ -318,9 +308,8 @@ public class EditSession implements Extent {
                     if (Perm.hasPermission(fp, "worldedit.fast")) {
                         BBC.WORLDEDIT_OOM_ADMIN.send(fp);
                     }
-
                     // Memory limit reached; return null extent
-                    extent = faweExtent = new NullExtent(world, BBC.WORLDEDIT_CANCEL_REASON_MAX_FAILS);
+                    extent = new NullExtent(BBC.WORLDEDIT_CANCEL_REASON_MAX_FAILS);
                     this.bypassReorderHistory = extent;
                     this.bypassHistory = extent;
                     this.bypassNone = extent;
@@ -328,14 +317,24 @@ public class EditSession implements Extent {
                 }
             }
             // Perform memory checks after reorder
-            extent = new SafeExtentWrapper(fp, extent);
-            processed.setParent(extent);
+            extent = new MemoryCheckingExtent(fp, extent);
         }
         // Include history, masking and memory checking.
         Extent wrapped;
+        // First two events
         extent = wrapped = this.wrapExtent(extent, eventBus, event, Stage.BEFORE_CHANGE);
         extent = this.wrapExtent(extent, eventBus, event, Stage.BEFORE_REORDER);
+
+        // History
+        this.changeSet = Settings.STORE_HISTORY_ON_DISK ? new DiskStorageHistory(world, actor.getUniqueId()) : new MemoryOptimizedHistory(actor);
         extent = this.wrapper.getHistoryExtent(this, limit, extent, this.changeSet, queue, fp);
+
+        // Region restrictions if mask is not null
+        if (mask != null) {
+            extent = this.regionExtent = new ProcessedWEExtent(extent, mask, limit);
+        }
+
+        // Masking
         final Player skp = (Player) actor;
         final int item = skp.getItemInHand();
         boolean hasMask = session.getMask() != null;
@@ -351,12 +350,42 @@ public class EditSession implements Extent {
             extent = this.maskingExtent = new MaskingExtent(extent, Masks.alwaysTrue());
         }
 
+        // Before history event
         extent = this.wrapExtent(extent, eventBus, event, Stage.BEFORE_HISTORY);
-        extent = new SafeExtentWrapper(fp, extent);
+
         this.bypassReorderHistory = wrapped;
         this.bypassHistory = wrapped;
         this.bypassNone = extent;
         return;
+    }
+
+    public FaweRegionExtent getRegionExtent() {
+        return regionExtent;
+    }
+
+    public boolean cancel() {
+        // Cancel this
+        if (primaryExtent != null && queue != null) {
+            try {
+                WEManager.IMP.cancelEdit(primaryExtent, BBC.WORLDEDIT_CANCEL_REASON_MANUAL);
+            } catch (Throwable ignore) {}
+            NullExtent nullExtent = new NullExtent(BBC.WORLDEDIT_CANCEL_REASON_MANUAL);
+            primaryExtent = nullExtent;
+            dequeue();
+            queue.clear();
+            return true;
+        }
+        return false;
+    }
+
+    public void dequeue() {
+        if (queue != null) {
+            SetQueue.IMP.dequeue(queue);
+        }
+    }
+
+    public FastWorldEditExtent getPrimaryExtent() {
+        return (FastWorldEditExtent) primaryExtent;
     }
 
     public void debug(BBC message, Object... args) {
@@ -427,7 +456,7 @@ public class EditSession implements Extent {
      * @return the limit (&gt;= 0) or -1 for no limit
      */
     public int getBlockChangeLimit() {
-        return this.maxBlocks;
+        return -1;
     }
 
     /**
@@ -487,10 +516,6 @@ public class EditSession implements Extent {
         } else {
             this.maskingExtent.setMask(mask);
         }
-    }
-
-    public FaweExtent getFaweExtent() {
-        return this.faweExtent;
     }
 
     /**

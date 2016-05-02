@@ -10,6 +10,7 @@ import com.boydti.fawe.object.IntegerPair;
 import com.boydti.fawe.object.PseudoRandom;
 import com.boydti.fawe.util.MemUtil;
 import com.sk89q.worldedit.LocalSession;
+import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.ArrayDeque;
@@ -224,6 +225,28 @@ public class BukkitQueue_1_9_R1 extends BukkitQueue_0<Chunk, ChunkSection[], Dat
         fieldSection.set(section, palette);
     }
 
+    public ChunkSection newChunkSection(int y2, boolean flag, char[] array) {
+        try {
+            if (array == null) {
+                return new ChunkSection(y2, flag);
+            } else {
+                return new ChunkSection(y2, flag, array);
+            }
+        } catch (Throwable e) {
+            try {
+                if (array == null) {
+                    Constructor<ChunkSection> constructor = ChunkSection.class.getDeclaredConstructor(int.class, boolean.class, IBlockData[].class);
+                    return constructor.newInstance(y2, flag, null);
+                } else {
+                    Constructor<ChunkSection> constructor = ChunkSection.class.getDeclaredConstructor(int.class, boolean.class, char[].class, IBlockData[].class);
+                    return constructor.newInstance(y2, flag, array, null);
+                }
+            } catch (Throwable e2) {
+                throw new RuntimeException(e2);
+            }
+        }
+    }
+
     @Override
     public boolean setComponents(final FaweChunk pc) {
         final BukkitChunk_1_9 fs = (BukkitChunk_1_9) pc;
@@ -267,9 +290,6 @@ public class BukkitQueue_1_9_R1 extends BukkitQueue_0<Chunk, ChunkSection[], Dat
                         iter.remove();
                     }
                 }
-            }
-            if (removed) {
-                w.tileEntityListTick.clear();
             }
 
             // Trim entities

@@ -79,7 +79,7 @@ public abstract class BukkitQueue_0<CHUNK, CHUNKSECTIONS, SECTION> extends NMSMa
         ChunkListener.physicsFreeze = false;
         if (parallel) {
             try {Field fieldEnabled = Class.forName("co.aikar.timings.Timings").getDeclaredField("timingsEnabled");fieldEnabled.setAccessible(true);fieldEnabled.set(null, timingsEnabled);
-            } catch (Throwable ignore) {ignore.printStackTrace();}
+            } catch (Throwable ignore) {}
             try { Class.forName("org.spigotmc.AsyncCatcher").getField("enabled").set(null, true); } catch (Throwable ignore) {}
         }
     }

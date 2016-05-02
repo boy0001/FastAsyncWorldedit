@@ -50,37 +50,34 @@ public class HistoryExtent extends AbstractDelegateExtent {
 
     @Override
     public boolean setBlock(final Vector location, final BaseBlock block) throws WorldEditException {
-        if (super.setBlock(location, block)) {
-            int x = location.getBlockX();
-            int y = location.getBlockY();
-            int z = location.getBlockZ();
-            int combined = queue.getCombinedId4DataDebug(x, y, z, 0, session);
-            int id = (combined >> 4);
-            if (id == block.getId()) {
-                if (!FaweCache.hasData(id)) {
-                    return false;
-                }
-                int data = id & 0xF;
-                if (data == block.getData()) {
-                    return false;
-                }
+        int x = location.getBlockX();
+        int y = location.getBlockY();
+        int z = location.getBlockZ();
+        int combined = queue.getCombinedId4DataDebug(x, y, z, 0, session);
+        int id = (combined >> 4);
+        if (id == block.getId()) {
+            if (!FaweCache.hasData(id)) {
+                return false;
             }
-            if (!FaweCache.hasNBT(id)) {
-                if (FaweCache.hasNBT(block.getId())) {
-                    this.changeSet.add(x, y, z, combined, block);
-                } else {
-                    this.changeSet.add(x, y, z, combined, (block.getId() << 4) + block.getData());
-                }
-            } else {
-                try {
-                    this.changeSet.add(location, getBlock(location), block);
-                } catch (Throwable e) {
-                    this.changeSet.add(x, y, z, combined, block);
-                }
+            int data = id & 0xF;
+            if (data == block.getData()) {
+                return false;
             }
-            return true;
         }
-        return false;
+        if (!FaweCache.hasNBT(id)) {
+            if (FaweCache.hasNBT(block.getId())) {
+                this.changeSet.add(x, y, z, combined, block);
+            } else {
+                this.changeSet.add(x, y, z, combined, (block.getId() << 4) + block.getData());
+            }
+        } else {
+            try {
+                this.changeSet.add(location, getBlock(location), block);
+            } catch (Throwable e) {
+                this.changeSet.add(x, y, z, combined, block);
+            }
+        }
+        return super.setBlock(location, block);
     }
 
     @Nullable

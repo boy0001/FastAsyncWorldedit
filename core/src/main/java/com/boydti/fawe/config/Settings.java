@@ -92,14 +92,14 @@ public class Settings {
         options.put("history.use-disk", STORE_HISTORY_ON_DISK);
         options.put("history.compress", false);
         options.put("history.chunk-wait-ms", CHUNK_WAIT);
-        options.put("history.buffer-size", BUFFER_SIZE);
+//        options.put("history.buffer-size", BUFFER_SIZE);
         options.put("history.delete-after-days", DELETE_HISTORY_AFTER_DAYS);
         options.put("region-restrictions", REGION_RESTRICTIONS);
         options.put("queue.parallel-threads", UNSAFE_PARALLEL_THREADS);
         options.put("queue.extra-time-ms", ALLOCATE);
         options.put("queue.target-size", QUEUE_SIZE);
         options.put("queue.max-wait-ms", QUEUE_MAX_WAIT);
-        options.put("queue.discard-after-ms", QUEUE_DISCARD_AFTER);
+//        options.put("queue.discard-after-ms", QUEUE_DISCARD_AFTER);
         options.put("extent.allowed-plugins", new ArrayList<String>());
         options.put("extent.debug", EXTENT_DEBUG);
         options.put("metrics", METRICS);
@@ -140,7 +140,7 @@ public class Settings {
         QUEUE_SIZE = config.getInt("queue.target-size");
         QUEUE_MAX_WAIT = config.getInt("queue.max-wait-ms");
         UNSAFE_PARALLEL_THREADS = config.getInt("queue.parallel-threads");
-        QUEUE_DISCARD_AFTER = config.getInt("queue.discard-after-ms");
+        QUEUE_DISCARD_AFTER = config.getInt("queue.discard-after-ms", QUEUE_DISCARD_AFTER);
         ALLOWED_3RDPARTY_EXTENTS = config.getStringList("extent.allowed-plugins");
         EXTENT_DEBUG = config.getBoolean("extent.debug");
         STORE_CLIPBOARD_ON_DISK = config.getBoolean("clipboard.use-disk");

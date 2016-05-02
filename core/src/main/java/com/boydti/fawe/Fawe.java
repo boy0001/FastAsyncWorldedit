@@ -336,6 +336,9 @@ public class Fawe {
     }
 
     private void setupMemoryListener() {
+        if (Settings.MEM_FREE < 1) {
+            return;
+        }
         final MemoryMXBean memBean = ManagementFactory.getMemoryMXBean();
         final NotificationEmitter ne = (NotificationEmitter) memBean;
 

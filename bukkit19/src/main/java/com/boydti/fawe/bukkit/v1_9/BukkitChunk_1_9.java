@@ -3,6 +3,7 @@ package com.boydti.fawe.bukkit.v1_9;
 import com.boydti.fawe.FaweCache;
 import com.boydti.fawe.example.CharFaweChunk;
 import com.boydti.fawe.util.FaweQueue;
+import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import net.minecraft.server.v1_9_R1.Block;
 import net.minecraft.server.v1_9_R1.DataBits;
@@ -96,7 +97,17 @@ public class BukkitChunk_1_9 extends CharFaweChunk<Chunk> {
                 if (sectionPalettes == null) {
                     sectionPalettes = new DataPaletteBlock[16];
                 }
-                DataPaletteBlock palette = sectionPalettes[layer] = new DataPaletteBlock();
+                DataPaletteBlock palette;
+                try {
+                    palette = sectionPalettes[layer] = new DataPaletteBlock();
+                } catch (Throwable e) {
+                    try {
+                        Constructor<DataPaletteBlock> constructor = DataPaletteBlock.class.getDeclaredConstructor(IBlockData[].class);
+                        palette = sectionPalettes[layer] = constructor.newInstance(null);
+                    } catch (Throwable e2) {
+                        throw new RuntimeException(e2);
+                    }
+                }
                 char[] blocks = getIdArray(layer);
                 for (int y = 0; y < 16; y++) {
                     for (int z = 0; z < 16; z++) {

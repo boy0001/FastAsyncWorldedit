@@ -3,7 +3,7 @@ package com.boydti.fawe.wrappers;
 import com.boydti.fawe.FaweCache;
 import com.boydti.fawe.object.RunnableVal;
 import com.boydti.fawe.object.changeset.FaweChangeSet;
-import com.boydti.fawe.object.extent.FaweExtent;
+import com.boydti.fawe.object.extent.FaweRegionExtent;
 import com.boydti.fawe.util.FaweQueue;
 import com.boydti.fawe.util.TaskManager;
 import com.sk89q.worldedit.BlockVector2D;
@@ -230,7 +230,7 @@ public class WorldWrapper extends AbstractWorld {
     public boolean regenerate(final Region region, final EditSession session) {
         final FaweQueue queue = session.getQueue();
         final FaweChangeSet fcs = (FaweChangeSet) session.getChangeSet();
-        final FaweExtent fe = session.getFaweExtent();
+        final FaweRegionExtent fe = session.getRegionExtent();
         session.setChangeSet(fcs);
         final boolean cuboid = region instanceof CuboidRegion;
         Set<Vector2D> chunks = region.getChunks();

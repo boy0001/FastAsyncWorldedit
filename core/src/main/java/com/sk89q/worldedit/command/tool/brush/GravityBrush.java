@@ -23,18 +23,27 @@ import com.sk89q.worldedit.EditSession;
 import com.sk89q.worldedit.MaxChangedBlocksException;
 import com.sk89q.worldedit.Vector;
 import com.sk89q.worldedit.blocks.BaseBlock;
+import com.sk89q.worldedit.command.tool.BrushTool;
+import com.sk89q.worldedit.function.mask.Mask;
+import com.sk89q.worldedit.function.mask.Masks;
 import com.sk89q.worldedit.function.pattern.Pattern;
 
 public class GravityBrush implements Brush {
 
     private final boolean fullHeight;
+    private final BrushTool tool;
 
-    public GravityBrush(boolean fullHeight) {
+    public GravityBrush(boolean fullHeight, BrushTool tool) {
         this.fullHeight = fullHeight;
+        this.tool = tool;
     }
 
     @Override
     public void build(EditSession editSession, Vector position, Pattern pattern, double sizeDouble) throws MaxChangedBlocksException {
+        Mask mask = tool.getMask();
+        if (mask == Masks.alwaysTrue() || mask == Masks.alwaysTrue2D()) {
+            mask = null;
+        }
         int size = (int) sizeDouble;
         int endY = position.getBlockY() + size;
         int startPerformY = Math.max(0, position.getBlockY() - size);
@@ -51,11 +60,12 @@ public class GravityBrush implements Brush {
                         continue;
                     }
                     BaseBlock block = editSession.getLazyBlock(x, y, z);
-                    if (block != EditSession.nullBlock) {
+                    mutablePos.x = x;
+                    mutablePos.y = y;
+                    mutablePos.z = z;
+                    if (block != EditSession.nullBlock && (mask == null || mask.test(mutablePos))) {
                         if (freeSpot != y) {
-                            mutablePos.x = x;
                             mutablePos.y = freeSpot;
-                            mutablePos.z = z;
                             editSession.setBlock(mutablePos, block);
                             mutablePos.y = y;
                             editSession.setBlock(mutablePos, EditSession.nullBlock);

@@ -29,6 +29,7 @@ import com.sk89q.minecraft.util.commands.Command;
 import com.sk89q.minecraft.util.commands.CommandContext;
 import com.sk89q.minecraft.util.commands.CommandPermissions;
 import com.sk89q.worldedit.EditSession;
+import com.sk89q.worldedit.IncompleteRegionException;
 import com.sk89q.worldedit.LocalConfiguration;
 import com.sk89q.worldedit.LocalSession;
 import com.sk89q.worldedit.Vector;
@@ -51,6 +52,7 @@ import com.sk89q.worldedit.extent.clipboard.Clipboard;
 import com.sk89q.worldedit.function.mask.BlockMask;
 import com.sk89q.worldedit.function.pattern.BlockPattern;
 import com.sk89q.worldedit.function.pattern.Pattern;
+import com.sk89q.worldedit.regions.CuboidRegion;
 import com.sk89q.worldedit.session.ClipboardHolder;
 import com.sk89q.worldedit.util.command.binding.Switch;
 import com.sk89q.worldedit.util.command.parametric.Optional;
@@ -226,13 +228,13 @@ public class BrushCommands {
 
         BrushTool tool = session.getBrushTool(player.getItemInHand());
         tool.setSize(radius);
-        tool.setBrush(new GravityBrush(fromMaxY), "worldedit.brush.gravity");
+        tool.setBrush(new GravityBrush(fromMaxY, tool), "worldedit.brush.gravity");
         BBC.BRUSH_GRAVITY.send(player, radius);
     }
 
     @Command(
-            aliases = { "height", "high" },
-            usage = "[radius] [file] [rotation] [yscale]",
+            aliases = { "height", "heightmap" },
+            usage = "[radius] [file|#selection|null] [rotation] [yscale]",
             flags = "h",
             desc = "Height brush",
             help =
@@ -246,7 +248,12 @@ public class BrushCommands {
         File file = new File(Fawe.imp().getDirectory(), "heightmap" + File.separator + (filename.endsWith(".png") ? filename : filename + ".png"));
         BrushTool tool = session.getBrushTool(player.getItemInHand());
         tool.setSize(radius);
-        tool.setBrush(new HeightBrush(file, rotation, yscale), "worldedit.brush.height");
+        try {
+            tool.setBrush(new HeightBrush(file, rotation, yscale, tool, editSession, (CuboidRegion) session.getSelection(player.getWorld())), "worldedit.brush.height");
+        } catch (IncompleteRegionException ignore) {
+            ignore.printStackTrace();
+            tool.setBrush(new HeightBrush(file, rotation, yscale, tool, editSession, null), "worldedit.brush.height");
+        }
         BBC.BRUSH_HEIGHT.send(player, radius);
     }
 
