@@ -1,6 +1,7 @@
 package com.boydti.fawe.object.brush;
 
 import com.boydti.fawe.config.BBC;
+import com.boydti.fawe.object.IntegerPair;
 import com.boydti.fawe.object.brush.heightmap.ArrayHeightMap;
 import com.boydti.fawe.object.brush.heightmap.HeightMap;
 import com.boydti.fawe.object.exception.FaweException;
@@ -18,6 +19,7 @@ import java.awt.image.BufferedImage;
 import java.awt.image.Raster;
 import java.io.File;
 import java.io.IOException;
+import java.util.HashSet;
 import javax.imageio.ImageIO;
 
 public class HeightBrush implements Brush {
@@ -41,7 +43,13 @@ public class HeightBrush implements Brush {
                 int minY = clipboard.getMinimumPoint().getBlockY();
                 int maxY = clipboard.getMaximumPoint().getBlockY();
                 int clipHeight = maxY - minY + 1;
+                HashSet<IntegerPair> visited = new HashSet<>();
                 for (Vector pos : clipboard.getRegion()) {
+                    IntegerPair pair = new IntegerPair((int) pos.x, (int) pos.z);
+                    if (visited.contains(pair)) {
+                        continue;
+                    }
+                    visited.add(pair);
                     int xx = pos.getBlockX();
                     int zz = pos.getBlockZ();
                     int highestY = 0;

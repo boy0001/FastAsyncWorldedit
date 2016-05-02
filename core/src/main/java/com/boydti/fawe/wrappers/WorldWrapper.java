@@ -243,11 +243,11 @@ public class WorldWrapper extends AbstractWorld {
                 int bz = cz << 4;
                 Vector cmin = new Vector(bx, 0, bz);
                 Vector cmax = cmin.add(15, getMaxY(), 15);
-                boolean containsBot1 = (fe != null && fe.contains(cmin.getBlockX(), cmin.getBlockY(), cmin.getBlockZ()));
+                boolean containsBot1 = (fe == null || fe.contains(cmin.getBlockX(), cmin.getBlockY(), cmin.getBlockZ()));
                 boolean containsBot2 = region.contains(cmin);
-                boolean containsTop1 = (fe != null && fe.contains(cmax.getBlockX(), cmax.getBlockY(), cmax.getBlockZ()));
+                boolean containsTop1 = (fe == null || fe.contains(cmax.getBlockX(), cmax.getBlockY(), cmax.getBlockZ()));
                 boolean containsTop2 = region.contains(cmax);
-                if (fe == null || (containsBot2 && containsTop2 && !containsBot1 && !containsTop1)) {
+                if ((containsBot2 && containsTop2 && !containsBot1 && !containsTop1)) {
                     return;
                 }
                 if (cuboid && containsBot1 && containsBot2 && containsTop1 && containsTop2) {
