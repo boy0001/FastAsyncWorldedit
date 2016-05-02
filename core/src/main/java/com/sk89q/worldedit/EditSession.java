@@ -225,7 +225,7 @@ public class EditSession implements Extent {
 
         // Invalid world: return null extent
         if (world == null) {
-            NullExtent extent = new NullExtent(BBC.WORLDEDIT_CANCEL_REASON_MAX_FAILS);
+            Extent extent = this.regionExtent = new NullExtent(world, BBC.WORLDEDIT_CANCEL_REASON_MAX_FAILS);
             this.bypassReorderHistory = extent;
             this.bypassHistory = extent;
             this.bypassNone = extent;
@@ -284,7 +284,7 @@ public class EditSession implements Extent {
             mask = WEManager.IMP.getMask(fp);
             if (mask.size() == 0) {
                 // No allowed area; return null extent
-                extent = new NullExtent(BBC.WORLDEDIT_CANCEL_REASON_MAX_FAILS);
+                extent = this.regionExtent = new NullExtent(world, BBC.WORLDEDIT_CANCEL_REASON_MAX_FAILS);
                 this.bypassReorderHistory = extent;
                 this.bypassHistory = extent;
                 this.bypassNone = extent;
@@ -309,7 +309,7 @@ public class EditSession implements Extent {
                         BBC.WORLDEDIT_OOM_ADMIN.send(fp);
                     }
                     // Memory limit reached; return null extent
-                    extent = new NullExtent(BBC.WORLDEDIT_CANCEL_REASON_MAX_FAILS);
+                    extent = this.regionExtent = new NullExtent(world, BBC.WORLDEDIT_CANCEL_REASON_MAX_FAILS);
                     this.bypassReorderHistory = extent;
                     this.bypassHistory = extent;
                     this.bypassNone = extent;
@@ -369,7 +369,7 @@ public class EditSession implements Extent {
             try {
                 WEManager.IMP.cancelEdit(primaryExtent, BBC.WORLDEDIT_CANCEL_REASON_MANUAL);
             } catch (Throwable ignore) {}
-            NullExtent nullExtent = new NullExtent(BBC.WORLDEDIT_CANCEL_REASON_MANUAL);
+            NullExtent nullExtent = new NullExtent(world, BBC.WORLDEDIT_CANCEL_REASON_MANUAL);
             primaryExtent = nullExtent;
             dequeue();
             queue.clear();

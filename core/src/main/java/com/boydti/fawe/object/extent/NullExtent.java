@@ -15,16 +15,18 @@ import com.sk89q.worldedit.util.Location;
 import com.sk89q.worldedit.world.biome.BaseBiome;
 import java.util.ArrayList;
 import java.util.List;
-import javax.annotation.Nullable;
 
-public class NullExtent implements Extent {
+public class NullExtent extends FaweRegionExtent {
 
     private final BBC reason;
 
     /**
      * Create a new instance.
+     *
+     * @param extent the extent
      */
-    public NullExtent(BBC failReason) {
+    public NullExtent(Extent extent, BBC failReason) {
+        super(extent);
         this.reason = failReason;
     }
 
@@ -46,12 +48,6 @@ public class NullExtent implements Extent {
     @Override
     public boolean setBiome(final Vector2D arg0, final BaseBiome arg1) {
         throw new FaweException(reason);
-    }
-
-    @Nullable
-    @Override
-    public Operation commit() {
-        return null;
     }
 
     @Override
@@ -82,5 +78,18 @@ public class NullExtent implements Extent {
     @Override
     public Vector getMinimumPoint() {
         return new Vector(0, 0, 0);
+    }
+
+    @Override
+    public boolean contains(int x, int y, int z) { return false; }
+
+    @Override
+    protected Operation commitBefore() {
+        return null;
+    }
+
+    @Override
+    public Extent getExtent() {
+        return this;
     }
 }
