@@ -43,7 +43,7 @@ public class HeightBrush implements Brush {
                     int xx = pos.getBlockX();
                     int zz = pos.getBlockZ();
                     int worldPointHeight = session.getHighestTerrainBlock(xx, zz, minY, maxY);
-                    int pointHeight = (256 * (worldPointHeight - minY)) / selHeight;
+                    int pointHeight = Math.min(255, (256 * (worldPointHeight - minY)) / selHeight);
                     int x = xx - minX;
                     int z = zz - minZ;
                     heightArray[x][z] = (byte) pointHeight;
