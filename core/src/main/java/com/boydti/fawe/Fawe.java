@@ -11,7 +11,6 @@ import com.boydti.fawe.config.BBC;
 import com.boydti.fawe.config.Settings;
 import com.boydti.fawe.object.FawePlayer;
 import com.boydti.fawe.regions.general.PlotSquaredFeature;
-import com.boydti.fawe.util.Lag;
 import com.boydti.fawe.util.MainUtil;
 import com.boydti.fawe.util.MemUtil;
 import com.boydti.fawe.util.TaskManager;
@@ -191,10 +190,6 @@ public class Fawe {
          */
         this.setupInjector();
         this.setupMemoryListener();
-
-        // Lag
-        final Lag lag = new Lag();
-        TaskManager.IMP.repeat(lag, 100);
     }
 
     private void setupEvents() {
@@ -336,28 +331,38 @@ public class Fawe {
         if (Settings.MEM_FREE < 1) {
             return;
         }
-        final MemoryMXBean memBean = ManagementFactory.getMemoryMXBean();
-        final NotificationEmitter ne = (NotificationEmitter) memBean;
+        try {
+            final MemoryMXBean memBean = ManagementFactory.getMemoryMXBean();
+            final NotificationEmitter ne = (NotificationEmitter) memBean;
 
-        ne.addNotificationListener(new NotificationListener() {
-            @Override
-            public void handleNotification(final Notification notification, final Object handback) {
-                MemUtil.memoryLimitedTask();
-            }
-        }, null, null);
-
-        final List<MemoryPoolMXBean> memPools = ManagementFactory.getMemoryPoolMXBeans();
-        for (final MemoryPoolMXBean mp : memPools) {
-            if (mp.isUsageThresholdSupported()) {
-                final MemoryUsage mu = mp.getUsage();
-                final long max = mu.getMax();
-                if (max < 0) {
-                    continue;
+            ne.addNotificationListener(new NotificationListener() {
+                @Override
+                public void handleNotification(final Notification notification, final Object handback) {
+                    MemUtil.memoryLimitedTask();
                 }
-                final long alert = (max * Settings.MEM_FREE) / 100;
-                mp.setUsageThreshold(alert);
+            }, null, null);
 
+            final List<MemoryPoolMXBean> memPools = ManagementFactory.getMemoryPoolMXBeans();
+            for (final MemoryPoolMXBean mp : memPools) {
+                if (mp.isUsageThresholdSupported()) {
+                    final MemoryUsage mu = mp.getUsage();
+                    final long max = mu.getMax();
+                    if (max < 0) {
+                        continue;
+                    }
+                    final long alert = (max * Settings.MEM_FREE) / 100;
+                    mp.setUsageThreshold(alert);
+
+                }
             }
+        } catch (Throwable e) {
+            debug("====== MEMORY LISTENER ERROR ======");
+            e.printStackTrace();
+            debug("===================================");
+            debug("FAWE needs access to the JVM memory system:");
+            debug(" - Change your Java security settings");
+            debug(" - Disable this with `max-memory-percent: -1`");
+            debug("===================================");
         }
     }
 

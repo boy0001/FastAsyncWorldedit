@@ -24,15 +24,15 @@ public class ChunkListener implements Listener {
         }, 1);
     }
 
-    private int physicsLimit = Settings.PHYSICS_PER_TICK;
-    private int itemLimit = Settings.ITEMS_PER_TICK;
+    private int physicsLimit = Integer.MAX_VALUE;
+    private int itemLimit = Integer.MAX_VALUE;
     public static boolean physicsFreeze = false;
 
     @EventHandler(priority = EventPriority.LOWEST)
     public void onPhysics(BlockPhysicsEvent event) {
         if (physicsFreeze) {
             event.setCancelled(true);
-        } else if (--physicsLimit < 0) {
+        } else if (physicsLimit-- < 0) {
             physicsFreeze = true;
         }
     }
@@ -41,7 +41,7 @@ public class ChunkListener implements Listener {
     public void onItemSpawn(ItemSpawnEvent event) {
         if (physicsFreeze) {
             event.setCancelled(true);
-        } else if (--itemLimit < 0) {
+        } else if (itemLimit-- < 0) {
             physicsFreeze = true;
         }
     }

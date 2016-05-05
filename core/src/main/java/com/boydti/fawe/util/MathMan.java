@@ -43,6 +43,18 @@ public class MathMan {
             253, 254, 254, 255
     };
 
+    public static byte pair16(byte x, byte y) {
+        return (byte) (x + (y << 4));
+    }
+
+    public static byte unpair16x(byte value) {
+        return (byte) (value & 0xF);
+    }
+
+    public static byte unpair16y(byte value) {
+        return (byte) ((value >> 4) & 0xF);
+    }
+
     public static int sqrt(int x) {
         int xn;
 

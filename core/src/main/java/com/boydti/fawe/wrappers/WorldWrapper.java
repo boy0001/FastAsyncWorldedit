@@ -304,7 +304,7 @@ public class WorldWrapper extends AbstractWorld {
                                         try {
                                             final BaseBlock block = getBlock(loc);
                                             final Vector v = new Vector(loc.x, loc.y, loc.z);
-                                            queue.addTask(cx, cz, new Runnable() {
+                                            queue.addNotifyTask(cx, cz, new Runnable() {
                                                 @Override
                                                 public void run() {
                                                     try {

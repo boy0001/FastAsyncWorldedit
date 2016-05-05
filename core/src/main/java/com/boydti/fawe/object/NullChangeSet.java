@@ -1,48 +1,49 @@
 package com.boydti.fawe.object;
 
 import com.boydti.fawe.object.changeset.FaweChangeSet;
-import com.sk89q.worldedit.Vector;
-import com.sk89q.worldedit.blocks.BaseBlock;
+import com.sk89q.jnbt.CompoundTag;
 import com.sk89q.worldedit.history.change.Change;
 import java.util.ArrayList;
 import java.util.Iterator;
 
-public class NullChangeSet implements FaweChangeSet {
-    
-    @Override
-    public void add(Change change) {}
-    
-    @Override
-    public Iterator<Change> backwardIterator() {
-        return new ArrayList<Change>().iterator();
-    }
-    
-    @Override
-    public Iterator<Change> forwardIterator() {
-        return new ArrayList<Change>().iterator();
-    }
-    
-    @Override
-    public int size() {
-        return 0;
-    }
-
+public class NullChangeSet extends FaweChangeSet {
     @Override
     public boolean flush() {
         return false;
     }
 
     @Override
-    public int getCompressedSize() {
-        return 0;
+    public void add(int x, int y, int z, int combinedFrom, int combinedTo) {
+
     }
 
     @Override
-    public void add(Vector location, BaseBlock from, BaseBlock to) {}
+    public void addTileCreate(CompoundTag tag) {
+
+    }
 
     @Override
-    public void add(int x, int y, int z, int combinedId4DataFrom, BaseBlock to) {}
+    public void addTileRemove(CompoundTag tag) {
+
+    }
 
     @Override
-    public void add(int x, int y, int z, int combinedId4DataFrom, int combinedId4DataTo) {}
+    public void addEntityRemove(CompoundTag tag) {
+
+    }
+
+    @Override
+    public void addEntityCreate(CompoundTag tag) {
+
+    }
+
+    @Override
+    public Iterator<Change> getIterator(boolean undo) {
+        return new ArrayList<Change>().iterator();
+    }
+
+    @Override
+    public int size() {
+        return 0;
+    }
 }

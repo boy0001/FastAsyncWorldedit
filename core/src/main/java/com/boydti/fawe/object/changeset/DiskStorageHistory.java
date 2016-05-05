@@ -1,30 +1,11 @@
 package com.boydti.fawe.object.changeset;
 
 import com.boydti.fawe.Fawe;
-import com.boydti.fawe.FaweCache;
 import com.boydti.fawe.config.Settings;
 import com.boydti.fawe.object.IntegerPair;
 import com.boydti.fawe.object.RegionWrapper;
-import com.boydti.fawe.util.MainUtil;
-import com.boydti.fawe.util.ReflectionUtils;
-import com.sk89q.jnbt.CompoundTag;
-import com.sk89q.jnbt.IntTag;
 import com.sk89q.jnbt.NBTInputStream;
 import com.sk89q.jnbt.NBTOutputStream;
-import com.sk89q.jnbt.NamedTag;
-import com.sk89q.jnbt.Tag;
-import com.sk89q.worldedit.BlockVector;
-import com.sk89q.worldedit.EditSession;
-import com.sk89q.worldedit.EditSessionFactory;
-import com.sk89q.worldedit.Vector;
-import com.sk89q.worldedit.WorldEdit;
-import com.sk89q.worldedit.blocks.BaseBlock;
-import com.sk89q.worldedit.entity.Player;
-import com.sk89q.worldedit.history.change.BlockChange;
-import com.sk89q.worldedit.history.change.Change;
-import com.sk89q.worldedit.history.change.EntityCreate;
-import com.sk89q.worldedit.history.change.EntityRemove;
-import com.sk89q.worldedit.history.changeset.ChangeSet;
 import com.sk89q.worldedit.world.World;
 import java.io.File;
 import java.io.FileInputStream;
@@ -32,18 +13,14 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.zip.GZIPInputStream;
 import java.util.zip.GZIPOutputStream;
 import net.jpountz.lz4.LZ4Compressor;
 import net.jpountz.lz4.LZ4Factory;
 import net.jpountz.lz4.LZ4InputStream;
-import net.jpountz.lz4.LZ4OutputStream;
 
 /**
  * Store the change on disk
@@ -52,7 +29,7 @@ import net.jpountz.lz4.LZ4OutputStream;
  *  - Minimal memory usage
  *  - Slow
  */
-public class DiskStorageHistory implements ChangeSet, FaweChangeSet {
+public class DiskStorageHistory extends FaweStreamChangeSet {
 
     private UUID uuid;
     private File bdFile;
@@ -60,7 +37,12 @@ public class DiskStorageHistory implements ChangeSet, FaweChangeSet {
     private File nbttFile;
     private File entfFile;
     private File enttFile;
-    
+
+    /**
+     * Summary of this change (not accurate for larger edits)
+     */
+    private DiskStorageSummary summary;
+
     /*
      * Block data
      * 
@@ -80,22 +62,15 @@ public class DiskStorageHistory implements ChangeSet, FaweChangeSet {
     // NBT To
     private NBTOutputStream osNBTT;
     private GZIPOutputStream osNBTTG;
-    private AtomicInteger osNBTTI;
-    
-    // Entity From
-    private NBTOutputStream osENTF;
-    private GZIPOutputStream osENTFG;
-    private AtomicInteger osENTFI;
-    
-    // Entity To
-    private NBTOutputStream osENTT;
-    private GZIPOutputStream osENTTG;
-    private AtomicInteger osENTTI;
 
-    private int ox;
-    private int oz;
+    // Entity Create From
+    private NBTOutputStream osENTCF;
+    private GZIPOutputStream osENTCFG;
 
-    private int size;
+    // Entity Create To
+    private NBTOutputStream osENTCT;
+    private GZIPOutputStream osENTCTG;
+
     private World world;
 
     public void deleteFiles() {
@@ -148,23 +123,6 @@ public class DiskStorageHistory implements ChangeSet, FaweChangeSet {
         return bdFile;
     }
 
-    public EditSession toEditSession(Player player) {
-        EditSessionFactory factory = WorldEdit.getInstance().getEditSessionFactory();
-        EditSession edit = factory.getEditSession(world, -1, null, player);
-        edit.setChangeSet(this);
-        edit.dequeue();
-        return edit;
-    }
-    
-    @Override
-    public void add(Change change) {
-        if ((change instanceof BlockChange)) {
-            add((BlockChange) change);
-        } else {
-            Fawe.debug("Does not support " + change + " yet! (Please bug Empire92)");
-        }
-    }
-    
     @Override
     public boolean flush() {
         boolean flushed = false;
@@ -201,123 +159,63 @@ public class DiskStorageHistory implements ChangeSet, FaweChangeSet {
     }
 
     @Override
-    public void add(int x, int y, int z, int combinedFrom, int combinedTo) {
-        size++;
-        try {
-            OutputStream stream = getBAOS(x, y, z);
-            //x
-            x-=ox;
-            stream.write((x) & 0xff);
-            stream.write(((x) >> 8) & 0xff);
-            //z
-            z-=oz;
-            stream.write((z) & 0xff);
-            stream.write(((z) >> 8) & 0xff);
-            //y
-            stream.write((byte) y);
-            //from
-            stream.write((combinedFrom) & 0xff);
-            stream.write(((combinedFrom) >> 8) & 0xff);
-            //to
-            stream.write((combinedTo) & 0xff);
-            stream.write(((combinedTo) >> 8) & 0xff);
-        }
-        catch (IOException e) {
-            e.printStackTrace();
-        }
-    }
-
-    @Override
-    public void add(int x, int y, int z, int combinedId4DataFrom, BaseBlock to) {
-        int idTo = to.getId();
-        int combinedTo = (FaweCache.hasData(idTo) ? ((idTo << 4) + to.getData()) : (idTo << 4));
-        CompoundTag nbtTo = FaweCache.hasNBT(idTo) ? to.getNbtData() : null;
-        add(x, y, z, combinedId4DataFrom, combinedTo);
-        if (nbtTo != null && MainUtil.isValidTag(nbtTo)) {
-            try {
-                Map<String, Tag> value = ReflectionUtils.getMap(nbtTo.getValue());
-                value.put("x", new IntTag(x));
-                value.put("y", new IntTag(y));
-                value.put("z", new IntTag(z));
-                NBTOutputStream nbtos = getNBTTOS(x, y, z);
-                nbtos.writeNamedTag(osNBTTI.getAndIncrement() + "", nbtTo);
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-        }
-    }
-
-    @Override
-    public void add(Vector loc, BaseBlock from, BaseBlock to) {
-        int x = loc.getBlockX();
-        int y = loc.getBlockY();
-        int z = loc.getBlockZ();
-        try {
-            int idfrom = from.getId();
-            int combinedFrom = (FaweCache.hasData(idfrom) ? ((idfrom << 4) + from.getData()) : (idfrom << 4));
-            CompoundTag nbtFrom = FaweCache.hasNBT(idfrom) ? from.getNbtData() : null;
-
-            if (nbtFrom != null && MainUtil.isValidTag(nbtFrom)) {
-                Map<String, Tag> value = ReflectionUtils.getMap(nbtFrom.getValue());
-                value.put("x", new IntTag(x));
-                value.put("y", new IntTag(y));
-                value.put("z", new IntTag(z));
-                NBTOutputStream nbtos = getNBTFOS(x, y, z);
-                nbtos.writeNamedTag(osNBTFI.getAndIncrement() + "", nbtFrom);
-            }
-            add(x, y, z, combinedFrom, to);
-
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
-
-    public void add(EntityCreate change) {
-        // TODO
-    }
-    
-    public void add(EntityRemove change) {
-        // TODO
-    }
-
-    public void add(BlockChange change) {
-        try {
-            BlockVector loc = change.getPosition();
-            BaseBlock from = change.getPrevious();
-            BaseBlock to = change.getCurrent();
-            add(loc, from, to);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
-    
-    private OutputStream getBAOS(int x, int y, int z) throws IOException {
+    public OutputStream getBlockOS(int x, int y, int z) throws IOException {
         if (osBD != null) {
             return osBD;
         }
         bdFile.getParentFile().mkdirs();
         bdFile.createNewFile();
-        FileOutputStream stream = new FileOutputStream(bdFile);
-        LZ4Factory factory = LZ4Factory.fastestInstance();
-        LZ4Compressor compressor = factory.fastCompressor();
-        osBD = new LZ4OutputStream(stream, Settings.BUFFER_SIZE, factory.fastCompressor());
-        if (Settings.COMPRESSION_LEVEL > 0) {
-            osBD = new LZ4OutputStream(osBD, Settings.BUFFER_SIZE, factory.highCompressor());
-        }
-        ox = x;
-        oz = z;
-        osBD.write((byte) (ox >> 24));
-        osBD.write((byte) (ox >> 16));
-        osBD.write((byte) (ox >> 8));
-        osBD.write((byte) (ox));
-        osBD.write((byte) (oz >> 24));
-        osBD.write((byte) (oz >> 16));
-        osBD.write((byte) (oz >> 8));
-        osBD.write((byte) (oz));
+        osBD = getCompressedOS(new FileOutputStream(bdFile));
+        setOrigin(x, z);
+        osBD.write((byte) (x >> 24));
+        osBD.write((byte) (x >> 16));
+        osBD.write((byte) (x >> 8));
+        osBD.write((byte) (x));
+        osBD.write((byte) (z >> 24));
+        osBD.write((byte) (z >> 16));
+        osBD.write((byte) (z >> 8));
+        osBD.write((byte) (z));
         return osBD;
     }
-    
-    private NBTOutputStream getNBTFOS(int x, int y, int z) throws IOException {
+
+    @Override
+    public NBTOutputStream getEntityCreateOS() throws IOException {
+        if (osENTCT != null) {
+            return osENTCT;
+        }
+        enttFile.getParentFile().mkdirs();
+        enttFile.createNewFile();
+        osENTCTG = new GZIPOutputStream(new FileOutputStream(enttFile), true);
+        osENTCT = new NBTOutputStream(osENTCTG);
+        return osENTCT;
+    }
+
+    @Override
+    public NBTOutputStream getEntityRemoveOS() throws IOException {
+        if (osENTCF != null) {
+            return osENTCF;
+        }
+        entfFile.getParentFile().mkdirs();
+        entfFile.createNewFile();
+        osENTCFG = new GZIPOutputStream(new FileOutputStream(entfFile), true);
+        osENTCF = new NBTOutputStream(osENTCFG);
+        return osENTCF;
+    }
+
+    @Override
+    public NBTOutputStream getTileCreateOS() throws IOException {
+        if (osNBTT != null) {
+            return osNBTT;
+        }
+        nbttFile.getParentFile().mkdirs();
+        nbttFile.createNewFile();
+        osNBTTG = new GZIPOutputStream(new FileOutputStream(nbttFile), true);
+        osNBTT = new NBTOutputStream(osNBTTG);
+        return osNBTT;
+    }
+
+    @Override
+    public NBTOutputStream getTileRemoveOS() throws IOException {
         if (osNBTF != null) {
             return osNBTF;
         }
@@ -328,51 +226,58 @@ public class DiskStorageHistory implements ChangeSet, FaweChangeSet {
         osNBTFI = new AtomicInteger();
         return osNBTF;
     }
-    
-    private NBTOutputStream getNBTTOS(int x, int y, int z) throws IOException {
-        if (osNBTT != null) {
-            return osNBTT;
+
+    @Override
+    public InputStream getBlockIS() throws IOException {
+        if (!bdFile.exists()) {
+            return null;
         }
-        nbttFile.getParentFile().mkdirs();
-        nbttFile.createNewFile();
-        osNBTTG = new GZIPOutputStream(new FileOutputStream(nbttFile), true);
-        osNBTT = new NBTOutputStream(osNBTTG);
-        osNBTTI = new AtomicInteger();
-        return osNBTT;
+        InputStream is = getCompressedIS(new FileInputStream(bdFile));
+        int x = ((is.read() << 24) + (is.read() << 16) + (is.read() << 8) + (is.read() << 0));
+        int z = ((is.read() << 24) + (is.read() << 16) + (is.read() << 8) + (is.read() << 0));
+        setOrigin(x, z);
+        return is;
     }
 
-    private NBTOutputStream getENTFOS(int x, int y, int z) throws IOException {
-        if (osNBTF != null) {
-            return osNBTF;
+    @Override
+    public NBTInputStream getEntityCreateIS() throws IOException {
+        if (!enttFile.exists()) {
+            return null;
         }
-        entfFile.getParentFile().mkdirs();
-        entfFile.createNewFile();
-        osENTFG = new GZIPOutputStream(new FileOutputStream(entfFile), true);
-        osENTF = new NBTOutputStream(osENTFG);
-        osENTFI = new AtomicInteger();
-        return osENTF;
-    }
-    
-    private NBTOutputStream getENTTOS(int x, int y, int z) throws IOException {
-        if (osENTT != null) {
-            return osENTT;
-        }
-        enttFile.getParentFile().mkdirs();
-        enttFile.createNewFile();
-        osENTTG = new GZIPOutputStream(new FileOutputStream(enttFile), true);
-        osENTT = new NBTOutputStream(osENTTG);
-        osENTTI = new AtomicInteger();
-        return osENTT;
+        return new NBTInputStream(getCompressedIS(new FileInputStream(enttFile)));
     }
 
+    @Override
+    public NBTInputStream getEntityRemoveIS() throws IOException {
+        if (!entfFile.exists()) {
+            return null;
+        }
+        return new NBTInputStream(getCompressedIS(new FileInputStream(entfFile)));
+    }
 
-    private DiskStorageSummary summary;
+    @Override
+    public NBTInputStream getTileCreateIS() throws IOException {
+        if (!nbttFile.exists()) {
+            return null;
+        }
+        return new NBTInputStream(getCompressedIS(new FileInputStream(nbttFile)));
+    }
+
+    @Override
+    public NBTInputStream getTileRemoveIS() throws IOException {
+        if (!nbtfFile.exists()) {
+            return null;
+        }
+        return new NBTInputStream(getCompressedIS(new FileInputStream(nbtfFile)));
+    }
 
     public DiskStorageSummary summarize(RegionWrapper requiredRegion, boolean shallow) {
         if (summary != null) {
             return summary;
         }
         if (bdFile.exists()) {
+            int ox = getOriginX();
+            int oz = getOriginZ();
             if ((ox != 0 || oz != 0) && !requiredRegion.isIn(ox, oz)) {
                 return summary = new DiskStorageSummary(ox, oz);
             }
@@ -387,6 +292,7 @@ public class DiskStorageHistory implements ChangeSet, FaweChangeSet {
                 }
                 ox = ((gis.read() << 24) + (gis.read() << 16) + (gis.read() << 8) + (gis.read() << 0));
                 oz = ((gis.read() << 24) + (gis.read() << 16) + (gis.read() << 8) + (gis.read() << 0));
+                setOrigin(ox, oz);
                 summary = new DiskStorageSummary(ox, oz);
                 if (!requiredRegion.isIn(ox, oz)) {
                     fis.close();
@@ -415,6 +321,8 @@ public class DiskStorageHistory implements ChangeSet, FaweChangeSet {
     }
 
     public IntegerPair readHeader() {
+        int ox = getOriginX();
+        int oz = getOriginZ();
         if (ox == 0 && oz == 0 && bdFile.exists()) {
             try {
                 FileInputStream fis = new FileInputStream(bdFile);
@@ -428,6 +336,7 @@ public class DiskStorageHistory implements ChangeSet, FaweChangeSet {
                 }
                 ox = ((gis.read() << 24) + (gis.read() << 16) + (gis.read() << 8) + (gis.read() << 0));
                 oz = ((gis.read() << 24) + (gis.read() << 16) + (gis.read() << 8) + (gis.read() << 0));
+                setOrigin(ox, oz);
                 fis.close();
                 gis.close();
             } catch (IOException e) {
@@ -435,129 +344,6 @@ public class DiskStorageHistory implements ChangeSet, FaweChangeSet {
             }
         }
         return new IntegerPair(ox, oz);
-    }
-
-    @SuppressWarnings("resource")
-    public Iterator<Change> getIterator(final boolean dir) {
-        flush();
-        try {
-            if (bdFile.exists()) {
-                final NBTInputStream nbtf = nbtfFile.exists() ? new NBTInputStream(new GZIPInputStream(new FileInputStream(nbtfFile))) : null;
-                final NBTInputStream nbtt = nbttFile.exists() ? new NBTInputStream(new GZIPInputStream(new FileInputStream(nbttFile))) : null;
-
-                FileInputStream fis = new FileInputStream(bdFile);
-                LZ4Factory factory = LZ4Factory.fastestInstance();
-                LZ4Compressor compressor = factory.fastCompressor();
-                final InputStream gis;
-                if (Settings.COMPRESSION_LEVEL > 0) {
-                    gis = new LZ4InputStream(new LZ4InputStream(fis));
-                } else {
-                    gis = new LZ4InputStream(fis);
-                }
-                ox = ((gis.read() << 24) + (gis.read() << 16) + (gis.read() << 8) + (gis.read() << 0));
-                oz = ((gis.read() << 24) + (gis.read() << 16) + (gis.read() << 8) + (gis.read() << 0));
-                return new Iterator<Change>() {
-
-                    private CompoundTag lastFrom = read(nbtf);
-                    private CompoundTag lastTo = read(nbtt);
-                    private Change last = read();
-                    
-                    public CompoundTag read(NBTInputStream stream) {
-                        if (stream != null) {
-                            try {
-                                NamedTag nt = stream.readNamedTag();
-                                return nt != null ? ((CompoundTag) nt.getTag()) : null;
-                            } catch (IOException ignore) {}
-                        }
-                        return null;
-                    }
-
-                    public Change read() {
-                        try {
-                            int x = ((byte) gis.read() & 0xFF) + ((byte) gis.read() << 8) + ox;
-                            int z = ((byte) gis.read() & 0xFF) + ((byte) gis.read() << 8) + oz;
-                            int y = gis.read() & 0xff;
-                            int from1 = gis.read();
-                            int from2 = gis.read();
-                            BaseBlock from = FaweCache.getBlock(((from2 << 4) + (from1 >> 4)), (from1 & 0xf));
-                            if (lastFrom != null && FaweCache.hasNBT(from.getId())) {
-                                Map<String, Tag> t = lastFrom.getValue();
-                                if (((IntTag) t.get("x")).getValue() == x && ((IntTag) t.get("z")).getValue() == z && ((IntTag) t.get("y")).getValue() == y) {
-                                    from = new BaseBlock(from.getId(), from.getData());
-                                    from.setNbtData(lastFrom);
-                                    lastFrom = read(nbtf);
-                                }
-                            }
-                            int to1 = gis.read();
-                            int to2 = gis.read();
-                            BaseBlock to = FaweCache.getBlock(((to2 << 4) + (to1 >> 4)), (to1 & 0xf));
-                            if (lastTo != null && FaweCache.hasNBT(to.getId())) {
-                                Map<String, Tag> t = lastTo.getValue();
-                                if (((IntTag) t.get("x")).getValue() == x && ((IntTag) t.get("z")).getValue() == z && ((IntTag) t.get("y")).getValue() == y) {
-                                    to = new BaseBlock(to.getId(), to.getData());
-                                    to.setNbtData(lastTo);
-                                    lastTo = read(nbtt);
-                                }
-                            }
-                            BlockVector position = new BlockVector(x, y, z);
-                            return dir ? new BlockChange(position, to, from) : new BlockChange(position, from, to);
-                        } catch (Exception e) {
-                            return null;
-                        }
-                    }
-                    
-                    @Override
-                    public boolean hasNext() {
-                        if (last != null) {
-                            return true;
-                        }
-                        try {
-                            gis.close();
-                            if (nbtf != null) {
-                                nbtf.close();
-                            }
-                            if (nbtt != null) {
-                                nbtt.close();
-                            }
-                        } catch (IOException e) {
-                            e.printStackTrace();
-                        }
-                        return false;
-                    }
-                    
-                    @Override
-                    public Change next() {
-                        Change tmp = last;
-                        last = read();
-                        return tmp;
-                    }
-                    
-                    @Override
-                    public void remove() {
-                        throw new IllegalArgumentException("CANNOT REMOVE");
-                    }
-                };
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        return new ArrayList<Change>().iterator();
-    }
-    
-    @Override
-    public Iterator<Change> backwardIterator() {
-        return getIterator(false);
-    }
-    
-    @Override
-    public Iterator<Change> forwardIterator() {
-        return getIterator(false);
-    }
-    
-    @Override
-    public int size() {
-        flush();
-        return size;
     }
 
     public static class DiskStorageSummary {

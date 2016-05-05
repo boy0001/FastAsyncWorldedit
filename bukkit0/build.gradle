@@ -12,6 +12,7 @@ dependencies {
     compile 'com.palmergames.bukkit:towny:0.84.0.9'
     compile 'com.worldcretornica:plotme_core:0.16.3'
     compile 'junit:junit:4.11'
+    compile 'com.sk89q.worldedit:worldedit-bukkit:6.1.1-SNAPSHOT'
 }
 
 processResources {

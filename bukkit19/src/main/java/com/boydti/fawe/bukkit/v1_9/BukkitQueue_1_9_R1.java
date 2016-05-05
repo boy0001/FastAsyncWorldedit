@@ -8,6 +8,7 @@ import com.boydti.fawe.object.FaweChunk;
 import com.boydti.fawe.object.FawePlayer;
 import com.boydti.fawe.object.IntegerPair;
 import com.boydti.fawe.object.PseudoRandom;
+import com.boydti.fawe.object.RunnableVal;
 import com.boydti.fawe.util.MemUtil;
 import com.sk89q.worldedit.LocalSession;
 import java.lang.reflect.Constructor;
@@ -248,7 +249,12 @@ public class BukkitQueue_1_9_R1 extends BukkitQueue_0<Chunk, ChunkSection[], Dat
     }
 
     @Override
-    public boolean setComponents(final FaweChunk pc) {
+    public boolean setComponents(final FaweChunk pc, RunnableVal<FaweChunk> changeTask) {
+        // TODO change task
+        {
+            // blah, stuff
+        }
+
         final BukkitChunk_1_9 fs = (BukkitChunk_1_9) pc;
         final Chunk chunk = (Chunk) fs.getChunk();
         final World world = chunk.getWorld();

@@ -19,7 +19,9 @@
 
 package com.sk89q.worldedit;
 
+import com.boydti.fawe.config.Settings;
 import com.boydti.fawe.object.changeset.FaweChangeSet;
+import com.boydti.fawe.object.changeset.FaweStreamChangeSet;
 import com.boydti.fawe.object.clipboard.DiskOptimizedClipboard;
 import com.boydti.fawe.util.FaweQueue;
 import com.boydti.fawe.util.MainUtil;
@@ -80,7 +82,7 @@ public class LocalSession {
     private transient RegionSelector selector = new CuboidRegionSelector();
     private transient boolean placeAtPos1 = false;
     private transient List<EditSession> history = Collections.synchronizedList(new LinkedList<EditSession>());
-    private transient int historyPointer = 0;
+    private transient volatile int historyPointer = 0;
     private transient ClipboardHolder clipboard;
     private transient boolean toolControl = true;
     private transient boolean superPickaxe = false;
@@ -200,7 +202,7 @@ public class LocalSession {
         remember(editSession, true);
     }
 
-    public void remember(EditSession editSession, boolean append) {
+    public void remember(final EditSession editSession, final boolean append) {
         // Enqueue it
         if (editSession.getQueue() != null) {
             FaweQueue queue = editSession.getQueue();
@@ -217,12 +219,25 @@ public class LocalSession {
             history.remove(historyPointer);
         }
         ChangeSet set = editSession.getChangeSet();
-        if (set instanceof FaweChangeSet) {
-            FaweChangeSet fcs = (FaweChangeSet) set;
-            if (fcs.flush() && append) {
-                MainUtil.sendCompressedMessage(fcs, editSession.actor);
+        if (set instanceof FaweStreamChangeSet) {
+            final FaweStreamChangeSet fcs = (FaweStreamChangeSet) set;
+            if (Settings.COMBINE_HISTORY_STAGE) {
+                editSession.getQueue().addNotifyTask(new Runnable() {
+                    @Override
+                    public void run() {
+                        if (fcs.flush() && append) {
+                            MainUtil.sendCompressedMessage(fcs, editSession.actor);
+                        }
+                    }
+                });
+            } else {
+                if (fcs.flush() && append) {
+                    MainUtil.sendCompressedMessage(fcs, editSession.actor);
+                }
             }
 
+        } else if (set instanceof FaweChangeSet) {
+            ((FaweChangeSet) set).flush();
         }
         if (append) {
             history.add(editSession);
@@ -232,7 +247,7 @@ public class LocalSession {
         while (history.size() > MAX_HISTORY_SIZE) {
             history.remove(0);
         }
-        historyPointer = history.size();
+        historyPointer = append ? history.size() : historyPointer + 1;
     }
 
     /**
@@ -263,6 +278,7 @@ public class LocalSession {
             newEditSession.enableQueue();
             newEditSession.setFastMode(fastMode);
             editSession.undo(newEditSession);
+            System.out.println("UNDO: " + historyPointer + " | " + history.size());
             return editSession;
         } else {
             historyPointer = 0;
@@ -290,6 +306,7 @@ public class LocalSession {
      */
     public EditSession redo(@Nullable BlockBag newBlockBag, Player player) {
         checkNotNull(player);
+        System.out.println("CHECK REDO: " + historyPointer + " | " + history.size());
         if (historyPointer < history.size()) {
             EditSession editSession = history.get(historyPointer);
             EditSession newEditSession = WorldEdit.getInstance().getEditSessionFactory()
@@ -298,7 +315,10 @@ public class LocalSession {
             newEditSession.setFastMode(fastMode);
             editSession.redo(newEditSession);
             ++historyPointer;
+            System.out.println("CAN REDO");
             return editSession;
+        } else {
+            System.out.println("POINTER");
         }
 
         return null;

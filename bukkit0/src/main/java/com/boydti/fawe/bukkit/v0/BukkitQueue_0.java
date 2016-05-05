@@ -4,9 +4,12 @@ import com.boydti.fawe.FaweCache;
 import com.boydti.fawe.example.CharFaweChunk;
 import com.boydti.fawe.example.NMSMappedFaweQueue;
 import com.boydti.fawe.object.FaweChunk;
+import com.boydti.fawe.object.RunnableVal;
 import com.sk89q.worldedit.LocalWorld;
 import com.sk89q.worldedit.Vector2D;
 import com.sk89q.worldedit.bukkit.BukkitUtil;
+import com.sk89q.worldedit.bukkit.WorldEditPlugin;
+import com.sk89q.worldedit.bukkit.adapter.BukkitImplAdapter;
 import com.sk89q.worldedit.world.biome.BaseBiome;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
@@ -18,8 +21,32 @@ import org.bukkit.block.Block;
 
 public abstract class BukkitQueue_0<CHUNK, CHUNKSECTIONS, SECTION> extends NMSMappedFaweQueue<World, CHUNK, CHUNKSECTIONS, SECTION> {
 
+    public final BukkitImplAdapter adapter;
+    public Method methodToNative;
+    public Method methodFromNative;
+
     public BukkitQueue_0(final String world) {
         super(world);
+        try {
+            WorldEditPlugin instance = (WorldEditPlugin) Bukkit.getPluginManager().getPlugin("WorldEdit");
+            Field fieldAdapter = WorldEditPlugin.class.getDeclaredField("bukkitAdapter");
+            fieldAdapter.setAccessible(true);
+            this.adapter = (BukkitImplAdapter) fieldAdapter.get(instance);
+            for (Method method : adapter.getClass().getDeclaredMethods()) {
+                switch (method.getName()) {
+                    case "toNative":
+                        methodToNative = method;
+                        methodToNative.setAccessible(true);
+                        break;
+                    case "fromNative":
+                        methodFromNative = method;
+                        methodFromNative.setAccessible(true);
+                        break;
+                }
+            }
+        } catch (Throwable e) {
+            throw new RuntimeException(e);
+        }
     }
 
     @Override
@@ -85,8 +112,11 @@ public abstract class BukkitQueue_0<CHUNK, CHUNKSECTIONS, SECTION> extends NMSMa
     }
 
     @Override
-    public boolean setComponents(FaweChunk fc) {
+    public boolean setComponents(FaweChunk fc, RunnableVal<FaweChunk> changeTask) {
         try {
+            // TODO track stage
+            // TODO set task
+
             final CharFaweChunk<Chunk> fs = ((CharFaweChunk<Chunk>) fc);
             final Chunk chunk = fs.getChunk();
             chunk.load(true);

@@ -37,8 +37,10 @@ public class Settings {
     public static int UNSAFE_PARALLEL_THREADS = 1;
     public static boolean FIX_ALL_LIGHTING = true;
     public static boolean ASYNC_LIGHTING = true;
-    public static int PHYSICS_PER_TICK = 1337;
-    public static int ITEMS_PER_TICK = 1337;
+    public static int PHYSICS_PER_TICK = 500000;
+    public static int ITEMS_PER_TICK = 50000;
+
+    public static boolean COMBINE_HISTORY_STAGE = true;
 
     public static HashMap<String, FaweLimit> limits;
 
@@ -103,6 +105,9 @@ public class Settings {
         options.put("extent.debug", EXTENT_DEBUG);
         options.put("metrics", METRICS);
 
+        if (config.getInt("tick-limiter.physics") == 1337) {
+            config.set("tick-limiter.physics", PHYSICS_PER_TICK);
+        }
         options.put("tick-limiter.physics", PHYSICS_PER_TICK);
         options.put("tick-limiter.items", ITEMS_PER_TICK);
 

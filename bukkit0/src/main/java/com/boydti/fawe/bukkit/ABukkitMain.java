@@ -5,7 +5,7 @@ import com.boydti.fawe.util.FaweQueue;
 import com.sk89q.worldedit.EditSession;
 import org.bukkit.plugin.java.JavaPlugin;
 
-public abstract class BukkitMain extends JavaPlugin {
+public abstract class ABukkitMain extends JavaPlugin {
 
     @Override
     public void onEnable() {

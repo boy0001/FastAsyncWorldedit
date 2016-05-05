@@ -32,8 +32,5 @@ public abstract class NMSMappedFaweQueue<WORLD, CHUNK, CHUNKSECTION, SECTION> ex
     public abstract void refreshChunk(WORLD world, CHUNK chunk);
 
     @Override
-    public abstract boolean setComponents(FaweChunk fc);
-
-    @Override
     public abstract boolean fixLighting(FaweChunk fc, boolean fixAll);
 }

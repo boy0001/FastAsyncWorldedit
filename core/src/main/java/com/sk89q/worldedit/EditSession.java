@@ -327,7 +327,11 @@ public class EditSession implements Extent {
 
         // History
         this.changeSet = Settings.STORE_HISTORY_ON_DISK ? new DiskStorageHistory(world, actor.getUniqueId()) : new MemoryOptimizedHistory(actor);
-        extent = this.wrapper.getHistoryExtent(this, limit, extent, this.changeSet, queue, fp);
+        if (Settings.COMBINE_HISTORY_STAGE) {
+            changeSet.addChangeTask(queue);
+        } else {
+            extent = this.wrapper.getHistoryExtent(this, limit, extent, this.changeSet, queue, fp);
+        }
 
         // Region restrictions if mask is not null
         if (mask != null) {
@@ -875,7 +879,7 @@ public class EditSession implements Extent {
                 editSession.flushQueue();
             }
         }, true);
-        editSession.changes = changes;
+        editSession.changes = 1;
     }
 
     /**
@@ -892,7 +896,7 @@ public class EditSession implements Extent {
                 editSession.flushQueue();
             }
         }, true);
-        editSession.changes = changes;
+        editSession.changes = 1;
     }
 
     /**

@@ -41,9 +41,9 @@ public class HistoryExtent extends AbstractDelegateExtent {
      */
     public HistoryExtent(final EditSession session, FaweLimit limit, final Extent extent, final FaweChangeSet changeSet, FaweQueue queue) {
         super(extent);
+        checkNotNull(changeSet);
         this.limit = limit;
         this.queue = queue;
-        checkNotNull(changeSet);
         this.changeSet = changeSet;
         this.session = session;
     }

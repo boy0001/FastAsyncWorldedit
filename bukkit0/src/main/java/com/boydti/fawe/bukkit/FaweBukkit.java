@@ -43,7 +43,7 @@ import org.bukkit.plugin.Plugin;
 
 public class FaweBukkit implements IFawe, Listener {
 
-    private final BukkitMain plugin;
+    private final ABukkitMain plugin;
     private VaultUtil vault;
     private WorldEditPlugin worldedit;
 
@@ -58,7 +58,7 @@ public class FaweBukkit implements IFawe, Listener {
         return this.worldedit;
     }
 
-    public FaweBukkit(BukkitMain plugin) {
+    public FaweBukkit(ABukkitMain plugin) {
         this.plugin = plugin;
         try {
             Bukkit.getPluginManager().registerEvents(this, plugin);
@@ -203,7 +203,7 @@ public class FaweBukkit implements IFawe, Listener {
         return new BukkitQueue_All(world);
     }
 
-    public BukkitMain getPlugin() {
+    public ABukkitMain getPlugin() {
         return plugin;
     }
 

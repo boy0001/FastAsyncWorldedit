@@ -2,8 +2,11 @@ package com.boydti.fawe.object;
 
 import com.boydti.fawe.config.Settings;
 import com.boydti.fawe.util.FaweQueue;
+import com.sk89q.jnbt.CompoundTag;
 import com.sk89q.worldedit.world.biome.BaseBiome;
 import java.util.ArrayDeque;
+import java.util.Map;
+import java.util.Set;
 
 public abstract class FaweChunk<T> {
 
@@ -56,6 +59,8 @@ public abstract class FaweChunk<T> {
         parent.fixLighting(this, Settings.FIX_ALL_LIGHTING);
     }
 
+    public abstract char[][] getIdArrays();
+
     /**
      * Fill this chunk with a block
      * @param id
@@ -86,13 +91,17 @@ public abstract class FaweChunk<T> {
         }
     }
 
-    public void addTask(Runnable run) {
+    public void addNotifyTask(Runnable run) {
         if (run != null) {
             tasks.add(run);
         }
     }
-    
-    public void executeTasks() {
+
+    public boolean hasNotifyTasks() {
+        return tasks.size() > 0;
+    }
+
+    public void executeNotifyTasks() {
         for (Runnable task : tasks) {
             task.run();
         }
@@ -101,7 +110,17 @@ public abstract class FaweChunk<T> {
 
     public abstract T getChunk();
 
+    public abstract void setTile(int x, int y, int z, CompoundTag tile);
+
+    public abstract void setEntity(CompoundTag entity);
+
     public abstract void setBlock(final int x, final int y, final int z, final int id, final byte data);
+
+    public abstract CompoundTag getTile(int x, int y, int z);
+
+    public abstract Set<CompoundTag> getEntities();
+
+    public abstract Map<BytePair, CompoundTag> getTiles();
 
     public abstract void setBiome(final int x, final int z, final BaseBiome biome);
 

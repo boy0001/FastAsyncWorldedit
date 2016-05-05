@@ -224,6 +224,7 @@ public final class CommandManager {
         TaskManager.IMP.async(new Runnable() {
             @Override
             public void run() {
+                System.out.println("COMMAND START!");
                 final Actor actor = platformManager.createProxyActor(event.getActor());
                 String[] split = commandDetection(event.getArguments().split(" "));
                 
@@ -284,6 +285,7 @@ public final class CommandManager {
                         log.log(Level.SEVERE, "An unknown error occurred", e);
                     }
                 } finally {
+                    System.out.println("DONE!");
                     if (fp != null) {
                         fp.deleteMeta("fawe_action");
                     }

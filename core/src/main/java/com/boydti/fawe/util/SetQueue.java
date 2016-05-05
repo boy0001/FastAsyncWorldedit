@@ -15,6 +15,10 @@ public class SetQueue {
      */
     public static final SetQueue IMP = new SetQueue();
 
+    public static enum QueueStage {
+        INACTIVE, ACTIVE, NONE;
+    }
+
     public final LinkedBlockingDeque<FaweQueue> activeQueues;
     public final LinkedBlockingDeque<FaweQueue> inactiveQueues;
 
@@ -111,6 +115,27 @@ public class SetQueue {
                 }
             }
         }, 1);
+    }
+
+    public QueueStage getStage(FaweQueue queue) {
+        if (activeQueues.contains(queue)) {
+            return QueueStage.ACTIVE;
+        } else if (inactiveQueues.contains(queue)) {
+            return QueueStage.INACTIVE;
+        }
+        return QueueStage.NONE;
+    }
+
+    public boolean isStage(FaweQueue queue, QueueStage stage) {
+        switch (stage) {
+            case ACTIVE:
+                return activeQueues.contains(queue);
+            case INACTIVE:
+                return inactiveQueues.contains(queue);
+            case NONE:
+                return !activeQueues.contains(queue) && !inactiveQueues.contains(queue);
+        }
+        return false;
     }
 
     public void enqueue(FaweQueue queue) {

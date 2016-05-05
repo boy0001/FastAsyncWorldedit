@@ -5,14 +5,20 @@ import com.boydti.fawe.config.BBC;
 import com.boydti.fawe.object.FawePlayer;
 import com.boydti.fawe.object.RegionWrapper;
 import com.boydti.fawe.object.RunnableVal;
-import com.boydti.fawe.object.changeset.FaweChangeSet;
+import com.boydti.fawe.object.changeset.FaweStreamChangeSet;
 import com.sk89q.jnbt.CompoundTag;
+import com.sk89q.jnbt.DoubleTag;
 import com.sk89q.jnbt.EndTag;
+import com.sk89q.jnbt.IntTag;
 import com.sk89q.jnbt.ListTag;
+import com.sk89q.jnbt.StringTag;
 import com.sk89q.jnbt.Tag;
+import com.sk89q.worldedit.entity.Entity;
 import com.sk89q.worldedit.extension.platform.Actor;
+import com.sk89q.worldedit.util.Location;
 import java.io.File;
 import java.lang.reflect.Array;
+import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
@@ -39,7 +45,27 @@ public class MainUtil {
         Fawe.debug(s);
     }
 
-    public static void sendCompressedMessage(FaweChangeSet set, Actor actor)
+    public static void setPosition(CompoundTag tag, int x, int y, int z) {
+        Map<String, Tag> value = ReflectionUtils.getMap(tag.getValue());
+        value.put("x", new IntTag(x));
+        value.put("y", new IntTag(y));
+        value.put("z", new IntTag(z));
+    }
+
+    public static void setEntityInfo(CompoundTag tag, Entity entity) {
+        Map<String, Tag> map = ReflectionUtils.getMap(tag.getValue());
+        map.put("Id", new StringTag(entity.getState().getTypeId()));
+        ListTag pos = (ListTag) map.get("Pos");
+        if (pos != null) {
+            Location loc = entity.getLocation();
+            List<Tag> posList = ReflectionUtils.getList(pos.getValue());
+            posList.set(0, new DoubleTag(loc.getX()));
+            posList.set(1, new DoubleTag(loc.getY()));
+            posList.set(2, new DoubleTag(loc.getZ()));
+        }
+    }
+
+    public static void sendCompressedMessage(FaweStreamChangeSet set, Actor actor)
     {
         try {
             int elements = set.size();

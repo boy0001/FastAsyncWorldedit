@@ -3,7 +3,12 @@ package com.boydti.fawe.object.extent;
 import com.boydti.fawe.FaweCache;
 import com.boydti.fawe.util.FaweQueue;
 import com.boydti.fawe.util.MainUtil;
-import com.boydti.fawe.util.TaskManager;
+import com.boydti.fawe.util.ReflectionUtils;
+import com.sk89q.jnbt.CompoundTag;
+import com.sk89q.jnbt.DoubleTag;
+import com.sk89q.jnbt.ListTag;
+import com.sk89q.jnbt.StringTag;
+import com.sk89q.jnbt.Tag;
 import com.sk89q.worldedit.BlockVector;
 import com.sk89q.worldedit.EditSession;
 import com.sk89q.worldedit.Vector;
@@ -18,6 +23,7 @@ import com.sk89q.worldedit.util.Location;
 import com.sk89q.worldedit.world.World;
 import com.sk89q.worldedit.world.biome.BaseBiome;
 import java.util.List;
+import java.util.Map;
 
 public class FastWorldEditExtent extends AbstractDelegateExtent {
 
@@ -28,15 +34,24 @@ public class FastWorldEditExtent extends AbstractDelegateExtent {
         this.queue = queue;
     }
 
+    public FaweQueue getQueue() {
+        return queue;
+    }
+
     @Override
-    public Entity createEntity(final Location location, final BaseEntity entity) {
+    public Entity createEntity(final Location loc, final BaseEntity entity) {
         if (entity != null) {
-            TaskManager.IMP.task(new Runnable() {
-                @Override
-                public void run() {
-                    FastWorldEditExtent.super.createEntity(location, entity);
-                }
-            });
+            CompoundTag tag = entity.getNbtData();
+            Map<String, Tag> map = ReflectionUtils.getMap(tag.getValue());
+            map.put("Id", new StringTag(entity.getTypeId()));
+            ListTag pos = (ListTag) map.get("Pos");
+            if (pos != null) {
+                List<Tag> posList = ReflectionUtils.getList(pos.getValue());
+                posList.set(0, new DoubleTag(loc.getX()));
+                posList.set(1, new DoubleTag(loc.getY()));
+                posList.set(2, new DoubleTag(loc.getZ()));
+            }
+            queue.setEntity(loc.getBlockX(), loc.getBlockY(), loc.getBlockZ(), tag);
         }
         return null;
     }
@@ -138,89 +153,10 @@ public class FastWorldEditExtent extends AbstractDelegateExtent {
             case 151:
             case 178: {
                 if (block.hasNbtData()) {
-                    final Vector loc = new Vector(location.x, location.y, location.z);
-                    queue.addTask(x >> 4, z >> 4, new Runnable() {
-                        @Override
-                        public void run() {
-                            try {
-                                FastWorldEditExtent.super.setBlock(loc, block);
-                            } catch (WorldEditException e) {
-                                e.printStackTrace();
-                            }
-                        }
-                    });
-                    return true;
+                    CompoundTag nbt = block.getNbtData();
+                    queue.setTile(x, y, z, nbt);
                 }
-                queue.setBlock(x, y, z, id, FaweCache.hasData(id) ? (byte) block.getData() : 0);
-                return true;
-            }
-            case 0:
-            case 2:
-            case 4:
-            case 13:
-            case 14:
-            case 15:
-            case 20:
-            case 21:
-            case 22:
-            case 30:
-            case 32:
-            case 37:
-            case 39:
-            case 40:
-            case 41:
-            case 42:
-            case 45:
-            case 46:
-            case 47:
-            case 48:
-            case 49:
-            case 51:
-            case 56:
-            case 57:
-            case 58:
-            case 60:
-            case 7:
-            case 8:
-            case 9:
-            case 10:
-            case 11:
-            case 73:
-            case 74:
-            case 78:
-            case 79:
-            case 80:
-            case 81:
-            case 82:
-            case 83:
-            case 85:
-            case 87:
-            case 88:
-            case 101:
-            case 102:
-            case 103:
-            case 110:
-            case 112:
-            case 113:
-            case 121:
-            case 122:
-            case 129:
-            case 133:
-            case 165:
-            case 166:
-            case 169:
-            case 170:
-            case 172:
-            case 173:
-            case 174:
-            case 181:
-            case 182:
-            case 188:
-            case 189:
-            case 190:
-            case 191:
-            case 192: {
-                queue.setBlock(x, y, z, id, (byte) 0);
+                queue.setBlock(x, y, z, id, (byte) block.getData());
                 return true;
             }
             default: {

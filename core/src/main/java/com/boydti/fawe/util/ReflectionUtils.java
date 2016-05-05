@@ -57,18 +57,30 @@ public class ReflectionUtils {
             }
         }
     }
-    
-    public static <T, V> Map<T, V> getMap(Map<T, V> map) {
-        try {
-            Class<? extends Map> clazz = map.getClass();
-            Field m = clazz.getDeclaredField("m");
-            m.setAccessible(true);
-            return (Map<T, V>) m.get(map);
-        } catch (Throwable e) {
-            e.printStackTrace();
-            return map;
-        }
+
+public static <T, V> Map<T, V> getMap(Map<T, V> map) {
+    try {
+        Class<? extends Map> clazz = map.getClass();
+        Field m = clazz.getDeclaredField("m");
+        m.setAccessible(true);
+        return (Map<T, V>) m.get(map);
+    } catch (Throwable e) {
+        e.printStackTrace();
+        return map;
     }
+}
+
+public static <T> List<T> getList(List<T> list) {
+    try {
+        Class<? extends List> clazz = (Class<? extends List>) Class.forName("java.util.Collections$UnmodifiableList");
+        Field m = clazz.getDeclaredField("list");
+        m.setAccessible(true);
+        return (List<T>) m.get(list);
+    } catch (Throwable e) {
+        e.printStackTrace();
+        return list;
+    }
+}
 
     public static Class<?> getNmsClass(final String name) {
         final String className = "net.minecraft.server." + getVersion() + "." + name;

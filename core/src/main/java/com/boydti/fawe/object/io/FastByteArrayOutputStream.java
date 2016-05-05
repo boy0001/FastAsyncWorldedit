@@ -73,16 +73,23 @@ public class FastByteArrayOutputStream extends OutputStream {
     }
 
     public byte[] toByteArray() {
+        return toByteArray(false);
+    }
+
+    public byte[] toByteArray(boolean delete) {
         byte[] data = new byte[getSize()];
 
         // Check if we have a list of buffers
         int pos = 0;
-
+        buffer = null;
         if (buffers != null) {
             Iterator iter = buffers.iterator();
 
             while (iter.hasNext()) {
                 byte[] bytes = (byte[])iter.next();
+                if (delete) {
+                    iter.remove();
+                }
                 System.arraycopy(bytes, 0, data, pos, blockSize);
                 pos += blockSize;
             }

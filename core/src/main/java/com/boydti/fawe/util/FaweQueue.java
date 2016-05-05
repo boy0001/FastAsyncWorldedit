@@ -3,7 +3,9 @@ package com.boydti.fawe.util;
 import com.boydti.fawe.Fawe;
 import com.boydti.fawe.config.BBC;
 import com.boydti.fawe.object.FaweChunk;
+import com.boydti.fawe.object.RunnableVal2;
 import com.boydti.fawe.object.exception.FaweException;
+import com.sk89q.jnbt.CompoundTag;
 import com.sk89q.worldedit.EditSession;
 import com.sk89q.worldedit.world.biome.BaseBiome;
 import java.util.HashSet;
@@ -15,6 +17,7 @@ public abstract class FaweQueue {
     public final String world;
     public LinkedBlockingDeque<EditSession> sessions;
     public long modified = System.currentTimeMillis();
+    public RunnableVal2<FaweChunk, FaweChunk> changeTask;
 
     public FaweQueue(String world) {
         this.world = world;
@@ -34,9 +37,21 @@ public abstract class FaweQueue {
         return sessions == null ? new HashSet<EditSession>() : new HashSet<>(sessions);
     }
 
+    public void setChangeTask(RunnableVal2<FaweChunk, FaweChunk> changeTask) {
+        this.changeTask = changeTask;
+    }
+
+    public RunnableVal2<FaweChunk, FaweChunk> getChangeTask() {
+        return changeTask;
+    }
+
     public void optimize() {}
 
     public abstract boolean setBlock(final int x, final int y, final int z, final short id, final byte data);
+
+    public abstract void setTile(int x, int y, int z, CompoundTag tag);
+
+    public abstract void setEntity(int x, int y, int z, CompoundTag tag);
 
     public abstract boolean setBiome(final int x, final int z, final BaseBiome biome);
 
@@ -88,7 +103,9 @@ public abstract class FaweQueue {
      */
     public abstract void clear();
     
-    public abstract void addTask(int x, int z, Runnable runnable);
+    public abstract void addNotifyTask(int x, int z, Runnable runnable);
+
+    public abstract void addNotifyTask(Runnable runnable);
 
     public abstract int getCombinedId4Data(int x, int y, int z) throws FaweException.FaweChunkLoadException;
 

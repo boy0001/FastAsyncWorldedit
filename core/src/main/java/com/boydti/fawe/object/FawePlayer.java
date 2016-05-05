@@ -5,6 +5,7 @@ import com.boydti.fawe.FaweAPI;
 import com.boydti.fawe.config.BBC;
 import com.boydti.fawe.config.Settings;
 import com.boydti.fawe.object.changeset.DiskStorageHistory;
+import com.boydti.fawe.object.changeset.FaweStreamChangeSet;
 import com.boydti.fawe.object.clipboard.DiskOptimizedClipboard;
 import com.boydti.fawe.util.TaskManager;
 import com.boydti.fawe.util.WEManager;
@@ -169,7 +170,7 @@ public abstract class FawePlayer<T> {
                     Collections.sort(editIds);
                     for (int i = editIds.size() - 1; i >= 0; i--) {
                         int index = editIds.get(i);
-                        DiskStorageHistory set = new DiskStorageHistory(world, uuid, index);
+                        FaweStreamChangeSet set = new DiskStorageHistory(world, uuid, index);
                         EditSession edit = set.toEditSession(getPlayer());
                         if (world.equals(getWorld())) {
                             session.remember(edit, false);
