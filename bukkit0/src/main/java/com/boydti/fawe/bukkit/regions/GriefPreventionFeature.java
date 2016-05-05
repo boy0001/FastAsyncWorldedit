@@ -5,6 +5,7 @@ import com.boydti.fawe.object.FawePlayer;
 import me.ryanhamshire.GriefPrevention.Claim;
 import me.ryanhamshire.GriefPrevention.GriefPrevention;
 import org.bukkit.Location;
+import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Listener;
 import org.bukkit.plugin.Plugin;
@@ -26,7 +27,7 @@ public class GriefPreventionFeature extends BukkitMaskManager implements Listene
         final Claim claim = GriefPrevention.instance.dataStore.getClaimAt(location, true, null);
         if (claim != null) {
             final String uuid = player.getUniqueId().toString();
-            if (claim.getOwnerName().equalsIgnoreCase(player.getName()) || claim.getOwnerName().equals(uuid)) {
+            if (claim.getOwnerName().equalsIgnoreCase(player.getName()) || claim.getOwnerName().equals(uuid) || claim.allowBuild(player, Material.AIR) == null) {
                 claim.getGreaterBoundaryCorner().getBlockX();
                 final Location pos1 = new Location(location.getWorld(), claim.getLesserBoundaryCorner().getBlockX(), 0, claim.getLesserBoundaryCorner().getBlockZ());
                 final Location pos2 = new Location(location.getWorld(), claim.getGreaterBoundaryCorner().getBlockX(), 256, claim.getGreaterBoundaryCorner().getBlockZ());
