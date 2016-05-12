@@ -19,6 +19,7 @@ public class LoggingChangeSet extends FaweChangeSet {
     private final String name;
 
     public LoggingChangeSet(FawePlayer<Player> player, FaweChangeSet parent, IBlocksHubApi api) {
+        super(parent.getWorld());
         this.parent = parent;
         this.name = player.getName();
         this.api = api;

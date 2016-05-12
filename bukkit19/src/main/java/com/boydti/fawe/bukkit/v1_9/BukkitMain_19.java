@@ -2,7 +2,6 @@ package com.boydti.fawe.bukkit.v1_9;
 
 import com.boydti.fawe.bukkit.ABukkitMain;
 import com.boydti.fawe.bukkit.v0.BukkitQueue_0;
-import com.boydti.fawe.bukkit.v1_9.BukkitQueue_1_9_R1;
 import com.boydti.fawe.object.EditSessionWrapper;
 import com.sk89q.worldedit.EditSession;
 

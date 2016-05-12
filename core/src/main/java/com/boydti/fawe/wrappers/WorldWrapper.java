@@ -229,6 +229,7 @@ public class WorldWrapper extends AbstractWorld {
     @Override
     public boolean regenerate(final Region region, final EditSession session) {
         final FaweQueue queue = session.getQueue();
+        queue.setChangeTask(null);
         final FaweChangeSet fcs = (FaweChangeSet) session.getChangeSet();
         final FaweRegionExtent fe = session.getRegionExtent();
         session.setChangeSet(fcs);
@@ -274,22 +275,25 @@ public class WorldWrapper extends AbstractWorld {
                         }
                     }
                 } else {
+                    Vector mutable = new Vector(0,0,0);
                     for (int x = 0; x < 16; x++) {
                         int xx = x + bx;
+                        mutable.x = xx;
                         for (int z = 0; z < 16; z++) {
                             int zz = z + bz;
+                            mutable.z = zz;
                             for (int y = 0; y < getMaxY() + 1; y++) {
-                                final Vector loc = new Vector(xx, y, zz);
+                                mutable.y = y;
                                 int from = queue.getCombinedId4Data(xx, y, zz);
-                                boolean contains = (fe != null && fe.contains(xx, y, zz)) && region.contains(loc);
+                                boolean contains = (fe == null || fe.contains(xx, y, zz)) && region.contains(mutable);
                                 if (contains) {
                                     if (fcs != null) {
                                         if (!FaweCache.hasNBT(from >> 4)) {
                                             fcs.add(xx, y, zz, from, 0);
                                         } else {
                                             try {
-                                                BaseBlock block = getLazyBlock(loc);
-                                                fcs.add(loc, block, FaweCache.CACHE_BLOCK[0]);
+                                                BaseBlock block = getLazyBlock(mutable);
+                                                fcs.add(mutable, block, FaweCache.CACHE_BLOCK[0]);
                                             } catch (Throwable e) {
                                                 fcs.add(xx, y, zz, from, 0);
                                             }
@@ -298,30 +302,14 @@ public class WorldWrapper extends AbstractWorld {
                                 } else {
                                     short id = (short) (from >> 4);
                                     byte data = (byte) (from & 0xf);
-                                    if (!FaweCache.hasNBT(id)) {
-                                        queue.setBlock(xx, y, zz, id, data);
-                                    } else {
-                                        try {
-                                            final BaseBlock block = getBlock(loc);
-                                            final Vector v = new Vector(loc.x, loc.y, loc.z);
-                                            queue.addNotifyTask(cx, cz, new Runnable() {
-                                                @Override
-                                                public void run() {
-                                                    try {
-                                                        setBlock(v, block, false);
-                                                    } catch (WorldEditException e) {
-                                                        e.printStackTrace();
-                                                    }
-                                                }
-                                            });
-                                        } catch (Throwable e) {
-                                            e.printStackTrace();
-                                            queue.setBlock(xx, y, zz, id, data);
+                                    queue.setBlock(xx, y, zz, id, data);
+                                    if (FaweCache.hasNBT(id)) {
+                                        BaseBlock block = getBlock(new Vector(xx, y, zz));
+                                        if (block.hasNbtData()) {
+                                            queue.setTile(xx, y, zz, block.getNbtData());
                                         }
                                     }
                                 }
-
-
                             }
                         }
                     }

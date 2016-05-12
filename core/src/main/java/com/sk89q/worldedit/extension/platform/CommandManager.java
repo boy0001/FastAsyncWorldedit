@@ -22,7 +22,6 @@ package com.sk89q.worldedit.extension.platform;
 import com.boydti.fawe.config.BBC;
 import com.boydti.fawe.object.FawePlayer;
 import com.boydti.fawe.object.exception.FaweException;
-import com.boydti.fawe.util.SetQueue;
 import com.boydti.fawe.util.TaskManager;
 import com.boydti.fawe.wrappers.PlayerWrapper;
 import com.google.common.base.Joiner;
@@ -224,7 +223,6 @@ public final class CommandManager {
         TaskManager.IMP.async(new Runnable() {
             @Override
             public void run() {
-                System.out.println("COMMAND START!");
                 final Actor actor = platformManager.createProxyActor(event.getActor());
                 String[] split = commandDetection(event.getArguments().split(" "));
                 
@@ -233,11 +231,11 @@ public final class CommandManager {
                     return;
                 }
                 
-                LocalSession session = worldEdit.getSessionManager().get(actor);
+                final LocalSession session = worldEdit.getSessionManager().get(actor);
                 LocalConfiguration config = worldEdit.getConfiguration();
                 
                 CommandLocals locals = new CommandLocals();
-                FawePlayer fp = FawePlayer.wrap(actor);
+                final FawePlayer fp = FawePlayer.wrap(actor);
                 if (fp != null) {
                     if (fp.getMeta("fawe_action") != null) {
                         BBC.WORLDEDIT_COMMAND_LIMIT.send(fp);
@@ -285,36 +283,33 @@ public final class CommandManager {
                         log.log(Level.SEVERE, "An unknown error occurred", e);
                     }
                 } finally {
-                    System.out.println("DONE!");
-                    if (fp != null) {
-                        fp.deleteMeta("fawe_action");
-                    }
-                    EditSession editSession = locals.get(EditSession.class);
-                    
+                    final EditSession editSession = locals.get(EditSession.class);
+                    boolean delayed = false;
                     if (editSession != null) {
-                        session.remember(editSession);
                         editSession.flushQueue();
-                        final long time = System.currentTimeMillis() - start;
-                        if (time > 5 && editSession.size() != 0) {
-                            SetQueue.IMP.addTask(new Runnable() {
+                        worldEdit.flushBlockBag(actor, editSession);
+                    }
+                    if (fp != null) {
+                        if (editSession != null && editSession.size() > 0 && editSession.getQueue() != null) {
+                            delayed = true;
+                            editSession.getQueue().addNotifyTask(new Runnable() {
                                 @Override
                                 public void run() {
+                                    session.remember(editSession, true, true);
+                                    fp.deleteMeta("fawe_action");
                                     final long time = System.currentTimeMillis() - start;
-                                    BBC.ACTION_COMPLETE.send(actor, (time / 1000d));
+                                    if (time > 5) {
+                                        BBC.ACTION_COMPLETE.send(actor, (time / 1000d));
+                                    }
                                 }
                             });
                         }
-                        if (config.profile) {
-                            int changed = editSession.getBlockChangeCount();
-                            if (time > 0) {
-                                double throughput = changed / (time / 1000.0);
-                                actor.printDebug((time / 1000.0) + "s elapsed (history: " + changed + " changed; " + Math.round(throughput) + " blocks/sec).");
-                            } else {
-                                actor.printDebug((time / 1000.0) + "s elapsed.");
-                            }
+                    }
+                    if (!delayed) {
+                        if (fp != null) {
+                            fp.deleteMeta("fawe_action");
                         }
-                        
-                        worldEdit.flushBlockBag(actor, editSession);
+                        session.remember(editSession, true, true);
                     }
                 }
             }

@@ -154,6 +154,7 @@ public class FastWorldEditExtent extends AbstractDelegateExtent {
             case 178: {
                 if (block.hasNbtData()) {
                     CompoundTag nbt = block.getNbtData();
+                    MainUtil.setPosition(nbt, x, y, z);
                     queue.setTile(x, y, z, nbt);
                 }
                 queue.setBlock(x, y, z, id, (byte) block.getData());

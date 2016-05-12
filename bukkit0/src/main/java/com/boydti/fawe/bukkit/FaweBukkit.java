@@ -195,7 +195,7 @@ public class FaweBukkit implements IFawe, Listener {
             debug("====== NO NMS BLOCK PLACER FOUND ======");
             debug("FAWE couldn't find a fast block placer");
             debug("Bukkit version: " + Bukkit.getVersion());
-            debug("Supported NMS versions: 1.8, 1.9");
+            debug("Supported NMS versions: 1.8.8, 1.9.4");
             debug("Fallback placer: " + BukkitQueue_All.class);
             debug("=======================================");
             hasNMS = false;

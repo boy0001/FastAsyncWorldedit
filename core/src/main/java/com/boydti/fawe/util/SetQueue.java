@@ -89,11 +89,11 @@ public class SetQueue {
                 // Disable the async catcher as it can't discern async vs parallel
                 SET_TASK.value2.startSet(true);
                 try {
-                    if (Settings.UNSAFE_PARALLEL_THREADS <= 1) {
+                    if (Settings.PARALLEL_THREADS <= 1) {
                         SET_TASK.run();
                     } else {
                         ArrayList<Thread> threads = new ArrayList<Thread>();
-                        for (int i = 0; i < Settings.UNSAFE_PARALLEL_THREADS; i++) {
+                        for (int i = 0; i < Settings.PARALLEL_THREADS; i++) {
                             threads.add(new Thread(SET_TASK));
                         }
                         for (Thread thread : threads) {
@@ -197,7 +197,6 @@ public class SetQueue {
                             inactiveQueues.remove(queue);
                         }
                     }
-                    return null;
                 }
             }
             if (Settings.QUEUE_SIZE != -1) {

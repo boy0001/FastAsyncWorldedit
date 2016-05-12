@@ -104,7 +104,6 @@ public abstract class TaskManager {
     /**
      * Break up a task and run it in fragments of 5ms.<br>
      *     - Each task will run on the main thread.<br>
-     *     - Usualy wait time is around 25ms<br>
      * @param objects - The list of objects to run the task for
      * @param task - The task to run on each object
      * @param whenDone - When the object task completes
@@ -133,6 +132,7 @@ public abstract class TaskManager {
     /**
      * Quickly run a task on the main thread, and wait for execution to finish:<br>
      *     - Useful if you need to access something from the Bukkit API from another thread<br>
+     *     - Usualy wait time is around 25ms<br>
      * @param function
      * @param <T>
      * @return
@@ -144,6 +144,7 @@ public abstract class TaskManager {
     /**
      * Quickly run a task on the main thread, and wait for execution to finish:<br>
      *     - Useful if you need to access something from the Bukkit API from another thread<br>
+     *     - Usualy wait time is around 25ms<br>
      * @param function
      * @param timeout - How long to wait for execution
      * @param <T>

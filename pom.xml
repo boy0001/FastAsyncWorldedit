@@ -29,6 +29,13 @@
                 </includes>
                 <directory>bukkit18/src/main/resources/</directory>
             </resource>
+            <resource>
+                <filtering>false</filtering>
+                <includes>
+                    <include>**/*.*</include>
+                </includes>
+                <directory>core/src/main/resources/</directory>
+            </resource>
         </resources>
         <plugins>
             <plugin>

@@ -1,6 +1,6 @@
 dependencies {
     compile project(':bukkit0')
-    compile 'org.bukkit.craftbukkit:CraftBukkit:1.9.2'
+    compile 'org.bukkit.craftbukkit.v1_9R2:craftbukkitv1_9R2:1.9.4'
 }
 
 apply plugin: 'com.github.johnrengelman.shadow'

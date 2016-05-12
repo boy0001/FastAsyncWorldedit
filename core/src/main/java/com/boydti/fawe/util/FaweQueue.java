@@ -10,14 +10,28 @@ import com.sk89q.worldedit.EditSession;
 import com.sk89q.worldedit.world.biome.BaseBiome;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.UUID;
 import java.util.concurrent.LinkedBlockingDeque;
 
 public abstract class FaweQueue {
+
+    public static enum ProgressType {
+        QUEUE,
+        DISPATCH,
+        DONE,
+    }
+
+    public enum RelightMode {
+        MINIMAL,
+        OPTIMAL,
+        ALL,
+    }
 
     public final String world;
     public LinkedBlockingDeque<EditSession> sessions;
     public long modified = System.currentTimeMillis();
     public RunnableVal2<FaweChunk, FaweChunk> changeTask;
+    public RunnableVal2<ProgressType, Integer> progressTask;
 
     public FaweQueue(String world) {
         this.world = world;
@@ -31,6 +45,16 @@ public abstract class FaweQueue {
             sessions = new LinkedBlockingDeque<>();
         }
         sessions.add(session);
+    }
+
+    /**
+     * Add a progress task<br>
+     *      - Progress type
+     *      - Amount of type
+     * @param progressTask
+     */
+    public void setProgressTracker(RunnableVal2<ProgressType, Integer> progressTask) {
+        this.progressTask = progressTask;
     }
 
     public Set<EditSession> getEditSessions() {
@@ -53,13 +77,15 @@ public abstract class FaweQueue {
 
     public abstract void setEntity(int x, int y, int z, CompoundTag tag);
 
+    public abstract void removeEntity(int x, int y, int z, UUID uuid);
+
     public abstract boolean setBiome(final int x, final int z, final BaseBiome biome);
 
     public abstract FaweChunk<?> getChunk(int x, int z);
 
     public abstract void setChunk(final FaweChunk<?> chunk);
 
-    public abstract boolean fixLighting(final FaweChunk<?> chunk, final boolean fixAll);
+    public abstract boolean fixLighting(final FaweChunk<?> chunk, RelightMode mode);
 
     public abstract boolean isChunkLoaded(final int x, final int z);
 

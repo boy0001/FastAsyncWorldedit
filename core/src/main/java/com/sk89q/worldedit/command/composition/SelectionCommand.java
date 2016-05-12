@@ -155,7 +155,7 @@ public class SelectionCommand extends SimpleCommand<Operation> {
                                     }
                                 });
                                 queue.enqueue();
-                                editSession.setChangeSet(new NullChangeSet());
+                                editSession.setChangeSet(new NullChangeSet(null));
                                 BBC.OPERATION.send(actor, BBC.VISITOR_BLOCK.format(cuboid.getArea()));
                                 return null;
                             }

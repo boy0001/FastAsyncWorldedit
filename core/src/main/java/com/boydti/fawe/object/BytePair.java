@@ -9,6 +9,14 @@ public class BytePair {
 
     int hash;
 
+    public byte get0() {
+        return pair[0];
+    }
+
+    public byte get1() {
+        return pair[1];
+    }
+
     @Override
     public int hashCode() {
         return pair[0] + (pair[1] << 8);

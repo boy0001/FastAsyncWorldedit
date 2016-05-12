@@ -75,12 +75,12 @@ public class ProcessedWEExtent extends FaweRegionExtent {
         }
         if (WEManager.IMP.maskContains(this.mask, (int) location.x, (int) location.z)) {
             if (limit.MAX_CHANGES-- < 0) {
-                WEManager.IMP.cancelEdit(this, BBC.WORLDEDIT_CANCEL_REASON_MAX_TILES);
+                WEManager.IMP.cancelEdit(this, BBC.WORLDEDIT_CANCEL_REASON_MAX_CHANGES);
                 return false;
             }
             return super.setBlock(location, block);
         } else if (limit.MAX_FAILS-- < 0) {
-            WEManager.IMP.cancelEdit(this, BBC.WORLDEDIT_CANCEL_REASON_MAX_TILES);
+            WEManager.IMP.cancelEdit(this, BBC.WORLDEDIT_CANCEL_REASON_MAX_FAILS);
         }
         return false;
     }

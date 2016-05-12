@@ -21,16 +21,19 @@ import com.sk89q.worldedit.internal.Constants;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
+import java.util.UUID;
 import net.minecraft.server.v1_8_R3.BlockPosition;
 import net.minecraft.server.v1_8_R3.ChunkCoordIntPair;
 import net.minecraft.server.v1_8_R3.ChunkSection;
 import net.minecraft.server.v1_8_R3.Entity;
+import net.minecraft.server.v1_8_R3.EntityPlayer;
 import net.minecraft.server.v1_8_R3.EntityTypes;
 import net.minecraft.server.v1_8_R3.NBTTagCompound;
-import net.minecraft.server.v1_8_R3.NBTTagInt;
+import net.minecraft.server.v1_8_R3.NibbleArray;
 import net.minecraft.server.v1_8_R3.PacketPlayOutMapChunk;
 import net.minecraft.server.v1_8_R3.PlayerConnection;
 import net.minecraft.server.v1_8_R3.TileEntity;
@@ -96,6 +99,71 @@ public class BukkitQueue18R3 extends BukkitQueue_0<Chunk, ChunkSection[], char[]
     }
 
     @Override
+    public CharFaweChunk getPrevious(CharFaweChunk fs, ChunkSection[] sections, Map<?, ?> tilesGeneric, Collection<?>[] entitiesGeneric, Set<UUID> createdEntities, boolean all) throws Exception {
+        Map<BlockPosition, TileEntity> tiles = (Map<BlockPosition, TileEntity>) tilesGeneric;
+        Collection<Entity>[] entities = (Collection<Entity>[]) entitiesGeneric;
+        CharFaweChunk previous = (CharFaweChunk) getChunk(fs.getX(), fs.getZ());
+        char[][] idPrevious = new char[16][];
+        for (int layer = 0; layer < sections.length; layer++) {
+            if (fs.getCount(layer) != 0 || all) {
+                ChunkSection section = sections[layer];
+                if (section != null) {
+                    idPrevious[layer] = section.getIdArray().clone();
+                    short solid = 0;
+                    for (int combined : idPrevious[layer]) {
+                        if (combined > 1) {
+                            solid++;
+                        }
+                    }
+                    previous.count[layer] = solid;
+                    previous.air[layer] = (short) (4096 - solid);
+                }
+            }
+        }
+        previous.ids = idPrevious;
+        if (tiles != null) {
+            for (Map.Entry<BlockPosition, TileEntity> entry : tiles.entrySet()) {
+                TileEntity tile = entry.getValue();
+                NBTTagCompound tag = new NBTTagCompound();
+                tile.b(tag); // readTileEntityIntoTag
+                BlockPosition pos = entry.getKey();
+                CompoundTag nativeTag = (CompoundTag) methodToNative.invoke(adapter, tag);
+                previous.setTile(pos.getX(), pos.getY(), pos.getZ(), nativeTag);
+            }
+        }
+        if (entities != null) {
+            for (Collection<Entity> entityList : entities) {
+                for (Entity ent : entityList) {
+                    if (ent instanceof EntityPlayer || (!createdEntities.isEmpty() && !createdEntities.contains(ent.getUniqueID()))) {
+                        continue;
+                    }
+                    int x = ((int) Math.round(ent.locX) & 15);
+                    int z = ((int) Math.round(ent.locZ) & 15);
+                    int y = (int) Math.round(ent.locY);
+                    int i = FaweCache.CACHE_I[y][x][z];
+                    char[] array = fs.getIdArray(i);
+                    if (array == null) {
+                        continue;
+                    }
+                    int j = FaweCache.CACHE_J[y][x][z];
+                    if (array[j] != 0) {
+                        String id = EntityTypes.b(ent);
+                        if (id != null) {
+                            NBTTagCompound tag = new NBTTagCompound();
+                            ent.e(tag); // readEntityIntoTag
+                            CompoundTag nativeTag = (CompoundTag) methodToNative.invoke(adapter, tag);
+                            Map<String, Tag> map = ReflectionUtils.getMap(nativeTag.getValue());
+                            map.put("Id", new StringTag(id));
+                            previous.setEntity(nativeTag);
+                        }
+                    }
+                }
+            }
+        }
+        return previous;
+    }
+
+    @Override
     public boolean setComponents(FaweChunk fc, RunnableVal<FaweChunk> changeTask) {
         CharFaweChunk<Chunk> fs = (CharFaweChunk<Chunk>) fc;
         CraftChunk chunk = (CraftChunk) fs.getChunk();
@@ -108,54 +176,70 @@ public class BukkitQueue18R3 extends BukkitQueue_0<Chunk, ChunkSection[], char[]
             Map<BlockPosition, TileEntity> tiles = nmsChunk.getTileEntities();
             Collection<net.minecraft.server.v1_8_R3.Entity>[] entities = nmsChunk.getEntitySlices();
 
-            // Run change task if applicable
-            if (changeTask != null) {
-                CharFaweChunk previous = (CharFaweChunk) getChunk(fc.getX(), fc.getZ());
-                char[][] idPrevious = new char[16][];
-                for (int layer = 0; layer < sections.length; layer++) {
-                    if (fs.getCount(layer) != 0) {
-                        ChunkSection section = sections[layer];
-                        if (section != null) {
-                            idPrevious[layer] = section.getIdArray().clone();
+            // Remove entities
+            for (int i = 0; i < 16; i++) {
+                int count = fs.getCount(i);
+                if (count == 0) {
+                    continue;
+                } else if (count >= 4096) {
+                    entities[i].clear();
+                } else {
+                    char[] array = fs.getIdArray(i);
+                    Collection<Entity> ents = new ArrayList<>(entities[i]);
+                    for (Entity entity : ents) {
+                        if (entity instanceof EntityPlayer) {
+                            continue;
                         }
-                    }
-                }
-                previous.ids = idPrevious;
-                for (Map.Entry<BlockPosition, TileEntity> entry : tiles.entrySet()) {
-                    TileEntity tile = entry.getValue();
-                    NBTTagCompound tag = new NBTTagCompound();
-                    tile.b(tag); // ReadTileIntoTag
-                    BlockPosition pos = entry.getKey();
-                    CompoundTag nativeTag = (CompoundTag) methodToNative.invoke(adapter, tag);
-                    previous.setTile(pos.getX(), pos.getY(), pos.getZ(), nativeTag);
-                }
-                for (Collection<Entity> entityList : entities) {
-                    for (Entity ent : entityList) {
-                        int x = ((int) Math.round(ent.locX) & 15);
-                        int z = ((int) Math.round(ent.locZ) & 15);
-                        int y = (int) Math.round(ent.locY);
-                        int i = FaweCache.CACHE_I[y][x][z];
-                        char[] array = fs.getIdArray(i);
+                        int x = ((int) Math.round(entity.locX) & 15);
+                        int z = ((int) Math.round(entity.locZ) & 15);
+                        int y = (int) Math.round(entity.locY);
                         if (array == null) {
                             continue;
                         }
                         int j = FaweCache.CACHE_J[y][x][z];
                         if (array[j] != 0) {
-                            String id = EntityTypes.b(ent);
-                            if (id != null) {
-                                NBTTagCompound tag = new NBTTagCompound();
-                                ent.e(tag);
-                                CompoundTag nativeTag = (CompoundTag) methodToNative.invoke(adapter, tag);
-                                Map<String, Tag> map = ReflectionUtils.getMap(nativeTag.getValue());
-                                map.put("Id", new StringTag(id));
-                                previous.setEntity(nativeTag);
-                            }
+                            nmsWorld.removeEntity(entity);
                         }
                     }
                 }
+            }
+            // Set entities
+            Set<UUID> createdEntities = new HashSet<>();
+            Set<CompoundTag> entitiesToSpawn = fs.getEntities();
+            for (CompoundTag nativeTag : entitiesToSpawn) {
+                Map<String, Tag> entityTagMap = nativeTag.getValue();
+                StringTag idTag = (StringTag) entityTagMap.get("Id");
+                ListTag posTag = (ListTag) entityTagMap.get("Pos");
+                ListTag rotTag = (ListTag) entityTagMap.get("Rotation");
+                if (idTag == null || posTag == null || rotTag == null) {
+                    Fawe.debug("Unknown entity tag: " + nativeTag);
+                    continue;
+                }
+                double x = posTag.getDouble(0);
+                double y = posTag.getDouble(1);
+                double z = posTag.getDouble(2);
+                float yaw = rotTag.getFloat(0);
+                float pitch = rotTag.getFloat(1);
+                String id = idTag.getValue();
+                Entity entity = EntityTypes.createEntityByName(id, nmsWorld);
+                if (entity != null) {
+                    if (nativeTag != null) {
+                        NBTTagCompound tag = (NBTTagCompound)methodFromNative.invoke(adapter, nativeTag);
+                        for (String name : Constants.NO_COPY_ENTITY_NBT_FIELDS) {
+                            tag.remove(name);
+                        }
+                        entity.f(tag);
+                    }
+                    entity.setLocation(x, y, z, yaw, pitch);
+                    nmsWorld.addEntity(entity, CreatureSpawnEvent.SpawnReason.CUSTOM);
+                    createdEntities.add(entity.getUniqueID());
+                }
+            }
+            // Run change task if applicable
+            if (changeTask != null) {
+                CharFaweChunk previous = getPrevious(fs, sections, tiles, entities, createdEntities, false);
                 changeTask.run(previous);
             }
-
             // Trim tiles
             Set<Map.Entry<BlockPosition, TileEntity>> entryset = tiles.entrySet();
             Iterator<Map.Entry<BlockPosition, TileEntity>> iterator = entryset.iterator();
@@ -175,31 +259,17 @@ public class BukkitQueue18R3 extends BukkitQueue_0<Chunk, ChunkSection[], char[]
                     iterator.remove();
                 }
             }
-            // Remove entities
-            for (int i = 0; i < 16; i++) {
-                int count = fs.getCount(i);
-                if (count == 0) {
-                    continue;
-                } else if (count >= 4096) {
-                    entities[i].clear();
-                } else {
-                    char[] array = fs.getIdArray(i);
+            HashSet<UUID> entsToRemove = fs.getEntityRemoves();
+            if (entsToRemove.size() > 0) {
+                for (int i = 0; i < entities.length; i++) {
                     Collection<Entity> ents = new ArrayList<>(entities[i]);
                     for (Entity entity : ents) {
-                        int x = ((int) Math.round(entity.locX) & 15);
-                        int z = ((int) Math.round(entity.locZ) & 15);
-                        int y = (int) Math.round(entity.locY);
-                        if (array == null) {
-                            continue;
-                        }
-                        int j = FaweCache.CACHE_J[y][x][z];
-                        if (array[j] != 0) {
+                        if (entsToRemove.contains(entity.getUniqueID())) {
                             nmsWorld.removeEntity(entity);
                         }
                     }
                 }
             }
-
             // Set blocks
             for (int j = 0; j < sections.length; j++) {
                 if (fs.getCount(j) == 0) {
@@ -256,51 +326,17 @@ public class BukkitQueue18R3 extends BukkitQueue_0<Chunk, ChunkSection[], char[]
             }
             // Set tiles
             Map<BytePair, CompoundTag> tilesToSpawn = fs.getTiles();
-            BlockPosition.MutableBlockPosition mutablePos = new BlockPosition.MutableBlockPosition(0, 0, 0);
             int bx = fs.getX() << 4;
             int bz = fs.getZ() << 4;
 
             for (Map.Entry<BytePair, CompoundTag> entry : tilesToSpawn.entrySet()) {
                 CompoundTag nativeTag = entry.getValue();
                 BytePair pair = entry.getKey();
-                mutablePos.c(MathMan.unpair16x(pair.pair[0]) + bx, pair.pair[1] & 0xFF, MathMan.unpair16y(pair.pair[0]) + bz); // Set pos
-                TileEntity tileEntity = nmsWorld.getTileEntity(mutablePos);
+                BlockPosition pos = new BlockPosition(MathMan.unpair16x(pair.pair[0]) + bx, pair.pair[1] & 0xFF, MathMan.unpair16y(pair.pair[0]) + bz); // Set pos
+                TileEntity tileEntity = nmsWorld.getTileEntity(pos);
                 if (tileEntity != null) {
                     NBTTagCompound tag = (NBTTagCompound) methodFromNative.invoke(adapter, nativeTag);
-                    tag.set("x", new NBTTagInt(mutablePos.getX()));
-                    tag.set("y", new NBTTagInt(mutablePos.getY()));
-                    tag.set("z", new NBTTagInt(mutablePos.getZ()));
                     tileEntity.a(tag); // ReadTagIntoTile
-                }
-            }
-            // Set entities
-            Set<CompoundTag> entitiesToSpawn = fs.getEntities();
-            for (CompoundTag nativeTag : entitiesToSpawn) {
-                Map<String, Tag> entityTagMap = nativeTag.getValue();
-                StringTag idTag = (StringTag) entityTagMap.get("Id");
-                ListTag posTag = (ListTag) entityTagMap.get("Pos");
-                ListTag rotTag = (ListTag) entityTagMap.get("Rotation");
-                if (idTag == null || posTag == null || rotTag == null) {
-                    Fawe.debug("Unknown entity tag: " + nativeTag);
-                    continue;
-                }
-                double x = posTag.getDouble(0);
-                double y = posTag.getDouble(1);
-                double z = posTag.getDouble(2);
-                float yaw = rotTag.getFloat(0);
-                float pitch = rotTag.getFloat(1);
-                String id = idTag.getValue();
-                Entity entity = EntityTypes.createEntityByName(id, nmsWorld);
-                if (entity != null) {
-                    if (nativeTag != null) {
-                        NBTTagCompound tag = (NBTTagCompound)methodFromNative.invoke(adapter, nativeTag);
-                        for (String name : Constants.NO_COPY_ENTITY_NBT_FIELDS) {
-                            tag.remove(name);
-                        }
-                        entity.f(tag);
-                    }
-                    entity.setLocation(x, y, z, yaw, pitch);
-                    nmsWorld.addEntity(entity, CreatureSpawnEvent.SpawnReason.CUSTOM);
                 }
             }
         } catch (Throwable e) {
@@ -339,8 +375,8 @@ public class BukkitQueue18R3 extends BukkitQueue_0<Chunk, ChunkSection[], char[]
             FaweLocation loc = fp.getLocation();
             int px = loc.x >> 4;
             int pz = loc.z >> 4;
-            int dx = Math.abs(cx - (loc.x >> 4));
-            int dz = Math.abs(cz - (loc.z >> 4));
+            int dx = Math.abs(cx - (px));
+            int dz = Math.abs(cz - (pz));
             if ((dx > view) || (dz > view)) {
                 continue;
             }
@@ -350,7 +386,7 @@ public class BukkitQueue18R3 extends BukkitQueue_0<Chunk, ChunkSection[], char[]
     }
 
     @Override
-    public boolean fixLighting(FaweChunk chunk, boolean fixAll) {
+    public boolean fixLighting(FaweChunk chunk, RelightMode mode) {
         try {
             CharFaweChunk<Chunk> fc = (CharFaweChunk<Chunk>) chunk;
             CraftChunk craftChunk = (CraftChunk) fc.getChunk();
@@ -358,11 +394,22 @@ public class BukkitQueue18R3 extends BukkitQueue_0<Chunk, ChunkSection[], char[]
             if (!craftChunk.isLoaded()) {
                 return false;
             }
+            ChunkSection[] sections = nmsChunk.getSections();
+            if (mode != RelightMode.MINIMAL) {
+                for (int i = 0; i < sections.length; i++) {
+                    ChunkSection section = sections[i];
+                    if (section != null) {
+                        if (mode == RelightMode.ALL) {
+                            section.a(new NibbleArray());
+                        }
+                        section.b(new NibbleArray());
+                    }
+                }
+            }
             nmsChunk.initLighting();
-            if (fc.getTotalRelight() == 0 && !fixAll) {
+            if (fc.getTotalRelight() == 0 && mode == RelightMode.MINIMAL) {
                 return true;
             }
-            ChunkSection[] sections = nmsChunk.getSections();
             net.minecraft.server.v1_8_R3.World nmsWorld = nmsChunk.getWorld();
 
             int X = fc.getX() << 4;
@@ -374,7 +421,7 @@ public class BukkitQueue18R3 extends BukkitQueue_0<Chunk, ChunkSection[], char[]
                 if (section == null) {
                     continue;
                 }
-                if ((fc.getRelight(j) == 0 && !fixAll) || fc.getCount(j) == 0 || (fc.getCount(j) >= 4096 && fc.getAir(j) == 0)) {
+                if ((fc.getRelight(j) == 0 && mode == RelightMode.MINIMAL) || (fc.getCount(j) == 0 && mode != RelightMode.ALL) || (fc.getCount(j) >= 4096 && fc.getAir(j) == 0)) {
                     continue;
                 }
                 char[] array = section.getIdArray();
@@ -387,7 +434,7 @@ public class BukkitQueue18R3 extends BukkitQueue_0<Chunk, ChunkSection[], char[]
                     short id = (short) (i >> 4);
                     switch (id) { // Lighting
                         default:
-                            if (!fixAll) {
+                            if (mode == RelightMode.MINIMAL) {
                                 continue;
                             }
                             if ((k & 1) == l) {

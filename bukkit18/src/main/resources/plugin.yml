@@ -21,9 +21,9 @@ commands:
   fawe:
     description: (FAWE) Reload the plugin
     aliases: [/fawe,/fawereload]
-  wrg:
+  select:
     description: (FAWE) Select your current WorldEdit Region.
-    aliases: [/wrg,wer,/wer,worldeditregion,/worldeditregion,/region]
+    aliases: [/select,wer,/wer,worldeditregion,/worldeditregion,/region]
   frb:
     description: (FAWE) Rollback an edit
     aliases: [fawerollback,fawerb,/uu,/rb,/frb,/fawerollback,/fawerb]

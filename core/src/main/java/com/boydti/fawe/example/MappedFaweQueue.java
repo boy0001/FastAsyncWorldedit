@@ -14,6 +14,7 @@ import com.sk89q.worldedit.world.biome.BaseBiome;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.LinkedBlockingDeque;
 
@@ -25,7 +26,15 @@ public abstract class MappedFaweQueue<WORLD, CHUNK, SECTION> extends FaweQueue {
      * Map of chunks in the queue
      */
     private ConcurrentHashMap<Long, FaweChunk> blocks = new ConcurrentHashMap<>();
-    private LinkedBlockingDeque<FaweChunk> chunks = new LinkedBlockingDeque<>();
+    private LinkedBlockingDeque<FaweChunk> chunks = new LinkedBlockingDeque<FaweChunk>() {
+        @Override
+        public boolean add(FaweChunk o) {
+            if (progressTask != null) {
+                progressTask.run(ProgressType.QUEUE, size() + 1);
+            }
+            return super.add(o);
+        }
+    };
     private ArrayDeque<Runnable> tasks = new ArrayDeque<>();
 
     @Override
@@ -53,6 +62,7 @@ public abstract class MappedFaweQueue<WORLD, CHUNK, SECTION> extends FaweQueue {
     @Override
     public void addNotifyTask(Runnable runnable) {
         this.tasks.add(runnable);
+        size();
     }
 
     public MappedFaweQueue(final String world) {
@@ -71,9 +81,6 @@ public abstract class MappedFaweQueue<WORLD, CHUNK, SECTION> extends FaweQueue {
 
     @Override
     public abstract FaweChunk getChunk(int x, int z);
-
-    @Override
-    public abstract boolean fixLighting(FaweChunk fc, boolean fixAll);
 
     public abstract boolean loadChunk(WORLD world, int x, int z, boolean generate);
 
@@ -203,6 +210,33 @@ public abstract class MappedFaweQueue<WORLD, CHUNK, SECTION> extends FaweQueue {
     }
 
     @Override
+    public void removeEntity(int x, int y, int z, UUID uuid) {
+        if ((y > 255) || (y < 0)) {
+            return;
+        }
+        int cx = x >> 4;
+        int cz = z >> 4;
+        if (cx != lastX || cz != lastZ) {
+            lastX = cx;
+            lastZ = cz;
+            long pair = (long) (cx) << 32 | (cz) & 0xFFFFFFFFL;
+            lastWrappedChunk = this.blocks.get(pair);
+            if (lastWrappedChunk == null) {
+                lastWrappedChunk = this.getChunk(x >> 4, z >> 4);
+                lastWrappedChunk.removeEntity(uuid);
+                FaweChunk previous = this.blocks.put(pair, lastWrappedChunk);
+                if (previous == null) {
+                    chunks.add(lastWrappedChunk);
+                    return;
+                }
+                this.blocks.put(pair, previous);
+                lastWrappedChunk = previous;
+            }
+        }
+        lastWrappedChunk.removeEntity(uuid);
+    }
+
+    @Override
     public boolean setBiome(int x, int z, BaseBiome biome) {
         long pair = (long) (x >> 4) << 32 | (z >> 4) & 0xFFFFFFFFL;
         FaweChunk result = this.blocks.get(pair);
@@ -243,15 +277,23 @@ public abstract class MappedFaweQueue<WORLD, CHUNK, SECTION> extends FaweQueue {
     }
 
     public void runTasks() {
-        for (Runnable run : tasks) {
-            run.run();
+        if (progressTask != null) {
+            progressTask.run(ProgressType.DONE, 1);
         }
+        ArrayDeque<Runnable> tmp = new ArrayDeque<>(tasks);
         tasks.clear();
+        for (Runnable run : tmp) {
+            try {
+                run.run();
+            } catch (Throwable e) {
+                e.printStackTrace();
+            }
+        }
     }
 
     @Override
     public int size() {
-        if (chunks.size() == 0 && SetQueue.IMP.isStage(this, SetQueue.QueueStage.ACTIVE)) {
+        if (chunks.size() == 0 && SetQueue.IMP.getStage(this) != SetQueue.QueueStage.INACTIVE) {
             runTasks();
         }
         return chunks.size();
@@ -259,11 +301,17 @@ public abstract class MappedFaweQueue<WORLD, CHUNK, SECTION> extends FaweQueue {
 
     private LinkedBlockingDeque<FaweChunk> toUpdate = new LinkedBlockingDeque<>();
 
+    private int dispatched = 0;
+
     public boolean execute(final FaweChunk fc) {
         if (fc == null) {
             return false;
         }
         // Set blocks / entities / biome
+        if (progressTask != null) {
+            progressTask.run(ProgressType.QUEUE, chunks.size());
+            progressTask.run(ProgressType.DISPATCH, ++dispatched);
+        }
         if (getChangeTask() != null) {
             if (!this.setComponents(fc, new RunnableVal<FaweChunk>() {
                 @Override
@@ -284,6 +332,7 @@ public abstract class MappedFaweQueue<WORLD, CHUNK, SECTION> extends FaweQueue {
     public void clear() {
         this.blocks.clear();
         this.chunks.clear();
+        runTasks();
     }
 
     @Override

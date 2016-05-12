@@ -26,9 +26,11 @@ import com.boydti.fawe.config.Settings;
 import com.boydti.fawe.object.EditSessionWrapper;
 import com.boydti.fawe.object.FaweLimit;
 import com.boydti.fawe.object.FawePlayer;
+import com.boydti.fawe.object.HistoryExtent;
 import com.boydti.fawe.object.NullChangeSet;
 import com.boydti.fawe.object.RegionWrapper;
 import com.boydti.fawe.object.RunnableVal;
+import com.boydti.fawe.object.changeset.CPUOptimizedChangeSet;
 import com.boydti.fawe.object.changeset.DiskStorageHistory;
 import com.boydti.fawe.object.changeset.FaweChangeSet;
 import com.boydti.fawe.object.changeset.MemoryOptimizedHistory;
@@ -38,6 +40,7 @@ import com.boydti.fawe.object.extent.FaweRegionExtent;
 import com.boydti.fawe.object.extent.MemoryCheckingExtent;
 import com.boydti.fawe.object.extent.NullExtent;
 import com.boydti.fawe.object.extent.ProcessedWEExtent;
+import com.boydti.fawe.object.progress.DefaultProgressTracker;
 import com.boydti.fawe.util.FaweQueue;
 import com.boydti.fawe.util.MemUtil;
 import com.boydti.fawe.util.Perm;
@@ -158,21 +161,21 @@ public class EditSession implements Extent {
         BEFORE_HISTORY, BEFORE_REORDER, BEFORE_CHANGE
     }
 
-    public World world;
-    public Actor actor;
-    public FaweChangeSet changeSet;
-    public EditSessionWrapper wrapper;
-    public MaskingExtent maskingExtent;
-    public FaweRegionExtent regionExtent;
-    public Extent primaryExtent;
-    public Extent bypassReorderHistory;
-    public Extent bypassHistory;
-    public Extent bypassNone;
-    public SurvivalModeExtent lazySurvivalExtent;
-    public boolean fastmode;
-    public Mask oldMask;
-    public FaweLimit limit = FaweLimit.MAX.copy();
-    public FaweQueue queue;
+    private World world;
+    private Actor actor;
+    private FaweChangeSet changeSet;
+    private EditSessionWrapper wrapper;
+    private MaskingExtent maskingExtent;
+    private FaweRegionExtent regionExtent;
+    private Extent primaryExtent;
+    private Extent bypassReorderHistory;
+    private Extent bypassHistory;
+    private Extent bypassNone;
+    private SurvivalModeExtent lazySurvivalExtent;
+    private boolean fastmode;
+    private Mask oldMask;
+    private FaweLimit limit = FaweLimit.MAX.copy();
+    private FaweQueue queue;
 
     public static BaseBiome nullBiome = new BaseBiome(0);
     public static BaseBlock nullBlock = FaweCache.CACHE_BLOCK[0];
@@ -229,13 +232,13 @@ public class EditSession implements Extent {
             this.bypassReorderHistory = extent;
             this.bypassHistory = extent;
             this.bypassNone = extent;
-            this.changeSet = new NullChangeSet();
+            this.changeSet = new NullChangeSet(world);
             this.wrapper = Fawe.imp().getEditSessionWrapper(this);
             return;
         }
 
         // Wrap the world
-        this.world = (world = new WorldWrapper((AbstractWorld) world));
+        this.world = (world instanceof WorldWrapper) ? world : (world = new WorldWrapper((AbstractWorld) world));
 
         // Delegate some methods to an implementation specific class
         this.wrapper = Fawe.imp().getEditSessionWrapper(this);
@@ -252,7 +255,7 @@ public class EditSession implements Extent {
             this.bypassReorderHistory = extent;
             this.bypassHistory = extent;
             this.bypassNone = extent;
-            this.changeSet = new NullChangeSet();
+            this.changeSet = new NullChangeSet(world);
             return;
         }
 
@@ -261,8 +264,10 @@ public class EditSession implements Extent {
         final FawePlayer fp = FawePlayer.wrap(actor);
         final LocalSession session = fp.getSession();
         this.fastmode = session.hasFastMode();
-        if (fp.hasWorldEditBypass()) {
-            this.queue = SetQueue.IMP.getNewQueue(Fawe.imp().getWorldName(world), true, true);
+        boolean bypass = fp.hasWorldEditBypass();
+        this.queue = SetQueue.IMP.getNewQueue(Fawe.imp().getWorldName(world), bypass, true);
+        queue.setProgressTracker(new DefaultProgressTracker(fp));
+        if (bypass) {
             queue.addEditSession(this);
             // Bypass skips processing and area restrictions
             extent = primaryExtent = new FastWorldEditExtent(world, queue);
@@ -278,7 +283,6 @@ public class EditSession implements Extent {
             }
             mask = null;
         } else {
-            this.queue = SetQueue.IMP.getNewQueue(Fawe.imp().getWorldName(world), false, true);
             queue.addEditSession(this);
             this.limit = fp.getLimit();
             mask = WEManager.IMP.getMask(fp);
@@ -326,13 +330,13 @@ public class EditSession implements Extent {
         extent = this.wrapExtent(extent, eventBus, event, Stage.BEFORE_REORDER);
 
         // History
-        this.changeSet = Settings.STORE_HISTORY_ON_DISK ? new DiskStorageHistory(world, actor.getUniqueId()) : new MemoryOptimizedHistory(actor);
+        this.changeSet = Settings.STORE_HISTORY_ON_DISK ? new DiskStorageHistory(world, actor.getUniqueId()) : (Settings.COMBINE_HISTORY_STAGE && Settings.COMPRESSION_LEVEL == 0) ? new CPUOptimizedChangeSet(world) : new MemoryOptimizedHistory(world);
+        this.changeSet = this.wrapper.wrapChangeSet(this, limit, extent, this.changeSet, queue, fp);
         if (Settings.COMBINE_HISTORY_STAGE) {
             changeSet.addChangeTask(queue);
         } else {
-            extent = this.wrapper.getHistoryExtent(this, limit, extent, this.changeSet, queue, fp);
+            extent = new HistoryExtent(this, limit, extent, changeSet, queue);
         }
-
         // Region restrictions if mask is not null
         if (mask != null) {
             extent = this.regionExtent = new ProcessedWEExtent(extent, mask, limit);
@@ -367,6 +371,15 @@ public class EditSession implements Extent {
         return regionExtent;
     }
 
+    /**
+     * Get the actor
+     * @return
+     */
+    @Nullable
+    public Actor getActor() {
+        return actor;
+    }
+
     public boolean cancel() {
         // Cancel this
         if (primaryExtent != null && queue != null) {
@@ -385,6 +398,12 @@ public class EditSession implements Extent {
     public void dequeue() {
         if (queue != null) {
             SetQueue.IMP.dequeue(queue);
+        }
+    }
+
+    public void addNotifyTask(Runnable whenDone) {
+        if (queue != null) {
+            queue.addNotifyTask(whenDone);
         }
     }
 

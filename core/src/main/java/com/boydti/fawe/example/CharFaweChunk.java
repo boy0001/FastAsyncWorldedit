@@ -13,6 +13,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
+import java.util.UUID;
 
 public abstract class CharFaweChunk<T> extends FaweChunk<T> {
 
@@ -111,7 +112,7 @@ public abstract class CharFaweChunk<T> extends FaweChunk<T> {
         return this.ids[i];
     }
 
-    public char[][] getIdArrays() {
+    public char[][] getCombinedIdArrays() {
         return this.ids;
     }
 
@@ -153,7 +154,11 @@ public abstract class CharFaweChunk<T> extends FaweChunk<T> {
         return entities == null ? new HashSet<CompoundTag>() : entities;
     }
 
+
+
     public HashSet<CompoundTag> entities;
+
+    public HashSet<UUID> entityRemoves;
 
     @Override
     public void setEntity(CompoundTag tag) {
@@ -161,6 +166,19 @@ public abstract class CharFaweChunk<T> extends FaweChunk<T> {
             entities = new HashSet<>();
         }
         entities.add(tag);
+    }
+
+    @Override
+    public void removeEntity(UUID uuid) {
+        if (entityRemoves == null) {
+            entityRemoves = new HashSet<>();
+        }
+        entityRemoves.add(uuid);
+    }
+
+    @Override
+    public HashSet<UUID> getEntityRemoves() {
+        return entityRemoves == null ? new HashSet<UUID>() : entityRemoves;
     }
 
     @Override

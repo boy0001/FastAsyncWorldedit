@@ -11,7 +11,6 @@ import com.boydti.fawe.object.RunnableVal;
 import com.boydti.fawe.object.changeset.DiskStorageHistory;
 import com.boydti.fawe.util.MainUtil;
 import com.boydti.fawe.util.MathMan;
-import com.boydti.fawe.util.SetQueue;
 import com.sk89q.worldedit.EditSession;
 import com.sk89q.worldedit.blocks.ItemType;
 import com.sk89q.worldedit.world.World;
@@ -102,7 +101,7 @@ public class Rollback extends FaweCommand {
                         EditSession session = edit.toEditSession(null);
                         session.undo(session);
                         edit.deleteFiles();
-                        SetQueue.IMP.addTask(this);
+                        session.getQueue().addNotifyTask(this);
                     }
                 };
                 task.run();

@@ -6,26 +6,56 @@ import com.sk89q.worldedit.blocks.BaseBlock;
 
 public class FaweCache {
     /**
-     * y | x | z
+     * [ y | x | z ] => index
      */
     public final static short[][][] CACHE_I = new short[256][16][16];
     /**
-     * y | x | z
+     * [ y | x | z ] => index
      */
     public final static short[][][] CACHE_J = new short[256][16][16];
 
+    /**
+     *  [ i | j ] => x
+     */
     public final static byte[][] CACHE_X = new byte[16][4096];
+    /**
+     *  [ i | j ] => y
+     */
     public final static short[][] CACHE_Y = new short[16][4096];
+    /**
+     *  [ i | j ] => z
+     */
     public final static byte[][] CACHE_Z = new byte[16][4096];
 
+    /**
+     * [ combined ] => id
+     * (combined >> 4) = id
+     */
     public final static short[] CACHE_ID = new short[65535];
+    /**
+     * [ combined ] => data
+     * (combined & 0xF) = data
+     */
     public final static byte[] CACHE_DATA = new byte[65535];
 
+    /**
+     * Immutable BaseBlock cache
+     * [ combined ] => block
+     */
     public final static BaseBlock[] CACHE_BLOCK = new BaseBlock[Short.MAX_VALUE];
 
-    // Faster than java random (since the game just needs to look random)
+    /**
+     * Faster than java random (since it just needs to look random)
+     */
     public final static PseudoRandom RANDOM = new PseudoRandom();
 
+    /**
+     * Get the cached BaseBlock object for an id/data<br>
+     *  - The block is immutable
+     * @param id
+     * @param data
+     * @return
+     */
     public static BaseBlock getBlock(int id, int data) {
         return CACHE_BLOCK[(id << 4) + data];
     }
@@ -84,7 +114,12 @@ public class FaweCache {
             };
         }
     }
-    
+
+    /**
+     * Check if an id might have data
+     * @param id
+     * @return
+     */
     public static boolean hasData(int id) {
         switch (id) {
             case 0:
@@ -167,7 +202,12 @@ public class FaweCache {
                 return true;
         }
     }
-    
+
+    /**
+     * Check if an id might have nbt
+     * @param id
+     * @return
+     */
     public static boolean hasNBT(int id) {
         switch (id) {
             case 54:

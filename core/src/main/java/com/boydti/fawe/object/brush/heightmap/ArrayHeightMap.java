@@ -1,6 +1,6 @@
 package com.boydti.fawe.object.brush.heightmap;
 
-public class ArrayHeightMap extends HeightMap {
+public class ArrayHeightMap extends ScalableHeightMap {
     // The heights
     private final byte[][] height;
     // The height map width/length
@@ -19,15 +19,15 @@ public class ArrayHeightMap extends HeightMap {
     public void setSize(int size) {
         super.setSize(size);
         this.rx = (double) width / (size << 1);
-        this.rz = (double) width / (size << 1);
+        this.rz = (double) length / (size << 1);
 
     }
 
     @Override
-    public int getHeight(int x, int z) {
+    public double getHeight(int x, int z) {
         x = (int) Math.max(0, Math.min(width - 1, (x + size) * rx));
         z = (int) Math.max(0, Math.min(length - 1, (z + size) * rz));
-        return (((int) height[x][z] & 0xFF) * size) / 256;
+        return ((height[x][z] & 0xFF) * size) / 256d;
 
     }
 }

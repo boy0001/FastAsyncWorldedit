@@ -130,7 +130,7 @@ public class SpongeQueue_ALL extends NMSMappedFaweQueue<World, net.minecraft.wor
         net.minecraft.world.chunk.Chunk nmsChunk = fs.getChunk();
         Chunk spongeChunk = (Chunk) nmsChunk;
 
-        char[][] ids = ((SpongeChunk_1_8) fc).getIdArrays();
+        char[][] ids = ((SpongeChunk_1_8) fc).getCombinedIdArrays();
         MutableBlockVolumeWorker<? extends Chunk> blockWorker = spongeChunk.getBlockWorker();
         blockWorker.map(new BlockVolumeMapper() {
             @Override

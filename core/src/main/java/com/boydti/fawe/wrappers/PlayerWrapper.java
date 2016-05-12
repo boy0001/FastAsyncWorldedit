@@ -205,7 +205,7 @@ public class PlayerWrapper implements Player {
         TaskManager.IMP.sync(new RunnableVal<Object>() {
             @Override
             public void run(Object value) {
-                edit.queue.next();
+                edit.getQueue().next();
                 setPosition(new Vector(x + 0.5, y, z + 0.5));
             }
         });

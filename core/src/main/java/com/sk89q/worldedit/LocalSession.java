@@ -26,6 +26,7 @@ import com.boydti.fawe.object.clipboard.DiskOptimizedClipboard;
 import com.boydti.fawe.util.FaweQueue;
 import com.boydti.fawe.util.MainUtil;
 import com.boydti.fawe.util.SetQueue;
+import com.boydti.fawe.util.TaskManager;
 import com.sk89q.jchronic.Chronic;
 import com.sk89q.jchronic.Options;
 import com.sk89q.jchronic.utils.Span;
@@ -199,10 +200,16 @@ public class LocalSession {
      * @param editSession the edit session
      */
     public void remember(EditSession editSession) {
-        remember(editSession, true);
+        remember(editSession, true, false);
     }
 
-    public void remember(final EditSession editSession, final boolean append) {
+    public void remember(final EditSession editSession, final boolean append, final boolean sendMessage) {
+        if (editSession == null) {
+            return;
+        }
+        if (Settings.STORE_HISTORY_ON_DISK) {
+            MAX_HISTORY_SIZE = Integer.MAX_VALUE;
+        }
         // Enqueue it
         if (editSession.getQueue() != null) {
             FaweQueue queue = editSession.getQueue();
@@ -215,8 +222,10 @@ public class LocalSession {
         if (editSession.size() == 0 || editSession.hasFastMode()) return;
 
         // Destroy any sessions after this undo point
-        while (historyPointer < history.size()) {
-            history.remove(historyPointer);
+        if (append) {
+            while (historyPointer < history.size()) {
+                history.remove(historyPointer);
+            }
         }
         ChangeSet set = editSession.getChangeSet();
         if (set instanceof FaweStreamChangeSet) {
@@ -225,14 +234,19 @@ public class LocalSession {
                 editSession.getQueue().addNotifyTask(new Runnable() {
                     @Override
                     public void run() {
-                        if (fcs.flush() && append) {
-                            MainUtil.sendCompressedMessage(fcs, editSession.actor);
-                        }
+                        TaskManager.IMP.async(new Runnable() {
+                            @Override
+                            public void run() {
+                                if (fcs.flush() && append && sendMessage) {
+                                    MainUtil.sendCompressedMessage(fcs, editSession.getActor());
+                                }
+                            }
+                        });
                     }
                 });
             } else {
-                if (fcs.flush() && append) {
-                    MainUtil.sendCompressedMessage(fcs, editSession.actor);
+                if (fcs.flush() && append && sendMessage) {
+                    MainUtil.sendCompressedMessage(fcs, editSession.getActor());
                 }
             }
 
@@ -241,13 +255,15 @@ public class LocalSession {
         }
         if (append) {
             history.add(editSession);
+            historyPointer = history.size();
         } else {
             history.add(0, editSession);
+            historyPointer++;
         }
         while (history.size() > MAX_HISTORY_SIZE) {
             history.remove(0);
+            historyPointer--;
         }
-        historyPointer = append ? history.size() : historyPointer + 1;
     }
 
     /**
@@ -278,7 +294,6 @@ public class LocalSession {
             newEditSession.enableQueue();
             newEditSession.setFastMode(fastMode);
             editSession.undo(newEditSession);
-            System.out.println("UNDO: " + historyPointer + " | " + history.size());
             return editSession;
         } else {
             historyPointer = 0;
@@ -306,7 +321,6 @@ public class LocalSession {
      */
     public EditSession redo(@Nullable BlockBag newBlockBag, Player player) {
         checkNotNull(player);
-        System.out.println("CHECK REDO: " + historyPointer + " | " + history.size());
         if (historyPointer < history.size()) {
             EditSession editSession = history.get(historyPointer);
             EditSession newEditSession = WorldEdit.getInstance().getEditSessionFactory()
@@ -315,10 +329,7 @@ public class LocalSession {
             newEditSession.setFastMode(fastMode);
             editSession.redo(newEditSession);
             ++historyPointer;
-            System.out.println("CAN REDO");
             return editSession;
-        } else {
-            System.out.println("POINTER");
         }
 
         return null;

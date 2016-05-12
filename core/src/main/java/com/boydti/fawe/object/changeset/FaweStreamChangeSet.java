@@ -4,11 +4,11 @@ import com.boydti.fawe.config.Settings;
 import com.boydti.fawe.object.change.MutableBlockChange;
 import com.boydti.fawe.object.change.MutableEntityChange;
 import com.boydti.fawe.object.change.MutableTileChange;
-import com.google.common.collect.Iterators;
 import com.sk89q.jnbt.CompoundTag;
 import com.sk89q.jnbt.NBTInputStream;
 import com.sk89q.jnbt.NBTOutputStream;
 import com.sk89q.worldedit.history.change.Change;
+import com.sk89q.worldedit.world.World;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -21,9 +21,12 @@ import net.jpountz.lz4.LZ4OutputStream;
 
 public abstract class FaweStreamChangeSet extends FaweChangeSet {
 
+    public FaweStreamChangeSet(World world) {
+        super(world);
+    }
+
     @Override
     public int size() {
-        System.out.println("SIZE: " + blockSize);
         // Flush so we can accurately get the size
         flush();
         return blockSize;
@@ -172,7 +175,6 @@ public abstract class FaweStreamChangeSet extends FaweChangeSet {
                     if (read0 == -1) {
                         return null;
                     }
-                    System.out.println("r0: " + read0);
                     int x = ((byte) read0 & 0xFF) + ((byte) is.read() << 8) + originX;
                     int z = ((byte) is.read() & 0xFF) + ((byte) is.read() << 8) + originZ;
                     int y = is.read() & 0xff;
@@ -192,7 +194,6 @@ public abstract class FaweStreamChangeSet extends FaweChangeSet {
                         change.id = (short) ((from2 << 4) + (from1 >> 4));
                         change.data = (byte) (from1 & 0xf);
                     }
-                    System.out.println("CHANGE: " + change.id);
                     return change;
                 } catch (Exception ignoreEOF) {
                     ignoreEOF.printStackTrace();
@@ -206,10 +207,8 @@ public abstract class FaweStreamChangeSet extends FaweChangeSet {
                     last = read();
                 }
                 if (last != null) {
-                    System.out.println("HAS NEXT!");
                     return true;
                 }
-                System.out.println("NO NEXT");
                 try {
                     is.close();
                 } catch (IOException e) {
@@ -333,18 +332,43 @@ public abstract class FaweStreamChangeSet extends FaweChangeSet {
     }
 
     public Iterator<Change> getIterator(final boolean dir) {
-        System.out.println("GET ITERATOR: " + dir);
         flush();
         try {
-            Iterator<MutableTileChange> tileCreate = getTileIterator(getTileCreateIS(), true, dir);
-            Iterator<MutableTileChange> tileRemove = getTileIterator(getTileRemoveIS(), false, dir);
+            final Iterator<MutableTileChange> tileCreate = getTileIterator(getTileCreateIS(), true, dir);
+            final Iterator<MutableTileChange> tileRemove = getTileIterator(getTileRemoveIS(), false, dir);
 
-            Iterator<MutableEntityChange> entityCreate = getEntityIterator(getEntityCreateIS(), true, dir);
-            Iterator<MutableEntityChange> entityRemove = getEntityIterator(getEntityRemoveIS(), false, dir);
+            final Iterator<MutableEntityChange> entityCreate = getEntityIterator(getEntityCreateIS(), true, dir);
+            final Iterator<MutableEntityChange> entityRemove = getEntityIterator(getEntityRemoveIS(), false, dir);
 
-            Iterator<MutableBlockChange> blockChange = getBlockIterator(dir);
+            final Iterator<MutableBlockChange> blockChange = getBlockIterator(dir);
 
-            return Iterators.concat(tileCreate, tileRemove, entityCreate, entityRemove, blockChange);
+            return new Iterator<Change>() {
+                Iterator<Change>[] iterators = new Iterator[]{tileCreate, tileRemove, entityCreate, entityRemove, blockChange};
+                int i = 0;
+                Iterator<Change> current = iterators[0];
+
+                @Override
+                public boolean hasNext() {
+                    if (current.hasNext()) {
+                        return true;
+                    } else if (i >= iterators.length - 1) {
+                        return false;
+                    } else {
+                        current = iterators[++i];
+                    }
+                    return hasNext();
+                }
+
+                @Override
+                public void remove() {
+                    current.remove();
+                }
+
+                @Override
+                public Change next() {
+                    return current.next();
+                }
+            };
         } catch (Exception e) {
             e.printStackTrace();
         }

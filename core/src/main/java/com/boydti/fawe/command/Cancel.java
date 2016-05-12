@@ -28,7 +28,7 @@ public class Cancel extends FaweCommand {
         for (FaweQueue queue : queues) {
             Set<EditSession> sessions = queue.getEditSessions();
             for (EditSession session : sessions) {
-                Actor actor = session.actor;
+                Actor actor = session.getActor();
                 if (actor == null) {
                     continue;
                 }

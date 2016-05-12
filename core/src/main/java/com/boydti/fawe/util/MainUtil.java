@@ -70,6 +70,9 @@ public class MainUtil {
         try {
             int elements = set.size();
             int compressedSize = set.getCompressedSize();
+            if (compressedSize == 0) {
+                return;
+            }
             /*
              * BlockVector
              * - reference to the object --> 8 bytes
@@ -90,16 +93,40 @@ public class MainUtil {
              * This compares FAWE's usage to standard WE.
              */
             int total = 128 * elements;
-            int current = compressedSize;
 
-            int ratio = total / current;
-            int saved = total - current;
+            int ratio = total / compressedSize;
+            int saved = total - compressedSize;
 
             if (ratio > 3 && Thread.currentThread() != Fawe.get().getMainThread() && actor != null && actor.isPlayer() && actor.getSessionKey().isActive()) {
                 BBC.COMPRESSED.send(actor, saved, ratio);
             }
         } catch (Exception e) {
             e.printStackTrace();
+        }
+    }
+
+    public static void smoothArray(int[] data, int width, int radius, int weight) {
+        int[] copy = data.clone();
+        int length = data.length / width;
+        int diameter = 2 * radius + 1;
+        weight += diameter * diameter - 1;
+        for (int x = 0; x < width; x++) {
+            for (int y = 0; y < length; y++) {
+                int index = x + width * y;
+                int value = 0;
+                int count = 0;
+                for (int x2 = Math.max(0, x - radius); x2 <= Math.min(width - 1, x + radius); x2++) {
+                    for (int y2 = Math.max(0, y - radius); y2 <= Math.min(length - 1, y + radius); y2++) {
+                        count++;
+                        int index2 = x2 + width * y2;
+                        value += data[index2];
+
+                    }
+                }
+                value += data[index] * (weight - count);
+                value = value / (weight);
+                data[index] = value;
+            }
         }
     }
 

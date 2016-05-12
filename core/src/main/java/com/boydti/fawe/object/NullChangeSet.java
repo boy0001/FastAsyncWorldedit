@@ -3,10 +3,15 @@ package com.boydti.fawe.object;
 import com.boydti.fawe.object.changeset.FaweChangeSet;
 import com.sk89q.jnbt.CompoundTag;
 import com.sk89q.worldedit.history.change.Change;
+import com.sk89q.worldedit.world.World;
 import java.util.ArrayList;
 import java.util.Iterator;
 
 public class NullChangeSet extends FaweChangeSet {
+    public NullChangeSet(World world) {
+        super(world);
+    }
+
     @Override
     public boolean flush() {
         return false;

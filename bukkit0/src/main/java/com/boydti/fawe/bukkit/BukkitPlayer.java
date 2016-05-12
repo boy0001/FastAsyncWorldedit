@@ -3,13 +3,17 @@ package com.boydti.fawe.bukkit;
 import com.boydti.fawe.Fawe;
 import com.boydti.fawe.object.FaweLocation;
 import com.boydti.fawe.object.FawePlayer;
+import java.lang.reflect.Method;
 import java.util.UUID;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
+import org.bukkit.command.ConsoleCommandSender;
 import org.bukkit.entity.Player;
 
 public class BukkitPlayer extends FawePlayer<Player> {
+
+    private static ConsoleCommandSender console;
 
     public BukkitPlayer(final Player parent) {
         super(parent);
@@ -47,6 +51,27 @@ public class BukkitPlayer extends FawePlayer<Player> {
                 this.parent.addAttachment(Fawe.<FaweBukkit> imp().getPlugin()).setPermission("fawe.bypass", flag);
             }
         }
+    }
+
+
+    @Override
+    public void resetTitle() {
+        sendTitle("","");
+    }
+
+    public void sendTitle(String title, String sub) {
+        try {
+            Method methodSendTitle = Player.class.getDeclaredMethod("sendTitle", String.class, String.class);
+            methodSendTitle.invoke(parent, ChatColor.GOLD + title, ChatColor.GOLD + sub);
+            return;
+        } catch (Throwable ignore) {}
+        if (console == null) {
+            console = Bukkit.getConsoleSender();
+            Bukkit.getServer().dispatchCommand(console, "gamerule sendCommandFeedback false");
+            Bukkit.getServer().dispatchCommand(console, "title " + getName() + " times 0 60 20");
+        }
+        Bukkit.getServer().dispatchCommand(console, "title " + getName() + " subtitle [{\"text\":\"" + sub + "\",\"color\":\"gold\"}]");
+        Bukkit.getServer().dispatchCommand(console, "title " + getName() + " title [{\"text\":\"" + title + "\",\"color\":\"gold\"}]");
     }
 
     @Override

@@ -17,7 +17,7 @@ public enum BBC {
      * Things to note about this class:
      * Can use multiple arguments %s, %s1, %s2, %s3 etc
      */
-    PREFIX("&8(&5&lFAWE&8)&7", "Info"),
+    PREFIX("&8(&4&lFAWE&8)&7", "Info"),
     SCHEMATIC_PASTING("&7The schematic is pasting. This cannot be undone.", "Info"),
     FIX_LIGHTING_CHUNK("&7Lighting has been fixed in your current chunk. Relog to see the affect.", "Info"),
     FIX_LIGHTING_SELECTION("&7Lighting has been fixed in %s0 chunks. Relog to see the affect.", "Info"),
@@ -95,6 +95,8 @@ public enum BBC {
     SELECTOR_CUBOID_POS1("First position set to %s0 %s1.", "WorldEdit.Selector"),
     SELECTOR_CUBOID_POS2("Second position set to %s0 %s1.", "WorldEdit.Selector"),
 
+    PROGRESS_MESSAGE("[ Queue: %s0 | Dispatched: %s1 ]", "Progress"),
+    PROGRESS_DONE   ("[ Took: %s0s ]", "Progress"),
 
 
     COMMAND_SYNTAX("&cUsage: &7%s0", "Error"),

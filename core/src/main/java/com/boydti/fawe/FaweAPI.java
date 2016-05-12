@@ -18,6 +18,7 @@ import com.sk89q.jnbt.IntTag;
 import com.sk89q.jnbt.NBTInputStream;
 import com.sk89q.jnbt.ShortTag;
 import com.sk89q.jnbt.Tag;
+import com.sk89q.worldedit.EditSession;
 import com.sk89q.worldedit.WorldEdit;
 import com.sk89q.worldedit.WorldEditException;
 import com.sk89q.worldedit.extent.Extent;
@@ -39,6 +40,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 import java.util.zip.GZIPInputStream;
+import javax.annotation.Nonnull;
 import org.bukkit.Chunk;
 import org.bukkit.Location;
 
@@ -50,6 +52,31 @@ import org.bukkit.Location;
  *  FaweAPI.[some method]
  */
 public class FaweAPI {
+
+    /**
+     * Get a new EditSessionfor a player<br>
+     *     - The EditSession can be used from another thread<br>
+     *     - FAWE will handle
+     * @see com.boydti.fawe.object.FawePlayer#wrap(Object)
+     * @param player
+     * @return
+     */
+    public EditSession getNewEditSession(@Nonnull FawePlayer player) {
+        if (player == null) {
+            throw new IllegalArgumentException("Player may not be null");
+        }
+        return player.getNewEditSession();
+    }
+
+    /**
+     * Get a new non-player EditSession
+     * @see #getWorld(String)
+     * @param world
+     * @return
+     */
+    public EditSession getNewEditSession(World world) {
+        return WorldEdit.getInstance().getEditSessionFactory().getEditSession(world, -1);
+    }
 
     /**
      * The TaskManager has some useful methods for doing things asynchronously
@@ -133,7 +160,7 @@ public class FaweAPI {
      * Cancel the edit with the following extent<br>
      *     - The extent must be the one being used by an EditSession, otherwise an error may be thrown <br>
      *     - Insert an extent into the EditSession using the EditSessionEvent: http://wiki.sk89q.com/wiki/WorldEdit/API/Hooking_EditSession <br>
-     * @see com.sk89q.worldedit.EditSession#getFaweExtent() To get the FaweExtent for an EditSession
+     * @see com.sk89q.worldedit.EditSession#getRegionExtent() To get the FaweExtent for an EditSession
      * @param extent
      * @param reason
      */
@@ -229,7 +256,11 @@ public class FaweAPI {
         Collections.sort(files, new Comparator<File>() {
             @Override
             public int compare(File a, File b) {
-                long value = a.lastModified() - b.lastModified();
+                String aName = a.getName();
+                String bName = b.getName();
+                int aI = Integer.parseInt(aName.substring(0, aName.length() - 3));
+                int bI = Integer.parseInt(bName.substring(0, bName.length() - 3));
+                long value = aI - bI;
                 return value == 0 ? 0 : value < 0 ? -1 : 1;
             }
         });
@@ -292,21 +323,21 @@ public class FaweAPI {
      * @param world
      * @param x
      * @param z
-     * @param fixAll
+     * @param mode
      */
-    public static void fixLighting(String world, int x, int z, final boolean fixAll) {
+    public static void fixLighting(String world, int x, int z, FaweQueue.RelightMode mode) {
         FaweQueue queue = SetQueue.IMP.getNewQueue(world, true, false);
-        queue.fixLighting(queue.getChunk(x, z), fixAll);
+        queue.fixLighting(queue.getChunk(x, z), mode);
     }
 
     /**
      * Fix the lighting in a chunk
      * @param chunk
-     * @param fixAll
+     * @param mode
      */
-    public static void fixLighting(final Chunk chunk, final boolean fixAll) {
+    public static void fixLighting(final Chunk chunk, FaweQueue.RelightMode mode) {
         FaweQueue queue = SetQueue.IMP.getNewQueue(chunk.getWorld().getName(), true, false);
-        queue.fixLighting(queue.getChunk(chunk.getX(), chunk.getZ()), fixAll);
+        queue.fixLighting(queue.getChunk(chunk.getX(), chunk.getZ()), mode);
     }
 
     /**
@@ -318,6 +349,7 @@ public class FaweAPI {
      * @param loc
      * @return
      */
+    @Deprecated
     public static void streamSchematic(final File file, final Location loc) {
         final FaweLocation fl = new FaweLocation(loc.getWorld().getName(), loc.getBlockX(), loc.getBlockY(), loc.getBlockZ());
         streamSchematic(file, fl);
@@ -331,6 +363,7 @@ public class FaweAPI {
      * @param loc
      * @return
      */
+    @Deprecated
     public static void streamSchematic(final File file, final FaweLocation loc) {
         try {
             final FileInputStream is = new FileInputStream(file);
@@ -347,6 +380,7 @@ public class FaweAPI {
      * @param url
      * @param loc
      */
+    @Deprecated
     public static void streamSchematic(final URL url, final FaweLocation loc) {
         try {
             final ReadableByteChannel rbc = Channels.newChannel(url.openStream());
@@ -366,6 +400,7 @@ public class FaweAPI {
      * @param loc
      * @throws IOException
      */
+    @Deprecated
     public static void streamSchematic(final InputStream is, final FaweLocation loc) throws IOException {
         final NBTInputStream stream = new NBTInputStream(new GZIPInputStream(is));
         Tag tag = stream.readNamedTag().getTag();
@@ -403,79 +438,10 @@ public class FaweAPI {
                     final int i = i2 + x;
                     final int xx = x_offset + x;
                     final short id = (short) (ids[i] & 0xFF);
-                    switch (id) {
-                        case 0:
-                        case 2:
-                        case 4:
-                        case 13:
-                        case 14:
-                        case 15:
-                        case 20:
-                        case 21:
-                        case 22:
-                        case 30:
-                        case 32:
-                        case 37:
-                        case 39:
-                        case 40:
-                        case 41:
-                        case 42:
-                        case 45:
-                        case 46:
-                        case 47:
-                        case 48:
-                        case 49:
-                        case 51:
-                        case 56:
-                        case 57:
-                        case 58:
-                        case 60:
-                        case 7:
-                        case 8:
-                        case 9:
-                        case 10:
-                        case 11:
-                        case 73:
-                        case 74:
-                        case 78:
-                        case 79:
-                        case 80:
-                        case 81:
-                        case 82:
-                        case 83:
-                        case 85:
-                        case 87:
-                        case 88:
-                        case 101:
-                        case 102:
-                        case 103:
-                        case 110:
-                        case 112:
-                        case 113:
-                        case 121:
-                        case 122:
-                        case 129:
-                        case 133:
-                        case 165:
-                        case 166:
-                        case 169:
-                        case 170:
-                        case 172:
-                        case 173:
-                        case 174:
-                        case 181:
-                        case 182:
-                        case 188:
-                        case 189:
-                        case 190:
-                        case 191:
-                        case 192:
-                            queue.setBlock(xx, yy, zz, id, (byte) 0);
-                            break;
-                        default: {
-                            queue.setBlock(xx, yy, zz, id, datas[i]);
-                            break;
-                        }
+                    if (FaweCache.hasData(id)) {
+                        queue.setBlock(xx, yy, zz, id, datas[i]);
+                    } else {
+                        queue.setBlock(xx, yy, zz, id, (byte) 0);
                     }
                 }
             }

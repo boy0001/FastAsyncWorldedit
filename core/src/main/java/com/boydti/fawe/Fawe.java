@@ -200,7 +200,7 @@ public class Fawe {
         this.IMP.setupCommand("wea", new Wea());
         this.IMP.setupCommand("fixlighting", new FixLighting());
         this.IMP.setupCommand("stream", new Stream());
-        this.IMP.setupCommand("wrg", new WorldEditRegion());
+        this.IMP.setupCommand("select", new WorldEditRegion());
         this.IMP.setupCommand("fawe", new Reload());
         this.IMP.setupCommand("frb", new Rollback());
         this.IMP.setupCommand("fcancel", new Cancel());

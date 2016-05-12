@@ -16,8 +16,6 @@ import java.io.OutputStream;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
-import java.util.concurrent.atomic.AtomicInteger;
-import java.util.zip.GZIPOutputStream;
 import net.jpountz.lz4.LZ4Compressor;
 import net.jpountz.lz4.LZ4Factory;
 import net.jpountz.lz4.LZ4InputStream;
@@ -56,20 +54,15 @@ public class DiskStorageHistory extends FaweStreamChangeSet {
 
     // NBT From
     private NBTOutputStream osNBTF;
-    private GZIPOutputStream osNBTFG;
-    private AtomicInteger osNBTFI;
 
     // NBT To
     private NBTOutputStream osNBTT;
-    private GZIPOutputStream osNBTTG;
 
     // Entity Create From
     private NBTOutputStream osENTCF;
-    private GZIPOutputStream osENTCFG;
 
     // Entity Create To
     private NBTOutputStream osENTCT;
-    private GZIPOutputStream osENTCTG;
 
     private World world;
 
@@ -82,6 +75,7 @@ public class DiskStorageHistory extends FaweStreamChangeSet {
     }
 
     public DiskStorageHistory(World world, UUID uuid) {
+        super(world);
         String base = "history" + File.separator + world.getName() + File.separator + uuid;
         File folder = new File(Fawe.imp().getDirectory(), base);
         int max = 0;
@@ -100,6 +94,7 @@ public class DiskStorageHistory extends FaweStreamChangeSet {
     }
 
     public DiskStorageHistory(World world, UUID uuid, int index) {
+        super(world);
         init(world, uuid, index);
     }
 
@@ -125,27 +120,28 @@ public class DiskStorageHistory extends FaweStreamChangeSet {
 
     @Override
     public boolean flush() {
-        boolean flushed = false;
+        super.flush();
+        boolean flushed = osBD != null || osNBTF != null || osNBTT != null && osENTCF != null || osENTCT != null;
         try {
             if (osBD != null) {
-                flushed = true;
-                osBD.flush();
                 osBD.close();
                 osBD = null;
             }
             if (osNBTF != null) {
-                flushed = true;
-                osNBTFG.flush();
                 osNBTF.close();
                 osNBTF = null;
-                osNBTFG = null;
             }
             if (osNBTT != null) {
-                flushed = true;
-                osNBTTG.flush();
                 osNBTT.close();
                 osNBTT = null;
-                osNBTTG = null;
+            }
+            if (osENTCF != null) {
+                osENTCF.close();
+                osENTCF = null;
+            }
+            if (osENTCT != null) {
+                osENTCT.close();
+                osENTCT = null;
             }
         } catch (Exception e) {
             e.printStackTrace();
@@ -185,8 +181,7 @@ public class DiskStorageHistory extends FaweStreamChangeSet {
         }
         enttFile.getParentFile().mkdirs();
         enttFile.createNewFile();
-        osENTCTG = new GZIPOutputStream(new FileOutputStream(enttFile), true);
-        osENTCT = new NBTOutputStream(osENTCTG);
+        osENTCT = new NBTOutputStream(getCompressedOS(new FileOutputStream(enttFile)));
         return osENTCT;
     }
 
@@ -197,8 +192,7 @@ public class DiskStorageHistory extends FaweStreamChangeSet {
         }
         entfFile.getParentFile().mkdirs();
         entfFile.createNewFile();
-        osENTCFG = new GZIPOutputStream(new FileOutputStream(entfFile), true);
-        osENTCF = new NBTOutputStream(osENTCFG);
+        osENTCF = new NBTOutputStream(getCompressedOS(new FileOutputStream(entfFile)));
         return osENTCF;
     }
 
@@ -209,8 +203,7 @@ public class DiskStorageHistory extends FaweStreamChangeSet {
         }
         nbttFile.getParentFile().mkdirs();
         nbttFile.createNewFile();
-        osNBTTG = new GZIPOutputStream(new FileOutputStream(nbttFile), true);
-        osNBTT = new NBTOutputStream(osNBTTG);
+        osNBTT = new NBTOutputStream(getCompressedOS(new FileOutputStream(nbttFile)));
         return osNBTT;
     }
 
@@ -221,9 +214,7 @@ public class DiskStorageHistory extends FaweStreamChangeSet {
         }
         nbtfFile.getParentFile().mkdirs();
         nbtfFile.createNewFile();
-        osNBTFG = new GZIPOutputStream(new FileOutputStream(nbtfFile), true);
-        osNBTF = new NBTOutputStream(osNBTFG);
-        osNBTFI = new AtomicInteger();
+        osNBTF = new NBTOutputStream(getCompressedOS(new FileOutputStream(nbtfFile)));
         return osNBTF;
     }
 

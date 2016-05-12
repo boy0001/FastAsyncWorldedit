@@ -1,5 +1,6 @@
 package com.boydti.fawe.bukkit.v0;
 
+import com.boydti.fawe.Fawe;
 import com.boydti.fawe.FaweCache;
 import com.boydti.fawe.example.CharFaweChunk;
 import com.boydti.fawe.example.NMSMappedFaweQueue;
@@ -14,6 +15,10 @@ import com.sk89q.worldedit.world.biome.BaseBiome;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Map;
+import java.util.Set;
+import java.util.UUID;
 import org.bukkit.Bukkit;
 import org.bukkit.Chunk;
 import org.bukkit.World;
@@ -21,18 +26,26 @@ import org.bukkit.block.Block;
 
 public abstract class BukkitQueue_0<CHUNK, CHUNKSECTIONS, SECTION> extends NMSMappedFaweQueue<World, CHUNK, CHUNKSECTIONS, SECTION> {
 
-    public final BukkitImplAdapter adapter;
+    public Object adapter;
     public Method methodToNative;
     public Method methodFromNative;
 
     public BukkitQueue_0(final String world) {
         super(world);
+        setupAdapter(null);
+    }
+
+    public void setupAdapter(BukkitImplAdapter adapter) {
         try {
             WorldEditPlugin instance = (WorldEditPlugin) Bukkit.getPluginManager().getPlugin("WorldEdit");
             Field fieldAdapter = WorldEditPlugin.class.getDeclaredField("bukkitAdapter");
             fieldAdapter.setAccessible(true);
-            this.adapter = (BukkitImplAdapter) fieldAdapter.get(instance);
-            for (Method method : adapter.getClass().getDeclaredMethods()) {
+            if ((this.adapter = adapter) != null) {
+                fieldAdapter.set(instance, adapter);
+            } else {
+                this.adapter = fieldAdapter.get(instance);
+            }
+            for (Method method : this.adapter.getClass().getDeclaredMethods()) {
                 switch (method.getName()) {
                     case "toNative":
                         methodToNative = method;
@@ -45,7 +58,12 @@ public abstract class BukkitQueue_0<CHUNK, CHUNKSECTIONS, SECTION> extends NMSMa
                 }
             }
         } catch (Throwable e) {
-            throw new RuntimeException(e);
+            e.printStackTrace();
+            Fawe.debug("====== NO NATIVE WORLDEDIT ADAPTER ======");
+            Fawe.debug("Try updating WorldEdit: ");
+            Fawe.debug(" - http://builds.enginehub.org/job/worldedit?branch=master");
+            Fawe.debug("See also: http://wiki.sk89q.com/wiki/WorldEdit/Bukkit_adapters");
+            Fawe.debug("=========================================");
         }
     }
 
@@ -69,8 +87,14 @@ public abstract class BukkitQueue_0<CHUNK, CHUNKSECTIONS, SECTION> extends NMSMa
         return world.regenerateChunk(x, z);
     }
 
+
     @Override
-    public boolean fixLighting(FaweChunk fc, boolean fixAll) {
+    public CharFaweChunk getPrevious(CharFaweChunk fs, CHUNKSECTIONS sections, Map<?, ?> tiles, Collection<?>[] entities, Set<UUID> createdEntities, boolean all) throws Exception {
+        return fs;
+    }
+
+    @Override
+    public boolean fixLighting(FaweChunk fc, RelightMode mode) {
         // Not implemented
         return true;
     }
@@ -121,7 +145,7 @@ public abstract class BukkitQueue_0<CHUNK, CHUNKSECTIONS, SECTION> extends NMSMa
             final Chunk chunk = fs.getChunk();
             chunk.load(true);
             final World world = chunk.getWorld();
-            char[][] sections = fs.getIdArrays();
+            char[][] sections = fs.getCombinedIdArrays();
             boolean done = false;
             boolean more = false;
             // Efficiently merge sections

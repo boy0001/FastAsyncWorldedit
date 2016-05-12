@@ -4,44 +4,50 @@ import com.boydti.fawe.Fawe;
 import com.boydti.fawe.FaweCache;
 import com.boydti.fawe.bukkit.v0.BukkitQueue_0;
 import com.boydti.fawe.example.CharFaweChunk;
+import com.boydti.fawe.object.BytePair;
 import com.boydti.fawe.object.FaweChunk;
-import com.boydti.fawe.object.FawePlayer;
-import com.boydti.fawe.object.IntegerPair;
 import com.boydti.fawe.object.PseudoRandom;
 import com.boydti.fawe.object.RunnableVal;
-import com.boydti.fawe.util.MemUtil;
-import com.sk89q.worldedit.LocalSession;
+import com.boydti.fawe.util.MathMan;
+import com.boydti.fawe.util.ReflectionUtils;
+import com.sk89q.jnbt.CompoundTag;
+import com.sk89q.jnbt.ListTag;
+import com.sk89q.jnbt.LongTag;
+import com.sk89q.jnbt.StringTag;
+import com.sk89q.jnbt.Tag;
+import com.sk89q.worldedit.internal.Constants;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
-import java.lang.reflect.Method;
-import java.util.ArrayDeque;
+import java.util.ArrayList;
 import java.util.Collection;
-import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
-import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-import net.minecraft.server.v1_9_R1.Block;
-import net.minecraft.server.v1_9_R1.BlockPosition;
-import net.minecraft.server.v1_9_R1.Blocks;
-import net.minecraft.server.v1_9_R1.ChunkSection;
-import net.minecraft.server.v1_9_R1.DataBits;
-import net.minecraft.server.v1_9_R1.DataPalette;
-import net.minecraft.server.v1_9_R1.DataPaletteBlock;
-import net.minecraft.server.v1_9_R1.IBlockData;
-import net.minecraft.server.v1_9_R1.TileEntity;
-import org.bukkit.Bukkit;
+import java.util.Set;
+import java.util.UUID;
+import net.minecraft.server.v1_9_R2.Block;
+import net.minecraft.server.v1_9_R2.BlockPosition;
+import net.minecraft.server.v1_9_R2.Blocks;
+import net.minecraft.server.v1_9_R2.ChunkSection;
+import net.minecraft.server.v1_9_R2.DataBits;
+import net.minecraft.server.v1_9_R2.DataPalette;
+import net.minecraft.server.v1_9_R2.DataPaletteBlock;
+import net.minecraft.server.v1_9_R2.Entity;
+import net.minecraft.server.v1_9_R2.EntityPlayer;
+import net.minecraft.server.v1_9_R2.EntityTypes;
+import net.minecraft.server.v1_9_R2.IBlockData;
+import net.minecraft.server.v1_9_R2.NBTTagCompound;
+import net.minecraft.server.v1_9_R2.NibbleArray;
+import net.minecraft.server.v1_9_R2.TileEntity;
 import org.bukkit.Chunk;
-import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.World;
 import org.bukkit.World.Environment;
 import org.bukkit.block.Biome;
-import org.bukkit.craftbukkit.v1_9_R1.CraftChunk;
-import org.bukkit.entity.Entity;
+import org.bukkit.craftbukkit.v1_9_R2.CraftChunk;
 import org.bukkit.entity.Player;
-import org.bukkit.generator.BlockPopulator;
-import org.bukkit.generator.ChunkGenerator;
+import org.bukkit.event.entity.CreatureSpawnEvent;
 
 public class BukkitQueue_1_9_R1 extends BukkitQueue_0<Chunk, ChunkSection[], DataPaletteBlock> {
 
@@ -53,9 +59,16 @@ public class BukkitQueue_1_9_R1 extends BukkitQueue_0<Chunk, ChunkSection[], Dat
             Field fieldAir = DataPaletteBlock.class.getDeclaredField("a");
             fieldAir.setAccessible(true);
             air = (IBlockData) fieldAir.get(null);
+            if (adapter == null) {
+                setupAdapter(new FaweAdapter_1_9());
+                Fawe.debug("=========================================");
+                Fawe.debug("Using adapter: " + adapter);
+                Fawe.debug("=========================================");
+            }
         } catch (Throwable e) {
             e.printStackTrace();
         }
+        Player player = null;
     }
 
     @Override
@@ -88,37 +101,47 @@ public class BukkitQueue_1_9_R1 extends BukkitQueue_0<Chunk, ChunkSection[], Dat
     }
 
     @Override
-    public boolean fixLighting(final FaweChunk pc, final boolean fixAll) {
+    public boolean fixLighting(final FaweChunk pc, RelightMode mode) {
         try {
-            final CharFaweChunk bc = (CharFaweChunk) pc;
-            final Chunk chunk = (Chunk) bc.getChunk();
+            CharFaweChunk bc = (CharFaweChunk) pc;
+            Chunk chunk = (Chunk) bc.getChunk();
             if (!chunk.isLoaded()) {
                 if (Fawe.get().getMainThread() != Thread.currentThread()) {
                     return false;
                 }
                 chunk.load(false);
             }
-            // Initialize lighting
-            net.minecraft.server.v1_9_R1.Chunk c = ((CraftChunk) chunk).getHandle();
+            net.minecraft.server.v1_9_R2.Chunk c = ((CraftChunk) chunk).getHandle();
+            ChunkSection[] sections = c.getSections();
+            if (mode != RelightMode.MINIMAL) {
+                for (int i = 0; i < sections.length; i++) {
+                    ChunkSection section = sections[i];
+                    if (section != null) {
+                        if (mode == RelightMode.ALL) {
+                            section.a(new NibbleArray());
+                        }
+                        section.b(new NibbleArray());
+                    }
+                }
+            }
             c.initLighting();
-
-            if (((bc.getTotalRelight() == 0) && !fixAll)) {
+            if (((bc.getTotalRelight() == 0) && mode == RelightMode.MINIMAL)) {
                 return true;
             }
-
-            ChunkSection[] sections = c.getSections();
-            net.minecraft.server.v1_9_R1.World w = c.world;
-
+            if (mode == RelightMode.ALL) {
+                bc = getPrevious(bc, c.getSections(), null, null, null, true);
+            }
+            int total = bc.getTotalCount();
+            net.minecraft.server.v1_9_R2.World w = c.world;
             final int X = chunk.getX() << 4;
             final int Z = chunk.getZ() << 4;
-
             BlockPosition.MutableBlockPosition pos = new BlockPosition.MutableBlockPosition(0, 0, 0);
             for (int j = 0; j < sections.length; j++) {
                 final Object section = sections[j];
                 if (section == null) {
                     continue;
                 }
-                if (((bc.getRelight(j) == 0) && !fixAll) || (bc.getCount(j) == 0) || ((bc.getCount(j) >= 4096) && (bc.getAir(j) == 0))) {
+                if (((bc.getRelight(j) == 0) && mode == RelightMode.MINIMAL) || (bc.getCount(j) == 0 && mode != RelightMode.ALL) || ((bc.getCount(j) >= 4096) && (bc.getAir(j) == 0))) {
                     continue;
                 }
                 final char[] array = bc.getIdArray(j);
@@ -136,7 +159,7 @@ public class BukkitQueue_1_9_R1 extends BukkitQueue_0<Chunk, ChunkSection[], Dat
                         case 0:
                             continue;
                         default:
-                            if (!fixAll) {
+                            if (mode == RelightMode.MINIMAL) {
                                 continue;
                             }
                             if ((k & 1) == l) {
@@ -161,7 +184,7 @@ public class BukkitQueue_1_9_R1 extends BukkitQueue_0<Chunk, ChunkSection[], Dat
                             final int x = FaweCache.CACHE_X[j][k];
                             final int y = FaweCache.CACHE_Y[j][k];
                             final int z = FaweCache.CACHE_Z[j][k];
-                            if (this.isSurrounded(bc.getIdArrays(), x, y, z)) {
+                            if (this.isSurrounded(bc.getCombinedIdArrays(), x, y, z)) {
                                 continue;
                             }
                             pos.c(X + x, y, Z + z);
@@ -249,62 +272,199 @@ public class BukkitQueue_1_9_R1 extends BukkitQueue_0<Chunk, ChunkSection[], Dat
     }
 
     @Override
-    public boolean setComponents(final FaweChunk pc, RunnableVal<FaweChunk> changeTask) {
-        // TODO change task
-        {
-            // blah, stuff
+    public CharFaweChunk getPrevious(CharFaweChunk fs, ChunkSection[] sections, Map<?, ?> tilesGeneric, Collection<?>[] entitiesGeneric, Set<UUID> createdEntities, boolean all) throws Exception {
+        Map<BlockPosition, TileEntity> tiles = (Map<BlockPosition, TileEntity>) tilesGeneric;
+        Collection<Entity>[] entities = (Collection<Entity>[]) entitiesGeneric;
+        CharFaweChunk previous = (CharFaweChunk) getChunk(fs.getX(), fs.getZ());
+        // Copy blocks
+        char[][] idPrevious = new char[16][];
+        for (int layer = 0; layer < sections.length; layer++) {
+            if (fs.getCount(layer) != 0 || all) {
+                ChunkSection section = sections[layer];
+                if (section != null) {
+                    short solid = 0;
+                    char[] previousLayer = idPrevious[layer] = new char[4096];
+                    DataPaletteBlock blocks = section.getBlocks();
+                    for (int j = 0; j < 4096; j++) {
+                        int x = FaweCache.CACHE_X[0][j];
+                        int y = FaweCache.CACHE_Y[0][j];
+                        int z = FaweCache.CACHE_Z[0][j];
+                        IBlockData ibd = blocks.a(x, y, z);
+                        Block block = ibd.getBlock();
+                        int combined = Block.getId(block);
+                        if (FaweCache.hasData(combined)) {
+                            combined = (combined << 4) + block.toLegacyData(ibd);
+                        } else {
+                            combined = combined << 4;
+                        }
+                        if (combined > 1) {
+                            solid++;
+                        }
+                        previousLayer[j] = (char) combined;
+                    }
+                    previous.count[layer] = solid;
+                    previous.air[layer] = (short) (4096 - solid);
+                }
+            }
         }
+        previous.ids = idPrevious;
+        // Copy tiles
+        if (tiles != null) {
+            for (Map.Entry<BlockPosition, TileEntity> entry : tiles.entrySet()) {
+                TileEntity tile = entry.getValue();
+                NBTTagCompound tag = new NBTTagCompound();
+                tile.save(tag); // readTagIntoEntity
+                BlockPosition pos = entry.getKey();
+                CompoundTag nativeTag = (CompoundTag) methodToNative.invoke(adapter, tag);
+                previous.setTile(pos.getX(), pos.getY(), pos.getZ(), nativeTag);
+            }
+        }
+        // Copy entities
+        if (entities != null) {
+            for (Collection<Entity> entityList : entities) {
+                for (Entity ent : entityList) {
+                    if (ent instanceof EntityPlayer || (!createdEntities.isEmpty() && !createdEntities.contains(ent.getUniqueID()))) {
+                        continue;
+                    }
+                    int x = ((int) Math.round(ent.locX) & 15);
+                    int z = ((int) Math.round(ent.locZ) & 15);
+                    int y = (int) Math.round(ent.locY);
+                    int i = FaweCache.CACHE_I[y][x][z];
+                    char[] array = fs.getIdArray(i);
+                    if (array == null) {
+                        continue;
+                    }
+                    int j = FaweCache.CACHE_J[y][x][z];
+                    if (array[j] != 0) {
+                        String id = EntityTypes.b(ent);
+                        if (id != null) {
+                            NBTTagCompound tag = new NBTTagCompound();
+                            ent.e(tag); // readEntityIntoTag
+                            CompoundTag nativeTag = (CompoundTag) methodToNative.invoke(adapter, tag);
+                            Map<String, Tag> map = ReflectionUtils.getMap(nativeTag.getValue());
+                            map.put("Id", new StringTag(id));
+                            previous.setEntity(nativeTag);
+                        }
+                    }
+                }
+            }
+        }
+        return previous;
+    }
 
-        final BukkitChunk_1_9 fs = (BukkitChunk_1_9) pc;
+    @Override
+    public boolean setComponents(final FaweChunk fc, RunnableVal<FaweChunk> changeTask) {
+        final BukkitChunk_1_9 fs = (BukkitChunk_1_9) fc;
         final Chunk chunk = (Chunk) fs.getChunk();
         final World world = chunk.getWorld();
         chunk.load(true);
         try {
             final boolean flag = world.getEnvironment() == Environment.NORMAL;
-
-            // Sections
-            net.minecraft.server.v1_9_R1.Chunk c = ((CraftChunk) chunk).getHandle();
-            net.minecraft.server.v1_9_R1.World w = c.world;
-            ChunkSection[] sections = c.getSections();
-
-            Class<? extends net.minecraft.server.v1_9_R1.Chunk> clazzChunk = c.getClass();
+            net.minecraft.server.v1_9_R2.Chunk nmsChunk = ((CraftChunk) chunk).getHandle();
+            net.minecraft.server.v1_9_R2.World nmsWorld = nmsChunk.world;
+            ChunkSection[] sections = nmsChunk.getSections();
+            Class<? extends net.minecraft.server.v1_9_R2.Chunk> clazzChunk = nmsChunk.getClass();
             final Field ef = clazzChunk.getDeclaredField("entitySlices");
-            final Collection<?>[] entities = (Collection<?>[]) ef.get(c);
-
-            // Trim tiles
-            boolean removed = false;
-            Map<BlockPosition, TileEntity> tiles = c.getTileEntities();
-            if (fs.getTotalCount() >= 65536) {
-                tiles.clear();
-                removed = true;
-            } else {
-                Iterator<Entry<BlockPosition, TileEntity>> iter = tiles.entrySet().iterator();
-                while (iter.hasNext()) {
-                    Entry<BlockPosition, TileEntity> tile = iter.next();
-                    BlockPosition pos = tile.getKey();
-                    final int lx = pos.getX() & 15;
-                    final int ly = pos.getY();
-                    final int lz = pos.getZ() & 15;
-                    final int j = FaweCache.CACHE_I[ly][lx][lz];
-                    final int k = FaweCache.CACHE_J[ly][lx][lz];
-                    final char[] array = fs.getIdArray(j);
-                    if (array == null) {
-                        continue;
-                    }
-                    if (array[k] != 0) {
-                        removed = true;
-                        iter.remove();
-                    }
-                }
-            }
-
-            // Trim entities
-            for (int i = 0; i < 16; i++) {
-                if ((entities[i] != null) && (fs.getCount(i) >= 4096)) {
+            final Collection<Entity>[] entities = (Collection<Entity>[]) ef.get(nmsChunk);
+            Map<BlockPosition, TileEntity> tiles = nmsChunk.getTileEntities();
+            // Remove entities
+            for (int i = 0; i < entities.length; i++) {
+                int count = fs.getCount(i);
+                if (count == 0) {
+                    continue;
+                } else if (count >= 4096) {
                     entities[i].clear();
+                } else {
+                    char[] array = fs.getIdArray(i);
+                    Collection<Entity> ents = new ArrayList<>(entities[i]);
+                    for (Entity entity : ents) {
+                        if (entity instanceof EntityPlayer) {
+                            continue;
+                        }
+                        int x = ((int) Math.round(entity.locX) & 15);
+                        int z = ((int) Math.round(entity.locZ) & 15);
+                        int y = (int) Math.round(entity.locY);
+                        if (array == null || y < 0 || y > 255) {
+                            continue;
+                        }
+                        int j = FaweCache.CACHE_J[y][x][z];
+                        if (array[j] != 0) {
+                            nmsWorld.removeEntity(entity);
+                        }
+                    }
                 }
             }
-            // Efficiently merge sections
+            HashSet<UUID> entsToRemove = fs.getEntityRemoves();
+            if (entsToRemove.size() > 0) {
+                for (int i = 0; i < entities.length; i++) {
+                    Collection<Entity> ents = new ArrayList<>(entities[i]);
+                    for (Entity entity : ents) {
+                        if (entsToRemove.contains(entity.getUniqueID())) {
+                            nmsWorld.removeEntity(entity);
+                        }
+                    }
+                }
+            }
+            // Set entities
+            Set<UUID> createdEntities = new HashSet<>();
+            Set<CompoundTag> entitiesToSpawn = fs.getEntities();
+            for (CompoundTag nativeTag : entitiesToSpawn) {
+                Map<String, Tag> entityTagMap = ReflectionUtils.getMap(nativeTag.getValue());
+                StringTag idTag = (StringTag) entityTagMap.get("Id");
+                ListTag posTag = (ListTag) entityTagMap.get("Pos");
+                ListTag rotTag = (ListTag) entityTagMap.get("Rotation");
+                if (idTag == null || posTag == null || rotTag == null) {
+                    Fawe.debug("Unknown entity tag: " + nativeTag);
+                    continue;
+                }
+                double x = posTag.getDouble(0);
+                double y = posTag.getDouble(1);
+                double z = posTag.getDouble(2);
+                float yaw = rotTag.getFloat(0);
+                float pitch = rotTag.getFloat(1);
+                String id = idTag.getValue();
+                Entity entity = EntityTypes.createEntityByName(id, nmsWorld);
+                if (entity != null) {
+                    UUID uuid = entity.getUniqueID();
+                    entityTagMap.put("UUIDMost", new LongTag(uuid.getMostSignificantBits()));
+                    entityTagMap.put("UUIDLeast", new LongTag(uuid.getLeastSignificantBits()));
+                    if (nativeTag != null) {
+                        NBTTagCompound tag = (NBTTagCompound) methodFromNative.invoke(adapter, nativeTag);
+                        for (String name : Constants.NO_COPY_ENTITY_NBT_FIELDS) {
+                            tag.remove(name);
+                        }
+                        entity.f(tag);
+                    }
+                    entity.setLocation(x, y, z, yaw, pitch);
+                    nmsWorld.addEntity(entity, CreatureSpawnEvent.SpawnReason.CUSTOM);
+                    createdEntities.add(entity.getUniqueID());
+                }
+            }
+            // Change task?
+            if (changeTask != null) {
+                CharFaweChunk previous = getPrevious(fs, sections, tiles, entities, createdEntities, false);
+                changeTask.run(previous);
+            }
+            // Trim tiles
+            Set<Entry<BlockPosition, TileEntity>> entryset = tiles.entrySet();
+            Iterator<Map.Entry<BlockPosition, TileEntity>> iterator = entryset.iterator();
+            while (iterator.hasNext()) {
+                Map.Entry<BlockPosition, TileEntity> tile = iterator.next();
+                BlockPosition pos = tile.getKey();
+                int lx = pos.getX() & 15;
+                int ly = pos.getY();
+                int lz = pos.getZ() & 15;
+                int j = FaweCache.CACHE_I[ly][lx][lz];
+                char[] array = fs.getIdArray(j);
+                if (array == null) {
+                    continue;
+                }
+                int k = FaweCache.CACHE_J[ly][lx][lz];
+                if (array[k] != 0) {
+                    iterator.remove();
+                }
+            }
+            // Set blocks
             for (int j = 0; j < sections.length; j++) {
                 int count = fs.getCount(j);
                 if (count == 0) {
@@ -367,7 +527,38 @@ public class BukkitQueue_1_9_R1 extends BukkitQueue_0<Chunk, ChunkSection[], Dat
                 }
                 setCount(0, nonEmptyBlockCount, section);
             }
-            // Clear
+            // Set biomes
+            int[][] biomes = fs.biomes;
+            if (biomes != null) {
+                for (int x = 0; x < 16; x++) {
+                    int[] array = biomes[x];
+                    if (array == null) {
+                        continue;
+                    }
+                    for (int z = 0; z < 16; z++) {
+                        int biome = array[z];
+                        if (biome == 0) {
+                            continue;
+                        }
+                        nmsChunk.getBiomeIndex()[((z & 0xF) << 4 | x & 0xF)] = (byte) biome;
+                    }
+                }
+            }
+            // Set tiles
+            Map<BytePair, CompoundTag> tilesToSpawn = fs.getTiles();
+            int bx = fs.getX() << 4;
+            int bz = fs.getZ() << 4;
+
+            for (Map.Entry<BytePair, CompoundTag> entry : tilesToSpawn.entrySet()) {
+                CompoundTag nativeTag = entry.getValue();
+                BytePair pair = entry.getKey();
+                BlockPosition pos = new BlockPosition(MathMan.unpair16x(pair.pair[0]) + bx, pair.pair[1] & 0xFF, MathMan.unpair16y(pair.pair[0]) + bz); // Set pos
+                TileEntity tileEntity = nmsWorld.getTileEntity(pos);
+                if (tileEntity != null) {
+                    NBTTagCompound tag = (NBTTagCompound) methodFromNative.invoke(adapter, nativeTag);
+                    tileEntity.a(tag); // ReadTagIntoTile
+                }
+            }
         } catch (Throwable e) {
             e.printStackTrace();
         }
@@ -392,249 +583,14 @@ public class BukkitQueue_1_9_R1 extends BukkitQueue_0<Chunk, ChunkSection[], Dat
         return true;
     }
 
-    /**
-     * This method is called when the server is < 1% available memory (i.e. likely to crash)<br>
-     *  - You can disable this in the conifg<br>
-     *  - Will try to free up some memory<br>
-     *  - Clears the queue<br>
-     *  - Clears worldedit history<br>
-     *  - Clears entities<br>
-     *  - Unloads chunks in vacant worlds<br>
-     *  - Unloads non visible chunks<br>
-     */
-    @Override
-    public void saveMemory() {
-        super.saveMemory();
-        // Clear the queue
-        super.clear();
-        ArrayDeque<Chunk> toUnload = new ArrayDeque<>();
-        final int distance = Bukkit.getViewDistance() + 2;
-        HashMap<String, HashMap<IntegerPair, Integer>> players = new HashMap<>();
-        for (final Player player : Bukkit.getOnlinePlayers()) {
-            // Clear history
-            final FawePlayer<Object> fp = FawePlayer.wrap(player);
-            final LocalSession s = fp.getSession();
-            if (s != null) {
-                s.clearHistory();
-                s.setClipboard(null);
-            }
-            final Location loc = player.getLocation();
-            final World worldObj = loc.getWorld();
-            final String world = worldObj.getName();
-            HashMap<IntegerPair, Integer> map = players.get(world);
-            if (map == null) {
-                map = new HashMap<>();
-                players.put(world, map);
-            }
-            final IntegerPair origin = new IntegerPair(loc.getBlockX() >> 4, loc.getBlockZ() >> 4);
-            Integer val = map.get(origin);
-            int check;
-            if (val != null) {
-                if (val == distance) {
-                    continue;
-                }
-                check = distance - val;
-            } else {
-                check = distance;
-                map.put(origin, distance);
-            }
-            for (int x = -distance; x <= distance; x++) {
-                if ((x >= check) || (-x >= check)) {
-                    continue;
-                }
-                for (int z = -distance; z <= distance; z++) {
-                    if ((z >= check) || (-z >= check)) {
-                        continue;
-                    }
-                    final int weight = distance - Math.max(Math.abs(x), Math.abs(z));
-                    final IntegerPair chunk = new IntegerPair(x + origin.x, z + origin.z);
-                    val = map.get(chunk);
-                    if ((val == null) || (val < weight)) {
-                        map.put(chunk, weight);
-                    }
-                }
-            }
-        }
-        Fawe.get().getWorldEdit().clearSessions();
-        for (final World world : Bukkit.getWorlds()) {
-            final String name = world.getName();
-            final HashMap<IntegerPair, Integer> map = players.get(name);
-            if ((map == null) || (map.size() == 0)) {
-                final boolean save = world.isAutoSave();
-                world.setAutoSave(false);
-                for (final Chunk chunk : world.getLoadedChunks()) {
-                    this.unloadChunk(name, chunk);
-                }
-                world.setAutoSave(save);
-                continue;
-            }
-            final Chunk[] chunks = world.getLoadedChunks();
-            for (final Chunk chunk : chunks) {
-                final int x = chunk.getX();
-                final int z = chunk.getZ();
-                if (!map.containsKey(new IntegerPair(x, z))) {
-                    toUnload.add(chunk);
-                } else if (chunk.getEntities().length > 4096) {
-                    for (final Entity ent : chunk.getEntities()) {
-                        ent.remove();
-                    }
-                }
-            }
-        }
-        // GC again
-        System.gc();
-        System.gc();
-        // If still critical memory
-        int free = MemUtil.calculateMemory();
-        if (free <= 1) {
-            for (final Chunk chunk : toUnload) {
-                this.unloadChunk(chunk.getWorld().getName(), chunk);
-            }
-        } else if (free == Integer.MAX_VALUE) {
-            for (final Chunk chunk : toUnload) {
-                chunk.unload(true, false);
-            }
-        } else {
-            return;
-        }
-        toUnload = null;
-        players = null;
-    }
-
+    @Deprecated
     public boolean unloadChunk(final String world, final Chunk chunk) {
-        net.minecraft.server.v1_9_R1.Chunk c = ((CraftChunk) chunk).getHandle();
+        net.minecraft.server.v1_9_R2.Chunk c = ((CraftChunk) chunk).getHandle();
         c.mustSave = false;
         if (chunk.isLoaded()) {
             chunk.unload(false, false);
         }
         return true;
-    }
-
-    public ChunkGenerator setGenerator(final World world, final ChunkGenerator newGen) {
-        try {
-            final ChunkGenerator gen = world.getGenerator();
-            final Class<? extends World> clazz = world.getClass();
-            final Field generator = clazz.getDeclaredField("generator");
-            generator.setAccessible(true);
-            generator.set(world, newGen);
-
-            final Field wf = clazz.getDeclaredField("world");
-            wf.setAccessible(true);
-            final Object w = wf.get(world);
-            final Class<?> clazz2 = w.getClass().getSuperclass();
-            final Field generator2 = clazz2.getDeclaredField("generator");
-            generator2.set(w, newGen);
-
-            return gen;
-        } catch (final Exception e) {
-            e.printStackTrace();
-        }
-        return null;
-    }
-
-    public List<BlockPopulator> setPopulator(final World world, final List<BlockPopulator> newPop) {
-        try {
-            final List<BlockPopulator> pop = world.getPopulators();
-            final Field populators = world.getClass().getDeclaredField("populators");
-            populators.setAccessible(true);
-            populators.set(world, newPop);
-            return pop;
-        } catch (final Exception e) {
-            e.printStackTrace();
-        }
-        return null;
-    }
-
-    public void setEntitiesAndTiles(final Chunk chunk, final List<?>[] entities, final Map<?, ?> tiles) {
-        try {
-            final Class<? extends Chunk> clazz = chunk.getClass();
-            final Method handle = clazz.getMethod("getHandle");
-            final Object c = handle.invoke(chunk);
-            final Class<? extends Object> clazz2 = c.getClass();
-
-            if (tiles.size() > 0) {
-                final Field tef = clazz2.getDeclaredField("tileEntities");
-                final Map<?, ?> te = (Map<?, ?>) tef.get(c);
-                final Method put = te.getClass().getMethod("putAll", Map.class);
-                put.invoke(te, tiles);
-            }
-
-            final Field esf = clazz2.getDeclaredField("entitySlices");
-            esf.setAccessible(true);
-            esf.set(c, entities);
-        } catch (final Exception e) {
-            e.printStackTrace();
-        }
-    }
-
-    public Object getProvider(final World world) {
-        try {
-            // Provider 1
-            final Class<? extends World> clazz = world.getClass();
-            final Field wf = clazz.getDeclaredField("world");
-            wf.setAccessible(true);
-            final Object w = wf.get(world);
-            final Field provider = w.getClass().getSuperclass().getDeclaredField("chunkProvider");
-            provider.setAccessible(true);
-            // ChunkProviderServer
-            final Class<? extends Object> clazz2 = w.getClass();
-            final Field wpsf = clazz2.getDeclaredField("chunkProviderServer");
-            // Store old provider server
-            final Object worldProviderServer = wpsf.get(w);
-            // Store the old provider
-            final Field cp = worldProviderServer.getClass().getDeclaredField("chunkProvider");
-            return cp.get(worldProviderServer);
-        } catch (final Exception e) {
-            e.printStackTrace();
-        }
-        return null;
-    }
-
-    public Object setProvider(final World world, Object newProvider) {
-        try {
-            // Provider 1
-            final Class<? extends World> clazz = world.getClass();
-            final Field wf = clazz.getDeclaredField("world");
-            wf.setAccessible(true);
-            final Object w = wf.get(world);
-            // ChunkProviderServer
-            final Class<? extends Object> clazz2 = w.getClass();
-            final Field wpsf = clazz2.getDeclaredField("chunkProviderServer");
-            // Store old provider server
-            final Object worldProviderServer = wpsf.get(w);
-            // Store the old provider
-            final Field cp = worldProviderServer.getClass().getDeclaredField("chunkProvider");
-            final Object oldProvider = cp.get(worldProviderServer);
-            // Provider 2
-            final Class<? extends Object> clazz3 = worldProviderServer.getClass();
-            final Field provider2 = clazz3.getDeclaredField("chunkProvider");
-            // If the provider needs to be calculated
-            if (newProvider == null) {
-                Method k;
-                try {
-                    k = clazz2.getDeclaredMethod("k");
-                } catch (final Throwable e) {
-                    try {
-                        k = clazz2.getDeclaredMethod("j");
-                    } catch (final Throwable e2) {
-                        e2.printStackTrace();
-                        return null;
-                    }
-                }
-                k.setAccessible(true);
-                final Object tempProviderServer = k.invoke(w);
-                newProvider = cp.get(tempProviderServer);
-                // Restore old provider
-                wpsf.set(w, worldProviderServer);
-            }
-            // Set provider for provider server
-            provider2.set(worldProviderServer, newProvider);
-            // Return the previous provider
-            return oldProvider;
-        } catch (final Exception e) {
-            e.printStackTrace();
-        }
-        return null;
     }
 
     @Override

@@ -173,7 +173,7 @@ public abstract class FawePlayer<T> {
                         FaweStreamChangeSet set = new DiskStorageHistory(world, uuid, index);
                         EditSession edit = set.toEditSession(getPlayer());
                         if (world.equals(getWorld())) {
-                            session.remember(edit, false);
+                            session.remember(edit, false, false);
                         } else {
                             return;
                         }
@@ -185,7 +185,16 @@ public abstract class FawePlayer<T> {
     }
 
     /**
- * Get the player's limit
+     * Send a title
+     * @param head
+     * @param sub
+     */
+    public abstract void sendTitle(String head, String sub);
+
+    public abstract void resetTitle();
+
+    /**
+     * Get the player's limit
      * @return
      */
     public FaweLimit getLimit() {
@@ -369,5 +378,12 @@ public abstract class FawePlayer<T> {
         getSession().clearHistory();
         WorldEdit.getInstance().removeSession(getPlayer());
         Fawe.get().unregister(getName());
+    }
+
+    /**
+     * Get a new EditSession from this player
+     */
+    public EditSession getNewEditSession() {
+        return WorldEdit.getInstance().getEditSessionFactory().getEditSession(getWorld(), -1, getPlayer());
     }
 }

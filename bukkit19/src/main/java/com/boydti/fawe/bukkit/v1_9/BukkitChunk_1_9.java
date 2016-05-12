@@ -5,12 +5,12 @@ import com.boydti.fawe.example.CharFaweChunk;
 import com.boydti.fawe.util.FaweQueue;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
-import net.minecraft.server.v1_9_R1.Block;
-import net.minecraft.server.v1_9_R1.DataBits;
-import net.minecraft.server.v1_9_R1.DataPalette;
-import net.minecraft.server.v1_9_R1.DataPaletteBlock;
-import net.minecraft.server.v1_9_R1.DataPaletteGlobal;
-import net.minecraft.server.v1_9_R1.IBlockData;
+import net.minecraft.server.v1_9_R2.Block;
+import net.minecraft.server.v1_9_R2.DataBits;
+import net.minecraft.server.v1_9_R2.DataPalette;
+import net.minecraft.server.v1_9_R2.DataPaletteBlock;
+import net.minecraft.server.v1_9_R2.DataPaletteGlobal;
+import net.minecraft.server.v1_9_R2.IBlockData;
 import org.bukkit.Chunk;
 
 public class BukkitChunk_1_9 extends CharFaweChunk<Chunk> {
@@ -101,7 +101,7 @@ public class BukkitChunk_1_9 extends CharFaweChunk<Chunk> {
         if (sectionPalettes != null) {
             return;
         }
-        char[][] arrays = getIdArrays();
+        char[][] arrays = getCombinedIdArrays();
         IBlockData lastBlock = null;
         char lastChar = Character.MAX_VALUE;
         for (int layer = 0; layer < 16; layer++) {

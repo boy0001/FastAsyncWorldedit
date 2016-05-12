@@ -21,24 +21,29 @@ public abstract class FaweCommand<T> {
     }
 
     public boolean executeSafe(final FawePlayer<T> player, final String... args) {
-        if (player == null || !safe) {
-            execute(player, args);
-            return true;
-        } else {
-            if (player.getMeta("fawe_action") != null) {
-                BBC.WORLDEDIT_COMMAND_LIMIT.send(player);
+        try {
+            if (player == null || !safe) {
+                execute(player, args);
                 return true;
-            }
-            player.setMeta("fawe_action", true);
-            TaskManager.IMP.async(new Runnable() {
-                @Override
-                public void run() {
-                    execute(player, args);
-                    player.deleteMeta("fawe_action");
+            } else {
+                if (player.getMeta("fawe_action") != null) {
+                    BBC.WORLDEDIT_COMMAND_LIMIT.send(player);
+                    return true;
                 }
-            });
+                player.setMeta("fawe_action", true);
+                TaskManager.IMP.async(new Runnable() {
+                    @Override
+                    public void run() {
+                        execute(player, args);
+                        player.deleteMeta("fawe_action");
+                    }
+                });
+            }
+            return true;
+        } catch (Throwable e) {
+            e.printStackTrace();
         }
-        return true;
+        return false;
     }
 
     public abstract boolean execute(final FawePlayer<T> player, final String... args);
