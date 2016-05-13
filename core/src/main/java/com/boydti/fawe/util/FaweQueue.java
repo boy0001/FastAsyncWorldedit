@@ -22,6 +22,7 @@ public abstract class FaweQueue {
     }
 
     public enum RelightMode {
+        NONE,
         MINIMAL,
         OPTIMAL,
         ALL,
@@ -123,6 +124,8 @@ public abstract class FaweQueue {
         System.gc();
         // Unload chunks
     }
+
+    public abstract void sendChunk(FaweChunk chunk, RelightMode mode);
 
     /**
      * This method is called when the server is < 1% available memory

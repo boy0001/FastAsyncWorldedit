@@ -55,26 +55,22 @@ public class DiskOptimizedClipboard extends FaweClipboard {
         this(width, height, length, new File(Fawe.imp().getDirectory(), "clipboard" + File.separator + uuid));
     }
 
-    public DiskOptimizedClipboard(File file) {
+    public DiskOptimizedClipboard(File file) throws IOException {
         nbtMap = new HashMap<>();
         entities = new HashSet<>();this.buffer = new byte[2];
         this.file = file;
         this.lastAccessed = System.currentTimeMillis();
-        try {
-            this.raf = new BufferedRandomAccessFile(file, "rw", Settings.BUFFER_SIZE);
-            raf.setLength(file.length());
-            long size = (raf.length() - HEADER_SIZE) >> 1;
-            raf.seek(0);
-            last = -1;
-            raf.read(buffer);
-            width = (((buffer[1] & 0xFF) << 8) + ((buffer[0] & 0xFF)));
-            raf.read(buffer);
-            length = (((buffer[1] & 0xFF) << 8) + ((buffer[0] & 0xFF)));
-            height = (int) (size / (width * length));
-            area = width * length;
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+        this.raf = new BufferedRandomAccessFile(file, "rw", Settings.BUFFER_SIZE);
+        raf.setLength(file.length());
+        long size = (raf.length() - HEADER_SIZE) >> 1;
+        raf.seek(0);
+        last = -1;
+        raf.read(buffer);
+        width = (((buffer[1] & 0xFF) << 8) + ((buffer[0] & 0xFF)));
+        raf.read(buffer);
+        length = (((buffer[1] & 0xFF) << 8) + ((buffer[0] & 0xFF)));
+        height = (int) (size / (width * length));
+        area = width * length;
         autoCloseTask();
     }
 

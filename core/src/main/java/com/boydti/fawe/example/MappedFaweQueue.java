@@ -13,7 +13,6 @@ import com.sk89q.jnbt.CompoundTag;
 import com.sk89q.worldedit.world.biome.BaseBiome;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.LinkedBlockingDeque;
@@ -74,8 +73,6 @@ public abstract class MappedFaweQueue<WORLD, CHUNK, SECTION> extends FaweQueue {
     public abstract boolean isChunkLoaded(WORLD world, int x, int z);
 
     public abstract boolean regenerateChunk(WORLD world, int x, int z);
-
-    public abstract void sendChunk(FaweChunk chunk);
 
     public abstract boolean setComponents(FaweChunk fc, RunnableVal<FaweChunk> changeTask);
 
@@ -342,13 +339,6 @@ public abstract class MappedFaweQueue<WORLD, CHUNK, SECTION> extends FaweQueue {
             chunks.remove(previous);
         }
         chunks.add((FaweChunk) chunk);
-    }
-
-    public Collection<FaweChunk> sendChunk(Collection<FaweChunk> fcs) {
-        for (final FaweChunk fc : fcs) {
-            sendChunk(fc);
-        }
-        return new ArrayList<>();
     }
 
     public int lastChunkX = Integer.MIN_VALUE;

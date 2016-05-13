@@ -1,6 +1,5 @@
 package com.boydti.fawe.command;
 
-import com.boydti.fawe.FaweAPI;
 import com.boydti.fawe.config.BBC;
 import com.boydti.fawe.object.FaweCommand;
 import com.boydti.fawe.object.FaweLocation;
@@ -43,7 +42,7 @@ public class FixLighting extends FaweCommand {
         FaweQueue queue = SetQueue.IMP.getNewQueue(loc.world, true, false);
         for (int x = minX; x <= maxX; x++) {
             for (int z = minZ; z <= maxZ; z++) {
-                queue.fixLighting(queue.getChunk(x, z), FaweQueue.RelightMode.ALL);
+                queue.sendChunk(queue.getChunk(x, z), FaweQueue.RelightMode.ALL);
                 count++;
             }
         }

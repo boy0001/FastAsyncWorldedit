@@ -4,6 +4,7 @@ dependencies {
 }
 
 apply plugin: 'com.github.johnrengelman.shadow'
+
 // We only want the shadow jar produced
 jar.enabled = false
 shadowJar {
@@ -11,7 +12,7 @@ shadowJar {
         include(dependency(':bukkit0'))
         include(dependency(':core'))
     }
-    archiveName = "${parent.name}-${project.name}.jar"
+    archiveName = "${parent.name}-${project.name}-${parent.version}.jar"
     destinationDir = file '../target'
 }
 shadowJar.doLast {

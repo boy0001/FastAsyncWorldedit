@@ -49,6 +49,7 @@ public class BukkitQueue18R3 extends BukkitQueue_0<Chunk, ChunkSection[], char[]
 
     public BukkitQueue18R3(final String world) {
         super(world);
+        checkVersion("v1_8_R3");
     }
 
     @Override
@@ -256,6 +257,7 @@ public class BukkitQueue18R3 extends BukkitQueue_0<Chunk, ChunkSection[], char[]
                 }
                 int k = FaweCache.CACHE_J[ly][lx][lz];
                 if (array[k] != 0) {
+                    tile.getValue().E();
                     iterator.remove();
                 }
             }
@@ -342,7 +344,7 @@ public class BukkitQueue18R3 extends BukkitQueue_0<Chunk, ChunkSection[], char[]
         } catch (Throwable e) {
             e.printStackTrace();
         }
-        sendChunk(fc);
+        sendChunk(fc, null);
         return true;
     }
 
@@ -387,6 +389,9 @@ public class BukkitQueue18R3 extends BukkitQueue_0<Chunk, ChunkSection[], char[]
 
     @Override
     public boolean fixLighting(FaweChunk chunk, RelightMode mode) {
+        if (mode == RelightMode.NONE) {
+            return true;
+        }
         try {
             CharFaweChunk<Chunk> fc = (CharFaweChunk<Chunk>) chunk;
             CraftChunk craftChunk = (CraftChunk) fc.getChunk();
@@ -395,13 +400,11 @@ public class BukkitQueue18R3 extends BukkitQueue_0<Chunk, ChunkSection[], char[]
                 return false;
             }
             ChunkSection[] sections = nmsChunk.getSections();
-            if (mode != RelightMode.MINIMAL) {
+            if (mode == RelightMode.ALL) {
                 for (int i = 0; i < sections.length; i++) {
                     ChunkSection section = sections[i];
                     if (section != null) {
-                        if (mode == RelightMode.ALL) {
-                            section.a(new NibbleArray());
-                        }
+                        section.a(new NibbleArray());
                         section.b(new NibbleArray());
                     }
                 }
@@ -421,24 +424,34 @@ public class BukkitQueue18R3 extends BukkitQueue_0<Chunk, ChunkSection[], char[]
                 if (section == null) {
                     continue;
                 }
-                if ((fc.getRelight(j) == 0 && mode == RelightMode.MINIMAL) || (fc.getCount(j) == 0 && mode != RelightMode.ALL) || (fc.getCount(j) >= 4096 && fc.getAir(j) == 0)) {
+                if (((fc.getRelight(j) == 0) && mode == RelightMode.MINIMAL) || (fc.getCount(j) == 0 && mode != RelightMode.ALL) || ((fc.getCount(j) >= 4096) && (fc.getAir(j) == 0)) || fc.getAir(j) == 4096) {
                     continue;
                 }
                 char[] array = section.getIdArray();
-                int l = PseudoRandom.random.random(2);
-                for (int k = 0; k < array.length; k++) {
-                    int i = array[k];
-                    if (i < 16) {
-                        continue;
+                if (mode == RelightMode.ALL) {
+                    for (int k = array.length - 1; k >= 0; k--) {
+                        final int x = FaweCache.CACHE_X[j][k];
+                        final int y = FaweCache.CACHE_Y[j][k];
+                        final int z = FaweCache.CACHE_Z[j][k];
+                        if (isSurrounded(sections, x, y, z)) {
+                            continue;
+                        }
+                        pos.c(X + x, y, Z + z);
+                        nmsWorld.x(pos);
                     }
-                    short id = (short) (i >> 4);
+                    continue;
+                }
+                for (int k = array.length - 1; k >= 0; k--) {
+                    final int i = array[k];
+                    final short id = (short) (i >> 4);
                     switch (id) { // Lighting
+                        case 0:
+                            continue;
                         default:
                             if (mode == RelightMode.MINIMAL) {
                                 continue;
                             }
-                            if ((k & 1) == l) {
-                                l = 1 - l;
+                            if (PseudoRandom.random.random(3) != 0) {
                                 continue;
                             }
                         case 10:
@@ -456,9 +469,9 @@ public class BukkitQueue18R3 extends BukkitQueue_0<Chunk, ChunkSection[], char[]
                         case 130:
                         case 138:
                         case 169:
-                            int x = FaweCache.CACHE_X[j][k];
-                            int y = FaweCache.CACHE_Y[j][k];
-                            int z = FaweCache.CACHE_Z[j][k];
+                            final int x = FaweCache.CACHE_X[j][k];
+                            final int y = FaweCache.CACHE_Y[j][k];
+                            final int z = FaweCache.CACHE_Z[j][k];
                             if (isSurrounded(sections, x, y, z)) {
                                 continue;
                             }

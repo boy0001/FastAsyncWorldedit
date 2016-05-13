@@ -15,16 +15,20 @@ public abstract class NMSMappedFaweQueue<WORLD, CHUNK, CHUNKSECTION, SECTION> ex
     }
 
     @Override
-    public void sendChunk(final FaweChunk fc) {
+    public void sendChunk(final FaweChunk fc, RelightMode mode) {
+        if (mode == null) {
+            mode = Settings.FIX_ALL_LIGHTING ? FaweQueue.RelightMode.OPTIMAL : FaweQueue.RelightMode.MINIMAL;
+        }
+        final RelightMode finalMode = mode;
         TaskManager.IMP.taskSyncSoon(new Runnable() {
             @Override
             public void run() {
-                final boolean result = fixLighting(fc, Settings.FIX_ALL_LIGHTING ? FaweQueue.RelightMode.OPTIMAL : FaweQueue.RelightMode.MINIMAL) || !Settings.ASYNC_LIGHTING;
+                final boolean result = finalMode == RelightMode.NONE || fixLighting(fc, finalMode);
                 TaskManager.IMP.taskSyncNow(new Runnable() {
                     @Override
                     public void run() {
                         if (!result) {
-                            fixLighting(fc, Settings.FIX_ALL_LIGHTING ? FaweQueue.RelightMode.OPTIMAL : FaweQueue.RelightMode.MINIMAL);
+                            fixLighting(fc, finalMode);
                         }
                         CHUNK chunk = (CHUNK) fc.getChunk();
                         refreshChunk(getWorld(), chunk);

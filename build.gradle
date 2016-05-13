@@ -6,14 +6,21 @@ buildscript {
     }
 	dependencies {
         classpath 'com.github.jengelman.gradle.plugins:shadow:1.2.3'
+        classpath 'org.ajoberstar:grgit:1.1.0'
     }
+
 }
 
 apply plugin: 'java'
 clean { delete "target" }
 
 group = 'com.boydti.fawe'
-version = '3.4.3'
+def revision = ""
+ext {
+    git = org.ajoberstar.grgit.Grgit.open(file(".git/"))
+    revision = "-${git.head().abbreviatedId}"
+}
+version = "3.5.0${revision}"
 description = """FastAsyncWorldEdit"""
 
 subprojects {

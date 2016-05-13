@@ -46,7 +46,6 @@ import org.bukkit.World;
 import org.bukkit.World.Environment;
 import org.bukkit.block.Biome;
 import org.bukkit.craftbukkit.v1_9_R2.CraftChunk;
-import org.bukkit.entity.Player;
 import org.bukkit.event.entity.CreatureSpawnEvent;
 
 public class BukkitQueue_1_9_R1 extends BukkitQueue_0<Chunk, ChunkSection[], DataPaletteBlock> {
@@ -55,20 +54,19 @@ public class BukkitQueue_1_9_R1 extends BukkitQueue_0<Chunk, ChunkSection[], Dat
 
     public BukkitQueue_1_9_R1(final String world) {
         super(world);
+        checkVersion("v1_9_R2");
         try {
             Field fieldAir = DataPaletteBlock.class.getDeclaredField("a");
             fieldAir.setAccessible(true);
             air = (IBlockData) fieldAir.get(null);
             if (adapter == null) {
                 setupAdapter(new FaweAdapter_1_9());
-                Fawe.debug("=========================================");
                 Fawe.debug("Using adapter: " + adapter);
                 Fawe.debug("=========================================");
             }
         } catch (Throwable e) {
-            e.printStackTrace();
+            throw new RuntimeException(e);
         }
-        Player player = null;
     }
 
     @Override
@@ -102,6 +100,9 @@ public class BukkitQueue_1_9_R1 extends BukkitQueue_0<Chunk, ChunkSection[], Dat
 
     @Override
     public boolean fixLighting(final FaweChunk pc, RelightMode mode) {
+        if (mode == RelightMode.NONE) {
+            return true;
+        }
         try {
             CharFaweChunk bc = (CharFaweChunk) pc;
             Chunk chunk = (Chunk) bc.getChunk();
@@ -113,13 +114,11 @@ public class BukkitQueue_1_9_R1 extends BukkitQueue_0<Chunk, ChunkSection[], Dat
             }
             net.minecraft.server.v1_9_R2.Chunk c = ((CraftChunk) chunk).getHandle();
             ChunkSection[] sections = c.getSections();
-            if (mode != RelightMode.MINIMAL) {
+            if (mode == RelightMode.ALL) {
                 for (int i = 0; i < sections.length; i++) {
                     ChunkSection section = sections[i];
                     if (section != null) {
-                        if (mode == RelightMode.ALL) {
-                            section.a(new NibbleArray());
-                        }
+                        section.a(new NibbleArray());
                         section.b(new NibbleArray());
                     }
                 }
@@ -136,24 +135,33 @@ public class BukkitQueue_1_9_R1 extends BukkitQueue_0<Chunk, ChunkSection[], Dat
             final int X = chunk.getX() << 4;
             final int Z = chunk.getZ() << 4;
             BlockPosition.MutableBlockPosition pos = new BlockPosition.MutableBlockPosition(0, 0, 0);
-            for (int j = 0; j < sections.length; j++) {
+            for (int j = sections.length - 1; j >= 0; j--) {
                 final Object section = sections[j];
                 if (section == null) {
                     continue;
                 }
-                if (((bc.getRelight(j) == 0) && mode == RelightMode.MINIMAL) || (bc.getCount(j) == 0 && mode != RelightMode.ALL) || ((bc.getCount(j) >= 4096) && (bc.getAir(j) == 0))) {
+                if (((bc.getRelight(j) == 0) && mode == RelightMode.MINIMAL) || (bc.getCount(j) == 0 && mode != RelightMode.ALL) || ((bc.getCount(j) >= 4096) && (bc.getAir(j) == 0)) || bc.getAir(j) == 4096) {
                     continue;
                 }
                 final char[] array = bc.getIdArray(j);
                 if (array == null) {
                     continue;
                 }
-                int l = PseudoRandom.random.random(2);
-                for (int k = 0; k < array.length; k++) {
-                    final int i = array[k];
-                    if (i < 16) {
-                        continue;
+                if (mode == RelightMode.ALL) {
+                    for (int k = array.length - 1; k >= 0; k--) {
+                        final int x = FaweCache.CACHE_X[j][k];
+                        final int y = FaweCache.CACHE_Y[j][k];
+                        final int z = FaweCache.CACHE_Z[j][k];
+                        if (this.isSurrounded(bc.getCombinedIdArrays(), x, y, z)) {
+                            continue;
+                        }
+                        pos.c(X + x, y, Z + z);
+                        w.w(pos);
                     }
+                    continue;
+                }
+                for (int k = array.length - 1; k >= 0; k--) {
+                    final int i = array[k];
                     final short id = (short) (i >> 4);
                     switch (id) { // Lighting
                         case 0:
@@ -162,8 +170,7 @@ public class BukkitQueue_1_9_R1 extends BukkitQueue_0<Chunk, ChunkSection[], Dat
                             if (mode == RelightMode.MINIMAL) {
                                 continue;
                             }
-                            if ((k & 1) == l) {
-                                l = 1 - l;
+                            if (PseudoRandom.random.random(3) != 0) {
                                 continue;
                             }
                         case 10:
@@ -461,6 +468,7 @@ public class BukkitQueue_1_9_R1 extends BukkitQueue_0<Chunk, ChunkSection[], Dat
                 }
                 int k = FaweCache.CACHE_J[ly][lx][lz];
                 if (array[k] != 0) {
+                    tile.getValue().invalidateBlockCache();
                     iterator.remove();
                 }
             }
@@ -579,7 +587,7 @@ public class BukkitQueue_1_9_R1 extends BukkitQueue_0<Chunk, ChunkSection[], Dat
                 }
             }
         }
-        sendChunk(fs);
+        sendChunk(fs, null);
         return true;
     }
 

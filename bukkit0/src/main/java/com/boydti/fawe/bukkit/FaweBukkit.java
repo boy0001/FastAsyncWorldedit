@@ -191,6 +191,9 @@ public class FaweBukkit implements IFawe, Listener {
         try {
             return plugin.getQueue(world);
         } catch (Throwable ignore) {}
+        // Disable incompatible settings
+        Settings.PARALLEL_THREADS = 1; // BukkitAPI placer is too slow to parallel thread at the chunk level
+        Settings.COMBINE_HISTORY_STAGE = false; // Performing a chunk copy (if possible) wouldn't be faster using the BukkitAPI
         if (hasNMS) {
             debug("====== NO NMS BLOCK PLACER FOUND ======");
             debug("FAWE couldn't find a fast block placer");

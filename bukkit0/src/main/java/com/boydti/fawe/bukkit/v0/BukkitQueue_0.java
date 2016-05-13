@@ -35,6 +35,14 @@ public abstract class BukkitQueue_0<CHUNK, CHUNKSECTIONS, SECTION> extends NMSMa
         setupAdapter(null);
     }
 
+    public void checkVersion(String supported) {
+        String version = Bukkit.getServer().getClass().getPackage().getName();
+        if (!version.contains(supported)) {
+            Fawe.debug("This version of FAWE is for: " + supported);
+            throw new IllegalStateException("Unsupported version: " + version + " (supports: " + supported + ")");
+        }
+    }
+
     public void setupAdapter(BukkitImplAdapter adapter) {
         try {
             WorldEditPlugin instance = (WorldEditPlugin) Bukkit.getPluginManager().getPlugin("WorldEdit");
@@ -58,7 +66,6 @@ public abstract class BukkitQueue_0<CHUNK, CHUNKSECTIONS, SECTION> extends NMSMa
                 }
             }
         } catch (Throwable e) {
-            e.printStackTrace();
             Fawe.debug("====== NO NATIVE WORLDEDIT ADAPTER ======");
             Fawe.debug("Try updating WorldEdit: ");
             Fawe.debug(" - http://builds.enginehub.org/job/worldedit?branch=master");
@@ -208,6 +215,7 @@ public abstract class BukkitQueue_0<CHUNK, CHUNKSECTIONS, SECTION> extends NMSMa
             }
             if (more) {
                 fc.addToQueue();
+                return true;
             }
 
             // Biomes
