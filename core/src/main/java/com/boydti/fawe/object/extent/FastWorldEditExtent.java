@@ -108,17 +108,29 @@ public class FastWorldEditExtent extends AbstractDelegateExtent {
     @Override
     public boolean setBlock(final Vector location, final BaseBlock block) throws WorldEditException {
         final short id = (short) block.getId();
+        byte data = (byte) block.getData();
         final int x = location.getBlockX();
         final int y = location.getBlockY();
         final int z = location.getBlockZ();
         switch (id) {
+            case 68: {
+                if (data == 0) {
+                    data = 2;
+                }
+            }
             case 63:
-            case 68:
                 if (block.hasNbtData() && !MainUtil.isValidSign(block.getNbtData())) {
                     queue.setBlock(x, y, z, id, FaweCache.hasData(id) ? (byte) block.getData() : 0);
                     return true;
                 }
             case 54:
+            case 146:
+            case 61:
+            {
+                if (data == 0) {
+                    data = 2;
+                }
+            }
             case 130:
             case 142:
             case 27:
@@ -138,10 +150,8 @@ public class FastWorldEditExtent extends AbstractDelegateExtent {
             case 28:
             case 66:
             case 157:
-            case 61:
             case 62:
             case 140:
-            case 146:
             case 149:
             case 150:
             case 158:
@@ -157,11 +167,16 @@ public class FastWorldEditExtent extends AbstractDelegateExtent {
                     MainUtil.setPosition(nbt, x, y, z);
                     queue.setTile(x, y, z, nbt);
                 }
-                queue.setBlock(x, y, z, id, (byte) block.getData());
+                queue.setBlock(x, y, z, id, data);
                 return true;
             }
+            case 65: {
+                if (data == 0) {
+                    data = 2;
+                }
+            }
             default: {
-                queue.setBlock(x, y, z, id, (byte) block.getData());
+                queue.setBlock(x, y, z, id, data);
                 return true;
             }
         }

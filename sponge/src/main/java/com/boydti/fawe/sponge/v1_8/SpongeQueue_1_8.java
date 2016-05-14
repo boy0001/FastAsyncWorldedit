@@ -2,17 +2,35 @@ package com.boydti.fawe.sponge.v1_8;
 
 import com.boydti.fawe.Fawe;
 import com.boydti.fawe.FaweCache;
+import com.boydti.fawe.example.CharFaweChunk;
 import com.boydti.fawe.example.NMSMappedFaweQueue;
+import com.boydti.fawe.object.BytePair;
 import com.boydti.fawe.object.FaweChunk;
 import com.boydti.fawe.object.PseudoRandom;
+import com.boydti.fawe.object.RunnableVal;
+import com.boydti.fawe.util.MathMan;
+import com.boydti.fawe.util.ReflectionUtils;
+import com.sk89q.jnbt.CompoundTag;
+import com.sk89q.jnbt.ListTag;
+import com.sk89q.jnbt.StringTag;
+import com.sk89q.jnbt.Tag;
 import java.lang.reflect.Field;
+import java.lang.reflect.Method;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.UUID;
 import net.minecraft.block.Block;
 import net.minecraft.entity.Entity;
+import net.minecraft.entity.EntityList;
+import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
+import net.minecraft.nbt.NBTBase;
+import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.network.NetHandlerPlayServer;
 import net.minecraft.network.play.server.S21PacketChunkData;
 import net.minecraft.tileentity.TileEntity;
@@ -21,6 +39,7 @@ import net.minecraft.util.ClassInheritanceMultiMap;
 import net.minecraft.util.LongHashMap;
 import net.minecraft.world.ChunkCoordIntPair;
 import net.minecraft.world.chunk.IChunkProvider;
+import net.minecraft.world.chunk.NibbleArray;
 import net.minecraft.world.chunk.storage.ExtendedBlockStorage;
 import net.minecraft.world.gen.ChunkProviderServer;
 import org.spongepowered.api.Sponge;
@@ -30,8 +49,20 @@ import org.spongepowered.api.world.Location;
 import org.spongepowered.api.world.World;
 
 public class SpongeQueue_1_8 extends NMSMappedFaweQueue<World, net.minecraft.world.chunk.Chunk, ExtendedBlockStorage[], char[]> {
+    private Method methodFromNative;
+    private Method methodToNative;
+
     public SpongeQueue_1_8(String world) {
         super(world);
+        try {
+            Class<?> converter = Class.forName("com.sk89q.worldedit.forge.NBTConverter");
+            this.methodFromNative = converter.getDeclaredMethod("toNative", Tag.class);
+            this.methodToNative = converter.getDeclaredMethod("fromNative", NBTBase.class);
+            methodFromNative.setAccessible(true);
+            methodToNative.setAccessible(true);
+        } catch (Throwable e) {
+            throw new RuntimeException(e);
+        }
     }
 
     @Override
@@ -120,7 +151,71 @@ public class SpongeQueue_1_8 extends NMSMappedFaweQueue<World, net.minecraft.wor
     }
 
     @Override
-    public boolean setComponents(FaweChunk fc) {
+    public CharFaweChunk getPrevious(CharFaweChunk fs, ExtendedBlockStorage[] sections, Map<?, ?> tilesGeneric, Collection<?>[] entitiesGeneric, Set<UUID> createdEntities, boolean all) throws Exception {
+        Map<BlockPos, TileEntity> tiles = (Map<BlockPos, TileEntity>) tilesGeneric;
+        ClassInheritanceMultiMap<Entity>[] entities = (ClassInheritanceMultiMap<Entity>[]) entitiesGeneric;
+        CharFaweChunk previous = (CharFaweChunk) getChunk(fs.getX(), fs.getZ());
+        char[][] idPrevious = new char[16][];
+        for (int layer = 0; layer < sections.length; layer++) {
+            if (fs.getCount(layer) != 0 || all) {
+                ExtendedBlockStorage section = sections[layer];
+                if (section != null) {
+                    idPrevious[layer] = section.getData().clone();
+                    short solid = 0;
+                    for (int combined : idPrevious[layer]) {
+                        if (combined > 1) {
+                            solid++;
+                        }
+                    }
+                    previous.count[layer] = solid;
+                    previous.air[layer] = (short) (4096 - solid);
+                }
+            }
+        }
+        previous.ids = idPrevious;
+        if (tiles != null) {
+            for (Map.Entry<BlockPos, TileEntity> entry : tiles.entrySet()) {
+                TileEntity tile = entry.getValue();
+                NBTTagCompound tag = new NBTTagCompound();
+                tile.readFromNBT(tag); // readTileEntityIntoTag
+                BlockPos pos = entry.getKey();
+                CompoundTag nativeTag = (CompoundTag) methodToNative.invoke(null, tag);
+                previous.setTile(pos.getX(), pos.getY(), pos.getZ(), nativeTag);
+            }
+        }
+        if (entities != null) {
+            for (Collection<Entity> entityList : entities) {
+                for (Entity ent : entityList) {
+                    if (ent instanceof EntityPlayer || (!createdEntities.isEmpty() && !createdEntities.contains(ent.getUniqueID()))) {
+                        continue;
+                    }
+                    int x = ((int) Math.round(ent.posX) & 15);
+                    int z = ((int) Math.round(ent.posZ) & 15);
+                    int y = (int) Math.round(ent.posY);
+                    int i = FaweCache.CACHE_I[y][x][z];
+                    char[] array = fs.getIdArray(i);
+                    if (array == null) {
+                        continue;
+                    }
+                    int j = FaweCache.CACHE_J[y][x][z];
+                    if (array[j] != 0) {
+                        String id = EntityList.getEntityString(ent);
+                        if (id != null) {
+                            NBTTagCompound tag = ent.getNBTTagCompound();  // readEntityIntoTag
+                            CompoundTag nativeTag = (CompoundTag) methodToNative.invoke(null, tag);
+                            Map<String, Tag> map = ReflectionUtils.getMap(nativeTag.getValue());
+                            map.put("Id", new StringTag(id));
+                            previous.setEntity(nativeTag);
+                        }
+                    }
+                }
+            }
+        }
+        return previous;
+    }
+
+    @Override
+    public boolean setComponents(FaweChunk fc, RunnableVal<FaweChunk> changeTask) {
         SpongeChunk_1_8 fs = (SpongeChunk_1_8) fc;
         net.minecraft.world.chunk.Chunk nmsChunk = fs.getChunk();
         net.minecraft.world.World nmsWorld = nmsChunk.getWorld();
@@ -130,6 +225,65 @@ public class SpongeQueue_1_8 extends NMSMappedFaweQueue<World, net.minecraft.wor
             ExtendedBlockStorage[] sections = nmsChunk.getBlockStorageArray();
             Map<BlockPos, TileEntity> tiles = nmsChunk.getTileEntityMap();
             ClassInheritanceMultiMap<Entity>[] entities = nmsChunk.getEntityLists();
+
+
+            // Remove entities
+            for (int i = 0; i < 16; i++) {
+                int count = fs.getCount(i);
+                if (count == 0) {
+                    continue;
+                } else if (count >= 4096) {
+                    entities[i] = new ClassInheritanceMultiMap<>(Entity.class);
+                } else {
+                    char[] array = fs.getIdArray(i);
+                    Collection<Entity> ents = new ArrayList<>(entities[i]);
+                    for (Entity entity : ents) {
+                        if (entity instanceof EntityPlayer) {
+                            continue;
+                        }
+                        int x = ((int) Math.round(entity.posX) & 15);
+                        int z = ((int) Math.round(entity.posZ) & 15);
+                        int y = (int) Math.round(entity.posY);
+                        if (array == null) {
+                            continue;
+                        }
+                        int j = FaweCache.CACHE_J[y][x][z];
+                        if (array[j] != 0) {
+                            nmsWorld.removeEntity(entity);
+                        }
+                    }
+                }
+            }
+            // Set entities
+            Set<UUID> createdEntities = new HashSet<>();
+            Set<CompoundTag> entitiesToSpawn = fs.getEntities();
+            for (CompoundTag nativeTag : entitiesToSpawn) {
+                Map<String, Tag> entityTagMap = nativeTag.getValue();
+                StringTag idTag = (StringTag) entityTagMap.get("Id");
+                ListTag posTag = (ListTag) entityTagMap.get("Pos");
+                ListTag rotTag = (ListTag) entityTagMap.get("Rotation");
+                if (idTag == null || posTag == null || rotTag == null) {
+                    Fawe.debug("Unknown entity tag: " + nativeTag);
+                    continue;
+                }
+                double x = posTag.getDouble(0);
+                double y = posTag.getDouble(1);
+                double z = posTag.getDouble(2);
+                float yaw = rotTag.getFloat(0);
+                float pitch = rotTag.getFloat(1);
+                String id = idTag.getValue();
+                NBTTagCompound tag = (NBTTagCompound)methodFromNative.invoke(null, nativeTag);
+                Entity entity = EntityList.createEntityFromNBT(tag, nmsWorld);
+                if (entity != null) {
+                    entity.setPositionAndRotation(x, y, z, yaw, pitch);
+                    nmsWorld.spawnEntityInWorld(entity);
+                }
+            }
+            // Run change task if applicable
+            if (changeTask != null) {
+                CharFaweChunk previous = getPrevious(fs, sections, tiles, entities, createdEntities, false);
+                changeTask.run(previous);
+            }
             // Trim tiles
             Set<Map.Entry<BlockPos, TileEntity>> entryset = tiles.entrySet();
             Iterator<Map.Entry<BlockPos, TileEntity>> iterator = entryset.iterator();
@@ -140,19 +294,25 @@ public class SpongeQueue_1_8 extends NMSMappedFaweQueue<World, net.minecraft.wor
                 int ly = pos.getY();
                 int lz = pos.getZ() & 15;
                 int j = FaweCache.CACHE_I[ly][lx][lz];
-                int k = FaweCache.CACHE_J[ly][lx][lz];
                 char[] array = fs.getIdArray(j);
                 if (array == null) {
                     continue;
                 }
+                int k = FaweCache.CACHE_J[ly][lx][lz];
                 if (array[k] != 0) {
+                    tile.getValue().invalidate();
                     iterator.remove();
                 }
             }
-            // Trim entities
-            for (int i = 0; i < 16; i++) {
-                if ((entities[i] != null) && (fs.getCount(i) >= 4096)) {
-                    entities[i] = new ClassInheritanceMultiMap<>(Entity.class);
+            HashSet<UUID> entsToRemove = fs.getEntityRemoves();
+            if (entsToRemove.size() > 0) {
+                for (int i = 0; i < entities.length; i++) {
+                    Collection<Entity> ents = new ArrayList<>(entities[i]);
+                    for (Entity entity : ents) {
+                        if (entsToRemove.contains(entity.getUniqueID())) {
+                            nmsWorld.removeEntity(entity);
+                        }
+                    }
                 }
             }
             // Efficiently merge sections
@@ -204,6 +364,39 @@ public class SpongeQueue_1_8 extends NMSMappedFaweQueue<World, net.minecraft.wor
                     fs.setCount(j, Short.MAX_VALUE);
                 }
             }
+
+            // Set biomes
+            int[][] biomes = fs.biomes;
+            if (biomes != null) {
+                for (int x = 0; x < 16; x++) {
+                    int[] array = biomes[x];
+                    if (array == null) {
+                        continue;
+                    }
+                    for (int z = 0; z < 16; z++) {
+                        int biome = array[z];
+                        if (biome == 0) {
+                            continue;
+                        }
+                        nmsChunk.getBiomeArray()[((z & 0xF) << 4 | x & 0xF)] = (byte) biome;
+                    }
+                }
+            }
+            // Set tiles
+            Map<BytePair, CompoundTag> tilesToSpawn = fs.getTiles();
+            int bx = fs.getX() << 4;
+            int bz = fs.getZ() << 4;
+
+            for (Map.Entry<BytePair, CompoundTag> entry : tilesToSpawn.entrySet()) {
+                CompoundTag nativeTag = entry.getValue();
+                BytePair pair = entry.getKey();
+                BlockPos pos = new BlockPos(MathMan.unpair16x(pair.pair[0]) + bx, pair.pair[1] & 0xFF, MathMan.unpair16y(pair.pair[0]) + bz); // Set pos
+                TileEntity tileEntity = nmsWorld.getTileEntity(pos);
+                if (tileEntity != null) {
+                    NBTTagCompound tag = (NBTTagCompound) methodFromNative.invoke(null, nativeTag);
+                    tileEntity.readFromNBT(tag); // ReadTagIntoTile
+                }
+            }
         } catch (Throwable e) {
             e.printStackTrace();
         }
@@ -223,7 +416,7 @@ public class SpongeQueue_1_8 extends NMSMappedFaweQueue<World, net.minecraft.wor
                 }
             }
         }
-        sendChunk(fs);
+        sendChunk(fs, null);
         return true;
     }
 
@@ -244,49 +437,69 @@ public class SpongeQueue_1_8 extends NMSMappedFaweQueue<World, net.minecraft.wor
 
 
     @Override
-    public boolean fixLighting(FaweChunk fc, boolean fixAll) {
+    public boolean fixLighting(FaweChunk<?> fc, RelightMode mode) {
+        if (mode == RelightMode.NONE) {
+            return true;
+        }
         try {
             SpongeChunk_1_8 bc = (SpongeChunk_1_8) fc;
             net.minecraft.world.chunk.Chunk nmsChunk = bc.getChunk();
             if (!nmsChunk.isLoaded()) {
-                if (!((Chunk) nmsChunk).loadChunk(false)) {
-                    return false;
+                return false;
+            }
+            ExtendedBlockStorage[] sections = nmsChunk.getBlockStorageArray();
+            if (mode == RelightMode.ALL) {
+                for (int i = 0; i < sections.length; i++) {
+                    ExtendedBlockStorage section = sections[i];
+                    if (section != null) {
+                        section.setSkylightArray(new NibbleArray());
+                        section.setBlocklightArray(new NibbleArray());
+                    }
                 }
             }
             nmsChunk.generateSkylightMap();
-            if (bc.getTotalRelight() == 0 && !fixAll) {
+            if (bc.getTotalRelight() == 0 && mode == RelightMode.MINIMAL) {
                 return true;
             }
-            ExtendedBlockStorage[] sections = nmsChunk.getBlockStorageArray();
             net.minecraft.world.World nmsWorld = nmsChunk.getWorld();
 
-            int X = bc.getX() << 4;
-            int Z = bc.getZ() << 4;
+            int X = fc.getX() << 4;
+            int Z = fc.getZ() << 4;
 
-
+            BlockPos.MutableBlockPos pos = new BlockPos.MutableBlockPos(0, 0, 0);
             for (int j = 0; j < sections.length; j++) {
                 ExtendedBlockStorage section = sections[j];
                 if (section == null) {
                     continue;
                 }
-                if ((bc.getRelight(j) == 0 && !fixAll) || bc.getCount(j) == 0 || (bc.getCount(j) >= 4096 && bc.getAir(j) == 0)) {
+                if (((bc.getRelight(j) == 0) && mode == RelightMode.MINIMAL) || (bc.getCount(j) == 0 && mode != RelightMode.ALL) || ((bc.getCount(j) >= 4096) && (bc.getAir(j) == 0)) || bc.getAir(j) == 4096) {
                     continue;
                 }
                 char[] array = section.getData();
-                int l = PseudoRandom.random.random(2);
-                for (int k = 0; k < array.length; k++) {
-                    int i = array[k];
-                    if (i < 16) {
-                        continue;
+                if (mode == RelightMode.ALL) {
+                    for (int k = array.length - 1; k >= 0; k--) {
+                        final int x = FaweCache.CACHE_X[j][k];
+                        final int y = FaweCache.CACHE_Y[j][k];
+                        final int z = FaweCache.CACHE_Z[j][k];
+                        if (isSurrounded(sections, x, y, z)) {
+                            continue;
+                        }
+                        pos.set(X + x, y, Z + z);
+                        nmsWorld.checkLight(pos);
                     }
-                    short id = (short) (i >> 4);
+                    continue;
+                }
+                for (int k = array.length - 1; k >= 0; k--) {
+                    final int i = array[k];
+                    final short id = (short) (i >> 4);
                     switch (id) { // Lighting
+                        case 0:
+                            continue;
                         default:
-                            if (!fixAll) {
+                            if (mode == RelightMode.MINIMAL) {
                                 continue;
                             }
-                            if ((k & 1) == l) {
-                                l = 1 - l;
+                            if (PseudoRandom.random.random(3) != 0) {
                                 continue;
                             }
                         case 10:
@@ -304,13 +517,13 @@ public class SpongeQueue_1_8 extends NMSMappedFaweQueue<World, net.minecraft.wor
                         case 130:
                         case 138:
                         case 169:
-                            int x = FaweCache.CACHE_X[j][k];
-                            int y = FaweCache.CACHE_Y[j][k];
-                            int z = FaweCache.CACHE_Z[j][k];
+                            final int x = FaweCache.CACHE_X[j][k];
+                            final int y = FaweCache.CACHE_Y[j][k];
+                            final int z = FaweCache.CACHE_Z[j][k];
                             if (isSurrounded(sections, x, y, z)) {
                                 continue;
                             }
-                            BlockPos pos = new BlockPos(X + x, y, Z + z);
+                            pos.set(X + x, y, Z + z);
                             nmsWorld.checkLight(pos);
                     }
                 }
@@ -368,4 +581,6 @@ public class SpongeQueue_1_8 extends NMSMappedFaweQueue<World, net.minecraft.wor
     public int getCombinedId4Data(char[] chars, int x, int y, int z) {
         return chars[FaweCache.CACHE_J[y][x & 15][z & 15]];
     }
+
+
 }

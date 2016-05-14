@@ -4,6 +4,7 @@ import com.boydti.fawe.Fawe;
 import com.boydti.fawe.IFawe;
 import com.boydti.fawe.SpongeCommand;
 import com.boydti.fawe.config.BBC;
+import com.boydti.fawe.config.Settings;
 import com.boydti.fawe.object.EditSessionWrapper;
 import com.boydti.fawe.object.FaweCommand;
 import com.boydti.fawe.object.FawePlayer;
@@ -109,7 +110,7 @@ public class FaweSponge implements IFawe {
 
     @Override
     public FaweQueue getNewQueue(String world, boolean fast) {
-        if (fast) {
+        if (fast || Settings.COMBINE_HISTORY_STAGE) {
             try {
                 return new SpongeQueue_1_8(world);
             } catch (Throwable e) {

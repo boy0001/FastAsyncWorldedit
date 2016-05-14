@@ -204,7 +204,7 @@ public class LocalSession {
     }
 
     public void remember(final EditSession editSession, final boolean append, final boolean sendMessage) {
-        if (editSession == null) {
+        if (editSession == null || editSession.getChangeSet() == null) {
             return;
         }
         if (Settings.STORE_HISTORY_ON_DISK) {

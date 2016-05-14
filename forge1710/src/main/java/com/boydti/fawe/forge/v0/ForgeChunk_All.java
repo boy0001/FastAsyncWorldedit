@@ -1,105 +1,32 @@
 package com.boydti.fawe.forge.v0;
 
 import com.boydti.fawe.FaweCache;
-import com.boydti.fawe.object.FaweChunk;
+import com.boydti.fawe.example.CharFaweChunk;
 import com.boydti.fawe.util.FaweQueue;
 import com.boydti.fawe.util.MainUtil;
-import com.sk89q.worldedit.world.biome.BaseBiome;
-import java.util.Arrays;
 import net.minecraft.world.World;
 import net.minecraft.world.chunk.Chunk;
 import net.minecraft.world.chunk.NibbleArray;
 
-public class ForgeChunk_All extends FaweChunk<Chunk> {
+public class ForgeChunk_All extends CharFaweChunk<Chunk> {
 
-    public byte[][] ids;
+    public byte[][] byteIds;
     public NibbleArray[] datas;
-
-    public short[] count;
-    public short[] air;
-    public short[] relight;
-    public byte[][] biomes;
-    public Chunk chunk;
 
     public ForgeChunk_All(FaweQueue parent, int x, int z) {
         super(parent, x, z);
-        this.ids = new byte[16][];
+        this.byteIds = new byte[16][];
         this.datas = new NibbleArray[16];
-        this.count = new short[16];
-        this.air = new short[16];
-        this.relight = new short[16];
-    }
-
-
-    @Override
-    public Chunk getChunk() {
-        if (this.chunk == null) {
-            World world = ((ForgeQueue_All) getParent()).getWorld();
-            this.chunk = world.getChunkProvider().provideChunk(getX(), getZ());
-        }
-        return this.chunk;
     }
 
     @Override
-    public void setLoc(final FaweQueue parent, int x, int z) {
-        super.setLoc(parent, x, z);
-        this.chunk = null;
+    public Chunk getNewChunk() {
+        World world = ((ForgeQueue_All) getParent()).getWorld();
+        return world.getChunkProvider().provideChunk(getX(), getZ());
     }
 
-    /**
-     * Get the number of block changes in a specified section.
-     * @param i
-     * @return
-     */
-    public int getCount(int i) {
-        return this.count[i];
-    }
-
-    public int getAir(int i) {
-        return this.air[i];
-    }
-
-    public void setCount(int i, short value) {
-        this.count[i] = value;
-    }
-
-    /**
-     * Get the number of block changes in a specified section.
-     * @param i
-     * @return
-     */
-    public int getRelight(int i) {
-        return this.relight[i];
-    }
-
-    public int getTotalCount() {
-        int total = 0;
-        for (int i = 0; i < 16; i++) {
-            total += this.count[i];
-        }
-        return total;
-    }
-
-    public int getTotalRelight() {
-        if (getTotalCount() == 0) {
-            Arrays.fill(this.count, (short) 1);
-            Arrays.fill(this.relight, Short.MAX_VALUE);
-            return Short.MAX_VALUE;
-        }
-        int total = 0;
-        for (int i = 0; i < 16; i++) {
-            total += this.relight[i];
-        }
-        return total;
-    }
-
-    /**
-     * Get the raw data for a section.
-     * @param i
-     * @return
-     */
-    public byte[] getIdArray(int i) {
-        return this.ids[i];
+    public byte[] getByteIdArray(int i) {
+        return this.byteIds[i];
     }
 
     public NibbleArray getDataArray(int i) {
@@ -110,17 +37,20 @@ public class ForgeChunk_All extends FaweChunk<Chunk> {
     public void setBlock(int x, int y, int z, int id, byte data) {
         int i = FaweCache.CACHE_I[y][x][z];
         int j = FaweCache.CACHE_J[y][x][z];
-        byte[] vs = this.ids[i];
-        if (vs == null) {
-            vs = this.ids[i] = new byte[4096];
-            this.count[i]++;
-        } else if (vs[j] == 0) {
-            this.count[i]++;
+        byte[] vs = this.byteIds[i];
+        char[] vs2 = this.ids[i];
+        if (vs2 == null) {
+            vs2 = this.ids[i] = new char[4096];
         }
+        if (vs == null) {
+            vs = this.byteIds[i] = new byte[4096];
+        }
+        this.count[i]++;
         switch (id) {
             case 0:
                 this.air[i]++;
                 vs[j] = -1;
+                vs2[j] = (char) 1;
                 return;
             case 10:
             case 11:
@@ -193,6 +123,7 @@ public class ForgeChunk_All extends FaweChunk<Chunk> {
             case 191:
             case 192:
                 vs[j] = (byte) (id);
+                vs2[j] = (char) (id << 4);
                 return;
             case 130:
             case 76:
@@ -203,38 +134,26 @@ public class ForgeChunk_All extends FaweChunk<Chunk> {
             case 146:
             case 61:
             case 65:
-            case 68:
-//                if (data < 2) {
-//                    data = 2;
-//                }
+            case 68: // removed
             default:
+                vs2[j] = (char) ((id << 4) + data);
                 vs[j] = (byte) id;
-                NibbleArray dataArray = datas[i];
-                if (dataArray == null) {
-                    datas[i] = dataArray = new NibbleArray(4096, 4);
+                if (data != 0) {
+                    NibbleArray dataArray = datas[i];
+                    if (dataArray == null) {
+                        datas[i] = dataArray = new NibbleArray(4096, 4);
+                    }
+                    dataArray.set(x, y & 15, z, data);
                 }
-                dataArray.set(x, y & 15, z, data);
                 return;
         }
     }
 
     @Override
-    public void setBiome(int x, int z, BaseBiome biome) {
-        if (this.biomes == null) {
-            this.biomes = new byte[16][];
-        }
-        byte[] index = this.biomes[x];
-        if (index == null) {
-            index = this.biomes[x] = new byte[16];
-        }
-        index[z] = (byte) biome.getId();
-    }
-
-    @Override
-    public FaweChunk<Chunk> copy(boolean shallow) {
+    public CharFaweChunk<Chunk> copy(boolean shallow) {
         ForgeChunk_All copy = new ForgeChunk_All(getParent(), getX(), getZ());
         if (shallow) {
-            copy.ids = ids;
+            copy.byteIds = byteIds;
             copy.datas = datas;
             copy.air = air;
             copy.biomes = biomes;
@@ -242,7 +161,7 @@ public class ForgeChunk_All extends FaweChunk<Chunk> {
             copy.count = count;
             copy.relight = relight;
         } else {
-            copy.ids = (byte[][]) MainUtil.copyNd(ids);
+            copy.byteIds = (byte[][]) MainUtil.copyNd(byteIds);
             copy.datas = datas.clone();
             copy.air = air.clone();
             copy.biomes = biomes.clone();

@@ -126,7 +126,7 @@ public class FaweForge implements IFawe {
     @Override
     public void startMetrics() {
         try {
-            com.boydti.fawe.forge.ForgeMetrics metrics = new com.boydti.fawe.forge.ForgeMetrics("FastAsyncWorldEdit", "3.4.3");
+            com.boydti.fawe.forge.ForgeMetrics metrics = new com.boydti.fawe.forge.ForgeMetrics("FastAsyncWorldEdit", "3.5.0");
             metrics.start();
             debug("[FAWE] &6Metrics enabled.");
         } catch (Throwable e) {

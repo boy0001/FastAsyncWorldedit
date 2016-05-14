@@ -1,5 +1,6 @@
 package com.boydti.fawe.forge;
 
+import com.boydti.fawe.config.Settings;
 import com.boydti.fawe.object.FaweLocation;
 import com.boydti.fawe.object.FawePlayer;
 import com.sk89q.worldedit.entity.Player;
@@ -14,6 +15,16 @@ import net.minecraft.world.World;
 public class ForgePlayer extends FawePlayer<EntityPlayerMP> {
     public ForgePlayer(EntityPlayerMP parent) {
         super(parent);
+    }
+
+    @Override
+    public void sendTitle(String head, String sub) { // Not supported
+        Settings.DISPLAY_PROGRESS = false;
+    }
+
+    @Override
+    public void resetTitle() { // Not supported
+        Settings.DISPLAY_PROGRESS = false;
     }
 
     @Override

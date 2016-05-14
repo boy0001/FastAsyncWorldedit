@@ -188,10 +188,8 @@ public abstract class CharFaweChunk<T> extends FaweChunk<T> {
         char[] vs = this.ids[i];
         if (vs == null) {
             vs = this.ids[i] = new char[4096];
-            this.count[i]++;
-        } else if (vs[j] == 0) {
-            this.count[i]++;
         }
+        this.count[i]++;
         switch (id) {
             case 0:
                 this.air[i]++;
@@ -277,11 +275,7 @@ public abstract class CharFaweChunk<T> extends FaweChunk<T> {
             case 146:
             case 61:
             case 65:
-            case 68:
-//                if (data < 2) {
-//                    data = 2;
-//                }
-
+            case 68: // removed
             default:
                 vs[j] = (char) ((id << 4) + data);
                 return;

@@ -109,9 +109,9 @@ public abstract class FawePlayer<T> {
     }
 
     public void loadClipboardFromDisk() {
+        File file = new File(Fawe.imp().getDirectory(), "clipboard" + File.separator + getUUID());
         try {
-            File file = new File(Fawe.imp().getDirectory(), "clipboard" + File.separator + getUUID());
-            if (file.exists()) {
+            if (file.exists() && file.length() > 5) {
                 DiskOptimizedClipboard doc = new DiskOptimizedClipboard(file);
                 Player player = getPlayer();
                 LocalSession session = getSession();
@@ -128,8 +128,13 @@ public abstract class FawePlayer<T> {
                     getSession().setClipboard(holder);
                 }
             }
-        } catch (Exception e) {
-            e.printStackTrace();
+        } catch (Exception ignore) {
+            Fawe.debug("====== INVALID CLIPBOARD ======");
+            ignore.printStackTrace();
+            Fawe.debug("===============---=============");
+            Fawe.debug("This shouldn't result in any failure");
+            Fawe.debug("File: " + file.getName() + " (len:" + file.length() + ")");
+            Fawe.debug("===============---=============");
         }
     }
 

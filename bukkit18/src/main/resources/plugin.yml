@@ -1,6 +1,6 @@
 name: FastAsyncWorldEdit
 main: com.boydti.fawe.bukkit.v1_8.BukkitMain_18
-version: 3.4.3
+version: ${version}
 description: Fast Async WorldEdit plugin
 authors: [Empire92]
 loadbefore: [WorldEdit]

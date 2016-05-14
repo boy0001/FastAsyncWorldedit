@@ -20,8 +20,6 @@
 package com.sk89q.worldedit.command;
 
 import com.boydti.fawe.config.BBC;
-import com.boydti.fawe.util.SetQueue;
-import com.boydti.fawe.util.TaskManager;
 import com.sk89q.minecraft.util.commands.Command;
 import com.sk89q.minecraft.util.commands.CommandContext;
 import com.sk89q.minecraft.util.commands.CommandException;
@@ -162,41 +160,31 @@ public class SchematicCommands {
             target = clipboard;
         }
 
-        SetQueue.IMP.addTask(new Runnable() {
-            @Override
-            public void run() {
-                TaskManager.IMP.async(new Runnable() {
-                    @Override
-                    public void run() {
-                        final Closer closer = Closer.create();
-                        try {
-                            // Create parent directories
-                            final File parent = f.getParentFile();
-                            if ((parent != null) && !parent.exists()) {
-                                if (!parent.mkdirs()) {
-                                    log.info("Could not create folder for schematics!");
-                                    return;
-                                }
-                            }
-
-                            final FileOutputStream fos = closer.register(new FileOutputStream(f));
-                            final BufferedOutputStream bos = closer.register(new BufferedOutputStream(fos));
-                            final ClipboardWriter writer = closer.register(format.getWriter(bos));
-                            writer.write(target, holder.getWorldData());
-                            log.info(player.getName() + " saved " + f.getCanonicalPath());
-                            BBC.SCHEMATIC_SAVED.send(player, filename);
-                        } catch (final IOException e) {
-                            player.printError("Schematic could not written: " + e.getMessage());
-                            log.log(Level.WARNING, "Failed to write a saved clipboard", e);
-                        } finally {
-                            try {
-                                closer.close();
-                            } catch (final IOException ignored) {}
-                        }
-                    }
-                });
+        final Closer closer = Closer.create();
+        try {
+            // Create parent directories
+            final File parent = f.getParentFile();
+            if ((parent != null) && !parent.exists()) {
+                if (!parent.mkdirs()) {
+                    log.info("Could not create folder for schematics!");
+                    return;
+                }
             }
-        });
+
+            final FileOutputStream fos = closer.register(new FileOutputStream(f));
+            final BufferedOutputStream bos = closer.register(new BufferedOutputStream(fos));
+            final ClipboardWriter writer = closer.register(format.getWriter(bos));
+            writer.write(target, holder.getWorldData());
+            log.info(player.getName() + " saved " + f.getCanonicalPath());
+            BBC.SCHEMATIC_SAVED.send(player, filename);
+        } catch (final IOException e) {
+            player.printError("Schematic could not written: " + e.getMessage());
+            log.log(Level.WARNING, "Failed to write a saved clipboard", e);
+        } finally {
+            try {
+                closer.close();
+            } catch (final IOException ignored) {}
+        }
     }
 
     @Command(aliases = { "delete", "d" }, usage = "<filename>", desc = "Delete a saved schematic", help = "Delete a schematic from the schematic list", min = 1, max = 1)
@@ -207,22 +195,15 @@ public class SchematicCommands {
 
         final File dir = this.worldEdit.getWorkingDirectoryFile(config.saveDir);
         final File f = this.worldEdit.getSafeSaveFile(player, dir, filename, "schematic", "schematic");
-        TaskManager.IMP.async(new Runnable() {
-            @Override
-            public void run() {
-                if (!f.exists()) {
-                    player.printError("Schematic " + filename + " does not exist!");
-                    return;
-                }
-
-                if (!f.delete()) {
-                    player.printError("Deletion of " + filename + " failed! Maybe it is read-only.");
-                    return;
-                }
-
-                BBC.SCHEMATIC_DELETE.send(player, filename);
-            }
-        });
+        if (!f.exists()) {
+            player.printError("Schematic " + filename + " does not exist!");
+            return;
+        }
+        if (!f.delete()) {
+            player.printError("Deletion of " + filename + " failed! Maybe it is read-only.");
+            return;
+        }
+        BBC.SCHEMATIC_DELETE.send(player, filename);
     }
 
     @Command(aliases = { "formats", "listformats", "f" }, desc = "List available formats", max = 0)

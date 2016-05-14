@@ -3,6 +3,16 @@ dependencies {
     compile 'org.bukkit.craftbukkit:CraftBukkit:1.8.8'
 }
 
+processResources {
+    from('src/main/resources') {
+        include 'plugin.yml'
+        expand(
+                name: project.parent.name,
+                version: project.parent.version
+        )
+    }
+}
+
 apply plugin: 'com.github.johnrengelman.shadow'
 // We only want the shadow jar produced
 jar.enabled = false

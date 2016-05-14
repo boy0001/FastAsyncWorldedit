@@ -6,7 +6,7 @@ buildscript {
     }
 	dependencies {
         classpath 'com.github.jengelman.gradle.plugins:shadow:1.2.3'
-        classpath 'org.ajoberstar:grgit:1.1.0'
+        classpath 'org.ajoberstar:grgit:1.7.0'
     }
 
 }
@@ -17,7 +17,7 @@ clean { delete "target" }
 group = 'com.boydti.fawe'
 def revision = ""
 ext {
-    git = org.ajoberstar.grgit.Grgit.open(file(".git/"))
+    git = org.ajoberstar.grgit.Grgit.open(file(".git"))
     revision = "-${git.head().abbreviatedId}"
 }
 version = "3.5.0${revision}"

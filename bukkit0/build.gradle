@@ -14,13 +14,3 @@ dependencies {
     compile 'junit:junit:4.11'
     compile 'com.sk89q.worldedit:worldedit-bukkit:6.1.1-SNAPSHOT'
 }
-
-processResources {
-    from('src/main/resources') {
-        include 'plugin.yml'
-        expand(
-                name: project.parent.name,
-                version: project.parent.version
-        )
-    }
-}

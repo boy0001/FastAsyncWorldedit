@@ -19,8 +19,6 @@
 
 package com.sk89q.worldedit.command;
 
-import com.boydti.fawe.util.SetQueue;
-import com.boydti.fawe.util.TaskManager;
 import com.sk89q.minecraft.util.commands.Command;
 import com.sk89q.minecraft.util.commands.CommandContext;
 import com.sk89q.minecraft.util.commands.CommandPermissions;
@@ -69,21 +67,11 @@ public class ScriptingCommands {
 
         final File dir = this.worldEdit.getWorkingDirectoryFile(this.worldEdit.getConfiguration().scriptsDir);
         final File f = this.worldEdit.getSafeOpenFile(player, dir, name, "js", "js");
-        SetQueue.IMP.addTask(new Runnable() {
-            @Override
-            public void run() {
-                TaskManager.IMP.async(new Runnable() {
-                    @Override
-                    public void run() {
-                        try {
-                            ScriptingCommands.this.worldEdit.runScript(player, f, scriptArgs);
-                        } catch (final WorldEditException ex) {
-                            player.printError("Error while executing CraftScript.");
-                        }
-                    }
-                });
-            }
-        });
+        try {
+            ScriptingCommands.this.worldEdit.runScript(player, f, scriptArgs);
+        } catch (final WorldEditException ex) {
+            player.printError("Error while executing CraftScript.");
+        }
     }
 
     @Command(aliases = { ".s" }, usage = "[args...]", desc = "Execute last CraftScript", min = 0, max = -1)
@@ -107,21 +95,11 @@ public class ScriptingCommands {
         final File dir = this.worldEdit.getWorkingDirectoryFile(this.worldEdit.getConfiguration().scriptsDir);
         final File f = this.worldEdit.getSafeOpenFile(player, dir, lastScript, "js", "js");
 
-        SetQueue.IMP.addTask(new Runnable() {
-            @Override
-            public void run() {
-                TaskManager.IMP.async(new Runnable() {
-                    @Override
-                    public void run() {
-                        try {
-                            ScriptingCommands.this.worldEdit.runScript(player, f, scriptArgs);
-                        } catch (final WorldEditException ex) {
-                            player.printError("Error while executing CraftScript.");
-                        }
-                    }
-                });
-            }
-        });
+        try {
+            ScriptingCommands.this.worldEdit.runScript(player, f, scriptArgs);
+        } catch (final WorldEditException ex) {
+            player.printError("Error while executing CraftScript.");
+        }
     }
 
     public static Class<?> inject() {

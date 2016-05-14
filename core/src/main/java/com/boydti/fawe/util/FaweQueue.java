@@ -97,6 +97,7 @@ public abstract class FaweQueue {
     public void endSet(boolean parallel) {}
 
     public int cancel() {
+        clear();
         int count = 0;
         for (EditSession session : sessions) {
             if (session.cancel()) {

@@ -226,46 +226,46 @@ public class Fawe {
          *  - LocalSession supports VirtualPlayers and undo on disk
          */
         try {
-            EditSession.inject();
-            LocalSession.inject();
+            EditSession.inject(); // Custom block placer + optimizations
+            LocalSession.inject(); // Add remember order / queue flushing
             // Commands
-            BrushCommands.inject();
-            ClipboardCommands.inject();
-            SchematicCommands.inject();
-            ScriptingCommands.inject();
-            SelectionCommand.inject();
-            RegionCommands.inject();
-            HistoryCommands.inject();
+            BrushCommands.inject(); // Translations + heightmap
+            ClipboardCommands.inject(); // Translations + lazycopy + paste optimizations
+            SchematicCommands.inject(); // Translations
+            ScriptingCommands.inject(); // Translations
+            SelectionCommand.inject(); // Translations + set optimizations
+            RegionCommands.inject(); // Translations
+            HistoryCommands.inject(); // Translations
             // Brushes
-            GravityBrush.inject();
+            GravityBrush.inject(); // Fix for instant placement assumption
             // Selectors
-            CuboidRegionSelector.inject();
+            CuboidRegionSelector.inject(); // Translations
             // Visitors
-            BreadthFirstSearch.inject();
-            DownwardVisitor.inject();
-            EntityVisitor.inject();
-            FlatRegionVisitor.inject();
-            LayerVisitor.inject();
-            NonRisingVisitor.inject();
-            RecursiveVisitor.inject();
-            RegionVisitor.inject();
+            BreadthFirstSearch.inject(); // Translations + Optimizations
+            DownwardVisitor.inject(); // Optimizations
+            EntityVisitor.inject(); // Translations + Optimizations
+            FlatRegionVisitor.inject(); // Translations + Optimizations
+            LayerVisitor.inject(); // Optimizations
+            NonRisingVisitor.inject(); // Optimizations
+            RecursiveVisitor.inject(); // Optimizations
+            RegionVisitor.inject(); // Translations + Optimizations
             // Entity create/remove
-            EntityCreate.inject();
-            EntityRemove.inject();
+            EntityCreate.inject(); // Optimizations
+            EntityRemove.inject(); // Optimizations
             // Clipboards
-            BlockArrayClipboard.inject();
-            CuboidClipboard.inject();
+            BlockArrayClipboard.inject(); // Optimizations + disk
+            CuboidClipboard.inject(); // Optimizations
             // Regions
-            CuboidRegion.inject();
+            CuboidRegion.inject(); // Optimizations
             // Extents
-            BlockTransformExtent.inject();
+            BlockTransformExtent.inject(); // Fix for cache not being mutable
             // Vector
-            Vector.inject();
+            Vector.inject(); // Optimizations
             // Operations
-            Operations.inject();
+            Operations.inject(); // Optimizations
             try {
-                CommandManager.inject();
-                PlatformManager.inject();
+                CommandManager.inject(); // Async commands
+                PlatformManager.inject(); // Async brushes / tools
             } catch (Throwable e) {
                 debug("====== UPDATE WORLDEDIT TO 6.1.1 ======");
                 e.printStackTrace();
@@ -284,6 +284,7 @@ public class Fawe {
             e.printStackTrace();
             debug("=======================================");
             debug("Things to check: ");
+            debug(" - Using WorldEdit 6.1.1");
             debug(" - AsyncWorldEdit/WorldEditRegions isn't installed");
             debug(" - Any other errors in the startup log");
             debug(" - Contact Empire92 for assistance!");

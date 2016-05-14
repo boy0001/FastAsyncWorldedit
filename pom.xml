@@ -8,7 +8,7 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     </properties>
     <artifactId>FastAsyncWorldEdit</artifactId>
-    <version>3.4.3</version>
+    <version>3.5.0</version>
     <name>FastAsyncWorldEdit</name>
     <packaging>jar</packaging>
     <build>

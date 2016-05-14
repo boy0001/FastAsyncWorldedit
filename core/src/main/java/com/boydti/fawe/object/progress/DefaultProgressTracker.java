@@ -7,7 +7,6 @@ import com.boydti.fawe.object.RunnableVal2;
 import com.boydti.fawe.util.FaweQueue;
 import com.boydti.fawe.util.StringMan;
 import com.boydti.fawe.util.TaskManager;
-import org.bukkit.Bukkit;
 
 public class DefaultProgressTracker extends RunnableVal2<FaweQueue.ProgressType, Integer> {
 
@@ -63,7 +62,7 @@ public class DefaultProgressTracker extends RunnableVal2<FaweQueue.ProgressType,
         TaskManager.IMP.task(new Runnable() {
             @Override
             public void run() {
-                long currentTick = Bukkit.getServer().getWorlds().get(0).getFullTime();
+                long currentTick = System.currentTimeMillis() / 50;
                 if (currentTick > lastTick + Settings.DISPLAY_PROGRESS_INTERVAL) {
                     lastTick = currentTick;
                     String queue = StringMan.padRight("" + amountQueue, 3);

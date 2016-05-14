@@ -2,12 +2,18 @@ package com.boydti.fawe.sponge.v1_8;
 
 import com.boydti.fawe.Fawe;
 import com.boydti.fawe.FaweCache;
+import com.boydti.fawe.config.Settings;
+import com.boydti.fawe.example.CharFaweChunk;
 import com.boydti.fawe.example.NMSMappedFaweQueue;
 import com.boydti.fawe.object.FaweChunk;
 import com.boydti.fawe.object.PseudoRandom;
+import com.boydti.fawe.object.RunnableVal;
 import java.lang.reflect.Field;
+import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
+import java.util.UUID;
 import net.minecraft.block.Block;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.entity.player.EntityPlayerMP;
@@ -17,6 +23,7 @@ import net.minecraft.util.BlockPos;
 import net.minecraft.util.LongHashMap;
 import net.minecraft.world.ChunkCoordIntPair;
 import net.minecraft.world.chunk.IChunkProvider;
+import net.minecraft.world.chunk.NibbleArray;
 import net.minecraft.world.chunk.storage.ExtendedBlockStorage;
 import net.minecraft.world.gen.ChunkProviderServer;
 import org.spongepowered.api.Sponge;
@@ -125,7 +132,11 @@ public class SpongeQueue_ALL extends NMSMappedFaweQueue<World, net.minecraft.wor
     private BlockState AIR = BlockTypes.AIR.getDefaultState();
 
     @Override
-    public boolean setComponents(FaweChunk fc) {
+    public boolean setComponents(FaweChunk fc, RunnableVal<FaweChunk> changeTask) {
+        if (changeTask != null) {
+            Settings.COMBINE_HISTORY_STAGE = false;
+            throw new UnsupportedOperationException("Combine stages not supported");
+        }
         SpongeChunk_1_8 fs = (SpongeChunk_1_8) fc;
         net.minecraft.world.chunk.Chunk nmsChunk = fs.getChunk();
         Chunk spongeChunk = (Chunk) nmsChunk;
@@ -162,7 +173,7 @@ public class SpongeQueue_ALL extends NMSMappedFaweQueue<World, net.minecraft.wor
                 }
             }
         });
-        sendChunk(fs);
+        sendChunk(fs, null);
         return true;
     }
 
@@ -181,51 +192,76 @@ public class SpongeQueue_ALL extends NMSMappedFaweQueue<World, net.minecraft.wor
         return new SpongeChunk_1_8(this, x, z);
     }
 
+    @Override
+    public CharFaweChunk getPrevious(CharFaweChunk fs, ExtendedBlockStorage[] sections, Map<?, ?> tilesGeneric, Collection<?>[] entitiesGeneric, Set<UUID> createdEntities, boolean all) throws Exception {
+        Settings.COMBINE_HISTORY_STAGE = false;
+        throw new UnsupportedOperationException("Combine stages not supported");
+    }
 
     @Override
-    public boolean fixLighting(FaweChunk fc, boolean fixAll) {
+    public boolean fixLighting(FaweChunk<?> fc, RelightMode mode) {
+        if (mode == RelightMode.NONE) {
+            return true;
+        }
         try {
             SpongeChunk_1_8 bc = (SpongeChunk_1_8) fc;
             net.minecraft.world.chunk.Chunk nmsChunk = bc.getChunk();
             if (!nmsChunk.isLoaded()) {
-                if (!((Chunk) nmsChunk).loadChunk(false)) {
-                    return false;
+                return false;
+            }
+            ExtendedBlockStorage[] sections = nmsChunk.getBlockStorageArray();
+            if (mode == RelightMode.ALL) {
+                for (int i = 0; i < sections.length; i++) {
+                    ExtendedBlockStorage section = sections[i];
+                    if (section != null) {
+                        section.setSkylightArray(new NibbleArray());
+                        section.setBlocklightArray(new NibbleArray());
+                    }
                 }
             }
             nmsChunk.generateSkylightMap();
-            if (bc.getTotalRelight() == 0 && !fixAll) {
+            if (bc.getTotalRelight() == 0 && mode == RelightMode.MINIMAL) {
                 return true;
             }
-            ExtendedBlockStorage[] sections = nmsChunk.getBlockStorageArray();
             net.minecraft.world.World nmsWorld = nmsChunk.getWorld();
 
-            int X = bc.getX() << 4;
-            int Z = bc.getZ() << 4;
+            int X = fc.getX() << 4;
+            int Z = fc.getZ() << 4;
 
-
+            BlockPos.MutableBlockPos pos = new BlockPos.MutableBlockPos(0, 0, 0);
             for (int j = 0; j < sections.length; j++) {
                 ExtendedBlockStorage section = sections[j];
                 if (section == null) {
                     continue;
                 }
-                if ((bc.getRelight(j) == 0 && !fixAll) || bc.getCount(j) == 0 || (bc.getCount(j) >= 4096 && bc.getAir(j) == 0)) {
+                if (((bc.getRelight(j) == 0) && mode == RelightMode.MINIMAL) || (bc.getCount(j) == 0 && mode != RelightMode.ALL) || ((bc.getCount(j) >= 4096) && (bc.getAir(j) == 0)) || bc.getAir(j) == 4096) {
                     continue;
                 }
                 char[] array = section.getData();
-                int l = PseudoRandom.random.random(2);
-                for (int k = 0; k < array.length; k++) {
-                    int i = array[k];
-                    if (i < 16) {
-                        continue;
+                if (mode == RelightMode.ALL) {
+                    for (int k = array.length - 1; k >= 0; k--) {
+                        final int x = FaweCache.CACHE_X[j][k];
+                        final int y = FaweCache.CACHE_Y[j][k];
+                        final int z = FaweCache.CACHE_Z[j][k];
+                        if (isSurrounded(sections, x, y, z)) {
+                            continue;
+                        }
+                        pos.set(X + x, y, Z + z);
+                        nmsWorld.checkLight(pos);
                     }
-                    short id = (short) (i >> 4);
+                    continue;
+                }
+                for (int k = array.length - 1; k >= 0; k--) {
+                    final int i = array[k];
+                    final short id = (short) (i >> 4);
                     switch (id) { // Lighting
+                        case 0:
+                            continue;
                         default:
-                            if (!fixAll) {
+                            if (mode == RelightMode.MINIMAL) {
                                 continue;
                             }
-                            if ((k & 1) == l) {
-                                l = 1 - l;
+                            if (PseudoRandom.random.random(3) != 0) {
                                 continue;
                             }
                         case 10:
@@ -243,13 +279,13 @@ public class SpongeQueue_ALL extends NMSMappedFaweQueue<World, net.minecraft.wor
                         case 130:
                         case 138:
                         case 169:
-                            int x = FaweCache.CACHE_X[j][k];
-                            int y = FaweCache.CACHE_Y[j][k];
-                            int z = FaweCache.CACHE_Z[j][k];
+                            final int x = FaweCache.CACHE_X[j][k];
+                            final int y = FaweCache.CACHE_Y[j][k];
+                            final int z = FaweCache.CACHE_Z[j][k];
                             if (isSurrounded(sections, x, y, z)) {
                                 continue;
                             }
-                            BlockPos pos = new BlockPos(X + x, y, Z + z);
+                            pos.set(X + x, y, Z + z);
                             nmsWorld.checkLight(pos);
                     }
                 }
