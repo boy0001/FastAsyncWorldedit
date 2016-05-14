@@ -21,6 +21,7 @@ import com.sk89q.worldedit.EditSession;
 import com.sk89q.worldedit.LocalSession;
 import com.sk89q.worldedit.Vector;
 import com.sk89q.worldedit.WorldEdit;
+import com.sk89q.worldedit.blocks.BlockData;
 import com.sk89q.worldedit.command.BrushCommands;
 import com.sk89q.worldedit.command.ClipboardCommands;
 import com.sk89q.worldedit.command.HistoryCommands;
@@ -263,6 +264,8 @@ public class Fawe {
             Vector.inject(); // Optimizations
             // Operations
             Operations.inject(); // Optimizations
+            // BlockData
+            BlockData.inject(); // Temporary fix for 1.9.4
             try {
                 CommandManager.inject(); // Async commands
                 PlatformManager.inject(); // Async brushes / tools
