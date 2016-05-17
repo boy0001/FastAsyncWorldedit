@@ -226,9 +226,7 @@ public class Fawe {
         if (file != null && file.exists()) {
             try {
                 BundledBlockData.getInstance().add(file.toURI().toURL(), false);
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
+            } catch (Throwable ignore) {}
         }
     }
 
