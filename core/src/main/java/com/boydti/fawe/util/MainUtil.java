@@ -17,10 +17,19 @@ import com.sk89q.worldedit.entity.Entity;
 import com.sk89q.worldedit.extension.platform.Actor;
 import com.sk89q.worldedit.util.Location;
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
 import java.lang.reflect.Array;
+import java.net.MalformedURLException;
+import java.net.URISyntaxException;
+import java.net.URL;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipInputStream;
 
 public class MainUtil {
     /*
@@ -63,6 +72,68 @@ public class MainUtil {
             posList.set(1, new DoubleTag(loc.getY()));
             posList.set(2, new DoubleTag(loc.getZ()));
         }
+    }
+
+    public static File getJarFile() {
+        try {
+            URL url = Fawe.class.getProtectionDomain().getCodeSource().getLocation();
+            return new File(new URL(url.toURI().toString().split("\\!")[0].replaceAll("jar:file", "file")).toURI().getPath());
+        } catch (MalformedURLException | URISyntaxException | SecurityException e) {
+            e.printStackTrace();
+            return new File(Fawe.imp().getDirectory().getParentFile(), "FastAsyncWorldEdit.jar");
+        }
+    }
+
+    public static File copyFile(File jar, String resource, File output) {
+        try {
+            if (output == null) {
+                output = Fawe.imp().getDirectory();
+            }
+            if (!output.exists()) {
+                output.mkdirs();
+            }
+            File newFile = new File(output, resource);
+            if (newFile.exists()) {
+                return newFile;
+            }
+            try (InputStream stream = Fawe.imp().getClass().getResourceAsStream(resource.startsWith("/") ? resource : "/" + resource)) {
+                byte[] buffer = new byte[2048];
+                if (stream == null) {
+                    try (ZipInputStream zis = new ZipInputStream(new FileInputStream(jar))) {
+                        ZipEntry ze = zis.getNextEntry();
+                        while (ze != null) {
+                            String name = ze.getName();
+                            if (name.equals(resource)) {
+                                new File(newFile.getParent()).mkdirs();
+                                try (FileOutputStream fos = new FileOutputStream(newFile)) {
+                                    int len;
+                                    while ((len = zis.read(buffer)) > 0) {
+                                        fos.write(buffer, 0, len);
+                                    }
+                                }
+                                ze = null;
+                            } else {
+                                ze = zis.getNextEntry();
+                            }
+                        }
+                        zis.closeEntry();
+                    }
+                    return newFile;
+                }
+                newFile.createNewFile();
+                try (FileOutputStream fos = new FileOutputStream(newFile)) {
+                    int len;
+                    while ((len = stream.read(buffer)) > 0) {
+                        fos.write(buffer, 0, len);
+                    }
+                }
+                return newFile;
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+            Fawe.debug("&cCould not save " + resource);
+        }
+        return null;
     }
 
     public static void sendCompressedMessage(FaweStreamChangeSet set, Actor actor)

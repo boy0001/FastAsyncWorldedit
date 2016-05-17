@@ -72,6 +72,7 @@ public final class BlockData {
                 break;
 
             case 203: // BlockId.PURPUR_STAIRS
+            case BlockID.RED_SANDSTONE_STAIRS:
             case BlockID.OAK_WOOD_STAIRS:
             case BlockID.COBBLESTONE_STAIRS:
             case BlockID.BRICK_STAIRS:
@@ -166,6 +167,7 @@ public final class BlockData {
                 }
                 break;
             }
+            case 198: // BlockID.END_ROD
             case BlockID.DISPENSER:
             case BlockID.DROPPER:
                 int dispPower = data & 0x8;
@@ -312,6 +314,8 @@ public final class BlockData {
                 }
                 break;
 
+            case 203: // BlockId.PURPUR_STAIRS
+            case BlockID.RED_SANDSTONE_STAIRS:
             case BlockID.OAK_WOOD_STAIRS:
             case BlockID.COBBLESTONE_STAIRS:
             case BlockID.BRICK_STAIRS:
@@ -614,6 +618,8 @@ public final class BlockData {
             case BlockID.WOODEN_STEP:
                 return data ^ (flipY << 3);
 
+            case 203: // BlockId.PURPUR_STAIRS
+            case BlockID.RED_SANDSTONE_STAIRS:
             case BlockID.OAK_WOOD_STAIRS:
             case BlockID.COBBLESTONE_STAIRS:
             case BlockID.BRICK_STAIRS:
@@ -686,6 +692,7 @@ public final class BlockData {
                 }
                 break;
 
+            case 198: // BlockID.END_ROD
             case BlockID.DROPPER:
             case BlockID.DISPENSER:
                 int dispPower = data & 0x8;
@@ -909,6 +916,8 @@ public final class BlockData {
                 if (data < 1 || data > 4) return -1;
                 return mod((data - 1 + increment), 4) + 1;
 
+            case 203: // BlockId.PURPUR_STAIRS
+            case BlockID.RED_SANDSTONE_STAIRS:
             case BlockID.OAK_WOOD_STAIRS:
             case BlockID.COBBLESTONE_STAIRS:
             case BlockID.BRICK_STAIRS:
@@ -989,6 +998,7 @@ public final class BlockData {
                 if (withoutFlags < 2 || withoutFlags > 5) return -1;
                 return (mod((withoutFlags - 2 + increment), 4) + 2) | extra;
 
+            case 198: // BlockID.END_ROD
             case BlockID.DISPENSER:
             case BlockID.DROPPER:
                 store = data & 0x8;

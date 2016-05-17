@@ -47,7 +47,9 @@ import com.sk89q.worldedit.history.change.EntityCreate;
 import com.sk89q.worldedit.history.change.EntityRemove;
 import com.sk89q.worldedit.regions.CuboidRegion;
 import com.sk89q.worldedit.regions.selector.CuboidRegionSelector;
+import com.sk89q.worldedit.world.registry.BundledBlockData;
 import java.io.File;
+import java.io.IOException;
 import java.lang.management.ManagementFactory;
 import java.lang.management.MemoryMXBean;
 import java.lang.management.MemoryPoolMXBean;
@@ -155,6 +157,7 @@ public class Fawe {
     private Thread thread = Thread.currentThread();
 
     private Fawe(final IFawe implementation) {
+        this.INSTANCE = this;
         this.IMP = implementation;
         this.thread = Thread.currentThread();
         /*
@@ -212,6 +215,21 @@ public class Fawe {
         Settings.setup(new File(this.IMP.getDirectory(), "config.yml"));
         // Setting up message.yml
         BBC.load(new File(this.IMP.getDirectory(), "message.yml"));
+        // Block rotation
+        try {
+            BundledBlockData.getInstance().loadFromResource();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        File jar = MainUtil.getJarFile();
+        File file = MainUtil.copyFile(jar, "extrablocks.json", null);
+        if (file != null && file.exists()) {
+            try {
+                BundledBlockData.getInstance().add(file.toURI().toURL(), false);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
     }
 
     private WorldEdit worldedit;
@@ -266,6 +284,7 @@ public class Fawe {
             Operations.inject(); // Optimizations
             // BlockData
             BlockData.inject(); // Temporary fix for 1.9.4
+            BundledBlockData.inject(); // Add custom rotation
             try {
                 CommandManager.inject(); // Async commands
                 PlatformManager.inject(); // Async brushes / tools
