@@ -6,6 +6,7 @@ import com.boydti.fawe.config.Settings;
 import com.boydti.fawe.object.BufferedRandomAccessFile;
 import com.boydti.fawe.object.IntegerTrio;
 import com.boydti.fawe.object.RunnableVal2;
+import com.boydti.fawe.util.MainUtil;
 import com.boydti.fawe.util.TaskManager;
 import com.sk89q.jnbt.CompoundTag;
 import com.sk89q.worldedit.BlockVector;
@@ -94,7 +95,7 @@ public class DiskOptimizedClipboard extends FaweClipboard {
             clipboard.setOrigin(new Vector(ox, oy, oz));
             return clipboard;
         } catch (IOException e) {
-            e.printStackTrace();
+            MainUtil.handleError(e);
         }
         return null;
     }
@@ -115,7 +116,7 @@ public class DiskOptimizedClipboard extends FaweClipboard {
             }
             file.createNewFile();
         } catch (Exception e) {
-            e.printStackTrace();
+            MainUtil.handleError(e);
         }
     }
 
@@ -136,7 +137,7 @@ public class DiskOptimizedClipboard extends FaweClipboard {
             raf.write((byte) (offset.getBlockZ() >> 8));
             raf.write((byte) (offset.getBlockZ()));
         } catch (IOException e) {
-            e.printStackTrace();
+            MainUtil.handleError(e);
         }
     }
 
@@ -147,7 +148,7 @@ public class DiskOptimizedClipboard extends FaweClipboard {
             file.setWritable(true);
             System.gc();
         } catch (IOException e) {
-            e.printStackTrace();
+            MainUtil.handleError(e);
         }
     }
 
@@ -163,7 +164,7 @@ public class DiskOptimizedClipboard extends FaweClipboard {
             tmp = null;
             System.gc();
         } catch (IOException e) {
-            e.printStackTrace();
+            MainUtil.handleError(e);
         }
     }
 
@@ -252,7 +253,7 @@ public class DiskOptimizedClipboard extends FaweClipboard {
                 task.run(pos, block);
             }
         } catch (IOException e) {
-            e.printStackTrace();
+            MainUtil.handleError(e);
         }
     }
 
@@ -285,7 +286,7 @@ public class DiskOptimizedClipboard extends FaweClipboard {
             }
             return block;
         }  catch (Exception e) {
-            e.printStackTrace();
+            MainUtil.handleError(e);
         }
         return EditSession.nullBlock;
     }
@@ -313,7 +314,7 @@ public class DiskOptimizedClipboard extends FaweClipboard {
             }
             return true;
         }  catch (Exception e) {
-            e.printStackTrace();
+            MainUtil.handleError(e);
         }
         return false;
     }

@@ -1,5 +1,6 @@
 package com.boydti.fawe.forge;
 
+import com.boydti.fawe.util.MainUtil;
 import com.boydti.fawe.util.TaskManager;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedDeque;
@@ -44,7 +45,7 @@ public class ForgeTaskMan extends TaskManager {
                 try {
                     r.run();
                 } catch (Throwable e) {
-                    e.printStackTrace();
+                    MainUtil.handleError(e);
                 }
                 later(this, interval);
             }
@@ -68,7 +69,7 @@ public class ForgeTaskMan extends TaskManager {
                 try {
                     item.run();
                 } catch (Throwable e) {
-                    e.printStackTrace();
+                    MainUtil.handleError(e);
                 }
             }
         }
@@ -90,7 +91,7 @@ public class ForgeTaskMan extends TaskManager {
                 try {
                     r.run();
                 } catch (Throwable e) {
-                    e.printStackTrace();
+                    MainUtil.handleError(e);
                 }
                 laterAsync(this, interval);
             }
@@ -127,7 +128,7 @@ public class ForgeTaskMan extends TaskManager {
                     try {
                         r.run();
                     } catch (Throwable e) {
-                        e.printStackTrace();
+                        MainUtil.handleError(e);
                     }
                     return;
                 }
@@ -149,7 +150,7 @@ public class ForgeTaskMan extends TaskManager {
                     try {
                         async(r);
                     } catch (Throwable e) {
-                        e.printStackTrace();
+                        MainUtil.handleError(e);
                     }
                     return;
                 }

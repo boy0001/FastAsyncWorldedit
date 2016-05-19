@@ -29,7 +29,7 @@ public class WEManager {
             field.setAccessible(true);
             field.set(parent, new NullExtent((Extent) field.get(parent), reason));
         } catch (final Exception e) {
-            e.printStackTrace();
+            MainUtil.handleError(e);
         }
         throw new FaweException(reason);
     }
@@ -148,7 +148,7 @@ public class WEManager {
                         }
                     });
                 } catch (final Exception e) {
-                    e.printStackTrace();
+                    MainUtil.handleError(e);
                 }
             }
         }, false, false);

@@ -21,6 +21,7 @@ package com.sk89q.worldedit.extension.platform;
 
 import com.boydti.fawe.config.BBC;
 import com.boydti.fawe.object.exception.FaweException;
+import com.boydti.fawe.util.MainUtil;
 import com.sk89q.worldedit.LocalConfiguration;
 import com.sk89q.worldedit.LocalSession;
 import com.sk89q.worldedit.ServerInterface;
@@ -413,7 +414,7 @@ public class PlatformManager {
             } else {
                 actor.printError("Please report this error: [See console]");
                 actor.printRaw(e.getClass().getName() + ": " + e.getMessage());
-                e.printStackTrace();
+                MainUtil.handleError(e);
             }
         }
     }
@@ -500,7 +501,7 @@ public class PlatformManager {
             } else {
                 player.printError("Please report this error: [See console]");
                 player.printRaw(e.getClass().getName() + ": " + e.getMessage());
-                e.printStackTrace();
+                MainUtil.handleError(e);
             }
         }
     }

@@ -164,7 +164,7 @@ public abstract class TaskManager {
                 } catch (RuntimeException e) {
                     this.value = e;
                 } catch (Throwable neverHappens) {
-                    neverHappens.printStackTrace();
+                    MainUtil.handleError(neverHappens);
                 } finally {
                     running.set(false);
                 }
@@ -181,7 +181,7 @@ public abstract class TaskManager {
                 }
             }
         } catch (InterruptedException e) {
-            e.printStackTrace();
+            MainUtil.handleError(e);
         }
         if (run.value != null) {
             throw run.value;

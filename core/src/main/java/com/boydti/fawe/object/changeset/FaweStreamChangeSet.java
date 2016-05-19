@@ -4,6 +4,7 @@ import com.boydti.fawe.config.Settings;
 import com.boydti.fawe.object.change.MutableBlockChange;
 import com.boydti.fawe.object.change.MutableEntityChange;
 import com.boydti.fawe.object.change.MutableTileChange;
+import com.boydti.fawe.util.MainUtil;
 import com.sk89q.jnbt.CompoundTag;
 import com.sk89q.jnbt.NBTInputStream;
 import com.sk89q.jnbt.NBTOutputStream;
@@ -109,7 +110,7 @@ public abstract class FaweStreamChangeSet extends FaweChangeSet {
             stream.write(((combinedTo) >> 8) & 0xff);
         }
         catch (IOException e) {
-            e.printStackTrace();
+            MainUtil.handleError(e);
         }
     }
 
@@ -121,7 +122,7 @@ public abstract class FaweStreamChangeSet extends FaweChangeSet {
             NBTOutputStream nbtos = getTileCreateOS();
             nbtos.writeNamedTag(tileCreateSize++ + "", tag);
         } catch (IOException e) {
-            e.printStackTrace();
+            MainUtil.handleError(e);
         }
     }
 
@@ -133,7 +134,7 @@ public abstract class FaweStreamChangeSet extends FaweChangeSet {
             NBTOutputStream nbtos = getTileRemoveOS();
             nbtos.writeNamedTag(tileRemoveSize++ + "", tag);
         } catch (IOException e) {
-            e.printStackTrace();
+            MainUtil.handleError(e);
         }
     }
 
@@ -145,7 +146,7 @@ public abstract class FaweStreamChangeSet extends FaweChangeSet {
             NBTOutputStream nbtos = getEntityRemoveOS();
             nbtos.writeNamedTag(entityRemoveSize++ + "", tag);
         } catch (IOException e) {
-            e.printStackTrace();
+            MainUtil.handleError(e);
         }
     }
 
@@ -157,7 +158,7 @@ public abstract class FaweStreamChangeSet extends FaweChangeSet {
             NBTOutputStream nbtos = getEntityCreateOS();
             nbtos.writeNamedTag(entityCreateSize++ + "", tag);
         } catch (IOException e) {
-            e.printStackTrace();
+            MainUtil.handleError(e);
         }
     }
 
@@ -196,7 +197,7 @@ public abstract class FaweStreamChangeSet extends FaweChangeSet {
                     }
                     return change;
                 } catch (Exception ignoreEOF) {
-                    ignoreEOF.printStackTrace();
+                    MainUtil.handleError(ignoreEOF);
                 }
                 return null;
             }
@@ -212,7 +213,7 @@ public abstract class FaweStreamChangeSet extends FaweChangeSet {
                 try {
                     is.close();
                 } catch (IOException e) {
-                    e.printStackTrace();
+                    MainUtil.handleError(e);
                 }
                 return false;
             }
@@ -258,7 +259,7 @@ public abstract class FaweStreamChangeSet extends FaweChangeSet {
                     try {
                         is.close();
                     } catch (IOException e) {
-                        e.printStackTrace();
+                        MainUtil.handleError(e);
                     }
                     return false;
                 }
@@ -276,7 +277,7 @@ public abstract class FaweStreamChangeSet extends FaweChangeSet {
                 }
             };
         } catch (Exception e) {
-            e.printStackTrace();
+            MainUtil.handleError(e);
             return null;
         }
     }
@@ -308,7 +309,7 @@ public abstract class FaweStreamChangeSet extends FaweChangeSet {
                     try {
                         is.close();
                     } catch (IOException e) {
-                        e.printStackTrace();
+                        MainUtil.handleError(e);
                     }
                     return false;
                 }
@@ -326,7 +327,7 @@ public abstract class FaweStreamChangeSet extends FaweChangeSet {
                 }
             };
         } catch (Exception e) {
-            e.printStackTrace();
+            MainUtil.handleError(e);
             return null;
         }
     }
@@ -370,7 +371,7 @@ public abstract class FaweStreamChangeSet extends FaweChangeSet {
                 }
             };
         } catch (Exception e) {
-            e.printStackTrace();
+            MainUtil.handleError(e);
         }
         return new ArrayList<Change>().iterator();
     }

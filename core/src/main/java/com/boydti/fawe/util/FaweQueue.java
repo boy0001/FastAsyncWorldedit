@@ -82,7 +82,7 @@ public abstract class FaweQueue {
 
     public abstract boolean setBiome(final int x, final int z, final BaseBiome biome);
 
-    public abstract FaweChunk<?> getChunk(int x, int z);
+    public abstract FaweChunk<?> getFaweChunk(int x, int z);
 
     public abstract void setChunk(final FaweChunk<?> chunk);
 
@@ -138,6 +138,8 @@ public abstract class FaweQueue {
     public abstract void addNotifyTask(Runnable runnable);
 
     public abstract int getCombinedId4Data(int x, int y, int z) throws FaweException.FaweChunkLoadException;
+
+    public abstract CompoundTag getTileEntity(int x, int y, int z) throws FaweException.FaweChunkLoadException;
 
     public int getCombinedId4Data(int x, int y, int z, int def) {
         try {

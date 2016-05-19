@@ -2,6 +2,7 @@ package com.boydti.fawe.wrappers;
 
 import com.boydti.fawe.Fawe;
 import com.boydti.fawe.object.RunnableVal;
+import com.boydti.fawe.util.MainUtil;
 import com.boydti.fawe.util.TaskManager;
 import com.sk89q.worldedit.EditSession;
 import com.sk89q.worldedit.EditSessionFactory;
@@ -200,7 +201,7 @@ public class PlayerWrapper implements Player {
                 session.remember(edit);
             }
         } catch (MaxChangedBlocksException e) {
-            e.printStackTrace();
+            MainUtil.handleError(e);
         }
         TaskManager.IMP.sync(new RunnableVal<Object>() {
             @Override

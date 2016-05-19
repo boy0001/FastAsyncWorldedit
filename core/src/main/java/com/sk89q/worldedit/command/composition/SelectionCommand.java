@@ -121,7 +121,7 @@ public class SelectionCommand extends SimpleCommand<Operation> {
 
                                 final int id = block.getId();
                                 final byte data = (byte) block.getData();
-                                final FaweChunk<?> fc = queue.getChunk(0, 0);
+                                final FaweChunk<?> fc = queue.getFaweChunk(0, 0);
                                 fc.fillCuboid(0, 15, minY, maxY, 0, 15, id, data);
                                 fc.optimize();
 
@@ -147,7 +147,7 @@ public class SelectionCommand extends SimpleCommand<Operation> {
                                                 newChunk = fc.copy(true);
                                                 newChunk.setLoc(queue, value[0], value[1]);
                                             } else {
-                                                newChunk = queue.getChunk(value[0], value[1]);
+                                                newChunk = queue.getFaweChunk(value[0], value[1]);
                                                 newChunk.fillCuboid(value[2] & 15, value[4] & 15, minY, maxY, value[3] & 15, value[5] & 15, id, data);
                                             }
                                         }
@@ -160,7 +160,7 @@ public class SelectionCommand extends SimpleCommand<Operation> {
                                 return null;
                             }
                         } catch (Throwable e) {
-                            e.printStackTrace();
+                            MainUtil.handleError(e);
                         }
                     }
                 }

@@ -4,6 +4,7 @@ import com.boydti.fawe.Fawe;
 import com.boydti.fawe.config.Settings;
 import com.boydti.fawe.object.IntegerPair;
 import com.boydti.fawe.object.RegionWrapper;
+import com.boydti.fawe.util.MainUtil;
 import com.sk89q.jnbt.NBTInputStream;
 import com.sk89q.jnbt.NBTOutputStream;
 import com.sk89q.worldedit.world.World;
@@ -144,7 +145,7 @@ public class DiskStorageHistory extends FaweStreamChangeSet {
                 osENTCT = null;
             }
         } catch (Exception e) {
-            e.printStackTrace();
+            MainUtil.handleError(e);
         }
         return flushed;
     }
@@ -305,7 +306,7 @@ public class DiskStorageHistory extends FaweStreamChangeSet {
                     summary.add(x, z, ((combined2 << 4) + (combined1 >> 4)));
                 }
             } catch (IOException e) {
-                e.printStackTrace();
+                MainUtil.handleError(e);
             }
         }
         return summary;
@@ -331,7 +332,7 @@ public class DiskStorageHistory extends FaweStreamChangeSet {
                 fis.close();
                 gis.close();
             } catch (IOException e) {
-                e.printStackTrace();
+                MainUtil.handleError(e);
             }
         }
         return new IntegerPair(ox, oz);

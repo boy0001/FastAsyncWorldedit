@@ -20,6 +20,7 @@ import com.boydti.fawe.object.FaweCommand;
 import com.boydti.fawe.object.FawePlayer;
 import com.boydti.fawe.regions.FaweMaskManager;
 import com.boydti.fawe.util.FaweQueue;
+import com.boydti.fawe.util.MainUtil;
 import com.boydti.fawe.util.ReflectionUtils;
 import com.boydti.fawe.util.StringMan;
 import com.boydti.fawe.util.TaskManager;
@@ -72,7 +73,7 @@ public class FaweBukkit implements IFawe, Listener {
             }
 
         } catch (final Throwable e) {
-            e.printStackTrace();
+            MainUtil.handleError(e);
             Bukkit.getServer().shutdown();
         }
         TaskManager.IMP.task(new Runnable() {
@@ -158,7 +159,7 @@ public class FaweBukkit implements IFawe, Listener {
                     this.version[2] = Integer.parseInt(split[2]);
                 }
             } catch (final NumberFormatException e) {
-                e.printStackTrace();
+                MainUtil.handleError(e);
                 Fawe.debug(StringMan.getString(Bukkit.getBukkitVersion()));
                 Fawe.debug(StringMan.getString(Bukkit.getBukkitVersion().split("-")[0].split("\\.")));
                 return new int[] { Integer.MAX_VALUE, 0, 0 };
@@ -235,7 +236,7 @@ public class FaweBukkit implements IFawe, Listener {
                 managers.add(new Worldguard(worldguardPlugin, this));
                 Fawe.debug("Plugin 'WorldGuard' found. Using it now.");
             } catch (final Throwable e) {
-                e.printStackTrace();
+                MainUtil.handleError(e);
             }
         }
         final Plugin plotmePlugin = Bukkit.getServer().getPluginManager().getPlugin("PlotMe");
@@ -244,7 +245,7 @@ public class FaweBukkit implements IFawe, Listener {
                 managers.add(new PlotMeFeature(plotmePlugin, this));
                 Fawe.debug("Plugin 'PlotMe' found. Using it now.");
             } catch (final Throwable e) {
-                e.printStackTrace();
+                MainUtil.handleError(e);
             }
         }
         final Plugin townyPlugin = Bukkit.getServer().getPluginManager().getPlugin("Towny");
@@ -253,7 +254,7 @@ public class FaweBukkit implements IFawe, Listener {
                 managers.add(new TownyFeature(townyPlugin, this));
                 Fawe.debug("Plugin 'Towny' found. Using it now.");
             } catch (final Throwable e) {
-                e.printStackTrace();
+                MainUtil.handleError(e);
             }
         }
         final Plugin factionsPlugin = Bukkit.getServer().getPluginManager().getPlugin("Factions");
@@ -270,7 +271,7 @@ public class FaweBukkit implements IFawe, Listener {
                         managers.add(new FactionsOneFeature(factionsPlugin, this));
                         Fawe.debug("Plugin 'FactionsUUID' found. Using it now.");
                     } catch (Throwable e3) {
-                        e.printStackTrace();
+                        MainUtil.handleError(e);
                     }
 
                 }
@@ -282,7 +283,7 @@ public class FaweBukkit implements IFawe, Listener {
                 managers.add(new ResidenceFeature(residencePlugin, this));
                 Fawe.debug("Plugin 'Residence' found. Using it now.");
             } catch (final Throwable e) {
-                e.printStackTrace();
+                MainUtil.handleError(e);
             }
         }
         final Plugin griefpreventionPlugin = Bukkit.getServer().getPluginManager().getPlugin("GriefPrevention");
@@ -291,7 +292,7 @@ public class FaweBukkit implements IFawe, Listener {
                 managers.add(new GriefPreventionFeature(griefpreventionPlugin, this));
                 Fawe.debug("Plugin 'GriefPrevention' found. Using it now.");
             } catch (final Throwable e) {
-                e.printStackTrace();
+                MainUtil.handleError(e);
             }
         }
         final Plugin preciousstonesPlugin = Bukkit.getServer().getPluginManager().getPlugin("PreciousStones");
@@ -300,7 +301,7 @@ public class FaweBukkit implements IFawe, Listener {
                 managers.add(new PreciousStonesFeature(preciousstonesPlugin, this));
                 Fawe.debug("Plugin 'PreciousStones' found. Using it now.");
             } catch (final Throwable e) {
-                e.printStackTrace();
+                MainUtil.handleError(e);
             }
         }
         return managers;

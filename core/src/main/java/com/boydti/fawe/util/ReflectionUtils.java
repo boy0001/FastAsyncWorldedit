@@ -53,7 +53,7 @@ public class ReflectionUtils {
                     preClassM = "net.minecraft.server." + verM;
                 }
             } catch (final Exception ignored) {
-                ignored.printStackTrace();
+                MainUtil.handleError(ignored);
             }
         }
     }
@@ -65,7 +65,7 @@ public static <T, V> Map<T, V> getMap(Map<T, V> map) {
         m.setAccessible(true);
         return (Map<T, V>) m.get(map);
     } catch (Throwable e) {
-        e.printStackTrace();
+        MainUtil.handleError(e);
         return map;
     }
 }
@@ -77,7 +77,7 @@ public static <T> List<T> getList(List<T> list) {
         m.setAccessible(true);
         return (List<T>) m.get(list);
     } catch (Throwable e) {
-        e.printStackTrace();
+        MainUtil.handleError(e);
         return list;
     }
 }

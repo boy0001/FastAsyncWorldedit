@@ -42,7 +42,7 @@ public class FixLighting extends FaweCommand {
         FaweQueue queue = SetQueue.IMP.getNewQueue(loc.world, true, false);
         for (int x = minX; x <= maxX; x++) {
             for (int z = minZ; z <= maxZ; z++) {
-                queue.sendChunk(queue.getChunk(x, z), FaweQueue.RelightMode.ALL);
+                queue.sendChunk(queue.getFaweChunk(x, z), FaweQueue.RelightMode.ALL);
                 count++;
             }
         }

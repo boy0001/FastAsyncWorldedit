@@ -296,7 +296,7 @@ public abstract class CharFaweChunk<T> extends FaweChunk<T> {
 
     @Override
     public CharFaweChunk<T> copy(boolean shallow) {
-        CharFaweChunk<T> copy = (CharFaweChunk<T>) getParent().getChunk(getX(), getZ());
+        CharFaweChunk<T> copy = (CharFaweChunk<T>) getParent().getFaweChunk(getX(), getZ());
         if (shallow) {
             copy.ids = ids;
             copy.air = air;

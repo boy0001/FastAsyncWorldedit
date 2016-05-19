@@ -9,6 +9,7 @@ import com.boydti.fawe.object.RegionWrapper;
 import com.boydti.fawe.object.changeset.DiskStorageHistory;
 import com.boydti.fawe.regions.FaweMaskManager;
 import com.boydti.fawe.util.FaweQueue;
+import com.boydti.fawe.util.MainUtil;
 import com.boydti.fawe.util.MemUtil;
 import com.boydti.fawe.util.SetQueue;
 import com.boydti.fawe.util.TaskManager;
@@ -327,7 +328,7 @@ public class FaweAPI {
      */
     public static void fixLighting(String world, int x, int z, FaweQueue.RelightMode mode) {
         FaweQueue queue = SetQueue.IMP.getNewQueue(world, true, false);
-        queue.fixLighting(queue.getChunk(x, z), mode);
+        queue.fixLighting(queue.getFaweChunk(x, z), mode);
     }
 
     /**
@@ -337,7 +338,7 @@ public class FaweAPI {
      */
     public static void fixLighting(final Chunk chunk, FaweQueue.RelightMode mode) {
         FaweQueue queue = SetQueue.IMP.getNewQueue(chunk.getWorld().getName(), true, false);
-        queue.fixLighting(queue.getChunk(chunk.getX(), chunk.getZ()), mode);
+        queue.fixLighting(queue.getFaweChunk(chunk.getX(), chunk.getZ()), mode);
     }
 
     /**
@@ -369,7 +370,7 @@ public class FaweAPI {
             final FileInputStream is = new FileInputStream(file);
             streamSchematic(is, loc);
         } catch (final IOException e) {
-            e.printStackTrace();
+            MainUtil.handleError(e);
         }
     }
 
@@ -387,7 +388,7 @@ public class FaweAPI {
             final InputStream is = Channels.newInputStream(rbc);
             streamSchematic(is, loc);
         } catch (final IOException e) {
-            e.printStackTrace();
+            MainUtil.handleError(e);
         }
     }
 

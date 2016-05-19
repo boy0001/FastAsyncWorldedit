@@ -1,6 +1,7 @@
 package com.boydti.fawe.sponge;
 
 import com.boydti.fawe.Fawe;
+import com.boydti.fawe.util.MainUtil;
 import com.sk89q.worldedit.world.biome.BiomeData;
 import java.lang.reflect.Field;
 import java.util.HashMap;
@@ -58,7 +59,7 @@ public class SpongeUtil {
                 }
             }
         } catch (Throwable e) {
-            e.printStackTrace();
+            MainUtil.handleError(e);
         }
     }
 

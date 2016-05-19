@@ -1,6 +1,7 @@
 package com.boydti.fawe.bukkit;
 
 import com.boydti.fawe.Fawe;
+import com.boydti.fawe.util.MainUtil;
 import java.io.BufferedReader;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
@@ -89,7 +90,7 @@ public class Metrics {
             gzos = new GZIPOutputStream(baos);
             gzos.write(input.getBytes("UTF-8"));
         } catch (IOException e) {
-            e.printStackTrace();
+            MainUtil.handleError(e);
         } finally {
             if (gzos != null) {
                 try {
@@ -243,7 +244,7 @@ public class Metrics {
                     // Each post thereafter will be a ping
                     this.firstPost = false;
                 } catch (IOException e) {
-                    e.printStackTrace();
+                    MainUtil.handleError(e);
                     if (Metrics.this.debug) {
                         Bukkit.getLogger().log(Level.INFO, "[Metrics] " + e.getMessage());
                     }
@@ -431,7 +432,7 @@ public class Metrics {
             }
         } catch (Exception e) {
             if (this.debug) {
-                e.printStackTrace();
+                MainUtil.handleError(e);
             }
         }
     }

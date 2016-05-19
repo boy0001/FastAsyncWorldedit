@@ -3,6 +3,7 @@ package com.boydti.fawe.object;
 import com.boydti.fawe.FaweCache;
 import com.boydti.fawe.object.changeset.FaweChangeSet;
 import com.boydti.fawe.util.FaweQueue;
+import com.sk89q.jnbt.CompoundTag;
 import com.sk89q.worldedit.EditSession;
 import com.sk89q.worldedit.Vector;
 import com.sk89q.worldedit.WorldEditException;
@@ -59,7 +60,7 @@ public class HistoryExtent extends AbstractDelegateExtent {
             if (!FaweCache.hasData(id)) {
                 return false;
             }
-            int data = id & 0xF;
+            int data = combined & 0xF;
             if (data == block.getData()) {
                 return false;
             }
@@ -72,8 +73,10 @@ public class HistoryExtent extends AbstractDelegateExtent {
             }
         } else {
             try {
-                this.changeSet.add(location, getBlock(location), block);
+                CompoundTag tag = queue.getTileEntity(x, y, z);
+                this.changeSet.add(location, new BaseBlock(id, combined & 0xF, tag), block);
             } catch (Throwable e) {
+                e.printStackTrace();
                 this.changeSet.add(x, y, z, combined, block);
             }
         }

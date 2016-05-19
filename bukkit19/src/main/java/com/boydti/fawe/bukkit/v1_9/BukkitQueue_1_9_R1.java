@@ -8,6 +8,7 @@ import com.boydti.fawe.object.BytePair;
 import com.boydti.fawe.object.FaweChunk;
 import com.boydti.fawe.object.PseudoRandom;
 import com.boydti.fawe.object.RunnableVal;
+import com.boydti.fawe.util.MainUtil;
 import com.boydti.fawe.util.MathMan;
 import com.boydti.fawe.util.ReflectionUtils;
 import com.sk89q.jnbt.CompoundTag;
@@ -70,7 +71,7 @@ public class BukkitQueue_1_9_R1 extends BukkitQueue_0<Chunk, ChunkSection[], Dat
     }
 
     @Override
-    public ChunkSection[] getCachedChunk(World world, int cx, int cz) {
+    public ChunkSection[] getCachedSections(World world, int cx, int cz) {
         CraftChunk chunk = (CraftChunk) world.getChunkAt(cx, cz);
         return chunk.getHandle().getSections();
     }
@@ -134,7 +135,6 @@ public class BukkitQueue_1_9_R1 extends BukkitQueue_0<Chunk, ChunkSection[], Dat
             net.minecraft.server.v1_9_R2.World w = c.world;
             final int X = chunk.getX() << 4;
             final int Z = chunk.getZ() << 4;
-            BlockPosition.MutableBlockPosition pos = new BlockPosition.MutableBlockPosition(0, 0, 0);
             for (int j = sections.length - 1; j >= 0; j--) {
                 final Object section = sections[j];
                 if (section == null) {
@@ -202,7 +202,7 @@ public class BukkitQueue_1_9_R1 extends BukkitQueue_0<Chunk, ChunkSection[], Dat
             return true;
         } catch (final Throwable e) {
             if (Thread.currentThread() == Fawe.get().getMainThread()) {
-                e.printStackTrace();
+                MainUtil.handleError(e);
             }
         }
         return false;
@@ -282,7 +282,7 @@ public class BukkitQueue_1_9_R1 extends BukkitQueue_0<Chunk, ChunkSection[], Dat
     public CharFaweChunk getPrevious(CharFaweChunk fs, ChunkSection[] sections, Map<?, ?> tilesGeneric, Collection<?>[] entitiesGeneric, Set<UUID> createdEntities, boolean all) throws Exception {
         Map<BlockPosition, TileEntity> tiles = (Map<BlockPosition, TileEntity>) tilesGeneric;
         Collection<Entity>[] entities = (Collection<Entity>[]) entitiesGeneric;
-        CharFaweChunk previous = (CharFaweChunk) getChunk(fs.getX(), fs.getZ());
+        CharFaweChunk previous = (CharFaweChunk) getFaweChunk(fs.getX(), fs.getZ());
         // Copy blocks
         char[][] idPrevious = new char[16][];
         for (int layer = 0; layer < sections.length; layer++) {
@@ -320,17 +320,16 @@ public class BukkitQueue_1_9_R1 extends BukkitQueue_0<Chunk, ChunkSection[], Dat
             for (Map.Entry<BlockPosition, TileEntity> entry : tiles.entrySet()) {
                 TileEntity tile = entry.getValue();
                 NBTTagCompound tag = new NBTTagCompound();
-                tile.save(tag); // readTagIntoEntity
                 BlockPosition pos = entry.getKey();
-                CompoundTag nativeTag = (CompoundTag) methodToNative.invoke(adapter, tag);
-                previous.setTile(pos.getX(), pos.getY(), pos.getZ(), nativeTag);
+                CompoundTag nativeTag = getTag(tile);
+                previous.setTile(pos.getX() & 15, pos.getY(), pos.getZ() & 15, nativeTag);
             }
         }
         // Copy entities
         if (entities != null) {
             for (Collection<Entity> entityList : entities) {
                 for (Entity ent : entityList) {
-                    if (ent instanceof EntityPlayer || (!createdEntities.isEmpty() && !createdEntities.contains(ent.getUniqueID()))) {
+                    if (ent instanceof EntityPlayer || (!createdEntities.isEmpty() && createdEntities.contains(ent.getUniqueID()))) {
                         continue;
                     }
                     int x = ((int) Math.round(ent.locX) & 15);
@@ -357,6 +356,32 @@ public class BukkitQueue_1_9_R1 extends BukkitQueue_0<Chunk, ChunkSection[], Dat
             }
         }
         return previous;
+    }
+
+    private BlockPosition.MutableBlockPosition pos = new BlockPosition.MutableBlockPosition(0, 0, 0);
+
+    @Override
+    public CompoundTag getTileEntity(Chunk chunk, int x, int y, int z) {
+        Map<BlockPosition, TileEntity> tiles = ((CraftChunk) chunk).getHandle().getTileEntities();
+        pos.c(x, y, z);
+        TileEntity tile = tiles.get(pos);
+        return tile != null ? getTag(tile) : null;
+    }
+
+    public CompoundTag getTag(TileEntity tile) {
+        try {
+            NBTTagCompound tag = new NBTTagCompound();
+            tile.save(tag); // readTagIntoEntity
+            return (CompoundTag) methodToNative.invoke(adapter, tag);
+        } catch (Exception e) {
+            MainUtil.handleError(e);
+            return null;
+        }
+    }
+
+    @Override
+    public Chunk getChunk(World world, int x, int z) {
+        return world.getChunkAt(x, z);
     }
 
     @Override
@@ -396,6 +421,7 @@ public class BukkitQueue_1_9_R1 extends BukkitQueue_0<Chunk, ChunkSection[], Dat
                         }
                         int j = FaweCache.CACHE_J[y][x][z];
                         if (array[j] != 0) {
+//                            System.out.println("REMOVE ENT (blocked): " + entity);
                             nmsWorld.removeEntity(entity);
                         }
                     }
@@ -407,6 +433,7 @@ public class BukkitQueue_1_9_R1 extends BukkitQueue_0<Chunk, ChunkSection[], Dat
                     Collection<Entity> ents = new ArrayList<>(entities[i]);
                     for (Entity entity : ents) {
                         if (entsToRemove.contains(entity.getUniqueID())) {
+//                            System.out.println("REMOVE ENT (action): " + entity);
                             nmsWorld.removeEntity(entity);
                         }
                     }
@@ -445,6 +472,7 @@ public class BukkitQueue_1_9_R1 extends BukkitQueue_0<Chunk, ChunkSection[], Dat
                     entity.setLocation(x, y, z, yaw, pitch);
                     nmsWorld.addEntity(entity, CreatureSpawnEvent.SpawnReason.CUSTOM);
                     createdEntities.add(entity.getUniqueID());
+//                    System.out.println("CREATE ENT (action): " + entity);
                 }
             }
             // Change task?
@@ -568,7 +596,7 @@ public class BukkitQueue_1_9_R1 extends BukkitQueue_0<Chunk, ChunkSection[], Dat
                 }
             }
         } catch (Throwable e) {
-            e.printStackTrace();
+            MainUtil.handleError(e);
         }
         final int[][] biomes = fs.getBiomeArray();
         final Biome[] values = Biome.values();
@@ -602,7 +630,7 @@ public class BukkitQueue_1_9_R1 extends BukkitQueue_0<Chunk, ChunkSection[], Dat
     }
 
     @Override
-    public FaweChunk getChunk(int x, int z) {
+    public FaweChunk getFaweChunk(int x, int z) {
         return new BukkitChunk_1_9(this, x, z);
     }
 }

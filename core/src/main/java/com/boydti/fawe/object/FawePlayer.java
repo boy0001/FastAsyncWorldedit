@@ -7,6 +7,7 @@ import com.boydti.fawe.config.Settings;
 import com.boydti.fawe.object.changeset.DiskStorageHistory;
 import com.boydti.fawe.object.changeset.FaweStreamChangeSet;
 import com.boydti.fawe.object.clipboard.DiskOptimizedClipboard;
+import com.boydti.fawe.util.MainUtil;
 import com.boydti.fawe.util.TaskManager;
 import com.boydti.fawe.util.WEManager;
 import com.boydti.fawe.wrappers.PlayerWrapper;
@@ -66,7 +67,7 @@ public abstract class FawePlayer<T> {
                     Player player = (Player) fieldBasePlayer.get(actor);
                     return wrap(player);
                 } catch (Throwable e) {
-                    e.printStackTrace();
+                    MainUtil.handleError(e);
                     return Fawe.imp().wrap(actor.getName());
                 }
             } else if (obj instanceof PlayerWrapper){
@@ -77,7 +78,7 @@ public abstract class FawePlayer<T> {
                     fieldPlayer.setAccessible(true);
                     return wrap(fieldPlayer.get(actor));
                 } catch (Throwable e) {
-                    e.printStackTrace();
+                    MainUtil.handleError(e);
                     return Fawe.imp().wrap(actor.getName());
                 }
             }
@@ -103,7 +104,7 @@ public abstract class FawePlayer<T> {
             }
             loadClipboardFromDisk();
         } catch (Exception e) {
-            e.printStackTrace();
+            MainUtil.handleError(e);
             Fawe.debug("Failed to load history for: " + getName());
         }
     }
@@ -130,7 +131,7 @@ public abstract class FawePlayer<T> {
             }
         } catch (Exception ignore) {
             Fawe.debug("====== INVALID CLIPBOARD ======");
-            ignore.printStackTrace();
+            MainUtil.handleError(ignore, false);
             Fawe.debug("===============---=============");
             Fawe.debug("This shouldn't result in any failure");
             Fawe.debug("File: " + file.getName() + " (len:" + file.length() + ")");

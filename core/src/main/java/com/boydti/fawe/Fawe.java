@@ -219,7 +219,7 @@ public class Fawe {
         try {
             BundledBlockData.getInstance().loadFromResource();
         } catch (IOException e) {
-            e.printStackTrace();
+            MainUtil.handleError(e);
         }
         File jar = MainUtil.getJarFile();
         File file = MainUtil.copyFile(jar, "extrablocks.json", null);
@@ -288,7 +288,7 @@ public class Fawe {
                 PlatformManager.inject(); // Async brushes / tools
             } catch (Throwable e) {
                 debug("====== UPDATE WORLDEDIT TO 6.1.1 ======");
-                e.printStackTrace();
+                MainUtil.handleError(e, false);
                 debug("=======================================");
                 debug("Update the plugin, or contact the Author!");
                 if (IMP.getPlatform().equals("bukkit")) {
@@ -301,7 +301,7 @@ public class Fawe {
             }
         } catch (Throwable e) {
             debug("====== FAWE FAILED TO INITIALIZE ======");
-            e.printStackTrace();
+            MainUtil.handleError(e, false);
             debug("=======================================");
             debug("Things to check: ");
             debug(" - Using WorldEdit 6.1.1");
@@ -326,7 +326,7 @@ public class Fawe {
             } catch (Throwable ignore) {}
         } catch (Throwable e) {
             debug("====== LZ4 COMPRESSION BINDING NOT FOUND ======");
-            e.printStackTrace();
+            MainUtil.handleError(e, false);
             debug("===============================================");
             debug("FAWE will still work, but some things may be slower");
             debug(" - Try updating your JVM / OS");
@@ -378,7 +378,7 @@ public class Fawe {
             }
         } catch (Throwable e) {
             debug("====== MEMORY LISTENER ERROR ======");
-            e.printStackTrace();
+            MainUtil.handleError(e, false);
             debug("===================================");
             debug("FAWE needs access to the JVM memory system:");
             debug(" - Change your Java security settings");

@@ -22,6 +22,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.lang.reflect.Array;
+import java.lang.reflect.Method;
 import java.net.MalformedURLException;
 import java.net.URISyntaxException;
 import java.net.URL;
@@ -79,7 +80,7 @@ public class MainUtil {
             URL url = Fawe.class.getProtectionDomain().getCodeSource().getLocation();
             return new File(new URL(url.toURI().toString().split("\\!")[0].replaceAll("jar:file", "file")).toURI().getPath());
         } catch (MalformedURLException | URISyntaxException | SecurityException e) {
-            e.printStackTrace();
+            MainUtil.handleError(e);
             return new File(Fawe.imp().getDirectory().getParentFile(), "FastAsyncWorldEdit.jar");
         }
     }
@@ -130,7 +131,7 @@ public class MainUtil {
                 return newFile;
             }
         } catch (IOException e) {
-            e.printStackTrace();
+            MainUtil.handleError(e);
             Fawe.debug("&cCould not save " + resource);
         }
         return null;
@@ -172,8 +173,74 @@ public class MainUtil {
                 BBC.COMPRESSED.send(actor, saved, ratio);
             }
         } catch (Exception e) {
-            e.printStackTrace();
+            MainUtil.handleError(e);
         }
+    }
+
+    public static void handleError(Throwable e) {
+        handleError(e, true);
+    }
+
+    public static void handleError(Throwable e, boolean debug) {
+        if (e == null) {
+            return;
+        }
+        if (!debug) {
+            e.printStackTrace();
+            return;
+        }
+        String header = "====== FAWE: " + e.getLocalizedMessage() + " ======";
+        Fawe.debug(header);
+        String[] trace = getTrace(e);
+        for (int i = 0; i < trace.length && i < 8; i++) {
+            Fawe.debug(" - " + trace[i]);
+        }
+        String[] cause = getTrace(e.getCause());
+        Fawe.debug("Cause: " + (cause.length == 0 ? "N/A" : ""));
+        for (int i = 0; i < cause.length && i < 8; i++) {
+            Fawe.debug(" - " + cause[i]);
+        }
+        Fawe.debug(StringMan.repeat("=", header.length()));
+    }
+
+    public static String[] getTrace(Throwable e) {
+        if (e == null) {
+            return new String[0];
+        }
+        StackTraceElement[] elems = e.getStackTrace();
+        String[] msg = new String[elems.length];//[elems.length + 1];
+//        HashSet<String> packages = new HashSet<>();
+        for (int i = 0; i < elems.length; i++) {
+            StackTraceElement elem = elems[i];
+            elem.getLineNumber();
+            String methodName = elem.getMethodName();
+            int index = elem.getClassName().lastIndexOf('.');
+            String className = elem.getClassName();
+//            if (!(index == -1 || className.startsWith("io.netty") || className.startsWith("javax") || className.startsWith("java") || className.startsWith("sun") || className.startsWith("net.minecraft") || className.startsWith("org.spongepowered") || className.startsWith("org.bukkit") || className.startsWith("com.google"))) {
+//                packages.add(className.substring(0, index-1));
+//            }
+            String name = className.substring(index == -1 ? 0 : index + 1);
+            name = name.length() == 0 ? elem.getClassName() : name;
+            String argString = "(...)";
+            try {
+                for (Method method : Class.forName(elem.getClassName()).getDeclaredMethods()) {
+                    if (method.getName().equals(methodName)) {
+                        Class<?>[] params = method.getParameterTypes();
+                        argString = "";
+                        String prefix = "";
+                        for (Class param : params) {
+                            argString += prefix + param.getSimpleName();
+                            prefix = ",";
+                        }
+                        argString = "[" + method.getReturnType().getSimpleName() + "](" + argString + ")";
+                        break;
+                    }
+                }
+            } catch(Throwable ignore) {}
+            msg[i] = name + "." + methodName + argString + ":" + elem.getLineNumber();
+        }
+//        msg[msg.length-1] = StringMan.getString(packages);
+        return msg;
     }
 
     public static void smoothArray(int[] data, int width, int radius, int weight) {

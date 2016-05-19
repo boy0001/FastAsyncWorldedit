@@ -10,6 +10,7 @@ import com.boydti.fawe.object.FaweChunk;
 import com.boydti.fawe.object.FawePlayer;
 import com.boydti.fawe.object.PseudoRandom;
 import com.boydti.fawe.object.RunnableVal;
+import com.boydti.fawe.util.MainUtil;
 import com.boydti.fawe.util.MathMan;
 import com.boydti.fawe.util.ReflectionUtils;
 import com.sk89q.jnbt.CompoundTag;
@@ -65,6 +66,36 @@ public class ForgeQueue_All extends NMSMappedFaweQueue<World, Chunk, ExtendedBlo
         }
     }
 
+    private BlockPos.MutableBlockPos pos = new BlockPos.MutableBlockPos(0, 0, 0);
+
+    @Override
+    public CompoundTag getTileEntity(Chunk chunk, int x, int y, int z) {
+        Map<BlockPos, TileEntity> tiles = chunk.getTileEntityMap();
+        pos.set(x, y, z);
+        TileEntity tile = tiles.get(pos);
+        return tile != null ? getTag(tile) : null;
+    }
+
+    public CompoundTag getTag(TileEntity tile) {
+        try {
+            NBTTagCompound tag = new NBTTagCompound();
+            tile.readFromNBT(tag); // readTagIntoEntity
+            return (CompoundTag) methodToNative.invoke(null, tag);
+        } catch (Exception e) {
+            MainUtil.handleError(e);
+            return null;
+        }
+    }
+
+    @Override
+    public Chunk getChunk(World world, int x, int z) {
+        Chunk chunk = world.getChunkProvider().provideChunk(x, z);
+        if (chunk != null && !chunk.isLoaded()) {
+            chunk.onChunkLoad();
+        }
+        return chunk;
+    }
+
     @Override
     public boolean isChunkLoaded(int x, int z) {
         return getWorld().getChunkProvider().chunkExists(x, z);
@@ -101,7 +132,7 @@ public class ForgeQueue_All extends NMSMappedFaweQueue<World, Chunk, ExtendedBlo
             Set droppedChunksSet = (Set) droppedChunksSetField.get(chunkServer);
             droppedChunksSet.remove(pos);
         } catch (Throwable e) {
-            e.printStackTrace();
+            MainUtil.handleError(e);
         }
         chunkServer.id2ChunkMap.remove(pos);
         mcChunk = chunkProvider.provideChunk(x, z);
@@ -116,11 +147,11 @@ public class ForgeQueue_All extends NMSMappedFaweQueue<World, Chunk, ExtendedBlo
 
     @Override
     public boolean loadChunk(World world, int x, int z, boolean generate) {
-        return getCachedChunk(world, x, z) != null;
+        return getCachedSections(world, x, z) != null;
     }
 
     @Override
-    public ExtendedBlockStorage[] getCachedChunk(World world, int x, int z) {
+    public ExtendedBlockStorage[] getCachedSections(World world, int x, int z) {
         Chunk chunk = world.getChunkProvider().provideChunk(x, z);
         if (chunk != null && !chunk.isLoaded()) {
             chunk.onChunkLoad();
@@ -184,7 +215,6 @@ public class ForgeQueue_All extends NMSMappedFaweQueue<World, Chunk, ExtendedBlo
             int X = fc.getX() << 4;
             int Z = fc.getZ() << 4;
 
-            BlockPos.MutableBlockPos pos = new BlockPos.MutableBlockPos(0, 0, 0);
             for (int j = 0; j < sections.length; j++) {
                 ExtendedBlockStorage section = sections[j];
                 if (section == null) {
@@ -249,7 +279,7 @@ public class ForgeQueue_All extends NMSMappedFaweQueue<World, Chunk, ExtendedBlo
             return true;
         } catch (Throwable e) {
             if (Thread.currentThread() == Fawe.get().getMainThread()) {
-                e.printStackTrace();
+                MainUtil.handleError(e);
             }
         }
         return false;
@@ -259,7 +289,7 @@ public class ForgeQueue_All extends NMSMappedFaweQueue<World, Chunk, ExtendedBlo
     public CharFaweChunk getPrevious(CharFaweChunk fs, ExtendedBlockStorage[] sections, Map<?, ?> tilesGeneric, Collection<?>[] entitiesGeneric, Set<UUID> createdEntities, boolean all) throws Exception {
         Map<BlockPos, TileEntity> tiles = (Map<BlockPos, TileEntity>) tilesGeneric;
         ClassInheritanceMultiMap<Entity>[] entities = (ClassInheritanceMultiMap<Entity>[]) entitiesGeneric;
-        CharFaweChunk previous = (CharFaweChunk) getChunk(fs.getX(), fs.getZ());
+        CharFaweChunk previous = (CharFaweChunk) getFaweChunk(fs.getX(), fs.getZ());
         char[][] idPrevious = new char[16][];
         for (int layer = 0; layer < sections.length; layer++) {
             if (fs.getCount(layer) != 0 || all) {
@@ -291,7 +321,7 @@ public class ForgeQueue_All extends NMSMappedFaweQueue<World, Chunk, ExtendedBlo
         if (entities != null) {
             for (Collection<Entity> entityList : entities) {
                 for (Entity ent : entityList) {
-                    if (ent instanceof EntityPlayer || (!createdEntities.isEmpty() && !createdEntities.contains(ent.getUniqueID()))) {
+                    if (ent instanceof EntityPlayer || (!createdEntities.isEmpty() && createdEntities.contains(ent.getUniqueID()))) {
                         continue;
                     }
                     int x = ((int) Math.round(ent.posX) & 15);
@@ -503,7 +533,7 @@ public class ForgeQueue_All extends NMSMappedFaweQueue<World, Chunk, ExtendedBlo
                 }
             }
         } catch (Throwable e) {
-            e.printStackTrace();
+            MainUtil.handleError(e);
         }
         int[][] biomes = fs.biomes;
         if (biomes != null) {
@@ -557,7 +587,7 @@ public class ForgeQueue_All extends NMSMappedFaweQueue<World, Chunk, ExtendedBlo
     }
 
     @Override
-    public FaweChunk<Chunk> getChunk(int x, int z) {
+    public FaweChunk<Chunk> getFaweChunk(int x, int z) {
         return new ForgeChunk_All(this, x, z);
     }
 

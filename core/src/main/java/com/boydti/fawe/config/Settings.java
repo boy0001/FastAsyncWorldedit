@@ -3,6 +3,7 @@ package com.boydti.fawe.config;
 import com.boydti.fawe.configuration.file.YamlConfiguration;
 import com.boydti.fawe.object.FaweLimit;
 import com.boydti.fawe.object.FawePlayer;
+import com.boydti.fawe.util.MainUtil;
 import com.sk89q.worldedit.LocalSession;
 import java.io.File;
 import java.io.IOException;
@@ -77,7 +78,7 @@ public class Settings {
             try {
                 file.createNewFile();
             } catch (final IOException e) {
-                e.printStackTrace();
+                MainUtil.handleError(e);
             }
         }
         final YamlConfiguration config = YamlConfiguration.loadConfiguration(file);
@@ -168,7 +169,7 @@ public class Settings {
         try {
             config.save(file);
         } catch (final IOException e) {
-            e.printStackTrace();
+            MainUtil.handleError(e);
         }
     }
 }

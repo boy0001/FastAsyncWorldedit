@@ -1,6 +1,7 @@
 package com.boydti.fawe.bukkit.v0;
 
 import com.boydti.fawe.FaweCache;
+import com.sk89q.jnbt.CompoundTag;
 import org.bukkit.Chunk;
 import org.bukkit.World;
 import org.bukkit.block.Block;
@@ -20,7 +21,17 @@ public class BukkitQueue_All extends BukkitQueue_0<Chunk, Chunk, Chunk> {
     }
 
     @Override
-    public Chunk getCachedChunk(World impWorld, int cx, int cz) {
+    public Chunk getCachedSections(World impWorld, int cx, int cz) {
         return impWorld.getChunkAt(cx, cz);
+    }
+
+    @Override
+    public CompoundTag getTileEntity(Chunk chunk, int x, int y, int z) {
+        return null;
+    }
+
+    @Override
+    public Chunk getChunk(World world, int x, int z) {
+        return world.getChunkAt(x, z);
     }
 }

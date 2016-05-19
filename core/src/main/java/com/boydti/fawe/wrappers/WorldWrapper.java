@@ -5,6 +5,7 @@ import com.boydti.fawe.object.RunnableVal;
 import com.boydti.fawe.object.changeset.FaweChangeSet;
 import com.boydti.fawe.object.extent.FaweRegionExtent;
 import com.boydti.fawe.util.FaweQueue;
+import com.boydti.fawe.util.MainUtil;
 import com.boydti.fawe.util.TaskManager;
 import com.sk89q.worldedit.BlockVector2D;
 import com.sk89q.worldedit.EditSession;
@@ -97,7 +98,7 @@ public class WorldWrapper extends AbstractWorld {
                 try {
                     this.value = parent.generateTree(editSession, pt);
                 } catch (MaxChangedBlocksException e) {
-                    e.printStackTrace();
+                    MainUtil.handleError(e);
                 }
             }
         });
@@ -111,7 +112,7 @@ public class WorldWrapper extends AbstractWorld {
                 try {
                     this.value = parent.generateBigTree(editSession, pt);
                 } catch (MaxChangedBlocksException e) {
-                    e.printStackTrace();
+                    MainUtil.handleError(e);
                 }
             }
         });
@@ -125,7 +126,7 @@ public class WorldWrapper extends AbstractWorld {
                 try {
                     this.value = parent.generateBirchTree(editSession, pt);
                 } catch (MaxChangedBlocksException e) {
-                    e.printStackTrace();
+                    MainUtil.handleError(e);
                 }
             }
         });
@@ -139,7 +140,7 @@ public class WorldWrapper extends AbstractWorld {
                 try {
                     this.value = parent.generateRedwoodTree(editSession, pt);
                 } catch (MaxChangedBlocksException e) {
-                    e.printStackTrace();
+                    MainUtil.handleError(e);
                 }
             }
         });
@@ -153,7 +154,7 @@ public class WorldWrapper extends AbstractWorld {
                 try {
                     this.value = parent.generateTallRedwoodTree(editSession, pt);
                 } catch (MaxChangedBlocksException e) {
-                    e.printStackTrace();
+                    MainUtil.handleError(e);
                 }
             }
         });
@@ -333,7 +334,7 @@ public class WorldWrapper extends AbstractWorld {
                 try {
                     this.value = parent.generateTree(editSession, position);
                 } catch (MaxChangedBlocksException e) {
-                    e.printStackTrace();
+                    MainUtil.handleError(e);
                 }
             }
         });

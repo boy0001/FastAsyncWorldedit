@@ -1,5 +1,6 @@
 package net.jpountz.lz4;
 
+import com.boydti.fawe.util.MainUtil;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -99,7 +100,7 @@ public class LZ4StreamTest {
             assertEquals(-1, is.read(new byte[100]));
             assertEquals(-1, is.read());
         } catch(Throwable t) {
-            t.printStackTrace();
+            MainUtil.handleError(t);
             Assert.fail("Exception was thrown.  Seed value was " + seed);
         }
 

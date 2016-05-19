@@ -8,7 +8,10 @@ import com.boydti.fawe.example.NMSMappedFaweQueue;
 import com.boydti.fawe.object.FaweChunk;
 import com.boydti.fawe.object.PseudoRandom;
 import com.boydti.fawe.object.RunnableVal;
+import com.boydti.fawe.util.MainUtil;
+import com.sk89q.jnbt.CompoundTag;
 import java.lang.reflect.Field;
+import java.lang.reflect.Method;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
@@ -17,8 +20,11 @@ import java.util.UUID;
 import net.minecraft.block.Block;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.entity.player.EntityPlayerMP;
+import net.minecraft.nbt.NBTBase;
+import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.network.NetHandlerPlayServer;
 import net.minecraft.network.play.server.S21PacketChunkData;
+import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.BlockPos;
 import net.minecraft.util.LongHashMap;
 import net.minecraft.world.ChunkCoordIntPair;
@@ -38,8 +44,17 @@ import org.spongepowered.api.world.extent.worker.MutableBlockVolumeWorker;
 import org.spongepowered.api.world.extent.worker.procedure.BlockVolumeMapper;
 
 public class SpongeQueue_ALL extends NMSMappedFaweQueue<World, net.minecraft.world.chunk.Chunk, ExtendedBlockStorage[], char[]> {
+    private Method methodToNative;
+
     public SpongeQueue_ALL(String world) {
         super(world);
+        try {
+            Class<?> converter = Class.forName("com.sk89q.worldedit.forge.NBTConverter");
+            this.methodToNative = converter.getDeclaredMethod("fromNative", NBTBase.class);
+            methodToNative.setAccessible(true);
+        } catch (Throwable e) {
+            throw new RuntimeException(e);
+        }
     }
 
     @Override
@@ -69,6 +84,33 @@ public class SpongeQueue_ALL extends NMSMappedFaweQueue<World, net.minecraft.wor
             // Try sending true, 0 first
             // Try bulk chunk packet
         }
+    }
+
+    @Override
+    public CompoundTag getTileEntity(net.minecraft.world.chunk.Chunk chunk, int x, int y, int z) {
+        Map<BlockPos, TileEntity> tiles = chunk.getTileEntityMap();
+        TileEntity tile = tiles.get(new BlockPos(x, y, z));
+        return tile != null ? getTag(tile) : null;
+    }
+
+    public CompoundTag getTag(TileEntity tile) {
+        try {
+            NBTTagCompound tag = new NBTTagCompound();
+            tile.readFromNBT(tag); // readTagIntoEntity
+            return (CompoundTag) methodToNative.invoke(null, tag);
+        } catch (Exception e) {
+            MainUtil.handleError(e);
+            return null;
+        }
+    }
+
+    @Override
+    public net.minecraft.world.chunk.Chunk getChunk(World world, int x, int z) {
+        net.minecraft.world.chunk.Chunk chunk = ((net.minecraft.world.World) world).getChunkProvider().provideChunk(x, z);
+        if (chunk != null && !chunk.isLoaded()) {
+            chunk.onChunkLoad();
+        }
+        return chunk;
     }
 
     @Override
@@ -124,7 +166,7 @@ public class SpongeQueue_ALL extends NMSMappedFaweQueue<World, net.minecraft.wor
             }
             return true;
         } catch (Throwable e) {
-            e.printStackTrace();
+            MainUtil.handleError(e);
         }
         return false;
     }
@@ -188,7 +230,7 @@ public class SpongeQueue_ALL extends NMSMappedFaweQueue<World, net.minecraft.wor
     }
 
     @Override
-    public FaweChunk<net.minecraft.world.chunk.Chunk> getChunk(int x, int z) {
+    public FaweChunk<net.minecraft.world.chunk.Chunk> getFaweChunk(int x, int z) {
         return new SpongeChunk_1_8(this, x, z);
     }
 
@@ -293,7 +335,7 @@ public class SpongeQueue_ALL extends NMSMappedFaweQueue<World, net.minecraft.wor
             return true;
         } catch (Throwable e) {
             if (Thread.currentThread() == Fawe.get().getMainThread()) {
-                e.printStackTrace();
+                MainUtil.handleError(e);
             }
         }
         return false;
@@ -330,11 +372,11 @@ public class SpongeQueue_ALL extends NMSMappedFaweQueue<World, net.minecraft.wor
 
     @Override
     public boolean loadChunk(World world, int x, int z, boolean generate) {
-        return getCachedChunk(world, x, z) != null;
+        return getCachedSections(world, x, z) != null;
     }
 
     @Override
-    public ExtendedBlockStorage[] getCachedChunk(World world, int cx, int cz) {
+    public ExtendedBlockStorage[] getCachedSections(World world, int cx, int cz) {
         Chunk chunk = world.loadChunk(cx, 0, cz, true).orElse(null);
         return ((net.minecraft.world.chunk.Chunk) chunk).getBlockStorageArray();
     }

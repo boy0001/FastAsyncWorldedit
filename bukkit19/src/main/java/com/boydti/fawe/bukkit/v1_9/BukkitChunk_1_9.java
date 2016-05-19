@@ -3,6 +3,7 @@ package com.boydti.fawe.bukkit.v1_9;
 import com.boydti.fawe.FaweCache;
 import com.boydti.fawe.example.CharFaweChunk;
 import com.boydti.fawe.util.FaweQueue;
+import com.boydti.fawe.util.MainUtil;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import net.minecraft.server.v1_9_R2.Block;
@@ -78,7 +79,7 @@ public class BukkitChunk_1_9 extends CharFaweChunk<Chunk> {
                     value.sectionPalettes[i] = paletteBlock;
                 }
             } catch (Throwable e) {
-                e.printStackTrace();
+                MainUtil.handleError(e);
             }
         }
         return value;

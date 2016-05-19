@@ -30,6 +30,7 @@
 
 package com.boydti.fawe.forge;
 
+import com.boydti.fawe.util.MainUtil;
 import cpw.mods.fml.common.FMLCommonHandler;
 import cpw.mods.fml.common.FMLLog;
 import cpw.mods.fml.common.Loader;
@@ -361,7 +362,7 @@ public class ForgeMetrics {
             gzos = new GZIPOutputStream(baos);
             gzos.write(input.getBytes("UTF-8"));
         } catch (IOException e) {
-            e.printStackTrace();
+            MainUtil.handleError(e);
         } finally {
             if (gzos != null) try {
                 gzos.close();

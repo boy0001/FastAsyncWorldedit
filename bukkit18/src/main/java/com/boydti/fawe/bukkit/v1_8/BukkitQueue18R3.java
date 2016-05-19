@@ -11,6 +11,7 @@ import com.boydti.fawe.object.FaweLocation;
 import com.boydti.fawe.object.FawePlayer;
 import com.boydti.fawe.object.PseudoRandom;
 import com.boydti.fawe.object.RunnableVal;
+import com.boydti.fawe.util.MainUtil;
 import com.boydti.fawe.util.MathMan;
 import com.boydti.fawe.util.ReflectionUtils;
 import com.sk89q.jnbt.CompoundTag;
@@ -68,11 +69,11 @@ public class BukkitQueue18R3 extends BukkitQueue_0<Chunk, ChunkSection[], char[]
 
     @Override
     public boolean loadChunk(World world, int x, int z, boolean generate) {
-        return getCachedChunk(world, x, z) != null;
+        return getCachedSections(world, x, z) != null;
     }
 
     @Override
-    public ChunkSection[] getCachedChunk(World world, int x, int z) {
+    public ChunkSection[] getCachedSections(World world, int x, int z) {
         Chunk chunk = world.getChunkAt(x, z);
         if (chunk == null) {
             return null;
@@ -103,7 +104,7 @@ public class BukkitQueue18R3 extends BukkitQueue_0<Chunk, ChunkSection[], char[]
     public CharFaweChunk getPrevious(CharFaweChunk fs, ChunkSection[] sections, Map<?, ?> tilesGeneric, Collection<?>[] entitiesGeneric, Set<UUID> createdEntities, boolean all) throws Exception {
         Map<BlockPosition, TileEntity> tiles = (Map<BlockPosition, TileEntity>) tilesGeneric;
         Collection<Entity>[] entities = (Collection<Entity>[]) entitiesGeneric;
-        CharFaweChunk previous = (CharFaweChunk) getChunk(fs.getX(), fs.getZ());
+        CharFaweChunk previous = (CharFaweChunk) getFaweChunk(fs.getX(), fs.getZ());
         char[][] idPrevious = new char[16][];
         for (int layer = 0; layer < sections.length; layer++) {
             if (fs.getCount(layer) != 0 || all) {
@@ -126,16 +127,15 @@ public class BukkitQueue18R3 extends BukkitQueue_0<Chunk, ChunkSection[], char[]
             for (Map.Entry<BlockPosition, TileEntity> entry : tiles.entrySet()) {
                 TileEntity tile = entry.getValue();
                 NBTTagCompound tag = new NBTTagCompound();
-                tile.b(tag); // readTileEntityIntoTag
                 BlockPosition pos = entry.getKey();
-                CompoundTag nativeTag = (CompoundTag) methodToNative.invoke(adapter, tag);
-                previous.setTile(pos.getX(), pos.getY(), pos.getZ(), nativeTag);
+                CompoundTag nativeTag = getTag(tile);
+                previous.setTile(pos.getX() & 15, pos.getY(), pos.getZ() & 15, nativeTag);
             }
         }
         if (entities != null) {
             for (Collection<Entity> entityList : entities) {
                 for (Entity ent : entityList) {
-                    if (ent instanceof EntityPlayer || (!createdEntities.isEmpty() && !createdEntities.contains(ent.getUniqueID()))) {
+                    if (ent instanceof EntityPlayer || (!createdEntities.isEmpty() && createdEntities.contains(ent.getUniqueID()))) {
                         continue;
                     }
                     int x = ((int) Math.round(ent.locX) & 15);
@@ -162,6 +162,33 @@ public class BukkitQueue18R3 extends BukkitQueue_0<Chunk, ChunkSection[], char[]
             }
         }
         return previous;
+    }
+
+    public CompoundTag getTag(TileEntity tile) {
+        try {
+            NBTTagCompound tag = new NBTTagCompound();
+            tile.b(tag); // readTagIntoEntity
+            return (CompoundTag) methodToNative.invoke(adapter, tag);
+        } catch (Exception e) {
+            MainUtil.handleError(e);
+            return null;
+        }
+    }
+
+    private BlockPosition.MutableBlockPosition pos = new BlockPosition.MutableBlockPosition(0, 0, 0);
+
+    @Override
+    public CompoundTag getTileEntity(Chunk chunk, int x, int y, int z) {
+        Map<BlockPosition, TileEntity> tiles = ((CraftChunk) chunk).getHandle().getTileEntities();
+        pos.c(x, y, z);
+        TileEntity tile = tiles.get(pos);
+        return tile != null ? getTag(tile) : null;
+    }
+
+
+    @Override
+    public Chunk getChunk(World world, int x, int z) {
+        return world.getChunkAt(x, z);
     }
 
     @Override
@@ -342,7 +369,7 @@ public class BukkitQueue18R3 extends BukkitQueue_0<Chunk, ChunkSection[], char[]
                 }
             }
         } catch (Throwable e) {
-            e.printStackTrace();
+            MainUtil.handleError(e);
         }
         sendChunk(fc, null);
         return true;
@@ -418,7 +445,6 @@ public class BukkitQueue18R3 extends BukkitQueue_0<Chunk, ChunkSection[], char[]
             int X = fc.getX() << 4;
             int Z = fc.getZ() << 4;
 
-            BlockPosition.MutableBlockPosition pos = new BlockPosition.MutableBlockPosition(0, 0, 0);
             for (int j = 0; j < sections.length; j++) {
                 ChunkSection section = sections[j];
                 if (section == null) {
@@ -483,7 +509,7 @@ public class BukkitQueue18R3 extends BukkitQueue_0<Chunk, ChunkSection[], char[]
             return true;
         } catch (Throwable e) {
             if (Thread.currentThread() == Fawe.get().getMainThread()) {
-                e.printStackTrace();
+                MainUtil.handleError(e);
             }
         }
         return false;

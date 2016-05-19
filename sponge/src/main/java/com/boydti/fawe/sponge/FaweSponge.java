@@ -12,6 +12,7 @@ import com.boydti.fawe.regions.FaweMaskManager;
 import com.boydti.fawe.sponge.v1_8.SpongeQueue_1_8;
 import com.boydti.fawe.sponge.v1_8.SpongeQueue_ALL;
 import com.boydti.fawe.util.FaweQueue;
+import com.boydti.fawe.util.MainUtil;
 import com.boydti.fawe.util.TaskManager;
 import com.sk89q.worldedit.EditSession;
 import com.sk89q.worldedit.forge.ForgeWorldEdit;
@@ -50,7 +51,7 @@ public class FaweSponge implements IFawe {
         try {
             Fawe.set(this);
         } catch (final Throwable e) {
-            e.printStackTrace();
+            MainUtil.handleError(e);
         }
         TaskManager.IMP.later(() -> SpongeUtil.initBiomeCache(), 0);
     }
@@ -114,7 +115,7 @@ public class FaweSponge implements IFawe {
             try {
                 return new SpongeQueue_1_8(world);
             } catch (Throwable e) {
-                e.printStackTrace();
+                MainUtil.handleError(e);
             }
         }
         return new SpongeQueue_ALL(world);

@@ -1,6 +1,7 @@
 package com.boydti.fawe.object.changeset;
 
 import com.boydti.fawe.config.Settings;
+import com.boydti.fawe.util.MainUtil;
 import com.sk89q.jnbt.NBTInputStream;
 import com.sk89q.jnbt.NBTOutputStream;
 import com.sk89q.worldedit.world.World;
@@ -78,7 +79,7 @@ public class MemoryOptimizedHistory extends FaweStreamChangeSet {
             }
             return true;
         } catch (IOException e) {
-            e.printStackTrace();
+            MainUtil.handleError(e);
         }
         return false;
     }

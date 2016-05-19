@@ -6,6 +6,7 @@ import com.boydti.fawe.example.CharFaweChunk;
 import com.boydti.fawe.example.NMSMappedFaweQueue;
 import com.boydti.fawe.object.FaweChunk;
 import com.boydti.fawe.object.RunnableVal;
+import com.boydti.fawe.util.MainUtil;
 import com.sk89q.worldedit.LocalWorld;
 import com.sk89q.worldedit.Vector2D;
 import com.sk89q.worldedit.bukkit.BukkitUtil;
@@ -246,13 +247,13 @@ public abstract class BukkitQueue_0<CHUNK, CHUNKSECTIONS, SECTION> extends NMSMa
             }
             return true;
         } catch (final Throwable e) {
-            e.printStackTrace();
+            MainUtil.handleError(e);
         }
         return false;
     }
 
     @Override
-    public FaweChunk getChunk(int x, int z) {
+    public FaweChunk getFaweChunk(int x, int z) {
         return new CharFaweChunk<Chunk>(this, x, z) {
             @Override
             public Chunk getNewChunk() {

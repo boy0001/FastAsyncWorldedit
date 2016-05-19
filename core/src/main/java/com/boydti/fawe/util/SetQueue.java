@@ -103,12 +103,12 @@ public class SetQueue {
                             try {
                                 thread.join();
                             } catch (InterruptedException e) {
-                                e.printStackTrace();
+                                MainUtil.handleError(e);
                             }
                         }
                     }
                 } catch (Throwable e) {
-                    e.printStackTrace();
+                    MainUtil.handleError(e);
                 } finally {
                     // Enable it again (note that we are still on the main thread)
                     SET_TASK.value2.endSet(true);

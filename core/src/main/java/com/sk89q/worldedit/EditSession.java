@@ -42,6 +42,7 @@ import com.boydti.fawe.object.extent.NullExtent;
 import com.boydti.fawe.object.extent.ProcessedWEExtent;
 import com.boydti.fawe.object.progress.DefaultProgressTracker;
 import com.boydti.fawe.util.FaweQueue;
+import com.boydti.fawe.util.MainUtil;
 import com.boydti.fawe.util.MemUtil;
 import com.boydti.fawe.util.Perm;
 import com.boydti.fawe.util.SetQueue;
@@ -659,7 +660,7 @@ public class EditSession implements Extent {
             BaseBlock block = this.world.getBlock(new Vector(x, y, z));
             return block;
         } catch (Throwable e) {
-            e.printStackTrace();
+            MainUtil.handleError(e);
             return FaweCache.CACHE_BLOCK[combinedId4Data];
         }
     }

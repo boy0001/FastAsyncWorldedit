@@ -29,6 +29,7 @@ package com.boydti.fawe.sponge;
  */
 
 import com.boydti.fawe.Fawe;
+import com.boydti.fawe.util.MainUtil;
 import com.google.inject.Inject;
 import java.io.BufferedReader;
 import java.io.ByteArrayOutputStream;
@@ -137,7 +138,7 @@ public class SpongeMetrics {
             gzos = new GZIPOutputStream(baos);
             gzos.write(input.getBytes("UTF-8"));
         } catch (final IOException e) {
-            e.printStackTrace();
+            MainUtil.handleError(e);
         } finally {
             if (gzos != null) {
                 try {
@@ -265,7 +266,7 @@ public class SpongeMetrics {
             guid = config.getNode("mcstats.guid").getString();
             debug = config.getNode("mcstats.debug").getBoolean();
         } catch (final IOException e) {
-            e.printStackTrace();
+            MainUtil.handleError(e);
         }
     }
 

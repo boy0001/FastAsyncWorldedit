@@ -7,6 +7,7 @@ import com.boydti.fawe.object.IntegerPair;
 import com.boydti.fawe.object.RunnableVal;
 import com.boydti.fawe.object.exception.FaweException;
 import com.boydti.fawe.util.FaweQueue;
+import com.boydti.fawe.util.MainUtil;
 import com.boydti.fawe.util.SetQueue;
 import com.boydti.fawe.util.TaskManager;
 import com.sk89q.jnbt.CompoundTag;
@@ -53,7 +54,7 @@ public abstract class MappedFaweQueue<WORLD, CHUNK, SECTION> extends FaweQueue {
             try {
                 thread.join();
             } catch (InterruptedException e) {
-                e.printStackTrace();
+                MainUtil.handleError(e);
             }
         }
     }
@@ -77,11 +78,11 @@ public abstract class MappedFaweQueue<WORLD, CHUNK, SECTION> extends FaweQueue {
     public abstract boolean setComponents(FaweChunk fc, RunnableVal<FaweChunk> changeTask);
 
     @Override
-    public abstract FaweChunk getChunk(int x, int z);
+    public abstract FaweChunk getFaweChunk(int x, int z);
 
     public abstract boolean loadChunk(WORLD world, int x, int z, boolean generate);
 
-    public abstract CHUNK getCachedChunk(WORLD world, int cx, int cz);
+    public abstract CHUNK getCachedSections(WORLD world, int cx, int cz);
 
     @Override
     public boolean isChunkLoaded(int x, int z) {
@@ -105,7 +106,7 @@ public abstract class MappedFaweQueue<WORLD, CHUNK, SECTION> extends FaweQueue {
         long pair = (long) (x) << 32 | (z) & 0xFFFFFFFFL;
         FaweChunk result = this.blocks.get(pair);
         if (result == null) {
-            result = this.getChunk(x, z);
+            result = this.getFaweChunk(x, z);
             result.addNotifyTask(runnable);
             FaweChunk previous = this.blocks.put(pair, result);
             if (previous == null) {
@@ -137,7 +138,7 @@ public abstract class MappedFaweQueue<WORLD, CHUNK, SECTION> extends FaweQueue {
             long pair = (long) (cx) << 32 | (cz) & 0xFFFFFFFFL;
             lastWrappedChunk = this.blocks.get(pair);
             if (lastWrappedChunk == null) {
-                lastWrappedChunk = this.getChunk(x >> 4, z >> 4);
+                lastWrappedChunk = this.getFaweChunk(x >> 4, z >> 4);
                 lastWrappedChunk.setBlock(x & 15, y, z & 15, id, data);
                 FaweChunk previous = this.blocks.put(pair, lastWrappedChunk);
                 if (previous == null) {
@@ -165,7 +166,7 @@ public abstract class MappedFaweQueue<WORLD, CHUNK, SECTION> extends FaweQueue {
             long pair = (long) (cx) << 32 | (cz) & 0xFFFFFFFFL;
             lastWrappedChunk = this.blocks.get(pair);
             if (lastWrappedChunk == null) {
-                lastWrappedChunk = this.getChunk(x >> 4, z >> 4);
+                lastWrappedChunk = this.getFaweChunk(x >> 4, z >> 4);
                 lastWrappedChunk.setTile(x & 15, y, z & 15, tag);
                 FaweChunk previous = this.blocks.put(pair, lastWrappedChunk);
                 if (previous == null) {
@@ -192,7 +193,7 @@ public abstract class MappedFaweQueue<WORLD, CHUNK, SECTION> extends FaweQueue {
             long pair = (long) (cx) << 32 | (cz) & 0xFFFFFFFFL;
             lastWrappedChunk = this.blocks.get(pair);
             if (lastWrappedChunk == null) {
-                lastWrappedChunk = this.getChunk(x >> 4, z >> 4);
+                lastWrappedChunk = this.getFaweChunk(x >> 4, z >> 4);
                 lastWrappedChunk.setEntity(tag);
                 FaweChunk previous = this.blocks.put(pair, lastWrappedChunk);
                 if (previous == null) {
@@ -219,7 +220,7 @@ public abstract class MappedFaweQueue<WORLD, CHUNK, SECTION> extends FaweQueue {
             long pair = (long) (cx) << 32 | (cz) & 0xFFFFFFFFL;
             lastWrappedChunk = this.blocks.get(pair);
             if (lastWrappedChunk == null) {
-                lastWrappedChunk = this.getChunk(x >> 4, z >> 4);
+                lastWrappedChunk = this.getFaweChunk(x >> 4, z >> 4);
                 lastWrappedChunk.removeEntity(uuid);
                 FaweChunk previous = this.blocks.put(pair, lastWrappedChunk);
                 if (previous == null) {
@@ -238,7 +239,7 @@ public abstract class MappedFaweQueue<WORLD, CHUNK, SECTION> extends FaweQueue {
         long pair = (long) (x >> 4) << 32 | (z >> 4) & 0xFFFFFFFFL;
         FaweChunk result = this.blocks.get(pair);
         if (result == null) {
-            result = this.getChunk(x >> 4, z >> 4);
+            result = this.getFaweChunk(x >> 4, z >> 4);
             FaweChunk previous = this.blocks.put(pair, result);
             if (previous != null) {
                 this.blocks.put(pair, previous);
@@ -268,7 +269,7 @@ public abstract class MappedFaweQueue<WORLD, CHUNK, SECTION> extends FaweQueue {
                 }
             }
         } catch (Throwable e) {
-            e.printStackTrace();
+            MainUtil.handleError(e);
         }
         return null;
     }
@@ -283,7 +284,7 @@ public abstract class MappedFaweQueue<WORLD, CHUNK, SECTION> extends FaweQueue {
             try {
                 run.run();
             } catch (Throwable e) {
-                e.printStackTrace();
+                MainUtil.handleError(e);
             }
         }
     }
@@ -345,16 +346,16 @@ public abstract class MappedFaweQueue<WORLD, CHUNK, SECTION> extends FaweQueue {
     public int lastChunkZ = Integer.MIN_VALUE;
     public int lastChunkY = Integer.MIN_VALUE;
 
-    private CHUNK lastChunk;
-    private SECTION lastSection;
+    public CHUNK lastChunkSections;
+    public SECTION lastSection;
 
     public SECTION getCachedSection(CHUNK chunk, int cy) {
-        return (SECTION) lastChunk;
+        return (SECTION) lastChunkSections;
     }
 
     public abstract int getCombinedId4Data(SECTION section, int x, int y, int z);
 
-    private final RunnableVal<IntegerPair> loadChunk = new RunnableVal<IntegerPair>() {
+    public final RunnableVal<IntegerPair> loadChunk = new RunnableVal<IntegerPair>() {
         @Override
         public void run(IntegerPair coord) {
             loadChunk(getWorld(), coord.x, coord.z, true);
@@ -389,13 +390,13 @@ public abstract class MappedFaweQueue<WORLD, CHUNK, SECTION> extends FaweQueue {
                     return 0;
                 }
             }
-            lastChunk = getCachedChunk(getWorld(), cx, cz);
-            lastSection = getCachedSection(lastChunk, cy);
+            lastChunkSections = getCachedSections(getWorld(), cx, cz);
+            lastSection = getCachedSection(lastChunkSections, cy);
         } else if (cy != lastChunkY) {
-            if (lastChunk == null) {
+            if (lastChunkSections == null) {
                 return 0;
             }
-            lastSection = getCachedSection(lastChunk, cy);
+            lastSection = getCachedSection(lastChunkSections, cy);
         }
 
         if (lastSection == null) {

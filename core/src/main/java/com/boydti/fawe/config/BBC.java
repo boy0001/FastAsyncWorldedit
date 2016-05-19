@@ -3,6 +3,7 @@ package com.boydti.fawe.config;
 import com.boydti.fawe.Fawe;
 import com.boydti.fawe.configuration.file.YamlConfiguration;
 import com.boydti.fawe.object.FawePlayer;
+import com.boydti.fawe.util.MainUtil;
 import com.boydti.fawe.util.StringMan;
 import com.sk89q.worldedit.extension.platform.Actor;
 import java.io.File;
@@ -257,7 +258,7 @@ public enum BBC {
                 yml.save(file);
             }
         } catch (final Exception e) {
-            e.printStackTrace();
+            MainUtil.handleError(e);
         }
     }
 
