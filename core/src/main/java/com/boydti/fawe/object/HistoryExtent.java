@@ -12,8 +12,6 @@ import com.sk89q.worldedit.entity.BaseEntity;
 import com.sk89q.worldedit.entity.Entity;
 import com.sk89q.worldedit.extent.AbstractDelegateExtent;
 import com.sk89q.worldedit.extent.Extent;
-import com.sk89q.worldedit.history.change.EntityCreate;
-import com.sk89q.worldedit.history.change.EntityRemove;
 import com.sk89q.worldedit.history.changeset.ChangeSet;
 import com.sk89q.worldedit.regions.Region;
 import com.sk89q.worldedit.util.Location;
@@ -87,8 +85,8 @@ public class HistoryExtent extends AbstractDelegateExtent {
     @Override
     public Entity createEntity(final Location location, final BaseEntity state) {
         final Entity entity = super.createEntity(location, state);
-        if ((state != null) && (entity != null)) {
-            this.changeSet.add(new EntityCreate(location, state, entity));
+        if ((state != null)) {
+            this.changeSet.addEntityCreate(state.getNbtData());
         }
         return entity;
     }
@@ -139,7 +137,7 @@ public class HistoryExtent extends AbstractDelegateExtent {
             final BaseEntity state = this.entity.getState();
             final boolean success = this.entity.remove();
             if ((state != null) && success) {
-                HistoryExtent.this.changeSet.add(new EntityRemove(location, state));
+                HistoryExtent.this.changeSet.addEntityRemove(state.getNbtData());
             }
             return success;
         }

@@ -421,7 +421,6 @@ public class BukkitQueue_1_9_R1 extends BukkitQueue_0<Chunk, ChunkSection[], Dat
                         }
                         int j = FaweCache.CACHE_J[y][x][z];
                         if (array[j] != 0) {
-//                            System.out.println("REMOVE ENT (blocked): " + entity);
                             nmsWorld.removeEntity(entity);
                         }
                     }
@@ -433,7 +432,6 @@ public class BukkitQueue_1_9_R1 extends BukkitQueue_0<Chunk, ChunkSection[], Dat
                     Collection<Entity> ents = new ArrayList<>(entities[i]);
                     for (Entity entity : ents) {
                         if (entsToRemove.contains(entity.getUniqueID())) {
-//                            System.out.println("REMOVE ENT (action): " + entity);
                             nmsWorld.removeEntity(entity);
                         }
                     }
@@ -472,7 +470,6 @@ public class BukkitQueue_1_9_R1 extends BukkitQueue_0<Chunk, ChunkSection[], Dat
                     entity.setLocation(x, y, z, yaw, pitch);
                     nmsWorld.addEntity(entity, CreatureSpawnEvent.SpawnReason.CUSTOM);
                     createdEntities.add(entity.getUniqueID());
-//                    System.out.println("CREATE ENT (action): " + entity);
                 }
             }
             // Change task?
