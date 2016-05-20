@@ -11,6 +11,7 @@ import com.boydti.fawe.object.RunnableVal;
 import com.boydti.fawe.util.MainUtil;
 import com.boydti.fawe.util.MathMan;
 import com.boydti.fawe.util.ReflectionUtils;
+import com.boydti.fawe.util.TaskManager;
 import com.sk89q.jnbt.CompoundTag;
 import com.sk89q.jnbt.ListTag;
 import com.sk89q.jnbt.LongTag;
@@ -19,10 +20,12 @@ import com.sk89q.jnbt.Tag;
 import com.sk89q.worldedit.internal.Constants;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
+import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
@@ -30,17 +33,27 @@ import java.util.UUID;
 import net.minecraft.server.v1_9_R2.Block;
 import net.minecraft.server.v1_9_R2.BlockPosition;
 import net.minecraft.server.v1_9_R2.Blocks;
+import net.minecraft.server.v1_9_R2.ChunkCoordIntPair;
 import net.minecraft.server.v1_9_R2.ChunkSection;
 import net.minecraft.server.v1_9_R2.DataBits;
 import net.minecraft.server.v1_9_R2.DataPalette;
 import net.minecraft.server.v1_9_R2.DataPaletteBlock;
 import net.minecraft.server.v1_9_R2.Entity;
+import net.minecraft.server.v1_9_R2.EntityHuman;
 import net.minecraft.server.v1_9_R2.EntityPlayer;
+import net.minecraft.server.v1_9_R2.EntityTracker;
+import net.minecraft.server.v1_9_R2.EntityTrackerEntry;
 import net.minecraft.server.v1_9_R2.EntityTypes;
 import net.minecraft.server.v1_9_R2.IBlockData;
 import net.minecraft.server.v1_9_R2.NBTTagCompound;
 import net.minecraft.server.v1_9_R2.NibbleArray;
+import net.minecraft.server.v1_9_R2.Packet;
+import net.minecraft.server.v1_9_R2.PacketPlayOutEntityDestroy;
+import net.minecraft.server.v1_9_R2.PacketPlayOutMapChunk;
+import net.minecraft.server.v1_9_R2.PlayerChunk;
+import net.minecraft.server.v1_9_R2.PlayerChunkMap;
 import net.minecraft.server.v1_9_R2.TileEntity;
+import net.minecraft.server.v1_9_R2.WorldServer;
 import org.bukkit.Chunk;
 import org.bukkit.Material;
 import org.bukkit.World;
@@ -95,8 +108,87 @@ public class BukkitQueue_1_9_R1 extends BukkitQueue_0<Chunk, ChunkSection[], Dat
     }
 
     @Override
-    public void refreshChunk(World world, Chunk fc) {
-        world.refreshChunk(fc.getX(), fc.getZ());
+    public void refreshChunk(World world, Chunk chunk) {
+        if (!chunk.isLoaded()) {
+            return;
+        }
+        net.minecraft.server.v1_9_R2.Chunk nmsChunk = ((CraftChunk) chunk).getHandle();
+        ChunkCoordIntPair pos = nmsChunk.k(); // getPosition()
+        WorldServer w = (WorldServer) nmsChunk.getWorld();
+        PlayerChunkMap chunkMap = w.getPlayerChunkMap();
+        PlayerChunk playerChunk = chunkMap.getChunk(pos.x, pos.z);
+        if (playerChunk == null) {
+            return;
+        }
+        HashSet<EntityPlayer> set = new HashSet<EntityPlayer>(playerChunk.c);
+        EntityTracker tracker = w.getTracker();
+        // Get players
+        HashSet<EntityPlayer> players = new HashSet<>();
+        for (EntityHuman human : w.players) {
+            if (set.contains(human)) {
+                players.add((EntityPlayer) human);
+            }
+        }
+        if (players.size() == 0) {
+            return;
+        }
+        HashSet<EntityTrackerEntry> entities = new HashSet<>();
+        List<Entity>[] entitieSlices = playerChunk.chunk.getEntitySlices();
+        for (List<Entity> slice : entitieSlices) {
+            if (slice == null) {
+                continue;
+            }
+            for (Entity ent : slice) {
+                EntityTrackerEntry entry = tracker.trackedEntities.get(ent.getId());
+                if (entry == null) {
+                    continue;
+                }
+                entities.add(entry);
+                PacketPlayOutEntityDestroy packet = new PacketPlayOutEntityDestroy(ent.getId());
+                for (EntityPlayer player : players) {
+                    player.playerConnection.sendPacket(packet);
+                }
+            }
+        }
+        for (EntityPlayer player : players) {
+            player.playerConnection.networkManager.a();
+        }
+        // Send chunks
+        PacketPlayOutMapChunk packet = new PacketPlayOutMapChunk(playerChunk.chunk, '\uffff');
+        for (EntityPlayer player : players) {
+            player.playerConnection.sendPacket(packet);
+        }
+        // send ents
+        for (List<Entity> slice : entitieSlices) {
+            if (slice == null) {
+                continue;
+            }
+            for (Entity ent : slice) {
+                EntityTrackerEntry entry = tracker.trackedEntities.get(ent.getId());
+                if (entry == null) {
+                    continue;
+                }
+                try {
+                    Method methodE = entry.getClass().getDeclaredMethod("e");
+                    methodE.setAccessible(true);
+                    Packet p = (Packet) methodE.invoke(entry);
+                    TaskManager.IMP.later(new Runnable() {
+                        @Override
+                        public void run() {
+                            for (EntityPlayer player : players) {
+                                boolean result = entry.trackedPlayers.remove(player);
+                                if (result && ent != player) {
+                                    entry.updatePlayer(player);
+                                    entry.trackedPlayers.add(player);
+                                }
+                            }
+                        }
+                    }, 2);
+                } catch (Throwable e) {
+                    MainUtil.handleError(e);
+                }
+            }
+        }
     }
 
     @Override

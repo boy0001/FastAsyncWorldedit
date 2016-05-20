@@ -1492,15 +1492,27 @@ public class EditSession implements Extent {
         checkNotNull(region);
         checkNotNull(dir);
         checkArgument(distance >= 1, "distance >= 1 required");
-        final Vector to = region.getMinimumPoint();
-
+        final Vector displace = dir.multiply(distance);
+        final Vector mutable = new Vector(0, 0, 0);
         // Remove the original blocks
         final com.sk89q.worldedit.function.pattern.Pattern pattern = replacement != null ? new BlockPattern(replacement) : new BlockPattern(new BaseBlock(BlockID.AIR));
-        final BlockReplace remove = new BlockReplace(EditSession.this, pattern);
+        final BlockReplace remove = new BlockReplace(EditSession.this, pattern) {
+            @Override
+            // Only copy what's necessary
+            public boolean apply(Vector position) throws WorldEditException {
+                mutable.x = position.x - displace.x;
+                mutable.y = position.y - displace.y;
+                mutable.z = position.z - displace.z;
+                if (region.contains(mutable)) {
+                    return false;
+                }
+                return super.apply(position);
+            }
+        };
 
         // Copy to a buffer so we don't destroy our original before we can copy all the blocks from it
         final ForgetfulExtentBuffer buffer = new ForgetfulExtentBuffer(EditSession.this, new RegionMask(region));
-        final ForwardExtentCopy copy = new ForwardExtentCopy(EditSession.this, region, buffer, to);
+        final ForwardExtentCopy copy = new ForwardExtentCopy(EditSession.this, region, buffer, region.getMinimumPoint());
         copy.setTransform(new AffineTransform().translate(dir.multiply(distance)));
         copy.setSourceFunction(remove); // Remove
         copy.setRemovingEntities(true);
