@@ -436,39 +436,27 @@ public class BukkitQueue18R3 extends BukkitQueue_0<Chunk, ChunkSection[], char[]
                     }
                 }
             }
-            for (EntityPlayer player : players) {
-                player.playerConnection.networkManager.a();
-            }
             // Send chunks
             PacketPlayOutMapChunk packet = new PacketPlayOutMapChunk(nmsChunk, false, 65535);
             for (EntityPlayer player : players) {
                 player.playerConnection.sendPacket(packet);
             }
             // send ents
-            for (List<Entity> slice : entitieSlices) {
-                if (slice == null) {
-                    continue;
-                }
-                for (Entity ent : slice) {
-                    EntityTrackerEntry entry = tracker.trackedEntities.get(ent.getId());
-                    if (entry == null) {
-                        continue;
-                    }
-                    try {
-                        TaskManager.IMP.later(new Runnable() {
-                            @Override
-                            public void run() {
-                                for (EntityPlayer player : players) {
-                                    boolean result = entry.trackedPlayers.remove(player);
-                                    if (result && ent != player) {
-                                        entry.updatePlayer(player);
-                                    }
+            for (EntityTrackerEntry entry : entities) {
+                try {
+                    TaskManager.IMP.later(new Runnable() {
+                        @Override
+                        public void run() {
+                            for (EntityPlayer player : players) {
+                                boolean result = entry.trackedPlayers.remove(player);
+                                if (result && entry.tracker != player) {
+                                    entry.updatePlayer(player);
                                 }
                             }
-                        }, 2);
-                    } catch (Throwable e) {
-                        MainUtil.handleError(e);
-                    }
+                        }
+                    }, 2);
+                } catch (Throwable e) {
+                    MainUtil.handleError(e);
                 }
             }
         } catch (Throwable e) {
