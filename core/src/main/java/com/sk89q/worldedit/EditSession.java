@@ -239,7 +239,7 @@ public class EditSession implements Extent {
         }
 
         // Wrap the world
-        this.world = (world instanceof WorldWrapper) ? world : (world = new WorldWrapper((AbstractWorld) world));
+        this.world = (world = WorldWrapper.wrap((AbstractWorld) world));
 
         // Delegate some methods to an implementation specific class
         this.wrapper = Fawe.imp().getEditSessionWrapper(this);

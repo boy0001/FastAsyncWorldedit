@@ -37,7 +37,14 @@ public class WorldWrapper extends AbstractWorld {
 
     private final AbstractWorld parent;
 
-    public WorldWrapper(AbstractWorld parent) {
+    public static WorldWrapper wrap(AbstractWorld world) {
+        if (world instanceof  WorldWrapper) {
+            return (WorldWrapper) world;
+        }
+        return new WorldWrapper(world);
+    }
+
+    private WorldWrapper(AbstractWorld parent) {
         this.parent = parent;
     }
 
