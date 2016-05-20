@@ -380,9 +380,11 @@ public abstract class FawePlayer<T> {
      *  - Usually called on logout
      */
     public void unregister() {
-        getSession().setClipboard(null);
-        getSession().clearHistory();
-        WorldEdit.getInstance().removeSession(getPlayer());
+        if (Settings.CLEAN_HISTORY_ON_LOGOUT) {
+            getSession().setClipboard(null);
+            getSession().clearHistory();
+            WorldEdit.getInstance().removeSession(getPlayer());
+        }
         Fawe.get().unregister(getName());
     }
 
