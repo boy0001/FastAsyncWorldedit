@@ -20,7 +20,6 @@ import com.sk89q.jnbt.Tag;
 import com.sk89q.worldedit.internal.Constants;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
-import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
@@ -47,7 +46,6 @@ import net.minecraft.server.v1_9_R2.EntityTypes;
 import net.minecraft.server.v1_9_R2.IBlockData;
 import net.minecraft.server.v1_9_R2.NBTTagCompound;
 import net.minecraft.server.v1_9_R2.NibbleArray;
-import net.minecraft.server.v1_9_R2.Packet;
 import net.minecraft.server.v1_9_R2.PacketPlayOutEntityDestroy;
 import net.minecraft.server.v1_9_R2.PacketPlayOutMapChunk;
 import net.minecraft.server.v1_9_R2.PlayerChunk;
@@ -154,7 +152,7 @@ public class BukkitQueue_1_9_R1 extends BukkitQueue_0<Chunk, ChunkSection[], Dat
             player.playerConnection.networkManager.a();
         }
         // Send chunks
-        PacketPlayOutMapChunk packet = new PacketPlayOutMapChunk(playerChunk.chunk, '\uffff');
+        PacketPlayOutMapChunk packet = new PacketPlayOutMapChunk(playerChunk.chunk, 65535);
         for (EntityPlayer player : players) {
             player.playerConnection.sendPacket(packet);
         }
@@ -169,9 +167,6 @@ public class BukkitQueue_1_9_R1 extends BukkitQueue_0<Chunk, ChunkSection[], Dat
                     continue;
                 }
                 try {
-                    Method methodE = entry.getClass().getDeclaredMethod("e");
-                    methodE.setAccessible(true);
-                    Packet p = (Packet) methodE.invoke(entry);
                     TaskManager.IMP.later(new Runnable() {
                         @Override
                         public void run() {
@@ -179,7 +174,6 @@ public class BukkitQueue_1_9_R1 extends BukkitQueue_0<Chunk, ChunkSection[], Dat
                                 boolean result = entry.trackedPlayers.remove(player);
                                 if (result && ent != player) {
                                     entry.updatePlayer(player);
-                                    entry.trackedPlayers.add(player);
                                 }
                             }
                         }

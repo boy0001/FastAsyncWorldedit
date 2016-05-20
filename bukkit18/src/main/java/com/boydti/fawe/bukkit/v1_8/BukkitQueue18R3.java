@@ -2,18 +2,16 @@ package com.boydti.fawe.bukkit.v1_8;
 
 import com.boydti.fawe.Fawe;
 import com.boydti.fawe.FaweCache;
-import com.boydti.fawe.bukkit.BukkitPlayer;
 import com.boydti.fawe.bukkit.v0.BukkitQueue_0;
 import com.boydti.fawe.example.CharFaweChunk;
 import com.boydti.fawe.object.BytePair;
 import com.boydti.fawe.object.FaweChunk;
-import com.boydti.fawe.object.FaweLocation;
-import com.boydti.fawe.object.FawePlayer;
 import com.boydti.fawe.object.PseudoRandom;
 import com.boydti.fawe.object.RunnableVal;
 import com.boydti.fawe.util.MainUtil;
 import com.boydti.fawe.util.MathMan;
 import com.boydti.fawe.util.ReflectionUtils;
+import com.boydti.fawe.util.TaskManager;
 import com.sk89q.jnbt.CompoundTag;
 import com.sk89q.jnbt.ListTag;
 import com.sk89q.jnbt.StringTag;
@@ -24,6 +22,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
@@ -32,18 +31,22 @@ import net.minecraft.server.v1_8_R3.ChunkCoordIntPair;
 import net.minecraft.server.v1_8_R3.ChunkSection;
 import net.minecraft.server.v1_8_R3.Entity;
 import net.minecraft.server.v1_8_R3.EntityPlayer;
+import net.minecraft.server.v1_8_R3.EntityTracker;
+import net.minecraft.server.v1_8_R3.EntityTrackerEntry;
 import net.minecraft.server.v1_8_R3.EntityTypes;
+import net.minecraft.server.v1_8_R3.LongHashMap;
 import net.minecraft.server.v1_8_R3.NBTTagCompound;
 import net.minecraft.server.v1_8_R3.NibbleArray;
+import net.minecraft.server.v1_8_R3.PacketPlayOutEntityDestroy;
 import net.minecraft.server.v1_8_R3.PacketPlayOutMapChunk;
-import net.minecraft.server.v1_8_R3.PlayerConnection;
+import net.minecraft.server.v1_8_R3.PlayerChunkMap;
 import net.minecraft.server.v1_8_R3.TileEntity;
+import net.minecraft.server.v1_8_R3.WorldServer;
 import org.bukkit.Bukkit;
 import org.bukkit.Chunk;
 import org.bukkit.Material;
 import org.bukkit.World;
 import org.bukkit.craftbukkit.v1_8_R3.CraftChunk;
-import org.bukkit.craftbukkit.v1_8_R3.entity.CraftPlayer;
 import org.bukkit.event.entity.CreatureSpawnEvent;
 
 public class BukkitQueue18R3 extends BukkitQueue_0<Chunk, ChunkSection[], char[]> {
@@ -390,27 +393,86 @@ public class BukkitQueue18R3 extends BukkitQueue_0<Chunk, ChunkSection[], char[]
         if (!chunk.isLoaded()) {
             return;
         }
-        net.minecraft.server.v1_8_R3.Chunk nmsChunk = ((CraftChunk) chunk).getHandle();
-        ChunkCoordIntPair pos = nmsChunk.j();
-        int cx = pos.x;
-        int cz = pos.z;
-        int view = Bukkit.getViewDistance();
-        for (FawePlayer fp : Fawe.get().getCachedPlayers()) {
-            BukkitPlayer bukkitPlayer = (BukkitPlayer) fp;
-            if (!bukkitPlayer.parent.getWorld().equals(world)) {
-                continue;
+        try {
+            net.minecraft.server.v1_8_R3.Chunk nmsChunk = ((CraftChunk) chunk).getHandle();
+            ChunkCoordIntPair pos = nmsChunk.j(); // getPosition()
+            WorldServer w = (WorldServer) nmsChunk.getWorld();
+            PlayerChunkMap chunkMap = w.getPlayerChunkMap();
+            int x = pos.x;
+            int z = pos.z;
+            if (!chunkMap.isChunkInUse(x, z)) {
+                return;
             }
-            net.minecraft.server.v1_8_R3.EntityPlayer nmsPlayer = ((CraftPlayer) bukkitPlayer.parent).getHandle();
-            FaweLocation loc = fp.getLocation();
-            int px = loc.x >> 4;
-            int pz = loc.z >> 4;
-            int dx = Math.abs(cx - (px));
-            int dz = Math.abs(cz - (pz));
-            if ((dx > view) || (dz > view)) {
-                continue;
+            HashSet<EntityPlayer> set = new HashSet<EntityPlayer>();
+            EntityTracker tracker = w.getTracker();
+            // Get players
+
+            Field fieldChunkMap = chunkMap.getClass().getDeclaredField("d");
+            fieldChunkMap.setAccessible(true);
+            LongHashMap<Object> map = (LongHashMap<Object>) fieldChunkMap.get(chunkMap);
+            long pair = (long) x + 2147483647L | (long) z + 2147483647L << 32;
+            Object playerChunk = map.getEntry(pair);
+            Field fieldPlayers = playerChunk.getClass().getDeclaredField("b");
+            fieldPlayers.setAccessible(true);
+            HashSet<EntityPlayer> players = new HashSet<>((Collection<EntityPlayer>)fieldPlayers.get(playerChunk));
+            if (players.size() == 0) {
+                return;
             }
-            PlayerConnection con = nmsPlayer.playerConnection;
-            con.sendPacket(new PacketPlayOutMapChunk(nmsChunk, false, 65535));
+            HashSet<EntityTrackerEntry> entities = new HashSet<>();
+            List<Entity>[] entitieSlices = nmsChunk.getEntitySlices();
+            for (List<Entity> slice : entitieSlices) {
+                if (slice == null) {
+                    continue;
+                }
+                for (Entity ent : slice) {
+                    EntityTrackerEntry entry = tracker.trackedEntities.get(ent.getId());
+                    if (entry == null) {
+                        continue;
+                    }
+                    entities.add(entry);
+                    PacketPlayOutEntityDestroy packet = new PacketPlayOutEntityDestroy(ent.getId());
+                    for (EntityPlayer player : players) {
+                        player.playerConnection.sendPacket(packet);
+                    }
+                }
+            }
+            for (EntityPlayer player : players) {
+                player.playerConnection.networkManager.a();
+            }
+            // Send chunks
+            PacketPlayOutMapChunk packet = new PacketPlayOutMapChunk(nmsChunk, false, 65535);
+            for (EntityPlayer player : players) {
+                player.playerConnection.sendPacket(packet);
+            }
+            // send ents
+            for (List<Entity> slice : entitieSlices) {
+                if (slice == null) {
+                    continue;
+                }
+                for (Entity ent : slice) {
+                    EntityTrackerEntry entry = tracker.trackedEntities.get(ent.getId());
+                    if (entry == null) {
+                        continue;
+                    }
+                    try {
+                        TaskManager.IMP.later(new Runnable() {
+                            @Override
+                            public void run() {
+                                for (EntityPlayer player : players) {
+                                    boolean result = entry.trackedPlayers.remove(player);
+                                    if (result && ent != player) {
+                                        entry.updatePlayer(player);
+                                    }
+                                }
+                            }
+                        }, 2);
+                    } catch (Throwable e) {
+                        MainUtil.handleError(e);
+                    }
+                }
+            }
+        } catch (Throwable e) {
+            MainUtil.handleError(e);
         }
     }
 
