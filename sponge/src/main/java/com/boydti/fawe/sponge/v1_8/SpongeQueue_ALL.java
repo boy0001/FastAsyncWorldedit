@@ -126,9 +126,11 @@ public class SpongeQueue_ALL extends NMSMappedFaweQueue<World, net.minecraft.wor
 
     @Override
     public boolean isChunkLoaded(World world, int x, int z) {
-        Chunk chunk = world.getChunk(x << 4, 0, z << 4).orElse(null);
-        return chunk != null && chunk.isLoaded();
+        net.minecraft.world.World nmsWorld = (net.minecraft.world.World) world;
+        IChunkProvider provider = nmsWorld.getChunkProvider();
+        return provider.chunkExists(x, z);
     }
+
 
     @Override
     public boolean regenerateChunk(World world, int x, int z) {
@@ -377,9 +379,18 @@ public class SpongeQueue_ALL extends NMSMappedFaweQueue<World, net.minecraft.wor
 
     @Override
     public ExtendedBlockStorage[] getCachedSections(World world, int cx, int cz) {
-        Chunk chunk = world.loadChunk(cx, 0, cz, true).orElse(null);
-        return ((net.minecraft.world.chunk.Chunk) chunk).getBlockStorageArray();
+        net.minecraft.world.World nmsWorld = (net.minecraft.world.World) world;
+        IChunkProvider provider = nmsWorld.getChunkProvider();
+        net.minecraft.world.chunk.Chunk chunk = provider.provideChunk(cx, cz);
+        if (chunk == null) {
+            return null;
+        }
+        if (!chunk.isLoaded()) {
+            chunk.onChunkLoad();
+        }
+        return chunk.getBlockStorageArray();
     }
+
 
     @Override
     public int getCombinedId4Data(char[] chars, int x, int y, int z) {
