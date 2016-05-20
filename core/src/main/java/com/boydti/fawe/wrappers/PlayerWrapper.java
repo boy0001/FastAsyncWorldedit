@@ -43,7 +43,7 @@ public class PlayerWrapper implements Player {
 
     @Override
     public World getWorld() {
-        return new WorldWrapper((AbstractWorld) parent.getWorld());
+        return WorldWrapper.wrap((AbstractWorld) parent.getWorld());
     }
 
     @Override
