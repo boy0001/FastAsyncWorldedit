@@ -363,13 +363,23 @@ public class WorldWrapper extends AbstractWorld {
     }
 
     @Override
-    public List<? extends Entity> getEntities(Region region) {
-        return parent.getEntities(region);
+    public List<? extends Entity> getEntities(final Region region) {
+        return TaskManager.IMP.sync(new RunnableVal<List<? extends Entity>>() {
+            @Override
+            public void run(List<? extends Entity> value) {
+                this.value = parent.getEntities(region);
+            }
+        });
     }
 
     @Override
     public List<? extends Entity> getEntities() {
-        return parent.getEntities();
+        return TaskManager.IMP.sync(new RunnableVal<List<? extends Entity>>() {
+            @Override
+            public void run(List<? extends Entity> value) {
+                this.value = parent.getEntities();
+            }
+        });
     }
 
     @Override
