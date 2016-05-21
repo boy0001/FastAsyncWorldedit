@@ -4,16 +4,15 @@ import com.boydti.fawe.Fawe;
 import com.boydti.fawe.FaweCache;
 import com.boydti.fawe.example.CharFaweChunk;
 import com.boydti.fawe.example.NMSMappedFaweQueue;
-import com.boydti.fawe.forge.ForgePlayer;
 import com.boydti.fawe.object.BytePair;
 import com.boydti.fawe.object.FaweChunk;
-import com.boydti.fawe.object.FawePlayer;
 import com.boydti.fawe.object.IntegerPair;
 import com.boydti.fawe.object.PseudoRandom;
 import com.boydti.fawe.object.RunnableVal;
 import com.boydti.fawe.util.MainUtil;
 import com.boydti.fawe.util.MathMan;
 import com.boydti.fawe.util.ReflectionUtils;
+import com.boydti.fawe.util.TaskManager;
 import com.sk89q.jnbt.CompoundTag;
 import com.sk89q.jnbt.ListTag;
 import com.sk89q.jnbt.StringTag;
@@ -31,15 +30,18 @@ import java.util.UUID;
 import net.minecraft.block.Block;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityList;
+import net.minecraft.entity.EntityTracker;
+import net.minecraft.entity.EntityTrackerEntry;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.nbt.NBTBase;
 import net.minecraft.nbt.NBTTagCompound;
-import net.minecraft.network.NetHandlerPlayServer;
+import net.minecraft.network.play.server.S13PacketDestroyEntities;
 import net.minecraft.network.play.server.S21PacketChunkData;
 import net.minecraft.server.MinecraftServer;
+import net.minecraft.server.management.PlayerManager;
 import net.minecraft.tileentity.TileEntity;
-import net.minecraft.util.ChunkCoordinates;
+import net.minecraft.util.IntHashMap;
 import net.minecraft.util.LongHashMap;
 import net.minecraft.world.ChunkCoordIntPair;
 import net.minecraft.world.ChunkPosition;
@@ -220,33 +222,81 @@ public class ForgeQueue_All extends NMSMappedFaweQueue<World, Chunk, ExtendedBlo
     };
 
     @Override
-    public void refreshChunk(World world, Chunk chunk) {
-        if (!chunk.isChunkLoaded) {
+    public void refreshChunk(World world, net.minecraft.world.chunk.Chunk nmsChunk) {
+        if (!nmsChunk.isChunkLoaded) {
             return;
         }
-        ChunkCoordIntPair pos = chunk.getChunkCoordIntPair();
-        int cx = pos.chunkXPos;
-        int cz = pos.chunkZPos;
-        for (FawePlayer fp : Fawe.get().getCachedPlayers()) {
-            ForgePlayer forgePlayer = (ForgePlayer) fp;
-            EntityPlayerMP player = forgePlayer.parent;
-            if (!player.worldObj.equals(world)) {
-                continue;
+        try {
+            ChunkCoordIntPair pos = nmsChunk.getChunkCoordIntPair();
+            WorldServer w = (WorldServer) nmsChunk.worldObj;
+            PlayerManager chunkMap = w.getPlayerManager();
+            int x = pos.chunkXPos;
+            int z = pos.chunkZPos;
+            if (!chunkMap.func_152621_a(x, z)) {
+                return;
             }
-            int view = MinecraftServer.getServer().getConfigurationManager().getViewDistance();
-            EntityPlayerMP nmsPlayer = (EntityPlayerMP) player;
-            ChunkCoordinates loc = player.getPlayerCoordinates();
-            int px = loc.posX >> 4;
-            int pz = loc.posZ >> 4;
-            int dx = Math.abs(cx - (loc.posX >> 4));
-            int dz = Math.abs(cz - (loc.posZ >> 4));
-            if ((dx > view) || (dz > view)) {
-                continue;
+            EntityTracker tracker = w.getEntityTracker();
+            final HashSet<EntityPlayerMP> players = new HashSet<>();
+            for (EntityPlayer player : (List<EntityPlayer>) w.playerEntities) {
+                if (player instanceof EntityPlayerMP) {
+                    if (chunkMap.isPlayerWatchingChunk((EntityPlayerMP) player, x, z)) {
+                        players.add((EntityPlayerMP) player);
+                    }
+                }
             }
-            NetHandlerPlayServer con = nmsPlayer.playerNetServerHandler;
-            con.sendPacket(new S21PacketChunkData(chunk, false, 65535));
-            // Try sending true, 0 first
-            // Try bulk chunk packet
+            if (players.size() == 0) {
+                return;
+            }
+            HashSet<EntityTrackerEntry> entities = new HashSet<>();
+            Collection<Entity>[] entitieSlices = nmsChunk.entityLists;
+            IntHashMap entries = null;
+            for (Field field : tracker.getClass().getDeclaredFields()) {
+                if (field.getType() == IntHashMap.class) {
+                    field.setAccessible(true);
+                    entries = (IntHashMap) field.get(tracker);
+                }
+            }
+            for (Collection<Entity> slice : entitieSlices) {
+                if (slice == null) {
+                    continue;
+                }
+                for (Entity ent : slice) {
+                    EntityTrackerEntry entry = entries != null ? (EntityTrackerEntry) entries.lookup(ent.getEntityId()) : null;
+                    if (entry == null) {
+                        continue;
+                    }
+                    entities.add(entry);
+                    S13PacketDestroyEntities packet = new S13PacketDestroyEntities(ent.getEntityId());
+                    for (EntityPlayerMP player : players) {
+                        player.playerNetServerHandler.sendPacket(packet);
+                    }
+                }
+            }
+            // Send chunks
+            S21PacketChunkData packet = new S21PacketChunkData(nmsChunk, false, 65535);
+            for (EntityPlayerMP player : players) {
+                player.playerNetServerHandler.sendPacket(packet);
+            }
+            // send ents
+            for (final EntityTrackerEntry entry : entities) {
+                try {
+                    TaskManager.IMP.later(new Runnable() {
+                        @Override
+                        public void run() {
+                            for (EntityPlayerMP player : players) {
+                                boolean result = entry.trackingPlayers.remove(player);
+                                if (result && entry.myEntity != player) {
+                                    entry.tryStartWachingThis(player);
+                                }
+                            }
+                        }
+                    }, 2);
+                } catch (Throwable e) {
+                    MainUtil.handleError(e);
+                }
+            }
+        } catch (Throwable e) {
+            MainUtil.handleError(e);
         }
     }
 
