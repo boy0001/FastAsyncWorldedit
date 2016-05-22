@@ -62,7 +62,7 @@ public class FaweAPI {
      * @param player
      * @return
      */
-    public EditSession getNewEditSession(@Nonnull FawePlayer player) {
+    public static EditSession getNewEditSession(@Nonnull FawePlayer player) {
         if (player == null) {
             throw new IllegalArgumentException("Player may not be null");
         }
@@ -75,7 +75,7 @@ public class FaweAPI {
      * @param world
      * @return
      */
-    public EditSession getNewEditSession(World world) {
+    public static EditSession getNewEditSession(World world) {
         return WorldEdit.getInstance().getEditSessionFactory().getEditSession(world, -1);
     }
 
@@ -83,7 +83,7 @@ public class FaweAPI {
      * The TaskManager has some useful methods for doing things asynchronously
      * @return TaskManager
      */
-    public TaskManager getTaskManager() {
+    public static TaskManager getTaskManager() {
         return TaskManager.IMP;
     }
 
@@ -97,7 +97,7 @@ public class FaweAPI {
      * @param obj
      * @return
      */
-    public FawePlayer wrapPlayer(Object obj) {
+    public static FawePlayer wrapPlayer(Object obj) {
         return FawePlayer.wrap(obj);
     }
 
@@ -111,7 +111,7 @@ public class FaweAPI {
      * @param autoqueue If it should start dispatching before you enqueue it.
      * @return
      */
-    public FaweQueue createQueue(String worldName, boolean autoqueue) {
+    public static FaweQueue createQueue(String worldName, boolean autoqueue) {
         return SetQueue.IMP.getNewQueue(worldName, true, autoqueue);
     }
 
@@ -128,7 +128,7 @@ public class FaweAPI {
      * Get a list of supported protection plugin masks.
      * @return Set of FaweMaskManager
      */
-    public Set<FaweMaskManager> getMaskManagers() {
+    public static Set<FaweMaskManager> getMaskManagers() {
         return new HashSet<>(WEManager.IMP.managers);
     }
 
@@ -136,7 +136,7 @@ public class FaweAPI {
      * Check if the server has more than the configured low memory threshold
      * @return True if the server has limited memory
      */
-    public boolean isMemoryLimited() {
+    public static boolean isMemoryLimited() {
         return MemUtil.isMemoryLimited();
     }
 
@@ -144,7 +144,7 @@ public class FaweAPI {
      * If you just need things to look random, use this faster alternative
      * @return PseudoRandom
      */
-    public PseudoRandom getFastRandom() {
+    public static PseudoRandom getFastRandom() {
         return new PseudoRandom();
     }
 
@@ -153,7 +153,7 @@ public class FaweAPI {
      * @param player
      * @return
      */
-    public Set<RegionWrapper> getRegions(FawePlayer player) {
+    public static Set<RegionWrapper> getRegions(FawePlayer player) {
         return WEManager.IMP.getMask(player);
     }
 
@@ -165,7 +165,7 @@ public class FaweAPI {
      * @param extent
      * @param reason
      */
-    public void cancelEdit(Extent extent, BBC reason) {
+    public static void cancelEdit(Extent extent, BBC reason) {
         try {
             WEManager.IMP.cancelEdit(extent, reason);
         } catch (WorldEditException ignore) {}
@@ -180,7 +180,7 @@ public class FaweAPI {
      * @param file
      * @return
      */
-    public DiskStorageHistory getChangeSetFromFile(File file) {
+    public static DiskStorageHistory getChangeSetFromFile(File file) {
         if (!file.exists() || file.isDirectory()) {
             throw new IllegalArgumentException("Not a file!");
         }
@@ -303,7 +303,7 @@ public class FaweAPI {
      * @param index
      * @return
      */
-    public DiskStorageHistory getChangeSetFromDisk(World world, UUID uuid, int index) {
+    public static DiskStorageHistory getChangeSetFromDisk(World world, UUID uuid, int index) {
         return new DiskStorageHistory(world, uuid, index);
     }
 
@@ -482,7 +482,7 @@ public class FaweAPI {
      * @see BBC
      * @return
      */
-    public BBC[] getTranslations() {
+    public static BBC[] getTranslations() {
         return BBC.values();
     }
 }
