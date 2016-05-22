@@ -179,7 +179,7 @@ public class SpongeQueue_ALL extends NMSMappedFaweQueue<World, net.minecraft.wor
 
     @Override
     public World getWorld(String world) {
-        return Sponge.getServer().getWorld(this.world).get();
+        return Sponge.getServer().getWorld(super.getWorld()).get();
     }
 
     @Override

@@ -2,7 +2,7 @@ package com.boydti.fawe.forge.v0;
 
 import com.boydti.fawe.FaweCache;
 import com.boydti.fawe.example.CharFaweChunk;
-import com.boydti.fawe.util.FaweQueue;
+import com.boydti.fawe.object.FaweQueue;
 import com.boydti.fawe.util.MainUtil;
 import net.minecraft.world.World;
 import net.minecraft.world.chunk.Chunk;

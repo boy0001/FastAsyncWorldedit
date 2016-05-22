@@ -5,7 +5,7 @@ import com.boydti.fawe.FaweCache;
 import com.boydti.fawe.object.BytePair;
 import com.boydti.fawe.object.FaweChunk;
 import com.boydti.fawe.object.RunnableVal2;
-import com.boydti.fawe.util.FaweQueue;
+import com.boydti.fawe.object.FaweQueue;
 import com.boydti.fawe.util.MainUtil;
 import com.boydti.fawe.util.TaskManager;
 import com.sk89q.jnbt.CompoundTag;

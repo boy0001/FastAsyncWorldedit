@@ -23,7 +23,7 @@ import com.boydti.fawe.config.Settings;
 import com.boydti.fawe.object.changeset.FaweChangeSet;
 import com.boydti.fawe.object.changeset.FaweStreamChangeSet;
 import com.boydti.fawe.object.clipboard.DiskOptimizedClipboard;
-import com.boydti.fawe.util.FaweQueue;
+import com.boydti.fawe.object.FaweQueue;
 import com.boydti.fawe.util.MainUtil;
 import com.boydti.fawe.util.SetQueue;
 import com.boydti.fawe.util.TaskManager;

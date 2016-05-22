@@ -3,7 +3,7 @@ package com.boydti.fawe.object.changeset;
 import com.boydti.fawe.object.FaweChunk;
 import com.boydti.fawe.object.RunnableVal2;
 import com.boydti.fawe.object.change.MutableChunkChange;
-import com.boydti.fawe.util.FaweQueue;
+import com.boydti.fawe.object.FaweQueue;
 import com.sk89q.jnbt.CompoundTag;
 import com.sk89q.worldedit.history.change.Change;
 import com.sk89q.worldedit.world.World;

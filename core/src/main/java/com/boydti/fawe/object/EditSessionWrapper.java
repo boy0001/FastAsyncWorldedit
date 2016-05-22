@@ -1,7 +1,6 @@
 package com.boydti.fawe.object;
 
 import com.boydti.fawe.object.changeset.FaweChangeSet;
-import com.boydti.fawe.util.FaweQueue;
 import com.sk89q.worldedit.EditSession;
 import com.sk89q.worldedit.Vector;
 import com.sk89q.worldedit.blocks.BaseBlock;

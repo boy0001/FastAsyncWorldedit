@@ -1,7 +1,7 @@
 package com.boydti.fawe.object.extent;
 
 import com.boydti.fawe.FaweCache;
-import com.boydti.fawe.util.FaweQueue;
+import com.boydti.fawe.object.FaweQueue;
 import com.boydti.fawe.util.MainUtil;
 import com.boydti.fawe.util.ReflectionUtils;
 import com.sk89q.jnbt.CompoundTag;

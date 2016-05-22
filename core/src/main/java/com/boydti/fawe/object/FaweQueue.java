@@ -1,10 +1,11 @@
-package com.boydti.fawe.util;
+package com.boydti.fawe.object;
 
 import com.boydti.fawe.Fawe;
 import com.boydti.fawe.config.BBC;
-import com.boydti.fawe.object.FaweChunk;
-import com.boydti.fawe.object.RunnableVal2;
 import com.boydti.fawe.object.exception.FaweException;
+import com.boydti.fawe.util.MainUtil;
+import com.boydti.fawe.util.MemUtil;
+import com.boydti.fawe.util.SetQueue;
 import com.sk89q.jnbt.CompoundTag;
 import com.sk89q.worldedit.EditSession;
 import com.sk89q.worldedit.world.biome.BaseBiome;
@@ -15,7 +16,17 @@ import java.util.concurrent.LinkedBlockingDeque;
 
 public abstract class FaweQueue {
 
-    public static enum ProgressType {
+    private final String world;
+    private LinkedBlockingDeque<EditSession> sessions;
+    private long modified = System.currentTimeMillis();
+    private RunnableVal2<FaweChunk, FaweChunk> changeTask;
+    private RunnableVal2<ProgressType, Integer> progressTask;
+
+    public FaweQueue(String world) {
+        this.world = world;
+    }
+
+    public enum ProgressType {
         QUEUE,
         DISPATCH,
         DONE,
@@ -28,24 +39,18 @@ public abstract class FaweQueue {
         ALL,
     }
 
-    public final String world;
-    public LinkedBlockingDeque<EditSession> sessions;
-    public long modified = System.currentTimeMillis();
-    public RunnableVal2<FaweChunk, FaweChunk> changeTask;
-    public RunnableVal2<ProgressType, Integer> progressTask;
-
-    public FaweQueue(String world) {
-        this.world = world;
-    }
-
     public void addEditSession(EditSession session) {
         if (session == null) {
             return;
         }
-        if (this.sessions == null) {
-            sessions = new LinkedBlockingDeque<>();
+        if (this.getSessions() == null) {
+            setSessions(new LinkedBlockingDeque<EditSession>());
         }
-        sessions.add(session);
+        getSessions().add(session);
+    }
+
+    public String getWorldName() {
+        return world;
     }
 
     /**
@@ -55,11 +60,35 @@ public abstract class FaweQueue {
      * @param progressTask
      */
     public void setProgressTracker(RunnableVal2<ProgressType, Integer> progressTask) {
-        this.progressTask = progressTask;
+        this.setProgressTask(progressTask);
     }
 
     public Set<EditSession> getEditSessions() {
-        return sessions == null ? new HashSet<EditSession>() : new HashSet<>(sessions);
+        return getSessions() == null ? new HashSet<EditSession>() : new HashSet<>(getSessions());
+    }
+
+    public LinkedBlockingDeque<EditSession> getSessions() {
+        return sessions;
+    }
+
+    public void setSessions(LinkedBlockingDeque<EditSession> sessions) {
+        this.sessions = sessions;
+    }
+
+    public long getModified() {
+        return modified;
+    }
+
+    public void setModified(long modified) {
+        this.modified = modified;
+    }
+
+    public RunnableVal2<ProgressType, Integer> getProgressTask() {
+        return progressTask;
+    }
+
+    public void setProgressTask(RunnableVal2<ProgressType, Integer> progressTask) {
+        this.progressTask = progressTask;
     }
 
     public void setChangeTask(RunnableVal2<FaweChunk, FaweChunk> changeTask) {
@@ -99,7 +128,7 @@ public abstract class FaweQueue {
     public int cancel() {
         clear();
         int count = 0;
-        for (EditSession session : sessions) {
+        for (EditSession session : getSessions()) {
             if (session.cancel()) {
                 count++;
             }

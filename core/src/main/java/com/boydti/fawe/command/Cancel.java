@@ -3,7 +3,7 @@ package com.boydti.fawe.command;
 import com.boydti.fawe.config.BBC;
 import com.boydti.fawe.object.FaweCommand;
 import com.boydti.fawe.object.FawePlayer;
-import com.boydti.fawe.util.FaweQueue;
+import com.boydti.fawe.object.FaweQueue;
 import com.boydti.fawe.util.SetQueue;
 import com.sk89q.worldedit.EditSession;
 import com.sk89q.worldedit.extension.platform.Actor;

@@ -1,7 +1,7 @@
 package com.boydti.fawe.bukkit.v1_8;
 
 import com.boydti.fawe.example.CharFaweChunk;
-import com.boydti.fawe.util.FaweQueue;
+import com.boydti.fawe.object.FaweQueue;
 import org.bukkit.Bukkit;
 import org.bukkit.Chunk;
 
@@ -19,6 +19,6 @@ public class BukkitChunk_1_8 extends CharFaweChunk<Chunk> {
 
     @Override
     public Chunk getNewChunk() {
-        return Bukkit.getWorld(getParent().world).getChunkAt(getX(), getZ());
+        return Bukkit.getWorld(getParent().getWorld()).getChunkAt(getX(), getZ());
     }
 }

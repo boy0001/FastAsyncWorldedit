@@ -4,7 +4,7 @@ import com.boydti.fawe.FaweCache;
 import com.boydti.fawe.object.RunnableVal;
 import com.boydti.fawe.object.changeset.FaweChangeSet;
 import com.boydti.fawe.object.extent.FaweRegionExtent;
-import com.boydti.fawe.util.FaweQueue;
+import com.boydti.fawe.object.FaweQueue;
 import com.boydti.fawe.util.MainUtil;
 import com.boydti.fawe.util.TaskManager;
 import com.sk89q.worldedit.BlockVector2D;

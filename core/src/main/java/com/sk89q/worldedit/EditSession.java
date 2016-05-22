@@ -41,7 +41,7 @@ import com.boydti.fawe.object.extent.MemoryCheckingExtent;
 import com.boydti.fawe.object.extent.NullExtent;
 import com.boydti.fawe.object.extent.ProcessedWEExtent;
 import com.boydti.fawe.object.progress.DefaultProgressTracker;
-import com.boydti.fawe.util.FaweQueue;
+import com.boydti.fawe.object.FaweQueue;
 import com.boydti.fawe.util.MainUtil;
 import com.boydti.fawe.util.MemUtil;
 import com.boydti.fawe.util.Perm;

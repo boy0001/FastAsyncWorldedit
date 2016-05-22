@@ -3,7 +3,7 @@ package com.boydti.fawe.bukkit.logging;
 import com.boydti.fawe.object.FaweLimit;
 import com.boydti.fawe.object.FawePlayer;
 import com.boydti.fawe.object.changeset.FaweChangeSet;
-import com.boydti.fawe.util.FaweQueue;
+import com.boydti.fawe.object.FaweQueue;
 import com.sk89q.worldedit.EditSession;
 import com.sk89q.worldedit.extent.Extent;
 import org.PrimeSoft.blocksHub.BlocksHub;

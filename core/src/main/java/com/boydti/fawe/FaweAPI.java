@@ -8,7 +8,7 @@ import com.boydti.fawe.object.PseudoRandom;
 import com.boydti.fawe.object.RegionWrapper;
 import com.boydti.fawe.object.changeset.DiskStorageHistory;
 import com.boydti.fawe.regions.FaweMaskManager;
-import com.boydti.fawe.util.FaweQueue;
+import com.boydti.fawe.object.FaweQueue;
 import com.boydti.fawe.util.MainUtil;
 import com.boydti.fawe.util.MemUtil;
 import com.boydti.fawe.util.SetQueue;
@@ -106,7 +106,7 @@ public class FaweAPI {
      *     - The FaweQueue skips a bit of overhead so it's faster<br>
      *     - The WorldEdit EditSession can do a lot more<br>
      * Remember to enqueue it when you're done!<br>
-     * @see com.boydti.fawe.util.FaweQueue#enqueue()
+     * @see com.boydti.fawe.object.FaweQueue#enqueue()
      * @param worldName The name of the world
      * @param autoqueue If it should start dispatching before you enqueue it.
      * @return

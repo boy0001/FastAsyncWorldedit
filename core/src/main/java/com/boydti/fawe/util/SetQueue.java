@@ -3,6 +3,7 @@ package com.boydti.fawe.util;
 import com.boydti.fawe.Fawe;
 import com.boydti.fawe.config.Settings;
 import com.boydti.fawe.object.FaweChunk;
+import com.boydti.fawe.object.FaweQueue;
 import com.boydti.fawe.object.RunnableVal2;
 import java.util.ArrayList;
 import java.util.List;
@@ -178,7 +179,7 @@ public class SetQueue {
         while (activeQueues.size() > 0) {
             FaweQueue queue = activeQueues.peek();
             if (queue != null && queue.size() > 0) {
-                queue.modified = System.currentTimeMillis();
+                queue.setModified(System.currentTimeMillis());
                 return queue;
             } else {
                 activeQueues.poll();
@@ -190,10 +191,10 @@ public class SetQueue {
                 long now = System.currentTimeMillis();
                 if (lastSuccess != 0) {
                     for (FaweQueue queue : tmp) {
-                        if (queue != null && queue.size() > 0 && now - queue.modified > Settings.QUEUE_MAX_WAIT) {
-                            queue.modified = now;
+                        if (queue != null && queue.size() > 0 && now - queue.getModified() > Settings.QUEUE_MAX_WAIT) {
+                            queue.setModified(now);
                             return queue;
-                        } else if (now - queue.modified > Settings.QUEUE_DISCARD_AFTER) {
+                        } else if (now - queue.getModified() > Settings.QUEUE_DISCARD_AFTER) {
                             inactiveQueues.remove(queue);
                         }
                     }
@@ -207,7 +208,7 @@ public class SetQueue {
                 if (total > Settings.QUEUE_SIZE) {
                     for (FaweQueue queue : tmp) {
                         if (queue != null && queue.size() > 0) {
-                            queue.modified = System.currentTimeMillis();
+                            queue.setModified(System.currentTimeMillis());
                             return queue;
                         }
                     }

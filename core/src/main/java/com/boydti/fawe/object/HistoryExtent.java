@@ -2,7 +2,6 @@ package com.boydti.fawe.object;
 
 import com.boydti.fawe.FaweCache;
 import com.boydti.fawe.object.changeset.FaweChangeSet;
-import com.boydti.fawe.util.FaweQueue;
 import com.sk89q.jnbt.CompoundTag;
 import com.sk89q.worldedit.EditSession;
 import com.sk89q.worldedit.Vector;

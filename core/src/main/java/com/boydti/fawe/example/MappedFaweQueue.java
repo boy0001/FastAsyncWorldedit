@@ -6,7 +6,7 @@ import com.boydti.fawe.object.FaweChunk;
 import com.boydti.fawe.object.IntegerPair;
 import com.boydti.fawe.object.RunnableVal;
 import com.boydti.fawe.object.exception.FaweException;
-import com.boydti.fawe.util.FaweQueue;
+import com.boydti.fawe.object.FaweQueue;
 import com.boydti.fawe.util.MainUtil;
 import com.boydti.fawe.util.SetQueue;
 import com.boydti.fawe.util.TaskManager;
@@ -29,8 +29,8 @@ public abstract class MappedFaweQueue<WORLD, CHUNK, SECTION> extends FaweQueue {
     private LinkedBlockingDeque<FaweChunk> chunks = new LinkedBlockingDeque<FaweChunk>() {
         @Override
         public boolean add(FaweChunk o) {
-            if (progressTask != null) {
-                progressTask.run(ProgressType.QUEUE, size() + 1);
+            if (getProgressTask() != null) {
+                getProgressTask().run(ProgressType.QUEUE, size() + 1);
             }
             return super.add(o);
         }
@@ -93,7 +93,7 @@ public abstract class MappedFaweQueue<WORLD, CHUNK, SECTION> extends FaweQueue {
         if (impWorld != null) {
             return impWorld;
         }
-        return impWorld = getWorld(world);
+        return impWorld = getWorld(super.getWorldName());
     }
 
     @Override
@@ -275,8 +275,8 @@ public abstract class MappedFaweQueue<WORLD, CHUNK, SECTION> extends FaweQueue {
     }
 
     public void runTasks() {
-        if (progressTask != null) {
-            progressTask.run(ProgressType.DONE, 1);
+        if (getProgressTask() != null) {
+            getProgressTask().run(ProgressType.DONE, 1);
         }
         ArrayDeque<Runnable> tmp = new ArrayDeque<>(tasks);
         tasks.clear();
@@ -306,9 +306,9 @@ public abstract class MappedFaweQueue<WORLD, CHUNK, SECTION> extends FaweQueue {
             return false;
         }
         // Set blocks / entities / biome
-        if (progressTask != null) {
-            progressTask.run(ProgressType.QUEUE, chunks.size());
-            progressTask.run(ProgressType.DISPATCH, ++dispatched);
+        if (getProgressTask() != null) {
+            getProgressTask().run(ProgressType.QUEUE, chunks.size());
+            getProgressTask().run(ProgressType.DISPATCH, ++dispatched);
         }
         if (getChangeTask() != null) {
             if (!this.setComponents(fc, new RunnableVal<FaweChunk>() {
