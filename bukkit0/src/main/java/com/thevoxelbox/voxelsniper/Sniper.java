@@ -71,7 +71,8 @@ public class Sniper {
     }
 
     // Added
-    public AsyncWorld tmpWorld;
+    private AsyncWorld tmpWorld;
+    private MaskedFaweQueue mask;
 
     // Added
     public World getWorld() {
@@ -100,12 +101,14 @@ public class Sniper {
             FaweQueue queue;
             {
                 Player player = getPlayer();
+                FawePlayer<Player> fp = FawePlayer.wrap(player);
+                RegionWrapper[] mask = WEManager.IMP.getMask(fp).toArray(new RegionWrapper[0]);
                 if (tmpWorld == null || !player.getWorld().getName().equals(tmpWorld.getName())) {
-                    FawePlayer<Player> fp = FawePlayer.wrap(player);
-                    RegionWrapper[] mask = WEManager.IMP.getMask(fp).toArray(new RegionWrapper[0]);
                     queue = FaweAPI.createQueue(fp.getLocation().world, true);
-                    queue = new MaskedFaweQueue(queue, mask);
+                    this.mask = (MaskedFaweQueue) (queue = new MaskedFaweQueue(queue, mask));
                     tmpWorld = new AsyncWorld(player.getWorld(), queue);
+                } else if (this.mask != null) {
+                    this.mask.setMask(mask);
                 }
                 if (clickedBlock != null) {
                     clickedBlock = tmpWorld.getBlockAt(clickedBlock.getX(), clickedBlock.getY(), clickedBlock.getZ());

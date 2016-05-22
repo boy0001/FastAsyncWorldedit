@@ -6,10 +6,14 @@ import com.sk89q.jnbt.CompoundTag;
 import com.sk89q.worldedit.world.biome.BaseBiome;
 
 public class MaskedFaweQueue extends DelegateFaweQueue {
-    private final RegionWrapper[] mask;
+    private RegionWrapper[] mask;
 
     public MaskedFaweQueue(FaweQueue parent, RegionWrapper[] mask) {
         super(parent);
+        this.mask = mask;
+    }
+
+    public void setMask(RegionWrapper[] mask) {
         this.mask = mask;
     }
 
