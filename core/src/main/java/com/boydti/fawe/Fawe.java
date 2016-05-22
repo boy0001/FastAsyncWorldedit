@@ -387,8 +387,20 @@ public class Fawe {
         }
     }
 
+    /**
+     * Get the main thread
+     * @return
+     */
     public Thread getMainThread() {
         return this.thread;
+    }
+
+    /**
+     * Sets the main thread to the current thread
+     * @return
+     */
+    public Thread setMainThread() {
+        return this.thread = Thread.currentThread();
     }
 
     private ConcurrentHashMap<String, FawePlayer> players = new ConcurrentHashMap<>();

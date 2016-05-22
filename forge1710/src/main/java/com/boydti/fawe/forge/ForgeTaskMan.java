@@ -1,5 +1,6 @@
 package com.boydti.fawe.forge;
 
+import com.boydti.fawe.Fawe;
 import com.boydti.fawe.util.MainUtil;
 import com.boydti.fawe.util.TaskManager;
 import cpw.mods.fml.common.FMLCommonHandler;
@@ -55,6 +56,7 @@ public class ForgeTaskMan extends TaskManager {
 
     @SubscribeEvent(priority = EventPriority.HIGHEST)
     public void onServerTick(TickEvent.ServerTickEvent event) {
+        Fawe.get().setMainThread();
         int asyncSize = asyncTasks.size();
         for (int i = 0; i < asyncSize; i++) {
             Runnable item = asyncTasks.poll();
