@@ -19,6 +19,10 @@ public class DelegateFaweQueue extends FaweQueue {
         this.parent = parent;
     }
 
+    public FaweQueue getParent() {
+        return parent;
+    }
+
     @Override
     public String getWorldName() {
         return parent.getWorldName();

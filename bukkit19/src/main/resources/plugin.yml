@@ -30,6 +30,9 @@ commands:
   fcancel:
     description: (FAWE) Cancel your edit
     aliases: [fawecancel,/fcancel,/cancel,/fawecancel]
+  '/p':
+    description: VoxelSniper perform command
+    aliases: [perform,/perform]
 permissions:
   fawe.bypass:
     default: false

@@ -2,10 +2,17 @@ package com.thevoxelbox.voxelsniper;
 
 import com.boydti.fawe.FaweAPI;
 import com.boydti.fawe.bukkit.wrapper.AsyncWorld;
+import com.boydti.fawe.config.BBC;
+import com.boydti.fawe.config.Settings;
+import com.boydti.fawe.object.ChangeSetFaweQueue;
 import com.boydti.fawe.object.FawePlayer;
 import com.boydti.fawe.object.FaweQueue;
 import com.boydti.fawe.object.MaskedFaweQueue;
 import com.boydti.fawe.object.RegionWrapper;
+import com.boydti.fawe.object.changeset.DiskStorageHistory;
+import com.boydti.fawe.object.changeset.FaweChangeSet;
+import com.boydti.fawe.object.changeset.FaweStreamChangeSet;
+import com.boydti.fawe.object.changeset.MemoryOptimizedHistory;
 import com.boydti.fawe.util.TaskManager;
 import com.boydti.fawe.util.WEManager;
 import com.google.common.base.Preconditions;
@@ -15,13 +22,13 @@ import com.google.common.collect.HashBiMap;
 import com.google.common.collect.ImmutableBiMap;
 import com.google.common.collect.Maps;
 import com.google.common.collect.MutableClassToInstanceMap;
+import com.sk89q.worldedit.LocalSession;
 import com.thevoxelbox.voxelsniper.brush.IBrush;
 import com.thevoxelbox.voxelsniper.brush.SnipeBrush;
 import com.thevoxelbox.voxelsniper.brush.perform.PerformBrush;
 import com.thevoxelbox.voxelsniper.brush.perform.Performer;
 import com.thevoxelbox.voxelsniper.event.SniperMaterialChangedEvent;
 import com.thevoxelbox.voxelsniper.event.SniperReplaceMaterialChangedEvent;
-import java.util.LinkedList;
 import java.util.Map;
 import java.util.UUID;
 import org.bukkit.Bukkit;
@@ -41,7 +48,7 @@ public class Sniper {
     private VoxelSniper plugin;
     private final UUID player;
     private boolean enabled = true;
-    private LinkedList<Undo> undoList = new LinkedList<Undo>();
+//    private LinkedList<FaweChangeSet> undoList = new LinkedList<>();
     private Map<String, SniperTool> tools = Maps.newHashMap();
 
     public Sniper(VoxelSniper plugin, Player player) {
@@ -73,6 +80,7 @@ public class Sniper {
     // Added
     private AsyncWorld tmpWorld;
     private MaskedFaweQueue mask;
+    private ChangeSetFaweQueue change;
 
     // Added
     public World getWorld() {
@@ -102,14 +110,16 @@ public class Sniper {
             {
                 Player player = getPlayer();
                 FawePlayer<Player> fp = FawePlayer.wrap(player);
-                RegionWrapper[] mask = WEManager.IMP.getMask(fp).toArray(new RegionWrapper[0]);
-                if (tmpWorld == null || !player.getWorld().getName().equals(tmpWorld.getName())) {
-                    queue = FaweAPI.createQueue(fp.getLocation().world, true);
-                    this.mask = (MaskedFaweQueue) (queue = new MaskedFaweQueue(queue, mask));
-                    tmpWorld = new AsyncWorld(player.getWorld(), queue);
-                } else if (this.mask != null) {
-                    this.mask.setMask(mask);
+                if (fp.getMeta("fawe_action") != null) {
+                    return false;
                 }
+                RegionWrapper[] mask = WEManager.IMP.getMask(fp).toArray(new RegionWrapper[0]);
+                queue = FaweAPI.createQueue(fp.getLocation().world, true);
+                this.mask = (MaskedFaweQueue) (queue = new MaskedFaweQueue(queue, mask));
+                com.sk89q.worldedit.world.World worldEditWorld = fp.getWorld();
+                FaweStreamChangeSet changeSet = Settings.STORE_HISTORY_ON_DISK ? new DiskStorageHistory(worldEditWorld, fp.getUUID()) : new MemoryOptimizedHistory(worldEditWorld);
+                this.change = (ChangeSetFaweQueue) (queue = new ChangeSetFaweQueue(changeSet, queue));
+                tmpWorld = new AsyncWorld(player.getWorld(), queue);
                 if (clickedBlock != null) {
                     clickedBlock = tmpWorld.getBlockAt(clickedBlock.getX(), clickedBlock.getY(), clickedBlock.getZ());
                 }
@@ -292,16 +302,24 @@ public class Sniper {
                 TaskManager.IMP.async(new Runnable() {
                     @Override
                     public void run() {
-                        if (sniperTool.getCurrentBrush() instanceof PerformBrush) {
-                            PerformBrush performerBrush = (PerformBrush) sniperTool.getCurrentBrush();
-                            performerBrush.initP(snipeData);
+                        FawePlayer<Player> fp = FawePlayer.wrap(getPlayer());
+                        fp.setMeta("fawe_action", true);
+                        try {
+                            if (sniperTool.getCurrentBrush() instanceof PerformBrush) {
+                                PerformBrush performerBrush = (PerformBrush) sniperTool.getCurrentBrush();
+                                performerBrush.initP(snipeData);
+                                world.commit();
+                            }
+                            boolean result = sniperTool.getCurrentBrush().perform(snipeAction, snipeData, targetBlock, lastBlock);
+                            if (result) {
+                                MetricsManager.increaseBrushUsage(sniperTool.getCurrentBrush().getName());
+                            }
                             world.commit();
+                        } catch (Throwable e) {
+                            e.printStackTrace();
+                        } finally {
+                            fp.deleteMeta("fawe_action");
                         }
-                        boolean result = sniperTool.getCurrentBrush().perform(snipeAction, snipeData, targetBlock, lastBlock);
-                        if (result) {
-                            MetricsManager.increaseBrushUsage(sniperTool.getCurrentBrush().getName());
-                        }
-                        world.commit();
                     }
                 });
                 return true;
@@ -373,15 +391,21 @@ public class Sniper {
     }
 
     public void storeUndo(Undo undo) {
-        if (VoxelSniper.getInstance().getVoxelSniperConfiguration().getUndoCacheSize() <= 0) {
-            return;
+        if (change != null) {
+            FaweChangeSet changeSet = change.getChangeSet();
+            FawePlayer<Object> fp = FawePlayer.wrap(getPlayer());
+            LocalSession session = fp.getSession();
+            session.remember(changeSet.toEditSession(fp.getPlayer()));
         }
-        if (undo != null && undo.getSize() > 0) {
-            while (undoList.size() >= plugin.getVoxelSniperConfiguration().getUndoCacheSize()) {
-                this.undoList.pollLast();
-            }
-            undoList.push(undo);
-        }
+//        if (VoxelSniper.getInstance().getVoxelSniperConfiguration().getUndoCacheSize() <= 0) {
+//            return;
+//        }
+//        if (undo != null && undo.getSize() > 0) {
+//            while (undoList.size() >= plugin.getVoxelSniperConfiguration().getUndoCacheSize()) {
+//                this.undoList.pollLast();
+//            }
+//            undoList.push(undo);
+//        }
     }
 
     public void undo() {
@@ -389,20 +413,18 @@ public class Sniper {
     }
 
     public void undo(int amount) {
-        int sum = 0;
-        if (this.undoList.isEmpty()) {
-            getPlayer().sendMessage(ChatColor.GREEN + "There's nothing to undo.");
-        } else {
-            for (int x = 0; x < amount && !undoList.isEmpty(); x++) {
-                Undo undo = this.undoList.pop();
-                if (undo != null) {
-                    undo.undo();
-                    sum += undo.getSize();
-                } else {
-                    break;
-                }
+        FawePlayer<Object> fp = FawePlayer.wrap(getPlayer());
+        int count = 0;
+        for (int i = 0; i < amount; i++) {
+            if (fp.getSession().undo(null, fp.getPlayer()) == null) {
+                break;
             }
-            getPlayer().sendMessage(ChatColor.GREEN + "Undo successful:  " + ChatColor.RED + sum + ChatColor.GREEN + " blocks have been replaced.");
+            count++;
+        }
+        if (count > 0) {
+            BBC.COMMAND_UNDO_SUCCESS.send(fp);
+        } else {
+            BBC.COMMAND_UNDO_FAIL.send(fp);
         }
     }
 
