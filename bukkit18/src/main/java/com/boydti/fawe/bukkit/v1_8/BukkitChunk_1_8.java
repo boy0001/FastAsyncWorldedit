@@ -19,6 +19,6 @@ public class BukkitChunk_1_8 extends CharFaweChunk<Chunk> {
 
     @Override
     public Chunk getNewChunk() {
-        return Bukkit.getWorld(getParent().getWorld()).getChunkAt(getX(), getZ());
+        return Bukkit.getWorld(getParent().getWorldName()).getChunkAt(getX(), getZ());
     }
 }
