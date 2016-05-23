@@ -8,7 +8,6 @@ import com.boydti.fawe.object.FaweQueue;
 import com.sk89q.worldedit.EditSession;
 import com.thevoxelbox.voxelsniper.SnipeData;
 import com.thevoxelbox.voxelsniper.Sniper;
-import com.thevoxelbox.voxelsniper.command.VoxelPerformerCommand;
 import org.bukkit.Bukkit;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
@@ -24,12 +23,25 @@ public abstract class ABukkitMain extends JavaPlugin {
         try {
             SnipeData.inject();
             Sniper.inject();
-            VoxelPerformerCommand.inject();
+            // Forward the commands so //p and //d will work
             imp.setupCommand("/p", new FaweCommand("voxelsniper.sniper") {
                 @Override
                 public boolean execute(FawePlayer fp, String... args) {
                     Player player = (Player) fp.parent;
-                    return (Bukkit.getPluginManager().getPlugin("VoxelSniper")).onCommand(player, new Command("/p") {
+                    return (Bukkit.getPluginManager().getPlugin("VoxelSniper")).onCommand(player, new Command("p") {
+                        @Override
+                        public boolean execute(CommandSender sender, String commandLabel, String[] args) {
+                            return false;
+                        }
+                    }, null, args);
+
+                }
+            });
+            imp.setupCommand("/d", new FaweCommand("voxelsniper.sniper") {
+                @Override
+                public boolean execute(FawePlayer fp, String... args) {
+                    Player player = (Player) fp.parent;
+                    return (Bukkit.getPluginManager().getPlugin("VoxelSniper")).onCommand(player, new Command("d") {
                         @Override
                         public boolean execute(CommandSender sender, String commandLabel, String[] args) {
                             return false;

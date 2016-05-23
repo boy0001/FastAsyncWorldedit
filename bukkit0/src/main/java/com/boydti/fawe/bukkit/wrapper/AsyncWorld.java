@@ -5,6 +5,7 @@ import com.boydti.fawe.bukkit.v0.BukkitQueue_0;
 import com.boydti.fawe.object.FaweQueue;
 import com.boydti.fawe.object.RunnableVal;
 import com.boydti.fawe.util.TaskManager;
+import com.intellectualcrafters.plot.util.StringMan;
 import com.sk89q.worldedit.bukkit.WorldEditPlugin;
 import com.sk89q.worldedit.bukkit.adapter.BukkitImplAdapter;
 import com.sk89q.worldedit.world.biome.BaseBiome;
@@ -76,6 +77,13 @@ public class AsyncWorld implements World {
                 e.printStackTrace();
             }
         }
+    }
+
+    public static AsyncWorld wrap(World world) {
+        if (world instanceof AsyncWorld) {
+            return (AsyncWorld) world;
+        }
+        return new AsyncWorld(world, false);
     }
 
     public void commit() {
@@ -175,6 +183,20 @@ public class AsyncWorld implements World {
                 }
             });
         }
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (obj == null || !(obj instanceof World)) {
+            return false;
+        }
+        World other = (World) obj;
+        return StringMan.isEqual(other.getName(), getName());
+    }
+
+    @Override
+    public int hashCode() {
+        return this.getUID().hashCode();
     }
 
     @Override

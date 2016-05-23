@@ -34,7 +34,6 @@ import java.util.UUID;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
-import org.bukkit.World;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
 import org.bukkit.entity.Player;
@@ -79,13 +78,24 @@ public class Sniper {
 
     // Added
     private AsyncWorld tmpWorld;
-    private MaskedFaweQueue mask;
-    private ChangeSetFaweQueue change;
+    private MaskedFaweQueue maskQueue;
+    private ChangeSetFaweQueue changeQueue;
+    private FaweQueue baseQueue;
 
     // Added
-    public World getWorld() {
+    public AsyncWorld getWorld() {
         if (this.tmpWorld == null) {
-            return new AsyncWorld(getPlayer().getWorld(), false);
+            Player player = getPlayer();
+            FawePlayer<Player> fp = FawePlayer.wrap(player);
+            if (this.baseQueue == null) {
+                this.baseQueue = FaweAPI.createQueue(fp.getLocation().world, false);
+            }
+            RegionWrapper[] mask = WEManager.IMP.getMask(fp);
+            this.maskQueue = new MaskedFaweQueue(baseQueue, mask);
+            com.sk89q.worldedit.world.World worldEditWorld = fp.getWorld();
+            FaweStreamChangeSet changeSet = Settings.STORE_HISTORY_ON_DISK ? new DiskStorageHistory(worldEditWorld, fp.getUUID()) : new MemoryOptimizedHistory(worldEditWorld);
+            this.changeQueue = new ChangeSetFaweQueue(changeSet, maskQueue);
+            tmpWorld = new AsyncWorld(player.getWorld(), changeQueue);
         }
         return tmpWorld;
     }
@@ -106,25 +116,18 @@ public class Sniper {
     public boolean snipe(Action action, Material itemInHand, Block clickedBlock, BlockFace clickedFace) {
         try {
             // Added
-            FaweQueue queue;
             {
                 Player player = getPlayer();
                 FawePlayer<Player> fp = FawePlayer.wrap(player);
                 if (fp.getMeta("fawe_action") != null) {
                     return false;
                 }
-                RegionWrapper[] mask = WEManager.IMP.getMask(fp);
-                queue = FaweAPI.createQueue(fp.getLocation().world, true);
-                this.mask = (MaskedFaweQueue) (queue = new MaskedFaweQueue(queue, mask));
-                com.sk89q.worldedit.world.World worldEditWorld = fp.getWorld();
-                FaweStreamChangeSet changeSet = Settings.STORE_HISTORY_ON_DISK ? new DiskStorageHistory(worldEditWorld, fp.getUUID()) : new MemoryOptimizedHistory(worldEditWorld);
-                this.change = (ChangeSetFaweQueue) (queue = new ChangeSetFaweQueue(changeSet, queue));
-                tmpWorld = new AsyncWorld(player.getWorld(), queue);
+                tmpWorld = null;
                 if (clickedBlock != null) {
-                    clickedBlock = tmpWorld.getBlockAt(clickedBlock.getX(), clickedBlock.getY(), clickedBlock.getZ());
+                    clickedBlock = getWorld().getBlockAt(clickedBlock.getX(), clickedBlock.getY(), clickedBlock.getZ());
                 }
             }
-            return snipe(action, itemInHand, tmpWorld, clickedBlock, clickedFace);
+            return snipe(action, itemInHand, getWorld(), clickedBlock, clickedFace);
         } catch (Throwable e) {
             e.printStackTrace();
         }
@@ -299,20 +302,20 @@ public class Sniper {
 //                    MetricsManager.increaseBrushUsage(sniperTool.getCurrentBrush().getName());
 //                }
 //                return result;
+                IBrush brush = sniperTool.getCurrentBrush();
+                if (sniperTool.getCurrentBrush() instanceof PerformBrush) {
+                    PerformBrush performerBrush = (PerformBrush) sniperTool.getCurrentBrush();
+                    performerBrush.initP(snipeData);
+                }
                 TaskManager.IMP.async(new Runnable() {
                     @Override
                     public void run() {
                         FawePlayer<Player> fp = FawePlayer.wrap(getPlayer());
                         fp.setMeta("fawe_action", true);
                         try {
-                            if (sniperTool.getCurrentBrush() instanceof PerformBrush) {
-                                PerformBrush performerBrush = (PerformBrush) sniperTool.getCurrentBrush();
-                                performerBrush.initP(snipeData);
-                                world.commit();
-                            }
-                            boolean result = sniperTool.getCurrentBrush().perform(snipeAction, snipeData, targetBlock, lastBlock);
+                            boolean result = brush.perform(snipeAction, snipeData, targetBlock, lastBlock);
                             if (result) {
-                                MetricsManager.increaseBrushUsage(sniperTool.getCurrentBrush().getName());
+                                MetricsManager.increaseBrushUsage(brush.getName());
                             }
                             world.commit();
                         } catch (Throwable e) {
@@ -391,21 +394,12 @@ public class Sniper {
     }
 
     public void storeUndo(Undo undo) {
-        if (change != null) {
-            FaweChangeSet changeSet = change.getChangeSet();
+        if (changeQueue != null) {
+            FaweChangeSet changeSet = changeQueue.getChangeSet();
             FawePlayer<Object> fp = FawePlayer.wrap(getPlayer());
             LocalSession session = fp.getSession();
             session.remember(changeSet.toEditSession(fp.getPlayer()));
         }
-//        if (VoxelSniper.getInstance().getVoxelSniperConfiguration().getUndoCacheSize() <= 0) {
-//            return;
-//        }
-//        if (undo != null && undo.getSize() > 0) {
-//            while (undoList.size() >= plugin.getVoxelSniperConfiguration().getUndoCacheSize()) {
-//                this.undoList.pollLast();
-//            }
-//            undoList.push(undo);
-//        }
     }
 
     public void undo() {
@@ -478,7 +472,7 @@ public class Sniper {
             messageHelper = new Message(snipeData);
             snipeData.setVoxelMessage(messageHelper);
 
-            IBrush newBrushInstance = instanciateBrush(currentBrush);
+            IBrush newBrushInstance = instantiateBrush(currentBrush);
             if (snipeData.owner().getPlayer().hasPermission(newBrushInstance.getPermissionNode())) {
                 brushes.put(currentBrush, newBrushInstance);
                 this.currentBrush = currentBrush;
@@ -528,7 +522,7 @@ public class Sniper {
             Preconditions.checkNotNull(brush, "Can't set brush to null.");
             IBrush brushInstance = brushes.get(brush);
             if (brushInstance == null) {
-                brushInstance = instanciateBrush(brush);
+                brushInstance = instantiateBrush(brush);
                 Preconditions.checkNotNull(brushInstance, "Could not instanciate brush class.");
                 if (snipeData.owner().getPlayer().hasPermission(brushInstance.getPermissionNode())) {
                     brushes.put(brush, brushInstance);
@@ -554,7 +548,7 @@ public class Sniper {
             return setCurrentBrush(previousBrush);
         }
 
-        private IBrush instanciateBrush(Class<? extends IBrush> brush) {
+        private IBrush instantiateBrush(Class<? extends IBrush> brush) {
             try {
                 return brush.newInstance();
             } catch (InstantiationException e) {

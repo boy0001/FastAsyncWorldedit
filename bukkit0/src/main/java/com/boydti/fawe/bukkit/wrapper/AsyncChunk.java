@@ -2,6 +2,7 @@ package com.boydti.fawe.bukkit.wrapper;
 
 import com.boydti.fawe.object.RunnableVal;
 import com.boydti.fawe.object.FaweQueue;
+import com.boydti.fawe.util.MathMan;
 import com.boydti.fawe.util.TaskManager;
 import org.bukkit.Chunk;
 import org.bukkit.ChunkSnapshot;
@@ -22,6 +23,20 @@ public class AsyncChunk implements Chunk {
         this.queue = queue;
         this.x = x;
         this.z = z;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (obj == null || !(obj instanceof Chunk)) {
+            return false;
+        }
+        Chunk other = (Chunk) obj;
+        return other.getX() == x && other.getZ() == z && world.equals(other.getWorld());
+    }
+
+    @Override
+    public int hashCode() {
+        return MathMan.pair((short) x, (short) z);
     }
 
     @Override

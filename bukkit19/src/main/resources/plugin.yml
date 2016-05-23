@@ -33,6 +33,9 @@ commands:
   '/p':
     description: VoxelSniper perform command
     aliases: [perform,/perform]
+  '/d':
+    description: VoxelSniper default command
+    aliases: [default,/default]
 permissions:
   fawe.bypass:
     default: false
