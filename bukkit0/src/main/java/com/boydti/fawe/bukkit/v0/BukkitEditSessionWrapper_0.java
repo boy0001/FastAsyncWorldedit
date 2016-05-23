@@ -18,7 +18,7 @@ public class BukkitEditSessionWrapper_0 extends EditSessionWrapper {
         try {
             // Try to hook into BlocksHub
             this.hook = new BlocksHubHook();
-        } catch (final Throwable e) {}
+        } catch (final Throwable ignore) {}
     }
 
     @Override

@@ -113,7 +113,7 @@ public class Sniper {
                 if (fp.getMeta("fawe_action") != null) {
                     return false;
                 }
-                RegionWrapper[] mask = WEManager.IMP.getMask(fp).toArray(new RegionWrapper[0]);
+                RegionWrapper[] mask = WEManager.IMP.getMask(fp);
                 queue = FaweAPI.createQueue(fp.getLocation().world, true);
                 this.mask = (MaskedFaweQueue) (queue = new MaskedFaweQueue(queue, mask));
                 com.sk89q.worldedit.world.World worldEditWorld = fp.getWorld();

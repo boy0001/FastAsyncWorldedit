@@ -281,7 +281,7 @@ public abstract class FawePlayer<T> {
      * Get the player's current allowed WorldEdit regions
      * @return
      */
-    public HashSet<RegionWrapper> getCurrentRegions() {
+    public RegionWrapper[] getCurrentRegions() {
         return WEManager.IMP.getMask(this);
     }
 

@@ -2,7 +2,6 @@ package com.boydti.fawe.util;
 
 import com.boydti.fawe.config.BBC;
 import com.boydti.fawe.config.Settings;
-import com.boydti.fawe.object.FaweLocation;
 import com.boydti.fawe.object.FawePlayer;
 import com.boydti.fawe.object.RegionWrapper;
 import com.boydti.fawe.object.RunnableVal;
@@ -64,46 +63,42 @@ public class WEManager {
      * @param player
      * @return
      */
-    public HashSet<RegionWrapper> getMask(final FawePlayer<?> player) {
-        return TaskManager.IMP.sync(new RunnableVal<HashSet<RegionWrapper>>() {
+    public RegionWrapper[] getMask(final FawePlayer<?> player) {
+        HashSet<RegionWrapper> mask = TaskManager.IMP.sync(new RunnableVal<HashSet<RegionWrapper>>() {
             @Override
-            public void run(HashSet<RegionWrapper> value) {
-                final HashSet<RegionWrapper> regions = new HashSet<>();
+            public void run(HashSet<RegionWrapper> ignore) {
+                this.value = new HashSet<>();
+                String world = player.getLocation().world;
+                if (!world.equals(player.getMeta("lastMaskWorld"))) {
+                    player.deleteMeta("lastMaskWorld");
+                    player.deleteMeta("lastMask");
+                }
+                player.setMeta("lastMaskWorld", world);
                 if (player.hasPermission("fawe.bypass") || !Settings.REGION_RESTRICTIONS) {
-                    regions.add(new RegionWrapper(Integer.MIN_VALUE, Integer.MAX_VALUE, Integer.MIN_VALUE, Integer.MAX_VALUE));
-                    player.deleteMeta("lastmask");
-                    this.value = regions;
+                    value.add(new RegionWrapper(Integer.MIN_VALUE, Integer.MAX_VALUE, Integer.MIN_VALUE, Integer.MAX_VALUE));
                     return;
                 }
                 for (final FaweMaskManager manager : managers) {
                     if (player.hasPermission("fawe." + manager.getKey())) {
                         final FaweMask mask = manager.getMask(player);
                         if (mask != null) {
-                            regions.addAll(mask.getRegions());
+                            value.addAll(mask.getRegions());
                         }
                     }
                 }
-                if (regions.size() == 0) {
-                    HashSet<RegionWrapper> mask = player.<HashSet<RegionWrapper>>getMeta("lastmask");
-                    if (mask != null) {
-                        FaweLocation loc = player.getLocation();
-                        for (RegionWrapper region : mask) {
-                            if (region.isIn(loc.x, loc.z)) {
-                                player.deleteMeta("lastmask");
-                                this.value = regions;
-                                return;
-                            }
-                        }
-                        this.value = mask;
-                        return;
-                    }
-                }
-                player.setMeta("lastmask", regions);
-                this.value = regions;
-                return;
             }
         }, 1000);
+        if (mask == null || mask.isEmpty()) {
+            mask = player.getMeta("lastMask");
+            if (mask == null) {
+                mask = new HashSet<>();
+            }
+        }
+        player.setMeta("lastmask", mask);
+        return mask.toArray(new RegionWrapper[mask.size()]);
     }
+
+
 
     public boolean intersects(final RegionWrapper region1, final RegionWrapper region2) {
         return (region1.minX <= region2.maxX) && (region1.maxX >= region2.minX) && (region1.minZ <= region2.maxZ) && (region1.maxZ >= region2.minZ);

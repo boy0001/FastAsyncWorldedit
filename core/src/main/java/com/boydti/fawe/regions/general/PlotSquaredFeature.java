@@ -4,6 +4,7 @@ import com.boydti.fawe.object.FawePlayer;
 import com.boydti.fawe.regions.FaweMask;
 import com.boydti.fawe.regions.FaweMaskManager;
 import com.intellectualcrafters.plot.PS;
+import com.intellectualcrafters.plot.object.Plot;
 import com.intellectualcrafters.plot.object.PlotPlayer;
 import com.intellectualcrafters.plot.object.RegionWrapper;
 import com.plotsquared.listener.WEManager;
@@ -21,7 +22,11 @@ public class PlotSquaredFeature extends FaweMaskManager {
     public FaweMask getMask(FawePlayer fp) {
         final PlotPlayer pp = PlotPlayer.wrap((Player) fp.parent);
         final HashSet<RegionWrapper> regions = WEManager.getMask(pp);
-        if (regions.size() == 0 || !PS.get().hasPlotArea(pp.getLocation().getWorld())) {
+        if (regions.size() == 0) {
+            Plot plot = pp.getCurrentPlot();
+            if (plot.isOwner(pp.getUUID())) {
+                System.out.println("INVALID MASK? " + WEManager.getMask(pp) + " | " + plot + " | " + pp.getName());
+            }
             return null;
         }
         final HashSet<com.boydti.fawe.object.RegionWrapper> faweRegions = new HashSet<>();

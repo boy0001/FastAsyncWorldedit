@@ -16,16 +16,15 @@ import com.sk89q.worldedit.extent.Extent;
 import com.sk89q.worldedit.regions.Region;
 import com.sk89q.worldedit.util.Location;
 import com.sk89q.worldedit.world.biome.BaseBiome;
-import java.util.HashSet;
 import java.util.List;
 
 public class ProcessedWEExtent extends FaweRegionExtent {
     private final FaweLimit limit;
     private final RegionWrapper[] mask;
 
-    public ProcessedWEExtent(final Extent parent, final HashSet<RegionWrapper> mask, FaweLimit limit) {
+    public ProcessedWEExtent(final Extent parent, final RegionWrapper[] mask, FaweLimit limit) {
         super(parent);
-        this.mask = mask.toArray(new RegionWrapper[mask.size()]);
+        this.mask = mask;
         this.limit = limit;
     }
 

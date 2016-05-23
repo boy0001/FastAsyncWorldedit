@@ -22,10 +22,10 @@ package com.sk89q.worldedit.command.composition;
 import com.boydti.fawe.config.BBC;
 import com.boydti.fawe.object.FaweChunk;
 import com.boydti.fawe.object.FawePlayer;
+import com.boydti.fawe.object.FaweQueue;
 import com.boydti.fawe.object.NullChangeSet;
 import com.boydti.fawe.object.RegionWrapper;
 import com.boydti.fawe.object.RunnableVal;
-import com.boydti.fawe.object.FaweQueue;
 import com.boydti.fawe.util.MainUtil;
 import com.boydti.fawe.util.WEManager;
 import com.google.common.base.Joiner;
@@ -55,7 +55,6 @@ import com.sk89q.worldedit.util.command.argument.CommandArgs;
 import com.sk89q.worldedit.util.command.composition.CommandExecutor;
 import com.sk89q.worldedit.util.command.composition.SimpleCommand;
 import java.lang.reflect.Field;
-import java.util.HashSet;
 import java.util.List;
 
 
@@ -105,9 +104,9 @@ public class SelectionCommand extends SimpleCommand<Operation> {
                     RegionFunction function = ((RegionVisitor) operation).function;
                     RegionWrapper current = new RegionWrapper(cuboid.getMinimumPoint(), cuboid.getMaximumPoint());
                     FawePlayer fp = FawePlayer.wrap(player);
-                    HashSet<RegionWrapper> mask = WEManager.IMP.getMask(fp);
+                    RegionWrapper[] mask = WEManager.IMP.getMask(fp);
 
-                    if (function instanceof BlockReplace && mask.size() == 1 && mask.iterator().next().contains(current)) {
+                    if (function instanceof BlockReplace && mask.length == 1 && mask[0].equals(current)) {
                         try {
                             BlockReplace replace = ((BlockReplace) function);
                             Field field = replace.getClass().getDeclaredField("pattern");

@@ -153,7 +153,7 @@ public class FaweAPI {
      * @param player
      * @return
      */
-    public static Set<RegionWrapper> getRegions(FawePlayer player) {
+    public static RegionWrapper[] getRegions(FawePlayer player) {
         return WEManager.IMP.getMask(player);
     }
 

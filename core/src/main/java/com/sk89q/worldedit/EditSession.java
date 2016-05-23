@@ -261,7 +261,7 @@ public class EditSession implements Extent {
         }
 
         Extent extent;
-        HashSet<RegionWrapper> mask;
+        RegionWrapper[] mask;
         final FawePlayer fp = FawePlayer.wrap(actor);
         final LocalSession session = fp.getSession();
         this.fastmode = session.hasFastMode();
@@ -287,9 +287,9 @@ public class EditSession implements Extent {
             queue.addEditSession(this);
             this.limit = fp.getLimit();
             mask = WEManager.IMP.getMask(fp);
-            if (mask.size() == 0) {
+            if (mask.length == 0) {
                 // No allowed area; return null extent
-                extent = this.regionExtent = new NullExtent(world, BBC.WORLDEDIT_CANCEL_REASON_MAX_FAILS);
+                extent = this.regionExtent = new NullExtent(world, BBC.WORLDEDIT_CANCEL_REASON_NO_REGION);
                 this.bypassReorderHistory = extent;
                 this.bypassHistory = extent;
                 this.bypassNone = extent;
@@ -426,23 +426,14 @@ public class EditSession implements Extent {
         eventBus.post(event);
         final Extent toReturn = event.getExtent();
         if (toReturn != extent) {
-            String className = toReturn.getClass().getSimpleName().toLowerCase();
-            if (className.contains("coreprotect")) {
-                if (Settings.EXTENT_DEBUG) {
-                    Fawe.debug("&cUnsafe extent detected: " + toReturn.getClass().getCanonicalName() + " !");
-                    Fawe.debug("&8 - &7Use BlocksHub instead");
-                    Fawe.debug("&8 - &7Or use FAWE rollback");
-                    Fawe.debug("&8 - &7Change `extent.debug: false` to hide this message");
-                }
-                return extent;
-            }
+            String className = toReturn.getClass().getName().toLowerCase();
             for (String allowed : Settings.ALLOWED_3RDPARTY_EXTENTS) {
                 if (className.contains(allowed.toLowerCase())) {
                     return toReturn;
                 }
             }
             if (Settings.EXTENT_DEBUG) {
-                Fawe.debug("&cPotentially inefficient WorldEdit extent: " + toReturn.getClass().getSimpleName());
+                Fawe.debug("&cPotentially inefficient WorldEdit extent: " + toReturn.getClass().getName());
                 Fawe.debug("&8 - &7For area restrictions, it is recommended to use the FaweAPI");
                 Fawe.debug("&8 - &7To allow this plugin add it to the FAWE `allowed-plugins` list");
             }
