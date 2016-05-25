@@ -19,6 +19,7 @@ public class Settings {
     public static boolean ENABLE_HARD_LIMIT = true;
     public static boolean STORE_HISTORY_ON_DISK = false;
     public static boolean STORE_CLIPBOARD_ON_DISK = false;
+    public static boolean CONSOLE_HISTORY = true;
     public static int DELETE_HISTORY_AFTER_DAYS = 7;
     public static boolean CLEAN_HISTORY_ON_LOGOUT = true;
     public static int DELETE_CLIPBOARD_AFTER_DAYS = 1;
@@ -98,6 +99,7 @@ public class Settings {
         options.put("history.chunk-wait-ms", CHUNK_WAIT);
         options.put("history.delete-after-days", DELETE_HISTORY_AFTER_DAYS);
         options.put("history.delete-on-logout", CLEAN_HISTORY_ON_LOGOUT);
+        options.put("history.enable-for-console", CONSOLE_HISTORY);
         options.put("region-restrictions", REGION_RESTRICTIONS);
         options.put("queue.extra-time-ms", ALLOCATE);
         options.put("queue.progress.display", DISPLAY_PROGRESS);
@@ -144,6 +146,7 @@ public class Settings {
         DELETE_HISTORY_AFTER_DAYS = config.getInt("history.delete-after-days");
         CLEAN_HISTORY_ON_LOGOUT = config.getBoolean("history.delete-on-logout");
         CHUNK_WAIT = config.getInt("history.chunk-wait-ms");
+        CONSOLE_HISTORY = config.getBoolean("history.enable-for-console");
         ALLOCATE = config.getInt("queue.extra-time-ms");
         QUEUE_SIZE = config.getInt("queue.target-size");
         QUEUE_MAX_WAIT = config.getInt("queue.max-wait-ms");

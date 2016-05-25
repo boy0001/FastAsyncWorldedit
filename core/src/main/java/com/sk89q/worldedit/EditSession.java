@@ -26,6 +26,7 @@ import com.boydti.fawe.config.Settings;
 import com.boydti.fawe.object.EditSessionWrapper;
 import com.boydti.fawe.object.FaweLimit;
 import com.boydti.fawe.object.FawePlayer;
+import com.boydti.fawe.object.FaweQueue;
 import com.boydti.fawe.object.HistoryExtent;
 import com.boydti.fawe.object.NullChangeSet;
 import com.boydti.fawe.object.RegionWrapper;
@@ -41,7 +42,6 @@ import com.boydti.fawe.object.extent.MemoryCheckingExtent;
 import com.boydti.fawe.object.extent.NullExtent;
 import com.boydti.fawe.object.extent.ProcessedWEExtent;
 import com.boydti.fawe.object.progress.DefaultProgressTracker;
-import com.boydti.fawe.object.FaweQueue;
 import com.boydti.fawe.util.MainUtil;
 import com.boydti.fawe.util.MemUtil;
 import com.boydti.fawe.util.Perm;
@@ -131,6 +131,8 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.UUID;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.annotation.Nullable;
@@ -178,8 +180,9 @@ public class EditSession implements Extent {
     private FaweLimit limit = FaweLimit.MAX.copy();
     private FaweQueue queue;
 
-    public static BaseBiome nullBiome = new BaseBiome(0);
-    public static BaseBlock nullBlock = FaweCache.CACHE_BLOCK[0];
+    public static final UUID CONSOLE = UUID.fromString("1-1-3-3-7");
+    public static final BaseBiome nullBiome = new BaseBiome(0);
+    public static final BaseBlock nullBlock = FaweCache.CACHE_BLOCK[0];
 
     /**
      * Create a new instance.
@@ -252,9 +255,18 @@ public class EditSession implements Extent {
             // Everything bypasses
             extent = this.wrapExtent(extent, eventBus, event, Stage.BEFORE_CHANGE);
             extent = this.wrapExtent(extent, eventBus, event, Stage.BEFORE_REORDER);
+            // History
+            if (Settings.CONSOLE_HISTORY) {
+                this.changeSet = Settings.STORE_HISTORY_ON_DISK ? new DiskStorageHistory(world, CONSOLE) : (Settings.COMBINE_HISTORY_STAGE && Settings.COMPRESSION_LEVEL == 0) ? new CPUOptimizedChangeSet(world) : new MemoryOptimizedHistory(world);
+                if (Settings.COMBINE_HISTORY_STAGE) {
+                    changeSet.addChangeTask(queue);
+                } else {
+                    extent = new HistoryExtent(this, limit, extent, changeSet, queue);
+                }
+            }
             extent = this.wrapExtent(extent, eventBus, event, Stage.BEFORE_HISTORY);
-            this.bypassReorderHistory = extent;
-            this.bypassHistory = extent;
+            this.bypassReorderHistory = primaryExtent;
+            this.bypassHistory = primaryExtent;
             this.bypassNone = extent;
             this.changeSet = new NullChangeSet(world);
             return;
@@ -384,11 +396,16 @@ public class EditSession implements Extent {
     public boolean cancel() {
         // Cancel this
         if (primaryExtent != null && queue != null) {
+            System.out.println("CANCEL");
             try {
                 WEManager.IMP.cancelEdit(primaryExtent, BBC.WORLDEDIT_CANCEL_REASON_MANUAL);
             } catch (Throwable ignore) {}
             NullExtent nullExtent = new NullExtent(world, BBC.WORLDEDIT_CANCEL_REASON_MANUAL);
             primaryExtent = nullExtent;
+            regionExtent = nullExtent;
+            bypassReorderHistory = nullExtent;
+            bypassHistory = nullExtent;
+            bypassNone = nullExtent;
             dequeue();
             queue.clear();
             return true;
@@ -883,7 +900,8 @@ public class EditSession implements Extent {
      */
     public void undo(final EditSession editSession) {
         final UndoContext context = new UndoContext();
-        context.setExtent(editSession.bypassHistory);
+        context.setExtent(editSession.primaryExtent);
+        editSession.getQueue().setChangeTask(null);
         Operations.completeSmart(ChangeSetExecutor.createUndo(this.changeSet, context), new Runnable() {
             @Override
             public void run() {
@@ -900,7 +918,8 @@ public class EditSession implements Extent {
      */
     public void redo(final EditSession editSession) {
         final UndoContext context = new UndoContext();
-        context.setExtent(editSession.bypassHistory);
+        context.setExtent(editSession.primaryExtent);
+        editSession.getQueue().setChangeTask(null);
         Operations.completeSmart(ChangeSetExecutor.createRedo(this.changeSet, context), new Runnable() {
             @Override
             public void run() {
@@ -943,9 +962,30 @@ public class EditSession implements Extent {
      * Finish off the queue.
      */
     public void flushQueue() {
-        Operations.completeBlindly(EditSession.this.commit());
-        if (queue != null) {
-            queue.enqueue();
+        Operations.completeBlindly(commit());
+        // Enqueue it
+        if (queue != null && queue.size() > 0) {
+            SetQueue.IMP.enqueue(queue);
+        }
+        if (changeSet != null) {
+            if (Settings.COMBINE_HISTORY_STAGE && queue.size() > 0) {
+                final AtomicBoolean running = new AtomicBoolean(true);
+                queue.addNotifyTask(new Runnable() {
+                    @Override
+                    public void run() {
+                        TaskManager.IMP.async(new Runnable() {
+                            @Override
+                            public void run() {
+                                changeSet.flush();
+                                TaskManager.IMP.notify(running);
+                            }
+                        });
+                    }
+                });
+                TaskManager.IMP.wait(running, Settings.QUEUE_DISCARD_AFTER);
+            } else {
+                changeSet.flush();
+            }
         }
     }
 

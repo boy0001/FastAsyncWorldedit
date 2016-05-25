@@ -1,9 +1,9 @@
 package com.boydti.fawe.object.changeset;
 
 import com.boydti.fawe.object.FaweChunk;
+import com.boydti.fawe.object.FaweQueue;
 import com.boydti.fawe.object.RunnableVal2;
 import com.boydti.fawe.object.change.MutableChunkChange;
-import com.boydti.fawe.object.FaweQueue;
 import com.sk89q.jnbt.CompoundTag;
 import com.sk89q.worldedit.history.change.Change;
 import com.sk89q.worldedit.world.World;
@@ -25,8 +25,24 @@ public class CPUOptimizedChangeSet extends FaweChangeSet {
                 char[][] previousIds = previous.getCombinedIdArrays();
                 char[][] nextIds = next.getCombinedIdArrays();
                 for (int i = 0; i < nextIds.length; i++) {
-                    if (nextIds[i] != null && previousIds[i] == null) {
-                        previous.fillCuboid(0, 15, i << 4, (i << 4) + 15, 0, 15, 0, (byte) 0);
+                    char[] nextArray = nextIds[i];
+                    if (nextArray != null) {
+                        char[] previousArray = previousIds[i];
+                        if (previousArray == null) {
+                            previous.fillCuboid(0, 15, i << 4, (i << 4) + 15, 0, 15, 0, (byte) 0);
+                            continue;
+                        }
+                        for (int k = 0; k < nextArray.length; k++) {
+                            int combinedNext = nextArray[k];
+                            if (combinedNext > 0) {
+                                int combinedPrevious = previousArray[k];
+                                if (combinedPrevious == 0) {
+                                    previousArray[k] = 1;
+                                }
+                            } else {
+                                previousArray[k] = 0;
+                            }
+                        }
                     }
                 }
                 changes.add(new MutableChunkChange(previous, next));

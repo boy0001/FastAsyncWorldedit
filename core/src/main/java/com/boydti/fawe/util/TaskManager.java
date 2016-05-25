@@ -141,6 +141,25 @@ public abstract class TaskManager {
        return sync(function, Integer.MAX_VALUE);
     }
 
+    public void wait(AtomicBoolean running, int timout) {
+        try {
+            synchronized (running) {
+                while (running.get()) {
+                    running.wait(timout);
+                }
+            }
+        } catch (InterruptedException e) {
+            MainUtil.handleError(e);
+        }
+    }
+
+    public void notify(AtomicBoolean running) {
+        running.set(false);
+        synchronized (running) {
+            running.notifyAll();
+        }
+    }
+
     /**
      * Quickly run a task on the main thread, and wait for execution to finish:<br>
      *     - Useful if you need to access something from the Bukkit API from another thread<br>

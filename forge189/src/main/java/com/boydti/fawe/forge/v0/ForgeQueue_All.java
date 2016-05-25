@@ -385,8 +385,7 @@ public class ForgeQueue_All extends NMSMappedFaweQueue<World, Chunk, ExtendedBlo
                         if (array == null) {
                             continue;
                         }
-                        int j = FaweCache.CACHE_J[y][x][z];
-                        if (array[j] != 0) {
+                        if (y < 0 || y > 255 || array[FaweCache.CACHE_J[y][x][z]] != 0) {
                             nmsWorld.removeEntity(entity);
                         }
                     }

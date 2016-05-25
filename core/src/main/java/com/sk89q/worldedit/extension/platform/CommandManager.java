@@ -21,7 +21,9 @@ package com.sk89q.worldedit.extension.platform;
 
 import com.boydti.fawe.config.BBC;
 import com.boydti.fawe.object.FawePlayer;
+import com.boydti.fawe.object.changeset.FaweStreamChangeSet;
 import com.boydti.fawe.object.exception.FaweException;
+import com.boydti.fawe.util.MainUtil;
 import com.boydti.fawe.util.TaskManager;
 import com.boydti.fawe.wrappers.PlayerWrapper;
 import com.google.common.base.Joiner;
@@ -64,6 +66,7 @@ import com.sk89q.worldedit.event.platform.CommandEvent;
 import com.sk89q.worldedit.event.platform.CommandSuggestionEvent;
 import com.sk89q.worldedit.function.factory.Deform;
 import com.sk89q.worldedit.function.factory.Deform.Mode;
+import com.sk89q.worldedit.history.changeset.ChangeSet;
 import com.sk89q.worldedit.internal.command.ActorAuthorizer;
 import com.sk89q.worldedit.internal.command.CommandLoggingHandler;
 import com.sk89q.worldedit.internal.command.UserCommandCompleter;
@@ -288,28 +291,18 @@ public final class CommandManager {
                     if (editSession != null) {
                         editSession.flushQueue();
                         worldEdit.flushBlockBag(actor, editSession);
+                        session.remember(editSession, true, true);
                     }
                     if (fp != null) {
-                        if (editSession != null && editSession.size() > 0 && editSession.getQueue() != null) {
-                            delayed = true;
-                            editSession.getQueue().addNotifyTask(new Runnable() {
-                                @Override
-                                public void run() {
-                                    session.remember(editSession, true, true);
-                                    fp.deleteMeta("fawe_action");
-                                    final long time = System.currentTimeMillis() - start;
-                                    if (time > 5) {
-                                        BBC.ACTION_COMPLETE.send(actor, (time / 1000d));
-                                    }
-                                }
-                            });
+                        fp.deleteMeta("fawe_action");
+                        final long time = System.currentTimeMillis() - start;
+                        if (time > 0) {
+                            BBC.ACTION_COMPLETE.send(actor, (time / 50d));
+                            ChangeSet fcs = editSession.getChangeSet();
+                            if (fcs != null && fcs instanceof FaweStreamChangeSet) {
+                                MainUtil.sendCompressedMessage((FaweStreamChangeSet) fcs, editSession.getActor());
+                            }
                         }
-                    }
-                    if (!delayed) {
-                        if (fp != null) {
-                            fp.deleteMeta("fawe_action");
-                        }
-                        session.remember(editSession, true, true);
                     }
                 }
             }

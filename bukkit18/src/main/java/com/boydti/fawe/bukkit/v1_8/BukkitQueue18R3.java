@@ -227,8 +227,7 @@ public class BukkitQueue18R3 extends BukkitQueue_0<Chunk, ChunkSection[], char[]
                         if (array == null) {
                             continue;
                         }
-                        int j = FaweCache.CACHE_J[y][x][z];
-                        if (array[j] != 0) {
+                        if (y < 0 || y > 255 || array[FaweCache.CACHE_J[y][x][z]] != 0) {
                             nmsWorld.removeEntity(entity);
                         }
                     }

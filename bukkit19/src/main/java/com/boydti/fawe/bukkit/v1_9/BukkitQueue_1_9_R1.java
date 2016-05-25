@@ -505,8 +505,7 @@ public class BukkitQueue_1_9_R1 extends BukkitQueue_0<Chunk, ChunkSection[], Dat
                         if (array == null || y < 0 || y > 255) {
                             continue;
                         }
-                        int j = FaweCache.CACHE_J[y][x][z];
-                        if (array[j] != 0) {
+                        if (y < 0 || y > 255 || array[FaweCache.CACHE_J[y][x][z]] != 0) {
                             nmsWorld.removeEntity(entity);
                         }
                     }

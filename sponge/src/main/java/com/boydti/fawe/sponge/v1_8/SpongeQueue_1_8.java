@@ -334,8 +334,7 @@ public class SpongeQueue_1_8 extends NMSMappedFaweQueue<World, net.minecraft.wor
                         if (array == null) {
                             continue;
                         }
-                        int j = FaweCache.CACHE_J[y][x][z];
-                        if (array[j] != 0) {
+                        if (y < 0 || y > 255 || array[FaweCache.CACHE_J[y][x][z]] != 0) {
                             nmsWorld.removeEntity(entity);
                         }
                     }

@@ -185,22 +185,22 @@ public class MainUtil {
         if (e == null) {
             return;
         }
-        if (!debug) {
+//        if (!debug) {
             e.printStackTrace();
             return;
-        }
-        String header = "====== FAWE: " + e.getLocalizedMessage() + " ======";
-        Fawe.debug(header);
-        String[] trace = getTrace(e);
-        for (int i = 0; i < trace.length && i < 8; i++) {
-            Fawe.debug(" - " + trace[i]);
-        }
-        String[] cause = getTrace(e.getCause());
-        Fawe.debug("Cause: " + (cause.length == 0 ? "N/A" : ""));
-        for (int i = 0; i < cause.length && i < 8; i++) {
-            Fawe.debug(" - " + cause[i]);
-        }
-        Fawe.debug(StringMan.repeat("=", header.length()));
+//        }
+//        String header = "====== FAWE: " + e.getLocalizedMessage() + " ======";
+//        Fawe.debug(header);
+//        String[] trace = getTrace(e);
+//        for (int i = 0; i < trace.length && i < 8; i++) {
+//            Fawe.debug(" - " + trace[i]);
+//        }
+//        String[] cause = getTrace(e.getCause());
+//        Fawe.debug("Cause: " + (cause.length == 0 ? "N/A" : ""));
+//        for (int i = 0; i < cause.length && i < 8; i++) {
+//            Fawe.debug(" - " + cause[i]);
+//        }
+//        Fawe.debug(StringMan.repeat("=", header.length()));
     }
 
     public static String[] getTrace(Throwable e) {

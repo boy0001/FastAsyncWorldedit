@@ -20,13 +20,7 @@
 package com.sk89q.worldedit;
 
 import com.boydti.fawe.config.Settings;
-import com.boydti.fawe.object.changeset.FaweChangeSet;
-import com.boydti.fawe.object.changeset.FaweStreamChangeSet;
 import com.boydti.fawe.object.clipboard.DiskOptimizedClipboard;
-import com.boydti.fawe.object.FaweQueue;
-import com.boydti.fawe.util.MainUtil;
-import com.boydti.fawe.util.SetQueue;
-import com.boydti.fawe.util.TaskManager;
 import com.sk89q.jchronic.Chronic;
 import com.sk89q.jchronic.Options;
 import com.sk89q.jchronic.utils.Span;
@@ -43,7 +37,6 @@ import com.sk89q.worldedit.extent.clipboard.Clipboard;
 import com.sk89q.worldedit.extent.inventory.BlockBag;
 import com.sk89q.worldedit.function.mask.Mask;
 import com.sk89q.worldedit.function.mask.Masks;
-import com.sk89q.worldedit.history.changeset.ChangeSet;
 import com.sk89q.worldedit.internal.cui.CUIEvent;
 import com.sk89q.worldedit.internal.cui.CUIRegion;
 import com.sk89q.worldedit.internal.cui.SelectionShapeEvent;
@@ -210,14 +203,6 @@ public class LocalSession {
         if (Settings.STORE_HISTORY_ON_DISK) {
             MAX_HISTORY_SIZE = Integer.MAX_VALUE;
         }
-        // Enqueue it
-        if (editSession.getQueue() != null) {
-            FaweQueue queue = editSession.getQueue();
-            if (queue.size() > 0) {
-                SetQueue.IMP.enqueue(editSession.getQueue());
-            }
-        }
-
         // Don't store anything if no changes were made
         if (editSession.size() == 0 || editSession.hasFastMode()) return;
 
@@ -226,32 +211,6 @@ public class LocalSession {
             while (historyPointer < history.size()) {
                 history.remove(historyPointer);
             }
-        }
-        ChangeSet set = editSession.getChangeSet();
-        if (set instanceof FaweStreamChangeSet) {
-            final FaweStreamChangeSet fcs = (FaweStreamChangeSet) set;
-            if (Settings.COMBINE_HISTORY_STAGE) {
-                editSession.getQueue().addNotifyTask(new Runnable() {
-                    @Override
-                    public void run() {
-                        TaskManager.IMP.async(new Runnable() {
-                            @Override
-                            public void run() {
-                                if (fcs.flush() && append && sendMessage) {
-                                    MainUtil.sendCompressedMessage(fcs, editSession.getActor());
-                                }
-                            }
-                        });
-                    }
-                });
-            } else {
-                if (fcs.flush() && append && sendMessage) {
-                    MainUtil.sendCompressedMessage(fcs, editSession.getActor());
-                }
-            }
-
-        } else if (set instanceof FaweChangeSet) {
-            ((FaweChangeSet) set).flush();
         }
         if (append) {
             history.add(editSession);
