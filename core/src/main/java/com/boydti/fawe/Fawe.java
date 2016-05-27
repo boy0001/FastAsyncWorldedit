@@ -395,6 +395,10 @@ public class Fawe {
         return this.thread;
     }
 
+    public boolean isMainThread() {
+        return Thread.currentThread() == thread;
+    }
+
     /**
      * Sets the main thread to the current thread
      * @return

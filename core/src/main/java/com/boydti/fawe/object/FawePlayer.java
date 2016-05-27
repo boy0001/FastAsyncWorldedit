@@ -28,7 +28,6 @@ import java.io.File;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashSet;
 import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
@@ -393,5 +392,40 @@ public abstract class FawePlayer<T> {
      */
     public EditSession getNewEditSession() {
         return WorldEdit.getInstance().getEditSessionFactory().getEditSession(getWorld(), -1, getPlayer());
+    }
+
+    public boolean runIfFree(Runnable run) {
+        if (getMeta("fawe_action") != null) {
+            return false;
+        }
+        setMeta("fawe_action", true);
+        try {
+            run.run();
+        } catch (Throwable e) {
+            e.printStackTrace();
+        } finally {
+            deleteMeta("fawe_action");
+        }
+        return true;
+    }
+
+    public boolean runAsyncIfFree(final Runnable run) {
+        if (getMeta("fawe_action") != null) {
+            return false;
+        }
+        setMeta("fawe_action", true);
+        TaskManager.IMP.async(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    run.run();
+                } catch (Throwable e) {
+                    e.printStackTrace();
+                } finally {
+                    deleteMeta("fawe_action");
+                }
+            }
+        });
+        return true;
     }
 }

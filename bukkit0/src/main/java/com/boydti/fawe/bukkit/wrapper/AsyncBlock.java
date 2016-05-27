@@ -34,7 +34,7 @@ public class AsyncBlock implements Block {
 
     @Override
     public byte getData() {
-        return (byte) (queue.getCombinedId4Data(x, y, z) & 0xF);
+        return (byte) (queue.getCombinedId4Data(x, y, z, 0) & 0xF);
     }
 
     @Override
@@ -54,12 +54,12 @@ public class AsyncBlock implements Block {
 
     @Override
     public Material getType() {
-        return Material.getMaterial(queue.getCombinedId4Data(x, y, z) >> 4);
+        return Material.getMaterial(queue.getCombinedId4Data(x, y, z, 0) >> 4);
     }
 
     @Override
     public int getTypeId() {
-        return queue.getCombinedId4Data(x, y, z) >> 4;
+        return queue.getCombinedId4Data(x, y, z, 0) >> 4;
     }
 
     @Override

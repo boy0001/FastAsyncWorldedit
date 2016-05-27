@@ -396,7 +396,6 @@ public class EditSession implements Extent {
     public boolean cancel() {
         // Cancel this
         if (primaryExtent != null && queue != null) {
-            System.out.println("CANCEL");
             try {
                 WEManager.IMP.cancelEdit(primaryExtent, BBC.WORLDEDIT_CANCEL_REASON_MANUAL);
             } catch (Throwable ignore) {}
@@ -965,27 +964,24 @@ public class EditSession implements Extent {
         Operations.completeBlindly(commit());
         // Enqueue it
         if (queue != null && queue.size() > 0) {
-            SetQueue.IMP.enqueue(queue);
+            queue.enqueue();
         }
         if (changeSet != null) {
             if (Settings.COMBINE_HISTORY_STAGE && queue.size() > 0) {
-                final AtomicBoolean running = new AtomicBoolean(true);
-                queue.addNotifyTask(new Runnable() {
-                    @Override
-                    public void run() {
-                        TaskManager.IMP.async(new Runnable() {
-                            @Override
-                            public void run() {
-                                changeSet.flush();
-                                TaskManager.IMP.notify(running);
-                            }
-                        });
-                    }
-                });
-                TaskManager.IMP.wait(running, Settings.QUEUE_DISCARD_AFTER);
-            } else {
-                changeSet.flush();
+                if (Fawe.get().isMainThread()) {
+                    SetQueue.IMP.flush(queue);
+                } else {
+                    final AtomicBoolean running = new AtomicBoolean(true);
+                    queue.addNotifyTask(new Runnable() {
+                        @Override
+                        public void run() {
+                            TaskManager.IMP.notify(running);
+                        }
+                    });
+                    TaskManager.IMP.wait(running, Settings.QUEUE_DISCARD_AFTER);
+                }
             }
+            changeSet.flush();
         }
     }
 

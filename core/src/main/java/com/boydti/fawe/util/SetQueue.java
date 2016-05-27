@@ -175,6 +175,45 @@ public class SetQueue {
         return queue;
     }
 
+    public void flush(FaweQueue queue) {
+        SET_TASK.value1 = Long.MAX_VALUE;
+        SET_TASK.value2 = queue;
+        if (SET_TASK.value2 == null) {
+            return;
+        }
+        if (Thread.currentThread() != Fawe.get().getMainThread()) {
+            throw new IllegalStateException("Must be flushed on the main thread!");
+        }
+        // Disable the async catcher as it can't discern async vs parallel
+        SET_TASK.value2.startSet(true);
+        try {
+            if (Settings.PARALLEL_THREADS <= 1) {
+                SET_TASK.run();
+            } else {
+                ArrayList<Thread> threads = new ArrayList<Thread>();
+                for (int i = 0; i < Settings.PARALLEL_THREADS; i++) {
+                    threads.add(new Thread(SET_TASK));
+                }
+                for (Thread thread : threads) {
+                    thread.start();
+                }
+                for (Thread thread : threads) {
+                    try {
+                        thread.join();
+                    } catch (InterruptedException e) {
+                        MainUtil.handleError(e);
+                    }
+                }
+            }
+        } catch (Throwable e) {
+            MainUtil.handleError(e);
+        } finally {
+            // Enable it again (note that we are still on the main thread)
+            SET_TASK.value2.endSet(true);
+            dequeue(queue);
+        }
+    }
+
     public FaweQueue getNextQueue() {
         while (activeQueues.size() > 0) {
             FaweQueue queue = activeQueues.peek();

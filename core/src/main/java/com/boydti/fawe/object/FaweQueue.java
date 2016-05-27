@@ -2,10 +2,12 @@ package com.boydti.fawe.object;
 
 import com.boydti.fawe.Fawe;
 import com.boydti.fawe.config.BBC;
+import com.boydti.fawe.config.Settings;
 import com.boydti.fawe.object.exception.FaweException;
 import com.boydti.fawe.util.MainUtil;
 import com.boydti.fawe.util.MemUtil;
 import com.boydti.fawe.util.SetQueue;
+import com.boydti.fawe.util.TaskManager;
 import com.sk89q.jnbt.CompoundTag;
 import com.sk89q.worldedit.EditSession;
 import com.sk89q.worldedit.world.biome.BaseBiome;
@@ -13,6 +15,7 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.LinkedBlockingDeque;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 public abstract class FaweQueue {
 
@@ -188,6 +191,26 @@ public abstract class FaweQueue {
     }
 
     public abstract int size();
+
+    /**
+     * Lock the thread until the queue is empty
+     */
+    public void flush() {
+        if (size() > 0) {
+            if (Fawe.get().isMainThread()) {
+                SetQueue.IMP.flush(this);
+            } else {
+                final AtomicBoolean running = new AtomicBoolean(true);
+                addNotifyTask(new Runnable() {
+                    @Override
+                    public void run() {
+                        TaskManager.IMP.notify(running);
+                    }
+                });
+                TaskManager.IMP.wait(running, Settings.QUEUE_DISCARD_AFTER);
+            }
+        }
+    }
 
     public void enqueue() {
         SetQueue.IMP.enqueue(this);

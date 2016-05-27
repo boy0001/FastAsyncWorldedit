@@ -113,7 +113,7 @@ public class AsyncWorld implements World {
     @Override
     @Deprecated
     public int getBlockTypeIdAt(int x, int y, int z) {
-        return queue.getCombinedId4Data(x, y, z) >> 4;
+        return queue.getCombinedId4Data(x, y, z, 0) >> 4;
     }
 
     @Override
@@ -125,7 +125,7 @@ public class AsyncWorld implements World {
     @Override
     public int getHighestBlockYAt(int x, int z) {
         for (int y = 255; y >= 0; y--) {
-            if (queue.getCombinedId4Data(x, y, z) != 0) {
+            if (queue.getCombinedId4Data(x, y, z, 0) != 0) {
                 return y;
             }
         }

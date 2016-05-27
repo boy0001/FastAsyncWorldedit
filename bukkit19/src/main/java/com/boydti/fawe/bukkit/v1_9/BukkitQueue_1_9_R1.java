@@ -210,7 +210,30 @@ public class BukkitQueue_1_9_R1 extends BukkitQueue_0<Chunk, ChunkSection[], Dat
                     }
                 }
             }
-            c.initLighting();
+            final boolean flag = chunk.getWorld().getEnvironment() == Environment.NORMAL;
+            {
+                int i = c.g();
+                for(int x = 0; x < 16; ++x) {
+                    for (int z = 0; z < 16; ++z) {
+                        int l = 15;
+                        int i1 = i + 16 - 1;
+                        do {
+                            int opacity = c.a(x, i1, z).c();
+                            if (opacity == 0 && l != 15) {
+                                opacity = 1;
+                            }
+                            l -= opacity;
+                            if (l > 0) {
+                                ChunkSection section = sections[i1 >> 4];
+                                if (section != null) {
+                                    section.a(x, i1 & 15, z, l);
+                                }
+                            }
+                            --i1;
+                        } while (i1 > 0 && l > 0);
+                    }
+                }
+            }
             if (((bc.getTotalRelight() == 0) && mode == RelightMode.MINIMAL)) {
                 return true;
             }

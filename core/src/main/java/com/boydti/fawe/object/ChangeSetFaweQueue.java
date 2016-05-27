@@ -7,7 +7,7 @@ import com.sk89q.jnbt.CompoundTag;
 import com.sk89q.worldedit.world.biome.BaseBiome;
 
 public class ChangeSetFaweQueue extends DelegateFaweQueue {
-    private final FaweChangeSet set;
+    private FaweChangeSet set;
 
     public ChangeSetFaweQueue(FaweChangeSet set, FaweQueue parent) {
         super(parent);
@@ -16,6 +16,10 @@ public class ChangeSetFaweQueue extends DelegateFaweQueue {
 
     public FaweChangeSet getChangeSet() {
         return set;
+    }
+
+    public void setChangeSet(FaweChangeSet set) {
+        this.set = set;
     }
 
     @Override

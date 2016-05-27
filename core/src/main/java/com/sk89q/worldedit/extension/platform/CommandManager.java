@@ -295,12 +295,14 @@ public final class CommandManager {
                     }
                     if (fp != null) {
                         fp.deleteMeta("fawe_action");
-                        final long time = System.currentTimeMillis() - start;
-                        if (time > 0) {
-                            BBC.ACTION_COMPLETE.send(actor, (time / 50d));
-                            ChangeSet fcs = editSession.getChangeSet();
-                            if (fcs != null && fcs instanceof FaweStreamChangeSet) {
-                                MainUtil.sendCompressedMessage((FaweStreamChangeSet) fcs, editSession.getActor());
+                        if (editSession != null) {
+                            final long time = System.currentTimeMillis() - start;
+                            if (time > 0) {
+                                BBC.ACTION_COMPLETE.send(actor, (time / 1000d));
+                                ChangeSet fcs = editSession.getChangeSet();
+                                if (fcs != null && fcs instanceof FaweStreamChangeSet) {
+                                    MainUtil.sendCompressedMessage((FaweStreamChangeSet) fcs, editSession.getActor());
+                                }
                             }
                         }
                     }

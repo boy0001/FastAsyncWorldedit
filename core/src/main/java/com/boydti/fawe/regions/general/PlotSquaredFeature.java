@@ -24,7 +24,7 @@ public class PlotSquaredFeature extends FaweMaskManager {
         final HashSet<RegionWrapper> regions = WEManager.getMask(pp);
         if (regions.size() == 0) {
             Plot plot = pp.getCurrentPlot();
-            if (plot.isOwner(pp.getUUID())) {
+            if (plot != null && plot.isOwner(pp.getUUID())) {
                 System.out.println("INVALID MASK? " + WEManager.getMask(pp) + " | " + plot + " | " + pp.getName());
             }
             return null;
