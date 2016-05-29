@@ -26,7 +26,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
  */
 public class HistoryExtent extends AbstractDelegateExtent {
 
-    private final com.boydti.fawe.object.changeset.FaweChangeSet changeSet;
+    private com.boydti.fawe.object.changeset.FaweChangeSet changeSet;
     private final FaweQueue queue;
     private final FaweLimit limit;
     private final EditSession session;
@@ -44,6 +44,10 @@ public class HistoryExtent extends AbstractDelegateExtent {
         this.queue = queue;
         this.changeSet = changeSet;
         this.session = session;
+    }
+
+    public void setChangeSet(FaweChangeSet fcs) {
+        this.changeSet = fcs;
     }
 
     @Override

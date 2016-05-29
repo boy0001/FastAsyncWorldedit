@@ -171,6 +171,7 @@ public class EditSession implements Extent {
     private MaskingExtent maskingExtent;
     private FaweRegionExtent regionExtent;
     private Extent primaryExtent;
+    private HistoryExtent history;
     private Extent bypassReorderHistory;
     private Extent bypassHistory;
     private Extent bypassNone;
@@ -221,10 +222,11 @@ public class EditSession implements Extent {
      * @param blockBag an optional {@link BlockBag} to use, otherwise null
      * @param event the event to call with the extent
      */
-    public EditSession(final EventBus eventBus, World world, final int maxBlocks, @Nullable final BlockBag blockBag, final EditSessionEvent event) {
+    public EditSession(final EventBus eventBus, World world, final int maxBlocks, @Nullable final BlockBag blockBag, EditSessionEvent event) {
         checkNotNull(eventBus);
         checkArgument(maxBlocks >= -1, "maxBlocks >= -1 required");
         checkNotNull(event);
+        event.setEditSession(this);
 
         this.actor = event.getActor();
         // TODO block bag
@@ -261,7 +263,7 @@ public class EditSession implements Extent {
                 if (Settings.COMBINE_HISTORY_STAGE) {
                     changeSet.addChangeTask(queue);
                 } else {
-                    extent = new HistoryExtent(this, limit, extent, changeSet, queue);
+                    extent = history = new HistoryExtent(this, limit, extent, changeSet, queue);
                 }
             }
             extent = this.wrapExtent(extent, eventBus, event, Stage.BEFORE_HISTORY);
@@ -348,7 +350,7 @@ public class EditSession implements Extent {
         if (Settings.COMBINE_HISTORY_STAGE) {
             changeSet.addChangeTask(queue);
         } else {
-            extent = new HistoryExtent(this, limit, extent, changeSet, queue);
+            extent = history = new HistoryExtent(this, limit, extent, changeSet, queue);
         }
         // Region restrictions if mask is not null
         if (mask != null) {
@@ -476,6 +478,9 @@ public class EditSession implements Extent {
     }
 
     public void setChangeSet(FaweChangeSet set) {
+        if (history != null) {
+            history.setChangeSet(set);
+        }
         changes++;
         this.changeSet = set;
     }

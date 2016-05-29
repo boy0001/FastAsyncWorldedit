@@ -43,6 +43,18 @@ public class MathMan {
             253, 254, 254, 255
     };
 
+    public static long pairInt(int x, int y) {
+        return (((long)x) << 32) | (y & 0xffffffffL);
+    }
+
+    public static int unpairIntX(long pair) {
+        return (int)(pair >> 32);
+    }
+
+    public static int unpairIntY(long pair) {
+        return (int)pair;
+    }
+
     public static byte pair16(byte x, byte y) {
         return (byte) (x + (y << 4));
     }

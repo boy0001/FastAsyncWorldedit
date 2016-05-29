@@ -30,6 +30,7 @@ import com.sk89q.worldedit.command.SchematicCommands;
 import com.sk89q.worldedit.command.ScriptingCommands;
 import com.sk89q.worldedit.command.composition.SelectionCommand;
 import com.sk89q.worldedit.command.tool.brush.GravityBrush;
+import com.sk89q.worldedit.event.extent.EditSessionEvent;
 import com.sk89q.worldedit.extension.platform.CommandManager;
 import com.sk89q.worldedit.extension.platform.PlatformManager;
 import com.sk89q.worldedit.extent.clipboard.BlockArrayClipboard;
@@ -244,6 +245,7 @@ public class Fawe {
          */
         try {
             EditSession.inject(); // Custom block placer + optimizations
+            EditSessionEvent.inject(); // Add EditSession to event
             LocalSession.inject(); // Add remember order / queue flushing
             // Commands
             BrushCommands.inject(); // Translations + heightmap
