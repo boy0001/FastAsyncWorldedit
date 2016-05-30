@@ -366,7 +366,13 @@ public class PlatformManager {
                     if (player.isHoldingPickAxe() && session.hasSuperPickAxe()) {
                         final BlockTool superPickaxe = session.getSuperPickaxe();
                         if (superPickaxe != null && superPickaxe.canUse(player)) {
-                            event.setCancelled(superPickaxe.actPrimary(queryCapability(Capability.WORLD_EDITING), getConfiguration(), player, session, location));
+                            FawePlayer<?> fp = FawePlayer.wrap(player);
+                            fp.runAsyncIfFree(new Runnable() {
+                                @Override
+                                public void run() {
+                                    superPickaxe.actPrimary(queryCapability(Capability.WORLD_EDITING), getConfiguration(), player, session, location);
+                                }
+                            });
                             return;
                         }
                     }
