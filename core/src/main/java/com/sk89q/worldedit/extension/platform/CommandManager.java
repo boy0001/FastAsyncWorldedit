@@ -287,17 +287,18 @@ public final class CommandManager {
                     }
                 } finally {
                     final EditSession editSession = locals.get(EditSession.class);
-                    boolean delayed = false;
+                    boolean hasSession = false;
                     if (editSession != null) {
                         editSession.flushQueue();
                         worldEdit.flushBlockBag(actor, editSession);
                         session.remember(editSession, true, true);
+                        hasSession = editSession.size() > 0;
                     }
                     if (fp != null) {
                         fp.deleteMeta("fawe_action");
                         if (editSession != null) {
                             final long time = System.currentTimeMillis() - start;
-                            if (time > 0) {
+                            if (time > 5 && hasSession) {
                                 BBC.ACTION_COMPLETE.send(actor, (time / 1000d));
                                 ChangeSet fcs = editSession.getChangeSet();
                                 if (fcs != null && fcs instanceof FaweStreamChangeSet) {
