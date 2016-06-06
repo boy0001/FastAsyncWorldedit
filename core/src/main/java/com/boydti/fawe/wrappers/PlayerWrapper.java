@@ -37,6 +37,13 @@ public class PlayerWrapper implements Player {
         this.parent = parent;
     }
 
+    public static PlayerWrapper wrap(Player parent) {
+        if (parent instanceof  PlayerWrapper) {
+            return (PlayerWrapper) parent;
+        }
+        return new PlayerWrapper(parent);
+    }
+
     public Player getParent() {
         return parent;
     }
@@ -223,18 +230,28 @@ public class PlayerWrapper implements Player {
     }
 
     @Override
-    public WorldVector getBlockTrace(int range, boolean useLastBlock) {
-        return parent.getBlockTrace(range, useLastBlock);
+    public WorldVector getBlockTrace(final int range, final boolean useLastBlock) {
+        return TaskManager.IMP.sync(new RunnableVal<WorldVector>() {
+            @Override
+            public void run(WorldVector value) {
+                this.value = parent.getBlockTrace(range, useLastBlock);
+            }
+        });
     }
 
     @Override
-    public WorldVectorFace getBlockTraceFace(int range, boolean useLastBlock) {
-        return parent.getBlockTraceFace(range, useLastBlock);
+    public WorldVectorFace getBlockTraceFace(final int range, final boolean useLastBlock) {
+        return TaskManager.IMP.sync(new RunnableVal<WorldVectorFace>() {
+            @Override
+            public void run(WorldVectorFace value) {
+                this.value = parent.getBlockTraceFace(range, useLastBlock);
+            }
+        });
     }
 
     @Override
     public WorldVector getBlockTrace(int range) {
-        return parent.getBlockTrace(range);
+        return getBlockTrace(range, false);
     }
 
     @Override

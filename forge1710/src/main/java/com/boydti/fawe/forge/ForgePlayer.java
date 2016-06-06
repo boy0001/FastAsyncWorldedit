@@ -1,5 +1,6 @@
 package com.boydti.fawe.forge;
 
+import com.boydti.fawe.config.BBC;
 import com.boydti.fawe.config.Settings;
 import com.boydti.fawe.object.FaweLocation;
 import com.boydti.fawe.object.FawePlayer;
@@ -51,7 +52,7 @@ public class ForgePlayer extends FawePlayer<EntityPlayerMP> {
     @Override
     public void sendMessage(String msg) {
         for (String part : msg.split("\n")) {
-            part = EnumChatFormatting.getTextWithoutFormattingCodes(msg);
+            part = BBC.color(part);
             ChatComponentText component = new ChatComponentText(part);
             component.getChatStyle().setColor(EnumChatFormatting.LIGHT_PURPLE);
             this.parent.addChatMessage(component);

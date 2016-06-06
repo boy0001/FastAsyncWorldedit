@@ -23,6 +23,7 @@ import com.boydti.fawe.config.BBC;
 import com.boydti.fawe.object.FawePlayer;
 import com.boydti.fawe.object.exception.FaweException;
 import com.boydti.fawe.util.MainUtil;
+import com.boydti.fawe.wrappers.PlayerWrapper;
 import com.sk89q.worldedit.LocalConfiguration;
 import com.sk89q.worldedit.LocalSession;
 import com.sk89q.worldedit.ServerInterface;
@@ -440,7 +441,7 @@ public class PlatformManager {
     public void handlePlayerInput(PlayerInputEvent event) {
         // Create a proxy actor with a potentially different world for
         // making changes to the world
-        final Player player = createProxyActor(event.getPlayer());
+        final Player player = PlayerWrapper.wrap(createProxyActor(event.getPlayer()));
         try {
             switch (event.getInputType()) {
                 case PRIMARY: {

@@ -245,7 +245,7 @@ public final class CommandManager {
                         return;
                     }
                     fp.setMeta("fawe_action", true);
-                    locals.put(Actor.class, new PlayerWrapper((Player) actor));
+                    locals.put(Actor.class, PlayerWrapper.wrap((Player) actor));
                 } else {
                     locals.put(Actor.class, actor);
                 }
