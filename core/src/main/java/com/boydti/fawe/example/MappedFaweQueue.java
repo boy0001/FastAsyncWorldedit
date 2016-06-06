@@ -16,7 +16,7 @@ import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.LinkedBlockingDeque;
+import java.util.concurrent.ConcurrentLinkedDeque;
 
 public abstract class MappedFaweQueue<WORLD, CHUNK, SECTION> extends FaweQueue {
 
@@ -26,7 +26,7 @@ public abstract class MappedFaweQueue<WORLD, CHUNK, SECTION> extends FaweQueue {
      * Map of chunks in the queue
      */
     private ConcurrentHashMap<Long, FaweChunk> blocks = new ConcurrentHashMap<>();
-    private LinkedBlockingDeque<FaweChunk> chunks = new LinkedBlockingDeque<FaweChunk>() {
+    private ConcurrentLinkedDeque<FaweChunk> chunks = new ConcurrentLinkedDeque<FaweChunk>() {
         @Override
         public boolean add(FaweChunk o) {
             if (getProgressTask() != null) {
@@ -297,7 +297,7 @@ public abstract class MappedFaweQueue<WORLD, CHUNK, SECTION> extends FaweQueue {
         return chunks.size();
     }
 
-    private LinkedBlockingDeque<FaweChunk> toUpdate = new LinkedBlockingDeque<>();
+    private ConcurrentLinkedDeque<FaweChunk> toUpdate = new ConcurrentLinkedDeque<>();
 
     private int dispatched = 0;
 

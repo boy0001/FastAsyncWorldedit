@@ -14,13 +14,13 @@ import com.sk89q.worldedit.world.biome.BaseBiome;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
-import java.util.concurrent.LinkedBlockingDeque;
+import java.util.concurrent.ConcurrentLinkedDeque;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 public abstract class FaweQueue {
 
     private final String world;
-    private LinkedBlockingDeque<EditSession> sessions;
+    private ConcurrentLinkedDeque<EditSession> sessions;
     private long modified = System.currentTimeMillis();
     private RunnableVal2<FaweChunk, FaweChunk> changeTask;
     private RunnableVal2<ProgressType, Integer> progressTask;
@@ -47,7 +47,7 @@ public abstract class FaweQueue {
             return;
         }
         if (this.getSessions() == null) {
-            setSessions(new LinkedBlockingDeque<EditSession>());
+            setSessions(new ConcurrentLinkedDeque<EditSession>());
         }
         getSessions().add(session);
     }
@@ -70,11 +70,11 @@ public abstract class FaweQueue {
         return getSessions() == null ? new HashSet<EditSession>() : new HashSet<>(getSessions());
     }
 
-    public LinkedBlockingDeque<EditSession> getSessions() {
+    public ConcurrentLinkedDeque<EditSession> getSessions() {
         return sessions;
     }
 
-    public void setSessions(LinkedBlockingDeque<EditSession> sessions) {
+    public void setSessions(ConcurrentLinkedDeque<EditSession> sessions) {
         this.sessions = sessions;
     }
 
@@ -214,5 +214,9 @@ public abstract class FaweQueue {
 
     public void enqueue() {
         SetQueue.IMP.enqueue(this);
+    }
+
+    public void dequeue() {
+        SetQueue.IMP.dequeue(this);
     }
 }

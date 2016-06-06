@@ -6,8 +6,10 @@ import com.boydti.fawe.object.FaweChunk;
 import com.boydti.fawe.object.FaweQueue;
 import com.boydti.fawe.object.RunnableVal2;
 import java.util.ArrayList;
+import java.util.ConcurrentModificationException;
+import java.util.Iterator;
 import java.util.List;
-import java.util.concurrent.LinkedBlockingDeque;
+import java.util.concurrent.ConcurrentLinkedDeque;
 
 public class SetQueue {
 
@@ -20,8 +22,8 @@ public class SetQueue {
         INACTIVE, ACTIVE, NONE;
     }
 
-    public final LinkedBlockingDeque<FaweQueue> activeQueues;
-    public final LinkedBlockingDeque<FaweQueue> inactiveQueues;
+    public final ConcurrentLinkedDeque<FaweQueue> activeQueues;
+    public final ConcurrentLinkedDeque<FaweQueue> inactiveQueues;
 
     /**
      * Used to calculate elapsed time in milliseconds and ensure block placement doesn't lag the server
@@ -33,7 +35,7 @@ public class SetQueue {
     /**
      * A queue of tasks that will run when the queue is empty
      */
-    private final LinkedBlockingDeque<Runnable> runnables = new LinkedBlockingDeque<>();
+    private final ConcurrentLinkedDeque<Runnable> runnables = new ConcurrentLinkedDeque<>();
 
     private final RunnableVal2<Long, FaweQueue> SET_TASK = new RunnableVal2<Long, FaweQueue>() {
         @Override
@@ -52,12 +54,12 @@ public class SetQueue {
     };
 
     public SetQueue() {
-        activeQueues = new LinkedBlockingDeque();
-        inactiveQueues = new LinkedBlockingDeque<>();
+        activeQueues = new ConcurrentLinkedDeque();
+        inactiveQueues = new ConcurrentLinkedDeque<>();
         TaskManager.IMP.repeat(new Runnable() {
             @Override
             public void run() {
-                if (inactiveQueues.size() == 0 && activeQueues.size() == 0) {
+                if (inactiveQueues.isEmpty() && activeQueues.isEmpty()) {
                     lastSuccess = System.currentTimeMillis();
                     tasks();
                     return;
@@ -215,43 +217,46 @@ public class SetQueue {
     }
 
     public FaweQueue getNextQueue() {
+        long now = System.currentTimeMillis();
         while (activeQueues.size() > 0) {
             FaweQueue queue = activeQueues.peek();
             if (queue != null && queue.size() > 0) {
-                queue.setModified(System.currentTimeMillis());
+                queue.setModified(now);
                 return queue;
             } else {
                 activeQueues.poll();
             }
         }
-        if (inactiveQueues.size() > 0) {
-            ArrayList<FaweQueue> tmp = new ArrayList<>(inactiveQueues);
-            if (Settings.QUEUE_MAX_WAIT >= 0) {
-                long now = System.currentTimeMillis();
-                if (lastSuccess != 0) {
-                    for (FaweQueue queue : tmp) {
-                        if (queue != null && queue.size() > 0 && now - queue.getModified() > Settings.QUEUE_MAX_WAIT) {
-                            queue.setModified(now);
-                            return queue;
-                        } else if (now - queue.getModified() > Settings.QUEUE_DISCARD_AFTER) {
-                            inactiveQueues.remove(queue);
-                        }
-                    }
-                }
-            }
-            if (Settings.QUEUE_SIZE != -1) {
+        int size = inactiveQueues.size();
+        if (size > 0) {
+            Iterator<FaweQueue> iter = inactiveQueues.iterator();
+            try {
                 int total = 0;
-                for (FaweQueue queue : tmp) {
+                FaweQueue firstNonEmpty = null;
+                while (iter.hasNext()) {
+                    FaweQueue queue = iter.next();
+                    long age = now - queue.getModified();
                     total += queue.size();
-                }
-                if (total > Settings.QUEUE_SIZE) {
-                    for (FaweQueue queue : tmp) {
-                        if (queue != null && queue.size() > 0) {
-                            queue.setModified(System.currentTimeMillis());
-                            return queue;
+                    if (queue.size() == 0) {
+                        if (age > Settings.QUEUE_DISCARD_AFTER) {
+                            iter.remove();
                         }
+                        continue;
+                    }
+                    if (firstNonEmpty == null) {
+                        firstNonEmpty = queue;
+                    }
+                    if (total > Settings.QUEUE_SIZE) {
+                        firstNonEmpty.setModified(now);
+                        return firstNonEmpty;
+                    }
+                    if (age > Settings.QUEUE_MAX_WAIT) {
+                        queue.setModified(now);
+                        return queue;
                     }
                 }
+            } catch (ConcurrentModificationException e) {
+                e.printStackTrace();
             }
         }
         return null;
@@ -332,10 +337,10 @@ public class SetQueue {
     }
 
     public synchronized boolean tasks() {
-        if (this.runnables.size() == 0) {
+        if (this.runnables.isEmpty()) {
             return false;
         }
-        final LinkedBlockingDeque<Runnable> tmp = new LinkedBlockingDeque<>(this.runnables);
+        final ConcurrentLinkedDeque<Runnable> tmp = new ConcurrentLinkedDeque<>(this.runnables);
         this.runnables.clear();
         for (final Runnable runnable : tmp) {
             runnable.run();

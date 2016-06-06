@@ -970,6 +970,8 @@ public class EditSession implements Extent {
         // Enqueue it
         if (queue != null && queue.size() > 0) {
             queue.enqueue();
+        } else {
+            queue.dequeue();
         }
         if (changeSet != null) {
             if (Settings.COMBINE_HISTORY_STAGE && queue.size() > 0) {

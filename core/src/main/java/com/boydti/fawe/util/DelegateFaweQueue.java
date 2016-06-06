@@ -9,7 +9,7 @@ import com.sk89q.worldedit.EditSession;
 import com.sk89q.worldedit.world.biome.BaseBiome;
 import java.util.Set;
 import java.util.UUID;
-import java.util.concurrent.LinkedBlockingDeque;
+import java.util.concurrent.ConcurrentLinkedDeque;
 
 public class DelegateFaweQueue extends FaweQueue {
     private final FaweQueue parent;
@@ -44,12 +44,12 @@ public class DelegateFaweQueue extends FaweQueue {
     }
 
     @Override
-    public LinkedBlockingDeque<EditSession> getSessions() {
+    public ConcurrentLinkedDeque<EditSession> getSessions() {
         return parent.getSessions();
     }
 
     @Override
-    public void setSessions(LinkedBlockingDeque<EditSession> sessions) {
+    public void setSessions(ConcurrentLinkedDeque<EditSession> sessions) {
         parent.setSessions(sessions);
     }
 
