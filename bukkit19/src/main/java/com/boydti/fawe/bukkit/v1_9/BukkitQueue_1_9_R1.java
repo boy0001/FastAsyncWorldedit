@@ -200,38 +200,43 @@ public class BukkitQueue_1_9_R1 extends BukkitQueue_0<Chunk, ChunkSection[], Dat
                 chunk.load(false);
             }
             net.minecraft.server.v1_9_R2.Chunk c = ((CraftChunk) chunk).getHandle();
+            final boolean flag = chunk.getWorld().getEnvironment() == Environment.NORMAL;
             ChunkSection[] sections = c.getSections();
             if (mode == RelightMode.ALL) {
                 for (int i = 0; i < sections.length; i++) {
                     ChunkSection section = sections[i];
                     if (section != null) {
                         section.a(new NibbleArray());
-                        section.b(new NibbleArray());
+                        if (flag) {
+                            section.b(new NibbleArray());
+                        }
                     }
                 }
             }
-            final boolean flag = chunk.getWorld().getEnvironment() == Environment.NORMAL;
-            if (flag)
-            {
-                int i = c.g();
-                for(int x = 0; x < 16; ++x) {
-                    for (int z = 0; z < 16; ++z) {
-                        int l = 15;
-                        int i1 = i + 16 - 1;
-                        do {
-                            int opacity = c.a(x, i1, z).c();
-                            if (opacity == 0 && l != 15) {
-                                opacity = 1;
-                            }
-                            l -= opacity;
-                            if (l > 0) {
-                                ChunkSection section = sections[i1 >> 4];
-                                if (section != null) {
-                                    section.a(x, i1 & 15, z, l);
+            if (flag) {
+                if (mode == RelightMode.ALL) {
+                    c.initLighting();
+                } else {
+                    int i = c.g();
+                    for (int x = 0; x < 16; ++x) {
+                        for (int z = 0; z < 16; ++z) {
+                            int l = 15;
+                            int y = i + 16 - 1;
+                            do {
+                                int opacity = c.a(x, y, z).c();
+                                if (opacity == 0 && l != 15) {
+                                    opacity = 1;
                                 }
-                            }
-                            --i1;
-                        } while (i1 > 0 && l > 0);
+                                l -= opacity;
+                                if (l > 0) {
+                                    ChunkSection section = sections[y >> 4];
+                                    if (section != null) {
+                                        section.a(x, y & 15, z, l);
+                                    }
+                                }
+                                --y;
+                            } while (y > 0 && l > 0);
+                        }
                     }
                 }
             }
@@ -310,7 +315,7 @@ public class BukkitQueue_1_9_R1 extends BukkitQueue_0<Chunk, ChunkSection[], Dat
                 }
             }
             return true;
-        } catch (final Throwable e) {
+        } catch (Throwable e) {
             if (Thread.currentThread() == Fawe.get().getMainThread()) {
                 MainUtil.handleError(e);
             }

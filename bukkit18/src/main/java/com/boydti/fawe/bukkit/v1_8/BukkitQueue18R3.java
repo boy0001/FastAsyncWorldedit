@@ -476,16 +476,49 @@ public class BukkitQueue18R3 extends BukkitQueue_0<Chunk, ChunkSection[], char[]
                 return false;
             }
             ChunkSection[] sections = nmsChunk.getSections();
+            final boolean flag = craftChunk.getWorld().getEnvironment() == World.Environment.NORMAL;
             if (mode == RelightMode.ALL) {
                 for (int i = 0; i < sections.length; i++) {
                     ChunkSection section = sections[i];
                     if (section != null) {
                         section.a(new NibbleArray());
-                        section.b(new NibbleArray());
+                        if (flag) {
+                            section.b(new NibbleArray());
+                        }
                     }
                 }
             }
             nmsChunk.initLighting();
+
+
+            if (flag) {
+                if (mode == RelightMode.ALL) {
+                    nmsChunk.initLighting();
+                } else {
+                    int i = nmsChunk.g();
+                    for (int x = 0; x < 16; ++x) {
+                        for (int z = 0; z < 16; ++z) {
+                            int l = 15;
+                            int y = i + 16 - 1;
+                            do {
+                                int opacity = nmsChunk.getTypeAbs(x, y, z).p();
+                                if (opacity == 0 && l != 15) {
+                                    opacity = 1;
+                                }
+                                l -= opacity;
+                                if (l > 0) {
+                                    ChunkSection section = sections[y >> 4];
+                                    if (section != null) {
+                                        section.a(x, y & 15, z, l);
+                                    }
+                                }
+                                --y;
+                            } while (y > 0 && l > 0);
+                        }
+                    }
+                }
+            }
+
             if (fc.getTotalRelight() == 0 && mode == RelightMode.MINIMAL) {
                 return true;
             }
@@ -503,6 +536,9 @@ public class BukkitQueue18R3 extends BukkitQueue_0<Chunk, ChunkSection[], char[]
                     continue;
                 }
                 char[] array = section.getIdArray();
+                if (array == null) {
+                    continue;
+                }
                 if (mode == RelightMode.ALL) {
                     for (int k = array.length - 1; k >= 0; k--) {
                         final int x = FaweCache.CACHE_X[j][k];

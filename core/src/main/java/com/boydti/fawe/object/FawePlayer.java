@@ -7,6 +7,7 @@ import com.boydti.fawe.config.Settings;
 import com.boydti.fawe.object.changeset.DiskStorageHistory;
 import com.boydti.fawe.object.changeset.FaweStreamChangeSet;
 import com.boydti.fawe.object.clipboard.DiskOptimizedClipboard;
+import com.boydti.fawe.object.exception.FaweException;
 import com.boydti.fawe.util.MainUtil;
 import com.boydti.fawe.util.TaskManager;
 import com.boydti.fawe.util.WEManager;
@@ -402,7 +403,12 @@ public abstract class FawePlayer<T> {
         try {
             run.run();
         } catch (Throwable e) {
-            e.printStackTrace();
+            FaweException faweException = FaweException.get(e);
+            if (faweException != null) {
+                BBC.WORLDEDIT_CANCEL_REASON.send(FawePlayer.this, faweException.getMessage());
+            } else {
+                MainUtil.handleError(e);
+            }
         } finally {
             deleteMeta("fawe_action");
         }
@@ -420,7 +426,12 @@ public abstract class FawePlayer<T> {
                 try {
                     run.run();
                 } catch (Throwable e) {
-                    e.printStackTrace();
+                    FaweException faweException = FaweException.get(e);
+                    if (faweException != null) {
+                        BBC.WORLDEDIT_CANCEL_REASON.send(FawePlayer.this, faweException.getMessage());
+                    } else {
+                        MainUtil.handleError(e);
+                    }
                 } finally {
                     deleteMeta("fawe_action");
                 }
