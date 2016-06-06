@@ -211,6 +211,7 @@ public class BukkitQueue_1_9_R1 extends BukkitQueue_0<Chunk, ChunkSection[], Dat
                 }
             }
             final boolean flag = chunk.getWorld().getEnvironment() == Environment.NORMAL;
+            if (flag)
             {
                 int i = c.g();
                 for(int x = 0; x < 16; ++x) {
