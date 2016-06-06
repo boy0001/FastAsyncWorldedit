@@ -199,22 +199,50 @@ public class ForgeQueue_All extends NMSMappedFaweQueue<World, Chunk, ExtendedBlo
             if (!nmsChunk.isLoaded()) {
                 return false;
             }
+            World nmsWorld = nmsChunk.getWorld();
+            boolean flag = !nmsWorld.provider.getHasNoSky();
             ExtendedBlockStorage[] sections = nmsChunk.getBlockStorageArray();
             if (mode == RelightMode.ALL) {
                 for (int i = 0; i < sections.length; i++) {
                     ExtendedBlockStorage section = sections[i];
                     if (section != null) {
-                        section.setSkylightArray(new NibbleArray());
                         section.setBlocklightArray(new NibbleArray());
+                        if (flag) {
+                            section.setSkylightArray(new NibbleArray());
+                        }
                     }
                 }
             }
-            nmsChunk.generateSkylightMap();
+            if (flag) {
+                if (mode == RelightMode.ALL) {
+                    nmsChunk.generateSkylightMap();
+                } else {
+                    int i = nmsChunk.getTopFilledSegment();
+                    for (int x = 0; x < 16; ++x) {
+                        for (int z = 0; z < 16; ++z) {
+                            int l = 15;
+                            int y = i + 16 - 1;
+                            do {
+                                int opacity = nmsChunk.getBlockLightOpacity(new BlockPos(x, y, z));
+                                if (opacity == 0 && l != 15) {
+                                    opacity = 1;
+                                }
+                                l -= opacity;
+                                if (l > 0) {
+                                    ExtendedBlockStorage section = sections[y >> 4];
+                                    if (section != null) {
+                                        section.setExtSkylightValue(x, y & 15, z, l);
+                                    }
+                                }
+                                --y;
+                            } while (y > 0 && l > 0);
+                        }
+                    }
+                }
+            }
             if (bc.getTotalRelight() == 0 && mode == RelightMode.MINIMAL) {
                 return true;
             }
-            net.minecraft.world.World nmsWorld = nmsChunk.getWorld();
-
             int X = fc.getX() << 4;
             int Z = fc.getZ() << 4;
 

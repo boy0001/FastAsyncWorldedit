@@ -65,7 +65,8 @@ public abstract class FawePlayer<T> {
                     Field fieldBasePlayer = actor.getClass().getDeclaredField("basePlayer");
                     fieldBasePlayer.setAccessible(true);
                     Player player = (Player) fieldBasePlayer.get(actor);
-                    return wrap(player);
+                    FawePlayer<Object> result = wrap(player);
+                    return (FawePlayer<V>) (result == null ? wrap(player.getName()) : result);
                 } catch (Throwable e) {
                     MainUtil.handleError(e);
                     return Fawe.imp().wrap(actor.getName());

@@ -7,8 +7,8 @@ import com.boydti.fawe.forge.v0.ForgeQueue_All;
 import com.boydti.fawe.object.EditSessionWrapper;
 import com.boydti.fawe.object.FaweCommand;
 import com.boydti.fawe.object.FawePlayer;
-import com.boydti.fawe.regions.FaweMaskManager;
 import com.boydti.fawe.object.FaweQueue;
+import com.boydti.fawe.regions.FaweMaskManager;
 import com.boydti.fawe.util.MainUtil;
 import com.boydti.fawe.util.TaskManager;
 import com.boydti.fawe.wrappers.WorldWrapper;
@@ -19,7 +19,6 @@ import java.io.File;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.List;
 import java.util.UUID;
 import javax.management.InstanceAlreadyExistsException;
 import net.minecraft.command.ServerCommandManager;
@@ -72,8 +71,7 @@ public class FaweForge implements IFawe {
         EntityPlayerMP player = null;
         if (obj instanceof String) {
             MinecraftServer server = MinecraftServer.getServer();
-            List<EntityPlayerMP> list = server.getConfigurationManager().getPlayerList((String) obj);
-            player = list.size() == 1 ? list.get(0) : null;
+            player = server.getConfigurationManager().func_152612_a((String) obj);
         } else if (obj instanceof EntityPlayerMP) {
             player = (EntityPlayerMP) obj;
         }

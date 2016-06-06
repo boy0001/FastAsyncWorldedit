@@ -441,9 +441,9 @@ public class ForgeQueue_All extends NMSMappedFaweQueue<World, Chunk, ExtendedBlo
                             solid++;
                             currentIdArray[k] = n;
                             if (data) {
-                                int x = FaweCache.CACHE_X[j][k];
-                                int y = FaweCache.CACHE_Y[j][k];
-                                int z = FaweCache.CACHE_Z[j][k];
+                                int x = FaweCache.CACHE_X[0][k];
+                                int y = FaweCache.CACHE_Y[0][k];
+                                int z = FaweCache.CACHE_Z[0][k];
                                 int newData = newDataArray == null ? 0 : newDataArray.get(x, y, z);
                                 int currentData = currentDataArray == null ? 0 : currentDataArray.get(x, y, z);
                                 if (newData != currentData) {
@@ -608,22 +608,50 @@ public class ForgeQueue_All extends NMSMappedFaweQueue<World, Chunk, ExtendedBlo
             if (!nmsChunk.isChunkLoaded) {
                 return false;
             }
+            World nmsWorld = nmsChunk.worldObj;
+            boolean flag = !nmsWorld.provider.hasNoSky;
             ExtendedBlockStorage[] sections = nmsChunk.getBlockStorageArray();
             if (mode == RelightMode.ALL) {
                 for (int i = 0; i < sections.length; i++) {
                     ExtendedBlockStorage section = sections[i];
                     if (section != null) {
-                        section.setSkylightArray(new NibbleArray(4096, 4));
                         section.setBlocklightArray(new NibbleArray(4096, 4));
+                        if (flag) {
+                            section.setSkylightArray(new NibbleArray(4096, 4));
+                        }
                     }
                 }
             }
-            nmsChunk.generateSkylightMap();
+            if (flag) {
+                if (mode == RelightMode.ALL) {
+                    nmsChunk.generateSkylightMap();
+                } else {
+                    int i = nmsChunk.getTopFilledSegment();
+                    for (int x = 0; x < 16; ++x) {
+                        for (int z = 0; z < 16; ++z) {
+                            int l = 15;
+                            int y = i + 16 - 1;
+                            do {
+                                int opacity = nmsChunk.func_150808_b(x, y, z);
+                                if (opacity == 0 && l != 15) {
+                                    opacity = 1;
+                                }
+                                l -= opacity;
+                                if (l > 0) {
+                                    ExtendedBlockStorage section = sections[y >> 4];
+                                    if (section != null) {
+                                        section.setExtSkylightValue(x, y & 15, z, l);
+                                    }
+                                }
+                                --y;
+                            } while (y > 0 && l > 0);
+                        }
+                    }
+                }
+            }
             if (bc.getTotalRelight() == 0 && mode == RelightMode.MINIMAL) {
                 return true;
             }
-            net.minecraft.world.World nmsWorld = nmsChunk.worldObj;
-
             int X = fc.getX() << 4;
             int Z = fc.getZ() << 4;
 

@@ -488,9 +488,6 @@ public class BukkitQueue18R3 extends BukkitQueue_0<Chunk, ChunkSection[], char[]
                     }
                 }
             }
-            nmsChunk.initLighting();
-
-
             if (flag) {
                 if (mode == RelightMode.ALL) {
                     nmsChunk.initLighting();
