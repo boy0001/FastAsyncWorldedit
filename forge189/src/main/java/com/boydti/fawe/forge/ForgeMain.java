@@ -19,7 +19,7 @@ import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.common.gameevent.PlayerEvent;
 import org.apache.logging.log4j.Logger;
 
-@Mod(modid = "com.boydti.fawe", name = "FastAsyncWorldEdit", version = "3.5.0", acceptableRemoteVersions = "*")
+@Mod(modid = "com.boydti.fawe", name = "FastAsyncWorldEdit", version = "3.5.1", acceptableRemoteVersions = "*")
 public class ForgeMain {
     private static com.boydti.fawe.forge.FaweForge IMP;
     private Logger logger;
