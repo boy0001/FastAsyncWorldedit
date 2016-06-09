@@ -18,7 +18,7 @@ public class SetQueue {
      */
     public static final SetQueue IMP = new SetQueue();
 
-    public static enum QueueStage {
+    public enum QueueStage {
         INACTIVE, ACTIVE, NONE;
     }
 

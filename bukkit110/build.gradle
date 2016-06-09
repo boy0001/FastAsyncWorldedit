@@ -1,0 +1,32 @@
+dependencies {
+    compile project(':bukkit0')
+    compile 'org.bukkit.craftbukkitv1_10:craftbukkitv1_10:1.10'
+}
+
+processResources {
+    from('src/main/resources') {
+        include 'plugin.yml'
+        expand(
+                name: project.parent.name,
+                version: project.parent.version
+        )
+    }
+}
+
+apply plugin: 'com.github.johnrengelman.shadow'
+// We only want the shadow jar produced
+jar.enabled = false
+shadowJar {
+    dependencies {
+        include(dependency(':bukkit0'))
+        include(dependency(':core'))
+    }
+    archiveName = "${parent.name}-${project.name}-${parent.version}.jar"
+    destinationDir = file '../target'
+}
+shadowJar.doLast {
+    task ->
+        ant.checksum file: task.archivePath
+}
+
+build.dependsOn(shadowJar);
