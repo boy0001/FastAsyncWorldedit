@@ -197,7 +197,6 @@ public abstract class CharFaweChunk<T> extends FaweChunk<T> {
                 this.air[i]++;
                 vs[j] = (char) 1;
                 return;
-            case 10:
             case 11:
             case 39:
             case 40:
@@ -208,6 +207,7 @@ public abstract class CharFaweChunk<T> extends FaweChunk<T> {
             case 124:
             case 138:
             case 169:
+            case 213:
                 this.relight[i]++;
             case 2:
             case 4:
@@ -232,7 +232,6 @@ public abstract class CharFaweChunk<T> extends FaweChunk<T> {
             case 58:
             case 60:
             case 7:
-            case 8:
             case 9:
             case 73:
             case 78:
@@ -272,6 +271,7 @@ public abstract class CharFaweChunk<T> extends FaweChunk<T> {
             case 76:
             case 62:
             case 50:
+            case 10:
                 this.relight[i]++;
             case 54:
             case 146:

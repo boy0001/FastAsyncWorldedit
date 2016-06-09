@@ -52,7 +52,6 @@ public class ForgeChunk_All extends CharFaweChunk<Chunk> {
                 vs[j] = -1;
                 vs2[j] = (char) 1;
                 return;
-            case 10:
             case 11:
             case 39:
             case 40:
@@ -63,6 +62,7 @@ public class ForgeChunk_All extends CharFaweChunk<Chunk> {
             case 124:
             case 138:
             case 169:
+            case 213:
                 this.relight[i]++;
             case 2:
             case 4:
@@ -88,7 +88,6 @@ public class ForgeChunk_All extends CharFaweChunk<Chunk> {
             case 58:
             case 60:
             case 7:
-            case 8:
             case 9:
             case 73:
             case 78:
@@ -129,6 +128,7 @@ public class ForgeChunk_All extends CharFaweChunk<Chunk> {
             case 76:
             case 62:
             case 50:
+            case 10:
                 this.relight[i]++;
             case 54:
             case 146:

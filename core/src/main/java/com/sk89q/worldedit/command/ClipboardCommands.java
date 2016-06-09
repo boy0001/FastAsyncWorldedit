@@ -201,7 +201,7 @@ public class ClipboardCommands {
         Operations.completeLegacy(copy);
         session.setClipboard(new ClipboardHolder(clipboard, editSession.getWorld().getWorldData()));
 
-        BBC.COMMAND_COPY.send(player, region.getArea());
+        BBC.COMMAND_CUT.send(player, region.getArea());
     }
 
     @Command(

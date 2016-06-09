@@ -41,6 +41,7 @@ public enum BBC {
     ACTION_COMPLETE("Action completed in %s0 seconds", "Info"),
 
     COMMAND_COPY("%s0 blocks were copied", "WorldEdit.Copy"),
+    COMMAND_CUT("%s0 blocks were cut", "WorldEdit.Cut"),
     COMMAND_PASTE("The clipboard has been pasted at %s0", "WorldEdit.Paste"),
     COMMAND_ROTATE("The clipboard has been rotated", "WorldEdit.Rotate"),
     COMMAND_FLIPPED("The clipboard has been flipped", "WorldEdit.Flip"),
