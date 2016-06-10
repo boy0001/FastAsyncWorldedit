@@ -36,7 +36,7 @@ import java.util.Map;
 import java.util.UUID;
 
 public class StructureFormat implements ClipboardReader, ClipboardWriter {
-    private static final int MAX_SIZE = Short.MAX_VALUE - Short.MIN_VALUE;
+    private static final int MAX_SIZE = 32;
 
     private NBTInputStream in;
     private NBTOutputStream out;
