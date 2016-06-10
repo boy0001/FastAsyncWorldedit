@@ -39,6 +39,10 @@ public enum BBC {
     WORLDEDIT_OOM_ADMIN("&cPossible options:\n&8 - &7//fast\n&8 - &7Do smaller edits\n&8 - &7Allocate more memory\n&8 - &7Disable this safeguard", "Info"),
     COMPRESSED("History compressed. Saved ~ %s0b (%s1x smaller)", "Info"),
     ACTION_COMPLETE("Action completed in %s0 seconds", "Info"),
+    GENERATING_LINK("Uploading %s, please wait...", "Web"),
+    GENERATING_LINK_FAILED("&cFailed to generate download link!", "Web"),
+    DOWNLOAD_LINK("%s", "Web"),
+
 
     COMMAND_COPY("%s0 blocks were copied", "WorldEdit.Copy"),
     COMMAND_CUT("%s0 blocks were cut", "WorldEdit.Cut"),

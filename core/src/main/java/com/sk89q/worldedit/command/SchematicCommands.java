@@ -20,6 +20,7 @@
 package com.sk89q.worldedit.command;
 
 import com.boydti.fawe.config.BBC;
+import com.boydti.fawe.config.Settings;
 import com.boydti.fawe.object.schematic.StructureFormat;
 import com.sk89q.minecraft.util.commands.Command;
 import com.sk89q.minecraft.util.commands.CommandContext;
@@ -42,7 +43,6 @@ import com.sk89q.worldedit.function.operation.Operations;
 import com.sk89q.worldedit.math.transform.Transform;
 import com.sk89q.worldedit.session.ClipboardHolder;
 import com.sk89q.worldedit.util.command.parametric.Optional;
-import com.sk89q.worldedit.util.io.Closer;
 import com.sk89q.worldedit.util.io.file.FilenameException;
 import com.sk89q.worldedit.util.io.file.FilenameResolutionException;
 import com.sk89q.worldedit.world.registry.WorldData;
@@ -53,8 +53,13 @@ import java.io.FileFilter;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
+import java.net.URL;
+import java.nio.channels.Channels;
+import java.nio.channels.ReadableByteChannel;
 import java.util.Arrays;
 import java.util.Comparator;
+import java.util.UUID;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -84,52 +89,59 @@ public class SchematicCommands {
     @CommandPermissions({ "worldedit.clipboard.load", "worldedit.schematic.load" })
     public void load(final Player player, final LocalSession session, @Optional("schematic") final String formatName, final String filename) throws FilenameException {
         final LocalConfiguration config = this.worldEdit.getConfiguration();
-
-        final File dir = this.worldEdit.getWorkingDirectoryFile(config.saveDir);
-        final File f = this.worldEdit.getSafeOpenFile(player, dir, filename, "schematic", "schematic");
-
-        if (!f.exists()) {
-            player.printError("Schematic " + filename + " does not exist!");
-            return;
-        }
-
         final ClipboardFormat format = ClipboardFormat.findByAlias(formatName);
         if (format == null) {
             player.printError("Unknown schematic format: " + formatName);
             return;
         }
-        final Closer closer = Closer.create();
+        InputStream in = null;
         try {
-            final String filePath = f.getCanonicalPath();
-            final String dirPath = dir.getCanonicalPath();
-
-            if (!filePath.substring(0, dirPath.length()).equals(dirPath)) {
-                player.printError("Clipboard file could not read or it does not exist.");
+            if (filename.startsWith("url:")) {
+                UUID uuid = UUID.fromString(filename.substring(4));
+                URL base = new URL(Settings.WEB_URL);
+                URL url = new URL(base, "uploads/" + uuid + ".schematic");
+                ReadableByteChannel rbc = Channels.newChannel(url.openStream());
+                in = Channels.newInputStream(rbc);
             } else {
-                final FileInputStream fis = closer.register(new FileInputStream(f));
-                final BufferedInputStream bis = closer.register(new BufferedInputStream(fis));
-                final ClipboardReader reader = format.getReader(bis);
-
-                final WorldData worldData = player.getWorld().getWorldData();
-                final Clipboard clipboard;
-                if (reader instanceof SchematicReader) {
-                    clipboard = ((SchematicReader) reader).read(player.getWorld().getWorldData(), player.getUniqueId());
-                } else if (reader instanceof StructureFormat) {
-                    clipboard = ((StructureFormat) reader).read(player.getWorld().getWorldData(), player.getUniqueId());
-                } else {
-                    clipboard = reader.read(player.getWorld().getWorldData());
+                final File dir = this.worldEdit.getWorkingDirectoryFile(config.saveDir);
+                final File f = this.worldEdit.getSafeOpenFile(player, dir, filename, format.getExtension(), format.getExtension());
+                if (!f.exists()) {
+                    player.printError("Schematic " + filename + " does not exist!");
+                    return;
                 }
-                session.setClipboard(new ClipboardHolder(clipboard, worldData));
-                log.info(player.getName() + " loaded " + filePath);
-                BBC.SCHEMATIC_LOADED.send(player, filename);
+                final String filePath = f.getCanonicalPath();
+                final String dirPath = dir.getCanonicalPath();
+                if (!filePath.substring(0, dirPath.length()).equals(dirPath)) {
+                    player.printError("Clipboard file could not read or it does not exist.");
+                }
+                in = new FileInputStream(f);
             }
-        } catch (final IOException e) {
-            player.printError("Schematic could not read or it does not exist: " + e.getMessage());
+            in = new BufferedInputStream(in);
+
+            final ClipboardReader reader = format.getReader(in);
+
+            final WorldData worldData = player.getWorld().getWorldData();
+            final Clipboard clipboard;
+            if (reader instanceof SchematicReader) {
+                clipboard = ((SchematicReader) reader).read(player.getWorld().getWorldData(), player.getUniqueId());
+            } else if (reader instanceof StructureFormat) {
+                clipboard = ((StructureFormat) reader).read(player.getWorld().getWorldData(), player.getUniqueId());
+            } else {
+                clipboard = reader.read(player.getWorld().getWorldData());
+            }
+            session.setClipboard(new ClipboardHolder(clipboard, worldData));
+            BBC.SCHEMATIC_LOADED.send(player, filename);
+        } catch (IllegalArgumentException  e) {
+            player.printError("Unknown filename: " + filename);
+        } catch (IOException e) {
+            player.printError("File could not be read or it does not exist: " + e.getMessage());
             log.log(Level.WARNING, "Failed to load a saved clipboard", e);
         } finally {
-            try {
-                closer.close();
-            } catch (final IOException ignored) {}
+            if (in != null) {
+                try {
+                    in.close();
+                } catch (IOException ignored) {}
+            }
         }
     }
 
@@ -138,60 +150,58 @@ public class SchematicCommands {
     @CommandPermissions({ "worldedit.clipboard.save", "worldedit.schematic.save" })
     public void save(final Player player, final LocalSession session, @Optional("schematic") final String formatName, final String filename) throws CommandException, WorldEditException {
         final LocalConfiguration config = this.worldEdit.getConfiguration();
-
-        final File dir = this.worldEdit.getWorkingDirectoryFile(config.saveDir);
-
         final ClipboardFormat format = ClipboardFormat.findByAlias(formatName);
         if (format == null) {
             player.printError("Unknown schematic format: " + formatName);
             return;
         }
 
-        final File f = this.worldEdit.getSafeSaveFile(player, dir, filename, "schematic", "schematic");
-
-        final ClipboardHolder holder = session.getClipboard();
-        final Clipboard clipboard = holder.getClipboard();
-        final Transform transform = holder.getTransform();
-        final Clipboard target;
-
-        // If we have a transform, bake it into the copy
-        if (!transform.isIdentity()) {
-            final FlattenedClipboardTransform result = FlattenedClipboardTransform.transform(clipboard, transform, holder.getWorldData());
-            target = new BlockArrayClipboard(result.getTransformedRegion(), player.getUniqueId());
-            target.setOrigin(clipboard.getOrigin());
-            Operations.completeLegacy(result.copyTo(target));
-        } else {
-            target = clipboard;
+        final File dir = this.worldEdit.getWorkingDirectoryFile(config.saveDir);
+        final File f = this.worldEdit.getSafeSaveFile(player, dir, filename, format.getExtension(), format.getExtension());
+        final File parent = f.getParentFile();
+        if ((parent != null) && !parent.exists()) {
+            if (!parent.mkdirs()) {
+                log.info("Could not create folder for schematics!");
+                return;
+            }
         }
-
-        final Closer closer = Closer.create();
         try {
-            // Create parent directories
-            final File parent = f.getParentFile();
-            if ((parent != null) && !parent.exists()) {
-                if (!parent.mkdirs()) {
-                    log.info("Could not create folder for schematics!");
-                    return;
+            if (!f.exists()) {
+                f.createNewFile();
+            }
+            try (FileOutputStream fos = new FileOutputStream(f)) {
+                final ClipboardHolder holder = session.getClipboard();
+                final Clipboard clipboard = holder.getClipboard();
+                final Transform transform = holder.getTransform();
+                final Clipboard target;
+
+                // If we have a transform, bake it into the copy
+                if (!transform.isIdentity()) {
+                    final FlattenedClipboardTransform result = FlattenedClipboardTransform.transform(clipboard, transform, holder.getWorldData());
+                    target = new BlockArrayClipboard(result.getTransformedRegion(), player.getUniqueId());
+                    target.setOrigin(clipboard.getOrigin());
+                    Operations.completeLegacy(result.copyTo(target));
+                } else {
+                    target = clipboard;
+                }
+
+                try (BufferedOutputStream bos = new BufferedOutputStream(fos)) {
+                    try (ClipboardWriter writer = format.getWriter(bos)) {
+                        if (writer instanceof StructureFormat) {
+                            ((StructureFormat) writer).write(target, holder.getWorldData(), player.getName());
+                        } else {
+                            writer.write(target, holder.getWorldData());
+                        }
+                        log.info(player.getName() + " saved " + f.getCanonicalPath());
+                        BBC.SCHEMATIC_SAVED.send(player, filename);
+                    }
                 }
             }
-
-            final FileOutputStream fos = closer.register(new FileOutputStream(f));
-            final BufferedOutputStream bos = closer.register(new BufferedOutputStream(fos));
-            final ClipboardWriter writer = closer.register(format.getWriter(bos));
-            if (writer instanceof StructureFormat) {
-                ((StructureFormat) writer).write(target, holder.getWorldData(), player.getName());
-            } else {
-                writer.write(target, holder.getWorldData());
-            }
-            log.info(player.getName() + " saved " + f.getCanonicalPath());
-            BBC.SCHEMATIC_SAVED.send(player, filename);
-        } catch (final IOException e) {
+        } catch (IllegalArgumentException  e) {
+            player.printError("Unknown filename: " + filename);
+        } catch (IOException e) {
             player.printError("Schematic could not written: " + e.getMessage());
             log.log(Level.WARNING, "Failed to write a saved clipboard", e);
-        } finally {
-            try {
-                closer.close();
-            } catch (final IOException ignored) {}
         }
     }
 

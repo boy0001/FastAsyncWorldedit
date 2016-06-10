@@ -37,6 +37,7 @@ public class Settings {
     public static boolean ASYNC_LIGHTING = true;
     public static int PHYSICS_PER_TICK = 500000;
     public static int ITEMS_PER_TICK = 50000;
+    public static String WEB_URL = "http://empcraft.com/fawe/";
 
     // Maybe confusing?
     // - `compression: false` just uses cheaper compression, but still compresses
@@ -108,6 +109,7 @@ public class Settings {
         options.put("queue.max-wait-ms", QUEUE_MAX_WAIT);
         options.put("extent.allowed-plugins", new ArrayList<String>());
         options.put("extent.debug", EXTENT_DEBUG);
+        options.put("web.url", WEB_URL);
         options.put("metrics", METRICS);
 
         // Possibly confusing? - leave configurable since not entirely stable yet
@@ -164,6 +166,8 @@ public class Settings {
         BUFFER_SIZE = config.getInt("history.buffer-size", BUFFER_SIZE);
         QUEUE_DISCARD_AFTER = config.getInt("queue.discard-after-ms", QUEUE_DISCARD_AFTER);
         COMBINE_HISTORY_STAGE = config.getBoolean("history.combine-stages", COMBINE_HISTORY_STAGE);
+
+        WEB_URL = config.getString("web.url");
 
         if (STORE_HISTORY_ON_DISK = config.getBoolean("history.use-disk")) {
             LocalSession.MAX_HISTORY_SIZE = Integer.MAX_VALUE;

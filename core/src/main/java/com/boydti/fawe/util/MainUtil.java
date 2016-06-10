@@ -2,6 +2,7 @@ package com.boydti.fawe.util;
 
 import com.boydti.fawe.Fawe;
 import com.boydti.fawe.config.BBC;
+import com.boydti.fawe.config.Settings;
 import com.boydti.fawe.object.FawePlayer;
 import com.boydti.fawe.object.RegionWrapper;
 import com.boydti.fawe.object.RunnableVal;
@@ -21,14 +22,22 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
+import java.io.OutputStreamWriter;
+import java.io.PrintWriter;
 import java.lang.reflect.Array;
 import java.lang.reflect.Method;
+import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URISyntaxException;
 import java.net.URL;
+import java.net.URLConnection;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Paths;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.UUID;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
@@ -53,6 +62,69 @@ public class MainUtil {
             }
         }
         Fawe.debug(s);
+    }
+
+    public static File getFile(File base, String path) {
+        if (Paths.get(path).isAbsolute()) {
+            return new File(path);
+        }
+        return new File(base, path);
+    }
+
+    public static File getFile(File base, String path, String extension) {
+        return getFile(base, path.endsWith("." + extension) ? path : path + "." + extension);
+    }
+
+    public static URL upload(UUID uuid, String file, String extension, final RunnableVal<OutputStream> writeTask) {
+        if (writeTask == null) {
+            Fawe.debug("&cWrite task cannot be null");
+            return null;
+        }
+        final String filename;
+        final String website;
+        if (uuid == null) {
+            uuid = UUID.randomUUID();
+            website = Settings.WEB_URL + "upload.php?" + uuid;
+            filename = "plot." + extension;
+        } else {
+            website = Settings.WEB_URL  + "save.php?" + uuid;
+            filename = file + '.' + extension;
+        }
+        final URL url;
+        try {
+            url = new URL(Settings.WEB_URL  + "?key=" + uuid + "&type=" + extension);
+            String boundary = Long.toHexString(System.currentTimeMillis());
+            URLConnection con = new URL(website).openConnection();
+            con.setDoOutput(true);
+            con.setRequestProperty("Content-Type", "multipart/form-data; boundary=" + boundary);
+            try (OutputStream output = con.getOutputStream();
+                 PrintWriter writer = new PrintWriter(new OutputStreamWriter(output, StandardCharsets.UTF_8), true)) {
+                String CRLF = "\r\n";
+                writer.append("--" + boundary).append(CRLF);
+                writer.append("Content-Disposition: form-data; name=\"param\"").append(CRLF);
+                writer.append("Content-Type: text/plain; charset=" + StandardCharsets.UTF_8.displayName()).append(CRLF);
+                String param = "value";
+                writer.append(CRLF).append(param).append(CRLF).flush();
+                writer.append("--" + boundary).append(CRLF);
+                writer.append("Content-Disposition: form-data; name=\"schematicFile\"; filename=\"" + filename + '"').append(CRLF);
+                writer.append("Content-Type: " + URLConnection.guessContentTypeFromName(filename)).append(CRLF);
+                writer.append("Content-Transfer-Encoding: binary").append(CRLF);
+                writer.append(CRLF).flush();
+                writeTask.value = output;
+                writeTask.run();
+                output.flush();
+                writer.append(CRLF).flush();
+                writer.append("--" + boundary + "--").append(CRLF).flush();
+            }
+            int responseCode = ((HttpURLConnection) con).getResponseCode();
+            if (responseCode == 200) {
+                return url;
+            }
+            return null;
+        } catch (IOException e) {
+            e.printStackTrace();
+            return null;
+        }
     }
 
     public static void setPosition(CompoundTag tag, int x, int y, int z) {

@@ -19,10 +19,12 @@
 
 package com.sk89q.worldedit.command;
 
+import com.boydti.fawe.FaweAPI;
 import com.boydti.fawe.config.BBC;
 import com.boydti.fawe.object.RunnableVal2;
 import com.boydti.fawe.object.clipboard.LazyClipboard;
 import com.sk89q.minecraft.util.commands.Command;
+import com.sk89q.minecraft.util.commands.CommandException;
 import com.sk89q.minecraft.util.commands.CommandPermissions;
 import com.sk89q.minecraft.util.commands.Logging;
 import com.sk89q.worldedit.BlockVector;
@@ -38,6 +40,7 @@ import com.sk89q.worldedit.entity.Player;
 import com.sk89q.worldedit.extension.platform.Actor;
 import com.sk89q.worldedit.extent.clipboard.BlockArrayClipboard;
 import com.sk89q.worldedit.extent.clipboard.Clipboard;
+import com.sk89q.worldedit.extent.clipboard.io.ClipboardFormat;
 import com.sk89q.worldedit.function.block.BlockReplace;
 import com.sk89q.worldedit.function.mask.Mask;
 import com.sk89q.worldedit.function.operation.ForwardExtentCopy;
@@ -55,6 +58,7 @@ import com.sk89q.worldedit.session.ClipboardHolder;
 import com.sk89q.worldedit.util.Location;
 import com.sk89q.worldedit.util.command.binding.Switch;
 import com.sk89q.worldedit.util.command.parametric.Optional;
+import java.net.URL;
 import java.util.Iterator;
 import java.util.List;
 
@@ -202,6 +206,26 @@ public class ClipboardCommands {
         session.setClipboard(new ClipboardHolder(clipboard, editSession.getWorld().getWorldData()));
 
         BBC.COMMAND_CUT.send(player, region.getArea());
+    }
+
+    @Command(aliases = { "download" }, desc = "Download your clipboard")
+    @Deprecated
+    @CommandPermissions({ "worldedit.clipboard.download"})
+    public void download(final Player player, final LocalSession session, @Optional("schematic") final String formatName) throws CommandException, WorldEditException {
+        final ClipboardFormat format = ClipboardFormat.findByAlias(formatName);
+        if (format == null) {
+            player.printError("Unknown schematic format: " + formatName);
+            return;
+        }
+        ClipboardHolder holder = session.getClipboard();
+        Clipboard clipboard = holder.getClipboard();
+        BBC.GENERATING_LINK.send(player, formatName);
+        URL url = FaweAPI.upload(clipboard, format);
+        if (url == null) {
+            BBC.GENERATING_LINK_FAILED.send(player);
+        } else {
+            BBC.DOWNLOAD_LINK.send(player, url.toString());
+        }
     }
 
     @Command(

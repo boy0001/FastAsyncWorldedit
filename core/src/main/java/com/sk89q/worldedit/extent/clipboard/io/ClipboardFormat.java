@@ -60,7 +60,13 @@ public enum ClipboardFormat {
 
         @Override
         public ClipboardWriter getWriter(OutputStream outputStream) throws IOException {
-            NBTOutputStream nbtStream = new NBTOutputStream(new GZIPOutputStream(outputStream));
+            GZIPOutputStream gzip;
+            if (outputStream instanceof GZIPOutputStream) {
+                gzip = (GZIPOutputStream) outputStream;
+            } else {
+                gzip = new GZIPOutputStream(outputStream, true);
+            }
+            NBTOutputStream nbtStream = new NBTOutputStream(gzip);
             return new SchematicWriter(nbtStream);
         }
 
@@ -103,7 +109,13 @@ public enum ClipboardFormat {
 
         @Override
         public ClipboardWriter getWriter(OutputStream outputStream) throws IOException {
-            NBTOutputStream nbtStream = new NBTOutputStream(new GZIPOutputStream(outputStream));
+            GZIPOutputStream gzip;
+            if (outputStream instanceof GZIPOutputStream) {
+                gzip = (GZIPOutputStream) outputStream;
+            } else {
+                gzip = new GZIPOutputStream(outputStream, true);
+            }
+            NBTOutputStream nbtStream = new NBTOutputStream(gzip);
             return new StructureFormat(nbtStream);
         }
 

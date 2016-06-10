@@ -4,11 +4,12 @@ import com.boydti.fawe.config.BBC;
 import com.boydti.fawe.config.Settings;
 import com.boydti.fawe.object.FaweLocation;
 import com.boydti.fawe.object.FawePlayer;
+import com.boydti.fawe.object.FaweQueue;
 import com.boydti.fawe.object.PseudoRandom;
 import com.boydti.fawe.object.RegionWrapper;
+import com.boydti.fawe.object.RunnableVal;
 import com.boydti.fawe.object.changeset.DiskStorageHistory;
 import com.boydti.fawe.regions.FaweMaskManager;
-import com.boydti.fawe.object.FaweQueue;
 import com.boydti.fawe.util.MainUtil;
 import com.boydti.fawe.util.MemUtil;
 import com.boydti.fawe.util.SetQueue;
@@ -23,11 +24,15 @@ import com.sk89q.worldedit.EditSession;
 import com.sk89q.worldedit.WorldEdit;
 import com.sk89q.worldedit.WorldEditException;
 import com.sk89q.worldedit.extent.Extent;
+import com.sk89q.worldedit.extent.clipboard.Clipboard;
+import com.sk89q.worldedit.extent.clipboard.io.ClipboardFormat;
+import com.sk89q.worldedit.extent.clipboard.io.ClipboardWriter;
 import com.sk89q.worldedit.world.World;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
 import java.net.URL;
 import java.nio.channels.Channels;
 import java.nio.channels.ReadableByteChannel;
@@ -41,6 +46,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 import java.util.zip.GZIPInputStream;
+import java.util.zip.GZIPOutputStream;
 import javax.annotation.Nonnull;
 import org.bukkit.Chunk;
 import org.bukkit.Location;
@@ -122,6 +128,28 @@ public class FaweAPI {
             }
         }
         return null;
+    }
+
+    /**
+     * Upload the clipboard to the configured web interface
+     * @param clipboard The clipboard (may not be null)
+     * @param format The format to use (some formats may not be supported)
+     * @return The download URL or null
+     */
+    public static URL upload(final Clipboard clipboard, final ClipboardFormat format) {
+        return MainUtil.upload(null, "clipboard", format.getExtension(), new RunnableVal<OutputStream>() {
+            @Override
+            public void run(OutputStream value) {
+                try {
+                    GZIPOutputStream gzip = new GZIPOutputStream(value, true);
+                    ClipboardWriter writer = format.getWriter(gzip);
+                    writer.write(clipboard, null);
+                    gzip.flush();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+        });
     }
 
     /**
