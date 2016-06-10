@@ -101,7 +101,7 @@ public class AsyncWorld implements World {
     }
 
     @Override
-    public Block getBlockAt(int x, int y, int z) {
+    public Block getBlockAt(final int x, final int y, final int z) {
         return new AsyncBlock(this, queue, x, y, z);
     }
 
@@ -210,7 +210,7 @@ public class AsyncWorld implements World {
     }
 
     @Override
-    public void loadChunk(int x, int z) {
+    public void loadChunk(final int x, final int z) {
         if (!isChunkLoaded(x, z)) {
             TaskManager.IMP.sync(new RunnableVal<Object>() {
                 @Override
@@ -222,7 +222,7 @@ public class AsyncWorld implements World {
     }
 
     @Override
-    public boolean loadChunk(int x, int z, boolean generate) {
+    public boolean loadChunk(final int x, final int z, final boolean generate) {
         if (!isChunkLoaded(x, z)) {
             return TaskManager.IMP.sync(new RunnableVal<Boolean>() {
                 @Override
@@ -235,7 +235,7 @@ public class AsyncWorld implements World {
     }
 
     @Override
-    public boolean unloadChunk(Chunk chunk) {
+    public boolean unloadChunk(final Chunk chunk) {
         if (chunk.isLoaded()) {
             return TaskManager.IMP.sync(new RunnableVal<Boolean>() {
                 @Override
@@ -258,7 +258,7 @@ public class AsyncWorld implements World {
     }
 
     @Override
-    public boolean unloadChunk(int x, int z, boolean save, boolean safe) {
+    public boolean unloadChunk(final int x, final int z, final boolean save, final boolean safe) {
         if (isChunkLoaded(x, z)) {
             return TaskManager.IMP.sync(new RunnableVal<Boolean>() {
                 @Override
@@ -281,7 +281,7 @@ public class AsyncWorld implements World {
     }
 
     @Override
-    public boolean regenerateChunk(int x, int z) {
+    public boolean regenerateChunk(final int x, final int z) {
         return TaskManager.IMP.sync(new RunnableVal<Boolean>() {
             @Override
             public void run(Boolean value) {
@@ -298,7 +298,7 @@ public class AsyncWorld implements World {
     }
 
     @Override
-    public Item dropItem(Location location, ItemStack item) {
+    public Item dropItem(final Location location, final ItemStack item) {
         return TaskManager.IMP.sync(new RunnableVal<Item>() {
             @Override
             public void run(Item value) {
@@ -308,7 +308,7 @@ public class AsyncWorld implements World {
     }
 
     @Override
-    public Item dropItemNaturally(Location location, ItemStack item) {
+    public Item dropItemNaturally(final Location location, final ItemStack item) {
         return TaskManager.IMP.sync(new RunnableVal<Item>() {
             @Override
             public void run(Item value) {
@@ -318,7 +318,7 @@ public class AsyncWorld implements World {
     }
 
     @Override
-    public Arrow spawnArrow(Location location, Vector direction, float speed, float spread) {
+    public Arrow spawnArrow(final Location location, final Vector direction, final float speed, final float spread) {
         return TaskManager.IMP.sync(new RunnableVal<Arrow>() {
             @Override
             public void run(Arrow value) {
@@ -328,7 +328,7 @@ public class AsyncWorld implements World {
     }
 
     @Override
-    public boolean generateTree(Location location, TreeType type) {
+    public boolean generateTree(final Location location, final TreeType type) {
         return TaskManager.IMP.sync(new RunnableVal<Boolean>() {
             @Override
             public void run(Boolean value) {
@@ -338,7 +338,7 @@ public class AsyncWorld implements World {
     }
 
     @Override
-    public boolean generateTree(Location loc, TreeType type, BlockChangeDelegate delegate) {
+    public boolean generateTree(final Location loc, final TreeType type, final BlockChangeDelegate delegate) {
         return TaskManager.IMP.sync(new RunnableVal<Boolean>() {
             @Override
             public void run(Boolean value) {
@@ -365,7 +365,7 @@ public class AsyncWorld implements World {
     }
 
     @Override
-    public LightningStrike strikeLightning(Location loc) {
+    public LightningStrike strikeLightning(final Location loc) {
         return TaskManager.IMP.sync(new RunnableVal<LightningStrike>() {
             @Override
             public void run(LightningStrike value) {
@@ -375,7 +375,7 @@ public class AsyncWorld implements World {
     }
 
     @Override
-    public LightningStrike strikeLightningEffect(Location loc) {
+    public LightningStrike strikeLightningEffect(final Location loc) {
         return TaskManager.IMP.sync(new RunnableVal<LightningStrike>() {
             @Override
             public void run(LightningStrike value) {
@@ -406,7 +406,7 @@ public class AsyncWorld implements World {
 
     @Override
     @Deprecated
-    public <T extends Entity> Collection<T> getEntitiesByClass(Class<T>... classes) {
+    public <T extends Entity> Collection<T> getEntitiesByClass(final Class<T>... classes) {
         return TaskManager.IMP.sync(new RunnableVal<Collection<T>>() {
             @Override
             public void run(Collection<T> value) {
@@ -416,7 +416,7 @@ public class AsyncWorld implements World {
     }
 
     @Override
-    public <T extends Entity> Collection<T> getEntitiesByClass(Class<T> cls) {
+    public <T extends Entity> Collection<T> getEntitiesByClass(final Class<T> cls) {
         return TaskManager.IMP.sync(new RunnableVal<Collection<T>>() {
             @Override
             public void run(Collection<T> value) {
@@ -426,7 +426,7 @@ public class AsyncWorld implements World {
     }
 
     @Override
-    public Collection<Entity> getEntitiesByClasses(Class<?>... classes) {
+    public Collection<Entity> getEntitiesByClasses(final Class<?>... classes) {
         return TaskManager.IMP.sync(new RunnableVal<Collection<Entity>>() {
             @Override
             public void run(Collection<Entity> value) {
@@ -446,7 +446,7 @@ public class AsyncWorld implements World {
     }
 
     @Override
-    public Collection<Entity> getNearbyEntities(Location location, double x, double y, double z) {
+    public Collection<Entity> getNearbyEntities(final Location location, final double x, final double y, final double z) {
         return TaskManager.IMP.sync(new RunnableVal<Collection<Entity>>() {
             @Override
             public void run(Collection<Entity> value) {
@@ -471,7 +471,7 @@ public class AsyncWorld implements World {
     }
 
     @Override
-    public boolean setSpawnLocation(int x, int y, int z) {
+    public boolean setSpawnLocation(final int x, final int y, final int z) {
         return TaskManager.IMP.sync(new RunnableVal<Boolean>() {
             @Override
             public void run(Boolean value) {
@@ -548,7 +548,7 @@ public class AsyncWorld implements World {
         return this.createExplosion(x, y, z, power, setFire, true);
     }
 
-    public boolean createExplosion(double x, double y, double z, float power, boolean setFire, boolean breakBlocks) {
+    public boolean createExplosion(final double x, final double y, final double z, final float power, final boolean setFire, final boolean breakBlocks) {
         return TaskManager.IMP.sync(new RunnableVal<Boolean>() {
             @Override
             public void run(Boolean value) {
@@ -606,7 +606,7 @@ public class AsyncWorld implements World {
     }
 
     @Override
-    public <T extends Entity> T spawn(Location location, Class<T> clazz) throws IllegalArgumentException {
+    public <T extends Entity> T spawn(final Location location, final Class<T> clazz) throws IllegalArgumentException {
         return TaskManager.IMP.sync(new RunnableVal<T>() {
             @Override
             public void run(T value) {
@@ -623,7 +623,7 @@ public class AsyncWorld implements World {
 
     @Override
     @Deprecated
-    public FallingBlock spawnFallingBlock(Location location, int blockId, byte blockData) throws IllegalArgumentException {
+    public FallingBlock spawnFallingBlock(final Location location, final int blockId, final byte blockData) throws IllegalArgumentException {
         return TaskManager.IMP.sync(new RunnableVal<FallingBlock>() {
             @Override
             public void run(FallingBlock value) {
@@ -638,7 +638,7 @@ public class AsyncWorld implements World {
     }
 
     @Override
-    public void playEffect(Location location, Effect effect, int data, int radius) {
+    public void playEffect(final Location location, final Effect effect, final int data, final int radius) {
         TaskManager.IMP.sync(new RunnableVal<Object>() {
             @Override
             public void run(Object value) {
@@ -653,7 +653,7 @@ public class AsyncWorld implements World {
     }
 
     @Override
-    public <T> void playEffect(Location location, Effect effect, T data, int radius) {
+    public <T> void playEffect(final Location location, final Effect effect, final T data, final int radius) {
         TaskManager.IMP.sync(new RunnableVal<Object>() {
             @Override
             public void run(Object value) {
@@ -663,7 +663,7 @@ public class AsyncWorld implements World {
     }
 
     @Override
-    public ChunkSnapshot getEmptyChunkSnapshot(int x, int z, boolean includeBiome, boolean includeBiomeTempRain) {
+    public ChunkSnapshot getEmptyChunkSnapshot(final int x, final int z, final boolean includeBiome, final boolean includeBiomeTempRain) {
         return TaskManager.IMP.sync(new RunnableVal<ChunkSnapshot>() {
             @Override
             public void run(ChunkSnapshot value) {
@@ -724,7 +724,7 @@ public class AsyncWorld implements World {
     }
 
     @Override
-    public void setKeepSpawnInMemory(boolean keepLoaded) {
+    public void setKeepSpawnInMemory(final boolean keepLoaded) {
         TaskManager.IMP.sync(new RunnableVal<Object>() {
             @Override
             public void run(Object value) {
@@ -829,7 +829,7 @@ public class AsyncWorld implements World {
     }
 
     @Override
-    public void playSound(Location location, Sound sound, float volume, float pitch) {
+    public void playSound(final Location location, final Sound sound, final float volume, final float pitch) {
         TaskManager.IMP.sync(new RunnableVal<Object>() {
             @Override
             public void run(Object value) {

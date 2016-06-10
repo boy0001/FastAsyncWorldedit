@@ -121,7 +121,7 @@ public class BukkitQueue_1_10 extends BukkitQueue_0<Chunk, ChunkSection[], DataP
         HashSet<EntityPlayer> set = new HashSet<EntityPlayer>(playerChunk.c);
         EntityTracker tracker = w.getTracker();
         // Get players
-        HashSet<EntityPlayer> players = new HashSet<>();
+        final HashSet<EntityPlayer> players = new HashSet<>();
         for (EntityHuman human : w.players) {
             if (set.contains(human)) {
                 players.add((EntityPlayer) human);
@@ -161,8 +161,8 @@ public class BukkitQueue_1_10 extends BukkitQueue_0<Chunk, ChunkSection[], DataP
             if (slice == null) {
                 continue;
             }
-            for (Entity ent : slice) {
-                EntityTrackerEntry entry = tracker.trackedEntities.get(ent.getId());
+            for (final Entity ent : slice) {
+                final EntityTrackerEntry entry = tracker.trackedEntities.get(ent.getId());
                 if (entry == null) {
                     continue;
                 }

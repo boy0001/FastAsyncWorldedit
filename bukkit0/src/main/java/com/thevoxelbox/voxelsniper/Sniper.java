@@ -135,7 +135,7 @@ public class Sniper {
     }
 
     // Old method (plus world arg)
-    public boolean snipe(Action action, Material itemInHand, AsyncWorld world, Block clickedBlock, BlockFace clickedFace) {
+    public boolean snipe(final Action action, final Material itemInHand, final AsyncWorld world, final Block clickedBlock, final BlockFace clickedFace) {
         String toolId = getToolId(itemInHand);
         SniperTool sniperTool = tools.get(toolId);
 
@@ -160,7 +160,7 @@ public class Sniper {
                 return true;
             }
 
-            SnipeData snipeData = sniperTool.getSnipeData();
+            final SnipeData snipeData = sniperTool.getSnipeData();
             if (getPlayer().isSneaking()) {
                 Block targetBlock;
                 SnipeAction snipeAction = sniperTool.getActionAssigned(itemInHand);
@@ -262,9 +262,9 @@ public class Sniper {
                         return false;
                 }
             } else {
-                Block targetBlock;
-                Block lastBlock;
-                SnipeAction snipeAction = sniperTool.getActionAssigned(itemInHand);
+                final Block targetBlock;
+                final Block lastBlock;
+                final SnipeAction snipeAction = sniperTool.getActionAssigned(itemInHand);
 
                 switch (action) {
                     case RIGHT_CLICK_AIR:
@@ -302,7 +302,7 @@ public class Sniper {
 //                    MetricsManager.increaseBrushUsage(sniperTool.getCurrentBrush().getName());
 //                }
 //                return result;
-                IBrush brush = sniperTool.getCurrentBrush();
+                final  IBrush brush = sniperTool.getCurrentBrush();
                 if (sniperTool.getCurrentBrush() instanceof PerformBrush) {
                     PerformBrush performerBrush = (PerformBrush) sniperTool.getCurrentBrush();
                     performerBrush.initP(snipeData);

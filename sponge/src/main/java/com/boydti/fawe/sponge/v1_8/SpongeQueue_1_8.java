@@ -114,7 +114,7 @@ public class SpongeQueue_1_8 extends NMSMappedFaweQueue<World, net.minecraft.wor
                 return;
             }
             EntityTracker tracker = w.getEntityTracker();
-            HashSet<EntityPlayerMP> players = new HashSet<>();
+            final HashSet<EntityPlayerMP> players = new HashSet<>();
             for (EntityPlayer player : w.playerEntities) {
                 if (player instanceof EntityPlayerMP) {
                     if (chunkMap.isPlayerWatchingChunk((EntityPlayerMP) player, x, z)) {
@@ -156,7 +156,7 @@ public class SpongeQueue_1_8 extends NMSMappedFaweQueue<World, net.minecraft.wor
                 player.playerNetServerHandler.sendPacket(packet);
             }
             // send ents
-            for (EntityTrackerEntry entry : entities) {
+            for (final EntityTrackerEntry entry : entities) {
                 try {
                     TaskManager.IMP.later(new Runnable() {
                         @Override

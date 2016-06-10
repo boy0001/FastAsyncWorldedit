@@ -29,6 +29,9 @@ subprojects {
     apply plugin: 'eclipse'
     apply plugin: 'idea'
 
+    sourceCompatibility = 1.7
+    targetCompatibility = 1.7
+
     dependencies {
         compile(group: 'com.sk89q.worldedit', name: 'worldedit-core', version:'6.1.1-SNAPSHOT') {
             exclude(module: 'bukkit-classloader-check')

@@ -413,7 +413,7 @@ public class BukkitQueue18R3 extends BukkitQueue_0<Chunk, ChunkSection[], char[]
             Object playerChunk = map.getEntry(pair);
             Field fieldPlayers = playerChunk.getClass().getDeclaredField("b");
             fieldPlayers.setAccessible(true);
-            HashSet<EntityPlayer> players = new HashSet<>((Collection<EntityPlayer>)fieldPlayers.get(playerChunk));
+            final HashSet<EntityPlayer> players = new HashSet<>((Collection<EntityPlayer>)fieldPlayers.get(playerChunk));
             if (players.size() == 0) {
                 return;
             }
@@ -441,7 +441,7 @@ public class BukkitQueue18R3 extends BukkitQueue_0<Chunk, ChunkSection[], char[]
                 player.playerConnection.sendPacket(packet);
             }
             // send ents
-            for (EntityTrackerEntry entry : entities) {
+            for (final EntityTrackerEntry entry : entities) {
                 try {
                     TaskManager.IMP.later(new Runnable() {
                         @Override

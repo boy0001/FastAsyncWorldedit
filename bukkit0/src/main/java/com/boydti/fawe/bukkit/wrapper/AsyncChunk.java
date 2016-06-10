@@ -85,7 +85,7 @@ public class AsyncChunk implements Chunk {
     }
 
     @Override
-    public boolean load(boolean generate) {
+    public boolean load(final boolean generate) {
         return TaskManager.IMP.sync(new RunnableVal<Boolean>() {
             @Override
             public void run(Boolean value) {
