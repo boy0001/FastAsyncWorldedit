@@ -1,8 +1,24 @@
 package com.boydti.fawe;
 
 import com.boydti.fawe.object.PseudoRandom;
+import com.sk89q.jnbt.ByteArrayTag;
+import com.sk89q.jnbt.ByteTag;
+import com.sk89q.jnbt.CompoundTag;
+import com.sk89q.jnbt.DoubleTag;
+import com.sk89q.jnbt.FloatTag;
+import com.sk89q.jnbt.IntTag;
+import com.sk89q.jnbt.ListTag;
+import com.sk89q.jnbt.LongTag;
+import com.sk89q.jnbt.ShortTag;
+import com.sk89q.jnbt.StringTag;
+import com.sk89q.jnbt.Tag;
 import com.sk89q.worldedit.CuboidClipboard;
 import com.sk89q.worldedit.blocks.BaseBlock;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 public class FaweCache {
     /**
@@ -58,6 +74,33 @@ public class FaweCache {
      */
     public static BaseBlock getBlock(int id, int data) {
         return CACHE_BLOCK[(id << 4) + data];
+    }
+
+    /**
+     * Get the combined data for a block
+     * @param id
+     * @param data
+     * @return
+     */
+    public static int getCombined(int id, int data) {
+        return (id << 4) + data;
+    }
+
+    public static int getId(int combined) {
+        return combined >> 4;
+    }
+
+    public static int getData(int combined) {
+        return combined & 15;
+    }
+
+    /**
+     * Get the combined id for a block
+     * @param block
+     * @return
+     */
+    public static int getCombined(BaseBlock block) {
+        return getCombined(block.getId(), block.getData());
     }
 
     static {
@@ -248,5 +291,112 @@ public class FaweCache {
             default:
                 return false;
         }
+    }
+
+    public static Map<String, Object> asMap(Object... pairs) {
+        HashMap<String, Object> map = new HashMap<String, Object>(pairs.length >> 1);
+        for (int i = 0; i < pairs.length; i+=2) {
+            String key = (String) pairs[i];
+            Object value = pairs[i + 1];
+            map.put(key, value);
+        }
+        return map;
+    }
+
+
+    public static ShortTag asTag(short value) {
+        return new ShortTag(value);
+    }
+
+    public static IntTag asTag(int value) {
+        return new IntTag(value);
+    }
+
+    public static DoubleTag asTag(double value) {
+        return new DoubleTag(value);
+    }
+
+    public static ByteTag asTag(byte value) {
+        return new ByteTag(value);
+    }
+
+    public static FloatTag asTag(float value) {
+        return new FloatTag(value);
+    }
+
+    public static LongTag asTag(long value) {
+        return new LongTag(value);
+    }
+
+    public static ByteArrayTag asTag(byte[] value) {
+        return new ByteArrayTag(value);
+    }
+
+    public static StringTag asTag(String value) {
+        return new StringTag(value);
+    }
+
+    public static CompoundTag asTag(Map<String, Object> value) {
+        HashMap<String, Tag> map = new HashMap<>();
+        for (Map.Entry<String, Object> entry : value.entrySet()) {
+            Object child = entry.getValue();
+            Tag tag = asTag(child);
+            map.put(entry.getKey(), tag);
+        }
+        return new CompoundTag(map);
+    }
+
+    public static Tag asTag(Object value) {
+        if (value instanceof Integer) {
+            return asTag((int) value);
+        } else if (value instanceof  Short) {
+            return asTag((short) value);
+        } else if (value instanceof  Double) {
+            return asTag((double) value);
+        } else if (value instanceof  Byte) {
+            return asTag((byte) value);
+        } else if (value instanceof  Float) {
+            return asTag((float) value);
+        } else if (value instanceof  Long) {
+            return asTag((long) value);
+        } else if (value instanceof  String) {
+            return asTag((String) value);
+        } else if (value instanceof  Map) {
+            return asTag((Map) value);
+        } else if (value instanceof  Collection) {
+            return asTag((Collection) value);
+        } else if (value instanceof  byte[]) {
+            return asTag((byte[]) value);
+        } else if (value instanceof  Tag) {
+            return (Tag) value;
+        } else {
+            return null;
+        }
+    }
+
+    public static ListTag asTag(Object... values) {
+        Class clazz = null;
+        List<Tag> list = new ArrayList<>();
+        for (Object value : values) {
+            Tag tag = asTag(value);
+            if (clazz == null) {
+                clazz = tag.getClass();
+            }
+            list.add(tag);
+        }
+        return new ListTag(clazz, list);
+    }
+
+    public static ListTag asTag(Collection values) {
+        Class clazz = null;
+        List<Tag> list = new ArrayList<>();
+        for (Object value : values) {
+            Tag tag = asTag(value);
+            if (clazz == null) {
+                clazz = tag.getClass();
+            }
+            list.add(tag);
+        }
+        return new ListTag(clazz, list);
     }
 }

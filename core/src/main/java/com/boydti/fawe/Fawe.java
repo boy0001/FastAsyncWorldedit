@@ -34,6 +34,8 @@ import com.sk89q.worldedit.event.extent.EditSessionEvent;
 import com.sk89q.worldedit.extension.platform.CommandManager;
 import com.sk89q.worldedit.extension.platform.PlatformManager;
 import com.sk89q.worldedit.extent.clipboard.BlockArrayClipboard;
+import com.sk89q.worldedit.extent.clipboard.io.ClipboardFormat;
+import com.sk89q.worldedit.extent.clipboard.io.SchematicReader;
 import com.sk89q.worldedit.extent.transform.BlockTransformExtent;
 import com.sk89q.worldedit.function.operation.Operations;
 import com.sk89q.worldedit.function.visitor.BreadthFirstSearch;
@@ -255,6 +257,10 @@ public class Fawe {
             SelectionCommand.inject(); // Translations + set optimizations
             RegionCommands.inject(); // Translations
             HistoryCommands.inject(); // Translations
+            // Schematic
+            SchematicReader.inject();
+//            SchematicWriter.inject(); TODO
+            ClipboardFormat.inject();
             // Brushes
             GravityBrush.inject(); // Fix for instant placement assumption
             // Selectors

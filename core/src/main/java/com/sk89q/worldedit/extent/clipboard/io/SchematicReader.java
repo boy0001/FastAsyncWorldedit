@@ -289,4 +289,7 @@ public class SchematicReader implements ClipboardReader {
         return expected.cast(test);
     }
 
+    public static Class<?> inject() {
+        return SchematicReader.class;
+    }
 }

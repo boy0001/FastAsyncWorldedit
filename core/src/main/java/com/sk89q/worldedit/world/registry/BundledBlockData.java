@@ -183,12 +183,12 @@ public class BundledBlockData {
     }
 
     public static class BlockEntry {
-        private int legacyId;
-        private String id;
-        private String unlocalizedName;
-        private List<String> aliases;
-        private Map<String, FaweState> states = new HashMap<String, FaweState>();
-        private FaweBlockMaterial material = new FaweBlockMaterial();
+        public int legacyId;
+        public String id;
+        public String unlocalizedName;
+        public List<String> aliases;
+        public Map<String, FaweState> states = new HashMap<String, FaweState>();
+        public FaweBlockMaterial material = new FaweBlockMaterial();
 
         void postDeserialization() {
             for (FaweState state : states.values()) {
@@ -218,13 +218,13 @@ public class BundledBlockData {
         }
     }
 
-    class FaweStateValue implements StateValue {
+    public class FaweStateValue implements StateValue {
 
-        private FaweState state;
-        private Byte data;
-        private Vector direction;
+        public FaweState state;
+        public Byte data;
+        public Vector direction;
 
-        void setState(FaweState state) {
+        public void setState(FaweState state) {
             this.state = state;
         }
 
@@ -250,9 +250,9 @@ public class BundledBlockData {
 
     }
 
-    class FaweState implements State {
+    public class FaweState implements State {
 
-        private Byte dataMask;
+        public Byte dataMask;
         private Map<String, FaweStateValue> values;
 
         @Override
@@ -268,11 +268,10 @@ public class BundledBlockData {
                     return value;
                 }
             }
-
             return null;
         }
 
-        byte getDataMask() {
+        public byte getDataMask() {
             return dataMask != null ? dataMask : 0xF;
         }
 

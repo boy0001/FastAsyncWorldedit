@@ -20,6 +20,7 @@
 package com.sk89q.worldedit.command;
 
 import com.boydti.fawe.config.BBC;
+import com.boydti.fawe.object.schematic.StructureFormat;
 import com.sk89q.minecraft.util.commands.Command;
 import com.sk89q.minecraft.util.commands.CommandContext;
 import com.sk89q.minecraft.util.commands.CommandException;
@@ -113,6 +114,8 @@ public class SchematicCommands {
                 final Clipboard clipboard;
                 if (reader instanceof SchematicReader) {
                     clipboard = ((SchematicReader) reader).read(player.getWorld().getWorldData(), player.getUniqueId());
+                } else if (reader instanceof StructureFormat) {
+                    clipboard = ((StructureFormat) reader).read(player.getWorld().getWorldData(), player.getUniqueId());
                 } else {
                     clipboard = reader.read(player.getWorld().getWorldData());
                 }
@@ -137,13 +140,14 @@ public class SchematicCommands {
         final LocalConfiguration config = this.worldEdit.getConfiguration();
 
         final File dir = this.worldEdit.getWorkingDirectoryFile(config.saveDir);
-        final File f = this.worldEdit.getSafeSaveFile(player, dir, filename, "schematic", "schematic");
 
         final ClipboardFormat format = ClipboardFormat.findByAlias(formatName);
         if (format == null) {
             player.printError("Unknown schematic format: " + formatName);
             return;
         }
+
+        final File f = this.worldEdit.getSafeSaveFile(player, dir, filename, "schematic", "schematic");
 
         final ClipboardHolder holder = session.getClipboard();
         final Clipboard clipboard = holder.getClipboard();
@@ -174,7 +178,11 @@ public class SchematicCommands {
             final FileOutputStream fos = closer.register(new FileOutputStream(f));
             final BufferedOutputStream bos = closer.register(new BufferedOutputStream(fos));
             final ClipboardWriter writer = closer.register(format.getWriter(bos));
-            writer.write(target, holder.getWorldData());
+            if (writer instanceof StructureFormat) {
+                ((StructureFormat) writer).write(target, holder.getWorldData(), player.getName());
+            } else {
+                writer.write(target, holder.getWorldData());
+            }
             log.info(player.getName() + " saved " + f.getCanonicalPath());
             BBC.SCHEMATIC_SAVED.send(player, filename);
         } catch (final IOException e) {
