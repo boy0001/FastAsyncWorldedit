@@ -302,7 +302,7 @@ public final class CommandManager {
                                 BBC.ACTION_COMPLETE.send(actor, (time / 1000d));
                                 ChangeSet fcs = editSession.getChangeSet();
                                 if (fcs != null && fcs instanceof FaweStreamChangeSet) {
-                                    MainUtil.sendCompressedMessage((FaweStreamChangeSet) fcs, editSession.getActor());
+                                    MainUtil.sendCompressedMessage((FaweStreamChangeSet) fcs, editSession.getPlayer());
                                 }
                             }
                         }

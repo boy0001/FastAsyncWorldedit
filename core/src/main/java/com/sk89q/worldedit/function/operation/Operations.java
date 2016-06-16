@@ -38,11 +38,9 @@ public final class Operations {
      * @throws WorldEditException WorldEdit exception
      */
     public static void complete(Operation operation) throws WorldEditException {
-        try {
-            while (true) {
-                operation = operation.resume(context);
-            }
-        } catch (NullPointerException ignore) {}
+        while (operation != null) {
+            operation = operation.resume(context);
+        }
     }
 
     /**
@@ -65,12 +63,12 @@ public final class Operations {
      */
     public static void completeBlindly(Operation operation) {
         try {
-            while (true) {
+            while (operation != null) {
                 operation = operation.resume(context);
             }
         } catch (WorldEditException e) {
             throw new RuntimeException(e);
-        } catch (NullPointerException ignore) {}
+        }
     }
 
     public static void completeSmart(final Operation op, final Runnable whenDone, final boolean threadsafe) {

@@ -8,6 +8,9 @@ import com.boydti.fawe.object.FaweQueue;
 import com.boydti.fawe.util.StringMan;
 import com.boydti.fawe.util.TaskManager;
 
+/**
+ * The default progress tracker uses titles
+ */
 public class DefaultProgressTracker extends RunnableVal2<FaweQueue.ProgressType, Integer> {
 
     private final FawePlayer player;
@@ -18,9 +21,12 @@ public class DefaultProgressTracker extends RunnableVal2<FaweQueue.ProgressType,
         this.player = player;
     }
 
+    // Number of times a chunk was queued
+    private int totalQueue = 0;
+    // Current size of the queue
     private int amountQueue = 0;
+    // Number of chunks dispatched
     private int amountDispatch = 0;
-    private long lastTick = 0;
 
     @Override
     public void run(FaweQueue.ProgressType type, Integer amount) {
@@ -29,47 +35,60 @@ public class DefaultProgressTracker extends RunnableVal2<FaweQueue.ProgressType,
                 amountDispatch = amount;
                 break;
             case QUEUE:
+                totalQueue++;
                 amountQueue = amount;
                 break;
             case DONE:
-                if (amountDispatch > 64) {
+                if (totalQueue > 64) {
                     done();
                 }
                 return;
         }
-        if (amountQueue > 64 || amountDispatch > 64) {
+        // Only send a message after 64 chunks (i.e. ignore smaller edits)
+        if (totalQueue > 64) {
             send();
         }
     }
 
-    private void done() {
+    private final void done() {
         TaskManager.IMP.task(new Runnable() {
             @Override
             public void run() {
-                final long time = System.currentTimeMillis() - start;
-                player.sendTitle("", BBC.PROGRESS_DONE.format(time / 1000d));
-                TaskManager.IMP.later(new Runnable() {
-                    @Override
-                    public void run() {
-                        player.resetTitle();
-                    }
-                }, 60);
+                doneTask();
             }
         });
     }
 
-    public void send() {
-        TaskManager.IMP.task(new Runnable() {
+    private long lastTick = 0;
+
+    private final void send() {
+        // Avoid duplicates
+        long currentTick = System.currentTimeMillis() / 50;
+        if (currentTick > lastTick + Settings.DISPLAY_PROGRESS_INTERVAL) {
+            lastTick = currentTick;
+            TaskManager.IMP.task(new Runnable() { // Run on main thread
+                @Override
+                public void run() {
+                    sendTask();
+                }
+            });
+        }
+    }
+
+    public void doneTask() {
+        final long time = System.currentTimeMillis() - start;
+        player.sendTitle("", BBC.PROGRESS_DONE.format(time / 1000d));
+        TaskManager.IMP.later(new Runnable() { // Run on main thread
             @Override
             public void run() {
-                long currentTick = System.currentTimeMillis() / 50;
-                if (currentTick > lastTick + Settings.DISPLAY_PROGRESS_INTERVAL) {
-                    lastTick = currentTick;
-                    String queue = StringMan.padRight("" + amountQueue, 3);
-                    String dispatch = StringMan.padRight("" + amountDispatch, 3);
-                    player.sendTitle("", BBC.PROGRESS_MESSAGE.format(queue, dispatch));
-                }
+                doneTask();
             }
-        });
+        }, 60);
+    }
+
+    public void sendTask() {
+        String queue = StringMan.padRight("" + amountQueue, 3);
+        String dispatch = StringMan.padRight("" + amountDispatch, 3);
+        player.sendTitle("", BBC.PROGRESS_MESSAGE.format(queue, dispatch));
     }
 }

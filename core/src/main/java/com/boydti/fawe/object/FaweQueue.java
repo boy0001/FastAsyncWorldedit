@@ -200,6 +200,7 @@ public abstract class FaweQueue {
             if (Fawe.get().isMainThread()) {
                 SetQueue.IMP.flush(this);
             } else {
+                enqueue();
                 final AtomicBoolean running = new AtomicBoolean(true);
                 addNotifyTask(new Runnable() {
                     @Override

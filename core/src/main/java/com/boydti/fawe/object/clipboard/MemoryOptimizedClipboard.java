@@ -136,6 +136,12 @@ public class MemoryOptimizedClipboard extends FaweClipboard {
     }
 
     @Override
+    public boolean setTile(int x, int y, int z, CompoundTag tag) {
+        nbtMap.put(new IntegerTrio(x, y, z), tag);
+        return true;
+    }
+
+    @Override
     public boolean setBlock(int x, int y, int z, BaseBlock block) {
         final int id = block.getId();
         switch (id) {

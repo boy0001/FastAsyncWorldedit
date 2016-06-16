@@ -1,6 +1,7 @@
 package com.boydti.fawe.object.clipboard;
 
 import com.boydti.fawe.object.RunnableVal2;
+import com.sk89q.jnbt.CompoundTag;
 import com.sk89q.worldedit.Vector;
 import com.sk89q.worldedit.blocks.BaseBlock;
 import com.sk89q.worldedit.entity.BaseEntity;
@@ -17,6 +18,8 @@ public abstract class FaweClipboard {
     public abstract BaseBlock getBlock(int x, int y, int z);
 
     public abstract boolean setBlock(int x, int y, int z, BaseBlock block);
+
+    public abstract boolean setTile(int x, int y, int z, CompoundTag tag);
 
     public abstract Entity createEntity(Extent world, double x, double y, double z, float yaw, float pitch, BaseEntity entity);
 

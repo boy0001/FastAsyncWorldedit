@@ -5,7 +5,9 @@ import com.sk89q.jnbt.ByteArrayTag;
 import com.sk89q.jnbt.ByteTag;
 import com.sk89q.jnbt.CompoundTag;
 import com.sk89q.jnbt.DoubleTag;
+import com.sk89q.jnbt.EndTag;
 import com.sk89q.jnbt.FloatTag;
+import com.sk89q.jnbt.IntArrayTag;
 import com.sk89q.jnbt.IntTag;
 import com.sk89q.jnbt.ListTag;
 import com.sk89q.jnbt.LongTag;
@@ -14,6 +16,7 @@ import com.sk89q.jnbt.StringTag;
 import com.sk89q.jnbt.Tag;
 import com.sk89q.worldedit.CuboidClipboard;
 import com.sk89q.worldedit.blocks.BaseBlock;
+import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
@@ -332,6 +335,10 @@ public class FaweCache {
         return new ByteArrayTag(value);
     }
 
+    public static IntArrayTag asTag(int[] value) {
+        return new IntArrayTag(value);
+    }
+
     public static StringTag asTag(String value) {
         return new StringTag(value);
     }
@@ -369,7 +376,22 @@ public class FaweCache {
             return asTag((byte[]) value);
         } else if (value instanceof  Tag) {
             return (Tag) value;
+        } else if (value == null) {
+            return null;
         } else {
+            Class<? extends Object> clazz = value.getClass();
+            if (clazz.getName().startsWith("com.intellectualcrafters.jnbt")) {
+                try {
+                    if (clazz.getName().equals("com.intellectualcrafters.jnbt.EndTag")) {
+                        return new EndTag();
+                    }
+                    Field field = clazz.getDeclaredField("value");
+                    field.setAccessible(true);
+                    return asTag(field.get(value));
+                } catch (Throwable e) {
+                    e.printStackTrace();
+                }
+            }
             return null;
         }
     }

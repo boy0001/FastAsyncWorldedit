@@ -178,7 +178,7 @@ public abstract class FawePlayer<T> {
                     for (int i = editIds.size() - 1; i >= 0; i--) {
                         int index = editIds.get(i);
                         FaweStreamChangeSet set = new DiskStorageHistory(world, uuid, index);
-                        EditSession edit = set.toEditSession(getPlayer());
+                        EditSession edit = set.toEditSession(FawePlayer.this);
                         if (world.equals(getWorld())) {
                             session.remember(edit, false, false);
                         } else {

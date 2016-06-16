@@ -37,7 +37,7 @@ subprojects {
             exclude(module: 'bukkit-classloader-check')
         }
         compile 'com.sk89q:worldguard:6.0.0-SNAPSHOT'
-        compile 'com.intellectualcrafters.plot:plotsquared:3.3.1'
+        compile 'com.plotsquared:PlotSquared:3.4.1-SNAPSHOT'
     }
 
     repositories {

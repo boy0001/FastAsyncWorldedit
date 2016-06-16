@@ -188,6 +188,15 @@ public static <T> List<T> getList(List<T> list) {
         }
     }
 
+    public static void setField(String fieldName, Object instance, Object value) {
+        try {
+            Field field = instance.getClass().getDeclaredField(fieldName);
+            setField(field, instance, value);
+        } catch (NoSuchFieldException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
     public static void setField(final Field field, final Object instance, final Object value) {
         if (field == null) {
             throw new RuntimeException("No such field");

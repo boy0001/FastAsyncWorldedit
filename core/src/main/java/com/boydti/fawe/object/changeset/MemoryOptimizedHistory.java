@@ -1,6 +1,8 @@
 package com.boydti.fawe.object.changeset;
 
 import com.boydti.fawe.config.Settings;
+import com.boydti.fawe.object.FaweInputStream;
+import com.boydti.fawe.object.FaweOutputStream;
 import com.boydti.fawe.util.MainUtil;
 import com.sk89q.jnbt.NBTInputStream;
 import com.sk89q.jnbt.NBTOutputStream;
@@ -21,7 +23,7 @@ public class MemoryOptimizedHistory extends FaweStreamChangeSet {
 
     private byte[] ids;
     private ByteArrayOutputStream idsStream;
-    private OutputStream idsStreamZip;
+    private FaweOutputStream idsStreamZip;
 
     private byte[] entC;
     private ByteArrayOutputStream entCStream;
@@ -96,12 +98,18 @@ public class MemoryOptimizedHistory extends FaweStreamChangeSet {
         }
         setOrigin(x, z);
         idsStream = new ByteArrayOutputStream(Settings.BUFFER_SIZE);
-        return idsStreamZip = getCompressedOS(idsStream);
+        idsStreamZip = getCompressedOS(idsStream);
+        idsStreamZip.write(FaweStreamChangeSet.MODE);
+        idsStreamZip.writeInt(x);
+        idsStreamZip.writeInt(z);
+        return idsStreamZip;
     }
 
     @Override
-    public InputStream getBlockIS() {
-        return ids == null ? null : getCompressedIS(new ByteArrayInputStream(ids));
+    public InputStream getBlockIS() throws IOException {
+        FaweInputStream result = ids == null ? null : MainUtil.getCompressedIS(new ByteArrayInputStream(ids));
+        result.skip(FaweStreamChangeSet.HEADER_SIZE);
+        return result;
     }
 
     @Override
@@ -142,21 +150,21 @@ public class MemoryOptimizedHistory extends FaweStreamChangeSet {
 
     @Override
     public NBTInputStream getEntityCreateIS() throws IOException {
-        return entC == null ? null : new NBTInputStream(getCompressedIS(new ByteArrayInputStream(entC)));
+        return entC == null ? null : new NBTInputStream(MainUtil.getCompressedIS(new ByteArrayInputStream(entC)));
     }
 
     @Override
     public NBTInputStream getEntityRemoveIS() throws IOException {
-        return entR == null ? null : new NBTInputStream(getCompressedIS(new ByteArrayInputStream(entR)));
+        return entR == null ? null : new NBTInputStream(MainUtil.getCompressedIS(new ByteArrayInputStream(entR)));
     }
 
     @Override
     public NBTInputStream getTileCreateIS() throws IOException {
-        return tileC == null ? null : new NBTInputStream(getCompressedIS(new ByteArrayInputStream(tileC)));
+        return tileC == null ? null : new NBTInputStream(MainUtil.getCompressedIS(new ByteArrayInputStream(tileC)));
     }
 
     @Override
     public NBTInputStream getTileRemoveIS() throws IOException {
-        return tileR == null ? null : new NBTInputStream(getCompressedIS(new ByteArrayInputStream(tileR)));
+        return tileR == null ? null : new NBTInputStream(MainUtil.getCompressedIS(new ByteArrayInputStream(tileR)));
     }
 }

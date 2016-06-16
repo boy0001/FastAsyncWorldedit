@@ -13,42 +13,42 @@ public class NullChangeSet extends FaweChangeSet {
     }
 
     @Override
-    public boolean flush() {
+    public final boolean flush() {
         return false;
     }
 
     @Override
-    public void add(int x, int y, int z, int combinedFrom, int combinedTo) {
+    public final void add(int x, int y, int z, int combinedFrom, int combinedTo) {
 
     }
 
     @Override
-    public void addTileCreate(CompoundTag tag) {
+    public final void addTileCreate(CompoundTag tag) {
 
     }
 
     @Override
-    public void addTileRemove(CompoundTag tag) {
+    public final void addTileRemove(CompoundTag tag) {
 
     }
 
     @Override
-    public void addEntityRemove(CompoundTag tag) {
+    public final void addEntityRemove(CompoundTag tag) {
 
     }
 
     @Override
-    public void addEntityCreate(CompoundTag tag) {
+    public final void addEntityCreate(CompoundTag tag) {
 
     }
 
     @Override
-    public Iterator<Change> getIterator(boolean undo) {
+    public final Iterator<Change> getIterator(boolean undo) {
         return new ArrayList<Change>().iterator();
     }
 
     @Override
-    public int size() {
+    public final int size() {
         return 0;
     }
 }

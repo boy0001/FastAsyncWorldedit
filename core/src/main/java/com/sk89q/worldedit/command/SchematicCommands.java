@@ -117,9 +117,7 @@ public class SchematicCommands {
                 in = new FileInputStream(f);
             }
             in = new BufferedInputStream(in);
-
             final ClipboardReader reader = format.getReader(in);
-
             final WorldData worldData = player.getWorld().getWorldData();
             final Clipboard clipboard;
             if (reader instanceof SchematicReader) {

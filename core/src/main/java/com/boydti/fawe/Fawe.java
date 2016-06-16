@@ -10,7 +10,7 @@ import com.boydti.fawe.command.WorldEditRegion;
 import com.boydti.fawe.config.BBC;
 import com.boydti.fawe.config.Settings;
 import com.boydti.fawe.object.FawePlayer;
-import com.boydti.fawe.regions.general.PlotSquaredFeature;
+import com.boydti.fawe.regions.general.plot.PlotSquaredFeature;
 import com.boydti.fawe.util.MainUtil;
 import com.boydti.fawe.util.MemUtil;
 import com.boydti.fawe.util.TaskManager;
@@ -36,6 +36,7 @@ import com.sk89q.worldedit.extension.platform.PlatformManager;
 import com.sk89q.worldedit.extent.clipboard.BlockArrayClipboard;
 import com.sk89q.worldedit.extent.clipboard.io.ClipboardFormat;
 import com.sk89q.worldedit.extent.clipboard.io.SchematicReader;
+import com.sk89q.worldedit.extent.clipboard.io.SchematicWriter;
 import com.sk89q.worldedit.extent.transform.BlockTransformExtent;
 import com.sk89q.worldedit.function.operation.Operations;
 import com.sk89q.worldedit.function.visitor.BreadthFirstSearch;
@@ -259,7 +260,7 @@ public class Fawe {
             HistoryCommands.inject(); // Translations
             // Schematic
             SchematicReader.inject();
-//            SchematicWriter.inject(); TODO
+            SchematicWriter.inject();
             ClipboardFormat.inject();
             // Brushes
             GravityBrush.inject(); // Fix for instant placement assumption

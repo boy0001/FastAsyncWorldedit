@@ -1,12 +1,18 @@
-package com.boydti.fawe.regions.general;
+package com.boydti.fawe.regions.general.plot;
 
+import com.boydti.fawe.Fawe;
 import com.boydti.fawe.object.FawePlayer;
 import com.boydti.fawe.regions.FaweMask;
 import com.boydti.fawe.regions.FaweMaskManager;
 import com.intellectualcrafters.plot.PS;
+import com.intellectualcrafters.plot.generator.HybridPlotManager;
 import com.intellectualcrafters.plot.object.Plot;
 import com.intellectualcrafters.plot.object.PlotPlayer;
 import com.intellectualcrafters.plot.object.RegionWrapper;
+import com.intellectualcrafters.plot.util.ChunkManager;
+import com.intellectualcrafters.plot.util.SchematicHandler;
+import com.intellectualcrafters.plot.util.block.GlobalBlockQueue;
+import com.intellectualcrafters.plot.util.block.QueueProvider;
 import com.plotsquared.listener.WEManager;
 import com.sk89q.worldedit.BlockVector;
 import java.util.HashSet;
@@ -15,7 +21,43 @@ import org.bukkit.entity.Player;
 public class PlotSquaredFeature extends FaweMaskManager {
     public PlotSquaredFeature() {
         super("PlotSquared");
+        Fawe.debug("Optimizing PlotSquared");
         PS.get().worldedit = null;
+        setupBlockQueue();
+        setupSchematicHandler();
+        setupChunkManager();
+    }
+
+    private void setupBlockQueue() {
+        try {
+            // If it's going to fail, throw an error now rather than later
+            new FaweLocalBlockQueue(null);
+            QueueProvider provider = QueueProvider.of(FaweLocalBlockQueue.class, null);
+            GlobalBlockQueue.IMP.setProvider(provider);
+            HybridPlotManager.REGENERATIVE_CLEAR = false;
+            Fawe.debug(" - QueueProvider: " + FaweLocalBlockQueue.class);
+            Fawe.debug(" - HybridPlotManager.REGENERATIVE_CLEAR: " + HybridPlotManager.REGENERATIVE_CLEAR);
+        } catch (Throwable e) {
+            Fawe.debug("Please update PlotSquared: http://ci.athion.net/job/PlotSquared/");
+        }
+    }
+
+    private void setupChunkManager() {
+        try {
+            ChunkManager.manager = new FaweChunkManager(ChunkManager.manager);
+            Fawe.debug(" - ChunkManager: " + ChunkManager.manager);
+        } catch (Throwable e) {
+            Fawe.debug("Please update PlotSquared: http://ci.athion.net/job/PlotSquared/");
+        }
+    }
+
+    private void setupSchematicHandler() {
+        try {
+            SchematicHandler.manager = new FaweSchematicHandler();
+            Fawe.debug(" - SchematicHandler: " + SchematicHandler.manager);
+        } catch (Throwable e) {
+            Fawe.debug("Please update PlotSquared: http://ci.athion.net/job/PlotSquared/");
+        }
     }
 
     @Override

@@ -36,7 +36,9 @@ import java.util.UUID;
  */
 public class DiskOptimizedClipboard extends FaweClipboard {
 
-    private static int HEADER_SIZE = 10;
+    public static int COMPRESSION = 0;
+    public static int MODE = 0;
+    public static int HEADER_SIZE = 14;
 
     protected int length;
     protected int height;
@@ -53,7 +55,7 @@ public class DiskOptimizedClipboard extends FaweClipboard {
     private int last;
 
     public DiskOptimizedClipboard(int width, int height, int length, UUID uuid) {
-        this(width, height, length, new File(Fawe.imp().getDirectory(), "clipboard" + File.separator + uuid));
+        this(width, height, length, new File(Fawe.imp().getDirectory(), "clipboard" + File.separator + uuid + ".bd"));
     }
 
     public DiskOptimizedClipboard(File file) throws IOException {
@@ -64,13 +66,14 @@ public class DiskOptimizedClipboard extends FaweClipboard {
         this.raf = new BufferedRandomAccessFile(file, "rw", Settings.BUFFER_SIZE);
         raf.setLength(file.length());
         long size = (raf.length() - HEADER_SIZE) >> 1;
-        raf.seek(0);
+        raf.seek(2);
         last = -1;
         raf.read(buffer);
         width = (((buffer[1] & 0xFF) << 8) + ((buffer[0] & 0xFF)));
         raf.read(buffer);
+        height = (((buffer[1] & 0xFF) << 8) + ((buffer[0] & 0xFF)));
+        raf.read(buffer);
         length = (((buffer[1] & 0xFF) << 8) + ((buffer[0] & 0xFF)));
-        height = (int) (size / (width * length));
         area = width * length;
         autoCloseTask();
     }
@@ -86,7 +89,7 @@ public class DiskOptimizedClipboard extends FaweClipboard {
             if (raf == null) {
                 open();
             }
-            raf.seek(4);
+            raf.seek(8);
             last = -1;
             int ox = (((byte) raf.read() << 8) | ((byte) raf.read()) & 0xFF);
             int oy = (((byte) raf.read() << 8) | ((byte) raf.read()) & 0xFF);
@@ -126,7 +129,7 @@ public class DiskOptimizedClipboard extends FaweClipboard {
             if (raf == null) {
                 open();
             }
-            raf.seek(4);
+            raf.seek(8);
             last = -1;
             raf.write((byte) (offset.getBlockX() >> 8));
             raf.write((byte) (offset.getBlockX()));
@@ -178,10 +181,12 @@ public class DiskOptimizedClipboard extends FaweClipboard {
         if (raf.length() != size) {
             raf.setLength(size);
             // write length etc
-            raf.seek(0);
+            raf.seek(1);
             last = 0;
             raf.write((width) & 0xff);
             raf.write(((width) >> 8) & 0xff);
+            raf.write((height) & 0xff);
+            raf.write(((height) >> 8) & 0xff);
             raf.write((length) & 0xff);
             raf.write(((length) >> 8) & 0xff);
         }
@@ -289,6 +294,12 @@ public class DiskOptimizedClipboard extends FaweClipboard {
             MainUtil.handleError(e);
         }
         return EditSession.nullBlock;
+    }
+
+    @Override
+    public boolean setTile(int x, int y, int z, CompoundTag tag) {
+        nbtMap.put(new IntegerTrio(x, y, z), tag);
+        return true;
     }
 
     @Override

@@ -30,7 +30,7 @@ public class ProcessedWEExtent extends FaweRegionExtent {
 
     @Override
     public Entity createEntity(final Location location, final BaseEntity entity) {
-        if (limit.MAX_ENTITIES-- < 0 || entity == null) {
+        if (!limit.MAX_ENTITIES() || entity == null) {
             return null;
         }
         return super.createEntity(location, entity);
@@ -67,18 +67,18 @@ public class ProcessedWEExtent extends FaweRegionExtent {
     @Override
     public boolean setBlock(final Vector location, final BaseBlock block) throws WorldEditException {
         if (block.hasNbtData() && FaweCache.hasNBT(block.getType())) {
-            if (limit.MAX_BLOCKSTATES-- < 0) {
+            if (!limit.MAX_BLOCKSTATES()) {
                 WEManager.IMP.cancelEdit(this, BBC.WORLDEDIT_CANCEL_REASON_MAX_TILES);
                 return false;
             }
         }
         if (WEManager.IMP.maskContains(this.mask, (int) location.x, (int) location.z)) {
-            if (limit.MAX_CHANGES-- < 0) {
+            if (!limit.MAX_CHANGES()) {
                 WEManager.IMP.cancelEdit(this, BBC.WORLDEDIT_CANCEL_REASON_MAX_CHANGES);
                 return false;
             }
             return super.setBlock(location, block);
-        } else if (limit.MAX_FAILS-- < 0) {
+        } else if (!limit.MAX_FAILS()) {
             WEManager.IMP.cancelEdit(this, BBC.WORLDEDIT_CANCEL_REASON_MAX_FAILS);
         }
         return false;

@@ -17,13 +17,62 @@ public class FaweLimit {
 
     public static FaweLimit MAX;
     static {
-        MAX = new FaweLimit();
+        MAX = new FaweLimit() {
+            @Override
+            public boolean MAX_CHANGES() {
+                return true;
+            }
+            @Override
+            public boolean MAX_BLOCKSTATES() {
+                return true;
+            }
+            @Override
+            public boolean MAX_CHECKS() {
+                return true;
+            }
+            @Override
+            public boolean MAX_ENTITIES() {
+                return true;
+            }
+            @Override
+            public boolean MAX_FAILS() {
+                return true;
+            }
+            @Override
+            public boolean MAX_ITERATIONS() {
+                return true;
+            }
+        };
         MAX.MAX_CHANGES = Integer.MAX_VALUE;
         MAX.MAX_FAILS = Integer.MAX_VALUE;
         MAX.MAX_CHECKS = Integer.MAX_VALUE;
         MAX.MAX_ITERATIONS = Integer.MAX_VALUE;
         MAX.MAX_BLOCKSTATES = Integer.MAX_VALUE;
         MAX.MAX_ENTITIES = Integer.MAX_VALUE;
+    }
+
+    public boolean MAX_CHANGES() {
+        return MAX_CHANGES-- > 0;
+    }
+
+    public boolean MAX_FAILS() {
+        return MAX_FAILS-- > 0;
+    }
+
+    public boolean MAX_CHECKS() {
+        return MAX_CHECKS-- > 0;
+    }
+
+    public boolean MAX_ITERATIONS() {
+        return MAX_ITERATIONS-- > 0;
+    }
+
+    public boolean MAX_BLOCKSTATES() {
+        return MAX_BLOCKSTATES-- > 0;
+    }
+
+    public boolean MAX_ENTITIES() {
+        return MAX_ENTITIES-- > 0;
     }
 
     public boolean load(ConfigurationSection section, FaweLimit defaultLimit, boolean save) {

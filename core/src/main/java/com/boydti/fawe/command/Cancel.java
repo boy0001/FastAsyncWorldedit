@@ -6,7 +6,6 @@ import com.boydti.fawe.object.FawePlayer;
 import com.boydti.fawe.object.FaweQueue;
 import com.boydti.fawe.util.SetQueue;
 import com.sk89q.worldedit.EditSession;
-import com.sk89q.worldedit.extension.platform.Actor;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
@@ -28,11 +27,8 @@ public class Cancel extends FaweCommand {
         for (FaweQueue queue : queues) {
             Set<EditSession> sessions = queue.getEditSessions();
             for (EditSession session : sessions) {
-                Actor actor = session.getActor();
-                if (actor == null) {
-                    continue;
-                }
-                if (uuid.equals(actor.getUniqueId())) {
+                FawePlayer currentPlayer = session.getPlayer();
+                if (currentPlayer == player) {
                     if (session.cancel()) {
                         cancelled++;
                     }

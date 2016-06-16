@@ -2,6 +2,7 @@ package com.boydti.fawe.object.changeset;
 
 import com.boydti.fawe.Fawe;
 import com.boydti.fawe.config.Settings;
+import com.boydti.fawe.object.FaweInputStream;
 import com.boydti.fawe.object.IntegerPair;
 import com.boydti.fawe.object.RegionWrapper;
 import com.boydti.fawe.util.MainUtil;
@@ -17,9 +18,6 @@ import java.io.OutputStream;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
-import net.jpountz.lz4.LZ4Compressor;
-import net.jpountz.lz4.LZ4Factory;
-import net.jpountz.lz4.LZ4InputStream;
 
 /**
  * Store the change on disk
@@ -163,6 +161,9 @@ public class DiskStorageHistory extends FaweStreamChangeSet {
         bdFile.getParentFile().mkdirs();
         bdFile.createNewFile();
         osBD = getCompressedOS(new FileOutputStream(bdFile));
+        // Mode
+        osBD.write((byte) MODE);
+        // Origin
         setOrigin(x, z);
         osBD.write((byte) (x >> 24));
         osBD.write((byte) (x >> 16));
@@ -224,7 +225,10 @@ public class DiskStorageHistory extends FaweStreamChangeSet {
         if (!bdFile.exists()) {
             return null;
         }
-        InputStream is = getCompressedIS(new FileInputStream(bdFile));
+        InputStream is = MainUtil.getCompressedIS(new FileInputStream(bdFile));
+        // skip mode
+        is.skip(1);
+        // origin
         int x = ((is.read() << 24) + (is.read() << 16) + (is.read() << 8) + (is.read() << 0));
         int z = ((is.read() << 24) + (is.read() << 16) + (is.read() << 8) + (is.read() << 0));
         setOrigin(x, z);
@@ -236,7 +240,7 @@ public class DiskStorageHistory extends FaweStreamChangeSet {
         if (!enttFile.exists()) {
             return null;
         }
-        return new NBTInputStream(getCompressedIS(new FileInputStream(enttFile)));
+        return new NBTInputStream(MainUtil.getCompressedIS(new FileInputStream(enttFile)));
     }
 
     @Override
@@ -244,7 +248,7 @@ public class DiskStorageHistory extends FaweStreamChangeSet {
         if (!entfFile.exists()) {
             return null;
         }
-        return new NBTInputStream(getCompressedIS(new FileInputStream(entfFile)));
+        return new NBTInputStream(MainUtil.getCompressedIS(new FileInputStream(entfFile)));
     }
 
     @Override
@@ -252,7 +256,7 @@ public class DiskStorageHistory extends FaweStreamChangeSet {
         if (!nbttFile.exists()) {
             return null;
         }
-        return new NBTInputStream(getCompressedIS(new FileInputStream(nbttFile)));
+        return new NBTInputStream(MainUtil.getCompressedIS(new FileInputStream(nbttFile)));
     }
 
     @Override
@@ -260,7 +264,7 @@ public class DiskStorageHistory extends FaweStreamChangeSet {
         if (!nbtfFile.exists()) {
             return null;
         }
-        return new NBTInputStream(getCompressedIS(new FileInputStream(nbtfFile)));
+        return new NBTInputStream(MainUtil.getCompressedIS(new FileInputStream(nbtfFile)));
     }
 
     public DiskStorageSummary summarize(RegionWrapper requiredRegion, boolean shallow) {
@@ -274,14 +278,10 @@ public class DiskStorageHistory extends FaweStreamChangeSet {
                 return summary = new DiskStorageSummary(ox, oz);
             }
             try (FileInputStream fis = new FileInputStream(bdFile)) {
-                LZ4Factory factory = LZ4Factory.fastestInstance();
-                LZ4Compressor compressor = factory.fastCompressor();
-                final LZ4InputStream gis;
-                if (Settings.COMPRESSION_LEVEL > 0) {
-                    gis = new LZ4InputStream(new LZ4InputStream(fis));
-                } else {
-                    gis = new LZ4InputStream(fis);
-                }
+                FaweInputStream gis = MainUtil.getCompressedIS(fis);
+                // skip mode
+                gis.skip(1);
+                // origin
                 ox = ((gis.read() << 24) + (gis.read() << 16) + (gis.read() << 8) + (gis.read() << 0));
                 oz = ((gis.read() << 24) + (gis.read() << 16) + (gis.read() << 8) + (gis.read() << 0));
                 setOrigin(ox, oz);
@@ -293,7 +293,8 @@ public class DiskStorageHistory extends FaweStreamChangeSet {
                 }
                 byte[] buffer = new byte[9];
                 int i = 0;
-                while (!shallow || gis.hasBytesAvailableInDecompressedBuffer(9)) {
+                while (!shallow && i < Settings.BUFFER_SIZE) {
+                    i++;
                     if (gis.read(buffer) == -1) {
                         fis.close();
                         gis.close();
@@ -316,16 +317,11 @@ public class DiskStorageHistory extends FaweStreamChangeSet {
         int ox = getOriginX();
         int oz = getOriginZ();
         if (ox == 0 && oz == 0 && bdFile.exists()) {
-            try {
-                FileInputStream fis = new FileInputStream(bdFile);
-                LZ4Factory factory = LZ4Factory.fastestInstance();
-                LZ4Compressor compressor = factory.fastCompressor();
-                final InputStream gis;
-                if (Settings.COMPRESSION_LEVEL > 0) {
-                    gis = new LZ4InputStream(new LZ4InputStream(fis));
-                } else {
-                    gis = new LZ4InputStream(fis);
-                }
+            try (FileInputStream fis = new FileInputStream(bdFile)) {
+                final InputStream gis = MainUtil.getCompressedIS(fis);
+                // skip mode
+                gis.skip(1);
+                // origin
                 ox = ((gis.read() << 24) + (gis.read() << 16) + (gis.read() << 8) + (gis.read() << 0));
                 oz = ((gis.read() << 24) + (gis.read() << 16) + (gis.read() << 8) + (gis.read() << 0));
                 setOrigin(ox, oz);

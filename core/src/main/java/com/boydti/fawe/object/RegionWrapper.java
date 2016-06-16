@@ -8,6 +8,10 @@ public class RegionWrapper {
     public int minZ;
     public int maxZ;
 
+    public static RegionWrapper GLOBAL() {
+        return new RegionWrapper(Integer.MIN_VALUE, Integer.MAX_VALUE, Integer.MIN_VALUE, Integer.MAX_VALUE);
+    }
+
     public RegionWrapper(final int minX, final int maxX, final int minZ, final int maxZ) {
         this.maxX = maxX;
         this.minX = minX;
@@ -80,6 +84,10 @@ public class RegionWrapper {
 
     public Vector getTopVector() {
         return new Vector(this.maxX, 255, this.maxZ);
+    }
+
+    public boolean isGlobal() {
+        return minX == Integer.MIN_VALUE && minZ == Integer.MIN_VALUE && maxX == Integer.MAX_VALUE && maxZ == Integer.MAX_VALUE;
     }
 
     public boolean contains(RegionWrapper current) {

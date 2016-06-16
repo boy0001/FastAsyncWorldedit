@@ -1,6 +1,7 @@
 package com.boydti.fawe.object.changeset;
 
 import com.boydti.fawe.config.Settings;
+import com.boydti.fawe.object.FaweOutputStream;
 import com.boydti.fawe.object.change.MutableBlockChange;
 import com.boydti.fawe.object.change.MutableEntityChange;
 import com.boydti.fawe.object.change.MutableTileChange;
@@ -15,15 +16,25 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.Iterator;
-import net.jpountz.lz4.LZ4Compressor;
-import net.jpountz.lz4.LZ4Factory;
-import net.jpountz.lz4.LZ4InputStream;
-import net.jpountz.lz4.LZ4OutputStream;
 
 public abstract class FaweStreamChangeSet extends FaweChangeSet {
 
+    public static final int MODE = 3;
+    public static final int HEADER_SIZE = 9;
+
+    private final int compression;
+
     public FaweStreamChangeSet(World world) {
+        this(world, Settings.COMPRESSION_LEVEL);
+    }
+
+    public FaweStreamChangeSet(World world, int compression) {
         super(world);
+        this.compression = compression;
+    }
+
+    public FaweOutputStream getCompressedOS(OutputStream os) throws IOException {
+        return MainUtil.getCompressedOS(os, compression);
     }
 
     @Override
@@ -67,25 +78,6 @@ public abstract class FaweStreamChangeSet extends FaweChangeSet {
 
     public int getOriginZ() {
         return originZ;
-    }
-
-    public InputStream getCompressedIS(InputStream is) {
-        if (Settings.COMPRESSION_LEVEL > 0) {
-            is = new LZ4InputStream(new LZ4InputStream(is));
-        } else {
-            is = new LZ4InputStream(is);
-        }
-        return is;
-    }
-
-    public OutputStream getCompressedOS(OutputStream os) throws IOException {
-        LZ4Factory factory = LZ4Factory.fastestInstance();
-        LZ4Compressor compressor = factory.fastCompressor();
-        os = new LZ4OutputStream(os, Settings.BUFFER_SIZE, factory.fastCompressor());
-        if (Settings.COMPRESSION_LEVEL > 0) {
-            os = new LZ4OutputStream(os, Settings.BUFFER_SIZE, factory.highCompressor());
-        }
-        return os;
     }
 
     public void add(int x, int y, int z, int combinedFrom, int combinedTo) {

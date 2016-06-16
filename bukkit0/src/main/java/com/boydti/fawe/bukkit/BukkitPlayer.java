@@ -3,6 +3,7 @@ package com.boydti.fawe.bukkit;
 import com.boydti.fawe.Fawe;
 import com.boydti.fawe.object.FaweLocation;
 import com.boydti.fawe.object.FawePlayer;
+import com.boydti.fawe.wrappers.PlayerWrapper;
 import java.lang.reflect.Method;
 import java.util.UUID;
 import org.bukkit.Bukkit;
@@ -92,7 +93,7 @@ public class BukkitPlayer extends FawePlayer<Player> {
 
     @Override
     public com.sk89q.worldedit.entity.Player getPlayer() {
-        return Fawe.<FaweBukkit> imp().getWorldEditPlugin().wrapPlayer(this.parent);
+        return PlayerWrapper.wrap(Fawe.<FaweBukkit> imp().getWorldEditPlugin().wrapPlayer(this.parent));
     }
 
 }

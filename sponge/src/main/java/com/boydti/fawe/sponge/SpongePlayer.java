@@ -4,6 +4,7 @@ import com.boydti.fawe.Fawe;
 import com.boydti.fawe.config.BBC;
 import com.boydti.fawe.object.FaweLocation;
 import com.boydti.fawe.object.FawePlayer;
+import com.boydti.fawe.wrappers.PlayerWrapper;
 import java.util.UUID;
 import net.minecraft.entity.player.EntityPlayerMP;
 import org.spongepowered.api.Sponge;
@@ -71,6 +72,6 @@ public class SpongePlayer extends FawePlayer<Player> {
 
     @Override
     public com.sk89q.worldedit.entity.Player getPlayer() {
-        return (com.sk89q.worldedit.entity.Player) Fawe.<FaweSponge> imp().getWorldEditPlugin().wrap((EntityPlayerMP) this.parent);
+        return PlayerWrapper.wrap(Fawe.<FaweSponge> imp().getWorldEditPlugin().wrap((EntityPlayerMP) this.parent));
     }
 }

@@ -3,6 +3,8 @@ package com.boydti.fawe.util;
 import com.boydti.fawe.Fawe;
 import com.boydti.fawe.config.BBC;
 import com.boydti.fawe.config.Settings;
+import com.boydti.fawe.object.FaweInputStream;
+import com.boydti.fawe.object.FaweOutputStream;
 import com.boydti.fawe.object.FawePlayer;
 import com.boydti.fawe.object.RegionWrapper;
 import com.boydti.fawe.object.RunnableVal;
@@ -15,8 +17,9 @@ import com.sk89q.jnbt.ListTag;
 import com.sk89q.jnbt.StringTag;
 import com.sk89q.jnbt.Tag;
 import com.sk89q.worldedit.entity.Entity;
-import com.sk89q.worldedit.extension.platform.Actor;
 import com.sk89q.worldedit.util.Location;
+import java.io.BufferedInputStream;
+import java.io.BufferedOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
@@ -38,8 +41,13 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.UUID;
+import java.util.zip.GZIPInputStream;
+import java.util.zip.GZIPOutputStream;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
+import net.jpountz.lz4.LZ4Factory;
+import net.jpountz.lz4.LZ4InputStream;
+import net.jpountz.lz4.LZ4OutputStream;
 
 public class MainUtil {
     /*
@@ -73,6 +81,50 @@ public class MainUtil {
 
     public static File getFile(File base, String path, String extension) {
         return getFile(base, path.endsWith("." + extension) ? path : path + "." + extension);
+    }
+
+    public static FaweOutputStream getCompressedOS(OutputStream os) throws IOException {
+        return getCompressedOS(os, Settings.COMPRESSION_LEVEL);
+    }
+
+    public static FaweOutputStream getCompressedOS(OutputStream os, int amount) throws IOException {
+        os.write((byte) amount);
+        os = new BufferedOutputStream(os, Settings.BUFFER_SIZE);
+        if (amount == 0) {
+            return new FaweOutputStream(os);
+        }
+        int gzipAmount = amount > 6 ? 1 : 0;
+        for (int i = 0; i < gzipAmount; i++) {
+            os = new GZIPOutputStream(os, true);
+        }
+        LZ4Factory factory = LZ4Factory.fastestInstance();
+        int fastAmount = 1 + ((amount - 1) % 3);
+        for (int i = 0; i < fastAmount; i++) {
+            os = new LZ4OutputStream(os, Settings.BUFFER_SIZE, factory.fastCompressor());
+        }
+        int highAmount = amount > 3 ? 1 : 0;
+        for (int i = 0; i < highAmount; i++) {
+            os = new LZ4OutputStream(os, Settings.BUFFER_SIZE, factory.highCompressor());
+        }
+        return new FaweOutputStream(os);
+    }
+
+    public static FaweInputStream getCompressedIS(InputStream is) throws IOException {
+        int amount = is.read();
+        is = new BufferedInputStream(is, Settings.BUFFER_SIZE);
+        if (amount == 0) {
+            return new FaweInputStream(is);
+        }
+        LZ4Factory factory = LZ4Factory.fastestInstance();
+        boolean gzip = amount > 6;
+        if (gzip) {
+            is = new GZIPInputStream(is);
+        }
+        amount = (1 + ((amount - 1) % 3)) + (amount > 3 ? 1 : 0);
+        for (int i = 0; i < amount; i++) {
+            is = new LZ4InputStream(is);
+        }
+        return new FaweInputStream(is);
     }
 
     public static URL upload(UUID uuid, String file, String extension, final RunnableVal<OutputStream> writeTask) {
@@ -157,6 +209,46 @@ public class MainUtil {
         }
     }
 
+    public static void sendCompressedMessage(FaweStreamChangeSet set, FawePlayer actor)
+    {
+        try {
+            int elements = set.size();
+            int compressedSize = set.getCompressedSize();
+            if (compressedSize == 0) {
+                return;
+            }
+            /*
+             * BlockVector
+             * - reference to the object --> 8 bytes
+             * - object header (java internals) --> 8 bytes
+             * - double x, y, z --> 24 bytes
+             *
+             * BaseBlock
+             * - reference to the object --> 8 bytes
+             * - object header (java internals) --> 8 bytes
+             * - short id, data --> 4 bytes
+             * - NBTCompound (assuming null) --> 4 bytes
+             *
+             * There are usually two lists for the block changes:
+             * 2 * BlockVector + 2 * BaseBlock = 128b
+             *
+             * WE has a lot more overhead, this is just a generous lower bound
+             *
+             * This compares FAWE's usage to standard WE.
+             */
+            int total = 128 * elements;
+
+            int ratio = total / compressedSize;
+            int saved = total - compressedSize;
+
+            if (ratio > 3 && Thread.currentThread() != Fawe.get().getMainThread() && actor != null) {
+                BBC.COMPRESSED.send(actor, saved, ratio);
+            }
+        } catch (Exception e) {
+            MainUtil.handleError(e);
+        }
+    }
+
     public static File copyFile(File jar, String resource, File output) {
         try {
             if (output == null) {
@@ -207,46 +299,6 @@ public class MainUtil {
             Fawe.debug("&cCould not save " + resource);
         }
         return null;
-    }
-
-    public static void sendCompressedMessage(FaweStreamChangeSet set, Actor actor)
-    {
-        try {
-            int elements = set.size();
-            int compressedSize = set.getCompressedSize();
-            if (compressedSize == 0) {
-                return;
-            }
-            /*
-             * BlockVector
-             * - reference to the object --> 8 bytes
-             * - object header (java internals) --> 8 bytes
-             * - double x, y, z --> 24 bytes
-             *
-             * BaseBlock
-             * - reference to the object --> 8 bytes
-             * - object header (java internals) --> 8 bytes
-             * - short id, data --> 4 bytes
-             * - NBTCompound (assuming null) --> 4 bytes
-             *
-             * There are usually two lists for the block changes:
-             * 2 * BlockVector + 2 * BaseBlock = 128b
-             *
-             * WE has a lot more overhead, this is just a generous lower bound
-             *
-             * This compares FAWE's usage to standard WE.
-             */
-            int total = 128 * elements;
-
-            int ratio = total / compressedSize;
-            int saved = total - compressedSize;
-
-            if (ratio > 3 && Thread.currentThread() != Fawe.get().getMainThread() && actor != null && actor.isPlayer() && actor.getSessionKey().isActive()) {
-                BBC.COMPRESSED.send(actor, saved, ratio);
-            }
-        } catch (Exception e) {
-            MainUtil.handleError(e);
-        }
     }
 
     public static void handleError(Throwable e) {

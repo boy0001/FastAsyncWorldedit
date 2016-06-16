@@ -23,6 +23,7 @@ import com.boydti.fawe.config.Settings;
 import com.boydti.fawe.object.clipboard.DiskOptimizedClipboard;
 import com.boydti.fawe.object.clipboard.FaweClipboard;
 import com.boydti.fawe.object.clipboard.MemoryOptimizedClipboard;
+import com.sk89q.jnbt.CompoundTag;
 import com.sk89q.worldedit.EditSession;
 import com.sk89q.worldedit.Vector;
 import com.sk89q.worldedit.Vector2D;
@@ -187,6 +188,13 @@ public class BlockArrayClipboard implements Clipboard {
             return setBlock(x, y, z, block);
         }
         return false;
+    }
+
+    public boolean setTile(int x, int y, int z, CompoundTag tag) {
+        x -= mx;
+        y -= my;
+        z -= mz;
+        return IMP.setTile(x, y, z, tag);
     }
 
     public boolean setBlock(int x, int y, int z, BaseBlock block) throws WorldEditException {

@@ -399,7 +399,7 @@ public class Sniper {
             FawePlayer<Object> fp = FawePlayer.wrap(getPlayer());
             LocalSession session = fp.getSession();
             baseQueue.enqueue();
-            session.remember(changeSet.toEditSession(fp.getPlayer()));
+            session.remember(changeSet.toEditSession(fp));
             changeQueue.flush();
             com.sk89q.worldedit.world.World worldEditWorld = fp.getWorld();
             changeQueue.setChangeSet(Settings.STORE_HISTORY_ON_DISK ? new DiskStorageHistory(worldEditWorld, fp.getUUID()) : new MemoryOptimizedHistory(worldEditWorld));

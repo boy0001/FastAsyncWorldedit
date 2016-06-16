@@ -17,6 +17,16 @@ public class MemUtil {
         return memory.get();
     }
 
+    public static boolean isMemoryLimitedSlow() {
+        if (memory.get()) {
+            System.gc();
+            System.gc();
+            calculateMemory();
+            return memory.get();
+        }
+        return false;
+    }
+
     public static int calculateMemory() {
         final long heapSize = Runtime.getRuntime().totalMemory();
         final long heapMaxSize = Runtime.getRuntime().maxMemory();
@@ -46,6 +56,8 @@ public class MemUtil {
     }
 
     public static void memoryLimitedTask() {
+        System.gc();
+        System.gc();
         for (Runnable task : memoryLimitedTasks) {
             task.run();
         }

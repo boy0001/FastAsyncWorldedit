@@ -131,7 +131,7 @@ public class BukkitQueue_1_10 extends BukkitQueue_0<Chunk, ChunkSection[], DataP
             return;
         }
         HashSet<EntityTrackerEntry> entities = new HashSet<>();
-        List<Entity>[] entitieSlices = playerChunk.chunk.getEntitySlices();
+        List<Entity>[] entitieSlices = nmsChunk.getEntitySlices();
         for (List<Entity> slice : entitieSlices) {
             if (slice == null) {
                 continue;
@@ -152,7 +152,7 @@ public class BukkitQueue_1_10 extends BukkitQueue_0<Chunk, ChunkSection[], DataP
             player.playerConnection.networkManager.a();
         }
         // Send chunks
-        PacketPlayOutMapChunk packet = new PacketPlayOutMapChunk(playerChunk.chunk, 65535);
+        PacketPlayOutMapChunk packet = new PacketPlayOutMapChunk(nmsChunk, 65535);
         for (EntityPlayer player : players) {
             player.playerConnection.sendPacket(packet);
         }

@@ -4,18 +4,17 @@ import com.boydti.fawe.Fawe;
 import com.boydti.fawe.FaweCache;
 import com.boydti.fawe.object.BytePair;
 import com.boydti.fawe.object.FaweChunk;
-import com.boydti.fawe.object.RunnableVal2;
+import com.boydti.fawe.object.FawePlayer;
 import com.boydti.fawe.object.FaweQueue;
+import com.boydti.fawe.object.RunnableVal2;
+import com.boydti.fawe.util.EditSessionBuilder;
 import com.boydti.fawe.util.MainUtil;
 import com.boydti.fawe.util.TaskManager;
 import com.sk89q.jnbt.CompoundTag;
 import com.sk89q.worldedit.BlockVector;
 import com.sk89q.worldedit.EditSession;
-import com.sk89q.worldedit.EditSessionFactory;
 import com.sk89q.worldedit.Vector;
-import com.sk89q.worldedit.WorldEdit;
 import com.sk89q.worldedit.blocks.BaseBlock;
-import com.sk89q.worldedit.entity.Player;
 import com.sk89q.worldedit.history.change.BlockChange;
 import com.sk89q.worldedit.history.change.Change;
 import com.sk89q.worldedit.history.change.EntityCreate;
@@ -70,12 +69,8 @@ public abstract class FaweChangeSet implements ChangeSet {
     public abstract void addEntityCreate(CompoundTag tag);
     public abstract Iterator<Change> getIterator(boolean redo);
 
-    public EditSession toEditSession(Player player) {
-        EditSessionFactory factory = WorldEdit.getInstance().getEditSessionFactory();
-        EditSession edit = factory.getEditSession(world, -1, null, player);
-        edit.setChangeSet(this);
-        edit.dequeue();
-        return edit;
+    public EditSession toEditSession(FawePlayer player) {
+        return new EditSessionBuilder(world).player(player).autoQueue(false).fastmode(true).checkMemory(false).changeSet(this).build();
     }
 
     public void add(EntityCreate change) {

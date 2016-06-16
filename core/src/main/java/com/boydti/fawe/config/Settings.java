@@ -41,7 +41,7 @@ public class Settings {
 
     // Maybe confusing?
     // - `compression: false` just uses cheaper compression, but still compresses
-    public static int COMPRESSION_LEVEL = 0;
+    public static int COMPRESSION_LEVEL = 1;
     public static boolean COMBINE_HISTORY_STAGE = false;
     public static int PARALLEL_THREADS = 1;
 
@@ -96,11 +96,12 @@ public class Settings {
         options.put("clipboard.use-disk", STORE_CLIPBOARD_ON_DISK);
         options.put("clipboard.delete-after-days", DELETE_CLIPBOARD_AFTER_DAYS);
         options.put("history.use-disk", STORE_HISTORY_ON_DISK);
-        options.put("history.compress", false);
         options.put("history.chunk-wait-ms", CHUNK_WAIT);
         options.put("history.delete-after-days", DELETE_HISTORY_AFTER_DAYS);
         options.put("history.delete-on-logout", CLEAN_HISTORY_ON_LOGOUT);
         options.put("history.enable-for-console", CONSOLE_HISTORY);
+        options.put("history.compression-level", config.getBoolean("history.compress", false) ? 4 : COMPRESSION_LEVEL);
+        options.put("history.compress", null);
         options.put("region-restrictions", REGION_RESTRICTIONS);
         options.put("queue.extra-time-ms", ALLOCATE);
         options.put("queue.progress.display", DISPLAY_PROGRESS);
@@ -144,7 +145,7 @@ public class Settings {
         ENABLE_HARD_LIMIT = config.getBoolean("crash-mitigation");
         REGION_RESTRICTIONS = config.getBoolean("region-restrictions");
         METRICS = config.getBoolean("metrics");
-        COMPRESSION_LEVEL = config.getInt("history.compression-level", config.getBoolean("history.compress") ? 1 : 0);
+        COMPRESSION_LEVEL = config.getInt("history.compression-level");
         DELETE_HISTORY_AFTER_DAYS = config.getInt("history.delete-after-days");
         CLEAN_HISTORY_ON_LOGOUT = config.getBoolean("history.delete-on-logout");
         CHUNK_WAIT = config.getInt("history.chunk-wait-ms");

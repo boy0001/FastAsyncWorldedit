@@ -10,11 +10,13 @@ import com.boydti.fawe.object.RegionWrapper;
 import com.boydti.fawe.object.RunnableVal;
 import com.boydti.fawe.object.changeset.DiskStorageHistory;
 import com.boydti.fawe.regions.FaweMaskManager;
+import com.boydti.fawe.util.EditSessionBuilder;
 import com.boydti.fawe.util.MainUtil;
 import com.boydti.fawe.util.MemUtil;
 import com.boydti.fawe.util.SetQueue;
 import com.boydti.fawe.util.TaskManager;
 import com.boydti.fawe.util.WEManager;
+import com.boydti.fawe.wrappers.WorldWrapper;
 import com.sk89q.jnbt.ByteArrayTag;
 import com.sk89q.jnbt.IntTag;
 import com.sk89q.jnbt.NBTInputStream;
@@ -27,6 +29,7 @@ import com.sk89q.worldedit.extent.Extent;
 import com.sk89q.worldedit.extent.clipboard.Clipboard;
 import com.sk89q.worldedit.extent.clipboard.io.ClipboardFormat;
 import com.sk89q.worldedit.extent.clipboard.io.ClipboardWriter;
+import com.sk89q.worldedit.world.AbstractWorld;
 import com.sk89q.worldedit.world.World;
 import java.io.File;
 import java.io.FileInputStream;
@@ -59,30 +62,14 @@ import org.bukkit.Location;
  *  FaweAPI.[some method]
  */
 public class FaweAPI {
-
     /**
-     * Get a new EditSessionfor a player<br>
-     *     - The EditSession can be used from another thread<br>
-     *     - FAWE will handle
-     * @see com.boydti.fawe.object.FawePlayer#wrap(Object)
-     * @param player
-     * @return
-     */
-    public static EditSession getNewEditSession(@Nonnull FawePlayer player) {
-        if (player == null) {
-            throw new IllegalArgumentException("Player may not be null");
-        }
-        return player.getNewEditSession();
-    }
-
-    /**
-     * Get a new non-player EditSession
-     * @see #getWorld(String)
+     * Offers a lot of options for building an EditSession
+     * @see com.boydti.fawe.util.EditSessionBuilder
      * @param world
-     * @return
+     * @return A new EditSessionBuilder
      */
-    public static EditSession getNewEditSession(World world) {
-        return WorldEdit.getInstance().getEditSessionFactory().getEditSession(world, -1);
+    public static EditSessionBuilder getEditSessionBuilder(World world) {
+        return new EditSessionBuilder(world);
     }
 
     /**
@@ -124,7 +111,7 @@ public class FaweAPI {
     public static World getWorld(String worldName) {
         for (World current : WorldEdit.getInstance().getServer().getWorlds()) {
             if (Fawe.imp().getWorldName(current).equals(worldName)) {
-                return current;
+                return WorldWrapper.wrap((AbstractWorld) current);
             }
         }
         return null;
@@ -325,7 +312,7 @@ public class FaweAPI {
 
     /**
      * The DiskStorageHistory class is what FAWE uses to represent the undo on disk.
-     * @see com.boydti.fawe.object.changeset.DiskStorageHistory#toEditSession(com.sk89q.worldedit.entity.Player)
+     * @see com.boydti.fawe.object.changeset.DiskStorageHistory#toEditSession(com.boydti.fawe.object.FawePlayer)
      * @param world
      * @param uuid
      * @param index
@@ -403,6 +390,7 @@ public class FaweAPI {
     }
 
     /**
+     * @deprecated Since I haven't finished it yet
      * If a schematic is too large to be pasted normally<br>
      *  - Skips any block history
      *  - Ignores nbt
@@ -421,6 +409,7 @@ public class FaweAPI {
     }
 
     /**
+     * @deprecated Since I haven't finished it yet
      * If a schematic is too large to be pasted normally<br>
      *  - Skips any block history
      *  - Ignores some block data
@@ -449,9 +438,6 @@ public class FaweAPI {
         final int y_offset = loc.y + IntTag.class.cast(tagMap.get("WEOffsetY")).getValue();
         final int z_offset = loc.z + IntTag.class.cast(tagMap.get("WEOffsetZ")).getValue();
 
-        tagMap = null;
-        tag = null;
-
         FaweQueue queue = SetQueue.IMP.getNewQueue(loc.world, true, true);
 
         for (int y = 0; y < height; y++) {
@@ -477,9 +463,6 @@ public class FaweAPI {
         }
 
         queue.enqueue();
-
-        ids = null;
-        datas = null;
     }
 
     /**
@@ -513,4 +496,26 @@ public class FaweAPI {
     public static BBC[] getTranslations() {
         return BBC.values();
     }
+
+    /**
+     * @deprecated
+     * @see #getEditSessionBuilder(com.sk89q.worldedit.world.World)
+     */
+    @Deprecated
+    public static EditSession getNewEditSession(@Nonnull FawePlayer player) {
+        if (player == null) {
+            throw new IllegalArgumentException("Player may not be null");
+        }
+        return player.getNewEditSession();
+    }
+
+    /**
+     * @deprecated
+     * @see #getEditSessionBuilder(com.sk89q.worldedit.world.World)
+     */
+    @Deprecated
+    public static EditSession getNewEditSession(World world) {
+        return WorldEdit.getInstance().getEditSessionFactory().getEditSession(world, -1);
+    }
+
 }

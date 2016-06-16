@@ -19,12 +19,14 @@
 
 package com.sk89q.worldedit.extent.clipboard.io;
 
+import com.boydti.fawe.object.FaweOutputStream;
+import com.boydti.fawe.object.clipboard.DiskOptimizedClipboard;
+import com.boydti.fawe.object.schematic.FaweFormat;
 import com.boydti.fawe.object.schematic.StructureFormat;
+import com.boydti.fawe.util.MainUtil;
 import com.sk89q.jnbt.NBTConstants;
 import com.sk89q.jnbt.NBTInputStream;
 import com.sk89q.jnbt.NBTOutputStream;
-
-import javax.annotation.Nullable;
 import java.io.DataInputStream;
 import java.io.File;
 import java.io.FileInputStream;
@@ -40,6 +42,8 @@ import java.util.Map;
 import java.util.Set;
 import java.util.zip.GZIPInputStream;
 import java.util.zip.GZIPOutputStream;
+import javax.annotation.Nullable;
+
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
@@ -99,7 +103,10 @@ public enum ClipboardFormat {
             return "schematic";
         }
     },
-    // Added
+    /**
+     * The structure block format:
+     * http://minecraft.gamepedia.com/Structure_block_file_format
+     */
     STRUCTURE("structure", "nbt") {
         @Override
         public ClipboardReader getReader(InputStream inputStream) throws IOException {
@@ -128,10 +135,91 @@ public enum ClipboardFormat {
         public String getExtension() {
             return "nbt";
         }
-    }
+    },
 
-    // TODO add the FAWE clipboard / history formats
-    // .bd, .nbtf, .nbtt, .rabd
+    /**
+     * The FAWE file format:
+     *  - Streamable for known dimensions with mode 0
+     *  - Streamable for unknown dimensions
+     *    - 1: Max size 256 x 256 x 256
+     *    - 2: Max size 65535 x 65535 x 65535
+     *    - 3: Includes BlockChange information
+     *  - O(1) Access to blocks if using compression level 0 and mode 0
+     *
+     *  DiskOptimizedClipboard: compression/mode -> 0/0
+     *  DiskStorageHistory: compression/mode -> Any/3
+     *  MemoryOptimizedHistory: compression/mode -> Any/3
+     *  FaweFormat: compression/mode -> Any/Any (slower)
+     *
+     */
+    FAWE("fawe") {
+        /**
+         * Read a clipboard from a compressed stream (the first byte indicates the compression level)
+         * @param inputStream the input stream
+         * @return
+         * @throws IOException
+         */
+        @Override
+        public ClipboardReader getReader(InputStream inputStream) throws IOException {
+            return new FaweFormat(MainUtil.getCompressedIS(inputStream));
+        }
+
+        /**
+         * Write a clipboard to a stream with compression level 8
+         * @param outputStream the output stream
+         * @return
+         * @throws IOException
+         */
+        @Override
+        public ClipboardWriter getWriter(OutputStream outputStream) throws IOException {
+            return getWriter(outputStream, 8);
+        }
+
+        /**
+         * Write a clipboard to a stream
+         * @param os
+         * @param compression
+         * @return
+         * @throws IOException
+         */
+        public ClipboardWriter getWriter(OutputStream os, int compression) throws IOException {
+            FaweFormat writer = new FaweFormat(new FaweOutputStream(os));
+            writer.compress(compression);
+            return writer;
+        }
+
+        /**
+         * Read or write blocks ids to a file
+         * @param file
+         * @return
+         * @throws IOException
+         */
+        public DiskOptimizedClipboard getUncompressedReadWrite(File file) throws IOException {
+            return new DiskOptimizedClipboard(file);
+        }
+
+        /**
+         * Read or write block ids to a new file
+         * @param width
+         * @param height
+         * @param length
+         * @param file
+         * @return
+         */
+        public DiskOptimizedClipboard createUncompressedReadWrite(int width, int height, int length, File file) {
+            return new DiskOptimizedClipboard(width, height, length, file);
+        }
+
+        @Override
+        public boolean isFormat(File file) {
+            return file.getName().endsWith(".fawe") || file.getName().endsWith(".bd");
+        }
+
+        @Override
+        public String getExtension() {
+            return "fawe";
+        }
+    },
 
     ;
 
@@ -144,7 +232,7 @@ public enum ClipboardFormat {
      *
      * @param aliases an array of aliases by which this format may be referred to
      */
-    private ClipboardFormat(String ... aliases) {
+    ClipboardFormat(String ... aliases) {
         this.aliases = aliases;
     }
 

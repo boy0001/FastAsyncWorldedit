@@ -106,7 +106,7 @@ public class ClipboardCommands {
         final int mx = origin.getBlockX();
         final int my = origin.getBlockY();
         final int mz = origin.getBlockZ();
-        LazyClipboard lazyClipboard = new LazyClipboard() {
+        LazyClipboard lazyClipboard = new LazyClipboard(region) {
             @Override
             public BaseBlock getBlock(int x, int y, int z) {
                 return editSession.getLazyBlock(mx + x, my + y, mz + z);

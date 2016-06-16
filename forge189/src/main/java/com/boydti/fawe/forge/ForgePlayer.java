@@ -4,6 +4,7 @@ import com.boydti.fawe.config.BBC;
 import com.boydti.fawe.config.Settings;
 import com.boydti.fawe.object.FaweLocation;
 import com.boydti.fawe.object.FawePlayer;
+import com.boydti.fawe.wrappers.PlayerWrapper;
 import com.sk89q.worldedit.entity.Player;
 import com.sk89q.worldedit.forge.ForgeWorldEdit;
 import java.util.UUID;
@@ -73,6 +74,6 @@ public class ForgePlayer extends FawePlayer<EntityPlayerMP> {
 
     @Override
     public Player getPlayer() {
-        return ForgeWorldEdit.inst.wrap(this.parent);
+        return PlayerWrapper.wrap(ForgeWorldEdit.inst.wrap(this.parent));
     }
 }

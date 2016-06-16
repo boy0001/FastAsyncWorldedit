@@ -71,7 +71,6 @@ public class LZ4InputStream extends InputStream {
             numBytesRemainingToSkip -= numBytesToSkip;
             decompressedBufferPosition += numBytesToSkip;
         }
-
         return n - numBytesRemainingToSkip;
     }
 
