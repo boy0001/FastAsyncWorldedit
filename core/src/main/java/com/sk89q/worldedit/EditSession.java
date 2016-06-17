@@ -547,7 +547,7 @@ public class EditSession implements Extent {
      * @return true if enabled
      */
     public boolean hasFastMode() {
-        return history == null;
+        return getChangeSet() == null;
     }
 
     /**
