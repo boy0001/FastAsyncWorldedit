@@ -187,9 +187,10 @@ public class SetQueue {
             throw new IllegalStateException("Must be flushed on the main thread!");
         }
         // Disable the async catcher as it can't discern async vs parallel
-        SET_TASK.value2.startSet(true);
+        boolean parallel = Settings.PARALLEL_THREADS <= 1;
+        SET_TASK.value2.startSet(parallel);
         try {
-            if (Settings.PARALLEL_THREADS <= 1) {
+            if (parallel) {
                 SET_TASK.run();
             } else {
                 ArrayList<Thread> threads = new ArrayList<Thread>();
@@ -211,7 +212,7 @@ public class SetQueue {
             MainUtil.handleError(e);
         } finally {
             // Enable it again (note that we are still on the main thread)
-            SET_TASK.value2.endSet(true);
+            SET_TASK.value2.endSet(parallel);
             dequeue(queue);
         }
     }
