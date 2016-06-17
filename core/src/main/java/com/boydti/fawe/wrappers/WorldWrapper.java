@@ -243,93 +243,93 @@ public class WorldWrapper extends AbstractWorld {
         session.setChangeSet(fcs);
         final boolean cuboid = region instanceof CuboidRegion;
         Set<Vector2D> chunks = region.getChunks();
-        TaskManager.IMP.objectTask(chunks, new RunnableVal<Vector2D>() {
-            @Override
-            public void run(Vector2D chunk) {
-                int cx = chunk.getBlockX();
-                int cz = chunk.getBlockZ();
-                int bx = cx << 4;
-                int bz = cz << 4;
-                Vector cmin = new Vector(bx, 0, bz);
-                Vector cmax = cmin.add(15, getMaxY(), 15);
-                boolean containsBot1 = (fe == null || fe.contains(cmin.getBlockX(), cmin.getBlockY(), cmin.getBlockZ()));
-                boolean containsBot2 = region.contains(cmin);
-                boolean containsTop1 = (fe == null || fe.contains(cmax.getBlockX(), cmax.getBlockY(), cmax.getBlockZ()));
-                boolean containsTop2 = region.contains(cmax);
-                if ((containsBot2 && containsTop2 && !containsBot1 && !containsTop1)) {
-                    return;
-                }
-                if (cuboid && containsBot1 && containsBot2 && containsTop1 && containsTop2) {
-                    if (fcs != null) {
-                        for (int x = 0; x < 16; x++) {
-                            int xx = x + bx;
-                            for (int z = 0; z < 16; z++) {
-                                int zz = z + bz;
-                                for (int y = 0; y < getMaxY() + 1; y++) {
-                                    int from = queue.getCombinedId4DataDebug(xx, y, zz, 0, session);
-                                    if (!FaweCache.hasNBT(from >> 4)) {
-                                        fcs.add(xx, y, zz, from, 0);
-                                    } else {
-                                        try {
-                                            Vector loc = new Vector(xx, y, zz);
-                                            BaseBlock block = getLazyBlock(loc);
-                                            fcs.add(loc, block, FaweCache.CACHE_BLOCK[0]);
-                                        } catch (Throwable e) {
-                                            fcs.add(xx, y, zz, from, 0);
-                                        }
-                                    }
-                                }
-                            }
-                        }
+        for (Vector2D chunk : chunks) {
+            RunnableVal<Vector2D> r = new RunnableVal<Vector2D>() {
+                @Override
+                public void run(Vector2D chunk) {
+                    int cx = chunk.getBlockX();
+                    int cz = chunk.getBlockZ();
+                    int bx = cx << 4;
+                    int bz = cz << 4;
+                    Vector cmin = new Vector(bx, 0, bz);
+                    Vector cmax = cmin.add(15, getMaxY(), 15);
+                    boolean containsBot1 = (fe == null || fe.contains(cmin.getBlockX(), cmin.getBlockY(), cmin.getBlockZ()));
+                    boolean containsBot2 = region.contains(cmin);
+                    boolean containsTop1 = (fe == null || fe.contains(cmax.getBlockX(), cmax.getBlockY(), cmax.getBlockZ()));
+                    boolean containsTop2 = region.contains(cmax);
+                    if ((containsBot2 && containsTop2 && !containsBot1 && !containsTop1)) {
+                        return;
                     }
-                } else {
-                    Vector mutable = new Vector(0,0,0);
-                    for (int x = 0; x < 16; x++) {
-                        int xx = x + bx;
-                        mutable.x = xx;
-                        for (int z = 0; z < 16; z++) {
-                            int zz = z + bz;
-                            mutable.z = zz;
-                            for (int y = 0; y < getMaxY() + 1; y++) {
-                                mutable.y = y;
-                                int from = queue.getCombinedId4Data(xx, y, zz);
-                                boolean contains = (fe == null || fe.contains(xx, y, zz)) && region.contains(mutable);
-                                if (contains) {
-                                    if (fcs != null) {
+                    if (cuboid && containsBot1 && containsBot2 && containsTop1 && containsTop2) {
+                        if (fcs != null) {
+                            for (int x = 0; x < 16; x++) {
+                                int xx = x + bx;
+                                for (int z = 0; z < 16; z++) {
+                                    int zz = z + bz;
+                                    for (int y = 0; y < getMaxY() + 1; y++) {
+                                        int from = queue.getCombinedId4DataDebug(xx, y, zz, 0, session);
                                         if (!FaweCache.hasNBT(from >> 4)) {
                                             fcs.add(xx, y, zz, from, 0);
                                         } else {
                                             try {
-                                                BaseBlock block = getLazyBlock(mutable);
-                                                fcs.add(mutable, block, FaweCache.CACHE_BLOCK[0]);
+                                                Vector loc = new Vector(xx, y, zz);
+                                                BaseBlock block = getLazyBlock(loc);
+                                                fcs.add(loc, block, FaweCache.CACHE_BLOCK[0]);
                                             } catch (Throwable e) {
                                                 fcs.add(xx, y, zz, from, 0);
                                             }
                                         }
                                     }
-                                } else {
-                                    short id = (short) (from >> 4);
-                                    byte data = (byte) (from & 0xf);
-                                    queue.setBlock(xx, y, zz, id, data);
-                                    if (FaweCache.hasNBT(id)) {
-                                        BaseBlock block = getBlock(new Vector(xx, y, zz));
-                                        if (block.hasNbtData()) {
-                                            queue.setTile(xx, y, zz, block.getNbtData());
+                                }
+                            }
+                        }
+                    } else {
+                        Vector mutable = new Vector(0,0,0);
+                        for (int x = 0; x < 16; x++) {
+                            int xx = x + bx;
+                            mutable.x = xx;
+                            for (int z = 0; z < 16; z++) {
+                                int zz = z + bz;
+                                mutable.z = zz;
+                                for (int y = 0; y < getMaxY() + 1; y++) {
+                                    mutable.y = y;
+                                    int from = queue.getCombinedId4Data(xx, y, zz);
+                                    boolean contains = (fe == null || fe.contains(xx, y, zz)) && region.contains(mutable);
+                                    if (contains) {
+                                        if (fcs != null) {
+                                            if (!FaweCache.hasNBT(from >> 4)) {
+                                                fcs.add(xx, y, zz, from, 0);
+                                            } else {
+                                                try {
+                                                    BaseBlock block = getLazyBlock(mutable);
+                                                    fcs.add(mutable, block, FaweCache.CACHE_BLOCK[0]);
+                                                } catch (Throwable e) {
+                                                    fcs.add(xx, y, zz, from, 0);
+                                                }
+                                            }
+                                        }
+                                    } else {
+                                        short id = (short) (from >> 4);
+                                        byte data = (byte) (from & 0xf);
+                                        queue.setBlock(xx, y, zz, id, data);
+                                        if (FaweCache.hasNBT(id)) {
+                                            BaseBlock block = getBlock(new Vector(xx, y, zz));
+                                            if (block.hasNbtData()) {
+                                                queue.setTile(xx, y, zz, block.getNbtData());
+                                            }
                                         }
                                     }
                                 }
                             }
                         }
                     }
+                    queue.regenerateChunk(cx, cz);
                 }
-                queue.regenerateChunk(cx, cz);
-            }
-        }, new Runnable() {
-            @Override
-            public void run() {
-                queue.enqueue();
-            }
-        });
+            };
+            r.value = chunk;
+            TaskManager.IMP.sync(r);
+        }
+        session.flushQueue();
         return false;
     }
 
