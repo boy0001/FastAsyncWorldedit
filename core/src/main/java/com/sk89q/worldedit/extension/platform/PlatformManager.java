@@ -342,7 +342,7 @@ public class PlatformManager {
 
             // At this time, only handle interaction from players
             if (actor instanceof Player) {
-                final Player player = (Player) actor;
+                final Player player = PlayerWrapper.wrap((Player) actor);
                 final LocalSession session = worldEdit.getSessionManager().get(actor);
 
                 if (event.getType() == Interaction.HIT) {
@@ -374,6 +374,7 @@ public class PlatformManager {
                                     superPickaxe.actPrimary(queryCapability(Capability.WORLD_EDITING), getConfiguration(), player, session, location);
                                 }
                             });
+                            event.setCancelled(true);
                             return;
                         }
                     }

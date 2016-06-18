@@ -206,7 +206,9 @@ public class LocalSession {
             MAX_HISTORY_SIZE = Integer.MAX_VALUE;
         }
         // Don't store anything if no changes were made
-        if (editSession.size() == 0 || editSession.hasFastMode()) return;
+        if (editSession.size() == 0 || editSession.hasFastMode()) {
+            return;
+        }
 
         // Destroy any sessions after this undo point
         if (append) {
