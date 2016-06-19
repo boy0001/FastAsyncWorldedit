@@ -94,15 +94,23 @@ public class MemoryOptimizedClipboard extends FaweClipboard {
                         if (!air) {
                             continue;
                         }
-                        for (int y2 = 0; y2 < 16; y2++) {
+                        for (int y2 = 0; y2 < height; y2++) {
                             pos.x = x;
                             pos.z = z;
                             pos.y = y1 + y2;
+                            int yy = y1 + y2;
+                            if (yy >= height) {
+                                break;
+                            }
                             task.run(pos, EditSession.nullBlock);
                         }
                         continue;
                     }
                     for (int y2 = 0; y2 < idArray.length; y2++) {
+                        int yy = y1 + y2;
+                        if (yy >= height) {
+                            break;
+                        }
                         int id = idArray[y2] & 0xFF;
                         if (id == 0 && !air) {
                             continue;

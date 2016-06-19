@@ -86,8 +86,8 @@ public class FaweSchematicHandler extends SchematicHandler {
                         for (RegionWrapper region : regions) {
                             for (int z = region.minZ; z <= region.maxZ; z++) {
                                 mutable.z = z - region.minZ;
-                                for (int y = 0; y < 256; y++) {
-                                    mutable.y = y;
+                                for (int y = region.minY; y <= Math.min(255, region.maxY); y++) {
+                                    mutable.y = y - region.minY;
                                     for (int x = region.minX; x <= region.maxX; x++) {
                                         mutable.x = x - region.minX;
                                         BaseBlock block = editSession.getLazyBlock(x, y, z);

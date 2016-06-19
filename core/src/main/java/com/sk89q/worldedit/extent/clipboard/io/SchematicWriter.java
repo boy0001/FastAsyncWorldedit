@@ -129,6 +129,9 @@ public class SchematicWriter implements ClipboardWriter {
             throw new IllegalArgumentException("Length of region too large for a .schematic");
         }
 
+        System.out.println(clipboard.getMinimumPoint());
+        System.out.println(clipboard.getMaximumPoint());
+
         // ====================================================================
         // Metadata
         // ====================================================================
@@ -152,11 +155,11 @@ public class SchematicWriter implements ClipboardWriter {
         // Precalculate index vars
         int area = width * length;
         final int[] yarea = new int[height];
-        final int[] zwidth = new int[width];
+        final int[] zwidth = new int[length];
         for (int i = 0; i < height; i++) {
             yarea[i] = i * area;
         }
-        for (int i = 0; i < width; i++) {
+        for (int i = 0; i < length; i++) {
             zwidth[i] = i * width;
         }
         if (clipboard instanceof BlockArrayClipboard) {
@@ -165,9 +168,9 @@ public class SchematicWriter implements ClipboardWriter {
             faweClip.forEach(forEach, false);
             addBlocks = forEach.addBlocks;
         } else {
-            final int mx = (int) min.x;
-            final int my = (int) min.y;
-            final int mz = (int) min.z;
+            final int mx = min.getBlockX();
+            final int my = min.getBlockY();
+            final int mz = min.getBlockZ();
             Vector mutable = new Vector(0, 0, 0);
             ForEach forEach = new ForEach(yarea, zwidth, blocks, blockData, tileEntities);
             for (Vector point : region) {

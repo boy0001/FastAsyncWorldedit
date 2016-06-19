@@ -22,6 +22,7 @@ package com.sk89q.worldedit.extent.clipboard.io;
 import com.boydti.fawe.object.FaweOutputStream;
 import com.boydti.fawe.object.clipboard.DiskOptimizedClipboard;
 import com.boydti.fawe.object.schematic.FaweFormat;
+import com.boydti.fawe.object.schematic.PNGWriter;
 import com.boydti.fawe.object.schematic.StructureFormat;
 import com.boydti.fawe.util.MainUtil;
 import com.sk89q.jnbt.NBTConstants;
@@ -134,6 +135,28 @@ public enum ClipboardFormat {
         @Override
         public String getExtension() {
             return "nbt";
+        }
+    },
+
+    PNG("png") {
+        @Override
+        public ClipboardReader getReader(InputStream inputStream) throws IOException {
+            return null;
+        }
+
+        @Override
+        public ClipboardWriter getWriter(OutputStream outputStream) throws IOException {
+            return new PNGWriter(outputStream);
+        }
+
+        @Override
+        public String getExtension() {
+            return "png";
+        }
+
+        @Override
+        public boolean isFormat(File file) {
+            return file.getName().endsWith(".png");
         }
     },
 

@@ -925,7 +925,6 @@ public class EditSession implements Extent {
     @Nullable
     public Entity createEntity(final com.sk89q.worldedit.util.Location location, final BaseEntity entity) {
         Entity result = this.bypassNone.createEntity(location, entity);
-        System.out.println("RESULT: " + result);
         return result;
     }
 
