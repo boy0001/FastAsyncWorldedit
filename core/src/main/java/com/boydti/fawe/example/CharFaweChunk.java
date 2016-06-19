@@ -234,7 +234,6 @@ public abstract class CharFaweChunk<T> extends FaweChunk<T> {
             case 7:
             case 9:
             case 73:
-            case 78:
             case 79:
             case 80:
             case 81:

@@ -90,7 +90,6 @@ public class ForgeChunk_All extends CharFaweChunk<Chunk> {
             case 7:
             case 9:
             case 73:
-            case 78:
             case 79:
             case 80:
             case 81:

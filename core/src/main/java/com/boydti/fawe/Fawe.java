@@ -38,6 +38,7 @@ import com.sk89q.worldedit.extent.clipboard.io.ClipboardFormat;
 import com.sk89q.worldedit.extent.clipboard.io.SchematicReader;
 import com.sk89q.worldedit.extent.clipboard.io.SchematicWriter;
 import com.sk89q.worldedit.extent.transform.BlockTransformExtent;
+import com.sk89q.worldedit.function.entity.ExtentEntityCopy;
 import com.sk89q.worldedit.function.operation.Operations;
 import com.sk89q.worldedit.function.visitor.BreadthFirstSearch;
 import com.sk89q.worldedit.function.visitor.DownwardVisitor;
@@ -275,6 +276,7 @@ public class Fawe {
             NonRisingVisitor.inject(); // Optimizations
             RecursiveVisitor.inject(); // Optimizations
             RegionVisitor.inject(); // Translations + Optimizations
+            ExtentEntityCopy.inject(); // Async entity create fix
             // Entity create/remove
             EntityCreate.inject(); // Optimizations
             EntityRemove.inject(); // Optimizations

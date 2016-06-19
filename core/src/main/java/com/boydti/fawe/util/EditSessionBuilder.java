@@ -101,6 +101,11 @@ public class EditSessionBuilder {
         return this;
     }
 
+    public EditSessionBuilder allowedRegions(@Nullable RegionWrapper allowedRegion) {
+        this.allowedRegions = allowedRegion == null ? null : allowedRegion.toArray();
+        return this;
+    }
+
     public EditSessionBuilder allowedRegionsEverywhere() {
         return allowedRegions(new RegionWrapper[]{RegionWrapper.GLOBAL()});
     }

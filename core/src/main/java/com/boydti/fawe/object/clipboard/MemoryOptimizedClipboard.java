@@ -247,7 +247,6 @@ public class MemoryOptimizedClipboard extends FaweClipboard {
             case 11:
             case 73:
             case 74:
-            case 78:
             case 79:
             case 80:
             case 81:

@@ -19,7 +19,6 @@ public abstract class ABukkitMain extends JavaPlugin {
     @Override
     public void onEnable() {
         FaweBukkit imp = new FaweBukkit(this);
-
         try {
             SnipeData.inject();
             Sniper.inject();

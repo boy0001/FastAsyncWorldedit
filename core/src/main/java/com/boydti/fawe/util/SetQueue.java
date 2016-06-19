@@ -90,7 +90,8 @@ public class SetQueue {
                     throw new IllegalStateException("This shouldn't be possible for placement to occur off the main thread");
                 }
                 // Disable the async catcher as it can't discern async vs parallel
-                SET_TASK.value2.startSet(true);
+                boolean parallel = Settings.PARALLEL_THREADS > 1;
+                SET_TASK.value2.startSet(parallel);
                 try {
                     if (Settings.PARALLEL_THREADS <= 1) {
                         SET_TASK.run();
@@ -114,7 +115,7 @@ public class SetQueue {
                     MainUtil.handleError(e);
                 } finally {
                     // Enable it again (note that we are still on the main thread)
-                    SET_TASK.value2.endSet(true);
+                    SET_TASK.value2.endSet(parallel);
                 }
             }
         }, 1);
@@ -187,7 +188,7 @@ public class SetQueue {
             throw new IllegalStateException("Must be flushed on the main thread!");
         }
         // Disable the async catcher as it can't discern async vs parallel
-        boolean parallel = Settings.PARALLEL_THREADS <= 1;
+        boolean parallel = Settings.PARALLEL_THREADS > 1;
         SET_TASK.value2.startSet(parallel);
         try {
             if (parallel) {

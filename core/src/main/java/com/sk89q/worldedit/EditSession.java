@@ -924,7 +924,9 @@ public class EditSession implements Extent {
     @Override
     @Nullable
     public Entity createEntity(final com.sk89q.worldedit.util.Location location, final BaseEntity entity) {
-        return this.bypassNone.createEntity(location, entity);
+        Entity result = this.bypassNone.createEntity(location, entity);
+        System.out.println("RESULT: " + result);
+        return result;
     }
 
     /**
@@ -986,6 +988,10 @@ public class EditSession implements Extent {
      */
     public int size() {
         return this.getBlockChangeCount();
+    }
+
+    public void setSize(int size) {
+        this.changes = size;
     }
 
     @Override

@@ -62,7 +62,6 @@ public class FaweBukkit implements IFawe, Listener {
     public FaweBukkit(ABukkitMain plugin) {
         this.plugin = plugin;
         try {
-            Bukkit.getPluginManager().registerEvents(this, plugin);
             Fawe.set(this);
             if (Bukkit.getVersion().contains("git-Spigot") && FaweAPI.checkVersion(this.getVersion(), 1, 7, 10)) {
                 debug("====== USE PAPER SPIGOT ======");
@@ -79,6 +78,7 @@ public class FaweBukkit implements IFawe, Listener {
         TaskManager.IMP.task(new Runnable() {
             @Override
             public void run() {
+                Bukkit.getPluginManager().registerEvents(FaweBukkit.this, FaweBukkit.this.plugin);
                 new ChunkListener();
             }
         });

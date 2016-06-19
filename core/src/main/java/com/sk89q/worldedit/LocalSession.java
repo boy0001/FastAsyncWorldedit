@@ -204,6 +204,8 @@ public class LocalSession {
         editSession.flushQueue();
         if (Settings.STORE_HISTORY_ON_DISK) {
             MAX_HISTORY_SIZE = Integer.MAX_VALUE;
+        } else if (MAX_HISTORY_SIZE == Integer.MAX_VALUE) {
+            MAX_HISTORY_SIZE = 15;
         }
         // Don't store anything if no changes were made
         if (editSession.size() == 0 || editSession.hasFastMode()) {

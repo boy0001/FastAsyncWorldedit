@@ -6,6 +6,7 @@ import com.boydti.fawe.object.BytePair;
 import com.boydti.fawe.object.FaweChunk;
 import com.boydti.fawe.object.FawePlayer;
 import com.boydti.fawe.object.FaweQueue;
+import com.boydti.fawe.object.RegionWrapper;
 import com.boydti.fawe.object.RunnableVal2;
 import com.boydti.fawe.util.EditSessionBuilder;
 import com.boydti.fawe.util.MainUtil;
@@ -70,7 +71,7 @@ public abstract class FaweChangeSet implements ChangeSet {
     public abstract Iterator<Change> getIterator(boolean redo);
 
     public EditSession toEditSession(FawePlayer player) {
-        return new EditSessionBuilder(world).player(player).autoQueue(false).fastmode(true).checkMemory(false).changeSet(this).build();
+        return new EditSessionBuilder(world).player(player).autoQueue(false).fastmode(true).checkMemory(false).changeSet(this).allowedRegions(RegionWrapper.GLOBAL().toArray()).build();
     }
 
     public void add(EntityCreate change) {

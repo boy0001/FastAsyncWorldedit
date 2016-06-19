@@ -4,7 +4,6 @@ import com.boydti.fawe.configuration.file.YamlConfiguration;
 import com.boydti.fawe.object.FaweLimit;
 import com.boydti.fawe.object.FawePlayer;
 import com.boydti.fawe.util.MainUtil;
-import com.sk89q.worldedit.LocalSession;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -170,9 +169,7 @@ public class Settings {
 
         WEB_URL = config.getString("web.url");
 
-        if (STORE_HISTORY_ON_DISK = config.getBoolean("history.use-disk")) {
-            LocalSession.MAX_HISTORY_SIZE = Integer.MAX_VALUE;
-        }
+        STORE_HISTORY_ON_DISK = config.getBoolean("history.use-disk");
 
         try {
             config.save(file);

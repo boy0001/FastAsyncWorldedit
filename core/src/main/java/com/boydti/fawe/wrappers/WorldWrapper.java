@@ -240,26 +240,26 @@ public class WorldWrapper extends AbstractWorld {
         queue.setChangeTask(null);
         final FaweChangeSet fcs = (FaweChangeSet) session.getChangeSet();
         final FaweRegionExtent fe = session.getRegionExtent();
-        session.setChangeSet(fcs);
+        session.setSize(1);
         final boolean cuboid = region instanceof CuboidRegion;
         Set<Vector2D> chunks = region.getChunks();
         for (Vector2D chunk : chunks) {
+            final int cx = chunk.getBlockX();
+            final int cz = chunk.getBlockZ();
+            final int bx = cx << 4;
+            final int bz = cz << 4;
+            Vector cmin = new Vector(bx, 0, bz);
+            Vector cmax = cmin.add(15, getMaxY(), 15);
+            final boolean containsBot1 = (fe == null || fe.contains(cmin.getBlockX(), cmin.getBlockY(), cmin.getBlockZ()));
+            final boolean containsBot2 = region.contains(cmin);
+            final boolean containsTop1 = (fe == null || fe.contains(cmax.getBlockX(), cmax.getBlockY(), cmax.getBlockZ()));
+            final boolean containsTop2 = region.contains(cmax);
+            if ((containsBot2 && containsTop2 && !containsBot1 && !containsTop1)) {
+                continue;
+            }
             RunnableVal<Vector2D> r = new RunnableVal<Vector2D>() {
                 @Override
                 public void run(Vector2D chunk) {
-                    int cx = chunk.getBlockX();
-                    int cz = chunk.getBlockZ();
-                    int bx = cx << 4;
-                    int bz = cz << 4;
-                    Vector cmin = new Vector(bx, 0, bz);
-                    Vector cmax = cmin.add(15, getMaxY(), 15);
-                    boolean containsBot1 = (fe == null || fe.contains(cmin.getBlockX(), cmin.getBlockY(), cmin.getBlockZ()));
-                    boolean containsBot2 = region.contains(cmin);
-                    boolean containsTop1 = (fe == null || fe.contains(cmax.getBlockX(), cmax.getBlockY(), cmax.getBlockZ()));
-                    boolean containsTop2 = region.contains(cmax);
-                    if ((containsBot2 && containsTop2 && !containsBot1 && !containsTop1)) {
-                        return;
-                    }
                     if (cuboid && containsBot1 && containsBot2 && containsTop1 && containsTop2) {
                         if (fcs != null) {
                             for (int x = 0; x < 16; x++) {
@@ -339,7 +339,7 @@ public class WorldWrapper extends AbstractWorld {
             @Override
             public void run(Boolean ignore) {
                 try {
-                    this.value = parent.generateTree(editSession, position);
+                    this.value = parent.generateTree(type, editSession, position);
                 } catch (MaxChangedBlocksException e) {
                     MainUtil.handleError(e);
                 }

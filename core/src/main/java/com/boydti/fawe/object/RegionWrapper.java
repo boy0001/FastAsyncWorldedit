@@ -26,6 +26,10 @@ public class RegionWrapper {
         this.maxZ = Math.max(pos1.getBlockZ(), pos2.getBlockZ());
     }
 
+    public RegionWrapper[] toArray() {
+        return new RegionWrapper[]{this};
+    }
+
     public boolean isIn(final int x, final int z) {
         return ((x >= this.minX) && (x <= this.maxX) && (z >= this.minZ) && (z <= this.maxZ));
     }
