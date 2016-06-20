@@ -45,7 +45,7 @@ public class Rollback extends FaweCommand {
                 }
                 player.deleteMeta("rollback");
                 final FaweLocation origin = player.getLocation();
-                rollback(player, true, Arrays.copyOfRange(args, 1, args.length), new RunnableVal<List<DiskStorageHistory>>() {
+                rollback(player, !player.hasPermission("fawe.rollback.deep"), Arrays.copyOfRange(args, 1, args.length), new RunnableVal<List<DiskStorageHistory>>() {
                     @Override
                     public void run(List<DiskStorageHistory> edits) {
                         long total = 0;
