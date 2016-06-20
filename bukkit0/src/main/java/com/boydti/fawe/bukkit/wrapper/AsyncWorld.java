@@ -86,8 +86,12 @@ public class AsyncWorld implements World {
         return new AsyncWorld(world, false);
     }
 
-    public void commit() {
+    public void enqueue() {
         queue.enqueue();
+    }
+
+    public void commit() {
+        flush();
     }
 
     public void flush() {
