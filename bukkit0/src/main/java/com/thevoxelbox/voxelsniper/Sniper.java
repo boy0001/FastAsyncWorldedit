@@ -22,6 +22,7 @@ import com.google.common.collect.HashBiMap;
 import com.google.common.collect.ImmutableBiMap;
 import com.google.common.collect.Maps;
 import com.google.common.collect.MutableClassToInstanceMap;
+import com.intellectualcrafters.plot.util.StringMan;
 import com.sk89q.worldedit.LocalSession;
 import com.thevoxelbox.voxelsniper.brush.IBrush;
 import com.thevoxelbox.voxelsniper.brush.SnipeBrush;
@@ -87,7 +88,7 @@ public class Sniper {
         if (this.tmpWorld == null) {
             Player player = getPlayer();
             FawePlayer<Player> fp = FawePlayer.wrap(player);
-            if (this.baseQueue == null) {
+            if (this.baseQueue == null || !StringMan.isEqual(baseQueue.getWorldName(), player.getWorld().getName())) {
                 this.baseQueue = FaweAPI.createQueue(fp.getLocation().world, false);
             }
             RegionWrapper[] mask = WEManager.IMP.getMask(fp);
@@ -398,7 +399,7 @@ public class Sniper {
             FaweChangeSet changeSet = changeQueue.getChangeSet();
             FawePlayer<Object> fp = FawePlayer.wrap(getPlayer());
             LocalSession session = fp.getSession();
-            baseQueue.enqueue();
+            baseQueue.flush();
             session.remember(changeSet.toEditSession(fp));
             changeQueue.flush();
             com.sk89q.worldedit.world.World worldEditWorld = fp.getWorld();

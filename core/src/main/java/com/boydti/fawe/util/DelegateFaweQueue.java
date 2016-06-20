@@ -12,7 +12,7 @@ import java.util.UUID;
 import java.util.concurrent.ConcurrentLinkedDeque;
 
 public class DelegateFaweQueue extends FaweQueue {
-    private final FaweQueue parent;
+    private FaweQueue parent;
 
     public DelegateFaweQueue(FaweQueue parent) {
         super(parent.getWorldName());
@@ -21,6 +21,10 @@ public class DelegateFaweQueue extends FaweQueue {
 
     public FaweQueue getParent() {
         return parent;
+    }
+
+    public void setParent(FaweQueue parent) {
+        this.parent = parent;
     }
 
     @Override

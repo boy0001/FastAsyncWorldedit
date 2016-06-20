@@ -156,7 +156,7 @@ public class EditSession implements Extent {
 
     private World world;
     private FaweQueue queue;
-    private Extent bypassNone;
+    private Extent extent;
     private HistoryExtent history;
     private Extent bypassHistory;
     private Extent bypassAll;
@@ -248,19 +248,19 @@ public class EditSession implements Extent {
         this.limit = limit;
         this.queue = SetQueue.IMP.getNewQueue(Fawe.imp().getWorldName(world), fastmode, autoQueue);
         this.bypassAll = wrapExtent(new FastWorldEditExtent(world, queue), bus, event, Stage.BEFORE_CHANGE);
-        this.bypassHistory = (bypassNone = wrapExtent(bypassAll, bus, event, Stage.BEFORE_REORDER));
+        this.bypassHistory = (this.extent = wrapExtent(bypassAll, bus, event, Stage.BEFORE_REORDER));
         if (!fastmode && !(changeSet instanceof NullChangeSet)) {
             if (combineStages) {
                 changeTask = changeSet;
                 changeSet.addChangeTask(queue);
             } else {
-                this.bypassNone = (history = new HistoryExtent(this, bypassHistory, changeSet, queue));
+                this.extent = (history = new HistoryExtent(this, bypassHistory, changeSet, queue));
             }
         }
         if (allowedRegions != null) {
-            this.bypassNone = new ProcessedWEExtent(bypassNone, allowedRegions, limit);
+            this.extent = new ProcessedWEExtent(this.extent, allowedRegions, limit);
         }
-        bypassNone = wrapExtent(bypassNone, bus, event, Stage.BEFORE_HISTORY);
+        this.extent = wrapExtent(this.extent, bus, event, Stage.BEFORE_HISTORY);
     }
 
     /**
@@ -302,7 +302,7 @@ public class EditSession implements Extent {
     }
 
     public FaweRegionExtent getRegionExtent() {
-        ExtentTraverser<FaweRegionExtent> traverser = new ExtentTraverser(bypassNone).find(FaweRegionExtent.class);
+        ExtentTraverser<FaweRegionExtent> traverser = new ExtentTraverser(this.extent).find(FaweRegionExtent.class);
         return traverser == null ? null : traverser.get();
     }
 
@@ -316,7 +316,7 @@ public class EditSession implements Extent {
     }
 
     public boolean cancel() {
-        ExtentTraverser traverser = new ExtentTraverser(bypassNone);
+        ExtentTraverser traverser = new ExtentTraverser(this.extent);
         NullExtent nullExtent = new NullExtent(world, BBC.WORLDEDIT_CANCEL_REASON_MANUAL);
         while (traverser != null) {
             ExtentTraverser next = traverser.next();
@@ -324,7 +324,7 @@ public class EditSession implements Extent {
             traverser = next;
         }
         bypassHistory = nullExtent;
-        bypassNone = nullExtent;
+        this.extent = nullExtent;
         bypassAll = nullExtent;
         dequeue();
         queue.clear();
@@ -452,7 +452,7 @@ public class EditSession implements Extent {
      * @return mask, may be null
      */
     public Mask getMask() {
-        ExtentTraverser<MaskingExtent> maskingExtent = new ExtentTraverser(bypassNone).find(MaskingExtent.class);
+        ExtentTraverser<MaskingExtent> maskingExtent = new ExtentTraverser(this.extent).find(MaskingExtent.class);
         return maskingExtent != null ? maskingExtent.get().getMask() : null;
     }
 
@@ -465,11 +465,11 @@ public class EditSession implements Extent {
         if (mask == null) {
             mask = Masks.alwaysTrue();
         }
-        ExtentTraverser<MaskingExtent> maskingExtent = new ExtentTraverser(bypassNone).find(MaskingExtent.class);
+        ExtentTraverser<MaskingExtent> maskingExtent = new ExtentTraverser(this.extent).find(MaskingExtent.class);
         if (maskingExtent != null) {
             maskingExtent.get().setMask(mask);
         } else if (mask != Masks.alwaysTrue()) {
-            bypassNone = new MaskingExtent(bypassNone, mask);
+            this.extent = new MaskingExtent(this.extent, mask);
         }
     }
 
@@ -494,11 +494,11 @@ public class EditSession implements Extent {
      * @return the survival simulation extent
      */
     public SurvivalModeExtent getSurvivalExtent() {
-        ExtentTraverser<SurvivalModeExtent> survivalExtent = new ExtentTraverser(bypassNone).find(SurvivalModeExtent.class);
+        ExtentTraverser<SurvivalModeExtent> survivalExtent = new ExtentTraverser(this.extent).find(SurvivalModeExtent.class);
         if (survivalExtent != null) {
             return survivalExtent.get();
         } else {
-            return (SurvivalModeExtent) (bypassNone = new SurvivalModeExtent(bypassNone, getWorld()));
+            return (SurvivalModeExtent) (this.extent = new SurvivalModeExtent(this.extent, getWorld()));
         }
     }
 
@@ -522,7 +522,7 @@ public class EditSession implements Extent {
         if (history == null) {
             return;
         }
-        ExtentTraverser traverseHistory = new ExtentTraverser(bypassNone).find(HistoryExtent.class);
+        ExtentTraverser traverseHistory = new ExtentTraverser(this.extent).find(HistoryExtent.class);
         if (disableHistory) {
             if (traverseHistory != null) {
                 ExtentTraverser beforeHistory = traverseHistory.previous();
@@ -530,7 +530,7 @@ public class EditSession implements Extent {
                 beforeHistory.setNext(afterHistory.get());
             }
         } else if (traverseHistory == null) {
-            ExtentTraverser traverseBypass = new ExtentTraverser(bypassNone).find(bypassHistory);
+            ExtentTraverser traverseBypass = new ExtentTraverser(this.extent).find(bypassHistory);
             if (traverseBypass != null) {
                 ExtentTraverser beforeHistory = traverseBypass.previous();
                 beforeHistory.setNext(history);
@@ -591,13 +591,13 @@ public class EditSession implements Extent {
 
     @Override
     public BaseBiome getBiome(final Vector2D position) {
-        return this.bypassNone.getBiome(position);
+        return this.extent.getBiome(position);
     }
 
     @Override
     public boolean setBiome(final Vector2D position, final BaseBiome biome) {
         this.changes++;
-        return this.bypassNone.setBiome(position, biome);
+        return this.extent.setBiome(position, biome);
     }
 
     @Override
@@ -809,7 +809,7 @@ public class EditSession implements Extent {
         this.changes++;
         switch (stage) {
             case BEFORE_HISTORY:
-                return this.bypassNone.setBlock(position, block);
+                return this.extent.setBlock(position, block);
             case BEFORE_CHANGE:
                 return this.bypassHistory.setBlock(position, block);
             case BEFORE_REORDER:
@@ -855,7 +855,7 @@ public class EditSession implements Extent {
     public boolean setBlock(final Vector position, final BaseBlock block) throws MaxChangedBlocksException {
         this.changes++;
         try {
-            return this.bypassNone.setBlock(position, block);
+            return this.extent.setBlock(position, block);
         } catch (final MaxChangedBlocksException e) {
             throw e;
         } catch (final WorldEditException e) {
@@ -924,7 +924,7 @@ public class EditSession implements Extent {
     @Override
     @Nullable
     public Entity createEntity(final com.sk89q.worldedit.util.Location location, final BaseEntity entity) {
-        Entity result = this.bypassNone.createEntity(location, entity);
+        Entity result = this.extent.createEntity(location, entity);
         return result;
     }
 
@@ -1005,12 +1005,12 @@ public class EditSession implements Extent {
 
     @Override
     public List<? extends Entity> getEntities(final Region region) {
-        return this.bypassNone.getEntities(region);
+        return this.extent.getEntities(region);
     }
 
     @Override
     public List<? extends Entity> getEntities() {
-        return this.bypassNone.getEntities();
+        return this.extent.getEntities();
     }
 
     /**
@@ -1234,7 +1234,7 @@ public class EditSession implements Extent {
         Iterator<BlockVector> iter = region.iterator();
         try {
             while (iter.hasNext()) {
-                this.bypassNone.setBlock(iter.next(), block);
+                this.extent.setBlock(iter.next(), block);
             }
         } catch (final MaxChangedBlocksException e) {
             throw e;

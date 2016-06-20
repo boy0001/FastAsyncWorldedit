@@ -3,6 +3,7 @@ package com.boydti.fawe.object.change;
 import com.boydti.fawe.Fawe;
 import com.boydti.fawe.object.FaweChunk;
 import com.boydti.fawe.object.extent.FastWorldEditExtent;
+import com.boydti.fawe.util.ExtentTraverser;
 import com.sk89q.worldedit.WorldEditException;
 import com.sk89q.worldedit.extent.Extent;
 import com.sk89q.worldedit.history.UndoContext;
@@ -30,8 +31,9 @@ public class MutableChunkChange implements Change {
 
     public void create(UndoContext context, boolean undo) {
         Extent extent = context.getExtent();
-        if (extent.getClass() == FastWorldEditExtent.class) {
-            FastWorldEditExtent fwee = (FastWorldEditExtent) extent;
+        ExtentTraverser<FastWorldEditExtent> find = new ExtentTraverser(extent).find(FastWorldEditExtent.class);
+        if (find != null) {
+            FastWorldEditExtent fwee = find.get();
             if (undo) {
                 fwee.getQueue().setChunk(from);
             } else {

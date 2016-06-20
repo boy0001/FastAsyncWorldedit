@@ -2,6 +2,7 @@ package com.boydti.fawe.object.change;
 
 import com.boydti.fawe.Fawe;
 import com.boydti.fawe.object.extent.FastWorldEditExtent;
+import com.boydti.fawe.util.ExtentTraverser;
 import com.sk89q.jnbt.CompoundTag;
 import com.sk89q.jnbt.DoubleTag;
 import com.sk89q.jnbt.LongTag;
@@ -44,8 +45,9 @@ public class MutableEntityChange implements Change {
 
     public void delete(UndoContext context) {
         Extent extent = context.getExtent();
-        if (extent.getClass() == FastWorldEditExtent.class) {
-            FastWorldEditExtent fwee = (FastWorldEditExtent) extent;
+        ExtentTraverser<FastWorldEditExtent> find = new ExtentTraverser(extent).find(FastWorldEditExtent.class);
+        if (find != null) {
+            FastWorldEditExtent fwee = find.get();
             Map<String, Tag> map = tag.getValue();
             long most;
             long least;
@@ -72,8 +74,9 @@ public class MutableEntityChange implements Change {
 
     public void create(UndoContext context) {
         Extent extent = context.getExtent();
-        if (extent.getClass() == FastWorldEditExtent.class) {
-            FastWorldEditExtent fwee = (FastWorldEditExtent) extent;
+        ExtentTraverser<FastWorldEditExtent> find = new ExtentTraverser(extent).find(FastWorldEditExtent.class);
+        if (find != null) {
+            FastWorldEditExtent fwee = find.get();
             Map<String, Tag> map = tag.getValue();
             List<DoubleTag> pos = (List<DoubleTag>) map.get("Pos").getValue();
             int x = (int) Math.round(pos.get(0).getValue());

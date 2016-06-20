@@ -8,7 +8,6 @@ import com.boydti.fawe.util.StringMan;
 import com.boydti.fawe.util.TaskManager;
 import com.sk89q.worldedit.bukkit.WorldEditPlugin;
 import com.sk89q.worldedit.bukkit.adapter.BukkitImplAdapter;
-import com.sk89q.worldedit.bukkit.entity.BukkitEntity;
 import com.sk89q.worldedit.world.biome.BaseBiome;
 import java.io.File;
 import java.lang.reflect.Field;
@@ -89,6 +88,10 @@ public class AsyncWorld implements World {
 
     public void commit() {
         queue.enqueue();
+    }
+
+    public void flush() {
+        queue.flush();
     }
 
     @Override
