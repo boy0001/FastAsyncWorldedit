@@ -2,12 +2,9 @@ package com.boydti.fawe.bukkit.v0;
 
 import com.boydti.fawe.bukkit.logging.BlocksHubHook;
 import com.boydti.fawe.object.EditSessionWrapper;
-import com.boydti.fawe.object.FaweLimit;
 import com.boydti.fawe.object.FawePlayer;
 import com.boydti.fawe.object.changeset.FaweChangeSet;
-import com.boydti.fawe.object.FaweQueue;
 import com.sk89q.worldedit.EditSession;
-import com.sk89q.worldedit.extent.Extent;
 
 public class BukkitEditSessionWrapper_0 extends EditSessionWrapper {
 
@@ -22,10 +19,10 @@ public class BukkitEditSessionWrapper_0 extends EditSessionWrapper {
     }
 
     @Override
-    public FaweChangeSet wrapChangeSet(EditSession session, FaweLimit limit, Extent parent, FaweChangeSet set, FaweQueue queue, FawePlayer<?> player) {
+    public FaweChangeSet wrapChangeSet(FaweChangeSet set, FawePlayer<?> player) {
         if (this.hook != null) {
             // If we are doing logging, use a custom logging ChangeSet
-            return hook.getLoggingChangeSet(session, limit, parent, set, queue, player);
+            return hook.getLoggingChangeSet(set, player);
         }
         return set;
     }

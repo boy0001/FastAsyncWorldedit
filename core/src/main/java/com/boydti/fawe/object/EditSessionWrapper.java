@@ -5,7 +5,6 @@ import com.sk89q.worldedit.EditSession;
 import com.sk89q.worldedit.Vector;
 import com.sk89q.worldedit.blocks.BaseBlock;
 import com.sk89q.worldedit.blocks.BlockType;
-import com.sk89q.worldedit.extent.Extent;
 
 public class EditSessionWrapper {
 
@@ -116,7 +115,7 @@ public class EditSessionWrapper {
         return minY;
     }
 
-    public FaweChangeSet wrapChangeSet(EditSession session, FaweLimit limit, Extent parent, FaweChangeSet set, FaweQueue queue, FawePlayer<?> player) {
+    public FaweChangeSet wrapChangeSet(FaweChangeSet set, FawePlayer<?> player) {
         return set;
     }
 }

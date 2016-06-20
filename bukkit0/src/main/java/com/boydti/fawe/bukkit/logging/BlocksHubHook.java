@@ -1,11 +1,7 @@
 package com.boydti.fawe.bukkit.logging;
 
-import com.boydti.fawe.object.FaweLimit;
 import com.boydti.fawe.object.FawePlayer;
 import com.boydti.fawe.object.changeset.FaweChangeSet;
-import com.boydti.fawe.object.FaweQueue;
-import com.sk89q.worldedit.EditSession;
-import com.sk89q.worldedit.extent.Extent;
 import org.PrimeSoft.blocksHub.BlocksHub;
 import org.PrimeSoft.blocksHub.IBlocksHubApi;
 import org.bukkit.Bukkit;
@@ -20,7 +16,7 @@ public class BlocksHubHook {
         this.api = this.hub.getApi();
     }
 
-    public FaweChangeSet getLoggingChangeSet(EditSession session, FaweLimit limit, Extent parent, FaweChangeSet set, FaweQueue queue, FawePlayer<?> player) {
+    public FaweChangeSet getLoggingChangeSet(FaweChangeSet set, FawePlayer<?> player) {
         return new LoggingChangeSet((FawePlayer<Player>) player, set, api);
     }
 }

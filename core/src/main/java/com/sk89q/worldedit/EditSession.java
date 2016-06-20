@@ -23,6 +23,7 @@ import com.boydti.fawe.Fawe;
 import com.boydti.fawe.FaweCache;
 import com.boydti.fawe.config.BBC;
 import com.boydti.fawe.config.Settings;
+import com.boydti.fawe.object.EditSessionWrapper;
 import com.boydti.fawe.object.FaweLimit;
 import com.boydti.fawe.object.FawePlayer;
 import com.boydti.fawe.object.FaweQueue;
@@ -250,6 +251,10 @@ public class EditSession implements Extent {
         this.bypassAll = wrapExtent(new FastWorldEditExtent(world, queue), bus, event, Stage.BEFORE_CHANGE);
         this.bypassHistory = (this.extent = wrapExtent(bypassAll, bus, event, Stage.BEFORE_REORDER));
         if (!fastmode && !(changeSet instanceof NullChangeSet)) {
+            if (player != null) {
+                EditSessionWrapper wrapper = Fawe.imp().getEditSessionWrapper(this);
+                changeSet = wrapper.wrapChangeSet(changeSet, player);
+            }
             if (combineStages) {
                 changeTask = changeSet;
                 changeSet.addChangeTask(queue);
