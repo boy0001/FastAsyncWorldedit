@@ -23,6 +23,7 @@ import com.boydti.fawe.FaweAPI;
 import com.boydti.fawe.config.BBC;
 import com.boydti.fawe.object.RunnableVal2;
 import com.boydti.fawe.object.clipboard.LazyClipboard;
+import com.boydti.fawe.util.ImgurUtility;
 import com.sk89q.minecraft.util.commands.Command;
 import com.sk89q.minecraft.util.commands.CommandException;
 import com.sk89q.minecraft.util.commands.CommandPermissions;
@@ -41,6 +42,7 @@ import com.sk89q.worldedit.extension.platform.Actor;
 import com.sk89q.worldedit.extent.clipboard.BlockArrayClipboard;
 import com.sk89q.worldedit.extent.clipboard.Clipboard;
 import com.sk89q.worldedit.extent.clipboard.io.ClipboardFormat;
+import com.sk89q.worldedit.extent.clipboard.io.ClipboardWriter;
 import com.sk89q.worldedit.function.block.BlockReplace;
 import com.sk89q.worldedit.function.mask.Mask;
 import com.sk89q.worldedit.function.operation.ForwardExtentCopy;
@@ -58,6 +60,9 @@ import com.sk89q.worldedit.session.ClipboardHolder;
 import com.sk89q.worldedit.util.Location;
 import com.sk89q.worldedit.util.command.binding.Switch;
 import com.sk89q.worldedit.util.command.parametric.Optional;
+import java.io.ByteArrayOutputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.net.URL;
 import java.util.Iterator;
 import java.util.List;
@@ -220,7 +225,31 @@ public class ClipboardCommands {
         ClipboardHolder holder = session.getClipboard();
         Clipboard clipboard = holder.getClipboard();
         BBC.GENERATING_LINK.send(player, formatName);
-        URL url = FaweAPI.upload(clipboard, format);
+        URL url;
+        switch (format) {
+            case PNG:
+                try {
+                    ByteArrayOutputStream baos = new ByteArrayOutputStream(Short.MAX_VALUE);
+                    ClipboardWriter writer = format.getWriter(baos);
+                    writer.write(clipboard, null);
+                    baos.flush();
+                    FileOutputStream fos = new FileOutputStream("blah.png");
+                    fos.write(baos.toByteArray());
+                    fos.close();
+                    url = null;
+                    url = ImgurUtility.uploadImage(baos.toByteArray());
+                } catch (IOException e) {
+                    e.printStackTrace();
+                    url = null;
+                }
+                break;
+            case SCHEMATIC:
+                url = FaweAPI.upload(clipboard, format);
+                break;
+            default:
+                url = null;
+                break;
+        }
         if (url == null) {
             BBC.GENERATING_LINK_FAILED.send(player);
         } else {

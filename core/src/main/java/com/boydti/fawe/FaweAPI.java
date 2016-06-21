@@ -9,6 +9,7 @@ import com.boydti.fawe.object.PseudoRandom;
 import com.boydti.fawe.object.RegionWrapper;
 import com.boydti.fawe.object.RunnableVal;
 import com.boydti.fawe.object.changeset.DiskStorageHistory;
+import com.boydti.fawe.object.schematic.Schematic;
 import com.boydti.fawe.regions.FaweMaskManager;
 import com.boydti.fawe.util.EditSessionBuilder;
 import com.boydti.fawe.util.MainUtil;
@@ -137,6 +138,17 @@ public class FaweAPI {
                 }
             }
         });
+    }
+
+    /**
+     * Just forwards to ClipboardFormat.SCHEMATIC.load(file)
+     * @see com.sk89q.worldedit.extent.clipboard.io.ClipboardFormat
+     * @see com.boydti.fawe.object.schematic.Schematic
+     * @param file
+     * @return
+     */
+    public static Schematic load(File file) throws IOException {
+        return ClipboardFormat.SCHEMATIC.load(file);
     }
 
     /**

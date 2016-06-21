@@ -254,7 +254,7 @@ public final class CommandManager {
                 try {
                     dispatcher.call(Joiner.on(" ").join(split), locals, new String[0]);
                 } catch (CommandPermissionsException e) {
-                    actor.printError("You are not permitted to do that. Are you in the right mode?");
+                    BBC.NO_PERM.send(actor, "worldedit.*");
                 } catch (InvalidUsageException e) {
                     if (e.isFullHelpSuggested()) {
                         actor.printRaw(ColorCodeBuilder.asColorCodes(new CommandUsageBox(e.getCommand(), e.getCommandUsed("/", ""), locals)));
@@ -264,8 +264,8 @@ public final class CommandManager {
                         }
                     } else {
                         String message = e.getMessage();
-                        actor.printError(message != null ? message : "The command was not used properly (no more help available).");
-                        actor.printError("Usage: " + e.getSimpleUsageString("/"));
+                        actor.print(BBC.getPrefix() + (message != null ? message : "The command was not used properly (no more help available)."));
+                        BBC.COMMAND_SYNTAX.send(actor, e.getSimpleUsageString("/"));
                     }
                 } catch (WrappedCommandException e) {
                     FaweException faweException = FaweException.get(e);

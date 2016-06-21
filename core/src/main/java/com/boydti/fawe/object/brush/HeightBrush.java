@@ -22,7 +22,7 @@ public class HeightBrush implements Brush {
     double yscale = 1;
     private final BrushTool tool;
 
-    public HeightBrush(File file, int rotation, double yscale, BrushTool tool, EditSession session, Clipboard clipboard) {
+    public HeightBrush(File file, int rotation, double yscale, BrushTool tool, Clipboard clipboard) {
         this.tool = tool;
         this.rotation = (rotation / 90) % 4;
         this.yscale = yscale;

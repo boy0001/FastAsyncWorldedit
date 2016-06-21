@@ -23,6 +23,7 @@ import com.boydti.fawe.object.FaweOutputStream;
 import com.boydti.fawe.object.clipboard.DiskOptimizedClipboard;
 import com.boydti.fawe.object.schematic.FaweFormat;
 import com.boydti.fawe.object.schematic.PNGWriter;
+import com.boydti.fawe.object.schematic.Schematic;
 import com.boydti.fawe.object.schematic.StructureFormat;
 import com.boydti.fawe.util.MainUtil;
 import com.sk89q.jnbt.NBTConstants;
@@ -138,7 +139,7 @@ public enum ClipboardFormat {
         }
     },
 
-    PNG("png") {
+    PNG("png", "image") {
         @Override
         public ClipboardReader getReader(InputStream inputStream) throws IOException {
             return null;
@@ -285,6 +286,14 @@ public enum ClipboardFormat {
      * @throws IOException thrown on I/O error
      */
     public abstract ClipboardWriter getWriter(OutputStream outputStream) throws IOException;
+
+    public Schematic load(File file) throws IOException {
+        return load(new FileInputStream(file));
+    }
+
+    public Schematic load(InputStream stream) throws IOException {
+        return new Schematic(this.getReader(stream).read(null));
+    }
 
     /**
      * Get the file extension used

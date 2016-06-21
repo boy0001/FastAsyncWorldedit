@@ -68,7 +68,7 @@ public class PNGWriter implements ClipboardWriter {
         }
         for (int j = 0; j < dpxj.length; j++) {
             dpxj[j] = cx + j * d;
-            dpyj[j] = imageSize + d + j * d_2;
+            dpyj[j] = imageSize / 2 + d + j * d_2;
         }
         for (int i = 0; i < Math.max(256, dpxi.length); i++) {
             dpxi[i] = i * d;

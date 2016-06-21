@@ -44,6 +44,7 @@ public enum BBC {
     DOWNLOAD_LINK("%s", "Web"),
 
 
+
     COMMAND_COPY("%s0 blocks were copied", "WorldEdit.Copy"),
     COMMAND_CUT("%s0 blocks were cut", "WorldEdit.Cut"),
     COMMAND_PASTE("The clipboard has been pasted at %s0", "WorldEdit.Paste"),
@@ -81,6 +82,7 @@ public enum BBC {
     BRUSH_EXTINGUISHER("Extinguisher equipped (%s0).", "WorldEdit.Brush"),
     BRUSH_GRAVITY("Gravity brush equipped (%s0)", "WorldEdit.Brush"),
     BRUSH_HEIGHT("Height brush equipped (%s0)", "WorldEdit.Brush"),
+    BRUSH_COPY("Copy brush equipped (%s0)", "WorldEdit.Brush"),
     BRUSH_HEIGHT_INVALID("Invalid height map file (%s0)", "WorldEdit.Brush"),
     BRUSH_SMOOTH("Smooth brush equipped (%s0 x %s1 using %s2).", "WorldEdit.Brush"),
     BRUSH_SPHERE("Sphere brush shape equipped (%s0).", "WorldEdit.Brush"),
@@ -100,9 +102,10 @@ public enum BBC {
     SELECTOR_CUBOID_POS1("First position set to %s0 %s1.", "WorldEdit.Selector"),
     SELECTOR_CUBOID_POS2("Second position set to %s0 %s1.", "WorldEdit.Selector"),
 
+    COMMAND_INVALID_SYNTAX("The command was not used properly (no more help available).", "WorldEdit.Command"),
+
     PROGRESS_MESSAGE("[ Queue: %s0 | Dispatched: %s1 ]", "Progress"),
     PROGRESS_DONE   ("[ Took: %s0s ]", "Progress"),
-
 
     COMMAND_SYNTAX("&cUsage: &7%s0", "Error"),
     NO_PERM("&cYou are lacking the permission node: %s0", "Error"),
@@ -306,6 +309,10 @@ public enum BBC {
         } else {
             actor.print((PREFIX.isEmpty() ? "" : PREFIX.s() + " ") + this.format(args));
         }
+    }
+
+    public static String getPrefix() {
+        return (PREFIX.isEmpty() ? "" : PREFIX.s() + " ");
     }
 
     public void send(final FawePlayer<?> player, final Object... args) {

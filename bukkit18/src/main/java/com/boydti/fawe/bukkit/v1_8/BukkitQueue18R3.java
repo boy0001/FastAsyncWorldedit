@@ -626,4 +626,14 @@ public class BukkitQueue18R3 extends BukkitQueue_0<Chunk, ChunkSection[], char[]
         int j = FaweCache.CACHE_J[y][x][z];
         return array[j] >> 4;
     }
+
+    @Override
+    public FaweChunk getFaweChunk(int x, int z) {
+        return new CharFaweChunk<Chunk>(this, x, z) {
+            @Override
+            public Chunk getNewChunk() {
+                return BukkitQueue18R3.this.getWorld().getChunkAt(getX(), getZ());
+            }
+        };
+    }
 }

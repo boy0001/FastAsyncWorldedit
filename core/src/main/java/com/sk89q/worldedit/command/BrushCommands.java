@@ -24,6 +24,7 @@ import com.boydti.fawe.config.BBC;
 import com.boydti.fawe.config.Settings;
 import com.boydti.fawe.object.FaweLimit;
 import com.boydti.fawe.object.FawePlayer;
+import com.boydti.fawe.object.brush.CopyBrush;
 import com.boydti.fawe.object.brush.HeightBrush;
 import com.sk89q.minecraft.util.commands.Command;
 import com.sk89q.minecraft.util.commands.CommandContext;
@@ -135,7 +136,7 @@ public class BrushCommands {
     }
 
     @Command(
-            aliases = { "clipboard", "copy" },
+            aliases = { "clipboard", "paste" },
             usage = "",
             desc = "Choose the clipboard brush",
             help =
@@ -248,11 +249,29 @@ public class BrushCommands {
         BrushTool tool = session.getBrushTool(player.getItemInHand());
         tool.setSize(radius);
         try {
-            tool.setBrush(new HeightBrush(file, rotation, yscale, tool, editSession, session.getClipboard().getClipboard()), "worldedit.brush.height");
+            tool.setBrush(new HeightBrush(file, rotation, yscale, tool, session.getClipboard().getClipboard()), "worldedit.brush.height");
         } catch (EmptyClipboardException ignore) {
-            tool.setBrush(new HeightBrush(file, rotation, yscale, tool, editSession, null), "worldedit.brush.height");
+            tool.setBrush(new HeightBrush(file, rotation, yscale, tool, null), "worldedit.brush.height");
         }
         BBC.BRUSH_HEIGHT.send(player, radius);
+    }
+
+    @Command(
+            aliases = { "copy" },
+            usage = "[depth]",
+            desc = "Copy brush",
+            help =
+                    "Right click the base of an object to copy.\n",
+            min = 0,
+            max = 1
+    )
+    @CommandPermissions("worldedit.brush.copy")
+    public void copy(Player player, LocalSession session, EditSession editSession, @Optional("5") double radius, @Optional("") final String filename, @Optional("0") final int rotation, @Optional("1") final double yscale) throws WorldEditException {
+        worldEdit.checkMaxBrushRadius(radius);
+        BrushTool tool = session.getBrushTool(player.getItemInHand());
+        tool.setSize(radius);
+        tool.setBrush(new CopyBrush(player, session, tool), "worldedit.brush.copy");
+        BBC.BRUSH_COPY.send(player, radius);
     }
 
     @Command(

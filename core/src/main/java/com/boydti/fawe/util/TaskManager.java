@@ -1,10 +1,12 @@
 package com.boydti.fawe.util;
 
 import com.boydti.fawe.Fawe;
+import com.boydti.fawe.config.Settings;
 import com.boydti.fawe.object.RunnableVal;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.concurrent.atomic.AtomicBoolean;
+import javax.annotation.Nullable;
 
 public abstract class TaskManager {
 
@@ -37,6 +39,64 @@ public abstract class TaskManager {
      * @param r
      */
     public abstract void task(final Runnable r);
+
+    /**
+     * Run a bunch of tasks in parallel
+     * @param runnables The tasks to run
+     * @param numThreads Number of threads (null = config.yml parallel threads)
+     */
+    public void parallel(Collection<Runnable> runnables, @Nullable Integer numThreads) {
+        if (runnables == null) {
+            return;
+        }
+        if (numThreads == null) {
+            numThreads = Settings.PARALLEL_THREADS;
+        }
+        if (numThreads <= 1) {
+            for (Runnable run : runnables) {
+                if (run != null) {
+                    run.run();
+                }
+            }
+            return;
+        }
+        int numRuns = runnables.size();
+        int amountPerThread = 1 + numRuns / numThreads;
+        final Runnable[][] split = new Runnable[numThreads][amountPerThread];
+        Thread[] threads = new Thread[numThreads];
+        int i = 0;
+        int j = 0;
+        for (Runnable run : runnables) {
+            split[i][j] = run;
+            if (++i >= numThreads) {
+                i = 0;
+                j++;
+            }
+        }
+        for (i = 0; i < threads.length; i++) {
+            final Runnable[] toRun = split[i];
+            Thread thread = threads[i] = new Thread(new Runnable() {
+                @Override
+                public void run() {
+                    for (int j = 0; j < toRun.length; j++) {
+                        Runnable run = toRun[j];
+                        if (run != null) {
+                            run.run();
+                        }
+                    }
+                }
+            });
+            thread.start();
+        }
+        for (Thread thread : threads) {
+            try {
+                thread.join();
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        }
+
+    }
 
     /**
      * Run a task on the current thread or asynchronously

@@ -11,6 +11,7 @@ import com.boydti.fawe.config.BBC;
 import com.boydti.fawe.config.Settings;
 import com.boydti.fawe.object.FawePlayer;
 import com.boydti.fawe.regions.general.plot.PlotSquaredFeature;
+import com.boydti.fawe.util.FaweTimer;
 import com.boydti.fawe.util.MainUtil;
 import com.boydti.fawe.util.MemUtil;
 import com.boydti.fawe.util.TaskManager;
@@ -112,6 +113,11 @@ public class Fawe {
     private static Fawe INSTANCE;
 
     /**
+     * TPS timer
+     */
+    private final FaweTimer timer;
+
+    /**
      * Get the implementation specific class
      * @return
      */
@@ -173,6 +179,7 @@ public class Fawe {
         MainUtil.deleteOlder(new File(IMP.getDirectory(), "clipboard"), TimeUnit.DAYS.toMillis(Settings.DELETE_CLIPBOARD_AFTER_DAYS));
 
         TaskManager.IMP = this.IMP.getTaskManager();
+        TaskManager.IMP.repeat(timer = new FaweTimer(), 50);
         if (Settings.METRICS) {
             this.IMP.startMetrics();
         }
@@ -199,6 +206,10 @@ public class Fawe {
          */
         this.setupInjector();
         this.setupMemoryListener();
+    }
+
+    public double getTPS() {
+        return timer.getTPS();
     }
 
     private void setupEvents() {

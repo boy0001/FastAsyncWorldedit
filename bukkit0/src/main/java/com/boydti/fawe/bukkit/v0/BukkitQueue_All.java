@@ -1,14 +1,26 @@
 package com.boydti.fawe.bukkit.v0;
 
+import com.boydti.fawe.Fawe;
 import com.boydti.fawe.FaweCache;
+import com.boydti.fawe.config.Settings;
+import com.boydti.fawe.object.FaweChunk;
+import com.boydti.fawe.object.RunnableVal;
 import com.sk89q.jnbt.CompoundTag;
 import org.bukkit.Chunk;
 import org.bukkit.World;
 import org.bukkit.block.Block;
 
 public class BukkitQueue_All extends BukkitQueue_0<Chunk, Chunk, Chunk> {
+
+    public static int ALLOCATE;
+    public static double TPS_TARGET = 18.5;
+
     public BukkitQueue_All(String world) {
         super(world);
+        if (Settings.ALLOCATE != Integer.MIN_VALUE) {
+            ALLOCATE = Settings.ALLOCATE;
+            Settings.ALLOCATE = Integer.MIN_VALUE;
+        }
     }
 
     public int getCombinedId4Data(Chunk section, int x, int y, int z) {
@@ -33,5 +45,37 @@ public class BukkitQueue_All extends BukkitQueue_0<Chunk, Chunk, Chunk> {
     @Override
     public Chunk getChunk(World world, int x, int z) {
         return world.getChunkAt(x, z);
+    }
+
+    @Override
+    public FaweChunk getFaweChunk(int x, int z) {
+        return new BukkitChunk_All(this, x, z);
+    }
+
+    private int skip;
+
+    @Override
+    public boolean setComponents(FaweChunk fc, RunnableVal<FaweChunk> changeTask) {
+        if (skip > 0) {
+            skip--;
+            fc.addToQueue();
+            return true;
+        }
+        long start = System.currentTimeMillis();
+        ((BukkitChunk_All) fc).execute(start);
+        if (System.currentTimeMillis() - start > 50 || Fawe.get().getTPS() < TPS_TARGET) {
+            skip = 10;
+        }
+        return true;
+    }
+
+    @Override
+    public void startSet(boolean parallel) {
+        super.startSet(true);
+    }
+
+    @Override
+    public void endSet(boolean parallel) {
+        super.endSet(true);
     }
 }
