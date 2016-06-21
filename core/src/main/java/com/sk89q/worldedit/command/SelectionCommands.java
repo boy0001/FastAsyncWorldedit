@@ -309,8 +309,7 @@ public class SelectionCommands {
 
         // Special syntax (//expand vert) to expand the selection between
         // sky and bedrock.
-        if (args.getString(0).equalsIgnoreCase("vert")
-                || args.getString(0).equalsIgnoreCase("vertical")) {
+        if (args.getString(0).equalsIgnoreCase("vert") || args.getString(0).equalsIgnoreCase("vertical")) {
             Region region = session.getSelection(player.getWorld());
             try {
                 int oldSize = region.getArea();

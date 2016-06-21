@@ -1,14 +1,15 @@
 package com.boydti.fawe.wrappers;
 
 import com.boydti.fawe.FaweCache;
+import com.boydti.fawe.object.FaweQueue;
 import com.boydti.fawe.object.RunnableVal;
 import com.boydti.fawe.object.changeset.FaweChangeSet;
 import com.boydti.fawe.object.extent.FaweRegionExtent;
-import com.boydti.fawe.object.FaweQueue;
 import com.boydti.fawe.util.MainUtil;
 import com.boydti.fawe.util.TaskManager;
 import com.sk89q.worldedit.BlockVector2D;
 import com.sk89q.worldedit.EditSession;
+import com.sk89q.worldedit.LocalWorld;
 import com.sk89q.worldedit.MaxChangedBlocksException;
 import com.sk89q.worldedit.Vector;
 import com.sk89q.worldedit.Vector2D;
@@ -33,7 +34,7 @@ import java.util.List;
 import java.util.Set;
 import javax.annotation.Nullable;
 
-public class WorldWrapper extends AbstractWorld {
+public class WorldWrapper extends LocalWorld {
 
     private final AbstractWorld parent;
 

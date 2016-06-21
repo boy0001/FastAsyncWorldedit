@@ -83,6 +83,7 @@ public enum BBC {
     BRUSH_GRAVITY("Gravity brush equipped (%s0)", "WorldEdit.Brush"),
     BRUSH_HEIGHT("Height brush equipped (%s0)", "WorldEdit.Brush"),
     BRUSH_COPY("Copy brush equipped (%s0)", "WorldEdit.Brush"),
+    BRUSH_COMMAND("Command brush equipped (%s0)", "WorldEdit.Brush"),
     BRUSH_HEIGHT_INVALID("Invalid height map file (%s0)", "WorldEdit.Brush"),
     BRUSH_SMOOTH("Smooth brush equipped (%s0 x %s1 using %s2).", "WorldEdit.Brush"),
     BRUSH_SPHERE("Sphere brush shape equipped (%s0).", "WorldEdit.Brush"),

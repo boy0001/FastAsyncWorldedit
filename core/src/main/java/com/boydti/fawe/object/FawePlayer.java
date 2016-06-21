@@ -296,6 +296,10 @@ public abstract class FawePlayer<T> {
         this.getSession().setRegionSelector(player.getWorld(), selector);
     }
 
+    public void setSelection(final RegionSelector selector) {
+        this.getSession().setRegionSelector(getPlayer().getWorld(), selector);
+    }
+
     /**
      * Get the largest region in the player's allowed WorldEdit region
      * @return

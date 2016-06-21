@@ -19,6 +19,7 @@
 
 package com.sk89q.worldedit.extension.platform;
 
+import com.boydti.fawe.Fawe;
 import com.boydti.fawe.config.BBC;
 import com.boydti.fawe.object.FawePlayer;
 import com.boydti.fawe.object.changeset.FaweStreamChangeSet;
@@ -114,6 +115,8 @@ public final class CommandManager {
     private final DynamicStreamHandler dynamicHandler = new DynamicStreamHandler();
     private final ExceptionConverter exceptionConverter;
 
+    private static CommandManager INSTANCE;
+
     /**
      * Create a new instance.
      *
@@ -122,6 +125,7 @@ public final class CommandManager {
     public CommandManager(final WorldEdit worldEdit, PlatformManager platformManager) {
         checkNotNull(worldEdit);
         checkNotNull(platformManager);
+        INSTANCE = this;
         this.worldEdit = worldEdit;
         this.platformManager = platformManager;
         this.exceptionConverter = new WorldEditExceptionConverter(worldEdit);
@@ -159,6 +163,10 @@ public final class CommandManager {
         .register(adapt(new ShapedBrushCommand(ProvidedValue.create(new Deform("y+=1", Mode.RAW_COORD), "Lower one block"), "worldedit.brush.lower")), "lower").parent()
         .group("superpickaxe", "pickaxe", "sp").describeAs("Super-pickaxe commands").registerMethods(new SuperPickaxeCommands(worldEdit)).parent().group("tool")
         .describeAs("Bind functions to held items").registerMethods(new ToolCommands(worldEdit)).parent().graph().getDispatcher();
+    }
+
+    public static CommandManager getInstance() {
+        return INSTANCE;
     }
 
     public ExceptionConverter getExceptionConverter() {
@@ -223,7 +231,7 @@ public final class CommandManager {
     @Subscribe
     public void handleCommand(final CommandEvent event) {
         Request.reset();
-        TaskManager.IMP.async(new Runnable() {
+        TaskManager.IMP.taskNow(new Runnable() {
             @Override
             public void run() {
                 final Actor actor = platformManager.createProxyActor(event.getActor());
@@ -309,7 +317,7 @@ public final class CommandManager {
                     }
                 }
             }
-        });
+        }, Fawe.get().isMainThread());
         event.setCancelled(true);
     }
 

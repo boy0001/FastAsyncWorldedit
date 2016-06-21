@@ -24,6 +24,7 @@ import com.boydti.fawe.config.BBC;
 import com.boydti.fawe.config.Settings;
 import com.boydti.fawe.object.FaweLimit;
 import com.boydti.fawe.object.FawePlayer;
+import com.boydti.fawe.object.brush.CommandBrush;
 import com.boydti.fawe.object.brush.CopyBrush;
 import com.boydti.fawe.object.brush.HeightBrush;
 import com.sk89q.minecraft.util.commands.Command;
@@ -136,7 +137,7 @@ public class BrushCommands {
     }
 
     @Command(
-            aliases = { "clipboard", "paste" },
+            aliases = { "clipboard"},
             usage = "",
             desc = "Choose the clipboard brush",
             help =
@@ -272,6 +273,24 @@ public class BrushCommands {
         tool.setSize(radius);
         tool.setBrush(new CopyBrush(player, session, tool), "worldedit.brush.copy");
         BBC.BRUSH_COPY.send(player, radius);
+    }
+
+    @Command(
+            aliases = { "command", "cmd" },
+            usage = "<radius> [cmd1;cmd2...]",
+            desc = "Command brush",
+            help =
+                    "Right click executes the command at the position.\n",
+            min = 2,
+            max = 99
+    )
+    @CommandPermissions("worldedit.brush.copy")
+    public void command(Player player, LocalSession session, EditSession editSession, @Optional("5") double radius, CommandContext args) throws WorldEditException {
+        BrushTool tool = session.getBrushTool(player.getItemInHand());
+        String cmd = args.getJoinedStrings(1);
+        System.out.println(cmd);
+        tool.setBrush(new CommandBrush(player, cmd, radius), "worldedit.brush.copy");
+        BBC.BRUSH_COMMAND.send(player, cmd);
     }
 
     @Command(
