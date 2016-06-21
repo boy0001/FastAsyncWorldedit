@@ -19,13 +19,18 @@
 
 package com.sk89q.worldedit.regions;
 
-import com.sk89q.worldedit.*;
+import com.boydti.fawe.config.Settings;
+import com.sk89q.worldedit.BlockVector;
+import com.sk89q.worldedit.BlockVector2D;
+import com.sk89q.worldedit.LocalWorld;
+import com.sk89q.worldedit.Vector;
+import com.sk89q.worldedit.Vector2D;
 import com.sk89q.worldedit.world.World;
 import com.sk89q.worldedit.world.storage.ChunkStore;
-
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Set;
+
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
@@ -343,6 +348,9 @@ public class CuboidRegion extends AbstractRegion implements FlatRegion {
 
     @Override
     public Iterator<BlockVector> iterator() {
+        if (Settings.COMPRESSION_LEVEL == 9) {
+            return iterator_old();
+        }
         final BlockVector v = new BlockVector(0,0,0);
         return new Iterator<BlockVector>() {
             private Vector min = getMinimumPoint();
