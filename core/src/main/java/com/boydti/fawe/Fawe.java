@@ -175,8 +175,8 @@ public class Fawe {
          * Implementation dependent stuff
          */
         this.setupConfigs();
-        MainUtil.deleteOlder(new File(IMP.getDirectory(), "history"), TimeUnit.DAYS.toMillis(Settings.DELETE_HISTORY_AFTER_DAYS));
-        MainUtil.deleteOlder(new File(IMP.getDirectory(), "clipboard"), TimeUnit.DAYS.toMillis(Settings.DELETE_CLIPBOARD_AFTER_DAYS));
+        MainUtil.deleteOlder(new File(IMP.getDirectory(), "history"), TimeUnit.DAYS.toMillis(Settings.HISTORY.DELETE_AFTER_DAYS));
+        MainUtil.deleteOlder(new File(IMP.getDirectory(), "clipboard"), TimeUnit.DAYS.toMillis(Settings.CLIPBOARD.DELETE_AFTER_DAYS));
 
         TaskManager.IMP = this.IMP.getTaskManager();
         TaskManager.IMP.repeat(timer = new FaweTimer(), 50);
@@ -228,7 +228,9 @@ public class Fawe {
 
     public void setupConfigs() {
         // Setting up config.yml
-        Settings.setup(new File(this.IMP.getDirectory(), "config.yml"));
+        File file = new File(this.IMP.getDirectory(), "config.yml");
+        Settings.load(file);
+        Settings.save(file);
         // Setting up message.yml
         BBC.load(new File(this.IMP.getDirectory(), "message.yml"));
         // Block rotation
@@ -238,10 +240,10 @@ public class Fawe {
             MainUtil.handleError(e);
         }
         File jar = MainUtil.getJarFile();
-        File file = MainUtil.copyFile(jar, "extrablocks.json", null);
-        if (file != null && file.exists()) {
+        File extraBlocks = MainUtil.copyFile(jar, "extrablocks.json", null);
+        if (extraBlocks != null && extraBlocks.exists()) {
             try {
-                BundledBlockData.getInstance().add(file.toURI().toURL(), false);
+                BundledBlockData.getInstance().add(extraBlocks.toURI().toURL(), false);
             } catch (Throwable ignore) {}
         }
     }
@@ -371,7 +373,7 @@ public class Fawe {
     }
 
     private void setupMemoryListener() {
-        if (Settings.MEM_FREE < 1) {
+        if (Settings.MAX_MEMORY_PERCENT < 1) {
             return;
         }
         try {
@@ -393,7 +395,7 @@ public class Fawe {
                     if (max < 0) {
                         continue;
                     }
-                    final long alert = (max * Settings.MEM_FREE) / 100;
+                    final long alert = (max * Settings.MAX_MEMORY_PERCENT) / 100;
                     mp.setUsageThreshold(alert);
 
                 }

@@ -67,7 +67,7 @@ public class SetQueue {
                 if (!MemUtil.isMemoryFree()) {
                     final int mem = MemUtil.calculateMemory();
                     if (mem != Integer.MAX_VALUE) {
-                        if ((mem <= 1) && Settings.ENABLE_HARD_LIMIT) {
+                        if ((mem <= 1) && Settings.CRASH_MITIGATION) {
                             for (FaweQueue queue : getAllQueues()) {
                                 queue.saveMemory();
                             }
@@ -81,7 +81,7 @@ public class SetQueue {
                         return;
                     }
                 }
-                SET_TASK.value1 = Settings.ALLOCATE + 50 + Math.min((50 + SetQueue.this.last) - (SetQueue.this.last = System.currentTimeMillis()), SetQueue.this.secondLast - System.currentTimeMillis());
+                SET_TASK.value1 = Settings.QUEUE.EXTRA_TIME_MS + 50 + Math.min((50 + SetQueue.this.last) - (SetQueue.this.last = System.currentTimeMillis()), SetQueue.this.secondLast - System.currentTimeMillis());
                 SET_TASK.value2 = getNextQueue();
                 if (SET_TASK.value2 == null) {
                     return;
@@ -90,14 +90,14 @@ public class SetQueue {
                     throw new IllegalStateException("This shouldn't be possible for placement to occur off the main thread");
                 }
                 // Disable the async catcher as it can't discern async vs parallel
-                boolean parallel = Settings.PARALLEL_THREADS > 1;
+                boolean parallel = Settings.QUEUE.PARALLEL_THREADS > 1;
                 SET_TASK.value2.startSet(parallel);
                 try {
-                    if (Settings.PARALLEL_THREADS <= 1) {
+                    if (Settings.QUEUE.PARALLEL_THREADS <= 1) {
                         SET_TASK.run();
                     } else {
                         ArrayList<Thread> threads = new ArrayList<Thread>();
-                        for (int i = 0; i < Settings.PARALLEL_THREADS; i++) {
+                        for (int i = 0; i < Settings.QUEUE.PARALLEL_THREADS; i++) {
                             threads.add(new Thread(SET_TASK));
                         }
                         for (Thread thread : threads) {
@@ -188,14 +188,14 @@ public class SetQueue {
             throw new IllegalStateException("Must be flushed on the main thread!");
         }
         // Disable the async catcher as it can't discern async vs parallel
-        boolean parallel = Settings.PARALLEL_THREADS > 1;
+        boolean parallel = Settings.QUEUE.PARALLEL_THREADS > 1;
         SET_TASK.value2.startSet(parallel);
         try {
             if (parallel) {
                 SET_TASK.run();
             } else {
                 ArrayList<Thread> threads = new ArrayList<Thread>();
-                for (int i = 0; i < Settings.PARALLEL_THREADS; i++) {
+                for (int i = 0; i < Settings.QUEUE.PARALLEL_THREADS; i++) {
                     threads.add(new Thread(SET_TASK));
                 }
                 for (Thread thread : threads) {
@@ -240,7 +240,7 @@ public class SetQueue {
                     long age = now - queue.getModified();
                     total += queue.size();
                     if (queue.size() == 0) {
-                        if (age > Settings.QUEUE_DISCARD_AFTER) {
+                        if (age > Settings.QUEUE.DISCARD_AFTER_MS) {
                             iter.remove();
                         }
                         continue;
@@ -248,11 +248,11 @@ public class SetQueue {
                     if (firstNonEmpty == null) {
                         firstNonEmpty = queue;
                     }
-                    if (total > Settings.QUEUE_SIZE) {
+                    if (total > Settings.QUEUE.TARGET_SIZE) {
                         firstNonEmpty.setModified(now);
                         return firstNonEmpty;
                     }
-                    if (age > Settings.QUEUE_MAX_WAIT) {
+                    if (age > Settings.QUEUE.MAX_WAIT_MS) {
                         queue.setModified(now);
                         return queue;
                     }
@@ -277,32 +277,32 @@ public class SetQueue {
         }
         if (inactiveQueues.size() > 0) {
             ArrayList<FaweQueue> tmp = new ArrayList<>(inactiveQueues);
-            if (Settings.QUEUE_MAX_WAIT != -1) {
+            if (Settings.QUEUE.MAX_WAIT_MS != -1) {
                 long now = System.currentTimeMillis();
                 if (lastSuccess == 0) {
                     lastSuccess = now;
                 }
                 long diff = now - lastSuccess;
-                if (diff > Settings.QUEUE_MAX_WAIT) {
+                if (diff > Settings.QUEUE.MAX_WAIT_MS) {
                     for (FaweQueue queue : tmp) {
                         FaweChunk result = queue.next();
                         if (result != null) {
                             return result;
                         }
                     }
-                    if (diff > Settings.QUEUE_DISCARD_AFTER) {
+                    if (diff > Settings.QUEUE.DISCARD_AFTER_MS) {
                         // These edits never finished
                         inactiveQueues.clear();
                     }
                     return null;
                 }
             }
-            if (Settings.QUEUE_SIZE != -1) {
+            if (Settings.QUEUE.TARGET_SIZE != -1) {
                 int total = 0;
                 for (FaweQueue queue : tmp) {
                     total += queue.size();
                 }
-                if (total > Settings.QUEUE_SIZE) {
+                if (total > Settings.QUEUE.TARGET_SIZE) {
                     for (FaweQueue queue : tmp) {
                         FaweChunk result = queue.next();
                         if (result != null) {

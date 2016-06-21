@@ -50,7 +50,7 @@ public abstract class TaskManager {
             return;
         }
         if (numThreads == null) {
-            numThreads = Settings.PARALLEL_THREADS;
+            numThreads = Settings.QUEUE.PARALLEL_THREADS;
         }
         if (numThreads <= 1) {
             for (Runnable run : runnables) {

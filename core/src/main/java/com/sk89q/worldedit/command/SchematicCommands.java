@@ -98,7 +98,7 @@ public class SchematicCommands {
         try {
             if (filename.startsWith("url:")) {
                 UUID uuid = UUID.fromString(filename.substring(4));
-                URL base = new URL(Settings.WEB_URL);
+                URL base = new URL(Settings.WEB.URL);
                 URL url = new URL(base, "uploads/" + uuid + ".schematic");
                 ReadableByteChannel rbc = Channels.newChannel(url.openStream());
                 in = Channels.newInputStream(rbc);

@@ -94,7 +94,7 @@ public class Sniper {
             RegionWrapper[] mask = WEManager.IMP.getMask(fp);
             this.maskQueue = new MaskedFaweQueue(baseQueue, mask);
             com.sk89q.worldedit.world.World worldEditWorld = fp.getWorld();
-            FaweStreamChangeSet changeSet = Settings.STORE_HISTORY_ON_DISK ? new DiskStorageHistory(worldEditWorld, fp.getUUID()) : new MemoryOptimizedHistory(worldEditWorld);
+            FaweStreamChangeSet changeSet = Settings.HISTORY.USE_DISK ? new DiskStorageHistory(worldEditWorld, fp.getUUID()) : new MemoryOptimizedHistory(worldEditWorld);
             this.changeQueue = new ChangeSetFaweQueue(changeSet, maskQueue);
             tmpWorld = new AsyncWorld(player.getWorld(), changeQueue);
         }
@@ -403,7 +403,7 @@ public class Sniper {
             session.remember(changeSet.toEditSession(fp));
             changeQueue.flush();
             com.sk89q.worldedit.world.World worldEditWorld = fp.getWorld();
-            changeQueue.setChangeSet(Settings.STORE_HISTORY_ON_DISK ? new DiskStorageHistory(worldEditWorld, fp.getUUID()) : new MemoryOptimizedHistory(worldEditWorld));
+            changeQueue.setChangeSet(Settings.HISTORY.USE_DISK ? new DiskStorageHistory(worldEditWorld, fp.getUUID()) : new MemoryOptimizedHistory(worldEditWorld));
         }
     }
 

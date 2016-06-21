@@ -25,7 +25,7 @@ public abstract class FaweStreamChangeSet extends FaweChangeSet {
     private final int compression;
 
     public FaweStreamChangeSet(World world) {
-        this(world, Settings.COMPRESSION_LEVEL);
+        this(world, Settings.HISTORY.COMPRESSION_LEVEL);
     }
 
     public FaweStreamChangeSet(World world, int compression) {

@@ -96,7 +96,7 @@ public class FaweFormat implements ClipboardReader, ClipboardWriter {
             case 1: {
                 ox = in.readInt();
                 oz = in.readInt();
-                FaweOutputStream tmp = new FaweOutputStream(new ByteArrayOutputStream(Settings.BUFFER_SIZE));
+                FaweOutputStream tmp = new FaweOutputStream(new ByteArrayOutputStream(Settings.HISTORY.BUFFER_SIZE));
                 int width = 0;
                 int height = 0;
                 int length = 0;

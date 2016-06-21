@@ -90,7 +90,7 @@ public abstract class FawePlayer<T> {
     public FawePlayer(final T parent) {
         this.parent = parent;
         Fawe.get().register(this);
-        if (getSession() == null || getPlayer() == null || session.getSize() != 0 || !Settings.STORE_HISTORY_ON_DISK) {
+        if (getSession() == null || getPlayer() == null || session.getSize() != 0 || !Settings.HISTORY.USE_DISK) {
             return;
         }
         try {
@@ -381,7 +381,7 @@ public abstract class FawePlayer<T> {
      *  - Usually called on logout
      */
     public void unregister() {
-        if (Settings.CLEAN_HISTORY_ON_LOGOUT) {
+        if (Settings.HISTORY.DELETE_ON_LOGOUT) {
             getSession().setClipboard(null);
             getSession().clearHistory();
             WorldEdit.getInstance().removeSession(getPlayer());

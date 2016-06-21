@@ -2,7 +2,6 @@ package com.boydti.fawe.object;
 
 import com.boydti.fawe.Fawe;
 import com.boydti.fawe.config.BBC;
-import com.boydti.fawe.config.Settings;
 import com.boydti.fawe.object.exception.FaweException;
 import com.boydti.fawe.util.MainUtil;
 import com.boydti.fawe.util.MemUtil;
@@ -208,7 +207,7 @@ public abstract class FaweQueue {
                         TaskManager.IMP.notify(running);
                     }
                 });
-                TaskManager.IMP.wait(running, Settings.QUEUE_DISCARD_AFTER);
+                TaskManager.IMP.wait(running, 10000);
             }
         }
     }

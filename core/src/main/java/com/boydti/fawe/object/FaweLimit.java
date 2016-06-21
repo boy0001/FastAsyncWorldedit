@@ -8,12 +8,12 @@ import java.util.Map;
  * Created by Jesse on 4/5/2016.
  */
 public class FaweLimit {
-    public int MAX_CHANGES = 50000000;
-    public int MAX_FAILS = 50000000;
-    public int MAX_CHECKS = 50000000;
-    public int MAX_ITERATIONS = 1000;
-    public int MAX_BLOCKSTATES = 1337;
-    public int MAX_ENTITIES = 1337;
+    public int MAX_CHANGES = 0;
+    public int MAX_FAILS = 0;
+    public int MAX_CHECKS = 0;
+    public int MAX_ITERATIONS = 0;
+    public int MAX_BLOCKSTATES = 0;
+    public int MAX_ENTITIES = 0;
 
     public static FaweLimit MAX;
     static {

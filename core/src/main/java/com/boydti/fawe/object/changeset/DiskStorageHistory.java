@@ -63,8 +63,6 @@ public class DiskStorageHistory extends FaweStreamChangeSet {
     // Entity Create To
     private NBTOutputStream osENTCT;
 
-    private World world;
-
     public void deleteFiles() {
         bdFile.delete();
         nbtfFile.delete();
@@ -89,18 +87,17 @@ public class DiskStorageHistory extends FaweStreamChangeSet {
                 }
             }
         }
-        init(world, uuid, ++max);
+        init(uuid, ++max);
     }
 
     public DiskStorageHistory(World world, UUID uuid, int index) {
         super(world);
-        init(world, uuid, index);
+        init(uuid, index);
     }
 
-    private void init(World world, UUID uuid, int i) {
+    private void init(UUID uuid, int i) {
         this.uuid = uuid;
-        this.world = world;
-        String base = "history" + File.separator + world.getName() + File.separator + uuid;
+        String base = "history" + File.separator + getWorld().getName() + File.separator + uuid;
         base += File.separator + i;
         nbtfFile = new File(Fawe.imp().getDirectory(), base + ".nbtf");
         nbttFile = new File(Fawe.imp().getDirectory(), base + ".nbtt");
@@ -271,45 +268,45 @@ public class DiskStorageHistory extends FaweStreamChangeSet {
         if (summary != null) {
             return summary;
         }
-        if (bdFile.exists()) {
-            int ox = getOriginX();
-            int oz = getOriginZ();
-            if ((ox != 0 || oz != 0) && !requiredRegion.isIn(ox, oz)) {
-                return summary = new DiskStorageSummary(ox, oz);
-            }
-            try (FileInputStream fis = new FileInputStream(bdFile)) {
-                FaweInputStream gis = MainUtil.getCompressedIS(fis);
-                // skip mode
-                gis.skip(1);
-                // origin
-                ox = ((gis.read() << 24) + (gis.read() << 16) + (gis.read() << 8) + (gis.read() << 0));
-                oz = ((gis.read() << 24) + (gis.read() << 16) + (gis.read() << 8) + (gis.read() << 0));
-                setOrigin(ox, oz);
-                summary = new DiskStorageSummary(ox, oz);
-                if (!requiredRegion.isIn(ox, oz)) {
-                    fis.close();
-                    gis.close();
-                    return summary;
+            if (bdFile.exists()) {
+                int ox = getOriginX();
+                int oz = getOriginZ();
+                if ((ox != 0 || oz != 0) && !requiredRegion.isIn(ox, oz)) {
+                    return summary = new DiskStorageSummary(ox, oz);
                 }
-                byte[] buffer = new byte[9];
-                int i = 0;
-                int amount = (Settings.BUFFER_SIZE - HEADER_SIZE) / 9;
-                while (!shallow && ++i < amount) {
-                    if (gis.read(buffer) == -1) {
+                try (FileInputStream fis = new FileInputStream(bdFile)) {
+                    FaweInputStream gis = MainUtil.getCompressedIS(fis);
+                    // skip mode
+                    gis.skip(1);
+                    // origin
+                    ox = ((gis.read() << 24) + (gis.read() << 16) + (gis.read() << 8) + (gis.read() << 0));
+                    oz = ((gis.read() << 24) + (gis.read() << 16) + (gis.read() << 8) + (gis.read() << 0));
+                    setOrigin(ox, oz);
+                    summary = new DiskStorageSummary(ox, oz);
+                    if (!requiredRegion.isIn(ox, oz)) {
                         fis.close();
                         gis.close();
                         return summary;
                     }
-                    int x = ((byte) buffer[0] & 0xFF) + ((byte) buffer[1] << 8) + ox;
-                    int z = ((byte) buffer[2] & 0xFF) + ((byte) buffer[3] << 8) + oz;
-                    int combined1 = buffer[7] & 0xFF;
-                    int combined2 = buffer[8] & 0xFF;
-                    summary.add(x, z, ((combined2 << 4) + (combined1 >> 4)));
+                    byte[] buffer = new byte[9];
+                    int i = 0;
+                    int amount = (Settings.HISTORY.BUFFER_SIZE - HEADER_SIZE) / 9;
+                    while (!shallow && ++i < amount) {
+                        if (gis.read(buffer) == -1) {
+                            fis.close();
+                            gis.close();
+                            return summary;
+                        }
+                        int x = ((byte) buffer[0] & 0xFF) + ((byte) buffer[1] << 8) + ox;
+                        int z = ((byte) buffer[2] & 0xFF) + ((byte) buffer[3] << 8) + oz;
+                        int combined1 = buffer[7] & 0xFF;
+                        int combined2 = buffer[8] & 0xFF;
+                        summary.add(x, z, ((combined2 << 4) + (combined1 >> 4)));
+                    }
+                } catch (IOException e) {
+                    MainUtil.handleError(e);
                 }
-            } catch (IOException e) {
-                MainUtil.handleError(e);
             }
-        }
         return summary;
     }
 

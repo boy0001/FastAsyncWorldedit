@@ -84,12 +84,12 @@ public class MainUtil {
     }
 
     public static FaweOutputStream getCompressedOS(OutputStream os) throws IOException {
-        return getCompressedOS(os, Settings.COMPRESSION_LEVEL);
+        return getCompressedOS(os, Settings.HISTORY.COMPRESSION_LEVEL);
     }
 
     public static FaweOutputStream getCompressedOS(OutputStream os, int amount) throws IOException {
         os.write((byte) amount);
-        os = new BufferedOutputStream(os, Settings.BUFFER_SIZE);
+        os = new BufferedOutputStream(os, Settings.HISTORY.BUFFER_SIZE);
         if (amount == 0) {
             return new FaweOutputStream(os);
         }
@@ -100,18 +100,18 @@ public class MainUtil {
         LZ4Factory factory = LZ4Factory.fastestInstance();
         int fastAmount = 1 + ((amount - 1) % 3);
         for (int i = 0; i < fastAmount; i++) {
-            os = new LZ4OutputStream(os, Settings.BUFFER_SIZE, factory.fastCompressor());
+            os = new LZ4OutputStream(os, Settings.HISTORY.BUFFER_SIZE, factory.fastCompressor());
         }
         int highAmount = amount > 3 ? 1 : 0;
         for (int i = 0; i < highAmount; i++) {
-            os = new LZ4OutputStream(os, Settings.BUFFER_SIZE, factory.highCompressor());
+            os = new LZ4OutputStream(os, Settings.HISTORY.BUFFER_SIZE, factory.highCompressor());
         }
         return new FaweOutputStream(os);
     }
 
     public static FaweInputStream getCompressedIS(InputStream is) throws IOException {
         int amount = is.read();
-        is = new BufferedInputStream(is, Settings.BUFFER_SIZE);
+        is = new BufferedInputStream(is, Settings.HISTORY.BUFFER_SIZE);
         if (amount == 0) {
             return new FaweInputStream(is);
         }
@@ -136,15 +136,15 @@ public class MainUtil {
         final String website;
         if (uuid == null) {
             uuid = UUID.randomUUID();
-            website = Settings.WEB_URL + "upload.php?" + uuid;
+            website = Settings.WEB.URL + "upload.php?" + uuid;
             filename = "plot." + extension;
         } else {
-            website = Settings.WEB_URL  + "save.php?" + uuid;
+            website = Settings.WEB.URL  + "save.php?" + uuid;
             filename = file + '.' + extension;
         }
         final URL url;
         try {
-            url = new URL(Settings.WEB_URL  + "?key=" + uuid + "&type=" + extension);
+            url = new URL(Settings.WEB.URL  + "?key=" + uuid + "&type=" + extension);
             String boundary = Long.toHexString(System.currentTimeMillis());
             URLConnection con = new URL(website).openConnection();
             con.setDoOutput(true);

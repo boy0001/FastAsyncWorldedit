@@ -63,7 +63,7 @@ public class DiskOptimizedClipboard extends FaweClipboard {
         entities = new HashSet<>();this.buffer = new byte[2];
         this.file = file;
         this.lastAccessed = System.currentTimeMillis();
-        this.raf = new BufferedRandomAccessFile(file, "rw", Settings.BUFFER_SIZE);
+        this.raf = new BufferedRandomAccessFile(file, "rw", Settings.HISTORY.BUFFER_SIZE);
         raf.setLength(file.length());
         long size = (raf.length() - HEADER_SIZE) >> 1;
         raf.seek(2);
@@ -176,7 +176,7 @@ public class DiskOptimizedClipboard extends FaweClipboard {
             close();
         }
         lastAccessed = System.currentTimeMillis();
-        this.raf = new BufferedRandomAccessFile(file, "rw", Settings.BUFFER_SIZE);
+        this.raf = new BufferedRandomAccessFile(file, "rw", Settings.HISTORY.BUFFER_SIZE);
         long size = width * height * length * 2l + HEADER_SIZE;
         if (raf.length() != size) {
             raf.setLength(size);

@@ -214,7 +214,7 @@ public class FaweAPI {
         if (!file.getName().toLowerCase().endsWith(".bd")) {
             throw new IllegalArgumentException("Not a BD file!");
         }
-        if (Settings.STORE_HISTORY_ON_DISK) {
+        if (Settings.HISTORY.USE_DISK) {
             throw new IllegalArgumentException("History on disk not enabled!");
         }
         String[] path = file.getPath().split(File.separator);

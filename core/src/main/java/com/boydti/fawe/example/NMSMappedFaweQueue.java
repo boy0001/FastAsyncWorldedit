@@ -19,7 +19,7 @@ public abstract class NMSMappedFaweQueue<WORLD, CHUNK, CHUNKSECTION, SECTION> ex
     @Override
     public void sendChunk(final FaweChunk fc, RelightMode mode) {
         if (mode == null) {
-            mode = Settings.FIX_ALL_LIGHTING ? FaweQueue.RelightMode.OPTIMAL : FaweQueue.RelightMode.MINIMAL;
+            mode = Settings.LIGHTING.FIX_ALL ? FaweQueue.RelightMode.OPTIMAL : FaweQueue.RelightMode.MINIMAL;
         }
         final RelightMode finalMode = mode;
         TaskManager.IMP.taskSyncSoon(new Runnable() {
@@ -37,7 +37,7 @@ public abstract class NMSMappedFaweQueue<WORLD, CHUNK, CHUNKSECTION, SECTION> ex
                     }
                 }, false);
             }
-        }, Settings.ASYNC_LIGHTING);
+        }, Settings.LIGHTING.ASYNC);
     }
 
     public abstract void refreshChunk(WORLD world, CHUNK chunk);

@@ -195,8 +195,8 @@ public class FaweBukkit implements IFawe, Listener {
 //            ignore.printStackTrace();
         }
         // Disable incompatible settings
-        Settings.PARALLEL_THREADS = 1; // BukkitAPI placer is too slow to parallel thread at the chunk level
-        Settings.COMBINE_HISTORY_STAGE = false; // Performing a chunk copy (if possible) wouldn't be faster using the BukkitAPI
+        Settings.QUEUE.PARALLEL_THREADS = 1; // BukkitAPI placer is too slow to parallel thread at the chunk level
+        Settings.HISTORY.COMBINE_STAGES = false; // Performing a chunk copy (if possible) wouldn't be faster using the BukkitAPI
         if (hasNMS) {
             debug("====== NO NMS BLOCK PLACER FOUND ======");
             debug("FAWE couldn't find a fast block placer");
@@ -321,7 +321,7 @@ public class FaweBukkit implements IFawe, Listener {
     public void onPlayerChangedWorld(PlayerChangedWorldEvent event) {
         Player player = event.getPlayer();
         FawePlayer fp = FawePlayer.wrap(player);
-        if (Settings.STORE_HISTORY_ON_DISK) {
+        if (Settings.HISTORY.USE_DISK) {
             fp.getSession().clearHistory();
             fp.loadSessionsFromDisk(fp.getWorld());
         }

@@ -97,7 +97,7 @@ public class MemoryOptimizedHistory extends FaweStreamChangeSet {
             return idsStreamZip;
         }
         setOrigin(x, z);
-        idsStream = new ByteArrayOutputStream(Settings.BUFFER_SIZE);
+        idsStream = new ByteArrayOutputStream(Settings.HISTORY.BUFFER_SIZE);
         idsStreamZip = getCompressedOS(idsStream);
         idsStreamZip.write(FaweStreamChangeSet.MODE);
         idsStreamZip.writeInt(x);
@@ -117,7 +117,7 @@ public class MemoryOptimizedHistory extends FaweStreamChangeSet {
         if (entCStreamZip != null) {
             return entCStreamZip;
         }
-        entCStream = new ByteArrayOutputStream(Settings.BUFFER_SIZE);
+        entCStream = new ByteArrayOutputStream(Settings.HISTORY.BUFFER_SIZE);
         return entCStreamZip = new NBTOutputStream(getCompressedOS(entCStream));
     }
 
@@ -126,7 +126,7 @@ public class MemoryOptimizedHistory extends FaweStreamChangeSet {
         if (entRStreamZip != null) {
             return entRStreamZip;
         }
-        entRStream = new ByteArrayOutputStream(Settings.BUFFER_SIZE);
+        entRStream = new ByteArrayOutputStream(Settings.HISTORY.BUFFER_SIZE);
         return entRStreamZip = new NBTOutputStream(getCompressedOS(entRStream));
     }
 
@@ -135,7 +135,7 @@ public class MemoryOptimizedHistory extends FaweStreamChangeSet {
         if (tileCStreamZip != null) {
             return tileCStreamZip;
         }
-        tileCStream = new ByteArrayOutputStream(Settings.BUFFER_SIZE);
+        tileCStream = new ByteArrayOutputStream(Settings.HISTORY.BUFFER_SIZE);
         return tileCStreamZip = new NBTOutputStream(getCompressedOS(tileCStream));
     }
 
@@ -144,7 +144,7 @@ public class MemoryOptimizedHistory extends FaweStreamChangeSet {
         if (tileRStreamZip != null) {
             return tileRStreamZip;
         }
-        tileRStream = new ByteArrayOutputStream(Settings.BUFFER_SIZE);
+        tileRStream = new ByteArrayOutputStream(Settings.HISTORY.BUFFER_SIZE);
         return tileRStreamZip = new NBTOutputStream(getCompressedOS(tileRStream));
     }
 

@@ -17,9 +17,9 @@ public class BukkitQueue_All extends BukkitQueue_0<Chunk, Chunk, Chunk> {
 
     public BukkitQueue_All(String world) {
         super(world);
-        if (Settings.ALLOCATE != Integer.MIN_VALUE) {
-            ALLOCATE = Settings.ALLOCATE;
-            Settings.ALLOCATE = Integer.MIN_VALUE;
+        if (Settings.QUEUE.EXTRA_TIME_MS != Integer.MIN_VALUE) {
+            ALLOCATE = Settings.QUEUE.EXTRA_TIME_MS;
+            Settings.QUEUE.EXTRA_TIME_MS = Integer.MIN_VALUE;
         }
     }
 

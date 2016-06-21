@@ -194,10 +194,10 @@ public class EditSession implements Extent {
         }
         this.player = player;
         if (changeSet == null) {
-            if (Settings.STORE_HISTORY_ON_DISK) {
+            if (Settings.HISTORY.USE_DISK) {
                 UUID uuid = player == null ? CONSOLE : player.getUUID();
                 changeSet = new DiskStorageHistory(world, uuid);
-            } else if (Settings.COMBINE_HISTORY_STAGE && Settings.COMPRESSION_LEVEL == 0) {
+            } else if (Settings.HISTORY.COMBINE_STAGES && Settings.HISTORY.COMPRESSION_LEVEL == 0) {
                 changeSet = new CPUOptimizedChangeSet(world);
             } else {
                 changeSet = new MemoryOptimizedHistory(world);
@@ -223,7 +223,7 @@ public class EditSession implements Extent {
         }
         if (fastmode == null) {
             if (player == null) {
-                fastmode = Settings.CONSOLE_HISTORY;
+                fastmode = Settings.HISTORY.ENABLE_FOR_CONSOLE;
             } else {
                 fastmode = player.getSession().hasFastMode();
             }
@@ -232,7 +232,7 @@ public class EditSession implements Extent {
             checkMemory = player != null && !fastmode;
         }
         if (combineStages == null) {
-            combineStages = Settings.COMBINE_HISTORY_STAGE;
+            combineStages = Settings.HISTORY.COMBINE_STAGES;
         }
         if (checkMemory) {
             if (MemUtil.isMemoryLimitedSlow()) {
@@ -363,12 +363,12 @@ public class EditSession implements Extent {
         final Extent toReturn = event.getExtent();
         if (toReturn != extent) {
             String className = toReturn.getClass().getName().toLowerCase();
-            for (String allowed : Settings.ALLOWED_3RDPARTY_EXTENTS) {
+            for (String allowed : Settings.EXTENT.ALLOWED_PLUGINS) {
                 if (className.contains(allowed.toLowerCase())) {
                     return toReturn;
                 }
             }
-            if (Settings.EXTENT_DEBUG) {
+            if (Settings.EXTENT.DEBUG) {
                 Fawe.debug("&cPotentially inefficient WorldEdit extent: " + toReturn.getClass().getName());
                 Fawe.debug("&8 - &7For area restrictions, it is recommended to use the FaweAPI");
                 Fawe.debug("&8 - &7To allow this plugin add it to the FAWE `allowed-plugins` list");
@@ -1030,7 +1030,7 @@ public class EditSession implements Extent {
             queue.dequeue();
         }
         if (getChangeSet() != null) {
-            if (Settings.COMBINE_HISTORY_STAGE && queue.size() > 0) {
+            if (Settings.HISTORY.COMBINE_STAGES && queue.size() > 0) {
                 if (Fawe.get().isMainThread()) {
                     SetQueue.IMP.flush(queue);
                 } else {
@@ -1041,7 +1041,7 @@ public class EditSession implements Extent {
                             TaskManager.IMP.notify(running);
                         }
                     });
-                    TaskManager.IMP.wait(running, Settings.QUEUE_DISCARD_AFTER);
+                    TaskManager.IMP.wait(running, Settings.QUEUE.DISCARD_AFTER_MS);
                 }
             }
             ((FaweChangeSet) getChangeSet()).flush();

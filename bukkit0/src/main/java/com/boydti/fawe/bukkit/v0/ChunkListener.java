@@ -18,8 +18,8 @@ public class ChunkListener implements Listener {
             @Override
             public void run() {
                 physicsFreeze = false;
-                physicsLimit = Settings.PHYSICS_PER_TICK;
-                itemLimit = Settings.ITEMS_PER_TICK;
+                physicsLimit = Settings.TICK_LIMITER.PHYSICS;
+                itemLimit = Settings.TICK_LIMITER.PHYSICS;
             }
         }, 1);
     }

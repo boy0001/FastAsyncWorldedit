@@ -1,7 +1,6 @@
 package com.boydti.fawe.bukkit.v0;
 
 import com.boydti.fawe.FaweCache;
-import com.boydti.fawe.config.Settings;
 import com.boydti.fawe.example.CharFaweChunk;
 import com.boydti.fawe.object.FaweQueue;
 import com.boydti.fawe.util.MainUtil;
@@ -108,7 +107,7 @@ public class BukkitChunk_All extends CharFaweChunk<Chunk> {
                     continue;
                 }
                 boolean checkTime = !((getAir(layer) == 4096 || (getCount(layer) == 4096 && getAir(layer) == 0) || (getCount(layer) == getAir(layer))) && getRelight(layer) == 0);
-                if (!checkTime || Settings.PARALLEL_THREADS > 1) {
+                if (!checkTime) {
                     ArrayList<Thread> threads = new ArrayList<Thread>();
                     for (int k = 0; k < 16; k++) {
                         final int l = k << 8;

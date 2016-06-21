@@ -64,14 +64,17 @@ public class Config {
                     if (field.getAnnotation(Final.class) != null) {
                         return;
                     }
+                    if (field.getType() == String.class && !(value instanceof String)) {
+                        value = value + "";
+                    }
                     field.set(instance, value);
                     return;
-                } catch (IllegalAccessException e) {
+                } catch (Throwable e) {
                     e.printStackTrace();
                 }
             }
         }
-        Fawe.debug("Failed to set config option: " + key + ": " + value + " | " + instance);
+        Fawe.debug("Failed to set config option: " + key + ": " + value + " | " + instance + " | " + root.getSimpleName() + ".yml");
     }
 
     public static boolean load(File file, Class root) {

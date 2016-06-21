@@ -202,7 +202,7 @@ public class LocalSession {
         }
         // It should have already been flushed, but just in case!
         editSession.flushQueue();
-        if (Settings.STORE_HISTORY_ON_DISK) {
+        if (Settings.HISTORY.USE_DISK) {
             MAX_HISTORY_SIZE = Integer.MAX_VALUE;
         } else if (MAX_HISTORY_SIZE == Integer.MAX_VALUE) {
             MAX_HISTORY_SIZE = 15;

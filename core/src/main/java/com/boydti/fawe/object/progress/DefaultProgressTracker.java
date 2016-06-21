@@ -64,7 +64,7 @@ public class DefaultProgressTracker extends RunnableVal2<FaweQueue.ProgressType,
     private final void send() {
         // Avoid duplicates
         long currentTick = System.currentTimeMillis() / 50;
-        if (currentTick > lastTick + Settings.DISPLAY_PROGRESS_INTERVAL) {
+        if (currentTick > lastTick + Settings.QUEUE.PROGRESS.INTERVAL) {
             lastTick = currentTick;
             TaskManager.IMP.task(new Runnable() { // Run on main thread
                 @Override
