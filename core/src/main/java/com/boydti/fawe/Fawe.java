@@ -17,6 +17,7 @@ import com.boydti.fawe.util.MemUtil;
 import com.boydti.fawe.util.TaskManager;
 import com.boydti.fawe.util.WEManager;
 import com.boydti.fawe.util.WESubscriber;
+import com.intellectualcrafters.plot.util.StringMan;
 import com.sk89q.worldedit.CuboidClipboard;
 import com.sk89q.worldedit.EditSession;
 import com.sk89q.worldedit.LocalSession;
@@ -229,6 +230,8 @@ public class Fawe {
     public void setupConfigs() {
         // Setting up config.yml
         File file = new File(this.IMP.getDirectory(), "config.yml");
+        Settings.VERSION = StringMan.join(IMP.getVersion(), ".");
+        Settings.PLATFORM = IMP.getPlatform();
         Settings.load(file);
         Settings.save(file);
         // Setting up message.yml

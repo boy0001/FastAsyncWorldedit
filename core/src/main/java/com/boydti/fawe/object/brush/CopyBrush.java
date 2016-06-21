@@ -59,12 +59,17 @@ public class CopyBrush implements Brush {
                 return false;
             }
         };
+        // Add origin
+        mask.test(position);
+
         RecursiveVisitor visitor = new RecursiveVisitor(mask, new NullRegionFunction());
         visitor.visit(position);
         Operations.completeBlindly(visitor);
-        // To clipboard
+        // Build the clipboard
         Clipboard clipboard = builder.build();
-        session.setClipboard(new ClipboardHolder(clipboard, editSession.getWorld().getWorldData()));
+        clipboard.setOrigin(position);
+        ClipboardHolder holder = new ClipboardHolder(clipboard, editSession.getWorld().getWorldData());
+        session.setClipboard(holder);
         int blocks = builder.size();
         BBC.COMMAND_COPY.send(player, blocks);
     }
