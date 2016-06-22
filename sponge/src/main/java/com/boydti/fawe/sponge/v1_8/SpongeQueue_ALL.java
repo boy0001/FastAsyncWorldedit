@@ -236,7 +236,7 @@ public class SpongeQueue_ALL extends NMSMappedFaweQueue<World, net.minecraft.wor
     @Override
     public boolean setComponents(FaweChunk fc, RunnableVal<FaweChunk> changeTask) {
         if (changeTask != null) {
-            Settings.COMBINE_HISTORY_STAGE = false;
+            Settings.HISTORY.COMBINE_STAGES = false;
             throw new UnsupportedOperationException("Combine stages not supported");
         }
         SpongeChunk_1_8 fs = (SpongeChunk_1_8) fc;
@@ -296,7 +296,7 @@ public class SpongeQueue_ALL extends NMSMappedFaweQueue<World, net.minecraft.wor
 
     @Override
     public CharFaweChunk getPrevious(CharFaweChunk fs, ExtendedBlockStorage[] sections, Map<?, ?> tilesGeneric, Collection<?>[] entitiesGeneric, Set<UUID> createdEntities, boolean all) throws Exception {
-        Settings.COMBINE_HISTORY_STAGE = false;
+        Settings.HISTORY.COMBINE_STAGES = false;
         throw new UnsupportedOperationException("Combine stages not supported");
     }
 

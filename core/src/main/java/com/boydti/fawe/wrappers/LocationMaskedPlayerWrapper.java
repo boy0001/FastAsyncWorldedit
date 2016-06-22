@@ -36,7 +36,6 @@ public class LocationMaskedPlayerWrapper extends PlayerWrapper {
 
     @Override
     public void setPosition(Vector pos, float pitch, float yaw) {
-        System.out.println("SET POSITION");
         this.position = pos;
     }
 }

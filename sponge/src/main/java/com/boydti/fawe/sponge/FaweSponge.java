@@ -111,7 +111,7 @@ public class FaweSponge implements IFawe {
 
     @Override
     public FaweQueue getNewQueue(String world, boolean fast) {
-        if (fast || Settings.COMBINE_HISTORY_STAGE) {
+        if (fast || Settings.HISTORY.COMBINE_STAGES) {
             try {
                 return new SpongeQueue_1_8(world);
             } catch (Throwable e) {

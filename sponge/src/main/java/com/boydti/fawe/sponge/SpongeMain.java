@@ -64,7 +64,7 @@ public class SpongeMain {
 
     @Listener
     public void onMove(DisplaceEntityEvent.TargetPlayer event) {
-        if (Settings.STORE_HISTORY_ON_DISK) {
+        if (Settings.HISTORY.USE_DISK) {
             World from = event.getFromTransform().getExtent();
             World to = event.getToTransform().getExtent();
             if (!from.equals(to)) {

@@ -67,7 +67,7 @@ public class ForgeMain {
         FawePlayer fp = FawePlayer.wrap(player);
         if (fp.getMeta("lastWorld") != event.world) {
             fp.setMeta("lastWorld", event.world);
-            if (Settings.STORE_HISTORY_ON_DISK) {
+            if (Settings.HISTORY.USE_DISK) {
                 fp.getSession().clearHistory();
                 fp.loadSessionsFromDisk(fp.getWorld());
             }
