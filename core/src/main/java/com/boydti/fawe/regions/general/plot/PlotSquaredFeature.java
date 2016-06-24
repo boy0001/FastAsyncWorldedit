@@ -63,12 +63,14 @@ public class PlotSquaredFeature extends FaweMaskManager {
     @Override
     public FaweMask getMask(FawePlayer fp) {
         final PlotPlayer pp = PlotPlayer.wrap((Player) fp.parent);
-        final HashSet<RegionWrapper> regions = WEManager.getMask(pp);
+        final HashSet<RegionWrapper> regions;
+        Plot plot = pp.getCurrentPlot();
+        if (plot != null && (plot.isOwner(pp.getUUID()) || plot.getTrusted().contains(pp.getUUID()) || (plot.getMembers().contains(pp.getUUID()) && pp.hasPermission("fawe.plotsquared.member")))) {
+            regions = plot.getRegions();
+        } else {
+            regions = WEManager.getMask(pp);
+        }
         if (regions.size() == 0) {
-            Plot plot = pp.getCurrentPlot();
-            if (plot != null && plot.isOwner(pp.getUUID())) {
-                System.out.println("INVALID MASK? " + WEManager.getMask(pp) + " | " + plot + " | " + pp.getName());
-            }
             return null;
         }
         final HashSet<com.boydti.fawe.object.RegionWrapper> faweRegions = new HashSet<>();

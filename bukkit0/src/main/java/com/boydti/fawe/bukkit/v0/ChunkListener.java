@@ -18,8 +18,9 @@ public class ChunkListener implements Listener {
             @Override
             public void run() {
                 physicsFreeze = false;
+                itemFreeze = false;
                 physicsLimit = Settings.TICK_LIMITER.PHYSICS;
-                itemLimit = Settings.TICK_LIMITER.PHYSICS;
+                itemLimit = Settings.TICK_LIMITER.ITEMS;
             }
         }, 1);
     }
@@ -27,6 +28,7 @@ public class ChunkListener implements Listener {
     private int physicsLimit = Integer.MAX_VALUE;
     private int itemLimit = Integer.MAX_VALUE;
     public static boolean physicsFreeze = false;
+    public static boolean itemFreeze = false;
 
     @EventHandler(priority = EventPriority.LOWEST)
     public void onPhysics(BlockPhysicsEvent event) {
@@ -42,7 +44,7 @@ public class ChunkListener implements Listener {
         if (physicsFreeze) {
             event.setCancelled(true);
         } else if (itemLimit-- < 0) {
-            physicsFreeze = true;
+            event.setCancelled(true);
         }
     }
 }

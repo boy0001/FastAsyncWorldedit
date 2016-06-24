@@ -193,13 +193,15 @@ public class BukkitQueue_1_10 extends BukkitQueue_0<Chunk, ChunkSection[], DataP
         try {
             CharFaweChunk bc = (CharFaweChunk) pc;
             Chunk chunk = (Chunk) bc.getChunk();
+            boolean async = Fawe.get().getMainThread() != Thread.currentThread();
             if (!chunk.isLoaded()) {
-                if (Fawe.get().getMainThread() != Thread.currentThread()) {
+                if (async) {
                     return false;
                 }
                 chunk.load(false);
             }
             net.minecraft.server.v1_10_R1.Chunk c = ((CraftChunk) chunk).getHandle();
+            c.e(false);
             final boolean flag = chunk.getWorld().getEnvironment() == Environment.NORMAL;
             ChunkSection[] sections = c.getSections();
             if (mode == RelightMode.ALL) {
@@ -271,6 +273,7 @@ public class BukkitQueue_1_10 extends BukkitQueue_0<Chunk, ChunkSection[], DataP
                             continue;
                         }
                         pos.c(X + x, y, Z + z);
+                        if (async && !chunk.isLoaded()) return false;
                         w.w(pos);
                     }
                     continue;
@@ -311,6 +314,7 @@ public class BukkitQueue_1_10 extends BukkitQueue_0<Chunk, ChunkSection[], DataP
                                 continue;
                             }
                             pos.c(X + x, y, Z + z);
+                            if (async && !chunk.isLoaded()) return false;
                             w.w(pos);
                     }
                 }

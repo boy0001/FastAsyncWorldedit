@@ -40,7 +40,7 @@ public class CommandBrush implements Brush {
         if (face == null) {
             position = position.add(0, 1, 1);
         } else {
-            position = face;
+            position = face.getFaceVector();
         }
         FawePlayer<Object> fp = FawePlayer.wrap(player);
         fp.deleteMeta("fawe_action");
