@@ -9,6 +9,7 @@ import com.sk89q.worldedit.extent.Extent;
 import com.sk89q.worldedit.extent.clipboard.BlockArrayClipboard;
 import com.sk89q.worldedit.extent.clipboard.Clipboard;
 import com.sk89q.worldedit.extent.clipboard.io.ClipboardFormat;
+import com.sk89q.worldedit.extent.clipboard.io.ClipboardWriter;
 import com.sk89q.worldedit.extent.transform.BlockTransformExtent;
 import com.sk89q.worldedit.function.mask.ExistingBlockMask;
 import com.sk89q.worldedit.function.operation.ForwardExtentCopy;
@@ -21,6 +22,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import javax.annotation.Nullable;
+
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
@@ -75,7 +77,9 @@ public class Schematic {
     public void save(OutputStream stream, ClipboardFormat format) throws IOException {
         checkNotNull(stream);
         checkNotNull(format);
-        format.getWriter(stream).write(clipboard, clipboard.getRegion().getWorld().getWorldData());
+        try (ClipboardWriter writer = format.getWriter(stream)) {
+            writer.write(clipboard, clipboard.getRegion().getWorld().getWorldData());
+        }
     }
 
     /**
