@@ -191,7 +191,7 @@ public class SetQueue {
         boolean parallel = Settings.QUEUE.PARALLEL_THREADS > 1;
         SET_TASK.value2.startSet(parallel);
         try {
-            if (parallel) {
+            if (!parallel) {
                 SET_TASK.run();
             } else {
                 ArrayList<Thread> threads = new ArrayList<Thread>();
