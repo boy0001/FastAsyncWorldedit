@@ -54,8 +54,11 @@ public class HistoryExtent extends AbstractDelegateExtent {
 
     @Override
     public boolean setBlock(final Vector location, final BaseBlock block) throws WorldEditException {
-        int x = location.getBlockX();
         int y = location.getBlockY();
+        if (y > 255 || y < 0) {
+            return false;
+        }
+        int x = location.getBlockX();
         int z = location.getBlockZ();
         int combined = queue.getCombinedId4DataDebug(x, y, z, 0, session);
         int id = (combined >> 4);
