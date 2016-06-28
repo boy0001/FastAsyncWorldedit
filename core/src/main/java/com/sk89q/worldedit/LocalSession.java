@@ -212,7 +212,6 @@ public class LocalSession {
         if (editSession.size() == 0 || editSession.hasFastMode()) {
             return;
         }
-        System.out.println("SIZE: " + historySize + " | " + history.size());
         // Destroy any sessions after this undo point
         if (append) {
             while (historyPointer < history.size()) {
@@ -229,7 +228,7 @@ public class LocalSession {
             history.add(0, editSession);
             historyPointer++;
         }
-        while ((history.size() > MAX_HISTORY_SIZE || historySize > limitMb) && history.size() > 0) {
+        while ((history.size() > MAX_HISTORY_SIZE || historySize < limitMb) && history.size() > 1) {
             EditSession item = history.get(0);
             historySize -= MainUtil.getSizeInMemory(item.getChangeSet());
             history.remove(0);
