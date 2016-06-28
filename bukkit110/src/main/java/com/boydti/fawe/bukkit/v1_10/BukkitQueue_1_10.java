@@ -273,7 +273,6 @@ public class BukkitQueue_1_10 extends BukkitQueue_0<Chunk, ChunkSection[], DataP
                             continue;
                         }
                         pos.c(X + x, y, Z + z);
-                        if (async && !chunk.isLoaded()) return false;
                         w.w(pos);
                     }
                     continue;
@@ -314,7 +313,6 @@ public class BukkitQueue_1_10 extends BukkitQueue_0<Chunk, ChunkSection[], DataP
                                 continue;
                             }
                             pos.c(X + x, y, Z + z);
-                            if (async && !chunk.isLoaded()) return false;
                             w.w(pos);
                     }
                 }

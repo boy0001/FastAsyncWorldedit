@@ -4,19 +4,29 @@ import com.boydti.fawe.Fawe;
 import com.boydti.fawe.example.CharFaweChunk;
 import com.boydti.fawe.example.NMSMappedFaweQueue;
 import com.boydti.fawe.object.FaweChunk;
+import com.boydti.fawe.object.FaweQueue;
+import com.boydti.fawe.util.MathMan;
+import com.boydti.fawe.util.SetQueue;
 import com.sk89q.worldedit.bukkit.WorldEditPlugin;
 import com.sk89q.worldedit.bukkit.adapter.BukkitImplAdapter;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
+import java.util.concurrent.ConcurrentLinkedDeque;
 import org.bukkit.Bukkit;
 import org.bukkit.Chunk;
 import org.bukkit.World;
+import org.bukkit.event.EventHandler;
+import org.bukkit.event.EventPriority;
+import org.bukkit.event.Listener;
+import org.bukkit.event.world.ChunkUnloadEvent;
+import org.bukkit.plugin.Plugin;
 
-public abstract class BukkitQueue_0<CHUNK, CHUNKSECTIONS, SECTION> extends NMSMappedFaweQueue<World, CHUNK, CHUNKSECTIONS, SECTION> {
+public abstract class BukkitQueue_0<CHUNK, CHUNKSECTIONS, SECTION> extends NMSMappedFaweQueue<World, CHUNK, CHUNKSECTIONS, SECTION> implements Listener {
 
     public Object adapter;
     public Method methodToNative;
@@ -25,6 +35,10 @@ public abstract class BukkitQueue_0<CHUNK, CHUNKSECTIONS, SECTION> extends NMSMa
     public BukkitQueue_0(final String world) {
         super(world);
         setupAdapter(null);
+        if (!registered) {
+            registered = true;
+            Bukkit.getServer().getPluginManager().registerEvents(this, (Plugin) Fawe.imp());
+        }
     }
 
     public void checkVersion(String supported) {
@@ -35,34 +49,58 @@ public abstract class BukkitQueue_0<CHUNK, CHUNKSECTIONS, SECTION> extends NMSMa
         }
     }
 
-    public void setupAdapter(BukkitImplAdapter adapter) {
-        try {
-            WorldEditPlugin instance = (WorldEditPlugin) Bukkit.getPluginManager().getPlugin("WorldEdit");
-            Field fieldAdapter = WorldEditPlugin.class.getDeclaredField("bukkitAdapter");
-            fieldAdapter.setAccessible(true);
-            if ((this.adapter = adapter) != null) {
-                fieldAdapter.set(instance, adapter);
-            } else {
-                this.adapter = fieldAdapter.get(instance);
-            }
-            for (Method method : this.adapter.getClass().getDeclaredMethods()) {
-                switch (method.getName()) {
-                    case "toNative":
-                        methodToNative = method;
-                        methodToNative.setAccessible(true);
-                        break;
-                    case "fromNative":
-                        methodFromNative = method;
-                        methodFromNative.setAccessible(true);
-                        break;
+    private static boolean registered = false;
+
+    @EventHandler(ignoreCancelled = true, priority = EventPriority.MONITOR)
+    public static void onChunkUnload(ChunkUnloadEvent event) {
+        ConcurrentLinkedDeque<FaweQueue> queues = SetQueue.IMP.activeQueues;
+        if (queues.isEmpty()) {
+            return;
+        }
+        String world = event.getWorld().getName();
+        Chunk chunk = event.getChunk();
+        long pair = MathMan.pairInt(chunk.getX(), chunk.getZ());
+        for (FaweQueue queue : queues) {
+            if (queue.getWorldName().equals(world)) {
+                HashSet<Long> relighting = ((NMSMappedFaweQueue) queue).relighting;
+                if (!relighting.isEmpty() && relighting.contains(pair)) {
+                    event.setCancelled(true);
+                    return;
                 }
             }
-        } catch (Throwable e) {
-            Fawe.debug("====== NO NATIVE WORLDEDIT ADAPTER ======");
-            Fawe.debug("Try updating WorldEdit: ");
-            Fawe.debug(" - http://builds.enginehub.org/job/worldedit?branch=master");
-            Fawe.debug("See also: http://wiki.sk89q.com/wiki/WorldEdit/Bukkit_adapters");
-            Fawe.debug("=========================================");
+        }
+    }
+
+    public void setupAdapter(BukkitImplAdapter adapter) {
+        if (adapter == null) {
+            try {
+                WorldEditPlugin instance = (WorldEditPlugin) Bukkit.getPluginManager().getPlugin("WorldEdit");
+                Field fieldAdapter = WorldEditPlugin.class.getDeclaredField("bukkitAdapter");
+                fieldAdapter.setAccessible(true);
+                if ((this.adapter = adapter) != null) {
+                    fieldAdapter.set(instance, adapter);
+                } else {
+                    this.adapter = fieldAdapter.get(instance);
+                }
+                for (Method method : this.adapter.getClass().getDeclaredMethods()) {
+                    switch (method.getName()) {
+                        case "toNative":
+                            methodToNative = method;
+                            methodToNative.setAccessible(true);
+                            break;
+                        case "fromNative":
+                            methodFromNative = method;
+                            methodFromNative.setAccessible(true);
+                            break;
+                    }
+                }
+            } catch (Throwable e) {
+                Fawe.debug("====== NO NATIVE WORLDEDIT ADAPTER ======");
+                Fawe.debug("Try updating WorldEdit: ");
+                Fawe.debug(" - http://builds.enginehub.org/job/worldedit?branch=master");
+                Fawe.debug("See also: http://wiki.sk89q.com/wiki/WorldEdit/Bukkit_adapters");
+                Fawe.debug("=========================================");
+            }
         }
     }
 

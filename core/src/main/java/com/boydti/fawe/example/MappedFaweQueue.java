@@ -25,8 +25,8 @@ public abstract class MappedFaweQueue<WORLD, CHUNK, SECTION> extends FaweQueue {
     /**
      * Map of chunks in the queue
      */
-    private ConcurrentHashMap<Long, FaweChunk> blocks = new ConcurrentHashMap<>();
-    private ConcurrentLinkedDeque<FaweChunk> chunks = new ConcurrentLinkedDeque<FaweChunk>() {
+    public ConcurrentHashMap<Long, FaweChunk> blocks = new ConcurrentHashMap<>();
+    public ConcurrentLinkedDeque<FaweChunk> chunks = new ConcurrentLinkedDeque<FaweChunk>() {
         @Override
         public boolean add(FaweChunk o) {
             if (getProgressTask() != null) {
@@ -35,7 +35,7 @@ public abstract class MappedFaweQueue<WORLD, CHUNK, SECTION> extends FaweQueue {
             return super.add(o);
         }
     };
-    private ArrayDeque<Runnable> tasks = new ArrayDeque<>();
+    public ArrayDeque<Runnable> tasks = new ArrayDeque<>();
 
     @Override
     public void optimize() {
