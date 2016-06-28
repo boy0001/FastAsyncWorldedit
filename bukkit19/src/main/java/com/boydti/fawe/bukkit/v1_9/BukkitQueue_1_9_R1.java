@@ -22,6 +22,7 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
@@ -593,8 +594,8 @@ public class BukkitQueue_1_9_R1 extends BukkitQueue_0<Chunk, ChunkSection[], Dat
                 changeTask.run(previous);
             }
             // Trim tiles
-            Set<Entry<BlockPosition, TileEntity>> entryset = tiles.entrySet();
-            Iterator<Map.Entry<BlockPosition, TileEntity>> iterator = entryset.iterator();
+            Iterator<Map.Entry<BlockPosition, TileEntity>> iterator = tiles.entrySet().iterator();
+            HashMap<BlockPosition, TileEntity> toRemove = null;
             while (iterator.hasNext()) {
                 Map.Entry<BlockPosition, TileEntity> tile = iterator.next();
                 BlockPosition pos = tile.getKey();
@@ -608,9 +609,22 @@ public class BukkitQueue_1_9_R1 extends BukkitQueue_0<Chunk, ChunkSection[], Dat
                 }
                 int k = FaweCache.CACHE_J[ly][lx][lz];
                 if (array[k] != 0) {
-                    tile.getValue().invalidateBlockCache();
-                    iterator.remove();
+                    if (toRemove == null) {
+                        toRemove = new HashMap<>();
+                    }
+                    toRemove.put(tile.getKey(), tile.getValue());
                 }
+            }
+            if (toRemove != null) {
+                for (Entry<BlockPosition, TileEntity> entry : toRemove.entrySet()) {
+                    BlockPosition bp = entry.getKey();
+                    TileEntity tile = entry.getValue();
+                    tiles.remove(bp);
+                    tile.y();
+                    nmsWorld.s(bp);
+                    tile.invalidateBlockCache();
+                }
+
             }
             // Set blocks
             for (int j = 0; j < sections.length; j++) {
