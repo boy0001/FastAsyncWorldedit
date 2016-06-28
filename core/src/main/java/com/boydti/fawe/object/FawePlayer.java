@@ -180,7 +180,7 @@ public abstract class FawePlayer<T> {
                         FaweStreamChangeSet set = new DiskStorageHistory(world, uuid, index);
                         EditSession edit = set.toEditSession(FawePlayer.this);
                         if (world.equals(getWorld())) {
-                            session.remember(edit, false, false);
+                            session.remember(edit, false, false, Integer.MAX_VALUE);
                         } else {
                             return;
                         }

@@ -1,6 +1,7 @@
 package com.boydti.fawe.wrappers;
 
 import com.boydti.fawe.Fawe;
+import com.boydti.fawe.object.FawePlayer;
 import com.boydti.fawe.object.RunnableVal;
 import com.boydti.fawe.util.MainUtil;
 import com.boydti.fawe.util.TaskManager;
@@ -205,7 +206,7 @@ public class PlayerWrapper implements Player {
             edit.setBlock(new Vector(x, y - 1, z), new BaseBlock( BlockType.GLASS.getID()));
             LocalSession session = Fawe.get().getWorldEdit().getSession(this);
             if (session != null) {
-                session.remember(edit);
+                session.remember(edit, true, false, FawePlayer.wrap(this).getLimit().MAX_HISTORY);
             }
         } catch (MaxChangedBlocksException e) {
             MainUtil.handleError(e);

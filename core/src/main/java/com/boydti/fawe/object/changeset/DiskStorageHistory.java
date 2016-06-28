@@ -151,6 +151,11 @@ public class DiskStorageHistory extends FaweStreamChangeSet {
     }
 
     @Override
+    public long getSizeInMemory() {
+        return 80;
+    }
+
+    @Override
     public OutputStream getBlockOS(int x, int y, int z) throws IOException {
         if (osBD != null) {
             return osBD;

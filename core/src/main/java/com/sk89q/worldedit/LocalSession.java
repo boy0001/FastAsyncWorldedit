@@ -19,8 +19,9 @@
 
 package com.sk89q.worldedit;
 
-import com.boydti.fawe.config.Settings;
+import com.boydti.fawe.object.FawePlayer;
 import com.boydti.fawe.object.clipboard.DiskOptimizedClipboard;
+import com.boydti.fawe.util.MainUtil;
 import com.sk89q.jchronic.Chronic;
 import com.sk89q.jchronic.Options;
 import com.sk89q.jchronic.utils.Span;
@@ -66,6 +67,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
  */
 public class LocalSession {
 
+    @Deprecated
     public transient static int MAX_HISTORY_SIZE = 15;
 
     // Non-session related fields
@@ -77,6 +79,7 @@ public class LocalSession {
     private transient boolean placeAtPos1 = false;
     private transient List<EditSession> history = Collections.synchronizedList(new LinkedList<EditSession>());
     private transient volatile int historyPointer = 0;
+    private transient volatile long historySize = 0;
     private transient ClipboardHolder clipboard;
     private transient boolean toolControl = true;
     private transient boolean superPickaxe = false;
@@ -184,6 +187,7 @@ public class LocalSession {
     public void clearHistory() {
         history.clear();
         historyPointer = 0;
+        historySize = 0;
     }
 
     /**
@@ -193,31 +197,31 @@ public class LocalSession {
      * @param editSession the edit session
      */
     public void remember(EditSession editSession) {
-        remember(editSession, true, false);
+        FawePlayer fp = editSession.getPlayer();
+        int limit = fp == null ? Integer.MAX_VALUE : fp.getLimit().MAX_HISTORY;
+        remember(editSession, true, false, limit);
     }
 
-    public void remember(final EditSession editSession, final boolean append, final boolean sendMessage) {
-        if (editSession == null || editSession.getChangeSet() == null) {
+    public void remember(final EditSession editSession, final boolean append, final boolean sendMessage, int limitMb) {
+        if (editSession == null || editSession.getChangeSet() == null || limitMb == 0) {
             return;
         }
         // It should have already been flushed, but just in case!
         editSession.flushQueue();
-        if (Settings.HISTORY.USE_DISK) {
-            MAX_HISTORY_SIZE = Integer.MAX_VALUE;
-        } else if (MAX_HISTORY_SIZE == Integer.MAX_VALUE) {
-            MAX_HISTORY_SIZE = 15;
-        }
         // Don't store anything if no changes were made
         if (editSession.size() == 0 || editSession.hasFastMode()) {
             return;
         }
-
+        System.out.println("SIZE: " + historySize + " | " + history.size());
         // Destroy any sessions after this undo point
         if (append) {
             while (historyPointer < history.size()) {
+                EditSession item = history.get(historyPointer);
+                historySize -= MainUtil.getSizeInMemory(item.getChangeSet());
                 history.remove(historyPointer);
             }
         }
+        historySize += MainUtil.getSizeInMemory(editSession.getChangeSet());
         if (append) {
             history.add(editSession);
             historyPointer = history.size();
@@ -225,7 +229,9 @@ public class LocalSession {
             history.add(0, editSession);
             historyPointer++;
         }
-        while (history.size() > MAX_HISTORY_SIZE) {
+        while ((history.size() > MAX_HISTORY_SIZE || historySize > limitMb) && history.size() > 0) {
+            EditSession item = history.get(0);
+            historySize -= MainUtil.getSizeInMemory(item.getChangeSet());
             history.remove(0);
             historyPointer--;
         }

@@ -46,6 +46,8 @@ public abstract class FaweStreamChangeSet extends FaweChangeSet {
 
     public abstract int getCompressedSize();
 
+    public abstract long getSizeInMemory();
+
     public abstract OutputStream getBlockOS(int x, int y, int z) throws IOException;
     public abstract NBTOutputStream getEntityCreateOS() throws IOException;
     public abstract NBTOutputStream getEntityRemoveOS() throws IOException;

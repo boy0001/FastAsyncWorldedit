@@ -8,6 +8,7 @@ import com.boydti.fawe.object.FaweOutputStream;
 import com.boydti.fawe.object.FawePlayer;
 import com.boydti.fawe.object.RegionWrapper;
 import com.boydti.fawe.object.RunnableVal;
+import com.boydti.fawe.object.changeset.CPUOptimizedChangeSet;
 import com.boydti.fawe.object.changeset.FaweStreamChangeSet;
 import com.sk89q.jnbt.CompoundTag;
 import com.sk89q.jnbt.DoubleTag;
@@ -17,6 +18,7 @@ import com.sk89q.jnbt.ListTag;
 import com.sk89q.jnbt.StringTag;
 import com.sk89q.jnbt.Tag;
 import com.sk89q.worldedit.entity.Entity;
+import com.sk89q.worldedit.history.changeset.ChangeSet;
 import com.sk89q.worldedit.util.Location;
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
@@ -85,6 +87,18 @@ public class MainUtil {
 
     public static FaweOutputStream getCompressedOS(OutputStream os) throws IOException {
         return getCompressedOS(os, Settings.HISTORY.COMPRESSION_LEVEL);
+    }
+
+    public static long getSizeInMemory(ChangeSet changeSet) {
+        if (changeSet instanceof FaweStreamChangeSet){
+            return 92 + ((FaweStreamChangeSet) changeSet).getSizeInMemory();
+        } else if (changeSet instanceof CPUOptimizedChangeSet) {
+            return changeSet.size() + 32;
+        } else if (changeSet != null) {
+            return changeSet.size() * 128;
+        } else {
+            return 0;
+        }
     }
 
     public static FaweOutputStream getCompressedOS(OutputStream os, int amount) throws IOException {

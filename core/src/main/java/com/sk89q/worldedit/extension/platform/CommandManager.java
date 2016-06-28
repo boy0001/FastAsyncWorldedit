@@ -299,7 +299,7 @@ public final class CommandManager {
                     if (editSession != null) {
                         editSession.flushQueue();
                         worldEdit.flushBlockBag(actor, editSession);
-                        session.remember(editSession, true, true);
+                        session.remember(editSession);
                         hasSession = editSession.size() > 0;
                     }
                     if (fp != null) {

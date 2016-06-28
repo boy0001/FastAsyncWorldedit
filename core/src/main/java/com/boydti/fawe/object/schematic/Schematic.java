@@ -107,7 +107,9 @@ public class Schematic {
             extent = new BlockTransformExtent(clipboard, transform, world.getWorldData().getBlockRegistry());
         }
         ForwardExtentCopy copy = new ForwardExtentCopy(extent, clipboard.getRegion(), clipboard.getOrigin(), editSession, to);
-        copy.setTransform(transform);
+        if (transform != null) {
+            copy.setTransform(transform);
+        }
         if (!pasteAir) {
             copy.setSourceMask(new ExistingBlockMask(clipboard));
         }

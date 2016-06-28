@@ -2,6 +2,7 @@ package com.boydti.fawe.config;
 
 import com.boydti.fawe.object.FaweLimit;
 import com.boydti.fawe.object.FawePlayer;
+import com.sk89q.worldedit.LocalSession;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -63,6 +64,8 @@ public class Settings extends Config {
                 "NoteBlock, Sign, Skull, Structure"
         })
         public int MAX_BLOCKSTATES = 1337;
+        @Comment("Maximum size of the player's history in Megabytes")
+        public int MAX_HISTORY_MB = 20;
     }
 
     public static class HISTORY {
@@ -211,13 +214,18 @@ public class Settings extends Config {
 
     public static void load(File file) {
         load(file, Settings.class);
+        if (HISTORY.USE_DISK) {
+            LocalSession.MAX_HISTORY_SIZE = Integer.MAX_VALUE;
+        }
     }
 
     public static FaweLimit getLimit(FawePlayer player) {
+        FaweLimit limit;
         if (player.hasWorldEditBypass()) {
-            return FaweLimit.MAX.copy();
+            limit = FaweLimit.MAX.copy();
+        } else {
+            limit = new FaweLimit();
         }
-        FaweLimit limit = new FaweLimit();
         Collection<String> keys = LIMITS.getSections();
         for (String key : keys) {
             if (key.equals("default") || (player != null && player.hasPermission("fawe.limit." + key))) {
@@ -228,6 +236,7 @@ public class Settings extends Config {
                 limit.MAX_ENTITIES = Math.max(limit.MAX_ENTITIES, newLimit.MAX_ENTITIES != -1 ? newLimit.MAX_ENTITIES : Integer.MAX_VALUE);
                 limit.MAX_FAILS = Math.max(limit.MAX_FAILS, newLimit.MAX_FAILS != -1 ? newLimit.MAX_FAILS : Integer.MAX_VALUE);
                 limit.MAX_ITERATIONS = Math.max(limit.MAX_ITERATIONS, newLimit.MAX_ITERATIONS != -1 ? newLimit.MAX_ITERATIONS : Integer.MAX_VALUE);
+                limit.MAX_HISTORY = HISTORY.USE_DISK ? Integer.MAX_VALUE : Math.max(limit.MAX_HISTORY, newLimit.MAX_HISTORY_MB != -1 ? newLimit.MAX_HISTORY_MB : Integer.MAX_VALUE);
             }
         }
         return limit;

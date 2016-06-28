@@ -92,6 +92,11 @@ public class MemoryOptimizedHistory extends FaweStreamChangeSet {
     }
 
     @Override
+    public long getSizeInMemory() {
+        return 92 + getCompressedSize();
+    }
+
+    @Override
     public OutputStream getBlockOS(int x, int y, int z) throws IOException {
         if (idsStreamZip != null) {
             return idsStreamZip;
