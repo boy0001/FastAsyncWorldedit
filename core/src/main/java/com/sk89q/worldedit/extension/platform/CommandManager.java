@@ -142,7 +142,6 @@ public final class CommandManager {
         builder.setAuthorizer(new ActorAuthorizer());
         builder.setDefaultCompleter(new UserCommandCompleter(platformManager));
         builder.addBinding(new WorldEditBinding(worldEdit));
-        builder.addExceptionConverter(exceptionConverter);
         builder.addInvokeListener(new LegacyCommandsHandler());
         builder.addInvokeListener(new CommandLoggingHandler(worldEdit, commandLog));
 
@@ -260,7 +259,23 @@ public final class CommandManager {
                 locals.put("arguments", event.getArguments());
                 final long start = System.currentTimeMillis();
                 try {
-                    dispatcher.call(Joiner.on(" ").join(split), locals, new String[0]);
+                    // This is a bit of a hack, since the call method can only throw CommandExceptions
+                    // everything needs to be wrapped at least once. Which means to handle all WorldEdit
+                    // exceptions without writing a hook into every dispatcher, we need to unwrap these
+                    // exceptions and rethrow their converted form, if their is one.
+                    try {
+                        dispatcher.call(Joiner.on(" ").join(split), locals, new String[0]);
+                    } catch (Throwable t) {
+                        // Use the exception converter to convert the exception if any of its causes
+                        // can be converted, otherwise throw the original exception
+                        Throwable next = t;
+                        do {
+                            exceptionConverter.convert(next);
+                            next = next.getCause();
+                        } while (next != null);
+
+                        throw t;
+                    }
                 } catch (CommandPermissionsException e) {
                     BBC.NO_PERM.send(actor, "worldedit.*");
                 } catch (InvalidUsageException e) {

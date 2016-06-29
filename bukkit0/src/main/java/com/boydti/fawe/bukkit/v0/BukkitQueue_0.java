@@ -1,6 +1,7 @@
 package com.boydti.fawe.bukkit.v0;
 
 import com.boydti.fawe.Fawe;
+import com.boydti.fawe.bukkit.FaweBukkit;
 import com.boydti.fawe.example.CharFaweChunk;
 import com.boydti.fawe.example.NMSMappedFaweQueue;
 import com.boydti.fawe.object.FaweChunk;
@@ -24,7 +25,6 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.world.ChunkUnloadEvent;
-import org.bukkit.plugin.Plugin;
 
 public abstract class BukkitQueue_0<CHUNK, CHUNKSECTIONS, SECTION> extends NMSMappedFaweQueue<World, CHUNK, CHUNKSECTIONS, SECTION> implements Listener {
 
@@ -37,7 +37,7 @@ public abstract class BukkitQueue_0<CHUNK, CHUNKSECTIONS, SECTION> extends NMSMa
         setupAdapter(null);
         if (!registered) {
             registered = true;
-            Bukkit.getServer().getPluginManager().registerEvents(this, (Plugin) Fawe.imp());
+            Bukkit.getServer().getPluginManager().registerEvents(this, ((FaweBukkit) Fawe.imp()).getPlugin());
         }
     }
 
