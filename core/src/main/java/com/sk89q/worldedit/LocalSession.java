@@ -203,7 +203,7 @@ public class LocalSession {
     }
 
     public void remember(final EditSession editSession, final boolean append, final boolean sendMessage, int limitMb) {
-        if (editSession == null || editSession.getChangeSet() == null || limitMb == 0) {
+        if (editSession == null || editSession.getChangeSet() == null || limitMb == 0 || ((historySize >> 20) > limitMb && !append)) {
             return;
         }
         // It should have already been flushed, but just in case!

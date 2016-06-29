@@ -474,6 +474,7 @@ public class ClipboardCommands {
         session.setClipboard(null);
         BBC.CLIPBOARD_CLEARED.send(player);
     }
+
     public static Class<?> inject() {
         return ClipboardCommands.class;
     }

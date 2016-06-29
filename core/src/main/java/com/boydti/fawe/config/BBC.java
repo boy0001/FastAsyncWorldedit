@@ -134,6 +134,37 @@ public enum BBC {
     INDEXING_HISTORY("Indexing %s history objects on disk, please wait.", "History"),
     INDEXING_COMPLETE("Indexing complete. Took: %s seconds!", "History"),
 
+    ASCEND_FAIL("No free spot above you found.", "Navigation"),
+    ASCENDED_PLURAL("Ascended %s0 levels.", "Navigation"),
+    ASCENDED_SINGULAR("Ascended a level.", "Navigation"),
+    UNSTUCK("There you go!", "Navigation"),
+    DESCEND_FAIL("No free spot below you found.", "Navigation"),
+    DESCEND_PLURAL("Descended %s0 levels.", "Navigation"),
+    DESCEND_SINGULAR("Descended a level.", "Navigation"),
+    WHOOSH("Whoosh!", "Navigation"),
+    POOF("Poof!", "Navigation"),
+    THRU_FAIL("No free spot ahead of you found.", "Navigation"),
+    JUMPTO_FAIL("No block in sight!", "Navigation"),
+    UP_FAIL("You would hit something above you.", "Navigation"),
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
