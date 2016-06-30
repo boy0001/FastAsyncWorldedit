@@ -126,8 +126,8 @@ public enum BBC {
     WORLDEDIT_CANCEL_REASON_MAX_TILES("Too many blockstates", "Cancel"),
     WORLDEDIT_CANCEL_REASON_MAX_ENTITIES("Too many entities", "Cancel"),
     WORLDEDIT_CANCEL_REASON_MAX_ITERATIONS("Max iterations", "Cancel"),
-    WORLDEDIT_CANCEL_REASON_MAX_FAILS("Outside allowed region", "Cancel"),
-    WORLDEDIT_CANCEL_REASON_NO_REGION("No allowed region", "Cancel"),
+    WORLDEDIT_CANCEL_REASON_MAX_FAILS("Outside allowed region (bypass with /wea)", "Cancel"),
+    WORLDEDIT_CANCEL_REASON_NO_REGION("No allowed region (bypass with /wea)", "Cancel"),
     WORLDEDIT_FAILED_LOAD_CHUNK("&cSkipped loading chunk: &7%s0;%s1&c. Try increasing chunk-wait.", "Cancel"),
 
     LOADING_CLIPBOARD("Loading clipboard from disk, please wait.", "History"),
