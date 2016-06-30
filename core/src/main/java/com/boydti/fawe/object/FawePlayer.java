@@ -11,6 +11,7 @@ import com.boydti.fawe.object.exception.FaweException;
 import com.boydti.fawe.util.MainUtil;
 import com.boydti.fawe.util.TaskManager;
 import com.boydti.fawe.util.WEManager;
+import com.boydti.fawe.wrappers.FakePlayer;
 import com.boydti.fawe.wrappers.PlayerWrapper;
 import com.sk89q.worldedit.EditSession;
 import com.sk89q.worldedit.EmptyClipboardException;
@@ -57,6 +58,9 @@ public abstract class FawePlayer<T> {
     public static <V> FawePlayer<V> wrap(final Object obj) {
         if (obj == null) {
             return null;
+        }
+        if (obj instanceof FakePlayer) {
+            return ((FakePlayer) obj).toFawePlayer();
         }
         if (obj instanceof Player) {
             Player actor = (Player) obj;
