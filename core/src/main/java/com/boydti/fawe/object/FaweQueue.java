@@ -103,7 +103,19 @@ public abstract class FaweQueue {
 
     public void optimize() {}
 
-    public abstract boolean setBlock(final int x, final int y, final int z, final short id, final byte data);
+    public abstract boolean setBlock(final int x, final int y, final int z, final int id, final int data);
+
+    public boolean setBlock(int x, int y, int z, int id) {
+        return setBlock(x, y, z, id, 0);
+    }
+
+    public boolean setBlock(int x, int y, int z, int id, int data, CompoundTag nbt) {
+        if (nbt != null) {
+            MainUtil.setPosition(nbt, x, y, z);
+            setTile(x, y, z, nbt);
+        }
+        return setBlock(x, y, z, id, data);
+    }
 
     public abstract void setTile(int x, int y, int z, CompoundTag tag);
 
@@ -195,6 +207,13 @@ public abstract class FaweQueue {
      * Lock the thread until the queue is empty
      */
     public void flush() {
+        flush(Integer.MAX_VALUE);
+    }
+
+    /**
+     * Lock the thread until the queue is empty
+     */
+    public void flush(int time) {
         if (size() > 0) {
             if (Fawe.get().isMainThread()) {
                 SetQueue.IMP.flush(this);
@@ -207,7 +226,7 @@ public abstract class FaweQueue {
                         TaskManager.IMP.notify(running);
                     }
                 });
-                TaskManager.IMP.wait(running, 10000);
+                TaskManager.IMP.wait(running, time);
             }
         }
     }

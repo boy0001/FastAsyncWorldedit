@@ -26,6 +26,7 @@ import com.sk89q.worldedit.WorldEdit;
 import com.sk89q.worldedit.blocks.BlockData;
 import com.sk89q.worldedit.command.BrushCommands;
 import com.sk89q.worldedit.command.ClipboardCommands;
+import com.sk89q.worldedit.command.FlattenedClipboardTransform;
 import com.sk89q.worldedit.command.HistoryCommands;
 import com.sk89q.worldedit.command.NavigationCommands;
 import com.sk89q.worldedit.command.RegionCommands;
@@ -295,6 +296,8 @@ public class Fawe {
             RecursiveVisitor.inject(); // Optimizations
             RegionVisitor.inject(); // Translations + Optimizations
             ExtentEntityCopy.inject(); // Async entity create fix
+            // Transforms
+            FlattenedClipboardTransform.inject(); // public access
             // Entity create/remove
             EntityCreate.inject(); // Optimizations
             EntityRemove.inject(); // Optimizations

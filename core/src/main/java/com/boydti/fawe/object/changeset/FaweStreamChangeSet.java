@@ -103,7 +103,7 @@ public abstract class FaweStreamChangeSet extends FaweChangeSet {
             stream.write((combinedTo) & 0xff);
             stream.write(((combinedTo) >> 8) & 0xff);
         }
-        catch (IOException e) {
+        catch (Throwable e) {
             MainUtil.handleError(e);
         }
     }

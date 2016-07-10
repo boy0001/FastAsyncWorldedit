@@ -9,10 +9,10 @@ import com.boydti.fawe.util.SetQueue;
 import com.boydti.fawe.util.TaskManager;
 import com.sk89q.jnbt.CompoundTag;
 import java.util.Collection;
-import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
 
 public abstract class NMSMappedFaweQueue<WORLD, CHUNK, CHUNKSECTION, SECTION> extends MappedFaweQueue<WORLD, CHUNKSECTION, SECTION> {
     public NMSMappedFaweQueue(String world) {
@@ -24,7 +24,7 @@ public abstract class NMSMappedFaweQueue<WORLD, CHUNK, CHUNKSECTION, SECTION> ex
         return relighting.contains(pair) || blocks.contains(pair);
     }
 
-    public final HashSet<Long> relighting = new HashSet<>();
+    public final ConcurrentHashMap<Long, Long> relighting = new ConcurrentHashMap<>();
 
     @Override
     public void sendChunk(final FaweChunk fc, RelightMode mode) {
@@ -36,7 +36,7 @@ public abstract class NMSMappedFaweQueue<WORLD, CHUNK, CHUNKSECTION, SECTION> ex
             @Override
             public void run() {
                 final long pair = fc.longHash();
-                relighting.add(pair);
+                relighting.put(pair, pair);
                 final boolean result = finalMode == RelightMode.NONE || fixLighting(fc, finalMode);
                 TaskManager.IMP.taskSyncNow(new Runnable() {
                     @Override
@@ -47,7 +47,7 @@ public abstract class NMSMappedFaweQueue<WORLD, CHUNK, CHUNKSECTION, SECTION> ex
                         CHUNK chunk = (CHUNK) fc.getChunk();
                         refreshChunk(getWorld(), chunk);
                         relighting.remove(pair);
-                        if (relighting.isEmpty()) {
+                        if (relighting.isEmpty() && chunks.isEmpty()) {
                             runTasks();
                         }
                     }

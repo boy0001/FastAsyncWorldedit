@@ -182,7 +182,46 @@ public abstract class CharFaweChunk<T> extends FaweChunk<T> {
     }
 
     @Override
-    public void setBlock(final int x, final int y, final int z, final int id, byte data) {
+    public void setBlock(int x, int y, int z, int id) {
+        final int i = FaweCache.CACHE_I[y][x][z];
+        final int j = FaweCache.CACHE_J[y][x][z];
+        char[] vs = this.ids[i];
+        if (vs == null) {
+            vs = this.ids[i] = new char[4096];
+            this.count[i]++;
+        } else if (vs[j] == 0) {
+            this.count[i]++;
+        }
+        switch (id) {
+            case 0:
+                this.air[i]++;
+                vs[j] = (char) 1;
+                return;
+            case 11:
+            case 39:
+            case 40:
+            case 51:
+            case 74:
+            case 89:
+            case 122:
+            case 124:
+            case 138:
+            case 169:
+            case 213:
+            case 130:
+            case 76:
+            case 62:
+            case 50:
+            case 10:
+                this.relight[i]++;
+            default:
+                vs[j] = (char) (id << 4);
+                return;
+        }
+    }
+
+    @Override
+    public void setBlock(final int x, final int y, final int z, final int id, int data) {
         final int i = FaweCache.CACHE_I[y][x][z];
         final int j = FaweCache.CACHE_J[y][x][z];
         char[] vs = this.ids[i];

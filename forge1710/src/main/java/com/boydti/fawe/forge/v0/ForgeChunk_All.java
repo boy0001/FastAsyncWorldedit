@@ -34,7 +34,7 @@ public class ForgeChunk_All extends CharFaweChunk<Chunk> {
     }
 
     @Override
-    public void setBlock(int x, int y, int z, int id, byte data) {
+    public void setBlock(int x, int y, int z, int id, int data) {
         int i = FaweCache.CACHE_I[y][x][z];
         int j = FaweCache.CACHE_J[y][x][z];
         byte[] vs = this.byteIds[i];

@@ -32,7 +32,7 @@ public class MaskedFaweQueue extends DelegateFaweQueue {
     }
 
     @Override
-    public boolean setBlock(int x, int y, int z, short id, byte data) {
+    public boolean setBlock(int x, int y, int z, int id, int data) {
         if (WEManager.IMP.maskContains(mask, x, z)) {
             return super.setBlock(x, y, z, id, data);
         }

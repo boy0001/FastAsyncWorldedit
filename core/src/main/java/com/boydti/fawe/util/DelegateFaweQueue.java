@@ -93,7 +93,7 @@ public class DelegateFaweQueue extends FaweQueue {
     }
 
     @Override
-    public boolean setBlock(int x, int y, int z, short id, byte data) {
+    public boolean setBlock(int x, int y, int z, int id, int data) {
         return parent.setBlock(x, y, z, id, data);
     }
 

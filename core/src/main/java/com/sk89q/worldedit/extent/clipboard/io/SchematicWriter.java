@@ -129,13 +129,9 @@ public class SchematicWriter implements ClipboardWriter {
             throw new IllegalArgumentException("Length of region too large for a .schematic");
         }
 
-        System.out.println(clipboard.getMinimumPoint());
-        System.out.println(clipboard.getMaximumPoint());
-
         // ====================================================================
         // Metadata
         // ====================================================================
-
         HashMap<String, Tag> schematic = new HashMap<String, Tag>();
         schematic.put("Width", new ShortTag((short) width));
         schematic.put("Length", new ShortTag((short) length));

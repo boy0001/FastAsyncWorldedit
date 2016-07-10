@@ -127,7 +127,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
-import java.util.concurrent.atomic.AtomicBoolean;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
@@ -1028,20 +1027,14 @@ public class EditSession implements Extent {
             queue.enqueue();
         } else {
             queue.dequeue();
+            return;
         }
         if (getChangeSet() != null) {
             if (Settings.HISTORY.COMBINE_STAGES && queue.size() > 0) {
                 if (Fawe.get().isMainThread()) {
                     SetQueue.IMP.flush(queue);
                 } else {
-                    final AtomicBoolean running = new AtomicBoolean(true);
-                    queue.addNotifyTask(new Runnable() {
-                        @Override
-                        public void run() {
-                            TaskManager.IMP.notify(running);
-                        }
-                    });
-                    TaskManager.IMP.wait(running, Settings.QUEUE.DISCARD_AFTER_MS);
+                    queue.flush();
                 }
             }
             ((FaweChangeSet) getChangeSet()).flush();

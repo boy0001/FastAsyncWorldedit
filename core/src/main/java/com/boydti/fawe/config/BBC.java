@@ -1,6 +1,7 @@
 package com.boydti.fawe.config;
 
 import com.boydti.fawe.Fawe;
+import com.boydti.fawe.configuration.MemorySection;
 import com.boydti.fawe.configuration.file.YamlConfiguration;
 import com.boydti.fawe.object.FawePlayer;
 import com.boydti.fawe.util.MainUtil;
@@ -255,24 +256,21 @@ public enum BBC {
             final HashSet<BBC> captions = new HashSet<>();
             boolean changed = false;
             for (final String key : keys) {
-                if (!yml.isString(key)) {
-                    if (!allCats.contains(key)) {
-                        toRemove.add(key);
-                    }
+                final Object value = yml.get(key);
+                if (value instanceof MemorySection) {
                     continue;
                 }
                 final String[] split = key.split("\\.");
                 final String node = split[split.length - 1].toUpperCase();
                 final BBC caption = allNames.contains(node) ? valueOf(node) : null;
                 if (caption != null) {
-                    final String value = yml.getString(key);
                     if (!split[0].equalsIgnoreCase(caption.cat)) {
                         changed = true;
                         yml.set(key, null);
                         yml.set(caption.cat + "." + caption.name().toLowerCase(), value);
                     }
                     captions.add(caption);
-                    caption.s = value;
+                    caption.s = (String) value;
                 } else {
                     toRemove.add(key);
                 }

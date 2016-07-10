@@ -204,6 +204,8 @@ public class FaweBukkit implements IFawe, Listener {
             debug("NMS label: " + plugin.getClass().getSimpleName().split("_")[1]);
             debug("Fallback placer: " + BukkitQueue_All.class);
             debug("=======================================");
+            debug("Download the version of FAWE for your platform");
+            debug("=======================================");
             hasNMS = false;
         }
         return new BukkitQueue_All(world);

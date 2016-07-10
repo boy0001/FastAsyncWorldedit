@@ -6,14 +6,15 @@ import com.boydti.fawe.example.CharFaweChunk;
 import com.boydti.fawe.example.NMSMappedFaweQueue;
 import com.boydti.fawe.object.FaweChunk;
 import com.boydti.fawe.object.FaweQueue;
+import com.boydti.fawe.object.RunnableVal;
 import com.boydti.fawe.util.MathMan;
 import com.boydti.fawe.util.SetQueue;
+import com.boydti.fawe.util.TaskManager;
 import com.sk89q.worldedit.bukkit.WorldEditPlugin;
 import com.sk89q.worldedit.bukkit.adapter.BukkitImplAdapter;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.Collection;
-import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
@@ -21,10 +22,12 @@ import java.util.concurrent.ConcurrentLinkedDeque;
 import org.bukkit.Bukkit;
 import org.bukkit.Chunk;
 import org.bukkit.World;
+import org.bukkit.WorldCreator;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.world.ChunkUnloadEvent;
+import org.bukkit.event.world.WorldInitEvent;
 
 public abstract class BukkitQueue_0<CHUNK, CHUNKSECTIONS, SECTION> extends NMSMappedFaweQueue<World, CHUNK, CHUNKSECTIONS, SECTION> implements Listener {
 
@@ -62,13 +65,35 @@ public abstract class BukkitQueue_0<CHUNK, CHUNKSECTIONS, SECTION> extends NMSMa
         long pair = MathMan.pairInt(chunk.getX(), chunk.getZ());
         for (FaweQueue queue : queues) {
             if (queue.getWorldName().equals(world)) {
-                HashSet<Long> relighting = ((NMSMappedFaweQueue) queue).relighting;
-                if (!relighting.isEmpty() && relighting.contains(pair)) {
+                Map<Long, Long> relighting = ((NMSMappedFaweQueue) queue).relighting;
+                if (!relighting.isEmpty() && relighting.containsKey(pair)) {
                     event.setCancelled(true);
                     return;
                 }
             }
         }
+    }
+
+    private static boolean disableChunkLoad = false;
+
+    @EventHandler
+    public static void onWorldLoad(WorldInitEvent event) {
+        if (disableChunkLoad) {
+            World world = event.getWorld();
+            world.setKeepSpawnInMemory(false);
+        }
+    }
+
+    public World createWorld(final WorldCreator creator) {
+        World world = TaskManager.IMP.sync(new RunnableVal<World>() {
+            @Override
+            public void run(World value) {
+                disableChunkLoad = true;
+                this.value = creator.createWorld();
+                disableChunkLoad = false;
+            }
+        });
+        return world;
     }
 
     public void setupAdapter(BukkitImplAdapter adapter) {

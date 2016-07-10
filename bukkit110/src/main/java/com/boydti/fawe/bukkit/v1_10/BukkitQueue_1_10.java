@@ -18,6 +18,7 @@ import com.sk89q.jnbt.LongTag;
 import com.sk89q.jnbt.StringTag;
 import com.sk89q.jnbt.Tag;
 import com.sk89q.worldedit.internal.Constants;
+import java.io.File;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
@@ -44,22 +45,37 @@ import net.minecraft.server.v1_10_R1.EntityPlayer;
 import net.minecraft.server.v1_10_R1.EntityTracker;
 import net.minecraft.server.v1_10_R1.EntityTrackerEntry;
 import net.minecraft.server.v1_10_R1.EntityTypes;
+import net.minecraft.server.v1_10_R1.EnumDifficulty;
+import net.minecraft.server.v1_10_R1.EnumGamemode;
 import net.minecraft.server.v1_10_R1.IBlockData;
+import net.minecraft.server.v1_10_R1.IDataManager;
+import net.minecraft.server.v1_10_R1.MinecraftServer;
 import net.minecraft.server.v1_10_R1.NBTTagCompound;
 import net.minecraft.server.v1_10_R1.NibbleArray;
 import net.minecraft.server.v1_10_R1.PacketPlayOutEntityDestroy;
 import net.minecraft.server.v1_10_R1.PacketPlayOutMapChunk;
 import net.minecraft.server.v1_10_R1.PlayerChunk;
 import net.minecraft.server.v1_10_R1.PlayerChunkMap;
+import net.minecraft.server.v1_10_R1.ServerNBTManager;
 import net.minecraft.server.v1_10_R1.TileEntity;
+import net.minecraft.server.v1_10_R1.WorldData;
+import net.minecraft.server.v1_10_R1.WorldManager;
 import net.minecraft.server.v1_10_R1.WorldServer;
+import net.minecraft.server.v1_10_R1.WorldSettings;
+import net.minecraft.server.v1_10_R1.WorldType;
+import org.bukkit.Bukkit;
 import org.bukkit.Chunk;
 import org.bukkit.Material;
 import org.bukkit.World;
 import org.bukkit.World.Environment;
+import org.bukkit.WorldCreator;
 import org.bukkit.block.Biome;
 import org.bukkit.craftbukkit.v1_10_R1.CraftChunk;
+import org.bukkit.craftbukkit.v1_10_R1.CraftServer;
 import org.bukkit.event.entity.CreatureSpawnEvent;
+import org.bukkit.event.world.WorldInitEvent;
+import org.bukkit.event.world.WorldLoadEvent;
+import org.bukkit.generator.ChunkGenerator;
 
 public class BukkitQueue_1_10 extends BukkitQueue_0<Chunk, ChunkSection[], DataPaletteBlock> {
 
@@ -80,6 +96,69 @@ public class BukkitQueue_1_10 extends BukkitQueue_0<Chunk, ChunkSection[], DataP
         } catch (Throwable e) {
             throw new RuntimeException(e);
         }
+    }
+
+    @Override
+    public World createWorld(final WorldCreator creator) {
+        final String name = creator.name();
+        ChunkGenerator generator = creator.generator();
+        final CraftServer server = (CraftServer) Bukkit.getServer();
+        final MinecraftServer console = server.getServer();
+        final File folder = new File(server.getWorldContainer(), name);
+        final World world = server.getWorld(name);
+        final WorldType type = WorldType.getType(creator.type().getName());
+        final boolean generateStructures = creator.generateStructures();
+        if (world != null) {
+            return world;
+        }
+        if (folder.exists() && !folder.isDirectory()) {
+            throw new IllegalArgumentException("File exists with the name '" + name + "' and isn't a folder");
+        }
+        if (generator == null) {
+            generator = server.getGenerator(name);
+        }
+        int dimension = 10 + console.worlds.size();
+        boolean used = false;
+        do {
+            for (final WorldServer ws : console.worlds) {
+                used = (ws.dimension == dimension);
+                if (used) {
+                    ++dimension;
+                    break;
+                }
+            }
+        } while (used);
+        final boolean hardcore = false;
+        final IDataManager sdm = new ServerNBTManager(server.getWorldContainer(), name, true, server.getHandle().getServer().getDataConverterManager());
+        WorldData worlddata = sdm.getWorldData();
+        WorldSettings worldSettings = null;
+        if (worlddata == null) {
+            worldSettings = new WorldSettings(creator.seed(), EnumGamemode.getById(server.getDefaultGameMode().getValue()), generateStructures, hardcore, type);
+            worldSettings.setGeneratorSettings(creator.generatorSettings());
+            worlddata = new WorldData(worldSettings, name);
+        }
+        worlddata.checkName(name);
+        final WorldServer internal = (WorldServer)new WorldServer(console, sdm, worlddata, dimension, console.methodProfiler, creator.environment(), generator).b();
+        if (worldSettings != null) {
+            internal.a(worldSettings);
+        }
+        internal.scoreboard = server.getScoreboardManager().getMainScoreboard().getHandle();
+        internal.tracker = new EntityTracker(internal);
+        internal.addIWorldAccess(new WorldManager(console, internal));
+        internal.worldData.setDifficulty(EnumDifficulty.EASY);
+        internal.setSpawnFlags(true, true);
+        console.worlds.add(internal);
+        if (generator != null) {
+            internal.getWorld().getPopulators().addAll(generator.getDefaultPopulators(internal.getWorld()));
+        }
+        return TaskManager.IMP.sync(new RunnableVal<World>() {
+            @Override
+            public void run(World value) {
+                server.getPluginManager().callEvent(new WorldInitEvent(internal.getWorld()));
+                server.getPluginManager().callEvent(new WorldLoadEvent(internal.getWorld()));
+                this.value = internal.getWorld();
+            }
+        });
     }
 
     @Override

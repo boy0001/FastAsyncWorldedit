@@ -126,10 +126,7 @@ public abstract class MappedFaweQueue<WORLD, CHUNK, SECTION> extends FaweQueue {
     private int lastZ = Integer.MIN_VALUE;
 
     @Override
-    public boolean setBlock(int x, int y, int z, short id, byte data) {
-        if ((y > 255) || (y < 0)) {
-            return false;
-        }
+    public boolean setBlock(int x, int y, int z, int id, int data) {
         int cx = x >> 4;
         int cz = z >> 4;
         if (cx != lastX || cz != lastZ) {
@@ -150,6 +147,31 @@ public abstract class MappedFaweQueue<WORLD, CHUNK, SECTION> extends FaweQueue {
             }
         }
         lastWrappedChunk.setBlock(x & 15, y, z & 15, id, data);
+        return true;
+    }
+
+    @Override
+    public boolean setBlock(int x, int y, int z, int id) {
+        int cx = x >> 4;
+        int cz = z >> 4;
+        if (cx != lastX || cz != lastZ) {
+            lastX = cx;
+            lastZ = cz;
+            long pair = (long) (cx) << 32 | (cz) & 0xFFFFFFFFL;
+            lastWrappedChunk = this.blocks.get(pair);
+            if (lastWrappedChunk == null) {
+                lastWrappedChunk = this.getFaweChunk(x >> 4, z >> 4);
+                lastWrappedChunk.setBlock(x & 15, y, z & 15, id);
+                FaweChunk previous = this.blocks.put(pair, lastWrappedChunk);
+                if (previous == null) {
+                    chunks.add(lastWrappedChunk);
+                    return true;
+                }
+                this.blocks.put(pair, previous);
+                lastWrappedChunk = previous;
+            }
+        }
+        lastWrappedChunk.setBlock(x & 15, y, z & 15, id);
         return true;
     }
 

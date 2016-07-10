@@ -4,6 +4,7 @@ import com.boydti.fawe.FaweAPI;
 import com.boydti.fawe.bukkit.v0.BukkitQueue_0;
 import com.boydti.fawe.object.FaweQueue;
 import com.boydti.fawe.object.RunnableVal;
+import com.boydti.fawe.util.SetQueue;
 import com.boydti.fawe.util.StringMan;
 import com.boydti.fawe.util.TaskManager;
 import com.sk89q.worldedit.bukkit.WorldEditPlugin;
@@ -27,6 +28,7 @@ import org.bukkit.Sound;
 import org.bukkit.TreeType;
 import org.bukkit.World;
 import org.bukkit.WorldBorder;
+import org.bukkit.WorldCreator;
 import org.bukkit.WorldType;
 import org.bukkit.block.Biome;
 import org.bukkit.block.Block;
@@ -47,21 +49,36 @@ import org.bukkit.plugin.Plugin;
 import org.bukkit.util.Vector;
 
 /**
- * Modify the world from an async thread <br>
- *  - Any Chunk/Block/BlockState objects returned should also be thread safe <br>
- *  - Use world.commit() to execute the changes <br>
- *  - Don't rely on autoQueue as behavior is determined by the settings.yml <br>
+ * Modify the world from an async thread<br>
+ *  - Use world.commit() to execute all the changes<br>
+ *  - Any Chunk/Block/BlockState objects returned should also be safe to use from the same async thread<br>
+ *  - Only block read,write and biome write are fast, other methods will perform slower async<br>
+ *  -
+ *  @see #wrap(org.bukkit.World)
+ *  @see #create(org.bukkit.WorldCreator)
  */
 public class AsyncWorld implements World {
 
-    public final World parent;
-    public final FaweQueue queue;
+    private final World parent;
+    private final FaweQueue queue;
     private BukkitImplAdapter adapter;
 
+    /**
+     * @deprecated use {@link #wrap(org.bukkit.World)} instead
+     * @param parent Parent world
+     * @param autoQueue
+     */
+    @Deprecated
     public AsyncWorld(World parent, boolean autoQueue) {
         this(parent, FaweAPI.createQueue(parent.getName(), autoQueue));
     }
 
+    /**
+     * @deprecated use {@link #wrap(org.bukkit.World)} instead
+     * @param parent
+     * @param queue
+     */
+    @Deprecated
     public AsyncWorld(World parent, FaweQueue queue) {
         this.parent = parent;
         this.queue = queue;
@@ -79,11 +96,38 @@ public class AsyncWorld implements World {
         }
     }
 
+    /**
+     * Wrap a world for async usage
+     * @param world
+     * @return
+     */
     public static AsyncWorld wrap(World world) {
         if (world instanceof AsyncWorld) {
             return (AsyncWorld) world;
         }
         return new AsyncWorld(world, false);
+    }
+
+    public World getParent() {
+        return parent;
+    }
+
+    public FaweQueue getQueue() {
+        return queue;
+    }
+
+    /**
+     * Create a world async (untested)
+     *  - Only optimized for 1.10
+     * @param creator
+     * @return
+     */
+    public static AsyncWorld create(final WorldCreator creator) {
+        long start = System.currentTimeMillis();
+        BukkitQueue_0 queue = (BukkitQueue_0) SetQueue.IMP.getNewQueue(creator.name(), true, false);
+        World world = queue.createWorld(creator);
+        System.out.println(System.currentTimeMillis() - start);
+        return wrap(world);
     }
 
     public void enqueue() {

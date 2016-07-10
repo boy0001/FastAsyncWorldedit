@@ -252,9 +252,10 @@ public abstract class FaweChangeSet implements ChangeSet {
                         } catch (Throwable e) {
                             MainUtil.handleError(e);
                         } finally {
-                            waiting.decrementAndGet();
-                            synchronized (lock) {
-                                lock.notifyAll();
+                            if (waiting.decrementAndGet() <= 0) {
+                                synchronized (lock) {
+                                    lock.notifyAll();
+                                }
                             }
                         }
                     }

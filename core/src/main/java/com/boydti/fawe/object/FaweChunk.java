@@ -185,7 +185,11 @@ public abstract class FaweChunk<T> {
 
     public abstract void removeEntity(UUID uuid);
 
-    public abstract void setBlock(final int x, final int y, final int z, final int id, final byte data);
+    public void setBlock(int x, int y, int z, int id) {
+        setBlock(x, y, z, id, 0);
+    }
+
+    public abstract void setBlock(final int x, final int y, final int z, final int id, final int data);
 
     public abstract Set<CompoundTag> getEntities();
 
