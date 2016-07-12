@@ -1,9 +1,11 @@
 package com.thevoxelbox.voxelsniper;
 
+import com.boydti.fawe.Fawe;
 import com.boydti.fawe.FaweAPI;
 import com.boydti.fawe.bukkit.wrapper.AsyncWorld;
 import com.boydti.fawe.config.BBC;
 import com.boydti.fawe.config.Settings;
+import com.boydti.fawe.logging.LoggingChangeSet;
 import com.boydti.fawe.object.ChangeSetFaweQueue;
 import com.boydti.fawe.object.FawePlayer;
 import com.boydti.fawe.object.FaweQueue;
@@ -11,7 +13,6 @@ import com.boydti.fawe.object.MaskedFaweQueue;
 import com.boydti.fawe.object.RegionWrapper;
 import com.boydti.fawe.object.changeset.DiskStorageHistory;
 import com.boydti.fawe.object.changeset.FaweChangeSet;
-import com.boydti.fawe.object.changeset.FaweStreamChangeSet;
 import com.boydti.fawe.object.changeset.MemoryOptimizedHistory;
 import com.boydti.fawe.util.StringMan;
 import com.boydti.fawe.util.TaskManager;
@@ -94,7 +95,10 @@ public class Sniper {
             RegionWrapper[] mask = WEManager.IMP.getMask(fp);
             this.maskQueue = new MaskedFaweQueue(baseQueue, mask);
             com.sk89q.worldedit.world.World worldEditWorld = fp.getWorld();
-            FaweStreamChangeSet changeSet = Settings.HISTORY.USE_DISK ? new DiskStorageHistory(worldEditWorld, fp.getUUID()) : new MemoryOptimizedHistory(worldEditWorld);
+            FaweChangeSet changeSet = Settings.HISTORY.USE_DISK ? new DiskStorageHistory(worldEditWorld, fp.getUUID()) : new MemoryOptimizedHistory(worldEditWorld);
+            if (Fawe.imp().getBlocksHubApi() != null) {
+                changeSet = LoggingChangeSet.wrap(fp, changeSet);
+            }
             this.changeQueue = new ChangeSetFaweQueue(changeSet, maskQueue);
             tmpWorld = new AsyncWorld(player.getWorld(), changeQueue);
         }
