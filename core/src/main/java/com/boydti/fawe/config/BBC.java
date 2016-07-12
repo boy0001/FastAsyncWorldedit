@@ -103,6 +103,8 @@ public enum BBC {
 
     SELECTOR_CUBOID_POS1("First position set to %s0 %s1.", "WorldEdit.Selector"),
     SELECTOR_CUBOID_POS2("Second position set to %s0 %s1.", "WorldEdit.Selector"),
+    SELECTOR_INVALID_COORDINATES("Invalid coordinates %s0", "WorldEdit.Selector"),
+    SELECTOR_ALREADY_SET("Position already set.", "WorldEdit.Selector"),
 
     COMMAND_INVALID_SYNTAX("The command was not used properly (no more help available).", "WorldEdit.Command"),
 

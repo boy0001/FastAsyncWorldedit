@@ -15,16 +15,14 @@ import com.boydti.fawe.bukkit.regions.Worldguard;
 import com.boydti.fawe.bukkit.v0.BukkitQueue_All;
 import com.boydti.fawe.bukkit.v0.ChunkListener;
 import com.boydti.fawe.config.Settings;
-import com.boydti.fawe.object.EditSessionWrapper;
 import com.boydti.fawe.object.FaweCommand;
 import com.boydti.fawe.object.FawePlayer;
-import com.boydti.fawe.regions.FaweMaskManager;
 import com.boydti.fawe.object.FaweQueue;
+import com.boydti.fawe.regions.FaweMaskManager;
 import com.boydti.fawe.util.MainUtil;
 import com.boydti.fawe.util.ReflectionUtils;
 import com.boydti.fawe.util.StringMan;
 import com.boydti.fawe.util.TaskManager;
-import com.sk89q.worldedit.EditSession;
 import com.sk89q.worldedit.bukkit.WorldEditPlugin;
 import com.sk89q.worldedit.world.World;
 import java.io.File;
@@ -41,6 +39,7 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerChangedWorldEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.plugin.Plugin;
+import org.primesoft.blockshub.BlocksHubBukkit;
 
 public class FaweBukkit implements IFawe, Listener {
 
@@ -221,14 +220,6 @@ public class FaweBukkit implements IFawe, Listener {
     }
 
     /**
-     * The EditSessionWrapper should have the same functionality as the normal EditSessionWrapper but with some optimizations
-     */
-    @Override
-    public EditSessionWrapper getEditSessionWrapper(final EditSession session) {
-        return plugin.getEditSessionWrapper(session);
-    }
-
-    /**
      * A mask manager handles region restrictions e.g. PlotSquared plots / WorldGuard regions
      */
     @Override
@@ -342,5 +333,20 @@ public class FaweBukkit implements IFawe, Listener {
     @Override
     public String getName(UUID uuid) {
         return Bukkit.getOfflinePlayer(uuid).getName();
+    }
+
+    private boolean enabledBlocksHub = true;
+
+    @Override
+    public Object getBlocksHubApi() {
+        if (!enabledBlocksHub) {
+            return null;
+        }
+        Plugin blocksHubPlugin = Bukkit.getPluginManager().getPlugin("BlocksHub");
+        if (blocksHubPlugin == null) {
+            enabledBlocksHub = false;
+            return null;
+        }
+        return ((BlocksHubBukkit) blocksHubPlugin).getApi();
     }
 }

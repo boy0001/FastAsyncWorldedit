@@ -38,6 +38,7 @@ subprojects {
         }
         compile 'com.sk89q:worldguard:6.0.0-SNAPSHOT'
         compile 'com.plotsquared:PlotSquared:3.4.1-SNAPSHOT'
+        compile 'org.primesoft:BlocksHub:2.0'
     }
 
     repositories {

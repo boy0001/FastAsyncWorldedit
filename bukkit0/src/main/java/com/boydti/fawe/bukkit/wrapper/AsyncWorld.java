@@ -123,10 +123,8 @@ public class AsyncWorld implements World {
      * @return
      */
     public static AsyncWorld create(final WorldCreator creator) {
-        long start = System.currentTimeMillis();
         BukkitQueue_0 queue = (BukkitQueue_0) SetQueue.IMP.getNewQueue(creator.name(), true, false);
         World world = queue.createWorld(creator);
-        System.out.println(System.currentTimeMillis() - start);
         return wrap(world);
     }
 

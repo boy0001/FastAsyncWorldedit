@@ -18,6 +18,7 @@ import com.sk89q.worldedit.entity.Entity;
 import com.sk89q.worldedit.extent.Extent;
 import com.sk89q.worldedit.extent.clipboard.BlockArrayClipboard;
 import com.sk89q.worldedit.regions.CuboidRegion;
+import java.io.Closeable;
 import java.io.File;
 import java.io.IOException;
 import java.io.RandomAccessFile;
@@ -34,7 +35,7 @@ import java.util.UUID;
  *
  *  TODO load on join
  */
-public class DiskOptimizedClipboard extends FaweClipboard {
+public class DiskOptimizedClipboard extends FaweClipboard implements Closeable {
 
     public static int COMPRESSION = 0;
     public static int MODE = 0;

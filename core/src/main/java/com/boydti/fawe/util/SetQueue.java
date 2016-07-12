@@ -6,9 +6,9 @@ import com.boydti.fawe.object.FaweChunk;
 import com.boydti.fawe.object.FaweQueue;
 import com.boydti.fawe.object.RunnableVal2;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.ConcurrentModificationException;
 import java.util.Iterator;
-import java.util.List;
 import java.util.concurrent.ConcurrentLinkedDeque;
 
 public class SetQueue {
@@ -22,8 +22,9 @@ public class SetQueue {
         INACTIVE, ACTIVE, NONE;
     }
 
-    public final ConcurrentLinkedDeque<FaweQueue> activeQueues;
-    public final ConcurrentLinkedDeque<FaweQueue> inactiveQueues;
+    private final ConcurrentLinkedDeque<FaweQueue> activeQueues;
+    private final ConcurrentLinkedDeque<FaweQueue> inactiveQueues;
+    private final ConcurrentLinkedDeque<Runnable> tasks;
 
     /**
      * Used to calculate elapsed time in milliseconds and ensure block placement doesn't lag the server
@@ -35,7 +36,7 @@ public class SetQueue {
     /**
      * A queue of tasks that will run when the queue is empty
      */
-    private final ConcurrentLinkedDeque<Runnable> runnables = new ConcurrentLinkedDeque<>();
+    private final ConcurrentLinkedDeque<Runnable> emptyTasks = new ConcurrentLinkedDeque<>();
 
     private final RunnableVal2<Long, FaweQueue> SET_TASK = new RunnableVal2<Long, FaweQueue>() {
         @Override
@@ -45,7 +46,7 @@ public class SetQueue {
                 if (current == null) {
                     lastSuccess = last;
                     if (inactiveQueues.size() == 0 && activeQueues.size() == 0) {
-                        tasks();
+                        runEmptyTasks();
                     }
                     return;
                 }
@@ -54,14 +55,18 @@ public class SetQueue {
     };
 
     public SetQueue() {
+        tasks = new ConcurrentLinkedDeque<>();
         activeQueues = new ConcurrentLinkedDeque();
         inactiveQueues = new ConcurrentLinkedDeque<>();
         TaskManager.IMP.repeat(new Runnable() {
             @Override
             public void run() {
+                while (!tasks.isEmpty() && Fawe.get().getTimer().isAbove(18.5)) {
+                    Runnable task = tasks.poll();
+                }
                 if (inactiveQueues.isEmpty() && activeQueues.isEmpty()) {
                     lastSuccess = System.currentTimeMillis();
-                    tasks();
+                    runEmptyTasks();
                     return;
                 }
                 if (!MemUtil.isMemoryFree()) {
@@ -76,7 +81,7 @@ public class SetQueue {
                         if (SetQueue.this.forceChunkSet()) {
                             System.gc();
                         } else {
-                            SetQueue.this.tasks();
+                            SetQueue.this.runEmptyTasks();
                         }
                         return;
                     }
@@ -155,19 +160,19 @@ public class SetQueue {
         activeQueues.remove(queue);
     }
 
-    public List<FaweQueue> getAllQueues() {
+    public Collection<FaweQueue> getAllQueues() {
         ArrayList<FaweQueue> list = new ArrayList<FaweQueue>(activeQueues.size() + inactiveQueues.size());
         list.addAll(inactiveQueues);
         list.addAll(activeQueues);
         return list;
     }
 
-    public List<FaweQueue> getActiveQueues() {
-        return new ArrayList<>(activeQueues);
+    public Collection<FaweQueue> getActiveQueues() {
+        return activeQueues;
     }
 
-    public List<FaweQueue> getInactiveQueues() {
-        return new ArrayList<>(inactiveQueues);
+    public Collection<FaweQueue> getInactiveQueues() {
+        return inactiveQueues;
     }
 
     public FaweQueue getNewQueue(String world, boolean fast, boolean autoqueue) {
@@ -319,31 +324,44 @@ public class SetQueue {
         return next() != null;
     }
 
-    public boolean isDone() {
+    /**
+     * Is the this empty
+     * @return
+     */
+    public boolean isEmpty() {
         return activeQueues.size() == 0 && inactiveQueues.size() == 0;
     }
 
-    public boolean addTask(final Runnable whenDone) {
-        if (this.isDone()) {
+    public void addTask(Runnable whenFree) {
+        tasks.add(whenFree);
+    }
+
+    /**
+     * Add a task to run when it is empty
+     * @param whenDone
+     * @return
+     */
+    public boolean addEmptyTask(final Runnable whenDone) {
+        if (this.isEmpty()) {
             // Run
-            this.tasks();
+            this.runEmptyTasks();
             if (whenDone != null) {
                 whenDone.run();
             }
             return true;
         }
         if (whenDone != null) {
-            this.runnables.add(whenDone);
+            this.emptyTasks.add(whenDone);
         }
         return false;
     }
 
-    public synchronized boolean tasks() {
-        if (this.runnables.isEmpty()) {
+    private synchronized boolean runEmptyTasks() {
+        if (this.emptyTasks.isEmpty()) {
             return false;
         }
-        final ConcurrentLinkedDeque<Runnable> tmp = new ConcurrentLinkedDeque<>(this.runnables);
-        this.runnables.clear();
+        final ConcurrentLinkedDeque<Runnable> tmp = new ConcurrentLinkedDeque<>(this.emptyTasks);
+        this.emptyTasks.clear();
         for (final Runnable runnable : tmp) {
             runnable.run();
         }

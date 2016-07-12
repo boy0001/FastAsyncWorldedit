@@ -18,7 +18,6 @@ import java.util.Collection;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
-import java.util.concurrent.ConcurrentLinkedDeque;
 import org.bukkit.Bukkit;
 import org.bukkit.Chunk;
 import org.bukkit.World;
@@ -56,7 +55,7 @@ public abstract class BukkitQueue_0<CHUNK, CHUNKSECTIONS, SECTION> extends NMSMa
 
     @EventHandler(ignoreCancelled = true, priority = EventPriority.MONITOR)
     public static void onChunkUnload(ChunkUnloadEvent event) {
-        ConcurrentLinkedDeque<FaweQueue> queues = SetQueue.IMP.activeQueues;
+        Collection<FaweQueue> queues = SetQueue.IMP.getActiveQueues();
         if (queues.isEmpty()) {
             return;
         }

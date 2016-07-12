@@ -13,6 +13,11 @@ public abstract class RunnableVal<T> implements Runnable {
     public void run() {
         run(this.value);
     }
-    
+
+    public T runAndGet() {
+        run();
+        return value;
+    }
+
     public abstract void run(T value);
 }

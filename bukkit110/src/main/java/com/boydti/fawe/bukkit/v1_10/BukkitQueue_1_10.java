@@ -131,29 +131,32 @@ public class BukkitQueue_1_10 extends BukkitQueue_0<Chunk, ChunkSection[], DataP
         final boolean hardcore = false;
         final IDataManager sdm = new ServerNBTManager(server.getWorldContainer(), name, true, server.getHandle().getServer().getDataConverterManager());
         WorldData worlddata = sdm.getWorldData();
-        WorldSettings worldSettings = null;
+        final WorldSettings worldSettings;
         if (worlddata == null) {
             worldSettings = new WorldSettings(creator.seed(), EnumGamemode.getById(server.getDefaultGameMode().getValue()), generateStructures, hardcore, type);
             worldSettings.setGeneratorSettings(creator.generatorSettings());
             worlddata = new WorldData(worldSettings, name);
+        } else {
+            worldSettings = null;
         }
         worlddata.checkName(name);
         final WorldServer internal = (WorldServer)new WorldServer(console, sdm, worlddata, dimension, console.methodProfiler, creator.environment(), generator).b();
-        if (worldSettings != null) {
-            internal.a(worldSettings);
-        }
+        startSet(true); // Temporarily allow async chunk load since the world isn't added yet
+        internal.a(worldSettings);
+        endSet(true);
         internal.scoreboard = server.getScoreboardManager().getMainScoreboard().getHandle();
         internal.tracker = new EntityTracker(internal);
         internal.addIWorldAccess(new WorldManager(console, internal));
         internal.worldData.setDifficulty(EnumDifficulty.EASY);
         internal.setSpawnFlags(true, true);
-        console.worlds.add(internal);
         if (generator != null) {
             internal.getWorld().getPopulators().addAll(generator.getDefaultPopulators(internal.getWorld()));
         }
+        // Add the world
         return TaskManager.IMP.sync(new RunnableVal<World>() {
             @Override
             public void run(World value) {
+                console.worlds.add(internal);
                 server.getPluginManager().callEvent(new WorldInitEvent(internal.getWorld()));
                 server.getPluginManager().callEvent(new WorldLoadEvent(internal.getWorld()));
                 this.value = internal.getWorld();

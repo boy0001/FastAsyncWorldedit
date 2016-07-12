@@ -5,16 +5,14 @@ import com.boydti.fawe.IFawe;
 import com.boydti.fawe.SpongeCommand;
 import com.boydti.fawe.config.BBC;
 import com.boydti.fawe.config.Settings;
-import com.boydti.fawe.object.EditSessionWrapper;
 import com.boydti.fawe.object.FaweCommand;
 import com.boydti.fawe.object.FawePlayer;
+import com.boydti.fawe.object.FaweQueue;
 import com.boydti.fawe.regions.FaweMaskManager;
 import com.boydti.fawe.sponge.v1_8.SpongeQueue_1_8;
 import com.boydti.fawe.sponge.v1_8.SpongeQueue_ALL;
-import com.boydti.fawe.object.FaweQueue;
 import com.boydti.fawe.util.MainUtil;
 import com.boydti.fawe.util.TaskManager;
-import com.sk89q.worldedit.EditSession;
 import com.sk89q.worldedit.forge.ForgeWorldEdit;
 import com.sk89q.worldedit.world.World;
 import java.io.File;
@@ -127,11 +125,6 @@ public class FaweSponge implements IFawe {
     }
 
     @Override
-    public EditSessionWrapper getEditSessionWrapper(EditSession session) {
-        return new EditSessionWrapper(session);
-    }
-
-    @Override
     public Collection<FaweMaskManager> getMaskManagers() {
         return new ArrayList<>();
     }
@@ -172,5 +165,10 @@ public class FaweSponge implements IFawe {
         } catch (Exception e) {
             return null;
         }
+    }
+
+    @Override
+    public Object getBlocksHubApi() {
+        return null;
     }
 }

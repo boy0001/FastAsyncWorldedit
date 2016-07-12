@@ -23,7 +23,7 @@ import com.boydti.fawe.Fawe;
 import com.boydti.fawe.FaweCache;
 import com.boydti.fawe.config.BBC;
 import com.boydti.fawe.config.Settings;
-import com.boydti.fawe.object.EditSessionWrapper;
+import com.boydti.fawe.logging.LoggingChangeSet;
 import com.boydti.fawe.object.FaweLimit;
 import com.boydti.fawe.object.FawePlayer;
 import com.boydti.fawe.object.FaweQueue;
@@ -54,6 +54,7 @@ import com.sk89q.worldedit.blocks.BlockType;
 import com.sk89q.worldedit.entity.BaseEntity;
 import com.sk89q.worldedit.entity.Entity;
 import com.sk89q.worldedit.event.extent.EditSessionEvent;
+import com.sk89q.worldedit.extent.AbstractDelegateExtent;
 import com.sk89q.worldedit.extent.ChangeSetExtent;
 import com.sk89q.worldedit.extent.Extent;
 import com.sk89q.worldedit.extent.MaskingExtent;
@@ -247,12 +248,12 @@ public class EditSession implements Extent {
         this.blockBag = blockBag;
         this.limit = limit;
         this.queue = SetQueue.IMP.getNewQueue(Fawe.imp().getWorldName(world), fastmode, autoQueue);
+        queue.addEditSession(this);
         this.bypassAll = wrapExtent(new FastWorldEditExtent(world, queue), bus, event, Stage.BEFORE_CHANGE);
         this.bypassHistory = (this.extent = wrapExtent(bypassAll, bus, event, Stage.BEFORE_REORDER));
         if (!fastmode && !(changeSet instanceof NullChangeSet)) {
-            if (player != null) {
-                EditSessionWrapper wrapper = Fawe.imp().getEditSessionWrapper(this);
-                changeSet = wrapper.wrapChangeSet(changeSet, player);
+            if (player != null && Fawe.imp().getBlocksHubApi() != null) {
+                changeSet = LoggingChangeSet.wrap(player, changeSet);
             }
             if (combineStages) {
                 changeTask = changeSet;
@@ -324,7 +325,9 @@ public class EditSession implements Extent {
         NullExtent nullExtent = new NullExtent(world, BBC.WORLDEDIT_CANCEL_REASON_MANUAL);
         while (traverser != null) {
             ExtentTraverser next = traverser.next();
-            traverser.setNext(nullExtent);
+            if (traverser.get() instanceof AbstractDelegateExtent) {
+                traverser.setNext(nullExtent);
+            }
             traverser = next;
         }
         bypassHistory = nullExtent;

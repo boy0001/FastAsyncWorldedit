@@ -1,11 +1,9 @@
 package com.boydti.fawe.bukkit;
 
 import com.boydti.fawe.Fawe;
-import com.boydti.fawe.object.EditSessionWrapper;
 import com.boydti.fawe.object.FaweCommand;
 import com.boydti.fawe.object.FawePlayer;
 import com.boydti.fawe.object.FaweQueue;
-import com.sk89q.worldedit.EditSession;
 import com.thevoxelbox.voxelsniper.SnipeData;
 import com.thevoxelbox.voxelsniper.Sniper;
 import org.bukkit.Bukkit;
@@ -54,6 +52,4 @@ public abstract class ABukkitMain extends JavaPlugin {
     }
 
     public abstract FaweQueue getQueue(String world);
-
-    public abstract EditSessionWrapper getEditSessionWrapper(EditSession session);
 }

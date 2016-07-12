@@ -64,7 +64,8 @@ public class WEManager {
      * @return
      */
     public RegionWrapper[] getMask(final FawePlayer<?> player) {
-        HashSet<RegionWrapper> mask = TaskManager.IMP.sync(new RunnableVal<HashSet<RegionWrapper>>() {
+//        HashSet<RegionWrapper> mask = TaskManager.IMP.sync(new RunnableVal<HashSet<RegionWrapper>>() {
+        HashSet<RegionWrapper> mask = new RunnableVal<HashSet<RegionWrapper>>() {
             @Override
             public void run(HashSet<RegionWrapper> ignore) {
                 this.value = new HashSet<>();
@@ -87,7 +88,8 @@ public class WEManager {
                     }
                 }
             }
-        }, 1000);
+//        }, 1000);
+        }.runAndGet();
         if (mask == null || mask.isEmpty()) {
             mask = player.getMeta("lastMask");
             if (mask == null) {
@@ -130,7 +132,7 @@ public class WEManager {
                             TaskManager.IMP.later(new Runnable() {
                                 @Override
                                 public void run() {
-                                    SetQueue.IMP.addTask(new Runnable() {
+                                    SetQueue.IMP.addEmptyTask(new Runnable() {
                                         @Override
                                         public void run() {
                                             if ((System.currentTimeMillis() - start) > 1000) {
@@ -150,7 +152,7 @@ public class WEManager {
     }
 
     public boolean delay(final FawePlayer<?> player, final Runnable whenDone, final boolean delayed, final boolean onlyDelayedExecution) {
-        final boolean free = SetQueue.IMP.addTask(null);
+        final boolean free = SetQueue.IMP.addEmptyTask(null);
         if (free) {
             if (delayed) {
                 if (whenDone != null) {
@@ -167,7 +169,7 @@ public class WEManager {
             if (!delayed && (player != null)) {
                 BBC.WORLDEDIT_DELAYED.send(player);
             }
-            SetQueue.IMP.addTask(whenDone);
+            SetQueue.IMP.addEmptyTask(whenDone);
         }
         return true;
     }

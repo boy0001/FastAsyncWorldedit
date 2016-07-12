@@ -38,7 +38,7 @@ public class EditSessionBuilder {
      * An EditSession builder<br>
      *  - Unset values will revert to their default<br>
      *  <br>
-     *  player: The player doing the edit (defaults to to console)<br>
+     *  player: The player doing the edit (defaults to to null)<br>
      *  limit: Block/Entity/Action limit (defaults to unlimited)<br>
      *  changeSet: Stores changes (defaults to config.yml value)<br>
      *  allowedRegions: Allowed editable regions (defaults to player's allowed regions, or everywhere)<br>

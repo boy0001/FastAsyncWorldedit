@@ -26,6 +26,7 @@ import com.boydti.fawe.object.changeset.FaweStreamChangeSet;
 import com.boydti.fawe.object.exception.FaweException;
 import com.boydti.fawe.util.MainUtil;
 import com.boydti.fawe.util.TaskManager;
+import com.boydti.fawe.wrappers.FakePlayer;
 import com.boydti.fawe.wrappers.PlayerWrapper;
 import com.google.common.base.Joiner;
 import com.sk89q.minecraft.util.commands.CommandException;
@@ -233,17 +234,18 @@ public final class CommandManager {
         TaskManager.IMP.taskNow(new Runnable() {
             @Override
             public void run() {
-                final Actor actor = platformManager.createProxyActor(event.getActor());
-                String[] split = commandDetection(event.getArguments().split(" "));
-                
+                Actor actor = platformManager.createProxyActor(event.getActor());
+                String args = event.getArguments();
+                String[] split = commandDetection(args.split(" "));
                 // No command found!
                 if (!dispatcher.contains(split[0])) {
                     return;
                 }
-                
+                if (!actor.isPlayer()) {
+                    actor = new FakePlayer(actor.getName(), actor.getUniqueId(), actor);
+                }
                 final LocalSession session = worldEdit.getSessionManager().get(actor);
                 LocalConfiguration config = worldEdit.getConfiguration();
-                
                 CommandLocals locals = new CommandLocals();
                 final FawePlayer fp = FawePlayer.wrap(actor);
                 if (fp != null) {
@@ -252,11 +254,11 @@ public final class CommandManager {
                         return;
                     }
                     fp.setMeta("fawe_action", true);
-                    locals.put(Actor.class, PlayerWrapper.wrap((Player) actor));
+                    locals.put(Actor.class, actor instanceof Player ? new PlayerWrapper((Player) actor) : actor);
                 } else {
                     locals.put(Actor.class, actor);
                 }
-                locals.put("arguments", event.getArguments());
+                locals.put("arguments", args);
                 final long start = System.currentTimeMillis();
                 try {
                     // This is a bit of a hack, since the call method can only throw CommandExceptions

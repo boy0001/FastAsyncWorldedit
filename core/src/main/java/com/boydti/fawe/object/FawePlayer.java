@@ -19,6 +19,7 @@ import com.sk89q.worldedit.IncompleteRegionException;
 import com.sk89q.worldedit.LocalSession;
 import com.sk89q.worldedit.WorldEdit;
 import com.sk89q.worldedit.entity.Player;
+import com.sk89q.worldedit.extension.platform.Actor;
 import com.sk89q.worldedit.extent.clipboard.Clipboard;
 import com.sk89q.worldedit.regions.Region;
 import com.sk89q.worldedit.regions.RegionSelector;
@@ -57,7 +58,7 @@ public abstract class FawePlayer<T> {
      */
     public static <V> FawePlayer<V> wrap(final Object obj) {
         if (obj == null) {
-            return null;
+            return FakePlayer.getConsole().toFawePlayer();
         }
         if (obj instanceof FakePlayer) {
             return ((FakePlayer) obj).toFawePlayer();
@@ -87,6 +88,15 @@ public abstract class FawePlayer<T> {
                     return Fawe.imp().wrap(actor.getName());
                 }
             }
+        }
+        if (obj instanceof Actor) {
+            Actor actor = (Actor) obj;
+            FawePlayer existing = Fawe.get().getCachedPlayer(actor.getName());
+            if (existing != null) {
+                return existing;
+            }
+            FakePlayer fake = new FakePlayer(actor.getName(), actor.getUniqueId(), actor);
+            return fake.toFawePlayer();
         }
         return Fawe.imp().wrap(obj);
     }

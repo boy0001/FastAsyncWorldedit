@@ -93,7 +93,7 @@ public class SelectionCommands {
                 String[] coords = args.getString(0).split(",");
                 pos = new Vector(Integer.parseInt(coords[0]), Integer.parseInt(coords[1]), Integer.parseInt(coords[2]));
             } else {
-                player.printError("Invalid coordinates " + args.getString(0));
+                BBC.SELECTOR_INVALID_COORDINATES.send(player, args.getString(0));
                 return;
             }
         } else {
@@ -101,7 +101,7 @@ public class SelectionCommands {
         }
 
         if (!session.getRegionSelector(player.getWorld()).selectPrimary(pos, ActorSelectorLimits.forActor(player))) {
-            player.printError("Position already set.");
+            BBC.SELECTOR_ALREADY_SET.send(player);
             return;
         }
 
@@ -128,7 +128,7 @@ public class SelectionCommands {
                         Integer.parseInt(coords[1]),
                         Integer.parseInt(coords[2]));
             } else {
-                player.printError("Invalid coordinates " + args.getString(0));
+                BBC.SELECTOR_INVALID_COORDINATES.send(player, args.getString(0));
                 return;
             }
         } else {
@@ -136,7 +136,7 @@ public class SelectionCommands {
         }
 
         if (!session.getRegionSelector(player.getWorld()).selectSecondary(pos, ActorSelectorLimits.forActor(player))) {
-            player.printError("Position already set.");
+            BBC.SELECTOR_ALREADY_SET.send(player);
             return;
         }
 
@@ -158,7 +158,7 @@ public class SelectionCommands {
 
         if (pos != null) {
             if (!session.getRegionSelector(player.getWorld()).selectPrimary(pos, ActorSelectorLimits.forActor(player))) {
-                player.printError("Position already set.");
+                BBC.SELECTOR_ALREADY_SET.send(player);
                 return;
             }
 
@@ -183,7 +183,7 @@ public class SelectionCommands {
 
         if (pos != null) {
             if (!session.getRegionSelector(player.getWorld()).selectSecondary(pos, ActorSelectorLimits.forActor(player))) {
-                player.printError("Position already set.");
+                BBC.SELECTOR_ALREADY_SET.send(player);
                 return;
             }
 
@@ -232,7 +232,7 @@ public class SelectionCommands {
                 // coords specified
                 String[] coords = args.getString(0).split(",");
                 if (coords.length != 2) {
-                    throw new InsufficientArgumentsException("Invalid coordinates specified.");
+                    BBC.SELECTOR_INVALID_COORDINATES.send(player, args.getString(0));
                 }
                 int x = Integer.parseInt(coords[0]);
                 int z = Integer.parseInt(coords[1]);

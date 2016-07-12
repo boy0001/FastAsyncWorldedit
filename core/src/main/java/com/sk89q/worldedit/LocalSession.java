@@ -228,7 +228,7 @@ public class LocalSession {
             history.add(0, editSession);
             historyPointer++;
         }
-        while ((history.size() > MAX_HISTORY_SIZE || historySize < limitMb) && history.size() > 1) {
+        while ((history.size() > MAX_HISTORY_SIZE || (historySize >> 20) > limitMb) && history.size() > 1) {
             EditSession item = history.get(0);
             historySize -= MainUtil.getSizeInMemory(item.getChangeSet());
             history.remove(0);

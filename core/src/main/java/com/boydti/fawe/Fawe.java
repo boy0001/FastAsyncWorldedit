@@ -182,7 +182,7 @@ public class Fawe {
         MainUtil.deleteOlder(new File(IMP.getDirectory(), "clipboard"), TimeUnit.DAYS.toMillis(Settings.CLIPBOARD.DELETE_AFTER_DAYS));
 
         TaskManager.IMP = this.IMP.getTaskManager();
-        TaskManager.IMP.repeat(timer = new FaweTimer(), 50);
+        TaskManager.IMP.repeat(timer = new FaweTimer(), 1);
         if (Settings.METRICS) {
             this.IMP.startMetrics();
         }
@@ -209,6 +209,10 @@ public class Fawe {
          */
         this.setupInjector();
         this.setupMemoryListener();
+    }
+
+    public FaweTimer getTimer() {
+        return timer;
     }
 
     public double getTPS() {

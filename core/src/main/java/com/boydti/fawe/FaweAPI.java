@@ -482,7 +482,7 @@ public class FaweAPI {
      * @param whenDone
      */
     public static void addTask(final Runnable whenDone) {
-        SetQueue.IMP.addTask(whenDone);
+        SetQueue.IMP.addEmptyTask(whenDone);
     }
 
     /**

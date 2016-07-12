@@ -2,6 +2,7 @@ package com.boydti.fawe.util;
 
 import com.boydti.fawe.Fawe;
 import com.boydti.fawe.config.Settings;
+import com.boydti.fawe.object.FaweQueue;
 import com.boydti.fawe.object.RunnableVal;
 import java.util.Collection;
 import java.util.Iterator;
@@ -99,6 +100,21 @@ public abstract class TaskManager {
     }
 
     /**
+     * Disable async catching for a specific task
+     * @param queue
+     * @param run
+     */
+    public void runUnsafe(FaweQueue queue, Runnable run) {
+        queue.startSet(true);
+        try {
+            run.run();
+        } catch (Throwable e) {
+            e.printStackTrace();
+        }
+        queue.endSet(true);
+    }
+
+    /**
      * Run a task on the current thread or asynchronously
      *  - If it's already the main thread, it will jst call run()
      * @param r
@@ -117,7 +133,7 @@ public abstract class TaskManager {
      * @param r
      * @param async
      */
-    public void taskSyncNow(final Runnable r, boolean async) {
+    public void taskNowMain(final Runnable r, boolean async) {
         if (async) {
             async(r);
         } else if (r != null && Thread.currentThread() == Fawe.get().getMainThread()){
@@ -132,7 +148,7 @@ public abstract class TaskManager {
      * @param r
      * @param async
      */
-    public void taskSyncSoon(final Runnable r, boolean async) {
+    public void taskSoonMain(final Runnable r, boolean async) {
         if (async) {
             async(r);
         } else {
@@ -218,6 +234,54 @@ public abstract class TaskManager {
         synchronized (running) {
             running.notifyAll();
         }
+    }
+
+    /**
+     * Run a task on the main thread when the TPS is high enough, and wait for execution to finish:<br>
+     *     - Useful if you need to access something from the Bukkit API from another thread<br>
+     *     - Usualy wait time is around 25ms<br>
+     * @param function
+     * @param timeout - How long to wait for execution
+     * @param <T>
+     * @return
+     */
+    public <T> T syncWhenFree(final RunnableVal<T> function, int timeout) {
+        if (Fawe.get().getMainThread() == Thread.currentThread()) {
+            function.run();
+            return function.value;
+        }
+        final AtomicBoolean running = new AtomicBoolean(true);
+        RunnableVal<RuntimeException> run = new RunnableVal<RuntimeException>() {
+            @Override
+            public void run(RuntimeException value) {
+                try {
+                    function.run();
+                } catch (RuntimeException e) {
+                    this.value = e;
+                } catch (Throwable neverHappens) {
+                    MainUtil.handleError(neverHappens);
+                } finally {
+                    running.set(false);
+                }
+                synchronized (function) {
+                    function.notifyAll();
+                }
+            }
+        };
+        SetQueue.IMP.addTask(run);
+        try {
+            synchronized (function) {
+                while (running.get()) {
+                    function.wait(timeout);
+                }
+            }
+        } catch (InterruptedException e) {
+            MainUtil.handleError(e);
+        }
+        if (run.value != null) {
+            throw run.value;
+        }
+        return function.value;
     }
 
     /**

@@ -19,7 +19,9 @@
 
 package com.sk89q.worldedit.command;
 
+import com.boydti.fawe.FaweAPI;
 import com.boydti.fawe.config.BBC;
+import com.intellectualcrafters.plot.util.MathMan;
 import com.sk89q.minecraft.util.commands.Command;
 import com.sk89q.minecraft.util.commands.CommandContext;
 import com.sk89q.minecraft.util.commands.CommandPermissions;
@@ -27,11 +29,13 @@ import com.sk89q.minecraft.util.commands.Logging;
 import com.sk89q.worldedit.EditSession;
 import com.sk89q.worldedit.LocalConfiguration;
 import com.sk89q.worldedit.LocalSession;
+import com.sk89q.worldedit.LocalWorld;
 import com.sk89q.worldedit.WorldEdit;
 import com.sk89q.worldedit.WorldEditException;
 import com.sk89q.worldedit.WorldVector;
 import com.sk89q.worldedit.entity.Player;
 import com.sk89q.worldedit.util.command.parametric.Optional;
+import com.sk89q.worldedit.world.World;
 
 
 import static com.google.common.base.Preconditions.checkNotNull;
@@ -157,7 +161,7 @@ public class NavigationCommands {
     }
 
     @Command(
-            aliases = { "jumpto", "j" },
+            aliases = { "jumpto [world,x,y,z]", "j" },
             usage = "",
             desc = "Teleport to a location",
             min = 0,
@@ -165,8 +169,20 @@ public class NavigationCommands {
     )
     @CommandPermissions("worldedit.navigation.jumpto.command")
     public void jumpTo(Player player, LocalSession session, EditSession editSession, CommandContext args) throws WorldEditException {
-
-        WorldVector pos = player.getSolidBlockTrace(300);
+        WorldVector pos;
+        if (args.argsLength() == 1) {
+            String arg = args.getString(0);
+            String[] split = arg.split(",");
+            World world = FaweAPI.getWorld(split[0]);
+            if (world != null && split.length == 4 && MathMan.isInteger(split[1]) && MathMan.isInteger(split[2]) && MathMan.isInteger(split[3])) {
+                pos = new WorldVector((LocalWorld) world, Integer.parseInt(split[1]), Integer.parseInt(split[2]), Integer.parseInt(split[3]));
+            } else {
+                BBC.SELECTOR_INVALID_COORDINATES.send(player, args.getString(0));
+                return;
+            }
+        } else {
+            pos = player.getSolidBlockTrace(300);
+        }
         if (pos != null) {
             player.findFreePosition(pos);
             BBC.POOF.send(player);

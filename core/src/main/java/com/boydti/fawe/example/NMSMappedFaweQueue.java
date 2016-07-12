@@ -32,13 +32,13 @@ public abstract class NMSMappedFaweQueue<WORLD, CHUNK, CHUNKSECTION, SECTION> ex
             mode = Settings.LIGHTING.FIX_ALL ? FaweQueue.RelightMode.OPTIMAL : FaweQueue.RelightMode.MINIMAL;
         }
         final RelightMode finalMode = mode;
-        TaskManager.IMP.taskSyncSoon(new Runnable() {
+        TaskManager.IMP.taskSoonMain(new Runnable() {
             @Override
             public void run() {
                 final long pair = fc.longHash();
                 relighting.put(pair, pair);
                 final boolean result = finalMode == RelightMode.NONE || fixLighting(fc, finalMode);
-                TaskManager.IMP.taskSyncNow(new Runnable() {
+                TaskManager.IMP.taskNowMain(new Runnable() {
                     @Override
                     public void run() {
                         if (!result) {

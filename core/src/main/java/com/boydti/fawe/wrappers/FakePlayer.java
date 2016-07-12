@@ -11,6 +11,7 @@ import com.sk89q.worldedit.WorldVector;
 import com.sk89q.worldedit.entity.BaseEntity;
 import com.sk89q.worldedit.entity.Player;
 import com.sk89q.worldedit.event.platform.CommandEvent;
+import com.sk89q.worldedit.extension.platform.Actor;
 import com.sk89q.worldedit.extension.platform.CommandManager;
 import com.sk89q.worldedit.extent.inventory.BlockBag;
 import com.sk89q.worldedit.session.SessionKey;
@@ -28,77 +29,90 @@ public class FakePlayer extends LocalPlayer {
 
     public static FakePlayer getConsole() {
         if (CONSOLE == null) {
-            CONSOLE = new FakePlayer("#CONSOLE", null);
+            CONSOLE = new FakePlayer("#CONSOLE", null, null) {
+                @Override
+                public boolean hasPermission(String permission) {
+                    return true;
+                }
+            };
         }
         return CONSOLE;
     }
 
+    private final Actor parent;
     private final String name;
     private final UUID uuid;
     private World world;
     private Location pos;
 
-    public FakePlayer(String name, UUID uuid) {
+    public FakePlayer(String name, UUID uuid, Actor parent) {
         this.name = name;
         this.uuid = uuid == null ? UUID.nameUUIDFromBytes(("OfflinePlayer:" + name).getBytes(Charsets.UTF_8)) : uuid;
         this.world = WorldEdit.getInstance().getServer().getWorlds().get(0);
         this.pos = new Location(world, 0, 0, 0);
+        this.parent = parent;
     }
 
-    private FawePlayer fp;
+    private FawePlayer fp = null;
 
     public FawePlayer toFawePlayer() {
-        if (fp == null) {
-            fp = new FawePlayer(this) {
-                @Override
-                public void sendTitle(String head, String sub) {}
-
-                @Override
-                public void resetTitle() {}
-
-                @Override
-                public String getName() {
-                    return name;
-                }
-
-                @Override
-                public UUID getUUID() {
-                    return uuid;
-                }
-
-                @Override
-                public boolean hasPermission(String perm) {
-                    return FakePlayer.this.hasPermission(perm) || (Boolean) getMeta("perm." + perm, false);
-                }
-
-                @Override
-                public void setPermission(String perm, boolean flag) {
-                    setMeta("perm." + perm, true);
-                }
-
-                @Override
-                public void sendMessage(String message) {
-                    FakePlayer.this.print(message);
-                }
-
-                @Override
-                public void executeCommand(String substring) {
-                    CommandManager.getInstance().handleCommand(new CommandEvent(FakePlayer.this, substring));
-                }
-
-                @Override
-                public FaweLocation getLocation() {
-                    Location loc = FakePlayer.this.getLocation();
-                    return new FaweLocation(loc.getExtent().toString(), loc.getBlockX(), loc.getBlockY(), loc.getBlockZ());
-                }
-
-                @Override
-                public Player getPlayer() {
-                    return FakePlayer.this;
-                }
-            };
+        if (fp != null) {
+            Fawe.get().register(fp);
+            return fp;
         }
-        return fp;
+        FawePlayer existing = Fawe.get().getCachedPlayer(getName());
+        if (existing != null) {
+            return fp = existing;
+        }
+        final Actor actor = this;
+        return fp = new FawePlayer(this) {
+            @Override
+            public void sendTitle(String head, String sub) {}
+
+            @Override
+            public void resetTitle() {}
+
+            @Override
+            public String getName() {
+                return actor.getName();
+            }
+
+            @Override
+            public UUID getUUID() {
+                return actor.getUniqueId();
+            }
+
+            @Override
+            public boolean hasPermission(String perm) {
+                return actor.hasPermission(perm) || (Boolean) getMeta("perm." + perm, false);
+            }
+
+            @Override
+            public void setPermission(String perm, boolean flag) {
+                setMeta("perm." + perm, true);
+            }
+
+            @Override
+            public void sendMessage(String message) {
+                actor.print(message);
+            }
+
+            @Override
+            public void executeCommand(String substring) {
+                CommandManager.getInstance().handleCommand(new CommandEvent(actor, substring));
+            }
+
+            @Override
+            public FaweLocation getLocation() {
+                Location loc = FakePlayer.this.getLocation();
+                return new FaweLocation(loc.getExtent().toString(), loc.getBlockX(), loc.getBlockY(), loc.getBlockZ());
+            }
+
+            @Override
+            public Player getPlayer() {
+                return FakePlayer.this;
+            }
+        };
     }
 
     @Override
@@ -152,26 +166,45 @@ public class FakePlayer extends LocalPlayer {
 
     @Override
     public String getName() {
+        if (parent != null) {
+            return parent.getName();
+        }
         return name;
     }
 
     @Override
     public void printRaw(String msg) {
+        if (parent != null) {
+            parent.printRaw(msg);
+            return;
+        }
         Fawe.debug(msg);
     }
 
     @Override
     public void printDebug(String msg) {
+        if (parent != null) {
+            parent.printDebug(msg);
+            return;
+        }
         Fawe.debug(msg);
     }
 
     @Override
     public void print(String msg) {
+        if (parent != null) {
+            parent.print(msg);
+            return;
+        }
         Fawe.debug(msg);
     }
 
     @Override
     public void printError(String msg) {
+        if (parent != null) {
+            parent.printError(msg);
+            return;
+        }
         Fawe.debug(msg);
     }
 
@@ -179,6 +212,9 @@ public class FakePlayer extends LocalPlayer {
 
     @Override
     public SessionKey getSessionKey() {
+        if (parent != null) {
+            return parent.getSessionKey();
+        }
         if (key == null) {
             key = new FakeSessionKey(uuid, name);
         }
@@ -193,16 +229,25 @@ public class FakePlayer extends LocalPlayer {
 
     @Override
     public UUID getUniqueId() {
+        if (parent != null) {
+            return parent.getUniqueId();
+        }
         return uuid;
     }
 
     @Override
     public String[] getGroups() {
+        if (parent != null) {
+            return parent.getGroups();
+        }
         return new String[0];
     }
 
     @Override
     public boolean hasPermission(String permission) {
+        if (parent != null) {
+            return parent.hasPermission(permission);
+        }
         return true;
     }
 

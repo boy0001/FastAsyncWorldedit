@@ -4,7 +4,6 @@ package com.boydti.fawe.forge;
 import com.boydti.fawe.Fawe;
 import com.boydti.fawe.IFawe;
 import com.boydti.fawe.forge.v0.ForgeQueue_All;
-import com.boydti.fawe.object.EditSessionWrapper;
 import com.boydti.fawe.object.FaweCommand;
 import com.boydti.fawe.object.FawePlayer;
 import com.boydti.fawe.object.FaweQueue;
@@ -12,7 +11,6 @@ import com.boydti.fawe.regions.FaweMaskManager;
 import com.boydti.fawe.util.MainUtil;
 import com.boydti.fawe.util.TaskManager;
 import com.boydti.fawe.wrappers.WorldWrapper;
-import com.sk89q.worldedit.EditSession;
 import com.sk89q.worldedit.forge.ForgeWorld;
 import com.sk89q.worldedit.world.World;
 import java.io.File;
@@ -112,11 +110,6 @@ public class FaweForge implements IFawe {
     }
 
     @Override
-    public EditSessionWrapper getEditSessionWrapper(EditSession session) {
-        return new EditSessionWrapper(session);
-    }
-
-    @Override
     public Collection<FaweMaskManager> getMaskManagers() {
         return new ArrayList<>();
     }
@@ -149,5 +142,10 @@ public class FaweForge implements IFawe {
     @Override
     public String getName(UUID uuid) {
         return uuid.toString();
+    }
+
+    @Override
+    public Object getBlocksHubApi() {
+        return null;
     }
 }
