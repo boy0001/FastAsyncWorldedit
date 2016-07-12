@@ -65,7 +65,7 @@ public class Settings extends Config {
         })
         public int MAX_BLOCKSTATES = 1337;
         @Comment("Maximum size of the player's history in Megabytes")
-        public int MAX_HISTORY_MB = 20;
+        public int MAX_HISTORY_MB = 200;
     }
 
     public static class HISTORY {
