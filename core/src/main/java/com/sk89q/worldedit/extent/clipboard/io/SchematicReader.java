@@ -20,6 +20,8 @@
 package com.sk89q.worldedit.extent.clipboard.io;
 
 import com.boydti.fawe.FaweCache;
+import com.boydti.fawe.config.Settings;
+import com.boydti.fawe.jnbt.SchematicStreamer;
 import com.sk89q.jnbt.ByteArrayTag;
 import com.sk89q.jnbt.CompoundTag;
 import com.sk89q.jnbt.IntTag;
@@ -76,6 +78,9 @@ public class SchematicReader implements ClipboardReader {
     }
 
     public Clipboard read(WorldData data, UUID clipboardId) throws IOException {
+        if (Settings.CLIPBOARD.USE_DISK) {
+            return new SchematicStreamer(inputStream, clipboardId).getClipboard();
+        }
         // Schematic tag
         NamedTag rootTag = inputStream.readNamedTag();
         if (!rootTag.getName().equals("Schematic")) {

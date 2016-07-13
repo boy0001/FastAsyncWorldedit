@@ -161,8 +161,8 @@ public class NavigationCommands {
     }
 
     @Command(
-            aliases = { "jumpto [world,x,y,z]", "j" },
-            usage = "",
+            aliases = { "jumpto", "j" },
+            usage = "jumpto [world,x,y,z]",
             desc = "Teleport to a location",
             min = 0,
             max = 0

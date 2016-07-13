@@ -32,7 +32,7 @@ public class SetQueue {
     private long last;
     private long secondLast;
     private long lastSuccess;
-    
+
     /**
      * A queue of tasks that will run when the queue is empty
      */

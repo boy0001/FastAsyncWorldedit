@@ -17,4 +17,9 @@ public abstract class RunnableVal2<T, U> implements Runnable {
     }
     
     public abstract void run(T value1, U value2);
+
+    public RunnableVal2<T, U> runAndGet(T value1, U value2) {
+        run(value1, value2);
+        return this;
+    }
 }

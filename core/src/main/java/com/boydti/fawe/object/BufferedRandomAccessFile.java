@@ -244,6 +244,31 @@ public final class BufferedRandomAccessFile extends RandomAccessFile
         this.curr_ = pos;
     }
 
+    /*
+     * Seek and do not flush if within the current buffer when going backwards
+     *  - Assumes no writes were made
+     * @param pos
+     * @throws IOException
+     */
+    public void seekUnsafe(long pos) throws IOException
+    {
+        if (pos >= this.hi_ || pos < this.lo_)
+        {
+            // seeking outside of current buffer -- flush and read
+            this.flushBuffer();
+            this.lo_ = pos & BuffMask_; // start at BuffSz boundary
+            this.maxHi_ = this.lo_ + (long) this.buff_.length;
+            if (this.diskPos_ != this.lo_)
+            {
+                super.seek(this.lo_);
+                this.diskPos_ = this.lo_;
+            }
+            int n = this.fillBuffer();
+            this.hi_ = this.lo_ + (long) n;
+        }
+        this.curr_ = pos;
+    }
+
     public long getFilePointer()
     {
         return this.curr_;
@@ -271,6 +296,23 @@ public final class BufferedRandomAccessFile extends RandomAccessFile
         byte res = this.buff_[(int) (this.curr_ - this.lo_)];
         this.curr_++;
         return ((int) res) & 0xFF; // convert byte -> int
+    }
+
+    public byte read1() throws IOException {
+        if (this.curr_ >= this.hi_)
+        {
+            // test for EOF
+            // if (this.hi < this.maxHi) return -1;
+            if (this.hitEOF_)
+                return -1;
+
+            // slow path -- read another buffer
+            this.seek(this.curr_);
+            if (this.curr_ == this.hi_)
+                return -1;
+        }
+        byte res = this.buff_[(int) (this.curr_++ - this.lo_)];
+        return res;
     }
 
     public int read(byte[] b) throws IOException
