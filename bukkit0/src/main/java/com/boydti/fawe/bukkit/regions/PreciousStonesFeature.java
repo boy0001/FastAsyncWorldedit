@@ -2,6 +2,8 @@ package com.boydti.fawe.bukkit.regions;
 
 import com.boydti.fawe.bukkit.FaweBukkit;
 import com.boydti.fawe.object.FawePlayer;
+import com.boydti.fawe.regions.FaweMask;
+import com.sk89q.worldedit.BlockVector;
 import java.util.List;
 import net.sacredlabyrinth.Phaed.PreciousStones.PreciousStones;
 import net.sacredlabyrinth.Phaed.PreciousStones.field.Field;
@@ -23,20 +25,20 @@ public class PreciousStonesFeature extends BukkitMaskManager implements Listener
     }
 
     @Override
-    public BukkitMask getMask(final FawePlayer<Player> fp) {
+    public FaweMask getMask(final FawePlayer<Player> fp) {
         final Player player = fp.parent;
         final Location location = player.getLocation();
         final List<Field> fields = PreciousStones.API().getFieldsProtectingArea(FieldFlag.PLOT, location);
-        for (final Field myfield : fields) {
-            if (myfield.getOwner().equalsIgnoreCase(player.getName()) || (myfield.getAllowed().contains(player.getName()))) {
-                final Location pos1 = new Location(location.getWorld(), myfield.getCorners().get(0).getBlockX(), myfield.getCorners().get(0).getBlockY(), myfield.getCorners().get(0).getBlockZ());
-                final Location pos2 = new Location(location.getWorld(), myfield.getCorners().get(1).getBlockX(), myfield.getCorners().get(1).getBlockY(), myfield.getCorners().get(1).getBlockZ());
-                return new BukkitMask(pos1, pos2) {
-                    @Override
-                    public String getName() {
-                        return "FIELD:" + myfield.toString();
-                    }
-                };
+        if (fields.isEmpty()) {
+            return null;
+        }
+        String name = player.getName();
+        boolean member = fp.hasPermission("fawe.preciousstones.member");
+        for (final Field myField : fields) {
+            if (myField.isOwner(name) || (member && myField.getAllowed().contains(player.getName()))) {
+                BlockVector pos1 = new BlockVector(myField.getMinx(), myField.getMiny(), myField.getMinz());
+                BlockVector pos2 = new BlockVector(myField.getMaxx(), myField.getMaxy(), myField.getMaxz());
+                return new FaweMask(pos1, pos2, "FIELD: " + myField);
             }
         }
         return null;
