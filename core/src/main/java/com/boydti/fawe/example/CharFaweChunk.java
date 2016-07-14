@@ -120,6 +120,15 @@ public abstract class CharFaweChunk<T> extends FaweChunk<T> {
         return this.biomes;
     }
 
+    public int getCombinedId(int x, int y, int z) {
+        short i = FaweCache.CACHE_I[y][x][z];
+        char[] array = getIdArray(i);
+        if (array == null) {
+            return 0;
+        }
+        return array[FaweCache.CACHE_J[y][x][z]];
+    }
+
     public HashMap<BytePair, CompoundTag> tiles;
 
     @Override

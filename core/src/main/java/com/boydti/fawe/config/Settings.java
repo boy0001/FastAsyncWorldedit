@@ -202,10 +202,21 @@ public class Settings extends Config {
     }
 
     public static class LIGHTING {
-        @Comment("If chunk lighting should be done asynchronously")
+        @Comment({
+                "If chunk lighting should be done asynchronously:",
+                " - Async lighting is less intense, but more likely to glitch"
+        })
         public static boolean ASYNC = true;
-        @Comment("If all lighting should be fixed in a chunk that is edited")
-        public static boolean FIX_ALL = true;
+        @Comment({
+                "The relighting mode to use:",
+                " - 0 = None (Do no relighting)",
+                " - 1 = Shadowless (Removes shadows)",
+                " - 2 = Minimal (Relight changed light sources)",
+                " - 3 = Fullbright (Relight changed light sources, remove shadows)",
+                " - 4 = Optimal (Relight changed light sources and changed blocks)",
+                " - 5 = All (Slowly relight every blocks)"
+        })
+        public static int MODE = 4;
     }
 
     public static void save(File file) {

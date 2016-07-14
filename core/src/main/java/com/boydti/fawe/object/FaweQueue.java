@@ -2,6 +2,7 @@ package com.boydti.fawe.object;
 
 import com.boydti.fawe.Fawe;
 import com.boydti.fawe.config.BBC;
+import com.boydti.fawe.config.Settings;
 import com.boydti.fawe.object.exception.FaweException;
 import com.boydti.fawe.util.MainUtil;
 import com.boydti.fawe.util.MemUtil;
@@ -36,7 +37,9 @@ public abstract class FaweQueue {
 
     public enum RelightMode {
         NONE,
+        SHADOWLESS,
         MINIMAL,
+        FULLBRIGHT,
         OPTIMAL,
         ALL,
     }
@@ -128,6 +131,25 @@ public abstract class FaweQueue {
     public abstract FaweChunk<?> getFaweChunk(int x, int z);
 
     public abstract void setChunk(final FaweChunk<?> chunk);
+
+    public boolean fixLightingSafe(final FaweChunk<?> chunk, final RelightMode mode) {
+        if (Settings.LIGHTING.ASYNC || Fawe.get().isMainThread()) {
+            try {
+                if (fixLighting(chunk, mode)) {
+                    return true;
+                }
+                if (Fawe.get().isMainThread()) {
+                    return false;
+                }
+            } catch (Throwable ignore) {}
+        }
+        return TaskManager.IMP.syncWhenFree(new RunnableVal<Boolean>() {
+            @Override
+            public void run(Boolean value) {
+                this.value = fixLighting(chunk, mode);
+            }
+        });
+    }
 
     public abstract boolean fixLighting(final FaweChunk<?> chunk, RelightMode mode);
 

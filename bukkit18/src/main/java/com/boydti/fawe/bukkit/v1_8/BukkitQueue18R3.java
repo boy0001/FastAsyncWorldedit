@@ -6,7 +6,6 @@ import com.boydti.fawe.bukkit.v0.BukkitQueue_0;
 import com.boydti.fawe.example.CharFaweChunk;
 import com.boydti.fawe.object.BytePair;
 import com.boydti.fawe.object.FaweChunk;
-import com.boydti.fawe.object.PseudoRandom;
 import com.boydti.fawe.object.RunnableVal;
 import com.boydti.fawe.util.MainUtil;
 import com.boydti.fawe.util.MathMan;
@@ -17,8 +16,10 @@ import com.sk89q.jnbt.ListTag;
 import com.sk89q.jnbt.StringTag;
 import com.sk89q.jnbt.Tag;
 import com.sk89q.worldedit.internal.Constants;
+import java.io.File;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -35,20 +36,32 @@ import net.minecraft.server.v1_8_R3.EntityPlayer;
 import net.minecraft.server.v1_8_R3.EntityTracker;
 import net.minecraft.server.v1_8_R3.EntityTrackerEntry;
 import net.minecraft.server.v1_8_R3.EntityTypes;
+import net.minecraft.server.v1_8_R3.EnumDifficulty;
 import net.minecraft.server.v1_8_R3.LongHashMap;
+import net.minecraft.server.v1_8_R3.MinecraftServer;
 import net.minecraft.server.v1_8_R3.NBTTagCompound;
 import net.minecraft.server.v1_8_R3.NibbleArray;
 import net.minecraft.server.v1_8_R3.PacketPlayOutEntityDestroy;
 import net.minecraft.server.v1_8_R3.PacketPlayOutMapChunk;
 import net.minecraft.server.v1_8_R3.PlayerChunkMap;
+import net.minecraft.server.v1_8_R3.ServerNBTManager;
 import net.minecraft.server.v1_8_R3.TileEntity;
+import net.minecraft.server.v1_8_R3.WorldData;
+import net.minecraft.server.v1_8_R3.WorldManager;
 import net.minecraft.server.v1_8_R3.WorldServer;
+import net.minecraft.server.v1_8_R3.WorldSettings;
+import net.minecraft.server.v1_8_R3.WorldType;
 import org.bukkit.Bukkit;
 import org.bukkit.Chunk;
-import org.bukkit.Material;
 import org.bukkit.World;
+import org.bukkit.WorldCreator;
 import org.bukkit.craftbukkit.v1_8_R3.CraftChunk;
+import org.bukkit.craftbukkit.v1_8_R3.CraftServer;
+import org.bukkit.craftbukkit.v1_8_R3.CraftWorld;
 import org.bukkit.event.entity.CreatureSpawnEvent;
+import org.bukkit.event.world.WorldInitEvent;
+import org.bukkit.event.world.WorldLoadEvent;
+import org.bukkit.generator.ChunkGenerator;
 
 public class BukkitQueue18R3 extends BukkitQueue_0<Chunk, ChunkSection[], char[]> {
 
@@ -74,6 +87,17 @@ public class BukkitQueue18R3 extends BukkitQueue_0<Chunk, ChunkSection[], char[]
     @Override
     public boolean loadChunk(World world, int x, int z, boolean generate) {
         return getCachedSections(world, x, z) != null;
+    }
+
+    @Override
+    public void setFullbright(ChunkSection[] sections) {
+        for (int i = 0; i < sections.length; i++) {
+            ChunkSection section = sections[i];
+            if (section != null) {
+                byte[] bytes = section.getSkyLightArray().a();
+                Arrays.fill(bytes, Byte.MAX_VALUE);
+            }
+        }
     }
 
     @Override
@@ -200,6 +224,8 @@ public class BukkitQueue18R3 extends BukkitQueue_0<Chunk, ChunkSection[], char[]
         CharFaweChunk<Chunk> fs = (CharFaweChunk<Chunk>) fc;
         CraftChunk chunk = (CraftChunk) fs.getChunk();
         net.minecraft.server.v1_8_R3.Chunk nmsChunk = chunk.getHandle();
+        nmsChunk.f(true); // Modified
+        nmsChunk.mustSave = true;
         net.minecraft.server.v1_8_R3.World nmsWorld = nmsChunk.getWorld();
         try {
             final boolean flag = getWorld().getEnvironment() == World.Environment.NORMAL;
@@ -478,167 +504,150 @@ public class BukkitQueue18R3 extends BukkitQueue_0<Chunk, ChunkSection[], char[]
     }
 
     @Override
-    public boolean fixLighting(FaweChunk chunk, RelightMode mode) {
-        if (mode == RelightMode.NONE) {
-            return true;
-        }
-        try {
-            CharFaweChunk<Chunk> fc = (CharFaweChunk<Chunk>) chunk;
-            CraftChunk craftChunk = (CraftChunk) fc.getChunk();
-            net.minecraft.server.v1_8_R3.Chunk nmsChunk = craftChunk.getHandle();
-            if (!craftChunk.isLoaded()) {
-                return false;
-            }
-            ChunkSection[] sections = nmsChunk.getSections();
-            final boolean flag = craftChunk.getWorld().getEnvironment() == World.Environment.NORMAL;
-            if (mode == RelightMode.ALL) {
-                for (int i = 0; i < sections.length; i++) {
-                    ChunkSection section = sections[i];
-                    if (section != null) {
-                        section.a(new NibbleArray());
-                        if (flag) {
-                            section.b(new NibbleArray());
-                        }
+    public boolean removeLighting(ChunkSection[] sections, RelightMode mode, boolean sky) {
+        if (mode == RelightMode.ALL) {
+            for (int i = 0; i < sections.length; i++) {
+                ChunkSection section = sections[i];
+                if (section != null) {
+                    section.a(new NibbleArray());
+                    if (sky) {
+                        section.b(new NibbleArray());
                     }
                 }
-            }
-            if (flag) {
-                if (mode == RelightMode.ALL) {
-                    nmsChunk.initLighting();
-                } else {
-                    int i = nmsChunk.g();
-                    for (int x = 0; x < 16; ++x) {
-                        for (int z = 0; z < 16; ++z) {
-                            int l = 15;
-                            int y = i + 16 - 1;
-                            do {
-                                int opacity = nmsChunk.getTypeAbs(x, y, z).p();
-                                if (opacity == 0 && l != 15) {
-                                    opacity = 1;
-                                }
-                                l -= opacity;
-                                if (l > 0) {
-                                    ChunkSection section = sections[y >> 4];
-                                    if (section != null) {
-                                        section.a(x, y & 15, z, l);
-                                    }
-                                }
-                                --y;
-                            } while (y > 0 && l > 0);
-                        }
-                    }
-                }
-            }
-
-            if (fc.getTotalRelight() == 0 && mode == RelightMode.MINIMAL) {
-                return true;
-            }
-            net.minecraft.server.v1_8_R3.World nmsWorld = nmsChunk.getWorld();
-
-            int X = fc.getX() << 4;
-            int Z = fc.getZ() << 4;
-
-            for (int j = 0; j < sections.length; j++) {
-                ChunkSection section = sections[j];
-                if (section == null) {
-                    continue;
-                }
-                if (((fc.getRelight(j) == 0) && mode == RelightMode.MINIMAL) || (fc.getCount(j) == 0 && mode != RelightMode.ALL) || ((fc.getCount(j) >= 4096) && (fc.getAir(j) == 0)) || fc.getAir(j) == 4096) {
-                    continue;
-                }
-                char[] array = section.getIdArray();
-                if (array == null) {
-                    continue;
-                }
-                if (mode == RelightMode.ALL) {
-                    for (int k = array.length - 1; k >= 0; k--) {
-                        final int x = FaweCache.CACHE_X[j][k];
-                        final int y = FaweCache.CACHE_Y[j][k];
-                        final int z = FaweCache.CACHE_Z[j][k];
-                        if (isSurrounded(sections, x, y, z)) {
-                            continue;
-                        }
-                        pos.c(X + x, y, Z + z);
-                        nmsWorld.x(pos);
-                    }
-                    continue;
-                }
-                for (int k = array.length - 1; k >= 0; k--) {
-                    final int i = array[k];
-                    final short id = (short) (i >> 4);
-                    switch (id) { // Lighting
-                        case 0:
-                            continue;
-                        default:
-                            if (mode == RelightMode.MINIMAL) {
-                                continue;
-                            }
-                            if (PseudoRandom.random.random(3) != 0) {
-                                continue;
-                            }
-                        case 10:
-                        case 11:
-                        case 39:
-                        case 40:
-                        case 50:
-                        case 51:
-                        case 62:
-                        case 74:
-                        case 76:
-                        case 89:
-                        case 122:
-                        case 124:
-                        case 130:
-                        case 138:
-                        case 169:
-                        case 213:
-                            final int x = FaweCache.CACHE_X[j][k];
-                            final int y = FaweCache.CACHE_Y[j][k];
-                            final int z = FaweCache.CACHE_Z[j][k];
-                            if (isSurrounded(sections, x, y, z)) {
-                                continue;
-                            }
-                            pos.c(X + x, y, Z + z);
-                            nmsWorld.x(pos);
-                    }
-                }
-            }
-            return true;
-        } catch (Throwable e) {
-            if (Thread.currentThread() == Fawe.get().getMainThread()) {
-                MainUtil.handleError(e);
             }
         }
-        return false;
+        return true;
     }
 
-    public boolean isSurrounded(ChunkSection[] sections, int x, int y, int z) {
-        return isSolid(getId(sections, x, y + 1, z))
-                && isSolid(getId(sections, x + 1, y - 1, z))
-                && isSolid(getId(sections, x - 1, y, z))
-                && isSolid(getId(sections, x, y, z + 1))
-                && isSolid(getId(sections, x, y, z - 1));
+    @Override
+    public World createWorld(final WorldCreator creator) {
+        final String name = creator.name();
+        ChunkGenerator generator = creator.generator();
+        final CraftServer server = (CraftServer) Bukkit.getServer();
+        final MinecraftServer console = server.getServer();
+        final File folder = new File(server.getWorldContainer(), name);
+        final World world = server.getWorld(name);
+        final WorldType type = WorldType.getType(creator.type().getName());
+        final boolean generateStructures = creator.generateStructures();
+        if (world != null) {
+            return world;
+        }
+        if (folder.exists() && !folder.isDirectory()) {
+            throw new IllegalArgumentException("File exists with the name '" + name + "' and isn't a folder");
+        }
+        if (generator == null) {
+            generator = server.getGenerator(name);
+        }
+        int dimension = 10 + console.worlds.size();
+        boolean used = false;
+        do {
+            for (final WorldServer ws : console.worlds) {
+                used = (ws.dimension == dimension);
+                if (used) {
+                    ++dimension;
+                    break;
+                }
+            }
+        } while (used);
+        final boolean hardcore = false;
+        ServerNBTManager sdm = new ServerNBTManager(server.getWorldContainer(), name, true);
+        WorldData worlddata = sdm.getWorldData();
+        final WorldSettings worldSettings;
+        if (worlddata == null) {
+            worldSettings = new WorldSettings(creator.seed(), WorldSettings.EnumGamemode.getById(server.getDefaultGameMode().getValue()), generateStructures, hardcore, type);
+            worldSettings.setGeneratorSettings(creator.generatorSettings());
+            worlddata = new WorldData(worldSettings, name);
+        } else {
+            worldSettings = null;
+        }
+        worlddata.checkName(name);
+        final WorldServer internal = (WorldServer)new WorldServer(console, sdm, worlddata, dimension, console.methodProfiler, creator.environment(), generator).b();
+        startSet(true); // Temporarily allow async chunk load since the world isn't added yet
+        internal.a(worldSettings);
+        endSet(true);
+        internal.scoreboard = server.getScoreboardManager().getMainScoreboard().getHandle();
+        internal.tracker = new EntityTracker(internal);
+        internal.addIWorldAccess(new WorldManager(console, internal));
+        internal.worldData.setDifficulty(EnumDifficulty.EASY);
+        internal.setSpawnFlags(true, true);
+        if (generator != null) {
+            internal.getWorld().getPopulators().addAll(generator.getDefaultPopulators(internal.getWorld()));
+        }
+        // Add the world
+        return TaskManager.IMP.sync(new RunnableVal<World>() {
+            @Override
+            public void run(World value) {
+                console.worlds.add(internal);
+                server.getPluginManager().callEvent(new WorldInitEvent(internal.getWorld()));
+                server.getPluginManager().callEvent(new WorldLoadEvent(internal.getWorld()));
+                this.value = internal.getWorld();
+            }
+        });
     }
 
-    public boolean isSolid(int i) {
-        return Material.getMaterial(i).isOccluding();
+    @Override
+    public boolean initLighting(Chunk chunk, ChunkSection[] sections, RelightMode mode) {
+        net.minecraft.server.v1_8_R3.Chunk c = ((CraftChunk) chunk).getHandle();
+        if (mode == RelightMode.ALL) {
+            c.initLighting();
+        } else {
+            int i = c.g();
+            for (int x = 0; x < 16; ++x) {
+                for (int z = 0; z < 16; ++z) {
+                    int l = 15;
+                    int y = i + 16 - 1;
+                    do {
+                        int opacity = c.getTypeAbs(x, y, z).p();
+                        if (opacity == 0 && l != 15) {
+                            opacity = 1;
+                        }
+                        l -= opacity;
+                        if (l > 0) {
+                            ChunkSection section = sections[y >> 4];
+                            if (section != null) {
+                                section.a(x, y & 15, z, l);
+                            }
+                        }
+                        --y;
+                    } while (y > 0 && l > 0);
+                }
+            }
+        }
+        return true;
     }
 
-    public int getId(ChunkSection[] sections, int x, int y, int z) {
-        if (x < 0 || x > 15 || z < 0 || z > 15) {
-            return 1;
+
+    @Override
+    public int getSkyLight(ChunkSection[] sections, int x, int y, int z) {
+        ChunkSection section = sections[FaweCache.CACHE_I[y][x][z]];
+        if (section == null) {
+            return 15;
         }
-        if (y < 0 || y > 255) {
-            return 1;
-        }
-        int i = FaweCache.CACHE_I[y][x][z];
-        ChunkSection section = sections[i];
+        return section.d(x, y & 15, z);
+    }
+
+    @Override
+    public int getEmmittedLight(ChunkSection[] sections, int x, int y, int z) {
+        ChunkSection section = sections[FaweCache.CACHE_I[y][x][z]];
         if (section == null) {
             return 0;
         }
-        char[] array = section.getIdArray();
-        int j = FaweCache.CACHE_J[y][x][z];
-        return array[j] >> 4;
+        return section.e(x, y & 15, z);
+    }
+
+    @Override
+    public void relight(int x, int y, int z) {
+        pos.c(x, y, z);
+        nmsWorld.x(pos);
+    }
+
+    private WorldServer nmsWorld;
+
+    @Override
+    public World getImpWorld() {
+        World world = super.getImpWorld();
+        this.nmsWorld = ((CraftWorld) world).getHandle();
+        return super.getImpWorld();
     }
 
     @Override

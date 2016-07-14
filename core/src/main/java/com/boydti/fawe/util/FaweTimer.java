@@ -6,7 +6,8 @@ public class FaweTimer implements Runnable {
     private int historyIndex = 0;
     private long lastPoll = System.currentTimeMillis();
     private long tickStart = System.currentTimeMillis();
-    private final long tickInterval = 50;
+    private final long tickInterval = 5;
+    private final double millisPer20Interval = tickInterval * 50 * 20;
     private long tick = 0;
     private long tickMod = 0;
 
@@ -24,7 +25,7 @@ public class FaweTimer implements Runnable {
         {
             timeSpent = 1;
         }
-        double tps = tickInterval * 1000000.0 / timeSpent;
+        double tps = millisPer20Interval / timeSpent;
         history[historyIndex++] = tps;
         if (historyIndex >= history.length) {
             historyIndex = 0;
@@ -66,7 +67,7 @@ public class FaweTimer implements Runnable {
             }
             return false;
         }
-        if (getTickMillis() < 50 || getTPS() < tps) {
+        if (getTickMillis() > 100 || getTPS() < tps) {
             skip = 10;
             skipTick = tick;
         }

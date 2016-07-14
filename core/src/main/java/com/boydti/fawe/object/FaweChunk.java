@@ -82,7 +82,7 @@ public abstract class FaweChunk<T> {
      * Fix the lighting in this chunk
      */
     public void fixLighting() {
-        parent.fixLighting(this, Settings.LIGHTING.FIX_ALL ? FaweQueue.RelightMode.OPTIMAL : FaweQueue.RelightMode.MINIMAL);
+        parent.fixLighting(this, FaweQueue.RelightMode.values()[Settings.LIGHTING.MODE]);
     }
 
     /**

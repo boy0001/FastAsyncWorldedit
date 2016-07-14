@@ -2,6 +2,8 @@ package com.boydti.fawe;
 
 import com.boydti.fawe.config.BBC;
 import com.boydti.fawe.config.Settings;
+import com.boydti.fawe.example.NMSMappedFaweQueue;
+import com.boydti.fawe.object.FaweChunk;
 import com.boydti.fawe.object.FaweLocation;
 import com.boydti.fawe.object.FawePlayer;
 import com.boydti.fawe.object.FaweQueue;
@@ -24,12 +26,14 @@ import com.sk89q.jnbt.NBTInputStream;
 import com.sk89q.jnbt.ShortTag;
 import com.sk89q.jnbt.Tag;
 import com.sk89q.worldedit.EditSession;
+import com.sk89q.worldedit.Vector;
 import com.sk89q.worldedit.WorldEdit;
 import com.sk89q.worldedit.WorldEditException;
 import com.sk89q.worldedit.extent.Extent;
 import com.sk89q.worldedit.extent.clipboard.Clipboard;
 import com.sk89q.worldedit.extent.clipboard.io.ClipboardFormat;
 import com.sk89q.worldedit.extent.clipboard.io.ClipboardWriter;
+import com.sk89q.worldedit.regions.Region;
 import com.sk89q.worldedit.world.AbstractWorld;
 import com.sk89q.worldedit.world.World;
 import java.io.File;
@@ -366,6 +370,86 @@ public class FaweAPI {
     public static void fixLighting(final Chunk chunk, FaweQueue.RelightMode mode) {
         FaweQueue queue = SetQueue.IMP.getNewQueue(chunk.getWorld().getName(), true, false);
         queue.fixLighting(queue.getFaweChunk(chunk.getX(), chunk.getZ()), mode);
+    }
+
+    /**
+     * Fix the lighting in a selection<br>
+     *  - First removes all lighting, then relights
+     *  - Relights in parallel (if enabled) for best performance<br>
+     *  - Also resends chunks<br>
+     * @param world
+     * @param selection (assumes cuboid)
+     * @return
+     */
+    public static int fixLighting(String world, Region selection) {
+        final Vector bot = selection.getMinimumPoint();
+        final Vector top = selection.getMaximumPoint();
+
+        final int minX = bot.getBlockX() >> 4;
+        final int minZ = bot.getBlockZ() >> 4;
+
+        final int maxX = top.getBlockX() >> 4;
+        final int maxZ = top.getBlockZ() >> 4;
+
+        int count = 0;
+        final FaweQueue queue = SetQueue.IMP.getNewQueue(world, true, false);
+        // Remove existing lighting first
+        if (queue instanceof NMSMappedFaweQueue) {
+            final NMSMappedFaweQueue nmsQueue = (NMSMappedFaweQueue) queue;
+            boolean sky = nmsQueue.hasSky();
+            for (int x = minX; x <= maxX; x++) {
+                for (int z = minZ; z <= maxZ; z ++) {
+                    if (!nmsQueue.isChunkLoaded(x, z)) {
+                        final int xf = x;
+                        final int zf = z;
+                        if (!TaskManager.IMP.syncWhenFree(new RunnableVal<Boolean>() {
+                            @Override
+                            public void run(Boolean value) {
+                                this.value = nmsQueue.loadChunk(nmsQueue.getWorld(), xf, zf, false);
+                            }
+                        })) {
+                            continue;
+                        }
+                    }
+                    Object sections = nmsQueue.getCachedSections(nmsQueue.getWorld(), x, z);
+                    nmsQueue.removeLighting(sections, FaweQueue.RelightMode.ALL, sky);
+                }
+            }
+        }
+        ArrayList<Thread> threads = new ArrayList<>();
+        for (int X = 0; X < 2; X++) {
+            for (int Z = 0; Z < 2; Z++) {
+                for (int x = minX + X; x <= maxX; x += 2) {
+                    for (int z = minZ + Z; z <= maxZ; z += 2) {
+                        final FaweChunk<?> chunk = queue.getFaweChunk(x, z);
+                        if (Settings.LIGHTING.ASYNC) {
+                            Thread thread = new Thread(new Runnable() {
+                                @Override
+                                public void run() {
+                                    queue.fixLightingSafe(chunk, FaweQueue.RelightMode.ALL);
+                                    queue.sendChunk(chunk, FaweQueue.RelightMode.NONE);
+                                }
+                            });
+                            thread.start();
+                            threads.add(thread);
+                        } else {
+                            queue.fixLightingSafe(chunk, FaweQueue.RelightMode.ALL);
+                            queue.sendChunk(chunk, FaweQueue.RelightMode.NONE);
+                        }
+                        count++;
+                    }
+                }
+                for (Thread thread : threads) {
+                    try {
+                        thread.join();
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
+                }
+                threads.clear();
+            }
+        }
+        return count;
     }
 
     /**

@@ -7,7 +7,6 @@ import com.boydti.fawe.example.NMSMappedFaweQueue;
 import com.boydti.fawe.object.BytePair;
 import com.boydti.fawe.object.FaweChunk;
 import com.boydti.fawe.object.IntegerPair;
-import com.boydti.fawe.object.PseudoRandom;
 import com.boydti.fawe.object.RunnableVal;
 import com.boydti.fawe.util.MainUtil;
 import com.boydti.fawe.util.MathMan;
@@ -20,6 +19,7 @@ import com.sk89q.jnbt.Tag;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -27,7 +27,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
-import net.minecraft.block.Block;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityList;
 import net.minecraft.entity.EntityTracker;
@@ -130,17 +129,6 @@ public class ForgeQueue_All extends NMSMappedFaweQueue<World, Chunk, ExtendedBlo
     @Override
     public boolean isChunkLoaded(World world, int x, int z) {
         return world.getChunkProvider().chunkExists(x, z);
-    }
-
-    @Override
-    public World getWorld(String world) {
-        WorldServer[] worlds = MinecraftServer.getServer().worldServers;
-        for (WorldServer ws : worlds) {
-            if (ws.provider.getDimensionName().equals(world)) {
-                return ws;
-            }
-        }
-        return null;
     }
 
     @Override
@@ -305,6 +293,8 @@ public class ForgeQueue_All extends NMSMappedFaweQueue<World, Chunk, ExtendedBlo
         ForgeChunk_All fs = (ForgeChunk_All) fc;
         net.minecraft.world.chunk.Chunk nmsChunk = fs.getChunk();
         net.minecraft.world.World nmsWorld = nmsChunk.worldObj;
+        nmsChunk.setChunkModified();
+        nmsChunk.sendUpdates = true;
         try {
             boolean flag = !nmsWorld.provider.hasNoSky;
             // Sections
@@ -598,158 +588,100 @@ public class ForgeQueue_All extends NMSMappedFaweQueue<World, Chunk, ExtendedBlo
     }
 
     @Override
-    public boolean fixLighting(FaweChunk<?> fc, RelightMode mode) {
-        if (mode == RelightMode.NONE) {
-            return true;
-        }
-        try {
-            ForgeChunk_All bc = (ForgeChunk_All) fc;
-            net.minecraft.world.chunk.Chunk nmsChunk = bc.getChunk();
-            if (!nmsChunk.isChunkLoaded) {
-                return false;
-            }
-            World nmsWorld = nmsChunk.worldObj;
-            boolean flag = !nmsWorld.provider.hasNoSky;
-            ExtendedBlockStorage[] sections = nmsChunk.getBlockStorageArray();
-            if (mode == RelightMode.ALL) {
-                for (int i = 0; i < sections.length; i++) {
-                    ExtendedBlockStorage section = sections[i];
-                    if (section != null) {
-                        section.setBlocklightArray(new NibbleArray(4096, 4));
-                        if (flag) {
-                            section.setSkylightArray(new NibbleArray(4096, 4));
-                        }
+    public boolean removeLighting(ExtendedBlockStorage[] sections, RelightMode mode, boolean sky) {
+        if (mode == RelightMode.ALL) {
+            for (int i = 0; i < sections.length; i++) {
+                ExtendedBlockStorage section = sections[i];
+                if (section != null) {
+                    section.setBlocklightArray(new NibbleArray(4096, 4));
+                    if (sky) {
+                        section.setSkylightArray(new NibbleArray(4096, 4));
                     }
                 }
-            }
-            if (flag) {
-                if (mode == RelightMode.ALL) {
-                    nmsChunk.generateSkylightMap();
-                } else {
-                    int i = nmsChunk.getTopFilledSegment();
-                    for (int x = 0; x < 16; ++x) {
-                        for (int z = 0; z < 16; ++z) {
-                            int l = 15;
-                            int y = i + 16 - 1;
-                            do {
-                                int opacity = nmsChunk.func_150808_b(x, y, z);
-                                if (opacity == 0 && l != 15) {
-                                    opacity = 1;
-                                }
-                                l -= opacity;
-                                if (l > 0) {
-                                    ExtendedBlockStorage section = sections[y >> 4];
-                                    if (section != null) {
-                                        section.setExtSkylightValue(x, y & 15, z, l);
-                                    }
-                                }
-                                --y;
-                            } while (y > 0 && l > 0);
-                        }
-                    }
-                }
-            }
-            if (bc.getTotalRelight() == 0 && mode == RelightMode.MINIMAL) {
-                return true;
-            }
-            int X = fc.getX() << 4;
-            int Z = fc.getZ() << 4;
-
-            for (int j = 0; j < sections.length; j++) {
-                ExtendedBlockStorage section = sections[j];
-                if (section == null) {
-                    continue;
-                }
-                if (((bc.getRelight(j) == 0) && mode == RelightMode.MINIMAL) || (bc.getCount(j) == 0 && mode != RelightMode.ALL) || ((bc.getCount(j) >= 4096) && (bc.getAir(j) == 0)) || bc.getAir(j) == 4096) {
-                    continue;
-                }
-                byte[] array = section.getBlockLSBArray();
-                if (mode == RelightMode.ALL) {
-                    for (int k = array.length - 1; k >= 0; k--) {
-                        final int x = FaweCache.CACHE_X[j][k];
-                        final int y = FaweCache.CACHE_Y[j][k];
-                        final int z = FaweCache.CACHE_Z[j][k];
-                        if (isSurrounded(sections, x, y, z)) {
-                            continue;
-                        }
-                        nmsWorld.func_147451_t(X + x, y, Z + z);
-                    }
-                    continue;
-                }
-                for (int k = array.length - 1; k >= 0; k--) {
-                    final int i = array[k];
-                    final short id = (short) (i >> 4);
-                    switch (id) { // Lighting
-                        case 0:
-                            continue;
-                        default:
-                            if (mode == RelightMode.MINIMAL) {
-                                continue;
-                            }
-                            if (PseudoRandom.random.random(3) != 0) {
-                                continue;
-                            }
-                        case 10:
-                        case 11:
-                        case 39:
-                        case 40:
-                        case 50:
-                        case 51:
-                        case 62:
-                        case 74:
-                        case 76:
-                        case 89:
-                        case 122:
-                        case 124:
-                        case 130:
-                        case 138:
-                        case 169:
-                        case 213:
-                            final int x = FaweCache.CACHE_X[j][k];
-                            final int y = FaweCache.CACHE_Y[j][k];
-                            final int z = FaweCache.CACHE_Z[j][k];
-                            if (isSurrounded(sections, x, y, z)) {
-                                continue;
-                            }
-                            nmsWorld.func_147451_t(X + x, y, Z + z);
-                    }
-                }
-            }
-            return true;
-        } catch (Throwable e) {
-            if (Thread.currentThread() == Fawe.get().getMainThread()) {
-                MainUtil.handleError(e);
             }
         }
-        return false;
+        return true;
     }
 
-    public boolean isSurrounded(ExtendedBlockStorage[] sections, int x, int y, int z) {
-        return isSolid(getId(sections, x, y + 1, z))
-                && isSolid(getId(sections, x + 1, y - 1, z))
-                && isSolid(getId(sections, x - 1, y, z))
-                && isSolid(getId(sections, x, y, z + 1))
-                && isSolid(getId(sections, x, y, z - 1));
+    @Override
+    public boolean hasSky() {
+        return nmsWorld.provider.hasNoSky;
     }
 
-    public boolean isSolid(int i) {
-        return i != 0 && Block.getBlockById(i).isOpaqueCube();
+    @Override
+    public boolean initLighting(Chunk nmsChunk, ExtendedBlockStorage[] sections, RelightMode mode) {
+        if (mode == RelightMode.ALL) {
+            nmsChunk.generateSkylightMap();
+        } else {
+            int i = nmsChunk.getTopFilledSegment();
+            for (int x = 0; x < 16; ++x) {
+                for (int z = 0; z < 16; ++z) {
+                    int l = 15;
+                    int y = i + 16 - 1;
+                    do {
+                        int opacity = nmsChunk.func_150808_b(x, y, z);
+                        if (opacity == 0 && l != 15) {
+                            opacity = 1;
+                        }
+                        l -= opacity;
+                        if (l > 0) {
+                            ExtendedBlockStorage section = sections[y >> 4];
+                            if (section != null) {
+                                section.setExtSkylightValue(x, y & 15, z, l);
+                            }
+                        }
+                        --y;
+                    } while (y > 0 && l > 0);
+                }
+            }
+        }
+        return true;
     }
 
-    public int getId(ExtendedBlockStorage[] sections, int x, int y, int z) {
-        if (x < 0 || x > 15 || z < 0 || z > 15) {
-            return 1;
+    @Override
+    public void setFullbright(ExtendedBlockStorage[] sections) {
+        for (int i = 0; i < sections.length; i++) {
+            ExtendedBlockStorage section = sections[i];
+            if (section != null) {
+                byte[] bytes = section.getSkylightArray().data;
+                Arrays.fill(bytes, (byte) 255);
+            }
         }
-        if (y < 0 || y > 255) {
-            return 1;
+    }
+
+    @Override
+    public int getSkyLight(ExtendedBlockStorage[] sections, int x, int y, int z) {
+        ExtendedBlockStorage section = sections[FaweCache.CACHE_I[y][x][z]];
+        if (section == null) {
+            return 15;
         }
-        int i = FaweCache.CACHE_I[y][x][z];
-        ExtendedBlockStorage section = sections[i];
+        return section.getExtSkylightValue(x, y & 15, z);
+    }
+
+    @Override
+    public int getEmmittedLight(ExtendedBlockStorage[] sections, int x, int y, int z) {
+        ExtendedBlockStorage section = sections[FaweCache.CACHE_I[y][x][z]];
         if (section == null) {
             return 0;
         }
-        byte[] array = section.getBlockLSBArray();
-        int j = FaweCache.CACHE_J[y][x][z];
-        return array[j];
+        return section.getExtBlocklightValue(x, y & 15, z);
+    }
+
+    @Override
+    public void relight(int x, int y, int z) {
+        nmsWorld.func_147451_t(x, y, z);
+    }
+
+    private WorldServer nmsWorld;
+
+    @Override
+    public World getImpWorld() {
+        WorldServer[] worlds = MinecraftServer.getServer().worldServers;
+        for (WorldServer ws : worlds) {
+            if (ws.provider.getDimensionName().equals(getWorldName())) {
+                return nmsWorld = ws;
+            }
+        }
+        return null;
     }
 }

@@ -6,7 +6,6 @@ import com.boydti.fawe.bukkit.v0.BukkitQueue_0;
 import com.boydti.fawe.example.CharFaweChunk;
 import com.boydti.fawe.object.BytePair;
 import com.boydti.fawe.object.FaweChunk;
-import com.boydti.fawe.object.PseudoRandom;
 import com.boydti.fawe.object.RunnableVal;
 import com.boydti.fawe.util.MainUtil;
 import com.boydti.fawe.util.MathMan;
@@ -18,9 +17,11 @@ import com.sk89q.jnbt.LongTag;
 import com.sk89q.jnbt.StringTag;
 import com.sk89q.jnbt.Tag;
 import com.sk89q.worldedit.internal.Constants;
+import java.io.File;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -44,22 +45,36 @@ import net.minecraft.server.v1_9_R2.EntityPlayer;
 import net.minecraft.server.v1_9_R2.EntityTracker;
 import net.minecraft.server.v1_9_R2.EntityTrackerEntry;
 import net.minecraft.server.v1_9_R2.EntityTypes;
+import net.minecraft.server.v1_9_R2.EnumDifficulty;
 import net.minecraft.server.v1_9_R2.IBlockData;
+import net.minecraft.server.v1_9_R2.IDataManager;
+import net.minecraft.server.v1_9_R2.MinecraftServer;
 import net.minecraft.server.v1_9_R2.NBTTagCompound;
 import net.minecraft.server.v1_9_R2.NibbleArray;
 import net.minecraft.server.v1_9_R2.PacketPlayOutEntityDestroy;
 import net.minecraft.server.v1_9_R2.PacketPlayOutMapChunk;
 import net.minecraft.server.v1_9_R2.PlayerChunk;
 import net.minecraft.server.v1_9_R2.PlayerChunkMap;
+import net.minecraft.server.v1_9_R2.ServerNBTManager;
 import net.minecraft.server.v1_9_R2.TileEntity;
+import net.minecraft.server.v1_9_R2.WorldData;
+import net.minecraft.server.v1_9_R2.WorldManager;
 import net.minecraft.server.v1_9_R2.WorldServer;
+import net.minecraft.server.v1_9_R2.WorldSettings;
+import net.minecraft.server.v1_9_R2.WorldType;
+import org.bukkit.Bukkit;
 import org.bukkit.Chunk;
-import org.bukkit.Material;
 import org.bukkit.World;
 import org.bukkit.World.Environment;
+import org.bukkit.WorldCreator;
 import org.bukkit.block.Biome;
 import org.bukkit.craftbukkit.v1_9_R2.CraftChunk;
+import org.bukkit.craftbukkit.v1_9_R2.CraftServer;
+import org.bukkit.craftbukkit.v1_9_R2.CraftWorld;
 import org.bukkit.event.entity.CreatureSpawnEvent;
+import org.bukkit.event.world.WorldInitEvent;
+import org.bukkit.event.world.WorldLoadEvent;
+import org.bukkit.generator.ChunkGenerator;
 
 public class BukkitQueue_1_9_R1 extends BukkitQueue_0<Chunk, ChunkSection[], DataPaletteBlock> {
 
@@ -187,142 +202,161 @@ public class BukkitQueue_1_9_R1 extends BukkitQueue_0<Chunk, ChunkSection[], Dat
     }
 
     @Override
-    public boolean fixLighting(final FaweChunk pc, RelightMode mode) {
-        if (mode == RelightMode.NONE) {
-            return true;
+    public World createWorld(final WorldCreator creator) {
+        final String name = creator.name();
+        ChunkGenerator generator = creator.generator();
+        final CraftServer server = (CraftServer) Bukkit.getServer();
+        final MinecraftServer console = server.getServer();
+        final File folder = new File(server.getWorldContainer(), name);
+        final World world = server.getWorld(name);
+        final WorldType type = WorldType.getType(creator.type().getName());
+        final boolean generateStructures = creator.generateStructures();
+        if (world != null) {
+            return world;
         }
-        try {
-            CharFaweChunk bc = (CharFaweChunk) pc;
-            Chunk chunk = (Chunk) bc.getChunk();
-            if (!chunk.isLoaded()) {
-                if (Fawe.get().getMainThread() != Thread.currentThread()) {
-                    return false;
-                }
-                chunk.load(false);
-            }
-            net.minecraft.server.v1_9_R2.Chunk c = ((CraftChunk) chunk).getHandle();
-            final boolean flag = chunk.getWorld().getEnvironment() == Environment.NORMAL;
-            ChunkSection[] sections = c.getSections();
-            if (mode == RelightMode.ALL) {
-                for (int i = 0; i < sections.length; i++) {
-                    ChunkSection section = sections[i];
-                    if (section != null) {
-                        section.a(new NibbleArray());
-                        if (flag) {
-                            section.b(new NibbleArray());
-                        }
-                    }
+        if (folder.exists() && !folder.isDirectory()) {
+            throw new IllegalArgumentException("File exists with the name '" + name + "' and isn't a folder");
+        }
+        if (generator == null) {
+            generator = server.getGenerator(name);
+        }
+        int dimension = 10 + console.worlds.size();
+        boolean used = false;
+        do {
+            for (final WorldServer ws : console.worlds) {
+                used = (ws.dimension == dimension);
+                if (used) {
+                    ++dimension;
+                    break;
                 }
             }
-            if (flag) {
-                if (mode == RelightMode.ALL) {
-                    c.initLighting();
-                } else {
-                    int i = c.g();
-                    for (int x = 0; x < 16; ++x) {
-                        for (int z = 0; z < 16; ++z) {
-                            int l = 15;
-                            int y = i + 16 - 1;
-                            do {
-                                int opacity = c.a(x, y, z).c();
-                                if (opacity == 0 && l != 15) {
-                                    opacity = 1;
-                                }
-                                l -= opacity;
-                                if (l > 0) {
-                                    ChunkSection section = sections[y >> 4];
-                                    if (section != null) {
-                                        section.a(x, y & 15, z, l);
-                                    }
-                                }
-                                --y;
-                            } while (y > 0 && l > 0);
-                        }
-                    }
-                }
+        } while (used);
+        final boolean hardcore = false;
+        final IDataManager sdm = new ServerNBTManager(server.getWorldContainer(), name, true, server.getHandle().getServer().getDataConverterManager());
+        WorldData worlddata = sdm.getWorldData();
+        final WorldSettings worldSettings;
+        if (worlddata == null) {
+            worldSettings = new WorldSettings(creator.seed(), WorldSettings.EnumGamemode.getById(server.getDefaultGameMode().getValue()), generateStructures, hardcore, type);
+            worldSettings.setGeneratorSettings(creator.generatorSettings());
+            worlddata = new WorldData(worldSettings, name);
+        } else {
+            worldSettings = null;
+        }
+        worlddata.checkName(name);
+        final WorldServer internal = (WorldServer)new WorldServer(console, sdm, worlddata, dimension, console.methodProfiler, creator.environment(), generator).b();
+        startSet(true); // Temporarily allow async chunk load since the world isn't added yet
+        internal.a(worldSettings);
+        endSet(true);
+        internal.scoreboard = server.getScoreboardManager().getMainScoreboard().getHandle();
+        internal.tracker = new EntityTracker(internal);
+        internal.addIWorldAccess(new WorldManager(console, internal));
+        internal.worldData.setDifficulty(EnumDifficulty.EASY);
+        internal.setSpawnFlags(true, true);
+        if (generator != null) {
+            internal.getWorld().getPopulators().addAll(generator.getDefaultPopulators(internal.getWorld()));
+        }
+        // Add the world
+        return TaskManager.IMP.sync(new RunnableVal<World>() {
+            @Override
+            public void run(World value) {
+                console.worlds.add(internal);
+                server.getPluginManager().callEvent(new WorldInitEvent(internal.getWorld()));
+                server.getPluginManager().callEvent(new WorldLoadEvent(internal.getWorld()));
+                this.value = internal.getWorld();
             }
-            if (((bc.getTotalRelight() == 0) && mode == RelightMode.MINIMAL)) {
-                return true;
-            }
-            if (mode == RelightMode.ALL) {
-                bc = getPrevious(bc, c.getSections(), null, null, null, true);
-            }
-            int total = bc.getTotalCount();
-            net.minecraft.server.v1_9_R2.World w = c.world;
-            final int X = chunk.getX() << 4;
-            final int Z = chunk.getZ() << 4;
-            for (int j = sections.length - 1; j >= 0; j--) {
-                final Object section = sections[j];
-                if (section == null) {
-                    continue;
-                }
-                if (((bc.getRelight(j) == 0) && mode == RelightMode.MINIMAL) || (bc.getCount(j) == 0 && mode != RelightMode.ALL) || ((bc.getCount(j) >= 4096) && (bc.getAir(j) == 0)) || bc.getAir(j) == 4096) {
-                    continue;
-                }
-                final char[] array = bc.getIdArray(j);
-                if (array == null) {
-                    continue;
-                }
-                if (mode == RelightMode.ALL) {
-                    for (int k = array.length - 1; k >= 0; k--) {
-                        final int x = FaweCache.CACHE_X[j][k];
-                        final int y = FaweCache.CACHE_Y[j][k];
-                        final int z = FaweCache.CACHE_Z[j][k];
-                        if (this.isSurrounded(bc.getCombinedIdArrays(), x, y, z)) {
-                            continue;
-                        }
-                        pos.c(X + x, y, Z + z);
-                        w.w(pos);
-                    }
-                    continue;
-                }
-                for (int k = array.length - 1; k >= 0; k--) {
-                    final int i = array[k];
-                    final short id = (short) (i >> 4);
-                    switch (id) { // Lighting
-                        case 0:
-                            continue;
-                        default:
-                            if (mode == RelightMode.MINIMAL) {
-                                continue;
-                            }
-                            if (PseudoRandom.random.random(3) != 0) {
-                                continue;
-                            }
-                        case 10:
-                        case 11:
-                        case 39:
-                        case 40:
-                        case 50:
-                        case 51:
-                        case 62:
-                        case 74:
-                        case 76:
-                        case 89:
-                        case 122:
-                        case 124:
-                        case 130:
-                        case 138:
-                        case 169:
-                        case 213:
-                            final int x = FaweCache.CACHE_X[j][k];
-                            final int y = FaweCache.CACHE_Y[j][k];
-                            final int z = FaweCache.CACHE_Z[j][k];
-                            if (this.isSurrounded(bc.getCombinedIdArrays(), x, y, z)) {
-                                continue;
-                            }
-                            pos.c(X + x, y, Z + z);
-                            w.w(pos);
-                    }
-                }
-            }
-            return true;
-        } catch (Throwable e) {
-            if (Thread.currentThread() == Fawe.get().getMainThread()) {
-                MainUtil.handleError(e);
+        });
+    }
+
+    @Override
+    public void setFullbright(ChunkSection[] sections) {
+        for (int i = 0; i < sections.length; i++) {
+            ChunkSection section = sections[i];
+            if (section != null) {
+                byte[] bytes = section.getSkyLightArray().asBytes();
+                Arrays.fill(bytes, Byte.MAX_VALUE);
             }
         }
-        return false;
+    }
+
+    @Override
+    public boolean removeLighting(ChunkSection[] sections, RelightMode mode, boolean sky) {
+        if (mode == RelightMode.ALL) {
+            for (int i = 0; i < sections.length; i++) {
+                ChunkSection section = sections[i];
+                if (section != null) {
+                    section.a(new NibbleArray());
+                    if (sky) {
+                        section.b(new NibbleArray());
+                    }
+                }
+            }
+        }
+        return true;
+    }
+
+    @Override
+    public boolean initLighting(Chunk chunk, ChunkSection[] sections, RelightMode mode) {
+        net.minecraft.server.v1_9_R2.Chunk c = ((CraftChunk) chunk).getHandle();
+        if (mode == RelightMode.ALL) {
+            c.initLighting();
+        } else {
+            int i = c.g();
+            for (int x = 0; x < 16; ++x) {
+                for (int z = 0; z < 16; ++z) {
+                    int l = 15;
+                    int y = i + 16 - 1;
+                    do {
+                        int opacity = c.a(x, y, z).c();
+                        if (opacity == 0 && l != 15) {
+                            opacity = 1;
+                        }
+                        l -= opacity;
+                        if (l > 0) {
+                            ChunkSection section = sections[y >> 4];
+                            if (section != null) {
+                                section.a(x, y & 15, z, l);
+                            }
+                        }
+                        --y;
+                    } while (y > 0 && l > 0);
+                }
+            }
+            }
+        return true;
+    }
+
+
+    @Override
+    public int getSkyLight(ChunkSection[] sections, int x, int y, int z) {
+        ChunkSection section = sections[FaweCache.CACHE_I[y][x][z]];
+        if (section == null) {
+            return 15;
+        }
+        return section.b(x, y & 15, z);
+    }
+
+    @Override
+    public int getEmmittedLight(ChunkSection[] sections, int x, int y, int z) {
+        ChunkSection section = sections[FaweCache.CACHE_I[y][x][z]];
+        if (section == null) {
+            return 0;
+        }
+        return section.c(x, y & 15, z);
+    }
+
+    @Override
+    public void relight(int x, int y, int z) {
+        pos.c(x, y, z);
+        nmsWorld.w(pos);
+    }
+
+    private WorldServer nmsWorld;
+
+    @Override
+    public World getImpWorld() {
+        World world = super.getImpWorld();
+        this.nmsWorld = ((CraftWorld) world).getHandle();
+        return super.getImpWorld();
     }
 
     public boolean isSurrounded(final char[][] sections, final int x, final int y, final int z) {
@@ -333,12 +367,8 @@ public class BukkitQueue_1_9_R1 extends BukkitQueue_0<Chunk, ChunkSection[], Dat
                 && this.isSolid(this.getId(sections, x, y, z - 1));
     }
 
-    public boolean isSolid(final int i) {
-        if (i != 0) {
-            final Material material = Material.getMaterial(i);
-            return (material != null) && Material.getMaterial(i).isOccluding();
-        }
-        return false;
+    public boolean isSolid(final int id) {
+        return !FaweCache.isTransparent(id);
     }
 
     public int getId(final char[][] sections, final int x, final int y, final int z) {
@@ -510,6 +540,8 @@ public class BukkitQueue_1_9_R1 extends BukkitQueue_0<Chunk, ChunkSection[], Dat
         try {
             final boolean flag = world.getEnvironment() == Environment.NORMAL;
             net.minecraft.server.v1_9_R2.Chunk nmsChunk = ((CraftChunk) chunk).getHandle();
+            nmsChunk.f(true); // Modified
+            nmsChunk.mustSave = true;
             net.minecraft.server.v1_9_R2.World nmsWorld = nmsChunk.world;
             ChunkSection[] sections = nmsChunk.getSections();
             Class<? extends net.minecraft.server.v1_9_R2.Chunk> clazzChunk = nmsChunk.getClass();

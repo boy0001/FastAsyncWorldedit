@@ -104,6 +104,9 @@ public abstract class FawePlayer<T> {
     public FawePlayer(final T parent) {
         this.parent = parent;
         Fawe.get().register(this);
+        if (Settings.CLIPBOARD.USE_DISK) {
+            loadClipboardFromDisk();
+        }
         if (getSession() == null || getPlayer() == null || session.getSize() != 0 || !Settings.HISTORY.USE_DISK) {
             return;
         }
@@ -117,7 +120,6 @@ public abstract class FawePlayer<T> {
                     loadSessionsFromDisk(world);
                 }
             }
-            loadClipboardFromDisk();
         } catch (Exception e) {
             MainUtil.handleError(e);
             Fawe.debug("Failed to load history for: " + getName());
@@ -125,7 +127,8 @@ public abstract class FawePlayer<T> {
     }
 
     public void loadClipboardFromDisk() {
-        File file = new File(Fawe.imp().getDirectory(), "clipboard" + File.separator + getUUID());
+        System.out.println("LOADING CLIPBOARD FROM DISK");
+        File file = new File(Fawe.imp().getDirectory(), "clipboard" + File.separator + getUUID() + ".bd");
         try {
             if (file.exists() && file.length() > 5) {
                 DiskOptimizedClipboard doc = new DiskOptimizedClipboard(file);
@@ -143,6 +146,8 @@ public abstract class FawePlayer<T> {
                     ClipboardHolder holder = new ClipboardHolder(clip, worldData);
                     getSession().setClipboard(holder);
                 }
+            } else {
+                System.out.println("FILE: " + file.exists() + " | " + file + " | " + file.length());
             }
         } catch (Exception ignore) {
             Fawe.debug("====== INVALID CLIPBOARD ======");

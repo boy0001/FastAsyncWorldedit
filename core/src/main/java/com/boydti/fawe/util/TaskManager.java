@@ -236,6 +236,10 @@ public abstract class TaskManager {
         }
     }
 
+    public <T> T syncWhenFree(final RunnableVal<T> function) {
+        return syncWhenFree(function, Integer.MAX_VALUE);
+    }
+
     /**
      * Run a task on the main thread when the TPS is high enough, and wait for execution to finish:<br>
      *     - Useful if you need to access something from the Bukkit API from another thread<br>

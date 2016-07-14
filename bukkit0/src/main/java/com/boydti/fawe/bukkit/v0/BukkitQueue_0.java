@@ -43,6 +43,32 @@ public abstract class BukkitQueue_0<CHUNK, CHUNKSECTIONS, SECTION> extends NMSMa
         }
     }
 
+    @Override
+    public void setFullbright(CHUNKSECTIONS sections) {}
+
+    @Override
+    public boolean initLighting(CHUNK chunk, CHUNKSECTIONS sections, RelightMode mode) {
+        return false;
+    }
+
+    @Override
+    public int getEmmittedLight(CHUNKSECTIONS sections, int x, int y, int z) {
+        return 0;
+    }
+
+    @Override
+    public int getSkyLight(CHUNKSECTIONS sections, int x, int y, int z) {
+        return 15;
+    }
+
+    @Override
+    public void relight(int x, int y, int z) {}
+
+    @Override
+    public boolean removeLighting(CHUNKSECTIONS sections, RelightMode mode, boolean hasSky) {
+        return false;
+    }
+
     public void checkVersion(String supported) {
         String version = Bukkit.getServer().getClass().getPackage().getName();
         if (!version.contains(supported)) {
@@ -127,8 +153,8 @@ public abstract class BukkitQueue_0<CHUNK, CHUNKSECTIONS, SECTION> extends NMSMa
     }
 
     @Override
-    public World getWorld(String world) {
-        return Bukkit.getWorld(world);
+    public World getImpWorld() {
+        return Bukkit.getWorld(getWorldName());
     }
 
     @Override
@@ -153,9 +179,8 @@ public abstract class BukkitQueue_0<CHUNK, CHUNKSECTIONS, SECTION> extends NMSMa
     }
 
     @Override
-    public boolean fixLighting(FaweChunk fc, RelightMode mode) {
-        // Not implemented
-        return true;
+    public boolean hasSky() {
+        return getWorld().getEnvironment() == World.Environment.NORMAL;
     }
 
     @Override

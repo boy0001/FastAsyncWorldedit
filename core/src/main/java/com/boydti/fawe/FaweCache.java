@@ -245,6 +245,138 @@ public class FaweCache {
         CACHE_COLOR[getCombined(35, 15)] =  new Color(0, 0, 0); // Black
     }
 
+    public static LightType getLight(int id) {
+        switch (id) { // Lighting
+            case 0:
+            case 6:
+            case 27:
+            case 28:
+            case 31:
+            case 32:
+            case 37:
+            case 38:
+            case 55:
+            case 59:
+            case 65:
+            case 66:
+            case 69:
+            case 75:
+            case 77:
+            case 78:
+            case 83:
+            case 90:
+            case 93:
+            case 94:
+            case 104:
+            case 105:
+            case 106:
+            case 111:
+            case 115:
+            case 119:
+            case 127:
+            case 131:
+            case 132:
+            case 140:
+            case 141:
+            case 142:
+            case 143:
+            case 144:
+            case 149:
+            case 150:
+            case 157:
+            case 171:
+            case 175:
+            case 198:
+            case 199:
+            case 200:
+            case 207:
+            case 209:
+            case 217:
+                return LightType.TRANSPARENT;
+            case 39:
+            case 40:
+            case 50:
+            case 51:
+            case 76:
+                return LightType.TRANSPARENT_EMIT;
+            case 10:
+            case 11:
+            case 62:
+            case 74:
+            case 89:
+            case 122:
+            case 124:
+            case 130:
+            case 138:
+            case 169:
+            case 213:
+                return LightType.SOLID_EMIT;
+            default:
+                return LightType.OCCLUDING;
+        }
+    }
+
+    public enum LightType {
+        TRANSPARENT, OCCLUDING, SOLID_EMIT, TRANSPARENT_EMIT
+    }
+
+    public static boolean isTransparent(int id) {
+        switch (id) {
+            case 0:
+            case 6:
+            case 27:
+            case 28:
+            case 31:
+            case 32:
+            case 37:
+            case 38:
+            case 39:
+            case 40:
+            case 50:
+            case 51:
+            case 55:
+            case 59:
+            case 65:
+            case 66:
+            case 69:
+            case 75:
+            case 76:
+            case 77:
+            case 78:
+            case 83:
+            case 90:
+            case 93:
+            case 94:
+            case 104:
+            case 105:
+            case 106:
+            case 111:
+            case 115:
+            case 119:
+            case 127:
+            case 131:
+            case 132:
+            case 140:
+            case 141:
+            case 142:
+            case 143:
+            case 144:
+            case 149:
+            case 150:
+            case 157:
+            case 171:
+            case 175:
+            case 198:
+            case 199:
+            case 200:
+            case 207:
+            case 209:
+            case 217:
+                return true;
+            default: return false;
+        }
+    }
+
     /**
      * Check if an id might have data
      * @param id

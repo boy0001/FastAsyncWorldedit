@@ -49,7 +49,6 @@ subprojects {
         maven {url "http://maven.sk89q.com/repo/"}
         maven {url "http://nexus.theyeticave.net/content/repositories/pub_releases"}
         maven {url "http://repo.maven.apache.org/maven2"}
-        maven {url "http://hub.spigotmc.org/nexus/content/groups/public/"}
         maven {url "http://ci.frostcast.net/plugin/repository/everything"}
         maven {url "http://maven.sk89q.com/artifactory/repo/"}
         maven {url "http://nexus.theyeticave.net/content/repositories/pub_releases"}

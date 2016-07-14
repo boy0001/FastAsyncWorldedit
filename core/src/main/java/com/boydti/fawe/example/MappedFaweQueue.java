@@ -69,7 +69,7 @@ public abstract class MappedFaweQueue<WORLD, CHUNK, SECTION> extends FaweQueue {
         super(world);
     }
 
-    public abstract WORLD getWorld(String world);
+    public abstract WORLD getImpWorld();
 
     public abstract boolean isChunkLoaded(WORLD world, int x, int z);
 
@@ -93,7 +93,7 @@ public abstract class MappedFaweQueue<WORLD, CHUNK, SECTION> extends FaweQueue {
         if (impWorld != null) {
             return impWorld;
         }
-        return impWorld = getWorld(super.getWorldName());
+        return impWorld = getImpWorld();
     }
 
     @Override

@@ -62,7 +62,7 @@ public class SetQueue {
             @Override
             public void run() {
                 while (!tasks.isEmpty() && Fawe.get().getTimer().isAbove(18.5)) {
-                    Runnable task = tasks.poll();
+                    tasks.poll().run();
                 }
                 if (inactiveQueues.isEmpty() && activeQueues.isEmpty()) {
                     lastSuccess = System.currentTimeMillis();

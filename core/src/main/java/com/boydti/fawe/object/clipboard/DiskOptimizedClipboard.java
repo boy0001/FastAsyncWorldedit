@@ -31,7 +31,7 @@ import java.util.UUID;
 /**
  * A clipboard with disk backed storage. (lower memory + loads on crash)
  *  - Uses an auto closable RandomAccessFile for getting / setting id / data
- *  - I don't know how to reduce nbt / entities to O(1) complexity, so it is stored in memory.
+ *  - I don't know how to reduce nbt / entities to O(2) complexity, so it is stored in memory.
  *
  *  TODO load on join
  */
@@ -69,9 +69,10 @@ public class DiskOptimizedClipboard extends FaweClipboard implements Closeable {
         long size = (raf.length() - HEADER_SIZE) >> 1;
         raf.seek(2);
         last = -1;
-        width = raf.readChar();
-        height = raf.readChar();
-        length = raf.readChar();
+        width = (int) raf.readChar();
+        height = (int) raf.readChar();
+        length = (int) raf.readChar();
+        System.out.println("DIMENSIONS " + width + " | " + height + " | " + length);
         area = width * length;
         autoCloseTask();
     }
@@ -151,11 +152,13 @@ public class DiskOptimizedClipboard extends FaweClipboard implements Closeable {
             length = dimensions.getBlockZ();
             long size = width * height * length * 2l + HEADER_SIZE;
             raf.setLength(size);
-            raf.seek(1);
-            last = -0;
+            raf.seek(2);
+            last = -1;
+            System.out.println("SET DIMENSIONS: " + width + "," + height + "," + length);
             raf.writeChar(width);
             raf.writeChar(height);
             raf.writeChar(length);
+            raf.flush();
         } catch (IOException e) {
             MainUtil.handleError(e);
         }
@@ -198,8 +201,9 @@ public class DiskOptimizedClipboard extends FaweClipboard implements Closeable {
         if (raf.length() != size) {
             raf.setLength(size);
             // write length etc
-            raf.seek(1);
+            raf.seek(2);
             last = -1;
+            System.out.println("SET DIMENSIONS 2: " + width + "," + height + "," + length);
             raf.writeChar(width);
             raf.writeChar(height);
             raf.writeChar(length);
