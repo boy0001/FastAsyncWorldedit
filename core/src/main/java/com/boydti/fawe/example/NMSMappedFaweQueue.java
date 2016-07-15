@@ -5,6 +5,7 @@ import com.boydti.fawe.FaweCache;
 import com.boydti.fawe.config.Settings;
 import com.boydti.fawe.object.FaweChunk;
 import com.boydti.fawe.object.FaweQueue;
+import com.boydti.fawe.object.RunnableVal;
 import com.boydti.fawe.object.exception.FaweException;
 import com.boydti.fawe.util.MathMan;
 import com.boydti.fawe.util.SetQueue;
@@ -121,6 +122,28 @@ public abstract class NMSMappedFaweQueue<WORLD, CHUNK, CHUNKSECTION, SECTION> ex
                     return false;
                 }
                 loadChunk(getWorld(), cx, cz, false);
+            }
+            // Load adjacent
+            for (int x = -1; x <= 1; x++) {
+                for (int z = -1; z <= 1; z++) {
+                    if (x == 0 && z == 0) {
+                        continue;
+                    }
+                    if (mode.ordinal() > 3 && !isChunkLoaded(cx + 1, cz)) {
+                        if (async) {
+                            final int cxx = cx + x;
+                            final int czz = cz + z;
+                            TaskManager.IMP.sync(new RunnableVal<Object>() {
+                                @Override
+                                public void run(Object value) {
+                                    loadChunk(getWorld(), cxx, czz, false);
+                                }
+                            });
+                        } else {
+                            loadChunk(getWorld(), cx + x, cz + z, false);
+                        }
+                    }
+                }
             }
             CHUNKSECTION sections = getCachedSections(getWorld(), cx, cz);
             boolean hasSky = hasSky();

@@ -518,7 +518,6 @@ public class BukkitQueue_1_10 extends BukkitQueue_0<Chunk, ChunkSection[], DataP
             net.minecraft.server.v1_10_R1.Chunk nmsChunk = ((CraftChunk) chunk).getHandle();
             nmsChunk.f(true); // Set Modified
             nmsChunk.mustSave = true;
-            System.out.println(nmsChunk.mustSave);
             net.minecraft.server.v1_10_R1.World nmsWorld = nmsChunk.world;
             ChunkSection[] sections = nmsChunk.getSections();
             Class<? extends net.minecraft.server.v1_10_R1.Chunk> clazzChunk = nmsChunk.getClass();

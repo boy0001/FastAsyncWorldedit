@@ -72,7 +72,6 @@ public class DiskOptimizedClipboard extends FaweClipboard implements Closeable {
         width = (int) raf.readChar();
         height = (int) raf.readChar();
         length = (int) raf.readChar();
-        System.out.println("DIMENSIONS " + width + " | " + height + " | " + length);
         area = width * length;
         autoCloseTask();
     }
@@ -154,7 +153,6 @@ public class DiskOptimizedClipboard extends FaweClipboard implements Closeable {
             raf.setLength(size);
             raf.seek(2);
             last = -1;
-            System.out.println("SET DIMENSIONS: " + width + "," + height + "," + length);
             raf.writeChar(width);
             raf.writeChar(height);
             raf.writeChar(length);
@@ -203,7 +201,6 @@ public class DiskOptimizedClipboard extends FaweClipboard implements Closeable {
             // write length etc
             raf.seek(2);
             last = -1;
-            System.out.println("SET DIMENSIONS 2: " + width + "," + height + "," + length);
             raf.writeChar(width);
             raf.writeChar(height);
             raf.writeChar(length);

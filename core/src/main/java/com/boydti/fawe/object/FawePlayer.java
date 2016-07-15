@@ -127,7 +127,6 @@ public abstract class FawePlayer<T> {
     }
 
     public void loadClipboardFromDisk() {
-        System.out.println("LOADING CLIPBOARD FROM DISK");
         File file = new File(Fawe.imp().getDirectory(), "clipboard" + File.separator + getUUID() + ".bd");
         try {
             if (file.exists() && file.length() > 5) {
@@ -146,8 +145,6 @@ public abstract class FawePlayer<T> {
                     ClipboardHolder holder = new ClipboardHolder(clip, worldData);
                     getSession().setClipboard(holder);
                 }
-            } else {
-                System.out.println("FILE: " + file.exists() + " | " + file + " | " + file.length());
             }
         } catch (Exception ignore) {
             Fawe.debug("====== INVALID CLIPBOARD ======");
