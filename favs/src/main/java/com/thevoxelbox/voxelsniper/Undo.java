@@ -2,10 +2,9 @@ package com.thevoxelbox.voxelsniper;
 
 import org.bukkit.World;
 import org.bukkit.block.Block;
-import org.bukkit.block.BlockState;
 
 /**
- * Holds {@link BlockState}s that can be later on used to reset those block
+ * Holds {@link org.bukkit.block.BlockState}s that can be later on used to reset those block
  * locations back to the recorded states.
  */
 public class Undo {

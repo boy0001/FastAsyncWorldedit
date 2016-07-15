@@ -1,0 +1,17 @@
+name: FastAsyncVoxelSniper
+main: com.boydti.fawe.bukkit.favs.Favs
+version: ${version}
+description: Fast Async VoxelSniper
+authors: [Empire92]
+loadbefore: [WorldEdit,VoxelSniper]
+load: STARTUP
+database: false
+softdepend: [FastAsyncWorldEdit]
+#softdepend: [WorldGuard, PlotSquared, MCore, Factions, GriefPrevention, Residence, Towny, PlotMe, PreciousStones]
+commands:
+  '/p':
+    description: VoxelSniper perform command
+    aliases: [perform,/perform]
+  '/d':
+    description: VoxelSniper default command
+    aliases: [default,/default]
