@@ -151,7 +151,7 @@ public class FaweBukkit implements IFawe, Listener {
         if (this.version == null) {
             try {
                 this.version = new int[3];
-                final String[] split = Bukkit.getBukkitVersion().split("-")[0].split("\\.");
+                final String[] split = plugin.getDescription().getVersion().split("-")[0].split("\\.");
                 this.version[0] = Integer.parseInt(split[0]);
                 this.version[1] = Integer.parseInt(split[1]);
                 if (split.length == 3) {

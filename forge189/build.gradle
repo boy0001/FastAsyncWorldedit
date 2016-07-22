@@ -18,7 +18,6 @@ apply plugin: 'com.github.johnrengelman.shadow'
 dependencies {
     compile project(':core')
     compile 'org.spongepowered:spongeapi:4.+'
-    compile 'org.mcstats.sponge:metrics:R8-SNAPSHOT'
     compile 'com.sk89q.worldedit:worldedit-forge-mc1.8.9:6.1.1'
 }
 

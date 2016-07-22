@@ -42,7 +42,6 @@ import net.minecraft.network.play.server.SPacketDestroyEntities;
 import net.minecraft.server.management.PlayerChunkMap;
 import net.minecraft.server.management.PlayerChunkMapEntry;
 import net.minecraft.tileentity.TileEntity;
-import net.minecraft.util.BitArray;
 import net.minecraft.util.ClassInheritanceMultiMap;
 import net.minecraft.util.IntHashMap;
 import net.minecraft.util.math.BlockPos;
@@ -51,7 +50,6 @@ import net.minecraft.world.World;
 import net.minecraft.world.WorldServer;
 import net.minecraft.world.chunk.BlockStateContainer;
 import net.minecraft.world.chunk.Chunk;
-import net.minecraft.world.chunk.IBlockStatePalette;
 import net.minecraft.world.chunk.IChunkGenerator;
 import net.minecraft.world.chunk.IChunkProvider;
 import net.minecraft.world.chunk.NibbleArray;
@@ -61,20 +59,23 @@ import net.minecraftforge.fml.common.FMLCommonHandler;
 
 public class ForgeQueue_All extends NMSMappedFaweQueue<World, Chunk, ExtendedBlockStorage[], BlockStateContainer> {
 
-    private Method methodFromNative;
-    private Method methodToNative;
+    private static Method methodFromNative;
+    private static Method methodToNative;
 
     public ForgeQueue_All(String world) {
         super(world);
-        try {
-            Class<?> converter = Class.forName("com.sk89q.worldedit.forge.NBTConverter");
-            this.methodFromNative = converter.getDeclaredMethod("toNative", Tag.class);
-            this.methodToNative = converter.getDeclaredMethod("fromNative", NBTBase.class);
-            methodFromNative.setAccessible(true);
-            methodToNative.setAccessible(true);
-        } catch (Throwable e) {
-            throw new RuntimeException(e);
+        if (methodFromNative == null) {
+            try {
+                Class<?> converter = Class.forName("com.sk89q.worldedit.forge.NBTConverter");
+                this.methodFromNative = converter.getDeclaredMethod("toNative", Tag.class);
+                this.methodToNative = converter.getDeclaredMethod("fromNative", NBTBase.class);
+                methodFromNative.setAccessible(true);
+                methodToNative.setAccessible(true);
+            } catch (Throwable e) {
+                throw new RuntimeException(e);
+            }
         }
+        getImpWorld();
     }
 
     private BlockPos.MutableBlockPos pos = new BlockPos.MutableBlockPos(0, 0, 0);
@@ -412,8 +413,9 @@ public class ForgeQueue_All extends NMSMappedFaweQueue<World, Chunk, ExtendedBlo
                         section = sections[j] = new ExtendedBlockStorage(j << 4, flag);
                         setPalette(section, fs.sectionPalettes[j]);
                         setCount(0, count - fs.getAir(j), section);
+                        continue;
                     } else {
-                        sections[j] = new ExtendedBlockStorage(j << 4, flag);
+                        sections[j] = section = new ExtendedBlockStorage(j << 4, flag);
                     }
                 } else if (count >= 4096) {
                     if (fs.sectionPalettes != null && fs.sectionPalettes[j] != null) {
@@ -421,17 +423,10 @@ public class ForgeQueue_All extends NMSMappedFaweQueue<World, Chunk, ExtendedBlo
                         setCount(0, count - fs.getAir(j), section);
                         continue;
                     } else {
-                        sections[j] = new ExtendedBlockStorage(j << 4, flag);
+                        sections[j] = section = new ExtendedBlockStorage(j << 4, flag);
                     }
                 }
                 BlockStateContainer nibble = section.getData();
-                Field fieldBits = BlockStateContainer.class.getDeclaredField("storage");
-                fieldBits.setAccessible(true);
-                BitArray bits = (BitArray) fieldBits.get(nibble);
-
-                Field fieldPalette = BlockStateContainer.class.getDeclaredField("palette");
-                fieldPalette.setAccessible(true);
-                IBlockStatePalette palette = (IBlockStatePalette) fieldPalette.get(nibble);
                 int nonEmptyBlockCount = 0;
                 for (int y = 0; y < 16; y++) {
                     for (int z = 0; z < 16; z++) {
@@ -550,6 +545,7 @@ public class ForgeQueue_All extends NMSMappedFaweQueue<World, Chunk, ExtendedBlo
                 if (field.getType() == IntHashMap.class) {
                     field.setAccessible(true);
                     entries = (IntHashMap<EntityTrackerEntry>) field.get(tracker);
+                    break;
                 }
             }
             for (ClassInheritanceMultiMap<Entity> slice : entitieSlices) {
@@ -619,7 +615,7 @@ public class ForgeQueue_All extends NMSMappedFaweQueue<World, Chunk, ExtendedBlo
 
     @Override
     public boolean hasSky() {
-        return nmsWorld.provider.getHasNoSky();
+        return !nmsWorld.provider.getHasNoSky();
     }
 
     @Override

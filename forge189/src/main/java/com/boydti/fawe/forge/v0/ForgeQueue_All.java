@@ -52,20 +52,23 @@ import net.minecraft.world.gen.ChunkProviderServer;
 
 public class ForgeQueue_All extends NMSMappedFaweQueue<World, Chunk, ExtendedBlockStorage[], char[]> {
 
-    private Method methodFromNative;
-    private Method methodToNative;
+    private static Method methodFromNative;
+    private static Method methodToNative;
 
     public ForgeQueue_All(String world) {
         super(world);
-        try {
-            Class<?> converter = Class.forName("com.sk89q.worldedit.forge.NBTConverter");
-            this.methodFromNative = converter.getDeclaredMethod("toNative", Tag.class);
-            this.methodToNative = converter.getDeclaredMethod("fromNative", NBTBase.class);
-            methodFromNative.setAccessible(true);
-            methodToNative.setAccessible(true);
-        } catch (Throwable e) {
-            throw new RuntimeException(e);
+        if (methodFromNative == null) {
+            try {
+                Class<?> converter = Class.forName("com.sk89q.worldedit.forge.NBTConverter");
+                this.methodFromNative = converter.getDeclaredMethod("toNative", Tag.class);
+                this.methodToNative = converter.getDeclaredMethod("fromNative", NBTBase.class);
+                methodFromNative.setAccessible(true);
+                methodToNative.setAccessible(true);
+            } catch (Throwable e) {
+                throw new RuntimeException(e);
+            }
         }
+        getImpWorld();
     }
 
     private BlockPos.MutableBlockPos pos = new BlockPos.MutableBlockPos(0, 0, 0);
@@ -481,6 +484,7 @@ public class ForgeQueue_All extends NMSMappedFaweQueue<World, Chunk, ExtendedBlo
                 if (field.getType() == IntHashMap.class) {
                     field.setAccessible(true);
                     entries = (IntHashMap<EntityTrackerEntry>) field.get(tracker);
+                    break;
                 }
             }
             for (ClassInheritanceMultiMap<Entity> slice : entitieSlices) {
@@ -567,7 +571,7 @@ public class ForgeQueue_All extends NMSMappedFaweQueue<World, Chunk, ExtendedBlo
 
     @Override
     public boolean hasSky() {
-        return nmsWorld.provider.getHasNoSky();
+        return !nmsWorld.provider.getHasNoSky();
     }
 
     @Override

@@ -4,6 +4,7 @@ import com.boydti.fawe.Fawe;
 import com.boydti.fawe.configuration.MemorySection;
 import com.boydti.fawe.configuration.file.YamlConfiguration;
 import com.boydti.fawe.object.FawePlayer;
+import com.boydti.fawe.object.RunnableVal3;
 import com.boydti.fawe.util.MainUtil;
 import com.boydti.fawe.util.StringMan;
 import com.sk89q.worldedit.extension.platform.Actor;
@@ -358,4 +359,55 @@ public enum BBC {
         }
     }
 
+    public static String getColorName(char code) {
+        switch (code) {
+            case '0': return "BLACK";
+            case '1': return "DARK_BLUE";
+            case '2': return "DARK_GREEN";
+            case '3': return "DARK_AQUA";
+            case '4': return "DARK_RED";
+            case '5': return "DARK_PURPLE";
+            case '6': return "GOLD";
+            default:
+            case '7': return "GRAY";
+            case '8': return "DARK_GRAY";
+            case '9': return "BLUE";
+            case 'a': return "GREEN";
+            case 'b': return "AQUA";
+            case 'c': return "RED";
+            case 'd': return "LIGHT_PURPLE";
+            case 'e': return "YELLOW";
+            case 'f': return "WHITE";
+            case 'k': return "OBFUSCATED";
+            case 'l': return "BOLD";
+            case 'm': return "STRIKETHROUGH";
+            case 'n': return "UNDERLINE";
+            case 'o': return "ITALIC";
+            case 'r': return "RESET";
+        }
+    }
+
+    /**
+     *
+     * @param m
+     * @param runPart Part, Color, NewLine
+     */
+    public static void splitMessage(String m, RunnableVal3<String, String, Boolean> runPart) {
+        m = color(m);
+        String color = "GRAY";
+        boolean newline = false;
+        for (String line : m.split("\n")) {
+            boolean hasColor = line.charAt(0) == '\u00A7';
+            String[] splitColor = line.split("\u00A7");
+            for (String part : splitColor) {
+                if (hasColor) {
+                    color = getColorName(part.charAt(0));
+                    part = part.substring(1);
+                }
+                runPart.run(part, color, newline);
+                hasColor = true;
+            }
+            newline = true;
+        }
+    }
 }

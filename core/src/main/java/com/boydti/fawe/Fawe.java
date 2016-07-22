@@ -156,9 +156,9 @@ public class Fawe {
      * Write something to the console
      * @param s
      */
-    public static void debug(final String s) {
+    public static void debug(final Object s) {
         if (INSTANCE != null) {
-            INSTANCE.IMP.debug(s);
+            INSTANCE.IMP.debug(StringMan.getString(s));
         } else {
             System.out.print(s);
         }
@@ -409,7 +409,6 @@ public class Fawe {
                     }
                     final long alert = (max * Settings.MAX_MEMORY_PERCENT) / 100;
                     mp.setUsageThreshold(alert);
-
                 }
             }
         } catch (Throwable e) {

@@ -36,8 +36,6 @@ import net.minecraft.server.v1_10_R1.BlockPosition;
 import net.minecraft.server.v1_10_R1.Blocks;
 import net.minecraft.server.v1_10_R1.ChunkCoordIntPair;
 import net.minecraft.server.v1_10_R1.ChunkSection;
-import net.minecraft.server.v1_10_R1.DataBits;
-import net.minecraft.server.v1_10_R1.DataPalette;
 import net.minecraft.server.v1_10_R1.DataPaletteBlock;
 import net.minecraft.server.v1_10_R1.Entity;
 import net.minecraft.server.v1_10_R1.EntityHuman;
@@ -666,13 +664,6 @@ public class BukkitQueue_1_10 extends BukkitQueue_0<Chunk, ChunkSection[], DataP
                     continue;
                 }
                 DataPaletteBlock nibble = section.getBlocks();
-                Field fieldBits = nibble.getClass().getDeclaredField("b");
-                fieldBits.setAccessible(true);
-                DataBits bits = (DataBits) fieldBits.get(nibble);
-
-                Field fieldPalette = nibble.getClass().getDeclaredField("c");
-                fieldPalette.setAccessible(true);
-                DataPalette palette = (DataPalette) fieldPalette.get(nibble);
                 int nonEmptyBlockCount = 0;
                 for (int y = 0; y < 16; y++) {
                     for (int z = 0; z < 16; z++) {

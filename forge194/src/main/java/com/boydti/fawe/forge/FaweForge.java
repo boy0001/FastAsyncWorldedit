@@ -17,12 +17,15 @@ import com.sk89q.worldedit.world.World;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.UUID;
 import javax.management.InstanceAlreadyExistsException;
 import net.minecraft.command.ServerCommandManager;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.server.MinecraftServer;
 import net.minecraftforge.fml.common.FMLCommonHandler;
+import net.minecraftforge.fml.common.ModMetadata;
 import org.apache.logging.log4j.Logger;
 
 public class FaweForge implements IFawe {
@@ -30,11 +33,13 @@ public class FaweForge implements IFawe {
     private final ForgeMain parent;
     private final File directory;
     private final Logger logger;
+    private final ModMetadata mod;
 
-    public FaweForge(ForgeMain plugin, Logger logger, File directory) {
+    public FaweForge(ForgeMain plugin, Logger logger, ModMetadata mod, File directory) {
         this.parent = plugin;
         this.logger = logger;
         this.directory = directory;
+        this.mod = mod;
         try {
             Fawe.set(this);
         } catch (InstanceAlreadyExistsException e) {
@@ -52,16 +57,17 @@ public class FaweForge implements IFawe {
         return directory;
     }
 
+    private HashMap<String, FaweCommand> commands = new HashMap<>();
+
     @Override
     public void setupCommand(String label, FaweCommand cmd) {
-        if (TaskManager.IMP != null) {
-            TaskManager.IMP.task(new Runnable() {
-                @Override
-                public void run() {
-                    ServerCommandManager scm = (ServerCommandManager) FMLCommonHandler.instance().getMinecraftServerInstance().getCommandManager();
-                    scm.registerCommand(new ForgeCommand(label, cmd));
-                }
-            });
+        this.commands.put(label, cmd);
+    }
+
+    public void insertCommands() {
+        for (Map.Entry<String, FaweCommand> entry : commands.entrySet()) {
+            ServerCommandManager scm = (ServerCommandManager) FMLCommonHandler.instance().getMinecraftServerInstance().getCommandManager();
+            scm.registerCommand(new ForgeCommand(entry.getKey(), entry.getValue()));
         }
     }
 
@@ -96,7 +102,7 @@ public class FaweForge implements IFawe {
 
     @Override
     public int[] getVersion() {
-        String[] version = FMLCommonHandler.instance().getMinecraftServerInstance().getMinecraftVersion().split("\\.");
+        String[] version = this.mod.version.split("\\.");
         return new int[] {Integer.parseInt(version[0]), Integer.parseInt(version[1]), Integer.parseInt(version[2])};
     }
 

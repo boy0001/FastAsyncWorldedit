@@ -10,7 +10,6 @@ import com.sk89q.worldedit.forge.ForgeWorldEdit;
 import java.util.UUID;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.text.TextComponentBase;
 import net.minecraft.util.text.TextComponentString;
 import net.minecraft.world.World;
 
@@ -52,10 +51,9 @@ public class ForgePlayer extends FawePlayer<EntityPlayerMP> {
 
     @Override
     public void sendMessage(String msg) {
-        for (String part : msg.split("\n")) {
-            part = BBC.color(part);
-            TextComponentBase text = new TextComponentString(part);
-            this.parent.addChatMessage(text);
+        msg = BBC.color(msg);
+        for (String line : msg.split("\n")) {
+            this.parent.addChatMessage(new TextComponentString(line));
         }
     }
 

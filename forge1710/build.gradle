@@ -17,7 +17,6 @@ apply plugin: 'com.github.johnrengelman.shadow'
 
 dependencies {
     compile project(':core')
-    compile 'org.mcstats.sponge:metrics:R8-SNAPSHOT'
     compile 'com.sk89q.worldedit:worldedit-forge-mc1.7.10:6.1.1-20151030.011615-19'
     compile 'net.minecraftforge.gradle:ForgeGradle:1.2-SNAPSHOT'
 }

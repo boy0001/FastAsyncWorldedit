@@ -13,6 +13,7 @@ import net.minecraftforge.event.entity.EntityJoinWorldEvent;
 import net.minecraftforge.fml.common.FMLCommonHandler;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.common.event.FMLPreInitializationEvent;
+import net.minecraftforge.fml.common.event.FMLServerStartingEvent;
 import net.minecraftforge.fml.common.event.FMLServerStoppingEvent;
 import net.minecraftforge.fml.common.eventhandler.EventPriority;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
@@ -30,7 +31,12 @@ public class ForgeMain {
         File directory = new File(event.getModConfigurationDirectory() + File.separator + "FastAsyncWorldEdit");
         MinecraftForge.EVENT_BUS.register(this);
         FMLCommonHandler.instance().bus().register(this);
-        this.IMP = new com.boydti.fawe.forge.FaweForge(this, event.getModLog(), directory);
+        this.IMP = new FaweForge(this, event.getModLog(), event.getModMetadata(), directory);
+    }
+
+    @Mod.EventHandler
+    public void serverLoad(FMLServerStartingEvent event) {
+        IMP.insertCommands();
     }
 
     @SubscribeEvent(priority = EventPriority.HIGHEST)
