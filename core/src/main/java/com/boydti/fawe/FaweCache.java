@@ -439,7 +439,6 @@ public class FaweCache {
             case 129:
             case 133:
             case 138:
-            case 137:
             case 140:
             case 165:
             case 166:

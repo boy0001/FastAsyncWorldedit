@@ -40,6 +40,11 @@ public class FaweLocation {
     }
 
     @Override
+    public String toString() {
+        return world + "," + x + "," + y + "," + z;
+    }
+
+    @Override
     public int hashCode() {
         return this.x << (8 + this.z) << (4 + this.y);
     }

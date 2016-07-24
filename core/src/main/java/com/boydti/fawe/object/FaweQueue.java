@@ -202,6 +202,10 @@ public abstract class FaweQueue {
 
     public abstract void addNotifyTask(Runnable runnable);
 
+    public boolean hasBlock(int x, int y, int z) throws  FaweException.FaweChunkLoadException {
+        return getCombinedId4Data(x, y, z) != 0;
+    }
+
     public abstract int getCombinedId4Data(int x, int y, int z) throws FaweException.FaweChunkLoadException;
 
     public abstract CompoundTag getTileEntity(int x, int y, int z) throws FaweException.FaweChunkLoadException;

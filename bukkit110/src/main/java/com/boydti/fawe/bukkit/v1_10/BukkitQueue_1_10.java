@@ -36,6 +36,7 @@ import net.minecraft.server.v1_10_R1.BlockPosition;
 import net.minecraft.server.v1_10_R1.Blocks;
 import net.minecraft.server.v1_10_R1.ChunkCoordIntPair;
 import net.minecraft.server.v1_10_R1.ChunkSection;
+import net.minecraft.server.v1_10_R1.DataBits;
 import net.minecraft.server.v1_10_R1.DataPaletteBlock;
 import net.minecraft.server.v1_10_R1.Entity;
 import net.minecraft.server.v1_10_R1.EntityHuman;
@@ -77,23 +78,76 @@ import org.bukkit.generator.ChunkGenerator;
 
 public class BukkitQueue_1_10 extends BukkitQueue_0<Chunk, ChunkSection[], DataPaletteBlock> {
 
-    private IBlockData air;
+    private static IBlockData air;
+    private static Field fieldBits;
 
     public BukkitQueue_1_10(final String world) {
         super(world);
         checkVersion("v1_10_R1");
-        try {
-            Field fieldAir = DataPaletteBlock.class.getDeclaredField("a");
-            fieldAir.setAccessible(true);
-            air = (IBlockData) fieldAir.get(null);
-            if (adapter == null) {
-                setupAdapter(new com.boydti.fawe.bukkit.v1_10.FaweAdapter_1_10());
-                Fawe.debug("Using adapter: " + adapter);
-                Fawe.debug("=========================================");
+        if (adapter == null) {
+            try {
+                Field fieldAir = DataPaletteBlock.class.getDeclaredField("a");
+                fieldAir.setAccessible(true);
+                air = (IBlockData) fieldAir.get(null);
+                fieldBits = DataPaletteBlock.class.getDeclaredField("b");
+                fieldBits.setAccessible(true);
+                if (adapter == null) {
+                    setupAdapter(new com.boydti.fawe.bukkit.v1_10.FaweAdapter_1_10());
+                    Fawe.debug("Using adapter: " + adapter);
+                    Fawe.debug("=========================================");
+                }
+            } catch (Throwable e) {
+                throw new RuntimeException(e);
             }
-        } catch (Throwable e) {
-            throw new RuntimeException(e);
         }
+    }
+
+    @Override
+    public void setSkyLight(int x, int y, int z, int value) {
+        int cx = x >> 4;
+        int cz = z >> 4;
+        if (!ensureChunkLoaded(cx, cz)) {
+            return;
+        }
+        ChunkSection[] sections = getCachedSections(getWorld(), cx, cz);
+        ChunkSection section = sections[y >> 4];
+        if (section == null) {
+            return;
+        }
+        section.getSkyLightArray().a(x & 15, y & 15, z & 15, value);
+    }
+
+    @Override
+    public void setBlockLight(int x, int y, int z, int value) {
+        int cx = x >> 4;
+        int cz = z >> 4;
+        if (!ensureChunkLoaded(cx, cz)) {
+            return;
+        }
+        ChunkSection[] sections = getCachedSections(getWorld(), cx, cz);
+        ChunkSection section = sections[y >> 4];
+        if (section == null) {
+            return;
+        }
+        section.getEmittedLightArray().a(x & 15, y & 15, z & 15, value);
+    }
+
+    private DataBits lastBits;
+    private DataPaletteBlock lastBlocks;
+
+    @Override
+    public boolean hasBlock(DataPaletteBlock dataPaletteBlock, int x, int y, int z) {
+        try {
+            if (lastBlocks != dataPaletteBlock) {
+                lastBits = (DataBits) fieldBits.get(dataPaletteBlock);
+                lastBlocks = dataPaletteBlock;
+            }
+            int i = FaweCache.CACHE_J[y][x & 15][z & 15];
+            return lastBits.a(i) != 0;
+        } catch (IllegalAccessException e) {
+            e.printStackTrace();
+        }
+        return false;
     }
 
     @Override

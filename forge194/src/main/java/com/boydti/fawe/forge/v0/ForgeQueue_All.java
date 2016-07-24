@@ -55,7 +55,7 @@ import net.minecraft.world.chunk.IChunkProvider;
 import net.minecraft.world.chunk.NibbleArray;
 import net.minecraft.world.chunk.storage.ExtendedBlockStorage;
 import net.minecraft.world.gen.ChunkProviderServer;
-import net.minecraftforge.fml.common.FMLCommonHandler;
+import net.minecraftforge.common.DimensionManager;
 
 public class ForgeQueue_All extends NMSMappedFaweQueue<World, Chunk, ExtendedBlockStorage[], BlockStateContainer> {
 
@@ -687,12 +687,41 @@ public class ForgeQueue_All extends NMSMappedFaweQueue<World, Chunk, ExtendedBlo
 
     @Override
     public World getImpWorld() {
-        WorldServer[] worlds = FMLCommonHandler.instance().getMinecraftServerInstance().worldServers;
-        for (WorldServer ws : worlds) {
-            if (ws.getWorldInfo().getWorldName().equals(getWorldName())) {
-                return nmsWorld = ws;
-            }
+        if (nmsWorld != null) {
+            return nmsWorld;
         }
-        return null;
+        String[] split = getWorldName().split(";");
+        int id = Integer.parseInt(split[split.length - 1]);
+        return nmsWorld = DimensionManager.getWorld(id);
+    }
+
+    @Override
+    public void setSkyLight(int x, int y, int z, int value) {
+        int cx = x >> 4;
+        int cz = z >> 4;
+        if (!ensureChunkLoaded(cx, cz)) {
+            return;
+        }
+        ExtendedBlockStorage[] sections = getCachedSections(getWorld(), cx, cz);
+        ExtendedBlockStorage section = sections[y >> 4];
+        if (section == null) {
+            return;
+        }
+        section.getSkylightArray().set(x & 15, y & 15, z & 15, value);
+    }
+
+    @Override
+    public void setBlockLight(int x, int y, int z, int value) {
+        int cx = x >> 4;
+        int cz = z >> 4;
+        if (!ensureChunkLoaded(cx, cz)) {
+            return;
+        }
+        ExtendedBlockStorage[] sections = getCachedSections(getWorld(), cx, cz);
+        ExtendedBlockStorage section = sections[y >> 4];
+        if (section == null) {
+            return;
+        }
+        section.getBlocklightArray().set(x & 15, y & 15, z & 15, value);
     }
 }

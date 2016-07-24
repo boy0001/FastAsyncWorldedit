@@ -5,6 +5,7 @@ import com.boydti.fawe.FaweCache;
 import com.boydti.fawe.config.Settings;
 import com.boydti.fawe.object.FaweChunk;
 import com.boydti.fawe.object.RunnableVal;
+import com.boydti.fawe.util.TaskManager;
 import com.sk89q.jnbt.CompoundTag;
 import org.bukkit.Chunk;
 import org.bukkit.World;
@@ -23,6 +24,16 @@ public class BukkitQueue_All extends BukkitQueue_0<Chunk, Chunk, Chunk> {
         }
     }
 
+    @Override
+    public void setSkyLight(int x, int y, int z, int value) {
+
+    }
+
+    @Override
+    public void setBlockLight(int x, int y, int z, int value) {
+
+    }
+
     public int getCombinedId4Data(Chunk section, int x, int y, int z) {
         Block block = ((Chunk) section).getBlock(x & 15, y, z & 15);
         int combined = block.getTypeId() << 4;
@@ -30,6 +41,45 @@ public class BukkitQueue_All extends BukkitQueue_0<Chunk, Chunk, Chunk> {
             combined += block.getData();
         }
         return combined;
+    }
+
+    @Override
+    public int getEmmittedLight(final Chunk chunk, int x, int y, int z) {
+        if (!chunk.isLoaded()) {
+            TaskManager.IMP.sync(new RunnableVal<Object>() {
+                @Override
+                public void run(Object value) {
+                    chunk.load(true);
+                }
+            });
+        }
+        return chunk.getBlock(x, y, z).getLightFromBlocks();
+    }
+
+    @Override
+    public int getSkyLight(final Chunk chunk, int x, int y, int z) {
+        if (!chunk.isLoaded()) {
+            TaskManager.IMP.sync(new RunnableVal<Object>() {
+                @Override
+                public void run(Object value) {
+                    chunk.load(true);
+                }
+            });
+        }
+        return chunk.getBlock(x, y, z).getLightFromSky();
+    }
+
+    @Override
+    public int getLight(final Chunk chunk, int x, int y, int z) {
+        if (!chunk.isLoaded()) {
+            TaskManager.IMP.sync(new RunnableVal<Object>() {
+                @Override
+                public void run(Object value) {
+                    chunk.load(true);
+                }
+            });
+        }
+        return chunk.getBlock(x, y, z).getLightLevel();
     }
 
     @Override

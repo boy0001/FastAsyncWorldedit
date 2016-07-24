@@ -54,7 +54,7 @@ public class SchematicWriter implements ClipboardWriter {
         int x = -1;
         int y = 0;
         int z = 0;
-        int index = 0;
+        int index = -1;
 
         public int[] yarea;
         public int[] zwidth;

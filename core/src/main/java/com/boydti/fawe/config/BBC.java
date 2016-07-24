@@ -102,8 +102,8 @@ public enum BBC {
     VISITOR_ENTITY("%s0 entities affected", "WorldEdit.Visitor"),
     VISITOR_FLAT("%s0 columns affected", "WorldEdit.Visitor"),
 
-    SELECTOR_CUBOID_POS1("First position set to %s0 %s1.", "WorldEdit.Selector"),
-    SELECTOR_CUBOID_POS2("Second position set to %s0 %s1.", "WorldEdit.Selector"),
+    SELECTOR_CUBOID_POS1("pos1 set to %s0 %s1.", "WorldEdit.Selector"),
+    SELECTOR_CUBOID_POS2("pos2 set to %s0 %s1.", "WorldEdit.Selector"),
     SELECTOR_INVALID_COORDINATES("Invalid coordinates %s0", "WorldEdit.Selector"),
     SELECTOR_ALREADY_SET("Position already set.", "WorldEdit.Selector"),
 

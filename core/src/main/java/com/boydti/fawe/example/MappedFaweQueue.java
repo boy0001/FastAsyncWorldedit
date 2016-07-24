@@ -135,7 +135,7 @@ public abstract class MappedFaweQueue<WORLD, CHUNK, SECTION> extends FaweQueue {
             long pair = (long) (cx) << 32 | (cz) & 0xFFFFFFFFL;
             lastWrappedChunk = this.blocks.get(pair);
             if (lastWrappedChunk == null) {
-                lastWrappedChunk = this.getFaweChunk(x >> 4, z >> 4);
+                lastWrappedChunk = this.getFaweChunk(cx, cz);
                 lastWrappedChunk.setBlock(x & 15, y, z & 15, id, data);
                 FaweChunk previous = this.blocks.put(pair, lastWrappedChunk);
                 if (previous == null) {
@@ -386,31 +386,64 @@ public abstract class MappedFaweQueue<WORLD, CHUNK, SECTION> extends FaweQueue {
 
     long average = 0;
 
-    @Override
-    public int getCombinedId4Data(int x, int y, int z) throws FaweException.FaweChunkLoadException {
-        if (y < 0 || y > 255) {
-            return 0;
+    public boolean ensureChunkLoaded(int cx, int cz) throws FaweException.FaweChunkLoadException {
+        if (!isChunkLoaded(cx, cz)) {
+            boolean sync = Thread.currentThread() == Fawe.get().getMainThread();
+            if (sync) {
+                loadChunk(getWorld(), cx, cz, true);
+            } else if (Settings.HISTORY.CHUNK_WAIT_MS > 0) {
+                loadChunk.value = new IntegerPair(cx, cz);
+                TaskManager.IMP.sync(loadChunk, Settings.HISTORY.CHUNK_WAIT_MS);
+                if (!isChunkLoaded(cx, cz)) {
+                    throw new FaweException.FaweChunkLoadException();
+                }
+            } else {
+                return false;
+            }
         }
+        return true;
+    }
+
+    @Override
+    public boolean hasBlock(int x, int y, int z) throws FaweException.FaweChunkLoadException {
         int cx = x >> 4;
         int cz = z >> 4;
         int cy = y >> 4;
         if (cx != lastChunkX || cz != lastChunkZ) {
             lastChunkX = cx;
             lastChunkZ = cz;
-            if (!isChunkLoaded(cx, cz)) {
-                long start = System.currentTimeMillis();
-                boolean sync = Thread.currentThread() == Fawe.get().getMainThread();
-                if (sync) {
-                    loadChunk(getWorld(), cx, cz, true);
-                } else if (Settings.HISTORY.CHUNK_WAIT_MS > 0) {
-                    loadChunk.value = new IntegerPair(cx, cz);
-                    TaskManager.IMP.sync(loadChunk, Settings.HISTORY.CHUNK_WAIT_MS);
-                    if (!isChunkLoaded(cx, cz)) {
-                        throw new FaweException.FaweChunkLoadException();
-                    }
-                } else {
-                    return 0;
-                }
+            if (!ensureChunkLoaded(cx, cz)) {
+                return false;
+            }
+            lastChunkSections = getCachedSections(getWorld(), cx, cz);
+            lastSection = getCachedSection(lastChunkSections, cy);
+        } else if (cy != lastChunkY) {
+            if (lastChunkSections == null) {
+                return false;
+            }
+            lastSection = getCachedSection(lastChunkSections, cy);
+        }
+
+        if (lastSection == null) {
+            return false;
+        }
+        return hasBlock(lastSection, x, y, z);
+    }
+
+    public boolean hasBlock(SECTION section, int x, int y, int z) {
+        return getCombinedId4Data(lastSection, x, y, z) != 0;
+    }
+
+    @Override
+    public int getCombinedId4Data(int x, int y, int z) throws FaweException.FaweChunkLoadException {
+        int cx = x >> 4;
+        int cz = z >> 4;
+        int cy = y >> 4;
+        if (cx != lastChunkX || cz != lastChunkZ) {
+            lastChunkX = cx;
+            lastChunkZ = cz;
+            if (!ensureChunkLoaded(cx, cz)) {
+                return 0;
             }
             lastChunkSections = getCachedSections(getWorld(), cx, cz);
             lastSection = getCachedSection(lastChunkSections, cy);

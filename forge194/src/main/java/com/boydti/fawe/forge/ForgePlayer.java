@@ -1,5 +1,6 @@
 package com.boydti.fawe.forge;
 
+import com.boydti.fawe.Fawe;
 import com.boydti.fawe.config.BBC;
 import com.boydti.fawe.config.Settings;
 import com.boydti.fawe.object.FaweLocation;
@@ -68,7 +69,7 @@ public class ForgePlayer extends FawePlayer<EntityPlayerMP> {
     public FaweLocation getLocation() {
         World world = parent.worldObj;
         BlockPos pos = parent.getPosition();
-        return new FaweLocation(world.getWorldInfo().getWorldName(), pos.getX(), pos.getY(), pos.getZ());
+        return new FaweLocation(Fawe.<FaweForge>imp().getWorldName(world), pos.getX(), pos.getY(), pos.getZ());
     }
 
     @Override

@@ -114,8 +114,14 @@ public class FaweAPI {
     }
 
     public static World getWorld(String worldName) {
-        for (World current : WorldEdit.getInstance().getServer().getWorlds()) {
+        List<? extends World> worlds = WorldEdit.getInstance().getServer().getWorlds();
+        for (World current : worlds) {
             if (Fawe.imp().getWorldName(current).equals(worldName)) {
+                return WorldWrapper.wrap((AbstractWorld) current);
+            }
+        }
+        for (World current : worlds) {
+            if (current.getName().equals(worldName)) {
                 return WorldWrapper.wrap((AbstractWorld) current);
             }
         }

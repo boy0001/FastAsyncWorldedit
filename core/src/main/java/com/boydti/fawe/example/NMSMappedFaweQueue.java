@@ -97,6 +97,10 @@ public abstract class NMSMappedFaweQueue<WORLD, CHUNK, CHUNKSECTION, SECTION> ex
 
     public abstract void relight(int x, int y, int z);
 
+    public abstract void setSkyLight(int x, int y, int z, int value);
+
+    public abstract void setBlockLight(int x, int y, int z, int value);
+
     public abstract int getSkyLight(CHUNKSECTION sections, int x, int y, int z);
 
     public abstract int getEmmittedLight(CHUNKSECTION sections, int x, int y, int z);

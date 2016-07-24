@@ -673,4 +673,34 @@ public class BukkitQueue17 extends BukkitQueue_0<Chunk, ChunkSection[], ChunkSec
             }
         };
     }
+
+    @Override
+    public void setSkyLight(int x, int y, int z, int value) {
+        int cx = x >> 4;
+        int cz = z >> 4;
+        if (!ensureChunkLoaded(cx, cz)) {
+            return;
+        }
+        ChunkSection[] sections = getCachedSections(getWorld(), cx, cz);
+        ChunkSection section = sections[y >> 4];
+        if (section == null) {
+            return;
+        }
+        section.getSkyLightArray().a(x & 15, y & 15, z & 15, value);
+    }
+
+    @Override
+    public void setBlockLight(int x, int y, int z, int value) {
+        int cx = x >> 4;
+        int cz = z >> 4;
+        if (!ensureChunkLoaded(cx, cz)) {
+            return;
+        }
+        ChunkSection[] sections = getCachedSections(getWorld(), cx, cz);
+        ChunkSection section = sections[y >> 4];
+        if (section == null) {
+            return;
+        }
+        section.getEmittedLightArray().a(x & 15, y & 15, z & 15, value);
+    }
 }

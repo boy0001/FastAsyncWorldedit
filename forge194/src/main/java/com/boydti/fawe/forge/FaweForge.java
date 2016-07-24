@@ -111,7 +111,12 @@ public class FaweForge implements IFawe {
         if (world instanceof WorldWrapper) {
             world = ((WorldWrapper) world).getParent();
         }
-        return ((ForgeWorld) world).getWorld().getWorldInfo().getWorldName();
+        return getWorldName(((ForgeWorld) world).getWorld());
+
+    }
+
+    public String getWorldName(net.minecraft.world.World w) {
+        return w.getWorldInfo().getWorldName() + ";" + w.provider.getDimension();
     }
 
     @Override

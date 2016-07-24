@@ -73,7 +73,7 @@ public class DiskStorageHistory extends FaweStreamChangeSet {
 
     public DiskStorageHistory(World world, UUID uuid) {
         super(world);
-        String base = "history" + File.separator + world.getName() + File.separator + uuid;
+        String base = "history" + File.separator + Fawe.imp().getWorldName(world) + File.separator + uuid;
         File folder = new File(Fawe.imp().getDirectory(), base);
         int max = 0;
         if (folder.exists()) {
@@ -97,7 +97,7 @@ public class DiskStorageHistory extends FaweStreamChangeSet {
 
     private void init(UUID uuid, int i) {
         this.uuid = uuid;
-        String base = "history" + File.separator + getWorld().getName() + File.separator + uuid;
+        String base = "history" + File.separator + Fawe.imp().getWorldName(getWorld()) + File.separator + uuid;
         base += File.separator + i;
         nbtfFile = new File(Fawe.imp().getDirectory(), base + ".nbtf");
         nbttFile = new File(Fawe.imp().getDirectory(), base + ".nbtt");

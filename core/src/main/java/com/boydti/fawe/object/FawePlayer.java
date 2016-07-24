@@ -115,7 +115,7 @@ public abstract class FawePlayer<T> {
             String currentWorldName = getLocation().world;
             World world = getWorld();
             if (world != null) {
-                if (world.getName().equals(currentWorldName)) {
+                if (Fawe.imp().getWorldName(world).equals(currentWorldName)) {
                     getSession().clearHistory();
                     loadSessionsFromDisk(world);
                 }
@@ -176,7 +176,7 @@ public abstract class FawePlayer<T> {
         final long start = System.currentTimeMillis();
         final UUID uuid = getUUID();
         final List<Integer> editIds = new ArrayList<>();
-        final File folder = new File(Fawe.imp().getDirectory(), "history" + File.separator + world.getName() + File.separator + uuid);
+        final File folder = new File(Fawe.imp().getDirectory(), "history" + File.separator + Fawe.imp().getWorldName(world) + File.separator + uuid);
         if (folder.isDirectory()) {
             for (File file : folder.listFiles()) {
                 if (file.getName().endsWith(".bd")) {

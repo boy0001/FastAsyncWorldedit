@@ -37,7 +37,6 @@ import net.minecraft.nbt.NBTBase;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.network.play.server.S13PacketDestroyEntities;
 import net.minecraft.network.play.server.S21PacketChunkData;
-import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.management.PlayerManager;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.IntHashMap;
@@ -51,6 +50,7 @@ import net.minecraft.world.chunk.IChunkProvider;
 import net.minecraft.world.chunk.NibbleArray;
 import net.minecraft.world.chunk.storage.ExtendedBlockStorage;
 import net.minecraft.world.gen.ChunkProviderServer;
+import net.minecraftforge.common.DimensionManager;
 
 public class ForgeQueue_All extends NMSMappedFaweQueue<World, Chunk, ExtendedBlockStorage[], ExtendedBlockStorage> {
 
@@ -680,12 +680,41 @@ public class ForgeQueue_All extends NMSMappedFaweQueue<World, Chunk, ExtendedBlo
 
     @Override
     public World getImpWorld() {
-        WorldServer[] worlds = MinecraftServer.getServer().worldServers;
-        for (WorldServer ws : worlds) {
-            if (ws.provider.getDimensionName().equals(getWorldName())) {
-                return nmsWorld = ws;
-            }
+        if (nmsWorld != null) {
+            return nmsWorld;
         }
-        return null;
+        String[] split = getWorldName().split(";");
+        int id = Integer.parseInt(split[split.length - 1]);
+        return nmsWorld = DimensionManager.getWorld(id);
+    }
+
+    @Override
+    public void setSkyLight(int x, int y, int z, int value) {
+        int cx = x >> 4;
+        int cz = z >> 4;
+        if (!ensureChunkLoaded(cx, cz)) {
+            return;
+        }
+        ExtendedBlockStorage[] sections = getCachedSections(getWorld(), cx, cz);
+        ExtendedBlockStorage section = sections[y >> 4];
+        if (section == null) {
+            return;
+        }
+        section.getSkylightArray().set(x & 15, y & 15, z & 15, value);
+    }
+
+    @Override
+    public void setBlockLight(int x, int y, int z, int value) {
+        int cx = x >> 4;
+        int cz = z >> 4;
+        if (!ensureChunkLoaded(cx, cz)) {
+            return;
+        }
+        ExtendedBlockStorage[] sections = getCachedSections(getWorld(), cx, cz);
+        ExtendedBlockStorage section = sections[y >> 4];
+        if (section == null) {
+            return;
+        }
+        section.getBlocklightArray().set(x & 15, y & 15, z & 15, value);
     }
 }

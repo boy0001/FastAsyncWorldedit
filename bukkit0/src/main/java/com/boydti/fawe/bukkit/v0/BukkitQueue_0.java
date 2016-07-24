@@ -30,9 +30,9 @@ import org.bukkit.event.world.WorldInitEvent;
 
 public abstract class BukkitQueue_0<CHUNK, CHUNKSECTIONS, SECTION> extends NMSMappedFaweQueue<World, CHUNK, CHUNKSECTIONS, SECTION> implements Listener {
 
-    public Object adapter;
-    public Method methodToNative;
-    public Method methodFromNative;
+    public static Object adapter;
+    public static Method methodToNative;
+    public static Method methodFromNative;
 
     public BukkitQueue_0(final String world) {
         super(world);
@@ -49,16 +49,6 @@ public abstract class BukkitQueue_0<CHUNK, CHUNKSECTIONS, SECTION> extends NMSMa
     @Override
     public boolean initLighting(CHUNK chunk, CHUNKSECTIONS sections, RelightMode mode) {
         return false;
-    }
-
-    @Override
-    public int getEmmittedLight(CHUNKSECTIONS sections, int x, int y, int z) {
-        return 0;
-    }
-
-    @Override
-    public int getSkyLight(CHUNKSECTIONS sections, int x, int y, int z) {
-        return 15;
     }
 
     @Override

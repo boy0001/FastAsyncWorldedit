@@ -112,7 +112,10 @@ public class MemoryOptimizedHistory extends FaweStreamChangeSet {
 
     @Override
     public InputStream getBlockIS() throws IOException {
-        FaweInputStream result = ids == null ? null : MainUtil.getCompressedIS(new ByteArrayInputStream(ids));
+        if (ids == null) {
+            return null;
+        }
+        FaweInputStream result = MainUtil.getCompressedIS(new ByteArrayInputStream(ids));
         result.skip(FaweStreamChangeSet.HEADER_SIZE);
         return result;
     }
