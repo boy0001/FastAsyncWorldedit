@@ -12,9 +12,6 @@ commands:
     description: (FAWE) Bypass WorldEdit processing and area restrictions
     aliases: [weanywhere,worldeditanywhere,/wea,/weanywhere,/worldeditanywhere]
     usage: "Vault is required for the toggle. Optionally, you can set the permission fawe.bypass"
-  fixlighting:
-    description: (FAWE) Fix the lighting in your current chunk
-    aliases: [/fixlighting]
   stream:
     description: (FAWE) Stream a schematic into the world
     aliases: [/stream]
@@ -42,8 +39,6 @@ permissions:
   fawe.admin:
     default: false
   fawe.stream:
-    default: false
-  fawe.fixlighting:
     default: false
   fawe.reload:
     default: false

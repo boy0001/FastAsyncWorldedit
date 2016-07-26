@@ -1,6 +1,7 @@
 package com.boydti.fawe.example;
 
 import com.boydti.fawe.Fawe;
+import com.boydti.fawe.FaweCache;
 import com.boydti.fawe.config.Settings;
 import com.boydti.fawe.object.FaweChunk;
 import com.boydti.fawe.object.FaweQueue;
@@ -11,7 +12,9 @@ import com.boydti.fawe.util.MainUtil;
 import com.boydti.fawe.util.SetQueue;
 import com.boydti.fawe.util.TaskManager;
 import com.sk89q.jnbt.CompoundTag;
+import com.sk89q.worldedit.blocks.BlockMaterial;
 import com.sk89q.worldedit.world.biome.BaseBiome;
+import com.sk89q.worldedit.world.registry.BundledBlockData;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.UUID;
@@ -432,6 +435,131 @@ public abstract class MappedFaweQueue<WORLD, CHUNK, SECTION> extends FaweQueue {
 
     public boolean hasBlock(SECTION section, int x, int y, int z) {
         return getCombinedId4Data(lastSection, x, y, z) != 0;
+    }
+
+    public int getOpacity(SECTION section, int x, int y, int z) {
+        int combined = getCombinedId4Data(section, x, y, z);
+        if (combined == 0) {
+            return 0;
+        }
+        BlockMaterial block = BundledBlockData.getInstance().getMaterialById(FaweCache.getId(combined));
+        if (block == null) {
+            return 255;
+        }
+        return block.getLightOpacity();
+    }
+
+    public abstract int getSkyLight(SECTION sections, int x, int y, int z);
+
+    public abstract int getEmmittedLight(SECTION sections, int x, int y, int z);
+
+    public int getLight(SECTION sections, int x, int y, int z) {
+        if (!hasSky()) {
+            return getEmmittedLight(sections, x, y, z);
+        }
+        return Math.max(getSkyLight(sections, x, y, z), getEmmittedLight(sections, x, y, z));
+    }
+
+    @Override
+    public int getLight(int x, int y, int z) {
+        int cx = x >> 4;
+        int cz = z >> 4;
+        int cy = y >> 4;
+        if (cx != lastChunkX || cz != lastChunkZ) {
+            lastChunkX = cx;
+            lastChunkZ = cz;
+            if (!ensureChunkLoaded(cx, cz)) {
+                return 0;
+            }
+            lastChunkSections = getCachedSections(getWorld(), cx, cz);
+            lastSection = getCachedSection(lastChunkSections, cy);
+        } else if (cy != lastChunkY) {
+            if (lastChunkSections == null) {
+                return 0;
+            }
+            lastSection = getCachedSection(lastChunkSections, cy);
+        }
+
+        if (lastSection == null) {
+            return 0;
+        }
+        return getLight(lastSection, x, y, z);
+    }
+
+    @Override
+    public int getSkyLight(int x, int y, int z) {
+        int cx = x >> 4;
+        int cz = z >> 4;
+        int cy = y >> 4;
+        if (cx != lastChunkX || cz != lastChunkZ) {
+            lastChunkX = cx;
+            lastChunkZ = cz;
+            if (!ensureChunkLoaded(cx, cz)) {
+                return 0;
+            }
+            lastChunkSections = getCachedSections(getWorld(), cx, cz);
+            lastSection = getCachedSection(lastChunkSections, cy);
+        } else if (cy != lastChunkY) {
+            if (lastChunkSections == null) {
+                return 0;
+            }
+            lastSection = getCachedSection(lastChunkSections, cy);
+        }
+        if (lastSection == null) {
+            return 0;
+        }
+        return getSkyLight(lastSection, x, y, z);
+    }
+
+    @Override
+    public int getEmmittedLight(int x, int y, int z) {
+        int cx = x >> 4;
+        int cz = z >> 4;
+        int cy = y >> 4;
+        if (cx != lastChunkX || cz != lastChunkZ) {
+            lastChunkX = cx;
+            lastChunkZ = cz;
+            if (!ensureChunkLoaded(cx, cz)) {
+                return 0;
+            }
+            lastChunkSections = getCachedSections(getWorld(), cx, cz);
+            lastSection = getCachedSection(lastChunkSections, cy);
+        } else if (cy != lastChunkY) {
+            if (lastChunkSections == null) {
+                return 0;
+            }
+            lastSection = getCachedSection(lastChunkSections, cy);
+        }
+        if (lastSection == null) {
+            return 0;
+        }
+        return getEmmittedLight(lastSection, x, y, z);
+    }
+
+    @Override
+    public int getOpacity(int x, int y, int z) {
+        int cx = x >> 4;
+        int cz = z >> 4;
+        int cy = y >> 4;
+        if (cx != lastChunkX || cz != lastChunkZ) {
+            lastChunkX = cx;
+            lastChunkZ = cz;
+            if (!ensureChunkLoaded(cx, cz)) {
+                return 0;
+            }
+            lastChunkSections = getCachedSections(getWorld(), cx, cz);
+            lastSection = getCachedSection(lastChunkSections, cy);
+        } else if (cy != lastChunkY) {
+            if (lastChunkSections == null) {
+                return 0;
+            }
+            lastSection = getCachedSection(lastChunkSections, cy);
+        }
+
+        if (lastSection == null) {
+            return 0;
+        }
+        return getOpacity(lastSection, x, y, z);
     }
 
     @Override

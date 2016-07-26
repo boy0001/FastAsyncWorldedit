@@ -21,7 +21,7 @@ package com.sk89q.worldedit.command;
 
 import com.boydti.fawe.FaweAPI;
 import com.boydti.fawe.config.BBC;
-import com.intellectualcrafters.plot.util.MathMan;
+import com.boydti.fawe.util.MathMan;
 import com.sk89q.minecraft.util.commands.Command;
 import com.sk89q.minecraft.util.commands.CommandContext;
 import com.sk89q.minecraft.util.commands.CommandPermissions;

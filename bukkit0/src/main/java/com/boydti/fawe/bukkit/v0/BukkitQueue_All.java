@@ -25,13 +25,13 @@ public class BukkitQueue_All extends BukkitQueue_0<Chunk, Chunk, Chunk> {
     }
 
     @Override
-    public void setSkyLight(int x, int y, int z, int value) {
+    public void setSkyLight(Chunk chunk, int x, int y, int z, int value) {
 
     }
 
     @Override
-    public void setBlockLight(int x, int y, int z, int value) {
-
+    public void setBlockLight(Chunk chunk, int x, int y, int z, int value) {
+//        chunk.getBlock(x & 15, y, z & 15);
     }
 
     public int getCombinedId4Data(Chunk section, int x, int y, int z) {

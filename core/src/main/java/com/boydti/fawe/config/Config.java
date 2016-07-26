@@ -21,8 +21,6 @@ import java.util.Map;
 
 public class Config {
 
-    // TODO
-
     /**
      * Get the value for a node<br>
      *     Probably throws some error if you try to get a non existent key

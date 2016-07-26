@@ -1,6 +1,7 @@
 package com.boydti.fawe.object;
 
 import com.boydti.fawe.Fawe;
+import com.boydti.fawe.FaweCache;
 import com.boydti.fawe.config.BBC;
 import com.boydti.fawe.config.Settings;
 import com.boydti.fawe.object.exception.FaweException;
@@ -10,7 +11,12 @@ import com.boydti.fawe.util.SetQueue;
 import com.boydti.fawe.util.TaskManager;
 import com.sk89q.jnbt.CompoundTag;
 import com.sk89q.worldedit.EditSession;
+import com.sk89q.worldedit.Vector;
+import com.sk89q.worldedit.blocks.BaseBlock;
+import com.sk89q.worldedit.blocks.BlockMaterial;
 import com.sk89q.worldedit.world.biome.BaseBiome;
+import com.sk89q.worldedit.world.registry.BundledBlockData;
+import java.io.File;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
@@ -41,6 +47,7 @@ public abstract class FaweQueue {
         MINIMAL,
         FULLBRIGHT,
         OPTIMAL,
+        FAST,
         ALL,
     }
 
@@ -151,6 +158,64 @@ public abstract class FaweQueue {
         });
     }
 
+    public abstract void forEachMCA(RunnableVal<File> onEach);
+
+    public void forEachBlockInChunk(int cx, int cz, RunnableVal2<Vector, BaseBlock> onEach) {
+        int bx = cx << 4;
+        int bz = cz << 4;
+        Vector mutable = new Vector(0, 0, 0);
+        for (int x = 0; x < 16; x++) {
+            int xx = x + bx;
+            mutable.x = xx;
+            for (int z = 0; z < 16; z++) {
+                int zz = z + bz;
+                mutable.z = zz;
+                for (int y = 0; y < 256; y++) {
+                    int combined = getCombinedId4Data(xx, y, zz);
+                    if (combined == 0) {
+                        continue;
+                    }
+                    int id = FaweCache.getId(combined);
+                    mutable.y = y;
+                    if (FaweCache.hasNBT(id)) {
+                        CompoundTag tile = getTileEntity(x, y, z);
+                        BaseBlock block = new BaseBlock(id, FaweCache.getData(combined), tile);
+                        onEach.run(mutable, block);
+                    } else {
+                        onEach.run(mutable, FaweCache.CACHE_BLOCK[combined]);
+                    }
+                }
+            }
+        }
+    }
+
+    public void forEachTileInChunk(int cx, int cz, RunnableVal2<Vector, BaseBlock> onEach) {
+        int bx = cx << 4;
+        int bz = cz << 4;
+        Vector mutable = new Vector(0, 0, 0);
+        for (int x = 0; x < 16; x++) {
+            int xx = x + bx;
+            for (int z = 0; z < 16; z++) {
+                int zz = z + bz;
+                for (int y = 0; y < 256; y++) {
+                    int combined = getCombinedId4Data(xx, y, zz);
+                    if (combined == 0) {
+                        continue;
+                    }
+                    int id = FaweCache.getId(combined);
+                    if (FaweCache.hasNBT(id)) {
+                        mutable.x = xx;
+                        mutable.z = zz;
+                        mutable.y = y;
+                        CompoundTag tile = getTileEntity(x, y, z);
+                        BaseBlock block = new BaseBlock(id, FaweCache.getData(combined), tile);
+                        onEach.run(mutable, block);
+                    }
+                }
+            }
+        }
+    }
+
     public abstract boolean fixLighting(final FaweChunk<?> chunk, RelightMode mode);
 
     public abstract boolean isChunkLoaded(final int x, final int z);
@@ -208,6 +273,33 @@ public abstract class FaweQueue {
 
     public abstract int getCombinedId4Data(int x, int y, int z) throws FaweException.FaweChunkLoadException;
 
+    public int getAdjacentLight(int x, int y, int z) {
+        int light = 0;
+        if ((light = Math.max(light, getSkyLight(x - 1, y, z))) == 15) {
+            return light;
+        }
+        if ((light = Math.max(light, getSkyLight(x + 1, y, z))) == 15) {
+            return light;
+        }
+        if ((light = Math.max(light, getSkyLight(x, y, z - 1))) == 15) {
+            return light;
+        }
+        return Math.max(light, getSkyLight(x, y, z + 1));
+    }
+
+    public abstract boolean hasSky();
+
+    public abstract int getSkyLight(int x, int y, int z);
+
+    public int getLight(int x, int y, int z) {
+        if (!hasSky()) {
+            return getEmmittedLight(x, y, z);
+        }
+        return Math.max(getSkyLight(x, y, z), getEmmittedLight(x, y, z));
+    }
+
+    public abstract int getEmmittedLight(int x, int y, int z);
+
     public abstract CompoundTag getTileEntity(int x, int y, int z) throws FaweException.FaweChunkLoadException;
 
     public int getCombinedId4Data(int x, int y, int z, int def) {
@@ -225,6 +317,18 @@ public abstract class FaweQueue {
             session.debug(BBC.WORLDEDIT_FAILED_LOAD_CHUNK, x >> 4, z >> 4);
             return def;
         }
+    }
+
+    public int getOpacity(int x, int y, int z) {
+        int combined = getCombinedId4Data(x, y, z);
+        if (combined == 0) {
+            return 0;
+        }
+        BlockMaterial block = BundledBlockData.getInstance().getMaterialById(FaweCache.getId(combined));
+        if (block == null) {
+            return 255;
+        }
+        return block.getLightOpacity();
     }
 
     public abstract int size();

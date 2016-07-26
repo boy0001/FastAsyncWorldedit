@@ -47,11 +47,11 @@ public class SpongeCommand implements CommandCallable {
 
     @Override
     public Optional<? extends Text> getHelp(final CommandSource cmd) {
-        return Optional.of(Text.of("/<fixlighting|stream|wea|select>"));
+        return Optional.of(Text.of("/<stream|wea|select>"));
     }
 
     @Override
     public Text getUsage(final CommandSource cmd) {
-        return Text.of("/<fixlighting|stream|wea|select>");
+        return Text.of("/<stream|wea|select>");
     }
 }

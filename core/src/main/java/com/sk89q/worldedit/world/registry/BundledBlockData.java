@@ -60,7 +60,9 @@ public class BundledBlockData {
     private static final BundledBlockData INSTANCE = new BundledBlockData();
 
     private final Map<String, BlockEntry> idMap = new HashMap<String, BlockEntry>();
-    private final Map<Integer, BlockEntry> legacyMap = new HashMap<Integer, BlockEntry>(); // Trove usage removed temporarily
+
+    private final BlockEntry[] legacyMap = new BlockEntry[4096];
+
 
     /**
      * Create a new instance.
@@ -95,11 +97,11 @@ public class BundledBlockData {
 
     public boolean add(BlockEntry entry, boolean overwrite) {
         entry.postDeserialization();
-        if (!overwrite && (idMap.containsKey(entry.id) || legacyMap.containsKey(entry.legacyId))) {
+        if (!overwrite && (idMap.containsKey(entry.id) || legacyMap[entry.legacyId] != null)) {
             return false;
         }
         idMap.put(entry.id, entry);
-        legacyMap.put(entry.legacyId, entry);
+        legacyMap[entry.legacyId] = entry;
         return true;
     }
 
@@ -122,7 +124,7 @@ public class BundledBlockData {
      */
     @Nullable
     public BlockEntry findById(int id) {
-        return legacyMap.get(id);
+        return legacyMap[id];
     }
 
     /**

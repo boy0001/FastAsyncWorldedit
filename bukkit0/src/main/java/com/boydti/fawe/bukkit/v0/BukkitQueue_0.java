@@ -12,6 +12,7 @@ import com.boydti.fawe.util.SetQueue;
 import com.boydti.fawe.util.TaskManager;
 import com.sk89q.worldedit.bukkit.WorldEditPlugin;
 import com.sk89q.worldedit.bukkit.adapter.BukkitImplAdapter;
+import java.io.File;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.Collection;
@@ -40,6 +41,21 @@ public abstract class BukkitQueue_0<CHUNK, CHUNKSECTIONS, SECTION> extends NMSMa
         if (!registered) {
             registered = true;
             Bukkit.getServer().getPluginManager().registerEvents(this, ((FaweBukkit) Fawe.imp()).getPlugin());
+        }
+    }
+
+    @Override
+    public void forEachMCA(RunnableVal<File> onEach) {
+        File folder = new File(Bukkit.getWorldContainer(), getWorldName() + File.separator + "region");
+        File[] regionFiles = folder.listFiles();
+        if (regionFiles == null) {
+            throw new RuntimeException("Could not find worlds folder: " + folder + " ? (no read access?)");
+        }
+        for (File file : regionFiles) {
+            String name = file.getName();
+            if (name.endsWith("mca")) {
+                onEach.run(file);
+            }
         }
     }
 

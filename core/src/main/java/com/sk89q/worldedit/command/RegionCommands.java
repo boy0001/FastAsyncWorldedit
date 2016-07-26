@@ -19,7 +19,11 @@
 
 package com.sk89q.worldedit.command;
 
+import com.boydti.fawe.FaweAPI;
 import com.boydti.fawe.config.BBC;
+import com.boydti.fawe.object.FaweLocation;
+import com.boydti.fawe.object.FawePlayer;
+import com.boydti.fawe.object.FaweQueue;
 import com.sk89q.minecraft.util.commands.Command;
 import com.sk89q.minecraft.util.commands.CommandPermissions;
 import com.sk89q.minecraft.util.commands.Logging;
@@ -84,6 +88,27 @@ public class RegionCommands {
     public RegionCommands(WorldEdit worldEdit) {
         checkNotNull(worldEdit);
         this.worldEdit = worldEdit;
+    }
+
+    @Command(
+            aliases = { "/fixlighting" },
+            desc = "Get the light at a position",
+            min = 0,
+            max = 0
+    )
+    @CommandPermissions("worldedit.light.get")
+    public void fixlighting(Player player, EditSession editSession) throws WorldEditException {
+        FawePlayer fp = FawePlayer.wrap(player);
+        final FaweLocation loc = fp.getLocation();
+        final int cx = loc.x >> 4;
+        final int cz = loc.z >> 4;
+
+        Region selection = fp.getSelection();
+        if (selection == null) {
+            selection = new CuboidRegion(new Vector(cx - 8, 0, cz - 8).multiply(16), new Vector(cx + 8, 0, cz + 8).multiply(16));
+        }
+        int count = FaweAPI.fixLighting(loc.world, selection, FaweQueue.RelightMode.ALL);
+        BBC.FIX_LIGHTING_SELECTION.send(fp, count);
     }
 
     @Command(

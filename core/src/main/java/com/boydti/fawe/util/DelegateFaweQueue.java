@@ -2,11 +2,13 @@ package com.boydti.fawe.util;
 
 import com.boydti.fawe.object.FaweChunk;
 import com.boydti.fawe.object.FaweQueue;
+import com.boydti.fawe.object.RunnableVal;
 import com.boydti.fawe.object.RunnableVal2;
 import com.boydti.fawe.object.exception.FaweException;
 import com.sk89q.jnbt.CompoundTag;
 import com.sk89q.worldedit.EditSession;
 import com.sk89q.worldedit.world.biome.BaseBiome;
+import java.io.File;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentLinkedDeque;
@@ -128,6 +130,11 @@ public class DelegateFaweQueue extends FaweQueue {
     }
 
     @Override
+    public void forEachMCA(RunnableVal<File> onEach) {
+        parent.forEachMCA(onEach);
+    }
+
+    @Override
     public boolean fixLighting(FaweChunk<?> chunk, RelightMode mode) {
         return parent.fixLighting(chunk, mode);
     }
@@ -190,6 +197,21 @@ public class DelegateFaweQueue extends FaweQueue {
     @Override
     public int getCombinedId4Data(int x, int y, int z) throws FaweException.FaweChunkLoadException {
         return parent.getCombinedId4Data(x, y, z);
+    }
+
+    @Override
+    public boolean hasSky() {
+        return parent.hasSky();
+    }
+
+    @Override
+    public int getSkyLight(int x, int y, int z) {
+        return parent.getSkyLight(x, y, z);
+    }
+
+    @Override
+    public int getEmmittedLight(int x, int y, int z) {
+        return parent.getEmmittedLight(x, y, z);
     }
 
     @Override

@@ -59,8 +59,6 @@ public abstract class NMSMappedFaweQueue<WORLD, CHUNK, CHUNKSECTION, SECTION> ex
         }, Settings.LIGHTING.ASYNC);
     }
 
-    public abstract boolean hasSky();
-
     public abstract void setFullbright(CHUNKSECTION sections);
 
     public abstract boolean removeLighting(CHUNKSECTION sections, RelightMode mode, boolean hasSky);
@@ -97,20 +95,57 @@ public abstract class NMSMappedFaweQueue<WORLD, CHUNK, CHUNKSECTION, SECTION> ex
 
     public abstract void relight(int x, int y, int z);
 
-    public abstract void setSkyLight(int x, int y, int z, int value);
-
-    public abstract void setBlockLight(int x, int y, int z, int value);
-
-    public abstract int getSkyLight(CHUNKSECTION sections, int x, int y, int z);
-
-    public abstract int getEmmittedLight(CHUNKSECTION sections, int x, int y, int z);
-
-    public int getLight(CHUNKSECTION sections, int x, int y, int z) {
-        if (!hasSky()) {
-            return getEmmittedLight(sections, x, y, z);
+    public void setSkyLight(int x, int y, int z, int value) {
+        int cx = x >> 4;
+        int cz = z >> 4;
+        int cy = y >> 4;
+        if (cx != lastChunkX || cz != lastChunkZ) {
+            lastChunkX = cx;
+            lastChunkZ = cz;
+            if (!ensureChunkLoaded(cx, cz)) {
+                return;
+            }
+            lastChunkSections = getCachedSections(getWorld(), cx, cz);
+            lastSection = getCachedSection(lastChunkSections, cy);
+        } else if (cy != lastChunkY) {
+            if (lastChunkSections == null) {
+                return;
+            }
+            lastSection = getCachedSection(lastChunkSections, cy);
         }
-        return Math.max(getSkyLight(sections, x, y, z), getEmmittedLight(sections, x, y, z));
+        if (lastSection == null) {
+            return;
+        }
+        setSkyLight(lastSection, x, y, z, value);
     }
+
+    public void setBlockLight(int x, int y, int z, int value) {
+        int cx = x >> 4;
+        int cz = z >> 4;
+        int cy = y >> 4;
+        if (cx != lastChunkX || cz != lastChunkZ) {
+            lastChunkX = cx;
+            lastChunkZ = cz;
+            if (!ensureChunkLoaded(cx, cz)) {
+                return;
+            }
+            lastChunkSections = getCachedSections(getWorld(), cx, cz);
+            lastSection = getCachedSection(lastChunkSections, cy);
+        } else if (cy != lastChunkY) {
+            if (lastChunkSections == null) {
+                return;
+            }
+            lastSection = getCachedSection(lastChunkSections, cy);
+        }
+        if (lastSection == null) {
+            return;
+        }
+        setBlockLight(lastSection, x, y, z, value);
+    }
+
+    public abstract void setSkyLight(SECTION section, int x, int y, int z, int value);
+
+    public abstract void setBlockLight(SECTION section, int x, int y, int z, int value);
 
     @Override
     public boolean fixLighting(FaweChunk<?> fc, RelightMode mode) {
@@ -182,41 +217,43 @@ public abstract class NMSMappedFaweQueue<WORLD, CHUNK, CHUNKSECTION, SECTION> ex
                     }
                     switch (mode) {
                         case ALL: {
-                            for (int k = 4095; k >= 0; k--) {
-                                final int x = FaweCache.CACHE_X[j][k];
-                                final int y = FaweCache.CACHE_Y[j][k];
-                                if (y == 0) {
-                                    continue;
-                                }
-                                final int z = FaweCache.CACHE_Z[j][k];
-                                final int i = array[k];
-                                final short id = (short) (i >> 4);
-                                switch (FaweCache.getLight(id)) {
-                                    case OCCLUDING:
-                                        if (y == 0 || !FaweCache.isTransparent(bc.getCombinedId(x, y - 1, z) >> 4)) {
-                                            continue;
-                                        }
-                                        break;
-                                    case TRANSPARENT_EMIT:
-                                    case SOLID_EMIT:
-                                        if (this.isSurrounded(bc.getCombinedIdArrays(), x, y, z)) {
-                                            continue;
-                                        }
-                                        break;
-                                    case TRANSPARENT:
-                                        if (y >= 255) {
-                                            continue;
-                                        }
-                                        int light = getSkyLight(sections, x, y, z);
-                                        if (light != 0) {
-                                            continue;
-                                        }
-                                        break;
-                                }
-                                relight(X + x, y, Z + z);
-                            }
-                            break;
+
                         }
+//                            for (int k = 4095; k >= 0; k--) {
+//                                final int x = FaweCache.CACHE_X[j][k];
+//                                final int y = FaweCache.CACHE_Y[j][k];
+//                                if (y == 0) {
+//                                    continue;
+//                                }
+//                                final int z = FaweCache.CACHE_Z[j][k];
+//                                final int i = array[k];
+//                                final short id = (short) (i >> 4);
+//                                switch (FaweCache.getLight(id)) {
+//                                    case OCCLUDING:
+//                                        if (y == 0 || !FaweCache.isTransparent(bc.getCombinedId(x, y - 1, z) >> 4)) {
+//                                            continue;
+//                                        }
+//                                        break;
+//                                    case TRANSPARENT_EMIT:
+//                                    case SOLID_EMIT:
+//                                        if (this.isSurrounded(bc.getCombinedIdArrays(), x, y, z)) {
+//                                            continue;
+//                                        }
+//                                        break;
+//                                    case TRANSPARENT:
+//                                        if (y >= 255) {
+//                                            continue;
+//                                        }
+//                                        int light = getSkyLight(sections, x, y, z);
+//                                        if (light != 0) {
+//                                            continue;
+//                                        }
+//                                        break;
+//                                }
+//                                relight(X + x, y, Z + z);
+//                            }
+//                            break;
+//                        }
                         case OPTIMAL: {
                             for (int k = 4095; k >= 0; k--) {
                                 final int x = FaweCache.CACHE_X[j][k];
@@ -272,7 +309,9 @@ public abstract class NMSMappedFaweQueue<WORLD, CHUNK, CHUNKSECTION, SECTION> ex
                 }
             }
             return true;
-        } catch (Throwable ignore) {}
+        } catch (Throwable ignore) {
+            ignore.printStackTrace();
+        }
         return false;
     }
 

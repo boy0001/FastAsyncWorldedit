@@ -3,7 +3,7 @@ package com.boydti.fawe;
 import com.boydti.fawe.config.BBC;
 import com.boydti.fawe.config.Settings;
 import com.boydti.fawe.example.NMSMappedFaweQueue;
-import com.boydti.fawe.object.FaweChunk;
+import com.boydti.fawe.example.NMSRelighter;
 import com.boydti.fawe.object.FaweLocation;
 import com.boydti.fawe.object.FawePlayer;
 import com.boydti.fawe.object.FaweQueue;
@@ -378,6 +378,10 @@ public class FaweAPI {
         queue.fixLighting(queue.getFaweChunk(chunk.getX(), chunk.getZ()), mode);
     }
 
+    public static int fixLighting(String world, Region selection) {
+        return fixLighting(world, selection, FaweQueue.RelightMode.ALL);
+    }
+
     /**
      * Fix the lighting in a selection<br>
      *  - First removes all lighting, then relights
@@ -387,7 +391,7 @@ public class FaweAPI {
      * @param selection (assumes cuboid)
      * @return
      */
-    public static int fixLighting(String world, Region selection) {
+    public static int fixLighting(String world, Region selection, final FaweQueue.RelightMode mode) {
         final Vector bot = selection.getMinimumPoint();
         final Vector top = selection.getMaximumPoint();
 
@@ -402,59 +406,51 @@ public class FaweAPI {
         // Remove existing lighting first
         if (queue instanceof NMSMappedFaweQueue) {
             final NMSMappedFaweQueue nmsQueue = (NMSMappedFaweQueue) queue;
-            boolean sky = nmsQueue.hasSky();
+            NMSRelighter relighter = new NMSRelighter(nmsQueue);
             for (int x = minX; x <= maxX; x++) {
                 for (int z = minZ; z <= maxZ; z ++) {
-                    if (!nmsQueue.isChunkLoaded(x, z)) {
-                        final int xf = x;
-                        final int zf = z;
-                        if (!TaskManager.IMP.syncWhenFree(new RunnableVal<Boolean>() {
-                            @Override
-                            public void run(Boolean value) {
-                                this.value = nmsQueue.loadChunk(nmsQueue.getWorld(), xf, zf, false);
-                            }
-                        })) {
-                            continue;
-                        }
-                    }
-                    Object sections = nmsQueue.getCachedSections(nmsQueue.getWorld(), x, z);
-                    nmsQueue.removeLighting(sections, FaweQueue.RelightMode.ALL, sky);
+                    relighter.addChunk(x, z);
                 }
             }
-        }
-        ArrayList<Thread> threads = new ArrayList<>();
-        for (int X = 0; X < 2; X++) {
-            for (int Z = 0; Z < 2; Z++) {
-                for (int x = minX + X; x <= maxX; x += 2) {
-                    for (int z = minZ + Z; z <= maxZ; z += 2) {
-                        final FaweChunk<?> chunk = queue.getFaweChunk(x, z);
-                        if (Settings.LIGHTING.ASYNC) {
-                            Thread thread = new Thread(new Runnable() {
-                                @Override
-                                public void run() {
-                                    queue.fixLightingSafe(chunk, FaweQueue.RelightMode.ALL);
-                                    queue.sendChunk(chunk, FaweQueue.RelightMode.NONE);
-                                }
-                            });
-                            thread.start();
-                            threads.add(thread);
-                        } else {
-                            queue.fixLightingSafe(chunk, FaweQueue.RelightMode.ALL);
-                            queue.sendChunk(chunk, FaweQueue.RelightMode.NONE);
-                        }
-                        count++;
-                    }
-                }
-                for (Thread thread : threads) {
-                    try {
-                        thread.join();
-                    } catch (InterruptedException e) {
-                        e.printStackTrace();
-                    }
-                }
-                threads.clear();
+            boolean sky = nmsQueue.hasSky();
+            if (sky) {
+                relighter.fixSkyLighting();
             }
+            relighter.fixBlockLighting();
         }
+//        ArrayList<Thread> threads = new ArrayList<>();
+//        for (int X = 0; X < 2; X++) {
+//            for (int Z = 0; Z < 2; Z++) {
+//                for (int x = minX + X; x <= maxX; x += 2) {
+//                    for (int z = minZ + Z; z <= maxZ; z += 2) {
+//                        final FaweChunk<?> chunk = queue.getFaweChunk(x, z);
+//                        if (Settings.LIGHTING.ASYNC) {
+//                            Thread thread = new Thread(new Runnable() {
+//                                @Override
+//                                public void run() {
+//                                    queue.fixLightingSafe(chunk, mode);
+//                                    queue.sendChunk(chunk, FaweQueue.RelightMode.NONE);
+//                                }
+//                            });
+//                            thread.start();
+//                            threads.add(thread);
+//                        } else {
+//                            queue.fixLightingSafe(chunk, mode);
+//                            queue.sendChunk(chunk, FaweQueue.RelightMode.NONE);
+//                        }
+//                        count++;
+//                    }
+//                }
+//                for (Thread thread : threads) {
+//                    try {
+//                        thread.join();
+//                    } catch (InterruptedException e) {
+//                        e.printStackTrace();
+//                    }
+//                }
+//                threads.clear();
+//            }
+//        }
         return count;
     }
 

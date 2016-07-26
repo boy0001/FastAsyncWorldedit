@@ -6,6 +6,7 @@ import com.boydti.fawe.bukkit.v0.BukkitQueue_0;
 import com.boydti.fawe.example.CharFaweChunk;
 import com.boydti.fawe.object.BytePair;
 import com.boydti.fawe.object.FaweChunk;
+import com.boydti.fawe.object.IntegerPair;
 import com.boydti.fawe.object.RunnableVal;
 import com.boydti.fawe.util.MainUtil;
 import com.boydti.fawe.util.MathMan;
@@ -76,7 +77,7 @@ import org.bukkit.event.world.WorldInitEvent;
 import org.bukkit.event.world.WorldLoadEvent;
 import org.bukkit.generator.ChunkGenerator;
 
-public class BukkitQueue_1_10 extends BukkitQueue_0<Chunk, ChunkSection[], DataPaletteBlock> {
+public class BukkitQueue_1_10 extends BukkitQueue_0<Chunk, ChunkSection[], ChunkSection> {
 
     private static IBlockData air;
     private static Field fieldBits;
@@ -103,32 +104,12 @@ public class BukkitQueue_1_10 extends BukkitQueue_0<Chunk, ChunkSection[], DataP
     }
 
     @Override
-    public void setSkyLight(int x, int y, int z, int value) {
-        int cx = x >> 4;
-        int cz = z >> 4;
-        if (!ensureChunkLoaded(cx, cz)) {
-            return;
-        }
-        ChunkSection[] sections = getCachedSections(getWorld(), cx, cz);
-        ChunkSection section = sections[y >> 4];
-        if (section == null) {
-            return;
-        }
+    public void setSkyLight(ChunkSection section, int x, int y, int z, int value) {
         section.getSkyLightArray().a(x & 15, y & 15, z & 15, value);
     }
 
     @Override
-    public void setBlockLight(int x, int y, int z, int value) {
-        int cx = x >> 4;
-        int cz = z >> 4;
-        if (!ensureChunkLoaded(cx, cz)) {
-            return;
-        }
-        ChunkSection[] sections = getCachedSections(getWorld(), cx, cz);
-        ChunkSection section = sections[y >> 4];
-        if (section == null) {
-            return;
-        }
+    public void setBlockLight(ChunkSection section, int x, int y, int z, int value) {
         section.getEmittedLightArray().a(x & 15, y & 15, z & 15, value);
     }
 
@@ -136,7 +117,8 @@ public class BukkitQueue_1_10 extends BukkitQueue_0<Chunk, ChunkSection[], DataP
     private DataPaletteBlock lastBlocks;
 
     @Override
-    public boolean hasBlock(DataPaletteBlock dataPaletteBlock, int x, int y, int z) {
+    public boolean hasBlock(ChunkSection section, int x, int y, int z) {
+        DataPaletteBlock dataPaletteBlock = section.getBlocks();
         try {
             if (lastBlocks != dataPaletteBlock) {
                 lastBits = (DataBits) fieldBits.get(dataPaletteBlock);
@@ -223,14 +205,14 @@ public class BukkitQueue_1_10 extends BukkitQueue_0<Chunk, ChunkSection[], DataP
     }
 
     @Override
-    public DataPaletteBlock getCachedSection(ChunkSection[] chunkSections, int cy) {
-        ChunkSection nibble = chunkSections[cy];
-        return nibble != null ? nibble.getBlocks() : null;
+    public ChunkSection getCachedSection(ChunkSection[] chunkSections, int cy) {
+        return chunkSections[cy];
     }
 
     @Override
-    public int getCombinedId4Data(DataPaletteBlock lastSection, int x, int y, int z) {
-        IBlockData ibd = lastSection.a(x & 15, y & 15, z & 15);
+    public int getCombinedId4Data(ChunkSection lastSection, int x, int y, int z) {
+        DataPaletteBlock dataPalette = lastSection.getBlocks();
+        IBlockData ibd = dataPalette.a(x & 15, y & 15, z & 15);
         Block block = ibd.getBlock();
         int id = Block.getId(block);
         if (FaweCache.hasData(id)) {
@@ -322,12 +304,13 @@ public class BukkitQueue_1_10 extends BukkitQueue_0<Chunk, ChunkSection[], DataP
 
     @Override
     public boolean removeLighting(ChunkSection[] sections, RelightMode mode, boolean sky) {
-        if (mode == RelightMode.ALL) {
+        if (mode.ordinal() > 4) {
             for (int i = 0; i < sections.length; i++) {
                 ChunkSection section = sections[i];
                 if (section != null) {
                     section.a(new NibbleArray()); // Emitted
                     if (sky) {
+                        System.out.println("REMOVE SKY");
                         section.b(new NibbleArray()); // Skylight
                     }
                 }
@@ -339,33 +322,134 @@ public class BukkitQueue_1_10 extends BukkitQueue_0<Chunk, ChunkSection[], DataP
     @Override
     public boolean initLighting(Chunk chunk, ChunkSection[] sections, RelightMode mode) {
         net.minecraft.server.v1_10_R1.Chunk c = ((CraftChunk) chunk).getHandle();
-        if (mode == RelightMode.ALL) {
-            c.initLighting();
-        } else {
-            final int i = c.g();
-            final int i2 = i + 15;
-            int l;
-            int opacity;
-            int y;
-            for (int x = 0; x < 16; ++x) {
-                for (int z = 0; z < 16; ++z) {
-                    y = i2;
-                    l = 15;
-                    do {
-                        opacity = c.a(x, y, z).c();
-                        if (opacity == 0 && l != 15) {
-                            opacity = 1;
-                        }
-                        l -= opacity;
-                        if (l > 0) {
-                            ChunkSection section = sections[y >> 4];
-                            if (section != null) {
-                                section.a(x, y & 15, z, l);
+        // Optimizations
+        // If it's all air, use the above light values
+        // If it's all solid, use no light values
+        World world = getWorld();
+        byte[] mask = new byte[256];
+        byte[] smoothArray = new byte[256];
+        Arrays.fill(mask, (byte) 15);
+        int bx = chunk.getX() << 4;
+        int bz = chunk.getZ() << 4;
+        section:
+        for (int y2 = 15; y2 >= 0; y2--) {
+            ChunkSection section = sections[y2];
+            if (section == null) {
+                continue;
+            }
+            int y = 16 + (y2 << 4);
+            DataPaletteBlock dataPalette = section.getBlocks();
+            layer:
+            for (int y1 = 15; y1 >= 0; y1--) {
+                y--;
+                boolean smooth = false;
+                index:
+                for (int j = 0; j < 256; j++) {
+                    byte value = mask[j];
+                    smoothArray[j] = 0;
+                    int x = FaweCache.CACHE_X[y1][j];
+                    int z = FaweCache.CACHE_Z[y1][j];
+                    IBlockData ibd = dataPalette.a(x, y1, z);
+                    int opacity = ibd.c();
+                    if (x == 0 && z == 0) {
+                        System.out.println(y + ": " + value + "," + opacity + " | " + getCombinedId4Data(bx + x, y, bz + z));
+                    }
+                    if (opacity != 0 && opacity >= value) {
+                        mask[j] = 0;
+                        continue index;
+                    }
+                    switch (value) {
+                        case 0:
+                            if (opacity != 0) {
+                                continue index;
                             }
+                            break;
+                        case 1:
+                        case 2:
+                        case 3:
+                        case 4:
+                        case 5:
+                        case 6:
+                        case 7:
+                        case 8:
+                        case 9:
+                        case 10:
+                        case 11:
+                        case 12:
+                        case 13:
+                        case 14:
+                            if (opacity == 0) {
+                                mask[j] = --value;
+                                if (x == 0 && z == 0) System.out.println(" - " + value);
+                            } else {
+                                mask[j] = value = (byte) Math.max(0, value - opacity);
+                                if (x == 0 && z == 0) System.out.println(" - " + value);
+                            }
+                            break;
+                        case 15:
+                            if (opacity == 0) {
+                                section.a(x, y1, z, value);
+                            } else {
+                                value -= opacity;
+                                mask[j] = value;
+                                section.a(x, y1, z, value);
+                                if (x == 0 && z == 0) {
+                                    System.out.println(" - " + value);
+                                }
+                            }
+                            continue index;
+                    }
+                    // Smooth
+                    smooth = true;
+                    smoothArray[j] = 1;
+                    int adjacent = getAdjacentLight(bx + x, y, bz + z) - 1;
+                    if (adjacent > value) {
+                        if (x == 0 && z == 0) {
+                            if (getSkyLight(bx + x - 1, y, bz + z) == 15) System.out.println("x-1");
+                            if (getSkyLight(bx + x + 1, y, bz + z) == 15) System.out.println("x+1");
+                            if (getSkyLight(bx + x, y, bz + z - 1) == 15) System.out.println("z-1");
+                            if (getSkyLight(bx + x, y, bz + z + 1) == 15) System.out.println("z+1");
+                            System.out.println("VALUE IS GREATER: " + getAdjacentLight(bx + x, y, bz + z));
                         }
-                        --y;
-                    } while (y > 0 && l > 0);
+                        value = (byte) adjacent;
+                        mask[j] = value;
+                    }
+                    section.a(x, y1, z, value);
                 }
+//                if (smooth) {
+//                    short[][] cache1 = FaweCache.CACHE_J[0];
+//                    for (int x = 0; x < 16; x++) {
+//                        int xx = bx + x;
+//                        short[] cache2 = cache1[x];
+//                        for (int z = 0; z < 16; z++) {
+//                            int zz = bz + z;
+//                            int j = cache2[z];
+//                            if (smoothArray[j] == 0) {
+//                                continue;
+//                            }
+//                            byte value = mask[j];
+//                            int adjacent = getAdjacentLight(xx, y, zz) - 1;
+//                            if (adjacent > value) {
+//                                section.a(x, y1, z, mask[j] = (byte) adjacent);
+//                            }
+//                        }
+//                    }
+//                    for (int z = 15; z >=0; z--) {
+//                        for (int x = 15; x >= 0; x--) {
+//                            int xx = bx + x;
+//                            int zz = bz + z;
+//                            int j = cache1[x][z];
+//                            if (smoothArray[j] == 0) {
+//                                continue;
+//                            }
+//                            byte value = mask[j];
+//                            int adjacent = getAdjacentLight(xx, y, zz) - 1;
+//                            if (adjacent > value) {
+//                                section.a(x, y1, z, mask[j] = (byte) adjacent);
+//                            }
+//                        }
+//                    }
+//                }
             }
         }
         return true;
@@ -383,21 +467,16 @@ public class BukkitQueue_1_10 extends BukkitQueue_0<Chunk, ChunkSection[], DataP
     }
 
     @Override
-    public int getSkyLight(ChunkSection[] sections, int x, int y, int z) {
-        ChunkSection section = sections[FaweCache.CACHE_I[y][x][z]];
-        if (section == null) {
-            return 15;
+    public int getSkyLight(ChunkSection section, int x, int y, int z) {
+        if (x == 15 && z == 0) {
+            System.out.println(" \\ " + x + "," + z + " | " + section.b(x & 15, y & 15, z & 15) + " | " + section.b(0, 0, 0));
         }
-        return section.b(x, y & 15, z);
+        return section.b(x & 15, y & 15, z & 15);
     }
 
     @Override
-    public int getEmmittedLight(ChunkSection[] sections, int x, int y, int z) {
-        ChunkSection section = sections[FaweCache.CACHE_I[y][x][z]];
-        if (section == null) {
-            return 0;
-        }
-        return section.c(x, y & 15, z);
+    public int getEmmittedLight(ChunkSection section, int x, int y, int z) {
+        return section.c(x & 15, y & 15, z & 15);
     }
 
     @Override
