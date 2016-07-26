@@ -94,8 +94,13 @@ public class WorldWrapper extends LocalWorld {
     }
 
     @Override
-    public void simulateBlockMine(Vector pt) {
-        parent.simulateBlockMine(pt);
+    public void simulateBlockMine(final Vector pt) {
+        TaskManager.IMP.sync(new RunnableVal<Object>() {
+            @Override
+            public void run(Object value) {
+                parent.simulateBlockMine(pt);
+            }
+        });
     }
 
     @Override

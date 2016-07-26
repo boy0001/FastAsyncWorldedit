@@ -56,7 +56,6 @@ import java.util.UUID;
 import java.util.zip.GZIPInputStream;
 import java.util.zip.GZIPOutputStream;
 import javax.annotation.Nonnull;
-import org.bukkit.Chunk;
 import org.bukkit.Location;
 
 /**
@@ -356,27 +355,27 @@ public class FaweAPI {
         return (version[0] > major) || ((version[0] == major) && (version[1] > minor)) || ((version[0] == major) && (version[1] == minor) && (version[2] >= minor2));
     }
 
-    /**
-     * Fix the lighting in a chunk
-     * @param world
-     * @param x
-     * @param z
-     * @param mode
-     */
-    public static void fixLighting(String world, int x, int z, FaweQueue.RelightMode mode) {
-        FaweQueue queue = SetQueue.IMP.getNewQueue(world, true, false);
-        queue.fixLighting(queue.getFaweChunk(x, z), mode);
-    }
-
-    /**
-     * Fix the lighting in a chunk
-     * @param chunk
-     * @param mode
-     */
-    public static void fixLighting(final Chunk chunk, FaweQueue.RelightMode mode) {
-        FaweQueue queue = SetQueue.IMP.getNewQueue(chunk.getWorld().getName(), true, false);
-        queue.fixLighting(queue.getFaweChunk(chunk.getX(), chunk.getZ()), mode);
-    }
+//    /**
+//     * Fix the lighting in a chunk
+//     * @param world
+//     * @param x
+//     * @param z
+//     * @param mode
+//     */
+//    public static void fixLighting(String world, int x, int z, FaweQueue.RelightMode mode) {
+//        FaweQueue queue = SetQueue.IMP.getNewQueue(world, true, false);
+//        queue.fixLighting(queue.getFaweChunk(x, z), mode);
+//    }
+//
+//    /**
+//     * Fix the lighting in a chunk
+//     * @param chunk
+//     * @param mode
+//     */
+//    public static void fixLighting(final Chunk chunk, FaweQueue.RelightMode mode) {
+//        FaweQueue queue = SetQueue.IMP.getNewQueue(chunk.getWorld().getName(), true, false);
+//        queue.fixLighting(queue.getFaweChunk(chunk.getX(), chunk.getZ()), mode);
+//    }
 
     public static int fixLighting(String world, Region selection) {
         return fixLighting(world, selection, FaweQueue.RelightMode.ALL);
@@ -409,48 +408,21 @@ public class FaweAPI {
             NMSRelighter relighter = new NMSRelighter(nmsQueue);
             for (int x = minX; x <= maxX; x++) {
                 for (int z = minZ; z <= maxZ; z ++) {
-                    relighter.addChunk(x, z);
+                    relighter.addChunk(x, z, null);
+                    count++;
                 }
             }
-            boolean sky = nmsQueue.hasSky();
-            if (sky) {
-                relighter.fixSkyLighting();
+            if (mode != FaweQueue.RelightMode.NONE) {
+                boolean sky = nmsQueue.hasSky();
+                if (sky) {
+                    relighter.fixSkyLighting();
+                }
+                relighter.fixBlockLighting();
+            } else {
+                relighter.removeLighting();
             }
-            relighter.fixBlockLighting();
+            relighter.sendChunks();
         }
-//        ArrayList<Thread> threads = new ArrayList<>();
-//        for (int X = 0; X < 2; X++) {
-//            for (int Z = 0; Z < 2; Z++) {
-//                for (int x = minX + X; x <= maxX; x += 2) {
-//                    for (int z = minZ + Z; z <= maxZ; z += 2) {
-//                        final FaweChunk<?> chunk = queue.getFaweChunk(x, z);
-//                        if (Settings.LIGHTING.ASYNC) {
-//                            Thread thread = new Thread(new Runnable() {
-//                                @Override
-//                                public void run() {
-//                                    queue.fixLightingSafe(chunk, mode);
-//                                    queue.sendChunk(chunk, FaweQueue.RelightMode.NONE);
-//                                }
-//                            });
-//                            thread.start();
-//                            threads.add(thread);
-//                        } else {
-//                            queue.fixLightingSafe(chunk, mode);
-//                            queue.sendChunk(chunk, FaweQueue.RelightMode.NONE);
-//                        }
-//                        count++;
-//                    }
-//                }
-//                for (Thread thread : threads) {
-//                    try {
-//                        thread.join();
-//                    } catch (InterruptedException e) {
-//                        e.printStackTrace();
-//                    }
-//                }
-//                threads.clear();
-//            }
-//        }
         return count;
     }
 

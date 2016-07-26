@@ -210,13 +210,10 @@ public class Settings extends Config {
         @Comment({
                 "The relighting mode to use:",
                 " - 0 = None (Do no relighting)",
-                " - 1 = Shadowless (Removes shadows)",
-                " - 2 = Minimal (Relight changed light sources)",
-                " - 3 = Fullbright (Relight changed light sources, remove shadows)",
-                " - 4 = Optimal (Relight changed light sources and changed blocks)",
-                " - 5 = All (Slowly relight every blocks)"
+                " - 1 = Optimal (Relight changed light sources and changed blocks)",
+                " - 2 = All (Slowly relight every blocks)"
         })
-        public static int MODE = 4;
+        public static int MODE = 1;
     }
 
     public static void save(File file) {

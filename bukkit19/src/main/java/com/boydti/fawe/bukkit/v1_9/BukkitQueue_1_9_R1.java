@@ -46,6 +46,7 @@ import net.minecraft.server.v1_9_R2.EntityTracker;
 import net.minecraft.server.v1_9_R2.EntityTrackerEntry;
 import net.minecraft.server.v1_9_R2.EntityTypes;
 import net.minecraft.server.v1_9_R2.EnumDifficulty;
+import net.minecraft.server.v1_9_R2.EnumSkyBlock;
 import net.minecraft.server.v1_9_R2.IBlockData;
 import net.minecraft.server.v1_9_R2.IDataManager;
 import net.minecraft.server.v1_9_R2.MinecraftServer;
@@ -76,24 +77,29 @@ import org.bukkit.event.world.WorldInitEvent;
 import org.bukkit.event.world.WorldLoadEvent;
 import org.bukkit.generator.ChunkGenerator;
 
-public class BukkitQueue_1_9_R1 extends BukkitQueue_0<Chunk, ChunkSection[], DataPaletteBlock> {
+public class BukkitQueue_1_9_R1 extends BukkitQueue_0<Chunk, ChunkSection[], ChunkSection> {
 
-    private IBlockData air;
+    private static IBlockData air;
+    private static Field fieldBits;
 
     public BukkitQueue_1_9_R1(final String world) {
         super(world);
         checkVersion("v1_9_R2");
-        try {
-            Field fieldAir = DataPaletteBlock.class.getDeclaredField("a");
-            fieldAir.setAccessible(true);
-            air = (IBlockData) fieldAir.get(null);
-            if (adapter == null) {
-                setupAdapter(new FaweAdapter_1_9());
-                Fawe.debug("Using adapter: " + adapter);
-                Fawe.debug("=========================================");
+        if (air == null) {
+            try {
+                Field fieldAir = DataPaletteBlock.class.getDeclaredField("a");
+                fieldAir.setAccessible(true);
+                air = (IBlockData) fieldAir.get(null);
+                fieldBits = DataPaletteBlock.class.getDeclaredField("b");
+                fieldBits.setAccessible(true);
+                if (adapter == null) {
+                    setupAdapter(new FaweAdapter_1_9());
+                    Fawe.debug("Using adapter: " + adapter);
+                    Fawe.debug("=========================================");
+                }
+            } catch (Throwable e) {
+                throw new RuntimeException(e);
             }
-        } catch (Throwable e) {
-            throw new RuntimeException(e);
         }
     }
 
@@ -104,14 +110,14 @@ public class BukkitQueue_1_9_R1 extends BukkitQueue_0<Chunk, ChunkSection[], Dat
     }
 
     @Override
-    public DataPaletteBlock getCachedSection(ChunkSection[] chunkSections, int cy) {
-        ChunkSection nibble = chunkSections[cy];
-        return nibble != null ? nibble.getBlocks() : null;
+    public ChunkSection getCachedSection(ChunkSection[] chunkSections, int cy) {
+        return chunkSections[cy];
     }
 
     @Override
-    public int getCombinedId4Data(DataPaletteBlock lastSection, int x, int y, int z) {
-        IBlockData ibd = lastSection.a(x & 15, y & 15, z & 15);
+    public int getCombinedId4Data(ChunkSection lastSection, int x, int y, int z) {
+        DataPaletteBlock dataPalette = lastSection.getBlocks();
+        IBlockData ibd = dataPalette.a(x & 15, y & 15, z & 15);
         Block block = ibd.getBlock();
         int id = Block.getId(block);
         if (FaweCache.hasData(id)) {
@@ -292,56 +298,6 @@ public class BukkitQueue_1_9_R1 extends BukkitQueue_0<Chunk, ChunkSection[], Dat
             }
         }
         return true;
-    }
-
-    @Override
-    public boolean initLighting(Chunk chunk, ChunkSection[] sections, RelightMode mode) {
-        net.minecraft.server.v1_9_R2.Chunk c = ((CraftChunk) chunk).getHandle();
-        if (mode == RelightMode.ALL) {
-            c.initLighting();
-        } else {
-            int i = c.g();
-            for (int x = 0; x < 16; ++x) {
-                for (int z = 0; z < 16; ++z) {
-                    int l = 15;
-                    int y = i + 16 - 1;
-                    do {
-                        int opacity = c.a(x, y, z).c();
-                        if (opacity == 0 && l != 15) {
-                            opacity = 1;
-                        }
-                        l -= opacity;
-                        if (l > 0) {
-                            ChunkSection section = sections[y >> 4];
-                            if (section != null) {
-                                section.a(x, y & 15, z, l);
-                            }
-                        }
-                        --y;
-                    } while (y > 0 && l > 0);
-                }
-            }
-            }
-        return true;
-    }
-
-
-    @Override
-    public int getSkyLight(ChunkSection[] sections, int x, int y, int z) {
-        ChunkSection section = sections[FaweCache.CACHE_I[y][x][z]];
-        if (section == null) {
-            return 15;
-        }
-        return section.b(x, y & 15, z);
-    }
-
-    @Override
-    public int getEmmittedLight(ChunkSection[] sections, int x, int y, int z) {
-        ChunkSection section = sections[FaweCache.CACHE_I[y][x][z]];
-        if (section == null) {
-            return 0;
-        }
-        return section.c(x, y & 15, z);
     }
 
     @Override
@@ -773,7 +729,6 @@ public class BukkitQueue_1_9_R1 extends BukkitQueue_0<Chunk, ChunkSection[], Dat
                 }
             }
         }
-        sendChunk(fs, null);
         return true;
     }
 
@@ -793,32 +748,74 @@ public class BukkitQueue_1_9_R1 extends BukkitQueue_0<Chunk, ChunkSection[], Dat
     }
 
     @Override
-    public void setSkyLight(int x, int y, int z, int value) {
-        int cx = x >> 4;
-        int cz = z >> 4;
-        if (!ensureChunkLoaded(cx, cz)) {
-            return;
-        }
-        ChunkSection[] sections = getCachedSections(getWorld(), cx, cz);
-        ChunkSection section = sections[y >> 4];
-        if (section == null) {
-            return;
-        }
+    public void setSkyLight(ChunkSection section, int x, int y, int z, int value) {
         section.getSkyLightArray().a(x & 15, y & 15, z & 15, value);
     }
 
     @Override
-    public void setBlockLight(int x, int y, int z, int value) {
-        int cx = x >> 4;
-        int cz = z >> 4;
-        if (!ensureChunkLoaded(cx, cz)) {
-            return;
-        }
-        ChunkSection[] sections = getCachedSections(getWorld(), cx, cz);
-        ChunkSection section = sections[y >> 4];
-        if (section == null) {
-            return;
-        }
+    public void setBlockLight(ChunkSection section, int x, int y, int z, int value) {
         section.getEmittedLightArray().a(x & 15, y & 15, z & 15, value);
+    }
+
+    @Override
+    public int getSkyLight(ChunkSection section, int x, int y, int z) {
+        return section.b(x & 15, y & 15, z & 15);
+    }
+
+    @Override
+    public int getEmmittedLight(ChunkSection section, int x, int y, int z) {
+        return section.c(x & 15, y & 15, z & 15);
+    }
+
+    @Override
+    public int getOpacity(ChunkSection section, int x, int y, int z) {
+        DataPaletteBlock dataPalette = section.getBlocks();
+        IBlockData ibd = dataPalette.a(x & 15, y & 15, z & 15);
+        return ibd.c();
+    }
+
+    @Override
+    public int getBrightness(ChunkSection section, int x, int y, int z) {
+        DataPaletteBlock dataPalette = section.getBlocks();
+        IBlockData ibd = dataPalette.a(x & 15, y & 15, z & 15);
+        return ibd.d();
+    }
+
+    @Override
+    public int getOpacityBrightnessPair(ChunkSection section, int x, int y, int z) {
+        DataPaletteBlock dataPalette = section.getBlocks();
+        IBlockData ibd = dataPalette.a(x & 15, y & 15, z & 15);
+        return MathMan.pair16(ibd.c(), ibd.d());
+    }
+
+    private DataBits lastBits;
+    private DataPaletteBlock lastBlocks;
+
+    @Override
+    public boolean hasBlock(ChunkSection section, int x, int y, int z) {
+        DataPaletteBlock dataPaletteBlock = section.getBlocks();
+        try {
+            if (lastBlocks != dataPaletteBlock) {
+                lastBits = (DataBits) fieldBits.get(dataPaletteBlock);
+                lastBlocks = dataPaletteBlock;
+            }
+            int i = FaweCache.CACHE_J[y][x & 15][z & 15];
+            return lastBits.a(i) != 0;
+        } catch (IllegalAccessException e) {
+            e.printStackTrace();
+        }
+        return false;
+    }
+
+    @Override
+    public void relightBlock(int x, int y, int z) {
+        pos.c(x, y, z);
+        nmsWorld.c(EnumSkyBlock.BLOCK, pos);
+    }
+
+    @Override
+    public void relightSky(int x, int y, int z) {
+        pos.c(x, y, z);
+        nmsWorld.c(EnumSkyBlock.SKY, pos);
     }
 }

@@ -9,6 +9,7 @@ import com.boydti.fawe.object.IntegerPair;
 import com.boydti.fawe.object.RunnableVal;
 import com.boydti.fawe.object.exception.FaweException;
 import com.boydti.fawe.util.MainUtil;
+import com.boydti.fawe.util.MathMan;
 import com.boydti.fawe.util.SetQueue;
 import com.boydti.fawe.util.TaskManager;
 import com.sk89q.jnbt.CompoundTag;
@@ -444,9 +445,25 @@ public abstract class MappedFaweQueue<WORLD, CHUNK, SECTION> extends FaweQueue {
         }
         BlockMaterial block = BundledBlockData.getInstance().getMaterialById(FaweCache.getId(combined));
         if (block == null) {
-            return 255;
+            return 15;
         }
-        return block.getLightOpacity();
+        return Math.min(15, block.getLightOpacity());
+    }
+
+    public int getBrightness(SECTION section, int x, int y, int z) {
+        int combined = getCombinedId4Data(section, x, y, z);
+        if (combined == 0) {
+            return 0;
+        }
+        BlockMaterial block = BundledBlockData.getInstance().getMaterialById(FaweCache.getId(combined));
+        if (block == null) {
+            return 15;
+        }
+        return Math.min(15, block.getLightValue());
+    }
+
+    public int getOpacityBrightnessPair(SECTION section, int x, int y, int z) {
+        return MathMan.pair16(Math.min(15, getOpacity(section, x, y, z)), getBrightness(section, x, y, z));
     }
 
     public abstract int getSkyLight(SECTION sections, int x, int y, int z);
@@ -560,6 +577,58 @@ public abstract class MappedFaweQueue<WORLD, CHUNK, SECTION> extends FaweQueue {
             return 0;
         }
         return getOpacity(lastSection, x, y, z);
+    }
+
+    @Override
+    public int getOpacityBrightnessPair(int x, int y, int z) {
+        int cx = x >> 4;
+        int cz = z >> 4;
+        int cy = y >> 4;
+        if (cx != lastChunkX || cz != lastChunkZ) {
+            lastChunkX = cx;
+            lastChunkZ = cz;
+            if (!ensureChunkLoaded(cx, cz)) {
+                return 0;
+            }
+            lastChunkSections = getCachedSections(getWorld(), cx, cz);
+            lastSection = getCachedSection(lastChunkSections, cy);
+        } else if (cy != lastChunkY) {
+            if (lastChunkSections == null) {
+                return 0;
+            }
+            lastSection = getCachedSection(lastChunkSections, cy);
+        }
+
+        if (lastSection == null) {
+            return 0;
+        }
+        return getOpacityBrightnessPair(lastSection, x, y, z);
+    }
+
+    @Override
+    public int getBrightness(int x, int y, int z) {
+        int cx = x >> 4;
+        int cz = z >> 4;
+        int cy = y >> 4;
+        if (cx != lastChunkX || cz != lastChunkZ) {
+            lastChunkX = cx;
+            lastChunkZ = cz;
+            if (!ensureChunkLoaded(cx, cz)) {
+                return 0;
+            }
+            lastChunkSections = getCachedSections(getWorld(), cx, cz);
+            lastSection = getCachedSection(lastChunkSections, cy);
+        } else if (cy != lastChunkY) {
+            if (lastChunkSections == null) {
+                return 0;
+            }
+            lastSection = getCachedSection(lastChunkSections, cy);
+        }
+
+        if (lastSection == null) {
+            return 0;
+        }
+        return getBrightness(lastSection, x, y, z);
     }
 
     @Override

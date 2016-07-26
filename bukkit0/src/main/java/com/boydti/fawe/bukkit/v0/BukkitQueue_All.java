@@ -83,11 +83,6 @@ public class BukkitQueue_All extends BukkitQueue_0<Chunk, Chunk, Chunk> {
     }
 
     @Override
-    public boolean fixLighting(FaweChunk<?> fc, RelightMode mode) {
-        return false;
-    }
-
-    @Override
     public Chunk getCachedSections(World impWorld, int cx, int cz) {
         return impWorld.getChunkAt(cx, cz);
     }

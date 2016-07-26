@@ -1,62 +1,164 @@
 package com.boydti.fawe.example;
 
 import com.boydti.fawe.FaweCache;
+import com.boydti.fawe.object.FaweQueue;
 import com.boydti.fawe.util.MathMan;
+import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.Map;
 
 public class NMSRelighter {
     private final NMSMappedFaweQueue queue;
-    private final HashMap<Long, RelightChunk> toRelight;
+    private final HashMap<Long, RelightSkyEntry> skyToRelight;
+    private final HashMap<Long, RelightBlockEntry> blocksToRelight;
 
     public NMSRelighter(NMSMappedFaweQueue queue) {
         this.queue = queue;
-        toRelight = new HashMap<>();
+        skyToRelight = new HashMap<>();
+        blocksToRelight = new HashMap<>();
     }
 
-    public boolean addChunk(int cx, int cz) {
+    public boolean addChunk(int cx, int cz, boolean[] fix) {
         long pair = MathMan.pairInt(cx, cz);
-        if (toRelight.containsKey(pair)) {
+        if (skyToRelight.containsKey(pair)) {
             return false;
         }
-        toRelight.put(pair, new RelightChunk(cx, cz));
+        skyToRelight.put(pair, new RelightSkyEntry(cx, cz, fix));
         return true;
     }
 
+    public void removeLighting() {
+        for (Map.Entry<Long, RelightSkyEntry> entry : skyToRelight.entrySet()) {
+            RelightSkyEntry chunk = entry.getValue();
+            queue.ensureChunkLoaded(chunk.x, chunk.z);
+            Object sections = queue.getCachedSections(queue.getWorld(), chunk.x, chunk.z);
+            queue.removeLighting(sections, FaweQueue.RelightMode.ALL, queue.hasSky());
+        }
+    }
+
+    public void addBlock(int x, int y, int z) {
+        if (y < 1) {
+            return;
+        }
+        int cx = x >> 4;
+        int cz = z >> 4;
+        long pair = MathMan.pairInt(cx, cz);
+        RelightBlockEntry current = blocksToRelight.get(pair);
+        if (current == null) {
+            current = new RelightBlockEntry(pair);
+            blocksToRelight.put(pair, current);
+        }
+        current.addBlock(x, y, z);
+    }
+
+    public void smoothBlockLight(int emit, int x, int y, int z, int rx, int ry, int rz) {
+        if (queue.hasBlock(rx, ry, rz)) {
+            return;
+        }
+        int emitAdjacent = queue.getEmmittedLight(rx, ry, rz);
+        if (emit - emitAdjacent > 2) {
+            queue.setBlockLight(rx, ry, rz, emit - 1);
+            addBlock(rx, ry, rz);
+        }
+    }
+
     public void fixBlockLighting() {
-        // TODO
+        while (!blocksToRelight.isEmpty()) {
+            RelightBlockEntry current = blocksToRelight.entrySet().iterator().next().getValue();
+            int bx = current.getX() << 4;
+            int bz = current.getZ() << 4;
+            while (!current.blocks.isEmpty()) {
+                short coord = current.blocks.pollFirst();
+                byte layer = MathMan.unpairShortX(coord);
+                int y = MathMan.unpairShortY(coord) & 0xFF;
+                int x = MathMan.unpair16x(layer);
+                int z = MathMan.unpair16y(layer);
+                int xx = bx + x;
+                int zz = bz + z;
+                if (y < 0) {
+                    System.out.println(y);
+                }
+                int emit = queue.getEmmittedLight(xx, y, zz);
+                if (emit < 2) {
+                    continue;
+                }
+                smoothBlockLight(emit, xx, y, zz, xx - 1, y, zz);
+                smoothBlockLight(emit, xx, y, zz, xx + 1, y, zz);
+                smoothBlockLight(emit, xx, y, zz, xx, y, zz - 1);
+                smoothBlockLight(emit, xx, y, zz, xx, y, zz + 1);
+                if (y > 0) {
+                    smoothBlockLight(emit, xx, y, zz, xx, y - 1, zz);
+                }
+                if (y < 255) {
+                    smoothBlockLight(emit, xx, y, zz, xx, y + 1, zz);
+                }
+            }
+            blocksToRelight.remove(current.coord);
+        }
+    }
+
+    public void sendChunks() {
+        for (Map.Entry<Long, RelightSkyEntry> entry : skyToRelight.entrySet()) {
+            RelightSkyEntry chunk = entry.getValue();
+            queue.sendChunk(queue.getFaweChunk(chunk.x, chunk.z));
+        }
+
+    }
+
+    public void lightBlock(int x, int y, int z, int brightness) {
+        queue.setBlockLight(x, y, z, Math.max(15, brightness + 1));
+        if (!queue.hasBlock(x - 1, y, z)) { queue.setBlockLight(x - 1, y, z, brightness); addBlock(x - 1, y, z); }
+        if (!queue.hasBlock(x + 1, y, z)) { queue.setBlockLight(x + 1, y, z, brightness); addBlock(x + 1, y, z); }
+        if (!queue.hasBlock(x, y, z - 1)) { queue.setBlockLight(x, y, z - 1, brightness); addBlock(x, y, z - 1); }
+        if (!queue.hasBlock(x, y, z + 1)) { queue.setBlockLight(x, y, z + 1, brightness); addBlock(x, y, z + 1); }
+        if (y > 0 && !queue.hasBlock(x, y - 1, z)) { queue.setBlockLight(x, y - 1, z, brightness); addBlock(x, y - 1, z); }
+        if (y < 255 && !queue.hasBlock(x, y + 1, z)) { queue.setBlockLight(x, y + 1, z, brightness); addBlock(x, y + 1, z); }
     }
 
     public void fixSkyLighting() {
         // Order chunks
-        ArrayList<RelightChunk> chunksList = new ArrayList<>(toRelight.values());
+        ArrayList<RelightSkyEntry> chunksList = new ArrayList<>(skyToRelight.values());
         Collections.sort(chunksList);
-        RelightChunk[] chunks = chunksList.toArray(new RelightChunk[chunksList.size()]);
-
+        RelightSkyEntry[] chunks = chunksList.toArray(new RelightSkyEntry[chunksList.size()]);
         byte[] cacheX = FaweCache.CACHE_X[0];
         byte[] cacheZ = FaweCache.CACHE_Z[0];
-        for (int y = 255; y >= 0; y--) {
-            for (RelightChunk chunk : chunks) { // Propogate skylight
+        for (int y = 255; y > 0; y--) {
+            for (RelightSkyEntry chunk : chunks) { // Propogate skylight
+                int layer = y >> 4;
+                if (!chunk.fix[layer]) {
+                    continue;
+                }
+                int bx = chunk.x << 4;
+                int bz = chunk.z << 4;
                 byte[] mask = chunk.mask;
+                queue.ensureChunkLoaded(chunk.x, chunk.z);
                 Object sections = queue.getCachedSections(queue.getWorld(), chunk.x, chunk.z);
                 if (sections == null) continue;
-                Object section = queue.getCachedSection(sections, y >> 4);
+                Object section = queue.getCachedSection(sections, layer);
                 if (section == null) continue;
                 chunk.smooth = false;
                 for (int j = 0; j < 256; j++) {
                     int x = cacheX[j];
                     int z = cacheZ[j];
                     byte value = mask[j];
-                    int opacity = queue.getOpacity(section, x, y, z);
+                    byte pair = (byte) queue.getOpacityBrightnessPair(section, x, y, z);
+                    int opacity = MathMan.unpair16x(pair);
+                    int brightness = MathMan.unpair16y(pair);
+                    if (brightness > 1 &&  (brightness != 15 || opacity != 15)) {
+                        lightBlock(bx + x, y, bz + z, brightness);
+                    }
                     if (opacity != 0 && opacity >= value) {
                         mask[j] = 0;
+                        queue.setSkyLight(section, x, y, z, 0);
                         continue;
                     }
                     switch (value) {
                         case 0:
                             if (opacity != 0) {
+                                queue.setSkyLight(section, x, y, z, 0);
                                 continue;
                             }
                             break;
@@ -99,25 +201,26 @@ public class NMSRelighter {
                     queue.setSkyLight(section, x, y, z, value);
                 }
             }
-            for (RelightChunk chunk : chunks) { // Smooth forwards
+            for (RelightSkyEntry chunk : chunks) { // Smooth forwards
                 if (chunk.smooth) {
-                    smooth(chunk, y, true);
+                    smoothSkyLight(chunk, y, true);
                 }
             }
             for (int i = chunks.length - 1; i>= 0; i--) { // Smooth backwards
-                RelightChunk chunk = chunks[i];
+                RelightSkyEntry chunk = chunks[i];
                 if (chunk.smooth) {
-                    smooth(chunk, y, false);
+                    smoothSkyLight(chunk, y, false);
                 }
             }
         }
 
     }
 
-    public void smooth(RelightChunk chunk, int y, boolean direction) {
+    public void smoothSkyLight(RelightSkyEntry chunk, int y, boolean direction) {
         byte[] mask = chunk.mask;
         int bx = chunk.x << 4;
         int bz = chunk.z << 4;
+        queue.ensureChunkLoaded(chunk.x, chunk.z);
         Object sections = queue.getCachedSections(queue.getWorld(), chunk.x, chunk.z);
         if (sections == null) return;
         Object section = queue.getCachedSection(sections, y >> 4);
@@ -158,24 +261,54 @@ public class NMSRelighter {
         return true;
     }
 
-    private class RelightChunk implements Comparable {
+    private class RelightBlockEntry {
+        public long coord;
+        public ArrayDeque<Short> blocks;
+
+        public RelightBlockEntry(long pair) {
+            this.coord = pair;
+            this.blocks = new ArrayDeque<>(1);
+        }
+
+        public void addBlock(int x, int y, int z) {
+            byte layer = MathMan.pair16(x & 15, z & 15);
+            short coord = MathMan.pairByte(layer, y);
+            blocks.add(coord);
+        }
+
+        public int getX() {
+            return MathMan.unpairIntX(coord);
+        }
+
+        public int getZ() {
+            return MathMan.unpairIntY(coord);
+        }
+    }
+
+    private class RelightSkyEntry implements Comparable {
         public final int x;
         public final int z;
         public final byte[] mask;
+        public final boolean[] fix;
         public boolean smooth;
 
-        public RelightChunk(int x, int z) {
+        public RelightSkyEntry(int x, int z, boolean[] fix) {
             this.x = x;
             this.z = z;
             byte[] array = new byte[256];
             Arrays.fill(array, (byte) 15);
             this.mask = array;
+            if (fix == null) {
+                this.fix = new boolean[16];
+                Arrays.fill(this.fix, true);
+            } else {
+                this.fix = fix;
+            }
         }
-
 
         @Override
         public int compareTo(Object o) {
-            RelightChunk other = (RelightChunk) o;
+            RelightSkyEntry other = (RelightSkyEntry) o;
             if (other.x < x) {
                 return -1;
             }

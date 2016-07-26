@@ -343,7 +343,7 @@ public class AsyncWorld implements World {
     @Override
     @Deprecated
     public boolean refreshChunk(int x, int z) {
-        queue.sendChunk(queue.getFaweChunk(x, z), FaweQueue.RelightMode.NONE);
+        queue.sendChunk(queue.getFaweChunk(x, z));
         return true;
     }
 

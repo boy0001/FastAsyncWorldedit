@@ -1,7 +1,6 @@
 package com.boydti.fawe.object;
 
 import com.boydti.fawe.FaweCache;
-import com.boydti.fawe.config.Settings;
 import com.sk89q.jnbt.CompoundTag;
 import com.sk89q.worldedit.world.biome.BaseBiome;
 import java.util.ArrayDeque;
@@ -76,13 +75,6 @@ public abstract class FaweChunk<T> {
      */
     public void addToQueue() {
         parent.setChunk(this);
-    }
-
-    /**
-     * Fix the lighting in this chunk
-     */
-    public void fixLighting() {
-        parent.fixLighting(this, FaweQueue.RelightMode.values()[Settings.LIGHTING.MODE]);
     }
 
     /**

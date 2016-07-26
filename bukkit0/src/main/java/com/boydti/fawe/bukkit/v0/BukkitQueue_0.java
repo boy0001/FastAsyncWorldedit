@@ -5,10 +5,7 @@ import com.boydti.fawe.bukkit.FaweBukkit;
 import com.boydti.fawe.example.CharFaweChunk;
 import com.boydti.fawe.example.NMSMappedFaweQueue;
 import com.boydti.fawe.object.FaweChunk;
-import com.boydti.fawe.object.FaweQueue;
 import com.boydti.fawe.object.RunnableVal;
-import com.boydti.fawe.util.MathMan;
-import com.boydti.fawe.util.SetQueue;
 import com.boydti.fawe.util.TaskManager;
 import com.sk89q.worldedit.bukkit.WorldEditPlugin;
 import com.sk89q.worldedit.bukkit.adapter.BukkitImplAdapter;
@@ -24,9 +21,7 @@ import org.bukkit.Chunk;
 import org.bukkit.World;
 import org.bukkit.WorldCreator;
 import org.bukkit.event.EventHandler;
-import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
-import org.bukkit.event.world.ChunkUnloadEvent;
 import org.bukkit.event.world.WorldInitEvent;
 
 public abstract class BukkitQueue_0<CHUNK, CHUNKSECTIONS, SECTION> extends NMSMappedFaweQueue<World, CHUNK, CHUNKSECTIONS, SECTION> implements Listener {
@@ -45,30 +40,21 @@ public abstract class BukkitQueue_0<CHUNK, CHUNKSECTIONS, SECTION> extends NMSMa
     }
 
     @Override
-    public void forEachMCA(RunnableVal<File> onEach) {
-        File folder = new File(Bukkit.getWorldContainer(), getWorldName() + File.separator + "region");
-        File[] regionFiles = folder.listFiles();
-        if (regionFiles == null) {
-            throw new RuntimeException("Could not find worlds folder: " + folder + " ? (no read access?)");
-        }
-        for (File file : regionFiles) {
-            String name = file.getName();
-            if (name.endsWith("mca")) {
-                onEach.run(file);
-            }
-        }
+    public File getSaveFolder() {
+        return new File(Bukkit.getWorldContainer(), getWorldName() + File.separator + "region");
     }
 
     @Override
     public void setFullbright(CHUNKSECTIONS sections) {}
 
     @Override
-    public boolean initLighting(CHUNK chunk, CHUNKSECTIONS sections, RelightMode mode) {
-        return false;
-    }
+    public void relight(int x, int y, int z) {}
 
     @Override
-    public void relight(int x, int y, int z) {}
+    public void relightBlock(int x, int y, int z) {}
+
+    @Override
+    public void relightSky(int x, int y, int z) {}
 
     @Override
     public boolean removeLighting(CHUNKSECTIONS sections, RelightMode mode, boolean hasSky) {
@@ -84,27 +70,6 @@ public abstract class BukkitQueue_0<CHUNK, CHUNKSECTIONS, SECTION> extends NMSMa
     }
 
     private static boolean registered = false;
-
-    @EventHandler(ignoreCancelled = true, priority = EventPriority.MONITOR)
-    public static void onChunkUnload(ChunkUnloadEvent event) {
-        Collection<FaweQueue> queues = SetQueue.IMP.getActiveQueues();
-        if (queues.isEmpty()) {
-            return;
-        }
-        String world = event.getWorld().getName();
-        Chunk chunk = event.getChunk();
-        long pair = MathMan.pairInt(chunk.getX(), chunk.getZ());
-        for (FaweQueue queue : queues) {
-            if (queue.getWorldName().equals(world)) {
-                Map<Long, Long> relighting = ((NMSMappedFaweQueue) queue).relighting;
-                if (!relighting.isEmpty() && relighting.containsKey(pair)) {
-                    event.setCancelled(true);
-                    return;
-                }
-            }
-        }
-    }
-
     private static boolean disableChunkLoad = false;
 
     @EventHandler

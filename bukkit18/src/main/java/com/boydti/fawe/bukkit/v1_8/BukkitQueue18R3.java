@@ -28,6 +28,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
+import net.minecraft.server.v1_8_R3.Block;
 import net.minecraft.server.v1_8_R3.BlockPosition;
 import net.minecraft.server.v1_8_R3.ChunkCoordIntPair;
 import net.minecraft.server.v1_8_R3.ChunkSection;
@@ -37,6 +38,7 @@ import net.minecraft.server.v1_8_R3.EntityTracker;
 import net.minecraft.server.v1_8_R3.EntityTrackerEntry;
 import net.minecraft.server.v1_8_R3.EntityTypes;
 import net.minecraft.server.v1_8_R3.EnumDifficulty;
+import net.minecraft.server.v1_8_R3.EnumSkyBlock;
 import net.minecraft.server.v1_8_R3.LongHashMap;
 import net.minecraft.server.v1_8_R3.MinecraftServer;
 import net.minecraft.server.v1_8_R3.NBTTagCompound;
@@ -63,7 +65,7 @@ import org.bukkit.event.world.WorldInitEvent;
 import org.bukkit.event.world.WorldLoadEvent;
 import org.bukkit.generator.ChunkGenerator;
 
-public class BukkitQueue18R3 extends BukkitQueue_0<Chunk, ChunkSection[], char[]> {
+public class BukkitQueue18R3 extends BukkitQueue_0<Chunk, ChunkSection[], ChunkSection> {
 
     public BukkitQueue18R3(final String world) {
         super(world);
@@ -113,7 +115,8 @@ public class BukkitQueue18R3 extends BukkitQueue_0<Chunk, ChunkSection[], char[]
     }
 
     @Override
-    public int getCombinedId4Data(char[] ls, int x, int y, int z) {
+    public int getCombinedId4Data(ChunkSection section, int x, int y, int z) {
+        char[] ls = section.getIdArray();
         return ls[FaweCache.CACHE_J[y][x & 15][z & 15]];
     }
 
@@ -123,9 +126,8 @@ public class BukkitQueue18R3 extends BukkitQueue_0<Chunk, ChunkSection[], char[]
     }
 
     @Override
-    public char[] getCachedSection(ChunkSection[] chunkSections, int cy) {
-        ChunkSection section = chunkSections[cy];
-        return section == null ? null : section.getIdArray();
+    public ChunkSection getCachedSection(ChunkSection[] chunkSections, int cy) {
+        return chunkSections[cy];
     }
 
     @Override
@@ -413,7 +415,6 @@ public class BukkitQueue18R3 extends BukkitQueue_0<Chunk, ChunkSection[], char[]
         } catch (Throwable e) {
             MainUtil.handleError(e);
         }
-        sendChunk(fc, null);
         return true;
     }
 
@@ -586,56 +587,6 @@ public class BukkitQueue18R3 extends BukkitQueue_0<Chunk, ChunkSection[], char[]
     }
 
     @Override
-    public boolean initLighting(Chunk chunk, ChunkSection[] sections, RelightMode mode) {
-        net.minecraft.server.v1_8_R3.Chunk c = ((CraftChunk) chunk).getHandle();
-        if (mode == RelightMode.ALL) {
-            c.initLighting();
-        } else {
-            int i = c.g();
-            for (int x = 0; x < 16; ++x) {
-                for (int z = 0; z < 16; ++z) {
-                    int l = 15;
-                    int y = i + 16 - 1;
-                    do {
-                        int opacity = c.getTypeAbs(x, y, z).p();
-                        if (opacity == 0 && l != 15) {
-                            opacity = 1;
-                        }
-                        l -= opacity;
-                        if (l > 0) {
-                            ChunkSection section = sections[y >> 4];
-                            if (section != null) {
-                                section.a(x, y & 15, z, l);
-                            }
-                        }
-                        --y;
-                    } while (y > 0 && l > 0);
-                }
-            }
-        }
-        return true;
-    }
-
-
-    @Override
-    public int getSkyLight(ChunkSection[] sections, int x, int y, int z) {
-        ChunkSection section = sections[FaweCache.CACHE_I[y][x][z]];
-        if (section == null) {
-            return 15;
-        }
-        return section.d(x, y & 15, z);
-    }
-
-    @Override
-    public int getEmmittedLight(ChunkSection[] sections, int x, int y, int z) {
-        ChunkSection section = sections[FaweCache.CACHE_I[y][x][z]];
-        if (section == null) {
-            return 0;
-        }
-        return section.e(x, y & 15, z);
-    }
-
-    @Override
     public void relight(int x, int y, int z) {
         pos.c(x, y, z);
         nmsWorld.x(pos);
@@ -661,32 +612,70 @@ public class BukkitQueue18R3 extends BukkitQueue_0<Chunk, ChunkSection[], char[]
     }
 
     @Override
-    public void setSkyLight(int x, int y, int z, int value) {
-        int cx = x >> 4;
-        int cz = z >> 4;
-        if (!ensureChunkLoaded(cx, cz)) {
-            return;
-        }
-        ChunkSection[] sections = getCachedSections(getWorld(), cx, cz);
-        ChunkSection section = sections[y >> 4];
-        if (section == null) {
-            return;
-        }
-        section.getSkyLightArray().a(x & 15, y & 15, z & 15, value);
+    public void setSkyLight(ChunkSection section, int x, int y, int z, int value) {
+        section.a(x & 15, y & 15, z & 15, value);
     }
 
     @Override
-    public void setBlockLight(int x, int y, int z, int value) {
-        int cx = x >> 4;
-        int cz = z >> 4;
-        if (!ensureChunkLoaded(cx, cz)) {
-            return;
+    public void setBlockLight(ChunkSection section, int x, int y, int z, int value) {
+        section.b(x & 15, y & 15, z & 15, value);
+    }
+
+    @Override
+    public int getSkyLight(ChunkSection section, int x, int y, int z) {
+        return section.d(x & 15, y & 15, z & 15);
+    }
+
+    @Override
+    public int getEmmittedLight(ChunkSection section, int x, int y, int z) {
+        return section.e(x & 15, y & 15, z & 15);
+    }
+
+    @Override
+    public int getOpacity(ChunkSection section, int x, int y, int z) {
+        int combined = getCombinedId4Data(section, x, y, z);
+        if (combined == 0) {
+            return 0;
         }
-        ChunkSection[] sections = getCachedSections(getWorld(), cx, cz);
-        ChunkSection section = sections[y >> 4];
-        if (section == null) {
-            return;
+        Block block = Block.getById(FaweCache.getId(combined));
+        return block.p();
+    }
+
+    @Override
+    public int getBrightness(ChunkSection section, int x, int y, int z) {
+        int combined = getCombinedId4Data(section, x, y, z);
+        if (combined == 0) {
+            return 0;
         }
-        section.getEmittedLightArray().a(x & 15, y & 15, z & 15, value);
+        Block block = Block.getById(FaweCache.getId(combined));
+        return block.r();
+    }
+
+    @Override
+    public boolean hasBlock(ChunkSection section, int x, int y, int z) {
+        int i = FaweCache.CACHE_J[y & 15][x & 15][z & 15];
+        return section.getIdArray()[i] != 0;
+    }
+
+    @Override
+    public int getOpacityBrightnessPair(ChunkSection section, int x, int y, int z) {
+        int combined = getCombinedId4Data(section, x, y, z);
+        if (combined == 0) {
+            return 0;
+        }
+        Block block = Block.getById(FaweCache.getId(combined));
+        return MathMan.pair16(block.p(), block.r());
+    }
+
+    @Override
+    public void relightBlock(int x, int y, int z) {
+        pos.c(x, y, z);
+        nmsWorld.c(EnumSkyBlock.BLOCK, pos);
+    }
+
+    @Override
+    public void relightSky(int x, int y, int z) {
+        pos.c(x, y, z);
+        nmsWorld.c(EnumSkyBlock.SKY, pos);
     }
 }

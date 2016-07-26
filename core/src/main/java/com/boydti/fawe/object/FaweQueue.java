@@ -3,9 +3,9 @@ package com.boydti.fawe.object;
 import com.boydti.fawe.Fawe;
 import com.boydti.fawe.FaweCache;
 import com.boydti.fawe.config.BBC;
-import com.boydti.fawe.config.Settings;
 import com.boydti.fawe.object.exception.FaweException;
 import com.boydti.fawe.util.MainUtil;
+import com.boydti.fawe.util.MathMan;
 import com.boydti.fawe.util.MemUtil;
 import com.boydti.fawe.util.SetQueue;
 import com.boydti.fawe.util.TaskManager;
@@ -43,11 +43,7 @@ public abstract class FaweQueue {
 
     public enum RelightMode {
         NONE,
-        SHADOWLESS,
-        MINIMAL,
-        FULLBRIGHT,
         OPTIMAL,
-        FAST,
         ALL,
     }
 
@@ -139,26 +135,7 @@ public abstract class FaweQueue {
 
     public abstract void setChunk(final FaweChunk<?> chunk);
 
-    public boolean fixLightingSafe(final FaweChunk<?> chunk, final RelightMode mode) {
-        if (Settings.LIGHTING.ASYNC || Fawe.get().isMainThread()) {
-            try {
-                if (fixLighting(chunk, mode)) {
-                    return true;
-                }
-                if (Fawe.get().isMainThread()) {
-                    return false;
-                }
-            } catch (Throwable ignore) {}
-        }
-        return TaskManager.IMP.syncWhenFree(new RunnableVal<Boolean>() {
-            @Override
-            public void run(Boolean value) {
-                this.value = fixLighting(chunk, mode);
-            }
-        });
-    }
-
-    public abstract void forEachMCA(RunnableVal<File> onEach);
+    public abstract File getSaveFolder();
 
     public void forEachBlockInChunk(int cx, int cz, RunnableVal2<Vector, BaseBlock> onEach) {
         int bx = cx << 4;
@@ -216,8 +193,6 @@ public abstract class FaweQueue {
         }
     }
 
-    public abstract boolean fixLighting(final FaweChunk<?> chunk, RelightMode mode);
-
     public abstract boolean isChunkLoaded(final int x, final int z);
 
     public abstract boolean regenerateChunk(int x, int z);
@@ -256,7 +231,7 @@ public abstract class FaweQueue {
         // Unload chunks
     }
 
-    public abstract void sendChunk(FaweChunk chunk, RelightMode mode);
+    public abstract void sendChunk(FaweChunk chunk);
 
     /**
      * This method is called when the server is < 1% available memory
@@ -317,6 +292,22 @@ public abstract class FaweQueue {
             session.debug(BBC.WORLDEDIT_FAILED_LOAD_CHUNK, x >> 4, z >> 4);
             return def;
         }
+    }
+
+    public int getBrightness(int x, int y, int z) {
+        int combined = getCombinedId4Data(x, y, z);
+        if (combined == 0) {
+            return 0;
+        }
+        BlockMaterial block = BundledBlockData.getInstance().getMaterialById(FaweCache.getId(combined));
+        if (block == null) {
+            return 255;
+        }
+        return block.getLightValue();
+    }
+
+    public int getOpacityBrightnessPair(int x, int y, int z) {
+        return MathMan.pair16(Math.min(15, getOpacity(x, y, z)), getBrightness(x, y, z));
     }
 
     public int getOpacity(int x, int y, int z) {

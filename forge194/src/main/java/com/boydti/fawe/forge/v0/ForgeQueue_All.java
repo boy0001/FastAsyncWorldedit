@@ -15,6 +15,7 @@ import com.sk89q.jnbt.CompoundTag;
 import com.sk89q.jnbt.ListTag;
 import com.sk89q.jnbt.StringTag;
 import com.sk89q.jnbt.Tag;
+import java.io.File;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
@@ -46,6 +47,7 @@ import net.minecraft.util.ClassInheritanceMultiMap;
 import net.minecraft.util.IntHashMap;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.ChunkPos;
+import net.minecraft.world.EnumSkyBlock;
 import net.minecraft.world.World;
 import net.minecraft.world.WorldServer;
 import net.minecraft.world.chunk.BlockStateContainer;
@@ -57,7 +59,7 @@ import net.minecraft.world.chunk.storage.ExtendedBlockStorage;
 import net.minecraft.world.gen.ChunkProviderServer;
 import net.minecraftforge.common.DimensionManager;
 
-public class ForgeQueue_All extends NMSMappedFaweQueue<World, Chunk, ExtendedBlockStorage[], BlockStateContainer> {
+public class ForgeQueue_All extends NMSMappedFaweQueue<World, Chunk, ExtendedBlockStorage[], ExtendedBlockStorage> {
 
     private static Method methodFromNative;
     private static Method methodToNative;
@@ -185,14 +187,13 @@ public class ForgeQueue_All extends NMSMappedFaweQueue<World, Chunk, ExtendedBlo
     }
 
     @Override
-    public BlockStateContainer getCachedSection(ExtendedBlockStorage[] chunk, int cy) {
-        ExtendedBlockStorage value = chunk[cy];
-        return value == null ? null : value.getData();
+    public ExtendedBlockStorage getCachedSection(ExtendedBlockStorage[] chunk, int cy) {
+        return chunk[cy];
     }
 
     @Override
-    public int getCombinedId4Data(BlockStateContainer ls, int x, int y, int z) {
-        IBlockState ibd = lastSection.get(x & 15, y & 15, z & 15);
+    public int getCombinedId4Data(ExtendedBlockStorage section, int x, int y, int z) {
+        IBlockState ibd = section.getData().get(x & 15, y & 15, z & 15);
         Block block = ibd.getBlock();
         int id = Block.getIdFromBlock(block);
         if (FaweCache.hasData(id)) {
@@ -502,7 +503,6 @@ public class ForgeQueue_All extends NMSMappedFaweQueue<World, Chunk, ExtendedBlo
                 }
             }
         }
-        sendChunk(fs, null);
         return true;
     }
 
@@ -619,36 +619,6 @@ public class ForgeQueue_All extends NMSMappedFaweQueue<World, Chunk, ExtendedBlo
     }
 
     @Override
-    public boolean initLighting(Chunk nmsChunk, ExtendedBlockStorage[] sections, RelightMode mode) {
-        if (mode == RelightMode.ALL) {
-            nmsChunk.generateSkylightMap();
-        } else {
-            int i = nmsChunk.getTopFilledSegment();
-            for (int x = 0; x < 16; ++x) {
-                for (int z = 0; z < 16; ++z) {
-                    int l = 15;
-                    int y = i + 16 - 1;
-                    do {
-                        int opacity = nmsChunk.getBlockLightOpacity(new BlockPos(x, y, z));
-                        if (opacity == 0 && l != 15) {
-                            opacity = 1;
-                        }
-                        l -= opacity;
-                        if (l > 0) {
-                            ExtendedBlockStorage section = sections[y >> 4];
-                            if (section != null) {
-                                section.setExtSkylightValue(x, y & 15, z, l);
-                            }
-                        }
-                        --y;
-                    } while (y > 0 && l > 0);
-                }
-            }
-        }
-        return true;
-    }
-
-    @Override
     public void setFullbright(ExtendedBlockStorage[] sections) {
         for (int i = 0; i < sections.length; i++) {
             ExtendedBlockStorage section = sections[i];
@@ -657,24 +627,6 @@ public class ForgeQueue_All extends NMSMappedFaweQueue<World, Chunk, ExtendedBlo
                 Arrays.fill(bytes, (byte) 255);
             }
         }
-    }
-
-    @Override
-    public int getSkyLight(ExtendedBlockStorage[] sections, int x, int y, int z) {
-        ExtendedBlockStorage section = sections[FaweCache.CACHE_I[y][x][z]];
-        if (section == null) {
-            return 15;
-        }
-        return section.getExtSkylightValue(x, y & 15, z);
-    }
-
-    @Override
-    public int getEmmittedLight(ExtendedBlockStorage[] sections, int x, int y, int z) {
-        ExtendedBlockStorage section = sections[FaweCache.CACHE_I[y][x][z]];
-        if (section == null) {
-            return 0;
-        }
-        return section.getExtBlocklightValue(x, y & 15, z);
     }
 
     @Override
@@ -696,32 +648,60 @@ public class ForgeQueue_All extends NMSMappedFaweQueue<World, Chunk, ExtendedBlo
     }
 
     @Override
-    public void setSkyLight(int x, int y, int z, int value) {
-        int cx = x >> 4;
-        int cz = z >> 4;
-        if (!ensureChunkLoaded(cx, cz)) {
-            return;
-        }
-        ExtendedBlockStorage[] sections = getCachedSections(getWorld(), cx, cz);
-        ExtendedBlockStorage section = sections[y >> 4];
-        if (section == null) {
-            return;
-        }
+    public void setSkyLight(ExtendedBlockStorage section, int x, int y, int z, int value) {
         section.getSkylightArray().set(x & 15, y & 15, z & 15, value);
     }
 
     @Override
-    public void setBlockLight(int x, int y, int z, int value) {
-        int cx = x >> 4;
-        int cz = z >> 4;
-        if (!ensureChunkLoaded(cx, cz)) {
-            return;
-        }
-        ExtendedBlockStorage[] sections = getCachedSections(getWorld(), cx, cz);
-        ExtendedBlockStorage section = sections[y >> 4];
-        if (section == null) {
-            return;
-        }
+    public void setBlockLight(ExtendedBlockStorage section, int x, int y, int z, int value) {
         section.getBlocklightArray().set(x & 15, y & 15, z & 15, value);
+    }
+
+    @Override
+    public int getSkyLight(ExtendedBlockStorage section, int x, int y, int z) {
+        return section.getExtSkylightValue(x & 15, y & 15, z & 15);
+    }
+
+    @Override
+    public int getEmmittedLight(ExtendedBlockStorage section, int x, int y, int z) {
+        return section.getExtBlocklightValue(x & 15, y & 15, z & 15);
+    }
+
+    @Override
+    public int getOpacity(ExtendedBlockStorage section, int x, int y, int z) {
+        BlockStateContainer dataPalette = section.getData();
+        IBlockState ibd = dataPalette.get(x & 15, y & 15, z & 15);
+        return ibd.getLightOpacity();
+    }
+
+    @Override
+    public int getBrightness(ExtendedBlockStorage section, int x, int y, int z) {
+        BlockStateContainer dataPalette = section.getData();
+        IBlockState ibd = dataPalette.get(x & 15, y & 15, z & 15);
+        return ibd.getLightValue();
+    }
+
+    @Override
+    public int getOpacityBrightnessPair(ExtendedBlockStorage section, int x, int y, int z) {
+        BlockStateContainer dataPalette = section.getData();
+        IBlockState ibd = dataPalette.get(x & 15, y & 15, z & 15);
+        return MathMan.pair16(ibd.getLightOpacity(), ibd.getLightValue());
+    }
+
+    @Override
+    public void relightBlock(int x, int y, int z) {
+        pos.setPos(x, y, z);
+        nmsWorld.checkLightFor(EnumSkyBlock.BLOCK, pos);
+    }
+
+    @Override
+    public void relightSky(int x, int y, int z) {
+        pos.setPos(x, y, z);
+        nmsWorld.checkLightFor(EnumSkyBlock.SKY, pos);
+    }
+
+    @Override
+    public File getSaveFolder() {
+        return new File(((WorldServer) getWorld()).getChunkSaveLocation(), "region");
     }
 }

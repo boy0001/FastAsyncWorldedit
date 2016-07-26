@@ -43,6 +43,18 @@ public class MathMan {
             253, 254, 254, 255
     };
 
+    public static short pairByte(int x, int y) {
+        return (short) ((x << 8) | (y & 0xFF));
+    }
+
+    public static byte unpairShortX(short pair) {
+        return (byte) (pair >> 8);
+    }
+
+    public static byte unpairShortY(short pair) {
+        return (byte) pair;
+    }
+
     public static long pairInt(int x, int y) {
         return (((long)x) << 32) | (y & 0xffffffffL);
     }
@@ -59,7 +71,7 @@ public class MathMan {
         return (int)pair;
     }
 
-    public static byte pair16(byte x, byte y) {
+    public static byte pair16(int x, int y) {
         return (byte) (x + (y << 4));
     }
 

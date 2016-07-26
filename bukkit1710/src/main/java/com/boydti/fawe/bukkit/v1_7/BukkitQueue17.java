@@ -28,6 +28,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
+import net.minecraft.server.v1_7_R4.Block;
 import net.minecraft.server.v1_7_R4.ChunkCoordIntPair;
 import net.minecraft.server.v1_7_R4.ChunkPosition;
 import net.minecraft.server.v1_7_R4.ChunkSection;
@@ -38,6 +39,7 @@ import net.minecraft.server.v1_7_R4.EntityTrackerEntry;
 import net.minecraft.server.v1_7_R4.EntityTypes;
 import net.minecraft.server.v1_7_R4.EnumDifficulty;
 import net.minecraft.server.v1_7_R4.EnumGamemode;
+import net.minecraft.server.v1_7_R4.EnumSkyBlock;
 import net.minecraft.server.v1_7_R4.LongHashMap;
 import net.minecraft.server.v1_7_R4.MinecraftServer;
 import net.minecraft.server.v1_7_R4.NBTTagCompound;
@@ -438,7 +440,6 @@ public class BukkitQueue17 extends BukkitQueue_0<Chunk, ChunkSection[], ChunkSec
         } catch (Throwable e) {
             MainUtil.handleError(e);
         }
-        sendChunk(fc, null);
         return true;
     }
 
@@ -601,56 +602,6 @@ public class BukkitQueue17 extends BukkitQueue_0<Chunk, ChunkSection[], ChunkSec
     }
 
     @Override
-    public boolean initLighting(Chunk chunk, ChunkSection[] sections, RelightMode mode) {
-        net.minecraft.server.v1_7_R4.Chunk c = ((CraftChunk) chunk).getHandle();
-        if (mode == RelightMode.ALL) {
-            c.initLighting();
-        } else {
-            int i = c.h();
-            for (int x = 0; x < 16; ++x) {
-                for (int z = 0; z < 16; ++z) {
-                    int l = 15;
-                    int y = i + 16 - 1;
-                    do {
-                        int opacity = c.b(x, y, z);
-                        if (opacity == 0 && l != 15) {
-                            opacity = 1;
-                        }
-                        l -= opacity;
-                        if (l > 0) {
-                            ChunkSection section = sections[y >> 4];
-                            if (section != null) {
-                                section.setSkyLight(x, y & 15, z, l);
-                            }
-                        }
-                        --y;
-                    } while (y > 0 && l > 0);
-                }
-            }
-        }
-        return true;
-    }
-
-
-    @Override
-    public int getSkyLight(ChunkSection[] sections, int x, int y, int z) {
-        ChunkSection section = sections[FaweCache.CACHE_I[y][x][z]];
-        if (section == null) {
-            return 15;
-        }
-        return section.getSkyLight(x, y & 15, z);
-    }
-
-    @Override
-    public int getEmmittedLight(ChunkSection[] sections, int x, int y, int z) {
-        ChunkSection section = sections[FaweCache.CACHE_I[y][x][z]];
-        if (section == null) {
-            return 0;
-        }
-        return section.getEmittedLight(x, y & 15, z);
-    }
-
-    @Override
     public void relight(int x, int y, int z) {
         nmsWorld.t(x, y, z);
     }
@@ -675,32 +626,54 @@ public class BukkitQueue17 extends BukkitQueue_0<Chunk, ChunkSection[], ChunkSec
     }
 
     @Override
-    public void setSkyLight(int x, int y, int z, int value) {
-        int cx = x >> 4;
-        int cz = z >> 4;
-        if (!ensureChunkLoaded(cx, cz)) {
-            return;
-        }
-        ChunkSection[] sections = getCachedSections(getWorld(), cx, cz);
-        ChunkSection section = sections[y >> 4];
-        if (section == null) {
-            return;
-        }
-        section.getSkyLightArray().a(x & 15, y & 15, z & 15, value);
+    public void setSkyLight(ChunkSection section, int x, int y, int z, int value) {
+        section.setSkyLight(x & 15, y & 15, z & 15, value);
     }
 
     @Override
-    public void setBlockLight(int x, int y, int z, int value) {
-        int cx = x >> 4;
-        int cz = z >> 4;
-        if (!ensureChunkLoaded(cx, cz)) {
-            return;
-        }
-        ChunkSection[] sections = getCachedSections(getWorld(), cx, cz);
-        ChunkSection section = sections[y >> 4];
-        if (section == null) {
-            return;
-        }
-        section.getEmittedLightArray().a(x & 15, y & 15, z & 15, value);
+    public void setBlockLight(ChunkSection section, int x, int y, int z, int value) {
+        section.setEmittedLight(x & 15, y & 15, z & 15, value);
+    }
+
+    @Override
+    public int getSkyLight(ChunkSection section, int x, int y, int z) {
+        return section.getSkyLight(x & 15, y & 15, z & 15);
+    }
+
+    @Override
+    public int getEmmittedLight(ChunkSection section, int x, int y, int z) {
+        return section.getEmittedLight(x & 15, y & 15, z & 15);
+    }
+
+    @Override
+    public int getOpacity(ChunkSection section, int x, int y, int z) {
+        return section.getTypeId(x, y, z).k();
+    }
+
+    @Override
+    public int getBrightness(ChunkSection section, int x, int y, int z) {
+        return section.getTypeId(x, y, z).m();
+    }
+
+    @Override
+    public boolean hasBlock(ChunkSection section, int x, int y, int z) {
+        int i = FaweCache.CACHE_J[y & 15][x & 15][z & 15];
+        return section.getIdArray()[i] != 0;
+    }
+
+    @Override
+    public int getOpacityBrightnessPair(ChunkSection section, int x, int y, int z) {
+        Block block = section.getTypeId(x, y, z);
+        return MathMan.pair16(block.k(), block.m());
+    }
+
+    @Override
+    public void relightBlock(int x, int y, int z) {
+        nmsWorld.c(EnumSkyBlock.BLOCK, x, y, z);
+    }
+
+    @Override
+    public void relightSky(int x, int y, int z) {
+        nmsWorld.c(EnumSkyBlock.SKY, x, y, z);
     }
 }

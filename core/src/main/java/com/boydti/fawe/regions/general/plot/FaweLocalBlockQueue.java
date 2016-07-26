@@ -100,12 +100,11 @@ public class FaweLocalBlockQueue extends LocalBlockQueue {
 
     @Override
     public void refreshChunk(int x, int z) {
-        IMP.sendChunk(IMP.getFaweChunk(x, z), FaweQueue.RelightMode.NONE);
+        IMP.sendChunk(IMP.getFaweChunk(x, z));
     }
 
     @Override
     public void fixChunkLighting(int x, int z) {
-        IMP.fixLighting(IMP.getFaweChunk(x, z), FaweQueue.RelightMode.OPTIMAL);
     }
 
     @Override

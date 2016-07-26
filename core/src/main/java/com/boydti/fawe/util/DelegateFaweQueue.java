@@ -2,7 +2,6 @@ package com.boydti.fawe.util;
 
 import com.boydti.fawe.object.FaweChunk;
 import com.boydti.fawe.object.FaweQueue;
-import com.boydti.fawe.object.RunnableVal;
 import com.boydti.fawe.object.RunnableVal2;
 import com.boydti.fawe.object.exception.FaweException;
 import com.sk89q.jnbt.CompoundTag;
@@ -130,13 +129,8 @@ public class DelegateFaweQueue extends FaweQueue {
     }
 
     @Override
-    public void forEachMCA(RunnableVal<File> onEach) {
-        parent.forEachMCA(onEach);
-    }
-
-    @Override
-    public boolean fixLighting(FaweChunk<?> chunk, RelightMode mode) {
-        return parent.fixLighting(chunk, mode);
+    public File getSaveFolder() {
+        return parent.getSaveFolder();
     }
 
     @Override
@@ -175,8 +169,8 @@ public class DelegateFaweQueue extends FaweQueue {
     }
 
     @Override
-    public void sendChunk(FaweChunk chunk, RelightMode mode) {
-        parent.sendChunk(chunk, mode);
+    public void sendChunk(FaweChunk chunk) {
+        parent.sendChunk(chunk);
     }
 
     @Override

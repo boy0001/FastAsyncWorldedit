@@ -21,15 +21,18 @@ package com.sk89q.worldedit.command;
 
 import com.boydti.fawe.FaweAPI;
 import com.boydti.fawe.config.BBC;
+import com.boydti.fawe.example.NMSMappedFaweQueue;
 import com.boydti.fawe.object.FaweLocation;
 import com.boydti.fawe.object.FawePlayer;
 import com.boydti.fawe.object.FaweQueue;
+import com.boydti.fawe.util.SetQueue;
 import com.sk89q.minecraft.util.commands.Command;
 import com.sk89q.minecraft.util.commands.CommandPermissions;
 import com.sk89q.minecraft.util.commands.Logging;
 import com.sk89q.worldedit.EditSession;
 import com.sk89q.worldedit.LocalSession;
 import com.sk89q.worldedit.Vector;
+import com.sk89q.worldedit.Vector2D;
 import com.sk89q.worldedit.WorldEdit;
 import com.sk89q.worldedit.WorldEditException;
 import com.sk89q.worldedit.blocks.BaseBlock;
@@ -96,7 +99,7 @@ public class RegionCommands {
             min = 0,
             max = 0
     )
-    @CommandPermissions("worldedit.light.get")
+    @CommandPermissions("worldedit.light.fix")
     public void fixlighting(Player player, EditSession editSession) throws WorldEditException {
         FawePlayer fp = FawePlayer.wrap(player);
         final FaweLocation loc = fp.getLocation();
@@ -109,6 +112,75 @@ public class RegionCommands {
         }
         int count = FaweAPI.fixLighting(loc.world, selection, FaweQueue.RelightMode.ALL);
         BBC.FIX_LIGHTING_SELECTION.send(fp, count);
+    }
+
+    @Command(
+            aliases = { "/removelight", "/removelighting" },
+            desc = "Removing lighting in a selection",
+            min = 0,
+            max = 0
+    )
+    @CommandPermissions("worldedit.light.remove")
+    public void removelighting(Player player, EditSession editSession) {
+        FawePlayer fp = FawePlayer.wrap(player);
+        final FaweLocation loc = fp.getLocation();
+        final int cx = loc.x >> 4;
+        final int cz = loc.z >> 4;
+
+        Region selection = fp.getSelection();
+        if (selection == null) {
+            selection = new CuboidRegion(new Vector(cx - 8, 0, cz - 8).multiply(16), new Vector(cx + 8, 0, cz + 8).multiply(16));
+        }
+        int count = FaweAPI.fixLighting(loc.world, selection, FaweQueue.RelightMode.NONE);
+        BBC.UPDATED_LIGHTING_SELECTION.send(fp, count);
+    }
+
+    @Command(
+            aliases = { "/setblocklight", "/setlight" },
+            desc = "Set block lighting in a selection",
+            min = 1,
+            max = 1
+    )
+    @CommandPermissions("worldedit.light.set")
+    public void setlighting(Player player, EditSession editSession, @Selection Region region, int value) {
+        FawePlayer fp = FawePlayer.wrap(player);
+        final FaweLocation loc = fp.getLocation();
+        final int cx = loc.x >> 4;
+        final int cz = loc.z >> 4;
+        final NMSMappedFaweQueue queue = (NMSMappedFaweQueue) SetQueue.IMP.getNewQueue(fp.getLocation().world, true, false);
+        for (Vector pt : region) {
+            queue.setBlockLight((byte) pt.x, (byte) pt.y, (byte) pt.z, value);
+        }
+        int count = 0;
+        for (Vector2D chunk : region.getChunks()) {
+            queue.sendChunk(queue.getFaweChunk(chunk.getBlockX(), chunk.getBlockZ()));
+            count++;
+        }
+        BBC.UPDATED_LIGHTING_SELECTION.send(fp, count);
+    }
+
+    @Command(
+            aliases = { "/setskylight"},
+            desc = "Set sky lighting in a selection",
+            min = 1,
+            max = 1
+    )
+    @CommandPermissions("worldedit.light.set")
+    public void setskylighting(Player player, EditSession editSession, @Selection Region region, int value) {
+        FawePlayer fp = FawePlayer.wrap(player);
+        final FaweLocation loc = fp.getLocation();
+        final int cx = loc.x >> 4;
+        final int cz = loc.z >> 4;
+        final NMSMappedFaweQueue queue = (NMSMappedFaweQueue) SetQueue.IMP.getNewQueue(fp.getLocation().world, true, false);
+        for (Vector pt : region) {
+            queue.setSkyLight((byte) pt.x, (byte) pt.y, (byte) pt.z, value);
+        }
+        int count = 0;
+        for (Vector2D chunk : region.getChunks()) {
+            queue.sendChunk(queue.getFaweChunk(chunk.getBlockX(), chunk.getBlockZ()));
+            count++;
+        }
+        BBC.UPDATED_LIGHTING_SELECTION.send(fp, count);
     }
 
     @Command(
