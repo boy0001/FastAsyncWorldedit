@@ -78,9 +78,6 @@ public class NMSRelighter {
                 int z = MathMan.unpair16y(layer);
                 int xx = bx + x;
                 int zz = bz + z;
-                if (y < 0) {
-                    System.out.println(y);
-                }
                 int emit = queue.getEmmittedLight(xx, y, zz);
                 if (emit < 2) {
                     continue;

@@ -352,9 +352,6 @@ public class BukkitQueue_1_10 extends BukkitQueue_0<Chunk, ChunkSection[], Chunk
 
     @Override
     public int getSkyLight(ChunkSection section, int x, int y, int z) {
-        if (x == 15 && z == 0) {
-            System.out.println(" \\ " + x + "," + z + " | " + section.b(x & 15, y & 15, z & 15) + " | " + section.b(0, 0, 0));
-        }
         return section.b(x & 15, y & 15, z & 15);
     }
 
