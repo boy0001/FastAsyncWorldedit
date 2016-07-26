@@ -213,7 +213,7 @@ public class Settings extends Config {
                 " - 1 = Optimal (Relight changed light sources and changed blocks)",
                 " - 2 = All (Slowly relight every blocks)"
         })
-        public static int MODE = 1;
+        public static int MODE = 2;
     }
 
     public static void save(File file) {
