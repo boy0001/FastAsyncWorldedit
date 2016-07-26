@@ -26,7 +26,7 @@ public class NMSRelighter {
     }
 
     public void fixBlockLighting() {
-
+        // TODO
     }
 
     public void fixSkyLighting() {
