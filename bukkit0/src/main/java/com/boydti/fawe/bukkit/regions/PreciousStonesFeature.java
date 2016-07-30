@@ -28,14 +28,14 @@ public class PreciousStonesFeature extends BukkitMaskManager implements Listener
     public FaweMask getMask(final FawePlayer<Player> fp) {
         final Player player = fp.parent;
         final Location location = player.getLocation();
-        final List<Field> fields = PreciousStones.API().getFieldsProtectingArea(FieldFlag.PLOT, location);
+        final List<Field> fields = PreciousStones.API().getFieldsProtectingArea(FieldFlag.ALL, location);
         if (fields.isEmpty()) {
             return null;
         }
         String name = player.getName();
         boolean member = fp.hasPermission("fawe.preciousstones.member");
         for (final Field myField : fields) {
-            if (myField.isOwner(name) || (member && myField.getAllowed().contains(player.getName()))) {
+            if (myField.isOwner(name) || (member && myField.getAllAllowed().contains(player.getName()))) {
                 BlockVector pos1 = new BlockVector(myField.getMinx(), myField.getMiny(), myField.getMinz());
                 BlockVector pos2 = new BlockVector(myField.getMaxx(), myField.getMaxy(), myField.getMaxz());
                 return new FaweMask(pos1, pos2, "FIELD: " + myField);

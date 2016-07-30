@@ -56,7 +56,6 @@ import java.util.UUID;
 import java.util.zip.GZIPInputStream;
 import java.util.zip.GZIPOutputStream;
 import javax.annotation.Nonnull;
-import org.bukkit.Location;
 
 /**
  * The FaweAPI class offers a few useful functions.<br>
@@ -424,21 +423,6 @@ public class FaweAPI {
             relighter.sendChunks();
         }
         return count;
-    }
-
-    /**
-     * If a schematic is too large to be pasted normally<br>
-     *  - Skips any block history
-     *  - Ignores nbt
-     *  - No, technically I haven't added proper streaming yet (WIP)
-     * @param file
-     * @param loc
-     * @return
-     */
-    @Deprecated
-    public static void streamSchematic(final File file, final Location loc) {
-        final FaweLocation fl = new FaweLocation(loc.getWorld().getName(), loc.getBlockX(), loc.getBlockY(), loc.getBlockZ());
-        streamSchematic(file, fl);
     }
 
     /**

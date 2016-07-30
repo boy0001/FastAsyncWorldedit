@@ -531,12 +531,16 @@ public class EditSession implements Extent {
         }
         ExtentTraverser traverseHistory = new ExtentTraverser(this.extent).find(HistoryExtent.class);
         if (disableHistory) {
-            if (traverseHistory != null) {
+            if (traverseHistory != null && traverseHistory.exists()) {
                 ExtentTraverser beforeHistory = traverseHistory.previous();
                 ExtentTraverser afterHistory = traverseHistory.next();
-                beforeHistory.setNext(afterHistory.get());
+                if (beforeHistory != null && beforeHistory.exists()) {
+                    beforeHistory.setNext(afterHistory.get());
+                } else {
+                    extent = afterHistory.get();
+                }
             }
-        } else if (traverseHistory == null) {
+        } else if (traverseHistory == null || !traverseHistory.exists()) {
             ExtentTraverser traverseBypass = new ExtentTraverser(this.extent).find(bypassHistory);
             if (traverseBypass != null) {
                 ExtentTraverser beforeHistory = traverseBypass.previous();

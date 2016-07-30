@@ -21,6 +21,7 @@ package com.sk89q.worldedit;
 
 import com.boydti.fawe.object.FawePlayer;
 import com.boydti.fawe.object.clipboard.DiskOptimizedClipboard;
+import com.boydti.fawe.util.EditSessionBuilder;
 import com.boydti.fawe.util.MainUtil;
 import com.sk89q.jchronic.Chronic;
 import com.sk89q.jchronic.Options;
@@ -259,10 +260,13 @@ public class LocalSession {
         --historyPointer;
         if (historyPointer >= 0) {
             EditSession editSession = history.get(historyPointer);
-            EditSession newEditSession = WorldEdit.getInstance().getEditSessionFactory()
-                    .getEditSession(editSession.getWorld(), -1, newBlockBag, null);
-            newEditSession.enableQueue();
-            newEditSession.setFastMode(fastMode);
+            EditSession newEditSession = new EditSessionBuilder(editSession.getWorld())
+                    .allowedRegionsEverywhere()
+                    .checkMemory(false)
+                    .changeSetNull()
+                    .fastmode(true)
+                    .limitUnlimited()
+                    .build();
             editSession.undo(newEditSession);
             return editSession;
         } else {
@@ -293,10 +297,13 @@ public class LocalSession {
         checkNotNull(player);
         if (historyPointer < history.size()) {
             EditSession editSession = history.get(historyPointer);
-            EditSession newEditSession = WorldEdit.getInstance().getEditSessionFactory()
-                    .getEditSession(editSession.getWorld(), -1, newBlockBag, null);
-            newEditSession.enableQueue();
-            newEditSession.setFastMode(fastMode);
+            EditSession newEditSession = new EditSessionBuilder(editSession.getWorld())
+                    .allowedRegionsEverywhere()
+                    .checkMemory(false)
+                    .changeSetNull()
+                    .fastmode(true)
+                    .limitUnlimited()
+                    .build();
             editSession.redo(newEditSession);
             ++historyPointer;
             return editSession;
