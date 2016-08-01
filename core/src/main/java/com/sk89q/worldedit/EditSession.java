@@ -72,7 +72,6 @@ import com.sk89q.worldedit.function.mask.ExistingBlockMask;
 import com.sk89q.worldedit.function.mask.FuzzyBlockMask;
 import com.sk89q.worldedit.function.mask.Mask;
 import com.sk89q.worldedit.function.mask.MaskIntersection;
-import com.sk89q.worldedit.function.mask.MaskUnion;
 import com.sk89q.worldedit.function.mask.Masks;
 import com.sk89q.worldedit.function.mask.NoiseFilter2D;
 import com.sk89q.worldedit.function.mask.RegionMask;
@@ -1685,19 +1684,31 @@ public class EditSession implements Extent {
     public int fixLiquid(final Vector origin, final double radius, final int moving, final int stationary) throws MaxChangedBlocksException {
         checkNotNull(origin);
         checkArgument(radius >= 0, "radius >= 0 required");
-
         // Our origins can only be liquids
         BlockMask liquidMask = new BlockMask(
                 this,
-                FaweCache.getBlock(moving, 0),
-                FaweCache.getBlock(stationary, 0));
+                new BaseBlock(moving, -1),
+                new BaseBlock(stationary, -1)
+        ) {
+            @Override
+            public boolean test(Vector vector) {
+                BaseBlock block = getBlock(vector);
+                return block.getId() == moving || block.getId() == stationary;
+            }
+        };
 
-        // But we will also visit air blocks
-        MaskIntersection blockMask =
-                new MaskUnion(liquidMask,
-                        new BlockMask(
-                                this,
-                                new BaseBlock(BlockID.AIR)));
+        BlockMask blockMask = new BlockMask(
+                this,
+                new BaseBlock(moving, -1),
+                new BaseBlock(stationary, -1),
+                new BaseBlock(0, 0)
+        ) {
+            @Override
+            public boolean test(Vector vector) {
+                BaseBlock block = getBlock(vector);
+                return block.getId() == 0 || block.getId() == moving || block.getId() == stationary;
+            }
+        };
 
         // There are boundaries that the routine needs to stay in
         MaskIntersection mask = new MaskIntersection(
