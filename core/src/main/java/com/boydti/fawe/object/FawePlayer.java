@@ -9,6 +9,7 @@ import com.boydti.fawe.object.changeset.FaweStreamChangeSet;
 import com.boydti.fawe.object.clipboard.DiskOptimizedClipboard;
 import com.boydti.fawe.object.exception.FaweException;
 import com.boydti.fawe.util.MainUtil;
+import com.boydti.fawe.util.SetQueue;
 import com.boydti.fawe.util.TaskManager;
 import com.boydti.fawe.util.WEManager;
 import com.boydti.fawe.wrappers.FakePlayer;
@@ -32,6 +33,8 @@ import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -101,6 +104,7 @@ public abstract class FawePlayer<T> {
         return Fawe.imp().wrap(obj);
     }
 
+    @Deprecated
     public FawePlayer(final T parent) {
         this.parent = parent;
         Fawe.get().register(this);
@@ -126,6 +130,10 @@ public abstract class FawePlayer<T> {
         }
     }
 
+    /**
+     * Loads any history items from disk:
+     *  - Should already be called if history on disk is enabled
+     */
     public void loadClipboardFromDisk() {
         File file = new File(Fawe.imp().getDirectory(), "clipboard" + File.separator + getUUID() + ".bd");
         try {
@@ -214,6 +222,9 @@ public abstract class FawePlayer<T> {
      */
     public abstract void sendTitle(String head, String sub);
 
+    /**
+     * Remove the title
+     */
     public abstract void resetTitle();
 
     /**
@@ -312,6 +323,10 @@ public abstract class FawePlayer<T> {
         this.getSession().setRegionSelector(player.getWorld(), selector);
     }
 
+    /**
+     * Set the player's WorldEdit selection
+     * @param selector
+     */
     public void setSelection(final RegionSelector selector) {
         this.getSession().setRegionSelector(getPlayer().getWorld(), selector);
     }
@@ -416,6 +431,11 @@ public abstract class FawePlayer<T> {
         return WorldEdit.getInstance().getEditSessionFactory().getEditSession(getWorld(), -1, getPlayer());
     }
 
+    /**
+     * Run a task if the player has no currently running action
+     * @param run
+     * @return If the task was run
+     */
     public boolean runIfFree(Runnable run) {
         if (getMeta("fawe_action") != null) {
             return false;
@@ -436,6 +456,11 @@ public abstract class FawePlayer<T> {
         return true;
     }
 
+    /**
+     * Run an async task if the player has no currently running action
+     * @param run
+     * @return If the task was run
+     */
     public boolean runAsyncIfFree(final Runnable run) {
         if (getMeta("fawe_action") != null) {
             return false;
@@ -459,5 +484,38 @@ public abstract class FawePlayer<T> {
             }
         });
         return true;
+    }
+
+    /**
+     * Get the tracked EditSession(s) for this player<br>
+     *  - Queued or autoqueued EditSessions are considered tracked
+     * @param requiredStage
+     * @return
+     */
+    public Map<EditSession, SetQueue.QueueStage> getTrackedSessions(SetQueue.QueueStage requiredStage) {
+        Map<EditSession, SetQueue.QueueStage> map = new ConcurrentHashMap<>();
+        if (requiredStage == null || requiredStage == SetQueue.QueueStage.ACTIVE) {
+            for (FaweQueue queue : SetQueue.IMP.getActiveQueues()) {
+                Set<EditSession> sessions = queue.getEditSessions();
+                for (EditSession session : sessions) {
+                    FawePlayer currentPlayer = session.getPlayer();
+                    if (currentPlayer == this) {
+                        map.put(session, SetQueue.QueueStage.ACTIVE);
+                    }
+                }
+            }
+        }
+        if (requiredStage == null || requiredStage == SetQueue.QueueStage.INACTIVE) {
+            for (FaweQueue queue : SetQueue.IMP.getInactiveQueues()) {
+                Set<EditSession> sessions = queue.getEditSessions();
+                for (EditSession session : sessions) {
+                    FawePlayer currentPlayer = session.getPlayer();
+                    if (currentPlayer == this) {
+                        map.put(session, SetQueue.QueueStage.INACTIVE);
+                    }
+                }
+            }
+        }
+        return map;
     }
 }

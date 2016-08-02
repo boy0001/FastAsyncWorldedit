@@ -160,6 +160,7 @@ public class EditSession implements Extent {
     private HistoryExtent history;
     private Extent bypassHistory;
     private Extent bypassAll;
+    private FaweLimit originalLimit;
     private FaweLimit limit;
     private FawePlayer player;
     private FaweChangeSet changeTask;
@@ -204,7 +205,7 @@ public class EditSession implements Extent {
         }
         if (limit == null) {
             if (player == null) {
-                limit = FaweLimit.MAX.copy();
+                limit = FaweLimit.MAX;
             } else {
                 limit = player.getLimit();
             }
@@ -245,7 +246,8 @@ public class EditSession implements Extent {
             throw new FaweException(BBC.WORLDEDIT_CANCEL_REASON_NO_REGION);
         }
         this.blockBag = blockBag;
-        this.limit = limit;
+        this.originalLimit = limit;
+        this.limit = limit.copy();
         this.queue = SetQueue.IMP.getNewQueue(Fawe.imp().getWorldName(world), fastmode, autoQueue);
         queue.addEditSession(this);
         this.bypassAll = wrapExtent(new FastWorldEditExtent(world, queue), bus, event, Stage.BEFORE_CHANGE);
@@ -305,13 +307,49 @@ public class EditSession implements Extent {
         this(world, null, null, null, null, true, null, null, null, blockBag, eventBus, event);
     }
 
+    /**
+     * The limit for this specific edit (blocks etc)
+     * @return
+     */
+    public FaweLimit getLimit() {
+        return originalLimit;
+    }
+
+    /**
+     * Returns a new limit representing how much of this edit's limit has been used so far
+     * @return
+     */
+    public FaweLimit getLimitUsed() {
+        FaweLimit newLimit = new FaweLimit();
+        newLimit.MAX_CHANGES = originalLimit.MAX_CHANGES - limit.MAX_CHANGES;
+        newLimit.MAX_FAILS = originalLimit.MAX_FAILS - limit.MAX_FAILS;
+        newLimit.MAX_CHECKS = originalLimit.MAX_CHECKS - limit.MAX_CHECKS;
+        newLimit.MAX_ITERATIONS = originalLimit.MAX_ITERATIONS - limit.MAX_ITERATIONS;
+        newLimit.MAX_BLOCKSTATES = originalLimit.MAX_BLOCKSTATES - limit.MAX_BLOCKSTATES;
+        newLimit.MAX_ENTITIES = originalLimit.MAX_ENTITIES - limit.MAX_ENTITIES;
+        newLimit.MAX_HISTORY = limit.MAX_HISTORY;
+        return newLimit;
+    }
+
+    /**
+     * Returns the remaining limits
+     * @return
+     */
+    public FaweLimit getLimitLeft() {
+        return limit;
+    }
+
+    /**
+     * The region extent restricts block placements to allowed regions
+     * @return FaweRegionExtent (may be null)
+     */
     public FaweRegionExtent getRegionExtent() {
         ExtentTraverser<FaweRegionExtent> traverser = new ExtentTraverser(this.extent).find(FaweRegionExtent.class);
         return traverser == null ? null : traverser.get();
     }
 
     /**
-     * Get the actor
+     * Get the FawePlayer or null
      * @return
      */
     @Nullable
@@ -337,26 +375,45 @@ public class EditSession implements Extent {
         return true;
     }
 
+    /**
+     * Remove this EditSession from the queue<br>
+     *  - This doesn't necessarily stop it from being queued again
+     */
     public void dequeue() {
         if (queue != null) {
             SetQueue.IMP.dequeue(queue);
         }
     }
 
+    /**
+     * Add a task to run when this EditSession is done dispatching
+     * @param whenDone
+     */
     public void addNotifyTask(Runnable whenDone) {
         if (queue != null) {
             queue.addNotifyTask(whenDone);
         }
     }
 
+    /**
+     * Send a debug message to the Actor responsible for this EditSession (or Console)
+     * @param message
+     * @param args
+     */
     public void debug(BBC message, Object... args) {
         message.send(player, args);
     }
 
+    /**
+     * Get the FaweQueue this EditSession uses to queue the changes<br>
+     *  - Note: All implementation queues for FAWE are instances of NMSMappedFaweQueue
+     * @return
+     */
     public FaweQueue getQueue() {
         return queue;
     }
 
+    @Deprecated
     private Extent wrapExtent(final Extent extent, final EventBus eventBus, EditSessionEvent event, final Stage stage) {
         event = event.clone(stage);
         event.setExtent(extent);
@@ -396,7 +453,12 @@ public class EditSession implements Extent {
         return history != null ? history.getChangeSet() : changeTask;
     }
 
-    public void setChangeSet(FaweChangeSet set) {
+    /**
+     * Change the ChangeSet being used for this EditSession
+     *  - If history is disabled, no changeset can be set
+     * @param set (null = remove the changeset)
+     */
+    public void setChangeSet(@Nullable FaweChangeSet set) {
         if (set == null) {
             disableHistory(true);
         } else {
@@ -411,13 +473,12 @@ public class EditSession implements Extent {
     }
 
     /**
-     * Get the maximum number of blocks that can be changed. -1 will be returned
-     * if it the limit disabled.
-     *
+     * @see #getLimit()
      * @return the limit (&gt;= 0) or -1 for no limit
      */
+    @Deprecated
     public int getBlockChangeLimit() {
-        return -1;
+        return originalLimit.MAX_CHANGES;
     }
 
     /**
