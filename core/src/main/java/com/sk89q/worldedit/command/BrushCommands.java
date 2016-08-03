@@ -27,6 +27,7 @@ import com.boydti.fawe.object.FawePlayer;
 import com.boydti.fawe.object.brush.CommandBrush;
 import com.boydti.fawe.object.brush.CopyBrush;
 import com.boydti.fawe.object.brush.HeightBrush;
+import com.boydti.fawe.object.brush.InspectBrush;
 import com.sk89q.minecraft.util.commands.Command;
 import com.sk89q.minecraft.util.commands.CommandContext;
 import com.sk89q.minecraft.util.commands.CommandPermissions;
@@ -77,6 +78,24 @@ public class BrushCommands {
     public BrushCommands(WorldEdit worldEdit) {
         checkNotNull(worldEdit);
         this.worldEdit = worldEdit;
+    }
+
+    @Command(
+            aliases = { "inspect", "i" },
+            usage = "<radius>",
+            desc = "Inspect edits within a radius",
+            help =
+                    "Chooses the inspect brush",
+            min = 0,
+            max = 1
+    )
+    @CommandPermissions("worldedit.brush.inspect")
+    public void inspectBrush(Player player, LocalSession session, EditSession editSession, @Optional("1") double radius) throws WorldEditException {
+        worldEdit.checkMaxBrushRadius(radius);
+        BrushTool tool = session.getBrushTool(player.getItemInHand());
+        tool.setSize(radius);
+        tool.setBrush(new InspectBrush(player, radius), "worldedit.brush.inspect");
+        BBC.BRUSH_INSPECT.send(player, radius);
     }
 
     @Command(

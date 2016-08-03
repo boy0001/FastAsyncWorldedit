@@ -7,6 +7,7 @@ import com.boydti.fawe.command.Stream;
 import com.boydti.fawe.command.Wea;
 import com.boydti.fawe.command.WorldEditRegion;
 import com.boydti.fawe.config.BBC;
+import com.boydti.fawe.config.Commands;
 import com.boydti.fawe.config.Settings;
 import com.boydti.fawe.object.FawePlayer;
 import com.boydti.fawe.regions.general.plot.PlotSquaredFeature;
@@ -55,6 +56,7 @@ import com.sk89q.worldedit.history.change.EntityCreate;
 import com.sk89q.worldedit.history.change.EntityRemove;
 import com.sk89q.worldedit.regions.CuboidRegion;
 import com.sk89q.worldedit.regions.selector.CuboidRegionSelector;
+import com.sk89q.worldedit.util.command.parametric.ParametricBuilder;
 import com.sk89q.worldedit.world.registry.BundledBlockData;
 import java.io.File;
 import java.io.IOException;
@@ -240,6 +242,8 @@ public class Fawe {
         Settings.save(file);
         // Setting up message.yml
         BBC.load(new File(this.IMP.getDirectory(), "message.yml"));
+        // Setting up commands.yml
+        Commands.load(new File(this.IMP.getDirectory(), "commands.yml"));
         // Block rotation
         try {
             BundledBlockData.getInstance().loadFromResource();
@@ -280,6 +284,7 @@ public class Fawe {
             RegionCommands.inject(); // Translations
             HistoryCommands.inject(); // Translations
             NavigationCommands.inject(); // Translations + thru fix
+            ParametricBuilder.inject(); // Translations
             // Schematic
             SchematicReader.inject();
             SchematicWriter.inject();

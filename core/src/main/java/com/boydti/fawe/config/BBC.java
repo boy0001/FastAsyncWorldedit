@@ -90,6 +90,7 @@ public enum BBC {
     BRUSH_HEIGHT_INVALID("Invalid height map file (%s0)", "WorldEdit.Brush"),
     BRUSH_SMOOTH("Smooth brush equipped (%s0 x %s1 using %s2).", "WorldEdit.Brush"),
     BRUSH_SPHERE("Sphere brush shape equipped (%s0).", "WorldEdit.Brush"),
+    BRUSH_INSPECT("Inspect brush shape equipped (%s0).", "WorldEdit.Brush"),
 
     SCHEMATIC_DELETE("%s0 has been deleted.", "Worldedit.Schematic"),
     SCHEMATIC_FORMAT("Available clipboard formats (Name: Lookup names)", "Worldedit.Schematic"),

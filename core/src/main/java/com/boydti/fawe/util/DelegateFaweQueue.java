@@ -8,6 +8,7 @@ import com.sk89q.jnbt.CompoundTag;
 import com.sk89q.worldedit.EditSession;
 import com.sk89q.worldedit.world.biome.BaseBiome;
 import java.io.File;
+import java.util.Collection;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentLinkedDeque;
@@ -121,6 +122,11 @@ public class DelegateFaweQueue extends FaweQueue {
     @Override
     public FaweChunk<?> getFaweChunk(int x, int z) {
         return parent.getFaweChunk(x, z);
+    }
+
+    @Override
+    public Collection<FaweChunk> getFaweChunks() {
+        return parent.getFaweChunks();
     }
 
     @Override
