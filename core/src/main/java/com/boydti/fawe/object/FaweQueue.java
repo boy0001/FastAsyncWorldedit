@@ -17,6 +17,7 @@ import com.sk89q.worldedit.blocks.BlockMaterial;
 import com.sk89q.worldedit.world.biome.BaseBiome;
 import com.sk89q.worldedit.world.registry.BundledBlockData;
 import java.io.File;
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
@@ -132,6 +133,8 @@ public abstract class FaweQueue {
     public abstract boolean setBiome(final int x, final int z, final BaseBiome biome);
 
     public abstract FaweChunk<?> getFaweChunk(int x, int z);
+
+    public abstract Collection<FaweChunk> getFaweChunks();
 
     public abstract void setChunk(final FaweChunk<?> chunk);
 

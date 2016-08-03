@@ -18,6 +18,8 @@ import com.sk89q.worldedit.world.biome.BaseBiome;
 import com.sk89q.worldedit.world.registry.BundledBlockData;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedDeque;
@@ -40,6 +42,11 @@ public abstract class MappedFaweQueue<WORLD, CHUNK, SECTION> extends FaweQueue {
         }
     };
     public ArrayDeque<Runnable> tasks = new ArrayDeque<>();
+
+    @Override
+    public Collection<FaweChunk> getFaweChunks() {
+        return Collections.unmodifiableCollection(chunks);
+    }
 
     @Override
     public void optimize() {

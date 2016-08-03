@@ -78,6 +78,11 @@ public class Settings extends Config {
         })
         public static boolean USE_DISK = false;
         @Comment({
+                "Use a database to store disk storage summaries:",
+                " - Faster lookups and rollback from disk",
+        })
+        public static boolean USE_DATABASE = false;
+        @Comment({
                 "Record history with dispatching:",
                 " - Faster as it avoids duplicate block checks",
                 " - Worse compression since dispatch order is different"

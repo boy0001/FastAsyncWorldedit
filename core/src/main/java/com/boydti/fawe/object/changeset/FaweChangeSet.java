@@ -2,6 +2,7 @@ package com.boydti.fawe.object.changeset;
 
 import com.boydti.fawe.Fawe;
 import com.boydti.fawe.FaweCache;
+import com.boydti.fawe.config.Settings;
 import com.boydti.fawe.object.BytePair;
 import com.boydti.fawe.object.FaweChunk;
 import com.boydti.fawe.object.FawePlayer;
@@ -25,11 +26,20 @@ import com.sk89q.worldedit.world.World;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
+import java.util.UUID;
 import java.util.concurrent.atomic.AtomicInteger;
 
 public abstract class FaweChangeSet implements ChangeSet {
 
     private final World world;
+
+    public static FaweChangeSet getDefaultChangeSet(World world, UUID uuid) {
+        if (Settings.HISTORY.USE_DISK) {
+            return new DiskStorageHistory(world, uuid);
+        } else {
+            return new MemoryOptimizedHistory(world);
+        }
+    }
 
     public FaweChangeSet(World world) {
         this.world = world;

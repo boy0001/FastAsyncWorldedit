@@ -24,6 +24,7 @@ import com.boydti.fawe.FaweCache;
 import com.boydti.fawe.config.BBC;
 import com.boydti.fawe.config.Settings;
 import com.boydti.fawe.logging.LoggingChangeSet;
+import com.boydti.fawe.logging.rollback.RollbackOptimizedHistory;
 import com.boydti.fawe.object.FaweLimit;
 import com.boydti.fawe.object.FawePlayer;
 import com.boydti.fawe.object.FaweQueue;
@@ -196,7 +197,11 @@ public class EditSession implements Extent {
         if (changeSet == null) {
             if (Settings.HISTORY.USE_DISK) {
                 UUID uuid = player == null ? CONSOLE : player.getUUID();
-                changeSet = new DiskStorageHistory(world, uuid);
+                if (Settings.HISTORY.USE_DATABASE) {
+                    changeSet = new RollbackOptimizedHistory(world, uuid);
+                } else {
+                    changeSet = new DiskStorageHistory(world, uuid);
+                }
             } else if (Settings.HISTORY.COMBINE_STAGES && Settings.HISTORY.COMPRESSION_LEVEL == 0) {
                 changeSet = new CPUOptimizedChangeSet(world);
             } else {

@@ -3,7 +3,7 @@ main: com.boydti.fawe.bukkit.v1_7.BukkitMain_17
 version: ${version}
 description: Fast Async WorldEdit plugin
 authors: [Empire92]
-loadbefore: [WorldEdit]
+loadbefore: [WorldEdit,AsyncWorldEdit]
 load: STARTUP
 database: false
 #softdepend: [WorldGuard, PlotSquared, MCore, Factions, GriefPrevention, Residence, Towny, PlotMe, PreciousStones]

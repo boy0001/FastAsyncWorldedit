@@ -1,6 +1,8 @@
 package com.boydti.fawe.util;
 
 import com.boydti.fawe.FaweAPI;
+import com.boydti.fawe.config.Settings;
+import com.boydti.fawe.logging.rollback.RollbackOptimizedHistory;
 import com.boydti.fawe.object.FaweLimit;
 import com.boydti.fawe.object.FawePlayer;
 import com.boydti.fawe.object.NullChangeSet;
@@ -89,7 +91,11 @@ public class EditSessionBuilder {
      */
     public EditSessionBuilder changeSet(boolean disk, @Nullable UUID uuid, int compression) {
         if (disk) {
-            this.changeSet = new DiskStorageHistory(world, uuid);
+            if (Settings.HISTORY.USE_DATABASE) {
+                this.changeSet = new RollbackOptimizedHistory(world, uuid);
+            } else {
+                this.changeSet = new DiskStorageHistory(world, uuid);
+            }
         } else {
             this.changeSet = new MemoryOptimizedHistory(world);
         }

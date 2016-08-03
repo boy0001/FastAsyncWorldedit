@@ -123,7 +123,7 @@ public abstract class TaskManager {
     public void taskNow(final Runnable r, boolean async) {
         if (async) {
             async(r);
-        } else {
+        } else if (r != null){
             r.run();
         }
     }

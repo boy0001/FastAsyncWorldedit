@@ -63,6 +63,8 @@ public class DiskStorageHistory extends FaweStreamChangeSet {
     // Entity Create To
     private NBTOutputStream osENTCT;
 
+    private int index;
+
     public void deleteFiles() {
         bdFile.delete();
         nbtfFile.delete();
@@ -97,6 +99,7 @@ public class DiskStorageHistory extends FaweStreamChangeSet {
 
     private void init(UUID uuid, int i) {
         this.uuid = uuid;
+        this.index = i;
         String base = "history" + File.separator + Fawe.imp().getWorldName(getWorld()) + File.separator + uuid;
         base += File.separator + i;
         nbtfFile = new File(Fawe.imp().getDirectory(), base + ".nbtf");
@@ -112,6 +115,10 @@ public class DiskStorageHistory extends FaweStreamChangeSet {
 
     public File getBDFile() {
         return bdFile;
+    }
+
+    public int getIndex() {
+        return index;
     }
 
     @Override
@@ -160,6 +167,11 @@ public class DiskStorageHistory extends FaweStreamChangeSet {
         if (osBD != null) {
             return osBD;
         }
+        writeHeader(x, y, z);
+        return osBD;
+    }
+
+    public void writeHeader(int x, int y, int z) throws IOException {
         bdFile.getParentFile().mkdirs();
         bdFile.createNewFile();
         osBD = getCompressedOS(new FileOutputStream(bdFile));
@@ -175,7 +187,6 @@ public class DiskStorageHistory extends FaweStreamChangeSet {
         osBD.write((byte) (z >> 16));
         osBD.write((byte) (z >> 8));
         osBD.write((byte) (z));
-        return osBD;
     }
 
     @Override

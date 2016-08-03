@@ -4,16 +4,13 @@ import com.boydti.fawe.Fawe;
 import com.boydti.fawe.FaweAPI;
 import com.boydti.fawe.bukkit.wrapper.AsyncWorld;
 import com.boydti.fawe.config.BBC;
-import com.boydti.fawe.config.Settings;
 import com.boydti.fawe.logging.LoggingChangeSet;
 import com.boydti.fawe.object.ChangeSetFaweQueue;
 import com.boydti.fawe.object.FawePlayer;
 import com.boydti.fawe.object.FaweQueue;
 import com.boydti.fawe.object.MaskedFaweQueue;
 import com.boydti.fawe.object.RegionWrapper;
-import com.boydti.fawe.object.changeset.DiskStorageHistory;
 import com.boydti.fawe.object.changeset.FaweChangeSet;
-import com.boydti.fawe.object.changeset.MemoryOptimizedHistory;
 import com.boydti.fawe.util.StringMan;
 import com.boydti.fawe.util.TaskManager;
 import com.boydti.fawe.util.WEManager;
@@ -95,7 +92,7 @@ public class Sniper {
             RegionWrapper[] mask = WEManager.IMP.getMask(fp);
             this.maskQueue = new MaskedFaweQueue(baseQueue, mask);
             com.sk89q.worldedit.world.World worldEditWorld = fp.getWorld();
-            FaweChangeSet changeSet = Settings.HISTORY.USE_DISK ? new DiskStorageHistory(worldEditWorld, fp.getUUID()) : new MemoryOptimizedHistory(worldEditWorld);
+            FaweChangeSet changeSet = FaweChangeSet.getDefaultChangeSet(worldEditWorld, fp.getUUID());
             if (Fawe.imp().getBlocksHubApi() != null) {
                 changeSet = LoggingChangeSet.wrap(fp, changeSet);
             }
@@ -407,7 +404,8 @@ public class Sniper {
             session.remember(changeSet.toEditSession(fp));
             changeQueue.flush();
             com.sk89q.worldedit.world.World worldEditWorld = fp.getWorld();
-            changeQueue.setChangeSet(Settings.HISTORY.USE_DISK ? new DiskStorageHistory(worldEditWorld, fp.getUUID()) : new MemoryOptimizedHistory(worldEditWorld));
+            changeSet = FaweChangeSet.getDefaultChangeSet(worldEditWorld, fp.getUUID());
+            changeQueue.setChangeSet(changeSet);
         }
     }
 
