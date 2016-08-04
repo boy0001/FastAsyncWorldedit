@@ -2,7 +2,6 @@ package com.boydti.fawe;
 
 import com.boydti.fawe.command.Cancel;
 import com.boydti.fawe.command.Reload;
-import com.boydti.fawe.command.Rollback;
 import com.boydti.fawe.command.Stream;
 import com.boydti.fawe.command.Wea;
 import com.boydti.fawe.command.WorldEditRegion;
@@ -230,7 +229,6 @@ public class Fawe {
         this.IMP.setupCommand("stream", new Stream());
         this.IMP.setupCommand("select", new WorldEditRegion());
         this.IMP.setupCommand("fawe", new Reload());
-        this.IMP.setupCommand("frb", new Rollback());
         this.IMP.setupCommand("fcancel", new Cancel());
     }
 

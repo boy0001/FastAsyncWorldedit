@@ -21,9 +21,6 @@ commands:
   select:
     description: (FAWE) Select your current WorldEdit Region.
     aliases: [/select,wer,/wer,worldeditregion,/worldeditregion,/region]
-  frb:
-    description: (FAWE) Rollback an edit
-    aliases: [fawerollback,fawerb,/uu,/rb,/frb,/fawerollback,/fawerb]
   fcancel:
     description: (FAWE) Cancel your edit
     aliases: [fawecancel,/fcancel,/cancel,/fawecancel]

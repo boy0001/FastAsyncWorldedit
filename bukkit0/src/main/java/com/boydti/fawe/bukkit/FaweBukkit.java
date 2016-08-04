@@ -219,12 +219,6 @@ public class FaweBukkit implements IFawe, Listener {
         return world.getName();
     }
 
-    @Override
-    public String getUserName(UUID uuid) {
-        String name = Bukkit.getOfflinePlayer(uuid).getName();
-        return name != null ? name : uuid.toString();
-    }
-
     /**
      * A mask manager handles region restrictions e.g. PlotSquared plots / WorldGuard regions
      */
