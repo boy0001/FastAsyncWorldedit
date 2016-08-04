@@ -30,11 +30,11 @@ public class ProcessedWEExtent extends FaweRegionExtent {
 
     @Override
     public Entity createEntity(final Location location, final BaseEntity entity) {
-        if (!limit.MAX_ENTITIES() || entity == null) {
+        if (entity == null) {
             return null;
         }
         if (WEManager.IMP.maskContains(this.mask, location.getBlockX(), location.getBlockZ())) {
-            if (!limit.MAX_CHANGES()) {
+            if (!limit.MAX_ENTITIES()) {
                 WEManager.IMP.cancelEditSafe(this, BBC.WORLDEDIT_CANCEL_REASON_MAX_CHANGES);
                 return null;
             }
