@@ -33,7 +33,16 @@ public class ProcessedWEExtent extends FaweRegionExtent {
         if (!limit.MAX_ENTITIES() || entity == null) {
             return null;
         }
-        return super.createEntity(location, entity);
+        if (WEManager.IMP.maskContains(this.mask, location.getBlockX(), location.getBlockZ())) {
+            if (!limit.MAX_CHANGES()) {
+                WEManager.IMP.cancelEditSafe(this, BBC.WORLDEDIT_CANCEL_REASON_MAX_CHANGES);
+                return null;
+            }
+            return super.createEntity(location, entity);
+        } else if (!limit.MAX_FAILS()) {
+            WEManager.IMP.cancelEditSafe(this, BBC.WORLDEDIT_CANCEL_REASON_MAX_FAILS);
+        }
+        return null;
     }
 
     @Override

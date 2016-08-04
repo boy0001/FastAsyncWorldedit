@@ -5,9 +5,9 @@ import com.boydti.fawe.FaweAPI;
 import com.boydti.fawe.config.Settings;
 import com.boydti.fawe.logging.rollback.RollbackOptimizedHistory;
 import com.boydti.fawe.object.RunnableVal;
-import com.boydti.fawe.object.change.MutablePlayerBlockChange;
 import com.boydti.fawe.object.changeset.DiskStorageHistory;
 import com.boydti.fawe.util.TaskManager;
+import com.sk89q.worldedit.Vector;
 import com.sk89q.worldedit.world.World;
 import java.io.File;
 import java.io.IOException;
@@ -30,8 +30,9 @@ public class RollbackDatabase {
 
     private String INSERT_EDIT;
     private String CREATE_TABLE;
-    private String GET_EDITS_POINT;
+//    private String GET_EDITS_POINT;
     private String GET_EDITS;
+    private String GET_EDITS_USER;
     private String PURGE;
 
     private ConcurrentLinkedQueue<RollbackOptimizedHistory> historyChanges = new ConcurrentLinkedQueue<>();
@@ -40,13 +41,15 @@ public class RollbackDatabase {
     public RollbackDatabase(final String world) throws SQLException, ClassNotFoundException {
         this.prefix = "";
         this.world = world;
-        this.dbLocation = new File(Fawe.imp().getDirectory(), "history" + File.separator + world);
+        this.dbLocation = new File(Fawe.imp().getDirectory(), "history" + File.separator + world + File.separator + "summary.db");
         connection = openConnection();
         CREATE_TABLE = "CREATE TABLE IF NOT EXISTS `" + prefix + "edits` (`player` BLOB(16) NOT NULL,`id` INT NOT NULL,`x1` INT NOT NULL,`y1` INT NOT NULL,`z1` INT NOT NULL,`x2` INT NOT NULL,`y2` INT NOT NULL,`z2` INT NOT NULL,`time` INT NOT NULL, PRIMARY KEY (player, id))";
         INSERT_EDIT = "INSERT INTO `" + prefix + "edits` (`player`,`id`,`x1`,`y1`,`z1`,`x2`,`y2`,`z2`,`time`) VALUES(?,?,?,?,?,?,?,?,?)";
         PURGE = "DELETE FROM `" + prefix + "edits` WHERE `time`<?";
-        GET_EDITS = "SELECT `player`,`id`,`x1`,`y1`,`z1`,`x2`,`y2`,`z2`,`time` WHERE `x2`>=? AND `x1`<=? AND `y2`>=? AND `y1`<=? AND `z2`>=? AND `z1`<=? AND `time`>?";
-        GET_EDITS_POINT = "SELECT `player`,`id`,`time` WHERE `x2`>=? AND `x1`<=? AND `y2`>=? AND `y1`<=? AND `z2`>=? AND `z1`<=?";
+//        GET_EDITS_POINT = "SELECT `player`,`id` FROM `" + prefix + "edits` WHERE `x2`>=? AND `x1`<=? AND `y2`>=? AND `y1`<=? AND `z2`>=? AND `z1`<=?";
+        GET_EDITS = "SELECT `player`,`id` FROM `" + prefix + "edits` WHERE `x2`>=? AND `x1`<=? AND `y2`>=? AND `y1`<=? AND `z2`>=? AND `z1`<=? AND `time`>?";
+        GET_EDITS_USER = "SELECT `player`,`id` FROM `" + prefix + "edits` WHERE `x2`>=? AND `x1`<=? AND `y2`>=? AND `y1`<=? AND `z2`>=? AND `z1`<=? AND `time`>? AND `player`=?";
+        init();
         purge((int) TimeUnit.DAYS.toMillis(Settings.HISTORY.DELETE_AFTER_DAYS));
         TaskManager.IMP.async(new Runnable() {
             @Override
@@ -72,6 +75,14 @@ public class RollbackDatabase {
         });
     }
 
+    public void init() {
+        try (PreparedStatement stmt = connection.prepareStatement(CREATE_TABLE)) {
+            stmt.executeUpdate();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
     public void addFinishTask(Runnable run) {
         notify.add(run);
     }
@@ -92,41 +103,45 @@ public class RollbackDatabase {
         });
     }
 
-    public void getPotentialEdits(final int x, final int y, final int z, final RunnableVal<DiskStorageHistory> onEach, final Runnable onFail) {
+    public void getPotentialEdits(final UUID uuid, final long minTime, final Vector pos1, final Vector pos2, final RunnableVal<DiskStorageHistory> onEach, final Runnable whenDone) {
         final World world = FaweAPI.getWorld(this.world);
         addTask(new Runnable() {
             @Override
             public void run() {
-                try (PreparedStatement stmt = connection.prepareStatement(GET_EDITS_POINT)) {
-                    stmt.setInt(1, x);
-                    stmt.setInt(2, x);
-                    stmt.setInt(3, y);
-                    stmt.setInt(4, y);
-                    stmt.setInt(5, z);
-                    stmt.setInt(6, z);
+                try (PreparedStatement stmt = connection.prepareStatement(uuid == null ? GET_EDITS : GET_EDITS_USER)) {
+                    stmt.setInt(1, pos1.getBlockX());
+                    stmt.setInt(2, pos2.getBlockX());
+                    stmt.setByte(3, (byte) (pos1.getBlockY() - 128));
+                    stmt.setByte(4, (byte) (pos2.getBlockY() - 128));
+                    stmt.setInt(5, pos1.getBlockZ());
+                    stmt.setInt(6, pos2.getBlockZ());
+                    stmt.setInt(7, (int) (minTime / 1000));
+                    if (uuid != null) {
+                        byte[] uuidBytes = ByteBuffer.allocate(16).putLong(uuid.getMostSignificantBits()).putLong(uuid.getLeastSignificantBits()).array();
+                        stmt.setBytes(8, uuidBytes);
+                    }
                     ResultSet result = stmt.executeQuery();
                     if (!result.next()) {
-                        TaskManager.IMP.taskNow(onFail, false);
+                        TaskManager.IMP.taskNow(whenDone, false);
                         return;
                     }
                     do {
-                        byte[] uuid = result.getBytes(1);
+                        byte[] uuidBytes = result.getBytes(1);
                         int index = result.getInt(2);
-                        long time = 1000l * result.getInt(3);
-                        DiskStorageHistory history = new DiskStorageHistory(world, UUID.nameUUIDFromBytes(uuid), index);
+                        ByteBuffer bb = ByteBuffer.wrap(uuidBytes);
+                        long high = bb.getLong();
+                        long low = bb.getLong();
+                        DiskStorageHistory history = new DiskStorageHistory(world, new UUID(high, low), index);
                         if (history.getBDFile().exists()) {
                             onEach.run(history);
                         }
                     } while (result.next());
+                    TaskManager.IMP.taskNow(whenDone, false);
                 } catch (SQLException e) {
                     e.printStackTrace();
                 }
             }
         });
-    }
-
-    public int getBlocks(int originX, int originZ, int radius, UUID uuid, long timeDiff, RunnableVal<MutablePlayerBlockChange> result) {
-        return 0;
     }
 
     public void logEdit(RollbackOptimizedHistory history) {

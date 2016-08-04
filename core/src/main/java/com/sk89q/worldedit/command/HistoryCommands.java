@@ -19,12 +19,22 @@
 
 package com.sk89q.worldedit.command;
 
+import com.boydti.fawe.Fawe;
 import com.boydti.fawe.config.BBC;
+import com.boydti.fawe.util.MainUtil;
 import com.sk89q.minecraft.util.commands.Command;
 import com.sk89q.minecraft.util.commands.CommandContext;
 import com.sk89q.minecraft.util.commands.CommandPermissions;
-import com.sk89q.worldedit.*;
+import com.sk89q.worldedit.EditSession;
+import com.sk89q.worldedit.LocalSession;
+import com.sk89q.worldedit.Vector;
+import com.sk89q.worldedit.WorldEdit;
+import com.sk89q.worldedit.WorldEditException;
+import com.sk89q.worldedit.WorldVector;
 import com.sk89q.worldedit.entity.Player;
+import com.sk89q.worldedit.world.World;
+import java.util.UUID;
+
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
@@ -43,6 +53,34 @@ public class HistoryCommands {
     public HistoryCommands(WorldEdit worldEdit) {
         checkNotNull(worldEdit);
         this.worldEdit = worldEdit;
+    }
+
+    @Command(
+            aliases = { "/frb", "frb", "fawerollback", "/fawerollback" },
+            usage = "<user> <radius> <time>",
+            desc = "Undo edits within a radius",
+            min = 3,
+            max = 3
+    )
+    @CommandPermissions("worldedit.history.undo")
+    public void faweRollback(Player player, LocalSession session, String user, int radius, String time) throws WorldEditException {
+        UUID other = Fawe.imp().getUUID(user);
+        if (other == null) {
+            BBC.PLAYER_NOT_FOUND.send(player, user);
+            return;
+        }
+        long timeDiff = MainUtil.timeToSec(time) * 1000;
+        if (timeDiff == 0) {
+            BBC.COMMAND_SYNTAX.send(player, "/frb " + user + " " + radius + " <time>");
+            return;
+        }
+        radius = Math.max(Math.min(500, radius), 0);
+        World world = player.getWorld();
+        WorldVector origin = player.getPosition();
+        Vector bot = origin.subtract(radius, radius, radius);
+        Vector top = origin.add(radius, radius, radius);
+
+        // TODO
     }
 
     @Command(

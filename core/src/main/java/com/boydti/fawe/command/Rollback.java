@@ -3,6 +3,7 @@ package com.boydti.fawe.command;
 import com.boydti.fawe.Fawe;
 import com.boydti.fawe.FaweAPI;
 import com.boydti.fawe.config.BBC;
+import com.boydti.fawe.config.Settings;
 import com.boydti.fawe.object.FaweCommand;
 import com.boydti.fawe.object.FaweLocation;
 import com.boydti.fawe.object.FawePlayer;
@@ -27,6 +28,24 @@ public class Rollback extends FaweCommand {
 
     @Override
     public boolean execute(final FawePlayer player, final String... args) {
+        if (!Settings.HISTORY.USE_DATABASE) {
+            BBC.SETTING_DISABLE.send(player, "history.use-database");
+            return false;
+        }
+        if (args.length != 3) {
+            BBC.COMMAND_SYNTAX.send(player, "/frb u:<uuid> r:<radius> t:<time>");
+            return false;
+        }
+        switch (args[0]) {
+            case "i":
+            case "info":
+            case "undo":
+            case "revert":
+                BBC.COMMAND_SYNTAX.send(player, "/frb u:<uuid> r:<radius> t:<time>");
+                return false;
+        }
+
+
         if (args.length < 1) {
             BBC.COMMAND_SYNTAX.send(player, "/frb <info|undo> u:<uuid> r:<radius> t:<time>");
             return false;

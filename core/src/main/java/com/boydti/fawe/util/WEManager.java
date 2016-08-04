@@ -22,7 +22,7 @@ public class WEManager {
 
     public final ArrayDeque<FaweMaskManager> managers = new ArrayDeque<>();
 
-    public void cancelEdit(Extent parent, BBC reason) throws WorldEditException {
+    public void cancelEditSafe(Extent parent, BBC reason) throws FaweException {
         try {
             final Field field = AbstractDelegateExtent.class.getDeclaredField("extent");
             field.setAccessible(true);
@@ -31,6 +31,10 @@ public class WEManager {
             MainUtil.handleError(e);
         }
         throw new FaweException(reason);
+    }
+
+    public void cancelEdit(Extent parent, BBC reason) throws WorldEditException {
+        cancelEditSafe(parent, reason);
     }
 
     public boolean maskContains(final HashSet<RegionWrapper> mask, final int x, final int z) {

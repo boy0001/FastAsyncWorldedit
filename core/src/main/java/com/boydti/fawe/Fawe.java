@@ -32,6 +32,7 @@ import com.sk89q.worldedit.command.NavigationCommands;
 import com.sk89q.worldedit.command.RegionCommands;
 import com.sk89q.worldedit.command.SchematicCommands;
 import com.sk89q.worldedit.command.ScriptingCommands;
+import com.sk89q.worldedit.command.ToolCommands;
 import com.sk89q.worldedit.command.composition.SelectionCommand;
 import com.sk89q.worldedit.command.tool.brush.GravityBrush;
 import com.sk89q.worldedit.event.extent.EditSessionEvent;
@@ -277,6 +278,7 @@ public class Fawe {
             LocalSession.inject(); // Add remember order / queue flushing
             // Commands
             BrushCommands.inject(); // Translations + heightmap
+            ToolCommands.inject(); // Translations + inspect
             ClipboardCommands.inject(); // Translations + lazycopy + paste optimizations
             SchematicCommands.inject(); // Translations
             ScriptingCommands.inject(); // Translations

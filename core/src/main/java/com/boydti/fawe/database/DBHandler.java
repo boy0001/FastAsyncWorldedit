@@ -4,6 +4,8 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class DBHandler {
+    public final static DBHandler IMP = new DBHandler();
+
     private Map<String, RollbackDatabase> databases = new ConcurrentHashMap<>();
     
     public RollbackDatabase getDatabase(String world) {

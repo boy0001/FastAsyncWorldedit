@@ -41,6 +41,7 @@ public enum BBC {
     WORLDEDIT_RESTRICTED("&6Your WorldEdit is now restricted.", "Info"),
     WORLDEDIT_OOM_ADMIN("&cPossible options:\n&8 - &7//fast\n&8 - &7Do smaller edits\n&8 - &7Allocate more memory\n&8 - &7Disable this safeguard", "Info"),
     COMPRESSED("History compressed. Saved ~ %s0b (%s1x smaller)", "Info"),
+
     ACTION_COMPLETE("Action completed in %s0 seconds", "Info"),
     GENERATING_LINK("Uploading %s, please wait...", "Web"),
     GENERATING_LINK_FAILED("&cFailed to generate download link!", "Web"),
@@ -90,7 +91,23 @@ public enum BBC {
     BRUSH_HEIGHT_INVALID("Invalid height map file (%s0)", "WorldEdit.Brush"),
     BRUSH_SMOOTH("Smooth brush equipped (%s0 x %s1 using %s2).", "WorldEdit.Brush"),
     BRUSH_SPHERE("Sphere brush shape equipped (%s0).", "WorldEdit.Brush"),
-    BRUSH_INSPECT("Inspect brush shape equipped (%s0).", "WorldEdit.Brush"),
+
+    TOOL_INSPECT("Inspect tool bound to %s0.", "WorldEdit.Tool"),
+    TOOL_INSPECT_INFO("&7%s0 changed %s1 to %s2 %s3 ago","Info"),
+    TOOL_INSPECT_INFO_FOOTER("&6Total: &7%s0 changes","Info"),
+    TOOL_NONE("Tool unbound from your current item.", "WorldEdit.Tool"),
+    TOOL_INFO("Info tool bound to %s0.", "WorldEdit.Tool"),
+    TOOL_TREE("Tree tool bound to %s0.", "WorldEdit.Tool"),
+    TOOL_TREE_ERROR("Tree type %s0 is unknown.", "WorldEdit.Tool"),
+    TOOL_REPL("Block replacer tool bound to %s0.", "WorldEdit.Tool"),
+    TOOL_CYCLER("Block data cycler tool bound to %s0.", "WorldEdit.Tool"),
+    TOOL_FLOOD_FILL("Block flood fill tool bound to %s0.", "WorldEdit.Tool"),
+    TOOL_FLOOD_FILL_RANGE_ERROR("Maximum range: %s0.", "WorldEdit.Tool"),
+    TOOL_DELTREE("Floating tree remover tool bound to %s0.", "WorldEdit.Tool"),
+    TOOL_FARWAND("Far wand tool bound to %s0.", "WorldEdit.Tool"),
+    TOOL_LRBUILD_BOUND("Long-range building tool bound to %s0.", "WorldEdit.Tool"),
+    TOOL_LRBUILD_INFO("Left-click set to %s0; right-click set to %s1.", "WorldEdit.Tool"),
+
 
     SCHEMATIC_DELETE("%s0 has been deleted.", "Worldedit.Schematic"),
     SCHEMATIC_FORMAT("Available clipboard formats (Name: Lookup names)", "Worldedit.Schematic"),
@@ -116,9 +133,11 @@ public enum BBC {
 
     COMMAND_SYNTAX("&cUsage: &7%s0", "Error"),
     NO_PERM("&cYou are lacking the permission node: %s0", "Error"),
+    SETTING_DISABLE("&cLacking setting: %s0","Error"),
     SCHEMATIC_NOT_FOUND("&cSchematic not found: &7%s0", "Error"),
     NO_REGION("&cYou have no current WorldEdit region", "Error"),
     NOT_PLAYER("&cYou must be a player to perform this action!", "Error"),
+    PLAYER_NOT_FOUND("&cPlayer not found:&7 %s0", "Error"),
     OOM(
             "&8[&cCritical&8] &cDetected low memory i.e. < 1%. FAWE will take the following actions:\n&8 - &7Terminate WE block placement\n&8 - &7Clear WE history\n&8 - &7Unload non essential chunks\n&8 - &7Kill entities\n&8 - &7Garbage collect\n&cIgnore this if trying to crash server.\n&7Note: Low memory is likely (but not necessarily) caused by WE",
             "Error"),

@@ -16,6 +16,7 @@ import com.sk89q.jnbt.StringTag;
 import com.sk89q.jnbt.Tag;
 import com.sk89q.worldedit.CuboidClipboard;
 import com.sk89q.worldedit.blocks.BaseBlock;
+import com.sk89q.worldedit.world.registry.BundledBlockData;
 import java.awt.Color;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
@@ -505,6 +506,18 @@ public class FaweCache {
             default:
                 return false;
         }
+    }
+
+    public static String getMaterialName(int combined) {
+        return getMaterialName(getId(combined), getData(combined));
+    }
+
+    public static String getMaterialName(int id, int data) {
+        BundledBlockData.BlockEntry entry = BundledBlockData.getInstance().findById(id);
+        if (entry == null) {
+            return data != 0 ? id + ":" + data : id + "";
+        }
+        return data != 0 ? entry.id.replace("minecraft:","") + ":" + data : entry.id.replace("minecraft:","");
     }
 
     public static Map<String, Object> asMap(Object... pairs) {

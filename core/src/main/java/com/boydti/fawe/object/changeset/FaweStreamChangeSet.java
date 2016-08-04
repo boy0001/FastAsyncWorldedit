@@ -1,9 +1,11 @@
 package com.boydti.fawe.object.changeset;
 
 import com.boydti.fawe.config.Settings;
+import com.boydti.fawe.object.FaweInputStream;
 import com.boydti.fawe.object.FaweOutputStream;
 import com.boydti.fawe.object.change.MutableBlockChange;
 import com.boydti.fawe.object.change.MutableEntityChange;
+import com.boydti.fawe.object.change.MutableFullBlockChange;
 import com.boydti.fawe.object.change.MutableTileChange;
 import com.boydti.fawe.util.MainUtil;
 import com.sk89q.jnbt.CompoundTag;
@@ -215,6 +217,65 @@ public abstract class FaweStreamChangeSet extends FaweChangeSet {
             @Override
             public MutableBlockChange next() {
                 MutableBlockChange tmp = last;
+                last = null;
+                return tmp;
+            }
+
+            @Override
+            public void remove() {
+                throw new IllegalArgumentException("CANNOT REMOVE");
+            }
+        };
+    }
+
+    public Iterator<MutableFullBlockChange> getFullBlockIterator(final boolean dir) throws IOException {
+        final FaweInputStream is = new FaweInputStream(getBlockIS());
+        if (is == null) {
+            return new ArrayList<MutableFullBlockChange>().iterator();
+        }
+        final MutableFullBlockChange change = new MutableFullBlockChange(0, 0, 0, 0, 0);
+        return new Iterator<MutableFullBlockChange>() {
+            private MutableFullBlockChange last = read();
+            public MutableFullBlockChange read() {
+                try {
+                    int read0 = is.read();
+                    if (read0 == -1) {
+                        return null;
+                    }
+                    int x = ((byte) read0 & 0xFF) + ((byte) is.read() << 8) + originX;
+                    int z = ((byte) is.read() & 0xFF) + ((byte) is.read() << 8) + originZ;
+                    int y = is.read() & 0xff;
+                    change.x = x;
+                    change.y = y;
+                    change.z = z;
+                    change.from = ((byte) is.read() & 0xFF) + ((byte) is.read() << 8);
+                    change.to = ((byte) is.read() & 0xFF) + ((byte) is.read() << 8);
+                    return change;
+                } catch (Exception ignoreEOF) {
+                    MainUtil.handleError(ignoreEOF);
+                }
+                return null;
+            }
+
+            @Override
+            public boolean hasNext() {
+                if (last == null) {
+                    last = read();
+                }
+                if (last != null) {
+                    return true;
+                }
+                try {
+                    is.close();
+                } catch (IOException e) {
+                    MainUtil.handleError(e);
+                }
+                return false;
+            }
+
+            @Override
+            public MutableFullBlockChange next() {
+                MutableFullBlockChange tmp = last;
                 last = null;
                 return tmp;
             }
