@@ -1,5 +1,4 @@
 dependencies {
-    compile project(':bukkit0')
     compile 'org.bukkit.craftbukkit:CraftBukkit:1.8.8'
 }
 
