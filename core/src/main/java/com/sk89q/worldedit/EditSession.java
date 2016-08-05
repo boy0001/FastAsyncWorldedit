@@ -190,7 +190,7 @@ public class EditSession implements Extent {
             event = new EditSessionEvent(world, player == null ? null : (player.getPlayer()), -1, null);
         }
         event.setEditSession(this);
-        if (player == null) {
+        if (player == null && event.getActor() != null) {
             player = FawePlayer.wrap(event.getActor());
         }
         this.player = player;
