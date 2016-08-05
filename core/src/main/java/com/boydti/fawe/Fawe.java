@@ -261,6 +261,9 @@ public class Fawe {
     private WorldEdit worldedit;
 
     public WorldEdit getWorldEdit() {
+        if (this.worldedit == null) {
+            return worldedit = WorldEdit.getInstance();
+        }
         return this.worldedit;
     }
 

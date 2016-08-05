@@ -21,6 +21,9 @@ package com.sk89q.worldedit.command;
 
 import com.boydti.fawe.Fawe;
 import com.boydti.fawe.config.BBC;
+import com.boydti.fawe.config.Settings;
+import com.boydti.fawe.database.DBHandler;
+import com.boydti.fawe.database.RollbackDatabase;
 import com.boydti.fawe.util.MainUtil;
 import com.sk89q.minecraft.util.commands.Command;
 import com.sk89q.minecraft.util.commands.CommandContext;
@@ -64,6 +67,10 @@ public class HistoryCommands {
     )
     @CommandPermissions("worldedit.history.undo")
     public void faweRollback(Player player, LocalSession session, String user, int radius, String time) throws WorldEditException {
+        if (!Settings.HISTORY.USE_DATABASE) {
+            BBC.SETTING_DISABLE.send(player, "history.use-database");
+            return;
+        }
         UUID other = Fawe.imp().getUUID(user);
         if (other == null) {
             BBC.PLAYER_NOT_FOUND.send(player, user);
@@ -79,6 +86,9 @@ public class HistoryCommands {
         WorldVector origin = player.getPosition();
         Vector bot = origin.subtract(radius, radius, radius);
         Vector top = origin.add(radius, radius, radius);
+        RollbackDatabase database = DBHandler.IMP.getDatabase(Fawe.imp().getWorldName(world));
+
+
 
         // TODO
     }

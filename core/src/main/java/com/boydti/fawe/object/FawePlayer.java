@@ -302,7 +302,7 @@ public abstract class FawePlayer<T> {
      * @return
      */
     public LocalSession getSession() {
-        return (this.session != null || this.getPlayer() == null) ? this.session : (session = Fawe.get().getWorldEdit().getSession(this.getPlayer()));
+        return (this.session != null || this.getPlayer() == null || Fawe.get() == null) ? this.session : (session = Fawe.get().getWorldEdit().getSession(this.getPlayer()));
     }
 
     /**
