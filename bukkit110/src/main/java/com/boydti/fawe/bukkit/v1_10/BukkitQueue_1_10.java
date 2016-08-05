@@ -20,13 +20,13 @@ import com.sk89q.worldedit.internal.Constants;
 import java.io.File;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
+import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
-import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
@@ -81,6 +81,7 @@ public class BukkitQueue_1_10 extends BukkitQueue_0<Chunk, ChunkSection[], Chunk
 
     private static IBlockData air;
     private static Field fieldBits;
+    private static Method getEntitySlices;
 
     public BukkitQueue_1_10(final String world) {
         super(world);
@@ -92,6 +93,7 @@ public class BukkitQueue_1_10 extends BukkitQueue_0<Chunk, ChunkSection[], Chunk
                 air = (IBlockData) fieldAir.get(null);
                 fieldBits = DataPaletteBlock.class.getDeclaredField("b");
                 fieldBits.setAccessible(true);
+                getEntitySlices = net.minecraft.server.v1_10_R1.Chunk.class.getDeclaredMethod("getEntitySlices");
                 if (adapter == null) {
                     setupAdapter(new com.boydti.fawe.bukkit.v1_10.FaweAdapter_1_10());
                     Fawe.debug("Using adapter: " + adapter);
@@ -248,78 +250,82 @@ public class BukkitQueue_1_10 extends BukkitQueue_0<Chunk, ChunkSection[], Chunk
         if (!chunk.isLoaded()) {
             return;
         }
-        net.minecraft.server.v1_10_R1.Chunk nmsChunk = ((CraftChunk) chunk).getHandle();
-        ChunkCoordIntPair pos = nmsChunk.k(); // getPosition()
-        WorldServer w = (WorldServer) nmsChunk.getWorld();
-        PlayerChunkMap chunkMap = w.getPlayerChunkMap();
-        PlayerChunk playerChunk = chunkMap.getChunk(pos.x, pos.z);
-        if (playerChunk == null) {
-            return;
-        }
-        HashSet<EntityPlayer> set = new HashSet<EntityPlayer>(playerChunk.c);
-        EntityTracker tracker = w.getTracker();
-        // Get players
-        final HashSet<EntityPlayer> players = new HashSet<>();
-        for (EntityHuman human : w.players) {
-            if (set.contains(human)) {
-                players.add((EntityPlayer) human);
+        try {
+            net.minecraft.server.v1_10_R1.Chunk nmsChunk = ((CraftChunk) chunk).getHandle();
+            ChunkCoordIntPair pos = nmsChunk.k(); // getPosition()
+            WorldServer w = (WorldServer) nmsChunk.getWorld();
+            PlayerChunkMap chunkMap = w.getPlayerChunkMap();
+            PlayerChunk playerChunk = chunkMap.getChunk(pos.x, pos.z);
+            if (playerChunk == null) {
+                return;
             }
-        }
-        if (players.size() == 0) {
-            return;
-        }
-        HashSet<EntityTrackerEntry> entities = new HashSet<>();
-        List<Entity>[] entitieSlices = nmsChunk.getEntitySlices();
-        for (List<Entity> slice : entitieSlices) {
-            if (slice == null) {
-                continue;
+            HashSet<EntityPlayer> set = new HashSet<EntityPlayer>(playerChunk.c);
+            EntityTracker tracker = w.getTracker();
+            // Get players
+            final HashSet<EntityPlayer> players = new HashSet<>();
+            for (EntityHuman human : w.players) {
+                if (set.contains(human)) {
+                    players.add((EntityPlayer) human);
+                }
             }
-            for (Entity ent : slice) {
-                EntityTrackerEntry entry = tracker.trackedEntities.get(ent.getId());
-                if (entry == null) {
+            if (players.size() == 0) {
+                return;
+            }
+            HashSet<EntityTrackerEntry> entities = new HashSet<>();
+            Collection<Entity>[] entitieSlices = (Collection<Entity>[]) getEntitySlices.invoke(nmsChunk);
+            for (Collection<Entity> slice : entitieSlices) {
+                if (slice == null) {
                     continue;
                 }
-                entities.add(entry);
-                PacketPlayOutEntityDestroy packet = new PacketPlayOutEntityDestroy(ent.getId());
-                for (EntityPlayer player : players) {
-                    player.playerConnection.sendPacket(packet);
+                for (Entity ent : slice) {
+                    EntityTrackerEntry entry = tracker.trackedEntities.get(ent.getId());
+                    if (entry == null) {
+                        continue;
+                    }
+                    entities.add(entry);
+                    PacketPlayOutEntityDestroy packet = new PacketPlayOutEntityDestroy(ent.getId());
+                    for (EntityPlayer player : players) {
+                        player.playerConnection.sendPacket(packet);
+                    }
                 }
             }
-        }
-        for (EntityPlayer player : players) {
-            player.playerConnection.networkManager.a();
-        }
-        // Send chunks
-        PacketPlayOutMapChunk packet = new PacketPlayOutMapChunk(nmsChunk, 65535);
-        for (EntityPlayer player : players) {
-            player.playerConnection.sendPacket(packet);
-        }
-        // send ents
-        for (List<Entity> slice : entitieSlices) {
-            if (slice == null) {
-                continue;
+            for (EntityPlayer player : players) {
+                player.playerConnection.networkManager.a();
             }
-            for (final Entity ent : slice) {
-                final EntityTrackerEntry entry = tracker.trackedEntities.get(ent.getId());
-                if (entry == null) {
+            // Send chunks
+            PacketPlayOutMapChunk packet = new PacketPlayOutMapChunk(nmsChunk, 65535);
+            for (EntityPlayer player : players) {
+                player.playerConnection.sendPacket(packet);
+            }
+            // send ents
+            for (Collection<Entity> slice : entitieSlices) {
+                if (slice == null) {
                     continue;
                 }
-                try {
-                    TaskManager.IMP.later(new Runnable() {
-                        @Override
-                        public void run() {
-                            for (EntityPlayer player : players) {
-                                boolean result = entry.trackedPlayers.remove(player);
-                                if (result && ent != player) {
-                                    entry.updatePlayer(player);
+                for (final Entity ent : slice) {
+                    final EntityTrackerEntry entry = tracker.trackedEntities.get(ent.getId());
+                    if (entry == null) {
+                        continue;
+                    }
+                    try {
+                        TaskManager.IMP.later(new Runnable() {
+                            @Override
+                            public void run() {
+                                for (EntityPlayer player : players) {
+                                    boolean result = entry.trackedPlayers.remove(player);
+                                    if (result && ent != player) {
+                                        entry.updatePlayer(player);
+                                    }
                                 }
                             }
-                        }
-                    }, 2);
-                } catch (Throwable e) {
-                    MainUtil.handleError(e);
+                        }, 2);
+                    } catch (Throwable e) {
+                        MainUtil.handleError(e);
+                    }
                 }
             }
+        } catch (Throwable e) {
+            e.printStackTrace();
         }
     }
 
