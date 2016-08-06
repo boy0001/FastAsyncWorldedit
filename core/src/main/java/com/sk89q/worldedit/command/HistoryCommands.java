@@ -24,6 +24,8 @@ import com.boydti.fawe.config.BBC;
 import com.boydti.fawe.config.Settings;
 import com.boydti.fawe.database.DBHandler;
 import com.boydti.fawe.database.RollbackDatabase;
+import com.boydti.fawe.object.RunnableVal;
+import com.boydti.fawe.object.changeset.DiskStorageHistory;
 import com.boydti.fawe.util.MainUtil;
 import com.sk89q.minecraft.util.commands.Command;
 import com.sk89q.minecraft.util.commands.CommandContext;
@@ -37,6 +39,7 @@ import com.sk89q.worldedit.WorldVector;
 import com.sk89q.worldedit.entity.Player;
 import com.sk89q.worldedit.world.World;
 import java.util.UUID;
+import java.util.concurrent.atomic.AtomicInteger;
 
 
 import static com.google.common.base.Preconditions.checkNotNull;
@@ -66,7 +69,7 @@ public class HistoryCommands {
             max = 3
     )
     @CommandPermissions("worldedit.history.undo")
-    public void faweRollback(Player player, LocalSession session, String user, int radius, String time) throws WorldEditException {
+    public void faweRollback(final Player player, LocalSession session, final String user, int radius, String time) throws WorldEditException {
         if (!Settings.HISTORY.USE_DATABASE) {
             BBC.SETTING_DISABLE.send(player, "history.use-database");
             return;
@@ -87,10 +90,24 @@ public class HistoryCommands {
         Vector bot = origin.subtract(radius, radius, radius);
         Vector top = origin.add(radius, radius, radius);
         RollbackDatabase database = DBHandler.IMP.getDatabase(Fawe.imp().getWorldName(world));
-
-
-
-        // TODO
+        final AtomicInteger count = new AtomicInteger();
+        System.out.println("ROLLING BACK");
+        database.getPotentialEdits(other, System.currentTimeMillis() - timeDiff, bot, top, new RunnableVal<DiskStorageHistory>() {
+                @Override
+                public void run(DiskStorageHistory edit) {
+                    EditSession session = edit.toEditSession(null);
+                    session.undo(session);
+                    edit.deleteFiles();
+                    BBC.ROLLBACK_ELEMENT.send(player, Fawe.imp().getWorldName(edit.getWorld()) + "/" + user + "-" + edit.getIndex());
+                    count.incrementAndGet();
+                }
+            }, new Runnable() {
+                @Override
+                public void run() {
+                    BBC.TOOL_INSPECT_INFO_FOOTER.send(player, count);
+                }
+            }, true
+        );
     }
 
     @Command(

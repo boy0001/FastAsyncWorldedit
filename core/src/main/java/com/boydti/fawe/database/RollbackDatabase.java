@@ -33,6 +33,7 @@ public class RollbackDatabase {
 //    private String GET_EDITS_POINT;
     private String GET_EDITS;
     private String GET_EDITS_USER;
+    private String DELETE_EDITS_USER;
     private String PURGE;
 
     private ConcurrentLinkedQueue<RollbackOptimizedHistory> historyChanges = new ConcurrentLinkedQueue<>();
@@ -47,8 +48,9 @@ public class RollbackDatabase {
         INSERT_EDIT = "INSERT INTO `" + prefix + "edits` (`player`,`id`,`x1`,`y1`,`z1`,`x2`,`y2`,`z2`,`time`) VALUES(?,?,?,?,?,?,?,?,?)";
         PURGE = "DELETE FROM `" + prefix + "edits` WHERE `time`<?";
 //        GET_EDITS_POINT = "SELECT `player`,`id` FROM `" + prefix + "edits` WHERE `x2`>=? AND `x1`<=? AND `y2`>=? AND `y1`<=? AND `z2`>=? AND `z1`<=?";
-        GET_EDITS = "SELECT `player`,`id` FROM `" + prefix + "edits` WHERE `x2`>=? AND `x1`<=? AND `y2`>=? AND `y1`<=? AND `z2`>=? AND `z1`<=? AND `time`>?";
-        GET_EDITS_USER = "SELECT `player`,`id` FROM `" + prefix + "edits` WHERE `x2`>=? AND `x1`<=? AND `y2`>=? AND `y1`<=? AND `z2`>=? AND `z1`<=? AND `time`>? AND `player`=?";
+        GET_EDITS = "SELECT `player`,`id` FROM `" + prefix + "edits` WHERE `x2`>=? AND `x1`<=? AND `y2`>=? AND `y1`<=? AND `z2`>=? AND `z1`<=? AND `time`>? ORDER BY `time` DESC, `id` DESC";
+        GET_EDITS_USER = "SELECT `player`,`id` FROM `" + prefix + "edits` WHERE `x2`>=? AND `x1`<=? AND `y2`>=? AND `y1`<=? AND `z2`>=? AND `z1`<=? AND `time`>? AND `player`=? ORDER BY `time` DESC, `id` DESC";
+        DELETE_EDITS_USER = "DELETE FROM `" + prefix + "edits` WHERE `x2`>=? AND `x1`<=? AND `y2`>=? AND `y1`<=? AND `z2`>=? AND `z1`<=? AND `time`>? AND `player`=?";
         init();
         purge((int) TimeUnit.DAYS.toMillis(Settings.HISTORY.DELETE_AFTER_DAYS));
         TaskManager.IMP.async(new Runnable() {
@@ -103,7 +105,7 @@ public class RollbackDatabase {
         });
     }
 
-    public void getPotentialEdits(final UUID uuid, final long minTime, final Vector pos1, final Vector pos2, final RunnableVal<DiskStorageHistory> onEach, final Runnable whenDone) {
+    public void getPotentialEdits(final UUID uuid, final long minTime, final Vector pos1, final Vector pos2, final RunnableVal<DiskStorageHistory> onEach, final Runnable whenDone, final boolean delete) {
         final World world = FaweAPI.getWorld(this.world);
         addTask(new Runnable() {
             @Override
@@ -139,6 +141,21 @@ public class RollbackDatabase {
                     TaskManager.IMP.taskNow(whenDone, false);
                 } catch (SQLException e) {
                     e.printStackTrace();
+                }
+                if (delete && uuid != null) {
+                    try (PreparedStatement stmt = connection.prepareStatement(DELETE_EDITS_USER)) {
+                        stmt.setInt(1, pos1.getBlockX());
+                        stmt.setInt(2, pos2.getBlockX());
+                        stmt.setByte(3, (byte) (pos1.getBlockY() - 128));
+                        stmt.setByte(4, (byte) (pos2.getBlockY() - 128));
+                        stmt.setInt(5, pos1.getBlockZ());
+                        stmt.setInt(6, pos2.getBlockZ());
+                        stmt.setInt(7, (int) (minTime / 1000));
+                        byte[] uuidBytes = ByteBuffer.allocate(16).putLong(uuid.getMostSignificantBits()).putLong(uuid.getLeastSignificantBits()).array();
+                        stmt.setBytes(8, uuidBytes);
+                    } catch (SQLException e) {
+                        e.printStackTrace();
+                    }
                 }
             }
         });

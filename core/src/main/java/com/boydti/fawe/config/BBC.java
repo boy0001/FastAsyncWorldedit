@@ -92,9 +92,11 @@ public enum BBC {
     BRUSH_SMOOTH("Smooth brush equipped (%s0 x %s1 using %s2).", "WorldEdit.Brush"),
     BRUSH_SPHERE("Sphere brush shape equipped (%s0).", "WorldEdit.Brush"),
 
+    ROLLBACK_ELEMENT("Undoing %s0", "WorldEdit.Rollback"),
+
     TOOL_INSPECT("Inspect tool bound to %s0.", "WorldEdit.Tool"),
-    TOOL_INSPECT_INFO("&7%s0 changed %s1 to %s2 %s3 ago","Info"),
-    TOOL_INSPECT_INFO_FOOTER("&6Total: &7%s0 changes","Info"),
+    TOOL_INSPECT_INFO("&7%s0 changed %s1 to %s2 %s3 ago","WorldEdit.Tool"),
+    TOOL_INSPECT_INFO_FOOTER("&6Total: &7%s0 changes","WorldEdit.Tool"),
     TOOL_NONE("Tool unbound from your current item.", "WorldEdit.Tool"),
     TOOL_INFO("Info tool bound to %s0.", "WorldEdit.Tool"),
     TOOL_TREE("Tree tool bound to %s0.", "WorldEdit.Tool"),
