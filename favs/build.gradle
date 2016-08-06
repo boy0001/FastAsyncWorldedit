@@ -1,4 +1,5 @@
 dependencies {
+    compile project(':bukkit0')
     compile 'org.bukkit.craftbukkit:CraftBukkit:1.8.8'
 }
 
@@ -16,10 +17,6 @@ apply plugin: 'com.github.johnrengelman.shadow'
 // We only want the shadow jar produced
 jar.enabled = false
 shadowJar {
-    dependencies {
-        include(dependency(':bukkit0'))
-        include(dependency(':core'))
-    }
     archiveName = "FastAsyncVoxelSniper-${project.name}-${parent.version}.jar"
     destinationDir = file '../target'
 }
