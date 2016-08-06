@@ -1,11 +1,10 @@
 package com.boydti.fawe.object.clipboard;
 
 import com.boydti.fawe.FaweCache;
-import com.boydti.fawe.object.IntegerTrio;
+import com.boydti.fawe.config.Settings;
 import com.boydti.fawe.object.RunnableVal2;
+import com.boydti.fawe.util.MainUtil;
 import com.sk89q.jnbt.CompoundTag;
-import com.sk89q.worldedit.BlockVector;
-import com.sk89q.worldedit.EditSession;
 import com.sk89q.worldedit.Vector;
 import com.sk89q.worldedit.blocks.BaseBlock;
 import com.sk89q.worldedit.entity.BaseEntity;
@@ -17,30 +16,239 @@ import java.util.HashSet;
 import java.util.List;
 
 public class MemoryOptimizedClipboard extends FaweClipboard {
-    protected int length;
-    protected int height;
-    protected int width;
-    protected int area;
 
-    // x,z,y+15>>4 | y&15
-    private final byte[][] ids;
-    private final byte[] heights;
+    public static final int BLOCK_SIZE = 1048576;
+    public static final int BLOCK_MASK = 1048575;
+    public static final int BLOCK_SHIFT = 20;
+
+    private int length;
+    private int height;
+    private int width;
+    private int area;
+    private int volume;
+
+    private byte[][] ids;
     private byte[][] datas;
-    private final HashMap<IntegerTrio, CompoundTag> nbtMap;
+    private byte[][] add;
+
+    private byte[] buffer = new byte[MainUtil.getMaxCompressedLength(BLOCK_SIZE)];
+
+    private final HashMap<Integer, CompoundTag> nbtMap;
     private final HashSet<ClipboardEntity> entities;
 
+    private int lastIdsI = -1;
+    private int lastDatasI = -1;
+    private int lastAddI = -1;
+
+    private byte[] lastIds;
+    private byte[] lastDatas;
+    private byte[] lastAdd;
+
+    private boolean saveIds = false;
+    private boolean saveDatas = false;
+    private boolean saveAdd = false;
+    
+    private int compressionLevel;
+
     public MemoryOptimizedClipboard(int width, int height, int length) {
+        this(width, height, length, Settings.CLIPBOARD.COMPRESSION_LEVEL);
+    }
+
+    public MemoryOptimizedClipboard(int width, int height, int length, int compressionLevel) {
         this.width = width;
         this.height = height;
         this.length = length;
         this.area = width * length;
-        heights = new byte[(height + 15) >>  4];
-        for (int y = 0; y < ((height + 15) >>  4); y++) {
-            heights[y] = (byte) Math.min(16, height - (y << 4));
-        }
-        ids = new byte[width * length * ((height + 15) >>  4)][];
+        this.volume = area * height;
+        ids = new byte[1 + (volume >> BLOCK_SHIFT)][];
+        datas = new byte[1 + (volume >> BLOCK_SHIFT)][];
         nbtMap = new HashMap<>();
         entities = new HashSet<>();
+        this.compressionLevel = compressionLevel;
+    }
+
+    public int getId(int index) {
+        int i = index >> BLOCK_SHIFT;
+        if (i == lastIdsI) {
+            if (lastIds == null) {
+                return 0;
+            }
+            if (add == null) {
+                return lastIds[index & BLOCK_MASK] & 0xFF;
+            } else {
+                return lastIds[index & BLOCK_MASK] & 0xFF + getAdd(index);
+            }
+        }
+        saveIds();
+        byte[] compressed = ids[lastIdsI = i];
+        if (compressed == null) {
+            lastIds = null;
+            return 0;
+        }
+        lastIds = MainUtil.decompress(compressed, lastIds, BLOCK_SIZE, compressionLevel);
+        if (add == null) {
+            return lastIds[index & BLOCK_MASK] & 0xFF;
+        } else {
+            return lastIds[index & BLOCK_MASK] & 0xFF + getAdd(index);
+        }
+    }
+
+    int saves = 0;
+
+    private void saveIds() {
+        if (saveIds && lastIds != null) {
+            ids[lastIdsI] = MainUtil.compress(lastIds, buffer, compressionLevel);
+        }
+        saveIds = false;
+    }
+
+    private void saveDatas() {
+        if (saveDatas && lastDatas != null) {
+            datas[lastDatasI] = MainUtil.compress(lastDatas, buffer, compressionLevel);
+        }
+        saveDatas = false;
+    }
+
+    private void saveAdd() {
+        if (saveAdd && lastAdd != null) {
+            add[lastAddI] = MainUtil.compress(lastAdd, buffer, compressionLevel);
+        }
+        saveAdd = false;
+    }
+
+    public int getData(int index) {
+        int i = index >> BLOCK_SHIFT;
+        if (i == lastDatasI) {
+            if (lastDatas == null) {
+                return 0;
+            }
+            return lastDatas[index & BLOCK_MASK];
+        }
+        saveDatas();
+        byte[] compressed = datas[lastDatasI = i];
+        if (compressed == null) {
+            lastDatas = null;
+            return 0;
+        }
+        lastDatas = MainUtil.decompress(compressed, lastDatas, BLOCK_SIZE, compressionLevel);
+        return lastDatas[index & BLOCK_MASK];
+    }
+
+    @Override
+    public void setDimensions(Vector dimensions) {
+        width = dimensions.getBlockX();
+        height = dimensions.getBlockY();
+        length = dimensions.getBlockZ();
+        area = width * length;
+    }
+
+    @Override
+    public Vector getDimensions() {
+        return new Vector(width, height, length);
+    }
+
+    public int getAdd(int index) {
+        int i = index >> BLOCK_SHIFT;
+        if (i == lastAddI) {
+            if (lastAdd == null) {
+                return 0;
+            }
+            return lastAdd[index & BLOCK_MASK] & 0xFF;
+        }
+        saveAdd();
+        byte[] compressed = add[lastAddI = i];
+        if (compressed == null) {
+            lastAdd = null;
+            return 0;
+        }
+        lastAdd = MainUtil.decompress(compressed, lastAdd, BLOCK_SIZE, compressionLevel);
+        return lastAdd[index & BLOCK_MASK] & 0xFF;
+    }
+
+
+    private int lastI;
+    private int lastIMin;
+    private int lastIMax;
+
+    public int getLocalIndex(int index) {
+        if (index < lastIMin || index > lastIMax) {
+            lastI = index >> BLOCK_SHIFT;
+            lastIMin = lastI << BLOCK_SHIFT;
+            lastIMax = lastIMin + BLOCK_MASK;
+        }
+        return lastI;
+    }
+
+    @Override
+    public void setId(int index, int value) {
+        int i = getLocalIndex(index);
+        if (i != lastIdsI) {
+            saveIds();
+            byte[] compressed = ids[lastIdsI = i];
+            if (compressed != null) {
+                lastIds = MainUtil.decompress(compressed, lastIds, BLOCK_SIZE, compressionLevel);
+            } else {
+                lastIds = null;
+            }
+        }
+        if (lastIds == null) {
+            if (value == 0) {
+                return;
+            }
+            lastIds = new byte[BLOCK_SIZE];
+        }
+        lastIds[index & BLOCK_MASK] = (byte) value;
+        saveIds = true;
+    }
+
+    @Override
+    public void setData(int index, int value) {
+        int i = getLocalIndex(index);
+        if (i != lastDatasI) {
+            saveDatas();
+            byte[] compressed = datas[lastDatasI = i];
+            if (compressed != null) {
+                lastDatas = MainUtil.decompress(compressed, lastDatas, BLOCK_SIZE, compressionLevel);
+            } else {
+                lastDatas = null;
+            }
+        }
+        if (lastDatas == null) {
+            if (value == 0) {
+                return;
+            }
+            lastDatas = new byte[BLOCK_SIZE];
+        }
+        lastDatas[index & BLOCK_MASK] = (byte) value;
+        saveDatas = true;
+    }
+
+    @Override
+    public void setAdd(int index, int value) {
+        if (value == 0) {
+            return;
+        }
+        if (add == null) {
+            add = new byte[1 + (volume >> BLOCK_SHIFT)][];
+        }
+        int i = index >> BLOCK_SHIFT;
+        if (i != lastAddI) {
+            saveAdd();
+            byte[] compressed = add[lastAddI = i];
+            if (compressed != null) {
+                lastAdd = MainUtil.decompress(compressed, lastAdd, BLOCK_SIZE, compressionLevel);
+            } else {
+                lastAdd = null;
+            }
+        }
+        if (lastAdd == null) {
+            if (value == 0) {
+                return;
+            }
+            lastAdd = new byte[BLOCK_SIZE];
+        }
+        lastAdd[index & BLOCK_MASK] = (byte) value;
+        saveAdd = true;
     }
 
     private int ylast;
@@ -48,28 +256,29 @@ public class MemoryOptimizedClipboard extends FaweClipboard {
     private int zlast;
     private int zlasti;
 
+    public int getIndex(int x, int y, int z) {
+        return x + ((ylast == y) ? ylasti : (ylasti = (ylast = y) * area)) + ((zlast == z) ? zlasti : (zlasti = (zlast = z) * width));
+    }
+
     @Override
     public BaseBlock getBlock(int x, int y, int z) {
-        int i = x + ((ylast == y) ? ylasti : (ylasti = ((ylast = y) >> 4) * area)) + ((zlast == z) ? zlasti : (zlasti = (zlast = z) * width));
-        byte[] idArray = ids[i];
-        if (idArray == null) {
+        int index = getIndex(x, y, z);
+        return getBlock(index);
+    }
+
+    public BaseBlock getBlock(int index) {
+        int id = getId(index);
+        if (id == 0) {
             return FaweCache.CACHE_BLOCK[0];
         }
-        int y2 = y & 0xF;
-        int id = idArray[y2] & 0xFF;
         BaseBlock block;
-        if (!FaweCache.hasData(id) || datas == null) {
-            block = FaweCache.CACHE_BLOCK[id << 4];
+        if (FaweCache.hasData(id)) {
+            block = FaweCache.getBlock(id, getData(index));
         } else {
-            byte[] dataArray = datas[i];
-            if (dataArray == null) {
-                block = FaweCache.CACHE_BLOCK[id << 4];
-            } else {
-                block = FaweCache.CACHE_BLOCK[(id << 4) + dataArray[y2]];
-            }
+            block = FaweCache.getBlock(id, 0);
         }
         if (FaweCache.hasNBT(id)) {
-            CompoundTag nbt = nbtMap.get(new IntegerTrio(x, y, z));
+            CompoundTag nbt = nbtMap.get(index);
             if (nbt != null) {
                 block = new BaseBlock(block.getId(), block.getData());
                 block.setNbtData(nbt);
@@ -80,244 +289,60 @@ public class MemoryOptimizedClipboard extends FaweClipboard {
 
     @Override
     public void forEach(final RunnableVal2<Vector,BaseBlock> task, boolean air) {
-        BlockVector pos = new BlockVector(0, 0, 0);
-        int y1max = ((height + 15) >>  4);
-        for (int x = 0; x < width; x++) {
-            int i1 = x;
+//        Fawe.debug("Compressed: " + size() + "b | Uncompressed: " + (volume << 0x5) + "b");
+        task.value1 = new Vector(0, 0, 0);
+        for (int y = 0, index = 0; y < height; y++) {
             for (int z = 0; z < length; z++) {
-                int i2 = i1 + z * width;
-                for (int y = 0; y < y1max; y++) {
-                    int y1 = y << 4;
-                    int i = i2 + y * area;
-                    byte[] idArray = ids[i];
-                    if (idArray == null) {
-                        if (!air) {
-                            continue;
-                        }
-                        for (int y2 = 0; y2 < height; y2++) {
-                            pos.x = x;
-                            pos.z = z;
-                            pos.y = y1 + y2;
-                            int yy = y1 + y2;
-                            if (yy >= height) {
-                                break;
-                            }
-                            task.run(pos, EditSession.nullBlock);
-                        }
+                for (int x = 0; x < width; x++, index++) {
+                    task.value2 = getBlock(index);
+                    if (!air && task.value2.getId() == 0) {
                         continue;
                     }
-                    for (int y2 = 0; y2 < idArray.length; y2++) {
-                        int yy = y1 + y2;
-                        if (yy >= height) {
-                            break;
-                        }
-                        int id = idArray[y2] & 0xFF;
-                        if (id == 0 && !air) {
-                            continue;
-                        }
-                        pos.x = x;
-                        pos.z = z;
-                        pos.y = y1 + y2;
-                        BaseBlock block;
-                        if (!FaweCache.hasData(id) || datas == null) {
-                            block = FaweCache.CACHE_BLOCK[id << 4];
-                        } else {
-                            byte[] dataArray = datas[i];
-                            if (dataArray == null) {
-                                block = FaweCache.CACHE_BLOCK[id << 4];
-                            } else {
-                                block = FaweCache.CACHE_BLOCK[(id << 4) + dataArray[y2]];
-                            }
-                        }
-                        if (FaweCache.hasNBT(id)) {
-                            CompoundTag nbt = nbtMap.get(new IntegerTrio((int) pos.x, (int) pos.y, (int) pos.z));
-                            if (nbt != null) {
-                                block = new BaseBlock(block.getId(), block.getData());
-                                block.setNbtData(nbt);
-                            }
-                        }
-                        task.run(pos, block);
-                    }
+                    task.value1.x = x;
+                    task.value1.y = y;
+                    task.value1.z = z;
+                    task.run();
                 }
             }
         }
     }
 
+    public int size() {
+        saveIds();
+        saveDatas();
+        int total = 0;
+        for (byte[] array : ids) {
+            if (array != null) {
+                total += array.length;
+            }
+        }
+        for (byte[] array : datas) {
+            if (array != null) {
+                total += array.length;
+            }
+        }
+        return total;
+    }
+
     @Override
     public boolean setTile(int x, int y, int z, CompoundTag tag) {
-        nbtMap.put(new IntegerTrio(x, y, z), tag);
+        nbtMap.put(getIndex(x, y, z), tag);
         return true;
     }
 
     @Override
     public boolean setBlock(int x, int y, int z, BaseBlock block) {
-        final int id = block.getId();
-        switch (id) {
-            case 0: {
-                int i = x + ((ylast == y) ? ylasti : (ylasti = ((ylast = y) >> 4) * area)) + ((zlast == z) ? zlasti : (zlasti = (zlast = z) * width));
-                byte[] idArray = ids[i];
-                if (idArray != null) {
-                    int y2 = y & 0xF;
-                    idArray[y2] = 0;
-                }
-                return true;
-            }
-            case 54:
-            case 130:
-            case 142:
-            case 27:
-            case 137:
-            case 52:
-            case 154:
-            case 84:
-            case 25:
-            case 144:
-            case 138:
-            case 176:
-            case 177:
-            case 63:
-            case 119:
-            case 68:
-            case 323:
-            case 117:
-            case 116:
-            case 28:
-            case 66:
-            case 157:
-            case 61:
-            case 62:
-            case 140:
-            case 146:
-            case 149:
-            case 150:
-            case 158:
-            case 23:
-            case 123:
-            case 124:
-            case 29:
-            case 33:
-            case 151:
-            case 178: {
-                if (block.hasNbtData()) {
-                    nbtMap.put(new IntegerTrio(x, y, z), block.getNbtData());
-                }
-                int i = x + ((ylast == y) ? ylasti : (ylasti = ((ylast = y) >> 4) * area)) + ((zlast == z) ? zlasti : (zlasti = (zlast = z) * width));
-                int y2 = y & 0xF;
-                byte[] idArray = ids[i];
-                if (idArray == null) {
-                    idArray = new byte[heights[ylast >> 4]];
-                    ids[i] = idArray;
-                }
-                idArray[y2] = (byte) id;
-                if (FaweCache.hasData(id)) {
-                    int data = block.getData();
-                    if (data == 0) {
-                        return true;
-                    }
-                    if (datas == null) {
-                        datas = new byte[area * ((height + 15) >> 4)][];
-                    }
-                    byte[] dataArray = datas[i];
-                    if (dataArray == null) {
-                        dataArray = datas[i] = new byte[heights[ylast >> 4]];
-                    }
-                    dataArray[y2] = (byte) data;
-                }
-                return true;
-            }
-            case 2:
-            case 4:
-            case 13:
-            case 14:
-            case 15:
-            case 20:
-            case 21:
-            case 22:
-            case 30:
-            case 32:
-            case 37:
-            case 39:
-            case 40:
-            case 41:
-            case 42:
-            case 45:
-            case 46:
-            case 47:
-            case 48:
-            case 49:
-            case 51:
-            case 56:
-            case 57:
-            case 58:
-            case 60:
-            case 7:
-            case 11:
-            case 73:
-            case 74:
-            case 79:
-            case 80:
-            case 81:
-            case 82:
-            case 83:
-            case 85:
-            case 87:
-            case 88:
-            case 101:
-            case 102:
-            case 103:
-            case 110:
-            case 112:
-            case 113:
-            case 121:
-            case 122:
-            case 129:
-            case 133:
-            case 165:
-            case 166:
-            case 169:
-            case 170:
-            case 172:
-            case 173:
-            case 174:
-            case 188:
-            case 189:
-            case 190:
-            case 191:
-            case 192: {
-                int i = x + ((ylast == y) ? ylasti : (ylasti = ((ylast = y) >> 4) * area)) + ((zlast == z) ? zlasti : (zlasti = (zlast = z) * width));
-                int y2 = y & 0xF;
-                byte[] idArray = ids[i];
-                if (idArray == null) {
-                    idArray = new byte[heights[ylast >> 4]];
-                    ids[i] = idArray;
-                }
-                idArray[y2] = (byte) id;
-                return true;
-            }
-            default: {
-                int i = x + ((ylast == y) ? ylasti : (ylasti = ((ylast = y) >> 4) * area)) + ((zlast == z) ? zlasti : (zlasti = (zlast = z) * width));
-                int y2 = y & 0xF;
-                byte[] idArray = ids[i];
-                if (idArray == null) {
-                    idArray = new byte[heights[ylast >> 4]];
-                    ids[i] = idArray;
-                }
-                idArray[y2] = (byte) id;
-                int data = block.getData();
-                if (data == 0) {
-                    return true;
-                }
-                if (datas == null) {
-                    datas = new byte[area * ((height + 15) >> 4)][];
-                }
-                byte[] dataArray = datas[i];
-                if (dataArray == null) {
-                    dataArray = datas[i] = new byte[heights[ylast >> 4]];
-                }
-                dataArray[y2] = (byte) data;
-                return true;
-            }
+        return setBlock(getIndex(x, y, z), block);
+    }
+
+    public boolean setBlock(int index, BaseBlock block) {
+        setId(index, (byte) block.getId());
+        setData(index, (byte) block.getData());
+        CompoundTag tile = block.getNbtData();
+        if (tile != null) {
+            nbtMap.put(index, tile);
         }
+        return true;
     }
 
     @Override

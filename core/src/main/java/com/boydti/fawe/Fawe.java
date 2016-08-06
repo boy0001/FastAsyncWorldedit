@@ -2,7 +2,6 @@ package com.boydti.fawe;
 
 import com.boydti.fawe.command.Cancel;
 import com.boydti.fawe.command.Reload;
-import com.boydti.fawe.command.Stream;
 import com.boydti.fawe.command.Wea;
 import com.boydti.fawe.command.WorldEditRegion;
 import com.boydti.fawe.config.BBC;
@@ -68,6 +67,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Stream;
 import javax.management.InstanceAlreadyExistsException;
 import javax.management.Notification;
 import javax.management.NotificationEmitter;
@@ -226,7 +226,6 @@ public class Fawe {
 
     private void setupCommands() {
         this.IMP.setupCommand("wea", new Wea());
-        this.IMP.setupCommand("stream", new Stream());
         this.IMP.setupCommand("select", new WorldEditRegion());
         this.IMP.setupCommand("fawe", new Reload());
         this.IMP.setupCommand("fcancel", new Cancel());

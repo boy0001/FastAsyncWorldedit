@@ -15,9 +15,6 @@ commands:
   fixlighting:
     description: (FAWE) Fix the lighting in your current chunk
     aliases: [/fixlighting]
-  stream:
-    description: (FAWE) Stream a schematic into the world
-    aliases: [/stream]
   fawe:
     description: (FAWE) Reload the plugin
     aliases: [/fawe,/fawereload]

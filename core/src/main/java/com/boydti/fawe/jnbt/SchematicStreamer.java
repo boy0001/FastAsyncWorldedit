@@ -1,7 +1,11 @@
 package com.boydti.fawe.jnbt;
 
+import com.boydti.fawe.config.Settings;
 import com.boydti.fawe.object.RunnableVal2;
+import com.boydti.fawe.object.clipboard.CPUOptimizedClipboard;
 import com.boydti.fawe.object.clipboard.DiskOptimizedClipboard;
+import com.boydti.fawe.object.clipboard.FaweClipboard;
+import com.boydti.fawe.object.clipboard.MemoryOptimizedClipboard;
 import com.sk89q.jnbt.CompoundTag;
 import com.sk89q.jnbt.ListTag;
 import com.sk89q.jnbt.NBTInputStream;
@@ -12,76 +16,19 @@ import com.sk89q.worldedit.extent.clipboard.Clipboard;
 import com.sk89q.worldedit.regions.CuboidRegion;
 import java.io.IOException;
 import java.util.UUID;
-import java.util.concurrent.atomic.AtomicInteger;
 
 public class SchematicStreamer extends NBTStreamer {
     private final UUID uuid;
 
-    public SchematicStreamer(NBTInputStream stream, UUID uuid) throws IOException {
+    public SchematicStreamer(NBTInputStream stream, UUID uuid) {
         super(stream);
         this.uuid = uuid;
-        addReader("Schematic.Height", new RunnableVal2<Integer, Short>() {
-            @Override
-            public void run(Integer index, Short value) {
-                height = (value);
-            }
-        });
-        addReader("Schematic.Width", new RunnableVal2<Integer, Short>() {
-            @Override
-            public void run(Integer index, Short value) {
-                width = (value);
-            }
-        });
-        addReader("Schematic.Length", new RunnableVal2<Integer, Short>() {
-            @Override
-            public void run(Integer index, Short value) {
-                length = (value);
-            }
-        });
-        final AtomicInteger originX = new AtomicInteger();
-        final AtomicInteger originY = new AtomicInteger();
-        final AtomicInteger originZ = new AtomicInteger();
-        addReader("Schematic.WEOriginX", new RunnableVal2<Integer, Integer>() {
-            @Override
-            public void run(Integer index, Integer value) {
-                originX.set(value);
-            }
-        });
-        addReader("Schematic.WEOriginY", new RunnableVal2<Integer, Integer>() {
-            @Override
-            public void run(Integer index, Integer value) {
-                originY.set(value);
-            }
-        });
-        addReader("Schematic.WEOriginZ", new RunnableVal2<Integer, Integer>() {
-            @Override
-            public void run(Integer index, Integer value) {
-                originZ.set(value);
-            }
-        });
-        final AtomicInteger offsetX = new AtomicInteger();
-        final AtomicInteger offsetY = new AtomicInteger();
-        final AtomicInteger offsetZ = new AtomicInteger();
-        addReader("Schematic.WEOffsetX", new RunnableVal2<Integer, Integer>() {
-            @Override
-            public void run(Integer index, Integer value) {
-                offsetX.set(value);
-            }
-        });
-        addReader("Schematic.WEOffsetY", new RunnableVal2<Integer, Integer>() {
-            @Override
-            public void run(Integer index, Integer value) {
-                offsetY.set(value);
-            }
-        });
-        addReader("Schematic.WEOffsetZ", new RunnableVal2<Integer, Integer>() {
-            @Override
-            public void run(Integer index, Integer value) {
-                offsetZ.set(value);
-            }
-        });
-        // Blocks
-        RunnableVal2<Integer, Integer> initializer = new RunnableVal2<Integer, Integer>() {
+        clipboard = new BlockArrayClipboard(new CuboidRegion(new Vector(0, 0, 0), new Vector(0, 0, 0)), fc);
+    }
+
+    public void addBlockReaders() {
+        final long start = System.currentTimeMillis();
+        NBTStreamReader initializer = new NBTStreamReader<Integer, Integer>() {
             @Override
             public void run(Integer length, Integer type) {
                 setupClipboard(length);
@@ -90,27 +37,25 @@ public class SchematicStreamer extends NBTStreamer {
         addReader("Schematic.Blocks.?", initializer);
         addReader("Schematic.Data.?", initializer);
         addReader("Schematic.AddBlocks.?", initializer);
-        addReader("Schematic.Blocks.#", new RunnableVal2<Integer, Byte>() {
-            int i;
+        addReader("Schematic.Blocks.#", new ByteReader() {
             @Override
-            public void run(Integer index, Byte value) {
-                fc.setId(i++, value);
+            public void run(int index, int value) {
+                fc.setId(index, value);
             }
         });
-        addReader("Schematic.Data.#", new RunnableVal2<Integer, Byte>() {
-            int i;
+        addReader("Schematic.Data.#", new ByteReader() {
             @Override
-            public void run(Integer index, Byte value) {
-                fc.setData(i++, value);
+            public void run(int index, int value) {
+                fc.setData(index, value);
             }
         });
-        addReader("Schematic.AddBlocks.#", new RunnableVal2<Integer, Byte>() {
-            int i;
+        addReader("Schematic.AddBlocks.#", new ByteReader() {
             @Override
-            public void run(Integer index, Byte value) {
-                fc.setAdd(i++, value);
+            public void run(int index, int value) {
+                fc.setAdd(index, value);
             }
         });
+
         // Tiles
         addReader("Schematic.TileEntities.#", new RunnableVal2<Integer, CompoundTag>() {
             @Override
@@ -141,35 +86,124 @@ public class SchematicStreamer extends NBTStreamer {
                 fc.createEntity(null, positionTag.asDouble(0), positionTag.asDouble(1), positionTag.asDouble(2), (float) directionTag.asDouble(0), (float) directionTag.asDouble(1), state);
             }
         });
-        readFully();
-        Vector min = new Vector(originX.get(), originY.get(), originZ.get());
-        Vector offset = new Vector(offsetX.get(), offsetY.get(), offsetZ.get());
-        Vector origin = min.subtract(offset);
-        Vector dimensions = new Vector(width, height, length);
-        fc.setDimensions(dimensions);
-        CuboidRegion region = new CuboidRegion(min, min.add(width, height, length).subtract(Vector.ONE));
-        clipboard = new BlockArrayClipboard(region, fc);
-        clipboard.setOrigin(origin);
+    }
+
+    public void addDimensionReaders() {
+        addReader("Schematic.Height", new RunnableVal2<Integer, Short>() {
+            @Override
+            public void run(Integer index, Short value) {
+                height = (value);
+            }
+        });
+        addReader("Schematic.Width", new RunnableVal2<Integer, Short>() {
+            @Override
+            public void run(Integer index, Short value) {
+                width = (value);
+            }
+        });
+        addReader("Schematic.Length", new RunnableVal2<Integer, Short>() {
+            @Override
+            public void run(Integer index, Short value) {
+                length = (value);
+            }
+        });
+        addReader("Schematic.WEOriginX", new RunnableVal2<Integer, Integer>() {
+            @Override
+            public void run(Integer index, Integer value) {
+                originX = (value);
+            }
+        });
+        addReader("Schematic.WEOriginY", new RunnableVal2<Integer, Integer>() {
+            @Override
+            public void run(Integer index, Integer value) {
+                originY = (value);
+            }
+        });
+        addReader("Schematic.WEOriginZ", new RunnableVal2<Integer, Integer>() {
+            @Override
+            public void run(Integer index, Integer value) {
+                originZ = (value);
+            }
+        });
+        addReader("Schematic.WEOffsetX", new RunnableVal2<Integer, Integer>() {
+            @Override
+            public void run(Integer index, Integer value) {
+                offsetX = (value);
+            }
+        });
+        addReader("Schematic.WEOffsetY", new RunnableVal2<Integer, Integer>() {
+            @Override
+            public void run(Integer index, Integer value) {
+                offsetY = (value);
+            }
+        });
+        addReader("Schematic.WEOffsetZ", new RunnableVal2<Integer, Integer>() {
+            @Override
+            public void run(Integer index, Integer value) {
+                offsetZ = (value);
+            }
+        });
     }
 
     private int height;
     private int width;
     private int length;
 
-    private Clipboard clipboard;
-    private DiskOptimizedClipboard fc;
+    private int originX;
+    private int originY;
+    private int originZ;
 
-    private DiskOptimizedClipboard setupClipboard(int size) {
+    private int offsetX;
+    private int offsetY;
+    private int offsetZ;
+
+    private BlockArrayClipboard clipboard;
+    private FaweClipboard fc;
+
+    private FaweClipboard setupClipboard(int size) {
         if (fc != null) {
             if (fc.getDimensions().getX() == 0) {
                 fc.setDimensions(new Vector(size, 1, 1));
             }
             return fc;
         }
-        return fc = new DiskOptimizedClipboard(size, 1, 1, uuid);
+        if (Settings.CLIPBOARD.USE_DISK) {
+            return fc = new DiskOptimizedClipboard(size, 1, 1, uuid);
+        } else if (Settings.CLIPBOARD.COMPRESSION_LEVEL == 0) {
+            return fc = new CPUOptimizedClipboard(size, 1, 1);
+        } else {
+            return fc = new MemoryOptimizedClipboard(size, 1, 1);
+        }
     }
 
-    public Clipboard getClipboard() {
+    public Vector getOrigin() {
+        return new Vector(originX, originY, originZ);
+    }
+
+    public Vector getOffset() {
+        return new Vector(offsetX, offsetY, offsetZ);
+    }
+
+    public Vector getDimensions() {
+        return new Vector(width, height, length);
+    }
+
+    public void setClipboard(FaweClipboard clipboard) {
+        this.fc = clipboard;
+    }
+
+    public Clipboard getClipboard() throws IOException {
+        addDimensionReaders();
+        addBlockReaders();
+        readFully();
+        Vector min = new Vector(originX, originY, originZ);
+        Vector offset = new Vector(offsetX, offsetY, offsetZ);
+        Vector origin = min.subtract(offset);
+        Vector dimensions = new Vector(width, height, length);
+        fc.setDimensions(dimensions);
+        CuboidRegion region = new CuboidRegion(min, min.add(width, height, length).subtract(Vector.ONE));
+        clipboard.init(region, fc);
+        clipboard.setOrigin(origin);
         return clipboard;
     }
 }

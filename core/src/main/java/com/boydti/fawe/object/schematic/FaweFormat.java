@@ -93,7 +93,7 @@ public class FaweFormat implements ClipboardReader, ClipboardWriter {
                 from = true;
             case 2:
                 small = false;
-            case 1: {
+            case 1: { // Unknown size
                 ox = in.readInt();
                 oz = in.readInt();
                 FaweOutputStream tmp = new FaweOutputStream(new ByteArrayOutputStream(Settings.HISTORY.BUFFER_SIZE));

@@ -1,6 +1,6 @@
 package com.boydti.fawe.object.schematic;
 
-import com.boydti.fawe.object.clipboard.LazyClipboard;
+import com.boydti.fawe.object.clipboard.ReadOnlyClipboard;
 import com.boydti.fawe.util.EditSessionBuilder;
 import com.sk89q.worldedit.EditSession;
 import com.sk89q.worldedit.MaxChangedBlocksException;
@@ -42,7 +42,7 @@ public class Schematic {
         checkNotNull(region);
         checkNotNull(region.getWorld());
         EditSession session = new EditSessionBuilder(region.getWorld()).allowedRegionsEverywhere().autoQueue(false).build();
-        this.clipboard = new BlockArrayClipboard(region, LazyClipboard.of(session, region));
+        this.clipboard = new BlockArrayClipboard(region, ReadOnlyClipboard.of(session, region));
     }
 
     /**

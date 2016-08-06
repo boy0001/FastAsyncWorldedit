@@ -19,6 +19,12 @@ public abstract class FaweClipboard {
 
     public abstract boolean setBlock(int x, int y, int z, BaseBlock block);
 
+    public abstract void setId(int index, int id);
+
+    public abstract void setData(int index, int data);
+
+    public abstract void setAdd(int index, int id);
+
     public abstract boolean setTile(int x, int y, int z, CompoundTag tag);
 
     public abstract Entity createEntity(Extent world, double x, double y, double z, float yaw, float pitch, BaseEntity entity);
@@ -28,6 +34,10 @@ public abstract class FaweClipboard {
     public abstract boolean remove(ClipboardEntity clipboardEntity);
 
     public void setOrigin(Vector offset) {} // Do nothing
+
+    public abstract void setDimensions(Vector dimensions);
+
+    public abstract Vector getDimensions();
 
     /**
      * The locations provided are relative to the clipboard min

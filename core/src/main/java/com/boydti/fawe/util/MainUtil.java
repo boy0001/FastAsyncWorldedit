@@ -39,6 +39,7 @@ import java.net.URL;
 import java.net.URLConnection;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Paths;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -47,9 +48,12 @@ import java.util.zip.GZIPInputStream;
 import java.util.zip.GZIPOutputStream;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
+import net.jpountz.lz4.LZ4Compressor;
 import net.jpountz.lz4.LZ4Factory;
+import net.jpountz.lz4.LZ4FastDecompressor;
 import net.jpountz.lz4.LZ4InputStream;
 import net.jpountz.lz4.LZ4OutputStream;
+import net.jpountz.lz4.LZ4Utils;
 
 public class MainUtil {
     /*
@@ -102,37 +106,78 @@ public class MainUtil {
     }
 
     public static FaweOutputStream getCompressedOS(OutputStream os, int amount) throws IOException {
+        return getCompressedOS(os, amount, Settings.HISTORY.BUFFER_SIZE);
+    }
+
+    private static final LZ4Factory FACTORY = LZ4Factory.fastestInstance();
+    private static final LZ4Compressor COMPRESSOR = FACTORY.fastCompressor();
+    private static final LZ4FastDecompressor DECOMPRESSOR = FACTORY.fastDecompressor();
+
+    public static int getMaxCompressedLength(int size) {
+        return LZ4Utils.maxCompressedLength(size);
+    }
+
+    public static byte[] compress(byte[] bytes, byte[] buffer, int level) {
+        if (level == 0) {
+            return bytes;
+        }
+        LZ4Compressor compressor = level == 1 ? COMPRESSOR : FACTORY.highCompressor(level);
+        int decompressedLength = bytes.length;
+        if (buffer == null) {
+            int maxCompressedLength = compressor.maxCompressedLength(decompressedLength);
+            buffer = new byte[maxCompressedLength];
+        }
+        int compressLen = compressor.compress(bytes, 0, decompressedLength, buffer, 0, buffer.length);
+        return Arrays.copyOf(buffer, compressLen);
+    }
+
+    public static byte[] decompress(byte[] bytes, byte[] buffer, int length, int level) {
+        if (level == 0) {
+            return bytes;
+        }
+        if (buffer == null) {
+            buffer = new byte[length];
+        }
+        DECOMPRESSOR.decompress(bytes, buffer);
+        return buffer;
+    }
+
+    public static FaweOutputStream getCompressedOS(OutputStream os, int amount, int buffer) throws IOException {
         os.write((byte) amount);
-        os = new BufferedOutputStream(os, Settings.HISTORY.BUFFER_SIZE);
+        os = new BufferedOutputStream(os, buffer);
         if (amount == 0) {
             return new FaweOutputStream(os);
         }
         int gzipAmount = amount > 6 ? 1 : 0;
         for (int i = 0; i < gzipAmount; i++) {
-            os = new GZIPOutputStream(os, true);
+            os = new BufferedOutputStream(new GZIPOutputStream(os, buffer, true));
         }
         LZ4Factory factory = LZ4Factory.fastestInstance();
         int fastAmount = 1 + ((amount - 1) % 3);
         for (int i = 0; i < fastAmount; i++) {
-            os = new LZ4OutputStream(os, Settings.HISTORY.BUFFER_SIZE, factory.fastCompressor());
+            os = new LZ4OutputStream(os, buffer, factory.fastCompressor());
         }
         int highAmount = amount > 3 ? 1 : 0;
         for (int i = 0; i < highAmount; i++) {
-            os = new LZ4OutputStream(os, Settings.HISTORY.BUFFER_SIZE, factory.highCompressor());
+            os = new LZ4OutputStream(os, buffer, factory.highCompressor());
         }
         return new FaweOutputStream(os);
     }
 
     public static FaweInputStream getCompressedIS(InputStream is) throws IOException {
+        return getCompressedIS(is, Settings.HISTORY.BUFFER_SIZE);
+    }
+
+    public static FaweInputStream getCompressedIS(InputStream is, int buffer) throws IOException {
         int amount = is.read();
-        is = new BufferedInputStream(is, Settings.HISTORY.BUFFER_SIZE);
+        is = new BufferedInputStream(is, buffer);
         if (amount == 0) {
             return new FaweInputStream(is);
         }
         LZ4Factory factory = LZ4Factory.fastestInstance();
         boolean gzip = amount > 6;
         if (gzip) {
-            is = new GZIPInputStream(is);
+            is = new BufferedInputStream(new GZIPInputStream(is, buffer));
         }
         amount = (1 + ((amount - 1) % 3)) + (amount > 3 ? 1 : 0);
         for (int i = 0; i < amount; i++) {

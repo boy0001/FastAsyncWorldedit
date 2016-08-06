@@ -201,8 +201,17 @@ public class Settings extends Config {
     }
 
     public static class CLIPBOARD {
+        @Comment("Store the clipboard on disk instead of memory")
         public static boolean USE_DISK = false;
-
+        @Comment({
+                "Compress the clipboard to reduce the size:",
+                " - TODO: Buffered random access with compression is not implemented on disk yet",
+                " - 0 = No compression",
+                " - 1 = Fast compression",
+                " - 2-17 = Slower compression"
+        })
+        public static int COMPRESSION_LEVEL = 1;
+        @Comment("Number of days to keep history on disk before deleting it")
         public static int DELETE_AFTER_DAYS = 1;
     }
 

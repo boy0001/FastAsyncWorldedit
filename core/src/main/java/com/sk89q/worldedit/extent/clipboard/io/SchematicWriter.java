@@ -145,7 +145,7 @@ public class SchematicWriter implements ClipboardWriter {
         schematic.put("WEOffsetZ", new IntTag(offset.getBlockZ()));
 
         final byte[] blocks = new byte[width * height * length];
-        byte[] addBlocks = null;
+        byte[] addBlocks;
         final byte[] blockData = new byte[width * height * length];
         final List<Tag> tileEntities = new ArrayList<Tag>();
         // Precalculate index vars

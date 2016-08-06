@@ -76,6 +76,7 @@ public class DiskOptimizedClipboard extends FaweClipboard implements Closeable {
         autoCloseTask();
     }
 
+    @Override
     public Vector getDimensions() {
         return new Vector(width, height, length);
     }
@@ -141,6 +142,7 @@ public class DiskOptimizedClipboard extends FaweClipboard implements Closeable {
         }
     }
 
+    @Override
     public void setDimensions(Vector dimensions) {
         try {
             if (raf == null) {
@@ -331,7 +333,8 @@ public class DiskOptimizedClipboard extends FaweClipboard implements Closeable {
         return false;
     }
 
-    public boolean setId(int i, int id) {
+    @Override
+    public void setId(int i, int id) {
         try {
             if (raf == null) {
                 open();
@@ -344,14 +347,12 @@ public class DiskOptimizedClipboard extends FaweClipboard implements Closeable {
             int combined = FaweCache.getData(raf.readChar()) + (id << 4);
             raf.seekUnsafe(raf.getFilePointer() - 2);
             raf.writeChar(combined);
-            return true;
         }  catch (Exception e) {
             MainUtil.handleError(e);
         }
-        return false;
     }
 
-    public boolean setCombined(int i, int combined) {
+    public void setCombined(int i, int combined) {
         try {
             if (raf == null) {
                 open();
@@ -362,14 +363,13 @@ public class DiskOptimizedClipboard extends FaweClipboard implements Closeable {
             }
             last = i;
             raf.writeChar(combined);
-            return true;
         }  catch (Exception e) {
             MainUtil.handleError(e);
         }
-        return false;
     }
 
-    public boolean setAdd(int i, int add) {
+    @Override
+    public void setAdd(int i, int add) {
         try {
             if (raf == null) {
                 open();
@@ -382,31 +382,13 @@ public class DiskOptimizedClipboard extends FaweClipboard implements Closeable {
             int combined = raf.readChar() + (add << 4);
             raf.seekUnsafe(raf.getFilePointer() - 2);
             raf.writeChar(combined);
-            return true;
         }  catch (Exception e) {
             MainUtil.handleError(e);
         }
-        return false;
     }
 
-    public int getCombined(int i) {
-        try {
-            if (raf == null) {
-                open();
-            }
-            if (i != last + 1) {
-                raf.seek((HEADER_SIZE) + (i << 1));
-                lastAccessed = System.currentTimeMillis();
-            }
-            last = i;
-            return raf.readChar();
-        }  catch (Exception e) {
-            MainUtil.handleError(e);
-        }
-        return 0;
-    }
-
-    public boolean setData(int i, int data) {
+    @Override
+    public void setData(int i, int data) {
         try {
             if (raf == null) {
                 open();
@@ -419,11 +401,9 @@ public class DiskOptimizedClipboard extends FaweClipboard implements Closeable {
             int combined = (FaweCache.getId(raf.readChar()) << 4) + data;
             raf.seekUnsafe(raf.getFilePointer() - 2);
             raf.writeChar(combined);
-            return true;
         }  catch (Exception e) {
             MainUtil.handleError(e);
         }
-        return false;
     }
 
     @Override

@@ -29,6 +29,8 @@ import com.boydti.fawe.util.MainUtil;
 import com.sk89q.jnbt.NBTConstants;
 import com.sk89q.jnbt.NBTInputStream;
 import com.sk89q.jnbt.NBTOutputStream;
+import java.io.BufferedInputStream;
+import java.io.BufferedOutputStream;
 import java.io.DataInputStream;
 import java.io.File;
 import java.io.FileInputStream;
@@ -60,19 +62,21 @@ public enum ClipboardFormat {
     SCHEMATIC("mcedit", "mce", "schematic") {
         @Override
         public ClipboardReader getReader(InputStream inputStream) throws IOException {
-            NBTInputStream nbtStream = new NBTInputStream(new GZIPInputStream(inputStream));
+            inputStream = new BufferedInputStream(inputStream);
+            NBTInputStream nbtStream = new NBTInputStream(new BufferedInputStream(new GZIPInputStream(inputStream)));
             return new SchematicReader(nbtStream);
         }
 
         @Override
         public ClipboardWriter getWriter(OutputStream outputStream) throws IOException {
+            outputStream = new BufferedOutputStream(outputStream);
             GZIPOutputStream gzip;
             if (outputStream instanceof GZIPOutputStream) {
                 gzip = (GZIPOutputStream) outputStream;
             } else {
                 gzip = new GZIPOutputStream(outputStream, true);
             }
-            NBTOutputStream nbtStream = new NBTOutputStream(gzip);
+            NBTOutputStream nbtStream = new NBTOutputStream(new BufferedOutputStream(gzip));
             return new SchematicWriter(nbtStream);
         }
 
@@ -112,19 +116,21 @@ public enum ClipboardFormat {
     STRUCTURE("structure", "nbt") {
         @Override
         public ClipboardReader getReader(InputStream inputStream) throws IOException {
-            NBTInputStream nbtStream = new NBTInputStream(new GZIPInputStream(inputStream));
+            inputStream = new BufferedInputStream(inputStream);
+            NBTInputStream nbtStream = new NBTInputStream(new BufferedInputStream(new GZIPInputStream(inputStream)));
             return new StructureFormat(nbtStream);
         }
 
         @Override
         public ClipboardWriter getWriter(OutputStream outputStream) throws IOException {
+            outputStream = new BufferedOutputStream(outputStream);
             GZIPOutputStream gzip;
             if (outputStream instanceof GZIPOutputStream) {
                 gzip = (GZIPOutputStream) outputStream;
             } else {
                 gzip = new GZIPOutputStream(outputStream, true);
             }
-            NBTOutputStream nbtStream = new NBTOutputStream(gzip);
+            NBTOutputStream nbtStream = new NBTOutputStream(new BufferedOutputStream(gzip));
             return new StructureFormat(nbtStream);
         }
 
@@ -139,6 +145,9 @@ public enum ClipboardFormat {
         }
     },
 
+    /**
+     * Isometric PNG writer
+     */
     PNG("png", "image") {
         @Override
         public ClipboardReader getReader(InputStream inputStream) throws IOException {
@@ -147,7 +156,7 @@ public enum ClipboardFormat {
 
         @Override
         public ClipboardWriter getWriter(OutputStream outputStream) throws IOException {
-            return new PNGWriter(outputStream);
+            return new PNGWriter(new BufferedOutputStream(outputStream));
         }
 
         @Override

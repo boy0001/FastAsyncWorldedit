@@ -19,6 +19,7 @@
 
 package com.sk89q.jnbt;
 
+import com.boydti.fawe.jnbt.NBTStreamer;
 import com.boydti.fawe.object.RunnableVal2;
 import java.io.Closeable;
 import java.io.DataInputStream;
@@ -135,8 +136,15 @@ public final class NBTInputStream implements Closeable {
                     is.skip(length);
                     return;
                 }
-                for (int i = 0; i < length; i++) {
-                    reader.run(i, is.readByte());
+                if (reader instanceof NBTStreamer.ByteReader) {
+                    NBTStreamer.ByteReader byteReader = (NBTStreamer.ByteReader) reader;
+                    for (int i = 0; i < length; i++) {
+                        byteReader.run(i, is.read());
+                    }
+                } else {
+                    for (int i = 0; i < length; i++) {
+                        reader.run(i, is.readByte());
+                    }
                 }
                 return;
             case NBTConstants.TYPE_LIST:

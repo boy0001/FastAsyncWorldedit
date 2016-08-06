@@ -12,9 +12,6 @@ commands:
     description: (FAWE) Bypass WorldEdit processing and area restrictions
     aliases: [weanywhere,worldeditanywhere,/wea,/weanywhere,/worldeditanywhere]
     usage: "Vault is required for the toggle. Optionally, you can set the permission fawe.bypass"
-  stream:
-    description: (FAWE) Stream a schematic into the world
-    aliases: [/stream]
   fawe:
     description: (FAWE) Reload the plugin
     aliases: [/fawe,/fawereload]

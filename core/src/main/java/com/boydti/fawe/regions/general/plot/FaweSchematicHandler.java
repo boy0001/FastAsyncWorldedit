@@ -3,7 +3,7 @@ package com.boydti.fawe.regions.general.plot;
 import com.boydti.fawe.FaweCache;
 import com.boydti.fawe.object.FaweQueue;
 import com.boydti.fawe.object.RunnableVal2;
-import com.boydti.fawe.object.clipboard.LazyClipboard;
+import com.boydti.fawe.object.clipboard.ReadOnlyClipboard;
 import com.boydti.fawe.util.EditSessionBuilder;
 import com.boydti.fawe.util.SetQueue;
 import com.boydti.fawe.util.TaskManager;
@@ -65,7 +65,7 @@ public class FaweSchematicHandler extends SchematicHandler {
                 final int my = pos1.getY();
                 final int mz = pos1.getZ();
 
-                LazyClipboard clipboard = new LazyClipboard(region) {
+                ReadOnlyClipboard clipboard = new ReadOnlyClipboard(region) {
                     @Override
                     public BaseBlock getBlock(int x, int y, int z) {
                         return editSession.getLazyBlock(mx + x, my + y, mz + z);

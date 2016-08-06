@@ -50,20 +50,12 @@ import static com.google.common.base.Preconditions.checkNotNull;
  */
 public class BlockArrayClipboard implements Clipboard {
 
-    private final Region region;
-
+    private Region region;
     public FaweClipboard IMP;
-
-    private final Vector size;
-
-
+    private Vector size;
     private int mx;
     private int my;
     private int mz;
-
-    private int dx;
-    private int dxz;
-
     private Vector origin;
 
     public BlockArrayClipboard(Region region) {
@@ -99,7 +91,19 @@ public class BlockArrayClipboard implements Clipboard {
         checkNotNull(region);
         this.region = region.clone();
         this.size = getDimensions();
+        this.origin = region.getMinimumPoint();
+        this.mx = origin.getBlockX();
+        this.my = origin.getBlockY();
+        this.mz = origin.getBlockZ();
         this.IMP = clipboard;
+    }
+
+    public void init(Region region, FaweClipboard fc) {
+        checkNotNull(region);
+        checkNotNull(fc);
+        this.region = region.clone();
+        this.size = getDimensions();
+        this.IMP = fc;
         this.origin = region.getMinimumPoint();
         this.mx = origin.getBlockX();
         this.my = origin.getBlockY();

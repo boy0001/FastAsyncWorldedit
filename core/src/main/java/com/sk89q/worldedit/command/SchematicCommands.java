@@ -46,8 +46,6 @@ import com.sk89q.worldedit.util.command.parametric.Optional;
 import com.sk89q.worldedit.util.io.file.FilenameException;
 import com.sk89q.worldedit.util.io.file.FilenameResolutionException;
 import com.sk89q.worldedit.world.registry.WorldData;
-import java.io.BufferedInputStream;
-import java.io.BufferedOutputStream;
 import java.io.File;
 import java.io.FileFilter;
 import java.io.FileInputStream;
@@ -116,7 +114,6 @@ public class SchematicCommands {
                 }
                 in = new FileInputStream(f);
             }
-            in = new BufferedInputStream(in);
             final ClipboardReader reader = format.getReader(in);
             final WorldData worldData = player.getWorld().getWorldData();
             final Clipboard clipboard;
@@ -183,16 +180,14 @@ public class SchematicCommands {
                     target = clipboard;
                 }
 
-                try (BufferedOutputStream bos = new BufferedOutputStream(fos)) {
-                    try (ClipboardWriter writer = format.getWriter(bos)) {
-                        if (writer instanceof StructureFormat) {
-                            ((StructureFormat) writer).write(target, holder.getWorldData(), player.getName());
-                        } else {
-                            writer.write(target, holder.getWorldData());
-                        }
-                        log.info(player.getName() + " saved " + f.getCanonicalPath());
-                        BBC.SCHEMATIC_SAVED.send(player, filename);
+                try (ClipboardWriter writer = format.getWriter(fos)) {
+                    if (writer instanceof StructureFormat) {
+                        ((StructureFormat) writer).write(target, holder.getWorldData(), player.getName());
+                    } else {
+                        writer.write(target, holder.getWorldData());
                     }
+                    log.info(player.getName() + " saved " + f.getCanonicalPath());
+                    BBC.SCHEMATIC_SAVED.send(player, filename);
                 }
             }
         } catch (IllegalArgumentException  e) {
