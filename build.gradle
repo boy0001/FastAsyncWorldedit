@@ -20,6 +20,11 @@ ext {
     git = org.ajoberstar.grgit.Grgit.open(file(".git"))
     revision = "-${git.head().abbreviatedId}"
 }
+
+if ( project.hasProperty("lzNoGitHash") ) { // gradle build -PlzNoGitHash
+    revision = "";
+}
+
 version = "3.5.1${revision}"
 description = """FastAsyncWorldEdit"""
 
