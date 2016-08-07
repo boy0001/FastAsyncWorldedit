@@ -170,9 +170,6 @@ public class BukkitQueue_1_9_R1 extends BukkitQueue_0<Chunk, ChunkSection[], Chu
                 }
             }
         }
-        for (EntityPlayer player : players) {
-            player.playerConnection.networkManager.a();
-        }
         // Send chunks
         PacketPlayOutMapChunk packet = new PacketPlayOutMapChunk(playerChunk.chunk, 65535);
         for (EntityPlayer player : players) {
