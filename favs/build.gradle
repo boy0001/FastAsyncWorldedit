@@ -13,16 +13,5 @@ processResources {
     }
 }
 
-apply plugin: 'com.github.johnrengelman.shadow'
-// We only want the shadow jar produced
-jar.enabled = false
-shadowJar {
-    archiveName = "FastAsyncVoxelSniper-${project.name}-${parent.version}.jar"
-    destinationDir = file '../target'
-}
-shadowJar.doLast {
-    task ->
-        ant.checksum file: task.archivePath
-}
-
-build.dependsOn(shadowJar);
+jar.destinationDir = file '../target'
+jar.archiveName = "${parent.name}-${project.name}-${parent.version}.jar"
