@@ -30,7 +30,7 @@ public abstract class ABukkitMain extends JavaPlugin {
                         if (!plugin.getName().startsWith("AsyncWorldEdit")) {
                             return super.add(plugin);
                         } else {
-                            Fawe.debug("[FAWE] Disabling `" + plugin.getName() + "` as it is incompatible");
+                            Fawe.debug("Disabling `" + plugin.getName() + "` as it is incompatible");
                         }
                         return false;
                     }

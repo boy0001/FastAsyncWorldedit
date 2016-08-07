@@ -156,7 +156,8 @@ public class Fawe {
      * Write something to the console
      * @param s
      */
-    public static void debug(final Object s) {
+    public static void debug(Object s) {
+        s = BBC.getPrefix() + s;
         if (INSTANCE != null) {
             INSTANCE.IMP.debug(StringMan.getString(s));
         } else {
