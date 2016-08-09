@@ -22,6 +22,7 @@ public abstract class CharFaweChunk<T> extends FaweChunk<T> {
     public short[] air;
     public short[] relight;
     public int[][] biomes;
+    private int bitMask = -1;
 
     public T chunk;
 
@@ -101,6 +102,23 @@ public abstract class CharFaweChunk<T> extends FaweChunk<T> {
             total += this.relight[i];
         }
         return total;
+    }
+
+    @Override
+    public int getBitMask() {
+        if (bitMask == -1) {
+            this.bitMask = 0;
+            for (int section = 0; section < ids.length; section++) {
+                if (ids[section] != null) {
+                    bitMask += 1 << section;
+                }
+            }
+        }
+        return bitMask;
+    }
+
+    public void setBitMask(int value) {
+        this.bitMask = value;
     }
 
     /**

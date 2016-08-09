@@ -93,6 +93,12 @@ public abstract class FaweChunk<T> {
     public abstract char[][] getCombinedIdArrays();
 
     /**
+     * The modified sections
+     * @return
+     */
+    public abstract int getBitMask();
+
+    /**
      * Get the combined block id at a location<br>
      * combined = (id <<<< 4) + data
      * @param x

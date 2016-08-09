@@ -10,7 +10,6 @@ import com.boydti.fawe.object.RunnableVal;
 import com.boydti.fawe.util.MainUtil;
 import com.boydti.fawe.util.MathMan;
 import com.boydti.fawe.util.ReflectionUtils;
-import com.boydti.fawe.util.TaskManager;
 import com.sk89q.jnbt.CompoundTag;
 import com.sk89q.jnbt.ListTag;
 import com.sk89q.jnbt.StringTag;
@@ -18,6 +17,7 @@ import com.sk89q.jnbt.Tag;
 import java.io.File;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
+import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -31,20 +31,16 @@ import net.minecraft.block.Block;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityList;
-import net.minecraft.entity.EntityTracker;
-import net.minecraft.entity.EntityTrackerEntry;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.init.Blocks;
 import net.minecraft.nbt.NBTBase;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.network.play.server.SPacketChunkData;
-import net.minecraft.network.play.server.SPacketDestroyEntities;
 import net.minecraft.server.management.PlayerChunkMap;
 import net.minecraft.server.management.PlayerChunkMapEntry;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.ClassInheritanceMultiMap;
-import net.minecraft.util.IntHashMap;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.ChunkPos;
 import net.minecraft.world.EnumSkyBlock;
@@ -513,7 +509,9 @@ public class ForgeQueue_All extends NMSMappedFaweQueue<World, Chunk, ExtendedBlo
     }
 
     @Override
-    public void refreshChunk(World world, net.minecraft.world.chunk.Chunk nmsChunk) {
+    public void refreshChunk(FaweChunk fc) {
+        ForgeChunk_All fs = (ForgeChunk_All) fc;
+        Chunk nmsChunk = fs.getChunk();
         if (!nmsChunk.isLoaded()) {
             return;
         }
@@ -523,73 +521,41 @@ public class ForgeQueue_All extends NMSMappedFaweQueue<World, Chunk, ExtendedBlo
             PlayerChunkMap chunkMap = w.getPlayerChunkMap();
             int x = pos.chunkXPos;
             int z = pos.chunkZPos;
-            if (!chunkMap.contains(x, z)) {
+            PlayerChunkMapEntry chunkMapEntry = chunkMap.getEntry(x, z);
+            if (chunkMapEntry == null) {
                 return;
             }
-            EntityTracker tracker = w.getEntityTracker();
-            HashSet<EntityPlayerMP> players = new HashSet<>();
-            for (EntityPlayer player : w.playerEntities) {
-                if (player instanceof EntityPlayerMP) {
-                    if (chunkMap.isPlayerWatchingChunk((EntityPlayerMP) player, x, z)) {
-                        players.add((EntityPlayerMP) player);
-                    }
+            final ArrayDeque<EntityPlayerMP> players = new ArrayDeque<>();
+            chunkMapEntry.hasPlayerMatching(input -> {
+                players.add(input);
+                return false;
+            });
+            int mask = fc.getBitMask();
+            if (mask == 65535 && hasEntities(nmsChunk)) {
+                SPacketChunkData packet = new SPacketChunkData(nmsChunk, 65280);
+                for (EntityPlayerMP player : players) {
+                    player.connection.sendPacket(packet);
                 }
+                mask = 255;
             }
-            if (players.size() == 0) {
-                return;
-            }
-            HashSet<EntityTrackerEntry> entities = new HashSet<>();
-            ClassInheritanceMultiMap<Entity>[] entitieSlices = nmsChunk.getEntityLists();
-            IntHashMap<EntityTrackerEntry> entries = null;
-            for (Field field : tracker.getClass().getDeclaredFields()) {
-                if (field.getType() == IntHashMap.class) {
-                    field.setAccessible(true);
-                    entries = (IntHashMap<EntityTrackerEntry>) field.get(tracker);
-                    break;
-                }
-            }
-            for (ClassInheritanceMultiMap<Entity> slice : entitieSlices) {
-                if (slice == null) {
-                    continue;
-                }
-                for (Entity ent : slice) {
-                    EntityTrackerEntry entry = entries != null ? entries.lookup(ent.getEntityId()) : null;
-                    if (entry == null) {
-                        continue;
-                    }
-                    entities.add(entry);
-                    SPacketDestroyEntities packet = new SPacketDestroyEntities(ent.getEntityId());
-                    for (EntityPlayerMP player : players) {
-                        player.connection.sendPacket(packet);
-                    }
-                }
-            }
-            // Send chunks
-            SPacketChunkData packet = new SPacketChunkData(nmsChunk, 65535);
+            SPacketChunkData packet = new SPacketChunkData(nmsChunk, mask);
             for (EntityPlayerMP player : players) {
                 player.connection.sendPacket(packet);
-            }
-            // send ents
-            for (EntityTrackerEntry entry : entities) {
-                try {
-                    TaskManager.IMP.later(new Runnable() {
-                        @Override
-                        public void run() {
-                            for (EntityPlayerMP player : players) {
-                                boolean result = entry.trackingPlayers.remove(player);
-                                if (result && entry.getTrackedEntity() != player) {
-                                    entry.updatePlayerEntity(player);
-                                }
-                            }
-                        }
-                    }, 2);
-                } catch (Throwable e) {
-                    MainUtil.handleError(e);
-                }
             }
         } catch (Throwable e) {
             MainUtil.handleError(e);
         }
+    }
+
+    public boolean hasEntities(Chunk nmsChunk) {
+        ClassInheritanceMultiMap<Entity>[] entities = nmsChunk.getEntityLists();
+        for (int i = 0; i < entities.length; i++) {
+            ClassInheritanceMultiMap<Entity> slice = entities[i];
+            if (slice != null && !slice.isEmpty()) {
+                return true;
+            }
+        }
+        return false;
     }
 
     @Override

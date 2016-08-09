@@ -37,6 +37,13 @@ public class Settings extends Config {
     })
     public static int MAX_MEMORY_PERCENT = 95;
 
+    @Comment("Paths for various directories")
+    public static final class PATHS {
+        public static String HISTORY = "history";
+        public static String CLIPBOARD = "clipboard";
+    }
+
+
     @Create // This value will be generated automatically
     public static ConfigBlock<LIMITS> LIMITS = null;
 
@@ -129,7 +136,8 @@ public class Settings extends Config {
         public static int CHUNK_WAIT_MS = 100;
         @Comment("Delete history on disk after a number of days")
         public static int DELETE_AFTER_DAYS = 7;
-        @Comment("Delete history in memory on logout (does not effect disk)")
+        @Comment("Delete history in memory on logout (does not effect disk) (BROKEN, USE DISK INSTEAD)")
+        @Final // Deprecated
         public static boolean DELETE_ON_LOGOUT = true;
         @Comment({
                 "If history should be enabled by default for plugins using WorldEdit:",
@@ -227,7 +235,7 @@ public class Settings extends Config {
                 " - 1 = Optimal (Relight changed light sources and changed blocks)",
                 " - 2 = All (Slowly relight every blocks)"
         })
-        public static int MODE = 2;
+        public static int MODE = 1;
     }
 
     public static void save(File file) {

@@ -100,7 +100,15 @@ public class NMSRelighter {
     public void sendChunks() {
         for (Map.Entry<Long, RelightSkyEntry> entry : skyToRelight.entrySet()) {
             RelightSkyEntry chunk = entry.getValue();
-            queue.sendChunk(queue.getFaweChunk(chunk.x, chunk.z));
+            CharFaweChunk fc = (CharFaweChunk) queue.getFaweChunk(chunk.x, chunk.z);
+            int mask = 0;
+            for (int y = 0; y < chunk.fix.length; y++) {
+                if (chunk.fix[y]) {
+                    mask += 1 << y;
+                }
+            }
+            fc.setBitMask(mask);
+            queue.sendChunk(fc);
         }
 
     }

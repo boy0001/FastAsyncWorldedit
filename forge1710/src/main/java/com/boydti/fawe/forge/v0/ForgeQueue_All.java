@@ -11,7 +11,6 @@ import com.boydti.fawe.object.RunnableVal;
 import com.boydti.fawe.util.MainUtil;
 import com.boydti.fawe.util.MathMan;
 import com.boydti.fawe.util.ReflectionUtils;
-import com.boydti.fawe.util.TaskManager;
 import com.sk89q.jnbt.CompoundTag;
 import com.sk89q.jnbt.ListTag;
 import com.sk89q.jnbt.StringTag;
@@ -31,17 +30,13 @@ import java.util.UUID;
 import net.minecraft.block.Block;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityList;
-import net.minecraft.entity.EntityTracker;
-import net.minecraft.entity.EntityTrackerEntry;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.nbt.NBTBase;
 import net.minecraft.nbt.NBTTagCompound;
-import net.minecraft.network.play.server.S13PacketDestroyEntities;
 import net.minecraft.network.play.server.S21PacketChunkData;
 import net.minecraft.server.management.PlayerManager;
 import net.minecraft.tileentity.TileEntity;
-import net.minecraft.util.IntHashMap;
 import net.minecraft.util.LongHashMap;
 import net.minecraft.world.ChunkCoordIntPair;
 import net.minecraft.world.ChunkPosition;
@@ -216,21 +211,21 @@ public class ForgeQueue_All extends NMSMappedFaweQueue<World, Chunk, ExtendedBlo
     };
 
     @Override
-    public void refreshChunk(World world, net.minecraft.world.chunk.Chunk nmsChunk) {
+    public void refreshChunk(FaweChunk fc) {
+        ForgeChunk_All fs = (ForgeChunk_All) fc;
+        Chunk nmsChunk = fs.getChunk();
         if (!nmsChunk.isChunkLoaded) {
             return;
         }
         try {
-            ChunkCoordIntPair pos = nmsChunk.getChunkCoordIntPair();
             WorldServer w = (WorldServer) nmsChunk.worldObj;
             PlayerManager chunkMap = w.getPlayerManager();
-            int x = pos.chunkXPos;
-            int z = pos.chunkZPos;
+            int x = nmsChunk.xPosition;
+            int z = nmsChunk.zPosition;
             if (!chunkMap.func_152621_a(x, z)) {
                 return;
             }
-            EntityTracker tracker = w.getEntityTracker();
-            final HashSet<EntityPlayerMP> players = new HashSet<>();
+            HashSet<EntityPlayerMP> players = new HashSet<>();
             for (EntityPlayer player : (List<EntityPlayer>) w.playerEntities) {
                 if (player instanceof EntityPlayerMP) {
                     if (chunkMap.isPlayerWatchingChunk((EntityPlayerMP) player, x, z)) {
@@ -241,59 +236,33 @@ public class ForgeQueue_All extends NMSMappedFaweQueue<World, Chunk, ExtendedBlo
             if (players.size() == 0) {
                 return;
             }
-            HashSet<EntityTrackerEntry> entities = new HashSet<>();
-            Collection<Entity>[] entitieSlices = nmsChunk.entityLists;
-            IntHashMap entries = null;
-            for (Field field : tracker.getClass().getDeclaredFields()) {
-                if (field.getType() == IntHashMap.class) {
-                    field.setAccessible(true);
-                    entries = (IntHashMap) field.get(tracker);
-                    break;
+            int mask = fc.getBitMask();
+            if (mask == 65535 && hasEntities(nmsChunk)) {
+                S21PacketChunkData packet = new S21PacketChunkData(nmsChunk, false, 65280);
+                for (EntityPlayerMP player : players) {
+                    player.playerNetServerHandler.sendPacket(packet);
                 }
+                mask = 255;
             }
-            for (Collection<Entity> slice : entitieSlices) {
-                if (slice == null) {
-                    continue;
-                }
-                for (Entity ent : slice) {
-                    EntityTrackerEntry entry = entries != null ? (EntityTrackerEntry) entries.lookup(ent.getEntityId()) : null;
-                    if (entry == null) {
-                        continue;
-                    }
-                    entities.add(entry);
-                    S13PacketDestroyEntities packet = new S13PacketDestroyEntities(ent.getEntityId());
-                    for (EntityPlayerMP player : players) {
-                        player.playerNetServerHandler.sendPacket(packet);
-                    }
-                }
-            }
-            // Send chunks
-            S21PacketChunkData packet = new S21PacketChunkData(nmsChunk, false, 65535);
+            S21PacketChunkData packet = new S21PacketChunkData(nmsChunk, false, mask);
             for (EntityPlayerMP player : players) {
                 player.playerNetServerHandler.sendPacket(packet);
-            }
-            // send ents
-            for (final EntityTrackerEntry entry : entities) {
-                try {
-                    TaskManager.IMP.later(new Runnable() {
-                        @Override
-                        public void run() {
-                            for (EntityPlayerMP player : players) {
-                                boolean result = entry.trackingPlayers.remove(player);
-                                if (result && entry.myEntity != player) {
-                                    entry.tryStartWachingThis(player);
-                                }
-                            }
-                        }
-                    }, 2);
-                } catch (Throwable e) {
-                    MainUtil.handleError(e);
-                }
             }
         } catch (Throwable e) {
             MainUtil.handleError(e);
         }
     }
+
+    public boolean hasEntities(Chunk nmsChunk) {
+        for (int i = 0; i < nmsChunk.entityLists.length; i++) {
+            List slice = nmsChunk.entityLists[i];
+            if (slice != null && !slice.isEmpty()) {
+                return true;
+            }
+        }
+        return false;
+    }
+
 
     @Override
     public boolean setComponents(FaweChunk fc, RunnableVal<FaweChunk> changeTask) {

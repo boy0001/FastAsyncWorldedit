@@ -1,7 +1,6 @@
 package com.boydti.fawe.forge;
 
 import com.boydti.fawe.Fawe;
-import com.boydti.fawe.config.Settings;
 import com.boydti.fawe.object.FawePlayer;
 import java.io.File;
 import java.util.List;
@@ -73,10 +72,6 @@ public class ForgeMain {
         FawePlayer fp = FawePlayer.wrap(player);
         if (fp.getMeta("lastWorld") != event.world) {
             fp.setMeta("lastWorld", event.world);
-            if (Settings.HISTORY.USE_DISK) {
-                fp.getSession().clearHistory();
-                fp.loadSessionsFromDisk(fp.getWorld());
-            }
         }
     }
 }

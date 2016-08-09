@@ -314,10 +314,6 @@ public class FaweBukkit implements IFawe, Listener {
     public void onPlayerChangedWorld(PlayerChangedWorldEvent event) {
         Player player = event.getPlayer();
         FawePlayer fp = FawePlayer.wrap(player);
-        if (Settings.HISTORY.USE_DISK) {
-            fp.getSession().clearHistory();
-            fp.loadSessionsFromDisk(fp.getWorld());
-        }
     }
 
     @Override

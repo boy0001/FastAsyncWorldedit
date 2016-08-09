@@ -35,11 +35,6 @@ public class DiskStorageHistory extends FaweStreamChangeSet {
     private File entfFile;
     private File enttFile;
 
-    /**
-     * Summary of this change (not accurate for larger edits)
-     */
-    private DiskStorageSummary summary;
-
     /*
      * Block data
      * 
@@ -50,33 +45,20 @@ public class DiskStorageHistory extends FaweStreamChangeSet {
      * { short rel x, short rel z, unsigned byte y, short combinedFrom, short combinedTo }
      */
     private OutputStream osBD;
-
     // NBT From
     private NBTOutputStream osNBTF;
-
     // NBT To
     private NBTOutputStream osNBTT;
-
     // Entity Create From
     private NBTOutputStream osENTCF;
-
     // Entity Create To
     private NBTOutputStream osENTCT;
 
     private int index;
 
-    public void deleteFiles() {
-        bdFile.delete();
-        nbtfFile.delete();
-        nbttFile.delete();
-        entfFile.delete();
-        enttFile.delete();
-    }
-
     public DiskStorageHistory(World world, UUID uuid) {
         super(world);
-        String base = "history" + File.separator + Fawe.imp().getWorldName(world) + File.separator + uuid;
-        File folder = new File(Fawe.imp().getDirectory(), base);
+        File folder = MainUtil.getFile(Fawe.imp().getDirectory(), Settings.PATHS.HISTORY + File.separator + Fawe.imp().getWorldName(world) + File.separator + uuid);
         int max = 0;
         if (folder.exists()) {
             for (File file : folder.listFiles()) {
@@ -97,16 +79,34 @@ public class DiskStorageHistory extends FaweStreamChangeSet {
         init(uuid, index);
     }
 
+    public DiskStorageHistory(File folder, World world, UUID uuid, int i) {
+        super(world);
+        this.uuid = uuid;
+        this.index = i;
+        initFiles(folder);
+    }
+
+    private void initFiles(File folder) {
+        nbtfFile = new File(folder, index + ".nbtf");
+        nbttFile = new File(folder, index + ".nbtt");
+        entfFile = new File(folder, index + ".entf");
+        enttFile = new File(folder, index + ".entt");
+        bdFile = new File(folder, index + ".bd");
+    }
+
     private void init(UUID uuid, int i) {
         this.uuid = uuid;
         this.index = i;
-        String base = "history" + File.separator + Fawe.imp().getWorldName(getWorld()) + File.separator + uuid;
-        base += File.separator + i;
-        nbtfFile = new File(Fawe.imp().getDirectory(), base + ".nbtf");
-        nbttFile = new File(Fawe.imp().getDirectory(), base + ".nbtt");
-        entfFile = new File(Fawe.imp().getDirectory(), base + ".entf");
-        enttFile = new File(Fawe.imp().getDirectory(), base + ".entt");
-        bdFile = new File(Fawe.imp().getDirectory(), base + ".bd");
+        File folder = MainUtil.getFile(Fawe.imp().getDirectory(), Settings.PATHS.HISTORY + File.separator + Fawe.imp().getWorldName(getWorld()) + File.separator + uuid);
+        initFiles(folder);
+    }
+
+    public void deleteFiles() {
+        bdFile.delete();
+        nbtfFile.delete();
+        nbttFile.delete();
+        entfFile.delete();
+        enttFile.delete();
     }
 
     public UUID getUUID() {
@@ -160,6 +160,27 @@ public class DiskStorageHistory extends FaweStreamChangeSet {
     @Override
     public long getSizeInMemory() {
         return 80;
+    }
+
+    @Override
+    public long getSizeOnDisk() {
+        int total = 0;
+        if (bdFile.exists()) {
+            total += bdFile.getTotalSpace();
+        }
+        if (nbtfFile.exists()) {
+            total += entfFile.getTotalSpace();
+        }
+        if (nbttFile.exists()) {
+            total += entfFile.getTotalSpace();
+        }
+        if (entfFile.exists()) {
+            total += entfFile.getTotalSpace();
+        }
+        if (enttFile.exists()) {
+            total += entfFile.getTotalSpace();
+        }
+        return total;
     }
 
     @Override
@@ -281,49 +302,46 @@ public class DiskStorageHistory extends FaweStreamChangeSet {
     }
 
     public DiskStorageSummary summarize(RegionWrapper requiredRegion, boolean shallow) {
-        if (summary != null) {
-            return summary;
-        }
-            if (bdFile.exists()) {
-                int ox = getOriginX();
-                int oz = getOriginZ();
-                if ((ox != 0 || oz != 0) && !requiredRegion.isIn(ox, oz)) {
-                    return summary = new DiskStorageSummary(ox, oz);
+        if (bdFile.exists()) {
+            int ox = getOriginX();
+            int oz = getOriginZ();
+            if ((ox != 0 || oz != 0) && !requiredRegion.isIn(ox, oz)) {
+                return new DiskStorageSummary(ox, oz);
+            }
+            try (FileInputStream fis = new FileInputStream(bdFile)) {
+                FaweInputStream gis = MainUtil.getCompressedIS(fis);
+                // skip mode
+                gis.skip(1);
+                // origin
+                ox = ((gis.read() << 24) + (gis.read() << 16) + (gis.read() << 8) + (gis.read() << 0));
+                oz = ((gis.read() << 24) + (gis.read() << 16) + (gis.read() << 8) + (gis.read() << 0));
+                setOrigin(ox, oz);
+                DiskStorageSummary summary = new DiskStorageSummary(ox, oz);
+                if (!requiredRegion.isIn(ox, oz)) {
+                    fis.close();
+                    gis.close();
+                    return summary;
                 }
-                try (FileInputStream fis = new FileInputStream(bdFile)) {
-                    FaweInputStream gis = MainUtil.getCompressedIS(fis);
-                    // skip mode
-                    gis.skip(1);
-                    // origin
-                    ox = ((gis.read() << 24) + (gis.read() << 16) + (gis.read() << 8) + (gis.read() << 0));
-                    oz = ((gis.read() << 24) + (gis.read() << 16) + (gis.read() << 8) + (gis.read() << 0));
-                    setOrigin(ox, oz);
-                    summary = new DiskStorageSummary(ox, oz);
-                    if (!requiredRegion.isIn(ox, oz)) {
+                byte[] buffer = new byte[9];
+                int i = 0;
+                int amount = (Settings.HISTORY.BUFFER_SIZE - HEADER_SIZE) / 9;
+                while (!shallow && ++i < amount) {
+                    if (gis.read(buffer) == -1) {
                         fis.close();
                         gis.close();
                         return summary;
                     }
-                    byte[] buffer = new byte[9];
-                    int i = 0;
-                    int amount = (Settings.HISTORY.BUFFER_SIZE - HEADER_SIZE) / 9;
-                    while (!shallow && ++i < amount) {
-                        if (gis.read(buffer) == -1) {
-                            fis.close();
-                            gis.close();
-                            return summary;
-                        }
-                        int x = ((byte) buffer[0] & 0xFF) + ((byte) buffer[1] << 8) + ox;
-                        int z = ((byte) buffer[2] & 0xFF) + ((byte) buffer[3] << 8) + oz;
-                        int combined1 = buffer[7] & 0xFF;
-                        int combined2 = buffer[8] & 0xFF;
-                        summary.add(x, z, ((combined2 << 4) + (combined1 >> 4)));
-                    }
-                } catch (IOException e) {
-                    MainUtil.handleError(e);
+                    int x = ((byte) buffer[0] & 0xFF) + ((byte) buffer[1] << 8) + ox;
+                    int z = ((byte) buffer[2] & 0xFF) + ((byte) buffer[3] << 8) + oz;
+                    int combined1 = buffer[7] & 0xFF;
+                    int combined2 = buffer[8] & 0xFF;
+                    summary.add(x, z, ((combined2 << 4) + (combined1 >> 4)));
                 }
+            } catch (IOException e) {
+                MainUtil.handleError(e);
             }
-        return summary;
+        }
+        return null;
     }
 
     public IntegerPair readHeader() {

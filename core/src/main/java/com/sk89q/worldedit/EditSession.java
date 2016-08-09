@@ -1028,8 +1028,9 @@ public class EditSession implements Extent {
     public void undo(final EditSession editSession) {
         final UndoContext context = new UndoContext();
         context.setExtent(editSession.bypassAll);
+        ChangeSet changeSet = getChangeSet();
         editSession.getQueue().setChangeTask(null);
-        Operations.completeSmart(ChangeSetExecutor.createUndo(getChangeSet(), context), new Runnable() {
+        Operations.completeSmart(ChangeSetExecutor.createUndo(changeSet, context), new Runnable() {
             @Override
             public void run() {
                 editSession.flushQueue();
@@ -1046,8 +1047,9 @@ public class EditSession implements Extent {
     public void redo(final EditSession editSession) {
         final UndoContext context = new UndoContext();
         context.setExtent(editSession.bypassAll);
+        ChangeSet changeSet = getChangeSet();
         editSession.getQueue().setChangeTask(null);
-        Operations.completeSmart(ChangeSetExecutor.createRedo(getChangeSet(), context), new Runnable() {
+        Operations.completeSmart(ChangeSetExecutor.createRedo(changeSet, context), new Runnable() {
             @Override
             public void run() {
                 editSession.flushQueue();

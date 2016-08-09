@@ -91,7 +91,6 @@ public class HistoryCommands {
         Vector top = origin.add(radius, radius, radius);
         RollbackDatabase database = DBHandler.IMP.getDatabase(Fawe.imp().getWorldName(world));
         final AtomicInteger count = new AtomicInteger();
-        System.out.println("ROLLING BACK");
         database.getPotentialEdits(other, System.currentTimeMillis() - timeDiff, bot, top, new RunnableVal<DiskStorageHistory>() {
                 @Override
                 public void run(DiskStorageHistory edit) {

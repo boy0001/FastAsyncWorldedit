@@ -134,9 +134,7 @@ public abstract class BukkitQueue_0<CHUNK, CHUNKSECTIONS, SECTION> extends NMSMa
     }
 
     @Override
-    public void refreshChunk(World world, CHUNK chunk) {
-        return;
-    }
+    public void refreshChunk(FaweChunk fs) {}
 
     @Override
     public boolean regenerateChunk(World world, int x, int z) {

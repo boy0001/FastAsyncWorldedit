@@ -35,7 +35,6 @@ import net.minecraft.server.v1_7_R4.ChunkSection;
 import net.minecraft.server.v1_7_R4.Entity;
 import net.minecraft.server.v1_7_R4.EntityPlayer;
 import net.minecraft.server.v1_7_R4.EntityTracker;
-import net.minecraft.server.v1_7_R4.EntityTrackerEntry;
 import net.minecraft.server.v1_7_R4.EntityTypes;
 import net.minecraft.server.v1_7_R4.EnumDifficulty;
 import net.minecraft.server.v1_7_R4.EnumGamemode;
@@ -44,7 +43,6 @@ import net.minecraft.server.v1_7_R4.LongHashMap;
 import net.minecraft.server.v1_7_R4.MinecraftServer;
 import net.minecraft.server.v1_7_R4.NBTTagCompound;
 import net.minecraft.server.v1_7_R4.NibbleArray;
-import net.minecraft.server.v1_7_R4.PacketPlayOutEntityDestroy;
 import net.minecraft.server.v1_7_R4.PacketPlayOutMapChunk;
 import net.minecraft.server.v1_7_R4.PlayerChunkMap;
 import net.minecraft.server.v1_7_R4.ServerNBTManager;
@@ -453,8 +451,12 @@ public class BukkitQueue17 extends BukkitQueue_0<Chunk, ChunkSection[], ChunkSec
         fieldNonEmptyBlockCount.set(section, nonEmptyBlockCount);
     }
 
+
+
     @Override
-    public void refreshChunk(World world, Chunk chunk) {
+    public void refreshChunk(FaweChunk fc) {
+        BukkitChunk_1_7 fs = (BukkitChunk_1_7) fc;
+        Chunk chunk = fs.getChunk();
         if (!chunk.isLoaded()) {
             return;
         }
@@ -483,50 +485,32 @@ public class BukkitQueue17 extends BukkitQueue_0<Chunk, ChunkSection[], ChunkSec
             if (players.size() == 0) {
                 return;
             }
-            HashSet<EntityTrackerEntry> entities = new HashSet<>();
-            List<Entity>[] entitieSlices = nmsChunk.entitySlices;
-            for (List<Entity> slice : entitieSlices) {
-                if (slice == null) {
-                    continue;
-                }
-                for (Entity ent : slice) {
-                    EntityTrackerEntry entry = (EntityTrackerEntry) tracker.trackedEntities.get(ent.getId());
-                    if (entry == null) {
-                        continue;
-                    }
-                    entities.add(entry);
-                    PacketPlayOutEntityDestroy packet = new PacketPlayOutEntityDestroy(ent.getId());
-                    for (EntityPlayer player : players) {
-                        player.playerConnection.sendPacket(packet);
-                    }
-                }
-            }
             // Send chunks
-            PacketPlayOutMapChunk packet = new PacketPlayOutMapChunk(nmsChunk, false, 65535, 25);
+            int mask = fc.getBitMask();
+            if (mask == 65535 && hasEntities(nmsChunk)) {
+                PacketPlayOutMapChunk packet = new PacketPlayOutMapChunk(nmsChunk, false, 65280, 25);
+                for (EntityPlayer player : players) {
+                    player.playerConnection.sendPacket(packet);
+                }
+                mask = 255;
+            }
+            PacketPlayOutMapChunk packet = new PacketPlayOutMapChunk(nmsChunk, false, mask, 25);
             for (EntityPlayer player : players) {
                 player.playerConnection.sendPacket(packet);
-            }
-            // send ents
-            for (final EntityTrackerEntry entry : entities) {
-                try {
-                    TaskManager.IMP.later(new Runnable() {
-                        @Override
-                        public void run() {
-                            for (EntityPlayer player : players) {
-                                boolean result = entry.trackedPlayers.remove(player);
-                                if (result && entry.tracker != player) {
-                                    entry.updatePlayer(player);
-                                }
-                            }
-                        }
-                    }, 2);
-                } catch (Throwable e) {
-                    MainUtil.handleError(e);
-                }
             }
         } catch (Throwable e) {
             MainUtil.handleError(e);
         }
+    }
+
+    public boolean hasEntities(net.minecraft.server.v1_7_R4.Chunk nmsChunk) {
+        for (int i = 0; i < nmsChunk.entitySlices.length; i++) {
+            List<Entity> slice = nmsChunk.entitySlices[i];
+            if (slice != null && !slice.isEmpty()) {
+                return true;
+            }
+        }
+        return false;
     }
 
     @Override

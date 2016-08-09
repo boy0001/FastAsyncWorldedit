@@ -257,7 +257,7 @@ public class FaweAPI {
      * @return
      */
     public static List<DiskStorageHistory> getBDFiles(FaweLocation origin, UUID user, int radius, long timediff, boolean shallow) {
-        File history = new File(Fawe.imp().getDirectory(), "history" + File.separator + origin.world);
+        File history = MainUtil.getFile(Fawe.imp().getDirectory(), Settings.PATHS.HISTORY + File.separator + origin.world);
         if (!history.exists()) {
             return new ArrayList<>();
         }

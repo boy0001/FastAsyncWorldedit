@@ -19,8 +19,6 @@
 
 package com.sk89q.worldedit.session;
 
-import com.google.common.util.concurrent.Futures;
-import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.ListeningExecutorService;
 import com.google.common.util.concurrent.MoreExecutors;
 import com.sk89q.worldedit.LocalConfiguration;
@@ -33,19 +31,16 @@ import com.sk89q.worldedit.session.storage.SessionStore;
 import com.sk89q.worldedit.session.storage.VoidStore;
 import com.sk89q.worldedit.util.concurrency.EvenMoreExecutors;
 import com.sk89q.worldedit.util.eventbus.Subscribe;
-
-import javax.annotation.Nullable;
 import java.io.File;
 import java.io.IOException;
-import java.util.HashMap;
-import java.util.Iterator;
 import java.util.Map;
 import java.util.Timer;
-import java.util.TimerTask;
 import java.util.UUID;
-import java.util.concurrent.Callable;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javax.annotation.Nullable;
+
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
@@ -58,14 +53,22 @@ import static com.google.common.base.Preconditions.checkNotNull;
  */
 public class SessionManager {
 
+    @Deprecated
     public static int EXPIRATION_GRACE = 600000;
-    private static final int FLUSH_PERIOD = 1000 * 30;
+
     private static final ListeningExecutorService executorService = MoreExecutors.listeningDecorator(EvenMoreExecutors.newBoundedCachedThreadPool(0, 1, 5));
     private static final Logger log = Logger.getLogger(SessionManager.class.getCanonicalName());
     private final Timer timer = new Timer();
     private final WorldEdit worldEdit;
-    private final Map<UUID, SessionHolder> sessions = new HashMap<UUID, SessionHolder>();
+    private final Map<UUID, SessionHolder> sessions = new ConcurrentHashMap<UUID, SessionHolder>();
     private SessionStore store = new VoidStore();
+    private File path;
+
+    // Added //
+
+//    private final ConcurrentLinkedDeque<SessionHolder> toSave = new ConcurrentLinkedDeque<>();
+    ///////////
+
 
     /**
      * Create a new session manager.
@@ -77,7 +80,6 @@ public class SessionManager {
         this.worldEdit = worldEdit;
 
         worldEdit.getEventBus().register(this);
-        timer.schedule(new SessionTracker(), FLUSH_PERIOD, FLUSH_PERIOD);
     }
 
     /**
@@ -191,44 +193,26 @@ public class SessionManager {
         return session;
     }
 
-    /**
-     * Save a map of sessions to disk.
-     *
-     * @param sessions a map of sessions to save
-     * @return a future that completes on save or error
-     */
-    private ListenableFuture<?> commit(final Map<SessionKey, LocalSession> sessions) {
-        checkNotNull(sessions);
-
-        if (sessions.isEmpty()) {
-            return Futures.immediateFuture(sessions);
-        }
-
-        return executorService.submit(new Callable<Object>() {
-            @Override
-            public Object call() throws Exception {
-                Exception exception = null;
-
-                for (Map.Entry<SessionKey, LocalSession> entry : sessions.entrySet()) {
-                    SessionKey key = entry.getKey();
-
-                    if (key.isPersistent()) {
-                        try {
-                            store.save(getKey(key), entry.getValue());
-                        } catch (IOException e) {
-                            log.log(Level.WARNING, "Failed to write session for UUID " + getKey(key), e);
-                            exception = e;
+    private void save(SessionHolder holder) {
+        SessionKey key = holder.key;
+        if (key.isPersistent()) {
+            try {
+                if (holder.session.compareAndResetDirty()) {
+                    if (holder.session.save()) {
+                        store.save(getKey(key), holder.session);
+                    } else if (path != null) {
+                        File file = new File(path, getKey(key) + ".json");
+                        if (file.exists()) {
+                            if (!file.delete()) {
+                                file.deleteOnExit();
+                            }
                         }
                     }
                 }
-
-                if (exception != null) {
-                    throw exception;
-                }
-
-                return sessions;
+            } catch (IOException e) {
+                log.log(Level.WARNING, "Failed to write session for UUID " + getKey(key), e);
             }
-        });
+        }
     }
 
     /**
@@ -264,13 +248,16 @@ public class SessionManager {
      */
     public synchronized void remove(SessionOwner owner) {
         checkNotNull(owner);
-        sessions.remove(getKey(owner));
+        save(sessions.remove(getKey(owner)));
     }
 
     /**
      * Remove all sessions.
      */
     public synchronized void clear() {
+        for (Map.Entry<UUID, SessionHolder> entry : sessions.entrySet()) {
+            save(entry.getValue());
+        }
         sessions.clear();
     }
 
@@ -279,6 +266,7 @@ public class SessionManager {
         LocalConfiguration config = event.getConfiguration();
         File dir = new File(config.getWorkingDirectory(), "sessions");
         store = new JsonFileSessionStore(dir);
+        this.path = dir;
     }
 
     /**
@@ -295,42 +283,9 @@ public class SessionManager {
         }
     }
 
-    /**
-     * Removes inactive sessions after they have been inactive for a period
-     * of time. Commits them as well.
-     */
-    private class SessionTracker extends TimerTask {
-        @Override
-        public void run() {
-            synchronized (SessionManager.this) {
-                long now = System.currentTimeMillis();
-                Iterator<SessionHolder> it = sessions.values().iterator();
-                Map<SessionKey, LocalSession> saveQueue = new HashMap<SessionKey, LocalSession>();
-
-                while (it.hasNext()) {
-                    SessionHolder stored = it.next();
-                    if (stored.key.isActive()) {
-                        stored.lastActive = now;
-
-                        if (stored.session.compareAndResetDirty()) {
-                            saveQueue.put(stored.key, stored.session);
-                        }
-                    } else {
-                        if (now - stored.lastActive > EXPIRATION_GRACE) {
-                            if (stored.session.compareAndResetDirty()) {
-                                saveQueue.put(stored.key, stored.session);
-                            }
-
-                            it.remove();
-                        }
-                    }
-                }
-
-                if (!saveQueue.isEmpty()) {
-                    commit(saveQueue);
-                }
-            }
-        }
+    public static Class<?> inject() {
+        return SessionManager.class;
     }
+
 
 }

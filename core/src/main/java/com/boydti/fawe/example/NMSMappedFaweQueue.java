@@ -66,7 +66,7 @@ public abstract class NMSMappedFaweQueue<WORLD, CHUNK, CHUNKSECTION, SECTION> ex
 
     @Override
     public void sendChunk(final FaweChunk fc) {
-        refreshChunk(getWorld(), (CHUNK) fc.getChunk());
+        refreshChunk(fc);
     }
 
     public abstract void setFullbright(CHUNKSECTION sections);
@@ -159,7 +159,7 @@ public abstract class NMSMappedFaweQueue<WORLD, CHUNK, CHUNKSECTION, SECTION> ex
 
     public abstract void setBlockLight(SECTION section, int x, int y, int z, int value);
 
-    public abstract void refreshChunk(WORLD world, CHUNK chunk);
+    public abstract void refreshChunk(FaweChunk fs);
 
     public abstract CharFaweChunk getPrevious(CharFaweChunk fs, CHUNKSECTION sections, Map<?, ?> tiles, Collection<?>[] entities, Set<UUID> createdEntities, boolean all) throws Exception;
 

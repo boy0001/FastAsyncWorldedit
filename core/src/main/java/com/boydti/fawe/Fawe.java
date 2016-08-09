@@ -55,6 +55,7 @@ import com.sk89q.worldedit.history.change.EntityCreate;
 import com.sk89q.worldedit.history.change.EntityRemove;
 import com.sk89q.worldedit.regions.CuboidRegion;
 import com.sk89q.worldedit.regions.selector.CuboidRegionSelector;
+import com.sk89q.worldedit.session.SessionManager;
 import com.sk89q.worldedit.util.command.parametric.ParametricBuilder;
 import com.sk89q.worldedit.world.registry.BundledBlockData;
 import java.io.File;
@@ -179,8 +180,8 @@ public class Fawe {
          * Implementation dependent stuff
          */
         this.setupConfigs();
-        MainUtil.deleteOlder(new File(IMP.getDirectory(), "history"), TimeUnit.DAYS.toMillis(Settings.HISTORY.DELETE_AFTER_DAYS));
-        MainUtil.deleteOlder(new File(IMP.getDirectory(), "clipboard"), TimeUnit.DAYS.toMillis(Settings.CLIPBOARD.DELETE_AFTER_DAYS));
+        MainUtil.deleteOlder(MainUtil.getFile(IMP.getDirectory(), Settings.PATHS.HISTORY), TimeUnit.DAYS.toMillis(Settings.HISTORY.DELETE_AFTER_DAYS));
+        MainUtil.deleteOlder(MainUtil.getFile(IMP.getDirectory(), Settings.PATHS.CLIPBOARD), TimeUnit.DAYS.toMillis(Settings.CLIPBOARD.DELETE_AFTER_DAYS));
 
         TaskManager.IMP = this.IMP.getTaskManager();
         TaskManager.IMP.repeat(timer = new FaweTimer(), 1);
@@ -276,6 +277,7 @@ public class Fawe {
             EditSession.inject(); // Custom block placer + optimizations
             EditSessionEvent.inject(); // Add EditSession to event
             LocalSession.inject(); // Add remember order / queue flushing
+            SessionManager.inject(); // Custom session saving
             // Commands
             BrushCommands.inject(); // Translations + heightmap
             ToolCommands.inject(); // Translations + inspect

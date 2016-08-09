@@ -30,12 +30,10 @@ import java.util.Set;
 import java.util.UUID;
 import net.minecraft.server.v1_8_R3.Block;
 import net.minecraft.server.v1_8_R3.BlockPosition;
-import net.minecraft.server.v1_8_R3.ChunkCoordIntPair;
 import net.minecraft.server.v1_8_R3.ChunkSection;
 import net.minecraft.server.v1_8_R3.Entity;
 import net.minecraft.server.v1_8_R3.EntityPlayer;
 import net.minecraft.server.v1_8_R3.EntityTracker;
-import net.minecraft.server.v1_8_R3.EntityTrackerEntry;
 import net.minecraft.server.v1_8_R3.EntityTypes;
 import net.minecraft.server.v1_8_R3.EnumDifficulty;
 import net.minecraft.server.v1_8_R3.EnumSkyBlock;
@@ -43,7 +41,6 @@ import net.minecraft.server.v1_8_R3.LongHashMap;
 import net.minecraft.server.v1_8_R3.MinecraftServer;
 import net.minecraft.server.v1_8_R3.NBTTagCompound;
 import net.minecraft.server.v1_8_R3.NibbleArray;
-import net.minecraft.server.v1_8_R3.PacketPlayOutEntityDestroy;
 import net.minecraft.server.v1_8_R3.PacketPlayOutMapChunk;
 import net.minecraft.server.v1_8_R3.PlayerChunkMap;
 import net.minecraft.server.v1_8_R3.ServerNBTManager;
@@ -429,24 +426,21 @@ public class BukkitQueue18R3 extends BukkitQueue_0<Chunk, ChunkSection[], ChunkS
     }
 
     @Override
-    public void refreshChunk(World world, Chunk chunk) {
+    public void refreshChunk(FaweChunk fc) {
+        BukkitChunk_1_8 fs = (BukkitChunk_1_8) fc;
+        Chunk chunk = fs.getChunk();
         if (!chunk.isLoaded()) {
             return;
         }
         try {
             net.minecraft.server.v1_8_R3.Chunk nmsChunk = ((CraftChunk) chunk).getHandle();
-            ChunkCoordIntPair pos = nmsChunk.j(); // getPosition()
             WorldServer w = (WorldServer) nmsChunk.getWorld();
             PlayerChunkMap chunkMap = w.getPlayerChunkMap();
-            int x = pos.x;
-            int z = pos.z;
+            int x = nmsChunk.locX;
+            int z = nmsChunk.locZ;
             if (!chunkMap.isChunkInUse(x, z)) {
                 return;
             }
-            HashSet<EntityPlayer> set = new HashSet<EntityPlayer>();
-            EntityTracker tracker = w.getTracker();
-            // Get players
-
             Field fieldChunkMap = chunkMap.getClass().getDeclaredField("d");
             fieldChunkMap.setAccessible(true);
             LongHashMap<Object> map = (LongHashMap<Object>) fieldChunkMap.get(chunkMap);
@@ -454,54 +448,36 @@ public class BukkitQueue18R3 extends BukkitQueue_0<Chunk, ChunkSection[], ChunkS
             Object playerChunk = map.getEntry(pair);
             Field fieldPlayers = playerChunk.getClass().getDeclaredField("b");
             fieldPlayers.setAccessible(true);
-            final HashSet<EntityPlayer> players = new HashSet<>((Collection<EntityPlayer>)fieldPlayers.get(playerChunk));
-            if (players.size() == 0) {
+            Collection<EntityPlayer> players = (Collection<EntityPlayer>) fieldPlayers.get(playerChunk);
+            if (players.isEmpty()) {
                 return;
             }
-            HashSet<EntityTrackerEntry> entities = new HashSet<>();
-            List<Entity>[] entitieSlices = nmsChunk.getEntitySlices();
-            for (List<Entity> slice : entitieSlices) {
-                if (slice == null) {
-                    continue;
-                }
-                for (Entity ent : slice) {
-                    EntityTrackerEntry entry = tracker.trackedEntities.get(ent.getId());
-                    if (entry == null) {
-                        continue;
-                    }
-                    entities.add(entry);
-                    PacketPlayOutEntityDestroy packet = new PacketPlayOutEntityDestroy(ent.getId());
-                    for (EntityPlayer player : players) {
-                        player.playerConnection.sendPacket(packet);
-                    }
-                }
-            }
             // Send chunks
-            PacketPlayOutMapChunk packet = new PacketPlayOutMapChunk(nmsChunk, false, 65535);
+            int mask = fc.getBitMask();
+            if (mask == 65535 && hasEntities(nmsChunk)) {
+                PacketPlayOutMapChunk packet = new PacketPlayOutMapChunk(nmsChunk, false, 65280);
+                for (EntityPlayer player : players) {
+                    player.playerConnection.sendPacket(packet);
+                }
+                mask = 255;
+            }
+            PacketPlayOutMapChunk packet = new PacketPlayOutMapChunk(nmsChunk, false, mask);
             for (EntityPlayer player : players) {
                 player.playerConnection.sendPacket(packet);
-            }
-            // send ents
-            for (final EntityTrackerEntry entry : entities) {
-                try {
-                    TaskManager.IMP.later(new Runnable() {
-                        @Override
-                        public void run() {
-                            for (EntityPlayer player : players) {
-                                boolean result = entry.trackedPlayers.remove(player);
-                                if (result && entry.tracker != player) {
-                                    entry.updatePlayer(player);
-                                }
-                            }
-                        }
-                    }, 2);
-                } catch (Throwable e) {
-                    MainUtil.handleError(e);
-                }
             }
         } catch (Throwable e) {
             MainUtil.handleError(e);
         }
+    }
+
+    public boolean hasEntities(net.minecraft.server.v1_8_R3.Chunk nmsChunk) {
+        for (int i = 0; i < nmsChunk.entitySlices.length; i++) {
+            List<Entity> slice = nmsChunk.entitySlices[i];
+            if (slice != null && !slice.isEmpty()) {
+                return true;
+            }
+        }
+        return false;
     }
 
     @Override

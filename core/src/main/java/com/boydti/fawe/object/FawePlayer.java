@@ -4,8 +4,6 @@ import com.boydti.fawe.Fawe;
 import com.boydti.fawe.FaweAPI;
 import com.boydti.fawe.config.BBC;
 import com.boydti.fawe.config.Settings;
-import com.boydti.fawe.object.changeset.DiskStorageHistory;
-import com.boydti.fawe.object.changeset.FaweStreamChangeSet;
 import com.boydti.fawe.object.clipboard.DiskOptimizedClipboard;
 import com.boydti.fawe.object.exception.FaweException;
 import com.boydti.fawe.util.MainUtil;
@@ -30,9 +28,6 @@ import com.sk89q.worldedit.world.World;
 import com.sk89q.worldedit.world.registry.WorldData;
 import java.io.File;
 import java.lang.reflect.Field;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
@@ -111,23 +106,6 @@ public abstract class FawePlayer<T> {
         if (Settings.CLIPBOARD.USE_DISK) {
             loadClipboardFromDisk();
         }
-        if (getSession() == null || getPlayer() == null || session.getSize() != 0 || !Settings.HISTORY.USE_DISK) {
-            return;
-        }
-        try {
-            UUID uuid = getUUID();
-            String currentWorldName = getLocation().world;
-            World world = getWorld();
-            if (world != null) {
-                if (Fawe.imp().getWorldName(world).equals(currentWorldName)) {
-                    getSession().clearHistory();
-                    loadSessionsFromDisk(world);
-                }
-            }
-        } catch (Exception e) {
-            MainUtil.handleError(e);
-            Fawe.debug("Failed to load history for: " + getName());
-        }
     }
 
     /**
@@ -135,7 +113,7 @@ public abstract class FawePlayer<T> {
      *  - Should already be called if history on disk is enabled
      */
     public void loadClipboardFromDisk() {
-        File file = new File(Fawe.imp().getDirectory(), "clipboard" + File.separator + getUUID() + ".bd");
+        File file = MainUtil.getFile(Fawe.imp().getDirectory(), Settings.PATHS.CLIPBOARD + File.separator + getUUID() + ".bd");
         try {
             if (file.exists() && file.length() > 5) {
                 DiskOptimizedClipboard doc = new DiskOptimizedClipboard(file);
@@ -174,45 +152,14 @@ public abstract class FawePlayer<T> {
 
     /**
      * Load all the undo EditSession's from disk for a world <br>
-     *     - Usually already called when a player joins or changes world
+     *     - Usually already called when necessary
      * @param world
      */
     public void loadSessionsFromDisk(final World world) {
         if (world == null) {
             return;
         }
-        final long start = System.currentTimeMillis();
-        final UUID uuid = getUUID();
-        final List<Integer> editIds = new ArrayList<>();
-        final File folder = new File(Fawe.imp().getDirectory(), "history" + File.separator + Fawe.imp().getWorldName(world) + File.separator + uuid);
-        if (folder.isDirectory()) {
-            for (File file : folder.listFiles()) {
-                if (file.getName().endsWith(".bd")) {
-                    int index = Integer.parseInt(file.getName().split("\\.")[0]);
-                    editIds.add(index);
-                }
-            }
-        }
-        if (editIds.size() > 0) {
-            BBC.INDEXING_HISTORY.send(this, editIds.size());
-            TaskManager.IMP.async(new Runnable() {
-                @Override
-                public void run() {
-                    Collections.sort(editIds);
-                    for (int i = editIds.size() - 1; i >= 0; i--) {
-                        int index = editIds.get(i);
-                        FaweStreamChangeSet set = new DiskStorageHistory(world, uuid, index);
-                        EditSession edit = set.toEditSession(FawePlayer.this);
-                        if (world.equals(getWorld())) {
-                            session.remember(edit, false, false, Integer.MAX_VALUE);
-                        } else {
-                            return;
-                        }
-                    }
-                    BBC.INDEXING_COMPLETE.send(FawePlayer.this, (System.currentTimeMillis() - start) / 1000d);
-                }
-            });
-        }
+        getSession().loadSessionHistoryFromDisk(getUUID(), world);
     }
 
     /**
@@ -417,9 +364,10 @@ public abstract class FawePlayer<T> {
      */
     public void unregister() {
         if (Settings.HISTORY.DELETE_ON_LOGOUT) {
-            getSession().setClipboard(null);
-            getSession().clearHistory();
+            session = getSession();
             WorldEdit.getInstance().removeSession(getPlayer());
+            session.setClipboard(null);
+            session.clearHistory();
         }
         Fawe.get().unregister(getName());
     }
