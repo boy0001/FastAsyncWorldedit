@@ -404,7 +404,7 @@ public abstract class MappedFaweQueue<WORLD, CHUNK, SECTION> extends FaweQueue {
                 loadChunk(getWorld(), cx, cz, true);
             } else if (Settings.HISTORY.CHUNK_WAIT_MS > 0) {
                 loadChunk.value = new IntegerPair(cx, cz);
-                TaskManager.IMP.sync(loadChunk, Settings.HISTORY.CHUNK_WAIT_MS);
+                TaskManager.IMP.syncWhenFree(loadChunk, Settings.HISTORY.CHUNK_WAIT_MS);
                 if (!isChunkLoaded(cx, cz)) {
                     throw new FaweException.FaweChunkLoadException();
                 }

@@ -90,6 +90,7 @@ public class BukkitQueue_1_10 extends BukkitQueue_0<Chunk, ChunkSection[], Chunk
                 fieldBits = DataPaletteBlock.class.getDeclaredField("b");
                 fieldBits.setAccessible(true);
                 getEntitySlices = net.minecraft.server.v1_10_R1.Chunk.class.getDeclaredMethod("getEntitySlices");
+                getEntitySlices.setAccessible(true);
                 if (adapter == null) {
                     setupAdapter(new com.boydti.fawe.bukkit.v1_10.FaweAdapter_1_10());
                     Fawe.debug("Using adapter: " + adapter);
