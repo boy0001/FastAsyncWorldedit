@@ -134,7 +134,6 @@ public class FaweForge implements IFawe {
         try {
             com.boydti.fawe.forge.ForgeMetrics metrics = new com.boydti.fawe.forge.ForgeMetrics("FastAsyncWorldEdit", "3.5.1");
             metrics.start();
-            debug("[FAWE] &6Metrics enabled.");
         } catch (Throwable e) {
             debug("[FAWE] &cFailed to load up metrics.");
         }

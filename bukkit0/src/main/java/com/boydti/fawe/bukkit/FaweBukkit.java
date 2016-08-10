@@ -14,6 +14,7 @@ import com.boydti.fawe.bukkit.regions.TownyFeature;
 import com.boydti.fawe.bukkit.regions.Worldguard;
 import com.boydti.fawe.bukkit.v0.BukkitQueue_All;
 import com.boydti.fawe.bukkit.v0.ChunkListener;
+import com.boydti.fawe.config.BBC;
 import com.boydti.fawe.config.Settings;
 import com.boydti.fawe.object.FaweCommand;
 import com.boydti.fawe.object.FawePlayer;
@@ -32,7 +33,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.UUID;
 import org.bukkit.Bukkit;
-import org.bukkit.ChatColor;
+import org.bukkit.command.ConsoleCommandSender;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -85,7 +86,12 @@ public class FaweBukkit implements IFawe, Listener {
 
     @Override
     public void debug(final String s) {
-        Bukkit.getLogger().info(ChatColor.translateAlternateColorCodes('&', s));
+        ConsoleCommandSender console = Bukkit.getConsoleSender();
+        if (console != null) {
+            console.sendMessage(BBC.color(s));
+        } else {
+            Bukkit.getLogger().info(BBC.color(s));
+        }
     }
 
     @Override
@@ -120,7 +126,6 @@ public class FaweBukkit implements IFawe, Listener {
     public void startMetrics() {
         Metrics metrics = new Metrics(plugin);
         metrics.start();
-        debug("&6Metrics enabled.");
     }
 
     /**

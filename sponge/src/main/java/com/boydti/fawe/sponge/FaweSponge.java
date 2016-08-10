@@ -134,7 +134,6 @@ public class FaweSponge implements IFawe {
         try {
             SpongeMetrics metrics = new SpongeMetrics(Sponge.getGame(), Sponge.getPluginManager().fromInstance(plugin).get());
             metrics.start();
-            debug("[FAWE] &6Metrics enabled.");
         } catch (Throwable e) {
             debug("[FAWE] &cFailed to load up metrics.");
         }
