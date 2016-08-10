@@ -579,12 +579,7 @@ public class BukkitQueue18R3 extends BukkitQueue_0<Chunk, ChunkSection[], ChunkS
 
     @Override
     public FaweChunk getFaweChunk(int x, int z) {
-        return new CharFaweChunk<Chunk>(this, x, z) {
-            @Override
-            public Chunk getNewChunk() {
-                return BukkitQueue18R3.this.getWorld().getChunkAt(getX(), getZ());
-            }
-        };
+        return new BukkitChunk_1_8(this, x, z);
     }
 
     @Override

@@ -57,6 +57,7 @@ public abstract class FaweClipboard {
 
         public ClipboardEntity(Extent world, double x, double y, double z, float yaw, float pitch, BaseEntity entity) {
             checkNotNull(entity);
+            checkNotNull(world);
             this.world = world;
             this.x = x;
             this.y = y;

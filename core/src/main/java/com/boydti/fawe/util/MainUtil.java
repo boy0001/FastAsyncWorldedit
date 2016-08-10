@@ -159,7 +159,11 @@ public class MainUtil {
         }
         int highAmount = amount > 3 ? 1 : 0;
         for (int i = 0; i < highAmount; i++) {
-            os = new LZ4OutputStream(os, buffer, factory.highCompressor());
+            if (amount == 9) {
+                os = new LZ4OutputStream(os, buffer, factory.highCompressor(17));
+            } else {
+                os = new LZ4OutputStream(os, buffer, factory.highCompressor());
+            }
         }
         return new FaweOutputStream(os);
     }

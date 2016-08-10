@@ -8,12 +8,15 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 public class NMSRelighter {
     private final NMSMappedFaweQueue queue;
     private final HashMap<Long, RelightSkyEntry> skyToRelight;
     private final HashMap<Long, RelightBlockEntry> blocksToRelight;
+
+    private static final int DISPATCH_SIZE = 64;
 
     public NMSRelighter(NMSMappedFaweQueue queue) {
         this.queue = queue;
@@ -127,7 +130,22 @@ public class NMSRelighter {
         // Order chunks
         ArrayList<RelightSkyEntry> chunksList = new ArrayList<>(skyToRelight.values());
         Collections.sort(chunksList);
-        RelightSkyEntry[] chunks = chunksList.toArray(new RelightSkyEntry[chunksList.size()]);
+        int size = chunksList.size();
+        if (size > DISPATCH_SIZE) {
+            int amount = (size + 1) / DISPATCH_SIZE;
+            for (int i = 0; i <= amount; i++) {
+                int start = i * DISPATCH_SIZE;
+                int end = Math.min(size, start + DISPATCH_SIZE);
+                List<RelightSkyEntry> sub = chunksList.subList(start, end);
+                fixSkyLighting(sub);
+            }
+        } else {
+            fixSkyLighting(chunksList);
+        }
+    }
+
+    private void fixSkyLighting(List<RelightSkyEntry> sorted) {
+        RelightSkyEntry[] chunks = sorted.toArray(new RelightSkyEntry[sorted.size()]);
         byte[] cacheX = FaweCache.CACHE_X[0];
         byte[] cacheZ = FaweCache.CACHE_Z[0];
         for (int y = 255; y > 0; y--) {

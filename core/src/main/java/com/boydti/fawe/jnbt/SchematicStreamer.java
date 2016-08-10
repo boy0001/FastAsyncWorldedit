@@ -83,7 +83,7 @@ public class SchematicStreamer extends NBTStreamer {
                 ListTag positionTag = compound.getListTag("Pos");
                 ListTag directionTag = compound.getListTag("Rotation");
                 BaseEntity state = new BaseEntity(id, compound);
-                fc.createEntity(null, positionTag.asDouble(0), positionTag.asDouble(1), positionTag.asDouble(2), (float) directionTag.asDouble(0), (float) directionTag.asDouble(1), state);
+                fc.createEntity(clipboard, positionTag.asDouble(0), positionTag.asDouble(1), positionTag.asDouble(2), (float) directionTag.asDouble(0), (float) directionTag.asDouble(1), state);
             }
         });
     }

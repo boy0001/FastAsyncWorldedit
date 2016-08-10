@@ -33,7 +33,6 @@ import java.util.Set;
 import java.util.UUID;
 import net.minecraft.server.v1_10_R1.Block;
 import net.minecraft.server.v1_10_R1.BlockPosition;
-import net.minecraft.server.v1_10_R1.Blocks;
 import net.minecraft.server.v1_10_R1.ChunkSection;
 import net.minecraft.server.v1_10_R1.DataBits;
 import net.minecraft.server.v1_10_R1.DataPaletteBlock;
@@ -64,7 +63,6 @@ import org.bukkit.Chunk;
 import org.bukkit.World;
 import org.bukkit.World.Environment;
 import org.bukkit.WorldCreator;
-import org.bukkit.block.Biome;
 import org.bukkit.craftbukkit.v1_10_R1.CraftChunk;
 import org.bukkit.craftbukkit.v1_10_R1.CraftServer;
 import org.bukkit.craftbukkit.v1_10_R1.CraftWorld;
@@ -78,6 +76,8 @@ public class BukkitQueue_1_10 extends BukkitQueue_0<Chunk, ChunkSection[], Chunk
     private static IBlockData air;
     private static Field fieldBits;
     private static Method getEntitySlices;
+
+    public static final IBlockData[] IBD_CACHE = new IBlockData[Character.MAX_VALUE];
 
     public BukkitQueue_1_10(final String world) {
         super(world);
@@ -94,6 +94,11 @@ public class BukkitQueue_1_10 extends BukkitQueue_0<Chunk, ChunkSection[], Chunk
                     setupAdapter(new com.boydti.fawe.bukkit.v1_10.FaweAdapter_1_10());
                     Fawe.debug("Using adapter: " + adapter);
                     Fawe.debug("=========================================");
+                }
+                for (int i = 0; i < Character.MAX_VALUE; i++) {
+                    try {
+                        IBD_CACHE[i] = Block.getById(i >> 4).fromLegacyData(i & 0xF);
+                    } catch (Throwable ignore) {}
                 }
             } catch (Throwable e) {
                 throw new RuntimeException(e);
@@ -658,9 +663,11 @@ public class BukkitQueue_1_10 extends BukkitQueue_0<Chunk, ChunkSection[], Chunk
                 DataPaletteBlock nibble = section.getBlocks();
                 int nonEmptyBlockCount = 0;
                 for (int y = 0; y < 16; y++) {
-                    for (int z = 0; z < 16; z++) {
-                        for (int x = 0; x < 16; x++) {
-                            char combinedId = array[FaweCache.CACHE_J[y][x][z]];
+                    short[][] i1 = FaweCache.CACHE_J[y];
+                    for (int x= 0; x < 16; x++) {
+                        short[] i2 = i1[x];
+                        for (int z = 0; z < 16; z++) {
+                            char combinedId = array[i2[z]];
                             switch (combinedId) {
                                 case 0:
                                     IBlockData existing = nibble.a(x, y, z);
@@ -669,11 +676,11 @@ public class BukkitQueue_1_10 extends BukkitQueue_0<Chunk, ChunkSection[], Chunk
                                     }
                                     continue;
                                 case 1:
-                                    nibble.setBlock(x, y, z, Blocks.AIR.getBlockData());
+                                    nibble.setBlock(x, y, z, air);
                                     continue;
                                 default:
                                     nonEmptyBlockCount++;
-                                    nibble.setBlock(x, y, z, Block.getById(combinedId >> 4).fromLegacyData(combinedId & 0xF));
+                                    nibble.setBlock(x, y, z, IBD_CACHE[(int) combinedId]);
                             }
                         }
                     }
@@ -714,23 +721,6 @@ public class BukkitQueue_1_10 extends BukkitQueue_0<Chunk, ChunkSection[], Chunk
             }
         } catch (Throwable e) {
             MainUtil.handleError(e);
-        }
-        final int[][] biomes = fs.getBiomeArray();
-        final Biome[] values = Biome.values();
-        if (biomes != null) {
-            for (int x = 0; x < 16; x++) {
-                final int[] array = biomes[x];
-                if (array == null) {
-                    continue;
-                }
-                for (int z = 0; z < 16; z++) {
-                    final int biome = array[z];
-                    if (biome == 0) {
-                        continue;
-                    }
-                    chunk.getBlock(x, 0, z).setBiome(values[biome]);
-                }
-            }
         }
         return true;
     }

@@ -6,6 +6,7 @@ import com.boydti.fawe.example.CharFaweChunk;
 import com.boydti.fawe.example.NMSMappedFaweQueue;
 import com.boydti.fawe.object.FaweChunk;
 import com.boydti.fawe.object.RunnableVal;
+import com.boydti.fawe.util.MathMan;
 import com.boydti.fawe.util.TaskManager;
 import com.sk89q.worldedit.bukkit.WorldEditPlugin;
 import com.sk89q.worldedit.bukkit.adapter.BukkitImplAdapter;
@@ -16,12 +17,14 @@ import java.util.Collection;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
 import org.bukkit.Bukkit;
 import org.bukkit.Chunk;
 import org.bukkit.World;
 import org.bukkit.WorldCreator;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
+import org.bukkit.event.world.ChunkUnloadEvent;
 import org.bukkit.event.world.WorldInitEvent;
 
 public abstract class BukkitQueue_0<CHUNK, CHUNKSECTIONS, SECTION> extends NMSMappedFaweQueue<World, CHUNK, CHUNKSECTIONS, SECTION> implements Listener {
@@ -77,6 +80,22 @@ public abstract class BukkitQueue_0<CHUNK, CHUNKSECTIONS, SECTION> extends NMSMa
         if (disableChunkLoad) {
             World world = event.getWorld();
             world.setKeepSpawnInMemory(false);
+        }
+    }
+
+    public static ConcurrentHashMap<Long, Long> keepLoaded = new ConcurrentHashMap<>();
+
+    @EventHandler
+    public static void onChunkUnload(ChunkUnloadEvent event) {
+        Chunk chunk = event.getChunk();
+        long pair = MathMan.pairInt(chunk.getX(), chunk.getZ());
+        Long lastLoad = keepLoaded.get(pair);
+        if (lastLoad != null) {
+            if (System.currentTimeMillis() - lastLoad < 10000) {
+                event.setCancelled(true);
+            } else {
+                keepLoaded.remove(pair);
+            }
         }
     }
 
@@ -154,7 +173,11 @@ public abstract class BukkitQueue_0<CHUNK, CHUNKSECTIONS, SECTION> extends NMSMa
 
     @Override
     public boolean loadChunk(World impWorld, int x, int z, boolean generate) {
-        return impWorld.loadChunk(x, z, generate);
+        if (impWorld.loadChunk(x, z, generate)) {
+            keepLoaded.put(MathMan.pairInt(x, z), System.currentTimeMillis());
+            return true;
+        }
+        return false;
     }
 
     private volatile boolean timingsEnabled;
