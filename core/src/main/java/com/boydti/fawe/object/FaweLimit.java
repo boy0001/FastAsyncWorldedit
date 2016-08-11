@@ -47,7 +47,7 @@ public class FaweLimit {
         MAX.MAX_ITERATIONS = Integer.MAX_VALUE;
         MAX.MAX_BLOCKSTATES = Integer.MAX_VALUE;
         MAX.MAX_ENTITIES = Integer.MAX_VALUE;
-        MAX.MAX_HISTORY = 15;
+        MAX.MAX_HISTORY = Integer.MAX_VALUE;
     }
 
     public boolean MAX_CHANGES() {

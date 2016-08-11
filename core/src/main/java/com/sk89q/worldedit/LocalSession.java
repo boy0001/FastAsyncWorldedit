@@ -24,11 +24,13 @@ import com.boydti.fawe.config.Settings;
 import com.boydti.fawe.object.FaweInputStream;
 import com.boydti.fawe.object.FaweOutputStream;
 import com.boydti.fawe.object.FawePlayer;
+import com.boydti.fawe.object.RunnableVal2;
 import com.boydti.fawe.object.changeset.DiskStorageHistory;
 import com.boydti.fawe.object.changeset.FaweChangeSet;
 import com.boydti.fawe.object.clipboard.DiskOptimizedClipboard;
 import com.boydti.fawe.util.EditSessionBuilder;
 import com.boydti.fawe.util.MainUtil;
+import com.boydti.fawe.wrappers.WorldWrapper;
 import com.sk89q.jchronic.Chronic;
 import com.sk89q.jchronic.Options;
 import com.sk89q.jchronic.utils.Span;
@@ -61,6 +63,10 @@ import java.io.FileFilter;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.attribute.BasicFileAttributes;
+import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Collections;
@@ -72,6 +78,7 @@ import java.util.Map;
 import java.util.TimeZone;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicLong;
 import javax.annotation.Nullable;
 import javax.swing.filechooser.FileNameExtensionFilter;
 
@@ -118,7 +125,6 @@ public class LocalSession {
         }
     });
     private transient volatile Integer historyNegativeIndex;
-    private transient volatile long historySize = 0;
     private transient ClipboardHolder clipboard;
     private transient boolean toolControl = true;
     private transient boolean superPickaxe = false;
@@ -133,9 +139,9 @@ public class LocalSession {
     private transient Mask mask;
     private transient TimeZone timezone = TimeZone.getDefault();
 
-    // May be null
     private transient World currentWorld;
     private transient UUID uuid;
+    private transient volatile long historySize = 0;
 
     // Saved properties
     private String lastScript;
@@ -222,14 +228,68 @@ public class LocalSession {
                 }
             });
         }
-        historySize = 0;
         if (editIds.size() > 0) {
+            historySize = MainUtil.getTotalSize(folder.toPath());
             Collections.sort(editIds);
             for (int index : editIds) {
                 history.add(index);
             }
+        } else {
+            historySize = 0;
         }
         return editIds.size() > 0;
+    }
+
+    @Deprecated
+    private void deleteOldFiles(UUID uuid, World world, long maxBytes) throws IOException {
+        final File folder = MainUtil.getFile(Fawe.imp().getDirectory(), Settings.PATHS.HISTORY + File.separator + Fawe.imp().getWorldName(world) + File.separator + uuid);
+
+        final ArrayList<Integer> ids = new ArrayList<Integer>();
+        final HashMap<Integer, ArrayDeque<Path>> paths = new HashMap<>();
+        final HashMap<Integer, AtomicLong> sizes = new HashMap<>();
+        final AtomicLong totalSize = new AtomicLong();
+
+        MainUtil.traverse(folder.toPath(), new RunnableVal2<Path, BasicFileAttributes>() {
+            @Override
+            public void run(Path path, BasicFileAttributes attr) {
+                try {
+                    String file = path.getFileName().toString();
+                    int index = file.indexOf('.');
+                    if (index == -1) {
+                        return;
+                    }
+                    int id = Integer.parseInt(file.substring(0, index));
+                    long size = attr.size();
+                    totalSize.addAndGet(size);
+                    ArrayDeque<Path> existingPaths = paths.get(id);
+                    if (existingPaths == null) {
+                        existingPaths = new ArrayDeque<Path>();
+                        paths.put(id, existingPaths);
+                    }
+                    existingPaths.add(path);
+                    AtomicLong existingSize = sizes.get(id);
+                    if (existingSize == null) {
+                        existingSize = new AtomicLong();
+                        sizes.put(id, existingSize);
+                    }
+                    existingSize.addAndGet(size);
+                } catch (NumberFormatException ignore){
+                    ignore.printStackTrace();
+                }
+            }
+        });
+        if (totalSize.get() < maxBytes) {
+            return;
+        }
+        Collections.sort(ids);
+        long total = totalSize.get();
+        for (int i = 0; i < ids.size() && total > maxBytes; i++) {
+            int id = ids.get(i);
+            for (Path path : paths.get(id)) {
+                Files.delete(path);
+            }
+            total -= sizes.get(id).get();
+        }
     }
 
     private void loadHistoryNegativeIndex(UUID uuid, World world) {
@@ -392,16 +452,19 @@ public class LocalSession {
             while (iter.hasNext()) {
                 Object item = iter.next();
                 if (++i > cutoffIndex) {
+                    FaweChangeSet changeSet;
                     if (item instanceof FaweChangeSet) {
-                        FaweChangeSet changeSet = (FaweChangeSet) item;
-                        historySize -= MainUtil.getSizeInMemory(changeSet);
+                        changeSet = (FaweChangeSet) item;
+                    } else {
+                        changeSet = getChangeSet(item);
                     }
+                    historySize -= MainUtil.getSize(changeSet);
                     iter.remove();
                 }
             }
         }
         FaweChangeSet changeSet = (FaweChangeSet) editSession.getChangeSet();
-        historySize += MainUtil.getSizeInMemory(changeSet);
+        historySize += MainUtil.getSize(changeSet);
         if (append) {
             history.add(changeSet);
             if (getHistoryNegativeIndex() != 0) {
@@ -413,7 +476,8 @@ public class LocalSession {
         }
         while ((history.size() > MAX_HISTORY_SIZE || (historySize >> 20) > limitMb) && history.size() > 1) {
             FaweChangeSet item = (FaweChangeSet) history.remove(0);
-            historySize -= MainUtil.getSizeInMemory(item);
+            item.delete();
+            historySize -= MainUtil.getSize(item);
         }
     }
 
@@ -648,7 +712,11 @@ public class LocalSession {
      * @return the the world of the selection
      */
     public World getSelectionWorld() {
-        return selector.getIncompleteRegion().getWorld();
+        World world = selector.getIncompleteRegion().getWorld();
+        if (world instanceof WorldWrapper) {
+            return ((WorldWrapper) world).getParent();
+        }
+        return world;
     }
 
     /**

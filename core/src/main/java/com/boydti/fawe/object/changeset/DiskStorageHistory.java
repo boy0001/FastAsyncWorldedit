@@ -2,6 +2,8 @@ package com.boydti.fawe.object.changeset;
 
 import com.boydti.fawe.Fawe;
 import com.boydti.fawe.config.Settings;
+import com.boydti.fawe.database.DBHandler;
+import com.boydti.fawe.database.RollbackDatabase;
 import com.boydti.fawe.object.FaweInputStream;
 import com.boydti.fawe.object.IntegerPair;
 import com.boydti.fawe.object.RegionWrapper;
@@ -101,6 +103,15 @@ public class DiskStorageHistory extends FaweStreamChangeSet {
         initFiles(folder);
     }
 
+    public void delete() {
+        Fawe.debug("Deleting history: " + Fawe.imp().getWorldName(getWorld()) + "/" + uuid + "/" + index);
+        deleteFiles();
+        if (Settings.HISTORY.USE_DATABASE) {
+            RollbackDatabase db = DBHandler.IMP.getDatabase(Fawe.imp().getWorldName(getWorld()));
+            db.delete(uuid, index);
+        }
+    }
+
     public void deleteFiles() {
         bdFile.delete();
         nbtfFile.delete();
@@ -166,19 +177,19 @@ public class DiskStorageHistory extends FaweStreamChangeSet {
     public long getSizeOnDisk() {
         int total = 0;
         if (bdFile.exists()) {
-            total += bdFile.getTotalSpace();
+            total += bdFile.length();
         }
         if (nbtfFile.exists()) {
-            total += entfFile.getTotalSpace();
+            total += entfFile.length();
         }
         if (nbttFile.exists()) {
-            total += entfFile.getTotalSpace();
+            total += entfFile.length();
         }
         if (entfFile.exists()) {
-            total += entfFile.getTotalSpace();
+            total += entfFile.length();
         }
         if (enttFile.exists()) {
-            total += entfFile.getTotalSpace();
+            total += entfFile.length();
         }
         return total;
     }

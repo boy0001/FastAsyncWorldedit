@@ -80,6 +80,8 @@ public abstract class FaweChangeSet implements ChangeSet {
     public abstract void addEntityCreate(CompoundTag tag);
     public abstract Iterator<Change> getIterator(boolean redo);
 
+    public void delete() {};
+
     public EditSession toEditSession(FawePlayer player) {
         EditSession editSession = new EditSessionBuilder(world).player(player).autoQueue(false).fastmode(false).checkMemory(false).changeSet(this).allowedRegions(RegionWrapper.GLOBAL().toArray()).build();
         editSession.setSize(1);

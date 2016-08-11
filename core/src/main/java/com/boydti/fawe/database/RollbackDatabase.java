@@ -35,6 +35,7 @@ public class RollbackDatabase {
     private String GET_EDITS;
     private String GET_EDITS_USER;
     private String DELETE_EDITS_USER;
+    private String DELETE_EDIT_USER;
     private String PURGE;
 
     private ConcurrentLinkedQueue<RollbackOptimizedHistory> historyChanges = new ConcurrentLinkedQueue<>();
@@ -52,6 +53,7 @@ public class RollbackDatabase {
         GET_EDITS = "SELECT `player`,`id` FROM `" + prefix + "edits` WHERE `x2`>=? AND `x1`<=? AND `y2`>=? AND `y1`<=? AND `z2`>=? AND `z1`<=? AND `time`>? ORDER BY `time` DESC, `id` DESC";
         GET_EDITS_USER = "SELECT `player`,`id` FROM `" + prefix + "edits` WHERE `x2`>=? AND `x1`<=? AND `y2`>=? AND `y1`<=? AND `z2`>=? AND `z1`<=? AND `time`>? AND `player`=? ORDER BY `time` DESC, `id` DESC";
         DELETE_EDITS_USER = "DELETE FROM `" + prefix + "edits` WHERE `x2`>=? AND `x1`<=? AND `y2`>=? AND `y1`<=? AND `z2`>=? AND `z1`<=? AND `time`>? AND `player`=?";
+        DELETE_EDIT_USER = "DELETE FROM `" + prefix + "edits` WHERE `player`=? AND `id`=?";
         init();
         purge((int) TimeUnit.DAYS.toMillis(Settings.HISTORY.DELETE_AFTER_DAYS));
         TaskManager.IMP.async(new Runnable() {
@@ -88,6 +90,21 @@ public class RollbackDatabase {
 
     public void addFinishTask(Runnable run) {
         notify.add(run);
+    }
+
+    public void delete(final UUID uuid, final int id) {
+        addTask(new Runnable() {
+            @Override
+            public void run() {
+                try (PreparedStatement stmt = connection.prepareStatement(DELETE_EDIT_USER)) {
+                    byte[] uuidBytes = ByteBuffer.allocate(16).putLong(uuid.getMostSignificantBits()).putLong(uuid.getLeastSignificantBits()).array();
+                    stmt.setBytes(1, uuidBytes);
+                    stmt.setInt(2, id);
+                } catch (SQLException e) {
+                    e.printStackTrace();
+                }
+            }
+        });
     }
 
     public void purge(int diff) {

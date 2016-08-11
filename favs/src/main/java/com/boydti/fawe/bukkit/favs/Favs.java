@@ -45,6 +45,8 @@ public class Favs extends JavaPlugin {
                 }
             });
             Fawe.debug("Injected VoxelSniper classes");
-        } catch (Throwable ignore) {}
+        } catch (Throwable ignore) {
+            ignore.printStackTrace();
+        }
     }
 }

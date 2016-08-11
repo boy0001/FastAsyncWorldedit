@@ -8,6 +8,7 @@ import com.boydti.fawe.object.FaweOutputStream;
 import com.boydti.fawe.object.FawePlayer;
 import com.boydti.fawe.object.RegionWrapper;
 import com.boydti.fawe.object.RunnableVal;
+import com.boydti.fawe.object.RunnableVal2;
 import com.boydti.fawe.object.changeset.CPUOptimizedChangeSet;
 import com.boydti.fawe.object.changeset.FaweStreamChangeSet;
 import com.sk89q.jnbt.CompoundTag;
@@ -38,12 +39,18 @@ import java.net.URISyntaxException;
 import java.net.URL;
 import java.net.URLConnection;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.FileVisitResult;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.nio.file.SimpleFileVisitor;
+import java.nio.file.attribute.BasicFileAttributes;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.UUID;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.zip.GZIPInputStream;
 import java.util.zip.GZIPOutputStream;
 import java.util.zip.ZipEntry;
@@ -78,6 +85,42 @@ public class MainUtil {
         Fawe.debug(s);
     }
 
+    public static long getTotalSize(Path path) {
+        final AtomicLong size = new AtomicLong(0);
+        traverse(path, new RunnableVal2<Path, BasicFileAttributes>() {
+            @Override
+            public void run(Path path, BasicFileAttributes attrs) {
+                size.addAndGet (attrs.size());
+            }
+        });
+        return size.get();
+    }
+
+    public static long traverse(Path path, final RunnableVal2<Path, BasicFileAttributes> onEach) {
+        final AtomicLong size = new AtomicLong(0);
+        try {
+            Files.walkFileTree(path, new SimpleFileVisitor<Path>() {
+                @Override public FileVisitResult
+                visitFile(Path file, BasicFileAttributes attrs) {
+                    onEach.run(file, attrs);
+                    return FileVisitResult.CONTINUE;
+                }
+                @Override public FileVisitResult
+                visitFileFailed(Path file, IOException exc) {
+                    return FileVisitResult.CONTINUE;
+                }
+                @Override public FileVisitResult
+                postVisitDirectory (Path dir, IOException exc) {
+                    return FileVisitResult.CONTINUE;
+                }
+            });
+        }
+        catch (IOException e) {
+            throw new AssertionError ("walkFileTree will not throw IOException if the FileVisitor does not");
+        }
+        return size.get();
+    }
+
     public static File getFile(File base, String path) {
         if (Paths.get(path).isAbsolute()) {
             return new File(path);
@@ -93,9 +136,10 @@ public class MainUtil {
         return getCompressedOS(os, Settings.HISTORY.COMPRESSION_LEVEL);
     }
 
-    public static long getSizeInMemory(ChangeSet changeSet) {
+    public static long getSize(ChangeSet changeSet) {
         if (changeSet instanceof FaweStreamChangeSet){
-            return 92 + ((FaweStreamChangeSet) changeSet).getSizeInMemory();
+            FaweStreamChangeSet fscs = (FaweStreamChangeSet) changeSet;
+            return fscs.getSizeOnDisk() + fscs.getSizeInMemory();
         } else if (changeSet instanceof CPUOptimizedChangeSet) {
             return changeSet.size() + 32;
         } else if (changeSet != null) {

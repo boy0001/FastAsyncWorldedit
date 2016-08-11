@@ -14,4 +14,4 @@ processResources {
 }
 
 jar.destinationDir = file '../target'
-jar.archiveName = "${parent.name}-${project.name}-${parent.version}.jar"
+jar.archiveName = "FastAsyncVoxelSniper-${project.name}-${parent.version}.jar"
