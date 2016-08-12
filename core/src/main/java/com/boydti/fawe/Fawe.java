@@ -158,7 +158,7 @@ public class Fawe {
      * @param s
      */
     public static void debug(Object s) {
-        s = BBC.getPrefix() + s;
+        s = BBC.PREFIX.original() + " " + s;
         if (INSTANCE != null) {
             INSTANCE.IMP.debug(StringMan.getString(s));
         } else {

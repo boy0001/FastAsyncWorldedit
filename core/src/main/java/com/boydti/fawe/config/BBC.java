@@ -350,6 +350,10 @@ public enum BBC {
         return this.s;
     }
 
+    public String original() {
+        return d;
+    }
+
     public boolean usePrefix() {
         return this.prefix;
     }
