@@ -113,9 +113,11 @@ public enum BBC {
 
     SCHEMATIC_DELETE("%s0 has been deleted.", "Worldedit.Schematic"),
     SCHEMATIC_FORMAT("Available clipboard formats (Name: Lookup names)", "Worldedit.Schematic"),
-    SCHEMATIC_LIST("Available schematics (Filename (Format)):", "Worldedit.Schematic"),
     SCHEMATIC_LOADED("%s0 loaded. Paste it with //paste", "Worldedit.Schematic"),
     SCHEMATIC_SAVED("%s0 saved.", "Worldedit.Schematic"),
+    SCHEMATIC_PAGE("Page must be %s", "WorldEdit.Schematic"),
+    SCHEMATIC_NONE("No schematics found.", "WorldEdit.Schematic"),
+    SCHEMATIC_LIST("Available schematics (Filename: Format) [%s0/%s1]:", "Worldedit.Schematic"),
 
     CLIPBOARD_CLEARED("Clipboard cleared", "WorldEdit.Clipboard"),
 
