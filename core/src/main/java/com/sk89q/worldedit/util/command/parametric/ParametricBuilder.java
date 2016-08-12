@@ -36,7 +36,6 @@ import com.sk89q.worldedit.util.command.binding.StandardBindings;
 import com.sk89q.worldedit.util.command.binding.Switch;
 import com.thoughtworks.paranamer.CachingParanamer;
 import com.thoughtworks.paranamer.Paranamer;
-
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;
 import java.lang.reflect.Type;
@@ -44,6 +43,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
@@ -155,6 +155,7 @@ public class ParametricBuilder {
         for (Method method : object.getClass().getDeclaredMethods()) {
             Command definition = method.getAnnotation(Command.class);
             if (definition != null) {
+                definition = Commands.translate(definition);
                 CommandCallable callable = build(object, method, definition);
                 dispatcher.registerCommand(callable, definition.aliases());
             }
@@ -176,7 +177,7 @@ public class ParametricBuilder {
             Class<?> clazz = Class.forName("com.sk89q.worldedit.util.command.parametric.ParametricCallable");
             Constructor<?> constructor = clazz.getDeclaredConstructors()[0];
             constructor.setAccessible(true);
-            return (CommandCallable) constructor.newInstance(this, object, method, Commands.translate(definition));
+            return (CommandCallable) constructor.newInstance(this, object, method, definition);
         } catch (Throwable e) {
             if (e instanceof ParametricException) {
                 throw (ParametricException) e;
