@@ -253,7 +253,7 @@ public class Fawe {
 
         // Setting up config.yml
         File file = new File(this.IMP.getDirectory(), "config.yml");
-        Settings.PLATFORM = IMP.getPlatform();
+        Settings.PLATFORM = IMP.getPlatform().replace("\"", "");
         try {
             InputStream stream = getClass().getResourceAsStream("/fawe.properties");
             java.util.Scanner scanner = new java.util.Scanner(stream).useDelimiter("\\A");
