@@ -317,6 +317,30 @@ public class FaweCache {
         }
     }
 
+    public static boolean hasLight(int id) {
+        switch (id) {
+            case 39:
+            case 40:
+            case 50:
+            case 51:
+            case 76:
+            case 10:
+            case 11:
+            case 62:
+            case 74:
+            case 89:
+            case 122:
+            case 124:
+            case 130:
+            case 138:
+            case 169:
+            case 213:
+                return true;
+            default:
+                return false;
+        }
+    }
+
     public enum LightType {
         TRANSPARENT, OCCLUDING, SOLID_EMIT, TRANSPARENT_EMIT
     }

@@ -7,6 +7,8 @@ import com.boydti.fawe.object.FaweChunk;
 import com.boydti.fawe.object.RunnableVal;
 import com.boydti.fawe.util.TaskManager;
 import com.sk89q.jnbt.CompoundTag;
+import java.lang.reflect.Field;
+import java.lang.reflect.Method;
 import org.bukkit.Chunk;
 import org.bukkit.World;
 import org.bukkit.block.Block;
@@ -15,6 +17,7 @@ public class BukkitQueue_All extends BukkitQueue_0<Chunk, Chunk, Chunk> {
 
     public static int ALLOCATE;
     public static double TPS_TARGET = 18.5;
+    private static int LIGHT_MASK = 0x739C0;
 
     public BukkitQueue_All(String world) {
         super(world);
@@ -122,6 +125,62 @@ public class BukkitQueue_All extends BukkitQueue_0<Chunk, Chunk, Chunk> {
     @Override
     public void startSet(boolean parallel) {
         super.startSet(true);
+    }
+
+    private Field fieldNeighbors;
+    private Method chunkGetHandle;
+
+    /**
+     * Exploiting a bug in the vanilla lighting algorithm for faster block placement
+     *  - Could have been achieved without reflection by force unloading specific chunks
+     *  - Much faster just setting the variable manually though
+     * @param chunk
+     * @return
+     */
+    protected Object[] disableLighting(Chunk chunk) {
+        try {
+            if (chunkGetHandle == null) {
+                chunkGetHandle = chunk.getClass().getDeclaredMethod("getHandle");
+                chunkGetHandle.setAccessible(true);
+            }
+            Object nmsChunk = chunkGetHandle.invoke(chunk);
+            if (fieldNeighbors == null) {
+                fieldNeighbors = nmsChunk.getClass().getDeclaredField("neighbors");
+                fieldNeighbors.setAccessible(true);
+            }
+            Object value = fieldNeighbors.get(nmsChunk);
+            fieldNeighbors.set(nmsChunk, 0);
+            return new Object[] {nmsChunk, value};
+        } catch (Throwable ignore) {}
+        return null;
+    }
+
+    protected void disableLighting(Object[] disableResult) {
+        if (disableResult != null) {
+            try {
+                fieldNeighbors.set(disableResult[0], 0);
+            } catch (IllegalAccessException e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
+    protected void resetLighting(Object[] disableResult) {
+        if (disableResult != null) {
+            try {
+                fieldNeighbors.set(disableResult[0], disableResult[1]);
+            } catch (Throwable ignore) {
+                ignore.printStackTrace();
+            }
+        }
+    }
+
+    protected void enableLighting(Object[] disableResult) {
+        if (disableResult != null) {
+            try {
+                fieldNeighbors.set(disableResult[0], 0x739C0);
+            } catch (Throwable ignore) {}
+        }
     }
 
     @Override

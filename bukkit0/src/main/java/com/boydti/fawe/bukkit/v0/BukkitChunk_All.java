@@ -1,6 +1,7 @@
 package com.boydti.fawe.bukkit.v0;
 
 import com.boydti.fawe.FaweCache;
+import com.boydti.fawe.config.Settings;
 import com.boydti.fawe.example.CharFaweChunk;
 import com.boydti.fawe.object.FaweQueue;
 import com.boydti.fawe.util.MainUtil;
@@ -43,8 +44,9 @@ public class BukkitChunk_All extends CharFaweChunk<Chunk> {
     public void execute(long start) {
         int recommended = 25 + BukkitQueue_All.ALLOCATE;
         boolean more = true;
-        FaweQueue parent = getParent();
+        BukkitQueue_All parent = (BukkitQueue_All) getParent();
         final Chunk chunk = getChunk();
+        Object[] disableResult = parent.disableLighting(chunk);
         chunk.load(true);
         final World world = chunk.getWorld();
         char[][] sections = getCombinedIdArrays();
@@ -106,12 +108,15 @@ public class BukkitChunk_All extends CharFaweChunk<Chunk> {
                 if (newArray == null) {
                     continue;
                 }
+                final byte[] cacheX = FaweCache.CACHE_X[layer];
+                final short[] cacheY = FaweCache.CACHE_Y[layer];
+                final byte[] cacheZ = FaweCache.CACHE_Z[layer];
                 boolean checkTime = !((getAir(layer) == 4096 || (getCount(layer) == 4096 && getAir(layer) == 0) || (getCount(layer) == getAir(layer))) && getRelight(layer) == 0);
                 if (!checkTime) {
                     ArrayList<Thread> threads = new ArrayList<Thread>();
                     for (int k = 0; k < 16; k++) {
                         final int l = k << 8;
-                        final int y = FaweCache.CACHE_Y[layer][l];
+                        final int y = cacheY[l];
                         Thread thread = new Thread(new Runnable() {
                             @Override
                             public void run() {
@@ -122,23 +127,18 @@ public class BukkitChunk_All extends CharFaweChunk<Chunk> {
                                             continue;
                                         case 1:
                                             if (!place) {
-                                                int x = FaweCache.CACHE_X[layer][m];
-                                                int z = FaweCache.CACHE_Z[layer][m];
-                                                chunk.getBlock(x, y, z).setTypeId(0, false);
+                                                int x = cacheX[m];
+                                                int z = cacheZ[m];
+                                                setBlock(chunk.getBlock(x, y, z), 0, (byte) 0);
                                             }
                                             continue;
                                         default:
                                             if (place) {
-                                                int x = FaweCache.CACHE_X[layer][m];
-                                                int z = FaweCache.CACHE_Z[layer][m];
+                                                int x = cacheX[m];
+                                                int z = cacheZ[m];
                                                 int id = combined >> 4;
-                                                int data = combined & 0xF;
                                                 Block block = chunk.getBlock(x, y, z);
-                                                if (data == 0) {
-                                                    block.setTypeId(id, false);
-                                                } else {
-                                                    block.setTypeIdAndData(id, (byte) data, false);
-                                                }
+                                                setBlock(block, id, (byte) (combined & 0xF));
                                             }
                                             continue;
                                     }
@@ -157,28 +157,41 @@ public class BukkitChunk_All extends CharFaweChunk<Chunk> {
                         char combined = newArray[j];
                         switch (combined) {
                             case 0:
-                                break;
+                                continue;
                             case 1:
                                 if (!place) {
-                                    int x = FaweCache.CACHE_X[layer][j];
-                                    int z = FaweCache.CACHE_Z[layer][j];
-                                    int y = FaweCache.CACHE_Y[layer][j];
-                                    chunk.getBlock(x, y, z).setTypeId(0, false);
+                                    int x = cacheX[j];
+                                    int z = cacheZ[j];
+                                    int y = cacheY[j];
+                                    setBlock(chunk.getBlock(x, y, z), 0, (byte) 0);
                                 }
                                 break;
                             default:
-                                if (place) {
-                                    int id = combined >> 4;
-                                    int data = combined & 0xF;
-                                    int x = FaweCache.CACHE_X[layer][j];
-                                    int z = FaweCache.CACHE_Z[layer][j];
-                                    int y = FaweCache.CACHE_Y[layer][j];
-                                    Block block = chunk.getBlock(x, y, z);
-                                    if (data == 0) {
-                                        block.setTypeId(id, false);
-                                    } else {
-                                        block.setTypeIdAndData(id, (byte) data, false);
+                                int id = combined >> 4;
+                                boolean light = FaweCache.hasLight(id);
+                                if (light) {
+                                    if (place) {
+                                        continue;
                                     }
+                                } else if (!place) {
+                                    continue;
+                                }
+                                if (light != place) {
+                                    light = light && Settings.LIGHTING.MODE != 0;
+                                    if (light) {
+                                        parent.enableLighting(disableResult);
+                                    }
+                                    int data = combined & 0xF;
+                                    int x = cacheX[j];
+                                    int z = cacheZ[j];
+                                    int y = cacheY[j];
+                                    Block block = chunk.getBlock(x, y, z);
+                                    setBlock(block, id, (byte) data);
+                                    if (light) {
+                                        parent.disableLighting(disableResult);
+                                    }
+                                } else {
+                                    continue;
                                 }
                                 break;
                         }
@@ -196,5 +209,10 @@ public class BukkitChunk_All extends CharFaweChunk<Chunk> {
         if (more || place) {
             this.addToQueue();
         }
+        parent.resetLighting(disableResult);
+    }
+
+    public void setBlock(Block block, int id, byte data) {
+        block.setTypeIdAndData(id, data, false);
     }
 }
