@@ -140,6 +140,18 @@ public class MemoryOptimizedClipboard extends FaweClipboard {
         height = dimensions.getBlockY();
         length = dimensions.getBlockZ();
         area = width * length;
+        int newVolume = area * height;
+        if (newVolume != volume) {
+            volume = newVolume;
+            ids = new byte[1 + (volume >> BLOCK_SHIFT)][];
+            datas = new byte[1 + (volume >> BLOCK_SHIFT)][];
+            lastAddI = -1;
+            lastIdsI = -1;
+            lastDatasI = -1;
+            saveIds = false;
+            saveAdd = false;
+            saveDatas = false;
+        }
     }
 
     @Override

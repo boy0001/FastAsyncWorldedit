@@ -15,6 +15,7 @@ public class NMSRelighter {
     private final NMSMappedFaweQueue queue;
     private final HashMap<Long, RelightSkyEntry> skyToRelight;
     private final HashMap<Long, RelightBlockEntry> blocksToRelight;
+    private volatile boolean relighting = false;
 
     private static final int DISPATCH_SIZE = 64;
 
@@ -66,6 +67,23 @@ public class NMSRelighter {
             queue.setBlockLight(rx, ry, rz, emit - 1);
             addBlock(rx, ry, rz);
         }
+    }
+
+    public void fixLightingSafe(boolean sky) {
+        if (relighting) {
+            return;
+        }
+        relighting = true;
+        try {
+            if (sky) {
+                fixSkyLighting();
+            }
+            fixBlockLighting();
+            sendChunks();
+        } catch (Throwable e) {
+            e.printStackTrace();
+        }
+        relighting = false;
     }
 
     public void fixBlockLighting() {

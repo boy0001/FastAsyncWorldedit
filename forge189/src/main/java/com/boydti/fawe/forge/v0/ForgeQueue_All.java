@@ -450,6 +450,7 @@ public class ForgeQueue_All extends NMSMappedFaweQueue<World, Chunk, ExtendedBlo
     @Override
     public void refreshChunk(FaweChunk fc) {
         ForgeChunk_All fs = (ForgeChunk_All) fc;
+        ensureChunkLoaded(fc.getX(), fc.getZ());
         Chunk nmsChunk = fs.getChunk();
         if (!nmsChunk.isLoaded()) {
             return;

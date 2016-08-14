@@ -10,15 +10,19 @@ import java.util.List;
 
 public class Settings extends Config {
 
-    @Comment("These first 4 aren't configurable") // This is a comment
+    @Comment("These first 6 aren't configurable") // This is a comment
     @Final // Indicates that this value isn't configurable
     public static final String ISSUES = "https://github.com/boy0001/FastAsyncWorldedit/issues";
     @Final
     public static final String WIKI = "https://github.com/boy0001/FastAsyncWorldedit/wiki/";
     @Final
-    public static String VERSION = null; // These values are set from PS before loading
+    public static String DATE = null; // These values are set from FAWE before loading
     @Final
-    public static String PLATFORM = null; // These values are set from PS before loading
+    public static String BUILD = null; // These values are set from FAWE before loading
+    @Final
+    public static String COMMIT = null; // These values are set from FAWE before loading
+    @Final
+    public static String PLATFORM = null; // These values are set from FAWE before loading
 
     @Comment("Send anonymous usage statistics to MCStats.org")
     public static boolean METRICS = true;

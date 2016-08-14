@@ -60,14 +60,17 @@ import com.sk89q.worldedit.util.command.parametric.ParametricBuilder;
 import com.sk89q.worldedit.world.registry.BundledBlockData;
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 import java.lang.management.ManagementFactory;
 import java.lang.management.MemoryMXBean;
 import java.lang.management.MemoryPoolMXBean;
 import java.lang.management.MemoryUsage;
 import java.util.Collection;
+import java.util.Date;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
+import javax.annotation.Nullable;
 import javax.management.InstanceAlreadyExistsException;
 import javax.management.Notification;
 import javax.management.NotificationEmitter;
@@ -120,6 +123,7 @@ public class Fawe {
      * TPS timer
      */
     private final FaweTimer timer;
+    private FaweVersion version;
 
     /**
      * Get the implementation specific class
@@ -213,8 +217,21 @@ public class Fawe {
         this.setupMemoryListener();
     }
 
+    /**
+     * The FaweTimer is a useful class for monitoring TPS
+     * @return FaweTimer
+     */
     public FaweTimer getTimer() {
         return timer;
+    }
+
+    /**
+     * The FAWE version
+     *  - Unofficial jars may be lacking version information
+     * @return FaweVersion
+     */
+    public @Nullable FaweVersion getVersion() {
+        return version;
     }
 
     public double getTPS() {
@@ -233,10 +250,20 @@ public class Fawe {
     }
 
     public void setupConfigs() {
+
         // Setting up config.yml
         File file = new File(this.IMP.getDirectory(), "config.yml");
-        Settings.VERSION = StringMan.join(IMP.getVersion(), ".");
         Settings.PLATFORM = IMP.getPlatform();
+        try {
+            InputStream stream = getClass().getResourceAsStream("/fawe.properties");
+            java.util.Scanner scanner = new java.util.Scanner(stream).useDelimiter("\\A");
+            String versionString = scanner.next().trim();
+            scanner.close();
+            this.version = new FaweVersion(versionString);
+            Settings.DATE = new Date(version.year, version.month, version.day).toLocaleString();
+            Settings.BUILD = "http://ci.athion.net/job/FastAsyncWorldEdit/" + version.build;
+            Settings.COMMIT = "https://github.com/boy0001/FastAsyncWorldedit/commit/" + Integer.toHexString(version.hash);
+        } catch (Throwable ignore) {}
         Settings.load(file);
         Settings.save(file);
         // Setting up message.yml
@@ -376,19 +403,12 @@ public class Fawe {
             debug(" - Report this issue if you cannot resolve it");
             debug("===============================================");
         }
-        if (getJavaVersion() < 1.8) {
+        if (MainUtil.getJavaVersion() < 1.8) {
             debug("====== UPGRADE TO JAVA 8 ======");
             debug("You are running " + System.getProperty("java.version"));
             debug(" - This is only a recommendation");
             debug("====================================");
         }
-    }
-
-    static double getJavaVersion () {
-        String version = System.getProperty("java.version");
-        int pos = version.indexOf('.');
-        pos = version.indexOf('.', pos+1);
-        return Double.parseDouble (version.substring (0, pos));
     }
 
     private void setupMemoryListener() {
@@ -470,8 +490,6 @@ public class Fawe {
     /*
      * TODO FIXME
      *  - Async packet sending
-     *  - Redo WEManager delay / command queue
-     *  - Support older versions of bukkit
      *  - Optimize lighting updates / chunk sending
      */
 }

@@ -98,12 +98,6 @@ public class FaweForge implements IFawe {
     }
 
     @Override
-    public int[] getVersion() {
-        String[] version = this.mod.version.split("\\.");
-        return new int[] {Integer.parseInt(version[0]), Integer.parseInt(version[1]), Integer.parseInt(version[2])};
-    }
-
-    @Override
     public String getWorldName(World world) {
         if (world instanceof WorldWrapper) {
             world = ((WorldWrapper) world).getParent();

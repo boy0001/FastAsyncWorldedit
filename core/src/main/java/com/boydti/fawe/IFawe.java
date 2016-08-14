@@ -23,8 +23,6 @@ public interface IFawe {
 
     public TaskManager getTaskManager();
 
-    public int[] getVersion();
-
     public FaweQueue getNewQueue(String world, boolean fast);
 
     public String getWorldName(World world);

@@ -1,7 +1,6 @@
 package com.boydti.fawe.bukkit;
 
 import com.boydti.fawe.Fawe;
-import com.boydti.fawe.FaweAPI;
 import com.boydti.fawe.IFawe;
 import com.boydti.fawe.bukkit.regions.FactionsFeature;
 import com.boydti.fawe.bukkit.regions.FactionsOneFeature;
@@ -22,7 +21,6 @@ import com.boydti.fawe.object.FaweQueue;
 import com.boydti.fawe.regions.FaweMaskManager;
 import com.boydti.fawe.util.MainUtil;
 import com.boydti.fawe.util.ReflectionUtils;
-import com.boydti.fawe.util.StringMan;
 import com.boydti.fawe.util.TaskManager;
 import com.sk89q.worldedit.bukkit.WorldEditPlugin;
 import com.sk89q.worldedit.world.World;
@@ -63,7 +61,7 @@ public class FaweBukkit implements IFawe, Listener {
         this.plugin = plugin;
         try {
             Fawe.set(this);
-            if (Bukkit.getVersion().contains("git-Spigot") && FaweAPI.checkVersion(this.getVersion(), 1, 7, 10)) {
+            if (Bukkit.getVersion().contains("git-Spigot")) {
                 debug("====== USE PAPER SPIGOT ======");
                 debug("DOWNLOAD: https://ci.destroystokyo.com/job/PaperSpigot/");
                 debug("GUIDE: https://www.spigotmc.org/threads/21726/");
@@ -151,27 +149,6 @@ public class FaweBukkit implements IFawe, Listener {
 
     private int[] version;
 
-    @Override
-    public int[] getVersion() {
-        if (this.version == null) {
-            try {
-                this.version = new int[3];
-                final String[] split = plugin.getDescription().getVersion().split("-")[0].split("\\.");
-                this.version[0] = Integer.parseInt(split[0]);
-                this.version[1] = Integer.parseInt(split[1]);
-                if (split.length == 3) {
-                    this.version[2] = Integer.parseInt(split[2]);
-                }
-            } catch (final NumberFormatException e) {
-                MainUtil.handleError(e);
-                Fawe.debug(StringMan.getString(Bukkit.getBukkitVersion()));
-                Fawe.debug(StringMan.getString(Bukkit.getBukkitVersion().split("-")[0].split("\\.")));
-                return new int[] { Integer.MAX_VALUE, 0, 0 };
-            }
-        }
-        return this.version;
-    }
-
     private boolean hasNMS = true;
 
     /**
@@ -195,9 +172,7 @@ public class FaweBukkit implements IFawe, Listener {
         } catch (Throwable ignore) {}
         try {
             return plugin.getQueue(world);
-        } catch (Throwable ignore) {
-//            ignore.printStackTrace();
-        }
+        } catch (Throwable ignore) {}
         // Disable incompatible settings
         Settings.QUEUE.PARALLEL_THREADS = 1; // BukkitAPI placer is too slow to parallel thread at the chunk level
         Settings.HISTORY.COMBINE_STAGES = false; // Performing a chunk copy (if possible) wouldn't be faster using the BukkitAPI
@@ -323,7 +298,7 @@ public class FaweBukkit implements IFawe, Listener {
 
     @Override
     public String getPlatform() {
-        return "bukkit";
+        return Bukkit.getVersion();
     }
 
     @Override

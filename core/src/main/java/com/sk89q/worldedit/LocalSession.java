@@ -194,6 +194,9 @@ public class LocalSession {
         if (world == null || uuid == null) {
             return false;
         }
+        if (Settings.HISTORY.USE_DISK) {
+            MAX_HISTORY_SIZE = Integer.MAX_VALUE;
+        }
         if (!world.equals(currentWorld)) {
             this.uuid = uuid;
             // Save history
@@ -273,9 +276,7 @@ public class LocalSession {
                         sizes.put(id, existingSize);
                     }
                     existingSize.addAndGet(size);
-                } catch (NumberFormatException ignore){
-                    ignore.printStackTrace();
-                }
+                } catch (NumberFormatException ignore){}
             }
         });
         if (totalSize.get() < maxBytes) {

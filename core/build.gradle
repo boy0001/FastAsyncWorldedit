@@ -8,5 +8,15 @@ dependencies {
 sourceCompatibility = 1.7
 targetCompatibility = 1.7
 
+processResources {
+    from('src/main/resources') {
+        include 'fawe.properties'
+        expand(
+                version: "${project.parent.version}",
+                name: project.parent.name,
+        )
+    }
+}
+
 jar.archiveName="FastAsyncWorldEdit-API.jar"
 jar.destinationDir = file '../target'

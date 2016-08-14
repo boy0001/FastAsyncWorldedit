@@ -96,6 +96,21 @@ public class MainUtil {
         return size.get();
     }
 
+    public static double getJavaVersion () {
+        String version = System.getProperty("java.version");
+        int pos = version.indexOf('.');
+        pos = version.indexOf('.', pos+1);
+        return Double.parseDouble (version.substring (0, pos));
+    }
+
+    public static void stacktrace() {
+        try {
+            int i = 1/0;
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
     public static long traverse(Path path, final RunnableVal2<Path, BasicFileAttributes> onEach) {
         final AtomicLong size = new AtomicLong(0);
         try {

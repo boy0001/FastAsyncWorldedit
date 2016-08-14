@@ -15,17 +15,23 @@ apply plugin: 'java'
 clean { delete "target" }
 
 group = 'com.boydti.fawe'
+
 def revision = ""
+def buildNumber = ""
+final def date = new Date().format("yy.MM.dd")
 ext {
     git = org.ajoberstar.grgit.Grgit.open(file(".git"))
     revision = "-${git.head().abbreviatedId}"
+    parents = git.head().parentIds;
+    index = -44;  // Offset to mach CI
+    for (;parents != null && !parents.isEmpty();index++) {
+        commit = git.getResolve().toCommit(parents.get(0));
+        parents = commit.getParentIds();
+    }
+    buildNumber = "-${index}"
 }
 
-if ( project.hasProperty("lzNoGitHash") ) { // gradle build -PlzNoGitHash
-    revision = "";
-}
-
-version = "3.5.1${revision}"
+version = date + revision + buildNumber
 description = """FastAsyncWorldEdit"""
 
 subprojects {

@@ -54,6 +54,12 @@ public class CPUOptimizedClipboard extends FaweClipboard {
         height = dimensions.getBlockY();
         length = dimensions.getBlockZ();
         area = width * length;
+        int newVolume = area * height;
+        if (newVolume != volume) {
+            volume = newVolume;
+            ids = new byte[volume];
+            datas = new byte[volume];
+        }
     }
 
     @Override

@@ -324,10 +324,11 @@ public abstract class MappedFaweQueue<WORLD, CHUNK, SECTION> extends FaweQueue {
 
     @Override
     public int size() {
-        if (chunks.size() == 0 && SetQueue.IMP.getStage(this) != SetQueue.QueueStage.INACTIVE) {
+        int size = chunks.size();
+        if (size == 0 && SetQueue.IMP.getStage(this) != SetQueue.QueueStage.INACTIVE) {
             runTasks();
         }
-        return chunks.size();
+        return size;
     }
 
     private ConcurrentLinkedDeque<FaweChunk> toUpdate = new ConcurrentLinkedDeque<>();

@@ -250,6 +250,7 @@ public class BukkitQueue_1_10 extends BukkitQueue_0<Chunk, ChunkSection[], Chunk
     @Override
     public void refreshChunk(FaweChunk fc) {
         BukkitChunk_1_10 fs = (BukkitChunk_1_10) fc;
+        ensureChunkLoaded(fc.getX(), fc.getZ());
         Chunk chunk = fs.getChunk();
         if (!chunk.isLoaded()) {
             return;

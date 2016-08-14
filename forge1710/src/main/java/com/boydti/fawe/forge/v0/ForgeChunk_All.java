@@ -48,8 +48,7 @@ public class ForgeChunk_All extends CharFaweChunk<Chunk> {
         this.count[i]++;
         switch (id) {
             case 0:
-                this.air[i]++;
-                vs[j] = -1;
+                vs[j] = 0;
                 vs2[j] = (char) 1;
                 return;
             case 11:
@@ -63,74 +62,12 @@ public class ForgeChunk_All extends CharFaweChunk<Chunk> {
             case 138:
             case 169:
             case 213:
-                this.relight[i]++;
-            case 2:
-            case 4:
-            case 13:
-            case 14:
-            case 15:
-            case 20:
-            case 21:
-            case 22:
-            case 30:
-            case 32:
-            case 37:
-            case 41:
-            case 42:
-            case 45:
-            case 46:
-            case 47:
-            case 48:
-            case 49:
-            case 55:
-            case 56:
-            case 57:
-            case 58:
-            case 60:
-            case 7:
-            case 73:
-            case 79:
-            case 80:
-            case 81:
-            case 82:
-            case 83:
-            case 85:
-            case 87:
-            case 88:
-            case 101:
-            case 102:
-            case 103:
-            case 110:
-            case 112:
-            case 113:
-            case 121:
-            case 129:
-            case 133:
-            case 165:
-            case 166:
-            case 170:
-            case 172:
-            case 173:
-            case 174:
-            case 188:
-            case 189:
-            case 190:
-            case 191:
-            case 192:
-                vs[j] = (byte) (id);
-                vs2[j] = (char) (id << 4);
-                return;
             case 130:
             case 76:
             case 62:
             case 50:
             case 10:
                 this.relight[i]++;
-            case 54:
-            case 146:
-            case 61:
-            case 65:
-            case 68: // removed
             default:
                 vs2[j] = (char) ((id << 4) + data);
                 vs[j] = (byte) id;

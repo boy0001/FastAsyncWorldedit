@@ -213,6 +213,7 @@ public class ForgeQueue_All extends NMSMappedFaweQueue<World, Chunk, ExtendedBlo
     @Override
     public void refreshChunk(FaweChunk fc) {
         ForgeChunk_All fs = (ForgeChunk_All) fc;
+        ensureChunkLoaded(fc.getX(), fc.getZ());
         Chunk nmsChunk = fs.getChunk();
         if (!nmsChunk.isChunkLoaded) {
             return;
@@ -390,13 +391,14 @@ public class ForgeQueue_All extends NMSMappedFaweQueue<World, Chunk, ExtendedBlo
                 }
                 boolean fill = true;
                 int solid = 0;
+                char[] charArray = fs.getIdArray(j);
                 for (int k = 0; k < newIdArray.length; k++) {
-                    byte n = newIdArray[k];
-                    switch (n) {
+                    char combined = charArray[k];
+                    switch (combined) {
                         case 0:
                             fill = false;
                             continue;
-                        case -1:
+                        case 1:
                             fill = false;
                             if (currentIdArray[k] != 0) {
                                 solid++;
@@ -405,16 +407,14 @@ public class ForgeQueue_All extends NMSMappedFaweQueue<World, Chunk, ExtendedBlo
                             continue;
                         default:
                             solid++;
-                            currentIdArray[k] = n;
+                            currentIdArray[k] = newIdArray[k];
                             if (data) {
+                                int dataByte = FaweCache.getData(combined);
                                 int x = FaweCache.CACHE_X[0][k];
                                 int y = FaweCache.CACHE_Y[0][k];
                                 int z = FaweCache.CACHE_Z[0][k];
-                                int newData = newDataArray == null ? 0 : newDataArray.get(x, y, z);
-                                int currentData = currentDataArray == null ? 0 : currentDataArray.get(x, y, z);
-                                if (newData != currentData) {
-                                    currentDataArray.set(x, y, z, newData);
-                                }
+                                int newData = newDataArray.get(x, y, z);
+                                currentDataArray.set(x, y, z, newData);
                             }
                             continue;
                     }
