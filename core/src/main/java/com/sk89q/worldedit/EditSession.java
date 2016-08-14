@@ -1103,14 +1103,12 @@ public class EditSession implements Extent {
             queue.dequeue();
             return;
         }
+        if (Fawe.get().isMainThread()) {
+            SetQueue.IMP.flush(queue);
+        } else {
+            queue.flush();
+        }
         if (getChangeSet() != null) {
-            if (Settings.HISTORY.COMBINE_STAGES && queue.size() > 0) {
-                if (Fawe.get().isMainThread()) {
-                    SetQueue.IMP.flush(queue);
-                } else {
-                    queue.flush();
-                }
-            }
             ((FaweChangeSet) getChangeSet()).flush();
         }
     }

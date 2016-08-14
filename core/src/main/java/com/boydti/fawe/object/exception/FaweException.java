@@ -3,15 +3,15 @@ package com.boydti.fawe.object.exception;
 import com.boydti.fawe.config.BBC;
 
 public class FaweException extends RuntimeException {
-    private final String message;
+    private final BBC message;
 
     public FaweException(BBC reason) {
-        this.message = reason.format();
+        this.message = reason;
     }
 
     @Override
     public String getMessage() {
-        return message;
+        return message == null ? null : message.format();
     }
 
     public static FaweException get(Throwable e) {
@@ -29,5 +29,10 @@ public class FaweException extends RuntimeException {
         public FaweChunkLoadException() {
             super(BBC.WORLDEDIT_FAILED_LOAD_CHUNK);
         }
+    }
+
+    @Override
+    public Throwable fillInStackTrace() {
+        return this;
     }
 }

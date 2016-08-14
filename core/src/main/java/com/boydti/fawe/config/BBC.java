@@ -63,7 +63,7 @@ public enum BBC {
     COMMAND_UNDO_FAIL("Nothing left to undo.", "WorldEdit.History"),
     COMMAND_UNDO_SUCCESS("Undo successful.", "WorldEdit.History"),
 
-    OPERATION("Operation complete (%s0)", "WorldEdit.Operation"),
+    OPERATION("Operation queued (%s0)", "WorldEdit.Operation"),
 
     SELECTION_WAND("Left click: select pos #1; Right click: select pos #2", "WorldEdit.Selection"),
     SELECTION_WAND_DISABLE("Edit wand disabled.", "WorldEdit.Selection"),
