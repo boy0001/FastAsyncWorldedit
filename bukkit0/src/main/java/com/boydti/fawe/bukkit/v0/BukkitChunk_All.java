@@ -5,8 +5,10 @@ import com.boydti.fawe.config.Settings;
 import com.boydti.fawe.example.CharFaweChunk;
 import com.boydti.fawe.object.FaweQueue;
 import com.boydti.fawe.util.MainUtil;
+import com.sk89q.jnbt.CompoundTag;
 import com.sk89q.worldedit.LocalWorld;
 import com.sk89q.worldedit.Vector2D;
+import com.sk89q.worldedit.blocks.BaseBlock;
 import com.sk89q.worldedit.bukkit.BukkitUtil;
 import com.sk89q.worldedit.world.biome.BaseBiome;
 import java.util.ArrayList;
@@ -186,6 +188,14 @@ public class BukkitChunk_All extends CharFaweChunk<Chunk> {
                                     int z = cacheZ[j];
                                     int y = cacheY[j];
                                     Block block = chunk.getBlock(x, y, z);
+                                    if (FaweCache.hasNBT(id) && parent.adapter != null) {
+                                        CompoundTag tile = getTile(x, y, z);
+                                        if (tile != null) {
+                                            BaseBlock baseBlock = new BaseBlock(id, data, tile);
+                                            parent.adapter.setBlock(block.getLocation(), baseBlock, false);
+                                            break;
+                                        }
+                                    }
                                     setBlock(block, id, (byte) data);
                                     if (light) {
                                         parent.disableLighting(disableResult);

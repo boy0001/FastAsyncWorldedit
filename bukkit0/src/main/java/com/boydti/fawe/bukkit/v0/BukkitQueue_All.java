@@ -7,9 +7,11 @@ import com.boydti.fawe.object.FaweChunk;
 import com.boydti.fawe.object.RunnableVal;
 import com.boydti.fawe.util.TaskManager;
 import com.sk89q.jnbt.CompoundTag;
+import com.sk89q.worldedit.blocks.BaseBlock;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import org.bukkit.Chunk;
+import org.bukkit.Location;
 import org.bukkit.World;
 import org.bukkit.block.Block;
 
@@ -92,7 +94,12 @@ public class BukkitQueue_All extends BukkitQueue_0<Chunk, Chunk, Chunk> {
 
     @Override
     public CompoundTag getTileEntity(Chunk chunk, int x, int y, int z) {
-        return null;
+        if (adapter == null) {
+            return null;
+        }
+        Location loc = new Location(getWorld(), x, y, z);
+        BaseBlock block = adapter.getBlock(loc);
+        return block != null ? block.getNbtData() : null;
     }
 
     @Override

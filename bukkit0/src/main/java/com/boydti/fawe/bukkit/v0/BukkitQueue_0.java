@@ -29,7 +29,7 @@ import org.bukkit.event.world.WorldInitEvent;
 
 public abstract class BukkitQueue_0<CHUNK, CHUNKSECTIONS, SECTION> extends NMSMappedFaweQueue<World, CHUNK, CHUNKSECTIONS, SECTION> implements Listener {
 
-    public static Object adapter;
+    public static BukkitImplAdapter adapter;
     public static Method methodToNative;
     public static Method methodFromNative;
 
@@ -119,7 +119,7 @@ public abstract class BukkitQueue_0<CHUNK, CHUNKSECTIONS, SECTION> extends NMSMa
             if ((this.adapter = adapter) != null) {
                 fieldAdapter.set(instance, adapter);
             } else {
-                this.adapter = fieldAdapter.get(instance);
+                this.adapter = (BukkitImplAdapter) fieldAdapter.get(instance);
             }
             for (Method method : this.adapter.getClass().getDeclaredMethods()) {
                 switch (method.getName()) {
