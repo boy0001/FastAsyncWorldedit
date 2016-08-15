@@ -77,10 +77,10 @@ public class SchematicWriter implements ClipboardWriter {
             int y = (int) point.y;
             int z = (int) point.z;
             if (this.x == x - 1 && this.y == y && this.z == z) {
+                this.x++;
                 index++;
-                x++;
             } else {
-                index = yarea[y] + zwidth[z] + x;
+                index = yarea[this.y = y] + zwidth[this.z = z] + (this.x = x);
             }
             int id = block.getId();
             blocks[index] = (byte) id;
