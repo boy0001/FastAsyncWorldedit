@@ -1,6 +1,7 @@
 package com.boydti.fawe.bukkit.favs;
 
 import com.boydti.fawe.Fawe;
+import com.boydti.fawe.bukkit.BukkitCommand;
 import com.boydti.fawe.object.FaweCommand;
 import com.boydti.fawe.object.FawePlayer;
 import com.thevoxelbox.voxelsniper.SnipeData;
@@ -18,7 +19,7 @@ public class Favs extends JavaPlugin {
             SnipeData.inject();
             Sniper.inject();
             // Forward the commands so //p and //d will work
-            Fawe.imp().setupCommand("/p", new FaweCommand("voxelsniper.sniper") {
+            setupCommand("/p", new FaweCommand("voxelsniper.sniper") {
                 @Override
                 public boolean execute(FawePlayer fp, String... args) {
                     Player player = (Player) fp.parent;
@@ -31,7 +32,7 @@ public class Favs extends JavaPlugin {
 
                 }
             });
-            Fawe.imp().setupCommand("/d", new FaweCommand("voxelsniper.sniper") {
+            setupCommand("/d", new FaweCommand("voxelsniper.sniper") {
                 @Override
                 public boolean execute(FawePlayer fp, String... args) {
                     Player player = (Player) fp.parent;
@@ -48,5 +49,9 @@ public class Favs extends JavaPlugin {
         } catch (Throwable ignore) {
             ignore.printStackTrace();
         }
+    }
+
+    public void setupCommand(final String label, final FaweCommand cmd) {
+        this.getCommand(label).setExecutor(new BukkitCommand(cmd));
     }
 }
