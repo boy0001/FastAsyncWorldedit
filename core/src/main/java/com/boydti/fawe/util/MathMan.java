@@ -83,6 +83,10 @@ public class MathMan {
         return (byte) ((value >> 4) & 0xF);
     }
 
+    public static int lossyFastDivide(int a, int b) {
+        return (a*((1<<16)/b))>>16;
+    }
+
     public static int sqrt(int x) {
         int xn;
 

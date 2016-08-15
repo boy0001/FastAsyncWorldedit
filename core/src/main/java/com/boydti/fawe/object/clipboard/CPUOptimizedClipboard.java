@@ -1,6 +1,7 @@
 package com.boydti.fawe.object.clipboard;
 
 import com.boydti.fawe.FaweCache;
+import com.boydti.fawe.object.IntegerTrio;
 import com.boydti.fawe.object.RunnableVal2;
 import com.sk89q.jnbt.CompoundTag;
 import com.sk89q.worldedit.Vector;
@@ -12,20 +13,9 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 
 public class CPUOptimizedClipboard extends FaweClipboard {
-    public CPUOptimizedClipboard(int width, int height, int length) {
-        this.width = width;
-        this.height = height;
-        this.length = length;
-        this.area = width * length;
-        this.volume = area * height;
-        ids = new byte[volume];
-        datas = new byte[volume];
-        nbtMap = new HashMap<>();
-        entities = new HashSet<>();
-    }
-
     private int length;
     private int height;
     private int width;
@@ -34,8 +24,41 @@ public class CPUOptimizedClipboard extends FaweClipboard {
     private byte[] ids;
     private byte[] datas;
     private byte[] add;
-    private final HashMap<Integer, CompoundTag> nbtMap;
+
+    private final HashMap<IntegerTrio, CompoundTag> nbtMapLoc;
+    private final HashMap<Integer, CompoundTag> nbtMapIndex;
+
     private final HashSet<ClipboardEntity> entities;
+
+    public CPUOptimizedClipboard(int width, int height, int length) {
+        this.width = width;
+        this.height = height;
+        this.length = length;
+        this.area = width * length;
+        this.volume = area * height;
+        ids = new byte[volume];
+        datas = new byte[volume];
+        nbtMapLoc = new HashMap<>();
+        nbtMapIndex = new HashMap<>();
+        entities = new HashSet<>();
+    }
+
+
+    public void convertTilesToIndex() {
+        if (nbtMapLoc.isEmpty()) {
+            return;
+        }
+        for (Map.Entry<IntegerTrio, CompoundTag> entry : nbtMapLoc.entrySet()) {
+            IntegerTrio key = entry.getKey();
+            nbtMapIndex.put(getIndex(key.x, key.y, key.z), entry.getValue());
+        }
+        nbtMapLoc.clear();
+    }
+
+    private CompoundTag getTag(int index) {
+        convertTilesToIndex();
+        return nbtMapIndex.get(index);
+    }
 
     public int getId(int index) {
         if (add != null) {
@@ -115,7 +138,7 @@ public class CPUOptimizedClipboard extends FaweClipboard {
             block = FaweCache.getBlock(id, 0);
         }
         if (FaweCache.hasNBT(id)) {
-            CompoundTag nbt = nbtMap.get(index);
+            CompoundTag nbt = getTag(index);
             if (nbt != null) {
                 block = new BaseBlock(block.getId(), block.getData());
                 block.setNbtData(nbt);
@@ -145,7 +168,7 @@ public class CPUOptimizedClipboard extends FaweClipboard {
 
     @Override
     public boolean setTile(int x, int y, int z, CompoundTag tag) {
-        nbtMap.put(getIndex(x, y, z), tag);
+        nbtMapLoc.put(new IntegerTrio(x, y, z), tag);
         return true;
     }
 
@@ -159,7 +182,7 @@ public class CPUOptimizedClipboard extends FaweClipboard {
         setData(index, (byte) block.getData());
         CompoundTag tile = block.getNbtData();
         if (tile != null) {
-            nbtMap.put(index, tile);
+            nbtMapIndex.put(index, tile);
         }
         return true;
     }

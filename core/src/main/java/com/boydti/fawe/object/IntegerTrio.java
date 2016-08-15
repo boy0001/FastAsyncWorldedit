@@ -1,9 +1,9 @@
 package com.boydti.fawe.object;
 
 public class IntegerTrio {
-    private final int z;
-    private final int x;
-    private final int y;
+    public final int z;
+    public final int x;
+    public final int y;
 
     public IntegerTrio(int x, int y, int z) {
         this.x = x;
