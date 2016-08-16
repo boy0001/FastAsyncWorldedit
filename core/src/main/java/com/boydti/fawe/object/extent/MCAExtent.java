@@ -1,7 +1,6 @@
-package com.boydti.fawe.object.
+package com.boydti.fawe.object.extent;
 
-import com.boydti.fawe.example.NMSMappedFaweQueue;
-import com.boydti.fawe.jnbt.MCRFile;
+import com.boydti.fawe.jnbt.MCAFile;
 import com.boydti.fawe.object.FaweQueue;
 import com.boydti.fawe.util.MathMan;
 import com.sk89q.worldedit.Vector;
@@ -22,13 +21,13 @@ import java.util.List;
 import java.util.Map;
 import javax.annotation.Nullable;
 
-public class MCRExtent extends AbstractDelegateExtent {
+public class MCAExtent extends AbstractDelegateExtent {
     private final FaweQueue queue;
     private final File folder;
 
-    private Map<Long, MCRFile> regions;
+    private Map<Long, MCAFile> regions;
 
-    public MCRExtent(World world, FaweQueue queue) {
+    public MCAExtent(World world, FaweQueue queue) {
         super(world);
         this.queue = queue;
         this.folder = new File(queue.getSaveFolder(), "regions");
@@ -41,65 +40,66 @@ public class MCRExtent extends AbstractDelegateExtent {
 
     private int lastX = Integer.MAX_VALUE;
     private int lastZ = Integer.MAX_VALUE;
-    private MCRFile lastMCR;
+    private MCAFile lastMCA;
 
-    private MCRFile getMCR(int x, int y, int z) {
-        int mcrX = x >> 9;
-        int mcrZ = z >> 9;
-        if (mcrX == lastX && mcrZ == lastZ) {
-            return lastMCR;
+    private MCAFile getMCA(int x, int y, int z) {
+        int MCAX = x >> 9;
+        int MCAZ = z >> 9;
+        if (MCAX == lastX && MCAZ == lastZ) {
+            return lastMCA;
         }
-        lastX = mcrX;
-        lastZ = mcrZ;
+        lastX = MCAX;
+        lastZ = MCAZ;
         long pair = MathMan.pairInt(lastX, lastZ);
-        lastMCR = regions.get(pair);
-        if (lastMCR == null) {
-            lastMCR = new MCRFile(folder, lastX, lastZ);
-            regions.put(pair, lastMCR);
+        lastMCA = regions.get(pair);
+        if (lastMCA == null) {
+//            lastMCA = new MCAFile(folder, lastX, lastZ);
+            // TODO
+            regions.put(pair, lastMCA);
         }
-        return lastMCR;
+        return lastMCA;
     }
 
     @Override
     public BaseBlock getBlock(Vector position) {
-        // TODO get block from MCR
+        // TODO get block from MCA
         return null;
     }
 
     @Override
     public BaseBlock getLazyBlock(Vector position) {
-        // TODO set block in MCR
+        // TODO set block in MCA
         return null;
     }
 
     @Override
     public boolean setBlock(Vector location, BaseBlock block) throws WorldEditException {
-        // TODO set block in MCR
+        // TODO set block in MCA
         return false;
     }
 
     @Override
     @Nullable
     public Entity createEntity(Location location, BaseEntity entity) {
-        // TODO add entity to MCR
+        // TODO add entity to MCA
         return null;
     }
 
     @Override
     public List<? extends Entity> getEntities() {
-        // TODO get entities from MCR
+        // TODO get entities from MCA
         return null;
     }
 
     @Override
     public List<? extends Entity> getEntities(Region region) {
-        // TODO get entities from MCR
+        // TODO get entities from MCA
         return null;
     }
 
     @Override
     public BaseBiome getBiome(Vector2D position) {
-        // TODO get biome from MCR
+        // TODO get biome from MCA
         return null;
     }
 
@@ -119,7 +119,7 @@ public class MCRExtent extends AbstractDelegateExtent {
     }
 
     protected Operation commitBefore() {
-        // Save MCR file if modified
+        // Save MCA file if modified
         return null;
     }
 }
