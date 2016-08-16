@@ -1,6 +1,5 @@
 package com.boydti.fawe.bukkit.favs;
 
-import com.boydti.fawe.Fawe;
 import com.boydti.fawe.bukkit.BukkitCommand;
 import com.boydti.fawe.object.FaweCommand;
 import com.boydti.fawe.object.FawePlayer;
@@ -45,7 +44,6 @@ public class Favs extends JavaPlugin {
 
                 }
             });
-            Fawe.debug("Injected VoxelSniper classes");
         } catch (Throwable ignore) {
             ignore.printStackTrace();
         }
