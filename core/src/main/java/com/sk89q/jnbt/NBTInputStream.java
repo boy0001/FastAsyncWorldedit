@@ -104,26 +104,26 @@ public final class NBTInputStream implements Closeable {
             case NBTConstants.TYPE_END:
                 return;
             case NBTConstants.TYPE_BYTE:
-                is.skip(1);
+                is.skipBytes(1);
                 return;
             case NBTConstants.TYPE_SHORT:
-                is.skip(2);
+                is.skipBytes(2);
                 return;
             case NBTConstants.TYPE_INT:
-                is.skip(4);
+                is.skipBytes(4);
                 return;
             case NBTConstants.TYPE_LONG:
-                is.skip(8);
+                is.skipBytes(8);
                 return;
             case NBTConstants.TYPE_FLOAT:
-                is.skip(4);
+                is.skipBytes(4);
                 return;
             case NBTConstants.TYPE_DOUBLE:
-                is.skip(8);
+                is.skipBytes(8);
                 return;
             case NBTConstants.TYPE_STRING:
                 int length = is.readShort();
-                is.skip(length);
+                is.skipBytes(length);
                 return;
             case NBTConstants.TYPE_BYTE_ARRAY:
                 RunnableVal2 reader = getReader.runAndGet(node + ".?", null).value2;
@@ -133,7 +133,7 @@ public final class NBTInputStream implements Closeable {
                 }
                 reader = getReader.runAndGet(node + ".#", null).value2;
                 if (reader == null) {
-                    is.skip(length);
+                    is.skipBytes(length);
                     return;
                 }
                 if (reader instanceof NBTStreamer.ByteReader) {
@@ -191,7 +191,7 @@ public final class NBTInputStream implements Closeable {
                 }
                 reader = getReader.runAndGet(node + ".#", null).value2;
                 if (reader == null) {
-                    is.skip(length << 2);
+                    is.skipBytes(length << 2);
                     return;
                 }
                 for (int i = 0; i < length; i++) {
