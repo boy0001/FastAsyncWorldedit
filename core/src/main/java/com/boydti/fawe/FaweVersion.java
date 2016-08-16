@@ -12,4 +12,9 @@ public class FaweVersion {
         this.hash = Integer.parseInt(split[1], 16);
         this.build = Integer.parseInt(split[2]);
     }
+
+    @Override
+    public String toString() {
+        return "FastAsyncWorldEdit-" + year + "." + month + "." + day + "-" + Integer.toHexString(hash) + "-" + build;
+    }
 }

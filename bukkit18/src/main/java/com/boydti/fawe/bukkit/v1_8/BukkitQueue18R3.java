@@ -41,6 +41,7 @@ import net.minecraft.server.v1_8_R3.LongHashMap;
 import net.minecraft.server.v1_8_R3.MinecraftServer;
 import net.minecraft.server.v1_8_R3.NBTTagCompound;
 import net.minecraft.server.v1_8_R3.NibbleArray;
+import net.minecraft.server.v1_8_R3.Packet;
 import net.minecraft.server.v1_8_R3.PacketPlayOutMapChunk;
 import net.minecraft.server.v1_8_R3.PlayerChunkMap;
 import net.minecraft.server.v1_8_R3.ServerNBTManager;
@@ -465,6 +466,14 @@ public class BukkitQueue18R3 extends BukkitQueue_0<Chunk, ChunkSection[], ChunkS
             PacketPlayOutMapChunk packet = new PacketPlayOutMapChunk(nmsChunk, false, mask);
             for (EntityPlayer player : players) {
                 player.playerConnection.sendPacket(packet);
+            }
+            // Send tiles
+            for (Map.Entry<BlockPosition, TileEntity> entry : nmsChunk.getTileEntities().entrySet()) {
+                TileEntity tile = entry.getValue();
+                Packet tilePacket = tile.getUpdatePacket();
+                for (EntityPlayer player : players) {
+                    player.playerConnection.sendPacket(tilePacket);
+                }
             }
         } catch (Throwable e) {
             MainUtil.handleError(e);

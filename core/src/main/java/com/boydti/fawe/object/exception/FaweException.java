@@ -25,12 +25,20 @@ public class FaweException extends RuntimeException {
         return get(cause);
     }
 
+    /**
+     * This exception is thrown when a chunk fails to load in time
+     *  - Chunks are loaded on the main thread to be accessed async
+     */
     public static class FaweChunkLoadException extends FaweException {
         public FaweChunkLoadException() {
             super(BBC.WORLDEDIT_FAILED_LOAD_CHUNK);
         }
     }
 
+    /**
+     * Faster exception throwing if you don't fill the stacktrace
+     * @return
+     */
     @Override
     public Throwable fillInStackTrace() {
         return this;
