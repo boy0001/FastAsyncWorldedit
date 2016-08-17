@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-package com.boydti.fawe.object;
+package com.boydti.fawe.object.io;
 
 import java.io.*;
 import java.util.Arrays;
@@ -35,7 +35,7 @@ import java.util.Arrays;
  * Author : Avinash Lakshman ( alakshman@facebook.com) & Prashant Malik ( pmalik@facebook.com )
  */
 
-public final class BufferedRandomAccessFile extends RandomAccessFile
+public class BufferedRandomAccessFile extends RandomAccessFile
 {
     static final int LogBuffSz_ = 16; // 64K buffer
     public static final int BuffSz_ = (1 << LogBuffSz_);

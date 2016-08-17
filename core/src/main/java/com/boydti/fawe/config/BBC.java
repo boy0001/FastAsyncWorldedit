@@ -367,7 +367,7 @@ public enum BBC {
             return;
         }
         if (actor == null) {
-            Fawe.debug((PREFIX.isEmpty() ? "" : PREFIX.s() + " ") + this.format(args));
+            Fawe.debug(this.format(args));
         } else {
             actor.print((PREFIX.isEmpty() ? "" : PREFIX.s() + " ") + this.format(args));
         }
@@ -382,7 +382,7 @@ public enum BBC {
             return;
         }
         if (player == null) {
-            Fawe.debug((PREFIX.isEmpty() ? "" : PREFIX.s() + " ") + this.format(args));
+            Fawe.debug(this.format(args));
         } else {
             player.sendMessage((PREFIX.isEmpty() ? "" : PREFIX.s() + " ") + this.format(args));
         }

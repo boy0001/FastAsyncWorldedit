@@ -178,7 +178,7 @@ public class FakePlayer extends LocalPlayer {
             parent.printRaw(msg);
             return;
         }
-        Fawe.debug(msg);
+        Fawe.get().debugPlain(msg);
     }
 
     @Override
@@ -187,7 +187,7 @@ public class FakePlayer extends LocalPlayer {
             parent.printDebug(msg);
             return;
         }
-        Fawe.debug(msg);
+        Fawe.get().debugPlain(msg);
     }
 
     @Override
@@ -196,7 +196,7 @@ public class FakePlayer extends LocalPlayer {
             parent.print(msg);
             return;
         }
-        Fawe.debug(msg);
+        Fawe.get().debugPlain(msg);
     }
 
     @Override
@@ -205,7 +205,7 @@ public class FakePlayer extends LocalPlayer {
             parent.printError(msg);
             return;
         }
-        Fawe.debug(msg);
+        Fawe.get().debugPlain(msg);
     }
 
     private FakeSessionKey key;

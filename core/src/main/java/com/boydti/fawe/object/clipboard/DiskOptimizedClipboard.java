@@ -3,7 +3,7 @@ package com.boydti.fawe.object.clipboard;
 import com.boydti.fawe.Fawe;
 import com.boydti.fawe.FaweCache;
 import com.boydti.fawe.config.Settings;
-import com.boydti.fawe.object.BufferedRandomAccessFile;
+import com.boydti.fawe.object.io.BufferedRandomAccessFile;
 import com.boydti.fawe.object.IntegerTrio;
 import com.boydti.fawe.object.RunnableVal2;
 import com.boydti.fawe.util.MainUtil;

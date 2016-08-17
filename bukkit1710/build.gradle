@@ -20,9 +20,12 @@ shadowJar {
     dependencies {
         include(dependency(':bukkit0'))
         include(dependency(':core'))
+        include(dependency('com.google.code.gson:gson:2.2.4'))
     }
     archiveName = "${parent.name}-${project.name}-${parent.version}.jar"
     destinationDir = file '../target'
+
+    relocate('com.google.gson', 'com.sk89q.worldedit.internal.gson')
 }
 shadowJar.doLast {
     task ->

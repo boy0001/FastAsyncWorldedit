@@ -22,6 +22,7 @@ package com.sk89q.jnbt;
 import com.boydti.fawe.jnbt.NBTStreamer;
 import com.boydti.fawe.object.RunnableVal2;
 import java.io.Closeable;
+import java.io.DataInput;
 import java.io.DataInputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -41,7 +42,7 @@ import java.util.Map;
  */
 public final class NBTInputStream implements Closeable {
 
-    private final DataInputStream is;
+    private final DataInput is;
 
     /**
      * Creates a new {@code NBTInputStream}, which will source its data
@@ -52,6 +53,10 @@ public final class NBTInputStream implements Closeable {
      */
     public NBTInputStream(InputStream is) throws IOException {
         this.is = new DataInputStream(is);
+    }
+
+    public NBTInputStream(DataInput di) {
+        this.is = di;
     }
 
     /**
@@ -99,6 +104,8 @@ public final class NBTInputStream implements Closeable {
         }
     }
 
+    private byte[] buf;
+
     private void readTagPaylodLazy(int type, int depth, String node, RunnableVal2<String, RunnableVal2> getReader) throws IOException {
         switch (type) {
             case NBTConstants.TYPE_END:
@@ -138,8 +145,40 @@ public final class NBTInputStream implements Closeable {
                 }
                 if (reader instanceof NBTStreamer.ByteReader) {
                     NBTStreamer.ByteReader byteReader = (NBTStreamer.ByteReader) reader;
-                    for (int i = 0; i < length; i++) {
-                        byteReader.run(i, is.read());
+                    int i = 0;
+                    if (is instanceof InputStream) {
+                        DataInputStream dis = (DataInputStream) is;
+                        if (length > 720) {
+                            if (buf == null) {
+                                buf = new byte[720];
+                            }
+                            int left = length;
+                            for (; left > 720; left -= 720) {
+                                dis.read(buf);
+                                for (byte b : buf) {
+                                    byteReader.run(i++, b & 0xFF);
+                                }
+                            }
+                        }
+                        for (; i < length; i++) {
+                            byteReader.run(i, dis.read());
+                        }
+                    } else {
+                        if (length > 720) {
+                            if (buf == null) {
+                                buf = new byte[720];
+                            }
+                            int left = length;
+                            for (; left > 720; left -= 720) {
+                                is.readFully(buf);
+                                for (byte b : buf) {
+                                    byteReader.run(i++, b & 0xFF);
+                                }
+                            }
+                        }
+                        for (; i < length; i++) {
+                            byteReader.run(i, is.readByte() & 0xFF);
+                        }
                     }
                 } else {
                     for (int i = 0; i < length; i++) {
@@ -349,7 +388,13 @@ public final class NBTInputStream implements Closeable {
 
     @Override
     public void close() throws IOException {
-        is.close();
+        if (is instanceof AutoCloseable) {
+            try {
+                ((AutoCloseable) is).close();
+            } catch (Exception e) {
+                throw new RuntimeException(e);
+            }
+        }
     }
 
 }

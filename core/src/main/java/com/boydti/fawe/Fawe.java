@@ -157,17 +157,20 @@ public class Fawe {
         INSTANCE = new Fawe(implementation);
     }
 
-    /**
-     * Write something to the console
-     * @param s
-     */
-    public static void debug(Object s) {
-        s = BBC.PREFIX.original() + " " + s;
+    public static void debugPlain(String s) {
         if (INSTANCE != null) {
             INSTANCE.IMP.debug(StringMan.getString(s));
         } else {
             System.out.print(s);
         }
+    }
+
+    /**
+     * Write something to the console
+     * @param s
+     */
+    public static void debug(Object s) {
+        debugPlain(BBC.PREFIX.original() + " " + s);
     }
 
     /**
