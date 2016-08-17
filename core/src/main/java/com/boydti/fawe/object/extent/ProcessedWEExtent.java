@@ -95,7 +95,15 @@ public class ProcessedWEExtent extends FaweRegionExtent {
 
     @Override
     public boolean setBiome(final Vector2D position, final BaseBiome biome) {
-        return super.setBiome(position, biome);
+        if (WEManager.IMP.maskContains(this.mask, (int) position.getX(), (int) position.getZ())) {
+            if (!limit.MAX_CHANGES()) {
+                WEManager.IMP.cancelEditSafe(this, BBC.WORLDEDIT_CANCEL_REASON_MAX_CHANGES);
+                return false;
+            }
+            return super.setBiome(position, biome);
+        } else if (!limit.MAX_FAILS()) {
+            WEManager.IMP.cancelEditSafe(this, BBC.WORLDEDIT_CANCEL_REASON_MAX_FAILS);
+        }
     }
 
     @Override
