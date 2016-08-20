@@ -12,6 +12,8 @@ public interface IFaweQueueMap {
 
     FaweChunk getFaweChunk(int cx, int cz);
 
+    FaweChunk getCachedFaweChunk(int cx, int cz);
+
     void add(FaweChunk chunk);
 
     void clear();

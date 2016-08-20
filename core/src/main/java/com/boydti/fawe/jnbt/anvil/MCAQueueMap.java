@@ -42,9 +42,6 @@ public class MCAQueueMap implements IFaweQueueMap {
         long pair = MathMan.pairInt(lastFileX = mcaX, lastFileZ = mcaZ);
         lastFile = mcaFileMap.get(pair);
         if (lastFile == null) {
-            if (mcaFileMap.containsKey(pair)) {
-                return null;
-            }
             try {
                 lastFile = new MCAFile(queue, lastFileX, lastFileZ);
             } catch (Exception e) {
@@ -89,27 +86,43 @@ public class MCAQueueMap implements IFaweQueueMap {
         }
         lastX = cx;
         lastZ = cz;
-        try {
-            MCAFile mcaFile = getMCAFile(cx, cz);
-            if (mcaFile == null) {
-                return lastChunk = null;
-            }
-            lastChunk = mcaFile.getChunk(cx, cz);
+        if (isHybridQueue) {
+            lastChunk = ((MappedFaweQueue) queue).getFaweQueueMap().getCachedFaweChunk(cx, cz);
             if (lastChunk != null) {
                 return lastChunk;
             }
-        } catch (Throwable ignore) {
-            ignore.printStackTrace();
+        }
+        if (!isHybridQueue || !queue.isChunkLoaded(cx, cz)) {
+            try {
+                MCAFile mcaFile = getMCAFile(cx, cz);
+                if (mcaFile != null) {
+                    lastChunk = mcaFile.getChunk(cx, cz);
+                    if (lastChunk != null) {
+                        return lastChunk;
+                    }
+                }
+            } catch (Throwable ignore) {
+                ignore.printStackTrace();
+            }
         }
         if (isHybridQueue) { // Use parent queue for in use chunks
             lastChunk = ((MappedFaweQueue)queue).getFaweQueueMap().getFaweChunk(cx, cz);
-            if (lastChunk == null) {
-                System.out.println("Will work this out later.");
-            }
             return lastChunk;
         }
         nullChunk.setLoc(queue, lastX, lastZ);
         return lastChunk = nullChunk;
+    }
+
+    @Override
+    public FaweChunk getCachedFaweChunk(int cx, int cz) {
+        int mcaX = cx >> 5;
+        int mcaZ = cz >> 5;
+        long pair = MathMan.pairInt(mcaX, mcaZ);
+        MCAFile file = mcaFileMap.get(pair);
+        if (file != null) {
+            return file.getCachedChunk(cx, cz);
+        }
+        return null;
     }
 
     @Override

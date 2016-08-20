@@ -371,7 +371,8 @@ public class MCAChunk extends FaweChunk<Void> {
         int layer = y >> 4;
         byte[] idsLayer = ids[layer];
         if (idsLayer == null) {
-            return;
+            idsLayer = this.ids[layer] = new byte[4096];
+            this.data[layer] = new byte[2048];
         }
         int j = FaweCache.CACHE_J[y][z & 15][x & 15];
         idsLayer[j] = (byte) id;

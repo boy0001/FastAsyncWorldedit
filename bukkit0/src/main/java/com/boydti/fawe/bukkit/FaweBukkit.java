@@ -175,9 +175,7 @@ public class FaweBukkit implements IFawe, Listener {
         }
         try {
             return plugin.getQueue(world);
-        } catch (Throwable ignore) {
-            ignore.printStackTrace();
-        }
+        } catch (Throwable ignore) {}
         // Disable incompatible settings
         Settings.QUEUE.PARALLEL_THREADS = 1; // BukkitAPI placer is too slow to parallel thread at the chunk level
         Settings.HISTORY.COMBINE_STAGES = false; // Performing a chunk copy (if possible) wouldn't be faster using the BukkitAPI

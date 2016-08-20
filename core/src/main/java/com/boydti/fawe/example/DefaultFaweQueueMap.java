@@ -65,6 +65,15 @@ public class DefaultFaweQueueMap implements IFaweQueueMap {
     }
 
     @Override
+    public FaweChunk getCachedFaweChunk(int cx, int cz) {
+        if (cx == lastX && cz == lastZ) {
+            return lastWrappedChunk;
+        }
+        long pair = MathMan.pairInt(cx, cz);
+        return this.blocks.get(pair);
+    }
+
+    @Override
     public void add(FaweChunk chunk) {
         long pair = MathMan.pairInt(chunk.getX(), chunk.getZ());
         FaweChunk previous = this.blocks.put(pair, chunk);

@@ -95,6 +95,9 @@ public class MCAFile {
         int i = ((cx & 31) << 2) + ((cz & 31) << 7);
         int offset = (((locations[i] & 0xFF) << 16) + ((locations[i + 1] & 0xFF) << 8) + ((locations[i+ 2] & 0xFF))) << 12;
         int size = (locations[i + 3] & 0xFF) << 12;
+        if (offset == 0) {
+            return null;
+        }
         NBTInputStream nis = getChunkIS(offset);
         MCAChunk chunk = new MCAChunk(nis, queue, cx, cz, size);
         int pair = MathMan.pair((short) (cx & 31), (short) (cz & 31));
@@ -180,6 +183,9 @@ public class MCAFile {
     }
 
     public void streamChunk(int offset, RunnableVal<NBTStreamer> addReaders) throws IOException {
+        if (offset == 0) {
+            return;
+        }
         NBTInputStream is = getChunkIS(offset);
         NBTStreamer ns = new NBTStreamer(is);
         addReaders.run(ns);
@@ -200,6 +206,9 @@ public class MCAFile {
     }
 
     private NBTStreamer getChunkReader(int offset) throws Exception {
+        if (offset == 0) {
+            return null;
+        }
         return new NBTStreamer(getChunkIS(offset));
     }
 
@@ -307,9 +316,6 @@ public class MCAFile {
                         }
                     } else {
                         newBytes = getChunkBytes(cx, cz);
-                        if (newBytes == null) {
-                            System.out.println("This shouldn't be null?");
-                        }
                     }
                 }
                 if (newBytes == null) {
