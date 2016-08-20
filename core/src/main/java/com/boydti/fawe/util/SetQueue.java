@@ -2,7 +2,6 @@ package com.boydti.fawe.util;
 
 import com.boydti.fawe.Fawe;
 import com.boydti.fawe.config.Settings;
-import com.boydti.fawe.object.FaweChunk;
 import com.boydti.fawe.object.FaweQueue;
 import com.boydti.fawe.object.RunnableVal2;
 import java.util.ArrayList;
@@ -42,8 +41,8 @@ public class SetQueue {
         @Override
         public void run(Long free, FaweQueue queue) {
             do {
-                final FaweChunk<?> current = queue.next();
-                if (current == null) {
+                final boolean current = queue.next();
+                if (current == false) {
                     lastSuccess = last;
                     if (inactiveQueues.size() == 0 && activeQueues.size() == 0) {
                         runEmptyTasks();
@@ -269,12 +268,12 @@ public class SetQueue {
         return null;
     }
 
-    public FaweChunk<?> next() {
+    public boolean next() {
         while (activeQueues.size() > 0) {
             FaweQueue queue = activeQueues.poll();
             if (queue != null) {
-                final FaweChunk<?> set = queue.next();
-                if (set != null) {
+                final boolean set = queue.next();
+                if (set) {
                     activeQueues.add(queue);
                     return set;
                 }
@@ -290,8 +289,8 @@ public class SetQueue {
                 long diff = now - lastSuccess;
                 if (diff > Settings.QUEUE.MAX_WAIT_MS) {
                     for (FaweQueue queue : tmp) {
-                        FaweChunk result = queue.next();
-                        if (result != null) {
+                        boolean result = queue.next();
+                        if (result) {
                             return result;
                         }
                     }
@@ -299,7 +298,7 @@ public class SetQueue {
                         // These edits never finished
                         inactiveQueues.clear();
                     }
-                    return null;
+                    return false;
                 }
             }
             if (Settings.QUEUE.TARGET_SIZE != -1) {
@@ -309,19 +308,19 @@ public class SetQueue {
                 }
                 if (total > Settings.QUEUE.TARGET_SIZE) {
                     for (FaweQueue queue : tmp) {
-                        FaweChunk result = queue.next();
-                        if (result != null) {
+                        boolean result = queue.next();
+                        if (result) {
                             return result;
                         }
                     }
                 }
             }
         }
-        return null;
+        return false;
     }
 
     public boolean forceChunkSet() {
-        return next() != null;
+        return next();
     }
 
     /**

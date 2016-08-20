@@ -250,12 +250,12 @@ public class SpongeQueue_ALL extends NMSMappedFaweQueue<World, net.minecraft.wor
             public BlockState map(UnmodifiableBlockVolume volume, int xx, int y, int zz) {
                 int x = xx & 15;
                 int z = zz & 15;
-                int i = FaweCache.CACHE_I[y][x][z];
+                int i = FaweCache.CACHE_I[y][z][x];
                 char[] array = ids[i];
                 if (array == null) {
                     return null;
                 }
-                int combinedId = array[FaweCache.CACHE_J[y][x][z]];
+                int combinedId = array[FaweCache.CACHE_J[y][z][x]];
                 switch (combinedId) {
                     case 0:
                         return null;
@@ -421,13 +421,13 @@ public class SpongeQueue_ALL extends NMSMappedFaweQueue<World, net.minecraft.wor
         if (y < 0 || y > 255) {
             return 1;
         }
-        int i = FaweCache.CACHE_I[y][x][z];
+        int i = FaweCache.CACHE_I[y][z][x];
         ExtendedBlockStorage section = sections[i];
         if (section == null) {
             return 0;
         }
         char[] array = section.getData();
-        int j = FaweCache.CACHE_J[y][x][z];
+        int j = FaweCache.CACHE_J[y][z][x];
         return array[j] >> 4;
     }
 
@@ -453,6 +453,6 @@ public class SpongeQueue_ALL extends NMSMappedFaweQueue<World, net.minecraft.wor
 
     @Override
     public int getCombinedId4Data(char[] chars, int x, int y, int z) {
-        return chars[FaweCache.CACHE_J[y][x & 15][z & 15]];
+        return chars[FaweCache.CACHE_J[y][z & 15][x & 15]];
     }
 }

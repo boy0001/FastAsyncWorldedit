@@ -132,11 +132,11 @@ public abstract class FaweQueue {
 
     public abstract boolean setBiome(final int x, final int z, final BaseBiome biome);
 
-    public abstract FaweChunk<?> getFaweChunk(int x, int z);
+    public abstract FaweChunk getFaweChunk(int x, int z);
 
     public abstract Collection<FaweChunk> getFaweChunks();
 
-    public abstract void setChunk(final FaweChunk<?> chunk);
+    public abstract void setChunk(final FaweChunk chunk);
 
     public abstract File getSaveFolder();
 
@@ -219,7 +219,7 @@ public abstract class FaweQueue {
      * Gets the FaweChunk and sets the requested blocks
      * @return
      */
-    public abstract FaweChunk next();
+    public abstract boolean next();
 
     public void saveMemory() {
         MainUtil.sendAdmin(BBC.OOM.s());

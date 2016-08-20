@@ -202,12 +202,12 @@ public abstract class FaweChangeSet implements ChangeSet {
                                     for (int y = 0; y < 16; y++) {
                                         short[][] i1 = FaweCache.CACHE_J[y];
                                         int yy = y + startY;
-                                        for (int x = 0; x < 16; x++) {
-                                            int xx = x + bx;
-                                            short[] i2 = i1[x];
-                                            for (int z = 0; z < 16; z++) {
-                                                int zz = z + bz;
-                                                int index = i2[z];
+                                        for (int z = 0; z < 16; z++) {
+                                            int zz = z + bz;
+                                            short[] i2 = i1[z];
+                                            for (int x = 0; x < 16; x++) {
+                                                int xx = x + bx;
+                                                int index = i2[x];
                                                 int combinedIdCurrent = currentLayer[index];
                                                 switch (combinedIdCurrent) {
                                                     case 0:

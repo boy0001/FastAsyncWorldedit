@@ -115,7 +115,7 @@ public class BukkitChunk_1_10 extends CharFaweChunk<Chunk> {
                 for (int y = 0; y < 16; y++) {
                     for (int z = 0; z < 16; z++) {
                         for (int x = 0; x < 16; x++) {
-                            char combinedId = blocks[FaweCache.CACHE_J[y][x][z]];
+                            char combinedId = blocks[FaweCache.CACHE_J[y][z][x]];
                             if (combinedId > 1) {
                                 palette.setBlock(x, y, z, Block.getById(combinedId >> 4).fromLegacyData(combinedId & 0xF));
                             }

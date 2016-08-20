@@ -315,7 +315,7 @@ public class LocalSession {
         File file = MainUtil.getFile(Fawe.imp().getDirectory(), Settings.PATHS.HISTORY + File.separator + Fawe.imp().getWorldName(world) + File.separator + uuid + File.separator + "index");
         if (getHistoryNegativeIndex() != 0) {
             try {
-                if (file.exists()) {
+                if (!file.exists()) {
                     file.getParentFile().mkdirs();
                     file.createNewFile();
                 }

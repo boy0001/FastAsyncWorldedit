@@ -103,6 +103,9 @@ public class ProcessedWEExtent extends FaweRegionExtent {
             return super.setBiome(position, biome);
         } else if (!limit.MAX_FAILS()) {
             WEManager.IMP.cancelEditSafe(this, BBC.WORLDEDIT_CANCEL_REASON_MAX_FAILS);
+            return false;
+        } else {
+            return false;
         }
     }
 

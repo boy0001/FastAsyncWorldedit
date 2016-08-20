@@ -159,7 +159,7 @@ public class ForgeQueue_All extends NMSMappedFaweQueue<World, Chunk, ExtendedBlo
 
     @Override
     public int getCombinedId4Data(ExtendedBlockStorage ls, int x, int y, int z) {
-        return ls.getData()[FaweCache.CACHE_J[y][x & 15][z & 15]];
+        return ls.getData()[FaweCache.CACHE_J[y][z & 15][x & 15]];
     }
 
     @Override
@@ -219,12 +219,12 @@ public class ForgeQueue_All extends NMSMappedFaweQueue<World, Chunk, ExtendedBlo
                     int x = ((int) Math.round(ent.posX) & 15);
                     int z = ((int) Math.round(ent.posZ) & 15);
                     int y = (int) Math.round(ent.posY);
-                    int i = FaweCache.CACHE_I[y][x][z];
+                    int i = FaweCache.CACHE_I[y][z][x];
                     char[] array = fs.getIdArray(i);
                     if (array == null) {
                         continue;
                     }
-                    int j = FaweCache.CACHE_J[y][x][z];
+                    int j = FaweCache.CACHE_J[y][z][x];
                     if (array[j] != 0) {
                         String id = EntityList.getEntityString(ent);
                         if (id != null) {
@@ -276,7 +276,7 @@ public class ForgeQueue_All extends NMSMappedFaweQueue<World, Chunk, ExtendedBlo
                         if (array == null) {
                             continue;
                         }
-                        if (y < 0 || y > 255 || array[FaweCache.CACHE_J[y][x][z]] != 0) {
+                        if (y < 0 || y > 255 || array[FaweCache.CACHE_J[y][z][x]] != 0) {
                             nmsWorld.removeEntity(entity);
                         }
                     }
@@ -321,12 +321,12 @@ public class ForgeQueue_All extends NMSMappedFaweQueue<World, Chunk, ExtendedBlo
                 int lx = pos.getX() & 15;
                 int ly = pos.getY();
                 int lz = pos.getZ() & 15;
-                int j = FaweCache.CACHE_I[ly][lx][lz];
+                int j = FaweCache.CACHE_I[ly][lz][lx];
                 char[] array = fs.getIdArray(j);
                 if (array == null) {
                     continue;
                 }
-                int k = FaweCache.CACHE_J[ly][lx][lz];
+                int k = FaweCache.CACHE_J[ly][lz][lx];
                 if (array[k] != 0) {
                     tile.getValue().invalidate();;
                     iterator.remove();
@@ -515,13 +515,13 @@ public class ForgeQueue_All extends NMSMappedFaweQueue<World, Chunk, ExtendedBlo
         if (y < 0 || y > 255) {
             return 1;
         }
-        int i = FaweCache.CACHE_I[y][x][z];
+        int i = FaweCache.CACHE_I[y][z][x];
         ExtendedBlockStorage section = sections[i];
         if (section == null) {
             return 0;
         }
         char[] array = section.getData();
-        int j = FaweCache.CACHE_J[y][x][z];
+        int j = FaweCache.CACHE_J[y][z][x];
         return array[j] >> 4;
     }
 
@@ -627,7 +627,7 @@ public class ForgeQueue_All extends NMSMappedFaweQueue<World, Chunk, ExtendedBlo
 
     @Override
     public boolean hasBlock(ExtendedBlockStorage section, int x, int y, int z) {
-        int i = FaweCache.CACHE_J[y & 15][x & 15][z & 15];
+        int i = FaweCache.CACHE_J[y & 15][z & 15][x & 15];
         return section.getData()[i] != 0;
     }
 

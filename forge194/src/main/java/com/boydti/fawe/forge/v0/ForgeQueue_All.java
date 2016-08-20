@@ -269,12 +269,12 @@ public class ForgeQueue_All extends NMSMappedFaweQueue<World, Chunk, ExtendedBlo
                     int x = ((int) Math.round(ent.posX) & 15);
                     int z = ((int) Math.round(ent.posZ) & 15);
                     int y = (int) Math.round(ent.posY);
-                    int i = FaweCache.CACHE_I[y][x][z];
+                    int i = FaweCache.CACHE_I[y][z][x];
                     char[] array = fs.getIdArray(i);
                     if (array == null) {
                         continue;
                     }
-                    int j = FaweCache.CACHE_J[y][x][z];
+                    int j = FaweCache.CACHE_J[y][z][x];
                     if (array[j] != 0) {
                         String id = EntityList.getEntityString(ent);
                         if (id != null) {
@@ -327,7 +327,7 @@ public class ForgeQueue_All extends NMSMappedFaweQueue<World, Chunk, ExtendedBlo
                         if (array == null) {
                             continue;
                         }
-                        if (y < 0 || y > 255 || array[FaweCache.CACHE_J[y][x][z]] != 0) {
+                        if (y < 0 || y > 255 || array[FaweCache.CACHE_J[y][z][x]] != 0) {
                             nmsWorld.removeEntity(entity);
                         }
                     }
@@ -372,12 +372,12 @@ public class ForgeQueue_All extends NMSMappedFaweQueue<World, Chunk, ExtendedBlo
                 int lx = pos.getX() & 15;
                 int ly = pos.getY();
                 int lz = pos.getZ() & 15;
-                int j = FaweCache.CACHE_I[ly][lx][lz];
+                int j = FaweCache.CACHE_I[ly][lz][lx];
                 char[] array = fs.getIdArray(j);
                 if (array == null) {
                     continue;
                 }
-                int k = FaweCache.CACHE_J[ly][lx][lz];
+                int k = FaweCache.CACHE_J[ly][lz][lx];
                 if (array[k] != 0) {
                     tile.getValue().invalidate();;
                     iterator.remove();
@@ -428,7 +428,7 @@ public class ForgeQueue_All extends NMSMappedFaweQueue<World, Chunk, ExtendedBlo
                 for (int y = 0; y < 16; y++) {
                     for (int z = 0; z < 16; z++) {
                         for (int x = 0; x < 16; x++) {
-                            char combinedId = array[FaweCache.CACHE_J[y][x][z]];
+                            char combinedId = array[FaweCache.CACHE_J[y][z][x]];
                             switch (combinedId) {
                                 case 0:
                                     IBlockState existing = nibble.get(x, y, z);

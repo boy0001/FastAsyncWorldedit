@@ -1,6 +1,6 @@
 package com.boydti.fawe.object.extent;
 
-import com.boydti.fawe.jnbt.MCAFile;
+import com.boydti.fawe.jnbt.anvil.MCAFile;
 import com.boydti.fawe.object.FaweQueue;
 import com.boydti.fawe.util.MathMan;
 import com.sk89q.worldedit.Vector;

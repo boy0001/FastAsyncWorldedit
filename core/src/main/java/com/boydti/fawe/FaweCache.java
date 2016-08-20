@@ -27,11 +27,11 @@ import java.util.Map;
 
 public class FaweCache {
     /**
-     * [ y | x | z ] => index
+     * [ y | z | x ] => index
      */
     public final static short[][][] CACHE_I = new short[256][16][16];
     /**
-     * [ y | x | z ] => index
+     * [ y | z | x ] => index
      */
     public final static short[][][] CACHE_J = new short[256][16][16];
 
@@ -128,8 +128,8 @@ public class FaweCache {
                 for (int y = 0; y < 256; y++) {
                     final short i = (short) (y >> 4);
                     final short j = (short) (((y & 0xF) << 8) | (z << 4) | x);
-                    CACHE_I[y][x][z] = i;
-                    CACHE_J[y][x][z] = j;
+                    CACHE_I[y][z][x] = i;
+                    CACHE_J[y][z][x] = j;
                     CACHE_X[i][j] = (byte) x;
                     CACHE_Y[i][j] = (short) y;
                     CACHE_Z[i][j] = (byte) z;
@@ -622,9 +622,12 @@ public class FaweCache {
             return asTag((Collection) value);
         } else if (value instanceof  byte[]) {
             return asTag((byte[]) value);
+        } else if (value instanceof  int[]) {
+            return asTag((int[]) value);
         } else if (value instanceof  Tag) {
             return (Tag) value;
         } else if (value == null) {
+            System.out.println("Invalid nbt: " + value);
             return null;
         } else {
             Class<? extends Object> clazz = value.getClass();
@@ -640,6 +643,7 @@ public class FaweCache {
                     e.printStackTrace();
                 }
             }
+            System.out.println("Invalid nbt: " + value);
             return null;
         }
     }

@@ -26,7 +26,7 @@ public class FaweLocalBlockQueue extends LocalBlockQueue {
 
     @Override
     public boolean next() {
-        return IMP.next() != null;
+        return IMP.next();
     }
 
     @Override

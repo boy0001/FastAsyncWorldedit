@@ -24,6 +24,12 @@ public abstract class CharFaweChunk<T> extends FaweChunk<T> {
     public int[][] biomes;
     private int bitMask = -1;
 
+    public HashMap<BytePair, CompoundTag> tiles;
+
+    public HashSet<CompoundTag> entities;
+
+    public HashSet<UUID> entityRemoves;
+
     public T chunk;
 
     /**
@@ -139,15 +145,13 @@ public abstract class CharFaweChunk<T> extends FaweChunk<T> {
     }
 
     public int getCombinedId(int x, int y, int z) {
-        short i = FaweCache.CACHE_I[y][x][z];
+        short i = FaweCache.CACHE_I[y][z][x];
         char[] array = getIdArray(i);
         if (array == null) {
             return 0;
         }
-        return array[FaweCache.CACHE_J[y][x][z]];
+        return array[FaweCache.CACHE_J[y][z][x]];
     }
-
-    public HashMap<BytePair, CompoundTag> tiles;
 
     @Override
     public void setTile(int x, int y, int z, CompoundTag tile) {
@@ -181,12 +185,6 @@ public abstract class CharFaweChunk<T> extends FaweChunk<T> {
         return entities == null ? new HashSet<CompoundTag>() : entities;
     }
 
-
-
-    public HashSet<CompoundTag> entities;
-
-    public HashSet<UUID> entityRemoves;
-
     @Override
     public void setEntity(CompoundTag tag) {
         if (entities == null) {
@@ -210,8 +208,8 @@ public abstract class CharFaweChunk<T> extends FaweChunk<T> {
 
     @Override
     public void setBlock(int x, int y, int z, int id) {
-        final int i = FaweCache.CACHE_I[y][x][z];
-        final int j = FaweCache.CACHE_J[y][x][z];
+        final int i = FaweCache.CACHE_I[y][z][x];
+        final int j = FaweCache.CACHE_J[y][z][x];
         char[] vs = this.ids[i];
         if (vs == null) {
             vs = this.ids[i] = new char[4096];
@@ -249,8 +247,8 @@ public abstract class CharFaweChunk<T> extends FaweChunk<T> {
 
     @Override
     public void setBlock(final int x, final int y, final int z, final int id, int data) {
-        final int i = FaweCache.CACHE_I[y][x][z];
-        final int j = FaweCache.CACHE_J[y][x][z];
+        final int i = FaweCache.CACHE_I[y][z][x];
+        final int j = FaweCache.CACHE_J[y][z][x];
         char[] vs = this.ids[i];
         if (vs == null) {
             vs = this.ids[i] = new char[4096];

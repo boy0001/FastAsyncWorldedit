@@ -130,7 +130,7 @@ public class DelegateFaweQueue extends FaweQueue {
     }
 
     @Override
-    public void setChunk(FaweChunk<?> chunk) {
+    public void setChunk(FaweChunk chunk) {
         parent.setChunk(chunk);
     }
 
@@ -165,7 +165,7 @@ public class DelegateFaweQueue extends FaweQueue {
     }
 
     @Override
-    public FaweChunk next() {
+    public boolean next() {
         return parent.next();
     }
 

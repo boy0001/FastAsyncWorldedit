@@ -116,7 +116,7 @@ public class BukkitQueue17 extends BukkitQueue_0<Chunk, ChunkSection[], ChunkSec
     public int getCombinedId4Data(ChunkSection ls, int x, int y, int z) {
         byte[] ids = ls.getIdArray();
         NibbleArray datasNibble = ls.getDataArray();
-        int i = FaweCache.CACHE_J[y & 15][x & 15][z & 15];
+        int i = FaweCache.CACHE_J[y & 15][z & 15][x & 15];
         int combined = (ids[i] << 4) + (datasNibble == null ? 0 : datasNibble.a(x & 15, y & 15, z & 15));
         return combined;
     }
@@ -174,12 +174,12 @@ public class BukkitQueue17 extends BukkitQueue_0<Chunk, ChunkSection[], ChunkSec
                     int x = ((int) Math.round(ent.locX) & 15);
                     int z = ((int) Math.round(ent.locZ) & 15);
                     int y = (int) Math.round(ent.locY);
-                    int i = FaweCache.CACHE_I[y][x][z];
+                    int i = FaweCache.CACHE_I[y][z][x];
                     char[] array = fs.getIdArray(i);
                     if (array == null) {
                         continue;
                     }
-                    int j = FaweCache.CACHE_J[y][x][z];
+                    int j = FaweCache.CACHE_J[y][z][x];
                     if (array[j] != 0) {
                         String id = EntityTypes.b(ent);
                         if (id != null) {
@@ -257,7 +257,7 @@ public class BukkitQueue17 extends BukkitQueue_0<Chunk, ChunkSection[], ChunkSec
                         if (array == null) {
                             continue;
                         }
-                        if (y < 0 || y > 255 || array[FaweCache.CACHE_J[y][x][z]] != 0) {
+                        if (y < 0 || y > 255 || array[FaweCache.CACHE_J[y][z][x]] != 0) {
                             nmsWorld.removeEntity(entity);
                         }
                     }
@@ -309,12 +309,12 @@ public class BukkitQueue17 extends BukkitQueue_0<Chunk, ChunkSection[], ChunkSec
                 int lx = pos.x & 15;
                 int ly = pos.y;
                 int lz = pos.z & 15;
-                int j = FaweCache.CACHE_I[ly][lx][lz];
+                int j = FaweCache.CACHE_I[ly][lz][lx];
                 char[] array = fs.getIdArray(j);
                 if (array == null) {
                     continue;
                 }
-                int k = FaweCache.CACHE_J[ly][lx][lz];
+                int k = FaweCache.CACHE_J[ly][lz][lx];
                 if (array[k] != 0) {
                     if (toRemove == null) {
                         toRemove = new HashMap<>();
@@ -642,7 +642,7 @@ public class BukkitQueue17 extends BukkitQueue_0<Chunk, ChunkSection[], ChunkSec
 
     @Override
     public boolean hasBlock(ChunkSection section, int x, int y, int z) {
-        int i = FaweCache.CACHE_J[y & 15][x & 15][z & 15];
+        int i = FaweCache.CACHE_J[y & 15][z & 15][x & 15];
         return section.getIdArray()[i] != 0;
     }
 

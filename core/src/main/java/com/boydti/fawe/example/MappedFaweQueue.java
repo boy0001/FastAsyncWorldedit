@@ -19,48 +19,53 @@ import com.sk89q.worldedit.world.registry.BundledBlockData;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.UUID;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedDeque;
 
 public abstract class MappedFaweQueue<WORLD, CHUNK, SECTION> extends FaweQueue {
 
     private WORLD impWorld;
 
-    /**
-     * Map of chunks in the queue
-     */
-    public ConcurrentHashMap<Long, FaweChunk> blocks = new ConcurrentHashMap<>();
-    public ConcurrentLinkedDeque<FaweChunk> chunks = new ConcurrentLinkedDeque<FaweChunk>() {
-        @Override
-        public boolean add(FaweChunk o) {
-            if (getProgressTask() != null) {
-                getProgressTask().run(ProgressType.QUEUE, size() + 1);
-            }
-            return super.add(o);
-        }
-    };
+    private IFaweQueueMap map;
     public ArrayDeque<Runnable> tasks = new ArrayDeque<>();
+
+    public MappedFaweQueue(final String world) {
+        this(world, null);
+    }
+
+    public MappedFaweQueue(final String world, IFaweQueueMap map) {
+        super(world);
+        if (map == null) {
+            map = new DefaultFaweQueueMap(this);
+        }
+        this.map = map;
+    }
+
+    public IFaweQueueMap getFaweQueueMap() {
+        return map;
+    }
 
     @Override
     public Collection<FaweChunk> getFaweChunks() {
-        return Collections.unmodifiableCollection(chunks);
+        return map.getFaweCunks();
     }
 
     @Override
     public void optimize() {
-        ArrayList<Thread> threads = new ArrayList<Thread>();
-        for (final FaweChunk chunk : chunks) {
-            Thread thread = new Thread(new Runnable() {
-                @Override
-                public void run() {
-                    chunk.optimize();
-                }
-            });
-            threads.add(thread);
-            thread.start();
-        }
+        final ArrayList<Thread> threads = new ArrayList<Thread>();
+        map.forEachChunk(new RunnableVal<FaweChunk>() {
+            @Override
+            public void run(final FaweChunk chunk) {
+                Thread thread = new Thread(new Runnable() {
+                    @Override
+                    public void run() {
+                        chunk.optimize();
+                    }
+                });
+                threads.add(thread);
+                thread.start();
+            }
+        });
         for (Thread thread : threads) {
             try {
                 thread.join();
@@ -74,10 +79,6 @@ public abstract class MappedFaweQueue<WORLD, CHUNK, SECTION> extends FaweQueue {
     public void addNotifyTask(Runnable runnable) {
         this.tasks.add(runnable);
         size();
-    }
-
-    public MappedFaweQueue(final String world) {
-        super(world);
     }
 
     public abstract WORLD getImpWorld();
@@ -114,50 +115,16 @@ public abstract class MappedFaweQueue<WORLD, CHUNK, SECTION> extends FaweQueue {
 
     @Override
     public void addNotifyTask(int x, int z, Runnable runnable) {
-        long pair = (long) (x) << 32 | (z) & 0xFFFFFFFFL;
-        FaweChunk result = this.blocks.get(pair);
-        if (result == null) {
-            result = this.getFaweChunk(x, z);
-            result.addNotifyTask(runnable);
-            FaweChunk previous = this.blocks.put(pair, result);
-            if (previous == null) {
-                chunks.add(result);
-                return;
-            }
-            this.blocks.put(pair, previous);
-            result = previous;
-        }
-        result.addNotifyTask(runnable);
+        FaweChunk chunk = map.getFaweChunk(x, z);
+        chunk.addNotifyTask(runnable);
     }
-
-
-
-    private FaweChunk lastWrappedChunk;
-    private int lastX = Integer.MIN_VALUE;
-    private int lastZ = Integer.MIN_VALUE;
 
     @Override
     public boolean setBlock(int x, int y, int z, int id, int data) {
         int cx = x >> 4;
         int cz = z >> 4;
-        if (cx != lastX || cz != lastZ) {
-            lastX = cx;
-            lastZ = cz;
-            long pair = (long) (cx) << 32 | (cz) & 0xFFFFFFFFL;
-            lastWrappedChunk = this.blocks.get(pair);
-            if (lastWrappedChunk == null) {
-                lastWrappedChunk = this.getFaweChunk(cx, cz);
-                lastWrappedChunk.setBlock(x & 15, y, z & 15, id, data);
-                FaweChunk previous = this.blocks.put(pair, lastWrappedChunk);
-                if (previous == null) {
-                    chunks.add(lastWrappedChunk);
-                    return true;
-                }
-                this.blocks.put(pair, previous);
-                lastWrappedChunk = previous;
-            }
-        }
-        lastWrappedChunk.setBlock(x & 15, y, z & 15, id, data);
+        FaweChunk chunk = map.getFaweChunk(cx, cz);
+        chunk.setBlock(x & 15, y, z & 15, id, data);
         return true;
     }
 
@@ -165,24 +132,8 @@ public abstract class MappedFaweQueue<WORLD, CHUNK, SECTION> extends FaweQueue {
     public boolean setBlock(int x, int y, int z, int id) {
         int cx = x >> 4;
         int cz = z >> 4;
-        if (cx != lastX || cz != lastZ) {
-            lastX = cx;
-            lastZ = cz;
-            long pair = (long) (cx) << 32 | (cz) & 0xFFFFFFFFL;
-            lastWrappedChunk = this.blocks.get(pair);
-            if (lastWrappedChunk == null) {
-                lastWrappedChunk = this.getFaweChunk(x >> 4, z >> 4);
-                lastWrappedChunk.setBlock(x & 15, y, z & 15, id);
-                FaweChunk previous = this.blocks.put(pair, lastWrappedChunk);
-                if (previous == null) {
-                    chunks.add(lastWrappedChunk);
-                    return true;
-                }
-                this.blocks.put(pair, previous);
-                lastWrappedChunk = previous;
-            }
-        }
-        lastWrappedChunk.setBlock(x & 15, y, z & 15, id);
+        FaweChunk chunk = map.getFaweChunk(cx, cz);
+        chunk.setBlock(x & 15, y, z & 15, id);
         return true;
     }
 
@@ -193,24 +144,8 @@ public abstract class MappedFaweQueue<WORLD, CHUNK, SECTION> extends FaweQueue {
         }
         int cx = x >> 4;
         int cz = z >> 4;
-        if (cx != lastX || cz != lastZ) {
-            lastX = cx;
-            lastZ = cz;
-            long pair = (long) (cx) << 32 | (cz) & 0xFFFFFFFFL;
-            lastWrappedChunk = this.blocks.get(pair);
-            if (lastWrappedChunk == null) {
-                lastWrappedChunk = this.getFaweChunk(x >> 4, z >> 4);
-                lastWrappedChunk.setTile(x & 15, y, z & 15, tag);
-                FaweChunk previous = this.blocks.put(pair, lastWrappedChunk);
-                if (previous == null) {
-                    chunks.add(lastWrappedChunk);
-                    return;
-                }
-                this.blocks.put(pair, previous);
-                lastWrappedChunk = previous;
-            }
-        }
-        lastWrappedChunk.setTile(x & 15, y, z & 15, tag);
+        FaweChunk chunk = map.getFaweChunk(cx, cz);
+        chunk.setTile(x & 15, y, z & 15, tag);
     }
 
     @Override
@@ -220,24 +155,8 @@ public abstract class MappedFaweQueue<WORLD, CHUNK, SECTION> extends FaweQueue {
         }
         int cx = x >> 4;
         int cz = z >> 4;
-        if (cx != lastX || cz != lastZ) {
-            lastX = cx;
-            lastZ = cz;
-            long pair = (long) (cx) << 32 | (cz) & 0xFFFFFFFFL;
-            lastWrappedChunk = this.blocks.get(pair);
-            if (lastWrappedChunk == null) {
-                lastWrappedChunk = this.getFaweChunk(x >> 4, z >> 4);
-                lastWrappedChunk.setEntity(tag);
-                FaweChunk previous = this.blocks.put(pair, lastWrappedChunk);
-                if (previous == null) {
-                    chunks.add(lastWrappedChunk);
-                    return;
-                }
-                this.blocks.put(pair, previous);
-                lastWrappedChunk = previous;
-            }
-        }
-        lastWrappedChunk.setEntity(tag);
+        FaweChunk chunk = map.getFaweChunk(cx, cz);
+        chunk.setEntity(tag);
     }
 
     @Override
@@ -247,64 +166,22 @@ public abstract class MappedFaweQueue<WORLD, CHUNK, SECTION> extends FaweQueue {
         }
         int cx = x >> 4;
         int cz = z >> 4;
-        if (cx != lastX || cz != lastZ) {
-            lastX = cx;
-            lastZ = cz;
-            long pair = (long) (cx) << 32 | (cz) & 0xFFFFFFFFL;
-            lastWrappedChunk = this.blocks.get(pair);
-            if (lastWrappedChunk == null) {
-                lastWrappedChunk = this.getFaweChunk(x >> 4, z >> 4);
-                lastWrappedChunk.removeEntity(uuid);
-                FaweChunk previous = this.blocks.put(pair, lastWrappedChunk);
-                if (previous == null) {
-                    chunks.add(lastWrappedChunk);
-                    return;
-                }
-                this.blocks.put(pair, previous);
-                lastWrappedChunk = previous;
-            }
-        }
-        lastWrappedChunk.removeEntity(uuid);
+        FaweChunk chunk = map.getFaweChunk(cx, cz);
+        chunk.removeEntity(uuid);
     }
 
     @Override
     public boolean setBiome(int x, int z, BaseBiome biome) {
-        long pair = (long) (x >> 4) << 32 | (z >> 4) & 0xFFFFFFFFL;
-        FaweChunk result = this.blocks.get(pair);
-        if (result == null) {
-            result = this.getFaweChunk(x >> 4, z >> 4);
-            FaweChunk previous = this.blocks.put(pair, result);
-            if (previous != null) {
-                this.blocks.put(pair, previous);
-                result = previous;
-            } else {
-                chunks.add(result);
-            }
-        }
-        result.setBiome(x & 15, z & 15, biome);
+        int cx = x >> 4;
+        int cz = z >> 4;
+        FaweChunk chunk = map.getFaweChunk(cx, cz);
+        chunk.setBiome(x & 15, z & 15, biome);
         return true;
     }
 
     @Override
-    public FaweChunk next() {
-        lastX = Integer.MIN_VALUE;
-        lastZ = Integer.MIN_VALUE;
-        try {
-            if (this.blocks.size() == 0) {
-                return null;
-            }
-            synchronized (blocks) {
-                FaweChunk chunk = chunks.poll();
-                if (chunk != null) {
-                    blocks.remove(chunk.longHash());
-                    this.execute(chunk);
-                    return chunk;
-                }
-            }
-        } catch (Throwable e) {
-            MainUtil.handleError(e);
-        }
-        return null;
+    public boolean next() {
+        return map.next();
     }
 
     public void runTasks() {
@@ -324,7 +201,7 @@ public abstract class MappedFaweQueue<WORLD, CHUNK, SECTION> extends FaweQueue {
 
     @Override
     public int size() {
-        int size = chunks.size();
+        int size = map.size();
         if (size == 0 && SetQueue.IMP.getStage(this) != SetQueue.QueueStage.INACTIVE) {
             runTasks();
         }
@@ -341,7 +218,7 @@ public abstract class MappedFaweQueue<WORLD, CHUNK, SECTION> extends FaweQueue {
         }
         // Set blocks / entities / biome
         if (getProgressTask() != null) {
-            getProgressTask().run(ProgressType.QUEUE, chunks.size());
+            getProgressTask().run(ProgressType.QUEUE, map.size());
             getProgressTask().run(ProgressType.DISPATCH, ++dispatched);
         }
         if (getChangeTask() != null) {
@@ -362,18 +239,13 @@ public abstract class MappedFaweQueue<WORLD, CHUNK, SECTION> extends FaweQueue {
 
     @Override
     public void clear() {
-        this.blocks.clear();
-        this.chunks.clear();
+        map.clear();
         runTasks();
     }
 
     @Override
     public void setChunk(FaweChunk chunk) {
-        FaweChunk previous = this.blocks.put(chunk.longHash(), (FaweChunk) chunk);
-        if (previous != null) {
-            chunks.remove(previous);
-        }
-        chunks.add((FaweChunk) chunk);
+        map.add(chunk);
     }
 
     public int lastChunkX = Integer.MIN_VALUE;

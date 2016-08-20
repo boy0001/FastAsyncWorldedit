@@ -16,6 +16,10 @@ public abstract class NMSMappedFaweQueue<WORLD, CHUNK, CHUNKSECTION, SECTION> ex
         super(world);
     }
 
+    public NMSMappedFaweQueue(String world, IFaweQueueMap map) {
+        super(world, map);
+    }
+
     private NMSRelighter relighter;
 
     @Override
@@ -87,12 +91,12 @@ public abstract class NMSMappedFaweQueue<WORLD, CHUNK, CHUNKSECTION, SECTION> ex
         if ((y < 0) || (y > 255)) {
             return 1;
         }
-        final int i = FaweCache.CACHE_I[y][x][z];
+        final int i = FaweCache.CACHE_I[y][z][x];
         final char[] section = sections[i];
         if (section == null) {
             return 0;
         }
-        final int j = FaweCache.CACHE_J[y][x][z];
+        final int j = FaweCache.CACHE_J[y][z][x];
         return section[j] >> 4;
     }
 

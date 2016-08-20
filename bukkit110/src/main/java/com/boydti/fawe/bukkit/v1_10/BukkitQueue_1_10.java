@@ -128,7 +128,7 @@ public class BukkitQueue_1_10 extends BukkitQueue_0<Chunk, ChunkSection[], Chunk
                 lastBits = (DataBits) fieldBits.get(dataPaletteBlock);
                 lastBlocks = dataPaletteBlock;
             }
-            int i = FaweCache.CACHE_J[y][x & 15][z & 15];
+            int i = FaweCache.CACHE_J[y][z & 15][x & 15];
             return lastBits.a(i) != 0;
         } catch (IllegalAccessException e) {
             e.printStackTrace();
@@ -456,12 +456,12 @@ public class BukkitQueue_1_10 extends BukkitQueue_0<Chunk, ChunkSection[], Chunk
                     int x = ((int) Math.round(ent.locX) & 15);
                     int z = ((int) Math.round(ent.locZ) & 15);
                     int y = (int) Math.round(ent.locY);
-                    int i = FaweCache.CACHE_I[y][x][z];
+                    int i = FaweCache.CACHE_I[y][z][x];
                     char[] array = fs.getIdArray(i);
                     if (array == null) {
                         continue;
                     }
-                    int j = FaweCache.CACHE_J[y][x][z];
+                    int j = FaweCache.CACHE_J[y][z][x];
                     if (array[j] != 0) {
                         String id = EntityTypes.b(ent);
                         if (id != null) {
@@ -541,7 +541,7 @@ public class BukkitQueue_1_10 extends BukkitQueue_0<Chunk, ChunkSection[], Chunk
                         if (array == null || y < 0 || y > 255) {
                             continue;
                         }
-                        if (y < 0 || y > 255 || array[FaweCache.CACHE_J[y][x][z]] != 0) {
+                        if (y < 0 || y > 255 || array[FaweCache.CACHE_J[y][z][x]] != 0) {
                             nmsWorld.removeEntity(entity);
                         }
                     }
@@ -607,12 +607,12 @@ public class BukkitQueue_1_10 extends BukkitQueue_0<Chunk, ChunkSection[], Chunk
                 int lx = pos.getX() & 15;
                 int ly = pos.getY();
                 int lz = pos.getZ() & 15;
-                int j = FaweCache.CACHE_I[ly][lx][lz];
+                int j = FaweCache.CACHE_I[ly][lz][lx];
                 char[] array = fs.getIdArray(j);
                 if (array == null) {
                     continue;
                 }
-                int k = FaweCache.CACHE_J[ly][lx][lz];
+                int k = FaweCache.CACHE_J[ly][lz][lx];
                 if (array[k] != 0) {
                     if (toRemove == null) {
                         toRemove = new HashMap<>();
@@ -666,10 +666,10 @@ public class BukkitQueue_1_10 extends BukkitQueue_0<Chunk, ChunkSection[], Chunk
                 int nonEmptyBlockCount = 0;
                 for (int y = 0; y < 16; y++) {
                     short[][] i1 = FaweCache.CACHE_J[y];
-                    for (int x= 0; x < 16; x++) {
-                        short[] i2 = i1[x];
-                        for (int z = 0; z < 16; z++) {
-                            char combinedId = array[i2[z]];
+                    for (int z = 0; z < 16; z++) {
+                        short[] i2 = i1[z];
+                        for (int x= 0; x < 16; x++) {
+                            char combinedId = array[i2[x]];
                             switch (combinedId) {
                                 case 0:
                                     IBlockData existing = nibble.a(x, y, z);

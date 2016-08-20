@@ -109,7 +109,7 @@ public abstract class FaweChunk<T> {
     public int getBlockCombinedId(int x, int y, int z) {
         char[][] arrays = getCombinedIdArrays();
         char[] array = arrays[y >> 4];
-        return array != null ? (array[FaweCache.CACHE_J[y][x][z]]) : 0;
+        return array != null ? (array[FaweCache.CACHE_J[y][z][x]]) : 0;
     }
 
     /**
