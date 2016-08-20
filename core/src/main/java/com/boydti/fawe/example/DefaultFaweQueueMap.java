@@ -4,6 +4,7 @@ import com.boydti.fawe.object.FaweChunk;
 import com.boydti.fawe.object.FaweQueue;
 import com.boydti.fawe.object.RunnableVal;
 import com.boydti.fawe.util.MainUtil;
+import com.boydti.fawe.util.MathMan;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.concurrent.ConcurrentHashMap;
@@ -48,7 +49,7 @@ public class DefaultFaweQueueMap implements IFaweQueueMap {
         if (cx == lastX && cz == lastZ) {
             return lastWrappedChunk;
         }
-        long pair = (long) (lastX = cx) << 32 | (lastX = cz) & 0xFFFFFFFFL;
+        long pair = MathMan.pairInt(cx, cz);
         FaweChunk chunk = this.blocks.get(pair);
         if (chunk == null) {
             chunk = this.getNewFaweChunk(cx, cz);
@@ -57,15 +58,15 @@ public class DefaultFaweQueueMap implements IFaweQueueMap {
                 blocks.put(pair, previous);
                 return previous;
             }
-            this.blocks.put(pair, previous);
-            chunks.add(previous);
+            this.blocks.put(pair, chunk);
+            chunks.add(chunk);
         }
         return chunk;
     }
 
     @Override
     public void add(FaweChunk chunk) {
-        long pair = (long) (chunk.getX()) << 32 | (chunk.getZ()) & 0xFFFFFFFFL;
+        long pair = MathMan.pairInt(chunk.getX(), chunk.getZ());
         FaweChunk previous = this.blocks.put(pair, chunk);
         if (previous == null) {
             chunks.add(chunk);
@@ -99,7 +100,7 @@ public class DefaultFaweQueueMap implements IFaweQueueMap {
         lastX = Integer.MIN_VALUE;
         lastZ = Integer.MIN_VALUE;
         try {
-            if (this.blocks.size() == 0) {
+            if (this.blocks.isEmpty()) {
                 return false;
             }
             synchronized (blocks) {

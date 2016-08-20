@@ -267,11 +267,11 @@ public class MCAChunk extends FaweChunk<Void> {
             return 0;
         }
         int j = FaweCache.CACHE_J[y][z & 15][x & 15];
-        int id = idLayer[j];
+        int id = idLayer[j] & 0xFF;
         if (FaweCache.hasData(id)) {
             byte[] dataLayer = data[layer];
             if (dataLayer != null) {
-                return (id << 4) + dataLayer[j];
+                return (id << 4) + getNibble(j, dataLayer);
             }
         }
         return id << 4;
@@ -376,7 +376,7 @@ public class MCAChunk extends FaweChunk<Void> {
         int j = FaweCache.CACHE_J[y][z & 15][x & 15];
         idsLayer[j] = (byte) id;
         byte[] dataLayer = this.data[layer];
-        dataLayer[j] = (byte) data;
+        setNibble(j, dataLayer, data);
     }
 
     @Override

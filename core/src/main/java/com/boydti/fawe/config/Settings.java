@@ -185,6 +185,9 @@ public class Settings extends Config {
         })
         public static int DISCARD_AFTER_MS = 60000;
 
+        @Comment("Certain doom!")
+        public static boolean EXPERIMENTAL_UNSTABLE_DO_NOT_ENABLE_ULTRA_SUPER_FAST_WORLD_CORRUPTING_AWESOME_DIRECT_ANVIL_QUEUE_MODE = false;
+
         public static class PROGRESS {
             @Comment("Display constant titles about the progress of a user's edit")
             public static boolean DISPLAY = false;

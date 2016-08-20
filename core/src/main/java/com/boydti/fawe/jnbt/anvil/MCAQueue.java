@@ -2,6 +2,7 @@ package com.boydti.fawe.jnbt.anvil;
 
 import com.boydti.fawe.example.CharFaweChunk;
 import com.boydti.fawe.example.NMSMappedFaweQueue;
+import com.boydti.fawe.example.NullFaweChunk;
 import com.boydti.fawe.object.FaweChunk;
 import com.boydti.fawe.object.FaweQueue;
 import com.boydti.fawe.object.RunnableVal;
@@ -14,11 +15,23 @@ import java.util.UUID;
 
 public class MCAQueue extends NMSMappedFaweQueue<FaweQueue, MCAChunk, MCAChunk, MCAChunk> {
 
-    private final FaweQueue parent;
+    private FaweQueue parent;
+    private final boolean hasSky;
+    private final File saveFolder;
 
     public MCAQueue(FaweQueue parent) {
         super(parent.getWorldName(), new MCAQueueMap());
         this.parent = parent;
+        ((MCAQueueMap) getFaweQueueMap()).setParentQueue(parent);
+        hasSky = parent.hasSky();
+        saveFolder = parent.getSaveFolder();
+    }
+
+    public MCAQueue(String world, File saveFolder, boolean hasSky) {
+        super(world, new MCAQueueMap());
+        ((MCAQueueMap) getFaweQueueMap()).setParentQueue(this);
+        this.saveFolder = saveFolder;
+        this.hasSky = hasSky;
     }
 
     @Override
@@ -87,7 +100,9 @@ public class MCAQueue extends NMSMappedFaweQueue<FaweQueue, MCAChunk, MCAChunk, 
 
     @Override
     public void refreshChunk(FaweChunk fs) {
-        // Nothing
+        if (parent != null && !(fs instanceof MCAChunk) && !(fs instanceof NullFaweChunk) && parent instanceof NMSMappedFaweQueue) {
+            ((NMSMappedFaweQueue) parent).refreshChunk(fs);
+        }
     }
 
     @Override
@@ -101,18 +116,18 @@ public class MCAQueue extends NMSMappedFaweQueue<FaweQueue, MCAChunk, MCAChunk, 
     }
 
     @Override
-    public FaweChunk getFaweChunk(int x, int z) {
-        return getFaweQueueMap().getFaweChunk(x, z);
+    public FaweChunk getFaweChunk(int cx, int cz) {
+        return getFaweQueueMap().getFaweChunk(cx, cz);
     }
 
     @Override
     public File getSaveFolder() {
-        return parent.getSaveFolder();
+        return saveFolder;
     }
 
     @Override
     public boolean hasSky() {
-        return parent.hasSky();
+        return hasSky;
     }
 
     @Override
@@ -146,5 +161,19 @@ public class MCAQueue extends NMSMappedFaweQueue<FaweQueue, MCAChunk, MCAChunk, 
     @Override
     public int getEmmittedLight(MCAChunk sections, int x, int y, int z) {
         return sections.getBlockLight(x, y, z);
+    }
+
+    @Override
+    public void startSet(boolean parallel) {
+        if (parent != null) {
+            parent.startSet(parallel);
+        }
+    }
+
+    @Override
+    public void endSet(boolean parallel) {
+        if (parent != null) {
+            parent.endSet(parallel);
+        }
     }
 }

@@ -31,7 +31,6 @@ public class PlotSquaredFeature extends FaweMaskManager {
     private void setupBlockQueue() {
         try {
             // If it's going to fail, throw an error now rather than later
-            new FaweLocalBlockQueue(null);
             QueueProvider provider = QueueProvider.of(FaweLocalBlockQueue.class, null);
             GlobalBlockQueue.IMP.setProvider(provider);
             HybridPlotManager.REGENERATIVE_CLEAR = false;

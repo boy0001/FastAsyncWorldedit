@@ -23,6 +23,7 @@ import com.boydti.fawe.Fawe;
 import com.boydti.fawe.FaweCache;
 import com.boydti.fawe.config.BBC;
 import com.boydti.fawe.config.Settings;
+import com.boydti.fawe.jnbt.anvil.MCAQueue;
 import com.boydti.fawe.logging.LoggingChangeSet;
 import com.boydti.fawe.logging.rollback.RollbackOptimizedHistory;
 import com.boydti.fawe.object.FaweLimit;
@@ -254,6 +255,9 @@ public class EditSession implements Extent {
         this.originalLimit = limit;
         this.limit = limit.copy();
         this.queue = SetQueue.IMP.getNewQueue(Fawe.imp().getWorldName(world), fastmode, autoQueue);
+        if (Settings.QUEUE.EXPERIMENTAL_UNSTABLE_DO_NOT_ENABLE_ULTRA_SUPER_FAST_WORLD_CORRUPTING_AWESOME_DIRECT_ANVIL_QUEUE_MODE) {
+            this.queue = new MCAQueue(queue);
+        }
         queue.addEditSession(this);
         this.bypassAll = wrapExtent(new FastWorldEditExtent(world, queue), bus, event, Stage.BEFORE_CHANGE);
         this.bypassHistory = (this.extent = wrapExtent(bypassAll, bus, event, Stage.BEFORE_REORDER));

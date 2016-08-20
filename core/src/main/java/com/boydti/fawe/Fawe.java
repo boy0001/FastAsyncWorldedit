@@ -263,7 +263,7 @@ public class Fawe {
             String versionString = scanner.next().trim();
             scanner.close();
             this.version = new FaweVersion(versionString);
-            Settings.DATE = new Date(version.year, version.month, version.day).toLocaleString();
+            Settings.DATE = new Date(version.year, version.month, version.day).toGMTString();
             Settings.BUILD = "http://ci.athion.net/job/FastAsyncWorldEdit/" + version.build;
             Settings.COMMIT = "https://github.com/boy0001/FastAsyncWorldedit/commit/" + Integer.toHexString(version.hash);
         } catch (Throwable ignore) {}

@@ -127,6 +127,7 @@ public final class CommandManager {
         checkNotNull(worldEdit);
         checkNotNull(platformManager);
         INSTANCE = this;
+
         this.worldEdit = worldEdit;
         this.platformManager = platformManager;
         this.exceptionConverter = new WorldEditExceptionConverter(worldEdit);

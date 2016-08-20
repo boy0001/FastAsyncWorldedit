@@ -150,6 +150,7 @@ public class FaweBukkit implements IFawe, Listener {
     private int[] version;
 
     private boolean hasNMS = true;
+    private boolean playerChunk = false;
 
     /**
      * The FaweQueue is a core part of block placement<br>
@@ -160,19 +161,23 @@ public class FaweBukkit implements IFawe, Listener {
      */
     @Override
     public FaweQueue getNewQueue(String world, boolean dontCareIfFast) {
-        try {
-            Field fieldDirtyCount = ReflectionUtils.getRefClass("{nms}.PlayerChunk").getField("dirtyCount").getRealField();
-            fieldDirtyCount.setAccessible(true);
-            int mod = fieldDirtyCount.getModifiers();
-            if ((mod & Modifier.VOLATILE) == 0) {
-                Field modifiersField = Field.class.getDeclaredField("modifiers");
-                modifiersField.setAccessible(true);
-                modifiersField.setInt(fieldDirtyCount, mod + Modifier.VOLATILE);
-            }
-        } catch (Throwable ignore) {}
+        if (playerChunk != (playerChunk = true)) {
+            try {
+                Field fieldDirtyCount = ReflectionUtils.getRefClass("{nms}.PlayerChunk").getField("dirtyCount").getRealField();
+                fieldDirtyCount.setAccessible(true);
+                int mod = fieldDirtyCount.getModifiers();
+                if ((mod & Modifier.VOLATILE) == 0) {
+                    Field modifiersField = Field.class.getDeclaredField("modifiers");
+                    modifiersField.setAccessible(true);
+                    modifiersField.setInt(fieldDirtyCount, mod + Modifier.VOLATILE);
+                }
+            } catch (Throwable ignore) {}
+        }
         try {
             return plugin.getQueue(world);
-        } catch (Throwable ignore) {}
+        } catch (Throwable ignore) {
+            ignore.printStackTrace();
+        }
         // Disable incompatible settings
         Settings.QUEUE.PARALLEL_THREADS = 1; // BukkitAPI placer is too slow to parallel thread at the chunk level
         Settings.HISTORY.COMBINE_STAGES = false; // Performing a chunk copy (if possible) wouldn't be faster using the BukkitAPI
@@ -184,7 +189,14 @@ public class FaweBukkit implements IFawe, Listener {
             debug("Fallback placer: " + BukkitQueue_All.class);
             debug("=======================================");
             debug("Download the version of FAWE for your platform");
+            debug(" - http://ci.athion.net/job/FastAsyncWorldEdit/lastSuccessfulBuild/artifact/target");
             debug("=======================================");
+            TaskManager.IMP.laterAsync(new Runnable() {
+                @Override
+                public void run() {
+                    MainUtil.sendAdmin("&cNo NMS placer found, see console!");
+                }
+            }, 1);
             hasNMS = false;
         }
         return new BukkitQueue_All(world);

@@ -92,7 +92,7 @@ public class MCAFile {
     }
 
     public MCAChunk readChunk(int cx, int cz) throws IOException {
-        int i = (cx << 2) + (cz << 7);
+        int i = ((cx & 31) << 2) + ((cz & 31) << 7);
         int offset = (((locations[i] & 0xFF) << 16) + ((locations[i + 1] & 0xFF) << 8) + ((locations[i+ 2] & 0xFF))) << 12;
         int size = (locations[i + 3] & 0xFF) << 12;
         NBTInputStream nis = getChunkIS(offset);
@@ -119,13 +119,13 @@ public class MCAFile {
     }
 
     public int getOffset(int cx, int cz) {
-        int i = (cx << 2) + (cz << 7);
+        int i = ((cx & 31) << 2) + ((cz & 31) << 7);
         int offset = (((locations[i] & 0xFF) << 16) + ((locations[i + 1] & 0xFF) << 8) + ((locations[i+ 2] & 0xFF)));
         return offset << 12;
     }
 
     public int getSize(int cx, int cz) {
-        int i = (cx << 2) + (cz << 7);
+        int i = ((cx & 31) << 2) + ((cz & 31) << 7);
         return (locations[i + 3] & 0xFF) << 12;
     }
 
@@ -239,7 +239,7 @@ public class MCAFile {
     }
 
     private void writeHeader(int cx, int cz, int offsetMedium, int sizeByte) throws IOException {
-        int i = (cx << 2) + (cz << 7);
+        int i = ((cx & 31) << 2) + ((cz & 31) << 7);
         raf.seek(i);
         raf.write((offsetMedium >>> 16) & 0xFF);
         raf.write((offsetMedium >>> 8) & 0xFF);
@@ -247,9 +247,26 @@ public class MCAFile {
         raf.write(sizeByte);
     }
 
-    public void flush() {
-        final HashMap<Integer, Integer> offsetMap = new HashMap<>(); // Offset -> <byte cx, byte cz, short size>
+    public void close() {
+        try {
+            raf.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
 
+    public void flush() {
+        boolean modified = false;
+        for (MCAChunk chunk : getCachedChunks()) {
+            if (chunk.isModified()) {
+                modified = true;
+                break;
+            }
+        }
+        if (!modified) {
+            return;
+        }
+        final HashMap<Integer, Integer> offsetMap = new HashMap<>(); // Offset -> <byte cx, byte cz, short size>
         forEachChunk(new RunnableVal4<Integer, Integer, Integer, Integer>() {
             @Override
             public void run(Integer cx, Integer cz, Integer offset, Integer size) {
@@ -265,7 +282,11 @@ public class MCAFile {
         int nextOffset = 8192;
         try {
             for (int count = 0; count < offsetMap.size(); count++) {
-                int loc = offsetMap.get(nextOffset);
+                Integer loc = offsetMap.get(nextOffset);
+                while (loc == null) {
+                    nextOffset += 4096;
+                    loc = offsetMap.get(nextOffset);
+                }
                 int offset = nextOffset;
                 short cxz = MathMan.unpairX(loc);
                 int cx = MathMan.unpairShortX(cxz);
@@ -286,6 +307,9 @@ public class MCAFile {
                         }
                     } else {
                         newBytes = getChunkBytes(cx, cz);
+                        if (newBytes == null) {
+                            System.out.println("This shouldn't be null?");
+                        }
                     }
                 }
                 if (newBytes == null) {
@@ -312,7 +336,7 @@ public class MCAFile {
                     nextOffset2 += nextSize;
                 }
                 System.out.println("Writing: " + cx + "," + cz);
-                    writeSafe(start, newBytes);
+                writeSafe(start, newBytes);
                 if (offset != start || end != start + size) {
                     System.out.println("Header: " + cx + "," + cz + " | " + offset + "," + start + " | " + end + "," + (start + size) + " | " + size + " | " + start);
                     writeHeader(cx, cz, offset >> 12, newSize);
