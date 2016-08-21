@@ -20,12 +20,15 @@
 package com.sk89q.worldedit.extent.clipboard.io;
 
 import com.boydti.fawe.object.FaweOutputStream;
+import com.boydti.fawe.object.clipboard.AbstractClipboardFormat;
 import com.boydti.fawe.object.clipboard.DiskOptimizedClipboard;
+import com.boydti.fawe.object.clipboard.IClipboardFormat;
 import com.boydti.fawe.object.schematic.FaweFormat;
 import com.boydti.fawe.object.schematic.PNGWriter;
 import com.boydti.fawe.object.schematic.Schematic;
 import com.boydti.fawe.object.schematic.StructureFormat;
 import com.boydti.fawe.util.MainUtil;
+import com.boydti.fawe.util.ReflectionUtils;
 import com.sk89q.jnbt.NBTConstants;
 import com.sk89q.jnbt.NBTInputStream;
 import com.sk89q.jnbt.NBTOutputStream;
@@ -37,13 +40,10 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.util.Arrays;
-import java.util.Collections;
 import java.util.EnumSet;
-import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.zip.GZIPInputStream;
 import java.util.zip.GZIPOutputStream;
 import javax.annotation.Nullable;
@@ -59,7 +59,7 @@ public enum ClipboardFormat {
     /**
      * The Schematic format used by many software.
      */
-    SCHEMATIC("mcedit", "mce", "schematic") {
+    SCHEMATIC(new AbstractClipboardFormat("SCHEMATIC", "mcedit", "mce", "schematic") {
         @Override
         public ClipboardReader getReader(InputStream inputStream) throws IOException {
             inputStream = new BufferedInputStream(inputStream);
@@ -108,12 +108,13 @@ public enum ClipboardFormat {
         public String getExtension() {
             return "schematic";
         }
-    },
+    }),
+
     /**
      * The structure block format:
      * http://minecraft.gamepedia.com/Structure_block_file_format
      */
-    STRUCTURE("structure", "nbt") {
+    STRUCTURE(new AbstractClipboardFormat("STRUCTURE", "structure", "nbt") {
         @Override
         public ClipboardReader getReader(InputStream inputStream) throws IOException {
             inputStream = new BufferedInputStream(inputStream);
@@ -143,12 +144,13 @@ public enum ClipboardFormat {
         public String getExtension() {
             return "nbt";
         }
-    },
+    }),
 
     /**
      * Isometric PNG writer
      */
-    PNG("png", "image") {
+    PNG(new AbstractClipboardFormat("PNG", "png", "image") {
+
         @Override
         public ClipboardReader getReader(InputStream inputStream) throws IOException {
             return null;
@@ -160,15 +162,15 @@ public enum ClipboardFormat {
         }
 
         @Override
-        public String getExtension() {
-            return "png";
-        }
-
-        @Override
         public boolean isFormat(File file) {
             return file.getName().endsWith(".png");
         }
-    },
+
+        @Override
+        public String getExtension() {
+            return "png";
+        }
+    }),
 
     /**
      * The FAWE file format:
@@ -185,62 +187,15 @@ public enum ClipboardFormat {
      *  FaweFormat: compression/mode -> Any/Any (slower)
      *
      */
-    FAWE("fawe") {
-        /**
-         * Read a clipboard from a compressed stream (the first byte indicates the compression level)
-         * @param inputStream the input stream
-         * @return
-         * @throws IOException
-         */
+    FAWE(new AbstractClipboardFormat("FAWE", "fawe") {
         @Override
         public ClipboardReader getReader(InputStream inputStream) throws IOException {
             return new FaweFormat(MainUtil.getCompressedIS(inputStream));
         }
 
-        /**
-         * Write a clipboard to a stream with compression level 8
-         * @param outputStream the output stream
-         * @return
-         * @throws IOException
-         */
         @Override
         public ClipboardWriter getWriter(OutputStream outputStream) throws IOException {
             return getWriter(outputStream, 8);
-        }
-
-        /**
-         * Write a clipboard to a stream
-         * @param os
-         * @param compression
-         * @return
-         * @throws IOException
-         */
-        public ClipboardWriter getWriter(OutputStream os, int compression) throws IOException {
-            FaweFormat writer = new FaweFormat(new FaweOutputStream(os));
-            writer.compress(compression);
-            return writer;
-        }
-
-        /**
-         * Read or write blocks ids to a file
-         * @param file
-         * @return
-         * @throws IOException
-         */
-        public DiskOptimizedClipboard getUncompressedReadWrite(File file) throws IOException {
-            return new DiskOptimizedClipboard(file);
-        }
-
-        /**
-         * Read or write block ids to a new file
-         * @param width
-         * @param height
-         * @param length
-         * @param file
-         * @return
-         */
-        public DiskOptimizedClipboard createUncompressedReadWrite(int width, int height, int length, File file) {
-            return new DiskOptimizedClipboard(width, height, length, file);
         }
 
         @Override
@@ -252,21 +207,45 @@ public enum ClipboardFormat {
         public String getExtension() {
             return "fawe";
         }
-    },
+
+        public ClipboardWriter getWriter(OutputStream os, int compression) throws IOException {
+            FaweFormat writer = new FaweFormat(new FaweOutputStream(os));
+            writer.compress(compression);
+            return writer;
+        }
+
+        public DiskOptimizedClipboard getUncompressedReadWrite(File file) throws IOException {
+            return new DiskOptimizedClipboard(file);
+        }
+
+        public DiskOptimizedClipboard createUncompressedReadWrite(int width, int height, int length, File file) {
+            return new DiskOptimizedClipboard(width, height, length, file);
+        }
+    }),
 
     ;
 
-    private static final Map<String, ClipboardFormat> aliasMap = new HashMap<String, ClipboardFormat>();
+    private static final Map<String, ClipboardFormat> aliasMap;
+    static {
+        aliasMap = new ConcurrentHashMap<>();
+        for (ClipboardFormat emum : ClipboardFormat.values()) {
+            for (String alias : emum.getAliases()) {
+                aliasMap.put(alias, emum);
+            }
+        }
+    }
+    private IClipboardFormat format;
 
-    private final String[] aliases;
+    ClipboardFormat() {
 
-    /**
-     * Create a new instance.
-     *
-     * @param aliases an array of aliases by which this format may be referred to
-     */
-    ClipboardFormat(String ... aliases) {
-        this.aliases = aliases;
+    }
+
+    ClipboardFormat(IClipboardFormat format) {
+        this.format = format;
+    }
+
+    public IClipboardFormat getFormat() {
+        return format;
     }
 
     /**
@@ -275,7 +254,7 @@ public enum ClipboardFormat {
      * @return a set of aliases
      */
     public Set<String> getAliases() {
-        return Collections.unmodifiableSet(new HashSet<String>(Arrays.asList(aliases)));
+        return format.getAliases();
     }
 
     /**
@@ -285,7 +264,9 @@ public enum ClipboardFormat {
      * @return a reader
      * @throws IOException thrown on I/O error
      */
-    public abstract ClipboardReader getReader(InputStream inputStream) throws IOException;
+    public ClipboardReader getReader(InputStream inputStream) throws IOException {
+        return format.getReader(inputStream);
+    }
 
     /**
      * Create a writer.
@@ -294,7 +275,9 @@ public enum ClipboardFormat {
      * @return a writer
      * @throws IOException thrown on I/O error
      */
-    public abstract ClipboardWriter getWriter(OutputStream outputStream) throws IOException;
+    public ClipboardWriter getWriter(OutputStream outputStream) throws IOException {
+        return format.getWriter(outputStream);
+    }
 
     public Schematic load(File file) throws IOException {
         return load(new FileInputStream(file));
@@ -308,7 +291,9 @@ public enum ClipboardFormat {
      * Get the file extension used
      * @return file extension string
      */
-    public abstract String getExtension();
+    public String getExtension() {
+        return format.getExtension();
+    }
 
     /**
      * Return whether the given file is of this format.
@@ -316,14 +301,8 @@ public enum ClipboardFormat {
      * @param file the file
      * @return true if the given file is of this format
      */
-    public abstract boolean isFormat(File file);
-
-    static {
-        for (ClipboardFormat format : EnumSet.allOf(ClipboardFormat.class)) {
-            for (String key : format.aliases) {
-                aliasMap.put(key, format);
-            }
-        }
+    public boolean isFormat(File file) {
+        return format.isFormat(file);
     }
 
     /**
@@ -347,7 +326,6 @@ public enum ClipboardFormat {
     @Nullable
     public static ClipboardFormat findByFile(File file) {
         checkNotNull(file);
-
         for (ClipboardFormat format : EnumSet.allOf(ClipboardFormat.class)) {
             if (format.isFormat(file)) {
                 return format;
@@ -355,6 +333,15 @@ public enum ClipboardFormat {
         }
 
         return null;
+    }
+
+    public static ClipboardFormat addFormat(IClipboardFormat instance) {
+        ClipboardFormat newEnum = ReflectionUtils.addEnum(ClipboardFormat.class, instance.getName());
+        newEnum.format = instance;
+        for (String alias : newEnum.getAliases()) {
+            aliasMap.put(alias, newEnum);
+        }
+        return newEnum;
     }
 
     public static Class<?> inject() {

@@ -1,9 +1,12 @@
 package com.boydti.fawe.util;
 
+import java.lang.reflect.AccessibleObject;
+import java.lang.reflect.Array;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -11,6 +14,9 @@ import java.util.List;
 import java.util.Map;
 import org.bukkit.Bukkit;
 import org.bukkit.Server;
+import sun.reflect.ConstructorAccessor;
+import sun.reflect.FieldAccessor;
+import sun.reflect.ReflectionFactory;
 
 /**
  * @author DPOH-VAR
@@ -58,29 +64,133 @@ public class ReflectionUtils {
         }
     }
 
-public static <T, V> Map<T, V> getMap(Map<T, V> map) {
-    try {
-        Class<? extends Map> clazz = map.getClass();
-        Field m = clazz.getDeclaredField("m");
-        m.setAccessible(true);
-        return (Map<T, V>) m.get(map);
-    } catch (Throwable e) {
-        MainUtil.handleError(e);
-        return map;
-    }
-}
+    @SuppressWarnings("unchecked")
+    public static <T extends Enum<?>> T addEnum(Class<T> enumType, String enumName) {
 
-public static <T> List<T> getList(List<T> list) {
-    try {
-        Class<? extends List> clazz = (Class<? extends List>) Class.forName("java.util.Collections$UnmodifiableList");
-        Field m = clazz.getDeclaredField("list");
-        m.setAccessible(true);
-        return (List<T>) m.get(list);
-    } catch (Throwable e) {
-        MainUtil.handleError(e);
-        return list;
+        // 0. Sanity checks
+        if (!Enum.class.isAssignableFrom(enumType)) {
+            throw new RuntimeException("class " + enumType + " is not an instance of Enum");
+        }
+        // 1. Lookup "$VALUES" holder in enum class and get previous enum instances
+        Field valuesField = null;
+        Field[] fields = enumType.getDeclaredFields();
+        for (Field field : fields) {
+            if (field.getName().contains("$VALUES")) {
+                valuesField = field;
+                break;
+            }
+        }
+        AccessibleObject.setAccessible(new Field[] { valuesField }, true);
+
+        try {
+
+            // 2. Copy it
+            T[] previousValues = (T[]) valuesField.get(enumType);
+            List values = new ArrayList(Arrays.asList(previousValues));
+
+            // 3. build new enum
+            T newValue = (T) makeEnum(enumType, // The target enum class
+                    enumName, // THE NEW ENUM INSTANCE TO BE DYNAMICALLY ADDED
+                    values.size(),
+                    new Class<?>[] {}, // can be used to pass values to the enum constuctor
+            new Object[] {}); // can be used to pass values to the enum constuctor
+
+            // 4. add new value
+            values.add(newValue);
+
+            // 5. Set new values field
+            setFailsafeFieldValue(valuesField, null,
+                    values.toArray((T[]) Array.newInstance(enumType, 0)));
+
+            // 6. Clean enum cache
+            cleanEnumCache(enumType);
+            return newValue;
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw new RuntimeException(e.getMessage(), e);
+        }
     }
-}
+
+    private static Object makeEnum(Class<?> enumClass, String value, int ordinal,
+                                   Class<?>[] additionalTypes, Object[] additionalValues) throws Exception {
+        Object[] parms = new Object[additionalValues.length + 2];
+        parms[0] = value;
+        parms[1] = Integer.valueOf(ordinal);
+        System.arraycopy(additionalValues, 0, parms, 2, additionalValues.length);
+        return enumClass.cast(getConstructorAccessor(enumClass, additionalTypes).newInstance(parms));
+    }
+
+    private static ConstructorAccessor getConstructorAccessor(Class<?> enumClass,
+                                                              Class<?>[] additionalParameterTypes) throws NoSuchMethodException {
+        Class<?>[] parameterTypes = new Class[additionalParameterTypes.length + 2];
+        parameterTypes[0] = String.class;
+        parameterTypes[1] = int.class;
+        System.arraycopy(additionalParameterTypes, 0,
+                parameterTypes, 2, additionalParameterTypes.length);
+        return ReflectionFactory.getReflectionFactory().newConstructorAccessor(enumClass.getDeclaredConstructor(parameterTypes));
+    }
+
+    private static void setFailsafeFieldValue(Field field, Object target, Object value)
+            throws NoSuchFieldException, IllegalAccessException {
+
+        // let's make the field accessible
+        field.setAccessible(true);
+
+        // next we change the modifier in the Field instance to
+        // not be final anymore, thus tricking reflection into
+        // letting us modify the static final field
+        Field modifiersField = Field.class.getDeclaredField("modifiers");
+        modifiersField.setAccessible(true);
+        int modifiers = modifiersField.getInt(field);
+
+        // blank out the final bit in the modifiers int
+        modifiers &= ~Modifier.FINAL;
+        modifiersField.setInt(field, modifiers);
+
+        FieldAccessor fa = ReflectionFactory.getReflectionFactory().newFieldAccessor(field, false);
+        fa.set(target, value);
+    }
+
+    private static void blankField(Class<?> enumClass, String fieldName)
+            throws NoSuchFieldException, IllegalAccessException {
+        for (Field field : Class.class.getDeclaredFields()) {
+            if (field.getName().contains(fieldName)) {
+                AccessibleObject.setAccessible(new Field[] { field }, true);
+                setFailsafeFieldValue(field, enumClass, null);
+                break;
+            }
+        }
+    }
+
+    private static void cleanEnumCache(Class<?> enumClass)
+            throws NoSuchFieldException, IllegalAccessException {
+        blankField(enumClass, "enumConstantDirectory"); // Sun (Oracle?!?) JDK 1.5/6
+        blankField(enumClass, "enumConstants"); // IBM JDK
+    }
+
+    public static <T, V> Map<T, V> getMap(Map<T, V> map) {
+        try {
+            Class<? extends Map> clazz = map.getClass();
+            Field m = clazz.getDeclaredField("m");
+            m.setAccessible(true);
+            return (Map<T, V>) m.get(map);
+        } catch (Throwable e) {
+            MainUtil.handleError(e);
+            return map;
+        }
+    }
+
+    public static <T> List<T> getList(List<T> list) {
+        try {
+            Class<? extends List> clazz = (Class<? extends List>) Class.forName("java.util.Collections$UnmodifiableList");
+            Field m = clazz.getDeclaredField("list");
+            m.setAccessible(true);
+            return (List<T>) m.get(list);
+        } catch (Throwable e) {
+            MainUtil.handleError(e);
+            return list;
+        }
+    }
 
     public static Class<?> getNmsClass(final String name) {
         final String className = "net.minecraft.server." + getVersion() + "." + name;
