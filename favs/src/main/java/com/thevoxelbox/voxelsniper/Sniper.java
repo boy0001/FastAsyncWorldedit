@@ -400,12 +400,14 @@ public class Sniper {
             FaweChangeSet changeSet = changeQueue.getChangeSet();
             FawePlayer<Object> fp = FawePlayer.wrap(getPlayer());
             LocalSession session = fp.getSession();
-            baseQueue.flush();
             session.remember(changeSet.toEditSession(fp));
-            changeQueue.flush();
             com.sk89q.worldedit.world.World worldEditWorld = fp.getWorld();
             changeSet = FaweChangeSet.getDefaultChangeSet(worldEditWorld, fp.getUUID());
             changeQueue.setChangeSet(changeSet);
+            // NEW QUEUE?
+            tmpWorld = null;
+            baseQueue = null;
+            changeQueue = null;
         }
     }
 
