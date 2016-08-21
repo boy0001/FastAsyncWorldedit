@@ -255,7 +255,7 @@ public class EditSession implements Extent {
         this.originalLimit = limit;
         this.limit = limit.copy();
         this.queue = SetQueue.IMP.getNewQueue(Fawe.imp().getWorldName(world), fastmode, autoQueue);
-        if (Settings.QUEUE.EXPERIMENTAL_UNSTABLE_DO_NOT_ENABLE_ULTRA_SUPER_FAST_WORLD_CORRUPTING_AWESOME_DIRECT_ANVIL_QUEUE_MODE) {
+        if (Settings.EXPERIMENTAL.ANVIL_QUEUE_MODE) {
             this.queue = new MCAQueue(queue);
         }
         queue.addEditSession(this);

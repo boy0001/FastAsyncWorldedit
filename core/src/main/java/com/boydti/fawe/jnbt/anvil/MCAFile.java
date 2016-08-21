@@ -22,7 +22,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.atomic.AtomicInteger;
 import java.util.zip.Deflater;
 import java.util.zip.DeflaterOutputStream;
 import java.util.zip.Inflater;
@@ -224,7 +223,7 @@ public class MCAFile {
         }
         ByteArrayOutputStream baos = new ByteArrayOutputStream(0);
         fieldBuf4.set(baos, buffer3);
-        DeflaterOutputStream deflater = new DeflaterOutputStream(baos, new Deflater(9), 1, true);
+        DeflaterOutputStream deflater = new DeflaterOutputStream(baos, new Deflater(Settings.EXPERIMENTAL.WORLD_COMPRESSION), 1, true);
         fieldBuf5.set(deflater, buffer2);
         BufferedOutputStream bos = new BufferedOutputStream(deflater, 1);
         fieldBuf6.set(bos, buffer1);
@@ -353,25 +352,5 @@ public class MCAFile {
         } catch (Throwable e) {
             e.printStackTrace();
         }
-        // TODO write header
-    }
-
-    public static void main(String[] args) throws Exception {
-        // io benchmark
-        File folder = new File("../../mc/world/region");
-        long start = System.nanoTime();
-        final AtomicInteger count = new AtomicInteger();
-        final int id = 1;
-//        for (File file : folder.listFiles()) {
-        { // Testing read/write
-            File file = new File(folder, "r.-2.-3.mca");
-            final MCAFile mca = new MCAFile(null, file);
-            MCAChunk chunk = mca.getChunk(29, 30);
-            System.out.println("Block ID: " + chunk.getBlockCombinedId(0, 0, 0));
-            chunk.setBlock(0,0,0, 5);
-            mca.flush();
-        }
-        long diff = System.nanoTime() - start;
-        System.out.println(diff / 1000000d); // Time diff
     }
 }

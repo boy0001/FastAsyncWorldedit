@@ -185,15 +185,26 @@ public class Settings extends Config {
         })
         public static int DISCARD_AFTER_MS = 60000;
 
-        @Comment("Certain doom!")
-        public static boolean EXPERIMENTAL_UNSTABLE_DO_NOT_ENABLE_ULTRA_SUPER_FAST_WORLD_CORRUPTING_AWESOME_DIRECT_ANVIL_QUEUE_MODE = false;
-
         public static class PROGRESS {
             @Comment("Display constant titles about the progress of a user's edit")
             public static boolean DISPLAY = false;
             @Comment("How often edit progress is displayed")
             public static int INTERVAL = 1;
         }
+    }
+
+    @Comment("Experimental options")
+    public static class EXPERIMENTAL {
+        @Comment({
+                "Directly modify the region files:",
+                " - May corrupt world if in use"
+        })
+        public static boolean ANVIL_QUEUE_MODE = false;
+        @Comment({
+                "Set the default world compression",
+                " - Only supports Bukkit 1.10 right now"
+        })
+        public static int WORLD_COMPRESSION = -1;
     }
 
     public static class WEB {

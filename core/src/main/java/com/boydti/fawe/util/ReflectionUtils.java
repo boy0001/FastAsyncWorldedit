@@ -130,7 +130,7 @@ public class ReflectionUtils {
         return ReflectionFactory.getReflectionFactory().newConstructorAccessor(enumClass.getDeclaredConstructor(parameterTypes));
     }
 
-    private static void setFailsafeFieldValue(Field field, Object target, Object value)
+    public static void setFailsafeFieldValue(Field field, Object target, Object value)
             throws NoSuchFieldException, IllegalAccessException {
 
         // let's make the field accessible
