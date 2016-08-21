@@ -96,10 +96,27 @@ public class BundledBlockData {
     }
 
     public boolean add(BlockEntry entry, boolean overwrite) {
+        if (entry == null) {
+            return false;
+        }
         entry.postDeserialization();
         if (!overwrite && (idMap.containsKey(entry.id) || legacyMap[entry.legacyId] != null)) {
             return false;
         }
+        if (entry.states != null) {
+            FaweState half = entry.states.get("half");
+            if (half != null && half.values != null) {
+                FaweStateValue top = half.values.get("top");
+                FaweStateValue bot = half.values.get("bottom");
+                if (top != null && top.getDirection() == null) {
+                    top.setDirection(new Vector(0, 1, 0));
+                }
+                if (bot != null && bot.getDirection() == null) {
+                    bot.setDirection(new Vector(0, -1, 0));
+                }
+            }
+        }
+
         idMap.put(entry.id, entry);
         legacyMap[entry.legacyId] = entry;
         return true;
@@ -245,6 +262,10 @@ public class BundledBlockData {
             }
         }
 
+        public void setDirection(Vector direction) {
+            this.direction = direction;
+        }
+
         @Override
         public Vector getDirection() {
             return direction;
@@ -255,7 +276,7 @@ public class BundledBlockData {
     public class FaweState implements State {
 
         public Byte dataMask;
-        private Map<String, FaweStateValue> values;
+        public Map<String, FaweStateValue> values;
 
         @Override
         public Map<String, FaweStateValue> valueMap() {

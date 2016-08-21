@@ -283,8 +283,10 @@ public class Fawe {
         File extraBlocks = MainUtil.copyFile(jar, "extrablocks.json", null);
         if (extraBlocks != null && extraBlocks.exists()) {
             try {
-                BundledBlockData.getInstance().add(extraBlocks.toURI().toURL(), false);
-            } catch (Throwable ignore) {}
+                BundledBlockData.getInstance().add(extraBlocks.toURI().toURL(), true);
+            } catch (Throwable ignore) {
+                Fawe.debug("Invalid format: extrablocks.json");
+            }
         }
     }
 
