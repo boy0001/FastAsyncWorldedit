@@ -12,7 +12,6 @@ import com.boydti.fawe.object.MaskedFaweQueue;
 import com.boydti.fawe.object.RegionWrapper;
 import com.boydti.fawe.object.changeset.FaweChangeSet;
 import com.boydti.fawe.util.StringMan;
-import com.boydti.fawe.util.TaskManager;
 import com.boydti.fawe.util.WEManager;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.BiMap;
@@ -309,11 +308,10 @@ public class Sniper {
                     PerformBrush performerBrush = (PerformBrush) sniperTool.getCurrentBrush();
                     performerBrush.initP(snipeData);
                 }
-                TaskManager.IMP.async(new Runnable() {
+                final FawePlayer<Player> fp = FawePlayer.wrap(getPlayer());
+                fp.runAsyncIfFree(new Runnable() {
                     @Override
                     public void run() {
-                        FawePlayer<Player> fp = FawePlayer.wrap(getPlayer());
-                        fp.setMeta("fawe_action", true);
                         try {
                             boolean result = brush.perform(snipeAction, snipeData, targetBlock, lastBlock);
                             if (result) {
@@ -322,8 +320,6 @@ public class Sniper {
                             world.commit();
                         } catch (Throwable e) {
                             e.printStackTrace();
-                        } finally {
-                            fp.deleteMeta("fawe_action");
                         }
                     }
                 });
