@@ -6,6 +6,7 @@ import com.boydti.fawe.example.NullFaweChunk;
 import com.boydti.fawe.object.FaweChunk;
 import com.boydti.fawe.object.FaweQueue;
 import com.boydti.fawe.object.RunnableVal;
+import com.boydti.fawe.object.exception.FaweException;
 import com.boydti.fawe.util.MathMan;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -44,6 +45,7 @@ public class MCAQueueMap implements IFaweQueueMap {
         if (lastFile == null) {
             try {
                 lastFile = new MCAFile(queue, lastFileX, lastFileZ);
+            } catch (FaweException.FaweChunkLoadException ignore) {
             } catch (Exception e) {
                 e.printStackTrace();
                 return lastFile = null;

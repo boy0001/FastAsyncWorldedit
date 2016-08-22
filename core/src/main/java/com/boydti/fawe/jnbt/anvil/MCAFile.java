@@ -5,6 +5,7 @@ import com.boydti.fawe.jnbt.NBTStreamer;
 import com.boydti.fawe.object.FaweQueue;
 import com.boydti.fawe.object.RunnableVal;
 import com.boydti.fawe.object.RunnableVal4;
+import com.boydti.fawe.object.exception.FaweException;
 import com.boydti.fawe.object.io.BufferedRandomAccessFile;
 import com.boydti.fawe.object.io.FastByteArrayInputStream;
 import com.boydti.fawe.object.io.FastByteArrayOutputStream;
@@ -16,7 +17,6 @@ import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
@@ -54,7 +54,7 @@ public class MCAFile {
         this.queue = parent;
         this.file = file;
         if (!file.exists()) {
-            throw new FileNotFoundException(file.toString());
+            throw new FaweException.FaweChunkLoadException();
         }
         this.locations = new byte[4096];
         this.raf = new BufferedRandomAccessFile(file, "rw", Settings.HISTORY.BUFFER_SIZE);
