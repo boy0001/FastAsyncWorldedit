@@ -100,7 +100,7 @@ public class Schematic {
         if (allowUndo) {
             editSession = builder.build();
         } else {
-            editSession = builder.changeSetNull().build();
+            editSession = builder.changeSetNull().fastmode(true).build();
         }
         Extent extent = clipboard;
         if (transform != null) {

@@ -25,6 +25,6 @@ permissions:
   fawe.bypass:
     default: false
   fawe.admin:
-    default: false
+    default: op
   fawe.reload:
     default: false

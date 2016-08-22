@@ -33,7 +33,7 @@ ext {
 
 version = date + revision + buildNumber
 if ( project.hasProperty("lzNoVersion") ) { // gradle build -PlzNoVersion
-    version = "";
+    version = "unknown";
 }
 description = """FastAsyncWorldEdit"""
 

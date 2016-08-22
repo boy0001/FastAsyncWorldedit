@@ -28,8 +28,6 @@ permissions:
   fawe.bypass:
     default: false
   fawe.admin:
-    default: false
-  fawe.fixlighting:
-    default: false
+    default: op
   fawe.reload:
     default: false

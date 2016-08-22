@@ -2,7 +2,6 @@ package com.boydti.fawe.jnbt.anvil;
 
 import com.boydti.fawe.example.CharFaweChunk;
 import com.boydti.fawe.example.NMSMappedFaweQueue;
-import com.boydti.fawe.example.NullFaweChunk;
 import com.boydti.fawe.object.FaweChunk;
 import com.boydti.fawe.object.FaweQueue;
 import com.boydti.fawe.object.RunnableVal;
@@ -132,14 +131,18 @@ public class MCAQueue extends NMSMappedFaweQueue<FaweQueue, FaweChunk, FaweChunk
 
     @Override
     public void refreshChunk(FaweChunk fs) {
-        if (parent != null && !(fs instanceof MCAChunk) && !(fs instanceof NullFaweChunk) && parent instanceof NMSMappedFaweQueue) {
-            ((NMSMappedFaweQueue) parent).refreshChunk(fs);
+        if (fs.getClass() != MCAChunk.class) {
+            parentNMS.refreshChunk(fs);
         }
     }
 
     @Override
     public CompoundTag getTileEntity(FaweChunk sections, int x, int y, int z) {
-        return sections.getTile(x, y, z);
+        if (sections.getClass() == MCAChunk.class) {
+            return sections.getTile(x, y, z);
+        } else {
+            return parentNMS.getTileEntity(x, y, z);
+        }
     }
 
     @Override
@@ -187,7 +190,11 @@ public class MCAQueue extends NMSMappedFaweQueue<FaweQueue, FaweChunk, FaweChunk
 
     @Override
     public int getCombinedId4Data(FaweChunk sections, int x, int y, int z) {
-        return sections.getBlockCombinedId(x, y, z);
+        if (sections.getClass() == MCAChunk.class) {
+            return sections.getBlockCombinedId(x, y, z);
+        } else {
+            return parentNMS.getCombinedId4Data(x, y, z);
+        }
     }
 
     @Override

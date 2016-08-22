@@ -244,30 +244,30 @@ public class BufferedRandomAccessFile extends RandomAccessFile
         this.curr_ = pos;
     }
 
-    /*
-     * Seek and do not flush if within the current buffer when going backwards
-     *  - Assumes no writes were made
-     * @param pos
-     * @throws IOException
-     */
-    public void seekUnsafe(long pos) throws IOException
-    {
-        if (pos >= this.hi_ || pos < this.lo_)
-        {
-            // seeking outside of current buffer -- flush and read
-            this.flushBuffer();
-            this.lo_ = pos & BuffMask_; // start at BuffSz boundary
-            this.maxHi_ = this.lo_ + (long) this.buff_.length;
-            if (this.diskPos_ != this.lo_)
-            {
-                super.seek(this.lo_);
-                this.diskPos_ = this.lo_;
-            }
-            int n = this.fillBuffer();
-            this.hi_ = this.lo_ + (long) n;
-        }
-        this.curr_ = pos;
-    }
+//    /*
+//     * Seek and do not flush if within the current buffer when going backwards
+//     *  - Assumes no writes were made
+//     * @param pos
+//     * @throws IOException
+//     */
+//    public void seekUnsafe(long pos) throws IOException
+//    {
+//        if (pos >= this.hi_ || pos < this.lo_)
+//        {
+//            // seeking outside of current buffer -- flush and read
+//            this.flushBuffer();
+//            this.lo_ = pos & BuffMask_; // start at BuffSz boundary
+//            this.maxHi_ = this.lo_ + (long) this.buff_.length;
+//            if (this.diskPos_ != this.lo_)
+//            {
+//                super.seek(this.lo_);
+//                this.diskPos_ = this.lo_;
+//            }
+//            int n = this.fillBuffer();
+//            this.hi_ = this.lo_ + (long) n;
+//        }
+//        this.curr_ = pos;
+//    }
 
     public long getFilePointer()
     {
@@ -339,6 +339,46 @@ public class BufferedRandomAccessFile extends RandomAccessFile
         System.arraycopy(this.buff_, buffOff, b, off, len);
         this.curr_ += len;
         return len;
+    }
+
+    public byte readCurrent() throws IOException {
+        if (this.curr_ >= this.hi_)
+        {
+            // test for EOF
+            // if (this.hi < this.maxHi) return -1;
+            if (this.hitEOF_)
+                return -1;
+
+            // slow path -- read another buffer
+            this.seek(this.curr_);
+            if (this.curr_ == this.hi_)
+                return -1;
+        }
+        byte res = this.buff_[(int) (this.curr_ - this.lo_)];
+        return res;
+    }
+
+    public void writeCurrent(byte b) throws IOException {
+        if (this.curr_ >= this.hi_)
+        {
+            if (this.hitEOF_ && this.hi_ < this.maxHi_)
+            {
+                // at EOF -- bump "hi"
+                this.hi_++;
+            }
+            else
+            {
+                // slow path -- write current buffer; read next one
+                this.seek(this.curr_);
+                if (this.curr_ == this.hi_)
+                {
+                    // appending to EOF -- bump "hi"
+                    this.hi_++;
+                }
+            }
+        }
+        this.buff_[(int) (this.curr_ - this.lo_)] = (byte) b;
+        this.dirty_ = true;
     }
 
     public void write(int b) throws IOException

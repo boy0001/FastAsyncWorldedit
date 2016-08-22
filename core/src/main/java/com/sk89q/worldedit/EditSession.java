@@ -436,9 +436,16 @@ public class EditSession implements Extent {
                 }
             }
             if (Settings.EXTENT.DEBUG) {
-                Fawe.debug("&cPotentially inefficient WorldEdit extent: " + toReturn.getClass().getName());
+                Fawe.debug("&cPotentially unsafe extent blocked: " + toReturn.getClass().getName());
                 Fawe.debug("&8 - &7For area restrictions, it is recommended to use the FaweAPI");
+                Fawe.debug("&8 - &7For block logging, it is recommended to use use BlocksHub");
                 Fawe.debug("&8 - &7To allow this plugin add it to the FAWE `allowed-plugins` list");
+                Fawe.debug("&8 - &7To hide this message set `debug` to false in the config.yml");
+                if (toReturn.getClass().getName().contains("CoreProtect")) {
+                    Fawe.debug("Note on CoreProtect: ");
+                    Fawe.debug(" - If you disable CoreProtect's WorldEdit logger (CP config) it still tries to add it (CP bug?)");
+                    Fawe.debug(" - Use BlocksHub and set `debug` false in the FAWE config");
+                }
             }
         }
         return extent;
