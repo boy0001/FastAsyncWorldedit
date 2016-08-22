@@ -248,9 +248,6 @@ public class EditSession implements Extent {
                 throw new FaweException(BBC.WORLDEDIT_CANCEL_REASON_LOW_MEMORY);
             }
         }
-        if (allowedRegions != null && allowedRegions.length == 0) {
-            throw new FaweException(BBC.WORLDEDIT_CANCEL_REASON_NO_REGION);
-        }
         this.blockBag = blockBag;
         this.originalLimit = limit;
         this.limit = limit.copy();
@@ -273,7 +270,11 @@ public class EditSession implements Extent {
             }
         }
         if (allowedRegions != null) {
-            this.extent = new ProcessedWEExtent(this.extent, allowedRegions, limit);
+            if (allowedRegions.length == 0) {
+                this.extent = new NullExtent(this.extent, BBC.NO_REGION);
+            } else {
+                this.extent = new ProcessedWEExtent(this.extent, allowedRegions, limit);
+            }
         }
         this.extent = wrapExtent(this.extent, bus, event, Stage.BEFORE_HISTORY);
     }
