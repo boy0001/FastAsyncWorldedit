@@ -21,7 +21,7 @@ public class DefaultFaweQueueMap implements IFaweQueueMap {
     /**
      * Map of chunks in the queue
      */
-    public ConcurrentHashMap<Long, FaweChunk> blocks = new ConcurrentHashMap<>();
+    public ConcurrentHashMap<Long, FaweChunk> blocks = new ConcurrentHashMap<>(8, 0.9f, 1);
     public ConcurrentLinkedDeque<FaweChunk> chunks = new ConcurrentLinkedDeque<FaweChunk>() {
         @Override
         public boolean add(FaweChunk o) {

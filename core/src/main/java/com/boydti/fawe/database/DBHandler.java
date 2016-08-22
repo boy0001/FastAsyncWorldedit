@@ -6,7 +6,7 @@ import java.util.concurrent.ConcurrentHashMap;
 public class DBHandler {
     public final static DBHandler IMP = new DBHandler();
 
-    private Map<String, RollbackDatabase> databases = new ConcurrentHashMap<>();
+    private Map<String, RollbackDatabase> databases = new ConcurrentHashMap<>(8, 0.9f, 1);
     
     public RollbackDatabase getDatabase(String world) {
         RollbackDatabase database = databases.get(world);

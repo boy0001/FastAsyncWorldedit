@@ -30,9 +30,9 @@
 
 package com.boydti.fawe.forge;
 
+import com.boydti.fawe.object.io.FastByteArrayOutputStream;
 import com.boydti.fawe.util.MainUtil;
 import java.io.BufferedReader;
-import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -355,7 +355,7 @@ public class ForgeMetrics {
      * @return
      */
     public static byte[] gzip(String input) {
-        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        FastByteArrayOutputStream baos = new FastByteArrayOutputStream();
         GZIPOutputStream gzos = null;
 
         try {

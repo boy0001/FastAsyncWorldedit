@@ -17,6 +17,10 @@ public class LZ4OutputStream extends OutputStream {
         this(os, ONE_MEGABYTE, lz4Factory.fastCompressor());
     }
 
+    public LZ4OutputStream(OutputStream os, int size) throws IOException {
+        this(os, size, lz4Factory.fastCompressor());
+    }
+
     public LZ4OutputStream(OutputStream underlyingOutputStream, int blocksize, LZ4Compressor compressor) throws IOException {
         compressionInputBuffer = new byte[blocksize];
         this.compressor = compressor;

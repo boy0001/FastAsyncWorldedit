@@ -60,7 +60,7 @@ public class SessionManager {
     private static final Logger log = Logger.getLogger(SessionManager.class.getCanonicalName());
     private final Timer timer = new Timer();
     private final WorldEdit worldEdit;
-    private final Map<UUID, SessionHolder> sessions = new ConcurrentHashMap<UUID, SessionHolder>();
+    private final Map<UUID, SessionHolder> sessions = new ConcurrentHashMap<UUID, SessionHolder>(8, 0.9f, 1);
     private SessionStore store = new VoidStore();
     private File path;
 

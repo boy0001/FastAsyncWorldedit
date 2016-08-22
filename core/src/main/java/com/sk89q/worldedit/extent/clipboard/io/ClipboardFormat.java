@@ -227,7 +227,7 @@ public enum ClipboardFormat {
 
     private static final Map<String, ClipboardFormat> aliasMap;
     static {
-        aliasMap = new ConcurrentHashMap<>();
+        aliasMap = new ConcurrentHashMap<>(8, 0.9f, 1);
         for (ClipboardFormat emum : ClipboardFormat.values()) {
             for (String alias : emum.getAliases()) {
                 aliasMap.put(alias, emum);

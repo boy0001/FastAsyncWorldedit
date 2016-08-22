@@ -10,14 +10,20 @@ public class LZ4InputStream extends InputStream {
     private final InputStream inputStream;
     private final LZ4Decompressor decompressor;
 
-    private byte compressedBuffer[] = new byte[1048576];
-    private byte decompressedBuffer[] = new byte[1048576];
+    private byte compressedBuffer[];
+    private byte decompressedBuffer[];
     private int decompressedBufferPosition = 0;
     private int decompressedBufferLength = 0;
 
     public LZ4InputStream(InputStream stream) {
+        this(stream, 1048576);
+    }
+
+    public LZ4InputStream(InputStream stream, int size) {
         this.decompressor = factory.decompressor();
         this.inputStream = stream;
+        compressedBuffer = new byte[size];
+        decompressedBuffer = new byte[size];
     }
 
     @Override

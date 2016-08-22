@@ -4,12 +4,13 @@ import com.boydti.fawe.Fawe;
 import com.boydti.fawe.database.DBHandler;
 import com.boydti.fawe.database.RollbackDatabase;
 import com.boydti.fawe.object.changeset.DiskStorageHistory;
+import com.sk89q.worldedit.Vector;
 import com.sk89q.worldedit.world.World;
 import java.io.IOException;
 import java.util.UUID;
 
 public class RollbackOptimizedHistory extends DiskStorageHistory {
-    private final long time;
+    private long time;
 
     private int minX;
     private int maxX;
@@ -54,6 +55,19 @@ public class RollbackOptimizedHistory extends DiskStorageHistory {
 
     public int getMaxZ() {
         return maxZ;
+    }
+
+    public void setDimensions(Vector pos1, Vector pos2) {
+        this.minX = pos1.getBlockX();
+        this.minY = pos1.getBlockY();
+        this.minZ = pos1.getBlockZ();
+        this.maxX = pos2.getBlockX();
+        this.maxY = pos2.getBlockY();
+        this.maxZ = pos2.getBlockZ();
+    }
+
+    public void setTime(long time) {
+        this.time = time;
     }
 
     @Override

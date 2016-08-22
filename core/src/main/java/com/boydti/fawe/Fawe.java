@@ -474,7 +474,7 @@ public class Fawe {
         return this.thread = Thread.currentThread();
     }
 
-    private ConcurrentHashMap<String, FawePlayer> players = new ConcurrentHashMap<>();
+    private ConcurrentHashMap<String, FawePlayer> players = new ConcurrentHashMap<>(8, 0.9f, 1);
 
     public <T> void register(FawePlayer<T> player) {
         players.put(player.getName(), player);

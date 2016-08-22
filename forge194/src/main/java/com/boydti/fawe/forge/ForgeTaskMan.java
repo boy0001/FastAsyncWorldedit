@@ -18,7 +18,7 @@ public class ForgeTaskMan extends TaskManager {
     private final ConcurrentLinkedDeque<Runnable> syncTasks = new ConcurrentLinkedDeque<>();
     private final ConcurrentLinkedDeque<Runnable> asyncTasks = new ConcurrentLinkedDeque<>();
 
-    private final ConcurrentHashMap<Integer, Runnable> taskIdMap = new ConcurrentHashMap<>();
+    private final ConcurrentHashMap<Integer, Runnable> taskIdMap = new ConcurrentHashMap<>(8, 0.9f, 1);
 
 
     private final AtomicInteger taskId = new AtomicInteger();

@@ -315,7 +315,7 @@ public abstract class FawePlayer<T> {
      */
     public void setMeta(String key, Object value) {
         if (this.meta == null) {
-            this.meta = new ConcurrentHashMap<>();
+            this.meta = new ConcurrentHashMap<>(8, 0.9f, 1);
         }
         this.meta.put(key, value);
     }
@@ -441,7 +441,7 @@ public abstract class FawePlayer<T> {
      * @return
      */
     public Map<EditSession, SetQueue.QueueStage> getTrackedSessions(SetQueue.QueueStage requiredStage) {
-        Map<EditSession, SetQueue.QueueStage> map = new ConcurrentHashMap<>();
+        Map<EditSession, SetQueue.QueueStage> map = new ConcurrentHashMap<>(8, 0.9f, 1);
         if (requiredStage == null || requiredStage == SetQueue.QueueStage.ACTIVE) {
             for (FaweQueue queue : SetQueue.IMP.getActiveQueues()) {
                 Set<EditSession> sessions = queue.getEditSessions();

@@ -19,7 +19,7 @@ public class MCAQueueMap implements IFaweQueueMap {
 
     private FaweQueue queue;
 
-    private Map<Long, MCAFile> mcaFileMap = new ConcurrentHashMap<>();
+    private Map<Long, MCAFile> mcaFileMap = new ConcurrentHashMap<>(8, 0.9f, 1);
     private NullFaweChunk nullChunk;
     private boolean isHybridQueue;
 

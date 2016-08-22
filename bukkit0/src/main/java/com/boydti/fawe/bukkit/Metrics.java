@@ -1,6 +1,7 @@
 package com.boydti.fawe.bukkit;
 
 import com.boydti.fawe.Fawe;
+import com.boydti.fawe.object.io.FastByteArrayOutputStream;
 import com.boydti.fawe.util.MainUtil;
 import java.io.BufferedReader;
 import java.io.ByteArrayOutputStream;
@@ -84,7 +85,7 @@ public class Metrics {
      * @return byte[] the file as a byte array
      */
     public static byte[] gzip(String input) {
-        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        FastByteArrayOutputStream baos = new FastByteArrayOutputStream();
         GZIPOutputStream gzos = null;
         try {
             gzos = new GZIPOutputStream(baos);

@@ -131,7 +131,7 @@ public class SpongeMetrics {
      * @return
      */
     public static byte[] gzip(final String input) {
-        final ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        final ByteArrayOutputStream baos = new FastByteArrayOutputStream();
         GZIPOutputStream gzos = null;
 
         try {

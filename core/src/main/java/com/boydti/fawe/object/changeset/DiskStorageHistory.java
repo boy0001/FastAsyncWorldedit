@@ -348,6 +348,7 @@ public class DiskStorageHistory extends FaweStreamChangeSet {
                     int combined2 = buffer[8] & 0xFF;
                     summary.add(x, z, ((combined2 << 4) + (combined1 >> 4)));
                 }
+                return summary;
             } catch (IOException e) {
                 MainUtil.handleError(e);
             }

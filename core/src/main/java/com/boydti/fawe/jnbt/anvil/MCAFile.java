@@ -6,13 +6,14 @@ import com.boydti.fawe.object.FaweQueue;
 import com.boydti.fawe.object.RunnableVal;
 import com.boydti.fawe.object.RunnableVal4;
 import com.boydti.fawe.object.io.BufferedRandomAccessFile;
+import com.boydti.fawe.object.io.FastByteArrayInputStream;
+import com.boydti.fawe.object.io.FastByteArrayOutputStream;
 import com.boydti.fawe.util.MathMan;
 import com.sk89q.jnbt.CompoundTag;
 import com.sk89q.jnbt.NBTInputStream;
 import com.sk89q.jnbt.NBTOutputStream;
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
-import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -163,7 +164,7 @@ public class MCAFile {
     private NBTInputStream getChunkIS(int offset) throws IOException {
         try {
             byte[] data = getChunkCompressedBytes(offset);
-            ByteArrayInputStream bais = new ByteArrayInputStream(data);
+            FastByteArrayInputStream bais = new FastByteArrayInputStream(data);
             InflaterInputStream iis = new InflaterInputStream(bais, new Inflater(), 1);
             fieldBuf2.set(iis, buffer2);
             BufferedInputStream bis = new BufferedInputStream(iis, 1);
@@ -221,7 +222,7 @@ public class MCAFile {
         if (tag == null) {
             return null;
         }
-        ByteArrayOutputStream baos = new ByteArrayOutputStream(0);
+        FastByteArrayOutputStream baos = new FastByteArrayOutputStream(0);
         fieldBuf4.set(baos, buffer3);
         DeflaterOutputStream deflater = new DeflaterOutputStream(baos, new Deflater(Settings.EXPERIMENTAL.WORLD_COMPRESSION), 1, true);
         fieldBuf5.set(deflater, buffer2);

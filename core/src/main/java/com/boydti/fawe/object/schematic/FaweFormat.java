@@ -4,6 +4,8 @@ import com.boydti.fawe.FaweCache;
 import com.boydti.fawe.config.Settings;
 import com.boydti.fawe.object.FaweInputStream;
 import com.boydti.fawe.object.FaweOutputStream;
+import com.boydti.fawe.object.io.FastByteArrayInputStream;
+import com.boydti.fawe.object.io.FastByteArrayOutputStream;
 import com.boydti.fawe.util.MainUtil;
 import com.boydti.fawe.util.ReflectionUtils;
 import com.sk89q.jnbt.CompoundTag;
@@ -29,7 +31,6 @@ import com.sk89q.worldedit.regions.Region;
 import com.sk89q.worldedit.util.Location;
 import com.sk89q.worldedit.world.registry.WorldData;
 import com.sk89q.worldedit.world.storage.NBTConversions;
-import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.util.ArrayDeque;
@@ -96,7 +97,7 @@ public class FaweFormat implements ClipboardReader, ClipboardWriter {
             case 1: { // Unknown size
                 ox = in.readInt();
                 oz = in.readInt();
-                FaweOutputStream tmp = new FaweOutputStream(new ByteArrayOutputStream(Settings.HISTORY.BUFFER_SIZE));
+                FaweOutputStream tmp = new FaweOutputStream(new FastByteArrayOutputStream(Settings.HISTORY.BUFFER_SIZE));
                 int width = 0;
                 int height = 0;
                 int length = 0;
@@ -136,7 +137,7 @@ public class FaweFormat implements ClipboardReader, ClipboardWriter {
                 height++;
                 length++;
                 byte[] array = ((ByteArrayOutputStream) tmp.getParent()).toByteArray();
-                FaweInputStream part = new FaweInputStream(new ByteArrayInputStream(array));
+                FaweInputStream part = new FaweInputStream(new FastByteArrayInputStream(array));
                 try {
                     for (int i = 0; i< array.length; i+= 9) {
                         int x, y, z;

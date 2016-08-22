@@ -14,10 +14,23 @@ public abstract class NMSMappedFaweQueue<WORLD, CHUNK, CHUNKSECTION, SECTION> ex
 
     public NMSMappedFaweQueue(String world) {
         super(world);
+        addRelightTask();
     }
 
     public NMSMappedFaweQueue(String world, IFaweQueueMap map) {
         super(world, map);
+        addRelightTask();
+    }
+
+    private void addRelightTask() {
+        tasks.add(new Runnable() {
+            @Override
+            public void run() {
+                if (relighter != null) {
+                    relighter.fixLightingSafe(hasSky());
+                }
+            }
+        });
     }
 
     private NMSRelighter relighter;
@@ -52,14 +65,6 @@ public abstract class NMSMappedFaweQueue<WORLD, CHUNK, CHUNKSECTION, SECTION> ex
             return true;
         } else {
             return false;
-        }
-    }
-
-    @Override
-    public void runTasks() {
-        super.runTasks();
-        if (relighter != null) {
-            relighter.fixLightingSafe(hasSky());
         }
     }
 

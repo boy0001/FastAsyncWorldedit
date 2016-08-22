@@ -20,10 +20,13 @@
 package com.sk89q.worldedit.command;
 
 import com.boydti.fawe.Fawe;
+import com.boydti.fawe.FaweAPI;
 import com.boydti.fawe.config.BBC;
 import com.boydti.fawe.config.Settings;
 import com.boydti.fawe.database.DBHandler;
 import com.boydti.fawe.database.RollbackDatabase;
+import com.boydti.fawe.logging.rollback.RollbackOptimizedHistory;
+import com.boydti.fawe.object.RegionWrapper;
 import com.boydti.fawe.object.RunnableVal;
 import com.boydti.fawe.object.changeset.DiskStorageHistory;
 import com.boydti.fawe.util.MainUtil;
@@ -38,6 +41,7 @@ import com.sk89q.worldedit.WorldEditException;
 import com.sk89q.worldedit.WorldVector;
 import com.sk89q.worldedit.entity.Player;
 import com.sk89q.worldedit.world.World;
+import java.io.File;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -72,6 +76,53 @@ public class HistoryCommands {
     public void faweRollback(final Player player, LocalSession session, final String user, int radius, String time) throws WorldEditException {
         if (!Settings.HISTORY.USE_DATABASE) {
             BBC.SETTING_DISABLE.send(player, "history.use-database");
+            return;
+        }
+        if (user.equals("#import")) {
+            if (!player.hasPermission("fawe.rollback.import")) {
+                BBC.NO_PERM.send(player, "fawe.rollback.import");
+                return;
+            }
+            File folder = MainUtil.getFile(Fawe.imp().getDirectory(), Settings.PATHS.HISTORY);
+            if (!folder.exists()) {
+                return;
+            }
+            for (File worldFolder : folder.listFiles()) {
+                if (!worldFolder.isDirectory()) {
+                    continue;
+                }
+                String worldName = worldFolder.getName();
+                World world = FaweAPI.getWorld(worldName);
+                if (world != null) {
+                    for (File userFolder : worldFolder.listFiles()) {
+                        if (!userFolder.isDirectory()) {
+                            continue;
+                        }
+                        String userUUID = userFolder.getName();
+                        try {
+                            UUID uuid = UUID.fromString(userUUID);
+                            for (File historyFile : userFolder.listFiles()) {
+                                String name = historyFile.getName();
+                                if (!name.endsWith(".bd")) {
+                                    continue;
+                                }
+                                RollbackOptimizedHistory rollback = new RollbackOptimizedHistory(world, uuid, Integer.parseInt(name.substring(0, name.length() - 3)));
+                                DiskStorageHistory.DiskStorageSummary summary = rollback.summarize(RegionWrapper.GLOBAL(), true);
+                                if (summary != null) {
+                                    rollback.setDimensions(new Vector(summary.minX, 0, summary.minZ), new Vector(summary.maxX, 255, summary.maxZ));
+                                    rollback.setTime(historyFile.lastModified());
+                                    RollbackDatabase db = DBHandler.IMP.getDatabase(worldName);
+                                    db.logEdit(rollback);
+                                    player.print("Logging: " + historyFile);
+                                }
+                            }
+                        } catch (IllegalArgumentException e) {
+                            continue;
+                        }
+                    }
+                }
+            }
+            player.print("Done import!");
             return;
         }
         UUID other = Fawe.imp().getUUID(user);

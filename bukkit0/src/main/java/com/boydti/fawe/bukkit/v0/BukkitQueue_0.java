@@ -83,7 +83,7 @@ public abstract class BukkitQueue_0<CHUNK, CHUNKSECTIONS, SECTION> extends NMSMa
         }
     }
 
-    public static ConcurrentHashMap<Long, Long> keepLoaded = new ConcurrentHashMap<>();
+    public static ConcurrentHashMap<Long, Long> keepLoaded = new ConcurrentHashMap<>(8, 0.9f, 1);
 
     @EventHandler
     public static void onChunkUnload(ChunkUnloadEvent event) {
