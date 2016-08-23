@@ -100,9 +100,9 @@ public class SetQueue {
                     if (Settings.QUEUE.PARALLEL_THREADS <= 1) {
                         SET_TASK.run();
                     } else {
-                        ArrayList<Thread> threads = new ArrayList<Thread>();
+                        Thread[] threads = new Thread[Settings.QUEUE.PARALLEL_THREADS];
                         for (int i = 0; i < Settings.QUEUE.PARALLEL_THREADS; i++) {
-                            threads.add(new Thread(SET_TASK));
+                            threads[i] = (new Thread(SET_TASK));
                         }
                         for (Thread thread : threads) {
                             thread.start();
@@ -198,9 +198,9 @@ public class SetQueue {
             if (!parallel) {
                 SET_TASK.run();
             } else {
-                ArrayList<Thread> threads = new ArrayList<Thread>();
+                Thread[] threads = new Thread[Settings.QUEUE.PARALLEL_THREADS];
                 for (int i = 0; i < Settings.QUEUE.PARALLEL_THREADS; i++) {
-                    threads.add(new Thread(SET_TASK));
+                    threads[i] = (new Thread(SET_TASK));
                 }
                 for (Thread thread : threads) {
                     thread.start();

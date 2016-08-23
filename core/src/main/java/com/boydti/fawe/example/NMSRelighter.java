@@ -2,6 +2,7 @@ package com.boydti.fawe.example;
 
 import com.boydti.fawe.FaweCache;
 import com.boydti.fawe.object.FaweQueue;
+import com.boydti.fawe.util.MainUtil;
 import com.boydti.fawe.util.MathMan;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
@@ -59,11 +60,12 @@ public class NMSRelighter {
     }
 
     public void smoothBlockLight(int emit, int x, int y, int z, int rx, int ry, int rz) {
-        if (queue.hasBlock(rx, ry, rz)) {
+        int opacity = queue.getOpacity(rx, ry, rz);
+        if (opacity >= emit) {
             return;
         }
         int emitAdjacent = queue.getEmmittedLight(rx, ry, rz);
-        if (emit - emitAdjacent > 2) {
+        if (emit - emitAdjacent > 1) {
             queue.setBlockLight(rx, ry, rz, emit - 1);
             addBlock(rx, ry, rz);
         }
@@ -100,7 +102,7 @@ public class NMSRelighter {
                 int xx = bx + x;
                 int zz = bz + z;
                 int emit = queue.getEmmittedLight(xx, y, zz);
-                if (emit < 2) {
+                if (emit < 1) {
                     continue;
                 }
                 smoothBlockLight(emit, xx, y, zz, xx - 1, y, zz);
@@ -119,6 +121,7 @@ public class NMSRelighter {
     }
 
     public void sendChunks() {
+        MainUtil.stacktrace();
         for (Map.Entry<Long, RelightSkyEntry> entry : skyToRelight.entrySet()) {
             RelightSkyEntry chunk = entry.getValue();
             CharFaweChunk fc = (CharFaweChunk) queue.getFaweChunk(chunk.x, chunk.z);
@@ -134,14 +137,18 @@ public class NMSRelighter {
 
     }
 
+    private boolean isTransparent(int x, int y, int z) {
+        return FaweCache.isTransparent(FaweCache.getId(queue.getCombinedId4Data(x, y, z)));
+    }
+
     public void lightBlock(int x, int y, int z, int brightness) {
         queue.setBlockLight(x, y, z, Math.max(15, brightness + 1));
-        if (!queue.hasBlock(x - 1, y, z)) { queue.setBlockLight(x - 1, y, z, brightness); addBlock(x - 1, y, z); }
-        if (!queue.hasBlock(x + 1, y, z)) { queue.setBlockLight(x + 1, y, z, brightness); addBlock(x + 1, y, z); }
-        if (!queue.hasBlock(x, y, z - 1)) { queue.setBlockLight(x, y, z - 1, brightness); addBlock(x, y, z - 1); }
-        if (!queue.hasBlock(x, y, z + 1)) { queue.setBlockLight(x, y, z + 1, brightness); addBlock(x, y, z + 1); }
-        if (y > 0 && !queue.hasBlock(x, y - 1, z)) { queue.setBlockLight(x, y - 1, z, brightness); addBlock(x, y - 1, z); }
-        if (y < 255 && !queue.hasBlock(x, y + 1, z)) { queue.setBlockLight(x, y + 1, z, brightness); addBlock(x, y + 1, z); }
+        if (isTransparent(x - 1, y, z)) { queue.setBlockLight(x - 1, y, z, brightness); addBlock(x - 1, y, z); }
+        if (isTransparent(x + 1, y, z)) { queue.setBlockLight(x + 1, y, z, brightness); addBlock(x + 1, y, z); }
+        if (isTransparent(x, y, z - 1)) { queue.setBlockLight(x, y, z - 1, brightness); addBlock(x, y, z - 1); }
+        if (isTransparent(x, y, z + 1)) { queue.setBlockLight(x, y, z + 1, brightness); addBlock(x, y, z + 1); }
+        if (y > 0 && isTransparent(x, y - 1, z)) { queue.setBlockLight(x, y - 1, z, brightness); addBlock(x, y - 1, z); }
+        if (y < 255 && isTransparent(x, y + 1, z)) { queue.setBlockLight(x, y + 1, z, brightness); addBlock(x, y + 1, z); }
     }
 
     public void fixSkyLighting() {
@@ -210,13 +217,13 @@ public class NMSRelighter {
                         case 10:
                         case 12:
                         case 14:
-                            if (opacity == 0) {
-                                mask[j] = --value;
-                            } else {
-                                mask[j] = (byte) Math.max(0, value - opacity);
-                            }
-                            queue.setSkyLight(section, x, y, z, value);
-                            continue;
+//                            if (opacity == 0) {
+//                                mask[j] = --value;
+//                            } else {
+//                                mask[j] = (byte) Math.max(0, value - opacity);
+//                            }
+//                            queue.setSkyLight(section, x, y, z, value);
+//                            continue;
                         case 1:
                         case 3:
                         case 5:

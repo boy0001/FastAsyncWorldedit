@@ -191,6 +191,8 @@ public class MCAChunk extends FaweChunk<Void> {
         streamer.readFully();
     }
 
+
+
     public boolean isModified() {
         return modified;
     }
@@ -388,11 +390,6 @@ public class MCAChunk extends FaweChunk<Void> {
 
     @Override
     public Void getChunk() {
-        throw new UnsupportedOperationException("Not applicable for this");
-    }
-
-    @Override
-    public char[][] getCombinedIdArrays() {
         throw new UnsupportedOperationException("Not applicable for this");
     }
 }

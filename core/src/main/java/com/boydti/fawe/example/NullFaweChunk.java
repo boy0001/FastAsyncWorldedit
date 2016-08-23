@@ -34,6 +34,11 @@ public class NullFaweChunk extends FaweChunk<Void> {
     }
 
     @Override
+    public int getBlockCombinedId(int x, int y, int z) {
+        return 0;
+    }
+
+    @Override
     public Void getChunk() {
         return null;
     }

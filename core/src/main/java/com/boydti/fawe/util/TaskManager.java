@@ -129,18 +129,28 @@ public abstract class TaskManager {
     }
 
     /**
-     * Run a task as soon as possible on the main thread, or now async
+     * Run a task as soon as possible on the main thread
+     *  - Non blocking if not calling from the main thread
      * @param r
-     * @param async
      */
-    public void taskNowMain(final Runnable r, boolean async) {
-        if (async) {
-            async(r);
-        } else if (r != null && Thread.currentThread() == Fawe.get().getMainThread()){
+    public void taskNowMain(final Runnable r) {
+        if (r == null) {
+            return;
+        }
+        if (Thread.currentThread() == Fawe.get().getMainThread()){
             r.run();
         } else {
             task(r);
         }
+    }
+
+    /**
+     * Run a task as soon as possible not on the main thread
+     * @see com.boydti.fawe.Fawe#isMainThread()
+     * @param r
+     */
+    public void taskNowAsync(final Runnable r) {
+        taskNow(r, Fawe.get().isMainThread());
     }
 
     /**

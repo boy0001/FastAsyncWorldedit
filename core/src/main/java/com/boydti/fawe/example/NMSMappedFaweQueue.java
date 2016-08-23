@@ -4,6 +4,7 @@ import com.boydti.fawe.FaweCache;
 import com.boydti.fawe.config.Settings;
 import com.boydti.fawe.object.FaweChunk;
 import com.boydti.fawe.object.exception.FaweException;
+import com.boydti.fawe.util.TaskManager;
 import com.sk89q.jnbt.CompoundTag;
 import java.util.Collection;
 import java.util.Map;
@@ -27,7 +28,12 @@ public abstract class NMSMappedFaweQueue<WORLD, CHUNK, CHUNKSECTION, SECTION> ex
             @Override
             public void run() {
                 if (relighter != null) {
-                    relighter.fixLightingSafe(hasSky());
+                    TaskManager.IMP.taskNowAsync(new Runnable() {
+                        @Override
+                        public void run() {
+                            relighter.fixLightingSafe(hasSky());
+                        }
+                    });
                 }
             }
         });

@@ -8,6 +8,7 @@ import com.boydti.fawe.object.FaweQueue;
 import com.boydti.fawe.object.RunnableVal;
 import com.boydti.fawe.object.exception.FaweException;
 import com.boydti.fawe.util.MathMan;
+import java.io.File;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Iterator;
@@ -33,6 +34,15 @@ public class MCAQueueMap implements IFaweQueueMap {
     private MCAFile lastFile;
     private int lastFileX = Integer.MIN_VALUE;
     private int lastFileZ = Integer.MIN_VALUE;
+
+    public void forEachMCAFile(RunnableVal<MCAFile> onEach) {
+        File folder = queue.getSaveFolder();
+        for (File file : folder.listFiles()) {
+            try {
+                onEach.run(new MCAFile(queue, file));
+            } catch (Throwable ignore) {}
+        }
+    }
 
     public MCAFile getMCAFile(int cx, int cz) {
         int mcaX = cx >> 5;

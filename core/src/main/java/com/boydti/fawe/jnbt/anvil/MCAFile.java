@@ -121,6 +121,21 @@ public class MCAFile {
         }
     }
 
+    public void forEachChunk(RunnableVal<MCAChunk> onEach) {
+        int i = 0;
+        for (int z = 0; z < 32; z++) {
+            for (int x = 0; x < 32; x++, i += 4) {
+                int offset = (((locations[i] & 0xFF) << 16) + ((locations[i + 1] & 0xFF) << 8) + ((locations[i+ 2] & 0xFF)));
+                int size = locations[i + 3] & 0xFF;
+                if (size != 0) {
+                    try {
+                        onEach.run(getChunk(x, z));
+                    } catch (Throwable ignore) {}
+                }
+            }
+        }
+    }
+
     public int getOffset(int cx, int cz) {
         int i = ((cx & 31) << 2) + ((cz & 31) << 7);
         int offset = (((locations[i] & 0xFF) << 16) + ((locations[i + 1] & 0xFF) << 8) + ((locations[i+ 2] & 0xFF)));

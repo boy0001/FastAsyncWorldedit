@@ -78,21 +78,6 @@ public abstract class FaweChunk<T> {
     }
 
     /**
-     * This may return the raw value or constructed depending on the implementation<br>
-     *     - The first index (i) is the layer (layer = y >> 4) (16 layers)<br>
-     *     - The second array is length 4096 and contains the combined ids (cast to an int if you want)
-     *
-     * @see com.boydti.fawe.FaweCache#CACHE_I
-     * @see com.boydti.fawe.FaweCache#CACHE_J
-     * @see com.boydti.fawe.FaweCache#CACHE_X
-     * @see com.boydti.fawe.FaweCache#CACHE_Y
-     * @see com.boydti.fawe.FaweCache#CACHE_Z
-     *
-     * @return Combined id arrays
-     */
-    public abstract char[][] getCombinedIdArrays();
-
-    /**
      * The modified sections
      * @return
      */
@@ -106,10 +91,30 @@ public abstract class FaweChunk<T> {
      * @param z
      * @return The combined id
      */
-    public int getBlockCombinedId(int x, int y, int z) {
-        char[][] arrays = getCombinedIdArrays();
-        char[] array = arrays[y >> 4];
-        return array != null ? (array[FaweCache.CACHE_J[y][z][x]]) : 0;
+    public abstract int getBlockCombinedId(int x, int y, int z);
+
+    public char[][] getCombinedIdArrays() {
+        char[][] ids = new char[16][];
+        for (int y = 0; y < 16; y++) {
+            int y4 = y >> 4;
+            short[][] i1 = FaweCache.CACHE_J[y];
+            for (int z = 0; z < 16; z++) {
+                short[] i2 = i1[z];
+                for (int x = 0; x < 16; x++) {
+                    int combined = getBlockCombinedId(x, y, z);
+                    if (combined == 0) {
+                        continue;
+                    }
+                    char[] array = ids[y4];
+                    if (array == null) {
+                        array = ids[y4] = new char[4096];
+                    }
+                    int index = i2[x];
+                    array[index] = (char) combined;
+                }
+            }
+        }
+        return ids;
     }
 
     /**

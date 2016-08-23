@@ -121,22 +121,6 @@ public class BukkitQueue_1_10 extends BukkitQueue_0<Chunk, ChunkSection[], Chunk
     private DataPaletteBlock lastBlocks;
 
     @Override
-    public boolean hasBlock(ChunkSection section, int x, int y, int z) {
-        DataPaletteBlock dataPaletteBlock = section.getBlocks();
-        try {
-            if (lastBlocks != dataPaletteBlock) {
-                lastBits = (DataBits) fieldBits.get(dataPaletteBlock);
-                lastBlocks = dataPaletteBlock;
-            }
-            int i = FaweCache.CACHE_J[y][z & 15][x & 15];
-            return lastBits.a(i) != 0;
-        } catch (IllegalAccessException e) {
-            e.printStackTrace();
-        }
-        return false;
-    }
-
-    @Override
     public World createWorld(final WorldCreator creator) {
         final String name = creator.name();
         ChunkGenerator generator = creator.generator();

@@ -144,7 +144,8 @@ public abstract class CharFaweChunk<T> extends FaweChunk<T> {
         return this.biomes;
     }
 
-    public int getCombinedId(int x, int y, int z) {
+    @Override
+    public int getBlockCombinedId(int x, int y, int z) {
         short i = FaweCache.CACHE_I[y][z][x];
         char[] array = getIdArray(i);
         if (array == null) {
