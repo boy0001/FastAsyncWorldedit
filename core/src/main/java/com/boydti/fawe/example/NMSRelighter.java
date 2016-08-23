@@ -2,7 +2,6 @@ package com.boydti.fawe.example;
 
 import com.boydti.fawe.FaweCache;
 import com.boydti.fawe.object.FaweQueue;
-import com.boydti.fawe.util.MainUtil;
 import com.boydti.fawe.util.MathMan;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
@@ -121,7 +120,6 @@ public class NMSRelighter {
     }
 
     public void sendChunks() {
-        MainUtil.stacktrace();
         for (Map.Entry<Long, RelightSkyEntry> entry : skyToRelight.entrySet()) {
             RelightSkyEntry chunk = entry.getValue();
             CharFaweChunk fc = (CharFaweChunk) queue.getFaweChunk(chunk.x, chunk.z);
