@@ -23,11 +23,10 @@ import com.boydti.fawe.config.BBC;
 import com.boydti.fawe.object.FaweChunk;
 import com.boydti.fawe.object.FawePlayer;
 import com.boydti.fawe.object.FaweQueue;
-import com.boydti.fawe.object.NullChangeSet;
 import com.boydti.fawe.object.RegionWrapper;
 import com.boydti.fawe.object.RunnableVal;
+import com.boydti.fawe.object.extent.FaweRegionExtent;
 import com.boydti.fawe.util.MainUtil;
-import com.boydti.fawe.util.WEManager;
 import com.google.common.base.Joiner;
 import com.google.common.collect.Lists;
 import com.sk89q.minecraft.util.commands.CommandException;
@@ -99,9 +98,9 @@ public class SelectionCommand extends SimpleCommand<Operation> {
                     RegionFunction function = ((RegionVisitor) operation).function;
                     RegionWrapper current = new RegionWrapper(cuboid.getMinimumPoint(), cuboid.getMaximumPoint());
                     FawePlayer fp = FawePlayer.wrap(player);
-                    RegionWrapper[] mask = WEManager.IMP.getMask(fp);
+                    FaweRegionExtent regionExtent = editSession.getRegionExtent();
 
-                    if (function instanceof BlockReplace && mask.length == 1 && mask[0].equals(current)) {
+                    if (function instanceof BlockReplace && regionExtent == null) {
                         try {
                             BlockReplace replace = ((BlockReplace) function);
                             Field field = replace.getClass().getDeclaredField("pattern");
@@ -149,8 +148,10 @@ public class SelectionCommand extends SimpleCommand<Operation> {
                                     }
                                 });
                                 queue.enqueue();
-                                editSession.setChangeSet(new NullChangeSet(null));
+                                long start = System.currentTimeMillis();
                                 BBC.OPERATION.send(actor, BBC.VISITOR_BLOCK.format(cuboid.getArea()));
+                                queue.flush();
+                                BBC.ACTION_COMPLETE.send(actor, start);
                                 return null;
                             }
                         } catch (Throwable e) {

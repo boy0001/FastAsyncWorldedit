@@ -136,7 +136,7 @@ public class NMSRelighter {
     }
 
     private boolean isTransparent(int x, int y, int z) {
-        return FaweCache.isTransparent(FaweCache.getId(queue.getCombinedId4Data(x, y, z)));
+        return queue.getOpacity(x, y, z) < 15;
     }
 
     public void lightBlock(int x, int y, int z, int brightness) {

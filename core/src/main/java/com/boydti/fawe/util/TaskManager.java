@@ -6,12 +6,16 @@ import com.boydti.fawe.object.FaweQueue;
 import com.boydti.fawe.object.RunnableVal;
 import java.util.Collection;
 import java.util.Iterator;
+import java.util.concurrent.ForkJoinPool;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import javax.annotation.Nullable;
 
 public abstract class TaskManager {
 
     public static TaskManager IMP;
+
+    private ForkJoinPool pool = new ForkJoinPool();
 
     /**
      * Run a repeating task on the main thread
@@ -42,10 +46,32 @@ public abstract class TaskManager {
     public abstract void task(final Runnable r);
 
     /**
+     * Get the public ForkJoinPool<br>
+     *  - ONLY SUBMIT SHORT LIVED TASKS<br>
+     *  - DO NOT USE SLEEP/WAIT/LOCKS IN ANY SUBMITTED TASKS<br>
+     * @return
+     */
+    public ForkJoinPool getPublicForkJoinPool() {
+        return pool;
+    }
+
+    /**
+     * Run a buch of tasks in parallel using the shared thread pool
+     * @param runnables
+     */
+    public void parallel(Collection<Runnable> runnables) {
+        for (Runnable run : runnables) {
+            pool.submit(run);
+        }
+        pool.awaitQuiescence(Long.MAX_VALUE, TimeUnit.MILLISECONDS);
+    }
+
+    /**
      * Run a bunch of tasks in parallel
      * @param runnables The tasks to run
      * @param numThreads Number of threads (null = config.yml parallel threads)
      */
+    @Deprecated
     public void parallel(Collection<Runnable> runnables, @Nullable Integer numThreads) {
         if (runnables == null) {
             return;

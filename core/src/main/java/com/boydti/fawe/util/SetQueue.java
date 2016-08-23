@@ -9,6 +9,8 @@ import java.util.Collection;
 import java.util.ConcurrentModificationException;
 import java.util.Iterator;
 import java.util.concurrent.ConcurrentLinkedDeque;
+import java.util.concurrent.ForkJoinPool;
+import java.util.concurrent.TimeUnit;
 
 public class SetQueue {
 
@@ -52,6 +54,8 @@ public class SetQueue {
             } while (((SetQueue.this.secondLast = System.currentTimeMillis()) - SetQueue.this.last) < free);
         }
     };
+
+    private ForkJoinPool pool = new ForkJoinPool();
 
     public SetQueue() {
         tasks = new ConcurrentLinkedDeque<>();
@@ -100,20 +104,10 @@ public class SetQueue {
                     if (Settings.QUEUE.PARALLEL_THREADS <= 1) {
                         SET_TASK.run();
                     } else {
-                        Thread[] threads = new Thread[Settings.QUEUE.PARALLEL_THREADS];
                         for (int i = 0; i < Settings.QUEUE.PARALLEL_THREADS; i++) {
-                            threads[i] = (new Thread(SET_TASK));
+                            pool.submit(SET_TASK);
                         }
-                        for (Thread thread : threads) {
-                            thread.start();
-                        }
-                        for (Thread thread : threads) {
-                            try {
-                                thread.join();
-                            } catch (InterruptedException e) {
-                                MainUtil.handleError(e);
-                            }
-                        }
+                        pool.awaitQuiescence(Settings.QUEUE.DISCARD_AFTER_MS, TimeUnit.MILLISECONDS);
                     }
                 } catch (Throwable e) {
                     MainUtil.handleError(e);
@@ -198,20 +192,10 @@ public class SetQueue {
             if (!parallel) {
                 SET_TASK.run();
             } else {
-                Thread[] threads = new Thread[Settings.QUEUE.PARALLEL_THREADS];
                 for (int i = 0; i < Settings.QUEUE.PARALLEL_THREADS; i++) {
-                    threads[i] = (new Thread(SET_TASK));
+                    pool.submit(SET_TASK);
                 }
-                for (Thread thread : threads) {
-                    thread.start();
-                }
-                for (Thread thread : threads) {
-                    try {
-                        thread.join();
-                    } catch (InterruptedException e) {
-                        MainUtil.handleError(e);
-                    }
-                }
+                pool.awaitQuiescence(Settings.QUEUE.DISCARD_AFTER_MS, TimeUnit.MILLISECONDS);
             }
         } catch (Throwable e) {
             MainUtil.handleError(e);

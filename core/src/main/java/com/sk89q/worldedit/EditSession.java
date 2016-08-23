@@ -1109,9 +1109,7 @@ public class EditSession implements Extent {
     public void flushQueue() {
         Operations.completeBlindly(commit());
         // Enqueue it
-        if (queue != null && queue.size() > 0) {
-            queue.enqueue();
-        } else {
+        if (queue == null || queue.size() == 0) {
             queue.dequeue();
             return;
         }

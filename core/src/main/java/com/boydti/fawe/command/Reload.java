@@ -10,6 +10,7 @@ import com.boydti.fawe.util.MainUtil;
 import java.io.File;
 import java.io.IOException;
 import java.util.Date;
+import java.util.Map;
 
 public class Reload extends FaweCommand {
 
@@ -20,7 +21,7 @@ public class Reload extends FaweCommand {
     @Override
     public boolean execute(final FawePlayer player, final String... args) {
         if (args.length != 1) {
-            BBC.COMMAND_SYNTAX.send(player, "/fawe [reload|version");
+            BBC.COMMAND_SYNTAX.send(player, "/fawe [reload|version|debugpaste|threads]");
             return false;
         }
         switch (args[0].toLowerCase()) {
@@ -33,6 +34,19 @@ public class Reload extends FaweCommand {
                 MainUtil.sendMessage(player, "Version Date: " + new Date(version.year, version.month, version.day).toLocaleString());
                 MainUtil.sendMessage(player, "Version Commit: " + Integer.toHexString(version.hash));
                 MainUtil.sendMessage(player, "Version Build: #" + version.build);
+                return true;
+            }
+            case "threads": {
+                Map<Thread, StackTraceElement[]> stacks = Fawe.get().getMainThread().getAllStackTraces();
+                for (Map.Entry<Thread, StackTraceElement[]> entry : stacks.entrySet()) {
+                    Thread thread = entry.getKey();
+                    Fawe.debug("--------------------------------------------------------------------------------------------");
+                    Fawe.debug("Thread: " + thread.getName() + " | Id: " + thread.getId() + " | Alive: " + thread.isAlive());
+                    for (StackTraceElement elem : entry.getValue()) {
+                        Fawe.debug(elem);
+                    }
+                }
+                player.sendMessage("&cSee console.");
                 return true;
             }
             case "debugpaste":
@@ -84,7 +98,7 @@ public class Reload extends FaweCommand {
                 return true;
             }
             default:
-                BBC.COMMAND_SYNTAX.send(player, "/fawe [reload|version]");
+                BBC.COMMAND_SYNTAX.send(player, "/fawe [reload|version|debugpaste|threads]");
                 return false;
         }
     }

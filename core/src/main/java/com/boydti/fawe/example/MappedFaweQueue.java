@@ -21,6 +21,8 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentLinkedDeque;
+import java.util.concurrent.ForkJoinPool;
+import java.util.concurrent.TimeUnit;
 
 public abstract class MappedFaweQueue<WORLD, CHUNK, SECTION> extends FaweQueue {
 
@@ -52,27 +54,20 @@ public abstract class MappedFaweQueue<WORLD, CHUNK, SECTION> extends FaweQueue {
 
     @Override
     public void optimize() {
-        final ArrayList<Thread> threads = new ArrayList<Thread>();
+        final ForkJoinPool pool = TaskManager.IMP.getPublicForkJoinPool();
+        final ArrayList<Thread> threads = new ArrayList<Thread>(map.size());
         map.forEachChunk(new RunnableVal<FaweChunk>() {
             @Override
             public void run(final FaweChunk chunk) {
-                Thread thread = new Thread(new Runnable() {
+                pool.submit(new Runnable() {
                     @Override
                     public void run() {
                         chunk.optimize();
                     }
                 });
-                threads.add(thread);
-                thread.start();
             }
         });
-        for (Thread thread : threads) {
-            try {
-                thread.join();
-            } catch (InterruptedException e) {
-                MainUtil.handleError(e);
-            }
-        }
+        pool.awaitQuiescence(Long.MAX_VALUE, TimeUnit.MILLISECONDS);
     }
 
     @Override
