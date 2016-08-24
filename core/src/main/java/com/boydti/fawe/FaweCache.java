@@ -615,6 +615,8 @@ public class FaweCache {
             case 33:
             case 151:
             case 178:
+            case 210:
+            case 211:
                 return true;
             default:
                 return false;

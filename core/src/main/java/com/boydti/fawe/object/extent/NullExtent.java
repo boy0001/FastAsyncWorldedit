@@ -56,6 +56,11 @@ public class NullExtent extends FaweRegionExtent {
     }
 
     @Override
+    public BaseBlock getLazyBlock(int x, int y, int z) {
+        throw new FaweException(reason);
+    }
+
+    @Override
     public Entity createEntity(final Location arg0, final BaseEntity arg1) {
         throw new FaweException(reason);
     }

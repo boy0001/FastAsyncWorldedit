@@ -1,5 +1,6 @@
 package com.boydti.fawe.object.extent;
 
+import com.boydti.fawe.FaweCache;
 import com.boydti.fawe.object.FaweQueue;
 import com.boydti.fawe.util.MainUtil;
 import com.boydti.fawe.util.ReflectionUtils;
@@ -8,7 +9,6 @@ import com.sk89q.jnbt.DoubleTag;
 import com.sk89q.jnbt.ListTag;
 import com.sk89q.jnbt.StringTag;
 import com.sk89q.jnbt.Tag;
-import com.sk89q.worldedit.BlockVector;
 import com.sk89q.worldedit.EditSession;
 import com.sk89q.worldedit.Vector;
 import com.sk89q.worldedit.Vector2D;
@@ -63,24 +63,34 @@ public class FastWorldEditExtent extends AbstractDelegateExtent {
         return super.getBiome(position);
     }
 
-    private BaseBlock lastBlock;
-    private BlockVector lastVector;
+    @Override
+    public boolean setBlock(final Vector location, final BaseBlock block) throws WorldEditException {
+        return setBlock((int) location.x, (int) location.y, (int) location.z, block);
+    }
 
     @Override
-    public BaseBlock getLazyBlock(final Vector position) {
-        if ((this.lastBlock != null) && this.lastVector.equals(position.toBlockVector())) {
-            return this.lastBlock;
+    public BaseBlock getLazyBlock(Vector location) {
+        return getLazyBlock((int) location.x, (int) location.y, (int) location.z);
+    }
+
+    @Override
+    public BaseBlock getLazyBlock(int x, int y, int z) {
+        int combinedId4Data = queue.getCombinedId4Data(x, y, z, 0);
+        int id = FaweCache.getId(combinedId4Data);
+        if (!FaweCache.hasNBT(id)) {
+            return FaweCache.CACHE_BLOCK[combinedId4Data];
         }
-        if (!queue.isChunkLoaded(position.getBlockX() >> 4, position.getBlockZ() >> 4)) {
-            try {
-                this.lastVector = position.toBlockVector();
-                return this.lastBlock = super.getBlock(position);
-            } catch (final Throwable e) {
-                return EditSession.nullBlock;
+        try {
+            CompoundTag tile = queue.getTileEntity(x, y, z);
+            if (tile != null) {
+                return new BaseBlock(id, FaweCache.getData(combinedId4Data), tile);
+            } else {
+                return FaweCache.CACHE_BLOCK[combinedId4Data];
             }
+        } catch (Throwable e) {
+            MainUtil.handleError(e);
+            return FaweCache.CACHE_BLOCK[combinedId4Data];
         }
-        this.lastVector = position.toBlockVector();
-        return this.lastBlock = super.getBlock(position);
     }
 
     @Override
@@ -105,8 +115,7 @@ public class FastWorldEditExtent extends AbstractDelegateExtent {
     }
 
     @Override
-    public boolean setBlock(final Vector location, final BaseBlock block) throws WorldEditException {
-        final int y = (int) location.y;
+    public boolean setBlock(int x, int y, int z, final BaseBlock block) throws WorldEditException {
         switch (y) {
             case 0:
             case 1:
@@ -368,8 +377,6 @@ public class FastWorldEditExtent extends AbstractDelegateExtent {
             default:
                 return false;
         }
-        final int x = (int) location.x;
-        final int z = (int) location.z;
         final short id = (short) block.getId();
         switch (id) {
             case 63:

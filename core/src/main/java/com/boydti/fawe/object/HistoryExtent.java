@@ -26,6 +26,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
  */
 public class HistoryExtent extends AbstractDelegateExtent {
 
+    private final AbstractDelegateExtent extent;
     private FaweChangeSet changeSet;
     private final FaweQueue queue;
     private final EditSession session;
@@ -39,6 +40,7 @@ public class HistoryExtent extends AbstractDelegateExtent {
     public HistoryExtent(final EditSession session, final Extent extent, final FaweChangeSet changeSet, FaweQueue queue) {
         super(extent);
         checkNotNull(changeSet);
+        this.extent = (AbstractDelegateExtent) extent;
         this.queue = queue;
         this.changeSet = changeSet;
         this.session = session;
@@ -53,13 +55,10 @@ public class HistoryExtent extends AbstractDelegateExtent {
     }
 
     @Override
-    public boolean setBlock(final Vector location, final BaseBlock block) throws WorldEditException {
-        int y = location.getBlockY();
+    public boolean setBlock(int x, int y, int z, BaseBlock block) throws WorldEditException {
         if (y > 255 || y < 0) {
             return false;
         }
-        int x = location.getBlockX();
-        int z = location.getBlockZ();
         int combined = queue.getCombinedId4DataDebug(x, y, z, 0, session);
         int id = (combined >> 4);
         if (id == block.getId()) {
@@ -80,13 +79,28 @@ public class HistoryExtent extends AbstractDelegateExtent {
         } else {
             try {
                 CompoundTag tag = queue.getTileEntity(x, y, z);
-                this.changeSet.add(location, new BaseBlock(id, combined & 0xF, tag), block);
+                this.changeSet.add(x, y, z, new BaseBlock(id, combined & 0xF, tag), block);
             } catch (Throwable e) {
                 e.printStackTrace();
                 this.changeSet.add(x, y, z, combined, block);
             }
         }
-        return super.setBlock(location, block);
+        return extent.setBlock(x, y, z, block);
+    }
+
+    @Override
+    public BaseBlock getLazyBlock(int x, int y, int z) {
+        return extent.getLazyBlock(x, y, z);
+    }
+
+    @Override
+    public boolean setBlock(final Vector location, final BaseBlock block) throws WorldEditException {
+        return setBlock((int) location.x, (int) location.y, (int) location.z, block);
+    }
+
+    @Override
+    public BaseBlock getLazyBlock(Vector location) {
+        return getLazyBlock((int) location.x, (int) location.y, (int) location.z);
     }
 
     @Nullable

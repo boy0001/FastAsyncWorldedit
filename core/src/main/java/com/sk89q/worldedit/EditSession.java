@@ -32,7 +32,6 @@ import com.boydti.fawe.object.FaweQueue;
 import com.boydti.fawe.object.HistoryExtent;
 import com.boydti.fawe.object.NullChangeSet;
 import com.boydti.fawe.object.RegionWrapper;
-import com.boydti.fawe.object.RunnableVal;
 import com.boydti.fawe.object.changeset.CPUOptimizedChangeSet;
 import com.boydti.fawe.object.changeset.DiskStorageHistory;
 import com.boydti.fawe.object.changeset.FaweChangeSet;
@@ -43,13 +42,10 @@ import com.boydti.fawe.object.extent.FaweRegionExtent;
 import com.boydti.fawe.object.extent.NullExtent;
 import com.boydti.fawe.object.extent.ProcessedWEExtent;
 import com.boydti.fawe.util.ExtentTraverser;
-import com.boydti.fawe.util.MainUtil;
 import com.boydti.fawe.util.MemUtil;
 import com.boydti.fawe.util.Perm;
 import com.boydti.fawe.util.SetQueue;
-import com.boydti.fawe.util.TaskManager;
 import com.boydti.fawe.wrappers.WorldWrapper;
-import com.sk89q.jnbt.CompoundTag;
 import com.sk89q.worldedit.blocks.BaseBlock;
 import com.sk89q.worldedit.blocks.BlockID;
 import com.sk89q.worldedit.blocks.BlockType;
@@ -118,7 +114,6 @@ import com.sk89q.worldedit.util.eventbus.EventBus;
 import com.sk89q.worldedit.world.AbstractWorld;
 import com.sk89q.worldedit.world.World;
 import com.sk89q.worldedit.world.biome.BaseBiome;
-import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -158,10 +153,10 @@ public class EditSession implements Extent {
 
     private World world;
     private FaweQueue queue;
-    private Extent extent;
+    private AbstractDelegateExtent extent;
     private HistoryExtent history;
-    private Extent bypassHistory;
-    private Extent bypassAll;
+    private AbstractDelegateExtent bypassHistory;
+    private AbstractDelegateExtent bypassAll;
     private FaweLimit originalLimit;
     private FaweLimit limit;
     private FawePlayer player;
@@ -169,6 +164,8 @@ public class EditSession implements Extent {
 
     private int changes = 0;
     private BlockBag blockBag;
+
+    private Vector mutable = new Vector();
 
     public static final UUID CONSOLE = UUID.fromString("1-1-3-3-7");
     public static final BaseBiome nullBiome = new BaseBiome(0);
@@ -424,16 +421,20 @@ public class EditSession implements Extent {
     }
 
     @Deprecated
-    private Extent wrapExtent(final Extent extent, final EventBus eventBus, EditSessionEvent event, final Stage stage) {
+    private AbstractDelegateExtent wrapExtent(final AbstractDelegateExtent extent, final EventBus eventBus, EditSessionEvent event, final Stage stage) {
         event = event.clone(stage);
         event.setExtent(extent);
         eventBus.post(event);
         final Extent toReturn = event.getExtent();
+        if (!(toReturn instanceof AbstractDelegateExtent)) {
+            Fawe.debug("Extent " + toReturn + " must be AbstractDelegateExtent");
+            return extent;
+        }
         if (toReturn != extent) {
             String className = toReturn.getClass().getName().toLowerCase();
             for (String allowed : Settings.EXTENT.ALLOWED_PLUGINS) {
                 if (className.contains(allowed.toLowerCase())) {
-                    return toReturn;
+                    return (AbstractDelegateExtent) toReturn;
                 }
             }
             if (Settings.EXTENT.DEBUG) {
@@ -614,7 +615,7 @@ public class EditSession implements Extent {
                 if (beforeHistory != null && beforeHistory.exists()) {
                     beforeHistory.setNext(afterHistory.get());
                 } else {
-                    extent = afterHistory.get();
+                    extent = (AbstractDelegateExtent) afterHistory.get();
                 }
             }
         } else if (traverseHistory == null || !traverseHistory.exists()) {
@@ -690,30 +691,16 @@ public class EditSession implements Extent {
 
     @Override
     public BaseBlock getLazyBlock(final Vector position) {
-        return getLazyBlock(position.getBlockX(), position.getBlockY(), position.getBlockZ());
+        return getLazyBlock((int) position.x, (int) position.y, (int) position.z);
     }
 
     public BaseBlock getLazyBlock(int x, int y, int z) {
-        if (!limit.MAX_CHECKS()) {
-            throw new FaweException(BBC.WORLDEDIT_CANCEL_REASON_MAX_CHECKS);
-        }
-        int combinedId4Data = queue.getCombinedId4DataDebug(x, y, z, 0, this);
-        int id = FaweCache.getId(combinedId4Data);
-        if (!FaweCache.hasNBT(id)) {
-            return FaweCache.CACHE_BLOCK[combinedId4Data];
-        }
-        try {
-            CompoundTag tile = queue.getTileEntity(x, y, z);
-            return new BaseBlock(id, FaweCache.getData(combinedId4Data), tile);
-        } catch (Throwable e) {
-            MainUtil.handleError(e);
-            return FaweCache.CACHE_BLOCK[combinedId4Data];
-        }
+        return extent.getLazyBlock(x, y, z);
     }
 
     @Override
     public BaseBlock getBlock(final Vector position) {
-        return this.getLazyBlock(position);
+        return getLazyBlock((int) position.x, (int) position.y, (int) position.z);
     }
 
     /**
@@ -757,7 +744,7 @@ public class EditSession implements Extent {
      */
     @Deprecated
     public BaseBlock rawGetBlock(final Vector position) {
-        return this.getLazyBlock(position);
+        return bypassAll.getLazyBlock(position);
     }
 
     /**
@@ -784,7 +771,6 @@ public class EditSession implements Extent {
      * @return height of highest block found or 'minY'
      */
     public int getHighestTerrainBlock(final int x, final int z, final int minY, final int maxY, final boolean naturalOnly) {
-        Vector pt = new Vector(x, 0, z);
         for (int y = maxY; y >= minY; --y) {
             BaseBlock block = getLazyBlock(x, y, z);
             final int id = block.getId();
@@ -939,13 +925,20 @@ public class EditSession implements Extent {
         }
     }
 
+    public boolean setBlock(int x, int y, int z, BaseBlock block) {
+        this.changes++;
+        try {
+            return this.extent.setBlock(x, y, z, block);
+        } catch (WorldEditException e) {
+            throw new RuntimeException("Unexpected exception", e);
+        }
+    }
+
     @Override
     public boolean setBlock(final Vector position, final BaseBlock block) throws MaxChangedBlocksException {
         this.changes++;
         try {
             return this.extent.setBlock(position, block);
-        } catch (final MaxChangedBlocksException e) {
-            throw e;
         } catch (final WorldEditException e) {
             throw new RuntimeException("Unexpected exception", e);
         }
@@ -1658,7 +1651,6 @@ public class EditSession implements Extent {
         checkNotNull(dir);
         checkArgument(distance >= 1, "distance >= 1 required");
         final Vector displace = dir.multiply(distance);
-        final Vector mutable = new Vector(0, 0, 0);
         // Remove the original blocks
         final com.sk89q.worldedit.function.pattern.Pattern pattern = replacement != null ? new BlockPattern(replacement) : new BlockPattern(new BaseBlock(BlockID.AIR));
         final BlockReplace remove = new BlockReplace(EditSession.this, pattern) {
@@ -2030,27 +2022,25 @@ public class EditSession implements Extent {
 
         final int ceilRadius = (int) Math.ceil(radius);
         for (int x = ox - ceilRadius; x <= (ox + ceilRadius); ++x) {
+            int dx = x - ox;
+            int dx2 = dx * dx;
             for (int z = oz - ceilRadius; z <= (oz + ceilRadius); ++z) {
-                if ((new Vector(x, oy, z)).distanceSq(position) > radiusSq) {
+                int dz = z - oz;
+                int dz2 = dz * dz;
+                if (dx2 + dz2 > radiusSq) {
                     continue;
                 }
-
                 for (int y = 255; y >= 1; --y) {
-                    final Vector pt = new Vector(x, y, z);
-                    final int id = this.getBlockType(pt);
-
+                    final int id = FaweCache.getId(queue.getCombinedId4Data(x, y, z));
                     switch (id) {
                         case BlockID.ICE:
-                            this.setBlock(pt, water);
+                            this.setBlock(x, y, z, water);
                             break;
-
                         case BlockID.SNOW:
-                            this.setBlock(pt, air);
+                            this.setBlock(x, y, z, air);
                             break;
-
                         case BlockID.AIR:
                             continue;
-
                         default:
                             break;
                     }
@@ -2084,22 +2074,22 @@ public class EditSession implements Extent {
 
         final int ceilRadius = (int) Math.ceil(radius);
         for (int x = ox - ceilRadius; x <= (ox + ceilRadius); ++x) {
+            int dx = x - ox;
+            int dx2 = dx * dx;
             for (int z = oz - ceilRadius; z <= (oz + ceilRadius); ++z) {
-                if ((new Vector(x, oy, z)).distanceSq(position) > radiusSq) {
+                int dz = z - oz;
+                int dz2 = dz * dz;
+                if (dx2 + dz2 > radiusSq) {
                     continue;
                 }
-
                 for (int y = 255; y >= 1; --y) {
-                    final Vector pt = new Vector(x, y, z);
-                    final int id = this.getBlockType(pt);
-
+                    final int id = FaweCache.getId(queue.getCombinedId4Data(x, y, z));
                     if (id == BlockID.AIR) {
                         continue;
                     }
-
                     // Ice!
                     if ((id == BlockID.WATER) || (id == BlockID.STATIONARY_WATER)) {
-                        this.setBlock(pt, ice);
+                        this.setBlock(x, y, z, ice);
                         break;
                     }
 
@@ -2114,7 +2104,7 @@ public class EditSession implements Extent {
                     }
 
                     // add snow cover
-                    this.setBlock(pt.add(0, 1, 0), snow);
+                    this.setBlock(x, y + 1, z, snow);
                     break;
                 }
             }
@@ -2158,22 +2148,25 @@ public class EditSession implements Extent {
 
         final int ceilRadius = (int) Math.ceil(radius);
         for (int x = ox - ceilRadius; x <= (ox + ceilRadius); ++x) {
+            int dx = x - ox;
+            int dx2 = dx * dx;
             for (int z = oz - ceilRadius; z <= (oz + ceilRadius); ++z) {
-                if ((new Vector(x, oy, z)).distanceSq(position) > radiusSq) {
+                int dz = z - oz;
+                int dz2 = dz * dz;
+                if (dx2 + dz2 > radiusSq) {
                     continue;
                 }
-
                 loop: for (int y = 255; y >= 1; --y) {
-                    final Vector pt = new Vector(x, y, z);
-                    final int id = this.getBlockType(pt);
-                    final int data = this.getBlockData(pt);
+                    BaseBlock block = getLazyBlock(x, y, z);
+                    final int id = block.getId();
+                    final int data = block.getData();
 
                     switch (id) {
                         case BlockID.DIRT:
                             if (onlyNormalDirt && (data != 0)) {
                                 break loop;
                             }
-                            this.setBlock(pt, grass);
+                            this.setBlock(x, y, z, grass);
                             break loop;
 
                         case BlockID.WATER:
@@ -2237,48 +2230,33 @@ public class EditSession implements Extent {
      * @throws MaxChangedBlocksException thrown if too many blocks are changed
      */
     public int makeForest(final Vector basePosition, final int size, final double density, final TreeGenerator treeGenerator) {
-        final ArrayDeque<Vector> trees = new ArrayDeque<>();
-        for (int x = basePosition.getBlockX() - size; x <= (basePosition.getBlockX() + size); ++x) {
-            for (int z = basePosition.getBlockZ() - size; z <= (basePosition.getBlockZ() + size); ++z) {
-                // Don't want to be in the ground
-                if (!this.getLazyBlock(x, basePosition.getBlockY(), z).isAir()) {
-                    continue;
-                }
-                // The gods don't want a tree here
-                if (FaweCache.RANDOM.random(65536) >= (density * 65536)) {
-                    continue;
-                } // def 0.05
-                trees.add(new Vector(x, 0, z));
-            }
-        }
-        if (trees.size() > 0) {
-            TaskManager.IMP.objectTask(trees, new RunnableVal<Vector>() {
-                @Override
-                public void run(Vector vector) {
-                    try {
-                        for (int y = basePosition.getBlockY(); y >= (basePosition.getBlockY() - 10); --y) {
-                            vector = new Vector(vector.getX(), y, vector.getZ());
-                            final int t = getBlock(vector).getType();
-                            if ((t == BlockID.GRASS) || (t == BlockID.DIRT)) {
-                                treeGenerator.generate(EditSession.this, new Vector(vector.getX(), y + 1, vector.getZ()));
-                                break;
-                            } else if (t == BlockID.SNOW) {
-                                setBlock(vector, nullBlock);
-                            } else if (t != BlockID.AIR) { // Trees won't grow on this!
-                                break;
-                            }
+        try {
+            for (int x = basePosition.getBlockX() - size; x <= (basePosition.getBlockX() + size); ++x) {
+                for (int z = basePosition.getBlockZ() - size; z <= (basePosition.getBlockZ() + size); ++z) {
+                    // Don't want to be in the ground
+                    if (!this.getLazyBlock(x, basePosition.getBlockY(), z).isAir()) {
+                        continue;
+                    }
+                    // The gods don't want a tree here
+                    if (FaweCache.RANDOM.random(65536) >= (density * 65536)) {
+                        continue;
+                    } // def 0.05
+                    this.changes++;
+                    for (int y = basePosition.getBlockY(); y >= (basePosition.getBlockY() - 10); --y) {
+                        final int t = getLazyBlock(x, y, z).getType();
+                        if ((t == BlockID.GRASS) || (t == BlockID.DIRT)) {
+                            treeGenerator.generate(EditSession.this, new Vector(x, y + 1, z));
+                            break;
+                        } else if (t == BlockID.SNOW) {
+                            setBlock(x, y, z, nullBlock);
+                        } else if (t != BlockID.AIR) { // Trees won't grow on this!
+                            break;
                         }
-                    } catch (MaxChangedBlocksException ignore) {
                     }
                 }
-            }, new Runnable() {
-                @Override
-                public void run() {
-                    queue.enqueue();
-                }
-            });
-        }
-        return this.changes = trees.size();
+            }
+        } catch (MaxChangedBlocksException ignore) {}
+        return this.changes;
     }
 
     /**
@@ -2306,10 +2284,7 @@ public class EditSession implements Extent {
             for (int x = minX; x <= maxX; ++x) {
                 for (int y = minY; y <= maxY; ++y) {
                     for (int z = minZ; z <= maxZ; ++z) {
-                        final Vector pt = new Vector(x, y, z);
-
-                        final int id = this.getBlockType(pt);
-
+                        int id = FaweCache.getId(queue.getCombinedId4Data(x, y, z));
                         if (map.containsKey(id)) {
                             map.get(id).increment();
                         } else {
@@ -2323,7 +2298,6 @@ public class EditSession implements Extent {
         } else {
             for (final Vector pt : region) {
                 final int id = this.getBlockType(pt);
-
                 if (map.containsKey(id)) {
                     map.get(id).increment();
                 } else {
@@ -2364,10 +2338,7 @@ public class EditSession implements Extent {
             for (int x = minX; x <= maxX; ++x) {
                 for (int y = minY; y <= maxY; ++y) {
                     for (int z = minZ; z <= maxZ; ++z) {
-                        final Vector pt = new Vector(x, y, z);
-
-                        final BaseBlock blk = FaweCache.getBlock(this.getBlockType(pt), this.getBlockData(pt));
-
+                        final BaseBlock blk = getLazyBlock(x, y, z);
                         if (map.containsKey(blk)) {
                             map.get(blk).increment();
                         } else {
