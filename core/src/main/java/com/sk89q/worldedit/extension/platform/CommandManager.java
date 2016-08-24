@@ -20,6 +20,7 @@
 package com.sk89q.worldedit.extension.platform;
 
 import com.boydti.fawe.Fawe;
+import com.boydti.fawe.command.AnvilCommands;
 import com.boydti.fawe.config.BBC;
 import com.boydti.fawe.object.FawePlayer;
 import com.boydti.fawe.object.changeset.FaweStreamChangeSet;
@@ -147,23 +148,39 @@ public final class CommandManager {
         builder.addInvokeListener(new LegacyCommandsHandler());
         builder.addInvokeListener(new CommandLoggingHandler(worldEdit, commandLog));
 
-        dispatcher = new CommandGraph().builder(builder).commands().registerMethods(new BiomeCommands(worldEdit)).registerMethods(new ChunkCommands(worldEdit))
-        .registerMethods(new ClipboardCommands(worldEdit)).registerMethods(new GeneralCommands(worldEdit)).registerMethods(new GenerationCommands(worldEdit))
-        .registerMethods(new HistoryCommands(worldEdit)).registerMethods(new NavigationCommands(worldEdit)).registerMethods(new RegionCommands(worldEdit))
-        .registerMethods(new ScriptingCommands(worldEdit)).registerMethods(new SelectionCommands(worldEdit)).registerMethods(new SnapshotUtilCommands(worldEdit))
-        .registerMethods(new ToolUtilCommands(worldEdit)).registerMethods(new ToolCommands(worldEdit)).registerMethods(new UtilityCommands(worldEdit))
-        .register(adapt(new SelectionCommand(new ApplyCommand(new ReplaceParser(), "Set all blocks within selection"), "worldedit.region.set")), "/set").group("worldedit", "we")
-        .describeAs("WorldEdit commands").registerMethods(new WorldEditCommands(worldEdit)).parent().group("schematic", "schem", "/schematic", "/schem")
-        .describeAs("Schematic commands for saving/loading areas").registerMethods(new SchematicCommands(worldEdit)).parent().group("snapshot", "snap")
-        .describeAs("Schematic commands for saving/loading areas").registerMethods(new SnapshotCommands(worldEdit)).parent().group("brush", "br").describeAs("Brushing commands")
-        .registerMethods(new BrushCommands(worldEdit)).register(adapt(new ShapedBrushCommand(new DeformCommand(), "worldedit.brush.deform")), "deform")
-        .register(adapt(new ShapedBrushCommand(new ApplyCommand(new ReplaceParser(), "Set all blocks within region"), "worldedit.brush.set")), "set")
-        .register(adapt(new ShapedBrushCommand(new PaintCommand(), "worldedit.brush.paint")), "paint").register(adapt(new ShapedBrushCommand(new ApplyCommand(), "worldedit.brush.apply")), "apply")
-        .register(adapt(new ShapedBrushCommand(new PaintCommand(new TreeGeneratorParser("treeType")), "worldedit.brush.forest")), "forest")
-        .register(adapt(new ShapedBrushCommand(ProvidedValue.create(new Deform("y-=1", Mode.RAW_COORD), "Raise one block"), "worldedit.brush.raise")), "raise")
-        .register(adapt(new ShapedBrushCommand(ProvidedValue.create(new Deform("y+=1", Mode.RAW_COORD), "Lower one block"), "worldedit.brush.lower")), "lower").parent()
-        .group("superpickaxe", "pickaxe", "sp").describeAs("Super-pickaxe commands").registerMethods(new SuperPickaxeCommands(worldEdit)).parent().group("tool")
-        .describeAs("Bind functions to held items").registerMethods(new ToolCommands(worldEdit)).parent().graph().getDispatcher();
+        dispatcher = new CommandGraph().builder(builder).commands()
+                .registerMethods(new AnvilCommands(worldEdit)) // Added
+                .registerMethods(new BiomeCommands(worldEdit))
+                .registerMethods(new ChunkCommands(worldEdit))
+                .registerMethods(new ClipboardCommands(worldEdit))
+                .registerMethods(new GeneralCommands(worldEdit))
+                .registerMethods(new GenerationCommands(worldEdit))
+                .registerMethods(new HistoryCommands(worldEdit))
+                .registerMethods(new NavigationCommands(worldEdit))
+                .registerMethods(new RegionCommands(worldEdit))
+                .registerMethods(new ScriptingCommands(worldEdit))
+                .registerMethods(new SelectionCommands(worldEdit))
+                .registerMethods(new SnapshotUtilCommands(worldEdit))
+                .registerMethods(new ToolUtilCommands(worldEdit))
+                .registerMethods(new ToolCommands(worldEdit))
+                .registerMethods(new UtilityCommands(worldEdit))
+                .register(adapt(new SelectionCommand(new ApplyCommand(new ReplaceParser(), "Set all blocks within selection"), "worldedit.region.set")), "/set").group("worldedit", "we")
+                .describeAs("WorldEdit commands")
+                .registerMethods(new WorldEditCommands(worldEdit)).parent().group("schematic", "schem", "/schematic", "/schem")
+                .describeAs("Schematic commands for saving/loading areas")
+                .registerMethods(new SchematicCommands(worldEdit)).parent().group("snapshot", "snap")
+                .describeAs("Schematic commands for saving/loading areas")
+                .registerMethods(new SnapshotCommands(worldEdit)).parent().group("brush", "br").describeAs("Brushing commands")
+                .registerMethods(new BrushCommands(worldEdit)).register(adapt(new ShapedBrushCommand(new DeformCommand(), "worldedit.brush.deform")), "deform")
+                .register(adapt(new ShapedBrushCommand(new ApplyCommand(new ReplaceParser(), "Set all blocks within region"), "worldedit.brush.set")), "set")
+                .register(adapt(new ShapedBrushCommand(new PaintCommand(), "worldedit.brush.paint")), "paint").register(adapt(new ShapedBrushCommand(new ApplyCommand(), "worldedit.brush.apply")), "apply")
+                .register(adapt(new ShapedBrushCommand(new PaintCommand(new TreeGeneratorParser("treeType")), "worldedit.brush.forest")), "forest")
+                .register(adapt(new ShapedBrushCommand(ProvidedValue.create(new Deform("y-=1", Mode.RAW_COORD), "Raise one block"), "worldedit.brush.raise")), "raise")
+                .register(adapt(new ShapedBrushCommand(ProvidedValue.create(new Deform("y+=1", Mode.RAW_COORD), "Lower one block"), "worldedit.brush.lower")), "lower").parent()
+                .group("superpickaxe", "pickaxe", "sp").describeAs("Super-pickaxe commands")
+                .registerMethods(new SuperPickaxeCommands(worldEdit)).parent().group("tool")
+                .describeAs("Bind functions to held items")
+                .registerMethods(new ToolCommands(worldEdit)).parent().graph().getDispatcher();
     }
 
     public static CommandManager getInstance() {
@@ -204,7 +221,7 @@ public final class CommandManager {
     public void unregister() {
         dynamicHandler.setHandler(null);
     }
-    
+
     public String[] commandDetection(String[] split) {
         // Quick script shortcut
         if (split[0].matches("^[^/].*\\.js$")) {
@@ -214,9 +231,9 @@ public final class CommandManager {
             newSplit[1] = newSplit[1];
             split = newSplit;
         }
-        
+
         String searchCmd = split[0].toLowerCase();
-        
+
         // Try to detect the command
         if (!dispatcher.contains(searchCmd)) {
             if (worldEdit.getConfiguration().noDoubleSlash && dispatcher.contains("/" + searchCmd)) {
@@ -225,10 +242,10 @@ public final class CommandManager {
                 split[0] = split[0].substring(1);
             }
         }
-        
+
         return split;
     }
-    
+
     @Subscribe
     public void handleCommand(final CommandEvent event) {
         Request.reset();
@@ -350,7 +367,7 @@ public final class CommandManager {
             event.getActor().printError(e.getMessage());
         }
     }
-    
+
     /**
      * Get the command dispatcher instance.
      *
@@ -359,7 +376,7 @@ public final class CommandManager {
     public Dispatcher getDispatcher() {
         return dispatcher;
     }
-    
+
     public static Logger getLogger() {
         return commandLog;
     }

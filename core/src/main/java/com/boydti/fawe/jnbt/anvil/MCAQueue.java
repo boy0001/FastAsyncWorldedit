@@ -1,16 +1,20 @@
 package com.boydti.fawe.jnbt.anvil;
 
+import com.boydti.fawe.FaweCache;
 import com.boydti.fawe.example.CharFaweChunk;
 import com.boydti.fawe.example.NMSMappedFaweQueue;
 import com.boydti.fawe.object.FaweChunk;
 import com.boydti.fawe.object.FaweQueue;
 import com.boydti.fawe.object.RunnableVal;
+import com.boydti.fawe.object.RunnableVal4;
+import com.boydti.fawe.util.TaskManager;
 import com.sk89q.jnbt.CompoundTag;
 import java.io.File;
 import java.util.Collection;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
+import java.util.concurrent.TimeUnit;
 
 public class MCAQueue extends NMSMappedFaweQueue<FaweQueue, FaweChunk, FaweChunk, FaweChunk> {
 
@@ -35,6 +39,77 @@ public class MCAQueue extends NMSMappedFaweQueue<FaweQueue, FaweChunk, FaweChunk
         ((MCAQueueMap) getFaweQueueMap()).setParentQueue(this);
         this.saveFolder = saveFolder;
         this.hasSky = hasSky;
+    }
+
+    public void filterWorld(final MCAFilter filter) {
+        File folder = getSaveFolder();
+        for (File file : folder.listFiles()) {
+            try {
+                String name = file.getName();
+                String[] split = name.split("\\.");
+                final int mcaX = Integer.parseInt(split[1]);
+                final int mcaZ = Integer.parseInt(split[2]);
+                if (filter.appliesFile(mcaX, mcaZ)) {
+                    MCAFile mcaFile = new MCAFile(this, file);
+                    final MCAFile finalFile = filter.applyFile(mcaFile);
+                    if (finalFile != null) {
+                        Runnable run = new Runnable() {
+                            @Override
+                            public void run() {
+                                final MutableMCABackedBaseBlock mutableBlock = new MutableMCABackedBaseBlock();
+                                final int cbx = mcaX << 5;
+                                final int cbz = mcaZ << 5;
+                                finalFile.forEachChunk(new RunnableVal4<Integer, Integer, Integer, Integer>() {
+                                    @Override
+                                    public void run(final Integer rcx, final Integer rcz, Integer offset, Integer size) {
+                                        int cx = cbx + rcx;
+                                        int cz = cbz + rcz;
+                                        if (filter.appliesChunk(cx, cz)) {
+                                            try {
+                                                MCAChunk chunk = finalFile.getChunk(cx, cz);
+                                                try {
+                                                    chunk = filter.applyChunk(chunk);
+                                                    if (chunk != null) {
+                                                        mutableBlock.setChunk(chunk);
+                                                        int bx = cx << 4;
+                                                        int bz = cz << 4;
+                                                        for (int layer = 0; layer < chunk.ids.length; layer++) {
+                                                            if (chunk.doesSectionExist(layer)) {
+                                                                mutableBlock.setArrays(layer);
+                                                                int yStart = layer << 4;
+                                                                for (int y = yStart; y < yStart + 16; y++) {
+                                                                    short[][] cacheY = FaweCache.CACHE_J[y];
+                                                                    for (int z = bz; z < bz + 16; z++) {
+                                                                        int rz = z & 15;
+                                                                        short[] cacheYZ = cacheY[rz];
+                                                                        for (int x = 0; x < 16; x++) {
+                                                                            int rx = x & 15;
+                                                                            short index = cacheYZ[rx];
+                                                                            mutableBlock.setIndex(rx, y, rz, index);
+                                                                            filter.applyBlock(x, y, z, mutableBlock);
+                                                                        }
+                                                                    }
+                                                                }
+                                                            }
+                                                        }
+                                                    }
+                                                } catch (Throwable e) {
+                                                    e.printStackTrace();
+                                                }
+                                            } catch (Throwable e) {
+                                                System.out.println("Failed to load: r." + mcaX + "." + mcaZ + ".mca -> (local) " + rcx + "," + rcz);
+                                            }
+                                        }
+                                    }
+                                });
+                            }
+                        };
+                        TaskManager.IMP.getPublicForkJoinPool().submit(run);
+                    }
+                }
+            } catch (Throwable ignore) {}
+        }
+        TaskManager.IMP.getPublicForkJoinPool().awaitQuiescence(Long.MAX_VALUE, TimeUnit.MILLISECONDS);
     }
 
     @Override

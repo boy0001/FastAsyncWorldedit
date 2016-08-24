@@ -135,7 +135,7 @@ public class SelectionCommand extends SimpleCommand<Operation> {
                                             int bx = value[2] & 15;
                                             int tx = value[4] & 15;
                                             int bz = value[3] & 15;
-                                            int tz = value[4] & 15;
+                                            int tz = value[5] & 15;
                                             if (bx == 0 && tx == 15 && bz == 0 && tz == 15) {
                                                 newChunk = fc.copy(true);
                                                 newChunk.setLoc(queue, value[0], value[1]);

@@ -18,6 +18,7 @@ import java.io.BufferedOutputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
+import java.io.RandomAccessFile;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -33,8 +34,9 @@ import java.util.zip.InflaterInputStream;
  * e.g.: `.Level.Entities.#` (Starts with a . as the root tag is unnamed)
  */
 public class MCAFile {
+
     private final File file;
-    private final BufferedRandomAccessFile raf;
+    private final RandomAccessFile raf;
     private final byte[] locations;
     private final FaweQueue queue;
     private Field fieldBuf1;
@@ -58,7 +60,7 @@ public class MCAFile {
         }
         this.locations = new byte[4096];
         this.raf = new BufferedRandomAccessFile(file, "rw", Settings.HISTORY.BUFFER_SIZE);
-        raf.read(locations);
+        raf.readFully(locations);
         fieldBuf1 = BufferedInputStream.class.getDeclaredField("buf");
         fieldBuf1.setAccessible(true);
         fieldBuf2 = InflaterInputStream.class.getDeclaredField("buf");
@@ -159,9 +161,9 @@ public class MCAFile {
     private byte[] getChunkCompressedBytes(int offset) throws IOException{
         raf.seek(offset);
         int size = raf.readInt();
-        int compression = raf.readByte();
+        int compression = raf.read();
         byte[] data = new byte[size];
-        raf.read(data);
+        raf.readFully(data);
         return data;
     }
 
@@ -172,7 +174,7 @@ public class MCAFile {
             raf.setLength(offset + len);
         }
         raf.writeInt(data.length);
-        raf.writeByte(2);
+        raf.write(2);
         raf.write(data);
     }
 
@@ -364,7 +366,9 @@ public class MCAFile {
                 }
                 start += newSize << 12;
             }
-            raf.flush();
+            if (raf instanceof BufferedRandomAccessFile) {
+                ((BufferedRandomAccessFile) raf).flush();
+            }
         } catch (Throwable e) {
             e.printStackTrace();
         }

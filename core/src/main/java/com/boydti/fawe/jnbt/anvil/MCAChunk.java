@@ -197,6 +197,11 @@ public class MCAChunk extends FaweChunk<Void> {
         return modified;
     }
 
+    @Deprecated
+    public void setModified() {
+        this.modified = true;
+    }
+
     @Override
     public int getBitMask() {
         int bitMask = 0;
@@ -214,7 +219,11 @@ public class MCAChunk extends FaweChunk<Void> {
         byte i = MathMan.pair16((byte) x, (byte) z);
         byte j = (byte) y;
         BytePair pair = new BytePair(i, j);
-        tiles.put(pair, tile);
+        if (tile != null) {
+            tiles.put(pair, tile);
+        } else {
+            tiles.remove(pair);
+        }
     }
 
     @Override
@@ -349,16 +358,16 @@ public class MCAChunk extends FaweChunk<Void> {
         }
     }
 
-    private int getNibble(int index, byte[] array) {
+    public int getNibble(int index, byte[] array) {
         int indexShift = index >> 1;
         if((index & 1) == 0) {
-            return array[index] & 15;
+            return array[indexShift] & 15;
         } else {
-            return array[index] >> 4 & 15;
+            return array[indexShift] >> 4 & 15;
         }
     }
 
-    private void setNibble(int index, byte[] array, int value) {
+    public void setNibble(int index, byte[] array, int value) {
         int indexShift = index >> 1;
         if((index & 1) == 0) {
             array[indexShift] = (byte)(array[indexShift] & 240 | value & 15);

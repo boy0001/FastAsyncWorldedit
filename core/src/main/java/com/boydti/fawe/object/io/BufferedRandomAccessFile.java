@@ -151,6 +151,7 @@ public class BufferedRandomAccessFile extends RandomAccessFile
         this.diskPos_ = 0L;
     }
 
+    @Override
     public void close() throws IOException
     {
         this.flush();
@@ -216,6 +217,7 @@ public class BufferedRandomAccessFile extends RandomAccessFile
      * is at or past the end-of-file, which can only happen if the file was
      * opened in read-only mode.
      */
+    @Override
     public void seek(long pos) throws IOException
     {
         if (pos >= this.hi_ || pos < this.lo_)
@@ -244,41 +246,44 @@ public class BufferedRandomAccessFile extends RandomAccessFile
         this.curr_ = pos;
     }
 
-//    /*
-//     * Seek and do not flush if within the current buffer when going backwards
-//     *  - Assumes no writes were made
-//     * @param pos
-//     * @throws IOException
-//     */
-//    public void seekUnsafe(long pos) throws IOException
-//    {
-//        if (pos >= this.hi_ || pos < this.lo_)
-//        {
-//            // seeking outside of current buffer -- flush and read
-//            this.flushBuffer();
-//            this.lo_ = pos & BuffMask_; // start at BuffSz boundary
-//            this.maxHi_ = this.lo_ + (long) this.buff_.length;
-//            if (this.diskPos_ != this.lo_)
-//            {
-//                super.seek(this.lo_);
-//                this.diskPos_ = this.lo_;
-//            }
-//            int n = this.fillBuffer();
-//            this.hi_ = this.lo_ + (long) n;
-//        }
-//        this.curr_ = pos;
-//    }
+    /*
+     * Does not maintain V4 (i.e. buffer differs from disk contents if previously written to)
+     *  - Assumes no writes were made
+     * @param pos
+     * @throws IOException
+     */
+    public void seekUnsafe(long pos) throws IOException
+    {
+        if (pos >= this.hi_ || pos < this.lo_)
+        {
+            // seeking outside of current buffer -- flush and read
+            this.flushBuffer();
+            this.lo_ = pos & BuffMask_; // start at BuffSz boundary
+            this.maxHi_ = this.lo_ + (long) this.buff_.length;
+            if (this.diskPos_ != this.lo_)
+            {
+                super.seek(this.lo_);
+                this.diskPos_ = this.lo_;
+            }
+            int n = this.fillBuffer();
+            this.hi_ = this.lo_ + (long) n;
+        }
+        this.curr_ = pos;
+    }
 
+    @Override
     public long getFilePointer()
     {
         return this.curr_;
     }
 
+    @Override
     public long length() throws IOException
     {
         return Math.max(this.curr_, super.length());
     }
 
+    @Override
     public int read() throws IOException
     {
         if (this.curr_ >= this.hi_)
@@ -315,11 +320,13 @@ public class BufferedRandomAccessFile extends RandomAccessFile
         return res;
     }
 
+    @Override
     public int read(byte[] b) throws IOException
     {
         return this.read(b, 0, b.length);
     }
 
+    @Override
     public int read(byte[] b, int off, int len) throws IOException
     {
         if (this.curr_ >= this.hi_)
@@ -381,6 +388,7 @@ public class BufferedRandomAccessFile extends RandomAccessFile
         this.dirty_ = true;
     }
 
+    @Override
     public void write(int b) throws IOException
     {
         if (this.curr_ >= this.hi_)
@@ -406,11 +414,13 @@ public class BufferedRandomAccessFile extends RandomAccessFile
         this.dirty_ = true;
     }
 
+    @Override
     public void write(byte[] b) throws IOException
     {
         this.write(b, 0, b.length);
     }
 
+    @Override
     public void write(byte[] b, int off, int len) throws IOException
     {
         while (len > 0)

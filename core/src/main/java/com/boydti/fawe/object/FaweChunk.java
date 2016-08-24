@@ -1,7 +1,9 @@
 package com.boydti.fawe.object;
 
 import com.boydti.fawe.FaweCache;
+import com.boydti.fawe.util.MainUtil;
 import com.sk89q.jnbt.CompoundTag;
+import com.sk89q.worldedit.blocks.BaseBlock;
 import com.sk89q.worldedit.world.biome.BaseBiome;
 import java.util.ArrayDeque;
 import java.util.Map;
@@ -92,6 +94,32 @@ public abstract class FaweChunk<T> {
      * @return The combined id
      */
     public abstract int getBlockCombinedId(int x, int y, int z);
+
+    public void setBlock(int x, int y, int z, BaseBlock block) {
+        setBlock(x, y, z, block.getId(), block.getData());
+        if (block.hasNbtData()) {
+            setTile(x & 15, y, z & 15, block.getNbtData());
+        }
+    }
+
+    public BaseBlock getBlock(int x, int y, int z) {
+        int combined = getBlockCombinedId(x, y, z);
+        int id = FaweCache.getId(combined);
+        if (!FaweCache.hasNBT(id)) {
+            return FaweCache.CACHE_BLOCK[combined];
+        }
+        try {
+            CompoundTag tile = getTile(x & 15, y, z & 15);
+            if (tile != null) {
+                return new BaseBlock(id, FaweCache.getData(combined), tile);
+            } else {
+                return FaweCache.CACHE_BLOCK[combined];
+            }
+        } catch (Throwable e) {
+            MainUtil.handleError(e);
+            return FaweCache.CACHE_BLOCK[combined];
+        }
+    }
 
     public char[][] getCombinedIdArrays() {
         char[][] ids = new char[16][];

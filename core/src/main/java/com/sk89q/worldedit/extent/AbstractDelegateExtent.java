@@ -27,13 +27,13 @@ import com.sk89q.worldedit.entity.BaseEntity;
 import com.sk89q.worldedit.entity.Entity;
 import com.sk89q.worldedit.function.operation.Operation;
 import com.sk89q.worldedit.function.operation.OperationQueue;
-import com.sk89q.worldedit.util.Location;
+import com.sk89q.worldedit.regions.CuboidRegion;
 import com.sk89q.worldedit.regions.Region;
+import com.sk89q.worldedit.util.Location;
 import com.sk89q.worldedit.world.biome.BaseBiome;
-
+import java.util.List;
 import javax.annotation.Nullable;
 
-import java.util.List;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
@@ -149,4 +149,7 @@ public abstract class AbstractDelegateExtent implements Extent {
         }
     }
 
+    public static Class<?> inject() {
+        return AbstractDelegateExtent.class;
+    }
 }
