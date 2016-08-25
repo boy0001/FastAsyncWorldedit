@@ -5,6 +5,7 @@ import com.boydti.fawe.config.Settings;
 import com.boydti.fawe.logging.rollback.RollbackOptimizedHistory;
 import com.boydti.fawe.object.FaweLimit;
 import com.boydti.fawe.object.FawePlayer;
+import com.boydti.fawe.object.FaweQueue;
 import com.boydti.fawe.object.NullChangeSet;
 import com.boydti.fawe.object.RegionWrapper;
 import com.boydti.fawe.object.changeset.DiskStorageHistory;
@@ -19,11 +20,11 @@ import java.util.UUID;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
-
 import static com.google.common.base.Preconditions.checkNotNull;
 
 public class EditSessionBuilder {
     private World world;
+    private FaweQueue queue;
     private FawePlayer player;
     private FaweLimit limit;
     private FaweChangeSet changeSet;
@@ -83,6 +84,12 @@ public class EditSessionBuilder {
         return changeSet(new NullChangeSet(world));
     }
 
+    public EditSessionBuilder world(@Nonnull World world) {
+        checkNotNull(world);
+        this.world = world;
+        return this;
+    }
+
     /**
      * @param disk If it should be stored on disk
      * @param uuid The uuid to store it under (if on disk)
@@ -136,6 +143,11 @@ public class EditSessionBuilder {
         return this;
     }
 
+    public EditSessionBuilder queue(@Nullable FaweQueue queue) {
+        this.queue = queue;
+        return this;
+    }
+
     public EditSessionBuilder blockBag(@Nullable BlockBag blockBag) {
         this.blockBag = blockBag;
         return this;
@@ -152,6 +164,6 @@ public class EditSessionBuilder {
     }
 
     public EditSession build() {
-        return new EditSession(world, player, limit, changeSet, allowedRegions, autoQueue, fastmode, checkMemory, combineStages, blockBag, eventBus, event);
+        return new EditSession(world, queue, player, limit, changeSet, allowedRegions, autoQueue, fastmode, checkMemory, combineStages, blockBag, eventBus, event);
     }
 }

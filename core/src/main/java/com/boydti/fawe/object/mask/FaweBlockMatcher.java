@@ -34,7 +34,7 @@ public abstract class FaweBlockMatcher {
                     if (FaweCache.hasData(currentId)) {
                         oldBlock.setData(0);
                     }
-                    if (FaweCache.hasNBT(id) && oldBlock.hasNbtData()) {
+                    if (FaweCache.hasNBT(currentId)) {
                         oldBlock.setNbtData(null);
                     }
                     return true;
@@ -47,7 +47,7 @@ public abstract class FaweBlockMatcher {
                 int currentId = oldBlock.getId();
                 oldBlock.setId(id);
                 oldBlock.setData(data);
-                if (FaweCache.hasNBT(id) && oldBlock.hasNbtData()) {
+                if (FaweCache.hasNBT(currentId)) {
                     oldBlock.setNbtData(null);
                 }
                 return true;

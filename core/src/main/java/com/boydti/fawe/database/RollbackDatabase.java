@@ -26,7 +26,8 @@ public class RollbackDatabase {
 
     private final String prefix;
     private final File dbLocation;
-    private final String world;
+    private final String worldName;
+    private final World world;
     private Connection connection;
 
     private String INSERT_EDIT;
@@ -41,8 +42,13 @@ public class RollbackDatabase {
     private ConcurrentLinkedQueue<RollbackOptimizedHistory> historyChanges = new ConcurrentLinkedQueue<>();
     private ConcurrentLinkedQueue<Runnable> notify = new ConcurrentLinkedQueue<>();
 
-    public RollbackDatabase(final String world) throws SQLException, ClassNotFoundException {
+    public RollbackDatabase(String world) throws SQLException, ClassNotFoundException {
+        this(FaweAPI.getWorld(world));
+    }
+
+    public RollbackDatabase(final World world) throws SQLException, ClassNotFoundException {
         this.prefix = "";
+        this.worldName = Fawe.imp().getWorldName(world);
         this.world = world;
         this.dbLocation = MainUtil.getFile(Fawe.imp().getDirectory(), Settings.PATHS.HISTORY + File.separator + world + File.separator + "summary.db");
         connection = openConnection();
@@ -124,7 +130,7 @@ public class RollbackDatabase {
     }
 
     public void getPotentialEdits(final UUID uuid, final long minTime, final Vector pos1, final Vector pos2, final RunnableVal<DiskStorageHistory> onEach, final Runnable whenDone, final boolean delete) {
-        final World world = FaweAPI.getWorld(this.world);
+        final World world = FaweAPI.getWorld(this.worldName);
         addTask(new Runnable() {
             @Override
             public void run() {

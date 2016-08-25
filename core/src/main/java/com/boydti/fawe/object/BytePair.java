@@ -1,41 +1,42 @@
 package com.boydti.fawe.object;
 
+import com.boydti.fawe.util.MathMan;
+
 public class BytePair {
-    public byte[] pair;
+    public short pair;
 
     public BytePair(final byte x, final byte z) {
-        this.pair = new byte[] { x, z};
+        this.pair = MathMan.pairByte(x, z);
     }
 
-    int hash;
-
-    public byte get0() {
-        return pair[0];
+    public int get0x() {
+        return MathMan.unpair16x((byte) get0());
     }
 
-    public byte get1() {
-        return pair[1];
+    public int get0y() {
+        return MathMan.unpair16y((byte) get0());
+    }
+
+    public int get0() {
+        return MathMan.unpairShortX(pair);
+    }
+
+    public int get1() {
+        return MathMan.unpairShortY(pair);
     }
 
     @Override
     public int hashCode() {
-        return pair[0] + (pair[1] << 8);
+        return pair;
     }
 
     @Override
     public String toString() {
-        return pair[0] + "," + pair[1];
+        return pair + "";
     }
 
     @Override
     public boolean equals(final Object obj) {
-        if (this == obj) {
-            return true;
-        }
-        if ((obj == null) || (this.hashCode() != obj.hashCode()) || (this.getClass() != obj.getClass())) {
-            return false;
-        }
-        final BytePair other = (BytePair) obj;
-        return pair[0] == other.pair[0] && pair[1] == other.pair[1];
+        return obj.hashCode() == pair;
     }
 }

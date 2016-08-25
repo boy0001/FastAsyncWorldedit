@@ -39,6 +39,9 @@ public class WorldWrapper extends LocalWorld {
     private final AbstractWorld parent;
 
     public static WorldWrapper wrap(AbstractWorld world) {
+        if (world == null) {
+            return null;
+        }
         if (world instanceof  WorldWrapper) {
             return (WorldWrapper) world;
         }

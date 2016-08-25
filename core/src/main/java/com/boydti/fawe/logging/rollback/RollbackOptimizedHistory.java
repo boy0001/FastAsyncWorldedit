@@ -1,6 +1,5 @@
 package com.boydti.fawe.logging.rollback;
 
-import com.boydti.fawe.Fawe;
 import com.boydti.fawe.database.DBHandler;
 import com.boydti.fawe.database.RollbackDatabase;
 import com.boydti.fawe.object.changeset.DiskStorageHistory;
@@ -74,7 +73,7 @@ public class RollbackOptimizedHistory extends DiskStorageHistory {
     public boolean flush() {
         if (super.flush()) {
             // Save to DB
-            RollbackDatabase db = DBHandler.IMP.getDatabase(Fawe.imp().getWorldName(getWorld()));
+            RollbackDatabase db = DBHandler.IMP.getDatabase(getWorld());
             db.logEdit(this);
             return true;
         }

@@ -73,8 +73,7 @@ public class InspectBrush extends BrushTool implements DoubleActionTraceTool {
         World world = player.getWorld();
         final FawePlayer fp = FawePlayer.wrap(player);
         EditSessionBuilder editSession = new EditSessionBuilder(world).player(fp);
-        String worldName = Fawe.imp().getWorldName(world);
-        RollbackDatabase db = DBHandler.IMP.getDatabase(worldName);
+        RollbackDatabase db = DBHandler.IMP.getDatabase(world);
         final AtomicInteger count = new AtomicInteger();
         db.getPotentialEdits(null, 0, target, target, new RunnableVal<DiskStorageHistory>() {
             @Override

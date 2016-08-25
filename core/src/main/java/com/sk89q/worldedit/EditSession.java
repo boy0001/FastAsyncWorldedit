@@ -24,6 +24,7 @@ import com.boydti.fawe.FaweCache;
 import com.boydti.fawe.config.BBC;
 import com.boydti.fawe.config.Settings;
 import com.boydti.fawe.jnbt.anvil.MCAQueue;
+import com.boydti.fawe.jnbt.anvil.MCAWorld;
 import com.boydti.fawe.logging.LoggingChangeSet;
 import com.boydti.fawe.logging.rollback.RollbackOptimizedHistory;
 import com.boydti.fawe.object.FaweLimit;
@@ -114,6 +115,7 @@ import com.sk89q.worldedit.util.eventbus.EventBus;
 import com.sk89q.worldedit.world.AbstractWorld;
 import com.sk89q.worldedit.world.World;
 import com.sk89q.worldedit.world.biome.BaseBiome;
+import com.sk89q.worldedit.world.registry.WorldData;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -178,8 +180,7 @@ public class EditSession implements Extent {
             PlayerDirection.UP.vector(),
             PlayerDirection.DOWN.vector(), };
 
-    public EditSession(@Nonnull World world, @Nullable FawePlayer player, @Nullable FaweLimit limit, @Nullable FaweChangeSet changeSet, @Nullable RegionWrapper[] allowedRegions, @Nullable Boolean autoQueue, @Nullable Boolean fastmode, @Nullable Boolean checkMemory, @Nullable Boolean combineStages, @Nullable BlockBag blockBag, @Nullable EventBus bus, @Nullable EditSessionEvent event) {
-        checkNotNull(world);
+    public EditSession(@Nonnull World world, @Nullable FaweQueue queue, @Nullable FawePlayer player, @Nullable FaweLimit limit, @Nullable FaweChangeSet changeSet, @Nullable RegionWrapper[] allowedRegions, @Nullable Boolean autoQueue, @Nullable Boolean fastmode, @Nullable Boolean checkMemory, @Nullable Boolean combineStages, @Nullable BlockBag blockBag, @Nullable EventBus bus, @Nullable EditSessionEvent event) {
         this.world = world = WorldWrapper.wrap((AbstractWorld) world);
         if (bus == null) {
             bus = WorldEdit.getInstance().getEventBus();
@@ -200,7 +201,7 @@ public class EditSession implements Extent {
                 } else {
                     changeSet = new DiskStorageHistory(world, uuid);
                 }
-            } else if (Settings.HISTORY.COMBINE_STAGES && Settings.HISTORY.COMPRESSION_LEVEL == 0) {
+            } else if (Settings.HISTORY.COMBINE_STAGES && Settings.HISTORY.COMPRESSION_LEVEL == 0 && !(queue instanceof MCAQueue)) {
                 changeSet = new CPUOptimizedChangeSet(world);
             } else {
                 changeSet = new MemoryOptimizedHistory(world);
@@ -235,7 +236,7 @@ public class EditSession implements Extent {
             checkMemory = player != null && !fastmode;
         }
         if (combineStages == null) {
-            combineStages = Settings.HISTORY.COMBINE_STAGES;
+            combineStages = Settings.HISTORY.COMBINE_STAGES && !(queue instanceof MCAQueue);
         }
         if (checkMemory) {
             if (MemUtil.isMemoryLimitedSlow()) {
@@ -248,10 +249,16 @@ public class EditSession implements Extent {
         this.blockBag = blockBag;
         this.originalLimit = limit;
         this.limit = limit.copy();
-        this.queue = SetQueue.IMP.getNewQueue(Fawe.imp().getWorldName(world), fastmode, autoQueue);
-        if (Settings.EXPERIMENTAL.ANVIL_QUEUE_MODE) {
-            this.queue = new MCAQueue(queue);
+        if (queue == null) {
+            if (world instanceof MCAWorld) {
+                queue = ((MCAWorld) world).getQueue();
+            } else {
+                queue = SetQueue.IMP.getNewQueue(Fawe.imp().getWorldName(world), fastmode, autoQueue);
+            }
+        } else if (Settings.EXPERIMENTAL.ANVIL_QUEUE_MODE && !(queue instanceof MCAQueue)) {
+            queue = new MCAQueue(queue);
         }
+        this.queue = queue;
         queue.addEditSession(this);
         this.bypassAll = wrapExtent(new FastWorldEditExtent(world, queue), bus, event, Stage.BEFORE_CHANGE);
         this.bypassHistory = (this.extent = wrapExtent(bypassAll, bus, event, Stage.BEFORE_REORDER));
@@ -311,7 +318,7 @@ public class EditSession implements Extent {
      * @param event the event to call with the extent
      */
     public EditSession(final EventBus eventBus, World world, final int maxBlocks, @Nullable final BlockBag blockBag, EditSessionEvent event) {
-        this(world, null, null, null, null, true, null, null, null, blockBag, eventBus, event);
+        this(world, null, null, null, null, null, true, null, null, null, blockBag, eventBus, event);
     }
 
     /**
@@ -460,6 +467,10 @@ public class EditSession implements Extent {
      */
     public World getWorld() {
         return this.world;
+    }
+
+    public WorldData getWorldData() {
+        return getWorld() != null ? getWorld().getWorldData() : null;
     }
 
     /**
@@ -1078,12 +1089,20 @@ public class EditSession implements Extent {
 
     @Override
     public Vector getMinimumPoint() {
-        return this.getWorld().getMinimumPoint();
+        if (getWorld() != null) {
+            return this.getWorld().getMinimumPoint();
+        } else {
+            return new Vector(-30000000, 0, -30000000);
+        }
     }
 
     @Override
     public Vector getMaximumPoint() {
-        return this.getWorld().getMaximumPoint();
+        if (getWorld() != null) {
+            return this.getWorld().getMaximumPoint();
+        } else {
+            return new Vector(30000000, 255, 30000000);
+        }
     }
 
     @Override
@@ -1202,7 +1221,7 @@ public class EditSession implements Extent {
         checkArgument(depth >= 1, "depth >= 1");
 
         final MaskIntersection mask = new MaskIntersection(new RegionMask(new EllipsoidRegion(null, origin, new Vector(radius, radius, radius))), new BoundedHeightMask(Math.max(
-        (origin.getBlockY() - depth) + 1, 0), Math.min(EditSession.this.getWorld().getMaxY(), origin.getBlockY())), Masks.negate(new ExistingBlockMask(EditSession.this)));
+        (origin.getBlockY() - depth) + 1, 0), Math.min(EditSession.this.getMaximumPoint().getBlockY(), origin.getBlockY())), Masks.negate(new ExistingBlockMask(EditSession.this)));
 
         // Want to replace blocks
         final BlockReplace replace = new BlockReplace(EditSession.this, Patterns.wrap(pattern));
@@ -1717,8 +1736,21 @@ public class EditSession implements Extent {
     public int drainArea(final Vector origin, final double radius) throws MaxChangedBlocksException {
         checkNotNull(origin);
         checkArgument(radius >= 0, "radius >= 0 required");
-        final MaskIntersection mask = new MaskIntersection(new BoundedHeightMask(0, EditSession.this.getWorld().getMaxY()), new RegionMask(new EllipsoidRegion(null, origin, new Vector(radius,
-        radius, radius))), EditSession.this.getWorld().createLiquidMask());
+        Mask liquidMask;
+        if (getWorld() != null) {
+            liquidMask = getWorld().createLiquidMask();
+        } else {
+            liquidMask = new BlockMask(this,
+                    new BaseBlock(BlockID.STATIONARY_LAVA, -1),
+                    new BaseBlock(BlockID.LAVA, -1),
+                    new BaseBlock(BlockID.STATIONARY_WATER, -1),
+                    new BaseBlock(BlockID.WATER, -1));
+        }
+        final MaskIntersection mask = new MaskIntersection(
+                new BoundedHeightMask(0, EditSession.this.getMaximumPoint().getBlockY()),
+                    new RegionMask(
+                        new EllipsoidRegion(null, origin,
+                                new Vector(radius,radius, radius))), liquidMask);
 
         final BlockReplace replace = new BlockReplace(EditSession.this, new BlockPattern(new BaseBlock(BlockID.AIR)));
         final RecursiveVisitor visitor = new RecursiveVisitor(mask, replace);
@@ -1780,7 +1812,7 @@ public class EditSession implements Extent {
 
         // There are boundaries that the routine needs to stay in
         MaskIntersection mask = new MaskIntersection(
-                new BoundedHeightMask(0, Math.min(origin.getBlockY(), getWorld().getMaxY())),
+                new BoundedHeightMask(0, Math.min(origin.getBlockY(), getMaximumPoint().getBlockY())),
                 new RegionMask(new EllipsoidRegion(null, origin, new Vector(radius, radius, radius))),
                 blockMask);
 

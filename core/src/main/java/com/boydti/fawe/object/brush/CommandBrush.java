@@ -1,6 +1,5 @@
 package com.boydti.fawe.object.brush;
 
-import com.boydti.fawe.Fawe;
 import com.boydti.fawe.object.FawePlayer;
 import com.boydti.fawe.wrappers.LocationMaskedPlayerWrapper;
 import com.boydti.fawe.wrappers.PlayerWrapper;
@@ -34,7 +33,7 @@ public class CommandBrush implements Brush {
         String replaced = command.replace("{x}", position.getBlockX() + "")
                 .replace("{y}", position.getBlockY() + "")
                 .replace("{z}", position.getBlockZ() + "")
-                .replace("{world}", Fawe.imp().getWorldName(editSession.getWorld()) + "")
+                .replace("{world}", editSession.getQueue().getWorldName())
                 .replace("{size}", radius + "");
 
         WorldVectorFace face = player.getBlockTraceFace(256, true);

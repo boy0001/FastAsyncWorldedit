@@ -111,7 +111,7 @@ public class HistoryCommands {
                                 if (summary != null) {
                                     rollback.setDimensions(new Vector(summary.minX, 0, summary.minZ), new Vector(summary.maxX, 255, summary.maxZ));
                                     rollback.setTime(historyFile.lastModified());
-                                    RollbackDatabase db = DBHandler.IMP.getDatabase(worldName);
+                                    RollbackDatabase db = DBHandler.IMP.getDatabase(world);
                                     db.logEdit(rollback);
                                     player.print("Logging: " + historyFile);
                                 }
@@ -140,7 +140,7 @@ public class HistoryCommands {
         WorldVector origin = player.getPosition();
         Vector bot = origin.subtract(radius, radius, radius);
         Vector top = origin.add(radius, radius, radius);
-        RollbackDatabase database = DBHandler.IMP.getDatabase(Fawe.imp().getWorldName(world));
+        RollbackDatabase database = DBHandler.IMP.getDatabase(world);
         final AtomicInteger count = new AtomicInteger();
         database.getPotentialEdits(other, System.currentTimeMillis() - timeDiff, bot, top, new RunnableVal<DiskStorageHistory>() {
                 @Override

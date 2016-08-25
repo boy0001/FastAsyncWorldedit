@@ -82,7 +82,7 @@ public class MutableMCABackedBaseBlock extends BaseBlock {
 
     @Override
     public void setNbtData(@Nullable CompoundTag nbtData) {
-        chunk.setTile(x, y, z, null);
+        chunk.setTile(x, y, z, nbtData);
         chunk.setModified();
     }
 }

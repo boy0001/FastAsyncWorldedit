@@ -145,7 +145,7 @@ public class ClipboardCommands {
 
         BlockArrayClipboard clipboard = new BlockArrayClipboard(region, lazyClipboard);
         clipboard.setOrigin(session.getPlacementPosition(player));
-        session.setClipboard(new ClipboardHolder(clipboard, editSession.getWorld().getWorldData()));
+        session.setClipboard(new ClipboardHolder(clipboard, editSession.getWorldData()));
         BBC.COMMAND_COPY.send(player, region.getArea());
     }
 
@@ -176,7 +176,7 @@ public class ClipboardCommands {
             copy.setSourceMask(mask);
         }
         Operations.completeLegacy(copy);
-        session.setClipboard(new ClipboardHolder(clipboard, editSession.getWorld().getWorldData()));
+        session.setClipboard(new ClipboardHolder(clipboard, editSession.getWorldData()));
 
         BBC.COMMAND_COPY.send(player, region.getArea());
     }
@@ -208,7 +208,7 @@ public class ClipboardCommands {
             copy.setSourceMask(mask);
         }
         Operations.completeLegacy(copy);
-        session.setClipboard(new ClipboardHolder(clipboard, editSession.getWorld().getWorldData()));
+        session.setClipboard(new ClipboardHolder(clipboard, editSession.getWorldData()));
 
         BBC.COMMAND_CUT.send(player, region.getArea());
     }
@@ -286,7 +286,7 @@ public class ClipboardCommands {
         Region region = clipboard.getRegion();
         Vector to = atOrigin ? clipboard.getOrigin() : session.getPlacementPosition(player);
         Operation operation = holder
-                .createPaste(editSession, editSession.getWorld().getWorldData())
+                .createPaste(editSession, editSession.getWorldData())
                 .to(to)
                 .ignoreAirBlocks(ignoreAirBlocks)
                 .build();
