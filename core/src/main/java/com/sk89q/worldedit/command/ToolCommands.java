@@ -60,7 +60,7 @@ public class ToolCommands {
             min = 0,
             max = 0
     )
-    @CommandPermissions("worldedit.brush.inspect")
+    @CommandPermissions("worldedit.tool.inspect")
     public void inspectBrush(Player player, LocalSession session, EditSession editSession, @Optional("1") double radius) throws WorldEditException {
         session.setTool(player.getItemInHand(), new InspectBrush());
         BBC.TOOL_INSPECT.send(player, ItemType.toHeldName(player.getItemInHand()));

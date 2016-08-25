@@ -10,10 +10,12 @@ import com.boydti.fawe.object.number.LongAdder;
 import com.sk89q.minecraft.util.commands.Command;
 import com.sk89q.minecraft.util.commands.CommandPermissions;
 import com.sk89q.worldedit.EditSession;
+import com.sk89q.worldedit.Vector;
 import com.sk89q.worldedit.WorldEdit;
 import com.sk89q.worldedit.WorldEditException;
 import com.sk89q.worldedit.blocks.BaseBlock;
 import com.sk89q.worldedit.entity.Player;
+import com.sk89q.worldedit.function.pattern.Pattern;
 import com.sk89q.worldedit.util.command.binding.Switch;
 import com.sk89q.worldedit.util.command.parametric.Optional;
 import java.io.File;
@@ -44,7 +46,7 @@ public class AnvilCommands {
             min = 2,
             max = 4
     )
-    @CommandPermissions("worldedit.region.replace")
+    @CommandPermissions("worldedit.anvil.replaceall")
     public void replaceAll(Player player, EditSession editSession, String folder, @Optional String from, String to, @Switch('d') boolean useData) throws WorldEditException {
         final FaweBlockMatcher matchFrom;
         if (from == null) {
@@ -56,7 +58,6 @@ public class AnvilCommands {
             matchFrom = FaweBlockMatcher.fromBlocks(worldEdit.getBlocks(player, from, true), useData);
         }
         final FaweBlockMatcher matchTo = FaweBlockMatcher.setBlocks(worldEdit.getBlocks(player, to, true));
-        BaseBlock tmp = new BaseBlock(35, 14);
         File root = new File(folder + File.separator + "region");
         MCAQueue queue = new MCAQueue(folder, root, true);
         final LongAdder count = new LongAdder();
@@ -64,6 +65,50 @@ public class AnvilCommands {
             @Override
             public void applyBlock(int x, int y, int z, BaseBlock block) {
                 if (matchFrom.apply(block) && matchTo.apply(block)) {
+                    count.add(1);
+                }
+            }
+        });
+        BBC.VISITOR_BLOCK.send(player, count.longValue());
+    }
+
+    @Command(
+            aliases = { "/replaceallpattern", "/reap", "/repallpat" },
+            usage = "<folder> [from-block] <to-pattern>",
+            desc = "Replace all blocks in the selection with another",
+            flags = "d",
+            min = 2,
+            max = 4
+    )
+    @CommandPermissions("worldedit.anvil.replaceall")
+    public void replaceAllPattern(Player player, EditSession editSession, String folder, @Optional String from, final Pattern to, @Switch('d') boolean useData) throws WorldEditException {
+        final FaweBlockMatcher matchFrom;
+        if (from == null) {
+            matchFrom = FaweBlockMatcher.NOT_AIR;
+        } else {
+            if (from.contains(":")) {
+                useData = true; //override d flag, if they specified data they want it
+            }
+            matchFrom = FaweBlockMatcher.fromBlocks(worldEdit.getBlocks(player, from, true), useData);
+        }
+        File root = new File(folder + File.separator + "region");
+        MCAQueue queue = new MCAQueue(folder, root, true);
+        final LongAdder count = new LongAdder();
+        queue.filterWorld(new MCAFilter() {
+            private final Vector mutable = new Vector(0, 0, 0);
+            @Override
+            public void applyBlock(int x, int y, int z, BaseBlock block) {
+                if (matchFrom.apply(block)) {
+                    mutable.x = x;
+                    mutable.y = y;
+                    mutable.z = z;
+                    BaseBlock newBlock = to.apply(mutable);
+                    int currentId = block.getId();
+                    if (FaweCache.hasNBT(currentId)) {
+                        block.setNbtData(null);
+                    }
+                    block.setId(newBlock.getId());
+                    block.setData(newBlock.getData());
                     count.add(1);
                 }
             }

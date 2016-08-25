@@ -267,7 +267,7 @@ public class BrushCommands {
             max = 1
     )
     @CommandPermissions("worldedit.brush.copy")
-    public void copy(Player player, LocalSession session, EditSession editSession, @Optional("5") double radius, @Optional("") final String filename, @Optional("0") final int rotation, @Optional("1") final double yscale) throws WorldEditException {
+    public void copy(Player player, LocalSession session, EditSession editSession, @Optional("5") double radius) throws WorldEditException {
         worldEdit.checkMaxBrushRadius(radius);
         BrushTool tool = session.getBrushTool(player.getItemInHand());
         tool.setSize(radius);
@@ -284,7 +284,7 @@ public class BrushCommands {
             min = 2,
             max = 99
     )
-    @CommandPermissions("worldedit.brush.copy")
+    @CommandPermissions("worldedit.brush.command")
     public void command(Player player, LocalSession session, EditSession editSession, @Optional("5") double radius, CommandContext args) throws WorldEditException {
         BrushTool tool = session.getBrushTool(player.getItemInHand());
         String cmd = args.getJoinedStrings(1);

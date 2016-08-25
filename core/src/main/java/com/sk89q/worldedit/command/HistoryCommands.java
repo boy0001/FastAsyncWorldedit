@@ -78,7 +78,7 @@ public class HistoryCommands {
             BBC.SETTING_DISABLE.send(player, "history.use-database");
             return;
         }
-        if (user.equals("#import")) {
+        if (user.equals("#import") && player.hasPermission("worldedit.history.import")) {
             if (!player.hasPermission("fawe.rollback.import")) {
                 BBC.NO_PERM.send(player, "fawe.rollback.import");
                 return;
