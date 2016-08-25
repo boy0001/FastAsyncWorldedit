@@ -106,8 +106,7 @@ public class MCAQueue extends NMSMappedFaweQueue<FaweQueue, FaweChunk, FaweChunk
                                 System.gc();
                             }
                         };
-//                        TaskManager.IMP.getPublicForkJoinPool().submit(run);
-                        run.run();
+                        TaskManager.IMP.getPublicForkJoinPool().submit(run);
                     }
                 }
             } catch (Throwable ignore) {}
