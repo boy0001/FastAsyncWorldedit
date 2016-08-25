@@ -101,7 +101,7 @@ public class SetQueue {
                 boolean parallel = Settings.QUEUE.PARALLEL_THREADS > 1;
                 SET_TASK.value2.startSet(parallel);
                 try {
-                    if (Settings.QUEUE.PARALLEL_THREADS <= 1) {
+                    if (Settings.QUEUE.PARALLEL_THREADS <= 1 || !Fawe.get().isJava8()) {
                         SET_TASK.run();
                     } else {
                         for (int i = 0; i < Settings.QUEUE.PARALLEL_THREADS; i++) {
@@ -189,7 +189,7 @@ public class SetQueue {
         boolean parallel = Settings.QUEUE.PARALLEL_THREADS > 1;
         SET_TASK.value2.startSet(parallel);
         try {
-            if (!parallel) {
+            if (!parallel || !Fawe.get().isJava8()) {
                 SET_TASK.run();
             } else {
                 for (int i = 0; i < Settings.QUEUE.PARALLEL_THREADS; i++) {

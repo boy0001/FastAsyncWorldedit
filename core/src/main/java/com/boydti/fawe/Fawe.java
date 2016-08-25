@@ -221,6 +221,12 @@ public class Fawe {
         this.setupMemoryListener();
     }
 
+    private boolean isJava8 = MainUtil.getJavaVersion() >= 1.8;
+
+    public boolean isJava8() {
+        return isJava8;
+    }
+
     /**
      * The FaweTimer is a useful class for monitoring TPS
      * @return FaweTimer
@@ -410,7 +416,7 @@ public class Fawe {
             debug(" - Report this issue if you cannot resolve it");
             debug("===============================================");
         }
-        if (MainUtil.getJavaVersion() < 1.8) {
+        if (!isJava8) {
             debug("====== UPGRADE TO JAVA 8 ======");
             debug("You are running " + System.getProperty("java.version"));
             debug(" - This is only a recommendation");

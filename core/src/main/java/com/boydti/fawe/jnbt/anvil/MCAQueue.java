@@ -1,5 +1,6 @@
 package com.boydti.fawe.jnbt.anvil;
 
+import com.boydti.fawe.Fawe;
 import com.boydti.fawe.example.CharFaweChunk;
 import com.boydti.fawe.example.NMSMappedFaweQueue;
 import com.boydti.fawe.object.FaweChunk;
@@ -106,12 +107,18 @@ public class MCAQueue extends NMSMappedFaweQueue<FaweQueue, FaweChunk, FaweChunk
                                 System.gc();
                             }
                         };
-                        TaskManager.IMP.getPublicForkJoinPool().submit(run);
+                        if (Fawe.get().isJava8()) {
+                            TaskManager.IMP.getPublicForkJoinPool().submit(run);
+                        } else {
+                            run.run();
+                        }
                     }
                 }
             } catch (Throwable ignore) {}
         }
-        TaskManager.IMP.getPublicForkJoinPool().awaitQuiescence(Long.MAX_VALUE, TimeUnit.MILLISECONDS);
+        if (Fawe.get().isJava8()) {
+            TaskManager.IMP.getPublicForkJoinPool().awaitQuiescence(Long.MAX_VALUE, TimeUnit.MILLISECONDS);
+        }
     }
 
     @Override

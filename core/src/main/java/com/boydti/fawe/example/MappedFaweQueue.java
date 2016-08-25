@@ -55,19 +55,35 @@ public abstract class MappedFaweQueue<WORLD, CHUNK, SECTION> extends FaweQueue {
     @Override
     public void optimize() {
         final ForkJoinPool pool = TaskManager.IMP.getPublicForkJoinPool();
-        final ArrayList<Thread> threads = new ArrayList<Thread>(map.size());
-        map.forEachChunk(new RunnableVal<FaweChunk>() {
-            @Override
-            public void run(final FaweChunk chunk) {
-                pool.submit(new Runnable() {
-                    @Override
-                    public void run() {
-                        chunk.optimize();
-                    }
-                });
-            }
-        });
-        pool.awaitQuiescence(Long.MAX_VALUE, TimeUnit.MILLISECONDS);
+        if (Fawe.get().isJava8()) {
+            map.forEachChunk(new RunnableVal<FaweChunk>() {
+                @Override
+                public void run(final FaweChunk chunk) {
+                    pool.submit(new Runnable() {
+                        @Override
+                        public void run() {
+                            chunk.optimize();
+                        }
+                    });
+                }
+            });
+            pool.awaitQuiescence(Long.MAX_VALUE, TimeUnit.MILLISECONDS);
+        } else {
+            final ArrayList<Runnable> tasks = new ArrayList<Runnable>(map.size());
+            map.forEachChunk(new RunnableVal<FaweChunk>() {
+                @Override
+                public void run(final FaweChunk chunk) {
+                    tasks.add(new Runnable() {
+                        @Override
+                        public void run() {
+                            chunk.optimize();
+                        }
+                    });
+                }
+            });
+            TaskManager.IMP.parallel(tasks);
+        }
+
     }
 
     @Override
