@@ -39,7 +39,7 @@ public class AnvilCommands {
     }
 
     @Command(
-            aliases = { "/replaceall", "/rea", "/repall" },
+            aliases = {"/replaceall", "/rea", "/repall"},
             usage = "<folder> [from-block] <to-block>",
             desc = "Replace all blocks in the selection with another",
             flags = "d",
@@ -73,7 +73,7 @@ public class AnvilCommands {
     }
 
     @Command(
-            aliases = { "/replaceallpattern", "/reap", "/repallpat" },
+            aliases = {"/replaceallpattern", "/reap", "/repallpat"},
             usage = "<folder> [from-block] <to-pattern>",
             desc = "Replace all blocks in the selection with another",
             flags = "d",
@@ -96,6 +96,7 @@ public class AnvilCommands {
         final LongAdder count = new LongAdder();
         queue.filterWorld(new MCAFilter() {
             private final Vector mutable = new Vector(0, 0, 0);
+
             @Override
             public void applyBlock(int x, int y, int z, BaseBlock block) {
                 if (matchFrom.apply(block)) {
@@ -117,7 +118,7 @@ public class AnvilCommands {
     }
 
     @Command(
-            aliases = { "/countall" },
+            aliases = {"/countall"},
             usage = "<folder> [hasSky] <id>",
             desc = "Count all blocks in a world",
             flags = "d",

@@ -191,7 +191,10 @@ public class MCAChunk extends FaweChunk<Void> {
         streamer.readFully();
     }
 
-
+    public void setDeleted(boolean deleted) {
+        setModified();
+        this.deleted = deleted;
+    }
 
     public boolean isModified() {
         return modified;

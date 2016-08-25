@@ -49,6 +49,8 @@ public class MCAFile {
     private byte[] buffer2 = new byte[Settings.HISTORY.BUFFER_SIZE];
     private byte[] buffer3 = new byte[720];
 
+    private final int X, Z;
+
     private Map<Integer, MCAChunk> chunks = new HashMap<>();
 
     public MCAFile(FaweQueue parent, File file) throws Exception {
@@ -57,6 +59,9 @@ public class MCAFile {
         if (!file.exists()) {
             throw new FaweException.FaweChunkLoadException();
         }
+        String[] split = file.getName().split("\\.");
+        X = Integer.parseInt(split[1]);
+        Z = Integer.parseInt(split[2]);
         this.locations = new byte[4096];
         this.raf = new BufferedRandomAccessFile(file, "rw", Settings.HISTORY.BUFFER_SIZE);
         raf.readFully(locations);
@@ -76,6 +81,18 @@ public class MCAFile {
 
     public MCAFile(FaweQueue parent, int mcrX, int mcrZ) throws Exception {
         this(parent, new File(parent.getSaveFolder(), "r." + mcrX + "." + mcrZ + ".mca"));
+    }
+
+    public int getX() {
+        return X;
+    }
+
+    public int getZ() {
+        return Z;
+    }
+
+    public File getFile() {
+        return file;
     }
 
     public MCAChunk getCachedChunk(int cx, int cz) {
