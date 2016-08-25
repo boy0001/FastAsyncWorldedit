@@ -5,6 +5,7 @@ import com.boydti.fawe.config.BBC;
 import com.boydti.fawe.jnbt.anvil.MCAChunk;
 import com.boydti.fawe.jnbt.anvil.MCAFilter;
 import com.boydti.fawe.jnbt.anvil.MCAQueue;
+import com.boydti.fawe.object.mask.FaweBlockMatcher;
 import com.boydti.fawe.object.number.LongAdder;
 import com.sk89q.minecraft.util.commands.Command;
 import com.sk89q.minecraft.util.commands.CommandPermissions;
@@ -36,6 +37,41 @@ public class AnvilCommands {
     }
 
     @Command(
+            aliases = { "/replaceall", "/rea", "/repall" },
+            usage = "<folder> [from-block] <to-block>",
+            desc = "Replace all blocks in the selection with another",
+            flags = "d",
+            min = 2,
+            max = 4
+    )
+    @CommandPermissions("worldedit.region.replace")
+    public void replaceAll(Player player, EditSession editSession, String folder, @Optional String from, String to, @Switch('d') boolean useData) throws WorldEditException {
+        final FaweBlockMatcher matchFrom;
+        if (from == null) {
+            matchFrom = FaweBlockMatcher.NOT_AIR;
+        } else {
+            if (from.contains(":")) {
+                useData = true; //override d flag, if they specified data they want it
+            }
+            matchFrom = FaweBlockMatcher.fromBlocks(worldEdit.getBlocks(player, from, true), useData);
+        }
+        final FaweBlockMatcher matchTo = FaweBlockMatcher.setBlocks(worldEdit.getBlocks(player, to, true));
+        BaseBlock tmp = new BaseBlock(35, 14);
+        File root = new File(folder + File.separator + "region");
+        MCAQueue queue = new MCAQueue(folder, root, true);
+        final LongAdder count = new LongAdder();
+        queue.filterWorld(new MCAFilter() {
+            @Override
+            public void applyBlock(int x, int y, int z, BaseBlock block) {
+                if (matchFrom.apply(block) && matchTo.apply(block)) {
+                    count.add(1);
+                }
+            }
+        });
+        BBC.VISITOR_BLOCK.send(player, count.longValue());
+    }
+
+    @Command(
             aliases = { "/countall" },
             usage = "<folder> [hasSky] <id>",
             desc = "Count all blocks in a world",
@@ -44,9 +80,9 @@ public class AnvilCommands {
             max = 3
     )
     @CommandPermissions("worldedit.anvil.countallstone")
-    public void countAll(Player player, EditSession editSession, String folder, @Optional("true") boolean hasSky, String arg, @Switch('d') boolean useData) throws WorldEditException {
+    public void countAll(Player player, EditSession editSession, String folder, String arg, @Switch('d') boolean useData) throws WorldEditException {
         File root = new File(folder + File.separator + "region");
-        MCAQueue queue = new MCAQueue(folder, root, hasSky);
+        MCAQueue queue = new MCAQueue(folder, root, true);
         final LongAdder count = new LongAdder();
         if (arg.contains(":")) {
             useData = true; //override d flag, if they specified data they want it

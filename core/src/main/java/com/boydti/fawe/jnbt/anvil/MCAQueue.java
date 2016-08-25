@@ -1,6 +1,5 @@
 package com.boydti.fawe.jnbt.anvil;
 
-import com.boydti.fawe.FaweCache;
 import com.boydti.fawe.example.CharFaweChunk;
 import com.boydti.fawe.example.NMSMappedFaweQueue;
 import com.boydti.fawe.object.FaweChunk;
@@ -43,7 +42,7 @@ public class MCAQueue extends NMSMappedFaweQueue<FaweQueue, FaweChunk, FaweChunk
 
     public void filterWorld(final MCAFilter filter) {
         File folder = getSaveFolder();
-        for (File file : folder.listFiles()) {
+        for (final File file : folder.listFiles()) {
             try {
                 String name = file.getName();
                 String[] split = name.split("\\.");
@@ -56,6 +55,9 @@ public class MCAQueue extends NMSMappedFaweQueue<FaweQueue, FaweChunk, FaweChunk
                         Runnable run = new Runnable() {
                             @Override
                             public void run() {
+                                // May not do anything, but seems to lead to smaller lag spikes
+                                System.gc();
+                                System.gc();
                                 final MutableMCABackedBaseBlock mutableBlock = new MutableMCABackedBaseBlock();
                                 final int cbx = mcaX << 5;
                                 final int cbz = mcaZ << 5;
@@ -77,15 +79,11 @@ public class MCAQueue extends NMSMappedFaweQueue<FaweQueue, FaweChunk, FaweChunk
                                                             if (chunk.doesSectionExist(layer)) {
                                                                 mutableBlock.setArrays(layer);
                                                                 int yStart = layer << 4;
+                                                                int index = 0;
                                                                 for (int y = yStart; y < yStart + 16; y++) {
-                                                                    short[][] cacheY = FaweCache.CACHE_J[y];
                                                                     for (int z = bz; z < bz + 16; z++) {
-                                                                        int rz = z & 15;
-                                                                        short[] cacheYZ = cacheY[rz];
-                                                                        for (int x = 0; x < 16; x++) {
-                                                                            int rx = x & 15;
-                                                                            short index = cacheYZ[rx];
-                                                                            mutableBlock.setIndex(rx, y, rz, index);
+                                                                        for (int x = bx; x < bx + 16; x++,index++) {
+                                                                            mutableBlock.setIndex(x & 15, y, z & 15, index);
                                                                             filter.applyBlock(x, y, z, mutableBlock);
                                                                         }
                                                                     }
@@ -98,13 +96,18 @@ public class MCAQueue extends NMSMappedFaweQueue<FaweQueue, FaweChunk, FaweChunk
                                                 }
                                             } catch (Throwable e) {
                                                 System.out.println("Failed to load: r." + mcaX + "." + mcaZ + ".mca -> (local) " + rcx + "," + rcz);
+                                                e.printStackTrace();
                                             }
                                         }
                                     }
                                 });
+                                finalFile.close();
+                                System.gc();
+                                System.gc();
                             }
                         };
-                        TaskManager.IMP.getPublicForkJoinPool().submit(run);
+//                        TaskManager.IMP.getPublicForkJoinPool().submit(run);
+                        run.run();
                     }
                 }
             } catch (Throwable ignore) {}

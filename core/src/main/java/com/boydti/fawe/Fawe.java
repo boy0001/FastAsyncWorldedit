@@ -36,6 +36,7 @@ import com.sk89q.worldedit.command.tool.brush.GravityBrush;
 import com.sk89q.worldedit.event.extent.EditSessionEvent;
 import com.sk89q.worldedit.extension.platform.CommandManager;
 import com.sk89q.worldedit.extension.platform.PlatformManager;
+import com.sk89q.worldedit.extent.AbstractDelegateExtent;
 import com.sk89q.worldedit.extent.clipboard.BlockArrayClipboard;
 import com.sk89q.worldedit.extent.clipboard.io.ClipboardFormat;
 import com.sk89q.worldedit.extent.clipboard.io.SchematicReader;
@@ -263,7 +264,7 @@ public class Fawe {
             String versionString = scanner.next().trim();
             scanner.close();
             this.version = new FaweVersion(versionString);
-            Settings.DATE = new Date(version.year, version.month, version.day).toGMTString();
+            Settings.DATE = new Date(100 + version.year, version.month, version.day).toGMTString();
             Settings.BUILD = "http://ci.athion.net/job/FastAsyncWorldEdit/" + version.build;
             Settings.COMMIT = "https://github.com/boy0001/FastAsyncWorldedit/commit/" + Integer.toHexString(version.hash);
         } catch (Throwable ignore) {}
@@ -351,6 +352,7 @@ public class Fawe {
             CuboidRegion.inject(); // Optimizations
             // Extents
             BlockTransformExtent.inject(); // Fix for cache not being mutable
+            AbstractDelegateExtent.inject(); // Optimizations
             // Vector
             Vector.inject(); // Optimizations
             // Operations

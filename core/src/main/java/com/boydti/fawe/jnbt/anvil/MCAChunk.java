@@ -316,7 +316,6 @@ public class MCAChunk extends FaweChunk<Void> {
     }
 
     public int getSkyLight(int x, int y, int z) {
-        modified = true;
         int layer = y >> 4;
         byte[] skyLayer = skyLight[layer];
         if (skyLayer == null) {
@@ -327,7 +326,6 @@ public class MCAChunk extends FaweChunk<Void> {
     }
 
     public int getBlockLight(int x, int y, int z) {
-        modified = true;
         int layer = y >> 4;
         byte[] blockLayer = blockLight[layer];
         if (blockLayer == null) {

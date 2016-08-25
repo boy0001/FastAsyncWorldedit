@@ -27,8 +27,8 @@ public class MutableMCABackedBaseBlock extends BaseBlock {
     }
 
     public void setArrays(int layer) {
-        data = chunk.data[layer];
         ids = chunk.ids[layer];
+        data = chunk.data[layer];
     }
 
     public void setIndex(int x, int y, int z, int index) {

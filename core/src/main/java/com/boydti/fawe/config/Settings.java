@@ -193,11 +193,10 @@ public class Settings extends Config {
         }
     }
 
-    @Comment("Experimental options")
+    @Comment("Experimental options, use at your own risk")
     public static class EXPERIMENTAL {
         @Comment({
-                "Directly modify the region files:",
-                " - May corrupt world if in use"
+                "Directly modify the region files.",
         })
         public static boolean ANVIL_QUEUE_MODE = false;
         @Comment({

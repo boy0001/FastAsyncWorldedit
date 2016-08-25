@@ -15,7 +15,6 @@ import com.sk89q.jnbt.NBTInputStream;
 import com.sk89q.jnbt.NBTOutputStream;
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
-import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
 import java.io.RandomAccessFile;
@@ -67,7 +66,7 @@ public class MCAFile {
         fieldBuf2.setAccessible(true);
         fieldBuf3 = NBTInputStream.class.getDeclaredField("buf");
         fieldBuf3.setAccessible(true);
-        fieldBuf4 = ByteArrayOutputStream.class.getDeclaredField("buf");
+        fieldBuf4 = FastByteArrayOutputStream.class.getDeclaredField("array");
         fieldBuf4.setAccessible(true);
         fieldBuf5 = DeflaterOutputStream.class.getDeclaredField("buf");
         fieldBuf5.setAccessible(true);
@@ -102,6 +101,7 @@ public class MCAFile {
         }
         NBTInputStream nis = getChunkIS(offset);
         MCAChunk chunk = new MCAChunk(nis, queue, cx, cz, size);
+        nis.close();
         int pair = MathMan.pair((short) (cx & 31), (short) (cz & 31));
         chunks.put(pair, chunk);
         return chunk;
@@ -207,6 +207,7 @@ public class MCAFile {
         NBTStreamer ns = new NBTStreamer(is);
         addReaders.run(ns);
         ns.readFully();
+        is.close();
     }
 
     /**
@@ -248,6 +249,7 @@ public class MCAFile {
         NBTOutputStream nos = new NBTOutputStream(bos);
         nos.writeNamedTag("", tag);
         bos.flush();
+        bos.close();
         byte[] result = baos.toByteArray();
         return result;
     }
@@ -267,13 +269,14 @@ public class MCAFile {
     private void writeHeader(int cx, int cz, int offsetMedium, int sizeByte) throws IOException {
         int i = ((cx & 31) << 2) + ((cz & 31) << 7);
         raf.seek(i);
-        raf.write((offsetMedium >>> 16) & 0xFF);
-        raf.write((offsetMedium >>> 8) & 0xFF);
-        raf.write((offsetMedium >>> 0) & 0xFF);
+        raf.write((offsetMedium >> 16));
+        raf.write((offsetMedium >> 8));
+        raf.write((offsetMedium >> 0));
         raf.write(sizeByte);
     }
 
     public void close() {
+        flush();
         try {
             raf.close();
         } catch (IOException e) {
@@ -336,7 +339,6 @@ public class MCAFile {
                     }
                 }
                 if (newBytes == null) {
-                    System.out.println("Deleting: " + cx + "," + cz);
                     // Don't write
                     continue;
                 }
@@ -353,16 +355,16 @@ public class MCAFile {
                         byte[] nextBytes = getChunkCompressedBytes(nextOffset2);
                         relocate.put(pair, nextBytes);
                     }
-                    System.out.println("Relocating " + nextCX + "," + nextCZ);
+//                    System.out.println("Relocating " + nextCX + "," + nextCZ);
                     int nextSize = MathMan.unpairY(nextLoc) << 12;
                     end += nextSize;
                     nextOffset2 += nextSize;
                 }
-                System.out.println("Writing: " + cx + "," + cz);
+//                System.out.println("Writing: " + cx + "," + cz);
                 writeSafe(start, newBytes);
-                if (offset != start || end != start + size) {
-                    System.out.println("Header: " + cx + "," + cz + " | " + offset + "," + start + " | " + end + "," + (start + size) + " | " + size + " | " + start);
-                    writeHeader(cx, cz, offset >> 12, newSize);
+                if (offset != start || end != start + size || oldSize != newSize) {
+//                    System.out.println("Header: " + cx + "," + cz + " | " + offset + "," + start + " | " + end + "," + (start + size) + " | " + size + " | " + start);
+                    writeHeader(cx, cz, start >> 12, newSize);
                 }
                 start += newSize << 12;
             }
