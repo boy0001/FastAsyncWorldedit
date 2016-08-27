@@ -111,8 +111,7 @@ public class MainUtil {
         }
     }
 
-    public static long traverse(Path path, final RunnableVal2<Path, BasicFileAttributes> onEach) {
-        final AtomicLong size = new AtomicLong(0);
+    public static void traverse(Path path, final RunnableVal2<Path, BasicFileAttributes> onEach) {
         try {
             Files.walkFileTree(path, new SimpleFileVisitor<Path>() {
                 @Override public FileVisitResult
@@ -133,7 +132,6 @@ public class MainUtil {
         catch (IOException e) {
             throw new AssertionError ("walkFileTree will not throw IOException if the FileVisitor does not");
         }
-        return size.get();
     }
 
     public static File getFile(File base, String path) {
