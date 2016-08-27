@@ -476,7 +476,7 @@ public class SpongeQueue_1_8 extends NMSMappedFaweQueue<World, net.minecraft.wor
             for (Map.Entry<BytePair, CompoundTag> entry : tilesToSpawn.entrySet()) {
                 CompoundTag nativeTag = entry.getValue();
                 BytePair pair = entry.getKey();
-                BlockPos pos = new BlockPos(MathMan.unpair16x(pair.pair[0]) + bx, pair.pair[1] & 0xFF, MathMan.unpair16y(pair.pair[0]) + bz); // Set pos
+                BlockPos pos = new BlockPos(MathMan.unpair16x((byte) pair.get0()) + bx, pair.get1() & 0xFF, MathMan.unpair16y((byte) pair.get0()) + bz); // Set pos
                 TileEntity tileEntity = nmsWorld.getTileEntity(pos);
                 if (tileEntity != null) {
                     NBTTagCompound tag = (NBTTagCompound) methodFromNative.invoke(null, nativeTag);

@@ -450,9 +450,9 @@ public class ForgeQueue_All extends NMSMappedFaweQueue<World, Chunk, ExtendedBlo
             for (Map.Entry<BytePair, CompoundTag> entry : tilesToSpawn.entrySet()) {
                 CompoundTag nativeTag = entry.getValue();
                 BytePair pair = entry.getKey();
-                int x = MathMan.unpair16x(pair.pair[0]) + bx;
-                int y = pair.pair[1] & 0xFF;
-                int z = MathMan.unpair16y(pair.pair[0]) + bz;
+                int x = MathMan.unpair16x((byte) pair.get0()) + bx;
+                int y = pair.get1() & 0xFF;
+                int z = MathMan.unpair16y((byte) pair.get0()) + bz;
                 TileEntity tileEntity = nmsWorld.getTileEntity(x, y, z);
                 if (tileEntity != null) {
                     NBTTagCompound tag = (NBTTagCompound) methodFromNative.invoke(null, nativeTag);

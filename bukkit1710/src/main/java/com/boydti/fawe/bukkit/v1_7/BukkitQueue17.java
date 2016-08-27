@@ -429,7 +429,7 @@ public class BukkitQueue17 extends BukkitQueue_0<Chunk, ChunkSection[], ChunkSec
             for (Map.Entry<BytePair, CompoundTag> entry : tilesToSpawn.entrySet()) {
                 CompoundTag nativeTag = entry.getValue();
                 BytePair pair = entry.getKey();
-                TileEntity tileEntity = nmsWorld.getTileEntity(MathMan.unpair16x(pair.pair[0]) + bx, pair.pair[1] & 0xFF, MathMan.unpair16y(pair.pair[0]) + bz);
+                TileEntity tileEntity = nmsWorld.getTileEntity(MathMan.unpair16x((byte) pair.get0()) + bx, pair.get1() & 0xFF, MathMan.unpair16y((byte) pair.get0()) + bz);
                 if (tileEntity != null) {
                     NBTTagCompound tag = (NBTTagCompound) methodFromNative.invoke(adapter, nativeTag);
                     tileEntity.a(tag); // ReadTagIntoTile
@@ -602,12 +602,7 @@ public class BukkitQueue17 extends BukkitQueue_0<Chunk, ChunkSection[], ChunkSec
 
     @Override
     public FaweChunk getFaweChunk(int x, int z) {
-        return new CharFaweChunk<Chunk>(this, x, z) {
-            @Override
-            public Chunk getNewChunk() {
-                return BukkitQueue17.this.getWorld().getChunkAt(getX(), getZ());
-            }
-        };
+        return new BukkitChunk_1_7(this, x, z);
     }
 
     @Override

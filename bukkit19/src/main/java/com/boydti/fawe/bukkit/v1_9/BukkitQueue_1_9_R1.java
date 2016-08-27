@@ -665,7 +665,7 @@ public class BukkitQueue_1_9_R1 extends BukkitQueue_0<Chunk, ChunkSection[], Chu
             for (Map.Entry<BytePair, CompoundTag> entry : tilesToSpawn.entrySet()) {
                 CompoundTag nativeTag = entry.getValue();
                 BytePair pair = entry.getKey();
-                BlockPosition pos = new BlockPosition(MathMan.unpair16x(pair.pair[0]) + bx, pair.pair[1] & 0xFF, MathMan.unpair16y(pair.pair[0]) + bz); // Set pos
+                BlockPosition pos = new BlockPosition(MathMan.unpair16x((byte) pair.get0()) + bx, pair.get1() & 0xFF, MathMan.unpair16y((byte) pair.get0()) + bz); // Set pos
                 TileEntity tileEntity = nmsWorld.getTileEntity(pos);
                 if (tileEntity != null) {
                     NBTTagCompound tag = (NBTTagCompound) methodFromNative.invoke(adapter, nativeTag);
