@@ -139,9 +139,9 @@ public class HistoryCommands {
         World world = player.getWorld();
         WorldVector origin = player.getPosition();
         Vector bot = origin.subtract(radius, radius, radius);
-        bot.setY(Math.max(0, bot.getY()));
+        bot = bot.setY(Math.max(0, bot.getY()));
         Vector top = origin.add(radius, radius, radius);
-        top.setY(Math.min(255, top.getY()));
+        top = top.setY(Math.min(255, top.getY()));
         RollbackDatabase database = DBHandler.IMP.getDatabase(world);
         final AtomicInteger count = new AtomicInteger();
         database.getPotentialEdits(other, System.currentTimeMillis() - timeDiff, bot, top, new RunnableVal<DiskStorageHistory>() {
