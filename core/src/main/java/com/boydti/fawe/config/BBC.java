@@ -146,6 +146,8 @@ public enum BBC {
             "&8[&cCritical&8] &cDetected low memory i.e. < 1%. FAWE will take the following actions:\n&8 - &7Terminate WE block placement\n&8 - &7Clear WE history\n&8 - &7Unload non essential chunks\n&8 - &7Kill entities\n&8 - &7Garbage collect\n&cIgnore this if trying to crash server.\n&7Note: Low memory is likely (but not necessarily) caused by WE",
             "Error"),
 
+    WORLDEDIT_SOME_FAILS("&c%s0 blocks weren't placed because they were outside your allowed region.", "Error"),
+
     WORLDEDIT_CANCEL_COUNT("&cCancelled %s0 edits.", "Cancel"),
     WORLDEDIT_CANCEL_REASON("&cYour WorldEdit action was cancelled:&7 %s0&c.", "Cancel"),
     WORLDEDIT_CANCEL_REASON_MANUAL("Manual cancellation", "Cancel"),
