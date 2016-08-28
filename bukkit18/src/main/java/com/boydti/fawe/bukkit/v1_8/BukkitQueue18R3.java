@@ -15,6 +15,7 @@ import com.sk89q.jnbt.CompoundTag;
 import com.sk89q.jnbt.ListTag;
 import com.sk89q.jnbt.StringTag;
 import com.sk89q.jnbt.Tag;
+import com.sk89q.worldedit.bukkit.adapter.BukkitImplAdapter;
 import com.sk89q.worldedit.internal.Constants;
 import java.io.File;
 import java.lang.reflect.Field;
@@ -65,9 +66,23 @@ import org.bukkit.generator.ChunkGenerator;
 
 public class BukkitQueue18R3 extends BukkitQueue_0<Chunk, ChunkSection[], ChunkSection> {
 
+    public static Field isDirty;
+
     public BukkitQueue18R3(final String world) {
         super(world);
         checkVersion("v1_8_R3");
+    }
+
+    @Override
+    public void setupAdapter(BukkitImplAdapter adapter) {
+        if (this.adapter == null) {
+            try {
+                isDirty = ChunkSection.class.getDeclaredField("isDirty");
+                isDirty.setAccessible(true);
+                Fawe.debug("isDirty found");
+            } catch (Throwable e) {}
+        }
+        super.setupAdapter(adapter);
     }
 
     @Override
@@ -351,6 +366,9 @@ public class BukkitQueue18R3 extends BukkitQueue_0<Chunk, ChunkSection[], ChunkS
                     continue;
                 }
                 ChunkSection section = sections[j];
+                if (section != null && isDirty != null) {
+                    isDirty.set(section, true);
+                }
                 if ((section == null) || (fs.getCount(j) >= 4096)) {
                     section = new ChunkSection(j << 4, flag, newArray);
                     sections[j] = section;
