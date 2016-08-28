@@ -52,7 +52,7 @@ public class ToolCommands {
     }
 
     @Command(
-            aliases = { "inspect", "i" },
+            aliases = { "inspect" },
             usage = "",
             desc = "Inspect edits within a radius",
             help =
