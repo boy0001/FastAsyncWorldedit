@@ -159,7 +159,7 @@ public final class NBTInputStream implements Closeable {
                             }
                             int left = length;
                             for (; left > 720; left -= 720) {
-                                dis.read(buf);
+                                dis.readFully(buf);
                                 for (byte b : buf) {
                                     byteReader.run(i++, b & 0xFF);
                                 }
