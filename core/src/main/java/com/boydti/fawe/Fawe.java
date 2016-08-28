@@ -16,6 +16,8 @@ import com.boydti.fawe.util.StringMan;
 import com.boydti.fawe.util.TaskManager;
 import com.boydti.fawe.util.WEManager;
 import com.boydti.fawe.util.WESubscriber;
+import com.sk89q.jnbt.NBTInputStream;
+import com.sk89q.jnbt.NBTOutputStream;
 import com.sk89q.worldedit.CuboidClipboard;
 import com.sk89q.worldedit.EditSession;
 import com.sk89q.worldedit.LocalSession;
@@ -366,6 +368,9 @@ public class Fawe {
             // BlockData
             BlockData.inject(); // Temporary fix for 1.9.4
             BundledBlockData.inject(); // Add custom rotation
+            // NBT
+            NBTInputStream.inject(); // Add actual streaming + Optimizations + New methods
+            NBTOutputStream.inject(); // New methods
             try {
                 CommandManager.inject(); // Async commands
                 PlatformManager.inject(); // Async brushes / tools
