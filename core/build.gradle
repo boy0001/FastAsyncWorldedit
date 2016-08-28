@@ -18,5 +18,17 @@ processResources {
     }
 }
 
-jar.archiveName="FastAsyncWorldEdit-API.jar"
-jar.destinationDir = file '../target'
+jar.archiveName="fawe-api-${project.parent.version}.jar"
+jar.destinationDir = file '../target/com/boydti/fawe-api/' + project.parent.version
+
+task createPom << {
+    pom {
+        project {
+            groupId 'com.boydti'
+            artifactId 'fawe-api'
+            version project.parent.version
+        }
+    }.writeTo("../target/com/boydti/fawe-api/${project.parent.version}/fawe-api-${project.parent.version}.pom")
+}
+
+build.finalizedBy(createPom)
