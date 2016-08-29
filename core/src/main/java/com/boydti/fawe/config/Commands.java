@@ -30,87 +30,97 @@ public class Commands {
     }
 
     public static Command translate(final Command command) {
-        if (cmdConfig == null) {
+        if (cmdConfig == null || command instanceof TranslatedCommand) {
+            System.out.println("NO TRANSLATION FOR " + command.aliases()[0]);
             return command;
         }
+        return new TranslatedCommand(command);
+    }
 
-        String id = command.aliases()[0];
-        ConfigurationSection commands = cmdConfig.getConfigurationSection(id);
-        boolean set = false;
-        if (commands == null) {
-            set = (commands = cmdConfig.createSection(id)) != null;
+    public static class TranslatedCommand implements Command {
+        private final String[] aliases;
+        private final String usage;
+        private final String desc;
+        private final String help;
+        private final Command command;
+
+        public TranslatedCommand(Command command) {
+            String id = command.aliases()[0];
+            ConfigurationSection commands = cmdConfig.getConfigurationSection(id);
+            boolean set = false;
+            if (commands == null) {
+                set = (commands = cmdConfig.createSection(id)) != null;
+            }
+
+            HashMap<String, Object> options = new HashMap<>();
+            options.put("aliases", new ArrayList<String>(Arrays.asList(command.aliases())));
+            options.put("usage", command.usage());
+            options.put("desc", command.desc());
+            options.put("help", command.help());
+            for (Map.Entry<String, Object> entry : options.entrySet()) {
+                String key = entry.getKey();
+                if (!commands.contains(key)) {
+                    commands.set(key, entry.getValue());
+                    set = true;
+                }
+            }
+            if (set) {
+                try {
+                    cmdConfig.save(cmdFile);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+            this.aliases = commands.getStringList("aliases").toArray(new String[0]);
+            this.usage = commands.getString("usage");
+            this.desc = commands.getString("desc");
+            this.help = commands.getString("help");
+            this.command = command;
         }
 
-        HashMap<String, Object> options = new HashMap<>();
-        options.put("aliases", new ArrayList<String>(Arrays.asList(command.aliases())));
-        options.put("usage", command.usage());
-        options.put("desc", command.desc());
-        options.put("help", command.help());
-
-        for (Map.Entry<String, Object> entry : options.entrySet()) {
-            String key = entry.getKey();
-            if (!commands.contains(key)) {
-                commands.set(key, entry.getValue());
-                set = true;
-            }
+        @Override
+        public Class<? extends Annotation> annotationType() {
+            return command.annotationType();
         }
-        if (set) {
-            try {
-                cmdConfig.save(cmdFile);
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
+
+        @Override
+        public String[] aliases() {
+            return aliases;
         }
-        final String[] aliases = commands.getStringList("aliases").toArray(new String[0]);
-        final String usage = commands.getString("usage");
-        final String desc = commands.getString("desc");
-        final String help = commands.getString("help");
 
-        return new Command() {
-            @Override
-            public Class<? extends Annotation> annotationType() {
-                return command.annotationType();
-            }
+        @Override
+        public String usage() {
+            return usage;
+        }
 
-            @Override
-            public String[] aliases() {
-                return aliases;
-            }
+        @Override
+        public String desc() {
+            return desc;
+        }
 
-            @Override
-            public String usage() {
-                return usage;
-            }
+        @Override
+        public int min() {
+            return command.min();
+        }
 
-            @Override
-            public String desc() {
-                return desc;
-            }
+        @Override
+        public int max() {
+            return command.max();
+        }
 
-            @Override
-            public int min() {
-                return command.min();
-            }
+        @Override
+        public String flags() {
+            return command.flags();
+        }
 
-            @Override
-            public int max() {
-                return command.max();
-            }
+        @Override
+        public String help() {
+            return help;
+        }
 
-            @Override
-            public String flags() {
-                return command.flags();
-            }
-
-            @Override
-            public String help() {
-                return help;
-            }
-
-            @Override
-            public boolean anyFlags() {
-                return command.anyFlags();
-            }
-        };
+        @Override
+        public boolean anyFlags() {
+            return command.anyFlags();
+        }
     }
 }

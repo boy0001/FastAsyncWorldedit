@@ -711,6 +711,9 @@ public class EditSession implements Extent {
 
     @Override
     public BaseBlock getBlock(final Vector position) {
+        if (position.y > 255 || position.y < 0) {
+            return nullBlock;
+        }
         return getLazyBlock((int) position.x, (int) position.y, (int) position.z);
     }
 

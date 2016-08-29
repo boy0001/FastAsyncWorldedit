@@ -150,6 +150,15 @@ public abstract class FawePlayer<T> {
         return FaweAPI.getWorld(getLocation().world);
     }
 
+    public FaweQueue getMaskedFaweQueue(boolean autoQueue) {
+        FaweQueue queue = SetQueue.IMP.getNewQueue(getLocation().world, true, autoQueue);
+        RegionWrapper[] allowedRegions = getCurrentRegions();
+        if (allowedRegions.length == 1 && allowedRegions[0].isGlobal()) {
+            return queue;
+        }
+        return new MaskedFaweQueue(queue, allowedRegions);
+    }
+
     /**
      * Load all the undo EditSession's from disk for a world <br>
      *     - Usually already called when necessary
