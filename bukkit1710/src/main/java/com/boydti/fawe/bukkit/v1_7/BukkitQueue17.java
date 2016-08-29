@@ -378,8 +378,8 @@ public class BukkitQueue17 extends BukkitQueue_0<Chunk, ChunkSection[], ChunkSec
                 }
                 byte[] currentIdArray = (byte[]) fieldIds.get(section);
                 NibbleArray currentDataArray = (NibbleArray) fieldData.get(section);
-                boolean data = currentDataArray != null;
-                if (!data && newDataArray != null) {
+                boolean data = currentDataArray != null && newDataArray != null;
+                if (!data) {
                     section.setDataArray(newDataArray);
                 }
                 if (currentIdArray == null) {
@@ -645,12 +645,12 @@ public class BukkitQueue17 extends BukkitQueue_0<Chunk, ChunkSection[], ChunkSec
 
     @Override
     public int getOpacity(ChunkSection section, int x, int y, int z) {
-        return section.getTypeId(x, y, z).k();
+        return section.getTypeId(x & 15, y & 15, z & 15).k();
     }
 
     @Override
     public int getBrightness(ChunkSection section, int x, int y, int z) {
-        return section.getTypeId(x, y, z).m();
+        return section.getTypeId(x & 15, y & 15, z & 15).m();
     }
 
     @Override
@@ -661,7 +661,7 @@ public class BukkitQueue17 extends BukkitQueue_0<Chunk, ChunkSection[], ChunkSec
 
     @Override
     public int getOpacityBrightnessPair(ChunkSection section, int x, int y, int z) {
-        Block block = section.getTypeId(x, y, z);
+        Block block = section.getTypeId(x & 15, y & 15, z & 15);
         return MathMan.pair16(block.k(), block.m());
     }
 
