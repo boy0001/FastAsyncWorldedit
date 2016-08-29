@@ -61,7 +61,6 @@ import com.sk89q.worldedit.session.ClipboardHolder;
 import com.sk89q.worldedit.util.Location;
 import com.sk89q.worldedit.util.command.binding.Switch;
 import com.sk89q.worldedit.util.command.parametric.Optional;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.net.URL;
 import java.util.Iterator;
@@ -233,10 +232,6 @@ public class ClipboardCommands {
                     ClipboardWriter writer = format.getWriter(baos);
                     writer.write(clipboard, null);
                     baos.flush();
-                    FileOutputStream fos = new FileOutputStream("blah.png");
-                    fos.write(baos.toByteArray());
-                    fos.close();
-                    url = null;
                     url = ImgurUtility.uploadImage(baos.toByteArray());
                 } catch (IOException e) {
                     e.printStackTrace();

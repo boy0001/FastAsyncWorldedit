@@ -69,11 +69,11 @@ public enum ClipboardFormat {
 
         @Override
         public ClipboardWriter getWriter(OutputStream outputStream) throws IOException {
-            outputStream = new BufferedOutputStream(outputStream);
             GZIPOutputStream gzip;
             if (outputStream instanceof GZIPOutputStream) {
                 gzip = (GZIPOutputStream) outputStream;
             } else {
+                outputStream = new BufferedOutputStream(outputStream);
                 gzip = new GZIPOutputStream(outputStream, true);
             }
             NBTOutputStream nbtStream = new NBTOutputStream(new BufferedOutputStream(gzip));
