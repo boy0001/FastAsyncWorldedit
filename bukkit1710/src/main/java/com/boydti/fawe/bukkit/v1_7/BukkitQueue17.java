@@ -65,9 +65,22 @@ import org.bukkit.generator.ChunkGenerator;
 
 public class BukkitQueue17 extends BukkitQueue_0<Chunk, ChunkSection[], ChunkSection> {
 
+    private static Field fieldData;
+    private static Field fieldIds;
+
     public BukkitQueue17(final String world) {
         super(world);
         checkVersion("v1_7_R4");
+        if (fieldData == null) {
+            try {
+                fieldData = ChunkSection.class.getDeclaredField("blockData");
+                fieldData.setAccessible(true);
+                fieldIds = ChunkSection.class.getDeclaredField("blockIds");
+                fieldIds.setAccessible(true);
+            } catch (NoSuchFieldException e) {
+                e.printStackTrace();
+            }
+        }
     }
 
     @Override
@@ -358,24 +371,31 @@ public class BukkitQueue17 extends BukkitQueue_0<Chunk, ChunkSection[], ChunkSec
                 if ((section == null) || (fs.getCount(j) >= 4096)) {
                     sections[j] = section = new ChunkSection(j << 4, flag);
                     section.setIdArray(newIdArray);
-                    section.setDataArray(newDataArray);
+                    if (newDataArray != null) {
+                        section.setDataArray(newDataArray);
+                    }
                     continue;
                 }
-                byte[] currentIdArray = section.getIdArray();
-                NibbleArray currentDataArray = section.getDataArray();
+                byte[] currentIdArray = (byte[]) fieldIds.get(section);
+                NibbleArray currentDataArray = (NibbleArray) fieldData.get(section);
                 boolean data = currentDataArray != null;
-                if (!data) {
+                if (!data && newDataArray != null) {
                     section.setDataArray(newDataArray);
+                }
+                if (currentIdArray == null) {
+                    section.setIdArray(newIdArray);
+                    continue;
                 }
                 boolean fill = true;
                 int solid = 0;
+                char[] charArray = fs.getIdArray(j);
                 for (int k = 0; k < newIdArray.length; k++) {
-                    byte n = newIdArray[k];
-                    switch (n) {
+                    char combined = charArray[k];
+                    switch (combined) {
                         case 0:
                             fill = false;
                             continue;
-                        case -1:
+                        case 1:
                             fill = false;
                             if (currentIdArray[k] != 0) {
                                 solid++;
@@ -384,16 +404,14 @@ public class BukkitQueue17 extends BukkitQueue_0<Chunk, ChunkSection[], ChunkSec
                             continue;
                         default:
                             solid++;
-                            currentIdArray[k] = n;
+                            currentIdArray[k] = newIdArray[k];
                             if (data) {
+                                int dataByte = FaweCache.getData(combined);
                                 int x = FaweCache.CACHE_X[0][k];
                                 int y = FaweCache.CACHE_Y[0][k];
                                 int z = FaweCache.CACHE_Z[0][k];
-                                int newData = newDataArray == null ? 0 : newDataArray.a(x, y, z);
-                                int currentData = currentDataArray == null ? 0 : currentDataArray.a(x, y, z);
-                                if (newData != currentData) {
-                                    currentDataArray.a(x, y, z, newData);
-                                }
+                                int newData = newDataArray.a(x, y, z);
+                                currentDataArray.a(x, y, z, newData);
                             }
                             continue;
                     }
@@ -489,13 +507,13 @@ public class BukkitQueue17 extends BukkitQueue_0<Chunk, ChunkSection[], ChunkSec
             // Send chunks
             int mask = fc.getBitMask();
             if (mask == 65535 && hasEntities(nmsChunk)) {
-                PacketPlayOutMapChunk packet = new PacketPlayOutMapChunk(nmsChunk, false, 65280, 25);
+                PacketPlayOutMapChunk packet = new PacketPlayOutMapChunk(nmsChunk, false, 65280, 5);
                 for (EntityPlayer player : players) {
                     player.playerConnection.sendPacket(packet);
                 }
                 mask = 255;
             }
-            PacketPlayOutMapChunk packet = new PacketPlayOutMapChunk(nmsChunk, false, mask, 25);
+            PacketPlayOutMapChunk packet = new PacketPlayOutMapChunk(nmsChunk, false, mask, 5);
             for (EntityPlayer player : players) {
                 player.playerConnection.sendPacket(packet);
             }
