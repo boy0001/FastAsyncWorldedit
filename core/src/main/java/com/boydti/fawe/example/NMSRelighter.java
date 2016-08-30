@@ -155,8 +155,8 @@ public class NMSRelighter {
         Collections.sort(chunksList);
         int size = chunksList.size();
         if (size > DISPATCH_SIZE) {
-            int amount = (size + 1) / DISPATCH_SIZE;
-            for (int i = 0; i <= amount; i++) {
+            int amount = (size + DISPATCH_SIZE - 1) / DISPATCH_SIZE;
+            for (int i = 0; i < amount; i++) {
                 int start = i * DISPATCH_SIZE;
                 int end = Math.min(size, start + DISPATCH_SIZE);
                 List<RelightSkyEntry> sub = chunksList.subList(start, end);
