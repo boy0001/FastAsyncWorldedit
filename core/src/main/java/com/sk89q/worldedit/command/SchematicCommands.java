@@ -22,6 +22,7 @@ package com.sk89q.worldedit.command;
 import com.boydti.fawe.config.BBC;
 import com.boydti.fawe.config.Settings;
 import com.boydti.fawe.object.schematic.StructureFormat;
+import com.boydti.fawe.util.MathMan;
 import com.sk89q.minecraft.util.commands.Command;
 import com.sk89q.minecraft.util.commands.CommandContext;
 import com.sk89q.minecraft.util.commands.CommandException;
@@ -267,7 +268,9 @@ public class SchematicCommands {
 
         File[] files = new File[fileList.size()];
         fileList.toArray(files);
-
+        if (args.argsLength() > 0 && MathMan.isInteger(args.getString(0))) {
+            page = args.getInteger(0);
+        }
         int pageCount = files.length / SCHEMATICS_PER_PAGE + 1;
         if (page < 1) {
             BBC.SCHEMATIC_PAGE.send(actor, ">0");
