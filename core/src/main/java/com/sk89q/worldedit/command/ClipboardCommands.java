@@ -53,6 +53,7 @@ import com.sk89q.worldedit.function.pattern.Pattern;
 import com.sk89q.worldedit.internal.annotation.Direction;
 import com.sk89q.worldedit.internal.annotation.Selection;
 import com.sk89q.worldedit.math.transform.AffineTransform;
+import com.sk89q.worldedit.math.transform.Transform;
 import com.sk89q.worldedit.regions.CuboidRegion;
 import com.sk89q.worldedit.regions.Region;
 import com.sk89q.worldedit.regions.RegionSelector;
@@ -223,6 +224,17 @@ public class ClipboardCommands {
         }
         ClipboardHolder holder = session.getClipboard();
         Clipboard clipboard = holder.getClipboard();
+        final Transform transform = holder.getTransform();
+        final Clipboard target;
+        // If we have a transform, bake it into the copy
+        if (!transform.isIdentity()) {
+            final FlattenedClipboardTransform result = FlattenedClipboardTransform.transform(clipboard, transform, holder.getWorldData());
+            target = new BlockArrayClipboard(result.getTransformedRegion(), player.getUniqueId());
+            target.setOrigin(clipboard.getOrigin());
+            Operations.completeLegacy(result.copyTo(target));
+        } else {
+            target = clipboard;
+        }
         BBC.GENERATING_LINK.send(player, formatName);
         URL url;
         switch (format) {
@@ -230,7 +242,7 @@ public class ClipboardCommands {
                 try {
                     FastByteArrayOutputStream baos = new FastByteArrayOutputStream(Short.MAX_VALUE);
                     ClipboardWriter writer = format.getWriter(baos);
-                    writer.write(clipboard, null);
+                    writer.write(target, null);
                     baos.flush();
                     url = ImgurUtility.uploadImage(baos.toByteArray());
                 } catch (IOException e) {
@@ -239,7 +251,7 @@ public class ClipboardCommands {
                 }
                 break;
             case SCHEMATIC:
-                url = FaweAPI.upload(clipboard, format);
+                url = FaweAPI.upload(target, format);
                 break;
             default:
                 url = null;

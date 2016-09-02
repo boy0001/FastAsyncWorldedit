@@ -103,11 +103,10 @@ public class RegionCommands {
     public void fixlighting(Player player, EditSession editSession) throws WorldEditException {
         FawePlayer fp = FawePlayer.wrap(player);
         final FaweLocation loc = fp.getLocation();
-        final int cx = loc.x >> 4;
-        final int cz = loc.z >> 4;
-
         Region selection = fp.getSelection();
         if (selection == null) {
+            final int cx = loc.x >> 4;
+            final int cz = loc.z >> 4;
             selection = new CuboidRegion(new Vector(cx - 8, 0, cz - 8).multiply(16), new Vector(cx + 8, 0, cz + 8).multiply(16));
         }
         int count = FaweAPI.fixLighting(loc.world, selection, FaweQueue.RelightMode.ALL);
@@ -124,11 +123,10 @@ public class RegionCommands {
     public void removelighting(Player player, EditSession editSession) {
         FawePlayer fp = FawePlayer.wrap(player);
         final FaweLocation loc = fp.getLocation();
-        final int cx = loc.x >> 4;
-        final int cz = loc.z >> 4;
-
         Region selection = fp.getSelection();
         if (selection == null) {
+            final int cx = loc.x >> 4;
+            final int cz = loc.z >> 4;
             selection = new CuboidRegion(new Vector(cx - 8, 0, cz - 8).multiply(16), new Vector(cx + 8, 0, cz + 8).multiply(16));
         }
         int count = FaweAPI.fixLighting(loc.world, selection, FaweQueue.RelightMode.NONE);
@@ -238,7 +236,7 @@ public class RegionCommands {
                       @Optional("0") @Range(min = 0) int thickness,
                       @Switch('h') boolean shell) throws WorldEditException {
         if (!(region instanceof ConvexPolyhedralRegion)) {
-            player.printError("//line only works with convex polyhedral selections");
+            player.printError("//curve only works with convex polyhedral selections");
             return;
         }
 

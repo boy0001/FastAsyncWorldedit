@@ -298,6 +298,14 @@ public final class NBTOutputStream implements Closeable {
         os.close();
     }
 
+    /**
+     * Flush output.
+     * @throws IOException
+     */
+    public void flush() throws IOException {
+        this.os.flush();
+    }
+
     public static Class<?> inject() {
         return NBTOutputStream.class;
     }

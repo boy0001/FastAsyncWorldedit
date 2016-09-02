@@ -24,6 +24,7 @@ import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -136,6 +137,21 @@ public class BukkitQueue_1_10 extends BukkitQueue_0<Chunk, ChunkSection[], Chunk
         if (folder.exists() && !folder.isDirectory()) {
             throw new IllegalArgumentException("File exists with the name '" + name + "' and isn't a folder");
         }
+        TaskManager.IMP.sync(new RunnableVal<Object>() {
+            @Override
+            public void run(Object value) {
+                try {
+                    Field field = CraftServer.class.getDeclaredField("worlds");
+                    field.setAccessible(true);
+                    Map<Object, Object> existing = (Map<Object, Object>) field.get(server);
+                    if (!existing.getClass().getName().contains("SynchronizedMap")) {
+                        field.set(server, Collections.synchronizedMap(existing));
+                    }
+                } catch (Throwable e) {
+                    e.printStackTrace();
+                }
+            }
+        });
         if (generator == null) {
             generator = server.getGenerator(name);
         }

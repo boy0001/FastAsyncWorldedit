@@ -32,7 +32,6 @@ import com.sk89q.worldedit.WorldEditException;
 import com.sk89q.worldedit.extent.Extent;
 import com.sk89q.worldedit.extent.clipboard.Clipboard;
 import com.sk89q.worldedit.extent.clipboard.io.ClipboardFormat;
-import com.sk89q.worldedit.extent.clipboard.io.ClipboardWriter;
 import com.sk89q.worldedit.regions.Region;
 import com.sk89q.worldedit.world.AbstractWorld;
 import com.sk89q.worldedit.world.World;
@@ -54,8 +53,8 @@ import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 import java.util.zip.GZIPInputStream;
-import java.util.zip.GZIPOutputStream;
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 
 /**
  * The FaweAPI class offers a few useful functions.<br>
@@ -137,10 +136,11 @@ public class FaweAPI {
             @Override
             public void run(OutputStream value) {
                 try {
-                    GZIPOutputStream gzip = new GZIPOutputStream(value, true);
-                    ClipboardWriter writer = format.getWriter(gzip);
-                    writer.write(clipboard, null);
-                    gzip.flush();
+                    value.write(new String("test").getBytes());
+//                    GZIPOutputStream gzip = new GZIPOutputStream(value, true);
+//                    ClipboardWriter writer = format.getWriter(gzip);
+//                    writer.write(clipboard, null);
+//                    gzip.flush();
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
@@ -390,6 +390,10 @@ public class FaweAPI {
      * @return
      */
     public static int fixLighting(String world, Region selection, final FaweQueue.RelightMode mode) {
+        return fixLighting(world, selection, null, mode);
+    }
+
+    public static int fixLighting(String world, Region selection, @Nullable FaweQueue queue, final FaweQueue.RelightMode mode) {
         final Vector bot = selection.getMinimumPoint();
         final Vector top = selection.getMaximumPoint();
 
@@ -400,7 +404,9 @@ public class FaweAPI {
         final int maxZ = top.getBlockZ() >> 4;
 
         int count = 0;
-        final FaweQueue queue = SetQueue.IMP.getNewQueue(world, true, false);
+        if (queue == null) {
+            queue = SetQueue.IMP.getNewQueue(world, true, false);
+        }
         // Remove existing lighting first
         if (queue instanceof NMSMappedFaweQueue) {
             final NMSMappedFaweQueue nmsQueue = (NMSMappedFaweQueue) queue;

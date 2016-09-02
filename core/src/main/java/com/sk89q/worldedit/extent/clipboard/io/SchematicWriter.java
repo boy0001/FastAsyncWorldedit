@@ -108,6 +108,7 @@ public class SchematicWriter implements ClipboardWriter {
     @Override
     public void write(Clipboard clipboard, WorldData data) throws IOException {
         outputStream.writeNamedTag("Schematic", writeTag(clipboard));
+        outputStream.flush();
     }
 
     public static CompoundTag writeTag(Clipboard clipboard) {

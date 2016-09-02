@@ -269,8 +269,7 @@ public class MainUtil {
             URLConnection con = new URL(website).openConnection();
             con.setDoOutput(true);
             con.setRequestProperty("Content-Type", "multipart/form-data; boundary=" + boundary);
-            try (OutputStream output = con.getOutputStream();
-                 PrintWriter writer = new PrintWriter(new OutputStreamWriter(output, StandardCharsets.UTF_8), true)) {
+            try (OutputStream output = con.getOutputStream(); PrintWriter writer = new PrintWriter(new OutputStreamWriter(output, StandardCharsets.UTF_8), true)) {
                 String CRLF = "\r\n";
                 writer.append("--" + boundary).append(CRLF);
                 writer.append("Content-Disposition: form-data; name=\"param\"").append(CRLF);

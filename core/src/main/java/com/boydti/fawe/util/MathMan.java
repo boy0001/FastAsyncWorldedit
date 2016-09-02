@@ -43,15 +43,6 @@ public class MathMan {
             253, 254, 254, 255
     };
 
-    public static void main(String[] args) {
-        double val;
-        val = 10.2;
-        System.out.println(inverseRound(10.2) + " " + 11);
-        System.out.println(inverseRound(10.8) + " " + 10);
-        System.out.println(inverseRound(-10.2) + " " + -11);
-        System.out.println(inverseRound(-10.8) + " " + -10);
-    }
-
     public static long inverseRound(double val) {
         long round = Math.round(val);
         return (long) (round + Math.signum(val - round));

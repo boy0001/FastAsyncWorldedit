@@ -31,7 +31,6 @@ public class Commands {
 
     public static Command translate(final Command command) {
         if (cmdConfig == null || command instanceof TranslatedCommand) {
-            System.out.println("NO TRANSLATION FOR " + command.aliases()[0]);
             return command;
         }
         return new TranslatedCommand(command);
