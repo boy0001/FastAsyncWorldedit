@@ -584,7 +584,9 @@ public class BukkitQueue18R3 extends BukkitQueue_0<Chunk, ChunkSection[], ChunkS
         worlddata.checkName(name);
         final WorldServer internal = (WorldServer)new WorldServer(console, sdm, worlddata, dimension, console.methodProfiler, creator.environment(), generator).b();
         startSet(true); // Temporarily allow async chunk load since the world isn't added yet
-        internal.a(worldSettings);
+        if (worldSettings != null) {
+            internal.a(worldSettings);
+        }
         endSet(true);
         internal.scoreboard = server.getScoreboardManager().getMainScoreboard().getHandle();
         internal.tracker = new EntityTracker(internal);
