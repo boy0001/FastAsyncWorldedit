@@ -1124,9 +1124,13 @@ public class EditSession implements Extent {
     public void flushQueue() {
         Operations.completeBlindly(commit());
         // Check fails
-        int fails = getLimitUsed().MAX_FAILS;
-        if (fails > 0) {
-            BBC.WORLDEDIT_SOME_FAILS.send(player, fails);
+        FaweLimit used = getLimitUsed();
+        if (used.MAX_FAILS > 0) {
+            if (used.MAX_CHANGES > 0 || used.MAX_ENTITIES > 0) {
+                BBC.WORLDEDIT_SOME_FAILS.send(player, used.MAX_FAILS);
+            } else {
+                BBC.WORLDEDIT_CANCEL_REASON_MAX_FAILS.send(player);
+            }
         }
         // Enqueue it
         if (queue == null || queue.size() == 0) {
