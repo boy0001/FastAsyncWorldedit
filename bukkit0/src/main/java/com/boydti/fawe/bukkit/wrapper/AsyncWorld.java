@@ -125,24 +125,9 @@ public class AsyncWorld implements World {
      * @param creator
      * @return
      */
-    public static AsyncWorld create(final WorldCreator creator) {
-        if (!loading.compareAndSet(false, true)) {
-            synchronized (loading) {
-                while (loading.get()) {
-                    try {
-                        loading.wait(10000);
-                    } catch (InterruptedException e) {
-                        e.printStackTrace();
-                    }
-                }
-            }
-        }
+    public synchronized static AsyncWorld create(final WorldCreator creator) {
         BukkitQueue_0 queue = (BukkitQueue_0) SetQueue.IMP.getNewQueue(creator.name(), true, false);
         World world = queue.createWorld(creator);
-        synchronized (loading) {
-            loading.set(false);
-            loading.notifyAll();
-        }
         return wrap(world);
     }
 
