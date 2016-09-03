@@ -198,7 +198,12 @@ public class WorldWrapper extends LocalWorld {
 
     @Override
     public boolean queueBlockBreakEffect(Platform server, Vector position, int blockId, double priority) {
-        return parent.queueBlockBreakEffect(server, position, blockId, priority);
+        try {
+            return setBlock(position, EditSession.nullBlock, true);
+        } catch (WorldEditException e) {
+            e.printStackTrace();
+            return false;
+        }
     }
 
     @Override

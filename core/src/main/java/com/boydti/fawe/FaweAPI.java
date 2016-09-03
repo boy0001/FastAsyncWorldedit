@@ -32,6 +32,7 @@ import com.sk89q.worldedit.WorldEditException;
 import com.sk89q.worldedit.extent.Extent;
 import com.sk89q.worldedit.extent.clipboard.Clipboard;
 import com.sk89q.worldedit.extent.clipboard.io.ClipboardFormat;
+import com.sk89q.worldedit.extent.clipboard.io.ClipboardWriter;
 import com.sk89q.worldedit.regions.Region;
 import com.sk89q.worldedit.world.AbstractWorld;
 import com.sk89q.worldedit.world.World;
@@ -53,6 +54,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 import java.util.zip.GZIPInputStream;
+import java.util.zip.GZIPOutputStream;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
@@ -136,11 +138,10 @@ public class FaweAPI {
             @Override
             public void run(OutputStream value) {
                 try {
-                    value.write(new String("test").getBytes());
-//                    GZIPOutputStream gzip = new GZIPOutputStream(value, true);
-//                    ClipboardWriter writer = format.getWriter(gzip);
-//                    writer.write(clipboard, null);
-//                    gzip.flush();
+                    GZIPOutputStream gzip = new GZIPOutputStream(value, true);
+                    ClipboardWriter writer = format.getWriter(gzip);
+                    writer.write(clipboard, null);
+                    gzip.flush();
                 } catch (IOException e) {
                     e.printStackTrace();
                 }

@@ -16,6 +16,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
+import java.util.concurrent.atomic.AtomicBoolean;
 import org.bukkit.BlockChangeDelegate;
 import org.bukkit.Bukkit;
 import org.bukkit.Chunk;
@@ -116,6 +117,8 @@ public class AsyncWorld implements World {
         return queue;
     }
 
+    private static AtomicBoolean loading = new AtomicBoolean(false);
+
     /**
      * Create a world async (untested)
      *  - Only optimized for 1.10
@@ -123,8 +126,23 @@ public class AsyncWorld implements World {
      * @return
      */
     public static AsyncWorld create(final WorldCreator creator) {
+        if (!loading.compareAndSet(false, true)) {
+            synchronized (loading) {
+                while (loading.get()) {
+                    try {
+                        loading.wait(10000);
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
+                }
+            }
+        }
         BukkitQueue_0 queue = (BukkitQueue_0) SetQueue.IMP.getNewQueue(creator.name(), true, false);
         World world = queue.createWorld(creator);
+        synchronized (loading) {
+            loading.set(false);
+            loading.notifyAll();
+        }
         return wrap(world);
     }
 
