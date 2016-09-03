@@ -33,7 +33,7 @@ public class InspectBrush extends BrushTool implements DoubleActionTraceTool {
      * Construct the tool.
      */
     public InspectBrush() {
-        super("worldedit.brush.inspect");
+        super("worldedit.tool.inspect");
     }
 
     @Override
