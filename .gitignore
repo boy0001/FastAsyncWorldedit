@@ -22,4 +22,4 @@ gradle.log
 /bukkit19/build
 /bukkit18/build
 build
-mvn/com/boydti/fawe-api/unknown/fawe-api-unknown.jar
+/mvn

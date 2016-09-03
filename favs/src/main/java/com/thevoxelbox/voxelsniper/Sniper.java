@@ -75,14 +75,17 @@ public class Sniper {
     }
 
     // Added
-    private AsyncWorld tmpWorld;
+    private AsyncWorld permanentWorld;
     private MaskedFaweQueue maskQueue;
     private ChangeSetFaweQueue changeQueue;
     private FaweQueue baseQueue;
 
     // Added
     public AsyncWorld getWorld() {
-        if (this.tmpWorld == null) {
+        if (permanentWorld == null) {
+            permanentWorld = new AsyncWorld(null, null);
+        }
+        if (this.maskQueue == null) {
             Player player = getPlayer();
             FawePlayer<Player> fp = FawePlayer.wrap(player);
             if (this.baseQueue == null || !StringMan.isEqual(baseQueue.getWorldName(), player.getWorld().getName())) {
@@ -96,9 +99,9 @@ public class Sniper {
                 changeSet = LoggingChangeSet.wrap(fp, changeSet);
             }
             this.changeQueue = new ChangeSetFaweQueue(changeSet, maskQueue);
-            tmpWorld = new AsyncWorld(player.getWorld(), changeQueue);
+            permanentWorld.changeWorld(player.getWorld(), changeQueue);
         }
-        return tmpWorld;
+        return permanentWorld;
     }
 
     public Player getPlayer() {
@@ -123,7 +126,7 @@ public class Sniper {
                 if (fp.getMeta("fawe_action") != null) {
                     return false;
                 }
-                tmpWorld = null;
+                maskQueue = null;
                 if (clickedBlock != null) {
                     clickedBlock = getWorld().getBlockAt(clickedBlock.getX(), clickedBlock.getY(), clickedBlock.getZ());
                 }
@@ -155,7 +158,6 @@ public class Sniper {
                 getPlayer().sendMessage("No Brush selected.");
                 return true;
             }
-
             if (!getPlayer().hasPermission(sniperTool.getCurrentBrush().getPermissionNode())) {
                 getPlayer().sendMessage("You are not allowed to use this brush. You're missing the permission node '" + sniperTool.getCurrentBrush().getPermissionNode() + "'");
                 return true;
@@ -293,17 +295,7 @@ public class Sniper {
                     }
                 }
 
-//                if (sniperTool.getCurrentBrush() instanceof PerformBrush) {
-//                    PerformBrush performerBrush = (PerformBrush) sniperTool.getCurrentBrush();
-//                    performerBrush.initP(snipeData);
-//                }
-//
-//                boolean result = sniperTool.getCurrentBrush().perform(snipeAction, snipeData, targetBlock, lastBlock);
-//                if (result) {
-//                    MetricsManager.increaseBrushUsage(sniperTool.getCurrentBrush().getName());
-//                }
-//                return result;
-                final  IBrush brush = sniperTool.getCurrentBrush();
+                final IBrush brush = sniperTool.getCurrentBrush();
                 if (sniperTool.getCurrentBrush() instanceof PerformBrush) {
                     PerformBrush performerBrush = (PerformBrush) sniperTool.getCurrentBrush();
                     performerBrush.initP(snipeData);
@@ -401,7 +393,7 @@ public class Sniper {
             changeSet = FaweChangeSet.getDefaultChangeSet(worldEditWorld, fp.getUUID());
             changeQueue.setChangeSet(changeSet);
             // NEW QUEUE?
-            tmpWorld = null;
+            maskQueue = null;
             baseQueue = null;
             changeQueue = null;
         }

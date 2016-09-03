@@ -16,7 +16,6 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
-import java.util.concurrent.atomic.AtomicBoolean;
 import org.bukkit.BlockChangeDelegate;
 import org.bukkit.Bukkit;
 import org.bukkit.Chunk;
@@ -60,8 +59,8 @@ import org.bukkit.util.Vector;
  */
 public class AsyncWorld implements World {
 
-    private final World parent;
-    private final FaweQueue queue;
+    private World parent;
+    private FaweQueue queue;
     private BukkitImplAdapter adapter;
 
     /**
@@ -109,6 +108,12 @@ public class AsyncWorld implements World {
         return new AsyncWorld(world, false);
     }
 
+    public void changeWorld(World world, FaweQueue queue) {
+        flush();
+        this.parent = world;
+        this.queue = queue;
+    }
+
     public World getParent() {
         return parent;
     }
@@ -116,8 +121,6 @@ public class AsyncWorld implements World {
     public FaweQueue getQueue() {
         return queue;
     }
-
-    private static AtomicBoolean loading = new AtomicBoolean(false);
 
     /**
      * Create a world async (untested)
@@ -140,7 +143,9 @@ public class AsyncWorld implements World {
     }
 
     public void flush() {
-        queue.flush();
+        if (queue != null) {
+            queue.flush();
+        }
     }
 
     @Override
