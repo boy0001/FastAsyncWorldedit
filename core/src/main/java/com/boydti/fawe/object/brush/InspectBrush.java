@@ -58,8 +58,8 @@ public class InspectBrush extends BrushTool implements DoubleActionTraceTool {
     }
 
     public boolean perform(final Player player, LocalSession session, boolean rightClick) {
-        if (!session.isToolControlEnabled() || !player.hasPermission("worldedit.brush.inspect")) {
-            BBC.NO_PERM.send(player, "worldedit.brush.inspect");
+        if (!session.isToolControlEnabled() || !player.hasPermission("worldedit.tool.inspect")) {
+            BBC.NO_PERM.send(player, "worldedit.tool.inspect");
             return false;
         }
         if (!Settings.HISTORY.USE_DATABASE) {
@@ -111,6 +111,6 @@ public class InspectBrush extends BrushTool implements DoubleActionTraceTool {
 
     @Override
     public boolean canUse(Actor actor) {
-        return actor.hasPermission("worldedit.brush.inspect");
+        return actor.hasPermission("worldedit.tool.inspect");
     }
 }
