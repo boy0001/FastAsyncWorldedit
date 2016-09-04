@@ -211,7 +211,10 @@ public class NukkitWorld extends LocalWorld {
     @Override
     public boolean isValidBlockType(int type) {
         Item item = Item.get(type);
-        return item != null && item.getId() < 256 && item.canBePlaced();
+        if (item == null) {
+            return false;
+        }
+        return item != null && item.getId() < 256 && item.getBlock() != null;
     }
 
     @Override
