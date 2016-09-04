@@ -1,6 +1,10 @@
+repositories {
+    flatDir {dirs 'lib'}
+}
 dependencies {
     compile project(':core')
     compile 'cn.nukkit:nukkit:1.0-SNAPSHOT'
+    compile name: 'worldedit-core-6.1.4-SNAPSHOT-dist'
 }
 
 processResources {
@@ -18,10 +22,17 @@ apply plugin: 'com.github.johnrengelman.shadow'
 jar.enabled = false
 shadowJar {
     dependencies {
-        include(dependency(':core'))
+        include(dependency(name: 'worldedit-core-6.1.4-SNAPSHOT-dist'))
+        include(dependency('com.google.code.gson:gson:2.2.4'))
+        include(dependency('org.yaml:snakeyaml:1.16'))
+        include(dependency('com.google.guava:guava:17.0'))
     }
     archiveName = "${parent.name}-${project.name}-${parent.version}.jar"
     destinationDir = file '../target'
+
+    relocate('com.google.gson', 'com.sk89q.worldedit.internal.gson')
+    relocate 'org.yaml.snakeyaml', 'com.boydti.fawe.yaml'
+    relocate 'com.google.common', 'com.sk89q.worldedit.internal.common'
 }
 shadowJar.doLast {
     task ->

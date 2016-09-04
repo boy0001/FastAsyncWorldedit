@@ -21,13 +21,20 @@ package com.boydti.fawe.nukkit.core;
 
 import cn.nukkit.Nukkit;
 import cn.nukkit.Player;
+import cn.nukkit.command.Command;
+import cn.nukkit.command.CommandSender;
 import cn.nukkit.plugin.PluginBase;
-import cn.nukkit.utils.Logger;
+import com.google.common.base.Joiner;
+import com.sk89q.util.yaml.YAMLProcessor;
 import com.sk89q.worldedit.LocalSession;
 import com.sk89q.worldedit.WorldEdit;
+import com.sk89q.worldedit.event.platform.CommandEvent;
 import com.sk89q.worldedit.event.platform.PlatformReadyEvent;
+import com.sk89q.worldedit.extension.platform.Actor;
 import com.sk89q.worldedit.extension.platform.Platform;
 import java.io.File;
+import java.util.Arrays;
+import java.util.logging.Logger;
 
 
 import static com.google.common.base.Preconditions.checkNotNull;
@@ -57,17 +64,51 @@ public class NukkitWorldEdit extends PluginBase {
 
     @Override
     public void onEnable() {
-        // TODO load FAWE
-        config.load();
-        this.platform = new NukkitPlatform(this);
-        WorldEdit.getInstance().getPlatformManager().register(platform);
-        logger.info("WorldEdit for Nukkit (version " + getInternalVersion() + ") is loaded");
-        WorldEdit.getInstance().getEventBus().post(new PlatformReadyEvent());
+        try {
+            // TODO load FAWE
+            logger = Logger.getLogger(NukkitWorldEdit.class.getCanonicalName());
+            File file = new File(getDataFolder(), "config.yml");
+            if (!file.exists()) {
+                file.getParentFile().mkdirs();
+                file.createNewFile();
+            }
+            config = new NukkitConfiguration(new YAMLProcessor(file, true), this);
+            config.load();
+            this.platform = new NukkitPlatform(this);
+            getServer().getPluginManager().registerEvents(new WorldEditListener(this), this);
+            WorldEdit.getInstance().getPlatformManager().register(platform);
+            logger.info("WorldEdit for Nukkit (version " + getInternalVersion() + ") is loaded");
+            WorldEdit.getInstance().getEventBus().post(new PlatformReadyEvent());
+        } catch (Throwable e) {
+            e.printStackTrace();
+        }
     }
 
     @Override
     public void onDisable() {
         WorldEdit.getInstance().getPlatformManager().unregister(platform);
+    }
+
+    @Override
+    public boolean onCommand(CommandSender sender, Command cmd, String commandLabel, String[] args) {
+        // Add the command to the array because the underlying command handling
+        // code of WorldEdit expects it
+        String[] split = new String[args.length + 1];
+        System.arraycopy(args, 0, split, 1, args.length);
+        split[0] = cmd.getName();
+
+        CommandEvent event = new CommandEvent(wrapCommandSender(sender), Joiner.on(" ").join(Arrays.asList(split)));
+        WorldEdit.getInstance().getEventBus().post(event);
+
+        return true;
+    }
+
+    public Actor wrapCommandSender(CommandSender sender) {
+        if (sender instanceof Player) {
+            return wrapPlayer((Player) sender);
+        }
+
+        return new NukkitCommandSender(this, sender);
     }
 
     /**
@@ -77,6 +118,10 @@ public class NukkitWorldEdit extends PluginBase {
      */
     public NukkitConfiguration getWEConfig() {
         return this.config;
+    }
+
+    public Logger getWELogger() {
+        return logger;
     }
 
     /**

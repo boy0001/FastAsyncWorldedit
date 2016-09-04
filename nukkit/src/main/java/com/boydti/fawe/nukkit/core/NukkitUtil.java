@@ -28,11 +28,11 @@ import cn.nukkit.math.Vector3;
 import com.sk89q.worldedit.BlockVector;
 import com.sk89q.worldedit.BlockWorldVector;
 import com.sk89q.worldedit.LocalWorld;
+import com.sk89q.worldedit.Vector;
+import com.sk89q.worldedit.WorldVector;
 import com.sk89q.worldedit.blocks.BaseBlock;
 import com.sk89q.worldedit.entity.BaseEntity;
 import com.sk89q.worldedit.util.Location;
-import com.sk89q.worldedit.Vector;
-import com.sk89q.worldedit.WorldVector;
 
 public final class NukkitUtil {
 
@@ -125,15 +125,27 @@ public final class NukkitUtil {
         return new NukkitEntity(e);
     }
 
-    public static com.sk89q.worldedit.entity.Entity createEntity(Location location, BaseEntity entity) {
+    public static com.sk89q.worldedit.entity.Entity createEntity(Level level, Location location, BaseEntity entity) {
+        // TODO
+        System.out.print("TODO create entity");
         return null;
     }
 
     public static BaseBlock getBlock(Level level, Vector position) {
-        return null;
+        Vector3 pos = new Vector3(position.getX(), position.getY(), position.getZ());
+        Block block = level.getBlock(pos);
+        int id = block.getId();
+        int data = block.getDamage();
+        return new BaseBlock(id, data);
     }
 
-    public static boolean setBlock(Level level, Vector position, BaseBlock block) {
-        return false;
+    public static boolean setBlock(Level level, Vector pos, BaseBlock block) {
+        int x = pos.getBlockX();
+        int y = pos.getBlockY();
+        int z = pos.getBlockZ();
+        level.setBlockIdAt(x, y, z, block.getId());
+        level.setBlockDataAt(x, y, z, block.getData());
+        return true;
+
     }
 }

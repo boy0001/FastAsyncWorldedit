@@ -21,7 +21,9 @@ public class NukkitCommandManager {
                 executor,
                 plugin);
         cmd.setPermissions(command.getPermissions());
-        commandMap.register(plugin.getDescription().getName(), cmd);
+        for (String alias : command.getAliases()) {
+            commandMap.register(alias, cmd);
+        }
         return true;
     }
 }

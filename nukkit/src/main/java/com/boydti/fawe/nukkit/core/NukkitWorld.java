@@ -1,6 +1,5 @@
 package com.boydti.fawe.nukkit.core;
 
-import cn.nukkit.block.Block;
 import cn.nukkit.blockentity.BlockEntity;
 import cn.nukkit.blockentity.BlockEntityChest;
 import cn.nukkit.entity.Entity;
@@ -26,7 +25,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Logger;
 import javax.annotation.Nullable;
-import org.bukkit.Material;
 
 
 import static com.google.common.base.Preconditions.checkNotNull;
@@ -80,7 +78,7 @@ public class NukkitWorld extends LocalWorld {
     @Nullable
     @Override
     public com.sk89q.worldedit.entity.Entity createEntity(com.sk89q.worldedit.util.Location location, BaseEntity entity) {
-        return NukkitUtil.createEntity(location, entity);
+        return NukkitUtil.createEntity(getLevel(), location, entity);
     }
 
     /**

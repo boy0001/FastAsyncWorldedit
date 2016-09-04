@@ -21,7 +21,6 @@ package com.boydti.fawe.nukkit.core;
 
 import cn.nukkit.item.Item;
 import cn.nukkit.level.Level;
-import com.boydti.fawe.util.TaskManager;
 import com.sk89q.worldedit.entity.Player;
 import com.sk89q.worldedit.extension.platform.AbstractPlatform;
 import com.sk89q.worldedit.extension.platform.Actor;
@@ -43,12 +42,14 @@ import javax.annotation.Nullable;
 class NukkitPlatform extends AbstractPlatform implements MultiUserPlatform {
 
     private final NukkitWorldEdit mod;
+    private final NukkitTaskManager taskManager;
     private boolean hookingEvents = false;
     private NukkitCommandManager commandManager;
 
     NukkitPlatform(NukkitWorldEdit mod) {
         this.mod = mod;
         this.commandManager = new NukkitCommandManager(mod.getServer().getCommandMap());
+        this.taskManager = new NukkitTaskManager(mod);
     }
 
     boolean isHookingEvents() {
@@ -78,7 +79,7 @@ class NukkitPlatform extends AbstractPlatform implements MultiUserPlatform {
 
     @Override
     public int schedule(long delay, long period, Runnable task) {
-        TaskManager.IMP.repeat(task, (int) period);
+        this.taskManager.repeat(task, (int) period);
         return 0; // TODO This isn't right, but we only check for -1 values
     }
 

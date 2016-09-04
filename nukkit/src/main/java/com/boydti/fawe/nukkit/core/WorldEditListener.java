@@ -26,6 +26,7 @@ import cn.nukkit.block.Block;
 import cn.nukkit.event.EventHandler;
 import cn.nukkit.event.EventPriority;
 import cn.nukkit.event.Listener;
+import cn.nukkit.event.block.BlockBreakEvent;
 import cn.nukkit.event.player.PlayerCommandPreprocessEvent;
 import cn.nukkit.event.player.PlayerGameModeChangeEvent;
 import cn.nukkit.event.player.PlayerInteractEvent;
@@ -93,12 +94,28 @@ public class WorldEditListener implements Listener {
         }
     }
 
+    @EventHandler(priority = EventPriority.MONITOR)
+    public void onBlockBreak(BlockBreakEvent event) {
+        final LocalPlayer player = plugin.wrapPlayer(event.getPlayer());
+        final World world = player.getWorld();
+        final WorldEdit we = WorldEdit.getInstance();
+        final Block clickedBlock = event.getBlock();
+        final WorldVector pos = new WorldVector(LocalWorldAdapter.adapt(world), clickedBlock.getX(), clickedBlock.getY(), clickedBlock.getZ());
+        if (we.handleBlockLeftClick(player, pos)) {
+            event.setCancelled(true);
+        }
+        if (we.handleArmSwing(player)) {
+            event.setCancelled(true);
+        }
+        event.setCancelled(true);
+    }
+
     /**
      * Called when a player interacts
      *
      * @param event Relevant event details
      */
-    @EventHandler(ignoreCancelled = true,priority = EventPriority.MONITOR)
+    @EventHandler(priority = EventPriority.MONITOR)
     public void onPlayerInteract(PlayerInteractEvent event) {
         final LocalPlayer player = plugin.wrapPlayer(event.getPlayer());
         final World world = player.getWorld();
