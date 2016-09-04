@@ -333,7 +333,7 @@ public abstract class FaweQueue {
      * Lock the thread until the queue is empty
      */
     public void flush() {
-        flush(Integer.MAX_VALUE);
+        flush(10000);
     }
 
     /**
@@ -344,21 +344,22 @@ public abstract class FaweQueue {
             if (Fawe.get().isMainThread()) {
                 SetQueue.IMP.flush(this);
             } else {
-                enqueue();
-                final AtomicBoolean running = new AtomicBoolean(true);
-                addNotifyTask(new Runnable() {
-                    @Override
-                    public void run() {
-                        TaskManager.IMP.notify(running);
-                    }
-                });
-                TaskManager.IMP.wait(running, time);
+                if (enqueue()) {
+                    final AtomicBoolean running = new AtomicBoolean(true);
+                    addNotifyTask(new Runnable() {
+                        @Override
+                        public void run() {
+                            TaskManager.IMP.notify(running);
+                        }
+                    });
+                    TaskManager.IMP.wait(running, time);
+                }
             }
         }
     }
 
-    public void enqueue() {
-        SetQueue.IMP.enqueue(this);
+    public boolean enqueue() {
+        return SetQueue.IMP.enqueue(this);
     }
 
     public void dequeue() {

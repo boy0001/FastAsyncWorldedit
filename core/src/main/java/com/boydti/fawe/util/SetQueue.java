@@ -140,12 +140,16 @@ public class SetQueue {
         return false;
     }
 
-    public void enqueue(FaweQueue queue) {
+    public boolean enqueue(FaweQueue queue) {
         inactiveQueues.remove(queue);
-        if (queue.size() > 0 && !activeQueues.contains(queue)) {
-            queue.optimize();
-            activeQueues.add(queue);
+        if (queue.size() > 0) {
+            if (!activeQueues.contains(queue)) {
+                queue.optimize();
+                activeQueues.add(queue);
+            }
+            return true;
         }
+        return false;
     }
 
     public void dequeue(FaweQueue queue) {

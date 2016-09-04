@@ -235,7 +235,7 @@ public class DelegateFaweQueue extends FaweQueue {
     }
 
     @Override
-    public void enqueue() {
-        parent.enqueue();
+    public boolean enqueue() {
+        return parent.enqueue();
     }
 }

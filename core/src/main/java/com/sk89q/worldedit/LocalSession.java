@@ -465,6 +465,8 @@ public class LocalSession {
             }
         }
         FaweChangeSet changeSet = (FaweChangeSet) editSession.getChangeSet();
+        // Just in case
+        changeSet.flush();
         historySize += MainUtil.getSize(changeSet);
         if (append) {
             history.add(changeSet);

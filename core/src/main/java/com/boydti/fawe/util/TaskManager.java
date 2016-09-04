@@ -270,9 +270,13 @@ public abstract class TaskManager {
 
     public void wait(AtomicBoolean running, int timout) {
         try {
+            long start = System.currentTimeMillis();
             synchronized (running) {
                 while (running.get()) {
                     running.wait(timout);
+                    if (running.get() && System.currentTimeMillis() - start > Settings.QUEUE.DISCARD_AFTER_MS) {
+                        MainUtil.stacktrace();
+                    }
                 }
             }
         } catch (InterruptedException e) {
