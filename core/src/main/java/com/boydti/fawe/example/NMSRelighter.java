@@ -195,14 +195,14 @@ public class NMSRelighter {
                     if (brightness > 1 &&  (brightness != 15 || opacity != 15)) {
                         lightBlock(bx + x, y, bz + z, brightness);
                     }
-                    if (opacity != 0 && opacity >= value) {
+                    if (opacity > 1 && opacity >= value) {
                         mask[j] = 0;
                         queue.setSkyLight(section, x, y, z, 0);
                         continue;
                     }
                     switch (value) {
                         case 0:
-                            if (opacity != 0) {
+                            if (opacity > 1) {
                                 queue.setSkyLight(section, x, y, z, 0);
                                 continue;
                             }
@@ -274,7 +274,7 @@ public class NMSRelighter {
             for (int j = 0; j < 256; j++) {
                 int x = j & 15;
                 int z = j >> 4;
-                if (mask[j] >= 14 || (mask[j] == 0 && queue.getOpacity(section, x, y, z) > 0)) {
+                if (mask[j] >= 14 || (mask[j] == 0 && queue.getOpacity(section, x, y, z) > 1)) {
                     continue;
                 }
                 byte value = mask[j];
@@ -286,7 +286,7 @@ public class NMSRelighter {
             for (int j = 255; j >= 0; j--) {
                 int x = j & 15;
                 int z = j >> 4;
-                if (mask[j] >= 14 || (mask[j] == 0 && queue.getOpacity(section, x, y, z) > 0)) {
+                if (mask[j] >= 14 || (mask[j] == 0 && queue.getOpacity(section, x, y, z) > 1)) {
                     continue;
                 }
                 byte value = mask[j];

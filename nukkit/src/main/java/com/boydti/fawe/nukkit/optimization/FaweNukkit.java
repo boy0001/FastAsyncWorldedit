@@ -1,8 +1,12 @@
 package com.boydti.fawe.nukkit.optimization;
 
 import cn.nukkit.Player;
+import cn.nukkit.event.EventHandler;
+import cn.nukkit.event.Listener;
+import cn.nukkit.event.player.PlayerQuitEvent;
 import com.boydti.fawe.Fawe;
 import com.boydti.fawe.IFawe;
+import com.boydti.fawe.config.Settings;
 import com.boydti.fawe.nukkit.core.NukkitTaskManager;
 import com.boydti.fawe.nukkit.core.NukkitWorldEdit;
 import com.boydti.fawe.nukkit.optimization.queue.NukkitQueue;
@@ -19,13 +23,25 @@ import java.util.Collection;
 import java.util.UUID;
 import java.util.logging.Level;
 
-public class FaweNukkit implements IFawe {
+public class FaweNukkit implements IFawe, Listener {
 
     private final NukkitWorldEdit plugin;
 
     public FaweNukkit(NukkitWorldEdit mod) {
+        Settings.HISTORY.USE_DISK = true;
+        Settings.CLIPBOARD.USE_DISK = true;
+        Settings.HISTORY.COMPRESSION_LEVEL = 9;
         this.plugin = mod;
         FaweChunk.HEIGHT = 128;
+        plugin.getServer().getPluginManager().registerEvents(this, plugin);
+    }
+
+    @EventHandler
+    public void onPlayerQuit(PlayerQuitEvent event) {
+        Player player = event.getPlayer();
+        FawePlayer fp = FawePlayer.wrap(player);
+        fp.unregister();
+        Fawe.get().unregister(event.getPlayer().getName());
     }
 
     @Override

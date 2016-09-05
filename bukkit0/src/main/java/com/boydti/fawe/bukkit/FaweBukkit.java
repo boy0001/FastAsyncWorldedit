@@ -35,7 +35,6 @@ import org.bukkit.command.ConsoleCommandSender;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
-import org.bukkit.event.player.PlayerChangedWorldEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.plugin.Plugin;
 import org.primesoft.blockshub.BlocksHubBukkit;
@@ -297,12 +296,6 @@ public class FaweBukkit implements IFawe, Listener {
         FawePlayer fp = FawePlayer.wrap(player);
         fp.unregister();
         Fawe.get().unregister(event.getPlayer().getName());
-    }
-
-    @EventHandler
-    public void onPlayerChangedWorld(PlayerChangedWorldEvent event) {
-        Player player = event.getPlayer();
-        FawePlayer fp = FawePlayer.wrap(player);
     }
 
     @Override
