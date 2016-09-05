@@ -14,6 +14,7 @@ import com.sk89q.jnbt.LongTag;
 import com.sk89q.jnbt.ShortTag;
 import com.sk89q.jnbt.StringTag;
 import com.sk89q.jnbt.Tag;
+import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -26,19 +27,51 @@ import java.util.Map.Entry;
  */
 public final class NBTConverter {
 
+    private static Field tagsField;
+
     private NBTConverter() {
     }
 
-//    private static Tag fromNativeSlow(cn.nukkit.nbt.tag.CompoundTag other) {
-//        try {
-//            byte[] bytes = NBTIO.write(other);
-//            FastByteArrayInputStream in = new FastByteArrayInputStream(bytes);
-//            NBTInputStream nin = new NBTInputStream(in);
-//            return nin.readNamedTag();
-//        } catch (IOException e) {
-//            e.printStackTrace();
-//        }
-//    }
+    static {
+        try {
+            tagsField = cn.nukkit.nbt.tag.CompoundTag.class.getDeclaredField("tags");
+            tagsField.setAccessible(true);
+        } catch (Throwable e) {
+            e.printStackTrace();
+        }
+    }
+
+    public static Map<String, cn.nukkit.nbt.tag.Tag> getMap(cn.nukkit.nbt.tag.CompoundTag other) {
+        try {
+            return (Map<String, cn.nukkit.nbt.tag.Tag>) tagsField.get(other);
+        } catch (Throwable e) {
+            e.printStackTrace();
+            return null;
+        }
+    }
+
+    public static CompoundTag fromNativeLazy(cn.nukkit.nbt.tag.CompoundTag other) {
+        try {
+            Map tags = (Map) tagsField.get(other);
+            CompoundTag ct = new CompoundTag(tags);
+            return ct;
+        } catch (Throwable e) {
+            e.printStackTrace();
+            return null;
+        }
+    }
+
+    public static cn.nukkit.nbt.tag.CompoundTag toNativeLazy(CompoundTag tag) {
+        try {
+            Map map = tag.getValue();
+            cn.nukkit.nbt.tag.CompoundTag ct = new cn.nukkit.nbt.tag.CompoundTag();
+            tagsField.set(ct, map);
+            return ct;
+        } catch (Throwable e) {
+            e.printStackTrace();
+            return null;
+        }
+    }
 
     public static CompoundTag fromNative(cn.nukkit.nbt.tag.CompoundTag other) {
         Map<String, cn.nukkit.nbt.tag.Tag> tags = other.getTags();
@@ -46,7 +79,8 @@ public final class NBTConverter {
         for (Entry<String, cn.nukkit.nbt.tag.Tag> entry : tags.entrySet()) {
             map.put(entry.getKey(), fromNative(entry.getValue()));
         }
-        return new CompoundTag(map);
+        CompoundTag tag = new CompoundTag(map);
+        return tag;
     }
 
     public static cn.nukkit.nbt.tag.Tag toNative(Tag tag) {
@@ -127,7 +161,9 @@ public final class NBTConverter {
     private static cn.nukkit.nbt.tag.CompoundTag toNative(CompoundTag tag) {
         cn.nukkit.nbt.tag.CompoundTag compound = new cn.nukkit.nbt.tag.CompoundTag();
         for (Entry<String, Tag> child : tag.getValue().entrySet()) {
-            compound.put(child.getKey(), toNative(child.getValue()));
+            cn.nukkit.nbt.tag.Tag value = toNative(child.getValue());
+            value.setName(child.getKey());
+            compound.put(child.getKey(), value);
         }
         return compound;
     }

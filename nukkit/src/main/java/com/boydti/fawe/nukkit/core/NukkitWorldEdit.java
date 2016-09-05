@@ -34,8 +34,15 @@ import com.sk89q.worldedit.event.platform.CommandEvent;
 import com.sk89q.worldedit.event.platform.PlatformReadyEvent;
 import com.sk89q.worldedit.extension.platform.Actor;
 import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.Arrays;
+import java.util.jar.JarFile;
+import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.zip.ZipEntry;
 
 
 import static com.google.common.base.Preconditions.checkNotNull;
@@ -66,18 +73,14 @@ public class NukkitWorldEdit extends PluginBase {
     @Override
     public void onEnable() {
         try {
+            Fawe.set(new FaweNukkit(this));
             logger = Logger.getLogger(NukkitWorldEdit.class.getCanonicalName());
-            File file = new File(getDataFolder(), "config-basic.yml");
-            if (!file.exists()) {
-                file.getParentFile().mkdirs();
-                file.createNewFile();
-            }
-            config = new NukkitConfiguration(new YAMLProcessor(file, true), this);
+            createDefaultConfiguration("config-basic.yml");
+            config = new NukkitConfiguration(new YAMLProcessor(new File(getDataFolder(), "config-basic.yml"), true), this);
             config.load();
             this.platform = new NukkitPlatform(this);
             getServer().getPluginManager().registerEvents(new WorldEditListener(this), this);
             WorldEdit.getInstance().getPlatformManager().register(platform);
-            Fawe.set(new FaweNukkit(this));
             logger.info("WorldEdit for Nukkit (version " + getInternalVersion() + ") is loaded");
             WorldEdit.getInstance().getEventBus().post(new PlatformReadyEvent());
         } catch (Throwable e) {
@@ -88,6 +91,48 @@ public class NukkitWorldEdit extends PluginBase {
     @Override
     public void onDisable() {
         WorldEdit.getInstance().getPlatformManager().unregister(platform);
+    }
+
+    protected void createDefaultConfiguration(String name) throws IOException {
+        File actual = new File(getDataFolder(), name);
+        if (!actual.exists()) {
+            actual.getParentFile().mkdirs();
+            actual.createNewFile();
+            InputStream input = null;
+            try {
+                JarFile file = new JarFile(getFile());
+                ZipEntry copy = file.getEntry(name);
+                if (copy == null) throw new FileNotFoundException();
+                input = file.getInputStream(copy);
+            } catch (IOException e) {
+                getWELogger().severe("Unable to read default configuration: " + name);
+            }
+            if (input != null) {
+                FileOutputStream output = null;
+
+                try {
+                    output = new FileOutputStream(actual);
+                    byte[] buf = new byte[8192];
+                    int length;
+                    while ((length = input.read(buf)) > 0) {
+                        output.write(buf, 0, length);
+                    }
+                    getWELogger().info("Default configuration file written: " + name);
+                } catch (IOException e) {
+                    getWELogger().log(Level.WARNING, "Failed to write default config file", e);
+                } finally {
+                    try {
+                        input.close();
+                    } catch (IOException ignored) {}
+
+                    try {
+                        if (output != null) {
+                            output.close();
+                        }
+                    } catch (IOException ignored) {}
+                }
+            }
+        }
     }
 
     @Override

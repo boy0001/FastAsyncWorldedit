@@ -1,12 +1,12 @@
 package com.boydti.fawe.nukkit.optimization.queue;
 
 import cn.nukkit.Player;
+import cn.nukkit.block.Block;
 import cn.nukkit.blockentity.BlockEntity;
 import cn.nukkit.level.Level;
 import cn.nukkit.level.Position;
 import cn.nukkit.level.format.generic.BaseFullChunk;
 import cn.nukkit.math.Vector3;
-import com.boydti.fawe.Fawe;
 import com.boydti.fawe.FaweCache;
 import com.boydti.fawe.config.Settings;
 import com.boydti.fawe.example.CharFaweChunk;
@@ -15,6 +15,7 @@ import com.boydti.fawe.nukkit.core.NBTConverter;
 import com.boydti.fawe.nukkit.optimization.FaweNukkit;
 import com.boydti.fawe.object.FaweChunk;
 import com.boydti.fawe.object.RunnableVal;
+import com.boydti.fawe.util.MathMan;
 import com.sk89q.jnbt.CompoundTag;
 import java.io.File;
 import java.util.Collection;
@@ -45,13 +46,25 @@ public class NukkitQueue extends NMSMappedFaweQueue<Level, BaseFullChunk, BaseFu
     }
 
     @Override
-    public boolean execute(FaweChunk fc) {
-        if (super.execute(fc)) {
-            return true;
-        } else {
-            return false;
-        }
+    public int getOpacity(BaseFullChunk section, int x, int y, int z) {
+        int id = section.getBlockId(x & 15, y, z & 15);
+        return Block.lightFilter[id];
     }
+
+    @Override
+    public int getBrightness(BaseFullChunk section, int x, int y, int z) {
+        int id = section.getBlockId(x & 15, y, z & 15);
+        return Block.light[id];
+    }
+
+    @Override
+    public int getOpacityBrightnessPair(BaseFullChunk section, int x, int y, int z) {
+        int id = section.getBlockId(x & 15, y, z & 15);
+        int opacity = Block.lightFilter[id];
+        int brightness = Block.light[id];
+        return MathMan.pair16(opacity, brightness);
+    }
+
 
     @Override
     public void refreshChunk(FaweChunk fs) {
@@ -78,16 +91,7 @@ public class NukkitQueue extends NMSMappedFaweQueue<Level, BaseFullChunk, BaseFu
 
     @Override
     public boolean setComponents(FaweChunk fc, RunnableVal<FaweChunk> changeTask) {
-        if (skip > 0) {
-            skip--;
-            fc.addToQueue();
-            return true;
-        }
-        long start = System.currentTimeMillis();
-        ((NukkitChunk) fc).execute(start);
-        if (System.currentTimeMillis() - start > 50 || Fawe.get().getTPS() < TPS_TARGET) {
-            skip = 10;
-        }
+        ((NukkitChunk) fc).execute();
         return true;
     }
 
@@ -150,12 +154,12 @@ public class NukkitQueue extends NMSMappedFaweQueue<Level, BaseFullChunk, BaseFu
 
     @Override
     public void setSkyLight(BaseFullChunk chunkSection, int x, int y, int z, int value) {
-        chunkSection.setBlockSkyLight(x & 15, y & 15, z & 15, value);
+        chunkSection.setBlockSkyLight(x & 15, y, z & 15, value);
     }
 
     @Override
     public void setBlockLight(BaseFullChunk chunkSection, int x, int y, int z, int value) {
-        chunkSection.setBlockLight(x & 15, y & 15, z & 15, value);
+        chunkSection.setBlockLight(x & 15, y, z & 15, value);
     }
 
     @Override
@@ -201,15 +205,20 @@ public class NukkitQueue extends NMSMappedFaweQueue<Level, BaseFullChunk, BaseFu
 
     @Override
     public BaseFullChunk getCachedSections(Level level, int cx, int cz) {
-        BaseFullChunk chunk = (BaseFullChunk) world.getChunk(cx, cz);
+        BaseFullChunk chunk = world.getChunk(cx, cz);
         return chunk;
     }
 
     @Override
+    public BaseFullChunk getCachedSection(BaseFullChunk baseFullChunk, int cy) {
+        return baseFullChunk;
+    }
+
+    @Override
     public int getCombinedId4Data(BaseFullChunk chunkSection, int x, int y, int z) {
-        int id = chunkSection.getBlockId(x & 15, y & 15, z & 15);
+        int id = chunkSection.getBlockId(x & 15, y, z & 15);
         if (FaweCache.hasData(id)) {
-            int data = chunkSection.getBlockData(x & 15, y & 15, z & 15);
+            int data = chunkSection.getBlockData(x & 15, y, z & 15);
             return (id << 4) + data;
         } else {
             return (id << 4);
@@ -218,11 +227,11 @@ public class NukkitQueue extends NMSMappedFaweQueue<Level, BaseFullChunk, BaseFu
 
     @Override
     public int getSkyLight(BaseFullChunk sections, int x, int y, int z) {
-        return sections.getBlockSkyLight(x & 15, y & 15, z & 15);
+        return sections.getBlockSkyLight(x & 15, y, z & 15);
     }
 
     @Override
     public int getEmmittedLight(BaseFullChunk sections, int x, int y, int z) {
-        return sections.getBlockLight(x & 15, y & 15, z & 15);
+        return sections.getBlockLight(x & 15, y, z & 15);
     }
 }

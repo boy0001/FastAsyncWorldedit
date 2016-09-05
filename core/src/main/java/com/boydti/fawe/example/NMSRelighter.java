@@ -1,6 +1,7 @@
 package com.boydti.fawe.example;
 
 import com.boydti.fawe.FaweCache;
+import com.boydti.fawe.object.FaweChunk;
 import com.boydti.fawe.object.FaweQueue;
 import com.boydti.fawe.util.MathMan;
 import java.util.ArrayDeque;
@@ -171,20 +172,18 @@ public class NMSRelighter {
         RelightSkyEntry[] chunks = sorted.toArray(new RelightSkyEntry[sorted.size()]);
         byte[] cacheX = FaweCache.CACHE_X[0];
         byte[] cacheZ = FaweCache.CACHE_Z[0];
-        for (int y = 255; y > 0; y--) {
+        for (int y = FaweChunk.HEIGHT - 1; y > 0; y--) {
             for (RelightSkyEntry chunk : chunks) { // Propogate skylight
                 int layer = y >> 4;
-                if (!chunk.fix[layer]) {
-                    continue;
-                }
+                if (!chunk.fix[layer])continue;
                 int bx = chunk.x << 4;
                 int bz = chunk.z << 4;
                 byte[] mask = chunk.mask;
                 queue.ensureChunkLoaded(chunk.x, chunk.z);
                 Object sections = queue.getCachedSections(queue.getWorld(), chunk.x, chunk.z);
-                if (sections == null) continue;
+                if (sections == null)continue;
                 Object section = queue.getCachedSection(sections, layer);
-                if (section == null) continue;
+                if (section == null)continue;
                 chunk.smooth = false;
                 for (int j = 0; j < 256; j++) {
                     int x = cacheX[j];
@@ -229,14 +228,14 @@ public class NMSRelighter {
                         case 9:
                         case 11:
                         case 13:
-                            if (opacity == 0) {
+                            if (opacity <= 1) {
                                 mask[j] = --value;
                             } else {
                                 mask[j] = value = (byte) Math.max(0, value - opacity);
                             }
                             break;
                         case 15:
-                            if (opacity != 0) {
+                            if (opacity > 1) {
                                 value -= opacity;
                                 mask[j] = value;
                             }

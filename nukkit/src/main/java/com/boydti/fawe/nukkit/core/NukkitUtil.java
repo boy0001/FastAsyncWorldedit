@@ -127,7 +127,6 @@ public final class NukkitUtil {
 
     public static com.sk89q.worldedit.entity.Entity createEntity(Level level, Location location, BaseEntity entity) {
         // TODO
-        System.out.print("TODO create entity");
         return null;
     }
 

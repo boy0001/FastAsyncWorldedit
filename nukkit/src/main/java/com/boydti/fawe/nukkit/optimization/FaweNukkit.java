@@ -3,6 +3,7 @@ package com.boydti.fawe.nukkit.optimization;
 import cn.nukkit.Player;
 import com.boydti.fawe.Fawe;
 import com.boydti.fawe.IFawe;
+import com.boydti.fawe.nukkit.core.NukkitTaskManager;
 import com.boydti.fawe.nukkit.core.NukkitWorldEdit;
 import com.boydti.fawe.nukkit.optimization.queue.NukkitQueue;
 import com.boydti.fawe.object.FaweChunk;
@@ -39,7 +40,7 @@ public class FaweNukkit implements IFawe {
 
     @Override
     public void setupCommand(String label, final FaweCommand cmd) {
-        plugin.getServer().getCommandMap().register(label, new NukkitCommand(cmd));
+        plugin.getServer().getCommandMap().register(label, new NukkitCommand(label, cmd));
     }
 
     @Override
@@ -71,7 +72,7 @@ public class FaweNukkit implements IFawe {
 
     @Override
     public TaskManager getTaskManager() {
-        return plugin.getPlatform().getTaskManager();
+        return new NukkitTaskManager(plugin);
     }
 
     @Override

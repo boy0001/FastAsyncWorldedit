@@ -11,8 +11,8 @@ public class NukkitCommand extends Command {
 
     private final FaweCommand cmd;
 
-    public NukkitCommand(final FaweCommand cmd) {
-        super(cmd.getPerm());
+    public NukkitCommand(String lavel, final FaweCommand cmd) {
+        super(lavel);
         this.cmd = cmd;
     }
 
