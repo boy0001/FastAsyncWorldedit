@@ -59,7 +59,7 @@ public abstract class NMSMappedFaweQueue<WORLD, CHUNK, CHUNKSECTION, SECTION> ex
             boolean relight = false;
             boolean[] fix = new boolean[16];
             boolean sky = hasSky();
-            for (int i = 0; i < 16; i++) {
+            for (int i = 0; i < chunk.ids.length; i++) {
                 if ((sky && ((chunk.getAir(i) & 4095) != 0 || (chunk.getCount(i) & 4095) != 0)) || chunk.getRelight(i) != 0) {
                     relight = true;
                     fix[i] = true;

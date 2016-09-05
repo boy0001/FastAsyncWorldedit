@@ -39,14 +39,14 @@ import java.util.Map;
 import java.util.UUID;
 import javax.annotation.Nullable;
 
-class NukkitPlatform extends AbstractPlatform implements MultiUserPlatform {
+public class NukkitPlatform extends AbstractPlatform implements MultiUserPlatform {
 
     private final NukkitWorldEdit mod;
     private final NukkitTaskManager taskManager;
     private boolean hookingEvents = false;
     private NukkitCommandManager commandManager;
 
-    NukkitPlatform(NukkitWorldEdit mod) {
+    public NukkitPlatform(NukkitWorldEdit mod) {
         this.mod = mod;
         this.commandManager = new NukkitCommandManager(mod.getServer().getCommandMap());
         this.taskManager = new NukkitTaskManager(mod);
@@ -91,6 +91,10 @@ class NukkitPlatform extends AbstractPlatform implements MultiUserPlatform {
             ret.add(new NukkitWorld(level));
         }
         return ret;
+    }
+
+    public NukkitTaskManager getTaskManager() {
+        return taskManager;
     }
 
     @Nullable

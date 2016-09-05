@@ -68,7 +68,6 @@ public class FaweBukkit implements IFawe, Listener {
                 debug(" - This is only a recommendation");
                 debug("==============================");
             }
-
         } catch (final Throwable e) {
             MainUtil.handleError(e);
             Bukkit.getServer().shutdown();

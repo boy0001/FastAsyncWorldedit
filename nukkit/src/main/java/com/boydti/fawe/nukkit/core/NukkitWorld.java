@@ -19,6 +19,7 @@ import com.sk89q.worldedit.entity.BaseEntity;
 import com.sk89q.worldedit.regions.Region;
 import com.sk89q.worldedit.util.TreeGenerator;
 import com.sk89q.worldedit.world.biome.BaseBiome;
+import com.sk89q.worldedit.world.registry.LegacyWorldData;
 import com.sk89q.worldedit.world.registry.WorldData;
 import java.lang.ref.WeakReference;
 import java.util.ArrayList;
@@ -246,7 +247,7 @@ public class NukkitWorld extends LocalWorld {
 
     @Override
     public int getMaxY() {
-        return 255;
+        return 127;
     }
 
     @Override
@@ -261,7 +262,7 @@ public class NukkitWorld extends LocalWorld {
 
     @Override
     public WorldData getWorldData() {
-        throw new UnsupportedOperationException("Not implemented yet");
+        return LegacyWorldData.getInstance();
     }
 
     @Override

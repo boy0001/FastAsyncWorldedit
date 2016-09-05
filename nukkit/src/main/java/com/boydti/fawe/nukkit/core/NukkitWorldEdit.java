@@ -24,6 +24,8 @@ import cn.nukkit.Player;
 import cn.nukkit.command.Command;
 import cn.nukkit.command.CommandSender;
 import cn.nukkit.plugin.PluginBase;
+import com.boydti.fawe.Fawe;
+import com.boydti.fawe.nukkit.optimization.FaweNukkit;
 import com.google.common.base.Joiner;
 import com.sk89q.util.yaml.YAMLProcessor;
 import com.sk89q.worldedit.LocalSession;
@@ -31,7 +33,6 @@ import com.sk89q.worldedit.WorldEdit;
 import com.sk89q.worldedit.event.platform.CommandEvent;
 import com.sk89q.worldedit.event.platform.PlatformReadyEvent;
 import com.sk89q.worldedit.extension.platform.Actor;
-import com.sk89q.worldedit.extension.platform.Platform;
 import java.io.File;
 import java.util.Arrays;
 import java.util.logging.Logger;
@@ -65,9 +66,8 @@ public class NukkitWorldEdit extends PluginBase {
     @Override
     public void onEnable() {
         try {
-            // TODO load FAWE
             logger = Logger.getLogger(NukkitWorldEdit.class.getCanonicalName());
-            File file = new File(getDataFolder(), "config.yml");
+            File file = new File(getDataFolder(), "config-basic.yml");
             if (!file.exists()) {
                 file.getParentFile().mkdirs();
                 file.createNewFile();
@@ -77,6 +77,7 @@ public class NukkitWorldEdit extends PluginBase {
             this.platform = new NukkitPlatform(this);
             getServer().getPluginManager().registerEvents(new WorldEditListener(this), this);
             WorldEdit.getInstance().getPlatformManager().register(platform);
+            Fawe.set(new FaweNukkit(this));
             logger.info("WorldEdit for Nukkit (version " + getInternalVersion() + ") is loaded");
             WorldEdit.getInstance().getEventBus().post(new PlatformReadyEvent());
         } catch (Throwable e) {
@@ -151,7 +152,7 @@ public class NukkitWorldEdit extends PluginBase {
      *
      * @return the WorldEdit platform
      */
-    public Platform getPlatform() {
+    public NukkitPlatform getPlatform() {
         return this.platform;
     }
 

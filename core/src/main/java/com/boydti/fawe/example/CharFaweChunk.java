@@ -41,10 +41,10 @@ public abstract class CharFaweChunk<T> extends FaweChunk<T> {
      */
     public CharFaweChunk(FaweQueue parent, int x, int z) {
         super(parent, x, z);
-        this.ids = new char[16][];
-        this.count = new short[16];
-        this.air = new short[16];
-        this.relight = new short[16];
+        this.ids = new char[HEIGHT >> 4][];
+        this.count = new short[HEIGHT >> 4];
+        this.air = new short[HEIGHT >> 4];
+        this.relight = new short[HEIGHT >> 4];
     }
 
     @Override
@@ -91,7 +91,7 @@ public abstract class CharFaweChunk<T> extends FaweChunk<T> {
 
     public int getTotalCount() {
         int total = 0;
-        for (int i = 0; i < 16; i++) {
+        for (int i = 0; i < count.length; i++) {
             total += Math.min(4096, this.count[i]);
         }
         return total;
@@ -104,7 +104,7 @@ public abstract class CharFaweChunk<T> extends FaweChunk<T> {
             return Short.MAX_VALUE;
         }
         int total = 0;
-        for (int i = 0; i < 16; i++) {
+        for (int i = 0; i < relight.length; i++) {
             total += this.relight[i];
         }
         return total;

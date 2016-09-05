@@ -24,7 +24,7 @@ import java.util.Map.Entry;
 /**
  * Converts between Jcn.nukkit.nbt.tag. and Minecraft cn.nukkit.nbt.tag. classes.
  */
-final class NBTConverter {
+public final class NBTConverter {
 
     private NBTConverter() {
     }

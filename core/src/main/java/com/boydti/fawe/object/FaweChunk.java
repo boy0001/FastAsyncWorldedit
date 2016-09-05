@@ -14,6 +14,7 @@ public abstract class FaweChunk<T> {
 
     private FaweQueue parent;
     private int x,z;
+    public static int HEIGHT = 256;
 
     private final ArrayDeque<Runnable> tasks = new ArrayDeque<Runnable>();
 
@@ -123,7 +124,7 @@ public abstract class FaweChunk<T> {
 
     public char[][] getCombinedIdArrays() {
         char[][] ids = new char[16][];
-        for (int y = 0; y < 16; y++) {
+        for (int y = 0; y < HEIGHT >> 4; y++) {
             int y4 = y >> 4;
             short[][] i1 = FaweCache.CACHE_J[y];
             for (int z = 0; z < 16; z++) {
@@ -151,7 +152,7 @@ public abstract class FaweChunk<T> {
      * @param data
      */
     public void fill(int id, byte data) {
-        fillCuboid(0, 15, 0, 255, 0, 15, id, data);
+        fillCuboid(0, 15, 0, HEIGHT - 1, 0, 15, id, data);
     }
 
     /**

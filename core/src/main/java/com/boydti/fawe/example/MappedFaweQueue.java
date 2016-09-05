@@ -150,7 +150,7 @@ public abstract class MappedFaweQueue<WORLD, CHUNK, SECTION> extends FaweQueue {
 
     @Override
     public void setTile(int x, int y, int z, CompoundTag tag) {
-        if ((y > 255) || (y < 0)) {
+        if ((y >= FaweChunk.HEIGHT) || (y < 0)) {
             return;
         }
         int cx = x >> 4;
@@ -161,7 +161,7 @@ public abstract class MappedFaweQueue<WORLD, CHUNK, SECTION> extends FaweQueue {
 
     @Override
     public void setEntity(int x, int y, int z, CompoundTag tag) {
-        if ((y > 255) || (y < 0)) {
+        if ((y >= FaweChunk.HEIGHT) || (y < 0)) {
             return;
         }
         int cx = x >> 4;
@@ -172,7 +172,7 @@ public abstract class MappedFaweQueue<WORLD, CHUNK, SECTION> extends FaweQueue {
 
     @Override
     public void removeEntity(int x, int y, int z, UUID uuid) {
-        if ((y > 255) || (y < 0)) {
+        if ((y >= FaweChunk.HEIGHT) || (y < 0)) {
             return;
         }
         int cx = x >> 4;

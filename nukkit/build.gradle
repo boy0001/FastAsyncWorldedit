@@ -26,6 +26,7 @@ shadowJar {
         include(dependency('com.google.code.gson:gson:2.2.4'))
         include(dependency('org.yaml:snakeyaml:1.16'))
         include(dependency('com.google.guava:guava:17.0'))
+        include(dependency(':core'))
     }
     archiveName = "${parent.name}-${project.name}-${parent.version}.jar"
     destinationDir = file '../target'
