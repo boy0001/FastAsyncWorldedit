@@ -275,7 +275,7 @@ public class EditSession implements Extent {
         }
         if (allowedRegions != null) {
             if (allowedRegions.length == 0) {
-                this.extent = new NullExtent(this.extent, BBC.NO_REGION);
+                this.extent = new NullExtent(this.extent, BBC.WORLDEDIT_CANCEL_REASON_NO_REGION);
             } else {
                 this.extent = new ProcessedWEExtent(this.extent, allowedRegions, limit);
             }
