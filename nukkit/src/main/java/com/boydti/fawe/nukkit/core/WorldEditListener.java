@@ -27,15 +27,20 @@ import cn.nukkit.event.EventHandler;
 import cn.nukkit.event.EventPriority;
 import cn.nukkit.event.Listener;
 import cn.nukkit.event.block.BlockBreakEvent;
+import cn.nukkit.event.player.PlayerChatEvent;
 import cn.nukkit.event.player.PlayerCommandPreprocessEvent;
 import cn.nukkit.event.player.PlayerGameModeChangeEvent;
 import cn.nukkit.event.player.PlayerInteractEvent;
+import com.google.common.base.Joiner;
 import com.sk89q.util.StringUtil;
 import com.sk89q.worldedit.LocalPlayer;
 import com.sk89q.worldedit.WorldEdit;
 import com.sk89q.worldedit.WorldVector;
+import com.sk89q.worldedit.event.platform.CommandEvent;
+import com.sk89q.worldedit.extension.platform.CommandManager;
 import com.sk89q.worldedit.internal.LocalWorldAdapter;
 import com.sk89q.worldedit.world.World;
+import java.util.Arrays;
 
 /**
  * Handles all events thrown in relation to a Player
@@ -83,13 +88,30 @@ public class WorldEditListener implements Listener {
         if (!newMessage.equals(event.getMessage())) {
             event.setMessage(newMessage);
             plugin.getServer().getPluginManager().callEvent(event);
-
             if (!event.isCancelled()) {
                 if (!event.getMessage().isEmpty()) {
                     plugin.getServer().dispatchCommand(event.getPlayer(), event.getMessage().substring(1));
                 }
 
                 event.setCancelled(true);
+            }
+        }
+    }
+
+    @EventHandler(ignoreCancelled = true,priority = EventPriority.LOWEST)
+    public void onPlayerChat(PlayerChatEvent event) {
+        String message = event.getMessage();
+        if (message.charAt(0) == '.') {
+            String[] split = event.getMessage().split(" ");
+            if (split.length > 0) {
+                split[0] = split[0].substring(1).replace('.', '/');
+                CommandManager cmdMan = WorldEdit.getInstance().getPlatformManager().getCommandManager();
+                split = cmdMan.commandDetection(split);
+                CommandEvent cmdEvent = new CommandEvent(plugin.wrapCommandSender(event.getPlayer()), Joiner.on(" ").join(Arrays.asList(split)));
+                if (cmdMan.getDispatcher().contains(split[0])) {
+                    WorldEdit.getInstance().getEventBus().post(cmdEvent);
+                    event.setCancelled(true);
+                }
             }
         }
     }

@@ -142,7 +142,6 @@ public class NukkitWorldEdit extends PluginBase {
         String[] split = new String[args.length + 1];
         System.arraycopy(args, 0, split, 1, args.length);
         split[0] = cmd.getName();
-
         CommandEvent event = new CommandEvent(wrapCommandSender(sender), Joiner.on(" ").join(Arrays.asList(split)));
         WorldEdit.getInstance().getEventBus().post(event);
 

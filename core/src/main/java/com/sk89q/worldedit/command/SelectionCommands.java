@@ -76,7 +76,7 @@ public class SelectionCommands {
     }
 
     @Command(
-            aliases = { "/pos1" },
+            aliases = { "/pos1", "posa" },
             usage = "[coordinates]",
             desc = "Set position 1",
             min = 0,
@@ -110,7 +110,7 @@ public class SelectionCommands {
     }
 
     @Command(
-            aliases = { "/pos2" },
+            aliases = { "/pos2", "posb" },
             usage = "[coordinates]",
             desc = "Set position 2",
             min = 0,
