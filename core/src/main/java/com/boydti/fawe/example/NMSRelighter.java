@@ -16,6 +16,7 @@ public class NMSRelighter {
     private final NMSMappedFaweQueue queue;
     private final HashMap<Long, RelightSkyEntry> skyToRelight;
     private final HashMap<Long, RelightBlockEntry> blocksToRelight;
+    private final int maxY;
     private volatile boolean relighting = false;
 
     private static final int DISPATCH_SIZE = 64;
@@ -24,6 +25,7 @@ public class NMSRelighter {
         this.queue = queue;
         skyToRelight = new HashMap<>();
         blocksToRelight = new HashMap<>();
+        this.maxY = queue.getWEWorld().getMaxY();
     }
 
     public boolean addChunk(int cx, int cz, boolean[] fix) {
@@ -112,7 +114,7 @@ public class NMSRelighter {
                 if (y > 0) {
                     smoothBlockLight(emit, xx, y, zz, xx, y - 1, zz);
                 }
-                if (y < 255) {
+                if (y < maxY) {
                     smoothBlockLight(emit, xx, y, zz, xx, y + 1, zz);
                 }
             }
@@ -147,7 +149,7 @@ public class NMSRelighter {
         if (isTransparent(x, y, z - 1)) { queue.setBlockLight(x, y, z - 1, brightness); addBlock(x, y, z - 1); }
         if (isTransparent(x, y, z + 1)) { queue.setBlockLight(x, y, z + 1, brightness); addBlock(x, y, z + 1); }
         if (y > 0 && isTransparent(x, y - 1, z)) { queue.setBlockLight(x, y - 1, z, brightness); addBlock(x, y - 1, z); }
-        if (y < 255 && isTransparent(x, y + 1, z)) { queue.setBlockLight(x, y + 1, z, brightness); addBlock(x, y + 1, z); }
+        if (y < maxY && isTransparent(x, y + 1, z)) { queue.setBlockLight(x, y + 1, z, brightness); addBlock(x, y + 1, z); }
     }
 
     public void fixSkyLighting() {
@@ -185,7 +187,7 @@ public class NMSRelighter {
                 Object section = queue.getCachedSection(sections, layer);
                 if (section == null)continue;
                 chunk.smooth = false;
-                for (int j = 0; j < 256; j++) {
+                for (int j = 0; j <= maxY; j++) {
                     int x = cacheX[j];
                     int z = cacheZ[j];
                     byte value = mask[j];
@@ -271,7 +273,7 @@ public class NMSRelighter {
         Object section = queue.getCachedSection(sections, y >> 4);
         if (section == null) return;
         if (direction) {
-            for (int j = 0; j < 256; j++) {
+            for (int j = 0; j <= maxY; j++) {
                 int x = j & 15;
                 int z = j >> 4;
                 if (mask[j] >= 14 || (mask[j] == 0 && queue.getOpacity(section, x, y, z) > 1)) {
@@ -283,7 +285,7 @@ public class NMSRelighter {
                 if (value > mask[j]) queue.setSkyLight(section, x, y, z, mask[j] = value);
             }
         } else {
-            for (int j = 255; j >= 0; j--) {
+            for (int j = maxY; j >= 0; j--) {
                 int x = j & 15;
                 int z = j >> 4;
                 if (mask[j] >= 14 || (mask[j] == 0 && queue.getOpacity(section, x, y, z) > 1)) {
@@ -340,11 +342,11 @@ public class NMSRelighter {
         public RelightSkyEntry(int x, int z, boolean[] fix) {
             this.x = x;
             this.z = z;
-            byte[] array = new byte[256];
+            byte[] array = new byte[maxY + 1];
             Arrays.fill(array, (byte) 15);
             this.mask = array;
             if (fix == null) {
-                this.fix = new boolean[16];
+                this.fix = new boolean[(maxY  + 1) >> 4];
                 Arrays.fill(this.fix, true);
             } else {
                 this.fix = fix;

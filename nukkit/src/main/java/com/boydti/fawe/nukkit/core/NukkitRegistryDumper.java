@@ -50,7 +50,6 @@ public class NukkitRegistryDumper {
                 if (item != null && item.getBlock() != null && !visited.contains(item.getBlock().getName())) {
                     Block block = item.getBlock();
                     visited.add(block.getName());
-                    System.out.println("BLOCK " + block.getName());
                     list.add(getProperties(block));
 
                 }

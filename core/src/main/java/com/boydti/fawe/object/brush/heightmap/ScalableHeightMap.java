@@ -103,6 +103,8 @@ public class ScalableHeightMap {
     }
 
     public void apply(EditSession session, Mask mask, Vector pos, int size, int rotationMode, double yscale, boolean smooth) throws MaxChangedBlocksException {
+        Vector top = session.getMaximumPoint();
+        int maxY = top.getBlockY();
         int diameter = 2 * size + 1;
         int centerX = pos.getBlockX();
         int centerZ = pos.getBlockZ();
@@ -132,20 +134,19 @@ public class ScalableHeightMap {
                         break;
                 }
                 raise = (yscale * raise);
-                int random = PseudoRandom.random.random(256) < (int) ((raise - (int) raise) * 256) ? 1 : 0;
-                int height = session.getHighestTerrainBlock(xx, zz, 0, 255, true) + (int) raise + random;
+                int random = PseudoRandom.random.random(maxY + 1) < (int) ((raise - (int) raise) * (maxY + 1)) ? 1 : 0;
+                int height = session.getHighestTerrainBlock(xx, zz, 0, maxY, true) + (int) raise + random;
                 newData[index] = height;
             }
         }
         int iterations = 1;
-        WorldVector min = new WorldVector(LocalWorldAdapter.adapt(session.getWorld()), pos.subtract(size, 255, size));
-        Vector max = pos.add(size, 255, size);
+        WorldVector min = new WorldVector(LocalWorldAdapter.adapt(session.getWorld()), pos.subtract(size, maxY, size));
+        Vector max = pos.add(size, maxY, size);
         Region region = new CuboidRegion(session.getWorld(), min, max);
         HeightMap heightMap = new HeightMap(session, region, true);
         if (smooth) {
             HeightMapFilter filter = new HeightMapFilter(new GaussianKernel(5, 1));
             newData = filter.filter(newData, diameter, diameter);
-//            MainUtil.smoothArray(newData, diameter, 1, 4);
         }
         heightMap.apply(newData);
     }

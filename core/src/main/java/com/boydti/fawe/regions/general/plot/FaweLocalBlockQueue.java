@@ -1,5 +1,6 @@
 package com.boydti.fawe.regions.general.plot;
 
+import com.boydti.fawe.Fawe;
 import com.boydti.fawe.FaweAPI;
 import com.boydti.fawe.FaweCache;
 import com.boydti.fawe.object.FaweQueue;
@@ -16,11 +17,15 @@ import java.util.List;
 
 public class FaweLocalBlockQueue extends LocalBlockQueue {
 
-    private FaweQueue IMP;
-
+    public final FaweQueue IMP;
 
     public FaweLocalBlockQueue(String world) {
         super(world);
+        IMP = SetQueue.IMP.getNewQueue(FaweAPI.getWorld(world), true, false);
+    }
+
+    public FaweLocalBlockQueue(World world) {
+        super(Fawe.imp().getWorldName(world));
         IMP = SetQueue.IMP.getNewQueue(world, true, false);
     }
 
@@ -78,7 +83,7 @@ public class FaweLocalBlockQueue extends LocalBlockQueue {
     public boolean setBiome(int x, int z, String biome) {
         if (!StringMan.isEqual(biome, lastBiome)) {
             if (reg == null) {
-                World weWorld = FaweAPI.getWorld(IMP.getWorldName());
+                World weWorld = IMP.getWEWorld();
                 reg = weWorld.getWorldData().getBiomeRegistry();
             }
             List<BaseBiome> biomes = reg.getBiomes();

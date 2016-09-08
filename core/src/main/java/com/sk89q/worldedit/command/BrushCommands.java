@@ -25,8 +25,12 @@ import com.boydti.fawe.config.Settings;
 import com.boydti.fawe.object.FaweLimit;
 import com.boydti.fawe.object.FawePlayer;
 import com.boydti.fawe.object.brush.CommandBrush;
-import com.boydti.fawe.object.brush.CopyBrush;
+import com.boydti.fawe.object.brush.CopyPastaBrush;
 import com.boydti.fawe.object.brush.HeightBrush;
+import com.boydti.fawe.object.brush.BlendBall;
+import com.boydti.fawe.object.brush.DoubleActionBrushTool;
+import com.boydti.fawe.object.brush.ErodeBrush;
+import com.boydti.fawe.object.brush.LineBrush;
 import com.sk89q.minecraft.util.commands.Command;
 import com.sk89q.minecraft.util.commands.CommandContext;
 import com.sk89q.minecraft.util.commands.CommandPermissions;
@@ -77,6 +81,63 @@ public class BrushCommands {
     public BrushCommands(WorldEdit worldEdit) {
         checkNotNull(worldEdit);
         this.worldEdit = worldEdit;
+    }
+
+    @Command(
+            aliases = { "blendball", "bb" },
+            usage = "[radius]",
+            desc = "Choose the blend ball brush",
+            help = "Chooses the blend ball brush",
+            min = 0,
+            max = 1
+    )
+    @CommandPermissions("worldedit.brush.blendball")
+    public void blendBallBrush(Player player, LocalSession session, EditSession editSession, @Optional("5") double radius) throws WorldEditException {
+        worldEdit.checkMaxBrushRadius(radius);
+        BrushTool tool = session.getBrushTool(player.getItemInHand());
+        tool.setSize(radius);
+        tool.setBrush(new BlendBall(), "worldedit.brush.blendball");
+        BBC.BRUSH_SPHERE.send(player, radius);
+    }
+
+    @Command(
+            aliases = { "erode", "e" },
+            usage = "[radius]",
+            desc = "Choose the erode brush",
+            help = "Chooses the erode brush",
+            min = 0,
+            max = 1
+    )
+    @CommandPermissions("worldedit.brush.erode")
+    public void erodeBrush(Player player, LocalSession session, EditSession editSession, @Optional("5") double radius) throws WorldEditException {
+        worldEdit.checkMaxBrushRadius(radius);
+        DoubleActionBrushTool tool = session.getDoubleActionBrushTool(player.getItemInHand());
+        tool.setSize(radius);
+        tool.setBrush(new ErodeBrush(), "worldedit.brush.erode");
+        BBC.BRUSH_SPHERE.send(player, radius);
+    }
+
+    @Command(
+            aliases = { "line", "l" },
+            usage = "<pattern> [radius]",
+            flags = "hsf",
+            desc = "Choose the line brush",
+            help =
+                    "Chooses the line brush.\n" +
+                            "The -h flag creates only a shell\n" +
+                            "The -s flag selects the clicked point after drawing\n" +
+                            "The -f flag creates a flat line",
+            min = 1,
+            max = 2
+    )
+    @CommandPermissions("worldedit.brush.line")
+    public void lineBrush(Player player, LocalSession session, EditSession editSession, Pattern fill, @Optional("0") double radius, @Switch('h') boolean shell, @Switch('s') boolean select, @Switch('f') boolean flat) throws WorldEditException {
+        worldEdit.checkMaxBrushRadius(radius);
+        DoubleActionBrushTool tool = session.getDoubleActionBrushTool(player.getItemInHand());
+        tool.setFill(fill);
+        tool.setSize(radius);
+        tool.setBrush(new LineBrush(shell, select, flat), "worldedit.brush.line");
+        BBC.BRUSH_SPHERE.send(player, radius);
     }
 
     @Command(
@@ -258,20 +319,21 @@ public class BrushCommands {
     }
 
     @Command(
-            aliases = { "copy" },
+            aliases = { "copypaste", "copy", "paste", "cp", "copypasta" },
             usage = "[depth]",
-            desc = "Copy brush",
+            desc = "Copy Paste brush",
             help =
-                    "Right click the base of an object to copy.\n",
+                    "Left click the base of an object to copy.\n" +
+                    "Right click to paste",
             min = 0,
             max = 1
     )
     @CommandPermissions("worldedit.brush.copy")
     public void copy(Player player, LocalSession session, EditSession editSession, @Optional("5") double radius) throws WorldEditException {
         worldEdit.checkMaxBrushRadius(radius);
-        BrushTool tool = session.getBrushTool(player.getItemInHand());
+        DoubleActionBrushTool tool = session.getDoubleActionBrushTool(player.getItemInHand());
         tool.setSize(radius);
-        tool.setBrush(new CopyBrush(player, session, tool), "worldedit.brush.copy");
+        tool.setBrush(new CopyPastaBrush(player, session, tool), "worldedit.brush.copy");
         BBC.BRUSH_COPY.send(player, radius);
     }
 

@@ -24,7 +24,7 @@ public class MCAQueue extends NMSMappedFaweQueue<FaweQueue, FaweChunk, FaweChunk
     private final File saveFolder;
 
     public MCAQueue(FaweQueue parent) {
-        super(parent.getWorldName(), new MCAQueueMap());
+        super(parent.getWEWorld(), new MCAQueueMap());
         this.parent = parent;
         if (parent instanceof NMSMappedFaweQueue) {
             parentNMS = (NMSMappedFaweQueue) parent;
@@ -35,7 +35,7 @@ public class MCAQueue extends NMSMappedFaweQueue<FaweQueue, FaweChunk, FaweChunk
     }
 
     public MCAQueue(String world, File saveFolder, boolean hasSky) {
-        super(world, new MCAQueueMap());
+        super(null, new MCAQueueMap());
         ((MCAQueueMap) getFaweQueueMap()).setParentQueue(this);
         this.saveFolder = saveFolder;
         this.hasSky = hasSky;

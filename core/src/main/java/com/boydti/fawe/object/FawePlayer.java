@@ -16,6 +16,7 @@ import com.sk89q.worldedit.EditSession;
 import com.sk89q.worldedit.EmptyClipboardException;
 import com.sk89q.worldedit.IncompleteRegionException;
 import com.sk89q.worldedit.LocalSession;
+import com.sk89q.worldedit.Vector;
 import com.sk89q.worldedit.WorldEdit;
 import com.sk89q.worldedit.entity.Player;
 import com.sk89q.worldedit.extension.platform.Actor;
@@ -151,7 +152,7 @@ public abstract class FawePlayer<T> {
     }
 
     public FaweQueue getMaskedFaweQueue(boolean autoQueue) {
-        FaweQueue queue = SetQueue.IMP.getNewQueue(getLocation().world, true, autoQueue);
+        FaweQueue queue = SetQueue.IMP.getNewQueue(getWorld(), true, autoQueue);
         RegionWrapper[] allowedRegions = getCurrentRegions();
         if (allowedRegions.length == 1 && allowedRegions[0].isGlobal()) {
             return queue;
@@ -275,7 +276,9 @@ public abstract class FawePlayer<T> {
      */
     public void setSelection(final RegionWrapper region) {
         final Player player = this.getPlayer();
-        final RegionSelector selector = new CuboidRegionSelector(player.getWorld(), region.getBottomVector(), region.getTopVector());
+        Vector top = region.getTopVector();
+        top.setY(getWorld().getMaxY());
+        final RegionSelector selector = new CuboidRegionSelector(player.getWorld(), region.getBottomVector(), top);
         this.getSession().setRegionSelector(player.getWorld(), selector);
     }
 

@@ -2,6 +2,7 @@ package com.boydti.fawe.bukkit;
 
 import com.boydti.fawe.Fawe;
 import com.boydti.fawe.object.FaweQueue;
+import com.sk89q.worldedit.world.World;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.List;
@@ -53,5 +54,5 @@ public abstract class ABukkitMain extends JavaPlugin {
         FaweBukkit imp = new FaweBukkit(this);
     }
 
-    public abstract FaweQueue getQueue(String world);
+    public abstract FaweQueue getQueue(World world);
 }

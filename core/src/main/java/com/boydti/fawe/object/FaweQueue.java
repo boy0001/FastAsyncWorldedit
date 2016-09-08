@@ -14,6 +14,7 @@ import com.sk89q.worldedit.EditSession;
 import com.sk89q.worldedit.Vector;
 import com.sk89q.worldedit.blocks.BaseBlock;
 import com.sk89q.worldedit.blocks.BlockMaterial;
+import com.sk89q.worldedit.world.World;
 import com.sk89q.worldedit.world.biome.BaseBiome;
 import com.sk89q.worldedit.world.registry.BundledBlockData;
 import java.io.File;
@@ -26,14 +27,16 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 public abstract class FaweQueue {
 
+    private World weWorld;
     private final String world;
     private ConcurrentLinkedDeque<EditSession> sessions;
     private long modified = System.currentTimeMillis();
     private RunnableVal2<FaweChunk, FaweChunk> changeTask;
     private RunnableVal2<ProgressType, Integer> progressTask;
 
-    public FaweQueue(String world) {
-        this.world = world;
+    public FaweQueue(World world) {
+        this.weWorld = world;
+        this.world = Fawe.imp().getWorldName(world);
     }
 
     public enum ProgressType {
@@ -56,6 +59,10 @@ public abstract class FaweQueue {
             setSessions(new ConcurrentLinkedDeque<EditSession>());
         }
         getSessions().add(session);
+    }
+
+    public World getWEWorld() {
+        return weWorld;
     }
 
     public String getWorldName() {
@@ -140,6 +147,10 @@ public abstract class FaweQueue {
 
     public abstract File getSaveFolder();
 
+    public int getMaxY() {
+        return weWorld == null ? 255 : weWorld.getMaxY();
+    }
+
     public void forEachBlockInChunk(int cx, int cz, RunnableVal2<Vector, BaseBlock> onEach) {
         int bx = cx << 4;
         int bz = cz << 4;
@@ -150,7 +161,7 @@ public abstract class FaweQueue {
             for (int z = 0; z < 16; z++) {
                 int zz = z + bz;
                 mutable.z = zz;
-                for (int y = 0; y < 256; y++) {
+                for (int y = 0; y <= getMaxY(); y++) {
                     int combined = getCombinedId4Data(xx, y, zz);
                     if (combined == 0) {
                         continue;
@@ -177,7 +188,7 @@ public abstract class FaweQueue {
             int xx = x + bx;
             for (int z = 0; z < 16; z++) {
                 int zz = z + bz;
-                for (int y = 0; y < 256; y++) {
+                for (int y = 0; y < getMaxY(); y++) {
                     int combined = getCombinedId4Data(xx, y, zz);
                     if (combined == 0) {
                         continue;

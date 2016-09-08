@@ -145,7 +145,7 @@ public class RegionCommands {
         final FaweLocation loc = fp.getLocation();
         final int cx = loc.x >> 4;
         final int cz = loc.z >> 4;
-        final NMSMappedFaweQueue queue = (NMSMappedFaweQueue) SetQueue.IMP.getNewQueue(fp.getLocation().world, true, false);
+        final NMSMappedFaweQueue queue = (NMSMappedFaweQueue) SetQueue.IMP.getNewQueue(fp.getWorld(), true, false);
         for (Vector pt : region) {
             queue.setBlockLight((byte) pt.x, (byte) pt.y, (byte) pt.z, value);
         }
@@ -169,7 +169,7 @@ public class RegionCommands {
         final FaweLocation loc = fp.getLocation();
         final int cx = loc.x >> 4;
         final int cz = loc.z >> 4;
-        final NMSMappedFaweQueue queue = (NMSMappedFaweQueue) SetQueue.IMP.getNewQueue(fp.getLocation().world, true, false);
+        final NMSMappedFaweQueue queue = (NMSMappedFaweQueue) SetQueue.IMP.getNewQueue(fp.getWorld(), true, false);
         for (Vector pt : region) {
             queue.setSkyLight((byte) pt.x, (byte) pt.y, (byte) pt.z, value);
         }

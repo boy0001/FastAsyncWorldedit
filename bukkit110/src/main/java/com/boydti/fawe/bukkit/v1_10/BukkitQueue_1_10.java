@@ -80,7 +80,7 @@ public class BukkitQueue_1_10 extends BukkitQueue_0<Chunk, ChunkSection[], Chunk
 
     public static final IBlockData[] IBD_CACHE = new IBlockData[Character.MAX_VALUE];
 
-    public BukkitQueue_1_10(final String world) {
+    public BukkitQueue_1_10(final com.sk89q.worldedit.world.World world) {
         super(world);
         checkVersion("v1_10_R1");
         if (air == null) {

@@ -129,7 +129,7 @@ public class AsyncWorld implements World {
      * @return
      */
     public synchronized static AsyncWorld create(final WorldCreator creator) {
-        BukkitQueue_0 queue = (BukkitQueue_0) SetQueue.IMP.getNewQueue(creator.name(), true, false);
+        BukkitQueue_0 queue = (BukkitQueue_0) SetQueue.IMP.getNewQueue(FaweAPI.getWorld(creator.name()), true, false);
         World world = queue.createWorld(creator);
         return wrap(world);
     }
@@ -182,7 +182,7 @@ public class AsyncWorld implements World {
 
     @Override
     public int getHighestBlockYAt(int x, int z) {
-        for (int y = 255; y >= 0; y--) {
+        for (int y = getMaxHeight() - 1; y >= 0; y--) {
             if (queue.getCombinedId4Data(x, y, z, 0) != 0) {
                 return y;
             }

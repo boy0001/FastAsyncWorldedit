@@ -33,7 +33,7 @@ public abstract class BukkitQueue_0<CHUNK, CHUNKSECTIONS, SECTION> extends NMSMa
     public static Method methodToNative;
     public static Method methodFromNative;
 
-    public BukkitQueue_0(final String world) {
+    public BukkitQueue_0(final com.sk89q.worldedit.world.World world) {
         super(world);
         setupAdapter(null);
         if (!registered) {

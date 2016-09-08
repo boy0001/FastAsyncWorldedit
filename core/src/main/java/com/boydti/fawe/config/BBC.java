@@ -79,6 +79,7 @@ public enum BBC {
     SELECTION_OUTSET("Region outset", "WorldEdit.Selection"),
     SELECTION_SHIFT("Region shifted", "WorldEdit.Selection"),
     SELECTION_CLEARED("Selection cleared", "WorldEdit.Selection"),
+    SELECTION_NONE("Make a region selection first", "WorldEdit.Selection"),
 
     BRUSH_BUTCHER("Butcher brush equiped (%s0)", "WorldEdit.Brush"),
     BRUSH_CLIPBOARD("Clipboard brush shape equipped", "WorldEdit.Brush"),
@@ -91,6 +92,10 @@ public enum BBC {
     BRUSH_HEIGHT_INVALID("Invalid height map file (%s0)", "WorldEdit.Brush"),
     BRUSH_SMOOTH("Smooth brush equipped (%s0 x %s1 using %s2).", "WorldEdit.Brush"),
     BRUSH_SPHERE("Sphere brush shape equipped (%s0).", "WorldEdit.Brush"),
+    BRUSH_BLEND_BALL("Blend ball brush equipped (%s0).", "WorldEdit.Brush"),
+    BRUSH_ERODE("Erode brush equipped (%s0).", "WorldEdit.Brush"),
+    BRUSH_PASTE_NONE("Nothing to paste", "WorldEdit.Brush"),
+
 
     ROLLBACK_ELEMENT("Undoing %s0", "WorldEdit.Rollback"),
 

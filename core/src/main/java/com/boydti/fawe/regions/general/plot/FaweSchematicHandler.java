@@ -44,7 +44,7 @@ public class FaweSchematicHandler extends SchematicHandler {
             queue.setTile(x, y, z, compoundTag);
             return true;
         }
-        FaweQueue faweQueue = SetQueue.IMP.getNewQueue(queue.getWorld(), true, false);
+        FaweQueue faweQueue = SetQueue.IMP.getNewQueue(((FaweLocalBlockQueue) queue).IMP.getWEWorld(), true, false);
         faweQueue.setTile(x, y, z, (com.sk89q.jnbt.CompoundTag) FaweCache.asTag(compoundTag));
         faweQueue.flush();
         return false;

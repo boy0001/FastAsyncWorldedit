@@ -60,7 +60,7 @@ public class ForgeQueue_All extends NMSMappedFaweQueue<World, Chunk, ExtendedBlo
     private static Method methodFromNative;
     private static Method methodToNative;
 
-    public ForgeQueue_All(String world) {
+    public ForgeQueue_All(com.sk89q.worldedit.world.World world) {
         super(world);
         if (methodFromNative == null) {
             try {

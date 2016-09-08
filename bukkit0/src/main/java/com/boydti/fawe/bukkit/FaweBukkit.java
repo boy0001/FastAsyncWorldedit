@@ -158,7 +158,7 @@ public class FaweBukkit implements IFawe, Listener {
      *  - When a block change is requested, the SetQueue will first check if the chunk exists in the queue, or it will create and add it<br>
      */
     @Override
-    public FaweQueue getNewQueue(String world, boolean dontCareIfFast) {
+    public FaweQueue getNewQueue(World world, boolean dontCareIfFast) {
         if (playerChunk != (playerChunk = true)) {
             try {
                 Field fieldDirtyCount = ReflectionUtils.getRefClass("{nms}.PlayerChunk").getField("dirtyCount").getRealField();

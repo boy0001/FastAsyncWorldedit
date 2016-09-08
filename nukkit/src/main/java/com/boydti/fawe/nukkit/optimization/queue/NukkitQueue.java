@@ -17,6 +17,7 @@ import com.boydti.fawe.object.FaweChunk;
 import com.boydti.fawe.object.RunnableVal;
 import com.boydti.fawe.util.MathMan;
 import com.sk89q.jnbt.CompoundTag;
+import com.sk89q.worldedit.world.World;
 import java.io.File;
 import java.util.Collection;
 import java.util.Map;
@@ -31,10 +32,10 @@ public class NukkitQueue extends NMSMappedFaweQueue<Level, BaseFullChunk, BaseFu
     public static double TPS_TARGET = 18.5;
     private static int LIGHT_MASK = 0x739C0;
 
-    public NukkitQueue(FaweNukkit fn, String world) {
+    public NukkitQueue(FaweNukkit fn, World world) {
         super(world);
         this.faweNukkit = fn;
-        this.world = faweNukkit.getPlugin().getServer().getLevelByName(world);
+        this.world = faweNukkit.getPlugin().getServer().getLevelByName(getWorldName());
         if (Settings.QUEUE.EXTRA_TIME_MS != Integer.MIN_VALUE) {
             ALLOCATE = Settings.QUEUE.EXTRA_TIME_MS;
             Settings.QUEUE.EXTRA_TIME_MS = Integer.MIN_VALUE;

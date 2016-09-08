@@ -79,7 +79,7 @@ public class BukkitQueue_1_9_R1 extends BukkitQueue_0<Chunk, ChunkSection[], Chu
     private static IBlockData air;
     private static Field fieldBits;
 
-    public BukkitQueue_1_9_R1(final String world) {
+    public BukkitQueue_1_9_R1(final com.sk89q.worldedit.world.World world) {
         super(world);
         checkVersion("v1_9_R2");
         if (air == null) {

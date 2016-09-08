@@ -169,6 +169,8 @@ public class EditSession implements Extent {
 
     private Vector mutable = new Vector();
 
+    private final int maxY;
+
     public static final UUID CONSOLE = UUID.fromString("1-1-3-3-7");
     public static final BaseBiome nullBiome = new BaseBiome(0);
     public static final BaseBlock nullBlock = FaweCache.CACHE_BLOCK[0];
@@ -253,7 +255,7 @@ public class EditSession implements Extent {
             if (world instanceof MCAWorld) {
                 queue = ((MCAWorld) world).getQueue();
             } else {
-                queue = SetQueue.IMP.getNewQueue(Fawe.imp().getWorldName(world), fastmode, autoQueue);
+                queue = SetQueue.IMP.getNewQueue(world, fastmode, autoQueue);
             }
         } else if (Settings.EXPERIMENTAL.ANVIL_QUEUE_MODE && !(queue instanceof MCAQueue)) {
             queue = new MCAQueue(queue);
@@ -281,6 +283,7 @@ public class EditSession implements Extent {
             }
         }
         this.extent = wrapExtent(this.extent, bus, event, Stage.BEFORE_HISTORY);
+        this.maxY = this.world == null ? 255 : world.getMaxY();
     }
 
     /**
@@ -709,9 +712,13 @@ public class EditSession implements Extent {
         return extent.getLazyBlock(x, y, z);
     }
 
+    public BaseBlock getBlock(int x, int y, int z) {
+        return extent.getLazyBlock(x, y, z);
+    }
+
     @Override
     public BaseBlock getBlock(final Vector position) {
-        if (position.y > 255 || position.y < 0) {
+        if (position.y > maxY || position.y < 0) {
             return nullBlock;
         }
         return getLazyBlock((int) position.x, (int) position.y, (int) position.z);
@@ -1887,8 +1894,8 @@ public class EditSession implements Extent {
 
         if (pos.getBlockY() < 0) {
             pos = pos.setY(0);
-        } else if (((pos.getBlockY() + height) - 1) > 255) {
-            height = (255 - pos.getBlockY()) + 1;
+        } else if (((pos.getBlockY() + height) - 1) > maxY) {
+            height = (maxY - pos.getBlockY()) + 1;
         }
 
         final double invRadiusX = 1 / radiusX;
@@ -2074,7 +2081,7 @@ public class EditSession implements Extent {
                 if (dx2 + dz2 > radiusSq) {
                     continue;
                 }
-                for (int y = 255; y >= 1; --y) {
+                for (int y = maxY; y >= 1; --y) {
                     final int id = FaweCache.getId(queue.getCombinedId4Data(x, y, z));
                     switch (id) {
                         case BlockID.ICE:
@@ -2126,7 +2133,7 @@ public class EditSession implements Extent {
                 if (dx2 + dz2 > radiusSq) {
                     continue;
                 }
-                for (int y = 255; y >= 1; --y) {
+                for (int y = maxY; y >= 1; --y) {
                     final int id = FaweCache.getId(queue.getCombinedId4Data(x, y, z));
                     if (id == BlockID.AIR) {
                         continue;
@@ -2143,7 +2150,7 @@ public class EditSession implements Extent {
                     }
 
                     // Too high?
-                    if (y == 255) {
+                    if (y == maxY) {
                         break;
                     }
 
@@ -2200,7 +2207,7 @@ public class EditSession implements Extent {
                 if (dx2 + dz2 > radiusSq) {
                     continue;
                 }
-                loop: for (int y = 255; y >= 1; --y) {
+                loop: for (int y = maxY; y >= 1; --y) {
                     BaseBlock block = getLazyBlock(x, y, z);
                     final int id = block.getId();
                     final int data = block.getData();
@@ -2544,6 +2551,10 @@ public class EditSession implements Extent {
         return changes;
     }
 
+    public int drawLine(final Pattern pattern, final Vector pos1, final Vector pos2, final double radius, final boolean filled) throws MaxChangedBlocksException {
+        return drawLine(pattern, pos1, pos2, radius, filled, false);
+    }
+
     /**
      * Draws a line (out of blocks) between two vectors.
      *
@@ -2556,7 +2567,7 @@ public class EditSession implements Extent {
      * @return number of blocks affected
      * @throws MaxChangedBlocksException thrown if too many blocks are changed
      */
-    public int drawLine(final Pattern pattern, final Vector pos1, final Vector pos2, final double radius, final boolean filled) throws MaxChangedBlocksException {
+    public int drawLine(final Pattern pattern, final Vector pos1, final Vector pos2, final double radius, final boolean filled, boolean flat) throws MaxChangedBlocksException {
 
         Set<Vector> vset = new HashSet<Vector>();
         boolean notdrawn = true;
@@ -2576,7 +2587,6 @@ public class EditSession implements Extent {
                 tipx = x1 + (domstep * ((x2 - x1) > 0 ? 1 : -1));
                 tipy = (int) Math.round(y1 + (((domstep * ((double) dy)) / (dx)) * ((y2 - y1) > 0 ? 1 : -1)));
                 tipz = (int) Math.round(z1 + (((domstep * ((double) dz)) / (dx)) * ((z2 - z1) > 0 ? 1 : -1)));
-
                 vset.add(new Vector(tipx, tipy, tipz));
             }
             notdrawn = false;
@@ -2598,14 +2608,19 @@ public class EditSession implements Extent {
                 tipz = z1 + (domstep * ((z2 - z1) > 0 ? 1 : -1));
                 tipy = (int) Math.round(y1 + (((domstep * ((double) dy)) / (dz)) * ((y2 - y1) > 0 ? 1 : -1)));
                 tipx = (int) Math.round(x1 + (((domstep * ((double) dx)) / (dz)) * ((x2 - x1) > 0 ? 1 : -1)));
-
                 vset.add(new Vector(tipx, tipy, tipz));
             }
         }
-
-        vset = this.getBallooned(vset, radius);
-        if (!filled) {
-            vset = this.getHollowed(vset);
+        if (flat) {
+            vset = this.getStretched(vset, radius);
+            if (!filled) {
+                vset = this.getOutline(vset);
+            }
+        } else {
+            vset = this.getBallooned(vset, radius);
+            if (!filled) {
+                vset = this.getHollowed(vset);
+            }
         }
         return this.setBlocks(vset, pattern);
     }
@@ -2673,7 +2688,6 @@ public class EditSession implements Extent {
 
         for (final Vector v : vset) {
             final int tipx = v.getBlockX(), tipy = v.getBlockY(), tipz = v.getBlockZ();
-
             for (int loopx = tipx - ceilrad; loopx <= (tipx + ceilrad); loopx++) {
                 for (int loopy = tipy - ceilrad; loopy <= (tipy + ceilrad); loopy++) {
                     for (int loopz = tipz - ceilrad; loopz <= (tipz + ceilrad); loopz++) {
@@ -2682,6 +2696,35 @@ public class EditSession implements Extent {
                         }
                     }
                 }
+            }
+        }
+        return returnset;
+    }
+
+    private Set<Vector> getStretched(final Set<Vector> vset, final double radius) {
+        final Set<Vector> returnset = new HashSet<Vector>();
+        final int ceilrad = (int) Math.ceil(radius);
+        for (final Vector v : vset) {
+            final int tipx = v.getBlockX(), tipy = v.getBlockY(), tipz = v.getBlockZ();
+            for (int loopx = tipx - ceilrad; loopx <= (tipx + ceilrad); loopx++) {
+                for (int loopz = tipz - ceilrad; loopz <= (tipz + ceilrad); loopz++) {
+                    if (this.hypot(loopx - tipx, 0, loopz - tipz) <= radius) {
+                        returnset.add(new Vector(loopx, v.getY(), loopz));
+                    }
+                }
+            }
+        }
+        return returnset;
+    }
+
+    private Set<Vector> getOutline(final Set<Vector> vset) {
+        final Set<Vector> returnset = new HashSet<Vector>();
+        for (final Vector v : vset) {
+            final double x = v.getX(), y = v.getY(), z = v.getZ();
+            if (!(vset.contains(new Vector(x + 1, y, z))
+                    && vset.contains(new Vector(x - 1, y, z))
+                    && vset.contains(new Vector(x, y, z + 1)) && vset.contains(new Vector(x, y, z - 1)))) {
+                returnset.add(v);
             }
         }
         return returnset;

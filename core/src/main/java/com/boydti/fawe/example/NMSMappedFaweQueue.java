@@ -6,6 +6,7 @@ import com.boydti.fawe.object.FaweChunk;
 import com.boydti.fawe.object.exception.FaweException;
 import com.boydti.fawe.util.TaskManager;
 import com.sk89q.jnbt.CompoundTag;
+import com.sk89q.worldedit.world.World;
 import java.util.Collection;
 import java.util.Map;
 import java.util.Set;
@@ -13,13 +14,17 @@ import java.util.UUID;
 
 public abstract class NMSMappedFaweQueue<WORLD, CHUNK, CHUNKSECTION, SECTION> extends MappedFaweQueue<WORLD, CHUNKSECTION, SECTION> {
 
-    public NMSMappedFaweQueue(String world) {
+    private final int maxY;
+
+    public NMSMappedFaweQueue(World world) {
         super(world);
+        this.maxY = world.getMaxY();
         addRelightTask();
     }
 
-    public NMSMappedFaweQueue(String world, IFaweQueueMap map) {
+    public NMSMappedFaweQueue(World world, IFaweQueueMap map) {
         super(world, map);
+        this.maxY = world.getMaxY();
         addRelightTask();
     }
 
@@ -57,7 +62,7 @@ public abstract class NMSMappedFaweQueue<WORLD, CHUNK, CHUNKSECTION, SECTION> ex
             }
             CharFaweChunk chunk = (CharFaweChunk) fc;
             boolean relight = false;
-            boolean[] fix = new boolean[16];
+            boolean[] fix = new boolean[(maxY + 1) >> 4];
             boolean sky = hasSky();
             for (int i = 0; i < chunk.ids.length; i++) {
                 if ((sky && ((chunk.getAir(i) & 4095) != 0 || (chunk.getCount(i) & 4095) != 0)) || chunk.getRelight(i) != 0) {
@@ -99,7 +104,7 @@ public abstract class NMSMappedFaweQueue<WORLD, CHUNK, CHUNKSECTION, SECTION> ex
         if ((x < 0) || (x > 15) || (z < 0) || (z > 15)) {
             return 1;
         }
-        if ((y < 0) || (y > 255)) {
+        if ((y < 0) || (y > maxY)) {
             return 1;
         }
         final int i = FaweCache.CACHE_I[y][z][x];
@@ -181,7 +186,7 @@ public abstract class NMSMappedFaweQueue<WORLD, CHUNK, CHUNKSECTION, SECTION> ex
 
     @Override
     public CompoundTag getTileEntity(int x, int y, int z) throws FaweException.FaweChunkLoadException {
-        if (y < 0 || y > 255) {
+        if (y < 0 || y > maxY) {
             return null;
         }
         int cx = x >> 4;

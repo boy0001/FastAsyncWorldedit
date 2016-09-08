@@ -25,6 +25,7 @@ import com.boydti.fawe.object.FaweInputStream;
 import com.boydti.fawe.object.FaweOutputStream;
 import com.boydti.fawe.object.FawePlayer;
 import com.boydti.fawe.object.RunnableVal2;
+import com.boydti.fawe.object.brush.DoubleActionBrushTool;
 import com.boydti.fawe.object.changeset.DiskStorageHistory;
 import com.boydti.fawe.object.changeset.FaweChangeSet;
 import com.boydti.fawe.object.clipboard.DiskOptimizedClipboard;
@@ -933,6 +934,26 @@ public class LocalSession {
         }
 
         return (BrushTool) tool;
+    }
+
+    /**
+     * Get the brush tool assigned to the item. If there is no tool assigned
+     * or the tool is not assigned, the slot will be replaced with the
+     * brush tool.
+     *
+     * @param item the item type ID
+     * @return the tool, or {@code null}
+     * @throws InvalidToolBindException if the item can't be bound to that item
+     */
+    public DoubleActionBrushTool getDoubleActionBrushTool(int item) throws InvalidToolBindException {
+        Tool tool = getTool(item);
+
+        if (tool == null || !(tool instanceof DoubleActionBrushTool)) {
+            tool = new DoubleActionBrushTool("worldedit.brush.sphere");
+            setTool(item, tool);
+        }
+
+        return (DoubleActionBrushTool) tool;
     }
 
     /**

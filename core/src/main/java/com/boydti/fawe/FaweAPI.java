@@ -98,6 +98,11 @@ public class FaweAPI {
         return FawePlayer.wrap(obj);
     }
 
+    @Deprecated
+    public static FaweQueue createQueue(String worldName, boolean autoqueue) {
+        return SetQueue.IMP.getNewQueue(getWorld(worldName), true, autoqueue);
+    }
+
     /**
      * You can either use a FaweQueue or an EditSession to change blocks<br>
      *     - The FaweQueue skips a bit of overhead so it's faster<br>
@@ -108,8 +113,8 @@ public class FaweAPI {
      * @param autoqueue If it should start dispatching before you enqueue it.
      * @return
      */
-    public static FaweQueue createQueue(String worldName, boolean autoqueue) {
-        return SetQueue.IMP.getNewQueue(worldName, true, autoqueue);
+    public static FaweQueue createQueue(World world, boolean autoqueue) {
+        return SetQueue.IMP.getNewQueue(world, true, autoqueue);
     }
 
     public static World getWorld(String worldName) {
@@ -355,30 +360,19 @@ public class FaweAPI {
         return (version[0] > major) || ((version[0] == major) && (version[1] > minor)) || ((version[0] == major) && (version[1] == minor) && (version[2] >= minor2));
     }
 
-//    /**
-//     * Fix the lighting in a chunk
-//     * @param world
-//     * @param x
-//     * @param z
-//     * @param mode
-//     */
-//    public static void fixLighting(String world, int x, int z, FaweQueue.RelightMode mode) {
-//        FaweQueue queue = SetQueue.IMP.getNewQueue(world, true, false);
-//        queue.fixLighting(queue.getFaweChunk(x, z), mode);
-//    }
-//
-//    /**
-//     * Fix the lighting in a chunk
-//     * @param chunk
-//     * @param mode
-//     */
-//    public static void fixLighting(final Chunk chunk, FaweQueue.RelightMode mode) {
-//        FaweQueue queue = SetQueue.IMP.getNewQueue(chunk.getWorld().getName(), true, false);
-//        queue.fixLighting(queue.getFaweChunk(chunk.getX(), chunk.getZ()), mode);
-//    }
-
+    @Deprecated
     public static int fixLighting(String world, Region selection) {
         return fixLighting(world, selection, FaweQueue.RelightMode.ALL);
+    }
+
+    @Deprecated
+    public static int fixLighting(String world, Region selection, final FaweQueue.RelightMode mode) {
+        return fixLighting(world, selection, null, mode);
+    }
+
+    @Deprecated
+    public static int fixLighting(String world, Region selection, @Nullable FaweQueue queue, final FaweQueue.RelightMode mode) {
+        return fixLighting(getWorld(world), selection, queue, mode);
     }
 
     /**
@@ -390,11 +384,7 @@ public class FaweAPI {
      * @param selection (assumes cuboid)
      * @return
      */
-    public static int fixLighting(String world, Region selection, final FaweQueue.RelightMode mode) {
-        return fixLighting(world, selection, null, mode);
-    }
-
-    public static int fixLighting(String world, Region selection, @Nullable FaweQueue queue, final FaweQueue.RelightMode mode) {
+    public static int fixLighting(World world, Region selection, @Nullable FaweQueue queue, final FaweQueue.RelightMode mode) {
         final Vector bot = selection.getMinimumPoint();
         final Vector top = selection.getMaximumPoint();
 
@@ -499,7 +489,7 @@ public class FaweAPI {
         final int y_offset = loc.y + IntTag.class.cast(tagMap.get("WEOffsetY")).getValue();
         final int z_offset = loc.z + IntTag.class.cast(tagMap.get("WEOffsetZ")).getValue();
 
-        FaweQueue queue = SetQueue.IMP.getNewQueue(loc.world, true, true);
+        FaweQueue queue = SetQueue.IMP.getNewQueue(getWorld(loc.world), true, true);
 
         for (int y = 0; y < height; y++) {
             final int yy = y_offset + y;

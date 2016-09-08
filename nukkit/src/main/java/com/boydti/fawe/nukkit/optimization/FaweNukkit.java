@@ -117,7 +117,7 @@ public class FaweNukkit implements IFawe, Listener {
     }
 
     @Override
-    public FaweQueue getNewQueue(String world, boolean fast) {
+    public FaweQueue getNewQueue(World world, boolean fast) {
         return new NukkitQueue(this, world);
     }
 

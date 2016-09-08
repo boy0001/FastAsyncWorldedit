@@ -4,6 +4,7 @@ import com.boydti.fawe.Fawe;
 import com.boydti.fawe.config.Settings;
 import com.boydti.fawe.object.FaweQueue;
 import com.boydti.fawe.object.RunnableVal2;
+import com.sk89q.worldedit.world.World;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.ConcurrentModificationException;
@@ -172,7 +173,7 @@ public class SetQueue {
         return inactiveQueues;
     }
 
-    public FaweQueue getNewQueue(String world, boolean fast, boolean autoqueue) {
+    public FaweQueue getNewQueue(World world, boolean fast, boolean autoqueue) {
         FaweQueue queue = Fawe.imp().getNewQueue(world, fast);
         if (autoqueue) {
             inactiveQueues.add(queue);

@@ -14,6 +14,7 @@ import com.boydti.fawe.util.SetQueue;
 import com.boydti.fawe.util.TaskManager;
 import com.sk89q.jnbt.CompoundTag;
 import com.sk89q.worldedit.blocks.BlockMaterial;
+import com.sk89q.worldedit.world.World;
 import com.sk89q.worldedit.world.biome.BaseBiome;
 import com.sk89q.worldedit.world.registry.BundledBlockData;
 import java.util.ArrayDeque;
@@ -31,11 +32,11 @@ public abstract class MappedFaweQueue<WORLD, CHUNK, SECTION> extends FaweQueue {
     private IFaweQueueMap map;
     public ArrayDeque<Runnable> tasks = new ArrayDeque<>();
 
-    public MappedFaweQueue(final String world) {
+    public MappedFaweQueue(final World world) {
         this(world, null);
     }
 
-    public MappedFaweQueue(final String world, IFaweQueueMap map) {
+    public MappedFaweQueue(final World world, IFaweQueueMap map) {
         super(world);
         if (map == null) {
             map = new DefaultFaweQueueMap(this);

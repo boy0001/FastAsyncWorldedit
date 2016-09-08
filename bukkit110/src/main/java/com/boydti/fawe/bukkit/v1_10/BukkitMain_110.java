@@ -7,6 +7,7 @@ import com.boydti.fawe.object.io.BufferedRandomAccessFile;
 import com.boydti.fawe.object.io.FastByteArrayInputStream;
 import com.boydti.fawe.object.io.FastByteArrayOutputStream;
 import com.boydti.fawe.util.ReflectionUtils;
+import com.sk89q.worldedit.world.World;
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
 import java.io.DataInputStream;
@@ -26,7 +27,7 @@ import net.minecraft.server.v1_10_R1.RegionFileCache;
 
 public class BukkitMain_110 extends ABukkitMain {
     @Override
-    public BukkitQueue_0 getQueue(String world) {
+    public BukkitQueue_0 getQueue(World world) {
         return new BukkitQueue_1_10(world);
     }
 

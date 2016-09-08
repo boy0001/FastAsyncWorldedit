@@ -69,7 +69,7 @@ public class BukkitQueue18R3 extends BukkitQueue_0<Chunk, ChunkSection[], ChunkS
 
     public static Field isDirty;
 
-    public BukkitQueue18R3(final String world) {
+    public BukkitQueue18R3(final com.sk89q.worldedit.world.World world) {
         super(world);
         checkVersion("v1_8_R3");
     }

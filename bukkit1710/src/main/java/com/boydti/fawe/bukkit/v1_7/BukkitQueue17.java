@@ -69,7 +69,7 @@ public class BukkitQueue17 extends BukkitQueue_0<Chunk, ChunkSection[], ChunkSec
     private static Field fieldData;
     private static Field fieldIds;
 
-    public BukkitQueue17(final String world) {
+    public BukkitQueue17(final com.sk89q.worldedit.world.World world) {
         super(world);
         checkVersion("v1_7_R4");
         if (fieldData == null) {

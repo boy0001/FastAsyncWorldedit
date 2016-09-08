@@ -246,6 +246,19 @@ public class FaweCache {
         CACHE_COLOR[getCombined(35, 15)] =  new Color(0, 0, 0); // Black
     }
 
+    public static boolean isLiquidOrGas(int id) {
+        switch (id) {
+            case 0:
+            case 8:
+            case 9:
+            case 10:
+            case 11:
+                return true;
+            default:
+                return false;
+        }
+    }
+
     public static LightType getLight(int id) {
         switch (id) { // Lighting
             case 0:

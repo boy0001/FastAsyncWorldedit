@@ -17,7 +17,7 @@ public class DelegateFaweQueue extends FaweQueue {
     private FaweQueue parent;
 
     public DelegateFaweQueue(FaweQueue parent) {
-        super(parent.getWorldName());
+        super(parent.getWEWorld());
         this.parent = parent;
     }
 
