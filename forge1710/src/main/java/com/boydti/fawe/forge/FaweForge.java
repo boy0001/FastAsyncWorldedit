@@ -111,7 +111,7 @@ public class FaweForge implements IFawe {
     }
 
     @Override
-    public FaweQueue getNewQueue(String world, boolean dontCareIfFast) {
+    public FaweQueue getNewQueue(World world, boolean dontCareIfFast) {
         return new ForgeQueue_All(world);
     }
 
