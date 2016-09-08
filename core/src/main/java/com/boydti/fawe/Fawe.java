@@ -34,6 +34,7 @@ import com.sk89q.worldedit.command.SchematicCommands;
 import com.sk89q.worldedit.command.ScriptingCommands;
 import com.sk89q.worldedit.command.ToolCommands;
 import com.sk89q.worldedit.command.composition.SelectionCommand;
+import com.sk89q.worldedit.command.tool.LongRangeBuildTool;
 import com.sk89q.worldedit.command.tool.brush.GravityBrush;
 import com.sk89q.worldedit.event.extent.EditSessionEvent;
 import com.sk89q.worldedit.extension.platform.CommandManager;
@@ -336,6 +337,7 @@ public class Fawe {
             ClipboardFormat.inject();
             // Brushes
             GravityBrush.inject(); // Fix for instant placement assumption
+            LongRangeBuildTool.inject();
             // Selectors
             CuboidRegionSelector.inject(); // Translations
             // Visitors

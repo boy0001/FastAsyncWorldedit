@@ -251,6 +251,16 @@ public class NukkitWorld extends LocalWorld {
     }
 
     @Override
+    public Vector getMinimumPoint() {
+        return new Vector(-30000000, 0, -30000000);
+    }
+
+    @Override
+    public Vector getMaximumPoint() {
+        return new Vector(30000000, 127, 30000000);
+    }
+
+    @Override
     public void fixAfterFastMode(Iterable<BlockVector2D> chunks) {
 
     }
