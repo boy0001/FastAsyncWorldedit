@@ -118,7 +118,7 @@ public class FastWorldEditExtent extends AbstractDelegateExtent {
 
     @Override
     public boolean setBlock(int x, int y, int z, final BaseBlock block) throws WorldEditException {
-        if (y > maxY) {
+        if (y > maxY || y < 0) {
             return false;
         }
         final short id = (short) block.getId();

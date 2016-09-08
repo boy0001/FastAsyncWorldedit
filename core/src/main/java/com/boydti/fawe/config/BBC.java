@@ -20,7 +20,7 @@ public enum BBC {
      * Things to note about this class:
      * Can use multiple arguments %s, %s1, %s2, %s3 etc
      */
-    PREFIX("&8(&4&lFAWE&8)&7", "Info"),
+    PREFIX("&8(&4&lFAWE&8)&r&7", "Info"),
     SCHEMATIC_PASTING("&7The schematic is pasting. This cannot be undone.", "Info"),
     FIX_LIGHTING_SELECTION("&7Lighting has been fixed in %s0 chunks. (It may take a second for the packets to send)", "Info"),
     UPDATED_LIGHTING_SELECTION("&7Lighting has been updated in %s0 chunks. (It may take a second for the packets to send)", "Info"),

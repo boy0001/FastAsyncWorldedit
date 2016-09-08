@@ -97,7 +97,7 @@ public class NukkitQueue extends NMSMappedFaweQueue<Level, BaseFullChunk, BaseFu
 
     @Override
     public File getSaveFolder() {
-        return new File(world.getFolderName() + File.separator + "region");
+        return new File("worlds" + File.separator + world.getFolderName() + File.separator + "region");
     }
 
     @Override

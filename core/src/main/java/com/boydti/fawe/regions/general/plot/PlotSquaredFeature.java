@@ -16,7 +16,6 @@ import com.intellectualcrafters.plot.util.block.QueueProvider;
 import com.plotsquared.listener.WEManager;
 import com.sk89q.worldedit.BlockVector;
 import java.util.HashSet;
-import org.bukkit.entity.Player;
 
 public class PlotSquaredFeature extends FaweMaskManager {
     public PlotSquaredFeature() {
@@ -61,7 +60,7 @@ public class PlotSquaredFeature extends FaweMaskManager {
 
     @Override
     public FaweMask getMask(FawePlayer fp) {
-        final PlotPlayer pp = PlotPlayer.wrap((Player) fp.parent);
+        final PlotPlayer pp = PlotPlayer.wrap(fp.parent);
         final HashSet<RegionWrapper> regions;
         Plot plot = pp.getCurrentPlot();
         if (plot != null && (plot.isOwner(pp.getUUID()) || plot.getTrusted().contains(pp.getUUID()) || (plot.getMembers().contains(pp.getUUID()) && pp.hasPermission("fawe.plotsquared.member")))) {
