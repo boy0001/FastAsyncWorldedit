@@ -1,6 +1,5 @@
 package com.boydti.fawe.regions.general.plot;
 
-import com.boydti.fawe.Fawe;
 import com.boydti.fawe.FaweAPI;
 import com.boydti.fawe.FaweCache;
 import com.boydti.fawe.object.FaweQueue;
@@ -22,11 +21,6 @@ public class FaweLocalBlockQueue extends LocalBlockQueue {
     public FaweLocalBlockQueue(String world) {
         super(world);
         IMP = SetQueue.IMP.getNewQueue(FaweAPI.getWorld(world), true, false);
-    }
-
-    public FaweLocalBlockQueue(World world) {
-        super(Fawe.imp().getWorldName(world));
-        IMP = SetQueue.IMP.getNewQueue(world, true, false);
     }
 
     @Override
