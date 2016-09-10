@@ -165,7 +165,7 @@ public class NavigationCommands {
             usage = "jumpto [world,x,y,z]",
             desc = "Teleport to a location",
             min = 0,
-            max = 0
+            max = 1
     )
     @CommandPermissions("worldedit.navigation.jumpto.command")
     public void jumpTo(Player player, LocalSession session, EditSession editSession, CommandContext args) throws WorldEditException {
