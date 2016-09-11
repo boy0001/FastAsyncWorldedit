@@ -82,7 +82,7 @@ public class ForgeQueue_All extends NMSMappedFaweQueue<World, Chunk, ExtendedBlo
     public CompoundTag getTag(TileEntity tile) {
         try {
             NBTTagCompound tag = new NBTTagCompound();
-            tile.readFromNBT(tag); // readTagIntoEntity
+            tile.writeToNBT(tag); // readTagIntoEntity
             return (CompoundTag) methodToNative.invoke(null, tag);
         } catch (Exception e) {
             MainUtil.handleError(e);
