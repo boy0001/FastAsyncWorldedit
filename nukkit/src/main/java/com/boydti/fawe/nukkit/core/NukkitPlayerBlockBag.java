@@ -193,6 +193,13 @@ public class NukkitPlayerBlockBag extends BlockBag {
             player.getInventory().setContents(items);
             items = null;
             player.getInventory().sendContents(player);
+            player.getInventory().sendContents(player);
+            player.getInventory().sendContents(player);
+            player.getInventory().sendContents(player);
+            player.getInventory().sendContents(player);
+            player.getInventory().sendContents(player);
+            player.getInventory().sendContents(player);
+            player.getInventory().sendContents(player);
         }
     }
 

@@ -22,6 +22,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentLinkedDeque;
+import java.util.concurrent.ExecutorCompletionService;
 import java.util.concurrent.ForkJoinPool;
 import java.util.concurrent.TimeUnit;
 
@@ -34,6 +35,11 @@ public abstract class MappedFaweQueue<WORLD, CHUNK, SECTION> extends FaweQueue {
 
     public MappedFaweQueue(final World world) {
         this(world, null);
+    }
+
+    public MappedFaweQueue(final String world) {
+        super(world);
+        map = new DefaultFaweQueueMap(this);
     }
 
     public MappedFaweQueue(final World world, IFaweQueueMap map) {
@@ -98,8 +104,6 @@ public abstract class MappedFaweQueue<WORLD, CHUNK, SECTION> extends FaweQueue {
     public abstract boolean isChunkLoaded(WORLD world, int x, int z);
 
     public abstract boolean regenerateChunk(WORLD world, int x, int z);
-
-    public abstract boolean setComponents(FaweChunk fc, RunnableVal<FaweChunk> changeTask);
 
     @Override
     public abstract FaweChunk getFaweChunk(int x, int z);
@@ -192,10 +196,19 @@ public abstract class MappedFaweQueue<WORLD, CHUNK, SECTION> extends FaweQueue {
     }
 
     @Override
-    public boolean next() {
-        return map.next();
+    public boolean next(int amount, ExecutorCompletionService pool, long time) {
+        return map.next(amount, pool, time);
     }
 
+    public void start(FaweChunk chunk) {
+        chunk.start();
+    }
+
+    public void end(FaweChunk chunk) {
+        chunk.end();
+    }
+
+    @Override
     public void runTasks() {
         if (getProgressTask() != null) {
             getProgressTask().run(ProgressType.DONE, 1);
@@ -223,31 +236,6 @@ public abstract class MappedFaweQueue<WORLD, CHUNK, SECTION> extends FaweQueue {
     private ConcurrentLinkedDeque<FaweChunk> toUpdate = new ConcurrentLinkedDeque<>();
 
     private int dispatched = 0;
-
-    public boolean execute(final FaweChunk fc) {
-        if (fc == null) {
-            return false;
-        }
-        // Set blocks / entities / biome
-        if (getProgressTask() != null) {
-            getProgressTask().run(ProgressType.QUEUE, map.size());
-            getProgressTask().run(ProgressType.DISPATCH, ++dispatched);
-        }
-        if (getChangeTask() != null) {
-            if (!this.setComponents(fc, new RunnableVal<FaweChunk>() {
-                @Override
-                public void run(FaweChunk before) {
-                    getChangeTask().run(before, fc);
-                }
-            })) {
-                return false;
-            }
-        } else if (!this.setComponents(fc, null)) {
-            return false;
-        }
-        fc.executeNotifyTasks();
-        return true;
-    }
 
     @Override
     public void clear() {

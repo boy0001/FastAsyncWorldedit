@@ -25,6 +25,8 @@ public interface IFawe {
 
     public FaweQueue getNewQueue(World world, boolean fast);
 
+    public FaweQueue getNewQueue(String world, boolean fast);
+
     public String getWorldName(World world);
 
     public Collection<FaweMaskManager> getMaskManagers();

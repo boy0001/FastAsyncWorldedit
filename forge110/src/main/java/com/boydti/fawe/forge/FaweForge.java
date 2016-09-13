@@ -119,6 +119,11 @@ public class FaweForge implements IFawe {
     }
 
     @Override
+    public FaweQueue getNewQueue(String world, boolean dontCareIfFast) {
+        return new ForgeQueue_All(world);
+    }
+
+    @Override
     public Collection<FaweMaskManager> getMaskManagers() {
         return new ArrayList<>();
     }

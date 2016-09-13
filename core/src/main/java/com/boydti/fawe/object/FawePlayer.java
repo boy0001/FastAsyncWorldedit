@@ -82,10 +82,7 @@ public abstract class FawePlayer<T> {
                     Field fieldPlayer = actor.getClass().getDeclaredField("player");
                     fieldPlayer.setAccessible(true);
                     return wrap(fieldPlayer.get(actor));
-                } catch (Throwable e) {
-                    MainUtil.handleError(e);
-                    return Fawe.imp().wrap(actor.getName());
-                }
+                } catch (Throwable ignore) {}
             }
         }
         if (obj instanceof Actor) {

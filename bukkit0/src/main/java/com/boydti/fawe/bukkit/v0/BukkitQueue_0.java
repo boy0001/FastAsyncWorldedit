@@ -42,6 +42,15 @@ public abstract class BukkitQueue_0<CHUNK, CHUNKSECTIONS, SECTION> extends NMSMa
         }
     }
 
+    public BukkitQueue_0(String world) {
+        super(world);
+        setupAdapter(null);
+        if (!registered) {
+            registered = true;
+            Bukkit.getServer().getPluginManager().registerEvents(this, ((FaweBukkit) Fawe.imp()).getPlugin());
+        }
+    }
+
     @Override
     public File getSaveFolder() {
         return new File(Bukkit.getWorldContainer(), getWorldName() + File.separator + "region");
@@ -209,15 +218,5 @@ public abstract class BukkitQueue_0<CHUNK, CHUNKSECTIONS, SECTION> extends NMSMa
             } catch (Throwable ignore) {}
             try { Class.forName("org.spigotmc.AsyncCatcher").getField("enabled").set(null, true); } catch (Throwable ignore) {}
         }
-    }
-
-    @Override
-    public FaweChunk getFaweChunk(int x, int z) {
-        return new CharFaweChunk<Chunk>(this, x, z) {
-            @Override
-            public Chunk getNewChunk() {
-                return BukkitQueue_0.this.getWorld().getChunkAt(getX(), getZ());
-            }
-        };
     }
 }

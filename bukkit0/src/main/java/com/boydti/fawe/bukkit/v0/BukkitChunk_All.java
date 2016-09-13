@@ -3,6 +3,7 @@ package com.boydti.fawe.bukkit.v0;
 import com.boydti.fawe.FaweCache;
 import com.boydti.fawe.config.Settings;
 import com.boydti.fawe.example.CharFaweChunk;
+import com.boydti.fawe.object.FaweChunk;
 import com.boydti.fawe.object.FaweQueue;
 import com.boydti.fawe.util.MainUtil;
 import com.sk89q.jnbt.CompoundTag;
@@ -17,7 +18,7 @@ import org.bukkit.Chunk;
 import org.bukkit.World;
 import org.bukkit.block.Block;
 
-public class BukkitChunk_All extends CharFaweChunk<Chunk> {
+public class BukkitChunk_All extends CharFaweChunk<Chunk, BukkitQueue_All> {
 
     /**
      * A FaweSections object represents a chunk and the blocks that you wish to change in it.
@@ -39,17 +40,23 @@ public class BukkitChunk_All extends CharFaweChunk<Chunk> {
     private int index;
     private boolean place = true;
 
+    @Override
+    public void start() {
+        getChunk().load(true);
+    }
+
     /**
      *
      * @return
      */
-    public void execute(long start) {
+    @Override
+    public FaweChunk call() {
+        long start = System.currentTimeMillis();
         int recommended = 25 + BukkitQueue_All.ALLOCATE;
         boolean more = true;
         BukkitQueue_All parent = (BukkitQueue_All) getParent();
         final Chunk chunk = getChunk();
         Object[] disableResult = parent.disableLighting(chunk);
-        chunk.load(true);
         final World world = chunk.getWorld();
         char[][] sections = getCombinedIdArrays();
         if (layer == -1) {
@@ -220,6 +227,7 @@ public class BukkitChunk_All extends CharFaweChunk<Chunk> {
             this.addToQueue();
         }
         parent.resetLighting(disableResult);
+        return this;
     }
 
     public void setBlock(Block block, int id, byte data) {

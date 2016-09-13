@@ -151,7 +151,7 @@ public class SelectionCommand extends SimpleCommand<Operation> {
                                 long start = System.currentTimeMillis();
                                 BBC.OPERATION.send(actor, BBC.VISITOR_BLOCK.format(cuboid.getArea()));
                                 queue.flush();
-                                BBC.ACTION_COMPLETE.send(actor, start);
+                                BBC.ACTION_COMPLETE.send(actor, (System.currentTimeMillis() - start) / 1000);
                                 return null;
                             }
                         } catch (Throwable e) {

@@ -1,19 +1,42 @@
 package com.boydti.fawe.forge.v0;
 
+import com.boydti.fawe.Fawe;
 import com.boydti.fawe.FaweCache;
 import com.boydti.fawe.example.CharFaweChunk;
+import com.boydti.fawe.object.BytePair;
 import com.boydti.fawe.object.FaweQueue;
 import com.boydti.fawe.util.MainUtil;
+import com.boydti.fawe.util.MathMan;
+import com.sk89q.jnbt.CompoundTag;
+import com.sk89q.jnbt.ListTag;
+import com.sk89q.jnbt.StringTag;
+import com.sk89q.jnbt.Tag;
 import java.lang.reflect.Field;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.Map;
+import java.util.Set;
+import java.util.UUID;
 import net.minecraft.block.Block;
+import net.minecraft.block.state.IBlockState;
+import net.minecraft.entity.Entity;
+import net.minecraft.entity.EntityList;
+import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.BitArray;
+import net.minecraft.util.ClassInheritanceMultiMap;
+import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
 import net.minecraft.world.chunk.BlockStateContainer;
 import net.minecraft.world.chunk.BlockStatePaletteRegistry;
 import net.minecraft.world.chunk.Chunk;
 import net.minecraft.world.chunk.IBlockStatePalette;
+import net.minecraft.world.chunk.storage.ExtendedBlockStorage;
 
-public class ForgeChunk_All extends CharFaweChunk<Chunk> {
+public class ForgeChunk_All extends CharFaweChunk<Chunk, ForgeQueue_All> {
 
     public BlockStateContainer[] sectionPalettes;
 
@@ -35,7 +58,7 @@ public class ForgeChunk_All extends CharFaweChunk<Chunk> {
     }
 
     @Override
-    public CharFaweChunk<Chunk> copy(boolean shallow) {
+    public ForgeChunk_All copy(boolean shallow) {
         ForgeChunk_All value = (ForgeChunk_All) super.copy(shallow);
         if (sectionPalettes != null) {
             value.sectionPalettes = new BlockStateContainer[16];
@@ -110,5 +133,213 @@ public class ForgeChunk_All extends CharFaweChunk<Chunk> {
                 }
             }
         }
+    }
+
+    @Override
+    public ForgeChunk_All call() {
+        net.minecraft.world.chunk.Chunk nmsChunk = this.getChunk();
+        nmsChunk.setModified(true);
+        net.minecraft.world.World nmsWorld = nmsChunk.getWorld();
+        try {
+            boolean flag = !nmsWorld.provider.getHasNoSky();
+            // Sections
+            ExtendedBlockStorage[] sections = nmsChunk.getBlockStorageArray();
+            Map<BlockPos, TileEntity> tiles = nmsChunk.getTileEntityMap();
+            ClassInheritanceMultiMap<Entity>[] entities = nmsChunk.getEntityLists();
+
+
+            // Remove entities
+            for (int i = 0; i < 16; i++) {
+                int count = this.getCount(i);
+                if (count == 0) {
+                    continue;
+                } else if (count >= 4096) {
+                    entities[i] = new ClassInheritanceMultiMap<>(Entity.class);
+                } else {
+                    char[] array = this.getIdArray(i);
+                    Collection<Entity> ents = new ArrayList<>(entities[i]);
+                    for (Entity entity : ents) {
+                        if (entity instanceof EntityPlayer) {
+                            continue;
+                        }
+                        int x = ((int) Math.round(entity.posX) & 15);
+                        int z = ((int) Math.round(entity.posZ) & 15);
+                        int y = (int) Math.round(entity.posY);
+                        if (array == null) {
+                            continue;
+                        }
+                        if (y < 0 || y > 255 || array[FaweCache.CACHE_J[y][z][x]] != 0) {
+                            nmsWorld.removeEntity(entity);
+                        }
+                    }
+                }
+            }
+            // Set entities
+            Set<UUID> createdEntities = new HashSet<>();
+            Set<CompoundTag> entitiesToSpawn = this.getEntities();
+            for (CompoundTag nativeTag : entitiesToSpawn) {
+                Map<String, Tag> entityTagMap = nativeTag.getValue();
+                StringTag idTag = (StringTag) entityTagMap.get("Id");
+                ListTag posTag = (ListTag) entityTagMap.get("Pos");
+                ListTag rotTag = (ListTag) entityTagMap.get("Rotation");
+                if (idTag == null || posTag == null || rotTag == null) {
+                    Fawe.debug("Unknown entity tag: " + nativeTag);
+                    continue;
+                }
+                double x = posTag.getDouble(0);
+                double y = posTag.getDouble(1);
+                double z = posTag.getDouble(2);
+                float yaw = rotTag.getFloat(0);
+                float pitch = rotTag.getFloat(1);
+                String id = idTag.getValue();
+                NBTTagCompound tag = (NBTTagCompound) ForgeQueue_All.methodFromNative.invoke(null, nativeTag);
+                Entity entity = EntityList.createEntityFromNBT(tag, nmsWorld);
+                if (entity != null) {
+                    entity.setPositionAndRotation(x, y, z, yaw, pitch);
+                    nmsWorld.spawnEntityInWorld(entity);
+                }
+            }
+            // Run change task if applicable
+            if (getParent().getChangeTask() != null) {
+                CharFaweChunk previous = getParent().getPrevious(this, sections, tiles, entities, createdEntities, false);
+                getParent().getChangeTask().run(previous, this);
+            }
+            // Trim tiles
+            Set<Map.Entry<BlockPos, TileEntity>> entryset = tiles.entrySet();
+            Iterator<Map.Entry<BlockPos, TileEntity>> iterator = entryset.iterator();
+            while (iterator.hasNext()) {
+                Map.Entry<BlockPos, TileEntity> tile = iterator.next();
+                BlockPos pos = tile.getKey();
+                int lx = pos.getX() & 15;
+                int ly = pos.getY();
+                int lz = pos.getZ() & 15;
+                int j = FaweCache.CACHE_I[ly][lz][lx];
+                char[] array = this.getIdArray(j);
+                if (array == null) {
+                    continue;
+                }
+                int k = FaweCache.CACHE_J[ly][lz][lx];
+                if (array[k] != 0) {
+                    tile.getValue().invalidate();;
+                    iterator.remove();
+                }
+            }
+            HashSet<UUID> entsToRemove = this.getEntityRemoves();
+            if (entsToRemove.size() > 0) {
+                for (int i = 0; i < entities.length; i++) {
+                    Collection<Entity> ents = new ArrayList<>(entities[i]);
+                    for (Entity entity : ents) {
+                        if (entsToRemove.contains(entity.getUniqueID())) {
+                            nmsWorld.removeEntity(entity);
+                        }
+                    }
+                }
+            }
+            // Efficiently merge sections
+            for (int j = 0; j < sections.length; j++) {
+                int count = this.getCount(j);
+                if (count == 0) {
+                    continue;
+                }
+                final char[] array = this.getIdArray(j);
+                if (array == null) {
+                    continue;
+                }
+                ExtendedBlockStorage section = sections[j];
+                if (section == null) {
+                    if (this.sectionPalettes != null && this.sectionPalettes[j] != null) {
+                        section = sections[j] = new ExtendedBlockStorage(j << 4, flag);
+                        getParent().setPalette(section, this.sectionPalettes[j]);
+                        getParent().setCount(0, count - this.getAir(j), section);
+                        continue;
+                    } else {
+                        sections[j] = section = new ExtendedBlockStorage(j << 4, flag);
+                    }
+                } else if (count >= 4096) {
+                    if (this.sectionPalettes != null && this.sectionPalettes[j] != null) {
+                        getParent().setPalette(section, this.sectionPalettes[j]);
+                        getParent().setCount(0, count - this.getAir(j), section);
+                        continue;
+                    } else {
+                        sections[j] = section = new ExtendedBlockStorage(j << 4, flag);
+                    }
+                }
+                BlockStateContainer nibble = section.getData();
+                int nonEmptyBlockCount = 0;
+                for (int y = 0; y < 16; y++) {
+                    for (int z = 0; z < 16; z++) {
+                        for (int x = 0; x < 16; x++) {
+                            char combinedId = array[FaweCache.CACHE_J[y][z][x]];
+                            switch (combinedId) {
+                                case 0:
+                                    IBlockState existing = nibble.get(x, y, z);
+                                    if (existing != ForgeQueue_All.air) {
+                                        nonEmptyBlockCount++;
+                                    }
+                                    continue;
+                                case 1:
+                                    nibble.set(x, y, z, ForgeQueue_All.air);
+                                    continue;
+                                default:
+                                    nonEmptyBlockCount++;
+                                    nibble.set(x, y, z, Block.getBlockById(combinedId >> 4).getStateFromMeta(combinedId & 0xF));
+                            }
+                        }
+                    }
+                }
+                getParent().setCount(0, nonEmptyBlockCount, section);
+            }
+            // Set biomes
+            int[][] biomes = this.biomes;
+            if (biomes != null) {
+                for (int x = 0; x < 16; x++) {
+                    int[] array = biomes[x];
+                    if (array == null) {
+                        continue;
+                    }
+                    for (int z = 0; z < 16; z++) {
+                        int biome = array[z];
+                        if (biome == 0) {
+                            continue;
+                        }
+                        nmsChunk.getBiomeArray()[((z & 0xF) << 4 | x & 0xF)] = (byte) biome;
+                    }
+                }
+            }
+            // Set tiles
+            Map<BytePair, CompoundTag> tilesToSpawn = this.getTiles();
+            int bx = this.getX() << 4;
+            int bz = this.getZ() << 4;
+
+            for (Map.Entry<BytePair, CompoundTag> entry : tilesToSpawn.entrySet()) {
+                CompoundTag nativeTag = entry.getValue();
+                BytePair pair = entry.getKey();
+                BlockPos pos = new BlockPos(MathMan.unpair16x((byte) pair.get0()) + bx, pair.get1() & 0xFF, MathMan.unpair16y((byte) pair.get0()) + bz); // Set pos
+                TileEntity tileEntity = nmsWorld.getTileEntity(pos);
+                if (tileEntity != null) {
+                    NBTTagCompound tag = (NBTTagCompound) ForgeQueue_All.methodFromNative.invoke(null, nativeTag);
+                    tileEntity.readFromNBT(tag); // ReadTagIntoTile
+                }
+            }
+        } catch (Throwable e) {
+            MainUtil.handleError(e);
+        }
+        int[][] biomes = this.biomes;
+        if (biomes != null) {
+            for (int x = 0; x < 16; x++) {
+                int[] array = biomes[x];
+                if (array == null) {
+                    continue;
+                }
+                for (int z = 0; z < 16; z++) {
+                    int biome = array[z];
+                    if (biome == 0) {
+                        continue;
+                    }
+                    nmsChunk.getBiomeArray()[((z & 0xF) << 4 | x & 0xF)] = (byte) biome;
+                }
+            }
+        }
+        return this;
     }
 }

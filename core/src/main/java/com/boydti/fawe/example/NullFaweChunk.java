@@ -92,4 +92,9 @@ public class NullFaweChunk extends FaweChunk<Void> {
     public FaweChunk<Void> copy(boolean shallow) {
         return this;
     }
+
+    @Override
+    public FaweChunk call() {
+        return null;
+    }
 }

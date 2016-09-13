@@ -4,9 +4,6 @@ import cn.nukkit.Player;
 import cn.nukkit.event.EventHandler;
 import cn.nukkit.event.Listener;
 import cn.nukkit.event.player.PlayerQuitEvent;
-import cn.nukkit.event.server.DataPacketSendEvent;
-import cn.nukkit.network.protocol.DataPacket;
-import cn.nukkit.network.protocol.TextPacket;
 import com.boydti.fawe.Fawe;
 import com.boydti.fawe.IFawe;
 import com.boydti.fawe.config.Settings;
@@ -37,24 +34,6 @@ public class FaweNukkit implements IFawe, Listener {
         this.plugin = mod;
         FaweChunk.HEIGHT = 128;
         plugin.getServer().getPluginManager().registerEvents(this, plugin);
-    }
-
-    @EventHandler
-    public void onDataPacketSend(DataPacketSendEvent event) {
-        DataPacket packet = event.getPacket();
-        if (packet instanceof TextPacket) {
-            TextPacket textPacket = (TextPacket) packet;
-            int len = textPacket.message.length();
-            int lineWidth = 52;
-            StringBuilder builder = new StringBuilder();
-            for (int i = 0; i < textPacket.message.length(); i++) {
-                if (i % 52 == 0) {
-                    builder.append((char) 1566);
-                }
-                builder.append(textPacket.message.charAt(i));
-            }
-            textPacket.message = builder.toString();
-        }
     }
 
     @EventHandler
@@ -118,6 +97,11 @@ public class FaweNukkit implements IFawe, Listener {
 
     @Override
     public FaweQueue getNewQueue(World world, boolean fast) {
+        return new NukkitQueue(this, world);
+    }
+
+    @Override
+    public FaweQueue getNewQueue(String world, boolean fast) {
         return new NukkitQueue(this, world);
     }
 

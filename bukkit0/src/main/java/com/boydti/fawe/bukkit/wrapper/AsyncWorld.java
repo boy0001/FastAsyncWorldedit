@@ -129,7 +129,7 @@ public class AsyncWorld implements World {
      * @return
      */
     public synchronized static AsyncWorld create(final WorldCreator creator) {
-        BukkitQueue_0 queue = (BukkitQueue_0) SetQueue.IMP.getNewQueue(FaweAPI.getWorld(creator.name()), true, false);
+        BukkitQueue_0 queue = (BukkitQueue_0) SetQueue.IMP.getNewQueue(creator.name(), true, false);
         World world = queue.createWorld(creator);
         return wrap(world);
     }

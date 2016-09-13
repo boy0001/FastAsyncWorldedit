@@ -16,7 +16,7 @@ import com.sk89q.worldedit.Vector2D;
 import com.sk89q.worldedit.world.biome.BaseBiome;
 import java.util.Map;
 
-public class NukkitChunk extends CharFaweChunk<BaseFullChunk> {
+public class NukkitChunk extends CharFaweChunk<BaseFullChunk, NukkitQueue> {
 
 
     /**
@@ -39,7 +39,8 @@ public class NukkitChunk extends CharFaweChunk<BaseFullChunk> {
     private int index;
     private boolean place = true;
 
-    public void execute() {
+    @Override
+    public NukkitChunk call() {
         NukkitQueue parent = (NukkitQueue) getParent();
         Level world = ((NukkitQueue) getParent()).getWorld();
         world.clearCache(true);
@@ -113,5 +114,6 @@ public class NukkitChunk extends CharFaweChunk<BaseFullChunk> {
                 }
             }
         }
+        return this;
     }
 }

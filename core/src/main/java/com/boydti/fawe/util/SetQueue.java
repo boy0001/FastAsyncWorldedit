@@ -3,13 +3,13 @@ package com.boydti.fawe.util;
 import com.boydti.fawe.Fawe;
 import com.boydti.fawe.config.Settings;
 import com.boydti.fawe.object.FaweQueue;
-import com.boydti.fawe.object.RunnableVal2;
 import com.sk89q.worldedit.world.World;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.ConcurrentModificationException;
 import java.util.Iterator;
 import java.util.concurrent.ConcurrentLinkedDeque;
+import java.util.concurrent.ExecutorCompletionService;
 import java.util.concurrent.ForkJoinPool;
 import java.util.concurrent.TimeUnit;
 
@@ -40,23 +40,17 @@ public class SetQueue {
      */
     private final ConcurrentLinkedDeque<Runnable> emptyTasks = new ConcurrentLinkedDeque<>();
 
-    private final RunnableVal2<Long, FaweQueue> SET_TASK = new RunnableVal2<Long, FaweQueue>() {
-        @Override
-        public void run(Long free, FaweQueue queue) {
-            do {
-                final boolean current = queue.next();
-                if (current == false) {
-                    lastSuccess = last;
-                    if (inactiveQueues.size() == 0 && activeQueues.size() == 0) {
-                        runEmptyTasks();
-                    }
-                    return;
-                }
-            } while (((SetQueue.this.secondLast = System.currentTimeMillis()) - SetQueue.this.last) < free);
-        }
-    };
-
     private ForkJoinPool pool = new ForkJoinPool();
+    private ExecutorCompletionService completer = new ExecutorCompletionService(pool);
+
+    /**
+     * @see TaskManager#getPublicForkJoinPool()
+     * @return ForkJoinPool
+     */
+    @Deprecated
+    public ExecutorCompletionService getCompleterService() {
+        return completer;
+    }
 
     public SetQueue() {
         tasks = new ConcurrentLinkedDeque<>();
@@ -65,56 +59,55 @@ public class SetQueue {
         TaskManager.IMP.repeat(new Runnable() {
             @Override
             public void run() {
-                while (!tasks.isEmpty() && Fawe.get().getTimer().isAbove(18.5)) {
-                    tasks.poll().run();
-                }
-                if (inactiveQueues.isEmpty() && activeQueues.isEmpty()) {
-                    lastSuccess = System.currentTimeMillis();
-                    runEmptyTasks();
-                    return;
-                }
-                if (!MemUtil.isMemoryFree()) {
-                    final int mem = MemUtil.calculateMemory();
-                    if (mem != Integer.MAX_VALUE) {
-                        if ((mem <= 1) && Settings.CRASH_MITIGATION) {
-                            for (FaweQueue queue : getAllQueues()) {
-                                queue.saveMemory();
+                try {
+                    while (!tasks.isEmpty() && Fawe.get().getTimer().isAbove(18.5)) {
+                        tasks.poll().run();
+                    }
+                    if (inactiveQueues.isEmpty() && activeQueues.isEmpty()) {
+                        lastSuccess = System.currentTimeMillis();
+                        runEmptyTasks();
+                        return;
+                    }
+                    if (!MemUtil.isMemoryFree()) {
+                        final int mem = MemUtil.calculateMemory();
+                        if (mem != Integer.MAX_VALUE) {
+                            if ((mem <= 1) && Settings.CRASH_MITIGATION) {
+                                for (FaweQueue queue : getAllQueues()) {
+                                    queue.saveMemory();
+                                }
+                                return;
+                            }
+                            if (SetQueue.this.forceChunkSet()) {
+                                System.gc();
+                            } else {
+                                SetQueue.this.runEmptyTasks();
                             }
                             return;
                         }
-                        if (SetQueue.this.forceChunkSet()) {
-                            System.gc();
-                        } else {
-                            SetQueue.this.runEmptyTasks();
-                        }
+                    }
+                    FaweQueue queue = getNextQueue();
+                    if (queue == null || !Fawe.get().getTimer().isAbove(18.5)) {
                         return;
                     }
-                }
-                SET_TASK.value1 = Settings.QUEUE.EXTRA_TIME_MS + 50 + Math.min((50 + SetQueue.this.last) - (SetQueue.this.last = System.currentTimeMillis()), SetQueue.this.secondLast - System.currentTimeMillis());
-                SET_TASK.value2 = getNextQueue();
-                if (SET_TASK.value2 == null) {
-                    return;
-                }
-                if (Thread.currentThread() != Fawe.get().getMainThread()) {
-                    throw new IllegalStateException("This shouldn't be possible for placement to occur off the main thread");
-                }
-                // Disable the async catcher as it can't discern async vs parallel
-                boolean parallel = Settings.QUEUE.PARALLEL_THREADS > 1;
-                SET_TASK.value2.startSet(parallel);
-                try {
-                    if (Settings.QUEUE.PARALLEL_THREADS <= 1 || !Fawe.get().isJava8()) {
-                        SET_TASK.run();
-                    } else {
-                        for (int i = 0; i < Settings.QUEUE.PARALLEL_THREADS; i++) {
-                            pool.submit(SET_TASK);
-                        }
-                        pool.awaitQuiescence(Settings.QUEUE.DISCARD_AFTER_MS, TimeUnit.MILLISECONDS);
+                    if (Thread.currentThread() != Fawe.get().getMainThread()) {
+                        throw new IllegalStateException("This shouldn't be possible for placement to occur off the main thread");
                     }
+                    long time = Settings.QUEUE.EXTRA_TIME_MS + 50 + Math.min((50 + SetQueue.this.last) - (SetQueue.this.last = System.currentTimeMillis()), SetQueue.this.secondLast - System.currentTimeMillis());
+                    // Disable the async catcher as it can't discern async vs parallel
+                    boolean parallel = Settings.QUEUE.PARALLEL_THREADS > 1;
+                    queue.startSet(parallel);
+                    try {
+                        if (!queue.next(Settings.QUEUE.PARALLEL_THREADS, getCompleterService(), time)) {
+                            queue.runTasks();
+                        }
+                    } catch (Throwable e) {
+                        pool.awaitQuiescence(Settings.QUEUE.DISCARD_AFTER_MS, TimeUnit.MILLISECONDS);
+                        completer = new ExecutorCompletionService(pool);
+                        e.printStackTrace();
+                    }
+                    secondLast = System.currentTimeMillis();
                 } catch (Throwable e) {
-                    MainUtil.handleError(e);
-                } finally {
-                    // Enable it again (note that we are still on the main thread)
-                    SET_TASK.value2.endSet(parallel);
+                    e.printStackTrace();
                 }
             }
         }, 1);
@@ -156,6 +149,7 @@ public class SetQueue {
     public void dequeue(FaweQueue queue) {
         inactiveQueues.remove(queue);
         activeQueues.remove(queue);
+        queue.runTasks();
     }
 
     public Collection<FaweQueue> getAllQueues() {
@@ -181,44 +175,34 @@ public class SetQueue {
         return queue;
     }
 
+    public FaweQueue getNewQueue(String world, boolean fast, boolean autoqueue) {
+        FaweQueue queue = Fawe.imp().getNewQueue(world, fast);
+        if (autoqueue) {
+            inactiveQueues.add(queue);
+        }
+        return queue;
+    }
+
     public void flush(FaweQueue queue) {
-        SET_TASK.value1 = Long.MAX_VALUE;
-        SET_TASK.value2 = queue;
-        if (SET_TASK.value2 == null) {
-            return;
-        }
-        if (Thread.currentThread() != Fawe.get().getMainThread()) {
-            throw new IllegalStateException("Must be flushed on the main thread!");
-        }
-        // Disable the async catcher as it can't discern async vs parallel
-        boolean parallel = Settings.QUEUE.PARALLEL_THREADS > 1;
-        SET_TASK.value2.startSet(parallel);
+        queue.startSet(Settings.QUEUE.PARALLEL_THREADS > 1);
         try {
-            if (!parallel || !Fawe.get().isJava8()) {
-                SET_TASK.run();
-            } else {
-                for (int i = 0; i < Settings.QUEUE.PARALLEL_THREADS; i++) {
-                    pool.submit(SET_TASK);
-                }
-                pool.awaitQuiescence(Settings.QUEUE.DISCARD_AFTER_MS, TimeUnit.MILLISECONDS);
-            }
+            queue.next(Settings.QUEUE.PARALLEL_THREADS, getCompleterService(), Long.MAX_VALUE);
         } catch (Throwable e) {
+            pool.awaitQuiescence(Settings.QUEUE.DISCARD_AFTER_MS, TimeUnit.MILLISECONDS);
+            completer = new ExecutorCompletionService(pool);
             MainUtil.handleError(e);
-        } finally {
-            // Enable it again (note that we are still on the main thread)
-            SET_TASK.value2.endSet(parallel);
-            dequeue(queue);
         }
     }
 
     public FaweQueue getNextQueue() {
         long now = System.currentTimeMillis();
-        while (activeQueues.size() > 0) {
+        while (!activeQueues.isEmpty()) {
             FaweQueue queue = activeQueues.peek();
             if (queue != null && queue.size() > 0) {
                 queue.setModified(now);
                 return queue;
             } else {
+                queue.runTasks();
                 activeQueues.poll();
             }
         }
@@ -234,6 +218,7 @@ public class SetQueue {
                     total += queue.size();
                     if (queue.size() == 0) {
                         if (age > Settings.QUEUE.DISCARD_AFTER_MS) {
+                            queue.runTasks();
                             iter.remove();
                         }
                         continue;
@@ -265,6 +250,8 @@ public class SetQueue {
                 if (set) {
                     activeQueues.add(queue);
                     return set;
+                } else {
+                    queue.runTasks();
                 }
             }
         }
@@ -285,6 +272,9 @@ public class SetQueue {
                     }
                     if (diff > Settings.QUEUE.DISCARD_AFTER_MS) {
                         // These edits never finished
+                        for (FaweQueue queue : tmp) {
+                            queue.runTasks();
+                        }
                         inactiveQueues.clear();
                     }
                     return false;

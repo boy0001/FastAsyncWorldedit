@@ -3,6 +3,7 @@ package com.boydti.fawe.example;
 import com.boydti.fawe.object.FaweChunk;
 import com.boydti.fawe.object.RunnableVal;
 import java.util.Collection;
+import java.util.concurrent.ExecutorCompletionService;
 
 public interface IFaweQueueMap {
 
@@ -20,5 +21,5 @@ public interface IFaweQueueMap {
 
     int size();
 
-    boolean next();
+    boolean next(int size, ExecutorCompletionService dispatcher, long time);
 }

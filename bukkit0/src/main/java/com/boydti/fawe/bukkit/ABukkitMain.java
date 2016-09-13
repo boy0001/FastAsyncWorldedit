@@ -55,4 +55,6 @@ public abstract class ABukkitMain extends JavaPlugin {
     }
 
     public abstract FaweQueue getQueue(World world);
+
+    public abstract FaweQueue getQueue(String world);
 }

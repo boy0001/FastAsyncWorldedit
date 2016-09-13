@@ -435,7 +435,7 @@ public class Fawe {
     }
 
     private void setupMemoryListener() {
-        if (Settings.MAX_MEMORY_PERCENT < 1) {
+        if (Settings.MAX_MEMORY_PERCENT < 1 || Settings.MAX_MEMORY_PERCENT > 99) {
             return;
         }
         try {

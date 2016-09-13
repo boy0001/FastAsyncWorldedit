@@ -1,8 +1,10 @@
 package com.boydti.fawe.object;
 
 import com.boydti.fawe.Fawe;
+import com.boydti.fawe.FaweAPI;
 import com.boydti.fawe.FaweCache;
 import com.boydti.fawe.config.BBC;
+import com.boydti.fawe.config.Settings;
 import com.boydti.fawe.object.exception.FaweException;
 import com.boydti.fawe.util.MainUtil;
 import com.boydti.fawe.util.MathMan;
@@ -23,6 +25,7 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentLinkedDeque;
+import java.util.concurrent.ExecutorCompletionService;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 public abstract class FaweQueue {
@@ -33,6 +36,10 @@ public abstract class FaweQueue {
     private long modified = System.currentTimeMillis();
     private RunnableVal2<FaweChunk, FaweChunk> changeTask;
     private RunnableVal2<ProgressType, Integer> progressTask;
+
+    public FaweQueue(String world) {
+        this.world = world;
+    }
 
     public FaweQueue(World world) {
         this.weWorld = world;
@@ -62,7 +69,7 @@ public abstract class FaweQueue {
     }
 
     public World getWEWorld() {
-        return weWorld;
+        return weWorld != null ? weWorld : (weWorld = FaweAPI.getWorld(world));
     }
 
     public String getWorldName() {
@@ -226,11 +233,19 @@ public abstract class FaweQueue {
         return count;
     }
 
+    @Deprecated
+    public boolean next() {
+        int amount = Settings.QUEUE.PARALLEL_THREADS;
+        ExecutorCompletionService service = SetQueue.IMP.getCompleterService();
+        long time = 20; // 30ms
+        return next(amount, service, time);
+    }
+
     /**
      * Gets the FaweChunk and sets the requested blocks
      * @return
      */
-    public abstract boolean next();
+    public abstract boolean next(int amount, ExecutorCompletionService pool, long time);
 
     public void saveMemory() {
         MainUtil.sendAdmin(BBC.OOM.s());
@@ -368,6 +383,8 @@ public abstract class FaweQueue {
             }
         }
     }
+
+    public abstract void runTasks();
 
     public boolean enqueue() {
         return SetQueue.IMP.enqueue(this);

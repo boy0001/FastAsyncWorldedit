@@ -1,6 +1,5 @@
 package com.boydti.fawe.bukkit.v0;
 
-import com.boydti.fawe.Fawe;
 import com.boydti.fawe.FaweCache;
 import com.boydti.fawe.config.Settings;
 import com.boydti.fawe.object.FaweChunk;
@@ -26,6 +25,16 @@ public class BukkitQueue_All extends BukkitQueue_0<Chunk, Chunk, Chunk> {
         if (Settings.QUEUE.EXTRA_TIME_MS != Integer.MIN_VALUE) {
             ALLOCATE = Settings.QUEUE.EXTRA_TIME_MS;
             Settings.QUEUE.EXTRA_TIME_MS = Integer.MIN_VALUE;
+            Settings.QUEUE.PARALLEL_THREADS = 1;
+        }
+    }
+
+    public BukkitQueue_All(String world) {
+        super(world);
+        if (Settings.QUEUE.EXTRA_TIME_MS != Integer.MIN_VALUE) {
+            ALLOCATE = Settings.QUEUE.EXTRA_TIME_MS;
+            Settings.QUEUE.EXTRA_TIME_MS = Integer.MIN_VALUE;
+            Settings.QUEUE.PARALLEL_THREADS = 1;
         }
     }
 
@@ -113,21 +122,6 @@ public class BukkitQueue_All extends BukkitQueue_0<Chunk, Chunk, Chunk> {
     }
 
     private int skip;
-
-    @Override
-    public boolean setComponents(FaweChunk fc, RunnableVal<FaweChunk> changeTask) {
-        if (skip > 0) {
-            skip--;
-            fc.addToQueue();
-            return true;
-        }
-        long start = System.currentTimeMillis();
-        ((BukkitChunk_All) fc).execute(start);
-        if (System.currentTimeMillis() - start > 50 || Fawe.get().getTPS() < TPS_TARGET) {
-            skip = 10;
-        }
-        return true;
-    }
 
     @Override
     public void startSet(boolean parallel) {

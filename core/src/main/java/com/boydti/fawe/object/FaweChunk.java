@@ -9,8 +9,9 @@ import java.util.ArrayDeque;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
+import java.util.concurrent.Callable;
 
-public abstract class FaweChunk<T> {
+public abstract class FaweChunk<T> implements Callable<FaweChunk> {
 
     private FaweQueue parent;
     private int x,z;
@@ -267,4 +268,11 @@ public abstract class FaweChunk<T> {
     }
 
     public abstract FaweChunk<T> copy(boolean shallow);
+
+    public void start() {};
+
+    public void end() {};
+
+    @Override
+    public abstract FaweChunk call();
 }

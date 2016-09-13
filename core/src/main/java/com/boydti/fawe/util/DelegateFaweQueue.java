@@ -12,6 +12,7 @@ import java.util.Collection;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentLinkedDeque;
+import java.util.concurrent.ExecutorCompletionService;
 
 public class DelegateFaweQueue extends FaweQueue {
     private FaweQueue parent;
@@ -170,6 +171,11 @@ public class DelegateFaweQueue extends FaweQueue {
     }
 
     @Override
+    public boolean next(int amount, ExecutorCompletionService pool, long time) {
+        return parent.next(amount, pool, time);
+    }
+
+    @Override
     public void saveMemory() {
         parent.saveMemory();
     }
@@ -232,6 +238,11 @@ public class DelegateFaweQueue extends FaweQueue {
     @Override
     public int size() {
         return parent.size();
+    }
+
+    @Override
+    public void runTasks() {
+        parent.runTasks();
     }
 
     @Override

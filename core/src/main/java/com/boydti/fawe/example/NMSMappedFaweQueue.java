@@ -22,6 +22,12 @@ public abstract class NMSMappedFaweQueue<WORLD, CHUNK, CHUNKSECTION, SECTION> ex
         addRelightTask();
     }
 
+    public NMSMappedFaweQueue(String world) {
+        super(world);
+        this.maxY = 256;
+        addRelightTask();
+    }
+
     public NMSMappedFaweQueue(World world, IFaweQueueMap map) {
         super(world, map);
         this.maxY = world.getMaxY();
@@ -47,35 +53,32 @@ public abstract class NMSMappedFaweQueue<WORLD, CHUNK, CHUNKSECTION, SECTION> ex
     private NMSRelighter relighter;
 
     @Override
-    public boolean execute(FaweChunk fc) {
-        if (super.execute(fc)) {
-            sendChunk(fc);
-            if (Settings.LIGHTING.MODE == 0) {
-                return true;
+    public void end(FaweChunk chunk) {
+        super.end(chunk);
+        if (Settings.LIGHTING.MODE == 0) {
+            return;
+        }
+        if (relighter == null) {
+            relighter = new NMSRelighter(this);
+        }
+        if (Settings.LIGHTING.MODE == 2) {
+            relighter.addChunk(chunk.getX(), chunk.getZ(), null);
+            return;
+        }
+        CharFaweChunk cfc = (CharFaweChunk) chunk;
+        boolean relight = false;
+        boolean[] fix = new boolean[(maxY + 1) >> 4];
+        boolean sky = hasSky();
+        for (int i = 0; i < cfc.ids.length; i++) {
+            if ((sky && ((cfc.getAir(i) & 4095) != 0 || (cfc.getCount(i) & 4095) != 0)) || cfc.getRelight(i) != 0) {
+                relight = true;
+                fix[i] = true;
             }
-            if (relighter == null) {
-                relighter = new NMSRelighter(this);
-            }
-            if (Settings.LIGHTING.MODE == 2) {
-                relighter.addChunk(fc.getX(), fc.getZ(), null);
-                return true;
-            }
-            CharFaweChunk chunk = (CharFaweChunk) fc;
-            boolean relight = false;
-            boolean[] fix = new boolean[(maxY + 1) >> 4];
-            boolean sky = hasSky();
-            for (int i = 0; i < chunk.ids.length; i++) {
-                if ((sky && ((chunk.getAir(i) & 4095) != 0 || (chunk.getCount(i) & 4095) != 0)) || chunk.getRelight(i) != 0) {
-                    relight = true;
-                    fix[i] = true;
-                }
-            }
-            if (relight) {
-                relighter.addChunk(chunk.getX(), chunk.getZ(), fix);
-            }
-            return true;
+        }
+        if (relight) {
+            relighter.addChunk(chunk.getX(), chunk.getZ(), fix);
         } else {
-            return false;
+            refreshChunk(chunk);
         }
     }
 

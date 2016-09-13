@@ -3,6 +3,7 @@ package com.boydti.fawe.bukkit.v1_10;
 import com.boydti.fawe.bukkit.ABukkitMain;
 import com.boydti.fawe.bukkit.v0.BukkitQueue_0;
 import com.boydti.fawe.config.Settings;
+import com.boydti.fawe.object.FaweQueue;
 import com.boydti.fawe.object.io.BufferedRandomAccessFile;
 import com.boydti.fawe.object.io.FastByteArrayInputStream;
 import com.boydti.fawe.object.io.FastByteArrayOutputStream;
@@ -28,6 +29,11 @@ import net.minecraft.server.v1_10_R1.RegionFileCache;
 public class BukkitMain_110 extends ABukkitMain {
     @Override
     public BukkitQueue_0 getQueue(World world) {
+        return new BukkitQueue_1_10(world);
+    }
+
+    @Override
+    public FaweQueue getQueue(String world) {
         return new BukkitQueue_1_10(world);
     }
 

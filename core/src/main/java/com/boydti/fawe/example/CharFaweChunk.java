@@ -15,7 +15,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 
-public abstract class CharFaweChunk<T> extends FaweChunk<T> {
+public abstract class CharFaweChunk<T, V extends FaweQueue> extends FaweChunk<T> {
 
     public char[][] ids;
     public short[] count;
@@ -45,6 +45,11 @@ public abstract class CharFaweChunk<T> extends FaweChunk<T> {
         this.count = new short[HEIGHT >> 4];
         this.air = new short[HEIGHT >> 4];
         this.relight = new short[HEIGHT >> 4];
+    }
+
+    @Override
+    public V getParent() {
+        return (V) super.getParent();
     }
 
     @Override
@@ -358,8 +363,8 @@ public abstract class CharFaweChunk<T> extends FaweChunk<T> {
     }
 
     @Override
-    public CharFaweChunk<T> copy(boolean shallow) {
-        CharFaweChunk<T> copy = (CharFaweChunk<T>) getParent().getFaweChunk(getX(), getZ());
+    public CharFaweChunk<T, V> copy(boolean shallow) {
+        CharFaweChunk<T, V> copy = (CharFaweChunk<T, V>) getParent().getFaweChunk(getX(), getZ());
         if (shallow) {
             copy.ids = ids;
             copy.air = air;

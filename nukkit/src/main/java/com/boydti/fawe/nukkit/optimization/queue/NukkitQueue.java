@@ -14,7 +14,6 @@ import com.boydti.fawe.example.NMSMappedFaweQueue;
 import com.boydti.fawe.nukkit.core.NBTConverter;
 import com.boydti.fawe.nukkit.optimization.FaweNukkit;
 import com.boydti.fawe.object.FaweChunk;
-import com.boydti.fawe.object.RunnableVal;
 import com.boydti.fawe.util.MathMan;
 import com.sk89q.jnbt.CompoundTag;
 import com.sk89q.worldedit.world.World;
@@ -25,8 +24,8 @@ import java.util.Set;
 import java.util.UUID;
 
 public class NukkitQueue extends NMSMappedFaweQueue<Level, BaseFullChunk, BaseFullChunk, BaseFullChunk> {
-    private final FaweNukkit faweNukkit;
-    private final Level world;
+    private FaweNukkit faweNukkit;
+    private Level world;
 
     public static int ALLOCATE;
     public static double TPS_TARGET = 18.5;
@@ -34,6 +33,15 @@ public class NukkitQueue extends NMSMappedFaweQueue<Level, BaseFullChunk, BaseFu
 
     public NukkitQueue(FaweNukkit fn, World world) {
         super(world);
+        init(fn);
+    }
+
+    public NukkitQueue(FaweNukkit fn, String world) {
+        super(world);
+        init(fn);
+    }
+
+    private void init(FaweNukkit fn) {
         this.faweNukkit = fn;
         this.world = faweNukkit.getPlugin().getServer().getLevelByName(getWorldName());
         if (Settings.QUEUE.EXTRA_TIME_MS != Integer.MIN_VALUE) {
@@ -89,12 +97,6 @@ public class NukkitQueue extends NMSMappedFaweQueue<Level, BaseFullChunk, BaseFu
     }
 
     private int skip;
-
-    @Override
-    public boolean setComponents(FaweChunk fc, RunnableVal<FaweChunk> changeTask) {
-        ((NukkitChunk) fc).execute();
-        return true;
-    }
 
     @Override
     public File getSaveFolder() {

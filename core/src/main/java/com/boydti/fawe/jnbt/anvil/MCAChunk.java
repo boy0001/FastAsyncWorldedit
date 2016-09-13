@@ -402,4 +402,9 @@ public class MCAChunk extends FaweChunk<Void> {
     public Void getChunk() {
         throw new UnsupportedOperationException("Not applicable for this");
     }
+
+    @Override
+    public FaweChunk call() {
+        throw new UnsupportedOperationException("Not supported");
+    }
 }

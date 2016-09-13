@@ -5,7 +5,6 @@ import com.boydti.fawe.example.CharFaweChunk;
 import com.boydti.fawe.example.NMSMappedFaweQueue;
 import com.boydti.fawe.object.FaweChunk;
 import com.boydti.fawe.object.FaweQueue;
-import com.boydti.fawe.object.RunnableVal;
 import com.boydti.fawe.object.RunnableVal4;
 import com.boydti.fawe.util.TaskManager;
 import com.sk89q.jnbt.CompoundTag;
@@ -138,11 +137,6 @@ public class MCAQueue extends NMSMappedFaweQueue<FaweQueue, FaweChunk, FaweChunk
 
     @Override
     public boolean regenerateChunk(FaweQueue faweQueue, int x, int z) {
-        throw new UnsupportedOperationException("Not supported");
-    }
-
-    @Override
-    public boolean setComponents(FaweChunk fc, RunnableVal<FaweChunk> changeTask) {
         throw new UnsupportedOperationException("Not supported");
     }
 

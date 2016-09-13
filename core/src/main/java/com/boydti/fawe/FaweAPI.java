@@ -98,9 +98,8 @@ public class FaweAPI {
         return FawePlayer.wrap(obj);
     }
 
-    @Deprecated
     public static FaweQueue createQueue(String worldName, boolean autoqueue) {
-        return SetQueue.IMP.getNewQueue(getWorld(worldName), true, autoqueue);
+        return SetQueue.IMP.getNewQueue(worldName, true, autoqueue);
     }
 
     /**

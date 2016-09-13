@@ -14,6 +14,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ExecutorCompletionService;
 
 public class MCAQueueMap implements IFaweQueueMap {
 
@@ -150,20 +151,26 @@ public class MCAQueueMap implements IFaweQueueMap {
     }
 
     @Override
-    public boolean next() {
+    public boolean next(int size, ExecutorCompletionService dispatcher, long time) {
         lastX = Integer.MIN_VALUE;
         lastZ = Integer.MIN_VALUE;
         lastFileX = Integer.MIN_VALUE;
         lastFileZ = Integer.MIN_VALUE;
         if (!mcaFileMap.isEmpty()) {
             Iterator<Map.Entry<Long, MCAFile>> iter = mcaFileMap.entrySet().iterator();
-            if (iter.hasNext()) {
-                MCAFile file = iter.next().getValue();
-                iter.remove();
-                file.flush();
-                file.close();
-                return true;
-            }
+            boolean result;
+            long start = System.currentTimeMillis();
+            do {
+                if (result = iter.hasNext()) {
+                    MCAFile file = iter.next().getValue();
+                    iter.remove();
+                    file.flush();
+                    file.close();
+                } else {
+                    break;
+                }
+            } while (System.currentTimeMillis() - start < time);
+            return result;
         }
         if (isHybridQueue) {
             boolean value = queue.next();
