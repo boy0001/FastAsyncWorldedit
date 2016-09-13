@@ -25,7 +25,7 @@ public class FaweLocalBlockQueue extends LocalBlockQueue {
 
     @Override
     public boolean next() {
-        return IMP.next();
+        return IMP.size() > 0;
     }
 
     @Override
@@ -95,6 +95,12 @@ public class FaweLocalBlockQueue extends LocalBlockQueue {
     @Override
     public void flush() {
         IMP.flush();
+    }
+
+    @Override
+    public void enqueue() {
+        super.enqueue();
+        IMP.enqueue();
     }
 
     @Override
