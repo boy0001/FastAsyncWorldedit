@@ -11,12 +11,14 @@ import com.boydti.fawe.object.PseudoRandom;
 import com.boydti.fawe.object.RegionWrapper;
 import com.boydti.fawe.object.RunnableVal;
 import com.boydti.fawe.object.changeset.DiskStorageHistory;
+import com.boydti.fawe.object.io.FastByteArrayOutputStream;
 import com.boydti.fawe.object.schematic.Schematic;
 import com.boydti.fawe.regions.FaweMaskManager;
 import com.boydti.fawe.util.EditSessionBuilder;
 import com.boydti.fawe.util.MainUtil;
 import com.boydti.fawe.util.MemUtil;
 import com.boydti.fawe.util.SetQueue;
+import com.boydti.fawe.util.StringMan;
 import com.boydti.fawe.util.TaskManager;
 import com.boydti.fawe.util.WEManager;
 import com.boydti.fawe.wrappers.WorldWrapper;
@@ -44,6 +46,7 @@ import java.io.OutputStream;
 import java.net.URL;
 import java.nio.channels.Channels;
 import java.nio.channels.ReadableByteChannel;
+import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -142,10 +145,11 @@ public class FaweAPI {
             @Override
             public void run(OutputStream value) {
                 try {
-                    GZIPOutputStream gzip = new GZIPOutputStream(value, true);
-                    ClipboardWriter writer = format.getWriter(gzip);
-                    writer.write(clipboard, null);
-                    gzip.flush();
+                    try (GZIPOutputStream gzip = new GZIPOutputStream(value, true)) {
+                        try (ClipboardWriter writer = format.getWriter(gzip)) {
+                            writer.write(clipboard, null);
+                        }
+                    }
                 } catch (IOException e) {
                     e.printStackTrace();
                 }

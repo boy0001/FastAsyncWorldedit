@@ -11,6 +11,7 @@ import com.boydti.fawe.object.RunnableVal;
 import com.boydti.fawe.object.RunnableVal2;
 import com.boydti.fawe.object.changeset.CPUOptimizedChangeSet;
 import com.boydti.fawe.object.changeset.FaweStreamChangeSet;
+import com.boydti.fawe.object.io.AbstractDelegateOutputStream;
 import com.sk89q.jnbt.CompoundTag;
 import com.sk89q.jnbt.DoubleTag;
 import com.sk89q.jnbt.EndTag;
@@ -281,7 +282,11 @@ public class MainUtil {
                 writer.append("Content-Type: " + URLConnection.guessContentTypeFromName(filename)).append(CRLF);
                 writer.append("Content-Transfer-Encoding: binary").append(CRLF);
                 writer.append(CRLF).flush();
-                writeTask.value = output;
+                OutputStream nonClosable = new AbstractDelegateOutputStream(output) {
+                    @Override
+                    public void close() throws IOException {  } // Don't close
+                };
+                writeTask.value = nonClosable;
                 writeTask.run();
                 output.flush();
                 writer.append(CRLF).flush();
