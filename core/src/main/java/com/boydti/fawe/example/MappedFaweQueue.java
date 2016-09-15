@@ -31,7 +31,6 @@ public abstract class MappedFaweQueue<WORLD, CHUNK, SECTION> extends FaweQueue {
     private WORLD impWorld;
 
     private IFaweQueueMap map;
-    public ArrayDeque<Runnable> tasks = new ArrayDeque<>();
 
     public MappedFaweQueue(final World world) {
         this(world, null);
@@ -91,12 +90,6 @@ public abstract class MappedFaweQueue<WORLD, CHUNK, SECTION> extends FaweQueue {
             TaskManager.IMP.parallel(tasks);
         }
 
-    }
-
-    @Override
-    public void addNotifyTask(Runnable runnable) {
-        this.tasks.add(runnable);
-        size();
     }
 
     public abstract WORLD getImpWorld();
@@ -210,6 +203,7 @@ public abstract class MappedFaweQueue<WORLD, CHUNK, SECTION> extends FaweQueue {
 
     @Override
     public void runTasks() {
+        super.runTasks();
         if (getProgressTask() != null) {
             getProgressTask().run(ProgressType.DONE, 1);
         }

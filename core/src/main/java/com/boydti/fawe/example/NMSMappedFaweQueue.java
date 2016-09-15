@@ -35,7 +35,7 @@ public abstract class NMSMappedFaweQueue<WORLD, CHUNK, CHUNKSECTION, SECTION> ex
     }
 
     private void addRelightTask() {
-        tasks.add(new Runnable() {
+        addNotifyTask(new Runnable() {
             @Override
             public void run() {
                 if (relighter != null) {

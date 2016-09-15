@@ -10,7 +10,6 @@ import com.boydti.fawe.util.MainUtil;
 import com.boydti.fawe.util.MathMan;
 import com.boydti.fawe.util.MemUtil;
 import com.boydti.fawe.util.SetQueue;
-import com.boydti.fawe.util.TaskManager;
 import com.sk89q.jnbt.CompoundTag;
 import com.sk89q.worldedit.EditSession;
 import com.sk89q.worldedit.Vector;
@@ -26,7 +25,6 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentLinkedDeque;
 import java.util.concurrent.ExecutorCompletionService;
-import java.util.concurrent.atomic.AtomicBoolean;
 
 public abstract class FaweQueue {
 
@@ -269,8 +267,6 @@ public abstract class FaweQueue {
     
     public abstract void addNotifyTask(int x, int z, Runnable runnable);
 
-    public abstract void addNotifyTask(Runnable runnable);
-
     public boolean hasBlock(int x, int y, int z) throws  FaweException.FaweChunkLoadException {
         return getCombinedId4Data(x, y, z) != 0;
     }
@@ -355,6 +351,10 @@ public abstract class FaweQueue {
 
     public abstract int size();
 
+    public boolean isEmpty() {
+        return size() == 0;
+    }
+
     /**
      * Lock the thread until the queue is empty
      */
@@ -371,20 +371,47 @@ public abstract class FaweQueue {
                 SetQueue.IMP.flush(this);
             } else {
                 if (enqueue()) {
-                    final AtomicBoolean running = new AtomicBoolean(true);
-                    addNotifyTask(new Runnable() {
-                        @Override
-                        public void run() {
-                            TaskManager.IMP.notify(running);
+                    while (!isEmpty() && SetQueue.IMP.isStage(this, SetQueue.QueueStage.ACTIVE)) {
+                        synchronized (this) {
+                            try {
+                                this.wait(time);
+                            } catch (InterruptedException e) {
+                                e.printStackTrace();
+                            }
                         }
-                    });
-                    TaskManager.IMP.wait(running, time);
+                    }
                 }
             }
         }
     }
 
-    public abstract void runTasks();
+    public ConcurrentLinkedDeque<Runnable> tasks = new ConcurrentLinkedDeque<>();
+
+    public void addNotifyTask(Runnable runnable) {
+        this.tasks.add(runnable);
+    }
+
+
+    public void runTasks() {
+        synchronized (this) {
+            this.notifyAll();
+        }
+        if (getProgressTask() != null) {
+            getProgressTask().run(ProgressType.DONE, 1);
+        }
+        while (!tasks.isEmpty()) {
+            Runnable task = tasks.poll();
+            try {
+                task.run();
+            } catch (Throwable e) {
+                MainUtil.handleError(e);
+            }
+        }
+    }
+
+    public void addTask(Runnable whenFree) {
+        tasks.add(whenFree);
+    }
 
     public boolean enqueue() {
         return SetQueue.IMP.enqueue(this);
