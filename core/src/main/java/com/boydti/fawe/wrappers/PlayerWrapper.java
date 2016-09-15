@@ -3,12 +3,10 @@ package com.boydti.fawe.wrappers;
 import com.boydti.fawe.Fawe;
 import com.boydti.fawe.object.FawePlayer;
 import com.boydti.fawe.object.RunnableVal;
-import com.boydti.fawe.util.MainUtil;
 import com.boydti.fawe.util.TaskManager;
 import com.sk89q.worldedit.EditSession;
 import com.sk89q.worldedit.EditSessionFactory;
 import com.sk89q.worldedit.LocalSession;
-import com.sk89q.worldedit.MaxChangedBlocksException;
 import com.sk89q.worldedit.PlayerDirection;
 import com.sk89q.worldedit.Vector;
 import com.sk89q.worldedit.WorldEdit;
@@ -202,14 +200,10 @@ public class PlayerWrapper implements Player {
     public void floatAt(final int x, final int y, final int z, final boolean alwaysGlass) {
         EditSessionFactory factory = WorldEdit.getInstance().getEditSessionFactory();
         final EditSession edit = factory.getEditSession(parent.getWorld(), -1, null, this);
-        try {
-            edit.setBlock(new Vector(x, y - 1, z), new BaseBlock( BlockType.GLASS.getID()));
-            LocalSession session = Fawe.get().getWorldEdit().getSession(this);
-            if (session != null) {
-                session.remember(edit, true, false, FawePlayer.wrap(this).getLimit().MAX_HISTORY);
-            }
-        } catch (MaxChangedBlocksException e) {
-            MainUtil.handleError(e);
+        edit.setBlockFast(new Vector(x, y - 1, z), new BaseBlock( BlockType.GLASS.getID()));
+        LocalSession session = Fawe.get().getWorldEdit().getSession(this);
+        if (session != null) {
+            session.remember(edit, true, false, FawePlayer.wrap(this).getLimit().MAX_HISTORY);
         }
         TaskManager.IMP.sync(new RunnableVal<Object>() {
             @Override

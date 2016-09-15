@@ -32,7 +32,6 @@ import com.sk89q.minecraft.util.commands.Logging;
 import com.sk89q.worldedit.BlockVector;
 import com.sk89q.worldedit.EditSession;
 import com.sk89q.worldedit.LocalSession;
-import com.sk89q.worldedit.MaxChangedBlocksException;
 import com.sk89q.worldedit.Vector;
 import com.sk89q.worldedit.WorldEdit;
 import com.sk89q.worldedit.WorldEditException;
@@ -353,11 +352,7 @@ public class ClipboardCommands {
                     pos.x += relx;
                     pos.y += rely;
                     pos.z += relz;
-                    try {
-                        editSession.setBlock(pos, block);
-                    } catch (MaxChangedBlocksException e) {
-                        throw new RuntimeException(e);
-                    }
+                    editSession.setBlockFast(pos, block);
                 }
             }, !ignoreAirBlocks);
         } else {

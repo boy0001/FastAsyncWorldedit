@@ -20,6 +20,7 @@
 package com.sk89q.worldedit;
 
 import com.boydti.fawe.Fawe;
+import com.boydti.fawe.FaweAPI;
 import com.boydti.fawe.FaweCache;
 import com.boydti.fawe.config.BBC;
 import com.boydti.fawe.config.Settings;
@@ -33,6 +34,7 @@ import com.boydti.fawe.object.FaweQueue;
 import com.boydti.fawe.object.HistoryExtent;
 import com.boydti.fawe.object.NullChangeSet;
 import com.boydti.fawe.object.RegionWrapper;
+import com.boydti.fawe.object.RunnableVal;
 import com.boydti.fawe.object.changeset.CPUOptimizedChangeSet;
 import com.boydti.fawe.object.changeset.DiskStorageHistory;
 import com.boydti.fawe.object.changeset.FaweChangeSet;
@@ -46,8 +48,11 @@ import com.boydti.fawe.util.ExtentTraverser;
 import com.boydti.fawe.util.MemUtil;
 import com.boydti.fawe.util.Perm;
 import com.boydti.fawe.util.SetQueue;
+import com.boydti.fawe.util.TaskManager;
 import com.boydti.fawe.wrappers.WorldWrapper;
+import com.sk89q.jnbt.CompoundTag;
 import com.sk89q.worldedit.blocks.BaseBlock;
+import com.sk89q.worldedit.blocks.BaseItemStack;
 import com.sk89q.worldedit.blocks.BlockID;
 import com.sk89q.worldedit.blocks.BlockType;
 import com.sk89q.worldedit.entity.BaseEntity;
@@ -144,7 +149,7 @@ import static com.sk89q.worldedit.regions.Regions.minimumBlockY;
  * {@link Extent}s that are chained together. For example, history is logged
  * using the {@link ChangeSetExtent}.</p>
  */
-public class EditSession implements Extent {
+public class EditSession extends AbstractWorld {
     /**
      * Used by {@link #setBlock(Vector, BaseBlock, Stage)} to
      * determine which {@link Extent}s should be bypassed.
@@ -154,6 +159,7 @@ public class EditSession implements Extent {
     }
 
     private World world;
+    private String worldName;
     private FaweQueue queue;
     private AbstractDelegateExtent extent;
     private HistoryExtent history;
@@ -182,7 +188,14 @@ public class EditSession implements Extent {
             PlayerDirection.UP.vector(),
             PlayerDirection.DOWN.vector(), };
 
+    @Deprecated
     public EditSession(@Nonnull World world, @Nullable FaweQueue queue, @Nullable FawePlayer player, @Nullable FaweLimit limit, @Nullable FaweChangeSet changeSet, @Nullable RegionWrapper[] allowedRegions, @Nullable Boolean autoQueue, @Nullable Boolean fastmode, @Nullable Boolean checkMemory, @Nullable Boolean combineStages, @Nullable BlockBag blockBag, @Nullable EventBus bus, @Nullable EditSessionEvent event) {
+        this(null, world, queue, player, limit, changeSet, allowedRegions, autoQueue, fastmode, checkMemory, combineStages, blockBag, bus, event);
+    }
+
+    public EditSession(@Nullable String worldName, @Nullable World world, @Nullable FaweQueue queue, @Nullable FawePlayer player, @Nullable FaweLimit limit, @Nullable FaweChangeSet changeSet, @Nullable RegionWrapper[] allowedRegions, @Nullable Boolean autoQueue, @Nullable Boolean fastmode, @Nullable Boolean checkMemory, @Nullable Boolean combineStages, @Nullable BlockBag blockBag, @Nullable EventBus bus, @Nullable EditSessionEvent event) {
+        this.worldName = worldName == null ? world == null ? queue == null ? "" : queue.getWorldName() : world.getName() : worldName;
+        if (world == null && this.worldName != null) world = FaweAPI.getWorld(this.worldName);
         this.world = world = WorldWrapper.wrap((AbstractWorld) world);
         if (bus == null) {
             bus = WorldEdit.getInstance().getEventBus();
@@ -255,7 +268,7 @@ public class EditSession implements Extent {
             if (world instanceof MCAWorld) {
                 queue = ((MCAWorld) world).getQueue();
             } else {
-                queue = SetQueue.IMP.getNewQueue(world, fastmode, autoQueue);
+                queue = SetQueue.IMP.getNewQueue(this, fastmode, autoQueue);
             }
         } else if (Settings.EXPERIMENTAL.ANVIL_QUEUE_MODE && !(queue instanceof MCAQueue)) {
             queue = new MCAQueue(queue);
@@ -283,7 +296,7 @@ public class EditSession implements Extent {
             }
         }
         this.extent = wrapExtent(this.extent, bus, event, Stage.BEFORE_HISTORY);
-        this.maxY = this.world == null ? 255 : world.getMaxY();
+        this.maxY = getWorld() == null ? 255 : world.getMaxY();
     }
 
     /**
@@ -791,7 +804,9 @@ public class EditSession implements Extent {
      * @param naturalOnly look at natural blocks or all blocks
      * @return height of highest block found or 'minY'
      */
-    public int getHighestTerrainBlock(final int x, final int z, final int minY, final int maxY, final boolean naturalOnly) {
+    public int getHighestTerrainBlock(final int x, final int z, int minY, int maxY, final boolean naturalOnly) {
+        maxY = Math.min(getMaximumPoint().getBlockY(), Math.max(0, maxY));
+        minY = Math.max(0, minY);
         for (int y = maxY; y >= minY; --y) {
             BaseBlock block = getLazyBlock(x, y, z);
             final int id = block.getId();
@@ -956,7 +971,11 @@ public class EditSession implements Extent {
     }
 
     @Override
-    public boolean setBlock(final Vector position, final BaseBlock block) throws MaxChangedBlocksException {
+    public boolean setBlock(final Vector position, final BaseBlock block, final boolean ignorePhysics) throws MaxChangedBlocksException {
+        return setBlockFast(position, block);
+    }
+
+    public boolean setBlockFast(final Vector position, final BaseBlock block) {
         this.changes++;
         try {
             return this.extent.setBlock(position, block);
@@ -975,7 +994,7 @@ public class EditSession implements Extent {
      */
     @SuppressWarnings("deprecation")
     public boolean setBlock(final Vector position, final Pattern pattern) throws MaxChangedBlocksException {
-        return this.setBlock(position, pattern.next(position));
+        return this.setBlockFast(position, pattern.next(position));
     }
 
     /**
@@ -1020,7 +1039,7 @@ public class EditSession implements Extent {
      */
     @Deprecated
     public boolean setBlockIfAir(final Vector position, final BaseBlock block) throws MaxChangedBlocksException {
-        return this.getBlock(position).isAir() && this.setBlock(position, block);
+        return this.getBlock(position).isAir() && this.setBlockFast(position, block);
     }
 
     @Override
@@ -1756,15 +1775,16 @@ public class EditSession implements Extent {
         checkNotNull(origin);
         checkArgument(radius >= 0, "radius >= 0 required");
         Mask liquidMask;
-        if (getWorld() != null) {
-            liquidMask = getWorld().createLiquidMask();
-        } else {
+        // Not thread safe, use hardcoded liquidmask
+//        if (getWorld() != null) {
+//            liquidMask = getWorld().createLiquidMask();
+//        } else {
             liquidMask = new BlockMask(this,
                     new BaseBlock(BlockID.STATIONARY_LAVA, -1),
                     new BaseBlock(BlockID.LAVA, -1),
                     new BaseBlock(BlockID.STATIONARY_WATER, -1),
                     new BaseBlock(BlockID.WATER, -1));
-        }
+//        }
         final MaskIntersection mask = new MaskIntersection(
                 new BoundedHeightMask(0, EditSession.this.getMaximumPoint().getBlockY()),
                     new RegionMask(
@@ -2471,7 +2491,7 @@ public class EditSession implements Extent {
             // read block from world
             BaseBlock material = FaweCache.CACHE_BLOCK[this.queue.getCombinedId4DataDebug(sourcePosition.getBlockX(), sourcePosition.getBlockY(), sourcePosition.getBlockZ(), 0, this)];
             // queue operation
-            this.setBlock(position, material);
+            this.setBlockFast(position, material);
         }
         return changes;
     }
@@ -2545,7 +2565,7 @@ public class EditSession implements Extent {
                     continue outer;
                 }
             }
-            this.setBlock(position, pattern.next(position));
+            this.setBlockFast(position, pattern.next(position));
         }
 
         return changes;
@@ -2810,6 +2830,156 @@ public class EditSession implements Extent {
 
     private double lengthSq(final double x, final double z) {
         return (x * x) + (z * z);
+    }
+
+
+    @Override
+    public String getName() {
+        return worldName;
+    }
+
+    @Override
+    public int getBlockLightLevel(Vector position) {
+        return queue.getEmmittedLight((int) position.x, (int) position.y, (int) position.z);
+    }
+
+    @Override
+    public boolean clearContainerBlockContents(Vector position) {
+        BaseBlock block = getBlock(position);
+        CompoundTag nbt = block.getNbtData();
+        if (nbt != null) {
+            if (nbt.containsKey("items")) {
+                block.setNbtData(null);
+                try {
+                    return setBlock(position, block);
+                } catch (WorldEditException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+        return false;
+    }
+
+    public boolean regenerate(final Region region) {
+        return regenerate(region, this);
+    }
+
+    @Override
+    public boolean regenerate(final Region region, final EditSession session) {
+        final FaweQueue queue = session.getQueue();
+        queue.setChangeTask(null);
+        final FaweChangeSet fcs = (FaweChangeSet) session.getChangeSet();
+        final FaweRegionExtent fe = session.getRegionExtent();
+        session.setSize(1);
+        final boolean cuboid = region instanceof CuboidRegion;
+        Set<Vector2D> chunks = region.getChunks();
+        for (Vector2D chunk : chunks) {
+            final int cx = chunk.getBlockX();
+            final int cz = chunk.getBlockZ();
+            final int bx = cx << 4;
+            final int bz = cz << 4;
+            Vector cmin = new Vector(bx, 0, bz);
+            Vector cmax = cmin.add(15, getMaxY(), 15);
+            final boolean containsBot1 = (fe == null || fe.contains(cmin.getBlockX(), cmin.getBlockY(), cmin.getBlockZ()));
+            final boolean containsBot2 = region.contains(cmin);
+            final boolean containsTop1 = (fe == null || fe.contains(cmax.getBlockX(), cmax.getBlockY(), cmax.getBlockZ()));
+            final boolean containsTop2 = region.contains(cmax);
+            if ((containsBot2 && containsTop2 && !containsBot1 && !containsTop1)) {
+                continue;
+            }
+            RunnableVal<Vector2D> r = new RunnableVal<Vector2D>() {
+                @Override
+                public void run(Vector2D chunk) {
+                    if (cuboid && containsBot1 && containsBot2 && containsTop1 && containsTop2) {
+                        if (fcs != null) {
+                            for (int x = 0; x < 16; x++) {
+                                int xx = x + bx;
+                                for (int z = 0; z < 16; z++) {
+                                    int zz = z + bz;
+                                    for (int y = 0; y < getMaxY() + 1; y++) {
+                                        int from = queue.getCombinedId4DataDebug(xx, y, zz, 0, session);
+                                        if (!FaweCache.hasNBT(from >> 4)) {
+                                            fcs.add(xx, y, zz, from, 0);
+                                        } else {
+                                            try {
+                                                Vector loc = new Vector(xx, y, zz);
+                                                BaseBlock block = getLazyBlock(loc);
+                                                fcs.add(loc, block, FaweCache.CACHE_BLOCK[0]);
+                                            } catch (Throwable e) {
+                                                fcs.add(xx, y, zz, from, 0);
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    } else {
+                        Vector mutable = new Vector(0,0,0);
+                        for (int x = 0; x < 16; x++) {
+                            int xx = x + bx;
+                            mutable.x = xx;
+                            for (int z = 0; z < 16; z++) {
+                                int zz = z + bz;
+                                mutable.z = zz;
+                                for (int y = 0; y < getMaxY() + 1; y++) {
+                                    mutable.y = y;
+                                    int from = queue.getCombinedId4Data(xx, y, zz);
+                                    boolean contains = (fe == null || fe.contains(xx, y, zz)) && region.contains(mutable);
+                                    if (contains) {
+                                        if (fcs != null) {
+                                            if (!FaweCache.hasNBT(from >> 4)) {
+                                                fcs.add(xx, y, zz, from, 0);
+                                            } else {
+                                                try {
+                                                    BaseBlock block = getLazyBlock(mutable);
+                                                    fcs.add(mutable, block, FaweCache.CACHE_BLOCK[0]);
+                                                } catch (Throwable e) {
+                                                    fcs.add(xx, y, zz, from, 0);
+                                                }
+                                            }
+                                        }
+                                    } else {
+                                        short id = (short) (from >> 4);
+                                        byte data = (byte) (from & 0xf);
+                                        queue.setBlock(xx, y, zz, id, data);
+                                        if (FaweCache.hasNBT(id)) {
+                                            BaseBlock block = getBlock(new Vector(xx, y, zz));
+                                            if (block.hasNbtData()) {
+                                                queue.setTile(xx, y, zz, block.getNbtData());
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    queue.regenerateChunk(cx, cz);
+                }
+            };
+            r.value = chunk;
+            TaskManager.IMP.sync(r);
+        }
+        session.flushQueue();
+        return false;
+    }
+
+    @Override
+    public void dropItem(Vector position, BaseItemStack item) {
+        if (getWorld() != null) {
+            getWorld().dropItem(position, item);
+        }
+    }
+
+    public boolean generateTree(TreeGenerator.TreeType type, Vector position) throws MaxChangedBlocksException {
+        return generateTree(type, this, position);
+    }
+
+    @Override
+    public boolean generateTree(TreeGenerator.TreeType type, EditSession editSession, Vector position) throws MaxChangedBlocksException {
+        if (getWorld() != null) {
+            return getWorld().generateTree(type, editSession, position);
+        }
+        return false;
     }
 
     public static Class<?> inject() {

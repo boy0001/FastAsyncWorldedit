@@ -1,5 +1,6 @@
 package com.boydti.fawe.util;
 
+import com.boydti.fawe.object.RunnableVal;
 import java.io.BufferedReader;
 import java.io.DataOutputStream;
 import java.io.File;
@@ -16,17 +17,15 @@ public class HastebinUtility {
     public static final String BIN_URL = "http://hastebin.com/documents", USER_AGENT = "Mozilla/5.0";
     public static final Pattern PATTERN = Pattern.compile("\\{\"key\":\"([\\S\\s]*)\"\\}");
 
-    public static String upload(final String string) throws IOException {
+    public static String upload(final RunnableVal<DataOutputStream> writeTask) throws IOException {
         final URL url = new URL(BIN_URL);
         final HttpURLConnection connection = (HttpURLConnection) url.openConnection();
 
         connection.setRequestMethod("POST");
         connection.setRequestProperty("User-Agent", USER_AGENT);
         connection.setDoOutput(true);
-
-        try (DataOutputStream outputStream = new DataOutputStream(connection.getOutputStream())) {
-            outputStream.write(string.getBytes());
-            outputStream.flush();
+        try (DataOutputStream os = new DataOutputStream(connection.getOutputStream())) {
+            writeTask.run(os);
         }
 
         StringBuilder response;
@@ -47,6 +46,19 @@ public class HastebinUtility {
         }
     }
 
+    public static String upload(final String s) throws IOException {
+        return upload(new RunnableVal<DataOutputStream>() {
+            @Override
+            public void run(DataOutputStream value) {
+                try {
+                    value.writeChars(s);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+        });
+    }
+
     public static String upload(final File file) throws IOException {
         final StringBuilder content = new StringBuilder();
         try (BufferedReader reader = new BufferedReader(new FileReader(file))) {
@@ -57,6 +69,7 @@ public class HastebinUtility {
             }
         }
         return upload(content.toString());
+
     }
 
 }

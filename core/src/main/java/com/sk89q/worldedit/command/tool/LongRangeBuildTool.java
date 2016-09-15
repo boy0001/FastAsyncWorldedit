@@ -50,18 +50,13 @@ public class LongRangeBuildTool extends BrushTool implements DoubleActionTraceTo
         WorldVectorFace pos = getTargetFace(player);
         if (pos == null) return false;
         EditSession eS = session.createEditSession(player);
-        try {
-            if (secondary.getType() == BlockID.AIR) {
-                eS.setBlock(pos, secondary);
-            } else {
-                eS.setBlock(pos.getFaceVector(), secondary);
-            }
-            eS.flushQueue();
-            return true;
-        } catch (MaxChangedBlocksException e) {
-            // one block? eat it
+        if (secondary.getType() == BlockID.AIR) {
+            eS.setBlockFast(pos, secondary);
+        } else {
+            eS.setBlockFast(pos.getFaceVector(), secondary);
         }
-        return false;
+        eS.flushQueue();
+        return true;
 
     }
 
@@ -70,18 +65,13 @@ public class LongRangeBuildTool extends BrushTool implements DoubleActionTraceTo
         WorldVectorFace pos = getTargetFace(player);
         if (pos == null) return false;
         EditSession eS = session.createEditSession(player);
-        try {
-            if (primary.getType() == BlockID.AIR) {
-                eS.setBlock(pos, primary);
-            } else {
-                eS.setBlock(pos.getFaceVector(), primary);
-            }
-            eS.flushQueue();
-            return true;
-        } catch (MaxChangedBlocksException e) {
-            // one block? eat it
+        if (primary.getType() == BlockID.AIR) {
+            eS.setBlockFast(pos, primary);
+        } else {
+            eS.setBlockFast(pos.getFaceVector(), primary);
         }
-        return false;
+        eS.flushQueue();
+        return true;
     }
 
     public WorldVectorFace getTargetFace(Player player) {

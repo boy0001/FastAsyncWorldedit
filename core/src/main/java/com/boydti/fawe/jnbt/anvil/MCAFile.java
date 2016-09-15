@@ -259,7 +259,7 @@ public class MCAFile {
         }
         FastByteArrayOutputStream baos = new FastByteArrayOutputStream(0);
         fieldBuf4.set(baos, buffer3);
-        DeflaterOutputStream deflater = new DeflaterOutputStream(baos, new Deflater(Settings.EXPERIMENTAL.WORLD_COMPRESSION), 1, true);
+        DeflaterOutputStream deflater = new DeflaterOutputStream(baos, new Deflater(6), 1, true);
         fieldBuf5.set(deflater, buffer2);
         BufferedOutputStream bos = new BufferedOutputStream(deflater, 1);
         fieldBuf6.set(bos, buffer1);

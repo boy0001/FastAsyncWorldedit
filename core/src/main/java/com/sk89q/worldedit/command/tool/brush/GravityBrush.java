@@ -66,9 +66,9 @@ public class GravityBrush implements Brush {
                     if (block != EditSession.nullBlock && (mask == null || mask.test(mutablePos))) {
                         if (freeSpot != y) {
                             mutablePos.y = freeSpot;
-                            editSession.setBlock(mutablePos, block);
+                            editSession.setBlockFast(mutablePos, block);
                             mutablePos.y = y;
-                            editSession.setBlock(mutablePos, EditSession.nullBlock);
+                            editSession.setBlockFast(mutablePos, EditSession.nullBlock);
                         }
                         freeSpot++;
                     }

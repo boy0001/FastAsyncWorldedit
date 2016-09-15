@@ -1,6 +1,5 @@
 package com.boydti.fawe.util;
 
-import com.boydti.fawe.FaweAPI;
 import com.boydti.fawe.config.Settings;
 import com.boydti.fawe.logging.rollback.RollbackOptimizedHistory;
 import com.boydti.fawe.object.FaweLimit;
@@ -20,10 +19,12 @@ import java.util.UUID;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
+
 import static com.google.common.base.Preconditions.checkNotNull;
 
 public class EditSessionBuilder {
     private World world;
+    private String worldName;
     private FaweQueue queue;
     private FawePlayer player;
     private FaweLimit limit;
@@ -57,8 +58,9 @@ public class EditSessionBuilder {
         this.world = world;
     }
 
-    public EditSessionBuilder(@Nonnull String world) {
-        this(FaweAPI.getWorld(world));
+    public EditSessionBuilder(@Nonnull String worldName) {
+        checkNotNull(worldName);
+        this.worldName = worldName;
     }
 
     public EditSessionBuilder player(@Nullable FawePlayer player) {
@@ -164,6 +166,6 @@ public class EditSessionBuilder {
     }
 
     public EditSession build() {
-        return new EditSession(world, queue, player, limit, changeSet, allowedRegions, autoQueue, fastmode, checkMemory, combineStages, blockBag, eventBus, event);
+        return new EditSession(worldName, world, queue, player, limit, changeSet, allowedRegions, autoQueue, fastmode, checkMemory, combineStages, blockBag, eventBus, event);
     }
 }

@@ -199,11 +199,6 @@ public class Settings extends Config {
                 "Directly modify the region files.",
         })
         public static boolean ANVIL_QUEUE_MODE = false;
-        @Comment({
-                "Set the default world compression",
-                " - Only supports Bukkit 1.10 right now"
-        })
-        public static int WORLD_COMPRESSION = -1;
     }
 
     public static class WEB {

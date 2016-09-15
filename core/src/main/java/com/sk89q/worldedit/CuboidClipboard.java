@@ -689,7 +689,7 @@ public class CuboidClipboard {
                     if (noAir && block.isAir()) {
                         continue;
                     }
-                    editSession.setBlock(new Vector(x, y, z).add(newOrigin), block);
+                    editSession.setBlockFast(new Vector(x, y, z).add(newOrigin), block);
                 }
             }
         }

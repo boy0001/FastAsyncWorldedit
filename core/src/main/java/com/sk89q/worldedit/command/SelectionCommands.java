@@ -99,14 +99,13 @@ public class SelectionCommands {
         } else {
             pos = player.getBlockIn();
         }
-
+        pos = pos.clampY(0, editSession.getMaximumPoint().getBlockY());
         if (!session.getRegionSelector(player.getWorld()).selectPrimary(pos, ActorSelectorLimits.forActor(player))) {
             BBC.SELECTOR_ALREADY_SET.send(player);
             return;
         }
 
-        session.getRegionSelector(player.getWorld())
-                .explainPrimarySelection(player, session, pos);
+        session.getRegionSelector(player.getWorld()).explainPrimarySelection(player, session, pos);
     }
 
     @Command(
@@ -134,7 +133,7 @@ public class SelectionCommands {
         } else {
             pos = player.getBlockIn();
         }
-
+        pos = pos.clampY(0, editSession.getMaximumPoint().getBlockY());
         if (!session.getRegionSelector(player.getWorld()).selectSecondary(pos, ActorSelectorLimits.forActor(player))) {
             BBC.SELECTOR_ALREADY_SET.send(player);
             return;

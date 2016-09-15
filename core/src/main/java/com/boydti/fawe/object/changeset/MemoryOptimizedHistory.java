@@ -3,8 +3,8 @@ package com.boydti.fawe.object.changeset;
 import com.boydti.fawe.config.Settings;
 import com.boydti.fawe.object.FaweInputStream;
 import com.boydti.fawe.object.FaweOutputStream;
-import com.boydti.fawe.object.io.FastByteArrayInputStream;
 import com.boydti.fawe.object.io.FastByteArrayOutputStream;
+import com.boydti.fawe.object.io.FastByteArraysInputStream;
 import com.boydti.fawe.util.MainUtil;
 import com.sk89q.jnbt.NBTInputStream;
 import com.sk89q.jnbt.NBTOutputStream;
@@ -21,23 +21,24 @@ import java.io.OutputStream;
  */
 public class MemoryOptimizedHistory extends FaweStreamChangeSet {
 
-    private byte[] ids;
+    private int size = 0;
+    private byte[][] ids;
     private FastByteArrayOutputStream idsStream;
     private FaweOutputStream idsStreamZip;
 
-    private byte[] entC;
+    private byte[][] entC;
     private FastByteArrayOutputStream entCStream;
     private NBTOutputStream entCStreamZip;
 
-    private byte[] entR;
+    private byte[][] entR;
     private FastByteArrayOutputStream entRStream;
     private NBTOutputStream entRStreamZip;
 
-    private byte[] tileC;
+    private byte[][] tileC;
     private FastByteArrayOutputStream tileCStream;
     private NBTOutputStream tileCStreamZip;
 
-    private byte[] tileR;
+    private byte[][] tileR;
     private FastByteArrayOutputStream tileRStream;
     private NBTOutputStream tileRStreamZip;
 
@@ -51,31 +52,32 @@ public class MemoryOptimizedHistory extends FaweStreamChangeSet {
         try {
             if (idsStream != null) {
                 idsStreamZip.close();
-                ids = idsStream.toByteArray();
+                size = idsStream.getSize();
+                ids = idsStream.toByteArrays();
                 idsStream = null;
                 idsStreamZip = null;
             }
             if (entCStream != null) {
                 entCStreamZip.close();
-                entC = entCStream.toByteArray();
+                entC = entCStream.toByteArrays();
                 entCStream = null;
                 entCStreamZip = null;
             }
             if (entRStream != null) {
                 entRStreamZip.close();
-                entR = entRStream.toByteArray();
+                entR = entRStream.toByteArrays();
                 entRStream = null;
                 entRStreamZip = null;
             }
             if (tileCStream != null) {
                 tileCStreamZip.close();
-                tileC = tileCStream.toByteArray();
+                tileC = tileCStream.toByteArrays();
                 tileCStream = null;
                 tileCStreamZip = null;
             }
             if (tileRStream != null) {
                 tileRStreamZip.close();
-                tileR = tileRStream.toByteArray();
+                tileR = tileRStream.toByteArrays();
                 tileRStream = null;
                 tileRStreamZip = null;
             }
@@ -115,7 +117,7 @@ public class MemoryOptimizedHistory extends FaweStreamChangeSet {
         if (ids == null) {
             return null;
         }
-        FaweInputStream result = MainUtil.getCompressedIS(new FastByteArrayInputStream(ids));
+        FaweInputStream result = MainUtil.getCompressedIS(new FastByteArraysInputStream(ids));
         result.skip(FaweStreamChangeSet.HEADER_SIZE);
         return result;
     }
@@ -158,21 +160,21 @@ public class MemoryOptimizedHistory extends FaweStreamChangeSet {
 
     @Override
     public NBTInputStream getEntityCreateIS() throws IOException {
-        return entC == null ? null : new NBTInputStream(MainUtil.getCompressedIS(new FastByteArrayInputStream(entC)));
+        return entC == null ? null : new NBTInputStream(MainUtil.getCompressedIS(new FastByteArraysInputStream(entC)));
     }
 
     @Override
     public NBTInputStream getEntityRemoveIS() throws IOException {
-        return entR == null ? null : new NBTInputStream(MainUtil.getCompressedIS(new FastByteArrayInputStream(entR)));
+        return entR == null ? null : new NBTInputStream(MainUtil.getCompressedIS(new FastByteArraysInputStream(entR)));
     }
 
     @Override
     public NBTInputStream getTileCreateIS() throws IOException {
-        return tileC == null ? null : new NBTInputStream(MainUtil.getCompressedIS(new FastByteArrayInputStream(tileC)));
+        return tileC == null ? null : new NBTInputStream(MainUtil.getCompressedIS(new FastByteArraysInputStream(tileC)));
     }
 
     @Override
     public NBTInputStream getTileRemoveIS() throws IOException {
-        return tileR == null ? null : new NBTInputStream(MainUtil.getCompressedIS(new FastByteArrayInputStream(tileR)));
+        return tileR == null ? null : new NBTInputStream(MainUtil.getCompressedIS(new FastByteArraysInputStream(tileR)));
     }
 }

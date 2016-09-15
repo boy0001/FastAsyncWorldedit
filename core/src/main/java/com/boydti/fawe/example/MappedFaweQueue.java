@@ -206,7 +206,6 @@ public abstract class MappedFaweQueue<WORLD, CHUNK, SECTION> extends FaweQueue {
 
     public void end(FaweChunk chunk) {
         chunk.end();
-        sendChunk(chunk);
     }
 
     @Override

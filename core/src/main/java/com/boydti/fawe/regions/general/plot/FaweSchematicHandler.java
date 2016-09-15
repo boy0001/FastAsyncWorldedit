@@ -59,7 +59,7 @@ public class FaweSchematicHandler extends SchematicHandler {
                 Location pos1 = corners[0];
                 Location pos2 = corners[1];
                 final CuboidRegion region = new CuboidRegion(new Vector(pos1.getX(), pos1.getY(), pos1.getZ()), new Vector(pos2.getX(), pos2.getY(), pos2.getZ()));
-                final EditSession editSession = new EditSessionBuilder(pos1.getWorld()).checkMemory(false).fastmode(true).limitUnlimited().changeSetNull().autoQueue(false).build();
+                final EditSession editSession = new EditSessionBuilder(world).checkMemory(false).fastmode(true).limitUnlimited().changeSetNull().autoQueue(false).build();
 
                 final int mx = pos1.getX();
                 final int my = pos1.getY();
@@ -144,12 +144,13 @@ public class FaweSchematicHandler extends SchematicHandler {
             @Override
             public void run(OutputStream output) {
                 try {
-                    GZIPOutputStream gzip = new GZIPOutputStream(output, true);
-                    com.sk89q.jnbt.CompoundTag weTag = (com.sk89q.jnbt.CompoundTag) FaweCache.asTag(tag);
-                    NBTOutputStream nos = new NBTOutputStream(gzip);
-                    Map<String, com.sk89q.jnbt.Tag> map = weTag.getValue();
-                    nos.writeNamedTag("Schematic", map.containsKey("Schematic") ? map.get("Schematic") : weTag);
-                    gzip.flush();
+                    try (GZIPOutputStream gzip = new GZIPOutputStream(output, true)) {
+                        com.sk89q.jnbt.CompoundTag weTag = (com.sk89q.jnbt.CompoundTag) FaweCache.asTag(tag);
+                        try (NBTOutputStream nos = new NBTOutputStream(gzip)) {
+                            Map<String, com.sk89q.jnbt.Tag> map = weTag.getValue();
+                            nos.writeNamedTag("Schematic", map.containsKey("Schematic") ? map.get("Schematic") : weTag);
+                        }
+                    }
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
