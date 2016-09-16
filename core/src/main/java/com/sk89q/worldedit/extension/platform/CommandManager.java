@@ -246,36 +246,29 @@ public final class CommandManager {
         return split;
     }
 
-    @Subscribe
-    public void handleCommand(final CommandEvent event) {
-        Request.reset();
-        TaskManager.IMP.taskNow(new Runnable() {
+    public void handleCommandOnCurrentThread(final CommandEvent event, boolean checkLimit) {
+        Actor actor = platformManager.createProxyActor(event.getActor());
+        final String args = event.getArguments();
+        final String[] split = commandDetection(args.split(" "));
+        // No command found!
+        if (!dispatcher.contains(split[0])) {
+            return;
+        }
+        if (!actor.isPlayer()) {
+            actor = new FakePlayer(actor.getName(), actor.getUniqueId(), actor);
+        }
+        final LocalSession session = worldEdit.getSessionManager().get(actor);
+        LocalConfiguration config = worldEdit.getConfiguration();
+        final CommandLocals locals = new CommandLocals();
+        final FawePlayer fp = FawePlayer.wrap(actor);
+        if (fp == null) {
+            throw new IllegalArgumentException("FAWE doesn't support: " + actor);
+        }
+        locals.put(Actor.class, actor instanceof Player ? new PlayerWrapper((Player) actor) : actor);
+        final Actor finalActor = actor;
+        if (!fp.runAction(new Runnable() {
             @Override
             public void run() {
-                Actor actor = platformManager.createProxyActor(event.getActor());
-                String args = event.getArguments();
-                String[] split = commandDetection(args.split(" "));
-                // No command found!
-                if (!dispatcher.contains(split[0])) {
-                    return;
-                }
-                if (!actor.isPlayer()) {
-                    actor = new FakePlayer(actor.getName(), actor.getUniqueId(), actor);
-                }
-                final LocalSession session = worldEdit.getSessionManager().get(actor);
-                LocalConfiguration config = worldEdit.getConfiguration();
-                CommandLocals locals = new CommandLocals();
-                final FawePlayer fp = FawePlayer.wrap(actor);
-                if (fp != null) {
-                    if (fp.getMeta("fawe_action") != null) {
-                        BBC.WORLDEDIT_COMMAND_LIMIT.send(fp);
-                        return;
-                    }
-                    fp.setMeta("fawe_action", true);
-                    locals.put(Actor.class, actor instanceof Player ? new PlayerWrapper((Player) actor) : actor);
-                } else {
-                    locals.put(Actor.class, actor);
-                }
                 locals.put("arguments", args);
                 final long start = System.currentTimeMillis();
                 try {
@@ -297,35 +290,35 @@ public final class CommandManager {
                         throw t;
                     }
                 } catch (CommandPermissionsException e) {
-                    BBC.NO_PERM.send(actor, "worldedit.*");
+                    BBC.NO_PERM.send(finalActor, "worldedit.*");
                 } catch (InvalidUsageException e) {
                     if (e.isFullHelpSuggested()) {
-                        actor.printRaw(ColorCodeBuilder.asColorCodes(new CommandUsageBox(e.getCommand(), e.getCommandUsed("/", ""), locals)));
+                        finalActor.printRaw(ColorCodeBuilder.asColorCodes(new CommandUsageBox(e.getCommand(), e.getCommandUsed("/", ""), locals)));
                         String message = e.getMessage();
                         if (message != null) {
-                            actor.printError(message);
+                            finalActor.printError(message);
                         }
                     } else {
                         String message = e.getMessage();
-                        actor.print(BBC.getPrefix() + (message != null ? message : "The command was not used properly (no more help available)."));
-                        BBC.COMMAND_SYNTAX.send(actor, e.getSimpleUsageString("/"));
+                        finalActor.print(BBC.getPrefix() + (message != null ? message : "The command was not used properly (no more help available)."));
+                        BBC.COMMAND_SYNTAX.send(finalActor, e.getSimpleUsageString("/"));
                     }
                 } catch (WrappedCommandException e) {
                     FaweException faweException = FaweException.get(e);
                     if (faweException != null) {
-                        BBC.WORLDEDIT_CANCEL_REASON.send(actor, faweException.getMessage());
+                        BBC.WORLDEDIT_CANCEL_REASON.send(finalActor, faweException.getMessage());
                     } else {
                         Throwable t = e.getCause();
-                        actor.printError("Please report this error: [See console]");
-                        actor.printRaw(t.getClass().getName() + ": " + t.getMessage());
+                        finalActor.printError("Please report this error: [See console]");
+                        finalActor.printRaw(t.getClass().getName() + ": " + t.getMessage());
                         log.log(Level.SEVERE, "An unexpected error while handling a WorldEdit command", t);
                     }
                 } catch (CommandException e) {
                     String message = e.getMessage();
                     if (message != null) {
-                        actor.printError(e.getMessage());
+                        finalActor.printError(e.getMessage());
                     } else {
-                        actor.printError("An unknown error has occurred! Please see console.");
+                        finalActor.printError("An unknown error has occurred! Please see console.");
                         log.log(Level.SEVERE, "An unknown error occurred", e);
                     }
                 } finally {
@@ -333,24 +326,34 @@ public final class CommandManager {
                     boolean hasSession = false;
                     if (editSession != null) {
                         editSession.flushQueue();
-                        worldEdit.flushBlockBag(actor, editSession);
+                        worldEdit.flushBlockBag(finalActor, editSession);
                         session.remember(editSession);
                         hasSession = editSession.size() > 0;
                     }
-                    if (fp != null) {
-                        fp.deleteMeta("fawe_action");
-                        if (editSession != null) {
-                            final long time = System.currentTimeMillis() - start;
-                            if (time > 5 && hasSession) {
-                                BBC.ACTION_COMPLETE.send(actor, (time / 1000d));
-                                ChangeSet fcs = editSession.getChangeSet();
-                                if (fcs != null && fcs instanceof FaweStreamChangeSet) {
-                                    MainUtil.sendCompressedMessage((FaweStreamChangeSet) fcs, editSession.getPlayer());
-                                }
+                    if (editSession != null) {
+                        final long time = System.currentTimeMillis() - start;
+                        if (time > 5 && hasSession) {
+                            BBC.ACTION_COMPLETE.send(finalActor, (time / 1000d));
+                            ChangeSet fcs = editSession.getChangeSet();
+                            if (fcs != null && fcs instanceof FaweStreamChangeSet) {
+                                MainUtil.sendCompressedMessage((FaweStreamChangeSet) fcs, fp);
                             }
                         }
                     }
                 }
+            }
+        }, checkLimit, false)) {
+            BBC.WORLDEDIT_COMMAND_LIMIT.send(fp);
+        }
+    }
+
+    @Subscribe
+    public void handleCommand(final CommandEvent event) {
+        Request.reset();
+        TaskManager.IMP.taskNow(new Runnable() {
+            @Override
+            public void run() {
+                handleCommandOnCurrentThread(event, true);
             }
         }, Fawe.get().isMainThread());
         event.setCancelled(true);

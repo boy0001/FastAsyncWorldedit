@@ -33,6 +33,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicInteger;
 
 public abstract class FawePlayer<T> {
 
@@ -104,6 +105,61 @@ public abstract class FawePlayer<T> {
         if (Settings.CLIPBOARD.USE_DISK) {
             loadClipboardFromDisk();
         }
+    }
+
+    private AtomicInteger getActions() {
+        AtomicInteger adder = getMeta("fawe_action_v2");
+        if (adder == null) {
+            adder = new AtomicInteger();
+            AtomicInteger previous = (AtomicInteger) setMeta("fawe_action_v2", adder);
+            if (previous != null) {
+                setMeta("fawe_action_v2", adder = previous);
+            }
+        }
+        return adder;
+    }
+
+    public boolean runAsyncIfFree(Runnable r) {
+        return runAction(r, true, true);
+    }
+
+    public boolean runIfFree(Runnable r) {
+        return runAction(r, true, false);
+    }
+
+    public boolean runAction(final Runnable ifFree, boolean checkFree, boolean async) {
+        if (checkFree) {
+            FaweLimit limit = getLimit();
+            int actionLimit = limit.MAX_ACTIONS;
+            final AtomicInteger current = getActions();
+            int val = current.incrementAndGet();
+            if (val > actionLimit) {
+                current.decrementAndGet();
+                return false;
+            }
+            Runnable r = new Runnable() {
+                @Override
+                public void run() {
+                    try {
+                        ifFree.run();
+                    } catch (Throwable e) {
+                        FaweException faweException = FaweException.get(e);
+                        if (faweException != null) {
+                            BBC.WORLDEDIT_CANCEL_REASON.send(FawePlayer.this, faweException.getMessage());
+                        } else {
+                            throw new RuntimeException(e);
+                        }
+                    } finally {
+                        current.decrementAndGet();
+                    }
+                }
+            };
+            TaskManager.IMP.taskNow(r, async);
+            return true;
+        } else {
+            ifFree.run();
+        }
+        return false;
     }
 
     /**
@@ -321,12 +377,13 @@ public abstract class FawePlayer<T> {
      * Set some session only metadata for the player
      * @param key
      * @param value
+     * @return previous value
      */
-    public void setMeta(String key, Object value) {
+    public Object setMeta(String key, Object value) {
         if (this.meta == null) {
             this.meta = new ConcurrentHashMap<>(8, 0.9f, 1);
         }
-        this.meta.put(key, value);
+        return this.meta.put(key, value);
     }
 
     /**
@@ -388,60 +445,6 @@ public abstract class FawePlayer<T> {
         return WorldEdit.getInstance().getEditSessionFactory().getEditSession(getWorld(), -1, getPlayer());
     }
 
-    /**
-     * Run a task if the player has no currently running action
-     * @param run
-     * @return If the task was run
-     */
-    public boolean runIfFree(Runnable run) {
-        if (getMeta("fawe_action") != null) {
-            return false;
-        }
-        setMeta("fawe_action", true);
-        try {
-            run.run();
-        } catch (Throwable e) {
-            FaweException faweException = FaweException.get(e);
-            if (faweException != null) {
-                BBC.WORLDEDIT_CANCEL_REASON.send(FawePlayer.this, faweException.getMessage());
-            } else {
-                MainUtil.handleError(e);
-            }
-        } finally {
-            deleteMeta("fawe_action");
-        }
-        return true;
-    }
-
-    /**
-     * Run an async task if the player has no currently running action
-     * @param run
-     * @return If the task was run
-     */
-    public boolean runAsyncIfFree(final Runnable run) {
-        if (getMeta("fawe_action") != null) {
-            return false;
-        }
-        setMeta("fawe_action", true);
-        TaskManager.IMP.async(new Runnable() {
-            @Override
-            public void run() {
-                try {
-                    run.run();
-                } catch (Throwable e) {
-                    FaweException faweException = FaweException.get(e);
-                    if (faweException != null) {
-                        BBC.WORLDEDIT_CANCEL_REASON.send(FawePlayer.this, faweException.getMessage());
-                    } else {
-                        MainUtil.handleError(e);
-                    }
-                } finally {
-                    deleteMeta("fawe_action");
-                }
-            }
-        });
-        return true;
-    }
 
     /**
      * Get the tracked EditSession(s) for this player<br>

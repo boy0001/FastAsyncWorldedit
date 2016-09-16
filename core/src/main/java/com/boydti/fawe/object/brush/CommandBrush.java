@@ -43,7 +43,6 @@ public class CommandBrush implements Brush {
             position = face.getFaceVector();
         }
         FawePlayer<Object> fp = FawePlayer.wrap(player);
-        fp.deleteMeta("fawe_action");
         fp.setSelection(selector);
         PlayerWrapper wePlayer = new SilentPlayerWrapper(new LocationMaskedPlayerWrapper(player, position));
         String[] cmds = replaced.split(";");
@@ -51,6 +50,5 @@ public class CommandBrush implements Brush {
             CommandEvent event = new CommandEvent(wePlayer, cmd);
             CommandManager.getInstance().handleCommand(event);
         }
-        FawePlayer.wrap(player).setMeta("fawe_action", true);
     }
 }

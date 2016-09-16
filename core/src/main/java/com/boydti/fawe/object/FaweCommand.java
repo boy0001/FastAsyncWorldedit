@@ -34,18 +34,15 @@ public abstract class FaweCommand<T> {
                     }
                 });
             } else {
-                if (player.getMeta("fawe_action") != null) {
-                    BBC.WORLDEDIT_COMMAND_LIMIT.send(player);
-                    return true;
-                }
-                player.setMeta("fawe_action", true);
-                TaskManager.IMP.async(new Runnable() {
+                if (!player.runAction(new Runnable() {
                     @Override
                     public void run() {
                         execute(player, args);
-                        player.deleteMeta("fawe_action");
                     }
-                });
+                }, true, true)) {
+                    BBC.WORLDEDIT_COMMAND_LIMIT.send(player);
+                    return true;
+                }
             }
             return true;
         } catch (Throwable e) {

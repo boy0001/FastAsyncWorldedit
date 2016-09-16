@@ -59,6 +59,8 @@ public class Settings extends Config {
     })
     @BlockName("default") // The name for the default block
     public static final class LIMITS extends ConfigBlock {
+        @Comment("Max actions that can be run concurrently (i.e. commands)")
+        public int MAX_ACTIONS = 1;
         @Comment("Max number of block changes (e.g. by `//set stone`).")
         public int MAX_CHANGES = 50000000;
         @Comment("Max number of blocks checked (e.g. `//count stone` which doesn't change blocks)")
@@ -275,6 +277,7 @@ public class Settings extends Config {
         for (String key : keys) {
             if (key.equals("default") || (player != null && player.hasPermission("fawe.limit." + key))) {
                 LIMITS newLimit = LIMITS.get(key);
+                limit.MAX_ACTIONS = Math.max(limit.MAX_ACTIONS, newLimit.MAX_ACTIONS != -1 ? newLimit.MAX_ACTIONS : Integer.MAX_VALUE);
                 limit.MAX_CHANGES = Math.max(limit.MAX_CHANGES, newLimit.MAX_CHANGES != -1 ? newLimit.MAX_CHANGES : Integer.MAX_VALUE);
                 limit.MAX_BLOCKSTATES = Math.max(limit.MAX_BLOCKSTATES, newLimit.MAX_BLOCKSTATES != -1 ? newLimit.MAX_BLOCKSTATES : Integer.MAX_VALUE);
                 limit.MAX_CHECKS = Math.max(limit.MAX_CHECKS, newLimit.MAX_CHECKS != -1 ? newLimit.MAX_CHECKS : Integer.MAX_VALUE);

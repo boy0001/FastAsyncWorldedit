@@ -401,10 +401,12 @@ public abstract class FaweQueue {
         }
         while (!tasks.isEmpty()) {
             Runnable task = tasks.poll();
-            try {
-                task.run();
-            } catch (Throwable e) {
-                MainUtil.handleError(e);
+            if (task != null) {
+                try {
+                    task.run();
+                } catch (Throwable e) {
+                    MainUtil.handleError(e);
+                }
             }
         }
     }

@@ -351,6 +351,7 @@ public class EditSession extends AbstractWorld {
      */
     public FaweLimit getLimitUsed() {
         FaweLimit newLimit = new FaweLimit();
+        newLimit.MAX_ACTIONS = originalLimit.MAX_ACTIONS - limit.MAX_ACTIONS;
         newLimit.MAX_CHANGES = originalLimit.MAX_CHANGES - limit.MAX_CHANGES;
         newLimit.MAX_FAILS = originalLimit.MAX_FAILS - limit.MAX_FAILS;
         newLimit.MAX_CHECKS = originalLimit.MAX_CHECKS - limit.MAX_CHECKS;

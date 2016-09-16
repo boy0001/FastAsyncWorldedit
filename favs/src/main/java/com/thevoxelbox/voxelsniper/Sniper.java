@@ -10,6 +10,7 @@ import com.boydti.fawe.object.FawePlayer;
 import com.boydti.fawe.object.FaweQueue;
 import com.boydti.fawe.object.MaskedFaweQueue;
 import com.boydti.fawe.object.RegionWrapper;
+import com.boydti.fawe.object.RunnableVal;
 import com.boydti.fawe.object.changeset.FaweChangeSet;
 import com.boydti.fawe.util.StringMan;
 import com.boydti.fawe.util.WEManager;
@@ -119,17 +120,11 @@ public class Sniper {
      */
     public boolean snipe(Action action, Material itemInHand, Block clickedBlock, BlockFace clickedFace) {
         try {
-            // Added
-            {
-                Player player = getPlayer();
-                FawePlayer<Player> fp = FawePlayer.wrap(player);
-                if (fp.getMeta("fawe_action") != null) {
-                    return false;
-                }
-                maskQueue = null;
-                if (clickedBlock != null) {
-                    clickedBlock = getWorld().getBlockAt(clickedBlock.getX(), clickedBlock.getY(), clickedBlock.getZ());
-                }
+            Player player = getPlayer();
+            FawePlayer<Player> fp = FawePlayer.wrap(player);
+            maskQueue = null;
+            if (clickedBlock != null) {
+                clickedBlock = getWorld().getBlockAt(clickedBlock.getX(), clickedBlock.getY(), clickedBlock.getZ());
             }
             return snipe(action, itemInHand, getWorld(), clickedBlock, clickedFace);
         } catch (Throwable e) {
@@ -301,20 +296,16 @@ public class Sniper {
                     performerBrush.initP(snipeData);
                 }
                 final FawePlayer<Player> fp = FawePlayer.wrap(getPlayer());
-                fp.runAsyncIfFree(new Runnable() {
+                fp.runAction(new RunnableVal<Boolean>() {
                     @Override
-                    public void run() {
-                        try {
-                            boolean result = brush.perform(snipeAction, snipeData, targetBlock, lastBlock);
-                            if (result) {
-                                MetricsManager.increaseBrushUsage(brush.getName());
-                            }
-                            world.commit();
-                        } catch (Throwable e) {
-                            e.printStackTrace();
+                    public void run(Boolean value) {
+                        boolean result = brush.perform(snipeAction, snipeData, targetBlock, lastBlock);
+                        if (result) {
+                            MetricsManager.increaseBrushUsage(brush.getName());
                         }
+                        world.commit();
                     }
-                });
+                }, true, true);
                 return true;
             }
         }

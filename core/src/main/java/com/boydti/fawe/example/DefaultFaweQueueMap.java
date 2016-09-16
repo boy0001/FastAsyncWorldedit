@@ -124,6 +124,7 @@ public class DefaultFaweQueueMap implements IFaweQueueMap {
                 return !blocks.isEmpty();
             }
             boolean result = true;
+            // amount = 8;
             for (int i = 0; i < amount && (result = iter.hasNext()); i++, added++) {
                 Map.Entry<Long, FaweChunk> item = iter.next();
                 FaweChunk chunk = item.getValue();
@@ -131,17 +132,16 @@ public class DefaultFaweQueueMap implements IFaweQueueMap {
                 pool.submit(chunk);
                 iter.remove();
             }
+            // if result, then submitted = amount
             if (result) {
                 long start = System.currentTimeMillis();
-                while (System.currentTimeMillis() - start < time) {
-                    for (int i = 0; i < amount && (iter.hasNext()); i++, added++) {
+                while (System.currentTimeMillis() - start < time && result) {
+                    if (result = iter.hasNext()) {
                         Map.Entry<Long, FaweChunk> item = iter.next();
                         FaweChunk chunk = item.getValue();
                         parent.start(chunk);
                         pool.submit(chunk);
                         iter.remove();
-                    }
-                    for (int i = 0; i < amount; i++, added--) {
                         FaweChunk fc = ((FaweChunk) pool.take().get());
                         parent.end(fc);
                     }

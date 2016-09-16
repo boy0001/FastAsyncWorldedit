@@ -368,12 +368,12 @@ public class PlatformManager {
                         final BlockTool superPickaxe = session.getSuperPickaxe();
                         if (superPickaxe != null && superPickaxe.canUse(player)) {
                             FawePlayer<?> fp = FawePlayer.wrap(player);
-                            fp.runAsyncIfFree(new Runnable() {
+                            fp.runAction(new Runnable() {
                                 @Override
                                 public void run() {
                                     superPickaxe.actPrimary(queryCapability(Capability.WORLD_EDITING), getConfiguration(), player, session, location);
                                 }
-                            });
+                            }, true, true);
                             event.setCancelled(true);
                             return;
                         }
@@ -382,12 +382,12 @@ public class PlatformManager {
                     if (tool != null && tool instanceof DoubleActionBlockTool) {
                         if (tool.canUse(player)) {
                             FawePlayer<?> fp = FawePlayer.wrap(player);
-                            fp.runAsyncIfFree(new Runnable() {
+                            fp.runAction(new Runnable() {
                                 @Override
                                 public void run() {
                                     ((DoubleActionBlockTool) tool).actSecondary(queryCapability(Capability.WORLD_EDITING), getConfiguration(), player, session, location);
                                 }
-                            });
+                            }, true, true);
                             event.setCancelled(true);
                         }
                     }
@@ -414,12 +414,12 @@ public class PlatformManager {
                     if (tool != null && tool instanceof BlockTool) {
                         if (tool.canUse(player)) {
                             FawePlayer<?> fp = FawePlayer.wrap(player);
-                            fp.runAsyncIfFree(new Runnable() {
+                            fp.runAction(new Runnable() {
                                 @Override
                                 public void run() {
                                     ((BlockTool) tool).actPrimary(queryCapability(Capability.WORLD_EDITING), getConfiguration(), player, session, location);
                                 }
-                            });
+                            }, true, true);
                             event.setCancelled(true);
                         }
                     }

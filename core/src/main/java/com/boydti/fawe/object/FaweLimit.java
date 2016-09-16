@@ -4,6 +4,7 @@ package com.boydti.fawe.object;
  * Created by Jesse on 4/5/2016.
  */
 public class FaweLimit {
+    public int MAX_ACTIONS = 0;
     public int MAX_CHANGES = 0;
     public int MAX_FAILS = 0;
     public int MAX_CHECKS = 0;
@@ -41,6 +42,7 @@ public class FaweLimit {
                 return true;
             }
         };
+        MAX.MAX_ACTIONS = Integer.MAX_VALUE;
         MAX.MAX_CHANGES = Integer.MAX_VALUE;
         MAX.MAX_FAILS = Integer.MAX_VALUE;
         MAX.MAX_CHECKS = Integer.MAX_VALUE;
@@ -77,6 +79,7 @@ public class FaweLimit {
 
     public FaweLimit copy() {
         FaweLimit limit = new FaweLimit();
+        limit.MAX_ACTIONS = MAX_ACTIONS;
         limit.MAX_CHANGES = MAX_CHANGES;
         limit.MAX_BLOCKSTATES = MAX_BLOCKSTATES;
         limit.MAX_CHECKS = MAX_CHECKS;
