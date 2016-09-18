@@ -105,7 +105,7 @@ public class FaweForge implements IFawe {
         if (world instanceof WorldWrapper) {
             world = ((WorldWrapper) world).getParent();
         }
-        return getWorldName(((ForgeWorld) world).getWorld());
+        return getWorldName((world).getWorld());
 
     }
 
