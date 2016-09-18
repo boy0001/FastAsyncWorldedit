@@ -5,7 +5,6 @@ import com.boydti.fawe.FaweAPI;
 import com.boydti.fawe.config.BBC;
 import com.boydti.fawe.config.Settings;
 import com.boydti.fawe.object.clipboard.DiskOptimizedClipboard;
-import com.boydti.fawe.object.exception.FaweException;
 import com.boydti.fawe.util.MainUtil;
 import com.boydti.fawe.util.SetQueue;
 import com.boydti.fawe.util.TaskManager;
@@ -33,6 +32,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentLinkedDeque;
 import java.util.concurrent.atomic.AtomicInteger;
 
 public abstract class FawePlayer<T> {
@@ -107,11 +107,39 @@ public abstract class FawePlayer<T> {
         }
     }
 
-    private AtomicInteger getActions() {
-        AtomicInteger adder = getMeta("fawe_action_v2");
+    private AtomicInteger runningCount = new AtomicInteger();
+
+    public void queueAction(final Runnable run) {
+        Runnable wrappedTask = new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    run.run();
+                } catch (Throwable e) {
+                    e.printStackTrace();
+                }
+                runningCount.decrementAndGet();
+                Runnable next = getActions().poll();
+                if (next != null) {
+                    next.run();
+                }
+            }
+        };
+        getActions().add(wrappedTask);
+        FaweLimit limit = getLimit();
+        if (runningCount.getAndIncrement() < limit.MAX_ACTIONS) {
+            Runnable task = getActions().poll();
+            if (task != null) {
+                task.run();
+            }
+        }
+    }
+
+    private ConcurrentLinkedDeque<Runnable> getActions() {
+        ConcurrentLinkedDeque<Runnable> adder = getMeta("fawe_action_v2");
         if (adder == null) {
-            adder = new AtomicInteger();
-            AtomicInteger previous = (AtomicInteger) setMeta("fawe_action_v2", adder);
+            adder = new ConcurrentLinkedDeque();
+            ConcurrentLinkedDeque<Runnable> previous = (ConcurrentLinkedDeque<Runnable>) setMeta("fawe_action_v2", adder);
             if (previous != null) {
                 setMeta("fawe_action_v2", adder = previous);
             }
@@ -129,35 +157,10 @@ public abstract class FawePlayer<T> {
 
     public boolean runAction(final Runnable ifFree, boolean checkFree, boolean async) {
         if (checkFree) {
-            FaweLimit limit = getLimit();
-            int actionLimit = limit.MAX_ACTIONS;
-            final AtomicInteger current = getActions();
-            int val = current.incrementAndGet();
-            if (val > actionLimit) {
-                current.decrementAndGet();
-                return false;
-            }
-            Runnable r = new Runnable() {
-                @Override
-                public void run() {
-                    try {
-                        ifFree.run();
-                    } catch (Throwable e) {
-                        FaweException faweException = FaweException.get(e);
-                        if (faweException != null) {
-                            BBC.WORLDEDIT_CANCEL_REASON.send(FawePlayer.this, faweException.getMessage());
-                        } else {
-                            throw new RuntimeException(e);
-                        }
-                    } finally {
-                        current.decrementAndGet();
-                    }
-                }
-            };
-            TaskManager.IMP.taskNow(r, async);
+            queueAction(ifFree);
             return true;
         } else {
-            ifFree.run();
+            TaskManager.IMP.taskNow(ifFree, async);
         }
         return false;
     }

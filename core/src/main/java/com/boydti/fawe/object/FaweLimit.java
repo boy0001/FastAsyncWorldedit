@@ -42,7 +42,7 @@ public class FaweLimit {
                 return true;
             }
         };
-        MAX.MAX_ACTIONS = Integer.MAX_VALUE;
+        MAX.MAX_ACTIONS = 1;
         MAX.MAX_CHANGES = Integer.MAX_VALUE;
         MAX.MAX_FAILS = Integer.MAX_VALUE;
         MAX.MAX_CHECKS = Integer.MAX_VALUE;

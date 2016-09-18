@@ -8,14 +8,14 @@ import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class NMSRelighter {
     private final NMSMappedFaweQueue queue;
-    private final HashMap<Long, RelightSkyEntry> skyToRelight;
-    private final HashMap<Long, RelightBlockEntry> blocksToRelight;
+    private final Map<Long, RelightSkyEntry> skyToRelight;
+    private final Map<Long, RelightBlockEntry> blocksToRelight;
     private final int maxY;
     private volatile boolean relighting = false;
 
@@ -23,8 +23,8 @@ public class NMSRelighter {
 
     public NMSRelighter(NMSMappedFaweQueue queue) {
         this.queue = queue;
-        skyToRelight = new HashMap<>();
-        blocksToRelight = new HashMap<>();
+        skyToRelight = new ConcurrentHashMap<>();
+        blocksToRelight = new ConcurrentHashMap<>();
         this.maxY = queue.getWEWorld().getMaxY();
     }
 
@@ -199,6 +199,7 @@ public class NMSRelighter {
                     }
                     if (opacity > 1 && opacity >= value) {
                         mask[j] = 0;
+                        queue.setBlockLight(section, x, y, z, 0);
                         queue.setSkyLight(section, x, y, z, 0);
                         continue;
                     }

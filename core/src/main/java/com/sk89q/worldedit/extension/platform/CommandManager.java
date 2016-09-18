@@ -28,7 +28,7 @@ import com.boydti.fawe.object.exception.FaweException;
 import com.boydti.fawe.util.MainUtil;
 import com.boydti.fawe.util.TaskManager;
 import com.boydti.fawe.wrappers.FakePlayer;
-import com.boydti.fawe.wrappers.PlayerWrapper;
+import com.boydti.fawe.wrappers.LocationMaskedPlayerWrapper;
 import com.google.common.base.Joiner;
 import com.sk89q.minecraft.util.commands.CommandException;
 import com.sk89q.minecraft.util.commands.CommandLocals;
@@ -264,7 +264,7 @@ public final class CommandManager {
         if (fp == null) {
             throw new IllegalArgumentException("FAWE doesn't support: " + actor);
         }
-        locals.put(Actor.class, actor instanceof Player ? new PlayerWrapper((Player) actor) : actor);
+        locals.put(Actor.class, actor instanceof Player ? (actor = new LocationMaskedPlayerWrapper((Player) actor, ((Player) actor).getPosition())) : actor);
         final Actor finalActor = actor;
         if (!fp.runAction(new Runnable() {
             @Override

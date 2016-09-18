@@ -90,7 +90,14 @@ public class MemoryOptimizedHistory extends FaweStreamChangeSet {
 
     @Override
     public int getCompressedSize() {
-        return ids == null ? 0 : ids.length;
+        if (ids == null) {
+            return 0;
+        }
+        int count = 0;
+        for (byte[] array : ids) {
+            count += 4 + array.length;
+        }
+        return count;
     }
 
     @Override

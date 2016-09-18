@@ -56,7 +56,6 @@ public abstract class NMSMappedFaweQueue<WORLD, CHUNK, CHUNKSECTION, SECTION> ex
     public void end(FaweChunk chunk) {
         super.end(chunk);
         if (Settings.LIGHTING.MODE == 0) {
-            refreshChunk(chunk);
             return;
         }
         if (relighter == null) {
