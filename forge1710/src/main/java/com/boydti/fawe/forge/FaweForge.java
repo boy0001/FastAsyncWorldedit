@@ -11,6 +11,7 @@ import com.boydti.fawe.regions.FaweMaskManager;
 import com.boydti.fawe.util.MainUtil;
 import com.boydti.fawe.util.TaskManager;
 import com.boydti.fawe.wrappers.WorldWrapper;
+import com.sk89q.worldedit.EditSession;
 import com.sk89q.worldedit.forge.ForgeWorld;
 import com.sk89q.worldedit.world.World;
 import cpw.mods.fml.common.FMLCommonHandler;
@@ -102,8 +103,10 @@ public class FaweForge implements IFawe {
         if (world instanceof WorldWrapper) {
             world = ((WorldWrapper) world).getParent();
         }
+        else if (world instanceof EditSession) {
+            world = ((EditSession) world).getWorld();
+        }
         return getWorldName(((ForgeWorld) world).getWorld());
-
     }
 
     public String getWorldName(net.minecraft.world.World w) {
