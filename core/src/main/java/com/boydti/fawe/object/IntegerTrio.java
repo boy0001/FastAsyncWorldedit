@@ -21,6 +21,11 @@ public class IntegerTrio {
     }
 
     @Override
+    public String toString() {
+        return x + "," + y + "," + z;
+    }
+
+    @Override
     public boolean equals(Object obj) {
         if (obj == null) {
             return false;

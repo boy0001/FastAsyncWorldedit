@@ -19,6 +19,7 @@
 
 package com.sk89q.worldedit.blocks;
 
+import com.boydti.fawe.util.StringMan;
 import com.sk89q.worldedit.CuboidClipboard.FlipDirection;
 
 /**

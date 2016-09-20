@@ -48,7 +48,7 @@ public class NonRisingVisitor extends RecursiveVisitor {
     }
 
     public static Class<?> inject() {
-        return Operations.class;
+        return NonRisingVisitor.class;
     }
 
 }

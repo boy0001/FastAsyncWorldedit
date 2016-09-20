@@ -44,7 +44,7 @@ public class AboveVisitor extends RecursiveVisitor {
     }
 
     @Override
-    protected boolean isVisitable(Vector from, Vector to) {
+    public boolean isVisitable(Vector from, Vector to) {
         return (from.getBlockY() >= baseY) && super.isVisitable(from, to);
     }
 }

@@ -62,7 +62,7 @@ public abstract class NMSMappedFaweQueue<WORLD, CHUNK, CHUNKSECTION, SECTION> ex
             relighter = new NMSRelighter(this);
         }
         if (Settings.LIGHTING.MODE == 2) {
-            relighter.addChunk(chunk.getX(), chunk.getZ(), null);
+            relighter.addChunk(chunk.getX(), chunk.getZ(), null, chunk.getBitMask());
             return;
         }
         CharFaweChunk cfc = (CharFaweChunk) chunk;
@@ -76,7 +76,7 @@ public abstract class NMSMappedFaweQueue<WORLD, CHUNK, CHUNKSECTION, SECTION> ex
             }
         }
         if (relight) {
-            relighter.addChunk(chunk.getX(), chunk.getZ(), fix);
+            relighter.addChunk(chunk.getX(), chunk.getZ(), fix, chunk.getBitMask());
         } else {
             refreshChunk(chunk);
         }

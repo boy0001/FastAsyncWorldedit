@@ -22,6 +22,7 @@ import com.boydti.fawe.regions.FaweMaskManager;
 import com.boydti.fawe.util.MainUtil;
 import com.boydti.fawe.util.ReflectionUtils;
 import com.boydti.fawe.util.TaskManager;
+import com.sk89q.worldedit.bukkit.EditSessionBlockChangeDelegate;
 import com.sk89q.worldedit.bukkit.WorldEditPlugin;
 import com.sk89q.worldedit.world.World;
 import java.io.File;
@@ -78,6 +79,8 @@ public class FaweBukkit implements IFawe, Listener {
                 new ChunkListener();
             }
         });
+        // Inject
+        EditSessionBlockChangeDelegate.inject();
     }
 
     @Override

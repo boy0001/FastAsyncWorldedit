@@ -62,12 +62,12 @@ public class DownwardVisitor extends RecursiveVisitor {
     }
 
     @Override
-    protected boolean isVisitable(final Vector from, final Vector to) {
+    public boolean isVisitable(final Vector from, final Vector to) {
         final int fromY = from.getBlockY();
         return ((fromY == this.baseY) || (to.subtract(from).getBlockY() < 0)) && super.isVisitable(from, to);
     }
 
     public static Class<?> inject() {
-        return Operations.class;
+        return DownwardVisitor.class;
     }
 }

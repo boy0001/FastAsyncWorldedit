@@ -42,6 +42,7 @@ public class CuboidRegion extends AbstractRegion implements FlatRegion {
 
     private Vector pos1;
     private Vector pos2;
+    private int minX,minY,minZ,maxX,maxY,maxZ;
 
     /**
      * Construct a new instance of this cuboid using two corners of the cuboid.
@@ -93,6 +94,7 @@ public class CuboidRegion extends AbstractRegion implements FlatRegion {
      */
     public void setPos1(Vector pos1) {
         this.pos1 = pos1;
+        recalculate();
     }
 
     /**
@@ -111,6 +113,7 @@ public class CuboidRegion extends AbstractRegion implements FlatRegion {
      */
     public void setPos2(Vector pos2) {
         this.pos2 = pos2;
+        recalculate();
     }
 
     /**
@@ -119,6 +122,14 @@ public class CuboidRegion extends AbstractRegion implements FlatRegion {
     private void recalculate() {
         pos1 = pos1.clampY(0, world == null ? 255 : world.getMaxY());
         pos2 = pos2.clampY(0, world == null ? 255 : world.getMaxY());
+        Vector min = getMinimumPoint();
+        Vector max = getMaximumPoint();
+        minX = min.getBlockX();
+        minY = min.getBlockY();
+        minZ = min.getBlockZ();
+        maxX = max.getBlockX();
+        maxY = max.getBlockY();
+        maxZ = max.getBlockZ();
     }
 
     /**
@@ -337,13 +348,7 @@ public class CuboidRegion extends AbstractRegion implements FlatRegion {
         int x = position.getBlockX();
         int y = position.getBlockY();
         int z = position.getBlockZ();
-
-        Vector min = getMinimumPoint();
-        Vector max = getMaximumPoint();
-
-        return x >= min.getBlockX() && x <= max.getBlockX()
-                && y >= min.getBlockY() && y <= max.getBlockY()
-                && z >= min.getBlockZ() && z <= max.getBlockZ();
+        return x >= this.minX && x <= this.maxX && z >= this.minZ && z <= this.maxZ && y >= this.minY && y <= this.maxY;
     }
 
     @Override

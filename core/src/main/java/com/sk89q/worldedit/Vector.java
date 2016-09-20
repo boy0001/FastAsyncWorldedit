@@ -57,9 +57,9 @@ public class Vector implements Comparable<Vector> {
      * @param z the Z coordinate
      */
     public Vector(int x, int y, int z) {
-        this.x = (double) x;
-        this.y = (double) y;
-        this.z = (double) z;
+        this.x = x;
+        this.y = y;
+        this.z = z;
     }
 
     /**
@@ -70,9 +70,9 @@ public class Vector implements Comparable<Vector> {
      * @param z the Z coordinate
      */
     public Vector(float x, float y, float z) {
-        this.x = (double) x;
-        this.y = (double) y;
-        this.z = (double) z;
+        this.x = x;
+        this.y = y;
+        this.z = z;
     }
 
     /**
@@ -112,7 +112,7 @@ public class Vector implements Comparable<Vector> {
      * @return the x coordinate
      */
     public int getBlockX() {
-        return (int) Math.round(x);
+        return (int) x;
     }
 
     /**
@@ -150,7 +150,7 @@ public class Vector implements Comparable<Vector> {
      * @return the y coordinate
      */
     public int getBlockY() {
-        return (int) Math.round(y);
+        return (int) (y);
     }
 
     /**
@@ -188,7 +188,7 @@ public class Vector implements Comparable<Vector> {
      * @return the z coordinate
      */
     public int getBlockZ() {
-        return (int) Math.round(z);
+        return (int) (z);
     }
 
     /**
@@ -773,7 +773,7 @@ public class Vector implements Comparable<Vector> {
         }
 
         Vector other = (Vector) obj;
-        return other.x == this.x && other.y == this.y && other.z == this.z;
+        return other.x == this.x && other.z == this.z && other.y == this.y;
     }
 
     @Override
@@ -789,12 +789,7 @@ public class Vector implements Comparable<Vector> {
 
     @Override
     public int hashCode() {
-        int hash = 7;
-
-        hash = 79 * hash + (int) (Double.doubleToLongBits(this.x) ^ (Double.doubleToLongBits(this.x) >>> 32));
-        hash = 79 * hash + (int) (Double.doubleToLongBits(this.y) ^ (Double.doubleToLongBits(this.y) >>> 32));
-        hash = 79 * hash + (int) (Double.doubleToLongBits(this.z) ^ (Double.doubleToLongBits(this.z) >>> 32));
-        return hash;
+        return (int) x ^ ((int) z << 16) ^ ((byte) y << 31);
     }
 
     @Override

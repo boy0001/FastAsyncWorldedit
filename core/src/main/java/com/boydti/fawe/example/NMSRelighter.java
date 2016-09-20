@@ -28,12 +28,12 @@ public class NMSRelighter {
         this.maxY = queue.getWEWorld().getMaxY();
     }
 
-    public boolean addChunk(int cx, int cz, boolean[] fix) {
+    public boolean addChunk(int cx, int cz, boolean[] fix, int bitmask) {
         long pair = MathMan.pairInt(cx, cz);
         if (skyToRelight.containsKey(pair)) {
             return false;
         }
-        skyToRelight.put(pair, new RelightSkyEntry(cx, cz, fix));
+        skyToRelight.put(pair, new RelightSkyEntry(cx, cz, fix, bitmask));
         return true;
     }
 
@@ -126,16 +126,9 @@ public class NMSRelighter {
         for (Map.Entry<Long, RelightSkyEntry> entry : skyToRelight.entrySet()) {
             RelightSkyEntry chunk = entry.getValue();
             CharFaweChunk fc = (CharFaweChunk) queue.getFaweChunk(chunk.x, chunk.z);
-            int mask = 0;
-            for (int y = 0; y < chunk.fix.length; y++) {
-                if (chunk.fix[y]) {
-                    mask += 1 << y;
-                }
-            }
-            fc.setBitMask(mask);
+            fc.setBitMask(chunk.bitmask);
             queue.sendChunk(fc);
         }
-
     }
 
     private boolean isTransparent(int x, int y, int z) {
@@ -338,14 +331,16 @@ public class NMSRelighter {
         public final int z;
         public final byte[] mask;
         public final boolean[] fix;
+        public final int bitmask;
         public boolean smooth;
 
-        public RelightSkyEntry(int x, int z, boolean[] fix) {
+        public RelightSkyEntry(int x, int z, boolean[] fix, int bitmask) {
             this.x = x;
             this.z = z;
             byte[] array = new byte[maxY + 1];
             Arrays.fill(array, (byte) 15);
             this.mask = array;
+            this.bitmask = bitmask;
             if (fix == null) {
                 this.fix = new boolean[(maxY  + 1) >> 4];
                 Arrays.fill(this.fix, true);

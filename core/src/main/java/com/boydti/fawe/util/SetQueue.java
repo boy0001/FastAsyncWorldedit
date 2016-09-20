@@ -191,6 +191,8 @@ public class SetQueue {
             pool.awaitQuiescence(Settings.QUEUE.DISCARD_AFTER_MS, TimeUnit.MILLISECONDS);
             completer = new ExecutorCompletionService(pool);
             MainUtil.handleError(e);
+        } finally {
+            queue.runTasks();
         }
     }
 

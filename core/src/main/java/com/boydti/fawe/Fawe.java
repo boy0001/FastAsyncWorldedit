@@ -46,8 +46,13 @@ import com.sk89q.worldedit.extent.clipboard.io.SchematicReader;
 import com.sk89q.worldedit.extent.clipboard.io.SchematicWriter;
 import com.sk89q.worldedit.extent.transform.BlockTransformExtent;
 import com.sk89q.worldedit.function.entity.ExtentEntityCopy;
+import com.sk89q.worldedit.function.mask.BlockMask;
+import com.sk89q.worldedit.function.mask.FuzzyBlockMask;
+import com.sk89q.worldedit.function.mask.SolidBlockMask;
 import com.sk89q.worldedit.function.operation.Operations;
+import com.sk89q.worldedit.function.pattern.ClipboardPattern;
 import com.sk89q.worldedit.function.pattern.Patterns;
+import com.sk89q.worldedit.function.pattern.RandomPattern;
 import com.sk89q.worldedit.function.visitor.BreadthFirstSearch;
 import com.sk89q.worldedit.function.visitor.DownwardVisitor;
 import com.sk89q.worldedit.function.visitor.EntityVisitor;
@@ -368,6 +373,12 @@ public class Fawe {
             Vector.inject(); // Optimizations
             // Pattern
             Patterns.inject(); // Optimizations (reduce object creation)
+            RandomPattern.inject(); // Optimizations
+            ClipboardPattern.inject(); // Optimizations
+            // Mask
+            BlockMask.inject(); // Optimizations
+            SolidBlockMask.inject(); // Optimizations
+            FuzzyBlockMask.inject(); // Optimizations
             // Operations
             Operations.inject(); // Optimizations
             // BlockData

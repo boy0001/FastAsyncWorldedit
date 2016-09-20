@@ -1,6 +1,5 @@
 dependencies {
     compile project(':bukkit0')
-    compile 'org.bukkit.craftbukkitv1_10:craftbukkitv1_10:1.10'
 }
 
 processResources {

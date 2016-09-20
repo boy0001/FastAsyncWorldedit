@@ -43,56 +43,71 @@ public class MathMan {
             253, 254, 254, 255
     };
 
-    public static long inverseRound(double val) {
+    public static final long inverseRound(double val) {
         long round = Math.round(val);
         return (long) (round + Math.signum(val - round));
     }
 
-    public static short pairByte(int x, int y) {
+    public static final short pairByte(int x, int y) {
         return (short) ((x << 8) | (y & 0xFF));
     }
 
-    public static byte unpairShortX(short pair) {
+    public static final byte unpairShortX(short pair) {
         return (byte) (pair >> 8);
     }
 
-    public static byte unpairShortY(short pair) {
+    public static final byte unpairShortY(short pair) {
         return (byte) pair;
     }
 
-    public static long pairInt(int x, int y) {
+    public static final long pairInt(int x, int y) {
         return (((long)x) << 32) | (y & 0xffffffffL);
     }
 
-    public static long chunkXZ2Int(int x, int z) {
+    public static final long chunkXZ2Int(int x, int z) {
         return (long)x & 4294967295L | ((long)z & 4294967295L) << 32;
     }
 
-    public static int unpairIntX(long pair) {
+    public static final int unpairIntX(long pair) {
         return (int)(pair >> 32);
     }
 
-    public static int unpairIntY(long pair) {
+    public static final int unpairIntY(long pair) {
         return (int)pair;
     }
 
-    public static byte pair16(int x, int y) {
+    public static final byte pair16(int x, int y) {
         return (byte) (x + (y << 4));
     }
 
-    public static byte unpair16x(byte value) {
+    public static final byte unpair16x(byte value) {
         return (byte) (value & 0xF);
     }
 
-    public static byte unpair16y(byte value) {
+    public static final byte unpair16y(byte value) {
         return (byte) ((value >> 4) & 0xF);
     }
 
-    public static int lossyFastDivide(int a, int b) {
+    public static final int lossyFastDivide(int a, int b) {
         return (a*((1<<16)/b))>>16;
     }
 
-    public static int sqrt(int x) {
+    public static final int gcd(int a, int b) {
+        if (b == 0) {
+            return a;
+        }
+        return gcd(b, a % b);
+    }
+
+    public static final int gcd(int[] a) {
+        int result = a[0];
+        for (int i = 1; i < a.length; i++) {
+            result = gcd(result, a[i]);
+        }
+        return result;
+    }
+    
+    public static final int sqrt(int x) {
         int xn;
 
         if (x >= 0x10000) {
@@ -160,7 +175,7 @@ public class MathMan {
     }
 
 
-    public static double getMean(int[] array) {
+    public static final double getMean(int[] array) {
         double count = 0;
         for (int i : array) {
             count += i;
@@ -168,7 +183,7 @@ public class MathMan {
         return count / array.length;
     }
 
-    public static double getMean(double[] array) {
+    public static final double getMean(double[] array) {
         double count = 0;
         for (double i : array) {
             count += i;
@@ -176,15 +191,15 @@ public class MathMan {
         return count / array.length;
     }
 
-    public static int pair(short x, short y) {
+    public static final int pair(short x, short y) {
         return (x << 16) | (y & 0xFFFF);
     }
 
-    public static short unpairX(int hash) {
+    public static final short unpairX(int hash) {
         return (short) (hash >> 16);
     }
 
-    public static short unpairY(int hash) {
+    public static final short unpairY(int hash) {
         return (short) (hash & 0xFFFF);
     }
 
@@ -194,12 +209,12 @@ public class MathMan {
      * @param pitch
      * @return
      */
-    public static float[] getDirection(float yaw, float pitch) {
+    public static final float[] getDirection(float yaw, float pitch) {
         double pitch_sin = Math.sin(pitch);
         return new float[]{(float) (pitch_sin * Math.cos(yaw)), (float) (pitch_sin * Math.sin(yaw)), (float) Math.cos(pitch)};
     }
 
-    public static int roundInt(double value) {
+    public static final int roundInt(double value) {
         return (int) (value < 0 ? (value == (int) value) ? value : value - 1 : value);
     }
 
@@ -210,7 +225,7 @@ public class MathMan {
      * @param z
      * @return
      */
-    public static float[] getPitchAndYaw(float x, float y, float z) {
+    public static final float[] getPitchAndYaw(float x, float y, float z) {
         float distance = sqrtApprox((z * z) + (x * x));
         return new float[]{atan2(y, distance), atan2(x, z)};
     }
@@ -249,15 +264,15 @@ public class MathMan {
         return (atan2[(yi * ATAN2_DIM) + xi] + add) * mul;
     }
 
-    public static float sqrtApprox(float f) {
+    public static final float sqrtApprox(float f) {
         return f * Float.intBitsToFloat(0x5f375a86 - (Float.floatToIntBits(f) >> 1));
     }
 
-    public static double sqrtApprox(double d) {
+    public static final double sqrtApprox(double d) {
         return Double.longBitsToDouble(((Double.doubleToLongBits(d) - (1l << 52)) >> 1) + (1l << 61));
     }
 
-    public static float invSqrt(float x) {
+    public static final float invSqrt(float x) {
         float xhalf = 0.5f * x;
         int i = Float.floatToIntBits(x);
         i = 0x5f3759df - (i >> 1);
@@ -266,14 +281,14 @@ public class MathMan {
         return x;
     }
 
-    public static int getPositiveId(int i) {
+    public static final int getPositiveId(int i) {
         if (i < 0) {
             return (-i * 2) - 1;
         }
         return i * 2;
     }
 
-    public static boolean isInteger(String str) {
+    public static final boolean isInteger(String str) {
         if (str == null) {
             return false;
         }
@@ -297,7 +312,7 @@ public class MathMan {
         return true;
     }
 
-    public static double getSD(double[] array, double av) {
+    public static final double getSD(double[] array, double av) {
         double sd = 0;
         for (double element : array) {
             sd += Math.pow(Math.abs(element - av), 2);
@@ -305,7 +320,7 @@ public class MathMan {
         return Math.sqrt(sd / array.length);
     }
 
-    public static double getSD(int[] array, double av) {
+    public static final double getSD(int[] array, double av) {
         double sd = 0;
         for (int element : array) {
             sd += Math.pow(Math.abs(element - av), 2);
@@ -313,21 +328,21 @@ public class MathMan {
         return Math.sqrt(sd / array.length);
     }
 
-    public static int mod(int x, int y) {
+    public static final int mod(int x, int y) {
         if (isPowerOfTwo(y)) {
             return x & (y - 1);
         }
         return x % y;
     }
 
-    public static int unsignedmod(int x, int y) {
+    public static final int unsignedmod(int x, int y) {
         if (isPowerOfTwo(y)) {
             return x & (y - 1);
         }
         return x % y;
     }
 
-    public static boolean isPowerOfTwo(int x) {
+    public static final boolean isPowerOfTwo(int x) {
         return (x & (x - 1)) == 0;
     }
 }

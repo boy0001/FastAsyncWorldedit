@@ -24,6 +24,7 @@ import org.bukkit.Difficulty;
 import org.bukkit.Effect;
 import org.bukkit.Location;
 import org.bukkit.Material;
+import org.bukkit.Particle;
 import org.bukkit.Sound;
 import org.bukkit.TreeType;
 import org.bukkit.World;
@@ -33,7 +34,6 @@ import org.bukkit.WorldType;
 import org.bukkit.block.Biome;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Arrow;
-import org.bukkit.entity.CreatureType;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.FallingBlock;
@@ -62,6 +62,11 @@ public class AsyncWorld implements World {
     private World parent;
     private FaweQueue queue;
     private BukkitImplAdapter adapter;
+
+    @Override
+    public <T> void spawnParticle(Particle particle, double v, double v1, double v2, int i, double v3, double v4, double v5, double v6, T t) {
+        parent.spawnParticle(particle, v, v1, v2, i, v3, v4, v5, v6, t);
+    }
 
     /**
      * @deprecated use {@link #wrap(org.bukkit.World)} instead
@@ -156,6 +161,61 @@ public class AsyncWorld implements World {
                 this.value = parent.getWorldBorder();
             }
         });
+    }
+
+    @Override
+    public void spawnParticle(Particle particle, Location location, int i) {
+        parent.spawnParticle(particle, location, i);
+    }
+
+    @Override
+    public void spawnParticle(Particle particle, double v, double v1, double v2, int i) {
+        parent.spawnParticle(particle, v, v1, v2, i);
+    }
+
+    @Override
+    public <T> void spawnParticle(Particle particle, Location location, int i, T t) {
+        parent.spawnParticle(particle, location, i, t);
+    }
+
+    @Override
+    public <T> void spawnParticle(Particle particle, double v, double v1, double v2, int i, T t) {
+        parent.spawnParticle(particle, v, v1, v2, i, t);
+    }
+
+    @Override
+    public void spawnParticle(Particle particle, Location location, int i, double v, double v1, double v2) {
+        parent.spawnParticle(particle, location, i, v, v1, v2);
+    }
+
+    @Override
+    public void spawnParticle(Particle particle, double v, double v1, double v2, int i, double v3, double v4, double v5) {
+        parent.spawnParticle(particle, v, v1, v2, i, v3, v4, v5);
+    }
+
+    @Override
+    public <T> void spawnParticle(Particle particle, Location location, int i, double v, double v1, double v2, T t) {
+        parent.spawnParticle(particle, location, i, v, v1, v2, t);
+    }
+
+    @Override
+    public <T> void spawnParticle(Particle particle, double v, double v1, double v2, int i, double v3, double v4, double v5, T t) {
+        parent.spawnParticle(particle, v, v1, v2, i, v3, v4, v5, t);
+    }
+
+    @Override
+    public void spawnParticle(Particle particle, Location location, int i, double v, double v1, double v2, double v3) {
+        parent.spawnParticle(particle, location, i, v, v1, v2, v3);
+    }
+
+    @Override
+    public void spawnParticle(Particle particle, double v, double v1, double v2, int i, double v3, double v4, double v5, double v6) {
+        parent.spawnParticle(particle, v, v1, v2, i, v3, v4, v5, v6);
+    }
+
+    @Override
+    public <T> void spawnParticle(Particle particle, Location location, int i, double v, double v1, double v2, double v3, T t) {
+        parent.spawnParticle(particle, location, i, v, v1, v2, v3, t);
     }
 
     @Override
@@ -315,6 +375,7 @@ public class AsyncWorld implements World {
         return unloadChunk(x, z, save, false);
     }
 
+    @Deprecated
     @Override
     public boolean unloadChunk(final int x, final int z, final boolean save, final boolean safe) {
         if (isChunkLoaded(x, z)) {
@@ -386,6 +447,11 @@ public class AsyncWorld implements World {
     }
 
     @Override
+    public <T extends Arrow> T spawnArrow(Location location, Vector vector, float v, float v1, Class<T> aClass) {
+        return parent.spawnArrow(location, vector, v, v1, aClass);
+    }
+
+    @Override
     public boolean generateTree(final Location location, final TreeType type) {
         return TaskManager.IMP.sync(new RunnableVal<Boolean>() {
             @Override
@@ -408,18 +474,6 @@ public class AsyncWorld implements World {
     @Override
     public Entity spawnEntity(Location loc, EntityType type) {
         return spawn(loc, type.getEntityClass());
-    }
-
-    @Override
-    @Deprecated
-    public LivingEntity spawnCreature(Location loc, EntityType type) {
-        return (LivingEntity)this.spawnEntity(loc, type);
-    }
-
-    @Override
-    @Deprecated
-    public LivingEntity spawnCreature(Location loc, CreatureType type) {
-        return this.spawnCreature(loc, type.toEntityType());
     }
 
     @Override
@@ -897,6 +951,16 @@ public class AsyncWorld implements World {
     }
 
     @Override
+    public void playSound(final Location location, final String sound, final float volume, final float pitch) {
+        TaskManager.IMP.sync(new RunnableVal<Object>() {
+            @Override
+            public void run(Object value) {
+                parent.playSound(location, sound, volume, pitch);
+            }
+        });
+    }
+
+    @Override
     public String[] getGameRules() {
         return parent.getGameRules();
     }
@@ -917,8 +981,18 @@ public class AsyncWorld implements World {
     }
 
     @Override
-    public void setMetadata(String key, MetadataValue value) {
-        parent.setMetadata(key, value);
+    public Spigot spigot() {
+        return parent.spigot();
+    }
+
+    @Override
+    public void setMetadata(final String key, final MetadataValue meta) {
+        TaskManager.IMP.sync(new RunnableVal<Object>() {
+            @Override
+            public void run(Object value) {
+                parent.setMetadata(key, meta);
+            }
+        });
     }
 
     @Override
@@ -932,8 +1006,13 @@ public class AsyncWorld implements World {
     }
 
     @Override
-    public void removeMetadata(String key, Plugin plugin) {
-        parent.removeMetadata(key, plugin);
+    public void removeMetadata(final String key, final Plugin plugin) {
+        TaskManager.IMP.sync(new RunnableVal<Object>() {
+            @Override
+            public void run(Object value) {
+                parent.removeMetadata(key, plugin);
+            }
+        });
     }
 
     @Override

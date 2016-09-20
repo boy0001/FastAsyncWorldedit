@@ -79,7 +79,7 @@ public class FaweCache {
      * @param data
      * @return
      */
-    public static BaseBlock getBlock(int id, int data) {
+    public static final BaseBlock getBlock(int id, int data) {
         return CACHE_BLOCK[(id << 4) + data];
     }
 
@@ -89,15 +89,15 @@ public class FaweCache {
      * @param data
      * @return
      */
-    public static int getCombined(int id, int data) {
+    public static final int getCombined(int id, int data) {
         return (id << 4) + data;
     }
 
-    public static int getId(int combined) {
+    public static final int getId(int combined) {
         return combined >> 4;
     }
 
-    public static int getData(int combined) {
+    public static final int getData(int combined) {
         return combined & 15;
     }
 
@@ -106,11 +106,11 @@ public class FaweCache {
      * @param block
      * @return
      */
-    public static int getCombined(BaseBlock block) {
+    public static final int getCombined(BaseBlock block) {
         return getCombined(block.getId(), block.getData());
     }
 
-    public static Color getColor(int id, int data) {
+    public static final Color getColor(int id, int data) {
         Color exact = CACHE_COLOR[getCombined(id, data)];
         if (exact != null) {
             return exact;

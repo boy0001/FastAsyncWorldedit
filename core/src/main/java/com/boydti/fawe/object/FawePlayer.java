@@ -5,6 +5,7 @@ import com.boydti.fawe.FaweAPI;
 import com.boydti.fawe.config.BBC;
 import com.boydti.fawe.config.Settings;
 import com.boydti.fawe.object.clipboard.DiskOptimizedClipboard;
+import com.boydti.fawe.object.exception.FaweException;
 import com.boydti.fawe.util.MainUtil;
 import com.boydti.fawe.util.SetQueue;
 import com.boydti.fawe.util.TaskManager;
@@ -116,7 +117,12 @@ public abstract class FawePlayer<T> {
                 try {
                     run.run();
                 } catch (Throwable e) {
-                    e.printStackTrace();
+                    FaweException fe = FaweException.get(e);
+                    if (fe != null) {
+                        sendMessage(fe.getMessage());
+                    } else {
+                        e.printStackTrace();
+                    }
                 }
                 runningCount.decrementAndGet();
                 Runnable next = getActions().poll();
@@ -157,7 +163,16 @@ public abstract class FawePlayer<T> {
 
     public boolean runAction(final Runnable ifFree, boolean checkFree, boolean async) {
         if (checkFree) {
-            queueAction(ifFree);
+            if (async) {
+                TaskManager.IMP.taskNow(new Runnable() {
+                    @Override
+                    public void run() {
+                        queueAction(ifFree);
+                    }
+                }, async);
+            } else {
+                queueAction(ifFree);
+            }
             return true;
         } else {
             TaskManager.IMP.taskNow(ifFree, async);
