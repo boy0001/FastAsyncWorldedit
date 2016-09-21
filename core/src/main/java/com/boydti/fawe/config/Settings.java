@@ -103,7 +103,7 @@ public class Settings extends Config {
                 " - Faster as it avoids duplicate block checks",
                 " - Worse compression since dispatch order is different"
         })
-        public static boolean COMBINE_STAGES = false;
+        public static boolean COMBINE_STAGES = true;
         @Comment({
                 "Higher compression reduces the size of history at the expense of CPU",
                 "0 = Uncompressed byte array",

@@ -16,12 +16,14 @@ public class LocationMaskedPlayerWrapper extends PlayerWrapper {
 
     @Override
     public WorldVector getBlockIn() {
-        return new WorldVector((LocalWorld) getWorld(), position);
+        WorldVector pos = getPosition();
+        return WorldVector.toBlockPoint(pos.getWorld(), pos.getX(), pos.getY(), pos.getZ());
     }
 
     @Override
     public WorldVector getBlockOn() {
-        return new WorldVector((LocalWorld) getWorld(), position.subtract(0, 1, 0));
+        WorldVector pos = getPosition();
+        return WorldVector.toBlockPoint(pos.getWorld(), pos.getX(), pos.getY() - 1, pos.getZ());
     }
 
     @Override

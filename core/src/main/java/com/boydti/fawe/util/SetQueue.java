@@ -105,6 +105,10 @@ public class SetQueue {
                         completer = new ExecutorCompletionService(pool);
                         e.printStackTrace();
                     }
+                    if (pool.getQueuedSubmissionCount() != 0 || pool.getRunningThreadCount() != 0 || pool.getQueuedTaskCount() != 0) {
+                        Fawe.debug("Error flushing parallel pool");
+                        pool.awaitQuiescence(Long.MAX_VALUE, TimeUnit.MILLISECONDS);
+                    }
                     secondLast = System.currentTimeMillis();
                 } catch (Throwable e) {
                     e.printStackTrace();
