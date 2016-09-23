@@ -7,20 +7,20 @@ import javax.annotation.Nullable;
 
 public class AbstractDelegateMask implements Mask {
 
-    private final Mask parent;
+    private final Mask mask;
 
     public AbstractDelegateMask(Mask parent) {
-        this.parent = parent;
+        this.mask = parent;
     }
 
     @Override
     public boolean test(Vector vector) {
-        return parent.test(vector);
+        return mask.test(vector);
     }
 
     @Nullable
     @Override
     public Mask2D toMask2D() {
-        return parent.toMask2D();
+        return mask.toMask2D();
     }
 }

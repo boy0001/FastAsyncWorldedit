@@ -33,10 +33,12 @@ import com.sk89q.worldedit.command.RegionCommands;
 import com.sk89q.worldedit.command.SchematicCommands;
 import com.sk89q.worldedit.command.ScriptingCommands;
 import com.sk89q.worldedit.command.ToolCommands;
+import com.sk89q.worldedit.command.ToolUtilCommands;
 import com.sk89q.worldedit.command.composition.SelectionCommand;
 import com.sk89q.worldedit.command.tool.LongRangeBuildTool;
 import com.sk89q.worldedit.command.tool.brush.GravityBrush;
 import com.sk89q.worldedit.event.extent.EditSessionEvent;
+import com.sk89q.worldedit.extension.factory.DefaultMaskParser;
 import com.sk89q.worldedit.extension.platform.CommandManager;
 import com.sk89q.worldedit.extension.platform.PlatformManager;
 import com.sk89q.worldedit.extent.AbstractDelegateExtent;
@@ -48,6 +50,8 @@ import com.sk89q.worldedit.extent.transform.BlockTransformExtent;
 import com.sk89q.worldedit.function.entity.ExtentEntityCopy;
 import com.sk89q.worldedit.function.mask.BlockMask;
 import com.sk89q.worldedit.function.mask.FuzzyBlockMask;
+import com.sk89q.worldedit.function.mask.Masks;
+import com.sk89q.worldedit.function.mask.OffsetMask;
 import com.sk89q.worldedit.function.mask.SolidBlockMask;
 import com.sk89q.worldedit.function.operation.Operations;
 import com.sk89q.worldedit.function.pattern.ClipboardPattern;
@@ -337,6 +341,7 @@ public class Fawe {
             HistoryCommands.inject(); // Translations
             NavigationCommands.inject(); // Translations + thru fix
             ParametricBuilder.inject(); // Translations
+            ToolUtilCommands.inject(); // Fixes + Translations
             // Schematic
             SchematicReader.inject();
             SchematicWriter.inject();
@@ -379,6 +384,9 @@ public class Fawe {
             BlockMask.inject(); // Optimizations
             SolidBlockMask.inject(); // Optimizations
             FuzzyBlockMask.inject(); // Optimizations
+            OffsetMask.inject(); // Optimizations
+            DefaultMaskParser.inject(); // Add new masks
+            Masks.inject(); //
             // Operations
             Operations.inject(); // Optimizations
             // BlockData

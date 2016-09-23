@@ -1,8 +1,8 @@
 package com.boydti.fawe.object.change;
 
 import com.boydti.fawe.Fawe;
-import com.boydti.fawe.object.extent.FastWorldEditExtent;
-import com.boydti.fawe.util.ExtentTraverser;
+import com.boydti.fawe.object.FaweQueue;
+import com.boydti.fawe.object.HasFaweQueue;
 import com.sk89q.jnbt.CompoundTag;
 import com.sk89q.jnbt.IntTag;
 import com.sk89q.jnbt.Tag;
@@ -36,18 +36,29 @@ public class MutableTileChange implements Change {
         }
     }
 
+    private FaweQueue queue;
+    private boolean checkedQueue;
+
     public void create(UndoContext context) {
-        Extent extent = context.getExtent();
-        ExtentTraverser<FastWorldEditExtent> find = new ExtentTraverser(extent).find(FastWorldEditExtent.class);
-        if (find != null) {
-            FastWorldEditExtent fwee = find.get();
-            Map<String, Tag> map = tag.getValue();
-            int x = ((IntTag) map.get("x")).getValue();
-            int y = ((IntTag) map.get("y")).getValue();
-            int z = ((IntTag) map.get("z")).getValue();
-            fwee.getQueue().setTile(x, y, z, tag);
-        } else {
-            Fawe.debug("FAWE doesn't support: " + context + " for " + getClass());
+        if (queue != null) {
+            perform(queue);
         }
+        if (!checkedQueue) {
+            checkedQueue = true;
+            Extent extent = context.getExtent();
+            if (extent instanceof HasFaweQueue) {
+                perform(queue = ((HasFaweQueue) extent).getQueue());
+            } else {
+                Fawe.debug("FAWE doesn't support: " + extent + " for " + getClass() + " (bug Empire92)");
+            }
+        }
+    }
+
+    public void perform(FaweQueue queue) {
+        Map<String, Tag> map = tag.getValue();
+        int x = ((IntTag) map.get("x")).getValue();
+        int y = ((IntTag) map.get("y")).getValue();
+        int z = ((IntTag) map.get("z")).getValue();
+        queue.setTile(x, y, z, tag);
     }
 }

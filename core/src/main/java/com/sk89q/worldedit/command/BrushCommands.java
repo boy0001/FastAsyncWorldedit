@@ -31,6 +31,8 @@ import com.boydti.fawe.object.brush.BlendBall;
 import com.boydti.fawe.object.brush.DoubleActionBrushTool;
 import com.boydti.fawe.object.brush.ErodeBrush;
 import com.boydti.fawe.object.brush.LineBrush;
+import com.boydti.fawe.object.brush.RecurseBrush;
+import com.boydti.fawe.object.mask.IdMask;
 import com.sk89q.minecraft.util.commands.Command;
 import com.sk89q.minecraft.util.commands.CommandContext;
 import com.sk89q.minecraft.util.commands.CommandPermissions;
@@ -118,6 +120,25 @@ public class BrushCommands {
     }
 
     @Command(
+            aliases = { "recursive", "recurse", "r" },
+            usage = "<pattern-to> [radius]",
+            desc = "Choose the recursive brush",
+            help = "Chooses the recursive brush",
+            min = 0,
+            max = 2
+    )
+    @CommandPermissions("worldedit.brush.recursive")
+    public void recursiveBrush(Player player, LocalSession session, EditSession editSession, Pattern fill, @Optional("2") double radius) throws WorldEditException {
+        worldEdit.checkMaxBrushRadius(radius);
+        BrushTool tool = session.getBrushTool(player.getItemInHand());
+        tool.setSize(radius);
+        tool.setBrush(new RecurseBrush(tool), "worldedit.brush.recursive");
+        tool.setMask(new IdMask(editSession));
+        tool.setFill(fill);
+        BBC.BRUSH_SPHERE.send(player, radius);
+    }
+
+    @Command(
             aliases = { "line", "l" },
             usage = "<pattern> [radius]",
             flags = "hsf",
@@ -152,8 +173,7 @@ public class BrushCommands {
             max = 2
     )
     @CommandPermissions("worldedit.brush.sphere")
-    public void sphereBrush(Player player, LocalSession session, EditSession editSession, Pattern fill,
-                            @Optional("2") double radius, @Switch('h') boolean hollow) throws WorldEditException {
+    public void sphereBrush(Player player, LocalSession session, EditSession editSession, Pattern fill, @Optional("2") double radius, @Switch('h') boolean hollow) throws WorldEditException {
         worldEdit.checkMaxBrushRadius(radius);
 
         BrushTool tool = session.getBrushTool(player.getItemInHand());

@@ -88,7 +88,6 @@ public class CuboidRegionSelector extends com.sk89q.worldedit.regions.CuboidRegi
             position1 = oldRegion.getMinimumPoint().toBlockVector();
             position2 = oldRegion.getMaximumPoint().toBlockVector();
         }
-
         region.setPos1(position1);
         region.setPos2(position2);
     }

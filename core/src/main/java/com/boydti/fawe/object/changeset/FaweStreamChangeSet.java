@@ -8,11 +8,13 @@ import com.boydti.fawe.object.change.MutableEntityChange;
 import com.boydti.fawe.object.change.MutableFullBlockChange;
 import com.boydti.fawe.object.change.MutableTileChange;
 import com.boydti.fawe.util.MainUtil;
+import com.boydti.fawe.util.MathMan;
 import com.sk89q.jnbt.CompoundTag;
 import com.sk89q.jnbt.NBTInputStream;
 import com.sk89q.jnbt.NBTOutputStream;
 import com.sk89q.worldedit.history.change.Change;
 import com.sk89q.worldedit.world.World;
+import java.io.EOFException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -21,18 +23,197 @@ import java.util.Iterator;
 
 public abstract class FaweStreamChangeSet extends FaweChangeSet {
 
-    public static final int MODE = 3;
     public static final int HEADER_SIZE = 9;
-
+    private int mode;
     private final int compression;
 
+    private FaweStreamIdDelegate idDel;
+    private FaweStreamPositionDelegate posDel;
+
     public FaweStreamChangeSet(World world) {
-        this(world, Settings.HISTORY.COMPRESSION_LEVEL);
+        this(world, Settings.HISTORY.COMPRESSION_LEVEL, Settings.HISTORY.STORE_REDO, Settings.HISTORY.SMALL_EDITS);
     }
 
-    public FaweStreamChangeSet(World world, int compression) {
+    public FaweStreamChangeSet(World world, int compression, boolean storeRedo, boolean smallLoc) {
         super(world);
         this.compression = compression;
+        if (storeRedo) {
+            if (smallLoc) {
+                mode = 4;
+            } else {
+                mode = 3;
+            }
+        } else if (smallLoc) {
+            mode = 1;
+        } else {
+            mode = 2;
+        }
+    }
+
+    public interface FaweStreamPositionDelegate {
+        void write(OutputStream out, int x, int y, int z) throws IOException;
+        int readX(InputStream in) throws IOException;
+        int readY(InputStream in) throws IOException;
+        int readZ(InputStream in) throws IOException;
+    }
+
+    public interface FaweStreamIdDelegate {
+        void writeChange(OutputStream out, int from, int to) throws IOException;
+        void readCombined(InputStream in, MutableBlockChange change, boolean dir) throws IOException;
+        void readCombined(InputStream in, MutableFullBlockChange change, boolean dir) throws IOException;
+    }
+
+    private void setupStreamDelegates(int mode) {
+        this.mode = mode;
+        if (mode == 3 || mode == 4) {
+            idDel = new FaweStreamIdDelegate() {
+                @Override
+                public void writeChange(OutputStream stream, int combinedFrom, int combinedTo) throws IOException {
+                    stream.write((combinedFrom) & 0xff);
+                    stream.write(((combinedFrom) >> 8) & 0xff);
+                    stream.write((combinedTo) & 0xff);
+                    stream.write(((combinedTo) >> 8) & 0xff);
+                }
+
+                @Override
+                public void readCombined(InputStream is, MutableBlockChange change, boolean dir) throws IOException {
+                    if (dir) {
+                        is.skip(2);
+                        int to1 = is.read();
+                        int to2 = is.read();
+                        change.id = (short) ((to2 << 4) + (to1 >> 4));
+                        change.data = (byte) (to1 & 0xf);
+                    } else {
+                        int from1 = is.read();
+                        int from2 = is.read();
+                        is.skip(2);
+                        change.id = (short) ((from2 << 4) + (from1 >> 4));
+                        change.data = (byte) (from1 & 0xf);
+                    }
+                }
+
+                @Override
+                public void readCombined(InputStream is, MutableFullBlockChange change, boolean dir) throws IOException {
+                    change.from = ((byte) is.read() & 0xFF) + ((byte) is.read() << 8);
+                    change.to = ((byte) is.read() & 0xFF) + ((byte) is.read() << 8);
+                }
+            };
+        } else {
+            idDel = new FaweStreamIdDelegate() {
+                @Override
+                public void writeChange(OutputStream stream, int combinedFrom, int to) throws IOException {
+                    stream.write((combinedFrom) & 0xff);
+                    stream.write(((combinedFrom) >> 8) & 0xff);
+                }
+
+                @Override
+                public void readCombined(InputStream in, MutableBlockChange change, boolean dir) throws IOException {
+                    int from1 = in.read();
+                    int from2 = in.read();
+                    change.id = (short) ((from2 << 4) + (from1 >> 4));
+                    change.data = (byte) (from1 & 0xf);
+                }
+
+                @Override
+                public void readCombined(InputStream is, MutableFullBlockChange change, boolean dir) throws IOException {
+                    change.from = ((byte) is.read() & 0xFF) + ((byte) is.read() << 8);
+                    change.to = 0;
+                }
+            };
+        }
+        if (mode == 1 || mode == 4) { // small
+            posDel = new FaweStreamPositionDelegate() {
+                @Override
+                public void write(OutputStream out, int x, int y, int z) throws IOException {
+                    byte b1 = (byte) y;
+                    byte b2 = (byte) (x);
+                    byte b3 = (byte) (z);
+                    int x16 = (x >> 8) & 0xF;
+                    int z16 = (z >> 8) & 0xF;
+                    byte b4 = MathMan.pair16(x16, z16);
+                    out.write(b1);
+                    out.write(b2);
+                    out.write(b3);
+                    out.write(b4);
+                }
+
+                byte[] buffer = new byte[4];
+
+                @Override
+                public int readX(InputStream in) throws IOException {
+                    if (in.read(buffer) == -1) {
+                        throw new EOFException();
+                    }
+                    return (((buffer[1] & 0xFF) + ((MathMan.unpair16x(buffer[3])) << 8)) << 20) >> 20;
+                }
+
+                @Override
+                public int readY(InputStream in) {
+                    return buffer[0] & 0xFF;
+                }
+
+                @Override
+                public int readZ(InputStream in) throws IOException {
+                    return (((buffer[2] & 0xFF) + ((MathMan.unpair16y(buffer[3])) << 8)) << 20) >> 20;
+                }
+            };
+        } else {
+            posDel = new FaweStreamPositionDelegate() {
+
+                byte[] buffer = new byte[5];
+
+                @Override
+                public void write(OutputStream stream, int x, int y, int z) throws IOException {
+                    stream.write((x) & 0xff);
+                    stream.write(((x) >> 8) & 0xff);
+                    stream.write((z) & 0xff);
+                    stream.write(((z) >> 8) & 0xff);
+                    stream.write((byte) y);
+                }
+
+                @Override
+                public int readX(InputStream is) throws IOException {
+                    if (is.read(buffer) == -1) {
+                        throw new EOFException();
+                    }
+                    return (buffer[0] & 0xFF) + (buffer[1] << 8);
+                }
+
+                @Override
+                public int readY(InputStream is) throws IOException {
+                    return buffer[4] & 0xFF;
+                }
+
+                @Override
+                public int readZ(InputStream is) throws IOException {
+                    return (buffer[2] & 0xFF) + (buffer[3] << 8);
+                }
+            };
+        }
+    }
+
+    public void writeHeader(OutputStream os, int x, int y, int z) throws IOException {
+        os.write(mode);
+        setOrigin(x, z);
+        os.write((byte) (x >> 24));
+        os.write((byte) (x >> 16));
+        os.write((byte) (x >> 8));
+        os.write((byte) (x));
+        os.write((byte) (z >> 24));
+        os.write((byte) (z >> 16));
+        os.write((byte) (z >> 8));
+        os.write((byte) (z));
+        setupStreamDelegates(mode);
+    }
+
+    public void readHeader(InputStream is) throws IOException {
+        // skip mode
+        int mode = is.read();
+        // origin
+        int x = ((is.read() << 24) + (is.read() << 16) + (is.read() << 8) + (is.read() << 0));
+        int z = ((is.read() << 24) + (is.read() << 16) + (is.read() << 8) + (is.read() << 0));
+        setOrigin(x, z);
+        setupStreamDelegates(mode);
     }
 
     public FaweOutputStream getCompressedOS(OutputStream os) throws IOException {
@@ -93,21 +274,8 @@ public abstract class FaweStreamChangeSet extends FaweChangeSet {
         try {
             OutputStream stream = getBlockOS(x, y, z);
             //x
-            x-=originX;
-            stream.write((x) & 0xff);
-            stream.write(((x) >> 8) & 0xff);
-            //z
-            z-=originZ;
-            stream.write((z) & 0xff);
-            stream.write(((z) >> 8) & 0xff);
-            //y
-            stream.write((byte) y);
-            //from
-            stream.write((combinedFrom) & 0xff);
-            stream.write(((combinedFrom) >> 8) & 0xff);
-            //to
-            stream.write((combinedTo) & 0xff);
-            stream.write(((combinedTo) >> 8) & 0xff);
+            posDel.write(stream, x - originX, y, z - originZ);
+            idDel.writeChange(stream, combinedFrom, combinedTo);
         }
         catch (Throwable e) {
             MainUtil.handleError(e);
@@ -172,42 +340,24 @@ public abstract class FaweStreamChangeSet extends FaweChangeSet {
             private MutableBlockChange last = read();
             public MutableBlockChange read() {
                 try {
-                    int read0 = is.read();
-                    if (read0 == -1) {
-                        return null;
-                    }
-                    int x = ((byte) read0 & 0xFF) + ((byte) is.read() << 8) + originX;
-                    int z = ((byte) is.read() & 0xFF) + ((byte) is.read() << 8) + originZ;
-                    int y = is.read() & 0xff;
-                    change.x = x;
-                    change.y = y;
-                    change.z = z;
-                    if (dir) {
-                        is.skip(2);
-                        int to1 = is.read();
-                        int to2 = is.read();
-                        change.id = (short) ((to2 << 4) + (to1 >> 4));
-                        change.data = (byte) (to1 & 0xf);
-                    } else {
-                        int from1 = is.read();
-                        int from2 = is.read();
-                        is.skip(2);
-                        change.id = (short) ((from2 << 4) + (from1 >> 4));
-                        change.data = (byte) (from1 & 0xf);
-                    }
+                    change.x = posDel.readX(is) + originX;
+                    change.y = posDel.readY(is);
+                    change.z = posDel.readZ(is) + originZ;
+                    idDel.readCombined(is, change, dir);
                     return change;
-                } catch (Exception ignoreEOF) {
-                    MainUtil.handleError(ignoreEOF);
+                } catch (EOFException ignoreOEF) {
+                    return null;
+                } catch (Exception e) {
+                    MainUtil.handleError(e);
                 }
                 return null;
             }
 
             @Override
             public boolean hasNext() {
-                if (last == null) {
-                    last = read();
-                }
                 if (last != null) {
+                    return true;
+                } else if ((last = read()) != null) {
                     return true;
                 }
                 try {
@@ -242,21 +392,15 @@ public abstract class FaweStreamChangeSet extends FaweChangeSet {
             private MutableFullBlockChange last = read();
             public MutableFullBlockChange read() {
                 try {
-                    int read0 = is.read();
-                    if (read0 == -1) {
-                        return null;
-                    }
-                    int x = ((byte) read0 & 0xFF) + ((byte) is.read() << 8) + originX;
-                    int z = ((byte) is.read() & 0xFF) + ((byte) is.read() << 8) + originZ;
-                    int y = is.read() & 0xff;
-                    change.x = x;
-                    change.y = y;
-                    change.z = z;
-                    change.from = ((byte) is.read() & 0xFF) + ((byte) is.read() << 8);
-                    change.to = ((byte) is.read() & 0xFF) + ((byte) is.read() << 8);
+                    change.x = posDel.readX(is) + originX;
+                    change.y = posDel.readY(is);
+                    change.z = posDel.readZ(is) + originZ;
+                    idDel.readCombined(is, change, dir);
                     return change;
-                } catch (Exception ignoreEOF) {
-                    MainUtil.handleError(ignoreEOF);
+                } catch (EOFException ignoreOEF) {
+                    return null;
+                } catch (Exception e) {
+                    MainUtil.handleError(e);
                 }
                 return null;
             }

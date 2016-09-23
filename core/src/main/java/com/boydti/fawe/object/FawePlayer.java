@@ -145,7 +145,7 @@ public abstract class FawePlayer<T> {
         ConcurrentLinkedDeque<Runnable> adder = getMeta("fawe_action_v2");
         if (adder == null) {
             adder = new ConcurrentLinkedDeque();
-            ConcurrentLinkedDeque<Runnable> previous = (ConcurrentLinkedDeque<Runnable>) setMeta("fawe_action_v2", adder);
+            ConcurrentLinkedDeque<Runnable> previous = (ConcurrentLinkedDeque<Runnable>) getAndSetMeta("fawe_action_v2", adder);
             if (previous != null) {
                 setMeta("fawe_action_v2", adder = previous);
             }
@@ -397,11 +397,18 @@ public abstract class FawePlayer<T> {
      * @param value
      * @return previous value
      */
-    public Object setMeta(String key, Object value) {
+    public void setMeta(String key, Object value) {
         if (this.meta == null) {
             this.meta = new ConcurrentHashMap<>(8, 0.9f, 1);
         }
-        return this.meta.put(key, value);
+        this.meta.put(key, value);
+    }
+
+    public <T> T getAndSetMeta(String key, T value) {
+        if (this.meta == null) {
+            this.meta = new ConcurrentHashMap<>(8, 0.9f, 1);
+        }
+        return (T) this.meta.put(key, value);
     }
 
     /**

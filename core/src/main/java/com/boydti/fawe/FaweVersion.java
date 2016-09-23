@@ -1,7 +1,7 @@
 package com.boydti.fawe;
 
 public class FaweVersion {
-    public final int year, month, day, hash, build;
+    public final int year, month, day, hash, build, major, minor, patch;
 
     public FaweVersion(String version) {
         String[] split = version.substring(version.indexOf('=') + 1).split("-");
@@ -11,6 +11,10 @@ public class FaweVersion {
         this.day = Integer.parseInt(date[2]);
         this.hash = Integer.parseInt(split[1], 16);
         this.build = Integer.parseInt(split[2]);
+        String[] semver = split[3].split("\\.");
+        this.major = Integer.parseInt(semver[0]);
+        this.minor = Integer.parseInt(semver[1]);
+        this.patch = Integer.parseInt(semver[2]);
     }
 
     @Override

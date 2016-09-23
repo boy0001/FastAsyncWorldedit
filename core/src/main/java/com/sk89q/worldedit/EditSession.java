@@ -31,6 +31,7 @@ import com.boydti.fawe.logging.rollback.RollbackOptimizedHistory;
 import com.boydti.fawe.object.FaweLimit;
 import com.boydti.fawe.object.FawePlayer;
 import com.boydti.fawe.object.FaweQueue;
+import com.boydti.fawe.object.HasFaweQueue;
 import com.boydti.fawe.object.HistoryExtent;
 import com.boydti.fawe.object.NullChangeSet;
 import com.boydti.fawe.object.RegionWrapper;
@@ -44,7 +45,9 @@ import com.boydti.fawe.object.extent.FastWorldEditExtent;
 import com.boydti.fawe.object.extent.FaweRegionExtent;
 import com.boydti.fawe.object.extent.NullExtent;
 import com.boydti.fawe.object.extent.ProcessedWEExtent;
+import com.boydti.fawe.object.mask.ResettableMask;
 import com.boydti.fawe.util.ExtentTraverser;
+import com.boydti.fawe.util.MaskTraverser;
 import com.boydti.fawe.util.MemUtil;
 import com.boydti.fawe.util.Perm;
 import com.boydti.fawe.util.SetQueue;
@@ -149,7 +152,7 @@ import static com.sk89q.worldedit.regions.Regions.minimumBlockY;
  * {@link Extent}s that are chained together. For example, history is logged
  * using the {@link ChangeSetExtent}.</p>
  */
-public class EditSession extends AbstractWorld {
+public class EditSession extends AbstractWorld implements HasFaweQueue {
     /**
      * Used by {@link #setBlock(Vector, BaseBlock, Stage)} to
      * determine which {@link Extent}s should be bypassed.
@@ -232,9 +235,6 @@ public class EditSession extends AbstractWorld {
         if (allowedRegions == null) {
             if (player != null && !player.hasWorldEditBypass()) {
                 allowedRegions = player.getCurrentRegions();
-                if (allowedRegions.length == 1 && allowedRegions[0].isGlobal()) {
-                    allowedRegions = null;
-                }
             }
         }
         if (autoQueue == null) {
@@ -292,7 +292,7 @@ public class EditSession extends AbstractWorld {
             if (allowedRegions.length == 0) {
                 this.extent = new NullExtent(this.extent, BBC.WORLDEDIT_CANCEL_REASON_NO_REGION);
             } else {
-                this.extent = new ProcessedWEExtent(this.extent, allowedRegions, limit);
+                this.extent = new ProcessedWEExtent(this.extent, allowedRegions, this.limit);
             }
         }
         this.extent = wrapExtent(this.extent, bus, event, Stage.BEFORE_HISTORY);
@@ -577,9 +577,15 @@ public class EditSession extends AbstractWorld {
     public void setMask(Mask mask) {
         if (mask == null) {
             mask = Masks.alwaysTrue();
+        } else {
+            new MaskTraverser(mask).reset(this);
         }
         ExtentTraverser<MaskingExtent> maskingExtent = new ExtentTraverser(this.extent).find(MaskingExtent.class);
-        if (maskingExtent != null) {
+        if (maskingExtent != null && maskingExtent.get() != null) {
+            Mask oldMask = maskingExtent.get().getMask();
+            if (oldMask instanceof ResettableMask) {
+                ((ResettableMask) oldMask).reset();
+            }
             maskingExtent.get().setMask(mask);
         } else if (mask != Masks.alwaysTrue()) {
             this.extent = new MaskingExtent(this.extent, mask);
@@ -1159,6 +1165,8 @@ public class EditSession extends AbstractWorld {
                 BBC.WORLDEDIT_CANCEL_REASON_MAX_FAILS.send(player);
             }
         }
+        // Reset limit
+        limit.set(originalLimit);
         // Enqueue it
         if (queue == null || queue.size() == 0) {
             queue.dequeue();

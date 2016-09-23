@@ -152,7 +152,6 @@ public class ToolCommands {
     )
     @CommandPermissions("worldedit.tool.flood-fill")
     public void floodFill(Player player, LocalSession session, EditSession editSession, CommandContext args) throws WorldEditException {
-
         LocalConfiguration config = we.getConfiguration();
         int range = args.getInteger(1);
 

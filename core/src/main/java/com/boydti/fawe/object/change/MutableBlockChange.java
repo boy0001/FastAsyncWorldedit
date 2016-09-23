@@ -1,8 +1,8 @@
 package com.boydti.fawe.object.change;
 
 import com.boydti.fawe.Fawe;
-import com.boydti.fawe.object.extent.FastWorldEditExtent;
-import com.boydti.fawe.util.ExtentTraverser;
+import com.boydti.fawe.object.FaweQueue;
+import com.boydti.fawe.object.HasFaweQueue;
 import com.sk89q.worldedit.WorldEditException;
 import com.sk89q.worldedit.extent.Extent;
 import com.sk89q.worldedit.history.UndoContext;
@@ -35,14 +35,21 @@ public class MutableBlockChange implements Change {
         create(context);
     }
 
+    private FaweQueue queue;
+    private boolean checkedQueue;
+
     public void create(UndoContext context) {
-        Extent extent = context.getExtent();
-        ExtentTraverser<FastWorldEditExtent> find = new ExtentTraverser(extent).find(FastWorldEditExtent.class);
-        if (find != null) {
-            FastWorldEditExtent fwee = find.get();
-            fwee.getQueue().setBlock(x, y, z, id, data);
-        } else {
-            Fawe.debug("FAWE doesn't support: " + extent + " for " + getClass() + " (bug Empire92)");
+        if (queue != null) {
+            queue.setBlock(x, y, z, id, data);
+        }
+        if (!checkedQueue) {
+            checkedQueue = true;
+            Extent extent = context.getExtent();
+            if (extent instanceof HasFaweQueue) {
+                (queue = ((HasFaweQueue) extent).getQueue()).setBlock(x, y, z, id, data);
+            } else {
+                Fawe.debug("FAWE doesn't support: " + extent + " for " + getClass() + " (bug Empire92)");
+            }
         }
     }
 }

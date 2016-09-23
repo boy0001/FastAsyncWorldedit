@@ -154,6 +154,17 @@ public class Settings extends Config {
                 " - Use of the FAWE API will not be effected"
         })
         public static boolean ENABLE_FOR_CONSOLE = true;
+        @Comment({
+                "Should redo information be stored:",
+                " - History is about 20% larger",
+                " - Enables use of /redo",
+        })
+        public static boolean STORE_REDO = true;
+        @Comment({
+                "Assumes all edits are smaller than 4096x256x4096:",
+                " - Reduces history size by ~10%",
+        })
+        public static boolean SMALL_EDITS = false;
     }
 
     public static class QUEUE {

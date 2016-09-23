@@ -26,9 +26,11 @@ import com.boydti.fawe.config.Settings;
 import com.boydti.fawe.database.DBHandler;
 import com.boydti.fawe.database.RollbackDatabase;
 import com.boydti.fawe.logging.rollback.RollbackOptimizedHistory;
+import com.boydti.fawe.object.FawePlayer;
 import com.boydti.fawe.object.RegionWrapper;
 import com.boydti.fawe.object.RunnableVal;
 import com.boydti.fawe.object.changeset.DiskStorageHistory;
+import com.boydti.fawe.util.EditSessionBuilder;
 import com.boydti.fawe.util.MainUtil;
 import com.sk89q.minecraft.util.commands.Command;
 import com.sk89q.minecraft.util.commands.CommandContext;
@@ -72,7 +74,7 @@ public class HistoryCommands {
             min = 3,
             max = 3
     )
-    @CommandPermissions("worldedit.history.undo")
+    @CommandPermissions("worldedit.history.rollback")
     public void faweRollback(final Player player, LocalSession session, final String user, int radius, String time) throws WorldEditException {
         if (!Settings.HISTORY.USE_DATABASE) {
             BBC.SETTING_DISABLE.send(player, "history.use-database");
@@ -136,7 +138,7 @@ public class HistoryCommands {
             return;
         }
         radius = Math.max(Math.min(500, radius), 0);
-        World world = player.getWorld();
+        final World world = player.getWorld();
         WorldVector origin = player.getPosition();
         Vector bot = origin.subtract(radius, radius, radius);
         bot = bot.setY(Math.max(0, bot.getY()));
@@ -144,10 +146,20 @@ public class HistoryCommands {
         top = top.setY(Math.min(255, top.getY()));
         RollbackDatabase database = DBHandler.IMP.getDatabase(world);
         final AtomicInteger count = new AtomicInteger();
+        final FawePlayer fp = FawePlayer.wrap(player);
         database.getPotentialEdits(other, System.currentTimeMillis() - timeDiff, bot, top, new RunnableVal<DiskStorageHistory>() {
                 @Override
                 public void run(DiskStorageHistory edit) {
-                    EditSession session = edit.toEditSession(null);
+                    EditSession session = new EditSessionBuilder(world)
+                            .player(fp)
+                            .autoQueue(false)
+                            .fastmode(false)
+                            .checkMemory(false)
+                            .changeSet(edit)
+                            .limitUnlimited()
+                            .queue(fp.getMaskedFaweQueue(false))
+                            .build();
+                    session.setSize(1);
                     session.undo(session);
                     edit.deleteFiles();
                     BBC.ROLLBACK_ELEMENT.send(player, Fawe.imp().getWorldName(edit.getWorld()) + "/" + user + "-" + edit.getIndex());

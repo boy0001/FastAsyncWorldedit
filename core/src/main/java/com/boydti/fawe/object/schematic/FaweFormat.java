@@ -84,115 +84,121 @@ public class FaweFormat implements ClipboardReader, ClipboardWriter {
         BlockArrayClipboard clipboard;
         int ox, oy, oz;
         oy = 0;
-
         boolean from = false;
-        boolean small = true;
-        switch (mode) {
-            default:
-                return null;
+        boolean small = false;
+        boolean knownSize = false;
+        switch(mode) {
+            case 0:
+                knownSize = true;
+                break;
+            case 1:
+                small = true;
+                break;
+            case 2:
+                break;
             case 3:
                 from = true;
-            case 2:
-                small = false;
-            case 1: { // Unknown size
-                ox = in.readInt();
-                oz = in.readInt();
-                FaweOutputStream tmp = new FaweOutputStream(new FastByteArrayOutputStream(Settings.HISTORY.BUFFER_SIZE));
-                int width = 0;
-                int height = 0;
-                int length = 0;
-                while (true) {
+                break;
+            case 4:
+                small = true;
+                from = true;
+                break;
+        }
+        if (knownSize) {
+            int width = in.readUnsignedShort();
+            int height = in.readUnsignedShort();
+            int length = in.readUnsignedShort();
+            ox = in.readShort();
+            oy = in.readShort();
+            oz = in.readShort();
+
+            Vector origin = new Vector(0, 0, 0);
+            CuboidRegion region = new CuboidRegion(origin, origin.add(width, height, length).subtract(Vector.ONE));
+            clipboard = new BlockArrayClipboard(region, clipboardId);
+            try {
+                for (int y = 0; y < height; y++) {
+                    for (int x = 0; x < width; x++) {
+                        for (int z = 0; z < length; z++) {
+                            int combined = in.readUnsignedShort();
+                            int id = FaweCache.getId(combined);
+                            int data = FaweCache.getData(combined);
+                            BaseBlock block = FaweCache.getBlock(id, data);
+                            clipboard.setBlock(x, y, z, block);
+                        }
+                    }
+                }
+            } catch (WorldEditException e) {
+                e.printStackTrace();
+                return null;
+            }
+        } else {
+            ox = in.readInt();
+            oz = in.readInt();
+            FaweOutputStream tmp = new FaweOutputStream(new FastByteArrayOutputStream(Settings.HISTORY.BUFFER_SIZE));
+            int width = 0;
+            int height = 0;
+            int length = 0;
+            while (true) {
+                int x, y, z;
+                if (small) {
+                    tmp.write(x = in.read());
+                    tmp.write(y = in.read());
+                    tmp.write(z = in.read());
+                } else {
+                    tmp.writeShort((short) (x = in.readUnsignedShort()));
+                    tmp.write(y = in.read());
+                    tmp.writeShort((short) (z = in.readUnsignedShort()));
+                }
+                if (from) {
+                    in.skip(2);
+                }
+                short combined;
+                tmp.writeShort(combined = in.readShort());
+                if (combined == 0 || y == -1) {
+                    break;
+                }
+                if (x > width) {
+                    width = x;
+                }
+                if (y > height) {
+                    height = y;
+                }
+                if(z > length) {
+                    length = z;
+                }
+            }
+            Vector origin = new Vector(0, 0, 0);
+            CuboidRegion region = new CuboidRegion(origin, origin.add(width, height, length));
+            clipboard = new BlockArrayClipboard(region, clipboardId);
+            width++;
+            height++;
+            length++;
+            byte[] array = ((ByteArrayOutputStream) tmp.getParent()).toByteArray();
+            FaweInputStream part = new FaweInputStream(new FastByteArrayInputStream(array));
+            try {
+                for (int i = 0; i< array.length; i+= 9) {
                     int x, y, z;
                     if (small) {
-                        tmp.write(x = in.read());
-                        tmp.write(y = in.read());
-                        tmp.write(z = in.read());
+                        x = in.read();
+                        y = in.read();
+                        z = in.read();
                     } else {
-                        tmp.writeShort((short) (x = in.readUnsignedShort()));
-                        tmp.write(y = in.read());
-                        tmp.writeShort((short) (z = in.readUnsignedShort()));
+                        x = in.readUnsignedShort();
+                        y = in.read();
+                        z = in.readUnsignedShort();
                     }
                     if (from) {
                         in.skip(2);
                     }
-                    short combined;
-                    tmp.writeShort(combined = in.readShort());
-                    if (combined == 0 || y == -1) {
-                        break;
-                    }
-                    if (x > width) {
-                        width = x;
-                    }
-                    if (y > height) {
-                        height = y;
-                    }
-                    if(z > length) {
-                        length = z;
-                    }
+                    int combined = in.readShort();
+                    int id = FaweCache.getId(combined);
+                    int data = FaweCache.getData(combined);
+                    BaseBlock block = FaweCache.getBlock(id, data);
+                    clipboard.setBlock(x, y, z, block);
                 }
-                Vector origin = new Vector(0, 0, 0);
-                CuboidRegion region = new CuboidRegion(origin, origin.add(width, height, length));
-                clipboard = new BlockArrayClipboard(region, clipboardId);
-                width++;
-                height++;
-                length++;
-                byte[] array = ((ByteArrayOutputStream) tmp.getParent()).toByteArray();
-                FaweInputStream part = new FaweInputStream(new FastByteArrayInputStream(array));
-                try {
-                    for (int i = 0; i< array.length; i+= 9) {
-                        int x, y, z;
-                        if (small) {
-                            x = in.read();
-                            y = in.read();
-                            z = in.read();
-                        } else {
-                            x = in.readUnsignedShort();
-                            y = in.read();
-                            z = in.readUnsignedShort();
-                        }
-                        if (from) {
-                            in.skip(2);
-                        }
-                        int combined = in.readShort();
-                        int id = FaweCache.getId(combined);
-                        int data = FaweCache.getData(combined);
-                        BaseBlock block = FaweCache.getBlock(id, data);
-                        clipboard.setBlock(x, y, z, block);
-                    }
-                } catch (WorldEditException e) {
-                    e.printStackTrace();
-                    return null;
-                }
-                break;
-            }
-            case 0: {
-                int width = in.readUnsignedShort();
-                int height = in.readUnsignedShort();
-                int length = in.readUnsignedShort();
-                ox = in.readShort();
-                oy = in.readShort();
-                oz = in.readShort();
-
-                Vector origin = new Vector(0, 0, 0);
-                CuboidRegion region = new CuboidRegion(origin, origin.add(width, height, length).subtract(Vector.ONE));
-                clipboard = new BlockArrayClipboard(region, clipboardId);
-                try {
-                    for (int y = 0; y < height; y++) {
-                        for (int x = 0; x < width; x++) {
-                            for (int z = 0; z < length; z++) {
-                                int combined = in.readUnsignedShort();
-                                int id = FaweCache.getId(combined);
-                                int data = FaweCache.getData(combined);
-                                BaseBlock block = FaweCache.getBlock(id, data);
-                                clipboard.setBlock(x, y, z, block);
-                            }
-                        }
-                    }
-                } catch (WorldEditException e) {
-                    e.printStackTrace();
-                    return null;
-                }
-                break;
+            } catch (WorldEditException e) {
+                e.printStackTrace();
+                return null;
             }
         }
         try {

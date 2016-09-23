@@ -2,6 +2,7 @@ package com.boydti.fawe.object.extent;
 
 import com.boydti.fawe.FaweCache;
 import com.boydti.fawe.object.FaweQueue;
+import com.boydti.fawe.object.HasFaweQueue;
 import com.boydti.fawe.util.MainUtil;
 import com.boydti.fawe.util.ReflectionUtils;
 import com.sk89q.jnbt.CompoundTag;
@@ -24,9 +25,9 @@ import com.sk89q.worldedit.world.biome.BaseBiome;
 import java.util.List;
 import java.util.Map;
 
-public class FastWorldEditExtent extends AbstractDelegateExtent {
+public class FastWorldEditExtent extends AbstractDelegateExtent implements HasFaweQueue {
 
-    private final FaweQueue queue;
+    private FaweQueue queue;
     private final int maxY;
 
     public FastWorldEditExtent(final World world, FaweQueue queue) {

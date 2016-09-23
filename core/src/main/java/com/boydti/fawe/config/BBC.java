@@ -95,7 +95,11 @@ public enum BBC {
     BRUSH_BLEND_BALL("Blend ball brush equipped (%s0).", "WorldEdit.Brush"),
     BRUSH_ERODE("Erode brush equipped (%s0).", "WorldEdit.Brush"),
     BRUSH_PASTE_NONE("Nothing to paste", "WorldEdit.Brush"),
-
+    BRUSH_SIZE("Brush size set", "WorldEdit.Brush"),
+    BRUSH_RANGE("Brush size set", "WorldEdit.Brush"),
+    BRUSH_MASK_DISABLED("Brush mask disabled", "WorldEdit.Brush"),
+    BRUSH_MASK("Brush mask set", "WorldEdit.Brush"),
+    BRUSH_MATERIAL("Brush material set", "WorldEdit.Brush"),
 
     ROLLBACK_ELEMENT("Undoing %s0", "WorldEdit.Rollback"),
 
@@ -114,6 +118,8 @@ public enum BBC {
     TOOL_FARWAND("Far wand tool bound to %s0.", "WorldEdit.Tool"),
     TOOL_LRBUILD_BOUND("Long-range building tool bound to %s0.", "WorldEdit.Tool"),
     TOOL_LRBUILD_INFO("Left-click set to %s0; right-click set to %s1.", "WorldEdit.Tool"),
+    SUPERPICKAXE_ENABLED("Super Pickaxe enabled.", "WorldEdit.Tool"),
+    SUPERPICKAXE_DISABLED("Super Pickaxe disabled.", "WorldEdit.Tool"),
 
 
     SCHEMATIC_DELETE("%s0 has been deleted.", "Worldedit.Schematic"),

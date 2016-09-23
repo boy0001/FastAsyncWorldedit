@@ -4,6 +4,7 @@ import com.boydti.fawe.FaweCache;
 import com.boydti.fawe.config.BBC;
 import com.boydti.fawe.object.FaweLimit;
 import com.boydti.fawe.object.RegionWrapper;
+import com.boydti.fawe.util.MainUtil;
 import com.boydti.fawe.util.WEManager;
 import com.sk89q.worldedit.EditSession;
 import com.sk89q.worldedit.Vector;
@@ -38,7 +39,7 @@ public class ProcessedWEExtent extends FaweRegionExtent {
         }
         if (WEManager.IMP.maskContains(this.mask, location.getBlockX(), location.getBlockZ())) {
             if (!limit.MAX_ENTITIES()) {
-                WEManager.IMP.cancelEditSafe(this, BBC.WORLDEDIT_CANCEL_REASON_MAX_CHANGES);
+                WEManager.IMP.cancelEditSafe(this, BBC.WORLDEDIT_CANCEL_REASON_MAX_ENTITIES);
                 return null;
             }
             return super.createEntity(location, entity);
@@ -63,11 +64,14 @@ public class ProcessedWEExtent extends FaweRegionExtent {
         return super.getEntities(region);
     }
 
+    int count = 0;
+
     @Override
     public BaseBlock getLazyBlock(int x, int y, int z) {
+        count++;
         if (WEManager.IMP.maskContains(this.mask, x, z)) {
             if (!limit.MAX_CHECKS()) {
-                WEManager.IMP.cancelEditSafe(this, BBC.WORLDEDIT_CANCEL_REASON_MAX_CHANGES);
+                WEManager.IMP.cancelEditSafe(this, BBC.WORLDEDIT_CANCEL_REASON_MAX_CHECKS);
                 return EditSession.nullBlock;
             } else {
                 return extent.getLazyBlock(x, y, z);

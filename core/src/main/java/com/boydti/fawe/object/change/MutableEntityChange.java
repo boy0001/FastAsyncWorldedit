@@ -1,6 +1,8 @@
 package com.boydti.fawe.object.change;
 
 import com.boydti.fawe.Fawe;
+import com.boydti.fawe.object.FaweQueue;
+import com.boydti.fawe.object.HasFaweQueue;
 import com.boydti.fawe.object.extent.FastWorldEditExtent;
 import com.boydti.fawe.util.ExtentTraverser;
 import com.sk89q.jnbt.CompoundTag;
@@ -72,19 +74,30 @@ public class MutableEntityChange implements Change {
         }
     }
 
+    private FaweQueue queue;
+    private boolean checkedQueue;
+
     public void create(UndoContext context) {
-        Extent extent = context.getExtent();
-        ExtentTraverser<FastWorldEditExtent> find = new ExtentTraverser(extent).find(FastWorldEditExtent.class);
-        if (find != null) {
-            FastWorldEditExtent fwee = find.get();
-            Map<String, Tag> map = tag.getValue();
-            List<DoubleTag> pos = (List<DoubleTag>) map.get("Pos").getValue();
-            int x = (int) Math.round(pos.get(0).getValue());
-            int y = (int) Math.round(pos.get(1).getValue());
-            int z = (int) Math.round(pos.get(2).getValue());
-            fwee.getQueue().setEntity(x, y, z, tag);
-        } else {
-            Fawe.debug("FAWE doesn't support: " + context + " for " + getClass() + " (bug Empire92)");
+        if (queue != null) {
+            perform(queue);
         }
+        if (!checkedQueue) {
+            checkedQueue = true;
+            Extent extent = context.getExtent();
+            if (extent instanceof HasFaweQueue) {
+                perform(queue = ((HasFaweQueue) extent).getQueue());
+            } else {
+                Fawe.debug("FAWE doesn't support: " + extent + " for " + getClass() + " (bug Empire92)");
+            }
+        }
+    }
+
+    public void perform(FaweQueue queue) {
+        Map<String, Tag> map = tag.getValue();
+        List<DoubleTag> pos = (List<DoubleTag>) map.get("Pos").getValue();
+        int x = (int) Math.round(pos.get(0).getValue());
+        int y = (int) Math.round(pos.get(1).getValue());
+        int z = (int) Math.round(pos.get(2).getValue());
+        queue.setEntity(x, y, z, tag);
     }
 }

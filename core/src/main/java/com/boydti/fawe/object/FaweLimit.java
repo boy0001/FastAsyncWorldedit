@@ -76,6 +76,26 @@ public class FaweLimit {
         return MAX_ENTITIES-- > 0;
     }
 
+    public boolean isUnlimited() {
+        return MAX_CHANGES == Integer.MAX_VALUE &&
+        MAX_FAILS == Integer.MAX_VALUE &&
+        MAX_CHECKS == Integer.MAX_VALUE &&
+        MAX_ITERATIONS == Integer.MAX_VALUE &&
+        MAX_BLOCKSTATES == Integer.MAX_VALUE &&
+        MAX_ENTITIES == Integer.MAX_VALUE &&
+        MAX_HISTORY == Integer.MAX_VALUE;
+    }
+
+    public void set(FaweLimit limit) {
+        MAX_ACTIONS = limit.MAX_ACTIONS;
+        MAX_CHANGES = limit.MAX_CHANGES;
+        MAX_BLOCKSTATES = limit.MAX_BLOCKSTATES;
+        MAX_CHECKS = limit.MAX_CHECKS;
+        MAX_ENTITIES = limit.MAX_ENTITIES;
+        MAX_FAILS = limit.MAX_FAILS;
+        MAX_ITERATIONS = limit.MAX_ITERATIONS;
+        MAX_HISTORY = limit.MAX_HISTORY;
+    }
 
     public FaweLimit copy() {
         FaweLimit limit = new FaweLimit();

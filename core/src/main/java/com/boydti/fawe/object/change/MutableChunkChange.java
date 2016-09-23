@@ -2,8 +2,8 @@ package com.boydti.fawe.object.change;
 
 import com.boydti.fawe.Fawe;
 import com.boydti.fawe.object.FaweChunk;
-import com.boydti.fawe.object.extent.FastWorldEditExtent;
-import com.boydti.fawe.util.ExtentTraverser;
+import com.boydti.fawe.object.FaweQueue;
+import com.boydti.fawe.object.HasFaweQueue;
 import com.sk89q.worldedit.WorldEditException;
 import com.sk89q.worldedit.extent.Extent;
 import com.sk89q.worldedit.history.UndoContext;
@@ -29,18 +29,29 @@ public class MutableChunkChange implements Change {
         create(context, false);
     }
 
+    private FaweQueue queue;
+    private boolean checkedQueue;
+
     public void create(UndoContext context, boolean undo) {
-        Extent extent = context.getExtent();
-        ExtentTraverser<FastWorldEditExtent> find = new ExtentTraverser(extent).find(FastWorldEditExtent.class);
-        if (find != null) {
-            FastWorldEditExtent fwee = find.get();
-            if (undo) {
-                fwee.getQueue().setChunk(from);
+        if (queue != null) {
+            perform(queue, undo);
+        }
+        if (!checkedQueue) {
+            checkedQueue = true;
+            Extent extent = context.getExtent();
+            if (extent instanceof HasFaweQueue) {
+                perform(queue = ((HasFaweQueue) extent).getQueue(), undo);
             } else {
-                fwee.getQueue().setChunk(to);
+                Fawe.debug("FAWE doesn't support: " + extent + " for " + getClass() + " (bug Empire92)");
             }
+        }
+    }
+
+    public void perform(FaweQueue queue, boolean undo) {
+        if (undo) {
+            queue.setChunk(from);
         } else {
-            Fawe.debug("FAWE doesn't support: " + context + " for " + getClass());
+            queue.setChunk(to);
         }
     }
 }

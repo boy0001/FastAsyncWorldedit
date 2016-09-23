@@ -3,6 +3,7 @@ package com.boydti.fawe.bukkit.wrapper;
 import com.boydti.fawe.FaweAPI;
 import com.boydti.fawe.bukkit.v0.BukkitQueue_0;
 import com.boydti.fawe.object.FaweQueue;
+import com.boydti.fawe.object.HasFaweQueue;
 import com.boydti.fawe.object.RunnableVal;
 import com.boydti.fawe.util.SetQueue;
 import com.boydti.fawe.util.StringMan;
@@ -57,7 +58,7 @@ import org.bukkit.util.Vector;
  *  @see #wrap(org.bukkit.World)
  *  @see #create(org.bukkit.WorldCreator)
  */
-public class AsyncWorld implements World {
+public class AsyncWorld implements World, HasFaweQueue {
 
     private World parent;
     private FaweQueue queue;

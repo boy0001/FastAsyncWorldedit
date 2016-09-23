@@ -2,6 +2,7 @@ package com.boydti.fawe.object.extent;
 
 import com.boydti.fawe.jnbt.anvil.MCAFile;
 import com.boydti.fawe.object.FaweQueue;
+import com.boydti.fawe.object.HasFaweQueue;
 import com.boydti.fawe.util.MathMan;
 import com.sk89q.worldedit.Vector;
 import com.sk89q.worldedit.Vector2D;
@@ -21,7 +22,7 @@ import java.util.List;
 import java.util.Map;
 import javax.annotation.Nullable;
 
-public class MCAExtent extends AbstractDelegateExtent {
+public class MCAExtent extends AbstractDelegateExtent implements HasFaweQueue {
     private final FaweQueue queue;
     private final File folder;
 

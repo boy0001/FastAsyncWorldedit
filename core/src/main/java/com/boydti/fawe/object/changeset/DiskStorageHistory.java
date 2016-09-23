@@ -199,26 +199,11 @@ public class DiskStorageHistory extends FaweStreamChangeSet {
         if (osBD != null) {
             return osBD;
         }
-        writeHeader(x, y, z);
-        return osBD;
-    }
-
-    public void writeHeader(int x, int y, int z) throws IOException {
         bdFile.getParentFile().mkdirs();
         bdFile.createNewFile();
         osBD = getCompressedOS(new FileOutputStream(bdFile));
-        // Mode
-        osBD.write((byte) MODE);
-        // Origin
-        setOrigin(x, z);
-        osBD.write((byte) (x >> 24));
-        osBD.write((byte) (x >> 16));
-        osBD.write((byte) (x >> 8));
-        osBD.write((byte) (x));
-        osBD.write((byte) (z >> 24));
-        osBD.write((byte) (z >> 16));
-        osBD.write((byte) (z >> 8));
-        osBD.write((byte) (z));
+        writeHeader(osBD, x, y, z);
+        return osBD;
     }
 
     @Override
@@ -271,12 +256,7 @@ public class DiskStorageHistory extends FaweStreamChangeSet {
             return null;
         }
         InputStream is = MainUtil.getCompressedIS(new FileInputStream(bdFile));
-        // skip mode
-        is.skip(1);
-        // origin
-        int x = ((is.read() << 24) + (is.read() << 16) + (is.read() << 8) + (is.read() << 0));
-        int z = ((is.read() << 24) + (is.read() << 16) + (is.read() << 8) + (is.read() << 0));
-        setOrigin(x, z);
+        readHeader(is);
         return is;
     }
 

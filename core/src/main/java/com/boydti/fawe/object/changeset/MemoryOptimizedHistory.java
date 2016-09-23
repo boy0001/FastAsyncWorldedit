@@ -113,9 +113,7 @@ public class MemoryOptimizedHistory extends FaweStreamChangeSet {
         setOrigin(x, z);
         idsStream = new FastByteArrayOutputStream(Settings.HISTORY.BUFFER_SIZE);
         idsStreamZip = getCompressedOS(idsStream);
-        idsStreamZip.write(FaweStreamChangeSet.MODE);
-        idsStreamZip.writeInt(x);
-        idsStreamZip.writeInt(z);
+        writeHeader(idsStreamZip, x, y, z);
         return idsStreamZip;
     }
 
@@ -125,7 +123,7 @@ public class MemoryOptimizedHistory extends FaweStreamChangeSet {
             return null;
         }
         FaweInputStream result = MainUtil.getCompressedIS(new FastByteArraysInputStream(ids));
-        result.skip(FaweStreamChangeSet.HEADER_SIZE);
+        readHeader(result);
         return result;
     }
 

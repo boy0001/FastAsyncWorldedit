@@ -6,6 +6,7 @@ import com.boydti.fawe.object.changeset.DiskStorageHistory;
 import com.sk89q.worldedit.Vector;
 import com.sk89q.worldedit.world.World;
 import java.io.IOException;
+import java.io.OutputStream;
 import java.util.UUID;
 
 public class RollbackOptimizedHistory extends DiskStorageHistory {
@@ -101,13 +102,13 @@ public class RollbackOptimizedHistory extends DiskStorageHistory {
     }
 
     @Override
-    public void writeHeader(int x, int y, int z) throws IOException {
+    public void writeHeader(OutputStream os, int x, int y, int z) throws IOException {
         minX = x;
         maxX = x;
         minY = y;
         maxY = y;
         minZ = z;
         maxZ = z;
-        super.writeHeader(x, y, z);
+        super.writeHeader(os, x, y, z);
     }
 }
