@@ -22,7 +22,6 @@ package com.sk89q.worldedit.function.visitor;
 import com.sk89q.worldedit.Vector;
 import com.sk89q.worldedit.function.RegionFunction;
 import com.sk89q.worldedit.function.mask.Mask;
-import com.sk89q.worldedit.function.operation.Operations;
 
 
 import static com.google.common.base.Preconditions.checkNotNull;
@@ -35,14 +34,18 @@ public class RecursiveVisitor extends BreadthFirstSearch {
 
     private final Mask mask;
 
+    public RecursiveVisitor(final Mask mask, final RegionFunction function) {
+        this(mask, function, Integer.MAX_VALUE);
+    }
+
     /**
      * Create a new recursive visitor.
      *
      * @param mask the mask
      * @param function the function
      */
-    public RecursiveVisitor(final Mask mask, final RegionFunction function) {
-        super(function);
+    public RecursiveVisitor(final Mask mask, final RegionFunction function, int maxDepth) {
+        super(function, maxDepth);
         checkNotNull(mask);
         this.mask = mask;
     }

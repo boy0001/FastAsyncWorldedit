@@ -34,22 +34,7 @@ public class RecurseBrush implements Brush {
         }
         final BlockReplace replace = new BlockReplace(editSession, to);
         editSession.setMask((Mask) null);
-        RecursiveVisitor visitor = new RecursiveVisitor(mask, replace) {
-            @Override
-            public boolean isVisitable(Vector from, Vector to) {
-                if (super.isVisitable(from, to)) {
-                    int dx = Math.abs((int) (position.x - to.x));
-                    if (dx > radius) return false;
-                    int dz = Math.abs((int) (position.z - to.z));
-                    if (dz > radius) return false;
-                    int dy = Math.abs((int) (position.y - to.y));
-                    if (dy > radius) return false;
-                    return true;
-                } else {
-                    return false;
-                }
-            }
-        };
+        RecursiveVisitor visitor = new RecursiveVisitor(mask, replace, radius);
         visitor.visit(position);
         Operations.completeBlindly(visitor);
     }

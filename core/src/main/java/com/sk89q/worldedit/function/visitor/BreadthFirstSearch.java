@@ -21,9 +21,14 @@ public abstract class BreadthFirstSearch implements Operation {
     private final List<Vector> directions = new ArrayList<>();
     private final Map<Node, Integer> visited;
     private final ArrayDeque<Node> queue;
+    private final int maxDepth;
     private int affected = 0;
 
     public BreadthFirstSearch(final RegionFunction function) {
+        this(function, Integer.MAX_VALUE);
+    }
+
+    public BreadthFirstSearch(final RegionFunction function, int maxDepth) {
         this.queue = new ArrayDeque<>();
         this.visited = new LinkedHashMap<>();
         this.function = function;
@@ -33,6 +38,7 @@ public abstract class BreadthFirstSearch implements Operation {
         this.directions.add(new Vector(1, 0, 0));
         this.directions.add(new Vector(0, 0, -1));
         this.directions.add(new Vector(0, 0, 1));
+        this.maxDepth = maxDepth;
     }
 
     public abstract boolean isVisitable(Vector from, Vector to);
@@ -53,6 +59,7 @@ public abstract class BreadthFirstSearch implements Operation {
     public void visit(final Vector pos) {
         Node node = new Node((int) pos.x, (int) pos.y, (int) pos.z);
         if (!this.visited.containsKey(node)) {
+            isVisitable(pos, pos); // Ignore this, just to initialize mask on this point
             visited.put(node, 0);
             queue.add(node);
         }
@@ -67,8 +74,19 @@ public abstract class BreadthFirstSearch implements Operation {
         Vector mutable2 = new Vector();
         boolean shouldTrim = false;
         IntegerTrio[] dirs = getIntDirections();
-        for (int layer = 0; !queue.isEmpty(); layer++) {
+        for (int layer = 0; !queue.isEmpty() && layer <= maxDepth; layer++) {
             int size = queue.size();
+            if (layer == maxDepth) {
+                visited.clear();
+                for (Node current : queue) {
+                    mutable.x = current.getX();
+                    mutable.y = current.getY();
+                    mutable.z = current.getZ();
+                    function.apply(mutable);
+                    affected++;
+                }
+                break;
+            }
             for (int i = 0; i < size; i++) {
                 from = queue.poll();
                 mutable.x = from.getX();

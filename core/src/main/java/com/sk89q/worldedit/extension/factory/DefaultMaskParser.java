@@ -1,10 +1,12 @@
 package com.sk89q.worldedit.extension.factory;
 
+import com.boydti.fawe.object.mask.AdjacentMask;
 import com.boydti.fawe.object.mask.AngleMask;
 import com.boydti.fawe.object.mask.CustomMask;
 import com.boydti.fawe.object.mask.DataMask;
 import com.boydti.fawe.object.mask.IdDataMask;
 import com.boydti.fawe.object.mask.IdMask;
+import com.boydti.fawe.object.mask.RadiusMask;
 import com.boydti.fawe.object.mask.XAxisMask;
 import com.boydti.fawe.object.mask.YAxisMask;
 import com.boydti.fawe.object.mask.ZAxisMask;
@@ -54,7 +56,7 @@ public class DefaultMaskParser extends InputParser<Mask> {
         super(worldEdit);
     }
 
-    private static CustomMask[] customMasks;
+    private static CustomMask[] customMasks = new CustomMask[0];
 
     public void addMask(CustomMask mask) {
         checkNotNull(mask);
@@ -135,15 +137,33 @@ public class DefaultMaskParser extends InputParser<Mask> {
             case '/': {
                 String[] split = component.substring(1).split(",");
                 if (split.length != 2) {
-                    throw new InputParseException("Unknown angle '" + component + "' (not in form /#,#)");
+                    throw new InputParseException("Unknown angle '" + component + "' (not in form `/#,#`)");
                 }
                 try {
                     int y1 = Integer.parseInt(split[0]);
                     int y2 = Integer.parseInt(split[1]);
                     return new AngleMask(extent, y1, y2);
                 } catch (NumberFormatException e) {
-                    throw new InputParseException("Unknown angle '" + component + "' (not in form /#,#)");
+                    throw new InputParseException("Unknown angle '" + component + "' (not in form `/#,#`)");
                 }
+            }
+            case '{':
+                String[] split = component.substring(1).split(",");
+                if (split.length != 2) {
+                    throw new InputParseException("Unknown range '" + component + "' (not in form `{#,#`)");
+                }
+                try {
+                    int y1 = Integer.parseInt(split[0]);
+                    int y2 = Integer.parseInt(split[1]);
+                    return new RadiusMask(y1, y2);
+                } catch (NumberFormatException e) {
+                    throw new InputParseException("Unknown range '" + component + "' (not in form `{#,#`)");
+                }
+            case '~': {
+                ParserContext tempContext = new ParserContext(context);
+                tempContext.setRestricted(false);
+                tempContext.setPreferringWildcard(true);
+                return new AdjacentMask(extent, worldEdit.getBlockFactory().parseFromListInput(component.substring(1), tempContext));
             }
             case '>':
             case '<':
