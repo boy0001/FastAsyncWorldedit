@@ -45,6 +45,10 @@ public class Schematic {
         this.clipboard = new BlockArrayClipboard(region, ReadOnlyClipboard.of(session, region));
     }
 
+    public @Nullable Clipboard getClipboard() {
+        return clipboard;
+    }
+
     /**
      * Forwards to paste(world, to, true, true, null)
      * @param world
