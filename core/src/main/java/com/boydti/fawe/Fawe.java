@@ -53,6 +53,8 @@ import com.sk89q.worldedit.function.mask.FuzzyBlockMask;
 import com.sk89q.worldedit.function.mask.Masks;
 import com.sk89q.worldedit.function.mask.OffsetMask;
 import com.sk89q.worldedit.function.mask.SolidBlockMask;
+import com.sk89q.worldedit.function.operation.ChangeSetExecutor;
+import com.sk89q.worldedit.function.operation.ForwardExtentCopy;
 import com.sk89q.worldedit.function.operation.Operations;
 import com.sk89q.worldedit.function.pattern.ClipboardPattern;
 import com.sk89q.worldedit.function.pattern.Patterns;
@@ -389,6 +391,8 @@ public class Fawe {
             Masks.inject(); //
             // Operations
             Operations.inject(); // Optimizations
+            ForwardExtentCopy.inject(); // Fixes + optimizations
+            ChangeSetExecutor.inject(); // Optimizations
             // BlockData
             BlockData.inject(); // Temporary fix for 1.9.4
             BundledBlockData.inject(); // Add custom rotation
