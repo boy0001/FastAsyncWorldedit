@@ -33,8 +33,10 @@ public class NMSRelighter {
         RelightSkyEntry existing = skyToRelight.get(pair);
         if (existing != null) {
             existing.bitmask |= bitmask;
-            for (int i = 0; i < fix.length; i++) {
-                existing.fix[i] |= fix[i];
+            if (fix != null) {
+                for (int i = 0; i < fix.length; i++) {
+                    existing.fix[i] |= fix[i];
+                }
             }
             return false;
         }
