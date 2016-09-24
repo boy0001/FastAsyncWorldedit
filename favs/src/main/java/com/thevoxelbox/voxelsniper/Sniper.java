@@ -83,26 +83,34 @@ public class Sniper {
 
     // Added
     public AsyncWorld getWorld() {
-        if (permanentWorld == null) {
-            permanentWorld = new AsyncWorld(null, null);
-        }
-        if (this.maskQueue == null) {
-            Player player = getPlayer();
-            FawePlayer<Player> fp = FawePlayer.wrap(player);
-            if (this.baseQueue == null || !StringMan.isEqual(baseQueue.getWorldName(), player.getWorld().getName())) {
-                this.baseQueue = FaweAPI.createQueue(fp.getLocation().world, false);
+        synchronized (this) {
+            if (permanentWorld == null) {
+                permanentWorld = new AsyncWorld(null, null);
             }
-            RegionWrapper[] mask = WEManager.IMP.getMask(fp);
-            this.maskQueue = new MaskedFaweQueue(baseQueue, mask);
-            com.sk89q.worldedit.world.World worldEditWorld = fp.getWorld();
-            FaweChangeSet changeSet = FaweChangeSet.getDefaultChangeSet(worldEditWorld, fp.getUUID());
-            if (Fawe.imp().getBlocksHubApi() != null) {
-                changeSet = LoggingChangeSet.wrap(fp, changeSet);
+            if (this.maskQueue == null) {
+                Player player = getPlayer();
+                FawePlayer<Player> fp = FawePlayer.wrap(player);
+                if (this.baseQueue == null || !StringMan.isEqual(baseQueue.getWorldName(), player.getWorld().getName())) {
+                    this.baseQueue = FaweAPI.createQueue(fp.getLocation().world, false);
+                }
+                RegionWrapper[] mask = WEManager.IMP.getMask(fp);
+                this.maskQueue = new MaskedFaweQueue(baseQueue, mask);
+                com.sk89q.worldedit.world.World worldEditWorld = fp.getWorld();
+                FaweChangeSet changeSet = FaweChangeSet.getDefaultChangeSet(worldEditWorld, fp.getUUID());
+                if (Fawe.imp().getBlocksHubApi() != null) {
+                    changeSet = LoggingChangeSet.wrap(fp, changeSet);
+                }
+                this.changeQueue = new ChangeSetFaweQueue(changeSet, maskQueue);
+                permanentWorld.changeWorld(player.getWorld(), changeQueue);
             }
-            this.changeQueue = new ChangeSetFaweQueue(changeSet, maskQueue);
-            permanentWorld.changeWorld(player.getWorld(), changeQueue);
+            return permanentWorld;
         }
-        return permanentWorld;
+    }
+
+    public void resetMask() {
+        synchronized (this) {
+            maskQueue = null;
+        }
     }
 
     public Player getPlayer() {
@@ -122,7 +130,7 @@ public class Sniper {
         try {
             Player player = getPlayer();
             FawePlayer<Player> fp = FawePlayer.wrap(player);
-            maskQueue = null;
+            resetMask();
             if (clickedBlock != null) {
                 clickedBlock = getWorld().getBlockAt(clickedBlock.getX(), clickedBlock.getY(), clickedBlock.getZ());
             }
@@ -296,7 +304,7 @@ public class Sniper {
                     performerBrush.initP(snipeData);
                 }
                 final FawePlayer<Player> fp = FawePlayer.wrap(getPlayer());
-                fp.runAction(new RunnableVal<Boolean>() {
+                fp.runAsyncIfFree(new RunnableVal<Boolean>() {
                     @Override
                     public void run(Boolean value) {
                         boolean result = brush.perform(snipeAction, snipeData, targetBlock, lastBlock);
@@ -305,7 +313,7 @@ public class Sniper {
                         }
                         world.commit();
                     }
-                }, true, true);
+                });
                 return true;
             }
         }
@@ -375,18 +383,20 @@ public class Sniper {
     }
 
     public void storeUndo(Undo undo) {
-        if (changeQueue != null) {
-            FaweChangeSet changeSet = changeQueue.getChangeSet();
-            FawePlayer<Object> fp = FawePlayer.wrap(getPlayer());
-            LocalSession session = fp.getSession();
-            session.remember(changeSet.toEditSession(fp));
-            com.sk89q.worldedit.world.World worldEditWorld = fp.getWorld();
-            changeSet = FaweChangeSet.getDefaultChangeSet(worldEditWorld, fp.getUUID());
-            changeQueue.setChangeSet(changeSet);
-            // NEW QUEUE?
-            maskQueue = null;
-            baseQueue = null;
-            changeQueue = null;
+        synchronized (this) {
+            if (changeQueue != null) {
+                FaweChangeSet changeSet = changeQueue.getChangeSet();
+                FawePlayer<Object> fp = FawePlayer.wrap(getPlayer());
+                LocalSession session = fp.getSession();
+                session.remember(changeSet.toEditSession(fp));
+                com.sk89q.worldedit.world.World worldEditWorld = fp.getWorld();
+                changeSet = FaweChangeSet.getDefaultChangeSet(worldEditWorld, fp.getUUID());
+                changeQueue.setChangeSet(changeSet);
+                // NEW QUEUE?
+                maskQueue = null;
+                baseQueue = null;
+                changeQueue = null;
+            }
         }
     }
 
