@@ -171,7 +171,7 @@ public class DefaultMaskParser extends InputParser<Mask> {
                     if (split.length == 2) {
                         requiredCount = Integer.parseInt(split[1]);
                     }
-                    return new AdjacentMask(extent, worldEdit.getBlockFactory().parseFromListInput(component.substring(1), tempContext));
+                    return new AdjacentMask(extent, worldEdit.getBlockFactory().parseFromListInput(component.substring(1), tempContext), requiredCount);
                 } catch (NumberFormatException e) {
                     throw new InputParseException("Unknown adjacent mask '" + component + "' (not in form `~<ids>[=count]`)");
                 }
