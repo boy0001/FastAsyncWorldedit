@@ -69,6 +69,9 @@ public class WEManager {
      */
     public RegionWrapper[] getMask(final FawePlayer<?> player) {
 //        HashSet<RegionWrapper> mask = TaskManager.IMP.sync(new RunnableVal<HashSet<RegionWrapper>>() {
+        if (player.hasPermission("fawe.bypass") || !Settings.REGION_RESTRICTIONS) {
+            return new RegionWrapper[] {new RegionWrapper(Integer.MIN_VALUE, Integer.MAX_VALUE, Integer.MIN_VALUE, Integer.MAX_VALUE)};
+        }
         HashSet<RegionWrapper> mask = new RunnableVal<HashSet<RegionWrapper>>() {
             @Override
             public void run(HashSet<RegionWrapper> ignore) {
@@ -79,14 +82,16 @@ public class WEManager {
                     player.deleteMeta("lastMask");
                 }
                 player.setMeta("lastMaskWorld", world);
-                if (player.hasPermission("fawe.bypass") || !Settings.REGION_RESTRICTIONS) {
-                    value.add(new RegionWrapper(Integer.MIN_VALUE, Integer.MAX_VALUE, Integer.MIN_VALUE, Integer.MAX_VALUE));
-                    return;
-                }
                 for (final FaweMaskManager manager : managers) {
                     if (player.hasPermission("fawe." + manager.getKey())) {
                         final FaweMask mask = manager.getMask(player);
                         if (mask != null) {
+                            TaskManager.IMP.async(new Runnable() {
+                                @Override
+                                public void run() {
+
+                                }
+                            });
                             value.addAll(mask.getRegions());
                         }
                     }
