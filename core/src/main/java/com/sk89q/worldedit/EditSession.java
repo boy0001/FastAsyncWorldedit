@@ -46,6 +46,7 @@ import com.boydti.fawe.object.extent.FaweRegionExtent;
 import com.boydti.fawe.object.extent.NullExtent;
 import com.boydti.fawe.object.extent.ProcessedWEExtent;
 import com.boydti.fawe.object.mask.ResettableMask;
+import com.boydti.fawe.object.progress.DefaultProgressTracker;
 import com.boydti.fawe.util.ExtentTraverser;
 import com.boydti.fawe.util.MaskTraverser;
 import com.boydti.fawe.util.MemUtil;
@@ -274,7 +275,10 @@ public class EditSession extends AbstractWorld implements HasFaweQueue {
             queue = new MCAQueue(queue);
         }
         this.queue = queue;
-        queue.addEditSession(this);
+        this.queue.addEditSession(this);
+        if (Settings.QUEUE.PROGRESS.DISPLAY && player != null) {
+            this.queue.setProgressTask(new DefaultProgressTracker(player));
+        }
         this.bypassAll = wrapExtent(new FastWorldEditExtent(world, queue), bus, event, Stage.BEFORE_CHANGE);
         this.bypassHistory = (this.extent = wrapExtent(bypassAll, bus, event, Stage.BEFORE_REORDER));
         if (!fastmode && !(changeSet instanceof NullChangeSet)) {
@@ -812,7 +816,7 @@ public class EditSession extends AbstractWorld implements HasFaweQueue {
      * @return height of highest block found or 'minY'
      */
     public int getHighestTerrainBlock(final int x, final int z, int minY, int maxY, final boolean naturalOnly) {
-        maxY = Math.min(getMaximumPoint().getBlockY(), Math.max(0, maxY));
+        maxY = Math.min(maxY, Math.max(0, maxY));
         minY = Math.max(0, minY);
         for (int y = maxY; y >= minY; --y) {
             BaseBlock block = getLazyBlock(x, y, z);
