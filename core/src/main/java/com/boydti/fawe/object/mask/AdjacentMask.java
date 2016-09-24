@@ -14,8 +14,8 @@ public class AdjacentMask extends BlockMask {
     @Override
     public boolean test(Vector v) {
         double x = v.x;
-        double y = v.x;
-        double z = v.x;
+        double y = v.y;
+        double z = v.z;
         v.x = x + 1;
         if (super.test(v)) { v.x = x; return true; }
         v.x = x - 1;
