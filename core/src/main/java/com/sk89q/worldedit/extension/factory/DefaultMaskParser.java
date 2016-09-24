@@ -45,6 +45,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+
 import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
@@ -147,7 +148,7 @@ public class DefaultMaskParser extends InputParser<Mask> {
                     throw new InputParseException("Unknown angle '" + component + "' (not in form `/#,#`)");
                 }
             }
-            case '{':
+            case '{': {
                 String[] split = component.substring(1).split(",");
                 if (split.length != 2) {
                     throw new InputParseException("Unknown range '" + component + "' (not in form `{#,#`)");
@@ -159,11 +160,21 @@ public class DefaultMaskParser extends InputParser<Mask> {
                 } catch (NumberFormatException e) {
                     throw new InputParseException("Unknown range '" + component + "' (not in form `{#,#`)");
                 }
+            }
             case '~': {
+                String[] split = component.substring(1).split("=");
                 ParserContext tempContext = new ParserContext(context);
                 tempContext.setRestricted(false);
                 tempContext.setPreferringWildcard(true);
-                return new AdjacentMask(extent, worldEdit.getBlockFactory().parseFromListInput(component.substring(1), tempContext));
+                try {
+                    int requiredCount = 1;
+                    if (split.length == 2) {
+                        requiredCount = Integer.parseInt(split[1]);
+                    }
+                    return new AdjacentMask(extent, worldEdit.getBlockFactory().parseFromListInput(component.substring(1), tempContext));
+                } catch (NumberFormatException e) {
+                    throw new InputParseException("Unknown adjacent mask '" + component + "' (not in form `~<ids>[=count]`)");
+                }
             }
             case '>':
             case '<':
