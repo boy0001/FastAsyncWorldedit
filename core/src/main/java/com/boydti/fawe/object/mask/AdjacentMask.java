@@ -7,11 +7,12 @@ import com.sk89q.worldedit.function.mask.BlockMask;
 import java.util.Collection;
 
 public class AdjacentMask extends BlockMask {
-    private final int required;
+    private final int min, max;
 
-    public AdjacentMask(Extent extent, Collection<BaseBlock> blocks, int required) {
+    public AdjacentMask(Extent extent, Collection<BaseBlock> blocks, int requiredMin, int requiredMax) {
         super(extent, blocks);
-        this.required = required;
+        this.min = requiredMin;
+        this.max = requiredMax;
     }
 
     @Override
@@ -21,20 +22,20 @@ public class AdjacentMask extends BlockMask {
         double y = v.y;
         double z = v.z;
         v.x = x + 1;
-        if (super.test(v) && ++count == required) { v.x = x; return true; }
+        if (super.test(v) && ++count == min && max >= 8) { v.x = x; return true; }
         v.x = x - 1;
-        if (super.test(v) && ++count == required) { v.x = x; return true; }
+        if (super.test(v) && ++count == min && max >= 8) { v.x = x; return true; }
         v.x = x;
         v.y = y + 1;
-        if (super.test(v) && ++count == required) { v.y = y; return true; }
+        if (super.test(v) && ++count == min && max >= 8) { v.y = y; return true; }
         v.y = y - 1;
-        if (super.test(v) && ++count == required) { v.y = y; return true; }
+        if (super.test(v) && ++count == min && max >= 8) { v.y = y; return true; }
         v.y = y;
         v.z = z + 1;
-        if (super.test(v) && ++count == required) { v.z = z; return true; }
+        if (super.test(v) && ++count == min && max >= 8) { v.z = z; return true; }
         v.z = z - 1;
-        if (super.test(v) && ++count == required) { v.z = z; return true; }
+        if (super.test(v) && ++count == min && max >= 8) { v.z = z; return true; }
         v.z = z;
-        return false;
+        return count >= min && count <= max;
     }
 }
