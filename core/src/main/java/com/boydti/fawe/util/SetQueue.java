@@ -106,8 +106,18 @@ public class SetQueue {
                         e.printStackTrace();
                     }
                     if (pool.getQueuedSubmissionCount() != 0 || pool.getRunningThreadCount() != 0 || pool.getQueuedTaskCount() != 0) {
-                        Fawe.debug("Error flushing parallel pool");
-                        pool.awaitQuiescence(Long.MAX_VALUE, TimeUnit.MILLISECONDS);
+                        if (Fawe.get().isJava8()) {
+                            pool.awaitQuiescence(Long.MAX_VALUE, TimeUnit.MILLISECONDS);
+                        } else {
+                            try {
+                                for (Runnable run : pool.shutdownNow()) {
+                                    run.run();
+                                }
+                            } catch (Throwable e) {
+                                e.printStackTrace();
+                            }
+                            pool = new ForkJoinPool();
+                        }
                     }
                     secondLast = System.currentTimeMillis();
                 } catch (Throwable e) {
