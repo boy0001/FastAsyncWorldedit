@@ -105,6 +105,7 @@ public class BukkitQueue_1_10 extends BukkitQueue_0<Chunk, ChunkSection[], Chunk
                 throw new RuntimeException(e);
             }
         }
+        getImpWorld();
     }
 
     @Override

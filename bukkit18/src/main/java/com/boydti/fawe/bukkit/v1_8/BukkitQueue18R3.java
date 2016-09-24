@@ -81,6 +81,7 @@ public class BukkitQueue18R3 extends BukkitQueue_0<Chunk, ChunkSection[], ChunkS
             } catch (Throwable e) {}
         }
         super.setupAdapter(adapter);
+        getImpWorld();
     }
 
     @Override

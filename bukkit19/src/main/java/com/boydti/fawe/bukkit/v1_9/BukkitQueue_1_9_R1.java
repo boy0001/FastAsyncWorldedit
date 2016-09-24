@@ -93,6 +93,7 @@ public class BukkitQueue_1_9_R1 extends BukkitQueue_0<Chunk, ChunkSection[], Chu
                 throw new RuntimeException(e);
             }
         }
+        getImpWorld();
     }
 
     @Override

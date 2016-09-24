@@ -83,6 +83,7 @@ public class BukkitQueue17 extends BukkitQueue_0<Chunk, ChunkSection[], ChunkSec
                 e.printStackTrace();
             }
         }
+        getImpWorld();
     }
 
     @Override
