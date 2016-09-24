@@ -100,7 +100,7 @@ public class WEManager {
                 mask = new HashSet<>();
             }
         }
-        player.setMeta("lastmask", mask);
+        player.setMeta("lastMask", mask);
         return mask.toArray(new RegionWrapper[mask.size()]);
     }
 
