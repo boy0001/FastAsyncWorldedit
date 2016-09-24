@@ -134,33 +134,35 @@ public class DiskStorageHistory extends FaweStreamChangeSet {
 
     @Override
     public boolean flush() {
-        super.flush();
-        boolean flushed = osBD != null || osNBTF != null || osNBTT != null && osENTCF != null || osENTCT != null;
-        try {
-            if (osBD != null) {
-                osBD.close();
-                osBD = null;
+        synchronized (this) {
+            super.flush();
+            boolean flushed = osBD != null || osNBTF != null || osNBTT != null && osENTCF != null || osENTCT != null;
+            try {
+                if (osBD != null) {
+                    osBD.close();
+                    osBD = null;
+                }
+                if (osNBTF != null) {
+                    osNBTF.close();
+                    osNBTF = null;
+                }
+                if (osNBTT != null) {
+                    osNBTT.close();
+                    osNBTT = null;
+                }
+                if (osENTCF != null) {
+                    osENTCF.close();
+                    osENTCF = null;
+                }
+                if (osENTCT != null) {
+                    osENTCT.close();
+                    osENTCT = null;
+                }
+            } catch (Exception e) {
+                MainUtil.handleError(e);
             }
-            if (osNBTF != null) {
-                osNBTF.close();
-                osNBTF = null;
-            }
-            if (osNBTT != null) {
-                osNBTT.close();
-                osNBTT = null;
-            }
-            if (osENTCF != null) {
-                osENTCF.close();
-                osENTCF = null;
-            }
-            if (osENTCT != null) {
-                osENTCT.close();
-                osENTCT = null;
-            }
-        } catch (Exception e) {
-            MainUtil.handleError(e);
+            return flushed;
         }
-        return flushed;
     }
 
     @Override
@@ -199,11 +201,13 @@ public class DiskStorageHistory extends FaweStreamChangeSet {
         if (osBD != null) {
             return osBD;
         }
-        bdFile.getParentFile().mkdirs();
-        bdFile.createNewFile();
-        osBD = getCompressedOS(new FileOutputStream(bdFile));
-        writeHeader(osBD, x, y, z);
-        return osBD;
+        synchronized (this) {
+            bdFile.getParentFile().mkdirs();
+            bdFile.createNewFile();
+            osBD = getCompressedOS(new FileOutputStream(bdFile));
+            writeHeader(osBD, x, y, z);
+            return osBD;
+        }
     }
 
     @Override

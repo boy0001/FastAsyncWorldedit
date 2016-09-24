@@ -48,42 +48,44 @@ public class MemoryOptimizedHistory extends FaweStreamChangeSet {
 
     @Override
     public boolean flush() {
-        super.flush();
-        try {
-            if (idsStream != null) {
-                idsStreamZip.close();
-                size = idsStream.getSize();
-                ids = idsStream.toByteArrays();
-                idsStream = null;
-                idsStreamZip = null;
+        synchronized (this) {
+            super.flush();
+            try {
+                if (idsStream != null) {
+                    idsStreamZip.close();
+                    size = idsStream.getSize();
+                    ids = idsStream.toByteArrays();
+                    idsStream = null;
+                    idsStreamZip = null;
+                }
+                if (entCStream != null) {
+                    entCStreamZip.close();
+                    entC = entCStream.toByteArrays();
+                    entCStream = null;
+                    entCStreamZip = null;
+                }
+                if (entRStream != null) {
+                    entRStreamZip.close();
+                    entR = entRStream.toByteArrays();
+                    entRStream = null;
+                    entRStreamZip = null;
+                }
+                if (tileCStream != null) {
+                    tileCStreamZip.close();
+                    tileC = tileCStream.toByteArrays();
+                    tileCStream = null;
+                    tileCStreamZip = null;
+                }
+                if (tileRStream != null) {
+                    tileRStreamZip.close();
+                    tileR = tileRStream.toByteArrays();
+                    tileRStream = null;
+                    tileRStreamZip = null;
+                }
+                return true;
+            } catch (IOException e) {
+                MainUtil.handleError(e);
             }
-            if (entCStream != null) {
-                entCStreamZip.close();
-                entC = entCStream.toByteArrays();
-                entCStream = null;
-                entCStreamZip = null;
-            }
-            if (entRStream != null) {
-                entRStreamZip.close();
-                entR = entRStream.toByteArrays();
-                entRStream = null;
-                entRStreamZip = null;
-            }
-            if (tileCStream != null) {
-                tileCStreamZip.close();
-                tileC = tileCStream.toByteArrays();
-                tileCStream = null;
-                tileCStreamZip = null;
-            }
-            if (tileRStream != null) {
-                tileRStreamZip.close();
-                tileR = tileRStream.toByteArrays();
-                tileRStream = null;
-                tileRStreamZip = null;
-            }
-            return true;
-        } catch (IOException e) {
-            MainUtil.handleError(e);
         }
         return false;
     }
@@ -110,11 +112,13 @@ public class MemoryOptimizedHistory extends FaweStreamChangeSet {
         if (idsStreamZip != null) {
             return idsStreamZip;
         }
-        setOrigin(x, z);
-        idsStream = new FastByteArrayOutputStream(Settings.HISTORY.BUFFER_SIZE);
-        idsStreamZip = getCompressedOS(idsStream);
-        writeHeader(idsStreamZip, x, y, z);
-        return idsStreamZip;
+        synchronized (this) {
+            setOrigin(x, z);
+            idsStream = new FastByteArrayOutputStream(Settings.HISTORY.BUFFER_SIZE);
+            idsStreamZip = getCompressedOS(idsStream);
+            writeHeader(idsStreamZip, x, y, z);
+            return idsStreamZip;
+        }
     }
 
     @Override
