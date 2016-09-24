@@ -11,14 +11,13 @@ import com.boydti.fawe.object.PseudoRandom;
 import com.boydti.fawe.object.RegionWrapper;
 import com.boydti.fawe.object.RunnableVal;
 import com.boydti.fawe.object.changeset.DiskStorageHistory;
-import com.boydti.fawe.object.io.FastByteArrayOutputStream;
+import com.boydti.fawe.object.mask.CustomMask;
 import com.boydti.fawe.object.schematic.Schematic;
 import com.boydti.fawe.regions.FaweMaskManager;
 import com.boydti.fawe.util.EditSessionBuilder;
 import com.boydti.fawe.util.MainUtil;
 import com.boydti.fawe.util.MemUtil;
 import com.boydti.fawe.util.SetQueue;
-import com.boydti.fawe.util.StringMan;
 import com.boydti.fawe.util.TaskManager;
 import com.boydti.fawe.util.WEManager;
 import com.boydti.fawe.wrappers.WorldWrapper;
@@ -31,10 +30,13 @@ import com.sk89q.worldedit.EditSession;
 import com.sk89q.worldedit.Vector;
 import com.sk89q.worldedit.WorldEdit;
 import com.sk89q.worldedit.WorldEditException;
+import com.sk89q.worldedit.extension.factory.DefaultMaskParser;
 import com.sk89q.worldedit.extent.Extent;
 import com.sk89q.worldedit.extent.clipboard.Clipboard;
 import com.sk89q.worldedit.extent.clipboard.io.ClipboardFormat;
 import com.sk89q.worldedit.extent.clipboard.io.ClipboardWriter;
+import com.sk89q.worldedit.internal.registry.AbstractFactory;
+import com.sk89q.worldedit.internal.registry.InputParser;
 import com.sk89q.worldedit.regions.Region;
 import com.sk89q.worldedit.world.AbstractWorld;
 import com.sk89q.worldedit.world.World;
@@ -43,10 +45,10 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.lang.reflect.Field;
 import java.net.URL;
 import java.nio.channels.Channels;
 import java.nio.channels.ReadableByteChannel;
-import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -85,6 +87,28 @@ public class FaweAPI {
      */
     public static TaskManager getTaskManager() {
         return TaskManager.IMP;
+    }
+
+    /**
+     * Add a custom mask for use in //mask [values...]
+     * @param mask
+     * @return true if the mask was registered
+     */
+    public static boolean registerMask(CustomMask mask) {
+        try {
+            Field field = AbstractFactory.class.getDeclaredField("parsers");
+            field.setAccessible(true);
+            List<InputParser> parsers = (List<InputParser>) field.get(WorldEdit.getInstance().getMaskFactory());
+            for (InputParser parser : parsers) {
+                if (parser instanceof DefaultMaskParser) {
+                    ((DefaultMaskParser) parser).addMask(mask);
+                    return true;
+                }
+            }
+        } catch (Throwable e) {
+            throw new RuntimeException(e);
+        }
+        return false;
     }
 
     /**

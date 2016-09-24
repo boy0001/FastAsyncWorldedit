@@ -1,6 +1,7 @@
 package com.sk89q.worldedit.extension.factory;
 
 import com.boydti.fawe.object.mask.AngleMask;
+import com.boydti.fawe.object.mask.CustomMask;
 import com.boydti.fawe.object.mask.DataMask;
 import com.boydti.fawe.object.mask.IdDataMask;
 import com.boydti.fawe.object.mask.IdMask;
@@ -35,10 +36,14 @@ import com.sk89q.worldedit.session.request.RequestSelection;
 import com.sk89q.worldedit.world.biome.BaseBiome;
 import com.sk89q.worldedit.world.biome.Biomes;
 import com.sk89q.worldedit.world.registry.BiomeRegistry;
+import java.lang.reflect.Constructor;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+
+import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * Parses mask input strings.
@@ -47,6 +52,19 @@ public class DefaultMaskParser extends InputParser<Mask> {
 
     public DefaultMaskParser(WorldEdit worldEdit) {
         super(worldEdit);
+    }
+
+    private static CustomMask[] customMasks;
+
+    public void addMask(CustomMask mask) {
+        checkNotNull(mask);
+        List<CustomMask> list = new ArrayList<>(Arrays.asList(customMasks));
+        list.add(mask);
+        customMasks = list.toArray(new CustomMask[list.size()]);
+    }
+
+    public List<CustomMask> getCustomMasks() {
+        return Arrays.asList(customMasks);
     }
 
     @Override
@@ -174,6 +192,17 @@ public class DefaultMaskParser extends InputParser<Mask> {
                 }
 
             default:
+                for (CustomMask mask : customMasks) {
+                    if (mask.accepts(component)) {
+                        try {
+                            Constructor<? extends CustomMask> constructor = mask.getClass().getDeclaredConstructor(List.class, String.class, ParserContext.class);
+                            return constructor.newInstance(masks, component, context);
+                        } catch (Throwable e) {
+                            e.printStackTrace();
+                        }
+                    }
+                }
+
                 ParserContext tempContext = new ParserContext(context);
                 tempContext.setRestricted(false);
                 tempContext.setPreferringWildcard(true);
