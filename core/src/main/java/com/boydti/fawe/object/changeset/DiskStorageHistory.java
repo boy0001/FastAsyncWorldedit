@@ -134,8 +134,8 @@ public class DiskStorageHistory extends FaweStreamChangeSet {
 
     @Override
     public boolean flush() {
+        super.flush();
         synchronized (this) {
-            super.flush();
             boolean flushed = osBD != null || osNBTF != null || osNBTT != null && osENTCF != null || osENTCT != null;
             try {
                 if (osBD != null) {

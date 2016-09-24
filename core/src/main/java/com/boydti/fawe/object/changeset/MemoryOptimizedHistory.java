@@ -48,8 +48,8 @@ public class MemoryOptimizedHistory extends FaweStreamChangeSet {
 
     @Override
     public boolean flush() {
+        super.flush();
         synchronized (this) {
-            super.flush();
             try {
                 if (idsStream != null) {
                     idsStreamZip.close();

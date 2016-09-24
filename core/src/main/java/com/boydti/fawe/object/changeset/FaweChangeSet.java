@@ -33,6 +33,8 @@ public abstract class FaweChangeSet implements ChangeSet {
 
     private final World world;
 
+    private final boolean mainThread;
+
     public static FaweChangeSet getDefaultChangeSet(World world, UUID uuid) {
         if (Settings.HISTORY.USE_DISK) {
             return new DiskStorageHistory(world, uuid);
@@ -43,6 +45,7 @@ public abstract class FaweChangeSet implements ChangeSet {
 
     public FaweChangeSet(World world) {
         this.world = world;
+        this.mainThread = Fawe.get().isMainThread();
     }
 
     public World getWorld() {
@@ -174,7 +177,7 @@ public abstract class FaweChangeSet implements ChangeSet {
             @Override
             public void run(final FaweChunk previous, final FaweChunk next) {
                 waiting.incrementAndGet();
-                TaskManager.IMP.async(new Runnable() {
+                Runnable run = new Runnable() {
                     @Override
                     public void run() {
                         try {
@@ -271,7 +274,12 @@ public abstract class FaweChangeSet implements ChangeSet {
                             }
                         }
                     }
-                });
+                };
+                if (mainThread) {
+                    new Thread(run).start();
+                } else {
+                    TaskManager.IMP.async(run);
+                }
             }
         });
     }

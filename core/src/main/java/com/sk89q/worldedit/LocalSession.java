@@ -478,10 +478,11 @@ public class LocalSession {
         } else {
             history.add(0, changeSet);
         }
-        while ((history.size() > MAX_HISTORY_SIZE || (historySize >> 20) > limitMb) && history.size() > 1) {
+        while (((!Settings.HISTORY.USE_DISK && history.size() > MAX_HISTORY_SIZE) || (historySize >> 20) > limitMb) && history.size() > 1) {
             FaweChangeSet item = (FaweChangeSet) history.remove(0);
             item.delete();
-            historySize -= MainUtil.getSize(item);
+            long size = MainUtil.getSize(item);
+            historySize -= size;
         }
     }
 
