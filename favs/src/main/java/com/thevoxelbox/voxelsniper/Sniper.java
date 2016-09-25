@@ -81,6 +81,22 @@ public class Sniper {
     private ChangeSetFaweQueue changeQueue;
     private FaweQueue baseQueue;
 
+    public void storeUndo(Undo undo) {
+        ChangeSetFaweQueue tmpQueue;
+        synchronized (this) {
+            tmpQueue = changeQueue;
+            maskQueue = null;
+            baseQueue = null;
+            changeQueue = null;
+        }
+        if (tmpQueue != null) {
+            FaweChangeSet changeSet = tmpQueue.getChangeSet();
+            FawePlayer<Object> fp = FawePlayer.wrap(getPlayer());
+            LocalSession session = fp.getSession();
+            session.remember(changeSet.toEditSession(fp));
+        }
+    }
+
     // Added
     public AsyncWorld getWorld() {
         synchronized (this) {
@@ -380,24 +396,6 @@ public class Sniper {
 
     public void setEnabled(boolean enabled) {
         this.enabled = enabled;
-    }
-
-    public void storeUndo(Undo undo) {
-        synchronized (this) {
-            if (changeQueue != null) {
-                FaweChangeSet changeSet = changeQueue.getChangeSet();
-                FawePlayer<Object> fp = FawePlayer.wrap(getPlayer());
-                LocalSession session = fp.getSession();
-                session.remember(changeSet.toEditSession(fp));
-                com.sk89q.worldedit.world.World worldEditWorld = fp.getWorld();
-                changeSet = FaweChangeSet.getDefaultChangeSet(worldEditWorld, fp.getUUID());
-                changeQueue.setChangeSet(changeSet);
-                // NEW QUEUE?
-                maskQueue = null;
-                baseQueue = null;
-                changeQueue = null;
-            }
-        }
     }
 
     public void undo() {
