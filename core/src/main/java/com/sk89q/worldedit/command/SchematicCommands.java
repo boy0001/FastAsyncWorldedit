@@ -91,7 +91,7 @@ public class SchematicCommands {
 
     @Command(aliases = { "load" }, usage = "[<format>] <filename>", desc = "Load a schematic into your clipboard")
     @Deprecated
-    @CommandPermissions({ "worldedit.clipboard.load", "worldedit.schematic.load" })
+    @CommandPermissions({ "worldedit.clipboard.load", "worldedit.schematic.load", "worldedit.schematic.upload" })
     public void load(final Player player, final LocalSession session, @Optional("schematic") final String formatName, final String filename) throws FilenameException {
         final LocalConfiguration config = this.worldEdit.getConfiguration();
         final ClipboardFormat format = ClipboardFormat.findByAlias(formatName);
@@ -102,12 +102,20 @@ public class SchematicCommands {
         InputStream in = null;
         try {
             if (filename.startsWith("url:")) {
+                if (!player.hasPermission("worldedit.schematic.upload")) {
+                    BBC.NO_PERM.send(player, "worldedit.schematic.upload");
+                    return;
+                }
                 UUID uuid = UUID.fromString(filename.substring(4));
                 URL base = new URL(Settings.WEB.URL);
                 URL url = new URL(base, "uploads/" + uuid + ".schematic");
                 ReadableByteChannel rbc = Channels.newChannel(url.openStream());
                 in = Channels.newInputStream(rbc);
             } else {
+                if (!player.hasPermission("worldedit.schematic.load") && !player.hasPermission("worldedit.clipboard.load")) {
+                    BBC.NO_PERM.send(player, "worldedit.clipboard.load");
+                    return;
+                }
                 final File dir = this.worldEdit.getWorkingDirectoryFile(config.saveDir);
                 final File f = this.worldEdit.getSafeOpenFile(player, dir, filename, format.getExtension(), format.getExtension());
                 if (!f.exists()) {
