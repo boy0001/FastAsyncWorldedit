@@ -61,7 +61,6 @@ public class ForwardExtentCopy implements Operation {
     private RegionFunction sourceFunction = null;
     private Transform transform = new Identity();
     private Transform currentTransform = null;
-    private RegionVisitor lastVisitor;
     private int affected;
 
     /**
@@ -212,11 +211,6 @@ public class ForwardExtentCopy implements Operation {
 
     @Override
     public Operation resume(RunContext run) throws WorldEditException {
-        if (lastVisitor != null) {
-            affected += lastVisitor.getAffected();
-            lastVisitor = null;
-        }
-
         if (currentTransform == null) {
             currentTransform = transform;
         }
@@ -233,11 +227,11 @@ public class ForwardExtentCopy implements Operation {
             entityCopy.setRemoving(removingEntities);
             EntityVisitor entityVisitor = new EntityVisitor(entities.iterator(), entityCopy);
 
-            lastVisitor = blockVisitor;
-
             currentTransform = currentTransform.combine(transform);
             Operations.completeBlindly(blockVisitor);
             Operations.completeBlindly(entityVisitor);
+
+            affected += blockVisitor.getAffected();
         }
         return null;
     }
