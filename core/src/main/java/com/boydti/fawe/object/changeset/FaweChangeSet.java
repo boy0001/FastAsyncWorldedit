@@ -52,6 +52,18 @@ public abstract class FaweChangeSet implements ChangeSet {
         return world;
     }
 
+    public boolean flushAsync() {
+        waiting.incrementAndGet();
+        TaskManager.IMP.async(new Runnable() {
+            @Override
+            public void run() {
+                waiting.decrementAndGet();
+                flush();
+            }
+        });
+        return true;
+    }
+
     public boolean flush() {
         try {
             while (waiting.get() > 0) {

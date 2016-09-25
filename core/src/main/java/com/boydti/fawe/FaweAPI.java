@@ -431,7 +431,7 @@ public class FaweAPI {
             NMSRelighter relighter = new NMSRelighter(nmsQueue);
             for (int x = minX; x <= maxX; x++) {
                 for (int z = minZ; z <= maxZ; z ++) {
-                    relighter.addChunk(x, z, null, 65536);
+                    relighter.addChunk(x, z, null, 65535);
                     count++;
                 }
             }

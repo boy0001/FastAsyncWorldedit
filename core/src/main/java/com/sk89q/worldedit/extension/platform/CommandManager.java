@@ -22,6 +22,7 @@ package com.sk89q.worldedit.extension.platform;
 import com.boydti.fawe.Fawe;
 import com.boydti.fawe.command.AnvilCommands;
 import com.boydti.fawe.config.BBC;
+import com.boydti.fawe.config.Settings;
 import com.boydti.fawe.object.FawePlayer;
 import com.boydti.fawe.object.changeset.FaweStreamChangeSet;
 import com.boydti.fawe.object.exception.FaweException;
@@ -334,9 +335,11 @@ public final class CommandManager {
                         final long time = System.currentTimeMillis() - start;
                         if (time > 5 && hasSession) {
                             BBC.ACTION_COMPLETE.send(finalActor, (time / 1000d));
-                            ChangeSet fcs = editSession.getChangeSet();
-                            if (fcs != null && fcs instanceof FaweStreamChangeSet) {
-                                MainUtil.sendCompressedMessage((FaweStreamChangeSet) fcs, fp);
+                            if (!Settings.HISTORY.COMBINE_STAGES) { // If stages are combined, we don't know the size yet (async flush)
+                                ChangeSet fcs = editSession.getChangeSet();
+                                if (fcs != null && fcs instanceof FaweStreamChangeSet) {
+                                    MainUtil.sendCompressedMessage((FaweStreamChangeSet) fcs, fp);
+                                }
                             }
                         }
                     }

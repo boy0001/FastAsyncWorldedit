@@ -106,7 +106,7 @@ public class Settings extends Config {
         public static boolean COMBINE_STAGES = true;
         @Comment({
                 "Higher compression reduces the size of history at the expense of CPU",
-                "0 = Uncompressed byte array",
+                "0 = Uncompressed byte array (fastest)",
                 "1 = 1 pass fast compressor (default)",
                 "2 = 2 x fast",
                 "3 = 3 x fast",
@@ -115,8 +115,8 @@ public class Settings extends Config {
                 "6 = 1 x medium, 3 x fast",
                 "7 = 1 x high, 1 x medium, 1 x fast",
                 "8 = 1 x high, 1 x medium, 2 x fast",
-                "9 = 1 x high, 1 x medium, 3 x fast",
-                "NOTE: If using disk, do some compression as smaller files save faster"
+                "9 = 1 x high, 1 x medium, 3 x fast (best compression)",
+                "NOTE: If using disk, do some compression (3+) as smaller files save faster"
         })
         public static int COMPRESSION_LEVEL = 1;
         @Comment({

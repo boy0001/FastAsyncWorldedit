@@ -423,7 +423,10 @@ public class LocalSession {
 
     private FaweChangeSet getChangeSet(Object o) {
         if (o instanceof FaweChangeSet) {
-            return (FaweChangeSet) o;
+            FaweChangeSet cs = (FaweChangeSet) o;
+            MainUtil.stacktrace();
+            cs.flush();
+            return cs;
         }
         if (o instanceof Integer) {
             return new DiskStorageHistory(currentWorld, this.uuid, (Integer) o);
@@ -466,8 +469,6 @@ public class LocalSession {
             }
         }
         FaweChangeSet changeSet = (FaweChangeSet) editSession.getChangeSet();
-        // Just in case
-        changeSet.flush();
         historySize += MainUtil.getSize(changeSet);
         if (append) {
             history.add(changeSet);

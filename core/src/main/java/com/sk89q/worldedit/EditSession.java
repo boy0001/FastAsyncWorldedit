@@ -1182,7 +1182,12 @@ public class EditSession extends AbstractWorld implements HasFaweQueue {
             queue.flush();
         }
         if (getChangeSet() != null) {
-            ((FaweChangeSet) getChangeSet()).flush();
+            if (Settings.HISTORY.COMBINE_STAGES) {
+                ((FaweChangeSet) getChangeSet()).flushAsync();
+            } else {
+                ((FaweChangeSet) getChangeSet()).flush();
+            }
+
         }
     }
 
