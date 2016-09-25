@@ -25,12 +25,12 @@ ext {
     date = git.head().date.format("yy.MM.dd")
     revision = "-${git.head().abbreviatedId}"
     parents = git.head().parentIds;
-    index = -45;  // Offset to mach CI
+    index = -47;  // Offset to mach CI
     int major, minor, patch;
     major = minor = patch = 0;
     for (;parents != null && !parents.isEmpty();index++) {
         int majorCount, minorCount, patchCount;
-        patchCount = 1;
+        patchCount = minor == 0 && major == 0 ? 1 : 0;
         commit = git.getResolve().toCommit(parents.get(0));
         for (String line : commit.fullMessage.tokenize("\n")) {
             switch (line.replaceAll("- ", "").split(" ")[0].toLowerCase()) {
@@ -40,12 +40,12 @@ ext {
                 case "change":
                 case "changed":
                 case "changes":
-                    if (majorCount == 0) {minorCount = 1; patch = patchCount = 0;}
+                    if (major == 0) {minorCount = 1; patchCount = 0;}
                     break;
                 case "refactor":
                 case "remove":
                 case "major":
-                    patch = minor = minorCount = patchCount = 0;
+                    patchCount = minorCount = 0;
                     majorCount = 1;
                     break;
             }

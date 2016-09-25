@@ -26,7 +26,6 @@ processResources {
 
 jar.archiveName="fawe-api-${project.parent.version}.jar"
 jar.destinationDir = file '../mvn/com/boydti/fawe-api/' + project.parent.version
-
 task createPom << {
     pom {
         project {
@@ -37,4 +36,17 @@ task createPom << {
     }.writeTo("../mvn/com/boydti/fawe-api/${project.parent.version}/fawe-api-${project.parent.version}.pom")
 }
 
-build.finalizedBy(createPom)
+task copyFiles {
+    doLast {
+        copy {
+            from "../mvn/com/boydti/fawe-api/${project.parent.version}/"
+            into '../mvn/com/boydti/fawe-api/latest/'
+            include('*.*')
+            rename ("fawe-api-${project.parent.version}.pom", 'fawe-api-latest.pom')
+            rename ("fawe-api-${project.parent.version}.jar", 'fawe-api-latest.jar')
+        }
+    }
+}
+
+build.finalizedBy(copyFiles)
+copyFiles.dependsOn(createPom)
