@@ -295,6 +295,9 @@ public class LocalSession {
     }
 
     private void loadHistoryNegativeIndex(UUID uuid, World world) {
+        if (!Settings.HISTORY.USE_DISK) {
+            return;
+        }
         File file = MainUtil.getFile(Fawe.imp().getDirectory(), Settings.PATHS.HISTORY + File.separator + Fawe.imp().getWorldName(world) + File.separator + uuid + File.separator + "index");
         if (file.exists()) {
             try {
@@ -310,7 +313,7 @@ public class LocalSession {
     }
 
     private void saveHistoryNegativeIndex(UUID uuid, World world) {
-        if (world == null) {
+        if (world == null || !Settings.HISTORY.USE_DISK) {
             return;
         }
         File file = MainUtil.getFile(Fawe.imp().getDirectory(), Settings.PATHS.HISTORY + File.separator + Fawe.imp().getWorldName(world) + File.separator + uuid + File.separator + "index");
