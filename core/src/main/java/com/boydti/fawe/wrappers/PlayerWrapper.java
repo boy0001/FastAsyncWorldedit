@@ -199,19 +199,27 @@ public class PlayerWrapper implements Player {
     @Override
     public void floatAt(final int x, final int y, final int z, final boolean alwaysGlass) {
         EditSessionFactory factory = WorldEdit.getInstance().getEditSessionFactory();
-        final EditSession edit = factory.getEditSession(parent.getWorld(), -1, null, this);
-        edit.setBlockFast(new Vector(x, y - 1, z), new BaseBlock( BlockType.GLASS.getID()));
-        LocalSession session = Fawe.get().getWorldEdit().getSession(this);
-        if (session != null) {
-            session.remember(edit, true, false, FawePlayer.wrap(this).getLimit().MAX_HISTORY);
+        RuntimeException caught = null;
+        try {
+            final EditSession edit = factory.getEditSession(parent.getWorld(), -1, null, this);
+            edit.setBlockFast(new Vector(x, y - 1, z), new BaseBlock(BlockType.GLASS.getID()));
+            edit.flushQueue();
+            LocalSession session = Fawe.get().getWorldEdit().getSession(this);
+            if (session != null) {
+                session.remember(edit, true, false, FawePlayer.wrap(this).getLimit().MAX_HISTORY);
+            }
+        } catch (RuntimeException e) {
+            caught = e;
         }
         TaskManager.IMP.sync(new RunnableVal<Object>() {
             @Override
             public void run(Object value) {
-                edit.getQueue().flush();
                 setPosition(new Vector(x + 0.5, y, z + 0.5));
             }
         });
+        if (caught != null) {
+            throw caught;
+        }
     }
 
     @Override

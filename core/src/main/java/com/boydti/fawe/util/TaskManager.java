@@ -295,6 +295,14 @@ public abstract class TaskManager {
         return syncWhenFree(function, Integer.MAX_VALUE);
     }
 
+    public void taskWhenFree(Runnable run) {
+        if (Fawe.get().isMainThread()) {
+            run.run();
+        } else {
+            SetQueue.IMP.addTask(run);
+        }
+    }
+
     /**
      * Run a task on the main thread when the TPS is high enough, and wait for execution to finish:<br>
      *     - Useful if you need to access something from the Bukkit API from another thread<br>

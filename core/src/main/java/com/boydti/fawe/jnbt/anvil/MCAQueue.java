@@ -210,7 +210,7 @@ public class MCAQueue extends NMSMappedFaweQueue<FaweQueue, FaweChunk, FaweChunk
     @Override
     public void refreshChunk(FaweChunk fs) {
         if (fs.getClass() != MCAChunk.class) {
-            parentNMS.refreshChunk(fs);
+            parentNMS.sendChunk(fs);
         }
     }
 

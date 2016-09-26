@@ -142,7 +142,7 @@ public class Settings extends Config {
                 " or increase chunk-wait-ms.",
                 "A value of 0 is faster simply because it doesn't bother loading the chunks or waiting.",
         })
-        public static int CHUNK_WAIT_MS = 100;
+        public static int CHUNK_WAIT_MS = 1000;
         @Comment("Delete history on disk after a number of days")
         public static int DELETE_AFTER_DAYS = 7;
         @Comment("Delete history in memory on logout (does not effect disk) (BROKEN, USE DISK INSTEAD)")
