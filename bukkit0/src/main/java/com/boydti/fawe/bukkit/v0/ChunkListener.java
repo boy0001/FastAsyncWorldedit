@@ -13,16 +13,18 @@ import org.bukkit.event.entity.ItemSpawnEvent;
 
 public class ChunkListener implements Listener {
     public ChunkListener() {
-        Bukkit.getPluginManager().registerEvents(ChunkListener.this, Fawe.<FaweBukkit>imp().getPlugin());
-        TaskManager.IMP.repeat(new Runnable() {
-            @Override
-            public void run() {
-                physicsFreeze = false;
-                itemFreeze = false;
-                physicsLimit = Settings.TICK_LIMITER.PHYSICS;
-                itemLimit = Settings.TICK_LIMITER.ITEMS;
-            }
-        }, 1);
+        if (Settings.TICK_LIMITER.ENABLED) {
+            Bukkit.getPluginManager().registerEvents(ChunkListener.this, Fawe.<FaweBukkit>imp().getPlugin());
+            TaskManager.IMP.repeat(new Runnable() {
+                @Override
+                public void run() {
+                    physicsFreeze = false;
+                    itemFreeze = false;
+                    physicsLimit = Settings.TICK_LIMITER.PHYSICS;
+                    itemLimit = Settings.TICK_LIMITER.ITEMS;
+                }
+            }, 1);
+        }
     }
 
     private int physicsLimit = Integer.MAX_VALUE;

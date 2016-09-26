@@ -230,6 +230,8 @@ public class Settings extends Config {
 
     @Comment("Generic tick limiter (not necessarily WorldEdit related, but still useful)")
     public static class TICK_LIMITER {
+        @Comment("Enable the limiter")
+        public static boolean ENABLED = true;
         @Comment("Max physics per tick")
         public static int PHYSICS = 500000;
         @Comment("Max item spawns per tick")
