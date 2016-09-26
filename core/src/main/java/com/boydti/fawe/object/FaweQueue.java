@@ -397,7 +397,11 @@ public abstract class FaweQueue {
             this.notifyAll();
         }
         if (getProgressTask() != null) {
-            getProgressTask().run(ProgressType.DONE, 1);
+            try {
+                getProgressTask().run(ProgressType.DONE, 1);
+            } catch (Throwable e) {
+                e.printStackTrace();
+            }
         }
         while (!tasks.isEmpty()) {
             Runnable task = tasks.poll();

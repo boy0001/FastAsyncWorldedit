@@ -26,7 +26,11 @@ public class DefaultFaweQueueMap implements IFaweQueueMap {
         @Override
         public FaweChunk put(Long key, FaweChunk value) {
             if (parent.getProgressTask() != null) {
-                parent.getProgressTask().run(FaweQueue.ProgressType.QUEUE, size() + 1);
+                try {
+                    parent.getProgressTask().run(FaweQueue.ProgressType.QUEUE, size() + 1);
+                } catch (Throwable e) {
+                    e.printStackTrace();
+                }
             }
             return super.put(key, value);
         }

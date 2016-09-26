@@ -205,7 +205,11 @@ public abstract class MappedFaweQueue<WORLD, CHUNK, SECTION> extends FaweQueue {
     public void runTasks() {
         super.runTasks();
         if (getProgressTask() != null) {
-            getProgressTask().run(ProgressType.DONE, 1);
+            try {
+                getProgressTask().run(ProgressType.DONE, 1);
+            } catch (Throwable e) {
+                e.printStackTrace();
+            }
         }
         ArrayDeque<Runnable> tmp = new ArrayDeque<>(tasks);
         tasks.clear();
