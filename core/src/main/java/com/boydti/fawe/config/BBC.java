@@ -151,6 +151,7 @@ public enum BBC {
     SETTING_DISABLE("&cLacking setting: %s0","Error"),
     SCHEMATIC_NOT_FOUND("&cSchematic not found: &7%s0", "Error"),
     NO_REGION("&cYou have no current WorldEdit region", "Error"),
+    NO_MASK("&cYou have no current mask set", "Error"),
     NOT_PLAYER("&cYou must be a player to perform this action!", "Error"),
     PLAYER_NOT_FOUND("&cPlayer not found:&7 %s0", "Error"),
     OOM(
