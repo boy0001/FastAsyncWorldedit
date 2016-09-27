@@ -92,6 +92,8 @@ public enum BBC {
     BRUSH_HEIGHT_INVALID("Invalid height map file (%s0)", "WorldEdit.Brush"),
     BRUSH_SMOOTH("Smooth brush equipped (%s0 x %s1 using %s2).", "WorldEdit.Brush"),
     BRUSH_SPHERE("Sphere brush shape equipped (%s0).", "WorldEdit.Brush"),
+    BRUSH_LINE("Line brush shape equipped (%s0).", "WorldEdit.Brush"),
+    BRUSH_SPLINE("Line brush shape equipped (%s0). Right click to select points, left click to execute.", "WorldEdit.Brush"),
     BRUSH_BLEND_BALL("Blend ball brush equipped (%s0).", "WorldEdit.Brush"),
     BRUSH_ERODE("Erode brush equipped (%s0).", "WorldEdit.Brush"),
     BRUSH_PASTE_NONE("Nothing to paste", "WorldEdit.Brush"),

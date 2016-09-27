@@ -102,7 +102,6 @@ import com.sk89q.worldedit.history.changeset.ChangeSet;
 import com.sk89q.worldedit.internal.expression.Expression;
 import com.sk89q.worldedit.internal.expression.ExpressionException;
 import com.sk89q.worldedit.internal.expression.runtime.RValue;
-import com.sk89q.worldedit.math.interpolation.Interpolation;
 import com.sk89q.worldedit.math.interpolation.KochanekBartelsInterpolation;
 import com.sk89q.worldedit.math.interpolation.Node;
 import com.sk89q.worldedit.math.noise.RandomNoise;
@@ -2684,7 +2683,7 @@ public class EditSession extends AbstractWorld implements HasFaweQueue {
         Set<Vector> vset = new HashSet<Vector>();
         final List<Node> nodes = new ArrayList<Node>(nodevectors.size());
 
-        final Interpolation interpol = new KochanekBartelsInterpolation();
+        final KochanekBartelsInterpolation interpol = new KochanekBartelsInterpolation();
 
         for (final Vector nodevector : nodevectors) {
             final Node n = new Node(nodevector);
@@ -2701,7 +2700,6 @@ public class EditSession extends AbstractWorld implements HasFaweQueue {
             final int tipx = (int) Math.round(tipv.getX());
             final int tipy = (int) Math.round(tipv.getY());
             final int tipz = (int) Math.round(tipv.getZ());
-
             vset.add(new Vector(tipx, tipy, tipz));
         }
 

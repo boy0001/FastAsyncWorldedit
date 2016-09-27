@@ -1,4 +1,4 @@
-package com.sk89q.worldedit.function.visitor;
+package com.boydti.fawe.object.visitor;
 
 import com.boydti.fawe.config.BBC;
 import com.boydti.fawe.object.IntegerTrio;
@@ -10,26 +10,31 @@ import com.sk89q.worldedit.function.operation.RunContext;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Iterator;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicInteger;
 
-public abstract class BreadthFirstSearch implements Operation {
+public abstract class DFSVisitor implements Operation {
 
     private final RegionFunction function;
     private final List<Vector> directions = new ArrayList<>();
-    private final Map<Node, Integer> visited;
-    private final ArrayDeque<Node> queue;
+    private final Map<Node, AtomicInteger> visited;
+    private final ArrayDeque<NodePair> queue;
+    private final HashSet<Node> hashQueue;
     private final int maxDepth;
+    private final int maxBranch;
     private int affected = 0;
 
-    public BreadthFirstSearch(final RegionFunction function) {
-        this(function, Integer.MAX_VALUE);
+    public DFSVisitor(final RegionFunction function) {
+        this(function, Integer.MAX_VALUE, Integer.MAX_VALUE);
     }
 
-    public BreadthFirstSearch(final RegionFunction function, int maxDepth) {
+    public DFSVisitor(final RegionFunction function, int maxDepth, int maxBranching) {
         this.queue = new ArrayDeque<>();
+        this.hashQueue = new LinkedHashSet<>();
         this.visited = new LinkedHashMap<>();
         this.function = function;
         this.directions.add(new Vector(0, -1, 0));
@@ -39,6 +44,7 @@ public abstract class BreadthFirstSearch implements Operation {
         this.directions.add(new Vector(0, 0, -1));
         this.directions.add(new Vector(0, 0, 1));
         this.maxDepth = maxDepth;
+        this.maxBranch = maxBranching;
     }
 
     public abstract boolean isVisitable(Vector from, Vector to);
@@ -58,70 +64,78 @@ public abstract class BreadthFirstSearch implements Operation {
 
     public void visit(final Vector pos) {
         Node node = new Node((int) pos.x, (int) pos.y, (int) pos.z);
-        if (!this.visited.containsKey(node)) {
+        if (!this.hashQueue.contains(node)) {
             isVisitable(pos, pos); // Ignore this, just to initialize mask on this point
-            visited.put(node, 0);
-            queue.add(node);
+            queue.addFirst(new NodePair(null, node, 0));
+            hashQueue.add(node);
         }
     }
 
     @Override
     public Operation resume(RunContext run) throws WorldEditException {
+        NodePair current;
         Node from;
         Node adjacent;
         Vector mutable = new Vector();
         Vector mutable2 = new Vector();
-        boolean shouldTrim = false;
+        int countAdd,countAttempt;
         IntegerTrio[] dirs = getIntDirections();
-        for (int layer = 0; !queue.isEmpty() && layer <= maxDepth; layer++) {
-            int size = queue.size();
-            if (layer == maxDepth) {
-                visited.clear();
-                for (Node current : queue) {
-                    mutable.x = current.getX();
-                    mutable.y = current.getY();
-                    mutable.z = current.getZ();
-                    function.apply(mutable);
-                    affected++;
-                }
-                break;
+
+        for (int layer = 0; !queue.isEmpty(); layer++) {
+            current = queue.poll();
+            from = current.to;
+            hashQueue.remove(from);
+            if (visited.containsKey(from)) {
+                continue;
             }
-            for (int i = 0; i < size; i++) {
-                from = queue.poll();
-                mutable.x = from.getX();
-                mutable.y = from.getY();
-                mutable.z = from.getZ();
-                function.apply(mutable);
-                affected++;
-                for (IntegerTrio direction : dirs) {
-                    mutable2.x = from.getX() + direction.x;
-                    mutable2.y = from.getY() + direction.y;
-                    mutable2.z = from.getZ() + direction.z;
-                    if (isVisitable(mutable, mutable2)) {
-                        adjacent = new Node(mutable2.getBlockX(), mutable2.getBlockY(), mutable2.getBlockZ());
-                        if (!visited.containsKey(adjacent)) {
-                            visited.put(adjacent, layer);
-                            queue.add(adjacent);
+            mutable.x = from.getX();
+            mutable.y = from.getY();
+            mutable.z = from.getZ();
+            function.apply(mutable);
+            countAdd = 0;
+            countAttempt = 0;
+            for (IntegerTrio direction : dirs) {
+                mutable2.x = from.getX() + direction.x;
+                mutable2.y = from.getY() + direction.y;
+                mutable2.z = from.getZ() + direction.z;
+                if (isVisitable(mutable, mutable2)) {
+                    adjacent = new Node(mutable2.getBlockX(), mutable2.getBlockY(), mutable2.getBlockZ());
+                    if ((current.from == null || !adjacent.equals(current.from))) {
+                        AtomicInteger adjacentCount = visited.get(adjacent);
+                        if (adjacentCount == null) {
+                            if (countAdd++ < maxBranch) {
+                                if (!hashQueue.contains(adjacent)) {
+                                    if (current.depth == maxDepth) {
+                                        countAttempt++;
+                                    } else {
+                                        hashQueue.add(adjacent);
+                                        queue.addFirst(new NodePair(from, adjacent, current.depth + 1));
+                                    }
+                                } else {
+                                    countAttempt++;
+                                }
+                            } else {
+                                countAttempt++;
+                            }
+                        } else if (adjacentCount.decrementAndGet() == 0) {
+                            visited.remove(adjacent);
+                        } else if (hashQueue.contains(adjacent)) {
+                            countAttempt++;
                         }
                     }
                 }
             }
-            int lastLayer = layer - 1;
-            size = visited.size();
-            if (shouldTrim || (shouldTrim = size > 16384)) {
-                Iterator<Map.Entry<Node, Integer>> iter = visited.entrySet().iterator();
-                while (iter.hasNext()) {
-                    Map.Entry<Node, Integer> entry = iter.next();
-                    Integer val = entry.getValue();
-                    if (val < lastLayer) {
-                        iter.remove();
-                    } else {
-                        break;
-                    }
-                }
+            if (countAttempt > 0) {
+                visited.put(from, new AtomicInteger(countAttempt));
             }
+            affected++;
         }
         return null;
+    }
+
+    @Override
+    public void cancel() {
+
     }
 
     @Override
@@ -133,8 +147,16 @@ public abstract class BreadthFirstSearch implements Operation {
         return this.affected;
     }
 
-    @Override
-    public void cancel() {
+    public class NodePair {
+        public final Node to;
+        public final Node from;
+        private final int depth;
+
+        public NodePair(Node from, Node to, int depth) {
+            this.from = from;
+            this.to = to;
+            this.depth = depth;
+        }
     }
 
     public static final class Node {
@@ -145,14 +167,6 @@ public abstract class BreadthFirstSearch implements Operation {
             this.y = y;
             this.z = z;
         }
-
-        public Node(Node node) {
-            this.x = node.x;
-            this.y = node.y;
-            this.z = node.z;
-        }
-
-        public Node() {}
 
         private final void set(int x, int y, int z) {
             this.x = x;
@@ -193,9 +207,5 @@ public abstract class BreadthFirstSearch implements Operation {
             Node other = (Node) obj;
             return other.x == x && other.z == z && other.y == y;
         }
-    }
-
-    public static Class<?> inject() {
-        return BreadthFirstSearch.class;
     }
 }

@@ -24,14 +24,15 @@ import com.boydti.fawe.config.BBC;
 import com.boydti.fawe.config.Settings;
 import com.boydti.fawe.object.FaweLimit;
 import com.boydti.fawe.object.FawePlayer;
+import com.boydti.fawe.object.brush.BlendBall;
 import com.boydti.fawe.object.brush.CommandBrush;
 import com.boydti.fawe.object.brush.CopyPastaBrush;
-import com.boydti.fawe.object.brush.HeightBrush;
-import com.boydti.fawe.object.brush.BlendBall;
 import com.boydti.fawe.object.brush.DoubleActionBrushTool;
 import com.boydti.fawe.object.brush.ErodeBrush;
+import com.boydti.fawe.object.brush.HeightBrush;
 import com.boydti.fawe.object.brush.LineBrush;
 import com.boydti.fawe.object.brush.RecurseBrush;
+import com.boydti.fawe.object.brush.SplineBrush;
 import com.boydti.fawe.object.mask.IdMask;
 import com.sk89q.minecraft.util.commands.Command;
 import com.sk89q.minecraft.util.commands.CommandContext;
@@ -123,16 +124,17 @@ public class BrushCommands {
             aliases = { "recursive", "recurse", "r" },
             usage = "<pattern-to> [radius]",
             desc = "Choose the recursive brush",
-            help = "Chooses the recursive brush",
+            help = "Chooses the recursive brush\n" +
+                    "The -d flag Will apply in depth first order",
             min = 0,
-            max = 2
+            max = 3
     )
     @CommandPermissions("worldedit.brush.recursive")
-    public void recursiveBrush(Player player, LocalSession session, EditSession editSession, Pattern fill, @Optional("2") double radius) throws WorldEditException {
+    public void recursiveBrush(Player player, LocalSession session, EditSession editSession, Pattern fill, @Optional("2") double radius, @Switch('d') boolean depthFirst) throws WorldEditException {
         worldEdit.checkMaxBrushRadius(radius);
         BrushTool tool = session.getBrushTool(player.getItemInHand());
         tool.setSize(radius);
-        tool.setBrush(new RecurseBrush(tool), "worldedit.brush.recursive");
+        tool.setBrush(new RecurseBrush(tool, depthFirst), "worldedit.brush.recursive");
         tool.setMask(new IdMask(editSession));
         tool.setFill(fill);
         BBC.BRUSH_SPHERE.send(player, radius);
@@ -158,7 +160,25 @@ public class BrushCommands {
         tool.setFill(fill);
         tool.setSize(radius);
         tool.setBrush(new LineBrush(shell, select, flat), "worldedit.brush.line");
-        BBC.BRUSH_SPHERE.send(player, radius);
+        BBC.BRUSH_LINE.send(player, radius);
+    }
+
+    @Command(
+            aliases = { "spline", "spl" },
+            usage = "<pattern>",
+            desc = "Choose the spline brush",
+            help = "Chooses the spline brush",
+            min = 0,
+            max = 2
+    )
+    @CommandPermissions("worldedit.brush.spline")
+    public void splineBrush(Player player, LocalSession session, EditSession editSession, Pattern fill, @Optional("25") double radius) throws WorldEditException {
+        worldEdit.checkMaxBrushRadius(radius);
+        DoubleActionBrushTool tool = session.getDoubleActionBrushTool(player.getItemInHand());
+        tool.setFill(fill);
+        tool.setSize(radius);
+        tool.setBrush(new SplineBrush(player, session, tool), "worldedit.brush.spline");
+        BBC.BRUSH_SPLINE.send(player, radius);
     }
 
     @Command(

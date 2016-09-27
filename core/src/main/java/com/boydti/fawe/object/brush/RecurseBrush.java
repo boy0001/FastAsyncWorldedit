@@ -1,5 +1,7 @@
 package com.boydti.fawe.object.brush;
 
+import com.boydti.fawe.object.mask.RadiusMask;
+import com.boydti.fawe.object.visitor.DFSRecursiveVisitor;
 import com.sk89q.worldedit.EditSession;
 import com.sk89q.worldedit.MaxChangedBlocksException;
 import com.sk89q.worldedit.Vector;
@@ -16,9 +18,11 @@ import com.sk89q.worldedit.function.visitor.RecursiveVisitor;
 public class RecurseBrush implements Brush {
 
     private final BrushTool tool;
+    private final boolean dfs;
 
-    public RecurseBrush(BrushTool tool) {
+    public RecurseBrush(BrushTool tool, boolean dfs) {
         this.tool = tool;
+        this.dfs = dfs;
     }
 
     @Override
@@ -34,8 +38,28 @@ public class RecurseBrush implements Brush {
         }
         final BlockReplace replace = new BlockReplace(editSession, to);
         editSession.setMask((Mask) null);
-        RecursiveVisitor visitor = new RecursiveVisitor(mask, replace, radius);
-        visitor.visit(position);
-        Operations.completeBlindly(visitor);
+        final int maxY = editSession.getMaxY();
+        if (dfs) {
+            final Mask radMask = new RadiusMask(0, (int) size);
+            DFSRecursiveVisitor visitor = new DFSRecursiveVisitor(mask, replace, Integer.MAX_VALUE, Integer.MAX_VALUE) {
+                @Override
+                public boolean isVisitable(Vector from, Vector to) {
+                    int y = to.getBlockY();
+                    return y >= y && y < maxY && radMask.test(to) && super.isVisitable(from, to);
+                }
+            };
+            visitor.visit(position);
+            Operations.completeBlindly(visitor);
+        } else {
+            RecursiveVisitor visitor = new RecursiveVisitor(mask, replace, radius) {
+                @Override
+                public boolean isVisitable(Vector from, Vector to) {
+                    int y = to.getBlockY();
+                    return y >= y && y < maxY && super.isVisitable(from, to);
+                }
+            };
+            visitor.visit(position);
+            Operations.completeBlindly(visitor);
+        }
     }
 }
