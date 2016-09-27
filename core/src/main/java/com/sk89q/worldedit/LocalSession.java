@@ -427,7 +427,6 @@ public class LocalSession {
     private FaweChangeSet getChangeSet(Object o) {
         if (o instanceof FaweChangeSet) {
             FaweChangeSet cs = (FaweChangeSet) o;
-            MainUtil.stacktrace();
             cs.flush();
             return cs;
         }
