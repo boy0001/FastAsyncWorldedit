@@ -1,6 +1,7 @@
 package com.sk89q.worldedit.command;
 
 import com.boydti.fawe.config.BBC;
+import com.boydti.fawe.object.brush.DoubleActionBrushTool;
 import com.sk89q.minecraft.util.commands.Command;
 import com.sk89q.minecraft.util.commands.CommandContext;
 import com.sk89q.minecraft.util.commands.CommandPermissions;
@@ -8,6 +9,8 @@ import com.sk89q.worldedit.EditSession;
 import com.sk89q.worldedit.LocalSession;
 import com.sk89q.worldedit.WorldEdit;
 import com.sk89q.worldedit.WorldEditException;
+import com.sk89q.worldedit.command.tool.BrushTool;
+import com.sk89q.worldedit.command.tool.Tool;
 import com.sk89q.worldedit.entity.Player;
 import com.sk89q.worldedit.extension.input.ParserContext;
 import com.sk89q.worldedit.function.mask.Mask;
@@ -65,8 +68,16 @@ public class ToolUtilCommands {
     )
     @CommandPermissions("worldedit.brush.options.mask")
     public void mask(Player player, LocalSession session, EditSession editSession, @Optional CommandContext context) throws WorldEditException {
+        Tool tool = session.getTool(player.getItemInHand());
+        if (tool == null) {
+            return;
+        }
         if (context == null || context.argsLength() == 0) {
-            session.getBrushTool(player.getItemInHand()).setMask(null);
+            if (tool instanceof BrushTool) {
+                ((BrushTool) tool).setMask(null);
+            } else if (tool instanceof DoubleActionBrushTool) {
+                ((DoubleActionBrushTool) tool).setMask(null);
+            }
             BBC.BRUSH_MASK_DISABLED.send(player);
         } else {
             ParserContext parserContext = new ParserContext();
@@ -75,7 +86,11 @@ public class ToolUtilCommands {
             parserContext.setSession(session);
             parserContext.setExtent(editSession);
             Mask mask = we.getMaskFactory().parseFromInput(context.getJoinedStrings(0), parserContext);
-            session.getBrushTool(player.getItemInHand()).setMask(mask);
+            if (tool instanceof BrushTool) {
+                ((BrushTool) tool).setMask(mask);
+            } else if (tool instanceof DoubleActionBrushTool) {
+                ((DoubleActionBrushTool) tool).setMask(mask);
+            }
             BBC.BRUSH_MASK.send(player);
         }
     }
