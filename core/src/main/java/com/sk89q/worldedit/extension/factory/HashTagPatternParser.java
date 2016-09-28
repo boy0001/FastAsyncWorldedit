@@ -7,6 +7,7 @@ import com.boydti.fawe.object.pattern.MaskedPattern;
 import com.boydti.fawe.object.pattern.NoXPattern;
 import com.boydti.fawe.object.pattern.NoYPattern;
 import com.boydti.fawe.object.pattern.NoZPattern;
+import com.boydti.fawe.object.pattern.OffsetPattern;
 import com.boydti.fawe.object.pattern.PatternExtent;
 import com.boydti.fawe.object.pattern.RandomOffsetPattern;
 import com.boydti.fawe.object.pattern.RelativePattern;
@@ -123,6 +124,17 @@ public class HashTagPatternParser extends InputParser<Pattern> {
                             }
                             return new MaskedPattern(mask, extent, secondary);
                         }
+                        case "#offset":
+                            try {
+                                int x = Math.abs(Integer.parseInt(split2[1]));
+                                int y = Math.abs(Integer.parseInt(split2[2]));
+                                int z = Math.abs(Integer.parseInt(split2[3]));
+                                rest = rest.substring(split2[1].length() + split2[2].length() + split2[3].length() + 3);
+                                Pattern pattern = parseFromInput(rest, context);
+                                return new OffsetPattern(x, y, z);
+                            } catch (NumberFormatException e) {
+                                throw new InputParseException("The correct format is #offset:<dx>:<dy>:<dz>:<pattern>");
+                            }
                         case "#randomoffset":
                         case "#spread": {
                             try {
@@ -133,7 +145,7 @@ public class HashTagPatternParser extends InputParser<Pattern> {
                                 Pattern pattern = parseFromInput(rest, context);
                                 return new RandomOffsetPattern(pattern, x, y, z);
                             } catch (NumberFormatException e) {
-
+                                throw new InputParseException("The correct format is #spread:<dx>:<dy>:<dz>:<pattern>");
                             }
                         }
                         case "#l":
