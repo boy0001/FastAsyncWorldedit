@@ -131,7 +131,7 @@ public class HashTagPatternParser extends InputParser<Pattern> {
                                 int z = Math.abs(Integer.parseInt(split2[3]));
                                 rest = rest.substring(split2[1].length() + split2[2].length() + split2[3].length() + 3);
                                 Pattern pattern = parseFromInput(rest, context);
-                                return new OffsetPattern(x, y, z);
+                                return new OffsetPattern(pattern, x, y, z);
                             } catch (NumberFormatException e) {
                                 throw new InputParseException("The correct format is #offset:<dx>:<dy>:<dz>:<pattern>");
                             }
