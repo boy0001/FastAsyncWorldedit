@@ -1,6 +1,7 @@
 package com.sk89q.worldedit.extension.factory;
 
 import com.boydti.fawe.object.pattern.ExistingPattern;
+import com.boydti.fawe.object.pattern.Linear3DBlockPattern;
 import com.boydti.fawe.object.pattern.LinearBlockPattern;
 import com.boydti.fawe.object.pattern.NoXPattern;
 import com.boydti.fawe.object.pattern.NoYPattern;
@@ -9,7 +10,6 @@ import com.boydti.fawe.object.pattern.RelativePattern;
 import com.sk89q.worldedit.EmptyClipboardException;
 import com.sk89q.worldedit.LocalSession;
 import com.sk89q.worldedit.WorldEdit;
-import com.sk89q.worldedit.blocks.BaseBlock;
 import com.sk89q.worldedit.extension.input.InputParseException;
 import com.sk89q.worldedit.extension.input.ParserContext;
 import com.sk89q.worldedit.extent.clipboard.Clipboard;
@@ -32,6 +32,7 @@ public class HashTagPatternParser extends InputParser<Pattern> {
         switch (input.toLowerCase().charAt(0)) {
             case '#': {
                 switch (input) {
+                    case "#*":
                     case "#existing": {
                         return new ExistingPattern(context.requireExtent());
                     }
@@ -53,39 +54,54 @@ public class HashTagPatternParser extends InputParser<Pattern> {
                 }
                 String[] split2 = input.split(":");
                 if (split2.length > 1) {
-                    switch (split2[0]) {
+                    String rest = input.substring(split2[0].length() + 1);
+                    switch (split2[0].toLowerCase()) {
+                        case "#~":
+                        case "#r":
                         case "#relative":
                         case "#rel": {
-                            String rest = input.substring(5);
                             return new RelativePattern(parseFromInput(rest, context));
                         }
+                        case "#!x":
+                        case "#nx":
                         case "#nox": {
-                            String rest = input.substring(5);
                             return new NoXPattern(parseFromInput(rest, context));
                         }
+                        case "#!y":
+                        case "#ny":
                         case "#noy": {
-                            String rest = input.substring(5);
                             return new NoYPattern(parseFromInput(rest, context));
                         }
+                        case "#!z":
+                        case "#nz":
                         case "#noz": {
-                            String rest = input.substring(5);
                             return new NoZPattern(parseFromInput(rest, context));
+                        }
+                        case "#l":
+                        case "#linear": {
+                            ArrayList<Pattern> patterns = new ArrayList<>();
+                            for (String token : rest.split(",")) {
+                                patterns.add(parseFromInput(token, context));
+                            }
+                            if (patterns.isEmpty()) {
+                                throw new InputParseException("No blocks provided for linear pattern e.g. [stone,wood");
+                            }
+                            return new LinearBlockPattern(patterns.toArray(new Pattern[patterns.size()]));
+                        }
+                        case "#l3d":
+                        case "#linear3D": {
+                            ArrayList<Pattern> patterns = new ArrayList<>();
+                            for (String token : rest.split(",")) {
+                                patterns.add(parseFromInput(token, context));
+                            }
+                            if (patterns.isEmpty()) {
+                                throw new InputParseException("No blocks provided for linear pattern e.g. [stone,wood");
+                            }
+                            return new Linear3DBlockPattern(patterns.toArray(new Pattern[patterns.size()]));
                         }
                     }
                 }
                 throw new InputParseException("Invalid, see: https://github.com/boy0001/FastAsyncWorldedit/wiki/WorldEdit-and-FAWE-patterns");
-            }
-            case '[': {
-                ArrayList<BaseBlock> blocks = new ArrayList<>();
-                for (String token : input.substring(1).split(",")) {
-                    BlockFactory blockRegistry = worldEdit.getBlockFactory();
-                    BaseBlock block = blockRegistry.parseFromInput(token, context);
-                    blocks.add(block);
-                }
-                if (blocks.isEmpty()) {
-                    throw new InputParseException("No blocks provided for linear pattern e.g. [stone,wood");
-                }
-                return new LinearBlockPattern(blocks.toArray(new BaseBlock[blocks.size()]));
             }
             default:
                 String[] items = input.split(",");

@@ -7,27 +7,22 @@ import com.sk89q.worldedit.function.pattern.Pattern;
 import java.util.Arrays;
 import java.util.Collection;
 
-public class LinearBlockPattern extends AbstractPattern implements ResettablePattern {
+public class Linear3DBlockPattern extends AbstractPattern {
 
     private final Collection<Pattern> patterns;
     private final Pattern[] patternsArray;
-    private int index;
 
-    public LinearBlockPattern(Pattern[] patterns) {
+    public Linear3DBlockPattern(Pattern[] patterns) {
         this.patternsArray = patterns;
         this.patterns = Arrays.asList(patterns);
     }
 
     @Override
     public BaseBlock apply(Vector position) {
-        if (index == patternsArray.length) {
-            index = 0;
+        int index = (position.getBlockX() + position.getBlockY() + position.getBlockZ()) % patternsArray.length;
+        if (index < 0) {
+            index += patternsArray.length;
         }
-        return patternsArray[index++].apply(position);
-    }
-
-    @Override
-    public void reset() {
-        index = 0;
+        return patternsArray[index].apply(position);
     }
 }
