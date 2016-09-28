@@ -22,6 +22,8 @@ import com.sk89q.worldedit.function.pattern.BlockPattern;
 import com.sk89q.worldedit.function.pattern.ClipboardPattern;
 import com.sk89q.worldedit.function.pattern.Pattern;
 import com.sk89q.worldedit.function.pattern.RandomPattern;
+import com.sk89q.worldedit.internal.expression.Expression;
+import com.sk89q.worldedit.internal.expression.ExpressionException;
 import com.sk89q.worldedit.internal.registry.InputParser;
 import com.sk89q.worldedit.session.ClipboardHolder;
 import com.sk89q.worldedit.session.request.Request;
@@ -126,25 +128,25 @@ public class HashTagPatternParser extends InputParser<Pattern> {
                         }
                         case "#offset":
                             try {
-                                int x = Math.abs(Integer.parseInt(split2[1]));
-                                int y = Math.abs(Integer.parseInt(split2[2]));
-                                int z = Math.abs(Integer.parseInt(split2[3]));
+                                int x = (int) Math.abs(Expression.compile(split2[1]).evaluate());
+                                int y = (int) Math.abs(Expression.compile(split2[2]).evaluate());
+                                int z = (int) Math.abs(Expression.compile(split2[3]).evaluate());
                                 rest = rest.substring(split2[1].length() + split2[2].length() + split2[3].length() + 3);
                                 Pattern pattern = parseFromInput(rest, context);
                                 return new OffsetPattern(pattern, x, y, z);
-                            } catch (NumberFormatException e) {
+                            } catch (NumberFormatException | ExpressionException e) {
                                 throw new InputParseException("The correct format is #offset:<dx>:<dy>:<dz>:<pattern>");
                             }
                         case "#randomoffset":
                         case "#spread": {
                             try {
-                                int x = Math.abs(Integer.parseInt(split2[1]));
-                                int y = Math.abs(Integer.parseInt(split2[2]));
-                                int z = Math.abs(Integer.parseInt(split2[3]));
+                                int x = (int) Math.abs(Expression.compile(split2[1]).evaluate());
+                                int y = (int) Math.abs(Expression.compile(split2[2]).evaluate());
+                                int z = (int) Math.abs(Expression.compile(split2[3]).evaluate());
                                 rest = rest.substring(split2[1].length() + split2[2].length() + split2[3].length() + 3);
                                 Pattern pattern = parseFromInput(rest, context);
                                 return new RandomOffsetPattern(pattern, x, y, z);
-                            } catch (NumberFormatException e) {
+                            } catch (NumberFormatException | ExpressionException e) {
                                 throw new InputParseException("The correct format is #spread:<dx>:<dy>:<dz>:<pattern>");
                             }
                         }
