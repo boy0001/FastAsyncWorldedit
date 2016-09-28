@@ -2700,14 +2700,20 @@ public class EditSession extends AbstractWorld implements HasFaweQueue {
             final int tipx = (int) Math.round(tipv.getX());
             final int tipy = (int) Math.round(tipv.getY());
             final int tipz = (int) Math.round(tipv.getZ());
-            vset.add(new Vector(tipx, tipy, tipz));
+            if (radius == 0) {
+                setBlock(tipx, tipy, tipz, pattern.next(tipx, tipy, tipz));
+            }  else {
+                vset.add(new Vector(tipx, tipy, tipz));
+            }
         }
-
-        vset = this.getBallooned(vset, radius);
-        if (!filled) {
-            vset = this.getHollowed(vset);
+        if (radius != 0) {
+            vset = this.getBallooned(vset, radius);
+            if (!filled) {
+                vset = this.getHollowed(vset);
+            }
+            return this.setBlocks(vset, pattern);
         }
-        return this.setBlocks(vset, pattern);
+        return changes;
     }
 
     private double hypot(final double... pars) {

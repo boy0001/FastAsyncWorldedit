@@ -41,6 +41,7 @@ import com.sk89q.worldedit.command.tool.RecursivePickaxe;
 import com.sk89q.worldedit.command.tool.brush.GravityBrush;
 import com.sk89q.worldedit.event.extent.EditSessionEvent;
 import com.sk89q.worldedit.extension.factory.DefaultMaskParser;
+import com.sk89q.worldedit.extension.factory.HashTagPatternParser;
 import com.sk89q.worldedit.extension.platform.CommandManager;
 import com.sk89q.worldedit.extension.platform.PlatformManager;
 import com.sk89q.worldedit.extent.AbstractDelegateExtent;
@@ -71,6 +72,7 @@ import com.sk89q.worldedit.function.visitor.RecursiveVisitor;
 import com.sk89q.worldedit.function.visitor.RegionVisitor;
 import com.sk89q.worldedit.history.change.EntityCreate;
 import com.sk89q.worldedit.history.change.EntityRemove;
+import com.sk89q.worldedit.math.interpolation.KochanekBartelsInterpolation;
 import com.sk89q.worldedit.regions.CuboidRegion;
 import com.sk89q.worldedit.regions.selector.CuboidRegionSelector;
 import com.sk89q.worldedit.session.SessionManager;
@@ -386,6 +388,7 @@ public class Fawe {
             Patterns.inject(); // Optimizations (reduce object creation)
             RandomPattern.inject(); // Optimizations
             ClipboardPattern.inject(); // Optimizations
+            HashTagPatternParser.inject(); // Add new patterns
             // Mask
             BlockMask.inject(); // Optimizations
             SolidBlockMask.inject(); // Optimizations
@@ -403,6 +406,8 @@ public class Fawe {
             // NBT
             NBTInputStream.inject(); // Add actual streaming + Optimizations + New methods
             NBTOutputStream.inject(); // New methods
+            // Math
+            KochanekBartelsInterpolation.inject(); // Optimizations
             try {
                 CommandManager.inject(); // Async commands
                 PlatformManager.inject(); // Async brushes / tools

@@ -68,12 +68,12 @@ public class SplineBrush implements DoubleActionBrush {
                     numSplines = points.size();
                 }
                 this.positionSets.add(points);
-                player.print("Added position, right click to spline them together!");
+                BBC.BRUSH_SPLINE_PRIMARY.send(player);
                 break;
             }
             case SECONDARY: {
                 if (positionSets.size() < 2) {
-                    player.print("Not enough positions set!");
+                    BBC.BRUSH_SPLINE_SECONDARY_ERROR.send(player);
                     return;
                 }
                 List<Vector> centroids = new ArrayList<>();
@@ -112,7 +112,7 @@ public class SplineBrush implements DoubleActionBrush {
                     }
                     editSession.drawSpline(Patterns.wrap(pattern), currentSpline, 0, 0, 0, 10, 0, true);
                 }
-                player.print("Created spline");
+                BBC.BRUSH_SPLINE_SECONDARY.send(player);
                 positionSets.clear();
                 numSplines = 0;
                 break;

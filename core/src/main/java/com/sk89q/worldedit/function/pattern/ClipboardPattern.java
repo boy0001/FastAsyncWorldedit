@@ -12,7 +12,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
 public class ClipboardPattern extends AbstractPattern {
 
     private final Clipboard clipboard;
-    private final Vector size;
+    private final int sx, sy, sz;
     private final Vector min;
 
     /**
@@ -23,7 +23,10 @@ public class ClipboardPattern extends AbstractPattern {
     public ClipboardPattern(Clipboard clipboard) {
         checkNotNull(clipboard);
         this.clipboard = clipboard;
-        this.size = clipboard.getMaximumPoint().subtract(clipboard.getMinimumPoint()).add(1, 1, 1);
+        Vector size = clipboard.getMaximumPoint().subtract(clipboard.getMinimumPoint()).add(1, 1, 1);
+        this.sx = size.getBlockX();
+        this.sy = size.getBlockY();
+        this.sz = size.getBlockZ();
         this.min = clipboard.getMinimumPoint();
     }
 
@@ -31,9 +34,12 @@ public class ClipboardPattern extends AbstractPattern {
 
     @Override
     public BaseBlock apply(Vector position) {
-        int xp = Math.abs(position.getBlockX()) % size.getBlockX();
-        int yp = Math.abs(position.getBlockY()) % size.getBlockY();
-        int zp = Math.abs(position.getBlockZ()) % size.getBlockZ();
+        int xp = position.getBlockX() % sx;
+        int yp = position.getBlockY() % sy;
+        int zp = position.getBlockZ() % sz;
+        if (xp < 0) xp += sx;
+        if (yp < 0) yp += sy;
+        if (zp < 0) zp += sz;
         mutable.x = min.x + xp;
         mutable.y = min.y + yp;
         mutable.z = min.z + zp;

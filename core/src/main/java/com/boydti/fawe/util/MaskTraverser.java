@@ -18,6 +18,9 @@ public class MaskTraverser {
     }
 
     private void reset(Mask mask, Extent newExtent) {
+        if (mask == null) {
+            return;
+        }
         if (mask instanceof ResettableMask) {
             ((ResettableMask) mask).reset();
         }

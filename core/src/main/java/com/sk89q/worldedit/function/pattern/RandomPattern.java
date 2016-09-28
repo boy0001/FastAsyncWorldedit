@@ -5,6 +5,7 @@ import com.sk89q.worldedit.Vector;
 import com.sk89q.worldedit.blocks.BaseBlock;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
 
 
 import static com.google.common.base.Preconditions.checkNotNull;
@@ -16,6 +17,7 @@ public class RandomPattern extends AbstractPattern {
 
     private Map<Pattern, Double> weights = new HashMap<>();
     private RandomCollection<Pattern> collection;
+    private Set<Pattern> patterns;
 
     /**
      * Add a pattern to the weight list of patterns.
@@ -30,6 +32,7 @@ public class RandomPattern extends AbstractPattern {
         checkNotNull(pattern);
         weights.put(pattern, chance);
         collection = RandomCollection.of(weights);
+        this.patterns = weights.keySet();
     }
 
     @Override

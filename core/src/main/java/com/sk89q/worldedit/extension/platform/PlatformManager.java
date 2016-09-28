@@ -22,6 +22,7 @@ package com.sk89q.worldedit.extension.platform;
 import com.boydti.fawe.config.BBC;
 import com.boydti.fawe.object.FawePlayer;
 import com.boydti.fawe.object.exception.FaweException;
+import com.boydti.fawe.object.pattern.PatternTraverser;
 import com.boydti.fawe.util.MainUtil;
 import com.boydti.fawe.wrappers.PlayerWrapper;
 import com.sk89q.worldedit.LocalConfiguration;
@@ -330,6 +331,11 @@ public class PlatformManager {
         }
     }
 
+    private <T extends Tool> T reset(T tool) {
+        new PatternTraverser(tool).reset(null);
+        return tool;
+    }
+
     @SuppressWarnings("deprecation")
     @Subscribe
     public void handleBlockInteract(BlockInteractEvent event) {
@@ -371,7 +377,7 @@ public class PlatformManager {
                             fp.runAction(new Runnable() {
                                 @Override
                                 public void run() {
-                                    superPickaxe.actPrimary(queryCapability(Capability.WORLD_EDITING), getConfiguration(), player, session, location);
+                                    reset(superPickaxe).actPrimary(queryCapability(Capability.WORLD_EDITING), getConfiguration(), player, session, location);
                                 }
                             }, true, true);
                             event.setCancelled(true);
@@ -385,7 +391,7 @@ public class PlatformManager {
                             fp.runAction(new Runnable() {
                                 @Override
                                 public void run() {
-                                    ((DoubleActionBlockTool) tool).actSecondary(queryCapability(Capability.WORLD_EDITING), getConfiguration(), player, session, location);
+                                    reset(((DoubleActionBlockTool) tool)).actSecondary(queryCapability(Capability.WORLD_EDITING), getConfiguration(), player, session, location);
                                 }
                             }, true, true);
                             event.setCancelled(true);
@@ -417,7 +423,7 @@ public class PlatformManager {
                             fp.runAction(new Runnable() {
                                 @Override
                                 public void run() {
-                                    ((BlockTool) tool).actPrimary(queryCapability(Capability.WORLD_EDITING), getConfiguration(), player, session, location);
+                                    reset((BlockTool) tool).actPrimary(queryCapability(Capability.WORLD_EDITING), getConfiguration(), player, session, location);
                                 }
                             }, true, true);
                             event.setCancelled(true);
@@ -443,6 +449,7 @@ public class PlatformManager {
         // Create a proxy actor with a potentially different world for
         // making changes to the world
         final Player player = PlayerWrapper.wrap(createProxyActor(event.getPlayer()));
+
         try {
             switch (event.getInputType()) {
                 case PRIMARY: {
@@ -475,7 +482,7 @@ public class PlatformManager {
                             fp.runAsyncIfFree(new Runnable() {
                                 @Override
                                 public void run() {
-                                    ((DoubleActionTraceTool) tool).actSecondary(queryCapability(Capability.WORLD_EDITING), getConfiguration(), player, session);
+                                    reset((DoubleActionTraceTool) tool).actSecondary(queryCapability(Capability.WORLD_EDITING), getConfiguration(), player, session);
                                 }
                             });
                             event.setCancelled(true);
@@ -513,7 +520,7 @@ public class PlatformManager {
                             fp.runAsyncIfFree(new Runnable() {
                                 @Override
                                 public void run() {
-                                    ((TraceTool) tool).actPrimary(queryCapability(Capability.WORLD_EDITING), getConfiguration(), player, session);
+                                    reset((TraceTool) tool).actPrimary(queryCapability(Capability.WORLD_EDITING), getConfiguration(), player, session);
                                 }
                             });
                             event.setCancelled(true);
