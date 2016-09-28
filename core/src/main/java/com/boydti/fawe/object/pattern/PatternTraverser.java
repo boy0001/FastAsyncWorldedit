@@ -1,5 +1,6 @@
 package com.boydti.fawe.object.pattern;
 
+import com.boydti.fawe.object.mask.ResettableMask;
 import com.sk89q.worldedit.extent.Extent;
 import com.sk89q.worldedit.function.pattern.Pattern;
 import java.lang.reflect.Field;
@@ -23,6 +24,9 @@ public class PatternTraverser {
         if (pattern instanceof ResettablePattern) {
             ((ResettablePattern) pattern).reset();
         }
+        if (pattern instanceof ResettableMask) {
+            ((ResettableMask) pattern).reset();
+        }
         Class<?> current = pattern.getClass();
         while(current.getSuperclass() != null) {
             if (newExtent != null) {
@@ -35,7 +39,13 @@ public class PatternTraverser {
             try {
                 Field field = current.getDeclaredField("pattern");
                 field.setAccessible(true);
-                Pattern next = (Pattern) field.get(pattern);
+                Object next = field.get(pattern);
+                reset(next, newExtent);
+            } catch (NoSuchFieldException | IllegalAccessException ignore) {}
+            try {
+                Field field = current.getDeclaredField("mask");
+                field.setAccessible(true);
+                Object next = field.get(pattern);
                 reset(next, newExtent);
             } catch (NoSuchFieldException | IllegalAccessException ignore) {}
             try {

@@ -76,6 +76,7 @@ import com.sk89q.worldedit.math.interpolation.KochanekBartelsInterpolation;
 import com.sk89q.worldedit.regions.CuboidRegion;
 import com.sk89q.worldedit.regions.selector.CuboidRegionSelector;
 import com.sk89q.worldedit.session.SessionManager;
+import com.sk89q.worldedit.session.request.Request;
 import com.sk89q.worldedit.util.command.parametric.ParametricBuilder;
 import com.sk89q.worldedit.world.registry.BundledBlockData;
 import java.io.File;
@@ -336,6 +337,7 @@ public class Fawe {
             EditSessionEvent.inject(); // Add EditSession to event
             LocalSession.inject(); // Add remember order / queue flushing
             SessionManager.inject(); // Custom session saving
+            Request.inject(); // Custom pattern extent
             // Commands
             BrushCommands.inject(); // Translations + heightmap
             ToolCommands.inject(); // Translations + inspect

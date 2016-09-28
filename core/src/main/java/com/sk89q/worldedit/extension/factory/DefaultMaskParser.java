@@ -97,7 +97,7 @@ public class DefaultMaskParser extends InputParser<Mask> {
     }
 
     private Mask getBlockMaskComponent(List<Mask> masks, String component, ParserContext context) throws InputParseException {
-        Extent extent = Request.request().getEditSession();
+        Extent extent = Request.request().getExtent();
 
         final char firstChar = component.charAt(0);
         switch (firstChar) {
