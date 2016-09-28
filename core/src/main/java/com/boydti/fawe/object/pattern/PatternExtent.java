@@ -20,6 +20,7 @@ import javax.annotation.Nullable;
 public class PatternExtent extends AbstractPattern implements Extent {
     private final Pattern pattern;
     private BaseBlock block;
+    private Vector target = new Vector();
 
     public PatternExtent(Pattern pattern) {
         this.pattern = pattern;
@@ -53,13 +54,27 @@ public class PatternExtent extends AbstractPattern implements Extent {
 
     @Override
     public BaseBlock getBlock(Vector position) {
-        return block = pattern.apply(position);
+        BaseBlock tmp = pattern.apply(position);
+        if (position == target || (position.x == target.x && position.y == target.y && position.z == target.z)) {
+            block = tmp;
+        } else {
+            block = null;
+        }
+        return tmp;
     }
 
-    public BaseBlock getAndResetBlock() {
+    public void setTarget(Vector vector) {
+        this.target = vector;
+    }
+
+    public BaseBlock getAndResetTarget() {
         BaseBlock result = block;
-        block = null;
-        return result;
+        if (result != null) {
+            block = null;
+            return result;
+        } else {
+            return pattern.apply(target);
+        }
     }
 
     @Override

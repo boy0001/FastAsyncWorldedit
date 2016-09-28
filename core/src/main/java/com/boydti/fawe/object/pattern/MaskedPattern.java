@@ -25,8 +25,9 @@ public class MaskedPattern extends AbstractPattern {
 
     @Override
     public BaseBlock apply(Vector position) {
+        patternExtent.setTarget(position);
         if (mask.test(position)) {
-            return patternExtent.apply(position);
+            return patternExtent.getAndResetTarget();
         }
         return secondaryPattern.apply(position);
     }

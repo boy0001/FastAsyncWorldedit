@@ -27,6 +27,7 @@ import com.sk89q.worldedit.blocks.BlockData;
 import com.sk89q.worldedit.command.BrushCommands;
 import com.sk89q.worldedit.command.ClipboardCommands;
 import com.sk89q.worldedit.command.FlattenedClipboardTransform;
+import com.sk89q.worldedit.command.GeneralCommands;
 import com.sk89q.worldedit.command.HistoryCommands;
 import com.sk89q.worldedit.command.NavigationCommands;
 import com.sk89q.worldedit.command.RegionCommands;
@@ -350,6 +351,7 @@ public class Fawe {
             NavigationCommands.inject(); // Translations + thru fix
             ParametricBuilder.inject(); // Translations
             ToolUtilCommands.inject(); // Fixes + Translations
+            GeneralCommands.inject(); // Translations + gmask args
             // Schematic
             SchematicReader.inject();
             SchematicWriter.inject();
