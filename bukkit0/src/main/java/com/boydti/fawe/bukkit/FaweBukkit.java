@@ -169,29 +169,31 @@ public class FaweBukkit implements IFawe, Listener {
         }
         try {
             return plugin.getQueue(world);
-        } catch (Throwable ignore) {}
-        // Disable incompatible settings
-        Settings.QUEUE.PARALLEL_THREADS = 1; // BukkitAPI placer is too slow to parallel thread at the chunk level
-        Settings.HISTORY.COMBINE_STAGES = false; // Performing a chunk copy (if possible) wouldn't be faster using the BukkitAPI
-        if (hasNMS) {
-            debug("====== NO NMS BLOCK PLACER FOUND ======");
-            debug("FAWE couldn't find a fast block placer");
-            debug("Bukkit version: " + Bukkit.getVersion());
-            debug("NMS label: " + plugin.getClass().getSimpleName().split("_")[1]);
-            debug("Fallback placer: " + BukkitQueue_All.class);
-            debug("=======================================");
-            debug("Download the version of FAWE for your platform");
-            debug(" - http://ci.athion.net/job/FastAsyncWorldEdit/lastSuccessfulBuild/artifact/target");
-            debug("=======================================");
-            TaskManager.IMP.laterAsync(new Runnable() {
-                @Override
-                public void run() {
-                    MainUtil.sendAdmin("&cNo NMS placer found, see console!");
-                }
-            }, 1);
-            hasNMS = false;
+        } catch (Throwable ignore) {
+            // Disable incompatible settings
+            Settings.QUEUE.PARALLEL_THREADS = 1; // BukkitAPI placer is too slow to parallel thread at the chunk level
+            Settings.HISTORY.COMBINE_STAGES = false; // Performing a chunk copy (if possible) wouldn't be faster using the BukkitAPI
+            if (hasNMS) {
+                ignore.printStackTrace();
+                debug("====== NO NMS BLOCK PLACER FOUND ======");
+                debug("FAWE couldn't find a fast block placer");
+                debug("Bukkit version: " + Bukkit.getVersion());
+                debug("NMS label: " + plugin.getClass().getSimpleName().split("_")[1]);
+                debug("Fallback placer: " + BukkitQueue_All.class);
+                debug("=======================================");
+                debug("Download the version of FAWE for your platform");
+                debug(" - http://ci.athion.net/job/FastAsyncWorldEdit/lastSuccessfulBuild/artifact/target");
+                debug("=======================================");
+                TaskManager.IMP.laterAsync(new Runnable() {
+                    @Override
+                    public void run() {
+                        MainUtil.sendAdmin("&cNo NMS placer found, see console!");
+                    }
+                }, 1);
+                hasNMS = false;
+            }
+            return new BukkitQueue_All(world);
         }
-        return new BukkitQueue_All(world);
     }
 
     /**

@@ -37,6 +37,7 @@ import com.sk89q.worldedit.command.ToolCommands;
 import com.sk89q.worldedit.command.ToolUtilCommands;
 import com.sk89q.worldedit.command.composition.SelectionCommand;
 import com.sk89q.worldedit.command.tool.AreaPickaxe;
+import com.sk89q.worldedit.command.tool.BrushTool;
 import com.sk89q.worldedit.command.tool.LongRangeBuildTool;
 import com.sk89q.worldedit.command.tool.RecursivePickaxe;
 import com.sk89q.worldedit.command.tool.brush.GravityBrush;
@@ -74,6 +75,7 @@ import com.sk89q.worldedit.function.visitor.RegionVisitor;
 import com.sk89q.worldedit.history.change.EntityCreate;
 import com.sk89q.worldedit.history.change.EntityRemove;
 import com.sk89q.worldedit.math.interpolation.KochanekBartelsInterpolation;
+import com.sk89q.worldedit.math.transform.AffineTransform;
 import com.sk89q.worldedit.regions.CuboidRegion;
 import com.sk89q.worldedit.regions.selector.CuboidRegionSelector;
 import com.sk89q.worldedit.session.SessionManager;
@@ -356,11 +358,12 @@ public class Fawe {
             SchematicReader.inject();
             SchematicWriter.inject();
             ClipboardFormat.inject();
-            // Brushes
+            // Brushes/Tools
             GravityBrush.inject(); // Fix for instant placement assumption
             LongRangeBuildTool.inject();
             AreaPickaxe.inject(); // Fixes
             RecursivePickaxe.inject(); // Fixes
+            BrushTool.inject(); // Add transform
             // Selectors
             CuboidRegionSelector.inject(); // Translations
             // Visitors
@@ -412,6 +415,7 @@ public class Fawe {
             NBTOutputStream.inject(); // New methods
             // Math
             KochanekBartelsInterpolation.inject(); // Optimizations
+            AffineTransform.inject(); // Optimizations
             try {
                 CommandManager.inject(); // Async commands
                 PlatformManager.inject(); // Async brushes / tools

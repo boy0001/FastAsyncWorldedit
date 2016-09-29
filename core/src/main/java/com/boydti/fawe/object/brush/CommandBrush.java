@@ -8,6 +8,7 @@ import com.sk89q.worldedit.EditSession;
 import com.sk89q.worldedit.MaxChangedBlocksException;
 import com.sk89q.worldedit.Vector;
 import com.sk89q.worldedit.WorldVectorFace;
+import com.sk89q.worldedit.command.tool.BrushTool;
 import com.sk89q.worldedit.command.tool.brush.Brush;
 import com.sk89q.worldedit.entity.Player;
 import com.sk89q.worldedit.event.platform.CommandEvent;
@@ -20,11 +21,13 @@ public class CommandBrush implements Brush {
     private final String command;
     private final Player player;
     private final int radius;
+    private final BrushTool tool;
 
-    public CommandBrush(Player player, String command, double radius) {
+    public CommandBrush(Player player, BrushTool tool, String command, double radius) {
         this.player = player;
         this.command = command;
         this.radius = (int) radius;
+        this.tool = tool;
     }
 
     @Override

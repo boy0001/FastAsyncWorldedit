@@ -91,7 +91,7 @@ public class FlattenedClipboardTransform {
                 maximum.setZ(minimum.getZ()) };
 
         for (int i = 0; i < corners.length; i++) {
-            corners[i] = transformAround.apply(corners[i]);
+            corners[i] = transformAround.apply(new Vector(corners[i]));
         }
 
         Vector newMinimum = corners[0];

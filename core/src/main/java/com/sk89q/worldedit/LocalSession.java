@@ -29,6 +29,7 @@ import com.boydti.fawe.object.brush.DoubleActionBrushTool;
 import com.boydti.fawe.object.changeset.DiskStorageHistory;
 import com.boydti.fawe.object.changeset.FaweChangeSet;
 import com.boydti.fawe.object.clipboard.DiskOptimizedClipboard;
+import com.boydti.fawe.object.extent.TransformExtent;
 import com.boydti.fawe.util.EditSessionBuilder;
 import com.boydti.fawe.util.MainUtil;
 import com.boydti.fawe.wrappers.WorldWrapper;
@@ -138,6 +139,7 @@ public class LocalSession {
     private transient int cuiVersion = -1;
     private transient boolean fastMode = false;
     private transient Mask mask;
+    private TransformExtent transform = null;
     private transient TimeZone timezone = TimeZone.getDefault();
 
     private transient World currentWorld;
@@ -1203,7 +1205,12 @@ public class LocalSession {
                         getBlockChangeLimit(), blockBag, player);
         editSession.setFastMode(fastMode);
         Request.request().setEditSession(editSession);
-        editSession.setMask(mask);
+        if (mask != null) {
+            editSession.setMask(mask);
+        }
+        if (transform != null) {
+            editSession.addTransform(transform);
+        }
 
         return editSession;
     }
@@ -1252,6 +1259,14 @@ public class LocalSession {
     @SuppressWarnings("deprecation")
     public void setMask(com.sk89q.worldedit.masks.Mask mask) {
         setMask(mask != null ? Masks.wrap(mask) : null);
+    }
+
+    public TransformExtent getTransform() {
+        return transform;
+    }
+
+    public void setTransform(TransformExtent transform) {
+        this.transform = transform;
     }
 
     public static Class<?> inject() {

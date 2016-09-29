@@ -1,4 +1,4 @@
-package com.boydti.fawe.object.brush;
+package com.sk89q.worldedit.command.tool;
 
 import com.boydti.fawe.object.extent.TransformExtent;
 import com.sk89q.worldedit.EditSession;
@@ -6,7 +6,8 @@ import com.sk89q.worldedit.LocalConfiguration;
 import com.sk89q.worldedit.LocalSession;
 import com.sk89q.worldedit.MaxChangedBlocksException;
 import com.sk89q.worldedit.WorldVector;
-import com.sk89q.worldedit.command.tool.DoubleActionTraceTool;
+import com.sk89q.worldedit.command.tool.brush.Brush;
+import com.sk89q.worldedit.command.tool.brush.SphereBrush;
 import com.sk89q.worldedit.entity.Player;
 import com.sk89q.worldedit.extension.platform.Actor;
 import com.sk89q.worldedit.extension.platform.Platform;
@@ -20,18 +21,16 @@ import javax.annotation.Nullable;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
-public class DoubleActionBrushTool implements DoubleActionTraceTool {
-
-    public enum BrushAction {
-        PRIMARY,
-        SECONDARY
-    }
+/**
+ * Builds a shape at the place being looked at.
+ */
+public class BrushTool implements TraceTool {
 
     protected static int MAX_RANGE = 500;
     protected int range = -1;
     private Mask mask = null;
     private TransformExtent transform = null;
-    private DoubleActionBrush brush = null;
+    private Brush brush = new SphereBrush();
     @Nullable
     private Pattern material;
     private double size = 1;
@@ -42,7 +41,7 @@ public class DoubleActionBrushTool implements DoubleActionTraceTool {
      *
      * @param permission the permission to check before use is allowed
      */
-    public DoubleActionBrushTool(String permission) {
+    public BrushTool(String permission) {
         checkNotNull(permission);
         this.permission = permission;
     }
@@ -84,7 +83,7 @@ public class DoubleActionBrushTool implements DoubleActionTraceTool {
      * @param brush tbe brush
      * @param permission the permission
      */
-    public void setBrush(DoubleActionBrush brush, String permission) {
+    public void setBrush(Brush brush, String permission) {
         this.brush = brush;
         this.permission = permission;
     }
@@ -94,7 +93,7 @@ public class DoubleActionBrushTool implements DoubleActionTraceTool {
      *
      * @return the current brush
      */
-    public DoubleActionBrush getBrush() {
+    public Brush getBrush() {
         return brush;
     }
 
@@ -152,7 +151,8 @@ public class DoubleActionBrushTool implements DoubleActionTraceTool {
         this.range = range;
     }
 
-    public boolean act(BrushAction action, Platform server, LocalConfiguration config, Player player, LocalSession session) {
+    @Override
+    public boolean actPrimary(Platform server, LocalConfiguration config, Player player, LocalSession session) {
         WorldVector target = null;
         target = player.getBlockTrace(getRange(), true);
 
@@ -182,7 +182,7 @@ public class DoubleActionBrushTool implements DoubleActionTraceTool {
             editSession.addTransform(transform);
         }
         try {
-            brush.build(action, editSession, target, material, size);
+            brush.build(editSession, target, material, size);
         } catch (MaxChangedBlocksException e) {
             player.printError("Max blocks change limit reached.");
         } finally {
@@ -191,16 +191,11 @@ public class DoubleActionBrushTool implements DoubleActionTraceTool {
             }
             session.remember(editSession);
         }
+
         return true;
     }
 
-    @Override
-    public boolean actPrimary(Platform server, LocalConfiguration config, Player player, LocalSession session) {
-        return act(BrushAction.PRIMARY, server, config, player, session);
-    }
-
-    @Override
-    public boolean actSecondary(Platform server, LocalConfiguration config, Player player, LocalSession session) {
-        return act(BrushAction.SECONDARY, server, config, player, session);
+    public static Class<?> inject() {
+        return BrushTool.class;
     }
 }

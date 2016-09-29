@@ -1,24 +1,6 @@
-/*
- * WorldEdit, a Minecraft world manipulation toolkit
- * Copyright (C) sk89q <http://www.sk89q.com>
- * Copyright (C) WorldEdit team and contributors
- *
- * This program is free software: you can redistribute it and/or modify it
- * under the terms of the GNU Lesser General Public License as published by the
- * Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful, but WITHOUT
- * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
- * FITNESS FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License
- * for more details.
- *
- * You should have received a copy of the GNU Lesser General Public License
- * along with this program. If not, see <http://www.gnu.org/licenses/>.
- */
-
 package com.sk89q.worldedit.extent.transform;
 
+import com.boydti.fawe.FaweCache;
 import com.sk89q.worldedit.Vector;
 import com.sk89q.worldedit.WorldEditException;
 import com.sk89q.worldedit.blocks.BaseBlock;
@@ -28,9 +10,9 @@ import com.sk89q.worldedit.math.transform.Transform;
 import com.sk89q.worldedit.world.registry.BlockRegistry;
 import com.sk89q.worldedit.world.registry.State;
 import com.sk89q.worldedit.world.registry.StateValue;
-
-import javax.annotation.Nullable;
 import java.util.Map;
+import javax.annotation.Nullable;
+
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
@@ -44,6 +26,8 @@ public class BlockTransformExtent extends AbstractDelegateExtent {
 
     private final Transform transform;
     private final BlockRegistry blockRegistry;
+    private final BaseBlock[] BLOCK_TRANSFORM;
+    private final BaseBlock[] BLOCK_TRANSFORM_INVERSE;
 
     /**
      * Create a new instance.
@@ -57,6 +41,16 @@ public class BlockTransformExtent extends AbstractDelegateExtent {
         checkNotNull(blockRegistry);
         this.transform = transform;
         this.blockRegistry = blockRegistry;
+        BLOCK_TRANSFORM = new BaseBlock[FaweCache.CACHE_BLOCK.length];
+        BLOCK_TRANSFORM_INVERSE = new BaseBlock[FaweCache.CACHE_BLOCK.length];
+        Transform inverse = transform.inverse();
+        for (int i = 0; i < BLOCK_TRANSFORM.length; i++) {
+            BaseBlock block = FaweCache.CACHE_BLOCK[i];
+            if (block != null) {
+                BLOCK_TRANSFORM[i] = transform(new BaseBlock(block), transform, blockRegistry);
+                BLOCK_TRANSFORM_INVERSE[i] = transform(new BaseBlock(block), inverse, blockRegistry);
+            }
+        }
     }
 
     /**
@@ -68,32 +62,28 @@ public class BlockTransformExtent extends AbstractDelegateExtent {
         return transform;
     }
 
-    /**
-     * Transform a block without making a copy.
-     *
-     * @param block the block
-     * @param reverse true to transform in the opposite direction
-     * @return the same block
-     */
-    private BaseBlock transformBlock(BaseBlock block, boolean reverse) {
-        return transform(block, reverse ? transform.inverse() : transform, blockRegistry);
-    }
-
     @Override
     public BaseBlock getBlock(Vector position) {
-        return transformBlock(super.getBlock(position), false);
+        return transformFast(super.getBlock(position));
     }
 
     @Override
     public BaseBlock getLazyBlock(Vector position) {
-        return transformBlock(super.getLazyBlock(position), false);
+        return transformFast(super.getLazyBlock(position));
     }
 
     @Override
     public boolean setBlock(Vector location, BaseBlock block) throws WorldEditException {
-        return super.setBlock(location, transformBlock(block, true));
+        return super.setBlock(location, transformFastInverse(block));
     }
 
+    private final BaseBlock transformFast(BaseBlock block) {
+        return BLOCK_TRANSFORM[FaweCache.getCombined(block)];
+    }
+
+    private final BaseBlock transformFastInverse(BaseBlock block) {
+        return BLOCK_TRANSFORM_INVERSE[FaweCache.getCombined(block)];
+    }
 
     /**
      * Transform the given block using the given transform.
@@ -157,7 +147,7 @@ public class BlockTransformExtent extends AbstractDelegateExtent {
      */
     @Nullable
     private static StateValue getNewStateValue(State state, Transform transform, Vector oldDirection) {
-        Vector newDirection = transform.apply(oldDirection).subtract(transform.apply(Vector.ZERO)).normalize();
+        Vector newDirection = new Vector(transform.apply(oldDirection)).subtract(transform.apply(Vector.ZERO)).normalize();
         StateValue newValue = null;
         double closest = -2;
         boolean found = false;

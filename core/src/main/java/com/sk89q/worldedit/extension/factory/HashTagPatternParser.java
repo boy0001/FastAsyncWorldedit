@@ -1,6 +1,7 @@
 package com.sk89q.worldedit.extension.factory;
 
 import com.boydti.fawe.object.pattern.ExistingPattern;
+import com.boydti.fawe.object.pattern.ExpressionPattern;
 import com.boydti.fawe.object.pattern.Linear3DBlockPattern;
 import com.boydti.fawe.object.pattern.LinearBlockPattern;
 import com.boydti.fawe.object.pattern.MaskedPattern;
@@ -11,9 +12,14 @@ import com.boydti.fawe.object.pattern.OffsetPattern;
 import com.boydti.fawe.object.pattern.PatternExtent;
 import com.boydti.fawe.object.pattern.RandomOffsetPattern;
 import com.boydti.fawe.object.pattern.RelativePattern;
+import com.boydti.fawe.object.pattern.SolidRandomOffsetPattern;
+import com.boydti.fawe.object.pattern.SurfaceRandomOffsetPattern;
+import com.sk89q.worldedit.EditSession;
 import com.sk89q.worldedit.EmptyClipboardException;
 import com.sk89q.worldedit.LocalSession;
+import com.sk89q.worldedit.Vector;
 import com.sk89q.worldedit.WorldEdit;
+import com.sk89q.worldedit.entity.Player;
 import com.sk89q.worldedit.extension.input.InputParseException;
 import com.sk89q.worldedit.extension.input.ParserContext;
 import com.sk89q.worldedit.extent.clipboard.Clipboard;
@@ -25,6 +31,7 @@ import com.sk89q.worldedit.function.pattern.RandomPattern;
 import com.sk89q.worldedit.internal.expression.Expression;
 import com.sk89q.worldedit.internal.expression.ExpressionException;
 import com.sk89q.worldedit.internal.registry.InputParser;
+import com.sk89q.worldedit.regions.shape.WorldEditExpressionEnvironment;
 import com.sk89q.worldedit.session.ClipboardHolder;
 import com.sk89q.worldedit.session.request.Request;
 import java.util.ArrayList;
@@ -137,6 +144,30 @@ public class HashTagPatternParser extends InputParser<Pattern> {
                             } catch (NumberFormatException | ExpressionException e) {
                                 throw new InputParseException("The correct format is #offset:<dx>:<dy>:<dz>:<pattern>");
                             }
+                        case "#surfacespread": {
+                            try {
+                                int x = (int) Math.abs(Expression.compile(split2[1]).evaluate());
+                                int y = (int) Math.abs(Expression.compile(split2[2]).evaluate());
+                                int z = (int) Math.abs(Expression.compile(split2[3]).evaluate());
+                                rest = rest.substring(split2[1].length() + split2[2].length() + split2[3].length() + 3);
+                                Pattern pattern = parseFromInput(rest, context);
+                                return new SurfaceRandomOffsetPattern(pattern, x, y, z);
+                            } catch (NumberFormatException | ExpressionException e) {
+                                throw new InputParseException("The correct format is #spread:<dx>:<dy>:<dz>:<pattern>");
+                            }
+                        }
+                        case "#solidspread": {
+                            try {
+                                int x = (int) Math.abs(Expression.compile(split2[1]).evaluate());
+                                int y = (int) Math.abs(Expression.compile(split2[2]).evaluate());
+                                int z = (int) Math.abs(Expression.compile(split2[3]).evaluate());
+                                rest = rest.substring(split2[1].length() + split2[2].length() + split2[3].length() + 3);
+                                Pattern pattern = parseFromInput(rest, context);
+                                return new SolidRandomOffsetPattern(pattern, x, y, z);
+                            } catch (NumberFormatException | ExpressionException e) {
+                                throw new InputParseException("The correct format is #spread:<dx>:<dy>:<dz>:<pattern>");
+                            }
+                        }
                         case "#randomoffset":
                         case "#spread": {
                             try {
@@ -176,6 +207,21 @@ public class HashTagPatternParser extends InputParser<Pattern> {
                 }
                 throw new InputParseException("Invalid, see: https://github.com/boy0001/FastAsyncWorldedit/wiki/WorldEdit-and-FAWE-patterns");
             }
+            case '=': {
+                try {
+                    Expression exp = Expression.compile(input.substring(1), "x", "y", "z");
+                    EditSession editSession = Request.request().getEditSession();
+                    if (editSession == null) {
+                        editSession = context.requireSession().createEditSession((Player) context.getActor());
+                    }
+                    WorldEditExpressionEnvironment env = new WorldEditExpressionEnvironment(
+                            editSession, Vector.ONE, Vector.ZERO);
+                    exp.setEnvironment(env);
+                    return new ExpressionPattern(exp);
+                } catch (ExpressionException e) {
+                    throw new InputParseException("Invalid expression: " + e.getMessage());
+                }
+            }
             default:
                 List<String> items = split(input, ',');
                 if (items.size() == 1) {
@@ -183,23 +229,27 @@ public class HashTagPatternParser extends InputParser<Pattern> {
                 }
                 BlockFactory blockRegistry = worldEdit.getBlockFactory();
                 RandomPattern randomPattern = new RandomPattern();
-                for (String token : items) {
-                    Pattern pattern;
-                    double chance;
-                    // Parse special percentage syntax
-                    if (token.matches("[0-9]+(\\.[0-9]*)?%.*")) {
-                        String[] p = token.split("%");
-                        if (p.length < 2) {
-                            throw new InputParseException("Missing the pattern after the % symbol for '" + input + "'");
+                try {
+                    for (String token : items) {
+                        Pattern pattern;
+                        double chance;
+                        // Parse special percentage syntax
+                        if (token.matches("[0-9]+(\\.[0-9]*)?%.*")) {
+                            String[] p = token.split("%");
+                            if (p.length < 2) {
+                                throw new InputParseException("Missing the pattern after the % symbol for '" + input + "'");
+                            } else {
+                                chance = Expression.compile(p[0]).evaluate();
+                                pattern = parseFromInput(p[1], context);
+                            }
                         } else {
-                            chance = Double.parseDouble(p[0]);
-                            pattern = parseFromInput(p[1], context);
+                            chance = 1;
+                            pattern = parseFromInput(token, context);
                         }
-                    } else {
-                        chance = 1;
-                        pattern = parseFromInput(token, context);
+                        randomPattern.add(pattern, chance);
                     }
-                    randomPattern.add(pattern, chance);
+                } catch (NumberFormatException | ExpressionException e) {
+                    throw new InputParseException("Invalid, see: https://github.com/boy0001/FastAsyncWorldedit/wiki/WorldEdit-and-FAWE-patterns");
                 }
                 return randomPattern;
 

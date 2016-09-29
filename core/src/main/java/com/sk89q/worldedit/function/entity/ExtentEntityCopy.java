@@ -27,7 +27,6 @@ import com.sk89q.worldedit.entity.BaseEntity;
 import com.sk89q.worldedit.entity.Entity;
 import com.sk89q.worldedit.extent.Extent;
 import com.sk89q.worldedit.function.EntityFunction;
-import com.sk89q.worldedit.function.operation.ForwardExtentCopy;
 import com.sk89q.worldedit.internal.helper.MCDirections;
 import com.sk89q.worldedit.math.transform.Transform;
 import com.sk89q.worldedit.util.Direction;
@@ -99,7 +98,7 @@ public class ExtentEntityCopy implements EntityFunction {
 
             newDirection = transform.isIdentity() ?
                     entity.getLocation().getDirection()
-                    : transform.apply(location.getDirection()).subtract(transform.apply(Vector.ZERO)).normalize();
+                    : new Vector(transform.apply(location.getDirection())).subtract(transform.apply(Vector.ZERO)).normalize();
             newLocation = new Location(destination, newPosition.add(to.round().add(0.5, 0.5, 0.5)), newDirection);
 
             // Some entities store their position data in NBT
@@ -148,7 +147,7 @@ public class ExtentEntityCopy implements EntityFunction {
                     Direction direction = MCDirections.fromHanging(d);
 
                     if (direction != null) {
-                        Vector vector = transform.apply(direction.toVector()).subtract(transform.apply(Vector.ZERO)).normalize();
+                        Vector vector = new Vector(transform.apply(direction.toVector())).subtract(transform.apply(Vector.ZERO)).normalize();
                         Direction newDirection = Direction.findClosest(vector, Flag.CARDINAL);
 
                         builder.putByte("Direction", (byte) MCDirections.toHanging(newDirection));

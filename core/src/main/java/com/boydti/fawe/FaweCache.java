@@ -63,14 +63,14 @@ public class FaweCache {
      * Immutable BaseBlock cache
      * [ combined ] => block
      */
-    public final static BaseBlock[] CACHE_BLOCK = new BaseBlock[Short.MAX_VALUE];
+    public final static BaseBlock[] CACHE_BLOCK = new BaseBlock[Character.MAX_VALUE + 1];
 
     /**
      * Faster than java random (since it just needs to look random)
      */
     public final static PseudoRandom RANDOM = new PseudoRandom();
 
-    public final static Color[] CACHE_COLOR = new Color[Short.MAX_VALUE];
+    public final static Color[] CACHE_COLOR = new Color[Character.MAX_VALUE + 1];
 
     /**
      * Get the cached BaseBlock object for an id/data<br>
@@ -143,7 +143,7 @@ public class FaweCache {
         CACHE_DATA[i] = (byte) k;
         }
 
-        for (int i = 0; i < Short.MAX_VALUE; i++) {
+        for (int i = 0; i < Character.MAX_VALUE; i++) {
             int id = i >> 4;
             int data = i & 0xf;
             CACHE_BLOCK[i] = new BaseBlock(id, data) {

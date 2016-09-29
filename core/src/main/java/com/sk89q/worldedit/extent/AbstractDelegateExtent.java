@@ -27,7 +27,6 @@ import com.sk89q.worldedit.entity.BaseEntity;
 import com.sk89q.worldedit.entity.Entity;
 import com.sk89q.worldedit.function.operation.Operation;
 import com.sk89q.worldedit.function.operation.OperationQueue;
-import com.sk89q.worldedit.regions.CuboidRegion;
 import com.sk89q.worldedit.regions.Region;
 import com.sk89q.worldedit.util.Location;
 import com.sk89q.worldedit.world.biome.BaseBiome;
@@ -86,7 +85,7 @@ public abstract class AbstractDelegateExtent implements Extent {
         mutable.x = x;
         mutable.y = y;
         mutable.z = z;
-        return extent.setBlock(mutable, block);
+        return setBlock(mutable, block);
     }
 
     @Override

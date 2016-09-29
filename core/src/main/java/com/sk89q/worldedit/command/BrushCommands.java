@@ -390,7 +390,7 @@ public class BrushCommands {
     public void command(Player player, LocalSession session, EditSession editSession, @Optional("5") double radius, CommandContext args) throws WorldEditException {
         BrushTool tool = session.getBrushTool(player.getItemInHand());
         String cmd = args.getJoinedStrings(1);
-        tool.setBrush(new CommandBrush(player, cmd, radius), "worldedit.brush.copy");
+        tool.setBrush(new CommandBrush(player, tool, cmd, radius), "worldedit.brush.copy");
         BBC.BRUSH_COMMAND.send(player, cmd);
     }
 

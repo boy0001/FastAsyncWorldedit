@@ -7,12 +7,15 @@ import com.boydti.fawe.object.mask.DataMask;
 import com.boydti.fawe.object.mask.IdDataMask;
 import com.boydti.fawe.object.mask.IdMask;
 import com.boydti.fawe.object.mask.RadiusMask;
+import com.boydti.fawe.object.mask.WallMask;
 import com.boydti.fawe.object.mask.XAxisMask;
 import com.boydti.fawe.object.mask.YAxisMask;
 import com.boydti.fawe.object.mask.ZAxisMask;
+import com.sk89q.worldedit.EditSession;
 import com.sk89q.worldedit.IncompleteRegionException;
 import com.sk89q.worldedit.Vector;
 import com.sk89q.worldedit.WorldEdit;
+import com.sk89q.worldedit.blocks.BaseBlock;
 import com.sk89q.worldedit.extension.input.InputParseException;
 import com.sk89q.worldedit.extension.input.NoMatchException;
 import com.sk89q.worldedit.extension.input.ParserContext;
@@ -102,6 +105,12 @@ public class DefaultMaskParser extends InputParser<Mask> {
         final char firstChar = component.charAt(0);
         switch (firstChar) {
             case '#':
+                int colon = component.indexOf(':');
+                if (colon != -1) {
+                    String rest = component.substring(colon + 1);
+                    component = component.substring(0, colon);
+                    masks.add(getBlockMaskComponent(masks, rest, context));
+                }
                 switch (component.toLowerCase()) {
                     case "#existing":
                         return new ExistingBlockMask(extent);
@@ -131,6 +140,13 @@ public class DefaultMaskParser extends InputParser<Mask> {
                         return new DataMask(extent);
                     case "#iddata":
                         return new IdDataMask(extent);
+                    case "#wall":
+                        masks.add(new ExistingBlockMask(extent));
+                        BlockMask matchAir = new BlockMask(extent, EditSession.nullBlock);
+                        return new WallMask(extent, Arrays.asList(new BaseBlock(0)), 1, 8);
+                    case "#surface":
+                        masks.add(new ExistingBlockMask(extent));
+                        return new AdjacentMask(extent, Arrays.asList(new BaseBlock(0)), 1, 8);
                     default:
                         throw new NoMatchException("Unrecognized mask '" + component + "'");
                 }
@@ -141,10 +157,10 @@ public class DefaultMaskParser extends InputParser<Mask> {
                     throw new InputParseException("Unknown angle '" + component + "' (not in form `/#,#`)");
                 }
                 try {
-                    int y1 = Integer.parseInt(split[0]);
-                    int y2 = Integer.parseInt(split[1]);
+                    int y1 = (int) Math.abs(Expression.compile(split[0]).evaluate());
+                    int y2 = (int) Math.abs(Expression.compile(split[1]).evaluate());
                     return new AngleMask(extent, y1, y2);
-                } catch (NumberFormatException e) {
+                } catch (NumberFormatException | ExpressionException e) {
                     throw new InputParseException("Unknown angle '" + component + "' (not in form `/#,#`)");
                 }
             }
@@ -154,13 +170,14 @@ public class DefaultMaskParser extends InputParser<Mask> {
                     throw new InputParseException("Unknown range '" + component + "' (not in form `{#,#`)");
                 }
                 try {
-                    int y1 = Integer.parseInt(split[0]);
-                    int y2 = Integer.parseInt(split[1]);
+                    int y1 = (int) Math.abs(Expression.compile(split[0]).evaluate());
+                    int y2 = (int) Math.abs(Expression.compile(split[1]).evaluate());
                     return new RadiusMask(y1, y2);
-                } catch (NumberFormatException e) {
+                } catch (NumberFormatException | ExpressionException e) {
                     throw new InputParseException("Unknown range '" + component + "' (not in form `{#,#`)");
                 }
             }
+            case '|':
             case '~': {
                 String[] split = component.substring(1).split("=");
                 ParserContext tempContext = new ParserContext(context);
@@ -171,13 +188,17 @@ public class DefaultMaskParser extends InputParser<Mask> {
                     int requiredMax = 8;
                     if (split.length == 2) {
                         String[] split2 = split[1].split(",");
-                        requiredMin = Integer.parseInt(split2[0]);
+                        requiredMin = (int) Math.abs(Expression.compile(split2[0]).evaluate());
                         if (split2.length == 2) {
-                            requiredMax = Integer.parseInt(split2[1]);
+                            requiredMax = (int) Math.abs(Expression.compile(split2[1]).evaluate());
                         }
                     }
-                    return new AdjacentMask(extent, worldEdit.getBlockFactory().parseFromListInput(component.substring(1), tempContext), requiredMin, requiredMax);
-                } catch (NumberFormatException e) {
+                    if (firstChar == '~') {
+                        return new AdjacentMask(extent, worldEdit.getBlockFactory().parseFromListInput(component.substring(1), tempContext), requiredMin, requiredMax);
+                    } else {
+                        return new WallMask(extent, worldEdit.getBlockFactory().parseFromListInput(component.substring(1), tempContext), requiredMin, requiredMax);
+                    }
+                } catch (NumberFormatException | ExpressionException e) {
                     throw new InputParseException("Unknown adjacent mask '" + component + "' (not in form `~<ids>[=count]`)");
                 }
             }
@@ -208,9 +229,12 @@ public class DefaultMaskParser extends InputParser<Mask> {
                 return Masks.asMask(new BiomeMask2D(context.requireExtent(), biomes));
 
             case '%':
-                int i = Integer.parseInt(component.substring(1));
-                return new NoiseFilter(new RandomNoise(), ((double) i) / 100);
-
+                try {
+                    double i = Math.abs(Expression.compile(component.substring(1)).evaluate());
+                    return new NoiseFilter(new RandomNoise(), (i) / 100);
+                } catch (NumberFormatException | ExpressionException e) {
+                    throw new InputParseException("Unknown percentage '" + component.substring(1) + "'");
+                }
             case '=':
                 try {
                     Expression exp = Expression.compile(component.substring(1), "x", "y", "z");

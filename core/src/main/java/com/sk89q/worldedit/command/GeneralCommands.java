@@ -1,6 +1,8 @@
 package com.sk89q.worldedit.command;
 
 import com.boydti.fawe.config.BBC;
+import com.boydti.fawe.object.extent.DefaultTransformParser;
+import com.boydti.fawe.object.extent.TransformExtent;
 import com.sk89q.minecraft.util.commands.Command;
 import com.sk89q.minecraft.util.commands.CommandContext;
 import com.sk89q.minecraft.util.commands.CommandPermissions;
@@ -20,6 +22,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
 public class GeneralCommands {
 
     private final WorldEdit worldEdit;
+    private final DefaultTransformParser transformParser;
 
     /**
      * Create a new instance.
@@ -29,6 +32,7 @@ public class GeneralCommands {
     public GeneralCommands(WorldEdit worldEdit) {
         checkNotNull(worldEdit);
         this.worldEdit = worldEdit;
+        transformParser = new DefaultTransformParser(worldEdit);
     }
 
     @Command(
@@ -102,7 +106,7 @@ public class GeneralCommands {
     public void gmask(Player player, LocalSession session, EditSession editSession, @Optional CommandContext context) throws WorldEditException {
         if (context == null || context.argsLength() == 0) {
             session.setMask((Mask) null);
-            BBC.BRUSH_MASK_DISABLED.send(player);
+            BBC.MASK_DISABLED.send(player);
         } else {
             ParserContext parserContext = new ParserContext();
             parserContext.setActor(player);
@@ -111,7 +115,31 @@ public class GeneralCommands {
             parserContext.setExtent(editSession);
             Mask mask = worldEdit.getMaskFactory().parseFromInput(context.getJoinedStrings(0), parserContext);
             session.setMask(mask);
-            BBC.BRUSH_MASK.send(player);
+            BBC.MASK.send(player);
+        }
+    }
+
+    @Command(
+            aliases = { "/gtransform", "gtransform" },
+            usage = "[transform]",
+            desc = "Set the global transform",
+            min = 0,
+            max = -1
+    )
+    @CommandPermissions("worldedit.global-trasnform")
+    public void gtransform(Player player, LocalSession session, EditSession editSession, @Optional CommandContext context) throws WorldEditException {
+        if (context == null || context.argsLength() == 0) {
+            session.setTransform(null);
+            BBC.TRANSFORM_DISABLED.send(player);
+        } else {
+            ParserContext parserContext = new ParserContext();
+            parserContext.setActor(player);
+            parserContext.setWorld(player.getWorld());
+            parserContext.setSession(session);
+            parserContext.setExtent(editSession);
+            TransformExtent transform = transformParser.parseFromInput(context.getJoinedStrings(0), parserContext);
+            session.setTransform(transform);
+            BBC.TRANSFORM.send(player);
         }
     }
 

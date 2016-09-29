@@ -2,6 +2,8 @@ package com.sk89q.worldedit.command;
 
 import com.boydti.fawe.config.BBC;
 import com.boydti.fawe.object.brush.DoubleActionBrushTool;
+import com.boydti.fawe.object.extent.DefaultTransformParser;
+import com.boydti.fawe.object.extent.TransformExtent;
 import com.sk89q.minecraft.util.commands.Command;
 import com.sk89q.minecraft.util.commands.CommandContext;
 import com.sk89q.minecraft.util.commands.CommandPermissions;
@@ -22,9 +24,11 @@ import com.sk89q.worldedit.util.command.parametric.Optional;
  */
 public class ToolUtilCommands {
     private final WorldEdit we;
+    private final DefaultTransformParser transformParser;
 
     public ToolUtilCommands(WorldEdit we) {
         this.we = we;
+        this.transformParser = new DefaultTransformParser(we);
     }
 
     @Command(
@@ -96,6 +100,42 @@ public class ToolUtilCommands {
     }
 
     @Command(
+            aliases = { "transform" },
+            usage = "[transform]",
+            desc = "Set the brush transform",
+            min = 0,
+            max = -1
+    )
+    @CommandPermissions("worldedit.brush.options.transform")
+    public void transform(Player player, LocalSession session, EditSession editSession, @Optional CommandContext context) throws WorldEditException {
+        Tool tool = session.getTool(player.getItemInHand());
+        if (tool == null) {
+            return;
+        }
+        if (context == null || context.argsLength() == 0) {
+            if (tool instanceof BrushTool) {
+                ((BrushTool) tool).setTransform(null);
+            } else if (tool instanceof DoubleActionBrushTool) {
+                ((DoubleActionBrushTool) tool).setTransform(null);
+            }
+            BBC.BRUSH_TRANSFORM_DISABLED.send(player);
+        } else {
+            ParserContext parserContext = new ParserContext();
+            parserContext.setActor(player);
+            parserContext.setWorld(player.getWorld());
+            parserContext.setSession(session);
+            parserContext.setExtent(editSession);
+            TransformExtent transform = transformParser.parseFromInput(context.getJoinedStrings(0), parserContext);
+            if (tool instanceof BrushTool) {
+                ((BrushTool) tool).setTransform(transform);
+            } else if (tool instanceof DoubleActionBrushTool) {
+                ((DoubleActionBrushTool) tool).setTransform(transform);
+            }
+            BBC.BRUSH_TRANSFORM.send(player);
+        }
+    }
+
+    @Command(
             aliases = { "mat", "material" },
             usage = "[pattern]",
             desc = "Set the brush material",
@@ -104,7 +144,12 @@ public class ToolUtilCommands {
     )
     @CommandPermissions("worldedit.brush.options.material")
     public void material(Player player, LocalSession session, EditSession editSession, Pattern pattern) throws WorldEditException {
-        session.getBrushTool(player.getItemInHand()).setFill(pattern);
+        Tool tool = session.getTool(player.getItemInHand());
+        if (tool instanceof BrushTool) {
+            ((BrushTool) tool).setMask(null);
+        } else if (tool instanceof DoubleActionBrushTool) {
+            ((DoubleActionBrushTool) tool).setFill(pattern);
+        }
         BBC.BRUSH_MATERIAL.send(player);
     }
 
@@ -118,7 +163,12 @@ public class ToolUtilCommands {
     @CommandPermissions("worldedit.brush.options.range")
     public void range(Player player, LocalSession session, EditSession editSession, CommandContext args) throws WorldEditException {
         int range = args.getInteger(0);
-        session.getBrushTool(player.getItemInHand()).setRange(range);
+        Tool tool = session.getTool(player.getItemInHand());
+        if (tool instanceof BrushTool) {
+            ((BrushTool) tool).setMask(null);
+        } else if (tool instanceof DoubleActionBrushTool) {
+            ((DoubleActionBrushTool) tool).setRange(range);
+        }
         BBC.BRUSH_RANGE.send(player);
     }
 
@@ -135,7 +185,12 @@ public class ToolUtilCommands {
         int radius = args.getInteger(0);
         we.checkMaxBrushRadius(radius);
 
-        session.getBrushTool(player.getItemInHand()).setSize(radius);
+        Tool tool = session.getTool(player.getItemInHand());
+        if (tool instanceof BrushTool) {
+            ((BrushTool) tool).setMask(null);
+        } else if (tool instanceof DoubleActionBrushTool) {
+            ((DoubleActionBrushTool) tool).setSize(radius);
+        }
         BBC.BRUSH_SIZE.send(player);
     }
 

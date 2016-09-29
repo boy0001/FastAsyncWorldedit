@@ -1,6 +1,7 @@
 package com.sk89q.worldedit.function.mask;
 
 import com.boydti.fawe.FaweCache;
+import com.boydti.fawe.util.StringMan;
 import com.sk89q.worldedit.Vector;
 import com.sk89q.worldedit.blocks.BaseBlock;
 import com.sk89q.worldedit.extent.Extent;
@@ -108,6 +109,11 @@ public class BlockMask extends AbstractExtentMask {
             }
         }
         return computedLegacyList;
+    }
+
+    @Override
+    public String toString() {
+        return StringMan.getString(getBlocks());
     }
 
     public boolean test(int blockId) {

@@ -47,7 +47,10 @@ public enum BBC {
     GENERATING_LINK_FAILED("&cFailed to generate download link!", "Web"),
     DOWNLOAD_LINK("%s", "Web"),
 
-
+    MASK_DISABLED("Global mask disabled", "WorldEdit.General"),
+    MASK("Global mask set", "WorldEdit.General"),
+    TRANSFORM_DISABLED("Global transform disabled", "WorldEdit.General"),
+    TRANSFORM("Global transform set", "WorldEdit.General"),
 
     COMMAND_COPY("%s0 blocks were copied", "WorldEdit.Copy"),
     COMMAND_CUT("%s0 blocks were cut", "WorldEdit.Cut"),
@@ -104,6 +107,8 @@ public enum BBC {
     BRUSH_RANGE("Brush size set", "WorldEdit.Brush"),
     BRUSH_MASK_DISABLED("Brush mask disabled", "WorldEdit.Brush"),
     BRUSH_MASK("Brush mask set", "WorldEdit.Brush"),
+    BRUSH_TRANSFORM_DISABLED("Brush transform disabled", "WorldEdit.Brush"),
+    BRUSH_TRANSFORM("Brush transform set", "WorldEdit.Brush"),
     BRUSH_MATERIAL("Brush material set", "WorldEdit.Brush"),
 
     ROLLBACK_ELEMENT("Undoing %s0", "WorldEdit.Rollback"),
