@@ -137,7 +137,7 @@ import net.jpountz.util.Native;
 *   - History bypassing
 *      \ FastMode bypasses history and means blocks in the world don't need to be checked and recorded
 */
-public class Fawe {
+public class Fawe { 
     /**
      * The FAWE instance;
      */
