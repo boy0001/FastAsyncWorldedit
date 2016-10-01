@@ -34,6 +34,13 @@ task createPom << {
             version project.parent.version
         }
     }.writeTo("../mvn/com/boydti/fawe-api/${project.parent.version}/fawe-api-${project.parent.version}.pom")
+    pom {
+        project {
+            groupId 'com.boydti'
+            artifactId 'fawe-api'
+            version 'latest'
+        }
+    }.writeTo("../mvn/com/boydti/fawe-api/latest/fawe-api-latest.pom")
 }
 
 task copyFiles {
@@ -41,8 +48,7 @@ task copyFiles {
         copy {
             from "../mvn/com/boydti/fawe-api/${project.parent.version}/"
             into '../mvn/com/boydti/fawe-api/latest/'
-            include('*.*')
-            rename ("fawe-api-${project.parent.version}.pom", 'fawe-api-latest.pom')
+            include('*.jar')
             rename ("fawe-api-${project.parent.version}.jar", 'fawe-api-latest.jar')
         }
     }
