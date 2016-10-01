@@ -19,6 +19,7 @@
 
 package com.sk89q.worldedit.session;
 
+import com.boydti.fawe.object.collection.SoftHashMap;
 import com.google.common.util.concurrent.ListeningExecutorService;
 import com.google.common.util.concurrent.MoreExecutors;
 import com.sk89q.worldedit.LocalConfiguration;
@@ -33,6 +34,7 @@ import com.sk89q.worldedit.util.concurrency.EvenMoreExecutors;
 import com.sk89q.worldedit.util.eventbus.Subscribe;
 import java.io.File;
 import java.io.IOException;
+import java.util.Iterator;
 import java.util.Map;
 import java.util.Timer;
 import java.util.UUID;
@@ -60,7 +62,9 @@ public class SessionManager {
     private static final Logger log = Logger.getLogger(SessionManager.class.getCanonicalName());
     private final Timer timer = new Timer();
     private final WorldEdit worldEdit;
-    private final Map<UUID, SessionHolder> sessions = new ConcurrentHashMap<UUID, SessionHolder>(8, 0.9f, 1);
+    private final Map<UUID, SessionHolder> sessions = new ConcurrentHashMap<>(8, 0.9f, 1);
+    private final Map<UUID, SessionHolder> softSessions = new SoftHashMap<>();
+
     private SessionStore store = new VoidStore();
     private File path;
 
@@ -90,7 +94,7 @@ public class SessionManager {
      */
     public synchronized boolean contains(SessionOwner owner) {
         checkNotNull(owner);
-        return sessions.containsKey(getKey(owner));
+        return sessions.containsKey(getKey(owner)) || softSessions.containsKey(owner);
     }
 
     /**
@@ -108,7 +112,20 @@ public class SessionManager {
                 return holder.session;
             }
         }
-
+        Iterator<Map.Entry<UUID, SessionHolder>> iter = softSessions.entrySet().iterator();
+        while (iter.hasNext()) {
+            Map.Entry<UUID, SessionHolder> entry = iter.next();
+            UUID key = entry.getKey();
+            SessionHolder holder = entry.getValue();
+            String test = holder.key.getName();
+            if (test != null && name.equals(test)) {
+//                if (holder.key.isActive()) {
+                    iter.remove();
+                    sessions.put(key, holder);
+//                }
+                return holder.session;
+            }
+        }
         return null;
     }
 
@@ -122,11 +139,21 @@ public class SessionManager {
     @Nullable
     public synchronized LocalSession getIfPresent(SessionOwner owner) {
         checkNotNull(owner);
-        SessionHolder stored = sessions.get(getKey(owner));
+        UUID key = getKey(owner);
+        SessionHolder stored = sessions.get(key);
         if (stored != null) {
             return stored.session;
         } else {
-            return null;
+            stored = softSessions.get(key);
+            if (stored != null) {
+//                if (stored.key.isActive()) {
+                    softSessions.remove(key);
+                    sessions.put(key, stored);
+//                }
+                return stored.session;
+            } else {
+                return null;
+            }
         }
     }
 
@@ -156,10 +183,7 @@ public class SessionManager {
             session.setConfiguration(config);
             session.setBlockChangeLimit(config.defaultChangeLimit);
 
-            // Remember the session if the session is still active
-//            if (sessionKey.isActive()) {
-                sessions.put(getKey(owner), new SessionHolder(sessionKey, session));
-//            }
+            sessions.put(getKey(owner), new SessionHolder(sessionKey, session));
         }
 
         // Set the limit on the number of blocks that an operation can
@@ -249,6 +273,14 @@ public class SessionManager {
     public synchronized void remove(SessionOwner owner) {
         checkNotNull(owner);
         save(sessions.remove(getKey(owner)));
+    }
+
+    public synchronized void forget(SessionOwner owner) {
+        checkNotNull(owner);
+        UUID key = getKey(owner);
+        SessionHolder holder = sessions.remove(key);
+        softSessions.put(key, holder);
+        save(holder);
     }
 
     /**

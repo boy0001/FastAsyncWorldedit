@@ -145,8 +145,7 @@ public class Settings extends Config {
         public static int CHUNK_WAIT_MS = 1000;
         @Comment("Delete history on disk after a number of days")
         public static int DELETE_AFTER_DAYS = 7;
-        @Comment("Delete history in memory on logout (does not effect disk) (BROKEN, USE DISK INSTEAD)")
-        @Final // Deprecated
+        @Comment("Delete history in memory on logout (does not effect disk)")
         public static boolean DELETE_ON_LOGOUT = true;
         @Comment({
                 "If history should be enabled by default for plugins using WorldEdit:",
