@@ -520,6 +520,7 @@ public class LocalSession {
                     .changeSet(changeSet)
                     .fastmode(false)
                     .limitUnlimited()
+                    .player(FawePlayer.wrap(player))
                     .build();
             newEditSession.undo(newEditSession);
             setDirty();
@@ -566,6 +567,7 @@ public class LocalSession {
                     .changeSet(changeSet)
                     .fastmode(false)
                     .limitUnlimited()
+                    .player(FawePlayer.wrap(player))
                     .build();
             newEditSession.redo(newEditSession);
             return newEditSession;
