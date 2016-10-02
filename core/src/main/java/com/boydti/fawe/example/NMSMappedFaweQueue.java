@@ -30,6 +30,12 @@ public abstract class NMSMappedFaweQueue<WORLD, CHUNK, CHUNKSECTION, SECTION> ex
         addRelightTask();
     }
 
+    public NMSMappedFaweQueue(String world, IFaweQueueMap map) {
+        super(world, map);
+        this.maxY = 256;
+        addRelightTask();
+    }
+
     public NMSMappedFaweQueue(World world, IFaweQueueMap map) {
         super(world, map);
         this.maxY = world.getMaxY();

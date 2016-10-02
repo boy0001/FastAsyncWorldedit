@@ -38,13 +38,21 @@ public abstract class MappedFaweQueue<WORLD, CHUNK, SECTION> extends FaweQueue {
 
     public MappedFaweQueue(final String world) {
         super(world);
-        map = new DefaultFaweQueueMap(this);
+        map = Settings.PREVENT_CRASHES ? new WeakFaweQueueMap(this) : new DefaultFaweQueueMap(this);
+    }
+
+    public MappedFaweQueue(final String world, IFaweQueueMap map) {
+        super(world);
+        if (map == null) {
+            map = Settings.PREVENT_CRASHES ? new WeakFaweQueueMap(this) : new DefaultFaweQueueMap(this);
+        }
+        this.map = map;
     }
 
     public MappedFaweQueue(final World world, IFaweQueueMap map) {
         super(world);
         if (map == null) {
-            map = new DefaultFaweQueueMap(this);
+            map = Settings.PREVENT_CRASHES ? new WeakFaweQueueMap(this) : new DefaultFaweQueueMap(this);
         }
         this.map = map;
     }

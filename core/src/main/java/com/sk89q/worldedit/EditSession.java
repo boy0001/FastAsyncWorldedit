@@ -271,7 +271,8 @@ public class EditSession extends AbstractWorld implements HasFaweQueue {
             } else {
                 queue = SetQueue.IMP.getNewQueue(this, fastmode, autoQueue);
             }
-        } else if (Settings.EXPERIMENTAL.ANVIL_QUEUE_MODE && !(queue instanceof MCAQueue)) {
+        }
+        if (Settings.EXPERIMENTAL.ANVIL_QUEUE_MODE && !(queue instanceof MCAQueue)) {
             queue = new MCAQueue(queue);
         }
         this.queue = queue;

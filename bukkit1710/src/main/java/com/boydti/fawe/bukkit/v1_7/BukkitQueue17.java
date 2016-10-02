@@ -408,8 +408,12 @@ public class BukkitQueue17 extends BukkitQueue_0<Chunk, ChunkSection[], ChunkSec
     @Override
     public World getImpWorld() {
         World world = super.getImpWorld();
-        this.nmsWorld = ((CraftWorld) world).getHandle();
-        return super.getImpWorld();
+        if (world != null) {
+            this.nmsWorld = ((CraftWorld) world).getHandle();
+            return super.getImpWorld();
+        } else {
+            return null;
+        }
     }
 
     @Override

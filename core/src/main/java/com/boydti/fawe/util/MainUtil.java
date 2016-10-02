@@ -39,6 +39,7 @@ import java.net.MalformedURLException;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.net.URLConnection;
+import java.nio.channels.FileChannel;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.FileVisitResult;
 import java.nio.file.Files;
@@ -371,6 +372,44 @@ public class MainUtil {
         } catch (Exception e) {
             MainUtil.handleError(e);
         }
+    }
+
+    public static File copyFile(File sourceFile, File destFile) throws IOException {
+        if (!destFile.exists()) {
+            File parent = destFile.getParentFile();
+            if (parent != null) {
+                parent.mkdirs();
+            }
+            destFile.createNewFile();
+        }
+        FileInputStream fIn = null;
+        FileOutputStream fOut = null;
+        FileChannel source = null;
+        FileChannel destination = null;
+        try {
+            fIn = new FileInputStream(sourceFile);
+            source = fIn.getChannel();
+            fOut = new FileOutputStream(destFile);
+            destination = fOut.getChannel();
+            long transfered = 0;
+            long bytes = source.size();
+            while (transfered < bytes) {
+                transfered += destination.transferFrom(source, 0, source.size());
+                destination.position(transfered);
+            }
+        } finally {
+            if (source != null) {
+                source.close();
+            } else if (fIn != null) {
+                fIn.close();
+            }
+            if (destination != null) {
+                destination.close();
+            } else if (fOut != null) {
+                fOut.close();
+            }
+        }
+        return destFile;
     }
 
     public static File copyFile(File jar, String resource, File output) {

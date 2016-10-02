@@ -95,18 +95,17 @@ public class MCAQueueMap implements IFaweQueueMap {
                 return lastChunk;
             }
         }
-        if (!isHybridQueue || !queue.isChunkLoaded(cx, cz)) {
-            try {
-                MCAFile mcaFile = getMCAFile(cx, cz);
-                if (mcaFile != null) {
-                    lastChunk = mcaFile.getChunk(cx, cz);
-                    if (lastChunk != null) {
-                        return lastChunk;
-                    }
+        try {
+            MCAFile mcaFile = getMCAFile(cx, cz);
+            if (mcaFile != null) {
+                mcaFile.init();
+                lastChunk = mcaFile.getChunk(cx, cz);
+                if (lastChunk != null) {
+                    return lastChunk;
                 }
-            } catch (Throwable ignore) {
-                ignore.printStackTrace();
             }
+        } catch (Throwable ignore) {
+            ignore.printStackTrace();
         }
         if (isHybridQueue) { // Use parent queue for in use chunks
             lastChunk = ((MappedFaweQueue)queue).getFaweQueueMap().getFaweChunk(cx, cz);

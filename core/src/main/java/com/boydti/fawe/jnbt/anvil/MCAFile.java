@@ -1,6 +1,5 @@
 package com.boydti.fawe.jnbt.anvil;
 
-import com.boydti.fawe.config.Settings;
 import com.boydti.fawe.jnbt.NBTStreamer;
 import com.boydti.fawe.object.FaweQueue;
 import com.boydti.fawe.object.RunnableVal;
@@ -34,10 +33,10 @@ import java.util.zip.InflaterInputStream;
  */
 public class MCAFile {
 
-    private final File file;
-    private final RandomAccessFile raf;
-    private final byte[] locations;
-    private final FaweQueue queue;
+    private File file;
+    private RandomAccessFile raf;
+    private byte[] locations;
+    private FaweQueue queue;
     private Field fieldBuf1;
     private Field fieldBuf2;
     private Field fieldBuf3;
@@ -45,15 +44,15 @@ public class MCAFile {
     private Field fieldBuf5;
     private Field fieldBuf6;
 
-    private byte[] buffer1 = new byte[Settings.HISTORY.BUFFER_SIZE];
-    private byte[] buffer2 = new byte[Settings.HISTORY.BUFFER_SIZE];
+    private byte[] buffer1 = new byte[4096];
+    private byte[] buffer2 = new byte[4096];
     private byte[] buffer3 = new byte[720];
 
     private final int X, Z;
 
     private Map<Integer, MCAChunk> chunks = new HashMap<>();
 
-    public MCAFile(FaweQueue parent, File file) throws Exception {
+    public MCAFile(FaweQueue parent, File file) {
         this.queue = parent;
         this.file = file;
         if (!file.exists()) {
@@ -62,21 +61,34 @@ public class MCAFile {
         String[] split = file.getName().split("\\.");
         X = Integer.parseInt(split[1]);
         Z = Integer.parseInt(split[2]);
-        this.locations = new byte[4096];
-        this.raf = new BufferedRandomAccessFile(file, "rw", Settings.HISTORY.BUFFER_SIZE);
-        raf.readFully(locations);
-        fieldBuf1 = BufferedInputStream.class.getDeclaredField("buf");
-        fieldBuf1.setAccessible(true);
-        fieldBuf2 = InflaterInputStream.class.getDeclaredField("buf");
-        fieldBuf2.setAccessible(true);
-        fieldBuf3 = NBTInputStream.class.getDeclaredField("buf");
-        fieldBuf3.setAccessible(true);
-        fieldBuf4 = FastByteArrayOutputStream.class.getDeclaredField("array");
-        fieldBuf4.setAccessible(true);
-        fieldBuf5 = DeflaterOutputStream.class.getDeclaredField("buf");
-        fieldBuf5.setAccessible(true);
-        fieldBuf6 = BufferedOutputStream.class.getDeclaredField("buf");
-        fieldBuf6.setAccessible(true);
+    }
+
+    public FaweQueue getParent() {
+        return queue;
+    }
+
+    public void init() {
+        try {
+            if (raf == null) {
+                this.locations = new byte[4096];
+                this.raf = new BufferedRandomAccessFile(file, "rw", (int) file.length());
+                raf.readFully(locations);
+                fieldBuf1 = BufferedInputStream.class.getDeclaredField("buf");
+                fieldBuf1.setAccessible(true);
+                fieldBuf2 = InflaterInputStream.class.getDeclaredField("buf");
+                fieldBuf2.setAccessible(true);
+                fieldBuf3 = NBTInputStream.class.getDeclaredField("buf");
+                fieldBuf3.setAccessible(true);
+                fieldBuf4 = FastByteArrayOutputStream.class.getDeclaredField("buffer");
+                fieldBuf4.setAccessible(true);
+                fieldBuf5 = DeflaterOutputStream.class.getDeclaredField("buf");
+                fieldBuf5.setAccessible(true);
+                fieldBuf6 = BufferedOutputStream.class.getDeclaredField("buf");
+                fieldBuf6.setAccessible(true);
+            }
+        } catch (Throwable e) {
+            e.printStackTrace();
+        }
     }
 
     public MCAFile(FaweQueue parent, int mcrX, int mcrZ) throws Exception {
@@ -240,13 +252,6 @@ public class MCAFile {
         return new ArrayList<>(chunks.values());
     }
 
-    private NBTStreamer getChunkReader(int offset) throws Exception {
-        if (offset == 0) {
-            return null;
-        }
-        return new NBTStreamer(getChunkIS(offset));
-    }
-
     public void uncache(int cx, int cz) {
         int pair = MathMan.pair((short) (cx & 31), (short) (cz & 31));
         chunks.remove(pair);
@@ -254,12 +259,11 @@ public class MCAFile {
 
     private byte[] toBytes(MCAChunk chunk) throws Exception {
         CompoundTag tag = chunk.toTag();
-        if (tag == null) {
+        if (tag == null || chunk.isDeleted()) {
             return null;
         }
-        FastByteArrayOutputStream baos = new FastByteArrayOutputStream(0);
-        fieldBuf4.set(baos, buffer3);
-        DeflaterOutputStream deflater = new DeflaterOutputStream(baos, new Deflater(6), 1, true);
+        FastByteArrayOutputStream baos = new FastByteArrayOutputStream(buffer3);
+        DeflaterOutputStream deflater = new DeflaterOutputStream(baos, new Deflater(9), 1, true);
         fieldBuf5.set(deflater, buffer2);
         BufferedOutputStream bos = new BufferedOutputStream(deflater, 1);
         fieldBuf6.set(bos, buffer1);
@@ -268,6 +272,10 @@ public class MCAFile {
         bos.flush();
         bos.close();
         byte[] result = baos.toByteArray();
+        baos.close();
+        deflater.close();
+        bos.close();
+        nos.close();
         return result;
     }
 
@@ -290,14 +298,33 @@ public class MCAFile {
         raf.write((offsetMedium >> 8));
         raf.write((offsetMedium >> 0));
         raf.write(sizeByte);
+
+        int offset = (((locations[i] & 0xFF) << 16) + ((locations[i + 1] & 0xFF) << 8) + ((locations[i+ 2] & 0xFF))) << 12;
+        int size = (locations[i + 3] & 0xFF) << 12;
     }
 
     public void close() {
         flush();
-        try {
-            raf.close();
-        } catch (IOException e) {
-            e.printStackTrace();
+        if (raf != null) {
+            try {
+                raf.close();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+            file = null;
+            raf = null;
+            locations = null;
+            queue = null;
+            fieldBuf1 = null;
+            fieldBuf2 = null;
+            fieldBuf3 = null;
+            fieldBuf4 = null;
+            fieldBuf5 = null;
+            fieldBuf6 = null;
+            buffer1 = null;
+            buffer2 = null;
+            buffer3 = null;
+            chunks = null;
         }
     }
 
@@ -324,6 +351,7 @@ public class MCAFile {
 
         HashMap<Integer, byte[]> relocate = new HashMap<Integer, byte[]>();
         int start = 8192;
+        int written = start;
         int end = 8192;
         int nextOffset = 8192;
         try {
@@ -347,6 +375,7 @@ public class MCAFile {
                         MCAChunk cached = getCachedChunk(cx, cz);
                         if (cached == null || !cached.isModified()) {
                             start += size;
+                            written = start;
                             continue;
                         } else {
                             newBytes = toBytes(cached);
@@ -356,7 +385,7 @@ public class MCAFile {
                     }
                 }
                 if (newBytes == null) {
-                    // Don't write
+                    writeHeader(cx, cz, 0, 0);
                     continue;
                 }
                 int len = newBytes.length + 5;
@@ -383,11 +412,14 @@ public class MCAFile {
 //                    System.out.println("Header: " + cx + "," + cz + " | " + offset + "," + start + " | " + end + "," + (start + size) + " | " + size + " | " + start);
                     writeHeader(cx, cz, start >> 12, newSize);
                 }
+                written = start + newBytes.length + 6;
                 start += newSize << 12;
             }
+            raf.setLength(written);
             if (raf instanceof BufferedRandomAccessFile) {
                 ((BufferedRandomAccessFile) raf).flush();
             }
+            raf.close();
         } catch (Throwable e) {
             e.printStackTrace();
         }

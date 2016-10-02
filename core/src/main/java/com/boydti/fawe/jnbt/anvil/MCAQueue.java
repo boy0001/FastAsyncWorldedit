@@ -1,18 +1,17 @@
 package com.boydti.fawe.jnbt.anvil;
 
-import com.boydti.fawe.Fawe;
 import com.boydti.fawe.example.CharFaweChunk;
 import com.boydti.fawe.example.NMSMappedFaweQueue;
 import com.boydti.fawe.object.FaweChunk;
 import com.boydti.fawe.object.FaweQueue;
 import com.boydti.fawe.object.RunnableVal4;
-import com.boydti.fawe.util.TaskManager;
 import com.sk89q.jnbt.CompoundTag;
 import java.io.File;
 import java.util.Collection;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
+import java.util.concurrent.ForkJoinPool;
 import java.util.concurrent.TimeUnit;
 
 public class MCAQueue extends NMSMappedFaweQueue<FaweQueue, FaweChunk, FaweChunk, FaweChunk> {
@@ -34,7 +33,7 @@ public class MCAQueue extends NMSMappedFaweQueue<FaweQueue, FaweChunk, FaweChunk
     }
 
     public MCAQueue(String world, File saveFolder, boolean hasSky) {
-        super(null, new MCAQueueMap());
+        super(world, new MCAQueueMap());
         ((MCAQueueMap) getFaweQueueMap()).setParentQueue(this);
         this.saveFolder = saveFolder;
         this.hasSky = hasSky;
@@ -42,6 +41,7 @@ public class MCAQueue extends NMSMappedFaweQueue<FaweQueue, FaweChunk, FaweChunk
 
     public void filterWorld(final MCAFilter filter) {
         File folder = getSaveFolder();
+        final ForkJoinPool pool = new ForkJoinPool();
         for (final File file : folder.listFiles()) {
             try {
                 String name = file.getName();
@@ -50,8 +50,10 @@ public class MCAQueue extends NMSMappedFaweQueue<FaweQueue, FaweChunk, FaweChunk
                 final int mcaZ = Integer.parseInt(split[2]);
                 if (filter.appliesFile(mcaX, mcaZ)) {
                     MCAFile mcaFile = new MCAFile(this, file);
+                    final MCAFile original = mcaFile;
                     final MCAFile finalFile = filter.applyFile(mcaFile);
                     if (finalFile != null) {
+                        finalFile.init();
                         Runnable run = new Runnable() {
                             @Override
                             public void run() {
@@ -101,22 +103,27 @@ public class MCAQueue extends NMSMappedFaweQueue<FaweQueue, FaweChunk, FaweChunk
                                         }
                                     }
                                 });
+                                original.close();
                                 finalFile.close();
                                 System.gc();
                                 System.gc();
                             }
                         };
-                        if (Fawe.get().isJava8()) {
-                            TaskManager.IMP.getPublicForkJoinPool().submit(run);
-                        } else {
-                            run.run();
-                        }
+                        pool.submit(run);
+                    } else {
+                        try {
+                            original.close();
+                            file.delete();
+                        } catch (Throwable ignore) {}
                     }
                 }
             } catch (Throwable ignore) {}
         }
-        if (Fawe.get().isJava8()) {
-            TaskManager.IMP.getPublicForkJoinPool().awaitQuiescence(Long.MAX_VALUE, TimeUnit.MILLISECONDS);
+        pool.shutdown();
+        try {
+            pool.awaitTermination(Long.MAX_VALUE, TimeUnit.MILLISECONDS);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
         }
     }
 

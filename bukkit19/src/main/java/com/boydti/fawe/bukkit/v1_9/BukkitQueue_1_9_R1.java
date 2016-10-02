@@ -288,8 +288,12 @@ public class BukkitQueue_1_9_R1 extends BukkitQueue_0<Chunk, ChunkSection[], Chu
     @Override
     public World getImpWorld() {
         World world = super.getImpWorld();
-        this.nmsWorld = ((CraftWorld) world).getHandle();
-        return super.getImpWorld();
+        if (world != null) {
+            this.nmsWorld = ((CraftWorld) world).getHandle();
+            return super.getImpWorld();
+        } else {
+            return null;
+        }
     }
 
     public boolean isSurrounded(final char[][] sections, final int x, final int y, final int z) {

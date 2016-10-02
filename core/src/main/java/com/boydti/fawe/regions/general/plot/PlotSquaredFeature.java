@@ -5,6 +5,7 @@ import com.boydti.fawe.object.FawePlayer;
 import com.boydti.fawe.regions.FaweMask;
 import com.boydti.fawe.regions.FaweMaskManager;
 import com.intellectualcrafters.plot.PS;
+import com.intellectualcrafters.plot.config.Settings;
 import com.intellectualcrafters.plot.generator.HybridPlotManager;
 import com.intellectualcrafters.plot.object.Plot;
 import com.intellectualcrafters.plot.object.PlotPlayer;
@@ -25,6 +26,9 @@ public class PlotSquaredFeature extends FaweMaskManager {
         setupBlockQueue();
         setupSchematicHandler();
         setupChunkManager();
+        if (Settings.PLATFORM.equals("Bukkit")) {
+            new FaweTrim();
+        }
     }
 
     private void setupBlockQueue() {

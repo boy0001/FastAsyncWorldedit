@@ -41,6 +41,10 @@ public class FastByteArrayOutputStream extends OutputStream {
         buffer = new byte[blockSize];
     }
 
+    public FastByteArrayOutputStream(byte[] buffer) {
+        blockSize = buffer.length;
+        this.buffer = buffer;
+    }
 
     public int getSize() {
         return size + index;

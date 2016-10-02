@@ -364,8 +364,12 @@ public class BukkitQueue_1_10 extends BukkitQueue_0<Chunk, ChunkSection[], Chunk
     @Override
     public World getImpWorld() {
         World world = super.getImpWorld();
-        this.nmsWorld = ((CraftWorld) world).getHandle();
-        return super.getImpWorld();
+        if (world != null) {
+            this.nmsWorld = ((CraftWorld) world).getHandle();
+            return super.getImpWorld();
+        } else {
+            return null;
+        }
     }
 
     public void setCount(int tickingBlockCount, int nonEmptyBlockCount, ChunkSection section) throws NoSuchFieldException, IllegalAccessException {

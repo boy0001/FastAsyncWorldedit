@@ -21,6 +21,7 @@ public class NBTStreamer {
                 this.value2 = readers.get(node);
             }
         });
+        is.close();
     }
 
     public <T, V> void addReader(String node, RunnableVal2<T, V> run) {

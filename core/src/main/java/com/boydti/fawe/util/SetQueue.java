@@ -71,7 +71,7 @@ public class SetQueue {
                     if (!MemUtil.isMemoryFree()) {
                         final int mem = MemUtil.calculateMemory();
                         if (mem != Integer.MAX_VALUE) {
-                            if ((mem <= 1) && Settings.CRASH_MITIGATION) {
+                            if ((mem <= 1) && Settings.PREVENT_CRASHES) {
                                 for (FaweQueue queue : getAllQueues()) {
                                     queue.saveMemory();
                                 }

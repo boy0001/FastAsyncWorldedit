@@ -26,8 +26,8 @@ public class Settings extends Config {
 
     @Comment("Send anonymous usage statistics to MCStats.org")
     public static boolean METRICS = true;
-    @Comment("If fawe should try to prevent server crashes")
-    public static boolean CRASH_MITIGATION = true;
+    @Comment("FAWE will skip chunks when there's not enough memory available")
+    public static boolean PREVENT_CRASHES = false;
     @Comment({
             "Set true to enable WorldEdit restrictions per region (e.g. PlotSquared or WorldGuard).",
             "To be allowed to WorldEdit in a region, users need the appropriate",

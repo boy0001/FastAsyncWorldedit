@@ -34,6 +34,8 @@ import com.sk89q.worldedit.util.concurrency.EvenMoreExecutors;
 import com.sk89q.worldedit.util.eventbus.Subscribe;
 import java.io.File;
 import java.io.IOException;
+import java.lang.ref.Reference;
+import java.lang.ref.SoftReference;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Timer;
@@ -63,16 +65,10 @@ public class SessionManager {
     private final Timer timer = new Timer();
     private final WorldEdit worldEdit;
     private final Map<UUID, SessionHolder> sessions = new ConcurrentHashMap<>(8, 0.9f, 1);
-    private final Map<UUID, SessionHolder> softSessions = new SoftHashMap<>();
+    private final Map<UUID, Reference<SessionHolder>> softSessions = new SoftHashMap<>();
 
     private SessionStore store = new VoidStore();
     private File path;
-
-    // Added //
-
-//    private final ConcurrentLinkedDeque<SessionHolder> toSave = new ConcurrentLinkedDeque<>();
-    ///////////
-
 
     /**
      * Create a new session manager.
@@ -112,11 +108,15 @@ public class SessionManager {
                 return holder.session;
             }
         }
-        Iterator<Map.Entry<UUID, SessionHolder>> iter = softSessions.entrySet().iterator();
+        Iterator<Map.Entry<UUID, Reference<SessionHolder>>> iter = softSessions.entrySet().iterator();
         while (iter.hasNext()) {
-            Map.Entry<UUID, SessionHolder> entry = iter.next();
+            Map.Entry<UUID, Reference<SessionHolder>> entry = iter.next();
             UUID key = entry.getKey();
-            SessionHolder holder = entry.getValue();
+            SessionHolder holder = entry.getValue().get();
+            if (holder == null) {
+                iter.remove();
+                continue;
+            }
             String test = holder.key.getName();
             if (test != null && name.equals(test)) {
 //                if (holder.key.isActive()) {
@@ -144,17 +144,19 @@ public class SessionManager {
         if (stored != null) {
             return stored.session;
         } else {
-            stored = softSessions.get(key);
-            if (stored != null) {
+            Reference<SessionHolder> reference = softSessions.get(key);
+            if (reference != null) {
+                stored = reference.get();
+                if (stored != null) {
 //                if (stored.key.isActive()) {
                     softSessions.remove(key);
                     sessions.put(key, stored);
 //                }
-                return stored.session;
-            } else {
-                return null;
+                    return stored.session;
+                }
             }
         }
+        return null;
     }
 
     /**
@@ -279,7 +281,7 @@ public class SessionManager {
         checkNotNull(owner);
         UUID key = getKey(owner);
         SessionHolder holder = sessions.remove(key);
-        softSessions.put(key, holder);
+        softSessions.put(key, new SoftReference(holder));
         save(holder);
     }
 

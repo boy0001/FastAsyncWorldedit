@@ -196,6 +196,10 @@ public class MCAChunk extends FaweChunk<Void> {
         this.deleted = deleted;
     }
 
+    public boolean isDeleted() {
+        return deleted;
+    }
+
     public boolean isModified() {
         return modified;
     }
