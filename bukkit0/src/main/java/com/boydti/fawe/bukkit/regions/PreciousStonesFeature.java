@@ -25,7 +25,7 @@ public class PreciousStonesFeature extends BukkitMaskManager implements Listener
     }
 
     @Override
-    public FaweMask getMask(final FawePlayer<Player> fp) {
+    public FaweMask getMask(final FawePlayer<Player> fp, MaskType type) {
         final Player player = fp.parent;
         final Location location = player.getLocation();
         final List<Field> fields = PreciousStones.API().getFieldsProtectingArea(FieldFlag.ALL, location);
@@ -35,7 +35,7 @@ public class PreciousStonesFeature extends BukkitMaskManager implements Listener
         String name = player.getName();
         boolean member = fp.hasPermission("fawe.preciousstones.member");
         for (final Field myField : fields) {
-            if (myField.isOwner(name) || (member && myField.getAllAllowed().contains(player.getName()))) {
+            if (myField.isOwner(name) || (type == MaskType.MEMBER && member && myField.getAllAllowed().contains(player.getName()))) {
                 BlockVector pos1 = new BlockVector(myField.getMinx(), myField.getMiny(), myField.getMinz());
                 BlockVector pos2 = new BlockVector(myField.getMaxx(), myField.getMaxy(), myField.getMaxz());
                 return new FaweMask(pos1, pos2, "FIELD: " + myField);

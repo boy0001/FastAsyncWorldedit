@@ -23,7 +23,7 @@ public class FactionsUUIDFeature extends BukkitMaskManager implements Listener {
     }
 
     @Override
-    public BukkitMask getMask(final FawePlayer<Player> fp) {
+    public BukkitMask getMask(final FawePlayer<Player> fp, MaskType type) {
         final Player player = fp.parent;
         final Chunk chunk = player.getLocation().getChunk();
         final boolean perm = Perm.hasPermission(FawePlayer.wrap(player), "fawe.factions.wilderness");
@@ -32,7 +32,7 @@ public class FactionsUUIDFeature extends BukkitMaskManager implements Listener {
 
         int count = 32;
 
-        if (this.isAdded(locs, world, player, perm)) {
+        if (this.isAdded(locs, world, player, perm, type)) {
             boolean hasPerm = true;
 
             RegionWrapper chunkSelection;
@@ -43,28 +43,28 @@ public class FactionsUUIDFeature extends BukkitMaskManager implements Listener {
 
                 chunkSelection = new RegionWrapper(locs.maxX + 1, locs.maxX + 1, locs.minZ, locs.maxZ);
 
-                if (this.isAdded(chunkSelection, world, player, perm)) {
+                if (this.isAdded(chunkSelection, world, player, perm, type)) {
                     locs.maxX += 1;
                     hasPerm = true;
                 }
 
                 chunkSelection = new RegionWrapper(locs.minX - 1, locs.minX - 1, locs.minZ, locs.maxZ);
 
-                if (this.isAdded(chunkSelection, world, player, perm)) {
+                if (this.isAdded(chunkSelection, world, player, perm, type)) {
                     locs.minX -= 1;
                     hasPerm = true;
                 }
 
                 chunkSelection = new RegionWrapper(locs.minX, locs.maxX, locs.maxZ + 1, locs.maxZ + 1);
 
-                if (this.isAdded(chunkSelection, world, player, perm)) {
+                if (this.isAdded(chunkSelection, world, player, perm, type)) {
                     locs.maxZ += 1;
                     hasPerm = true;
                 }
 
                 chunkSelection = new RegionWrapper(locs.minX, locs.maxX, locs.minZ - 1, locs.minZ - 1);
 
-                if (this.isAdded(chunkSelection, world, player, perm)) {
+                if (this.isAdded(chunkSelection, world, player, perm, type)) {
                     locs.minZ -= 1;
                     hasPerm = true;
                 }
@@ -82,13 +82,14 @@ public class FactionsUUIDFeature extends BukkitMaskManager implements Listener {
         return null;
     }
 
-    public boolean isAdded(final RegionWrapper locs, final World world, final Player player, final boolean perm) {
+    public boolean isAdded(final RegionWrapper locs, final World world, final Player player, final boolean perm, MaskType type) {
         for (int x = locs.minX; x <= locs.maxX; x++) {
             for (int z = locs.minZ; z <= locs.maxZ; z++) {
                 final Faction fac = this.instance.getFactionAt(new FLocation(world.getName(), x, z));
                 if (fac == null) {
                     return false;
                 }
+                // TODO types
                 if (!fac.getOnlinePlayers().contains(player)) {
                     return false;
                 }

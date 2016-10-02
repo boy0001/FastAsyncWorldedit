@@ -27,11 +27,15 @@ import com.boydti.fawe.database.DBHandler;
 import com.boydti.fawe.database.RollbackDatabase;
 import com.boydti.fawe.logging.rollback.RollbackOptimizedHistory;
 import com.boydti.fawe.object.FawePlayer;
+import com.boydti.fawe.object.FaweQueue;
+import com.boydti.fawe.object.MaskedFaweQueue;
 import com.boydti.fawe.object.RegionWrapper;
 import com.boydti.fawe.object.RunnableVal;
 import com.boydti.fawe.object.changeset.DiskStorageHistory;
+import com.boydti.fawe.regions.FaweMaskManager;
 import com.boydti.fawe.util.EditSessionBuilder;
 import com.boydti.fawe.util.MainUtil;
+import com.boydti.fawe.util.SetQueue;
 import com.sk89q.minecraft.util.commands.Command;
 import com.sk89q.minecraft.util.commands.CommandContext;
 import com.sk89q.minecraft.util.commands.CommandPermissions;
@@ -147,6 +151,14 @@ public class HistoryCommands {
         RollbackDatabase database = DBHandler.IMP.getDatabase(world);
         final AtomicInteger count = new AtomicInteger();
         final FawePlayer fp = FawePlayer.wrap(player);
+
+        final FaweQueue finalQueue;
+        RegionWrapper[] allowedRegions = fp.getCurrentRegions(FaweMaskManager.MaskType.OWNER);
+        if (allowedRegions.length != 1 || !allowedRegions[0].isGlobal()) {
+            finalQueue = new MaskedFaweQueue(SetQueue.IMP.getNewQueue(fp.getWorld(), true, false), allowedRegions);
+        } else {
+            finalQueue = SetQueue.IMP.getNewQueue(fp.getWorld(), true, false);
+        }
         database.getPotentialEdits(other, System.currentTimeMillis() - timeDiff, bot, top, new RunnableVal<DiskStorageHistory>() {
                 @Override
                 public void run(DiskStorageHistory edit) {
@@ -157,7 +169,7 @@ public class HistoryCommands {
                             .checkMemory(false)
                             .changeSet(edit)
                             .limitUnlimited()
-                            .queue(fp.getMaskedFaweQueue(false))
+                            .queue(finalQueue)
                             .build();
                     session.setSize(1);
                     session.undo(session);

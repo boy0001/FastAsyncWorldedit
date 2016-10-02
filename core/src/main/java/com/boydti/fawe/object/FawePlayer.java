@@ -6,6 +6,7 @@ import com.boydti.fawe.config.BBC;
 import com.boydti.fawe.config.Settings;
 import com.boydti.fawe.object.clipboard.DiskOptimizedClipboard;
 import com.boydti.fawe.object.exception.FaweException;
+import com.boydti.fawe.regions.FaweMaskManager;
 import com.boydti.fawe.util.MainUtil;
 import com.boydti.fawe.util.SetQueue;
 import com.boydti.fawe.util.TaskManager;
@@ -339,6 +340,10 @@ public abstract class FawePlayer<T> {
      */
     public RegionWrapper[] getCurrentRegions() {
         return WEManager.IMP.getMask(this);
+    }
+
+    public RegionWrapper[] getCurrentRegions(FaweMaskManager.MaskType type) {
+        return WEManager.IMP.getMask(this, type);
     }
 
     /**

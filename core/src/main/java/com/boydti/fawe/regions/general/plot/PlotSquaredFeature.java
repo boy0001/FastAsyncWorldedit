@@ -63,11 +63,11 @@ public class PlotSquaredFeature extends FaweMaskManager {
     }
 
     @Override
-    public FaweMask getMask(FawePlayer fp) {
+    public FaweMask getMask(FawePlayer fp, MaskType type) {
         final PlotPlayer pp = PlotPlayer.wrap(fp.parent);
         final HashSet<RegionWrapper> regions;
         Plot plot = pp.getCurrentPlot();
-        if (plot != null && (plot.isOwner(pp.getUUID()) || plot.getTrusted().contains(pp.getUUID()) || (plot.getMembers().contains(pp.getUUID()) && pp.hasPermission("fawe.plotsquared.member")))) {
+        if (plot != null && (plot.isOwner(pp.getUUID()) || (type == MaskType.MEMBER && (plot.getTrusted().contains(pp.getUUID()) || (plot.getMembers().contains(pp.getUUID()) && pp.hasPermission("fawe.plotsquared.member")))))) {
             regions = plot.getRegions();
         } else {
             regions = WEManager.getMask(pp);

@@ -62,12 +62,17 @@ public class WEManager {
         }
     }
 
+    @Deprecated
+    public RegionWrapper[] getMask(final FawePlayer<?> player) {
+        return getMask(player, FaweMaskManager.MaskType.MEMBER);
+    }
+
     /**
      * Get a player's mask
      * @param player
      * @return
      */
-    public RegionWrapper[] getMask(final FawePlayer<?> player) {
+    public RegionWrapper[] getMask(final FawePlayer<?> player, FaweMaskManager.MaskType type) {
 //        HashSet<RegionWrapper> mask = TaskManager.IMP.sync(new RunnableVal<HashSet<RegionWrapper>>() {
         if (player.hasPermission("fawe.bypass") || !Settings.REGION_RESTRICTIONS) {
             return new RegionWrapper[] {new RegionWrapper(Integer.MIN_VALUE, Integer.MAX_VALUE, Integer.MIN_VALUE, Integer.MAX_VALUE)};

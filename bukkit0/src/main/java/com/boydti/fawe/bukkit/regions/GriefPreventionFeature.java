@@ -21,13 +21,13 @@ public class GriefPreventionFeature extends BukkitMaskManager implements Listene
     }
 
     @Override
-    public BukkitMask getMask(final FawePlayer<Player> fp) {
+    public BukkitMask getMask(final FawePlayer<Player> fp, MaskType type) {
         final Player player = fp.parent;
         final Location location = player.getLocation();
         final Claim claim = GriefPrevention.instance.dataStore.getClaimAt(location, true, null);
         if (claim != null) {
             final String uuid = player.getUniqueId().toString();
-            if (claim.getOwnerName().equalsIgnoreCase(player.getName()) || claim.getOwnerName().equals(uuid) || claim.allowBuild(player, Material.AIR) == null) {
+            if (claim.getOwnerName().equalsIgnoreCase(player.getName()) || claim.getOwnerName().equals(uuid) || (type == MaskType.MEMBER && (claim.allowBuild(player, Material.AIR) == null))) {
                 claim.getGreaterBoundaryCorner().getBlockX();
                 final Location pos1 = new Location(location.getWorld(), claim.getLesserBoundaryCorner().getBlockX(), 0, claim.getLesserBoundaryCorner().getBlockZ());
                 final Location pos2 = new Location(location.getWorld(), claim.getGreaterBoundaryCorner().getBlockX(), 256, claim.getGreaterBoundaryCorner().getBlockZ());

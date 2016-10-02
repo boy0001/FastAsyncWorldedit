@@ -24,14 +24,14 @@ public class PlotMeFeature extends BukkitMaskManager implements Listener {
     }
 
     @Override
-    public BukkitMask getMask(final FawePlayer<Player> fp) {
+    public BukkitMask getMask(final FawePlayer<Player> fp, MaskType type) {
         final Player player = fp.parent;
         final Location location = player.getLocation();
         final Plot plot = this.plotme.getPlotMeCoreManager().getPlotById(new BukkitPlayer(player));
         if (plot == null) {
             return null;
         }
-        final boolean isallowed = plot.isAllowed(player.getUniqueId());
+        final boolean isallowed = type == MaskType.MEMBER ? plot.isAllowed(player.getUniqueId()) : player.getUniqueId().equals(plot.getOwnerId());
         if (isallowed) {
             final Location pos1 = new Location(location.getWorld(), this.plotme.getGenManager(player.getWorld().getName()).bottomX(plot.getId(), new BukkitWorld(player.getWorld())), 0, this.plotme
             .getGenManager(player.getWorld().getName()).bottomZ(plot.getId(), new BukkitWorld(player.getWorld())));

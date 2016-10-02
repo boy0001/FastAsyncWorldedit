@@ -22,12 +22,12 @@ public class ResidenceFeature extends BukkitMaskManager implements Listener {
     }
 
     @Override
-    public BukkitMask getMask(final FawePlayer<Player> fp) {
+    public BukkitMask getMask(final FawePlayer<Player> fp, MaskType type) {
         final Player player = fp.parent;
         final Location location = player.getLocation();
         final ClaimedResidence residence = Residence.getResidenceManager().getByLoc(location);
         if (residence != null) {
-            if (residence.getPlayersInResidence().contains(player)) {
+            if (residence.getOwner().equals(player.getName()) || residence.getOwner().equals(player.getUniqueId().toString()) || type == MaskType.MEMBER && residence.getPlayersInResidence().contains(player)) {
                 final CuboidArea area = residence.getAreaArray()[0];
                 final Location pos1 = area.getHighLoc();
                 final Location pos2 = area.getLowLoc();
