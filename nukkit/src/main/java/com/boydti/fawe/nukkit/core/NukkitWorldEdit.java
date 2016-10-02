@@ -25,6 +25,7 @@ import cn.nukkit.command.Command;
 import cn.nukkit.command.CommandSender;
 import cn.nukkit.plugin.PluginBase;
 import com.boydti.fawe.Fawe;
+import com.boydti.fawe.config.Settings;
 import com.boydti.fawe.nukkit.optimization.FaweNukkit;
 import com.google.common.base.Joiner;
 import com.sk89q.util.yaml.YAMLProcessor;
@@ -74,6 +75,7 @@ public class NukkitWorldEdit extends PluginBase {
     public void onEnable() {
         try {
             Fawe.set(new FaweNukkit(this));
+            Settings.HISTORY.COMBINE_STAGES = false;
             logger = Logger.getLogger(NukkitWorldEdit.class.getCanonicalName());
             createDefaultConfiguration("config-basic.yml");
             config = new NukkitConfiguration(new YAMLProcessor(new File(getDataFolder(), "config-basic.yml"), true), this);

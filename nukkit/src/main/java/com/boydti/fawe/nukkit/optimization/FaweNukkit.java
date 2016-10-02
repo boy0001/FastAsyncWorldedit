@@ -97,11 +97,13 @@ public class FaweNukkit implements IFawe, Listener {
 
     @Override
     public FaweQueue getNewQueue(World world, boolean fast) {
+        Settings.HISTORY.COMBINE_STAGES = false;
         return new NukkitQueue(this, world);
     }
 
     @Override
     public FaweQueue getNewQueue(String world, boolean fast) {
+        Settings.HISTORY.COMBINE_STAGES = false;
         return new NukkitQueue(this, world);
     }
 

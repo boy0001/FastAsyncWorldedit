@@ -337,9 +337,9 @@ public class Fawe {
          */
         try {
             EditSession.inject(); // Custom block placer + optimizations
-            EditSessionEvent.inject(); // Add EditSession to event
-            LocalSession.inject(); // Add remember order / queue flushing
-            SessionManager.inject(); // Custom session saving
+            EditSessionEvent.inject(); // Add EditSession to event (API)
+            LocalSession.inject(); // Add remember order / queue flushing / Optimizations for disk
+            SessionManager.inject(); // Faster custom session saving + Memory improvements
             Request.inject(); // Custom pattern extent
             // Commands
             BrushCommands.inject(); // Translations + heightmap
@@ -349,7 +349,7 @@ public class Fawe {
             ScriptingCommands.inject(); // Translations
             SelectionCommand.inject(); // Translations + set optimizations
             RegionCommands.inject(); // Translations
-            HistoryCommands.inject(); // Translations
+            HistoryCommands.inject(); // Translations + rollback command
             NavigationCommands.inject(); // Translations + thru fix
             ParametricBuilder.inject(); // Translations
             ToolUtilCommands.inject(); // Fixes + Translations
