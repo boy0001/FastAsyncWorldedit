@@ -514,13 +514,15 @@ public class LocalSession {
         loadSessionHistoryFromDisk(player.getUniqueId(), player.getWorld());
         if (getHistoryNegativeIndex() < history.size()) {
             FaweChangeSet changeSet = (FaweChangeSet) history.get(getHistoryIndex());
+            final FawePlayer fp = FawePlayer.wrap(player);
             EditSession newEditSession = new EditSessionBuilder(changeSet.getWorld())
                     .allowedRegionsEverywhere()
                     .checkMemory(false)
                     .changeSet(changeSet)
                     .fastmode(false)
-                    .limitUnlimited()
-                    .player(FawePlayer.wrap(player))
+                    .limitUnprocessed(fp)
+                    .player(fp)
+                    .blockBag(getBlockBag(player))
                     .build();
             newEditSession.undo(newEditSession);
             setDirty();
@@ -561,13 +563,15 @@ public class LocalSession {
             setDirty();
             historyNegativeIndex--;
             FaweChangeSet changeSet = (FaweChangeSet) history.get(getHistoryIndex());
+            final FawePlayer fp = FawePlayer.wrap(player);
             EditSession newEditSession = new EditSessionBuilder(changeSet.getWorld())
                     .allowedRegionsEverywhere()
                     .checkMemory(false)
                     .changeSet(changeSet)
                     .fastmode(false)
-                    .limitUnlimited()
-                    .player(FawePlayer.wrap(player))
+                    .limitUnprocessed(fp)
+                    .player(fp)
+                    .blockBag(getBlockBag(player))
                     .build();
             newEditSession.redo(newEditSession);
             return newEditSession;

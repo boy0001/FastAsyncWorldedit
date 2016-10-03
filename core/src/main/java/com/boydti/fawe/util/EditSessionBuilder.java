@@ -34,8 +34,8 @@ public class EditSessionBuilder {
     private Boolean fastmode;
     private Boolean checkMemory;
     private Boolean combineStages;
-    private BlockBag blockBag;
     private EventBus eventBus;
+    private BlockBag blockBag;
     private EditSessionEvent event;
 
     /**
@@ -75,6 +75,15 @@ public class EditSessionBuilder {
 
     public EditSessionBuilder limitUnlimited() {
         return limit(FaweLimit.MAX.copy());
+    }
+
+    public EditSessionBuilder limitUnprocessed(@Nonnull FawePlayer fp) {
+        checkNotNull(fp);
+        limitUnlimited();
+        FaweLimit tmp = fp.getLimit();
+        limit.INVENTORY_MODE = tmp.INVENTORY_MODE;
+        limit.FAST_PLACEMENT = tmp.FAST_PLACEMENT;
+        return this;
     }
 
     public EditSessionBuilder changeSet(@Nullable FaweChangeSet changeSet) {

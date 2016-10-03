@@ -82,6 +82,19 @@ public class Settings extends Config {
                 " - History on disk or memory will be deleted",
         })
         public int MAX_HISTORY_MB = -1;
+        @Comment("Needlessly make WorldEdit slower for this player (ms/block)")
+        public int SPEED_REDUCTION = 0;
+        @Comment({
+                "Should WorldEdit use inventory?",
+                "0 = No inventory usage (creative)",
+                "1 = Inventory for removing and placing (freebuild)",
+                "2 = Inventory for placing (survival)",
+        })
+        public static int INVENTORY_MODE = 0;
+        @Comment({
+            "Place chunks instead of individual blocks"
+        })
+        public static boolean FAST_PLACEMENT = true;
     }
 
     public static class HISTORY {
@@ -297,6 +310,9 @@ public class Settings extends Config {
                 limit.MAX_FAILS = Math.max(limit.MAX_FAILS, newLimit.MAX_FAILS != -1 ? newLimit.MAX_FAILS : Integer.MAX_VALUE);
                 limit.MAX_ITERATIONS = Math.max(limit.MAX_ITERATIONS, newLimit.MAX_ITERATIONS != -1 ? newLimit.MAX_ITERATIONS : Integer.MAX_VALUE);
                 limit.MAX_HISTORY = Math.max(limit.MAX_HISTORY, newLimit.MAX_HISTORY_MB != -1 ? newLimit.MAX_HISTORY_MB : Integer.MAX_VALUE);
+                limit.INVENTORY_MODE = Math.min(limit.INVENTORY_MODE, newLimit.INVENTORY_MODE);
+                limit.SPEED_REDUCTION = Math.min(limit.SPEED_REDUCTION, newLimit.SPEED_REDUCTION);
+                limit.FAST_PLACEMENT |= newLimit.FAST_PLACEMENT;
             }
         }
         return limit;

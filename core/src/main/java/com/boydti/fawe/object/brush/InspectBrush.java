@@ -79,7 +79,7 @@ public class InspectBrush extends BrushTool implements DoubleActionTraceTool {
             @Override
             public void run(DiskStorageHistory value) {
                 try {
-                    Iterator<MutableFullBlockChange> iter = value.getFullBlockIterator(false);
+                    Iterator<MutableFullBlockChange> iter = value.getFullBlockIterator(null, 0, false);
                     while (iter.hasNext()) {
                         MutableFullBlockChange change = iter.next();
                         if (change.x != x || change.y != y || change.z != z) {

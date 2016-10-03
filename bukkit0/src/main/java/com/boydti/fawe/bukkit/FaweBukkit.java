@@ -204,42 +204,46 @@ public class FaweBukkit implements IFawe, Listener {
      *  - When a block change is requested, the SetQueue will first check if the chunk exists in the queue, or it will create and add it<br>
      */
     @Override
-    public FaweQueue getNewQueue(World world, boolean dontCareIfFast) {
-        if (playerChunk != (playerChunk = true)) {
+    public FaweQueue getNewQueue(World world, boolean fast) {
+        if (fast) {
+            if (playerChunk != (playerChunk = true)) {
+                try {
+                    Field fieldDirtyCount = ReflectionUtils.getRefClass("{nms}.PlayerChunk").getField("dirtyCount").getRealField();
+                    fieldDirtyCount.setAccessible(true);
+                    int mod = fieldDirtyCount.getModifiers();
+                    if ((mod & Modifier.VOLATILE) == 0) {
+                        Field modifiersField = Field.class.getDeclaredField("modifiers");
+                        modifiersField.setAccessible(true);
+                        modifiersField.setInt(fieldDirtyCount, mod + Modifier.VOLATILE);
+                    }
+                } catch (Throwable ignore) {
+                }
+            }
             try {
-                Field fieldDirtyCount = ReflectionUtils.getRefClass("{nms}.PlayerChunk").getField("dirtyCount").getRealField();
-                fieldDirtyCount.setAccessible(true);
-                int mod = fieldDirtyCount.getModifiers();
-                if ((mod & Modifier.VOLATILE) == 0) {
-                    Field modifiersField = Field.class.getDeclaredField("modifiers");
-                    modifiersField.setAccessible(true);
-                    modifiersField.setInt(fieldDirtyCount, mod + Modifier.VOLATILE);
-                }
-            } catch (Throwable ignore) {}
-        }
-        try {
-            return plugin.getQueue(world);
-        } catch (Throwable ignore) {}
-        // Disable incompatible settings
-        Settings.QUEUE.PARALLEL_THREADS = 1; // BukkitAPI placer is too slow to parallel thread at the chunk level
-        Settings.HISTORY.COMBINE_STAGES = false; // Performing a chunk copy (if possible) wouldn't be faster using the BukkitAPI
-        if (hasNMS) {
-            debug("====== NO NMS BLOCK PLACER FOUND ======");
-            debug("FAWE couldn't find a fast block placer");
-            debug("Bukkit version: " + Bukkit.getVersion());
-            debug("NMS label: " + plugin.getClass().getSimpleName().split("_")[1]);
-            debug("Fallback placer: " + BukkitQueue_All.class);
-            debug("=======================================");
-            debug("Download the version of FAWE for your platform");
-            debug(" - http://ci.athion.net/job/FastAsyncWorldEdit/lastSuccessfulBuild/artifact/target");
-            debug("=======================================");
-            TaskManager.IMP.laterAsync(new Runnable() {
-                @Override
-                public void run() {
-                    MainUtil.sendAdmin("&cNo NMS placer found, see console!");
-                }
-            }, 1);
-            hasNMS = false;
+                return plugin.getQueue(world);
+            } catch (Throwable ignore) {
+            }
+            // Disable incompatible settings
+            Settings.QUEUE.PARALLEL_THREADS = 1; // BukkitAPI placer is too slow to parallel thread at the chunk level
+            Settings.HISTORY.COMBINE_STAGES = false; // Performing a chunk copy (if possible) wouldn't be faster using the BukkitAPI
+            if (hasNMS) {
+                debug("====== NO NMS BLOCK PLACER FOUND ======");
+                debug("FAWE couldn't find a fast block placer");
+                debug("Bukkit version: " + Bukkit.getVersion());
+                debug("NMS label: " + plugin.getClass().getSimpleName().split("_")[1]);
+                debug("Fallback placer: " + BukkitQueue_All.class);
+                debug("=======================================");
+                debug("Download the version of FAWE for your platform");
+                debug(" - http://ci.athion.net/job/FastAsyncWorldEdit/lastSuccessfulBuild/artifact/target");
+                debug("=======================================");
+                TaskManager.IMP.laterAsync(new Runnable() {
+                    @Override
+                    public void run() {
+                        MainUtil.sendAdmin("&cNo NMS placer found, see console!");
+                    }
+                }, 1);
+                hasNMS = false;
+            }
         }
         return new BukkitQueue_All(world);
     }

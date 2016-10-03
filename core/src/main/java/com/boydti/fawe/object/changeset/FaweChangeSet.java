@@ -17,6 +17,7 @@ import com.sk89q.worldedit.BlockVector;
 import com.sk89q.worldedit.EditSession;
 import com.sk89q.worldedit.Vector;
 import com.sk89q.worldedit.blocks.BaseBlock;
+import com.sk89q.worldedit.extent.inventory.BlockBag;
 import com.sk89q.worldedit.history.change.BlockChange;
 import com.sk89q.worldedit.history.change.Change;
 import com.sk89q.worldedit.history.change.EntityCreate;
@@ -93,6 +94,7 @@ public abstract class FaweChangeSet implements ChangeSet {
     public abstract void addTileRemove(CompoundTag tag);
     public abstract void addEntityRemove(CompoundTag tag);
     public abstract void addEntityCreate(CompoundTag tag);
+    public abstract Iterator<Change> getIterator(BlockBag blockBag, int mode, boolean redo);
     public abstract Iterator<Change> getIterator(boolean redo);
 
     public void delete() {};

@@ -3,6 +3,7 @@ package com.boydti.fawe.object.change;
 import com.boydti.fawe.Fawe;
 import com.boydti.fawe.object.FaweQueue;
 import com.boydti.fawe.object.HasFaweQueue;
+import com.boydti.fawe.util.ExtentTraverser;
 import com.sk89q.jnbt.CompoundTag;
 import com.sk89q.jnbt.IntTag;
 import com.sk89q.jnbt.Tag;
@@ -46,10 +47,11 @@ public class MutableTileChange implements Change {
         if (!checkedQueue) {
             checkedQueue = true;
             Extent extent = context.getExtent();
-            if (extent instanceof HasFaweQueue) {
-                perform(queue = ((HasFaweQueue) extent).getQueue());
+            ExtentTraverser found = new ExtentTraverser(extent).find(HasFaweQueue.class);
+            if (found != null) {
+                perform(queue = ((HasFaweQueue) found.get()).getQueue());
             } else {
-                Fawe.debug("FAWE doesn't support: " + extent + " for " + getClass() + " (bug Empire92)");
+                Fawe.debug("FAWE does not support: " + extent + " for " + getClass() + " (bug Empire92)");
             }
         }
     }

@@ -5,6 +5,7 @@ import com.boydti.fawe.object.FaweQueue;
 import com.boydti.fawe.object.RunnableVal2;
 import com.boydti.fawe.object.change.MutableChunkChange;
 import com.sk89q.jnbt.CompoundTag;
+import com.sk89q.worldedit.extent.inventory.BlockBag;
 import com.sk89q.worldedit.history.change.Change;
 import com.sk89q.worldedit.world.World;
 import java.util.ArrayList;
@@ -74,6 +75,11 @@ public class CPUOptimizedChangeSet extends FaweChangeSet {
     @Override
     public void addEntityCreate(CompoundTag tag) {
         throw new UnsupportedOperationException("Invalid mode");
+    }
+
+    @Override
+    public Iterator<Change> getIterator(BlockBag blockBag, int mode, boolean redo) {
+        return getIterator(redo);
     }
 
     @Override

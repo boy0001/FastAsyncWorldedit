@@ -12,6 +12,9 @@ public class FaweLimit {
     public int MAX_BLOCKSTATES = 0;
     public int MAX_ENTITIES = 0;
     public int MAX_HISTORY = 0;
+    public int INVENTORY_MODE = Integer.MAX_VALUE;
+    public int SPEED_REDUCTION = Integer.MAX_VALUE;
+    public boolean FAST_PLACEMENT = false;
 
 
     public static FaweLimit MAX;
@@ -42,6 +45,8 @@ public class FaweLimit {
                 return true;
             }
         };
+        MAX.SPEED_REDUCTION = 0;
+        MAX.INVENTORY_MODE = 0;
         MAX.MAX_ACTIONS = 1;
         MAX.MAX_CHANGES = Integer.MAX_VALUE;
         MAX.MAX_FAILS = Integer.MAX_VALUE;
@@ -50,6 +55,7 @@ public class FaweLimit {
         MAX.MAX_BLOCKSTATES = Integer.MAX_VALUE;
         MAX.MAX_ENTITIES = Integer.MAX_VALUE;
         MAX.MAX_HISTORY = Integer.MAX_VALUE;
+        MAX.FAST_PLACEMENT = true;
     }
 
     public boolean MAX_CHANGES() {
@@ -83,7 +89,10 @@ public class FaweLimit {
         MAX_ITERATIONS == Integer.MAX_VALUE &&
         MAX_BLOCKSTATES == Integer.MAX_VALUE &&
         MAX_ENTITIES == Integer.MAX_VALUE &&
-        MAX_HISTORY == Integer.MAX_VALUE;
+        MAX_HISTORY == Integer.MAX_VALUE &&
+        INVENTORY_MODE == 0 &&
+        SPEED_REDUCTION == 0 &&
+        FAST_PLACEMENT == true;
     }
 
     public void set(FaweLimit limit) {
@@ -95,10 +104,15 @@ public class FaweLimit {
         MAX_FAILS = limit.MAX_FAILS;
         MAX_ITERATIONS = limit.MAX_ITERATIONS;
         MAX_HISTORY = limit.MAX_HISTORY;
+        INVENTORY_MODE = limit.INVENTORY_MODE;
+        SPEED_REDUCTION = limit.SPEED_REDUCTION;
+        FAST_PLACEMENT = limit.FAST_PLACEMENT;
     }
 
     public FaweLimit copy() {
         FaweLimit limit = new FaweLimit();
+        limit.INVENTORY_MODE = INVENTORY_MODE;
+        limit.SPEED_REDUCTION = SPEED_REDUCTION;
         limit.MAX_ACTIONS = MAX_ACTIONS;
         limit.MAX_CHANGES = MAX_CHANGES;
         limit.MAX_BLOCKSTATES = MAX_BLOCKSTATES;
@@ -107,6 +121,7 @@ public class FaweLimit {
         limit.MAX_FAILS = MAX_FAILS;
         limit.MAX_ITERATIONS = MAX_ITERATIONS;
         limit.MAX_HISTORY = MAX_HISTORY;
+        limit.FAST_PLACEMENT = FAST_PLACEMENT;
         return limit;
     }
 

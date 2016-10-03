@@ -88,7 +88,6 @@ public class PlotTrim implements Listener {
     }
 
     public void run() {
-        System.out.println("Run!");
         Bukkit.getPluginManager().registerEvents(this, (Plugin) PS.get().IMP);
         final Set<ChunkLoc> mcas = new HashSet<>();
         if (deleteUnowned && area != null) {

@@ -19,7 +19,9 @@
 
 package com.sk89q.worldedit.function.operation;
 
+import com.boydti.fawe.object.changeset.FaweChangeSet;
 import com.sk89q.worldedit.WorldEditException;
+import com.sk89q.worldedit.extent.inventory.BlockBag;
 import com.sk89q.worldedit.history.UndoContext;
 import com.sk89q.worldedit.history.change.Change;
 import com.sk89q.worldedit.history.changeset.ChangeSet;
@@ -47,13 +49,16 @@ public class ChangeSetExecutor implements Operation {
      * @param type type of change
      * @param context the undo context
      */
-    private ChangeSetExecutor(ChangeSet changeSet, Type type, UndoContext context) {
+    private ChangeSetExecutor(ChangeSet changeSet, Type type, UndoContext context, BlockBag blockBag, int inventory) {
         checkNotNull(changeSet);
         checkNotNull(type);
         checkNotNull(context);
         this.type = type;
         this.context = context;
-        if (type == Type.UNDO) {
+        if (changeSet instanceof FaweChangeSet) {
+            iterator = ((FaweChangeSet) changeSet).getIterator(blockBag, inventory, type == Type.REDO);
+        }
+         else if (type == Type.UNDO) {
             iterator = changeSet.backwardIterator();
         } else {
             iterator = changeSet.forwardIterator();
@@ -82,6 +87,10 @@ public class ChangeSetExecutor implements Operation {
     public void addStatusMessages(List<String> messages) {
     }
 
+    public static ChangeSetExecutor create(ChangeSet changeSet, UndoContext context, Type type, BlockBag blockBag, int inventory) {
+        return new ChangeSetExecutor(changeSet, type, context, blockBag, inventory);
+    }
+
     /**
      * Create a new undo operation.
      *
@@ -89,8 +98,9 @@ public class ChangeSetExecutor implements Operation {
      * @param context an undo context
      * @return an operation
      */
+    @Deprecated
     public static ChangeSetExecutor createUndo(ChangeSet changeSet, UndoContext context) {
-        return new ChangeSetExecutor(changeSet, Type.UNDO, context);
+        return new ChangeSetExecutor(changeSet, Type.UNDO, context, null, 0);
     }
 
     /**
@@ -100,8 +110,9 @@ public class ChangeSetExecutor implements Operation {
      * @param context an undo context
      * @return an operation
      */
+    @Deprecated
     public static ChangeSetExecutor createRedo(ChangeSet changeSet, UndoContext context) {
-        return new ChangeSetExecutor(changeSet, Type.REDO, context);
+        return new ChangeSetExecutor(changeSet, Type.REDO, context, null, 0);
     }
 
     public static Class<?> inject() {

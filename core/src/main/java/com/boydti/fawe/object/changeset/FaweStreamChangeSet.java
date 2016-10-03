@@ -12,6 +12,7 @@ import com.boydti.fawe.util.MathMan;
 import com.sk89q.jnbt.CompoundTag;
 import com.sk89q.jnbt.NBTInputStream;
 import com.sk89q.jnbt.NBTOutputStream;
+import com.sk89q.worldedit.extent.inventory.BlockBag;
 import com.sk89q.worldedit.history.change.Change;
 import com.sk89q.worldedit.world.World;
 import java.io.EOFException;
@@ -382,12 +383,24 @@ public abstract class FaweStreamChangeSet extends FaweChangeSet {
         };
     }
 
-    public Iterator<MutableFullBlockChange> getFullBlockIterator(final boolean dir) throws IOException {
+    @Override
+    public Iterator<Change> getIterator(BlockBag blockBag, int mode, boolean redo) {
+        if (blockBag != null && mode > 0) {
+            try {
+                return (Iterator<Change>) (Iterator<?>) getFullBlockIterator(blockBag, mode, redo);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+        return getIterator(redo);
+    }
+
+    public Iterator<MutableFullBlockChange> getFullBlockIterator(BlockBag blockBag, int inventory, final boolean dir) throws IOException {
         final FaweInputStream is = new FaweInputStream(getBlockIS());
         if (is == null) {
             return new ArrayList<MutableFullBlockChange>().iterator();
         }
-        final MutableFullBlockChange change = new MutableFullBlockChange(0, 0, 0, 0, 0);
+        final MutableFullBlockChange change = new MutableFullBlockChange(blockBag, inventory, dir);
         return new Iterator<MutableFullBlockChange>() {
             private MutableFullBlockChange last = read();
             public MutableFullBlockChange read() {

@@ -84,10 +84,11 @@ public class MutableEntityChange implements Change {
         if (!checkedQueue) {
             checkedQueue = true;
             Extent extent = context.getExtent();
-            if (extent instanceof HasFaweQueue) {
-                perform(queue = ((HasFaweQueue) extent).getQueue());
+            ExtentTraverser found = new ExtentTraverser(extent).find(HasFaweQueue.class);
+            if (found != null) {
+                perform(queue = ((HasFaweQueue) found.get()).getQueue());
             } else {
-                Fawe.debug("FAWE doesn't support: " + extent + " for " + getClass() + " (bug Empire92)");
+                Fawe.debug("FAWE does not support: " + extent + " for " + getClass() + " (bug Empire92)");
             }
         }
     }

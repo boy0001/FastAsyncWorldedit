@@ -4,6 +4,7 @@ import com.boydti.fawe.Fawe;
 import com.boydti.fawe.object.FaweChunk;
 import com.boydti.fawe.object.FaweQueue;
 import com.boydti.fawe.object.HasFaweQueue;
+import com.boydti.fawe.util.ExtentTraverser;
 import com.sk89q.worldedit.WorldEditException;
 import com.sk89q.worldedit.extent.Extent;
 import com.sk89q.worldedit.history.UndoContext;
@@ -39,10 +40,11 @@ public class MutableChunkChange implements Change {
         if (!checkedQueue) {
             checkedQueue = true;
             Extent extent = context.getExtent();
-            if (extent instanceof HasFaweQueue) {
-                perform(queue = ((HasFaweQueue) extent).getQueue(), undo);
+            ExtentTraverser found = new ExtentTraverser(extent).find(HasFaweQueue.class);
+            if (found != null) {
+                perform(queue = ((HasFaweQueue) found.get()).getQueue(), undo);
             } else {
-                Fawe.debug("FAWE doesn't support: " + extent + " for " + getClass() + " (bug Empire92)");
+                Fawe.debug("FAWE does not support: " + extent + " for " + getClass() + " (bug Empire92)");
             }
         }
     }

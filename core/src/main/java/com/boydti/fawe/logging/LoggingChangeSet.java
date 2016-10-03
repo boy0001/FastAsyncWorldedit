@@ -5,6 +5,7 @@ import com.boydti.fawe.FaweCache;
 import com.boydti.fawe.object.FawePlayer;
 import com.boydti.fawe.object.changeset.FaweChangeSet;
 import com.sk89q.jnbt.CompoundTag;
+import com.sk89q.worldedit.extent.inventory.BlockBag;
 import com.sk89q.worldedit.history.change.Change;
 import java.util.Iterator;
 import org.bukkit.entity.Player;
@@ -85,6 +86,11 @@ public class LoggingChangeSet extends FaweChangeSet {
     @Override
     public void addEntityCreate(CompoundTag tag) {
         parent.addEntityCreate(tag);
+    }
+
+    @Override
+    public Iterator<Change> getIterator(BlockBag blockBag, int mode, boolean redo) {
+        return parent.getIterator(blockBag, mode, redo);
     }
 
     @Override

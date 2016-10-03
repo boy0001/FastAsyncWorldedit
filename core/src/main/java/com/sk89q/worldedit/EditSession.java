@@ -45,6 +45,7 @@ import com.boydti.fawe.object.extent.FastWorldEditExtent;
 import com.boydti.fawe.object.extent.FaweRegionExtent;
 import com.boydti.fawe.object.extent.NullExtent;
 import com.boydti.fawe.object.extent.ProcessedWEExtent;
+import com.boydti.fawe.object.extent.SlowExtent;
 import com.boydti.fawe.object.extent.TransformExtent;
 import com.boydti.fawe.object.mask.ResettableMask;
 import com.boydti.fawe.object.progress.DefaultProgressTracker;
@@ -69,6 +70,7 @@ import com.sk89q.worldedit.extent.Extent;
 import com.sk89q.worldedit.extent.MaskingExtent;
 import com.sk89q.worldedit.extent.buffer.ForgetfulExtentBuffer;
 import com.sk89q.worldedit.extent.inventory.BlockBag;
+import com.sk89q.worldedit.extent.inventory.BlockBagExtent;
 import com.sk89q.worldedit.extent.world.SurvivalModeExtent;
 import com.sk89q.worldedit.function.GroundFunction;
 import com.sk89q.worldedit.function.RegionMaskingFilter;
@@ -262,14 +264,14 @@ public class EditSession extends AbstractWorld implements HasFaweQueue {
                 throw new FaweException(BBC.WORLDEDIT_CANCEL_REASON_LOW_MEMORY);
             }
         }
-        this.blockBag = blockBag;
         this.originalLimit = limit;
+        this.blockBag = limit.INVENTORY_MODE != 0 ? blockBag : null;
         this.limit = limit.copy();
         if (queue == null) {
             if (world instanceof MCAWorld) {
                 queue = ((MCAWorld) world).getQueue();
             } else {
-                queue = SetQueue.IMP.getNewQueue(this, fastmode, autoQueue);
+                queue = SetQueue.IMP.getNewQueue(this, fastmode || limit.FAST_PLACEMENT, autoQueue);
             }
         }
         if (Settings.EXPERIMENTAL.ANVIL_QUEUE_MODE && !(queue instanceof MCAQueue)) {
@@ -282,15 +284,23 @@ public class EditSession extends AbstractWorld implements HasFaweQueue {
         }
         this.bypassAll = wrapExtent(new FastWorldEditExtent(world, queue), bus, event, Stage.BEFORE_CHANGE);
         this.bypassHistory = (this.extent = wrapExtent(bypassAll, bus, event, Stage.BEFORE_REORDER));
-        if (!fastmode && !(changeSet instanceof NullChangeSet)) {
-            if (player != null && Fawe.imp().getBlocksHubApi() != null) {
-                changeSet = LoggingChangeSet.wrap(player, changeSet);
+        if (!fastmode) {
+            if (this.blockBag != null && limit.INVENTORY_MODE > 0) {
+                this.bypassHistory = new BlockBagExtent(this.bypassHistory, this.blockBag, limit.INVENTORY_MODE == 1);
             }
-            if (combineStages) {
-                changeTask = changeSet;
-                changeSet.addChangeTask(queue);
-            } else {
-                this.extent = (history = new HistoryExtent(this, bypassHistory, changeSet, queue));
+            if (limit.SPEED_REDUCTION > 0) {
+                this.bypassHistory = new SlowExtent(this.bypassHistory, limit.SPEED_REDUCTION);
+            }
+            if (!(changeSet instanceof NullChangeSet)) {
+                if (player != null && Fawe.imp().getBlocksHubApi() != null) {
+                    changeSet = LoggingChangeSet.wrap(player, changeSet);
+                }
+                if (combineStages) {
+                    changeTask = changeSet;
+                    changeSet.addChangeTask(queue);
+                } else {
+                    this.extent = (history = new HistoryExtent(this, bypassHistory, changeSet, queue));
+                }
             }
         }
         if (allowedRegions != null) {
@@ -1102,7 +1112,7 @@ public class EditSession extends AbstractWorld implements HasFaweQueue {
         context.setExtent(editSession.bypassAll);
         ChangeSet changeSet = getChangeSet();
         editSession.getQueue().setChangeTask(null);
-        Operations.completeSmart(ChangeSetExecutor.createUndo(changeSet, context), new Runnable() {
+        Operations.completeSmart(ChangeSetExecutor.create(changeSet, context, ChangeSetExecutor.Type.UNDO, editSession.getBlockBag(), editSession.getLimit().INVENTORY_MODE), new Runnable() {
             @Override
             public void run() {
                 editSession.flushQueue();
@@ -1121,7 +1131,7 @@ public class EditSession extends AbstractWorld implements HasFaweQueue {
         context.setExtent(editSession.bypassAll);
         ChangeSet changeSet = getChangeSet();
         editSession.getQueue().setChangeTask(null);
-        Operations.completeSmart(ChangeSetExecutor.createRedo(changeSet, context), new Runnable() {
+        Operations.completeSmart(ChangeSetExecutor.create(changeSet, context, ChangeSetExecutor.Type.REDO, editSession.getBlockBag(), editSession.getLimit().INVENTORY_MODE), new Runnable() {
             @Override
             public void run() {
                 editSession.flushQueue();

@@ -4,8 +4,11 @@ import com.boydti.fawe.Fawe;
 import com.boydti.fawe.FaweCache;
 import com.boydti.fawe.object.FaweQueue;
 import com.boydti.fawe.object.HasFaweQueue;
+import com.boydti.fawe.util.ExtentTraverser;
 import com.sk89q.worldedit.WorldEditException;
 import com.sk89q.worldedit.extent.Extent;
+import com.sk89q.worldedit.extent.inventory.BlockBag;
+import com.sk89q.worldedit.extent.inventory.BlockBagException;
 import com.sk89q.worldedit.history.UndoContext;
 import com.sk89q.worldedit.history.change.Change;
 
@@ -16,14 +19,14 @@ public class MutableFullBlockChange implements Change {
     public int x;
     public int from;
     public int to;
+    public BlockBag blockBag;
+    public boolean allowFetch;
+    public boolean allowStore;
 
-
-    public MutableFullBlockChange(int x, int y, int z, int combinedFrom, int combinedTo) {
-        this.x = x;
-        this.y = y;
-        this.z = z;
-        this.from = combinedFrom;
-        this.to = combinedTo;
+    public MutableFullBlockChange(BlockBag blockBag, int mode, boolean redo) {
+        this.blockBag = blockBag;
+        allowFetch = redo || mode == 1;
+        allowStore = !redo || mode == 1;
     }
 
     @Override
@@ -46,15 +49,35 @@ public class MutableFullBlockChange implements Change {
         if (!checkedQueue) {
             checkedQueue = true;
             Extent extent = context.getExtent();
-            if (extent instanceof HasFaweQueue) {
-                perform(queue = ((HasFaweQueue) extent).getQueue());
+            ExtentTraverser found = new ExtentTraverser(extent).find(HasFaweQueue.class);
+            if (found != null) {
+                perform(queue = ((HasFaweQueue) found.get()).getQueue());
             } else {
-                Fawe.debug("FAWE doesn't support: " + extent + " for " + getClass() + " (bug Empire92)");
+                Fawe.debug("FAWE does not support: " + extent + " for " + getClass() + " (bug Empire92)");
             }
         }
     }
 
     public void perform(FaweQueue queue) {
-        queue.setBlock(x, y, z, FaweCache.getId(from), FaweCache.getData(from));
+        int idFrom = FaweCache.getId(from);
+        int dataFrom = FaweCache.getData(from);
+        if (blockBag != null) {
+            if (allowFetch && idFrom != 0) {
+                try {
+                    blockBag.fetchPlacedBlock(idFrom, dataFrom);
+                } catch (BlockBagException e) {
+                    return;
+                }
+            }
+            int idTo = FaweCache.getId(to);
+            int dataTo = FaweCache.getData(to);
+            if (allowStore && idTo != 0) {
+                try {
+                    blockBag.storeDroppedBlock(idTo, dataTo);
+                } catch (BlockBagException ignored) {
+                }
+            }
+        }
+        queue.setBlock(x, y, z, idFrom, dataFrom);
     }
 }

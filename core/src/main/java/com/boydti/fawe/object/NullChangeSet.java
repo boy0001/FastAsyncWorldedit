@@ -2,6 +2,7 @@ package com.boydti.fawe.object;
 
 import com.boydti.fawe.object.changeset.FaweChangeSet;
 import com.sk89q.jnbt.CompoundTag;
+import com.sk89q.worldedit.extent.inventory.BlockBag;
 import com.sk89q.worldedit.history.change.Change;
 import com.sk89q.worldedit.world.World;
 import java.util.ArrayList;
@@ -40,6 +41,11 @@ public class NullChangeSet extends FaweChangeSet {
     @Override
     public final void addEntityCreate(CompoundTag tag) {
 
+    }
+
+    @Override
+    public Iterator<Change> getIterator(BlockBag blockBag, int mode, boolean redo) {
+        return getIterator(redo);
     }
 
     @Override
