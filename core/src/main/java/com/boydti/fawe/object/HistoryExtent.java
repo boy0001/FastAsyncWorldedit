@@ -56,36 +56,33 @@ public class HistoryExtent extends AbstractDelegateExtent {
 
     @Override
     public boolean setBlock(int x, int y, int z, BaseBlock block) throws WorldEditException {
-        if (extent.setBlock(x, y, z, block)) {
-            int combined = queue.getCombinedId4DataDebug(x, y, z, 0, session);
-            int id = (combined >> 4);
-            if (id == block.getId()) {
-                if (!FaweCache.hasData(id)) {
-                    return false;
-                }
-                int data = combined & 0xF;
-                if (data == block.getData()) {
-                    return false;
-                }
+        int combined = queue.getCombinedId4DataDebug(x, y, z, 0, session);
+        int id = (combined >> 4);
+        if (id == block.getId()) {
+            if (!FaweCache.hasData(id)) {
+                return false;
             }
-            if (!FaweCache.hasNBT(id)) {
-                if (FaweCache.hasNBT(block.getId())) {
-                    this.changeSet.add(x, y, z, combined, block);
-                } else {
-                    this.changeSet.add(x, y, z, combined, (block.getId() << 4) + block.getData());
-                }
-            } else {
-                try {
-                    CompoundTag tag = queue.getTileEntity(x, y, z);
-                    this.changeSet.add(x, y, z, new BaseBlock(id, combined & 0xF, tag), block);
-                } catch (Throwable e) {
-                    e.printStackTrace();
-                    this.changeSet.add(x, y, z, combined, block);
-                }
+            int data = combined & 0xF;
+            if (data == block.getData()) {
+                return false;
             }
-            return true;
         }
-        return false;
+        if (!FaweCache.hasNBT(id)) {
+            if (FaweCache.hasNBT(block.getId())) {
+                this.changeSet.add(x, y, z, combined, block);
+            } else {
+                this.changeSet.add(x, y, z, combined, (block.getId() << 4) + block.getData());
+            }
+        } else {
+            try {
+                CompoundTag tag = queue.getTileEntity(x, y, z);
+                this.changeSet.add(x, y, z, new BaseBlock(id, combined & 0xF, tag), block);
+            } catch (Throwable e) {
+                e.printStackTrace();
+                this.changeSet.add(x, y, z, combined, block);
+            }
+        }
+        return extent.setBlock(x, y, z, block);
     }
 
     @Override

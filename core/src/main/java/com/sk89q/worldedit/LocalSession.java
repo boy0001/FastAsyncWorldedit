@@ -448,6 +448,10 @@ public class LocalSession {
         if (editSession.size() == 0 || editSession.hasFastMode()) {
             return;
         }
+        FaweChangeSet changeSet = (FaweChangeSet) editSession.getChangeSet();
+        if (changeSet.size() == 0) {
+            return;
+        }
         FawePlayer fp = editSession.getPlayer();
         if (fp != null) {
             loadSessionHistoryFromDisk(fp.getUUID(), editSession.getWorld());
@@ -461,18 +465,17 @@ public class LocalSession {
             while (iter.hasNext()) {
                 Object item = iter.next();
                 if (++i > cutoffIndex) {
-                    FaweChangeSet changeSet;
+                    FaweChangeSet oldChangeSet;
                     if (item instanceof FaweChangeSet) {
-                        changeSet = (FaweChangeSet) item;
+                        oldChangeSet = (FaweChangeSet) item;
                     } else {
-                        changeSet = getChangeSet(item);
+                        oldChangeSet = getChangeSet(item);
                     }
-                    historySize -= MainUtil.getSize(changeSet);
+                    historySize -= MainUtil.getSize(oldChangeSet);
                     iter.remove();
                 }
             }
         }
-        FaweChangeSet changeSet = (FaweChangeSet) editSession.getChangeSet();
         historySize += MainUtil.getSize(changeSet);
         if (append) {
             history.add(changeSet);
