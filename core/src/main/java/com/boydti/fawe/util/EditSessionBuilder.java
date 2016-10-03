@@ -82,7 +82,6 @@ public class EditSessionBuilder {
         limitUnlimited();
         FaweLimit tmp = fp.getLimit();
         limit.INVENTORY_MODE = tmp.INVENTORY_MODE;
-        limit.FAST_PLACEMENT = tmp.FAST_PLACEMENT;
         return this;
     }
 
