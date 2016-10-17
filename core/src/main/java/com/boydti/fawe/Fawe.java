@@ -51,6 +51,7 @@ import com.sk89q.worldedit.extent.clipboard.BlockArrayClipboard;
 import com.sk89q.worldedit.extent.clipboard.io.ClipboardFormat;
 import com.sk89q.worldedit.extent.clipboard.io.SchematicReader;
 import com.sk89q.worldedit.extent.clipboard.io.SchematicWriter;
+import com.sk89q.worldedit.extent.inventory.BlockBagExtent;
 import com.sk89q.worldedit.extent.transform.BlockTransformExtent;
 import com.sk89q.worldedit.function.entity.ExtentEntityCopy;
 import com.sk89q.worldedit.function.mask.BlockMask;
@@ -389,6 +390,7 @@ public class Fawe {
             // Extents
             BlockTransformExtent.inject(); // Fix for cache not being mutable
             AbstractDelegateExtent.inject(); // Optimizations
+            BlockBagExtent.inject(); // Fixes + Optimizations
             // Vector
             Vector.inject(); // Optimizations
             // Pattern

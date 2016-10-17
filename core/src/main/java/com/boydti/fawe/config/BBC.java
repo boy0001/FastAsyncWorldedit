@@ -169,6 +169,7 @@ public enum BBC {
             "Error"),
 
     WORLDEDIT_SOME_FAILS("&c%s0 blocks weren't placed because they were outside your allowed region.", "Error"),
+    WORLDEDIT_SOME_FAILS_BLOCKBAG("&cMissing blocks: %s0", "Error"),
 
     WORLDEDIT_CANCEL_COUNT("&cCancelled %s0 edits.", "Cancel"),
     WORLDEDIT_CANCEL_REASON("&cYour WorldEdit action was cancelled:&7 %s0&c.", "Cancel"),

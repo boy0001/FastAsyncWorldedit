@@ -28,7 +28,6 @@ public class NukkitQueue extends NMSMappedFaweQueue<Level, BaseFullChunk, BaseFu
     private Level world;
 
     public static int ALLOCATE;
-    public static double TPS_TARGET = 18.5;
     private static int LIGHT_MASK = 0x739C0;
 
     public NukkitQueue(FaweNukkit fn, World world) {

@@ -3,17 +3,14 @@ package com.boydti.fawe.logging;
 import com.boydti.fawe.Fawe;
 import com.boydti.fawe.FaweCache;
 import com.boydti.fawe.object.FawePlayer;
+import com.boydti.fawe.object.changeset.AbstractDelegateChangeSet;
 import com.boydti.fawe.object.changeset.FaweChangeSet;
-import com.sk89q.jnbt.CompoundTag;
-import com.sk89q.worldedit.extent.inventory.BlockBag;
-import com.sk89q.worldedit.history.change.Change;
-import java.util.Iterator;
 import org.bukkit.entity.Player;
 import org.primesoft.blockshub.IBlocksHubApi;
 import org.primesoft.blockshub.api.IPlayer;
 import org.primesoft.blockshub.api.IWorld;
 
-public class LoggingChangeSet extends FaweChangeSet {
+public class LoggingChangeSet extends AbstractDelegateChangeSet {
 
     private static boolean initialized = false;
 
@@ -30,8 +27,6 @@ public class LoggingChangeSet extends FaweChangeSet {
 
     public static IBlocksHubApi api;
 
-    private final FaweChangeSet parent;
-
     private final MutableVector loc;
     private final IPlayer player;
     private final IWorld world;
@@ -39,18 +34,12 @@ public class LoggingChangeSet extends FaweChangeSet {
     private final MutableBlockData newBlock;
 
     private LoggingChangeSet(FawePlayer player, FaweChangeSet parent) {
-        super(parent.getWorld());
-        this.parent = parent;
+        super(parent);
         this.world = api.getWorld(player.getLocation().world);
         this.loc = new MutableVector();
         this.oldBlock = new MutableBlockData();
         this.newBlock = new MutableBlockData();
         this.player = api.getPlayer(player.getUUID());
-    }
-
-    @Override
-    public boolean flush() {
-        return parent.flush();
     }
 
     @Override
@@ -66,40 +55,5 @@ public class LoggingChangeSet extends FaweChangeSet {
         // Log to BlocksHub and parent
         api.logBlock(loc, player, world, oldBlock, newBlock);
         parent.add(x, y, z, combinedId4DataFrom, combinedId4DataTo);
-    }
-
-    @Override
-    public void addTileCreate(CompoundTag tag) {
-        parent.addTileCreate(tag);
-    }
-
-    @Override
-    public void addTileRemove(CompoundTag tag) {
-        parent.addTileRemove(tag);
-    }
-
-    @Override
-    public void addEntityRemove(CompoundTag tag) {
-        parent.addEntityRemove(tag);
-    }
-
-    @Override
-    public void addEntityCreate(CompoundTag tag) {
-        parent.addEntityCreate(tag);
-    }
-
-    @Override
-    public Iterator<Change> getIterator(BlockBag blockBag, int mode, boolean redo) {
-        return parent.getIterator(blockBag, mode, redo);
-    }
-
-    @Override
-    public Iterator<Change> getIterator(boolean undo) {
-        return parent.getIterator(undo);
-    }
-
-    @Override
-    public int size() {
-        return parent.size();
     }
 }

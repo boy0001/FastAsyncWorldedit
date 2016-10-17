@@ -60,24 +60,24 @@ public class MutableFullBlockChange implements Change {
 
     public void perform(FaweQueue queue) {
         int idFrom = FaweCache.getId(from);
-        int dataFrom = FaweCache.getData(from);
         if (blockBag != null) {
-            if (allowFetch && idFrom != 0) {
-                try {
-                    blockBag.fetchPlacedBlock(idFrom, dataFrom);
-                } catch (BlockBagException e) {
-                    return;
-                }
-            }
             int idTo = FaweCache.getId(to);
-            int dataTo = FaweCache.getData(to);
-            if (allowStore && idTo != 0) {
-                try {
-                    blockBag.storeDroppedBlock(idTo, dataTo);
-                } catch (BlockBagException ignored) {
+            if (idFrom != idTo) {
+                if (allowFetch && from != 0) {
+                    try {
+                        blockBag.fetchPlacedBlock(idFrom, FaweCache.getData(from));
+                    } catch (BlockBagException e) {
+                        return;
+                    }
+                }
+                if (allowStore && to != 0) {
+                    try {
+                        blockBag.storeDroppedBlock(idTo, FaweCache.getData(to));
+                    } catch (BlockBagException ignored) {
+                    }
                 }
             }
         }
-        queue.setBlock(x, y, z, idFrom, dataFrom);
+        queue.setBlock(x, y, z, idFrom, FaweCache.getData(from));
     }
 }

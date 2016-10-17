@@ -35,6 +35,12 @@ public class FaweException extends RuntimeException {
         }
     }
 
+    public static class FaweBlockBagException extends FaweException {
+        public FaweBlockBagException() {
+            super(BBC.WORLDEDIT_SOME_FAILS_BLOCKBAG);
+        }
+    }
+
     /**
      * Faster exception throwing if you don't fill the stacktrace
      * @return

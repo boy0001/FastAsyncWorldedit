@@ -61,6 +61,9 @@ public class FaweTimer implements Runnable {
     private long skipTick = 0;
 
     public boolean isAbove(double tps) {
+        if (tps <= 0) {
+            return true;
+        }
         if (skip > 0) {
             if (skipTick != tick) {
                 skip--;

@@ -36,6 +36,7 @@ import com.boydti.fawe.object.HistoryExtent;
 import com.boydti.fawe.object.NullChangeSet;
 import com.boydti.fawe.object.RegionWrapper;
 import com.boydti.fawe.object.RunnableVal;
+import com.boydti.fawe.object.changeset.BlockBagChangeSet;
 import com.boydti.fawe.object.changeset.CPUOptimizedChangeSet;
 import com.boydti.fawe.object.changeset.DiskStorageHistory;
 import com.boydti.fawe.object.changeset.FaweChangeSet;
@@ -70,7 +71,6 @@ import com.sk89q.worldedit.extent.Extent;
 import com.sk89q.worldedit.extent.MaskingExtent;
 import com.sk89q.worldedit.extent.buffer.ForgetfulExtentBuffer;
 import com.sk89q.worldedit.extent.inventory.BlockBag;
-import com.sk89q.worldedit.extent.inventory.BlockBagExtent;
 import com.sk89q.worldedit.extent.world.SurvivalModeExtent;
 import com.sk89q.worldedit.function.GroundFunction;
 import com.sk89q.worldedit.function.RegionMaskingFilter;
@@ -285,15 +285,15 @@ public class EditSession extends AbstractWorld implements HasFaweQueue {
         this.bypassAll = wrapExtent(new FastWorldEditExtent(world, queue), bus, event, Stage.BEFORE_CHANGE);
         this.bypassHistory = (this.extent = wrapExtent(bypassAll, bus, event, Stage.BEFORE_REORDER));
         if (!fastmode) {
-            if (this.blockBag != null && limit.INVENTORY_MODE > 0) {
-                this.bypassHistory = new BlockBagExtent(this.bypassHistory, this.blockBag, limit.INVENTORY_MODE == 1);
-            }
             if (limit.SPEED_REDUCTION > 0) {
                 this.bypassHistory = new SlowExtent(this.bypassHistory, limit.SPEED_REDUCTION);
             }
             if (!(changeSet instanceof NullChangeSet)) {
                 if (player != null && Fawe.imp().getBlocksHubApi() != null) {
                     changeSet = LoggingChangeSet.wrap(player, changeSet);
+                }
+                if (this.blockBag != null && limit.INVENTORY_MODE > 0) {
+                    changeSet = new BlockBagChangeSet(changeSet, blockBag, limit.INVENTORY_MODE == 1);
                 }
                 if (combineStages) {
                     changeTask = changeSet;
@@ -728,6 +728,37 @@ public class EditSession extends AbstractWorld implements HasFaweQueue {
      * @return a map of missing blocks
      */
     public Map<Integer, Integer> popMissingBlocks() {
+        ChangeSet changeSet = getChangeSet();
+        if (changeSet instanceof BlockBagChangeSet) {
+            BlockBagChangeSet bbcs = (BlockBagChangeSet) changeSet;
+            BlockBag bag = bbcs.getBlockBag();
+            if (bag != null) {
+                bag.flushChanges();
+                Map<Integer, Integer> missingBlocks = ((BlockBagChangeSet) changeSet).popMissing();
+                if (!missingBlocks.isEmpty()) {
+                    StringBuilder str = new StringBuilder();
+                    int size = missingBlocks.size();
+                    int i = 0;
+
+                    for (Map.Entry<Integer, Integer> entry : missingBlocks.entrySet()) {
+                        int combined = entry.getKey();
+                        int id = FaweCache.getId(combined);
+                        int data = FaweCache.getData(combined);
+                        int amount = entry.getValue();
+                        BlockType type = BlockType.fromID(id);
+                        str.append((type != null ? type.getName() : "" + id))
+                        .append((data != 0 ? ":" + data : ""))
+                        .append((amount != 1 ? "x" + amount : ""));
+                        ++i;
+                        if (i != size) {
+                            str.append(", ");
+                        }
+                    }
+
+                    BBC.WORLDEDIT_SOME_FAILS_BLOCKBAG.send(player, str.toString());
+                }
+            }
+        }
         return new HashMap<>();
     }
 

@@ -94,7 +94,9 @@ public abstract class FaweChangeSet implements ChangeSet {
     public abstract void addTileRemove(CompoundTag tag);
     public abstract void addEntityRemove(CompoundTag tag);
     public abstract void addEntityCreate(CompoundTag tag);
-    public abstract Iterator<Change> getIterator(BlockBag blockBag, int mode, boolean redo);
+    public Iterator<Change> getIterator(BlockBag blockBag, int mode, boolean redo) {
+        return getIterator(redo);
+    }
     public abstract Iterator<Change> getIterator(boolean redo);
 
     public void delete() {};

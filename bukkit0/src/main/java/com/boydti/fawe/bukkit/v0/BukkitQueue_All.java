@@ -17,7 +17,6 @@ import org.bukkit.block.Block;
 public class BukkitQueue_All extends BukkitQueue_0<Chunk, Chunk, Chunk> {
 
     public static int ALLOCATE;
-    public static double TPS_TARGET = 18.5;
     private static int LIGHT_MASK = 0x739C0;
 
     public BukkitQueue_All(com.sk89q.worldedit.world.World world) {

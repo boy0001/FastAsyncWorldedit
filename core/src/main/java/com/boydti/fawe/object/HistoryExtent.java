@@ -2,6 +2,7 @@ package com.boydti.fawe.object;
 
 import com.boydti.fawe.FaweCache;
 import com.boydti.fawe.object.changeset.FaweChangeSet;
+import com.boydti.fawe.object.exception.FaweException;
 import com.sk89q.jnbt.CompoundTag;
 import com.sk89q.worldedit.EditSession;
 import com.sk89q.worldedit.Vector;
@@ -67,20 +68,24 @@ public class HistoryExtent extends AbstractDelegateExtent {
                 return false;
             }
         }
-        if (!FaweCache.hasNBT(id)) {
-            if (FaweCache.hasNBT(block.getId())) {
-                this.changeSet.add(x, y, z, combined, block);
+        try {
+            if (!FaweCache.hasNBT(id)) {
+                if (FaweCache.hasNBT(block.getId())) {
+                    this.changeSet.add(x, y, z, combined, block);
+                } else {
+                    this.changeSet.add(x, y, z, combined, (block.getId() << 4) + block.getData());
+                }
             } else {
-                this.changeSet.add(x, y, z, combined, (block.getId() << 4) + block.getData());
+                try {
+                    CompoundTag tag = queue.getTileEntity(x, y, z);
+                    this.changeSet.add(x, y, z, new BaseBlock(id, combined & 0xF, tag), block);
+                } catch (Throwable e) {
+                    e.printStackTrace();
+                    this.changeSet.add(x, y, z, combined, block);
+                }
             }
-        } else {
-            try {
-                CompoundTag tag = queue.getTileEntity(x, y, z);
-                this.changeSet.add(x, y, z, new BaseBlock(id, combined & 0xF, tag), block);
-            } catch (Throwable e) {
-                e.printStackTrace();
-                this.changeSet.add(x, y, z, combined, block);
-            }
+        } catch (FaweException ignore) {
+            return false;
         }
         return extent.setBlock(x, y, z, block);
     }

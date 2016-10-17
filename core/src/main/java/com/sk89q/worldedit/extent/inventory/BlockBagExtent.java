@@ -1,5 +1,6 @@
 package com.sk89q.worldedit.extent.inventory;
 
+import com.boydti.fawe.FaweCache;
 import com.sk89q.jnbt.CompoundTag;
 import com.sk89q.worldedit.Vector;
 import com.sk89q.worldedit.WorldEditException;
@@ -107,5 +108,9 @@ public class BlockBagExtent extends AbstractDelegateExtent {
             }
         }
         return super.setBlock(position, block);
+    }
+
+    public static Class<?> inject() {
+        return BlockBagExtent.class;
     }
 }

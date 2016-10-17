@@ -16,6 +16,7 @@ import com.sk89q.jnbt.StringTag;
 import com.sk89q.jnbt.Tag;
 import com.sk89q.worldedit.CuboidClipboard;
 import com.sk89q.worldedit.blocks.BaseBlock;
+import com.sk89q.worldedit.blocks.BaseItem;
 import com.sk89q.worldedit.world.registry.BundledBlockData;
 import java.awt.Color;
 import java.lang.reflect.Field;
@@ -65,6 +66,8 @@ public class FaweCache {
      */
     public final static BaseBlock[] CACHE_BLOCK = new BaseBlock[Character.MAX_VALUE + 1];
 
+    public final static BaseItem[] CACHE_ITEM = new BaseItem[Character.MAX_VALUE + 1];
+
     /**
      * Faster than java random (since it just needs to look random)
      */
@@ -81,6 +84,10 @@ public class FaweCache {
      */
     public static final BaseBlock getBlock(int id, int data) {
         return CACHE_BLOCK[(id << 4) + data];
+    }
+
+    public static final BaseItem getItem(int id, int data) {
+        return CACHE_ITEM[(id << 4) + data];
     }
 
     /**
@@ -172,6 +179,23 @@ public class FaweCache {
                 @Override
                 public boolean hasWildcardData() {
                     return true;
+                }
+            };
+            CACHE_ITEM[i] = new BaseItem(id, (short) data) {
+
+                @Override
+                public void setData(short data) {
+                    throw new IllegalStateException("Cannot set data");
+                }
+
+                @Override
+                public void setDamage(short data) {
+                    throw new IllegalStateException("Cannot set data");
+                }
+
+                @Override
+                public void setType(int id) {
+                    throw new IllegalStateException("Cannot set id");
                 }
             };
         }

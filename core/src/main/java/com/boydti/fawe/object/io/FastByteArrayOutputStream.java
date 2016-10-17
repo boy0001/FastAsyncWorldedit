@@ -5,9 +5,11 @@ import java.io.OutputStream;
 import java.io.RandomAccessFile;
 import java.io.Writer;
 import java.util.ArrayDeque;
+import java.util.Arrays;
 import java.util.Iterator;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorCompletionService;
+import java.util.concurrent.ForkJoinPool;
 
 
 /**
@@ -101,44 +103,25 @@ public class FastByteArrayOutputStream extends OutputStream {
         return data;
     }
 
-    public byte[] toByteArray() {
-        byte[] data = new byte[getSize()];
-
-        // Check if we have a list of buffers
-        int pos = 0;
-
-        if (buffers != null) {
-            for (byte[] bytes : buffers) {
-                System.arraycopy(bytes, 0, data, pos, bytes.length);
-                pos += bytes.length;
-            }
-        }
-
-        // write the internal buffer directly
-        System.arraycopy(buffer, 0, data, pos, index);
-
-        return data;
-    }
-
     public String toString() {
         return new String(toByteArray());
     }
 
     @Override
-    public void write(byte[] b) throws IOException {
-        if (b.length > blockSize) {
-            if (index > 0) {
-                byte[] buf2 = new byte[index];
-                System.arraycopy(buffer, 0, buf2, 0, index);
-                buffer = buf2;
-                addBuffer();
+        public void write(byte[] b) throws IOException {
+            if (b.length > blockSize) {
+                if (index > 0) {
+                    byte[] buf2 = new byte[index];
+                    System.arraycopy(buffer, 0, buf2, 0, index);
+                    buffer = buf2;
+                    addBuffer();
+                }
+                size += b.length;
+                buffers.addLast(b);
+            } else {
+                write(b, 0, b.length);
             }
-            size += b.length;
-            buffers.addLast(b);
-        } else {
-            write(b, 0, b.length);
         }
-    }
 
     public void write(int datum) {
         if (index == blockSize) {

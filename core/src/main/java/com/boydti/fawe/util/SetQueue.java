@@ -60,7 +60,8 @@ public class SetQueue {
             @Override
             public void run() {
                 try {
-                    while (!tasks.isEmpty() && Fawe.get().getTimer().isAbove(18.5)) {
+                    double targetTPS = 18 - Math.max(Settings.QUEUE.EXTRA_TIME_MS * 0.05, 0);
+                    while (!tasks.isEmpty() && Fawe.get().getTimer().isAbove(targetTPS)) {
                         tasks.poll().run();
                     }
                     if (inactiveQueues.isEmpty() && activeQueues.isEmpty()) {
@@ -86,7 +87,7 @@ public class SetQueue {
                         }
                     }
                     FaweQueue queue = getNextQueue();
-                    if (queue == null || !Fawe.get().getTimer().isAbove(18.5)) {
+                    if (queue == null || !Fawe.get().getTimer().isAbove(targetTPS)) {
                         return;
                     }
                     if (Thread.currentThread() != Fawe.get().getMainThread()) {
