@@ -7,9 +7,6 @@ import java.io.Writer;
 import java.util.ArrayDeque;
 import java.util.Arrays;
 import java.util.Iterator;
-import java.util.concurrent.Callable;
-import java.util.concurrent.ExecutorCompletionService;
-import java.util.concurrent.ForkJoinPool;
 
 
 /**
@@ -68,39 +65,33 @@ public class FastByteArrayOutputStream extends OutputStream {
         return res;
     }
 
-    public byte[] toByteArray(ExecutorCompletionService service) {
-        if (buffers.size() < 8) {
-            return toByteArray();
+    public byte[] toByteArray() {
+        if (buffers.isEmpty()) {
+            if (buffer.length == index) {
+                return buffer;
+            }
+            buffer = Arrays.copyOfRange(buffer, 0, index);
+            return buffer;
         }
-        final byte[] data = new byte[getSize()];
+        byte[] data = new byte[getSize()];
+
         // Check if we have a list of buffers
         int pos = 0;
-        int count = 0;
+
         if (buffers != null) {
-            for (final byte[] bytes : buffers) {
-                final int finalPos = pos;
-                count++;
-                service.submit(new Callable() {
-                    @Override
-                    public Object call() throws Exception {
-                        System.arraycopy(bytes, 0, data, finalPos, bytes.length);
-                        return null;
-                    }
-                });
+            for (byte[] bytes : buffers) {
+                System.arraycopy(bytes, 0, data, pos, bytes.length);
                 pos += bytes.length;
             }
         }
-        try {
-            for (int i = 0; i < count; i++) {
-                service.take();
-            }
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
+
         // write the internal buffer directly
         System.arraycopy(buffer, 0, data, pos, index);
 
-        return data;
+        this.index = size + index;
+        this.buffer = data;
+        this.buffers.clear();
+        return this.buffer;
     }
 
     public String toString() {
