@@ -21,41 +21,36 @@ public abstract class NMSMappedFaweQueue<WORLD, CHUNK, CHUNKSECTION, SECTION> ex
     public NMSMappedFaweQueue(World world) {
         super(world);
         this.maxY = world.getMaxY();
-        addRelightTask();
     }
 
     public NMSMappedFaweQueue(String world) {
         super(world);
         this.maxY = 256;
-        addRelightTask();
     }
 
     public NMSMappedFaweQueue(String world, IFaweQueueMap map) {
         super(world, map);
         this.maxY = 256;
-        addRelightTask();
     }
 
     public NMSMappedFaweQueue(World world, IFaweQueueMap map) {
         super(world, map);
         this.maxY = world.getMaxY();
-        addRelightTask();
     }
 
-    private void addRelightTask() {
-        addNotifyTask(new Runnable() {
-            @Override
-            public void run() {
-                if (relighter != null) {
-                    TaskManager.IMP.taskNowAsync(new Runnable() {
-                        @Override
-                        public void run() {
-                            relighter.fixLightingSafe(hasSky());
-                        }
-                    });
+    @Override
+    public void runTasks() {
+        super.runTasks();
+        final NMSRelighter tmp = relighter;
+        relighter = null;
+        if (tmp != null) {
+            TaskManager.IMP.taskNowAsync(new Runnable() {
+                @Override
+                public void run() {
+                    tmp.fixLightingSafe(hasSky());
                 }
-            }
-        });
+            });
+        }
     }
 
     private NMSRelighter relighter;
@@ -67,11 +62,13 @@ public abstract class NMSMappedFaweQueue<WORLD, CHUNK, CHUNKSECTION, SECTION> ex
             sendChunk(chunk);
             return;
         }
-        if (relighter == null) {
-            relighter = new NMSRelighter(this);
+        NMSRelighter tmp = relighter;
+        if (tmp == null) {
+            relighter = tmp = new NMSRelighter(this);
         }
+
         if (Settings.LIGHTING.MODE == 2) {
-            relighter.addChunk(chunk.getX(), chunk.getZ(), null, chunk.getBitMask());
+            tmp.addChunk(chunk.getX(), chunk.getZ(), null, chunk.getBitMask());
             return;
         }
         CharFaweChunk cfc = (CharFaweChunk) chunk;
@@ -85,7 +82,7 @@ public abstract class NMSMappedFaweQueue<WORLD, CHUNK, CHUNKSECTION, SECTION> ex
             }
         }
         if (relight) {
-            relighter.addChunk(chunk.getX(), chunk.getZ(), fix, chunk.getBitMask());
+            tmp.addChunk(chunk.getX(), chunk.getZ(), fix, chunk.getBitMask());
         } else {
             sendChunk(chunk);
         }

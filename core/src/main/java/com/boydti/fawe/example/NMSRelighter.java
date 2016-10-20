@@ -30,17 +30,16 @@ public class NMSRelighter {
 
     public boolean addChunk(int cx, int cz, boolean[] fix, int bitmask) {
         long pair = MathMan.pairInt(cx, cz);
-        RelightSkyEntry existing = skyToRelight.get(pair);
+        RelightSkyEntry toPut = new RelightSkyEntry(cx, cz, fix, bitmask);
+        RelightSkyEntry existing = skyToRelight.put(pair, toPut);
         if (existing != null) {
-            existing.bitmask |= bitmask;
+            toPut.bitmask |= existing.bitmask;
             if (fix != null) {
                 for (int i = 0; i < fix.length; i++) {
-                    existing.fix[i] |= fix[i];
+                    toPut.fix[i] |= existing.fix[i];
                 }
             }
-            return false;
         }
-        skyToRelight.put(pair, new RelightSkyEntry(cx, cz, fix, bitmask));
         return true;
     }
 
