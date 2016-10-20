@@ -2,6 +2,7 @@ package com.boydti.fawe.bukkit.v1_8;
 
 import com.boydti.fawe.Fawe;
 import com.boydti.fawe.FaweCache;
+import com.boydti.fawe.bukkit.v0.BukkitQueue_0;
 import com.boydti.fawe.example.CharFaweChunk;
 import com.boydti.fawe.object.BytePair;
 import com.boydti.fawe.object.FaweChunk;
@@ -75,22 +76,45 @@ public class BukkitChunk_1_8 extends CharFaweChunk<Chunk, BukkitQueue18R3> {
                 if (count == 0) {
                     continue;
                 } else if (count >= 4096) {
-                    entities[i].clear();
+                    Collection<Entity> ents = entities[i];
+                    if (!ents.isEmpty()) {
+                        synchronized (BukkitQueue_0.adapter) {
+                            ents.clear();
+                        }
+                    }
                 } else {
-                    char[] array = this.getIdArray(i);
-                    Collection<Entity> ents = new ArrayList<>(entities[i]);
-                    for (Entity entity : ents) {
-                        if (entity instanceof EntityPlayer) {
-                            continue;
+                    Collection<Entity> ents = entities[i];
+                    if (!ents.isEmpty()) {
+                        char[] array = this.getIdArray(i);
+                        ents = new ArrayList<>(entities[i]);
+                        synchronized (BukkitQueue_0.adapter) {
+                            for (Entity entity : ents) {
+                                if (entity instanceof EntityPlayer) {
+                                    continue;
+                                }
+                                int x = ((int) Math.round(entity.locX) & 15);
+                                int z = ((int) Math.round(entity.locZ) & 15);
+                                int y = (int) Math.round(entity.locY);
+                                if (array == null || y < 0 || y > 255) {
+                                    continue;
+                                }
+                                if (y < 0 || y > 255 || array[FaweCache.CACHE_J[y][z][x]] != 0) {
+                                    nmsWorld.removeEntity(entity);
+                                }
+                            }
                         }
-                        int x = ((int) Math.round(entity.locX) & 15);
-                        int z = ((int) Math.round(entity.locZ) & 15);
-                        int y = (int) Math.round(entity.locY);
-                        if (array == null) {
-                            continue;
-                        }
-                        if (y < 0 || y > 255 || array[FaweCache.CACHE_J[y][z][x]] != 0) {
-                            nmsWorld.removeEntity(entity);
+                    }
+                }
+            }
+            HashSet<UUID> entsToRemove = this.getEntityRemoves();
+            if (!entsToRemove.isEmpty()) {
+                synchronized (BukkitQueue_0.adapter) {
+                    for (int i = 0; i < entities.length; i++) {
+                        Collection<Entity> ents = new ArrayList<>(entities[i]);
+                        for (Entity entity : ents) {
+                            if (entsToRemove.contains(entity.getUniqueID())) {
+                                nmsWorld.removeEntity(entity);
+                            }
                         }
                     }
                 }
@@ -98,33 +122,37 @@ public class BukkitChunk_1_8 extends CharFaweChunk<Chunk, BukkitQueue18R3> {
             // Set entities
             Set<UUID> createdEntities = new HashSet<>();
             Set<CompoundTag> entitiesToSpawn = this.getEntities();
-            for (CompoundTag nativeTag : entitiesToSpawn) {
-                Map<String, Tag> entityTagMap = nativeTag.getValue();
-                StringTag idTag = (StringTag) entityTagMap.get("Id");
-                ListTag posTag = (ListTag) entityTagMap.get("Pos");
-                ListTag rotTag = (ListTag) entityTagMap.get("Rotation");
-                if (idTag == null || posTag == null || rotTag == null) {
-                    Fawe.debug("Unknown entity tag: " + nativeTag);
-                    continue;
-                }
-                double x = posTag.getDouble(0);
-                double y = posTag.getDouble(1);
-                double z = posTag.getDouble(2);
-                float yaw = rotTag.getFloat(0);
-                float pitch = rotTag.getFloat(1);
-                String id = idTag.getValue();
-                Entity entity = EntityTypes.createEntityByName(id, nmsWorld);
-                if (entity != null) {
-                    if (nativeTag != null) {
-                        NBTTagCompound tag = (NBTTagCompound)BukkitQueue18R3.methodFromNative.invoke(BukkitQueue18R3.adapter, nativeTag);
-                        for (String name : Constants.NO_COPY_ENTITY_NBT_FIELDS) {
-                            tag.remove(name);
+            if (!entitiesToSpawn.isEmpty()) {
+                synchronized (BukkitQueue_0.adapter) {
+                    for (CompoundTag nativeTag : entitiesToSpawn) {
+                        Map<String, Tag> entityTagMap = nativeTag.getValue();
+                        StringTag idTag = (StringTag) entityTagMap.get("Id");
+                        ListTag posTag = (ListTag) entityTagMap.get("Pos");
+                        ListTag rotTag = (ListTag) entityTagMap.get("Rotation");
+                        if (idTag == null || posTag == null || rotTag == null) {
+                            Fawe.debug("Unknown entity tag: " + nativeTag);
+                            continue;
                         }
-                        entity.f(tag);
+                        double x = posTag.getDouble(0);
+                        double y = posTag.getDouble(1);
+                        double z = posTag.getDouble(2);
+                        float yaw = rotTag.getFloat(0);
+                        float pitch = rotTag.getFloat(1);
+                        String id = idTag.getValue();
+                        Entity entity = EntityTypes.createEntityByName(id, nmsWorld);
+                        if (entity != null) {
+                            if (nativeTag != null) {
+                                NBTTagCompound tag = (NBTTagCompound) BukkitQueue18R3.methodFromNative.invoke(BukkitQueue18R3.adapter, nativeTag);
+                                for (String name : Constants.NO_COPY_ENTITY_NBT_FIELDS) {
+                                    tag.remove(name);
+                                }
+                                entity.f(tag);
+                            }
+                            entity.setLocation(x, y, z, yaw, pitch);
+                            nmsWorld.addEntity(entity, CreatureSpawnEvent.SpawnReason.CUSTOM);
+                            createdEntities.add(entity.getUniqueID());
+                        }
                     }
-                    entity.setLocation(x, y, z, yaw, pitch);
-                    nmsWorld.addEntity(entity, CreatureSpawnEvent.SpawnReason.CUSTOM);
-                    createdEntities.add(entity.getUniqueID());
                 }
             }
             // Run change task if applicable
@@ -164,17 +192,6 @@ public class BukkitChunk_1_8 extends CharFaweChunk<Chunk, BukkitQueue18R3> {
                     tile.E();
                 }
 
-            }
-            HashSet<UUID> entsToRemove = this.getEntityRemoves();
-            if (entsToRemove.size() > 0) {
-                for (int i = 0; i < entities.length; i++) {
-                    Collection<Entity> ents = new ArrayList<>(entities[i]);
-                    for (Entity entity : ents) {
-                        if (entsToRemove.contains(entity.getUniqueID())) {
-                            nmsWorld.removeEntity(entity);
-                        }
-                    }
-                }
             }
             // Set blocks
             for (int j = 0; j < sections.length; j++) {

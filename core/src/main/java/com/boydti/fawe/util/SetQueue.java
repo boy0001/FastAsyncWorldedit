@@ -61,9 +61,14 @@ public class SetQueue {
             public void run() {
                 try {
                     double targetTPS = 18 - Math.max(Settings.QUEUE.EXTRA_TIME_MS * 0.05, 0);
-                    while (!tasks.isEmpty() && Fawe.get().getTimer().isAbove(targetTPS)) {
-                        tasks.poll().run();
-                    }
+                    do {
+                        Runnable task = tasks.poll();
+                        if (task != null) {
+                            task.run();
+                        } else {
+                            break;
+                        }
+                    } while (Fawe.get().getTimer().isAbove(targetTPS));
                     if (inactiveQueues.isEmpty() && activeQueues.isEmpty()) {
                         lastSuccess = System.currentTimeMillis();
                         runEmptyTasks();

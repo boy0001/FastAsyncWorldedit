@@ -2,6 +2,7 @@ package com.boydti.fawe.bukkit.v1_9;
 
 import com.boydti.fawe.Fawe;
 import com.boydti.fawe.FaweCache;
+import com.boydti.fawe.bukkit.v0.BukkitQueue_0;
 import com.boydti.fawe.example.CharFaweChunk;
 import com.boydti.fawe.object.BytePair;
 import com.boydti.fawe.object.FaweChunk;
@@ -9,36 +10,12 @@ import com.boydti.fawe.object.FaweQueue;
 import com.boydti.fawe.util.MainUtil;
 import com.boydti.fawe.util.MathMan;
 import com.boydti.fawe.util.ReflectionUtils;
-import com.sk89q.jnbt.CompoundTag;
-import com.sk89q.jnbt.ListTag;
-import com.sk89q.jnbt.LongTag;
-import com.sk89q.jnbt.StringTag;
-import com.sk89q.jnbt.Tag;
+import com.sk89q.jnbt.*;
 import com.sk89q.worldedit.internal.Constants;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.Map;
-import java.util.Set;
-import java.util.UUID;
-import net.minecraft.server.v1_9_R2.Block;
-import net.minecraft.server.v1_9_R2.BlockPosition;
-import net.minecraft.server.v1_9_R2.Blocks;
-import net.minecraft.server.v1_9_R2.ChunkSection;
-import net.minecraft.server.v1_9_R2.DataBits;
-import net.minecraft.server.v1_9_R2.DataPalette;
-import net.minecraft.server.v1_9_R2.DataPaletteBlock;
-import net.minecraft.server.v1_9_R2.DataPaletteGlobal;
-import net.minecraft.server.v1_9_R2.Entity;
-import net.minecraft.server.v1_9_R2.EntityPlayer;
-import net.minecraft.server.v1_9_R2.EntityTypes;
-import net.minecraft.server.v1_9_R2.IBlockData;
-import net.minecraft.server.v1_9_R2.NBTTagCompound;
-import net.minecraft.server.v1_9_R2.TileEntity;
+import java.util.*;
+import net.minecraft.server.v1_9_R2.*;
 import org.bukkit.Chunk;
 import org.bukkit.World;
 import org.bukkit.block.Biome;
@@ -183,70 +160,86 @@ public class BukkitChunk_1_9 extends CharFaweChunk<Chunk, BukkitQueue_1_9_R1> {
                 if (count == 0) {
                     continue;
                 } else if (count >= 4096) {
-                    entities[i].clear();
+                    Collection<Entity> ents = entities[i];
+                    if (!ents.isEmpty()) {
+                        synchronized (BukkitQueue_0.adapter) {
+                            ents.clear();
+                        }
+                    }
                 } else {
-                    char[] array = this.getIdArray(i);
-                    Collection<Entity> ents = new ArrayList<>(entities[i]);
-                    for (Entity entity : ents) {
-                        if (entity instanceof EntityPlayer) {
-                            continue;
-                        }
-                        int x = ((int) Math.round(entity.locX) & 15);
-                        int z = ((int) Math.round(entity.locZ) & 15);
-                        int y = (int) Math.round(entity.locY);
-                        if (array == null || y < 0 || y > 255) {
-                            continue;
-                        }
-                        if (y < 0 || y > 255 || array[FaweCache.CACHE_J[y][z][x]] != 0) {
-                            nmsWorld.removeEntity(entity);
+                    Collection<Entity> ents = entities[i];
+                    if (!ents.isEmpty()) {
+                        char[] array = this.getIdArray(i);
+                        ents = new ArrayList<>(entities[i]);
+                        synchronized (BukkitQueue_0.adapter) {
+                            for (Entity entity : ents) {
+                                if (entity instanceof EntityPlayer) {
+                                    continue;
+                                }
+                                int x = ((int) Math.round(entity.locX) & 15);
+                                int z = ((int) Math.round(entity.locZ) & 15);
+                                int y = (int) Math.round(entity.locY);
+                                if (array == null || y < 0 || y > 255) {
+                                    continue;
+                                }
+                                if (y < 0 || y > 255 || array[FaweCache.CACHE_J[y][z][x]] != 0) {
+                                    nmsWorld.removeEntity(entity);
+                                }
+                            }
                         }
                     }
                 }
             }
             HashSet<UUID> entsToRemove = this.getEntityRemoves();
-            if (entsToRemove.size() > 0) {
-                for (int i = 0; i < entities.length; i++) {
-                    Collection<Entity> ents = new ArrayList<>(entities[i]);
-                    for (Entity entity : ents) {
-                        if (entsToRemove.contains(entity.getUniqueID())) {
-                            nmsWorld.removeEntity(entity);
+            if (!entsToRemove.isEmpty()) {
+                synchronized (BukkitQueue_0.adapter) {
+                    for (int i = 0; i < entities.length; i++) {
+                        Collection<Entity> ents = new ArrayList<>(entities[i]);
+                        for (Entity entity : ents) {
+                            if (entsToRemove.contains(entity.getUniqueID())) {
+                                nmsWorld.removeEntity(entity);
+                            }
                         }
                     }
                 }
             }
             // Set entities
-            Set<UUID> createdEntities = new HashSet<>();
             Set<CompoundTag> entitiesToSpawn = this.getEntities();
-            for (CompoundTag nativeTag : entitiesToSpawn) {
-                Map<String, Tag> entityTagMap = ReflectionUtils.getMap(nativeTag.getValue());
-                StringTag idTag = (StringTag) entityTagMap.get("Id");
-                ListTag posTag = (ListTag) entityTagMap.get("Pos");
-                ListTag rotTag = (ListTag) entityTagMap.get("Rotation");
-                if (idTag == null || posTag == null || rotTag == null) {
-                    Fawe.debug("Unknown entity tag: " + nativeTag);
-                    continue;
-                }
-                double x = posTag.getDouble(0);
-                double y = posTag.getDouble(1);
-                double z = posTag.getDouble(2);
-                float yaw = rotTag.getFloat(0);
-                float pitch = rotTag.getFloat(1);
-                String id = idTag.getValue();
-                Entity entity = EntityTypes.createEntityByName(id, nmsWorld);
-                if (entity != null) {
-                    UUID uuid = entity.getUniqueID();
-                    entityTagMap.put("UUIDMost", new LongTag(uuid.getMostSignificantBits()));
-                    entityTagMap.put("UUIDLeast", new LongTag(uuid.getLeastSignificantBits()));
-                    if (nativeTag != null) {
-                        NBTTagCompound tag = (NBTTagCompound) BukkitQueue_1_9_R1.methodFromNative.invoke(BukkitQueue_1_9_R1.adapter, nativeTag);
-                        for (String name : Constants.NO_COPY_ENTITY_NBT_FIELDS) {
-                            tag.remove(name);
+            Set<UUID> createdEntities = new HashSet<>();
+            if (!entitiesToSpawn.isEmpty()) {
+                synchronized (BukkitQueue_0.adapter) {
+                    for (CompoundTag nativeTag : entitiesToSpawn) {
+                        Map<String, Tag> entityTagMap = ReflectionUtils.getMap(nativeTag.getValue());
+                        StringTag idTag = (StringTag) entityTagMap.get("Id");
+                        ListTag posTag = (ListTag) entityTagMap.get("Pos");
+                        ListTag rotTag = (ListTag) entityTagMap.get("Rotation");
+                        if (idTag == null || posTag == null || rotTag == null) {
+                            Fawe.debug("Unknown entity tag: " + nativeTag);
+                            continue;
                         }
-                        entity.f(tag);
+                        double x = posTag.getDouble(0);
+                        double y = posTag.getDouble(1);
+                        double z = posTag.getDouble(2);
+                        float yaw = rotTag.getFloat(0);
+                        float pitch = rotTag.getFloat(1);
+                        String id = idTag.getValue();
+                        Entity entity = EntityTypes.createEntityByName(id, nmsWorld);
+                        if (entity != null) {
+                            UUID uuid = entity.getUniqueID();
+                            entityTagMap.put("UUIDMost", new LongTag(uuid.getMostSignificantBits()));
+                            entityTagMap.put("UUIDLeast", new LongTag(uuid.getLeastSignificantBits()));
+                            if (nativeTag != null) {
+                                NBTTagCompound tag = (NBTTagCompound) BukkitQueue_1_9_R1.methodFromNative.invoke(BukkitQueue_1_9_R1.adapter, nativeTag);
+                                for (String name : Constants.NO_COPY_ENTITY_NBT_FIELDS) {
+                                    tag.remove(name);
+                                }
+                                entity.f(tag);
+                            }
+                            entity.setLocation(x, y, z, yaw, pitch);
+                            nmsWorld.addEntity(entity, CreatureSpawnEvent.SpawnReason.CUSTOM);
+                            createdEntities.add(entity.getUniqueID());
+                        }
                     }
-                    entity.setLocation(x, y, z, yaw, pitch);
-                    nmsWorld.addEntity(entity, CreatureSpawnEvent.SpawnReason.CUSTOM);
-                    createdEntities.add(entity.getUniqueID());
                 }
             }
             // Change task?

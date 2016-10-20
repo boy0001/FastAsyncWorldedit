@@ -67,6 +67,8 @@ public class FaweTimer implements Runnable {
         if (skip > 0) {
             if (skipTick != tick) {
                 skip--;
+                skipTick = tick;
+                return true; // Run once per tick
             }
             return false;
         }
