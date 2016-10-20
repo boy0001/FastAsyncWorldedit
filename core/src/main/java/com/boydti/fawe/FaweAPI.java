@@ -4,28 +4,15 @@ import com.boydti.fawe.config.BBC;
 import com.boydti.fawe.config.Settings;
 import com.boydti.fawe.example.NMSMappedFaweQueue;
 import com.boydti.fawe.example.NMSRelighter;
-import com.boydti.fawe.object.FaweLocation;
-import com.boydti.fawe.object.FawePlayer;
-import com.boydti.fawe.object.FaweQueue;
-import com.boydti.fawe.object.PseudoRandom;
-import com.boydti.fawe.object.RegionWrapper;
-import com.boydti.fawe.object.RunnableVal;
+import com.boydti.fawe.object.*;
 import com.boydti.fawe.object.changeset.DiskStorageHistory;
+import com.boydti.fawe.object.io.PGZIPOutputStream;
 import com.boydti.fawe.object.mask.CustomMask;
 import com.boydti.fawe.object.schematic.Schematic;
 import com.boydti.fawe.regions.FaweMaskManager;
-import com.boydti.fawe.util.EditSessionBuilder;
-import com.boydti.fawe.util.MainUtil;
-import com.boydti.fawe.util.MemUtil;
-import com.boydti.fawe.util.SetQueue;
-import com.boydti.fawe.util.TaskManager;
-import com.boydti.fawe.util.WEManager;
+import com.boydti.fawe.util.*;
 import com.boydti.fawe.wrappers.WorldWrapper;
-import com.sk89q.jnbt.ByteArrayTag;
-import com.sk89q.jnbt.IntTag;
-import com.sk89q.jnbt.NBTInputStream;
-import com.sk89q.jnbt.ShortTag;
-import com.sk89q.jnbt.Tag;
+import com.sk89q.jnbt.*;
 import com.sk89q.worldedit.EditSession;
 import com.sk89q.worldedit.Vector;
 import com.sk89q.worldedit.WorldEdit;
@@ -40,24 +27,13 @@ import com.sk89q.worldedit.internal.registry.InputParser;
 import com.sk89q.worldedit.regions.Region;
 import com.sk89q.worldedit.world.AbstractWorld;
 import com.sk89q.worldedit.world.World;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
+import java.io.*;
 import java.lang.reflect.Field;
 import java.net.URL;
 import java.nio.channels.Channels;
 import java.nio.channels.ReadableByteChannel;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
+import java.util.zip.Deflater;
 import java.util.zip.GZIPInputStream;
 import java.util.zip.GZIPOutputStream;
 import javax.annotation.Nonnull;
@@ -169,7 +145,7 @@ public class FaweAPI {
             @Override
             public void run(OutputStream value) {
                 try {
-                    try (GZIPOutputStream gzip = new GZIPOutputStream(value, true)) {
+                    try (PGZIPOutputStream gzip = new PGZIPOutputStream(value)) {
                         try (ClipboardWriter writer = format.getWriter(gzip)) {
                             writer.write(clipboard, null);
                         }

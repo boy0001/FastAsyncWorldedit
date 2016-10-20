@@ -4,6 +4,7 @@ import com.boydti.fawe.FaweCache;
 import com.boydti.fawe.object.FaweQueue;
 import com.boydti.fawe.object.RunnableVal2;
 import com.boydti.fawe.object.clipboard.ReadOnlyClipboard;
+import com.boydti.fawe.object.io.PGZIPOutputStream;
 import com.boydti.fawe.util.EditSessionBuilder;
 import com.boydti.fawe.util.SetQueue;
 import com.boydti.fawe.util.TaskManager;
@@ -25,17 +26,12 @@ import com.sk89q.worldedit.extent.clipboard.BlockArrayClipboard;
 import com.sk89q.worldedit.extent.clipboard.Clipboard;
 import com.sk89q.worldedit.extent.clipboard.io.SchematicWriter;
 import com.sk89q.worldedit.regions.CuboidRegion;
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.OutputStream;
+import java.io.*;
 import java.net.URL;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
-import java.util.zip.GZIPOutputStream;
 
 public class FaweSchematicHandler extends SchematicHandler {
     @Override
@@ -120,7 +116,7 @@ public class FaweSchematicHandler extends SchematicHandler {
             File tmp = MainUtil.getFile(PS.get().IMP.getDirectory(), path);
             tmp.getParentFile().mkdirs();
             com.sk89q.jnbt.CompoundTag weTag = (com.sk89q.jnbt.CompoundTag) FaweCache.asTag(tag);
-            try (OutputStream stream = new FileOutputStream(tmp); NBTOutputStream output = new NBTOutputStream(new GZIPOutputStream(stream))) {
+            try (OutputStream stream = new FileOutputStream(tmp); NBTOutputStream output = new NBTOutputStream(new PGZIPOutputStream(stream))) {
                 Map<String, com.sk89q.jnbt.Tag> map = weTag.getValue();
                 output.writeNamedTag("Schematic", map.containsKey("Schematic") ? map.get("Schematic") : weTag);
             }
@@ -144,7 +140,7 @@ public class FaweSchematicHandler extends SchematicHandler {
             @Override
             public void run(OutputStream output) {
                 try {
-                    try (GZIPOutputStream gzip = new GZIPOutputStream(output, true)) {
+                    try (PGZIPOutputStream gzip = new PGZIPOutputStream(output)) {
                         com.sk89q.jnbt.CompoundTag weTag = (com.sk89q.jnbt.CompoundTag) FaweCache.asTag(tag);
                         try (NBTOutputStream nos = new NBTOutputStream(gzip)) {
                             Map<String, com.sk89q.jnbt.Tag> map = weTag.getValue();

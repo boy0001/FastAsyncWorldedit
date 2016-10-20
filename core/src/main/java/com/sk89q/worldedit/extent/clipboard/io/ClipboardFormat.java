@@ -23,6 +23,7 @@ import com.boydti.fawe.object.FaweOutputStream;
 import com.boydti.fawe.object.clipboard.AbstractClipboardFormat;
 import com.boydti.fawe.object.clipboard.DiskOptimizedClipboard;
 import com.boydti.fawe.object.clipboard.IClipboardFormat;
+import com.boydti.fawe.object.io.PGZIPOutputStream;
 import com.boydti.fawe.object.schematic.FaweFormat;
 import com.boydti.fawe.object.schematic.PNGWriter;
 import com.boydti.fawe.object.schematic.Schematic;
@@ -32,14 +33,7 @@ import com.boydti.fawe.util.ReflectionUtils;
 import com.sk89q.jnbt.NBTConstants;
 import com.sk89q.jnbt.NBTInputStream;
 import com.sk89q.jnbt.NBTOutputStream;
-import java.io.BufferedInputStream;
-import java.io.BufferedOutputStream;
-import java.io.DataInputStream;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
+import java.io.*;
 import java.util.EnumSet;
 import java.util.Map;
 import java.util.Set;
@@ -69,12 +63,12 @@ public enum ClipboardFormat {
 
         @Override
         public ClipboardWriter getWriter(OutputStream outputStream) throws IOException {
-            GZIPOutputStream gzip;
-            if (outputStream instanceof GZIPOutputStream) {
-                gzip = (GZIPOutputStream) outputStream;
+            PGZIPOutputStream gzip;
+            if (outputStream instanceof PGZIPOutputStream || outputStream instanceof GZIPOutputStream) {
+                gzip = (PGZIPOutputStream) outputStream;
             } else {
                 outputStream = new BufferedOutputStream(outputStream);
-                gzip = new GZIPOutputStream(outputStream, true);
+                gzip = new PGZIPOutputStream(outputStream);
             }
             NBTOutputStream nbtStream = new NBTOutputStream(new BufferedOutputStream(gzip));
             return new SchematicWriter(nbtStream);
@@ -125,11 +119,11 @@ public enum ClipboardFormat {
         @Override
         public ClipboardWriter getWriter(OutputStream outputStream) throws IOException {
             outputStream = new BufferedOutputStream(outputStream);
-            GZIPOutputStream gzip;
-            if (outputStream instanceof GZIPOutputStream) {
-                gzip = (GZIPOutputStream) outputStream;
+            OutputStream gzip;
+            if (outputStream instanceof PGZIPOutputStream || outputStream instanceof GZIPOutputStream) {
+                gzip = outputStream;
             } else {
-                gzip = new GZIPOutputStream(outputStream, true);
+                gzip = new PGZIPOutputStream(outputStream);
             }
             NBTOutputStream nbtStream = new NBTOutputStream(new BufferedOutputStream(gzip));
             return new StructureFormat(nbtStream);

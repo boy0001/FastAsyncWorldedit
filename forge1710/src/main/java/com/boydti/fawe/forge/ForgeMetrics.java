@@ -31,24 +31,19 @@
 package com.boydti.fawe.forge;
 
 import com.boydti.fawe.object.io.FastByteArrayOutputStream;
+import com.boydti.fawe.object.io.PGZIPOutputStream;
 import com.boydti.fawe.util.MainUtil;
 import cpw.mods.fml.common.FMLCommonHandler;
 import cpw.mods.fml.common.FMLLog;
 import cpw.mods.fml.common.Loader;
 import cpw.mods.fml.common.eventhandler.SubscribeEvent;
 import cpw.mods.fml.common.gameevent.TickEvent;
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.OutputStream;
-import java.io.UnsupportedEncodingException;
+import java.io.*;
 import java.net.Proxy;
 import java.net.URL;
 import java.net.URLConnection;
 import java.net.URLEncoder;
 import java.util.UUID;
-import java.util.zip.GZIPOutputStream;
 import net.minecraft.server.MinecraftServer;
 import net.minecraftforge.common.config.Configuration;
 
@@ -356,10 +351,10 @@ public class ForgeMetrics {
      */
     public static byte[] gzip(String input) {
         FastByteArrayOutputStream baos = new FastByteArrayOutputStream();
-        GZIPOutputStream gzos = null;
+        PGZIPOutputStream gzos = null;
 
         try {
-            gzos = new GZIPOutputStream(baos);
+            gzos = new PGZIPOutputStream(baos);
             gzos.write(input.getBytes("UTF-8"));
         } catch (IOException e) {
             MainUtil.handleError(e);

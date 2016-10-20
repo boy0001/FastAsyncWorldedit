@@ -2,27 +2,16 @@ package com.boydti.fawe.bukkit;
 
 import com.boydti.fawe.Fawe;
 import com.boydti.fawe.object.io.FastByteArrayOutputStream;
+import com.boydti.fawe.object.io.PGZIPOutputStream;
 import com.boydti.fawe.util.MainUtil;
-import java.io.BufferedReader;
-import java.io.ByteArrayOutputStream;
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.OutputStream;
-import java.io.UnsupportedEncodingException;
+import java.io.*;
 import java.lang.reflect.InvocationTargetException;
 import java.net.Proxy;
 import java.net.URL;
 import java.net.URLConnection;
 import java.net.URLEncoder;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.LinkedHashSet;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 import java.util.logging.Level;
-import java.util.zip.GZIPOutputStream;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.Plugin;
@@ -86,9 +75,9 @@ public class Metrics {
      */
     public static byte[] gzip(String input) {
         FastByteArrayOutputStream baos = new FastByteArrayOutputStream();
-        GZIPOutputStream gzos = null;
+        PGZIPOutputStream gzos = null;
         try {
-            gzos = new GZIPOutputStream(baos);
+            gzos = new PGZIPOutputStream(baos);
             gzos.write(input.getBytes("UTF-8"));
         } catch (IOException e) {
             MainUtil.handleError(e);

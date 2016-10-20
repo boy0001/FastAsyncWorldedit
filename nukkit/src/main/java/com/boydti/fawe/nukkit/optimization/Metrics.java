@@ -5,24 +5,15 @@ import cn.nukkit.plugin.PluginDescription;
 import cn.nukkit.utils.LogLevel;
 import com.boydti.fawe.Fawe;
 import com.boydti.fawe.object.io.FastByteArrayOutputStream;
+import com.boydti.fawe.object.io.PGZIPOutputStream;
 import com.boydti.fawe.util.MainUtil;
 import com.boydti.fawe.util.TaskManager;
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.OutputStream;
-import java.io.UnsupportedEncodingException;
+import java.io.*;
 import java.net.Proxy;
 import java.net.URL;
 import java.net.URLConnection;
 import java.net.URLEncoder;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.LinkedHashSet;
-import java.util.Set;
-import java.util.UUID;
-import java.util.zip.GZIPOutputStream;
+import java.util.*;
 
 public class Metrics {
 
@@ -81,9 +72,9 @@ public class Metrics {
      */
     public static byte[] gzip(String input) {
         FastByteArrayOutputStream baos = new FastByteArrayOutputStream();
-        GZIPOutputStream gzos = null;
+        PGZIPOutputStream gzos = null;
         try {
-            gzos = new GZIPOutputStream(baos);
+            gzos = new PGZIPOutputStream(baos);
             gzos.write(input.getBytes("UTF-8"));
         } catch (IOException e) {
             MainUtil.handleError(e);
