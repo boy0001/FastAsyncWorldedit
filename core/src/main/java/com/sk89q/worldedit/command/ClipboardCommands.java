@@ -335,7 +335,7 @@ public class ClipboardCommands {
         Clipboard clipboard = holder.getClipboard();
         Region region = clipboard.getRegion().clone();
 
-
+        final int maxY = editSession.getMaxY();
         final Vector bot = clipboard.getMinimumPoint();
         final Vector origin = clipboard.getOrigin();
         final Vector to = atOrigin ? origin : session.getPlacementPosition(player);
@@ -352,7 +352,9 @@ public class ClipboardCommands {
                     pos.x += relx;
                     pos.y += rely;
                     pos.z += relz;
-                    editSession.setBlockFast(pos, block);
+                    if (pos.y >= 0 && pos.y <= maxY) {
+                        editSession.setBlockFast(pos, block);
+                    }
                 }
             }, !ignoreAirBlocks);
         } else {
@@ -370,7 +372,9 @@ public class ClipboardCommands {
                 loc.x += relx;
                 loc.y += rely;
                 loc.z += relz;
-                editSession.setBlock(loc, block);
+                if (loc.y >= 0 && loc.y <= maxY) {
+                    editSession.setBlockFast(loc, block);
+                }
             }
         }
         // Entity offset is the paste location subtract the clipboard origin (entity's location is already relative to the world origin)
