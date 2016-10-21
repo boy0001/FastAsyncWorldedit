@@ -693,6 +693,7 @@ public class CuboidClipboard {
                 }
             }
         }
+        editSession.flushQueue();
     }
 
     /**
