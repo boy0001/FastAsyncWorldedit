@@ -115,13 +115,8 @@ public class SetQueue {
                         if (Fawe.get().isJava8()) {
                             pool.awaitQuiescence(Long.MAX_VALUE, TimeUnit.MILLISECONDS);
                         } else {
-                            try {
-                                for (Runnable run : pool.shutdownNow()) {
-                                    run.run();
-                                }
-                            } catch (Throwable e) {
-                                e.printStackTrace();
-                            }
+                            pool.shutdown();
+                            pool.awaitTermination(Long.MAX_VALUE, TimeUnit.MILLISECONDS);
                             pool = new ForkJoinPool();
                         }
                     }
