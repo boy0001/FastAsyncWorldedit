@@ -222,6 +222,15 @@ public abstract class FaweStreamChangeSet extends FaweChangeSet {
     }
 
     @Override
+    public boolean isEmpty() {
+        if (blockSize > 0) {
+            return false;
+        }
+        flush();
+        return blockSize == 0;
+    }
+
+    @Override
     public int size() {
         // Flush so we can accurately get the size
         flush();

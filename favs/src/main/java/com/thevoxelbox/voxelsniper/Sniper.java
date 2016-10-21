@@ -300,7 +300,7 @@ public class Sniper {
                 if (clickedBlock != null) {
                     targetBlock = clickedBlock;
                     lastBlock = clickedBlock.getRelative(clickedFace);
-                    if (lastBlock == null) {
+                    if (lastBlock == null || targetBlock == null) {
                         getPlayer().sendMessage(ChatColor.RED + "Snipe target block must be visible.");
                         return true;
                     }

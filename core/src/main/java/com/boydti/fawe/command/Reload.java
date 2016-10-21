@@ -46,7 +46,9 @@ public class Reload extends FaweCommand {
                         Fawe.debug(elem);
                     }
                 }
-                player.sendMessage("&cSee console.");
+                if (player != null) {
+                    player.sendMessage("&cSee console.");
+                }
                 return true;
             }
             case "debugpaste":

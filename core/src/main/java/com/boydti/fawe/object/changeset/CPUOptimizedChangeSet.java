@@ -88,6 +88,16 @@ public class CPUOptimizedChangeSet extends FaweChangeSet {
     }
 
     @Override
+    public boolean isEmpty() {
+        if (changes.size() == 0) {
+            flush();
+            return changes.size() == 0;
+        } else {
+            return false;
+        }
+    }
+
+    @Override
     public int size() {
         return changes.size() * 65536; // num chunks * 65536 (guess of 65536 changes per chunk)
     }

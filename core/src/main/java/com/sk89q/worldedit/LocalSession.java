@@ -449,7 +449,7 @@ public class LocalSession {
             return;
         }
         FaweChangeSet changeSet = (FaweChangeSet) editSession.getChangeSet();
-        if (changeSet.size() == 0) {
+        if (changeSet.isEmpty()) {
             return;
         }
         FawePlayer fp = editSession.getPlayer();

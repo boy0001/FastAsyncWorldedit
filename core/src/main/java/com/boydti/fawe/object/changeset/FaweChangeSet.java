@@ -170,6 +170,10 @@ public abstract class FaweChangeSet implements ChangeSet {
         }
     }
 
+    public boolean isEmpty() {
+        return size() == 0;
+    }
+
     public void add(int x, int y, int z, int combinedFrom, BaseBlock to) {
         try {
             if (to.hasNbtData()) {
