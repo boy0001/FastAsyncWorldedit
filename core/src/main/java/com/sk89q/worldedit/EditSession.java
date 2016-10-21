@@ -786,6 +786,9 @@ public class EditSession extends AbstractWorld implements HasFaweQueue {
 
     @Override
     public BaseBlock getLazyBlock(final Vector position) {
+        if (position.y > maxY || position.y < 0) {
+            return nullBlock;
+        }
         return getLazyBlock((int) position.x, (int) position.y, (int) position.z);
     }
 
@@ -794,7 +797,7 @@ public class EditSession extends AbstractWorld implements HasFaweQueue {
     }
 
     public BaseBlock getBlock(int x, int y, int z) {
-        return extent.getLazyBlock(x, y, z);
+        return getLazyBlock(x, y, z);
     }
 
     @Override
