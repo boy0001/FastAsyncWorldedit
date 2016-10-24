@@ -79,6 +79,7 @@ import com.sk89q.worldedit.math.interpolation.KochanekBartelsInterpolation;
 import com.sk89q.worldedit.math.transform.AffineTransform;
 import com.sk89q.worldedit.regions.CuboidRegion;
 import com.sk89q.worldedit.regions.selector.CuboidRegionSelector;
+import com.sk89q.worldedit.session.PasteBuilder;
 import com.sk89q.worldedit.session.SessionManager;
 import com.sk89q.worldedit.session.request.Request;
 import com.sk89q.worldedit.util.command.parametric.ParametricBuilder;
@@ -356,9 +357,10 @@ public class Fawe {
             ToolUtilCommands.inject(); // Fixes + Translations
             GeneralCommands.inject(); // Translations + gmask args
             // Schematic
-            SchematicReader.inject();
-            SchematicWriter.inject();
-            ClipboardFormat.inject();
+            SchematicReader.inject(); // Optimizations
+            SchematicWriter.inject(); // Optimizations
+            ClipboardFormat.inject(); // Optimizations + new formats + api
+            PasteBuilder.inject(); // Optimizations
             // Brushes/Tools
             GravityBrush.inject(); // Fix for instant placement assumption
             LongRangeBuildTool.inject();

@@ -155,6 +155,7 @@ public class DiskOptimizedClipboard extends FaweClipboard implements Closeable {
             width = dimensions.getBlockX();
             height = dimensions.getBlockY();
             length = dimensions.getBlockZ();
+            area = width * length;
             long size = width * height * length * 2l + HEADER_SIZE;
             raf.setLength(size);
             raf.seek(2);
@@ -278,13 +279,17 @@ public class DiskOptimizedClipboard extends FaweClipboard implements Closeable {
         }
     }
 
+    public int getIndex(int x, int y, int z) {
+        return x + ((ylast == y) ? ylasti : (ylasti = (ylast = y) * area)) + ((zlast == z) ? zlasti : (zlasti = (zlast = z) * width));
+    }
+
     @Override
     public BaseBlock getBlock(int x, int y, int z) {
         try {
             if (raf == null) {
                 open();
             }
-            int i = x + ((ylast == y) ? ylasti : (ylasti = ((ylast = y)) * area)) + ((zlast == z) ? zlasti : (zlasti = (zlast = z) * width));
+            int i = getIndex(x, y, z);
             if (i != last + 1) {
                 raf.seek((HEADER_SIZE) + (i << 1));
                 lastAccessed = System.currentTimeMillis();
