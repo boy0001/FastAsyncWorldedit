@@ -78,11 +78,19 @@ public class BlockTransformExtent extends AbstractDelegateExtent {
     }
 
     private final BaseBlock transformFast(BaseBlock block) {
-        return BLOCK_TRANSFORM[FaweCache.getCombined(block)];
+        BaseBlock newBlock = BLOCK_TRANSFORM[FaweCache.getCombined(block)];
+        if (block.hasNbtData()) {
+            newBlock.setNbtData(block.getNbtData());
+        }
+        return newBlock;
     }
 
     private final BaseBlock transformFastInverse(BaseBlock block) {
-        return BLOCK_TRANSFORM_INVERSE[FaweCache.getCombined(block)];
+        BaseBlock newBlock = BLOCK_TRANSFORM_INVERSE[FaweCache.getCombined(block)];
+        if (block.hasNbtData()) {
+            newBlock.setNbtData(block.getNbtData());
+        }
+        return newBlock;
     }
 
     /**

@@ -21,7 +21,6 @@ package com.sk89q.worldedit.session;
 
 import com.sk89q.worldedit.Vector;
 import com.sk89q.worldedit.extent.Extent;
-import com.sk89q.worldedit.extent.clipboard.BlockArrayClipboard;
 import com.sk89q.worldedit.extent.clipboard.Clipboard;
 import com.sk89q.worldedit.extent.transform.BlockTransformExtent;
 import com.sk89q.worldedit.function.mask.ExistingBlockMask;
@@ -97,7 +96,6 @@ public class PasteBuilder {
             extent = new BlockTransformExtent(extent, transform, targetWorldData.getBlockRegistry());
         }
         ForwardExtentCopy copy = new ForwardExtentCopy(extent, clipboard.getRegion(), clipboard.getOrigin(), targetExtent, to);
-        System.out.println(clipboard.getRegion());
         copy.setTransform(transform);
         if (ignoreAirBlocks) {
             copy.setSourceMask(new ExistingBlockMask(clipboard));
