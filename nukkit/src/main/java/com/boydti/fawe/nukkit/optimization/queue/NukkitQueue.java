@@ -49,6 +49,19 @@ public class NukkitQueue extends NMSMappedFaweQueue<Level, BaseFullChunk, BaseFu
         }
     }
 
+    @Override
+    public void setHeightMap(FaweChunk chunk, int[] heightMap) {
+        BaseFullChunk forgeChunk = (BaseFullChunk) chunk.getChunk();
+        if (forgeChunk != null) {
+            int[] otherMap = forgeChunk.getHeightMapArray();
+            for (int i = 0; i < heightMap.length; i++) {
+                if (heightMap[i] > otherMap[i]) {
+                    otherMap[i] = heightMap[i];
+                }
+            }
+        }
+    }
+
     public FaweNukkit getFaweNukkit() {
         return faweNukkit;
     }

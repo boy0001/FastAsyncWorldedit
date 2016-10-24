@@ -191,6 +191,10 @@ public class MCAChunk extends FaweChunk<Void> {
         streamer.readFully();
     }
 
+    public int[] getHeightMapArray() {
+        return heightMap;
+    }
+
     public void setDeleted(boolean deleted) {
         setModified();
         this.deleted = deleted;

@@ -3,13 +3,10 @@ package com.boydti.fawe.example;
 import com.boydti.fawe.FaweCache;
 import com.boydti.fawe.object.FaweChunk;
 import com.boydti.fawe.object.FaweQueue;
+import com.boydti.fawe.object.RunnableVal;
 import com.boydti.fawe.util.MathMan;
-import java.util.ArrayDeque;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
+import com.boydti.fawe.util.TaskManager;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class NMSRelighter {
@@ -129,12 +126,22 @@ public class NMSRelighter {
     }
 
     public void sendChunks() {
+        final Map<FaweChunk, int[]> fcs = new HashMap<>(skyToRelight.size());
         for (Map.Entry<Long, RelightSkyEntry> entry : skyToRelight.entrySet()) {
             RelightSkyEntry chunk = entry.getValue();
             CharFaweChunk fc = (CharFaweChunk) queue.getFaweChunk(chunk.x, chunk.z);
+            fcs.put(fc, chunk.heightMap);
             fc.setBitMask(chunk.bitmask);
             queue.sendChunk(fc);
         }
+        TaskManager.IMP.sync(new RunnableVal<Object>() {
+            @Override
+            public void run(Object value) {
+                for (Map.Entry<FaweChunk, int[]> entry : fcs.entrySet()) {
+                    queue.setHeightMap(entry.getKey(), entry.getValue());
+                }
+            }
+        });
     }
 
     private boolean isTransparent(int x, int y, int z) {
@@ -196,12 +203,6 @@ public class NMSRelighter {
                     if (brightness > 1 &&  (brightness != 15 || opacity != 15)) {
                         lightBlock(bx + x, y, bz + z, brightness);
                     }
-                    if (opacity > 1 && opacity >= value) {
-                        mask[j] = 0;
-                        queue.setBlockLight(section, x, y, z, 0);
-                        queue.setSkyLight(section, x, y, z, 0);
-                        continue;
-                    }
                     switch (value) {
                         case 0:
                             if (opacity > 1) {
@@ -230,6 +231,12 @@ public class NMSRelighter {
                         case 9:
                         case 11:
                         case 13:
+                            if (opacity >= value) {
+                                mask[j] = 0;
+                                queue.setBlockLight(section, x, y, z, 0);
+                                queue.setSkyLight(section, x, y, z, 0);
+                                continue;
+                            }
                             if (opacity <= 1) {
                                 mask[j] = --value;
                             } else {
@@ -238,6 +245,7 @@ public class NMSRelighter {
                             break;
                         case 15:
                             if (opacity > 1) {
+                                chunk.heightMap[z << 4 | x] = y;
                                 value -= opacity;
                                 mask[j] = value;
                             }
@@ -336,6 +344,7 @@ public class NMSRelighter {
         public final int x;
         public final int z;
         public final byte[] mask;
+        public int[] heightMap = new int[256];
         public final boolean[] fix;
         public int bitmask;
         public boolean smooth;

@@ -97,6 +97,19 @@ public class BukkitQueue_1_9_R1 extends BukkitQueue_0<Chunk, ChunkSection[], Chu
     }
 
     @Override
+    public void setHeightMap(FaweChunk chunk, int[] heightMap) {
+        CraftChunk craftChunk = (CraftChunk) chunk.getChunk();
+        if (craftChunk != null) {
+            int[] otherMap = craftChunk.getHandle().heightMap;
+            for (int i = 0; i < heightMap.length; i++) {
+                if (heightMap[i] > otherMap[i]) {
+                    otherMap[i] = heightMap[i];
+                }
+            }
+        }
+    }
+
+    @Override
     public ChunkSection[] getCachedSections(World world, int cx, int cz) {
         CraftChunk chunk = (CraftChunk) world.getChunkAt(cx, cz);
         return chunk.getHandle().getSections();

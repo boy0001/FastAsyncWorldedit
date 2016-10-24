@@ -38,6 +38,11 @@ public class BukkitQueue_All extends BukkitQueue_0<Chunk, Chunk, Chunk> {
     }
 
     @Override
+    public void setHeightMap(FaweChunk chunk, int[] heightMap) {
+        // Do nothing
+    }
+
+    @Override
     public void setSkyLight(Chunk chunk, int x, int y, int z, int value) {
 
     }

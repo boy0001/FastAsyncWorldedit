@@ -78,6 +78,19 @@ public class ForgeQueue_All extends NMSMappedFaweQueue<World, Chunk, ExtendedBlo
         getImpWorld();
     }
 
+    @Override
+    public void setHeightMap(FaweChunk chunk, int[] heightMap) {
+        Chunk forgeChunk = (Chunk) chunk.getChunk();
+        if (forgeChunk != null) {
+            int[] otherMap = forgeChunk.getHeightMap();
+            for (int i = 0; i < heightMap.length; i++) {
+                if (heightMap[i] > otherMap[i]) {
+                    otherMap[i] = heightMap[i];
+                }
+            }
+        }
+    }
+
     protected BlockPos.MutableBlockPos pos = new BlockPos.MutableBlockPos(0, 0, 0);
 
     @Override

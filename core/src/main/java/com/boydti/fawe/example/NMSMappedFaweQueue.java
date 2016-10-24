@@ -1,11 +1,9 @@
 package com.boydti.fawe.example;
 
-import com.boydti.fawe.Fawe;
 import com.boydti.fawe.FaweCache;
 import com.boydti.fawe.config.Settings;
 import com.boydti.fawe.object.FaweChunk;
 import com.boydti.fawe.object.exception.FaweException;
-import com.boydti.fawe.util.SetQueue;
 import com.boydti.fawe.util.TaskManager;
 import com.sk89q.jnbt.CompoundTag;
 import com.sk89q.worldedit.world.World;
@@ -90,17 +88,10 @@ public abstract class NMSMappedFaweQueue<WORLD, CHUNK, CHUNKSECTION, SECTION> ex
 
     @Override
     public void sendChunk(final FaweChunk fc) {
-        if (Fawe.get().isMainThread()) {
-            refreshChunk(fc);
-        } else {
-            SetQueue.IMP.addTask(new Runnable() {
-                @Override
-                public void run() {
-                    refreshChunk(fc);
-                }
-            });
-        }
+        refreshChunk(fc);
     }
+
+    public abstract void setHeightMap(FaweChunk chunk, int[] heightMap);
 
     public abstract void setFullbright(CHUNKSECTION sections);
 

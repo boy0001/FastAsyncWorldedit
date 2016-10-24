@@ -81,6 +81,19 @@ public class ForgeQueue_All extends NMSMappedFaweQueue<World, Chunk, ExtendedBlo
     protected BlockPos.MutableBlockPos pos = new BlockPos.MutableBlockPos(0, 0, 0);
 
     @Override
+    public void setHeightMap(FaweChunk chunk, int[] heightMap) {
+        Chunk forgeChunk = (Chunk) chunk.getChunk();
+        if (forgeChunk != null) {
+            int[] otherMap = forgeChunk.getHeightMap();
+            for (int i = 0; i < heightMap.length; i++) {
+                if (heightMap[i] > otherMap[i]) {
+                    otherMap[i] = heightMap[i];
+                }
+            }
+        }
+    }
+
+    @Override
     public CompoundTag getTileEntity(Chunk chunk, int x, int y, int z) {
         Map<BlockPos, TileEntity> tiles = chunk.getTileEntityMap();
         pos.setPos(x, y, z);
