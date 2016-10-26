@@ -24,6 +24,7 @@ import com.boydti.fawe.object.FawePlayer;
 import com.boydti.fawe.object.exception.FaweException;
 import com.boydti.fawe.object.pattern.PatternTraverser;
 import com.boydti.fawe.util.MainUtil;
+import com.boydti.fawe.wrappers.LocationMaskedPlayerWrapper;
 import com.boydti.fawe.wrappers.PlayerWrapper;
 import com.sk89q.worldedit.LocalConfiguration;
 import com.sk89q.worldedit.LocalSession;
@@ -348,7 +349,7 @@ public class PlatformManager {
 
             // At this time, only handle interaction from players
             if (actor instanceof Player) {
-                final Player player = PlayerWrapper.wrap((Player) actor);
+                final Player player = new LocationMaskedPlayerWrapper(PlayerWrapper.wrap((Player) actor), ((Player) actor).getLocation());
                 final LocalSession session = worldEdit.getSessionManager().get(actor);
 
                 if (event.getType() == Interaction.HIT) {
@@ -420,12 +421,12 @@ public class PlatformManager {
                     if (tool != null && tool instanceof BlockTool) {
                         if (tool.canUse(player)) {
                             FawePlayer<?> fp = FawePlayer.wrap(player);
-                            fp.runAction(new Runnable() {
+                            fp.runAsyncIfFree(new Runnable() {
                                 @Override
                                 public void run() {
                                     reset((BlockTool) tool).actPrimary(queryCapability(Capability.WORLD_EDITING), getConfiguration(), player, session, location);
                                 }
-                            }, true, true);
+                            });
                             event.setCancelled(true);
                         }
                     }

@@ -7,9 +7,9 @@ import com.sk89q.worldedit.entity.Player;
 import com.sk89q.worldedit.util.Location;
 
 public class LocationMaskedPlayerWrapper extends PlayerWrapper {
-    private Vector position;
+    private Location position;
 
-    public LocationMaskedPlayerWrapper(Player parent, Vector position) {
+    public LocationMaskedPlayerWrapper(Player parent, Location position) {
         super(parent);
         this.position = position;
     }
@@ -28,16 +28,16 @@ public class LocationMaskedPlayerWrapper extends PlayerWrapper {
 
     @Override
     public WorldVector getPosition() {
-        return new WorldVector((LocalWorld) getWorld(), position);
+        return new WorldVector((LocalWorld) position.getExtent(), position.toVector());
     }
 
     @Override
     public Location getLocation() {
-        return new Location(getWorld(), position);
+        return position;
     }
 
     @Override
     public void setPosition(Vector pos, float pitch, float yaw) {
-        this.position = pos;
+        this.position = new Location(position.getExtent(), pos, pitch, yaw);
     }
 }

@@ -15,6 +15,7 @@ import com.sk89q.worldedit.event.platform.CommandEvent;
 import com.sk89q.worldedit.extension.platform.CommandManager;
 import com.sk89q.worldedit.function.pattern.Pattern;
 import com.sk89q.worldedit.regions.selector.CuboidRegionSelector;
+import com.sk89q.worldedit.util.Location;
 
 public class CommandBrush implements Brush {
 
@@ -47,7 +48,7 @@ public class CommandBrush implements Brush {
         }
         FawePlayer<Object> fp = FawePlayer.wrap(player);
         fp.setSelection(selector);
-        PlayerWrapper wePlayer = new SilentPlayerWrapper(new LocationMaskedPlayerWrapper(player, position));
+        PlayerWrapper wePlayer = new SilentPlayerWrapper(new LocationMaskedPlayerWrapper(player, new Location(player.getExtent(), position)));
         String[] cmds = replaced.split(";");
         for (String cmd : cmds) {
             CommandEvent event = new CommandEvent(wePlayer, cmd);
