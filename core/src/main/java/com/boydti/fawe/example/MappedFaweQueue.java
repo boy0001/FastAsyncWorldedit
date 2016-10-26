@@ -518,6 +518,18 @@ public abstract class MappedFaweQueue<WORLD, CHUNK, SECTION> extends FaweQueue {
     }
 
     @Override
+    public int getCachedCombinedId4Data(int x, int y, int z) throws FaweException.FaweChunkLoadException {
+        FaweChunk fc = map.getCachedFaweChunk(x >> 4, z >> 4);
+        if (fc != null) {
+            int combined = fc.getBlockCombinedId(x & 15, y, z & 15);
+            if (combined != 0) {
+                return combined;
+            }
+        }
+        return getCombinedId4Data(x, y, z);
+    }
+
+    @Override
     public int getCombinedId4Data(int x, int y, int z) throws FaweException.FaweChunkLoadException {
         int cx = x >> 4;
         int cz = z >> 4;

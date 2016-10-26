@@ -273,6 +273,8 @@ public abstract class FaweQueue {
 
     public abstract int getCombinedId4Data(int x, int y, int z) throws FaweException.FaweChunkLoadException;
 
+    public abstract int getCachedCombinedId4Data(int x, int y, int z) throws FaweException.FaweChunkLoadException;
+
     public int getAdjacentLight(int x, int y, int z) {
         int light = 0;
         if ((light = Math.max(light, getSkyLight(x - 1, y, z))) == 15) {
@@ -305,6 +307,14 @@ public abstract class FaweQueue {
     public int getCombinedId4Data(int x, int y, int z, int def) {
         try {
             return getCombinedId4Data(x, y, z);
+        } catch (FaweException ignore) {
+            return def;
+        }
+    }
+
+    public int getCachedCombinedId4Data(int x, int y, int z, int def) {
+        try {
+            return getCachedCombinedId4Data(x, y, z);
         } catch (FaweException ignore) {
             return def;
         }

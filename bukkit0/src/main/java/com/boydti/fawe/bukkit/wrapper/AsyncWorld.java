@@ -5,6 +5,7 @@ import com.boydti.fawe.bukkit.v0.BukkitQueue_0;
 import com.boydti.fawe.object.FaweQueue;
 import com.boydti.fawe.object.HasFaweQueue;
 import com.boydti.fawe.object.RunnableVal;
+import com.boydti.fawe.util.DelegateFaweQueue;
 import com.boydti.fawe.util.SetQueue;
 import com.boydti.fawe.util.StringMan;
 import com.boydti.fawe.util.TaskManager;
@@ -58,7 +59,7 @@ import org.bukkit.util.Vector;
  *  @see #wrap(org.bukkit.World)
  *  @see #create(org.bukkit.WorldCreator)
  */
-public class AsyncWorld implements World, HasFaweQueue {
+public class AsyncWorld extends DelegateFaweQueue implements World, HasFaweQueue{
 
     private World parent;
     private FaweQueue queue;
@@ -86,6 +87,7 @@ public class AsyncWorld implements World, HasFaweQueue {
      */
     @Deprecated
     public AsyncWorld(World parent, FaweQueue queue) {
+        super(queue);
         this.parent = parent;
         this.queue = queue;
         if (queue instanceof BukkitQueue_0) {
@@ -120,7 +122,7 @@ public class AsyncWorld implements World, HasFaweQueue {
         this.queue = queue;
     }
 
-    public World getParent() {
+    public World getBukkitWorld() {
         return parent;
     }
 
@@ -138,10 +140,6 @@ public class AsyncWorld implements World, HasFaweQueue {
         BukkitQueue_0 queue = (BukkitQueue_0) SetQueue.IMP.getNewQueue(creator.name(), true, false);
         World world = queue.createWorld(creator);
         return wrap(world);
-    }
-
-    public void enqueue() {
-        queue.enqueue();
     }
 
     public void commit() {

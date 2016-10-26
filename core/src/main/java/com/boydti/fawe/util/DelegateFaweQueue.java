@@ -206,6 +206,11 @@ public class DelegateFaweQueue extends FaweQueue {
     }
 
     @Override
+    public int getCachedCombinedId4Data(int x, int y, int z) throws FaweException.FaweChunkLoadException {
+        return parent.getCachedCombinedId4Data(x, y, z);
+    }
+
+    @Override
     public boolean hasSky() {
         return parent.hasSky();
     }
