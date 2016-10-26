@@ -120,6 +120,7 @@ public class AsyncWorld extends DelegateFaweQueue implements World, HasFaweQueue
         flush();
         this.parent = world;
         this.queue = queue;
+        setParent(queue);
     }
 
     public World getBukkitWorld() {

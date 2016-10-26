@@ -29,7 +29,7 @@ import java.util.concurrent.ExecutorCompletionService;
 public abstract class FaweQueue {
 
     private World weWorld;
-    private final String world;
+    private String world;
     private ConcurrentLinkedDeque<EditSession> sessions;
     private long modified = System.currentTimeMillis();
     private RunnableVal2<FaweChunk, FaweChunk> changeTask;
@@ -40,8 +40,10 @@ public abstract class FaweQueue {
     }
 
     public FaweQueue(World world) {
-        this.weWorld = world;
-        this.world = Fawe.imp().getWorldName(world);
+        if (world != null) {
+            this.weWorld = world;
+            this.world = Fawe.imp().getWorldName(world);
+        }
     }
 
     public enum ProgressType {
@@ -54,6 +56,11 @@ public abstract class FaweQueue {
         NONE,
         OPTIMAL,
         ALL,
+    }
+
+    public void setWorld(String world) {
+        this.world = world;
+        this.weWorld = null;
     }
 
     public void addEditSession(EditSession session) {

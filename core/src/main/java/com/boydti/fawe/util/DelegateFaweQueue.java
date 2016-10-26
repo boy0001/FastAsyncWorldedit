@@ -18,7 +18,7 @@ public class DelegateFaweQueue extends FaweQueue {
     private FaweQueue parent;
 
     public DelegateFaweQueue(FaweQueue parent) {
-        super(parent.getWEWorld());
+        super(parent == null ? null : parent.getWEWorld());
         this.parent = parent;
     }
 
@@ -28,6 +28,7 @@ public class DelegateFaweQueue extends FaweQueue {
 
     public void setParent(FaweQueue parent) {
         this.parent = parent;
+        setWorld(parent.getWorldName());
     }
 
     @Override
