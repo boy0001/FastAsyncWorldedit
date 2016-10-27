@@ -101,8 +101,8 @@ public class DefaultTransformParser extends InputParser<TransformExtent> {
                                     parent = affine = new AffineTransformExtent(parent, context.requireWorld().getWorldData().getBlockRegistry());
                                 }
                                 AffineTransform transform = affine.getAffine();
-                                transform = transform.rotateY(x);
-                                transform = transform.rotateX(y);
+                                transform = transform.rotateX(x);
+                                transform = transform.rotateY(y);
                                 transform = transform.rotateZ(z);
                                 affine.setAffine(transform);
                                 return (TransformExtent) parent;
