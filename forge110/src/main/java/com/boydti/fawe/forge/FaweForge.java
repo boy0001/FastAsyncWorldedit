@@ -104,10 +104,10 @@ public class FaweForge implements IFawe {
     @Override
     public String getWorldName(World world) {
         if (world instanceof WorldWrapper) {
-            world = ((WorldWrapper) world).getParent();
+            return getWorldName(((WorldWrapper) world).getParent());
         }
         else if (world instanceof EditSession) {
-            world = ((EditSession) world).getWorld();
+            return getWorldName(((EditSession) world).getWorld());
         }
         return getWorldName(((ForgeWorld) world).getWorld());
 
