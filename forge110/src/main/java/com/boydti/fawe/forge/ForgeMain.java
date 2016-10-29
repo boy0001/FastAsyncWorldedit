@@ -37,7 +37,7 @@ public class ForgeMain {
         IMP.insertCommands();
     }
 
-    @SubscribeEvent(priority = EventPriority.HIGHEST)
+    @SubscribeEvent(priority = EventPriority.LOWEST)
     public void onPlayerQuit(PlayerEvent.PlayerLoggedOutEvent event) {
         if (event.player.worldObj.isRemote) {
             return;
