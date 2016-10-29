@@ -4,7 +4,9 @@ import com.sk89q.worldedit.LocalWorld;
 import com.sk89q.worldedit.Vector;
 import com.sk89q.worldedit.WorldVector;
 import com.sk89q.worldedit.entity.Player;
+import com.sk89q.worldedit.internal.LocalWorldAdapter;
 import com.sk89q.worldedit.util.Location;
+import com.sk89q.worldedit.world.World;
 
 public class LocationMaskedPlayerWrapper extends PlayerWrapper {
     private Location position;
@@ -38,7 +40,13 @@ public class LocationMaskedPlayerWrapper extends PlayerWrapper {
 
     @Override
     public WorldVector getPosition() {
-        return new WorldVector((LocalWorld) position.getExtent(), position.toVector());
+        LocalWorld world;
+        if (position.getExtent() instanceof LocalWorld) {
+            world = (LocalWorld) position.getExtent();
+        } else {
+            world = LocalWorldAdapter.adapt((World) position.getExtent());
+        }
+        return new WorldVector(world, position.toVector());
     }
 
     @Override
