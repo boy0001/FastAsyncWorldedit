@@ -37,15 +37,10 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedDeque;
 import java.util.concurrent.atomic.AtomicInteger;
 
-public abstract class FawePlayer<T> {
+public abstract class FawePlayer<T> extends Metadatable {
 
     public final T parent;
     private LocalSession session;
-
-    /**
-     * The metadata map.
-     */
-    private volatile ConcurrentHashMap<String, Object> meta;
 
     /**
      * Wrap some object into a FawePlayer<br>
@@ -394,64 +389,6 @@ public abstract class FawePlayer<T> {
      */
     public boolean hasWorldEditBypass() {
         return this.hasPermission("fawe.bypass");
-    }
-
-    /**
-     * Set some session only metadata for the player
-     * @param key
-     * @param value
-     * @return previous value
-     */
-    public void setMeta(String key, Object value) {
-        if (this.meta == null) {
-            this.meta = new ConcurrentHashMap<>(8, 0.9f, 1);
-        }
-        this.meta.put(key, value);
-    }
-
-    public <T> T getAndSetMeta(String key, T value) {
-        if (this.meta == null) {
-            this.meta = new ConcurrentHashMap<>(8, 0.9f, 1);
-        }
-        return (T) this.meta.put(key, value);
-    }
-
-    /**
-     * Get the metadata for a key.
-     * @param <V>
-     * @param key
-     * @return
-     */
-    public <V> V getMeta(String key) {
-        if (this.meta != null) {
-            return (V) this.meta.get(key);
-        }
-        return null;
-    }
-
-    /**
-     * Get the metadata for a specific key (or return the default provided)
-     * @param key
-     * @param def
-     * @param <V>
-     * @return
-     */
-    public <V> V getMeta(String key, V def) {
-        if (this.meta != null) {
-            V value = (V) this.meta.get(key);
-            return value == null ? def : value;
-        }
-        return def;
-    }
-
-    /**
-     * Delete the metadata for a key.
-     *  - metadata is session only
-     *  - deleting other plugin's metadata may cause issues
-     * @param key
-     */
-    public Object deleteMeta(String key) {
-        return this.meta == null ? null : this.meta.remove(key);
     }
 
     /**

@@ -10,11 +10,11 @@ public abstract class RunnableVal<T> implements Runnable {
     }
 
     @Override
-    public void run() {
+    public final void run() {
         run(this.value);
     }
 
-    public T runAndGet() {
+    public final T runAndGet() {
         run();
         return value;
     }

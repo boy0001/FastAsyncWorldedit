@@ -153,7 +153,7 @@ public abstract class BukkitQueue_0<CHUNK, CHUNKSECTIONS, SECTION> extends NMSMa
 
     @Override
     public World getImpWorld() {
-        return Bukkit.getWorld(getWorldName());
+        return getWorldName() != null ? Bukkit.getWorld(getWorldName()) : null;
     }
 
     @Override
@@ -190,23 +190,45 @@ public abstract class BukkitQueue_0<CHUNK, CHUNKSECTIONS, SECTION> extends NMSMa
     }
 
     private volatile boolean timingsEnabled;
+    private static boolean alertTimingsChange = true;
+    private static Field fieldTimingsEnabled;
+    private static Field fieldAsyncCatcherEnabled;
+    private static Method methodCheck;
+    static {
+        try {
+            fieldAsyncCatcherEnabled = Class.forName("org.spigotmc.AsyncCatcher").getField("enabled");
+            fieldAsyncCatcherEnabled.setAccessible(true);
+        } catch (Throwable ignore) {}
+        try {
+            fieldTimingsEnabled = Class.forName("co.aikar.timings.Timings").getDeclaredField("timingsEnabled");
+            fieldTimingsEnabled.setAccessible(true);
+            methodCheck = Class.forName("co.aikar.timings.TimingsManager").getDeclaredMethod("recheckEnabled");
+            methodCheck.setAccessible(true);
+        } catch (Throwable ignore){}
+    }
 
     @Override
     public void startSet(boolean parallel) {
         ChunkListener.physicsFreeze = true;
         if (parallel) {
             try {
-                Field fieldEnabled = Class.forName("co.aikar.timings.Timings").getDeclaredField("timingsEnabled");
-                fieldEnabled.setAccessible(true);
-                timingsEnabled = (boolean) fieldEnabled.get(null);
-                if (timingsEnabled) {
-                    fieldEnabled.set(null, false);
-                    Method methodCheck = Class.forName("co.aikar.timings.TimingsManager").getDeclaredMethod("recheckEnabled");
-                    methodCheck.setAccessible(true);
-                    methodCheck.invoke(null);
+                if (fieldAsyncCatcherEnabled != null) {
+                    fieldAsyncCatcherEnabled.set(null, false);
                 }
-            } catch (Throwable ignore) {}
-            try { Class.forName("org.spigotmc.AsyncCatcher").getField("enabled").set(null, false); } catch (Throwable ignore) {}
+                if (fieldTimingsEnabled != null) {
+                    timingsEnabled = (boolean) fieldTimingsEnabled.get(null);
+                    if (timingsEnabled) {
+                        if (alertTimingsChange) {
+                            alertTimingsChange = false;
+                            Fawe.debug("Having `parallel-threads` > 1 interferes with the timings.");
+                        }
+                        fieldTimingsEnabled.set(null, false);
+                        methodCheck.invoke(null);
+                    }
+                }
+            } catch (Throwable e) {
+                e.printStackTrace();
+            }
         }
     }
 
@@ -214,9 +236,16 @@ public abstract class BukkitQueue_0<CHUNK, CHUNKSECTIONS, SECTION> extends NMSMa
     public void endSet(boolean parallel) {
         ChunkListener.physicsFreeze = false;
         if (parallel) {
-            try {Field fieldEnabled = Class.forName("co.aikar.timings.Timings").getDeclaredField("timingsEnabled");fieldEnabled.setAccessible(true);fieldEnabled.set(null, timingsEnabled);
-            } catch (Throwable ignore) {}
-            try { Class.forName("org.spigotmc.AsyncCatcher").getField("enabled").set(null, true); } catch (Throwable ignore) {}
+            try {
+                if (fieldAsyncCatcherEnabled != null) {
+                    fieldAsyncCatcherEnabled.set(null, true);
+                }
+                if (fieldTimingsEnabled != null && timingsEnabled) {
+                    fieldTimingsEnabled.set(null, true);
+                }
+            } catch (Throwable e) {
+                e.printStackTrace();
+            }
         }
     }
 }

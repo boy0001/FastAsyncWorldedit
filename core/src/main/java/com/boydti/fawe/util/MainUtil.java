@@ -74,11 +74,7 @@ public class MainUtil {
     }
 
     public static void stacktrace() {
-        try {
-            int i = 1/0;
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+        new Exception().printStackTrace();
     }
 
     public static void traverse(Path path, final RunnableVal2<Path, BasicFileAttributes> onEach) {

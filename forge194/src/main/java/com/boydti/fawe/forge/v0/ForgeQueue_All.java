@@ -412,7 +412,7 @@ public class ForgeQueue_All extends NMSMappedFaweQueue<World, Chunk, ExtendedBlo
 
     @Override
     public World getImpWorld() {
-        if (nmsWorld != null) {
+        if (nmsWorld != null || getWorldName() == null) {
             return nmsWorld;
         }
         String[] split = getWorldName().split(";");

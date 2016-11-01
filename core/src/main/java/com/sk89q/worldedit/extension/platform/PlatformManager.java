@@ -449,7 +449,8 @@ public class PlatformManager {
     public void handlePlayerInput(PlayerInputEvent event) {
         // Create a proxy actor with a potentially different world for
         // making changes to the world
-        final Player player = PlayerWrapper.wrap(createProxyActor(event.getPlayer()));
+        Player actor = createProxyActor(event.getPlayer());
+        final Player player = new LocationMaskedPlayerWrapper(PlayerWrapper.wrap(actor), actor.getLocation());
 
         try {
             switch (event.getInputType()) {

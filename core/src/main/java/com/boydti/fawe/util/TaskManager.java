@@ -275,7 +275,8 @@ public abstract class TaskManager {
                 while (running.get()) {
                     running.wait(timout);
                     if (running.get() && System.currentTimeMillis() - start > Settings.QUEUE.DISCARD_AFTER_MS) {
-                        MainUtil.stacktrace();
+                        new RuntimeException("FAWE is taking a long time to execute a task (might just be a symptom): ").printStackTrace();
+                        Fawe.debug("For full debug information use: /fawe threads");
                     }
                 }
             }

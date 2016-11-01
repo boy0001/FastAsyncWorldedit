@@ -296,7 +296,7 @@ public abstract class FaweChangeSet implements ChangeSet {
                     }
                 };
                 if (mainThread) {
-                    new Thread(run).start();
+                    run.run();
                 } else {
                     TaskManager.IMP.async(run);
                 }
