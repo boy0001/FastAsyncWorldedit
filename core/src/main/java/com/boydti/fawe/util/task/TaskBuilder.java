@@ -8,6 +8,7 @@ import com.boydti.fawe.util.SetQueue;
 import com.boydti.fawe.util.TaskManager;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
+import java.util.Objects;
 import java.util.concurrent.ForkJoinPool;
 import java.util.concurrent.TimeUnit;
 
@@ -162,6 +163,50 @@ public class TaskBuilder extends Metadatable {
         return this;
     }
 
+    public TaskBuilder abortIfTrue(final Runnable run) {
+        tasks.add(RunnableTask.adapt(new Task<Boolean, Boolean>() {
+            @Override
+            public Boolean run(Boolean previous) {
+                if (previous == Boolean.TRUE) run.run();
+                return previous == Boolean.TRUE;
+            }
+        }, TaskType.ABORT));
+        return this;
+    }
+
+    public TaskBuilder abortIfNull(final Runnable run) {
+        tasks.add(RunnableTask.adapt(new Task<Boolean, Object>() {
+            @Override
+            public Boolean run(Object previous) {
+                if (previous == null) run.run();
+                return previous == null;
+            }
+        }, TaskType.ABORT));
+        return this;
+    }
+
+    public TaskBuilder abortIfEqual(final Runnable run, final Object other) {
+        tasks.add(RunnableTask.adapt(new Task<Boolean, Object>() {
+            @Override
+            public Boolean run(Object previous) {
+                if (Objects.equals(previous, other)) run.run();
+                return Objects.equals(previous, other);
+            }
+        }, TaskType.ABORT));
+        return this;
+    }
+
+    public TaskBuilder abortIfNotEqual(final Runnable run, final Object other) {
+        tasks.add(RunnableTask.adapt(new Task<Boolean, Object>() {
+            @Override
+            public Boolean run(Object previous) {
+                if (!Objects.equals(previous, other)) run.run();
+                return !Objects.equals(previous, other);
+            }
+        }, TaskType.ABORT));
+        return this;
+    }
+
     /**
      * Have all async tasks run on a new thread<br>
      *  - As opposed to trying to using the current thread
@@ -283,12 +328,26 @@ public class TaskBuilder extends Metadatable {
                 if (task.isAborted()) {
                     return;
                 }
-            } catch (Throwable e) {
+            } catch (TaskAbortException abort) {
+                return;
+            } catch (Throwable e1) {
                 if (handler != null) {
-                    handler.uncaughtException(Thread.currentThread(), e);
+                    try {
+                        handler.uncaughtException(Thread.currentThread(), e1);
+                    } catch (Throwable e2) {
+                        e1.printStackTrace();
+                        e2.printStackTrace();
+                    }
                 }
                 return;
             }
+        }
+    }
+
+    public static final class TaskAbortException extends RuntimeException {
+        @Override
+        public synchronized Throwable fillInStackTrace() {
+            return this;
         }
     }
 
