@@ -154,13 +154,13 @@ public abstract class BreadthFirstSearch implements Operation {
 
         public Node() {}
 
-        private final void set(int x, int y, int z) {
+        public final void set(int x, int y, int z) {
             this.x = x;
             this.y = y;
             this.z = z;
         }
 
-        private final void set(Node node) {
+        public final void set(Node node) {
             this.x = node.x;
             this.y = node.y;
             this.z = node.z;
@@ -171,15 +171,15 @@ public abstract class BreadthFirstSearch implements Operation {
             return (x ^ (z << 12)) ^ (y << 24);
         }
 
-        private final int getX() {
+        public final int getX() {
             return x;
         }
 
-        private final int getY() {
+        public final int getY() {
             return y;
         }
 
-        private final int getZ() {
+        public final int getZ() {
             return z;
         }
 

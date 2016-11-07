@@ -52,7 +52,7 @@ public enum BBC {
     TRANSFORM_DISABLED("Global transform disabled", "WorldEdit.General"),
     TRANSFORM("Global transform set", "WorldEdit.General"),
 
-    COMMAND_COPY("%s0 blocks were copied", "WorldEdit.Copy"),
+    COMMAND_COPY("%s0 blocks were copied (Note: lazycopy is faster)", "WorldEdit.Copy"),
     COMMAND_CUT("%s0 blocks were cut", "WorldEdit.Cut"),
     COMMAND_PASTE("The clipboard has been pasted at %s0", "WorldEdit.Paste"),
     COMMAND_ROTATE("The clipboard has been rotated", "WorldEdit.Rotate"),

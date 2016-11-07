@@ -1302,6 +1302,35 @@ public class EditSession extends AbstractWorld implements HasFaweQueue {
         return this.countBlock(region, ids);
     }
 
+    public int fall(final Region region, boolean fullHeight, BaseBlock replace) {
+        FlatRegion flat = asFlatRegion(region);
+        int startPerformY = region.getMinimumPoint().getBlockY();
+        int startCheckY = fullHeight ? 0 : startPerformY;
+        int endY = region.getMaximumPoint().getBlockY();
+        for (BlockVector pos : flat) {
+            int x = (int) pos.x;
+            int z = (int) pos.z;
+            int freeSpot = startCheckY;
+            for (int y = startCheckY; y <= endY; y++) {
+                if (y < startPerformY) {
+                    if (getLazyBlock(x, y, z) != EditSession.nullBlock) {
+                        freeSpot = y + 1;
+                    }
+                    continue;
+                }
+                BaseBlock block = getLazyBlock(x, y, z);
+                if (block != EditSession.nullBlock) {
+                    if (freeSpot != y) {
+                        setBlock(x, freeSpot, z, block);
+                        setBlock(x, y, z, replace);
+                    }
+                    freeSpot++;
+                }
+            }
+        }
+        return this.changes;
+    }
+
     /**
      * Fills an area recursively in the X/Z directions.
      *

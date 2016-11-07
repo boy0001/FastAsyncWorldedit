@@ -138,7 +138,10 @@ public class NMSRelighter {
             @Override
             public void run(Object value) {
                 for (Map.Entry<FaweChunk, int[]> entry : fcs.entrySet()) {
-                    queue.setHeightMap(entry.getKey(), entry.getValue());
+                    FaweChunk chunk = entry.getKey();
+                    if (queue.isChunkLoaded(chunk.getX(), chunk.getZ())) {
+                        queue.setHeightMap(chunk, entry.getValue());
+                    }
                 }
             }
         });

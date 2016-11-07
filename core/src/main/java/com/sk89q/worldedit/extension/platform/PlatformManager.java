@@ -421,12 +421,12 @@ public class PlatformManager {
                     if (tool != null && tool instanceof BlockTool) {
                         if (tool.canUse(player)) {
                             FawePlayer<?> fp = FawePlayer.wrap(player);
-                            fp.runAsyncIfFree(new Runnable() {
+                            fp.runAction(new Runnable() {
                                 @Override
                                 public void run() {
                                     reset((BlockTool) tool).actPrimary(queryCapability(Capability.WORLD_EDITING), getConfiguration(), player, session, location);
                                 }
-                            });
+                            }, true, true);
                             event.setCancelled(true);
                         }
                     }
@@ -519,12 +519,12 @@ public class PlatformManager {
                     if (tool != null && tool instanceof TraceTool) {
                         if (tool.canUse(player)) {
                             FawePlayer<?> fp = FawePlayer.wrap(player);
-                            fp.runAsyncIfFree(new Runnable() {
+                            fp.runAction(new Runnable() {
                                 @Override
                                 public void run() {
                                     reset((TraceTool) tool).actPrimary(queryCapability(Capability.WORLD_EDITING), getConfiguration(), player, session);
                                 }
-                            });
+                            }, true, true);
                             event.setCancelled(true);
                             return;
                         }

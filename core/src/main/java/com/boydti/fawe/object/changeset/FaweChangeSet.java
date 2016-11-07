@@ -59,6 +59,9 @@ public abstract class FaweChangeSet implements ChangeSet {
             @Override
             public void run() {
                 waiting.decrementAndGet();
+                synchronized (lock) {
+                    lock.notifyAll();
+                }
                 flush();
             }
         });

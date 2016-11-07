@@ -114,6 +114,20 @@ public class RegionCommands {
     }
 
     @Command(
+            aliases = { "/getlighting" },
+            desc = "Get the light at a position",
+            min = 0,
+            max = 0
+    )
+    @CommandPermissions("worldedit.light.fix")
+    public void getlighting(Player player, EditSession editSession) throws WorldEditException {
+        FawePlayer fp = FawePlayer.wrap(player);
+        final FaweLocation loc = fp.getLocation();
+        FaweQueue queue = SetQueue.IMP.getNewQueue(loc.world, true, false);
+        fp.sendMessage("Light: " + queue.getEmmittedLight(loc.x, loc.y, loc.z) + " | " + queue.getSkyLight(loc.x, loc.y, loc.z));
+    }
+
+    @Command(
             aliases = { "/removelight", "/removelighting" },
             desc = "Removing lighting in a selection",
             min = 0,
@@ -392,6 +406,28 @@ public class RegionCommands {
             }
         }
 
+        BBC.VISITOR_BLOCK.send(player, affected);
+    }
+
+    @Command(
+            aliases = { "/fall" },
+            usage = "[replace]",
+            flags = "m",
+            desc = "Have the blocks in the selection fall",
+            help =
+                    "Make the blocks in the selection fall\n" +
+                            "The -m flag will only fall within the vertical selection.",
+            min = 0,
+            max = 2
+    )
+    @CommandPermissions("worldedit.region.fall")
+    @Logging(ORIENTATION_REGION)
+    public void fall(Player player, EditSession editSession, LocalSession session,
+                     @Selection Region region,
+                     @Optional("air") BaseBlock replace,
+                     @Switch('m') boolean notFullHeight) throws WorldEditException {
+
+        int affected = editSession.fall(region, !notFullHeight, replace);
         BBC.VISITOR_BLOCK.send(player, affected);
     }
 

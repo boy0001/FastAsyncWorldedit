@@ -4,24 +4,17 @@ import com.boydti.fawe.Fawe;
 import com.boydti.fawe.object.FawePlayer;
 import com.boydti.fawe.object.RunnableVal;
 import com.boydti.fawe.util.TaskManager;
-import com.sk89q.worldedit.EditSession;
-import com.sk89q.worldedit.EditSessionFactory;
-import com.sk89q.worldedit.LocalSession;
-import com.sk89q.worldedit.PlayerDirection;
-import com.sk89q.worldedit.Vector;
-import com.sk89q.worldedit.WorldEdit;
-import com.sk89q.worldedit.WorldEditException;
-import com.sk89q.worldedit.WorldVector;
-import com.sk89q.worldedit.WorldVectorFace;
+import com.sk89q.worldedit.*;
 import com.sk89q.worldedit.blocks.BaseBlock;
 import com.sk89q.worldedit.blocks.BlockType;
 import com.sk89q.worldedit.entity.BaseEntity;
 import com.sk89q.worldedit.entity.Player;
-import com.sk89q.worldedit.extent.Extent;
+import com.sk89q.worldedit.extension.platform.AbstractPlayerActor;
 import com.sk89q.worldedit.extent.inventory.BlockBag;
 import com.sk89q.worldedit.internal.cui.CUIEvent;
 import com.sk89q.worldedit.session.SessionKey;
 import com.sk89q.worldedit.util.Location;
+import com.sk89q.worldedit.util.TargetBlock;
 import com.sk89q.worldedit.util.auth.AuthorizationException;
 import com.sk89q.worldedit.world.AbstractWorld;
 import com.sk89q.worldedit.world.World;
@@ -29,7 +22,7 @@ import java.io.File;
 import java.util.UUID;
 import javax.annotation.Nullable;
 
-public class PlayerWrapper implements Player {
+public class PlayerWrapper extends AbstractPlayerActor {
     private final Player parent;
 
     public PlayerWrapper(Player parent) {
@@ -55,11 +48,6 @@ public class PlayerWrapper implements Player {
     @Override
     public boolean isHoldingPickAxe() {
         return parent.isHoldingPickAxe();
-    }
-
-    @Override
-    public PlayerDirection getCardinalDirection(int yawOffset) {
-        return parent.getCardinalDirection(yawOffset);
     }
 
     @Override
@@ -223,21 +211,12 @@ public class PlayerWrapper implements Player {
     }
 
     @Override
-    public WorldVector getBlockIn() {
-        return parent.getBlockIn();
-    }
-
-    @Override
-    public WorldVector getBlockOn() {
-        return parent.getBlockOn();
-    }
-
-    @Override
     public WorldVector getBlockTrace(final int range, final boolean useLastBlock) {
         return TaskManager.IMP.sync(new RunnableVal<WorldVector>() {
             @Override
             public void run(WorldVector value) {
-                this.value = parent.getBlockTrace(range, useLastBlock);
+                TargetBlock tb = new TargetBlock(PlayerWrapper.this, range, 0.2D);
+                this.value = useLastBlock?tb.getAnyTargetBlock():tb.getTargetBlock();
             }
         });
     }
@@ -247,14 +226,10 @@ public class PlayerWrapper implements Player {
         return TaskManager.IMP.sync(new RunnableVal<WorldVectorFace>() {
             @Override
             public void run(WorldVectorFace value) {
-                this.value = parent.getBlockTraceFace(range, useLastBlock);
+                TargetBlock tb = new TargetBlock(PlayerWrapper.this, range, 0.2D);
+                this.value = useLastBlock?tb.getAnyTargetBlockFace():tb.getTargetBlockFace();
             }
         });
-    }
-
-    @Override
-    public WorldVector getBlockTrace(int range) {
-        return getBlockTrace(range, false);
     }
 
     @Override
@@ -262,7 +237,8 @@ public class PlayerWrapper implements Player {
         return TaskManager.IMP.sync(new RunnableVal<WorldVector>() {
             @Override
             public void run(WorldVector value) {
-                this.value = parent.getSolidBlockTrace(range);
+                TargetBlock tb = new TargetBlock(PlayerWrapper.this, range, 0.2D);
+                this.value = tb.getSolidTargetBlock();
             }
         });
     }
@@ -295,7 +271,47 @@ public class PlayerWrapper implements Player {
         return TaskManager.IMP.sync(new RunnableVal<Boolean>() {
             @Override
             public void run(Boolean value) {
-                this.value = parent.passThroughForwardWall(range);
+                int searchDist = 0;
+                TargetBlock hitBlox = new TargetBlock(PlayerWrapper.this, range, 0.2D);
+                LocalWorld world = PlayerWrapper.this.getPosition().getWorld();
+                boolean firstBlock = true;
+                int freeToFind = 2;
+                boolean inFree = false;
+
+                while(true) {
+                    BlockWorldVector block;
+                    while((block = hitBlox.getNextBlock()) != null) {
+                        boolean free = BlockType.canPassThrough(world.getBlock(block));
+                        if(firstBlock) {
+                            firstBlock = false;
+                            if(!free) {
+                                --freeToFind;
+                                continue;
+                            }
+                        }
+
+                        ++searchDist;
+                        if(searchDist > 20) {
+                            this.value = false;
+                            return;
+                        }
+
+                        if(inFree != free && free) {
+                            --freeToFind;
+                        }
+
+                        if(freeToFind == 0) {
+                            PlayerWrapper.this.setOnGround(block);
+                            this.value = true;
+                            return;
+                        }
+
+                        inFree = free;
+                    }
+
+                    this.value = false;
+                    return;
+                }
             }
         });
     }
@@ -303,11 +319,6 @@ public class PlayerWrapper implements Player {
     @Override
     public void setPosition(Vector pos, float pitch, float yaw) {
         parent.setPosition(pos, pitch, yaw);
-    }
-
-    @Override
-    public void setPosition(Vector pos) {
-        parent.setPosition(pos);
     }
 
     @Override
@@ -319,11 +330,6 @@ public class PlayerWrapper implements Player {
     @Override
     public Location getLocation() {
         return parent.getLocation();
-    }
-
-    @Override
-    public Extent getExtent() {
-        return parent.getExtent();
     }
 
     @Override
