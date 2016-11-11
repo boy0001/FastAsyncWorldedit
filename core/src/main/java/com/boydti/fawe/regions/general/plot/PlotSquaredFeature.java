@@ -8,6 +8,7 @@ import com.intellectualcrafters.plot.PS;
 import com.intellectualcrafters.plot.config.Settings;
 import com.intellectualcrafters.plot.generator.HybridPlotManager;
 import com.intellectualcrafters.plot.object.Plot;
+import com.intellectualcrafters.plot.object.PlotArea;
 import com.intellectualcrafters.plot.object.PlotPlayer;
 import com.intellectualcrafters.plot.object.RegionWrapper;
 import com.intellectualcrafters.plot.util.ChunkManager;
@@ -79,9 +80,10 @@ public class PlotSquaredFeature extends FaweMaskManager {
         for (final RegionWrapper current : regions) {
             faweRegions.add(new com.boydti.fawe.object.RegionWrapper(current.minX, current.maxX, current.minZ, current.maxZ));
         }
+        PlotArea area = plot.getArea();
         final RegionWrapper region = regions.iterator().next();
-        final BlockVector pos1 = new BlockVector(region.minX, 0, region.minZ);
-        final BlockVector pos2 = new BlockVector(region.maxX, 256, region.maxZ);
+        final BlockVector pos1 = new BlockVector(region.minX, area.MIN_BUILD_HEIGHT, region.minZ);
+        final BlockVector pos2 = new BlockVector(region.maxX, area.MAX_BUILD_HEIGHT, region.maxZ);
         return new FaweMask(pos1, pos2) {
             @Override
             public String getName() {
