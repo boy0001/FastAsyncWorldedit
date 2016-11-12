@@ -118,6 +118,7 @@ public class SetQueue {
                             pool.shutdown();
                             pool.awaitTermination(Long.MAX_VALUE, TimeUnit.MILLISECONDS);
                             pool = new ForkJoinPool();
+                            completer = new ExecutorCompletionService(pool);
                         }
                     }
                     secondLast = System.currentTimeMillis();
