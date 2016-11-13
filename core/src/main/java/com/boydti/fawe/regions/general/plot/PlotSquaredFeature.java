@@ -68,6 +68,7 @@ public class PlotSquaredFeature extends FaweMaskManager {
         final PlotPlayer pp = PlotPlayer.wrap(fp.parent);
         final HashSet<RegionWrapper> regions;
         Plot plot = pp.getCurrentPlot();
+        PlotArea area = pp.getApplicablePlotArea();
         if (plot != null && (plot.isOwner(pp.getUUID()) || (type == MaskType.MEMBER && (plot.getTrusted().contains(pp.getUUID()) || (plot.getMembers().contains(pp.getUUID()) && pp.hasPermission("fawe.plotsquared.member")))))) {
             regions = plot.getRegions();
         } else {
@@ -80,10 +81,11 @@ public class PlotSquaredFeature extends FaweMaskManager {
         for (final RegionWrapper current : regions) {
             faweRegions.add(new com.boydti.fawe.object.RegionWrapper(current.minX, current.maxX, current.minZ, current.maxZ));
         }
-        PlotArea area = plot.getArea();
+        int min = area != null ? area.MIN_BUILD_HEIGHT : 0;
+        int max = area != null ? area.MAX_BUILD_HEIGHT : 255;
         final RegionWrapper region = regions.iterator().next();
-        final BlockVector pos1 = new BlockVector(region.minX, area.MIN_BUILD_HEIGHT, region.minZ);
-        final BlockVector pos2 = new BlockVector(region.maxX, area.MAX_BUILD_HEIGHT, region.maxZ);
+        final BlockVector pos1 = new BlockVector(region.minX, min, region.minZ);
+        final BlockVector pos2 = new BlockVector(region.maxX, max, region.maxZ);
         return new FaweMask(pos1, pos2) {
             @Override
             public String getName() {
