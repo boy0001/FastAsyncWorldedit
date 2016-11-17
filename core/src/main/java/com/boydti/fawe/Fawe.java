@@ -441,7 +441,7 @@ public class Fawe {
             MainUtil.handleError(e, false);
             debug("=======================================");
             debug("Things to check: ");
-            debug(" - Using WorldEdit 6.1.1");
+            debug(" - Using the latest version of WorldEdit/FAWE");
             debug(" - AsyncWorldEdit/WorldEditRegions isn't installed");
             debug(" - Any other errors in the startup log");
             debug(" - Contact Empire92 for assistance!");
