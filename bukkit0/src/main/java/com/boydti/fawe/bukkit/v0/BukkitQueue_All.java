@@ -38,7 +38,7 @@ public class BukkitQueue_All extends BukkitQueue_0<Chunk, Chunk, Chunk> {
     }
 
     @Override
-    public void setHeightMap(FaweChunk chunk, int[] heightMap) {
+    public void setHeightMap(FaweChunk chunk, byte[] heightMap) {
         // Do nothing
     }
 

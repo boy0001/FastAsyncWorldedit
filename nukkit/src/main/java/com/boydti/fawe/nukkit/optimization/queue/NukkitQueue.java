@@ -50,13 +50,14 @@ public class NukkitQueue extends NMSMappedFaweQueue<Level, BaseFullChunk, BaseFu
     }
 
     @Override
-    public void setHeightMap(FaweChunk chunk, int[] heightMap) {
+    public void setHeightMap(FaweChunk chunk, byte[] heightMap) {
         BaseFullChunk forgeChunk = (BaseFullChunk) chunk.getChunk();
         if (forgeChunk != null) {
             int[] otherMap = forgeChunk.getHeightMapArray();
             for (int i = 0; i < heightMap.length; i++) {
-                if (heightMap[i] > otherMap[i]) {
-                    otherMap[i] = heightMap[i];
+                int value = heightMap[i] & 0xFF;
+                if (value > value) {
+                    otherMap[i] = value;
                 }
             }
         }

@@ -46,6 +46,27 @@ public class BukkitChunk_1_8 extends CharFaweChunk<Chunk, BukkitQueue18R3> {
         super(parent, x, z);
     }
 
+    public BukkitChunk_1_8(FaweQueue parent, int x, int z, char[][] ids, short[] count, short[] air, short[] relight, byte[] heightMap) {
+        super(parent, x, z, ids, count, air, relight, heightMap);
+    }
+
+    @Override
+    public CharFaweChunk copy(boolean shallow) {
+        BukkitChunk_1_8 copy;
+        if (shallow) {
+            copy = new BukkitChunk_1_8(getParent(), getX(), getZ(), ids, count, air, relight, heightMap);
+            copy.biomes = biomes;
+            copy.chunk = chunk;
+        } else {
+            copy = new BukkitChunk_1_8(getParent(), getX(), getZ(), (char[][]) MainUtil.copyNd(ids), count.clone(), air.clone(), relight.clone(), heightMap.clone());
+            copy.biomes = biomes;
+            copy.chunk = chunk;
+            copy.biomes = biomes.clone();
+            copy.chunk = chunk;
+        }
+        return copy;
+    }
+
     @Override
     public Chunk getNewChunk() {
         return Bukkit.getWorld(getParent().getWorldName()).getChunkAt(getX(), getZ());
@@ -69,7 +90,8 @@ public class BukkitChunk_1_8 extends CharFaweChunk<Chunk, BukkitQueue18R3> {
             ChunkSection[] sections = nmsChunk.getSections();
             Map<BlockPosition, TileEntity> tiles = nmsChunk.getTileEntities();
             Collection<Entity>[] entities = nmsChunk.getEntitySlices();
-
+            // Set heightmap
+            getParent().setHeightMap(this, heightMap);
             // Remove entities
             for (int i = 0; i < 16; i++) {
                 int count = this.getCount(i);

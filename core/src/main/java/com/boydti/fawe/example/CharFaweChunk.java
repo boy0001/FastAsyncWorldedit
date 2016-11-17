@@ -4,7 +4,6 @@ import com.boydti.fawe.FaweCache;
 import com.boydti.fawe.object.BytePair;
 import com.boydti.fawe.object.FaweChunk;
 import com.boydti.fawe.object.FaweQueue;
-import com.boydti.fawe.util.MainUtil;
 import com.boydti.fawe.util.MathMan;
 import com.sk89q.jnbt.CompoundTag;
 import com.sk89q.worldedit.world.biome.BaseBiome;
@@ -17,20 +16,27 @@ import java.util.UUID;
 
 public abstract class CharFaweChunk<T, V extends FaweQueue> extends FaweChunk<T> {
 
-    public char[][] ids;
-    public short[] count;
-    public short[] air;
-    public short[] relight;
+    public final char[][] ids;
+    public final short[] count;
+    public final short[] air;
+    public final short[] relight;
+    public final byte[] heightMap;
+
     public int[][] biomes;
-    private int bitMask = -1;
-
     public HashMap<BytePair, CompoundTag> tiles;
-
     public HashSet<CompoundTag> entities;
-
     public HashSet<UUID> entityRemoves;
 
     public T chunk;
+
+    public CharFaweChunk(FaweQueue parent, int x, int z, char[][] ids, short[] count, short[] air, short[] relight, byte[] heightMap) {
+        super(parent, x, z);
+        this.ids = ids;
+        this.count = count;
+        this.air = air;
+        this.relight = relight;
+        this.heightMap = heightMap;
+    }
 
     /**
      * A FaweSections object represents a chunk and the blocks that you wish to change in it.
@@ -45,6 +51,7 @@ public abstract class CharFaweChunk<T, V extends FaweQueue> extends FaweChunk<T>
         this.count = new short[HEIGHT >> 4];
         this.air = new short[HEIGHT >> 4];
         this.relight = new short[HEIGHT >> 4];
+        this.heightMap = new byte[256];
     }
 
     @Override
@@ -117,19 +124,13 @@ public abstract class CharFaweChunk<T, V extends FaweQueue> extends FaweChunk<T>
 
     @Override
     public int getBitMask() {
-        if (bitMask == -1) {
-            this.bitMask = 0;
-            for (int section = 0; section < ids.length; section++) {
-                if (ids[section] != null) {
-                    bitMask += 1 << section;
-                }
+        int bitMask = 0;
+        for (int section = 0; section < ids.length; section++) {
+            if (ids[section] != null) {
+                bitMask += 1 << section;
             }
         }
         return bitMask;
-    }
-
-    public void setBitMask(int value) {
-        this.bitMask = value;
     }
 
     /**
@@ -247,6 +248,7 @@ public abstract class CharFaweChunk<T, V extends FaweQueue> extends FaweChunk<T>
                 this.relight[i]++;
             default:
                 vs[j] = (char) (id << 4);
+                heightMap[z << 4 | x] = (byte) y;
                 return;
         }
     }
@@ -332,6 +334,7 @@ public abstract class CharFaweChunk<T, V extends FaweQueue> extends FaweChunk<T>
             case 191:
             case 192:
                 vs[j] = (char) (id << 4);
+                heightMap[z << 4 | x] = (byte) y;
                 return;
             case 130:
             case 76:
@@ -346,6 +349,7 @@ public abstract class CharFaweChunk<T, V extends FaweQueue> extends FaweChunk<T>
             case 68: // removed
             default:
                 vs[j] = (char) ((id << 4) + data);
+                heightMap[z << 4 | x] = (byte) y;
                 return;
         }
     }
@@ -363,23 +367,5 @@ public abstract class CharFaweChunk<T, V extends FaweQueue> extends FaweChunk<T>
     }
 
     @Override
-    public CharFaweChunk<T, V> copy(boolean shallow) {
-        CharFaweChunk<T, V> copy = (CharFaweChunk<T, V>) getParent().getFaweChunk(getX(), getZ());
-        if (shallow) {
-            copy.ids = ids;
-            copy.air = air;
-            copy.biomes = biomes;
-            copy.chunk = chunk;
-            copy.count = count;
-            copy.relight = relight;
-        } else {
-            copy.ids = (char[][]) MainUtil.copyNd(ids);
-            copy.air = air.clone();
-            copy.biomes = biomes.clone();
-            copy.chunk = chunk;
-            copy.count = count.clone();
-            copy.relight = relight.clone();
-        }
-        return copy;
-    }
+    public abstract CharFaweChunk<T, V> copy(boolean shallow);
 }

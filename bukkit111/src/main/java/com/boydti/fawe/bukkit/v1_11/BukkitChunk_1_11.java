@@ -62,16 +62,26 @@ public class BukkitChunk_1_11 extends CharFaweChunk<Chunk, com.boydti.fawe.bukki
         super(parent, x, z);
     }
 
-    @Override
-    public Chunk getNewChunk() {
-        return ((com.boydti.fawe.bukkit.v1_11.BukkitQueue_1_11) getParent()).getWorld().getChunkAt(getX(), getZ());
+    public BukkitChunk_1_11(FaweQueue parent, int x, int z, char[][] ids, short[] count, short[] air, short[] relight, byte[] heightMap) {
+        super(parent, x, z, ids, count, air, relight, heightMap);
     }
 
     @Override
-    public CharFaweChunk<Chunk, com.boydti.fawe.bukkit.v1_11.BukkitQueue_1_11> copy(boolean shallow) {
-        BukkitChunk_1_11 value = (BukkitChunk_1_11) super.copy(shallow);
+    public CharFaweChunk copy(boolean shallow) {
+        BukkitChunk_1_11 copy;
+        if (shallow) {
+            copy = new BukkitChunk_1_11(getParent(), getX(), getZ(), ids, count, air, relight, heightMap);
+            copy.biomes = biomes;
+            copy.chunk = chunk;
+        } else {
+            copy = new BukkitChunk_1_11(getParent(), getX(), getZ(), (char[][]) MainUtil.copyNd(ids), count.clone(), air.clone(), relight.clone(), heightMap.clone());
+            copy.biomes = biomes;
+            copy.chunk = chunk;
+            copy.biomes = biomes.clone();
+            copy.chunk = chunk;
+        }
         if (sectionPalettes != null) {
-            value.sectionPalettes = new DataPaletteBlock[16];
+            copy.sectionPalettes = new DataPaletteBlock[16];
             try {
                 Field fieldBits = DataPaletteBlock.class.getDeclaredField("b");
                 fieldBits.setAccessible(true);
@@ -109,13 +119,18 @@ public class BukkitChunk_1_11 extends CharFaweChunk<Chunk, com.boydti.fawe.bukki
                         field.set(newBits, currentValue);
                     }
                     fieldBits.set(paletteBlock, newBits);
-                    value.sectionPalettes[i] = paletteBlock;
+                    copy.sectionPalettes[i] = paletteBlock;
                 }
             } catch (Throwable e) {
                 MainUtil.handleError(e);
             }
         }
-        return value;
+        return copy;
+    }
+
+    @Override
+    public Chunk getNewChunk() {
+        return ((com.boydti.fawe.bukkit.v1_11.BukkitQueue_1_11) getParent()).getWorld().getChunkAt(getX(), getZ());
     }
 
     public DataPaletteBlock newDataPaletteBlock() {
@@ -178,6 +193,8 @@ public class BukkitChunk_1_11 extends CharFaweChunk<Chunk, com.boydti.fawe.bukki
             Class<? extends net.minecraft.server.v1_11_R1.Chunk> clazzChunk = nmsChunk.getClass();
             final Collection<Entity>[] entities = (Collection<Entity>[]) getParent().getEntitySlices.invoke(nmsChunk);
             Map<BlockPosition, TileEntity> tiles = nmsChunk.getTileEntities();
+            // Set heightmap
+            getParent().setHeightMap(this, heightMap);
             // Remove entities
             for (int i = 0; i < entities.length; i++) {
                 int count = this.getCount(i);

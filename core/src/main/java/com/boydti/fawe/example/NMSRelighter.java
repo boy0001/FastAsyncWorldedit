@@ -3,9 +3,7 @@ package com.boydti.fawe.example;
 import com.boydti.fawe.FaweCache;
 import com.boydti.fawe.object.FaweChunk;
 import com.boydti.fawe.object.FaweQueue;
-import com.boydti.fawe.object.RunnableVal;
 import com.boydti.fawe.util.MathMan;
-import com.boydti.fawe.util.TaskManager;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -130,21 +128,8 @@ public class NMSRelighter {
         for (Map.Entry<Long, RelightSkyEntry> entry : skyToRelight.entrySet()) {
             RelightSkyEntry chunk = entry.getValue();
             CharFaweChunk fc = (CharFaweChunk) queue.getFaweChunk(chunk.x, chunk.z);
-            fcs.put(fc, chunk.heightMap);
-            fc.setBitMask(chunk.bitmask);
             queue.sendChunk(fc);
         }
-        TaskManager.IMP.sync(new RunnableVal<Object>() {
-            @Override
-            public void run(Object value) {
-                for (Map.Entry<FaweChunk, int[]> entry : fcs.entrySet()) {
-                    FaweChunk chunk = entry.getKey();
-                    if (queue.isChunkLoaded(chunk.getX(), chunk.getZ())) {
-                        queue.setHeightMap(chunk, entry.getValue());
-                    }
-                }
-            }
-        });
     }
 
     private boolean isTransparent(int x, int y, int z) {
@@ -248,7 +233,6 @@ public class NMSRelighter {
                             break;
                         case 15:
                             if (opacity > 1) {
-                                chunk.heightMap[z << 4 | x] = y;
                                 value -= opacity;
                                 mask[j] = value;
                             }
@@ -347,7 +331,6 @@ public class NMSRelighter {
         public final int x;
         public final int z;
         public final byte[] mask;
-        public int[] heightMap = new int[256];
         public final boolean[] fix;
         public int bitmask;
         public boolean smooth;

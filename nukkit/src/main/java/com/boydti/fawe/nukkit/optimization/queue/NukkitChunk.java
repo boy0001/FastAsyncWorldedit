@@ -10,6 +10,7 @@ import com.boydti.fawe.example.CharFaweChunk;
 import com.boydti.fawe.nukkit.core.NBTConverter;
 import com.boydti.fawe.nukkit.core.NukkitUtil;
 import com.boydti.fawe.object.FaweQueue;
+import com.boydti.fawe.util.MainUtil;
 import com.sk89q.jnbt.CompoundTag;
 import com.sk89q.worldedit.LocalWorld;
 import com.sk89q.worldedit.Vector2D;
@@ -30,9 +31,30 @@ public class NukkitChunk extends CharFaweChunk<BaseFullChunk, NukkitQueue> {
         super(parent, x, z);
     }
 
+    public NukkitChunk(FaweQueue parent, int x, int z, char[][] ids, short[] count, short[] air, short[] relight, byte[] heightMap) {
+        super(parent, x, z, ids, count, air, relight, heightMap);
+    }
+
+    @Override
+    public CharFaweChunk copy(boolean shallow) {
+        NukkitChunk copy;
+        if (shallow) {
+            copy = new NukkitChunk(getParent(), getX(), getZ(), ids, count, air, relight, heightMap);
+            copy.biomes = biomes;
+            copy.chunk = chunk;
+        } else {
+            copy = new NukkitChunk(getParent(), getX(), getZ(), (char[][]) MainUtil.copyNd(ids), count.clone(), air.clone(), relight.clone(), heightMap.clone());
+            copy.biomes = biomes;
+            copy.chunk = chunk;
+            copy.biomes = biomes.clone();
+            copy.chunk = chunk;
+        }
+        return copy;
+    }
+
     @Override
     public BaseFullChunk getNewChunk() {
-        return ((NukkitQueue) getParent()).getWorld().getChunk(getX(), getZ());
+        return ((NukkitQueue) getParent()).getWorld().getChunk(getX(), getZ(), true);
     }
 
     private int layer = -1;
@@ -41,10 +63,12 @@ public class NukkitChunk extends CharFaweChunk<BaseFullChunk, NukkitQueue> {
 
     @Override
     public NukkitChunk call() {
+        // Set heightmap
+        getParent().setHeightMap(this, heightMap);
         NukkitQueue parent = (NukkitQueue) getParent();
         Level world = ((NukkitQueue) getParent()).getWorld();
         world.clearCache(true);
-        final BaseFullChunk chunk = (world.getChunk(getX(), getZ(), true));
+        final BaseFullChunk chunk = getChunk();
         char[][] sections = getCombinedIdArrays();
         final int[][] biomes = getBiomeArray();
         final int X = getX() << 4;

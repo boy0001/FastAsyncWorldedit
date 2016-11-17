@@ -43,13 +43,36 @@ public class BukkitChunk_1_7 extends CharFaweChunk<Chunk, BukkitQueue17> {
         return Bukkit.getWorld(getParent().getWorldName()).getChunkAt(getX(), getZ());
     }
 
-    public byte[][] byteIds;
-    public NibbleArray[] datas;
+    public final byte[][] byteIds;
+    public final NibbleArray[] datas;
 
     public BukkitChunk_1_7(FaweQueue parent, int x, int z) {
         super(parent, x, z);
         this.byteIds = new byte[16][];
         this.datas = new NibbleArray[16];
+    }
+
+    public BukkitChunk_1_7(FaweQueue parent, int x, int z, char[][] ids, short[] count, short[] air, short[] relight, byte[] heightMap, byte[][] byteIds, NibbleArray[] datas) {
+        super(parent, x, z, ids, count, air, relight, heightMap);
+        this.byteIds = byteIds;
+        this.datas = datas;
+    }
+
+    @Override
+    public CharFaweChunk copy(boolean shallow) {
+        BukkitChunk_1_7 copy;
+        if (shallow) {
+            copy = new BukkitChunk_1_7(getParent(), getX(), getZ(), ids, count, air, relight, heightMap, byteIds, datas);
+            copy.biomes = biomes;
+            copy.chunk = chunk;
+        } else {
+            copy = new BukkitChunk_1_7(getParent(), getX(), getZ(), (char[][]) MainUtil.copyNd(ids), count.clone(), air.clone(), relight.clone(), heightMap.clone(), (byte[][]) MainUtil.copyNd(byteIds), datas.clone());
+            copy.biomes = biomes;
+            copy.chunk = chunk;
+            copy.biomes = biomes.clone();
+            copy.chunk = chunk;
+        }
+        return copy;
     }
 
     public byte[] getByteIdArray(int i) {
@@ -115,29 +138,6 @@ public class BukkitChunk_1_7 extends CharFaweChunk<Chunk, BukkitQueue17> {
     }
 
     @Override
-    public BukkitChunk_1_7 copy(boolean shallow) {
-        BukkitChunk_1_7 copy = new BukkitChunk_1_7(getParent(), getX(), getZ());
-        if (shallow) {
-            copy.byteIds = byteIds;
-            copy.datas = datas;
-            copy.air = air;
-            copy.biomes = biomes;
-            copy.chunk = chunk;
-            copy.count = count;
-            copy.relight = relight;
-        } else {
-            copy.byteIds = (byte[][]) MainUtil.copyNd(byteIds);
-            copy.datas = datas.clone();
-            copy.air = air.clone();
-            copy.biomes = biomes.clone();
-            copy.chunk = chunk;
-            copy.count = count.clone();
-            copy.relight = relight.clone();
-        }
-        return copy;
-    }
-
-    @Override
     public void start() {
         getChunk().load(true);
     }
@@ -155,7 +155,8 @@ public class BukkitChunk_1_7 extends CharFaweChunk<Chunk, BukkitQueue17> {
             ChunkSection[] sections = nmsChunk.getSections();
             Map<ChunkPosition, TileEntity> tiles = nmsChunk.tileEntities;
             Collection<Entity>[] entities = nmsChunk.entitySlices;
-
+            // Set heightmap
+            getParent().setHeightMap(this, heightMap);
             // Remove entities
             for (int i = 0; i < 16; i++) {
                 int count = this.getCount(i);

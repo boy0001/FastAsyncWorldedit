@@ -91,7 +91,7 @@ public abstract class NMSMappedFaweQueue<WORLD, CHUNK, CHUNKSECTION, SECTION> ex
         refreshChunk(fc);
     }
 
-    public abstract void setHeightMap(FaweChunk chunk, int[] heightMap);
+    public abstract void setHeightMap(FaweChunk chunk, byte[] heightMap);
 
     public abstract void setFullbright(CHUNKSECTION sections);
 

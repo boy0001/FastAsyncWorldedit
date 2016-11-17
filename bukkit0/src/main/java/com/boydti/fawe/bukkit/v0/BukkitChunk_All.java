@@ -31,6 +31,27 @@ public class BukkitChunk_All extends CharFaweChunk<Chunk, BukkitQueue_All> {
         super(parent, x, z);
     }
 
+    public BukkitChunk_All(FaweQueue parent, int x, int z, char[][] ids, short[] count, short[] air, short[] relight, byte[] heightMap) {
+        super(parent, x, z, ids, count, air, relight, heightMap);
+    }
+
+    @Override
+    public CharFaweChunk copy(boolean shallow) {
+        BukkitChunk_All copy;
+        if (shallow) {
+            copy = new BukkitChunk_All(getParent(), getX(), getZ(), ids, count, air, relight, heightMap);
+            copy.biomes = biomes;
+            copy.chunk = chunk;
+        } else {
+            copy = new BukkitChunk_All(getParent(), getX(), getZ(), (char[][]) MainUtil.copyNd(ids), count.clone(), air.clone(), relight.clone(), heightMap.clone());
+            copy.biomes = biomes;
+            copy.chunk = chunk;
+            copy.biomes = biomes.clone();
+            copy.chunk = chunk;
+        }
+        return copy;
+    }
+
     @Override
     public Chunk getNewChunk() {
         return Bukkit.getWorld(getParent().getWorldName()).getChunkAt(getX(), getZ());

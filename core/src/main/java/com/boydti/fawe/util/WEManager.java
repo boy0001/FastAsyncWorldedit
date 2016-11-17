@@ -4,7 +4,6 @@ import com.boydti.fawe.config.BBC;
 import com.boydti.fawe.config.Settings;
 import com.boydti.fawe.object.FawePlayer;
 import com.boydti.fawe.object.RegionWrapper;
-import com.boydti.fawe.object.RunnableVal;
 import com.boydti.fawe.object.exception.FaweException;
 import com.boydti.fawe.object.extent.NullExtent;
 import com.boydti.fawe.regions.FaweMask;
@@ -73,38 +72,25 @@ public class WEManager {
      * @return
      */
     public RegionWrapper[] getMask(final FawePlayer<?> player, FaweMaskManager.MaskType type) {
-//        HashSet<RegionWrapper> mask = TaskManager.IMP.sync(new RunnableVal<HashSet<RegionWrapper>>() {
         if (player.hasPermission("fawe.bypass") || !Settings.REGION_RESTRICTIONS) {
             return new RegionWrapper[] {new RegionWrapper(Integer.MIN_VALUE, Integer.MAX_VALUE, Integer.MIN_VALUE, Integer.MAX_VALUE)};
         }
-        HashSet<RegionWrapper> mask = new RunnableVal<HashSet<RegionWrapper>>() {
-            @Override
-            public void run(HashSet<RegionWrapper> ignore) {
-                this.value = new HashSet<>();
-                String world = player.getLocation().world;
-                if (!world.equals(player.getMeta("lastMaskWorld"))) {
-                    player.deleteMeta("lastMaskWorld");
-                    player.deleteMeta("lastMask");
-                }
-                player.setMeta("lastMaskWorld", world);
-                for (final FaweMaskManager manager : managers) {
-                    if (player.hasPermission("fawe." + manager.getKey())) {
-                        final FaweMask mask = manager.getMask(player);
-                        if (mask != null) {
-                            TaskManager.IMP.async(new Runnable() {
-                                @Override
-                                public void run() {
-
-                                }
-                            });
-                            value.addAll(mask.getRegions());
-                        }
-                    }
+        HashSet<RegionWrapper> mask = new HashSet<>();
+        String world = player.getLocation().world;
+        if (!world.equals(player.getMeta("lastMaskWorld"))) {
+            player.deleteMeta("lastMaskWorld");
+            player.deleteMeta("lastMask");
+        }
+        player.setMeta("lastMaskWorld", world);
+        for (final FaweMaskManager manager : managers) {
+            if (player.hasPermission("fawe." + manager.getKey())) {
+                final FaweMask fm = manager.getMask(player);
+                if (fm != null) {
+                    mask.addAll(fm.getRegions());
                 }
             }
-//        }, 1000);
-        }.runAndGet();
-        if (mask == null || mask.isEmpty()) {
+        }
+        if (mask.isEmpty()) {
             mask = player.getMeta("lastMask");
             if (mask == null) {
                 mask = new HashSet<>();

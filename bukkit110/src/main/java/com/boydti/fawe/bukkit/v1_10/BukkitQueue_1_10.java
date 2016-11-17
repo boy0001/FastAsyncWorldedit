@@ -81,13 +81,14 @@ public class BukkitQueue_1_10 extends BukkitQueue_0<Chunk, ChunkSection[], Chunk
     }
 
     @Override
-    public void setHeightMap(FaweChunk chunk, int[] heightMap) {
+    public void setHeightMap(FaweChunk chunk, byte[] heightMap) {
         CraftChunk craftChunk = (CraftChunk) chunk.getChunk();
         if (craftChunk != null) {
             int[] otherMap = craftChunk.getHandle().heightMap;
             for (int i = 0; i < heightMap.length; i++) {
-                if (heightMap[i] > otherMap[i]) {
-                    otherMap[i] = heightMap[i];
+                int value = heightMap[i] & 0xFF;
+                if (value > value) {
+                    otherMap[i] = value;
                 }
             }
         }
@@ -288,7 +289,7 @@ public class BukkitQueue_1_10 extends BukkitQueue_0<Chunk, ChunkSection[], Chunk
             }
             // Send chunks
             int mask = fc.getBitMask();
-            if (mask == 65535 && hasEntities(nmsChunk)) {
+            if (mask == 0 || mask == 65535 && hasEntities(nmsChunk)) {
                 PacketPlayOutMapChunk packet = new PacketPlayOutMapChunk(nmsChunk, 65280);
                 for (EntityPlayer player : playerChunk.c) {
                     player.playerConnection.sendPacket(packet);
@@ -429,7 +430,7 @@ public class BukkitQueue_1_10 extends BukkitQueue_0<Chunk, ChunkSection[], Chunk
         Collection<Entity>[] entities = (Collection<Entity>[]) entitiesGeneric;
         BukkitChunk_1_10 previous = getFaweChunk(fs.getX(), fs.getZ());
         // Copy blocks
-        char[][] idPrevious = new char[16][];
+        char[][] idPrevious = previous.getCombinedIdArrays();
         for (int layer = 0; layer < sections.length; layer++) {
             if (fs.getCount(layer) != 0 || all) {
                 ChunkSection section = sections[layer];
@@ -459,7 +460,6 @@ public class BukkitQueue_1_10 extends BukkitQueue_0<Chunk, ChunkSection[], Chunk
                 }
             }
         }
-        previous.ids = idPrevious;
         // Copy tiles
         if (tiles != null) {
             for (Map.Entry<BlockPosition, TileEntity> entry : tiles.entrySet()) {

@@ -10,12 +10,35 @@ import com.boydti.fawe.object.FaweQueue;
 import com.boydti.fawe.util.MainUtil;
 import com.boydti.fawe.util.MathMan;
 import com.boydti.fawe.util.ReflectionUtils;
-import com.sk89q.jnbt.*;
+import com.sk89q.jnbt.CompoundTag;
+import com.sk89q.jnbt.ListTag;
+import com.sk89q.jnbt.LongTag;
+import com.sk89q.jnbt.StringTag;
+import com.sk89q.jnbt.Tag;
 import com.sk89q.worldedit.internal.Constants;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
-import java.util.*;
-import net.minecraft.server.v1_10_R1.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.Map;
+import java.util.Set;
+import java.util.UUID;
+import net.minecraft.server.v1_10_R1.Block;
+import net.minecraft.server.v1_10_R1.BlockPosition;
+import net.minecraft.server.v1_10_R1.ChunkSection;
+import net.minecraft.server.v1_10_R1.DataBits;
+import net.minecraft.server.v1_10_R1.DataPalette;
+import net.minecraft.server.v1_10_R1.DataPaletteBlock;
+import net.minecraft.server.v1_10_R1.DataPaletteGlobal;
+import net.minecraft.server.v1_10_R1.Entity;
+import net.minecraft.server.v1_10_R1.EntityPlayer;
+import net.minecraft.server.v1_10_R1.EntityTypes;
+import net.minecraft.server.v1_10_R1.IBlockData;
+import net.minecraft.server.v1_10_R1.NBTTagCompound;
+import net.minecraft.server.v1_10_R1.TileEntity;
 import org.bukkit.Chunk;
 import org.bukkit.World;
 import org.bukkit.craftbukkit.v1_10_R1.CraftChunk;
@@ -36,16 +59,26 @@ public class BukkitChunk_1_10 extends CharFaweChunk<Chunk, BukkitQueue_1_10> {
         super(parent, x, z);
     }
 
-    @Override
-    public Chunk getNewChunk() {
-        return ((com.boydti.fawe.bukkit.v1_10.BukkitQueue_1_10) getParent()).getWorld().getChunkAt(getX(), getZ());
+    public BukkitChunk_1_10(FaweQueue parent, int x, int z, char[][] ids, short[] count, short[] air, short[] relight, byte[] heightMap) {
+        super(parent, x, z, ids, count, air, relight, heightMap);
     }
 
     @Override
-    public CharFaweChunk<Chunk, BukkitQueue_1_10> copy(boolean shallow) {
-        BukkitChunk_1_10 value = (BukkitChunk_1_10) super.copy(shallow);
+    public CharFaweChunk copy(boolean shallow) {
+        BukkitChunk_1_10 copy;
+        if (shallow) {
+            copy = new BukkitChunk_1_10(getParent(), getX(), getZ(), ids, count, air, relight, heightMap);
+            copy.biomes = biomes;
+            copy.chunk = chunk;
+        } else {
+            copy = new BukkitChunk_1_10(getParent(), getX(), getZ(), (char[][]) MainUtil.copyNd(ids), count.clone(), air.clone(), relight.clone(), heightMap.clone());
+            copy.biomes = biomes;
+            copy.chunk = chunk;
+            copy.biomes = biomes.clone();
+            copy.chunk = chunk;
+        }
         if (sectionPalettes != null) {
-            value.sectionPalettes = new DataPaletteBlock[16];
+            copy.sectionPalettes = new DataPaletteBlock[16];
             try {
                 Field fieldBits = DataPaletteBlock.class.getDeclaredField("b");
                 fieldBits.setAccessible(true);
@@ -83,13 +116,18 @@ public class BukkitChunk_1_10 extends CharFaweChunk<Chunk, BukkitQueue_1_10> {
                         field.set(newBits, currentValue);
                     }
                     fieldBits.set(paletteBlock, newBits);
-                    value.sectionPalettes[i] = paletteBlock;
+                    copy.sectionPalettes[i] = paletteBlock;
                 }
             } catch (Throwable e) {
                 MainUtil.handleError(e);
             }
         }
-        return value;
+        return copy;
+    }
+
+    @Override
+    public Chunk getNewChunk() {
+        return ((com.boydti.fawe.bukkit.v1_10.BukkitQueue_1_10) getParent()).getWorld().getChunkAt(getX(), getZ());
     }
 
     public DataPaletteBlock newDataPaletteBlock() {
@@ -152,6 +190,8 @@ public class BukkitChunk_1_10 extends CharFaweChunk<Chunk, BukkitQueue_1_10> {
             Class<? extends net.minecraft.server.v1_10_R1.Chunk> clazzChunk = nmsChunk.getClass();
             final Collection<Entity>[] entities = (Collection<Entity>[]) getParent().getEntitySlices.invoke(nmsChunk);
             Map<BlockPosition, TileEntity> tiles = nmsChunk.getTileEntities();
+            // Set heightmap
+            getParent().setHeightMap(this, heightMap);
             // Remove entities
             for (int i = 0; i < entities.length; i++) {
                 int count = this.getCount(i);

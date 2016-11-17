@@ -1,8 +1,8 @@
 package com.boydti.fawe.util;
 
 import com.boydti.fawe.config.Settings;
-import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.LinkedBlockingQueue;
+import java.util.Queue;
+import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 public class MemUtil {
@@ -42,8 +42,8 @@ public class MemUtil {
         return size;
     }
 
-    private static BlockingQueue<Runnable> memoryLimitedTasks = new LinkedBlockingQueue<>();
-    private static BlockingQueue<Runnable> memoryPlentifulTasks = new LinkedBlockingQueue<>();
+    private static Queue<Runnable> memoryLimitedTasks = new ConcurrentLinkedQueue<>();
+    private static Queue<Runnable> memoryPlentifulTasks = new ConcurrentLinkedQueue<>();
 
     public static void addMemoryLimitedTask(Runnable run) {
         if (run != null)

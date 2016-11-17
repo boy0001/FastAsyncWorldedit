@@ -87,13 +87,14 @@ public class BukkitQueue17 extends BukkitQueue_0<Chunk, ChunkSection[], ChunkSec
     }
 
     @Override
-    public void setHeightMap(FaweChunk chunk, int[] heightMap) {
+    public void setHeightMap(FaweChunk chunk, byte[] heightMap) {
         CraftChunk craftChunk = (CraftChunk) chunk.getChunk();
         if (craftChunk != null) {
             int[] otherMap = craftChunk.getHandle().heightMap;
             for (int i = 0; i < heightMap.length; i++) {
-                if (heightMap[i] > otherMap[i]) {
-                    otherMap[i] = heightMap[i];
+                int value = heightMap[i] & 0xFF;
+                if (value > value) {
+                    otherMap[i] = value;
                 }
             }
         }
@@ -165,7 +166,6 @@ public class BukkitQueue17 extends BukkitQueue_0<Chunk, ChunkSection[], ChunkSec
         Map<ChunkPosition, TileEntity> tiles = (Map<ChunkPosition, TileEntity>) tilesGeneric;
         Collection<Entity>[] entities = (Collection<Entity>[]) entitiesGeneric;
         CharFaweChunk previous = (CharFaweChunk) getFaweChunk(fs.getX(), fs.getZ());
-        char[][] idPrevious = new char[16][];
         for (int layer = 0; layer < sections.length; layer++) {
             if (fs.getCount(layer) != 0 || all) {
                 ChunkSection section = sections[layer];
@@ -184,7 +184,6 @@ public class BukkitQueue17 extends BukkitQueue_0<Chunk, ChunkSection[], ChunkSec
                 }
             }
         }
-        previous.ids = idPrevious;
         if (tiles != null) {
             for (Map.Entry<ChunkPosition, TileEntity> entry : tiles.entrySet()) {
                 TileEntity tile = entry.getValue();
@@ -298,7 +297,7 @@ public class BukkitQueue17 extends BukkitQueue_0<Chunk, ChunkSection[], ChunkSec
             }
             // Send chunks
             int mask = fc.getBitMask();
-            if (mask == 65535 && hasEntities(nmsChunk)) {
+            if (mask == 0 || mask == 65535 && hasEntities(nmsChunk)) {
                 PacketPlayOutMapChunk packet = new PacketPlayOutMapChunk(nmsChunk, false, 65280, 5);
                 for (EntityPlayer player : players) {
                     player.playerConnection.sendPacket(packet);

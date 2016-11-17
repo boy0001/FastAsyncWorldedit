@@ -32,13 +32,36 @@ import net.minecraft.world.chunk.storage.ExtendedBlockStorage;
 
 public class ForgeChunk_All extends CharFaweChunk<Chunk, ForgeQueue_All> {
 
-    public byte[][] byteIds;
-    public NibbleArray[] datas;
+    public final byte[][] byteIds;
+    public final NibbleArray[] datas;
 
     public ForgeChunk_All(FaweQueue parent, int x, int z) {
         super(parent, x, z);
         this.byteIds = new byte[16][];
         this.datas = new NibbleArray[16];
+    }
+
+    public ForgeChunk_All(FaweQueue parent, int x, int z, char[][] ids, short[] count, short[] air, short[] relight, byte[] heightMap, byte[][] byteIds, NibbleArray[] datas) {
+        super(parent, x, z, ids, count, air, relight, heightMap);
+        this.byteIds = byteIds;
+        this.datas = datas;
+    }
+
+    @Override
+    public CharFaweChunk copy(boolean shallow) {
+        ForgeChunk_All copy;
+        if (shallow) {
+            copy = new ForgeChunk_All(getParent(), getX(), getZ(), ids, count, air, relight, heightMap, byteIds, datas);
+            copy.biomes = biomes;
+            copy.chunk = chunk;
+        } else {
+            copy = new ForgeChunk_All(getParent(), getX(), getZ(), (char[][]) MainUtil.copyNd(ids), count.clone(), air.clone(), relight.clone(), heightMap.clone(), (byte[][]) MainUtil.copyNd(byteIds), datas.clone());
+            copy.biomes = biomes;
+            copy.chunk = chunk;
+            copy.biomes = biomes.clone();
+            copy.chunk = chunk;
+        }
+        return copy;
     }
 
     @Override
@@ -105,29 +128,6 @@ public class ForgeChunk_All extends CharFaweChunk<Chunk, ForgeQueue_All> {
     }
 
     @Override
-    public ForgeChunk_All copy(boolean shallow) {
-        ForgeChunk_All copy = new ForgeChunk_All(getParent(), getX(), getZ());
-        if (shallow) {
-            copy.byteIds = byteIds;
-            copy.datas = datas;
-            copy.air = air;
-            copy.biomes = biomes;
-            copy.chunk = chunk;
-            copy.count = count;
-            copy.relight = relight;
-        } else {
-            copy.byteIds = (byte[][]) MainUtil.copyNd(byteIds);
-            copy.datas = datas.clone();
-            copy.air = air.clone();
-            copy.biomes = biomes.clone();
-            copy.chunk = chunk;
-            copy.count = count.clone();
-            copy.relight = relight.clone();
-        }
-        return copy;
-    }
-
-    @Override
     public ForgeChunk_All call() {
         net.minecraft.world.chunk.Chunk nmsChunk = this.getChunk();
         net.minecraft.world.World nmsWorld = nmsChunk.worldObj;
@@ -139,6 +139,9 @@ public class ForgeChunk_All extends CharFaweChunk<Chunk, ForgeQueue_All> {
             ExtendedBlockStorage[] sections = nmsChunk.getBlockStorageArray();
             Map<ChunkPosition, TileEntity> tiles = nmsChunk.chunkTileEntityMap;
             List<Entity>[] entities = nmsChunk.entityLists;
+
+            // Set heightmap
+            getParent().setHeightMap(this, heightMap);
 
             // Remove entities
             for (int i = 0; i < 16; i++) {

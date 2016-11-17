@@ -51,17 +51,26 @@ public class ForgeChunk_All extends CharFaweChunk<Chunk, ForgeQueue_All> {
         super(parent, x, z);
     }
 
-    @Override
-    public Chunk getNewChunk() {
-        World world = ((ForgeQueue_All) getParent()).getWorld();
-        return world.getChunkProvider().provideChunk(getX(), getZ());
+    public ForgeChunk_All(FaweQueue parent, int x, int z, char[][] ids, short[] count, short[] air, short[] relight, byte[] heightMap) {
+        super(parent, x, z, ids, count, air, relight, heightMap);
     }
 
     @Override
-    public ForgeChunk_All copy(boolean shallow) {
-        ForgeChunk_All value = (ForgeChunk_All) super.copy(shallow);
+    public CharFaweChunk copy(boolean shallow) {
+        ForgeChunk_All copy;
+        if (shallow) {
+            copy = new ForgeChunk_All(getParent(), getX(), getZ(), ids, count, air, relight, heightMap);
+            copy.biomes = biomes;
+            copy.chunk = chunk;
+        } else {
+            copy = new ForgeChunk_All(getParent(), getX(), getZ(), (char[][]) MainUtil.copyNd(ids), count.clone(), air.clone(), relight.clone(), heightMap.clone());
+            copy.biomes = biomes;
+            copy.chunk = chunk;
+            copy.biomes = biomes.clone();
+            copy.chunk = chunk;
+        }
         if (sectionPalettes != null) {
-            value.sectionPalettes = new BlockStateContainer[16];
+            copy.sectionPalettes = new BlockStateContainer[16];
             try {
                 Field fieldBits = BlockStateContainer.class.getDeclaredField("storage");
                 fieldBits.setAccessible(true);
@@ -99,13 +108,19 @@ public class ForgeChunk_All extends CharFaweChunk<Chunk, ForgeQueue_All> {
                         field.set(newBits, currentValue);
                     }
                     fieldBits.set(paletteBlock, newBits);
-                    value.sectionPalettes[i] = paletteBlock;
+                    copy.sectionPalettes[i] = paletteBlock;
                 }
             } catch (Throwable e) {
                 MainUtil.handleError(e);
             }
         }
-        return value;
+        return copy;
+    }
+
+    @Override
+    public Chunk getNewChunk() {
+        World world = ((ForgeQueue_All) getParent()).getWorld();
+        return world.getChunkProvider().provideChunk(getX(), getZ());
     }
 
     public void optimize() {
@@ -146,6 +161,10 @@ public class ForgeChunk_All extends CharFaweChunk<Chunk, ForgeQueue_All> {
             ExtendedBlockStorage[] sections = nmsChunk.getBlockStorageArray();
             Map<BlockPos, TileEntity> tiles = nmsChunk.getTileEntityMap();
             ClassInheritanceMultiMap<Entity>[] entities = nmsChunk.getEntityLists();
+
+            // Set heightmap
+            getParent().setHeightMap(this, heightMap);
+
             // Remove entities
             for (int i = 0; i < 16; i++) {
                 int count = this.getCount(i);
