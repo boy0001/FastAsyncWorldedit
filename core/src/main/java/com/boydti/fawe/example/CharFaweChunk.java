@@ -354,6 +354,11 @@ public abstract class CharFaweChunk<T, V extends FaweQueue> extends FaweChunk<T>
         }
     }
 
+    @Deprecated
+    public void setBitMask(int ignore) {
+        // Remove
+    }
+
     @Override
     public void setBiome(final int x, final int z, final BaseBiome biome) {
         if (this.biomes == null) {
