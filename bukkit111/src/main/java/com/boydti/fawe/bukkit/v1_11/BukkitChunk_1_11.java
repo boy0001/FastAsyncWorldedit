@@ -326,7 +326,7 @@ public class BukkitChunk_1_11 extends CharFaweChunk<Chunk, com.boydti.fawe.bukki
                     BlockPosition bp = entry.getKey();
                     TileEntity tile = entry.getValue();
                     tiles.remove(bp);
-                    tile.y();
+                    tile.z();
                     nmsWorld.s(bp);
                     tile.invalidateBlockCache();
                 }
