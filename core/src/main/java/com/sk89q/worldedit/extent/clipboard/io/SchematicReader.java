@@ -19,6 +19,8 @@
 
 package com.sk89q.worldedit.extent.clipboard.io;
 
+import com.boydti.fawe.Fawe;
+import com.boydti.fawe.jnbt.CorruptSchematicStreamer;
 import com.boydti.fawe.jnbt.SchematicStreamer;
 import com.sk89q.jnbt.CompoundTag;
 import com.sk89q.jnbt.NBTInputStream;
@@ -26,6 +28,7 @@ import com.sk89q.jnbt.Tag;
 import com.sk89q.worldedit.extent.clipboard.Clipboard;
 import com.sk89q.worldedit.world.registry.WorldData;
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.Map;
 import java.util.UUID;
 import java.util.logging.Logger;
@@ -40,7 +43,8 @@ import static com.google.common.base.Preconditions.checkNotNull;
 public class SchematicReader implements ClipboardReader {
 
     private static final Logger log = Logger.getLogger(SchematicReader.class.getCanonicalName());
-    private final NBTInputStream inputStream;
+    private NBTInputStream inputStream;
+    private InputStream rootStream;
 
     /**
      * Create a new instance.
@@ -52,13 +56,23 @@ public class SchematicReader implements ClipboardReader {
         this.inputStream = inputStream;
     }
 
+    public void setUnderlyingStream(InputStream in) {
+        this.rootStream = in;
+    }
+
     @Override
     public Clipboard read(WorldData data) throws IOException {
         return read(data, UUID.randomUUID());
     }
 
-    public Clipboard read(WorldData data, UUID clipboardId) throws IOException {
-        return new SchematicStreamer(inputStream, clipboardId).getClipboard();
+    public Clipboard read(WorldData data, final UUID clipboardId) throws IOException {
+        try {
+            return new SchematicStreamer(inputStream, clipboardId).getClipboard();
+        } catch (Exception e) {
+            Fawe.debug("Input is corrupt!");
+            e.printStackTrace();
+            return new CorruptSchematicStreamer(rootStream, clipboardId).recover();
+        }
     }
 
     private static <T extends Tag> T requireTag(Map<String, Tag> items, String key, Class<T> expected) throws IOException {

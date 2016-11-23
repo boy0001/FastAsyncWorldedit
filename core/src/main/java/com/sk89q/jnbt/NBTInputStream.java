@@ -55,6 +55,10 @@ public final class NBTInputStream implements Closeable {
         this.is = new DataInputStream(is);
     }
 
+    public NBTInputStream(DataInputStream dis) {
+        this.is = dis;
+    }
+
     public NBTInputStream(DataInput di) {
         this.is = di;
     }
@@ -97,7 +101,7 @@ public final class NBTInputStream implements Closeable {
         readTagPaylodLazy(type, 0, name, getReader);
     }
 
-    private String readNamedTagName(int type) throws IOException {
+    public String readNamedTagName(int type) throws IOException {
         String name;
         if (type != NBTConstants.TYPE_END) {
             int nameLength = is.readShort() & 0xFFFF;
@@ -111,7 +115,7 @@ public final class NBTInputStream implements Closeable {
 
     private byte[] buf;
 
-    private void readTagPaylodLazy(int type, int depth, String node, RunnableVal2<String, RunnableVal2> getReader) throws IOException {
+    public void readTagPaylodLazy(int type, int depth, String node, RunnableVal2<String, RunnableVal2> getReader) throws IOException {
         switch (type) {
             case NBTConstants.TYPE_END:
                 return;
@@ -213,7 +217,8 @@ public final class NBTInputStream implements Closeable {
                 return;
             case NBTConstants.TYPE_COMPOUND:
                 depth++;
-                for (int i = 0;;i++) {
+                // 3
+                for (int i = 0; ; i++) {
                     childType = is.readByte();
                     if (childType == NBTConstants.TYPE_END) {
                         return;
@@ -244,6 +249,28 @@ public final class NBTInputStream implements Closeable {
                 return;
             default:
                 throw new IOException("Invalid tag type: " + type + ".");
+        }
+    }
+
+    public static int getSize(int type) {
+        switch (type) {
+            default:
+            case NBTConstants.TYPE_END:
+            case NBTConstants.TYPE_BYTE:
+                return 1;
+            case NBTConstants.TYPE_BYTE_ARRAY:
+            case NBTConstants.TYPE_STRING:
+            case NBTConstants.TYPE_LIST:
+            case NBTConstants.TYPE_COMPOUND:
+            case NBTConstants.TYPE_INT_ARRAY:
+            case NBTConstants.TYPE_SHORT:
+                return 2;
+            case NBTConstants.TYPE_FLOAT:
+            case NBTConstants.TYPE_INT:
+                return 4;
+            case NBTConstants.TYPE_DOUBLE:
+            case NBTConstants.TYPE_LONG:
+                return 8;
         }
     }
 
@@ -322,7 +349,7 @@ public final class NBTInputStream implements Closeable {
      * @return the tag
      * @throws IOException if an I/O error occurs.
      */
-    private Tag readTagPayload(int type, int depth) throws IOException {
+    public Tag readTagPayload(int type, int depth) throws IOException {
         switch (type) {
             case NBTConstants.TYPE_END:
                 if (depth == 0) {

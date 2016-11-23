@@ -24,6 +24,7 @@ import com.boydti.fawe.object.clipboard.AbstractClipboardFormat;
 import com.boydti.fawe.object.clipboard.DiskOptimizedClipboard;
 import com.boydti.fawe.object.clipboard.IClipboardFormat;
 import com.boydti.fawe.object.io.PGZIPOutputStream;
+import com.boydti.fawe.object.io.ResettableFileInputStream;
 import com.boydti.fawe.object.schematic.FaweFormat;
 import com.boydti.fawe.object.schematic.PNGWriter;
 import com.boydti.fawe.object.schematic.Schematic;
@@ -56,9 +57,14 @@ public enum ClipboardFormat {
     SCHEMATIC(new AbstractClipboardFormat("SCHEMATIC", "mcedit", "mce", "schematic") {
         @Override
         public ClipboardReader getReader(InputStream inputStream) throws IOException {
-            inputStream = new BufferedInputStream(inputStream);
-            NBTInputStream nbtStream = new NBTInputStream(new BufferedInputStream(new GZIPInputStream(inputStream)));
-            return new SchematicReader(nbtStream);
+            if (inputStream instanceof FileInputStream) {
+                inputStream = new ResettableFileInputStream((FileInputStream) inputStream);
+            }
+            BufferedInputStream buffered = new BufferedInputStream(inputStream);
+            NBTInputStream nbtStream = new NBTInputStream(new BufferedInputStream(new GZIPInputStream(buffered)));
+            SchematicReader input = new SchematicReader(nbtStream);
+            input.setUnderlyingStream(inputStream);
+            return input;
         }
 
         @Override

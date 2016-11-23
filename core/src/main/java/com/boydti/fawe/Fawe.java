@@ -187,7 +187,7 @@ public class Fawe {
         if (INSTANCE != null) {
             INSTANCE.IMP.debug(StringMan.getString(s));
         } else {
-            System.out.print(s);
+            System.out.println(s);
         }
     }
 
