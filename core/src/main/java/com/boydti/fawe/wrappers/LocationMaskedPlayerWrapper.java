@@ -7,11 +7,17 @@ import com.sk89q.worldedit.util.Location;
 import com.sk89q.worldedit.world.World;
 
 public class LocationMaskedPlayerWrapper extends PlayerWrapper {
+    private final boolean allowTeleport;
     private Location position;
 
     public LocationMaskedPlayerWrapper(Player parent, Location position) {
+        this(parent, position, false);
+    }
+
+    public LocationMaskedPlayerWrapper(Player parent, Location position, boolean allowTeleport) {
         super(parent);
         this.position = position;
+        this.allowTeleport = allowTeleport;
     }
 
     @Override
@@ -36,10 +42,6 @@ public class LocationMaskedPlayerWrapper extends PlayerWrapper {
         return WorldVector.toBlockPoint(pos.getWorld(), pos.getX(), pos.getY() - 1, pos.getZ());
     }
 
-    public void setPosition(Location position) {
-        this.position = position;
-    }
-
     @Override
     public WorldVector getPosition() {
         LocalWorld world;
@@ -59,5 +61,8 @@ public class LocationMaskedPlayerWrapper extends PlayerWrapper {
     @Override
     public void setPosition(Vector pos, float pitch, float yaw) {
         this.position = new Location(position.getExtent(), pos, pitch, yaw);
+        if (allowTeleport) {
+            super.setPosition(pos, pitch, yaw);
+        }
     }
 }

@@ -239,7 +239,7 @@ public final class CommandManager {
         if (fp == null) {
             throw new IllegalArgumentException("FAWE doesn't support: " + actor);
         }
-        locals.put(Actor.class, actor instanceof Player ? (actor = new LocationMaskedPlayerWrapper((Player) actor, ((Player) actor).getLocation())) : actor);
+        locals.put(Actor.class, actor instanceof Player ? (actor = new LocationMaskedPlayerWrapper((Player) actor, ((Player) actor).getLocation(), true)) : actor);
         final Actor finalActor = actor;
         if (!fp.runAction(new Runnable() {
             @Override
