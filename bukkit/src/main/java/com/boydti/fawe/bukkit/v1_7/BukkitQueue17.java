@@ -38,29 +38,31 @@ public class BukkitQueue17 extends BukkitQueue_0<Chunk, ChunkSection[], ChunkSec
 
     protected static Field fieldData;
     protected static Field fieldIds;
+    protected static Field fieldTickingBlockCount;
+    protected static Field fieldNonEmptyBlockCount;
+
+    static {
+        try {
+            fieldData = ChunkSection.class.getDeclaredField("blockData");
+            fieldData.setAccessible(true);
+            fieldIds = ChunkSection.class.getDeclaredField("blockIds");
+            fieldIds.setAccessible(true);
+            fieldTickingBlockCount = ChunkSection.class.getDeclaredField("tickingBlockCount");
+            fieldNonEmptyBlockCount = ChunkSection.class.getDeclaredField("nonEmptyBlockCount");
+            fieldTickingBlockCount.setAccessible(true);
+            fieldNonEmptyBlockCount.setAccessible(true);
+        } catch (NoSuchFieldException e) {
+            e.printStackTrace();
+        }
+    }
 
     public BukkitQueue17(final com.sk89q.worldedit.world.World world) {
         super(world);
-        init();
+        getImpWorld();
     }
 
     public BukkitQueue17(final String world) {
         super(world);
-        init();
-    }
-
-    private void init() {
-        checkVersion("v1_7_R4");
-        if (fieldData == null) {
-            try {
-                fieldData = ChunkSection.class.getDeclaredField("blockData");
-                fieldData.setAccessible(true);
-                fieldIds = ChunkSection.class.getDeclaredField("blockIds");
-                fieldIds.setAccessible(true);
-            } catch (NoSuchFieldException e) {
-                e.printStackTrace();
-            }
-        }
         getImpWorld();
     }
 
@@ -229,16 +231,13 @@ public class BukkitQueue17 extends BukkitQueue_0<Chunk, ChunkSection[], ChunkSec
     }
 
     public void setCount(int tickingBlockCount, int nonEmptyBlockCount, ChunkSection section) throws NoSuchFieldException, IllegalAccessException {
-        Class<? extends ChunkSection> clazz = section.getClass();
-        Field fieldTickingBlockCount = clazz.getDeclaredField("tickingBlockCount");
-        Field fieldNonEmptyBlockCount = clazz.getDeclaredField("nonEmptyBlockCount");
-        fieldTickingBlockCount.setAccessible(true);
-        fieldNonEmptyBlockCount.setAccessible(true);
         fieldTickingBlockCount.set(section, tickingBlockCount);
         fieldNonEmptyBlockCount.set(section, nonEmptyBlockCount);
     }
 
-
+    public int getNonEmptyBlockCount(ChunkSection section) throws IllegalAccessException {
+        return (int) fieldNonEmptyBlockCount.get(section);
+    }
 
     @Override
     public void refreshChunk(FaweChunk fc) {

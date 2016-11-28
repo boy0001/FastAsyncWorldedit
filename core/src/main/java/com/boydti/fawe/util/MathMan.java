@@ -64,6 +64,12 @@ public class MathMan {
         return (((long)x) << 32) | (y & 0xffffffffL);
     }
 
+    public static final short tripleBlockCoord(int x, int y, int z) {
+        byte hi = (byte) ((x & 15) + ((z & 15) << 4));
+        byte lo = (byte) y;
+        return (short) (((hi & 0xFF) << 8) | (lo & 0xFF));
+    }
+
     public static final long chunkXZ2Int(int x, int z) {
         return (long)x & 4294967295L | ((long)z & 4294967295L) << 32;
     }

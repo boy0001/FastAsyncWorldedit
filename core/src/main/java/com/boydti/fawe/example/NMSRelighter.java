@@ -3,24 +3,47 @@ package com.boydti.fawe.example;
 import com.boydti.fawe.FaweCache;
 import com.boydti.fawe.object.FaweChunk;
 import com.boydti.fawe.object.FaweQueue;
+import com.boydti.fawe.object.IntegerTrio;
 import com.boydti.fawe.util.MathMan;
-import java.util.*;
+import java.util.ArrayDeque;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Queue;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
-public class NMSRelighter {
+public class NMSRelighter implements Relighter{
     private final NMSMappedFaweQueue queue;
+
     private final Map<Long, RelightSkyEntry> skyToRelight;
-    private final Map<Long, RelightBlockEntry> blocksToRelight;
+    private final Map<Long, Map<Short, Object>> lightQueue;
+    private final Object present = new Object();
+    private final Set<Long> chunksToSend;
+
     private final int maxY;
     private volatile boolean relighting = false;
+
+    public final IntegerTrio mutableBlockPos = new IntegerTrio();
 
     private static final int DISPATCH_SIZE = 64;
 
     public NMSRelighter(NMSMappedFaweQueue queue) {
         this.queue = queue;
-        skyToRelight = new ConcurrentHashMap<>();
-        blocksToRelight = new ConcurrentHashMap<>();
-        this.maxY = queue.getWEWorld().getMaxY();
+        this.skyToRelight = new ConcurrentHashMap<>();
+        this.lightQueue = new ConcurrentHashMap<>();
+        chunksToSend = new LinkedHashSet<>();
+        this.maxY = queue.getMaxY();
+    }
+
+    @Override
+    public boolean isEmpty() {
+        return skyToRelight.isEmpty() &&  lightQueue.isEmpty();
     }
 
     public boolean addChunk(int cx, int cz, boolean[] fix, int bitmask) {
@@ -47,38 +70,135 @@ public class NMSRelighter {
         }
     }
 
-    public void addBlock(int x, int y, int z) {
-        if (y < 1) {
+    public void updateBlockLight(Map<Long, Map<Short, Object>> map) {
+        int size = map.size();
+        if (size == 0) {
             return;
         }
-        int cx = x >> 4;
-        int cz = z >> 4;
-        long pair = MathMan.pairInt(cx, cz);
-        RelightBlockEntry current = blocksToRelight.get(pair);
-        if (current == null) {
-            current = new RelightBlockEntry(pair);
-            blocksToRelight.put(pair, current);
+        Queue<IntegerTrio> lightPropagationQueue = new ArrayDeque<>();
+        Queue<Object[]> lightRemovalQueue = new ArrayDeque<>();
+        Map<IntegerTrio, Object> visited = new HashMap<>();
+        Map<IntegerTrio, Object> removalVisited = new HashMap<>();
+
+        Iterator<Map.Entry<Long, Map<Short, Object>>> iter = map.entrySet().iterator();
+        while (iter.hasNext() && size-- > 0) {
+            Map.Entry<Long, Map<Short, Object>> entry = iter.next();
+            iter.remove();
+            long index = entry.getKey();
+            Map<Short, Object> blocks = entry.getValue();
+            int chunkX = MathMan.unpairIntX(index);
+            int chunkZ = MathMan.unpairIntY(index);
+            int bx = chunkX << 4;
+            int bz = chunkZ << 4;
+            for (short blockHash : blocks.keySet()) {
+                int hi = (byte) (blockHash >>> 8);
+                int lo = (byte) blockHash;
+                int y = lo & 0xFF;
+                int x = (hi & 0xF) + bx;
+                int z = ((hi >> 4) & 0xF) + bz;
+                int lcx = x & 0xF;
+                int lcz = z & 0xF;
+                int oldLevel = queue.getEmmittedLight(x, y, z);
+                int newLevel = queue.getBrightness(x, y, z);
+                if (oldLevel != newLevel) {
+                    queue.setBlockLight(x, y, z, newLevel);
+                    IntegerTrio node = new IntegerTrio(x, y, z);
+                    if (newLevel < oldLevel) {
+                        removalVisited.put(node, present);
+                        lightRemovalQueue.add(new Object[] { node, oldLevel });
+                    } else {
+                        visited.put(node, present);
+                        lightPropagationQueue.add(node);
+                    }
+                }
+            }
         }
-        current.addBlock(x, y, z);
+
+        while (!lightRemovalQueue.isEmpty()) {
+            Object[] val = lightRemovalQueue.poll();
+            IntegerTrio node = (IntegerTrio) val[0];
+            int lightLevel = (int) val[1];
+
+            this.computeRemoveBlockLight(node.x - 1, node.y, node.z, lightLevel, lightRemovalQueue, lightPropagationQueue, removalVisited, visited);
+            this.computeRemoveBlockLight(node.x + 1, node.y, node.z, lightLevel, lightRemovalQueue, lightPropagationQueue, removalVisited, visited);
+            if (node.y > 0) {
+                this.computeRemoveBlockLight(node.x, node.y - 1, node.z, lightLevel, lightRemovalQueue, lightPropagationQueue, removalVisited, visited);
+            }
+            if (node.y < 255) {
+                this.computeRemoveBlockLight(node.x, node.y + 1, node.z, lightLevel, lightRemovalQueue, lightPropagationQueue, removalVisited, visited);
+            }
+            this.computeRemoveBlockLight(node.x, node.y, node.z - 1, lightLevel, lightRemovalQueue, lightPropagationQueue, removalVisited, visited);
+            this.computeRemoveBlockLight(node.x, node.y, node.z + 1, lightLevel, lightRemovalQueue, lightPropagationQueue, removalVisited, visited);
+        }
+
+        while (!lightPropagationQueue.isEmpty()) {
+            IntegerTrio node = lightPropagationQueue.poll();
+            int lightLevel = queue.getEmmittedLight(node.x, node.y, node.z);
+            if (lightLevel > 1) {
+                this.computeSpreadBlockLight(node.x - 1, node.y, node.z, lightLevel, lightPropagationQueue, visited);
+                this.computeSpreadBlockLight(node.x + 1, node.y, node.z, lightLevel, lightPropagationQueue, visited);
+                if (node.y > 0) {
+                    this.computeSpreadBlockLight(node.x, node.y - 1, node.z, lightLevel, lightPropagationQueue, visited);
+                }
+                if (node.y < 255) {
+                    this.computeSpreadBlockLight(node.x, node.y + 1, node.z, lightLevel, lightPropagationQueue, visited);
+                }
+                this.computeSpreadBlockLight(node.x, node.y, node.z - 1, lightLevel, lightPropagationQueue, visited);
+                this.computeSpreadBlockLight(node.x, node.y, node.z + 1, lightLevel, lightPropagationQueue, visited);
+            }
+        }
     }
 
-    public void smoothBlockLight(int emit, int x, int y, int z, int rx, int ry, int rz) {
-        int opacity = queue.getOpacity(rx, ry, rz);
-        if (opacity >= emit) {
-            return;
-        }
-        int emitAdjacent = queue.getEmmittedLight(rx, ry, rz);
-        if (emit - emitAdjacent > 1) {
-            queue.setBlockLight(rx, ry, rz, emit - 1);
-            addBlock(rx, ry, rz);
+    private void computeRemoveBlockLight(int x, int y, int z, int currentLight, Queue<Object[]> queue, Queue<IntegerTrio> spreadQueue, Map<IntegerTrio, Object> visited,
+         Map<IntegerTrio, Object> spreadVisited) {
+        int current = this.queue.getEmmittedLight(x, y, z);
+        if (current != 0 && current < currentLight) {
+            this.queue.setBlockLight(x, y, z, 0);
+            if (current > 1) {
+                if (!visited.containsKey(mutableBlockPos)) {
+                    IntegerTrio index = new IntegerTrio(x, y, z);
+                    visited.put(index, present);
+                    queue.add(new Object[] { index, current });
+                }
+            }
+        } else if (current >= currentLight) {
+            mutableBlockPos.set(x, y, z);
+            if (!spreadVisited.containsKey(mutableBlockPos)) {
+                IntegerTrio index = new IntegerTrio(x, y, z);
+                spreadVisited.put(index, present);
+                spreadQueue.add(index);
+            }
         }
     }
 
-    public void fixLightingSafe(boolean sky) {
-        if (relighting) {
-            return;
+    private void computeSpreadBlockLight(int x, int y, int z, int currentLight, Queue<IntegerTrio> queue, Map<IntegerTrio, Object> visited) {
+        currentLight = currentLight - Math.max(1, this.queue.getOpacity(x, y, z));
+        if (currentLight > 0) {
+            int current = this.queue.getEmmittedLight(x, y, z);
+            if (current < currentLight) {
+                this.queue.setBlockLight(x, y, z, currentLight);
+                mutableBlockPos.set(x, y, z);
+                if (!visited.containsKey(mutableBlockPos)) {
+                    visited.put(new IntegerTrio(x, y, z), present);
+                    if (currentLight > 1) {
+                        queue.add(new IntegerTrio(x, y, z));
+                    }
+                }
+            }
         }
-        relighting = true;
+    }
+
+    public void addLightUpdate(int x, int y, int z) {
+        long index = MathMan.pairInt((int) x >> 4, (int) z >> 4);
+        Map<Short, Object> currentMap = lightQueue.get(index);
+        if (currentMap == null) {
+            currentMap = new ConcurrentHashMap<>(8, 0.9f, 1);
+            this.lightQueue.put(index, currentMap);
+        }
+        currentMap.put(MathMan.tripleBlockCoord(x, y, z), present);
+    }
+
+    public synchronized void fixLightingSafe(boolean sky) {
         try {
             if (sky) {
                 fixSkyLighting();
@@ -88,46 +208,20 @@ public class NMSRelighter {
         } catch (Throwable e) {
             e.printStackTrace();
         }
-        relighting = false;
     }
 
     public void fixBlockLighting() {
-        while (!blocksToRelight.isEmpty()) {
-            RelightBlockEntry current = blocksToRelight.entrySet().iterator().next().getValue();
-            int bx = current.getX() << 4;
-            int bz = current.getZ() << 4;
-            while (!current.blocks.isEmpty()) {
-                short coord = current.blocks.pollFirst();
-                byte layer = MathMan.unpairShortX(coord);
-                int y = MathMan.unpairShortY(coord) & 0xFF;
-                int x = MathMan.unpair16x(layer);
-                int z = MathMan.unpair16y(layer);
-                int xx = bx + x;
-                int zz = bz + z;
-                int emit = queue.getEmmittedLight(xx, y, zz);
-                if (emit < 1) {
-                    continue;
-                }
-                smoothBlockLight(emit, xx, y, zz, xx - 1, y, zz);
-                smoothBlockLight(emit, xx, y, zz, xx + 1, y, zz);
-                smoothBlockLight(emit, xx, y, zz, xx, y, zz - 1);
-                smoothBlockLight(emit, xx, y, zz, xx, y, zz + 1);
-                if (y > 0) {
-                    smoothBlockLight(emit, xx, y, zz, xx, y - 1, zz);
-                }
-                if (y < maxY) {
-                    smoothBlockLight(emit, xx, y, zz, xx, y + 1, zz);
-                }
-            }
-            blocksToRelight.remove(current.coord);
-        }
+        updateBlockLight(this.lightQueue);
     }
 
     public void sendChunks() {
-        final Map<FaweChunk, int[]> fcs = new HashMap<>(skyToRelight.size());
-        for (Map.Entry<Long, RelightSkyEntry> entry : skyToRelight.entrySet()) {
-            RelightSkyEntry chunk = entry.getValue();
-            CharFaweChunk fc = (CharFaweChunk) queue.getFaweChunk(chunk.x, chunk.z);
+        Iterator<Long> iter = chunksToSend.iterator();
+        while (iter.hasNext()) {
+            long pair = iter.next();
+            iter.remove();
+            int x = MathMan.unpairIntX(pair);
+            int z = MathMan.unpairIntY(pair);
+            CharFaweChunk fc = (CharFaweChunk) queue.getFaweChunk(x, z);
             queue.sendChunk(fc);
         }
     }
@@ -136,19 +230,16 @@ public class NMSRelighter {
         return queue.getOpacity(x, y, z) < 15;
     }
 
-    public void lightBlock(int x, int y, int z, int brightness) {
-        queue.setBlockLight(x, y, z, Math.max(15, brightness + 1));
-        if (isTransparent(x - 1, y, z)) { queue.setBlockLight(x - 1, y, z, brightness); addBlock(x - 1, y, z); }
-        if (isTransparent(x + 1, y, z)) { queue.setBlockLight(x + 1, y, z, brightness); addBlock(x + 1, y, z); }
-        if (isTransparent(x, y, z - 1)) { queue.setBlockLight(x, y, z - 1, brightness); addBlock(x, y, z - 1); }
-        if (isTransparent(x, y, z + 1)) { queue.setBlockLight(x, y, z + 1, brightness); addBlock(x, y, z + 1); }
-        if (y > 0 && isTransparent(x, y - 1, z)) { queue.setBlockLight(x, y - 1, z, brightness); addBlock(x, y - 1, z); }
-        if (y < maxY && isTransparent(x, y + 1, z)) { queue.setBlockLight(x, y + 1, z, brightness); addBlock(x, y + 1, z); }
-    }
-
     public void fixSkyLighting() {
         // Order chunks
-        ArrayList<RelightSkyEntry> chunksList = new ArrayList<>(skyToRelight.values());
+        ArrayList<RelightSkyEntry> chunksList = new ArrayList<>(skyToRelight.size());
+        Iterator<Map.Entry<Long, RelightSkyEntry>> iter = skyToRelight.entrySet().iterator();
+        while (iter.hasNext()) {
+            Map.Entry<Long, RelightSkyEntry> entry = iter.next();
+            iter.remove();
+            chunksToSend.add(entry.getKey());
+            chunksList.add(entry.getValue());
+        }
         Collections.sort(chunksList);
         int size = chunksList.size();
         if (size > DISPATCH_SIZE) {
@@ -189,7 +280,8 @@ public class NMSRelighter {
                     int opacity = MathMan.unpair16x(pair);
                     int brightness = MathMan.unpair16y(pair);
                     if (brightness > 1 &&  (brightness != 15 || opacity != 15)) {
-                        lightBlock(bx + x, y, bz + z, brightness);
+                        addLightUpdate(bx + x, y, bz + z);
+//                        lightBlock(bx + x, y, bz + z, brightness);
                     }
                     switch (value) {
                         case 0:
@@ -305,17 +397,9 @@ public class NMSRelighter {
 
     private class RelightBlockEntry {
         public long coord;
-        public ArrayDeque<Short> blocks;
 
         public RelightBlockEntry(long pair) {
             this.coord = pair;
-            this.blocks = new ArrayDeque<>(1);
-        }
-
-        public void addBlock(int x, int y, int z) {
-            byte layer = MathMan.pair16(x & 15, z & 15);
-            short coord = MathMan.pairByte(layer, y);
-            blocks.add(coord);
         }
 
         public int getX() {

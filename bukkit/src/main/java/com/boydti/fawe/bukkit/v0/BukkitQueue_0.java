@@ -76,7 +76,6 @@ public abstract class BukkitQueue_0<CHUNK, CHUNKSECTIONS, SECTION> extends NMSMa
     public static void checkVersion(String supported) {
         String version = Bukkit.getServer().getClass().getPackage().getName();
         if (!version.contains(supported)) {
-            Fawe.debug("This version of FAWE is for: " + supported);
             throw new IllegalStateException("Unsupported version: " + version + " (supports: " + supported + ")");
         }
     }
@@ -120,17 +119,17 @@ public abstract class BukkitQueue_0<CHUNK, CHUNKSECTIONS, SECTION> extends NMSMa
         return world;
     }
 
-    public void setupAdapter(BukkitImplAdapter adapter) {
+    public static void setupAdapter(BukkitImplAdapter adapter) {
         try {
             WorldEditPlugin instance = (WorldEditPlugin) Bukkit.getPluginManager().getPlugin("WorldEdit");
             Field fieldAdapter = WorldEditPlugin.class.getDeclaredField("bukkitAdapter");
             fieldAdapter.setAccessible(true);
-            if ((this.adapter = adapter) != null) {
+            if ((BukkitQueue_0.adapter = adapter) != null) {
                 fieldAdapter.set(instance, adapter);
             } else {
-                this.adapter = (BukkitImplAdapter) fieldAdapter.get(instance);
+                BukkitQueue_0.adapter = (BukkitImplAdapter) fieldAdapter.get(instance);
             }
-            for (Method method : this.adapter.getClass().getDeclaredMethods()) {
+            for (Method method : BukkitQueue_0.adapter.getClass().getDeclaredMethods()) {
                 switch (method.getName()) {
                     case "toNative":
                         methodToNative = method;

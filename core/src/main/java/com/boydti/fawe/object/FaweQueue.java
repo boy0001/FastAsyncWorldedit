@@ -5,6 +5,8 @@ import com.boydti.fawe.FaweAPI;
 import com.boydti.fawe.FaweCache;
 import com.boydti.fawe.config.BBC;
 import com.boydti.fawe.config.Settings;
+import com.boydti.fawe.example.NullRelighter;
+import com.boydti.fawe.example.Relighter;
 import com.boydti.fawe.object.exception.FaweException;
 import com.boydti.fawe.util.MainUtil;
 import com.boydti.fawe.util.MathMan;
@@ -44,6 +46,10 @@ public abstract class FaweQueue {
             this.weWorld = world;
             this.world = Fawe.imp().getWorldName(world);
         }
+    }
+
+    public Relighter getRelighter() {
+        return NullRelighter.INSTANCE;
     }
 
     public enum ProgressType {

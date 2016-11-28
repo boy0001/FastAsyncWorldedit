@@ -7,7 +7,6 @@ import com.boydti.fawe.object.FaweQueue;
 import com.boydti.fawe.util.MathMan;
 import com.sk89q.jnbt.CompoundTag;
 import com.sk89q.worldedit.world.biome.BaseBiome;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -19,7 +18,6 @@ public abstract class CharFaweChunk<T, V extends FaweQueue> extends FaweChunk<T>
     public final char[][] ids;
     public final short[] count;
     public final short[] air;
-    public final short[] relight;
     public final byte[] heightMap;
 
     public int[][] biomes;
@@ -29,12 +27,11 @@ public abstract class CharFaweChunk<T, V extends FaweQueue> extends FaweChunk<T>
 
     public T chunk;
 
-    public CharFaweChunk(FaweQueue parent, int x, int z, char[][] ids, short[] count, short[] air, short[] relight, byte[] heightMap) {
+    public CharFaweChunk(FaweQueue parent, int x, int z, char[][] ids, short[] count, short[] air, byte[] heightMap) {
         super(parent, x, z);
         this.ids = ids;
         this.count = count;
         this.air = air;
-        this.relight = relight;
         this.heightMap = heightMap;
     }
 
@@ -50,7 +47,6 @@ public abstract class CharFaweChunk<T, V extends FaweQueue> extends FaweChunk<T>
         this.ids = new char[HEIGHT >> 4][];
         this.count = new short[HEIGHT >> 4];
         this.air = new short[HEIGHT >> 4];
-        this.relight = new short[HEIGHT >> 4];
         this.heightMap = new byte[256];
     }
 
@@ -92,32 +88,10 @@ public abstract class CharFaweChunk<T, V extends FaweQueue> extends FaweChunk<T>
         this.count[i] = value;
     }
 
-    /**
-     * Get the number of block changes in a specified section
-     * @param i
-     * @return
-     */
-    public int getRelight(final int i) {
-        return this.relight[i];
-    }
-
     public int getTotalCount() {
         int total = 0;
         for (int i = 0; i < count.length; i++) {
             total += Math.min(4096, this.count[i]);
-        }
-        return total;
-    }
-
-    public int getTotalRelight() {
-        if ((this.getTotalCount() == 0) && (this.biomes == null)) {
-            Arrays.fill(this.count, (short) 1);
-            Arrays.fill(this.relight, Short.MAX_VALUE);
-            return Short.MAX_VALUE;
-        }
-        int total = 0;
-        for (int i = 0; i < relight.length; i++) {
-            total += this.relight[i];
         }
         return total;
     }
@@ -245,7 +219,7 @@ public abstract class CharFaweChunk<T, V extends FaweQueue> extends FaweChunk<T>
             case 62:
             case 50:
             case 10:
-                this.relight[i]++;
+                getParent().getRelighter().addLightUpdate((getX() << 4) + x, y, (getZ() << 4) + z);
             default:
                 vs[j] = (char) (id << 4);
                 heightMap[z << 4 | x] = (byte) y;
@@ -280,7 +254,7 @@ public abstract class CharFaweChunk<T, V extends FaweQueue> extends FaweChunk<T>
             case 138:
             case 169:
             case 213:
-                this.relight[i]++;
+                getParent().getRelighter().addLightUpdate((getX() << 4) + x, y, (getZ() << 4) + z);
             case 2:
             case 4:
             case 13:
@@ -341,7 +315,7 @@ public abstract class CharFaweChunk<T, V extends FaweQueue> extends FaweChunk<T>
             case 62:
             case 50:
             case 10:
-                this.relight[i]++;
+                getParent().getRelighter().addLightUpdate((getX() << 4) + x, y, (getZ() << 4) + z);
             case 54:
             case 146:
             case 61:

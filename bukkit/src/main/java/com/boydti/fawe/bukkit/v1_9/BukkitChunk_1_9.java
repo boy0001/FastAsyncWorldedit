@@ -28,7 +28,6 @@ import java.util.Set;
 import java.util.UUID;
 import net.minecraft.server.v1_9_R2.Block;
 import net.minecraft.server.v1_9_R2.BlockPosition;
-import net.minecraft.server.v1_9_R2.Blocks;
 import net.minecraft.server.v1_9_R2.ChunkSection;
 import net.minecraft.server.v1_9_R2.DataBits;
 import net.minecraft.server.v1_9_R2.DataPalette;
@@ -61,19 +60,19 @@ public class BukkitChunk_1_9 extends CharFaweChunk<Chunk, BukkitQueue_1_9_R1> {
         super(parent, x, z);
     }
 
-    public BukkitChunk_1_9(FaweQueue parent, int x, int z, char[][] ids, short[] count, short[] air, short[] relight, byte[] heightMap) {
-        super(parent, x, z, ids, count, air, relight, heightMap);
+    public BukkitChunk_1_9(FaweQueue parent, int x, int z, char[][] ids, short[] count, short[] air, byte[] heightMap) {
+        super(parent, x, z, ids, count, air, heightMap);
     }
 
     @Override
     public CharFaweChunk copy(boolean shallow) {
         BukkitChunk_1_9 copy;
         if (shallow) {
-            copy = new BukkitChunk_1_9(getParent(), getX(), getZ(), ids, count, air, relight, heightMap);
+            copy = new BukkitChunk_1_9(getParent(), getX(), getZ(), ids, count, air, heightMap);
             copy.biomes = biomes;
             copy.chunk = chunk;
         } else {
-            copy = new BukkitChunk_1_9(getParent(), getX(), getZ(), (char[][]) MainUtil.copyNd(ids), count.clone(), air.clone(), relight.clone(), heightMap.clone());
+            copy = new BukkitChunk_1_9(getParent(), getX(), getZ(), (char[][]) MainUtil.copyNd(ids), count.clone(), air.clone(), heightMap.clone());
             copy.biomes = biomes;
             copy.chunk = chunk;
             copy.biomes = biomes.clone();
@@ -182,6 +181,8 @@ public class BukkitChunk_1_9 extends CharFaweChunk<Chunk, BukkitQueue_1_9_R1> {
     public FaweChunk call() {
         final Chunk chunk = (Chunk) this.getChunk();
         final World world = chunk.getWorld();
+        int bx = this.getX() << 4;
+        int bz = this.getZ() << 4;
         try {
             final boolean flag = world.getEnvironment() == World.Environment.NORMAL;
             net.minecraft.server.v1_9_R2.Chunk nmsChunk = ((CraftChunk) chunk).getHandle();
@@ -361,28 +362,40 @@ public class BukkitChunk_1_9 extends CharFaweChunk<Chunk, BukkitQueue_1_9_R1> {
                 fieldPalette.setAccessible(true);
                 DataPalette palette = (DataPalette) fieldPalette.get(nibble);
                 int nonEmptyBlockCount = 0;
+                IBlockData existing;
+                int by = j << 4;
                 for (int y = 0; y < 16; y++) {
                     for (int z = 0; z < 16; z++) {
                         for (int x = 0; x < 16; x++) {
                             char combinedId = array[FaweCache.CACHE_J[y][z][x]];
                             switch (combinedId) {
                                 case 0:
-                                    IBlockData existing = nibble.a(x, y, z);
-                                    if (existing != BukkitQueue_1_9_R1.air) {
-                                        nonEmptyBlockCount++;
-                                    }
                                     continue;
                                 case 1:
-                                    nibble.setBlock(x, y, z, Blocks.AIR.getBlockData());
+                                    existing = nibble.a(x, y, z);
+                                    if (existing != BukkitQueue_1_9_R1.air) {
+                                        if (existing.d() > 0) {
+                                            getParent().getRelighter().addLightUpdate(bx + x, by + y, bz + z);
+                                        }
+                                        nonEmptyBlockCount--;
+                                    }
+                                    nibble.setBlock(x, y, z, BukkitQueue_1_9_R1.air);
                                     continue;
                                 default:
-                                    nonEmptyBlockCount++;
+                                    existing = nibble.a(x, y, z);
+                                    if (existing != BukkitQueue_1_9_R1.air) {
+                                        if (existing.d() > 0) {
+                                            getParent().getRelighter().addLightUpdate(bx + x, by + y, bz + z);
+                                        }
+                                    } else {
+                                        nonEmptyBlockCount++;
+                                    }
                                     nibble.setBlock(x, y, z, Block.getById(combinedId >> 4).fromLegacyData(combinedId & 0xF));
                             }
                         }
                     }
                 }
-                getParent().setCount(0, nonEmptyBlockCount, section);
+                getParent().setCount(0, getParent().getNonEmptyBlockCount(section) + nonEmptyBlockCount, section);
             }
             // Set biomes
             int[][] biomes = this.biomes;
@@ -403,9 +416,6 @@ public class BukkitChunk_1_9 extends CharFaweChunk<Chunk, BukkitQueue_1_9_R1> {
             }
             // Set tiles
             Map<BytePair, CompoundTag> tilesToSpawn = this.getTiles();
-            int bx = this.getX() << 4;
-            int bz = this.getZ() << 4;
-
             for (Map.Entry<BytePair, CompoundTag> entry : tilesToSpawn.entrySet()) {
                 CompoundTag nativeTag = entry.getValue();
                 BytePair pair = entry.getKey();

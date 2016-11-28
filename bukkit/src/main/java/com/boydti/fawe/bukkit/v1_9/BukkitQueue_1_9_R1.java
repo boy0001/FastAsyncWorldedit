@@ -23,7 +23,32 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
-import net.minecraft.server.v1_9_R2.*;
+import net.minecraft.server.v1_9_R2.Block;
+import net.minecraft.server.v1_9_R2.BlockPosition;
+import net.minecraft.server.v1_9_R2.ChunkSection;
+import net.minecraft.server.v1_9_R2.DataBits;
+import net.minecraft.server.v1_9_R2.DataPaletteBlock;
+import net.minecraft.server.v1_9_R2.Entity;
+import net.minecraft.server.v1_9_R2.EntityPlayer;
+import net.minecraft.server.v1_9_R2.EntityTracker;
+import net.minecraft.server.v1_9_R2.EntityTypes;
+import net.minecraft.server.v1_9_R2.EnumDifficulty;
+import net.minecraft.server.v1_9_R2.EnumSkyBlock;
+import net.minecraft.server.v1_9_R2.IBlockData;
+import net.minecraft.server.v1_9_R2.IDataManager;
+import net.minecraft.server.v1_9_R2.MinecraftServer;
+import net.minecraft.server.v1_9_R2.NBTTagCompound;
+import net.minecraft.server.v1_9_R2.NibbleArray;
+import net.minecraft.server.v1_9_R2.PacketPlayOutMapChunk;
+import net.minecraft.server.v1_9_R2.PlayerChunk;
+import net.minecraft.server.v1_9_R2.PlayerChunkMap;
+import net.minecraft.server.v1_9_R2.ServerNBTManager;
+import net.minecraft.server.v1_9_R2.TileEntity;
+import net.minecraft.server.v1_9_R2.WorldData;
+import net.minecraft.server.v1_9_R2.WorldManager;
+import net.minecraft.server.v1_9_R2.WorldServer;
+import net.minecraft.server.v1_9_R2.WorldSettings;
+import net.minecraft.server.v1_9_R2.WorldType;
 import org.bukkit.Bukkit;
 import org.bukkit.Chunk;
 import org.bukkit.World;
@@ -39,35 +64,41 @@ public class BukkitQueue_1_9_R1 extends BukkitQueue_0<Chunk, ChunkSection[], Chu
 
     protected static IBlockData air;
     protected static Field fieldBits;
+    protected static Field fieldTickingBlockCount;
+    protected static Field fieldNonEmptyBlockCount;
+    protected static Field fieldSection;
+
+    static {
+        try {
+            fieldSection = ChunkSection.class.getDeclaredField("blockIds");
+            fieldTickingBlockCount = ChunkSection.class.getDeclaredField("tickingBlockCount");
+            fieldNonEmptyBlockCount = ChunkSection.class.getDeclaredField("nonEmptyBlockCount");
+            fieldSection.setAccessible(true);
+            fieldTickingBlockCount.setAccessible(true);
+            fieldNonEmptyBlockCount.setAccessible(true);
+
+            Field fieldAir = DataPaletteBlock.class.getDeclaredField("a");
+            fieldAir.setAccessible(true);
+            air = (IBlockData) fieldAir.get(null);
+            fieldBits = DataPaletteBlock.class.getDeclaredField("b");
+            fieldBits.setAccessible(true);
+            if (adapter == null) {
+                setupAdapter(new FaweAdapter_1_9());
+                Fawe.debug("Using adapter: " + adapter);
+                Fawe.debug("=========================================");
+            }
+        } catch (Throwable e) {
+            e.printStackTrace();
+        }
+    }
 
     public BukkitQueue_1_9_R1(final com.sk89q.worldedit.world.World world) {
         super(world);
-        init();
+        getImpWorld();
     }
 
     public BukkitQueue_1_9_R1(final String world) {
         super(world);
-        init();
-    }
-
-    private void init() {
-        checkVersion("v1_9_R2");
-        if (air == null) {
-            try {
-                Field fieldAir = DataPaletteBlock.class.getDeclaredField("a");
-                fieldAir.setAccessible(true);
-                air = (IBlockData) fieldAir.get(null);
-                fieldBits = DataPaletteBlock.class.getDeclaredField("b");
-                fieldBits.setAccessible(true);
-                if (adapter == null) {
-                    setupAdapter(new FaweAdapter_1_9());
-                    Fawe.debug("Using adapter: " + adapter);
-                    Fawe.debug("=========================================");
-                }
-            } catch (Throwable e) {
-                throw new RuntimeException(e);
-            }
-        }
         getImpWorld();
     }
 
@@ -310,19 +341,17 @@ public class BukkitQueue_1_9_R1 extends BukkitQueue_0<Chunk, ChunkSection[], Chu
     }
 
     public void setCount(int tickingBlockCount, int nonEmptyBlockCount, ChunkSection section) throws NoSuchFieldException, IllegalAccessException {
-        Class<? extends ChunkSection> clazz = section.getClass();
-        Field fieldTickingBlockCount = clazz.getDeclaredField("tickingBlockCount");
-        Field fieldNonEmptyBlockCount = clazz.getDeclaredField("nonEmptyBlockCount");
-        fieldTickingBlockCount.setAccessible(true);
-        fieldNonEmptyBlockCount.setAccessible(true);
         fieldTickingBlockCount.set(section, tickingBlockCount);
         fieldNonEmptyBlockCount.set(section, nonEmptyBlockCount);
     }
 
+    public int getNonEmptyBlockCount(ChunkSection section) throws IllegalAccessException {
+        return (int) fieldNonEmptyBlockCount.get(section);
+    }
+
     public void setPalette(ChunkSection section, DataPaletteBlock palette) throws NoSuchFieldException, IllegalAccessException {
-        Field fieldSection = ChunkSection.class.getDeclaredField("blockIds");
-        fieldSection.setAccessible(true);
         fieldSection.set(section, palette);
+        Arrays.fill(section.getEmittedLightArray().asBytes(), (byte) 0);
     }
 
     public ChunkSection newChunkSection(int y2, boolean flag, char[] array) {

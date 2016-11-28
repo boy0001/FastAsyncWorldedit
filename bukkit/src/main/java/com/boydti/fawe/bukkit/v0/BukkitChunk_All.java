@@ -31,19 +31,19 @@ public class BukkitChunk_All extends CharFaweChunk<Chunk, BukkitQueue_All> {
         super(parent, x, z);
     }
 
-    public BukkitChunk_All(FaweQueue parent, int x, int z, char[][] ids, short[] count, short[] air, short[] relight, byte[] heightMap) {
-        super(parent, x, z, ids, count, air, relight, heightMap);
+    public BukkitChunk_All(FaweQueue parent, int x, int z, char[][] ids, short[] count, short[] air, byte[] heightMap) {
+        super(parent, x, z, ids, count, air, heightMap);
     }
 
     @Override
     public CharFaweChunk copy(boolean shallow) {
         BukkitChunk_All copy;
         if (shallow) {
-            copy = new BukkitChunk_All(getParent(), getX(), getZ(), ids, count, air, relight, heightMap);
+            copy = new BukkitChunk_All(getParent(), getX(), getZ(), ids, count, air, heightMap);
             copy.biomes = biomes;
             copy.chunk = chunk;
         } else {
-            copy = new BukkitChunk_All(getParent(), getX(), getZ(), (char[][]) MainUtil.copyNd(ids), count.clone(), air.clone(), relight.clone(), heightMap.clone());
+            copy = new BukkitChunk_All(getParent(), getX(), getZ(), (char[][]) MainUtil.copyNd(ids), count.clone(), air.clone(), heightMap.clone());
             copy.biomes = biomes;
             copy.chunk = chunk;
             copy.biomes = biomes.clone();
@@ -130,7 +130,6 @@ public class BukkitChunk_All extends CharFaweChunk<Chunk, BukkitQueue_All> {
             try {
                 // Efficiently merge sections
                 int changes = getCount(layer);
-                int lighting = getRelight(layer);
                 if (changes == 0) {
                     continue;
                 }
@@ -141,7 +140,7 @@ public class BukkitChunk_All extends CharFaweChunk<Chunk, BukkitQueue_All> {
                 final byte[] cacheX = FaweCache.CACHE_X[layer];
                 final short[] cacheY = FaweCache.CACHE_Y[layer];
                 final byte[] cacheZ = FaweCache.CACHE_Z[layer];
-                boolean checkTime = !((getAir(layer) == 4096 || (getCount(layer) == 4096 && getAir(layer) == 0) || (getCount(layer) == getAir(layer))) && getRelight(layer) == 0);
+                boolean checkTime = !((getAir(layer) == 4096 || (getCount(layer) == 4096 && getAir(layer) == 0) || (getCount(layer) == getAir(layer))));
                 if (!checkTime) {
                     ArrayList<Thread> threads = new ArrayList<Thread>();
                     for (int k = 0; k < 16; k++) {

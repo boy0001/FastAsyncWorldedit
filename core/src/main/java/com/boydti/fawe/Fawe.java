@@ -285,7 +285,6 @@ public class Fawe {
     }
 
     public void setupConfigs() {
-
         // Setting up config.yml
         File file = new File(this.IMP.getDirectory(), "config.yml");
         Settings.PLATFORM = IMP.getPlatform().replace("\"", "");

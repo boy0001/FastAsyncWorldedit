@@ -41,17 +41,51 @@ public class BukkitQueue_1_11 extends BukkitQueue_0<Chunk, ChunkSection[], Chunk
     protected static IBlockData air;
     protected static Field fieldBits;
     protected static Method getEntitySlices;
+    protected static Field fieldTickingBlockCount;
+    protected static Field fieldNonEmptyBlockCount;
+    protected static Field fieldSection;
 
     public static final IBlockData[] IBD_CACHE = new IBlockData[Character.MAX_VALUE];
 
+    static {
+        try {
+            fieldSection = ChunkSection.class.getDeclaredField("blockIds");
+            fieldTickingBlockCount = ChunkSection.class.getDeclaredField("tickingBlockCount");
+            fieldNonEmptyBlockCount = ChunkSection.class.getDeclaredField("nonEmptyBlockCount");
+            fieldSection.setAccessible(true);
+            fieldTickingBlockCount.setAccessible(true);
+            fieldNonEmptyBlockCount.setAccessible(true);
+
+            Field fieldAir = DataPaletteBlock.class.getDeclaredField("a");
+            fieldAir.setAccessible(true);
+            air = (IBlockData) fieldAir.get(null);
+            fieldBits = DataPaletteBlock.class.getDeclaredField("b");
+            fieldBits.setAccessible(true);
+            getEntitySlices = net.minecraft.server.v1_11_R1.Chunk.class.getDeclaredMethod("getEntitySlices");
+            getEntitySlices.setAccessible(true);
+            if (adapter == null) {
+                setupAdapter(new com.boydti.fawe.bukkit.v1_11.FaweAdapter_1_11());
+                Fawe.debug("Using adapter: " + adapter);
+                Fawe.debug("=========================================");
+            }
+            for (int i = 0; i < Character.MAX_VALUE; i++) {
+                try {
+                    IBD_CACHE[i] = Block.getById(i >> 4).fromLegacyData(i & 0xF);
+                } catch (Throwable ignore) {}
+            }
+        } catch (Throwable e) {
+            e.printStackTrace();
+        }
+    }
+
     public BukkitQueue_1_11(final com.sk89q.worldedit.world.World world) {
         super(world);
-        init();
+        getImpWorld();
     }
 
     public BukkitQueue_1_11(final String world) {
         super(world);
-        init();
+        getImpWorld();
     }
 
     @Override
@@ -66,34 +100,6 @@ public class BukkitQueue_1_11 extends BukkitQueue_0<Chunk, ChunkSection[], Chunk
                 }
             }
         }
-    }
-
-    private void init() {
-        checkVersion("v1_11_R1");
-        if (air == null) {
-            try {
-                Field fieldAir = DataPaletteBlock.class.getDeclaredField("a");
-                fieldAir.setAccessible(true);
-                air = (IBlockData) fieldAir.get(null);
-                fieldBits = DataPaletteBlock.class.getDeclaredField("b");
-                fieldBits.setAccessible(true);
-                getEntitySlices = net.minecraft.server.v1_11_R1.Chunk.class.getDeclaredMethod("getEntitySlices");
-                getEntitySlices.setAccessible(true);
-                if (adapter == null) {
-                    setupAdapter(new com.boydti.fawe.bukkit.v1_11.FaweAdapter_1_11());
-                    Fawe.debug("Using adapter: " + adapter);
-                    Fawe.debug("=========================================");
-                }
-                for (int i = 0; i < Character.MAX_VALUE; i++) {
-                    try {
-                        IBD_CACHE[i] = Block.getById(i >> 4).fromLegacyData(i & 0xF);
-                    } catch (Throwable ignore) {}
-                }
-            } catch (Throwable e) {
-                throw new RuntimeException(e);
-            }
-        }
-        getImpWorld();
     }
 
     @Override
@@ -357,19 +363,17 @@ public class BukkitQueue_1_11 extends BukkitQueue_0<Chunk, ChunkSection[], Chunk
     }
 
     public void setCount(int tickingBlockCount, int nonEmptyBlockCount, ChunkSection section) throws NoSuchFieldException, IllegalAccessException {
-        Class<? extends ChunkSection> clazz = section.getClass();
-        Field fieldTickingBlockCount = clazz.getDeclaredField("tickingBlockCount");
-        Field fieldNonEmptyBlockCount = clazz.getDeclaredField("nonEmptyBlockCount");
-        fieldTickingBlockCount.setAccessible(true);
-        fieldNonEmptyBlockCount.setAccessible(true);
         fieldTickingBlockCount.set(section, tickingBlockCount);
         fieldNonEmptyBlockCount.set(section, nonEmptyBlockCount);
     }
 
+    public int getNonEmptyBlockCount(ChunkSection section) throws IllegalAccessException {
+        return (int) fieldNonEmptyBlockCount.get(section);
+    }
+
     public void setPalette(ChunkSection section, DataPaletteBlock palette) throws NoSuchFieldException, IllegalAccessException {
-        Field fieldSection = ChunkSection.class.getDeclaredField("blockIds");
-        fieldSection.setAccessible(true);
         fieldSection.set(section, palette);
+        Arrays.fill(section.getEmittedLightArray().asBytes(), (byte) 0);
     }
 
     public ChunkSection newChunkSection(int y2, boolean flag, char[] array) {

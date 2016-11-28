@@ -40,19 +40,22 @@ public abstract class NMSMappedFaweQueue<WORLD, CHUNK, CHUNKSECTION, SECTION> ex
     @Override
     public void runTasks() {
         super.runTasks();
-        final NMSRelighter tmp = relighter;
-        relighter = null;
-        if (tmp != null) {
+        if (!relighter.isEmpty()) {
             TaskManager.IMP.taskNowAsync(new Runnable() {
                 @Override
                 public void run() {
-                    tmp.fixLightingSafe(hasSky());
+                    relighter.fixLightingSafe(hasSky());
                 }
             });
         }
     }
 
-    private NMSRelighter relighter;
+    private final Relighter relighter = Settings.LIGHTING.MODE > 0 ? new NMSRelighter(this) : NullRelighter.INSTANCE;
+
+    @Override
+    public Relighter getRelighter() {
+        return relighter;
+    }
 
     @Override
     public void end(FaweChunk chunk) {
@@ -61,13 +64,8 @@ public abstract class NMSMappedFaweQueue<WORLD, CHUNK, CHUNKSECTION, SECTION> ex
             sendChunk(chunk);
             return;
         }
-        NMSRelighter tmp = relighter;
-        if (tmp == null) {
-            relighter = tmp = new NMSRelighter(this);
-        }
-
         if (Settings.LIGHTING.MODE == 2) {
-            tmp.addChunk(chunk.getX(), chunk.getZ(), null, chunk.getBitMask());
+            relighter.addChunk(chunk.getX(), chunk.getZ(), null, chunk.getBitMask());
             return;
         }
         CharFaweChunk cfc = (CharFaweChunk) chunk;
@@ -75,13 +73,13 @@ public abstract class NMSMappedFaweQueue<WORLD, CHUNK, CHUNKSECTION, SECTION> ex
         boolean[] fix = new boolean[(maxY + 1) >> 4];
         boolean sky = hasSky();
         for (int i = 0; i < cfc.ids.length; i++) {
-            if ((sky && ((cfc.getAir(i) & 4095) != 0 || (cfc.getCount(i) & 4095) != 0)) || cfc.getRelight(i) != 0) {
+            if ((sky && ((cfc.getAir(i) & 4095) != 0 || (cfc.getCount(i) & 4095) != 0))) {
                 relight = true;
                 fix[i] = true;
             }
         }
         if (relight) {
-            tmp.addChunk(chunk.getX(), chunk.getZ(), fix, chunk.getBitMask());
+            relighter.addChunk(chunk.getX(), chunk.getZ(), fix, chunk.getBitMask());
         } else {
             sendChunk(chunk);
         }

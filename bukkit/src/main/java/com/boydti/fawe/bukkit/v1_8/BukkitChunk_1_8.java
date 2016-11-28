@@ -46,19 +46,19 @@ public class BukkitChunk_1_8 extends CharFaweChunk<Chunk, BukkitQueue18R3> {
         super(parent, x, z);
     }
 
-    public BukkitChunk_1_8(FaweQueue parent, int x, int z, char[][] ids, short[] count, short[] air, short[] relight, byte[] heightMap) {
-        super(parent, x, z, ids, count, air, relight, heightMap);
+    public BukkitChunk_1_8(FaweQueue parent, int x, int z, char[][] ids, short[] count, short[] air, byte[] heightMap) {
+        super(parent, x, z, ids, count, air, heightMap);
     }
 
     @Override
     public CharFaweChunk copy(boolean shallow) {
         BukkitChunk_1_8 copy;
         if (shallow) {
-            copy = new BukkitChunk_1_8(getParent(), getX(), getZ(), ids, count, air, relight, heightMap);
+            copy = new BukkitChunk_1_8(getParent(), getX(), getZ(), ids, count, air, heightMap);
             copy.biomes = biomes;
             copy.chunk = chunk;
         } else {
-            copy = new BukkitChunk_1_8(getParent(), getX(), getZ(), (char[][]) MainUtil.copyNd(ids), count.clone(), air.clone(), relight.clone(), heightMap.clone());
+            copy = new BukkitChunk_1_8(getParent(), getX(), getZ(), (char[][]) MainUtil.copyNd(ids), count.clone(), air.clone(), heightMap.clone());
             copy.biomes = biomes;
             copy.chunk = chunk;
             copy.biomes = biomes.clone();
@@ -80,6 +80,8 @@ public class BukkitChunk_1_8 extends CharFaweChunk<Chunk, BukkitQueue18R3> {
     @Override
     public FaweChunk call() {
         CraftChunk chunk = (CraftChunk) this.getChunk();
+        int bx = this.getX() << 4;
+        int bz = this.getZ() << 4;
         net.minecraft.server.v1_8_R3.Chunk nmsChunk = chunk.getHandle();
         nmsChunk.f(true); // Modified
         nmsChunk.mustSave = true;
@@ -233,26 +235,43 @@ public class BukkitChunk_1_8 extends CharFaweChunk<Chunk, BukkitQueue18R3> {
                     sections[j] = section;
                     continue;
                 }
+                int by = j << 4;
                 char[] currentArray = section.getIdArray();
                 int solid = 0;
+                int existingId;
                 for (int k = 0; k < newArray.length; k++) {
                     char n = newArray[k];
                     switch (n) {
                         case 0:
                             continue;
                         case 1:
-                            if (currentArray[k] > 1) {
-                                solid++;
+                            existingId = currentArray[k];
+                            if (existingId > 1) {
+                                if (FaweCache.hasLight(existingId)) {
+                                    int x = FaweCache.CACHE_X[j][k];
+                                    int y = FaweCache.CACHE_Y[j][k];
+                                    int z = FaweCache.CACHE_Z[j][k];
+                                    getParent().getRelighter().addLightUpdate(bx + x, y, bz + z);
+                                }
+                                solid--;
                                 currentArray[k] = 0;
                             }
                             continue;
                         default:
-                            solid++;
+                            existingId = currentArray[k];
+                            if (existingId <= 1) {
+                                solid++;
+                            } else if (FaweCache.hasLight(existingId)) {
+                                int x = FaweCache.CACHE_X[j][k];
+                                int y = FaweCache.CACHE_Y[j][k];
+                                int z = FaweCache.CACHE_Z[j][k];
+                                getParent().getRelighter().addLightUpdate(bx + x, y, bz + z);
+                            }
                             currentArray[k] = n;
                             continue;
                     }
                 }
-                getParent().setCount(0, solid, section);
+                getParent().setCount(0, getParent().getNonEmptyBlockCount(section) + solid, section);
             }
 
             // Set biomes
@@ -274,9 +293,6 @@ public class BukkitChunk_1_8 extends CharFaweChunk<Chunk, BukkitQueue18R3> {
             }
             // Set tiles
             Map<BytePair, CompoundTag> tilesToSpawn = this.getTiles();
-            int bx = this.getX() << 4;
-            int bz = this.getZ() << 4;
-
             for (Map.Entry<BytePair, CompoundTag> entry : tilesToSpawn.entrySet()) {
                 CompoundTag nativeTag = entry.getValue();
                 BytePair pair = entry.getKey();

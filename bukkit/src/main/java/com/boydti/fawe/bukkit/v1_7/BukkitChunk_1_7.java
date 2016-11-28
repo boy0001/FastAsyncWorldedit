@@ -52,8 +52,8 @@ public class BukkitChunk_1_7 extends CharFaweChunk<Chunk, BukkitQueue17> {
         this.datas = new NibbleArray[16];
     }
 
-    public BukkitChunk_1_7(FaweQueue parent, int x, int z, char[][] ids, short[] count, short[] air, short[] relight, byte[] heightMap, byte[][] byteIds, NibbleArray[] datas) {
-        super(parent, x, z, ids, count, air, relight, heightMap);
+    public BukkitChunk_1_7(FaweQueue parent, int x, int z, char[][] ids, short[] count, short[] air, byte[] heightMap, byte[][] byteIds, NibbleArray[] datas) {
+        super(parent, x, z, ids, count, air, heightMap);
         this.byteIds = byteIds;
         this.datas = datas;
     }
@@ -62,11 +62,11 @@ public class BukkitChunk_1_7 extends CharFaweChunk<Chunk, BukkitQueue17> {
     public CharFaweChunk copy(boolean shallow) {
         BukkitChunk_1_7 copy;
         if (shallow) {
-            copy = new BukkitChunk_1_7(getParent(), getX(), getZ(), ids, count, air, relight, heightMap, byteIds, datas);
+            copy = new BukkitChunk_1_7(getParent(), getX(), getZ(), ids, count, air, heightMap, byteIds, datas);
             copy.biomes = biomes;
             copy.chunk = chunk;
         } else {
-            copy = new BukkitChunk_1_7(getParent(), getX(), getZ(), (char[][]) MainUtil.copyNd(ids), count.clone(), air.clone(), relight.clone(), heightMap.clone(), (byte[][]) MainUtil.copyNd(byteIds), datas.clone());
+            copy = new BukkitChunk_1_7(getParent(), getX(), getZ(), (char[][]) MainUtil.copyNd(ids), count.clone(), air.clone(), heightMap.clone(), (byte[][]) MainUtil.copyNd(byteIds), datas.clone());
             copy.biomes = biomes;
             copy.chunk = chunk;
             copy.biomes = biomes.clone();
@@ -122,7 +122,7 @@ public class BukkitChunk_1_7 extends CharFaweChunk<Chunk, BukkitQueue17> {
             case 62:
             case 50:
             case 10:
-                this.relight[i]++;
+                getParent().getRelighter().addLightUpdate((getX() << 4) + x, y, (getZ() << 4) + z);
             default:
                 vs2[j] = (char) ((id << 4) + data);
                 vs[j] = (byte) id;

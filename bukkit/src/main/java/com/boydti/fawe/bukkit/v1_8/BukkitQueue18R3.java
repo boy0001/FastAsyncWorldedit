@@ -1,6 +1,5 @@
 package com.boydti.fawe.bukkit.v1_8;
 
-import com.boydti.fawe.Fawe;
 import com.boydti.fawe.FaweCache;
 import com.boydti.fawe.bukkit.v0.BukkitQueue_0;
 import com.boydti.fawe.example.CharFaweChunk;
@@ -13,7 +12,6 @@ import com.boydti.fawe.util.TaskManager;
 import com.sk89q.jnbt.CompoundTag;
 import com.sk89q.jnbt.StringTag;
 import com.sk89q.jnbt.Tag;
-import com.sk89q.worldedit.bukkit.adapter.BukkitImplAdapter;
 import java.io.File;
 import java.lang.reflect.Field;
 import java.util.Arrays;
@@ -39,26 +37,35 @@ public class BukkitQueue18R3 extends BukkitQueue_0<Chunk, ChunkSection[], ChunkS
 
     public static Field isDirty;
 
+    protected static Field fieldTickingBlockCount;
+    protected static Field fieldNonEmptyBlockCount;
+    protected static Field fieldSection;
+    protected static Field fieldChunkMap;
+
+    static {
+        try {
+            fieldSection = ChunkSection.class.getDeclaredField("blockIds");
+            fieldTickingBlockCount = ChunkSection.class.getDeclaredField("tickingBlockCount");
+            fieldNonEmptyBlockCount = ChunkSection.class.getDeclaredField("nonEmptyBlockCount");
+            fieldChunkMap = PlayerChunkMap.class.getDeclaredField("d");
+            isDirty = ChunkSection.class.getDeclaredField("isDirty");
+            fieldSection.setAccessible(true);
+            fieldTickingBlockCount.setAccessible(true);
+            fieldNonEmptyBlockCount.setAccessible(true);
+            fieldChunkMap.setAccessible(true);
+            isDirty.setAccessible(true);
+        } catch (Throwable e) {
+            e.printStackTrace();
+        }
+    }
+
     public BukkitQueue18R3(final com.sk89q.worldedit.world.World world) {
         super(world);
-        checkVersion("v1_8_R3");
+        getImpWorld();
     }
 
     public BukkitQueue18R3(final String world) {
         super(world);
-        checkVersion("v1_8_R3");
-    }
-
-    @Override
-    public void setupAdapter(BukkitImplAdapter adapter) {
-        if (this.adapter == null) {
-            try {
-                isDirty = ChunkSection.class.getDeclaredField("isDirty");
-                isDirty.setAccessible(true);
-                Fawe.debug("isDirty found");
-            } catch (Throwable e) {}
-        }
-        super.setupAdapter(adapter);
         getImpWorld();
     }
 
@@ -225,13 +232,12 @@ public class BukkitQueue18R3 extends BukkitQueue_0<Chunk, ChunkSection[], ChunkS
     }
 
     public void setCount(int tickingBlockCount, int nonEmptyBlockCount, ChunkSection section) throws NoSuchFieldException, IllegalAccessException {
-        Class<? extends ChunkSection> clazz = section.getClass();
-        Field fieldTickingBlockCount = clazz.getDeclaredField("tickingBlockCount");
-        Field fieldNonEmptyBlockCount = clazz.getDeclaredField("nonEmptyBlockCount");
-        fieldTickingBlockCount.setAccessible(true);
-        fieldNonEmptyBlockCount.setAccessible(true);
         fieldTickingBlockCount.set(section, tickingBlockCount);
         fieldNonEmptyBlockCount.set(section, nonEmptyBlockCount);
+    }
+
+    public int getNonEmptyBlockCount(ChunkSection section) throws IllegalAccessException {
+        return (int) fieldNonEmptyBlockCount.get(section);
     }
 
     @Override
@@ -251,8 +257,7 @@ public class BukkitQueue18R3 extends BukkitQueue_0<Chunk, ChunkSection[], ChunkS
             if (!chunkMap.isChunkInUse(x, z)) {
                 return;
             }
-            Field fieldChunkMap = chunkMap.getClass().getDeclaredField("d");
-            fieldChunkMap.setAccessible(true);
+
             LongHashMap<Object> map = (LongHashMap<Object>) fieldChunkMap.get(chunkMap);
             long pair = (long) x + 2147483647L | (long) z + 2147483647L << 32;
             Object playerChunk = map.getEntry(pair);
