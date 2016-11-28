@@ -394,6 +394,9 @@ public abstract class MappedFaweQueue<WORLD, CHUNK, SECTION> extends FaweQueue {
         int cx = x >> 4;
         int cz = z >> 4;
         int cy = y >> 4;
+        if (y >= FaweChunk.HEIGHT) {
+            return 15;
+        }
         if (cx != lastChunkX || cz != lastChunkZ) {
             lastChunkX = cx;
             lastChunkZ = cz;
@@ -404,12 +407,12 @@ public abstract class MappedFaweQueue<WORLD, CHUNK, SECTION> extends FaweQueue {
             lastSection = getCachedSection(lastChunkSections, cy);
         } else if (cy != lastChunkY) {
             if (lastChunkSections == null) {
-                return 0;
+                return getSkyLight(x, y + 16, z);
             }
             lastSection = getCachedSection(lastChunkSections, cy);
         }
         if (lastSection == null) {
-            return 0;
+            return getSkyLight(x, y + 16, z);
         }
         return getSkyLight(lastSection, x, y, z);
     }

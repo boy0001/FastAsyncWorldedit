@@ -46,7 +46,7 @@ public class NMSRelighter implements Relighter{
         return skyToRelight.isEmpty() &&  lightQueue.isEmpty();
     }
 
-    public boolean addChunk(int cx, int cz, boolean[] fix, int bitmask) {
+    public boolean addChunk(int cx, int cz, byte[] fix, int bitmask) {
         long pair = MathMan.pairInt(cx, cz);
         RelightSkyEntry toPut = new RelightSkyEntry(cx, cz, fix, bitmask);
         RelightSkyEntry existing = skyToRelight.put(pair, toPut);
@@ -54,7 +54,7 @@ public class NMSRelighter implements Relighter{
             toPut.bitmask |= existing.bitmask;
             if (fix != null) {
                 for (int i = 0; i < fix.length; i++) {
-                    toPut.fix[i] |= existing.fix[i];
+                    toPut.fix[i] &= existing.fix[i];
                 }
             }
         }
@@ -62,7 +62,11 @@ public class NMSRelighter implements Relighter{
     }
 
     public void removeLighting() {
-        for (Map.Entry<Long, RelightSkyEntry> entry : skyToRelight.entrySet()) {
+        Iterator<Map.Entry<Long, RelightSkyEntry>> iter = skyToRelight.entrySet().iterator();
+        while (iter.hasNext()) {
+            Map.Entry<Long, RelightSkyEntry> entry = iter.next();
+            iter.remove();
+            chunksToSend.add(entry.getKey());
             RelightSkyEntry chunk = entry.getValue();
             queue.ensureChunkLoaded(chunk.x, chunk.z);
             Object sections = queue.getCachedSections(queue.getWorld(), chunk.x, chunk.z);
@@ -255,6 +259,29 @@ public class NMSRelighter implements Relighter{
         }
     }
 
+    public void fill(byte[] mask, int chunkX, int y, int chunkZ, byte reason) {
+        if (y >= FaweChunk.HEIGHT) {
+            Arrays.fill(mask, (byte) 15);
+            return;
+        }
+        switch (reason) {
+            case SkipReason.SOLID: {
+                Arrays.fill(mask, (byte) 0);
+                return;
+            }
+            case SkipReason.AIR: {
+                int bx = chunkX << 4;
+                int bz = chunkZ << 4;
+                int index = 0;
+                for (int z = 0; z < 16; z++) {
+                    for (int x = 0; x < 16; x++) {
+                        mask[index++] = (byte) queue.getSkyLight(bx + x, y, bz + z);
+                    }
+                }
+            }
+        }
+    }
+
     private void fixSkyLighting(List<RelightSkyEntry> sorted) {
         RelightSkyEntry[] chunks = sorted.toArray(new RelightSkyEntry[sorted.size()]);
         byte[] cacheX = FaweCache.CACHE_X[0];
@@ -262,10 +289,15 @@ public class NMSRelighter implements Relighter{
         for (int y = FaweChunk.HEIGHT - 1; y > 0; y--) {
             for (RelightSkyEntry chunk : chunks) { // Propogate skylight
                 int layer = y >> 4;
-                if (!chunk.fix[layer])continue;
+                byte[] mask = chunk.mask;
+                if (chunk.fix[layer] != SkipReason.NONE) {
+                    if ((y & 15) == 0 && layer != 0 && chunk.fix[layer - 1] == SkipReason.NONE) {
+                        fill(mask, chunk.x, y, chunk.z, chunk.fix[layer]);
+                    }
+                    continue;
+                }
                 int bx = chunk.x << 4;
                 int bz = chunk.z << 4;
-                byte[] mask = chunk.mask;
                 queue.ensureChunkLoaded(chunk.x, chunk.z);
                 Object sections = queue.getCachedSections(queue.getWorld(), chunk.x, chunk.z);
                 if (sections == null)continue;
@@ -290,30 +322,22 @@ public class NMSRelighter implements Relighter{
                                 continue;
                             }
                             break;
-                        case 2:
-                        case 4:
-                        case 6:
-                        case 8:
-                        case 10:
-                        case 12:
-                        case 14:
-//                            if (opacity == 0) {
-//                                mask[j] = --value;
-//                            } else {
-//                                mask[j] = (byte) Math.max(0, value - opacity);
-//                            }
-//                            queue.setSkyLight(section, x, y, z, value);
-//                            continue;
                         case 1:
+                        case 2:
                         case 3:
+                        case 4:
                         case 5:
+                        case 6:
                         case 7:
+                        case 8:
                         case 9:
+                        case 10:
                         case 11:
+                        case 12:
                         case 13:
+                        case 14:
                             if (opacity >= value) {
                                 mask[j] = 0;
-                                queue.setBlockLight(section, x, y, z, 0);
                                 queue.setSkyLight(section, x, y, z, 0);
                                 continue;
                             }
@@ -347,7 +371,6 @@ public class NMSRelighter implements Relighter{
                 }
             }
         }
-
     }
 
     public void smoothSkyLight(RelightSkyEntry chunk, int y, boolean direction) {
@@ -360,7 +383,7 @@ public class NMSRelighter implements Relighter{
         Object section = queue.getCachedSection(sections, y >> 4);
         if (section == null) return;
         if (direction) {
-            for (int j = 0; j <= maxY; j++) {
+            for (int j = 0; j < 256; j++) {
                 int x = j & 15;
                 int z = j >> 4;
                 if (mask[j] >= 14 || (mask[j] == 0 && queue.getOpacity(section, x, y, z) > 1)) {
@@ -372,7 +395,7 @@ public class NMSRelighter implements Relighter{
                 if (value > mask[j]) queue.setSkyLight(section, x, y, z, mask[j] = value);
             }
         } else {
-            for (int j = maxY; j >= 0; j--) {
+            for (int j = 255; j >= 0; j--) {
                 int x = j & 15;
                 int z = j >> 4;
                 if (mask[j] >= 14 || (mask[j] == 0 && queue.getOpacity(section, x, y, z) > 1)) {
@@ -415,11 +438,11 @@ public class NMSRelighter implements Relighter{
         public final int x;
         public final int z;
         public final byte[] mask;
-        public final boolean[] fix;
+        public final byte[] fix;
         public int bitmask;
         public boolean smooth;
 
-        public RelightSkyEntry(int x, int z, boolean[] fix, int bitmask) {
+        public RelightSkyEntry(int x, int z, byte[] fix, int bitmask) {
             this.x = x;
             this.z = z;
             byte[] array = new byte[maxY + 1];
@@ -427,27 +450,32 @@ public class NMSRelighter implements Relighter{
             this.mask = array;
             this.bitmask = bitmask;
             if (fix == null) {
-                this.fix = new boolean[(maxY  + 1) >> 4];
-                Arrays.fill(this.fix, true);
+                this.fix = new byte[(maxY  + 1) >> 4];
+                Arrays.fill(this.fix, SkipReason.NONE);
             } else {
                 this.fix = fix;
             }
         }
 
         @Override
+        public String toString() {
+            return x + "," + z;
+        }
+
+        @Override
         public int compareTo(Object o) {
             RelightSkyEntry other = (RelightSkyEntry) o;
             if (other.x < x) {
-                return -1;
+                return 1;
             }
             if (other.x > x) {
-                return 1;
-            }
-            if (other.z < z) {
                 return -1;
             }
-            if (other.z > z) {
+            if (other.z < z) {
                 return 1;
+            }
+            if (other.z > z) {
+                return -1;
             }
             return 0;
         }

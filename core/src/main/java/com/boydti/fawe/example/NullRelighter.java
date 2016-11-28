@@ -7,7 +7,7 @@ public class NullRelighter implements Relighter {
     private NullRelighter() {}
 
     @Override
-    public boolean addChunk(int cx, int cz, boolean[] fix, int bitmask) {
+    public boolean addChunk(int cx, int cz, byte[] fix, int bitmask) {
         return false;
     }
 

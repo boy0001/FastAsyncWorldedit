@@ -70,12 +70,22 @@ public abstract class NMSMappedFaweQueue<WORLD, CHUNK, CHUNKSECTION, SECTION> ex
         }
         CharFaweChunk cfc = (CharFaweChunk) chunk;
         boolean relight = false;
-        boolean[] fix = new boolean[(maxY + 1) >> 4];
+        byte[] fix = new byte[(maxY + 1) >> 4];
         boolean sky = hasSky();
-        for (int i = 0; i < cfc.ids.length; i++) {
-            if ((sky && ((cfc.getAir(i) & 4095) != 0 || (cfc.getCount(i) & 4095) != 0))) {
-                relight = true;
-                fix[i] = true;
+        if (sky) {
+            for (int i = cfc.ids.length - 1; i >= 0; i--) {
+                int air = cfc.getAir(i);
+                int solid = cfc.getCount(i);
+                if (air == 4096) {
+                    fix[i] = Relighter.SkipReason.AIR;
+                } else if (air == 0 && solid == 4096) {
+                    fix[i] = Relighter.SkipReason.SOLID;
+                } else if (solid == 0 && relight == false) {
+                    fix[i] = Relighter.SkipReason.AIR;
+                } else {
+                    fix[i] = Relighter.SkipReason.NONE;
+                    relight = true;
+                }
             }
         }
         if (relight) {
