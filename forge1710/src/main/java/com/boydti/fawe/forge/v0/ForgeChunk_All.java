@@ -41,8 +41,8 @@ public class ForgeChunk_All extends CharFaweChunk<Chunk, ForgeQueue_All> {
         this.datas = new NibbleArray[16];
     }
 
-    public ForgeChunk_All(FaweQueue parent, int x, int z, char[][] ids, short[] count, short[] air, short[] relight, byte[] heightMap, byte[][] byteIds, NibbleArray[] datas) {
-        super(parent, x, z, ids, count, air, relight, heightMap);
+    public ForgeChunk_All(FaweQueue parent, int x, int z, char[][] ids, short[] count, short[] air, byte[] heightMap, byte[][] byteIds, NibbleArray[] datas) {
+        super(parent, x, z, ids, count, air, heightMap);
         this.byteIds = byteIds;
         this.datas = datas;
     }
@@ -51,11 +51,11 @@ public class ForgeChunk_All extends CharFaweChunk<Chunk, ForgeQueue_All> {
     public CharFaweChunk copy(boolean shallow) {
         ForgeChunk_All copy;
         if (shallow) {
-            copy = new ForgeChunk_All(getParent(), getX(), getZ(), ids, count, air, relight, heightMap, byteIds, datas);
+            copy = new ForgeChunk_All(getParent(), getX(), getZ(), ids, count, air, heightMap, byteIds, datas);
             copy.biomes = biomes;
             copy.chunk = chunk;
         } else {
-            copy = new ForgeChunk_All(getParent(), getX(), getZ(), (char[][]) MainUtil.copyNd(ids), count.clone(), air.clone(), relight.clone(), heightMap.clone(), (byte[][]) MainUtil.copyNd(byteIds), datas.clone());
+            copy = new ForgeChunk_All(getParent(), getX(), getZ(), (char[][]) MainUtil.copyNd(ids), count.clone(), air.clone(), heightMap.clone(), (byte[][]) MainUtil.copyNd(byteIds), datas.clone());
             copy.biomes = biomes;
             copy.chunk = chunk;
             copy.biomes = biomes.clone();
@@ -112,7 +112,7 @@ public class ForgeChunk_All extends CharFaweChunk<Chunk, ForgeQueue_All> {
             case 62:
             case 50:
             case 10:
-                this.relight[i]++;
+//                this.relight[i]++;
             default:
                 vs2[j] = (char) ((id << 4) + data);
                 vs[j] = (byte) id;

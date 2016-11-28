@@ -51,19 +51,19 @@ public class ForgeChunk_All extends CharFaweChunk<Chunk, ForgeQueue_All> {
         super(parent, x, z);
     }
 
-    public ForgeChunk_All(FaweQueue parent, int x, int z, char[][] ids, short[] count, short[] air, short[] relight, byte[] heightMap) {
-        super(parent, x, z, ids, count, air, relight, heightMap);
+    public ForgeChunk_All(FaweQueue parent, int x, int z, char[][] ids, short[] count, short[] air, byte[] heightMap) {
+        super(parent, x, z, ids, count, air, heightMap);
     }
 
     @Override
     public CharFaweChunk copy(boolean shallow) {
         ForgeChunk_All copy;
         if (shallow) {
-            copy = new ForgeChunk_All(getParent(), getX(), getZ(), ids, count, air, relight, heightMap);
+            copy = new ForgeChunk_All(getParent(), getX(), getZ(), ids, count, air, heightMap);
             copy.biomes = biomes;
             copy.chunk = chunk;
         } else {
-            copy = new ForgeChunk_All(getParent(), getX(), getZ(), (char[][]) MainUtil.copyNd(ids), count.clone(), air.clone(), relight.clone(), heightMap.clone());
+            copy = new ForgeChunk_All(getParent(), getX(), getZ(), (char[][]) MainUtil.copyNd(ids), count.clone(), air.clone(), heightMap.clone());
             copy.biomes = biomes;
             copy.chunk = chunk;
             copy.biomes = biomes.clone();
