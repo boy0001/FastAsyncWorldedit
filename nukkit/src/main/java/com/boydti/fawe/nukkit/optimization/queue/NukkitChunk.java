@@ -15,6 +15,7 @@ import com.sk89q.jnbt.CompoundTag;
 import com.sk89q.worldedit.LocalWorld;
 import com.sk89q.worldedit.Vector2D;
 import com.sk89q.worldedit.world.biome.BaseBiome;
+import java.io.IOException;
 import java.util.Map;
 
 public class NukkitChunk extends CharFaweChunk<BaseFullChunk, NukkitQueue> {
@@ -62,13 +63,22 @@ public class NukkitChunk extends CharFaweChunk<BaseFullChunk, NukkitQueue> {
     private boolean place = true;
 
     @Override
+    public void start() {
+        try {
+            getChunk().load(true);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    @Override
     public NukkitChunk call() {
         // Set heightmap
-        getParent().setHeightMap(this, heightMap);
         NukkitQueue parent = (NukkitQueue) getParent();
         Level world = ((NukkitQueue) getParent()).getWorld();
         world.clearCache(true);
         final BaseFullChunk chunk = getChunk();
+        getParent().setHeightMap(this, heightMap);
         char[][] sections = getCombinedIdArrays();
         final int[][] biomes = getBiomeArray();
         final int X = getX() << 4;
