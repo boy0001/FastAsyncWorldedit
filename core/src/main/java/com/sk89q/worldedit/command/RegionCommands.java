@@ -110,7 +110,7 @@ public class RegionCommands {
             selection = new CuboidRegion(new Vector(cx - 8, 0, cz - 8).multiply(16), new Vector(cx + 8, 0, cz + 8).multiply(16));
         }
         int count = FaweAPI.fixLighting(loc.world, selection, FaweQueue.RelightMode.ALL);
-        BBC.FIX_LIGHTING_SELECTION.send(fp, count);
+        BBC.LIGHTING_PROPOGATE_SELECTION.send(fp, count);
     }
 
     @Command(
@@ -161,7 +161,7 @@ public class RegionCommands {
         final int cz = loc.z >> 4;
         final NMSMappedFaweQueue queue = (NMSMappedFaweQueue) SetQueue.IMP.getNewQueue(fp.getWorld(), true, false);
         for (Vector pt : region) {
-            queue.setBlockLight((byte) pt.x, (byte) pt.y, (byte) pt.z, value);
+            queue.setBlockLight((int) pt.x, (int) pt.y, (int) pt.z, value);
         }
         int count = 0;
         for (Vector2D chunk : region.getChunks()) {
@@ -185,7 +185,7 @@ public class RegionCommands {
         final int cz = loc.z >> 4;
         final NMSMappedFaweQueue queue = (NMSMappedFaweQueue) SetQueue.IMP.getNewQueue(fp.getWorld(), true, false);
         for (Vector pt : region) {
-            queue.setSkyLight((byte) pt.x, (byte) pt.y, (byte) pt.z, value);
+            queue.setSkyLight((int) pt.x, (int) pt.y, (int) pt.z, value);
         }
         int count = 0;
         for (Vector2D chunk : region.getChunks()) {

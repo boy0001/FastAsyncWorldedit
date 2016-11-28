@@ -22,7 +22,7 @@ public enum BBC {
      */
     PREFIX("&8(&4&lFAWE&8)&r&7", "Info"),
     SCHEMATIC_PASTING("&7The schematic is pasting. This cannot be undone.", "Info"),
-    FIX_LIGHTING_SELECTION("&7Lighting has been fixed in %s0 chunks. (It may take a second for the packets to send)", "Info"),
+    LIGHTING_PROPOGATE_SELECTION("&7Lighting has been propogated in %s0 chunks. (Note: To remove light use //removelight)", "Info"),
     UPDATED_LIGHTING_SELECTION("&7Lighting has been updated in %s0 chunks. (It may take a second for the packets to send)", "Info"),
     SET_REGION("&7Selection set to your current WorldEdit region", "Info"),
     WORLDEDIT_COMMAND_LIMIT("&7Please wait until your current action completes", "Info"),
