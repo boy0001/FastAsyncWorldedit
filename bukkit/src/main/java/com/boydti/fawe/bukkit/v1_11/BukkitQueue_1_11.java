@@ -63,11 +63,9 @@ public class BukkitQueue_1_11 extends BukkitQueue_0<Chunk, ChunkSection[], Chunk
             fieldBits.setAccessible(true);
             getEntitySlices = net.minecraft.server.v1_11_R1.Chunk.class.getDeclaredMethod("getEntitySlices");
             getEntitySlices.setAccessible(true);
-            if (adapter == null) {
-                setupAdapter(new com.boydti.fawe.bukkit.v1_11.FaweAdapter_1_11());
-                Fawe.debug("Using adapter: " + adapter);
-                Fawe.debug("=========================================");
-            }
+            setupAdapter(new com.boydti.fawe.bukkit.v1_11.FaweAdapter_1_11());
+            Fawe.debug("Using adapter: " + adapter);
+            Fawe.debug("=========================================");
             for (int i = 0; i < Character.MAX_VALUE; i++) {
                 try {
                     IBD_CACHE[i] = Block.getById(i >> 4).fromLegacyData(i & 0xF);

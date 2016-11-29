@@ -271,6 +271,7 @@ public class BukkitChunk_1_11 extends CharFaweChunk<Chunk, com.boydti.fawe.bukki
                                 String currentId = EntityTypes.a(key);
                                 Class<? extends Entity> clazz = EntityTypes.b.get(key);
                                 entityKeys.put(currentId, clazz);
+                                entityKeys.put(key.a(), clazz);
                             }
                         }
                         Class<? extends Entity> clazz = entityKeys.get(id);
