@@ -14,6 +14,7 @@ import com.boydti.fawe.util.MainUtil;
 import com.boydti.fawe.util.MemUtil;
 import com.boydti.fawe.util.StringMan;
 import com.boydti.fawe.util.TaskManager;
+import com.boydti.fawe.util.Updater;
 import com.boydti.fawe.util.WEManager;
 import com.boydti.fawe.util.WESubscriber;
 import com.sk89q.jnbt.NBTInputStream;
@@ -244,6 +245,14 @@ public class Fawe {
          */
         this.setupInjector();
         this.setupMemoryListener();
+
+        // Update
+        TaskManager.IMP.async(new Runnable() {
+            @Override
+            public void run() {
+                Updater.update(implementation.getPlatform(), getVersion());
+            }
+        });
     }
 
     private boolean isJava8 = MainUtil.getJavaVersion() >= 1.8;
@@ -295,7 +304,7 @@ public class Fawe {
             scanner.close();
             this.version = new FaweVersion(versionString);
             Settings.DATE = new Date(100 + version.year, version.month, version.day).toGMTString();
-            Settings.BUILD = "http://ci.athion.net/job/FastAsyncWorldEdit/" + version.build;
+            Settings.BUILD = "https://ci.athion.net/job/FastAsyncWorldEdit/" + version.build;
             Settings.COMMIT = "https://github.com/boy0001/FastAsyncWorldedit/commit/" + Integer.toHexString(version.hash);
         } catch (Throwable ignore) {}
         Settings.load(file);

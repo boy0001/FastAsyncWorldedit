@@ -21,4 +21,8 @@ public class FaweVersion {
     public String toString() {
         return "FastAsyncWorldEdit-" + year + "." + month + "." + day + "-" + Integer.toHexString(hash) + "-" + build;
     }
+
+    public boolean isNewer(FaweVersion other) {
+        return other.build < this.build && (this.major > other.major || (this.major == other.major && this.minor > other.minor) || (this.major == other.major && this.minor == other.minor && this.patch > other.patch));
+    }
 }

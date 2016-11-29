@@ -125,7 +125,7 @@ public class FaweNukkit implements IFawe, Listener {
 
     @Override
     public String getPlatform() {
-        return "Nukkit-" + plugin.getServer().getNukkitVersion();
+        return "nukkit";
     }
 
     @Override

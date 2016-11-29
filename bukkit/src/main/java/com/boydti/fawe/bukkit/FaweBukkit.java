@@ -350,7 +350,7 @@ public class FaweBukkit implements IFawe, Listener {
 
     @Override
     public String getPlatform() {
-        return Bukkit.getVersion();
+        return "bukkit";
     }
 
     @Override
