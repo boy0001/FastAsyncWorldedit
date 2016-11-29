@@ -152,7 +152,7 @@ public class ForgeQueue_All extends NMSMappedFaweQueue<World, Chunk, ExtendedBlo
                 mcChunk = chunkServer.loadChunk(x, z);
                 PlayerChunkMapEntry entry = playerManager.getEntry(x, z);
                 if (entry != null) {
-                    Field fieldPlayers = PlayerChunkMap.class.getDeclaredField("field_187283_c");
+                    Field fieldPlayers = PlayerChunkMap.class.getDeclaredField("field_72699_b");
                     fieldPlayers.setAccessible(true);
                     oldWatchers = (List<EntityPlayerMP>) fieldPlayers.get(entry);
                     playerManager.removeEntry(entry);
