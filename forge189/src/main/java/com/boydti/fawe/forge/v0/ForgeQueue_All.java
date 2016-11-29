@@ -78,9 +78,10 @@ public class ForgeQueue_All extends NMSMappedFaweQueue<World, Chunk, ExtendedBlo
         if (forgeChunk != null) {
             int[] otherMap = forgeChunk.getHeightMap();
             for (int i = 0; i < heightMap.length; i++) {
-                int value = heightMap[i] & 0xFF;
-                if (value > value) {
-                    otherMap[i] = value;
+                int newHeight = heightMap[i] & 0xFF;
+                int currentHeight = otherMap[i];
+                if (newHeight > currentHeight) {
+                    otherMap[i] = newHeight;
                 }
             }
         }

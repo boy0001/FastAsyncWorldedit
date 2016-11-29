@@ -108,9 +108,10 @@ public class BukkitQueue_1_9_R1 extends BukkitQueue_0<Chunk, ChunkSection[], Chu
         if (craftChunk != null) {
             int[] otherMap = craftChunk.getHandle().heightMap;
             for (int i = 0; i < heightMap.length; i++) {
-                int value = heightMap[i] & 0xFF;
-                if (value > value) {
-                    otherMap[i] = value;
+                int newHeight = heightMap[i] & 0xFF;
+                int currentHeight = otherMap[i];
+                if (newHeight > currentHeight) {
+                    otherMap[i] = newHeight;
                 }
             }
         }

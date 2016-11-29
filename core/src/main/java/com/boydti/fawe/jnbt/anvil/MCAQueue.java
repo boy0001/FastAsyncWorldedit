@@ -168,9 +168,10 @@ public class MCAQueue extends NMSMappedFaweQueue<FaweQueue, FaweChunk, FaweChunk
         if (mca != null) {
             int[] otherMap = mca.getHeightMapArray();
             for (int i = 0; i < heightMap.length; i++) {
-                int value = heightMap[i] & 0xFF;
-                if (value > value) {
-                    otherMap[i] = value;
+                int newHeight = heightMap[i] & 0xFF;
+                int currentHeight = otherMap[i];
+                if (newHeight > currentHeight) {
+                    otherMap[i] = newHeight;
                 }
             }
         }
