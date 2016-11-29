@@ -187,9 +187,12 @@ public class ForgeChunk_All extends CharFaweChunk<Chunk, ForgeQueue_All> {
                 float yaw = rotTag.getFloat(0);
                 float pitch = rotTag.getFloat(1);
                 String id = idTag.getValue();
-                NBTTagCompound tag = (NBTTagCompound)ForgeQueue_All.methodFromNative.invoke(null, nativeTag);
-                Entity entity = EntityList.createEntityFromNBT(tag, nmsWorld);
+                Entity entity = EntityList.createEntityByName(id, nmsWorld);
                 if (entity != null) {
+                    NBTTagCompound tag = (NBTTagCompound) ForgeQueue_All.methodFromNative.invoke(null, nativeTag);
+                    tag.removeTag("UUIDMost");
+                    tag.removeTag("UUIDLeast");
+                    entity.readFromNBT(tag);
                     entity.setPositionAndRotation(x, y, z, yaw, pitch);
                     nmsWorld.spawnEntityInWorld(entity);
                 }

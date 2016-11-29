@@ -71,6 +71,8 @@ public class ForgeChunk_All extends CharFaweChunk<Chunk, ForgeQueue_All> {
     @Override
     public ForgeChunk_All call() {
         net.minecraft.world.chunk.Chunk nmsChunk = this.getChunk();
+        int bx = this.getX() << 4;
+        int bz = this.getZ() << 4;
         nmsChunk.setModified(true);
         nmsChunk.setHasEntities(true);
         net.minecraft.world.World nmsWorld = nmsChunk.getWorld();
@@ -128,9 +130,12 @@ public class ForgeChunk_All extends CharFaweChunk<Chunk, ForgeQueue_All> {
                 float yaw = rotTag.getFloat(0);
                 float pitch = rotTag.getFloat(1);
                 String id = idTag.getValue();
-                NBTTagCompound tag = (NBTTagCompound) ForgeQueue_All.methodFromNative.invoke(null, nativeTag);
-                Entity entity = EntityList.createEntityFromNBT(tag, nmsWorld);
+                Entity entity = EntityList.createEntityByName(id, nmsWorld);
                 if (entity != null) {
+                    NBTTagCompound tag = (NBTTagCompound) ForgeQueue_All.methodFromNative.invoke(null, nativeTag);
+                    tag.removeTag("UUIDMost");
+                    tag.removeTag("UUIDLeast");
+                    entity.readFromNBT(tag);
                     entity.setPositionAndRotation(x, y, z, yaw, pitch);
                     nmsWorld.spawnEntityInWorld(entity);
                 }
@@ -196,26 +201,40 @@ public class ForgeChunk_All extends CharFaweChunk<Chunk, ForgeQueue_All> {
                 char[] currentArray = section.getData();
                 boolean fill = true;
                 int solid = 0;
+                char existingId;
                 for (int k = 0; k < newArray.length; k++) {
                     char n = newArray[k];
                     switch (n) {
                         case 0:
-                            fill = false;
                             continue;
                         case 1:
-                            fill = false;
-                            if (currentArray[k] > 1) {
-                                solid++;
+                            existingId = currentArray[k];
+                            if (existingId > 1) {
+                                if (FaweCache.hasLight(existingId)) {
+                                    int x = FaweCache.CACHE_X[j][k];
+                                    int y = FaweCache.CACHE_Y[j][k];
+                                    int z = FaweCache.CACHE_Z[j][k];
+                                    getParent().getRelighter().addLightUpdate(bx + x, y, bz + z);
+                                }
+                                solid--;
+                                currentArray[k] = 0;
                             }
-                            currentArray[k] = 0;
                             continue;
                         default:
-                            solid++;
+                            existingId = currentArray[k];
+                            if (existingId <= 1) {
+                                solid++;
+                            } else if (FaweCache.hasLight(existingId)) {
+                                int x = FaweCache.CACHE_X[j][k];
+                                int y = FaweCache.CACHE_Y[j][k];
+                                int z = FaweCache.CACHE_Z[j][k];
+                                getParent().getRelighter().addLightUpdate(bx + x, y, bz + z);
+                            }
                             currentArray[k] = n;
                             continue;
                     }
                 }
-                getParent().setCount(0, solid, section);
+                getParent().setCount(0, getParent().getNonEmptyBlockCount(section) + solid, section);
                 if (fill) {
                     this.setCount(j, Short.MAX_VALUE);
                 }
@@ -240,9 +259,6 @@ public class ForgeChunk_All extends CharFaweChunk<Chunk, ForgeQueue_All> {
             }
             // Set tiles
             Map<BytePair, CompoundTag> tilesToSpawn = this.getTiles();
-            int bx = this.getX() << 4;
-            int bz = this.getZ() << 4;
-
             for (Map.Entry<BytePair, CompoundTag> entry : tilesToSpawn.entrySet()) {
                 CompoundTag nativeTag = entry.getValue();
                 BytePair pair = entry.getKey();

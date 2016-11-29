@@ -69,7 +69,7 @@ public class ForgeChunk_All extends CharFaweChunk<Chunk, ForgeQueue_All> {
             copy.biomes = biomes.clone();
             copy.chunk = chunk;
         }
-        if (copy != null) {
+        if (sectionPalettes != null) {
             copy.sectionPalettes = new BlockStateContainer[16];
             try {
                 Field fieldBits = BlockStateContainer.class.getDeclaredField("storage");
@@ -153,8 +153,10 @@ public class ForgeChunk_All extends CharFaweChunk<Chunk, ForgeQueue_All> {
     @Override
     public ForgeChunk_All call() {
         net.minecraft.world.chunk.Chunk nmsChunk = this.getChunk();
+        int bx = this.getX() << 4;
+        int bz = this.getZ() << 4;
         nmsChunk.setModified(true);
-        net.minecraft.world.World nmsWorld = nmsChunk.getWorld();
+        net.minecraft.world.World nmsWorld = getParent().getWorld();
         try {
             boolean flag = !nmsWorld.provider.getHasNoSky();
             // Sections
@@ -209,9 +211,12 @@ public class ForgeChunk_All extends CharFaweChunk<Chunk, ForgeQueue_All> {
                 float yaw = rotTag.getFloat(0);
                 float pitch = rotTag.getFloat(1);
                 String id = idTag.getValue();
-                NBTTagCompound tag = (NBTTagCompound) ForgeQueue_All.methodFromNative.invoke(null, nativeTag);
-                Entity entity = EntityList.createEntityFromNBT(tag, nmsWorld);
+                Entity entity = EntityList.createEntityByName(id, nmsWorld);
                 if (entity != null) {
+                    NBTTagCompound tag = (NBTTagCompound) ForgeQueue_All.methodFromNative.invoke(null, nativeTag);
+                    tag.removeTag("UUIDMost");
+                    tag.removeTag("UUIDLeast");
+                    entity.readFromNBT(tag);
                     entity.setPositionAndRotation(x, y, z, yaw, pitch);
                     nmsWorld.spawnEntityInWorld(entity);
                 }
@@ -281,6 +286,8 @@ public class ForgeChunk_All extends CharFaweChunk<Chunk, ForgeQueue_All> {
                         sections[j] = section = new ExtendedBlockStorage(j << 4, flag);
                     }
                 }
+                IBlockState existing;
+                int by = j << 4;
                 BlockStateContainer nibble = section.getData();
                 int nonEmptyBlockCount = 0;
                 for (int y = 0; y < 16; y++) {
@@ -289,22 +296,32 @@ public class ForgeChunk_All extends CharFaweChunk<Chunk, ForgeQueue_All> {
                             char combinedId = array[FaweCache.CACHE_J[y][z][x]];
                             switch (combinedId) {
                                 case 0:
-                                    IBlockState existing = nibble.get(x, y, z);
-                                    if (existing != ForgeQueue_All.air) {
-                                        nonEmptyBlockCount++;
-                                    }
                                     continue;
                                 case 1:
+                                    existing = nibble.get(x, y, z);
+                                    if (existing != ForgeQueue_All.air) {
+                                        if (existing.getLightValue() > 0) {
+                                            getParent().getRelighter().addLightUpdate(bx + x, by + y, bz + z);
+                                        }
+                                        nonEmptyBlockCount--;
+                                    }
                                     nibble.set(x, y, z, ForgeQueue_All.air);
                                     continue;
                                 default:
-                                    nonEmptyBlockCount++;
+                                    existing = nibble.get(x, y, z);
+                                    if (existing != ForgeQueue_All.air) {
+                                        if (existing.getLightValue() > 0) {
+                                            getParent().getRelighter().addLightUpdate(bx + x, by + y, bz + z);
+                                        }
+                                    } else {
+                                        nonEmptyBlockCount++;
+                                    }
                                     nibble.set(x, y, z, Block.getBlockById(combinedId >> 4).getStateFromMeta(combinedId & 0xF));
                             }
                         }
                     }
                 }
-                getParent().setCount(0, nonEmptyBlockCount, section);
+                getParent().setCount(0, getParent().getNonEmptyBlockCount(section) + nonEmptyBlockCount, section);
             }
             // Set biomes
             int[][] biomes = this.biomes;
@@ -325,8 +342,6 @@ public class ForgeChunk_All extends CharFaweChunk<Chunk, ForgeQueue_All> {
             }
             // Set tiles
             Map<BytePair, CompoundTag> tilesToSpawn = this.getTiles();
-            int bx = this.getX() << 4;
-            int bz = this.getZ() << 4;
 
             for (Map.Entry<BytePair, CompoundTag> entry : tilesToSpawn.entrySet()) {
                 CompoundTag nativeTag = entry.getValue();

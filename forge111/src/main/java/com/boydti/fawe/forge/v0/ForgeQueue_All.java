@@ -13,29 +13,35 @@ import com.sk89q.jnbt.Tag;
 import java.io.File;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
+import java.util.ArrayDeque;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 import net.minecraft.block.Block;
+import net.minecraft.block.state.IBlockState;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityList;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
+import net.minecraft.init.Blocks;
 import net.minecraft.nbt.NBTBase;
 import net.minecraft.nbt.NBTTagCompound;
-import net.minecraft.network.play.server.S21PacketChunkData;
-import net.minecraft.server.management.PlayerManager;
+import net.minecraft.network.play.server.SPacketChunkData;
+import net.minecraft.server.management.PlayerChunkMap;
+import net.minecraft.server.management.PlayerChunkMapEntry;
 import net.minecraft.tileentity.TileEntity;
-import net.minecraft.util.BlockPos;
 import net.minecraft.util.ClassInheritanceMultiMap;
-import net.minecraft.world.ChunkCoordIntPair;
+import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.math.ChunkPos;
 import net.minecraft.world.EnumSkyBlock;
 import net.minecraft.world.World;
 import net.minecraft.world.WorldServer;
+import net.minecraft.world.chunk.BlockStateContainer;
 import net.minecraft.world.chunk.Chunk;
+import net.minecraft.world.chunk.IChunkGenerator;
 import net.minecraft.world.chunk.IChunkProvider;
 import net.minecraft.world.chunk.NibbleArray;
 import net.minecraft.world.chunk.storage.ExtendedBlockStorage;
@@ -46,8 +52,8 @@ public class ForgeQueue_All extends NMSMappedFaweQueue<World, Chunk, ExtendedBlo
 
     protected final static Method methodFromNative;
     protected final static Method methodToNative;
-    private static final Field fieldTickingBlockCount;
-    private static final Field fieldNonEmptyBlockCount;
+    protected final static Field fieldTickingBlockCount;
+    protected final static Field fieldNonEmptyBlockCount;
 
     static {
         try {
@@ -56,6 +62,7 @@ public class ForgeQueue_All extends NMSMappedFaweQueue<World, Chunk, ExtendedBlo
             methodToNative = converter.getDeclaredMethod("fromNative", NBTBase.class);
             methodFromNative.setAccessible(true);
             methodToNative.setAccessible(true);
+
             fieldTickingBlockCount = ExtendedBlockStorage.class.getDeclaredField("field_76683_c");
             fieldNonEmptyBlockCount = ExtendedBlockStorage.class.getDeclaredField("field_76682_b");
             fieldTickingBlockCount.setAccessible(true);
@@ -95,7 +102,7 @@ public class ForgeQueue_All extends NMSMappedFaweQueue<World, Chunk, ExtendedBlo
     @Override
     public CompoundTag getTileEntity(Chunk chunk, int x, int y, int z) {
         Map<BlockPos, TileEntity> tiles = chunk.getTileEntityMap();
-        pos.set(x, y, z);
+        pos.setPos(x, y, z);
         TileEntity tile = tiles.get(pos);
         return tile != null ? getTag(tile) : null;
     }
@@ -104,7 +111,8 @@ public class ForgeQueue_All extends NMSMappedFaweQueue<World, Chunk, ExtendedBlo
         try {
             NBTTagCompound tag = new NBTTagCompound();
             tile.writeToNBT(tag); // readTagIntoEntity
-            return (CompoundTag) methodToNative.invoke(null, tag);
+            CompoundTag result = (CompoundTag) methodToNative.invoke(null, tag);
+            return result;
         } catch (Exception e) {
             MainUtil.handleError(e);
             return null;
@@ -122,7 +130,7 @@ public class ForgeQueue_All extends NMSMappedFaweQueue<World, Chunk, ExtendedBlo
 
     @Override
     public boolean isChunkLoaded(int x, int z) {
-        return getWorld().getChunkProvider().chunkExists(x, z);
+        return getWorld().getChunkProvider().getLoadedChunk(x, z) != null;
     }
 
     @Override
@@ -131,32 +139,55 @@ public class ForgeQueue_All extends NMSMappedFaweQueue<World, Chunk, ExtendedBlo
         if (!(provider instanceof ChunkProviderServer)) {
             return false;
         }
-        ChunkProviderServer chunkServer = (ChunkProviderServer) provider;
-        IChunkProvider chunkProvider = chunkServer.serverChunkGenerator;
 
-        long pos = ChunkCoordIntPair.chunkXZ2Int(x, z);
-        Chunk mcChunk;
-        if (chunkServer.chunkExists(x, z)) {
-            mcChunk = chunkServer.loadChunk(x, z);
-            mcChunk.onChunkUnload();
-        }
+
         try {
-            Field droppedChunksSetField = chunkServer.getClass().getDeclaredField("field_73248_b");
-            droppedChunksSetField.setAccessible(true);
-            Set droppedChunksSet = (Set) droppedChunksSetField.get(chunkServer);
-            droppedChunksSet.remove(pos);
-        } catch (Throwable e) {
-            MainUtil.handleError(e);
+            ChunkProviderServer chunkServer = (ChunkProviderServer) provider;
+            IChunkGenerator gen = chunkServer.chunkGenerator;
+            long pos = ChunkPos.asLong(x, z);
+            Chunk mcChunk;
+            if (chunkServer.chunkExists(x, z)) {
+                mcChunk = chunkServer.loadChunk(x, z);
+                mcChunk.onChunkUnload();
+            }
+            PlayerChunkMap playerManager = ((WorldServer) getWorld()).getPlayerChunkMap();
+            List<EntityPlayerMP> oldWatchers = null;
+            if (chunkServer.chunkExists(x, z)) {
+                mcChunk = chunkServer.loadChunk(x, z);
+                PlayerChunkMapEntry entry = playerManager.getEntry(x, z);
+                if (entry != null) {
+                    Field fieldPlayers = PlayerChunkMapEntry.class.getDeclaredField("field_187283_c");
+                    fieldPlayers.setAccessible(true);
+                    oldWatchers = (List<EntityPlayerMP>) fieldPlayers.get(entry);
+                    playerManager.removeEntry(entry);
+                }
+                mcChunk.onChunkUnload();
+            }
+            try {
+                Field droppedChunksSetField = chunkServer.getClass().getDeclaredField("field_73248_b");
+                droppedChunksSetField.setAccessible(true);
+                Set droppedChunksSet = (Set) droppedChunksSetField.get(chunkServer);
+                droppedChunksSet.remove(pos);
+            } catch (Throwable e) {
+                MainUtil.handleError(e);
+            }
+            chunkServer.id2ChunkMap.remove(pos);
+            mcChunk = gen.provideChunk(x, z);
+            chunkServer.id2ChunkMap.put(pos, mcChunk);
+            if (mcChunk != null) {
+                mcChunk.onChunkLoad();
+                mcChunk.populateChunk(chunkServer, chunkServer.chunkGenerator);
+            }
+            if (oldWatchers != null) {
+                for (EntityPlayerMP player : oldWatchers) {
+                    playerManager.addPlayer(player);
+                }
+            }
+            return true;
+        } catch (Throwable t) {
+            MainUtil.handleError(t);
+            return false;
         }
-        chunkServer.id2ChunkMap.remove(pos);
-        mcChunk = chunkProvider.provideChunk(x, z);
-        chunkServer.id2ChunkMap.add(pos, mcChunk);
-        chunkServer.loadedChunks.add(mcChunk);
-        if (mcChunk != null) {
-            mcChunk.onChunkLoad();
-            mcChunk.populateChunk(chunkProvider, chunkProvider, x, z);
-        }
-        return true;
     }
 
     @Override
@@ -179,22 +210,29 @@ public class ForgeQueue_All extends NMSMappedFaweQueue<World, Chunk, ExtendedBlo
     }
 
     @Override
-    public int getCombinedId4Data(ExtendedBlockStorage ls, int x, int y, int z) {
-        return ls.getData()[FaweCache.CACHE_J[y][z & 15][x & 15]];
+    public int getCombinedId4Data(ExtendedBlockStorage section, int x, int y, int z) {
+        IBlockState ibd = section.getData().get(x & 15, y & 15, z & 15);
+        Block block = ibd.getBlock();
+        int id = Block.getIdFromBlock(block);
+        if (FaweCache.hasData(id)) {
+            return (id << 4) + block.getMetaFromState(ibd);
+        } else {
+            return id << 4;
+        }
     }
 
     @Override
     public boolean isChunkLoaded(World world, int x, int z) {
-        return world.getChunkProvider().chunkExists(x, z);
+        return world.getChunkProvider().getLoadedChunk(x, z) != null;
+    }
+
+    public int getNonEmptyBlockCount(ExtendedBlockStorage section) throws IllegalAccessException {
+        return (int) fieldNonEmptyBlockCount.get(section);
     }
 
     public void setCount(int tickingBlockCount, int nonEmptyBlockCount, ExtendedBlockStorage section) throws NoSuchFieldException, IllegalAccessException {
         fieldTickingBlockCount.set(section, tickingBlockCount);
         fieldNonEmptyBlockCount.set(section, nonEmptyBlockCount);
-    }
-
-    public int getNonEmptyBlockCount(ExtendedBlockStorage section) throws IllegalAccessException {
-        return (int) fieldNonEmptyBlockCount.get(section);
     }
 
     @Override
@@ -207,14 +245,27 @@ public class ForgeQueue_All extends NMSMappedFaweQueue<World, Chunk, ExtendedBlo
             if (fs.getCount(layer) != 0 || all) {
                 ExtendedBlockStorage section = sections[layer];
                 if (section != null) {
-                    idPrevious[layer] = section.getData().clone();
                     short solid = 0;
-                    for (int combined : idPrevious[layer]) {
+                    char[] previousLayer = idPrevious[layer] = new char[4096];
+                    BlockStateContainer blocks = section.getData();
+                    for (int j = 0; j < 4096; j++) {
+                        int x = FaweCache.CACHE_X[0][j];
+                        int y = FaweCache.CACHE_Y[0][j];
+                        int z = FaweCache.CACHE_Z[0][j];
+                        IBlockState ibd = blocks.get(x, y, z);
+                        Block block = ibd.getBlock();
+                        int combined = Block.getIdFromBlock(block);
+                        if (FaweCache.hasData(combined)) {
+                            combined = (combined << 4) + block.getMetaFromState(ibd);
+                        } else {
+                            combined = combined << 4;
+                        }
                         if (combined > 1) {
                             solid++;
                         }
+                        previousLayer[j] = (char) combined;
                     }
-                    previous.count[layer] = 4096;
+                    previous.count[layer] = solid;
                     previous.air[layer] = (short) (4096 - solid);
                 }
             }
@@ -247,7 +298,7 @@ public class ForgeQueue_All extends NMSMappedFaweQueue<World, Chunk, ExtendedBlo
                     if (array[j] != 0) {
                         String id = EntityList.getEntityString(ent);
                         if (id != null) {
-                            NBTTagCompound tag = ent.getNBTTagCompound();  // readEntityIntoTag
+                            NBTTagCompound tag = ent.getEntityData();  // readEntityIntoTag
                             CompoundTag nativeTag = (CompoundTag) methodToNative.invoke(null, tag);
                             Map<String, Tag> map = ReflectionUtils.getMap(nativeTag.getValue());
                             map.put("Id", new StringTag(id));
@@ -260,6 +311,14 @@ public class ForgeQueue_All extends NMSMappedFaweQueue<World, Chunk, ExtendedBlo
         return previous;
     }
 
+    protected final static IBlockState air = Blocks.AIR.getDefaultState();
+
+    public void setPalette(ExtendedBlockStorage section, BlockStateContainer palette) throws NoSuchFieldException, IllegalAccessException {
+        Field fieldSection = ExtendedBlockStorage.class.getDeclaredField("data");
+        fieldSection.setAccessible(true);
+        fieldSection.set(section, palette);
+    }
+
     @Override
     public void refreshChunk(FaweChunk fc) {
         ForgeChunk_All fs = (ForgeChunk_All) fc;
@@ -269,35 +328,31 @@ public class ForgeQueue_All extends NMSMappedFaweQueue<World, Chunk, ExtendedBlo
             return;
         }
         try {
+            ChunkPos pos = nmsChunk.getChunkCoordIntPair();
             WorldServer w = (WorldServer) nmsChunk.getWorld();
-            PlayerManager chunkMap = w.getPlayerManager();
-            int x = nmsChunk.xPosition;
-            int z = nmsChunk.zPosition;
-            if (!chunkMap.hasPlayerInstance(x, z)) {
+            PlayerChunkMap chunkMap = w.getPlayerChunkMap();
+            int x = pos.chunkXPos;
+            int z = pos.chunkZPos;
+            PlayerChunkMapEntry chunkMapEntry = chunkMap.getEntry(x, z);
+            if (chunkMapEntry == null) {
                 return;
             }
-            HashSet<EntityPlayerMP> players = new HashSet<>();
-            for (EntityPlayer player : w.playerEntities) {
-                if (player instanceof EntityPlayerMP) {
-                    if (chunkMap.isPlayerWatchingChunk((EntityPlayerMP) player, x, z)) {
-                        players.add((EntityPlayerMP) player);
-                    }
-                }
-            }
-            if (players.size() == 0) {
-                return;
-            }
+            final ArrayDeque<EntityPlayerMP> players = new ArrayDeque<>();
+            chunkMapEntry.hasPlayerMatching(input -> {
+                players.add(input);
+                return false;
+            });
             int mask = fc.getBitMask();
             if (mask == 0 || mask == 65535 && hasEntities(nmsChunk)) {
-                S21PacketChunkData packet = new S21PacketChunkData(nmsChunk, false, 65280);
+                SPacketChunkData packet = new SPacketChunkData(nmsChunk, 65280);
                 for (EntityPlayerMP player : players) {
-                    player.playerNetServerHandler.sendPacket(packet);
+                    player.connection.sendPacket(packet);
                 }
                 mask = 255;
             }
-            S21PacketChunkData packet = new S21PacketChunkData(nmsChunk, false, mask);
+            SPacketChunkData packet = new SPacketChunkData(nmsChunk, mask);
             for (EntityPlayerMP player : players) {
-                player.playerNetServerHandler.sendPacket(packet);
+                player.connection.sendPacket(packet);
             }
         } catch (Throwable e) {
             MainUtil.handleError(e);
@@ -321,23 +376,6 @@ public class ForgeQueue_All extends NMSMappedFaweQueue<World, Chunk, ExtendedBlo
         return new ForgeChunk_All(this, x, z);
     }
 
-    public int getId(ExtendedBlockStorage[] sections, int x, int y, int z) {
-        if (x < 0 || x > 15 || z < 0 || z > 15) {
-            return 1;
-        }
-        if (y < 0 || y > 255) {
-            return 1;
-        }
-        int i = FaweCache.CACHE_I[y][z][x];
-        ExtendedBlockStorage section = sections[i];
-        if (section == null) {
-            return 0;
-        }
-        char[] array = section.getData();
-        int j = FaweCache.CACHE_J[y][z][x];
-        return array[j] >> 4;
-    }
-
     @Override
     public boolean removeLighting(ExtendedBlockStorage[] sections, RelightMode mode, boolean sky) {
         if (mode == RelightMode.ALL) {
@@ -356,7 +394,7 @@ public class ForgeQueue_All extends NMSMappedFaweQueue<World, Chunk, ExtendedBlo
 
     @Override
     public boolean hasSky() {
-        return !nmsWorld.provider.getHasNoSky();
+        return !nmsWorld.provider.hasNoSky();
     }
 
     @Override
@@ -372,7 +410,7 @@ public class ForgeQueue_All extends NMSMappedFaweQueue<World, Chunk, ExtendedBlo
 
     @Override
     public void relight(int x, int y, int z) {
-        pos.set(x, y, z);
+        pos.setPos(x, y, z);
         nmsWorld.checkLight(pos);
     }
 
@@ -385,7 +423,8 @@ public class ForgeQueue_All extends NMSMappedFaweQueue<World, Chunk, ExtendedBlo
         }
         String[] split = getWorldName().split(";");
         int id = Integer.parseInt(split[split.length - 1]);
-        return nmsWorld = DimensionManager.getWorld(id);
+        nmsWorld = DimensionManager.getWorld(id);
+        return nmsWorld;
     }
 
     @Override
@@ -410,49 +449,34 @@ public class ForgeQueue_All extends NMSMappedFaweQueue<World, Chunk, ExtendedBlo
 
     @Override
     public int getOpacity(ExtendedBlockStorage section, int x, int y, int z) {
-        int combined = getCombinedId4Data(section, x, y, z);
-        if (combined == 0) {
-            return 0;
-        }
-        Block block = Block.getBlockById(FaweCache.getId(combined));
-        return block.getLightOpacity();
+        BlockStateContainer dataPalette = section.getData();
+        IBlockState ibd = dataPalette.get(x & 15, y & 15, z & 15);
+        return ibd.getLightOpacity();
     }
 
     @Override
     public int getBrightness(ExtendedBlockStorage section, int x, int y, int z) {
-        int combined = getCombinedId4Data(section, x, y, z);
-        if (combined == 0) {
-            return 0;
-        }
-        Block block = Block.getBlockById(FaweCache.getId(combined));
-        return block.getLightValue();
+        BlockStateContainer dataPalette = section.getData();
+        IBlockState ibd = dataPalette.get(x & 15, y & 15, z & 15);
+        return ibd.getLightValue();
     }
 
     @Override
     public int getOpacityBrightnessPair(ExtendedBlockStorage section, int x, int y, int z) {
-        int combined = getCombinedId4Data(section, x, y, z);
-        if (combined == 0) {
-            return 0;
-        }
-        Block block = Block.getBlockById(FaweCache.getId(combined));
-        return MathMan.pair16(block.getLightOpacity(), block.getLightValue());
-    }
-
-    @Override
-    public boolean hasBlock(ExtendedBlockStorage section, int x, int y, int z) {
-        int i = FaweCache.CACHE_J[y & 15][z & 15][x & 15];
-        return section.getData()[i] != 0;
+        BlockStateContainer dataPalette = section.getData();
+        IBlockState ibd = dataPalette.get(x & 15, y & 15, z & 15);
+        return MathMan.pair16(ibd.getLightOpacity(), ibd.getLightValue());
     }
 
     @Override
     public void relightBlock(int x, int y, int z) {
-        pos.set(x, y, z);
+        pos.setPos(x, y, z);
         nmsWorld.checkLightFor(EnumSkyBlock.BLOCK, pos);
     }
 
     @Override
     public void relightSky(int x, int y, int z) {
-        pos.set(x, y, z);
+        pos.setPos(x, y, z);
         nmsWorld.checkLightFor(EnumSkyBlock.SKY, pos);
     }
 

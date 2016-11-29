@@ -14,6 +14,7 @@ import com.sk89q.jnbt.Tag;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Map;
@@ -28,6 +29,7 @@ import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.BitArray;
 import net.minecraft.util.ClassInheritanceMultiMap;
+import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
 import net.minecraft.world.chunk.BlockStateContainer;
@@ -39,6 +41,8 @@ import net.minecraft.world.chunk.storage.ExtendedBlockStorage;
 public class ForgeChunk_All extends CharFaweChunk<Chunk, ForgeQueue_All> {
 
     public BlockStateContainer[] sectionPalettes;
+
+    public static Map<String, ResourceLocation> entityKeys;
 
     /**
      * A FaweSections object represents a chunk and the blocks that you wish to change in it.
@@ -158,7 +162,7 @@ public class ForgeChunk_All extends CharFaweChunk<Chunk, ForgeQueue_All> {
         nmsChunk.setModified(true);
         net.minecraft.world.World nmsWorld = getParent().getWorld();
         try {
-            boolean flag = !nmsWorld.provider.getHasNoSky();
+            boolean flag = !nmsWorld.provider.hasNoSky();
             // Sections
             ExtendedBlockStorage[] sections = nmsChunk.getBlockStorageArray();
             Map<BlockPos, TileEntity> tiles = nmsChunk.getTileEntityMap();
@@ -211,18 +215,27 @@ public class ForgeChunk_All extends CharFaweChunk<Chunk, ForgeQueue_All> {
                 float yaw = rotTag.getFloat(0);
                 float pitch = rotTag.getFloat(1);
                 String id = idTag.getValue();
-                if (id != null) {
-                    Entity entity = EntityList.createEntityByName(id, nmsWorld);
-                    if (entity != null) {
-                        NBTTagCompound tag = (NBTTagCompound) ForgeQueue_All.methodFromNative.invoke(null, nativeTag);
-                        tag.removeTag("UUIDMost");
-                        tag.removeTag("UUIDLeast");
-                        System.out.println(tag);
-                        entity.readFromNBT(tag);
-                        entity.setPositionAndRotation(x, y, z, yaw, pitch);
-                        nmsWorld.spawnEntityInWorld(entity);
+                if (entityKeys == null) {
+                    entityKeys = new HashMap<>();
+                    for (ResourceLocation key : EntityList.getEntityNameList()) {
+                        String currentId = EntityList.getTranslationName(key);
+                        entityKeys.put(currentId, key);
+                        entityKeys.put(key.getResourcePath(), key);
                     }
                 }
+                ResourceLocation entityKey = entityKeys.get(id);
+                if (entityKey != null) {
+                    Entity entity = EntityList.createEntityByIDFromName(entityKey, nmsWorld);
+                    if (entity != null) {
+                        NBTTagCompound tag = (NBTTagCompound)ForgeQueue_All.methodFromNative.invoke(null, nativeTag);
+                        entity.readFromNBT(tag);
+                        tag.removeTag("UUIDMost");
+                        tag.removeTag("UUIDLeast");
+                        entity.setPositionAndRotation(x, y, z, yaw, pitch);
+                        nmsWorld.spawnEntity(entity);
+                    }
+                }
+
             }
             // Run change task if applicable
             if (getParent().getChangeTask() != null) {

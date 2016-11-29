@@ -50,31 +50,35 @@ import net.minecraftforge.common.DimensionManager;
 
 public class ForgeQueue_All extends NMSMappedFaweQueue<World, Chunk, ExtendedBlockStorage[], ExtendedBlockStorage> {
 
-    protected static Method methodFromNative;
-    protected static Method methodToNative;
+    protected final static Method methodFromNative;
+    protected final static Method methodToNative;
+    protected final static Field fieldTickingBlockCount;
+    protected final static Field fieldNonEmptyBlockCount;
+
+    static {
+        try {
+            Class<?> converter = Class.forName("com.sk89q.worldedit.forge.NBTConverter");
+            methodFromNative = converter.getDeclaredMethod("toNative", Tag.class);
+            methodToNative = converter.getDeclaredMethod("fromNative", NBTBase.class);
+            methodFromNative.setAccessible(true);
+            methodToNative.setAccessible(true);
+
+            fieldTickingBlockCount = ExtendedBlockStorage.class.getDeclaredField("field_76683_c");
+            fieldNonEmptyBlockCount = ExtendedBlockStorage.class.getDeclaredField("field_76682_b");
+            fieldTickingBlockCount.setAccessible(true);
+            fieldNonEmptyBlockCount.setAccessible(true);
+        } catch (Throwable e) {
+            throw new RuntimeException(e);
+        }
+    }
 
     public ForgeQueue_All(com.sk89q.worldedit.world.World world) {
         super(world);
-        init();
+        getImpWorld();
     }
 
     public ForgeQueue_All(String world) {
         super(world);
-        init();
-    }
-
-    private void init() {
-        if (methodFromNative == null) {
-            try {
-                Class<?> converter = Class.forName("com.sk89q.worldedit.forge.NBTConverter");
-                this.methodFromNative = converter.getDeclaredMethod("toNative", Tag.class);
-                this.methodToNative = converter.getDeclaredMethod("fromNative", NBTBase.class);
-                methodFromNative.setAccessible(true);
-                methodToNative.setAccessible(true);
-            } catch (Throwable e) {
-                throw new RuntimeException(e);
-            }
-        }
         getImpWorld();
     }
 
@@ -152,7 +156,7 @@ public class ForgeQueue_All extends NMSMappedFaweQueue<World, Chunk, ExtendedBlo
                 mcChunk = chunkServer.loadChunk(x, z);
                 PlayerChunkMapEntry entry = playerManager.getEntry(x, z);
                 if (entry != null) {
-                    Field fieldPlayers = PlayerChunkMap.class.getDeclaredField("field_72699_b");
+                    Field fieldPlayers = PlayerChunkMapEntry.class.getDeclaredField("field_187283_c");
                     fieldPlayers.setAccessible(true);
                     oldWatchers = (List<EntityPlayerMP>) fieldPlayers.get(entry);
                     playerManager.removeEntry(entry);
@@ -222,12 +226,11 @@ public class ForgeQueue_All extends NMSMappedFaweQueue<World, Chunk, ExtendedBlo
         return world.getChunkProvider().getLoadedChunk(x, z) != null;
     }
 
+    public int getNonEmptyBlockCount(ExtendedBlockStorage section) throws IllegalAccessException {
+        return (int) fieldNonEmptyBlockCount.get(section);
+    }
+
     public void setCount(int tickingBlockCount, int nonEmptyBlockCount, ExtendedBlockStorage section) throws NoSuchFieldException, IllegalAccessException {
-        Class<? extends ExtendedBlockStorage> clazz = section.getClass();
-        Field fieldTickingBlockCount = clazz.getDeclaredField("field_76683_c");
-        Field fieldNonEmptyBlockCount = clazz.getDeclaredField("field_76682_b");
-        fieldTickingBlockCount.setAccessible(true);
-        fieldNonEmptyBlockCount.setAccessible(true);
         fieldTickingBlockCount.set(section, tickingBlockCount);
         fieldNonEmptyBlockCount.set(section, nonEmptyBlockCount);
     }

@@ -16,6 +16,7 @@ import java.lang.reflect.Method;
 import java.util.ArrayDeque;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
@@ -49,35 +50,37 @@ import net.minecraftforge.common.DimensionManager;
 
 public class ForgeQueue_All extends NMSMappedFaweQueue<World, Chunk, ExtendedBlockStorage[], ExtendedBlockStorage> {
 
-    protected static Method methodFromNative;
-    protected static Method methodToNative;
+    protected final static Method methodFromNative;
+    protected final static Method methodToNative;
+    protected final static Field fieldTickingBlockCount;
+    protected final static Field fieldNonEmptyBlockCount;
+
+    static {
+        try {
+            Class<?> converter = Class.forName("com.sk89q.worldedit.forge.NBTConverter");
+            methodFromNative = converter.getDeclaredMethod("toNative", Tag.class);
+            methodToNative = converter.getDeclaredMethod("fromNative", NBTBase.class);
+            methodFromNative.setAccessible(true);
+            methodToNative.setAccessible(true);
+
+            fieldTickingBlockCount = ExtendedBlockStorage.class.getDeclaredField("field_76683_c");
+            fieldNonEmptyBlockCount = ExtendedBlockStorage.class.getDeclaredField("field_76682_b");
+            fieldTickingBlockCount.setAccessible(true);
+            fieldNonEmptyBlockCount.setAccessible(true);
+        } catch (Throwable e) {
+            throw new RuntimeException(e);
+        }
+    }
 
     public ForgeQueue_All(com.sk89q.worldedit.world.World world) {
         super(world);
-        init();
+        getImpWorld();
     }
 
     public ForgeQueue_All(String world) {
         super(world);
-        init();
-    }
-
-    private void init() {
-        if (methodFromNative == null) {
-            try {
-                Class<?> converter = Class.forName("com.sk89q.worldedit.forge.NBTConverter");
-                this.methodFromNative = converter.getDeclaredMethod("toNative", Tag.class);
-                this.methodToNative = converter.getDeclaredMethod("fromNative", NBTBase.class);
-                methodFromNative.setAccessible(true);
-                methodToNative.setAccessible(true);
-            } catch (Throwable e) {
-                throw new RuntimeException(e);
-            }
-        }
         getImpWorld();
     }
-
-    protected BlockPos.MutableBlockPos pos = new BlockPos.MutableBlockPos(0, 0, 0);
 
     @Override
     public void setHeightMap(FaweChunk chunk, byte[] heightMap) {
@@ -94,6 +97,8 @@ public class ForgeQueue_All extends NMSMappedFaweQueue<World, Chunk, ExtendedBlo
         }
     }
 
+    protected BlockPos.MutableBlockPos pos = new BlockPos.MutableBlockPos(0, 0, 0);
+
     @Override
     public CompoundTag getTileEntity(Chunk chunk, int x, int y, int z) {
         Map<BlockPos, TileEntity> tiles = chunk.getTileEntityMap();
@@ -106,7 +111,8 @@ public class ForgeQueue_All extends NMSMappedFaweQueue<World, Chunk, ExtendedBlo
         try {
             NBTTagCompound tag = new NBTTagCompound();
             tile.writeToNBT(tag); // readTagIntoEntity
-            return (CompoundTag) methodToNative.invoke(null, tag);
+            CompoundTag result = (CompoundTag) methodToNative.invoke(null, tag);
+            return result;
         } catch (Exception e) {
             MainUtil.handleError(e);
             return null;
@@ -144,8 +150,17 @@ public class ForgeQueue_All extends NMSMappedFaweQueue<World, Chunk, ExtendedBlo
                 mcChunk = chunkServer.loadChunk(x, z);
                 mcChunk.onChunkUnload();
             }
+            PlayerChunkMap playerManager = ((WorldServer) getWorld()).getPlayerChunkMap();
+            List<EntityPlayerMP> oldWatchers = null;
             if (chunkServer.chunkExists(x, z)) {
                 mcChunk = chunkServer.loadChunk(x, z);
+                PlayerChunkMapEntry entry = playerManager.getEntry(x, z);
+                if (entry != null) {
+                    Field fieldPlayers = PlayerChunkMapEntry.class.getDeclaredField("field_187283_c");
+                    fieldPlayers.setAccessible(true);
+                    oldWatchers = (List<EntityPlayerMP>) fieldPlayers.get(entry);
+                    playerManager.removeEntry(entry);
+                }
                 mcChunk.onChunkUnload();
             }
             try {
@@ -162,6 +177,11 @@ public class ForgeQueue_All extends NMSMappedFaweQueue<World, Chunk, ExtendedBlo
             if (mcChunk != null) {
                 mcChunk.onChunkLoad();
                 mcChunk.populateChunk(chunkServer, chunkServer.chunkGenerator);
+            }
+            if (oldWatchers != null) {
+                for (EntityPlayerMP player : oldWatchers) {
+                    playerManager.addPlayer(player);
+                }
             }
             return true;
         } catch (Throwable t) {
@@ -206,12 +226,11 @@ public class ForgeQueue_All extends NMSMappedFaweQueue<World, Chunk, ExtendedBlo
         return world.getChunkProvider().getLoadedChunk(x, z) != null;
     }
 
+    public int getNonEmptyBlockCount(ExtendedBlockStorage section) throws IllegalAccessException {
+        return (int) fieldNonEmptyBlockCount.get(section);
+    }
+
     public void setCount(int tickingBlockCount, int nonEmptyBlockCount, ExtendedBlockStorage section) throws NoSuchFieldException, IllegalAccessException {
-        Class<? extends ExtendedBlockStorage> clazz = section.getClass();
-        Field fieldTickingBlockCount = clazz.getDeclaredField("field_76683_c");
-        Field fieldNonEmptyBlockCount = clazz.getDeclaredField("field_76682_b");
-        fieldTickingBlockCount.setAccessible(true);
-        fieldNonEmptyBlockCount.setAccessible(true);
         fieldTickingBlockCount.set(section, tickingBlockCount);
         fieldNonEmptyBlockCount.set(section, nonEmptyBlockCount);
     }
@@ -351,6 +370,7 @@ public class ForgeQueue_All extends NMSMappedFaweQueue<World, Chunk, ExtendedBlo
         return false;
     }
 
+
     @Override
     public FaweChunk<Chunk> getFaweChunk(int x, int z) {
         return new ForgeChunk_All(this, x, z);
@@ -403,7 +423,8 @@ public class ForgeQueue_All extends NMSMappedFaweQueue<World, Chunk, ExtendedBlo
         }
         String[] split = getWorldName().split(";");
         int id = Integer.parseInt(split[split.length - 1]);
-        return nmsWorld = DimensionManager.getWorld(id);
+        nmsWorld = DimensionManager.getWorld(id);
+        return nmsWorld;
     }
 
     @Override
