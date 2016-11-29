@@ -122,7 +122,6 @@ public class BukkitChunk_1_7 extends CharFaweChunk<Chunk, BukkitQueue17> {
             case 62:
             case 50:
             case 10:
-                getParent().getRelighter().addLightUpdate((getX() << 4) + x, y, (getZ() << 4) + z);
             default:
                 vs2[j] = (char) ((id << 4) + data);
                 vs[j] = (byte) id;

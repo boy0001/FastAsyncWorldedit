@@ -219,7 +219,6 @@ public abstract class CharFaweChunk<T, V extends FaweQueue> extends FaweChunk<T>
             case 62:
             case 50:
             case 10:
-                getParent().getRelighter().addLightUpdate((getX() << 4) + x, y, (getZ() << 4) + z);
             default:
                 vs[j] = (char) (id << 4);
                 heightMap[z << 4 | x] = (byte) y;
@@ -254,7 +253,6 @@ public abstract class CharFaweChunk<T, V extends FaweQueue> extends FaweChunk<T>
             case 138:
             case 169:
             case 213:
-                getParent().getRelighter().addLightUpdate((getX() << 4) + x, y, (getZ() << 4) + z);
             case 2:
             case 4:
             case 13:
@@ -315,7 +313,6 @@ public abstract class CharFaweChunk<T, V extends FaweQueue> extends FaweChunk<T>
             case 62:
             case 50:
             case 10:
-                getParent().getRelighter().addLightUpdate((getX() << 4) + x, y, (getZ() << 4) + z);
             case 54:
             case 146:
             case 61:

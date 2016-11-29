@@ -16,7 +16,6 @@ import java.lang.reflect.Method;
 import java.util.ArrayDeque;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
@@ -145,17 +144,8 @@ public class ForgeQueue_All extends NMSMappedFaweQueue<World, Chunk, ExtendedBlo
                 mcChunk = chunkServer.loadChunk(x, z);
                 mcChunk.onChunkUnload();
             }
-            PlayerChunkMap playerManager = ((WorldServer) getWorld()).getPlayerChunkMap();
-            List<EntityPlayerMP> oldWatchers = null;
             if (chunkServer.chunkExists(x, z)) {
                 mcChunk = chunkServer.loadChunk(x, z);
-                PlayerChunkMapEntry entry = playerManager.getEntry(x, z);
-                if (entry != null) {
-                    Field fieldPlayers = PlayerChunkMap.class.getDeclaredField("players");
-                    fieldPlayers.setAccessible(true);
-                    oldWatchers = (List<EntityPlayerMP>) fieldPlayers.get(entry);
-                    playerManager.removeEntry(entry);
-                }
                 mcChunk.onChunkUnload();
             }
             try {
@@ -172,11 +162,6 @@ public class ForgeQueue_All extends NMSMappedFaweQueue<World, Chunk, ExtendedBlo
             if (mcChunk != null) {
                 mcChunk.onChunkLoad();
                 mcChunk.populateChunk(chunkServer, chunkServer.chunkGenerator);
-            }
-            if (oldWatchers != null) {
-                for (EntityPlayerMP player : oldWatchers) {
-                    playerManager.addPlayer(player);
-                }
             }
             return true;
         } catch (Throwable t) {
