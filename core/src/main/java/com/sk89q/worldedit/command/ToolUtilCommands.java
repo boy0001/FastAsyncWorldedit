@@ -43,21 +43,18 @@ public class ToolUtilCommands {
         String newState = args.getString(0, null);
         if (session.hasSuperPickAxe()) {
             if ("on".equals(newState)) {
-                player.printError("Super pick axe already enabled.");
                 BBC.SUPERPICKAXE_ENABLED.send(player);
                 return;
             }
 
             session.disableSuperPickAxe();
-            player.print("Super pick axe disabled.");
+            BBC.SUPERPICKAXE_DISABLED.send(player);
         } else {
             if ("off".equals(newState)) {
-                player.printError("Super pick axe already disabled.");
                 BBC.SUPERPICKAXE_DISABLED.send(player);
                 return;
             }
             session.enableSuperPickAxe();
-            player.print("Super pick axe enabled.");
             BBC.SUPERPICKAXE_ENABLED.send(player);
         }
 

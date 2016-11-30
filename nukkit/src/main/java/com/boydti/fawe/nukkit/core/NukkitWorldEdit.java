@@ -75,6 +75,7 @@ public class NukkitWorldEdit extends PluginBase {
     public void onEnable() {
         try {
             Fawe.set(new FaweNukkit(this));
+            Fawe.get().setupInjector();
             Settings.HISTORY.COMBINE_STAGES = false;
             logger = Logger.getLogger(NukkitWorldEdit.class.getCanonicalName());
             createDefaultConfiguration("config-basic.yml");

@@ -26,8 +26,8 @@ import com.sk89q.worldedit.event.Event;
 import com.sk89q.worldedit.extension.platform.Actor;
 import com.sk89q.worldedit.extent.Extent;
 import com.sk89q.worldedit.world.World;
-
 import javax.annotation.Nullable;
+
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.sk89q.worldedit.EditSession.Stage;

@@ -69,7 +69,7 @@ public class AnvilCommands {
                 }
             }
         });
-        BBC.VISITOR_BLOCK.send(player, count.longValue());
+        player.print(BBC.VISITOR_BLOCK.format(count.longValue()));
     }
 
     @Command(
@@ -114,7 +114,7 @@ public class AnvilCommands {
                 }
             }
         });
-        BBC.VISITOR_BLOCK.send(player, count.longValue());
+        player.print(BBC.VISITOR_BLOCK.format(count.longValue()));
     }
 
     @Command(
@@ -189,7 +189,7 @@ public class AnvilCommands {
             };
         }
         queue.filterWorld(filter);
-        BBC.SELECTION_COUNT.send(player, count.longValue());
+        player.print(BBC.SELECTION_COUNT.format(count.longValue()));
     }
 
 }

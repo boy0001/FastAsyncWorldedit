@@ -223,30 +223,21 @@ public class Fawe {
             this.IMP.startMetrics();
         }
         this.setupCommands();
+        /*
+         * Instance independent stuff
+         */
+        this.setupMemoryListener();
 
-        // Delayed setup
+        // Delayed event setup
         TaskManager.IMP.later(new Runnable() {
             @Override
             public void run() {
-                try {
-                    WEManager.IMP.managers.addAll(Fawe.this.IMP.getMaskManagers());
-                    WEManager.IMP.managers.add(new PlotSquaredFeature());
-                    Fawe.debug("Plugin 'PlotSquared' found. Using it now.");
-                } catch (Throwable e) {}
-                Fawe.this.worldedit = WorldEdit.getInstance();
                 // Events
-                Fawe.this.setupEvents();
                 Fawe.this.IMP.setupVault();
             }
         }, 0);
 
-        /*
-         * Instance independent stuff
-         */
-        this.setupInjector();
-        this.setupMemoryListener();
-
-        // Update
+        // Delayed updating
         TaskManager.IMP.async(new Runnable() {
             @Override
             public void run() {
@@ -311,23 +302,6 @@ public class Fawe {
         Settings.save(file);
         // Setting up message.yml
         BBC.load(new File(this.IMP.getDirectory(), "message.yml"));
-        // Setting up commands.yml
-        Commands.load(new File(this.IMP.getDirectory(), "commands.yml"));
-        // Block rotation
-        try {
-            BundledBlockData.getInstance().loadFromResource();
-        } catch (IOException e) {
-            MainUtil.handleError(e);
-        }
-        File jar = MainUtil.getJarFile();
-        File extraBlocks = MainUtil.copyFile(jar, "extrablocks.json", null);
-        if (extraBlocks != null && extraBlocks.exists()) {
-            try {
-                BundledBlockData.getInstance().add(extraBlocks.toURI().toURL(), true);
-            } catch (Throwable ignore) {
-                Fawe.debug("Invalid format: extrablocks.json");
-            }
-        }
     }
 
     private WorldEdit worldedit;
@@ -339,13 +313,28 @@ public class Fawe {
         return this.worldedit;
     }
 
-    private void setupInjector() {
+    public void setupInjector() {
         /*
          * Modify the sessions
          *  - EditSession supports custom queue and a lot of optimizations
          *  - LocalSession supports VirtualPlayers and undo on disk
          */
         try {
+            // Delayed worldedit setup
+            TaskManager.IMP.later(new Runnable() {
+                @Override
+                public void run() {
+                    try {
+                        WEManager.IMP.managers.addAll(Fawe.this.IMP.getMaskManagers());
+                        WEManager.IMP.managers.add(new PlotSquaredFeature());
+                        Fawe.debug("Plugin 'PlotSquared' found. Using it now.");
+                    } catch (Throwable e) {}
+                    Fawe.this.worldedit = WorldEdit.getInstance();
+                    Fawe.this.setupEvents();
+                }
+            }, 0);
+            // Setting up commands.yml
+            Commands.load(new File(this.IMP.getDirectory(), "commands.yml"));
             EditSession.inject(); // Custom block placer + optimizations
             EditSessionEvent.inject(); // Add EditSession to event (API)
             LocalSession.inject(); // Add remember order / queue flushing / Optimizations for disk
@@ -422,6 +411,20 @@ public class Fawe {
             // BlockData
             BlockData.inject(); // Temporary fix for 1.9.4
             BundledBlockData.inject(); // Add custom rotation
+            try {
+                BundledBlockData.getInstance().loadFromResource();
+            } catch (IOException e) {
+                MainUtil.handleError(e);
+            }
+            File jar = MainUtil.getJarFile();
+            File extraBlocks = MainUtil.copyFile(jar, "extrablocks.json", null);
+            if (extraBlocks != null && extraBlocks.exists()) {
+                try {
+                    BundledBlockData.getInstance().add(extraBlocks.toURI().toURL(), true);
+                } catch (Throwable ignore) {
+                    Fawe.debug("Invalid format: extrablocks.json");
+                }
+            }
             // NBT
             NBTInputStream.inject(); // Add actual streaming + Optimizations + New methods
             NBTOutputStream.inject(); // New methods

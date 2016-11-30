@@ -7,8 +7,9 @@ import com.boydti.fawe.object.FawePlayer;
 import com.boydti.fawe.object.RunnableVal3;
 import com.boydti.fawe.util.MainUtil;
 import com.boydti.fawe.util.StringMan;
-import com.sk89q.worldedit.extension.platform.Actor;
 import java.io.File;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -102,6 +103,7 @@ public enum BBC {
     BRUSH_SPLINE_SECONDARY("Created spline", "WorldEdit.Brush"),
     BRUSH_BLEND_BALL("Blend ball brush equipped (%s0).", "WorldEdit.Brush"),
     BRUSH_ERODE("Erode brush equipped (%s0).", "WorldEdit.Brush"),
+    BRUSH_RECURSIVE("Recursive brush equipped (%s0).", "WorldEdit.Brush"),
     BRUSH_PASTE_NONE("Nothing to paste", "WorldEdit.Brush"),
     BRUSH_SIZE("Brush size set", "WorldEdit.Brush"),
     BRUSH_RANGE("Brush size set", "WorldEdit.Brush"),
@@ -276,6 +278,10 @@ public enum BBC {
         this(d, true, cat.toLowerCase());
     }
 
+    public String f(final Object... args) {
+        return format(args);
+    }
+
     public String format(final Object... args) {
         String m = this.s;
         for (int i = args.length - 1; i >= 0; i--) {
@@ -387,14 +393,23 @@ public enum BBC {
         return this.cat;
     }
 
-    public void send(Actor actor, final Object... args) {
+    public void send(Object actor, final Object... args) {
         if (isEmpty()) {
             return;
         }
         if (actor == null) {
             Fawe.debug(this.format(args));
         } else {
-            actor.print((PREFIX.isEmpty() ? "" : PREFIX.s() + " ") + this.format(args));
+            try {
+                Method method = actor.getClass().getDeclaredMethod("print", String.class);
+                method.invoke(actor, (PREFIX.isEmpty() ? "" : PREFIX.s() + " ") + this.format(args));
+            } catch (NoSuchMethodException e) {
+                e.printStackTrace();
+            } catch (InvocationTargetException e) {
+                e.printStackTrace();
+            } catch (IllegalAccessException e) {
+                e.printStackTrace();
+            }
         }
     }
 

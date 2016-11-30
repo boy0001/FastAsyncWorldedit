@@ -59,11 +59,11 @@ public class InspectBrush extends BrushTool implements DoubleActionTraceTool {
 
     public boolean perform(final Player player, LocalSession session, boolean rightClick) {
         if (!session.isToolControlEnabled() || !player.hasPermission("worldedit.tool.inspect")) {
-            BBC.NO_PERM.send(player, "worldedit.tool.inspect");
+            player.print(BBC.NO_PERM.f("worldedit.tool.inspect"));
             return false;
         }
         if (!Settings.HISTORY.USE_DATABASE) {
-            BBC.SETTING_DISABLE.send(player, "history.use-database");
+            player.print(BBC.SETTING_DISABLE.f("history.use-database"));
             return false;
         }
         WorldVector target = getTarget(player, rightClick);

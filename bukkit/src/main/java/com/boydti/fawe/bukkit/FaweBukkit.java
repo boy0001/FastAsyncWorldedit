@@ -61,6 +61,7 @@ public class FaweBukkit implements IFawe, Listener {
         this.plugin = plugin;
         try {
             Fawe.set(this);
+            setupInjector();
             if (Bukkit.getVersion().contains("git-Spigot")) {
                 debug("====== USE PAPER SPIGOT ======");
                 debug("DOWNLOAD: https://ci.destroystokyo.com/job/PaperSpigot/");
@@ -79,8 +80,19 @@ public class FaweBukkit implements IFawe, Listener {
                 new ChunkListener();
             }
         });
-        // Inject
-        EditSessionBlockChangeDelegate.inject();
+    }
+
+    public void setupInjector() {
+        if (Bukkit.getPluginManager().getPlugin("WorldEdit") != null) {
+            Fawe.get().setupInjector();
+            // Inject
+            EditSessionBlockChangeDelegate.inject();
+        } else {
+            Fawe.debug("====== INSTALL WORLDEDIT ======");
+            Fawe.debug("FAWE requires WorldEdit to function correctly");
+            Fawe.debug("Info: https://github.com/boy0001/FastAsyncWorldedit/releases/");
+            Fawe.debug("===============================");
+        }
     }
 
     @Override
