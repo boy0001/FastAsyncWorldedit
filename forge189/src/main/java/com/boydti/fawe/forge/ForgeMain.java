@@ -31,6 +31,8 @@ public class ForgeMain {
         MinecraftForge.EVENT_BUS.register(this);
         FMLCommonHandler.instance().bus().register(this);
         this.IMP = new FaweForge(this, event.getModLog(), event.getModMetadata(), directory);
+
+        com.sk89q.worldedit.forge.ForgePlayer.inject();
     }
 
     @Mod.EventHandler
