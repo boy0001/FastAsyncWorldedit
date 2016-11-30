@@ -401,7 +401,8 @@ public enum BBC {
             Fawe.debug(this.format(args));
         } else {
             try {
-                Method method = actor.getClass().getDeclaredMethod("print", String.class);
+                Method method = actor.getClass().getMethod("print", String.class);
+                method.setAccessible(true);
                 method.invoke(actor, (PREFIX.isEmpty() ? "" : PREFIX.s() + " ") + this.format(args));
             } catch (NoSuchMethodException e) {
                 e.printStackTrace();
