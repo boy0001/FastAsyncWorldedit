@@ -217,7 +217,6 @@ public class ForgeChunk_All extends CharFaweChunk<Chunk, ForgeQueue_All> {
                         NBTTagCompound tag = (NBTTagCompound) ForgeQueue_All.methodFromNative.invoke(null, nativeTag);
                         tag.removeTag("UUIDMost");
                         tag.removeTag("UUIDLeast");
-                        System.out.println(tag);
                         entity.readFromNBT(tag);
                         entity.setPositionAndRotation(x, y, z, yaw, pitch);
                         nmsWorld.spawnEntityInWorld(entity);
