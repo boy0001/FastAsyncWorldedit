@@ -350,6 +350,9 @@ public class ForgeChunk_All extends CharFaweChunk<Chunk, ForgeQueue_All> {
                 TileEntity tileEntity = nmsWorld.getTileEntity(pos);
                 if (tileEntity != null) {
                     NBTTagCompound tag = (NBTTagCompound) ForgeQueue_All.methodFromNative.invoke(null, nativeTag);
+                    tag.setInteger("x", pos.getX());
+                    tag.setInteger("y", pos.getY());
+                    tag.setInteger("z", pos.getZ());
                     tileEntity.readFromNBT(tag); // ReadTagIntoTile
                 }
             }

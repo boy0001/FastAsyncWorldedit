@@ -162,7 +162,7 @@ public abstract class FaweChangeSet implements ChangeSet {
             if (to.hasNbtData()) {
                 CompoundTag nbt = to.getNbtData();
                 MainUtil.setPosition(nbt, x, y, z);
-                addTileRemove(nbt);
+                addTileCreate(nbt);
             }
             int combinedFrom = (from.getId() << 4) + from.getData();
             int combinedTo = (to.getId() << 4) + to.getData();
@@ -182,7 +182,7 @@ public abstract class FaweChangeSet implements ChangeSet {
             if (to.hasNbtData()) {
                 CompoundTag nbt = to.getNbtData();
                 MainUtil.setPosition(nbt, x, y, z);
-                addTileRemove(nbt);
+                addTileCreate(nbt);
             }
             int combinedTo = (to.getId() << 4) + to.getData();
             add(x, y, z, combinedFrom, combinedTo);

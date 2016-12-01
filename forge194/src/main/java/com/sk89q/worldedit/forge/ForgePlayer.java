@@ -49,7 +49,6 @@ public class ForgePlayer extends AbstractPlayerActor {
     private final EntityPlayerMP player;
 
     protected ForgePlayer(ForgePlatform platform, EntityPlayerMP player) {
-        System.out.println("New forge player!!!!");
         this.platform = platform;
         this.player = player;
         ThreadSafeCache.getInstance().getOnlineIds().add(getUniqueId());

@@ -320,7 +320,7 @@ public class ForgeQueue_All extends NMSMappedFaweQueue<World, Chunk, ExtendedBlo
             for (Map.Entry<ChunkPosition, TileEntity> entry : tiles.entrySet()) {
                 TileEntity tile = entry.getValue();
                 NBTTagCompound tag = new NBTTagCompound();
-                tile.readFromNBT(tag); // readTileEntityIntoTag
+                tile.writeToNBT(tag); // readTileEntityIntoTag
                 ChunkPosition pos = entry.getKey();
                 CompoundTag nativeTag = (CompoundTag) methodToNative.invoke(null, tag);
                 previous.setTile(pos.chunkPosX, pos.chunkPosY, pos.chunkPosZ, nativeTag);
