@@ -308,20 +308,17 @@ public class BukkitChunk_1_7 extends CharFaweChunk<Chunk, BukkitQueue17> {
                     section.setIdArray(newIdArray);
                     continue;
                 }
-                boolean fill = true;
                 int solid = 0;
                 char[] charArray = this.getIdArray(j);
                 for (int k = 0; k < newIdArray.length; k++) {
                     char combined = charArray[k];
                     switch (combined) {
                         case 0:
-                            fill = false;
-                            continue;
-                        case 1:
-                            fill = false;
                             if (currentIdArray[k] != 0) {
                                 solid++;
                             }
+                            continue;
+                        case 1:
                             currentIdArray[k] = 0;
                             continue;
                         default:
@@ -339,9 +336,6 @@ public class BukkitChunk_1_7 extends CharFaweChunk<Chunk, BukkitQueue17> {
                     }
                 }
                 getParent().setCount(0, solid, section);
-                if (fill) {
-                    this.setCount(j, Short.MAX_VALUE);
-                }
             }
 
             // Set biomes
