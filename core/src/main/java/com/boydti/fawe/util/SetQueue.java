@@ -122,6 +122,7 @@ public class SetQueue {
                         }
                     }
                     secondLast = System.currentTimeMillis();
+                    queue.endSet(parallel);
                 } catch (Throwable e) {
                     e.printStackTrace();
                 }
