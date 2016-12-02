@@ -7,18 +7,24 @@ import cn.nukkit.level.Level;
 import cn.nukkit.level.Position;
 import cn.nukkit.level.format.generic.BaseFullChunk;
 import cn.nukkit.math.Vector3;
+import cn.nukkit.network.protocol.UpdateBlockPacket;
 import com.boydti.fawe.FaweCache;
 import com.boydti.fawe.config.Settings;
 import com.boydti.fawe.example.CharFaweChunk;
 import com.boydti.fawe.example.NMSMappedFaweQueue;
 import com.boydti.fawe.nukkit.core.NBTConverter;
 import com.boydti.fawe.nukkit.optimization.FaweNukkit;
+import com.boydti.fawe.nukkit.optimization.FaweNukkitPlayer;
 import com.boydti.fawe.object.FaweChunk;
+import com.boydti.fawe.object.FawePlayer;
 import com.boydti.fawe.util.MathMan;
 import com.sk89q.jnbt.CompoundTag;
 import com.sk89q.worldedit.world.World;
 import java.io.File;
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
@@ -115,6 +121,43 @@ public class NukkitQueue extends NMSMappedFaweQueue<Level, BaseFullChunk, BaseFu
     @Override
     public File getSaveFolder() {
         return new File("worlds" + File.separator + world.getFolderName() + File.separator + "region");
+    }
+
+    @Override
+    public void sendBlockUpdate(Map<Long, Map<Short, Short>> blockMap, FawePlayer... players) {
+        ArrayList<Block> blocks = new ArrayList<Block>();
+        for (Map.Entry<Long, Map<Short, Short>> entry : blockMap.entrySet()) {
+            long chunkHash = entry.getKey();
+            int cx = MathMan.unpairIntX(chunkHash);
+            int cz = MathMan.unpairIntY(chunkHash);
+            Map<Short, Short> ids = entry.getValue();
+            for (Map.Entry<Short, Short> blockEntry : ids.entrySet()) {
+                short combined = blockEntry.getValue();
+                int id = FaweCache.getId(combined);
+                int data = FaweCache.getData(combined);
+                Block block = Block.get(id, data);
+                short blockHash = blockEntry.getKey();
+                block.x = (blockHash >> 12 & 0xF) + (cx << 4);
+                block.y = (blockHash & 0xFF);
+                block.z = (blockHash >> 8 & 0xF) + (cz << 4);
+                blocks.add(block);
+            }
+        }
+        Map<Level, List<Player>> playerMap = new HashMap<>();
+        for (FawePlayer player : players) {
+            Player nukkitPlayer = ((FaweNukkitPlayer) player).parent;
+            List<Player> list = playerMap.get(nukkitPlayer.getLevel());
+            if (list == null) {
+                list = new ArrayList<>();
+                playerMap.put(nukkitPlayer.getLevel(), list);
+            }
+            list.add(nukkitPlayer);
+        }
+        Block[] blocksArray = blocks.toArray(new Block[blocks.size()]);
+        for (Map.Entry<Level, List<Player>> levelListEntry : playerMap.entrySet()) {
+            List<Player> playerList = levelListEntry.getValue();
+            levelListEntry.getKey().sendBlocks(playerList.toArray(new Player[playerList.size()]), blocksArray, UpdateBlockPacket.FLAG_ALL_PRIORITY);
+        }
     }
 
     @Override

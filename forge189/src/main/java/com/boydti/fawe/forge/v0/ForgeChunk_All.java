@@ -3,10 +3,8 @@ package com.boydti.fawe.forge.v0;
 import com.boydti.fawe.Fawe;
 import com.boydti.fawe.FaweCache;
 import com.boydti.fawe.example.CharFaweChunk;
-import com.boydti.fawe.object.BytePair;
 import com.boydti.fawe.object.FaweQueue;
 import com.boydti.fawe.util.MainUtil;
-import com.boydti.fawe.util.MathMan;
 import com.sk89q.jnbt.CompoundTag;
 import com.sk89q.jnbt.ListTag;
 import com.sk89q.jnbt.StringTag;
@@ -258,11 +256,14 @@ public class ForgeChunk_All extends CharFaweChunk<Chunk, ForgeQueue_All> {
                 }
             }
             // Set tiles
-            Map<BytePair, CompoundTag> tilesToSpawn = this.getTiles();
-            for (Map.Entry<BytePair, CompoundTag> entry : tilesToSpawn.entrySet()) {
+            Map<Short, CompoundTag> tilesToSpawn = this.getTiles();
+            for (Map.Entry<Short, CompoundTag> entry : tilesToSpawn.entrySet()) {
                 CompoundTag nativeTag = entry.getValue();
-                BytePair pair = entry.getKey();
-                BlockPos pos = new BlockPos(MathMan.unpair16x((byte) pair.get0()) + bx, pair.get1() & 0xFF, MathMan.unpair16y((byte) pair.get0()) + bz); // Set pos
+                short blockHash = entry.getKey();
+                int x = (blockHash >> 12 & 0xF) + bx;
+                int y = (blockHash & 0xFF);
+                int z = (blockHash >> 8 & 0xF) + bz;
+                BlockPos pos = new BlockPos(x, y, z); // Set pos
                 TileEntity tileEntity = nmsWorld.getTileEntity(pos);
                 if (tileEntity != null) {
                     NBTTagCompound tag = (NBTTagCompound) ForgeQueue_All.methodFromNative.invoke(null, nativeTag);

@@ -4,11 +4,9 @@ import com.boydti.fawe.Fawe;
 import com.boydti.fawe.FaweCache;
 import com.boydti.fawe.bukkit.v0.BukkitQueue_0;
 import com.boydti.fawe.example.CharFaweChunk;
-import com.boydti.fawe.object.BytePair;
 import com.boydti.fawe.object.FaweChunk;
 import com.boydti.fawe.object.FaweQueue;
 import com.boydti.fawe.util.MainUtil;
-import com.boydti.fawe.util.MathMan;
 import com.sk89q.jnbt.CompoundTag;
 import com.sk89q.jnbt.ListTag;
 import com.sk89q.jnbt.StringTag;
@@ -356,14 +354,17 @@ public class BukkitChunk_1_7 extends CharFaweChunk<Chunk, BukkitQueue17> {
                 }
             }
             // Set tiles
-            Map<BytePair, CompoundTag> tilesToSpawn = this.getTiles();
+            Map<Short, CompoundTag> tilesToSpawn = this.getTiles();
             int bx = this.getX() << 4;
             int bz = this.getZ() << 4;
 
-            for (Map.Entry<BytePair, CompoundTag> entry : tilesToSpawn.entrySet()) {
+            for (Map.Entry<Short, CompoundTag> entry : tilesToSpawn.entrySet()) {
                 CompoundTag nativeTag = entry.getValue();
-                BytePair pair = entry.getKey();
-                TileEntity tileEntity = nmsWorld.getTileEntity(MathMan.unpair16x((byte) pair.get0()) + bx, pair.get1() & 0xFF, MathMan.unpair16y((byte) pair.get0()) + bz);
+                short blockHash = entry.getKey();
+                int x = (blockHash >> 12 & 0xF) + bx;
+                int y = (blockHash & 0xFF);
+                int z = (blockHash >> 8 & 0xF) + bz;
+                TileEntity tileEntity = nmsWorld.getTileEntity(x, y, z);
                 if (tileEntity != null) {
                     NBTTagCompound tag = (NBTTagCompound) BukkitQueue17.methodFromNative.invoke(BukkitQueue17.adapter, nativeTag);
                     tileEntity.a(tag); // ReadTagIntoTile

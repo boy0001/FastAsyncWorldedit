@@ -2,7 +2,6 @@ package com.boydti.fawe.jnbt.anvil;
 
 import com.boydti.fawe.FaweCache;
 import com.boydti.fawe.jnbt.NBTStreamer;
-import com.boydti.fawe.object.BytePair;
 import com.boydti.fawe.object.FaweChunk;
 import com.boydti.fawe.object.FaweQueue;
 import com.boydti.fawe.object.RunnableVal2;
@@ -27,7 +26,7 @@ public class MCAChunk extends FaweChunk<Void> {
 //    data: byte[16][2048]
 //    skylight: byte[16][2048]
 //    blocklight: byte[16][2048]
-//    entities: Map<BytePair, CompoundTag>
+//    entities: Map<Short, CompoundTag>
 //    tiles: List<CompoundTag>
 //    biomes: byte[256]
 //    compressedSize: int
@@ -39,7 +38,7 @@ public class MCAChunk extends FaweChunk<Void> {
     public byte[][] skyLight;
     public byte[][] blockLight;
     public byte[] biomes;
-    public Map<BytePair, CompoundTag> tiles = new HashMap<>();
+    public Map<Short, CompoundTag> tiles = new HashMap<>();
     public Map<UUID, CompoundTag> entities = new HashMap<>();
     private long inhabitedTime;
     private long lastUpdate;
@@ -159,9 +158,7 @@ public class MCAChunk extends FaweChunk<Void> {
                 int x = tile.getInt("x") & 15;
                 int y = tile.getInt("y");
                 int z = tile.getInt("z") & 15;
-                byte i = MathMan.pair16((byte) x, (byte) z);
-                byte j = (byte) y;
-                BytePair pair = new BytePair(i, j);
+                short pair = MathMan.tripleBlockCoord(x, y, z);
                 tiles.put(pair, tile);
             }
         });
@@ -227,9 +224,7 @@ public class MCAChunk extends FaweChunk<Void> {
     @Override
     public void setTile(int x, int y, int z, CompoundTag tile) {
         modified = true;
-        byte i = MathMan.pair16((byte) x, (byte) z);
-        byte j = (byte) y;
-        BytePair pair = new BytePair(i, j);
+        short pair = MathMan.tripleBlockCoord(x, y, z);
         if (tile != null) {
             tiles.put(pair, tile);
         } else {
@@ -257,8 +252,8 @@ public class MCAChunk extends FaweChunk<Void> {
     }
 
     @Override
-    public Map<BytePair, CompoundTag> getTiles() {
-        return tiles == null ? new HashMap<BytePair, CompoundTag>() : tiles;
+    public Map<Short, CompoundTag> getTiles() {
+        return tiles == null ? new HashMap<Short, CompoundTag>() : tiles;
     }
 
     @Override
@@ -266,9 +261,7 @@ public class MCAChunk extends FaweChunk<Void> {
         if (tiles == null || tiles.isEmpty()) {
             return null;
         }
-        byte i = MathMan.pair16((byte) x, (byte) z);
-        byte j = (byte) y;
-        BytePair pair = new BytePair(i, j);
+        short pair = MathMan.tripleBlockCoord(x, y, z);
         return tiles.get(pair);
     }
 

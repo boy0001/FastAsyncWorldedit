@@ -23,6 +23,7 @@ import com.sk89q.worldedit.world.registry.BundledBlockData;
 import java.io.File;
 import java.util.Collection;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentLinkedDeque;
@@ -243,6 +244,8 @@ public abstract class FaweQueue {
         }
         return count;
     }
+
+    public abstract void sendBlockUpdate(Map<Long, Map<Short, Short>> blockMap, FawePlayer... players);
 
     @Deprecated
     public boolean next() {

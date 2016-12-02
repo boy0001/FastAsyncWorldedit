@@ -3,6 +3,7 @@ package com.boydti.fawe.jnbt.anvil;
 import com.boydti.fawe.example.CharFaweChunk;
 import com.boydti.fawe.example.NMSMappedFaweQueue;
 import com.boydti.fawe.object.FaweChunk;
+import com.boydti.fawe.object.FawePlayer;
 import com.boydti.fawe.object.FaweQueue;
 import com.boydti.fawe.object.RunnableVal4;
 import com.sk89q.jnbt.CompoundTag;
@@ -326,6 +327,13 @@ public class MCAQueue extends NMSMappedFaweQueue<FaweQueue, FaweChunk, FaweChunk
     public void endSet(boolean parallel) {
         if (parent != null) {
             parent.endSet(parallel);
+        }
+    }
+
+    @Override
+    public void sendBlockUpdate(Map<Long, Map<Short, Short>> blockMap, FawePlayer... players) {
+        if (parent != null) {
+            parentNMS.sendBlockUpdate(blockMap, players);
         }
     }
 }

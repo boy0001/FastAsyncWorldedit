@@ -298,7 +298,7 @@ public abstract class FaweStreamChangeSet extends FaweChangeSet {
         }
         try {
             NBTOutputStream nbtos = getTileCreateOS();
-            nbtos.writeNamedTag(tileCreateSize++ + "", tag);
+            nbtos.writeTag(tag);
         } catch (IOException e) {
             MainUtil.handleError(e);
         }
@@ -310,7 +310,7 @@ public abstract class FaweStreamChangeSet extends FaweChangeSet {
         }
         try {
             NBTOutputStream nbtos = getTileRemoveOS();
-            nbtos.writeNamedTag(tileRemoveSize++ + "", tag);
+            nbtos.writeTag(tag);
         } catch (IOException e) {
             MainUtil.handleError(e);
         }
@@ -322,7 +322,7 @@ public abstract class FaweStreamChangeSet extends FaweChangeSet {
         }
         try {
             NBTOutputStream nbtos = getEntityRemoveOS();
-            nbtos.writeNamedTag(entityRemoveSize++ + "", tag);
+            nbtos.writeTag(tag);
         } catch (IOException e) {
             MainUtil.handleError(e);
         }
@@ -334,7 +334,7 @@ public abstract class FaweStreamChangeSet extends FaweChangeSet {
         }
         try {
             NBTOutputStream nbtos = getEntityCreateOS();
-            nbtos.writeNamedTag(entityCreateSize++ + "", tag);
+            nbtos.writeTag(tag);
         } catch (IOException e) {
             MainUtil.handleError(e);
         }
@@ -468,7 +468,7 @@ public abstract class FaweStreamChangeSet extends FaweChangeSet {
 
                 public CompoundTag read() {
                     try {
-                        return (CompoundTag) is.readNamedTag().getTag();
+                        return (CompoundTag) is.readTag();
                     } catch (Exception ignoreEOS) {}
                     return null;
                 }
@@ -518,7 +518,7 @@ public abstract class FaweStreamChangeSet extends FaweChangeSet {
 
                 public CompoundTag read() {
                     try {
-                        return (CompoundTag) is.readNamedTag().getTag();
+                        return (CompoundTag) is.readTag();
                     } catch (Exception ignoreEOS) {}
                     return null;
                 }

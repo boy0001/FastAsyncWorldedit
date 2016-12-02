@@ -240,7 +240,7 @@ public abstract class FaweChunk<T> implements Callable<FaweChunk> {
      * get1 => y
      * @return
      */
-    public abstract Map<BytePair, CompoundTag> getTiles();
+    public abstract Map<Short, CompoundTag> getTiles();
 
     /**
      * Get the tile at a location

@@ -89,6 +89,10 @@ public final class NBTOutputStream implements Closeable {
         writeTagPayload(tag);
     }
 
+    public void writeEndTag() throws IOException {
+        os.writeByte(NBTConstants.TYPE_END);
+    }
+
     /**
      * Writes tag payload.
      *
@@ -194,8 +198,12 @@ public final class NBTOutputStream implements Closeable {
         Class<? extends Tag> clazz = tag.getType();
         List<Tag> tags = tag.getValue();
         int size = tags.size();
-
-        os.writeByte(NBTUtils.getTypeCode(clazz));
+        if (!tags.isEmpty()) {
+            Tag tag0 = tags.get(0);
+            os.writeByte(NBTUtils.getTypeCode(tag0.getClass()));
+        } else {
+            os.writeByte(NBTUtils.getTypeCode(clazz));
+        }
         os.writeInt(size);
         for (Tag tag1 : tags) {
             writeTagPayload(tag1);

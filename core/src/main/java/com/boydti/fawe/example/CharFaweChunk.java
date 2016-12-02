@@ -1,7 +1,6 @@
 package com.boydti.fawe.example;
 
 import com.boydti.fawe.FaweCache;
-import com.boydti.fawe.object.BytePair;
 import com.boydti.fawe.object.FaweChunk;
 import com.boydti.fawe.object.FaweQueue;
 import com.boydti.fawe.util.MathMan;
@@ -21,7 +20,7 @@ public abstract class CharFaweChunk<T, V extends FaweQueue> extends FaweChunk<T>
     public final byte[] heightMap;
 
     public int[][] biomes;
-    public HashMap<BytePair, CompoundTag> tiles;
+    public HashMap<Short, CompoundTag> tiles;
     public HashSet<CompoundTag> entities;
     public HashSet<UUID> entityRemoves;
 
@@ -139,9 +138,7 @@ public abstract class CharFaweChunk<T, V extends FaweQueue> extends FaweChunk<T>
         if (tiles == null) {
             tiles = new HashMap<>();
         }
-        byte i = MathMan.pair16((byte) x, (byte) z);
-        byte j = (byte) y;
-        BytePair pair = new BytePair(i, j);
+        short pair = MathMan.tripleBlockCoord(x, y, z);
         tiles.put(pair, tile);
     }
 
@@ -150,15 +147,13 @@ public abstract class CharFaweChunk<T, V extends FaweQueue> extends FaweChunk<T>
         if (tiles == null) {
             return null;
         }
-        byte i = MathMan.pair16((byte) x, (byte) z);
-        byte j = (byte) y;
-        BytePair pair = new BytePair(i, j);
+        short pair = MathMan.tripleBlockCoord(x, y, z);
         return tiles.get(pair);
     }
 
     @Override
-    public Map<BytePair, CompoundTag> getTiles() {
-        return tiles == null ? new HashMap<BytePair, CompoundTag>() : tiles;
+    public Map<Short, CompoundTag> getTiles() {
+        return tiles == null ? new HashMap<Short, CompoundTag>() : tiles;
     }
 
     @Override

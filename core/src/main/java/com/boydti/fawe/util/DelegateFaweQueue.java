@@ -1,6 +1,7 @@
 package com.boydti.fawe.util;
 
 import com.boydti.fawe.object.FaweChunk;
+import com.boydti.fawe.object.FawePlayer;
 import com.boydti.fawe.object.FaweQueue;
 import com.boydti.fawe.object.RunnableVal2;
 import com.boydti.fawe.object.exception.FaweException;
@@ -9,6 +10,7 @@ import com.sk89q.worldedit.EditSession;
 import com.sk89q.worldedit.world.biome.BaseBiome;
 import java.io.File;
 import java.util.Collection;
+import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentLinkedDeque;
@@ -164,6 +166,11 @@ public class DelegateFaweQueue extends FaweQueue {
     @Override
     public int cancel() {
         return parent.cancel();
+    }
+
+    @Override
+    public void sendBlockUpdate(Map<Long, Map<Short, Short>> blockMap, FawePlayer... players) {
+        parent.sendBlockUpdate(blockMap, players);
     }
 
     @Override

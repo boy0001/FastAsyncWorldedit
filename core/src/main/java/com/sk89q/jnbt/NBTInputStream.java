@@ -197,6 +197,9 @@ public final class NBTInputStream implements Closeable {
                 return;
             case NBTConstants.TYPE_LIST:
                 int childType = is.readByte();
+                if (childType == NBTConstants.TYPE_LIST) {
+                    childType = NBTConstants.TYPE_COMPOUND;
+                }
                 length = is.readInt();
                 reader = getReader.runAndGet(node + ".?", null).value2;
                 if (reader != null) {
@@ -307,6 +310,9 @@ public final class NBTInputStream implements Closeable {
                 return (new String(bytes, NBTConstants.CHARSET));
             case NBTConstants.TYPE_LIST:
                 int childType = is.readByte();
+                if (childType == NBTConstants.TYPE_LIST) {
+                    childType = NBTConstants.TYPE_COMPOUND;
+                }
                 length = is.readInt();
                 List<Tag> tagList = new ArrayList<Tag>();
                 for (int i = 0; i < length; ++i) {
@@ -382,6 +388,9 @@ public final class NBTInputStream implements Closeable {
                 return new StringTag(new String(bytes, NBTConstants.CHARSET));
             case NBTConstants.TYPE_LIST:
                 int childType = is.readByte();
+                if (childType == NBTConstants.TYPE_LIST) {
+                    childType = NBTConstants.TYPE_COMPOUND;
+                }
                 length = is.readInt();
                 List<Tag> tagList = new ArrayList<Tag>();
                 for (int i = 0; i < length; ++i) {

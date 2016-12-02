@@ -3,7 +3,6 @@ package com.boydti.fawe.object.changeset;
 import com.boydti.fawe.Fawe;
 import com.boydti.fawe.FaweCache;
 import com.boydti.fawe.config.Settings;
-import com.boydti.fawe.object.BytePair;
 import com.boydti.fawe.object.FaweChunk;
 import com.boydti.fawe.object.FawePlayer;
 import com.boydti.fawe.object.FaweQueue;
@@ -256,15 +255,15 @@ public abstract class FaweChangeSet implements ChangeSet {
                             // Tile changes
                             {
                                 // Tiles created
-                                Map<BytePair, CompoundTag> tiles = next.getTiles();
-                                for (Map.Entry<BytePair, CompoundTag> entry : tiles.entrySet()) {
+                                Map<Short, CompoundTag> tiles = next.getTiles();
+                                for (Map.Entry<Short, CompoundTag> entry : tiles.entrySet()) {
                                     synchronized (lock) {
                                         addTileCreate(entry.getValue());
                                     }
                                 }
                                 // Tiles removed
                                 tiles = previous.getTiles();
-                                for (Map.Entry<BytePair, CompoundTag> entry : tiles.entrySet()) {
+                                for (Map.Entry<Short, CompoundTag> entry : tiles.entrySet()) {
                                     synchronized (lock) {
                                         addTileRemove(entry.getValue());
                                     }

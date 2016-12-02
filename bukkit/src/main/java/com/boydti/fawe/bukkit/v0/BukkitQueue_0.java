@@ -1,10 +1,13 @@
 package com.boydti.fawe.bukkit.v0;
 
 import com.boydti.fawe.Fawe;
+import com.boydti.fawe.FaweCache;
+import com.boydti.fawe.bukkit.BukkitPlayer;
 import com.boydti.fawe.bukkit.FaweBukkit;
 import com.boydti.fawe.example.CharFaweChunk;
 import com.boydti.fawe.example.NMSMappedFaweQueue;
 import com.boydti.fawe.object.FaweChunk;
+import com.boydti.fawe.object.FawePlayer;
 import com.boydti.fawe.object.RunnableVal;
 import com.boydti.fawe.util.MathMan;
 import com.boydti.fawe.util.TaskManager;
@@ -20,8 +23,10 @@ import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import org.bukkit.Bukkit;
 import org.bukkit.Chunk;
+import org.bukkit.Location;
 import org.bukkit.World;
 import org.bukkit.WorldCreator;
+import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.world.ChunkUnloadEvent;
@@ -227,6 +232,31 @@ public abstract class BukkitQueue_0<CHUNK, CHUNKSECTIONS, SECTION> extends NMSMa
                 }
             } catch (Throwable e) {
                 e.printStackTrace();
+            }
+        }
+    }
+
+    @Override
+    public void sendBlockUpdate(Map<Long, Map<Short, Short>> blockMap, FawePlayer... players) {
+        for (FawePlayer player : players) {
+            Player bukkitPlayer = ((BukkitPlayer) player).parent;
+            World world = bukkitPlayer.getWorld();
+            for (Map.Entry<Long, Map<Short, Short>> entry : blockMap.entrySet()) {
+                long chunkHash = entry.getKey();
+                int cx = MathMan.unpairIntX(chunkHash);
+                int cz = MathMan.unpairIntY(chunkHash);
+                Map<Short, Short> blocks = entry.getValue();
+                for (Map.Entry<Short, Short> blockEntry : blocks.entrySet()) {
+                    short blockHash = blockEntry.getKey();
+                    int x = (blockHash >> 12 & 0xF) + (cx << 4);
+                    int y = (blockHash & 0xFF);
+                    int z = (blockHash >> 8 & 0xF) + (cz << 4);
+                    short combined = blockEntry.getValue();
+                    int id = FaweCache.getId(combined);
+                    byte data = (byte) FaweCache.getData(combined);
+                    Location loc = new Location(world, x, y, z);
+                    bukkitPlayer.sendBlockChange(loc, id, data);
+                }
             }
         }
     }

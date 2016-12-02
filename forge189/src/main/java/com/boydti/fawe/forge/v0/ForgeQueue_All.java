@@ -3,13 +3,17 @@ package com.boydti.fawe.forge.v0;
 import com.boydti.fawe.FaweCache;
 import com.boydti.fawe.example.CharFaweChunk;
 import com.boydti.fawe.example.NMSMappedFaweQueue;
+import com.boydti.fawe.forge.ForgePlayer;
 import com.boydti.fawe.object.FaweChunk;
+import com.boydti.fawe.object.FawePlayer;
 import com.boydti.fawe.util.MainUtil;
 import com.boydti.fawe.util.MathMan;
 import com.boydti.fawe.util.ReflectionUtils;
 import com.sk89q.jnbt.CompoundTag;
 import com.sk89q.jnbt.StringTag;
 import com.sk89q.jnbt.Tag;
+import io.netty.buffer.ByteBuf;
+import io.netty.buffer.ByteBufAllocator;
 import java.io.File;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
@@ -26,7 +30,9 @@ import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.nbt.NBTBase;
 import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.network.PacketBuffer;
 import net.minecraft.network.play.server.S21PacketChunkData;
+import net.minecraft.network.play.server.S22PacketMultiBlockChange;
 import net.minecraft.server.management.PlayerManager;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.BlockPos;
@@ -195,6 +201,34 @@ public class ForgeQueue_All extends NMSMappedFaweQueue<World, Chunk, ExtendedBlo
 
     public int getNonEmptyBlockCount(ExtendedBlockStorage section) throws IllegalAccessException {
         return (int) fieldNonEmptyBlockCount.get(section);
+    }
+
+    @Override
+    public void sendBlockUpdate(Map<Long, Map<Short, Short>> blockMap, FawePlayer... players) {
+        for (Map.Entry<Long, Map<Short, Short>> chunkEntry : blockMap.entrySet()) {
+            try {
+                long chunkHash = chunkEntry.getKey();
+                Map<Short, Short> blocks = chunkEntry.getValue();
+                S22PacketMultiBlockChange packet = new S22PacketMultiBlockChange();
+                int cx = MathMan.unpairIntX(chunkHash);
+                int cz = MathMan.unpairIntY(chunkHash);
+                ByteBuf byteBuf = ByteBufAllocator.DEFAULT.buffer();
+                PacketBuffer buffer = new PacketBuffer(byteBuf);
+                buffer.writeInt(cx);
+                buffer.writeInt(cz);
+                buffer.writeVarIntToBuffer(blocks.size());
+                for (Map.Entry<Short, Short> blockEntry : blocks.entrySet()) {
+                    buffer.writeShort(blockEntry.getKey());
+                    buffer.writeVarIntToBuffer(blockEntry.getValue());
+                }
+                packet.readPacketData(buffer);
+                for (FawePlayer player : players) {
+                    ((ForgePlayer) player).parent.playerNetServerHandler.sendPacket(packet);
+                }
+            } catch (Throwable e) {
+                e.printStackTrace();
+            }
+        }
     }
 
     @Override

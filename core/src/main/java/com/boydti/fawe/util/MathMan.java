@@ -65,9 +65,7 @@ public class MathMan {
     }
 
     public static final short tripleBlockCoord(int x, int y, int z) {
-        byte hi = (byte) ((x & 15) + ((z & 15) << 4));
-        byte lo = (byte) y;
-        return (short) (((hi & 0xFF) << 8) | (lo & 0xFF));
+        return (short) ((x & 15) << 12 | (z & 15) << 8 | y);
     }
 
     public static final long chunkXZ2Int(int x, int z) {

@@ -1,6 +1,5 @@
 package com.boydti.fawe.example;
 
-import com.boydti.fawe.object.BytePair;
 import com.boydti.fawe.object.FaweChunk;
 import com.boydti.fawe.object.FaweQueue;
 import com.sk89q.jnbt.CompoundTag;
@@ -74,7 +73,7 @@ public class NullFaweChunk extends FaweChunk<Void> {
     }
 
     @Override
-    public Map<BytePair, CompoundTag> getTiles() {
+    public Map<Short, CompoundTag> getTiles() {
         return new HashMap<>();
     }
 

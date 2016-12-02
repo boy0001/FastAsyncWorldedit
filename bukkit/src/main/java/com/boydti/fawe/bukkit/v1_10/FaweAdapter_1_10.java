@@ -23,7 +23,6 @@ import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -210,146 +209,110 @@ public final class FaweAdapter_1_10 implements BukkitImplAdapter
         return null;
     }
 
-    private Tag toNative(NBTBase foreign)
-    {
+    public Tag toNative(NBTBase foreign) {
         if (foreign == null) {
             return null;
         }
-        if ((foreign instanceof NBTTagCompound))
-        {
-            Map<String, Tag> values = new HashMap();
-            Set<String> foreignKeys = ((NBTTagCompound)foreign).c();
-            for (String str : foreignKeys)
-            {
-                NBTBase base = ((NBTTagCompound)foreign).get(str);
+        if (foreign instanceof NBTTagCompound) {
+            Map<String, Tag> values = new HashMap<String, Tag>();
+            Set<String> foreignKeys = ((NBTTagCompound) foreign).c(); // map.keySet
+
+            for (String str : foreignKeys) {
+                NBTBase base = ((NBTTagCompound) foreign).get(str);
                 values.put(str, toNative(base));
             }
             return new CompoundTag(values);
-        }
-        if ((foreign instanceof NBTTagByte)) {
-            return new ByteTag(((NBTTagByte)foreign).g());
-        }
-        if ((foreign instanceof NBTTagByteArray)) {
-            return new ByteArrayTag(((NBTTagByteArray)foreign).c());
-        }
-        if ((foreign instanceof NBTTagDouble)) {
-            return new DoubleTag(((NBTTagDouble)foreign).h());
-        }
-        if ((foreign instanceof NBTTagFloat)) {
-            return new FloatTag(((NBTTagFloat)foreign).i());
-        }
-        if ((foreign instanceof NBTTagInt)) {
-            return new IntTag(((NBTTagInt)foreign).e());
-        }
-        if ((foreign instanceof NBTTagIntArray)) {
-            return new IntArrayTag(((NBTTagIntArray)foreign).d());
-        }
-        if ((foreign instanceof NBTTagList)) {
-            try
-            {
-                return toNativeList((NBTTagList)foreign);
+        } else if (foreign instanceof NBTTagByte) {
+            return new ByteTag(((NBTTagByte) foreign).g()); // getByte
+        } else if (foreign instanceof NBTTagByteArray) {
+            return new ByteArrayTag(((NBTTagByteArray) foreign).c()); // data
+        } else if (foreign instanceof NBTTagDouble) {
+            return new DoubleTag(((NBTTagDouble) foreign).h()); // getDouble
+        } else if (foreign instanceof NBTTagFloat) {
+            return new FloatTag(((NBTTagFloat) foreign).i()); // getFloat
+        } else if (foreign instanceof NBTTagInt) {
+            return new IntTag(((NBTTagInt) foreign).e()); // getInt
+        } else if (foreign instanceof NBTTagIntArray) {
+            return new IntArrayTag(((NBTTagIntArray) foreign).d()); // data
+        } else if (foreign instanceof NBTTagList) {
+            try {
+                return toNativeList((NBTTagList) foreign);
+            } catch (Throwable e) {
+                logger.log(Level.WARNING, "Failed to convert NBTTagList", e);
+                return new ListTag(ByteTag.class, new ArrayList<ByteTag>());
             }
-            catch (Throwable e)
-            {
-                this.logger.log(Level.WARNING, "Failed to convert NBTTagList", e);
-                return new ListTag(ByteTag.class, new ArrayList());
-            }
-        }
-        if ((foreign instanceof NBTTagLong)) {
-            return new LongTag(((NBTTagLong)foreign).d());
-        }
-        if ((foreign instanceof NBTTagShort)) {
-            return new ShortTag(((NBTTagShort)foreign).f());
-        }
-        if ((foreign instanceof NBTTagString)) {
-            return new StringTag(((NBTTagString)foreign).c_());
-        }
-        if ((foreign instanceof NBTTagEnd)) {
+        } else if (foreign instanceof NBTTagLong) {
+            return new LongTag(((NBTTagLong) foreign).d()); // getLong
+        } else if (foreign instanceof NBTTagShort) {
+            return new ShortTag(((NBTTagShort) foreign).f()); // getShort
+        } else if (foreign instanceof NBTTagString) {
+            return new StringTag(((NBTTagString) foreign).c_()); // data
+        } else if (foreign instanceof NBTTagEnd) {
             return new EndTag();
+        } else {
+            throw new IllegalArgumentException("Don't know how to make native " + foreign.getClass().getCanonicalName());
         }
-        throw new IllegalArgumentException("Don't know how to make native " + foreign.getClass().getCanonicalName());
     }
 
-    private ListTag toNativeList(NBTTagList foreign)
-            throws NoSuchFieldException, SecurityException, IllegalArgumentException, IllegalAccessException
-    {
-        List<Tag> values = new ArrayList();
-        int type = foreign.getTypeId();
+    public ListTag toNativeList(NBTTagList foreign) throws NoSuchFieldException, SecurityException, IllegalArgumentException, IllegalAccessException {
+        List<Tag> values = new ArrayList<Tag>();
+        int type = foreign.g();
 
-        List foreignList = (List)this.nbtListTagListField.get(foreign);
-        for (int i = 0; i < foreign.size(); i++)
-        {
-            NBTBase element = (NBTBase)foreignList.get(i);
-            values.add(toNative(element));
+        List foreignList;
+        foreignList = (List) nbtListTagListField.get(foreign);
+        for (int i = 0; i < foreign.size(); i++) {
+            NBTBase element = (NBTBase) foreignList.get(i);
+            values.add(toNative(element)); // List elements shouldn't have names
         }
+
         Class<? extends Tag> cls = NBTConstants.getClassFromType(type);
         return new ListTag(cls, values);
     }
 
-    private NBTBase fromNative(Tag foreign)
-    {
+    public NBTBase fromNative(Tag foreign) {
         if (foreign == null) {
             return null;
         }
-        Map.Entry<String, Tag> entry;
-        if ((foreign instanceof CompoundTag))
-        {
+        if (foreign instanceof CompoundTag) {
             NBTTagCompound tag = new NBTTagCompound();
-            for (Iterator localIterator = ((CompoundTag)foreign)
-                    .getValue().entrySet().iterator(); localIterator.hasNext();)
-            {
-                entry = (Map.Entry)localIterator.next();
-
-                tag.set((String)entry.getKey(), fromNative((Tag)entry.getValue()));
+            for (Map.Entry<String, Tag> entry : ((CompoundTag) foreign)
+                    .getValue().entrySet()) {
+                tag.set(entry.getKey(), fromNative(entry.getValue()));
             }
             return tag;
-        }
-        if ((foreign instanceof ByteTag)) {
-            return new NBTTagByte(((ByteTag)foreign).getValue().byteValue());
-        }
-        if ((foreign instanceof ByteArrayTag)) {
-            return new NBTTagByteArray(((ByteArrayTag)foreign).getValue());
-        }
-        if ((foreign instanceof DoubleTag)) {
-            return new NBTTagDouble(((DoubleTag)foreign).getValue().doubleValue());
-        }
-        if ((foreign instanceof FloatTag)) {
-            return new NBTTagFloat(((FloatTag)foreign).getValue().floatValue());
-        }
-        if ((foreign instanceof IntTag)) {
-            return new NBTTagInt(((IntTag)foreign).getValue().intValue());
-        }
-        if ((foreign instanceof IntArrayTag)) {
-            return new NBTTagIntArray(((IntArrayTag)foreign).getValue());
-        }
-        if ((foreign instanceof ListTag))
-        {
+        } else if (foreign instanceof ByteTag) {
+            return new NBTTagByte(((ByteTag) foreign).getValue());
+        } else if (foreign instanceof ByteArrayTag) {
+            return new NBTTagByteArray(((ByteArrayTag) foreign).getValue());
+        } else if (foreign instanceof DoubleTag) {
+            return new NBTTagDouble(((DoubleTag) foreign).getValue());
+        } else if (foreign instanceof FloatTag) {
+            return new NBTTagFloat(((FloatTag) foreign).getValue());
+        } else if (foreign instanceof IntTag) {
+            return new NBTTagInt(((IntTag) foreign).getValue());
+        } else if (foreign instanceof IntArrayTag) {
+            return new NBTTagIntArray(((IntArrayTag) foreign).getValue());
+        } else if (foreign instanceof ListTag) {
             NBTTagList tag = new NBTTagList();
-            ListTag foreignList = (ListTag)foreign;
+            ListTag foreignList = (ListTag) foreign;
             for (Tag t : foreignList.getValue()) {
                 tag.add(fromNative(t));
             }
             return tag;
-        }
-        if ((foreign instanceof LongTag)) {
-            return new NBTTagLong(((LongTag)foreign).getValue().longValue());
-        }
-        if ((foreign instanceof ShortTag)) {
-            return new NBTTagShort(((ShortTag)foreign).getValue().shortValue());
-        }
-        if ((foreign instanceof StringTag)) {
-            return new NBTTagString(((StringTag)foreign).getValue());
-        }
-        if ((foreign instanceof EndTag)) {
-            try
-            {
-                return (NBTBase)this.nbtCreateTagMethod.invoke(null, new Object[] { Byte.valueOf((byte) 0) });
-            }
-            catch (Exception e)
-            {
+        } else if (foreign instanceof LongTag) {
+            return new NBTTagLong(((LongTag) foreign).getValue());
+        } else if (foreign instanceof ShortTag) {
+            return new NBTTagShort(((ShortTag) foreign).getValue());
+        } else if (foreign instanceof StringTag) {
+            return new NBTTagString(((StringTag) foreign).getValue());
+        } else if (foreign instanceof EndTag) {
+            try {
+                return (NBTBase) nbtCreateTagMethod.invoke(null, (byte) 0);
+            } catch (Exception e) {
                 return null;
             }
+        } else {
+            throw new IllegalArgumentException("Don't know how to make NMS " + foreign.getClass().getCanonicalName());
         }
-        throw new IllegalArgumentException("Don't know how to make NMS " + foreign.getClass().getCanonicalName());
     }
 }

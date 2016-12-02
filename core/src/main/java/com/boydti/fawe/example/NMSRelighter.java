@@ -95,11 +95,9 @@ public class NMSRelighter implements Relighter{
             int bx = chunkX << 4;
             int bz = chunkZ << 4;
             for (short blockHash : blocks.keySet()) {
-                int hi = (byte) (blockHash >>> 8);
-                int lo = (byte) blockHash;
-                int y = lo & 0xFF;
-                int x = (hi & 0xF) + bx;
-                int z = ((hi >> 4) & 0xF) + bz;
+                int x = (blockHash >> 12 & 0xF) + bx;
+                int y = (blockHash & 0xFF);
+                int z = (blockHash >> 8 & 0xF) + bz;
                 int lcx = x & 0xF;
                 int lcz = z & 0xF;
                 int oldLevel = queue.getEmmittedLight(x, y, z);
