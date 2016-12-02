@@ -24,6 +24,8 @@ public class Settings extends Config {
     @Final
     public static String PLATFORM = null; // These values are set from FAWE before loading
 
+    @Comment("Allow the plugin to update")
+    public static boolean UPDATE = true;
     @Comment("Send anonymous usage statistics to MCStats.org")
     public static boolean METRICS = true;
     @Comment("FAWE will skip chunks when there's not enough memory available")

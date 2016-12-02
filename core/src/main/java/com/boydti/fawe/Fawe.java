@@ -237,13 +237,15 @@ public class Fawe {
             }
         }, 0);
 
-        // Delayed updating
-        TaskManager.IMP.async(new Runnable() {
-            @Override
-            public void run() {
-                Updater.update(implementation.getPlatform(), getVersion());
-            }
-        });
+        if (Settings.UPDATE) {
+            // Delayed updating
+            TaskManager.IMP.async(new Runnable() {
+                @Override
+                public void run() {
+                    Updater.update(implementation.getPlatform(), getVersion());
+                }
+            });
+        }
     }
 
     private boolean isJava8 = MainUtil.getJavaVersion() >= 1.8;
