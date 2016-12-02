@@ -40,6 +40,7 @@ shadowJar {
     }
     archiveName = "${parent.name}-${project.name}-${parent.version}.jar"
     destinationDir = file '../target'
+    relocate('com.google.gson', 'com.sk89q.worldedit.internal.gson')
 }
 shadowJar.doLast {
     task ->
