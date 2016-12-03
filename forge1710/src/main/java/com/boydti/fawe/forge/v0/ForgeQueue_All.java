@@ -290,11 +290,11 @@ public class ForgeQueue_All extends NMSMappedFaweQueue<World, Chunk, ExtendedBlo
     }
 
     @Override
-    public void sendBlockUpdate(Map<Long, Map<Short, Short>> blockMap, FawePlayer... players) {
-        for (Map.Entry<Long, Map<Short, Short>> chunkEntry : blockMap.entrySet()) {
+    public void sendBlockUpdate(Map<Long, Map<Short, Character>> blockMap, FawePlayer... players) {
+        for (Map.Entry<Long, Map<Short, Character>> chunkEntry : blockMap.entrySet()) {
             try {
                 long chunkHash = chunkEntry.getKey();
-                Map<Short, Short> blocks = chunkEntry.getValue();
+                Map<Short, Character> blocks = chunkEntry.getValue();
                 S22PacketMultiBlockChange packet = new S22PacketMultiBlockChange();
                 int cx = MathMan.unpairIntX(chunkHash);
                 int cz = MathMan.unpairIntY(chunkHash);
@@ -303,7 +303,7 @@ public class ForgeQueue_All extends NMSMappedFaweQueue<World, Chunk, ExtendedBlo
                 buffer.writeInt(cx);
                 buffer.writeInt(cz);
                 buffer.writeVarIntToBuffer(blocks.size());
-                for (Map.Entry<Short, Short> blockEntry : blocks.entrySet()) {
+                for (Map.Entry<Short, Character> blockEntry : blocks.entrySet()) {
                     buffer.writeShort(blockEntry.getKey());
                     buffer.writeVarIntToBuffer(blockEntry.getValue());
                 }

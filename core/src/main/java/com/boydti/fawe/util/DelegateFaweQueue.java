@@ -169,7 +169,7 @@ public class DelegateFaweQueue extends FaweQueue {
     }
 
     @Override
-    public void sendBlockUpdate(Map<Long, Map<Short, Short>> blockMap, FawePlayer... players) {
+    public void sendBlockUpdate(Map<Long, Map<Short, Character>> blockMap, FawePlayer... players) {
         parent.sendBlockUpdate(blockMap, players);
     }
 

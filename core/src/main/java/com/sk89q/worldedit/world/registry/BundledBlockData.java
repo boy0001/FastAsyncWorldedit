@@ -140,6 +140,23 @@ public class BundledBlockData {
                         valuesEntry.getValue().setDirection(dirs[index]);
                         index += increment;
                     }
+                } else if (entry.legacyId == 69) {
+                    dir = entry.states.get("facing");
+                    Vector[] dirs = new Vector[]{
+                            new Vector(0, -1, 0),
+                            new Vector(1, 0, 0),
+                            new Vector(-1, 0, 0),
+                            new Vector(0, 0, 1),
+                            new Vector(0, 0, -1),
+                            new Vector(0, 1, 0),
+                            new Vector(0, 1, 0),
+                            new Vector(0, -1, 0)};
+                    int len = dir.values.size();
+                    int index = 0;
+                    for (Map.Entry<String, FaweStateValue> valuesEntry : dir.values.entrySet()) {
+                        valuesEntry.getValue().setDirection(dirs[index]);
+                        index ++;
+                    }
                 }
             }
         }

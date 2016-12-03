@@ -124,15 +124,15 @@ public class NukkitQueue extends NMSMappedFaweQueue<Level, BaseFullChunk, BaseFu
     }
 
     @Override
-    public void sendBlockUpdate(Map<Long, Map<Short, Short>> blockMap, FawePlayer... players) {
+    public void sendBlockUpdate(Map<Long, Map<Short, Character>> blockMap, FawePlayer... players) {
         ArrayList<Block> blocks = new ArrayList<Block>();
-        for (Map.Entry<Long, Map<Short, Short>> entry : blockMap.entrySet()) {
+        for (Map.Entry<Long, Map<Short, Character>> entry : blockMap.entrySet()) {
             long chunkHash = entry.getKey();
             int cx = MathMan.unpairIntX(chunkHash);
             int cz = MathMan.unpairIntY(chunkHash);
-            Map<Short, Short> ids = entry.getValue();
-            for (Map.Entry<Short, Short> blockEntry : ids.entrySet()) {
-                short combined = blockEntry.getValue();
+            Map<Short, Character> ids = entry.getValue();
+            for (Map.Entry<Short, Character> blockEntry : ids.entrySet()) {
+                char combined = blockEntry.getValue();
                 int id = FaweCache.getId(combined);
                 int data = FaweCache.getData(combined);
                 Block block = Block.get(id, data);

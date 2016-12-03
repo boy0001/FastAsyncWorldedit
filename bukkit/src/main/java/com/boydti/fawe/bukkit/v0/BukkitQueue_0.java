@@ -237,21 +237,21 @@ public abstract class BukkitQueue_0<CHUNK, CHUNKSECTIONS, SECTION> extends NMSMa
     }
 
     @Override
-    public void sendBlockUpdate(Map<Long, Map<Short, Short>> blockMap, FawePlayer... players) {
+    public void sendBlockUpdate(Map<Long, Map<Short, Character>> blockMap, FawePlayer... players) {
         for (FawePlayer player : players) {
             Player bukkitPlayer = ((BukkitPlayer) player).parent;
             World world = bukkitPlayer.getWorld();
-            for (Map.Entry<Long, Map<Short, Short>> entry : blockMap.entrySet()) {
+            for (Map.Entry<Long, Map<Short, Character>> entry : blockMap.entrySet()) {
                 long chunkHash = entry.getKey();
                 int cx = MathMan.unpairIntX(chunkHash);
                 int cz = MathMan.unpairIntY(chunkHash);
-                Map<Short, Short> blocks = entry.getValue();
-                for (Map.Entry<Short, Short> blockEntry : blocks.entrySet()) {
+                Map<Short, Character> blocks = entry.getValue();
+                for (Map.Entry<Short, Character> blockEntry : blocks.entrySet()) {
                     short blockHash = blockEntry.getKey();
                     int x = (blockHash >> 12 & 0xF) + (cx << 4);
                     int y = (blockHash & 0xFF);
                     int z = (blockHash >> 8 & 0xF) + (cz << 4);
-                    short combined = blockEntry.getValue();
+                    char combined = blockEntry.getValue();
                     int id = FaweCache.getId(combined);
                     byte data = (byte) FaweCache.getData(combined);
                     Location loc = new Location(world, x, y, z);

@@ -245,7 +245,7 @@ public abstract class FaweQueue {
         return count;
     }
 
-    public abstract void sendBlockUpdate(Map<Long, Map<Short, Short>> blockMap, FawePlayer... players);
+    public abstract void sendBlockUpdate(Map<Long, Map<Short, Character>> blockMap, FawePlayer... players);
 
     @Deprecated
     public boolean next() {
