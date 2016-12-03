@@ -61,10 +61,11 @@ public class CPUOptimizedClipboard extends FaweClipboard {
     }
 
     public int getId(int index) {
-        if (add != null) {
-            return ids[index] & 0xFF + add[index] & 0xFF;
-        }
         return ids[index] & 0xFF;
+    }
+
+    public int getAdd(int index) {
+        return add[index] & 0xFF;
     }
 
     public int getData(int index) {
@@ -128,6 +129,9 @@ public class CPUOptimizedClipboard extends FaweClipboard {
 
     public BaseBlock getBlock(int index) {
         int id = getId(index);
+        if (add != null) {
+            id += getAdd(index) << 8;
+        }
         if (id == 0) {
             return FaweCache.CACHE_BLOCK[0];
         }
@@ -178,8 +182,12 @@ public class CPUOptimizedClipboard extends FaweClipboard {
     }
 
     public boolean setBlock(int index, BaseBlock block) {
-        setId(index, (byte) block.getId());
-        setData(index, (byte) block.getData());
+        int id = block.getId();
+        setId(index, id);
+        setData(index, block.getData());
+        if (id >= 256) {
+            setAdd(index, (id >> 8));
+        }
         CompoundTag tile = block.getNbtData();
         if (tile != null) {
             nbtMapIndex.put(index, tile);

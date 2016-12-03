@@ -94,11 +94,7 @@ public class MemoryOptimizedClipboard extends FaweClipboard {
             if (lastIds == null) {
                 return 0;
             }
-            if (add == null) {
-                return lastIds[index & BLOCK_MASK] & 0xFF;
-            } else {
-                return lastIds[index & BLOCK_MASK] & 0xFF + getAdd(index);
-            }
+            return lastIds[index & BLOCK_MASK] & 0xFF;
         }
         saveIds();
         byte[] compressed = ids[lastIdsI = i];
@@ -107,11 +103,7 @@ public class MemoryOptimizedClipboard extends FaweClipboard {
             return 0;
         }
         lastIds = MainUtil.decompress(compressed, lastIds, BLOCK_SIZE, compressionLevel);
-        if (add == null) {
-            return lastIds[index & BLOCK_MASK] & 0xFF;
-        } else {
-            return lastIds[index & BLOCK_MASK] & 0xFF + getAdd(index);
-        }
+        return lastIds[index & BLOCK_MASK] & 0xFF;
     }
 
     int saves = 0;
@@ -301,6 +293,9 @@ public class MemoryOptimizedClipboard extends FaweClipboard {
 
     public BaseBlock getBlock(int index) {
         int id = getId(index);
+        if (add != null) {
+            id += getAdd(index) << 8;
+        }
         if (id == 0) {
             return FaweCache.CACHE_BLOCK[0];
         }
@@ -369,8 +364,12 @@ public class MemoryOptimizedClipboard extends FaweClipboard {
     }
 
     public boolean setBlock(int index, BaseBlock block) {
-        setId(index, (byte) block.getId());
-        setData(index, (byte) block.getData());
+        int id = block.getId();
+        setId(index, id);
+        if (id >= 256) {
+            setAdd(index, (id >> 8));
+        }
+        setData(index, block.getData());
         CompoundTag tile = block.getNbtData();
         if (tile != null) {
             nbtMapIndex.put(index, tile);
