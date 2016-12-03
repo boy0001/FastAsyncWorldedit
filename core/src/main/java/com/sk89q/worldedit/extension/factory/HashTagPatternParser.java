@@ -1,19 +1,6 @@
 package com.sk89q.worldedit.extension.factory;
 
-import com.boydti.fawe.object.pattern.ExistingPattern;
-import com.boydti.fawe.object.pattern.ExpressionPattern;
-import com.boydti.fawe.object.pattern.Linear3DBlockPattern;
-import com.boydti.fawe.object.pattern.LinearBlockPattern;
-import com.boydti.fawe.object.pattern.MaskedPattern;
-import com.boydti.fawe.object.pattern.NoXPattern;
-import com.boydti.fawe.object.pattern.NoYPattern;
-import com.boydti.fawe.object.pattern.NoZPattern;
-import com.boydti.fawe.object.pattern.OffsetPattern;
-import com.boydti.fawe.object.pattern.PatternExtent;
-import com.boydti.fawe.object.pattern.RandomOffsetPattern;
-import com.boydti.fawe.object.pattern.RelativePattern;
-import com.boydti.fawe.object.pattern.SolidRandomOffsetPattern;
-import com.boydti.fawe.object.pattern.SurfaceRandomOffsetPattern;
+import com.boydti.fawe.object.pattern.*;
 import com.sk89q.worldedit.EditSession;
 import com.sk89q.worldedit.EmptyClipboardException;
 import com.sk89q.worldedit.LocalSession;
@@ -92,6 +79,12 @@ public class HashTagPatternParser extends InputParser<Pattern> {
                 if (split2.length > 1) {
                     String rest = input.substring(split2[0].length() + 1);
                     switch (split2[0].toLowerCase()) {
+                        case "#id": {
+                            return new IdPattern(context.requireExtent(), parseFromInput(rest, context));
+                        }
+                        case "#data": {
+                            return new DataPattern(context.requireExtent(), parseFromInput(rest, context));
+                        }
                         case "#~":
                         case "#r":
                         case "#relative":
