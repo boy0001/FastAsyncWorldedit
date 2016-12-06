@@ -20,10 +20,9 @@
 package com.sk89q.worldedit.function.operation;
 
 import com.boydti.fawe.object.extent.BlockTranslateExtent;
-import com.boydti.fawe.object.extent.TransformExtent;
+import com.boydti.fawe.object.extent.PositionTransformExtent;
 import com.boydti.fawe.object.function.block.SimpleBlockCopy;
 import com.sk89q.worldedit.Vector;
-import com.sk89q.worldedit.WorldEdit;
 import com.sk89q.worldedit.WorldEditException;
 import com.sk89q.worldedit.entity.Entity;
 import com.sk89q.worldedit.extent.Extent;
@@ -38,9 +37,6 @@ import com.sk89q.worldedit.function.visitor.RegionVisitor;
 import com.sk89q.worldedit.math.transform.Identity;
 import com.sk89q.worldedit.math.transform.Transform;
 import com.sk89q.worldedit.regions.Region;
-import com.sk89q.worldedit.world.World;
-import com.sk89q.worldedit.world.registry.BlockRegistry;
-import com.sk89q.worldedit.world.registry.WorldData;
 import java.util.List;
 
 
@@ -222,27 +218,17 @@ public class ForwardExtentCopy implements Operation {
         }
 
         Extent finalDest = destination;
-        TransformExtent transExt;
+        Vector translation = to.subtract(from);
+        if (!translation.equals(Vector.ZERO)) {
+            finalDest = new BlockTranslateExtent(finalDest, translation.getBlockX(), translation.getBlockY(), translation.getBlockZ());
+        }
+        PositionTransformExtent transExt;
         if (!currentTransform.isIdentity()) {
-            WorldData wd;
-            if (destination instanceof World) {
-                wd = ((World) destination).getWorldData();
-            } else if (source instanceof World) {
-                wd = ((World) source).getWorldData();
-            } else {
-                wd = WorldEdit.getInstance().getServer().getWorlds().get(0).getWorldData();
-            }
-            BlockRegistry registry = wd.getBlockRegistry();
-            transExt = new TransformExtent(finalDest, registry);
-            transExt.setTransform(currentTransform);
+            transExt = new PositionTransformExtent(finalDest, currentTransform);
             transExt.setOrigin(from);
             finalDest = transExt;
         } else {
             transExt = null;
-        }
-        Vector translation = to.subtract(from);
-        if (!translation.equals(Vector.ZERO)) {
-            finalDest = new BlockTranslateExtent(finalDest, translation.getBlockX(), translation.getBlockY(), translation.getBlockZ());
         }
         RegionFunction copy = new SimpleBlockCopy(source, finalDest);
         if (sourceMask != Masks.alwaysTrue()) {
