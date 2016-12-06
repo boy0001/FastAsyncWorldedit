@@ -63,7 +63,7 @@ public class FaweBukkit implements IFawe, Listener {
             Fawe.set(this);
             setupInjector();
             if (Bukkit.getVersion().contains("git-Spigot")) {
-                debug("====== USE PAPER SPIGOT ======");
+                debug("====== USE PAPER ======");
                 debug("DOWNLOAD: https://ci.destroystokyo.com/job/PaperSpigot/");
                 debug("GUIDE: https://www.spigotmc.org/threads/21726/");
                 debug(" - This is only a recommendation");
