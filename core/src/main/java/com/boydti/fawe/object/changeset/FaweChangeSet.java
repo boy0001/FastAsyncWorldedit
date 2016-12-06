@@ -32,8 +32,11 @@ import java.util.concurrent.atomic.AtomicInteger;
 public abstract class FaweChangeSet implements ChangeSet {
 
     private final World world;
-
     private final boolean mainThread;
+    private AtomicInteger waitingCombined = new AtomicInteger(0);
+    private AtomicInteger waitingAsync = new AtomicInteger(0);
+    private Object lockCombined = new Object();
+    private Object lockAsync = new Object();
 
     public static FaweChangeSet getDefaultChangeSet(World world, UUID uuid) {
         if (Settings.HISTORY.USE_DISK) {
@@ -53,13 +56,13 @@ public abstract class FaweChangeSet implements ChangeSet {
     }
 
     public boolean flushAsync() {
-        waiting.incrementAndGet();
+        waitingAsync.incrementAndGet();
         TaskManager.IMP.async(new Runnable() {
             @Override
             public void run() {
-                waiting.decrementAndGet();
-                synchronized (lock) {
-                    lock.notifyAll();
+                waitingAsync.decrementAndGet();
+                synchronized (lockAsync) {
+                    lockAsync.notifyAll();
                 }
                 flush();
             }
@@ -69,9 +72,16 @@ public abstract class FaweChangeSet implements ChangeSet {
 
     public boolean flush() {
         try {
-            while (waiting.get() > 0) {
-                synchronized (lock) {
-                    lock.wait(1000);
+            if (!Fawe.get().isMainThread()) {
+                while (waitingAsync.get() > 0) {
+                    synchronized (lockAsync) {
+                        lockAsync.wait(1000);
+                    }
+                }
+            }
+            while (waitingCombined.get() > 0) {
+                synchronized (lockCombined) {
+                    lockCombined.wait(1000);
                 }
             }
         } catch (InterruptedException e) {
@@ -191,14 +201,11 @@ public abstract class FaweChangeSet implements ChangeSet {
         }
     }
 
-    private AtomicInteger waiting = new AtomicInteger(0);
-    private Object lock = new Object();
-
     public void addChangeTask(FaweQueue queue) {
         queue.setChangeTask(new RunnableVal2<FaweChunk, FaweChunk>() {
             @Override
             public void run(final FaweChunk previous, final FaweChunk next) {
-                waiting.incrementAndGet();
+                waitingCombined.incrementAndGet();
                 Runnable run = new Runnable() {
                     @Override
                     public void run() {
@@ -242,7 +249,7 @@ public abstract class FaweChangeSet implements ChangeSet {
                                                     default:
                                                         char combinedIdPrevious = previousLayer != null ? previousLayer[index] : 0;
                                                         if (combinedIdCurrent != combinedIdPrevious) {
-                                                            synchronized (lock) {
+                                                            synchronized (lockCombined) {
                                                                 add(xx, yy, zz, combinedIdPrevious, combinedIdCurrent);
                                                             }
                                                         }
@@ -257,14 +264,14 @@ public abstract class FaweChangeSet implements ChangeSet {
                                 // Tiles created
                                 Map<Short, CompoundTag> tiles = next.getTiles();
                                 for (Map.Entry<Short, CompoundTag> entry : tiles.entrySet()) {
-                                    synchronized (lock) {
+                                    synchronized (lockCombined) {
                                         addTileCreate(entry.getValue());
                                     }
                                 }
                                 // Tiles removed
                                 tiles = previous.getTiles();
                                 for (Map.Entry<Short, CompoundTag> entry : tiles.entrySet()) {
-                                    synchronized (lock) {
+                                    synchronized (lockCombined) {
                                         addTileRemove(entry.getValue());
                                     }
                                 }
@@ -274,14 +281,14 @@ public abstract class FaweChangeSet implements ChangeSet {
                                 // Entities created
                                 Set<CompoundTag> entities = next.getEntities();
                                 for (CompoundTag entityTag : entities) {
-                                    synchronized (lock) {
+                                    synchronized (lockCombined) {
                                         addEntityCreate(entityTag);
                                     }
                                 }
                                 // Entities removed
                                 entities = previous.getEntities();
                                 for (CompoundTag entityTag : entities) {
-                                    synchronized (lock) {
+                                    synchronized (lockCombined) {
                                         addEntityRemove(entityTag);
                                     }
                                 }
@@ -289,9 +296,12 @@ public abstract class FaweChangeSet implements ChangeSet {
                         } catch (Throwable e) {
                             MainUtil.handleError(e);
                         } finally {
-                            if (waiting.decrementAndGet() <= 0) {
-                                synchronized (lock) {
-                                    lock.notifyAll();
+                            if (waitingCombined.decrementAndGet() <= 0) {
+                                synchronized (waitingAsync) {
+                                    waitingAsync.notifyAll();
+                                }
+                                synchronized (waitingCombined) {
+                                    waitingCombined.notifyAll();
                                 }
                             }
                         }
