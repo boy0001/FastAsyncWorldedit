@@ -2,7 +2,6 @@ package com.boydti.fawe.regions.general.plot;
 
 import com.boydti.fawe.FaweCache;
 import com.boydti.fawe.object.FaweQueue;
-import com.boydti.fawe.object.RunnableVal2;
 import com.boydti.fawe.object.clipboard.ReadOnlyClipboard;
 import com.boydti.fawe.object.io.PGZIPOutputStream;
 import com.boydti.fawe.util.EditSessionBuilder;
@@ -20,15 +19,16 @@ import com.intellectualcrafters.plot.util.block.LocalBlockQueue;
 import com.sk89q.jnbt.NBTOutputStream;
 import com.sk89q.worldedit.EditSession;
 import com.sk89q.worldedit.Vector;
-import com.sk89q.worldedit.blocks.BaseBlock;
-import com.sk89q.worldedit.entity.Entity;
 import com.sk89q.worldedit.extent.clipboard.BlockArrayClipboard;
 import com.sk89q.worldedit.extent.clipboard.Clipboard;
 import com.sk89q.worldedit.extent.clipboard.io.SchematicWriter;
 import com.sk89q.worldedit.regions.CuboidRegion;
-import java.io.*;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.OutputStream;
 import java.net.URL;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
@@ -61,42 +61,7 @@ public class FaweSchematicHandler extends SchematicHandler {
                 final int my = pos1.getY();
                 final int mz = pos1.getZ();
 
-                ReadOnlyClipboard clipboard = new ReadOnlyClipboard(region) {
-                    @Override
-                    public BaseBlock getBlock(int x, int y, int z) {
-                        return editSession.getLazyBlock(mx + x, my + y, mz + z);
-                    }
-
-                    public BaseBlock getBlockAbs(int x, int y, int z) {
-                        return editSession.getLazyBlock(x, y, z);
-                    }
-
-                    @Override
-                    public List<? extends Entity> getEntities() {
-                        return editSession.getEntities(region);
-                    }
-
-                    @Override
-                    public void forEach(RunnableVal2<Vector, BaseBlock> task, boolean air) {
-                        Vector mutable = new Vector(0, 0, 0);
-                        for (RegionWrapper region : regions) {
-                            for (int z = region.minZ; z <= region.maxZ; z++) {
-                                mutable.z = z - region.minZ;
-                                for (int y = region.minY; y <= Math.min(255, region.maxY); y++) {
-                                    mutable.y = y - region.minY;
-                                    for (int x = region.minX; x <= region.maxX; x++) {
-                                        mutable.x = x - region.minX;
-                                        BaseBlock block = editSession.getLazyBlock(x, y, z);
-                                        if (!air && block == editSession.nullBlock) {
-                                            continue;
-                                        }
-                                        task.run(mutable, block);
-                                    }
-                                }
-                            }
-                        }
-                    }
-                };
+                ReadOnlyClipboard clipboard = ReadOnlyClipboard.of(editSession, region);
 
                 Clipboard holder = new BlockArrayClipboard(region, clipboard);
                 com.sk89q.jnbt.CompoundTag weTag = SchematicWriter.writeTag(holder);

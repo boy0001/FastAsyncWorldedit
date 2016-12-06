@@ -40,7 +40,7 @@ public enum BBC {
     WORLDEDIT_BYPASSED("&7Currently bypassing WorldEdit restriction.", "Info"),
     WORLDEDIT_UNMASKED("&6Your WorldEdit is now unrestricted.", "Info"),
     WORLDEDIT_RESTRICTED("&6Your WorldEdit is now restricted.", "Info"),
-    WORLDEDIT_OOM_ADMIN("&cPossible options:\n&8 - &7//fast\n&8 - &7Do smaller edits\n&8 - &7Allocate more memory\n&8 - &7Disable this safeguard", "Info"),
+    WORLDEDIT_OOM_ADMIN("&cPossible options:\n&8 - &7//fast\n&8 - &7Do smaller edits\n&8 - &7Allocate more memory\n&8 - &7Disable `max-memory-percent`", "Info"),
     COMPRESSED("History compressed. Saved ~ %s0b (%s1x smaller)", "Info"),
 
     ACTION_COMPLETE("Action completed in %s0 seconds", "Info"),

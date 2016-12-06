@@ -3,11 +3,15 @@ package com.boydti.fawe.object.clipboard;
 import com.boydti.fawe.Fawe;
 import com.boydti.fawe.FaweCache;
 import com.boydti.fawe.config.Settings;
+import com.boydti.fawe.jnbt.NBTStreamer;
 import com.boydti.fawe.object.IntegerTrio;
 import com.boydti.fawe.object.RunnableVal2;
 import com.boydti.fawe.object.io.BufferedRandomAccessFile;
 import com.boydti.fawe.util.MainUtil;
+import com.boydti.fawe.util.ReflectionUtils;
 import com.sk89q.jnbt.CompoundTag;
+import com.sk89q.jnbt.IntTag;
+import com.sk89q.jnbt.Tag;
 import com.sk89q.worldedit.BlockVector;
 import com.sk89q.worldedit.EditSession;
 import com.sk89q.worldedit.Vector;
@@ -20,12 +24,11 @@ import com.sk89q.worldedit.regions.CuboidRegion;
 import java.io.Closeable;
 import java.io.File;
 import java.io.IOException;
-import java.io.PrintWriter;
-import java.io.RandomAccessFile;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 /**
@@ -51,7 +54,7 @@ public class DiskOptimizedClipboard extends FaweClipboard implements Closeable {
     private final File file;
     private final byte[] buffer;
 
-    private volatile BufferedRandomAccessFile raf;
+    private final BufferedRandomAccessFile raf;
     private long lastAccessed;
     private int last;
 
@@ -59,21 +62,26 @@ public class DiskOptimizedClipboard extends FaweClipboard implements Closeable {
         this(width, height, length, MainUtil.getFile(Fawe.imp().getDirectory(), Settings.PATHS.CLIPBOARD + File.separator + uuid + ".bd"));
     }
 
-    public DiskOptimizedClipboard(File file) throws IOException {
-        nbtMap = new HashMap<>();
-        entities = new HashSet<>();this.buffer = new byte[2];
-        this.file = file;
-        this.lastAccessed = System.currentTimeMillis();
-        this.raf = new BufferedRandomAccessFile(file, "rw", Settings.HISTORY.BUFFER_SIZE);
-        raf.setLength(file.length());
-        long size = (raf.length() - HEADER_SIZE) >> 1;
-        raf.seek(2);
-        last = Integer.MIN_VALUE;
-        width = (int) raf.readChar();
-        height = (int) raf.readChar();
-        length = (int) raf.readChar();
-        area = width * length;
-        autoCloseTask();
+    public DiskOptimizedClipboard(File file) {
+        try {
+            nbtMap = new HashMap<>();
+            entities = new HashSet<>();
+            this.buffer = new byte[2];
+            this.file = file;
+            this.lastAccessed = System.currentTimeMillis();
+            this.raf = new BufferedRandomAccessFile(file, "rw", 16);
+            raf.setLength(file.length());
+            long size = (raf.length() - HEADER_SIZE) >> 1;
+            raf.seek(2);
+            last = Integer.MIN_VALUE;
+            width = (int) raf.readChar();
+            height = (int) raf.readChar();
+            length = (int) raf.readChar();
+            area = width * length;
+            autoCloseTask();
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     @Override
@@ -89,9 +97,6 @@ public class DiskOptimizedClipboard extends FaweClipboard implements Closeable {
                     return true;
                 }
             };
-            if (raf == null) {
-                open();
-            }
             raf.seek(8);
             last = Integer.MIN_VALUE;
             int ox = raf.readShort();
@@ -107,35 +112,41 @@ public class DiskOptimizedClipboard extends FaweClipboard implements Closeable {
     }
 
     public DiskOptimizedClipboard(int width, int height, int length, File file) {
-        nbtMap = new HashMap<>();
-        entities = new HashSet<>();
-        this.file = file;
-        this.buffer = new byte[2];
-        this.lastAccessed = System.currentTimeMillis();
-        this.width = width;
-        this.height = height;
-        this.length = length;
-        this.area = width * length;
         try {
-            if (!file.exists()) {
-                file.getParentFile().mkdirs();
-                file.createNewFile();
-            } else {
-                PrintWriter writer = new PrintWriter(file);
-                writer.print("");
-                writer.close();
+            nbtMap = new HashMap<>();
+            entities = new HashSet<>();
+            this.file = file;
+            this.buffer = new byte[2];
+            this.lastAccessed = System.currentTimeMillis();
+            this.width = width;
+            this.height = height;
+            this.length = length;
+            this.area = width * length;
+            try {
+                if (!file.exists()) {
+                    file.getParentFile().mkdirs();
+                    file.createNewFile();
+                }
+            } catch (Exception e) {
+                MainUtil.handleError(e);
             }
-        } catch (Exception e) {
-            MainUtil.handleError(e);
+            this.raf = new BufferedRandomAccessFile(file, "rw", 16);
+            long volume = width * height * length * 2l + HEADER_SIZE;
+            raf.setLength(volume);
+            // write length etc
+            raf.seek(2);
+            last = Integer.MIN_VALUE;
+            raf.writeChar(width);
+            raf.writeChar(height);
+            raf.writeChar(length);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
         }
     }
 
     @Override
     public void setOrigin(Vector offset) {
         try {
-            if (raf == null) {
-                open();
-            }
             raf.seek(8);
             last = Integer.MIN_VALUE;
             raf.writeShort(offset.getBlockX());
@@ -149,9 +160,6 @@ public class DiskOptimizedClipboard extends FaweClipboard implements Closeable {
     @Override
     public void setDimensions(Vector dimensions) {
         try {
-            if (raf == null) {
-                open();
-            }
             width = dimensions.getBlockX();
             height = dimensions.getBlockY();
             length = dimensions.getBlockZ();
@@ -163,7 +171,6 @@ public class DiskOptimizedClipboard extends FaweClipboard implements Closeable {
             raf.writeChar(width);
             raf.writeChar(height);
             raf.writeChar(length);
-            raf.flush();
         } catch (IOException e) {
             MainUtil.handleError(e);
         }
@@ -171,10 +178,7 @@ public class DiskOptimizedClipboard extends FaweClipboard implements Closeable {
 
     public void flush() {
         try {
-            raf.close();
-            raf = null;
-            file.setWritable(true);
-            System.gc();
+            raf.flush();
         } catch (IOException e) {
             MainUtil.handleError(e);
         }
@@ -186,34 +190,12 @@ public class DiskOptimizedClipboard extends FaweClipboard implements Closeable {
 
     public void close() {
         try {
-            raf.flush();
-            RandomAccessFile tmp = raf;
-            raf = null;
-            tmp.close();
-            tmp = null;
+            raf.close();
+            file.setWritable(true);
             System.gc();
         } catch (IOException e) {
             MainUtil.handleError(e);
         }
-    }
-
-    public void open() throws IOException {
-        if (raf != null) {
-            close();
-        }
-        lastAccessed = System.currentTimeMillis();
-        this.raf = new BufferedRandomAccessFile(file, "rw", Settings.HISTORY.BUFFER_SIZE);
-        long size = width * height * length * 2l + HEADER_SIZE;
-        if (raf.length() != size) {
-            raf.setLength(size);
-            // write length etc
-            raf.seek(2);
-            last = Integer.MIN_VALUE;
-            raf.writeChar(width);
-            raf.writeChar(height);
-            raf.writeChar(length);
-        }
-        autoCloseTask();
     }
 
     private void autoCloseTask() {
@@ -237,42 +219,96 @@ public class DiskOptimizedClipboard extends FaweClipboard implements Closeable {
     private int zlasti;
 
     @Override
+    public void streamIds(NBTStreamer.ByteReader task) {
+        try {
+            raf.seek(HEADER_SIZE);
+            int index = 0;
+            for (int y = 0; y < height; y++) {
+                for (int z = 0; z < length; z++) {
+                    for (int x = 0; x < width; x++) {
+                        int combinedId = raf.readChar();
+                        task.run(index++, FaweCache.getId(combinedId));
+                    }
+                }
+            }
+        } catch (IOException e) {
+            MainUtil.handleError(e);
+        }
+    }
+
+    @Override
+    public void streamDatas(NBTStreamer.ByteReader task) {
+        try {
+            raf.seek(HEADER_SIZE);
+            int index = 0;
+            for (int y = 0; y < height; y++) {
+                for (int z = 0; z < length; z++) {
+                    for (int x = 0; x < width; x++) {
+                        int combinedId = raf.readChar();
+                        task.run(index++, FaweCache.getData(combinedId));
+                    }
+                }
+            }
+        } catch (IOException e) {
+            MainUtil.handleError(e);
+        }
+    }
+
+    @Override
+    public List<CompoundTag> getTileEntities() {
+        return new ArrayList<>(nbtMap.values());
+    }
+
+    @Override
     public void forEach(final RunnableVal2<Vector,BaseBlock> task, boolean air) {
         try {
-            if (raf == null) {
-                open();
-            }
             raf.seek(HEADER_SIZE);
             BlockVector pos = new BlockVector(0, 0, 0);
-            int x = 0;
-            int y = 0;
-            int z = 0;
-            long len = (raf.length());
-            for (long i = HEADER_SIZE; i < len; i+=2) {
-                pos.x = x;
-                pos.y = y;
-                pos.z = z;
-                if (++x >= width) {
-                    x = 0;
-                    if (++z >= length) {
-                        z = 0;
-                        ++y;
+            IntegerTrio trio = new IntegerTrio();
+            if (air) {
+                for (int y = 0; y < height; y++) {
+                    for (int z = 0; z < length; z++) {
+                        for (int x = 0; x < width; x++) {
+                            int combinedId = raf.readChar();
+                            BaseBlock block = FaweCache.CACHE_BLOCK[combinedId];
+                            if (FaweCache.hasNBT(block.getId())) {
+                                trio.set(x, y, z);
+                                CompoundTag nbt = nbtMap.get(trio);
+                                if (nbt != null) {
+                                    block = new BaseBlock(block.getId(), block.getData());
+                                    block.setNbtData(nbt);
+                                }
+                            }
+                            pos.x = x;
+                            pos.y = y;
+                            pos.z = z;
+                            task.run(pos, block);
+                        }
                     }
                 }
-                raf.seek(i);
-                int combinedId = raf.readChar();
-                if (combinedId == 0 && !air) {
-                    continue;
-                }
-                BaseBlock block = FaweCache.CACHE_BLOCK[combinedId];
-                if (FaweCache.hasNBT(block.getId())) {
-                    CompoundTag nbt = nbtMap.get(new IntegerTrio((int) pos.x, (int) pos.y, (int) pos.z));
-                    if (nbt != null) {
-                        block = new BaseBlock(block.getId(), block.getData());
-                        block.setNbtData(nbt);
+            } else {
+                for (int y = 0; y < height; y++) {
+                    for (int z = 0; z < length; z++) {
+                        for (int x = 0; x < width; x++) {
+                            int combinedId = raf.readChar();
+                            if (combinedId != 0) {
+                                BaseBlock block = FaweCache.CACHE_BLOCK[combinedId];
+                                if (FaweCache.hasNBT(block.getId())) {
+                                    trio.set(x, y, z);
+                                    CompoundTag nbt = nbtMap.get(trio);
+                                    if (nbt != null) {
+                                        block = new BaseBlock(block.getId(), block.getData());
+                                        block.setNbtData(nbt);
+                                    }
+                                }
+                                pos.x = x;
+                                pos.y = y;
+                                pos.z = z;
+                                task.run(pos, block);
+                            }
+                        }
                     }
                 }
-                task.run(pos, block);
             }
         } catch (IOException e) {
             MainUtil.handleError(e);
@@ -286,9 +322,6 @@ public class DiskOptimizedClipboard extends FaweClipboard implements Closeable {
     @Override
     public BaseBlock getBlock(int x, int y, int z) {
         try {
-            if (raf == null) {
-                open();
-            }
             int i = getIndex(x, y, z);
             if (i != last + 1) {
                 raf.seek((HEADER_SIZE) + (i << 1));
@@ -314,15 +347,16 @@ public class DiskOptimizedClipboard extends FaweClipboard implements Closeable {
     @Override
     public boolean setTile(int x, int y, int z, CompoundTag tag) {
         nbtMap.put(new IntegerTrio(x, y, z), tag);
+        Map<String, Tag> values = ReflectionUtils.getMap(tag.getValue());
+        values.put("x", new IntTag(x));
+        values.put("y", new IntTag(y));
+        values.put("z", new IntTag(z));
         return true;
     }
 
     @Override
     public boolean setBlock(int x, int y, int z, BaseBlock block) {
         try {
-            if (raf == null) {
-                open();
-            }
             int i = x + ((ylast == y) ? ylasti : (ylasti = ((ylast = y)) * area)) + ((zlast == z) ? zlasti : (zlasti = (zlast = z) * width));
             if (i != last + 1) {
                 raf.seek((HEADER_SIZE) + (i << 1));
@@ -334,7 +368,7 @@ public class DiskOptimizedClipboard extends FaweClipboard implements Closeable {
             int combined = (id << 4) + data;
             raf.writeChar(combined);
             if (FaweCache.hasNBT(id)) {
-                nbtMap.put(new IntegerTrio(x, y, z), block.getNbtData());
+                setTile(x, y, z, block.getNbtData());
             }
             return true;
         }  catch (Exception e) {
@@ -346,9 +380,6 @@ public class DiskOptimizedClipboard extends FaweClipboard implements Closeable {
     @Override
     public void setId(int i, int id) {
         try {
-            if (raf == null) {
-                open();
-            }
             if (i != last + 1) {
                 raf.seek((HEADER_SIZE) + (i << 1));
                 lastAccessed = System.currentTimeMillis();
@@ -367,9 +398,6 @@ public class DiskOptimizedClipboard extends FaweClipboard implements Closeable {
 
     public void setCombined(int i, int combined) {
         try {
-            if (raf == null) {
-                open();
-            }
             if (i != last + 1) {
                 raf.seek((HEADER_SIZE) + (i << 1));
                 lastAccessed = System.currentTimeMillis();
@@ -384,9 +412,6 @@ public class DiskOptimizedClipboard extends FaweClipboard implements Closeable {
     @Override
     public void setAdd(int i, int add) {
         try {
-            if (raf == null) {
-                open();
-            }
             if (i != last + 1) {
                 raf.seek((HEADER_SIZE) + (i << 1));
                 lastAccessed = System.currentTimeMillis();
@@ -404,9 +429,6 @@ public class DiskOptimizedClipboard extends FaweClipboard implements Closeable {
     @Override
     public void setData(int i, int data) {
         try {
-            if (raf == null) {
-                open();
-            }
             if (i != last + 1) {
                 raf.seek((HEADER_SIZE) + (i << 1));
                 lastAccessed = System.currentTimeMillis();

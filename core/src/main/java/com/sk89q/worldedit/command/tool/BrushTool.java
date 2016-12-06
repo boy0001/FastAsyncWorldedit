@@ -1,6 +1,6 @@
 package com.sk89q.worldedit.command.tool;
 
-import com.boydti.fawe.object.extent.TransformExtent;
+import com.boydti.fawe.object.extent.ResettableExtent;
 import com.sk89q.worldedit.EditSession;
 import com.sk89q.worldedit.LocalConfiguration;
 import com.sk89q.worldedit.LocalSession;
@@ -29,7 +29,7 @@ public class BrushTool implements TraceTool {
     protected static int MAX_RANGE = 500;
     protected int range = -1;
     private Mask mask = null;
-    private TransformExtent transform = null;
+    private ResettableExtent transform = null;
     private Brush brush = new SphereBrush();
     @Nullable
     private Pattern material;
@@ -51,11 +51,11 @@ public class BrushTool implements TraceTool {
         return player.hasPermission(permission);
     }
 
-    public TransformExtent getTransform() {
+    public ResettableExtent getTransform() {
         return transform;
     }
 
-    public void setTransform(TransformExtent transform) {
+    public void setTransform(ResettableExtent transform) {
         this.transform = transform;
     }
 

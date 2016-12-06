@@ -19,6 +19,7 @@ public class SetQueue {
      * The implementation specific queue
      */
     public static final SetQueue IMP = new SetQueue();
+    private double targetTPS = 18;
 
     public enum QueueStage {
         INACTIVE, ACTIVE, NONE;
@@ -52,6 +53,17 @@ public class SetQueue {
         return completer;
     }
 
+    public void runMiscTasks() {
+        while (Fawe.get().getTimer().isAbove(targetTPS)) {
+            Runnable task = tasks.poll();
+            if (task != null) {
+                task.run();
+            } else {
+                break;
+            }
+        }
+    }
+
     public SetQueue() {
         tasks = new ConcurrentLinkedDeque<>();
         activeQueues = new ConcurrentLinkedDeque();
@@ -60,7 +72,7 @@ public class SetQueue {
             @Override
             public void run() {
                 try {
-                    double targetTPS = 18 - Math.max(Settings.QUEUE.EXTRA_TIME_MS * 0.05, 0);
+                    targetTPS = 18 - Math.max(Settings.QUEUE.EXTRA_TIME_MS * 0.05, 0);
                     do {
                         Runnable task = tasks.poll();
                         if (task != null) {

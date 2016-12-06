@@ -29,7 +29,7 @@ import com.boydti.fawe.object.brush.DoubleActionBrushTool;
 import com.boydti.fawe.object.changeset.DiskStorageHistory;
 import com.boydti.fawe.object.changeset.FaweChangeSet;
 import com.boydti.fawe.object.clipboard.DiskOptimizedClipboard;
-import com.boydti.fawe.object.extent.TransformExtent;
+import com.boydti.fawe.object.extent.ResettableExtent;
 import com.boydti.fawe.util.EditSessionBuilder;
 import com.boydti.fawe.util.MainUtil;
 import com.boydti.fawe.wrappers.WorldWrapper;
@@ -139,7 +139,7 @@ public class LocalSession {
     private transient int cuiVersion = -1;
     private transient boolean fastMode = false;
     private transient Mask mask;
-    private TransformExtent transform = null;
+    private ResettableExtent transform = null;
     private transient TimeZone timezone = TimeZone.getDefault();
 
     private transient World currentWorld;
@@ -1270,11 +1270,11 @@ public class LocalSession {
         setMask(mask != null ? Masks.wrap(mask) : null);
     }
 
-    public TransformExtent getTransform() {
+    public ResettableExtent getTransform() {
         return transform;
     }
 
-    public void setTransform(TransformExtent transform) {
+    public void setTransform(ResettableExtent transform) {
         this.transform = transform;
     }
 

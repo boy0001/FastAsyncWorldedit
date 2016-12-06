@@ -45,6 +45,7 @@ import com.sk89q.worldedit.extent.clipboard.io.ClipboardFormat;
 import com.sk89q.worldedit.extent.clipboard.io.ClipboardWriter;
 import com.sk89q.worldedit.function.block.BlockReplace;
 import com.sk89q.worldedit.function.mask.Mask;
+import com.sk89q.worldedit.function.mask.Masks;
 import com.sk89q.worldedit.function.operation.ForwardExtentCopy;
 import com.sk89q.worldedit.function.operation.Operation;
 import com.sk89q.worldedit.function.operation.Operations;
@@ -64,7 +65,6 @@ import com.sk89q.worldedit.util.command.parametric.Optional;
 import java.io.IOException;
 import java.net.URL;
 import java.util.Iterator;
-import java.util.List;
 
 
 import static com.google.common.base.Preconditions.checkNotNull;
@@ -110,37 +110,7 @@ public class ClipboardCommands {
         final int mx = origin.getBlockX();
         final int my = origin.getBlockY();
         final int mz = origin.getBlockZ();
-        ReadOnlyClipboard lazyClipboard = new ReadOnlyClipboard(region) {
-            @Override
-            public BaseBlock getBlock(int x, int y, int z) {
-                return editSession.getLazyBlock(mx + x, my + y, mz + z);
-            }
-
-            public BaseBlock getBlockAbs(int x, int y, int z) {
-                return editSession.getLazyBlock(x, y, z);
-            }
-
-            @Override
-            public List<? extends Entity> getEntities() {
-                return editSession.getEntities(region);
-            }
-
-            @Override
-            public void forEach(RunnableVal2<Vector, BaseBlock> task, boolean air) {
-                Iterator<BlockVector> iter = region.iterator();
-                while (iter.hasNext()) {
-                    BlockVector pos = iter.next();
-                    BaseBlock block = getBlockAbs((int) pos.x, (int) pos.y, (int) pos.z);
-                    if (!air && block == EditSession.nullBlock) {
-                        continue;
-                    }
-                    pos.x -= mx;
-                    pos.y -= my;
-                    pos.z -= mz;
-                    task.run(pos, block);
-                }
-            }
-        };
+        ReadOnlyClipboard lazyClipboard = ReadOnlyClipboard.of(editSession, region);
 
         BlockArrayClipboard clipboard = new BlockArrayClipboard(region, lazyClipboard);
         clipboard.setOrigin(session.getPlacementPosition(player));
@@ -171,7 +141,7 @@ public class ClipboardCommands {
 
         clipboard.setOrigin(session.getPlacementPosition(player));
         ForwardExtentCopy copy = new ForwardExtentCopy(editSession, region, clipboard, region.getMinimumPoint());
-        if (mask != null) {
+        if (mask != null && mask != Masks.alwaysTrue()) {
             copy.setSourceMask(mask);
         }
         Operations.completeLegacy(copy);

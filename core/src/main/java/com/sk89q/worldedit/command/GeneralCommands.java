@@ -2,7 +2,7 @@ package com.sk89q.worldedit.command;
 
 import com.boydti.fawe.config.BBC;
 import com.boydti.fawe.object.extent.DefaultTransformParser;
-import com.boydti.fawe.object.extent.TransformExtent;
+import com.boydti.fawe.object.extent.ResettableExtent;
 import com.sk89q.minecraft.util.commands.Command;
 import com.sk89q.minecraft.util.commands.CommandContext;
 import com.sk89q.minecraft.util.commands.CommandPermissions;
@@ -142,7 +142,7 @@ public class GeneralCommands {
             parserContext.setWorld(player.getWorld());
             parserContext.setSession(session);
             parserContext.setExtent(editSession);
-            TransformExtent transform = transformParser.parseFromInput(context.getJoinedStrings(0), parserContext);
+            ResettableExtent transform = transformParser.parseFromInput(context.getJoinedStrings(0), parserContext);
             session.setTransform(transform);
             BBC.TRANSFORM.send(player);
         }

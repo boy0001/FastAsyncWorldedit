@@ -1,14 +1,20 @@
 package com.boydti.fawe.object.clipboard;
 
+import com.boydti.fawe.jnbt.NBTStreamer;
 import com.boydti.fawe.object.RunnableVal2;
+import com.boydti.fawe.util.ReflectionUtils;
 import com.sk89q.jnbt.CompoundTag;
+import com.sk89q.jnbt.IntTag;
+import com.sk89q.jnbt.Tag;
 import com.sk89q.worldedit.Vector;
 import com.sk89q.worldedit.blocks.BaseBlock;
 import com.sk89q.worldedit.entity.BaseEntity;
 import com.sk89q.worldedit.entity.Entity;
 import com.sk89q.worldedit.extent.Extent;
 import com.sk89q.worldedit.util.Location;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import javax.annotation.Nullable;
 
 
@@ -45,6 +51,45 @@ public abstract class FaweClipboard {
      * @param air
      */
     public abstract void forEach(final RunnableVal2<Vector,BaseBlock> task, boolean air);
+
+    public void streamIds(final NBTStreamer.ByteReader task) {
+        forEach(new RunnableVal2<Vector, BaseBlock>() {
+            private int index = 0;
+            @Override
+            public void run(Vector pos, BaseBlock block) {
+                task.run(index++, block.getId());
+            }
+        }, true);
+    }
+
+    public void streamDatas(final NBTStreamer.ByteReader task) {
+        forEach(new RunnableVal2<Vector, BaseBlock>() {
+            private int index = 0;
+            @Override
+            public void run(Vector pos, BaseBlock block) {
+                task.run(index++, block.getData());
+            }
+        }, true);
+    }
+
+    public List<CompoundTag> getTileEntities() {
+        final List<CompoundTag> tiles = new ArrayList<>();
+        forEach(new RunnableVal2<Vector, BaseBlock>() {
+            private int index = 0;
+            @Override
+            public void run(Vector pos, BaseBlock block) {
+                CompoundTag tag = block.getNbtData();
+                if (tag != null) {
+                    Map<String, Tag> values = ReflectionUtils.getMap(tag.getValue());
+                    values.put("x", new IntTag((int) pos.x));
+                    values.put("y", new IntTag((int) pos.y));
+                    values.put("z", new IntTag((int) pos.z));
+                    tiles.add(tag);
+                }
+            }
+        }, false);
+        return tiles;
+    }
 
     /**
      * Stores entity data.

@@ -2,10 +2,14 @@ package com.boydti.fawe.object.clipboard;
 
 import com.boydti.fawe.FaweCache;
 import com.boydti.fawe.config.Settings;
+import com.boydti.fawe.jnbt.NBTStreamer;
 import com.boydti.fawe.object.IntegerTrio;
 import com.boydti.fawe.object.RunnableVal2;
 import com.boydti.fawe.util.MainUtil;
+import com.boydti.fawe.util.ReflectionUtils;
 import com.sk89q.jnbt.CompoundTag;
+import com.sk89q.jnbt.IntTag;
+import com.sk89q.jnbt.Tag;
 import com.sk89q.worldedit.Vector;
 import com.sk89q.worldedit.blocks.BaseBlock;
 import com.sk89q.worldedit.entity.BaseEntity;
@@ -78,7 +82,7 @@ public class MemoryOptimizedClipboard extends FaweClipboard {
         }
         for (Map.Entry<IntegerTrio, CompoundTag> entry : nbtMapLoc.entrySet()) {
             IntegerTrio key = entry.getKey();
-            nbtMapIndex.put(getIndex(key.x, key.y, key.z), entry.getValue());
+            setTile(getIndex(key.x, key.y, key.z), entry.getValue());
         }
         nbtMapLoc.clear();
     }
@@ -276,6 +280,63 @@ public class MemoryOptimizedClipboard extends FaweClipboard {
         saveAdd = true;
     }
 
+    @Override
+    public void streamIds(NBTStreamer.ByteReader task) {
+        int index = 0;
+        if (add != null) {
+            for (int y = 0; y < height; y++) {
+                for (int z = 0; z < length; z++) {
+                    for (int x = 0; x < width; x++) {
+                        int id = getId(index) + (getAdd(index) << 8);
+                        task.run(index++, id);
+                    }
+                }
+            }
+        } else {
+            for (int y = 0; y < height; y++) {
+                for (int z = 0; z < length; z++) {
+                    for (int x = 0; x < width; x++) {
+                        int id = getId(index);
+                        task.run(index++, id);
+                    }
+                }
+            }
+        }
+    }
+
+    @Override
+    public void streamDatas(NBTStreamer.ByteReader task) {
+        int index = 0;
+        for (int y = 0; y < height; y++) {
+            for (int z = 0; z < length; z++) {
+                for (int x = 0; x < width; x++) {
+                    int data = getData(index);
+                    task.run(index++, data);
+                }
+            }
+        }
+    }
+
+    @Override
+    public List<CompoundTag> getTileEntities() {
+        convertTilesToIndex();
+        for (Map.Entry<Integer, CompoundTag> entry : nbtMapIndex.entrySet()) {
+            int index = entry.getKey();
+            CompoundTag tag = entry.getValue();
+            Map<String, Tag> values = ReflectionUtils.getMap(tag.getValue());
+            if (!values.containsKey("x")) {
+                int y = index / area;
+                index -= y * area;
+                int z = index / width;
+                int x = index - (z * width);
+                values.put("x", new IntTag(x));
+                values.put("y", new IntTag(y));
+                values.put("z", new IntTag(z));
+            }
+        }
+        return new ArrayList<>(nbtMapIndex.values());
+    }
+
     private int ylast;
     private int ylasti;
     private int zlast;
@@ -358,6 +419,15 @@ public class MemoryOptimizedClipboard extends FaweClipboard {
         return true;
     }
 
+    public boolean setTile(int index, CompoundTag tag) {
+        nbtMapIndex.put(index, tag);
+        Map<String, Tag> values = ReflectionUtils.getMap(tag.getValue());
+        values.remove("x");
+        values.remove("y");
+        values.remove("z");
+        return true;
+    }
+
     @Override
     public boolean setBlock(int x, int y, int z, BaseBlock block) {
         return setBlock(getIndex(x, y, z), block);
@@ -372,7 +442,7 @@ public class MemoryOptimizedClipboard extends FaweClipboard {
         setData(index, block.getData());
         CompoundTag tile = block.getNbtData();
         if (tile != null) {
-            nbtMapIndex.put(index, tile);
+            setTile(index, tile);
         }
         return true;
     }

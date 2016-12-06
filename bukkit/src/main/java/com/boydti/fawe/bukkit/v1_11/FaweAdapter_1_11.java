@@ -30,12 +30,10 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.annotation.Nullable;
 import net.minecraft.server.v1_11_R1.*;
-import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.block.Biome;
 import org.bukkit.block.Block;
-import org.bukkit.craftbukkit.v1_11_R1.CraftServer;
 import org.bukkit.craftbukkit.v1_11_R1.CraftWorld;
 import org.bukkit.craftbukkit.v1_11_R1.block.CraftBlock;
 import org.bukkit.craftbukkit.v1_11_R1.entity.CraftEntity;
@@ -47,11 +45,7 @@ public final class FaweAdapter_1_11 implements BukkitImplAdapter
     private final Field nbtListTagListField;
     private final Method nbtCreateTagMethod;
 
-    public FaweAdapter_1_11()
-            throws NoSuchFieldException, NoSuchMethodException
-    {
-        CraftServer.class.cast(Bukkit.getServer());
-
+    public FaweAdapter_1_11() throws NoSuchFieldException, NoSuchMethodException {
         this.nbtListTagListField = NBTTagList.class.getDeclaredField("list");
         this.nbtListTagListField.setAccessible(true);
 

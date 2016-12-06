@@ -21,6 +21,7 @@ import com.boydti.fawe.object.FaweQueue;
 import com.boydti.fawe.regions.FaweMaskManager;
 import com.boydti.fawe.util.MainUtil;
 import com.boydti.fawe.util.ReflectionUtils;
+import com.boydti.fawe.util.SetQueue;
 import com.boydti.fawe.util.TaskManager;
 import com.sk89q.worldedit.bukkit.EditSessionBlockChangeDelegate;
 import com.sk89q.worldedit.bukkit.WorldEditPlugin;
@@ -37,6 +38,9 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerQuitEvent;
+import org.bukkit.event.world.ChunkLoadEvent;
+import org.bukkit.event.world.ChunkPopulateEvent;
+import org.bukkit.event.world.ChunkUnloadEvent;
 import org.bukkit.plugin.Plugin;
 import org.primesoft.blockshub.BlocksHubBukkit;
 
@@ -350,6 +354,21 @@ public class FaweBukkit implements IFawe, Listener {
             }
         }
         return managers;
+    }
+
+    @EventHandler
+    public void onChunkLoad(ChunkLoadEvent event) {
+        SetQueue.IMP.runMiscTasks();
+    }
+
+    @EventHandler
+    public void onChunkUnload(ChunkUnloadEvent event) {
+        SetQueue.IMP.runMiscTasks();
+    }
+
+    @EventHandler
+    public void onChunkPopulate(ChunkPopulateEvent event) {
+        SetQueue.IMP.runMiscTasks();
     }
 
     @EventHandler

@@ -57,6 +57,10 @@ public final class NBTOutputStream implements Closeable {
         this.os = new DataOutputStream(os);
     }
 
+    public DataOutputStream getOutputStream() {
+        return os;
+    }
+
     /**
      * Writes a tag.
      *
@@ -70,17 +74,31 @@ public final class NBTOutputStream implements Closeable {
         checkNotNull(tag);
 
         int type = NBTUtils.getTypeCode(tag.getClass());
-        byte[] nameBytes = name.getBytes(NBTConstants.CHARSET);
-
-        os.writeByte(type);
-        os.writeShort(nameBytes.length);
-        os.write(nameBytes);
-
+        writeNamedTagName(name, type);
         if (type == NBTConstants.TYPE_END) {
             throw new IOException("Named TAG_End not permitted.");
         }
-
         writeTagPayload(tag);
+    }
+
+    public void writeNamedTagName(String name, int type) throws IOException {
+        byte[] nameBytes = name.getBytes(NBTConstants.CHARSET);
+        os.writeByte(type);
+        os.writeShort(nameBytes.length);
+        os.write(nameBytes);
+    }
+
+    public void writeLazyCompoundTag(String name, LazyWrite next) throws IOException{
+        byte[] nameBytes = name.getBytes(NBTConstants.CHARSET);
+        os.writeByte(NBTConstants.TYPE_COMPOUND);
+        os.writeShort(nameBytes.length);
+        os.write(nameBytes);
+        next.write(this);
+        os.writeByte(NBTConstants.TYPE_END);
+    }
+
+    public interface LazyWrite {
+        void write(NBTOutputStream out) throws IOException;
     }
 
     public void writeTag(Tag tag) throws IOException {
@@ -183,7 +201,7 @@ public final class NBTOutputStream implements Closeable {
         for (Map.Entry<String, Tag> entry : tag.getValue().entrySet()) {
             writeNamedTag(entry.getKey(), entry.getValue());
         }
-        os.writeByte((byte) 0); // end tag - better way?
+        os.writeByte(NBTConstants.TYPE_END); // end tag - better way?
     }
 
     /**

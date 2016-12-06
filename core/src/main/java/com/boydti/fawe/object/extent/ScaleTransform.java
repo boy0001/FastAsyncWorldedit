@@ -11,7 +11,7 @@ import com.sk89q.worldedit.util.Location;
 import com.sk89q.worldedit.world.biome.BaseBiome;
 import javax.annotation.Nullable;
 
-public class ScaleTransform extends TransformExtent {
+public class ScaleTransform extends ResettableExtent {
     private final Vector mutable = new Vector();
     private final double dx,dy,dz;
     private int maxy;
@@ -27,7 +27,7 @@ public class ScaleTransform extends TransformExtent {
     }
 
     @Override
-    public TransformExtent setExtent(Extent extent) {
+    public ResettableExtent setExtent(Extent extent) {
         min = null;
         maxy = extent.getMaximumPoint().getBlockY();
         return super.setExtent(extent);

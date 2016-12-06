@@ -46,8 +46,8 @@ import com.boydti.fawe.object.extent.FastWorldEditExtent;
 import com.boydti.fawe.object.extent.FaweRegionExtent;
 import com.boydti.fawe.object.extent.NullExtent;
 import com.boydti.fawe.object.extent.ProcessedWEExtent;
+import com.boydti.fawe.object.extent.ResettableExtent;
 import com.boydti.fawe.object.extent.SlowExtent;
-import com.boydti.fawe.object.extent.TransformExtent;
 import com.boydti.fawe.object.mask.ResettableMask;
 import com.boydti.fawe.object.progress.DefaultProgressTracker;
 import com.boydti.fawe.util.ExtentTraverser;
@@ -584,11 +584,11 @@ public class EditSession extends AbstractWorld implements HasFaweQueue {
         return maskingExtent != null ? maskingExtent.get().getMask() : null;
     }
 
-    public void addTransform(TransformExtent transform) {
+    public void addTransform(ResettableExtent transform) {
         if (transform == null) {
-            ExtentTraverser<AbstractDelegateExtent> traverser = new ExtentTraverser(this.extent).find(TransformExtent.class);
+            ExtentTraverser<AbstractDelegateExtent> traverser = new ExtentTraverser(this.extent).find(ResettableExtent.class);
             AbstractDelegateExtent next = extent;
-            while (traverser != null && traverser.get() instanceof TransformExtent) {
+            while (traverser != null && traverser.get() instanceof ResettableExtent) {
                 traverser = traverser.next();
                 next = traverser.get();
             }

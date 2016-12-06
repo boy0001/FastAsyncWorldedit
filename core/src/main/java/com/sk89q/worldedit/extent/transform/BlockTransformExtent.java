@@ -1,12 +1,16 @@
 package com.sk89q.worldedit.extent.transform;
 
 import com.boydti.fawe.FaweCache;
+import com.boydti.fawe.object.extent.ResettableExtent;
+import com.sk89q.jnbt.CompoundTag;
 import com.sk89q.worldedit.Vector;
+import com.sk89q.worldedit.Vector2D;
 import com.sk89q.worldedit.WorldEditException;
 import com.sk89q.worldedit.blocks.BaseBlock;
-import com.sk89q.worldedit.extent.AbstractDelegateExtent;
 import com.sk89q.worldedit.extent.Extent;
+import com.sk89q.worldedit.math.transform.AffineTransform;
 import com.sk89q.worldedit.math.transform.Transform;
+import com.sk89q.worldedit.world.biome.BaseBiome;
 import com.sk89q.worldedit.world.registry.BlockRegistry;
 import com.sk89q.worldedit.world.registry.State;
 import com.sk89q.worldedit.world.registry.StateValue;
@@ -20,51 +24,113 @@ import static com.google.common.base.Preconditions.checkNotNull;
  * Transforms blocks themselves (but not their position) according to a
  * given transform.
  */
-public class BlockTransformExtent extends AbstractDelegateExtent {
+public class BlockTransformExtent extends ResettableExtent {
+    private final BlockRegistry registry;
+    private Transform transform;
+    private Transform transformInverse;
+    private BaseBlock[] BLOCK_TRANSFORM;
+    private BaseBlock[] BLOCK_TRANSFORM_INVERSE;
 
-    private static final double RIGHT_ANGLE = Math.toRadians(90);
+    public BlockTransformExtent(Extent parent, BlockRegistry registry) {
+        this(parent, new AffineTransform(), registry);
+    }
 
-    private final Transform transform;
-    private final BlockRegistry blockRegistry;
-    private final BaseBlock[] BLOCK_TRANSFORM;
-    private final BaseBlock[] BLOCK_TRANSFORM_INVERSE;
-
-    /**
-     * Create a new instance.
-     *
-     * @param extent the extent
-     * @param blockRegistry the block registry used for block direction data
-     */
-    public BlockTransformExtent(Extent extent, Transform transform, BlockRegistry blockRegistry) {
-        super(extent);
-        checkNotNull(transform);
-        checkNotNull(blockRegistry);
+    public BlockTransformExtent(Extent parent, Transform transform, BlockRegistry registry) {
+        super(parent);
         this.transform = transform;
-        this.blockRegistry = blockRegistry;
+        this.transformInverse = this.transform.inverse();
+        this.registry = registry;
+        cache();
+    }
+
+    private void cache() {
         BLOCK_TRANSFORM = new BaseBlock[FaweCache.CACHE_BLOCK.length];
         BLOCK_TRANSFORM_INVERSE = new BaseBlock[FaweCache.CACHE_BLOCK.length];
-        Transform inverse = transform.inverse();
         for (int i = 0; i < BLOCK_TRANSFORM.length; i++) {
             BaseBlock block = FaweCache.CACHE_BLOCK[i];
             if (block != null) {
-                BLOCK_TRANSFORM[i] = transform(new BaseBlock(block), transform, blockRegistry);
-                BLOCK_TRANSFORM_INVERSE[i] = transform(new BaseBlock(block), inverse, blockRegistry);
+                BLOCK_TRANSFORM[i] = BlockTransformExtent.transform(new BaseBlock(block), transform, registry);
+                BLOCK_TRANSFORM_INVERSE[i] = BlockTransformExtent.transform(new BaseBlock(block), transformInverse, registry);
             }
         }
     }
 
-    /**
-     * Get the transform.
-     *
-     * @return the transform
-     */
+    @Override
+    public ResettableExtent setExtent(Extent extent) {
+        return super.setExtent(extent);
+    }
+
     public Transform getTransform() {
         return transform;
     }
 
+    public void setTransform(Transform affine) {
+        this.transform = affine;
+        this.transformInverse = this.transform.inverse();
+        cache();
+    }
+
+    public final BaseBlock transformFast(BaseBlock block) {
+        BaseBlock newBlock = BLOCK_TRANSFORM[FaweCache.getCombined(block)];
+        CompoundTag tag = block.getNbtData();
+        if (tag != null) {
+            newBlock = new BaseBlock(newBlock.getId(), newBlock.getData(), tag);
+//            if (tag.containsKey("Rot")) {
+//                int rot = tag.asInt("Rot");
+//
+//                Direction direction = MCDirections.fromRotation(rot);
+//
+//                if (direction != null) {
+//                    Vector applyAbsolute = transform.apply(direction.toVector());
+//                    Vector applyOrigin = transform.apply(Vector.ZERO);
+//                    applyAbsolute.x -= applyOrigin.x;
+//                    applyAbsolute.y -= applyOrigin.y;
+//                    applyAbsolute.z -= applyOrigin.z;
+//
+//                    Direction newDirection = Direction.findClosest(applyAbsolute, Direction.Flag.CARDINAL | Direction.Flag.ORDINAL | Direction.Flag.SECONDARY_ORDINAL);
+//
+//                    if (newDirection != null) {
+//                        Map<String, Tag> values = ReflectionUtils.getMap(tag.getValue());
+//                        values.put("Rot", new ByteTag((byte) MCDirections.toRotation(newDirection)));
+//                    }
+//                }
+//            }
+        }
+        return newBlock;
+    }
+
+    public final BaseBlock transformFastInverse(BaseBlock block) {
+        BaseBlock newBlock = BLOCK_TRANSFORM_INVERSE[FaweCache.getCombined(block)];
+        CompoundTag tag = block.getNbtData();
+        if (tag != null) {
+            newBlock = new BaseBlock(newBlock.getId(), newBlock.getData(), tag);
+//            if (tag.containsKey("Rot")) {
+//                int rot = tag.asInt("Rot");
+//
+//                Direction direction = MCDirections.fromRotation(rot);
+//
+//                if (direction != null) {
+//                    Vector applyAbsolute = transformInverse.apply(direction.toVector());
+//                    Vector applyOrigin = transformInverse.apply(Vector.ZERO);
+//                    applyAbsolute.x -= applyOrigin.x;
+//                    applyAbsolute.y -= applyOrigin.y;
+//                    applyAbsolute.z -= applyOrigin.z;
+//
+//                    Direction newDirection = Direction.findClosest(applyAbsolute, Direction.Flag.CARDINAL | Direction.Flag.ORDINAL | Direction.Flag.SECONDARY_ORDINAL);
+//
+//                    if (newDirection != null) {
+//                        Map<String, Tag> values = ReflectionUtils.getMap(tag.getValue());
+//                        values.put("Rot", new ByteTag((byte) MCDirections.toRotation(newDirection)));
+//                    }
+//                }
+//            }
+        }
+        return newBlock;
+    }
+
     @Override
-    public BaseBlock getBlock(Vector position) {
-        return transformFast(super.getBlock(position));
+    public BaseBlock getLazyBlock(int x, int y, int z) {
+        return transformFast(super.getLazyBlock(x, y, z));
     }
 
     @Override
@@ -73,24 +139,29 @@ public class BlockTransformExtent extends AbstractDelegateExtent {
     }
 
     @Override
+    public BaseBlock getBlock(Vector position) {
+        return transformFast(super.getBlock(position));
+    }
+
+    @Override
+    public BaseBiome getBiome(Vector2D position) {
+        return super.getBiome(position);
+    }
+
+    @Override
+    public boolean setBlock(int x, int y, int z, BaseBlock block) throws WorldEditException {
+        return super.setBlock(x, y, z, transformFastInverse(block));
+    }
+
+
+    @Override
     public boolean setBlock(Vector location, BaseBlock block) throws WorldEditException {
         return super.setBlock(location, transformFastInverse(block));
     }
 
-    private final BaseBlock transformFast(BaseBlock block) {
-        BaseBlock newBlock = BLOCK_TRANSFORM[FaweCache.getCombined(block)];
-        if (block.hasNbtData()) {
-            newBlock.setNbtData(block.getNbtData());
-        }
-        return newBlock;
-    }
-
-    private final BaseBlock transformFastInverse(BaseBlock block) {
-        BaseBlock newBlock = BLOCK_TRANSFORM_INVERSE[FaweCache.getCombined(block)];
-        if (block.hasNbtData()) {
-            newBlock.setNbtData(block.getNbtData());
-        }
-        return newBlock;
+    @Override
+    public boolean setBiome(Vector2D position, BaseBiome biome) {
+        return super.setBiome(position, biome);
     }
 
     /**

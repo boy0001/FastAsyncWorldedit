@@ -37,9 +37,9 @@ public class Settings extends Config {
     })
     public static boolean REGION_RESTRICTIONS = true;
     @Comment({
-            "FAWE will start cancelling non-admin edits if used-memory % exceeds",
-            "this value.  Effects anyone who doesn't have bypass enabled",
-            "(e.g.  /wea , or fastmode //fast , or fawe.bypass permission )."
+            "FAWE will cancel non admin edits when memory consumption exceeds this %",
+            " - Bypass with `/wea` or `//fast` or `fawe.bypass`",
+            " - Disable with 100 or -1."
     })
     public static int MAX_MEMORY_PERCENT = 95;
 

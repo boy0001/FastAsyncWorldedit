@@ -2,6 +2,8 @@ package com.boydti.fawe.object.extent;
 
 import com.boydti.fawe.object.mask.CustomMask;
 import com.boydti.fawe.util.ExtentTraverser;
+import com.sk89q.worldedit.EmptyClipboardException;
+import com.sk89q.worldedit.LocalSession;
 import com.sk89q.worldedit.WorldEdit;
 import com.sk89q.worldedit.extension.factory.DefaultMaskParser;
 import com.sk89q.worldedit.extension.input.InputParseException;
@@ -9,11 +11,14 @@ import com.sk89q.worldedit.extension.input.NoMatchException;
 import com.sk89q.worldedit.extension.input.ParserContext;
 import com.sk89q.worldedit.extent.Extent;
 import com.sk89q.worldedit.extent.NullExtent;
+import com.sk89q.worldedit.extent.clipboard.Clipboard;
+import com.sk89q.worldedit.extent.transform.BlockTransformExtent;
 import com.sk89q.worldedit.function.pattern.Pattern;
 import com.sk89q.worldedit.internal.expression.Expression;
 import com.sk89q.worldedit.internal.expression.ExpressionException;
 import com.sk89q.worldedit.internal.registry.InputParser;
 import com.sk89q.worldedit.math.transform.AffineTransform;
+import com.sk89q.worldedit.session.ClipboardHolder;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -24,7 +29,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
 /**
  * Parses mask input strings.
  */
-public class DefaultTransformParser extends InputParser<TransformExtent> {
+public class DefaultTransformParser extends InputParser<ResettableExtent> {
 
     public DefaultTransformParser(WorldEdit worldEdit) {
         super(worldEdit);
@@ -44,7 +49,7 @@ public class DefaultTransformParser extends InputParser<TransformExtent> {
     }
 
     @Override
-    public TransformExtent parseFromInput(String input, ParserContext context) throws InputParseException {
+    public ResettableExtent parseFromInput(String input, ParserContext context) throws InputParseException {
         Extent extent = new NullExtent();
         for (String component : input.split(" ")) {
             if (component.isEmpty()) {
@@ -52,13 +57,13 @@ public class DefaultTransformParser extends InputParser<TransformExtent> {
             }
             extent = getTansformComponent(extent, component, context);
         }
-        if (extent instanceof TransformExtent) {
-            return (TransformExtent) extent;
+        if (extent instanceof ResettableExtent) {
+            return (ResettableExtent) extent;
         }
         return null;
     }
 
-    private TransformExtent getTansformComponent(Extent parent, String component, ParserContext context) throws InputParseException {
+    private ResettableExtent getTansformComponent(Extent parent, String component, ParserContext context) throws InputParseException {
         final char firstChar = component.charAt(0);
         switch (firstChar) {
             case '#':
@@ -95,23 +100,40 @@ public class DefaultTransformParser extends InputParser<TransformExtent> {
                                 if (!rest.isEmpty()) {
                                     parent = parseFromInput(rest, context);
                                 }
-                                ExtentTraverser traverser = new ExtentTraverser(parent).find(AffineTransformExtent.class);
-                                AffineTransformExtent affine = (AffineTransformExtent) (traverser != null ? traverser.get() : null);
+                                ExtentTraverser traverser = new ExtentTraverser(parent).find(BlockTransformExtent.class);
+                                BlockTransformExtent affine = (BlockTransformExtent) (traverser != null ? traverser.get() : null);
                                 if (affine == null) {
-                                    parent = affine = new AffineTransformExtent(parent, context.requireWorld().getWorldData().getBlockRegistry());
+                                    parent = affine = new BlockTransformExtent(parent, context.requireWorld().getWorldData().getBlockRegistry());
                                 }
-                                AffineTransform transform = affine.getAffine();
+                                AffineTransform transform = (AffineTransform) affine.getTransform();
                                 transform = transform.rotateX(x);
                                 transform = transform.rotateY(y);
                                 transform = transform.rotateZ(z);
-                                affine.setAffine(transform);
-                                return (TransformExtent) parent;
+                                affine.setTransform(transform);
+                                return (ResettableExtent) parent;
                             } catch (NumberFormatException | ExpressionException e) {
-                                throw new InputParseException("The correct format is #scale:<dx>:<dy>:<dz>");
+                                throw new InputParseException("The correct format is #rotate:<dx>:<dy>:<dz>");
                             }
                         }
                         default:
                             throw new NoMatchException("Unrecognized transform '" + component + "'");
+                    }
+                } else {
+                    switch (component) {
+                        case "#clipboard": {
+                            LocalSession session = context.requireSession();
+                            if (session != null) {
+                                try {
+                                    ClipboardHolder holder = session.getClipboard();
+                                    Clipboard clipboard = holder.getClipboard();
+                                    return new ClipboardExtent(parent, clipboard, true);
+                                } catch (EmptyClipboardException e) {
+                                    throw new InputParseException("To use #clipboard, please first copy something to your clipboard");
+                                }
+                            } else {
+                                throw new InputParseException("No session is available, so no clipboard is available");
+                            }
+                        }
                     }
                 }
             default:

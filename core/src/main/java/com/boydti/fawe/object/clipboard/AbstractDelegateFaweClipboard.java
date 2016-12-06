@@ -1,5 +1,6 @@
 package com.boydti.fawe.object.clipboard;
 
+import com.boydti.fawe.jnbt.NBTStreamer;
 import com.boydti.fawe.object.RunnableVal2;
 import com.sk89q.jnbt.CompoundTag;
 import com.sk89q.worldedit.Vector;
@@ -79,5 +80,20 @@ public class AbstractDelegateFaweClipboard extends FaweClipboard {
     @Override
     public void forEach(RunnableVal2<Vector, BaseBlock> task, boolean air) {
         parent.forEach(task, air);
+    }
+
+    @Override
+    public void streamIds(NBTStreamer.ByteReader task) {
+        parent.streamIds(task);
+    }
+
+    @Override
+    public void streamDatas(NBTStreamer.ByteReader task) {
+        parent.streamDatas(task);
+    }
+
+    @Override
+    public List<CompoundTag> getTileEntities() {
+        return parent.getTileEntities();
     }
 }

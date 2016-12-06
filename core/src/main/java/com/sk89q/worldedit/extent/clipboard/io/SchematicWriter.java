@@ -1,6 +1,7 @@
 package com.sk89q.worldedit.extent.clipboard.io;
 
 import com.boydti.fawe.FaweCache;
+import com.boydti.fawe.jnbt.NBTStreamer;
 import com.boydti.fawe.object.RunnableVal2;
 import com.boydti.fawe.object.clipboard.FaweClipboard;
 import com.boydti.fawe.util.ReflectionUtils;
@@ -10,6 +11,7 @@ import com.sk89q.jnbt.DoubleTag;
 import com.sk89q.jnbt.FloatTag;
 import com.sk89q.jnbt.IntTag;
 import com.sk89q.jnbt.ListTag;
+import com.sk89q.jnbt.NBTConstants;
 import com.sk89q.jnbt.NBTOutputStream;
 import com.sk89q.jnbt.ShortTag;
 import com.sk89q.jnbt.StringTag;
@@ -23,11 +25,13 @@ import com.sk89q.worldedit.extent.clipboard.Clipboard;
 import com.sk89q.worldedit.regions.Region;
 import com.sk89q.worldedit.util.Location;
 import com.sk89q.worldedit.world.registry.WorldData;
+import java.io.DataOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 
 import static com.google.common.base.Preconditions.checkNotNull;
@@ -106,8 +110,122 @@ public class SchematicWriter implements ClipboardWriter {
     }
 
     @Override
-    public void write(Clipboard clipboard, WorldData data) throws IOException {
-        outputStream.writeNamedTag("Schematic", writeTag(clipboard));
+    public void write(final Clipboard clipboard, WorldData data) throws IOException {
+        if (clipboard instanceof BlockArrayClipboard) {
+            stream((BlockArrayClipboard) clipboard);
+        } else {
+            outputStream.writeNamedTag("Schematic", writeTag(clipboard));
+            outputStream.flush();
+        }
+    }
+
+    public void stream(final BlockArrayClipboard clipboard) throws IOException {
+        final Region region = clipboard.getRegion();
+        final Vector origin = clipboard.getOrigin();
+        final Vector min = region.getMinimumPoint();
+        final Vector offset = min.subtract(origin);
+        final int width = region.getWidth();
+        final int height = region.getHeight();
+        final int length = region.getLength();
+        if (width > MAX_SIZE) {
+            throw new IllegalArgumentException("Width of region too large for a .schematic");
+        }
+        if (height > MAX_SIZE) {
+            throw new IllegalArgumentException("Height of region too large for a .schematic");
+        }
+        if (length > MAX_SIZE) {
+            throw new IllegalArgumentException("Length of region too large for a .schematic");
+        }
+        final DataOutputStream rawStream = outputStream.getOutputStream();
+        outputStream.writeLazyCompoundTag("Schematic", new NBTOutputStream.LazyWrite() {
+            @Override
+            public void write(NBTOutputStream out) throws IOException {
+                int volume = width * height * length;
+
+                out.writeNamedTag("Width", new ShortTag((short) width));
+                out.writeNamedTag("Length", new ShortTag((short) length));
+                out.writeNamedTag("Height", new ShortTag((short) height));
+                out.writeNamedTag("Materials", new StringTag("Alpha"));
+                out.writeNamedTag("WEOriginX", new IntTag(min.getBlockX()));
+                out.writeNamedTag("WEOriginY", new IntTag(min.getBlockY()));
+                out.writeNamedTag("WEOriginZ", new IntTag(min.getBlockZ()));
+                out.writeNamedTag("WEOffsetX", new IntTag(offset.getBlockX()));
+                out.writeNamedTag("WEOffsetY", new IntTag(offset.getBlockY()));
+                out.writeNamedTag("WEOffsetZ", new IntTag(offset.getBlockZ()));
+
+                out.writeNamedTagName("Data", NBTConstants.TYPE_BYTE_ARRAY);
+                out.getOutputStream().writeInt(volume);
+                clipboard.IMP.streamDatas(new NBTStreamer.ByteReader() {
+                    @Override
+                    public void run(int index, int byteValue) {
+                        try {
+                            rawStream.writeByte(byteValue);
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                        }
+                    }
+                });
+
+                out.writeNamedTagName("Blocks", NBTConstants.TYPE_BYTE_ARRAY);
+                out.getOutputStream().writeInt(volume);
+                final AtomicBoolean hasAdd = new AtomicBoolean(false);
+                clipboard.IMP.streamIds(new NBTStreamer.ByteReader() {
+                    @Override
+                    public void run(int index, int byteValue) {
+                        try {
+                            if (byteValue >= 256) {
+                                hasAdd.set(true);
+                            }
+                            rawStream.writeByte(byteValue);
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                        }
+                    }
+                });
+
+                if (hasAdd.get()) {
+                    out.writeNamedTagName("AddBlocks", NBTConstants.TYPE_BYTE_ARRAY);
+                    out.getOutputStream().writeInt(volume);
+                    clipboard.IMP.streamIds(new NBTStreamer.ByteReader() {
+                        @Override
+                        public void run(int index, int byteValue) {
+                            try {
+                                rawStream.writeByte(byteValue >> 8);
+                            } catch (IOException e) {
+                                e.printStackTrace();
+                            }
+                        }
+                    });
+                }
+
+                final List<CompoundTag> tileEntities = clipboard.IMP.getTileEntities();
+                out.writeNamedTag("TileEntities", new ListTag(CompoundTag.class, tileEntities));
+
+                List<Tag> entities = new ArrayList<Tag>();
+                for (Entity entity : clipboard.getEntities()) {
+                    BaseEntity state = entity.getState();
+
+                    if (state != null) {
+                        Map<String, Tag> values = new HashMap<String, Tag>();
+
+                        // Put NBT provided data
+                        CompoundTag rawTag = state.getNbtData();
+                        if (rawTag != null) {
+                            values.putAll(rawTag.getValue());
+                        }
+
+                        // Store our location data, overwriting any
+                        values.put("id", new StringTag(state.getTypeId()));
+                        values.put("Pos", writeVector(entity.getLocation().toVector(), "Pos"));
+                        values.put("Rotation", writeRotation(entity.getLocation(), "Rotation"));
+
+                        CompoundTag entityTag = new CompoundTag(values);
+                        entities.add(entityTag);
+                    }
+                }
+                out.writeNamedTag("Entities", new ListTag(CompoundTag.class, entities));
+            }
+        });
         outputStream.flush();
     }
 

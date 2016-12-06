@@ -57,7 +57,21 @@ public class HashTagPatternParser extends InputParser<Pattern> {
                 switch (input) {
                     case "#*":
                     case "#existing": {
-                        return new ExistingPattern(context.requireExtent());
+                        return new ExistingPattern(Request.request().getEditSession());
+                    }
+                    case "#fullcopy": {
+                        LocalSession session = context.requireSession();
+                        if (session != null) {
+                            try {
+                                ClipboardHolder holder = session.getClipboard();
+                                Clipboard clipboard = holder.getClipboard();
+                                return new FullClipboardPattern(Request.request().getEditSession(), clipboard);
+                            } catch (EmptyClipboardException e) {
+                                throw new InputParseException("To use #fullcopy, please first copy something to your clipboard");
+                            }
+                        } else {
+                            throw new InputParseException("No session is available, so no clipboard is available");
+                        }
                     }
                     case "#clipboard":
                     case "#copy": {
@@ -80,10 +94,10 @@ public class HashTagPatternParser extends InputParser<Pattern> {
                     String rest = input.substring(split2[0].length() + 1);
                     switch (split2[0].toLowerCase()) {
                         case "#id": {
-                            return new IdPattern(context.requireExtent(), parseFromInput(rest, context));
+                            return new IdPattern(Request.request().getEditSession(), parseFromInput(rest, context));
                         }
                         case "#data": {
-                            return new DataPattern(context.requireExtent(), parseFromInput(rest, context));
+                            return new DataPattern(Request.request().getEditSession(), parseFromInput(rest, context));
                         }
                         case "#~":
                         case "#r":
