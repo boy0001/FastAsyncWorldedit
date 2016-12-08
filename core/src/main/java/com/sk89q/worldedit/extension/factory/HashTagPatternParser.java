@@ -162,7 +162,7 @@ public class HashTagPatternParser extends InputParser<Pattern>{
                             if (len != 3) {
                                 if (len <= 3) {
                                     if (split3.get(len - 1).endsWith(":")) {
-                                        throw new SuggestInputParseException(null, ALL_PATTERNS);
+                                        throw new SuggestInputParseException(null, ALL_PATTERNS).prepend(input);
                                     }
                                     String[] args = new String[]{"<mask>", "<pattern-if>", "<pattern-else>"};
                                     throw new SuggestInputParseException(input, input + ":" + StringMan.join(Arrays.copyOfRange(args, len, 3), ":"));
@@ -240,7 +240,7 @@ public class HashTagPatternParser extends InputParser<Pattern>{
                                 patterns.add(catchSuggestion(input, token, context));
                             }
                             if (patterns.isEmpty()) {
-                                throw new SuggestInputParseException(null, ALL_PATTERNS);
+                                throw new SuggestInputParseException(null, ALL_PATTERNS).prepend(input);
                             }
                             return new LinearBlockPattern(patterns.toArray(new Pattern[patterns.size()]));
                         }
@@ -251,12 +251,12 @@ public class HashTagPatternParser extends InputParser<Pattern>{
                                 patterns.add(catchSuggestion(input, token, context));
                             }
                             if (patterns.isEmpty()) {
-                                throw new SuggestInputParseException(null, ALL_PATTERNS);
+                                throw new SuggestInputParseException(null, ALL_PATTERNS).prepend(input);
                             }
                             return new Linear3DBlockPattern(patterns.toArray(new Pattern[patterns.size()]));
                         }
                         default:
-                            throw new SuggestInputParseException(split2[0], DELEGATE_PATTERNS);
+                            throw new SuggestInputParseException(input, DELEGATE_PATTERNS);
                     }
                 }
                 throw new SuggestInputParseException(input, MainUtil.joinArrayGeneric(SIMPLE_PATTERNS, DELEGATE_PATTERNS));

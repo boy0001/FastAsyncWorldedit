@@ -34,8 +34,9 @@ public class SuggestInputParseException extends InputParseException {
         return MainUtil.prepend(prefix, suggestions);
     }
 
-    public void prepend(String input) {
+    public SuggestInputParseException prepend(String input) {
         this.prefix = input + prefix;
+        return this;
     }
 
     public static SuggestInputParseException get(Throwable e) {
