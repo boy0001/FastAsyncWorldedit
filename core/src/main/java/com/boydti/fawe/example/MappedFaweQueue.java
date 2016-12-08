@@ -233,7 +233,7 @@ public abstract class MappedFaweQueue<WORLD, CHUNK, SECTION> extends FaweQueue {
     @Override
     public int size() {
         int size = map.size();
-        if (size == 0 && SetQueue.IMP.getStage(this) != SetQueue.QueueStage.INACTIVE) {
+        if (size == 0 && getStage() != SetQueue.QueueStage.INACTIVE) {
             runTasks();
         }
         return size;

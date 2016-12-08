@@ -213,7 +213,7 @@ public class HistoryCommands {
                 BBC.COMMAND_UNDO_SUCCESS.send(player);
                 worldEdit.flushBlockBag(player, undone);
             } else {
-                BBC.COMMAND_UNDO_FAIL.send(player);
+                BBC.COMMAND_UNDO_ERROR.send(player);
                 break;
             }
         }
@@ -248,7 +248,7 @@ public class HistoryCommands {
                 BBC.COMMAND_REDO_SUCCESS.send(player);
                 worldEdit.flushBlockBag(player, redone);
             } else {
-                BBC.COMMAND_REDO_FAIL.send(player);
+                BBC.COMMAND_REDO_ERROR.send(player);
             }
         }
     }

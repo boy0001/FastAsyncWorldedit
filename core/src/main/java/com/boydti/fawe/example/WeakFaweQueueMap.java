@@ -5,6 +5,7 @@ import com.boydti.fawe.object.FaweChunk;
 import com.boydti.fawe.object.FaweQueue;
 import com.boydti.fawe.object.RunnableVal;
 import com.boydti.fawe.util.MathMan;
+import com.boydti.fawe.util.SetQueue;
 import java.lang.ref.Reference;
 import java.lang.ref.SoftReference;
 import java.util.Collection;
@@ -141,10 +142,8 @@ public class WeakFaweQueueMap implements IFaweQueueMap {
 
     @Override
     public boolean next(int amount, ExecutorCompletionService pool, long time) {
-        lastWrappedChunk = null;
-        lastX = Integer.MIN_VALUE;
-        lastZ = Integer.MIN_VALUE;
         try {
+            boolean skip = parent.getStage() == SetQueue.QueueStage.INACTIVE;
             int added = 0;
             Iterator<Map.Entry<Long, Reference<FaweChunk>>> iter = blocks.entrySet().iterator();
             if (amount == 1) {
@@ -154,6 +153,9 @@ public class WeakFaweQueueMap implements IFaweQueueMap {
                         Map.Entry<Long, Reference<FaweChunk>> entry = iter.next();
                         Reference<FaweChunk> chunkReference = entry.getValue();
                         FaweChunk chunk = chunkReference.get();
+                        if (skip && chunk == lastWrappedChunk) {
+                            continue;
+                        }
                         iter.remove();
                         if (chunk != null) {
                             parent.start(chunk);
@@ -174,6 +176,11 @@ public class WeakFaweQueueMap implements IFaweQueueMap {
                 Map.Entry<Long, Reference<FaweChunk>> item = iter.next();
                 Reference<FaweChunk> chunkReference = item.getValue();
                 FaweChunk chunk = chunkReference.get();
+                if (skip && chunk == lastWrappedChunk) {
+                    i--;
+                    added--;
+                    continue;
+                }
                 iter.remove();
                 if (chunk != null) {
                     parent.start(chunk);
@@ -192,6 +199,9 @@ public class WeakFaweQueueMap implements IFaweQueueMap {
                         Map.Entry<Long, Reference<FaweChunk>> item = iter.next();
                         Reference<FaweChunk> chunkReference = item.getValue();
                         FaweChunk chunk = chunkReference.get();
+                        if (skip && chunk == lastWrappedChunk) {
+                            continue;
+                        }
                         iter.remove();
                         if (chunk != null) {
                             parent.start(chunk);

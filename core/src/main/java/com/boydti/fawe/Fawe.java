@@ -83,7 +83,9 @@ import com.sk89q.worldedit.regions.selector.CuboidRegionSelector;
 import com.sk89q.worldedit.session.PasteBuilder;
 import com.sk89q.worldedit.session.SessionManager;
 import com.sk89q.worldedit.session.request.Request;
+import com.sk89q.worldedit.util.command.parametric.ParameterData;
 import com.sk89q.worldedit.util.command.parametric.ParametricBuilder;
+import com.sk89q.worldedit.util.command.parametric.ParametricCallable;
 import com.sk89q.worldedit.world.registry.BundledBlockData;
 import java.io.File;
 import java.io.IOException;
@@ -353,6 +355,8 @@ public class Fawe {
             HistoryCommands.inject(); // Translations + rollback command
             NavigationCommands.inject(); // Translations + thru fix
             ParametricBuilder.inject(); // Translations
+            ParametricCallable.inject(); // Translations
+            ParameterData.inject(); // Translations
             ToolUtilCommands.inject(); // Fixes + Translations
             GeneralCommands.inject(); // Translations + gmask args
             // Schematic

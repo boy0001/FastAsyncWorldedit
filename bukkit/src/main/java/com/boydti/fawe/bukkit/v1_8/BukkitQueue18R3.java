@@ -48,15 +48,17 @@ public class BukkitQueue18R3 extends BukkitQueue_0<Chunk, ChunkSection[], ChunkS
             fieldTickingBlockCount = ChunkSection.class.getDeclaredField("tickingBlockCount");
             fieldNonEmptyBlockCount = ChunkSection.class.getDeclaredField("nonEmptyBlockCount");
             fieldChunkMap = PlayerChunkMap.class.getDeclaredField("d");
-            isDirty = ChunkSection.class.getDeclaredField("isDirty");
             fieldSection.setAccessible(true);
             fieldTickingBlockCount.setAccessible(true);
             fieldNonEmptyBlockCount.setAccessible(true);
             fieldChunkMap.setAccessible(true);
-            isDirty.setAccessible(true);
         } catch (Throwable e) {
             e.printStackTrace();
         }
+        try {
+            isDirty = ChunkSection.class.getDeclaredField("isDirty");
+            isDirty.setAccessible(true);
+        } catch (Throwable ignore) {}
     }
 
     public BukkitQueue18R3(final com.sk89q.worldedit.world.World world) {

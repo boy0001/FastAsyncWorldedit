@@ -20,7 +20,9 @@ import java.nio.channels.FileChannel;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.*;
 import java.nio.file.attribute.BasicFileAttributes;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -53,6 +55,51 @@ public class MainUtil {
             }
         }
         Fawe.debug(s);
+    }
+
+    public static List<String> filter(String prefix, List<String> suggestions) {
+        if (prefix.isEmpty()) {
+            return suggestions;
+        }
+        if (suggestions.getClass() != ArrayList.class) {
+            suggestions = new ArrayList<>(suggestions);
+        }
+        Iterator<String> iter = suggestions.iterator();
+        while (iter.hasNext()) {
+            if (!iter.next().startsWith(prefix)) {
+                iter.remove();
+            }
+        }
+        return suggestions;
+    }
+
+    public static List<String> prepend(String start, List<String> suggestions) {
+        if (start.isEmpty()) {
+            return suggestions;
+        }
+        suggestions = new ArrayList<>(suggestions);
+        for (int i = 0; i < suggestions.size(); i++) {
+            suggestions.set(i, start + suggestions.get(i));
+        }
+        return suggestions;
+    }
+
+    public static <T> T[] joinArrayGeneric(T[]... arrays) {
+        int length = 0;
+        for (T[] array : arrays) {
+            length += array.length;
+        }
+
+        //T[] result = new T[length];
+        final T[] result = (T[]) Array.newInstance(arrays[0].getClass().getComponentType(), length);
+
+        int offset = 0;
+        for (T[] array : arrays) {
+            System.arraycopy(array, 0, result, offset, array.length);
+            offset += array.length;
+        }
+
+        return result;
     }
 
     public static long getTotalSize(Path path) {

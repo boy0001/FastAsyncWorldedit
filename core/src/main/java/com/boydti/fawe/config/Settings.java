@@ -107,12 +107,12 @@ public class Settings extends Config {
                 " - Unlimited undo",
                 " - Enables the rollback command"
         })
-        public static boolean USE_DISK = false;
+        public static boolean USE_DISK = true;
         @Comment({
                 "Use a database to store disk storage summaries:",
                 " - Faster lookups and rollback from disk",
         })
-        public static boolean USE_DATABASE = false;
+        public static boolean USE_DATABASE = true;
         @Comment({
                 "Record history with dispatching:",
                 " - Faster as it avoids duplicate block checks",
@@ -133,7 +133,7 @@ public class Settings extends Config {
                 "9 = 1 x high, 1 x medium, 3 x fast (best compression)",
                 "NOTE: If using disk, do some compression (3+) as smaller files save faster"
         })
-        public static int COMPRESSION_LEVEL = 1;
+        public static int COMPRESSION_LEVEL = 8;
         @Comment({
                 "The buffer size for compression:",
                 " - Larger = better ratio but uses more upfront memory"
@@ -242,19 +242,20 @@ public class Settings extends Config {
         public static boolean DEBUG = true;
     }
 
-    @Comment("Generic tick limiter (not necessarily WorldEdit related, but still useful)")
+    @Comment("Generic tick limiter (not necessarily WorldEdit related, but useful to stop abuse)")
     public static class TICK_LIMITER {
         @Comment("Enable the limiter")
         public static boolean ENABLED = true;
-        @Comment("Max physics per tick")
-        public static int PHYSICS = 500000;
-        @Comment("Max item spawns per tick")
-        public static int ITEMS = 50000;
+        @Comment("Max physics per tick (per chunk)")
+        public static int PHYSICS = 4096;
+        @Comment("Max item spawns per tick (per chunk)")
+        public static int ITEMS = 512;
+
     }
 
     public static class CLIPBOARD {
         @Comment("Store the clipboard on disk instead of memory")
-        public static boolean USE_DISK = false;
+        public static boolean USE_DISK = true;
         @Comment({
                 "Compress the clipboard to reduce the size:",
                 " - TODO: Buffered random access with compression is not implemented on disk yet",

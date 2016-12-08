@@ -21,6 +21,7 @@ package com.sk89q.worldedit.extension.platform;
 
 import com.boydti.fawe.Fawe;
 import com.boydti.fawe.command.AnvilCommands;
+import com.boydti.fawe.command.PatternBinding;
 import com.boydti.fawe.config.BBC;
 import com.boydti.fawe.config.Settings;
 import com.boydti.fawe.object.FawePlayer;
@@ -42,14 +43,21 @@ import com.sk89q.worldedit.WorldEdit;
 import com.sk89q.worldedit.command.*;
 import com.sk89q.worldedit.command.argument.ReplaceParser;
 import com.sk89q.worldedit.command.argument.TreeGeneratorParser;
-import com.sk89q.worldedit.command.composition.*;
+import com.sk89q.worldedit.command.composition.ApplyCommand;
+import com.sk89q.worldedit.command.composition.DeformCommand;
+import com.sk89q.worldedit.command.composition.PaintCommand;
+import com.sk89q.worldedit.command.composition.ShapedBrushCommand;
 import com.sk89q.worldedit.entity.Player;
 import com.sk89q.worldedit.event.platform.CommandEvent;
 import com.sk89q.worldedit.event.platform.CommandSuggestionEvent;
 import com.sk89q.worldedit.function.factory.Deform;
 import com.sk89q.worldedit.function.factory.Deform.Mode;
 import com.sk89q.worldedit.history.changeset.ChangeSet;
-import com.sk89q.worldedit.internal.command.*;
+import com.sk89q.worldedit.internal.command.ActorAuthorizer;
+import com.sk89q.worldedit.internal.command.CommandLoggingHandler;
+import com.sk89q.worldedit.internal.command.UserCommandCompleter;
+import com.sk89q.worldedit.internal.command.WorldEditBinding;
+import com.sk89q.worldedit.internal.command.WorldEditExceptionConverter;
 import com.sk89q.worldedit.session.request.Request;
 import com.sk89q.worldedit.util.command.Dispatcher;
 import com.sk89q.worldedit.util.command.InvalidUsageException;
@@ -120,9 +128,11 @@ public final class CommandManager {
         builder.setAuthorizer(new ActorAuthorizer());
         builder.setDefaultCompleter(new UserCommandCompleter(platformManager));
         builder.addBinding(new WorldEditBinding(worldEdit));
+
+        builder.addBinding(new PatternBinding(worldEdit), com.sk89q.worldedit.function.pattern.Pattern.class);
+
         builder.addInvokeListener(new LegacyCommandsHandler());
         builder.addInvokeListener(new CommandLoggingHandler(worldEdit, commandLog));
-
         dispatcher = new CommandGraph().builder(builder).commands()
                 .registerMethods(new AnvilCommands(worldEdit)) // Added
                 .registerMethods(new BiomeCommands(worldEdit))
@@ -139,7 +149,7 @@ public final class CommandManager {
                 .registerMethods(new ToolUtilCommands(worldEdit))
                 .registerMethods(new ToolCommands(worldEdit))
                 .registerMethods(new UtilityCommands(worldEdit))
-                .register(adapt(new SelectionCommand(new ApplyCommand(new ReplaceParser(), "Set all blocks within selection"), "worldedit.region.set")), "/set").group("worldedit", "we")
+                .group("worldedit", "we")
                 .describeAs("WorldEdit commands")
                 .registerMethods(new WorldEditCommands(worldEdit)).parent().group("schematic", "schem", "/schematic", "/schem")
                 .describeAs("Schematic commands for saving/loading areas")

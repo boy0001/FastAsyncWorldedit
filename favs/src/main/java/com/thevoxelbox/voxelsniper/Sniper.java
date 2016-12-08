@@ -415,7 +415,7 @@ public class Sniper {
         if (count > 0) {
             BBC.COMMAND_UNDO_SUCCESS.send(fp);
         } else {
-            BBC.COMMAND_UNDO_FAIL.send(fp);
+            BBC.COMMAND_UNDO_ERROR.send(fp);
         }
     }
 

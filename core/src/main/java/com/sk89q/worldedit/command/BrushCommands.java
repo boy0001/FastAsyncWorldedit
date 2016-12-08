@@ -205,6 +205,14 @@ public class BrushCommands {
         } else {
             tool.setBrush(new SphereBrush(), "worldedit.brush.sphere");
         }
+        if (fill instanceof BlockPattern) {
+            BaseBlock block = ((BlockPattern) fill).getBlock();
+            switch (block.getId()) {
+                case BlockID.SAND:
+                case BlockID.GRAVEL:
+                    BBC.BRUSH_TRY_OTHER.send(player);
+            }
+        }
         player.print(BBC.BRUSH_SPHERE.f(radius));
     }
 

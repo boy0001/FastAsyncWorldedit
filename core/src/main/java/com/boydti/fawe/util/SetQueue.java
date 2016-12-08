@@ -6,6 +6,7 @@ import com.boydti.fawe.object.FaweQueue;
 import com.sk89q.worldedit.world.World;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.ConcurrentModificationException;
 import java.util.Iterator;
 import java.util.concurrent.ConcurrentLinkedDeque;
@@ -115,7 +116,8 @@ public class SetQueue {
                     boolean parallel = Settings.QUEUE.PARALLEL_THREADS > 1;
                     queue.startSet(parallel);
                     try {
-                        if (!queue.next(Settings.QUEUE.PARALLEL_THREADS, getCompleterService(), time)) {
+                        if (!queue.next(Settings.QUEUE.PARALLEL_THREADS, getCompleterService(), time) && queue.getStage() == QueueStage.ACTIVE) {
+                            queue.setStage(QueueStage.NONE);
                             queue.runTasks();
                         }
                     } catch (Throwable e) {
@@ -143,12 +145,7 @@ public class SetQueue {
     }
 
     public QueueStage getStage(FaweQueue queue) {
-        if (activeQueues.contains(queue)) {
-            return QueueStage.ACTIVE;
-        } else if (inactiveQueues.contains(queue)) {
-            return QueueStage.INACTIVE;
-        }
-        return QueueStage.NONE;
+        return queue.getStage();
     }
 
     public boolean isStage(FaweQueue queue, QueueStage stage) {
@@ -164,6 +161,7 @@ public class SetQueue {
     }
 
     public boolean enqueue(FaweQueue queue) {
+        queue.setStage(QueueStage.ACTIVE);
         inactiveQueues.remove(queue);
         if (queue.size() > 0) {
             if (!activeQueues.contains(queue)) {
@@ -176,6 +174,7 @@ public class SetQueue {
     }
 
     public void dequeue(FaweQueue queue) {
+        queue.setStage(QueueStage.NONE);
         inactiveQueues.remove(queue);
         activeQueues.remove(queue);
         queue.runTasks();
@@ -189,16 +188,17 @@ public class SetQueue {
     }
 
     public Collection<FaweQueue> getActiveQueues() {
-        return activeQueues;
+        return Collections.unmodifiableCollection(activeQueues);
     }
 
     public Collection<FaweQueue> getInactiveQueues() {
-        return inactiveQueues;
+        return Collections.unmodifiableCollection(inactiveQueues);
     }
 
     public FaweQueue getNewQueue(World world, boolean fast, boolean autoqueue) {
         FaweQueue queue = Fawe.imp().getNewQueue(world, fast);
         if (autoqueue) {
+            queue.setStage(QueueStage.INACTIVE);
             inactiveQueues.add(queue);
         }
         return queue;
@@ -207,6 +207,7 @@ public class SetQueue {
     public FaweQueue getNewQueue(String world, boolean fast, boolean autoqueue) {
         FaweQueue queue = Fawe.imp().getNewQueue(world, fast);
         if (autoqueue) {
+            queue.setStage(QueueStage.INACTIVE);
             inactiveQueues.add(queue);
         }
         return queue;
@@ -221,6 +222,7 @@ public class SetQueue {
             completer = new ExecutorCompletionService(pool);
             MainUtil.handleError(e);
         } finally {
+            queue.setStage(QueueStage.NONE);
             queue.runTasks();
         }
     }
@@ -233,6 +235,7 @@ public class SetQueue {
                 queue.setModified(now);
                 return queue;
             } else {
+                queue.setStage(QueueStage.NONE);
                 queue.runTasks();
                 activeQueues.poll();
             }
@@ -249,6 +252,7 @@ public class SetQueue {
                     total += queue.size();
                     if (queue.size() == 0) {
                         if (age > Settings.QUEUE.DISCARD_AFTER_MS) {
+                            queue.setStage(QueueStage.NONE);
                             queue.runTasks();
                             iter.remove();
                         }
@@ -282,6 +286,7 @@ public class SetQueue {
                     activeQueues.add(queue);
                     return set;
                 } else {
+                    queue.setStage(QueueStage.NONE);
                     queue.runTasks();
                 }
             }
@@ -304,6 +309,7 @@ public class SetQueue {
                     if (diff > Settings.QUEUE.DISCARD_AFTER_MS) {
                         // These edits never finished
                         for (FaweQueue queue : tmp) {
+                            queue.setStage(QueueStage.NONE);
                             queue.runTasks();
                         }
                         inactiveQueues.clear();

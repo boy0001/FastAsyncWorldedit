@@ -37,6 +37,7 @@ public abstract class FaweQueue {
     private long modified = System.currentTimeMillis();
     private RunnableVal2<FaweChunk, FaweChunk> changeTask;
     private RunnableVal2<ProgressType, Integer> progressTask;
+    private SetQueue.QueueStage stage;
 
     public FaweQueue(String world) {
         this.world = world;
@@ -388,6 +389,14 @@ public abstract class FaweQueue {
         flush(10000);
     }
 
+    public SetQueue.QueueStage getStage() {
+        return stage;
+    }
+
+    public void setStage(SetQueue.QueueStage stage) {
+        this.stage = stage;
+    }
+
     /**
      * Lock the thread until the queue is empty
      */
@@ -397,7 +406,7 @@ public abstract class FaweQueue {
                 SetQueue.IMP.flush(this);
             } else {
                 if (enqueue()) {
-                    while (!isEmpty() && SetQueue.IMP.isStage(this, SetQueue.QueueStage.ACTIVE)) {
+                    while (!isEmpty() && getStage() == SetQueue.QueueStage.ACTIVE) {
                         synchronized (this) {
                             try {
                                 this.wait(time);

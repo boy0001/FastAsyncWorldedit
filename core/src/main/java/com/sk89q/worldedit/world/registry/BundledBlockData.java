@@ -36,10 +36,13 @@ import java.io.IOException;
 import java.lang.reflect.Type;
 import java.net.URL;
 import java.nio.charset.Charset;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.logging.Logger;
 import javax.annotation.Nullable;
 
@@ -60,6 +63,7 @@ public class BundledBlockData {
     private static final BundledBlockData INSTANCE = new BundledBlockData();
 
     private final Map<String, BlockEntry> idMap = new HashMap<String, BlockEntry>();
+    private final Map<String, BlockEntry> localizedMap = new HashMap<String, BlockEntry>();
 
     private final BlockEntry[] legacyMap = new BlockEntry[4096];
 
@@ -93,6 +97,41 @@ public class BundledBlockData {
         for (BlockEntry entry : entries) {
             add(entry, overwrite);
         }
+    }
+
+    public Set<String> getBlockNames() {
+        return localizedMap.keySet();
+    }
+
+    public List<String> getBlockNames(String partial) {
+        partial = partial.toLowerCase();
+        List<String> blocks = new ArrayList<>();
+        for (Map.Entry<String, BlockEntry> entry : localizedMap.entrySet()) {
+            String key = entry.getKey();
+            if (key.startsWith(partial)) {
+                blocks.add(key);
+            }
+        }
+        return blocks;
+    }
+
+    public List<String> getBlockStates(String id) {
+        BlockEntry block = localizedMap.get(id);
+        if (block == null || block.states == null || block.states.isEmpty()) {
+            return Arrays.asList("0", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", "14", "15");
+        }
+        ArrayList<String> blocks = new ArrayList<>();
+        if (block.states != null) {
+            for (Map.Entry<String, FaweState> entry : block.states.entrySet()) {
+                FaweState state = entry.getValue();
+                if (state.values != null) {
+                    for (Map.Entry<String, FaweStateValue> stateValueEntry : state.values.entrySet()) {
+                        blocks.add(stateValueEntry.getKey());
+                    }
+                }
+            }
+        }
+        return blocks;
     }
 
     public boolean add(BlockEntry entry, boolean overwrite) {
@@ -162,6 +201,7 @@ public class BundledBlockData {
         }
 
         idMap.put(entry.id, entry);
+        localizedMap.put(entry.localizedName.toLowerCase().replace(" ", "_"), entry);
         legacyMap[entry.legacyId] = entry;
         return true;
     }
@@ -249,6 +289,7 @@ public class BundledBlockData {
         public int legacyId;
         public String id;
         public String unlocalizedName;
+        public String localizedName;
         public List<String> aliases;
         public Map<String, FaweState> states = new HashMap<String, FaweState>();
         public FaweBlockMaterial material = new FaweBlockMaterial();
