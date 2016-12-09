@@ -39,7 +39,7 @@ public class ChunkListener implements Listener {
                     }
                     badChunks.clear();
                 }
-            }, 1);
+            }, Settings.TICK_LIMITER.INTERVAL);
         }
     }
 
@@ -73,53 +73,6 @@ public class ChunkListener implements Listener {
             }
         }
 
-    }
-
-    public boolean isRedstone(int id) {
-        switch (id) {
-            // wire
-            case 55:
-                // comparator
-            case 149:
-            case 150:
-                // diode
-            case 93:
-            case 94:
-                // torch
-            case 75:
-            case 76:
-                // rail
-            case 27:
-            case 23: // dispensor
-            case 158: // dropper
-            case 25:
-                // piston
-            case 29:
-            case 33:
-                // tnt
-            case 44:
-                // door
-            case 96: // trapdoor
-            case 167:
-            case 107: // fence
-            case 183:
-            case 184:
-            case 185:
-            case 186:
-            case 187:
-                // lamp
-            case 123:
-            case 124:
-                // BUD
-            case 73: // ore
-            case 74:
-            case 8: // water
-            case 9:
-            case 34: // piston
-                return true;
-            default:
-                return false;
-        }
     }
 
     private int lastPhysY = 0;

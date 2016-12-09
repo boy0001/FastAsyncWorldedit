@@ -246,11 +246,13 @@ public class Settings extends Config {
     public static class TICK_LIMITER {
         @Comment("Enable the limiter")
         public static boolean ENABLED = true;
-        @Comment("Max falling blocks per tick (per chunk)")
+        @Comment("The interval in ticks")
+        public static int INTERVAL = 1;
+        @Comment("Max falling blocks per interval (per chunk)")
         public static int FALLING = 512;
-        @Comment("Max physics per tick (per chunk)")
+        @Comment("Max physics per interval (per chunk)")
         public static int PHYSICS = 512;
-        @Comment("Max item spawns per tick (per chunk)")
+        @Comment("Max item spawns per interval (per chunk)")
         public static int ITEMS = 48;
 
     }
