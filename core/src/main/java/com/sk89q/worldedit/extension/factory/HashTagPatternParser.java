@@ -80,7 +80,22 @@ public class HashTagPatternParser extends InputParser<Pattern>{
             e.prepend(currentInput.substring(0, currentInput.length() - nextInput.length()));
             throw e;
         }
+    }
 
+    public List<String> handleRemainder(String input, String... expected) throws InputParseException {
+        List<String> remainder = split(input, ':');
+        int len = remainder.size();
+        if (len != expected.length - 1) {
+            if (len <= expected.length - 1 && len != 0) {
+                if (remainder.get(len - 1).endsWith(":")) {
+                    throw new SuggestInputParseException(null, ALL_PATTERNS).prepend(expected[0] + ":" + input);
+                }
+                throw new SuggestInputParseException(null, expected[0] + ":" + input + ":" + StringMan.join(Arrays.copyOfRange(expected, len + 1, 3), ":"));
+            } else {
+                throw new SuggestInputParseException(null, StringMan.join(expected, ":"));
+            }
+        }
+        return remainder;
     }
 
     @Override
@@ -157,19 +172,7 @@ public class HashTagPatternParser extends InputParser<Pattern>{
                             return new NoZPattern(catchSuggestion(input, rest, context));
                         }
                         case "#mask": {
-                            List<String> split3 = split(rest, ':');
-                            int len = split3.size();
-                            if (len != 3) {
-                                if (len <= 3) {
-                                    if (split3.get(len - 1).endsWith(":")) {
-                                        throw new SuggestInputParseException(null, ALL_PATTERNS).prepend(input);
-                                    }
-                                    String[] args = new String[]{"<mask>", "<pattern-if>", "<pattern-else>"};
-                                    throw new SuggestInputParseException(input, input + ":" + StringMan.join(Arrays.copyOfRange(args, len, 3), ":"));
-                                } else {
-                                    throw new SuggestInputParseException(input, "#mask:<mask>:<pattern-if>:<pattern-else>");
-                                }
-                            }
+                            List<String> split3 = handleRemainder(rest, "#mask", "<mask>", "<pattern-if>", "<pattern-else>");
                             Pattern primary = catchSuggestion(input, split3.get(1), context);
                             Pattern secondary = catchSuggestion(input, split3.get(2), context);
                             PatternExtent extent = new PatternExtent(primary);
@@ -181,56 +184,60 @@ public class HashTagPatternParser extends InputParser<Pattern>{
                             MaskFactory factory = worldEdit.getMaskFactory();
                             Mask mask = factory.parseFromInput(split3.get(0), context);
                             if (mask == null | primary == null || secondary == null) {
-                                throw new SuggestInputParseException(input, "#mask:<mask>:<pattern-if>:<pattern-else>");
+                                throw new SuggestInputParseException(null, "#mask:<mask>:<pattern-if>:<pattern-else>");
                             }
                             return new MaskedPattern(mask, extent, secondary);
                         }
                         case "#offset":
                             try {
-                                int x = (int) Math.abs(Expression.compile(split2[1]).evaluate());
-                                int y = (int) Math.abs(Expression.compile(split2[2]).evaluate());
-                                int z = (int) Math.abs(Expression.compile(split2[3]).evaluate());
-                                rest = rest.substring(split2[1].length() + split2[2].length() + split2[3].length() + 3);
+                                List<String> split3 = handleRemainder(rest, "#offset", "<dx>", "<dy>", "<dz>", "<pattern>");
+                                int x = (int) Math.abs(Expression.compile(split3.get(0)).evaluate());
+                                int y = (int) Math.abs(Expression.compile(split3.get(1)).evaluate());
+                                int z = (int) Math.abs(Expression.compile(split3.get(2)).evaluate());
+                                rest = StringMan.join(split3.subList(3, split3.size() - 1), ":");
                                 Pattern pattern = catchSuggestion(input, rest, context);
                                 return new OffsetPattern(pattern, x, y, z);
-                            } catch (NumberFormatException | ExpressionException e) {
-                                throw new SuggestInputParseException(input, "#offset:<dx>:<dy>:<dz>:<pattern>");
+                            } catch (NumberFormatException | ExpressionException | IndexOutOfBoundsException e) {
+                                throw new SuggestInputParseException(null, "#offset:<dx>:<dy>:<dz>:<pattern>");
                             }
                         case "#surfacespread": {
                             try {
-                                int x = (int) Math.abs(Expression.compile(split2[1]).evaluate());
-                                int y = (int) Math.abs(Expression.compile(split2[2]).evaluate());
-                                int z = (int) Math.abs(Expression.compile(split2[3]).evaluate());
-                                rest = rest.substring(split2[1].length() + split2[2].length() + split2[3].length() + 3);
+                                List<String> split3 = handleRemainder(rest, "#surfacespread", "<dx>", "<dy>", "<dz>", "<pattern>");
+                                int x = (int) Math.abs(Expression.compile(split3.get(0)).evaluate());
+                                int y = (int) Math.abs(Expression.compile(split3.get(1)).evaluate());
+                                int z = (int) Math.abs(Expression.compile(split3.get(2)).evaluate());
+                                rest = StringMan.join(split3.subList(3, split3.size() - 1), ":");
                                 Pattern pattern = catchSuggestion(input, rest, context);
                                 return new SurfaceRandomOffsetPattern(pattern, x, y, z);
-                            } catch (NumberFormatException | ExpressionException e) {
-                                throw new SuggestInputParseException(input, "#surfacespread:<dx>:<dy>:<dz>:<pattern>");
+                            } catch (NumberFormatException | ExpressionException | IndexOutOfBoundsException e) {
+                                throw new SuggestInputParseException(null, "#surfacespread:<dx>:<dy>:<dz>:<pattern>");
                             }
                         }
                         case "#solidspread": {
                             try {
-                                int x = (int) Math.abs(Expression.compile(split2[1]).evaluate());
-                                int y = (int) Math.abs(Expression.compile(split2[2]).evaluate());
-                                int z = (int) Math.abs(Expression.compile(split2[3]).evaluate());
-                                rest = rest.substring(split2[1].length() + split2[2].length() + split2[3].length() + 3);
+                                List<String> split3 = handleRemainder(rest, "#solidspread", "<dx>", "<dy>", "<dz>", "<pattern>");
+                                int x = (int) Math.abs(Expression.compile(split3.get(0)).evaluate());
+                                int y = (int) Math.abs(Expression.compile(split3.get(1)).evaluate());
+                                int z = (int) Math.abs(Expression.compile(split3.get(2)).evaluate());
+                                rest = StringMan.join(split3.subList(3, split3.size() - 1), ":");
                                 Pattern pattern = catchSuggestion(input, rest, context);
                                 return new SolidRandomOffsetPattern(pattern, x, y, z);
-                            } catch (NumberFormatException | ExpressionException e) {
-                                throw new SuggestInputParseException(input, "#solidspread:<dx>:<dy>:<dz>:<pattern>");
+                            } catch (NumberFormatException | ExpressionException | IndexOutOfBoundsException e) {
+                                throw new SuggestInputParseException(null, "#solidspread:<dx>:<dy>:<dz>:<pattern>");
                             }
                         }
                         case "#randomoffset":
                         case "#spread": {
                             try {
-                                int x = (int) Math.abs(Expression.compile(split2[1]).evaluate());
-                                int y = (int) Math.abs(Expression.compile(split2[2]).evaluate());
-                                int z = (int) Math.abs(Expression.compile(split2[3]).evaluate());
-                                rest = rest.substring(split2[1].length() + split2[2].length() + split2[3].length() + 3);
+                                List<String> split3 = handleRemainder(rest, "#spread", "<dx>", "<dy>", "<dz>", "<pattern>");
+                                int x = (int) Math.abs(Expression.compile(split3.get(0)).evaluate());
+                                int y = (int) Math.abs(Expression.compile(split3.get(1)).evaluate());
+                                int z = (int) Math.abs(Expression.compile(split3.get(2)).evaluate());
+                                rest = StringMan.join(split3.subList(3, split3.size() - 1), ":");
                                 Pattern pattern = catchSuggestion(input, rest, context);
                                 return new RandomOffsetPattern(pattern, x, y, z);
-                            } catch (NumberFormatException | ExpressionException e) {
-                                throw new SuggestInputParseException(input, "#spread:<dx>:<dy>:<dz>:<pattern>");
+                            } catch (NumberFormatException | ExpressionException | IndexOutOfBoundsException e) {
+                                throw new SuggestInputParseException(null, "#spread:<dx>:<dy>:<dz>:<pattern>");
                             }
                         }
                         case "#l":
@@ -277,11 +284,17 @@ public class HashTagPatternParser extends InputParser<Pattern>{
                 }
             }
             default:
-                if (input.equals("<pattern>")) {
-                    throw new SuggestInputParseException(input, ALL_PATTERNS);
-                }
-                if (input.equals("<block>")) {
-                    throw new SuggestInputParseException(input, BundledBlockData.getInstance().getBlockNames());
+                switch (input) {
+                    case "<dx>":
+                    case "<dy>":
+                    case "<dz>":
+                        throw new SuggestInputParseException(input, "0", "-3", "7");
+                    case "<pattern>":
+                    case "<pattern-if>":
+                    case "<pattern-else>":
+                        throw new SuggestInputParseException(input, ALL_PATTERNS);
+                    case "<block>":
+                        throw new SuggestInputParseException(input, BundledBlockData.getInstance().getBlockNames());
                 }
                 List<String> items = split(input, ',');
                 if (items.size() == 1) {
