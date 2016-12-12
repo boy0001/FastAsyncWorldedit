@@ -4,7 +4,6 @@ import com.boydti.fawe.Fawe;
 import com.boydti.fawe.FaweCache;
 import com.boydti.fawe.config.Settings;
 import com.boydti.fawe.jnbt.NBTStreamer;
-import com.boydti.fawe.jnbt.SchematicStreamer;
 import com.boydti.fawe.object.IntegerTrio;
 import com.boydti.fawe.object.RunnableVal2;
 import com.boydti.fawe.object.io.BufferedRandomAccessFile;
@@ -12,7 +11,6 @@ import com.boydti.fawe.util.MainUtil;
 import com.boydti.fawe.util.ReflectionUtils;
 import com.sk89q.jnbt.CompoundTag;
 import com.sk89q.jnbt.IntTag;
-import com.sk89q.jnbt.NBTInputStream;
 import com.sk89q.jnbt.Tag;
 import com.sk89q.worldedit.BlockVector;
 import com.sk89q.worldedit.EditSession;
@@ -23,10 +21,8 @@ import com.sk89q.worldedit.entity.Entity;
 import com.sk89q.worldedit.extent.Extent;
 import com.sk89q.worldedit.extent.clipboard.BlockArrayClipboard;
 import com.sk89q.worldedit.regions.CuboidRegion;
-import java.io.BufferedInputStream;
 import java.io.Closeable;
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -34,7 +30,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
-import java.util.zip.GZIPInputStream;
 
 /**
  * A clipboard with disk backed storage. (lower memory + loads on crash)
@@ -424,17 +419,6 @@ public class DiskOptimizedClipboard extends FaweClipboard implements Closeable {
         }  catch (Exception e) {
             MainUtil.handleError(e);
         }
-    }
-
-    public static void main(String[] args) throws IOException{
-        long start = System.currentTimeMillis();
-        File file = new File("C:/Users/Jesse/Desktop/OTHER/mc/plugins/WorldEdit/schematics/50mil.schematic");
-        BufferedInputStream in = new BufferedInputStream(new GZIPInputStream(new BufferedInputStream(new FileInputStream(file))));
-        NBTInputStream nbtin = new NBTInputStream(in);
-        Settings.CLIPBOARD.USE_DISK = true;
-        SchematicStreamer streamer = new SchematicStreamer(nbtin, UUID.randomUUID());
-        streamer.getClipboard();
-        System.out.println(System.currentTimeMillis() - start);
     }
 
     @Override

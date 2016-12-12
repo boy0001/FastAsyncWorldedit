@@ -92,6 +92,18 @@ public class MathMan {
         return (byte) ((value >> 4) & 0xF);
     }
 
+    public static final byte pair8(int x, int y) {
+        return (byte) (x + (y << 3));
+    }
+
+    public static byte unpair8x(byte value) {
+        return (byte) (value & 0x7);
+    }
+
+    public static byte unpair8y(byte value) {
+        return (byte) ((value >> 3) & 0x7F);
+    }
+
     public static final int lossyFastDivide(int a, int b) {
         return (a*((1<<16)/b))>>16;
     }

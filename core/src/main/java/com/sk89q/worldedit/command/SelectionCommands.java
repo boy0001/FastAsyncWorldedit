@@ -20,6 +20,8 @@
 package com.sk89q.worldedit.command;
 
 import com.boydti.fawe.config.BBC;
+import com.boydti.fawe.object.mask.IdMask;
+import com.boydti.fawe.object.regions.selector.FuzzyRegionSelector;
 import com.google.common.base.Optional;
 import com.sk89q.minecraft.util.commands.Command;
 import com.sk89q.minecraft.util.commands.CommandContext;
@@ -35,8 +37,10 @@ import com.sk89q.worldedit.WorldEditException;
 import com.sk89q.worldedit.blocks.BaseBlock;
 import com.sk89q.worldedit.blocks.BlockType;
 import com.sk89q.worldedit.entity.Player;
+import com.sk89q.worldedit.extension.input.ParserContext;
 import com.sk89q.worldedit.extension.platform.permission.ActorSelectorLimits;
 import com.sk89q.worldedit.extent.clipboard.Clipboard;
+import com.sk89q.worldedit.function.mask.Mask;
 import com.sk89q.worldedit.regions.Region;
 import com.sk89q.worldedit.regions.RegionOperationException;
 import com.sk89q.worldedit.regions.RegionSelector;
@@ -56,10 +60,10 @@ import com.sk89q.worldedit.util.formatting.StyledFragment;
 import com.sk89q.worldedit.util.formatting.component.CommandListBox;
 import com.sk89q.worldedit.world.World;
 import com.sk89q.worldedit.world.storage.ChunkStore;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
+
 
 import static com.sk89q.minecraft.util.commands.Logging.LogMode.POSITION;
 import static com.sk89q.minecraft.util.commands.Logging.LogMode.REGION;
@@ -748,6 +752,20 @@ public class SelectionCommands {
             if (limit.isPresent()) {
                 player.print(limit.get() + " points maximum.");
             }
+        } else if (typeName.startsWith("fuzzy") || typeName.startsWith("magic")) {
+            Mask mask;
+            if (typeName.length() > 6) {
+                ParserContext parserContext = new ParserContext();
+                parserContext.setActor(player);
+                parserContext.setWorld(player.getWorld());
+                parserContext.setSession(session);
+                parserContext.setExtent(editSession);
+                mask = we.getMaskFactory().parseFromInput(typeName.substring(6),parserContext);
+            } else {
+                mask = new IdMask(editSession);
+            }
+            selector = new FuzzyRegionSelector(player, editSession, mask);
+            player.print("Fuzzy selector: Left click to select all contingent blocks, right click to add");
         } else {
             CommandListBox box = new CommandListBox("Selection modes");
             StyledFragment contents = box.getContents();
@@ -761,6 +779,7 @@ public class SelectionCommands {
             box.appendCommand("sphere", "Select a sphere");
             box.appendCommand("cyl", "Select a cylinder");
             box.appendCommand("convex", "Select a convex polyhedral");
+            box.appendCommand("fuzzy[=<mask>]", "Select all connected blocks");
 
             player.printRaw(ColorCodeBuilder.asColorCodes(box));
             return;

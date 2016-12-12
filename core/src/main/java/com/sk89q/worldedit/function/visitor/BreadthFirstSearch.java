@@ -58,10 +58,38 @@ public abstract class BreadthFirstSearch implements Operation {
 
     public void visit(final Vector pos) {
         Node node = new Node((int) pos.x, (int) pos.y, (int) pos.z);
-        if (!this.visited.containsKey(node)) {
+        if (!isVisited(node)) {
             isVisitable(pos, pos); // Ignore this, just to initialize mask on this point
-            visited.put(node, 0);
             queue.add(node);
+            addVisited(node, 0);
+        }
+    }
+
+    public void addVisited(Node node, int depth) {
+        visited.put(node, depth);
+    }
+
+    public boolean isVisited(Node node) {
+        return visited.containsKey(node);
+    }
+
+    public void cleanVisited(int layer) {
+        if (layer == Integer.MAX_VALUE) {
+            visited.clear();
+            return;
+        }
+        int size = visited.size();
+        if (size > 16384) {
+            Iterator<Map.Entry<Node, Integer>> iter = visited.entrySet().iterator();
+            while (iter.hasNext()) {
+                Map.Entry<Node, Integer> entry = iter.next();
+                Integer val = entry.getValue();
+                if (val < layer) {
+                    iter.remove();
+                } else {
+                    break;
+                }
+            }
         }
     }
 
@@ -76,7 +104,7 @@ public abstract class BreadthFirstSearch implements Operation {
         for (int layer = 0; !queue.isEmpty() && layer <= maxDepth; layer++) {
             int size = queue.size();
             if (layer == maxDepth) {
-                visited.clear();
+                cleanVisited(Integer.MAX_VALUE);
                 for (Node current : queue) {
                     mutable.x = current.getX();
                     mutable.y = current.getY();
@@ -99,27 +127,15 @@ public abstract class BreadthFirstSearch implements Operation {
                     mutable2.z = from.getZ() + direction.z;
                     if (isVisitable(mutable, mutable2)) {
                         adjacent = new Node(mutable2.getBlockX(), mutable2.getBlockY(), mutable2.getBlockZ());
-                        if (!visited.containsKey(adjacent)) {
-                            visited.put(adjacent, layer);
+                        if (!isVisited(adjacent)) {
+                            addVisited(adjacent, layer);
                             queue.add(adjacent);
                         }
                     }
                 }
             }
             int lastLayer = layer - 1;
-            size = visited.size();
-            if (shouldTrim || (shouldTrim = size > 16384)) {
-                Iterator<Map.Entry<Node, Integer>> iter = visited.entrySet().iterator();
-                while (iter.hasNext()) {
-                    Map.Entry<Node, Integer> entry = iter.next();
-                    Integer val = entry.getValue();
-                    if (val < lastLayer) {
-                        iter.remove();
-                    } else {
-                        break;
-                    }
-                }
-            }
+            cleanVisited(lastLayer);
         }
         return null;
     }

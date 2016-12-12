@@ -360,6 +360,10 @@ public class EditSession extends AbstractWorld implements HasFaweQueue {
         return originalLimit;
     }
 
+    public void resetLimit() {
+        this.limit = this.originalLimit.copy();
+    }
+
     /**
      * Returns a new limit representing how much of this edit's limit has been used so far
      * @return
