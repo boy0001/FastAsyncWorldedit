@@ -152,7 +152,7 @@ public class FaweBukkit implements IFawe, Listener {
         try {
             this.vault = new VaultUtil();
         } catch (final Throwable e) {
-            this.debug("&cPlease install vault!");
+            this.debug("&dVault is used for persistent `/wea` toggles.");
         }
     }
 
