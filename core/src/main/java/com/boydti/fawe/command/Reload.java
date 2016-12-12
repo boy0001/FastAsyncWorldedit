@@ -9,7 +9,9 @@ import com.boydti.fawe.util.HastebinUtility;
 import com.boydti.fawe.util.MainUtil;
 import java.io.File;
 import java.io.IOException;
+import java.time.LocalDate;
 import java.util.Date;
+import java.util.GregorianCalendar;
 import java.util.Map;
 
 public class Reload extends FaweCommand {
@@ -31,13 +33,14 @@ public class Reload extends FaweCommand {
                     MainUtil.sendMessage(player, "No version information available.");
                     return false;
                 }
-                MainUtil.sendMessage(player, "Version Date: " + new Date(100 + version.year, version.month, version.day).toLocaleString());
+                Date date = new GregorianCalendar(2000 + version.year - 1, version.month - 1, version.day).getTime();
+                MainUtil.sendMessage(player, "Version Date: " + date.toLocaleString());
                 MainUtil.sendMessage(player, "Version Commit: " + Integer.toHexString(version.hash));
                 MainUtil.sendMessage(player, "Version Build: #" + version.build);
                 return true;
             }
             case "threads": {
-                Map<Thread, StackTraceElement[]> stacks = Fawe.get().getMainThread().getAllStackTraces();
+                Map<Thread, StackTraceElement[]> stacks = Thread.getAllStackTraces();
                 for (Map.Entry<Thread, StackTraceElement[]> entry : stacks.entrySet()) {
                     Thread thread = entry.getKey();
                     Fawe.debug("--------------------------------------------------------------------------------------------");

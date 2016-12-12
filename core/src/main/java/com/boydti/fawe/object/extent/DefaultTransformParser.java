@@ -100,10 +100,10 @@ public class DefaultTransformParser extends InputParser<ResettableExtent> {
                                 if (!rest.isEmpty()) {
                                     parent = parseFromInput(rest, context);
                                 }
-                                ExtentTraverser traverser = new ExtentTraverser(parent).find(BlockTransformExtent.class);
-                                BlockTransformExtent affine = (BlockTransformExtent) (traverser != null ? traverser.get() : null);
+                                ExtentTraverser traverser = new ExtentTraverser(parent).find(TransformExtent.class);
+                                BlockTransformExtent affine = (TransformExtent) (traverser != null ? traverser.get() : null);
                                 if (affine == null) {
-                                    parent = affine = new BlockTransformExtent(parent, context.requireWorld().getWorldData().getBlockRegistry());
+                                    parent = affine = new TransformExtent(parent, context.requireWorld().getWorldData().getBlockRegistry());
                                 }
                                 AffineTransform transform = (AffineTransform) affine.getTransform();
                                 transform = transform.rotateX(x);

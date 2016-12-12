@@ -52,7 +52,6 @@ public class CPUOptimizedChangeSet extends FaweChangeSet {
     }
 
     @Override
-
     public void add(int x, int y, int z, int combinedFrom, int combinedTo) {
         throw new UnsupportedOperationException("Invalid mode");
     }
@@ -89,9 +88,9 @@ public class CPUOptimizedChangeSet extends FaweChangeSet {
 
     @Override
     public boolean isEmpty() {
-        if (changes.size() == 0) {
+        if (changes.isEmpty()) {
             flush();
-            return changes.size() == 0;
+            return changes.isEmpty();
         } else {
             return false;
         }

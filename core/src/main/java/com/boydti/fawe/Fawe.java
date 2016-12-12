@@ -104,7 +104,6 @@ import javax.management.InstanceAlreadyExistsException;
 import javax.management.Notification;
 import javax.management.NotificationEmitter;
 import javax.management.NotificationListener;
-import net.jpountz.util.Native;
 
 /**[ WorldEdit action]
 *       |
@@ -465,7 +464,8 @@ public class Fawe {
             debug("=======================================");
         }
         try {
-            Native.load();
+            com.github.luben.zstd.util.Native.load();
+            net.jpountz.util.Native.load();
             try {
                 String arch = System.getenv("PROCESSOR_ARCHITECTURE");
                 String wow64Arch = System.getenv("PROCESSOR_ARCHITEW6432");

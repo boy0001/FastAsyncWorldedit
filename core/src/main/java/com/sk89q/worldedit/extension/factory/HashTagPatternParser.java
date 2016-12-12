@@ -1,5 +1,6 @@
 package com.sk89q.worldedit.extension.factory;
 
+import com.boydti.fawe.command.FaweParser;
 import com.boydti.fawe.command.SuggestInputParseException;
 import com.boydti.fawe.object.pattern.*;
 import com.boydti.fawe.util.MainUtil;
@@ -20,16 +21,14 @@ import com.sk89q.worldedit.function.pattern.Pattern;
 import com.sk89q.worldedit.function.pattern.RandomPattern;
 import com.sk89q.worldedit.internal.expression.Expression;
 import com.sk89q.worldedit.internal.expression.ExpressionException;
-import com.sk89q.worldedit.internal.registry.InputParser;
 import com.sk89q.worldedit.regions.shape.WorldEditExpressionEnvironment;
 import com.sk89q.worldedit.session.ClipboardHolder;
 import com.sk89q.worldedit.session.request.Request;
 import com.sk89q.worldedit.world.registry.BundledBlockData;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
-public class HashTagPatternParser extends InputParser<Pattern>{
+public class HashTagPatternParser extends FaweParser<Pattern> {
 
     public static final String[] EXPRESSION_PATTERN = new String[] { "=<expression>" };
 
@@ -51,51 +50,6 @@ public class HashTagPatternParser extends InputParser<Pattern>{
 
     public HashTagPatternParser(WorldEdit worldEdit) {
         super(worldEdit);
-    }
-
-    private List<String> split(String input, char delim) {
-        List<String> result = new ArrayList<String>();
-        int start = 0;
-        boolean inQuotes = false;
-        for (int current = 0; current < input.length(); current++) {
-            if (input.charAt(current) == '\"') inQuotes = !inQuotes; // toggle state
-            boolean atLastChar = (current == input.length() - 1);
-            if(atLastChar) result.add(input.substring(start));
-            else if (input.charAt(current) == delim && !inQuotes) {
-                String toAdd = input.substring(start, current);
-                if (toAdd.startsWith("\"")) {
-                    toAdd = toAdd.substring(1, toAdd.length() - 1);
-                }
-                result.add(toAdd);
-                start = current + 1;
-            }
-        }
-        return result;
-    }
-
-    private Pattern catchSuggestion(String currentInput, String nextInput, ParserContext context) throws InputParseException{
-        try {
-            return parseFromInput(nextInput, context);
-        } catch (SuggestInputParseException e) {
-            e.prepend(currentInput.substring(0, currentInput.length() - nextInput.length()));
-            throw e;
-        }
-    }
-
-    public List<String> handleRemainder(String input, String... expected) throws InputParseException {
-        List<String> remainder = split(input, ':');
-        int len = remainder.size();
-        if (len != expected.length - 1) {
-            if (len <= expected.length - 1 && len != 0) {
-                if (remainder.get(len - 1).endsWith(":")) {
-                    throw new SuggestInputParseException(null, ALL_PATTERNS).prepend(expected[0] + ":" + input);
-                }
-                throw new SuggestInputParseException(null, expected[0] + ":" + input + ":" + StringMan.join(Arrays.copyOfRange(expected, len + 1, 3), ":"));
-            } else {
-                throw new SuggestInputParseException(null, StringMan.join(expected, ":"));
-            }
-        }
-        return remainder;
     }
 
     @Override
@@ -172,7 +126,7 @@ public class HashTagPatternParser extends InputParser<Pattern>{
                             return new NoZPattern(catchSuggestion(input, rest, context));
                         }
                         case "#mask": {
-                            List<String> split3 = handleRemainder(rest, "#mask", "<mask>", "<pattern-if>", "<pattern-else>");
+                            List<String> split3 = suggestRemaining(rest, "#mask", "<mask>", "<pattern-if>", "<pattern-else>");
                             Pattern primary = catchSuggestion(input, split3.get(1), context);
                             Pattern secondary = catchSuggestion(input, split3.get(2), context);
                             PatternExtent extent = new PatternExtent(primary);
@@ -190,7 +144,7 @@ public class HashTagPatternParser extends InputParser<Pattern>{
                         }
                         case "#offset":
                             try {
-                                List<String> split3 = handleRemainder(rest, "#offset", "<dx>", "<dy>", "<dz>", "<pattern>");
+                                List<String> split3 = suggestRemaining(rest, "#offset", "<dx>", "<dy>", "<dz>", "<pattern>");
                                 int x = (int) Math.abs(Expression.compile(split3.get(0)).evaluate());
                                 int y = (int) Math.abs(Expression.compile(split3.get(1)).evaluate());
                                 int z = (int) Math.abs(Expression.compile(split3.get(2)).evaluate());
@@ -202,7 +156,7 @@ public class HashTagPatternParser extends InputParser<Pattern>{
                             }
                         case "#surfacespread": {
                             try {
-                                List<String> split3 = handleRemainder(rest, "#surfacespread", "<dx>", "<dy>", "<dz>", "<pattern>");
+                                List<String> split3 = suggestRemaining(rest, "#surfacespread", "<dx>", "<dy>", "<dz>", "<pattern>");
                                 int x = (int) Math.abs(Expression.compile(split3.get(0)).evaluate());
                                 int y = (int) Math.abs(Expression.compile(split3.get(1)).evaluate());
                                 int z = (int) Math.abs(Expression.compile(split3.get(2)).evaluate());
@@ -215,7 +169,7 @@ public class HashTagPatternParser extends InputParser<Pattern>{
                         }
                         case "#solidspread": {
                             try {
-                                List<String> split3 = handleRemainder(rest, "#solidspread", "<dx>", "<dy>", "<dz>", "<pattern>");
+                                List<String> split3 = suggestRemaining(rest, "#solidspread", "<dx>", "<dy>", "<dz>", "<pattern>");
                                 int x = (int) Math.abs(Expression.compile(split3.get(0)).evaluate());
                                 int y = (int) Math.abs(Expression.compile(split3.get(1)).evaluate());
                                 int z = (int) Math.abs(Expression.compile(split3.get(2)).evaluate());
@@ -229,7 +183,7 @@ public class HashTagPatternParser extends InputParser<Pattern>{
                         case "#randomoffset":
                         case "#spread": {
                             try {
-                                List<String> split3 = handleRemainder(rest, "#spread", "<dx>", "<dy>", "<dz>", "<pattern>");
+                                List<String> split3 = suggestRemaining(rest, "#spread", "<dx>", "<dy>", "<dz>", "<pattern>");
                                 int x = (int) Math.abs(Expression.compile(split3.get(0)).evaluate());
                                 int y = (int) Math.abs(Expression.compile(split3.get(1)).evaluate());
                                 int z = (int) Math.abs(Expression.compile(split3.get(2)).evaluate());

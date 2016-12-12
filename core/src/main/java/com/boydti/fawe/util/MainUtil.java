@@ -3,22 +3,51 @@ package com.boydti.fawe.util;
 import com.boydti.fawe.Fawe;
 import com.boydti.fawe.config.BBC;
 import com.boydti.fawe.config.Settings;
-import com.boydti.fawe.object.*;
+import com.boydti.fawe.object.FaweInputStream;
+import com.boydti.fawe.object.FaweOutputStream;
+import com.boydti.fawe.object.FawePlayer;
+import com.boydti.fawe.object.RegionWrapper;
+import com.boydti.fawe.object.RunnableVal;
+import com.boydti.fawe.object.RunnableVal2;
 import com.boydti.fawe.object.changeset.CPUOptimizedChangeSet;
 import com.boydti.fawe.object.changeset.FaweStreamChangeSet;
 import com.boydti.fawe.object.io.AbstractDelegateOutputStream;
-import com.boydti.fawe.object.io.PGZIPOutputStream;
-import com.sk89q.jnbt.*;
+import com.github.luben.zstd.ZstdInputStream;
+import com.github.luben.zstd.ZstdOutputStream;
+import com.sk89q.jnbt.CompoundTag;
+import com.sk89q.jnbt.DoubleTag;
+import com.sk89q.jnbt.EndTag;
+import com.sk89q.jnbt.IntTag;
+import com.sk89q.jnbt.ListTag;
+import com.sk89q.jnbt.StringTag;
+import com.sk89q.jnbt.Tag;
 import com.sk89q.worldedit.entity.Entity;
 import com.sk89q.worldedit.history.changeset.ChangeSet;
 import com.sk89q.worldedit.util.Location;
-import java.io.*;
+import java.io.BufferedInputStream;
+import java.io.BufferedOutputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.io.OutputStreamWriter;
+import java.io.PrintWriter;
 import java.lang.reflect.Array;
 import java.lang.reflect.Method;
-import java.net.*;
+import java.net.HttpURLConnection;
+import java.net.MalformedURLException;
+import java.net.URISyntaxException;
+import java.net.URL;
+import java.net.URLConnection;
 import java.nio.channels.FileChannel;
 import java.nio.charset.StandardCharsets;
-import java.nio.file.*;
+import java.nio.file.FileVisitResult;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.SimpleFileVisitor;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -28,11 +57,15 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicLong;
-import java.util.zip.Deflater;
 import java.util.zip.GZIPInputStream;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
-import net.jpountz.lz4.*;
+import net.jpountz.lz4.LZ4Compressor;
+import net.jpountz.lz4.LZ4Factory;
+import net.jpountz.lz4.LZ4FastDecompressor;
+import net.jpountz.lz4.LZ4InputStream;
+import net.jpountz.lz4.LZ4OutputStream;
+import net.jpountz.lz4.LZ4Utils;
 
 public class MainUtil {
     /*
@@ -213,17 +246,15 @@ public class MainUtil {
     }
 
     public static FaweOutputStream getCompressedOS(OutputStream os, int amount, int buffer) throws IOException {
-        os.write((byte) amount);
+        os.write((byte) -amount);
         os = new BufferedOutputStream(os, buffer);
         if (amount == 0) {
             return new FaweOutputStream(os);
         }
+        os = new BufferedOutputStream(os, buffer);
         int gzipAmount = amount > 6 ? 1 : 0;
         for (int i = 0; i < gzipAmount; i++) {
-            PGZIPOutputStream gzip = new PGZIPOutputStream(os, buffer);
-            os = new BufferedOutputStream(gzip);
-            gzip.setStrategy(Deflater.DEFAULT_STRATEGY);
-            gzip.setLevel(9);
+            os = new ZstdOutputStream(os, 22);
         }
         LZ4Factory factory = LZ4Factory.fastestInstance();
         int fastAmount = 1 + ((amount - 1) % 3);
@@ -246,18 +277,22 @@ public class MainUtil {
     }
 
     public static FaweInputStream getCompressedIS(InputStream is, int buffer) throws IOException {
-        int amount = is.read();
+        int amount = (byte) is.read();
         is = new BufferedInputStream(is, buffer);
         if (amount == 0) {
             return new FaweInputStream(is);
         }
+        int amountAbs = Math.abs(amount);
         LZ4Factory factory = LZ4Factory.fastestInstance();
-        boolean gzip = amount > 6;
-        if (gzip) {
-            is = new BufferedInputStream(new GZIPInputStream(is, buffer));
+        if (amountAbs > 6) {
+            if (amount > 0) {
+                is = new BufferedInputStream(new GZIPInputStream(is, buffer));
+            } else {
+                is = new ZstdInputStream(is);
+            }
         }
-        amount = (1 + ((amount - 1) % 3)) + (amount > 3 ? 1 : 0);
-        for (int i = 0; i < amount; i++) {
+        amountAbs = (1 + ((amountAbs - 1) % 3)) + (amountAbs > 3 ? 1 : 0);
+        for (int i = 0; i < amountAbs; i++) {
             is = new LZ4InputStream(is);
         }
         return new FaweInputStream(is);
@@ -351,8 +386,8 @@ public class MainUtil {
     public static void sendCompressedMessage(FaweStreamChangeSet set, FawePlayer actor)
     {
         try {
-            int elements = set.size();
-            int compressedSize = set.getCompressedSize();
+            long elements = set.size();
+            long compressedSize = set.getCompressedSize();
             if (compressedSize == 0) {
                 return;
             }
@@ -375,10 +410,10 @@ public class MainUtil {
              *
              * This compares FAWE's usage to standard WE.
              */
-            int total = 128 * elements;
+            long total = 128 * elements;
 
-            int ratio = total / compressedSize;
-            int saved = total - compressedSize;
+            long ratio = total / compressedSize;
+            long saved = total - compressedSize;
 
             if (ratio > 3 && Thread.currentThread() != Fawe.get().getMainThread() && actor != null) {
                 BBC.COMPRESSED.send(actor, saved, ratio);

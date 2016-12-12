@@ -316,7 +316,8 @@ public class BufferedRandomAccessFile extends RandomAccessFile
             if (this.curr_ == this.hi_)
                 return -1;
         }
-        byte res = this.buff_[(int) (this.curr_++ - this.lo_)];
+        byte res = this.buff_[(int) (this.curr_ - this.lo_)];
+        this.curr_++;
         return res;
     }
 
@@ -385,6 +386,13 @@ public class BufferedRandomAccessFile extends RandomAccessFile
             }
         }
         this.buff_[(int) (this.curr_ - this.lo_)] = (byte) b;
+        this.dirty_ = true;
+    }
+
+    public void writeUnsafe(int b) throws IOException
+    {
+        this.buff_[(int) (this.curr_ - this.lo_)] = (byte) b;
+        this.curr_++;
         this.dirty_ = true;
     }
 

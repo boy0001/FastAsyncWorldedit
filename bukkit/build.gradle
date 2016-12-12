@@ -36,6 +36,7 @@ apply plugin: 'com.github.johnrengelman.shadow'
 // We only want the shadow jar produced
 shadowJar {
     dependencies {
+        include(dependency('com.github.luben:zstd-jni:1.1.1'))
         include(dependency(':core'))
     }
     archiveName = "${parent.name}-${project.name}-${parent.version}.jar"

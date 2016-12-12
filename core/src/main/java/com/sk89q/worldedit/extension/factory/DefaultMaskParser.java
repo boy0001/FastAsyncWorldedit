@@ -1,5 +1,6 @@
 package com.sk89q.worldedit.extension.factory;
 
+import com.boydti.fawe.command.FaweParser;
 import com.boydti.fawe.object.mask.AdjacentMask;
 import com.boydti.fawe.object.mask.AngleMask;
 import com.boydti.fawe.object.mask.CustomMask;
@@ -33,7 +34,6 @@ import com.sk89q.worldedit.function.mask.RegionMask;
 import com.sk89q.worldedit.function.mask.SolidBlockMask;
 import com.sk89q.worldedit.internal.expression.Expression;
 import com.sk89q.worldedit.internal.expression.ExpressionException;
-import com.sk89q.worldedit.internal.registry.InputParser;
 import com.sk89q.worldedit.math.noise.RandomNoise;
 import com.sk89q.worldedit.regions.shape.WorldEditExpressionEnvironment;
 import com.sk89q.worldedit.session.request.Request;
@@ -54,7 +54,19 @@ import static com.google.common.base.Preconditions.checkNotNull;
 /**
  * Parses mask input strings.
  */
-public class DefaultMaskParser extends InputParser<Mask> {
+public class DefaultMaskParser extends FaweParser<Mask> {
+
+    public static final String[] EXPRESSION_MASK = new String[] { "=<expression>" };
+
+    public static final String[] BLOCK_MASK = new String[] { "<block>" };
+
+    public static final String[] SIMPLE_MASK = new String[] {
+            "#existing", "#solid", "#dregion", "#dselection", "#dsel", "#selection", "#region", "#sel", "#xaxis", "#yaxis", "#zaxis", "#id", "#data", "#wall", "#surface",
+    };
+
+    public static final String[] MISC_PATTERNS = new String[] {
+            "hand", "pos1",
+    };
 
     public DefaultMaskParser(WorldEdit worldEdit) {
         super(worldEdit);

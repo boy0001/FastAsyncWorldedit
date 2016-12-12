@@ -257,7 +257,7 @@ public abstract class FaweStreamChangeSet extends FaweChangeSet {
     public abstract NBTInputStream getTileCreateIS() throws IOException;
     public abstract NBTInputStream getTileRemoveIS() throws IOException;
 
-    public int blockSize;
+    private int blockSize;
     public int entityCreateSize;
     public int entityRemoveSize;
     public int tileCreateSize;

@@ -4,6 +4,7 @@ import com.boydti.fawe.Fawe;
 import com.boydti.fawe.FaweCache;
 import com.boydti.fawe.config.Settings;
 import com.boydti.fawe.jnbt.NBTStreamer;
+import com.boydti.fawe.jnbt.SchematicStreamer;
 import com.boydti.fawe.object.IntegerTrio;
 import com.boydti.fawe.object.RunnableVal2;
 import com.boydti.fawe.object.io.BufferedRandomAccessFile;
@@ -11,6 +12,7 @@ import com.boydti.fawe.util.MainUtil;
 import com.boydti.fawe.util.ReflectionUtils;
 import com.sk89q.jnbt.CompoundTag;
 import com.sk89q.jnbt.IntTag;
+import com.sk89q.jnbt.NBTInputStream;
 import com.sk89q.jnbt.Tag;
 import com.sk89q.worldedit.BlockVector;
 import com.sk89q.worldedit.EditSession;
@@ -21,8 +23,10 @@ import com.sk89q.worldedit.entity.Entity;
 import com.sk89q.worldedit.extent.Extent;
 import com.sk89q.worldedit.extent.clipboard.BlockArrayClipboard;
 import com.sk89q.worldedit.regions.CuboidRegion;
+import java.io.BufferedInputStream;
 import java.io.Closeable;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -30,6 +34,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import java.util.zip.GZIPInputStream;
 
 /**
  * A clipboard with disk backed storage. (lower memory + loads on crash)
@@ -55,7 +60,6 @@ public class DiskOptimizedClipboard extends FaweClipboard implements Closeable {
     private final byte[] buffer;
 
     private final BufferedRandomAccessFile raf;
-    private long lastAccessed;
     private int last;
 
     public DiskOptimizedClipboard(int width, int height, int length, UUID uuid) {
@@ -68,7 +72,6 @@ public class DiskOptimizedClipboard extends FaweClipboard implements Closeable {
             entities = new HashSet<>();
             this.buffer = new byte[2];
             this.file = file;
-            this.lastAccessed = System.currentTimeMillis();
             this.raf = new BufferedRandomAccessFile(file, "rw", 16);
             raf.setLength(file.length());
             long size = (raf.length() - HEADER_SIZE) >> 1;
@@ -117,7 +120,6 @@ public class DiskOptimizedClipboard extends FaweClipboard implements Closeable {
             entities = new HashSet<>();
             this.file = file;
             this.buffer = new byte[2];
-            this.lastAccessed = System.currentTimeMillis();
             this.width = width;
             this.height = height;
             this.length = length;
@@ -132,6 +134,7 @@ public class DiskOptimizedClipboard extends FaweClipboard implements Closeable {
             }
             this.raf = new BufferedRandomAccessFile(file, "rw", 16);
             long volume = width * height * length * 2l + HEADER_SIZE;
+            raf.setLength(0);
             raf.setLength(volume);
             // write length etc
             raf.seek(2);
@@ -325,7 +328,6 @@ public class DiskOptimizedClipboard extends FaweClipboard implements Closeable {
             int i = getIndex(x, y, z);
             if (i != last + 1) {
                 raf.seek((HEADER_SIZE) + (i << 1));
-                lastAccessed = System.currentTimeMillis();
             }
             last = i;
             int combinedId = raf.readChar();
@@ -360,15 +362,15 @@ public class DiskOptimizedClipboard extends FaweClipboard implements Closeable {
             int i = x + ((ylast == y) ? ylasti : (ylasti = ((ylast = y)) * area)) + ((zlast == z) ? zlasti : (zlasti = (zlast = z) * width));
             if (i != last + 1) {
                 raf.seek((HEADER_SIZE) + (i << 1));
-                lastAccessed = System.currentTimeMillis();
             }
             last = i;
             final int id = block.getId();
             final int data = block.getData();
             int combined = (id << 4) + data;
             raf.writeChar(combined);
-            if (FaweCache.hasNBT(id)) {
-                setTile(x, y, z, block.getNbtData());
+            CompoundTag tile = block.getNbtData();
+            if (tile != null) {
+                setTile(x, y, z, tile);
             }
             return true;
         }  catch (Exception e) {
@@ -382,15 +384,14 @@ public class DiskOptimizedClipboard extends FaweClipboard implements Closeable {
         try {
             if (i != last + 1) {
                 raf.seek((HEADER_SIZE) + (i << 1));
-                lastAccessed = System.currentTimeMillis();
             }
             last = i;
             // 00000000 00000000
             // [    id     ]data
             int id1 = raf.readCurrent();
-            raf.write(id >> 4);
+            raf.writeUnsafe(id >> 4);
             int id2 = raf.readCurrent();
-            raf.write(((id & 0xFF) << 4) + (id2 & 0xFF));
+            raf.writeUnsafe(((id & 0xFF) << 4) + (id2 & 0xFF));
         }  catch (Exception e) {
             MainUtil.handleError(e);
         }
@@ -400,7 +401,6 @@ public class DiskOptimizedClipboard extends FaweClipboard implements Closeable {
         try {
             if (i != last + 1) {
                 raf.seek((HEADER_SIZE) + (i << 1));
-                lastAccessed = System.currentTimeMillis();
             }
             last = i;
             raf.writeChar(combined);
@@ -414,31 +414,43 @@ public class DiskOptimizedClipboard extends FaweClipboard implements Closeable {
         try {
             if (i != last + 1) {
                 raf.seek((HEADER_SIZE) + (i << 1));
-                lastAccessed = System.currentTimeMillis();
             }
             last = i;
             // 00000000 00000000
             // [    id     ]data
-            raf.write((raf.readCurrent() & 0xFF) + (add >> 4));
+            int id = (raf.readCurrent() & 0xFF);
+            raf.writeUnsafe(id + (add >> 4));
             raf.read1();
         }  catch (Exception e) {
             MainUtil.handleError(e);
         }
     }
 
+    public static void main(String[] args) throws IOException{
+        long start = System.currentTimeMillis();
+        File file = new File("C:/Users/Jesse/Desktop/OTHER/mc/plugins/WorldEdit/schematics/50mil.schematic");
+        BufferedInputStream in = new BufferedInputStream(new GZIPInputStream(new BufferedInputStream(new FileInputStream(file))));
+        NBTInputStream nbtin = new NBTInputStream(in);
+        Settings.CLIPBOARD.USE_DISK = true;
+        SchematicStreamer streamer = new SchematicStreamer(nbtin, UUID.randomUUID());
+        streamer.getClipboard();
+        System.out.println(System.currentTimeMillis() - start);
+    }
+
     @Override
     public void setData(int i, int data) {
         try {
             if (i != last + 1) {
-                raf.seek((HEADER_SIZE) + (i << 1));
-                lastAccessed = System.currentTimeMillis();
+                raf.seek((HEADER_SIZE) + (i << 1) + 1);
+            } else {
+                raf.seek(raf.getFilePointer() + 1);
             }
             last = i;
             // 00000000 00000000
             // [    id     ]data
-            int id1 = raf.read1();
+//            int skip = raf.read1();
             int id2 = raf.readCurrent();
-            raf.write((id2 & 0xF0) + data);
+            raf.writeUnsafe((id2 & 0xF0) + data);
         }  catch (Exception e) {
             MainUtil.handleError(e);
         }
