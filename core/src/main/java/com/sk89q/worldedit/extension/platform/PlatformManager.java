@@ -342,10 +342,10 @@ public class PlatformManager {
     public void handleBlockInteract(BlockInteractEvent event) {
         // Create a proxy actor with a potentially different world for
         // making changes to the world
-        Actor actor = createProxyActor(event.getCause());
+        final Actor actor = createProxyActor(event.getCause());
         try {
             final Location location = event.getLocation();
-            Vector vector = location.toVector();
+            final Vector vector = location.toVector();
 
             // At this time, only handle interaction from players
             if (actor instanceof Player) {
@@ -362,11 +362,16 @@ public class PlatformManager {
                             return;
                         }
 
-                        RegionSelector selector = session.getRegionSelector(player.getWorld());
-
-                        if (selector.selectPrimary(location.toVector(), ActorSelectorLimits.forActor(player))) {
-                            selector.explainPrimarySelection(actor, session, vector);
-                        }
+                        final RegionSelector selector = session.getRegionSelector(player.getWorld());
+                        FawePlayer<?> fp = FawePlayer.wrap(player);
+                        fp.runAction(new Runnable() {
+                            @Override
+                            public void run() {
+                                if (selector.selectPrimary(location.toVector(), ActorSelectorLimits.forActor(player))) {
+                                    selector.explainPrimarySelection(actor, session, vector);
+                                }
+                            }
+                        }, true, true);
 
                         event.setCancelled(true);
                         return;
@@ -407,11 +412,16 @@ public class PlatformManager {
                         if (!actor.hasPermission("worldedit.selection.pos")) {
                             return;
                         }
-
-                        RegionSelector selector = session.getRegionSelector(player.getWorld());
-                        if (selector.selectSecondary(vector, ActorSelectorLimits.forActor(player))) {
-                            selector.explainSecondarySelection(actor, session, vector);
-                        }
+                        final RegionSelector selector = session.getRegionSelector(player.getWorld());
+                        FawePlayer<?> fp = FawePlayer.wrap(player);
+                        fp.runAction(new Runnable() {
+                            @Override
+                            public void run() {
+                                if (selector.selectSecondary(vector, ActorSelectorLimits.forActor(player))) {
+                                    selector.explainSecondarySelection(actor, session, vector);
+                                }
+                            }
+                        }, true, true);
 
                         event.setCancelled(true);
                         return;

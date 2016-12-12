@@ -19,6 +19,7 @@ import com.sk89q.worldedit.IncompleteRegionException;
 import com.sk89q.worldedit.LocalSession;
 import com.sk89q.worldedit.Vector;
 import com.sk89q.worldedit.WorldEdit;
+import com.sk89q.worldedit.WorldEditException;
 import com.sk89q.worldedit.entity.Player;
 import com.sk89q.worldedit.extension.platform.Actor;
 import com.sk89q.worldedit.extent.clipboard.Clipboard;
@@ -113,11 +114,18 @@ public abstract class FawePlayer<T> extends Metadatable {
                 try {
                     run.run();
                 } catch (Throwable e) {
-                    FaweException fe = FaweException.get(e);
-                    if (fe != null) {
-                        sendMessage(fe.getMessage());
+                    while (e.getCause() != null) {
+                        e = e.getCause();
+                    }
+                    if (e instanceof WorldEditException) {
+                        sendMessage(BBC.getPrefix() + e.getLocalizedMessage());
                     } else {
-                        e.printStackTrace();
+                        FaweException fe = FaweException.get(e);
+                        if (fe != null) {
+                            sendMessage(fe.getMessage());
+                        } else {
+                            e.printStackTrace();
+                        }
                     }
                 }
                 runningCount.decrementAndGet();

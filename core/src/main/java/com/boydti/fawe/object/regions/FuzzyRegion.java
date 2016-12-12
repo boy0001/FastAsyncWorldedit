@@ -24,6 +24,7 @@ public class FuzzyRegion extends AbstractRegion {
     private int minX, minY, minZ, maxX, maxY, maxZ;
     private int offsetX, offsetY, offsetZ;
     private Extent extent;
+    private int count = 0;
 
     {
         minX = minY = minZ = Integer.MAX_VALUE;
@@ -56,7 +57,7 @@ public class FuzzyRegion extends AbstractRegion {
 
     @Override
     public int getArea() {
-        return set.length();
+        return set.cardinality();
     }
 
     public void select(int x, int y, int z) {
@@ -123,6 +124,9 @@ public class FuzzyRegion extends AbstractRegion {
 
     public void set(int x, int y, int z) throws RegionOperationException{
         if (populated) {
+            if (++count > 1048576) {
+                throw new RegionOperationException("Selection is too large! (1048576 blocks)");
+            }
             x -= offsetX;
             y -= offsetY;
             z -= offsetZ;
@@ -135,7 +139,7 @@ public class FuzzyRegion extends AbstractRegion {
         }
         set.set(pair(x, y, z), true);
         if (x >= 1024 || x <= -1024 || z >= 1024 || z <= -1024) {
-            throw new RegionOperationException("Selection is too large!");
+            throw new RegionOperationException("Selection is too large! (1024 blocks wide)");
         }
         if (x > maxX) {
             maxX = x;
