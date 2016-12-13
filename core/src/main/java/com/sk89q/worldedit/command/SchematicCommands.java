@@ -344,6 +344,7 @@ public class SchematicCommands {
     }
 
     private List<String> listFiles(String prefix, File[] files) {
+        File dir = worldEdit.getWorkingDirectoryFile(prefix);
         if (prefix == null) prefix = "";
         List<String> result = new ArrayList<String>();
         for (File file : files) {
@@ -352,8 +353,14 @@ public class SchematicCommands {
             build.append("\u00a72");
             ClipboardFormat format = ClipboardFormat.findByFile(file);
             boolean inRoot = file.getParentFile().getName().equals(prefix);
-            build.append(inRoot ? file.getName() : file.getPath().split(Pattern.quote(prefix + File.separator))[1])
-                    .append(": ").append(format == null ? "Unknown" : format.name());
+            if (inRoot) {
+                build.append(file.getName());
+            } else {
+                String relative = dir.toURI().relativize(file.toURI()).getPath();
+                String[] split = file.getPath().split(Pattern.quote(prefix + File.separator));
+                build.append(relative);
+            }
+            build.append(": ").append(format == null ? "Unknown" : format.name());
             result.add(build.toString());
         }
         return result;
