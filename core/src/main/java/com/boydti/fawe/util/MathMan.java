@@ -68,6 +68,20 @@ public class MathMan {
         return (short) ((x & 15) << 12 | (z & 15) << 8 | y);
     }
 
+    public static int tripleSearchCoords(int x, int y, int z) {
+        byte b1 = (byte) y;
+        byte b3 = (byte) (x);
+        byte b4 = (byte) (z);
+        int x16 = (x >> 8) & 0x7;
+        int z16 = (z >> 8) & 0x7;
+        byte b2 = MathMan.pair8(x16, z16);
+        return ((b1 & 0xFF)
+                + ((b2 & 0x7F) << 8)
+                + ((b3 & 0xFF) << 15)
+                + ((b4 & 0xFF) << 23))
+                ;
+    }
+
     public static final long chunkXZ2Int(int x, int z) {
         return (long)x & 4294967295L | ((long)z & 4294967295L) << 32;
     }
@@ -96,11 +110,11 @@ public class MathMan {
         return (byte) (x + (y << 3));
     }
 
-    public static byte unpair8x(byte value) {
+    public static byte unpair8x(int value) {
         return (byte) (value & 0x7);
     }
 
-    public static byte unpair8y(byte value) {
+    public static byte unpair8y(int value) {
         return (byte) ((value >> 3) & 0x7F);
     }
 

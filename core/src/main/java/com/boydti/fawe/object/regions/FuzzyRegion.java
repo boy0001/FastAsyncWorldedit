@@ -1,15 +1,13 @@
 package com.boydti.fawe.object.regions;
 
+import com.boydti.fawe.object.visitor.FuzzySearch;
 import com.boydti.fawe.util.MathMan;
 import com.sk89q.worldedit.BlockVector;
 import com.sk89q.worldedit.EditSession;
 import com.sk89q.worldedit.Vector;
-import com.sk89q.worldedit.WorldEditException;
 import com.sk89q.worldedit.extent.Extent;
-import com.sk89q.worldedit.function.RegionFunction;
 import com.sk89q.worldedit.function.mask.Mask;
 import com.sk89q.worldedit.function.operation.Operations;
-import com.sk89q.worldedit.function.visitor.RecursiveVisitor;
 import com.sk89q.worldedit.regions.AbstractRegion;
 import com.sk89q.worldedit.regions.RegionOperationException;
 import com.sk89q.worldedit.world.World;
@@ -41,53 +39,14 @@ public class FuzzyRegion extends AbstractRegion {
         return mask;
     }
 
-    private static int pair(int x, int y, int z) {
-        byte b1 = (byte) y;
-        byte b2 = (byte) (x);
-        byte b3 = (byte) (z);
-        int x16 = (x >> 8) & 0x7;
-        int z16 = (z >> 8) & 0x7;
-        byte b4 = MathMan.pair8(x16, z16);
-        return ((b1 & 0xFF)
-             + ((b2 & 0xFF) << 8)
-             + ((b3 & 0xFF) << 16)
-             + ((b4 & 0x7F) << 24))
-             ;
-    }
-
     @Override
     public int getArea() {
         return set.cardinality();
     }
 
     public void select(int x, int y, int z) {
-        RecursiveVisitor visitor = new RecursiveVisitor(mask, new RegionFunction() {
-            @Override
-            public boolean apply(Vector position) throws WorldEditException {
-                return true;
-            }
-        }) {
-            @Override
-            public boolean isVisited(Node node) {
-                return contains(node.getX(), node.getY(), node.getZ());
-            }
-
-            @Override
-            public void addVisited(Node node, int depth) {
-                try {
-                    set(node.getX(), node.getY(), node.getZ());
-                } catch (RegionOperationException e) {
-                    throw new RuntimeException(e);
-                }
-            }
-
-            @Override
-            public void cleanVisited(int layer) {
-                // Do nothing
-            }
-        };
-        visitor.visit(new Vector(x, y, z));
-        Operations.completeBlindly(visitor);
+        FuzzySearch search = new FuzzySearch(this, extent, new Vector(x, y, z));
+        Operations.completeBlindly(search);
     }
 
     @Override
@@ -105,13 +64,13 @@ public class FuzzyRegion extends AbstractRegion {
 
             @Override
             public BlockVector next() {
-                int b1 = ((byte) index) & 0xFF;
-                int b2 = ((byte) (index >> 8)) & 0xFF;
-                int b3 = ((byte)(index >> 16)) & 0xFF;
-                byte b4 = (byte) (index >> 24);
-                pos.x = offsetX + (((b2 + ((MathMan.unpair8x(b4)) << 8)) << 21) >> 21);
+                int b1 = (index & 0xFF);
+                int b2 = ((byte) (index >> 8)) & 0x7F;
+                int b3 = ((byte)(index >> 15)) & 0xFF;
+                int b4 = ((byte) (index >> 23)) & 0xFF;
+                pos.x = offsetX + (((b3 + ((MathMan.unpair8x(b2)) << 8)) << 21) >> 21);
                 pos.y = offsetY + b1;
-                pos.z = offsetZ + (((b3 + ((MathMan.unpair8y(b4)) << 8)) << 21) >> 21);
+                pos.z = offsetZ + (((b4 + ((MathMan.unpair8y(b2)) << 8)) << 21) >> 21);
                 return pos;
             }
 
@@ -124,8 +83,8 @@ public class FuzzyRegion extends AbstractRegion {
 
     public void set(int x, int y, int z) throws RegionOperationException{
         if (populated) {
-            if (++count > 1048576) {
-                throw new RegionOperationException("Selection is too large! (1048576 blocks)");
+            if (++count > 16777216) {
+                throw new RegionOperationException("Selection is too large! (16777216 blocks)");
             }
             x -= offsetX;
             y -= offsetY;
@@ -137,7 +96,7 @@ public class FuzzyRegion extends AbstractRegion {
             z = 0;
             populated = true;
         }
-        set.set(pair(x, y, z), true);
+        set.set(MathMan.tripleSearchCoords(x, y, z), true);
         if (x >= 1024 || x <= -1024 || z >= 1024 || z <= -1024) {
             throw new RegionOperationException("Selection is too large! (1024 blocks wide)");
         }
@@ -163,7 +122,7 @@ public class FuzzyRegion extends AbstractRegion {
 
     public boolean contains(int x, int y, int z) {
         try {
-            return set.get(pair(x - offsetX, y - offsetY, z - offsetZ));
+            return set.get(MathMan.tripleSearchCoords(x - offsetX, y - offsetY, z - offsetZ));
         } catch (IndexOutOfBoundsException e) {
             throw new RuntimeException(e);
         }
@@ -171,12 +130,12 @@ public class FuzzyRegion extends AbstractRegion {
 
     @Override
     public Vector getMinimumPoint() {
-        return new Vector(minX, minY, minZ);
+        return new Vector(minX + offsetX, minY + offsetY, minZ + offsetZ);
     }
 
     @Override
     public Vector getMaximumPoint() {
-        return new Vector(maxX, maxY, maxZ);
+        return new Vector(maxX + offsetX, maxY + offsetY, maxZ + offsetZ);
     }
 
     @Override

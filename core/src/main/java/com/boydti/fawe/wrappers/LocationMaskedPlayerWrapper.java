@@ -20,6 +20,14 @@ public class LocationMaskedPlayerWrapper extends PlayerWrapper {
         this.allowTeleport = allowTeleport;
     }
 
+    public static Player unwrap(Player object) {
+        if (object instanceof LocationMaskedPlayerWrapper) {
+            return ((LocationMaskedPlayerWrapper) object).getParent();
+        } else {
+            return object;
+        }
+    }
+
     @Override
     public double getYaw() {
         return position.getYaw();

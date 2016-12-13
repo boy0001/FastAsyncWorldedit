@@ -4,7 +4,6 @@ import com.boydti.fawe.FaweCache;
 import com.boydti.fawe.config.BBC;
 import com.boydti.fawe.object.FaweLimit;
 import com.boydti.fawe.object.RegionWrapper;
-import com.boydti.fawe.util.MainUtil;
 import com.boydti.fawe.util.WEManager;
 import com.sk89q.worldedit.EditSession;
 import com.sk89q.worldedit.Vector;
@@ -30,6 +29,10 @@ public class ProcessedWEExtent extends FaweRegionExtent {
         this.mask = mask;
         this.limit = limit;
         this.extent = (AbstractDelegateExtent) parent;
+    }
+
+    public void setLimit(FaweLimit other) {
+        this.limit.set(other);
     }
 
     @Override

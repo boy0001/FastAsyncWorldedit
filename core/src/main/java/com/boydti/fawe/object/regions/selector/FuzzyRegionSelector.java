@@ -14,7 +14,6 @@ import com.sk89q.worldedit.Vector;
 import com.sk89q.worldedit.entity.Player;
 import com.sk89q.worldedit.extension.platform.Actor;
 import com.sk89q.worldedit.extent.AbstractDelegateExtent;
-import com.sk89q.worldedit.extent.Extent;
 import com.sk89q.worldedit.function.mask.Mask;
 import com.sk89q.worldedit.regions.Region;
 import com.sk89q.worldedit.regions.RegionSelector;
@@ -35,7 +34,7 @@ public class FuzzyRegionSelector extends AbstractDelegateExtent implements Regio
         .player(FawePlayer.wrap(player))
         .changeSetNull()
         .checkMemory(false)
-        .autoQueue(false)
+        .autoQueue(true)
         .build());
         this.player = player;
         this.region = new FuzzyRegion(world, getExtent(), mask);
@@ -55,7 +54,7 @@ public class FuzzyRegionSelector extends AbstractDelegateExtent implements Regio
                 .player(FawePlayer.wrap(player))
                 .changeSetNull()
                 .checkMemory(false)
-                .autoQueue(false)
+                .autoQueue(true)
                 .build();
         new ExtentTraverser(this).setNext(extent);
         this.region.setWorld(world);
@@ -69,13 +68,10 @@ public class FuzzyRegionSelector extends AbstractDelegateExtent implements Regio
 
     @Override
     public boolean selectPrimary(Vector position, SelectorLimits limits) {
+        setWorld(getWorld());
+        new MaskTraverser(getMask()).reset(getExtent());
         positions.clear();
         positions.add(position);
-        Extent extent = getExtent();
-        if (extent instanceof EditSession) {
-            ((EditSession) extent).resetLimit();
-        }
-        new MaskTraverser(getMask()).reset(extent);
         this.region = new FuzzyRegion(getWorld(), getExtent(), getMask());
         this.region.select((int) position.x, (int) position.y, (int) position.z);
         return true;
