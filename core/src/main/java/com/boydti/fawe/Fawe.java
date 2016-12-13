@@ -465,19 +465,19 @@ public class Fawe {
         }
         try {
             com.github.luben.zstd.util.Native.load();
+        } catch (Throwable e) {
+            Settings.CLIPBOARD.COMPRESSION_LEVEL = Math.min(6, Settings.CLIPBOARD.COMPRESSION_LEVEL);
+            Settings.HISTORY.COMPRESSION_LEVEL = Math.min(6, Settings.HISTORY.COMPRESSION_LEVEL);
+            debug("====== ZSTD COMPRESSION BINDING NOT FOUND ======");
+            MainUtil.handleError(e, false);
+            debug("===============================================");
+            debug("FAWE will still work, but some things may be slower");
+            debug(" - Try updating your JVM / OS");
+            debug(" - Report this issue if you cannot resolve it");
+            debug("===============================================");
+        }
+        try {
             net.jpountz.util.Native.load();
-            try {
-                String arch = System.getenv("PROCESSOR_ARCHITECTURE");
-                String wow64Arch = System.getenv("PROCESSOR_ARCHITEW6432");
-                boolean x86OS = arch.endsWith("64") || wow64Arch != null && wow64Arch.endsWith("64") ? false : true;
-                boolean x86JVM = System.getProperty("sun.arch.data.model").equals("32");
-                if (x86OS != x86JVM) {
-                    debug("====== UPGRADE TO 64-BIT JAVA ======");
-                    debug("You are running 32-bit Java on a 64-bit machine");
-                    debug(" - This is only a recommendation");
-                    debug("====================================");
-                }
-            } catch (Throwable ignore) {}
         } catch (Throwable e) {
             debug("====== LZ4 COMPRESSION BINDING NOT FOUND ======");
             MainUtil.handleError(e, false);
@@ -487,6 +487,18 @@ public class Fawe {
             debug(" - Report this issue if you cannot resolve it");
             debug("===============================================");
         }
+        try {
+            String arch = System.getenv("PROCESSOR_ARCHITECTURE");
+            String wow64Arch = System.getenv("PROCESSOR_ARCHITEW6432");
+            boolean x86OS = arch.endsWith("64") || wow64Arch != null && wow64Arch.endsWith("64") ? false : true;
+            boolean x86JVM = System.getProperty("sun.arch.data.model").equals("32");
+            if (x86OS != x86JVM) {
+                debug("====== UPGRADE TO 64-BIT JAVA ======");
+                debug("You are running 32-bit Java on a 64-bit machine");
+                debug(" - This is only a recommendation");
+                debug("====================================");
+            }
+        } catch (Throwable ignore) {}
         if (!isJava8) {
             debug("====== UPGRADE TO JAVA 8 ======");
             debug("You are running " + System.getProperty("java.version"));
