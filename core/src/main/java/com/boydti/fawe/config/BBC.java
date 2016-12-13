@@ -206,7 +206,23 @@ public enum BBC {
     JUMPTO_FAIL("No block in sight!", "Navigation"),
     UP_FAIL("You would hit something above you.", "Navigation"),
 
+    SEL_CUBOID("Cuboid: left click for point 1, right click for point 2", "Selection"),
+    SEL_CUBOID_EXTEND("Cuboid: left click for a starting point, right click to extend", "Selection"),
+    SEL_2D_POLYGON("2D polygon selector: Left/right click to add a point.", "Selection"),
+    SEL_ELLIPSIOD("Ellipsoid selector: left click=center, right click to extend", "Selection"),
+    SEL_SPHERE("Sphere selector: left click=center, right click to set radius", "Selection"),
+    SEL_CYLINDRICAL("Cylindrical selector: Left click=center, right click to extend.", "Selection"),
+    SEL_MAX("%s0 points maximum.", "Selection"),
+    SEL_FUZZY("Fuzzy selector: Left click to select all contingent blocks, right click to add", "Selection"),
+    SEL_CONVEX_POLYHEDRAL("Convex polyhedral selector: Left click=First vertex, right click to add more.", "Selection"),
+    SEL_LIST("For a list of selection types use:&c //sel", "Selection"),
+    SEL_MODES("Select one of the modes below:", "Selection"),
 
+
+    TIP_SEL_FUZZY("Tip: See the different selection modes with `//sel list`", "Tips"),
+    TIP_CANCEL("Tip: You can cancel an edit with `//cancel`", "Tips"),
+    TIP_DOWNLOAD("Tip: Download your clipboard with `//download`", "Tips"),
+    TIP_BRUSH("Tip: See all the cool brushes with `//br`", "Tips"),
 
 
 

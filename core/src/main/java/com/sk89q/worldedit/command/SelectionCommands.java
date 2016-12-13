@@ -725,33 +725,35 @@ public class SelectionCommands {
         final RegionSelector selector;
         if (typeName.equalsIgnoreCase("cuboid")) {
             selector = new CuboidRegionSelector(oldSelector);
-            player.print("Cuboid: left click for point 1, right click for point 2");
+            player.print(BBC.SEL_CUBOID.s());
         } else if (typeName.equalsIgnoreCase("extend")) {
             selector = new ExtendingCuboidRegionSelector(oldSelector);
-            player.print("Cuboid: left click for a starting point, right click to extend");
+            player.print(BBC.SEL_CUBOID_EXTEND.s());
         } else if (typeName.equalsIgnoreCase("poly")) {
             selector = new Polygonal2DRegionSelector(oldSelector);
-            player.print("2D polygon selector: Left/right click to add a point.");
+            player.print(BBC.SEL_2D_POLYGON.s());
             Optional<Integer> limit = ActorSelectorLimits.forActor(player).getPolygonVertexLimit();
             if (limit.isPresent()) {
-                player.print(limit.get() + " points maximum.");
+                player.print(BBC.SEL_MAX.f(limit.get()));
             }
+            player.print(BBC.SEL_LIST.s());
         } else if (typeName.equalsIgnoreCase("ellipsoid")) {
             selector = new EllipsoidRegionSelector(oldSelector);
-            player.print("Ellipsoid selector: left click=center, right click to extend");
+            player.print(BBC.SEL_ELLIPSIOD.s());
         } else if (typeName.equalsIgnoreCase("sphere")) {
             selector = new SphereRegionSelector(oldSelector);
-            player.print("Sphere selector: left click=center, right click to set radius");
+            player.print(BBC.SEL_SPHERE.s());
         } else if (typeName.equalsIgnoreCase("cyl")) {
             selector = new CylinderRegionSelector(oldSelector);
-            player.print("Cylindrical selector: Left click=center, right click to extend.");
+            player.print(BBC.SEL_CYLINDRICAL.s());
         } else if (typeName.equalsIgnoreCase("convex") || typeName.equalsIgnoreCase("hull") || typeName.equalsIgnoreCase("polyhedron")) {
             selector = new ConvexPolyhedralRegionSelector(oldSelector);
-            player.print("Convex polyhedral selector: Left click=First vertex, right click to add more.");
+            player.print(BBC.SEL_CONVEX_POLYHEDRAL.s());
             Optional<Integer> limit = ActorSelectorLimits.forActor(player).getPolyhedronVertexLimit();
             if (limit.isPresent()) {
-                player.print(limit.get() + " points maximum.");
+                player.print(BBC.SEL_MAX.f(limit.get()));
             }
+            player.print(BBC.SEL_LIST.s());
         } else if (typeName.startsWith("fuzzy") || typeName.startsWith("magic")) {
             Mask mask;
             if (typeName.length() > 6) {
@@ -765,21 +767,22 @@ public class SelectionCommands {
                 mask = new IdMask(editSession);
             }
             selector = new FuzzyRegionSelector(player, editSession, mask);
-            player.print("Fuzzy selector: Left click to select all contingent blocks, right click to add");
+            player.print(BBC.SEL_FUZZY.s());
+            player.print(BBC.SEL_LIST.s());
         } else {
             CommandListBox box = new CommandListBox("Selection modes");
             StyledFragment contents = box.getContents();
             StyledFragment tip = contents.createFragment(Style.RED);
-            tip.append("Select one of the modes below:").newLine();
+            tip.append(BBC.SEL_MODES.s()).newLine();
 
-            box.appendCommand("cuboid", "Select two corners of a cuboid");
-            box.appendCommand("extend", "Fast cuboid selection mode");
-            box.appendCommand("poly", "Select a 2D polygon with height");
-            box.appendCommand("ellipsoid", "Select an ellipsoid");
-            box.appendCommand("sphere", "Select a sphere");
-            box.appendCommand("cyl", "Select a cylinder");
-            box.appendCommand("convex", "Select a convex polyhedral");
-            box.appendCommand("fuzzy[=<mask>]", "Select all connected blocks");
+            box.appendCommand("//sel cuboid", "Select two corners of a cuboid");
+            box.appendCommand("//sel extend", "Fast cuboid selection mode");
+            box.appendCommand("//sel poly", "Select a 2D polygon with height");
+            box.appendCommand("//sel ellipsoid", "Select an ellipsoid");
+            box.appendCommand("//sel sphere", "Select a sphere");
+            box.appendCommand("//sel cyl", "Select a cylinder");
+            box.appendCommand("//sel convex", "Select a convex polyhedral");
+            box.appendCommand("//sel fuzzy[=<mask>]", "Select all connected blocks");
 
             player.printRaw(ColorCodeBuilder.asColorCodes(box));
             return;
