@@ -17,6 +17,7 @@ import java.lang.reflect.Field;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -277,13 +278,39 @@ public class BukkitQueue17 extends BukkitQueue_0<Chunk, ChunkSection[], ChunkSec
             int mask = fc.getBitMask();
             if (mask == 0 || mask == 65535 && hasEntities(nmsChunk)) {
                 PacketPlayOutMapChunk packet = new PacketPlayOutMapChunk(nmsChunk, false, 65280, 5);
+                HashMap<Integer, PacketPlayOutMapChunk> customPackets = null;
                 for (EntityPlayer player : players) {
+                    int version = player.playerConnection.networkManager.getVersion();
+                    if (version != 5) {
+                        if (customPackets == null) {
+                            customPackets = new HashMap<>();
+                        }
+                        PacketPlayOutMapChunk customPacket = customPackets.get(version);
+                        if (customPacket == null) {
+                            customPacket = new PacketPlayOutMapChunk(nmsChunk, false, 65280, version);
+                            customPackets.put(version, customPacket);
+                        }
+                        player.playerConnection.sendPacket(customPacket);
+                    }
                     player.playerConnection.sendPacket(packet);
                 }
                 mask = 255;
             }
             PacketPlayOutMapChunk packet = new PacketPlayOutMapChunk(nmsChunk, false, mask, 5);
+            HashMap<Integer, PacketPlayOutMapChunk> customPackets = null;
             for (EntityPlayer player : players) {
+                int version = player.playerConnection.networkManager.getVersion();
+                if (version != 5) {
+                    if (customPackets == null) {
+                        customPackets = new HashMap<>();
+                    }
+                    PacketPlayOutMapChunk customPacket = customPackets.get(version);
+                    if (customPacket == null) {
+                        customPacket = new PacketPlayOutMapChunk(nmsChunk, false, mask, version);
+                        customPackets.put(version, customPacket);
+                    }
+                    player.playerConnection.sendPacket(customPacket);
+                }
                 player.playerConnection.sendPacket(packet);
             }
         } catch (Throwable e) {
