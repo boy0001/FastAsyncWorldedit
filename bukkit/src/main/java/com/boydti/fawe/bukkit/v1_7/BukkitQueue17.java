@@ -291,8 +291,9 @@ public class BukkitQueue17 extends BukkitQueue_0<Chunk, ChunkSection[], ChunkSec
                             customPackets.put(version, customPacket);
                         }
                         player.playerConnection.sendPacket(customPacket);
+                    } else {
+                        player.playerConnection.sendPacket(packet);
                     }
-                    player.playerConnection.sendPacket(packet);
                 }
                 mask = 255;
             }
@@ -310,8 +311,9 @@ public class BukkitQueue17 extends BukkitQueue_0<Chunk, ChunkSection[], ChunkSec
                         customPackets.put(version, customPacket);
                     }
                     player.playerConnection.sendPacket(customPacket);
+                } else {
+                    player.playerConnection.sendPacket(packet);
                 }
-                player.playerConnection.sendPacket(packet);
             }
         } catch (Throwable e) {
             MainUtil.handleError(e);
