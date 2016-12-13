@@ -361,7 +361,11 @@ public class EditSession extends AbstractWorld implements HasFaweQueue {
     }
 
     public void resetLimit() {
-        this.limit = this.originalLimit.copy();
+        this.limit.set(this.originalLimit);
+        ExtentTraverser<ProcessedWEExtent> find = new ExtentTraverser(extent).find(ProcessedWEExtent.class);
+        if (find != null && find.get() != null) {
+            find.get().setLimit(this.limit);
+        }
     }
 
     /**
@@ -1236,7 +1240,7 @@ public class EditSession extends AbstractWorld implements HasFaweQueue {
         // Reset limit
         limit.set(originalLimit);
         // Enqueue it
-        if (queue == null || queue.size() == 0) {
+        if (queue == null || queue.isEmpty()) {
             queue.dequeue();
             return;
         }
@@ -1251,7 +1255,6 @@ public class EditSession extends AbstractWorld implements HasFaweQueue {
             } else {
                 ((FaweChangeSet) getChangeSet()).flush();
             }
-
         }
     }
 
