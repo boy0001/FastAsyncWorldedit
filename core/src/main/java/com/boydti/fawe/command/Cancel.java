@@ -24,6 +24,7 @@ public class Cancel extends FaweCommand {
         UUID uuid = player.getUUID();
         Collection<FaweQueue> queues = SetQueue.IMP.getAllQueues();
         int cancelled = 0;
+        player.clearActions();
         for (FaweQueue queue : queues) {
             Set<EditSession> sessions = queue.getEditSessions();
             for (EditSession session : sessions) {

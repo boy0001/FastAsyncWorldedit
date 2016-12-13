@@ -145,6 +145,12 @@ public abstract class FawePlayer<T> extends Metadatable {
         }
     }
 
+    public void clearActions() {
+        while (getActions().poll() != null) {
+            runningCount.decrementAndGet();
+        }
+    }
+
     private ConcurrentLinkedDeque<Runnable> getActions() {
         ConcurrentLinkedDeque<Runnable> adder = getMeta("fawe_action_v2");
         if (adder == null) {
