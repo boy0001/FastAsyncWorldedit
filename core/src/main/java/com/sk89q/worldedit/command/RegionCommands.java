@@ -69,7 +69,6 @@ import com.sk89q.worldedit.util.command.binding.Range;
 import com.sk89q.worldedit.util.command.binding.Switch;
 import com.sk89q.worldedit.util.command.binding.Text;
 import com.sk89q.worldedit.util.command.parametric.Optional;
-import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -318,10 +317,7 @@ public class RegionCommands {
             try {
                 CuboidRegion cuboid = (CuboidRegion) selection;
                 RegionWrapper current = new RegionWrapper(cuboid.getMinimumPoint(), cuboid.getMaximumPoint());
-                Field field = to.getClass().getDeclaredField("pattern");
-                field.setAccessible(true);
-                Pattern pattern = (Pattern) field.get(to);
-                BaseBlock block = ((BlockPattern) pattern).getBlock();
+                BaseBlock block = ((BlockPattern) to).getBlock();
                 final FaweQueue queue = editSession.getQueue();
                 final int minY = cuboid.getMinimumY();
                 final int maxY = cuboid.getMaximumY();
