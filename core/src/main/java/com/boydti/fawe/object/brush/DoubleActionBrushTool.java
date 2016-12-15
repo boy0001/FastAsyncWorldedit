@@ -30,6 +30,7 @@ public class DoubleActionBrushTool implements DoubleActionTraceTool {
     protected static int MAX_RANGE = 500;
     protected int range = -1;
     private Mask mask = null;
+    private Mask sourceMask = null;
     private ResettableExtent transform = null;
     private DoubleActionBrush brush = null;
     @Nullable
@@ -70,12 +71,30 @@ public class DoubleActionBrushTool implements DoubleActionTraceTool {
     }
 
     /**
+     * Get the filter.
+     *
+     * @return the filter
+     */
+    public Mask getSourceMask() {
+        return sourceMask;
+    }
+
+    /**
      * Set the block filter used for identifying blocks to replace.
      *
      * @param filter the filter to set
      */
     public void setMask(Mask filter) {
         this.mask = filter;
+    }
+
+    /**
+     * Set the block filter used for identifying blocks to replace.
+     *
+     * @param filter the filter to set
+     */
+    public void setSourceMask(Mask filter) {
+        this.sourceMask = filter;
     }
 
     /**
@@ -176,6 +195,19 @@ public class DoubleActionBrushTool implements DoubleActionTraceTool {
                 MaskIntersection newMask = new MaskIntersection(existingMask);
                 newMask.add(mask);
                 editSession.setMask(newMask);
+            }
+        }
+        if (sourceMask != null) {
+            Mask existingMask = editSession.getSourceMask();
+
+            if (existingMask == null) {
+                editSession.setSourceMask(sourceMask);
+            } else if (existingMask instanceof MaskIntersection) {
+                ((MaskIntersection) existingMask).add(sourceMask);
+            } else {
+                MaskIntersection newMask = new MaskIntersection(existingMask);
+                newMask.add(sourceMask);
+                editSession.setSourceMask(newMask);
             }
         }
         if (transform != null) {

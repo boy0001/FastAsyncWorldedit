@@ -44,10 +44,12 @@ import com.boydti.fawe.object.changeset.MemoryOptimizedHistory;
 import com.boydti.fawe.object.exception.FaweException;
 import com.boydti.fawe.object.extent.FastWorldEditExtent;
 import com.boydti.fawe.object.extent.FaweRegionExtent;
+import com.boydti.fawe.object.extent.LightingExtent;
 import com.boydti.fawe.object.extent.NullExtent;
 import com.boydti.fawe.object.extent.ProcessedWEExtent;
 import com.boydti.fawe.object.extent.ResettableExtent;
 import com.boydti.fawe.object.extent.SlowExtent;
+import com.boydti.fawe.object.extent.SourceMaskExtent;
 import com.boydti.fawe.object.mask.ResettableMask;
 import com.boydti.fawe.object.progress.DefaultProgressTracker;
 import com.boydti.fawe.util.ExtentTraverser;
@@ -155,7 +157,7 @@ import static com.sk89q.worldedit.regions.Regions.minimumBlockY;
  * {@link Extent}s that are chained together. For example, history is logged
  * using the {@link ChangeSetExtent}.</p>
  */
-public class EditSession extends AbstractWorld implements HasFaweQueue {
+public class EditSession extends AbstractWorld implements HasFaweQueue, LightingExtent {
     /**
      * Used by {@link #setBlock(Vector, BaseBlock, Stage)} to
      * determine which {@link Extent}s should be bypassed.
@@ -592,6 +594,16 @@ public class EditSession extends AbstractWorld implements HasFaweQueue {
         return maskingExtent != null ? maskingExtent.get().getMask() : null;
     }
 
+    /**
+     * Get the mask.
+     *
+     * @return mask, may be null
+     */
+    public Mask getSourceMask() {
+        ExtentTraverser<SourceMaskExtent> maskingExtent = new ExtentTraverser(this.extent).find(SourceMaskExtent.class);
+        return maskingExtent != null ? maskingExtent.get().getMask() : null;
+    }
+
     public void addTransform(ResettableExtent transform) {
         if (transform == null) {
             ExtentTraverser<AbstractDelegateExtent> traverser = new ExtentTraverser(this.extent).find(ResettableExtent.class);
@@ -604,6 +616,29 @@ public class EditSession extends AbstractWorld implements HasFaweQueue {
             return;
         } else {
             this.extent = transform.setExtent(extent);
+        }
+    }
+
+    /**
+     * Set a mask.
+     *
+     * @param mask mask or null
+     */
+    public void setSourceMask(Mask mask) {
+        if (mask == null) {
+            mask = Masks.alwaysTrue();
+        } else {
+            new MaskTraverser(mask).reset(this);
+        }
+        ExtentTraverser<SourceMaskExtent> maskingExtent = new ExtentTraverser(this.extent).find(SourceMaskExtent.class);
+        if (maskingExtent != null && maskingExtent.get() != null) {
+            Mask oldMask = maskingExtent.get().getMask();
+            if (oldMask instanceof ResettableMask) {
+                ((ResettableMask) oldMask).reset();
+            }
+            maskingExtent.get().setMask(mask);
+        } else if (mask != Masks.alwaysTrue()) {
+            this.extent = new SourceMaskExtent(this.extent, mask);
         }
     }
 
@@ -790,6 +825,31 @@ public class EditSession extends AbstractWorld implements HasFaweQueue {
     public boolean setBiome(final Vector2D position, final BaseBiome biome) {
         this.changes++;
         return this.extent.setBiome(position, biome);
+    }
+
+    @Override
+    public int getLight(int x, int y, int z) {
+        return queue.getLight(x, y, z);
+    }
+
+    @Override
+    public int getBlockLight(int x, int y, int z) {
+        return queue.getEmmittedLight(x, y, z);
+    }
+
+    @Override
+    public int getSkyLight(int x, int y, int z) {
+        return queue.getSkyLight(x, y, z);
+    }
+
+    @Override
+    public int getBrightness(int x, int y, int z) {
+        return queue.getBrightness(x, y, z);
+    }
+
+    @Override
+    public int getOpacity(int x, int y, int z) {
+        return queue.getOpacity(x, y, z);
     }
 
     @Override
@@ -1794,6 +1854,12 @@ public class EditSession extends AbstractWorld implements HasFaweQueue {
         final ForwardExtentCopy copy = new ForwardExtentCopy(EditSession.this, region, EditSession.this, to);
         copy.setRepetitions(count);
         copy.setTransform(new AffineTransform().translate(dir.multiply(size)));
+        Mask sourceMask = getSourceMask();
+        if (sourceMask != null) {
+            new MaskTraverser(sourceMask).reset(EditSession.this);
+            copy.setSourceMask(sourceMask);
+            setSourceMask(null);
+        }
         if (!copyAir) {
             copy.setSourceMask(new ExistingBlockMask(EditSession.this));
         }
@@ -1844,6 +1910,12 @@ public class EditSession extends AbstractWorld implements HasFaweQueue {
         copy.setTransform(new AffineTransform().translate(dir.multiply(distance)));
         copy.setSourceFunction(remove); // Remove
         copy.setRemovingEntities(true);
+        Mask sourceMask = getSourceMask();
+        if (sourceMask != null) {
+            new MaskTraverser(sourceMask).reset(EditSession.this);
+            copy.setSourceMask(sourceMask);
+            setSourceMask(null);
+        }
         if (!copyAir) {
             copy.setSourceMask(new ExistingBlockMask(EditSession.this));
         }

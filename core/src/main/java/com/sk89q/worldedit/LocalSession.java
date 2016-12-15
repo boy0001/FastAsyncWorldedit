@@ -139,6 +139,7 @@ public class LocalSession {
     private transient int cuiVersion = -1;
     private transient boolean fastMode = false;
     private transient Mask mask;
+    private transient Mask sourceMask;
     private ResettableExtent transform = null;
     private transient TimeZone timezone = TimeZone.getDefault();
 
@@ -1238,6 +1239,9 @@ public class LocalSession {
         if (mask != null) {
             editSession.setMask(mask);
         }
+        if (sourceMask != null) {
+            editSession.setSourceMask(sourceMask);
+        }
         if (transform != null) {
             editSession.addTransform(transform);
         }
@@ -1273,6 +1277,15 @@ public class LocalSession {
     }
 
     /**
+     * Get the mask.
+     *
+     * @return mask, may be null
+     */
+    public Mask getSourceMask() {
+        return sourceMask;
+    }
+
+    /**
      * Set a mask.
      *
      * @param mask mask or null
@@ -1286,9 +1299,28 @@ public class LocalSession {
      *
      * @param mask mask or null
      */
+    public void setSourceMask(Mask mask) {
+        this.sourceMask = mask;
+    }
+
+    /**
+     * Set a mask.
+     *
+     * @param mask mask or null
+     */
     @SuppressWarnings("deprecation")
     public void setMask(com.sk89q.worldedit.masks.Mask mask) {
         setMask(mask != null ? Masks.wrap(mask) : null);
+    }
+
+    /**
+     * Set a mask.
+     *
+     * @param mask mask or null
+     */
+    @SuppressWarnings("deprecation")
+    public void setSourceMask(com.sk89q.worldedit.masks.Mask mask) {
+        setSourceMask(mask != null ? Masks.wrap(mask) : null);
     }
 
     public ResettableExtent getTransform() {

@@ -25,6 +25,7 @@ import com.boydti.fawe.object.RunnableVal2;
 import com.boydti.fawe.object.clipboard.ReadOnlyClipboard;
 import com.boydti.fawe.object.io.FastByteArrayOutputStream;
 import com.boydti.fawe.util.ImgurUtility;
+import com.boydti.fawe.util.MaskTraverser;
 import com.sk89q.minecraft.util.commands.Command;
 import com.sk89q.minecraft.util.commands.CommandException;
 import com.sk89q.minecraft.util.commands.CommandPermissions;
@@ -141,6 +142,12 @@ public class ClipboardCommands {
 
         clipboard.setOrigin(session.getPlacementPosition(player));
         ForwardExtentCopy copy = new ForwardExtentCopy(editSession, region, clipboard, region.getMinimumPoint());
+        Mask sourceMask = editSession.getSourceMask();
+        if (sourceMask != null) {
+            new MaskTraverser(sourceMask).reset(editSession);
+            copy.setSourceMask(sourceMask);
+            editSession.setSourceMask(null);
+        }
         if (mask != null && mask != Masks.alwaysTrue()) {
             copy.setSourceMask(mask);
         }
@@ -173,6 +180,12 @@ public class ClipboardCommands {
         clipboard.setOrigin(session.getPlacementPosition(player));
         ForwardExtentCopy copy = new ForwardExtentCopy(editSession, region, clipboard, region.getMinimumPoint());
         copy.setSourceFunction(new BlockReplace(editSession, leavePattern));
+        Mask sourceMask = editSession.getSourceMask();
+        if (sourceMask != null) {
+            new MaskTraverser(sourceMask).reset(editSession);
+            copy.setSourceMask(sourceMask);
+            editSession.setSourceMask(null);
+        }
         if (mask != null) {
             copy.setSourceMask(mask);
         }
@@ -253,7 +266,7 @@ public class ClipboardCommands {
                       @Switch('a') boolean ignoreAirBlocks, @Switch('o') boolean atOrigin,
                       @Switch('s') boolean selectPasted) throws WorldEditException {
         ClipboardHolder holder = session.getClipboard();
-        if (holder.getTransform().isIdentity()) {
+        if (holder.getTransform().isIdentity() && editSession.getSourceMask() == null) {
             place(player, session, editSession, ignoreAirBlocks, atOrigin, selectPasted);
             return;
         }

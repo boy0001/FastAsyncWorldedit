@@ -41,6 +41,31 @@ public class FastWorldEditExtent extends AbstractDelegateExtent implements HasFa
     }
 
     @Override
+    public int getLight(int x, int y, int z) {
+        return queue.getLight(x, y, z);
+    }
+
+    @Override
+    public int getBlockLight(int x, int y, int z) {
+        return queue.getEmmittedLight(x, y, z);
+    }
+
+    @Override
+    public int getSkyLight(int x, int y, int z) {
+        return queue.getSkyLight(x, y, z);
+    }
+
+    @Override
+    public int getBrightness(int x, int y, int z) {
+        return queue.getBrightness(x, y, z);
+    }
+
+    @Override
+    public int getOpacity(int x, int y, int z) {
+        return queue.getOpacity(x, y, z);
+    }
+
+    @Override
     public Entity createEntity(final Location loc, final BaseEntity entity) {
         if (entity != null) {
             CompoundTag tag = entity.getNbtData();

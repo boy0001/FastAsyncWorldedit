@@ -23,18 +23,21 @@ import com.boydti.fawe.config.Settings;
 import com.boydti.fawe.object.clipboard.DiskOptimizedClipboard;
 import com.boydti.fawe.object.clipboard.FaweClipboard;
 import com.boydti.fawe.object.clipboard.MemoryOptimizedClipboard;
+import com.boydti.fawe.object.extent.LightingExtent;
 import com.sk89q.jnbt.CompoundTag;
 import com.sk89q.worldedit.EditSession;
 import com.sk89q.worldedit.Vector;
 import com.sk89q.worldedit.Vector2D;
 import com.sk89q.worldedit.WorldEditException;
 import com.sk89q.worldedit.blocks.BaseBlock;
+import com.sk89q.worldedit.blocks.BlockMaterial;
 import com.sk89q.worldedit.entity.BaseEntity;
 import com.sk89q.worldedit.entity.Entity;
 import com.sk89q.worldedit.function.operation.Operation;
 import com.sk89q.worldedit.regions.Region;
 import com.sk89q.worldedit.util.Location;
 import com.sk89q.worldedit.world.biome.BaseBiome;
+import com.sk89q.worldedit.world.registry.BundledBlockData;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -48,7 +51,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
  * Stores block data as a multi-dimensional array of {@link BaseBlock}s and
  * other data as lists or maps.
  */
-public class BlockArrayClipboard implements Clipboard {
+public class BlockArrayClipboard implements Clipboard, LightingExtent {
 
     private Region region;
     public FaweClipboard IMP;
@@ -57,6 +60,7 @@ public class BlockArrayClipboard implements Clipboard {
     private int my;
     private int mz;
     private Vector origin;
+    private Vector mutable = new Vector();
 
     public BlockArrayClipboard(Region region) {
         checkNotNull(region);
@@ -226,5 +230,44 @@ public class BlockArrayClipboard implements Clipboard {
 
     public static Class<?> inject() {
         return BlockArrayClipboard.class;
+    }
+
+    @Override
+    public int getLight(int x, int y, int z) {
+        return getBlockLight(x, y, z);
+    }
+
+    @Override
+    public int getSkyLight(int x, int y, int z) {
+        return 0;
+    }
+
+    @Override
+    public int getBlockLight(int x, int y, int z) {
+        return getBrightness(x, y, z);
+    }
+
+    @Override
+    public int getOpacity(int x, int y, int z) {
+        mutable.x = x;
+        mutable.y = y;
+        mutable.z = z;
+        BlockMaterial block = BundledBlockData.getInstance().getMaterialById(getBlock(mutable).getId());
+        if (block == null) {
+            return 15;
+        }
+        return Math.min(15, block.getLightOpacity());
+    }
+
+    @Override
+    public int getBrightness(int x, int y, int z) {
+        mutable.x = x;
+        mutable.y = y;
+        mutable.z = z;
+        BlockMaterial block = BundledBlockData.getInstance().getMaterialById(getBlock(mutable).getId());
+        if (block == null) {
+            return 15;
+        }
+        return Math.min(15, block.getLightValue());
     }
 }

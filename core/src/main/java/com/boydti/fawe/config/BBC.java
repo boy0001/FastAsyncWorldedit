@@ -50,6 +50,8 @@ public enum BBC {
 
     MASK_DISABLED("Global mask disabled", "WorldEdit.General"),
     MASK("Global mask set", "WorldEdit.General"),
+    SOURCE_MASK_DISABLED("Global source mask disabled", "WorldEdit.General"),
+    SOURCE_MASK("Global source mask set", "WorldEdit.General"),
     TRANSFORM_DISABLED("Global transform disabled", "WorldEdit.General"),
     TRANSFORM("Global transform set", "WorldEdit.General"),
 
@@ -85,6 +87,7 @@ public enum BBC {
     SELECTION_CLEARED("Selection cleared", "WorldEdit.Selection"),
     SELECTION_NONE("Make a region selection first", "WorldEdit.Selection"),
 
+    BRUSH_NONE("You aren't holding a brush!", "WorldEdit.Brush"),
     BRUSH_BUTCHER("Butcher brush equiped (%s0)", "WorldEdit.Brush"),
     BRUSH_CLIPBOARD("Clipboard brush shape equipped", "WorldEdit.Brush"),
     BRUSH_CYLINDER("Cylinder brush shape equipped (%s0 by %s1).", "WorldEdit.Brush"),
@@ -110,6 +113,8 @@ public enum BBC {
     BRUSH_RANGE("Brush size set", "WorldEdit.Brush"),
     BRUSH_MASK_DISABLED("Brush mask disabled", "WorldEdit.Brush"),
     BRUSH_MASK("Brush mask set", "WorldEdit.Brush"),
+    BRUSH_SOURCE_MASK_DISABLED("Brush source mask disabled", "WorldEdit.Brush"),
+    BRUSH_SOURCE_MASK("Brush source mask set", "WorldEdit.Brush"),
     BRUSH_TRANSFORM_DISABLED("Brush transform disabled", "WorldEdit.Brush"),
     BRUSH_TRANSFORM("Brush transform set", "WorldEdit.Brush"),
     BRUSH_MATERIAL("Brush material set", "WorldEdit.Brush"),

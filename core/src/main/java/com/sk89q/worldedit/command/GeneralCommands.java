@@ -101,7 +101,7 @@ public class GeneralCommands {
     }
 
     @Command(
-            aliases = { "/gmask", "gmask" },
+            aliases = { "/gmask", "gmask", "globalmask", "/globalmask" },
             usage = "[mask]",
             desc = "Set the global mask",
             min = 0,
@@ -121,6 +121,30 @@ public class GeneralCommands {
             Mask mask = worldEdit.getMaskFactory().parseFromInput(context.getJoinedStrings(0), parserContext);
             session.setMask(mask);
             BBC.MASK.send(player);
+        }
+    }
+
+    @Command(
+            aliases = { "/gsmask", "gsmask", "globalsourcemask", "/globalsourcemask" },
+            usage = "[mask]",
+            desc = "Set the global source mask",
+            min = 0,
+            max = -1
+    )
+    @CommandPermissions("worldedit.global-mask")
+    public void gsmask(Player player, LocalSession session, EditSession editSession, @Optional CommandContext context) throws WorldEditException {
+        if (context == null || context.argsLength() == 0) {
+            session.setSourceMask((Mask) null);
+            BBC.SOURCE_MASK_DISABLED.send(player);
+        } else {
+            ParserContext parserContext = new ParserContext();
+            parserContext.setActor(player);
+            parserContext.setWorld(player.getWorld());
+            parserContext.setSession(session);
+            parserContext.setExtent(editSession);
+            Mask mask = worldEdit.getMaskFactory().parseFromInput(context.getJoinedStrings(0), parserContext);
+            session.setSourceMask(mask);
+            BBC.SOURCE_MASK.send(player);
         }
     }
 

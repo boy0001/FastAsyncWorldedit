@@ -2,6 +2,7 @@ package com.boydti.fawe.object.schematic;
 
 import com.boydti.fawe.object.clipboard.ReadOnlyClipboard;
 import com.boydti.fawe.util.EditSessionBuilder;
+import com.boydti.fawe.util.MaskTraverser;
 import com.sk89q.worldedit.EditSession;
 import com.sk89q.worldedit.MaxChangedBlocksException;
 import com.sk89q.worldedit.Vector;
@@ -12,6 +13,7 @@ import com.sk89q.worldedit.extent.clipboard.io.ClipboardFormat;
 import com.sk89q.worldedit.extent.clipboard.io.ClipboardWriter;
 import com.sk89q.worldedit.extent.transform.BlockTransformExtent;
 import com.sk89q.worldedit.function.mask.ExistingBlockMask;
+import com.sk89q.worldedit.function.mask.Mask;
 import com.sk89q.worldedit.function.operation.ForwardExtentCopy;
 import com.sk89q.worldedit.function.operation.Operations;
 import com.sk89q.worldedit.math.transform.Transform;
@@ -113,6 +115,12 @@ public class Schematic {
         ForwardExtentCopy copy = new ForwardExtentCopy(extent, clipboard.getRegion(), clipboard.getOrigin(), editSession, to);
         if (transform != null) {
             copy.setTransform(transform);
+        }
+        Mask sourceMask = editSession.getSourceMask();
+        if (sourceMask != null) {
+            new MaskTraverser(sourceMask).reset(extent);
+            copy.setSourceMask(sourceMask);
+            editSession.setSourceMask(null);
         }
         if (!pasteAir) {
             copy.setSourceMask(new ExistingBlockMask(clipboard));

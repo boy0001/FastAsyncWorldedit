@@ -577,11 +577,15 @@ public class RegionCommands {
     @Logging(REGION)
     public void regenerateChunk(Player player, LocalSession session, EditSession editSession, @Selection Region region) throws WorldEditException {
         Mask mask = session.getMask();
+        Mask sourceMask = session.getSourceMask();
         try {
             session.setMask((Mask) null);
+            session.setSourceMask((Mask) null);
             player.getWorld().regenerate(region, editSession);
         } finally {
             session.setMask(mask);
+            session.setSourceMask(mask);
+
         }
         BBC.COMMAND_REGEN.send(player);
     }

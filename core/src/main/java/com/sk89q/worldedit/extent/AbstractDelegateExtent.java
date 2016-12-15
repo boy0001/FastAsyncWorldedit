@@ -19,10 +19,12 @@
 
 package com.sk89q.worldedit.extent;
 
+import com.boydti.fawe.object.extent.LightingExtent;
 import com.sk89q.worldedit.Vector;
 import com.sk89q.worldedit.Vector2D;
 import com.sk89q.worldedit.WorldEditException;
 import com.sk89q.worldedit.blocks.BaseBlock;
+import com.sk89q.worldedit.blocks.BlockMaterial;
 import com.sk89q.worldedit.entity.BaseEntity;
 import com.sk89q.worldedit.entity.Entity;
 import com.sk89q.worldedit.function.operation.Operation;
@@ -30,6 +32,7 @@ import com.sk89q.worldedit.function.operation.OperationQueue;
 import com.sk89q.worldedit.regions.Region;
 import com.sk89q.worldedit.util.Location;
 import com.sk89q.worldedit.world.biome.BaseBiome;
+import com.sk89q.worldedit.world.registry.BundledBlockData;
 import java.util.List;
 import javax.annotation.Nullable;
 
@@ -39,7 +42,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
 /**
  * A base class for {@link Extent}s that merely passes extents onto another.
  */
-public abstract class AbstractDelegateExtent implements Extent {
+public abstract class AbstractDelegateExtent implements LightingExtent {
 
     private final Extent extent;
 
@@ -51,6 +54,50 @@ public abstract class AbstractDelegateExtent implements Extent {
     protected AbstractDelegateExtent(Extent extent) {
         checkNotNull(extent);
         this.extent = extent;
+    }
+
+    public int getSkyLight(int x, int y, int z) {
+        if (extent instanceof LightingExtent) {
+            return ((LightingExtent) extent).getSkyLight(x, y, z);
+        }
+        return 0;
+    }
+
+    public int getBlockLight(int x, int y, int z) {
+        if (extent instanceof LightingExtent) {
+            return ((LightingExtent) extent).getBlockLight(x, y, z);
+        }
+        return getBrightness(x, y, z);
+    }
+
+    public int getOpacity(int x, int y, int z) {
+        if (extent instanceof LightingExtent) {
+            return ((LightingExtent) extent).getOpacity(x, y, z);
+        }
+        BlockMaterial block = BundledBlockData.getInstance().getMaterialById(getLazyBlock(x, y, z).getId());
+        if (block == null) {
+            return 15;
+        }
+        return Math.min(15, block.getLightOpacity());
+    }
+
+    @Override
+    public int getLight(int x, int y, int z) {
+        if (extent instanceof LightingExtent) {
+            return ((LightingExtent) extent).getLight(x, y, z);
+        }
+        return 0;
+    }
+
+    public int getBrightness(int x, int y, int z) {
+        if (extent instanceof LightingExtent) {
+            return ((LightingExtent) extent).getBrightness(x, y, z);
+        }
+        BlockMaterial block = BundledBlockData.getInstance().getMaterialById(getLazyBlock(x, y, z).getId());
+        if (block == null) {
+            return 15;
+        }
+        return Math.min(15, block.getLightValue());
     }
 
     /**

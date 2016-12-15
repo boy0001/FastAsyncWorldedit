@@ -21,6 +21,7 @@ package com.sk89q.worldedit.extension.platform;
 
 import com.boydti.fawe.Fawe;
 import com.boydti.fawe.command.AnvilCommands;
+import com.boydti.fawe.command.MaskBinding;
 import com.boydti.fawe.command.PatternBinding;
 import com.boydti.fawe.config.BBC;
 import com.boydti.fawe.config.Settings;
@@ -130,6 +131,7 @@ public final class CommandManager {
         builder.addBinding(new WorldEditBinding(worldEdit));
 
         builder.addBinding(new PatternBinding(worldEdit), com.sk89q.worldedit.function.pattern.Pattern.class);
+        builder.addBinding(new MaskBinding(worldEdit), com.sk89q.worldedit.function.mask.Mask.class);
 
         builder.addInvokeListener(new LegacyCommandsHandler());
         builder.addInvokeListener(new CommandLoggingHandler(worldEdit, commandLog));

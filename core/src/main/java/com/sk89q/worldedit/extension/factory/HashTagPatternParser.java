@@ -145,10 +145,10 @@ public class HashTagPatternParser extends FaweParser<Pattern> {
                         case "#offset":
                             try {
                                 List<String> split3 = suggestRemaining(rest, "#offset", "<dx>", "<dy>", "<dz>", "<pattern>");
-                                int x = (int) Math.abs(Expression.compile(split3.get(0)).evaluate());
-                                int y = (int) Math.abs(Expression.compile(split3.get(1)).evaluate());
-                                int z = (int) Math.abs(Expression.compile(split3.get(2)).evaluate());
-                                rest = StringMan.join(split3.subList(3, split3.size() - 1), ":");
+                                int x = (int) Expression.compile(split3.get(0)).evaluate();
+                                int y = (int) Expression.compile(split3.get(1)).evaluate();
+                                int z = (int) Expression.compile(split3.get(2)).evaluate();
+                                rest = StringMan.join(split3.subList(3, split3.size()), ":");
                                 Pattern pattern = catchSuggestion(input, rest, context);
                                 return new OffsetPattern(pattern, x, y, z);
                             } catch (NumberFormatException | ExpressionException | IndexOutOfBoundsException e) {
@@ -160,7 +160,7 @@ public class HashTagPatternParser extends FaweParser<Pattern> {
                                 int x = (int) Math.abs(Expression.compile(split3.get(0)).evaluate());
                                 int y = (int) Math.abs(Expression.compile(split3.get(1)).evaluate());
                                 int z = (int) Math.abs(Expression.compile(split3.get(2)).evaluate());
-                                rest = StringMan.join(split3.subList(3, split3.size() - 1), ":");
+                                rest = StringMan.join(split3.subList(3, split3.size()), ":");
                                 Pattern pattern = catchSuggestion(input, rest, context);
                                 return new SurfaceRandomOffsetPattern(pattern, x, y, z);
                             } catch (NumberFormatException | ExpressionException | IndexOutOfBoundsException e) {
@@ -173,7 +173,7 @@ public class HashTagPatternParser extends FaweParser<Pattern> {
                                 int x = (int) Math.abs(Expression.compile(split3.get(0)).evaluate());
                                 int y = (int) Math.abs(Expression.compile(split3.get(1)).evaluate());
                                 int z = (int) Math.abs(Expression.compile(split3.get(2)).evaluate());
-                                rest = StringMan.join(split3.subList(3, split3.size() - 1), ":");
+                                rest = StringMan.join(split3.subList(3, split3.size()), ":");
                                 Pattern pattern = catchSuggestion(input, rest, context);
                                 return new SolidRandomOffsetPattern(pattern, x, y, z);
                             } catch (NumberFormatException | ExpressionException | IndexOutOfBoundsException e) {
@@ -187,7 +187,7 @@ public class HashTagPatternParser extends FaweParser<Pattern> {
                                 int x = (int) Math.abs(Expression.compile(split3.get(0)).evaluate());
                                 int y = (int) Math.abs(Expression.compile(split3.get(1)).evaluate());
                                 int z = (int) Math.abs(Expression.compile(split3.get(2)).evaluate());
-                                rest = StringMan.join(split3.subList(3, split3.size() - 1), ":");
+                                rest = StringMan.join(split3.subList(3, split3.size()), ":");
                                 Pattern pattern = catchSuggestion(input, rest, context);
                                 return new RandomOffsetPattern(pattern, x, y, z);
                             } catch (NumberFormatException | ExpressionException | IndexOutOfBoundsException e) {

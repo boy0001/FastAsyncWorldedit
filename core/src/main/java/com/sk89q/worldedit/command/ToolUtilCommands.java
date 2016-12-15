@@ -61,7 +61,7 @@ public class ToolUtilCommands {
     }
 
     @Command(
-            aliases = { "mask" },
+            aliases = { "mask", "/mask" },
             usage = "[mask]",
             desc = "Set the brush mask",
             min = 0,
@@ -71,6 +71,7 @@ public class ToolUtilCommands {
     public void mask(Player player, LocalSession session, EditSession editSession, @Optional CommandContext context) throws WorldEditException {
         Tool tool = session.getTool(player.getItemInHand());
         if (tool == null) {
+            player.print(BBC.BRUSH_NONE.f());
             return;
         }
         if (context == null || context.argsLength() == 0) {
@@ -93,6 +94,43 @@ public class ToolUtilCommands {
                 ((DoubleActionBrushTool) tool).setMask(mask);
             }
             BBC.BRUSH_MASK.send(player);
+        }
+    }
+
+    @Command(
+            aliases = { "smask", "/smask", "/sourcemask", "sourcemask" },
+            usage = "[mask]",
+            desc = "Set the brush mask",
+            min = 0,
+            max = -1
+    )
+    @CommandPermissions("worldedit.brush.options.mask")
+    public void smask(Player player, LocalSession session, EditSession editSession, @Optional CommandContext context) throws WorldEditException {
+        Tool tool = session.getTool(player.getItemInHand());
+        if (tool == null) {
+            player.print(BBC.BRUSH_NONE.f());
+            return;
+        }
+        if (context == null || context.argsLength() == 0) {
+            if (tool instanceof BrushTool) {
+                ((BrushTool) tool).setSourceMask(null);
+            } else if (tool instanceof DoubleActionBrushTool) {
+                ((DoubleActionBrushTool) tool).setMask(null);
+            }
+            BBC.BRUSH_SOURCE_MASK_DISABLED.send(player);
+        } else {
+            ParserContext parserContext = new ParserContext();
+            parserContext.setActor(player);
+            parserContext.setWorld(player.getWorld());
+            parserContext.setSession(session);
+            parserContext.setExtent(editSession);
+            Mask mask = we.getMaskFactory().parseFromInput(context.getJoinedStrings(0), parserContext);
+            if (tool instanceof BrushTool) {
+                ((BrushTool) tool).setSourceMask(mask);
+            } else if (tool instanceof DoubleActionBrushTool) {
+                ((DoubleActionBrushTool) tool).setSourceMask(mask);
+            }
+            BBC.BRUSH_SOURCE_MASK.send(player);
         }
     }
 
