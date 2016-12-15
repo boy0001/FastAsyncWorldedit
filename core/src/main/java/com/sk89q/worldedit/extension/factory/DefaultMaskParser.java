@@ -264,7 +264,7 @@ public class DefaultMaskParser extends FaweParser<Mask> {
                     int requiredMin = 1;
                     int requiredMax = 8;
                     if (split.length == 2) {
-                        String[] split2 = split[1].split(",");
+                        String[] split2 = split[1].split(":");
                         requiredMin = (int) Math.abs(Expression.compile(split2[0]).evaluate());
                         if (split2.length == 2) {
                             requiredMax = (int) Math.abs(Expression.compile(split2[1]).evaluate());
