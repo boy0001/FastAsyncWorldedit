@@ -275,45 +275,49 @@ public class BukkitQueue17 extends BukkitQueue_0<Chunk, ChunkSection[], ChunkSec
                 return;
             }
             // Send chunks
+            int version = -1;
+            PacketPlayOutMapChunk packet = null;
+            Map<Integer, PacketPlayOutMapChunk> packets = null;
             int mask = fc.getBitMask();
             if (mask == 0 || mask == 65535 && hasEntities(nmsChunk)) {
-                PacketPlayOutMapChunk packet = new PacketPlayOutMapChunk(nmsChunk, false, 65280, 5);
-                HashMap<Integer, PacketPlayOutMapChunk> customPackets = null;
                 for (EntityPlayer player : players) {
-                    int version = player.playerConnection.networkManager.getVersion();
-                    if (version != 5) {
-                        if (customPackets == null) {
-                            customPackets = new HashMap<>();
+                    int currentVersion = player.playerConnection.networkManager.getVersion();
+                    if (currentVersion != version) {
+                        if (packet != null) {
+                            if (packets == null) {
+                                packets = new HashMap<>();
+                            }
+                            packets.put(version, packet);
+                            packet = packets.get(currentVersion);
                         }
-                        PacketPlayOutMapChunk customPacket = customPackets.get(version);
-                        if (customPacket == null) {
-                            customPacket = new PacketPlayOutMapChunk(nmsChunk, false, 65280, version);
-                            customPackets.put(version, customPacket);
+                        version = currentVersion;
+                        if (packet == null) {
+                            packet = new PacketPlayOutMapChunk(nmsChunk, false, 65280, version);
                         }
-                        player.playerConnection.sendPacket(customPacket);
-                    } else {
-                        player.playerConnection.sendPacket(packet);
                     }
-                }
-                mask = 255;
-            }
-            PacketPlayOutMapChunk packet = new PacketPlayOutMapChunk(nmsChunk, false, mask, 5);
-            HashMap<Integer, PacketPlayOutMapChunk> customPackets = null;
-            for (EntityPlayer player : players) {
-                int version = player.playerConnection.networkManager.getVersion();
-                if (version != 5) {
-                    if (customPackets == null) {
-                        customPackets = new HashMap<>();
-                    }
-                    PacketPlayOutMapChunk customPacket = customPackets.get(version);
-                    if (customPacket == null) {
-                        customPacket = new PacketPlayOutMapChunk(nmsChunk, false, mask, version);
-                        customPackets.put(version, customPacket);
-                    }
-                    player.playerConnection.sendPacket(customPacket);
-                } else {
                     player.playerConnection.sendPacket(packet);
                 }
+                mask = 255;
+                version = -1;
+                packet = null;
+                packets = null;
+            }
+            for (EntityPlayer player : players) {
+                int currentVersion = player.playerConnection.networkManager.getVersion();
+                if (currentVersion != version) {
+                    if (packet != null) {
+                        if (packets == null) {
+                            packets = new HashMap<>();
+                        }
+                        packets.put(version, packet);
+                        packet = packets.get(currentVersion);
+                    }
+                    version = currentVersion;
+                    if (packet == null) {
+                        packet = new PacketPlayOutMapChunk(nmsChunk, false, mask, version);
+                    }
+                }
+                player.playerConnection.sendPacket(packet);
             }
         } catch (Throwable e) {
             MainUtil.handleError(e);
