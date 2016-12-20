@@ -69,7 +69,7 @@ public class AnvilCommands {
                 }
             }
         });
-        player.print(BBC.VISITOR_BLOCK.format(count.longValue()));
+        player.print(BBC.getPrefix() + BBC.VISITOR_BLOCK.format(count.longValue()));
     }
 
     @Command(
@@ -114,7 +114,7 @@ public class AnvilCommands {
                 }
             }
         });
-        player.print(BBC.VISITOR_BLOCK.format(count.longValue()));
+        player.print(BBC.getPrefix() + BBC.VISITOR_BLOCK.format(count.longValue()));
     }
 
     @Command(
@@ -189,7 +189,7 @@ public class AnvilCommands {
             };
         }
         queue.filterWorld(filter);
-        player.print(BBC.SELECTION_COUNT.format(count.longValue()));
+        player.print(BBC.getPrefix() + BBC.SELECTION_COUNT.format(count.longValue()));
     }
 
 }

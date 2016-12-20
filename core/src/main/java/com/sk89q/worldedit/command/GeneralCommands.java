@@ -64,9 +64,9 @@ public class GeneralCommands {
         session.setBlockChangeLimit(limit);
 
         if (limit != -1) {
-            player.print("Block change limit set to " + limit + ". (Use //limit -1 to go back to the default.)");
+            player.print(BBC.getPrefix() + "Block change limit set to " + limit + ". (Use //limit -1 to go back to the default.)");
         } else {
-            player.print("Block change limit set to " + limit + ".");
+            player.print(BBC.getPrefix() + "Block change limit set to " + limit + ".");
         }
     }
 
@@ -88,7 +88,7 @@ public class GeneralCommands {
             }
 
             session.setFastMode(false);
-            player.print("Fast mode disabled.");
+            player.print(BBC.getPrefix() + "Fast mode disabled.");
         } else {
             if ("off".equals(newState)) {
                 player.printError("Fast mode already disabled.");
@@ -96,7 +96,7 @@ public class GeneralCommands {
             }
 
             session.setFastMode(true);
-            player.print("Fast mode enabled. Lighting in the affected chunks may be wrong and/or you may need to rejoin to see changes.");
+            player.print(BBC.getPrefix() + "Fast mode enabled. Lighting in the affected chunks may be wrong and/or you may need to rejoin to see changes.");
         }
     }
 
@@ -182,9 +182,9 @@ public class GeneralCommands {
     public void togglePlace(Player player, LocalSession session, EditSession editSession, CommandContext args) throws WorldEditException {
 
         if (session.togglePlacementPosition()) {
-            player.print("Now placing at pos #1.");
+            player.print(BBC.getPrefix() + "Now placing at pos #1.");
         } else {
-            player.print("Now placing at the block you stand in.");
+            player.print(BBC.getPrefix() + "Now placing at the block you stand in.");
         }
     }
 

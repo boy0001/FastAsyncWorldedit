@@ -100,7 +100,7 @@ public class BrushCommands {
         BrushTool tool = session.getBrushTool(player.getItemInHand());
         tool.setSize(radius);
         tool.setBrush(new BlendBall(), "worldedit.brush.blendball");
-        player.print(BBC.BRUSH_BLEND_BALL.f(radius));
+        player.print(BBC.getPrefix() + BBC.BRUSH_BLEND_BALL.f(radius));
     }
 
     @Command(
@@ -117,7 +117,7 @@ public class BrushCommands {
         DoubleActionBrushTool tool = session.getDoubleActionBrushTool(player.getItemInHand());
         tool.setSize(radius);
         tool.setBrush(new ErodeBrush(), "worldedit.brush.erode");
-        player.print(BBC.BRUSH_ERODE.f(radius));
+        player.print(BBC.getPrefix() + BBC.BRUSH_ERODE.f(radius));
     }
 
     @Command(
@@ -137,7 +137,7 @@ public class BrushCommands {
         tool.setBrush(new RecurseBrush(tool, depthFirst), "worldedit.brush.recursive");
         tool.setMask(new IdMask(editSession));
         tool.setFill(fill);
-        player.print(BBC.BRUSH_RECURSIVE.f(radius));
+        player.print(BBC.getPrefix() + BBC.BRUSH_RECURSIVE.f(radius));
     }
 
     @Command(
@@ -160,7 +160,7 @@ public class BrushCommands {
         tool.setFill(fill);
         tool.setSize(radius);
         tool.setBrush(new LineBrush(shell, select, flat), "worldedit.brush.line");
-        player.print(BBC.BRUSH_LINE.f(radius));
+        player.print(BBC.getPrefix() + BBC.BRUSH_LINE.f(radius));
     }
 
     @Command(
@@ -178,7 +178,7 @@ public class BrushCommands {
         tool.setFill(fill);
         tool.setSize(radius);
         tool.setBrush(new SplineBrush(player, session, tool), "worldedit.brush.spline");
-        player.print(BBC.BRUSH_SPLINE.f(radius));
+        player.print(BBC.getPrefix() + BBC.BRUSH_SPLINE.f(radius));
     }
 
     @Command(
@@ -213,7 +213,7 @@ public class BrushCommands {
                     BBC.BRUSH_TRY_OTHER.send(player);
             }
         }
-        player.print(BBC.BRUSH_SPHERE.f(radius));
+        player.print(BBC.getPrefix() + BBC.BRUSH_SPHERE.f(radius));
     }
 
     @Command(
@@ -242,7 +242,7 @@ public class BrushCommands {
         } else {
             tool.setBrush(new CylinderBrush(height), "worldedit.brush.cylinder");
         }
-        player.print(BBC.BRUSH_SPHERE.f(radius, height));
+        player.print(BBC.getPrefix() + BBC.BRUSH_SPHERE.f(radius, height));
     }
 
     @Command(
@@ -269,7 +269,7 @@ public class BrushCommands {
 
         BrushTool tool = session.getBrushTool(player.getItemInHand());
         tool.setBrush(new ClipboardBrush(holder, ignoreAir, usingOrigin), "worldedit.brush.clipboard");
-        player.print(BBC.BRUSH_CLIPBOARD.s());
+        player.print(BBC.getPrefix() + BBC.BRUSH_CLIPBOARD.s());
     }
 
     @Command(
@@ -297,7 +297,7 @@ public class BrushCommands {
         tool.setSize(radius);
         tool.setBrush(new SmoothBrush(iterations, naturalBlocksOnly), "worldedit.brush.smooth");
 
-        player.print(BBC.BRUSH_SMOOTH.f(radius, iterations, (naturalBlocksOnly ? "natural blocks only" : "any block")));
+        player.print(BBC.getPrefix() + BBC.BRUSH_SMOOTH.f(radius, iterations, (naturalBlocksOnly ? "natural blocks only" : "any block")));
     }
 
     @Command(
@@ -318,7 +318,7 @@ public class BrushCommands {
         tool.setMask(new BlockMask(editSession, new BaseBlock(BlockID.FIRE)));
         tool.setBrush(new SphereBrush(), "worldedit.brush.ex");
         BBC.BRUSH_EXTINGUISHER.send(player, radius);
-        player.print(BBC.BRUSH_EXTINGUISHER.f(radius));
+        player.print(BBC.getPrefix() + BBC.BRUSH_EXTINGUISHER.f(radius));
     }
 
     @Command(
@@ -340,7 +340,7 @@ public class BrushCommands {
         BrushTool tool = session.getBrushTool(player.getItemInHand());
         tool.setSize(radius);
         tool.setBrush(new GravityBrush(fromMaxY, tool), "worldedit.brush.gravity");
-        player.print(BBC.BRUSH_GRAVITY.f(radius));
+        player.print(BBC.getPrefix() + BBC.BRUSH_GRAVITY.f(radius));
     }
 
     @Command(
@@ -364,7 +364,7 @@ public class BrushCommands {
         } catch (EmptyClipboardException ignore) {
             tool.setBrush(new HeightBrush(file, rotation, yscale, tool, null), "worldedit.brush.height");
         }
-        player.print(BBC.BRUSH_HEIGHT.f(radius));
+        player.print(BBC.getPrefix() + BBC.BRUSH_HEIGHT.f(radius));
     }
 
     @Command(
@@ -383,7 +383,7 @@ public class BrushCommands {
         DoubleActionBrushTool tool = session.getDoubleActionBrushTool(player.getItemInHand());
         tool.setSize(radius);
         tool.setBrush(new CopyPastaBrush(player, session, tool), "worldedit.brush.copy");
-        player.print(BBC.BRUSH_COPY.f(radius));
+        player.print(BBC.getPrefix() + BBC.BRUSH_COPY.f(radius));
     }
 
     @Command(
@@ -400,7 +400,7 @@ public class BrushCommands {
         BrushTool tool = session.getBrushTool(player.getItemInHand());
         String cmd = args.getJoinedStrings(1);
         tool.setBrush(new CommandBrush(player, tool, cmd, radius), "worldedit.brush.copy");
-        player.print(BBC.BRUSH_COMMAND.f(cmd));
+        player.print(BBC.getPrefix() + BBC.BRUSH_COMMAND.f(cmd));
     }
 
     @Command(
@@ -445,7 +445,7 @@ public class BrushCommands {
         BrushTool tool = session.getBrushTool(player.getItemInHand());
         tool.setSize(radius);
         tool.setBrush(new ButcherBrush(flags), "worldedit.brush.butcher");
-        player.print(BBC.BRUSH_BUTCHER.f(radius));
+        player.print(BBC.getPrefix() + BBC.BRUSH_BUTCHER.f(radius));
     }
 
     public static Class<?> inject() {

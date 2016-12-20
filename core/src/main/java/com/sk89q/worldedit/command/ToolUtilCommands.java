@@ -71,7 +71,7 @@ public class ToolUtilCommands {
     public void mask(Player player, LocalSession session, EditSession editSession, @Optional CommandContext context) throws WorldEditException {
         Tool tool = session.getTool(player.getItemInHand());
         if (tool == null) {
-            player.print(BBC.BRUSH_NONE.f());
+            player.print(BBC.getPrefix() + BBC.BRUSH_NONE.f());
             return;
         }
         if (context == null || context.argsLength() == 0) {
@@ -108,7 +108,7 @@ public class ToolUtilCommands {
     public void smask(Player player, LocalSession session, EditSession editSession, @Optional CommandContext context) throws WorldEditException {
         Tool tool = session.getTool(player.getItemInHand());
         if (tool == null) {
-            player.print(BBC.BRUSH_NONE.f());
+            player.print(BBC.getPrefix() + BBC.BRUSH_NONE.f());
             return;
         }
         if (context == null || context.argsLength() == 0) {

@@ -1,6 +1,5 @@
 package com.boydti.fawe.object.brush;
 
-import com.boydti.fawe.config.BBC;
 import com.sk89q.worldedit.EditSession;
 import com.sk89q.worldedit.MaxChangedBlocksException;
 import com.sk89q.worldedit.Vector;
@@ -23,7 +22,7 @@ public class LineBrush implements DoubleActionBrush {
         switch (action) {
             case PRIMARY:
                 if (pos1 == null) {
-                    editSession.debug(BBC.SELECTION_NONE);
+                    pos1 = position;
                     return;
                 }
                 editSession.drawLine(Patterns.wrap(pattern), pos1, position, size, !shell, flat);

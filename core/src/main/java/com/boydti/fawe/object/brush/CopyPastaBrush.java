@@ -74,7 +74,7 @@ public class CopyPastaBrush implements DoubleActionBrush {
                 ClipboardHolder holder = new ClipboardHolder(clipboard, editSession.getWorld().getWorldData());
                 session.setClipboard(holder);
                 int blocks = builder.size();
-                player.print(BBC.COMMAND_COPY.format(blocks));
+                player.print(BBC.getPrefix() + BBC.COMMAND_COPY.format(blocks));
                 return;
             }
             case PRIMARY: {
@@ -90,7 +90,7 @@ public class CopyPastaBrush implements DoubleActionBrush {
                             .build();
                     Operations.completeLegacy(operation);
                 } catch (EmptyClipboardException e) {
-                    player.print(BBC.BRUSH_PASTE_NONE.s());
+                    player.print(BBC.getPrefix() + BBC.BRUSH_PASTE_NONE.s());
                 }
             }
         }

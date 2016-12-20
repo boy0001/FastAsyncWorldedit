@@ -589,10 +589,10 @@ public class SelectionCommands {
             Vector size = region.getMaximumPoint().subtract(region.getMinimumPoint());
             Vector origin = clipboard.getOrigin();
 
-            player.print("Cuboid dimensions (max - min): " + size);
-            player.print("Offset: " + origin);
-            player.print("Cuboid distance: " + size.distance(Vector.ONE));
-            player.print("# of blocks: " + (int) (size.getX() * size.getY() * size.getZ()));
+            player.print(BBC.getPrefix() + "Cuboid dimensions (max - min): " + size);
+            player.print(BBC.getPrefix() + "Offset: " + origin);
+            player.print(BBC.getPrefix() + "Cuboid distance: " + size.distance(Vector.ONE));
+            player.print(BBC.getPrefix() + "# of blocks: " + (int) (size.getX() * size.getY() * size.getZ()));
             return;
         }
 
@@ -601,17 +601,17 @@ public class SelectionCommands {
                 .subtract(region.getMinimumPoint())
                 .add(1, 1, 1);
 
-        player.print("Type: " + session.getRegionSelector(player.getWorld())
+        player.print(BBC.getPrefix() + "Type: " + session.getRegionSelector(player.getWorld())
                 .getTypeName());
 
         for (String line : session.getRegionSelector(player.getWorld())
                 .getInformationLines()) {
-            player.print(line);
+            player.print(BBC.getPrefix() + line);
         }
 
-        player.print("Size: " + size);
-        player.print("Cuboid distance: " + region.getMaximumPoint().distance(region.getMinimumPoint()));
-        player.print("# of blocks: " + region.getArea());
+        player.print(BBC.getPrefix() + "Size: " + size);
+        player.print(BBC.getPrefix() + "Cuboid distance: " + region.getMaximumPoint().distance(region.getMinimumPoint()));
+        player.print(BBC.getPrefix() + "# of blocks: " + region.getArea());
     }
 
 
@@ -688,7 +688,7 @@ public class SelectionCommands {
                         c.getAmount() / (double) size * 100,
                         name == null ? "Unknown" : name,
                         c.getID().getType(), c.getID().getData());
-                player.print(str);
+                player.print(BBC.getPrefix() + str);
             }
         } else {
             for (Countable<Integer> c : distribution) {
@@ -697,7 +697,7 @@ public class SelectionCommands {
                         String.valueOf(c.getAmount()),
                         c.getAmount() / (double) size * 100,
                         block == null ? "Unknown" : block.getName(), c.getID());
-                player.print(str);
+                player.print(BBC.getPrefix() + str);
             }
         }
     }
@@ -725,35 +725,35 @@ public class SelectionCommands {
         final RegionSelector selector;
         if (typeName.equalsIgnoreCase("cuboid")) {
             selector = new CuboidRegionSelector(oldSelector);
-            player.print(BBC.SEL_CUBOID.s());
+            player.print(BBC.getPrefix() + BBC.SEL_CUBOID.s());
         } else if (typeName.equalsIgnoreCase("extend")) {
             selector = new ExtendingCuboidRegionSelector(oldSelector);
-            player.print(BBC.SEL_CUBOID_EXTEND.s());
+            player.print(BBC.getPrefix() + BBC.SEL_CUBOID_EXTEND.s());
         } else if (typeName.equalsIgnoreCase("poly")) {
             selector = new Polygonal2DRegionSelector(oldSelector);
-            player.print(BBC.SEL_2D_POLYGON.s());
+            player.print(BBC.getPrefix() + BBC.SEL_2D_POLYGON.s());
             Optional<Integer> limit = ActorSelectorLimits.forActor(player).getPolygonVertexLimit();
             if (limit.isPresent()) {
-                player.print(BBC.SEL_MAX.f(limit.get()));
+                player.print(BBC.getPrefix() + BBC.SEL_MAX.f(limit.get()));
             }
-            player.print(BBC.SEL_LIST.s());
+            player.print(BBC.getPrefix() + BBC.SEL_LIST.s());
         } else if (typeName.equalsIgnoreCase("ellipsoid")) {
             selector = new EllipsoidRegionSelector(oldSelector);
-            player.print(BBC.SEL_ELLIPSIOD.s());
+            player.print(BBC.getPrefix() + BBC.SEL_ELLIPSIOD.s());
         } else if (typeName.equalsIgnoreCase("sphere")) {
             selector = new SphereRegionSelector(oldSelector);
-            player.print(BBC.SEL_SPHERE.s());
+            player.print(BBC.getPrefix() + BBC.SEL_SPHERE.s());
         } else if (typeName.equalsIgnoreCase("cyl")) {
             selector = new CylinderRegionSelector(oldSelector);
-            player.print(BBC.SEL_CYLINDRICAL.s());
+            player.print(BBC.getPrefix() + BBC.SEL_CYLINDRICAL.s());
         } else if (typeName.equalsIgnoreCase("convex") || typeName.equalsIgnoreCase("hull") || typeName.equalsIgnoreCase("polyhedron")) {
             selector = new ConvexPolyhedralRegionSelector(oldSelector);
-            player.print(BBC.SEL_CONVEX_POLYHEDRAL.s());
+            player.print(BBC.getPrefix() + BBC.SEL_CONVEX_POLYHEDRAL.s());
             Optional<Integer> limit = ActorSelectorLimits.forActor(player).getPolyhedronVertexLimit();
             if (limit.isPresent()) {
-                player.print(BBC.SEL_MAX.f(limit.get()));
+                player.print(BBC.getPrefix() + BBC.SEL_MAX.f(limit.get()));
             }
-            player.print(BBC.SEL_LIST.s());
+            player.print(BBC.getPrefix() + BBC.SEL_LIST.s());
         } else if (typeName.startsWith("fuzzy") || typeName.startsWith("magic")) {
             Mask mask;
             if (typeName.length() > 6) {
@@ -767,13 +767,13 @@ public class SelectionCommands {
                 mask = new IdMask(editSession);
             }
             selector = new FuzzyRegionSelector(player, editSession, mask);
-            player.print(BBC.SEL_FUZZY.s());
-            player.print(BBC.SEL_LIST.s());
+            player.print(BBC.getPrefix() + BBC.SEL_FUZZY.f());
+            player.print(BBC.getPrefix() + BBC.SEL_LIST.f());
         } else {
             CommandListBox box = new CommandListBox("Selection modes");
             StyledFragment contents = box.getContents();
             StyledFragment tip = contents.createFragment(Style.RED);
-            tip.append(BBC.SEL_MODES.s()).newLine();
+            tip.append(BBC.getPrefix() + BBC.SEL_MODES.s()).newLine();
 
             box.appendCommand("//sel cuboid", "Select two corners of a cuboid");
             box.appendCommand("//sel extend", "Fast cuboid selection mode");
@@ -799,7 +799,7 @@ public class SelectionCommands {
 
             if (found != null) {
                 session.setDefaultRegionSelector(found);
-                player.print("Your default region selector is now " + found.name() + ".");
+                player.print(BBC.getPrefix() + "Your default region selector is now " + found.name() + ".");
             } else {
                 throw new RuntimeException("Something unexpected happened. Please report this.");
             }

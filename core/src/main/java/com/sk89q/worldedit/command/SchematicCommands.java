@@ -249,7 +249,7 @@ public class SchematicCommands {
                 first = false;
             }
             first = true;
-            actor.print(builder.toString());
+            actor.print(BBC.getPrefix() + builder.toString());
         }
     }
 
@@ -323,7 +323,7 @@ public class SchematicCommands {
             }
         }
 
-        actor.print(build.toString());
+        actor.print(BBC.getPrefix() + build.toString());
     }
 
 

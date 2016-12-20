@@ -119,7 +119,7 @@ public class HistoryCommands {
                                     rollback.setTime(historyFile.lastModified());
                                     RollbackDatabase db = DBHandler.IMP.getDatabase(world);
                                     db.logEdit(rollback);
-                                    player.print("Logging: " + historyFile);
+                                    player.print(BBC.getPrefix() + "Logging: " + historyFile);
                                 }
                             }
                         } catch (IllegalArgumentException e) {
@@ -128,7 +128,7 @@ public class HistoryCommands {
                     }
                 }
             }
-            player.print("Done import!");
+            player.print(BBC.getPrefix() + "Done import!");
             return;
         }
         UUID other = Fawe.imp().getUUID(user);

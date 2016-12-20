@@ -85,7 +85,6 @@ public enum BBC {
     SELECTION_OUTSET("Region outset", "WorldEdit.Selection"),
     SELECTION_SHIFT("Region shifted", "WorldEdit.Selection"),
     SELECTION_CLEARED("Selection cleared", "WorldEdit.Selection"),
-    SELECTION_NONE("Make a region selection first", "WorldEdit.Selection"),
 
     BRUSH_NONE("You aren't holding a brush!", "WorldEdit.Brush"),
     BRUSH_BUTCHER("Butcher brush equiped (%s0)", "WorldEdit.Brush"),
@@ -95,7 +94,7 @@ public enum BBC {
     BRUSH_GRAVITY("Gravity brush equipped (%s0)", "WorldEdit.Brush"),
     BRUSH_HEIGHT("Height brush equipped (%s0)", "WorldEdit.Brush"),
     BRUSH_TRY_OTHER("&cFAWE adds other, more suitable brushes e.g.\n&8 - &7//br height [radius=5] [#clipboard|file=null] [rotation=0] [yscale=1.00]", "WorldEdit.Brush"),
-    BRUSH_COPY("Copy brush equipped (%s0)", "WorldEdit.Brush"),
+    BRUSH_COPY("Copy brush equipped (%s0). Left click the base of an object to copy, right click to paste. Increase the brush radius if necessary.", "WorldEdit.Brush"),
     BRUSH_COMMAND("Command brush equipped (%s0)", "WorldEdit.Brush"),
     BRUSH_HEIGHT_INVALID("Invalid height map file (%s0)", "WorldEdit.Brush"),
     BRUSH_SMOOTH("Smooth brush equipped (%s0 x %s1 using %s2).", "WorldEdit.Brush"),
@@ -220,7 +219,7 @@ public enum BBC {
     SEL_MAX("%s0 points maximum.", "Selection"),
     SEL_FUZZY("Fuzzy selector: Left click to select all contingent blocks, right click to add", "Selection"),
     SEL_CONVEX_POLYHEDRAL("Convex polyhedral selector: Left click=First vertex, right click to add more.", "Selection"),
-    SEL_LIST("For a list of selection types use:&c //sel", "Selection"),
+    SEL_LIST("For a list of selection types use:&c //sel list", "Selection"),
     SEL_MODES("Select one of the modes below:", "Selection"),
 
 
