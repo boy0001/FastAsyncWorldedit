@@ -31,6 +31,10 @@ public final class Masks {
         return ALWAYS_TRUE;
     }
 
+    public static Mask alwaysFalse() {
+        return ALWAYS_FALSE;
+    }
+
     /**
      * Return a 2D mask that always returns true;
      *

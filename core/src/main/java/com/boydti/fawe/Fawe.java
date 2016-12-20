@@ -57,6 +57,7 @@ import com.sk89q.worldedit.extent.transform.BlockTransformExtent;
 import com.sk89q.worldedit.function.entity.ExtentEntityCopy;
 import com.sk89q.worldedit.function.mask.BlockMask;
 import com.sk89q.worldedit.function.mask.FuzzyBlockMask;
+import com.sk89q.worldedit.function.mask.MaskUnion;
 import com.sk89q.worldedit.function.mask.Masks;
 import com.sk89q.worldedit.function.mask.OffsetMask;
 import com.sk89q.worldedit.function.mask.SolidBlockMask;
@@ -408,7 +409,8 @@ public class Fawe {
             FuzzyBlockMask.inject(); // Optimizations
             OffsetMask.inject(); // Optimizations
             DefaultMaskParser.inject(); // Add new masks
-            Masks.inject(); //
+            Masks.inject(); // Optimizations
+            MaskUnion.inject(); // Optimizations
             // Operations
             Operations.inject(); // Optimizations
             ForwardExtentCopy.inject(); // Fixes + optimizations

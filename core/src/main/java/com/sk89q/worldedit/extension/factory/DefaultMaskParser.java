@@ -90,16 +90,35 @@ public class DefaultMaskParser extends FaweParser<Mask> {
     public Mask parseFromInput(String input, ParserContext context) throws InputParseException {
         List<Mask> masks = new ArrayList<Mask>();
 
-        for (String component : input.split(" ")) {
+        for (String component : split(input, ' ')) {
             if (component.isEmpty()) {
                 continue;
             }
-
-            Mask current = getBlockMaskComponent(masks, component, context);
-
-            masks.add(current);
+            HashSet<BaseBlock> blocks = new HashSet<BaseBlock>();
+            List<Mask> masksUnion = new ArrayList<Mask>();
+            for (String elem : split(component, ',')) {
+                ArrayList<Mask> list = new ArrayList<Mask>();
+                list.add(catchSuggestion(input, list, elem, context));
+                if (list.size() == 1) {
+                    Mask mask = list.get(0);
+                    if (mask.getClass() == BlockMask.class) {
+                        blocks.addAll(((BlockMask) mask).getBlocks());
+                    } else {
+                        masksUnion.add(mask);
+                    }
+                } else {
+                    masksUnion.add(new MaskIntersection(list));
+                }
+            }
+            if (!blocks.isEmpty()) {
+                masksUnion.add(new BlockMask(Request.request().getExtent(), blocks));
+            }
+            if (masksUnion.size() == 1) {
+                masks.add(masksUnion.get(0));
+            } else {
+                masks.add(new MaskUnion(masksUnion));
+            }
         }
-
         switch (masks.size()) {
             case 0:
                 return null;
@@ -123,7 +142,6 @@ public class DefaultMaskParser extends FaweParser<Mask> {
 
     private Mask getBlockMaskComponent(List<Mask> masks, String input, ParserContext context) throws InputParseException {
         Extent extent = Request.request().getExtent();
-
         final char firstChar = input.charAt(0);
         switch (firstChar) {
             case '#':
@@ -234,8 +252,8 @@ public class DefaultMaskParser extends FaweParser<Mask> {
                     throw new SuggestInputParseException(input, "/<min-angle>:<max-angle>");
                 }
                 try {
-                    int y1 = (int) Math.abs(Expression.compile(split[0]).evaluate());
-                    int y2 = (int) Math.abs(Expression.compile(split[1]).evaluate());
+                    int y1 = (int) (Expression.compile(split[0]).evaluate());
+                    int y2 = (int) (Expression.compile(split[1]).evaluate());
                     return new AngleMask(extent, y1, y2);
                 } catch (NumberFormatException | ExpressionException e) {
                     throw new SuggestInputParseException(input, "/<min-angle>:<max-angle>");
@@ -338,34 +356,10 @@ public class DefaultMaskParser extends FaweParser<Mask> {
                         }
                     }
                 }
-                List<String> split = split(input, ',');
-                if (split.size() == 1) {
-                    ParserContext tempContext = new ParserContext(context);
-                    tempContext.setRestricted(false);
-                    tempContext.setPreferringWildcard(true);
-                    return new BlockMask(extent, worldEdit.getBlockFactory().parseFromListInput(input, tempContext));
-                }
-                HashSet<BaseBlock> blocks = new HashSet<BaseBlock>();
-                ArrayList<Mask> maskUnion = new ArrayList<Mask>();
-                for (String elem : split) {
-                    ArrayList<Mask> list = new ArrayList<Mask>();
-                    list.add(catchSuggestion(input, list, elem, context));
-                    if (list.size() == 1) {
-                        Mask mask = list.get(0);
-                        if (mask instanceof BlockMask) {
-                            blocks.addAll(((BlockMask) mask).getBlocks());
-                        } else {
-                            maskUnion.add(mask);
-                        }
-                    }
-                }
-                if (!blocks.isEmpty()) {
-                    maskUnion.add(new BlockMask(extent, blocks));
-                }
-                if (maskUnion.size() == 1) {
-                    return maskUnion.get(0);
-                }
-                return new MaskUnion(maskUnion);
+                ParserContext tempContext = new ParserContext(context);
+                tempContext.setRestricted(false);
+                tempContext.setPreferringWildcard(true);
+                return new BlockMask(extent, worldEdit.getBlockFactory().parseFromListInput(input, tempContext));
         }
     }
 
