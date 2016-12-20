@@ -124,13 +124,17 @@ public abstract class FaweStreamChangeSet extends FaweChangeSet {
         }
         if (mode == 1 || mode == 4) { // small
             posDel = new FaweStreamPositionDelegate() {
+                int lx,ly,lz;
                 @Override
                 public void write(OutputStream out, int x, int y, int z) throws IOException {
-                    byte b1 = (byte) y;
-                    byte b2 = (byte) (x);
-                    byte b3 = (byte) (z);
-                    int x16 = (x >> 8) & 0xF;
-                    int z16 = (z >> 8) & 0xF;
+                    int rx = -lx + (lx = x);
+                    int ry = -ly + (ly = y);
+                    int rz = -lz + (lz = z);
+                    byte b1 = (byte) (ry);
+                    byte b2 = (byte) (rx);
+                    byte b3 = (byte) (rz);
+                    int x16 = (rx >> 8) & 0xF;
+                    int z16 = (rz >> 8) & 0xF;
                     byte b4 = MathMan.pair16(x16, z16);
                     out.write(b1);
                     out.write(b2);
@@ -145,31 +149,33 @@ public abstract class FaweStreamChangeSet extends FaweChangeSet {
                     if (in.read(buffer) == -1) {
                         throw new EOFException();
                     }
-                    return (((buffer[1] & 0xFF) + ((MathMan.unpair16x(buffer[3])) << 8)) << 20) >> 20;
+                    return lx = lx + ((((buffer[1] & 0xFF) + ((MathMan.unpair16x(buffer[3])) << 8)) << 20) >> 20);
                 }
 
                 @Override
                 public int readY(InputStream in) {
-                    return buffer[0] & 0xFF;
+                    return (ly = ly + buffer[0]) & 0xFF;
                 }
 
                 @Override
                 public int readZ(InputStream in) throws IOException {
-                    return (((buffer[2] & 0xFF) + ((MathMan.unpair16y(buffer[3])) << 8)) << 20) >> 20;
+                    return lz = lz + ((((buffer[2] & 0xFF) + ((MathMan.unpair16y(buffer[3])) << 8)) << 20) >> 20);
                 }
             };
         } else {
             posDel = new FaweStreamPositionDelegate() {
-
                 byte[] buffer = new byte[5];
-
+                int lx,ly,lz;
                 @Override
                 public void write(OutputStream stream, int x, int y, int z) throws IOException {
-                    stream.write((x) & 0xff);
-                    stream.write(((x) >> 8) & 0xff);
-                    stream.write((z) & 0xff);
-                    stream.write(((z) >> 8) & 0xff);
-                    stream.write((byte) y);
+                    int rx = -lx + (lx = x);
+                    int ry = -ly + (ly = y);
+                    int rz = -lz + (lz = z);
+                    stream.write((rx) & 0xff);
+                    stream.write(((rx) >> 8) & 0xff);
+                    stream.write((rz) & 0xff);
+                    stream.write(((rz) >> 8) & 0xff);
+                    stream.write((byte) ry);
                 }
 
                 @Override
@@ -177,17 +183,17 @@ public abstract class FaweStreamChangeSet extends FaweChangeSet {
                     if (is.read(buffer) == -1) {
                         throw new EOFException();
                     }
-                    return (buffer[0] & 0xFF) + (buffer[1] << 8);
+                    return lx = (lx + (buffer[0] & 0xFF) + (buffer[1] << 8));
                 }
 
                 @Override
                 public int readY(InputStream is) throws IOException {
-                    return buffer[4] & 0xFF;
+                    return (ly = (ly + (buffer[4]))) & 0xFF;
                 }
 
                 @Override
                 public int readZ(InputStream is) throws IOException {
-                    return (buffer[2] & 0xFF) + (buffer[3] << 8);
+                    return lz = (lz + (buffer[2] & 0xFF) + (buffer[3] << 8));
                 }
             };
         }

@@ -24,12 +24,15 @@ import org.bukkit.event.entity.ItemSpawnEvent;
 
 public class ChunkListener implements Listener {
 
+    int rateLimit = 0;
+
     public ChunkListener() {
         if (Settings.TICK_LIMITER.ENABLED) {
             Bukkit.getPluginManager().registerEvents(ChunkListener.this, Fawe.<FaweBukkit>imp().getPlugin());
             TaskManager.IMP.repeat(new Runnable() {
                 @Override
                 public void run() {
+                    rateLimit--;
                     physicsFreeze = false;
                     itemFreeze = false;
                     counter.clear();
@@ -99,7 +102,10 @@ public class ChunkListener implements Listener {
                 lastPhysY = y;
                 if (++count.x == Settings.TICK_LIMITER.PHYSICS) {
                     badChunks.add(MathMan.pairInt(cx, cz));
-                    Fawe.debug("[Tick Limiter] Detected and cancelled physics  lag source at " + block.getLocation());
+                    if (rateLimit <= 0) {
+                        rateLimit = 120;
+                        Fawe.debug("[Tick Limiter] Detected and cancelled physics  lag source at " + block.getLocation());
+                    }
                 }
                 return;
             }
@@ -148,7 +154,10 @@ public class ChunkListener implements Listener {
                 count.x = Settings.TICK_LIMITER.PHYSICS;
                 cleanup(loc.getChunk());
                 badChunks.add(MathMan.pairInt(cx, cz));
-                Fawe.debug("[Tick Limiter] Detected and cancelled item lag source at " + loc);
+                if (rateLimit <= 0) {
+                    rateLimit = 120;
+                    Fawe.debug("[Tick Limiter] Detected and cancelled item lag source at " + loc);
+                }
             }
             event.setCancelled(true);
             return;

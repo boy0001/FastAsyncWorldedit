@@ -283,7 +283,6 @@ public class MainUtil {
             return new FaweInputStream(is);
         }
         int amountAbs = Math.abs(amount);
-        LZ4Factory factory = LZ4Factory.fastestInstance();
         if (amountAbs > 6) {
             if (amount > 0) {
                 is = new BufferedInputStream(new GZIPInputStream(is, buffer));
