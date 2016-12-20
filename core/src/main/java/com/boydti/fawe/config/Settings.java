@@ -133,7 +133,7 @@ public class Settings extends Config {
                 "9 = 1 x high, 1 x medium, 3 x fast (best compression)",
                 "NOTE: If using disk, do some compression (3+) as smaller files save faster"
         })
-        public static int COMPRESSION_LEVEL = 8;
+        public static int COMPRESSION_LEVEL = 3;
         @Comment({
                 "The buffer size for compression:",
                 " - Larger = better ratio but uses more upfront memory"
@@ -253,7 +253,7 @@ public class Settings extends Config {
         @Comment("Max physics per interval (per chunk)")
         public static int PHYSICS = 512;
         @Comment("Max item spawns per interval (per chunk)")
-        public static int ITEMS = 48;
+        public static int ITEMS = 128;
 
     }
 
