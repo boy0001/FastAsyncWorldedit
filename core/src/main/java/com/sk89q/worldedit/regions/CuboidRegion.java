@@ -21,7 +21,6 @@ package com.sk89q.worldedit.regions;
 
 import com.boydti.fawe.config.Settings;
 import com.sk89q.worldedit.BlockVector;
-import com.sk89q.worldedit.BlockVector2D;
 import com.sk89q.worldedit.LocalWorld;
 import com.sk89q.worldedit.Vector;
 import com.sk89q.worldedit.Vector2D;
@@ -29,6 +28,7 @@ import com.sk89q.worldedit.world.World;
 import com.sk89q.worldedit.world.storage.ChunkStore;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.LinkedHashSet;
 import java.util.Set;
 
 
@@ -314,14 +314,14 @@ public class CuboidRegion extends AbstractRegion implements FlatRegion {
 
     @Override
     public Set<Vector2D> getChunks() {
-        Set<Vector2D> chunks = new HashSet<Vector2D>();
+        Set<Vector2D> chunks = new LinkedHashSet<Vector2D>();
 
         Vector min = getMinimumPoint();
         Vector max = getMaximumPoint();
 
-        for (int x = min.getBlockX() >> ChunkStore.CHUNK_SHIFTS; x <= max.getBlockX() >> ChunkStore.CHUNK_SHIFTS; ++x) {
-            for (int z = min.getBlockZ() >> ChunkStore.CHUNK_SHIFTS; z <= max.getBlockZ() >> ChunkStore.CHUNK_SHIFTS; ++z) {
-                chunks.add(new BlockVector2D(x, z));
+        for (int x = max.getBlockX() >> ChunkStore.CHUNK_SHIFTS; x >= min.getBlockX() >> ChunkStore.CHUNK_SHIFTS; --x) {
+            for (int z = max.getBlockZ() >> ChunkStore.CHUNK_SHIFTS; z >= min.getBlockZ() >> ChunkStore.CHUNK_SHIFTS; --z) {
+                chunks.add(new Vector2D(x, z));
             }
         }
 
@@ -335,10 +335,10 @@ public class CuboidRegion extends AbstractRegion implements FlatRegion {
         Vector min = getMinimumPoint();
         Vector max = getMaximumPoint();
 
-        for (int x = min.getBlockX() >> ChunkStore.CHUNK_SHIFTS; x <= max.getBlockX() >> ChunkStore.CHUNK_SHIFTS; ++x) {
-            for (int z = min.getBlockZ() >> ChunkStore.CHUNK_SHIFTS; z <= max.getBlockZ() >> ChunkStore.CHUNK_SHIFTS; ++z) {
-                for (int y = min.getBlockY() >> ChunkStore.CHUNK_SHIFTS; y <= max.getBlockY() >> ChunkStore.CHUNK_SHIFTS; ++y) {
-                    chunks.add(new BlockVector(x, y, z));
+        for (int x = max.getBlockX() >> ChunkStore.CHUNK_SHIFTS; x >= min.getBlockX() >> ChunkStore.CHUNK_SHIFTS; --x) {
+            for (int z = max.getBlockZ() >> ChunkStore.CHUNK_SHIFTS; z >= min.getBlockZ() >> ChunkStore.CHUNK_SHIFTS; --z) {
+                for (int y = max.getBlockY() >> ChunkStore.CHUNK_SHIFTS; y >= min.getBlockY() >> ChunkStore.CHUNK_SHIFTS; --y) {
+                    chunks.add(new Vector(x, y, z));
                 }
             }
         }
