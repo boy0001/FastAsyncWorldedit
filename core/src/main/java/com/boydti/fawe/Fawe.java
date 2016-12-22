@@ -84,6 +84,7 @@ import com.sk89q.worldedit.regions.selector.CuboidRegionSelector;
 import com.sk89q.worldedit.session.PasteBuilder;
 import com.sk89q.worldedit.session.SessionManager;
 import com.sk89q.worldedit.session.request.Request;
+import com.sk89q.worldedit.util.command.SimpleDispatcher;
 import com.sk89q.worldedit.util.command.parametric.ParameterData;
 import com.sk89q.worldedit.util.command.parametric.ParametricBuilder;
 import com.sk89q.worldedit.util.command.parametric.ParametricCallable;
@@ -441,6 +442,7 @@ public class Fawe {
             try {
                 CommandManager.inject(); // Async commands
                 PlatformManager.inject(); // Async brushes / tools
+                SimpleDispatcher.inject(); // Optimize perm checks
             } catch (Throwable e) {
                 debug("====== UPDATE WORLDEDIT TO 6.1.1 ======");
                 MainUtil.handleError(e, false);
