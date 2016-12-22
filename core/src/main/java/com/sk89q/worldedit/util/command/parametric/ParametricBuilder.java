@@ -19,6 +19,7 @@
 
 package com.sk89q.worldedit.util.command.parametric;
 
+import com.boydti.fawe.command.LongBinding;
 import com.boydti.fawe.config.Commands;
 import com.google.common.collect.ImmutableBiMap.Builder;
 import com.sk89q.minecraft.util.commands.Command;
@@ -71,6 +72,7 @@ public class ParametricBuilder {
      */
     public ParametricBuilder() {
         addBinding(new PrimitiveBindings());
+        addBinding(new LongBinding());
         addBinding(new StandardBindings());
     }
 

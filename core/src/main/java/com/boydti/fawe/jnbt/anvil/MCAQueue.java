@@ -7,6 +7,7 @@ import com.boydti.fawe.object.FawePlayer;
 import com.boydti.fawe.object.FaweQueue;
 import com.boydti.fawe.object.RunnableVal4;
 import com.sk89q.jnbt.CompoundTag;
+import com.sk89q.worldedit.world.biome.BaseBiome;
 import java.io.File;
 import java.util.Collection;
 import java.util.Map;
@@ -144,7 +145,7 @@ public class MCAQueue extends NMSMappedFaweQueue<FaweQueue, FaweChunk, FaweChunk
     }
 
     @Override
-    public boolean regenerateChunk(FaweQueue faweQueue, int x, int z) {
+    public boolean regenerateChunk(FaweQueue faweQueue, int x, int z, BaseBiome biome, Long seed) {
         throw new UnsupportedOperationException("Not supported");
     }
 

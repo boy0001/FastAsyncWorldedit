@@ -5,6 +5,7 @@ import com.boydti.fawe.object.FawePlayer;
 import com.boydti.fawe.regions.FaweMask;
 import com.boydti.fawe.regions.FaweMaskManager;
 import com.intellectualcrafters.plot.PS;
+import com.intellectualcrafters.plot.commands.MainCommand;
 import com.intellectualcrafters.plot.config.Settings;
 import com.intellectualcrafters.plot.generator.HybridPlotManager;
 import com.intellectualcrafters.plot.object.Plot;
@@ -29,6 +30,9 @@ public class PlotSquaredFeature extends FaweMaskManager {
         setupChunkManager();
         if (Settings.PLATFORM.equals("Bukkit")) {
             new FaweTrim();
+        }
+        if (MainCommand.getInstance().getCommand("generatebiome") == null) {
+            new PlotSetBiome();
         }
     }
 

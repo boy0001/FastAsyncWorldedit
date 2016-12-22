@@ -15,6 +15,7 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentLinkedDeque;
 import java.util.concurrent.ExecutorCompletionService;
+import javax.annotation.Nullable;
 
 public class DelegateFaweQueue extends FaweQueue {
     private FaweQueue parent;
@@ -149,8 +150,8 @@ public class DelegateFaweQueue extends FaweQueue {
     }
 
     @Override
-    public boolean regenerateChunk(int x, int z) {
-        return parent.regenerateChunk(x, z);
+    public boolean regenerateChunk(int x, int z, @Nullable BaseBiome biome, Long seed) {
+        return parent.regenerateChunk(x, z, biome, seed);
     }
 
     @Override

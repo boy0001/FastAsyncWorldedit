@@ -104,7 +104,7 @@ public abstract class MappedFaweQueue<WORLD, CHUNK, SECTION> extends FaweQueue {
 
     public abstract boolean isChunkLoaded(WORLD world, int x, int z);
 
-    public abstract boolean regenerateChunk(WORLD world, int x, int z);
+    public abstract boolean regenerateChunk(WORLD world, int x, int z, BaseBiome biome, Long seed);
 
     @Override
     public abstract FaweChunk getFaweChunk(int x, int z);
@@ -126,8 +126,8 @@ public abstract class MappedFaweQueue<WORLD, CHUNK, SECTION> extends FaweQueue {
     }
 
     @Override
-    public boolean regenerateChunk(int x, int z) {
-        return regenerateChunk(getWorld(), x, z);
+    public boolean regenerateChunk(int x, int z, BaseBiome biome, Long seed) {
+        return regenerateChunk(getWorld(), x, z, biome, seed);
     }
 
     @Override

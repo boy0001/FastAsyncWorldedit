@@ -13,6 +13,7 @@ import com.boydti.fawe.util.TaskManager;
 import com.sk89q.jnbt.CompoundTag;
 import com.sk89q.jnbt.StringTag;
 import com.sk89q.jnbt.Tag;
+import com.sk89q.worldedit.world.biome.BaseBiome;
 import java.io.File;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
@@ -29,6 +30,7 @@ import org.bukkit.Bukkit;
 import org.bukkit.Chunk;
 import org.bukkit.World;
 import org.bukkit.WorldCreator;
+import org.bukkit.block.Biome;
 import org.bukkit.craftbukkit.v1_11_R1.CraftChunk;
 import org.bukkit.craftbukkit.v1_11_R1.CraftServer;
 import org.bukkit.craftbukkit.v1_11_R1.CraftWorld;
@@ -44,6 +46,15 @@ public class BukkitQueue_1_11 extends BukkitQueue_0<Chunk, ChunkSection[], Chunk
     protected static Field fieldTickingBlockCount;
     protected static Field fieldNonEmptyBlockCount;
     protected static Field fieldSection;
+    protected static Field fieldBiomes;
+    protected static Field fieldChunkGenerator;
+    protected static Field fieldSeed;
+    protected static Field fieldBiomeCache;
+    protected static Field fieldBiomes2;
+    protected static Field fieldGenLayer1;
+    protected static Field fieldGenLayer2;
+    protected static MutableGenLayer genLayer;
+
 
     public static final IBlockData[] IBD_CACHE = new IBlockData[Character.MAX_VALUE];
 
@@ -55,6 +66,21 @@ public class BukkitQueue_1_11 extends BukkitQueue_0<Chunk, ChunkSection[], Chunk
             fieldSection.setAccessible(true);
             fieldTickingBlockCount.setAccessible(true);
             fieldNonEmptyBlockCount.setAccessible(true);
+
+            fieldBiomes = ChunkProviderGenerate.class.getDeclaredField("D");
+            fieldBiomes.setAccessible(true);
+            fieldChunkGenerator = ChunkProviderServer.class.getDeclaredField("chunkGenerator");
+            fieldChunkGenerator.setAccessible(true);
+            fieldSeed = WorldData.class.getDeclaredField("e");
+            fieldSeed.setAccessible(true);
+            fieldBiomeCache = WorldChunkManager.class.getDeclaredField("d");
+            fieldBiomeCache.setAccessible(true);
+            fieldBiomes2 = WorldChunkManager.class.getDeclaredField("e");
+            fieldBiomes2.setAccessible(true);
+            fieldGenLayer1 = WorldChunkManager.class.getDeclaredField("b") ;
+            fieldGenLayer2 = WorldChunkManager.class.getDeclaredField("c") ;
+            fieldGenLayer1.setAccessible(true);
+            fieldGenLayer2.setAccessible(true);
 
             Field fieldAir = DataPaletteBlock.class.getDeclaredField("a");
             fieldAir.setAccessible(true);
@@ -84,6 +110,53 @@ public class BukkitQueue_1_11 extends BukkitQueue_0<Chunk, ChunkSection[], Chunk
     public BukkitQueue_1_11(final String world) {
         super(world);
         getImpWorld();
+    }
+
+    @Override
+    public boolean regenerateChunk(World world, int x, int z, BaseBiome biome, Long seed) {
+        if (biome != null) {
+            try {
+                if (seed == null) {
+                    seed = world.getSeed();
+                }
+                nmsWorld.worldData.getSeed();
+                boolean result;
+                ChunkProviderGenerate generator = new ChunkProviderGenerate(nmsWorld, seed, false, "");
+                Biome bukkitBiome = adapter.getBiome(biome.getId());
+                BiomeBase base = BiomeBase.getBiome(biome.getId());
+                fieldBiomes.set(generator, new BiomeBase[]{base});
+                boolean cold = base.getTemperature() <= 1;
+                net.minecraft.server.v1_11_R1.ChunkGenerator existingGenerator = nmsWorld.getChunkProviderServer().chunkGenerator;
+                long existingSeed = world.getSeed();
+                {
+                    if (genLayer == null) genLayer = new MutableGenLayer(seed);
+                    genLayer.set(biome.getId());
+                    Object existingGenLayer1 = fieldGenLayer1.get(nmsWorld.getWorldChunkManager());
+                    Object existingGenLayer2 = fieldGenLayer2.get(nmsWorld.getWorldChunkManager());
+                    fieldGenLayer1.set(nmsWorld.getWorldChunkManager(), genLayer);
+                    fieldGenLayer2.set(nmsWorld.getWorldChunkManager(), genLayer);
+
+                    fieldSeed.set(nmsWorld.worldData, seed);
+
+                    ReflectionUtils.setFailsafeFieldValue(fieldBiomeCache, this.nmsWorld.getWorldChunkManager(), new BiomeCache(this.nmsWorld.getWorldChunkManager()));
+
+                    ReflectionUtils.setFailsafeFieldValue(fieldChunkGenerator, this.nmsWorld.getChunkProviderServer(), generator);
+
+                    result = getWorld().regenerateChunk(x, z);
+
+                    ReflectionUtils.setFailsafeFieldValue(fieldChunkGenerator, this.nmsWorld.getChunkProviderServer(), existingGenerator);
+
+                    fieldSeed.set(nmsWorld.worldData, existingSeed);
+
+                    fieldGenLayer1.set(nmsWorld.getWorldChunkManager(), existingGenLayer1);
+                    fieldGenLayer2.set(nmsWorld.getWorldChunkManager(), existingGenLayer2);
+                }
+                return result;
+            } catch (Throwable e) {
+                e.printStackTrace();
+            }
+        }
+        return super.regenerateChunk(world, x, z, biome, seed);
     }
 
     @Override

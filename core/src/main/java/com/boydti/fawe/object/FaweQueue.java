@@ -28,6 +28,7 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentLinkedDeque;
 import java.util.concurrent.ExecutorCompletionService;
+import javax.annotation.Nullable;
 
 public abstract class FaweQueue {
 
@@ -229,7 +230,12 @@ public abstract class FaweQueue {
 
     public abstract boolean isChunkLoaded(final int x, final int z);
 
-    public abstract boolean regenerateChunk(int x, int z);
+    @Deprecated
+    public boolean regenerateChunk(int x, int z) {
+        return regenerateChunk(x, z, null, null);
+    }
+
+    public abstract boolean regenerateChunk(int x, int z, @Nullable BaseBiome biome, @Nullable Long seed);
 
     public void startSet(boolean parallel) {}
 

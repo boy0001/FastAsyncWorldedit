@@ -12,6 +12,7 @@ import com.boydti.fawe.util.ReflectionUtils;
 import com.sk89q.jnbt.CompoundTag;
 import com.sk89q.jnbt.StringTag;
 import com.sk89q.jnbt.Tag;
+import com.sk89q.worldedit.world.biome.BaseBiome;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufAllocator;
 import java.io.File;
@@ -168,7 +169,7 @@ public class ForgeQueue_All extends NMSMappedFaweQueue<World, Chunk, ExtendedBlo
     }
 
     @Override
-    public boolean regenerateChunk(World world, int x, int z) {
+    public boolean regenerateChunk(World world, int x, int z, BaseBiome biome, Long seed) {
         IChunkProvider provider = world.getChunkProvider();
         if (!(provider instanceof ChunkProviderServer)) {
             return false;

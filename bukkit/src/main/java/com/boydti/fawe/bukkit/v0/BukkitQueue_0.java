@@ -13,6 +13,7 @@ import com.boydti.fawe.util.MathMan;
 import com.boydti.fawe.util.TaskManager;
 import com.sk89q.worldedit.bukkit.WorldEditPlugin;
 import com.sk89q.worldedit.bukkit.adapter.BukkitImplAdapter;
+import com.sk89q.worldedit.world.biome.BaseBiome;
 import java.io.File;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
@@ -169,7 +170,7 @@ public abstract class BukkitQueue_0<CHUNK, CHUNKSECTIONS, SECTION> extends NMSMa
     public void refreshChunk(FaweChunk fs) {}
 
     @Override
-    public boolean regenerateChunk(World world, int x, int z) {
+    public boolean regenerateChunk(World world, int x, int z, BaseBiome biome, Long seed) {
         return world.regenerateChunk(x, z);
     }
 
