@@ -24,7 +24,6 @@ import com.sk89q.minecraft.util.commands.Command;
 import com.sk89q.minecraft.util.commands.CommandContext;
 import com.sk89q.minecraft.util.commands.CommandPermissions;
 import com.sk89q.minecraft.util.commands.Logging;
-import com.sk89q.worldedit.EditSession;
 import com.sk89q.worldedit.LocalSession;
 import com.sk89q.worldedit.WorldEdit;
 import com.sk89q.worldedit.WorldEditException;
@@ -55,7 +54,7 @@ public class ScriptingCommands {
     @Command(aliases = { "cs" }, usage = "<filename> [args...]", desc = "Execute a CraftScript", min = 1, max = -1)
     @CommandPermissions("worldedit.scripting.execute")
     @Logging(ALL)
-    public void execute(final Player player, final LocalSession session, final EditSession editSession, final CommandContext args) throws WorldEditException {
+    public void execute(final Player player, final LocalSession session, final CommandContext args) throws WorldEditException {
         final String[] scriptArgs = args.getSlice(1);
         final String name = args.getString(0);
 
@@ -78,7 +77,7 @@ public class ScriptingCommands {
     @Command(aliases = { ".s" }, usage = "[args...]", desc = "Execute last CraftScript", min = 0, max = -1)
     @CommandPermissions("worldedit.scripting.execute")
     @Logging(ALL)
-    public void executeLast(final Player player, final LocalSession session, final EditSession editSession, final CommandContext args) throws WorldEditException {
+    public void executeLast(final Player player, final LocalSession session, final CommandContext args) throws WorldEditException {
         final String lastScript = session.getLastScript();
 
         if (!player.hasPermission("worldedit.scripting.execute." + lastScript)) {

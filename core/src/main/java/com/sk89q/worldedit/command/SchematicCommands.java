@@ -27,7 +27,6 @@ import com.sk89q.minecraft.util.commands.Command;
 import com.sk89q.minecraft.util.commands.CommandContext;
 import com.sk89q.minecraft.util.commands.CommandException;
 import com.sk89q.minecraft.util.commands.CommandPermissions;
-import com.sk89q.worldedit.EditSession;
 import com.sk89q.worldedit.LocalConfiguration;
 import com.sk89q.worldedit.LocalSession;
 import com.sk89q.worldedit.WorldEdit;
@@ -215,7 +214,7 @@ public class SchematicCommands {
 
     @Command(aliases = { "delete", "d" }, usage = "<filename>", desc = "Delete a saved schematic", help = "Delete a schematic from the schematic list", min = 1, max = 1)
     @CommandPermissions("worldedit.schematic.delete")
-    public void delete(final Player player, final LocalSession session, final EditSession editSession, final CommandContext args) throws WorldEditException {
+    public void delete(final Player player, final LocalSession session, final CommandContext args) throws WorldEditException {
         final LocalConfiguration config = this.worldEdit.getConfiguration();
         final String filename = args.getString(0);
 

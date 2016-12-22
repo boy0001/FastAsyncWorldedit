@@ -103,7 +103,7 @@ public class ClipboardCommands {
             max = 0
     )
     @CommandPermissions("worldedit.clipboard.lazycopy")
-    public void lazyCopy(Player player, LocalSession session, final EditSession editSession,
+    public void lazyCopy(Player player, LocalSession session, EditSession editSession,
                          @Selection final Region region, @Switch('e') boolean copyEntities,
                          @Switch('m') Mask mask) throws WorldEditException {
 
@@ -262,7 +262,7 @@ public class ClipboardCommands {
     )
     @CommandPermissions("worldedit.clipboard.paste")
     @Logging(PLACEMENT)
-    public void paste(Player player, LocalSession session, final EditSession editSession,
+    public void paste(Player player, LocalSession session, EditSession editSession,
                       @Switch('a') boolean ignoreAirBlocks, @Switch('o') boolean atOrigin,
                       @Switch('s') boolean selectPasted) throws WorldEditException {
         ClipboardHolder holder = session.getClipboard();
@@ -415,7 +415,7 @@ public class ClipboardCommands {
             max = 1
     )
     @CommandPermissions("worldedit.clipboard.flip")
-    public void flip(Player player, LocalSession session, EditSession editSession,
+    public void flip(Player player, LocalSession session,
                      @Optional(Direction.AIM) @Direction Vector direction) throws WorldEditException {
         ClipboardHolder holder = session.getClipboard();
         Clipboard clipboard = holder.getClipboard();

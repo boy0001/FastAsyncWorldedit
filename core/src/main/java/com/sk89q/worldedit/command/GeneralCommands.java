@@ -48,7 +48,7 @@ public class GeneralCommands {
             max = 1
     )
     @CommandPermissions("worldedit.limit")
-    public void limit(Player player, LocalSession session, EditSession editSession, CommandContext args) throws WorldEditException {
+    public void limit(Player player, LocalSession session, CommandContext args) throws WorldEditException {
 
         LocalConfiguration config = worldEdit.getConfiguration();
         boolean mayDisable = player.hasPermission("worldedit.limit.unrestricted");
@@ -78,7 +78,7 @@ public class GeneralCommands {
             max = 1
     )
     @CommandPermissions("worldedit.fast")
-    public void fast(Player player, LocalSession session, EditSession editSession, CommandContext args) throws WorldEditException {
+    public void fast(Player player, LocalSession session, CommandContext args) throws WorldEditException {
 
         String newState = args.getString(0, null);
         if (session.hasFastMode()) {
@@ -156,7 +156,7 @@ public class GeneralCommands {
             max = -1
     )
     @CommandPermissions("worldedit.global-trasnform")
-    public void gtransform(Player player, LocalSession session, EditSession editSession, @Optional CommandContext context) throws WorldEditException {
+    public void gtransform(Player player, EditSession editSession, LocalSession session, @Optional CommandContext context) throws WorldEditException {
         if (context == null || context.argsLength() == 0) {
             session.setTransform(null);
             BBC.TRANSFORM_DISABLED.send(player);
@@ -179,7 +179,7 @@ public class GeneralCommands {
             min = 0,
             max = 0
     )
-    public void togglePlace(Player player, LocalSession session, EditSession editSession, CommandContext args) throws WorldEditException {
+    public void togglePlace(Player player, LocalSession session, CommandContext args) throws WorldEditException {
 
         if (session.togglePlacementPosition()) {
             player.print(BBC.getPrefix() + "Now placing at pos #1.");
@@ -213,7 +213,7 @@ public class GeneralCommands {
             ItemType type = ItemType.fromID(id);
 
             if (type != null) {
-                actor.print("#" + type.getID() + " (" + type.getName() + ")");
+                actor.print(BBC.getPrefix() + "#" + type.getID() + " (" + type.getName() + ")");
             } else {
                 actor.printError("No item found by ID " + id);
             }
@@ -228,21 +228,21 @@ public class GeneralCommands {
         }
 
         if (!blocksOnly && !itemsOnly) {
-            actor.print("Searching for: " + query);
+            actor.print(BBC.getPrefix() + "Searching for: " + query);
         } else if (blocksOnly && itemsOnly) {
             actor.printError("You cannot use both the 'b' and 'i' flags simultaneously.");
             return;
         } else if (blocksOnly) {
-            actor.print("Searching for blocks: " + query);
+            actor.print(BBC.getPrefix() + "Searching for blocks: " + query);
         } else {
-            actor.print("Searching for items: " + query);
+            actor.print(BBC.getPrefix() + "Searching for items: " + query);
         }
 
         int found = 0;
 
         for (ItemType type : ItemType.values()) {
             if (found >= 15) {
-                actor.print("Too many results!");
+                actor.print(BBC.getPrefix() + "Too many results!");
                 break;
             }
 
@@ -256,7 +256,7 @@ public class GeneralCommands {
 
             for (String alias : type.getAliases()) {
                 if (alias.contains(query)) {
-                    actor.print("#" + type.getID() + " (" + type.getName() + ")");
+                    actor.print(BBC.getPrefix() + "#" + type.getID() + " (" + type.getName() + ")");
                     ++found;
                     break;
                 }

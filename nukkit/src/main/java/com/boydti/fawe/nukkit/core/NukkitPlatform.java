@@ -67,7 +67,6 @@ public class NukkitPlatform extends AbstractPlatform implements MultiUserPlatfor
 
     @Override
     public boolean isValidMobType(String type) {
-        System.out.print("Not implemented: isValidMobType");
         return true;
     }
 

@@ -25,17 +25,25 @@ import com.sk89q.worldedit.LocalSession;
 import com.sk89q.worldedit.Vector;
 import com.sk89q.worldedit.WorldEdit;
 import com.sk89q.worldedit.blocks.BlockData;
+import com.sk89q.worldedit.command.BiomeCommands;
 import com.sk89q.worldedit.command.BrushCommands;
+import com.sk89q.worldedit.command.ChunkCommands;
 import com.sk89q.worldedit.command.ClipboardCommands;
 import com.sk89q.worldedit.command.FlattenedClipboardTransform;
 import com.sk89q.worldedit.command.GeneralCommands;
+import com.sk89q.worldedit.command.GenerationCommands;
 import com.sk89q.worldedit.command.HistoryCommands;
 import com.sk89q.worldedit.command.NavigationCommands;
 import com.sk89q.worldedit.command.RegionCommands;
 import com.sk89q.worldedit.command.SchematicCommands;
 import com.sk89q.worldedit.command.ScriptingCommands;
+import com.sk89q.worldedit.command.SnapshotCommands;
+import com.sk89q.worldedit.command.SnapshotUtilCommands;
+import com.sk89q.worldedit.command.SuperPickaxeCommands;
 import com.sk89q.worldedit.command.ToolCommands;
 import com.sk89q.worldedit.command.ToolUtilCommands;
+import com.sk89q.worldedit.command.UtilityCommands;
+import com.sk89q.worldedit.command.WorldEditCommands;
 import com.sk89q.worldedit.command.composition.SelectionCommand;
 import com.sk89q.worldedit.command.tool.AreaPickaxe;
 import com.sk89q.worldedit.command.tool.BrushTool;
@@ -346,6 +354,14 @@ public class Fawe {
             SessionManager.inject(); // Faster custom session saving + Memory improvements
             Request.inject(); // Custom pattern extent
             // Commands
+            BiomeCommands.inject(); // Translations + Optimizations
+            ChunkCommands.inject(); // Translations + Optimizations
+            GenerationCommands.inject(); // Translations + Optimizations
+            SnapshotCommands.inject(); // Translations + Optimizations
+            SnapshotUtilCommands.inject(); // Translations + Optimizations
+            SuperPickaxeCommands.inject(); // Translations + Optimizations
+            UtilityCommands.inject(); // Translations + Optimizations
+            WorldEditCommands.inject(); // Translations + Optimizations
             BrushCommands.inject(); // Translations + heightmap
             ToolCommands.inject(); // Translations + inspect
             ClipboardCommands.inject(); // Translations + lazycopy + paste optimizations

@@ -95,7 +95,7 @@ public class BrushCommands {
             max = 1
     )
     @CommandPermissions("worldedit.brush.blendball")
-    public void blendBallBrush(Player player, LocalSession session, EditSession editSession, @Optional("5") double radius) throws WorldEditException {
+    public void blendBallBrush(Player player, LocalSession session, @Optional("5") double radius) throws WorldEditException {
         worldEdit.checkMaxBrushRadius(radius);
         BrushTool tool = session.getBrushTool(player.getItemInHand());
         tool.setSize(radius);
@@ -112,7 +112,7 @@ public class BrushCommands {
             max = 1
     )
     @CommandPermissions("worldedit.brush.erode")
-    public void erodeBrush(Player player, LocalSession session, EditSession editSession, @Optional("5") double radius) throws WorldEditException {
+    public void erodeBrush(Player player, LocalSession session, @Optional("5") double radius) throws WorldEditException {
         worldEdit.checkMaxBrushRadius(radius);
         DoubleActionBrushTool tool = session.getDoubleActionBrushTool(player.getItemInHand());
         tool.setSize(radius);
@@ -154,7 +154,7 @@ public class BrushCommands {
             max = 2
     )
     @CommandPermissions("worldedit.brush.line")
-    public void lineBrush(Player player, LocalSession session, EditSession editSession, Pattern fill, @Optional("0") double radius, @Switch('h') boolean shell, @Switch('s') boolean select, @Switch('f') boolean flat) throws WorldEditException {
+    public void lineBrush(Player player, LocalSession session, Pattern fill, @Optional("0") double radius, @Switch('h') boolean shell, @Switch('s') boolean select, @Switch('f') boolean flat) throws WorldEditException {
         worldEdit.checkMaxBrushRadius(radius);
         DoubleActionBrushTool tool = session.getDoubleActionBrushTool(player.getItemInHand());
         tool.setFill(fill);
@@ -172,7 +172,7 @@ public class BrushCommands {
             max = 2
     )
     @CommandPermissions("worldedit.brush.spline")
-    public void splineBrush(Player player, LocalSession session, EditSession editSession, Pattern fill, @Optional("25") double radius) throws WorldEditException {
+    public void splineBrush(Player player, LocalSession session, Pattern fill, @Optional("25") double radius) throws WorldEditException {
         worldEdit.checkMaxBrushRadius(radius);
         DoubleActionBrushTool tool = session.getDoubleActionBrushTool(player.getItemInHand());
         tool.setFill(fill);
@@ -193,7 +193,7 @@ public class BrushCommands {
             max = 2
     )
     @CommandPermissions("worldedit.brush.sphere")
-    public void sphereBrush(Player player, LocalSession session, EditSession editSession, Pattern fill, @Optional("2") double radius, @Switch('h') boolean hollow) throws WorldEditException {
+    public void sphereBrush(Player player, LocalSession session, Pattern fill, @Optional("2") double radius, @Switch('h') boolean hollow) throws WorldEditException {
         worldEdit.checkMaxBrushRadius(radius);
 
         BrushTool tool = session.getBrushTool(player.getItemInHand());
@@ -228,7 +228,7 @@ public class BrushCommands {
             max = 3
     )
     @CommandPermissions("worldedit.brush.cylinder")
-    public void cylinderBrush(Player player, LocalSession session, EditSession editSession, Pattern fill,
+    public void cylinderBrush(Player player, LocalSession session, Pattern fill,
                               @Optional("2") double radius, @Optional("1") int height, @Switch('h') boolean hollow) throws WorldEditException {
         worldEdit.checkMaxBrushRadius(radius);
         worldEdit.checkMaxBrushRadius(height);
@@ -257,7 +257,7 @@ public class BrushCommands {
                             "stood relative to the copied area when you copied it."
     )
     @CommandPermissions("worldedit.brush.clipboard")
-    public void clipboardBrush(Player player, LocalSession session, EditSession editSession, @Switch('a') boolean ignoreAir, @Switch('p') boolean usingOrigin) throws WorldEditException {
+    public void clipboardBrush(Player player, LocalSession session, @Switch('a') boolean ignoreAir, @Switch('p') boolean usingOrigin) throws WorldEditException {
         ClipboardHolder holder = session.getClipboard();
         Clipboard clipboard = holder.getClipboard();
 
@@ -334,7 +334,7 @@ public class BrushCommands {
             max = 1
     )
     @CommandPermissions("worldedit.brush.gravity")
-    public void gravityBrush(Player player, LocalSession session, EditSession editSession, @Optional("5") double radius, @Switch('h') boolean fromMaxY) throws WorldEditException {
+    public void gravityBrush(Player player, LocalSession session, @Optional("5") double radius, @Switch('h') boolean fromMaxY) throws WorldEditException {
         worldEdit.checkMaxBrushRadius(radius);
 
         BrushTool tool = session.getBrushTool(player.getItemInHand());
@@ -354,7 +354,7 @@ public class BrushCommands {
             max = 4
     )
     @CommandPermissions("worldedit.brush.height")
-    public void heightBrush(Player player, LocalSession session, EditSession editSession, @Optional("5") double radius, @Optional("") final String filename, @Optional("0") final int rotation, @Optional("1") final double yscale) throws WorldEditException {
+    public void heightBrush(Player player, LocalSession session, @Optional("5") double radius, @Optional("") final String filename, @Optional("0") final int rotation, @Optional("1") final double yscale) throws WorldEditException {
         worldEdit.checkMaxBrushRadius(radius);
         File file = new File(Fawe.imp().getDirectory(), "heightmap" + File.separator + (filename.endsWith(".png") ? filename : filename + ".png"));
         BrushTool tool = session.getBrushTool(player.getItemInHand());
@@ -378,7 +378,7 @@ public class BrushCommands {
             max = 1
     )
     @CommandPermissions("worldedit.brush.copy")
-    public void copy(Player player, LocalSession session, EditSession editSession, @Optional("5") double radius) throws WorldEditException {
+    public void copy(Player player, LocalSession session, @Optional("5") double radius) throws WorldEditException {
         worldEdit.checkMaxBrushRadius(radius);
         DoubleActionBrushTool tool = session.getDoubleActionBrushTool(player.getItemInHand());
         tool.setSize(radius);
@@ -396,7 +396,7 @@ public class BrushCommands {
             max = 99
     )
     @CommandPermissions("worldedit.brush.command")
-    public void command(Player player, LocalSession session, EditSession editSession, @Optional("5") double radius, CommandContext args) throws WorldEditException {
+    public void command(Player player, LocalSession session, @Optional("5") double radius, CommandContext args) throws WorldEditException {
         BrushTool tool = session.getBrushTool(player.getItemInHand());
         String cmd = args.getJoinedStrings(1);
         tool.setBrush(new CommandBrush(player, tool, cmd, radius), "worldedit.brush.copy");
@@ -423,7 +423,7 @@ public class BrushCommands {
             max = 1
     )
     @CommandPermissions("worldedit.brush.butcher")
-    public void butcherBrush(Player player, LocalSession session, EditSession editSession, CommandContext args) throws WorldEditException {
+    public void butcherBrush(Player player, LocalSession session, CommandContext args) throws WorldEditException {
         LocalConfiguration config = worldEdit.getConfiguration();
 
         double radius = args.argsLength() > 0 ? args.getDouble(0) : 5;
