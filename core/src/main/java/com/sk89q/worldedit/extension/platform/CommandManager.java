@@ -29,6 +29,7 @@ import com.boydti.fawe.object.FawePlayer;
 import com.boydti.fawe.object.changeset.FaweStreamChangeSet;
 import com.boydti.fawe.object.exception.FaweException;
 import com.boydti.fawe.util.MainUtil;
+import com.boydti.fawe.util.StringMan;
 import com.boydti.fawe.util.TaskManager;
 import com.boydti.fawe.wrappers.FakePlayer;
 import com.boydti.fawe.wrappers.LocationMaskedPlayerWrapper;
@@ -41,7 +42,25 @@ import com.sk89q.worldedit.EditSession;
 import com.sk89q.worldedit.LocalConfiguration;
 import com.sk89q.worldedit.LocalSession;
 import com.sk89q.worldedit.WorldEdit;
-import com.sk89q.worldedit.command.*;
+import com.sk89q.worldedit.command.BiomeCommands;
+import com.sk89q.worldedit.command.BrushCommands;
+import com.sk89q.worldedit.command.ChunkCommands;
+import com.sk89q.worldedit.command.ClipboardCommands;
+import com.sk89q.worldedit.command.GeneralCommands;
+import com.sk89q.worldedit.command.GenerationCommands;
+import com.sk89q.worldedit.command.HistoryCommands;
+import com.sk89q.worldedit.command.NavigationCommands;
+import com.sk89q.worldedit.command.RegionCommands;
+import com.sk89q.worldedit.command.SchematicCommands;
+import com.sk89q.worldedit.command.ScriptingCommands;
+import com.sk89q.worldedit.command.SelectionCommands;
+import com.sk89q.worldedit.command.SnapshotCommands;
+import com.sk89q.worldedit.command.SnapshotUtilCommands;
+import com.sk89q.worldedit.command.SuperPickaxeCommands;
+import com.sk89q.worldedit.command.ToolCommands;
+import com.sk89q.worldedit.command.ToolUtilCommands;
+import com.sk89q.worldedit.command.UtilityCommands;
+import com.sk89q.worldedit.command.WorldEditCommands;
 import com.sk89q.worldedit.command.argument.ReplaceParser;
 import com.sk89q.worldedit.command.argument.TreeGeneratorParser;
 import com.sk89q.worldedit.command.composition.ApplyCommand;
@@ -60,6 +79,7 @@ import com.sk89q.worldedit.internal.command.UserCommandCompleter;
 import com.sk89q.worldedit.internal.command.WorldEditBinding;
 import com.sk89q.worldedit.internal.command.WorldEditExceptionConverter;
 import com.sk89q.worldedit.session.request.Request;
+import com.sk89q.worldedit.util.auth.AuthorizationException;
 import com.sk89q.worldedit.util.command.Dispatcher;
 import com.sk89q.worldedit.util.command.InvalidUsageException;
 import com.sk89q.worldedit.util.command.composition.ProvidedValue;
@@ -74,6 +94,8 @@ import com.sk89q.worldedit.util.logging.DynamicStreamHandler;
 import com.sk89q.worldedit.util.logging.LogFormat;
 import java.io.File;
 import java.io.IOException;
+import java.util.LinkedHashSet;
+import java.util.Set;
 import java.util.logging.FileHandler;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -251,7 +273,30 @@ public final class CommandManager {
         if (fp == null) {
             throw new IllegalArgumentException("FAWE doesn't support: " + actor);
         }
-        locals.put(Actor.class, actor instanceof Player ? (actor = new LocationMaskedPlayerWrapper((Player) actor, ((Player) actor).getLocation(), true)) : actor);
+        final Set<String> failedPermissions = new LinkedHashSet<>();
+        if (actor instanceof Player) {
+            actor = new LocationMaskedPlayerWrapper((Player) actor, ((Player) actor).getLocation(), true) {
+                @Override
+                public boolean hasPermission(String permission) {
+                    if (!super.hasPermission(permission)) {
+                        failedPermissions.add(permission);
+                        return false;
+                    }
+                    return true;
+                }
+
+                @Override
+                public void checkPermission(String permission) throws AuthorizationException {
+                    try {
+                        super.checkPermission(permission);
+                    } catch (AuthorizationException e) {
+                        failedPermissions.add(permission);
+                        throw e;
+                    }
+                }
+            };
+        }
+        locals.put(Actor.class, actor);
         final Actor finalActor = actor;
         if (!fp.runAction(new Runnable() {
             @Override
@@ -277,7 +322,7 @@ public final class CommandManager {
                         throw t;
                     }
                 } catch (CommandPermissionsException e) {
-                    BBC.NO_PERM.send(finalActor, "worldedit.*");
+                    BBC.NO_PERM.send(finalActor, StringMan.join(failedPermissions, " "));
                 } catch (InvalidUsageException e) {
                     if (e.isFullHelpSuggested()) {
                         finalActor.printRaw(ColorCodeBuilder.asColorCodes(new CommandUsageBox(e.getCommand(), e.getCommandUsed("/", ""), locals)));
