@@ -20,6 +20,7 @@ import com.boydti.fawe.object.FawePlayer;
 import com.boydti.fawe.util.MathMan;
 import com.sk89q.jnbt.CompoundTag;
 import com.sk89q.worldedit.world.World;
+import com.sk89q.worldedit.world.biome.BaseBiome;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -248,7 +249,7 @@ public class NukkitQueue extends NMSMappedFaweQueue<Level, BaseFullChunk, BaseFu
     }
 
     @Override
-    public boolean regenerateChunk(Level level, int x, int z) {
+    public boolean regenerateChunk(Level level, int x, int z, BaseBiome biome, Long seed) {
         level.regenerateChunk(x, z);
         return true;
     }
