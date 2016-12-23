@@ -23,6 +23,7 @@ import com.boydti.fawe.FaweAPI;
 import com.boydti.fawe.config.BBC;
 import com.boydti.fawe.object.RunnableVal2;
 import com.boydti.fawe.object.clipboard.ReadOnlyClipboard;
+import com.boydti.fawe.object.clipboard.WorldCutClipboard;
 import com.boydti.fawe.object.io.FastByteArrayOutputStream;
 import com.boydti.fawe.util.ImgurUtility;
 import com.boydti.fawe.util.MaskTraverser;
@@ -155,6 +156,33 @@ public class ClipboardCommands {
         session.setClipboard(new ClipboardHolder(clipboard, editSession.getWorldData()));
 
         BBC.COMMAND_COPY.send(player, region.getArea());
+    }
+
+    @Command(
+            aliases = { "/lazycut" },
+            flags = "em",
+            desc = "Lazily cut the selection to the clipboard",
+            help = "Lazily cut the selection to the clipboard\n" +
+                    "Flags:\n" +
+                    "  -e controls whether entities are cut\n" +
+                    "  -m sets a source mask so that excluded blocks become air\n" +
+                    "WARNING: Pasting entities cannot yet be undone!",
+            max = 0
+    )
+    @CommandPermissions("worldedit.clipboard.lazycopy")
+    public void lazyCut(Player player, LocalSession session, EditSession editSession,
+                         @Selection final Region region, @Switch('e') boolean copyEntities,
+                         @Switch('m') Mask mask) throws WorldEditException {
+
+        final Vector origin = region.getMinimumPoint();
+        final int mx = origin.getBlockX();
+        final int my = origin.getBlockY();
+        final int mz = origin.getBlockZ();
+        ReadOnlyClipboard lazyClipboard = new WorldCutClipboard(editSession, region);
+        BlockArrayClipboard clipboard = new BlockArrayClipboard(region, lazyClipboard);
+        clipboard.setOrigin(session.getPlacementPosition(player));
+        session.setClipboard(new ClipboardHolder(clipboard, editSession.getWorldData()));
+        BBC.COMMAND_CUT.send(player, region.getArea());
     }
 
     @Command(
