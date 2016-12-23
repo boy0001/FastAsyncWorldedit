@@ -118,6 +118,7 @@ public class ClipboardCommands {
         clipboard.setOrigin(session.getPlacementPosition(player));
         session.setClipboard(new ClipboardHolder(clipboard, editSession.getWorldData()));
         BBC.COMMAND_COPY.send(player, region.getArea());
+        BBC.TIP_PASTE.or(BBC.TIP_LAZYCOPY, BBC.TIP_DOWNLOAD, BBC.TIP_ROTATE, BBC.TIP_COPYPASTE, BBC.TIP_REPLACE_MARKER, BBC.TIP_COPY_PATTERN).send(player);
     }
 
 
@@ -154,8 +155,8 @@ public class ClipboardCommands {
         }
         Operations.completeLegacy(copy);
         session.setClipboard(new ClipboardHolder(clipboard, editSession.getWorldData()));
-
         BBC.COMMAND_COPY.send(player, region.getArea());
+        BBC.TIP_PASTE.or(BBC.TIP_DOWNLOAD, BBC.TIP_ROTATE, BBC.TIP_COPYPASTE, BBC.TIP_REPLACE_MARKER, BBC.TIP_COPY_PATTERN).send(player);
     }
 
     @Command(
@@ -182,7 +183,7 @@ public class ClipboardCommands {
         BlockArrayClipboard clipboard = new BlockArrayClipboard(region, lazyClipboard);
         clipboard.setOrigin(session.getPlacementPosition(player));
         session.setClipboard(new ClipboardHolder(clipboard, editSession.getWorldData()));
-        BBC.COMMAND_CUT.send(player, region.getArea());
+        BBC.COMMAND_CUT_SLOW.send(player, region.getArea());
     }
 
     @Command(
@@ -220,7 +221,7 @@ public class ClipboardCommands {
         Operations.completeLegacy(copy);
         session.setClipboard(new ClipboardHolder(clipboard, editSession.getWorldData()));
 
-        BBC.COMMAND_CUT.send(player, region.getArea());
+        BBC.COMMAND_CUT_LAZY.send(player, region.getArea());
     }
 
     @Command(aliases = { "download" }, desc = "Download your clipboard")
@@ -318,16 +319,17 @@ public class ClipboardCommands {
             selector.learnChanges();
             selector.explainRegionAdjust(player, session);
         }
-        BBC.COMMAND_PASTE.send(player, to);
+        BBC.COMMAND_PASTE.send(player);
+        BBC.TIP_COPYPASTE.or(BBC.TIP_SOURCE_MASK, BBC.TIP_REPLACE_MARKER).send(player, to);
     }
 
     @Command(
             aliases = { "/place" },
             usage = "",
             flags = "sao",
-            desc = "Place the clipboard's contents",
+            desc = "Place the clipboard's contents without applying transformations (e.g. rotate)",
             help =
-                    "Places the clipboard's contents.\n" +
+                    "Places the clipboard's contents without applying transformations (e.g. rotate).\n" +
                             "Flags:\n" +
                             "  -a skips air blocks\n" +
                             "  -o pastes at the original position\n" +
@@ -431,6 +433,7 @@ public class ClipboardCommands {
         transform = transform.rotateZ(-(zRotate != null ? zRotate : 0));
         holder.setTransform(holder.getTransform().combine(transform));
         BBC.COMMAND_ROTATE.send(player);
+        BBC.TIP_FLIP.or(BBC.TIP_DEFORM, BBC.TIP_TRANSFORM).send(player);
     }
 
     @Command(

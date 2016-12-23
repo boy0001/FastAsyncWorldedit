@@ -142,67 +142,91 @@ public class BundledBlockData {
         if (!overwrite && (idMap.containsKey(entry.id) || legacyMap[entry.legacyId] != null)) {
             return false;
         }
-        if (entry.states != null) {
-            FaweState half = entry.states.get("half");
-            if (half != null && half.values != null) {
-                FaweStateValue top = half.values.get("top");
-                FaweStateValue bot = half.values.get("bottom");
-                if (top != null && top.getDirection() == null) {
-                    top.setDirection(new Vector(0, 1, 0));
-                }
-                if (bot != null && bot.getDirection() == null) {
-                    bot.setDirection(new Vector(0, -1, 0));
-                }
-            } else {
-                FaweState dir = entry.states.get("rotation");
-                if (dir != null && dir.values != null) {
-                    Vector[] dirs = new Vector[]{new Vector(0, 0, -1),
-                            new Vector(0.5, 0, -1),
-                            new Vector(1, 0, -1),
-                            new Vector(1, 0, -0.5),
-                            new Vector(1, 0, 0),
-                            new Vector(1, 0, 0.5),
-                            new Vector(1, 0, 1),
-                            new Vector(0.5, 0, 1),
-                            new Vector(0, 0, 1),
-                            new Vector(-0.5, 0, 1),
-                            new Vector(-1, 0, 1),
-                            new Vector(-1, 0, 0.5),
-                            new Vector(-1, 0, 0),
-                            new Vector(-1, 0, -0.5),
-                            new Vector(-1, 0, -1),
-                            new Vector(-0.5, 0, -1)};
-                    int len = dir.values.size();
-                    int increment = 16 / len;
-                    int index = 0;
-                    for (Map.Entry<String, FaweStateValue> valuesEntry : dir.values.entrySet()) {
-                        valuesEntry.getValue().setDirection(dirs[index]);
-                        index += increment;
-                    }
-                } else if (entry.legacyId == 69) {
-                    dir = entry.states.get("facing");
-                    Vector[] dirs = new Vector[]{
-                            new Vector(0, -1, 0),
-                            new Vector(1, 0, 0),
-                            new Vector(-1, 0, 0),
-                            new Vector(0, 0, 1),
-                            new Vector(0, 0, -1),
-                            new Vector(0, 1, 0),
-                            new Vector(0, 1, 0),
-                            new Vector(0, -1, 0)};
-                    int len = dir.values.size();
-                    int index = 0;
-                    for (Map.Entry<String, FaweStateValue> valuesEntry : dir.values.entrySet()) {
-                        valuesEntry.getValue().setDirection(dirs[index]);
-                        index ++;
-                    }
-                }
-            }
-        }
-
         idMap.put(entry.id, entry);
         localizedMap.put(entry.localizedName.toLowerCase().replace(" ", "_"), entry);
         legacyMap[entry.legacyId] = entry;
+        if (entry.states == null) {
+            return true;
+        }
+        FaweState half = entry.states.get("half");
+        if (half != null && half.values != null) {
+            FaweStateValue top = half.values.get("top");
+            FaweStateValue bot = half.values.get("bottom");
+            if (top != null && top.getDirection() == null) {
+                top.setDirection(new Vector(0, 1, 0));
+            }
+            if (bot != null && bot.getDirection() == null) {
+                bot.setDirection(new Vector(0, -1, 0));
+            }
+            return true;
+        }
+        FaweState dir = entry.states.get("rotation");
+        if (dir != null && dir.values != null) {
+            Vector[] dirs = new Vector[]{new Vector(0, 0, -1),
+                    new Vector(0.5, 0, -1),
+                    new Vector(1, 0, -1),
+                    new Vector(1, 0, -0.5),
+                    new Vector(1, 0, 0),
+                    new Vector(1, 0, 0.5),
+                    new Vector(1, 0, 1),
+                    new Vector(0.5, 0, 1),
+                    new Vector(0, 0, 1),
+                    new Vector(-0.5, 0, 1),
+                    new Vector(-1, 0, 1),
+                    new Vector(-1, 0, 0.5),
+                    new Vector(-1, 0, 0),
+                    new Vector(-1, 0, -0.5),
+                    new Vector(-1, 0, -1),
+                    new Vector(-0.5, 0, -1)};
+            int len = dir.values.size();
+            int increment = 16 / len;
+            int index = 0;
+            for (Map.Entry<String, FaweStateValue> valuesEntry : dir.values.entrySet()) {
+                valuesEntry.getValue().setDirection(dirs[index]);
+                index += increment;
+            }
+            return true;
+        }
+        FaweState axis = entry.states.get("axis");
+        if (axis != null && axis.values != null) {
+            FaweStateValue x = axis.values.get("x");
+            FaweStateValue y = axis.values.get("y");
+            FaweStateValue z = axis.values.get("z");
+            if (x != null) {
+                x.setDirection(new Vector(1, 0, 0));
+                axis.values.put("x2", new FaweStateValue(x).setDirection(new Vector(-1, 0, 0)));
+            }
+            if (y != null) {
+                y.setDirection(new Vector(0, 1, 0));
+                axis.values.put("y2", new FaweStateValue(y).setDirection(new Vector(0, -1, 0)));
+            }
+            if (z != null) {
+                z.setDirection(new Vector(0, 0, 1));
+                axis.values.put("z2", new FaweStateValue(z).setDirection(new Vector(0, 0, -1)));
+            }
+            return true;
+        }
+        if (entry.legacyId == 69) {
+            dir = entry.states.get("facing");
+            Vector[] dirs = new Vector[]{
+                    new Vector(0, -1, 0),
+                    new Vector(1, 0, 0),
+                    new Vector(-1, 0, 0),
+                    new Vector(0, 0, 1),
+                    new Vector(0, 0, -1),
+                    new Vector(0, 1, 0),
+                    new Vector(0, 1, 0),
+                    new Vector(0, -1, 0)};
+            int len = dir.values.size();
+            int index = 0;
+            for (Map.Entry<String, FaweStateValue> valuesEntry : dir.values.entrySet()) {
+                valuesEntry.getValue().setDirection(dirs[index]);
+                index ++;
+            }
+            return true;
+        }
+
+
         return true;
     }
 
@@ -328,6 +352,14 @@ public class BundledBlockData {
         public Byte data;
         public Vector direction;
 
+        public FaweStateValue() {}
+
+        public FaweStateValue(FaweStateValue other) {
+            this.state = other.state;
+            this.data = other.data;
+            this.direction = other.direction;
+        }
+
         public void setState(FaweState state) {
             this.state = state;
         }
@@ -347,8 +379,9 @@ public class BundledBlockData {
             }
         }
 
-        public void setDirection(Vector direction) {
+        public FaweStateValue setDirection(Vector direction) {
             this.direction = direction;
+            return this;
         }
 
         @Override

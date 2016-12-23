@@ -24,11 +24,8 @@ import com.boydti.fawe.command.AnvilCommands;
 import com.boydti.fawe.command.MaskBinding;
 import com.boydti.fawe.command.PatternBinding;
 import com.boydti.fawe.config.BBC;
-import com.boydti.fawe.config.Settings;
 import com.boydti.fawe.object.FawePlayer;
-import com.boydti.fawe.object.changeset.FaweStreamChangeSet;
 import com.boydti.fawe.object.exception.FaweException;
-import com.boydti.fawe.util.MainUtil;
 import com.boydti.fawe.util.StringMan;
 import com.boydti.fawe.util.TaskManager;
 import com.boydti.fawe.wrappers.FakePlayer;
@@ -72,7 +69,6 @@ import com.sk89q.worldedit.event.platform.CommandEvent;
 import com.sk89q.worldedit.event.platform.CommandSuggestionEvent;
 import com.sk89q.worldedit.function.factory.Deform;
 import com.sk89q.worldedit.function.factory.Deform.Mode;
-import com.sk89q.worldedit.history.changeset.ChangeSet;
 import com.sk89q.worldedit.internal.command.ActorAuthorizer;
 import com.sk89q.worldedit.internal.command.CommandLoggingHandler;
 import com.sk89q.worldedit.internal.command.UserCommandCompleter;
@@ -360,19 +356,6 @@ public final class CommandManager {
                         editSession.flushQueue();
                         worldEdit.flushBlockBag(finalActor, editSession);
                         session.remember(editSession);
-                        hasSession = editSession.size() > 0;
-                    }
-                    if (editSession != null) {
-                        final long time = System.currentTimeMillis() - start;
-                        if (time > 5 && hasSession) {
-                            BBC.ACTION_COMPLETE.send(finalActor, (time / 1000d));
-                            if (!Settings.HISTORY.COMBINE_STAGES) { // If stages are combined, we don't know the size yet (async flush)
-                                ChangeSet fcs = editSession.getChangeSet();
-                                if (fcs != null && fcs instanceof FaweStreamChangeSet) {
-                                    MainUtil.sendCompressedMessage((FaweStreamChangeSet) fcs, fp);
-                                }
-                            }
-                        }
                     }
                 }
             }

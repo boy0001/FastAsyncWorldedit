@@ -210,10 +210,13 @@ public class BrushCommands {
             switch (block.getId()) {
                 case BlockID.SAND:
                 case BlockID.GRAVEL:
+                    player.print(BBC.getPrefix() + BBC.BRUSH_SPHERE.f(radius));
                     BBC.BRUSH_TRY_OTHER.send(player);
+                    return;
             }
         }
         player.print(BBC.getPrefix() + BBC.BRUSH_SPHERE.f(radius));
+        BBC.TIP_BRUSH_COMMAND.or(BBC.TIP_BRUSH_RELATIVE, BBC.TIP_BRUSH_TRANSFORM, BBC.TIP_BRUSH_MASK_SOURCE, BBC.TIP_BRUSH_MASK, BBC.TIP_BRUSH_COPY, BBC.TIP_BRUSH_HEIGHT, BBC.TIP_BRUSH_SPLINE).send(player);
     }
 
     @Command(

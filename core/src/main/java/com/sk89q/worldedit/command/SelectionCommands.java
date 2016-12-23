@@ -278,6 +278,7 @@ public class SelectionCommands {
 
         player.giveItem(we.getConfiguration().wandItem, 1);
         BBC.SELECTION_WAND.send(player);
+        BBC.TIP_SEL_LIST.or(BBC.TIP_SELECT_CONNECTED, BBC.TIP_SET_POS1, BBC.TIP_FARWAND).send(player);
     }
 
     @Command(

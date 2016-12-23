@@ -288,6 +288,7 @@ public class RegionCommands {
         }
         int affected = editSession.replaceBlocks(region, from, Patterns.wrap(to));
         BBC.VISITOR_BLOCK.send(player, affected);
+        BBC.TIP_REPLACE_ID.or(BBC.TIP_REPLACE_LIGHT, BBC.TIP_REPLACE_MARKER, BBC.TIP_TAB_COMPLETE).send(player);
     }
 
     @Command(
@@ -373,7 +374,10 @@ public class RegionCommands {
             }
         }
         int affected = editSession.setBlocks(selection, Patterns.wrap(to));
-        BBC.OPERATION.send(player, affected);
+        if (affected != 0) {
+            BBC.OPERATION.send(player, affected);
+            BBC.TIP_FAST.or(BBC.TIP_CANCEL, BBC.TIP_MASK, BBC.TIP_MASK_ANGLE, BBC.TIP_SET_LINEAR, BBC.TIP_SURFACE_SPREAD, BBC.TIP_SET_HAND).send(player);
+        }
     }
 
     @Command(
@@ -583,23 +587,25 @@ public class RegionCommands {
     public void regenerateChunk(Player player, LocalSession session, EditSession editSession, @Selection Region region, CommandContext args) throws WorldEditException {
         Mask mask = session.getMask();
         Mask sourceMask = session.getSourceMask();
-        try {
-            session.setMask((Mask) null);
-            session.setSourceMask((Mask) null);
-            BaseBiome biome = null;
-            if (args.argsLength() >= 1) {
-                BiomeRegistry biomeRegistry = player.getWorld().getWorldData().getBiomeRegistry();
-                List<BaseBiome> knownBiomes = biomeRegistry.getBiomes();
-                biome = Biomes.findBiomeByName(knownBiomes, args.getString(0), biomeRegistry);
-            }
-            Long seed = args.argsLength() != 2 || !MathMan.isInteger(args.getString(1)) ? null : Long.parseLong(args.getString(1));
-            editSession.regenerate(region, biome, seed);
-        } finally {
-            session.setMask(mask);
-            session.setSourceMask(mask);
-
+        session.setMask((Mask) null);
+        session.setSourceMask((Mask) null);
+        BaseBiome biome = null;
+        if (args.argsLength() >= 1) {
+            BiomeRegistry biomeRegistry = player.getWorld().getWorldData().getBiomeRegistry();
+            List<BaseBiome> knownBiomes = biomeRegistry.getBiomes();
+            biome = Biomes.findBiomeByName(knownBiomes, args.getString(0), biomeRegistry);
         }
-        BBC.COMMAND_REGEN.send(player);
+        Long seed = args.argsLength() != 2 || !MathMan.isInteger(args.getString(1)) ? null : Long.parseLong(args.getString(1));
+        editSession.regenerate(region, biome, seed);
+        session.setMask(mask);
+        session.setSourceMask(mask);
+        if (biome == null) {
+            BBC.COMMAND_REGEN_0.send(player);
+        } else if (seed == null) {
+            BBC.COMMAND_REGEN_1.send(player);
+        } else {
+            BBC.COMMAND_REGEN_2.send(player);
+        }
     }
 
     @Command(
