@@ -169,7 +169,7 @@ public class ClipboardCommands {
                     "WARNING: Pasting entities cannot yet be undone!",
             max = 0
     )
-    @CommandPermissions("worldedit.clipboard.lazycopy")
+    @CommandPermissions("worldedit.clipboard.lazycut")
     public void lazyCut(Player player, LocalSession session, EditSession editSession,
                          @Selection final Region region, @Switch('e') boolean copyEntities,
                          @Switch('m') Mask mask) throws WorldEditException {
