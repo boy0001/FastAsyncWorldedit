@@ -338,12 +338,16 @@ public class BukkitChunk_1_11 extends CharFaweChunk<Chunk, com.boydti.fawe.bukki
                 if (count == 0) {
                     continue;
                 }
+                int air = this.getAir(j);
                 final char[] array = this.getIdArray(j);
                 if (array == null) {
                     continue;
                 }
                 ChunkSection section = sections[j];
                 if (section == null) {
+                    if (count == air) {
+                        continue;
+                    }
                     if (this.sectionPalettes != null && this.sectionPalettes[j] != null) {
                         section = sections[j] = getParent().newChunkSection(j << 4, flag, null);
                         getParent().setPalette(section, this.sectionPalettes[j]);
@@ -354,6 +358,10 @@ public class BukkitChunk_1_11 extends CharFaweChunk<Chunk, com.boydti.fawe.bukki
                     }
                     continue;
                 } else if (count >= 4096) {
+                    if (air >= 4096) {
+                        sections[j] = null;
+                        continue;
+                    }
                     if (this.sectionPalettes != null && this.sectionPalettes[j] != null) {
                         getParent().setPalette(section, this.sectionPalettes[j]);
                         getParent().setCount(0, count - this.getAir(j), section);
