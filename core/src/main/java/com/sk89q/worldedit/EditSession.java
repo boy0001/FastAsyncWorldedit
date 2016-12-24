@@ -2523,8 +2523,7 @@ public class EditSession extends AbstractWorld implements HasFaweQueue, Lighting
      * @return the results
      */
     public List<Countable<Integer>> getBlockDistribution(final Region region) {
-        final List<Countable<Integer>> distribution = new ArrayList<Countable<Integer>>();
-        final Map<Integer, Countable<Integer>> map = new HashMap<Integer, Countable<Integer>>();
+        int[] counter = new int[256];
 
         if (region instanceof CuboidRegion) {
             // Doing this for speed
@@ -2542,28 +2541,23 @@ public class EditSession extends AbstractWorld implements HasFaweQueue, Lighting
                 for (int y = minY; y <= maxY; ++y) {
                     for (int z = minZ; z <= maxZ; ++z) {
                         int id = FaweCache.getId(queue.getCombinedId4Data(x, y, z));
-                        if (map.containsKey(id)) {
-                            map.get(id).increment();
-                        } else {
-                            final Countable<Integer> c = new Countable<Integer>(id, 1);
-                            map.put(id, c);
-                            distribution.add(c);
-                        }
+                        counter[id]++;
                     }
                 }
             }
         } else {
             for (final Vector pt : region) {
                 final int id = this.getBlockType(pt);
-                if (map.containsKey(id)) {
-                    map.get(id).increment();
-                } else {
-                    final Countable<Integer> c = new Countable<Integer>(id, 1);
-                    map.put(id, c);
-                }
+                counter[id]++;
             }
         }
-
+        List<Countable<Integer>> distribution = new ArrayList<>();
+        for (int i = 0; i < counter.length; i++) {
+            int count = counter[i];
+            if (count != 0) {
+                distribution.add(new Countable<Integer>(i, count));
+            }
+        }
         Collections.sort(distribution);
         // Collections.reverse(distribution);
 
@@ -2577,8 +2571,7 @@ public class EditSession extends AbstractWorld implements HasFaweQueue, Lighting
      * @return the results
      */
     public List<Countable<BaseBlock>> getBlockDistributionWithData(final Region region) {
-        final List<Countable<BaseBlock>> distribution = new ArrayList<Countable<BaseBlock>>();
-        final Map<BaseBlock, Countable<BaseBlock>> map = new HashMap<BaseBlock, Countable<BaseBlock>>();
+        int[] counter = new int[Character.MAX_VALUE + 1];
 
         if (region instanceof CuboidRegion) {
             // Doing this for speed
@@ -2596,29 +2589,23 @@ public class EditSession extends AbstractWorld implements HasFaweQueue, Lighting
                 for (int y = minY; y <= maxY; ++y) {
                     for (int z = minZ; z <= maxZ; ++z) {
                         final BaseBlock blk = getLazyBlock(x, y, z);
-                        if (map.containsKey(blk)) {
-                            map.get(blk).increment();
-                        } else {
-                            final Countable<BaseBlock> c = new Countable<BaseBlock>(blk, 1);
-                            map.put(blk, c);
-                            distribution.add(c);
-                        }
+                        counter[FaweCache.getCombined(blk)]++;
                     }
                 }
             }
         } else {
             for (final Vector pt : region) {
                 final BaseBlock blk = FaweCache.getBlock(this.getBlockType(pt), this.getBlockData(pt));
-
-                if (map.containsKey(blk)) {
-                    map.get(blk).increment();
-                } else {
-                    final Countable<BaseBlock> c = new Countable<BaseBlock>(blk, 1);
-                    map.put(blk, c);
-                }
+                counter[FaweCache.getCombined(blk)]++;
             }
         }
-
+        List<Countable<BaseBlock>> distribution = new ArrayList<>();
+        for (int i = 0; i < counter.length; i++) {
+            int count = counter[i];
+            if (count != 0) {
+                distribution.add(new Countable<BaseBlock>(FaweCache.CACHE_BLOCK[i], count));
+            }
+        }
         Collections.sort(distribution);
         // Collections.reverse(distribution);
 
