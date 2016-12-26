@@ -27,6 +27,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 import net.minecraft.block.Block;
+import net.minecraft.block.BlockFalling;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityList;
@@ -47,13 +48,17 @@ import net.minecraft.util.math.ChunkPos;
 import net.minecraft.world.EnumSkyBlock;
 import net.minecraft.world.World;
 import net.minecraft.world.WorldServer;
+import net.minecraft.world.biome.BiomeCache;
+import net.minecraft.world.biome.BiomeProvider;
 import net.minecraft.world.chunk.BlockStateContainer;
 import net.minecraft.world.chunk.Chunk;
 import net.minecraft.world.chunk.IChunkGenerator;
 import net.minecraft.world.chunk.IChunkProvider;
 import net.minecraft.world.chunk.NibbleArray;
 import net.minecraft.world.chunk.storage.ExtendedBlockStorage;
+import net.minecraft.world.gen.ChunkProviderOverworld;
 import net.minecraft.world.gen.ChunkProviderServer;
+import net.minecraft.world.storage.WorldInfo;
 import org.spongepowered.api.Sponge;
 
 public class SpongeQueue_1_11 extends NMSMappedFaweQueue<World, net.minecraft.world.chunk.Chunk, ExtendedBlockStorage[], ExtendedBlockStorage> {
@@ -65,6 +70,15 @@ public class SpongeQueue_1_11 extends NMSMappedFaweQueue<World, net.minecraft.wo
 
     protected final static Field fieldId2ChunkMap;
     protected final static Field fieldChunkGenerator;
+
+    protected static Field fieldBiomes;
+    protected static Field fieldSeed;
+    protected static Field fieldBiomeCache;
+    protected static Field fieldBiomes2;
+    protected static Field fieldGenLayer1;
+    protected static Field fieldGenLayer2;
+
+    private static MutableGenLayer genLayer;
 
     static {
         try {
@@ -78,6 +92,19 @@ public class SpongeQueue_1_11 extends NMSMappedFaweQueue<World, net.minecraft.wo
             fieldChunkGenerator = ChunkProviderServer.class.getDeclaredField("field_186029_c");
             fieldId2ChunkMap.setAccessible(true);
             fieldChunkGenerator.setAccessible(true);
+
+            fieldBiomes = ChunkProviderOverworld.class.getDeclaredField("field_185981_C"); // biomesForGeneration
+            fieldBiomes.setAccessible(true);
+            fieldSeed = WorldInfo.class.getDeclaredField("field_76100_a"); // randomSeed
+            fieldSeed.setAccessible(true);
+            fieldBiomeCache = BiomeProvider.class.getDeclaredField("field_76942_f"); // biomeCache
+            fieldBiomeCache.setAccessible(true);
+            fieldBiomes2 = BiomeProvider.class.getDeclaredField("field_76943_g"); // biomesToSpawnIn
+            fieldBiomes2.setAccessible(true);
+            fieldGenLayer1 = BiomeProvider.class.getDeclaredField("field_76944_d"); // genBiomes
+            fieldGenLayer2 = BiomeProvider.class.getDeclaredField("field_76945_e"); // biomeIndexLayer
+            fieldGenLayer1.setAccessible(true);
+            fieldGenLayer2.setAccessible(true);
 
             fieldTickingBlockCount = ExtendedBlockStorage.class.getDeclaredField("field_76683_c");
             fieldNonEmptyBlockCount = ExtendedBlockStorage.class.getDeclaredField("field_76682_b");
@@ -177,14 +204,12 @@ public class SpongeQueue_1_11 extends NMSMappedFaweQueue<World, net.minecraft.wo
         return getWorld().getChunkProvider().getLoadedChunk(x, z) != null;
     }
 
-    @Override
-    public boolean regenerateChunk(net.minecraft.world.World world, int x, int z, BaseBiome biome, Long seed) {
+    public boolean regenerateChunk(net.minecraft.world.World world, int x, int z) {
         IChunkProvider provider = world.getChunkProvider();
         if (!(provider instanceof ChunkProviderServer)) {
             return false;
         }
-
-
+        BlockFalling.fallInstantly = true;
         try {
             ChunkProviderServer chunkServer = (ChunkProviderServer) provider;
             IChunkGenerator gen = (IChunkGenerator) fieldChunkGenerator.get(chunkServer);
@@ -232,7 +257,57 @@ public class SpongeQueue_1_11 extends NMSMappedFaweQueue<World, net.minecraft.wo
         } catch (Throwable t) {
             MainUtil.handleError(t);
             return false;
+        } finally {
+            BlockFalling.fallInstantly = false;
         }
+    }
+
+    @Override
+    public boolean regenerateChunk(net.minecraft.world.World world, int x, int z, BaseBiome biome, Long seed) {
+        if (biome != null) {
+            try {
+                if (seed == null) {
+                    seed = world.getSeed();
+                }
+                nmsWorld.getWorldInfo().getSeed();
+                boolean result;
+                ChunkProviderOverworld generator = new ChunkProviderOverworld(nmsWorld, seed, false, "");
+                net.minecraft.world.biome.Biome base = net.minecraft.world.biome.Biome.getBiome(biome.getId());
+                net.minecraft.world.biome.Biome[] existingBiomes = new net.minecraft.world.biome.Biome[256];
+                Arrays.fill(existingBiomes, base);
+                fieldBiomes.set(generator, existingBiomes);
+                boolean cold = base.getTemperature() <= 1;
+                IChunkGenerator existingGenerator = (IChunkGenerator) fieldChunkGenerator.get(nmsWorld.getChunkProvider());
+                long existingSeed = world.getSeed();
+                {
+                    if (genLayer == null) genLayer = new MutableGenLayer(seed);
+                    genLayer.set(biome.getId());
+                    Object existingGenLayer1 = fieldGenLayer1.get(nmsWorld.provider.getBiomeProvider());
+                    Object existingGenLayer2 = fieldGenLayer2.get(nmsWorld.provider.getBiomeProvider());
+                    fieldGenLayer1.set(nmsWorld.provider.getBiomeProvider(), genLayer);
+                    fieldGenLayer2.set(nmsWorld.provider.getBiomeProvider(), genLayer);
+
+                    fieldSeed.set(nmsWorld.getWorldInfo(), seed);
+
+                    ReflectionUtils.setFailsafeFieldValue(fieldBiomeCache, this.nmsWorld.provider.getBiomeProvider(), new BiomeCache(this.nmsWorld.provider.getBiomeProvider()));
+
+                    ReflectionUtils.setFailsafeFieldValue(fieldChunkGenerator, this.nmsWorld.getChunkProvider(), generator);
+
+                    result = regenerateChunk(world, x, z);
+
+                    ReflectionUtils.setFailsafeFieldValue(fieldChunkGenerator, this.nmsWorld.getChunkProvider(), existingGenerator);
+
+                    fieldSeed.set(nmsWorld.getWorldInfo(), existingSeed);
+
+                    fieldGenLayer1.set(nmsWorld.provider.getBiomeProvider(), existingGenLayer1);
+                    fieldGenLayer2.set(nmsWorld.provider.getBiomeProvider(), existingGenLayer2);
+                }
+                return result;
+            } catch (Throwable e) {
+                e.printStackTrace();
+            }
+        }
+        return regenerateChunk(world, x, z);
     }
 
     @Override

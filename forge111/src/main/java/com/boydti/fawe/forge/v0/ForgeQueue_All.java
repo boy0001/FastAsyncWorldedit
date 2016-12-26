@@ -4,6 +4,7 @@ import com.boydti.fawe.FaweCache;
 import com.boydti.fawe.example.CharFaweChunk;
 import com.boydti.fawe.example.NMSMappedFaweQueue;
 import com.boydti.fawe.forge.ForgePlayer;
+import com.boydti.fawe.forge.MutableGenLayer;
 import com.boydti.fawe.object.FaweChunk;
 import com.boydti.fawe.object.FawePlayer;
 import com.boydti.fawe.util.MainUtil;
@@ -26,6 +27,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 import net.minecraft.block.Block;
+import net.minecraft.block.BlockFalling;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityList;
@@ -46,13 +48,17 @@ import net.minecraft.util.math.ChunkPos;
 import net.minecraft.world.EnumSkyBlock;
 import net.minecraft.world.World;
 import net.minecraft.world.WorldServer;
+import net.minecraft.world.biome.BiomeCache;
+import net.minecraft.world.biome.BiomeProvider;
 import net.minecraft.world.chunk.BlockStateContainer;
 import net.minecraft.world.chunk.Chunk;
 import net.minecraft.world.chunk.IChunkGenerator;
 import net.minecraft.world.chunk.IChunkProvider;
 import net.minecraft.world.chunk.NibbleArray;
 import net.minecraft.world.chunk.storage.ExtendedBlockStorage;
+import net.minecraft.world.gen.ChunkProviderOverworld;
 import net.minecraft.world.gen.ChunkProviderServer;
+import net.minecraft.world.storage.WorldInfo;
 import net.minecraftforge.common.DimensionManager;
 
 public class ForgeQueue_All extends NMSMappedFaweQueue<World, Chunk, ExtendedBlockStorage[], ExtendedBlockStorage> {
@@ -62,6 +68,16 @@ public class ForgeQueue_All extends NMSMappedFaweQueue<World, Chunk, ExtendedBlo
     protected final static Field fieldTickingBlockCount;
     protected final static Field fieldNonEmptyBlockCount;
 
+    protected static Field fieldBiomes;
+    protected static Field fieldChunkGenerator;
+    protected static Field fieldSeed;
+    protected static Field fieldBiomeCache;
+    protected static Field fieldBiomes2;
+    protected static Field fieldGenLayer1;
+    protected static Field fieldGenLayer2;
+
+    private static MutableGenLayer genLayer;
+
     static {
         try {
             Class<?> converter = Class.forName("com.sk89q.worldedit.forge.NBTConverter");
@@ -69,6 +85,21 @@ public class ForgeQueue_All extends NMSMappedFaweQueue<World, Chunk, ExtendedBlo
             methodToNative = converter.getDeclaredMethod("fromNative", NBTBase.class);
             methodFromNative.setAccessible(true);
             methodToNative.setAccessible(true);
+
+            fieldBiomes = ChunkProviderOverworld.class.getDeclaredField("field_185981_C"); // biomesForGeneration
+            fieldBiomes.setAccessible(true);
+            fieldChunkGenerator = ChunkProviderServer.class.getDeclaredField("field_186029_c"); // chunkGenerator
+            fieldChunkGenerator.setAccessible(true);
+            fieldSeed = WorldInfo.class.getDeclaredField("field_76100_a"); // randomSeed
+            fieldSeed.setAccessible(true);
+            fieldBiomeCache = BiomeProvider.class.getDeclaredField("field_76942_f"); // biomeCache
+            fieldBiomeCache.setAccessible(true);
+            fieldBiomes2 = BiomeProvider.class.getDeclaredField("field_76943_g"); // biomesToSpawnIn
+            fieldBiomes2.setAccessible(true);
+            fieldGenLayer1 = BiomeProvider.class.getDeclaredField("field_76944_d"); // genBiomes
+            fieldGenLayer2 = BiomeProvider.class.getDeclaredField("field_76945_e"); // biomeIndexLayer
+            fieldGenLayer1.setAccessible(true);
+            fieldGenLayer2.setAccessible(true);
 
             fieldTickingBlockCount = ExtendedBlockStorage.class.getDeclaredField("field_76683_c");
             fieldNonEmptyBlockCount = ExtendedBlockStorage.class.getDeclaredField("field_76682_b");
@@ -169,13 +200,57 @@ public class ForgeQueue_All extends NMSMappedFaweQueue<World, Chunk, ExtendedBlo
     }
 
     @Override
-    public boolean regenerateChunk(World world, int x, int z, BaseBiome biome, Long seed) {
+    public boolean regenerateChunk(net.minecraft.world.World world, int x, int z, BaseBiome biome, Long seed) {
+        if (biome != null) {
+            try {
+                if (seed == null) {
+                    seed = world.getSeed();
+                }
+                nmsWorld.getWorldInfo().getSeed();
+                boolean result;
+                ChunkProviderOverworld generator = new ChunkProviderOverworld(nmsWorld, seed, false, "");
+                net.minecraft.world.biome.Biome base = net.minecraft.world.biome.Biome.getBiome(biome.getId());
+                fieldBiomes.set(generator, new net.minecraft.world.biome.Biome[]{base});
+                boolean cold = base.getTemperature() <= 1;
+                IChunkGenerator existingGenerator = nmsWorld.getChunkProvider().chunkGenerator;
+                long existingSeed = world.getSeed();
+                {
+                    if (genLayer == null) genLayer = new MutableGenLayer(seed);
+                    genLayer.set(biome.getId());
+                    Object existingGenLayer1 = fieldGenLayer1.get(nmsWorld.provider.getBiomeProvider());
+                    Object existingGenLayer2 = fieldGenLayer2.get(nmsWorld.provider.getBiomeProvider());
+                    fieldGenLayer1.set(nmsWorld.provider.getBiomeProvider(), genLayer);
+                    fieldGenLayer2.set(nmsWorld.provider.getBiomeProvider(), genLayer);
+
+                    fieldSeed.set(nmsWorld.getWorldInfo(), seed);
+
+                    ReflectionUtils.setFailsafeFieldValue(fieldBiomeCache, this.nmsWorld.provider.getBiomeProvider(), new BiomeCache(this.nmsWorld.provider.getBiomeProvider()));
+
+                    ReflectionUtils.setFailsafeFieldValue(fieldChunkGenerator, this.nmsWorld.getChunkProvider(), generator);
+
+                    result = regenerateChunk(world, x, z);
+
+                    ReflectionUtils.setFailsafeFieldValue(fieldChunkGenerator, this.nmsWorld.getChunkProvider(), existingGenerator);
+
+                    fieldSeed.set(nmsWorld.getWorldInfo(), existingSeed);
+
+                    fieldGenLayer1.set(nmsWorld.provider.getBiomeProvider(), existingGenLayer1);
+                    fieldGenLayer2.set(nmsWorld.provider.getBiomeProvider(), existingGenLayer2);
+                }
+                return result;
+            } catch (Throwable e) {
+                e.printStackTrace();
+            }
+        }
+        return regenerateChunk(world, x, z);
+    }
+
+    public boolean regenerateChunk(World world, int x, int z) {
         IChunkProvider provider = world.getChunkProvider();
         if (!(provider instanceof ChunkProviderServer)) {
             return false;
         }
-
-
+        BlockFalling.fallInstantly = true;
         try {
             ChunkProviderServer chunkServer = (ChunkProviderServer) provider;
             IChunkGenerator gen = chunkServer.chunkGenerator;
@@ -222,6 +297,8 @@ public class ForgeQueue_All extends NMSMappedFaweQueue<World, Chunk, ExtendedBlo
         } catch (Throwable t) {
             MainUtil.handleError(t);
             return false;
+        } finally {
+            BlockFalling.fallInstantly = false;
         }
     }
 
