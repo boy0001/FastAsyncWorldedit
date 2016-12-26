@@ -4,16 +4,12 @@ import com.boydti.fawe.Fawe;
 import com.boydti.fawe.IFawe;
 import com.boydti.fawe.SpongeCommand;
 import com.boydti.fawe.config.BBC;
-import com.boydti.fawe.config.Settings;
 import com.boydti.fawe.object.FaweCommand;
 import com.boydti.fawe.object.FawePlayer;
 import com.boydti.fawe.object.FaweQueue;
 import com.boydti.fawe.regions.FaweMaskManager;
-import com.boydti.fawe.sponge.v1_8.SpongeQueue_1_8;
-import com.boydti.fawe.sponge.v1_8.SpongeQueue_ALL;
 import com.boydti.fawe.util.MainUtil;
 import com.boydti.fawe.util.TaskManager;
-import com.sk89q.worldedit.forge.ForgeWorldEdit;
 import com.sk89q.worldedit.world.World;
 import java.io.File;
 import java.util.ArrayList;
@@ -34,24 +30,15 @@ public class FaweSponge implements IFawe {
 
     public FaweSponge instance;
 
-    private ForgeWorldEdit worldedit;
-
-    public ForgeWorldEdit getWorldEditPlugin() {
-        if (this.worldedit == null) {
-            this.worldedit = ForgeWorldEdit.inst;
-        }
-        return this.worldedit;
-    }
-
     public FaweSponge(SpongeMain plugin) {
         instance = this;
         this.plugin = plugin;
         try {
             Fawe.set(this);
+            Fawe.setupInjector();
         } catch (final Throwable e) {
             MainUtil.handleError(e);
         }
-        TaskManager.IMP.later(() -> SpongeUtil.initBiomeCache(), 0);
     }
 
     @Override
@@ -100,23 +87,13 @@ public class FaweSponge implements IFawe {
     }
 
     @Override
-    public int[] getVersion() {
-        debug("[FAWE] Checking minecraft version: Sponge: ");
-        String version = Sponge.getGame().getPlatform().getMinecraftVersion().getName();
-        String[] split = version.split("\\.");
-        return new int[]{Integer.parseInt(split[0]), Integer.parseInt(split[1]), split.length == 3 ? Integer.parseInt(split[2]) : 0};
+    public FaweQueue getNewQueue(World world, boolean fast) {
+        return new com.boydti.fawe.sponge.v1_10.SpongeQueue_1_10(getWorldName(world));
     }
 
     @Override
     public FaweQueue getNewQueue(String world, boolean fast) {
-        if (fast || Settings.HISTORY.COMBINE_STAGES) {
-            try {
-                return new SpongeQueue_1_8(world);
-            } catch (Throwable e) {
-                MainUtil.handleError(e);
-            }
-        }
-        return new SpongeQueue_ALL(world);
+        return new com.boydti.fawe.sponge.v1_10.SpongeQueue_1_10(world);
     }
 
     @Override

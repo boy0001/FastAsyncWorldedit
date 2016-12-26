@@ -229,7 +229,6 @@ public class Fawe {
         MainUtil.deleteOlder(MainUtil.getFile(IMP.getDirectory(), Settings.PATHS.CLIPBOARD), TimeUnit.DAYS.toMillis(Settings.CLIPBOARD.DELETE_AFTER_DAYS));
 
         TaskManager.IMP = this.IMP.getTaskManager();
-        TaskManager.IMP.repeat(timer = new FaweTimer(), 1);
         if (Settings.METRICS) {
             this.IMP.startMetrics();
         }
@@ -238,22 +237,32 @@ public class Fawe {
          * Instance independent stuff
          */
         this.setupMemoryListener();
+        timer = new FaweTimer();
+        Fawe.this.IMP.setupVault();
+        Commands.load(new File(this.IMP.getDirectory(), "commands.yml"));
 
-        // Delayed event setup
+        // Delayed worldedit setup
         TaskManager.IMP.later(new Runnable() {
             @Override
             public void run() {
-                // Events
-                Fawe.this.IMP.setupVault();
+                try {
+                    WEManager.IMP.managers.addAll(Fawe.this.IMP.getMaskManagers());
+                    WEManager.IMP.managers.add(new PlotSquaredFeature());
+                    Fawe.debug("Plugin 'PlotSquared' found. Using it now.");
+                } catch (Throwable e) {}
+                Fawe.this.worldedit = WorldEdit.getInstance();
+                Fawe.this.setupEvents();
             }
         }, 0);
+
+        TaskManager.IMP.repeat(timer, 1);
 
         if (Settings.UPDATE) {
             // Delayed updating
             TaskManager.IMP.async(new Runnable() {
                 @Override
                 public void run() {
-                    Updater.update(implementation.getPlatform(), getVersion());
+                    Updater.update(IMP.getPlatform(), getVersion());
                 }
             });
         }
@@ -326,28 +335,15 @@ public class Fawe {
         return this.worldedit;
     }
 
-    public void setupInjector() {
+    public static void setupInjector() {
         /*
          * Modify the sessions
          *  - EditSession supports custom queue and a lot of optimizations
          *  - LocalSession supports VirtualPlayers and undo on disk
          */
         try {
-            // Delayed worldedit setup
-            TaskManager.IMP.later(new Runnable() {
-                @Override
-                public void run() {
-                    try {
-                        WEManager.IMP.managers.addAll(Fawe.this.IMP.getMaskManagers());
-                        WEManager.IMP.managers.add(new PlotSquaredFeature());
-                        Fawe.debug("Plugin 'PlotSquared' found. Using it now.");
-                    } catch (Throwable e) {}
-                    Fawe.this.worldedit = WorldEdit.getInstance();
-                    Fawe.this.setupEvents();
-                }
-            }, 0);
             // Setting up commands.yml
-            Commands.load(new File(this.IMP.getDirectory(), "commands.yml"));
+            Commands.inject(); // Translations
             EditSession.inject(); // Custom block placer + optimizations
             EditSessionEvent.inject(); // Add EditSession to event (API)
             LocalSession.inject(); // Add remember order / queue flushing / Optimizations for disk
@@ -464,12 +460,7 @@ public class Fawe {
                 MainUtil.handleError(e, false);
                 debug("=======================================");
                 debug("Update the plugin, or contact the Author!");
-                if (IMP.getPlatform().equals("bukkit")) {
-                    debug(" - http://builds.enginehub.org/job/worldedit?branch=master");
-                } else {
-                    debug(" - http://builds.enginehub.org/job/worldedit?branch=forge-archive%2F1.8.9 (FORGE)");
-                    debug(" - https://ci.minecrell.net/job/worldedit-spongevanilla/ (SV)");
-                }
+                debug(" - http://builds.enginehub.org/job/worldedit?branch=master");
                 debug("=======================================");
             }
         } catch (Throwable e) {
@@ -519,7 +510,7 @@ public class Fawe {
                 debug("====================================");
             }
         } catch (Throwable ignore) {}
-        if (!isJava8) {
+        if (MainUtil.getJavaVersion() < 1.8) {
             debug("====== UPGRADE TO JAVA 8 ======");
             debug("You are running " + System.getProperty("java.version"));
             debug(" - This is only a recommendation");

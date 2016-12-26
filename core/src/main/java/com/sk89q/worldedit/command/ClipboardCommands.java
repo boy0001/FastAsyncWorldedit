@@ -183,7 +183,7 @@ public class ClipboardCommands {
         BlockArrayClipboard clipboard = new BlockArrayClipboard(region, lazyClipboard);
         clipboard.setOrigin(session.getPlacementPosition(player));
         session.setClipboard(new ClipboardHolder(clipboard, editSession.getWorldData()));
-        BBC.COMMAND_CUT_SLOW.send(player, region.getArea());
+        BBC.COMMAND_CUT_LAZY.send(player, region.getArea());
     }
 
     @Command(
@@ -221,7 +221,7 @@ public class ClipboardCommands {
         Operations.completeLegacy(copy);
         session.setClipboard(new ClipboardHolder(clipboard, editSession.getWorldData()));
 
-        BBC.COMMAND_CUT_LAZY.send(player, region.getArea());
+        BBC.COMMAND_CUT_SLOW.send(player, region.getArea());
     }
 
     @Command(aliases = { "download" }, desc = "Download your clipboard")

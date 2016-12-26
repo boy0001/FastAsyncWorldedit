@@ -29,10 +29,10 @@ package com.boydti.fawe.sponge;
  */
 
 import com.boydti.fawe.Fawe;
+import com.boydti.fawe.object.io.FastByteArrayOutputStream;
 import com.boydti.fawe.util.MainUtil;
 import com.google.inject.Inject;
 import java.io.BufferedReader;
-import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -131,7 +131,7 @@ public class SpongeMetrics {
      * @return
      */
     public static byte[] gzip(final String input) {
-        final ByteArrayOutputStream baos = new FastByteArrayOutputStream();
+        final FastByteArrayOutputStream baos = new FastByteArrayOutputStream();
         GZIPOutputStream gzos = null;
 
         try {

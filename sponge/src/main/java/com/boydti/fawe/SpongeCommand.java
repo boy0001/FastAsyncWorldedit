@@ -1,16 +1,18 @@
 package com.boydti.fawe;
 
-import com.boydti.fawe.Fawe;
 import com.boydti.fawe.config.BBC;
 import com.boydti.fawe.object.FaweCommand;
 import com.boydti.fawe.object.FawePlayer;
 import java.util.List;
 import java.util.Optional;
+import javax.annotation.Nullable;
 import org.spongepowered.api.command.CommandCallable;
 import org.spongepowered.api.command.CommandException;
 import org.spongepowered.api.command.CommandResult;
 import org.spongepowered.api.command.CommandSource;
 import org.spongepowered.api.text.Text;
+import org.spongepowered.api.world.Location;
+import org.spongepowered.api.world.World;
 
 /**
  * Created by Jesse on 4/2/2016.
@@ -35,19 +37,22 @@ public class SpongeCommand implements CommandCallable {
     }
 
     @Override
-    public List<String> getSuggestions(CommandSource source, String arguments) throws CommandException {return null;}
+    public List<String> getSuggestions(CommandSource source, String arguments, @Nullable Location<World> targetPosition) throws CommandException {
+        return null;
+    }
+
 
     @Override
     public boolean testPermission(CommandSource source) {return true;}
 
     @Override
-    public Optional<? extends Text> getShortDescription(final CommandSource cmd) {
+    public Optional<Text> getShortDescription(CommandSource source) {
         return Optional.of(Text.of("Various"));
     }
 
     @Override
-    public Optional<? extends Text> getHelp(final CommandSource cmd) {
-        return Optional.of(Text.of("/<stream|wea|select>"));
+    public Optional<Text> getHelp(CommandSource source) {
+        return Optional.of(Text.of("/" + this.cmd));
     }
 
     @Override

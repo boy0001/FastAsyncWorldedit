@@ -1,12 +1,14 @@
 package com.boydti.fawe.sponge;
 
-import com.boydti.fawe.Fawe;
 import com.boydti.fawe.config.BBC;
 import com.boydti.fawe.object.FaweLocation;
 import com.boydti.fawe.object.FawePlayer;
-import com.boydti.fawe.wrappers.PlayerWrapper;
+import com.boydti.fawe.wrappers.FakePlayer;
+import com.sk89q.worldedit.WorldEdit;
+import com.sk89q.worldedit.extension.platform.Capability;
+import com.sk89q.worldedit.extension.platform.Platform;
+import java.lang.reflect.Method;
 import java.util.UUID;
-import net.minecraft.entity.player.EntityPlayerMP;
 import org.spongepowered.api.Sponge;
 import org.spongepowered.api.entity.living.player.Player;
 import org.spongepowered.api.text.Text;
@@ -72,6 +74,19 @@ public class SpongePlayer extends FawePlayer<Player> {
 
     @Override
     public com.sk89q.worldedit.entity.Player getPlayer() {
-        return PlayerWrapper.wrap(Fawe.<FaweSponge> imp().getWorldEditPlugin().wrap((EntityPlayerMP) this.parent));
+        if (WorldEdit.getInstance().getPlatformManager().queryCapability(Capability.USER_COMMANDS) != null) {
+            for (Platform platform : WorldEdit.getInstance().getPlatformManager().getPlatforms()) {
+                return platform.matchPlayer(new FakePlayer(getName(), getUUID(), null));
+            }
+        }
+        try {
+            Class<?> clazz = Class.forName("com.sk89q.worldedit.sponge.SpongeWorldEdit");
+            Object spongeWorldEdit = clazz.getDeclaredMethod("inst").invoke(null);
+            Method methodGetPlayer = clazz.getMethod("wrapPlayer", org.spongepowered.api.entity.living.player.Player.class);
+            return (com.sk89q.worldedit.entity.Player) methodGetPlayer.invoke(spongeWorldEdit, this.parent);
+        } catch (Throwable e) {
+            e.printStackTrace();
+            return null;
+        }
     }
 }

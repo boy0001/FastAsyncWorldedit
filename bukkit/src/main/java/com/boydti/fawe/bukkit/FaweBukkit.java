@@ -88,7 +88,7 @@ public class FaweBukkit implements IFawe, Listener {
 
     public void setupInjector() {
         if (Bukkit.getPluginManager().getPlugin("WorldEdit") != null) {
-            Fawe.get().setupInjector();
+            Fawe.setupInjector();
             // Inject
             EditSessionBlockChangeDelegate.inject();
         } else {

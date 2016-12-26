@@ -61,7 +61,6 @@ import java.util.List;
 import java.util.UUID;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import java.util.regex.Pattern;
 
 
 import static com.google.common.base.Preconditions.checkNotNull;
@@ -356,7 +355,6 @@ public class SchematicCommands {
                 build.append(file.getName());
             } else {
                 String relative = dir.toURI().relativize(file.toURI()).getPath();
-                String[] split = file.getPath().split(Pattern.quote(prefix + File.separator));
                 build.append(relative);
             }
             build.append(": ").append(format == null ? "Unknown" : format.name());

@@ -51,7 +51,7 @@ public class FaweForge implements IFawe {
 
     public void setupInjector() {
         try {
-            Fawe.get().setupInjector();
+            Fawe.setupInjector();
             com.sk89q.worldedit.forge.ForgePlayer.inject();
         } catch (Throwable e) {
             Fawe.debug("Failed to inject WorldEdit classes.");
