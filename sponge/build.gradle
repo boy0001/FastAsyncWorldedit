@@ -30,7 +30,7 @@ apply plugin: 'com.github.johnrengelman.shadow'
 
 dependencies {
     compile project(':core')
-    compile 'org.spongepowered:spongeapi:5.1.0-SNAPSHOT'
+    compile 'org.spongepowered:spongeapi:6.0.0-SNAPSHOT'
     compile 'org.spongepowered:mixin:0.6.1-SNAPSHOT'
     compile 'com.sk89q.worldedit:worldedit-forge-mc1.10.2:6.1.5'
 }
@@ -53,8 +53,8 @@ repositories {
     }
 }
 minecraft {
-    version = "1.10.2"
-    mappings = "snapshot_20161029"
+    version = "1.11"
+    mappings = "snapshot_20161116"
     runDir = 'run'
 }
 

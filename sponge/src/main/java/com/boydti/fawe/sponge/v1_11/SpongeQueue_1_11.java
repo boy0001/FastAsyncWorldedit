@@ -1,4 +1,4 @@
-package com.boydti.fawe.sponge.v1_10;
+package com.boydti.fawe.sponge.v1_11;
 
 import com.boydti.fawe.FaweCache;
 import com.boydti.fawe.example.CharFaweChunk;
@@ -56,7 +56,7 @@ import net.minecraft.world.chunk.storage.ExtendedBlockStorage;
 import net.minecraft.world.gen.ChunkProviderServer;
 import org.spongepowered.api.Sponge;
 
-public class SpongeQueue_1_10 extends NMSMappedFaweQueue<World, net.minecraft.world.chunk.Chunk, ExtendedBlockStorage[], ExtendedBlockStorage> {
+public class SpongeQueue_1_11 extends NMSMappedFaweQueue<World, net.minecraft.world.chunk.Chunk, ExtendedBlockStorage[], ExtendedBlockStorage> {
 
     protected final static Method methodFromNative;
     protected final static Method methodToNative;
@@ -88,24 +88,14 @@ public class SpongeQueue_1_10 extends NMSMappedFaweQueue<World, net.minecraft.wo
         }
     }
 
-    public SpongeQueue_1_10(com.sk89q.worldedit.world.World world) {
+    public SpongeQueue_1_11(com.sk89q.worldedit.world.World world) {
         super(world);
         getImpWorld();
     }
 
-    public SpongeQueue_1_10(String world) {
+    public SpongeQueue_1_11(String world) {
         super(world);
         getImpWorld();
-    }
-
-    @Override
-    public void startSet(boolean parallel) {
-        MixinMinecraftServer.ALLOW_THREADS = true;
-    }
-
-    @Override
-    public void endSet(boolean parallel) {
-        MixinMinecraftServer.ALLOW_THREADS = false;
     }
 
     @Override
@@ -377,7 +367,7 @@ public class SpongeQueue_1_10 extends NMSMappedFaweQueue<World, net.minecraft.wo
 
     @Override
     public void refreshChunk(FaweChunk fc) {
-        SpongeChunk_1_10 fs = (SpongeChunk_1_10) fc;
+        SpongeChunk_1_11 fs = (SpongeChunk_1_11) fc;
         ensureChunkLoaded(fc.getX(), fc.getZ());
         Chunk nmsChunk = fs.getChunk();
         if (!nmsChunk.isLoaded()) {
@@ -429,7 +419,7 @@ public class SpongeQueue_1_10 extends NMSMappedFaweQueue<World, net.minecraft.wo
 
     @Override
     public FaweChunk<Chunk> getFaweChunk(int x, int z) {
-        return new SpongeChunk_1_10(this, x, z);
+        return new SpongeChunk_1_11(this, x, z);
     }
 
     @Override

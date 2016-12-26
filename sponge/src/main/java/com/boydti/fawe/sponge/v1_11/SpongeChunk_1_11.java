@@ -1,4 +1,4 @@
-package com.boydti.fawe.sponge.v1_10;
+package com.boydti.fawe.sponge.v1_11;
 
 import com.boydti.fawe.Fawe;
 import com.boydti.fawe.FaweCache;
@@ -14,6 +14,7 @@ import com.sk89q.jnbt.Tag;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
@@ -29,6 +30,7 @@ import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.BitArray;
 import net.minecraft.util.ClassInheritanceMultiMap;
+import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
 import net.minecraft.world.chunk.BlockStateContainer;
@@ -37,9 +39,11 @@ import net.minecraft.world.chunk.Chunk;
 import net.minecraft.world.chunk.IBlockStatePalette;
 import net.minecraft.world.chunk.storage.ExtendedBlockStorage;
 
-public class SpongeChunk_1_10 extends CharFaweChunk<Chunk, SpongeQueue_1_10> {
+public class SpongeChunk_1_11 extends CharFaweChunk<Chunk, SpongeQueue_1_11> {
 
     public BlockStateContainer[] sectionPalettes;
+
+    public static Map<String, ResourceLocation> entityKeys;
 
     /**
      * A FaweSections object represents a chunk and the blocks that you wish to change in it.
@@ -48,23 +52,23 @@ public class SpongeChunk_1_10 extends CharFaweChunk<Chunk, SpongeQueue_1_10> {
      * @param x
      * @param z
      */
-    public SpongeChunk_1_10(FaweQueue parent, int x, int z) {
+    public SpongeChunk_1_11(FaweQueue parent, int x, int z) {
         super(parent, x, z);
     }
 
-    public SpongeChunk_1_10(FaweQueue parent, int x, int z, char[][] ids, short[] count, short[] air, byte[] heightMap) {
+    public SpongeChunk_1_11(FaweQueue parent, int x, int z, char[][] ids, short[] count, short[] air, byte[] heightMap) {
         super(parent, x, z, ids, count, air, heightMap);
     }
 
     @Override
     public CharFaweChunk copy(boolean shallow) {
-        SpongeChunk_1_10 copy;
+        SpongeChunk_1_11 copy;
         if (shallow) {
-            copy = new SpongeChunk_1_10(getParent(), getX(), getZ(), ids, count, air, heightMap);
+            copy = new SpongeChunk_1_11(getParent(), getX(), getZ(), ids, count, air, heightMap);
             copy.biomes = biomes;
             copy.chunk = chunk;
         } else {
-            copy = new SpongeChunk_1_10(getParent(), getX(), getZ(), (char[][]) MainUtil.copyNd(ids), count.clone(), air.clone(), heightMap.clone());
+            copy = new SpongeChunk_1_11(getParent(), getX(), getZ(), (char[][]) MainUtil.copyNd(ids), count.clone(), air.clone(), heightMap.clone());
             copy.biomes = biomes;
             copy.chunk = chunk;
             copy.biomes = biomes.clone();
@@ -120,7 +124,7 @@ public class SpongeChunk_1_10 extends CharFaweChunk<Chunk, SpongeQueue_1_10> {
 
     @Override
     public Chunk getNewChunk() {
-        World world = ((SpongeQueue_1_10) getParent()).getWorld();
+        World world = ((SpongeQueue_1_11) getParent()).getWorld();
         return world.getChunkProvider().provideChunk(getX(), getZ());
     }
 
@@ -152,7 +156,7 @@ public class SpongeChunk_1_10 extends CharFaweChunk<Chunk, SpongeQueue_1_10> {
     }
 
     @Override
-    public SpongeChunk_1_10 call() {
+    public SpongeChunk_1_11 call() {
         net.minecraft.world.chunk.Chunk nmsChunk = this.getChunk();
         int bx = this.getX() << 4;
         int bz = this.getZ() << 4;
@@ -176,14 +180,14 @@ public class SpongeChunk_1_10 extends CharFaweChunk<Chunk, SpongeQueue_1_10> {
                 } else if (count >= 4096) {
                     Collection<Entity> ents = entities[i];
                     if (!ents.isEmpty()) {
-                        synchronized (SpongeChunk_1_10.class) {
+                        synchronized (SpongeChunk_1_11.class) {
                             entities[i] = new ClassInheritanceMultiMap<>(Entity.class);
                         }
                     }
                 } else {
                     char[] array = this.getIdArray(i);
                     Collection<Entity> ents = new ArrayList<>(entities[i]);
-                    synchronized (SpongeChunk_1_10.class) {
+                    synchronized (SpongeChunk_1_11.class) {
                         for (Entity entity : ents) {
                             if (entity instanceof EntityPlayer) {
                                 continue;
@@ -205,7 +209,7 @@ public class SpongeChunk_1_10 extends CharFaweChunk<Chunk, SpongeQueue_1_10> {
             Set<UUID> createdEntities = new HashSet<>();
             Set<CompoundTag> entitiesToSpawn = this.getEntities();
             if (!entitiesToSpawn.isEmpty()) {
-                synchronized (SpongeChunk_1_10.class) {
+                synchronized (SpongeChunk_1_11.class) {
                     for (CompoundTag nativeTag : entitiesToSpawn) {
                         Map<String, Tag> entityTagMap = nativeTag.getValue();
                         StringTag idTag = (StringTag) entityTagMap.get("Id");
@@ -223,13 +227,22 @@ public class SpongeChunk_1_10 extends CharFaweChunk<Chunk, SpongeQueue_1_10> {
                         float yaw = ((FloatTag) value.get(0)).getValue();
                         float pitch = ((FloatTag) value.get(1)).getValue();
                         String id = idTag.getValue();
-                        if (id != null) {
-                            Entity entity = EntityList.createEntityByName(id, nmsWorld);
+                        if (entityKeys == null) {
+                            entityKeys = new HashMap<>();
+                            for (ResourceLocation key : EntityList.getEntityNameList()) {
+                                String currentId = EntityList.func_191302_a(key);
+                                entityKeys.put(currentId, key);
+                                entityKeys.put(key.getResourcePath(), key);
+                            }
+                        }
+                        ResourceLocation entityKey = entityKeys.get(id);
+                        if (entityKey != null) {
+                            Entity entity = EntityList.createEntityByIDFromName(entityKey, nmsWorld);
                             if (entity != null) {
-                                NBTTagCompound tag = (NBTTagCompound) SpongeQueue_1_10.methodFromNative.invoke(null, nativeTag);
+                                NBTTagCompound tag = (NBTTagCompound) SpongeQueue_1_11.methodFromNative.invoke(null, nativeTag);
+                                entity.readFromNBT(tag);
                                 tag.removeTag("UUIDMost");
                                 tag.removeTag("UUIDLeast");
-                                entity.readFromNBT(tag);
                                 entity.setPositionAndRotation(x, y, z, yaw, pitch);
                                 nmsWorld.spawnEntityInWorld(entity);
                             }
@@ -264,7 +277,7 @@ public class SpongeChunk_1_10 extends CharFaweChunk<Chunk, SpongeQueue_1_10> {
             }
             HashSet<UUID> entsToRemove = this.getEntityRemoves();
             if (!entsToRemove.isEmpty()) {
-                synchronized (SpongeChunk_1_10.class) {
+                synchronized (SpongeChunk_1_11.class) {
                     for (int i = 0; i < entities.length; i++) {
                         Collection<Entity> ents = new ArrayList<>(entities[i]);
                         for (Entity entity : ents) {
@@ -317,17 +330,17 @@ public class SpongeChunk_1_10 extends CharFaweChunk<Chunk, SpongeQueue_1_10> {
                                     continue;
                                 case 1:
                                     existing = nibble.get(x, y, z);
-                                    if (existing != SpongeQueue_1_10.air) {
+                                    if (existing != SpongeQueue_1_11.air) {
                                         if (existing.getLightValue() > 0) {
                                             getParent().getRelighter().addLightUpdate(bx + x, by + y, bz + z);
                                         }
                                         nonEmptyBlockCount--;
                                     }
-                                    nibble.set(x, y, z, SpongeQueue_1_10.air);
+                                    nibble.set(x, y, z, SpongeQueue_1_11.air);
                                     continue;
                                 default:
                                     existing = nibble.get(x, y, z);
-                                    if (existing != SpongeQueue_1_10.air) {
+                                    if (existing != SpongeQueue_1_11.air) {
                                         if (existing.getLightValue() > 0) {
                                             getParent().getRelighter().addLightUpdate(bx + x, by + y, bz + z);
                                         }
@@ -370,7 +383,7 @@ public class SpongeChunk_1_10 extends CharFaweChunk<Chunk, SpongeQueue_1_10> {
                 BlockPos pos = new BlockPos(x, y, z); // Set pos
                 TileEntity tileEntity = nmsWorld.getTileEntity(pos);
                 if (tileEntity != null) {
-                    NBTTagCompound tag = (NBTTagCompound) SpongeQueue_1_10.methodFromNative.invoke(null, nativeTag);
+                    NBTTagCompound tag = (NBTTagCompound) SpongeQueue_1_11.methodFromNative.invoke(null, nativeTag);
                     tag.setInteger("x", pos.getX());
                     tag.setInteger("y", pos.getY());
                     tag.setInteger("z", pos.getZ());
