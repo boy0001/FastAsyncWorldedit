@@ -218,20 +218,32 @@ public class BukkitChunk_1_8 extends CharFaweChunk<Chunk, BukkitQueue18R3> {
             }
             // Set blocks
             for (int j = 0; j < sections.length; j++) {
-                if (this.getCount(j) == 0) {
+                int count = this.getCount(j);
+                if (count == 0) {
                     continue;
                 }
                 char[] newArray = this.getIdArray(j);
                 if (newArray == null) {
                     continue;
                 }
+                int countAir = this.getAir(j);
                 ChunkSection section = sections[j];
                 if (section != null && BukkitQueue18R3.isDirty != null) {
                     BukkitQueue18R3.isDirty.set(section, true);
                 }
-                if ((section == null) || (this.getCount(j) >= 4096)) {
-                    section = new ChunkSection(j << 4, flag, newArray);
-                    sections[j] = section;
+                if (section == null) {
+                    if (count == countAir) {
+                        continue;
+                    }
+                    sections[j] = section = new ChunkSection(j << 4, flag, newArray);
+                    continue;
+                }
+                if (count >= 4096) {
+                    if (count == countAir) {
+                        sections[j] = null;
+                        continue;
+                    }
+                    sections[j] = section = new ChunkSection(j << 4, flag, newArray);
                     continue;
                 }
                 int by = j << 4;

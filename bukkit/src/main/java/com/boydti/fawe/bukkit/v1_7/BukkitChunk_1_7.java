@@ -279,17 +279,33 @@ public class BukkitChunk_1_7 extends CharFaweChunk<Chunk, BukkitQueue17> {
             }
             // Set blocks
             for (int j = 0; j < sections.length; j++) {
-                if (this.getCount(j) == 0) {
+                int count = this.getCount(j);
+                if (count == 0) {
                     continue;
                 }
                 byte[] newIdArray = this.getByteIdArray(j);
                 if (newIdArray == null) {
                     continue;
                 }
+                int countAir = this.getAir(j);
                 NibbleArray newDataArray = this.getDataArray(j);
                 ChunkSection section = sections[j];
-                if ((section == null) || (this.getCount(j) >= 4096)) {
+                if (section == null) {
+                    if (count == countAir) {
+                        continue;
+                    }
                     sections[j] = section = new ChunkSection(j << 4, flag);
+                    section.setIdArray(newIdArray);
+                    if (newDataArray != null) {
+                        section.setDataArray(newDataArray);
+                    }
+                    continue;
+                }
+                if (count >= 4096) {
+                    if (countAir >= 4096) {
+                        sections[j] = null;
+                        continue;
+                    }
                     section.setIdArray(newIdArray);
                     if (newDataArray != null) {
                         section.setDataArray(newDataArray);
