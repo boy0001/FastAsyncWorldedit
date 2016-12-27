@@ -239,7 +239,6 @@ public class Fawe {
         this.setupMemoryListener();
         timer = new FaweTimer();
         Fawe.this.IMP.setupVault();
-        Commands.load(new File(this.IMP.getDirectory(), "commands.yml"));
 
         // Delayed worldedit setup
         TaskManager.IMP.later(new Runnable() {
@@ -463,6 +462,7 @@ public class Fawe {
                 debug(" - http://builds.enginehub.org/job/worldedit?branch=master");
                 debug("=======================================");
             }
+            Commands.load(new File(INSTANCE.IMP.getDirectory(), "commands.yml"));
         } catch (Throwable e) {
             debug("====== FAWE FAILED TO INITIALIZE ======");
             MainUtil.handleError(e, false);
