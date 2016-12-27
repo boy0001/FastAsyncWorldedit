@@ -63,6 +63,9 @@ shadowJar {
     }
     archiveName = "${parent.name}-${project.name}-${parent.version}.jar"
     destinationDir = file '../target'
+    manifest {
+        attributes("Main-Class": "com.boydti.fawe.installer.InstallerFrame")
+    }
 }
 shadowJar.doLast {
     task ->

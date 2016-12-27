@@ -1,4 +1,4 @@
-package com.boydti.fawe.forge.v0;
+package com.boydti.fawe.forge.v110;
 
 import com.boydti.fawe.FaweCache;
 import com.boydti.fawe.example.CharFaweChunk;

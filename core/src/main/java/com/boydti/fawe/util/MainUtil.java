@@ -836,4 +836,61 @@ public class MainUtil {
         }
         return false;
     }
+
+    public enum OS
+    {
+        LINUX,  SOLARIS,  WINDOWS,  MACOS,  UNKNOWN;
+    }
+
+    public static File getWorkingDirectory(String applicationName) {
+        String userHome = System.getProperty("user.home", ".");
+        File workingDirectory = null;
+        switch (getPlatform())
+        {
+            case LINUX:
+            case SOLARIS:
+                workingDirectory = new File(userHome, '.' + applicationName + '/');
+                break;
+            case WINDOWS:
+                String applicationData = System.getenv("APPDATA");
+                if (applicationData != null) {
+                    workingDirectory = new File(applicationData, "." + applicationName + '/');
+                } else {
+                    workingDirectory = new File(userHome, '.' + applicationName + '/');
+                }
+                break;
+            case MACOS:
+                workingDirectory = new File(userHome, "Library/Application Support/" + applicationName);
+                break;
+            default:
+                workingDirectory = new File(userHome, applicationName + '/');
+        }
+        if ((!workingDirectory.exists()) && (!workingDirectory.mkdirs())) {
+            throw new RuntimeException("The working directory could not be created: " + workingDirectory);
+        }
+        return workingDirectory;
+    }
+
+    public static OS getPlatform() {
+        String osName = System.getProperty("os.name").toLowerCase();
+        if (osName.contains("win")) {
+            return OS.WINDOWS;
+        }
+        if (osName.contains("mac")) {
+            return OS.MACOS;
+        }
+        if (osName.contains("solaris")) {
+            return OS.SOLARIS;
+        }
+        if (osName.contains("sunos")) {
+            return OS.SOLARIS;
+        }
+        if (osName.contains("linux")) {
+            return OS.LINUX;
+        }
+        if (osName.contains("unix")) {
+            return OS.LINUX;
+        }
+        return OS.UNKNOWN;
+    }
 }

@@ -3,7 +3,7 @@ package com.boydti.fawe.forge;
 
 import com.boydti.fawe.Fawe;
 import com.boydti.fawe.IFawe;
-import com.boydti.fawe.forge.v0.ForgeQueue_All;
+import com.boydti.fawe.forge.v111.ForgeQueue_All;
 import com.boydti.fawe.object.FaweCommand;
 import com.boydti.fawe.object.FawePlayer;
 import com.boydti.fawe.object.FaweQueue;
