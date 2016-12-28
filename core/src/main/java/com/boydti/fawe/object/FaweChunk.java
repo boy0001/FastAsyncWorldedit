@@ -10,6 +10,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.Callable;
+import javax.annotation.Nullable;
 
 public abstract class FaweChunk<T> implements Callable<FaweChunk> {
 
@@ -123,8 +124,28 @@ public abstract class FaweChunk<T> implements Callable<FaweChunk> {
         }
     }
 
+    /**
+     * Get the combined id array at a layer or null if it does not exist
+     * @param layer
+     * @return char[] or null
+     */
+    public @Nullable char[] getIdArray(int layer) {
+        char[] ids = new char[4096];
+        int by = layer << 4;
+        int index = 0;
+        for (int y = 0; y < 16; y++) {
+            int yy = by + y;
+            for (int z = 0; z < 16; z++) {
+                for (int x = 0; x < 16; x++) {
+                    ids[index++] = (char) getBlockCombinedId(x, yy, z);
+                }
+            }
+        }
+        return ids;
+    }
+
     public char[][] getCombinedIdArrays() {
-        char[][] ids = new char[16][];
+        char[][] ids = new char[HEIGHT >> 4][];
         for (int y = 0; y < HEIGHT >> 4; y++) {
             int y4 = y >> 4;
             short[][] i1 = FaweCache.CACHE_J[y];

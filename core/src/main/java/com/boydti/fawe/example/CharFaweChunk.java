@@ -111,10 +111,12 @@ public abstract class CharFaweChunk<T, V extends FaweQueue> extends FaweChunk<T>
      * @param i
      * @return
      */
+    @Override
     public char[] getIdArray(final int i) {
         return this.ids[i];
     }
 
+    @Override
     public char[][] getCombinedIdArrays() {
         return this.ids;
     }

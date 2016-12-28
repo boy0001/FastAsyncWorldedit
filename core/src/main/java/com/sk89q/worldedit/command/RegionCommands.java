@@ -319,7 +319,7 @@ public class RegionCommands {
     @CommandPermissions("worldedit.region.set")
     @Logging(REGION)
     public void set(Player player, LocalSession session, EditSession editSession, @Selection Region selection, Pattern to) throws WorldEditException {
-        if (selection instanceof CuboidRegion && editSession.hasFastMode() && to instanceof BlockPattern) {
+        if (selection instanceof CuboidRegion && (editSession.hasFastMode() || (editSession.getRegionExtent() == null && editSession.getChangeTask() != null)) && to instanceof BlockPattern) {
             try {
                 CuboidRegion cuboid = (CuboidRegion) selection;
                 RegionWrapper current = new RegionWrapper(cuboid.getMinimumPoint(), cuboid.getMaximumPoint());
@@ -363,9 +363,11 @@ public class RegionCommands {
                         newChunk.addToQueue();
                     }
                 });
+                int volume = cuboid.getArea();
+                editSession.setSize(volume);
                 queue.enqueue();
                 long start = System.currentTimeMillis();
-                BBC.OPERATION.send(player, BBC.VISITOR_BLOCK.format(cuboid.getArea()));
+                BBC.OPERATION.send(player, BBC.VISITOR_BLOCK.format(volume));
                 queue.flush();
                 BBC.ACTION_COMPLETE.send(player, (System.currentTimeMillis() - start) / 1000d);
                 return;

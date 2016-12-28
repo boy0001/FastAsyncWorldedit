@@ -28,6 +28,11 @@ public class NullFaweChunk extends FaweChunk<Void> {
     }
 
     @Override
+    public char[] getIdArray(int layer) {
+        return null;
+    }
+
+    @Override
     public int getBitMask() {
         return 0;
     }

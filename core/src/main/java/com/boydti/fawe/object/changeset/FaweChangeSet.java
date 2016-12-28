@@ -33,6 +33,7 @@ public abstract class FaweChangeSet implements ChangeSet {
 
     private final World world;
     private final boolean mainThread;
+    private final int layers;
     private AtomicInteger waitingCombined = new AtomicInteger(0);
     private AtomicInteger waitingAsync = new AtomicInteger(0);
     private Object lockCombined = new Object();
@@ -49,6 +50,7 @@ public abstract class FaweChangeSet implements ChangeSet {
     public FaweChangeSet(World world) {
         this.world = world;
         this.mainThread = Fawe.get().isMainThread();
+        this.layers = this.world.getMaxY() >> 4;
     }
 
     public World getWorld() {
@@ -221,12 +223,12 @@ public abstract class FaweChangeSet implements ChangeSet {
                             // Block changes
                             {
                                 // Current blocks
-                                char[][] currentIds = next.getCombinedIdArrays();
+//                                char[][] currentIds = next.getCombinedIdArrays();
                                 // Previous blocks in modified sections (i.e. we skip sections that weren't modified)
-                                char[][] previousIds = previous.getCombinedIdArrays();
-                                for (int layer = 0; layer < currentIds.length; layer++) {
-                                    char[] currentLayer = currentIds[layer];
-                                    char[] previousLayer = previousIds[layer];
+//                                char[][] previousIds = previous.getCombinedIdArrays();
+                                for (int layer = 0; layer < layers; layer++) {
+                                    char[] currentLayer = next.getIdArray(layer);
+                                    char[] previousLayer = previous.getIdArray(layer);
                                     if (currentLayer == null) {
                                         continue;
                                     }

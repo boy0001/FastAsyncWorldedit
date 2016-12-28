@@ -524,6 +524,10 @@ public class EditSession extends AbstractWorld implements HasFaweQueue, Lighting
         return history != null ? history.getChangeSet() : changeTask;
     }
 
+    public FaweChangeSet getChangeTask() {
+        return changeTask;
+    }
+
     /**
      * Change the ChangeSet being used for this EditSession
      *  - If history is disabled, no changeset can be set
