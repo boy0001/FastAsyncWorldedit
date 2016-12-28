@@ -471,29 +471,31 @@ public class Fawe {
             debug(" - Using the latest version of WorldEdit/FAWE");
             debug(" - AsyncWorldEdit/WorldEditRegions isn't installed");
             debug(" - Any other errors in the startup log");
-            debug(" - Contact Empire92 for assistance!");
+            debug("Contact Empire92 if you need assistance:");
+            debug(" - Send me a PM or ask on IRC");
+            debug(" - http://webchat.esper.net/?nick=&channels=IntellectualCrafters");
             debug("=======================================");
         }
         try {
             com.github.luben.zstd.util.Native.load();
         } catch (Throwable e) {
-            Settings.CLIPBOARD.COMPRESSION_LEVEL = Math.min(6, Settings.CLIPBOARD.COMPRESSION_LEVEL);
-            Settings.HISTORY.COMPRESSION_LEVEL = Math.min(6, Settings.HISTORY.COMPRESSION_LEVEL);
-            debug("====== ZSTD COMPRESSION BINDING NOT FOUND ======");
-            MainUtil.handleError(e, false);
-            debug("===============================================");
-            debug("FAWE will still work, but some things may be slower");
-            debug(" - Try updating your JVM / OS");
-            debug(" - Report this issue if you cannot resolve it");
-            debug("===============================================");
+            if (Settings.CLIPBOARD.COMPRESSION_LEVEL > 6 || Settings.HISTORY.COMPRESSION_LEVEL > 6) {
+                Settings.CLIPBOARD.COMPRESSION_LEVEL = Math.min(6, Settings.CLIPBOARD.COMPRESSION_LEVEL);
+                Settings.HISTORY.COMPRESSION_LEVEL = Math.min(6, Settings.HISTORY.COMPRESSION_LEVEL);
+                debug("====== ZSTD COMPRESSION BINDING NOT FOUND ======");
+                debug(e);
+                debug("===============================================");
+                debug("FAWE will work but won't compress data as much");
+                debug("===============================================");
+            }
         }
         try {
             net.jpountz.util.Native.load();
         } catch (Throwable e) {
             debug("====== LZ4 COMPRESSION BINDING NOT FOUND ======");
-            MainUtil.handleError(e, false);
+            debug(e);
             debug("===============================================");
-            debug("FAWE will still work, but some things may be slower");
+            debug("FAWE will work but compression will be slower");
             debug(" - Try updating your JVM / OS");
             debug(" - Report this issue if you cannot resolve it");
             debug("===============================================");
