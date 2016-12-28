@@ -523,17 +523,41 @@ public class BukkitQueue_1_11 extends BukkitQueue_0<Chunk, ChunkSection[], Chunk
         Map<BlockPosition, TileEntity> tiles = (Map<BlockPosition, TileEntity>) tilesGeneric;
         Collection<Entity>[] entities = (Collection<Entity>[]) entitiesGeneric;
         // Copy blocks
-        BukkitChunk_1_11_Copy previous = new BukkitChunk_1_11_Copy(this, fs.getX(), fs.getZ());
+//        BukkitChunk_1_11_Copy previous = new BukkitChunk_1_11_Copy(this, fs.getX(), fs.getZ());
+        BukkitChunk_1_11 previous = getFaweChunk(fs.getX(), fs.getZ());
+        char[][] idPrevious = previous.getCombinedIdArrays();
         for (int layer = 0; layer < sections.length; layer++) {
             if (fs.getCount(layer) != 0 || all) {
                 ChunkSection section = sections[layer];
                 if (section != null) {
+//                    DataPaletteBlock blocks = section.getBlocks();
+//                    byte[] ids = ID_CACHE.get();
+//                    NibbleArray data = DATA_CACHE.get();
+//                    blocks.exportData(ids, data);
+//                    previous.set(layer, ids, data.asBytes());
+//                    short solid = (short) fieldNonEmptyBlockCount.getInt(section);
+//                    previous.count[layer] = solid;
+//                    previous.air[layer] = (short) (4096 - solid);
+                    short solid = 0;
+                    char[] previousLayer = idPrevious[layer] = new char[4096];
                     DataPaletteBlock blocks = section.getBlocks();
-                    byte[] ids = ID_CACHE.get();
-                    NibbleArray data = DATA_CACHE.get();
-                    blocks.exportData(ids, data);
-                    previous.set(layer, ids, data.asBytes());
-                    short solid = (short) fieldNonEmptyBlockCount.getInt(section);
+                    for (int j = 0; j < 4096; j++) {
+                        int x = FaweCache.CACHE_X[0][j];
+                        int y = FaweCache.CACHE_Y[0][j];
+                        int z = FaweCache.CACHE_Z[0][j];
+                        IBlockData ibd = blocks.a(x, y, z);
+                        Block block = ibd.getBlock();
+                        int combined = Block.getId(block);
+                        if (FaweCache.hasData(combined)) {
+                            combined = (combined << 4) + block.toLegacyData(ibd);
+                        } else {
+                            combined = combined << 4;
+                        }
+                        if (combined > 1) {
+                            solid++;
+                        }
+                        previousLayer[j] = (char) combined;
+                    }
                     previous.count[layer] = solid;
                     previous.air[layer] = (short) (4096 - solid);
                 }
