@@ -81,32 +81,26 @@ public class BukkitChunk_1_11 extends CharFaweChunk<Chunk, com.boydti.fawe.bukki
         if (sectionPalettes != null) {
             copy.sectionPalettes = new DataPaletteBlock[16];
             try {
-                Field fieldBits = DataPaletteBlock.class.getDeclaredField("b");
-                fieldBits.setAccessible(true);
-                Field fieldPalette = DataPaletteBlock.class.getDeclaredField("c");
-                fieldPalette.setAccessible(true);
-                Field fieldSize = DataPaletteBlock.class.getDeclaredField("e");
-                fieldSize.setAccessible(true);
                 for (int i = 0; i < sectionPalettes.length; i++) {
                     DataPaletteBlock current = sectionPalettes[i];
                     if (current == null) {
                         continue;
                     }
                     // Clone palette
-                    DataPalette currentPalette = (DataPalette) fieldPalette.get(current);
+                    DataPalette currentPalette = (DataPalette) BukkitQueue_1_11.fieldPalette.get(current);
                     if (!(currentPalette instanceof DataPaletteGlobal)) {
                         current.a(128, null);
                     }
                     DataPaletteBlock paletteBlock = newDataPaletteBlock();
-                    currentPalette = (DataPalette) fieldPalette.get(current);
+                    currentPalette = (DataPalette) BukkitQueue_1_11.fieldPalette.get(current);
                     if (!(currentPalette instanceof DataPaletteGlobal)) {
                         throw new RuntimeException("Palette must be global!");
                     }
-                    fieldPalette.set(paletteBlock, currentPalette);
+                    BukkitQueue_1_11.fieldPalette.set(paletteBlock, currentPalette);
                     // Clone size
-                    fieldSize.set(paletteBlock, fieldSize.get(current));
+                    BukkitQueue_1_11.fieldSize.set(paletteBlock, BukkitQueue_1_11.fieldSize.get(current));
                     // Clone palette
-                    DataBits currentBits = (DataBits) fieldBits.get(current);
+                    DataBits currentBits = (DataBits) BukkitQueue_1_11.fieldBits.get(current);
                     DataBits newBits = new DataBits(1, 0);
                     for (Field field : DataBits.class.getDeclaredFields()) {
                         field.setAccessible(true);
@@ -116,7 +110,7 @@ public class BukkitChunk_1_11 extends CharFaweChunk<Chunk, com.boydti.fawe.bukki
                         }
                         field.set(newBits, currentValue);
                     }
-                    fieldBits.set(paletteBlock, newBits);
+                    BukkitQueue_1_11.fieldBits.set(paletteBlock, newBits);
                     copy.sectionPalettes[i] = paletteBlock;
                 }
             } catch (Throwable e) {

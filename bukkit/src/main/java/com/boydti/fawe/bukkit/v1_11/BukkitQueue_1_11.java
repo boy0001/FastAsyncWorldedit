@@ -25,7 +25,37 @@ import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ExecutorCompletionService;
-import net.minecraft.server.v1_11_R1.*;
+import net.minecraft.server.v1_11_R1.BiomeBase;
+import net.minecraft.server.v1_11_R1.BiomeCache;
+import net.minecraft.server.v1_11_R1.Block;
+import net.minecraft.server.v1_11_R1.BlockPosition;
+import net.minecraft.server.v1_11_R1.ChunkProviderGenerate;
+import net.minecraft.server.v1_11_R1.ChunkProviderServer;
+import net.minecraft.server.v1_11_R1.ChunkSection;
+import net.minecraft.server.v1_11_R1.DataPaletteBlock;
+import net.minecraft.server.v1_11_R1.Entity;
+import net.minecraft.server.v1_11_R1.EntityPlayer;
+import net.minecraft.server.v1_11_R1.EntityTracker;
+import net.minecraft.server.v1_11_R1.EntityTypes;
+import net.minecraft.server.v1_11_R1.EnumDifficulty;
+import net.minecraft.server.v1_11_R1.EnumGamemode;
+import net.minecraft.server.v1_11_R1.EnumSkyBlock;
+import net.minecraft.server.v1_11_R1.IBlockData;
+import net.minecraft.server.v1_11_R1.IDataManager;
+import net.minecraft.server.v1_11_R1.MinecraftServer;
+import net.minecraft.server.v1_11_R1.NBTTagCompound;
+import net.minecraft.server.v1_11_R1.NibbleArray;
+import net.minecraft.server.v1_11_R1.PacketPlayOutMapChunk;
+import net.minecraft.server.v1_11_R1.PlayerChunk;
+import net.minecraft.server.v1_11_R1.PlayerChunkMap;
+import net.minecraft.server.v1_11_R1.ServerNBTManager;
+import net.minecraft.server.v1_11_R1.TileEntity;
+import net.minecraft.server.v1_11_R1.WorldChunkManager;
+import net.minecraft.server.v1_11_R1.WorldData;
+import net.minecraft.server.v1_11_R1.WorldManager;
+import net.minecraft.server.v1_11_R1.WorldServer;
+import net.minecraft.server.v1_11_R1.WorldSettings;
+import net.minecraft.server.v1_11_R1.WorldType;
 import org.bukkit.Bukkit;
 import org.bukkit.Chunk;
 import org.bukkit.World;
@@ -42,6 +72,8 @@ public class BukkitQueue_1_11 extends BukkitQueue_0<Chunk, ChunkSection[], Chunk
 
     protected static IBlockData air;
     protected static Field fieldBits;
+    protected static Field fieldPalette;
+    protected static Field fieldSize;
     protected static Method getEntitySlices;
     protected static Field fieldTickingBlockCount;
     protected static Field fieldNonEmptyBlockCount;
@@ -81,6 +113,11 @@ public class BukkitQueue_1_11 extends BukkitQueue_0<Chunk, ChunkSection[], Chunk
             fieldGenLayer2 = WorldChunkManager.class.getDeclaredField("c") ;
             fieldGenLayer1.setAccessible(true);
             fieldGenLayer2.setAccessible(true);
+
+            fieldPalette = DataPaletteBlock.class.getDeclaredField("c");
+            fieldPalette.setAccessible(true);
+            fieldSize = DataPaletteBlock.class.getDeclaredField("e");
+            fieldSize.setAccessible(true);
 
             Field fieldAir = DataPaletteBlock.class.getDeclaredField("a");
             fieldAir.setAccessible(true);
@@ -188,9 +225,6 @@ public class BukkitQueue_1_11 extends BukkitQueue_0<Chunk, ChunkSection[], Chunk
     public void setBlockLight(ChunkSection section, int x, int y, int z, int value) {
         section.getEmittedLightArray().a(x & 15, y & 15, z & 15, value);
     }
-
-    protected DataBits lastBits;
-    protected DataPaletteBlock lastBlocks;
 
     @Override
     public World createWorld(final WorldCreator creator) {
@@ -470,37 +504,36 @@ public class BukkitQueue_1_11 extends BukkitQueue_0<Chunk, ChunkSection[], Chunk
         }
     }
 
+    private static ThreadLocal<byte[]> ID_CACHE = new ThreadLocal<byte[]>() {
+        @Override
+        protected byte[] initialValue() {
+            return new byte[4096];
+        }
+    };
+
+    private static ThreadLocal<NibbleArray> DATA_CACHE = new ThreadLocal<NibbleArray>() {
+        @Override
+        protected NibbleArray initialValue() {
+            return new NibbleArray();
+        }
+    };
+
     @Override
     public BukkitChunk_1_11 getPrevious(CharFaweChunk fs, ChunkSection[] sections, Map<?, ?> tilesGeneric, Collection<?>[] entitiesGeneric, Set<UUID> createdEntities, boolean all) throws Exception {
         Map<BlockPosition, TileEntity> tiles = (Map<BlockPosition, TileEntity>) tilesGeneric;
         Collection<Entity>[] entities = (Collection<Entity>[]) entitiesGeneric;
-        BukkitChunk_1_11 previous = getFaweChunk(fs.getX(), fs.getZ());
         // Copy blocks
-        char[][] idPrevious = previous.getCombinedIdArrays();
+        BukkitChunk_1_11_Copy previous = new BukkitChunk_1_11_Copy(this, fs.getX(), fs.getZ());
         for (int layer = 0; layer < sections.length; layer++) {
             if (fs.getCount(layer) != 0 || all) {
                 ChunkSection section = sections[layer];
                 if (section != null) {
-                    short solid = 0;
-                    char[] previousLayer = idPrevious[layer] = new char[4096];
                     DataPaletteBlock blocks = section.getBlocks();
-                    for (int j = 0; j < 4096; j++) {
-                        int x = FaweCache.CACHE_X[0][j];
-                        int y = FaweCache.CACHE_Y[0][j];
-                        int z = FaweCache.CACHE_Z[0][j];
-                        IBlockData ibd = blocks.a(x, y, z);
-                        Block block = ibd.getBlock();
-                        int combined = Block.getId(block);
-                        if (FaweCache.hasData(combined)) {
-                            combined = (combined << 4) + block.toLegacyData(ibd);
-                        } else {
-                            combined = combined << 4;
-                        }
-                        if (combined > 1) {
-                            solid++;
-                        }
-                        previousLayer[j] = (char) combined;
-                    }
+                    byte[] ids = ID_CACHE.get();
+                    NibbleArray data = DATA_CACHE.get();
+                    blocks.exportData(ids, data);
+                    previous.set(layer, ids, data.asBytes());
+                    short solid = (short) fieldNonEmptyBlockCount.getInt(section);
                     previous.count[layer] = solid;
                     previous.air[layer] = (short) (4096 - solid);
                 }
