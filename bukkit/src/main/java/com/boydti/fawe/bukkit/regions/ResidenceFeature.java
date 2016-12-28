@@ -25,7 +25,7 @@ public class ResidenceFeature extends BukkitMaskManager implements Listener {
     public BukkitMask getMask(final FawePlayer<Player> fp, MaskType type) {
         final Player player = fp.parent;
         final Location location = player.getLocation();
-        final ClaimedResidence residence = Residence.getResidenceManager().getByLoc(location);
+        final ClaimedResidence residence = Residence.getInstance().getResidenceManager().getByLoc(location);
         if (residence != null) {
             if (residence.getOwner().equals(player.getName()) || residence.getOwner().equals(player.getUniqueId().toString()) || type == MaskType.MEMBER && residence.getPlayersInResidence().contains(player)) {
                 final CuboidArea area = residence.getAreaArray()[0];

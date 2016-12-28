@@ -10,7 +10,7 @@ dependencies {
     compile 'com.massivecraft:mcore:7.0.1'
     compile 'net.sacredlabyrinth.Phaed:PreciousStones:10.0.4-SNAPSHOT'
     compile 'net.jzx7:regios:5.9.9'
-    compile 'com.bekvon.bukkit:residence:2.6.6.6'
+    compile 'com.bekvon.bukkit.residence:Residence:4.5._13.1'
     compile 'com.palmergames.bukkit:towny:0.84.0.9'
     compile 'com.worldcretornica:plotme_core:0.16.3'
     compile 'junit:junit:4.11'
