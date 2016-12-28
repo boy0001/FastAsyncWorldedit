@@ -232,27 +232,33 @@ public class InstallerFrame extends JFrame {
                 debug("Selected version " + supportedString);
                 URL forgeUrl;
                 URL worldEditUrl;
+                URL worldEditCuiUrl;
                 try {
                     switch (supportedString) {
                         case "v111":
                             forgeUrl = new URL("https://files.minecraftforge.net/maven/net/minecraftforge/forge/1.11.2-13.20.0.2201/forge-1.11.2-13.20.0.2201-installer.jar");
                             worldEditUrl = new URL("http://builds.enginehub.org/job/worldedit/9593/download/worldedit-forge-mc1.11-6.1.6-SNAPSHOT-dist.jar");
+                            worldEditCuiUrl = new URL("https://addons-origin.cursecdn.com/files/2361/241/worldeditcuife-v1.0.6-mf-1.11.2-13.20.0.2201.jar");
                             break;
                         case "v110":
                             forgeUrl = new URL("http://files.minecraftforge.net/maven/net/minecraftforge/forge/1.10.2-12.18.3.2185/forge-1.10.2-12.18.3.2185-installer.jar");
                             worldEditUrl = new URL("http://builds.enginehub.org/job/worldedit/9395/download/worldedit-forge-mc1.10.2-6.1.4-SNAPSHOT-dist.jar");
+                            worldEditCuiUrl = new URL("https://addons-origin.cursecdn.com/files/2361/239/WorldEditCuiFe-v1.0.6-mf-1.10.2-12.18.2.2125.jar");
                             break;
                         case "v194":
                             forgeUrl = new URL("https://files.minecraftforge.net/maven/net/minecraftforge/forge/1.9.4-12.17.0.2051/forge-1.9.4-12.17.0.2051-installer.jar");
                             worldEditUrl = new URL("http://builds.enginehub.org/job/worldedit/9171/download/worldedit-forge-mc1.9.4-6.1.3-SNAPSHOT-dist.jar");
+                            worldEditCuiUrl = new URL("https://addons-origin.cursecdn.com/files/2361/236/WorldEditCuiFe-v1.0.6-mf-1.9.4-12.17.0.1976.jar");
                             break;
                         case "v189":
                             forgeUrl = new URL("https://files.minecraftforge.net/maven/net/minecraftforge/forge/1.8.9-11.15.1.1902-1.8.9/forge-1.8.9-11.15.1.1902-1.8.9-installer.jar");
                             worldEditUrl = new URL("http://builds.enginehub.org/job/worldedit/8755/download/worldedit-forge-mc1.8.9-6.1.1-dist.jar");
+                            worldEditCuiUrl = new URL("https://addons-origin.cursecdn.com/files/2361/235/WorldEditCuiFe-v1.0.6-mf-1.8.9-11.15.1.1855.jar");
                             break;
                         case "v1710":
                             forgeUrl = new URL("https://files.minecraftforge.net/maven/net/minecraftforge/forge/1.7.10-10.13.4.1614-1.7.10/forge-1.7.10-10.13.4.1614-1.7.10-installer.jar");
                             worldEditUrl = new URL("http://builds.enginehub.org/job/worldedit/9194/download/worldedit-forge-mc1.7.10-6.1.2-SNAPSHOT-dist.jar");
+                            worldEditCuiUrl = new URL("https://addons-origin.cursecdn.com/files/2361/234/WorldEditCuiFe-v1.0.6-mf-1.7.10-10.13.4.1566.jar");
                             break;
                         default:
                             return;
@@ -275,6 +281,7 @@ public class InstallerFrame extends JFrame {
                     methodRun.invoke(forgeInstallInstance, dirMc, alwaysTrue);
                     debug("Forge profile created, now installing WorldEdit");
                 } catch (Throwable e) {
+                    e.printStackTrace();
                     prompt("[ERROR] Forge install failed, download from:\nhttps://files.minecraftforge.net/");
                 }
                 File mods = new File(dirMc, "mods");
@@ -284,17 +291,29 @@ public class InstallerFrame extends JFrame {
                 } else {
                     for (File file : mods.listFiles()) {
                         String name = file.getName().toLowerCase();
-                        if ((name.contains("worldedit") || name.contains("fawe")) && !name.contains("cui")) {
+                        if ((name.contains("worldedit") || name.contains("fawe"))) {
                             debug("Delete existing: " + file.getName());
                             file.delete();
                         }
                     }
                 }
                 try { // install worldedit
-                    debug("Downloading worldedit from:\n - http://builds.enginehub.org/job/worldedit");
-                    try (ReadableByteChannel rbc = Channels.newChannel(worldEditUrl.openStream())) {
-                        try (FileOutputStream fos = new FileOutputStream(new File(mods, "worldedit-forge-mc1.10.2-6.1.4-SNAPSHOT-dist.jar"))) {
+                    debug("Downloading WE-CUI from:\n - https://minecraft.curseforge.com/projects/worldeditcui-forge-edition");
+                    try (ReadableByteChannel rbc = Channels.newChannel(worldEditCuiUrl.openStream())) {
+                        try (FileOutputStream fos = new FileOutputStream(new File(mods, "WorldEditCUI.jar"))) {
                             fos.getChannel().transferFrom(rbc, 0, Long.MAX_VALUE);
+                        }
+                    }
+                    debug("Successfully downloaded WorldEdit-CUI");
+                } catch (Throwable e) {
+                    prompt("[ERROR] WorldEdit install failed, download from:\nhttp://builds.enginehub.org/job/worldedit");
+                }
+                try { // install worldedit
+                    debug("Downloading WorldEdit from:\n - http://builds.enginehub.org/job/worldedit");
+                    try (ReadableByteChannel rbc = Channels.newChannel(worldEditUrl.openStream())) {
+                        try (FileOutputStream fos = new FileOutputStream(new File(mods, "WorldEdit.jar"))) {
+                            fos.getChannel().transferFrom(rbc, 0, Long.MAX_VALUE);
+
                         }
                     }
                     debug("Successfully downloaded WorldEdit");
@@ -335,12 +354,5 @@ public class InstallerFrame extends JFrame {
 
     public static void main(String[] args) throws Exception{
         InstallerFrame window = new InstallerFrame();
-//
-
-
-
-
-
-
     }
 }
