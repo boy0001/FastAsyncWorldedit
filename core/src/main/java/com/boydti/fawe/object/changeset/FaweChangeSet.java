@@ -1,6 +1,7 @@
 package com.boydti.fawe.object.changeset;
 
 import com.boydti.fawe.Fawe;
+import com.boydti.fawe.FaweAPI;
 import com.boydti.fawe.FaweCache;
 import com.boydti.fawe.config.Settings;
 import com.boydti.fawe.object.FaweChunk;
@@ -31,7 +32,8 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 public abstract class FaweChangeSet implements ChangeSet {
 
-    private final World world;
+    private World world;
+    private final String worldName;
     private final boolean mainThread;
     private final int layers;
     private AtomicInteger waitingCombined = new AtomicInteger(0);
@@ -47,13 +49,25 @@ public abstract class FaweChangeSet implements ChangeSet {
         }
     }
 
+    public FaweChangeSet(String world) {
+        this.worldName = world;
+        this.mainThread = Fawe.get().isMainThread();
+        this.layers = FaweChunk.HEIGHT >> 4;
+    }
+
     public FaweChangeSet(World world) {
         this.world = world;
+        this.worldName = Fawe.imp().getWorldName(world);
         this.mainThread = Fawe.get().isMainThread();
         this.layers = (this.world.getMaxY() + 1) >> 4;
     }
 
+    public String getWorldName() {
+        return worldName;
+    }
+
     public World getWorld() {
+        if (world == null && worldName != null) world = FaweAPI.getWorld(worldName);
         return world;
     }
 

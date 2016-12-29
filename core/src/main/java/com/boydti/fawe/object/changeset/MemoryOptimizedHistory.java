@@ -46,6 +46,10 @@ public class MemoryOptimizedHistory extends FaweStreamChangeSet {
         super(world);
     }
 
+    public MemoryOptimizedHistory(String world) {
+        super(world);
+    }
+
     @Override
     public boolean flush() {
         super.flush();

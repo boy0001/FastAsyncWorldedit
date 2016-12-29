@@ -29,6 +29,16 @@ public class RollbackOptimizedHistory extends DiskStorageHistory {
         this.time = System.currentTimeMillis();
     }
 
+    public RollbackOptimizedHistory(String world, UUID uuid, int index) {
+        super(world, uuid, index);
+        this.time = System.currentTimeMillis();
+    }
+
+    public RollbackOptimizedHistory(String world, UUID uuid) {
+        super(world, uuid);
+        this.time = System.currentTimeMillis();
+    }
+
     public long getTime() {
         return time;
     }

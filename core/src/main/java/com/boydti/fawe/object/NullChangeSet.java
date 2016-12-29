@@ -13,6 +13,10 @@ public class NullChangeSet extends FaweChangeSet {
         super(world);
     }
 
+    public NullChangeSet(String world) {
+        super(world);
+    }
+
     @Override
     public final boolean flush() {
         return false;
@@ -40,6 +44,11 @@ public class NullChangeSet extends FaweChangeSet {
 
     @Override
     public final void addEntityCreate(CompoundTag tag) {
+
+    }
+
+    @Override
+    public void addChangeTask(FaweQueue queue) {
 
     }
 

@@ -1,5 +1,7 @@
 package com.boydti.fawe.util;
 
+import com.boydti.fawe.Fawe;
+import com.boydti.fawe.FaweAPI;
 import com.boydti.fawe.config.Settings;
 import com.boydti.fawe.logging.rollback.RollbackOptimizedHistory;
 import com.boydti.fawe.object.FaweLimit;
@@ -56,11 +58,13 @@ public class EditSessionBuilder {
     public EditSessionBuilder(@Nonnull World world){
         checkNotNull(world);
         this.world = world;
+        this.worldName = Fawe.imp().getWorldName(world);
     }
 
     public EditSessionBuilder(@Nonnull String worldName) {
         checkNotNull(worldName);
         this.worldName = worldName;
+        this.world = FaweAPI.getWorld(worldName);
     }
 
     public EditSessionBuilder player(@Nullable FawePlayer player) {
@@ -91,12 +95,13 @@ public class EditSessionBuilder {
     }
 
     public EditSessionBuilder changeSetNull() {
-        return changeSet(new NullChangeSet(world));
+        return changeSet(world == null ? new NullChangeSet(worldName) : new NullChangeSet(world));
     }
 
     public EditSessionBuilder world(@Nonnull World world) {
         checkNotNull(world);
         this.world = world;
+        this.worldName = Fawe.imp().getWorldName(world);
         return this;
     }
 
@@ -107,7 +112,17 @@ public class EditSessionBuilder {
      * @return
      */
     public EditSessionBuilder changeSet(boolean disk, @Nullable UUID uuid, int compression) {
-        if (disk) {
+        if (world == null) {
+            if (disk) {
+                if (Settings.HISTORY.USE_DATABASE) {
+                    this.changeSet = new RollbackOptimizedHistory(worldName, uuid);
+                } else {
+                    this.changeSet = new DiskStorageHistory(worldName, uuid);
+                }
+            } else {
+                this.changeSet = new MemoryOptimizedHistory(worldName);
+            }
+        } else if (disk) {
             if (Settings.HISTORY.USE_DATABASE) {
                 this.changeSet = new RollbackOptimizedHistory(world, uuid);
             } else {
