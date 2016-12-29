@@ -83,7 +83,7 @@ public class SpongeQueue_1_11 extends NMSMappedFaweQueue<World, net.minecraft.wo
 
     static {
         try {
-            emptySection = new ExtendedBlockStorage(0, false);
+            emptySection = new ExtendedBlockStorage(0, true);
             Class<?> converter = Class.forName("com.sk89q.worldedit.sponge.nms.NBTConverter");
             methodFromNative = converter.getDeclaredMethod("toNative", Tag.class);
             methodToNative = converter.getDeclaredMethod("fromNative", NBTBase.class);

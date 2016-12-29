@@ -65,7 +65,7 @@ public class ForgeQueue_All extends NMSMappedFaweQueue<World, Chunk, ExtendedBlo
 
     static {
         try {
-            emptySection = new ExtendedBlockStorage(0, false);
+            emptySection = new ExtendedBlockStorage(0, true);
             Class<?> converter = Class.forName("com.sk89q.worldedit.forge.NBTConverter");
             methodFromNative = converter.getDeclaredMethod("toNative", Tag.class);
             methodToNative = converter.getDeclaredMethod("fromNative", NBTBase.class);

@@ -77,7 +77,7 @@ public class BukkitQueue17 extends BukkitQueue_0<Chunk, ChunkSection[], ChunkSec
 
     static {
         try {
-            emptySection = new ChunkSection(0, false);
+            emptySection = new ChunkSection(0, true);
             fieldData = ChunkSection.class.getDeclaredField("blockData");
             fieldData.setAccessible(true);
             fieldIds = ChunkSection.class.getDeclaredField("blockIds");

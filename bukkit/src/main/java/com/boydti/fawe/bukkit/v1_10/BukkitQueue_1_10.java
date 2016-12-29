@@ -85,7 +85,7 @@ public class BukkitQueue_1_10 extends BukkitQueue_0<Chunk, ChunkSection[], Chunk
 
     static {
         try {
-            emptySection = new ChunkSection(0, false);
+            emptySection = new ChunkSection(0, true);
             fieldSection = ChunkSection.class.getDeclaredField("blockIds");
             fieldTickingBlockCount = ChunkSection.class.getDeclaredField("tickingBlockCount");
             fieldNonEmptyBlockCount = ChunkSection.class.getDeclaredField("nonEmptyBlockCount");
@@ -370,7 +370,7 @@ public class BukkitQueue_1_10 extends BukkitQueue_0<Chunk, ChunkSection[], Chunk
         if (!chunk.isLoaded()) {
             return;
         }
-        net.minecraft.server.v1_10_R1.Chunk nmsChunk = ((CraftChunk) chunk).getHandle();
+            net.minecraft.server.v1_10_R1.Chunk nmsChunk = ((CraftChunk) chunk).getHandle();
         WorldServer w = (WorldServer) nmsChunk.getWorld();
         PlayerChunkMap chunkMap = w.getPlayerChunkMap();
         PlayerChunk playerChunk = chunkMap.getChunk(nmsChunk.locX, nmsChunk.locZ);
