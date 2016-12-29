@@ -283,6 +283,8 @@ public abstract class FaweQueue {
 
     public abstract void sendChunk(FaweChunk chunk);
 
+    public abstract void sendChunk(int x, int z, int bitMask);
+
     /**
      * This method is called when the server is < 1% available memory
      */

@@ -167,6 +167,9 @@ public abstract class BukkitQueue_0<CHUNK, CHUNKSECTIONS, SECTION> extends NMSMa
     }
 
     @Override
+    public void sendChunk(int x, int z, int bitMask) {}
+
+    @Override
     public void refreshChunk(FaweChunk fs) {}
 
     @Override

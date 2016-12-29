@@ -77,9 +77,11 @@ public class BukkitQueue_1_9_R1 extends BukkitQueue_0<Chunk, ChunkSection[], Chu
     protected static Field fieldGenLayer1;
     protected static Field fieldGenLayer2;
     protected static com.boydti.fawe.bukkit.v1_9.MutableGenLayer genLayer;
+    protected static ChunkSection emptySection;
 
     static {
         try {
+            emptySection = new ChunkSection(0, false);
             fieldSection = ChunkSection.class.getDeclaredField("blockIds");
             fieldTickingBlockCount = ChunkSection.class.getDeclaredField("tickingBlockCount");
             fieldNonEmptyBlockCount = ChunkSection.class.getDeclaredField("nonEmptyBlockCount");
@@ -213,10 +215,24 @@ public class BukkitQueue_1_9_R1 extends BukkitQueue_0<Chunk, ChunkSection[], Chu
     }
 
     @Override
+    public void sendChunk(int x, int z, int bitMask) {
+        if (!isChunkLoaded(x, z)) {
+            return;
+        }
+        sendChunk(getWorld().getChunkAt(x, z), bitMask);
+    }
+
+    @Override
     public void refreshChunk(FaweChunk fc) {
         BukkitChunk_1_9 fs = (BukkitChunk_1_9) fc;
-        ensureChunkLoaded(fc.getX(), fc.getZ());
+        if (!isChunkLoaded(fc.getX(), fc.getZ())) {
+            return;
+        }
         Chunk chunk = fs.getChunk();
+        sendChunk(chunk, fs.getBitMask());
+    }
+
+    public void sendChunk(Chunk chunk, int mask) {
         if (!chunk.isLoaded()) {
             return;
         }
@@ -231,7 +247,14 @@ public class BukkitQueue_1_9_R1 extends BukkitQueue_0<Chunk, ChunkSection[], Chu
             return;
         }
         // Send chunks
-        int mask = fc.getBitMask();
+        boolean empty = false;
+        ChunkSection[] sections = nmsChunk.getSections();
+        for (int i = 0; i < sections.length; i++) {
+            if (sections[i] == null) {
+                sections[i] = emptySection;
+                empty = true;
+            }
+        }
         if (mask == 0 || mask == 65535 && hasEntities(nmsChunk)) {
             PacketPlayOutMapChunk packet = new PacketPlayOutMapChunk(nmsChunk, 65280);
             for (EntityPlayer player : playerChunk.c) {
@@ -242,6 +265,13 @@ public class BukkitQueue_1_9_R1 extends BukkitQueue_0<Chunk, ChunkSection[], Chu
         PacketPlayOutMapChunk packet = new PacketPlayOutMapChunk(nmsChunk, mask);
         for (EntityPlayer player : playerChunk.c) {
             player.playerConnection.sendPacket(packet);
+        }
+        if (empty) {
+            for (int i = 0; i < sections.length; i++) {
+                if (sections[i] == emptySection) {
+                    sections[i] = null;
+                }
+            }
         }
     }
 

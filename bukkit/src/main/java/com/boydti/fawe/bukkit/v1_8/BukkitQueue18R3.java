@@ -73,9 +73,11 @@ public class BukkitQueue18R3 extends BukkitQueue_0<Chunk, ChunkSection[], ChunkS
     protected static Field fieldGenLayer1;
     protected static Field fieldGenLayer2;
     protected static com.boydti.fawe.bukkit.v1_8.MutableGenLayer genLayer;
+    protected static ChunkSection emptySection;
 
     static {
         try {
+            emptySection = new ChunkSection(0, false);
             fieldSection = ChunkSection.class.getDeclaredField("blockIds");
             fieldTickingBlockCount = ChunkSection.class.getDeclaredField("tickingBlockCount");
             fieldNonEmptyBlockCount = ChunkSection.class.getDeclaredField("nonEmptyBlockCount");
@@ -330,10 +332,24 @@ public class BukkitQueue18R3 extends BukkitQueue_0<Chunk, ChunkSection[], ChunkS
     }
 
     @Override
+    public void sendChunk(int x, int z, int bitMask) {
+        if (!isChunkLoaded(x, z)) {
+            return;
+        }
+        sendChunk(getWorld().getChunkAt(x, z), bitMask);
+    }
+
+    @Override
     public void refreshChunk(FaweChunk fc) {
         BukkitChunk_1_8 fs = (BukkitChunk_1_8) fc;
-        ensureChunkLoaded(fc.getX(), fc.getZ());
+        if (!isChunkLoaded(fc.getX(), fc.getZ())) {
+            return;
+        }
         Chunk chunk = fs.getChunk();
+        sendChunk(chunk, fs.getBitMask());
+    }
+
+    public void sendChunk(Chunk chunk, int mask) {
         if (!chunk.isLoaded()) {
             return;
         }
@@ -356,8 +372,15 @@ public class BukkitQueue18R3 extends BukkitQueue_0<Chunk, ChunkSection[], ChunkS
             if (players.isEmpty()) {
                 return;
             }
+            boolean empty = false;
+            ChunkSection[] sections = nmsChunk.getSections();
+            for (int i = 0; i < sections.length; i++) {
+                if (sections[i] == null) {
+                    sections[i] = emptySection;
+                    empty = true;
+                }
+            }
             // Send chunks
-            int mask = fc.getBitMask();
             if (mask == 0 || mask == 65535 && hasEntities(nmsChunk)) {
                 PacketPlayOutMapChunk packet = new PacketPlayOutMapChunk(nmsChunk, false, 65280);
                 for (EntityPlayer player : players) {
@@ -375,6 +398,13 @@ public class BukkitQueue18R3 extends BukkitQueue_0<Chunk, ChunkSection[], ChunkS
                 Packet tilePacket = tile.getUpdatePacket();
                 for (EntityPlayer player : players) {
                     player.playerConnection.sendPacket(tilePacket);
+                }
+            }
+            if (empty) {
+                for (int i = 0; i < sections.length; i++) {
+                    if (sections[i] == emptySection) {
+                        sections[i] = null;
+                    }
                 }
             }
         } catch (IllegalAccessException e) {

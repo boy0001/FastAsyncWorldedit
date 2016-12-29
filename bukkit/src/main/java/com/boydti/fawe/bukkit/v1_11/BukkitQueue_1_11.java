@@ -86,12 +86,13 @@ public class BukkitQueue_1_11 extends BukkitQueue_0<Chunk, ChunkSection[], Chunk
     protected static Field fieldGenLayer1;
     protected static Field fieldGenLayer2;
     protected static MutableGenLayer genLayer;
-
+    protected static ChunkSection emptySection;
 
     public static final IBlockData[] IBD_CACHE = new IBlockData[Character.MAX_VALUE];
 
     static {
         try {
+            emptySection = new ChunkSection(0, true);
             fieldSection = ChunkSection.class.getDeclaredField("blockIds");
             fieldTickingBlockCount = ChunkSection.class.getDeclaredField("tickingBlockCount");
             fieldNonEmptyBlockCount = ChunkSection.class.getDeclaredField("nonEmptyBlockCount");
@@ -355,10 +356,24 @@ public class BukkitQueue_1_11 extends BukkitQueue_0<Chunk, ChunkSection[], Chunk
     }
 
     @Override
+    public void sendChunk(int x, int z, int bitMask) {
+        if (!isChunkLoaded(x, z)) {
+            return;
+        }
+        sendChunk(getWorld().getChunkAt(x, z), bitMask);
+    }
+
+    @Override
     public void refreshChunk(FaweChunk fc) {
         BukkitChunk_1_11 fs = (BukkitChunk_1_11) fc;
-        ensureChunkLoaded(fc.getX(), fc.getZ());
+        if (!isChunkLoaded(fc.getX(), fc.getZ())) {
+            return;
+        }
         Chunk chunk = fs.getChunk();
+        sendChunk(chunk, fs.getBitMask());
+    }
+
+    public void sendChunk(Chunk chunk, int mask) {
         if (!chunk.isLoaded()) {
             return;
         }
@@ -373,7 +388,14 @@ public class BukkitQueue_1_11 extends BukkitQueue_0<Chunk, ChunkSection[], Chunk
             return;
         }
         // Send chunks
-        int mask = fc.getBitMask();
+        boolean empty = false;
+        ChunkSection[] sections = nmsChunk.getSections();
+        for (int i = 0; i < sections.length; i++) {
+            if (sections[i] == null) {
+                sections[i] = emptySection;
+                empty = true;
+            }
+        }
         if (mask == 0 || mask == 0 || mask == 65535 && hasEntities(nmsChunk)) {
             PacketPlayOutMapChunk packet = new PacketPlayOutMapChunk(nmsChunk, 65280);
             for (EntityPlayer player : playerChunk.c) {
@@ -384,6 +406,13 @@ public class BukkitQueue_1_11 extends BukkitQueue_0<Chunk, ChunkSection[], Chunk
         PacketPlayOutMapChunk packet = new PacketPlayOutMapChunk(nmsChunk, mask);
         for (EntityPlayer player : playerChunk.c) {
             player.playerConnection.sendPacket(packet);
+        }
+        if (empty) {
+            for (int i = 0; i < sections.length; i++) {
+                if (sections[i] == emptySection) {
+                    sections[i] = null;
+                }
+            }
         }
     }
 
@@ -504,60 +533,22 @@ public class BukkitQueue_1_11 extends BukkitQueue_0<Chunk, ChunkSection[], Chunk
         }
     }
 
-    private static ThreadLocal<byte[]> ID_CACHE = new ThreadLocal<byte[]>() {
-        @Override
-        protected byte[] initialValue() {
-            return new byte[4096];
-        }
-    };
-
-    private static ThreadLocal<NibbleArray> DATA_CACHE = new ThreadLocal<NibbleArray>() {
-        @Override
-        protected NibbleArray initialValue() {
-            return new NibbleArray();
-        }
-    };
-
     @Override
     public BukkitChunk_1_11 getPrevious(CharFaweChunk fs, ChunkSection[] sections, Map<?, ?> tilesGeneric, Collection<?>[] entitiesGeneric, Set<UUID> createdEntities, boolean all) throws Exception {
         Map<BlockPosition, TileEntity> tiles = (Map<BlockPosition, TileEntity>) tilesGeneric;
         Collection<Entity>[] entities = (Collection<Entity>[]) entitiesGeneric;
         // Copy blocks
-//        BukkitChunk_1_11_Copy previous = new BukkitChunk_1_11_Copy(this, fs.getX(), fs.getZ());
-        BukkitChunk_1_11 previous = getFaweChunk(fs.getX(), fs.getZ());
-        char[][] idPrevious = previous.getCombinedIdArrays();
+        BukkitChunk_1_11_Copy previous = new BukkitChunk_1_11_Copy(this, fs.getX(), fs.getZ());
         for (int layer = 0; layer < sections.length; layer++) {
             if (fs.getCount(layer) != 0 || all) {
                 ChunkSection section = sections[layer];
                 if (section != null) {
-//                    DataPaletteBlock blocks = section.getBlocks();
-//                    byte[] ids = ID_CACHE.get();
-//                    NibbleArray data = DATA_CACHE.get();
-//                    blocks.exportData(ids, data);
-//                    previous.set(layer, ids, data.asBytes());
-//                    short solid = (short) fieldNonEmptyBlockCount.getInt(section);
-//                    previous.count[layer] = solid;
-//                    previous.air[layer] = (short) (4096 - solid);
-                    short solid = 0;
-                    char[] previousLayer = idPrevious[layer] = new char[4096];
                     DataPaletteBlock blocks = section.getBlocks();
-                    for (int j = 0; j < 4096; j++) {
-                        int x = FaweCache.CACHE_X[0][j];
-                        int y = FaweCache.CACHE_Y[0][j];
-                        int z = FaweCache.CACHE_Z[0][j];
-                        IBlockData ibd = blocks.a(x, y, z);
-                        Block block = ibd.getBlock();
-                        int combined = Block.getId(block);
-                        if (FaweCache.hasData(combined)) {
-                            combined = (combined << 4) + block.toLegacyData(ibd);
-                        } else {
-                            combined = combined << 4;
-                        }
-                        if (combined > 1) {
-                            solid++;
-                        }
-                        previousLayer[j] = (char) combined;
-                    }
+                    byte[] ids = new byte[4096];
+                    NibbleArray data = new NibbleArray();
+                    blocks.exportData(ids, data);
+                    previous.set(layer, ids, data.asBytes());
+                    short solid = (short) fieldNonEmptyBlockCount.getInt(section);
                     previous.count[layer] = solid;
                     previous.air[layer] = (short) (4096 - solid);
                 }

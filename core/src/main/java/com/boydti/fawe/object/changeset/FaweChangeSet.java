@@ -50,7 +50,7 @@ public abstract class FaweChangeSet implements ChangeSet {
     public FaweChangeSet(World world) {
         this.world = world;
         this.mainThread = Fawe.get().isMainThread();
-        this.layers = this.world.getMaxY() >> 4;
+        this.layers = (this.world.getMaxY() + 1) >> 4;
     }
 
     public World getWorld() {
@@ -221,41 +221,39 @@ public abstract class FaweChangeSet implements ChangeSet {
                                 // TODO
                             }
                             // Block changes
-                            {
-                                // Current blocks
+                            // Current blocks
 //                                char[][] currentIds = next.getCombinedIdArrays();
-                                // Previous blocks in modified sections (i.e. we skip sections that weren't modified)
+                            // Previous blocks in modified sections (i.e. we skip sections that weren't modified)
 //                                char[][] previousIds = previous.getCombinedIdArrays();
-                                for (int layer = 0; layer < layers; layer++) {
-                                    char[] currentLayer = next.getIdArray(layer);
-                                    char[] previousLayer = previous.getIdArray(layer);
-                                    if (currentLayer == null) {
-                                        continue;
-                                    }
-                                    int startY = layer << 4;
-                                    for (int y = 0; y < 16; y++) {
-                                        short[][] i1 = FaweCache.CACHE_J[y];
-                                        int yy = y + startY;
-                                        for (int z = 0; z < 16; z++) {
-                                            int zz = z + bz;
-                                            short[] i2 = i1[z];
-                                            for (int x = 0; x < 16; x++) {
-                                                int xx = x + bx;
-                                                int index = i2[x];
-                                                int combinedIdCurrent = currentLayer[index];
-                                                switch (combinedIdCurrent) {
-                                                    case 0:
-                                                        continue;
-                                                    case 1:
-                                                        combinedIdCurrent = 0;
-                                                    default:
-                                                        char combinedIdPrevious = previousLayer != null ? previousLayer[index] : 0;
-                                                        if (combinedIdCurrent != combinedIdPrevious) {
-                                                            synchronized (lockCombined) {
-                                                                add(xx, yy, zz, combinedIdPrevious, combinedIdCurrent);
-                                                            }
+                            for (int layer = 0; layer < layers; layer++) {
+                                char[] currentLayer = next.getIdArray(layer);
+                                char[] previousLayer = previous.getIdArray(layer);
+                                if (currentLayer == null) {
+                                    continue;
+                                }
+                                int startY = layer << 4;
+                                for (int y = 0; y < 16; y++) {
+                                    short[][] i1 = FaweCache.CACHE_J[y];
+                                    int yy = y + startY;
+                                    for (int z = 0; z < 16; z++) {
+                                        int zz = z + bz;
+                                        short[] i2 = i1[z];
+                                        for (int x = 0; x < 16; x++) {
+                                            int xx = x + bx;
+                                            int index = i2[x];
+                                            int combinedIdCurrent = currentLayer[index];
+                                            switch (combinedIdCurrent) {
+                                                case 0:
+                                                    continue;
+                                                case 1:
+                                                    combinedIdCurrent = 0;
+                                                default:
+                                                    char combinedIdPrevious = previousLayer != null ? previousLayer[index] : 0;
+                                                    if (combinedIdCurrent != combinedIdPrevious) {
+                                                        synchronized (lockCombined) {
+                                                            add(xx, yy, zz, combinedIdPrevious, combinedIdCurrent);
                                                         }
-                                                }
+                                                    }
                                             }
                                         }
                                     }

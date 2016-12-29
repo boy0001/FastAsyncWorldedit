@@ -72,9 +72,12 @@ public class BukkitQueue17 extends BukkitQueue_0<Chunk, ChunkSection[], ChunkSec
     protected static Field fieldGenLayer1;
     protected static Field fieldGenLayer2;
     protected static com.boydti.fawe.bukkit.v1_7.MutableGenLayer genLayer;
+    protected static ChunkSection emptySection;
+
 
     static {
         try {
+            emptySection = new ChunkSection(0, false);
             fieldData = ChunkSection.class.getDeclaredField("blockData");
             fieldData.setAccessible(true);
             fieldIds = ChunkSection.class.getDeclaredField("blockIds");
@@ -327,10 +330,24 @@ public class BukkitQueue17 extends BukkitQueue_0<Chunk, ChunkSection[], ChunkSec
     }
 
     @Override
+    public void sendChunk(int x, int z, int bitMask) {
+        if (!isChunkLoaded(x, z)) {
+            return;
+        }
+        sendChunk(getWorld().getChunkAt(x, z), bitMask);
+    }
+
+    @Override
     public void refreshChunk(FaweChunk fc) {
         BukkitChunk_1_7 fs = (BukkitChunk_1_7) fc;
-        ensureChunkLoaded(fc.getX(), fc.getZ());
+        if (!isChunkLoaded(fc.getX(), fc.getZ())) {
+            return;
+        }
         Chunk chunk = fs.getChunk();
+        sendChunk(chunk, fs.getBitMask());
+    }
+
+    public void sendChunk(Chunk chunk, int mask) {
         if (!chunk.isLoaded()) {
             return;
         }
@@ -360,10 +377,17 @@ public class BukkitQueue17 extends BukkitQueue_0<Chunk, ChunkSection[], ChunkSec
                 return;
             }
             // Send chunks
+            boolean empty = false;
+            ChunkSection[] sections = nmsChunk.getSections();
+            for (int i = 0; i < sections.length; i++) {
+                if (sections[i] == null) {
+                    sections[i] = emptySection;
+                    empty = true;
+                }
+            }
             int version = -1;
             PacketPlayOutMapChunk packet = null;
             Map<Integer, PacketPlayOutMapChunk> packets = null;
-            int mask = fc.getBitMask();
             if (mask == 0 || mask == 65535 && hasEntities(nmsChunk)) {
                 for (EntityPlayer player : players) {
                     int currentVersion = player.playerConnection.networkManager.getVersion();
@@ -403,6 +427,13 @@ public class BukkitQueue17 extends BukkitQueue_0<Chunk, ChunkSection[], ChunkSec
                     }
                 }
                 player.playerConnection.sendPacket(packet);
+            }
+            if (empty) {
+                for (int i = 0; i < sections.length; i++) {
+                    if (sections[i] == emptySection) {
+                        sections[i] = null;
+                    }
+                }
             }
         } catch (Throwable e) {
             MainUtil.handleError(e);

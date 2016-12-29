@@ -239,6 +239,13 @@ public class MCAQueue extends NMSMappedFaweQueue<FaweQueue, FaweChunk, FaweChunk
     }
 
     @Override
+    public void sendChunk(int x, int z, int bitMask) {
+        if (parentNMS != null) {
+            parentNMS.sendChunk(x, z, bitMask);
+        }
+    }
+
+    @Override
     public CompoundTag getTileEntity(FaweChunk sections, int x, int y, int z) {
         if (sections.getClass() == MCAChunk.class) {
             return sections.getTile(x, y, z);

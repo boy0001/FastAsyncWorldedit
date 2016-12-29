@@ -95,21 +95,24 @@ public class NukkitQueue extends NMSMappedFaweQueue<Level, BaseFullChunk, BaseFu
         return MathMan.pair16(opacity, brightness);
     }
 
-
     @Override
-    public void refreshChunk(FaweChunk fs) {
-        NukkitChunk fc = (NukkitChunk) fs;
+    public void sendChunk(int x, int z, int bitMask) {
         Collection<Player> players = faweNukkit.getPlugin().getServer().getOnlinePlayers().values();
         int view = faweNukkit.getPlugin().getServer().getViewDistance();
         for (Player player : players) {
             Position pos = player.getPosition();
             int pcx = pos.getFloorX() >> 4;
             int pcz = pos.getFloorZ() >> 4;
-            if (Math.abs(pcx - fs.getX()) > view || Math.abs(pcz - fs.getZ()) > view) {
+            if (Math.abs(pcx - x) > view || Math.abs(pcz - z) > view) {
                 continue;
             }
-            world.requestChunk(fs.getX(), fs.getZ(), player);
+            world.requestChunk(x, z, player);
         }
+    }
+
+    @Override
+    public void refreshChunk(FaweChunk fs) {
+        sendChunk(fs.getX(), fs.getZ(), fs.getBitMask());
     }
 
     @Override

@@ -35,6 +35,11 @@ public class DelegateFaweQueue extends FaweQueue {
     }
 
     @Override
+    public void sendChunk(int x, int z, int bitMask) {
+        parent.sendChunk(x, z, bitMask);
+    }
+
+    @Override
     public String getWorldName() {
         return parent.getWorldName();
     }

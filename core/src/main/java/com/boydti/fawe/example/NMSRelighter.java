@@ -11,11 +11,9 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
-import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Queue;
-import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class NMSRelighter implements Relighter{
@@ -24,7 +22,7 @@ public class NMSRelighter implements Relighter{
     private final Map<Long, RelightSkyEntry> skyToRelight;
     private final Map<Long, Map<Short, Object>> lightQueue;
     private final Object present = new Object();
-    private final Set<Long> chunksToSend;
+    private final HashMap<Long, Integer> chunksToSend;
 
     private final int maxY;
     private volatile boolean relighting = false;
@@ -37,7 +35,7 @@ public class NMSRelighter implements Relighter{
         this.queue = queue;
         this.skyToRelight = new ConcurrentHashMap<>();
         this.lightQueue = new ConcurrentHashMap<>();
-        chunksToSend = new LinkedHashSet<>();
+        chunksToSend = new HashMap<>();
         this.maxY = queue.getMaxY();
     }
 
@@ -66,8 +64,10 @@ public class NMSRelighter implements Relighter{
         while (iter.hasNext()) {
             Map.Entry<Long, RelightSkyEntry> entry = iter.next();
             iter.remove();
-            chunksToSend.add(entry.getKey());
             RelightSkyEntry chunk = entry.getValue();
+            long pair = entry.getKey();
+            Integer existing = chunksToSend.get(pair);
+            chunksToSend.put(pair, chunk.bitmask | (existing != null ? existing : 0));
             queue.ensureChunkLoaded(chunk.x, chunk.z);
             Object sections = queue.getCachedSections(queue.getWorld(), chunk.x, chunk.z);
             queue.removeLighting(sections, FaweQueue.RelightMode.ALL, queue.hasSky());
@@ -217,14 +217,15 @@ public class NMSRelighter implements Relighter{
     }
 
     public void sendChunks() {
-        Iterator<Long> iter = chunksToSend.iterator();
+        Iterator<Map.Entry<Long, Integer>> iter = chunksToSend.entrySet().iterator();
         while (iter.hasNext()) {
-            long pair = iter.next();
+            Map.Entry<Long, Integer> entry = iter.next();
+            long pair = entry.getKey();
+            int bitMask = entry.getValue();
             iter.remove();
             int x = MathMan.unpairIntX(pair);
             int z = MathMan.unpairIntY(pair);
-            CharFaweChunk fc = (CharFaweChunk) queue.getFaweChunk(x, z);
-            queue.sendChunk(fc);
+            queue.sendChunk(x, z, bitMask);
         }
     }
 
@@ -239,7 +240,7 @@ public class NMSRelighter implements Relighter{
         while (iter.hasNext()) {
             Map.Entry<Long, RelightSkyEntry> entry = iter.next();
             iter.remove();
-            chunksToSend.add(entry.getKey());
+            chunksToSend.put(entry.getKey(), entry.getValue().bitmask);
             chunksList.add(entry.getValue());
         }
         Collections.sort(chunksList);

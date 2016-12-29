@@ -75,11 +75,12 @@ public class ForgeQueue_All extends NMSMappedFaweQueue<World, Chunk, ExtendedBlo
     protected static Field fieldBiomes2;
     protected static Field fieldGenLayer1;
     protected static Field fieldGenLayer2;
-
+    protected static ExtendedBlockStorage emptySection;
     private static MutableGenLayer genLayer;
 
     static {
         try {
+            emptySection = new ExtendedBlockStorage(0, false);
             Class<?> converter = Class.forName("com.sk89q.worldedit.forge.NBTConverter");
             methodFromNative = converter.getDeclaredMethod("toNative", Tag.class);
             methodToNative = converter.getDeclaredMethod("fromNative", NBTBase.class);
@@ -432,10 +433,24 @@ public class ForgeQueue_All extends NMSMappedFaweQueue<World, Chunk, ExtendedBlo
     }
 
     @Override
+    public void sendChunk(int x, int z, int bitMask) {
+        if (!isChunkLoaded(x, z)) {
+            return;
+        }
+        sendChunk(getChunk(getImpWorld(), x, z), bitMask);
+    }
+
+    @Override
     public void refreshChunk(FaweChunk fc) {
         ForgeChunk_All fs = (ForgeChunk_All) fc;
-        ensureChunkLoaded(fc.getX(), fc.getZ());
-        Chunk nmsChunk = fs.getChunk();
+        if (!isChunkLoaded(fc.getX(), fc.getZ())) {
+            return;
+        }
+        Chunk chunk = fs.getChunk();
+        sendChunk(chunk, fs.getBitMask());
+    }
+
+    public void sendChunk(Chunk nmsChunk, int mask) {
         if (!nmsChunk.isLoaded()) {
             return;
         }
@@ -454,7 +469,14 @@ public class ForgeQueue_All extends NMSMappedFaweQueue<World, Chunk, ExtendedBlo
                 players.add(input);
                 return false;
             });
-            int mask = fc.getBitMask();
+            boolean empty = false;
+            ExtendedBlockStorage[] sections = nmsChunk.getBlockStorageArray();
+            for (int i = 0; i < sections.length; i++) {
+                if (sections[i] == null) {
+                    sections[i] = emptySection;
+                    empty = true;
+                }
+            }
             if (mask == 0 || mask == 65535 && hasEntities(nmsChunk)) {
                 SPacketChunkData packet = new SPacketChunkData(nmsChunk, 65280);
                 for (EntityPlayerMP player : players) {
@@ -465,6 +487,13 @@ public class ForgeQueue_All extends NMSMappedFaweQueue<World, Chunk, ExtendedBlo
             SPacketChunkData packet = new SPacketChunkData(nmsChunk, mask);
             for (EntityPlayerMP player : players) {
                 player.connection.sendPacket(packet);
+            }
+            if (empty) {
+                for (int i = 0; i < sections.length; i++) {
+                    if (sections[i] == emptySection) {
+                        sections[i] = null;
+                    }
+                }
             }
         } catch (Throwable e) {
             MainUtil.handleError(e);
