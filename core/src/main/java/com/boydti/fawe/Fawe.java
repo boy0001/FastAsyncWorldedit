@@ -334,7 +334,7 @@ public class Fawe {
         return this.worldedit;
     }
 
-    public static void setupInjector() { 
+    public static void setupInjector() {
         /*
          * Modify the sessions
          *  - EditSession supports custom queue and a lot of optimizations
