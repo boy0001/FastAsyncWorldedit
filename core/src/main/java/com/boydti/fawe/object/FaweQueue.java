@@ -410,7 +410,7 @@ public abstract class FaweQueue {
      */
     public void flush(int time) {
         if (size() > 0) {
-            if (Fawe.get().isMainThread()) {
+            if (Fawe.isMainThread()) {
                 SetQueue.IMP.flush(this);
             } else {
                 if (enqueue()) {

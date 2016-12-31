@@ -257,7 +257,7 @@ public class TaskBuilder extends Metadatable {
                         return;
                     case SYNC:
                     case SYNC_PARALLEL:
-                        if (!Fawe.get().isMainThread()) {
+                        if (!Fawe.isMainThread()) {
                             TaskManager.IMP.sync(new RunnableVal() {
                                 @Override
                                 public void run(Object value) {
@@ -270,7 +270,7 @@ public class TaskBuilder extends Metadatable {
                     case SYNC_WHEN_FREE:
                     case ASYNC:
                     case ASYNC_PARALLEL:
-                        if (Fawe.get().isMainThread()) {
+                        if (Fawe.isMainThread()) {
                             TaskManager.IMP.async(new Runnable() {
                                 @Override
                                 public void run() {

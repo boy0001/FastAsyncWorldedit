@@ -1308,7 +1308,7 @@ public class EditSession extends AbstractWorld implements HasFaweQueue, Lighting
             queue.dequeue();
             return;
         }
-        if (Fawe.get().isMainThread()) {
+        if (Fawe.isMainThread()) {
             SetQueue.IMP.flush(queue);
         } else {
             queue.flush();

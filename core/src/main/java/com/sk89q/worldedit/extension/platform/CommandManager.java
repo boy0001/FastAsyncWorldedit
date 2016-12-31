@@ -372,7 +372,7 @@ public final class CommandManager {
             public void run() {
                 handleCommandOnCurrentThread(event, true);
             }
-        }, Fawe.get().isMainThread());
+        }, Fawe.isMainThread());
         event.setCancelled(true);
     }
 

@@ -5,13 +5,20 @@ import com.boydti.fawe.config.Settings;
 import com.boydti.fawe.database.DBHandler;
 import com.boydti.fawe.database.RollbackDatabase;
 import com.boydti.fawe.object.FaweInputStream;
+import com.boydti.fawe.object.FawePlayer;
 import com.boydti.fawe.object.IntegerPair;
 import com.boydti.fawe.object.RegionWrapper;
 import com.boydti.fawe.util.MainUtil;
 import com.sk89q.jnbt.NBTInputStream;
 import com.sk89q.jnbt.NBTOutputStream;
+import com.sk89q.worldedit.EditSession;
 import com.sk89q.worldedit.world.World;
-import java.io.*;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
@@ -97,6 +104,13 @@ public class DiskStorageHistory extends FaweStreamChangeSet {
         initFiles(folder);
     }
 
+    public DiskStorageHistory(File folder, String world, UUID uuid, int i) {
+        super(world);
+        this.uuid = uuid;
+        this.index = i;
+        initFiles(folder);
+    }
+
     private void initFiles(File folder) {
         nbtfFile = new File(folder, index + ".nbtf");
         nbttFile = new File(folder, index + ".nbtt");
@@ -127,6 +141,12 @@ public class DiskStorageHistory extends FaweStreamChangeSet {
         nbttFile.delete();
         entfFile.delete();
         enttFile.delete();
+    }
+
+    public void undo(FawePlayer fp) {
+        EditSession session = toEditSession(fp);
+        session.undo(session);
+        deleteFiles();
     }
 
     public UUID getUUID() {

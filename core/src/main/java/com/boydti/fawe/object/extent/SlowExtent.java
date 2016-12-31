@@ -17,7 +17,7 @@ public class SlowExtent extends AbstractDelegateExtent {
 
     @Override
     public boolean setBlock(Vector location, BaseBlock block) throws WorldEditException {
-        if (!Fawe.get().isMainThread()) try {
+        if (!Fawe.isMainThread()) try {
             Thread.sleep(sleep);
         } catch (InterruptedException e) {
             e.printStackTrace();

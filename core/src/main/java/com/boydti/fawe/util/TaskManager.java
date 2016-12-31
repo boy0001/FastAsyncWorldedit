@@ -191,7 +191,7 @@ public abstract class TaskManager {
      * @param r
      */
     public void taskNowAsync(final Runnable r) {
-        taskNow(r, Fawe.get().isMainThread());
+        taskNow(r, Fawe.isMainThread());
     }
 
     /**
@@ -297,7 +297,7 @@ public abstract class TaskManager {
     }
 
     public void taskWhenFree(Runnable run) {
-        if (Fawe.get().isMainThread()) {
+        if (Fawe.isMainThread()) {
             run.run();
         } else {
             SetQueue.IMP.addTask(run);

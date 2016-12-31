@@ -154,7 +154,7 @@ import javax.management.NotificationListener;
 public class Fawe { 
     /**
      * The FAWE instance;
-     */ 
+     */
     private static Fawe INSTANCE;
 
     /**
@@ -566,8 +566,8 @@ public class Fawe {
         return this.thread;
     }
 
-    public boolean isMainThread() {
-        return Thread.currentThread() == thread;
+    public static boolean isMainThread() {
+        return INSTANCE != null ? INSTANCE.thread == Thread.currentThread() : true;
     }
 
     /**

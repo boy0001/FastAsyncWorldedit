@@ -33,8 +33,8 @@ import com.boydti.fawe.object.RegionWrapper;
 import com.boydti.fawe.object.RunnableVal;
 import com.boydti.fawe.object.changeset.DiskStorageHistory;
 import com.boydti.fawe.regions.FaweMaskManager;
-import com.boydti.fawe.util.EditSessionBuilder;
 import com.boydti.fawe.util.MainUtil;
+import com.boydti.fawe.util.MathMan;
 import com.boydti.fawe.util.SetQueue;
 import com.sk89q.minecraft.util.commands.Command;
 import com.sk89q.minecraft.util.commands.CommandContext;
@@ -75,61 +75,86 @@ public class HistoryCommands {
             aliases = { "/frb", "frb", "fawerollback", "/fawerollback" },
             usage = "<user> <radius> <time>",
             desc = "Undo edits within a radius",
-            min = 3,
+            min = 1,
             max = 3
     )
     @CommandPermissions("worldedit.history.rollback")
-    public void faweRollback(final Player player, LocalSession session, final String user, int radius, String time) throws WorldEditException {
+    public void faweRollback(final Player player, LocalSession session, final String user, Integer radius, String time) throws WorldEditException {
         if (!Settings.HISTORY.USE_DATABASE) {
             BBC.SETTING_DISABLE.send(player, "history.use-database");
             return;
         }
-        if (user.equals("#import") && player.hasPermission("worldedit.history.import")) {
-            if (!player.hasPermission("fawe.rollback.import")) {
-                BBC.NO_PERM.send(player, "fawe.rollback.import");
-                return;
-            }
-            File folder = MainUtil.getFile(Fawe.imp().getDirectory(), Settings.PATHS.HISTORY);
-            if (!folder.exists()) {
-                return;
-            }
-            for (File worldFolder : folder.listFiles()) {
-                if (!worldFolder.isDirectory()) {
-                    continue;
-                }
-                String worldName = worldFolder.getName();
-                World world = FaweAPI.getWorld(worldName);
-                if (world != null) {
-                    for (File userFolder : worldFolder.listFiles()) {
-                        if (!userFolder.isDirectory()) {
+        switch (user.charAt(0)) {
+            case '#': {
+                if (user.equals("#import")) {
+                    if (!player.hasPermission("fawe.rollback.import")) {
+                        BBC.NO_PERM.send(player, "fawe.rollback.import");
+                        return;
+                    }
+                    File folder = MainUtil.getFile(Fawe.imp().getDirectory(), Settings.PATHS.HISTORY);
+                    if (!folder.exists()) {
+                        return;
+                    }
+                    for (File worldFolder : folder.listFiles()) {
+                        if (!worldFolder.isDirectory()) {
                             continue;
                         }
-                        String userUUID = userFolder.getName();
-                        try {
-                            UUID uuid = UUID.fromString(userUUID);
-                            for (File historyFile : userFolder.listFiles()) {
-                                String name = historyFile.getName();
-                                if (!name.endsWith(".bd")) {
+                        String worldName = worldFolder.getName();
+                        World world = FaweAPI.getWorld(worldName);
+                        if (world != null) {
+                            for (File userFolder : worldFolder.listFiles()) {
+                                if (!userFolder.isDirectory()) {
                                     continue;
                                 }
-                                RollbackOptimizedHistory rollback = new RollbackOptimizedHistory(world, uuid, Integer.parseInt(name.substring(0, name.length() - 3)));
-                                DiskStorageHistory.DiskStorageSummary summary = rollback.summarize(RegionWrapper.GLOBAL(), true);
-                                if (summary != null) {
-                                    rollback.setDimensions(new Vector(summary.minX, 0, summary.minZ), new Vector(summary.maxX, 255, summary.maxZ));
-                                    rollback.setTime(historyFile.lastModified());
-                                    RollbackDatabase db = DBHandler.IMP.getDatabase(world);
-                                    db.logEdit(rollback);
-                                    player.print(BBC.getPrefix() + "Logging: " + historyFile);
+                                String userUUID = userFolder.getName();
+                                try {
+                                    UUID uuid = UUID.fromString(userUUID);
+                                    for (File historyFile : userFolder.listFiles()) {
+                                        String name = historyFile.getName();
+                                        if (!name.endsWith(".bd")) {
+                                            continue;
+                                        }
+                                        RollbackOptimizedHistory rollback = new RollbackOptimizedHistory(world, uuid, Integer.parseInt(name.substring(0, name.length() - 3)));
+                                        DiskStorageHistory.DiskStorageSummary summary = rollback.summarize(RegionWrapper.GLOBAL(), true);
+                                        if (summary != null) {
+                                            rollback.setDimensions(new Vector(summary.minX, 0, summary.minZ), new Vector(summary.maxX, 255, summary.maxZ));
+                                            rollback.setTime(historyFile.lastModified());
+                                            RollbackDatabase db = DBHandler.IMP.getDatabase(world);
+                                            db.logEdit(rollback);
+                                            player.print(BBC.getPrefix() + "Logging: " + historyFile);
+                                        }
+                                    }
+                                } catch (IllegalArgumentException e) {
+                                    continue;
                                 }
                             }
-                        } catch (IllegalArgumentException e) {
-                            continue;
                         }
                     }
+                    player.print(BBC.getPrefix() + "Done import!");
+                    return;
                 }
+                String toParse = user.substring(1);
+                if (!MathMan.isInteger(toParse)) {
+                    BBC.COMMAND_SYNTAX.send(player, "/frb <user> <radius> <time>");
+                    return;
+                }
+                int index = Integer.parseInt(toParse);
+                final World world = player.getWorld();
+                UUID uuid = player.getUniqueId();
+                DiskStorageHistory file = new DiskStorageHistory(world, uuid, index);
+                if (file.getBDFile().exists()) {
+                    file.undo(FawePlayer.wrap(player));
+                    BBC.ROLLBACK_ELEMENT.send(player, Fawe.imp().getWorldName(world) + "/" + user + "-" + index);
+                } else {
+                    BBC.TOOL_INSPECT_INFO_FOOTER.send(player, 0);
+                }
+                return;
             }
-            player.print(BBC.getPrefix() + "Done import!");
-            return;
+            default:
+                if (radius == null) {
+                    BBC.COMMAND_SYNTAX.send(player, "/frb <user> <radius> <time>");
+                    return;
+                }
         }
         UUID other = Fawe.imp().getUUID(user);
         if (other == null) {
@@ -162,18 +187,7 @@ public class HistoryCommands {
         database.getPotentialEdits(other, System.currentTimeMillis() - timeDiff, bot, top, new RunnableVal<DiskStorageHistory>() {
                 @Override
                 public void run(DiskStorageHistory edit) {
-                    EditSession session = new EditSessionBuilder(world)
-                            .player(fp)
-                            .autoQueue(false)
-                            .fastmode(false)
-                            .checkMemory(false)
-                            .changeSet(edit)
-                            .limitUnlimited()
-                            .queue(finalQueue)
-                            .build();
-                    session.setSize(1);
-                    session.undo(session);
-                    edit.deleteFiles();
+                    edit.undo(fp);
                     BBC.ROLLBACK_ELEMENT.send(player, Fawe.imp().getWorldName(edit.getWorld()) + "/" + user + "-" + edit.getIndex());
                     count.incrementAndGet();
                 }
@@ -184,6 +198,10 @@ public class HistoryCommands {
                 }
             }, true
         );
+    }
+
+    private void rollBack(DiskStorageHistory file) {
+
     }
 
     @Command(

@@ -7,7 +7,6 @@ import com.boydti.fawe.config.Settings;
 import com.boydti.fawe.object.FaweChunk;
 import com.boydti.fawe.object.FawePlayer;
 import com.boydti.fawe.object.FaweQueue;
-import com.boydti.fawe.object.RegionWrapper;
 import com.boydti.fawe.object.RunnableVal2;
 import com.boydti.fawe.util.EditSessionBuilder;
 import com.boydti.fawe.util.MainUtil;
@@ -51,14 +50,14 @@ public abstract class FaweChangeSet implements ChangeSet {
 
     public FaweChangeSet(String world) {
         this.worldName = world;
-        this.mainThread = Fawe.get().isMainThread();
+        this.mainThread = (Fawe.get() != null) ? Fawe.isMainThread() : true;
         this.layers = FaweChunk.HEIGHT >> 4;
     }
 
     public FaweChangeSet(World world) {
         this.world = world;
         this.worldName = Fawe.imp().getWorldName(world);
-        this.mainThread = Fawe.get().isMainThread();
+        this.mainThread = Fawe.isMainThread();
         this.layers = (this.world.getMaxY() + 1) >> 4;
     }
 
@@ -88,7 +87,7 @@ public abstract class FaweChangeSet implements ChangeSet {
 
     public boolean flush() {
         try {
-            if (!Fawe.get().isMainThread()) {
+            if (!Fawe.isMainThread()) {
                 while (waitingAsync.get() > 0) {
                     synchronized (lockAsync) {
                         lockAsync.wait(1000);
@@ -130,7 +129,7 @@ public abstract class FaweChangeSet implements ChangeSet {
     public void delete() {};
 
     public EditSession toEditSession(FawePlayer player) {
-        EditSession editSession = new EditSessionBuilder(world).player(player).autoQueue(false).fastmode(false).checkMemory(false).changeSet(this).allowedRegions(RegionWrapper.GLOBAL().toArray()).build();
+        EditSession editSession = new EditSessionBuilder(getWorld()).player(player).autoQueue(false).fastmode(false).checkMemory(false).changeSet(this).limitUnlimited().allowedRegionsEverywhere().build();
         editSession.setSize(1);
         return editSession;
     }
