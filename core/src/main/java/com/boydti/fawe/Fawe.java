@@ -154,7 +154,7 @@ import javax.management.NotificationListener;
 public class Fawe { 
     /**
      * The FAWE instance;
-     */
+     */ 
     private static Fawe INSTANCE;
 
     /**
