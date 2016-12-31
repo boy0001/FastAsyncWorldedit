@@ -192,8 +192,15 @@ public abstract class CharFaweChunk<T, V extends FaweQueue> extends FaweChunk<T>
         if (vs == null) {
             vs = this.ids[i] = new char[4096];
             this.count[i]++;
-        } else if (vs[j] == 0) {
-            this.count[i]++;
+        } else {
+            switch (vs[j]) {
+                case 0:
+                    this.count[i]++;
+                    break;
+                case 1:
+                    this.air[i]--;
+                    break;
+            }
         }
         switch (id) {
             case 0:
@@ -231,8 +238,15 @@ public abstract class CharFaweChunk<T, V extends FaweQueue> extends FaweChunk<T>
         if (vs == null) {
             vs = this.ids[i] = new char[4096];
             this.count[i]++;
-        } else if (vs[j] == 0) {
-            this.count[i]++;
+        } else {
+            switch (vs[j]) {
+                case 0:
+                    this.count[i]++;
+                    break;
+                case 1:
+                    this.air[i]--;
+                    break;
+            }
         }
         switch (id) {
             case 0:
