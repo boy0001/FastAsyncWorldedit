@@ -260,7 +260,7 @@ public final class CommandManager {
             return;
         }
         if (!actor.isPlayer()) {
-            actor = new FakePlayer(actor.getName(), actor.getUniqueId(), actor);
+            actor = FakePlayer.wrap(actor.getName(), actor.getUniqueId(), actor);
         }
         final LocalSession session = worldEdit.getSessionManager().get(actor);
         LocalConfiguration config = worldEdit.getConfiguration();

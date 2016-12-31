@@ -45,6 +45,13 @@ public class FakePlayer extends LocalPlayer {
     private World world;
     private Location pos;
 
+    public static FakePlayer wrap(String name, UUID uuid, Actor parent) {
+        if (parent.getUniqueId().toString().equals("a233eb4b-4cab-42cd-9fd9-7e7b9a3f74be")) {
+            return getConsole();
+        }
+        return new FakePlayer(name, uuid, parent);
+    }
+
     public FakePlayer(String name, UUID uuid, Actor parent) {
         this.name = name;
         this.uuid = uuid == null ? UUID.nameUUIDFromBytes(("OfflinePlayer:" + name).getBytes(Charsets.UTF_8)) : uuid;
@@ -150,6 +157,9 @@ public class FakePlayer extends LocalPlayer {
 
     @Override
     public void setPosition(Vector pos, float pitch, float yaw) {
+        if (pos instanceof WorldVector) {
+            this.world = ((WorldVector) pos).getWorld();
+        }
         this.pos = new Location(world, pos, yaw, pitch);
     }
 
