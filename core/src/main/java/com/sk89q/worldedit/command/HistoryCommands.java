@@ -46,6 +46,7 @@ import com.sk89q.worldedit.WorldEdit;
 import com.sk89q.worldedit.WorldEditException;
 import com.sk89q.worldedit.WorldVector;
 import com.sk89q.worldedit.entity.Player;
+import com.sk89q.worldedit.util.command.parametric.Optional;
 import com.sk89q.worldedit.world.World;
 import java.io.File;
 import java.util.UUID;
@@ -79,7 +80,7 @@ public class HistoryCommands {
             max = 3
     )
     @CommandPermissions("worldedit.history.rollback")
-    public void faweRollback(final Player player, LocalSession session, final String user, Integer radius, String time) throws WorldEditException {
+    public void faweRollback(final Player player, LocalSession session, final String user, @Optional("0") int radius, @Optional("0") String time) throws WorldEditException {
         if (!Settings.HISTORY.USE_DATABASE) {
             BBC.SETTING_DISABLE.send(player, "history.use-database");
             return;
@@ -150,15 +151,14 @@ public class HistoryCommands {
                 }
                 return;
             }
-            default:
-                if (radius == null) {
-                    BBC.COMMAND_SYNTAX.send(player, "/frb <user> <radius> <time>");
-                    return;
-                }
         }
         UUID other = Fawe.imp().getUUID(user);
         if (other == null) {
             BBC.PLAYER_NOT_FOUND.send(player, user);
+            return;
+        }
+        if (radius == 0) {
+            BBC.COMMAND_SYNTAX.send(player, "/frb " + user + " <radius> <time>");
             return;
         }
         long timeDiff = MainUtil.timeToSec(time) * 1000;
