@@ -51,11 +51,10 @@ public class DefaultProgressTracker extends RunnableVal2<FaweQueue.ProgressType,
     }
 
     private final void done() {
-        final long time = System.currentTimeMillis() - start;
         TaskManager.IMP.task(new Runnable() {
             @Override
             public void run() {
-                doneTask(time);
+                doneTask();
             }
         });
     }
@@ -76,8 +75,8 @@ public class DefaultProgressTracker extends RunnableVal2<FaweQueue.ProgressType,
         }
     }
 
-    public void doneTask(long time) {
-        player.sendTitle("", BBC.PROGRESS_DONE.format(time / 1000d));
+    public void doneTask() {
+        player.sendTitle("", BBC.PROGRESS_FINISHED.s());
     }
 
     public void sendTask() {
