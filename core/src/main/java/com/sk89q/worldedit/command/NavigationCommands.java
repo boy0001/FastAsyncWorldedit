@@ -155,7 +155,6 @@ public class NavigationCommands {
             BBC.WHOOSH.send(player);
         } else {
             BBC.THRU_FAIL.send(player);
-            player.printError("No free spot ahead of you found.");
         }
     }
 
