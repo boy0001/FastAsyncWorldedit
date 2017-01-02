@@ -231,7 +231,7 @@ public class AsyncWorld extends DelegateFaweQueue implements World, HasFaweQueue
     @Override
     @Deprecated
     public int getBlockTypeIdAt(int x, int y, int z) {
-        return queue.getCombinedId4Data(x, y, z, 0) >> 4;
+        return queue.getCombinedId4Data(x, y & 0xFF, z, 0) >> 4;
     }
 
     @Override
