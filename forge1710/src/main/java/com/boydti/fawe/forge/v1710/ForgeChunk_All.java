@@ -233,17 +233,30 @@ public class ForgeChunk_All extends CharFaweChunk<Chunk, ForgeQueue_All> {
             }
             // Efficiently merge sections
             for (int j = 0; j < sections.length; j++) {
-                if (this.getCount(j) == 0) {
+                int count = this.getCount(j);
+                if (count == 0) {
                     continue;
                 }
                 byte[] newIdArray = this.getByteIdArray(j);
                 if (newIdArray == null) {
                     continue;
                 }
+                int countAir = this.getAir(j);
                 NibbleArray newDataArray = this.getDataArray(j);
                 ExtendedBlockStorage section = sections[j];
-                if ((section == null) || (this.getCount(j) >= 4096)) {
+                if ((section == null)) {
+                    if (count == countAir) {
+                        continue;
+                    }
                     sections[j] = section = new ExtendedBlockStorage(j << 4, !getParent().getWorld().provider.hasNoSky);
+                    section.setBlockLSBArray(newIdArray);
+                    section.setBlockMetadataArray(newDataArray);
+                    continue;
+                } else if (count >= 4096) {
+                    if (count == countAir) {
+                        sections[j] = null;
+                        continue;
+                    }
                     section.setBlockLSBArray(newIdArray);
                     section.setBlockMetadataArray(newDataArray);
                     continue;

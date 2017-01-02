@@ -184,14 +184,21 @@ public class ForgeChunk_All extends CharFaweChunk<Chunk, ForgeQueue_All> {
                 if (newArray == null) {
                     continue;
                 }
+                int countAir = this.getAir(j);
                 ExtendedBlockStorage section = sections[j];
-
                 if ((section == null)) {
+                    if (count == countAir) {
+                        continue;
+                    }
                     section = new ExtendedBlockStorage(j << 4, flag);
                     section.setData(newArray);
                     sections[j] = section;
                     continue;
                 } else if (count >= 4096){
+                    if (count == countAir) {
+                        sections[j] = null;
+                        continue;
+                    }
                     section.setData(newArray);
                     getParent().setCount(0, count - this.getAir(j), section);
                     continue;
