@@ -42,10 +42,10 @@ public class BukkitChunk_1_11_Copy extends BukkitChunk_1_11 {
 
         this.ids[i] = combined = new char[4096];
         for (int j = 0, k = 0; j < 2048; j++, k += 2) {
-            combined[k] = (char) ((idsBytesArray[k] << 4) + (datasBytesArray[j] & 15));
+            combined[k] = (char) (((idsBytesArray[k] & 0xFF) << 4) + (datasBytesArray[j] & 15));
         }
         for (int j = 0, k = 1; j < 2048; j++, k += 2) {
-            combined[k] = (char) ((idsBytesArray[k] << 4) + (datasBytesArray[j] >> 4));
+            combined[k] = (char) (((idsBytesArray[k] & 0xFF) << 4) + ((datasBytesArray[j] >> 4) & 15));
         }
         return combined;
     }

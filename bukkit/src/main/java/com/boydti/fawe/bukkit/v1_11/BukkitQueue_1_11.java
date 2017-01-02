@@ -573,7 +573,7 @@ public class BukkitQueue_1_11 extends BukkitQueue_0<Chunk, ChunkSection[], Chunk
                     }
                     int x = ((int) Math.round(ent.locX) & 15);
                     int z = ((int) Math.round(ent.locZ) & 15);
-                    int y = (int) Math.round(ent.locY);
+                    int y = ((int) Math.round(ent.locY) & 0xFF);
                     int i = FaweCache.CACHE_I[y][z][x];
                     char[] array = fs.getIdArray(i);
                     if (array == null) {
