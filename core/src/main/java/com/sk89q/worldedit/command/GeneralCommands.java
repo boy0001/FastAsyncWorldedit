@@ -1,6 +1,7 @@
 package com.sk89q.worldedit.command;
 
 import com.boydti.fawe.config.BBC;
+import com.boydti.fawe.object.FawePlayer;
 import com.boydti.fawe.object.extent.DefaultTransformParser;
 import com.boydti.fawe.object.extent.ResettableExtent;
 import com.sk89q.minecraft.util.commands.Command;
@@ -38,6 +39,20 @@ public class GeneralCommands {
         checkNotNull(worldEdit);
         this.worldEdit = worldEdit;
         transformParser = new DefaultTransformParser(worldEdit);
+    }
+
+    @Command(
+            aliases = { "/tips", "tips" },
+            desc = "Toggle WorldEdit tips"
+    )
+    @CommandPermissions("fawe.use")
+    public void tips(Player player, LocalSession session) throws WorldEditException {
+        FawePlayer<Object> fp = FawePlayer.wrap(player);
+        if (fp.toggle("fawe.tips")) {
+            BBC.WORLDEDIT_TOGGLE_TIPS_ON.send(player);
+        } else {
+            BBC.WORLDEDIT_TOGGLE_TIPS_OFF.send(player);
+        }
     }
 
     @Command(

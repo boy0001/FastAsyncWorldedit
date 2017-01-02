@@ -21,6 +21,7 @@ package com.sk89q.worldedit.command;
 
 import com.boydti.fawe.FaweAPI;
 import com.boydti.fawe.config.BBC;
+import com.boydti.fawe.object.FawePlayer;
 import com.boydti.fawe.object.RunnableVal2;
 import com.boydti.fawe.object.clipboard.ReadOnlyClipboard;
 import com.boydti.fawe.object.clipboard.WorldCutClipboard;
@@ -118,7 +119,7 @@ public class ClipboardCommands {
         clipboard.setOrigin(session.getPlacementPosition(player));
         session.setClipboard(new ClipboardHolder(clipboard, editSession.getWorldData()));
         BBC.COMMAND_COPY.send(player, region.getArea());
-        BBC.TIP_PASTE.or(BBC.TIP_LAZYCOPY, BBC.TIP_DOWNLOAD, BBC.TIP_ROTATE, BBC.TIP_COPYPASTE, BBC.TIP_REPLACE_MARKER, BBC.TIP_COPY_PATTERN).send(player);
+        if (!FawePlayer.wrap(player).hasPermission("fawe.tips")) BBC.TIP_PASTE.or(BBC.TIP_LAZYCOPY, BBC.TIP_DOWNLOAD, BBC.TIP_ROTATE, BBC.TIP_COPYPASTE, BBC.TIP_REPLACE_MARKER, BBC.TIP_COPY_PATTERN).send(player);
     }
 
 
@@ -156,7 +157,7 @@ public class ClipboardCommands {
         Operations.completeLegacy(copy);
         session.setClipboard(new ClipboardHolder(clipboard, editSession.getWorldData()));
         BBC.COMMAND_COPY.send(player, region.getArea());
-        BBC.TIP_PASTE.or(BBC.TIP_DOWNLOAD, BBC.TIP_ROTATE, BBC.TIP_COPYPASTE, BBC.TIP_REPLACE_MARKER, BBC.TIP_COPY_PATTERN).send(player);
+        if (!FawePlayer.wrap(player).hasPermission("fawe.tips")) BBC.TIP_PASTE.or(BBC.TIP_DOWNLOAD, BBC.TIP_ROTATE, BBC.TIP_COPYPASTE, BBC.TIP_REPLACE_MARKER, BBC.TIP_COPY_PATTERN).send(player);
     }
 
     @Command(
@@ -320,7 +321,7 @@ public class ClipboardCommands {
             selector.explainRegionAdjust(player, session);
         }
         BBC.COMMAND_PASTE.send(player);
-        BBC.TIP_COPYPASTE.or(BBC.TIP_SOURCE_MASK, BBC.TIP_REPLACE_MARKER).send(player, to);
+        if (!FawePlayer.wrap(player).hasPermission("fawe.tips")) BBC.TIP_COPYPASTE.or(BBC.TIP_SOURCE_MASK, BBC.TIP_REPLACE_MARKER).send(player, to);
     }
 
     @Command(
@@ -433,7 +434,7 @@ public class ClipboardCommands {
         transform = transform.rotateZ(-(zRotate != null ? zRotate : 0));
         holder.setTransform(holder.getTransform().combine(transform));
         BBC.COMMAND_ROTATE.send(player);
-        BBC.TIP_FLIP.or(BBC.TIP_DEFORM, BBC.TIP_TRANSFORM).send(player);
+        if (!FawePlayer.wrap(player).hasPermission("fawe.tips")) BBC.TIP_FLIP.or(BBC.TIP_DEFORM, BBC.TIP_TRANSFORM).send(player);
     }
 
     @Command(

@@ -356,6 +356,10 @@ public final class CommandManager {
                         editSession.flushQueue();
                         worldEdit.flushBlockBag(finalActor, editSession);
                         session.remember(editSession);
+                        final long time = System.currentTimeMillis() - start;
+                        if (time > 250 && hasSession) {
+                            BBC.ACTION_COMPLETE.send(finalActor, (time / 1000d));
+                        }
                     }
                 }
             }

@@ -38,8 +38,12 @@ public enum BBC {
     WORLDEDIT_DANGEROUS_WORLDEDIT("&cFAWE processed unsafe WorldEdit at %s0 by %s1", "Info"),
     WORLDEDIT_BYPASS("&7&oTo bypass your restrictions use &c/wea", "Info"),
     WORLDEDIT_EXTEND("&cYour WorldEdit may have extended outside your allowed region.", "Error"),
+    WORLDEDIT_TOGGLE_TIPS_ON("&7Disabled WorldEdit tips.", "Info"),
+    WORLDEDIT_TOGGLE_TIPS_OFF("&7Enabled WorldEdit tips.", "Info"),
+
     WORLDEDIT_BYPASSED("&7Currently bypassing WorldEdit restriction.", "Info"),
     WORLDEDIT_UNMASKED("&6Your WorldEdit is now unrestricted.", "Info"),
+
     WORLDEDIT_RESTRICTED("&6Your WorldEdit is now restricted.", "Info"),
     WORLDEDIT_OOM_ADMIN("&cPossible options:\n&8 - &7//fast\n&8 - &7Do smaller edits\n&8 - &7Allocate more memory\n&8 - &7Disable `max-memory-percent`", "Info"),
     COMPRESSED("History compressed. Saved ~ %s0b (%s1x smaller)", "Info"),

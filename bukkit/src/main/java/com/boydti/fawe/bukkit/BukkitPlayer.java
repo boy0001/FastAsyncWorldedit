@@ -42,14 +42,14 @@ public class BukkitPlayer extends FawePlayer<Player> {
          *   - The `/wea` command will give/remove the required bypass permission
          */
         if (Fawe.<FaweBukkit> imp().getVault() == null || Fawe.<FaweBukkit> imp().getVault().permission == null) {
-            this.parent.addAttachment(Fawe.<FaweBukkit> imp().getPlugin()).setPermission("fawe.bypass", flag);
+            this.parent.addAttachment(Fawe.<FaweBukkit> imp().getPlugin()).setPermission(perm, flag);
         } else if (flag) {
             if (!Fawe.<FaweBukkit> imp().getVault().permission.playerAdd(this.parent, perm)) {
-                this.parent.addAttachment(Fawe.<FaweBukkit> imp().getPlugin()).setPermission("fawe.bypass", flag);
+                this.parent.addAttachment(Fawe.<FaweBukkit> imp().getPlugin()).setPermission(perm, flag);
             }
         } else {
             if (!Fawe.<FaweBukkit> imp().getVault().permission.playerRemove(this.parent, perm)) {
-                this.parent.addAttachment(Fawe.<FaweBukkit> imp().getPlugin()).setPermission("fawe.bypass", flag);
+                this.parent.addAttachment(Fawe.<FaweBukkit> imp().getPlugin()).setPermission(perm, flag);
             }
         }
     }

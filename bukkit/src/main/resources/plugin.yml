@@ -24,6 +24,8 @@ commands:
 permissions:
   fawe.bypass:
     default: false
+  fawe.tips:
+    default: false
   fawe.admin:
     default: op
   fawe.reload:

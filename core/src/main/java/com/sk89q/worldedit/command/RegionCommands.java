@@ -288,7 +288,7 @@ public class RegionCommands {
         }
         int affected = editSession.replaceBlocks(region, from, Patterns.wrap(to));
         BBC.VISITOR_BLOCK.send(player, affected);
-        BBC.TIP_REPLACE_ID.or(BBC.TIP_REPLACE_LIGHT, BBC.TIP_REPLACE_MARKER, BBC.TIP_TAB_COMPLETE).send(player);
+        if (!FawePlayer.wrap(player).hasPermission("fawe.tips")) BBC.TIP_REPLACE_ID.or(BBC.TIP_REPLACE_LIGHT, BBC.TIP_REPLACE_MARKER, BBC.TIP_TAB_COMPLETE).send(player);
     }
 
     @Command(
@@ -378,7 +378,7 @@ public class RegionCommands {
         int affected = editSession.setBlocks(selection, Patterns.wrap(to));
         if (affected != 0) {
             BBC.OPERATION.send(player, affected);
-            BBC.TIP_FAST.or(BBC.TIP_CANCEL, BBC.TIP_MASK, BBC.TIP_MASK_ANGLE, BBC.TIP_SET_LINEAR, BBC.TIP_SURFACE_SPREAD, BBC.TIP_SET_HAND).send(player);
+            if (!FawePlayer.wrap(player).hasPermission("fawe.tips")) BBC.TIP_FAST.or(BBC.TIP_CANCEL, BBC.TIP_MASK, BBC.TIP_MASK_ANGLE, BBC.TIP_SET_LINEAR, BBC.TIP_SURFACE_SPREAD, BBC.TIP_SET_HAND).send(player);
         }
     }
 

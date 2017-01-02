@@ -20,6 +20,7 @@
 package com.sk89q.worldedit.command;
 
 import com.boydti.fawe.config.BBC;
+import com.boydti.fawe.object.FawePlayer;
 import com.boydti.fawe.object.mask.IdMask;
 import com.boydti.fawe.object.regions.selector.FuzzyRegionSelector;
 import com.google.common.base.Optional;
@@ -273,7 +274,7 @@ public class SelectionCommands {
     public void wand(Player player, LocalSession session, CommandContext args) throws WorldEditException {
         player.giveItem(we.getConfiguration().wandItem, 1);
         BBC.SELECTION_WAND.send(player);
-        BBC.TIP_SEL_LIST.or(BBC.TIP_SELECT_CONNECTED, BBC.TIP_SET_POS1, BBC.TIP_FARWAND).send(player);
+        if (!FawePlayer.wrap(player).hasPermission("fawe.tips")) BBC.TIP_SEL_LIST.or(BBC.TIP_SELECT_CONNECTED, BBC.TIP_SET_POS1, BBC.TIP_FARWAND).send(player);
     }
 
     @Command(

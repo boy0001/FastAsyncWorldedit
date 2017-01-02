@@ -105,6 +105,16 @@ public abstract class FawePlayer<T> extends Metadatable {
         }
     }
 
+    public boolean toggle(String perm) {
+        if (this.hasPermission(perm)) {
+            this.setPermission(perm, false);
+            return false;
+        } else {
+            this.setPermission(perm, true);
+            return true;
+        }
+    }
+
     private AtomicInteger runningCount = new AtomicInteger();
 
     public void queueAction(final Runnable run) {
