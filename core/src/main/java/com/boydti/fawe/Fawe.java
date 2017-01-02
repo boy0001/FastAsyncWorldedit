@@ -342,6 +342,7 @@ public class Fawe {
          */
         try {
             // Setting up commands.yml
+            Commands.load(new File(INSTANCE.IMP.getDirectory(), "commands.yml"));
             Commands.inject(); // Translations
             EditSession.inject(); // Custom block placer + optimizations
             EditSessionEvent.inject(); // Add EditSession to event (API)
@@ -462,7 +463,6 @@ public class Fawe {
                 debug(" - http://builds.enginehub.org/job/worldedit?branch=master");
                 debug("=======================================");
             }
-            Commands.load(new File(INSTANCE.IMP.getDirectory(), "commands.yml"));
         } catch (Throwable e) {
             debug("====== FAWE FAILED TO INITIALIZE ======");
             MainUtil.handleError(e, false);
