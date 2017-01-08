@@ -140,7 +140,7 @@ public class LocalSession {
     private transient boolean fastMode = false;
     private transient Mask mask;
     private transient Mask sourceMask;
-    private ResettableExtent transform = null;
+    private transient ResettableExtent transform = null;
     private transient TimeZone timezone = TimeZone.getDefault();
 
     private transient World currentWorld;
