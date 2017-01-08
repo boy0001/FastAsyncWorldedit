@@ -51,6 +51,7 @@ import com.sk89q.worldedit.command.tool.LongRangeBuildTool;
 import com.sk89q.worldedit.command.tool.RecursivePickaxe;
 import com.sk89q.worldedit.command.tool.brush.GravityBrush;
 import com.sk89q.worldedit.event.extent.EditSessionEvent;
+import com.sk89q.worldedit.extension.factory.DefaultBlockParser;
 import com.sk89q.worldedit.extension.factory.DefaultMaskParser;
 import com.sk89q.worldedit.extension.factory.HashTagPatternParser;
 import com.sk89q.worldedit.extension.platform.CommandManager;
@@ -416,6 +417,7 @@ public class Fawe {
             RandomPattern.inject(); // Optimizations
             ClipboardPattern.inject(); // Optimizations
             HashTagPatternParser.inject(); // Add new patterns
+            DefaultBlockParser.inject(); // Fix block lookups
             // Mask
             BlockMask.inject(); // Optimizations
             SolidBlockMask.inject(); // Optimizations

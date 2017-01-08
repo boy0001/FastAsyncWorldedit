@@ -63,7 +63,7 @@ public class BundledBlockData {
     private static final BundledBlockData INSTANCE = new BundledBlockData();
 
     private final Map<String, BlockEntry> idMap = new HashMap<String, BlockEntry>();
-    private final Map<String, BlockEntry> localizedMap = new HashMap<String, BlockEntry>();
+    private final Map<String, BlockEntry> localIdMap = new HashMap<String, BlockEntry>();
 
     private final BlockEntry[] legacyMap = new BlockEntry[4096];
 
@@ -71,9 +71,7 @@ public class BundledBlockData {
     /**
      * Create a new instance.
      */
-    private BundledBlockData() {
-
-    }
+    private BundledBlockData() {}
 
     /**
      * Attempt to load the data from file.
@@ -100,13 +98,13 @@ public class BundledBlockData {
     }
 
     public Set<String> getBlockNames() {
-        return localizedMap.keySet();
+        return localIdMap.keySet();
     }
 
     public List<String> getBlockNames(String partial) {
         partial = partial.toLowerCase();
         List<String> blocks = new ArrayList<>();
-        for (Map.Entry<String, BlockEntry> entry : localizedMap.entrySet()) {
+        for (Map.Entry<String, BlockEntry> entry : localIdMap.entrySet()) {
             String key = entry.getKey();
             if (key.startsWith(partial)) {
                 blocks.add(key);
@@ -116,7 +114,7 @@ public class BundledBlockData {
     }
 
     public List<String> getBlockStates(String id) {
-        BlockEntry block = localizedMap.get(id);
+        BlockEntry block = localIdMap.get(id);
         if (block == null || block.states == null || block.states.isEmpty()) {
             return Arrays.asList("0", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", "14", "15");
         }
@@ -142,8 +140,9 @@ public class BundledBlockData {
         if (!overwrite && (idMap.containsKey(entry.id) || legacyMap[entry.legacyId] != null)) {
             return false;
         }
+        String id = entry.id.contains(":") ? entry.id.split(":")[1] : entry.id;
         idMap.put(entry.id, entry);
-        localizedMap.put(entry.localizedName.toLowerCase().replace(" ", "_"), entry);
+        localIdMap.put(id.toLowerCase().replace(" ", "_"), entry);
         legacyMap[entry.legacyId] = entry;
         if (entry.states == null) {
             return true;
@@ -235,7 +234,11 @@ public class BundledBlockData {
      */
     @Nullable
     public BlockEntry findById(String id) {
-        return idMap.get(id);
+        BlockEntry result = idMap.get(id);
+        if (result == null) {
+            result = localIdMap.get(id);
+        }
+        return result;
     }
 
     /**
