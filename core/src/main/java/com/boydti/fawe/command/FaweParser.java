@@ -17,12 +17,15 @@ public abstract class FaweParser<T> extends InputParser<T> {
     public List<String> split(String input, char delim) {
         List<String> result = new ArrayList<String>();
         int start = 0;
+        int bracket = 0;
         boolean inQuotes = false;
         for (int current = 0; current < input.length(); current++) {
-            if (input.charAt(current) == '\"') inQuotes = !inQuotes; // toggle state
+            char currentChar = input.charAt(current);
             boolean atLastChar = (current == input.length() - 1);
+            if (!atLastChar && (bracket > 0 || (currentChar == '{' && ++bracket > 0) || (current == '}' && --bracket <= 0))) continue;
+            if (currentChar == '\"') inQuotes = !inQuotes; // toggle state
             if(atLastChar) result.add(input.substring(start));
-            else if (input.charAt(current) == delim && !inQuotes) {
+            else if (currentChar == delim && !inQuotes) {
                 String toAdd = input.substring(start, current);
                 if (toAdd.startsWith("\"")) {
                     toAdd = toAdd.substring(1, toAdd.length() - 1);

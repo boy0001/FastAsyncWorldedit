@@ -19,7 +19,10 @@
 
 package com.sk89q.worldedit.extension.factory;
 
+import com.boydti.fawe.jnbt.JSON2NBT;
+import com.boydti.fawe.jnbt.NBTException;
 import com.boydti.fawe.util.MathMan;
+import com.intellectualcrafters.plot.util.StringMan;
 import com.sk89q.jnbt.CompoundTag;
 import com.sk89q.jnbt.Tag;
 import com.sk89q.worldedit.BlockVector;
@@ -44,6 +47,7 @@ import com.sk89q.worldedit.extension.platform.Actor;
 import com.sk89q.worldedit.internal.registry.InputParser;
 import com.sk89q.worldedit.world.World;
 import com.sk89q.worldedit.world.registry.BundledBlockData;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -77,8 +81,8 @@ public class DefaultBlockParser extends InputParser<BaseBlock> {
         // BlockType, as well as to properly handle mod:name IDs
 
         String originalInput = input;
-        input = input.replace("_", " ");
-        input = input.replace(";", "|");
+//        input = input.replace("_", " ");
+//        input = input.replace(";", "|");
         Exception suppressed = null;
         try {
             BaseBlock modified = parseLogic(input, context);
@@ -222,17 +226,13 @@ public class DefaultBlockParser extends InputParser<BaseBlock> {
                             for (Map.Entry<String, BundledBlockData.FaweState> stateEntry : block.states.entrySet()) {
                                 for (Map.Entry<String, BundledBlockData.FaweStateValue> valueEntry : stateEntry.getValue().valueMap().entrySet()) {
                                     String key = valueEntry.getKey();
-                                    System.out.println("Key " + key + " " + typeAndData[1]);
                                     if (key.equalsIgnoreCase(typeAndData[1])) {
                                         data = valueEntry.getValue().data;
-                                        System.out.println("Foudn! " + data);
                                         break loop;
                                     }
                                 }
 
                             }
-                        } else {
-                            System.out.println("No states found for " + blockId);
                         }
                     }
                 }
@@ -315,6 +315,18 @@ public class DefaultBlockParser extends InputParser<BaseBlock> {
 
         if (blockType == null) {
             return new BaseBlock(blockId, data);
+        }
+
+        if (blockAndExtraData.length > 1 && blockAndExtraData[1].startsWith("{")) {
+            String joined = StringMan.join(Arrays.copyOfRange(blockAndExtraData, 1, blockAndExtraData.length), "|");
+            try {
+                CompoundTag nbt = JSON2NBT.getTagFromJson(joined);
+                if (nbt != null) {
+                    return new BaseBlock(blockId, data, nbt);
+                }
+            } catch (NBTException e) {
+                throw new NoMatchException(e.getMessage());
+            }
         }
 
         switch (blockType) {
