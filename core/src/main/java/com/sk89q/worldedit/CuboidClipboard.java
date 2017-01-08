@@ -241,7 +241,27 @@ public class CuboidClipboard {
             case 29:
             case 33:
             case 151:
-            case 178: {
+            case 178:
+            case 209:
+            case 210:
+            case 211:
+            case 255:
+            case 219:
+            case 220:
+            case 221:
+            case 222:
+            case 223:
+            case 224:
+            case 225:
+            case 226:
+            case 227:
+            case 228:
+            case 229:
+            case 230:
+            case 231:
+            case 232:
+            case 233:
+            case 234: {
                 if (block.hasNbtData()) {
                     nbtMap.put(new IntegerTrio(x, y, z), block.getNbtData());
                 }
