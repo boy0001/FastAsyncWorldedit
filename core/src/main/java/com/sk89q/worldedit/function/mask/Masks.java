@@ -22,6 +22,10 @@ public final class Masks {
     private Masks() {
     }
 
+    public static boolean isNull(Mask mask) {
+        return mask == null || mask == ALWAYS_TRUE;
+    }
+
     /**
      * Return a 3D mask that always returns true;
      *

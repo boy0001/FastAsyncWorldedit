@@ -1,6 +1,7 @@
 package com.boydti.fawe.object.brush;
 
 import com.boydti.fawe.config.BBC;
+import com.boydti.fawe.object.FawePlayer;
 import com.boydti.fawe.object.clipboard.ResizableClipboardBuilder;
 import com.boydti.fawe.object.exception.FaweException;
 import com.boydti.fawe.object.function.NullRegionFunction;
@@ -11,7 +12,6 @@ import com.sk89q.worldedit.LocalSession;
 import com.sk89q.worldedit.MaxChangedBlocksException;
 import com.sk89q.worldedit.Vector;
 import com.sk89q.worldedit.blocks.BaseBlock;
-import com.sk89q.worldedit.entity.Player;
 import com.sk89q.worldedit.extent.clipboard.Clipboard;
 import com.sk89q.worldedit.function.mask.Mask;
 import com.sk89q.worldedit.function.mask.Masks;
@@ -25,17 +25,15 @@ import com.sk89q.worldedit.session.ClipboardHolder;
 public class CopyPastaBrush implements DoubleActionBrush {
 
     private final DoubleActionBrushTool tool;
-    private final LocalSession session;
-    private final Player player;
 
-    public CopyPastaBrush(Player player, LocalSession session, DoubleActionBrushTool tool) {
+    public CopyPastaBrush(DoubleActionBrushTool tool) {
         this.tool = tool;
-        this.session = session;
-        this.player = player;
     }
 
     @Override
     public void build(DoubleActionBrushTool.BrushAction action, final EditSession editSession, Vector position, Pattern pattern, double size) throws MaxChangedBlocksException {
+        FawePlayer fp = editSession.getPlayer();
+        LocalSession session = fp.getSession();
         switch (action) {
             case SECONDARY: {
                 Mask mask = tool.getMask();
@@ -74,7 +72,7 @@ public class CopyPastaBrush implements DoubleActionBrush {
                 ClipboardHolder holder = new ClipboardHolder(clipboard, editSession.getWorld().getWorldData());
                 session.setClipboard(holder);
                 int blocks = builder.size();
-                player.print(BBC.getPrefix() + BBC.COMMAND_COPY.format(blocks));
+                BBC.COMMAND_COPY.send(fp, blocks);
                 return;
             }
             case PRIMARY: {
@@ -90,7 +88,7 @@ public class CopyPastaBrush implements DoubleActionBrush {
                             .build();
                     Operations.completeLegacy(operation);
                 } catch (EmptyClipboardException e) {
-                    player.print(BBC.getPrefix() + BBC.BRUSH_PASTE_NONE.s());
+                    BBC.BRUSH_PASTE_NONE.send(fp);
                 }
             }
         }

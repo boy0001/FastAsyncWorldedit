@@ -20,12 +20,10 @@ import com.sk89q.worldedit.util.Location;
 public class CommandBrush implements Brush {
 
     private final String command;
-    private final Player player;
     private final int radius;
     private final BrushTool tool;
 
-    public CommandBrush(Player player, BrushTool tool, String command, double radius) {
-        this.player = player;
+    public CommandBrush(BrushTool tool, String command, double radius) {
         this.command = command;
         this.radius = (int) radius;
         this.tool = tool;
@@ -40,13 +38,14 @@ public class CommandBrush implements Brush {
                 .replace("{world}", editSession.getQueue().getWorldName())
                 .replace("{size}", radius + "");
 
+        FawePlayer fp = editSession.getPlayer();
+        Player player = fp.getPlayer();
         WorldVectorFace face = player.getBlockTraceFace(256, true);
         if (face == null) {
             position = position.add(0, 1, 1);
         } else {
             position = face.getFaceVector();
         }
-        FawePlayer<Object> fp = FawePlayer.wrap(player);
         fp.setSelection(selector);
         PlayerWrapper wePlayer = new SilentPlayerWrapper(new LocationMaskedPlayerWrapper(player, new Location(player.getExtent(), position)));
         String[] cmds = replaced.split(";");
