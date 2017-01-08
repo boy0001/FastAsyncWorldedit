@@ -322,6 +322,9 @@ public class DefaultBlockParser extends InputParser<BaseBlock> {
             try {
                 CompoundTag nbt = JSON2NBT.getTagFromJson(joined);
                 if (nbt != null) {
+                    if (context.isRestricted() && actor != null && !actor.hasPermission("worldedit.anyblock")) {
+                        throw new DisallowedUsageException("You are not allowed to nbt'");
+                    }
                     return new BaseBlock(blockId, data, nbt);
                 }
             } catch (NBTException e) {
