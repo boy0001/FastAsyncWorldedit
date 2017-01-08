@@ -38,6 +38,14 @@ public class Worldguard extends BukkitMaskManager implements Listener {
     public ProtectedRegion getRegion(final Player player, final Location loc) {
         final com.sk89q.worldguard.LocalPlayer localplayer = this.worldguard.wrapPlayer(player);
         RegionManager manager = this.worldguard.getRegionManager(player.getWorld());
+        if (manager == null) {
+            if (this.worldguard.getGlobalStateManager().get(player.getWorld()).useRegions) {
+                System.out.println("Region capability is not enabled for WorldGuard.");
+            } else {
+                System.out.println("WorldGuard is not enabled for that world.");
+            }
+            return null;
+        }
         final ProtectedRegion global = manager.getRegion("__global__");
         if (global != null && isAllowed(localplayer, global)) {
             return global;
