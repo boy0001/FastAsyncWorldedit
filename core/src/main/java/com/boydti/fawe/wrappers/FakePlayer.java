@@ -13,9 +13,11 @@ import com.sk89q.worldedit.entity.Player;
 import com.sk89q.worldedit.event.platform.CommandEvent;
 import com.sk89q.worldedit.extension.platform.Actor;
 import com.sk89q.worldedit.extension.platform.CommandManager;
+import com.sk89q.worldedit.extension.platform.NoCapablePlatformException;
 import com.sk89q.worldedit.extent.inventory.BlockBag;
 import com.sk89q.worldedit.session.SessionKey;
 import com.sk89q.worldedit.util.Location;
+import com.sk89q.worldedit.world.NullWorld;
 import com.sk89q.worldedit.world.World;
 import java.util.UUID;
 import javax.annotation.Nullable;
@@ -46,7 +48,7 @@ public class FakePlayer extends LocalPlayer {
     private Location pos;
 
     public static FakePlayer wrap(String name, UUID uuid, Actor parent) {
-        if (parent.getUniqueId().toString().equals("a233eb4b-4cab-42cd-9fd9-7e7b9a3f74be")) {
+        if (parent != null && parent.getUniqueId().toString().equals("a233eb4b-4cab-42cd-9fd9-7e7b9a3f74be")) {
             return getConsole();
         }
         return new FakePlayer(name, uuid, parent);
@@ -55,7 +57,11 @@ public class FakePlayer extends LocalPlayer {
     public FakePlayer(String name, UUID uuid, Actor parent) {
         this.name = name;
         this.uuid = uuid == null ? UUID.nameUUIDFromBytes(("OfflinePlayer:" + name).getBytes(Charsets.UTF_8)) : uuid;
-        this.world = WorldEdit.getInstance().getServer().getWorlds().get(0);
+        try {
+            this.world = WorldEdit.getInstance().getServer().getWorlds().get(0);
+        } catch (NoCapablePlatformException e) {
+            this.world = NullWorld.getInstance();
+        }
         this.pos = new Location(world, 0, 0, 0);
         this.parent = parent;
     }
