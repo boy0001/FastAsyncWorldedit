@@ -20,6 +20,8 @@
 package com.sk89q.worldedit.extension.factory;
 
 import com.boydti.fawe.util.MathMan;
+import com.sk89q.jnbt.CompoundTag;
+import com.sk89q.jnbt.Tag;
 import com.sk89q.worldedit.BlockVector;
 import com.sk89q.worldedit.IncompleteRegionException;
 import com.sk89q.worldedit.NotABlockException;
@@ -42,6 +44,7 @@ import com.sk89q.worldedit.extension.platform.Actor;
 import com.sk89q.worldedit.internal.registry.InputParser;
 import com.sk89q.worldedit.world.World;
 import com.sk89q.worldedit.world.registry.BundledBlockData;
+import java.util.HashMap;
 import java.util.Map;
 
 /**
@@ -324,7 +327,8 @@ public class DefaultBlockParser extends InputParser<BaseBlock> {
                 text[2] = blockAndExtraData.length > 3 ? blockAndExtraData[3] : "";
                 text[3] = blockAndExtraData.length > 4 ? blockAndExtraData[4] : "";
                 return new SignBlock(blockType.getID(), data, text);
-
+            case END_PORTAL:
+                return new BaseBlock(blockId, data, new CompoundTag(new HashMap<String, Tag>()));
             case MOB_SPAWNER:
                 // Allow setting mob spawn type
                 if (blockAndExtraData.length > 1) {
