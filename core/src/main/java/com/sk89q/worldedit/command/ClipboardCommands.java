@@ -223,6 +223,7 @@ public class ClipboardCommands {
         session.setClipboard(new ClipboardHolder(clipboard, editSession.getWorldData()));
 
         BBC.COMMAND_CUT_SLOW.send(player, region.getArea());
+        if (!FawePlayer.wrap(player).hasPermission("fawe.tips")) BBC.TIP_LAZYCUT.send(player);
     }
 
     @Command(aliases = { "download" }, desc = "Download your clipboard")
@@ -409,6 +410,10 @@ public class ClipboardCommands {
             selector.explainRegionAdjust(player, session);
         }
         BBC.COMMAND_PASTE.send(player, to);
+        FawePlayer<Object> fp = FawePlayer.wrap(player);
+        if (!fp.hasPermission("fawe.tips")) {
+            BBC.TIP_COPYPASTE.send(fp);
+        }
     }
 
     @Command(

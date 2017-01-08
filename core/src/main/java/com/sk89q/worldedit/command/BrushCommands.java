@@ -385,7 +385,7 @@ public class BrushCommands {
         worldEdit.checkMaxBrushRadius(radius);
         DoubleActionBrushTool tool = session.getDoubleActionBrushTool(player.getItemInHand());
         tool.setSize(radius);
-        tool.setBrush(new CopyPastaBrush(player, session, tool), "worldedit.brush.copy");
+        tool.setBrush(new CopyPastaBrush(tool), "worldedit.brush.copy");
         player.print(BBC.getPrefix() + BBC.BRUSH_COPY.f(radius));
     }
 
@@ -402,7 +402,7 @@ public class BrushCommands {
     public void command(Player player, LocalSession session, @Optional("5") double radius, CommandContext args) throws WorldEditException {
         BrushTool tool = session.getBrushTool(player.getItemInHand());
         String cmd = args.getJoinedStrings(1);
-        tool.setBrush(new CommandBrush(player, tool, cmd, radius), "worldedit.brush.copy");
+        tool.setBrush(new CommandBrush(tool, cmd, radius), "worldedit.brush.copy");
         player.print(BBC.getPrefix() + BBC.BRUSH_COMMAND.f(cmd));
     }
 

@@ -63,10 +63,10 @@ public enum BBC {
     COMMAND_COPY("%s0 blocks were copied.", "WorldEdit.Copy"),
 
 
-    COMMAND_CUT_SLOW("%s0 blocks were cut.\nTip: lazycut is safer", "WorldEdit.Cut"),
+    COMMAND_CUT_SLOW("%s0 blocks were cut.", "WorldEdit.Cut"),
     COMMAND_CUT_LAZY("%s0 blocks will be removed on paste", "WorldEdit.Cut"),
 
-    COMMAND_PASTE("The clipboard has been pasted at %s0\nTip: Paste on click with &c//br copypaste", "WorldEdit.Paste"),
+    COMMAND_PASTE("The clipboard has been pasted at %s0", "WorldEdit.Paste"),
 
 
     COMMAND_ROTATE("The clipboard has been rotated", "WorldEdit.Rotate"),
@@ -242,6 +242,8 @@ public enum BBC {
     TIP_SET_POS1("Tip: Use pos1 as a pattern with &c//set pos1", "Tips"),
     TIP_FARWAND("Tip: Select distant points with &c//farwand", "Tips"),
 
+    // cut
+    TIP_LAZYCUT("&7Tip: It is safer to use &c//lazycut", "Tips"),
     // set
     TIP_FAST("&7Tip: Set fast and without undo using &c//fast", "Tips"),
     TIP_CANCEL("&7Tip: You can &c//cancel &7an edit in progress", "Tips"),

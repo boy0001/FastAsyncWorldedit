@@ -48,6 +48,7 @@ import com.sk89q.worldedit.function.generator.FloraGenerator;
 import com.sk89q.worldedit.function.generator.ForestGenerator;
 import com.sk89q.worldedit.function.mask.ExistingBlockMask;
 import com.sk89q.worldedit.function.mask.Mask;
+import com.sk89q.worldedit.function.mask.Masks;
 import com.sk89q.worldedit.function.mask.NoiseFilter2D;
 import com.sk89q.worldedit.function.operation.Operations;
 import com.sk89q.worldedit.function.pattern.BlockPattern;
@@ -319,7 +320,8 @@ public class RegionCommands {
     @CommandPermissions("worldedit.region.set")
     @Logging(REGION)
     public void set(Player player, LocalSession session, EditSession editSession, @Selection Region selection, Pattern to) throws WorldEditException {
-        if (selection instanceof CuboidRegion && (editSession.hasFastMode() || (editSession.getRegionExtent() == null && editSession.getChangeTask() != null)) && to instanceof BlockPattern) {
+        if (selection instanceof CuboidRegion && (editSession.hasFastMode() || (editSession.getRegionExtent() == null && editSession.getChangeTask() != null)) && to instanceof BlockPattern && Masks.isNull(session.getMask()) && Masks.isNull(session.getSourceMask())) {
+            if (session.getMask() == null && session.getSourceMask() == null)
             try {
                 CuboidRegion cuboid = (CuboidRegion) selection;
                 RegionWrapper current = new RegionWrapper(cuboid.getMinimumPoint(), cuboid.getMaximumPoint());
@@ -375,7 +377,12 @@ public class RegionCommands {
                 MainUtil.handleError(e);
             }
         }
-        int affected = editSession.setBlocks(selection, Patterns.wrap(to));
+        int affected;
+        if (to instanceof BlockPattern) {
+            affected = editSession.setBlocks(selection, ((BlockPattern) to).getBlock());
+        } else {
+            affected = editSession.setBlocks(selection, Patterns.wrap(to));
+        }
         if (affected != 0) {
             BBC.OPERATION.send(player, affected);
             if (!FawePlayer.wrap(player).hasPermission("fawe.tips")) BBC.TIP_FAST.or(BBC.TIP_CANCEL, BBC.TIP_MASK, BBC.TIP_MASK_ANGLE, BBC.TIP_SET_LINEAR, BBC.TIP_SURFACE_SPREAD, BBC.TIP_SET_HAND).send(player);
@@ -601,7 +608,9 @@ public class RegionCommands {
         editSession.regenerate(region, biome, seed);
         session.setMask(mask);
         session.setSourceMask(mask);
-        if (biome == null) {
+        if (!FawePlayer.wrap(player).hasPermission("fawe.tips")) {
+            BBC.COMMAND_REGEN_2.send(player);
+        } else if (biome == null) {
             BBC.COMMAND_REGEN_0.send(player);
         } else if (seed == null) {
             BBC.COMMAND_REGEN_1.send(player);
