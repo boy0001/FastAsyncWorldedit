@@ -2,6 +2,7 @@ package com.boydti.fawe.object.brush.heightmap;
 
 import com.boydti.fawe.object.IntegerPair;
 import com.boydti.fawe.object.PseudoRandom;
+import com.boydti.fawe.util.MainUtil;
 import com.boydti.fawe.util.MathMan;
 import com.sk89q.worldedit.EditSession;
 import com.sk89q.worldedit.MaxChangedBlocksException;
@@ -145,8 +146,12 @@ public class ScalableHeightMap {
         Region region = new CuboidRegion(session.getWorld(), min, max);
         HeightMap heightMap = new HeightMap(session, region, true);
         if (smooth) {
-            HeightMapFilter filter = new HeightMapFilter(new GaussianKernel(5, 1));
-            newData = filter.filter(newData, diameter, diameter);
+            try {
+                HeightMapFilter filter = (HeightMapFilter) HeightMapFilter.class.getConstructors()[0].newInstance(GaussianKernel.class.getConstructors()[0].newInstance(5, 1));
+                newData = filter.filter(newData, diameter, diameter);
+            } catch (Throwable e) {
+                MainUtil.handleError(e);
+            }
         }
         heightMap.apply(newData);
     }

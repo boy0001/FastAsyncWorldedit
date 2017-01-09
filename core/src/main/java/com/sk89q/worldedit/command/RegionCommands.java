@@ -474,11 +474,13 @@ public class RegionCommands {
     @Logging(REGION)
     public void smooth(Player player, EditSession editSession, @Selection Region region, @Optional("1") int iterations, @Switch('n') boolean affectNatural) throws WorldEditException {
         HeightMap heightMap = new HeightMap(editSession, region, affectNatural);
-        HeightMapFilter filter = new HeightMapFilter(new GaussianKernel(5, 1.0));
-        int affected = heightMap.applyFilter(filter, iterations);
-
-        BBC.VISITOR_BLOCK.send(player, affected);
-
+        try {
+            HeightMapFilter filter = (HeightMapFilter) HeightMapFilter.class.getConstructors()[0].newInstance(GaussianKernel.class.getConstructors()[0].newInstance(5, 1));
+            int affected = heightMap.applyFilter(filter, iterations);
+            BBC.VISITOR_BLOCK.send(player, affected);
+        } catch (Throwable e) {
+            throw new RuntimeException(e);
+        }
     }
 
     @Command(
