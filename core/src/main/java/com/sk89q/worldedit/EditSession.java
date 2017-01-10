@@ -1578,10 +1578,8 @@ public class EditSession extends AbstractWorld implements HasFaweQueue, Lighting
         checkNotNull(region);
         checkNotNull(block);
         if (canBypassAll(region, false, true)) {
-            System.out.println("Can bypass");
             return changes = queue.setBlocks((CuboidRegion) region, block.getId(), block.getData());
         }
-        System.out.println("Cannot bypasss");
         Iterator<BlockVector> iter = region.iterator();
         try {
             while (iter.hasNext()) {
