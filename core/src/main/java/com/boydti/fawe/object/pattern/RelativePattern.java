@@ -21,9 +21,9 @@ public class RelativePattern extends AbstractPattern implements ResettablePatter
         if (origin == null) {
             origin = new Vector(pos);
         }
-        mutable.x = pos.x - origin.x;
-        mutable.y = pos.y - origin.y;
-        mutable.z = pos.z - origin.z;
+        mutable.x = (pos.getX() - origin.getX());
+        mutable.y = (pos.getY() - origin.getY());
+        mutable.z = (pos.getZ() - origin.getZ());
         return pattern.apply(mutable);
     }
 

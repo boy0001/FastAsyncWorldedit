@@ -23,9 +23,9 @@ public class BlockTranslateExtent extends AbstractDelegateExtent {
 
     @Override
     public boolean setBlock(Vector location, BaseBlock block) throws WorldEditException {
-        mutable.x = location.x + dx;
-        mutable.y = location.y + dy;
-        mutable.z = location.z + dz;
+        mutable.x = (location.getX() + dx);
+        mutable.y = (location.getY() + dy);
+        mutable.z = (location.getZ() + dz);
         return extent.setBlock(mutable, block);
     }
 
@@ -49,12 +49,12 @@ public class BlockTranslateExtent extends AbstractDelegateExtent {
 
     @Override
     public BaseBlock getBlock(Vector location) {
-        return getLazyBlock((int) location.x, (int) location.y, (int) location.z);
+        return getLazyBlock(location.getBlockX(), location.getBlockY(), location.getBlockZ());
     }
 
     @Override
     public BaseBlock getLazyBlock(Vector location) {
-        return getLazyBlock((int) location.x, (int) location.y, (int) location.z);
+        return getLazyBlock(location.getBlockX(), location.getBlockY(), location.getBlockZ());
     }
 
     @Override

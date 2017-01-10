@@ -33,13 +33,13 @@ public class PositionTransformExtent extends ResettableExtent {
         if (min == null) {
             min = new Vector(pos);
         }
-        mutable.x = (pos.x - min.x);
-        mutable.y = (pos.y - min.y);
-        mutable.z = (pos.z - min.z);
+        mutable.x = ((pos.getX() - min.getX()));
+        mutable.y = ((pos.getY() - min.getY()));
+        mutable.z = ((pos.getZ() - min.getZ()));
         Vector tmp = transform.apply(mutable);
-        tmp.x += min.x;
-        tmp.y += min.y;
-        tmp.z += min.z;
+        tmp.x = (tmp.getX() + min.getX());
+        tmp.y = (tmp.getY() + min.getY());
+        tmp.z = (tmp.getZ() + min.getZ());
         return tmp;
     }
 
@@ -47,13 +47,13 @@ public class PositionTransformExtent extends ResettableExtent {
         if (min == null) {
             min = new Vector(x, y, z);
         }
-        mutable.x = (x - min.x);
-        mutable.y = (y - min.y);
-        mutable.z = (z - min.z);
+        mutable.x = ((x - min.getX()));
+        mutable.y = ((y - min.getY()));
+        mutable.z = ((z - min.getZ()));
         Vector tmp = transform.apply(mutable);
-        tmp.x += min.x;
-        tmp.y += min.y;
-        tmp.z += min.z;
+        tmp.x = (tmp.getX() + min.getX());
+        tmp.y = (tmp.getY() + min.getY());
+        tmp.z = (tmp.getZ() + min.getZ());
         return tmp;
     }
 

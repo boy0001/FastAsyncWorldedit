@@ -20,9 +20,9 @@ public class OffsetPattern extends AbstractPattern {
 
     @Override
     public BaseBlock apply(Vector position) {
-        mutable.x = position.x + dx;
-        mutable.y = position.y + dy;
-        mutable.z = position.z + dz;
+        mutable.x = (position.getX() + dx);
+        mutable.y = (position.getY() + dy);
+        mutable.z = (position.getZ() + dz);
         return pattern.apply(mutable);
     }
 }

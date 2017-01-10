@@ -40,7 +40,7 @@ public class SourceMaskExtent extends TemporalExtent {
     }
     @Override
     public boolean setBlock(Vector location, BaseBlock block) throws WorldEditException {
-        set((int) location.x, (int) location.y, (int) location.z, block);
+        set(location.getBlockX(), location.getBlockY(), location.getBlockZ(), block);
         return mask.test(location) && super.setBlock(location, block);
     }
 

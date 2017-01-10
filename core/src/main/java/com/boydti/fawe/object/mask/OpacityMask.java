@@ -21,7 +21,7 @@ public class OpacityMask implements Mask {
     @Override
     public boolean test(Vector vector) {
         if (extent instanceof LightingExtent) {
-            int light = ((LightingExtent) extent).getOpacity((int) vector.x, (int) vector.y, (int) vector.z);
+            int light = ((LightingExtent) extent).getOpacity(vector.getBlockX(), vector.getBlockY(), vector.getBlockZ());
             return light >= min && light <= max;
         }
         return false;

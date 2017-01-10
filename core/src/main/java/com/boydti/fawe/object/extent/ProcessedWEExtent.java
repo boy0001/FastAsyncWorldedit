@@ -17,6 +17,8 @@ import com.sk89q.worldedit.extent.Extent;
 import com.sk89q.worldedit.regions.Region;
 import com.sk89q.worldedit.util.Location;
 import com.sk89q.worldedit.world.biome.BaseBiome;
+import java.util.Arrays;
+import java.util.Collection;
 import java.util.List;
 
 public class ProcessedWEExtent extends FaweRegionExtent {
@@ -29,6 +31,11 @@ public class ProcessedWEExtent extends FaweRegionExtent {
         this.mask = mask;
         this.limit = limit;
         this.extent = (AbstractDelegateExtent) parent;
+    }
+
+    @Override
+    public Collection<RegionWrapper> getRegions() {
+        return Arrays.asList(mask);
     }
 
     public void setLimit(FaweLimit other) {
@@ -89,12 +96,12 @@ public class ProcessedWEExtent extends FaweRegionExtent {
 
     @Override
     public boolean setBlock(final Vector location, final BaseBlock block) throws WorldEditException {
-        return setBlock((int) location.x, (int) location.y, (int) location.z, block);
+        return setBlock(location.getBlockX(), location.getBlockY(), location.getBlockZ(), block);
     }
 
     @Override
     public BaseBlock getLazyBlock(Vector location) {
-        return getLazyBlock((int) location.x, (int) location.y, (int) location.z);
+        return getLazyBlock(location.getBlockX(), location.getBlockY(), location.getBlockZ());
     }
 
     @Override
@@ -133,7 +140,7 @@ public class ProcessedWEExtent extends FaweRegionExtent {
 
     @Override
     public boolean setBiome(final Vector2D position, final BaseBiome biome) {
-        if (WEManager.IMP.maskContains(this.mask, (int) position.getX(), (int) position.getZ())) {
+        if (WEManager.IMP.maskContains(this.mask, position.getBlockX(), position.getBlockZ())) {
             if (!limit.MAX_CHANGES()) {
                 WEManager.IMP.cancelEditSafe(this, BBC.WORLDEDIT_CANCEL_REASON_MAX_CHANGES);
                 return false;

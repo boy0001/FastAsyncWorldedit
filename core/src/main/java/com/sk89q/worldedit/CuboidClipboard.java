@@ -531,7 +531,7 @@ public class CuboidClipboard {
                 }
 
                 if (aroundPlayer) {
-                    offset = offset.setX(1 - offset.getX() - width);
+                    offset.x = 1 - offset.x - width;
                 }
 
                 break;
@@ -565,7 +565,7 @@ public class CuboidClipboard {
                 }
 
                 if (aroundPlayer) {
-                    offset = offset.setZ(1 - offset.getZ() - length);
+                    offset.z = 1 - offset.getZ() - length;
                 }
 
                 break;
@@ -597,7 +597,7 @@ public class CuboidClipboard {
                 }
 
                 if (aroundPlayer) {
-                    offset = offset.setY(1 - offset.getY() - height);
+                    offset.y = 1 - offset.getY() - height;
                 }
 
                 break;

@@ -40,9 +40,9 @@ public class ClipboardPattern extends AbstractPattern {
         if (xp < 0) xp += sx;
         if (yp < 0) yp += sy;
         if (zp < 0) zp += sz;
-        mutable.x = min.x + xp;
-        mutable.y = min.y + yp;
-        mutable.z = min.z + zp;
+        mutable.x = (min.getX() + xp);
+        mutable.y = (min.getY() + yp);
+        mutable.z = (min.getZ() + zp);
         return clipboard.getBlock(mutable);
     }
 

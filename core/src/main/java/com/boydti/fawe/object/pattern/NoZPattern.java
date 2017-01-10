@@ -17,8 +17,8 @@ public class NoZPattern extends AbstractPattern {
 
     @Override
     public BaseBlock apply(Vector pos) {
-        mutable.x = pos.x;
-        mutable.y = pos.y;
+        mutable.x = (pos.getX());
+        mutable.y = (pos.getY());
         return pattern.apply(mutable);
     }
 }

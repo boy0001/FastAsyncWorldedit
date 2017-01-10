@@ -26,9 +26,9 @@ public class RadiusMask implements Mask, ResettableMask{
         if (pos == null) {
             pos = new Vector(to);
         }
-        int dx = Math.abs((int) (pos.x - to.x));
-        int dy = Math.abs((int) (pos.y - to.y));
-        int dz = Math.abs((int) (pos.z - to.z));
+        int dx = Math.abs((int) (pos.getX() - to.getX()));
+        int dy = Math.abs((int) (pos.getY() - to.getY()));
+        int dz = Math.abs((int) (pos.getZ() - to.getZ()));
         int d = dx * dx;
         if (d < minSqr || d > maxSqr) {
             return false;

@@ -73,7 +73,7 @@ public class FuzzyRegionSelector extends AbstractDelegateExtent implements Regio
         positions.clear();
         positions.add(position);
         this.region = new FuzzyRegion(getWorld(), getExtent(), getMask());
-        this.region.select((int) position.x, (int) position.y, (int) position.z);
+        this.region.select(position.getBlockX(), position.getBlockY(), position.getBlockZ());
         return true;
     }
 
@@ -81,7 +81,7 @@ public class FuzzyRegionSelector extends AbstractDelegateExtent implements Regio
     public boolean selectSecondary(Vector position, SelectorLimits limits) {
         this.positions.add(position);
         new MaskTraverser(getMask()).reset(getExtent());
-        this.region.select((int) position.x, (int) position.y, (int) position.z);
+        this.region.select(position.getBlockX(), position.getBlockY(), position.getBlockZ());
         return true;
     }
 

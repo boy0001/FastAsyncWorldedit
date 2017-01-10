@@ -21,7 +21,7 @@ public class SkyLightMask implements Mask {
     @Override
     public boolean test(Vector vector) {
         if (extent instanceof LightingExtent) {
-            int light = ((LightingExtent) extent).getSkyLight((int) vector.x, (int) vector.y, (int) vector.z);
+            int light = ((LightingExtent) extent).getSkyLight(vector.getBlockX(), vector.getBlockY(), vector.getBlockZ());
             return light >= min && light <= max;
         }
         return false;

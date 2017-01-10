@@ -17,6 +17,7 @@ import com.sk89q.worldedit.EditSession;
 import com.sk89q.worldedit.Vector;
 import com.sk89q.worldedit.blocks.BaseBlock;
 import com.sk89q.worldedit.blocks.BlockMaterial;
+import com.sk89q.worldedit.regions.CuboidRegion;
 import com.sk89q.worldedit.world.World;
 import com.sk89q.worldedit.world.biome.BaseBiome;
 import com.sk89q.worldedit.world.registry.BundledBlockData;
@@ -137,6 +138,48 @@ public abstract class FaweQueue {
     }
 
     public void optimize() {}
+
+    public int setBlocks(CuboidRegion cuboid, final int id, final int data) {
+        RegionWrapper current = new RegionWrapper(cuboid.getMinimumPoint(), cuboid.getMaximumPoint());
+        final int minY = cuboid.getMinimumY();
+        final int maxY = cuboid.getMaximumY();
+
+        final FaweChunk<?> fc = getFaweChunk(0, 0);
+        final byte dataByte = (byte) data;
+        fc.fillCuboid(0, 15, minY, maxY, 0, 15, id, dataByte);
+        fc.optimize();
+
+        int bcx = (current.minX) >> 4;
+        int bcz = (current.minZ) >> 4;
+
+        int tcx = (current.maxX) >> 4;
+        int tcz = (current.maxZ) >> 4;
+        // [chunkx, chunkz, pos1x, pos1z, pos2x, pos2z, isedge]
+        MainUtil.chunkTaskSync(current, new RunnableVal<int[]>() {
+            @Override
+            public void run(int[] value) {
+                FaweChunk newChunk;
+                if (value[6] == 0) {
+                    newChunk = fc.copy(true);
+                    newChunk.setLoc(FaweQueue.this, value[0], value[1]);
+                } else {
+                    int bx = value[2] & 15;
+                    int tx = value[4] & 15;
+                    int bz = value[3] & 15;
+                    int tz = value[5] & 15;
+                    if (bx == 0 && tx == 15 && bz == 0 && tz == 15) {
+                        newChunk = fc.copy(true);
+                        newChunk.setLoc(FaweQueue.this, value[0], value[1]);
+                    } else {
+                        newChunk = FaweQueue.this.getFaweChunk(value[0], value[1]);
+                        newChunk.fillCuboid(value[2] & 15, value[4] & 15, minY, maxY, value[3] & 15, value[5] & 15, id, dataByte);
+                    }
+                }
+                newChunk.addToQueue();
+            }
+        });
+        return cuboid.getArea();
+    }
 
     public abstract boolean setBlock(final int x, final int y, final int z, final int id, final int data);
 

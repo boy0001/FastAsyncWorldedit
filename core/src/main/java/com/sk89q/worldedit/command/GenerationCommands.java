@@ -301,9 +301,9 @@ public class GenerationCommands {
             zero = max.add(min).multiply(0.5);
             unit = max.subtract(zero);
 
-            if (unit.getX() == 0) unit = unit.setX(1.0);
-            if (unit.getY() == 0) unit = unit.setY(1.0);
-            if (unit.getZ() == 0) unit = unit.setZ(1.0);
+            if (unit.getX() == 0) unit.x = 1;
+            if (unit.getY() == 0) unit.y = 1;
+            if (unit.getZ() == 0) unit.z = 1;
         }
 
         try {
@@ -366,9 +366,9 @@ public class GenerationCommands {
             zero = max.add(min).multiply(0.5);
             unit = max.subtract(zero);
 
-            if (unit.getX() == 0) unit = unit.setX(1.0);
-            if (unit.getY() == 0) unit = unit.setY(1.0);
-            if (unit.getZ() == 0) unit = unit.setZ(1.0);
+            if (unit.getX() == 0) unit.x = 1;
+            if (unit.getY() == 0) unit.y = 1;
+            if (unit.getZ() == 0) unit.z = 1;
         }
 
         try {

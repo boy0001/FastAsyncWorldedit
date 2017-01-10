@@ -321,7 +321,7 @@ public class ClipboardCommands {
             selector.learnChanges();
             selector.explainRegionAdjust(player, session);
         }
-        BBC.COMMAND_PASTE.send(player);
+        BBC.COMMAND_PASTE.send(player, to);
         if (!FawePlayer.wrap(player).hasPermission("fawe.tips")) BBC.TIP_COPYPASTE.or(BBC.TIP_SOURCE_MASK, BBC.TIP_REPLACE_MARKER).send(player, to);
     }
 
@@ -367,7 +367,7 @@ public class ClipboardCommands {
                     pos.x += relx;
                     pos.y += rely;
                     pos.z += relz;
-                    if (pos.y >= 0 && pos.y <= maxY) {
+                    if (pos.getY() >= 0 && pos.getY() <= maxY) {
                         editSession.setBlockFast(pos, block);
                     }
                 }
@@ -387,7 +387,7 @@ public class ClipboardCommands {
                 loc.x += relx;
                 loc.y += rely;
                 loc.z += relz;
-                if (loc.y >= 0 && loc.y <= maxY) {
+                if (loc.getY() >= 0 && loc.getY() <= maxY) {
                     editSession.setBlockFast(loc, block);
                 }
             }

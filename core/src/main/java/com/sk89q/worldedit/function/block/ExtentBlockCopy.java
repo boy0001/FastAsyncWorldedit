@@ -101,9 +101,9 @@ public class ExtentBlockCopy implements RegionFunction {
                 if (direction != null) {
                     Vector applyAbsolute = transform.apply(direction.toVector());
                     Vector applyOrigin = transform.apply(Vector.ZERO);
-                    applyAbsolute.x -= applyOrigin.x;
-                    applyAbsolute.y -= applyOrigin.y;
-                    applyAbsolute.z -= applyOrigin.z;
+                    applyAbsolute.x -= applyOrigin.getX();
+                    applyAbsolute.y -= applyOrigin.getY();
+                    applyAbsolute.z -= applyOrigin.getZ();
 
                     Direction newDirection = Direction.findClosest(applyAbsolute, Flag.CARDINAL | Flag.ORDINAL | Flag.SECONDARY_ORDINAL);
 

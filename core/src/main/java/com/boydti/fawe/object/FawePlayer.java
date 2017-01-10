@@ -372,7 +372,7 @@ public abstract class FawePlayer<T> extends Metadatable {
     public void setSelection(final RegionWrapper region) {
         final Player player = this.getPlayer();
         Vector top = region.getTopVector();
-        top.setY(getWorld().getMaxY());
+        top.y = getWorld().getMaxY();
         final RegionSelector selector = new CuboidRegionSelector(player.getWorld(), region.getBottomVector(), top);
         this.getSession().setRegionSelector(player.getWorld(), selector);
     }

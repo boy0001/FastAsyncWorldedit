@@ -61,7 +61,7 @@ public class ScalableHeightMap {
         int clipHeight = maxY - minY + 1;
         HashSet<IntegerPair> visited = new HashSet<>();
         for (Vector pos : clipboard.getRegion()) {
-            IntegerPair pair = new IntegerPair((int) pos.x, (int) pos.z);
+            IntegerPair pair = new IntegerPair(pos.getBlockX(), pos.getBlockZ());
             if (visited.contains(pair)) {
                 continue;
             }

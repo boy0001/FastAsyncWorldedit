@@ -55,7 +55,7 @@ public class PatternExtent extends AbstractPattern implements Extent {
     @Override
     public BaseBlock getBlock(Vector position) {
         BaseBlock tmp = pattern.apply(position);
-        if (position == target || (position.x == target.x && position.y == target.y && position.z == target.z)) {
+        if (position == target || (position.getX() == target.getX() && position.getY() == target.getY() && position.getZ() == target.getZ())) {
             block = tmp;
         } else {
             block = null;

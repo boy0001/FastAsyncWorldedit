@@ -18,9 +18,9 @@ public class WallMask extends BlockMask {
     @Override
     public boolean test(Vector v) {
         int count = 0;
-        double x = v.x;
-        double y = v.y;
-        double z = v.z;
+        double x = v.getX();
+        double y = v.getY();
+        double z = v.getZ();
         v.x = x + 1;
         if (super.test(v) && ++count == min && max >= 8) { v.x = x; return true; }
         v.x = x - 1;

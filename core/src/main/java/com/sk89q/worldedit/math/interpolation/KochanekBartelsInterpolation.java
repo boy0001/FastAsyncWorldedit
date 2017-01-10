@@ -158,9 +158,9 @@ public class KochanekBartelsInterpolation implements Interpolation {
 
         double r2 = remainder * remainder;
         double r3 = r2 * remainder;
-        mutable.x = a.x * r3 + b.x * r2 + c.x * remainder + d.x;
-        mutable.y = a.y * r3 + b.y * r2 + c.y * remainder + d.y;
-        mutable.z = a.z * r3 + b.z * r2 + c.z * remainder + d.z;
+        mutable.x = (a.getX() * r3 + b.getX() * r2 + c.getX() * remainder + d.getX());
+        mutable.y = (a.getY() * r3 + b.getY() * r2 + c.getY() * remainder + d.getY());
+        mutable.z = (a.getZ() * r3 + b.getZ() * r2 + c.getZ() * remainder + d.getZ());
         return mutable;
     }
 

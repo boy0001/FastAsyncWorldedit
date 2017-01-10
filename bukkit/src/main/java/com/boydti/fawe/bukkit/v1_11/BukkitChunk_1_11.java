@@ -186,9 +186,24 @@ public class BukkitChunk_1_11 extends CharFaweChunk<Chunk, com.boydti.fawe.bukki
             ChunkSection[] sections = nmsChunk.getSections();
             final Collection<Entity>[] entities = (Collection<Entity>[]) getParent().getEntitySlices.invoke(nmsChunk);
             Map<BlockPosition, TileEntity> tiles = nmsChunk.getTileEntities();
+            // copy
+//            BukkitChunk_1_11 copy = getParent().getFaweChunk(getX(), getZ()); // TODO
             // Set heightmap
             getParent().setHeightMap(this, heightMap);
             // Remove entities
+            HashSet<UUID> entsToRemove = this.getEntityRemoves();
+            if (!entsToRemove.isEmpty()) {
+                synchronized (BukkitQueue_0.adapter) {
+                    for (int i = 0; i < entities.length; i++) {
+                        Collection<Entity> ents = new ArrayList<>(entities[i]);
+                        for (Entity entity : ents) {
+                            if (entsToRemove.contains(entity.getUniqueID())) {
+                                nmsWorld.removeEntity(entity);
+                            }
+                        }
+                    }
+                }
+            }
             for (int i = 0; i < entities.length; i++) {
                 int count = this.getCount(i);
                 if (count == 0) {
@@ -196,6 +211,7 @@ public class BukkitChunk_1_11 extends CharFaweChunk<Chunk, com.boydti.fawe.bukki
                 } else if (count >= 4096) {
                     Collection<Entity> ents = entities[i];
                     if (!ents.isEmpty()) {
+//                        copy.storeEntities(this, i);
                         synchronized (BukkitQueue_0.adapter) {
                             ents.clear();
                         }
@@ -204,6 +220,7 @@ public class BukkitChunk_1_11 extends CharFaweChunk<Chunk, com.boydti.fawe.bukki
                     Collection<Entity> ents = entities[i];
                     if (!ents.isEmpty()) {
                         char[] array = this.getIdArray(i);
+                        if (array == null || entities[i] == null || entities[i].isEmpty()) continue;
                         ents = new ArrayList<>(entities[i]);
                         synchronized (BukkitQueue_0.adapter) {
                             for (Entity entity : ents) {
@@ -213,25 +230,11 @@ public class BukkitChunk_1_11 extends CharFaweChunk<Chunk, com.boydti.fawe.bukki
                                 int x = ((int) Math.round(entity.locX) & 15);
                                 int z = ((int) Math.round(entity.locZ) & 15);
                                 int y = (int) Math.round(entity.locY);
-                                if (array == null || y < 0 || y > 255) {
-                                    continue;
-                                }
-                                if (y < 0 || y > 255 || array[FaweCache.CACHE_J[y][z][x]] != 0) {
+                                if (y < 0 || y > 255) continue;
+                                if (array[FaweCache.CACHE_J[y][z][x]] != 0) {
+//                                    copy.storeEntity(this, entity);
                                     nmsWorld.removeEntity(entity);
                                 }
-                            }
-                        }
-                    }
-                }
-            }
-            HashSet<UUID> entsToRemove = this.getEntityRemoves();
-            if (!entsToRemove.isEmpty()) {
-                synchronized (BukkitQueue_0.adapter) {
-                    for (int i = 0; i < entities.length; i++) {
-                        Collection<Entity> ents = new ArrayList<>(entities[i]);
-                        for (Entity entity : ents) {
-                            if (entsToRemove.contains(entity.getUniqueID())) {
-                                nmsWorld.removeEntity(entity);
                             }
                         }
                     }
@@ -288,11 +291,6 @@ public class BukkitChunk_1_11 extends CharFaweChunk<Chunk, com.boydti.fawe.bukki
                     }
                 }
             }
-            // Change task?
-            if (getParent().getChangeTask() != null) {
-                BukkitChunk_1_11 previous = getParent().getPrevious(this, sections, tiles, entities, createdEntities, false);
-                getParent().getChangeTask().run(previous, this);
-            }
             // Trim tiles
             Iterator<Map.Entry<BlockPosition, TileEntity>> iterator = tiles.entrySet().iterator();
             HashMap<BlockPosition, TileEntity> toRemove = null;
@@ -316,6 +314,7 @@ public class BukkitChunk_1_11 extends CharFaweChunk<Chunk, com.boydti.fawe.bukki
                 }
             }
             if (toRemove != null) {
+//                copy.storeTiles(this, toRemove);
                 for (Map.Entry<BlockPosition, TileEntity> entry : toRemove.entrySet()) {
                     BlockPosition bp = entry.getKey();
                     TileEntity tile = entry.getValue();
@@ -338,6 +337,7 @@ public class BukkitChunk_1_11 extends CharFaweChunk<Chunk, com.boydti.fawe.bukki
                     continue;
                 }
                 ChunkSection section = sections[j];
+//                copy.storeBlocks(this, section);
                 if (section == null) {
                     if (count == countAir) {
                         continue;
@@ -349,8 +349,8 @@ public class BukkitChunk_1_11 extends CharFaweChunk<Chunk, com.boydti.fawe.bukki
                         continue;
                     } else {
                         sections[j] = getParent().newChunkSection(j << 4, flag, array);
+                        continue;
                     }
-                    continue;
                 } else if (count >= 4096) {
                     if (countAir >= 4096) {
                         sections[j] = null;
@@ -362,8 +362,8 @@ public class BukkitChunk_1_11 extends CharFaweChunk<Chunk, com.boydti.fawe.bukki
                         continue;
                     } else {
                         sections[j] = getParent().newChunkSection(j << 4, flag, array);
+                        continue;
                     }
-                    continue;
                 }
                 int by = j << 4;
                 DataPaletteBlock nibble = section.getBlocks();
@@ -407,6 +407,7 @@ public class BukkitChunk_1_11 extends CharFaweChunk<Chunk, com.boydti.fawe.bukki
             // Set biomes
             int[][] biomes = this.biomes;
             if (biomes != null) {
+//                copy.storeBiomes(this);
                 for (int x = 0; x < 16; x++) {
                     int[] array = biomes[x];
                     if (array == null) {
@@ -436,6 +437,10 @@ public class BukkitChunk_1_11 extends CharFaweChunk<Chunk, com.boydti.fawe.bukki
                     tileEntity.a(tag); // ReadTagIntoTile
                 }
             }
+            // Change task?
+//            if (getParent().getChangeTask() != null) { // TODO
+//                getParent().getChangeTask().run(copy, this);
+//            }
         } catch (Throwable e) {
             MainUtil.handleError(e);
         }

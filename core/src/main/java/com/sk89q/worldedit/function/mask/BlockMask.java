@@ -84,6 +84,10 @@ public class BlockMask extends AbstractExtentMask {
         computedLegacyList = null;
     }
 
+    public boolean[] getBlockArray() {
+        return blockIds;
+    }
+
     /**
      * Get the list of blocks that are tested with.
      *

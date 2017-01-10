@@ -52,7 +52,7 @@ public class MCAWorld extends LocalWorld {
 
     @Override
     public int getBlockLightLevel(Vector position) {
-        return queue.getEmmittedLight((int) position.x, (int) position.y, (int) position.z);
+        return queue.getEmmittedLight(position.getBlockX(), position.getBlockY(), position.getBlockZ());
     }
 
     @Override

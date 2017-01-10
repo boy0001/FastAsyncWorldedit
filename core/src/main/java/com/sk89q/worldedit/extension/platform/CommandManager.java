@@ -337,9 +337,12 @@ public final class CommandManager {
                         BBC.WORLDEDIT_CANCEL_REASON.send(finalActor, faweException.getMessage());
                     } else {
                         Throwable t = e.getCause();
-                        finalActor.printError("Please report this error: [See console]");
+                        while (t.getCause() != null) {
+                            t = t.getCause();
+                        }
+                        finalActor.printError("There was an error handling a FAWE command: [See console]");
                         finalActor.printRaw(t.getClass().getName() + ": " + t.getMessage());
-                        log.log(Level.SEVERE, "An unexpected error while handling a WorldEdit command", t);
+                        log.log(Level.SEVERE, "An unexpected error occurred while handling a FAWE command", t);
                     }
                 } catch (CommandException e) {
                     String message = e.getMessage();

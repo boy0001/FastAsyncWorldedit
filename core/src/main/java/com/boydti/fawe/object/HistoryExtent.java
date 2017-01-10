@@ -97,12 +97,12 @@ public class HistoryExtent extends AbstractDelegateExtent {
 
     @Override
     public boolean setBlock(final Vector location, final BaseBlock block) throws WorldEditException {
-        return setBlock((int) location.x, (int) location.y, (int) location.z, block);
+        return setBlock(location.getBlockX(), location.getBlockY(), location.getBlockZ(), block);
     }
 
     @Override
     public BaseBlock getLazyBlock(Vector location) {
-        return getLazyBlock((int) location.x, (int) location.y, (int) location.z);
+        return getLazyBlock(location.getBlockX(), location.getBlockY(), location.getBlockZ());
     }
 
     @Nullable

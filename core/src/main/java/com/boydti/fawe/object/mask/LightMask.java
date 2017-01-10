@@ -21,7 +21,7 @@ public class LightMask implements Mask {
     @Override
     public boolean test(Vector vector) {
         if (extent instanceof LightingExtent) {
-            int light = ((LightingExtent) extent).getLight((int) vector.x, (int) vector.y, (int) vector.z);
+            int light = ((LightingExtent) extent).getLight(vector.getBlockX(), vector.getBlockY(), vector.getBlockZ());
             return light >= min && light <= max;
         }
         return false;

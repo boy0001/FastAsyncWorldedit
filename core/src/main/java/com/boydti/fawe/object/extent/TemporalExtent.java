@@ -54,7 +54,7 @@ public class TemporalExtent extends AbstractDelegateExtent {
 
     @Override
     public BaseBlock getBlock(Vector position) {
-        if (position.x == x && position.y == y && position.z == z) {
+        if (position.getX() == x && position.getY() == y && position.getZ() == z) {
             return block;
         }
         return super.getBlock(position);
@@ -62,7 +62,7 @@ public class TemporalExtent extends AbstractDelegateExtent {
 
     @Override
     public BaseBlock getLazyBlock(Vector position) {
-        if (position.x == x && position.y == y && position.z == z) {
+        if (position.getX() == x && position.getY() == y && position.getZ() == z) {
             return block;
         }
         return super.getLazyBlock(position);

@@ -25,9 +25,9 @@ public class RandomOffsetPattern extends AbstractPattern {
 
     @Override
     public BaseBlock apply(Vector position) {
-        mutable.x = position.x + r.nextInt(dx2) - dx;
-        mutable.y = position.y + r.nextInt(dy2) - dy;
-        mutable.z = position.z + r.nextInt(dz2) - dz;
+        mutable.x = (position.getX() + r.nextInt(dx2) - dx);
+        mutable.y = (position.getY() + r.nextInt(dy2) - dy);
+        mutable.z = (position.getZ() + r.nextInt(dz2) - dz);
         return pattern.apply(mutable);
     }
 }

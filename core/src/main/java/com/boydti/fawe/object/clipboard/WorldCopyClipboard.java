@@ -59,9 +59,9 @@ public class WorldCopyClipboard extends ReadOnlyClipboard {
                             CompoundTag tag = block.getNbtData();
                             if (tag != null) {
                                 Map<String, Tag> values = ReflectionUtils.getMap(tag.getValue());
-                                values.put("x", new IntTag((int) pos.x));
-                                values.put("y", new IntTag((int) pos.y));
-                                values.put("z", new IntTag((int) pos.z));
+                                values.put("x", new IntTag(pos.getBlockX()));
+                                values.put("y", new IntTag(pos.getBlockY()));
+                                values.put("z", new IntTag(pos.getBlockZ()));
                             }
                             task.run(pos, block);
                         }
@@ -81,9 +81,9 @@ public class WorldCopyClipboard extends ReadOnlyClipboard {
                             CompoundTag tag = block.getNbtData();
                             if (tag != null) {
                                 Map<String, Tag> values = ReflectionUtils.getMap(tag.getValue());
-                                values.put("x", new IntTag((int) pos.x));
-                                values.put("y", new IntTag((int) pos.y));
-                                values.put("z", new IntTag((int) pos.z));
+                                values.put("x", new IntTag(pos.getBlockX()));
+                                values.put("y", new IntTag(pos.getBlockY()));
+                                values.put("z", new IntTag(pos.getBlockZ()));
                             }
                             task.run(pos, block);
                         }
@@ -108,9 +108,9 @@ public class WorldCopyClipboard extends ReadOnlyClipboard {
                             CompoundTag tag = block.getNbtData();
                             if (tag != null) {
                                 Map<String, Tag> values = ReflectionUtils.getMap(tag.getValue());
-                                values.put("x", new IntTag((int) pos.x));
-                                values.put("y", new IntTag((int) pos.y));
-                                values.put("z", new IntTag((int) pos.z));
+                                values.put("x", new IntTag(pos.getBlockX()));
+                                values.put("y", new IntTag(pos.getBlockY()));
+                                values.put("z", new IntTag(pos.getBlockZ()));
                             }
                             task.run(pos, block);
                         } else if (air) {

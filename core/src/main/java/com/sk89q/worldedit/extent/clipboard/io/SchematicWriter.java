@@ -77,9 +77,9 @@ public class SchematicWriter implements ClipboardWriter {
 
         @Override
         public void run(Vector point, BaseBlock block) {
-            int x = (int) point.x;
-            int y = (int) point.y;
-            int z = (int) point.z;
+            int x = (int) point.getX();
+            int y = (int) point.getY();
+            int z = (int) point.getZ();
             if (this.x == x - 1 && this.y == y && this.z == z) {
                 this.x++;
                 index++;
@@ -289,9 +289,9 @@ public class SchematicWriter implements ClipboardWriter {
             Vector mutable = new Vector(0, 0, 0);
             ForEach forEach = new ForEach(yarea, zwidth, blocks, blockData, tileEntities);
             for (Vector point : region) {
-                mutable.x = point.x - mx;
-                mutable.y = point.y - my;
-                mutable.z = point.z - mz;
+                mutable.x = (point.getX() - mx);
+                mutable.y = (point.getY() - my);
+                mutable.z = (point.getZ() - mz);
                 forEach.run(mutable, clipboard.getBlock(point));
             }
             addBlocks = forEach.addBlocks;

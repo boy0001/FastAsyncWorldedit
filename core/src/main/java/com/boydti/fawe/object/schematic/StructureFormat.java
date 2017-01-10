@@ -222,7 +222,7 @@ public class StructureFormat implements ClipboardReader, ClipboardWriter {
                 BaseBlock block = clipboard.getBlock(point);
                 int combined = FaweCache.getCombined(block);
                 int index = indexes[combined];
-                List<Integer> pos = Arrays.asList((int) (point.x - min.x), (int) (point.y - min.y), (int) (point.z - min.z));
+                List<Integer> pos = Arrays.asList((int) (point.getX() - min.getX()), (int) (point.getY() - min.getY()), (int) (point.getZ() - min.getZ()));
                 if (!block.hasNbtData()) {
                     blocks.add(FaweCache.asMap("state", index, "pos", pos));
                 } else {

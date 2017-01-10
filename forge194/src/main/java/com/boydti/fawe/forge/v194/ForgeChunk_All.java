@@ -174,6 +174,7 @@ public class ForgeChunk_All extends CharFaweChunk<Chunk, ForgeQueue_All> {
                     entities[i] = new ClassInheritanceMultiMap<>(Entity.class);
                 } else {
                     char[] array = this.getIdArray(i);
+                    if (array == null || entities[i] == null || entities[i].isEmpty()) continue;
                     Collection<Entity> ents = new ArrayList<>(entities[i]);
                     for (Entity entity : ents) {
                         if (entity instanceof EntityPlayer) {
@@ -182,10 +183,19 @@ public class ForgeChunk_All extends CharFaweChunk<Chunk, ForgeQueue_All> {
                         int x = ((int) Math.round(entity.posX) & 15);
                         int z = ((int) Math.round(entity.posZ) & 15);
                         int y = (int) Math.round(entity.posY);
-                        if (array == null) {
-                            continue;
+                        if (y < 0 || y > 255) continue;
+                        if (array[FaweCache.CACHE_J[y][z][x]] != 0) {
+                            nmsWorld.removeEntity(entity);
                         }
-                        if (y < 0 || y > 255 || array[FaweCache.CACHE_J[y][z][x]] != 0) {
+                    }
+                }
+            }
+            HashSet<UUID> entsToRemove = this.getEntityRemoves();
+            if (entsToRemove.size() > 0) {
+                for (int i = 0; i < entities.length; i++) {
+                    Collection<Entity> ents = new ArrayList<>(entities[i]);
+                    for (Entity entity : ents) {
+                        if (entsToRemove.contains(entity.getUniqueID())) {
                             nmsWorld.removeEntity(entity);
                         }
                     }
@@ -244,17 +254,6 @@ public class ForgeChunk_All extends CharFaweChunk<Chunk, ForgeQueue_All> {
                     iterator.remove();
                 }
             }
-            HashSet<UUID> entsToRemove = this.getEntityRemoves();
-            if (entsToRemove.size() > 0) {
-                for (int i = 0; i < entities.length; i++) {
-                    Collection<Entity> ents = new ArrayList<>(entities[i]);
-                    for (Entity entity : ents) {
-                        if (entsToRemove.contains(entity.getUniqueID())) {
-                            nmsWorld.removeEntity(entity);
-                        }
-                    }
-                }
-            }
             // Efficiently merge sections
             for (int j = 0; j < sections.length; j++) {
                 int count = this.getCount(j);
@@ -288,8 +287,6 @@ public class ForgeChunk_All extends CharFaweChunk<Chunk, ForgeQueue_All> {
                         getParent().setPalette(section, this.sectionPalettes[j]);
                         getParent().setCount(0, count - this.getAir(j), section);
                         continue;
-                    } else {
-                        sections[j] = section = new ExtendedBlockStorage(j << 4, flag);
                     }
                 }
                 IBlockState existing;

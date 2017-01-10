@@ -41,6 +41,7 @@ import com.boydti.fawe.object.changeset.CPUOptimizedChangeSet;
 import com.boydti.fawe.object.changeset.DiskStorageHistory;
 import com.boydti.fawe.object.changeset.FaweChangeSet;
 import com.boydti.fawe.object.changeset.MemoryOptimizedHistory;
+import com.boydti.fawe.object.collection.LocalBlockVectorSet;
 import com.boydti.fawe.object.exception.FaweException;
 import com.boydti.fawe.object.extent.FastWorldEditExtent;
 import com.boydti.fawe.object.extent.FaweRegionExtent;
@@ -129,12 +130,11 @@ import com.sk89q.worldedit.world.AbstractWorld;
 import com.sk89q.worldedit.world.World;
 import com.sk89q.worldedit.world.biome.BaseBiome;
 import com.sk89q.worldedit.world.registry.WorldData;
+import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Iterator;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -169,6 +169,7 @@ public class EditSession extends AbstractWorld implements HasFaweQueue, Lighting
     private World world;
     private String worldName;
     private FaweQueue queue;
+    private boolean wrapped;
     private AbstractDelegateExtent extent;
     private HistoryExtent history;
     private AbstractDelegateExtent bypassHistory;
@@ -483,6 +484,7 @@ public class EditSession extends AbstractWorld implements HasFaweQueue, Lighting
             String className = toReturn.getClass().getName().toLowerCase();
             for (String allowed : Settings.EXTENT.ALLOWED_PLUGINS) {
                 if (className.contains(allowed.toLowerCase())) {
+                    this.wrapped = true;
                     return (AbstractDelegateExtent) toReturn;
                 }
             }
@@ -858,10 +860,10 @@ public class EditSession extends AbstractWorld implements HasFaweQueue, Lighting
 
     @Override
     public BaseBlock getLazyBlock(final Vector position) {
-        if (position.y > maxY || position.y < 0) {
+        if (position.getY() > maxY || position.getY() < 0) {
             return nullBlock;
         }
-        return getLazyBlock((int) position.x, (int) position.y, (int) position.z);
+        return getLazyBlock(position.getBlockX(), position.getBlockY(), position.getBlockZ());
     }
 
     public BaseBlock getLazyBlock(int x, int y, int z) {
@@ -874,10 +876,10 @@ public class EditSession extends AbstractWorld implements HasFaweQueue, Lighting
 
     @Override
     public BaseBlock getBlock(final Vector position) {
-        if (position.y > maxY || position.y < 0) {
+        if (position.getY() > maxY || position.getY() < 0) {
             return nullBlock;
         }
-        return getLazyBlock((int) position.x, (int) position.y, (int) position.z);
+        return getLazyBlock(position.getBlockX(), position.getBlockY(), position.getBlockZ());
     }
 
     /**
@@ -1335,9 +1337,20 @@ public class EditSession extends AbstractWorld implements HasFaweQueue, Lighting
      * @return the number of found blocks
      */
     public int countBlock(final Region region, final Set<Integer> searchIDs) {
+        if (searchIDs.isEmpty()) {
+            return 0;
+        }
+        if (searchIDs.size() == 1) {
+            int count = 0;
+            int id = searchIDs.iterator().next();
+            for (final Vector pt : region) {
+                if (this.getBlockType(pt) == id) count++;
+            }
+            return count;
+        }
         final boolean[] ids = new boolean[256];
         for (final int id : searchIDs) {
-            if ((id < 256) && (id > 0)) {
+            if ((id < 256) && (id >= 0)) {
                 ids[id] = true;
             }
         }
@@ -1345,14 +1358,14 @@ public class EditSession extends AbstractWorld implements HasFaweQueue, Lighting
     }
 
     public int countBlock(final Region region, final boolean[] ids) {
-        int i = 0;
+        int count = 0;
         for (final Vector pt : region) {
             final int id = this.getBlockType(pt);
             if (ids[id]) {
-                i++;
+                count++;
             }
         }
-        return i;
+        return count;
     }
 
     /**
@@ -1363,14 +1376,14 @@ public class EditSession extends AbstractWorld implements HasFaweQueue, Lighting
      * @return the number of blocks that matched the pattern
      */
     public int countBlocks(final Region region, final Set<BaseBlock> searchBlocks) {
-        final boolean[] ids = new boolean[256];
-        for (final BaseBlock block : searchBlocks) {
-            final int id = block.getId();
-            if ((id < 256) && (id > 0)) {
-                ids[id] = true;
+        BlockMask mask = new BlockMask(extent, searchBlocks);
+        int count = 0;
+        for (final Vector pt : region) {
+            if (mask.test(pt)) {
+                count++;
             }
         }
-        return this.countBlock(region, ids);
+        return count;
     }
 
     public int fall(final Region region, boolean fullHeight, BaseBlock replace) {
@@ -1379,8 +1392,8 @@ public class EditSession extends AbstractWorld implements HasFaweQueue, Lighting
         int startCheckY = fullHeight ? 0 : startPerformY;
         int endY = region.getMaximumPoint().getBlockY();
         for (BlockVector pos : flat) {
-            int x = (int) pos.x;
-            int z = (int) pos.z;
+            int x = pos.getBlockX();
+            int z = pos.getBlockZ();
             int freeSpot = startCheckY;
             for (int y = startCheckY; y <= endY; y++) {
                 if (y < startPerformY) {
@@ -1527,6 +1540,31 @@ public class EditSession extends AbstractWorld implements HasFaweQueue, Lighting
         return this.replaceBlocks(region, mask, pattern);
     }
 
+    public boolean canBypassAll(Region region, boolean get, boolean set) {
+        if (wrapped) return false;
+        FaweRegionExtent regionExtent = getRegionExtent();
+        if (regionExtent != null) {
+            if (!(region instanceof CuboidRegion)) return false;
+            Vector pos1 = region.getMinimumPoint();
+            Vector pos2 = region.getMaximumPoint();
+            boolean contains = false;
+            for (RegionWrapper current : regionExtent.getRegions()) {
+                if (current.isIn((int) pos1.getX(), pos1.getBlockZ()) && current.isIn((int) pos2.getX(), pos2.getBlockZ())) {
+                    contains = true;
+                    break;
+                }
+            }
+            if (!contains) return false;
+        }
+        long area = region.getArea();
+        FaweLimit left = getLimitLeft();
+        if (!left.isUnlimited() && (((get || getChangeTask() != null) && left.MAX_CHECKS <= area) || (set && left.MAX_CHANGES <= area))) return false;
+        if (getChangeTask() != getChangeSet()) return false;
+        if (!Masks.isNull(getMask()) || !Masks.isNull(getSourceMask())) return false;
+        if (getBlockBag() != null) return false;
+        return true;
+    }
+
     /**
      * Sets all the blocks inside a region to a given block type.
      *
@@ -1539,10 +1577,17 @@ public class EditSession extends AbstractWorld implements HasFaweQueue, Lighting
     public int setBlocks(final Region region, final BaseBlock block) throws MaxChangedBlocksException {
         checkNotNull(region);
         checkNotNull(block);
+        if (canBypassAll(region, false, true)) {
+            System.out.println("Can bypass");
+            return changes = queue.setBlocks((CuboidRegion) region, block.getId(), block.getData());
+        }
+        System.out.println("Cannot bypasss");
         Iterator<BlockVector> iter = region.iterator();
         try {
             while (iter.hasNext()) {
-                this.extent.setBlock(iter.next(), block);
+                if (this.extent.setBlock(iter.next(), block)) {
+                    changes++;
+                }
             }
         } catch (final MaxChangedBlocksException e) {
             throw e;
@@ -1564,6 +1609,9 @@ public class EditSession extends AbstractWorld implements HasFaweQueue, Lighting
     public int setBlocks(final Region region, final Pattern pattern) throws MaxChangedBlocksException {
         checkNotNull(region);
         checkNotNull(pattern);
+        if (pattern instanceof BlockPattern) {
+            return setBlocks(region, ((BlockPattern) pattern).getBlock());
+        }
         final BlockReplace replace = new BlockReplace(EditSession.this, Patterns.wrap(pattern));
         final RegionVisitor visitor = new RegionVisitor(region, replace);
         Operations.completeSmart(visitor, new Runnable() {
@@ -1587,6 +1635,11 @@ public class EditSession extends AbstractWorld implements HasFaweQueue, Lighting
      */
     @SuppressWarnings("deprecation")
     public int replaceBlocks(final Region region, final Set<BaseBlock> filter, final BaseBlock replacement) throws MaxChangedBlocksException {
+//        if (canBypassAll()) {
+//            queue.replaceBlocks(regionWrapper, blocks, block);
+//            return changes = region.getArea();
+//        }
+        // TODO fast replace
         return this.replaceBlocks(region, filter, new SingleBlockPattern(replacement));
     }
 
@@ -1602,9 +1655,16 @@ public class EditSession extends AbstractWorld implements HasFaweQueue, Lighting
      */
     @SuppressWarnings("deprecation")
     public int replaceBlocks(final Region region, final Set<BaseBlock> filter, final Pattern pattern) throws MaxChangedBlocksException {
+        if (pattern instanceof BlockPattern) {
+            return replaceBlocks(region, filter, ((BlockPattern) pattern).getBlock());
+        }
         final Mask mask = filter == null ? new ExistingBlockMask(this) : new FuzzyBlockMask(this, filter);
         return this.replaceBlocks(region, mask, pattern);
     }
+
+//    public int replaceBlocks(final Region region, final Mask mask, final BaseBlock block) throws MaxChangedBlocksException {
+        // TODO
+//    }
 
     /**
      * Replaces all the blocks matching a given mask, within a given region, to a block
@@ -1898,9 +1958,9 @@ public class EditSession extends AbstractWorld implements HasFaweQueue, Lighting
             @Override
             // Only copy what's necessary
             public boolean apply(Vector position) throws WorldEditException {
-                mutable.x = position.x - displace.x;
-                mutable.y = position.y - displace.y;
-                mutable.z = position.z - displace.z;
+                mutable.x = (position.getX() - displace.getX());
+                mutable.y = (position.getY() - displace.getY());
+                mutable.z = (position.getZ() - displace.getZ());
                 if (region.contains(mutable)) {
                     return false;
                 }
@@ -2099,11 +2159,11 @@ public class EditSession extends AbstractWorld implements HasFaweQueue, Lighting
             return this.changes;
         } else if (height < 0) {
             height = -height;
-            pos = pos.subtract(0, height, 0);
+            pos.y -= height;
         }
 
         if (pos.getBlockY() < 0) {
-            pos = pos.setY(0);
+            pos.y = 0;
         } else if (((pos.getBlockY() + height) - 1) > maxY) {
             height = (maxY - pos.getBlockY()) + 1;
         }
@@ -2686,7 +2746,7 @@ public class EditSession extends AbstractWorld implements HasFaweQueue, Lighting
     public int hollowOutRegion(final Region region, final int thickness, final Pattern pattern) throws MaxChangedBlocksException {
         
 
-        final Set<BlockVector> outside = new HashSet<BlockVector>();
+        final Set outside = new LocalBlockVectorSet();
 
         final Vector min = region.getMinimumPoint();
         final Vector max = region.getMaximumPoint();
@@ -2720,7 +2780,7 @@ public class EditSession extends AbstractWorld implements HasFaweQueue, Lighting
         }
 
         for (int i = 1; i < thickness; ++i) {
-            final Set<BlockVector> newOutside = new HashSet<BlockVector>();
+            final Set newOutside = new LocalBlockVectorSet();
             outer: for (final BlockVector position : region) {
                 for (final Vector recurseDirection : this.recurseDirections) {
                     final BlockVector neighbor = position.add(recurseDirection).toBlockVector();
@@ -2766,7 +2826,7 @@ public class EditSession extends AbstractWorld implements HasFaweQueue, Lighting
      */
     public int drawLine(final Pattern pattern, final Vector pos1, final Vector pos2, final double radius, final boolean filled, boolean flat) throws MaxChangedBlocksException {
 
-        Set<Vector> vset = new HashSet<Vector>();
+        Set vset = new LocalBlockVectorSet();
         boolean notdrawn = true;
 
         final int x1 = pos1.getBlockX(), y1 = pos1.getBlockY(), z1 = pos1.getBlockZ();
@@ -2840,7 +2900,7 @@ public class EditSession extends AbstractWorld implements HasFaweQueue, Lighting
     public int drawSpline(final Pattern pattern, final List<Vector> nodevectors, final double tension, final double bias, final double continuity, final double quality, final double radius,
     final boolean filled) throws MaxChangedBlocksException {
 
-        Set<Vector> vset = new HashSet<Vector>();
+        Set vset = new LocalBlockVectorSet();
         final List<Node> nodes = new ArrayList<Node>(nodevectors.size());
 
         final KochanekBartelsInterpolation interpol = new KochanekBartelsInterpolation();
@@ -2885,7 +2945,7 @@ public class EditSession extends AbstractWorld implements HasFaweQueue, Lighting
     }
 
     private Set<Vector> getBallooned(final Set<Vector> vset, final double radius) {
-        final Set<Vector> returnset = new HashSet<Vector>();
+        final Set returnset = new LocalBlockVectorSet();
         final int ceilrad = (int) Math.ceil(radius);
 
         for (final Vector v : vset) {
@@ -2904,7 +2964,7 @@ public class EditSession extends AbstractWorld implements HasFaweQueue, Lighting
     }
 
     private Set<Vector> getStretched(final Set<Vector> vset, final double radius) {
-        final Set<Vector> returnset = new HashSet<Vector>();
+        final Set returnset = new LocalBlockVectorSet();
         final int ceilrad = (int) Math.ceil(radius);
         for (final Vector v : vset) {
             final int tipx = v.getBlockX(), tipy = v.getBlockY(), tipz = v.getBlockZ();
@@ -2920,7 +2980,7 @@ public class EditSession extends AbstractWorld implements HasFaweQueue, Lighting
     }
 
     private Set<Vector> getOutline(final Set<Vector> vset) {
-        final Set<Vector> returnset = new HashSet<Vector>();
+        final Set returnset = new LocalBlockVectorSet();
         for (final Vector v : vset) {
             final double x = v.getX(), y = v.getY(), z = v.getZ();
             if (!(vset.contains(new Vector(x + 1, y, z))
@@ -2933,7 +2993,7 @@ public class EditSession extends AbstractWorld implements HasFaweQueue, Lighting
     }
 
     private Set<Vector> getHollowed(final Set<Vector> vset) {
-        final Set<Vector> returnset = new HashSet<Vector>();
+        final Set returnset = new LocalBlockVectorSet();
         for (final Vector v : vset) {
             final double x = v.getX(), y = v.getY(), z = v.getZ();
             if (!(vset.contains(new Vector(x + 1, y, z))
@@ -2948,7 +3008,7 @@ public class EditSession extends AbstractWorld implements HasFaweQueue, Lighting
     }
 
     private void recurseHollow(final Region region, final BlockVector origin, final Set<BlockVector> outside) {
-        final LinkedList<BlockVector> queue = new LinkedList<BlockVector>();
+        final ArrayDeque<BlockVector> queue = new ArrayDeque<BlockVector>();
         queue.addLast(origin);
 
         while (!queue.isEmpty()) {
@@ -3022,7 +3082,7 @@ public class EditSession extends AbstractWorld implements HasFaweQueue, Lighting
 
     @Override
     public int getBlockLightLevel(Vector position) {
-        return queue.getEmmittedLight((int) position.x, (int) position.y, (int) position.z);
+        return queue.getEmmittedLight(position.getBlockX(), position.getBlockY(), position.getBlockZ());
     }
 
     @Override
@@ -3052,9 +3112,9 @@ public class EditSession extends AbstractWorld implements HasFaweQueue, Lighting
     }
 
     private void setExistingBlocks(Vector pos1, Vector pos2) {
-        for (int x = (int) pos1.x; x <= (int) pos2.x; x++) {
-            for (int z = (int) pos1.z; z <= (int) pos2.z; z++) {
-                for (int y = (int) pos1.y; y <= (int) pos2.y; y++) {
+        for (int x = (int) pos1.getX(); x <= (int) pos2.getX(); x++) {
+            for (int z = pos1.getBlockZ(); z <= pos2.getBlockZ(); z++) {
+                for (int y = (int) pos1.getY(); y <= (int) pos2.getY(); y++) {
                     int from = queue.getCombinedId4Data(x, y, z);
                     short id = (short) (from >> 4);
                     byte data = (byte) (from & 0xf);

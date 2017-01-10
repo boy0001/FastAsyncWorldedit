@@ -37,9 +37,9 @@ public class ScaleTransform extends ResettableExtent {
         if (min == null) {
             min = new Vector(pos);
         }
-        mutable.x = min.x + (pos.x - min.x) * dx;
-        mutable.y = min.y + (pos.y - min.y) * dy;
-        mutable.z = min.z + (pos.z - min.z) * dz;
+        mutable.x = (min.getX() + (pos.getX() - min.getX()) * dx);
+        mutable.y = (min.getY() + (pos.getY() - min.getY()) * dy);
+        mutable.z = (min.getZ() + (pos.getZ() - min.getZ()) * dz);
         return mutable;
     }
 
@@ -47,9 +47,9 @@ public class ScaleTransform extends ResettableExtent {
         if (min == null) {
             min = new Vector(x, y, z);
         }
-        mutable.x = min.x + (x - min.x) * dx;
-        mutable.y = min.y + (y - min.y) * dy;
-        mutable.z = min.z + (z - min.z) * dz;
+        mutable.x = (min.getX() + (x - min.getX()) * dx);
+        mutable.y = (min.getY() + (y - min.getY()) * dy);
+        mutable.z = (min.getZ() + (z - min.getZ()) * dz);
         return mutable;
     }
 
@@ -58,9 +58,9 @@ public class ScaleTransform extends ResettableExtent {
     public boolean setBlock(Vector location, BaseBlock block) throws WorldEditException {
         boolean result = false;
         Vector pos = getPos(location);
-        double sx = pos.x;
-        double sy = pos.y;
-        double sz = pos.z;
+        double sx = pos.getX();
+        double sy = pos.getY();
+        double sz = pos.getZ();
         double ex = sx + dx;
         double ey = Math.min(maxy, sy + dy);
         double ez = sz + dz;
@@ -78,12 +78,12 @@ public class ScaleTransform extends ResettableExtent {
     public boolean setBiome(Vector2D position, BaseBiome biome) {
         boolean result = false;
         Vector pos = getPos(position.getBlockX(), 0, position.getBlockZ());
-        double sx = pos.x;
-        double sz = pos.z;
-        double ex = pos.x + dx;
-        double ez = pos.z + dz;
-            for (pos.z = sz; pos.z < ez; pos.z++) {
-                for (pos.x = sx; pos.x < ex; pos.x++) {
+        double sx = pos.getX();
+        double sz = pos.getZ();
+        double ex = pos.getX() + dx;
+        double ez = pos.getZ() + dz;
+        for (pos.z = sz; pos.z < ez; pos.z++) {
+            for (pos.x = sx; pos.x < ex; pos.x++) {
                 result |= super.setBiome(pos.toVector2D(), biome);
             }
         }
@@ -94,12 +94,12 @@ public class ScaleTransform extends ResettableExtent {
     public boolean setBlock(int x1, int y1, int z1, BaseBlock block) throws WorldEditException {
         boolean result = false;
         Vector pos = getPos(x1, y1, z1);
-        double sx = pos.x;
-        double sy = pos.y;
-        double sz = pos.z;
-        double ex = pos.x + dx;
+        double sx = pos.getX();
+        double sy = pos.getY();
+        double sz = pos.getZ();
+        double ex = pos.getX() + dx;
         double ey = Math.min(maxy, sy + dy);
-        double ez = pos.z + dz;
+        double ez = pos.getZ() + dz;
         for (pos.y = sy; pos.y < ey; pos.y++) {
             for (pos.z = sz; pos.z < ez; pos.z++) {
                 for (pos.x = sx; pos.x < ex; pos.x++) {

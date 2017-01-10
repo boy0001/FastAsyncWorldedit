@@ -84,7 +84,11 @@ public class Settings extends Config {
                 " - History on disk or memory will be deleted",
         })
         public int MAX_HISTORY_MB = -1;
-        @Comment("Needlessly make WorldEdit slower for this player (ms/block)")
+        @Comment({
+                "Cinematic block placement:",
+                " - Adds a delay to block placement (ms/block)",
+                " - Having an artificial delay will use more CPU/Memory",
+        })
         public int SPEED_REDUCTION = 0;
         @Comment({
                 "Should WorldEdit use inventory?",

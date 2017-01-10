@@ -69,9 +69,9 @@ public class OffsetMask extends AbstractMask {
 
     @Override
     public boolean test(Vector vector) {
-        mutable.x = vector.x + offset.x;
-        mutable.y = vector.y + offset.y;
-        mutable.z = vector.z + offset.z;
+        mutable.x = (vector.getX() + offset.getX());
+        mutable.y = (vector.getY() + offset.getY());
+        mutable.z = (vector.getZ() + offset.getZ());
         return getMask().test(mutable);
     }
 

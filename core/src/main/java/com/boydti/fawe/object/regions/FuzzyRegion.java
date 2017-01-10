@@ -150,7 +150,7 @@ public class FuzzyRegion extends AbstractRegion {
 
     @Override
     public boolean contains(Vector position) {
-        return contains((int) position.x, (int) position.y, (int) position.z);
+        return contains(position.getBlockX(), position.getBlockY(), position.getBlockZ());
     }
 
     @Override

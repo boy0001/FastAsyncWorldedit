@@ -22,13 +22,9 @@ package com.sk89q.worldedit.command;
 import com.boydti.fawe.FaweAPI;
 import com.boydti.fawe.config.BBC;
 import com.boydti.fawe.example.NMSMappedFaweQueue;
-import com.boydti.fawe.object.FaweChunk;
 import com.boydti.fawe.object.FaweLocation;
 import com.boydti.fawe.object.FawePlayer;
 import com.boydti.fawe.object.FaweQueue;
-import com.boydti.fawe.object.RegionWrapper;
-import com.boydti.fawe.object.RunnableVal;
-import com.boydti.fawe.util.MainUtil;
 import com.boydti.fawe.util.MathMan;
 import com.boydti.fawe.util.SetQueue;
 import com.sk89q.minecraft.util.commands.Command;
@@ -48,7 +44,6 @@ import com.sk89q.worldedit.function.generator.FloraGenerator;
 import com.sk89q.worldedit.function.generator.ForestGenerator;
 import com.sk89q.worldedit.function.mask.ExistingBlockMask;
 import com.sk89q.worldedit.function.mask.Mask;
-import com.sk89q.worldedit.function.mask.Masks;
 import com.sk89q.worldedit.function.mask.NoiseFilter2D;
 import com.sk89q.worldedit.function.operation.Operations;
 import com.sk89q.worldedit.function.pattern.BlockPattern;
@@ -172,7 +167,7 @@ public class RegionCommands {
         final int cz = loc.z >> 4;
         final NMSMappedFaweQueue queue = (NMSMappedFaweQueue) SetQueue.IMP.getNewQueue(fp.getWorld(), true, false);
         for (Vector pt : region) {
-            queue.setBlockLight((int) pt.x, (int) pt.y, (int) pt.z, value);
+            queue.setBlockLight((int) pt.getX(), (int) pt.getY(), (int) pt.getZ(), value);
         }
         int count = 0;
         for (Vector2D chunk : region.getChunks()) {
@@ -196,7 +191,7 @@ public class RegionCommands {
         final int cz = loc.z >> 4;
         final NMSMappedFaweQueue queue = (NMSMappedFaweQueue) SetQueue.IMP.getNewQueue(fp.getWorld(), true, false);
         for (Vector pt : region) {
-            queue.setSkyLight((int) pt.x, (int) pt.y, (int) pt.z, value);
+            queue.setSkyLight((int) pt.getX(), (int) pt.getY(), (int) pt.getZ(), value);
         }
         int count = 0;
         for (Vector2D chunk : region.getChunks()) {
@@ -320,63 +315,6 @@ public class RegionCommands {
     @CommandPermissions("worldedit.region.set")
     @Logging(REGION)
     public void set(Player player, LocalSession session, EditSession editSession, @Selection Region selection, Pattern to) throws WorldEditException {
-        if (selection instanceof CuboidRegion && (editSession.hasFastMode() || (editSession.getRegionExtent() == null && editSession.getChangeTask() != null)) && to instanceof BlockPattern && Masks.isNull(session.getMask()) && Masks.isNull(session.getSourceMask())) {
-            if (session.getMask() == null && session.getSourceMask() == null)
-            try {
-                CuboidRegion cuboid = (CuboidRegion) selection;
-                RegionWrapper current = new RegionWrapper(cuboid.getMinimumPoint(), cuboid.getMaximumPoint());
-                BaseBlock block = ((BlockPattern) to).getBlock();
-                final FaweQueue queue = editSession.getQueue();
-                final int minY = cuboid.getMinimumY();
-                final int maxY = cuboid.getMaximumY();
-
-                final int id = block.getId();
-                final byte data = (byte) block.getData();
-                final FaweChunk<?> fc = queue.getFaweChunk(0, 0);
-                fc.fillCuboid(0, 15, minY, maxY, 0, 15, id, data);
-                fc.optimize();
-
-                int bcx = (current.minX) >> 4;
-                int bcz = (current.minZ) >> 4;
-
-                int tcx = (current.maxX) >> 4;
-                int tcz = (current.maxZ) >> 4;
-                // [chunkx, chunkz, pos1x, pos1z, pos2x, pos2z, isedge]
-                MainUtil.chunkTaskSync(current, new RunnableVal<int[]>() {
-                    @Override
-                    public void run(int[] value) {
-                        FaweChunk newChunk;
-                        if (value[6] == 0) {
-                            newChunk = fc.copy(true);
-                            newChunk.setLoc(queue, value[0], value[1]);
-                        } else {
-                            int bx = value[2] & 15;
-                            int tx = value[4] & 15;
-                            int bz = value[3] & 15;
-                            int tz = value[5] & 15;
-                            if (bx == 0 && tx == 15 && bz == 0 && tz == 15) {
-                                newChunk = fc.copy(true);
-                                newChunk.setLoc(queue, value[0], value[1]);
-                            } else {
-                                newChunk = queue.getFaweChunk(value[0], value[1]);
-                                newChunk.fillCuboid(value[2] & 15, value[4] & 15, minY, maxY, value[3] & 15, value[5] & 15, id, data);
-                            }
-                        }
-                        newChunk.addToQueue();
-                    }
-                });
-                int volume = cuboid.getArea();
-                editSession.setSize(volume);
-                queue.enqueue();
-                long start = System.currentTimeMillis();
-                BBC.OPERATION.send(player, BBC.VISITOR_BLOCK.format(volume));
-                queue.flush();
-                BBC.ACTION_COMPLETE.send(player, (System.currentTimeMillis() - start) / 1000d);
-                return;
-            } catch (Throwable e) {
-                MainUtil.handleError(e);
-            }
-        }
         int affected;
         if (to instanceof BlockPattern) {
             affected = editSession.setBlocks(selection, ((BlockPattern) to).getBlock());
@@ -657,9 +595,9 @@ public class RegionCommands {
             zero = max.add(min).multiply(0.5);
             unit = max.subtract(zero);
 
-            if (unit.getX() == 0) unit = unit.setX(1.0);
-            if (unit.getY() == 0) unit = unit.setY(1.0);
-            if (unit.getZ() == 0) unit = unit.setZ(1.0);
+            if (unit.getX() == 0) unit.x = 1;
+            if (unit.getY() == 0) unit.y = 1;
+            if (unit.getZ() == 0) unit.z = 1;
         }
 
         try {

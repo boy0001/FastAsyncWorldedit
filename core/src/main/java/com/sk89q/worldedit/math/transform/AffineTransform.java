@@ -274,13 +274,14 @@ public class AffineTransform implements Transform {
         // vector.getX() * m00 + vector.getY() * m01 + vector.getZ() * m02 + m03
         // vector.getX() * m10 + vector.getY() * m11 + vector.getZ() * m12 + m13
         // vector.getX() * m20 + vector.getY() * m21 + vector.getZ() * m22 + m23
-        mutable.x = vector.getX() * m00 + vector.getY() * m01 + vector.getZ() * m02 + m03;
-        mutable.y = vector.getX() * m10 + vector.getY() * m11 + vector.getZ() * m12 + m13;
-        mutable.z = vector.getX() * m20 + vector.getY() * m21 + vector.getZ() * m22 + m23;
-        return new Vector(
-                vector.getX() * m00 + vector.getY() * m01 + vector.getZ() * m02 + m03,
-                vector.getX() * m10 + vector.getY() * m11 + vector.getZ() * m12 + m13,
-                vector.getX() * m20 + vector.getY() * m21 + vector.getZ() * m22 + m23);
+        mutable.x = (vector.getX() * m00 + vector.getY() * m01 + vector.getZ() * m02 + m03);
+        mutable.y = (vector.getX() * m10 + vector.getY() * m11 + vector.getZ() * m12 + m13);
+        mutable.z = (vector.getX() * m20 + vector.getY() * m21 + vector.getZ() * m22 + m23);
+        return mutable;
+//        return new Vector(
+//                vector.getX() * m00 + vector.getY() * m01 + vector.getZ() * m02 + m03,
+//                vector.getX() * m10 + vector.getY() * m11 + vector.getZ() * m12 + m13,
+//                vector.getX() * m20 + vector.getY() * m21 + vector.getZ() * m22 + m23);
     }
 
     public AffineTransform combine(AffineTransform other) {

@@ -170,6 +170,7 @@ public class BukkitChunk_1_7 extends CharFaweChunk<Chunk, BukkitQueue17> {
                     Collection<Entity> ents = entities[i];
                     if (!ents.isEmpty()) {
                         char[] array = this.getIdArray(i);
+                        if (array == null || entities[i] == null || entities[i].isEmpty()) continue;
                         ents = new ArrayList<>(entities[i]);
                         synchronized (BukkitQueue_0.adapter) {
                             for (Entity entity : ents) {
@@ -179,10 +180,8 @@ public class BukkitChunk_1_7 extends CharFaweChunk<Chunk, BukkitQueue17> {
                                 int x = ((int) Math.round(entity.locX) & 15);
                                 int z = ((int) Math.round(entity.locZ) & 15);
                                 int y = (int) Math.round(entity.locY);
-                                if (array == null || y < 0 || y > 255) {
-                                    continue;
-                                }
-                                if (y < 0 || y > 255 || array[FaweCache.CACHE_J[y][z][x]] != 0) {
+                                if (y < 0 || y > 255) continue;
+                                if (array[FaweCache.CACHE_J[y][z][x]] != 0) {
                                     nmsWorld.removeEntity(entity);
                                 }
                             }

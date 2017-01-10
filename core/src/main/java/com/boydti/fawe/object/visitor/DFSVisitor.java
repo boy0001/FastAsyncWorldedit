@@ -63,7 +63,7 @@ public abstract class DFSVisitor implements Operation {
     }
 
     public void visit(final Vector pos) {
-        Node node = new Node((int) pos.x, (int) pos.y, (int) pos.z);
+        Node node = new Node(pos.getBlockX(), pos.getBlockY(), pos.getBlockZ());
         if (!this.hashQueue.contains(node)) {
             isVisitable(pos, pos); // Ignore this, just to initialize mask on this point
             queue.addFirst(new NodePair(null, node, 0));

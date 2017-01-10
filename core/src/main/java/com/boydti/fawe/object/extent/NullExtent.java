@@ -1,6 +1,7 @@
 package com.boydti.fawe.object.extent;
 
 import com.boydti.fawe.config.BBC;
+import com.boydti.fawe.object.RegionWrapper;
 import com.boydti.fawe.object.exception.FaweException;
 import com.sk89q.worldedit.Vector;
 import com.sk89q.worldedit.Vector2D;
@@ -14,6 +15,8 @@ import com.sk89q.worldedit.regions.Region;
 import com.sk89q.worldedit.util.Location;
 import com.sk89q.worldedit.world.biome.BaseBiome;
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 
 public class NullExtent extends FaweRegionExtent {
@@ -87,6 +90,11 @@ public class NullExtent extends FaweRegionExtent {
 
     @Override
     public boolean contains(int x, int y, int z) { return false; }
+
+    @Override
+    public Collection<RegionWrapper> getRegions() {
+        return Collections.emptyList();
+    }
 
     @Override
     protected Operation commitBefore() {
