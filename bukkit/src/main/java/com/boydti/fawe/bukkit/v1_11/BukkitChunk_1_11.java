@@ -291,6 +291,11 @@ public class BukkitChunk_1_11 extends CharFaweChunk<Chunk, com.boydti.fawe.bukki
                     }
                 }
             }
+            // Change task
+            if (getParent().getChangeTask() != null) {
+                BukkitChunk_1_11 previous = getParent().getPrevious(this, sections, tiles, entities, createdEntities, false);
+                getParent().getChangeTask().run(previous, this);
+            }
             // Trim tiles
             Iterator<Map.Entry<BlockPosition, TileEntity>> iterator = tiles.entrySet().iterator();
             HashMap<BlockPosition, TileEntity> toRemove = null;
