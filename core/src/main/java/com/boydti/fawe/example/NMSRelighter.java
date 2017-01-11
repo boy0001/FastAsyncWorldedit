@@ -444,7 +444,7 @@ public class NMSRelighter implements Relighter{
         public RelightSkyEntry(int x, int z, byte[] fix, int bitmask) {
             this.x = x;
             this.z = z;
-            byte[] array = new byte[maxY + 1];
+            byte[] array = new byte[256];
             Arrays.fill(array, (byte) 15);
             this.mask = array;
             this.bitmask = bitmask;
