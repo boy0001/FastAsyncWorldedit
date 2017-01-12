@@ -70,7 +70,7 @@ public class ScalableHeightMap {
             int zz = pos.getBlockZ();
             int highestY = minY;
             for (int y = minY; y <= maxY; y++) {
-                pos.y = y;
+                pos.mutY(y);
                 BaseBlock block = clipboard.getBlock(pos);
                 if (block != EditSession.nullBlock) {
                     highestY = y + 1;
@@ -115,7 +115,7 @@ public class ScalableHeightMap {
         Vector mutablePos = new Vector(0, 0, 0);
         for (int x = -size; x <= size; x++) {
             int xx = centerX + x;
-            mutablePos.x = xx;
+            mutablePos.mutX(xx);
             for (int z = -size; z <= size; z++) {
                 int index = (z + size) * diameter + (x + size);
                 int zz = centerZ + z;

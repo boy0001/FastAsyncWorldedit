@@ -531,7 +531,7 @@ public class CuboidClipboard {
                 }
 
                 if (aroundPlayer) {
-                    offset.x = 1 - offset.x - width;
+                    offset.mutX(1 - offset.getX() - width);
                 }
 
                 break;
@@ -565,7 +565,7 @@ public class CuboidClipboard {
                 }
 
                 if (aroundPlayer) {
-                    offset.z = 1 - offset.getZ() - length;
+                    offset.mutZ(1 - offset.getZ() - length);
                 }
 
                 break;
@@ -597,7 +597,7 @@ public class CuboidClipboard {
                 }
 
                 if (aroundPlayer) {
-                    offset.y = 1 - offset.getY() - height;
+                    offset.mutY(1 - offset.getY() - height);
                 }
 
                 break;
@@ -697,11 +697,11 @@ public class CuboidClipboard {
         int oy = newOrigin.getBlockY();
         int oz = newOrigin.getBlockZ();
         for (int x = 0; x < size.getBlockX(); ++x) {
-            v.x = x + ox;
+            v.mutX(x + ox);
             for (int y = 0; y < size.getBlockY(); ++y) {
-                v.y = y + oy;
+                v.mutY(y + oy);
                 for (int z = 0; z < size.getBlockZ(); ++z) {
-                    v.z = z + oz;
+                    v.mutZ(z + oz);
                     final BaseBlock block = getBlock(x,y,z);
                     if (block == null) {
                         continue;

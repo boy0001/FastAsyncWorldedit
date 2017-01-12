@@ -26,6 +26,7 @@ import com.boydti.fawe.object.clipboard.MemoryOptimizedClipboard;
 import com.boydti.fawe.object.extent.LightingExtent;
 import com.sk89q.jnbt.CompoundTag;
 import com.sk89q.worldedit.EditSession;
+import com.sk89q.worldedit.MutableBlockVector;
 import com.sk89q.worldedit.Vector;
 import com.sk89q.worldedit.Vector2D;
 import com.sk89q.worldedit.WorldEditException;
@@ -60,7 +61,7 @@ public class BlockArrayClipboard implements Clipboard, LightingExtent {
     private int my;
     private int mz;
     private Vector origin;
-    private Vector mutable = new Vector();
+    private MutableBlockVector mutable = new MutableBlockVector();
 
     public BlockArrayClipboard(Region region) {
         checkNotNull(region);
@@ -249,9 +250,9 @@ public class BlockArrayClipboard implements Clipboard, LightingExtent {
 
     @Override
     public int getOpacity(int x, int y, int z) {
-        mutable.x = x;
-        mutable.y = y;
-        mutable.z = z;
+        mutable.mutX(x);
+        mutable.mutY(y);
+        mutable.mutZ(z);
         BlockMaterial block = BundledBlockData.getInstance().getMaterialById(getBlock(mutable).getId());
         if (block == null) {
             return 15;
@@ -261,9 +262,9 @@ public class BlockArrayClipboard implements Clipboard, LightingExtent {
 
     @Override
     public int getBrightness(int x, int y, int z) {
-        mutable.x = x;
-        mutable.y = y;
-        mutable.z = z;
+        mutable.mutX(x);
+        mutable.mutY(y);
+        mutable.mutZ(z);
         BlockMaterial block = BundledBlockData.getInstance().getMaterialById(getBlock(mutable).getId());
         if (block == null) {
             return 15;

@@ -6,8 +6,6 @@ import com.boydti.fawe.object.exception.FaweException;
 import com.sk89q.worldedit.EditSession;
 import com.sk89q.worldedit.MaxChangedBlocksException;
 import com.sk89q.worldedit.Vector;
-import com.sk89q.worldedit.command.tool.BrushTool;
-import com.sk89q.worldedit.command.tool.brush.Brush;
 import com.sk89q.worldedit.extent.clipboard.Clipboard;
 import com.sk89q.worldedit.function.mask.Mask;
 import com.sk89q.worldedit.function.mask.Masks;
@@ -15,14 +13,14 @@ import com.sk89q.worldedit.function.pattern.Pattern;
 import java.io.File;
 import java.io.IOException;
 
-public class HeightBrush implements Brush {
+public class HeightBrush implements DoubleActionBrush {
 
     public final ScalableHeightMap heightMap;
     private final int rotation;
     double yscale = 1;
-    private final BrushTool tool;
+    private final DoubleActionBrushTool tool;
 
-    public HeightBrush(File file, int rotation, double yscale, BrushTool tool, Clipboard clipboard) {
+    public HeightBrush(File file, int rotation, double yscale, DoubleActionBrushTool tool, Clipboard clipboard) {
         this.tool = tool;
         this.rotation = (rotation / 90) % 4;
         this.yscale = yscale;
@@ -43,12 +41,12 @@ public class HeightBrush implements Brush {
     }
 
     @Override
-    public void build(EditSession editSession, Vector position, Pattern pattern, double sizeDouble) throws MaxChangedBlocksException {
+    public void build(DoubleActionBrushTool.BrushAction action, EditSession editSession, Vector position, Pattern pattern, double sizeDouble) throws MaxChangedBlocksException {
+        int size = (int) (action == DoubleActionBrushTool.BrushAction.PRIMARY ? sizeDouble : -sizeDouble);
         Mask mask = tool.getMask();
         if (mask == Masks.alwaysTrue() || mask == Masks.alwaysTrue2D()) {
             mask = null;
         }
-        int size = (int) sizeDouble;
         heightMap.setSize(size);
         heightMap.apply(editSession, mask, position, size, rotation, yscale, true);
     }

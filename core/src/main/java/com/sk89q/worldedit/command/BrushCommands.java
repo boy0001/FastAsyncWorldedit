@@ -360,7 +360,7 @@ public class BrushCommands {
     public void heightBrush(Player player, LocalSession session, @Optional("5") double radius, @Optional("") final String filename, @Optional("0") final int rotation, @Optional("1") final double yscale) throws WorldEditException {
         worldEdit.checkMaxBrushRadius(radius);
         File file = new File(Fawe.imp().getDirectory(), "heightmap" + File.separator + (filename.endsWith(".png") ? filename : filename + ".png"));
-        BrushTool tool = session.getBrushTool(player.getItemInHand());
+        DoubleActionBrushTool tool = session.getDoubleActionBrushTool(player.getItemInHand());
         tool.setSize(radius);
         try {
             tool.setBrush(new HeightBrush(file, rotation, yscale, tool, session.getClipboard().getClipboard()), "worldedit.brush.height");

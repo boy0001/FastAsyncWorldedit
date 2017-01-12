@@ -13,6 +13,7 @@ import com.sk89q.jnbt.NBTOutputStream;
 import com.sk89q.jnbt.NamedTag;
 import com.sk89q.jnbt.StringTag;
 import com.sk89q.jnbt.Tag;
+import com.sk89q.worldedit.MutableBlockVector;
 import com.sk89q.worldedit.Vector;
 import com.sk89q.worldedit.blocks.BaseBlock;
 import com.sk89q.worldedit.entity.BaseEntity;
@@ -171,7 +172,7 @@ public class StructureFormat implements ClipboardReader, ClipboardWriter {
 
         Map<String, Object> structure = FaweCache.asMap("version", 1, "author", owner);
         // ignored: version / owner
-        Vector mutable = new Vector(0, 0, 0);
+        MutableBlockVector mutable = new MutableBlockVector(0, 0, 0);
         int[] indexes = new int[MAX_SIZE];
         // Size
         structure.put("size", Arrays.asList(width, height, length));

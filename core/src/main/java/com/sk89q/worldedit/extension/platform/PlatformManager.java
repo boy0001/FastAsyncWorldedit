@@ -74,7 +74,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
  */
 public class PlatformManager {
 
-    private static final Logger logger = Logger.getLogger(PlatformManager.class.getCanonicalName());
+    private final Logger logger = Logger.getLogger(PlatformManager.class.getCanonicalName());
 
     private final WorldEdit worldEdit;
     private final CommandManager commandManager;
@@ -335,6 +335,10 @@ public class PlatformManager {
     private <T extends Tool> T reset(T tool) {
         new PatternTraverser(tool).reset(null);
         return tool;
+    }
+
+    public void handleMove() {
+
     }
 
     @SuppressWarnings("deprecation")

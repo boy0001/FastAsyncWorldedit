@@ -1,5 +1,6 @@
 package com.boydti.fawe.object.pattern;
 
+import com.sk89q.worldedit.MutableBlockVector;
 import com.sk89q.worldedit.Vector;
 import com.sk89q.worldedit.blocks.BaseBlock;
 import com.sk89q.worldedit.extent.Extent;
@@ -21,7 +22,7 @@ public class FullClipboardPattern extends AbstractPattern {
     private final Clipboard clipboard;
     private final BaseBlock block;
 
-    private final Vector mutable = new Vector();
+    private final MutableBlockVector mutable = new MutableBlockVector();
 
     /**
      * Create a new clipboard pattern.

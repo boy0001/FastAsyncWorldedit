@@ -80,15 +80,17 @@ public class FlattenedClipboardTransform {
                         transform,
                         new AffineTransform().translate(original.getOrigin()));
 
+        // new Vector(minimum.getX(), minimum.getY(), minimum.getZ())
+        // new Vector(maximum.getX(), maximum.getY(), maximum.getZ())
         Vector[] corners = new Vector[] {
                 minimum,
                 maximum,
-                minimum.setX(maximum.getX()),
-                minimum.setY(maximum.getY()),
-                minimum.setZ(maximum.getZ()),
-                maximum.setX(minimum.getX()),
-                maximum.setY(minimum.getY()),
-                maximum.setZ(minimum.getZ()) };
+                new Vector(maximum.getX(), minimum.getY(), minimum.getZ()),
+                new Vector(minimum.getX(), maximum.getY(), minimum.getZ()),
+                new Vector(minimum.getX(), minimum.getY(), maximum.getZ()),
+                new Vector(minimum.getX(), maximum.getY(), maximum.getZ()),
+                new Vector(maximum.getX(), minimum.getY(), maximum.getZ()),
+                new Vector(maximum.getX(), maximum.getY(), minimum.getZ()) };
 
         for (int i = 0; i < corners.length; i++) {
             corners[i] = transformAround.apply(new Vector(corners[i]));
@@ -104,13 +106,9 @@ public class FlattenedClipboardTransform {
 
         // After transformation, the points may not really sit on a block,
         // so we should expand the region for edge cases
-        newMinimum = newMinimum.setX(Math.floor(newMinimum.getX()));
-        newMinimum = newMinimum.setY(Math.floor(newMinimum.getY()));
-        newMinimum = newMinimum.setZ(Math.floor(newMinimum.getZ()));
-
-        newMaximum = newMaximum.setX(Math.ceil(newMaximum.getX()));
-        newMaximum = newMaximum.setY(Math.ceil(newMaximum.getY()));
-        newMaximum = newMaximum.setZ(Math.ceil(newMaximum.getZ()));
+        newMinimum.mutX(Math.ceil(Math.floor(newMinimum.getX())));
+        newMinimum.mutY(Math.ceil(Math.floor(newMinimum.getY())));
+        newMinimum.mutZ(Math.ceil(Math.floor(newMinimum.getZ())));
 
         return new CuboidRegion(newMinimum, newMaximum);
     }

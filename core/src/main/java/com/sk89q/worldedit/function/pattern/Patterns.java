@@ -1,7 +1,9 @@
 package com.sk89q.worldedit.function.pattern;
 
+import com.sk89q.worldedit.MutableBlockVector;
 import com.sk89q.worldedit.Vector;
 import com.sk89q.worldedit.blocks.BaseBlock;
+
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
@@ -38,7 +40,7 @@ public final class Patterns {
     public static com.sk89q.worldedit.patterns.Pattern wrap(final Pattern pattern) {
         checkNotNull(pattern);
         return new com.sk89q.worldedit.patterns.Pattern() {
-            private Vector mutable = new Vector(0, 0, 0);
+            private MutableBlockVector mutable = new MutableBlockVector(0, 0, 0);
             @Override
             public BaseBlock next(Vector position) {
                 return pattern.apply(position);
@@ -46,9 +48,9 @@ public final class Patterns {
 
             @Override
             public BaseBlock next(int x, int y, int z) {
-                mutable.x = x;
-                mutable.y = y;
-                mutable.z = z;
+                mutable.mutX(x);
+                mutable.mutY(y);
+                mutable.mutZ(z);
                 return next(mutable);
             }
         };

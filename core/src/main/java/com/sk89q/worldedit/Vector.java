@@ -34,9 +34,9 @@ public class Vector implements Comparable<Vector> {
     public static final Vector UNIT_Z = new Vector(0, 0, 1);
     public static final Vector ONE = new Vector(1, 1, 1);
 
-    public double x;
-    public double y;
-    public double z;
+    private double x;
+    private double y;
+    private double z;
 
     /**
      * Construct an instance.
@@ -46,9 +46,9 @@ public class Vector implements Comparable<Vector> {
      * @param z the Z coordinate
      */
     public Vector(double x, double y, double z) {
-        this.x = x;
-        this.y = y;
-        this.z = z;
+        this.mutX(x);
+        this.mutY(y);
+        this.mutZ(z);
     }
 
     /**
@@ -59,9 +59,9 @@ public class Vector implements Comparable<Vector> {
      * @param z the Z coordinate
      */
     public Vector(int x, int y, int z) {
-        this.x = x;
-        this.y = y;
-        this.z = z;
+        this.mutX(x);
+        this.mutY(y);
+        this.mutZ(z);
     }
 
     /**
@@ -72,9 +72,9 @@ public class Vector implements Comparable<Vector> {
      * @param z the Z coordinate
      */
     public Vector(float x, float y, float z) {
-        this.x = x;
-        this.y = y;
-        this.z = z;
+        this.mutX(x);
+        this.mutY(y);
+        this.mutZ(z);
     }
 
     /**
@@ -83,9 +83,9 @@ public class Vector implements Comparable<Vector> {
      * @param other another vector to make a copy of
      */
     public Vector(Vector other) {
-        this.x = other.x;
-        this.y = other.y;
-        this.z = other.z;
+        this.mutX(other.getX());
+        this.mutY(other.getY());
+        this.mutZ(other.getZ());
     }
 
     /**
@@ -94,9 +94,47 @@ public class Vector implements Comparable<Vector> {
      * <p>One can also refer to a static {@link #ZERO}.</p>
      */
     public Vector() {
-        this.x = 0;
-        this.y = 0;
-        this.z = 0;
+        this.mutX(0);
+        this.mutY(0);
+        this.mutZ(0);
+    }
+
+    public Vector setComponents(int x, int y, int z) {
+        this.mutX(x);
+        this.mutY(y);
+        this.mutZ(z);
+        return this;
+    }
+
+    public Vector setComponents(double x, double y, double z) {
+        this.mutX(x);
+        this.mutY(y);
+        this.mutZ(z);
+        return this;
+    }
+
+    public void mutX(int x) {
+        this.x = x;
+    }
+
+    public void mutY(int y) {
+        this.y = y;
+    }
+
+    public void mutZ(int z) {
+        this.z = z;
+    }
+
+    public void mutX(double x) {
+        this.x = x;
+    }
+
+    public void mutY(double y) {
+        this.y = y;
+    }
+
+    public void mutZ(double z) {
+        this.z = z;
     }
 
     /**
@@ -104,7 +142,7 @@ public class Vector implements Comparable<Vector> {
      *
      * @return the x coordinate
      */
-    public final double getX() {
+    public double getX() {
         return x;
     }
 
@@ -142,7 +180,7 @@ public class Vector implements Comparable<Vector> {
      *
      * @return the y coordinate
      */
-    public final double getY() {
+    public double getY() {
         return y;
     }
 
@@ -180,7 +218,7 @@ public class Vector implements Comparable<Vector> {
      *
      * @return the z coordinate
      */
-    public final double getZ() {
+    public double getZ() {
         return z;
     }
 

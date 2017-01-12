@@ -60,14 +60,14 @@ public class GravityBrush implements Brush {
                         continue;
                     }
                     BaseBlock block = editSession.getLazyBlock(x, y, z);
-                    mutablePos.x = x;
-                    mutablePos.y = y;
-                    mutablePos.z = z;
+                    mutablePos.mutX(x);
+                    mutablePos.mutY(y);
+                    mutablePos.mutZ(z);
                     if (block != EditSession.nullBlock && (mask == null || mask.test(mutablePos))) {
                         if (freeSpot != y) {
-                            mutablePos.y = freeSpot;
+                            mutablePos.mutY(freeSpot);
                             editSession.setBlockFast(mutablePos, block);
-                            mutablePos.y = y;
+                            mutablePos.mutY(y);
                             editSession.setBlockFast(mutablePos, EditSession.nullBlock);
                         }
                         freeSpot++;

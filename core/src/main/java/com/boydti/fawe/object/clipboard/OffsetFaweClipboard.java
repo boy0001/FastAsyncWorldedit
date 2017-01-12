@@ -39,9 +39,9 @@ public class OffsetFaweClipboard extends AbstractDelegateFaweClipboard {
         super.forEach(new RunnableVal2<Vector, BaseBlock>() {
             @Override
             public void run(Vector value, BaseBlock block) {
-                value.x -= ox;
-                value.y -= oy;
-                value.z -= oz;
+                value.mutX(value.getX() - ox);
+                value.mutY(value.getY() - oy);
+                value.mutZ(value.getZ() - oz);
                 task.run(value, block);
             }
         }, air);

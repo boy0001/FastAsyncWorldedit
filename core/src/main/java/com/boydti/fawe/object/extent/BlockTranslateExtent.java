@@ -1,5 +1,6 @@
 package com.boydti.fawe.object.extent;
 
+import com.sk89q.worldedit.MutableBlockVector;
 import com.sk89q.worldedit.Vector;
 import com.sk89q.worldedit.Vector2D;
 import com.sk89q.worldedit.WorldEditException;
@@ -11,7 +12,7 @@ import com.sk89q.worldedit.world.biome.BaseBiome;
 public class BlockTranslateExtent extends AbstractDelegateExtent {
     private final int dx,dy,dz;
     private final Extent extent;
-    private Vector mutable = new Vector();
+    private MutableBlockVector mutable = new MutableBlockVector();
 
     public BlockTranslateExtent(Extent extent, int dx, int dy, int dz) {
         super(extent);
@@ -23,17 +24,17 @@ public class BlockTranslateExtent extends AbstractDelegateExtent {
 
     @Override
     public boolean setBlock(Vector location, BaseBlock block) throws WorldEditException {
-        mutable.x = (location.getX() + dx);
-        mutable.y = (location.getY() + dy);
-        mutable.z = (location.getZ() + dz);
+        mutable.mutX((location.getX() + dx));
+        mutable.mutY((location.getY() + dy));
+        mutable.mutZ((location.getZ() + dz));
         return extent.setBlock(mutable, block);
     }
 
     @Override
     public boolean setBlock(int x, int y, int z, BaseBlock block) throws WorldEditException {
-        mutable.x = x + dx;
-        mutable.y = y + dy;
-        mutable.z = z + dz;
+        mutable.mutX(x + dx);
+        mutable.mutY(y + dy);
+        mutable.mutZ(z + dz);
         return extent.setBlock(mutable, block);
     }
 

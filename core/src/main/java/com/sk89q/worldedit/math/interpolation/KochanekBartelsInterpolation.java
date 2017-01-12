@@ -21,10 +21,11 @@
 
 package com.sk89q.worldedit.math.interpolation;
 
+import com.sk89q.worldedit.MutableBlockVector;
 import com.sk89q.worldedit.Vector;
-
 import java.util.Collections;
 import java.util.List;
+
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
@@ -136,7 +137,7 @@ public class KochanekBartelsInterpolation implements Interpolation {
         return nodes.get(index).getPosition();
     }
 
-    private Vector mutable = new Vector();
+    private MutableBlockVector mutable = new MutableBlockVector();
 
     @Override
     public Vector getPosition(double position) {
@@ -158,9 +159,9 @@ public class KochanekBartelsInterpolation implements Interpolation {
 
         double r2 = remainder * remainder;
         double r3 = r2 * remainder;
-        mutable.x = (a.getX() * r3 + b.getX() * r2 + c.getX() * remainder + d.getX());
-        mutable.y = (a.getY() * r3 + b.getY() * r2 + c.getY() * remainder + d.getY());
-        mutable.z = (a.getZ() * r3 + b.getZ() * r2 + c.getZ() * remainder + d.getZ());
+        mutable.mutX((a.getX() * r3 + b.getX() * r2 + c.getX() * remainder + d.getX()));
+        mutable.mutY((a.getY() * r3 + b.getY() * r2 + c.getY() * remainder + d.getY()));
+        mutable.mutZ((a.getZ() * r3 + b.getZ() * r2 + c.getZ() * remainder + d.getZ()));
         return mutable;
     }
 

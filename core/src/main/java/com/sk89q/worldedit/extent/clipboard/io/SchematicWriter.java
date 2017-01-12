@@ -16,6 +16,7 @@ import com.sk89q.jnbt.NBTOutputStream;
 import com.sk89q.jnbt.ShortTag;
 import com.sk89q.jnbt.StringTag;
 import com.sk89q.jnbt.Tag;
+import com.sk89q.worldedit.MutableBlockVector;
 import com.sk89q.worldedit.Vector;
 import com.sk89q.worldedit.blocks.BaseBlock;
 import com.sk89q.worldedit.entity.BaseEntity;
@@ -286,12 +287,12 @@ public class SchematicWriter implements ClipboardWriter {
             final int mx = min.getBlockX();
             final int my = min.getBlockY();
             final int mz = min.getBlockZ();
-            Vector mutable = new Vector(0, 0, 0);
+            MutableBlockVector mutable = new MutableBlockVector(0, 0, 0);
             ForEach forEach = new ForEach(yarea, zwidth, blocks, blockData, tileEntities);
             for (Vector point : region) {
-                mutable.x = (point.getX() - mx);
-                mutable.y = (point.getY() - my);
-                mutable.z = (point.getZ() - mz);
+                mutable.mutX((point.getX() - mx));
+                mutable.mutY((point.getY() - my));
+                mutable.mutZ((point.getZ() - mz));
                 forEach.run(mutable, clipboard.getBlock(point));
             }
             addBlocks = forEach.addBlocks;

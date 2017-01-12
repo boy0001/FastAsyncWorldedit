@@ -10,7 +10,7 @@ import com.boydti.fawe.object.number.LongAdder;
 import com.sk89q.minecraft.util.commands.Command;
 import com.sk89q.minecraft.util.commands.CommandPermissions;
 import com.sk89q.worldedit.EditSession;
-import com.sk89q.worldedit.Vector;
+import com.sk89q.worldedit.MutableBlockVector;
 import com.sk89q.worldedit.WorldEdit;
 import com.sk89q.worldedit.WorldEditException;
 import com.sk89q.worldedit.blocks.BaseBlock;
@@ -95,14 +95,14 @@ public class AnvilCommands {
         MCAQueue queue = new MCAQueue(folder, root, true);
         final LongAdder count = new LongAdder();
         queue.filterWorld(new MCAFilter() {
-            private final Vector mutable = new Vector(0, 0, 0);
+            private final MutableBlockVector mutable = new MutableBlockVector(0, 0, 0);
 
             @Override
             public void applyBlock(int x, int y, int z, BaseBlock block) {
                 if (matchFrom.apply(block)) {
-                    mutable.x = x;
-                    mutable.y = y;
-                    mutable.z = z;
+                    mutable.mutX(x);
+                    mutable.mutY(y);
+                    mutable.mutZ(z);
                     BaseBlock newBlock = to.apply(mutable);
                     int currentId = block.getId();
                     if (FaweCache.hasNBT(currentId)) {

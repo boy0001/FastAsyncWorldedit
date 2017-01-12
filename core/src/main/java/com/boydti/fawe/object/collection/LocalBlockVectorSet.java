@@ -2,6 +2,7 @@ package com.boydti.fawe.object.collection;
 
 import com.boydti.fawe.util.MathMan;
 import com.sk89q.worldedit.BlockVector;
+import com.sk89q.worldedit.MutableBlockVector;
 import com.sk89q.worldedit.Vector;
 import java.util.Collection;
 import java.util.Iterator;
@@ -49,7 +50,7 @@ public class LocalBlockVectorSet implements Set<Vector> {
         return new Iterator<Vector>() {
             int index = set.nextSetBit(0);
             int previous = -1;
-            BlockVector mutable = new BlockVector(0, 0, 0);
+            MutableBlockVector mutable = new MutableBlockVector(0, 0, 0);
             @Override
             public void remove() {
                 set.clear(previous);
@@ -65,9 +66,9 @@ public class LocalBlockVectorSet implements Set<Vector> {
                     int b2 = ((byte) (index >> 8)) & 0x7F;
                     int b3 = ((byte)(index >> 15)) & 0xFF;
                     int b4 = ((byte) (index >> 23)) & 0xFF;
-                    mutable.x = offsetX + (((b3 + ((MathMan.unpair8x(b2)) << 8)) << 21) >> 21);
-                    mutable.y = b1;
-                    mutable.z = offsetZ + (((b4 + ((MathMan.unpair8y(b2)) << 8)) << 21) >> 21);
+                    mutable.mutX(offsetX + (((b3 + ((MathMan.unpair8x(b2)) << 8)) << 21) >> 21));
+                    mutable.mutY(b1);
+                    mutable.mutZ(offsetZ + (((b4 + ((MathMan.unpair8y(b2)) << 8)) << 21) >> 21));
                     previous = index;
                     index = set.nextSetBit(index + 1);
                     return mutable;
@@ -172,9 +173,9 @@ public class LocalBlockVectorSet implements Set<Vector> {
             int b2 = ((byte) (index >> 8)) & 0x7F;
             int b3 = ((byte)(index >> 15)) & 0xFF;
             int b4 = ((byte) (index >> 23)) & 0xFF;
-            mVec.x = offsetX + (((b3 + ((MathMan.unpair8x(b2)) << 8)) << 21) >> 21);
-            mVec.y = b1;
-            mVec.z = offsetZ + (((b4 + ((MathMan.unpair8y(b2)) << 8)) << 21) >> 21);
+            mVec.mutX(offsetX + (((b3 + ((MathMan.unpair8x(b2)) << 8)) << 21) >> 21));
+            mVec.mutY(b1);
+            mVec.mutZ(offsetZ + (((b4 + ((MathMan.unpair8y(b2)) << 8)) << 21) >> 21));
             if (!c.contains(mVec)) {
                 result = true;
                 set.clear(index);

@@ -23,6 +23,7 @@ import com.boydti.fawe.config.Settings;
 import com.boydti.fawe.object.collection.LocalBlockVectorSet;
 import com.sk89q.worldedit.BlockVector;
 import com.sk89q.worldedit.LocalWorld;
+import com.sk89q.worldedit.MutableBlockVector;
 import com.sk89q.worldedit.Vector;
 import com.sk89q.worldedit.Vector2D;
 import com.sk89q.worldedit.world.World;
@@ -146,16 +147,16 @@ public class CuboidRegion extends AbstractRegion implements FlatRegion {
 
         return new RegionIntersection(
                 // Project to Z-Y plane
-                new CuboidRegion(pos1.setX(min.getX()), pos2.setX(min.getX())),
-                new CuboidRegion(pos1.setX(max.getX()), pos2.setX(max.getX())),
+                new CuboidRegion(new Vector(min.getX(), pos1.getY(), pos1.getZ()), new Vector(min.getX(), pos2.getY(), pos2.getZ())),
+                new CuboidRegion(new Vector(max.getX(), pos1.getY(), pos1.getZ()), new Vector(max.getX(), pos2.getY(), pos2.getZ())),
 
                 // Project to X-Y plane
-                new CuboidRegion(pos1.setZ(min.getZ()), pos2.setZ(min.getZ())),
-                new CuboidRegion(pos1.setZ(max.getZ()), pos2.setZ(max.getZ())),
+                new CuboidRegion(new Vector(pos1.getX(), pos1.getY(), min.getZ()), new Vector(pos2.getX(), pos2.getY(), min.getZ())),
+                new CuboidRegion(new Vector(pos1.getX(), pos1.getY(), max.getZ()), new Vector(pos2.getX(), pos2.getY(), max.getZ())),
 
                 // Project to the X-Z plane
-                new CuboidRegion(pos1.setY(min.getY()), pos2.setY(min.getY())),
-                new CuboidRegion(pos1.setY(max.getY()), pos2.setY(max.getY())));
+                new CuboidRegion(new Vector(pos1.getX(), min.getY(), pos1.getZ()), new Vector(pos2.getX(), min.getY(), pos2.getZ())),
+                new CuboidRegion(new Vector(pos1.getX(), max.getY(), pos1.getZ()), new Vector(pos2.getX(), max.getY(), pos2.getZ())));
     }
 
     /**
@@ -170,12 +171,12 @@ public class CuboidRegion extends AbstractRegion implements FlatRegion {
 
         return new RegionIntersection(
                 // Project to Z-Y plane
-                new CuboidRegion(pos1.setX(min.getX()), pos2.setX(min.getX())),
-                new CuboidRegion(pos1.setX(max.getX()), pos2.setX(max.getX())),
+                new CuboidRegion(new Vector(min.getX(), pos1.getY(), pos1.getZ()), new Vector(min.getX(), pos2.getY(), pos2.getZ())),
+                new CuboidRegion(new Vector(max.getX(), pos1.getY(), pos1.getZ()), new Vector(max.getX(), pos2.getY(), pos2.getZ())),
 
                 // Project to X-Y plane
-                new CuboidRegion(pos1.setZ(min.getZ()), pos2.setZ(min.getZ())),
-                new CuboidRegion(pos1.setZ(max.getZ()), pos2.setZ(max.getZ())));
+                new CuboidRegion(new Vector(pos1.getX(), pos1.getY(), min.getZ()), new Vector(pos2.getX(), pos2.getY(), min.getZ())),
+                new CuboidRegion(new Vector(pos1.getX(), pos1.getY(), max.getZ()), new Vector(pos2.getX(), pos2.getY(), max.getZ())));
     }
 
     @Override
@@ -359,7 +360,7 @@ public class CuboidRegion extends AbstractRegion implements FlatRegion {
         if (Settings.HISTORY.COMPRESSION_LEVEL >= 9) {
             return iterator_old();
         }
-        final BlockVector v = new BlockVector(0,0,0);
+        final MutableBlockVector mutable = new MutableBlockVector(0,0,0);
         return new Iterator<BlockVector>() {
             private Vector min = getMinimumPoint();
             private Vector max = getMaximumPoint();
@@ -392,9 +393,9 @@ public class CuboidRegion extends AbstractRegion implements FlatRegion {
 
             @Override
             public BlockVector next() {
-                v.x = x;
-                v.y = y;
-                v.z = z;
+                mutable.mutX(x);
+                mutable.mutY(y);
+                mutable.mutZ(z);
                 if (++x > ctx) {
                     if (++z > ctz) {
                         if (++y > ty) {
@@ -403,7 +404,7 @@ public class CuboidRegion extends AbstractRegion implements FlatRegion {
                                 x = bx;
                                 if (z > tz) {
                                     hasNext = false;
-                                    return v;
+                                    return mutable;
                                 }
                             } else {
                                 z = cbz;
@@ -422,7 +423,7 @@ public class CuboidRegion extends AbstractRegion implements FlatRegion {
                         x = cbx;
                     }
                 }
-                return v;
+                return mutable;
             }
 
             @Override
@@ -433,7 +434,7 @@ public class CuboidRegion extends AbstractRegion implements FlatRegion {
     }
 
     public Iterator<BlockVector> iterator_old() {
-        final BlockVector v = new BlockVector(0,0,0);
+        final MutableBlockVector mutable = new MutableBlockVector(0,0,0);
         return new Iterator<BlockVector>() {
             private Vector min = getMinimumPoint();
             private Vector max = getMaximumPoint();
@@ -448,9 +449,9 @@ public class CuboidRegion extends AbstractRegion implements FlatRegion {
 
             @Override
             public BlockVector next() {
-                v.x = nextX;
-                v.y = nextY;
-                v.z = nextZ;
+                mutable.mutX(nextX);
+                mutable.mutY(nextY);
+                mutable.mutZ(nextZ);
                 if (++nextX > max.getBlockX()) {
                     nextX = min.getBlockX();
                     if (++nextY > max.getBlockY()) {
@@ -460,7 +461,7 @@ public class CuboidRegion extends AbstractRegion implements FlatRegion {
                         }
                     }
                 }
-                return v;
+                return mutable;
             }
 
             @Override

@@ -53,9 +53,9 @@ public class WorldCopyClipboard extends ReadOnlyClipboard {
                     for (int z = min.getBlockZ(); z <= max.getBlockZ(); z++) {
                         for (int x = min.getBlockX(); x <= max.getBlockX(); x++) {
                             BaseBlock block = getBlockAbs(x, y, z);
-                            pos.x = x - mx;
-                            pos.y = y - my;
-                            pos.z = z - mz;
+                            pos.mutX(x - mx);
+                            pos.mutY(y - my);
+                            pos.mutZ(z - mz);
                             CompoundTag tag = block.getNbtData();
                             if (tag != null) {
                                 Map<String, Tag> values = ReflectionUtils.getMap(tag.getValue());
@@ -75,9 +75,9 @@ public class WorldCopyClipboard extends ReadOnlyClipboard {
                             if (block == EditSession.nullBlock) {
                                 continue;
                             }
-                            pos.x = x - mx;
-                            pos.y = y - my;
-                            pos.z = z - mz;
+                            pos.mutX(x - mx);
+                            pos.mutY(y - my);
+                            pos.mutZ(z - mz);
                             CompoundTag tag = block.getNbtData();
                             if (tag != null) {
                                 Map<String, Tag> values = ReflectionUtils.getMap(tag.getValue());
@@ -94,17 +94,17 @@ public class WorldCopyClipboard extends ReadOnlyClipboard {
             for (int y = min.getBlockY(); y <= max.getBlockY(); y++) {
                 for (int z = min.getBlockZ(); z <= max.getBlockZ(); z++) {
                     for (int x = min.getBlockX(); x <= max.getBlockX(); x++) {
-                        pos.x = x;
-                        pos.y = y;
-                        pos.z = z;
+                        pos.mutX(x);
+                        pos.mutY(y);
+                        pos.mutZ(z);
                         if (region.contains(pos)) {
                             BaseBlock block = getBlockAbs(x, y, z);
                             if (!air && block == EditSession.nullBlock) {
                                 continue;
                             }
-                            pos.x -= mx;
-                            pos.y -= my;
-                            pos.z -= mz;
+                            pos.mutX(pos.getX() - mx);
+                            pos.mutY(pos.getY() - my);
+                            pos.mutZ(pos.getZ() - mz);
                             CompoundTag tag = block.getNbtData();
                             if (tag != null) {
                                 Map<String, Tag> values = ReflectionUtils.getMap(tag.getValue());
@@ -114,9 +114,9 @@ public class WorldCopyClipboard extends ReadOnlyClipboard {
                             }
                             task.run(pos, block);
                         } else if (air) {
-                            pos.x -= mx;
-                            pos.y -= my;
-                            pos.z -= mz;
+                            pos.mutX(pos.getX() - mx);
+                            pos.mutY(pos.getY() - my);
+                            pos.mutZ(pos.getZ() - mz);
                             task.run(pos, EditSession.nullBlock);
                         }
                     }

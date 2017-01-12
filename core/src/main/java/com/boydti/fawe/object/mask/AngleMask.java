@@ -2,6 +2,7 @@ package com.boydti.fawe.object.mask;
 
 import com.boydti.fawe.Fawe;
 import com.boydti.fawe.util.MathMan;
+import com.sk89q.worldedit.MutableBlockVector;
 import com.sk89q.worldedit.Vector;
 import com.sk89q.worldedit.extent.Extent;
 import com.sk89q.worldedit.function.mask.Mask2D;
@@ -65,7 +66,7 @@ public class AngleMask extends SolidBlockMask implements ResettableMask {
         return false;
     }
 
-    private Vector mutable = new Vector();
+    private MutableBlockVector mutable = new MutableBlockVector();
 
     private int getHighestTerrainBlock(final int x, final int z, int minY, int maxY) {
         long pair = MathMan.pairInt(x, z);
@@ -79,15 +80,15 @@ public class AngleMask extends SolidBlockMask implements ResettableMask {
         }
         int maxSearchY = Math.min(this.maxY, Math.max(0, maxY));
         int minSearchY = Math.min(this.maxY, Math.max(0, minY));
-        mutable.x = x;
-        mutable.z = z;
+        mutable.mutX(x);
+        mutable.mutZ(z);
         boolean air = false;
         if (maxSearchY != this.maxY) {
-            mutable.y = maxSearchY + 1;
+            mutable.mutY(maxSearchY + 1);
             air = !super.test(mutable);
         }
         for (int y = maxSearchY; y >= minSearchY; --y) {
-            mutable.y = y;
+            mutable.mutY(y);
             if (super.test(mutable)) {
                 if (!air) {
                     break;

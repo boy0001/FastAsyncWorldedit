@@ -20,6 +20,7 @@
 package com.sk89q.worldedit.extent;
 
 import com.boydti.fawe.object.extent.LightingExtent;
+import com.sk89q.worldedit.MutableBlockVector;
 import com.sk89q.worldedit.Vector;
 import com.sk89q.worldedit.Vector2D;
 import com.sk89q.worldedit.WorldEditException;
@@ -114,12 +115,12 @@ public abstract class AbstractDelegateExtent implements LightingExtent {
         return extent.getLazyBlock(position);
     }
 
-    private Vector mutable = new Vector(0,0,0);
+    private MutableBlockVector mutable = new MutableBlockVector(0,0,0);
 
     public BaseBlock getLazyBlock(int x, int y, int z) {
-        mutable.x = x;
-        mutable.y = y;
-        mutable.z = z;
+        mutable.mutX(x);
+        mutable.mutY(y);
+        mutable.mutZ(z);
         return extent.getLazyBlock(mutable);
     }
 
@@ -129,9 +130,9 @@ public abstract class AbstractDelegateExtent implements LightingExtent {
     }
 
     public boolean setBlock(int x, int y, int z, BaseBlock block) throws WorldEditException {
-        mutable.x = x;
-        mutable.y = y;
-        mutable.z = z;
+        mutable.mutX(x);
+        mutable.mutY(y);
+        mutable.mutZ(z);
         return setBlock(mutable, block);
     }
 

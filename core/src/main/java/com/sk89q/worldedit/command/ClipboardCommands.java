@@ -363,12 +363,12 @@ public class ClipboardCommands {
             BlockArrayClipboard bac = (BlockArrayClipboard) clipboard;
             bac.IMP.forEach(new RunnableVal2<Vector, BaseBlock>() {
                 @Override
-                public void run(Vector pos, BaseBlock block) {
-                    pos.x += relx;
-                    pos.y += rely;
-                    pos.z += relz;
-                    if (pos.getY() >= 0 && pos.getY() <= maxY) {
-                        editSession.setBlockFast(pos, block);
+                public void run(Vector mutable, BaseBlock block) {
+                    mutable.mutX(mutable.getX() + relx);
+                    mutable.mutY(mutable.getY() + rely);
+                    mutable.mutZ(mutable.getZ() + relz);
+                    if (mutable.getY() >= 0 && mutable.getY() <= maxY) {
+                        editSession.setBlockFast(mutable, block);
                     }
                 }
             }, !ignoreAirBlocks);
@@ -379,16 +379,16 @@ public class ClipboardCommands {
             final int relz = to.getBlockZ() - origin.getBlockZ();
             Iterator<BlockVector> iter = region.iterator();
             while (iter.hasNext()) {
-                BlockVector loc = iter.next();
-                BaseBlock block = clipboard.getBlock(loc);
+                BlockVector mutable = iter.next();
+                BaseBlock block = clipboard.getBlock(mutable);
                 if (block == EditSession.nullBlock && ignoreAirBlocks) {
                     continue;
                 }
-                loc.x += relx;
-                loc.y += rely;
-                loc.z += relz;
-                if (loc.getY() >= 0 && loc.getY() <= maxY) {
-                    editSession.setBlockFast(loc, block);
+                mutable.mutX(mutable.getX() + relx);
+                mutable.mutY(mutable.getY() + rely);
+                mutable.mutZ(mutable.getZ() + relz);
+                if (mutable.getY() >= 0 && mutable.getY() <= maxY) {
+                    editSession.setBlockFast(mutable, block);
                 }
             }
         }

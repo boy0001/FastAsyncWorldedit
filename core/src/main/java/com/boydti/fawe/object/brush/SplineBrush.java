@@ -123,9 +123,9 @@ public class SplineBrush implements DoubleActionBrush {
     private Vector getCentroid(Collection<Vector> points) {
         Vector sum = new Vector();
         for (Vector p : points) {
-            sum.x += p.getX();
-            sum.y += p.getY();
-            sum.z += p.getZ();
+            sum.mutX(sum.getX() + p.getX());
+            sum.mutY(sum.getY() + p.getY());
+            sum.mutZ(sum.getZ() + p.getZ());
         }
         return sum.multiply(1.0 / points.size());
     }
@@ -147,9 +147,9 @@ public class SplineBrush implements DoubleActionBrush {
 
         Vector r = new Vector();
         for (Vector p : points) {
-            r.x = (p.getX() - centroid.getX());
-            r.y = (p.getY() - centroid.getY());
-            r.z = (p.getZ() - centroid.getZ());
+            r.mutX((p.getX() - centroid.getX()));
+            r.mutY((p.getY() - centroid.getY()));
+            r.mutZ((p.getZ() - centroid.getZ()));
             xx += r.getX() * r.getX();
             xy += r.getX() * r.getY();
             xz += r.getX() * r.getZ();

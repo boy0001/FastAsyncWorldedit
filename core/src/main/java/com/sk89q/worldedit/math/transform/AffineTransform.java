@@ -1,5 +1,6 @@
 package com.sk89q.worldedit.math.transform;
 
+import com.sk89q.worldedit.MutableBlockVector;
 import com.sk89q.worldedit.Vector;
 import com.sk89q.worldedit.math.MathUtils;
 
@@ -12,7 +13,7 @@ import com.sk89q.worldedit.math.MathUtils;
  */
 public class AffineTransform implements Transform {
 
-    private Vector mutable = new Vector();
+    private MutableBlockVector mutable = new MutableBlockVector();
 
     /**
      * coefficients for x coordinate.
@@ -274,9 +275,9 @@ public class AffineTransform implements Transform {
         // vector.getX() * m00 + vector.getY() * m01 + vector.getZ() * m02 + m03
         // vector.getX() * m10 + vector.getY() * m11 + vector.getZ() * m12 + m13
         // vector.getX() * m20 + vector.getY() * m21 + vector.getZ() * m22 + m23
-        mutable.x = (vector.getX() * m00 + vector.getY() * m01 + vector.getZ() * m02 + m03);
-        mutable.y = (vector.getX() * m10 + vector.getY() * m11 + vector.getZ() * m12 + m13);
-        mutable.z = (vector.getX() * m20 + vector.getY() * m21 + vector.getZ() * m22 + m23);
+        mutable.mutX((vector.getX() * m00 + vector.getY() * m01 + vector.getZ() * m02 + m03));
+        mutable.mutY((vector.getX() * m10 + vector.getY() * m11 + vector.getZ() * m12 + m13));
+        mutable.mutZ((vector.getX() * m20 + vector.getY() * m21 + vector.getZ() * m22 + m23));
         return mutable;
 //        return new Vector(
 //                vector.getX() * m00 + vector.getY() * m01 + vector.getZ() * m02 + m03,

@@ -387,9 +387,9 @@ public class MemoryOptimizedClipboard extends FaweClipboard {
                     if (!air && task.value2.getId() == 0) {
                         continue;
                     }
-                    task.value1.x = x;
-                    task.value1.y = y;
-                    task.value1.z = z;
+                    task.value1.mutX(x);
+                    task.value1.mutY(y);
+                    task.value1.mutZ(z);
                     task.run();
                 }
             }

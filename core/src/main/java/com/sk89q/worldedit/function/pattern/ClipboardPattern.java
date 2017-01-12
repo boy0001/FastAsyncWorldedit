@@ -1,8 +1,10 @@
 package com.sk89q.worldedit.function.pattern;
 
+import com.sk89q.worldedit.MutableBlockVector;
 import com.sk89q.worldedit.Vector;
 import com.sk89q.worldedit.blocks.BaseBlock;
 import com.sk89q.worldedit.extent.clipboard.Clipboard;
+
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
@@ -30,7 +32,7 @@ public class ClipboardPattern extends AbstractPattern {
         this.min = clipboard.getMinimumPoint();
     }
 
-    private Vector mutable = new Vector();
+    private MutableBlockVector mutable = new MutableBlockVector();
 
     @Override
     public BaseBlock apply(Vector position) {
@@ -40,9 +42,9 @@ public class ClipboardPattern extends AbstractPattern {
         if (xp < 0) xp += sx;
         if (yp < 0) yp += sy;
         if (zp < 0) zp += sz;
-        mutable.x = (min.getX() + xp);
-        mutable.y = (min.getY() + yp);
-        mutable.z = (min.getZ() + zp);
+        mutable.mutX((min.getX() + xp));
+        mutable.mutY((min.getY() + yp));
+        mutable.mutZ((min.getZ() + zp));
         return clipboard.getBlock(mutable);
     }
 

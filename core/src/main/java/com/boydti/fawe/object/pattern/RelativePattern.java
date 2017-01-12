@@ -1,5 +1,6 @@
 package com.boydti.fawe.object.pattern;
 
+import com.sk89q.worldedit.MutableBlockVector;
 import com.sk89q.worldedit.Vector;
 import com.sk89q.worldedit.blocks.BaseBlock;
 import com.sk89q.worldedit.function.pattern.AbstractPattern;
@@ -14,16 +15,16 @@ public class RelativePattern extends AbstractPattern implements ResettablePatter
     }
 
     private Vector origin;
-    private Vector mutable = new Vector();
+    private MutableBlockVector mutable = new MutableBlockVector();
 
     @Override
     public BaseBlock apply(Vector pos) {
         if (origin == null) {
             origin = new Vector(pos);
         }
-        mutable.x = (pos.getX() - origin.getX());
-        mutable.y = (pos.getY() - origin.getY());
-        mutable.z = (pos.getZ() - origin.getZ());
+        mutable.mutX((pos.getX() - origin.getX()));
+        mutable.mutY((pos.getY() - origin.getY()));
+        mutable.mutZ((pos.getZ() - origin.getZ()));
         return pattern.apply(mutable);
     }
 

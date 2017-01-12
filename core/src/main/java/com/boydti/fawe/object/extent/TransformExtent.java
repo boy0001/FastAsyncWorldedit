@@ -1,5 +1,6 @@
 package com.boydti.fawe.object.extent;
 
+import com.sk89q.worldedit.MutableBlockVector;
 import com.sk89q.worldedit.Vector;
 import com.sk89q.worldedit.Vector2D;
 import com.sk89q.worldedit.WorldEditException;
@@ -11,7 +12,7 @@ import com.sk89q.worldedit.world.registry.BlockRegistry;
 
 public class TransformExtent extends BlockTransformExtent {
 
-    private final Vector mutable = new Vector();
+    private final MutableBlockVector mutable = new MutableBlockVector();
     private Vector min;
     private int maxy;
 
@@ -35,13 +36,13 @@ public class TransformExtent extends BlockTransformExtent {
         if (min == null) {
             min = new Vector(pos);
         }
-        mutable.x = ((pos.getX() - min.getX()));
-        mutable.y = ((pos.getY() - min.getY()));
-        mutable.z = ((pos.getZ() - min.getZ()));
+        mutable.mutX(((pos.getX() - min.getX())));
+        mutable.mutY(((pos.getY() - min.getY())));
+        mutable.mutZ(((pos.getZ() - min.getZ())));
         Vector tmp = getTransform().apply(mutable);
-        tmp.x = (tmp.getX() + min.getX());
-        tmp.y = (tmp.getY() + min.getY());
-        tmp.z = (tmp.getZ() + min.getZ());
+        tmp.mutX((tmp.getX() + min.getX()));
+        tmp.mutY((tmp.getY() + min.getY()));
+        tmp.mutZ((tmp.getZ() + min.getZ()));
         return tmp;
     }
 
@@ -49,13 +50,13 @@ public class TransformExtent extends BlockTransformExtent {
         if (min == null) {
             min = new Vector(x, y, z);
         }
-        mutable.x = ((x - min.getX()));
-        mutable.y = ((y - min.getY()));
-        mutable.z = ((z - min.getZ()));
+        mutable.mutX(((x - min.getX())));
+        mutable.mutY(((y - min.getY())));
+        mutable.mutZ(((z - min.getZ())));
         Vector tmp = getTransform().apply(mutable);
-        tmp.x = (tmp.getX() + min.getX());
-        tmp.y = (tmp.getY() + min.getY());
-        tmp.z = (tmp.getZ() + min.getZ());
+        tmp.mutX((tmp.getX() + min.getX()));
+        tmp.mutY((tmp.getY() + min.getY()));
+        tmp.mutZ((tmp.getZ() + min.getZ()));
         return tmp;
     }
 
@@ -76,9 +77,9 @@ public class TransformExtent extends BlockTransformExtent {
 
     @Override
     public BaseBiome getBiome(Vector2D position) {
-        mutable.x = position.getBlockX();
-        mutable.z = position.getBlockZ();
-        mutable.y = 0;
+        mutable.mutX(position.getBlockX());
+        mutable.mutZ(position.getBlockZ());
+        mutable.mutY(0);
         return super.getBiome(getPos(mutable).toVector2D());
     }
 
@@ -95,9 +96,9 @@ public class TransformExtent extends BlockTransformExtent {
 
     @Override
     public boolean setBiome(Vector2D position, BaseBiome biome) {
-        mutable.x = position.getBlockX();
-        mutable.z = position.getBlockZ();
-        mutable.y = 0;
+        mutable.mutX(position.getBlockX());
+        mutable.mutZ(position.getBlockZ());
+        mutable.mutY(0);
         return super.setBiome(getPos(mutable).toVector2D(), biome);
     }
 }

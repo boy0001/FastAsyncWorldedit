@@ -2,6 +2,7 @@ package com.boydti.fawe.object.schematic;
 
 import com.boydti.fawe.FaweCache;
 import com.sk89q.worldedit.EditSession;
+import com.sk89q.worldedit.MutableBlockVector;
 import com.sk89q.worldedit.Vector;
 import com.sk89q.worldedit.blocks.BaseBlock;
 import com.sk89q.worldedit.extent.clipboard.Clipboard;
@@ -80,7 +81,7 @@ public class PNGWriter implements ClipboardWriter {
 
         boolean fill = length * 4 < imageSize && width * 4 < imageSize;
 
-        Vector mutable = new Vector(0, 0, 0);
+        MutableBlockVector mutable = new MutableBlockVector(0, 0, 0);
         Vector mutableTop = new Vector(0, 0, 0);
         Vector mutableRight = new Vector(0, 0, 0);
         Vector mutableLeft = new Vector(0, 0, 0);
@@ -90,30 +91,30 @@ public class PNGWriter implements ClipboardWriter {
         int z0 = min.getBlockZ();
         int x0 = min.getBlockX();
         for (int x = x0; x < x0 + width; x++) {
-            mutable.x = x;
-            mutableTop.x = x;
-            mutableRight.x = x;
-            mutableLeft.x = x + 1;
+            mutable.mutX(x);
+            mutableTop.mutX(x);
+            mutableRight.mutX(x);
+            mutableLeft.mutX(x + 1);
             int xx = x - x0;
             double cpx1 = -dpxi[xx];
             double cpy1 = dpyi[xx];
             for (int z = z0; z < z0 + length; z++) {
-                mutable.z = z;
-                mutableTop.z = z;
-                mutableRight.z = z + 1;
-                mutableLeft.z = z;
+                mutable.mutZ(z);
+                mutableTop.mutZ(z);
+                mutableRight.mutZ(z + 1);
+                mutableLeft.mutZ(z);
                 int zz = z - z0;
                 double cpx = cpx1 + dpxj[zz];
                 double cpy2 = cpy1 + dpyj[zz];
                 for (int y = y0; y < y0 + height; y++) {
-                    mutable.y = y;
+                    mutable.mutY(y);
                     BaseBlock block = clipboard.getBlock(mutable);
                     if (block == EditSession.nullBlock) {
                         continue;
                     }
-                    mutableTop.y = y + 1;
-                    mutableRight.y = y;
-                    mutableLeft.y = y;
+                    mutableTop.mutY(y + 1);
+                    mutableRight.mutY(y);
+                    mutableLeft.mutY(y);
                     if (clipboard.getBlock(mutableTop) != EditSession.nullBlock && clipboard.getBlock(mutableRight) != EditSession.nullBlock && clipboard.getBlock(mutableLeft) != EditSession.nullBlock) {
                         continue;
                     }

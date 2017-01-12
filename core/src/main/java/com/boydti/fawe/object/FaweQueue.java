@@ -14,6 +14,7 @@ import com.boydti.fawe.util.MemUtil;
 import com.boydti.fawe.util.SetQueue;
 import com.sk89q.jnbt.CompoundTag;
 import com.sk89q.worldedit.EditSession;
+import com.sk89q.worldedit.MutableBlockVector;
 import com.sk89q.worldedit.Vector;
 import com.sk89q.worldedit.blocks.BaseBlock;
 import com.sk89q.worldedit.blocks.BlockMaterial;
@@ -218,20 +219,20 @@ public abstract class FaweQueue {
     public void forEachBlockInChunk(int cx, int cz, RunnableVal2<Vector, BaseBlock> onEach) {
         int bx = cx << 4;
         int bz = cz << 4;
-        Vector mutable = new Vector(0, 0, 0);
+        MutableBlockVector mutable = new MutableBlockVector(0, 0, 0);
         for (int x = 0; x < 16; x++) {
             int xx = x + bx;
-            mutable.x = xx;
+            mutable.mutX(xx);
             for (int z = 0; z < 16; z++) {
                 int zz = z + bz;
-                mutable.z = zz;
+                mutable.mutZ(zz);
                 for (int y = 0; y <= getMaxY(); y++) {
                     int combined = getCombinedId4Data(xx, y, zz);
                     if (combined == 0) {
                         continue;
                     }
                     int id = FaweCache.getId(combined);
-                    mutable.y = y;
+                    mutable.mutY(y);
                     if (FaweCache.hasNBT(id)) {
                         CompoundTag tile = getTileEntity(x, y, z);
                         BaseBlock block = new BaseBlock(id, FaweCache.getData(combined), tile);
@@ -247,7 +248,7 @@ public abstract class FaweQueue {
     public void forEachTileInChunk(int cx, int cz, RunnableVal2<Vector, BaseBlock> onEach) {
         int bx = cx << 4;
         int bz = cz << 4;
-        Vector mutable = new Vector(0, 0, 0);
+        MutableBlockVector mutable = new MutableBlockVector(0, 0, 0);
         for (int x = 0; x < 16; x++) {
             int xx = x + bx;
             for (int z = 0; z < 16; z++) {
@@ -259,9 +260,9 @@ public abstract class FaweQueue {
                     }
                     int id = FaweCache.getId(combined);
                     if (FaweCache.hasNBT(id)) {
-                        mutable.x = xx;
-                        mutable.z = zz;
-                        mutable.y = y;
+                        mutable.mutX(xx);
+                        mutable.mutZ(zz);
+                        mutable.mutY(y);
                         CompoundTag tile = getTileEntity(x, y, z);
                         BaseBlock block = new BaseBlock(id, FaweCache.getData(combined), tile);
                         onEach.run(mutable, block);

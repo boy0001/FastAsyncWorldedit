@@ -72,9 +72,9 @@ public class FuzzySearch implements Operation {
             int x = offsetX + (((b3 + ((MathMan.unpair8x(b2)) << 8)) << 21) >> 21);
             int y = b1;
             int z = offsetZ + (((b4 + ((MathMan.unpair8y(b2)) << 8)) << 21) >> 21);
-            pos.x = x;
-            pos.y = y;
-            pos.z = z;
+            pos.mutX(x);
+            pos.mutY(y);
+            pos.mutZ(z);
             if (mask.test(pos)) {
                 affected++;
                 region.set(x, y, z);

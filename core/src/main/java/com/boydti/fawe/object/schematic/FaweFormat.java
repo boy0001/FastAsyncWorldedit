@@ -17,6 +17,7 @@ import com.sk89q.jnbt.NamedTag;
 import com.sk89q.jnbt.StringTag;
 import com.sk89q.jnbt.Tag;
 import com.sk89q.worldedit.EditSession;
+import com.sk89q.worldedit.MutableBlockVector;
 import com.sk89q.worldedit.Vector;
 import com.sk89q.worldedit.WorldEditException;
 import com.sk89q.worldedit.blocks.BaseBlock;
@@ -311,13 +312,13 @@ public class FaweFormat implements ClipboardReader, ClipboardWriter {
                 out.writeShort((short) origin.getBlockX());
                 out.writeShort((short) origin.getBlockY());
                 out.writeShort((short) origin.getBlockZ());
-                Vector mutable = new Vector(0, 0, 0);
+                MutableBlockVector mutable = new MutableBlockVector(0, 0, 0);
                 for (int y = min.getBlockY(); y <= max.getBlockY(); y++) {
-                    mutable.y = y;
+                    mutable.mutY(y);
                     for (int x = min.getBlockX(); x <= max.getBlockX(); x++) {
-                        mutable.x = x;
+                        mutable.mutX(x);
                         for (int z = min.getBlockZ(); z <= max.getBlockZ(); z++) {
-                            mutable.z = z;
+                            mutable.mutZ(z);
                             BaseBlock block = clipboard.getBlock(mutable);
                             if (block == EditSession.nullBlock) {
                                 out.writeShort((short) 0);

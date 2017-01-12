@@ -21,16 +21,16 @@ public class WallMask extends BlockMask {
         double x = v.getX();
         double y = v.getY();
         double z = v.getZ();
-        v.x = x + 1;
-        if (super.test(v) && ++count == min && max >= 8) { v.x = x; return true; }
-        v.x = x - 1;
-        if (super.test(v) && ++count == min && max >= 8) { v.x = x; return true; }
-        v.x = x;
-        v.z = z + 1;
-        if (super.test(v) && ++count == min && max >= 8) { v.z = z; return true; }
-        v.z = z - 1;
-        if (super.test(v) && ++count == min && max >= 8) { v.z = z; return true; }
-        v.z = z;
+        v.mutX(x + 1);
+        if (super.test(v) && ++count == min && max >= 8) { v.mutX(x); return true; }
+        v.mutX(x - 1);
+        if (super.test(v) && ++count == min && max >= 8) { v.mutX(x); return true; }
+        v.mutX(x);
+        v.mutZ(z + 1);
+        if (super.test(v) && ++count == min && max >= 8) { v.mutZ(z); return true; }
+        v.mutZ(z - 1);
+        if (super.test(v) && ++count == min && max >= 8) { v.mutZ(z); return true; }
+        v.mutZ(z);
         return count >= min && count <= max;
     }
 }

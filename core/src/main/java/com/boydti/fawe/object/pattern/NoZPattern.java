@@ -1,5 +1,6 @@
 package com.boydti.fawe.object.pattern;
 
+import com.sk89q.worldedit.MutableBlockVector;
 import com.sk89q.worldedit.Vector;
 import com.sk89q.worldedit.blocks.BaseBlock;
 import com.sk89q.worldedit.function.pattern.AbstractPattern;
@@ -13,12 +14,12 @@ public class NoZPattern extends AbstractPattern {
         this.pattern = pattern;
     }
 
-    private Vector mutable = new Vector();
+    private MutableBlockVector mutable = new MutableBlockVector();
 
     @Override
     public BaseBlock apply(Vector pos) {
-        mutable.x = (pos.getX());
-        mutable.y = (pos.getY());
+        mutable.mutX((pos.getX()));
+        mutable.mutY((pos.getY()));
         return pattern.apply(mutable);
     }
 }

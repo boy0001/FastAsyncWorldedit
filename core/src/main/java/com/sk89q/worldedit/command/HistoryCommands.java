@@ -170,9 +170,9 @@ public class HistoryCommands {
         final World world = player.getWorld();
         WorldVector origin = player.getPosition();
         Vector bot = origin.subtract(radius, radius, radius);
-        bot.y = Math.max(0, bot.getY());
+        bot.mutY(Math.max(0, bot.getY()));
         Vector top = origin.add(radius, radius, radius);
-        top.y = Math.min(255, top.getY());
+        top.mutY(Math.min(255, top.getY()));
         RollbackDatabase database = DBHandler.IMP.getDatabase(world);
         final AtomicInteger count = new AtomicInteger();
         final FawePlayer fp = FawePlayer.wrap(player);

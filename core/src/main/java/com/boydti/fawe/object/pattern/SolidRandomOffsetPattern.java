@@ -2,6 +2,7 @@ package com.boydti.fawe.object.pattern;
 
 import com.boydti.fawe.FaweCache;
 import com.boydti.fawe.object.PseudoRandom;
+import com.sk89q.worldedit.MutableBlockVector;
 import com.sk89q.worldedit.Vector;
 import com.sk89q.worldedit.blocks.BaseBlock;
 import com.sk89q.worldedit.blocks.BlockType;
@@ -12,7 +13,7 @@ public class SolidRandomOffsetPattern extends AbstractPattern {
     private final PseudoRandom r  = new PseudoRandom();
     private final int dx, dy, dz, dx2, dy2, dz2;
     private final Pattern pattern;
-    private final Vector mutable = new Vector();
+    private final MutableBlockVector mutable = new MutableBlockVector();
     boolean[] solid;
 
     public SolidRandomOffsetPattern(Pattern pattern, int dx, int dy, int dz) {
@@ -35,9 +36,9 @@ public class SolidRandomOffsetPattern extends AbstractPattern {
 
     @Override
     public BaseBlock apply(Vector position) {
-        mutable.x = (position.getX() + r.nextInt(dx2) - dx);
-        mutable.y = (position.getY() + r.nextInt(dy2) - dy);
-        mutable.z = (position.getZ() + r.nextInt(dz2) - dz);
+        mutable.mutX((position.getX() + r.nextInt(dx2) - dx));
+        mutable.mutY((position.getY() + r.nextInt(dy2) - dy));
+        mutable.mutZ((position.getZ() + r.nextInt(dz2) - dz));
         BaseBlock block = pattern.apply(mutable);
         if (solid[FaweCache.getCombined(block)]) {
             return block;

@@ -2,6 +2,7 @@ package com.boydti.fawe.object.visitor;
 
 import com.boydti.fawe.config.BBC;
 import com.boydti.fawe.object.IntegerTrio;
+import com.sk89q.worldedit.MutableBlockVector;
 import com.sk89q.worldedit.Vector;
 import com.sk89q.worldedit.WorldEditException;
 import com.sk89q.worldedit.function.RegionFunction;
@@ -76,7 +77,7 @@ public abstract class DFSVisitor implements Operation {
         NodePair current;
         Node from;
         Node adjacent;
-        Vector mutable = new Vector();
+        MutableBlockVector mutable = new MutableBlockVector();
         Vector mutable2 = new Vector();
         int countAdd,countAttempt;
         IntegerTrio[] dirs = getIntDirections();
@@ -88,16 +89,16 @@ public abstract class DFSVisitor implements Operation {
             if (visited.containsKey(from)) {
                 continue;
             }
-            mutable.x = from.getX();
-            mutable.y = from.getY();
-            mutable.z = from.getZ();
+            mutable.mutX(from.getX());
+            mutable.mutY(from.getY());
+            mutable.mutZ(from.getZ());
             function.apply(mutable);
             countAdd = 0;
             countAttempt = 0;
             for (IntegerTrio direction : dirs) {
-                mutable2.x = from.getX() + direction.x;
-                mutable2.y = from.getY() + direction.y;
-                mutable2.z = from.getZ() + direction.z;
+                mutable2.mutX(from.getX() + direction.x);
+                mutable2.mutY(from.getY() + direction.y);
+                mutable2.mutZ(from.getZ() + direction.z);
                 if (isVisitable(mutable, mutable2)) {
                     adjacent = new Node(mutable2.getBlockX(), mutable2.getBlockY(), mutable2.getBlockZ());
                     if ((current.from == null || !adjacent.equals(current.from))) {

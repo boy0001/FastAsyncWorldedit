@@ -182,7 +182,7 @@ public class EditSession extends AbstractWorld implements HasFaweQueue, Lighting
     private int changes = 0;
     private BlockBag blockBag;
 
-    private Vector mutable = new Vector();
+    private MutableBlockVector mutable = new MutableBlockVector();
 
     private final int maxY;
 
@@ -1956,9 +1956,9 @@ public class EditSession extends AbstractWorld implements HasFaweQueue, Lighting
             @Override
             // Only copy what's necessary
             public boolean apply(Vector position) throws WorldEditException {
-                mutable.x = (position.getX() - displace.getX());
-                mutable.y = (position.getY() - displace.getY());
-                mutable.z = (position.getZ() - displace.getZ());
+                mutable.mutX((position.getX() - displace.getX()));
+                mutable.mutY((position.getY() - displace.getY()));
+                mutable.mutZ((position.getZ() - displace.getZ()));
                 if (region.contains(mutable)) {
                     return false;
                 }
@@ -2157,11 +2157,11 @@ public class EditSession extends AbstractWorld implements HasFaweQueue, Lighting
             return this.changes;
         } else if (height < 0) {
             height = -height;
-            pos.y -= height;
+            pos.mutY(pos.getY() - height);
         }
 
         if (pos.getBlockY() < 0) {
-            pos.y = 0;
+            pos.mutY(0);
         } else if (((pos.getBlockY() + height) - 1) > maxY) {
             height = (maxY - pos.getBlockY()) + 1;
         }
@@ -3198,15 +3198,15 @@ public class EditSession extends AbstractWorld implements HasFaweQueue, Lighting
                         if (!chunks.contains(new Vector2D(cx + 1, cz + 1)) && !conNextX && !conNextZ) {
                             setExistingBlocks(new Vector(bx + 16, 0, bz + 16), new Vector(bx + 31, getMaxY(), bz + 31));
                         }
-                        Vector mutable = new Vector(0,0,0);
+                        MutableBlockVector mutable = new MutableBlockVector(0,0,0);
                         for (int x = 0; x < tx; x++) {
                             int xx = x + bx;
-                            mutable.x = xx;
+                            mutable.mutX(xx);
                             for (int z = 0; z < tz; z++) {
                                 int zz = z + bz;
-                                mutable.z = zz;
+                                mutable.mutZ(zz);
                                 for (int y = 0; y < getMaxY() + 1; y++) {
-                                    mutable.y = y;
+                                    mutable.mutY(y);
                                     int from = queue.getCombinedId4Data(xx, y, zz);
                                     boolean contains = (fe == null || fe.contains(xx, y, zz)) && region.contains(mutable);
                                     if (contains) {

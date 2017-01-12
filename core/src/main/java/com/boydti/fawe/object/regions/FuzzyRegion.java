@@ -68,9 +68,9 @@ public class FuzzyRegion extends AbstractRegion {
                 int b2 = ((byte) (index >> 8)) & 0x7F;
                 int b3 = ((byte)(index >> 15)) & 0xFF;
                 int b4 = ((byte) (index >> 23)) & 0xFF;
-                pos.x = offsetX + (((b3 + ((MathMan.unpair8x(b2)) << 8)) << 21) >> 21);
-                pos.y = offsetY + b1;
-                pos.z = offsetZ + (((b4 + ((MathMan.unpair8y(b2)) << 8)) << 21) >> 21);
+                pos.mutX(offsetX + (((b3 + ((MathMan.unpair8x(b2)) << 8)) << 21) >> 21));
+                pos.mutY(offsetY + b1);
+                pos.mutZ(offsetZ + (((b4 + ((MathMan.unpair8y(b2)) << 8)) << 21) >> 21));
                 return pos;
             }
 

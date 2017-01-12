@@ -277,9 +277,9 @@ public class DiskOptimizedClipboard extends FaweClipboard implements Closeable {
                                     block.setNbtData(nbt);
                                 }
                             }
-                            pos.x = x;
-                            pos.y = y;
-                            pos.z = z;
+                            pos.mutX(x);
+                            pos.mutY(y);
+                            pos.mutZ(z);
                             task.run(pos, block);
                         }
                     }
@@ -299,9 +299,9 @@ public class DiskOptimizedClipboard extends FaweClipboard implements Closeable {
                                         block.setNbtData(nbt);
                                     }
                                 }
-                                pos.x = x;
-                                pos.y = y;
-                                pos.z = z;
+                                pos.mutX(x);
+                                pos.mutY(y);
+                                pos.mutZ(z);
                                 task.run(pos, block);
                             }
                         }

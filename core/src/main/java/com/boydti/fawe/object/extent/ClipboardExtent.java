@@ -1,5 +1,6 @@
 package com.boydti.fawe.object.extent;
 
+import com.sk89q.worldedit.MutableBlockVector;
 import com.sk89q.worldedit.Vector;
 import com.sk89q.worldedit.WorldEditException;
 import com.sk89q.worldedit.blocks.BaseBlock;
@@ -20,7 +21,7 @@ public class ClipboardExtent extends ResettableExtent {
     private final boolean ignoreAir;
     private Extent extent;
 
-    private final Vector mutable = new Vector();
+    private final MutableBlockVector mutable = new MutableBlockVector();
 
     public ClipboardExtent(Extent parent, Clipboard clipboard, boolean ignoreAir) {
         super(parent);
@@ -44,9 +45,9 @@ public class ClipboardExtent extends ResettableExtent {
 
     @Override
     public boolean setBlock(int x, int y, int z, BaseBlock block) throws WorldEditException {
-        mutable.x = x;
-        mutable.y = y;
-        mutable.z = z;
+        mutable.mutX(x);
+        mutable.mutY(y);
+        mutable.mutZ(z);
         return setBlock(mutable, block);
     }
 

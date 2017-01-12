@@ -2,6 +2,7 @@ package com.sk89q.worldedit.function.visitor;
 
 import com.boydti.fawe.config.BBC;
 import com.boydti.fawe.object.IntegerTrio;
+import com.sk89q.worldedit.MutableBlockVector;
 import com.sk89q.worldedit.Vector;
 import com.sk89q.worldedit.WorldEditException;
 import com.sk89q.worldedit.function.RegionFunction;
@@ -97,7 +98,7 @@ public abstract class BreadthFirstSearch implements Operation {
     public Operation resume(RunContext run) throws WorldEditException {
         Node from;
         Node adjacent;
-        Vector mutable = new Vector();
+        MutableBlockVector mutable = new MutableBlockVector();
         Vector mutable2 = new Vector();
         boolean shouldTrim = false;
         IntegerTrio[] dirs = getIntDirections();
@@ -106,9 +107,9 @@ public abstract class BreadthFirstSearch implements Operation {
             if (layer == maxDepth) {
                 cleanVisited(Integer.MAX_VALUE);
                 for (Node current : queue) {
-                    mutable.x = current.getX();
-                    mutable.y = current.getY();
-                    mutable.z = current.getZ();
+                    mutable.mutX(current.getX());
+                    mutable.mutY(current.getY());
+                    mutable.mutZ(current.getZ());
                     function.apply(mutable);
                     affected++;
                 }
@@ -116,15 +117,15 @@ public abstract class BreadthFirstSearch implements Operation {
             }
             for (int i = 0; i < size; i++) {
                 from = queue.poll();
-                mutable.x = from.getX();
-                mutable.y = from.getY();
-                mutable.z = from.getZ();
+                mutable.mutX(from.getX());
+                mutable.mutY(from.getY());
+                mutable.mutZ(from.getZ());
                 function.apply(mutable);
                 affected++;
                 for (IntegerTrio direction : dirs) {
-                    mutable2.x = from.getX() + direction.x;
-                    mutable2.y = from.getY() + direction.y;
-                    mutable2.z = from.getZ() + direction.z;
+                    mutable2.mutX(from.getX() + direction.x);
+                    mutable2.mutY(from.getY() + direction.y);
+                    mutable2.mutZ(from.getZ() + direction.z);
                     if (isVisitable(mutable, mutable2)) {
                         adjacent = new Node(mutable2.getBlockX(), mutable2.getBlockY(), mutable2.getBlockZ());
                         if (!isVisited(adjacent)) {
