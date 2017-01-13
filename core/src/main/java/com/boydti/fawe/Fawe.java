@@ -50,6 +50,7 @@ import com.sk89q.worldedit.command.tool.BrushTool;
 import com.sk89q.worldedit.command.tool.LongRangeBuildTool;
 import com.sk89q.worldedit.command.tool.RecursivePickaxe;
 import com.sk89q.worldedit.command.tool.brush.GravityBrush;
+import com.sk89q.worldedit.command.util.EntityRemover;
 import com.sk89q.worldedit.event.extent.EditSessionEvent;
 import com.sk89q.worldedit.extension.factory.DefaultBlockParser;
 import com.sk89q.worldedit.extension.factory.DefaultMaskParser;
@@ -401,6 +402,7 @@ public class Fawe {
             // Entity create/remove
             EntityCreate.inject(); // Optimizations
             EntityRemove.inject(); // Optimizations
+            EntityRemover.inject(); // Async fixes
             // Clipboards
             BlockArrayClipboard.inject(); // Optimizations + disk
             CuboidClipboard.inject(); // Optimizations
