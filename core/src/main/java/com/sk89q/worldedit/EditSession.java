@@ -2599,17 +2599,30 @@ public class EditSession extends AbstractWorld implements HasFaweQueue, Lighting
             final int maxY = max.getBlockY();
             final int maxZ = max.getBlockZ();
 
-            for (int x = minX; x <= maxX; ++x) {
-                for (int y = minY; y <= maxY; ++y) {
-                    for (int z = minZ; z <= maxZ; ++z) {
-                        int id = FaweCache.getId(queue.getCombinedId4Data(x, y, z));
-                        counter[id]++;
+            if (canBypassAll(region, true, false)) {
+                for (int x = minX; x <= maxX; ++x) {
+                    for (int y = minY; y <= maxY; ++y) {
+                        for (int z = minZ; z <= maxZ; ++z) {
+                            int id = FaweCache.getId(queue.getCombinedId4Data(x, y, z));
+                            counter[id]++;
+                        }
+                    }
+                }
+            } else {
+                MutableBlockVector mutable = new MutableBlockVector(minX, minY, minZ);
+                for (int x = minX; x <= maxX; ++x) {
+                    for (int y = minY; y <= maxY; ++y) {
+                        for (int z = minZ; z <= maxZ; ++z) {
+                            int id = getBlock(x, y, z).getId();
+                            counter[id]++;
+                        }
                     }
                 }
             }
+
         } else {
             for (final Vector pt : region) {
-                final int id = this.getBlockType(pt);
+                final int id = this.getBlock(pt).getId();
                 counter[id]++;
             }
         }
@@ -2647,17 +2660,27 @@ public class EditSession extends AbstractWorld implements HasFaweQueue, Lighting
             final int maxY = max.getBlockY();
             final int maxZ = max.getBlockZ();
 
-            for (int x = minX; x <= maxX; ++x) {
-                for (int y = minY; y <= maxY; ++y) {
-                    for (int z = minZ; z <= maxZ; ++z) {
-                        final BaseBlock blk = getLazyBlock(x, y, z);
-                        counter[FaweCache.getCombined(blk)]++;
+            if (canBypassAll(region, true, false)) {
+                for (int x = minX; x <= maxX; ++x) {
+                    for (int y = minY; y <= maxY; ++y) {
+                        for (int z = minZ; z <= maxZ; ++z) {
+                            counter[queue.getCombinedId4Data(x, y, z)]++;
+                        }
+                    }
+                }
+            } else {
+                for (int x = minX; x <= maxX; ++x) {
+                    for (int y = minY; y <= maxY; ++y) {
+                        for (int z = minZ; z <= maxZ; ++z) {
+                            final BaseBlock blk = getBlock(x, y, z);
+                            counter[FaweCache.getCombined(blk)]++;
+                        }
                     }
                 }
             }
         } else {
             for (final Vector pt : region) {
-                final BaseBlock blk = FaweCache.getBlock(this.getBlockType(pt), this.getBlockData(pt));
+                BaseBlock blk = this.getBlock(pt);
                 counter[FaweCache.getCombined(blk)]++;
             }
         }
