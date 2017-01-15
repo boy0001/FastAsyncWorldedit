@@ -22,6 +22,21 @@ public class AbstractDelegateChangeSet extends FaweChangeSet {
         this.parent = parent;
     }
 
+    @Override
+    public void addChangeTask(FaweQueue queue) {
+        super.addChangeTask(queue);
+    }
+
+    @Override
+    public boolean flushAsync() {
+        return super.flushAsync();
+    }
+
+    @Override
+    public boolean flush() {
+        return super.flush() && parent.flush();
+    }
+
     public final FaweChangeSet getParent() {
         return parent;
     }
@@ -34,16 +49,6 @@ public class AbstractDelegateChangeSet extends FaweChangeSet {
     @Override
     public World getWorld() {
         return parent.getWorld();
-    }
-
-    @Override
-    public boolean flushAsync() {
-        return parent.flushAsync();
-    }
-
-    @Override
-    public boolean flush() {
-        return parent.flush();
     }
 
     @Override
@@ -144,10 +149,5 @@ public class AbstractDelegateChangeSet extends FaweChangeSet {
     @Override
     public void add(int x, int y, int z, int combinedFrom, BaseBlock to) {
         parent.add(x, y, z, combinedFrom, to);
-    }
-
-    @Override
-    public void addChangeTask(FaweQueue queue) {
-        parent.addChangeTask(queue);
     }
 }

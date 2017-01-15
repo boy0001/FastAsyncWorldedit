@@ -13,10 +13,6 @@ import org.primesoft.blockshub.api.IWorld;
 
 public class LoggingChangeSet extends AbstractDelegateChangeSet {
 
-    public static void main(String[] args) {
-
-    }
-
     private static boolean initialized = false;
 
     public static FaweChangeSet wrap(FawePlayer<Player> player, FaweChangeSet parent) {

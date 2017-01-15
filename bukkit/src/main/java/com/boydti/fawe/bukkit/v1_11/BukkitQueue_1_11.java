@@ -88,7 +88,7 @@ public class BukkitQueue_1_11 extends BukkitQueue_0<Chunk, ChunkSection[], Chunk
     protected static MutableGenLayer genLayer;
     protected static ChunkSection emptySection;
 
-    public static final IBlockData[] IBD_CACHE = new IBlockData[Character.MAX_VALUE];
+    public static final IBlockData[] IBD_CACHE = new IBlockData[Character.MAX_VALUE + 1];
 
     static {
         try {
@@ -130,7 +130,7 @@ public class BukkitQueue_1_11 extends BukkitQueue_0<Chunk, ChunkSection[], Chunk
             setupAdapter(new com.boydti.fawe.bukkit.v1_11.FaweAdapter_1_11());
             Fawe.debug("Using adapter: " + adapter);
             Fawe.debug("=========================================");
-            for (int i = 0; i < Character.MAX_VALUE; i++) {
+            for (int i = 0; i < IBD_CACHE.length; i++) {
                 try {
                     IBD_CACHE[i] = Block.getById(i >> 4).fromLegacyData(i & 0xF);
                 } catch (Throwable ignore) {}

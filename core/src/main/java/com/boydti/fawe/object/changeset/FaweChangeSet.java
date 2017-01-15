@@ -35,10 +35,8 @@ public abstract class FaweChangeSet implements ChangeSet {
     private final String worldName;
     private final boolean mainThread;
     private final int layers;
-    protected final AtomicInteger waitingCombined = new AtomicInteger(0);
-    private final AtomicInteger waitingAsync = new AtomicInteger(0);
-//    private Object lockCombined = new Object();
-//    private Object lockAsync = new Object();
+    protected AtomicInteger waitingCombined = new AtomicInteger(0);
+    protected AtomicInteger waitingAsync = new AtomicInteger(0);
 
     public static FaweChangeSet getDefaultChangeSet(World world, UUID uuid) {
         if (Settings.IMP.HISTORY.USE_DISK) {
@@ -220,7 +218,7 @@ public abstract class FaweChangeSet implements ChangeSet {
         queue.setChangeTask(new RunnableVal2<FaweChunk, FaweChunk>() {
             @Override
             public void run(final FaweChunk previous, final FaweChunk next) {
-                waitingCombined.incrementAndGet();
+                FaweChangeSet.this.waitingCombined.incrementAndGet();
                 Runnable run = new Runnable() {
                     @Override
                     public void run() {
@@ -263,7 +261,7 @@ public abstract class FaweChangeSet implements ChangeSet {
                                                 default:
                                                     char combinedIdPrevious = previousLayer != null ? previousLayer[index] : 0;
                                                     if (combinedIdCurrent != combinedIdPrevious) {
-                                                        synchronized (this) {
+                                                        synchronized (FaweChangeSet.this) {
                                                             add(xx, yy, zz, combinedIdPrevious, combinedIdCurrent);
                                                         }
                                                     }
@@ -277,14 +275,14 @@ public abstract class FaweChangeSet implements ChangeSet {
                                 // Tiles created
                                 Map<Short, CompoundTag> tiles = next.getTiles();
                                 for (Map.Entry<Short, CompoundTag> entry : tiles.entrySet()) {
-                                    synchronized (this) {
+                                    synchronized (FaweChangeSet.this) {
                                         addTileCreate(entry.getValue());
                                     }
                                 }
                                 // Tiles removed
                                 tiles = previous.getTiles();
                                 for (Map.Entry<Short, CompoundTag> entry : tiles.entrySet()) {
-                                    synchronized (this) {
+                                    synchronized (FaweChangeSet.this) {
                                         addTileRemove(entry.getValue());
                                     }
                                 }
@@ -294,14 +292,14 @@ public abstract class FaweChangeSet implements ChangeSet {
                                 // Entities created
                                 Set<CompoundTag> entities = next.getEntities();
                                 for (CompoundTag entityTag : entities) {
-                                    synchronized (this) {
+                                    synchronized (FaweChangeSet.this) {
                                         addEntityCreate(entityTag);
                                     }
                                 }
                                 // Entities removed
                                 entities = previous.getEntities();
                                 for (CompoundTag entityTag : entities) {
-                                    synchronized (this) {
+                                    synchronized (FaweChangeSet.this) {
                                         addEntityRemove(entityTag);
                                     }
                                 }
@@ -309,12 +307,12 @@ public abstract class FaweChangeSet implements ChangeSet {
                         } catch (Throwable e) {
                             MainUtil.handleError(e);
                         } finally {
-                            if (waitingCombined.decrementAndGet() <= 0) {
-                                synchronized (waitingAsync) {
-                                    waitingAsync.notifyAll();
+                            if (FaweChangeSet.this.waitingCombined.decrementAndGet() <= 0) {
+                                synchronized (FaweChangeSet.this.waitingAsync) {
+                                    FaweChangeSet.this.waitingAsync.notifyAll();
                                 }
-                                synchronized (waitingCombined) {
-                                    waitingCombined.notifyAll();
+                                synchronized (FaweChangeSet.this.waitingCombined) {
+                                    FaweChangeSet.this.waitingCombined.notifyAll();
                                 }
                             }
                         }
