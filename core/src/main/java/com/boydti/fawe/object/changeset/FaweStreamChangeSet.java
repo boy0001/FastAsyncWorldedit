@@ -376,7 +376,6 @@ public abstract class FaweStreamChangeSet extends FaweChangeSet {
                     idDel.readCombined(is, change, dir);
                     return change;
                 } catch (EOFException ignoreOEF) {
-                    ignoreOEF.printStackTrace();
                     return null;
                 } catch (Exception e) {
                     e.printStackTrace();
