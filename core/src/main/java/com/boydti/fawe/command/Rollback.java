@@ -28,7 +28,7 @@ public class Rollback extends FaweCommand {
 
     @Override
     public boolean execute(final FawePlayer player, final String... args) {
-        if (!Settings.HISTORY.USE_DATABASE) {
+        if (!Settings.IMP.HISTORY.USE_DATABASE) {
             BBC.SETTING_DISABLE.send(player, "history.use-database");
             return false;
         }

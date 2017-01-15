@@ -167,9 +167,9 @@ public class SchematicStreamer extends NBTStreamer {
             }
             return fc;
         }
-        if (Settings.CLIPBOARD.USE_DISK) {
+        if (Settings.IMP.CLIPBOARD.USE_DISK) {
             return fc = new DiskOptimizedClipboard(size, 1, 1, uuid);
-        } else if (Settings.CLIPBOARD.COMPRESSION_LEVEL == 0) {
+        } else if (Settings.IMP.CLIPBOARD.COMPRESSION_LEVEL == 0) {
             return fc = new CPUOptimizedClipboard(size, 1, 1);
         } else {
             return fc = new MemoryOptimizedClipboard(size, 1, 1);

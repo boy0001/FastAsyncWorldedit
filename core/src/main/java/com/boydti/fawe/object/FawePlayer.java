@@ -100,7 +100,7 @@ public abstract class FawePlayer<T> extends Metadatable {
     public FawePlayer(final T parent) {
         this.parent = parent;
         Fawe.get().register(this);
-        if (Settings.CLIPBOARD.USE_DISK) {
+        if (Settings.IMP.CLIPBOARD.USE_DISK) {
             loadClipboardFromDisk();
         }
     }
@@ -205,7 +205,7 @@ public abstract class FawePlayer<T> extends Metadatable {
      *  - Should already be called if history on disk is enabled
      */
     public void loadClipboardFromDisk() {
-        File file = MainUtil.getFile(Fawe.imp().getDirectory(), Settings.PATHS.CLIPBOARD + File.separator + getUUID() + ".bd");
+        File file = MainUtil.getFile(Fawe.imp().getDirectory(), Settings.IMP.PATHS.CLIPBOARD + File.separator + getUUID() + ".bd");
         try {
             if (file.exists() && file.length() > 5) {
                 DiskOptimizedClipboard doc = new DiskOptimizedClipboard(file);
@@ -280,7 +280,7 @@ public abstract class FawePlayer<T> extends Metadatable {
      * @return
      */
     public FaweLimit getLimit() {
-        return Settings.getLimit(this);
+        return Settings.IMP.getLimit(this);
     }
 
     /**
@@ -420,7 +420,7 @@ public abstract class FawePlayer<T> extends Metadatable {
      *  - Usually called on logout
      */
     public void unregister() {
-        if (Settings.HISTORY.DELETE_ON_LOGOUT) {
+        if (Settings.IMP.HISTORY.DELETE_ON_LOGOUT) {
             session = getSession();
             WorldEdit.getInstance().removeSession(getPlayer());
             session.setClipboard(null);

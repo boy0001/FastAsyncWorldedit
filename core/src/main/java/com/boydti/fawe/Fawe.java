@@ -227,11 +227,11 @@ public class Fawe {
          * Implementation dependent stuff
          */
         this.setupConfigs();
-        MainUtil.deleteOlder(MainUtil.getFile(IMP.getDirectory(), Settings.PATHS.HISTORY), TimeUnit.DAYS.toMillis(Settings.HISTORY.DELETE_AFTER_DAYS));
-        MainUtil.deleteOlder(MainUtil.getFile(IMP.getDirectory(), Settings.PATHS.CLIPBOARD), TimeUnit.DAYS.toMillis(Settings.CLIPBOARD.DELETE_AFTER_DAYS));
+        MainUtil.deleteOlder(MainUtil.getFile(IMP.getDirectory(), Settings.IMP.PATHS.HISTORY), TimeUnit.DAYS.toMillis(Settings.IMP.HISTORY.DELETE_AFTER_DAYS));
+        MainUtil.deleteOlder(MainUtil.getFile(IMP.getDirectory(), Settings.IMP.PATHS.CLIPBOARD), TimeUnit.DAYS.toMillis(Settings.IMP.CLIPBOARD.DELETE_AFTER_DAYS));
 
         TaskManager.IMP = this.IMP.getTaskManager();
-        if (Settings.METRICS) {
+        if (Settings.IMP.METRICS) {
             this.IMP.startMetrics();
         }
         this.setupCommands();
@@ -258,7 +258,7 @@ public class Fawe {
 
         TaskManager.IMP.repeat(timer, 1);
 
-        if (Settings.UPDATE) {
+        if (Settings.IMP.UPDATE) {
             // Delayed updating
             TaskManager.IMP.async(new Runnable() {
                 @Override
@@ -310,19 +310,18 @@ public class Fawe {
     public void setupConfigs() {
         // Setting up config.yml
         File file = new File(this.IMP.getDirectory(), "config.yml");
-        Settings.PLATFORM = IMP.getPlatform().replace("\"", "");
+        Settings.IMP.PLATFORM = IMP.getPlatform().replace("\"", "");
         try {
             InputStream stream = getClass().getResourceAsStream("/fawe.properties");
             java.util.Scanner scanner = new java.util.Scanner(stream).useDelimiter("\\A");
             String versionString = scanner.next().trim();
             scanner.close();
             this.version = new FaweVersion(versionString);
-            Settings.DATE = new Date(100 + version.year, version.month, version.day).toGMTString();
-            Settings.BUILD = "https://ci.athion.net/job/FastAsyncWorldEdit/" + version.build;
-            Settings.COMMIT = "https://github.com/boy0001/FastAsyncWorldedit/commit/" + Integer.toHexString(version.hash);
+            Settings.IMP.DATE = new Date(100 + version.year, version.month, version.day).toGMTString();
+            Settings.IMP.BUILD = "https://ci.athion.net/job/FastAsyncWorldEdit/" + version.build;
+            Settings.IMP.COMMIT = "https://github.com/boy0001/FastAsyncWorldedit/commit/" + Integer.toHexString(version.hash);
         } catch (Throwable ignore) {}
-        Settings.load(file);
-        Settings.save(file);
+        Settings.IMP.reload(file);
         // Setting up message.yml
         BBC.load(new File(this.IMP.getDirectory(), "message.yml"));
     }
@@ -483,9 +482,9 @@ public class Fawe {
         try {
             com.github.luben.zstd.util.Native.load();
         } catch (Throwable e) {
-            if (Settings.CLIPBOARD.COMPRESSION_LEVEL > 6 || Settings.HISTORY.COMPRESSION_LEVEL > 6) {
-                Settings.CLIPBOARD.COMPRESSION_LEVEL = Math.min(6, Settings.CLIPBOARD.COMPRESSION_LEVEL);
-                Settings.HISTORY.COMPRESSION_LEVEL = Math.min(6, Settings.HISTORY.COMPRESSION_LEVEL);
+            if (Settings.IMP.CLIPBOARD.COMPRESSION_LEVEL > 6 || Settings.IMP.HISTORY.COMPRESSION_LEVEL > 6) {
+                Settings.IMP.CLIPBOARD.COMPRESSION_LEVEL = Math.min(6, Settings.IMP.CLIPBOARD.COMPRESSION_LEVEL);
+                Settings.IMP.HISTORY.COMPRESSION_LEVEL = Math.min(6, Settings.IMP.HISTORY.COMPRESSION_LEVEL);
                 debug("====== ZSTD COMPRESSION BINDING NOT FOUND ======");
                 debug(e);
                 debug("===============================================");
@@ -525,7 +524,7 @@ public class Fawe {
     }
 
     private void setupMemoryListener() {
-        if (Settings.MAX_MEMORY_PERCENT < 1 || Settings.MAX_MEMORY_PERCENT > 99) {
+        if (Settings.IMP.MAX_MEMORY_PERCENT < 1 || Settings.IMP.MAX_MEMORY_PERCENT > 99) {
             return;
         }
         try {
@@ -547,7 +546,7 @@ public class Fawe {
                     if (max < 0) {
                         continue;
                     }
-                    final long alert = (max * Settings.MAX_MEMORY_PERCENT) / 100;
+                    final long alert = (max * Settings.IMP.MAX_MEMORY_PERCENT) / 100;
                     mp.setUsageThreshold(alert);
                 }
             }

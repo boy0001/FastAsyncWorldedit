@@ -85,9 +85,9 @@ public class CorruptSchematicStreamer {
         if (width.get() == 0 || height.get() == 0 || length.get() == 0) {
             Fawe.debug("No dimensions found! Estimating based on factors:" + dimensions);
         }
-        if (Settings.CLIPBOARD.USE_DISK) {
+        if (Settings.IMP.CLIPBOARD.USE_DISK) {
             fc = new DiskOptimizedClipboard(dimensions.getBlockX(), dimensions.getBlockY(), dimensions.getBlockZ(), uuid);
-        } else if (Settings.CLIPBOARD.COMPRESSION_LEVEL == 0) {
+        } else if (Settings.IMP.CLIPBOARD.COMPRESSION_LEVEL == 0) {
             fc = new CPUOptimizedClipboard(dimensions.getBlockX(), dimensions.getBlockY(), dimensions.getBlockZ());
         } else {
             fc = new MemoryOptimizedClipboard(dimensions.getBlockX(), dimensions.getBlockY(), dimensions.getBlockZ());

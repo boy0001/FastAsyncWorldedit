@@ -50,7 +50,7 @@ public abstract class NMSMappedFaweQueue<WORLD, CHUNK, CHUNKSECTION, SECTION> ex
         }
     }
 
-    private final Relighter relighter = Settings.LIGHTING.MODE > 0 ? new NMSRelighter(this) : NullRelighter.INSTANCE;
+    private final Relighter relighter = Settings.IMP.LIGHTING.MODE > 0 ? new NMSRelighter(this) : NullRelighter.INSTANCE;
 
     @Override
     public Relighter getRelighter() {
@@ -60,11 +60,11 @@ public abstract class NMSMappedFaweQueue<WORLD, CHUNK, CHUNKSECTION, SECTION> ex
     @Override
     public void end(FaweChunk chunk) {
         super.end(chunk);
-        if (Settings.LIGHTING.MODE == 0) {
+        if (Settings.IMP.LIGHTING.MODE == 0 || !Settings.IMP.LIGHTING.DELAY_PACKET_SENDING) {
             sendChunk(chunk);
             return;
         }
-        if (Settings.LIGHTING.MODE == 2) {
+        if (Settings.IMP.LIGHTING.MODE == 2) {
             relighter.addChunk(chunk.getX(), chunk.getZ(), null, chunk.getBitMask());
             return;
         }

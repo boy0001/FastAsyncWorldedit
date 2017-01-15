@@ -206,7 +206,7 @@ public class BukkitChunk_All extends CharFaweChunk<Chunk, BukkitQueue_All> {
                                     continue;
                                 }
                                 if (light != place) {
-                                    light = light && Settings.LIGHTING.MODE != 0;
+                                    light = light && Settings.IMP.LIGHTING.MODE != 0;
                                     if (light) {
                                         parent.enableLighting(disableResult);
                                     }

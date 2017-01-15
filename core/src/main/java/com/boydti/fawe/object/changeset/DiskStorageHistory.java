@@ -71,7 +71,7 @@ public class DiskStorageHistory extends FaweStreamChangeSet {
     }
 
     private void init(UUID uuid, String worldName) {
-        File folder = MainUtil.getFile(Fawe.imp().getDirectory(), Settings.PATHS.HISTORY + File.separator + worldName + File.separator + uuid);
+        File folder = MainUtil.getFile(Fawe.imp().getDirectory(), Settings.IMP.PATHS.HISTORY + File.separator + worldName + File.separator + uuid);
         int max = 0;
         if (folder.exists()) {
             for (File file : folder.listFiles()) {
@@ -122,14 +122,14 @@ public class DiskStorageHistory extends FaweStreamChangeSet {
     private void init(UUID uuid, int i) {
         this.uuid = uuid;
         this.index = i;
-        File folder = MainUtil.getFile(Fawe.imp().getDirectory(), Settings.PATHS.HISTORY + File.separator + Fawe.imp().getWorldName(getWorld()) + File.separator + uuid);
+        File folder = MainUtil.getFile(Fawe.imp().getDirectory(), Settings.IMP.PATHS.HISTORY + File.separator + Fawe.imp().getWorldName(getWorld()) + File.separator + uuid);
         initFiles(folder);
     }
 
     public void delete() {
         Fawe.debug("Deleting history: " + Fawe.imp().getWorldName(getWorld()) + "/" + uuid + "/" + index);
         deleteFiles();
-        if (Settings.HISTORY.USE_DATABASE) {
+        if (Settings.IMP.HISTORY.USE_DATABASE) {
             RollbackDatabase db = DBHandler.IMP.getDatabase(getWorld());
             db.delete(uuid, index);
         }
@@ -348,7 +348,7 @@ public class DiskStorageHistory extends FaweStreamChangeSet {
                 }
                 byte[] buffer = new byte[9];
                 int i = 0;
-                int amount = (Settings.HISTORY.BUFFER_SIZE - HEADER_SIZE) / 9;
+                int amount = (Settings.IMP.HISTORY.BUFFER_SIZE - HEADER_SIZE) / 9;
                 while (!shallow && ++i < amount) {
                     if (gis.read(buffer) == -1) {
                         fis.close();

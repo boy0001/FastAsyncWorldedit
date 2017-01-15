@@ -357,7 +357,7 @@ public class CuboidRegion extends AbstractRegion implements FlatRegion {
 
     @Override
     public Iterator<BlockVector> iterator() {
-        if (Settings.HISTORY.COMPRESSION_LEVEL >= 9) {
+        if (Settings.IMP.HISTORY.COMPRESSION_LEVEL >= 9) {
             return iterator_old();
         }
         final MutableBlockVector mutable = new MutableBlockVector(0,0,0);

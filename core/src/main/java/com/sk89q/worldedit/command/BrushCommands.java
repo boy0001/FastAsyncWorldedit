@@ -294,7 +294,7 @@ public class BrushCommands {
         worldEdit.checkMaxBrushRadius(radius);
 
         FawePlayer fp = FawePlayer.wrap(player);
-        FaweLimit limit = Settings.getLimit(fp);
+        FaweLimit limit = Settings.IMP.getLimit(fp);
         iterations = Math.min(limit.MAX_ITERATIONS, iterations);
         BrushTool tool = session.getBrushTool(player.getItemInHand());
         tool.setSize(radius);

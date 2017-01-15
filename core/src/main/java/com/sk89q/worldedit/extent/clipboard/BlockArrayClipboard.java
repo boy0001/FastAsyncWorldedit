@@ -67,7 +67,7 @@ public class BlockArrayClipboard implements Clipboard, LightingExtent {
         checkNotNull(region);
         this.region = region.clone();
         this.size = getDimensions();
-        this.IMP = Settings.CLIPBOARD.USE_DISK ? new DiskOptimizedClipboard(size.getBlockX(), size.getBlockY(), size.getBlockZ()) : new MemoryOptimizedClipboard(size.getBlockX(), size.getBlockY(), size.getBlockZ());
+        this.IMP = Settings.IMP.CLIPBOARD.USE_DISK ? new DiskOptimizedClipboard(size.getBlockX(), size.getBlockY(), size.getBlockZ()) : new MemoryOptimizedClipboard(size.getBlockX(), size.getBlockY(), size.getBlockZ());
         this.origin = region.getMinimumPoint();
         this.mx = origin.getBlockX();
         this.my = origin.getBlockY();
@@ -85,7 +85,7 @@ public class BlockArrayClipboard implements Clipboard, LightingExtent {
         checkNotNull(region);
         this.region = region.clone();
         this.size = getDimensions();
-        this.IMP = Settings.CLIPBOARD.USE_DISK ? new DiskOptimizedClipboard(size.getBlockX(), size.getBlockY(), size.getBlockZ(), clipboardId) : new MemoryOptimizedClipboard(size.getBlockX(), size.getBlockY(), size.getBlockZ());
+        this.IMP = Settings.IMP.CLIPBOARD.USE_DISK ? new DiskOptimizedClipboard(size.getBlockX(), size.getBlockY(), size.getBlockZ(), clipboardId) : new MemoryOptimizedClipboard(size.getBlockX(), size.getBlockY(), size.getBlockZ());
         this.origin = region.getMinimumPoint();
         this.mx = origin.getBlockX();
         this.my = origin.getBlockY();

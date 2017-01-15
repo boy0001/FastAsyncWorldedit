@@ -198,7 +198,7 @@ public class LocalSession {
         if (world == null || uuid == null) {
             return false;
         }
-        if (Settings.HISTORY.USE_DISK) {
+        if (Settings.IMP.HISTORY.USE_DISK) {
             MAX_HISTORY_SIZE = Integer.MAX_VALUE;
         }
         if (!world.equals(currentWorld)) {
@@ -219,7 +219,7 @@ public class LocalSession {
 
     private boolean loadHistoryChangeSets(UUID uuid, World world) {
         final List<Integer> editIds = new ArrayList<>();
-        final File folder = MainUtil.getFile(Fawe.imp().getDirectory(), Settings.PATHS.HISTORY + File.separator + Fawe.imp().getWorldName(world) + File.separator + uuid);
+        final File folder = MainUtil.getFile(Fawe.imp().getDirectory(), Settings.IMP.PATHS.HISTORY + File.separator + Fawe.imp().getWorldName(world) + File.separator + uuid);
         if (folder.isDirectory()) {
             final FileNameExtensionFilter filter = new FileNameExtensionFilter("BlockData files","bd");
             folder.listFiles(new FileFilter() {
@@ -249,7 +249,7 @@ public class LocalSession {
 
     @Deprecated
     private void deleteOldFiles(UUID uuid, World world, long maxBytes) throws IOException {
-        final File folder = MainUtil.getFile(Fawe.imp().getDirectory(), Settings.PATHS.HISTORY + File.separator + Fawe.imp().getWorldName(world) + File.separator + uuid);
+        final File folder = MainUtil.getFile(Fawe.imp().getDirectory(), Settings.IMP.PATHS.HISTORY + File.separator + Fawe.imp().getWorldName(world) + File.separator + uuid);
 
         final ArrayList<Integer> ids = new ArrayList<Integer>();
         final HashMap<Integer, ArrayDeque<Path>> paths = new HashMap<>();
@@ -298,10 +298,10 @@ public class LocalSession {
     }
 
     private void loadHistoryNegativeIndex(UUID uuid, World world) {
-        if (!Settings.HISTORY.USE_DISK) {
+        if (!Settings.IMP.HISTORY.USE_DISK) {
             return;
         }
-        File file = MainUtil.getFile(Fawe.imp().getDirectory(), Settings.PATHS.HISTORY + File.separator + Fawe.imp().getWorldName(world) + File.separator + uuid + File.separator + "index");
+        File file = MainUtil.getFile(Fawe.imp().getDirectory(), Settings.IMP.PATHS.HISTORY + File.separator + Fawe.imp().getWorldName(world) + File.separator + uuid + File.separator + "index");
         if (file.exists()) {
             try {
                 FaweInputStream is = new FaweInputStream(new FileInputStream(file));
@@ -316,10 +316,10 @@ public class LocalSession {
     }
 
     private void saveHistoryNegativeIndex(UUID uuid, World world) {
-        if (world == null || !Settings.HISTORY.USE_DISK) {
+        if (world == null || !Settings.IMP.HISTORY.USE_DISK) {
             return;
         }
-        File file = MainUtil.getFile(Fawe.imp().getDirectory(), Settings.PATHS.HISTORY + File.separator + Fawe.imp().getWorldName(world) + File.separator + uuid + File.separator + "index");
+        File file = MainUtil.getFile(Fawe.imp().getDirectory(), Settings.IMP.PATHS.HISTORY + File.separator + Fawe.imp().getWorldName(world) + File.separator + uuid + File.separator + "index");
         if (getHistoryNegativeIndex() != 0) {
             try {
                 if (!file.exists()) {
@@ -487,7 +487,7 @@ public class LocalSession {
         } else {
             history.add(0, changeSet);
         }
-        while (((!Settings.HISTORY.USE_DISK && history.size() > MAX_HISTORY_SIZE) || (historySize >> 20) > limitMb) && history.size() > 1) {
+        while (((!Settings.IMP.HISTORY.USE_DISK && history.size() > MAX_HISTORY_SIZE) || (historySize >> 20) > limitMb) && history.size() > 1) {
             FaweChangeSet item = (FaweChangeSet) history.remove(0);
             item.delete();
             long size = MainUtil.getSize(item);
@@ -517,7 +517,7 @@ public class LocalSession {
         checkNotNull(player);
         loadSessionHistoryFromDisk(player.getUniqueId(), player.getWorld());
         if (getHistoryNegativeIndex() < history.size()) {
-            FaweChangeSet changeSet = (FaweChangeSet) history.get(getHistoryIndex());
+            FaweChangeSet changeSet = getChangeSet(history.get(getHistoryIndex()));
             final FawePlayer fp = FawePlayer.wrap(player);
             EditSession newEditSession = new EditSessionBuilder(changeSet.getWorld())
                     .allowedRegionsEverywhere()
@@ -566,7 +566,7 @@ public class LocalSession {
         if (getHistoryNegativeIndex() > 0) {
             setDirty();
             historyNegativeIndex--;
-            FaweChangeSet changeSet = (FaweChangeSet) history.get(getHistoryIndex());
+            FaweChangeSet changeSet = getChangeSet(history.get(getHistoryIndex()));
             final FawePlayer fp = FawePlayer.wrap(player);
             EditSession newEditSession = new EditSessionBuilder(changeSet.getWorld())
                     .allowedRegionsEverywhere()

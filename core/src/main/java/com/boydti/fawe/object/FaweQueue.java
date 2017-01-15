@@ -41,6 +41,7 @@ public abstract class FaweQueue {
     private RunnableVal2<FaweChunk, FaweChunk> changeTask;
     private RunnableVal2<ProgressType, Integer> progressTask;
     private SetQueue.QueueStage stage;
+    private Settings settings = Settings.IMP;
 
     public FaweQueue(String world) {
         this.world = world;
@@ -67,6 +68,14 @@ public abstract class FaweQueue {
         NONE,
         OPTIMAL,
         ALL,
+    }
+
+    public Settings getSettings() {
+        return settings;
+    }
+
+    public void setSettings(Settings settings) {
+        this.settings = settings == null ? Settings.IMP : settings;
     }
 
     public void setWorld(String world) {
@@ -300,7 +309,7 @@ public abstract class FaweQueue {
 
     @Deprecated
     public boolean next() {
-        int amount = Settings.QUEUE.PARALLEL_THREADS;
+        int amount = Settings.IMP.QUEUE.PARALLEL_THREADS;
         ExecutorCompletionService service = SetQueue.IMP.getCompleterService();
         long time = 20; // 30ms
         return next(amount, service, time);

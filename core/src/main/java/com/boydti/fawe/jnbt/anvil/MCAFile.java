@@ -298,7 +298,12 @@ public class MCAFile {
         raf.write((offsetMedium >> 8));
         raf.write((offsetMedium >> 0));
         raf.write(sizeByte);
-
+        raf.seek(i + 4096);
+        if (offsetMedium == 0 && sizeByte == 0) {
+            raf.writeInt(0);
+        } else {
+            raf.writeInt((int) (System.currentTimeMillis() / 1000L));
+        }
         int offset = (((locations[i] & 0xFF) << 16) + ((locations[i + 1] & 0xFF) << 8) + ((locations[i+ 2] & 0xFF))) << 12;
         int size = (locations[i + 3] & 0xFF) << 12;
     }

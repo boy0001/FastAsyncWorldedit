@@ -50,7 +50,7 @@ public class RollbackDatabase {
         this.prefix = "";
         this.worldName = Fawe.imp().getWorldName(world);
         this.world = world;
-        this.dbLocation = MainUtil.getFile(Fawe.imp().getDirectory(), Settings.PATHS.HISTORY + File.separator + Fawe.imp().getWorldName(world) + File.separator + "summary.db");
+        this.dbLocation = MainUtil.getFile(Fawe.imp().getDirectory(), Settings.IMP.PATHS.HISTORY + File.separator + Fawe.imp().getWorldName(world) + File.separator + "summary.db");
         connection = openConnection();
         CREATE_TABLE = "CREATE TABLE IF NOT EXISTS `" + prefix + "edits` (`player` BLOB(16) NOT NULL,`id` INT NOT NULL,`x1` INT NOT NULL,`y1` INT NOT NULL,`z1` INT NOT NULL,`x2` INT NOT NULL,`y2` INT NOT NULL,`z2` INT NOT NULL,`time` INT NOT NULL, PRIMARY KEY (player, id))";
         INSERT_EDIT = "INSERT OR REPLACE INTO `" + prefix + "edits` (`player`,`id`,`x1`,`y1`,`z1`,`x2`,`y2`,`z2`,`time`) VALUES(?,?,?,?,?,?,?,?,?)";
@@ -61,7 +61,7 @@ public class RollbackDatabase {
         DELETE_EDITS_USER = "DELETE FROM `" + prefix + "edits` WHERE `x2`>=? AND `x1`<=? AND `y2`>=? AND `y1`<=? AND `z2`>=? AND `z1`<=? AND `time`>? AND `player`=?";
         DELETE_EDIT_USER = "DELETE FROM `" + prefix + "edits` WHERE `player`=? AND `id`=?";
         init();
-        purge((int) TimeUnit.DAYS.toMillis(Settings.HISTORY.DELETE_AFTER_DAYS));
+        purge((int) TimeUnit.DAYS.toMillis(Settings.IMP.HISTORY.DELETE_AFTER_DAYS));
         TaskManager.IMP.async(new Runnable() {
             @Override
             public void run() {

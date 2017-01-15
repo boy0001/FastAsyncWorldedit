@@ -81,7 +81,7 @@ public class HistoryCommands {
     )
     @CommandPermissions("worldedit.history.rollback")
     public void faweRollback(final Player player, LocalSession session, final String user, @Optional("0") int radius, @Optional("0") String time) throws WorldEditException {
-        if (!Settings.HISTORY.USE_DATABASE) {
+        if (!Settings.IMP.HISTORY.USE_DATABASE) {
             BBC.SETTING_DISABLE.send(player, "history.use-database");
             return;
         }
@@ -92,7 +92,7 @@ public class HistoryCommands {
                         BBC.NO_PERM.send(player, "fawe.rollback.import");
                         return;
                     }
-                    File folder = MainUtil.getFile(Fawe.imp().getDirectory(), Settings.PATHS.HISTORY);
+                    File folder = MainUtil.getFile(Fawe.imp().getDirectory(), Settings.IMP.PATHS.HISTORY);
                     if (!folder.exists()) {
                         return;
                     }

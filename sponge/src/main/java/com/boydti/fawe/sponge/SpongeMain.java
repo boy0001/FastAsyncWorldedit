@@ -49,7 +49,7 @@ public class SpongeMain {
     public void onGamePreInit(GamePreInitializationEvent event) {
         this.server = this.game.getServer();
         new FaweSponge(this);
-        Settings.QUEUE.PARALLEL_THREADS = 1;
+        Settings.IMP.QUEUE.PARALLEL_THREADS = 1;
     }
 
     @Listener

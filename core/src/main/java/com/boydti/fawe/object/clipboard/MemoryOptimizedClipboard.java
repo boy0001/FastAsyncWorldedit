@@ -59,7 +59,7 @@ public class MemoryOptimizedClipboard extends FaweClipboard {
     private int compressionLevel;
 
     public MemoryOptimizedClipboard(int width, int height, int length) {
-        this(width, height, length, Settings.CLIPBOARD.COMPRESSION_LEVEL);
+        this(width, height, length, Settings.IMP.CLIPBOARD.COMPRESSION_LEVEL);
     }
 
     public MemoryOptimizedClipboard(int width, int height, int length, int compressionLevel) {

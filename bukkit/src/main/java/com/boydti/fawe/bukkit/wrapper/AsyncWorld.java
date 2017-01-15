@@ -80,6 +80,10 @@ public class AsyncWorld extends DelegateFaweQueue implements World, HasFaweQueue
         this(parent, FaweAPI.createQueue(parent.getName(), autoQueue));
     }
 
+    public AsyncWorld(String world, boolean autoQueue) {
+        this(Bukkit.getWorld(world), autoQueue);
+    }
+
     /**
      * @deprecated use {@link #wrap(org.bukkit.World)} instead
      * @param parent

@@ -5,12 +5,17 @@ import com.boydti.fawe.FaweCache;
 import com.boydti.fawe.object.FawePlayer;
 import com.boydti.fawe.object.changeset.AbstractDelegateChangeSet;
 import com.boydti.fawe.object.changeset.FaweChangeSet;
+import java.lang.reflect.Constructor;
 import org.bukkit.entity.Player;
 import org.primesoft.blockshub.IBlocksHubApi;
 import org.primesoft.blockshub.api.IPlayer;
 import org.primesoft.blockshub.api.IWorld;
 
 public class LoggingChangeSet extends AbstractDelegateChangeSet {
+
+    public static void main(String[] args) {
+
+    }
 
     private static boolean initialized = false;
 
@@ -29,13 +34,24 @@ public class LoggingChangeSet extends AbstractDelegateChangeSet {
 
     private final MutableVector loc;
     private final IPlayer player;
-    private final IWorld world;
+    private IWorld world;
     private final MutableBlockData oldBlock;
     private final MutableBlockData newBlock;
 
     private LoggingChangeSet(FawePlayer player, FaweChangeSet parent) {
         super(parent);
-        this.world = api.getWorld(player.getLocation().world);
+        String world = player.getLocation().world;
+        try {
+            Class<?> classBukkitWorld = Class.forName("org.primesoft.blockshub.platform.bukkit.BukkitWorld");
+            Class<?> classAsyncWorld = Class.forName("com.boydti.fawe.bukkit.wrapper.AsyncWorld");
+            Object asyncWorld = classAsyncWorld.getConstructor(String.class, boolean.class).newInstance(world, false);
+            Constructor<?> constructor = classBukkitWorld.getDeclaredConstructors()[0];
+            constructor.setAccessible(true);
+            this.world = (IWorld) constructor.newInstance(asyncWorld);
+        } catch (Throwable ignore) {
+            ignore.printStackTrace();
+            this.world = api.getWorld(world);
+        }
         this.loc = new MutableVector();
         this.oldBlock = new MutableBlockData();
         this.newBlock = new MutableBlockData();

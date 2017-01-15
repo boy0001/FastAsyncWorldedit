@@ -72,7 +72,7 @@ public class WEManager {
      * @return
      */
     public RegionWrapper[] getMask(final FawePlayer<?> player, FaweMaskManager.MaskType type) {
-        if (player.hasPermission("fawe.bypass") || !Settings.REGION_RESTRICTIONS) {
+        if (player.hasPermission("fawe.bypass") || !Settings.IMP.REGION_RESTRICTIONS) {
             return new RegionWrapper[] {new RegionWrapper(Integer.MIN_VALUE, Integer.MAX_VALUE, Integer.MIN_VALUE, Integer.MAX_VALUE)};
         }
         HashSet<RegionWrapper> mask = new HashSet<>();

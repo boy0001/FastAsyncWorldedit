@@ -114,7 +114,7 @@ public class EditSessionBuilder {
     public EditSessionBuilder changeSet(boolean disk, @Nullable UUID uuid, int compression) {
         if (world == null) {
             if (disk) {
-                if (Settings.HISTORY.USE_DATABASE) {
+                if (Settings.IMP.HISTORY.USE_DATABASE) {
                     this.changeSet = new RollbackOptimizedHistory(worldName, uuid);
                 } else {
                     this.changeSet = new DiskStorageHistory(worldName, uuid);
@@ -123,7 +123,7 @@ public class EditSessionBuilder {
                 this.changeSet = new MemoryOptimizedHistory(worldName);
             }
         } else if (disk) {
-            if (Settings.HISTORY.USE_DATABASE) {
+            if (Settings.IMP.HISTORY.USE_DATABASE) {
                 this.changeSet = new RollbackOptimizedHistory(world, uuid);
             } else {
                 this.changeSet = new DiskStorageHistory(world, uuid);

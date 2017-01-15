@@ -58,7 +58,7 @@ public class DiskOptimizedClipboard extends FaweClipboard implements Closeable {
     private int last;
 
     public DiskOptimizedClipboard(int width, int height, int length, UUID uuid) {
-        this(width, height, length, MainUtil.getFile(Fawe.imp().getDirectory(), Settings.PATHS.CLIPBOARD + File.separator + uuid + ".bd"));
+        this(width, height, length, MainUtil.getFile(Fawe.imp().getDirectory(), Settings.IMP.PATHS.CLIPBOARD + File.separator + uuid + ".bd"));
     }
 
     public DiskOptimizedClipboard(File file) {
@@ -183,7 +183,7 @@ public class DiskOptimizedClipboard extends FaweClipboard implements Closeable {
     }
 
     public DiskOptimizedClipboard(int width, int height, int length) {
-        this(width, height, length, MainUtil.getFile(Fawe.imp().getDirectory(), Settings.PATHS.CLIPBOARD + File.separator + UUID.randomUUID() + ".bd"));
+        this(width, height, length, MainUtil.getFile(Fawe.imp().getDirectory(), Settings.IMP.PATHS.CLIPBOARD + File.separator + UUID.randomUUID() + ".bd"));
     }
 
     public void close() {

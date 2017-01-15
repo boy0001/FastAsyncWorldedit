@@ -27,7 +27,7 @@ public class ChunkListener implements Listener {
     int rateLimit = 0;
 
     public ChunkListener() {
-        if (Settings.TICK_LIMITER.ENABLED) {
+        if (Settings.IMP.TICK_LIMITER.ENABLED) {
             Bukkit.getPluginManager().registerEvents(ChunkListener.this, Fawe.<FaweBukkit>imp().getPlugin());
             TaskManager.IMP.repeat(new Runnable() {
                 @Override
@@ -38,11 +38,11 @@ public class ChunkListener implements Listener {
                     counter.clear();
                     lastZ = Integer.MIN_VALUE;
                     for (Long badChunk : badChunks) {
-                        counter.put(badChunk, new IntegerTrio(Settings.TICK_LIMITER.PHYSICS, Settings.TICK_LIMITER.ITEMS, Settings.TICK_LIMITER.FALLING));
+                        counter.put(badChunk, new IntegerTrio(Settings.IMP.TICK_LIMITER.PHYSICS, Settings.IMP.TICK_LIMITER.ITEMS, Settings.IMP.TICK_LIMITER.FALLING));
                     }
                     badChunks.clear();
                 }
-            }, Settings.TICK_LIMITER.INTERVAL);
+            }, Settings.IMP.TICK_LIMITER.INTERVAL);
         }
     }
 
@@ -92,7 +92,7 @@ public class ChunkListener implements Listener {
         int cx = x >> 4;
         int cz = z >> 4;
         IntegerTrio count = getCount(cx, cz);
-        if (count.x >= Settings.TICK_LIMITER.PHYSICS) {
+        if (count.x >= Settings.IMP.TICK_LIMITER.PHYSICS) {
             event.setCancelled(true);
             return;
         }
@@ -100,7 +100,7 @@ public class ChunkListener implements Listener {
             int y = block.getY();
             if (y != lastPhysY) {
                 lastPhysY = y;
-                if (++count.x == Settings.TICK_LIMITER.PHYSICS) {
+                if (++count.x == Settings.IMP.TICK_LIMITER.PHYSICS) {
                     badChunks.add(MathMan.pairInt(cx, cz));
                     if (rateLimit <= 0) {
                         rateLimit = 120;
@@ -127,9 +127,9 @@ public class ChunkListener implements Listener {
             int cx = x >> 4;
             int cz = z >> 4;
             IntegerTrio count = getCount(cx, cz);
-            if (++count.y >= Settings.TICK_LIMITER.FALLING) {
-                if (count.y == Settings.TICK_LIMITER.FALLING) {
-                    count.x = Settings.TICK_LIMITER.PHYSICS;
+            if (++count.y >= Settings.IMP.TICK_LIMITER.FALLING) {
+                if (count.y == Settings.IMP.TICK_LIMITER.FALLING) {
+                    count.x = Settings.IMP.TICK_LIMITER.PHYSICS;
                     badChunks.add(MathMan.pairInt(cx, cz));
                     Fawe.debug("[Tick Limiter] Detected and cancelled falling block lag source at " + block.getLocation());
                 }
@@ -149,9 +149,9 @@ public class ChunkListener implements Listener {
         int cx = loc.getBlockX() >> 4;
         int cz = loc.getBlockZ() >> 4;
         IntegerTrio count = getCount(cx, cz);
-        if (++count.z >= Settings.TICK_LIMITER.ITEMS) {
-            if (count.z == Settings.TICK_LIMITER.ITEMS) {
-                count.x = Settings.TICK_LIMITER.PHYSICS;
+        if (++count.z >= Settings.IMP.TICK_LIMITER.ITEMS) {
+            if (count.z == Settings.IMP.TICK_LIMITER.ITEMS) {
+                count.x = Settings.IMP.TICK_LIMITER.PHYSICS;
                 cleanup(loc.getChunk());
                 badChunks.add(MathMan.pairInt(cx, cz));
                 if (rateLimit <= 0) {

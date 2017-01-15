@@ -28,9 +28,9 @@ public class FaweNukkit implements IFawe, Listener {
     private final NukkitWorldEdit plugin;
 
     public FaweNukkit(NukkitWorldEdit mod) {
-        Settings.HISTORY.USE_DISK = true;
-        Settings.CLIPBOARD.USE_DISK = true;
-        Settings.HISTORY.COMPRESSION_LEVEL = 9;
+        Settings.IMP.HISTORY.USE_DISK = true;
+        Settings.IMP.CLIPBOARD.USE_DISK = true;
+        Settings.IMP.HISTORY.COMPRESSION_LEVEL = 9;
         this.plugin = mod;
         FaweChunk.HEIGHT = 128;
         plugin.getServer().getPluginManager().registerEvents(this, plugin);
@@ -97,13 +97,13 @@ public class FaweNukkit implements IFawe, Listener {
 
     @Override
     public FaweQueue getNewQueue(World world, boolean fast) {
-        Settings.HISTORY.COMBINE_STAGES = false;
+        Settings.IMP.HISTORY.COMBINE_STAGES = false;
         return new NukkitQueue(this, world);
     }
 
     @Override
     public FaweQueue getNewQueue(String world, boolean fast) {
-        Settings.HISTORY.COMBINE_STAGES = false;
+        Settings.IMP.HISTORY.COMBINE_STAGES = false;
         return new NukkitQueue(this, world);
     }
 

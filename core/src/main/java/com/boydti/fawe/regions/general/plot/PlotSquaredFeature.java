@@ -28,7 +28,7 @@ public class PlotSquaredFeature extends FaweMaskManager {
         setupBlockQueue();
         setupSchematicHandler();
         setupChunkManager();
-        if (Settings.PLATFORM.equals("Bukkit")) {
+        if (Settings.PLATFORM.equalsIgnoreCase("bukkit")) {
             new FaweTrim();
         }
         if (MainCommand.getInstance().getCommand("generatebiome") == null) {

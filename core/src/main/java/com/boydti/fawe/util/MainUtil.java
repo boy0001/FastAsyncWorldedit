@@ -192,7 +192,7 @@ public class MainUtil {
     }
 
     public static FaweOutputStream getCompressedOS(OutputStream os) throws IOException {
-        return getCompressedOS(os, Settings.HISTORY.COMPRESSION_LEVEL);
+        return getCompressedOS(os, Settings.IMP.HISTORY.COMPRESSION_LEVEL);
     }
 
     public static long getSize(ChangeSet changeSet) {
@@ -209,7 +209,7 @@ public class MainUtil {
     }
 
     public static FaweOutputStream getCompressedOS(OutputStream os, int amount) throws IOException {
-        return getCompressedOS(os, amount, Settings.HISTORY.BUFFER_SIZE);
+        return getCompressedOS(os, amount, Settings.IMP.HISTORY.BUFFER_SIZE);
     }
 
     private static final LZ4Factory FACTORY = LZ4Factory.fastestInstance();
@@ -273,7 +273,7 @@ public class MainUtil {
     }
 
     public static FaweInputStream getCompressedIS(InputStream is) throws IOException {
-        return getCompressedIS(is, Settings.HISTORY.BUFFER_SIZE);
+        return getCompressedIS(is, Settings.IMP.HISTORY.BUFFER_SIZE);
     }
 
     public static FaweInputStream getCompressedIS(InputStream is, int buffer) throws IOException {
@@ -306,15 +306,15 @@ public class MainUtil {
         final String website;
         if (uuid == null) {
             uuid = UUID.randomUUID();
-            website = Settings.WEB.URL + "upload.php?" + uuid;
+            website = Settings.IMP.WEB.URL + "upload.php?" + uuid;
             filename = "plot." + extension;
         } else {
-            website = Settings.WEB.URL  + "save.php?" + uuid;
+            website = Settings.IMP.WEB.URL  + "save.php?" + uuid;
             filename = file + '.' + extension;
         }
         final URL url;
         try {
-            url = new URL(Settings.WEB.URL  + "?key=" + uuid + "&type=" + extension);
+            url = new URL(Settings.IMP.WEB.URL  + "?key=" + uuid + "&type=" + extension);
             String boundary = Long.toHexString(System.currentTimeMillis());
             URLConnection con = new URL(website).openConnection();
             con.setDoOutput(true);

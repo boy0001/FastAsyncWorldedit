@@ -35,13 +35,13 @@ public abstract class FaweChangeSet implements ChangeSet {
     private final String worldName;
     private final boolean mainThread;
     private final int layers;
-    private AtomicInteger waitingCombined = new AtomicInteger(0);
-    private AtomicInteger waitingAsync = new AtomicInteger(0);
-    private Object lockCombined = new Object();
-    private Object lockAsync = new Object();
+    protected final AtomicInteger waitingCombined = new AtomicInteger(0);
+    private final AtomicInteger waitingAsync = new AtomicInteger(0);
+//    private Object lockCombined = new Object();
+//    private Object lockAsync = new Object();
 
     public static FaweChangeSet getDefaultChangeSet(World world, UUID uuid) {
-        if (Settings.HISTORY.USE_DISK) {
+        if (Settings.IMP.HISTORY.USE_DISK) {
             return new DiskStorageHistory(world, uuid);
         } else {
             return new MemoryOptimizedHistory(world);
@@ -76,8 +76,8 @@ public abstract class FaweChangeSet implements ChangeSet {
             @Override
             public void run() {
                 waitingAsync.decrementAndGet();
-                synchronized (lockAsync) {
-                    lockAsync.notifyAll();
+                synchronized (waitingAsync) {
+                    waitingAsync.notifyAll();
                 }
                 flush();
             }
@@ -89,14 +89,14 @@ public abstract class FaweChangeSet implements ChangeSet {
         try {
             if (!Fawe.isMainThread()) {
                 while (waitingAsync.get() > 0) {
-                    synchronized (lockAsync) {
-                        lockAsync.wait(1000);
+                    synchronized (waitingAsync) {
+                        waitingAsync.wait(1000);
                     }
                 }
             }
             while (waitingCombined.get() > 0) {
-                synchronized (lockCombined) {
-                    lockCombined.wait(1000);
+                synchronized (waitingCombined) {
+                    waitingCombined.wait(1000);
                 }
             }
         } catch (InterruptedException e) {
@@ -263,7 +263,7 @@ public abstract class FaweChangeSet implements ChangeSet {
                                                 default:
                                                     char combinedIdPrevious = previousLayer != null ? previousLayer[index] : 0;
                                                     if (combinedIdCurrent != combinedIdPrevious) {
-                                                        synchronized (lockCombined) {
+                                                        synchronized (this) {
                                                             add(xx, yy, zz, combinedIdPrevious, combinedIdCurrent);
                                                         }
                                                     }
@@ -277,14 +277,14 @@ public abstract class FaweChangeSet implements ChangeSet {
                                 // Tiles created
                                 Map<Short, CompoundTag> tiles = next.getTiles();
                                 for (Map.Entry<Short, CompoundTag> entry : tiles.entrySet()) {
-                                    synchronized (lockCombined) {
+                                    synchronized (this) {
                                         addTileCreate(entry.getValue());
                                     }
                                 }
                                 // Tiles removed
                                 tiles = previous.getTiles();
                                 for (Map.Entry<Short, CompoundTag> entry : tiles.entrySet()) {
-                                    synchronized (lockCombined) {
+                                    synchronized (this) {
                                         addTileRemove(entry.getValue());
                                     }
                                 }
@@ -294,14 +294,14 @@ public abstract class FaweChangeSet implements ChangeSet {
                                 // Entities created
                                 Set<CompoundTag> entities = next.getEntities();
                                 for (CompoundTag entityTag : entities) {
-                                    synchronized (lockCombined) {
+                                    synchronized (this) {
                                         addEntityCreate(entityTag);
                                     }
                                 }
                                 // Entities removed
                                 entities = previous.getEntities();
                                 for (CompoundTag entityTag : entities) {
-                                    synchronized (lockCombined) {
+                                    synchronized (this) {
                                         addEntityRemove(entityTag);
                                     }
                                 }

@@ -218,14 +218,14 @@ public class EditSession extends AbstractWorld implements HasFaweQueue, Lighting
         }
         this.player = player;
         if (changeSet == null) {
-            if (Settings.HISTORY.USE_DISK) {
+            if (Settings.IMP.HISTORY.USE_DISK) {
                 UUID uuid = player == null ? CONSOLE : player.getUUID();
-                if (Settings.HISTORY.USE_DATABASE) {
+                if (Settings.IMP.HISTORY.USE_DATABASE) {
                     changeSet = new RollbackOptimizedHistory(world, uuid);
                 } else {
                     changeSet = new DiskStorageHistory(world, uuid);
                 }
-            } else if (Settings.HISTORY.COMBINE_STAGES && Settings.HISTORY.COMPRESSION_LEVEL == 0 && !(queue instanceof MCAQueue)) {
+            } else if (Settings.IMP.HISTORY.COMBINE_STAGES && Settings.IMP.HISTORY.COMPRESSION_LEVEL == 0 && !(queue instanceof MCAQueue)) {
                 changeSet = new CPUOptimizedChangeSet(world);
             } else {
                 changeSet = new MemoryOptimizedHistory(world);
@@ -248,7 +248,7 @@ public class EditSession extends AbstractWorld implements HasFaweQueue, Lighting
         }
         if (fastmode == null) {
             if (player == null) {
-                fastmode = Settings.HISTORY.ENABLE_FOR_CONSOLE;
+                fastmode = Settings.IMP.HISTORY.ENABLE_FOR_CONSOLE;
             } else {
                 fastmode = player.getSession().hasFastMode();
             }
@@ -257,7 +257,7 @@ public class EditSession extends AbstractWorld implements HasFaweQueue, Lighting
             checkMemory = player != null && !fastmode;
         }
         if (combineStages == null) {
-            combineStages = Settings.HISTORY.COMBINE_STAGES && !(queue instanceof MCAQueue);
+            combineStages = Settings.IMP.HISTORY.COMBINE_STAGES && !(queue instanceof MCAQueue);
         }
         if (checkMemory) {
             if (MemUtil.isMemoryLimitedSlow()) {
@@ -277,12 +277,12 @@ public class EditSession extends AbstractWorld implements HasFaweQueue, Lighting
                 queue = SetQueue.IMP.getNewQueue(this, fastmode || limit.FAST_PLACEMENT, autoQueue);
             }
         }
-        if (Settings.EXPERIMENTAL.ANVIL_QUEUE_MODE && !(queue instanceof MCAQueue)) {
+        if (Settings.IMP.EXPERIMENTAL.ANVIL_QUEUE_MODE && !(queue instanceof MCAQueue)) {
             queue = new MCAQueue(queue);
         }
         this.queue = queue;
         this.queue.addEditSession(this);
-        if (Settings.QUEUE.PROGRESS.DISPLAY && player != null) {
+        if (Settings.IMP.QUEUE.PROGRESS.DISPLAY && player != null) {
             this.queue.setProgressTask(new DefaultProgressTracker(player));
         }
         this.bypassAll = wrapExtent(new FastWorldEditExtent(world, queue), bus, event, Stage.BEFORE_CHANGE);
@@ -482,13 +482,13 @@ public class EditSession extends AbstractWorld implements HasFaweQueue, Lighting
         }
         if (toReturn != extent) {
             String className = toReturn.getClass().getName().toLowerCase();
-            for (String allowed : Settings.EXTENT.ALLOWED_PLUGINS) {
+            for (String allowed : Settings.IMP.EXTENT.ALLOWED_PLUGINS) {
                 if (className.contains(allowed.toLowerCase())) {
                     this.wrapped = true;
                     return (AbstractDelegateExtent) toReturn;
                 }
             }
-            if (Settings.EXTENT.DEBUG) {
+            if (Settings.IMP.EXTENT.DEBUG) {
                 Fawe.debug("&cPotentially unsafe extent blocked: " + toReturn.getClass().getName());
                 Fawe.debug("&8 - &7For area restrictions, it is recommended to use the FaweAPI");
                 Fawe.debug("&8 - &7For block logging, it is recommended to use use BlocksHub");
@@ -1316,7 +1316,7 @@ public class EditSession extends AbstractWorld implements HasFaweQueue, Lighting
             queue.flush();
         }
         if (getChangeSet() != null) {
-            if (Settings.HISTORY.COMBINE_STAGES) {
+            if (Settings.IMP.HISTORY.COMBINE_STAGES) {
                 ((FaweChangeSet) getChangeSet()).flushAsync();
             } else {
                 ((FaweChangeSet) getChangeSet()).flush();

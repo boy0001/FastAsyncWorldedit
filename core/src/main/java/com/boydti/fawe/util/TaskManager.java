@@ -92,7 +92,7 @@ public abstract class TaskManager {
             return;
         }
         if (numThreads == null) {
-            numThreads = Settings.QUEUE.PARALLEL_THREADS;
+            numThreads = Settings.IMP.QUEUE.PARALLEL_THREADS;
         }
         if (numThreads <= 1) {
             for (Runnable run : runnables) {
@@ -274,7 +274,7 @@ public abstract class TaskManager {
             synchronized (running) {
                 while (running.get()) {
                     running.wait(timout);
-                    if (running.get() && System.currentTimeMillis() - start > Settings.QUEUE.DISCARD_AFTER_MS) {
+                    if (running.get() && System.currentTimeMillis() - start > Settings.IMP.QUEUE.DISCARD_AFTER_MS) {
                         new RuntimeException("FAWE is taking a long time to execute a task (might just be a symptom): ").printStackTrace();
                         Fawe.debug("For full debug information use: /fawe threads");
                     }

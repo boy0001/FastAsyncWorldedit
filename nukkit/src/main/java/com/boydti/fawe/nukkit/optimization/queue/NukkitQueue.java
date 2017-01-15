@@ -50,9 +50,9 @@ public class NukkitQueue extends NMSMappedFaweQueue<Level, BaseFullChunk, BaseFu
     private void init(FaweNukkit fn) {
         this.faweNukkit = fn;
         this.world = faweNukkit.getPlugin().getServer().getLevelByName(getWorldName());
-        if (Settings.QUEUE.EXTRA_TIME_MS != Integer.MIN_VALUE) {
-            ALLOCATE = Settings.QUEUE.EXTRA_TIME_MS;
-            Settings.QUEUE.EXTRA_TIME_MS = Integer.MIN_VALUE;
+        if (Settings.IMP.QUEUE.EXTRA_TIME_MS != Integer.MIN_VALUE) {
+            ALLOCATE = Settings.IMP.QUEUE.EXTRA_TIME_MS;
+            Settings.IMP.QUEUE.EXTRA_TIME_MS = Integer.MIN_VALUE;
         }
     }
 

@@ -73,7 +73,7 @@ public class SetQueue {
             @Override
             public void run() {
                 try {
-                    targetTPS = 18 - Math.max(Settings.QUEUE.EXTRA_TIME_MS * 0.05, 0);
+                    targetTPS = 18 - Math.max(Settings.IMP.QUEUE.EXTRA_TIME_MS * 0.05, 0);
                     do {
                         Runnable task = tasks.poll();
                         if (task != null) {
@@ -90,7 +90,7 @@ public class SetQueue {
                     if (!MemUtil.isMemoryFree()) {
                         final int mem = MemUtil.calculateMemory();
                         if (mem != Integer.MAX_VALUE) {
-                            if ((mem <= 1) && Settings.PREVENT_CRASHES) {
+                            if ((mem <= 1) && Settings.IMP.PREVENT_CRASHES) {
                                 for (FaweQueue queue : getAllQueues()) {
                                     queue.saveMemory();
                                 }
@@ -111,17 +111,17 @@ public class SetQueue {
                     if (Thread.currentThread() != Fawe.get().getMainThread()) {
                         throw new IllegalStateException("This shouldn't be possible for placement to occur off the main thread");
                     }
-                    long time = Settings.QUEUE.EXTRA_TIME_MS + 50 + Math.min((50 + SetQueue.this.last) - (SetQueue.this.last = System.currentTimeMillis()), SetQueue.this.secondLast - System.currentTimeMillis());
+                    long time = Settings.IMP.QUEUE.EXTRA_TIME_MS + 50 + Math.min((50 + SetQueue.this.last) - (SetQueue.this.last = System.currentTimeMillis()), SetQueue.this.secondLast - System.currentTimeMillis());
                     // Disable the async catcher as it can't discern async vs parallel
-                    boolean parallel = Settings.QUEUE.PARALLEL_THREADS > 1;
+                    boolean parallel = Settings.IMP.QUEUE.PARALLEL_THREADS > 1;
                     queue.startSet(parallel);
                     try {
-                        if (!queue.next(Settings.QUEUE.PARALLEL_THREADS, getCompleterService(), time) && queue.getStage() == QueueStage.ACTIVE) {
+                        if (!queue.next(Settings.IMP.QUEUE.PARALLEL_THREADS, getCompleterService(), time) && queue.getStage() == QueueStage.ACTIVE) {
                             queue.setStage(QueueStage.NONE);
                             queue.runTasks();
                         }
                     } catch (Throwable e) {
-                        pool.awaitQuiescence(Settings.QUEUE.DISCARD_AFTER_MS, TimeUnit.MILLISECONDS);
+                        pool.awaitQuiescence(Settings.IMP.QUEUE.DISCARD_AFTER_MS, TimeUnit.MILLISECONDS);
                         completer = new ExecutorCompletionService(pool);
                         e.printStackTrace();
                     }
@@ -214,11 +214,11 @@ public class SetQueue {
     }
 
     public void flush(FaweQueue queue) {
-        queue.startSet(Settings.QUEUE.PARALLEL_THREADS > 1);
+        queue.startSet(Settings.IMP.QUEUE.PARALLEL_THREADS > 1);
         try {
-            queue.next(Settings.QUEUE.PARALLEL_THREADS, getCompleterService(), Long.MAX_VALUE);
+            queue.next(Settings.IMP.QUEUE.PARALLEL_THREADS, getCompleterService(), Long.MAX_VALUE);
         } catch (Throwable e) {
-            pool.awaitQuiescence(Settings.QUEUE.DISCARD_AFTER_MS, TimeUnit.MILLISECONDS);
+            pool.awaitQuiescence(Settings.IMP.QUEUE.DISCARD_AFTER_MS, TimeUnit.MILLISECONDS);
             completer = new ExecutorCompletionService(pool);
             MainUtil.handleError(e);
         } finally {
@@ -251,7 +251,7 @@ public class SetQueue {
                     long age = now - queue.getModified();
                     total += queue.size();
                     if (queue.size() == 0) {
-                        if (age > Settings.QUEUE.DISCARD_AFTER_MS) {
+                        if (age > Settings.IMP.QUEUE.DISCARD_AFTER_MS) {
                             queue.setStage(QueueStage.NONE);
                             queue.runTasks();
                             iter.remove();
@@ -261,11 +261,11 @@ public class SetQueue {
                     if (firstNonEmpty == null) {
                         firstNonEmpty = queue;
                     }
-                    if (total > Settings.QUEUE.TARGET_SIZE) {
+                    if (total > Settings.IMP.QUEUE.TARGET_SIZE) {
                         firstNonEmpty.setModified(now);
                         return firstNonEmpty;
                     }
-                    if (age > Settings.QUEUE.MAX_WAIT_MS) {
+                    if (age > Settings.IMP.QUEUE.MAX_WAIT_MS) {
                         queue.setModified(now);
                         return queue;
                     }
@@ -293,20 +293,20 @@ public class SetQueue {
         }
         if (inactiveQueues.size() > 0) {
             ArrayList<FaweQueue> tmp = new ArrayList<>(inactiveQueues);
-            if (Settings.QUEUE.MAX_WAIT_MS != -1) {
+            if (Settings.IMP.QUEUE.MAX_WAIT_MS != -1) {
                 long now = System.currentTimeMillis();
                 if (lastSuccess == 0) {
                     lastSuccess = now;
                 }
                 long diff = now - lastSuccess;
-                if (diff > Settings.QUEUE.MAX_WAIT_MS) {
+                if (diff > Settings.IMP.QUEUE.MAX_WAIT_MS) {
                     for (FaweQueue queue : tmp) {
                         boolean result = queue.next();
                         if (result) {
                             return result;
                         }
                     }
-                    if (diff > Settings.QUEUE.DISCARD_AFTER_MS) {
+                    if (diff > Settings.IMP.QUEUE.DISCARD_AFTER_MS) {
                         // These edits never finished
                         for (FaweQueue queue : tmp) {
                             queue.setStage(QueueStage.NONE);
@@ -317,12 +317,12 @@ public class SetQueue {
                     return false;
                 }
             }
-            if (Settings.QUEUE.TARGET_SIZE != -1) {
+            if (Settings.IMP.QUEUE.TARGET_SIZE != -1) {
                 int total = 0;
                 for (FaweQueue queue : tmp) {
                     total += queue.size();
                 }
-                if (total > Settings.QUEUE.TARGET_SIZE) {
+                if (total > Settings.IMP.QUEUE.TARGET_SIZE) {
                     for (FaweQueue queue : tmp) {
                         boolean result = queue.next();
                         if (result) {

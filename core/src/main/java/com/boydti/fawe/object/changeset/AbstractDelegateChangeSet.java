@@ -1,6 +1,9 @@
 package com.boydti.fawe.object.changeset;
 
+import com.boydti.fawe.object.FawePlayer;
+import com.boydti.fawe.object.FaweQueue;
 import com.sk89q.jnbt.CompoundTag;
+import com.sk89q.worldedit.EditSession;
 import com.sk89q.worldedit.Vector;
 import com.sk89q.worldedit.blocks.BaseBlock;
 import com.sk89q.worldedit.extent.inventory.BlockBag;
@@ -10,7 +13,6 @@ import com.sk89q.worldedit.history.change.EntityCreate;
 import com.sk89q.worldedit.history.change.EntityRemove;
 import com.sk89q.worldedit.world.World;
 import java.util.Iterator;
-import java.util.UUID;
 
 public class AbstractDelegateChangeSet extends FaweChangeSet {
     public final FaweChangeSet parent;
@@ -24,8 +26,14 @@ public class AbstractDelegateChangeSet extends FaweChangeSet {
         return parent;
     }
 
-    public static FaweChangeSet getDefaultChangeSet(World world, UUID uuid) {
-        return FaweChangeSet.getDefaultChangeSet(world, uuid);
+    @Override
+    public String getWorldName() {
+        return parent.getWorldName();
+    }
+
+    @Override
+    public World getWorld() {
+        return parent.getWorld();
     }
 
     @Override
@@ -94,6 +102,11 @@ public class AbstractDelegateChangeSet extends FaweChangeSet {
     }
 
     @Override
+    public EditSession toEditSession(FawePlayer player) {
+        return parent.toEditSession(player);
+    }
+
+    @Override
     public void add(EntityCreate change) {
         parent.add(change);
     }
@@ -124,7 +137,17 @@ public class AbstractDelegateChangeSet extends FaweChangeSet {
     }
 
     @Override
+    public boolean isEmpty() {
+        return parent.isEmpty();
+    }
+
+    @Override
     public void add(int x, int y, int z, int combinedFrom, BaseBlock to) {
         parent.add(x, y, z, combinedFrom, to);
+    }
+
+    @Override
+    public void addChangeTask(FaweQueue queue) {
+        parent.addChangeTask(queue);
     }
 }

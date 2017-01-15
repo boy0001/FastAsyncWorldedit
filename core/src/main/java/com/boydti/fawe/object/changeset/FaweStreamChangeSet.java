@@ -32,11 +32,11 @@ public abstract class FaweStreamChangeSet extends FaweChangeSet {
     private FaweStreamPositionDelegate posDel;
 
     public FaweStreamChangeSet(World world) {
-        this(world, Settings.HISTORY.COMPRESSION_LEVEL, Settings.HISTORY.STORE_REDO, Settings.HISTORY.SMALL_EDITS);
+        this(world, Settings.IMP.HISTORY.COMPRESSION_LEVEL, Settings.IMP.HISTORY.STORE_REDO, Settings.IMP.HISTORY.SMALL_EDITS);
     }
 
     public FaweStreamChangeSet(String world) {
-        this(world, Settings.HISTORY.COMPRESSION_LEVEL, Settings.HISTORY.STORE_REDO, Settings.HISTORY.SMALL_EDITS);
+        this(world, Settings.IMP.HISTORY.COMPRESSION_LEVEL, Settings.IMP.HISTORY.STORE_REDO, Settings.IMP.HISTORY.SMALL_EDITS);
     }
 
     public FaweStreamChangeSet(String world, int compression, boolean storeRedo, boolean smallLoc) {
@@ -376,8 +376,10 @@ public abstract class FaweStreamChangeSet extends FaweChangeSet {
                     idDel.readCombined(is, change, dir);
                     return change;
                 } catch (EOFException ignoreOEF) {
+                    ignoreOEF.printStackTrace();
                     return null;
                 } catch (Exception e) {
+                    e.printStackTrace();
                     MainUtil.handleError(e);
                 }
                 return null;

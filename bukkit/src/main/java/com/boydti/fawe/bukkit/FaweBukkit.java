@@ -203,8 +203,8 @@ public class FaweBukkit implements IFawe, Listener {
             return plugin.getQueue(world);
         } catch (Throwable ignore) {
             // Disable incompatible settings
-            Settings.QUEUE.PARALLEL_THREADS = 1; // BukkitAPI placer is too slow to parallel thread at the chunk level
-            Settings.HISTORY.COMBINE_STAGES = false; // Performing a chunk copy (if possible) wouldn't be faster using the BukkitAPI
+            Settings.IMP.QUEUE.PARALLEL_THREADS = 1; // BukkitAPI placer is too slow to parallel thread at the chunk level
+            Settings.IMP.HISTORY.COMBINE_STAGES = false; // Performing a chunk copy (if possible) wouldn't be faster using the BukkitAPI
             if (hasNMS) {
                 ignore.printStackTrace();
                 debug("====== NO NMS BLOCK PLACER FOUND ======");
@@ -256,8 +256,8 @@ public class FaweBukkit implements IFawe, Listener {
             } catch (Throwable ignore) {
             }
             // Disable incompatible settings
-            Settings.QUEUE.PARALLEL_THREADS = 1; // BukkitAPI placer is too slow to parallel thread at the chunk level
-            Settings.HISTORY.COMBINE_STAGES = false; // Performing a chunk copy (if possible) wouldn't be faster using the BukkitAPI
+            Settings.IMP.QUEUE.PARALLEL_THREADS = 1; // BukkitAPI placer is too slow to parallel thread at the chunk level
+            Settings.IMP.HISTORY.COMBINE_STAGES = false; // Performing a chunk copy (if possible) wouldn't be faster using the BukkitAPI
             if (hasNMS) {
                 debug("====== NO NMS BLOCK PLACER FOUND ======");
                 debug("FAWE couldn't find a fast block placer");

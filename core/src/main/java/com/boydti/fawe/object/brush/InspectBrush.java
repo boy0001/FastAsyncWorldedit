@@ -62,7 +62,7 @@ public class InspectBrush extends BrushTool implements DoubleActionTraceTool {
             player.print(BBC.getPrefix() + BBC.NO_PERM.f("worldedit.tool.inspect"));
             return false;
         }
-        if (!Settings.HISTORY.USE_DATABASE) {
+        if (!Settings.IMP.HISTORY.USE_DATABASE) {
             player.print(BBC.getPrefix() + BBC.SETTING_DISABLE.f("history.use-database"));
             return false;
         }

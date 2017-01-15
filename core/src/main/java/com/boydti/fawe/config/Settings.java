@@ -9,49 +9,70 @@ import java.util.Collection;
 import java.util.List;
 
 public class Settings extends Config {
+    @Ignore
+    public static final Settings IMP = new Settings();
 
     @Comment("These first 6 aren't configurable") // This is a comment
     @Final // Indicates that this value isn't configurable
-    public static final String ISSUES = "https://github.com/boy0001/FastAsyncWorldedit/issues";
+    public final String ISSUES = "https://github.com/boy0001/FastAsyncWorldedit/issues";
     @Final
-    public static final String WIKI = "https://github.com/boy0001/FastAsyncWorldedit/wiki/";
+    public final String WIKI = "https://github.com/boy0001/FastAsyncWorldedit/wiki/";
     @Final
-    public static String DATE = null; // These values are set from FAWE before loading
+    public String DATE = null; // These values are set from FAWE before loading
     @Final
-    public static String BUILD = null; // These values are set from FAWE before loading
+    public String BUILD = null; // These values are set from FAWE before loading
     @Final
-    public static String COMMIT = null; // These values are set from FAWE before loading
+    public String COMMIT = null; // These values are set from FAWE before loading
     @Final
-    public static String PLATFORM = null; // These values are set from FAWE before loading
+    public String PLATFORM = null; // These values are set from FAWE before loading
 
     @Comment("Allow the plugin to update")
-    public static boolean UPDATE = true;
+    public boolean UPDATE = true;
     @Comment("Send anonymous usage statistics to MCStats.org")
-    public static boolean METRICS = true;
+    public boolean METRICS = true;
     @Comment("FAWE will skip chunks when there's not enough memory available")
-    public static boolean PREVENT_CRASHES = false;
+    public boolean PREVENT_CRASHES = false;
     @Comment({
             "Set true to enable WorldEdit restrictions per region (e.g. PlotSquared or WorldGuard).",
             "To be allowed to WorldEdit in a region, users need the appropriate",
             "fawe.<plugin>  permission. See the Permissions page for supported region plugins."
     })
-    public static boolean REGION_RESTRICTIONS = true;
+    public boolean REGION_RESTRICTIONS = true;
     @Comment({
             "FAWE will cancel non admin edits when memory consumption exceeds this %",
             " - Bypass with `/wea` or `//fast` or `fawe.bypass`",
             " - Disable with 100 or -1."
     })
-    public static int MAX_MEMORY_PERCENT = 95;
+    public int MAX_MEMORY_PERCENT = 95;
+
+    @Create
+    public CLIPBOARD CLIPBOARD = null;
+    @Create
+    public LIGHTING LIGHTING = null;
+    @Create
+    public TICK_LIMITER TICK_LIMITER = null;
+    @Create
+    public WEB WEB = null;
+    @Create
+    public EXTENT EXTENT = null;
+    @Create
+    public EXPERIMENTAL EXPERIMENTAL = null;
+    @Create
+    public QUEUE QUEUE = null;
+    @Create
+    public HISTORY HISTORY = null;
+    @Create
+    public PATHS PATHS = null;
 
     @Comment("Paths for various directories")
     public static final class PATHS {
-        public static String HISTORY = "history";
-        public static String CLIPBOARD = "clipboard";
+        public String HISTORY = "history";
+        public String CLIPBOARD = "clipboard";
     }
 
 
     @Create // This value will be generated automatically
-    public static ConfigBlock<LIMITS> LIMITS = null;
+    public ConfigBlock<LIMITS> LIMITS = null;
 
     @Comment({
             "The \"default\" limit group affects those without a specific limit permission.",
@@ -60,7 +81,7 @@ public class Settings extends Config {
             "permission node with that limit name (e.g. fawe.limit.newbie  )"
     })
     @BlockName("default") // The name for the default block
-    public static final class LIMITS extends ConfigBlock {
+    public static class LIMITS extends ConfigBlock {
         @Comment("Max actions that can be run concurrently (i.e. commands)")
         public int MAX_ACTIONS = 1;
         @Comment("Max number of block changes (e.g. by `//set stone`).")
@@ -96,11 +117,11 @@ public class Settings extends Config {
                 "1 = Inventory for removing and placing (freebuild)",
                 "2 = Inventory for placing (survival)",
         })
-        public static int INVENTORY_MODE = 0;
+        public int INVENTORY_MODE = 0;
         @Comment({
             "Place chunks instead of individual blocks"
         })
-        public static boolean FAST_PLACEMENT = true;
+        public boolean FAST_PLACEMENT = true;
     }
 
     public static class HISTORY {
@@ -111,18 +132,18 @@ public class Settings extends Config {
                 " - Unlimited undo",
                 " - Enables the rollback command"
         })
-        public static boolean USE_DISK = true;
+        public boolean USE_DISK = true;
         @Comment({
                 "Use a database to store disk storage summaries:",
                 " - Faster lookups and rollback from disk",
         })
-        public static boolean USE_DATABASE = true;
+        public boolean USE_DATABASE = true;
         @Comment({
                 "Record history with dispatching:",
                 " - Faster as it avoids duplicate block checks",
                 " - Worse compression since dispatch order is different"
         })
-        public static boolean COMBINE_STAGES = true;
+        public boolean COMBINE_STAGES = true;
         @Comment({
                 "Higher compression reduces the size of history at the expense of CPU",
                 "0 = Uncompressed byte array (fastest)",
@@ -137,12 +158,12 @@ public class Settings extends Config {
                 "9 = 1 x high, 1 x medium, 3 x fast (best compression)",
                 "NOTE: If using disk, do some compression (3+) as smaller files save faster"
         })
-        public static int COMPRESSION_LEVEL = 3;
+        public int COMPRESSION_LEVEL = 3;
         @Comment({
                 "The buffer size for compression:",
                 " - Larger = better ratio but uses more upfront memory"
         })
-        public static int BUFFER_SIZE = 531441;
+        public int BUFFER_SIZE = 531441;
 
 
         @Comment({
@@ -161,46 +182,48 @@ public class Settings extends Config {
                 " or increase chunk-wait-ms.",
                 "A value of 0 is faster simply because it doesn't bother loading the chunks or waiting.",
         })
-        public static int CHUNK_WAIT_MS = 1000;
+        public int CHUNK_WAIT_MS = 1000;
         @Comment("Delete history on disk after a number of days")
-        public static int DELETE_AFTER_DAYS = 7;
+        public int DELETE_AFTER_DAYS = 7;
         @Comment("Delete history in memory on logout (does not effect disk)")
-        public static boolean DELETE_ON_LOGOUT = true;
+        public boolean DELETE_ON_LOGOUT = true;
         @Comment({
                 "If history should be enabled by default for plugins using WorldEdit:",
                 " - It is faster to have disabled",
                 " - Use of the FAWE API will not be effected"
         })
-        public static boolean ENABLE_FOR_CONSOLE = true;
+        public boolean ENABLE_FOR_CONSOLE = true;
         @Comment({
                 "Should redo information be stored:",
                 " - History is about 20% larger",
                 " - Enables use of /redo",
         })
-        public static boolean STORE_REDO = true;
+        public boolean STORE_REDO = true;
         @Comment({
                 "Assumes all edits are smaller than 4096x256x4096:",
                 " - Reduces history size by ~10%",
         })
-        public static boolean SMALL_EDITS = false;
+        public boolean SMALL_EDITS = false;
     }
 
     public static class QUEUE {
+        @Create
+        public static PROGRESS PROGRESS = null;
         @Comment({
             "If no blocks from completed edits are queued, and if the global queue has more available ",
             "chunks to place from still-processing edits than the target size setting, it will begin",
             "placing available blocks from edits still in the preprocessing stage."
         })
-        public static int TARGET_SIZE = 64;
+        public int TARGET_SIZE = 64;
         @Comment({
             "This should equal the number of processors you have"
         })
-        public static int PARALLEL_THREADS = Math.max(1, Runtime.getRuntime().availableProcessors());
+        public int PARALLEL_THREADS = Math.max(1, Runtime.getRuntime().availableProcessors());
         @Comment({
                 "The time in milliseconds that the global queue can be idle before it is forced to start",
                 "on edits which are still in the preprocessing stage."
         })
-        public static int MAX_WAIT_MS = 1000;
+        public int MAX_WAIT_MS = 1000;
 
         @Comment({
                 "Increase or decrease queue intensity (0 = balance of performance / stability)",
@@ -208,7 +231,7 @@ public class Settings extends Config {
                 "will probably cause the server to freeze, and decreasing it (negative value)",
                 "may reduce load on the server but should not be necessary."
         })
-        public static int EXTRA_TIME_MS = 0;
+        public int EXTRA_TIME_MS = 0;
 
         @Comment({
                 "Discard edits which have been idle for a certain amount of time (ms) (e.g. a plugin creates",
@@ -218,9 +241,9 @@ public class Settings extends Config {
 
         public static class PROGRESS {
             @Comment("Display constant titles about the progress of a user's edit")
-            public static boolean DISPLAY = false;
+            public boolean DISPLAY = false;
             @Comment("How often edit progress is displayed")
-            public static int INTERVAL = 1;
+            public int INTERVAL = 1;
         }
     }
 
@@ -229,41 +252,41 @@ public class Settings extends Config {
         @Comment({
                 "Directly modify the region files.",
         })
-        public static boolean ANVIL_QUEUE_MODE = false;
+        public boolean ANVIL_QUEUE_MODE = false;
     }
 
     public static class WEB {
         @Comment("I am already hosting a web interface for you here")
-        public static String URL = "http://empcraft.com/fawe/";
+        public String URL = "http://empcraft.com/fawe/";
     }
 
     public static class EXTENT {
         @Comment({
                 "Don't bug console when these plugins slow down WorldEdit operations"
         })
-        public static List<String> ALLOWED_PLUGINS = new ArrayList<>();
+        public List<String> ALLOWED_PLUGINS = new ArrayList<>();
         @Comment("Disable the messages completely")
-        public static boolean DEBUG = true;
+        public boolean DEBUG = true;
     }
 
     @Comment("Generic tick limiter (not necessarily WorldEdit related, but useful to stop abuse)")
     public static class TICK_LIMITER {
         @Comment("Enable the limiter")
-        public static boolean ENABLED = true;
+        public boolean ENABLED = true;
         @Comment("The interval in ticks")
-        public static int INTERVAL = 1;
+        public int INTERVAL = 1;
         @Comment("Max falling blocks per interval (per chunk)")
-        public static int FALLING = 512;
+        public int FALLING = 512;
         @Comment("Max physics per interval (per chunk)")
-        public static int PHYSICS = 512;
+        public int PHYSICS = 512;
         @Comment("Max item spawns per interval (per chunk)")
-        public static int ITEMS = 128;
+        public int ITEMS = 128;
 
     }
 
     public static class CLIPBOARD {
         @Comment("Store the clipboard on disk instead of memory")
-        public static boolean USE_DISK = true;
+        public boolean USE_DISK = true;
         @Comment({
                 "Compress the clipboard to reduce the size:",
                 " - TODO: Buffered random access with compression is not implemented on disk yet",
@@ -271,16 +294,16 @@ public class Settings extends Config {
                 " - 1 = Fast compression",
                 " - 2-17 = Slower compression"
         })
-        public static int COMPRESSION_LEVEL = 1;
+        public int COMPRESSION_LEVEL = 1;
         @Comment("Number of days to keep history on disk before deleting it")
-        public static int DELETE_AFTER_DAYS = 1;
+        public int DELETE_AFTER_DAYS = 1;
     }
 
     public static class LIGHTING {
         @Comment({
                 "If packet sending should be delayed until relight is finished",
         })
-        public static boolean DELAY_PACKET_SENDING = true;
+        public boolean DELAY_PACKET_SENDING = true;
         @Comment({
                 "The relighting mode to use:",
                 " - 0 = None (Do no relighting)",
@@ -290,18 +313,15 @@ public class Settings extends Config {
         public static int MODE = 1;
     }
 
-    public static void save(File file) {
-        save(file, Settings.class);
-    }
-
-    public static void load(File file) {
-        load(file, Settings.class);
+    public void reload(File file) {
+        load(file);
+        save(file);
         if (HISTORY.USE_DISK) {
             LocalSession.MAX_HISTORY_SIZE = Integer.MAX_VALUE;
         }
     }
 
-    public static FaweLimit getLimit(FawePlayer player) {
+    public FaweLimit getLimit(FawePlayer player) {
         FaweLimit limit;
         if (player.hasWorldEditBypass()) {
             limit = FaweLimit.MAX.copy();

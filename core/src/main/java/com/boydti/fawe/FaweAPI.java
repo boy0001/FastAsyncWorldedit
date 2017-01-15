@@ -231,7 +231,7 @@ public class FaweAPI {
         if (!file.getName().toLowerCase().endsWith(".bd")) {
             throw new IllegalArgumentException("Not a BD file!");
         }
-        if (Settings.HISTORY.USE_DISK) {
+        if (Settings.IMP.HISTORY.USE_DISK) {
             throw new IllegalArgumentException("History on disk not enabled!");
         }
         String[] path = file.getPath().split(File.separator);
@@ -261,12 +261,12 @@ public class FaweAPI {
      * @param user - The uuid (may be null)
      * @param radius - The radius from the origin of the edit
      * @param timediff - The max age of the file in milliseconds
-     * @param shallow - If shallow is true, FAWE will only read the first Settings.BUFFER_SIZE bytes to obtain history info<br>
+     * @param shallow - If shallow is true, FAWE will only read the first Settings.IMP.BUFFER_SIZE bytes to obtain history info<br>
      *                Reading only part of the file will result in unreliable bounds info for large edits
      * @return
      */
     public static List<DiskStorageHistory> getBDFiles(FaweLocation origin, UUID user, int radius, long timediff, boolean shallow) {
-        File history = MainUtil.getFile(Fawe.imp().getDirectory(), Settings.PATHS.HISTORY + File.separator + origin.world);
+        File history = MainUtil.getFile(Fawe.imp().getDirectory(), Settings.IMP.PATHS.HISTORY + File.separator + origin.world);
         if (!history.exists()) {
             return new ArrayList<>();
         }

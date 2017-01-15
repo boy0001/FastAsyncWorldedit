@@ -13,6 +13,7 @@ import java.lang.annotation.Target;
 import java.lang.invoke.MethodHandles;
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
+import java.lang.reflect.ParameterizedType;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
@@ -28,7 +29,7 @@ public class Config {
      * @param <T>
      * @return
      */
-    public static <T> T get(String key, Class root) {
+    private <T> T get(String key, Class root) {
         String[] split = key.split("\\.");
         Object instance = getInstance(split, root);
         if (instance != null) {
@@ -52,7 +53,7 @@ public class Config {
      * @param value value
      *
      */
-    public static void set(String key, Object value, Class root) {
+    private void set(String key, Object value, Class root) {
         String[] split = key.split("\\.");
         Object instance = getInstance(split, root);
         if (instance != null) {
@@ -75,7 +76,7 @@ public class Config {
         Fawe.debug("Failed to set config option: " + key + ": " + value + " | " + instance + " | " + root.getSimpleName() + ".yml");
     }
 
-    public static boolean load(File file, Class root) {
+    public boolean load(File file) {
         if (!file.exists()) {
             return false;
         }
@@ -85,7 +86,7 @@ public class Config {
             if (value instanceof MemorySection) {
                 continue;
             }
-            set(key, value, root);
+            set(key, value, getClass());
         }
         return true;
     }
@@ -94,16 +95,19 @@ public class Config {
      * Set all values in the file (load first to avoid overwriting)
      * @param file
      */
-    public static void save(File file, Class root) {
+    public void save(File file) {
+        Class<? extends Config> root = getClass();
         try {
             if (!file.exists()) {
-                file.getParentFile().mkdirs();
+                File parent = file.getParentFile();
+                if (parent != null) {
+                    file.getParentFile().mkdirs();
+                }
                 file.createNewFile();
             }
             PrintWriter writer = new PrintWriter(file);
-            Class clazz = root;
-            Object instance = root.newInstance();
-            save(writer, clazz, instance, 0);
+            Object instance = this;
+            save(writer, getClass(), instance, 0);
             writer.close();
         } catch (Throwable e) {
             e.printStackTrace();
@@ -180,7 +184,7 @@ public class Config {
      * @param clazz
      * @return
      */
-    public static Map<String, Object> getFields(Class clazz) {
+    private Map<String, Object> getFields(Class clazz) {
         HashMap<String, Object> map = new HashMap<>();
         for (Field field : clazz.getFields()) {
             if (java.lang.reflect.Modifier.isStatic(field.getModifiers())) {
@@ -194,7 +198,7 @@ public class Config {
         return map;
     }
 
-    private static String toYamlString(Object value, String spacing) {
+    private String toYamlString(Object value, String spacing) {
         if (value instanceof List) {
             Collection<?> listValue = (Collection<?>) value;
             if (listValue.isEmpty()) {
@@ -216,11 +220,16 @@ public class Config {
         return value != null ? value.toString() : "null";
     }
 
-    private static void save(PrintWriter writer, Class clazz, Object instance, int indent) {
+    private void save(PrintWriter writer, Class clazz, Object instance, int indent) {
         try {
             String CTRF = System.lineSeparator();
             String spacing = StringMan.repeat(" ", indent);
+            HashMap<Class, Object> instances = new HashMap<>();
             for (Field field : clazz.getFields()) {
+                if (field.getAnnotation(Ignore.class) != null) {
+                    continue;
+                }
+                Class<?> current = field.getType();
                 if (field.getAnnotation(Ignore.class) != null) {
                     continue;
                 }
@@ -230,59 +239,56 @@ public class Config {
                         writer.write(spacing + "# " + commentLine + CTRF);
                     }
                 }
+                if (current == ConfigBlock.class) {
+                    current = (Class<?>) ((ParameterizedType) (field.getGenericType())).getActualTypeArguments()[0];
+                    comment = current.getAnnotation(Comment.class);
+                    if (comment != null) {
+                        for (String commentLine : comment.value()) {
+                            writer.write(spacing + "# " + commentLine + CTRF);
+                        }
+                    }
+                    BlockName blockNames = current.getAnnotation(BlockName.class);
+                    if (blockNames != null) {
+                        writer.write(spacing + toNodeName(current.getSimpleName()) + ":" + CTRF);
+                        ConfigBlock configBlock = (ConfigBlock) field.get(instance);
+                        if (configBlock == null || configBlock.getInstances().isEmpty()) {
+                            configBlock = new ConfigBlock();
+                            field.set(instance, configBlock);
+                            for (String blockName : blockNames.value()) {
+                                configBlock.put(blockName, current.newInstance());
+                            }
+                        }
+                        // Save each instance
+                        for (Map.Entry<String, Object> entry : ((Map<String, Object>) configBlock.getRaw()).entrySet()) {
+                            String key = entry.getKey();
+                            writer.write(spacing + "  " + toNodeName(key) + ":" + CTRF);
+                            save(writer, current, entry.getValue(), indent + 4);
+                        }
+                    }
+                    continue;
+                }
                 Create create = field.getAnnotation(Create.class);
                 if (create != null) {
                     Object value = field.get(instance);
-                    if (value == null && field.getType() != ConfigBlock.class) {
-                        setAccessible(field);
-                        Class<?>[] classes = clazz.getDeclaredClasses();
-                        for (Class current : classes) {
-                            if (StringMan.isEqual(current.getSimpleName(), field.getName())) {
-                                field.set(instance, current.newInstance());
-                                break;
-                            }
+                    setAccessible(field);
+                    if (indent == 0) {
+                        writer.write(CTRF);
+                    }
+                    comment = current.getAnnotation(Comment.class);
+                    if (comment != null) {
+                        for (String commentLine : comment.value()) {
+                            writer.write(spacing + "# " + commentLine + CTRF);
                         }
                     }
+                    writer.write(spacing + toNodeName(current.getSimpleName()) + ":" + CTRF);
+                    if (value == null) {
+                        field.set(instance, value = current.newInstance());
+                        instances.put(current, value);
+                    }
+                    save(writer, current, value, indent + 2);
                     continue;
                 } else {
                     writer.write(spacing + toNodeName(field.getName() + ": ") + toYamlString(field.get(instance), spacing) + CTRF);
-                }
-            }
-            for (Class<?> current : clazz.getClasses()) {
-                if (current.isInterface() || current.getAnnotation(Ignore.class) != null) {
-                    continue;
-                }
-                if (indent == 0) {
-                    writer.write(CTRF);
-                }
-                Comment comment = current.getAnnotation(Comment.class);
-                if (comment != null) {
-                    for (String commentLine : comment.value()) {
-                        writer.write(spacing + "# " + commentLine + CTRF);
-                    }
-                }
-                writer.write(spacing + toNodeName(current.getSimpleName()) + ":" + CTRF);
-                BlockName blockNames = current.getAnnotation(BlockName.class);
-                if (blockNames != null) {
-                    Field instanceField = clazz.getDeclaredField(toFieldName(current.getSimpleName()));
-                    setAccessible(instanceField);
-                    ConfigBlock value = (ConfigBlock) instanceField.get(instance);
-                    if (value == null) {
-                        value = new ConfigBlock();
-                        instanceField.set(instance, value);
-                        for (String blockName : blockNames.value()) {
-                            value.put(blockName, current.newInstance());
-                        }
-                    }
-                    // Save each instance
-                    for (Map.Entry<String, Object> entry: ((Map<String, Object>) value.getRaw()).entrySet()) {
-                        String key = entry.getKey();
-                        writer.write(spacing + "  " + toNodeName(key) + ":" + CTRF);
-                        save(writer, current, entry.getValue(), indent + 4);
-                    }
-                    continue;
-                } else {
-                    save(writer, current, current.newInstance(), indent + 2);
                 }
             }
         } catch (Throwable e) {
@@ -295,7 +301,7 @@ public class Config {
      * @param split the node (split by period)
      * @return
      */
-    private static Field getField(String[] split, Class root) {
+    private Field getField(String[] split, Class root) {
         Object instance = getInstance(split, root);
         if (instance == null) {
             return null;
@@ -310,7 +316,7 @@ public class Config {
      * @param instance the instance
      * @return
      */
-    private static Field getField(String[] split, Object instance) {
+    private Field getField(String[] split, Object instance) {
         try {
             Field field = instance.getClass().getField(toFieldName(split[split.length - 1]));
             setAccessible(field);
@@ -321,15 +327,22 @@ public class Config {
         }
     }
 
+    private Object getInstance(Object instance, Class clazz) throws IllegalAccessException, InstantiationException {
+        try {
+            Field instanceField = clazz.getDeclaredField(clazz.getSimpleName());
+        } catch (Throwable ignore) {}
+        return clazz.newInstance();
+    }
+
     /**
      * Get the instance for a specific config node
      * @param split the node (split by period)
      * @return The instance or null
      */
-    private static Object getInstance(String[] split, Class root) {
+    private Object getInstance(String[] split, Class root) {
         try {
             Class<?> clazz = root == null ? MethodHandles.lookup().lookupClass() : root;
-            Object instance = clazz.newInstance();
+            Object instance = this;
             while (split.length > 0) {
                 switch (split.length) {
                     case 1:
@@ -391,7 +404,7 @@ public class Config {
      * @param node
      * @return
      */
-    private static String toFieldName(String node) {
+    private String toFieldName(String node) {
         return node.toUpperCase().replaceAll("-","_");
     }
 
@@ -400,7 +413,7 @@ public class Config {
      * @param field
      * @return
      */
-    private static String toNodeName(String field) {
+    private String toNodeName(String field) {
         return field.toLowerCase().replace("_","-");
     }
 
@@ -410,7 +423,7 @@ public class Config {
      * @throws NoSuchFieldException
      * @throws IllegalAccessException
      */
-    private static void setAccessible(Field field) throws NoSuchFieldException, IllegalAccessException {
+    private void setAccessible(Field field) throws NoSuchFieldException, IllegalAccessException {
         field.setAccessible(true);
         Field modifiersField = Field.class.getDeclaredField("modifiers");
         modifiersField.setAccessible(true);
