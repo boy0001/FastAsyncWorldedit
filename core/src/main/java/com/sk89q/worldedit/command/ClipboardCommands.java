@@ -21,6 +21,7 @@ package com.sk89q.worldedit.command;
 
 import com.boydti.fawe.FaweAPI;
 import com.boydti.fawe.config.BBC;
+import com.boydti.fawe.config.Settings;
 import com.boydti.fawe.object.FawePlayer;
 import com.boydti.fawe.object.RunnableVal2;
 import com.boydti.fawe.object.clipboard.ReadOnlyClipboard;
@@ -264,6 +265,10 @@ public class ClipboardCommands {
                 }
                 break;
             case SCHEMATIC:
+                if (Settings.IMP.WEB.URL.isEmpty()) {
+                    BBC.SETTING_DISABLE.send(player, "web.url");
+                    return;
+                }
                 url = FaweAPI.upload(target, format);
                 break;
             default:
