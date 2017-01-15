@@ -278,10 +278,9 @@ public class Settings extends Config {
 
     public static class LIGHTING {
         @Comment({
-                "If chunk lighting should be done asynchronously:",
-                " - Async lighting is less intense, but more likely to glitch"
+                "If packet sending should be delayed until relight is finished",
         })
-        public static boolean ASYNC = true;
+        public static boolean DELAY_PACKET_SENDING = true;
         @Comment({
                 "The relighting mode to use:",
                 " - 0 = None (Do no relighting)",
