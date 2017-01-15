@@ -11,6 +11,10 @@ buildscript {
     }
 }
 
+task setupCIWorkspace {
+    // do nothing, stub method
+}
+
 apply plugin: 'java'
 clean { delete "target" }
 
