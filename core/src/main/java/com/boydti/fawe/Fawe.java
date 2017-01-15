@@ -19,6 +19,8 @@ import com.boydti.fawe.util.WEManager;
 import com.boydti.fawe.util.WESubscriber;
 import com.sk89q.jnbt.NBTInputStream;
 import com.sk89q.jnbt.NBTOutputStream;
+import com.sk89q.worldedit.BlockVector;
+import com.sk89q.worldedit.BlockWorldVector;
 import com.sk89q.worldedit.CuboidClipboard;
 import com.sk89q.worldedit.EditSession;
 import com.sk89q.worldedit.LocalSession;
@@ -412,6 +414,8 @@ public class Fawe {
             AbstractDelegateExtent.inject(); // Optimizations
             BlockBagExtent.inject(); // Fixes + Optimizations
             // Vector
+            BlockWorldVector.inject(); // Optimizations
+            BlockVector.inject(); // Optimizations
             Vector.inject(); // Optimizations
             // Pattern
             Patterns.inject(); // Optimizations (reduce object creation)
