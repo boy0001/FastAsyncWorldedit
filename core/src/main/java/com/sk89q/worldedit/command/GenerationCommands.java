@@ -119,7 +119,7 @@ public class GenerationCommands {
 
         Vector pos = session.getPlacementPosition(player);
         int affected = editSession.makeCylinder(pos, Patterns.wrap(pattern), radiusX, radiusZ, height, !hollow);
-        player.print(BBC.getPrefix() + affected + " block(s) have been created.");
+        BBC.VISITOR_BLOCK.send(player, affected);
     }
 
     @Command(
@@ -185,7 +185,7 @@ public class GenerationCommands {
 
         int affected = editSession.makeSphere(pos, Patterns.wrap(pattern), radiusX, radiusY, radiusZ, !hollow);
         player.findFreePosition();
-        player.print(BBC.getPrefix() + affected + " block(s) have been created.");
+        BBC.VISITOR_BLOCK.send(player, affected);
     }
 
     @Command(
@@ -201,7 +201,7 @@ public class GenerationCommands {
     public void forestGen(Player player, LocalSession session, EditSession editSession, @Optional("10") int size, @Optional("tree") TreeType type, @Optional("5") double density) throws WorldEditException {
         density = density / 100;
         int affected = editSession.makeForest(session.getPlacementPosition(player), size, density, new TreeGenerator(type));
-        player.print(BBC.getPrefix() + affected + " trees created.");
+        BBC.COMMAND_TREE.send(player, affected);
     }
 
     @Command(
@@ -215,7 +215,7 @@ public class GenerationCommands {
     @Logging(POSITION)
     public void pumpkins(Player player, LocalSession session, EditSession editSession, @Optional("10") int apothem) throws WorldEditException {
         int affected = editSession.makePumpkinPatches(session.getPlacementPosition(player), apothem);
-        player.print(BBC.getPrefix() + affected + " pumpkin patches created.");
+        BBC.COMMAND_PUMPKIN.send(player, affected);
     }
 
     @Command(
@@ -246,7 +246,7 @@ public class GenerationCommands {
         worldEdit.checkMaxRadius(size);
         int affected = editSession.makePyramid(pos, Patterns.wrap(pattern), size, !hollow);
         player.findFreePosition();
-        player.print(BBC.getPrefix() + affected + " block(s) have been created.");
+        BBC.VISITOR_BLOCK.send(player, affected);
     }
 
     @Command(
@@ -309,7 +309,7 @@ public class GenerationCommands {
         try {
             final int affected = editSession.makeShape(region, zero, unit, Patterns.wrap(pattern), expression, hollow);
             player.findFreePosition();
-            player.print(BBC.getPrefix() + affected + " block(s) have been created.");
+            BBC.VISITOR_BLOCK.send(player, affected);
         } catch (ExpressionException e) {
             player.printError(e.getMessage());
         }
@@ -374,7 +374,7 @@ public class GenerationCommands {
         try {
             final int affected = editSession.makeBiomeShape(region, zero, unit, target, expression, hollow);
             player.findFreePosition();
-            player.print(BBC.getPrefix() + "" + affected + " columns affected.");
+            BBC.VISITOR_FLAT.send(player, affected);
         } catch (ExpressionException e) {
             player.printError(e.getMessage());
         }

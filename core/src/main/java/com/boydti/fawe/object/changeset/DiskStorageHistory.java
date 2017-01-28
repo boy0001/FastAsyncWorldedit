@@ -13,13 +13,13 @@ import com.sk89q.jnbt.NBTInputStream;
 import com.sk89q.jnbt.NBTOutputStream;
 import com.sk89q.worldedit.EditSession;
 import com.sk89q.worldedit.world.World;
+import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
@@ -34,6 +34,7 @@ public class DiskStorageHistory extends FaweStreamChangeSet {
 
     private UUID uuid;
     private File bdFile;
+    private File bioFile;
     private File nbtfFile;
     private File nbttFile;
     private File entfFile;
@@ -49,6 +50,8 @@ public class DiskStorageHistory extends FaweStreamChangeSet {
      * { short rel x, short rel z, unsigned byte y, short combinedFrom, short combinedTo }
      */
     private OutputStream osBD;
+    // biome
+    private OutputStream osBIO;
     // NBT From
     private NBTOutputStream osNBTF;
     // NBT To
@@ -117,6 +120,7 @@ public class DiskStorageHistory extends FaweStreamChangeSet {
         entfFile = new File(folder, index + ".entf");
         enttFile = new File(folder, index + ".entt");
         bdFile = new File(folder, index + ".bd");
+        bioFile = new File(folder, index + ".bio");
     }
 
     private void init(UUID uuid, int i) {
@@ -165,11 +169,15 @@ public class DiskStorageHistory extends FaweStreamChangeSet {
     public boolean flush() {
         super.flush();
         synchronized (this) {
-            boolean flushed = osBD != null || osNBTF != null || osNBTT != null && osENTCF != null || osENTCT != null;
+            boolean flushed = osBD != null || osBIO != null || osNBTF != null || osNBTT != null && osENTCF != null || osENTCT != null;
             try {
                 if (osBD != null) {
                     osBD.close();
                     osBD = null;
+                }
+                if (osBIO != null) {
+                    osBIO.close();
+                    osBIO = null;
                 }
                 if (osNBTF != null) {
                     osNBTF.close();
@@ -210,6 +218,9 @@ public class DiskStorageHistory extends FaweStreamChangeSet {
         if (bdFile.exists()) {
             total += bdFile.length();
         }
+        if (bioFile.exists()) {
+            total += bioFile.length();
+        }
         if (nbtfFile.exists()) {
             total += entfFile.length();
         }
@@ -236,6 +247,19 @@ public class DiskStorageHistory extends FaweStreamChangeSet {
             osBD = getCompressedOS(new FileOutputStream(bdFile));
             writeHeader(osBD, x, y, z);
             return osBD;
+        }
+    }
+
+    @Override
+    public OutputStream getBiomeOS() throws IOException {
+        if (osBIO != null) {
+            return osBIO;
+        }
+        synchronized (this) {
+            bioFile.getParentFile().mkdirs();
+            bioFile.createNewFile();
+            osBIO = getCompressedOS(new FileOutputStream(bioFile));
+            return osBIO;
         }
     }
 
@@ -290,6 +314,15 @@ public class DiskStorageHistory extends FaweStreamChangeSet {
         }
         InputStream is = MainUtil.getCompressedIS(new FileInputStream(bdFile));
         readHeader(is);
+        return is;
+    }
+
+    @Override
+    public InputStream getBiomeIS() throws IOException {
+        if (!bioFile.exists()) {
+            return null;
+        }
+        InputStream is = MainUtil.getCompressedIS(new FileInputStream(bioFile));
         return is;
     }
 
@@ -426,25 +459,25 @@ public class DiskStorageHistory extends FaweStreamChangeSet {
             }
         }
 
-        public HashMap<Integer, Integer> getBlocks() {
-            HashMap<Integer, Integer> map = new HashMap<>();
+        public Map<Integer, Integer> getBlocks() {
+            Int2ObjectOpenHashMap<Integer> map = new Int2ObjectOpenHashMap<>();
             for (int i = 0; i < blocks.length; i++) {
                 if (blocks[i] != 0) {
-                    map.put(i, blocks[i]);
+                    map.put(i, (Integer) blocks[i]);
                 }
             }
             return map;
         }
 
         public Map<Integer, Double> getPercents() {
-            HashMap<Integer, Integer> map = getBlocks();
+            Map<Integer, Integer> map = getBlocks();
             int count = getSize();
-            HashMap<Integer, Double> newMap = new HashMap<Integer, Double>();
+            Int2ObjectOpenHashMap<Double> newMap = new Int2ObjectOpenHashMap<Double>();
             for (Map.Entry<Integer, Integer> entry : map.entrySet()) {
                 int id = entry.getKey();
                 int changes = entry.getValue();
                 double percent = ((changes * 1000l) / count) / 10d;
-                newMap.put(id, percent);
+                newMap.put(id, (Double) percent);
             }
             return newMap;
         }

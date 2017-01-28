@@ -21,16 +21,35 @@ import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.UUID;
-import java.util.concurrent.ConcurrentLinkedDeque;
 import java.util.concurrent.ExecutorCompletionService;
 import java.util.concurrent.ForkJoinPool;
 import java.util.concurrent.TimeUnit;
 
-public abstract class MappedFaweQueue<WORLD, CHUNK, SECTION> extends FaweQueue {
+public abstract class MappedFaweQueue<WORLD, CHUNK, CHUNKSECTIONS, SECTION> extends FaweQueue {
 
     private WORLD impWorld;
 
     private IFaweQueueMap map;
+
+    public int lastSectionX = Integer.MIN_VALUE;
+    public int lastSectionZ = Integer.MIN_VALUE;
+    public int lastSectionY = Integer.MIN_VALUE;
+    public CHUNK lastChunk;
+    public CHUNKSECTIONS lastChunkSections;
+    public SECTION lastSection;
+
+    private CHUNK cachedLoadChunk;
+    public final RunnableVal<IntegerPair> loadChunk = new RunnableVal<IntegerPair>() {
+
+        {
+            this.value = new IntegerPair(0, 0);
+        }
+
+        @Override
+        public void run(IntegerPair coord) {
+            cachedLoadChunk = loadChunk(getWorld(), coord.x, coord.z, true);
+        }
+    };
 
     public MappedFaweQueue(final World world) {
         this(world, null);
@@ -102,21 +121,18 @@ public abstract class MappedFaweQueue<WORLD, CHUNK, SECTION> extends FaweQueue {
 
     public abstract WORLD getImpWorld();
 
-    public abstract boolean isChunkLoaded(WORLD world, int x, int z);
-
     public abstract boolean regenerateChunk(WORLD world, int x, int z, BaseBiome biome, Long seed);
 
     @Override
     public abstract FaweChunk getFaweChunk(int x, int z);
 
-    public abstract boolean loadChunk(WORLD world, int x, int z, boolean generate);
+    public abstract CHUNK loadChunk(WORLD world, int x, int z, boolean generate);
 
-    public abstract CHUNK getCachedSections(WORLD world, int cx, int cz);
+    public abstract CHUNKSECTIONS getSections(CHUNK chunk);
 
-    @Override
-    public boolean isChunkLoaded(int x, int z) {
-        return isChunkLoaded(getWorld(), x, z);
-    };
+    public abstract CHUNKSECTIONS getCachedSections(WORLD world, int cx, int cz);
+
+    public abstract CHUNK getCachedChunk(WORLD world, int cx, int cz);
 
     public WORLD getWorld() {
         if (impWorld != null) {
@@ -233,15 +249,11 @@ public abstract class MappedFaweQueue<WORLD, CHUNK, SECTION> extends FaweQueue {
     @Override
     public int size() {
         int size = map.size();
-        if (size == 0 && getStage() != SetQueue.QueueStage.INACTIVE) {
+        if (size == 0 && getStage() == SetQueue.QueueStage.NONE) {
             runTasks();
         }
         return size;
     }
-
-    private ConcurrentLinkedDeque<FaweChunk> toUpdate = new ConcurrentLinkedDeque<>();
-
-    private int dispatched = 0;
 
     @Override
     public void clear() {
@@ -254,44 +266,53 @@ public abstract class MappedFaweQueue<WORLD, CHUNK, SECTION> extends FaweQueue {
         map.add(chunk);
     }
 
-    public int lastChunkX = Integer.MIN_VALUE;
-    public int lastChunkZ = Integer.MIN_VALUE;
-    public int lastChunkY = Integer.MIN_VALUE;
-
-    public CHUNK lastChunkSections;
-    public SECTION lastSection;
-
-    public SECTION getCachedSection(CHUNK chunk, int cy) {
+    public SECTION getCachedSection(CHUNKSECTIONS chunk, int cy) {
         return (SECTION) lastChunkSections;
     }
 
     public abstract int getCombinedId4Data(SECTION section, int x, int y, int z);
 
-    public final RunnableVal<IntegerPair> loadChunk = new RunnableVal<IntegerPair>() {
-        @Override
-        public void run(IntegerPair coord) {
-            loadChunk(getWorld(), coord.x, coord.z, true);
-        }
-    };
+    public abstract int getBiome(CHUNK chunk, int x, int z);
 
-    long average = 0;
+    public abstract CompoundTag getTileEntity(CHUNK chunk, int x, int y, int z);
 
-    public boolean ensureChunkLoaded(int cx, int cz) throws FaweException.FaweChunkLoadException {
-        if (!isChunkLoaded(cx, cz)) {
-            boolean sync = Thread.currentThread() == Fawe.get().getMainThread();
-            if (sync) {
-                loadChunk(getWorld(), cx, cz, true);
-            } else if (Settings.IMP.HISTORY.CHUNK_WAIT_MS > 0) {
-                loadChunk.value = new IntegerPair(cx, cz);
-                TaskManager.IMP.syncWhenFree(loadChunk, Settings.IMP.HISTORY.CHUNK_WAIT_MS);
-                if (!isChunkLoaded(cx, cz)) {
-                    throw new FaweException.FaweChunkLoadException();
-                }
-            } else {
-                return false;
-            }
+//    public CHUNKSECTIONS ensureSectionsLoaded(int cx, int cz) throws FaweException.FaweChunkLoadException {
+//        CHUNKSECTIONS sections = getCachedSections(getWorld(), cx, cz);
+//        if (sections != null) {
+//            return sections;
+//        }
+//        boolean sync = Thread.currentThread() == Fawe.get().getMainThread();
+//        if (sync) {
+//            CHUNK chunk = loadChunk(getWorld(), cx, cz, true);
+//            return chunk != null ? getSections(chunk) : null;
+//        } else if (Settings.IMP.HISTORY.CHUNK_WAIT_MS > 0) {
+//            cachedLoadChunk = null;
+//            loadChunk.value.x = cx;
+//            loadChunk.value.z = cz;
+//            TaskManager.IMP.syncWhenFree(loadChunk, Settings.IMP.HISTORY.CHUNK_WAIT_MS);
+//            return cachedLoadChunk != null ? getSections(cachedLoadChunk) : null;
+//        } else {
+//            return null;
+//        }
+//    }
+
+    public CHUNK ensureChunkLoaded(int cx, int cz) throws FaweException.FaweChunkLoadException {
+        CHUNK chunk = getCachedChunk(getWorld(), cx, cz);
+        if (chunk != null) {
+            return chunk;
         }
-        return true;
+        boolean sync = Thread.currentThread() == Fawe.get().getMainThread();
+        if (sync) {
+            return loadChunk(getWorld(), cx, cz, true);
+        } else if (Settings.IMP.HISTORY.CHUNK_WAIT_MS > 0) {
+            cachedLoadChunk = null;
+            loadChunk.value.x = cx;
+            loadChunk.value.z = cz;
+            TaskManager.IMP.syncWhenFree(loadChunk, Settings.IMP.HISTORY.CHUNK_WAIT_MS);
+            return cachedLoadChunk;
+        } else {
+            return null;
+        }
     }
 
     @Override
@@ -299,21 +320,24 @@ public abstract class MappedFaweQueue<WORLD, CHUNK, SECTION> extends FaweQueue {
         int cx = x >> 4;
         int cz = z >> 4;
         int cy = y >> 4;
-        if (cx != lastChunkX || cz != lastChunkZ) {
-            lastChunkX = cx;
-            lastChunkZ = cz;
-            if (!ensureChunkLoaded(cx, cz)) {
+        if (cx != lastSectionX || cz != lastSectionZ) {
+            lastSectionX = cx;
+            lastSectionZ = cz;
+            lastChunk = ensureChunkLoaded(cx, cz);
+            if (lastChunk != null) {
+                lastChunkSections = getSections(lastChunk);
+                lastSection = getCachedSection(lastChunkSections, cy);
+            } else {
+                lastChunkSections = null;
                 return false;
             }
-            lastChunkSections = getCachedSections(getWorld(), cx, cz);
-            lastSection = getCachedSection(lastChunkSections, cy);
-        } else if (cy != lastChunkY) {
-            if (lastChunkSections == null) {
+        } else if (cy != lastSectionY) {
+            if (lastChunkSections != null) {
+                lastSection = getCachedSection(lastChunkSections, cy);
+            } else {
                 return false;
             }
-            lastSection = getCachedSection(lastChunkSections, cy);
         }
-
         if (lastSection == null) {
             return false;
         }
@@ -368,21 +392,24 @@ public abstract class MappedFaweQueue<WORLD, CHUNK, SECTION> extends FaweQueue {
         int cx = x >> 4;
         int cz = z >> 4;
         int cy = y >> 4;
-        if (cx != lastChunkX || cz != lastChunkZ) {
-            lastChunkX = cx;
-            lastChunkZ = cz;
-            if (!ensureChunkLoaded(cx, cz)) {
+        if (cx != lastSectionX || cz != lastSectionZ) {
+            lastSectionX = cx;
+            lastSectionZ = cz;
+            lastChunk = ensureChunkLoaded(cx, cz);
+            if (lastChunk != null) {
+                lastChunkSections = getSections(lastChunk);
+                lastSection = getCachedSection(lastChunkSections, cy);
+            } else {
+                lastChunkSections = null;
                 return 0;
             }
-            lastChunkSections = getCachedSections(getWorld(), cx, cz);
-            lastSection = getCachedSection(lastChunkSections, cy);
-        } else if (cy != lastChunkY) {
-            if (lastChunkSections == null) {
+        } else if (cy != lastSectionY) {
+            if (lastChunkSections != null) {
+                lastSection = getCachedSection(lastChunkSections, cy);
+            } else {
                 return 0;
             }
-            lastSection = getCachedSection(lastChunkSections, cy);
         }
-
         if (lastSection == null) {
             return 0;
         }
@@ -394,24 +421,38 @@ public abstract class MappedFaweQueue<WORLD, CHUNK, SECTION> extends FaweQueue {
         int cx = x >> 4;
         int cz = z >> 4;
         int cy = y >> 4;
-        if (y >= FaweChunk.HEIGHT) {
-            return 15;
-        }
-        if (cx != lastChunkX || cz != lastChunkZ) {
-            lastChunkX = cx;
-            lastChunkZ = cz;
-            if (!ensureChunkLoaded(cx, cz)) {
+        if (cx != lastSectionX || cz != lastSectionZ) {
+            lastSectionX = cx;
+            lastSectionZ = cz;
+            lastChunk = ensureChunkLoaded(cx, cz);
+            if (lastChunk != null) {
+                lastChunkSections = getSections(lastChunk);
+                lastSection = getCachedSection(lastChunkSections, cy);
+            } else {
+                lastChunkSections = null;
                 return 0;
             }
-            lastChunkSections = getCachedSections(getWorld(), cx, cz);
-            lastSection = getCachedSection(lastChunkSections, cy);
-        } else if (cy != lastChunkY) {
-            if (lastChunkSections == null) {
-                return getSkyLight(x, y + 16, z);
+        } else if (cy != lastSectionY) {
+            if (lastChunkSections != null) {
+                lastSection = getCachedSection(lastChunkSections, cy);
+            } else {
+                return 0;
             }
-            lastSection = getCachedSection(lastChunkSections, cy);
         }
         if (lastSection == null) {
+            if (lastChunkSections == null) {
+                return 0;
+            }
+            int max = FaweChunk.HEIGHT >> 4;
+            do {
+                if (++cy >= max) {
+                    return 15;
+                }
+                lastSection = getCachedSection(lastChunkSections, cy);
+            } while (lastSection == null);
+        }
+        if (lastSection == null) {
+
             return getSkyLight(x, y + 16, z);
         }
         return getSkyLight(lastSection, x, y, z);
@@ -422,19 +463,23 @@ public abstract class MappedFaweQueue<WORLD, CHUNK, SECTION> extends FaweQueue {
         int cx = x >> 4;
         int cz = z >> 4;
         int cy = y >> 4;
-        if (cx != lastChunkX || cz != lastChunkZ) {
-            lastChunkX = cx;
-            lastChunkZ = cz;
-            if (!ensureChunkLoaded(cx, cz)) {
+        if (cx != lastSectionX || cz != lastSectionZ) {
+            lastSectionX = cx;
+            lastSectionZ = cz;
+            lastChunk = ensureChunkLoaded(cx, cz);
+            if (lastChunk != null) {
+                lastChunkSections = getSections(lastChunk);
+                lastSection = getCachedSection(lastChunkSections, cy);
+            } else {
+                lastChunkSections = null;
                 return 0;
             }
-            lastChunkSections = getCachedSections(getWorld(), cx, cz);
-            lastSection = getCachedSection(lastChunkSections, cy);
-        } else if (cy != lastChunkY) {
-            if (lastChunkSections == null) {
+        } else if (cy != lastSectionY) {
+            if (lastChunkSections != null) {
+                lastSection = getCachedSection(lastChunkSections, cy);
+            } else {
                 return 0;
             }
-            lastSection = getCachedSection(lastChunkSections, cy);
         }
         if (lastSection == null) {
             return 0;
@@ -447,21 +492,24 @@ public abstract class MappedFaweQueue<WORLD, CHUNK, SECTION> extends FaweQueue {
         int cx = x >> 4;
         int cz = z >> 4;
         int cy = y >> 4;
-        if (cx != lastChunkX || cz != lastChunkZ) {
-            lastChunkX = cx;
-            lastChunkZ = cz;
-            if (!ensureChunkLoaded(cx, cz)) {
+        if (cx != lastSectionX || cz != lastSectionZ) {
+            lastSectionX = cx;
+            lastSectionZ = cz;
+            lastChunk = ensureChunkLoaded(cx, cz);
+            if (lastChunk != null) {
+                lastChunkSections = getSections(lastChunk);
+                lastSection = getCachedSection(lastChunkSections, cy);
+            } else {
+                lastChunkSections = null;
                 return 0;
             }
-            lastChunkSections = getCachedSections(getWorld(), cx, cz);
-            lastSection = getCachedSection(lastChunkSections, cy);
-        } else if (cy != lastChunkY) {
-            if (lastChunkSections == null) {
+        } else if (cy != lastSectionY) {
+            if (lastChunkSections != null) {
+                lastSection = getCachedSection(lastChunkSections, cy);
+            } else {
                 return 0;
             }
-            lastSection = getCachedSection(lastChunkSections, cy);
         }
-
         if (lastSection == null) {
             return 0;
         }
@@ -473,21 +521,24 @@ public abstract class MappedFaweQueue<WORLD, CHUNK, SECTION> extends FaweQueue {
         int cx = x >> 4;
         int cz = z >> 4;
         int cy = y >> 4;
-        if (cx != lastChunkX || cz != lastChunkZ) {
-            lastChunkX = cx;
-            lastChunkZ = cz;
-            if (!ensureChunkLoaded(cx, cz)) {
+        if (cx != lastSectionX || cz != lastSectionZ) {
+            lastSectionX = cx;
+            lastSectionZ = cz;
+            lastChunk = ensureChunkLoaded(cx, cz);
+            if (lastChunk != null) {
+                lastChunkSections = getSections(lastChunk);
+                lastSection = getCachedSection(lastChunkSections, cy);
+            } else {
+                lastChunkSections = null;
                 return 0;
             }
-            lastChunkSections = getCachedSections(getWorld(), cx, cz);
-            lastSection = getCachedSection(lastChunkSections, cy);
-        } else if (cy != lastChunkY) {
-            if (lastChunkSections == null) {
+        } else if (cy != lastSectionY) {
+            if (lastChunkSections != null) {
+                lastSection = getCachedSection(lastChunkSections, cy);
+            } else {
                 return 0;
             }
-            lastSection = getCachedSection(lastChunkSections, cy);
         }
-
         if (lastSection == null) {
             return 0;
         }
@@ -499,21 +550,24 @@ public abstract class MappedFaweQueue<WORLD, CHUNK, SECTION> extends FaweQueue {
         int cx = x >> 4;
         int cz = z >> 4;
         int cy = y >> 4;
-        if (cx != lastChunkX || cz != lastChunkZ) {
-            lastChunkX = cx;
-            lastChunkZ = cz;
-            if (!ensureChunkLoaded(cx, cz)) {
+        if (cx != lastSectionX || cz != lastSectionZ) {
+            lastSectionX = cx;
+            lastSectionZ = cz;
+            lastChunk = ensureChunkLoaded(cx, cz);
+            if (lastChunk != null) {
+                lastChunkSections = getSections(lastChunk);
+                lastSection = getCachedSection(lastChunkSections, cy);
+            } else {
+                lastChunkSections = null;
                 return 0;
             }
-            lastChunkSections = getCachedSections(getWorld(), cx, cz);
-            lastSection = getCachedSection(lastChunkSections, cy);
-        } else if (cy != lastChunkY) {
-            if (lastChunkSections == null) {
+        } else if (cy != lastSectionY) {
+            if (lastChunkSections != null) {
+                lastSection = getCachedSection(lastChunkSections, cy);
+            } else {
                 return 0;
             }
-            lastSection = getCachedSection(lastChunkSections, cy);
         }
-
         if (lastSection == null) {
             return 0;
         }
@@ -537,24 +591,69 @@ public abstract class MappedFaweQueue<WORLD, CHUNK, SECTION> extends FaweQueue {
         int cx = x >> 4;
         int cz = z >> 4;
         int cy = y >> 4;
-        if (cx != lastChunkX || cz != lastChunkZ) {
-            lastChunkX = cx;
-            lastChunkZ = cz;
-            if (!ensureChunkLoaded(cx, cz)) {
+        if (cx != lastSectionX || cz != lastSectionZ) {
+            lastSectionX = cx;
+            lastSectionZ = cz;
+            lastChunk = ensureChunkLoaded(cx, cz);
+            if (lastChunk != null) {
+                lastChunkSections = getSections(lastChunk);
+                lastSection = getCachedSection(lastChunkSections, cy);
+            } else {
+                lastChunkSections = null;
                 return 0;
             }
-            lastChunkSections = getCachedSections(getWorld(), cx, cz);
-            lastSection = getCachedSection(lastChunkSections, cy);
-        } else if (cy != lastChunkY) {
-            if (lastChunkSections == null) {
+        } else if (cy != lastSectionY) {
+            if (lastChunkSections != null) {
+                lastSection = getCachedSection(lastChunkSections, cy);
+            } else {
                 return 0;
             }
-            lastSection = getCachedSection(lastChunkSections, cy);
         }
-
         if (lastSection == null) {
             return 0;
         }
         return getCombinedId4Data(lastSection, x, y, z);
+    }
+
+    @Override
+    public int getBiomeId(int x, int z) throws FaweException.FaweChunkLoadException {
+        int cx = x >> 4;
+        int cz = z >> 4;
+        lastSectionY = -1;
+        if (cx != lastSectionX || cz != lastSectionZ) {
+            lastSectionX = cx;
+            lastSectionZ = cz;
+            lastChunk = ensureChunkLoaded(cx, cz);
+            if (lastChunk != null) {
+                lastChunkSections = getSections(lastChunk);
+            } else {
+                lastChunkSections = null;
+                return 0;
+            }
+        } else if (lastChunk == null) {
+            return 0;
+        }
+        return getBiome(lastChunk, x, z);
+    }
+
+    @Override
+    public CompoundTag getTileEntity(int x, int y, int z) throws FaweException.FaweChunkLoadException {
+        int cx = x >> 4;
+        int cz = z >> 4;
+        lastSectionY = -1;
+        if (cx != lastSectionX || cz != lastSectionZ) {
+            lastSectionX = cx;
+            lastSectionZ = cz;
+            lastChunk = ensureChunkLoaded(cx, cz);
+            if (lastChunk != null) {
+                lastChunkSections = getSections(lastChunk);
+            } else {
+                lastChunkSections = null;
+                return null;
+            }
+        } else if (lastChunk == null) {
+            return null;
+        }
+        return getTileEntity(lastChunk, x, y, z);
     }
 }

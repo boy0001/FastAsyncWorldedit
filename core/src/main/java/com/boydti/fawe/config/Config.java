@@ -4,6 +4,7 @@ import com.boydti.fawe.Fawe;
 import com.boydti.fawe.configuration.MemorySection;
 import com.boydti.fawe.configuration.file.YamlConfiguration;
 import com.boydti.fawe.util.StringMan;
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.PrintWriter;
 import java.lang.annotation.ElementType;
@@ -21,6 +22,10 @@ import java.util.List;
 import java.util.Map;
 
 public class Config {
+
+    public Config() {
+        save(new PrintWriter(new ByteArrayOutputStream(0)), getClass(), this, 0);
+    }
 
     /**
      * Get the value for a node<br>
@@ -220,7 +225,7 @@ public class Config {
         return value != null ? value.toString() : "null";
     }
 
-    private void save(PrintWriter writer, Class clazz, Object instance, int indent) {
+    private void save(PrintWriter writer, Class clazz, final Object instance, int indent) {
         try {
             String CTRF = System.lineSeparator();
             String spacing = StringMan.repeat(" ", indent);

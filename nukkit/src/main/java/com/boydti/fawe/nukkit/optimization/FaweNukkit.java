@@ -28,9 +28,6 @@ public class FaweNukkit implements IFawe, Listener {
     private final NukkitWorldEdit plugin;
 
     public FaweNukkit(NukkitWorldEdit mod) {
-        Settings.IMP.HISTORY.USE_DISK = true;
-        Settings.IMP.CLIPBOARD.USE_DISK = true;
-        Settings.IMP.HISTORY.COMPRESSION_LEVEL = 9;
         this.plugin = mod;
         FaweChunk.HEIGHT = 128;
         plugin.getServer().getPluginManager().registerEvents(this, plugin);

@@ -53,12 +53,11 @@ public class FuzzyRegion extends AbstractRegion {
     public Iterator<BlockVector> iterator() {
         return new Iterator<BlockVector>() {
 
-            private int index = -1;
+            private int index = set.nextSetBit(0);
             private BlockVector pos = new BlockVector(0, 0, 0);
 
             @Override
             public boolean hasNext() {
-                index = set.nextSetBit(index + 1);
                 return index != -1;
             }
 
@@ -71,6 +70,7 @@ public class FuzzyRegion extends AbstractRegion {
                 pos.mutX(offsetX + (((b3 + ((MathMan.unpair8x(b2)) << 8)) << 21) >> 21));
                 pos.mutY(offsetY + b1);
                 pos.mutZ(offsetZ + (((b4 + ((MathMan.unpair8y(b2)) << 8)) << 21) >> 21));
+                index = set.nextSetBit(index + 1);
                 return pos;
             }
 

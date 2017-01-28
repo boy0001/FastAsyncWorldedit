@@ -22,7 +22,7 @@ package com.sk89q.worldedit.extension.factory;
 import com.boydti.fawe.jnbt.JSON2NBT;
 import com.boydti.fawe.jnbt.NBTException;
 import com.boydti.fawe.util.MathMan;
-import com.intellectualcrafters.plot.util.StringMan;
+import com.boydti.fawe.util.StringMan;
 import com.sk89q.jnbt.CompoundTag;
 import com.sk89q.jnbt.Tag;
 import com.sk89q.worldedit.BlockVector;

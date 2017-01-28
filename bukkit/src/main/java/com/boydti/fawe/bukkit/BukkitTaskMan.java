@@ -1,7 +1,6 @@
 package com.boydti.fawe.bukkit;
 
 import com.boydti.fawe.util.TaskManager;
-import java.util.HashMap;
 import org.apache.commons.lang.mutable.MutableInt;
 import org.bukkit.Bukkit;
 import org.bukkit.plugin.Plugin;
@@ -25,7 +24,6 @@ public class BukkitTaskMan extends TaskManager {
     }
 
     public MutableInt index = new MutableInt(0);
-    public HashMap<Integer, Integer> tasks = new HashMap<>();
 
     @Override
     public void async(final Runnable r) {

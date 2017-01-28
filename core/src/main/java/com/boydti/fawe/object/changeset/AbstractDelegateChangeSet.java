@@ -12,6 +12,7 @@ import com.sk89q.worldedit.history.change.Change;
 import com.sk89q.worldedit.history.change.EntityCreate;
 import com.sk89q.worldedit.history.change.EntityRemove;
 import com.sk89q.worldedit.world.World;
+import com.sk89q.worldedit.world.biome.BaseBiome;
 import java.util.Iterator;
 
 public class AbstractDelegateChangeSet extends FaweChangeSet {
@@ -69,6 +70,11 @@ public class AbstractDelegateChangeSet extends FaweChangeSet {
     @Override
     public int size() {
         return parent.size();
+    }
+
+    @Override
+    public void addBiomeChange(int x, int z, BaseBiome from, BaseBiome to) {
+        parent.addBiomeChange(x, z, from, to);
     }
 
     @Override

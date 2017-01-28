@@ -115,7 +115,7 @@ public class SnapshotUtilCommands {
         // Load chunk store
         try {
             chunkStore = snapshot.getChunkStore();
-            player.print(BBC.getPrefix() + "Snapshot '" + snapshot.getName() + "' loaded; now restoring...");
+            BBC.SNAPSHOT_LOADED.send(player, snapshot.getName());
         } catch (DataException e) {
             player.printError("Failed to load snapshot: " + e.getMessage());
             return;

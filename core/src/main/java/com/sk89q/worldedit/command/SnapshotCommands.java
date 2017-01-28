@@ -77,12 +77,12 @@ public class SnapshotCommands {
 
                 int num = args.argsLength() > 0 ? Math.min(40, Math.max(5, args.getInteger(0))) : 5;
 
-                player.print(BBC.getPrefix() + "Snapshots for world: '" + player.getWorld().getName() + "'");
+                BBC.SNAPSHOT_LIST_HEADER.send(player, player.getWorld().getName());
                 for (byte i = 0; i < Math.min(num, snapshots.size()); i++) {
                     player.print(BBC.getPrefix() + (i + 1) + ". " + snapshots.get(i).getName());
                 }
 
-                player.print(BBC.getPrefix() + "Use /snap use [snapshot] or /snap use latest.");
+                BBC.SNAPSHOT_LIST_FOOTER.send(player);
             } else {
                 player.printError("No snapshots are available. See console for details.");
 
@@ -129,7 +129,7 @@ public class SnapshotCommands {
 
                 if (snapshot != null) {
                     session.setSnapshot(null);
-                    player.print(BBC.getPrefix() + "Now using newest snapshot.");
+                    BBC.SNAPSHOT_NEWEST.send(player);
                 } else {
                     player.printError("No snapshots were found.");
                 }
@@ -139,7 +139,7 @@ public class SnapshotCommands {
         } else {
             try {
                 session.setSnapshot(config.snapshotRepo.getSnapshot(name));
-                player.print(BBC.getPrefix() + "Snapshot set to: " + name);
+                BBC.SNAPSHOT_SET.send(player, name);
             } catch (InvalidSnapshotException e) {
                 player.printError("That snapshot does not exist or is not available.");
             }
@@ -187,7 +187,7 @@ public class SnapshotCommands {
                 return;
             }
             session.setSnapshot(snapshot);
-            player.print(BBC.getPrefix() + "Snapshot set to: " + snapshot.getName());
+            BBC.SNAPSHOT_SET.send(player, snapshot.getName());
         } catch (MissingWorldException e) {
             player.printError("No snapshots were found for this world.");
         }
@@ -224,7 +224,7 @@ public class SnapshotCommands {
                             + dateFormat.format(date.getTime()) + ".");
                 } else {
                     session.setSnapshot(snapshot);
-                    player.print(BBC.getPrefix() + "Snapshot set to: " + snapshot.getName());
+                    BBC.SNAPSHOT_SET.send(player, snapshot.getName());
                 }
             } catch (MissingWorldException ex) {
                 player.printError("No snapshots were found for this world.");
@@ -258,11 +258,10 @@ public class SnapshotCommands {
                 Snapshot snapshot = config.snapshotRepo.getSnapshotAfter(date, player.getWorld().getName());
                 if (snapshot == null) {
                     dateFormat.setTimeZone(session.getTimeZone());
-                    player.printError("Couldn't find a snapshot after "
-                            + dateFormat.format(date.getTime()) + ".");
+                    player.printError("Couldn't find a snapshot after " + dateFormat.format(date.getTime()) + ".");
                 } else {
                     session.setSnapshot(snapshot);
-                    player.print(BBC.getPrefix() + "Snapshot set to: " + snapshot.getName());
+                    BBC.SNAPSHOT_SET.send(player, snapshot.getName());
                 }
             } catch (MissingWorldException ex) {
                 player.printError("No snapshots were found for this world.");

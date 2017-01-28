@@ -48,7 +48,6 @@ import net.minecraft.server.v1_7_R4.WorldServer;
 import net.minecraft.server.v1_7_R4.WorldSettings;
 import net.minecraft.server.v1_7_R4.WorldType;
 import org.bukkit.Bukkit;
-import org.bukkit.Chunk;
 import org.bukkit.World;
 import org.bukkit.WorldCreator;
 import org.bukkit.block.Biome;
@@ -59,7 +58,7 @@ import org.bukkit.event.world.WorldInitEvent;
 import org.bukkit.event.world.WorldLoadEvent;
 import org.bukkit.generator.ChunkGenerator;
 
-public class BukkitQueue17 extends BukkitQueue_0<Chunk, ChunkSection[], ChunkSection> {
+public class BukkitQueue17 extends BukkitQueue_0<net.minecraft.server.v1_7_R4.Chunk, ChunkSection[], ChunkSection> {
 
     protected static Field fieldData;
     protected static Field fieldIds;
@@ -175,18 +174,48 @@ public class BukkitQueue17 extends BukkitQueue_0<Chunk, ChunkSection[], ChunkSec
         }
     }
 
-    @Override
-    public boolean isChunkLoaded(int x, int z) {
-        return getWorld().isChunkLoaded(x, z);
-    }
-
     public World getWorld(String world) {
         return Bukkit.getWorld(world);
     }
 
     @Override
-    public boolean loadChunk(World world, int x, int z, boolean generate) {
-        return getCachedSections(world, x, z) != null;
+    public int getBiome(net.minecraft.server.v1_7_R4.Chunk chunk, int x, int z) {
+        return chunk.m()[((z & 15) << 4) + (x & 15)];
+    }
+
+    @Override
+    public net.minecraft.server.v1_7_R4.ChunkSection[] getSections(net.minecraft.server.v1_7_R4.Chunk chunk) {
+        return chunk.getSections();
+    }
+
+    @Override
+    public net.minecraft.server.v1_7_R4.Chunk loadChunk(World world, int x, int z, boolean generate) {
+        net.minecraft.server.v1_7_R4.Chunk chunk;
+        net.minecraft.server.v1_7_R4.ChunkProviderServer provider = ((org.bukkit.craftbukkit.v1_7_R4.CraftWorld) world).getHandle().chunkProviderServer;
+        if (generate) {
+            return provider.getOrCreateChunk(x, z);
+        } else {
+            return provider.loadChunk(x, z);
+        }
+    }
+
+    @Override
+    public net.minecraft.server.v1_7_R4.ChunkSection[] getCachedSections(World world, int cx, int cz) {
+        net.minecraft.server.v1_7_R4.Chunk chunk = ((org.bukkit.craftbukkit.v1_7_R4.CraftWorld) world).getHandle().chunkProviderServer.getChunkIfLoaded(cx, cz);
+        if (chunk != null) {
+            return chunk.getSections();
+        }
+        return null;
+    }
+
+    @Override
+    public net.minecraft.server.v1_7_R4.Chunk getCachedChunk(World world, int cx, int cz) {
+        return ((org.bukkit.craftbukkit.v1_7_R4.CraftWorld) world).getHandle().chunkProviderServer.getChunkIfLoaded(cx, cz);
+    }
+
+    @Override
+    public net.minecraft.server.v1_7_R4.ChunkSection getCachedSection(net.minecraft.server.v1_7_R4.ChunkSection[] chunkSections, int cy) {
+        return chunkSections[cy];
     }
 
     @Override
@@ -201,34 +230,12 @@ public class BukkitQueue17 extends BukkitQueue_0<Chunk, ChunkSection[], ChunkSec
     }
 
     @Override
-    public ChunkSection[] getCachedSections(World world, int x, int z) {
-        Chunk chunk = world.getChunkAt(x, z);
-        if (chunk == null) {
-            return null;
-        }
-        if (!chunk.isLoaded()) {
-            chunk.load(true);
-        }
-        return ((CraftChunk) chunk).getHandle().getSections();
-    }
-
-    @Override
     public int getCombinedId4Data(ChunkSection ls, int x, int y, int z) {
         byte[] ids = ls.getIdArray();
         NibbleArray datasNibble = ls.getDataArray();
         int i = FaweCache.CACHE_J[y & 15][z & 15][x & 15];
         int combined = (ids[i] << 4) + (datasNibble == null ? 0 : datasNibble.a(x & 15, y & 15, z & 15));
         return combined;
-    }
-
-    @Override
-    public boolean isChunkLoaded(World world, int x, int z) {
-        return world.isChunkLoaded(x, z);
-    }
-
-    @Override
-    public ChunkSection getCachedSection(ChunkSection[] chunkSections, int cy) {
-        return chunkSections[cy];
     }
 
     @Override
@@ -307,18 +314,13 @@ public class BukkitQueue17 extends BukkitQueue_0<Chunk, ChunkSection[], ChunkSec
     }
 
     @Override
-    public CompoundTag getTileEntity(Chunk chunk, int x, int y, int z) {
-        Map<ChunkPosition, TileEntity> tiles = ((CraftChunk) chunk).getHandle().tileEntities;
+    public CompoundTag getTileEntity(net.minecraft.server.v1_7_R4.Chunk chunk, int x, int y, int z) {
+        Map<ChunkPosition, TileEntity> tiles = chunk.tileEntities;
         ChunkPosition pos = new ChunkPosition(x, y, z);
         TileEntity tile = tiles.get(pos);
         return tile != null ? getTag(tile) : null;
     }
 
-
-    @Override
-    public Chunk getChunk(World world, int x, int z) {
-        return world.getChunkAt(x, z);
-    }
 
     public void setCount(int tickingBlockCount, int nonEmptyBlockCount, ChunkSection section) throws NoSuchFieldException, IllegalAccessException {
         fieldTickingBlockCount.set(section, tickingBlockCount);
@@ -331,28 +333,22 @@ public class BukkitQueue17 extends BukkitQueue_0<Chunk, ChunkSection[], ChunkSec
 
     @Override
     public void sendChunk(int x, int z, int bitMask) {
-        if (!isChunkLoaded(x, z)) {
-            return;
+        net.minecraft.server.v1_7_R4.Chunk chunk = getCachedChunk(getWorld(), x, z);
+        if (chunk != null) {
+            sendChunk(chunk, bitMask);
         }
-        sendChunk(getWorld().getChunkAt(x, z), bitMask);
     }
 
     @Override
     public void refreshChunk(FaweChunk fc) {
-        BukkitChunk_1_7 fs = (BukkitChunk_1_7) fc;
-        if (!isChunkLoaded(fc.getX(), fc.getZ())) {
-            return;
+        net.minecraft.server.v1_7_R4.Chunk chunk = getCachedChunk(getWorld(), fc.getX(), fc.getZ());
+        if (chunk != null) {
+            sendChunk(chunk, fc.getBitMask());
         }
-        Chunk chunk = fs.getChunk();
-        sendChunk(chunk, fs.getBitMask());
     }
 
-    public void sendChunk(Chunk chunk, int mask) {
-        if (!chunk.isLoaded()) {
-            return;
-        }
+    public void sendChunk(net.minecraft.server.v1_7_R4.Chunk nmsChunk, int mask) {
         try {
-            net.minecraft.server.v1_7_R4.Chunk nmsChunk = ((CraftChunk) chunk).getHandle();
             ChunkCoordIntPair pos = nmsChunk.l(); // getPosition()
             WorldServer w = (WorldServer) nmsChunk.world;
             PlayerChunkMap chunkMap = w.getPlayerChunkMap();

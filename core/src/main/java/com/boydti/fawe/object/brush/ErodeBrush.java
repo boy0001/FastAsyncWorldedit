@@ -12,6 +12,7 @@ import com.sk89q.worldedit.MaxChangedBlocksException;
 import com.sk89q.worldedit.Vector;
 import com.sk89q.worldedit.blocks.BaseBlock;
 import com.sk89q.worldedit.function.pattern.Pattern;
+import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import java.util.Map;
 
 public class ErodeBrush implements DoubleActionBrush {
@@ -130,7 +131,7 @@ public class ErodeBrush implements DoubleActionBrush {
     }
 
     private void erosionIteration(int brushSize, int brushSizeSquared, int erodeFaces, FaweClipboard current, FaweClipboard target) {
-        Map<Integer, Integer> frequency = Maps.newHashMap();
+        Int2ObjectOpenHashMap<Integer> frequency = new Int2ObjectOpenHashMap<>();
 
         for (int x = -brushSize; x <= brushSize; x++) {
             for (int y = -brushSize; y <= brushSize; y++) {

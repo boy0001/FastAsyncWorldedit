@@ -155,7 +155,7 @@ public class ToolCommands {
         int range = args.getInteger(1);
 
         if (range > config.maxSuperPickaxeSize) {
-            BBC.TOOL_FLOOD_FILL_RANGE_ERROR.send(player, config.maxSuperPickaxeSize);
+            BBC.TOOL_RANGE_ERROR.send(player, config.maxSuperPickaxeSize);
             return;
         }
 

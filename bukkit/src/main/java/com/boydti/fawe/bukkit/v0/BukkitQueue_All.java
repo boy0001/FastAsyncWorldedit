@@ -3,18 +3,18 @@ package com.boydti.fawe.bukkit.v0;
 import com.boydti.fawe.FaweCache;
 import com.boydti.fawe.config.Settings;
 import com.boydti.fawe.object.FaweChunk;
-import com.boydti.fawe.object.RunnableVal;
-import com.boydti.fawe.util.TaskManager;
+import com.boydti.fawe.util.MathMan;
 import com.sk89q.jnbt.CompoundTag;
 import com.sk89q.worldedit.blocks.BaseBlock;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import org.bukkit.Chunk;
+import org.bukkit.ChunkSnapshot;
 import org.bukkit.Location;
 import org.bukkit.World;
-import org.bukkit.block.Block;
+import org.bukkit.block.Biome;
 
-public class BukkitQueue_All extends BukkitQueue_0<Chunk, Chunk, Chunk> {
+public class BukkitQueue_All extends BukkitQueue_0<ChunkSnapshot, ChunkSnapshot, ChunkSnapshot> {
 
     public static int ALLOCATE;
     private static int LIGHT_MASK = 0x739C0;
@@ -39,85 +39,106 @@ public class BukkitQueue_All extends BukkitQueue_0<Chunk, Chunk, Chunk> {
 
     @Override
     public void setHeightMap(FaweChunk chunk, byte[] heightMap) {
-        // Do nothing
+        // Not supported
     }
 
     @Override
-    public void setSkyLight(Chunk chunk, int x, int y, int z, int value) {
-
+    public void setSkyLight(ChunkSnapshot chunk, int x, int y, int z, int value) {
+        // Not supported
     }
 
     @Override
-    public void setBlockLight(Chunk chunk, int x, int y, int z, int value) {
-//        chunk.getBlock(x & 15, y, z & 15);
+    public void setBlockLight(ChunkSnapshot chunk, int x, int y, int z, int value) {
+        // Not supported
     }
 
-    public int getCombinedId4Data(Chunk section, int x, int y, int z) {
-        Block block = ((Chunk) section).getBlock(x & 15, y, z & 15);
-        int combined = block.getTypeId() << 4;
-        if (FaweCache.hasData(combined)) {
-            combined += block.getData();
+    @Override
+    public int getCombinedId4Data(ChunkSnapshot chunk, int x, int y, int z) {
+        if (chunk.isSectionEmpty(y >> 4)) {
+            return 0;
         }
-        return combined;
+        int id = chunk.getBlockTypeId(x & 15, y, z & 15);
+        if (FaweCache.hasData(id)) {
+            int data = chunk.getBlockData(x & 15, y, z & 15);
+            return (id << 4) + data;
+        } else {
+            return id << 4;
+        }
     }
 
     @Override
-    public int getEmmittedLight(final Chunk chunk, int x, int y, int z) {
-        if (!chunk.isLoaded()) {
-            TaskManager.IMP.sync(new RunnableVal<Object>() {
-                @Override
-                public void run(Object value) {
-                    chunk.load(true);
+    public int getBiome(ChunkSnapshot chunkSnapshot, int x, int z) {
+        Biome biome = chunkSnapshot.getBiome(x & 15, z & 15);
+        return adapter.getBiomeId(biome);
+    }
+
+    @Override
+    public ChunkSnapshot getSections(ChunkSnapshot chunkSnapshot) {
+        return chunkSnapshot;
+    }
+
+    @Override
+    public ChunkSnapshot getCachedChunk(World world, int cx, int cz) {
+        if (world.isChunkLoaded(cx, cz)) {
+            long pair = MathMan.pairInt(cx, cz);
+            Long originalKeep = keepLoaded.get(pair);
+            keepLoaded.put(pair, Long.MAX_VALUE);
+            if (world.isChunkLoaded(cx, cz)) {
+                Chunk chunk = world.getChunkAt(cx, cz);
+                if (originalKeep != null) {
+                    keepLoaded.put(pair, originalKeep);
+                } else {
+                    keepLoaded.remove(pair);
                 }
-            });
+                return chunk.getChunkSnapshot(false, true, false);
+
+            } else {
+                keepLoaded.remove(pair);
+                return null;
+            }
+        } else {
+            return null;
         }
-        return chunk.getBlock(x, y, z).getLightFromBlocks();
     }
 
     @Override
-    public int getSkyLight(final Chunk chunk, int x, int y, int z) {
-        if (!chunk.isLoaded()) {
-            TaskManager.IMP.sync(new RunnableVal<Object>() {
-                @Override
-                public void run(Object value) {
-                    chunk.load(true);
-                }
-            });
-        }
-        return chunk.getBlock(x, y, z).getLightFromSky();
+    public int getEmmittedLight(final ChunkSnapshot chunk, int x, int y, int z) {
+        return chunk.getBlockEmittedLight(x & 15, y, z & 15);
     }
 
     @Override
-    public int getLight(final Chunk chunk, int x, int y, int z) {
-        if (!chunk.isLoaded()) {
-            TaskManager.IMP.sync(new RunnableVal<Object>() {
-                @Override
-                public void run(Object value) {
-                    chunk.load(true);
-                }
-            });
-        }
-        return chunk.getBlock(x, y, z).getLightLevel();
+    public int getSkyLight(final ChunkSnapshot chunk, int x, int y, int z) {
+        return chunk.getBlockSkyLight(x & 15, y, z & 15);
     }
 
     @Override
-    public Chunk getCachedSections(World impWorld, int cx, int cz) {
-        return impWorld.getChunkAt(cx, cz);
+    public int getLight(final ChunkSnapshot chunk, int x, int y, int z) {
+        x = x & 15;
+        z = z & 15;
+        return Math.max(chunk.getBlockEmittedLight(x, y, z), chunk.getBlockSkyLight(x, y, z));
     }
 
     @Override
-    public CompoundTag getTileEntity(Chunk chunk, int x, int y, int z) {
+    public ChunkSnapshot loadChunk(World world, int x, int z, boolean generate) {
+        Chunk chunk = world.getChunkAt(x, z);
+        chunk.load(generate);
+        return chunk.isLoaded() ? chunk.getChunkSnapshot(false, true, false) : null;
+    }
+
+    @Override
+    public ChunkSnapshot getCachedSections(World impWorld, int cx, int cz) {
+        return getCachedChunk(impWorld, cx, cz);
+    }
+
+    @Override
+    public CompoundTag getTileEntity(ChunkSnapshot chunk, int x, int y, int z) {
         if (adapter == null) {
             return null;
         }
         Location loc = new Location(getWorld(), x, y, z);
         BaseBlock block = adapter.getBlock(loc);
+        System.out.println("Get tile " + x + "," + y + "," + z + " | " + (block != null ? block.getNbtData() : null) + " | done");
         return block != null ? block.getNbtData() : null;
-    }
-
-    @Override
-    public Chunk getChunk(World world, int x, int z) {
-        return world.getChunkAt(x, z);
     }
 
     @Override

@@ -6,6 +6,7 @@ import com.boydti.fawe.object.exception.FaweException;
 import com.sk89q.jnbt.CompoundTag;
 import com.sk89q.worldedit.EditSession;
 import com.sk89q.worldedit.Vector;
+import com.sk89q.worldedit.Vector2D;
 import com.sk89q.worldedit.WorldEditException;
 import com.sk89q.worldedit.blocks.BaseBlock;
 import com.sk89q.worldedit.entity.BaseEntity;
@@ -15,6 +16,7 @@ import com.sk89q.worldedit.extent.Extent;
 import com.sk89q.worldedit.history.changeset.ChangeSet;
 import com.sk89q.worldedit.regions.Region;
 import com.sk89q.worldedit.util.Location;
+import com.sk89q.worldedit.world.biome.BaseBiome;
 import java.util.ArrayList;
 import java.util.List;
 import javax.annotation.Nullable;
@@ -131,6 +133,17 @@ public class HistoryExtent extends AbstractDelegateExtent {
             newList.add(new TrackedEntity(entity));
         }
         return newList;
+    }
+
+    @Override
+    public boolean setBiome(Vector2D position, BaseBiome newBiome) {
+        BaseBiome oldBiome = this.getBiome(position);
+        if (oldBiome.getId() != newBiome.getId()) {
+            this.changeSet.addBiomeChange(position.getBlockX(), position.getBlockZ(), oldBiome, newBiome);
+            return extent.setBiome(position, newBiome);
+        } else {
+            return false;
+        }
     }
 
     private class TrackedEntity implements Entity {

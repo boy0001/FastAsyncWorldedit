@@ -482,7 +482,7 @@ public class PlatformManager {
                         if (pos != null) {
                             player.findFreePosition(pos);
                         } else {
-                            player.printError("No block in sight (or too far)!");
+                            BBC.NO_BLOCK.send(player);
                         }
 
                         event.setCancelled(true);

@@ -237,18 +237,8 @@ public class NukkitQueue extends NMSMappedFaweQueue<Level, BaseFullChunk, BaseFu
     }
 
     @Override
-    public BaseFullChunk getChunk(Level level, int x, int z) {
-        return (BaseFullChunk) level.getChunk(x, z);
-    }
-
-    @Override
     public Level getImpWorld() {
         return world;
-    }
-
-    @Override
-    public boolean isChunkLoaded(Level level, int x, int z) {
-        return level.isChunkLoaded(x, z);
     }
 
     @Override
@@ -263,14 +253,29 @@ public class NukkitQueue extends NMSMappedFaweQueue<Level, BaseFullChunk, BaseFu
     }
 
     @Override
-    public boolean loadChunk(Level level, int x, int z, boolean generate) {
-        return level.loadChunk(x, z, generate);
+    public BaseFullChunk loadChunk(Level level, int x, int z, boolean generate) {
+        return level.getChunk(x, z, generate);
+    }
+
+    @Override
+    public BaseFullChunk getSections(BaseFullChunk baseFullChunk) {
+        return baseFullChunk;
+    }
+
+    @Override
+    public BaseFullChunk getCachedChunk(Level level, int cx, int cz) {
+        return level.getProvider().getChunk(cx, cz);
     }
 
     @Override
     public BaseFullChunk getCachedSections(Level level, int cx, int cz) {
         BaseFullChunk chunk = world.getChunk(cx, cz);
         return chunk;
+    }
+
+    @Override
+    public int getBiome(BaseFullChunk baseFullChunk, int x, int z) {
+        return baseFullChunk.getBiomeId(x & 15, z & 15);
     }
 
     @Override

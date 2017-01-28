@@ -6,8 +6,9 @@ import com.boydti.fawe.config.Settings;
 import com.boydti.fawe.object.IntegerTrio;
 import com.boydti.fawe.util.MathMan;
 import com.boydti.fawe.util.TaskManager;
-import java.util.HashMap;
+import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
 import java.util.HashSet;
+import java.util.Map;
 import org.bukkit.Bukkit;
 import org.bukkit.Chunk;
 import org.bukkit.Location;
@@ -46,11 +47,37 @@ public class ChunkListener implements Listener {
         }
     }
 
+    public static void main(String[] args) {
+        Map<Long, Object> map = new Long2ObjectOpenHashMap<Object>() {
+            @Override
+            public Object put(long l, Object o) {
+                synchronized (this) {
+                    return super.put(l, o);
+                }
+            }
+
+            @Override
+            public synchronized Object put(Long aLong, Object o) {
+                    return super.put(aLong, o);
+            }
+        };
+//        map = new ConcurrentHashMap<>();
+        long start = System.currentTimeMillis();
+        for (int j = 0; j < 50000; j++) {
+            for (long i = 0; i < 256; i++) {
+                map.put(i, i);
+            }
+            map.clear();
+        }
+        System.out.println(System.currentTimeMillis() - start);
+        System.out.println(map.size());
+    }
+
     public static boolean physicsFreeze = false;
     public static boolean itemFreeze = false;
 
     private HashSet<Long> badChunks = new HashSet<>();
-    private HashMap<Long, IntegerTrio> counter = new HashMap<>();
+    private Map<Long, IntegerTrio> counter = new Long2ObjectOpenHashMap<>();
     private int lastX = Integer.MIN_VALUE, lastZ = Integer.MIN_VALUE;
     private IntegerTrio lastCount;
 

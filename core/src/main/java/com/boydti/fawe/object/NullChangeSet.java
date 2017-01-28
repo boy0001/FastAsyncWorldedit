@@ -5,6 +5,7 @@ import com.sk89q.jnbt.CompoundTag;
 import com.sk89q.worldedit.extent.inventory.BlockBag;
 import com.sk89q.worldedit.history.change.Change;
 import com.sk89q.worldedit.world.World;
+import com.sk89q.worldedit.world.biome.BaseBiome;
 import java.util.ArrayList;
 import java.util.Iterator;
 
@@ -44,6 +45,11 @@ public class NullChangeSet extends FaweChangeSet {
 
     @Override
     public final void addEntityCreate(CompoundTag tag) {
+
+    }
+
+    @Override
+    public void addBiomeChange(int x, int z, BaseBiome from, BaseBiome to) {
 
     }
 

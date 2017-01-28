@@ -18,13 +18,13 @@ public class Settings extends Config {
     @Final
     public final String WIKI = "https://github.com/boy0001/FastAsyncWorldedit/wiki/";
     @Final
-    public String DATE = null; // These values are set from FAWE before loading
+    public String DATE; // These values are set from FAWE before loading
     @Final
-    public String BUILD = null; // These values are set from FAWE before loading
+    public String BUILD; // These values are set from FAWE before loading
     @Final
-    public String COMMIT = null; // These values are set from FAWE before loading
+    public String COMMIT; // These values are set from FAWE before loading
     @Final
-    public String PLATFORM = null; // These values are set from FAWE before loading
+    public String PLATFORM; // These values are set from FAWE before loading
 
     @Comment("Allow the plugin to update")
     public boolean UPDATE = true;
@@ -46,23 +46,23 @@ public class Settings extends Config {
     public int MAX_MEMORY_PERCENT = 95;
 
     @Create
-    public CLIPBOARD CLIPBOARD = null;
+    public CLIPBOARD CLIPBOARD;
     @Create
-    public LIGHTING LIGHTING = null;
+    public LIGHTING LIGHTING;
     @Create
-    public TICK_LIMITER TICK_LIMITER = null;
+    public TICK_LIMITER TICK_LIMITER;
     @Create
-    public WEB WEB = null;
+    public WEB WEB;
     @Create
-    public EXTENT EXTENT = null;
+    public EXTENT EXTENT;
     @Create
-    public EXPERIMENTAL EXPERIMENTAL = null;
+    public EXPERIMENTAL EXPERIMENTAL;
     @Create
-    public QUEUE QUEUE = null;
+    public QUEUE QUEUE;
     @Create
-    public HISTORY HISTORY = null;
+    public HISTORY HISTORY;
     @Create
-    public PATHS PATHS = null;
+    public PATHS PATHS;
 
     @Comment("Paths for various directories")
     public static final class PATHS {
@@ -72,7 +72,7 @@ public class Settings extends Config {
 
 
     @Create // This value will be generated automatically
-    public ConfigBlock<LIMITS> LIMITS = null;
+    public ConfigBlock<LIMITS> LIMITS;
 
     @Comment({
             "The \"default\" limit group affects those without a specific limit permission.",
@@ -208,7 +208,7 @@ public class Settings extends Config {
 
     public static class QUEUE {
         @Create
-        public static PROGRESS PROGRESS = null;
+        public static PROGRESS PROGRESS;
         @Comment({
             "If no blocks from completed edits are queued, and if the global queue has more available ",
             "chunks to place from still-processing edits than the target size setting, it will begin",

@@ -1,5 +1,7 @@
 package com.boydti.fawe.util;
 
+import com.boydti.fawe.config.Settings;
+import com.boydti.fawe.example.Relighter;
 import com.boydti.fawe.object.FaweChunk;
 import com.boydti.fawe.object.FawePlayer;
 import com.boydti.fawe.object.FaweQueue;
@@ -7,6 +9,10 @@ import com.boydti.fawe.object.RunnableVal2;
 import com.boydti.fawe.object.exception.FaweException;
 import com.sk89q.jnbt.CompoundTag;
 import com.sk89q.worldedit.EditSession;
+import com.sk89q.worldedit.Vector;
+import com.sk89q.worldedit.blocks.BaseBlock;
+import com.sk89q.worldedit.regions.CuboidRegion;
+import com.sk89q.worldedit.world.World;
 import com.sk89q.worldedit.world.biome.BaseBiome;
 import java.io.File;
 import java.util.Collection;
@@ -50,6 +56,11 @@ public class DelegateFaweQueue extends FaweQueue {
     }
 
     @Override
+    public World getWEWorld() {
+        return parent.getWEWorld();
+    }
+
+    @Override
     public void setProgressTracker(RunnableVal2<ProgressType, Integer> progressTask) {
         parent.setProgressTracker(progressTask);
     }
@@ -90,6 +101,11 @@ public class DelegateFaweQueue extends FaweQueue {
     }
 
     @Override
+    public int getBiomeId(int x, int z) throws FaweException.FaweChunkLoadException {
+        return parent.getBiomeId(x, z);
+    }
+
+    @Override
     public void setChangeTask(RunnableVal2<FaweChunk, FaweChunk> changeTask) {
         parent.setChangeTask(changeTask);
     }
@@ -105,8 +121,23 @@ public class DelegateFaweQueue extends FaweQueue {
     }
 
     @Override
+    public int setBlocks(CuboidRegion cuboid, int id, int data) {
+        return parent.setBlocks(cuboid, id, data);
+    }
+
+    @Override
     public boolean setBlock(int x, int y, int z, int id, int data) {
         return parent.setBlock(x, y, z, id, data);
+    }
+
+    @Override
+    public boolean setBlock(int x, int y, int z, int id) {
+        return parent.setBlock(x, y, z, id);
+    }
+
+    @Override
+    public boolean setBlock(int x, int y, int z, int id, int data, CompoundTag nbt) {
+        return parent.setBlock(x, y, z, id, data, nbt);
     }
 
     @Override
@@ -150,8 +181,24 @@ public class DelegateFaweQueue extends FaweQueue {
     }
 
     @Override
-    public boolean isChunkLoaded(int x, int z) {
-        return parent.isChunkLoaded(x, z);
+    public int getMaxY() {
+        return parent.getMaxY();
+    }
+
+    @Override
+    public void forEachBlockInChunk(int cx, int cz, RunnableVal2<Vector, BaseBlock> onEach) {
+        parent.forEachBlockInChunk(cx, cz, onEach);
+    }
+
+    @Override
+    public void forEachTileInChunk(int cx, int cz, RunnableVal2<Vector, BaseBlock> onEach) {
+        parent.forEachTileInChunk(cx, cz, onEach);
+    }
+
+    @Override
+    @Deprecated
+    public boolean regenerateChunk(int x, int z) {
+        return parent.regenerateChunk(x, z);
     }
 
     @Override
@@ -179,6 +226,7 @@ public class DelegateFaweQueue extends FaweQueue {
         parent.sendBlockUpdate(blockMap, players);
     }
 
+    @Deprecated
     @Override
     public boolean next() {
         return parent.next();
@@ -210,6 +258,11 @@ public class DelegateFaweQueue extends FaweQueue {
     }
 
     @Override
+    public boolean hasBlock(int x, int y, int z) throws FaweException.FaweChunkLoadException {
+        return parent.hasBlock(x, y, z);
+    }
+
+    @Override
     public void addNotifyTask(Runnable runnable) {
         parent.addNotifyTask(runnable);
     }
@@ -225,6 +278,11 @@ public class DelegateFaweQueue extends FaweQueue {
     }
 
     @Override
+    public int getAdjacentLight(int x, int y, int z) {
+        return parent.getAdjacentLight(x, y, z);
+    }
+
+    @Override
     public boolean hasSky() {
         return parent.hasSky();
     }
@@ -232,6 +290,11 @@ public class DelegateFaweQueue extends FaweQueue {
     @Override
     public int getSkyLight(int x, int y, int z) {
         return parent.getSkyLight(x, y, z);
+    }
+
+    @Override
+    public int getLight(int x, int y, int z) {
+        return parent.getLight(x, y, z);
     }
 
     @Override
@@ -250,8 +313,28 @@ public class DelegateFaweQueue extends FaweQueue {
     }
 
     @Override
+    public int getCachedCombinedId4Data(int x, int y, int z, int def) {
+        return parent.getCachedCombinedId4Data(x, y, z, def);
+    }
+
+    @Override
     public int getCombinedId4DataDebug(int x, int y, int z, int def, EditSession session) {
         return parent.getCombinedId4DataDebug(x, y, z, def, session);
+    }
+
+    @Override
+    public int getBrightness(int x, int y, int z) {
+        return parent.getBrightness(x, y, z);
+    }
+
+    @Override
+    public int getOpacityBrightnessPair(int x, int y, int z) {
+        return parent.getOpacityBrightnessPair(x, y, z);
+    }
+
+    @Override
+    public int getOpacity(int x, int y, int z) {
+        return parent.getOpacity(x, y, z);
     }
 
     @Override
@@ -260,12 +343,67 @@ public class DelegateFaweQueue extends FaweQueue {
     }
 
     @Override
+    public boolean isEmpty() {
+        return parent.isEmpty();
+    }
+
+    @Override
+    public void flush() {
+        parent.flush();
+    }
+
+    @Override
+    public SetQueue.QueueStage getStage() {
+        return parent.getStage();
+    }
+
+    @Override
+    public void setStage(SetQueue.QueueStage stage) {
+        parent.setStage(stage);
+    }
+
+    @Override
+    public void flush(int time) {
+        parent.flush(time);
+    }
+
+    @Override
     public void runTasks() {
         parent.runTasks();
     }
 
     @Override
+    public void addTask(Runnable whenFree) {
+        parent.addTask(whenFree);
+    }
+
+    @Override
     public boolean enqueue() {
         return parent.enqueue();
+    }
+
+    @Override
+    public void dequeue() {
+        parent.dequeue();
+    }
+
+    @Override
+    public Relighter getRelighter() {
+        return parent.getRelighter();
+    }
+
+    @Override
+    public Settings getSettings() {
+        return parent.getSettings();
+    }
+
+    @Override
+    public void setSettings(Settings settings) {
+        parent.setSettings(settings);
+    }
+
+    @Override
+    public void setWorld(String world) {
+        parent.setWorld(world);
     }
 }

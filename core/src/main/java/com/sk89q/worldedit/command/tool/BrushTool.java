@@ -1,5 +1,6 @@
 package com.sk89q.worldedit.command.tool;
 
+import com.boydti.fawe.config.BBC;
 import com.boydti.fawe.object.extent.ResettableExtent;
 import com.sk89q.worldedit.EditSession;
 import com.sk89q.worldedit.LocalConfiguration;
@@ -176,7 +177,7 @@ public class BrushTool implements TraceTool {
         target = player.getBlockTrace(getRange(), true);
 
         if (target == null) {
-            player.printError("No block in sight!");
+            BBC.NO_BLOCK.send(player);
             return true;
         }
 
@@ -216,7 +217,7 @@ public class BrushTool implements TraceTool {
         try {
             brush.build(editSession, target, material, size);
         } catch (MaxChangedBlocksException e) {
-            player.printError("Max blocks change limit reached.");
+            player.printError("Max blocks change limit reached."); // Never happens
         } finally {
             if (bag != null) {
                 bag.flushChanges();

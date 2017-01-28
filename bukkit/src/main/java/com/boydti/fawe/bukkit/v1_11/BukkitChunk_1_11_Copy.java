@@ -1,6 +1,9 @@
 package com.boydti.fawe.bukkit.v1_11;
 
 import com.boydti.fawe.object.FaweQueue;
+import net.minecraft.server.v1_11_R1.ChunkSection;
+import net.minecraft.server.v1_11_R1.DataPaletteBlock;
+import net.minecraft.server.v1_11_R1.NibbleArray;
 
 public class BukkitChunk_1_11_Copy extends BukkitChunk_1_11 {
     public final byte[][] idsBytes;
@@ -15,6 +18,21 @@ public class BukkitChunk_1_11_Copy extends BukkitChunk_1_11 {
     public void set(int i, byte[] ids, byte[] data) {
         this.idsBytes[i] = ids;
         this.datasBytes[i] = data;
+    }
+
+    public boolean storeSection(ChunkSection section, int layer) throws IllegalAccessException {
+        if (section == null) {
+            return false;
+        }
+        DataPaletteBlock blocks = section.getBlocks();
+        byte[] ids = new byte[4096];
+        NibbleArray data = new NibbleArray();
+        blocks.exportData(ids, data);
+        set(layer, ids, data.asBytes());
+        short solid = (short) getParent().fieldNonEmptyBlockCount.getInt(section);
+        count[layer] = solid;
+        air[layer] = (short) (4096 - solid);
+        return true;
     }
 
     @Override

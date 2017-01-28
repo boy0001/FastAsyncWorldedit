@@ -48,7 +48,7 @@ public class SuperPickaxeCommands {
 
         session.setSuperPickaxe(new SinglePickaxe());
         session.enableSuperPickAxe();
-        player.print(BBC.getPrefix() + "Mode changed. Left click with a pickaxe. // to disable.");
+        BBC.SUPERPICKAXE_AREA_ENABLED.send(player);
     }
 
     @Command(
@@ -65,13 +65,13 @@ public class SuperPickaxeCommands {
         int range = args.getInteger(0);
 
         if (range > config.maxSuperPickaxeSize) {
-            player.printError("Maximum range: " + config.maxSuperPickaxeSize);
+            BBC.TOOL_RANGE_ERROR.send(player, config.maxSuperPickaxeSize);
             return;
         }
 
         session.setSuperPickaxe(new AreaPickaxe(range));
         session.enableSuperPickAxe();
-        player.print(BBC.getPrefix() + "Mode changed. Left click with a pickaxe. // to disable.");
+        BBC.SUPERPICKAXE_AREA_ENABLED.send(player);
     }
 
     @Command(
@@ -88,13 +88,13 @@ public class SuperPickaxeCommands {
         double range = args.getDouble(0);
 
         if (range > config.maxSuperPickaxeSize) {
-            player.printError("Maximum range: " + config.maxSuperPickaxeSize);
+            BBC.TOOL_RANGE_ERROR.send(player, config.maxSuperPickaxeSize);
             return;
         }
 
         session.setSuperPickaxe(new RecursivePickaxe(range));
         session.enableSuperPickAxe();
-        player.print(BBC.getPrefix() + "Mode changed. Left click with a pickaxe. // to disable.");
+        BBC.SUPERPICKAXE_AREA_ENABLED.send(player);
     }
 
     public static Class<SuperPickaxeCommands> inject() {

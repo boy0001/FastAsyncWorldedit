@@ -10,7 +10,6 @@ import com.boydti.fawe.util.MathMan;
 import com.sk89q.jnbt.CompoundTag;
 import com.sk89q.jnbt.ListTag;
 import com.sk89q.jnbt.NBTInputStream;
-import com.sk89q.worldedit.world.biome.BaseBiome;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -241,9 +240,9 @@ public class MCAChunk extends FaweChunk<Void> {
     }
 
     @Override
-    public void setBiome(int x, int z, BaseBiome biome) {
+    public void setBiome(int x, int z, byte biome) {
         modified = true;
-        biomes[x + (z << 4)] = (byte) biome.getId();;
+        biomes[x + (z << 4)] = biome;
     }
 
     @Override
@@ -290,6 +289,11 @@ public class MCAChunk extends FaweChunk<Void> {
             }
         }
         return id << 4;
+    }
+
+    @Override
+    public byte[] getBiomeArray() {
+        return this.biomes;
     }
 
     @Override

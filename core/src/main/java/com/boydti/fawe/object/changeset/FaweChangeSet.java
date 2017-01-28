@@ -23,6 +23,7 @@ import com.sk89q.worldedit.history.change.EntityCreate;
 import com.sk89q.worldedit.history.change.EntityRemove;
 import com.sk89q.worldedit.history.changeset.ChangeSet;
 import com.sk89q.worldedit.world.World;
+import com.sk89q.worldedit.world.biome.BaseBiome;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
@@ -119,6 +120,7 @@ public abstract class FaweChangeSet implements ChangeSet {
     public abstract void addTileRemove(CompoundTag tag);
     public abstract void addEntityRemove(CompoundTag tag);
     public abstract void addEntityCreate(CompoundTag tag);
+    public abstract void addBiomeChange(int x, int z, BaseBiome from, BaseBiome to);
     public Iterator<Change> getIterator(BlockBag blockBag, int mode, boolean redo) {
         return getIterator(redo);
     }
@@ -227,79 +229,81 @@ public abstract class FaweChangeSet implements ChangeSet {
                             int cz = previous.getZ();
                             int bx = cx << 4;
                             int bz = cz << 4;
-                            // Biome changes
-                            {
-                                // TODO
-                            }
-                            // Block changes
-                            // Current blocks
-//                                char[][] currentIds = next.getCombinedIdArrays();
-                            // Previous blocks in modified sections (i.e. we skip sections that weren't modified)
-//                                char[][] previousIds = previous.getCombinedIdArrays();
-                            for (int layer = 0; layer < layers; layer++) {
-                                char[] currentLayer = next.getIdArray(layer);
-                                char[] previousLayer = previous.getIdArray(layer);
-                                if (currentLayer == null) {
-                                    continue;
-                                }
-                                int startY = layer << 4;
-                                for (int y = 0; y < 16; y++) {
-                                    short[][] i1 = FaweCache.CACHE_J[y];
-                                    int yy = y + startY;
+                            synchronized (FaweChangeSet.this) {
+                                // Biome changes
+                                if (previous.getBiomeArray() != null) {
+                                    byte[] previousBiomes = previous.getBiomeArray();
+                                    byte[] nextBiomes = next.getBiomeArray();
+                                    int index = 0;
                                     for (int z = 0; z < 16; z++) {
-                                        int zz = z + bz;
-                                        short[] i2 = i1[z];
+                                        int zz = bz + z;
                                         for (int x = 0; x < 16; x++) {
-                                            int xx = x + bx;
-                                            int index = i2[x];
-                                            int combinedIdCurrent = currentLayer[index];
-                                            switch (combinedIdCurrent) {
-                                                case 0:
-                                                    continue;
-                                                case 1:
-                                                    combinedIdCurrent = 0;
-                                                default:
-                                                    char combinedIdPrevious = previousLayer != null ? previousLayer[index] : 0;
-                                                    if (combinedIdCurrent != combinedIdPrevious) {
-                                                        synchronized (FaweChangeSet.this) {
+                                            byte idFrom = previousBiomes[index];
+                                            byte idTo = nextBiomes[index];
+                                            if (idFrom != idTo && idTo != 0) {
+                                                addBiomeChange(bx + x, zz, FaweCache.getBiome(idFrom & 0xFF), FaweCache.getBiome(idTo & 0xFF));
+                                            }
+                                            index++;
+                                        }
+                                    }
+                                    // TODO
+                                }
+                                // Block changes
+                                for (int layer = 0; layer < layers; layer++) {
+                                    char[] currentLayer = next.getIdArray(layer);
+                                    char[] previousLayer = previous.getIdArray(layer);
+                                    if (currentLayer == null) {
+                                        continue;
+                                    }
+                                    int startY = layer << 4;
+                                    for (int y = 0; y < 16; y++) {
+                                        short[][] i1 = FaweCache.CACHE_J[y];
+                                        int yy = y + startY;
+                                        for (int z = 0; z < 16; z++) {
+                                            int zz = z + bz;
+                                            short[] i2 = i1[z];
+                                            for (int x = 0; x < 16; x++) {
+                                                int xx = x + bx;
+                                                int index = i2[x];
+                                                int combinedIdCurrent = currentLayer[index];
+                                                switch (combinedIdCurrent) {
+                                                    case 0:
+                                                        continue;
+                                                    case 1:
+                                                        combinedIdCurrent = 0;
+                                                    default:
+                                                        char combinedIdPrevious = previousLayer != null ? previousLayer[index] : 0;
+                                                        if (combinedIdCurrent != combinedIdPrevious) {
                                                             add(xx, yy, zz, combinedIdPrevious, combinedIdCurrent);
                                                         }
-                                                    }
+                                                }
                                             }
                                         }
                                     }
                                 }
-                            }
-                            // Tile changes
-                            {
-                                // Tiles created
-                                Map<Short, CompoundTag> tiles = next.getTiles();
-                                for (Map.Entry<Short, CompoundTag> entry : tiles.entrySet()) {
-                                    synchronized (FaweChangeSet.this) {
+                                // Tile changes
+                                {
+                                    // Tiles created
+                                    Map<Short, CompoundTag> tiles = next.getTiles();
+                                    for (Map.Entry<Short, CompoundTag> entry : tiles.entrySet()) {
                                         addTileCreate(entry.getValue());
                                     }
-                                }
-                                // Tiles removed
-                                tiles = previous.getTiles();
-                                for (Map.Entry<Short, CompoundTag> entry : tiles.entrySet()) {
-                                    synchronized (FaweChangeSet.this) {
+                                    // Tiles removed
+                                    tiles = previous.getTiles();
+                                    for (Map.Entry<Short, CompoundTag> entry : tiles.entrySet()) {
                                         addTileRemove(entry.getValue());
                                     }
                                 }
-                            }
-                            // Entity changes
-                            {
-                                // Entities created
-                                Set<CompoundTag> entities = next.getEntities();
-                                for (CompoundTag entityTag : entities) {
-                                    synchronized (FaweChangeSet.this) {
+                                // Entity changes
+                                {
+                                    // Entities created
+                                    Set<CompoundTag> entities = next.getEntities();
+                                    for (CompoundTag entityTag : entities) {
                                         addEntityCreate(entityTag);
                                     }
-                                }
-                                // Entities removed
-                                entities = previous.getEntities();
-                                for (CompoundTag entityTag : entities) {
-                                    synchronized (FaweChangeSet.this) {
+                                    // Entities removed
+                                    entities = previous.getEntities();
+                                    for (CompoundTag entityTag : entities) {
                                         addEntityRemove(entityTag);
                                     }
                                 }

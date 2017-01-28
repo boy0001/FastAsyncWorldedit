@@ -5,11 +5,11 @@ import com.boydti.fawe.object.FaweQueue;
 import com.boydti.fawe.object.RunnableVal;
 import com.boydti.fawe.util.MathMan;
 import com.boydti.fawe.util.SetQueue;
+import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorCompletionService;
 
 public class DefaultFaweQueueMap implements IFaweQueueMap {
@@ -20,12 +20,14 @@ public class DefaultFaweQueueMap implements IFaweQueueMap {
         this.parent = parent;
     }
 
-    /**
-     * Map of chunks in the queue
-     */
-    public final ConcurrentHashMap<Long, FaweChunk> blocks = new ConcurrentHashMap<Long, FaweChunk>(8, 0.9f, 1) {
+    public final Long2ObjectOpenHashMap<FaweChunk> blocks = new Long2ObjectOpenHashMap<FaweChunk>() {
         @Override
         public FaweChunk put(Long key, FaweChunk value) {
+            return put((long) key, value);
+        }
+
+        @Override
+        public FaweChunk put(long key, FaweChunk value) {
             if (parent.getProgressTask() != null) {
                 try {
                     parent.getProgressTask().run(FaweQueue.ProgressType.QUEUE, size() + 1);
@@ -33,7 +35,9 @@ public class DefaultFaweQueueMap implements IFaweQueueMap {
                     e.printStackTrace();
                 }
             }
-            return super.put(key, value);
+            synchronized (this) {
+                return super.put(key, value);
+            }
         }
     };
 
@@ -109,67 +113,69 @@ public class DefaultFaweQueueMap implements IFaweQueueMap {
 
     @Override
     public boolean next(int amount, ExecutorCompletionService pool, long time) {
-        try {
-            boolean skip = parent.getStage() == SetQueue.QueueStage.INACTIVE;
-            int added = 0;
-            Iterator<Map.Entry<Long, FaweChunk>> iter = blocks.entrySet().iterator();
-            if (amount == 1) {
-                long start = System.currentTimeMillis();
-                do {
-                    if (iter.hasNext()) {
-                        FaweChunk chunk = iter.next().getValue();
-                        if (skip && chunk == lastWrappedChunk) {
-                            continue;
-                        }
-                        iter.remove();
-                        parent.start(chunk);
-                        chunk.call();
-                        parent.end(chunk);
-                    } else {
-                        break;
-                    }
-                } while (System.currentTimeMillis() - start < time);
-            } else {
-                boolean result = true;
-                // amount = 8;
-                for (int i = 0; i < amount && (result = iter.hasNext()); i++, added++) {
-                    Map.Entry<Long, FaweChunk> item = iter.next();
-                    FaweChunk chunk = item.getValue();
-                    if (skip && chunk == lastWrappedChunk) {
-                        i--;
-                        added--;
-                        continue;
-                    }
-                    iter.remove();
-                    parent.start(chunk);
-                    pool.submit(chunk);
-                }
-                // if result, then submitted = amount
-                if (result) {
+        synchronized (blocks) {
+            try {
+                boolean skip = parent.getStage() == SetQueue.QueueStage.INACTIVE;
+                int added = 0;
+                Iterator<Map.Entry<Long, FaweChunk>> iter = blocks.entrySet().iterator();
+                if (amount == 1) {
                     long start = System.currentTimeMillis();
-                    while (System.currentTimeMillis() - start < time && result) {
-                        if (result = iter.hasNext()) {
-                            Map.Entry<Long, FaweChunk> item = iter.next();
-                            FaweChunk chunk = item.getValue();
+                    do {
+                        if (iter.hasNext()) {
+                            FaweChunk chunk = iter.next().getValue();
                             if (skip && chunk == lastWrappedChunk) {
                                 continue;
                             }
                             iter.remove();
                             parent.start(chunk);
-                            pool.submit(chunk);
-                            FaweChunk fc = ((FaweChunk) pool.take().get());
-                            parent.end(fc);
+                            chunk.call();
+                            parent.end(chunk);
+                        } else {
+                            break;
+                        }
+                    } while (System.currentTimeMillis() - start < time);
+                } else {
+                    boolean result = true;
+                    // amount = 8;
+                    for (int i = 0; i < amount && (result = iter.hasNext()); i++, added++) {
+                        Map.Entry<Long, FaweChunk> item = iter.next();
+                        FaweChunk chunk = item.getValue();
+                        if (skip && chunk == lastWrappedChunk) {
+                            i--;
+                            added--;
+                            continue;
+                        }
+                        iter.remove();
+                        parent.start(chunk);
+                        pool.submit(chunk);
+                    }
+                    // if result, then submitted = amount
+                    if (result) {
+                        long start = System.currentTimeMillis();
+                        while (System.currentTimeMillis() - start < time && result) {
+                            if (result = iter.hasNext()) {
+                                Map.Entry<Long, FaweChunk> item = iter.next();
+                                FaweChunk chunk = item.getValue();
+                                if (skip && chunk == lastWrappedChunk) {
+                                    continue;
+                                }
+                                iter.remove();
+                                parent.start(chunk);
+                                pool.submit(chunk);
+                                FaweChunk fc = ((FaweChunk) pool.take().get());
+                                parent.end(fc);
+                            }
                         }
                     }
+                    for (int i = 0; i < added; i++) {
+                        FaweChunk fc = ((FaweChunk) pool.take().get());
+                        parent.end(fc);
+                    }
                 }
-                for (int i = 0; i < added; i++) {
-                    FaweChunk fc = ((FaweChunk) pool.take().get());
-                    parent.end(fc);
-                }
+            } catch (Throwable e) {
+                e.printStackTrace();
             }
-        } catch (Throwable e) {
-            e.printStackTrace();
+            return !blocks.isEmpty();
         }
-        return !blocks.isEmpty();
     }
 }

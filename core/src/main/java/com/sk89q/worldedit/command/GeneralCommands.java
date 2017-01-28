@@ -8,7 +8,6 @@ import com.sk89q.minecraft.util.commands.Command;
 import com.sk89q.minecraft.util.commands.CommandContext;
 import com.sk89q.minecraft.util.commands.CommandPermissions;
 import com.sk89q.worldedit.EditSession;
-import com.sk89q.worldedit.LocalConfiguration;
 import com.sk89q.worldedit.LocalSession;
 import com.sk89q.worldedit.WorldEdit;
 import com.sk89q.worldedit.WorldEditException;
@@ -56,36 +55,6 @@ public class GeneralCommands {
     }
 
     @Command(
-            aliases = { "/limit" },
-            usage = "<limit>",
-            desc = "Modify block change limit",
-            min = 1,
-            max = 1
-    )
-    @CommandPermissions("worldedit.limit")
-    public void limit(Player player, LocalSession session, CommandContext args) throws WorldEditException {
-
-        LocalConfiguration config = worldEdit.getConfiguration();
-        boolean mayDisable = player.hasPermission("worldedit.limit.unrestricted");
-
-        int limit = Math.max(-1, args.getInteger(0));
-        if (!mayDisable && config.maxChangeLimit > -1) {
-            if (limit > config.maxChangeLimit) {
-                player.printError("Your maximum allowable limit is " + config.maxChangeLimit + ".");
-                return;
-            }
-        }
-
-        session.setBlockChangeLimit(limit);
-
-        if (limit != -1) {
-            player.print(BBC.getPrefix() + "Block change limit set to " + limit + ". (Use //limit -1 to go back to the default.)");
-        } else {
-            player.print(BBC.getPrefix() + "Block change limit set to " + limit + ".");
-        }
-    }
-
-    @Command(
             aliases = { "/fast" },
             usage = "[on|off]",
             desc = "Toggle fast mode",
@@ -98,20 +67,20 @@ public class GeneralCommands {
         String newState = args.getString(0, null);
         if (session.hasFastMode()) {
             if ("on".equals(newState)) {
-                player.printError("Fast mode already enabled.");
+                BBC.FAST_ENABLED.send(player);
                 return;
             }
 
             session.setFastMode(false);
-            player.print(BBC.getPrefix() + "Fast mode disabled.");
+            BBC.FAST_DISABLED.send(player);
         } else {
             if ("off".equals(newState)) {
-                player.printError("Fast mode already disabled.");
+                BBC.FAST_DISABLED.send(player);
                 return;
             }
 
             session.setFastMode(true);
-            player.print(BBC.getPrefix() + "Fast mode enabled. Lighting in the affected chunks may be wrong and/or you may need to rejoin to see changes.");
+            BBC.FAST_ENABLED.send(player);
         }
     }
 
@@ -197,9 +166,9 @@ public class GeneralCommands {
     public void togglePlace(Player player, LocalSession session, CommandContext args) throws WorldEditException {
 
         if (session.togglePlacementPosition()) {
-            player.print(BBC.getPrefix() + "Now placing at pos #1.");
+            BBC.PLACE_ENABLED.send(player);
         } else {
-            player.print(BBC.getPrefix() + "Now placing at the block you stand in.");
+            BBC.PLACE_DISABLED.send(player);
         }
     }
 

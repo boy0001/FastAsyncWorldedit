@@ -17,6 +17,7 @@ import com.sk89q.jnbt.Tag;
 import com.sk89q.worldedit.CuboidClipboard;
 import com.sk89q.worldedit.blocks.BaseBlock;
 import com.sk89q.worldedit.blocks.BaseItem;
+import com.sk89q.worldedit.world.biome.BaseBiome;
 import com.sk89q.worldedit.world.registry.BundledBlockData;
 import java.awt.Color;
 import java.lang.reflect.Field;
@@ -59,6 +60,11 @@ public class FaweCache {
      * (combined & 0xF) = data
      */
     public final static byte[] CACHE_DATA = new byte[65535];
+
+    /**
+     * Immutable biome cache
+     */
+    public final static BaseBiome[] CACHE_BIOME = new BaseBiome[256];
 
     /**
      * Immutable BaseBlock cache
@@ -129,7 +135,19 @@ public class FaweCache {
         return CACHE_COLOR[0];
     }
 
+    public static final BaseBiome getBiome(int id) {
+        return CACHE_BIOME[id];
+    }
+
     static {
+        for (int i = 0; i < 256; i++) {
+            CACHE_BIOME[i] = new BaseBiome(i) {
+                @Override
+                public void setId(int id) {
+                    throw new IllegalStateException("Cannot set id");
+                }
+            };
+        }
         for (int x = 0; x < 16; x++) {
             for (int z = 0; z < 16; z++) {
                 for (int y = 0; y < 256; y++) {

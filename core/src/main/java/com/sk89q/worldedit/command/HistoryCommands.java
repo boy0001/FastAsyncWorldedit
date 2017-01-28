@@ -222,7 +222,7 @@ public class HistoryCommands {
                 player.checkPermission("worldedit.history.undo.other");
                 LocalSession sess = worldEdit.getSession(args.getString(1));
                 if (sess == null) {
-                    player.printError("Unable to find session for " + args.getString(1));
+                    BBC.COMMAND_HISTORY_OTHER_ERROR.send(player, args.getString(1));
                     break;
                 }
                 undone = sess.undo(session.getBlockBag(player), player);
@@ -257,7 +257,7 @@ public class HistoryCommands {
                 player.checkPermission("worldedit.history.redo.other");
                 LocalSession sess = worldEdit.getSession(args.getString(1));
                 if (sess == null) {
-                    player.printError("Unable to find session for " + args.getString(1));
+                    BBC.COMMAND_HISTORY_OTHER_ERROR.send(player, args.getString(1));
                     break;
                 }
                 redone = sess.redo(session.getBlockBag(player), player);

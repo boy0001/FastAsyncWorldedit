@@ -185,7 +185,7 @@ public class NavigationCommands {
             player.findFreePosition(pos);
             BBC.POOF.send(player);
         } else {
-            BBC.JUMPTO_FAIL.send(player);
+            BBC.NO_BLOCK.send(player);
         }
     }
 

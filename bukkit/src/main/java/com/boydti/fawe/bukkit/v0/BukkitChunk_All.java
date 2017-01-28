@@ -11,10 +11,10 @@ import com.sk89q.worldedit.LocalWorld;
 import com.sk89q.worldedit.Vector2D;
 import com.sk89q.worldedit.blocks.BaseBlock;
 import com.sk89q.worldedit.bukkit.BukkitUtil;
-import com.sk89q.worldedit.world.biome.BaseBiome;
 import java.util.ArrayList;
 import org.bukkit.Bukkit;
 import org.bukkit.Chunk;
+import org.bukkit.Location;
 import org.bukkit.World;
 import org.bukkit.block.Block;
 
@@ -75,36 +75,26 @@ public class BukkitChunk_All extends CharFaweChunk<Chunk, BukkitQueue_All> {
         long start = System.currentTimeMillis();
         int recommended = 25 + BukkitQueue_All.ALLOCATE;
         boolean more = true;
-        BukkitQueue_All parent = (BukkitQueue_All) getParent();
+        final BukkitQueue_All parent = (BukkitQueue_All) getParent();
         final Chunk chunk = getChunk();
         Object[] disableResult = parent.disableLighting(chunk);
         final World world = chunk.getWorld();
         char[][] sections = getCombinedIdArrays();
+        final int bx = getX() << 4;
+        final int bz = getZ() << 4;
         if (layer == -1) {
             // Biomes
             if (layer == 0) {
-                final int[][] biomes = getBiomeArray();
+                final byte[] biomes = getBiomeArray();
                 if (biomes != null) {
                     final LocalWorld lw = BukkitUtil.getLocalWorld(world);
-                    final int X = getX() << 4;
-                    final int Z = getZ() << 4;
-                    final BaseBiome bb = new BaseBiome(0);
-                    int last = 0;
-                    for (int x = 0; x < 16; x++) {
-                        final int[] array = biomes[x];
-                        if (array == null) {
-                            continue;
-                        }
-                        for (int z = 0; z < 16; z++) {
-                            final int biome = array[z];
-                            if (biome == 0) {
-                                continue;
-                            }
-                            if (last != biome) {
-                                last = biome;
-                                bb.setId(biome);
-                            }
-                            lw.setBiome(new Vector2D(X + x, Z + z), bb);
+                    int index = 0;
+                    Vector2D mutable = new Vector2D();
+                    for (int z = 0; z < 16; z++) {
+                        mutable.z = bx + z;
+                        for (int x = 0; x < 16; x++) {
+                            mutable.x = bz + x;
+                            lw.setBiome(mutable, FaweCache.getBiome(biomes[index++] & 0xFF));
                         }
                     }
                 }
@@ -142,11 +132,11 @@ public class BukkitChunk_All extends CharFaweChunk<Chunk, BukkitQueue_All> {
                 final byte[] cacheZ = FaweCache.CACHE_Z[layer];
                 boolean checkTime = !((getAir(layer) == 4096 || (getCount(layer) == 4096 && getAir(layer) == 0) || (getCount(layer) == getAir(layer))));
                 if (!checkTime) {
-                    ArrayList<Thread> threads = new ArrayList<Thread>();
+                    final ArrayList<Thread> threads = new ArrayList<Thread>();
                     for (int k = 0; k < 16; k++) {
                         final int l = k << 8;
                         final int y = cacheY[l];
-                        Thread thread = new Thread(new Runnable() {
+                        final Thread thread = new Thread(new Runnable() {
                             @Override
                             public void run() {
                                 for (int m = l; m < l + 256; m++) {
@@ -166,6 +156,13 @@ public class BukkitChunk_All extends CharFaweChunk<Chunk, BukkitQueue_All> {
                                                 int x = cacheX[m];
                                                 int z = cacheZ[m];
                                                 int id = combined >> 4;
+                                                if (FaweCache.hasNBT(id) && parent.adapter != null) {
+                                                    CompoundTag nbt = getTile(x, y, z);
+                                                    if (nbt != null) {
+                                                        parent.adapter.setBlock(new Location(world, bx + x, y, bz + z), new BaseBlock(id, combined & 0xF, nbt), false);
+                                                        continue;
+                                                    }
+                                                }
                                                 Block block = chunk.getBlock(x, y, z);
                                                 setBlock(block, id, (byte) (combined & 0xF));
                                             }
@@ -214,15 +211,14 @@ public class BukkitChunk_All extends CharFaweChunk<Chunk, BukkitQueue_All> {
                                     int x = cacheX[j];
                                     int z = cacheZ[j];
                                     int y = cacheY[j];
-                                    Block block = chunk.getBlock(x, y, z);
                                     if (FaweCache.hasNBT(id) && parent.adapter != null) {
                                         CompoundTag tile = getTile(x, y, z);
                                         if (tile != null) {
-                                            BaseBlock baseBlock = new BaseBlock(id, data, tile);
-                                            parent.adapter.setBlock(block.getLocation(), baseBlock, false);
+                                            parent.adapter.setBlock(new Location(world, bx + x, y, bz + z), new BaseBlock(id, combined & 0xF, tile), false);
                                             break;
                                         }
                                     }
+                                    Block block = chunk.getBlock(x, y, z);
                                     setBlock(block, id, (byte) data);
                                     if (light) {
                                         parent.disableLighting(disableResult);

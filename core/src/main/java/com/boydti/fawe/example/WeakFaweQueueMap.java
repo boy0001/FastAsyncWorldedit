@@ -6,13 +6,13 @@ import com.boydti.fawe.object.FaweQueue;
 import com.boydti.fawe.object.RunnableVal;
 import com.boydti.fawe.util.MathMan;
 import com.boydti.fawe.util.SetQueue;
+import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
 import java.lang.ref.Reference;
 import java.lang.ref.SoftReference;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorCompletionService;
 
 public class WeakFaweQueueMap implements IFaweQueueMap {
@@ -23,12 +23,14 @@ public class WeakFaweQueueMap implements IFaweQueueMap {
         this.parent = parent;
     }
 
-    /**
-     * Map of chunks in the queue
-     */
-    public ConcurrentHashMap<Long, Reference<FaweChunk>> blocks = new ConcurrentHashMap<Long, Reference<FaweChunk>>(8, 0.9f, 1) {
+    public final Long2ObjectOpenHashMap<Reference<FaweChunk>> blocks = new Long2ObjectOpenHashMap<Reference<FaweChunk>>() {
         @Override
         public Reference<FaweChunk> put(Long key, Reference<FaweChunk> value) {
+            return put((long) key, value);
+        }
+
+        @Override
+        public Reference<FaweChunk> put(long key, Reference<FaweChunk> value) {
             if (parent.getProgressTask() != null) {
                 try {
                     parent.getProgressTask().run(FaweQueue.ProgressType.QUEUE, size() + 1);
@@ -36,7 +38,9 @@ public class WeakFaweQueueMap implements IFaweQueueMap {
                     e.printStackTrace();
                 }
             }
-            return super.put(key, value);
+            synchronized (this) {
+                return super.put(key, value);
+            }
         }
     };
 
@@ -142,83 +146,83 @@ public class WeakFaweQueueMap implements IFaweQueueMap {
 
     @Override
     public boolean next(int amount, ExecutorCompletionService pool, long time) {
-        try {
-            boolean skip = parent.getStage() == SetQueue.QueueStage.INACTIVE;
-            int added = 0;
-            Iterator<Map.Entry<Long, Reference<FaweChunk>>> iter = blocks.entrySet().iterator();
-            if (amount == 1) {
-                long start = System.currentTimeMillis();
-                do {
-                    if (iter.hasNext()) {
-                        Map.Entry<Long, Reference<FaweChunk>> entry = iter.next();
-                        Reference<FaweChunk> chunkReference = entry.getValue();
-                        FaweChunk chunk = chunkReference.get();
-                        if (skip && chunk == lastWrappedChunk) {
-                            continue;
-                        }
-                        iter.remove();
-                        if (chunk != null) {
-                            parent.start(chunk);
-                            chunk.call();
-                            parent.end(chunk);
+        synchronized (blocks) {
+            try {
+                boolean skip = parent.getStage() == SetQueue.QueueStage.INACTIVE;
+                int added = 0;
+                Iterator<Map.Entry<Long, Reference<FaweChunk>>> iter = blocks.entrySet().iterator();
+                if (amount == 1) {
+                    long start = System.currentTimeMillis();
+                    do {
+                        if (iter.hasNext()) {
+                            Map.Entry<Long, Reference<FaweChunk>> entry = iter.next();
+                            Reference<FaweChunk> chunkReference = entry.getValue();
+                            FaweChunk chunk = chunkReference.get();
+                            if (skip && chunk == lastWrappedChunk) {
+                                continue;
+                            }
+                            iter.remove();
+                            if (chunk != null) {
+                                parent.start(chunk);
+                                chunk.call();
+                                parent.end(chunk);
+                            } else {
+                                Fawe.debug("Skipped modifying chunk due to low memory (3)");
+                            }
                         } else {
-                            Fawe.debug("Skipped modifying chunk due to low memory (3)");
+                            break;
                         }
+                    } while (System.currentTimeMillis() - start < time);
+                    return !blocks.isEmpty();
+                }
+                boolean result = true;
+                // amount = 8;
+                for (int i = 0; i < amount && (result = iter.hasNext());) {
+                    Map.Entry<Long, Reference<FaweChunk>> item = iter.next();
+                    Reference<FaweChunk> chunkReference = item.getValue();
+                    FaweChunk chunk = chunkReference.get();
+                    if (skip && chunk == lastWrappedChunk) {
+                        continue;
+                    }
+                    iter.remove();
+                    if (chunk != null) {
+                        parent.start(chunk);
+                        pool.submit(chunk);
+                        added++;
+                        i++;
                     } else {
-                        break;
+                        Fawe.debug("Skipped modifying chunk due to low memory (4)");
                     }
-                } while (System.currentTimeMillis() - start < time);
-                return !blocks.isEmpty();
-            }
-            boolean result = true;
-            // amount = 8;
-            for (int i = 0; i < amount && (result = iter.hasNext()); i++, added++) {
-                Map.Entry<Long, Reference<FaweChunk>> item = iter.next();
-                Reference<FaweChunk> chunkReference = item.getValue();
-                FaweChunk chunk = chunkReference.get();
-                if (skip && chunk == lastWrappedChunk) {
-                    i--;
-                    added--;
-                    continue;
                 }
-                iter.remove();
-                if (chunk != null) {
-                    parent.start(chunk);
-                    pool.submit(chunk);
-                } else {
-                    Fawe.debug("Skipped modifying chunk due to low memory (4)");
-                    i--;
-                    added--;
-                }
-            }
-            // if result, then submitted = amount
-            if (result) {
-                long start = System.currentTimeMillis();
-                while (System.currentTimeMillis() - start < time && result) {
-                    if (result = iter.hasNext()) {
-                        Map.Entry<Long, Reference<FaweChunk>> item = iter.next();
-                        Reference<FaweChunk> chunkReference = item.getValue();
-                        FaweChunk chunk = chunkReference.get();
-                        if (skip && chunk == lastWrappedChunk) {
-                            continue;
-                        }
-                        iter.remove();
-                        if (chunk != null) {
-                            parent.start(chunk);
-                            pool.submit(chunk);
-                            FaweChunk fc = ((FaweChunk) pool.take().get());
-                            parent.end(fc);
+                // if result, then submitted = amount
+                if (result) {
+                    long start = System.currentTimeMillis();
+                    while (System.currentTimeMillis() - start < time && result) {
+                        if (result = iter.hasNext()) {
+                            Map.Entry<Long, Reference<FaweChunk>> item = iter.next();
+                            Reference<FaweChunk> chunkReference = item.getValue();
+                            FaweChunk chunk = chunkReference.get();
+                            if (skip && chunk == lastWrappedChunk) {
+                                continue;
+                            }
+                            iter.remove();
+                            if (chunk != null) {
+                                parent.start(chunk);
+                                pool.submit(chunk);
+                                FaweChunk fc = ((FaweChunk) pool.take().get());
+                                parent.end(fc);
+                            }
                         }
                     }
                 }
+                for (int i = 0; i < added; i++) {
+                    FaweChunk fc = ((FaweChunk) pool.take().get());
+                    parent.end(fc);
+                }
+            } catch (Throwable e) {
+                e.printStackTrace();
             }
-            for (int i = 0; i < added; i++) {
-                FaweChunk fc = ((FaweChunk) pool.take().get());
-                parent.end(fc);
-            }
-        } catch (Throwable e) {
-            e.printStackTrace();
+            return !blocks.isEmpty();
         }
-        return !blocks.isEmpty();
     }
 }

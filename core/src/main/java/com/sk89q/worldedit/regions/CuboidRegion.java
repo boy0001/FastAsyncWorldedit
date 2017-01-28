@@ -28,8 +28,8 @@ import com.sk89q.worldedit.Vector;
 import com.sk89q.worldedit.Vector2D;
 import com.sk89q.worldedit.world.World;
 import com.sk89q.worldedit.world.storage.ChunkStore;
+import java.util.AbstractSet;
 import java.util.Iterator;
-import java.util.LinkedHashSet;
 import java.util.Set;
 
 
@@ -315,18 +315,60 @@ public class CuboidRegion extends AbstractRegion implements FlatRegion {
 
     @Override
     public Set<Vector2D> getChunks() {
-        Set<Vector2D> chunks = new LinkedHashSet<Vector2D>();
-
         Vector min = getMinimumPoint();
         Vector max = getMaximumPoint();
+        final int maxX = max.getBlockX() >> ChunkStore.CHUNK_SHIFTS;
+        final int minX = min.getBlockX() >> ChunkStore.CHUNK_SHIFTS;
+        final int maxZ = max.getBlockZ() >> ChunkStore.CHUNK_SHIFTS;
+        final int minZ = min.getBlockZ() >> ChunkStore.CHUNK_SHIFTS;
+        final int size = (maxX - minX + 1) * (maxZ - minZ + 1);
 
-        for (int x = max.getBlockX() >> ChunkStore.CHUNK_SHIFTS; x >= min.getBlockX() >> ChunkStore.CHUNK_SHIFTS; --x) {
-            for (int z = max.getBlockZ() >> ChunkStore.CHUNK_SHIFTS; z >= min.getBlockZ() >> ChunkStore.CHUNK_SHIFTS; --z) {
-                chunks.add(new Vector2D(x, z));
+        return new AbstractSet<Vector2D>() {
+            @Override
+            public Iterator<Vector2D> iterator() {
+                return new Iterator<Vector2D>() {
+                    private Vector2D pos = new Vector2D(minX, minZ);
+                    @Override
+                    public boolean hasNext() {
+                        return pos != null;
+                    }
+
+                    @Override
+                    public Vector2D next() {
+                        Vector2D result = pos;
+                        // calc next
+                        if (pos.getX() < maxX) {
+                            pos = new Vector2D(pos.getX() + 1, pos.getZ());
+                        } else if (pos.getZ() < maxZ) {
+                            pos = new Vector2D(minX, pos.getZ() + 1);
+                        } else {
+                            pos = null;
+                        }
+                        return result;
+                    }
+
+                    @Override
+                    public void remove() {
+                        throw new UnsupportedOperationException("This set is immutable.");
+                    }
+                };
             }
-        }
 
-        return chunks;
+            @Override
+            public int size() {
+                return size;
+            }
+
+            @Override
+            public boolean contains(Object o) {
+                if (o instanceof Vector2D) {
+                    Vector2D cv = (Vector2D) o;
+                    return cv.getX() >= minX && cv.getX() <= maxX && cv.getZ() >= minZ && cv.getZ() <= maxZ;
+                } else {
+                    return false;
+                }
+            }
+        };
     }
 
     @Override

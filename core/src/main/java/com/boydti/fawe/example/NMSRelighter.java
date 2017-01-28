@@ -5,6 +5,8 @@ import com.boydti.fawe.object.FaweChunk;
 import com.boydti.fawe.object.FaweQueue;
 import com.boydti.fawe.object.IntegerTrio;
 import com.boydti.fawe.util.MathMan;
+import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
+import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -14,15 +16,14 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Queue;
-import java.util.concurrent.ConcurrentHashMap;
 
 public class NMSRelighter implements Relighter{
     private final NMSMappedFaweQueue queue;
 
     private final Map<Long, RelightSkyEntry> skyToRelight;
-    private final Map<Long, Map<Short, Object>> lightQueue;
+    private final Map<Long, Map<Integer, Object>> lightQueue;
     private final Object present = new Object();
-    private final HashMap<Long, Integer> chunksToSend;
+    private final Map<Long, Integer> chunksToSend;
 
     private final int maxY;
     private volatile boolean relighting = false;
@@ -33,9 +34,9 @@ public class NMSRelighter implements Relighter{
 
     public NMSRelighter(NMSMappedFaweQueue queue) {
         this.queue = queue;
-        this.skyToRelight = new ConcurrentHashMap<>();
-        this.lightQueue = new ConcurrentHashMap<>();
-        chunksToSend = new HashMap<>();
+        this.skyToRelight = new Long2ObjectOpenHashMap<>();
+        this.lightQueue = new Long2ObjectOpenHashMap<>();
+        this.chunksToSend = new Long2ObjectOpenHashMap<>();
         this.maxY = queue.getMaxY();
     }
 
@@ -63,7 +64,6 @@ public class NMSRelighter implements Relighter{
         Iterator<Map.Entry<Long, RelightSkyEntry>> iter = skyToRelight.entrySet().iterator();
         while (iter.hasNext()) {
             Map.Entry<Long, RelightSkyEntry> entry = iter.next();
-            iter.remove();
             RelightSkyEntry chunk = entry.getValue();
             long pair = entry.getKey();
             Integer existing = chunksToSend.get(pair);
@@ -71,10 +71,11 @@ public class NMSRelighter implements Relighter{
             queue.ensureChunkLoaded(chunk.x, chunk.z);
             Object sections = queue.getCachedSections(queue.getWorld(), chunk.x, chunk.z);
             queue.removeLighting(sections, FaweQueue.RelightMode.ALL, queue.hasSky());
+            iter.remove();
         }
     }
 
-    public void updateBlockLight(Map<Long, Map<Short, Object>> map) {
+    public void updateBlockLight(Map<Long, Map<Integer, Object>> map) {
         int size = map.size();
         if (size == 0) {
             return;
@@ -84,17 +85,16 @@ public class NMSRelighter implements Relighter{
         Map<IntegerTrio, Object> visited = new HashMap<>();
         Map<IntegerTrio, Object> removalVisited = new HashMap<>();
 
-        Iterator<Map.Entry<Long, Map<Short, Object>>> iter = map.entrySet().iterator();
+        Iterator<Map.Entry<Long, Map<Integer, Object>>> iter = map.entrySet().iterator();
         while (iter.hasNext() && size-- > 0) {
-            Map.Entry<Long, Map<Short, Object>> entry = iter.next();
-            iter.remove();
+            Map.Entry<Long, Map<Integer, Object>> entry = iter.next();
             long index = entry.getKey();
-            Map<Short, Object> blocks = entry.getValue();
+            Map<Integer, Object> blocks = entry.getValue();
             int chunkX = MathMan.unpairIntX(index);
             int chunkZ = MathMan.unpairIntY(index);
             int bx = chunkX << 4;
             int bz = chunkZ << 4;
-            for (short blockHash : blocks.keySet()) {
+            for (int blockHash : blocks.keySet()) {
                 int x = (blockHash >> 12 & 0xF) + bx;
                 int y = (blockHash & 0xFF);
                 int z = (blockHash >> 8 & 0xF) + bz;
@@ -114,6 +114,7 @@ public class NMSRelighter implements Relighter{
                     }
                 }
             }
+            iter.remove();
         }
 
         while (!lightRemovalQueue.isEmpty()) {
@@ -192,12 +193,12 @@ public class NMSRelighter implements Relighter{
 
     public void addLightUpdate(int x, int y, int z) {
         long index = MathMan.pairInt((int) x >> 4, (int) z >> 4);
-        Map<Short, Object> currentMap = lightQueue.get(index);
+        Map<Integer, Object> currentMap = lightQueue.get(index);
         if (currentMap == null) {
-            currentMap = new ConcurrentHashMap<>(8, 0.9f, 1);
+            currentMap = new Int2ObjectOpenHashMap<>();
             this.lightQueue.put(index, currentMap);
         }
-        currentMap.put(MathMan.tripleBlockCoord(x, y, z), present);
+        currentMap.put((int) MathMan.tripleBlockCoord(x, y, z), present);
     }
 
     public synchronized void fixLightingSafe(boolean sky) {
@@ -222,10 +223,10 @@ public class NMSRelighter implements Relighter{
             Map.Entry<Long, Integer> entry = iter.next();
             long pair = entry.getKey();
             int bitMask = entry.getValue();
-            iter.remove();
             int x = MathMan.unpairIntX(pair);
             int z = MathMan.unpairIntY(pair);
             queue.sendChunk(x, z, bitMask);
+            iter.remove();
         }
     }
 
@@ -239,9 +240,9 @@ public class NMSRelighter implements Relighter{
         Iterator<Map.Entry<Long, RelightSkyEntry>> iter = skyToRelight.entrySet().iterator();
         while (iter.hasNext()) {
             Map.Entry<Long, RelightSkyEntry> entry = iter.next();
-            iter.remove();
             chunksToSend.put(entry.getKey(), entry.getValue().bitmask);
             chunksList.add(entry.getValue());
+            iter.remove();
         }
         Collections.sort(chunksList);
         int size = chunksList.size();
@@ -312,7 +313,6 @@ public class NMSRelighter implements Relighter{
                     int brightness = MathMan.unpair16y(pair);
                     if (brightness > 1 &&  (brightness != 15 || opacity != 15)) {
                         addLightUpdate(bx + x, y, bz + z);
-//                        lightBlock(bx + x, y, bz + z, brightness);
                     }
                     switch (value) {
                         case 0:

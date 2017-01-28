@@ -14,7 +14,6 @@ import com.boydti.fawe.util.MainUtil;
 import com.sk89q.jnbt.CompoundTag;
 import com.sk89q.worldedit.LocalWorld;
 import com.sk89q.worldedit.Vector2D;
-import com.sk89q.worldedit.world.biome.BaseBiome;
 import java.io.IOException;
 import java.util.Map;
 
@@ -80,28 +79,18 @@ public class NukkitChunk extends CharFaweChunk<BaseFullChunk, NukkitQueue> {
         final BaseFullChunk chunk = getChunk();
         getParent().setHeightMap(this, heightMap);
         char[][] sections = getCombinedIdArrays();
-        final int[][] biomes = getBiomeArray();
         final int X = getX() << 4;
         final int Z = getZ() << 4;
         if (biomes != null) {
             final LocalWorld lw = NukkitUtil.getLocalWorld(world);
-            final BaseBiome bb = new BaseBiome(0);
-            int last = 0;
-            for (int x = 0; x < 16; x++) {
-                final int[] array = biomes[x];
-                if (array == null) {
-                    continue;
-                }
-                for (int z = 0; z < 16; z++) {
-                    final int biome = array[z];
-                    if (biome == 0) {
-                        continue;
-                    }
-                    if (last != biome) {
-                        last = biome;
-                        bb.setId(biome);
-                    }
-                    lw.setBiome(new Vector2D(X + x, Z + z), bb);
+            final byte[] biomes = getBiomeArray();
+            int index = 0;
+            Vector2D mutable = new Vector2D();
+            for (int z = 0; z < 16; z++) {
+                mutable.z = Z + z;
+                for (int x = 0; x < 16; x++) {
+                    mutable.x = X + x;
+                    lw.setBiome(mutable, FaweCache.getBiome(biomes[index++] & 0xFF));
                 }
             }
         }

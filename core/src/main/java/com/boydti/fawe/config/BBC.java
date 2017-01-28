@@ -76,9 +76,11 @@ public enum BBC {
     COMMAND_REGEN_1("Region regenerated.\nTip: Use a seed with /regen [biome] [seed]", "WorldEdit.Regen"),
     COMMAND_REGEN_2("Region regenerated.", "WorldEdit.Regen"),
     COMMAND_TREE("%s0 trees created.", "WorldEdit.Tree"),
+    COMMAND_PUMPKIN("%s0 pumpkin patches created.", "WorldEdit.Tree"),
     COMMAND_FLORA("%s0 flora created.", "WorldEdit.Flora"),
     COMMAND_HISTORY_CLEAR("History cleared", "WorldEdit.History"),
     COMMAND_REDO_ERROR("Nothing left to redo. (See also `/inspect` and `/frb`)", "WorldEdit.History"),
+    COMMAND_HISTORY_OTHER_ERROR("Unable to find session for %s0.", "WorldEdit.History"),
     COMMAND_REDO_SUCCESS("Redo successful.", "WorldEdit.History"),
     COMMAND_UNDO_ERROR("Nothing left to undo. (See also `/inspect` and `/frb`)", "WorldEdit.History"),
     COMMAND_UNDO_SUCCESS("Undo successful.", "WorldEdit.History"),
@@ -133,6 +135,7 @@ public enum BBC {
     BRUSH_TRANSFORM("Brush transform set", "WorldEdit.Brush"),
     BRUSH_MATERIAL("Brush material set", "WorldEdit.Brush"),
 
+
     ROLLBACK_ELEMENT("Undoing %s0", "WorldEdit.Rollback"),
 
     TOOL_INSPECT("Inspect tool bound to %s0.", "WorldEdit.Tool"),
@@ -145,13 +148,32 @@ public enum BBC {
     TOOL_REPL("Block replacer tool bound to %s0.", "WorldEdit.Tool"),
     TOOL_CYCLER("Block data cycler tool bound to %s0.", "WorldEdit.Tool"),
     TOOL_FLOOD_FILL("Block flood fill tool bound to %s0.", "WorldEdit.Tool"),
-    TOOL_FLOOD_FILL_RANGE_ERROR("Maximum range: %s0.", "WorldEdit.Tool"),
+    TOOL_RANGE_ERROR("Maximum range: %s0.", "WorldEdit.Tool"),
+    TOOL_RADIUS_ERROR("Maximum allowed brush radius: %s0.", "WorldEdit.Tool"),
     TOOL_DELTREE("Floating tree remover tool bound to %s0.", "WorldEdit.Tool"),
     TOOL_FARWAND("Far wand tool bound to %s0.", "WorldEdit.Tool"),
     TOOL_LRBUILD_BOUND("Long-range building tool bound to %s0.", "WorldEdit.Tool"),
     TOOL_LRBUILD_INFO("Left-click set to %s0; right-click set to %s1.", "WorldEdit.Tool"),
     SUPERPICKAXE_ENABLED("Super Pickaxe enabled.", "WorldEdit.Tool"),
     SUPERPICKAXE_DISABLED("Super Pickaxe disabled.", "WorldEdit.Tool"),
+    SUPERPICKAXE_AREA_ENABLED("Mode changed. Left click with a pickaxe. // to disable.", "WorldEdit.Tool"),
+
+    SNAPSHOT_LOADED("Snapshot '%s0' loaded; now restoring...", "WorldEdit.Snapshot"),
+    SNAPSHOT_SET("Snapshot set to: %s0", "WorldEdit.Snapshot"),
+    SNAPSHOT_NEWEST("Now using newest snapshot.", "WorldEdit.Snapshot"),
+    SNAPSHOT_LIST_HEADER("Snapshots for world (%s0):", "WorldEdit.Snapshot"),
+    SNAPSHOT_LIST_FOOTER("Use /snap use [snapshot] or /snap use latest.", "WorldEdit.Snapshot"),
+
+    BIOME_LIST_HEADER("Biomes (page %s0/%s1):", "WorldEdit.Biome"),
+    BIOME_CHANGED("Biomes were changed in %s0 columns.", "WorldEdit.Biome"),
+
+    FAST_ENABLED("Fast mode enabled. History and edit restrictions will be bypassed.", "WorldEdit.General"),
+    FAST_DISABLED("Fast mode disabled", "WorldEdit.General"),
+
+    PLACE_ENABLED("Now placing at pos #1.", "WorldEdit.General"),
+    PLACE_DISABLED("Now placing at the block you stand in.", "WorldEdit.General"),
+
+    KILL_SUCCESS("Killed %s0 entities in a radius of %s1.", "WorldEdit.Utility"),
 
 
     SCHEMATIC_DELETE("%s0 has been deleted.", "Worldedit.Schematic"),
@@ -163,6 +185,7 @@ public enum BBC {
     SCHEMATIC_LIST("Available schematics (Filename: Format) [%s0/%s1]:", "Worldedit.Schematic"),
 
     CLIPBOARD_CLEARED("Clipboard cleared", "WorldEdit.Clipboard"),
+    CLIPBOARD_INVALID_FORMAT("Unknown clipboard format:  %s0", "WorldEdit.Clipboard"),
 
     VISITOR_BLOCK("%s0 blocks affected", "WorldEdit.Visitor"),
     VISITOR_ENTITY("%s0 entities affected", "WorldEdit.Visitor"),
@@ -174,6 +197,10 @@ public enum BBC {
     SELECTOR_CUBOID_POS2("pos2 set to %s0 %s1.", "WorldEdit.Selector"),
     SELECTOR_INVALID_COORDINATES("Invalid coordinates %s0", "WorldEdit.Selector"),
     SELECTOR_ALREADY_SET("Position already set.", "WorldEdit.Selector"),
+    SELECTOR_SET_DEFAULT("Your default region selector is now %s0.", "WorldEdit.Selector"),
+
+    TIMEZONE_SET("Timezone set for this session to: %s0", "WorldEdit.Timezone"),
+    TIMEZONE_DISPLAY("The current time in that timezone is:  %s0", "WorldEdit.Timezone"),
 
     COMMAND_INVALID_SYNTAX("The command was not used properly (no more help available).", "WorldEdit.Command"),
 
@@ -222,7 +249,7 @@ public enum BBC {
     WHOOSH("Whoosh!", "Navigation"),
     POOF("Poof!", "Navigation"),
     THRU_FAIL("No free spot ahead of you found.", "Navigation"),
-    JUMPTO_FAIL("No block in sight!", "Navigation"),
+    NO_BLOCK("No block in sight! (or too far)", "Navigation"),
     UP_FAIL("You would hit something above you.", "Navigation"),
 
     SEL_CUBOID("Cuboid: left click for point 1, right click for point 2", "Selection"),

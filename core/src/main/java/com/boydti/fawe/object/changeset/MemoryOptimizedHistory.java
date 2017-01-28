@@ -21,10 +21,13 @@ import java.io.OutputStream;
  */
 public class MemoryOptimizedHistory extends FaweStreamChangeSet {
 
-    private int size = 0;
     private byte[][] ids;
     private FastByteArrayOutputStream idsStream;
     private FaweOutputStream idsStreamZip;
+
+    private byte[][] biomes;
+    private FastByteArrayOutputStream biomeStream;
+    private FaweOutputStream biomeStreamZip;
 
     private byte[][] entC;
     private FastByteArrayOutputStream entCStream;
@@ -57,10 +60,15 @@ public class MemoryOptimizedHistory extends FaweStreamChangeSet {
             try {
                 if (idsStream != null) {
                     idsStreamZip.close();
-                    size = idsStream.getSize();
                     ids = idsStream.toByteArrays();
                     idsStream = null;
                     idsStreamZip = null;
+                }
+                if (biomeStream != null) {
+                    biomeStreamZip.close();
+                    biomes = biomeStream.toByteArrays();
+                    biomeStream = null;
+                    biomeStreamZip = null;
                 }
                 if (entCStream != null) {
                     entCStreamZip.close();
@@ -122,6 +130,27 @@ public class MemoryOptimizedHistory extends FaweStreamChangeSet {
             idsStreamZip = getCompressedOS(idsStream);
             writeHeader(idsStreamZip, x, y, z);
             return idsStreamZip;
+        }
+    }
+
+    @Override
+    public InputStream getBiomeIS() throws IOException {
+        if (biomes == null) {
+            return null;
+        }
+        FaweInputStream result = MainUtil.getCompressedIS(new FastByteArraysInputStream(biomes));
+        return result;
+    }
+
+    @Override
+    public OutputStream getBiomeOS() throws IOException {
+        if (biomeStreamZip != null) {
+            return biomeStreamZip;
+        }
+        synchronized (this) {
+            biomeStream = new FastByteArrayOutputStream(Settings.IMP.HISTORY.BUFFER_SIZE);
+            biomeStreamZip = getCompressedOS(biomeStream);
+            return biomeStreamZip;
         }
     }
 

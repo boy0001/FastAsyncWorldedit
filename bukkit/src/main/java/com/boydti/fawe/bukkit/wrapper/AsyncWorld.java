@@ -805,7 +805,7 @@ public class AsyncWorld extends DelegateFaweQueue implements World, HasFaweQueue
 
     @Override
     public Biome getBiome(int x, int z) {
-        throw new UnsupportedOperationException("NOT IMPLEMENTED");
+        return adapter.getBiome(queue.getBiomeId(x, z));
     }
 
     @Override

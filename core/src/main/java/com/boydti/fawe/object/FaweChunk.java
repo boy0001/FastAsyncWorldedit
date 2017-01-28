@@ -144,6 +144,8 @@ public abstract class FaweChunk<T> implements Callable<FaweChunk> {
         return ids;
     }
 
+    public abstract byte[] getBiomeArray();
+
     public char[][] getCombinedIdArrays() {
         char[][] ids = new char[HEIGHT >> 4][];
         for (int y = 0; y < HEIGHT >> 4; y++) {
@@ -272,7 +274,11 @@ public abstract class FaweChunk<T> implements Callable<FaweChunk> {
      */
     public abstract CompoundTag getTile(int x, int y, int z);
 
-    public abstract void setBiome(final int x, final int z, final BaseBiome biome);
+    public void setBiome(final int x, final int z, final BaseBiome biome) {
+        setBiome(x, z, (byte) biome.getId());
+    }
+
+    public abstract void setBiome(final int x, final int z, final byte biome);
 
     /**
      * Spend time now so that the chunk can be more efficiently dispatched later<br>

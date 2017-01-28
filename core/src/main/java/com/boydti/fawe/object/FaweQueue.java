@@ -281,8 +281,6 @@ public abstract class FaweQueue {
         }
     }
 
-    public abstract boolean isChunkLoaded(final int x, final int z);
-
     @Deprecated
     public boolean regenerateChunk(int x, int z) {
         return regenerateChunk(x, z, null, null);
@@ -348,6 +346,8 @@ public abstract class FaweQueue {
     public boolean hasBlock(int x, int y, int z) throws  FaweException.FaweChunkLoadException {
         return getCombinedId4Data(x, y, z) != 0;
     }
+
+    public abstract int getBiomeId(int x, int z) throws FaweException.FaweChunkLoadException;
 
     public abstract int getCombinedId4Data(int x, int y, int z) throws FaweException.FaweChunkLoadException;
 

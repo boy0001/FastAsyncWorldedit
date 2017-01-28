@@ -16,7 +16,6 @@ import com.boydti.fawe.util.StringMan;
 import com.boydti.fawe.util.TaskManager;
 import com.boydti.fawe.util.Updater;
 import com.boydti.fawe.util.WEManager;
-import com.boydti.fawe.util.WESubscriber;
 import com.sk89q.jnbt.NBTInputStream;
 import com.sk89q.jnbt.NBTOutputStream;
 import com.sk89q.worldedit.BlockVector;
@@ -25,6 +24,7 @@ import com.sk89q.worldedit.CuboidClipboard;
 import com.sk89q.worldedit.EditSession;
 import com.sk89q.worldedit.LocalSession;
 import com.sk89q.worldedit.Vector;
+import com.sk89q.worldedit.Vector2D;
 import com.sk89q.worldedit.WorldEdit;
 import com.sk89q.worldedit.blocks.BlockData;
 import com.sk89q.worldedit.command.BiomeCommands;
@@ -254,7 +254,6 @@ public class Fawe {
                     Fawe.debug("Plugin 'PlotSquared' found. Using it now.");
                 } catch (Throwable e) {}
                 Fawe.this.worldedit = WorldEdit.getInstance();
-                Fawe.this.setupEvents();
             }
         }, 0);
 
@@ -296,10 +295,6 @@ public class Fawe {
 
     public double getTPS() {
         return timer.getTPS();
-    }
-
-    private void setupEvents() {
-        WorldEdit.getInstance().getEventBus().register(new WESubscriber());
     }
 
     private void setupCommands() {
@@ -417,6 +412,7 @@ public class Fawe {
             BlockWorldVector.inject(); // Optimizations
             BlockVector.inject(); // Optimizations
             Vector.inject(); // Optimizations
+            Vector2D.inject(); // Optimizations
             // Pattern
             Patterns.inject(); // Optimizations (reduce object creation)
             RandomPattern.inject(); // Optimizations
@@ -538,6 +534,11 @@ public class Fawe {
             ne.addNotificationListener(new NotificationListener() {
                 @Override
                 public void handleNotification(final Notification notification, final Object handback) {
+                    final long heapSize = Runtime.getRuntime().totalMemory();
+                    final long heapMaxSize = Runtime.getRuntime().maxMemory();
+                    if (heapSize < heapMaxSize) {
+                        return;
+                    }
                     MemUtil.memoryLimitedTask();
                 }
             }, null, null);

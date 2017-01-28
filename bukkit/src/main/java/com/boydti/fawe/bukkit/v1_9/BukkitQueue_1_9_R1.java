@@ -62,7 +62,7 @@ import org.bukkit.event.world.WorldInitEvent;
 import org.bukkit.event.world.WorldLoadEvent;
 import org.bukkit.generator.ChunkGenerator;
 
-public class BukkitQueue_1_9_R1 extends BukkitQueue_0<Chunk, ChunkSection[], ChunkSection> {
+public class BukkitQueue_1_9_R1 extends BukkitQueue_0<net.minecraft.server.v1_9_R2.Chunk, ChunkSection[], ChunkSection> {
 
     protected static IBlockData air;
     protected static Field fieldBits;
@@ -191,13 +191,42 @@ public class BukkitQueue_1_9_R1 extends BukkitQueue_0<Chunk, ChunkSection[], Chu
     }
 
     @Override
-    public ChunkSection[] getCachedSections(World world, int cx, int cz) {
-        CraftChunk chunk = (CraftChunk) world.getChunkAt(cx, cz);
-        return chunk.getHandle().getSections();
+    public int getBiome(net.minecraft.server.v1_9_R2.Chunk chunk, int x, int z) {
+        return chunk.getBiomeIndex()[((z & 15) << 4) + (x & 15)];
     }
 
     @Override
-    public ChunkSection getCachedSection(ChunkSection[] chunkSections, int cy) {
+    public net.minecraft.server.v1_9_R2.ChunkSection[] getSections(net.minecraft.server.v1_9_R2.Chunk chunk) {
+        return chunk.getSections();
+    }
+
+    @Override
+    public net.minecraft.server.v1_9_R2.Chunk loadChunk(World world, int x, int z, boolean generate) {
+        net.minecraft.server.v1_9_R2.Chunk chunk;
+        net.minecraft.server.v1_9_R2.ChunkProviderServer provider = ((org.bukkit.craftbukkit.v1_9_R2.CraftWorld) world).getHandle().getChunkProviderServer();
+        if (generate) {
+            return provider.getOrLoadChunkAt(x, z);
+        } else {
+            return provider.loadChunk(x, z);
+        }
+    }
+
+    @Override
+    public net.minecraft.server.v1_9_R2.ChunkSection[] getCachedSections(World world, int cx, int cz) {
+        net.minecraft.server.v1_9_R2.Chunk chunk = ((org.bukkit.craftbukkit.v1_9_R2.CraftWorld) world).getHandle().getChunkProviderServer().getLoadedChunkAt(cx, cz);
+        if (chunk != null) {
+            return chunk.getSections();
+        }
+        return null;
+    }
+
+    @Override
+    public net.minecraft.server.v1_9_R2.Chunk getCachedChunk(World world, int cx, int cz) {
+        return ((org.bukkit.craftbukkit.v1_9_R2.CraftWorld) world).getHandle().getChunkProviderServer().getLoadedChunkAt(cx, cz);
+    }
+
+    @Override
+    public net.minecraft.server.v1_9_R2.ChunkSection getCachedSection(net.minecraft.server.v1_9_R2.ChunkSection[] chunkSections, int cy) {
         return chunkSections[cy];
     }
 
@@ -216,27 +245,21 @@ public class BukkitQueue_1_9_R1 extends BukkitQueue_0<Chunk, ChunkSection[], Chu
 
     @Override
     public void sendChunk(int x, int z, int bitMask) {
-        if (!isChunkLoaded(x, z)) {
-            return;
+        net.minecraft.server.v1_9_R2.Chunk chunk = getCachedChunk(getWorld(), x, z);
+        if (chunk != null) {
+            sendChunk(chunk, bitMask);
         }
-        sendChunk(getWorld().getChunkAt(x, z), bitMask);
     }
 
     @Override
     public void refreshChunk(FaweChunk fc) {
-        BukkitChunk_1_9 fs = (BukkitChunk_1_9) fc;
-        if (!isChunkLoaded(fc.getX(), fc.getZ())) {
-            return;
+        net.minecraft.server.v1_9_R2.Chunk chunk = getCachedChunk(getWorld(), fc.getX(), fc.getZ());
+        if (chunk != null) {
+            sendChunk(chunk, fc.getBitMask());
         }
-        Chunk chunk = fs.getChunk();
-        sendChunk(chunk, fs.getBitMask());
     }
 
-    public void sendChunk(Chunk chunk, int mask) {
-        if (!chunk.isLoaded()) {
-            return;
-        }
-        net.minecraft.server.v1_9_R2.Chunk nmsChunk = ((CraftChunk) chunk).getHandle();
+    public void sendChunk(net.minecraft.server.v1_9_R2.Chunk nmsChunk, int mask) {
         WorldServer w = (WorldServer) nmsChunk.getWorld();
         PlayerChunkMap chunkMap = w.getPlayerChunkMap();
         PlayerChunk playerChunk = chunkMap.getChunk(nmsChunk.locX, nmsChunk.locZ);
@@ -560,8 +583,8 @@ public class BukkitQueue_1_9_R1 extends BukkitQueue_0<Chunk, ChunkSection[], Chu
     protected BlockPosition.MutableBlockPosition pos = new BlockPosition.MutableBlockPosition(0, 0, 0);
 
     @Override
-    public CompoundTag getTileEntity(Chunk chunk, int x, int y, int z) {
-        Map<BlockPosition, TileEntity> tiles = ((CraftChunk) chunk).getHandle().getTileEntities();
+    public CompoundTag getTileEntity(net.minecraft.server.v1_9_R2.Chunk chunk, int x, int y, int z) {
+        Map<BlockPosition, TileEntity> tiles = chunk.getTileEntities();
         pos.c(x, y, z);
         TileEntity tile = tiles.get(pos);
         return tile != null ? getTag(tile) : null;
@@ -576,11 +599,6 @@ public class BukkitQueue_1_9_R1 extends BukkitQueue_0<Chunk, ChunkSection[], Chu
             MainUtil.handleError(e);
             return null;
         }
-    }
-
-    @Override
-    public Chunk getChunk(World world, int x, int z) {
-        return world.getChunkAt(x, z);
     }
 
     @Deprecated

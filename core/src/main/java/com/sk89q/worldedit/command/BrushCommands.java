@@ -438,7 +438,7 @@ public class BrushCommands {
             maxRadius = Math.max(config.maxBrushRadius, config.butcherMaxRadius);
         }
         if (radius > maxRadius) {
-            player.printError("Maximum allowed brush radius: " + maxRadius);
+            BBC.TOOL_RADIUS_ERROR.send(player, maxRadius);
             return;
         }
 

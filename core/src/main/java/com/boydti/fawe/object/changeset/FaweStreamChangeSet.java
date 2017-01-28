@@ -3,6 +3,7 @@ package com.boydti.fawe.object.changeset;
 import com.boydti.fawe.config.Settings;
 import com.boydti.fawe.object.FaweInputStream;
 import com.boydti.fawe.object.FaweOutputStream;
+import com.boydti.fawe.object.change.MutableBiomeChange;
 import com.boydti.fawe.object.change.MutableBlockChange;
 import com.boydti.fawe.object.change.MutableEntityChange;
 import com.boydti.fawe.object.change.MutableFullBlockChange;
@@ -15,12 +16,14 @@ import com.sk89q.jnbt.NBTOutputStream;
 import com.sk89q.worldedit.extent.inventory.BlockBag;
 import com.sk89q.worldedit.history.change.Change;
 import com.sk89q.worldedit.world.World;
+import com.sk89q.worldedit.world.biome.BaseBiome;
 import java.io.EOFException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.NoSuchElementException;
 
 public abstract class FaweStreamChangeSet extends FaweChangeSet {
 
@@ -266,12 +269,14 @@ public abstract class FaweStreamChangeSet extends FaweChangeSet {
     }
 
     public abstract OutputStream getBlockOS(int x, int y, int z) throws IOException;
+    public abstract OutputStream getBiomeOS() throws IOException;
     public abstract NBTOutputStream getEntityCreateOS() throws IOException;
     public abstract NBTOutputStream getEntityRemoveOS() throws IOException;
     public abstract NBTOutputStream getTileCreateOS() throws IOException;
     public abstract NBTOutputStream getTileRemoveOS() throws IOException;
 
     public abstract InputStream getBlockIS() throws IOException;
+    public abstract InputStream getBiomeIS() throws IOException;
     public abstract NBTInputStream getEntityCreateIS() throws IOException;
     public abstract NBTInputStream getEntityRemoveIS() throws IOException;
     public abstract NBTInputStream getTileCreateIS() throws IOException;
@@ -312,10 +317,32 @@ public abstract class FaweStreamChangeSet extends FaweChangeSet {
         }
     }
 
+    @Override
+    public void addBiomeChange(int x, int z, BaseBiome from, BaseBiome to) {
+        blockSize++;
+        try {
+            OutputStream os = getBiomeOS();
+            os.write((byte) (x >> 24));
+            os.write((byte) (x >> 16));
+            os.write((byte) (x >> 8));
+            os.write((byte) (x));
+            os.write((byte) (z >> 24));
+            os.write((byte) (z >> 16));
+            os.write((byte) (z >> 8));
+            os.write((byte) (z));
+            os.write(from.getId());
+            os.write(to.getId());
+        }
+        catch (Throwable e) {
+            MainUtil.handleError(e);
+        }
+    }
+
     public void addTileCreate(CompoundTag tag) {
         if (tag == null) {
             return;
         }
+        blockSize++;
         try {
             NBTOutputStream nbtos = getTileCreateOS();
             nbtos.writeTag(tag);
@@ -328,6 +355,7 @@ public abstract class FaweStreamChangeSet extends FaweChangeSet {
         if (tag == null) {
             return;
         }
+        blockSize++;
         try {
             NBTOutputStream nbtos = getTileRemoveOS();
             nbtos.writeTag(tag);
@@ -340,6 +368,7 @@ public abstract class FaweStreamChangeSet extends FaweChangeSet {
         if (tag == null) {
             return;
         }
+        blockSize++;
         try {
             NBTOutputStream nbtos = getEntityRemoveOS();
             nbtos.writeTag(tag);
@@ -352,6 +381,7 @@ public abstract class FaweStreamChangeSet extends FaweChangeSet {
         if (tag == null) {
             return;
         }
+        blockSize++;
         try {
             NBTOutputStream nbtos = getEntityCreateOS();
             nbtos.writeTag(tag);
@@ -376,9 +406,13 @@ public abstract class FaweStreamChangeSet extends FaweChangeSet {
                     idDel.readCombined(is, change, dir);
                     return change;
                 } catch (EOFException ignoreOEF) {
-                    return null;
                 } catch (Exception e) {
                     e.printStackTrace();
+                    MainUtil.handleError(e);
+                }
+                try {
+                    is.close();
+                } catch (IOException e) {
                     MainUtil.handleError(e);
                 }
                 return null;
@@ -386,22 +420,69 @@ public abstract class FaweStreamChangeSet extends FaweChangeSet {
 
             @Override
             public boolean hasNext() {
-                if (last != null) {
-                    return true;
-                } else if ((last = read()) != null) {
-                    return true;
+                return last != null || ((last = read()) != null);
+            }
+
+            @Override
+            public MutableBlockChange next() {
+                MutableBlockChange tmp = last;
+                if (tmp == null) {
+                    tmp = read();
+                }
+                last = null;
+                return tmp;
+            }
+
+            @Override
+            public void remove() {
+                throw new IllegalArgumentException("CANNOT REMOVE");
+            }
+        };
+    }
+
+    public Iterator<MutableBiomeChange> getBiomeIterator(final boolean dir) throws IOException {
+        final InputStream is = getBiomeIS();
+        if (is == null) {
+            return new ArrayList<MutableBiomeChange>().iterator();
+        }
+        final MutableBiomeChange change = new MutableBiomeChange();
+        return new Iterator<MutableBiomeChange>() {
+            private MutableBiomeChange last = new MutableBiomeChange();
+            public MutableBiomeChange read() {
+                try {
+                    int int1 = is.read();
+                    if (int1 != -1) {
+                        int x = ((int1 << 24) + (is.read() << 16) + (is.read() << 8) + (is.read() << 0));
+                        int z = ((is.read() << 24) + (is.read() << 16) + (is.read() << 8) + (is.read() << 0));
+                        int from = is.read();
+                        int to = is.read();
+                        change.setBiome(x, z, from, to);
+                        return change;
+                    }
+                } catch (EOFException ignoreOEF) {
+                } catch (Exception e) {
+                    e.printStackTrace();
+                    MainUtil.handleError(e);
                 }
                 try {
                     is.close();
                 } catch (IOException e) {
                     MainUtil.handleError(e);
                 }
-                return false;
+                return null;
             }
 
             @Override
-            public MutableBlockChange next() {
-                MutableBlockChange tmp = last;
+            public boolean hasNext() {
+                return last != null || ((last = read()) != null);
+            }
+
+            @Override
+            public MutableBiomeChange next() {
+                MutableBiomeChange tmp = last;
+                if (tmp == null) {
+                    tmp = read();
+                }
                 last = null;
                 return tmp;
             }
@@ -441,8 +522,13 @@ public abstract class FaweStreamChangeSet extends FaweChangeSet {
                     idDel.readCombined(is, change, dir);
                     return change;
                 } catch (EOFException ignoreOEF) {
-                    return null;
                 } catch (Exception e) {
+                    e.printStackTrace();
+                    MainUtil.handleError(e);
+                }
+                try {
+                    is.close();
+                } catch (IOException e) {
                     MainUtil.handleError(e);
                 }
                 return null;
@@ -450,23 +536,15 @@ public abstract class FaweStreamChangeSet extends FaweChangeSet {
 
             @Override
             public boolean hasNext() {
-                if (last == null) {
-                    last = read();
-                }
-                if (last != null) {
-                    return true;
-                }
-                try {
-                    is.close();
-                } catch (IOException e) {
-                    MainUtil.handleError(e);
-                }
-                return false;
+                return last != null || ((last = read()) != null);
             }
 
             @Override
             public MutableFullBlockChange next() {
                 MutableFullBlockChange tmp = last;
+                if (tmp == null) {
+                    tmp = read();
+                }
                 last = null;
                 return tmp;
             }
@@ -485,36 +563,35 @@ public abstract class FaweStreamChangeSet extends FaweChangeSet {
         final MutableEntityChange change = new MutableEntityChange(null, create);
         try {
             return new Iterator<MutableEntityChange>() {
-                private CompoundTag last = read();
+                private MutableEntityChange last = read();
 
-                public CompoundTag read() {
+                public MutableEntityChange read() {
                     try {
-                        return (CompoundTag) is.readTag();
-                    } catch (Exception ignoreEOS) {}
-                    return null;
-                }
-
-                @Override
-                public boolean hasNext() {
-                    if (last == null) {
-                        last = read();
-                    }
-                    if (last != null) {
-                        return true;
-                    }
+                        CompoundTag tag = (CompoundTag) is.readTag();
+                        change.tag = tag;
+                        return change;
+                    } catch (Exception ignoreOEF) {}
                     try {
                         is.close();
                     } catch (IOException e) {
                         MainUtil.handleError(e);
                     }
-                    return false;
+                    return null;
+                }
+
+                @Override
+                public boolean hasNext() {
+                    return last != null || ((last = read()) != null);
                 }
 
                 @Override
                 public MutableEntityChange next() {
-                    change.tag = last;
+                    MutableEntityChange tmp = last;
+                    if (tmp == null) {
+                        tmp = read();
+                    }
                     last = null;
-                    return change;
+                    return tmp;
                 }
 
                 @Override
@@ -535,36 +612,35 @@ public abstract class FaweStreamChangeSet extends FaweChangeSet {
         final MutableTileChange change = new MutableTileChange(null, create);
         try {
             return new Iterator<MutableTileChange>() {
-                private CompoundTag last = read();
+                private MutableTileChange last = read();
 
-                public CompoundTag read() {
+                public MutableTileChange read() {
                     try {
-                        return (CompoundTag) is.readTag();
-                    } catch (Exception ignoreEOS) {}
-                    return null;
-                }
-
-                @Override
-                public boolean hasNext() {
-                    if (last == null) {
-                        last = read();
-                    }
-                    if (last != null) {
-                        return true;
-                    }
+                        CompoundTag tag = (CompoundTag) is.readTag();
+                        change.tag = tag;
+                        return change;
+                    } catch (Exception ignoreOEF) {}
                     try {
                         is.close();
                     } catch (IOException e) {
                         MainUtil.handleError(e);
                     }
-                    return false;
+                    return null;
+                }
+
+                @Override
+                public boolean hasNext() {
+                    return last != null || ((last = read()) != null);
                 }
 
                 @Override
                 public MutableTileChange next() {
-                    change.tag = last;
+                    MutableTileChange tmp = last;
+                    if (tmp == null) {
+                        tmp = read();
+                    }
                     last = null;
-                    return change;
+                    return tmp;
                 }
 
                 @Override
@@ -589,8 +665,10 @@ public abstract class FaweStreamChangeSet extends FaweChangeSet {
 
             final Iterator<MutableBlockChange> blockChange = getBlockIterator(dir);
 
+            final Iterator<MutableBiomeChange> biomeChange = getBiomeIterator(dir);
+
             return new Iterator<Change>() {
-                Iterator<Change>[] iterators = new Iterator[]{tileCreate, tileRemove, entityCreate, entityRemove, blockChange};
+                Iterator<Change>[] iterators = new Iterator[]{tileCreate, tileRemove, entityCreate, entityRemove, blockChange, biomeChange};
                 int i = 0;
                 Iterator<Change> current = iterators[0];
 
@@ -613,7 +691,15 @@ public abstract class FaweStreamChangeSet extends FaweChangeSet {
 
                 @Override
                 public Change next() {
-                    return current.next();
+                    try {
+                        return current.next();
+                    } catch (Throwable ignore) {
+                        if (i >= iterators.length - 1) {
+                            throw new NoSuchElementException("End of iterator");
+                        }
+                        current = iterators[++i];
+                        return next();
+                    }
                 }
             };
         } catch (Exception e) {

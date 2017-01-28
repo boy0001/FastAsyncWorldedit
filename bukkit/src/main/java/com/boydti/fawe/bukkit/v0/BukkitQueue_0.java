@@ -162,11 +162,6 @@ public abstract class BukkitQueue_0<CHUNK, CHUNKSECTIONS, SECTION> extends NMSMa
     }
 
     @Override
-    public boolean isChunkLoaded(World world, int x, int z) {
-        return world.isChunkLoaded(x, z);
-    }
-
-    @Override
     public void sendChunk(int x, int z, int bitMask) {}
 
     @Override
@@ -186,15 +181,6 @@ public abstract class BukkitQueue_0<CHUNK, CHUNKSECTIONS, SECTION> extends NMSMa
     @Override
     public boolean hasSky() {
         return getWorld().getEnvironment() == World.Environment.NORMAL;
-    }
-
-    @Override
-    public boolean loadChunk(World impWorld, int x, int z, boolean generate) {
-        if (impWorld.loadChunk(x, z, generate)) {
-            keepLoaded.put(MathMan.pairInt(x, z), System.currentTimeMillis());
-            return true;
-        }
-        return false;
     }
 
     private volatile boolean timingsEnabled;

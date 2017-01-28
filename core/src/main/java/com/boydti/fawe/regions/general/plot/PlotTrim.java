@@ -56,7 +56,7 @@ public class PlotTrim implements Listener {
     }
 
     public void setChunk(int x, int z) {
-        this.ids = originalQueue.getChunk(originalQueue, x, z).ids;
+        this.ids = ((MCAChunk) originalQueue.getFaweChunk(x, z)).ids;
     }
 
     @EventHandler

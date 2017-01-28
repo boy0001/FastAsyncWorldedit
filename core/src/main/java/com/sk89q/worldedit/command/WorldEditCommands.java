@@ -107,9 +107,8 @@ public class WorldEditCommands {
     public void tz(Player player, LocalSession session, CommandContext args) throws WorldEditException {
         TimeZone tz = TimeZone.getTimeZone(args.getString(0));
         session.setTimezone(tz);
-        player.print(BBC.getPrefix() + "Timezone set for this session to: " + tz.getDisplayName());
-        player.print(BBC.getPrefix() + "The current time in that timezone is: "
-                + dateFormat.format(Calendar.getInstance(tz).getTime()));
+        BBC.TIMEZONE_SET.send(player, tz.getDisplayName());
+        BBC.TIMEZONE_DISPLAY.send(player, dateFormat.format(Calendar.getInstance(tz).getTime()));
     }
 
     @Command(

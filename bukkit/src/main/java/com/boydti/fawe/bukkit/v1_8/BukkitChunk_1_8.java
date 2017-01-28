@@ -285,19 +285,11 @@ public class BukkitChunk_1_8 extends CharFaweChunk<Chunk, BukkitQueue18R3> {
             }
 
             // Set biomes
-            int[][] biomes = this.biomes;
-            if (biomes != null) {
-                for (int x = 0; x < 16; x++) {
-                    int[] array = biomes[x];
-                    if (array == null) {
-                        continue;
-                    }
-                    for (int z = 0; z < 16; z++) {
-                        int biome = array[z];
-                        if (biome == 0) {
-                            continue;
-                        }
-                        nmsChunk.getBiomeIndex()[((z & 0xF) << 4 | x & 0xF)] = (byte) biome;
+            if (this.biomes != null) {
+                byte[] currentBiomes = nmsChunk.getBiomeIndex();
+                for (int i = 0 ; i < this.biomes.length; i++) {
+                    if (this.biomes[i] != 0) {
+                        currentBiomes[i] = this.biomes[i];
                     }
                 }
             }

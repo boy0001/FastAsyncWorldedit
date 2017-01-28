@@ -789,7 +789,7 @@ public class SelectionCommands {
 
             if (found != null) {
                 session.setDefaultRegionSelector(found);
-                player.print(BBC.getPrefix() + "Your default region selector is now " + found.name() + ".");
+                BBC.SELECTOR_SET_DEFAULT.send(player, found.name());
             } else {
                 throw new RuntimeException("Something unexpected happened. Please report this.");
             }

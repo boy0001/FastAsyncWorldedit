@@ -11,6 +11,7 @@ import java.util.Set;
 import java.util.UUID;
 
 public class NullFaweChunk extends FaweChunk<Void> {
+    public static final NullFaweChunk INSTANCE = new NullFaweChunk(null, 0 ,0);
     /**
      * A FaweSections object represents a chunk and the blocks that you wish to change in it.
      *
@@ -30,6 +31,11 @@ public class NullFaweChunk extends FaweChunk<Void> {
     @Override
     public char[] getIdArray(int layer) {
         return null;
+    }
+
+    @Override
+    public byte[] getBiomeArray() {
+        return new byte[256];
     }
 
     @Override
@@ -89,6 +95,11 @@ public class NullFaweChunk extends FaweChunk<Void> {
 
     @Override
     public void setBiome(int x, int z, BaseBiome biome) {
+
+    }
+
+    @Override
+    public void setBiome(int x, int z, byte biome) {
 
     }
 

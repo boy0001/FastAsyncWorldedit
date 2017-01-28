@@ -42,7 +42,6 @@ import com.sk89q.worldedit.WorldEditException;
 import com.sk89q.worldedit.blocks.BaseBlock;
 import com.sk89q.worldedit.entity.Entity;
 import com.sk89q.worldedit.entity.Player;
-import com.sk89q.worldedit.extension.platform.Actor;
 import com.sk89q.worldedit.extent.clipboard.BlockArrayClipboard;
 import com.sk89q.worldedit.extent.clipboard.Clipboard;
 import com.sk89q.worldedit.extent.clipboard.io.ClipboardFormat;
@@ -233,7 +232,7 @@ public class ClipboardCommands {
     public void download(final Player player, final LocalSession session, @Optional("schematic") final String formatName) throws CommandException, WorldEditException {
         final ClipboardFormat format = ClipboardFormat.findByAlias(formatName);
         if (format == null) {
-            player.printError("Unknown schematic format: " + formatName);
+            BBC.CLIPBOARD_INVALID_FORMAT.send(player, formatName);
             return;
         }
         ClipboardHolder holder = session.getClipboard();
@@ -465,32 +464,6 @@ public class ClipboardCommands {
         transform = transform.scale(direction.positive().multiply(-2).add(1, 1, 1));
         holder.setTransform(holder.getTransform().combine(transform));
         BBC.COMMAND_FLIPPED.send(player);
-    }
-
-    @Command(
-            aliases = { "/load" },
-            usage = "<filename>",
-            desc = "Load a schematic into your clipboard",
-            min = 0,
-            max = 1
-    )
-    @Deprecated
-    @CommandPermissions("worldedit.clipboard.load")
-    public void load(Actor actor) {
-        actor.printError("This command is no longer used. See //schematic load.");
-    }
-
-    @Command(
-            aliases = { "/save" },
-            usage = "<filename>",
-            desc = "Save a schematic into your clipboard",
-            min = 0,
-            max = 1
-    )
-    @Deprecated
-    @CommandPermissions("worldedit.clipboard.save")
-    public void save(Actor actor) {
-        actor.printError("This command is no longer used. See //schematic save.");
     }
 
     @Command(

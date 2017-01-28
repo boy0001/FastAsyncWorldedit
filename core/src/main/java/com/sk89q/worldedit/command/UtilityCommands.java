@@ -442,7 +442,7 @@ public class UtilityCommands {
             killed += visitor.getAffected();
         }
 
-        actor.print(BBC.getPrefix() + "Killed " + killed + (killed != 1 ? " mobs" : " mob") + (radius < 0 ? "" : " in a radius of " + radius) + ".");
+        BBC.KILL_SUCCESS.send(actor, killed, radius);
 
         if (editSession != null) {
             session.remember(editSession);
@@ -502,7 +502,7 @@ public class UtilityCommands {
             removed += visitor.getAffected();
         }
 
-        actor.print(BBC.getPrefix() + "Marked " + removed + (removed != 1 ? " entities" : " entity") + " for removal.");
+        BBC.KILL_SUCCESS.send(removed, radius);
 
         if (editSession != null) {
             session.remember(editSession);

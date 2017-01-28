@@ -39,7 +39,6 @@ import net.minecraft.server.v1_9_R2.NBTTagCompound;
 import net.minecraft.server.v1_9_R2.TileEntity;
 import org.bukkit.Chunk;
 import org.bukkit.World;
-import org.bukkit.block.Biome;
 import org.bukkit.craftbukkit.v1_9_R2.CraftChunk;
 import org.bukkit.event.entity.CreatureSpawnEvent;
 
@@ -403,19 +402,13 @@ public class BukkitChunk_1_9 extends CharFaweChunk<Chunk, BukkitQueue_1_9_R1> {
                 getParent().setCount(0, getParent().getNonEmptyBlockCount(section) + nonEmptyBlockCount, section);
             }
             // Set biomes
-            int[][] biomes = this.biomes;
+            byte[] biomes = this.biomes;
             if (biomes != null) {
-                for (int x = 0; x < 16; x++) {
-                    int[] array = biomes[x];
-                    if (array == null) {
-                        continue;
-                    }
-                    for (int z = 0; z < 16; z++) {
-                        int biome = array[z];
-                        if (biome == 0) {
-                            continue;
-                        }
-                        nmsChunk.getBiomeIndex()[((z & 0xF) << 4 | x & 0xF)] = (byte) biome;
+                byte[] currentBiomes = nmsChunk.getBiomeIndex();
+                for (int i = 0; i < currentBiomes.length; i++) {
+                    byte newBiome = biomes[i];
+                    if (newBiome != 0) {
+                        currentBiomes[i] = newBiome;
                     }
                 }
             }
@@ -436,23 +429,6 @@ public class BukkitChunk_1_9 extends CharFaweChunk<Chunk, BukkitQueue_1_9_R1> {
             }
         } catch (Throwable e) {
             MainUtil.handleError(e);
-        }
-        final int[][] biomes = this.getBiomeArray();
-        final Biome[] values = Biome.values();
-        if (biomes != null) {
-            for (int x = 0; x < 16; x++) {
-                final int[] array = biomes[x];
-                if (array == null) {
-                    continue;
-                }
-                for (int z = 0; z < 16; z++) {
-                    final int biome = array[z];
-                    if (biome == 0) {
-                        continue;
-                    }
-                    chunk.getBlock(x, 0, z).setBiome(values[biome]);
-                }
-            }
         }
         return this;
     }

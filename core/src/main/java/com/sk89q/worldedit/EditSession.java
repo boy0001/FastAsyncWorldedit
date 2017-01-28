@@ -72,7 +72,6 @@ import com.sk89q.worldedit.extent.AbstractDelegateExtent;
 import com.sk89q.worldedit.extent.ChangeSetExtent;
 import com.sk89q.worldedit.extent.Extent;
 import com.sk89q.worldedit.extent.MaskingExtent;
-import com.sk89q.worldedit.extent.buffer.ForgetfulExtentBuffer;
 import com.sk89q.worldedit.extent.inventory.BlockBag;
 import com.sk89q.worldedit.extent.world.SurvivalModeExtent;
 import com.sk89q.worldedit.function.GroundFunction;
@@ -92,7 +91,6 @@ import com.sk89q.worldedit.function.mask.RegionMask;
 import com.sk89q.worldedit.function.operation.ChangeSetExecutor;
 import com.sk89q.worldedit.function.operation.ForwardExtentCopy;
 import com.sk89q.worldedit.function.operation.Operation;
-import com.sk89q.worldedit.function.operation.OperationQueue;
 import com.sk89q.worldedit.function.operation.Operations;
 import com.sk89q.worldedit.function.pattern.BlockPattern;
 import com.sk89q.worldedit.function.pattern.Patterns;
@@ -1543,6 +1541,7 @@ public class EditSession extends AbstractWorld implements HasFaweQueue, Lighting
     public boolean canBypassAll(Region region, boolean get, boolean set) {
         if (wrapped) return false;
         FaweRegionExtent regionExtent = getRegionExtent();
+        if (!(region instanceof CuboidRegion)) return false;
         if (regionExtent != null) {
             if (!(region instanceof CuboidRegion)) return false;
             Vector pos1 = region.getMinimumPoint();
@@ -1950,7 +1949,11 @@ public class EditSession extends AbstractWorld implements HasFaweQueue, Lighting
         checkNotNull(dir);
         checkArgument(distance >= 1, "distance >= 1 required");
         final Vector displace = dir.multiply(distance);
-        // Remove the original blocks
+
+        final Vector size = region.getMaximumPoint().subtract(region.getMinimumPoint()).add(1, 1, 1);
+        final Vector to = region.getMinimumPoint();
+        final ForwardExtentCopy copy = new ForwardExtentCopy(EditSession.this, region, EditSession.this, to);
+
         final com.sk89q.worldedit.function.pattern.Pattern pattern = replacement != null ? new BlockPattern(replacement) : new BlockPattern(new BaseBlock(BlockID.AIR));
         final BlockReplace remove = new BlockReplace(EditSession.this, pattern) {
             @Override
@@ -1966,12 +1969,9 @@ public class EditSession extends AbstractWorld implements HasFaweQueue, Lighting
             }
         };
 
-        // Copy to a buffer so we don't destroy our original before we can copy all the blocks from it
-        final ForgetfulExtentBuffer buffer = new ForgetfulExtentBuffer(EditSession.this, new RegionMask(region));
-        final ForwardExtentCopy copy = new ForwardExtentCopy(EditSession.this, region, buffer, region.getMinimumPoint());
+        copy.setSourceFunction(remove);
+        copy.setRepetitions(1);
         copy.setTransform(new AffineTransform().translate(dir.multiply(distance)));
-        copy.setSourceFunction(remove); // Remove
-        copy.setRemovingEntities(true);
         Mask sourceMask = getSourceMask();
         if (sourceMask != null) {
             new MaskTraverser(sourceMask).reset(EditSession.this);
@@ -1981,13 +1981,7 @@ public class EditSession extends AbstractWorld implements HasFaweQueue, Lighting
         if (!copyAir) {
             copy.setSourceMask(new ExistingBlockMask(EditSession.this));
         }
-
-        // Then we need to copy the buffer to the world
-        final BlockReplace replace = new BlockReplace(EditSession.this, buffer);
-        final RegionVisitor visitor = new RegionVisitor(buffer.asRegion(), replace);
-
-        final OperationQueue operation = new OperationQueue(copy, visitor);
-        Operations.completeSmart(operation, new Runnable() {
+        Operations.completeSmart(copy, new Runnable() {
             @Override
             public void run() {
                 EditSession.this.flushQueue();

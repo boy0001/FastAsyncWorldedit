@@ -94,7 +94,7 @@ public class BiomeCommands {
         BiomeRegistry biomeRegistry = player.getWorld().getWorldData().getBiomeRegistry();
         List<BaseBiome> biomes = biomeRegistry.getBiomes();
         int totalPages = biomes.size() / 19 + 1;
-        player.print(BBC.getPrefix() + "Available Biomes (page " + page + "/" + totalPages + ") :");
+        BBC.BIOME_LIST_HEADER.send(player, page, totalPages);
         for (BaseBiome biome : biomes) {
             if (offset > 0) {
                 offset--;
@@ -106,7 +106,7 @@ public class BiomeCommands {
                         break;
                     }
                 } else {
-                    player.print(BBC.getPrefix() + " <unknown #" + biome.getId() + ">");
+                    player.print(BBC.getPrefix() + " <? #" + biome.getId() + ">");
                 }
             }
         }
@@ -132,19 +132,15 @@ public class BiomeCommands {
         if (args.hasFlag('t')) {
             Vector blockPosition = player.getBlockTrace(300);
             if (blockPosition == null) {
-                player.printError("No block in sight!");
+                BBC.NO_BLOCK.send(player);
                 return;
             }
 
             BaseBiome biome = player.getWorld().getBiome(blockPosition.toVector2D());
             biomes.add(biome);
-
-            qualifier = "at line of sight point";
         } else if (args.hasFlag('p')) {
             BaseBiome biome = player.getWorld().getBiome(player.getPosition().toVector2D());
             biomes.add(biome);
-
-            qualifier = "at your position";
         } else {
             World world = player.getWorld();
             Region region = session.getSelection(world);
@@ -158,17 +154,15 @@ public class BiomeCommands {
                     biomes.add(world.getBiome(pt.toVector2D()));
                 }
             }
-
-            qualifier = "in your selection";
         }
 
-        player.print(biomes.size() != 1 ? "Biomes " + qualifier + ":" : "Biome " + qualifier + ":");
+        BBC.BIOME_LIST_HEADER.send(player, 1, 1);
         for (BaseBiome biome : biomes) {
             BiomeData data = biomeRegistry.getData(biome);
             if (data != null) {
                 player.print(BBC.getPrefix() + " " + data.getName());
             } else {
-                player.print(BBC.getPrefix() + " <unknown #" + biome.getId() + ">");
+                player.print(BBC.getPrefix() + " <? #" + biome.getId() + ">");
             }
         }
     }
@@ -204,7 +198,7 @@ public class BiomeCommands {
         FlatRegionVisitor visitor = new FlatRegionVisitor(Regions.asFlatRegion(region), replace);
         Operations.completeLegacy(visitor);
 
-        player.print(BBC.getPrefix() + "Biomes were changed in " + visitor.getAffected() + " columns. You may have to rejoin your game (or close and reopen your world) to see a change.");
+        BBC.BIOME_CHANGED.send(player, visitor.getAffected());
     }
 
     public static Class<BiomeCommands> inject() {

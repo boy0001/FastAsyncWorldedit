@@ -41,6 +41,32 @@ public class MCAQueue extends NMSMappedFaweQueue<FaweQueue, FaweChunk, FaweChunk
         this.hasSky = hasSky;
     }
 
+    @Override
+    public FaweChunk loadChunk(FaweQueue faweQueue, int x, int z, boolean generate) {
+        return getFaweChunk(x, z);
+    }
+
+    @Override
+    public FaweChunk getSections(FaweChunk faweChunk) {
+        return faweChunk;
+    }
+
+    @Override
+    public FaweChunk getCachedChunk(FaweQueue faweQueue, int cx, int cz) {
+        return getFaweChunk(cx, cz);
+    }
+
+    @Override
+    public int getBiome(FaweChunk faweChunk, int x, int z) {
+        if (faweChunk instanceof MCAChunk) {
+            return ((MCAChunk) faweChunk).getBiomeArray()[((z & 0xF) << 4 | x & 0xF)];
+        } else if (parent != null){
+            return parent.getBiomeId(x, z);
+        } else {
+            return 0;
+        }
+    }
+
     public void filterWorld(final MCAFilter filter) {
         File folder = getSaveFolder();
         final ForkJoinPool pool = new ForkJoinPool();
@@ -155,11 +181,6 @@ public class MCAQueue extends NMSMappedFaweQueue<FaweQueue, FaweChunk, FaweChunk
     }
 
     @Override
-    public MCAChunk getChunk(FaweQueue faweQueue, int x, int z) {
-        return (MCAChunk) getFaweChunk(x, z);
-    }
-
-    @Override
     public FaweQueue getImpWorld() {
         return parent;
     }
@@ -255,11 +276,6 @@ public class MCAQueue extends NMSMappedFaweQueue<FaweQueue, FaweChunk, FaweChunk
     }
 
     @Override
-    public boolean isChunkLoaded(FaweQueue faweQueue, int x, int z) {
-        return true;
-    }
-
-    @Override
     public FaweChunk getFaweChunk(int cx, int cz) {
         return getFaweQueueMap().getFaweChunk(cx, cz);
     }
@@ -272,11 +288,6 @@ public class MCAQueue extends NMSMappedFaweQueue<FaweQueue, FaweChunk, FaweChunk
     @Override
     public boolean hasSky() {
         return hasSky;
-    }
-
-    @Override
-    public boolean loadChunk(FaweQueue faweQueue, int x, int z, boolean generate) {
-        return true;
     }
 
     @Override

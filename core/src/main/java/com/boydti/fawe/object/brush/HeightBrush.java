@@ -42,12 +42,12 @@ public class HeightBrush implements DoubleActionBrush {
 
     @Override
     public void build(DoubleActionBrushTool.BrushAction action, EditSession editSession, Vector position, Pattern pattern, double sizeDouble) throws MaxChangedBlocksException {
-        int size = (int) (action == DoubleActionBrushTool.BrushAction.PRIMARY ? sizeDouble : -sizeDouble);
+        int size = (int) sizeDouble;
         Mask mask = tool.getMask();
         if (mask == Masks.alwaysTrue() || mask == Masks.alwaysTrue2D()) {
             mask = null;
         }
         heightMap.setSize(size);
-        heightMap.apply(editSession, mask, position, size, rotation, yscale, true);
+        heightMap.apply(editSession, mask, position, size, rotation, action == DoubleActionBrushTool.BrushAction.PRIMARY ? yscale : -yscale, true);
     }
 }
