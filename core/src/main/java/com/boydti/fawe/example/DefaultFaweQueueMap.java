@@ -43,13 +43,17 @@ public class DefaultFaweQueueMap implements IFaweQueueMap {
 
     @Override
     public Collection<FaweChunk> getFaweCunks() {
-        return new HashSet<>(blocks.values());
+        synchronized (blocks) {
+            return new HashSet<>(blocks.values());
+        }
     }
 
     @Override
     public void forEachChunk(RunnableVal<FaweChunk> onEach) {
-        for (Map.Entry<Long, FaweChunk> entry : blocks.entrySet()) {
-            onEach.run(entry.getValue());
+        synchronized (blocks) {
+            for (Map.Entry<Long, FaweChunk> entry : blocks.entrySet()) {
+                onEach.run(entry.getValue());
+            }
         }
     }
 

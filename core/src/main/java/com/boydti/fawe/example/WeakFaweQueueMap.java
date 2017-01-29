@@ -47,31 +47,35 @@ public class WeakFaweQueueMap implements IFaweQueueMap {
     @Override
     public Collection<FaweChunk> getFaweCunks() {
         HashSet<FaweChunk> set = new HashSet<>();
-        Iterator<Map.Entry<Long, Reference<FaweChunk>>> iter = blocks.entrySet().iterator();
-        while (iter.hasNext()) {
-            Map.Entry<Long, Reference<FaweChunk>> entry = iter.next();
-            FaweChunk value = entry.getValue().get();
-            if (value != null) {
-                set.add(value);
-            } else {
-                Fawe.debug("Skipped modifying chunk due to low memory (1)");
-                iter.remove();
+        synchronized (blocks) {
+            Iterator<Map.Entry<Long, Reference<FaweChunk>>> iter = blocks.entrySet().iterator();
+            while (iter.hasNext()) {
+                Map.Entry<Long, Reference<FaweChunk>> entry = iter.next();
+                FaweChunk value = entry.getValue().get();
+                if (value != null) {
+                    set.add(value);
+                } else {
+                    Fawe.debug("Skipped modifying chunk due to low memory (1)");
+                    iter.remove();
+                }
             }
+            return set;
         }
-        return set;
     }
 
     @Override
     public void forEachChunk(RunnableVal<FaweChunk> onEach) {
-        Iterator<Map.Entry<Long, Reference<FaweChunk>>> iter = blocks.entrySet().iterator();
-        while (iter.hasNext()) {
-            Map.Entry<Long, Reference<FaweChunk>> entry = iter.next();
-            FaweChunk value = entry.getValue().get();
-            if (value != null) {
-                onEach.run(value);
-            } else {
-                Fawe.debug("Skipped modifying chunk due to low memory (2)");
-                iter.remove();
+        synchronized (blocks) {
+            Iterator<Map.Entry<Long, Reference<FaweChunk>>> iter = blocks.entrySet().iterator();
+            while (iter.hasNext()) {
+                Map.Entry<Long, Reference<FaweChunk>> entry = iter.next();
+                FaweChunk value = entry.getValue().get();
+                if (value != null) {
+                    onEach.run(value);
+                } else {
+                    Fawe.debug("Skipped modifying chunk due to low memory (2)");
+                    iter.remove();
+                }
             }
         }
     }
