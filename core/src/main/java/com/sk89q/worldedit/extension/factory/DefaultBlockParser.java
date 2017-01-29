@@ -342,6 +342,7 @@ public class DefaultBlockParser extends InputParser<BaseBlock> {
                 text[2] = blockAndExtraData.length > 3 ? blockAndExtraData[3] : "";
                 text[3] = blockAndExtraData.length > 4 ? blockAndExtraData[4] : "";
                 return new SignBlock(blockType.getID(), data, text);
+            case CHEST:
             case END_GATEWAY:
             case END_PORTAL:
                 return new BaseBlock(blockId, data, new CompoundTag(new HashMap<String, Tag>()));

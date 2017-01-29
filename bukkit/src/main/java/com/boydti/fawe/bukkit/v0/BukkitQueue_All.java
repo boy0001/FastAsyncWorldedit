@@ -137,7 +137,6 @@ public class BukkitQueue_All extends BukkitQueue_0<ChunkSnapshot, ChunkSnapshot,
         }
         Location loc = new Location(getWorld(), x, y, z);
         BaseBlock block = adapter.getBlock(loc);
-        System.out.println("Get tile " + x + "," + y + "," + z + " | " + (block != null ? block.getNbtData() : null) + " | done");
         return block != null ? block.getNbtData() : null;
     }
 

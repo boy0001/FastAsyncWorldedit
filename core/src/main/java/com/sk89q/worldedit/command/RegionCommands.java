@@ -27,6 +27,7 @@ import com.boydti.fawe.object.FawePlayer;
 import com.boydti.fawe.object.FaweQueue;
 import com.boydti.fawe.util.MathMan;
 import com.boydti.fawe.util.SetQueue;
+import com.sk89q.jnbt.CompoundTag;
 import com.sk89q.minecraft.util.commands.Command;
 import com.sk89q.minecraft.util.commands.CommandContext;
 import com.sk89q.minecraft.util.commands.CommandPermissions;
@@ -37,6 +38,7 @@ import com.sk89q.worldedit.Vector;
 import com.sk89q.worldedit.Vector2D;
 import com.sk89q.worldedit.WorldEdit;
 import com.sk89q.worldedit.WorldEditException;
+import com.sk89q.worldedit.WorldVector;
 import com.sk89q.worldedit.blocks.BaseBlock;
 import com.sk89q.worldedit.entity.Player;
 import com.sk89q.worldedit.function.GroundFunction;
@@ -151,6 +153,25 @@ public class RegionCommands {
         }
         int count = FaweAPI.fixLighting(loc.world, selection, FaweQueue.RelightMode.NONE);
         BBC.UPDATED_LIGHTING_SELECTION.send(fp, count);
+    }
+
+    @Command(
+            aliases = { "/nbtinfo", "/nbt" },
+            desc = "View nbt info for a block"
+    )
+    @CommandPermissions("worldedit.nbtinfo")
+    public void nbtinfo(Player player, EditSession editSession) {
+        WorldVector pos = player.getBlockTrace(128);
+        if (pos == null) {
+            BBC.NO_BLOCK.send(player);
+            return;
+        }
+        CompoundTag nbt = editSession.getBlock(pos).getNbtData();
+        if (nbt != null) {
+            player.print(nbt.getValue().toString());
+        } else {
+            BBC.NO_BLOCK.send(player);
+        }
     }
 
     @Command(

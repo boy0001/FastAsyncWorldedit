@@ -1576,7 +1576,7 @@ public class EditSession extends AbstractWorld implements HasFaweQueue, Lighting
     public int setBlocks(final Region region, final BaseBlock block) throws MaxChangedBlocksException {
         checkNotNull(region);
         checkNotNull(block);
-        if (canBypassAll(region, false, true)) {
+        if (canBypassAll(region, false, true) && !block.hasNbtData()) {
             return changes = queue.setBlocks((CuboidRegion) region, block.getId(), block.getData());
         }
         Iterator<BlockVector> iter = region.iterator();

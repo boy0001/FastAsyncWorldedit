@@ -47,32 +47,6 @@ public class ChunkListener implements Listener {
         }
     }
 
-    public static void main(String[] args) {
-        Map<Long, Object> map = new Long2ObjectOpenHashMap<Object>() {
-            @Override
-            public Object put(long l, Object o) {
-                synchronized (this) {
-                    return super.put(l, o);
-                }
-            }
-
-            @Override
-            public synchronized Object put(Long aLong, Object o) {
-                    return super.put(aLong, o);
-            }
-        };
-//        map = new ConcurrentHashMap<>();
-        long start = System.currentTimeMillis();
-        for (int j = 0; j < 50000; j++) {
-            for (long i = 0; i < 256; i++) {
-                map.put(i, i);
-            }
-            map.clear();
-        }
-        System.out.println(System.currentTimeMillis() - start);
-        System.out.println(map.size());
-    }
-
     public static boolean physicsFreeze = false;
     public static boolean itemFreeze = false;
 
