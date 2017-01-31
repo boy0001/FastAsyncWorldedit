@@ -12,7 +12,6 @@ import com.sk89q.jnbt.ListTag;
 import com.sk89q.jnbt.StringTag;
 import com.sk89q.jnbt.Tag;
 import com.sk89q.worldedit.internal.Constants;
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -110,9 +109,9 @@ public class BukkitChunk_1_8 extends CharFaweChunk<Chunk, BukkitQueue18R3> {
                     if (!ents.isEmpty()) {
                         char[] array = this.getIdArray(i);
                         if (array == null || entities[i] == null || entities[i].isEmpty()) continue;
-                        ents = new ArrayList<>(entities[i]);
+                        Entity[] entsArr = ents.toArray(new Entity[ents.size()]);
                         synchronized (BukkitQueue_0.adapter) {
-                            for (Entity entity : ents) {
+                            for (Entity entity : entsArr) {
                                 if (entity instanceof EntityPlayer) {
                                     continue;
                                 }
@@ -132,10 +131,13 @@ public class BukkitChunk_1_8 extends CharFaweChunk<Chunk, BukkitQueue18R3> {
             if (!entsToRemove.isEmpty()) {
                 synchronized (BukkitQueue_0.adapter) {
                     for (int i = 0; i < entities.length; i++) {
-                        Collection<Entity> ents = new ArrayList<>(entities[i]);
-                        for (Entity entity : ents) {
-                            if (entsToRemove.contains(entity.getUniqueID())) {
-                                nmsWorld.removeEntity(entity);
+                        Collection<Entity> ents = entities[i];
+                        if (ents.isEmpty()) {
+                            Entity[] entsArr = ents.toArray(new Entity[ents.size()]);
+                            for (Entity entity : entsArr) {
+                                if (entsToRemove.contains(entity.getUniqueID())) {
+                                    nmsWorld.removeEntity(entity);
+                                }
                             }
                         }
                     }

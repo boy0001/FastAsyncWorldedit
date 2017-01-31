@@ -17,7 +17,6 @@ import com.sk89q.worldedit.internal.Constants;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
@@ -230,13 +229,16 @@ public class BukkitChunk_1_11 extends CharFaweChunk<Chunk, com.boydti.fawe.bukki
             if (!entsToRemove.isEmpty()) {
                 synchronized (BukkitQueue_0.adapter) {
                     for (int i = 0; i < entities.length; i++) {
-                        Collection<Entity> ents = new ArrayList<>(entities[i]);
-                        for (Entity entity : ents) {
-                            if (entsToRemove.contains(entity.getUniqueID())) {
-                                if (copy != null) {
-                                    copy.storeEntity(entity);
+                        Collection<Entity> ents = entities[i];
+                        if (ents.isEmpty()) {
+                            Entity[] entsArr = ents.toArray(new Entity[ents.size()]);
+                            for (Entity entity : entsArr) {
+                                if (entsToRemove.contains(entity.getUniqueID())) {
+                                    if (copy != null) {
+                                        copy.storeEntity(entity);
+                                    }
+                                    nmsWorld.removeEntity(entity);
                                 }
-                                nmsWorld.removeEntity(entity);
                             }
                         }
                     }
@@ -263,8 +265,9 @@ public class BukkitChunk_1_11 extends CharFaweChunk<Chunk, com.boydti.fawe.bukki
                     if (!ents.isEmpty()) {
                         char[] array = this.getIdArray(i);
                         if (array == null || ents == null || ents.isEmpty()) continue;
+                        Entity[] entsArr = ents.toArray(new Entity[ents.size()]);
                         synchronized (BukkitQueue_0.adapter) {
-                            for (Entity entity : ents) {
+                            for (Entity entity : entsArr) {
                                 if (entity instanceof EntityPlayer) {
                                     continue;
                                 }

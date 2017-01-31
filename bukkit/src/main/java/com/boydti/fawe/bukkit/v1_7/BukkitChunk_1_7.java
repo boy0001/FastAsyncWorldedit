@@ -171,9 +171,9 @@ public class BukkitChunk_1_7 extends CharFaweChunk<Chunk, BukkitQueue17> {
                     if (!ents.isEmpty()) {
                         char[] array = this.getIdArray(i);
                         if (array == null || entities[i] == null || entities[i].isEmpty()) continue;
-                        ents = new ArrayList<>(entities[i]);
+                        Entity[] entsArr = ents.toArray(new Entity[ents.size()]);
                         synchronized (BukkitQueue_0.adapter) {
-                            for (Entity entity : ents) {
+                            for (Entity entity : entsArr) {
                                 if (entity instanceof EntityPlayer) {
                                     continue;
                                 }
