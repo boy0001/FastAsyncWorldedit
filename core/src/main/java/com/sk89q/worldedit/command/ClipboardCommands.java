@@ -22,6 +22,7 @@ package com.sk89q.worldedit.command;
 import com.boydti.fawe.FaweAPI;
 import com.boydti.fawe.config.BBC;
 import com.boydti.fawe.config.Settings;
+import com.boydti.fawe.object.FaweLimit;
 import com.boydti.fawe.object.FawePlayer;
 import com.boydti.fawe.object.RunnableVal2;
 import com.boydti.fawe.object.clipboard.ReadOnlyClipboard;
@@ -109,7 +110,13 @@ public class ClipboardCommands {
     public void lazyCopy(Player player, LocalSession session, EditSession editSession,
                          @Selection final Region region, @Switch('e') boolean copyEntities,
                          @Switch('m') Mask mask) throws WorldEditException {
-
+        Vector min = region.getMinimumPoint();
+        Vector max = region.getMaximumPoint();
+        long volume = (((long)max.getX() - (long)min.getX() + 1) * ((long)max.getY() - (long)min.getY() + 1) * ((long)max.getZ() - (long)min.getZ() + 1));
+        FaweLimit limit = FawePlayer.wrap(player).getLimit();
+        if (volume >= limit.MAX_CHECKS) {
+            throw new FaweException(BBC.WORLDEDIT_CANCEL_REASON_MAX_CHECKS);
+        }
         final Vector origin = region.getMinimumPoint();
         final int mx = origin.getBlockX();
         final int my = origin.getBlockY();
@@ -143,7 +150,8 @@ public class ClipboardCommands {
         Vector min = region.getMinimumPoint();
         Vector max = region.getMaximumPoint();
         long volume = (((long)max.getX() - (long)min.getX() + 1) * ((long)max.getY() - (long)min.getY() + 1) * ((long)max.getZ() - (long)min.getZ() + 1));
-        if (volume >= Integer.MAX_VALUE) {
+        FaweLimit limit = FawePlayer.wrap(player).getLimit();
+        if (volume >= limit.MAX_CHECKS) {
             throw new FaweException(BBC.WORLDEDIT_CANCEL_REASON_MAX_CHECKS);
         }
 
@@ -182,6 +190,16 @@ public class ClipboardCommands {
     public void lazyCut(Player player, LocalSession session, EditSession editSession,
                          @Selection final Region region, @Switch('e') boolean copyEntities,
                          @Switch('m') Mask mask) throws WorldEditException {
+        Vector min = region.getMinimumPoint();
+        Vector max = region.getMaximumPoint();
+        long volume = (((long)max.getX() - (long)min.getX() + 1) * ((long)max.getY() - (long)min.getY() + 1) * ((long)max.getZ() - (long)min.getZ() + 1));
+        FaweLimit limit = FawePlayer.wrap(player).getLimit();
+        if (volume >= limit.MAX_CHECKS) {
+            throw new FaweException(BBC.WORLDEDIT_CANCEL_REASON_MAX_CHECKS);
+        }
+        if (volume >= limit.MAX_CHANGES) {
+            throw new FaweException(BBC.WORLDEDIT_CANCEL_REASON_MAX_CHANGES);
+        }
         final Vector origin = region.getMinimumPoint();
         final int mx = origin.getBlockX();
         final int my = origin.getBlockY();
@@ -214,8 +232,12 @@ public class ClipboardCommands {
         Vector min = region.getMinimumPoint();
         Vector max = region.getMaximumPoint();
         long volume = (((long)max.getX() - (long)min.getX() + 1) * ((long)max.getY() - (long)min.getY() + 1) * ((long)max.getZ() - (long)min.getZ() + 1));
-        if (volume >= Integer.MAX_VALUE) {
+        FaweLimit limit = FawePlayer.wrap(player).getLimit();
+        if (volume >= limit.MAX_CHECKS) {
             throw new FaweException(BBC.WORLDEDIT_CANCEL_REASON_MAX_CHECKS);
+        }
+        if (volume >= limit.MAX_CHANGES) {
+            throw new FaweException(BBC.WORLDEDIT_CANCEL_REASON_MAX_CHANGES);
         }
         BlockArrayClipboard clipboard = new BlockArrayClipboard(region, player.getUniqueId());
         clipboard.setOrigin(session.getPlacementPosition(player));
