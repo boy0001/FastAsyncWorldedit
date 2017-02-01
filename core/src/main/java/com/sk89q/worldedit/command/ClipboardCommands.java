@@ -26,6 +26,7 @@ import com.boydti.fawe.object.FawePlayer;
 import com.boydti.fawe.object.RunnableVal2;
 import com.boydti.fawe.object.clipboard.ReadOnlyClipboard;
 import com.boydti.fawe.object.clipboard.WorldCutClipboard;
+import com.boydti.fawe.object.exception.FaweException;
 import com.boydti.fawe.object.io.FastByteArrayOutputStream;
 import com.boydti.fawe.util.ImgurUtility;
 import com.boydti.fawe.util.MaskTraverser;
@@ -139,6 +140,12 @@ public class ClipboardCommands {
     public void copy(Player player, LocalSession session, EditSession editSession,
                      @Selection Region region, @Switch('e') boolean copyEntities,
                      @Switch('m') Mask mask) throws WorldEditException {
+        Vector min = region.getMinimumPoint();
+        Vector max = region.getMaximumPoint();
+        long volume = (((long)max.getX() - (long)min.getX() + 1) * ((long)max.getY() - (long)min.getY() + 1) * ((long)max.getZ() - (long)min.getZ() + 1));
+        if (volume >= Integer.MAX_VALUE) {
+            throw new FaweException(BBC.WORLDEDIT_CANCEL_REASON_MAX_CHECKS);
+        }
 
         BlockArrayClipboard clipboard = new BlockArrayClipboard(region, player.getUniqueId());
 
@@ -175,7 +182,6 @@ public class ClipboardCommands {
     public void lazyCut(Player player, LocalSession session, EditSession editSession,
                          @Selection final Region region, @Switch('e') boolean copyEntities,
                          @Switch('m') Mask mask) throws WorldEditException {
-
         final Vector origin = region.getMinimumPoint();
         final int mx = origin.getBlockX();
         final int my = origin.getBlockY();
@@ -205,7 +211,12 @@ public class ClipboardCommands {
     public void cut(Player player, LocalSession session, EditSession editSession,
                     @Selection Region region, @Optional("air") Pattern leavePattern, @Switch('e') boolean copyEntities,
                     @Switch('m') Mask mask) throws WorldEditException {
-
+        Vector min = region.getMinimumPoint();
+        Vector max = region.getMaximumPoint();
+        long volume = (((long)max.getX() - (long)min.getX() + 1) * ((long)max.getY() - (long)min.getY() + 1) * ((long)max.getZ() - (long)min.getZ() + 1));
+        if (volume >= Integer.MAX_VALUE) {
+            throw new FaweException(BBC.WORLDEDIT_CANCEL_REASON_MAX_CHECKS);
+        }
         BlockArrayClipboard clipboard = new BlockArrayClipboard(region, player.getUniqueId());
         clipboard.setOrigin(session.getPlacementPosition(player));
         ForwardExtentCopy copy = new ForwardExtentCopy(editSession, region, clipboard, region.getMinimumPoint());

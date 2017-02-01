@@ -128,7 +128,7 @@ public class DiskOptimizedClipboard extends FaweClipboard implements Closeable {
                 MainUtil.handleError(e);
             }
             this.raf = new BufferedRandomAccessFile(file, "rw", 16);
-            long volume = width * height * length * 2l + HEADER_SIZE;
+            long volume = (long) width * (long) height * (long) length * 2l + (long) HEADER_SIZE;
             raf.setLength(0);
             raf.setLength(volume);
             // write length etc
