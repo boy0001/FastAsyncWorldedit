@@ -247,7 +247,7 @@ public class NukkitWorld extends LocalWorld {
 
     @Override
     public int getMaxY() {
-        return 127;
+        return 255;
     }
 
     @Override
@@ -257,7 +257,7 @@ public class NukkitWorld extends LocalWorld {
 
     @Override
     public Vector getMaximumPoint() {
-        return new Vector(30000000, 127, 30000000);
+        return new Vector(30000000, 255, 30000000);
     }
 
     @Override

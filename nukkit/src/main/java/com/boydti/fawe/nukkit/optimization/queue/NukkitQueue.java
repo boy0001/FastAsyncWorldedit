@@ -171,7 +171,7 @@ public class NukkitQueue extends NMSMappedFaweQueue<Level, BaseFullChunk, BaseFu
 
     @Override
     public void setFullbright(BaseFullChunk sections) {
-        for (int y = 0; y < 128; y++) {
+        for (int y = 0; y < 256; y++) {
             for (int z = 0; z < 16; z++) {
                 for (int x = 0; x < 16; x++) {
                     sections.setBlockSkyLight(x, y, z, 15);
@@ -182,7 +182,7 @@ public class NukkitQueue extends NMSMappedFaweQueue<Level, BaseFullChunk, BaseFu
 
     @Override
     public boolean removeLighting(BaseFullChunk sections, RelightMode mode, boolean hasSky) {
-        for (int y = 0; y < 128; y++) {
+        for (int y = 0; y < 256; y++) {
             for (int z = 0; z < 16; z++) {
                 for (int x = 0; x < 16; x++) {
                     sections.setBlockSkyLight(x, y, z, 0);
