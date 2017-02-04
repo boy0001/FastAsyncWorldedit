@@ -54,7 +54,9 @@ public class ForgeMain {
 
     public void handleQuit(EntityPlayerMP player) {
         FawePlayer fp = FawePlayer.wrap(player);
-        fp.unregister();
+        if (fp != null) {
+            fp.unregister();
+        }
         Fawe.get().unregister(player.getName());
     }
 
