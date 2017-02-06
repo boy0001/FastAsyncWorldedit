@@ -448,6 +448,12 @@ public class ForgeQueue_All extends NMSMappedFaweQueue<World, Chunk, ExtendedBlo
         return true;
     }
 
+    public void setPalette(ExtendedBlockStorage section, BlockStateContainer palette) throws NoSuchFieldException, IllegalAccessException {
+        Field fieldSection = ExtendedBlockStorage.class.getDeclaredField("data");
+        fieldSection.setAccessible(true);
+        fieldSection.set(section, palette);
+    }
+
     @Override
     public boolean hasSky() {
         return !nmsWorld.provider.getHasNoSky();
