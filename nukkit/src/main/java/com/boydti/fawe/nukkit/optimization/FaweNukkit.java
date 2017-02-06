@@ -29,7 +29,7 @@ public class FaweNukkit implements IFawe, Listener {
 
     public FaweNukkit(NukkitWorldEdit mod) {
         this.plugin = mod;
-        FaweChunk.HEIGHT = 128;
+        FaweChunk.HEIGHT = 256;
         plugin.getServer().getPluginManager().registerEvents(this, plugin);
     }
 
