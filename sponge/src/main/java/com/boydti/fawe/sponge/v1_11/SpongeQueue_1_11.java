@@ -156,6 +156,45 @@ public class SpongeQueue_1_11 extends NMSMappedFaweQueue<World, net.minecraft.wo
     }
 
     @Override
+    public ExtendedBlockStorage[] getSections(Chunk chunk) {
+        return chunk.getBlockStorageArray();
+    }
+
+    @Override
+    public int getBiome(Chunk chunk, int x, int z) {
+        return chunk.getBiomeArray()[((z & 15) << 4) + (x & 15)];
+    }
+
+    @Override
+    public Chunk loadChunk(World world, int x, int z, boolean generate) {
+        ChunkProviderServer provider = (ChunkProviderServer) world.getChunkProvider();
+        if (generate) {
+            return provider.provideChunk(x, z);
+        } else {
+            return provider.loadChunk(x, z);
+        }
+    }
+
+    @Override
+    public ExtendedBlockStorage[] getCachedSections(World world, int cx, int cz) {
+        Chunk chunk = world.getChunkProvider().getLoadedChunk(cx, cz);
+        if (chunk != null) {
+            return chunk.getBlockStorageArray();
+        }
+        return null;
+    }
+
+    @Override
+    public Chunk getCachedChunk(World world, int cx, int cz) {
+        return world.getChunkProvider().getLoadedChunk(cx, cz);
+    }
+
+    @Override
+    public ExtendedBlockStorage getCachedSection(ExtendedBlockStorage[] ExtendedBlockStorages, int cy) {
+        return ExtendedBlockStorages[cy];
+    }
+
+    @Override
     public void setHeightMap(FaweChunk chunk, byte[] heightMap) {
         Chunk forgeChunk = (Chunk) chunk.getChunk();
         if (forgeChunk != null) {
@@ -190,20 +229,6 @@ public class SpongeQueue_1_11 extends NMSMappedFaweQueue<World, net.minecraft.wo
             MainUtil.handleError(e);
             return null;
         }
-    }
-
-    @Override
-    public Chunk getChunk(net.minecraft.world.World world, int x, int z) {
-        Chunk chunk = world.getChunkProvider().provideChunk(x, z);
-        if (chunk != null && !chunk.isLoaded()) {
-            chunk.onChunkLoad();
-        }
-        return chunk;
-    }
-
-    @Override
-    public boolean isChunkLoaded(int x, int z) {
-        return getWorld().getChunkProvider().getLoadedChunk(x, z) != null;
     }
 
     public boolean regenerateChunk(net.minecraft.world.World world, int x, int z) {
@@ -313,25 +338,6 @@ public class SpongeQueue_1_11 extends NMSMappedFaweQueue<World, net.minecraft.wo
     }
 
     @Override
-    public boolean loadChunk(net.minecraft.world.World world, int x, int z, boolean generate) {
-        return getCachedSections(world, x, z) != null;
-    }
-
-    @Override
-    public ExtendedBlockStorage[] getCachedSections(net.minecraft.world.World world, int x, int z) {
-        Chunk chunk = world.getChunkProvider().provideChunk(x, z);
-        if (chunk != null && !chunk.isLoaded()) {
-            chunk.onChunkLoad();
-        }
-        return chunk == null ? null : chunk.getBlockStorageArray();
-    }
-
-    @Override
-    public ExtendedBlockStorage getCachedSection(ExtendedBlockStorage[] chunk, int cy) {
-        return chunk[cy];
-    }
-
-    @Override
     public int getCombinedId4Data(ExtendedBlockStorage section, int x, int y, int z) {
         IBlockState ibd = section.getData().get(x & 15, y & 15, z & 15);
         Block block = ibd.getBlock();
@@ -341,11 +347,6 @@ public class SpongeQueue_1_11 extends NMSMappedFaweQueue<World, net.minecraft.wo
         } else {
             return id << 4;
         }
-    }
-
-    @Override
-    public boolean isChunkLoaded(net.minecraft.world.World world, int x, int z) {
-        return world.getChunkProvider().getLoadedChunk(x, z) != null;
     }
 
     public int getNonEmptyBlockCount(ExtendedBlockStorage section) throws IllegalAccessException {
@@ -444,11 +445,18 @@ public class SpongeQueue_1_11 extends NMSMappedFaweQueue<World, net.minecraft.wo
 
     @Override
     public void sendChunk(int x, int z, int bitMask) {
-        if (!isChunkLoaded(x, z)) {
-            return;
+        Chunk chunk = getCachedChunk(getWorld(), x, z);
+        if (chunk != null) {
+            sendChunk(chunk, bitMask);
         }
-        Chunk chunk = getChunk(getImpWorld(), x, z);
-        sendChunk(chunk, bitMask);
+    }
+
+    @Override
+    public void refreshChunk(FaweChunk fc) {
+        Chunk chunk = getCachedChunk(getWorld(), fc.getX(), fc.getZ());
+        if (chunk != null) {
+            sendChunk(chunk, fc.getBitMask());
+        }
     }
 
     public void sendChunk(Chunk nmsChunk, int mask) {
@@ -499,14 +507,6 @@ public class SpongeQueue_1_11 extends NMSMappedFaweQueue<World, net.minecraft.wo
         } catch (Throwable e) {
             MainUtil.handleError(e);
         }
-    }
-
-    @Override
-    public void refreshChunk(FaweChunk fc) {
-        SpongeChunk_1_11 fs = (SpongeChunk_1_11) fc;
-        ensureChunkLoaded(fc.getX(), fc.getZ());
-        Chunk nmsChunk = fs.getChunk();
-        sendChunk(nmsChunk, fc.getBitMask());
     }
 
     public boolean hasEntities(Chunk nmsChunk) {

@@ -157,7 +157,6 @@ public class BukkitQueue_1_11 extends BukkitQueue_0<net.minecraft.server.v1_11_R
 
     @Override
     public net.minecraft.server.v1_11_R1.Chunk loadChunk(World world, int x, int z, boolean generate) {
-        net.minecraft.server.v1_11_R1.Chunk chunk;
         net.minecraft.server.v1_11_R1.ChunkProviderServer provider = ((org.bukkit.craftbukkit.v1_11_R1.CraftWorld) world).getHandle().getChunkProviderServer();
         if (generate) {
             return provider.getOrLoadChunkAt(x, z);

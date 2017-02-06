@@ -156,8 +156,6 @@ public class ClipboardCommands {
         }
 
         BlockArrayClipboard clipboard = new BlockArrayClipboard(region, player.getUniqueId());
-
-
         clipboard.setOrigin(session.getPlacementPosition(player));
         ForwardExtentCopy copy = new ForwardExtentCopy(editSession, region, clipboard, region.getMinimumPoint());
         Mask sourceMask = editSession.getSourceMask();

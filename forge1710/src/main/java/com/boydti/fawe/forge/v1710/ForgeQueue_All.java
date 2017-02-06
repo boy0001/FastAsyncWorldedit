@@ -116,31 +116,42 @@ public class ForgeQueue_All extends NMSMappedFaweQueue<World, Chunk, ExtendedBlo
     }
 
     @Override
-    public Chunk getChunk(World world, int x, int z) {
-        Chunk chunk = world.getChunkProvider().provideChunk(x, z);
-        if (chunk != null && !chunk.isChunkLoaded) {
-            chunk.onChunkLoad();
-        }
-        return chunk;
+    public ExtendedBlockStorage[] getSections(Chunk chunk) {
+        return chunk.getBlockStorageArray();
     }
 
     @Override
-    public boolean loadChunk(World world, int x, int z, boolean generate) {
-        return getCachedSections(world, x, z) != null;
+    public int getBiome(Chunk chunk, int x, int z) {
+        return chunk.getBiomeArray()[((z & 15) << 4) + (x & 15)];
+    }
+
+    @Override
+    public Chunk loadChunk(World world, int x, int z, boolean generate) {
+        ChunkProviderServer provider = (ChunkProviderServer) world.getChunkProvider();
+        if (generate) {
+            return provider.provideChunk(x, z);
+        } else {
+            return provider.loadChunk(x, z);
+        }
     }
 
     @Override
     public ExtendedBlockStorage[] getCachedSections(World world, int cx, int cz) {
-        Chunk chunk = world.getChunkProvider().provideChunk(cx, cz);
-        if (chunk != null && !chunk.isChunkLoaded) {
-            chunk.onChunkLoad();
+        Chunk chunk = (Chunk) ((ChunkProviderServer)world.getChunkProvider()).loadedChunkHashMap.getValueByKey(ChunkCoordIntPair.chunkXZ2Int(cx, cz));
+        if (chunk != null) {
+            return chunk.getBlockStorageArray();
         }
-        return chunk != null ? chunk.getBlockStorageArray() : null;
+        return null;
     }
 
     @Override
-    public ExtendedBlockStorage getCachedSection(ExtendedBlockStorage[] extendedBlockStorages, int cy) {
-        return extendedBlockStorages[cy];
+    public Chunk getCachedChunk(World world, int cx, int cz) {
+        return (Chunk) ((ChunkProviderServer)world.getChunkProvider()).loadedChunkHashMap.getValueByKey(ChunkCoordIntPair.chunkXZ2Int(cx, cz));
+    }
+
+    @Override
+    public ExtendedBlockStorage getCachedSection(ExtendedBlockStorage[] ExtendedBlockStorages, int cy) {
+        return ExtendedBlockStorages[cy];
     }
 
     @Override
@@ -150,11 +161,6 @@ public class ForgeQueue_All extends NMSMappedFaweQueue<World, Chunk, ExtendedBlo
         int i = FaweCache.CACHE_J[y & 15][z & 15][x & 15];
         int combined = (ids[i] << 4) + (datasNibble == null ? 0 : datasNibble.get(x & 15, y & 15, z & 15));
         return combined;
-    }
-
-    @Override
-    public boolean isChunkLoaded(World world, int x, int z) {
-        return world.getChunkProvider().chunkExists(x, z);
     }
 
     @Override
@@ -237,20 +243,18 @@ public class ForgeQueue_All extends NMSMappedFaweQueue<World, Chunk, ExtendedBlo
 
     @Override
     public void sendChunk(int x, int z, int bitMask) {
-        if (!isChunkLoaded(x, z)) {
-            return;
+        Chunk chunk = getCachedChunk(getWorld(), x, z);
+        if (chunk != null) {
+            sendChunk(chunk, bitMask);
         }
-        sendChunk(getChunk(getImpWorld(), x, z), bitMask);
     }
 
     @Override
     public void refreshChunk(FaweChunk fc) {
-        ForgeChunk_All fs = (ForgeChunk_All) fc;
-        if (!isChunkLoaded(fc.getX(), fc.getZ())) {
-            return;
+        Chunk chunk = getCachedChunk(getWorld(), fc.getX(), fc.getZ());
+        if (chunk != null) {
+            sendChunk(chunk, fc.getBitMask());
         }
-        Chunk chunk = fs.getChunk();
-        sendChunk(chunk, fs.getBitMask());
     }
 
     public void sendChunk(Chunk nmsChunk, int mask) {
