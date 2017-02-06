@@ -9,7 +9,7 @@ import java.util.Iterator;
 import java.util.Set;
 
 /**
- * The LocalBlockVectorSet is a Memory and CPU optimized set for storing BlockVectors which are all in a local region
+ * The LocalBlockVectorSet is a Memory and CPU optimized Set for storing BlockVectors which are all in a local region
  *  - All vectors must be in a 2048 * 2048 area centered around the first entry
  *  - This will use 8 bytes for every 64 BlockVectors (about 800x less than a HashSet)
  */
@@ -33,16 +33,22 @@ public class LocalBlockVectorSet implements Set<Vector> {
         return set.isEmpty();
     }
 
+    public boolean contains(int x, int y, int z) {
+        return set.get(MathMan.tripleSearchCoords(x - offsetX, y, z - offsetZ));
+    }
+
     @Override
     public boolean contains(Object o) {
         if (o instanceof Vector) {
             Vector v = (Vector) o;
-            int x = v.getBlockX();
-            int y = v.getBlockY();
-            int z = v.getBlockZ();
-            return set.get(MathMan.tripleSearchCoords(x - offsetX, y, z - offsetZ));
+            return contains(v.getBlockX(), v.getBlockY(), v.getBlockZ());
         }
         return false;
+    }
+
+    public void setOffset(int x, int z) {
+        this.offsetX = x;
+        this.offsetZ = z;
     }
 
     @Override
@@ -105,40 +111,55 @@ public class LocalBlockVectorSet implements Set<Vector> {
         return array;
     }
 
-    @Override
-    public boolean add(Vector vector) {
+    public boolean add(int x, int y, int z) {
         if (offsetX == Integer.MAX_VALUE) {
-            offsetX = vector.getBlockX();
-            offsetZ = vector.getBlockZ();
+            offsetX = x;
+            offsetZ = z;
         }
-        int relX = vector.getBlockX() - offsetX;
-        int relZ = vector.getBlockZ() - offsetZ;
+        int relX = x - offsetX;
+        int relZ = z - offsetZ;
         if (relX > 1023 || relX < -1024 || relZ > 1023 || relZ < -1024) {
             throw new UnsupportedOperationException("LocalVectorSet can only contain vectors within 1024 blocks (cuboid) of the first entry. ");
         }
-        int index = getIndex(vector);
+        if (y < 0 || y > 256) {
+            throw new UnsupportedOperationException("LocalVectorSet can only contain vectors from y elem:[0,255]");
+        }
+        int index = getIndex(x, y, z);
         boolean value = set.get(index);
         set.set(index);
         return !value;
+    }
+
+    @Override
+    public boolean add(Vector vector) {
+        return add(vector.getBlockX(), vector.getBlockY(), vector.getBlockZ());
     }
 
     private int getIndex(Vector vector) {
         return MathMan.tripleSearchCoords(vector.getBlockX() - offsetX, vector.getBlockY(), vector.getBlockZ() - offsetZ);
     }
 
+    private int getIndex(int x, int y, int z) {
+        return MathMan.tripleSearchCoords(x - offsetX, y, z - offsetZ);
+    }
+
+    public boolean remove(int x, int y, int z) {
+        int relX = x - offsetX;
+        int relZ = z - offsetZ;
+        if (relX > 1023 || relX < -1024 || relZ > 1023 || relZ < -1024) {
+            return false;
+        }
+        int index = MathMan.tripleSearchCoords(relX, y, relZ);
+        boolean value = set.get(index);
+        set.clear(index);
+        return value;
+    }
+
     @Override
     public boolean remove(Object o) {
         if (o instanceof Vector) {
             Vector v = (Vector) o;
-            int relX = v.getBlockX() - offsetX;
-            int relZ = v.getBlockZ() - offsetZ;
-            if (relX > 1023 || relX < -1024 || relZ > 1023 || relZ < -1024) {
-                return false;
-            }
-            int index = MathMan.tripleSearchCoords(relX, v.getBlockY(), relZ);
-            boolean value = set.get(index);
-            set.clear(index);
-            return value;
+            return remove(v.getBlockX(), v.getBlockY(), v.getBlockZ());
         }
         return false;
     }
