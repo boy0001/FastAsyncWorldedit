@@ -254,8 +254,8 @@ public class ForwardExtentCopy implements Operation {
                 transExt.setTransform(currentTransform);
             }
 
-            affected += blockVisitor.getAffected();
         }
+        affected = blockVisitor.getAffected();
         return null;
     }
 
