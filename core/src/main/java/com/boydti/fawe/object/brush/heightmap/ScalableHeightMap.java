@@ -19,8 +19,8 @@ import com.sk89q.worldedit.regions.CuboidRegion;
 import com.sk89q.worldedit.regions.Region;
 import java.awt.image.BufferedImage;
 import java.awt.image.Raster;
-import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.HashSet;
 import javax.imageio.ImageIO;
 
@@ -84,8 +84,8 @@ public class ScalableHeightMap {
         return new ArrayHeightMap(heightArray);
     }
 
-    public static ScalableHeightMap fromPNG(File file) throws IOException {
-        BufferedImage heightFile = ImageIO.read(file);
+    public static ScalableHeightMap fromPNG(InputStream stream) throws IOException {
+        BufferedImage heightFile = ImageIO.read(stream);
         int width = heightFile.getWidth();
         int length = heightFile.getHeight();
         Raster data = heightFile.getData();

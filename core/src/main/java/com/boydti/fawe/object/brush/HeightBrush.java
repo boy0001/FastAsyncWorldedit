@@ -10,8 +10,8 @@ import com.sk89q.worldedit.extent.clipboard.Clipboard;
 import com.sk89q.worldedit.function.mask.Mask;
 import com.sk89q.worldedit.function.mask.Masks;
 import com.sk89q.worldedit.function.pattern.Pattern;
-import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 
 public class HeightBrush implements DoubleActionBrush {
 
@@ -20,23 +20,20 @@ public class HeightBrush implements DoubleActionBrush {
     double yscale = 1;
     private final DoubleActionBrushTool tool;
 
-    public HeightBrush(File file, int rotation, double yscale, DoubleActionBrushTool tool, Clipboard clipboard) {
+    public HeightBrush(InputStream stream, int rotation, double yscale, DoubleActionBrushTool tool, Clipboard clipboard) {
         this.tool = tool;
         this.rotation = (rotation / 90) % 4;
         this.yscale = yscale;
-        if (file == null || !file.exists()) {
-            // Since I can't be bothered using separate args, we'll get it from the filename
-            if (file.getName().equalsIgnoreCase("#clipboard.png") && clipboard != null) {
-                heightMap = ScalableHeightMap.fromClipboard(clipboard);
-            } else {
-                heightMap = new ScalableHeightMap();
-            }
-        } else {
+        if (stream != null) {
             try {
-                heightMap = ScalableHeightMap.fromPNG(file);
+                heightMap = ScalableHeightMap.fromPNG(stream);
             } catch (IOException e) {
                 throw new FaweException(BBC.BRUSH_HEIGHT_INVALID);
             }
+        } else if (clipboard != null) {
+            heightMap = ScalableHeightMap.fromClipboard(clipboard);
+        } else {
+            heightMap = new ScalableHeightMap();
         }
     }
 

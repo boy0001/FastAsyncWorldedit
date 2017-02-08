@@ -65,6 +65,13 @@ import com.sk89q.worldedit.session.ClipboardHolder;
 import com.sk89q.worldedit.util.command.binding.Switch;
 import com.sk89q.worldedit.util.command.parametric.Optional;
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.URL;
+import java.nio.channels.Channels;
+import java.nio.channels.ReadableByteChannel;
 
 
 import static com.google.common.base.Preconditions.checkNotNull;
@@ -359,13 +366,34 @@ public class BrushCommands {
     @CommandPermissions("worldedit.brush.height")
     public void heightBrush(Player player, LocalSession session, @Optional("5") double radius, @Optional("") final String filename, @Optional("0") final int rotation, @Optional("1") final double yscale) throws WorldEditException {
         worldEdit.checkMaxBrushRadius(radius);
-        File file = new File(Fawe.imp().getDirectory(), "heightmap" + File.separator + (filename.endsWith(".png") ? filename : filename + ".png"));
+        String filenamePng = (filename.endsWith(".png") ? filename : filename + ".png");
+        File file = new File(Fawe.imp().getDirectory(), "heightmap" + File.separator + filenamePng);
+        InputStream stream = null;
+        if (!file.exists()) {
+            if (!filename.equals("#clipboard") && filename.length() >= 7) {
+                try {
+                    URL url = new URL("https://i.imgur.com/" + filenamePng);
+                    ReadableByteChannel rbc = Channels.newChannel(url.openStream());
+                    stream = Channels.newInputStream(rbc);
+                    System.out.println("Loaded " + url);
+                } catch (IOException e) {
+                    throw new RuntimeException(e);
+                }
+            }
+        } else if (!filename.equalsIgnoreCase("#clipboard")){
+            try {
+                stream = new FileInputStream(file);
+            } catch (FileNotFoundException e) {
+                throw new RuntimeException(e);
+            }
+        }
+
         DoubleActionBrushTool tool = session.getDoubleActionBrushTool(player.getItemInHand());
         tool.setSize(radius);
         try {
-            tool.setBrush(new HeightBrush(file, rotation, yscale, tool, session.getClipboard().getClipboard()), "worldedit.brush.height");
+            tool.setBrush(new HeightBrush(stream, rotation, yscale, tool, filename.equalsIgnoreCase("#clipboard") ? session.getClipboard().getClipboard() : null), "worldedit.brush.height");
         } catch (EmptyClipboardException ignore) {
-            tool.setBrush(new HeightBrush(file, rotation, yscale, tool, null), "worldedit.brush.height");
+            tool.setBrush(new HeightBrush(stream, rotation, yscale, tool, null), "worldedit.brush.height");
         }
         player.print(BBC.getPrefix() + BBC.BRUSH_HEIGHT.f(radius));
     }
