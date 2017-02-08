@@ -29,6 +29,7 @@ import com.boydti.fawe.object.brush.CommandBrush;
 import com.boydti.fawe.object.brush.CopyPastaBrush;
 import com.boydti.fawe.object.brush.DoubleActionBrushTool;
 import com.boydti.fawe.object.brush.ErodeBrush;
+import com.boydti.fawe.object.brush.FlattenBrush;
 import com.boydti.fawe.object.brush.HeightBrush;
 import com.boydti.fawe.object.brush.LineBrush;
 import com.boydti.fawe.object.brush.RecurseBrush;
@@ -401,6 +402,58 @@ public class BrushCommands {
             tool.setBrush(new HeightBrush(stream, rotation, yscale, tool, filename.equalsIgnoreCase("#clipboard") ? session.getClipboard().getClipboard() : null), "worldedit.brush.height");
         } catch (EmptyClipboardException ignore) {
             tool.setBrush(new HeightBrush(stream, rotation, yscale, tool, null), "worldedit.brush.height");
+        }
+        player.print(BBC.getPrefix() + BBC.BRUSH_HEIGHT.f(radius));
+    }
+
+    @Command(
+            aliases = { "flatten", "flatmap", "flat" },
+            usage = "[radius] [file|#clipboard|null] [rotation] [yscale]",
+            flags = "h",
+            desc = "Flatten brush",
+            help =
+                    "This brush raises and lowers land towards the clicked point\n",
+            min = 1,
+            max = 4
+    )
+    @CommandPermissions("worldedit.brush.height")
+    public void flattenBrush(Player player, LocalSession session, @Optional("5") double radius, @Optional("") final String filename, @Optional("0") final int rotation, @Optional("1") final double yscale) throws WorldEditException {
+        worldEdit.checkMaxBrushRadius(radius);
+        String filenamePng = (filename.endsWith(".png") ? filename : filename + ".png");
+        File file = new File(Fawe.imp().getDirectory(), "heightmap" + File.separator + filenamePng);
+        InputStream stream = null;
+        if (!file.exists()) {
+            if (!filename.equals("#clipboard") && filename.length() >= 7) {
+                try {
+                    URL url;
+                    if (filename.startsWith("http")) {
+                        url = new URL(filename);
+                        if (!url.getHost().equals("i.imgur.com")) {
+                            throw new FileNotFoundException(filename);
+                        }
+                    } else {
+                        url = new URL("https://i.imgur.com/" + filenamePng);
+                    }
+                    ReadableByteChannel rbc = Channels.newChannel(url.openStream());
+                    stream = Channels.newInputStream(rbc);
+                } catch (IOException e) {
+                    throw new RuntimeException(e);
+                }
+            }
+        } else if (!filename.equalsIgnoreCase("#clipboard")){
+            try {
+                stream = new FileInputStream(file);
+            } catch (FileNotFoundException e) {
+                throw new RuntimeException(e);
+            }
+        }
+
+        DoubleActionBrushTool tool = session.getDoubleActionBrushTool(player.getItemInHand());
+        tool.setSize(radius);
+        try {
+            tool.setBrush(new FlattenBrush(stream, rotation, yscale, tool, filename.equalsIgnoreCase("#clipboard") ? session.getClipboard().getClipboard() : null), "worldedit.brush.height");
+        } catch (EmptyClipboardException ignore) {
+            tool.setBrush(new FlattenBrush(stream, rotation, yscale, tool, null), "worldedit.brush.height");
         }
         player.print(BBC.getPrefix() + BBC.BRUSH_HEIGHT.f(radius));
     }

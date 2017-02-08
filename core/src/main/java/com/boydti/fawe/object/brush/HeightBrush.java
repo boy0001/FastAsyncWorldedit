@@ -16,9 +16,9 @@ import java.io.InputStream;
 public class HeightBrush implements DoubleActionBrush {
 
     public final ScalableHeightMap heightMap;
-    private final int rotation;
-    double yscale = 1;
-    private final DoubleActionBrushTool tool;
+    public final int rotation;
+    public final double yscale;
+    public final DoubleActionBrushTool tool;
 
     public HeightBrush(InputStream stream, int rotation, double yscale, DoubleActionBrushTool tool, Clipboard clipboard) {
         this.tool = tool;
@@ -45,6 +45,6 @@ public class HeightBrush implements DoubleActionBrush {
             mask = null;
         }
         heightMap.setSize(size);
-        heightMap.apply(editSession, mask, position, size, rotation, action == DoubleActionBrushTool.BrushAction.PRIMARY ? yscale : -yscale, true);
+        heightMap.apply(editSession, mask, position, size, rotation, action == DoubleActionBrushTool.BrushAction.PRIMARY ? yscale : -yscale, true, false);
     }
 }

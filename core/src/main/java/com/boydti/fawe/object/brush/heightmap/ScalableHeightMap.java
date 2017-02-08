@@ -2,7 +2,6 @@ package com.boydti.fawe.object.brush.heightmap;
 
 import com.boydti.fawe.object.IntegerPair;
 import com.boydti.fawe.object.PseudoRandom;
-import com.boydti.fawe.util.MainUtil;
 import com.boydti.fawe.util.MathMan;
 import com.sk89q.worldedit.EditSession;
 import com.sk89q.worldedit.MaxChangedBlocksException;
@@ -12,9 +11,7 @@ import com.sk89q.worldedit.blocks.BaseBlock;
 import com.sk89q.worldedit.extent.clipboard.Clipboard;
 import com.sk89q.worldedit.function.mask.Mask;
 import com.sk89q.worldedit.internal.LocalWorldAdapter;
-import com.sk89q.worldedit.math.convolution.GaussianKernel;
 import com.sk89q.worldedit.math.convolution.HeightMap;
-import com.sk89q.worldedit.math.convolution.HeightMapFilter;
 import com.sk89q.worldedit.regions.CuboidRegion;
 import com.sk89q.worldedit.regions.Region;
 import java.awt.image.BufferedImage;
@@ -103,7 +100,7 @@ public class ScalableHeightMap {
         return new ArrayHeightMap(array);
     }
 
-    public void apply(EditSession session, Mask mask, Vector pos, int size, int rotationMode, double yscale, boolean smooth) throws MaxChangedBlocksException {
+    public void apply(EditSession session, Mask mask, Vector pos, int size, int rotationMode, double yscale, boolean smooth, boolean towards) throws MaxChangedBlocksException {
         Vector top = session.getMaximumPoint();
         int maxY = top.getBlockY();
         int diameter = 2 * size + 1;
@@ -113,31 +110,65 @@ public class ScalableHeightMap {
         int startY = pos.getBlockY() - size;
         int[] newData = new int[diameter * diameter];
         Vector mutablePos = new Vector(0, 0, 0);
-        for (int x = -size; x <= size; x++) {
-            int xx = centerX + x;
-            mutablePos.mutX(xx);
-            for (int z = -size; z <= size; z++) {
-                int index = (z + size) * diameter + (x + size);
-                int zz = centerZ + z;
-                double raise;
-                switch (rotationMode) {
-                    default:
-                        raise = getHeight(x, z);
-                        break;
-                    case 1:
-                        raise = getHeight(z, x);
-                        break;
-                    case 2:
-                        raise = getHeight(-x, -z);
-                        break;
-                    case 3:
-                        raise = getHeight(-z, -x);
-                        break;
+        if (towards) {
+            int targetY = pos.getBlockY();
+            for (int x = -size; x <= size; x++) {
+                int xx = centerX + x;
+                mutablePos.mutX(xx);
+                for (int z = -size; z <= size; z++) {
+                    int index = (z + size) * diameter + (x + size);
+                    int zz = centerZ + z;
+                    double raise;
+                    switch (rotationMode) {
+                        default:
+                            raise = getHeight(x, z);
+                            break;
+                        case 1:
+                            raise = getHeight(z, x);
+                            break;
+                        case 2:
+                            raise = getHeight(-x, -z);
+                            break;
+                        case 3:
+                            raise = getHeight(-z, -x);
+                            break;
+                    }
+                    raise = (yscale * raise);
+                    int height = session.getHighestTerrainBlock(xx, zz, 0, 255, true);
+                    int diff = targetY - height;
+                    double raiseScaled = 1 + diff * (raise / (double) size);
+                    int random = PseudoRandom.random.random(maxY + 1) < (int) ((raiseScaled - (int) raiseScaled) * (maxY + 1)) ? 1 : 0;
+                    int raiseScaledInt = (int) raiseScaled + random;
+                    newData[index] = height + raiseScaledInt;
                 }
-                raise = (yscale * raise);
-                int random = PseudoRandom.random.random(maxY + 1) < (int) ((raise - (int) raise) * (maxY + 1)) ? 1 : 0;
-                int height = session.getHighestTerrainBlock(xx, zz, 0, maxY, true) + (int) raise + random;
-                newData[index] = height;
+            }
+        } else {
+            for (int x = -size; x <= size; x++) {
+                int xx = centerX + x;
+                mutablePos.mutX(xx);
+                for (int z = -size; z <= size; z++) {
+                    int index = (z + size) * diameter + (x + size);
+                    int zz = centerZ + z;
+                    double raise;
+                    switch (rotationMode) {
+                        default:
+                            raise = getHeight(x, z);
+                            break;
+                        case 1:
+                            raise = getHeight(z, x);
+                            break;
+                        case 2:
+                            raise = getHeight(-x, -z);
+                            break;
+                        case 3:
+                            raise = getHeight(-z, -x);
+                            break;
+                    }
+                    raise = (yscale * raise);
+                    int random = PseudoRandom.random.random(maxY + 1) < (int) ((raise - (int) raise) * (maxY + 1)) ? 1 : 0;
+                    int height = session.getHighestTerrainBlock(xx, zz, 0, maxY, true) + (int) raise + random;
+                    newData[index] = height;
+                }
             }
         }
         int iterations = 1;
@@ -145,14 +176,14 @@ public class ScalableHeightMap {
         Vector max = pos.add(size, maxY, size);
         Region region = new CuboidRegion(session.getWorld(), min, max);
         HeightMap heightMap = new HeightMap(session, region, true);
-        if (smooth) {
-            try {
-                HeightMapFilter filter = (HeightMapFilter) HeightMapFilter.class.getConstructors()[0].newInstance(GaussianKernel.class.getConstructors()[0].newInstance(5, 1));
-                newData = filter.filter(newData, diameter, diameter);
-            } catch (Throwable e) {
-                MainUtil.handleError(e);
-            }
-        }
+//        if (smooth) {
+//            try {
+//                HeightMapFilter filter = (HeightMapFilter) HeightMapFilter.class.getConstructors()[0].newInstance(GaussianKernel.class.getConstructors()[0].newInstance(5, 1));
+//                newData = filter.filter(newData, diameter, diameter);
+//            } catch (Throwable e) {
+//                MainUtil.handleError(e);
+//            }
+//        }
         heightMap.apply(newData);
     }
 }
