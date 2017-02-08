@@ -234,6 +234,13 @@ public class Settings extends Config {
         public int EXTRA_TIME_MS = 0;
 
         @Comment({
+                "Loading the right amount of chunks beforehand can speed up operations",
+                " - Low values will result in FAWE waiting on requests to the main thread",
+                " - Higher values will use memory and is slower if the operation ends early",
+        })
+        public int PRELOAD_CHUNKS = 32;
+
+        @Comment({
                 "Discard edits which have been idle for a certain amount of time (ms) (e.g. a plugin creates",
                 "an EditSession but never does anything with it)."
         })

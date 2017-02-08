@@ -276,26 +276,6 @@ public abstract class MappedFaweQueue<WORLD, CHUNK, CHUNKSECTIONS, SECTION> exte
 
     public abstract CompoundTag getTileEntity(CHUNK chunk, int x, int y, int z);
 
-//    public CHUNKSECTIONS ensureSectionsLoaded(int cx, int cz) throws FaweException.FaweChunkLoadException {
-//        CHUNKSECTIONS sections = getCachedSections(getWorld(), cx, cz);
-//        if (sections != null) {
-//            return sections;
-//        }
-//        boolean sync = Thread.currentThread() == Fawe.get().getMainThread();
-//        if (sync) {
-//            CHUNK chunk = loadChunk(getWorld(), cx, cz, true);
-//            return chunk != null ? getSections(chunk) : null;
-//        } else if (Settings.IMP.HISTORY.CHUNK_WAIT_MS > 0) {
-//            cachedLoadChunk = null;
-//            loadChunk.value.x = cx;
-//            loadChunk.value.z = cz;
-//            TaskManager.IMP.syncWhenFree(loadChunk, Settings.IMP.HISTORY.CHUNK_WAIT_MS);
-//            return cachedLoadChunk != null ? getSections(cachedLoadChunk) : null;
-//        } else {
-//            return null;
-//        }
-//    }
-
     public CHUNK ensureChunkLoaded(int cx, int cz) throws FaweException.FaweChunkLoadException {
         CHUNK chunk = getCachedChunk(getWorld(), cx, cz);
         if (chunk != null) {
@@ -313,6 +293,20 @@ public abstract class MappedFaweQueue<WORLD, CHUNK, CHUNKSECTIONS, SECTION> exte
         } else {
             return null;
         }
+    }
+
+    public boolean queueChunkLoad(final int cx, final int cz) {
+        CHUNK chunk = getCachedChunk(getWorld(), cx, cz);
+        if (chunk == null) {
+            SetQueue.IMP.addTask(new Runnable() {
+                @Override
+                public void run() {
+                    loadChunk(getWorld(), cx, cz, true);
+                }
+            });
+            return true;
+        }
+        return false;
     }
 
     @Override

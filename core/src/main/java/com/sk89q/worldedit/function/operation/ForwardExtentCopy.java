@@ -19,9 +19,12 @@
 
 package com.sk89q.worldedit.function.operation;
 
+import com.boydti.fawe.example.MappedFaweQueue;
+import com.boydti.fawe.object.FaweQueue;
 import com.boydti.fawe.object.extent.BlockTranslateExtent;
 import com.boydti.fawe.object.extent.PositionTransformExtent;
 import com.boydti.fawe.object.function.block.SimpleBlockCopy;
+import com.sk89q.worldedit.EditSession;
 import com.sk89q.worldedit.Vector;
 import com.sk89q.worldedit.WorldEditException;
 import com.sk89q.worldedit.entity.Entity;
@@ -216,7 +219,14 @@ public class ForwardExtentCopy implements Operation {
         if (currentTransform == null) {
             currentTransform = transform;
         }
-
+        FaweQueue queue;
+        if (source instanceof EditSession) {
+            queue = ((EditSession) source).getQueue();
+        } else if (destination instanceof EditSession) {
+             queue = ((EditSession) destination).getQueue();
+        } else {
+            queue = null;
+        }
         Extent finalDest = destination;
         Vector translation = to.subtract(from);
         if (!translation.equals(Vector.ZERO)) {
@@ -237,7 +247,7 @@ public class ForwardExtentCopy implements Operation {
         if (sourceFunction != null) {
             copy = new CombinedRegionFunction(copy, sourceFunction);
         }
-        RegionVisitor blockVisitor = new RegionVisitor(region, copy);
+        RegionVisitor blockVisitor = new RegionVisitor(region, copy, queue instanceof MappedFaweQueue ? (MappedFaweQueue) queue : null);
 
         List<? extends Entity> entities = source.getEntities(region);
 

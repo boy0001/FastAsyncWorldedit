@@ -113,6 +113,15 @@ public abstract class BukkitQueue_0<CHUNK, CHUNKSECTIONS, SECTION> extends NMSMa
         }
     }
 
+    @Override
+    public boolean queueChunkLoad(int cx, int cz) {
+        if (super.queueChunkLoad(cx, cz)) {
+            keepLoaded.put(MathMan.pairInt(cx, cz), System.currentTimeMillis());
+            return true;
+        }
+        return false;
+    }
+
     public World createWorld(final WorldCreator creator) {
         World world = TaskManager.IMP.sync(new RunnableVal<World>() {
             @Override

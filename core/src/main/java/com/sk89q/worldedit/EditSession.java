@@ -24,6 +24,7 @@ import com.boydti.fawe.FaweAPI;
 import com.boydti.fawe.FaweCache;
 import com.boydti.fawe.config.BBC;
 import com.boydti.fawe.config.Settings;
+import com.boydti.fawe.example.MappedFaweQueue;
 import com.boydti.fawe.jnbt.anvil.MCAQueue;
 import com.boydti.fawe.jnbt.anvil.MCAWorld;
 import com.boydti.fawe.logging.LoggingChangeSet;
@@ -1610,7 +1611,7 @@ public class EditSession extends AbstractWorld implements HasFaweQueue, Lighting
             return setBlocks(region, ((BlockPattern) pattern).getBlock());
         }
         final BlockReplace replace = new BlockReplace(EditSession.this, Patterns.wrap(pattern));
-        final RegionVisitor visitor = new RegionVisitor(region, replace);
+        final RegionVisitor visitor = new RegionVisitor(region, replace, queue instanceof MappedFaweQueue ? (MappedFaweQueue) queue : null);
         Operations.completeSmart(visitor, new Runnable() {
             @Override
             public void run() {
@@ -1652,9 +1653,9 @@ public class EditSession extends AbstractWorld implements HasFaweQueue, Lighting
      */
     @SuppressWarnings("deprecation")
     public int replaceBlocks(final Region region, final Set<BaseBlock> filter, final Pattern pattern) throws MaxChangedBlocksException {
-        if (pattern instanceof BlockPattern) {
-            return replaceBlocks(region, filter, ((BlockPattern) pattern).getBlock());
-        }
+//        if (pattern instanceof BlockPattern) {
+//            return replaceBlocks(region, filter, ((BlockPattern) pattern).getBlock());
+//        }
         final Mask mask = filter == null ? new ExistingBlockMask(this) : new FuzzyBlockMask(this, filter);
         return this.replaceBlocks(region, mask, pattern);
     }
@@ -1680,7 +1681,7 @@ public class EditSession extends AbstractWorld implements HasFaweQueue, Lighting
         checkNotNull(pattern);
         final BlockReplace replace = new BlockReplace(EditSession.this, Patterns.wrap(pattern));
         final RegionMaskingFilter filter = new RegionMaskingFilter(mask, replace);
-        final RegionVisitor visitor = new RegionVisitor(region, filter);
+        final RegionVisitor visitor = new RegionVisitor(region, filter, queue instanceof MappedFaweQueue ? (MappedFaweQueue) queue : null);
         Operations.completeSmart(visitor, new Runnable() {
             @Override
             public void run() {

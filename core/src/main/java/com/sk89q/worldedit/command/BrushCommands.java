@@ -359,7 +359,7 @@ public class BrushCommands {
             flags = "h",
             desc = "Height brush",
             help =
-                    "This brush raises land.\n",
+                    "This brush raises and lowers land.\n",
             min = 1,
             max = 4
     )
@@ -383,7 +383,6 @@ public class BrushCommands {
                     }
                     ReadableByteChannel rbc = Channels.newChannel(url.openStream());
                     stream = Channels.newInputStream(rbc);
-                    System.out.println("Loaded " + url);
                 } catch (IOException e) {
                     throw new RuntimeException(e);
                 }

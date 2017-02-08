@@ -20,6 +20,11 @@
 package com.sk89q.worldedit.function.visitor;
 
 import com.boydti.fawe.config.BBC;
+import com.boydti.fawe.config.Settings;
+import com.boydti.fawe.example.MappedFaweQueue;
+import com.boydti.fawe.object.FaweQueue;
+import com.sk89q.worldedit.BlockVector;
+import com.sk89q.worldedit.EditSession;
 import com.sk89q.worldedit.Vector;
 import com.sk89q.worldedit.WorldEditException;
 import com.sk89q.worldedit.function.RegionFunction;
@@ -27,6 +32,7 @@ import com.sk89q.worldedit.function.operation.Operation;
 import com.sk89q.worldedit.function.operation.Operations;
 import com.sk89q.worldedit.function.operation.RunContext;
 import com.sk89q.worldedit.regions.Region;
+import java.util.Iterator;
 import java.util.List;
 
 /**
@@ -36,11 +42,27 @@ public class RegionVisitor implements Operation {
 
     public final Region region;
     public final RegionFunction function;
+    private final MappedFaweQueue queue;
     public int affected = 0;
 
+    /**
+     * Deprecated in favor of the other constructors which will preload chunks during iteration
+     * @param region
+     * @param function
+     */
+    @Deprecated
     public RegionVisitor(Region region, RegionFunction function) {
+        this(region, function, (FaweQueue) null);
+    }
+
+    public RegionVisitor(Region region, RegionFunction function, EditSession editSession) {
+        this(region, function, editSession != null ? editSession.getQueue() : null);
+    }
+
+    public RegionVisitor(Region region, RegionFunction function, FaweQueue queue) {
         this.region = region;
         this.function = function;
+        this.queue = queue instanceof MappedFaweQueue ? (MappedFaweQueue) queue : null;
     }
 
     /**
@@ -54,9 +76,95 @@ public class RegionVisitor implements Operation {
 
     @Override
     public Operation resume(final RunContext run) throws WorldEditException {
-        for (Vector pt : region) {
-            if (function.apply(pt)) {
-                affected++;
+        if (queue != null && Settings.IMP.QUEUE.PRELOAD_CHUNKS <= 1) {
+            /*
+             * The following is done to reduce iteration cost
+             *  - Preload chunks just in time
+             *  - Only check every 16th block for potential chunk loads
+             *  - Stop iteration on exception instead of hasNext
+             *  - Do not calculate the stacktrace as it is expensive
+             */
+            Iterator<BlockVector> trailIter = region.iterator();
+            Iterator<BlockVector> leadIter = region.iterator();
+            int lastTrailChunkX = Integer.MIN_VALUE;
+            int lastTrailChunkZ = Integer.MIN_VALUE;
+            int lastLeadChunkX = Integer.MIN_VALUE;
+            int lastLeadChunkZ = Integer.MIN_VALUE;
+            int loadingTarget = Settings.IMP.QUEUE.PRELOAD_CHUNKS;
+            try {
+                for (;;) {
+                    BlockVector pt = trailIter.next();
+                    function.apply(pt);
+                    int cx = pt.getBlockX() >> 4;
+                    int cz = pt.getBlockZ() >> 4;
+                    if (cx != lastTrailChunkX || cz != lastTrailChunkZ) {
+                        lastTrailChunkX = cx;
+                        lastTrailChunkZ = cz;
+                        int amount;
+                        if (lastLeadChunkX == Integer.MIN_VALUE) {
+                            lastLeadChunkX = cx;
+                            lastLeadChunkZ = cz;
+                            amount = loadingTarget;
+                        } else {
+                            amount = 1;
+                        }
+                        for (int count = 0; count < amount;) {
+                            BlockVector v = leadIter.next();
+                            int vcx = v.getBlockX() >> 4;
+                            int vcz = v.getBlockZ() >> 4;
+                            if (vcx != lastLeadChunkX || vcz != lastLeadChunkZ) {
+                                lastLeadChunkX = vcx;
+                                lastLeadChunkZ = vcz;
+                                queue.queueChunkLoad(vcx, vcz);
+                                count++;
+                            }
+                            // Skip the next 15 blocks
+                            leadIter.next();
+                            leadIter.next();
+                            leadIter.next();
+                            leadIter.next();
+                            leadIter.next();
+                            leadIter.next();
+                            leadIter.next();
+                            leadIter.next();
+                            leadIter.next();
+                            leadIter.next();
+                            leadIter.next();
+                            leadIter.next();
+                            leadIter.next();
+                            leadIter.next();
+                            leadIter.next();
+                        }
+                    }
+                    function.apply(trailIter.next());
+                    function.apply(trailIter.next());
+                    function.apply(trailIter.next());
+                    function.apply(trailIter.next());
+                    function.apply(trailIter.next());
+                    function.apply(trailIter.next());
+                    function.apply(trailIter.next());
+                    function.apply(trailIter.next());
+                    function.apply(trailIter.next());
+                    function.apply(trailIter.next());
+                    function.apply(trailIter.next());
+                    function.apply(trailIter.next());
+                    function.apply(trailIter.next());
+                    function.apply(trailIter.next());
+                    function.apply(trailIter.next());
+                }
+            } catch (Throwable ignore) {}
+            try {
+                for (;;) {
+                    function.apply(trailIter.next());
+                    function.apply(trailIter.next());
+                }
+            } catch (Throwable ignore) {}
+            affected = region.getArea();
+        } else {
+            for (Vector pt : region) {
+                if (function.apply(pt)) {
+                    affected++;
+                }
             }
         }
         return null;
@@ -73,5 +181,4 @@ public class RegionVisitor implements Operation {
     public static Class<?> inject() {
         return Operations.class;
     }
-
 }

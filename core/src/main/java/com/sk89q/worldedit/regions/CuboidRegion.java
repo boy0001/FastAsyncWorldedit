@@ -30,6 +30,7 @@ import com.sk89q.worldedit.world.World;
 import com.sk89q.worldedit.world.storage.ChunkStore;
 import java.util.AbstractSet;
 import java.util.Iterator;
+import java.util.NoSuchElementException;
 import java.util.Set;
 
 
@@ -402,8 +403,8 @@ public class CuboidRegion extends AbstractRegion implements FlatRegion {
         if (Settings.IMP.HISTORY.COMPRESSION_LEVEL >= 9) {
             return iterator_old();
         }
-        final MutableBlockVector mutable = new MutableBlockVector(0,0,0);
         return new Iterator<BlockVector>() {
+            final MutableBlockVector mutable = new MutableBlockVector(0,0,0);
             private Vector min = getMinimumPoint();
             private Vector max = getMaximumPoint();
 
@@ -445,6 +446,14 @@ public class CuboidRegion extends AbstractRegion implements FlatRegion {
                             if (x > tx) {
                                 x = bx;
                                 if (z > tz) {
+                                    if (!hasNext) {
+                                        throw new NoSuchElementException("End of iterator") {
+                                            @Override
+                                            public synchronized Throwable fillInStackTrace() {
+                                                return this;
+                                            }
+                                        };
+                                    }
                                     hasNext = false;
                                     return mutable;
                                 }
