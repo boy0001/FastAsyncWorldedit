@@ -2,6 +2,7 @@ package com.boydti.fawe.object.brush.heightmap;
 
 import com.boydti.fawe.object.IntegerPair;
 import com.boydti.fawe.object.PseudoRandom;
+import com.boydti.fawe.util.MainUtil;
 import com.boydti.fawe.util.MathMan;
 import com.sk89q.worldedit.EditSession;
 import com.sk89q.worldedit.MaxChangedBlocksException;
@@ -11,7 +12,9 @@ import com.sk89q.worldedit.blocks.BaseBlock;
 import com.sk89q.worldedit.extent.clipboard.Clipboard;
 import com.sk89q.worldedit.function.mask.Mask;
 import com.sk89q.worldedit.internal.LocalWorldAdapter;
+import com.sk89q.worldedit.math.convolution.GaussianKernel;
 import com.sk89q.worldedit.math.convolution.HeightMap;
+import com.sk89q.worldedit.math.convolution.HeightMapFilter;
 import com.sk89q.worldedit.regions.CuboidRegion;
 import com.sk89q.worldedit.regions.Region;
 import java.awt.image.BufferedImage;
@@ -136,8 +139,9 @@ public class ScalableHeightMap {
                     raise = (yscale * raise);
                     int height = session.getHighestTerrainBlock(xx, zz, 0, 255, true);
                     int diff = targetY - height;
-                    double raiseScaled = 1 + diff * (raise / (double) size);
-                    int random = PseudoRandom.random.random(maxY + 1) < (int) ((raiseScaled - (int) raiseScaled) * (maxY + 1)) ? 1 : 0;
+                    double raiseScaled = diff * (raise / (double) size);
+                    double raiseScaledAbs = Math.abs(raiseScaled);
+                    int random = PseudoRandom.random.random(256) < (int) ((Math.ceil(raiseScaledAbs) - Math.floor(raiseScaledAbs)) * 256) ? (diff > 0 ? 1 : -1) : 0;
                     int raiseScaledInt = (int) raiseScaled + random;
                     newData[index] = height + raiseScaledInt;
                 }
@@ -176,14 +180,14 @@ public class ScalableHeightMap {
         Vector max = pos.add(size, maxY, size);
         Region region = new CuboidRegion(session.getWorld(), min, max);
         HeightMap heightMap = new HeightMap(session, region, true);
-//        if (smooth) {
-//            try {
-//                HeightMapFilter filter = (HeightMapFilter) HeightMapFilter.class.getConstructors()[0].newInstance(GaussianKernel.class.getConstructors()[0].newInstance(5, 1));
-//                newData = filter.filter(newData, diameter, diameter);
-//            } catch (Throwable e) {
-//                MainUtil.handleError(e);
-//            }
-//        }
+        if (smooth) {
+            try {
+                HeightMapFilter filter = (HeightMapFilter) HeightMapFilter.class.getConstructors()[0].newInstance(GaussianKernel.class.getConstructors()[0].newInstance(5, 1));
+                newData = filter.filter(newData, diameter, diameter);
+            } catch (Throwable e) {
+                MainUtil.handleError(e);
+            }
+        }
         heightMap.apply(newData);
     }
 }
