@@ -372,7 +372,15 @@ public class BrushCommands {
         if (!file.exists()) {
             if (!filename.equals("#clipboard") && filename.length() >= 7) {
                 try {
-                    URL url = new URL("https://i.imgur.com/" + filenamePng);
+                    URL url;
+                    if (filename.startsWith("http")) {
+                        url = new URL(filename);
+                        if (!url.getHost().equals("i.imgur.com")) {
+                            throw new FileNotFoundException(filename);
+                        }
+                    } else {
+                        url = new URL("https://i.imgur.com/" + filenamePng);
+                    }
                     ReadableByteChannel rbc = Channels.newChannel(url.openStream());
                     stream = Channels.newInputStream(rbc);
                     System.out.println("Loaded " + url);
