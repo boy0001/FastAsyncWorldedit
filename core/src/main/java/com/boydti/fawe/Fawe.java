@@ -259,7 +259,7 @@ public class Fawe {
 
         TaskManager.IMP.repeat(timer, 1);
 
-        if (Settings.IMP.UPDATE) {
+        if (Settings.IMP.UPDATE && isJava8()) {
             // Delayed updating
             TaskManager.IMP.async(new Runnable() {
                 @Override
