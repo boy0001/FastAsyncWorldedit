@@ -32,7 +32,7 @@ import java.util.concurrent.ConcurrentLinkedDeque;
 import java.util.concurrent.ExecutorCompletionService;
 import javax.annotation.Nullable;
 
-public abstract class FaweQueue {
+public abstract class FaweQueue implements HasFaweQueue {
 
     private World weWorld;
     private String world;
@@ -68,6 +68,11 @@ public abstract class FaweQueue {
         NONE,
         OPTIMAL,
         ALL,
+    }
+
+    @Override
+    public FaweQueue getQueue() {
+        return this;
     }
 
     public Settings getSettings() {
@@ -386,6 +391,7 @@ public abstract class FaweQueue {
         try {
             return getCombinedId4Data(x, y, z);
         } catch (FaweException ignore) {
+            ignore.printStackTrace();
             return def;
         }
     }

@@ -204,8 +204,10 @@ public class SchematicCommands {
                 }
             }
         } catch (IllegalArgumentException  e) {
+            e.printStackTrace();
             player.printError("Unknown filename: " + filename);
         } catch (IOException e) {
+            e.printStackTrace();
             player.printError("Schematic could not written: " + e.getMessage());
             log.log(Level.WARNING, "Failed to write a saved clipboard", e);
         }

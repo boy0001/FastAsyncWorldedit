@@ -129,7 +129,7 @@ public class ForgeQueue_All extends NMSMappedFaweQueue<World, Chunk, ExtendedBlo
     public Chunk loadChunk(World world, int x, int z, boolean generate) {
         ChunkProviderServer provider = (ChunkProviderServer) world.getChunkProvider();
         if (generate) {
-            return provider.provideChunk(x, z);
+            return provider.originalLoadChunk(x, z);
         } else {
             return provider.loadChunk(x, z);
         }

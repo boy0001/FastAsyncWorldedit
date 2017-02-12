@@ -50,6 +50,11 @@ public class ExtentTraverser<T extends Extent> {
         }
     }
 
+    public <U> U findAndGet(Class<U> clazz) {
+        ExtentTraverser<Extent> traverser = find(clazz);
+        return (traverser != null) ? (U) traverser.get() : null;
+    }
+
     public <U extends Extent> ExtentTraverser<U> find(Class<U> clazz) {
         try {
             ExtentTraverser<T> value = this;

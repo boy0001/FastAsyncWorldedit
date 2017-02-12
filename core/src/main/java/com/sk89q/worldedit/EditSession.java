@@ -52,8 +52,10 @@ import com.boydti.fawe.object.extent.ProcessedWEExtent;
 import com.boydti.fawe.object.extent.ResettableExtent;
 import com.boydti.fawe.object.extent.SlowExtent;
 import com.boydti.fawe.object.extent.SourceMaskExtent;
+import com.boydti.fawe.object.function.block.LegacyBlockReplace;
 import com.boydti.fawe.object.mask.ResettableMask;
 import com.boydti.fawe.object.progress.DefaultProgressTracker;
+import com.boydti.fawe.object.visitor.FastChunkIterator;
 import com.boydti.fawe.util.ExtentTraverser;
 import com.boydti.fawe.util.MaskTraverser;
 import com.boydti.fawe.util.MemUtil;
@@ -76,6 +78,7 @@ import com.sk89q.worldedit.extent.MaskingExtent;
 import com.sk89q.worldedit.extent.inventory.BlockBag;
 import com.sk89q.worldedit.extent.world.SurvivalModeExtent;
 import com.sk89q.worldedit.function.GroundFunction;
+import com.sk89q.worldedit.function.RegionFunction;
 import com.sk89q.worldedit.function.RegionMaskingFilter;
 import com.sk89q.worldedit.function.block.BlockReplace;
 import com.sk89q.worldedit.function.block.Naturalizer;
@@ -106,6 +109,7 @@ import com.sk89q.worldedit.history.change.BlockChange;
 import com.sk89q.worldedit.history.changeset.ChangeSet;
 import com.sk89q.worldedit.internal.expression.Expression;
 import com.sk89q.worldedit.internal.expression.ExpressionException;
+import com.sk89q.worldedit.internal.expression.runtime.EvaluationException;
 import com.sk89q.worldedit.internal.expression.runtime.RValue;
 import com.sk89q.worldedit.math.interpolation.KochanekBartelsInterpolation;
 import com.sk89q.worldedit.math.interpolation.Node;
@@ -216,20 +220,6 @@ public class EditSession extends AbstractWorld implements HasFaweQueue, Lighting
             player = FawePlayer.wrap(event.getActor());
         }
         this.player = player;
-        if (changeSet == null) {
-            if (Settings.IMP.HISTORY.USE_DISK) {
-                UUID uuid = player == null ? CONSOLE : player.getUUID();
-                if (Settings.IMP.HISTORY.USE_DATABASE) {
-                    changeSet = new RollbackOptimizedHistory(world, uuid);
-                } else {
-                    changeSet = new DiskStorageHistory(world, uuid);
-                }
-            } else if (Settings.IMP.HISTORY.COMBINE_STAGES && Settings.IMP.HISTORY.COMPRESSION_LEVEL == 0 && !(queue instanceof MCAQueue)) {
-                changeSet = new CPUOptimizedChangeSet(world);
-            } else {
-                changeSet = new MemoryOptimizedHistory(world);
-            }
-        }
         if (limit == null) {
             if (player == null) {
                 limit = FaweLimit.MAX;
@@ -286,7 +276,21 @@ public class EditSession extends AbstractWorld implements HasFaweQueue, Lighting
         }
         this.bypassAll = wrapExtent(new FastWorldEditExtent(world, queue), bus, event, Stage.BEFORE_CHANGE);
         this.bypassHistory = (this.extent = wrapExtent(bypassAll, bus, event, Stage.BEFORE_REORDER));
-        if (!fastmode) {
+        if (!fastmode || changeSet != null) {
+            if (changeSet == null) {
+                if (Settings.IMP.HISTORY.USE_DISK) {
+                    UUID uuid = player == null ? CONSOLE : player.getUUID();
+                    if (Settings.IMP.HISTORY.USE_DATABASE) {
+                        changeSet = new RollbackOptimizedHistory(world, uuid);
+                    } else {
+                        changeSet = new DiskStorageHistory(world, uuid);
+                    }
+                } else if (Settings.IMP.HISTORY.COMBINE_STAGES && Settings.IMP.HISTORY.COMPRESSION_LEVEL == 0 && !(queue instanceof MCAQueue)) {
+                    changeSet = new CPUOptimizedChangeSet(world);
+                } else {
+                    changeSet = new MemoryOptimizedHistory(world);
+                }
+            }
             if (limit.SPEED_REDUCTION > 0) {
                 this.bypassHistory = new SlowExtent(this.bypassHistory, limit.SPEED_REDUCTION);
             }
@@ -610,6 +614,7 @@ public class EditSession extends AbstractWorld implements HasFaweQueue, Lighting
     }
 
     public void addTransform(ResettableExtent transform) {
+        wrapped = true;
         if (transform == null) {
             ExtentTraverser<AbstractDelegateExtent> traverser = new ExtentTraverser(this.extent).find(ResettableExtent.class);
             AbstractDelegateExtent next = extent;
@@ -1152,9 +1157,9 @@ public class EditSession extends AbstractWorld implements HasFaweQueue, Lighting
      */
     @SuppressWarnings("deprecation")
     private int setBlocks(final Set<Vector> vset, final Pattern pattern) throws MaxChangedBlocksException {
-        for (final Vector v : vset) {
-            changes += this.setBlock(v, pattern) ? 1 : 0;
-        }
+        RegionVisitor visitor = new RegionVisitor(vset, new LegacyBlockReplace(extent, pattern), this);
+        Operations.completeBlindly(visitor);
+        changes += visitor.getAffected();
         return changes;
     }
 
@@ -1219,12 +1224,7 @@ public class EditSession extends AbstractWorld implements HasFaweQueue, Lighting
         context.setExtent(editSession.bypassAll);
         ChangeSet changeSet = getChangeSet();
         editSession.getQueue().setChangeTask(null);
-        Operations.completeSmart(ChangeSetExecutor.create(changeSet, context, ChangeSetExecutor.Type.UNDO, editSession.getBlockBag(), editSession.getLimit().INVENTORY_MODE), new Runnable() {
-            @Override
-            public void run() {
-                editSession.flushQueue();
-            }
-        }, true);
+        Operations.completeBlindly(ChangeSetExecutor.create(changeSet, context, ChangeSetExecutor.Type.UNDO, editSession.getBlockBag(), editSession.getLimit().INVENTORY_MODE));
         editSession.changes = 1;
     }
 
@@ -1238,12 +1238,7 @@ public class EditSession extends AbstractWorld implements HasFaweQueue, Lighting
         context.setExtent(editSession.bypassAll);
         ChangeSet changeSet = getChangeSet();
         editSession.getQueue().setChangeTask(null);
-        Operations.completeSmart(ChangeSetExecutor.create(changeSet, context, ChangeSetExecutor.Type.REDO, editSession.getBlockBag(), editSession.getLimit().INVENTORY_MODE), new Runnable() {
-            @Override
-            public void run() {
-                editSession.flushQueue();
-            }
-        }, true);
+        Operations.completeBlindly(ChangeSetExecutor.create(changeSet, context, ChangeSetExecutor.Type.REDO, editSession.getBlockBag(), editSession.getLimit().INVENTORY_MODE));
         editSession.changes = 1;
     }
 
@@ -1340,12 +1335,15 @@ public class EditSession extends AbstractWorld implements HasFaweQueue, Lighting
             return 0;
         }
         if (searchIDs.size() == 1) {
-            int count = 0;
-            int id = searchIDs.iterator().next();
-            for (final Vector pt : region) {
-                if (this.getBlockType(pt) == id) count++;
-            }
-            return count;
+            final int id = searchIDs.iterator().next();
+            RegionVisitor visitor = new RegionVisitor(region, new RegionFunction() {
+                @Override
+                public boolean apply(Vector position) throws WorldEditException {
+                    return getBlockType(position) == id;
+                }
+            }, this);
+            Operations.completeBlindly(visitor);
+            return visitor.getAffected();
         }
         final boolean[] ids = new boolean[256];
         for (final int id : searchIDs) {
@@ -1357,14 +1355,14 @@ public class EditSession extends AbstractWorld implements HasFaweQueue, Lighting
     }
 
     public int countBlock(final Region region, final boolean[] ids) {
-        int count = 0;
-        for (final Vector pt : region) {
-            final int id = this.getBlockType(pt);
-            if (ids[id]) {
-                count++;
+        RegionVisitor visitor = new RegionVisitor(region, new RegionFunction() {
+            @Override
+            public boolean apply(Vector position) throws WorldEditException {
+                return ids[getBlockType(position)];
             }
-        }
-        return count;
+        }, this);
+        Operations.completeBlindly(visitor);
+        return visitor.getAffected();
     }
 
     /**
@@ -1375,42 +1373,48 @@ public class EditSession extends AbstractWorld implements HasFaweQueue, Lighting
      * @return the number of blocks that matched the pattern
      */
     public int countBlocks(final Region region, final Set<BaseBlock> searchBlocks) {
-        BlockMask mask = new BlockMask(extent, searchBlocks);
-        int count = 0;
-        for (final Vector pt : region) {
-            if (mask.test(pt)) {
-                count++;
+        final BlockMask mask = new BlockMask(extent, searchBlocks);
+        RegionVisitor visitor = new RegionVisitor(region, new RegionFunction() {
+            @Override
+            public boolean apply(Vector position) throws WorldEditException {
+                return mask.test(position);
             }
-        }
-        return count;
+        }, this);
+        Operations.completeBlindly(visitor);
+        return visitor.getAffected();
     }
 
-    public int fall(final Region region, boolean fullHeight, BaseBlock replace) {
+    public int fall(final Region region, boolean fullHeight, final BaseBlock replace) {
         FlatRegion flat = asFlatRegion(region);
-        int startPerformY = region.getMinimumPoint().getBlockY();
-        int startCheckY = fullHeight ? 0 : startPerformY;
-        int endY = region.getMaximumPoint().getBlockY();
-        for (BlockVector pos : flat) {
-            int x = pos.getBlockX();
-            int z = pos.getBlockZ();
-            int freeSpot = startCheckY;
-            for (int y = startCheckY; y <= endY; y++) {
-                if (y < startPerformY) {
-                    if (getLazyBlock(x, y, z) != EditSession.nullBlock) {
-                        freeSpot = y + 1;
+        final int startPerformY = region.getMinimumPoint().getBlockY();
+        final int startCheckY = fullHeight ? 0 : startPerformY;
+        final int endY = region.getMaximumPoint().getBlockY();
+        RegionVisitor visitor = new RegionVisitor(flat, new RegionFunction() {
+            @Override
+            public boolean apply(Vector pos) throws WorldEditException {
+                int x = pos.getBlockX();
+                int z = pos.getBlockZ();
+                int freeSpot = startCheckY;
+                for (int y = startCheckY; y <= endY; y++) {
+                    if (y < startPerformY) {
+                        if (getLazyBlock(x, y, z) != EditSession.nullBlock) {
+                            freeSpot = y + 1;
+                        }
+                        continue;
                     }
-                    continue;
-                }
-                BaseBlock block = getLazyBlock(x, y, z);
-                if (block != EditSession.nullBlock) {
-                    if (freeSpot != y) {
-                        setBlock(x, freeSpot, z, block);
-                        setBlock(x, y, z, replace);
+                    BaseBlock block = getLazyBlock(x, y, z);
+                    if (block != EditSession.nullBlock) {
+                        if (freeSpot != y) {
+                            setBlock(x, freeSpot, z, block);
+                            setBlock(x, y, z, replace);
+                        }
+                        freeSpot++;
                     }
-                    freeSpot++;
                 }
+                return true;
             }
-        }
+        }, this);
+        Operations.completeBlindly(visitor);
         return this.changes;
     }
 
@@ -1466,12 +1470,7 @@ public class EditSession extends AbstractWorld implements HasFaweQueue, Lighting
         visitor.visit(origin);
 
         // Execute
-        Operations.completeSmart(visitor, new Runnable() {
-            @Override
-            public void run() {
-                EditSession.this.flushQueue();
-            }
-        }, true);
+        Operations.completeBlindly(visitor);
         return this.changes = visitor.getAffected();
     }
 
@@ -1565,6 +1564,10 @@ public class EditSession extends AbstractWorld implements HasFaweQueue, Lighting
         return true;
     }
 
+    public boolean hasExtraExtents() {
+        return wrapped || getMask() != null || getSourceMask() != null || history != null;
+    }
+
     /**
      * Sets all the blocks inside a region to a given block type.
      *
@@ -1580,11 +1583,17 @@ public class EditSession extends AbstractWorld implements HasFaweQueue, Lighting
         if (canBypassAll(region, false, true) && !block.hasNbtData()) {
             return changes = queue.setBlocks((CuboidRegion) region, block.getId(), block.getData());
         }
-        Iterator<BlockVector> iter = region.iterator();
         try {
-            while (iter.hasNext()) {
-                if (this.extent.setBlock(iter.next(), block)) {
-                    changes++;
+            if (hasExtraExtents()) {
+                RegionVisitor visitor = new RegionVisitor(region, new LegacyBlockReplace(extent, new SingleBlockPattern(block)), this);
+                Operations.completeBlindly(visitor);
+                this.changes += visitor.getAffected();
+            } else {
+                Iterator<BlockVector> iter = region.iterator();
+                while (iter.hasNext()) {
+                    if (this.extent.setBlock(iter.next(), block)) {
+                        changes++;
+                    }
                 }
             }
         } catch (final MaxChangedBlocksException e) {
@@ -1612,12 +1621,7 @@ public class EditSession extends AbstractWorld implements HasFaweQueue, Lighting
         }
         final BlockReplace replace = new BlockReplace(EditSession.this, Patterns.wrap(pattern));
         final RegionVisitor visitor = new RegionVisitor(region, replace, queue instanceof MappedFaweQueue ? (MappedFaweQueue) queue : null);
-        Operations.completeSmart(visitor, new Runnable() {
-            @Override
-            public void run() {
-                EditSession.this.flushQueue();
-            }
-        }, true);
+        Operations.completeBlindly(visitor);
         return this.changes = visitor.getAffected();
     }
 
@@ -1682,12 +1686,7 @@ public class EditSession extends AbstractWorld implements HasFaweQueue, Lighting
         final BlockReplace replace = new BlockReplace(EditSession.this, Patterns.wrap(pattern));
         final RegionMaskingFilter filter = new RegionMaskingFilter(mask, replace);
         final RegionVisitor visitor = new RegionVisitor(region, filter, queue instanceof MappedFaweQueue ? (MappedFaweQueue) queue : null);
-        Operations.completeSmart(visitor, new Runnable() {
-            @Override
-            public void run() {
-                EditSession.this.flushQueue();
-            }
-        }, true);
+        Operations.completeBlindly(visitor);
         return this.changes = visitor.getAffected();
     }
 
@@ -1866,12 +1865,7 @@ public class EditSession extends AbstractWorld implements HasFaweQueue, Lighting
         final RegionOffset offset = new RegionOffset(new Vector(0, 1, 0), replace);
         final GroundFunction ground = new GroundFunction(new ExistingBlockMask(EditSession.this), offset);
         final LayerVisitor visitor = new LayerVisitor(asFlatRegion(region), minimumBlockY(region), maximumBlockY(region), ground);
-        Operations.completeSmart(visitor, new Runnable() {
-            @Override
-            public void run() {
-                EditSession.this.flushQueue();
-            }
-        }, true);
+        Operations.completeBlindly(visitor);
         return this.changes = ground.getAffected();
     }
 
@@ -1888,12 +1882,7 @@ public class EditSession extends AbstractWorld implements HasFaweQueue, Lighting
         final Naturalizer naturalizer = new Naturalizer(EditSession.this);
         final FlatRegion flatRegion = Regions.asFlatRegion(region);
         final LayerVisitor visitor = new LayerVisitor(flatRegion, minimumBlockY(region), maximumBlockY(region), naturalizer);
-        Operations.completeSmart(visitor, new Runnable() {
-            @Override
-            public void run() {
-                EditSession.this.flushQueue();
-            }
-        }, true);
+        Operations.completeBlindly(visitor);
         return this.changes = naturalizer.getAffected();
     }
 
@@ -1925,12 +1914,7 @@ public class EditSession extends AbstractWorld implements HasFaweQueue, Lighting
         if (!copyAir) {
             copy.setSourceMask(new ExistingBlockMask(EditSession.this));
         }
-        Operations.completeSmart(copy, new Runnable() {
-            @Override
-            public void run() {
-                EditSession.this.flushQueue();
-            }
-        }, true);
+        Operations.completeBlindly(copy);
         return this.changes = copy.getAffected();
     }
 
@@ -1982,12 +1966,7 @@ public class EditSession extends AbstractWorld implements HasFaweQueue, Lighting
         if (!copyAir) {
             copy.setSourceMask(new ExistingBlockMask(EditSession.this));
         }
-        Operations.completeSmart(copy, new Runnable() {
-            @Override
-            public void run() {
-                EditSession.this.flushQueue();
-            }
-        }, true);
+        Operations.completeBlindly(copy);
         return this.changes = copy.getAffected();
     }
 
@@ -2044,12 +2023,7 @@ public class EditSession extends AbstractWorld implements HasFaweQueue, Lighting
             }
         }
 
-        Operations.completeSmart(visitor, new Runnable() {
-            @Override
-            public void run() {
-                EditSession.this.flushQueue();
-            }
-        }, true);
+        Operations.completeBlindly(visitor);
         return this.changes = visitor.getAffected();
     }
 
@@ -2108,12 +2082,7 @@ public class EditSession extends AbstractWorld implements HasFaweQueue, Lighting
             }
         }
 
-        Operations.completeSmart(visitor, new Runnable() {
-            @Override
-            public void run() {
-                EditSession.this.flushQueue();
-            }
-        }, true);
+        Operations.completeBlindly(visitor);
         return visitor.getAffected();
     }
 
@@ -2524,12 +2493,7 @@ public class EditSession extends AbstractWorld implements HasFaweQueue, Lighting
         final GroundFunction ground = new GroundFunction(new ExistingBlockMask(EditSession.this), generator);
         final LayerVisitor visitor = new LayerVisitor(region, minimumBlockY(region), maximumBlockY(region), ground);
         visitor.setMask(new NoiseFilter2D(new RandomNoise(), density));
-        Operations.completeSmart(visitor, new Runnable() {
-            @Override
-            public void run() {
-                EditSession.this.flushQueue();
-            }
-        }, true);
+        Operations.completeBlindly(visitor);
         return this.changes = ground.getAffected();
     }
 
@@ -2734,18 +2698,32 @@ public class EditSession extends AbstractWorld implements HasFaweQueue, Lighting
         final RValue z = expression.getVariable("z", false);
         final WorldEditExpressionEnvironment environment = new WorldEditExpressionEnvironment(this, unit, zero);
         expression.setEnvironment(environment);
-        
-        for (BlockVector position : region) {
-            // offset, scale
-            final Vector scaled = position.subtract(zero).divide(unit);
-            // transform
-            expression.evaluate(scaled.getX(), scaled.getY(), scaled.getZ());
-            final BlockVector sourcePosition = environment.toWorld(x.getValue(), y.getValue(), z.getValue());
-            // read block from world
-            BaseBlock material = FaweCache.CACHE_BLOCK[this.queue.getCombinedId4DataDebug(sourcePosition.getBlockX(), sourcePosition.getBlockY(), sourcePosition.getBlockZ(), 0, this)];
-            // queue operation
-            this.setBlockFast(position, material);
-        }
+        RegionVisitor visitor = new RegionVisitor(region, new RegionFunction() {
+
+            private MutableBlockVector mutable = new MutableBlockVector();
+
+            @Override
+            public boolean apply(Vector position) throws WorldEditException {
+                try {
+                    int mx = (position.getBlockX() - zero.getBlockX()) / unit.getBlockX();
+                    int my = (position.getBlockY() - zero.getBlockY()) / unit.getBlockY();
+                    int mz = (position.getBlockZ() - zero.getBlockZ()) / unit.getBlockZ();
+                    mutable.setComponents(mx, my, mz);
+//                    final Vector scaled = position.subtract(zero).divide(unit);
+                    // transform
+                    expression.evaluate(mutable.getX(), mutable.getY(), mutable.getZ());
+                    final BlockVector sourcePosition = environment.toWorld(x.getValue(), y.getValue(), z.getValue());
+                    // read block from world
+                    BaseBlock material = FaweCache.CACHE_BLOCK[queue.getCombinedId4DataDebug(sourcePosition.getBlockX(), sourcePosition.getBlockY(), sourcePosition.getBlockZ(), 0, EditSession.this)];
+                    // queue operation
+                    return extent.setBlock(position, material);
+                } catch (EvaluationException e) {
+                    throw new RuntimeException(e);
+                }
+            }
+        }, this);
+        Operations.completeBlindly(visitor);
+        changes += visitor.getAffected();
         return changes;
     }
 
@@ -3044,7 +3022,7 @@ public class EditSession extends AbstractWorld implements HasFaweQueue, Lighting
             for (final Vector recurseDirection : this.recurseDirections) {
                 queue.addLast(current.add(recurseDirection).toBlockVector());
             }
-        } // while
+        }
     }
 
     public int makeBiomeShape(final Region region, final Vector zero, final Vector unit, final BaseBiome biomeType, final String expressionString, final boolean hollow) throws ExpressionException,
@@ -3160,7 +3138,7 @@ public class EditSession extends AbstractWorld implements HasFaweQueue, Lighting
             }
         }
         final Set<Vector2D> chunks = region.getChunks();
-        for (Vector2D chunk : chunks) {
+        for (Vector2D chunk : new FastChunkIterator(chunks, this)) {
             final int cx = chunk.getBlockX();
             final int cz = chunk.getBlockZ();
             final int bx = cx << 4;

@@ -1,5 +1,6 @@
 package com.boydti.fawe.object.brush;
 
+import com.boydti.fawe.object.brush.heightmap.ScalableHeightMap;
 import com.sk89q.worldedit.EditSession;
 import com.sk89q.worldedit.MaxChangedBlocksException;
 import com.sk89q.worldedit.Vector;
@@ -12,7 +13,7 @@ import java.io.InputStream;
 public class FlattenBrush extends HeightBrush {
 
     public FlattenBrush(InputStream stream, int rotation, double yscale, DoubleActionBrushTool tool, Clipboard clipboard) {
-        super(stream, rotation, yscale, tool, clipboard);
+        super(stream, rotation, yscale, tool, clipboard, ScalableHeightMap.Shape.CYLINDER);
     }
 
     @Override

@@ -28,6 +28,11 @@ public class ScalableHeightMap {
     public int size2;
     public int size;
 
+    public enum Shape {
+        CONE,
+        CYLINDER,
+    }
+
     public ScalableHeightMap() {
         setSize(5);
     }
@@ -49,6 +54,16 @@ public class ScalableHeightMap {
             return 0;
         }
         return size - MathMan.sqrtApprox(d2);
+    }
+
+    public static ScalableHeightMap fromShape(Shape shape) {
+        switch (shape) {
+            default:
+            case CONE:
+                return new ScalableHeightMap();
+            case CYLINDER:
+                return new FlatScalableHeightMap();
+        }
     }
 
     public static ScalableHeightMap fromClipboard(Clipboard clipboard) {

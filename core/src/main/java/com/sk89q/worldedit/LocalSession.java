@@ -439,7 +439,7 @@ public class LocalSession {
         return null;
     }
 
-    public void remember(final EditSession editSession, final boolean append, final boolean sendMessage, int limitMb) {
+    public synchronized void remember(final EditSession editSession, final boolean append, final boolean sendMessage, int limitMb) {
         // It should have already been flushed, but just in case!
         editSession.flushQueue();
         if (editSession == null || editSession.getChangeSet() == null || limitMb == 0 || ((historySize >> 20) > limitMb && !append)) {

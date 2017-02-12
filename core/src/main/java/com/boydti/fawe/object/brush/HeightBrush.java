@@ -21,6 +21,10 @@ public class HeightBrush implements DoubleActionBrush {
     public final DoubleActionBrushTool tool;
 
     public HeightBrush(InputStream stream, int rotation, double yscale, DoubleActionBrushTool tool, Clipboard clipboard) {
+        this(stream, rotation, yscale, tool, clipboard, ScalableHeightMap.Shape.CONE);
+    }
+
+    public HeightBrush(InputStream stream, int rotation, double yscale, DoubleActionBrushTool tool, Clipboard clipboard, ScalableHeightMap.Shape shape) {
         this.tool = tool;
         this.rotation = (rotation / 90) % 4;
         this.yscale = yscale;
@@ -33,7 +37,7 @@ public class HeightBrush implements DoubleActionBrush {
         } else if (clipboard != null) {
             heightMap = ScalableHeightMap.fromClipboard(clipboard);
         } else {
-            heightMap = new ScalableHeightMap();
+            heightMap = ScalableHeightMap.fromShape(shape);
         }
     }
 

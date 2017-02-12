@@ -193,7 +193,7 @@ public class BukkitQueue18R3 extends BukkitQueue_0<net.minecraft.server.v1_8_R3.
         net.minecraft.server.v1_8_R3.Chunk chunk;
         net.minecraft.server.v1_8_R3.ChunkProviderServer provider = ((org.bukkit.craftbukkit.v1_8_R3.CraftWorld) world).getHandle().chunkProviderServer;
         if (generate) {
-            return provider.getOrCreateChunk(x, z);
+            return provider.originalGetChunkAt(x, z);
         } else {
             return provider.loadChunk(x, z);
         }

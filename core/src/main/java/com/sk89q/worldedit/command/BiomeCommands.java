@@ -20,6 +20,7 @@
 package com.sk89q.worldedit.command;
 
 import com.boydti.fawe.config.BBC;
+import com.boydti.fawe.object.visitor.Fast2DIterator;
 import com.sk89q.minecraft.util.commands.Command;
 import com.sk89q.minecraft.util.commands.CommandContext;
 import com.sk89q.minecraft.util.commands.CommandPermissions;
@@ -33,23 +34,26 @@ import com.sk89q.worldedit.WorldEditException;
 import com.sk89q.worldedit.entity.Player;
 import com.sk89q.worldedit.function.FlatRegionFunction;
 import com.sk89q.worldedit.function.FlatRegionMaskingFilter;
+import com.sk89q.worldedit.function.RegionFunction;
 import com.sk89q.worldedit.function.biome.BiomeReplace;
 import com.sk89q.worldedit.function.mask.Mask;
 import com.sk89q.worldedit.function.mask.Mask2D;
 import com.sk89q.worldedit.function.operation.Operations;
 import com.sk89q.worldedit.function.visitor.FlatRegionVisitor;
+import com.sk89q.worldedit.function.visitor.RegionVisitor;
 import com.sk89q.worldedit.regions.CuboidRegion;
 import com.sk89q.worldedit.regions.FlatRegion;
 import com.sk89q.worldedit.regions.Region;
 import com.sk89q.worldedit.regions.Regions;
+import com.sk89q.worldedit.util.Countable;
 import com.sk89q.worldedit.util.command.binding.Switch;
 import com.sk89q.worldedit.world.World;
 import com.sk89q.worldedit.world.biome.BaseBiome;
 import com.sk89q.worldedit.world.biome.BiomeData;
 import com.sk89q.worldedit.world.registry.BiomeRegistry;
-import java.util.HashSet;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
-import java.util.Set;
 
 
 import static com.google.common.base.Preconditions.checkNotNull;
@@ -124,11 +128,12 @@ public class BiomeCommands {
         max = 0
     )
     @CommandPermissions("worldedit.biome.info")
-    public void biomeInfo(Player player, LocalSession session, CommandContext args) throws WorldEditException {
+    public void biomeInfo(Player player, LocalSession session, final EditSession editSession, CommandContext args) throws WorldEditException {
         BiomeRegistry biomeRegistry = player.getWorld().getWorldData().getBiomeRegistry();
-        Set<BaseBiome> biomes = new HashSet<BaseBiome>();
-        String qualifier;
+        final int[] biomes = new int[256];
+        final String qualifier;
 
+        int size = 0;
         if (args.hasFlag('t')) {
             Vector blockPosition = player.getBlockTrace(300);
             if (blockPosition == null) {
@@ -137,33 +142,52 @@ public class BiomeCommands {
             }
 
             BaseBiome biome = player.getWorld().getBiome(blockPosition.toVector2D());
-            biomes.add(biome);
+            biomes[biome.getId()]++;
+            size = 1;
         } else if (args.hasFlag('p')) {
             BaseBiome biome = player.getWorld().getBiome(player.getPosition().toVector2D());
-            biomes.add(biome);
+            biomes[biome.getId()]++;
+            size = 1;
         } else {
             World world = player.getWorld();
             Region region = session.getSelection(world);
 
             if (region instanceof FlatRegion) {
-                for (Vector2D pt : ((FlatRegion) region).asFlatRegion()) {
-                    biomes.add(world.getBiome(pt));
+                for (Vector2D pt : new Fast2DIterator(((FlatRegion) region).asFlatRegion(), editSession)) {
+                    biomes[editSession.getBiome(pt).getId()]++;
+                    size++;
                 }
             } else {
-                for (Vector pt : region) {
-                    biomes.add(world.getBiome(pt.toVector2D()));
-                }
+                RegionVisitor visitor = new RegionVisitor(region, new RegionFunction() {
+                    @Override
+                    public boolean apply(Vector position) throws WorldEditException {
+                        biomes[editSession.getBiome(position.toVector2D()).getId()]++;
+                        return true;
+                    }
+                }, editSession);
+                Operations.completeBlindly(visitor);
+                size += visitor.getAffected();
             }
         }
 
         BBC.BIOME_LIST_HEADER.send(player, 1, 1);
-        for (BaseBiome biome : biomes) {
-            BiomeData data = biomeRegistry.getData(biome);
-            if (data != null) {
-                player.print(BBC.getPrefix() + " " + data.getName());
-            } else {
-                player.print(BBC.getPrefix() + " <? #" + biome.getId() + ">");
+
+        List<Countable<BaseBiome>> distribution = new ArrayList<>();
+        for (int i = 0; i < biomes.length; i++) {
+            int count = biomes[i];
+            if (count != 0) {
+                distribution.add(new Countable<BaseBiome>(new BaseBiome(i), count));
             }
+        }
+        Collections.sort(distribution);
+        for (Countable<BaseBiome> c : distribution) {
+            BiomeData data = biomeRegistry.getData(c.getID());
+            String str = String.format("%-7s (%.3f%%) %s #%d",
+                    String.valueOf(c.getAmount()),
+                    c.getAmount() / (double) size * 100,
+                    data == null ? "Unknown" : data.getName(),
+                    c.getID().getId());
+            player.print(BBC.getPrefix() + str);
         }
     }
 

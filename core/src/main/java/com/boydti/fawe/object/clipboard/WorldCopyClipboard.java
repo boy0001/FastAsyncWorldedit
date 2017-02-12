@@ -1,14 +1,19 @@
 package com.boydti.fawe.object.clipboard;
 
 import com.boydti.fawe.object.RunnableVal2;
+import com.boydti.fawe.util.MainUtil;
 import com.boydti.fawe.util.ReflectionUtils;
 import com.sk89q.jnbt.CompoundTag;
 import com.sk89q.jnbt.IntTag;
 import com.sk89q.jnbt.Tag;
 import com.sk89q.worldedit.EditSession;
 import com.sk89q.worldedit.Vector;
+import com.sk89q.worldedit.WorldEditException;
 import com.sk89q.worldedit.blocks.BaseBlock;
 import com.sk89q.worldedit.entity.Entity;
+import com.sk89q.worldedit.function.RegionFunction;
+import com.sk89q.worldedit.function.operation.Operations;
+import com.sk89q.worldedit.function.visitor.RegionVisitor;
 import com.sk89q.worldedit.regions.CuboidRegion;
 import com.sk89q.worldedit.regions.Region;
 import java.util.List;
@@ -43,52 +48,61 @@ public class WorldCopyClipboard extends ReadOnlyClipboard {
     }
 
     @Override
-    public void forEach(RunnableVal2<Vector, BaseBlock> task, boolean air) {
+    public void forEach(final RunnableVal2<Vector, BaseBlock> task, boolean air) {
+        MainUtil.stacktrace();
         Vector min = region.getMinimumPoint();
         Vector max = region.getMaximumPoint();
-        Vector pos = new Vector();
+        final Vector pos = new Vector();
         if (region instanceof CuboidRegion) {
             if (air) {
-                for (int y = min.getBlockY(); y <= max.getBlockY(); y++) {
-                    for (int z = min.getBlockZ(); z <= max.getBlockZ(); z++) {
-                        for (int x = min.getBlockX(); x <= max.getBlockX(); x++) {
-                            BaseBlock block = getBlockAbs(x, y, z);
-                            pos.mutX(x - mx);
-                            pos.mutY(y - my);
-                            pos.mutZ(z - mz);
-                            CompoundTag tag = block.getNbtData();
-                            if (tag != null) {
-                                Map<String, Tag> values = ReflectionUtils.getMap(tag.getValue());
-                                values.put("x", new IntTag(pos.getBlockX()));
-                                values.put("y", new IntTag(pos.getBlockY()));
-                                values.put("z", new IntTag(pos.getBlockZ()));
-                            }
-                            task.run(pos, block);
+                RegionVisitor visitor = new RegionVisitor(region, new RegionFunction() {
+                    @Override
+                    public boolean apply(Vector pos) throws WorldEditException {
+                        int x = pos.getBlockX();
+                        int y = pos.getBlockY();
+                        int z = pos.getBlockZ();
+                        BaseBlock block = getBlockAbs(x, y, z);
+                        pos.mutX(x - mx);
+                        pos.mutY(y - my);
+                        pos.mutZ(z - mz);
+                        CompoundTag tag = block.getNbtData();
+                        if (tag != null) {
+                            Map<String, Tag> values = ReflectionUtils.getMap(tag.getValue());
+                            values.put("x", new IntTag(pos.getBlockX()));
+                            values.put("y", new IntTag(pos.getBlockY()));
+                            values.put("z", new IntTag(pos.getBlockZ()));
                         }
+                        task.run(pos, block);
+                        return true;
                     }
-                }
+                }, editSession);
+                Operations.completeBlindly(visitor);
             } else {
-                for (int y = min.getBlockY(); y <= max.getBlockY(); y++) {
-                    for (int z = min.getBlockZ(); z <= max.getBlockZ(); z++) {
-                        for (int x = min.getBlockX(); x <= max.getBlockX(); x++) {
-                            BaseBlock block = getBlockAbs(x, y, z);
-                            if (block == EditSession.nullBlock) {
-                                continue;
-                            }
-                            pos.mutX(x - mx);
-                            pos.mutY(y - my);
-                            pos.mutZ(z - mz);
-                            CompoundTag tag = block.getNbtData();
-                            if (tag != null) {
-                                Map<String, Tag> values = ReflectionUtils.getMap(tag.getValue());
-                                values.put("x", new IntTag(pos.getBlockX()));
-                                values.put("y", new IntTag(pos.getBlockY()));
-                                values.put("z", new IntTag(pos.getBlockZ()));
-                            }
-                            task.run(pos, block);
+                RegionVisitor visitor = new RegionVisitor(region, new RegionFunction() {
+                    @Override
+                    public boolean apply(Vector pos) throws WorldEditException {
+                        int x = pos.getBlockX();
+                        int y = pos.getBlockY();
+                        int z = pos.getBlockZ();
+                        BaseBlock block = getBlockAbs(x, y, z);
+                        if (block == EditSession.nullBlock) {
+                            return false;
                         }
+                        pos.mutX(x - mx);
+                        pos.mutY(y - my);
+                        pos.mutZ(z - mz);
+                        CompoundTag tag = block.getNbtData();
+                        if (tag != null) {
+                            Map<String, Tag> values = ReflectionUtils.getMap(tag.getValue());
+                            values.put("x", new IntTag(pos.getBlockX()));
+                            values.put("y", new IntTag(pos.getBlockY()));
+                            values.put("z", new IntTag(pos.getBlockZ()));
+                        }
+                        task.run(pos, block);
+                        return true;
                     }
-                }
+                }, editSession);
+                Operations.completeBlindly(visitor);
             }
         } else {
             for (int y = min.getBlockY(); y <= max.getBlockY(); y++) {

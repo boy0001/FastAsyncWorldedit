@@ -32,7 +32,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.atomic.AtomicBoolean;
 
 
 import static com.google.common.base.Preconditions.checkNotNull;
@@ -139,6 +138,10 @@ public class SchematicWriter implements ClipboardWriter {
         }
         final DataOutputStream rawStream = outputStream.getOutputStream();
         outputStream.writeLazyCompoundTag("Schematic", new NBTOutputStream.LazyWrite() {
+            private boolean hasAdd = false;
+            private boolean hasTile = false;
+            private boolean hasData = false;
+
             @Override
             public void write(NBTOutputStream out) throws IOException {
                 int volume = width * height * length;
@@ -154,28 +157,20 @@ public class SchematicWriter implements ClipboardWriter {
                 out.writeNamedTag("WEOffsetY", new IntTag(offset.getBlockY()));
                 out.writeNamedTag("WEOffsetZ", new IntTag(offset.getBlockZ()));
 
-                out.writeNamedTagName("Data", NBTConstants.TYPE_BYTE_ARRAY);
-                out.getOutputStream().writeInt(volume);
-                clipboard.IMP.streamDatas(new NBTStreamer.ByteReader() {
-                    @Override
-                    public void run(int index, int byteValue) {
-                        try {
-                            rawStream.writeByte(byteValue);
-                        } catch (IOException e) {
-                            e.printStackTrace();
-                        }
-                    }
-                });
-
                 out.writeNamedTagName("Blocks", NBTConstants.TYPE_BYTE_ARRAY);
                 out.getOutputStream().writeInt(volume);
-                final AtomicBoolean hasAdd = new AtomicBoolean(false);
                 clipboard.IMP.streamIds(new NBTStreamer.ByteReader() {
                     @Override
                     public void run(int index, int byteValue) {
                         try {
                             if (byteValue >= 256) {
-                                hasAdd.set(true);
+                                hasAdd  = true;
+                            }
+                            if (FaweCache.hasData(byteValue)) {
+                                hasData = true;
+                            }
+                            if (FaweCache.hasNBT(byteValue)) {
+                                hasTile = true;
                             }
                             rawStream.writeByte(byteValue);
                         } catch (IOException e) {
@@ -184,7 +179,26 @@ public class SchematicWriter implements ClipboardWriter {
                     }
                 });
 
-                if (hasAdd.get()) {
+                out.writeNamedTagName("Data", NBTConstants.TYPE_BYTE_ARRAY);
+                out.getOutputStream().writeInt(volume);
+                if (hasData) {
+                    clipboard.IMP.streamDatas(new NBTStreamer.ByteReader() {
+                        @Override
+                        public void run(int index, int byteValue) {
+                            try {
+                                rawStream.writeByte(byteValue);
+                            } catch (IOException e) {
+                                e.printStackTrace();
+                            }
+                        }
+                    });
+                } else {
+                    for (int i = 0; i < volume; i++) {
+                        rawStream.write(0);
+                    }
+                }
+
+                if (hasAdd) {
                     out.writeNamedTagName("AddBlocks", NBTConstants.TYPE_BYTE_ARRAY);
                     out.getOutputStream().writeInt(volume);
                     clipboard.IMP.streamIds(new NBTStreamer.ByteReader() {
@@ -199,8 +213,10 @@ public class SchematicWriter implements ClipboardWriter {
                     });
                 }
 
-                final List<CompoundTag> tileEntities = clipboard.IMP.getTileEntities();
-                out.writeNamedTag("TileEntities", new ListTag(CompoundTag.class, tileEntities));
+                if (hasTile) {
+                    final List<CompoundTag> tileEntities = clipboard.IMP.getTileEntities();
+                    out.writeNamedTag("TileEntities", new ListTag(CompoundTag.class, tileEntities));
+                }
 
                 List<Tag> entities = new ArrayList<Tag>();
                 for (Entity entity : clipboard.getEntities()) {

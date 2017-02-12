@@ -35,7 +35,6 @@ import com.sk89q.minecraft.util.commands.Command;
 import com.sk89q.minecraft.util.commands.CommandException;
 import com.sk89q.minecraft.util.commands.CommandPermissions;
 import com.sk89q.minecraft.util.commands.Logging;
-import com.sk89q.worldedit.BlockVector;
 import com.sk89q.worldedit.EditSession;
 import com.sk89q.worldedit.LocalSession;
 import com.sk89q.worldedit.Vector;
@@ -48,6 +47,7 @@ import com.sk89q.worldedit.extent.clipboard.BlockArrayClipboard;
 import com.sk89q.worldedit.extent.clipboard.Clipboard;
 import com.sk89q.worldedit.extent.clipboard.io.ClipboardFormat;
 import com.sk89q.worldedit.extent.clipboard.io.ClipboardWriter;
+import com.sk89q.worldedit.function.RegionFunction;
 import com.sk89q.worldedit.function.block.BlockReplace;
 import com.sk89q.worldedit.function.mask.Mask;
 import com.sk89q.worldedit.function.mask.Masks;
@@ -55,6 +55,7 @@ import com.sk89q.worldedit.function.operation.ForwardExtentCopy;
 import com.sk89q.worldedit.function.operation.Operation;
 import com.sk89q.worldedit.function.operation.Operations;
 import com.sk89q.worldedit.function.pattern.Pattern;
+import com.sk89q.worldedit.function.visitor.RegionVisitor;
 import com.sk89q.worldedit.internal.annotation.Direction;
 import com.sk89q.worldedit.internal.annotation.Selection;
 import com.sk89q.worldedit.math.transform.AffineTransform;
@@ -69,7 +70,6 @@ import com.sk89q.worldedit.util.command.binding.Switch;
 import com.sk89q.worldedit.util.command.parametric.Optional;
 import java.io.IOException;
 import java.net.URL;
-import java.util.Iterator;
 
 
 import static com.google.common.base.Preconditions.checkNotNull;
@@ -379,10 +379,10 @@ public class ClipboardCommands {
     @CommandPermissions("worldedit.clipboard.place")
     @Logging(PLACEMENT)
     public void place(Player player, LocalSession session, final EditSession editSession,
-                      @Switch('a') boolean ignoreAirBlocks, @Switch('o') boolean atOrigin,
+                      @Switch('a') final boolean ignoreAirBlocks, @Switch('o') boolean atOrigin,
                       @Switch('s') boolean selectPasted) throws WorldEditException {
         ClipboardHolder holder = session.getClipboard();
-        Clipboard clipboard = holder.getClipboard();
+        final Clipboard clipboard = holder.getClipboard();
         Region region = clipboard.getRegion().clone();
 
         final int maxY = editSession.getMaxY();
@@ -412,20 +412,23 @@ public class ClipboardCommands {
             final int relx = to.getBlockX() - origin.getBlockX();
             final int rely = to.getBlockY() - origin.getBlockY();
             final int relz = to.getBlockZ() - origin.getBlockZ();
-            Iterator<BlockVector> iter = region.iterator();
-            while (iter.hasNext()) {
-                BlockVector mutable = iter.next();
-                BaseBlock block = clipboard.getBlock(mutable);
-                if (block == EditSession.nullBlock && ignoreAirBlocks) {
-                    continue;
+            RegionVisitor visitor = new RegionVisitor(region, new RegionFunction() {
+                @Override
+                public boolean apply(Vector mutable) throws WorldEditException {
+                    BaseBlock block = clipboard.getBlock(mutable);
+                    if (block == EditSession.nullBlock && ignoreAirBlocks) {
+                        return false;
+                    }
+                    mutable.mutX(mutable.getX() + relx);
+                    mutable.mutY(mutable.getY() + rely);
+                    mutable.mutZ(mutable.getZ() + relz);
+                    if (mutable.getY() >= 0 && mutable.getY() <= maxY) {
+                        return editSession.setBlockFast(mutable, block);
+                    }
+                    return false;
                 }
-                mutable.mutX(mutable.getX() + relx);
-                mutable.mutY(mutable.getY() + rely);
-                mutable.mutZ(mutable.getZ() + relz);
-                if (mutable.getY() >= 0 && mutable.getY() <= maxY) {
-                    editSession.setBlockFast(mutable, block);
-                }
-            }
+            }, editSession);
+            Operations.completeBlindly(visitor);
         }
         // Entity offset is the paste location subtract the clipboard origin (entity's location is already relative to the world origin)
         final int entityOffsetX = to.getBlockX() - origin.getBlockX();

@@ -72,7 +72,6 @@ public final class NBTOutputStream implements Closeable {
     public void writeNamedTag(String name, Tag tag) throws IOException {
         checkNotNull(name);
         checkNotNull(tag);
-
         int type = NBTUtils.getTypeCode(tag.getClass());
         writeNamedTagName(name, type);
         if (type == NBTConstants.TYPE_END) {
