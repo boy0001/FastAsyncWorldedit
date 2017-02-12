@@ -12,8 +12,8 @@ import java.io.InputStream;
 
 public class FlattenBrush extends HeightBrush {
 
-    public FlattenBrush(InputStream stream, int rotation, double yscale, DoubleActionBrushTool tool, Clipboard clipboard) {
-        super(stream, rotation, yscale, tool, clipboard, ScalableHeightMap.Shape.CYLINDER);
+    public FlattenBrush(InputStream stream, int rotation, double yscale, DoubleActionBrushTool tool, Clipboard clipboard, ScalableHeightMap.Shape shape) {
+        super(stream, rotation, yscale, tool, clipboard, shape);
     }
 
     @Override
