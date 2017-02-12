@@ -26,7 +26,7 @@ public class Fast2DIterator implements Iterable<Vector2D> {
     }
 
     public Fast2DIterator(@Nonnull Iterable<? extends Vector2D> iter, @Nullable HasFaweQueue editSession) {
-        this(iter, (FaweQueue) editSession != null ? editSession.getQueue() : null);
+        this(iter, (FaweQueue) (editSession != null ? editSession.getQueue() : null));
     }
 
     public Fast2DIterator(@Nonnull Iterable<? extends Vector2D> iter, @Nullable FaweQueue faweQueue) {

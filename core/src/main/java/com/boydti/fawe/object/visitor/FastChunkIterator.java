@@ -26,7 +26,7 @@ public class FastChunkIterator implements Iterable<Vector2D> {
     }
 
     public FastChunkIterator(@Nonnull Iterable<? extends Vector2D> iter, @Nullable HasFaweQueue editSession) {
-        this(iter, (FaweQueue) editSession != null ? editSession.getQueue() : null);
+        this(iter, (FaweQueue) (editSession != null ? editSession.getQueue() : null));
     }
 
     public FastChunkIterator(@Nonnull Iterable<? extends Vector2D> iter, @Nullable FaweQueue faweQueue) {

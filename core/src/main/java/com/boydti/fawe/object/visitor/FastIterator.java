@@ -26,7 +26,7 @@ public class FastIterator implements Iterable<Vector> {
     }
 
     public FastIterator(@Nonnull Iterable<? extends Vector> iter, @Nullable HasFaweQueue editSession) {
-        this(iter, (FaweQueue) editSession != null ? editSession.getQueue() : null);
+        this(iter, (FaweQueue) (editSession != null ? editSession.getQueue() : null));
     }
 
     public FastIterator(@Nonnull Iterable<? extends Vector> iter, @Nullable FaweQueue faweQueue) {
