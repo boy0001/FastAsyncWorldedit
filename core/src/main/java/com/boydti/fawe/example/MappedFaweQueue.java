@@ -627,7 +627,7 @@ public abstract class MappedFaweQueue<WORLD, CHUNK, CHUNKSECTIONS, SECTION> exte
         } else if (lastChunk == null) {
             return 0;
         }
-        return getBiome(lastChunk, x, z);
+        return getBiome(lastChunk, x, z) & 0xFF;
     }
 
     @Override
