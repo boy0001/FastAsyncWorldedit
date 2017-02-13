@@ -124,11 +124,13 @@ public class ScalableHeightMap {
         int diameter = 2 * size + 1;
         int centerX = pos.getBlockX();
         int centerZ = pos.getBlockZ();
+        int centerY = pos.getBlockY();
         int endY = pos.getBlockY() + size;
         int startY = pos.getBlockY() - size;
         int[] newData = new int[diameter * diameter];
         Vector mutablePos = new Vector(0, 0, 0);
         if (towards) {
+            double sizePow = Math.pow(size, yscale);
             int targetY = pos.getBlockY();
             for (int x = -size; x <= size; x++) {
                 int xx = centerX + x;
@@ -151,10 +153,14 @@ public class ScalableHeightMap {
                             raise = getHeight(-z, -x);
                             break;
                     }
+                    int height = session.getHighestTerrainBlock(xx, zz, 0, 255, false);
+                    if (height == 0) {
+                        newData[index] = centerY;
+                        continue;
+                    }
                     raise = (yscale * raise);
-                    int height = session.getHighestTerrainBlock(xx, zz, 0, 255, true);
                     int diff = targetY - height;
-                    double raiseScaled = diff * (raise / (double) size);
+                    double raiseScaled = diff * (Math.pow(raise, yscale) / sizePow);
                     double raiseScaledAbs = Math.abs(raiseScaled);
                     int random = PseudoRandom.random.random(256) < (int) ((Math.ceil(raiseScaledAbs) - Math.floor(raiseScaledAbs)) * 256) ? (diff > 0 ? 1 : -1) : 0;
                     int raiseScaledInt = (int) raiseScaled + random;
@@ -183,10 +189,15 @@ public class ScalableHeightMap {
                             raise = getHeight(-z, -x);
                             break;
                     }
+                    int height = session.getHighestTerrainBlock(xx, zz, 0, maxY, false);
+                    if (height == 0) {
+                        newData[index] = centerY;
+                        continue;
+                    }
                     raise = (yscale * raise);
                     int random = PseudoRandom.random.random(maxY + 1) < (int) ((raise - (int) raise) * (maxY + 1)) ? 1 : 0;
-                    int height = session.getHighestTerrainBlock(xx, zz, 0, maxY, true) + (int) raise + random;
-                    newData[index] = height;
+                    int newHeight = height + (int) raise + random;
+                    newData[index] = newHeight;
                 }
             }
         }

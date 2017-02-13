@@ -367,7 +367,7 @@ public class BrushCommands {
     )
     @CommandPermissions("worldedit.brush.height")
     public void heightBrush(Player player, LocalSession session, @Optional("5") double radius, @Optional("") final String filename, @Optional("0") final int rotation, @Optional("1") final double yscale) throws WorldEditException {
-        terrainBrush(player, session, radius, filename, rotation, yscale, true, ScalableHeightMap.Shape.CONE);
+        terrainBrush(player, session, radius, filename, rotation, yscale, false, ScalableHeightMap.Shape.CONE);
     }
 
     @Command(
