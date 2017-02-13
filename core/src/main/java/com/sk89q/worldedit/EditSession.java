@@ -1225,6 +1225,7 @@ public class EditSession extends AbstractWorld implements HasFaweQueue, Lighting
         ChangeSet changeSet = getChangeSet();
         editSession.getQueue().setChangeTask(null);
         Operations.completeBlindly(ChangeSetExecutor.create(changeSet, context, ChangeSetExecutor.Type.UNDO, editSession.getBlockBag(), editSession.getLimit().INVENTORY_MODE));
+        flushQueue();
         editSession.changes = 1;
     }
 
@@ -1239,6 +1240,7 @@ public class EditSession extends AbstractWorld implements HasFaweQueue, Lighting
         ChangeSet changeSet = getChangeSet();
         editSession.getQueue().setChangeTask(null);
         Operations.completeBlindly(ChangeSetExecutor.create(changeSet, context, ChangeSetExecutor.Type.REDO, editSession.getBlockBag(), editSession.getLimit().INVENTORY_MODE));
+        flushQueue();
         editSession.changes = 1;
     }
 
