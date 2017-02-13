@@ -21,6 +21,7 @@ package com.sk89q.worldedit.command;
 
 import com.boydti.fawe.config.BBC;
 import com.google.common.base.Joiner;
+import com.google.common.util.concurrent.AtomicDouble;
 import com.sk89q.minecraft.util.commands.Command;
 import com.sk89q.minecraft.util.commands.CommandContext;
 import com.sk89q.minecraft.util.commands.CommandException;
@@ -64,9 +65,14 @@ import com.sk89q.worldedit.util.formatting.component.CommandListBox;
 import com.sk89q.worldedit.util.formatting.component.CommandUsageBox;
 import com.sk89q.worldedit.world.World;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 
 
 import static com.sk89q.minecraft.util.commands.Logging.LogMode.PLACEMENT;
@@ -516,10 +522,24 @@ public class UtilityCommands {
         desc = "Evaluate a mathematical expression"
     )
     @CommandPermissions("worldedit.calc")
-    public void calc(Actor actor, @Text String input) throws CommandException {
+    public void calc(final Actor actor, @Text String input) throws CommandException {
         try {
-            Expression expression = Expression.compile(input);
-            actor.print(BBC.getPrefix() + "= " + expression.evaluate());
+            final Expression expression = Expression.compile(input);
+            final AtomicDouble result = new AtomicDouble(Double.NaN);
+            ExecutorService executor = Executors.newSingleThreadExecutor();
+            try {
+                executor.invokeAll(Arrays.asList(new Callable<Object>() {
+                    @Override
+                    public Object call() throws Exception {
+                        result.set(expression.evaluate());
+                        return null;
+                    }
+                }), 10, TimeUnit.SECONDS); // Timeout of 10 minutes.
+            } catch (InterruptedException e) {
+                throw new RuntimeException(e);
+            }
+            executor.shutdown();
+            actor.print(BBC.getPrefix() + "= " + result);
         } catch (EvaluationException e) {
             actor.printError(String.format(
                     "'%s' could not be parsed as a valid expression", input));
