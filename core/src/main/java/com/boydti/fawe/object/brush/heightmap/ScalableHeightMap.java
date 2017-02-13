@@ -158,9 +158,9 @@ public class ScalableHeightMap {
                         newData[index] = centerY;
                         continue;
                     }
-                    raise = (yscale * raise);
+                    double raisePow = Math.pow(raise, yscale);
                     int diff = targetY - height;
-                    double raiseScaled = diff * (Math.pow(raise, yscale) / sizePow);
+                    double raiseScaled = diff * (raisePow / sizePow);
                     double raiseScaledAbs = Math.abs(raiseScaled);
                     int random = PseudoRandom.random.random(256) < (int) ((Math.ceil(raiseScaledAbs) - Math.floor(raiseScaledAbs)) * 256) ? (diff > 0 ? 1 : -1) : 0;
                     int raiseScaledInt = (int) raiseScaled + random;
