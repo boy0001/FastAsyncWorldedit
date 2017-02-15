@@ -92,6 +92,7 @@ import com.sk89q.worldedit.history.change.EntityRemove;
 import com.sk89q.worldedit.math.interpolation.KochanekBartelsInterpolation;
 import com.sk89q.worldedit.math.transform.AffineTransform;
 import com.sk89q.worldedit.regions.CuboidRegion;
+import com.sk89q.worldedit.regions.EllipsoidRegion;
 import com.sk89q.worldedit.regions.selector.CuboidRegionSelector;
 import com.sk89q.worldedit.session.PasteBuilder;
 import com.sk89q.worldedit.session.SessionManager;
@@ -383,6 +384,7 @@ public class Fawe {
             BrushTool.inject(); // Add transform
             // Selectors
             CuboidRegionSelector.inject(); // Translations
+            EllipsoidRegion.inject(); // Optimizations
             // Visitors
             BreadthFirstSearch.inject(); // Translations + Optimizations
             DownwardVisitor.inject(); // Optimizations

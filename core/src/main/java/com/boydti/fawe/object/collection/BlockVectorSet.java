@@ -45,7 +45,7 @@ public class BlockVectorSet extends AbstractCollection<Vector> implements Set<Ve
     public boolean contains(int x, int y, int z) {
         int pair = MathMan.pair((short) (x >> 11), (short) (z >> 11));
         LocalBlockVectorSet localMap = localSets.get(pair);
-        return localMap.contains(x & 2047, y, z & 2047);
+        return localMap != null && localMap.contains(x & 2047, y, z & 2047);
     }
 
     @Override
@@ -126,6 +126,8 @@ public class BlockVectorSet extends AbstractCollection<Vector> implements Set<Ve
         return false;
     }
 
+
+
     @Override
     public boolean remove(Object o) {
         if (o instanceof Vector) {
@@ -176,6 +178,8 @@ public class BlockVectorSet extends AbstractCollection<Vector> implements Set<Ve
         }
         return result;
     }
+
+
 
     @Override
     public void clear() {

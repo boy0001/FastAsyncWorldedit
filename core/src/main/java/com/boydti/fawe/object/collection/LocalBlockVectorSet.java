@@ -23,6 +23,10 @@ public class LocalBlockVectorSet implements Set<Vector> {
         this.set = new SparseBitSet();
     }
 
+    public SparseBitSet getBitSet() {
+        return set;
+    }
+
     @Override
     public int size() {
         return set.cardinality();
@@ -44,6 +48,11 @@ public class LocalBlockVectorSet implements Set<Vector> {
             return contains(v.getBlockX(), v.getBlockY(), v.getBlockZ());
         }
         return false;
+    }
+
+    public void addOffset(int x, int z) {
+        this.offsetX += x;
+        this.offsetZ += z;
     }
 
     public void setOffset(int x, int z) {

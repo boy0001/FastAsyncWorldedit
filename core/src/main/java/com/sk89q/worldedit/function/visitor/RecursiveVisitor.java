@@ -19,6 +19,7 @@
 
 package com.sk89q.worldedit.function.visitor;
 
+import com.boydti.fawe.object.HasFaweQueue;
 import com.sk89q.worldedit.Vector;
 import com.sk89q.worldedit.function.RegionFunction;
 import com.sk89q.worldedit.function.mask.Mask;
@@ -45,7 +46,11 @@ public class RecursiveVisitor extends BreadthFirstSearch {
      * @param function the function
      */
     public RecursiveVisitor(final Mask mask, final RegionFunction function, int maxDepth) {
-        super(function, maxDepth);
+        this(mask, function, maxDepth, null);
+    }
+
+    public RecursiveVisitor(final Mask mask, final RegionFunction function, int maxDepth, HasFaweQueue faweQueue) {
+        super(function, maxDepth, faweQueue);
         checkNotNull(mask);
         this.mask = mask;
     }

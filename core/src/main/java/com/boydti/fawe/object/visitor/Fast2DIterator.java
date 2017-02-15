@@ -41,7 +41,7 @@ public class Fast2DIterator implements Iterable<Vector2D> {
     @Override
     public Iterator<Vector2D> iterator() {
         if (queue == null || Settings.IMP.QUEUE.PRELOAD_CHUNKS <= 1) {
-            return (Iterator<Vector2D>) iterable;
+            return (Iterator<Vector2D>) iterable.iterator();
         }
         return new Iterator<Vector2D>() {
             Iterator<? extends Vector2D> trailIter = iterable.iterator();
@@ -87,22 +87,6 @@ public class Fast2DIterator implements Iterable<Vector2D> {
                                     queue.queueChunkLoad(vcx, vcz);
                                     count++;
                                 }
-                                // Skip the next 15 blocks
-                                leadIter.next();
-                                leadIter.next();
-                                leadIter.next();
-                                leadIter.next();
-                                leadIter.next();
-                                leadIter.next();
-                                leadIter.next();
-                                leadIter.next();
-                                leadIter.next();
-                                leadIter.next();
-                                leadIter.next();
-                                leadIter.next();
-                                leadIter.next();
-                                leadIter.next();
-                                leadIter.next();
                             }
                         } catch (Throwable ignore) {}
                     }

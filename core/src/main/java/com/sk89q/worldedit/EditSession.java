@@ -1463,9 +1463,9 @@ public class EditSession extends AbstractWorld implements HasFaweQueue, Lighting
         // Pick how we're going to visit blocks
         RecursiveVisitor visitor;
         if (recursive) {
-            visitor = new RecursiveVisitor(mask, replace);
+            visitor = new RecursiveVisitor(mask, replace, (int) (radius * 2 + 1), this);
         } else {
-            visitor = new DownwardVisitor(mask, replace, origin.getBlockY());
+            visitor = new DownwardVisitor(mask, replace, origin.getBlockY(), (int) (radius * 2 + 1), this);
         }
 
         // Start at the origin
@@ -2016,7 +2016,7 @@ public class EditSession extends AbstractWorld implements HasFaweQueue, Lighting
                                 new Vector(radius,radius, radius))), liquidMask);
 
         final BlockReplace replace = new BlockReplace(EditSession.this, new BlockPattern(new BaseBlock(BlockID.AIR)));
-        final RecursiveVisitor visitor = new RecursiveVisitor(mask, replace);
+        final RecursiveVisitor visitor = new RecursiveVisitor(mask, replace, (int) (radius * 2 + 1), this);
 
         // Around the origin in a 3x3 block
         for (final BlockVector position : CuboidRegion.fromCenter(origin, 1)) {
@@ -2075,7 +2075,7 @@ public class EditSession extends AbstractWorld implements HasFaweQueue, Lighting
                 blockMask);
 
         BlockReplace replace = new BlockReplace(this, new BlockPattern(FaweCache.getBlock(stationary, 0)));
-        NonRisingVisitor visitor = new NonRisingVisitor(mask, replace);
+        NonRisingVisitor visitor = new NonRisingVisitor(mask, replace, (int) (radius * 2 + 1), this);
 
         // Around the origin in a 3x3 block
         for (BlockVector position : CuboidRegion.fromCenter(origin, 1)) {

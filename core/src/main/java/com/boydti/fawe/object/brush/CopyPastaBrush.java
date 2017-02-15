@@ -3,7 +3,6 @@ package com.boydti.fawe.object.brush;
 import com.boydti.fawe.config.BBC;
 import com.boydti.fawe.object.FawePlayer;
 import com.boydti.fawe.object.clipboard.ResizableClipboardBuilder;
-import com.boydti.fawe.object.exception.FaweException;
 import com.boydti.fawe.object.function.NullRegionFunction;
 import com.boydti.fawe.object.function.mask.AbstractDelegateMask;
 import com.sk89q.worldedit.EditSession;
@@ -44,16 +43,11 @@ public class CopyPastaBrush implements DoubleActionBrush {
                 final int size2 = (int) (size * size);
                 final int minY = position.getBlockY();
                 mask = new AbstractDelegateMask(mask) {
-                    private int visited = 0;
-
                     @Override
                     public boolean test(Vector vector) {
                         if (super.test(vector) && vector.getBlockY() >= minY) {
                             BaseBlock block = editSession.getLazyBlock(vector);
                             if (block != EditSession.nullBlock) {
-                                if (visited++ > size2) {
-                                    throw new FaweException(BBC.WORLDEDIT_CANCEL_REASON_MAX_CHECKS);
-                                }
                                 builder.add(vector, EditSession.nullBlock, block);
                                 return true;
                             }
@@ -63,7 +57,7 @@ public class CopyPastaBrush implements DoubleActionBrush {
                 };
                 // Add origin
                 mask.test(position);
-                RecursiveVisitor visitor = new RecursiveVisitor(mask, new NullRegionFunction());
+                RecursiveVisitor visitor = new RecursiveVisitor(mask, new NullRegionFunction(), (int) size, editSession);
                 visitor.visit(position);
                 Operations.completeBlindly(visitor);
                 // Build the clipboard

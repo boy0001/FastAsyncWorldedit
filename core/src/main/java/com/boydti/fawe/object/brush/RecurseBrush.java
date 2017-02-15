@@ -51,7 +51,7 @@ public class RecurseBrush implements Brush {
             visitor.visit(position);
             Operations.completeBlindly(visitor);
         } else {
-            RecursiveVisitor visitor = new RecursiveVisitor(mask, replace, radius) {
+            RecursiveVisitor visitor = new RecursiveVisitor(mask, replace, radius, editSession) {
                 @Override
                 public boolean isVisitable(Vector from, Vector to) {
                     int y = to.getBlockY();

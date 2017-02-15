@@ -19,10 +19,10 @@
 
 package com.sk89q.worldedit.function.visitor;
 
+import com.boydti.fawe.object.HasFaweQueue;
 import com.sk89q.worldedit.Vector;
 import com.sk89q.worldedit.function.RegionFunction;
 import com.sk89q.worldedit.function.mask.Mask;
-import com.sk89q.worldedit.function.operation.Operations;
 import java.util.Collection;
 
 
@@ -46,8 +46,12 @@ public class DownwardVisitor extends RecursiveVisitor {
      * @param function the function
      * @param baseY the base Y
      */
-    public DownwardVisitor(final Mask mask, final RegionFunction function, final int baseY) {
-        super(mask, function);
+    public DownwardVisitor(Mask mask, RegionFunction function, int baseY) {
+        this(mask, function, baseY, Integer.MAX_VALUE, null);
+    }
+
+    public DownwardVisitor(Mask mask, RegionFunction function, int baseY, int depth, HasFaweQueue hasFaweQueue) {
+        super(mask, function, depth, hasFaweQueue);
         checkNotNull(mask);
 
         this.baseY = baseY;

@@ -3,6 +3,10 @@ package com.sk89q.worldedit;
 public class MutableBlockVector extends BlockVector {
     private int x,y,z;
 
+    public MutableBlockVector(Vector v) {
+        this(v.getBlockX(), v.getBlockY(), v.getBlockZ());
+    }
+
     public MutableBlockVector(int x, int y, int z) {
         super(0, 0, 0);
         this.x = x;

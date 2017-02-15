@@ -41,7 +41,7 @@ public class FastIterator implements Iterable<Vector> {
     @Override
     public Iterator<Vector> iterator() {
         if (queue == null || Settings.IMP.QUEUE.PRELOAD_CHUNKS <= 1) {
-            return (Iterator<Vector>) iterable;
+            return (Iterator<Vector>) iterable.iterator();
         }
         return new Iterator<Vector>() {
             Iterator<? extends Vector> trailIter = iterable.iterator();
@@ -87,22 +87,6 @@ public class FastIterator implements Iterable<Vector> {
                                     queue.queueChunkLoad(vcx, vcz);
                                     count++;
                                 }
-                                // Skip the next 15 blocks
-                                leadIter.next();
-                                leadIter.next();
-                                leadIter.next();
-                                leadIter.next();
-                                leadIter.next();
-                                leadIter.next();
-                                leadIter.next();
-                                leadIter.next();
-                                leadIter.next();
-                                leadIter.next();
-                                leadIter.next();
-                                leadIter.next();
-                                leadIter.next();
-                                leadIter.next();
-                                leadIter.next();
                             }
                         } catch (Throwable ignore) {}
                     }
