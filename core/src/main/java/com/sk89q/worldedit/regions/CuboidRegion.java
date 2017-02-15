@@ -445,7 +445,7 @@ public class CuboidRegion extends AbstractRegion implements FlatRegion {
                             y = by;
                             if (x > tx) {
                                 x = bx;
-                                if (z > tz) {
+                                if (z >= tz) {
                                     if (!hasNext) {
                                         throw new NoSuchElementException("End of iterator") {
                                             @Override
@@ -455,6 +455,8 @@ public class CuboidRegion extends AbstractRegion implements FlatRegion {
                                         };
                                     }
                                     hasNext = false;
+                                    --x;
+                                    --y;
                                     return mutable;
                                 }
                             } else {
