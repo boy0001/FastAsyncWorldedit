@@ -29,13 +29,13 @@ public class AbstractDelegateChangeSet extends FaweChangeSet {
     }
 
     @Override
-    public boolean flushAsync() {
-        return super.flushAsync();
+    public boolean closeAsync() {
+        return super.closeAsync();
     }
 
     @Override
-    public boolean flush() {
-        return super.flush() && parent.flush();
+    public boolean close() {
+        return super.close() && parent.close();
     }
 
     public final FaweChangeSet getParent() {

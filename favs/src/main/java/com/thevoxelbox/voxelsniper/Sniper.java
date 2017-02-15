@@ -91,7 +91,7 @@ public class Sniper {
         }
         if (tmpQueue != null) {
             FaweChangeSet changeSet = tmpQueue.getChangeSet();
-            changeSet.flushAsync();
+            changeSet.closeAsync();
             FawePlayer<Object> fp = FawePlayer.wrap(getPlayer());
             LocalSession session = fp.getSession();
             session.remember(changeSet.toEditSession(fp));

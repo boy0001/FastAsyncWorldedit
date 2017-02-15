@@ -1,7 +1,6 @@
 package com.boydti.fawe.object.clipboard;
 
 import com.boydti.fawe.object.RunnableVal2;
-import com.boydti.fawe.util.MainUtil;
 import com.boydti.fawe.util.ReflectionUtils;
 import com.sk89q.jnbt.CompoundTag;
 import com.sk89q.jnbt.IntTag;
@@ -49,7 +48,6 @@ public class WorldCopyClipboard extends ReadOnlyClipboard {
 
     @Override
     public void forEach(final RunnableVal2<Vector, BaseBlock> task, boolean air) {
-        MainUtil.stacktrace();
         Vector min = region.getMinimumPoint();
         Vector max = region.getMaximumPoint();
         final Vector pos = new Vector();

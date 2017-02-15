@@ -81,8 +81,8 @@ public class RollbackOptimizedHistory extends DiskStorageHistory {
     }
 
     @Override
-    public boolean flush() {
-        if (super.flush()) {
+    public boolean close() {
+        if (super.close()) {
             // Save to DB
             RollbackDatabase db = DBHandler.IMP.getDatabase(getWorld());
             db.logEdit(this);

@@ -171,6 +171,25 @@ public class DiskStorageHistory extends FaweStreamChangeSet {
         synchronized (this) {
             boolean flushed = osBD != null || osBIO != null || osNBTF != null || osNBTT != null && osENTCF != null || osENTCT != null;
             try {
+                if (osBD != null) osBD.flush();
+                if (osBIO != null) osBIO.flush();
+                if (osNBTF != null) osNBTF.flush();
+                if (osNBTT != null) osNBTT.flush();
+                if (osENTCF != null) osENTCF.flush();
+                if (osENTCT != null) osENTCT.flush();
+            } catch (Exception e) {
+                MainUtil.handleError(e);
+            }
+            return flushed;
+        }
+    }
+
+    @Override
+    public boolean close() {
+        super.close();
+        synchronized (this) {
+            boolean flushed = osBD != null || osBIO != null || osNBTF != null || osNBTT != null && osENTCF != null || osENTCT != null;
+            try {
                 if (osBD != null) {
                     osBD.close();
                     osBD = null;

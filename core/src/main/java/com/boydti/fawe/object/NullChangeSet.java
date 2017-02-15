@@ -19,7 +19,7 @@ public class NullChangeSet extends FaweChangeSet {
     }
 
     @Override
-    public final boolean flush() {
+    public final boolean close() {
         return false;
     }
 

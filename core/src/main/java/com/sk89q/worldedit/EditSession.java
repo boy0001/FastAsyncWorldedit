@@ -585,7 +585,7 @@ public class EditSession extends AbstractWorld implements HasFaweQueue, Lighting
     public void enableQueue() {}
 
     /**
-     * Disable the queue. This will flush the queue.
+     * Disable the queue. This will close the queue.
      */
     public void disableQueue() {
         if (this.isQueueEnabled()) {
@@ -1313,9 +1313,9 @@ public class EditSession extends AbstractWorld implements HasFaweQueue, Lighting
         }
         if (getChangeSet() != null) {
             if (Settings.IMP.HISTORY.COMBINE_STAGES) {
-                ((FaweChangeSet) getChangeSet()).flushAsync();
+                ((FaweChangeSet) getChangeSet()).closeAsync();
             } else {
-                ((FaweChangeSet) getChangeSet()).flush();
+                ((FaweChangeSet) getChangeSet()).close();
             }
         }
     }

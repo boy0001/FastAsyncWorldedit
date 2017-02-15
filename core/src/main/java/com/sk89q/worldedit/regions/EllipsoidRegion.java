@@ -234,13 +234,11 @@ public class EllipsoidRegion extends AbstractRegion {
             return false;
         }
         if (sphere) {
-            System.out.println((cx2 + cy2 + cz2) + " | " + radiusLengthSqr);
             return cx2 + cy2 + cz2 <= radiusLengthSqr;
         }
         double cxd = (double) cx / radius.getBlockX();
         double cyd = (double) cy / radius.getBlockY();
         double czd = (double) cz / radius.getBlockZ();
-        System.out.println((cxd * cxd + cyd * cyd + czd * czd) + " | " + 1);
         return cxd * cxd + cyd * cyd + czd * czd <= 1;
     }
 

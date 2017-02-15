@@ -69,7 +69,7 @@ public abstract class FaweChangeSet implements ChangeSet {
         return world;
     }
 
-    public boolean flushAsync() {
+    public boolean closeAsync() {
         waitingAsync.incrementAndGet();
         TaskManager.IMP.async(new Runnable() {
             @Override
@@ -78,7 +78,7 @@ public abstract class FaweChangeSet implements ChangeSet {
                 synchronized (waitingAsync) {
                     waitingAsync.notifyAll();
                 }
-                flush();
+                close();
             }
         });
         return true;
@@ -102,6 +102,10 @@ public abstract class FaweChangeSet implements ChangeSet {
             MainUtil.handleError(e);
         }
         return true;
+    }
+
+    public boolean close() {
+        return flush();
     }
 
     public abstract void add(int x, int y, int z, int combinedFrom, int combinedTo);

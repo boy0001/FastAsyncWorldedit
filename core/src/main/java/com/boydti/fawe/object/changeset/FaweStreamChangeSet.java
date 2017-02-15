@@ -655,7 +655,7 @@ public abstract class FaweStreamChangeSet extends FaweChangeSet {
     }
 
     public Iterator<Change> getIterator(final boolean dir) {
-        flush();
+        close();
         try {
             final Iterator<MutableTileChange> tileCreate = getTileIterator(getTileCreateIS(), true, dir);
             final Iterator<MutableTileChange> tileRemove = getTileIterator(getTileRemoveIS(), false, dir);

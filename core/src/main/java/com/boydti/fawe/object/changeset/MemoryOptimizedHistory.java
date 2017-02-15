@@ -58,6 +58,25 @@ public class MemoryOptimizedHistory extends FaweStreamChangeSet {
         super.flush();
         synchronized (this) {
             try {
+                if (idsStream != null) idsStreamZip.flush();
+                if (biomeStream != null) biomeStreamZip.flush();
+                if (entCStream != null) entCStreamZip.flush();
+                if (entRStream != null) entRStreamZip.flush();
+                if (tileCStream != null) tileCStreamZip.flush();
+                if (tileRStream != null) tileRStreamZip.flush();
+                return true;
+            } catch (IOException e) {
+                MainUtil.handleError(e);
+            }
+        }
+        return false;
+    }
+
+    @Override
+    public boolean close() {
+        super.close();
+        synchronized (this) {
+            try {
                 if (idsStream != null) {
                     idsStreamZip.close();
                     ids = idsStream.toByteArrays();

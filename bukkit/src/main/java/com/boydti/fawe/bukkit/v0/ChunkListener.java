@@ -62,12 +62,12 @@ public class ChunkListener implements Listener {
         lastX = cx;
         lastZ = cz;
         long pair = MathMan.pairInt(cx, cz);
-        lastCount = counter.get(pair);
-        if (lastCount == null) {
-            lastCount = new IntegerTrio();
-            counter.put(pair, lastCount);
+        IntegerTrio tmp = lastCount = counter.get(pair);
+        if (tmp == null) {
+            lastCount = tmp =  new IntegerTrio();
+            counter.put(pair, tmp);
         }
-        return lastCount;
+        return tmp;
     }
 
     public void cleanup(Chunk chunk) {

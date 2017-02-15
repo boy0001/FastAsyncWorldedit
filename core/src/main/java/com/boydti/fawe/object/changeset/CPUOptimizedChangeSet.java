@@ -95,7 +95,7 @@ public class CPUOptimizedChangeSet extends FaweChangeSet {
     @Override
     public boolean isEmpty() {
         if (changes.isEmpty()) {
-            flush();
+            close();
             return changes.isEmpty();
         } else {
             return false;
