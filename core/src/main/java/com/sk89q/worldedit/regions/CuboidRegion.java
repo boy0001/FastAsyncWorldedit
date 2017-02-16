@@ -454,9 +454,9 @@ public class CuboidRegion extends AbstractRegion implements FlatRegion {
                                             }
                                         };
                                     }
+                                    x = tx;
+                                    y = ty;
                                     hasNext = false;
-                                    --x;
-                                    --y;
                                     return mutable;
                                 }
                             } else {
@@ -497,7 +497,7 @@ public class CuboidRegion extends AbstractRegion implements FlatRegion {
 
             @Override
             public boolean hasNext() {
-                return (nextX != Integer.MIN_VALUE);
+                return (nextZ != Integer.MIN_VALUE);
             }
 
             @Override
@@ -510,7 +510,17 @@ public class CuboidRegion extends AbstractRegion implements FlatRegion {
                     if (++nextY > max.getBlockY()) {
                         nextY = min.getBlockY();
                         if (++nextZ > max.getBlockZ()) {
-                            nextX = Integer.MIN_VALUE;
+                            if (nextZ == Integer.MIN_VALUE) {
+                                throw new NoSuchElementException("End of iterator") {
+                                    @Override
+                                    public synchronized Throwable fillInStackTrace() {
+                                        return this;
+                                    }
+                                };
+                            }
+                            nextX = max.getBlockX();
+                            nextY = max.getBlockY();
+                            nextZ = Integer.MIN_VALUE;
                         }
                     }
                 }
