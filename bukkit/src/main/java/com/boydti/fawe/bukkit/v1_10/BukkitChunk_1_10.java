@@ -199,7 +199,7 @@ public class BukkitChunk_1_10 extends CharFaweChunk<Chunk, BukkitQueue_1_10> {
                 } else if (count >= 4096) {
                     Collection<Entity> ents = entities[i];
                     if (!ents.isEmpty()) {
-                        synchronized (BukkitQueue_0.adapter) {
+                        synchronized (BukkitQueue_0.class) {
                             ents.clear();
                         }
                     }
@@ -209,7 +209,7 @@ public class BukkitChunk_1_10 extends CharFaweChunk<Chunk, BukkitQueue_1_10> {
                         char[] array = this.getIdArray(i);
                         if (array == null || entities[i] == null || entities[i].isEmpty()) continue;
                         Entity[] entsArr = ents.toArray(new Entity[ents.size()]);
-                        synchronized (BukkitQueue_0.adapter) {
+                        synchronized (BukkitQueue_0.class) {
                             for (Entity entity : entsArr) {
                                 if (entity instanceof EntityPlayer) {
                                     continue;
@@ -228,7 +228,7 @@ public class BukkitChunk_1_10 extends CharFaweChunk<Chunk, BukkitQueue_1_10> {
             }
             HashSet<UUID> entsToRemove = this.getEntityRemoves();
             if (!entsToRemove.isEmpty()) {
-                synchronized (BukkitQueue_0.adapter) {
+                synchronized (BukkitQueue_0.class) {
                     for (int i = 0; i < entities.length; i++) {
                         Collection<Entity> ents = entities[i];
                         if (ents.isEmpty()) {
@@ -246,7 +246,7 @@ public class BukkitChunk_1_10 extends CharFaweChunk<Chunk, BukkitQueue_1_10> {
             Set<CompoundTag> entitiesToSpawn = this.getEntities();
             Set<UUID> createdEntities = new HashSet<>();
             if (!entitiesToSpawn.isEmpty()) {
-                synchronized (BukkitQueue_0.adapter) {
+                synchronized (BukkitQueue_0.class) {
                     for (CompoundTag nativeTag : entitiesToSpawn) {
                         Map<String, Tag> entityTagMap = ReflectionUtils.getMap(nativeTag.getValue());
                         StringTag idTag = (StringTag) entityTagMap.get("Id");

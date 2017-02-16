@@ -158,6 +158,7 @@ public abstract class BukkitQueue_0<CHUNK, CHUNKSECTIONS, SECTION> extends NMSMa
             }
         } catch (Throwable e) {
             Fawe.debug("====== NO NATIVE WORLDEDIT ADAPTER ======");
+            e.printStackTrace();
             Fawe.debug("Try updating WorldEdit: ");
             Fawe.debug(" - http://builds.enginehub.org/job/worldedit?branch=master");
             Fawe.debug("See also: http://wiki.sk89q.com/wiki/WorldEdit/Bukkit_adapters");
