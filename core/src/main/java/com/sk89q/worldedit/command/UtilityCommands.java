@@ -508,7 +508,7 @@ public class UtilityCommands {
             removed += visitor.getAffected();
         }
 
-        BBC.KILL_SUCCESS.send(removed, radius);
+        BBC.KILL_SUCCESS.send(actor, removed, radius);
 
         if (editSession != null) {
             session.remember(editSession);
