@@ -94,7 +94,7 @@ public class FaweBukkit implements IFawe, Listener {
         if (Bukkit.getPluginManager().getPlugin("WorldEdit") == null) {
             try {
                 File output = new File(getDirectory().getParentFile(), "WorldEdit.jar");
-                URL worldEditUrl = new URL("http://builds.enginehub.org/job/worldedit/9611/download/worldedit-bukkit-6.1.7-SNAPSHOT-dist.jar");
+                URL worldEditUrl = new URL("http://builds.enginehub.org/job/worldedit/9672/download/worldedit-bukkit-6.1.7-SNAPSHOT-dist.jar");
                 try (ReadableByteChannel rbc = Channels.newChannel(worldEditUrl.openStream())) {
                     try (FileOutputStream fos = new FileOutputStream(output)) {
                         fos.getChannel().transferFrom(rbc, 0, Long.MAX_VALUE);
