@@ -374,12 +374,15 @@ public class MainUtil {
 
     public static File getJarFile() {
         try {
-            URL url = Fawe.class.getProtectionDomain().getCodeSource().getLocation();
-            return new File(new URL(url.toURI().toString().split("\\!")[0].replaceAll("jar:file", "file")).toURI().getPath());
+            return getJarFile(Fawe.class);
         } catch (MalformedURLException | URISyntaxException | SecurityException e) {
-            MainUtil.handleError(e);
             return new File(Fawe.imp().getDirectory().getParentFile(), "FastAsyncWorldEdit.jar");
         }
+    }
+
+    public static File getJarFile(Class<?> clazz) throws URISyntaxException, MalformedURLException {
+        URL url = clazz.getProtectionDomain().getCodeSource().getLocation();
+        return new File(new URL(url.toURI().toString().split("\\!")[0].replaceAll("jar:file", "file")).toURI().getPath());
     }
 
     public static void sendCompressedMessage(FaweStreamChangeSet set, FawePlayer actor)

@@ -314,7 +314,7 @@ public class BukkitChunk_1_7 extends CharFaweChunk<Chunk, BukkitQueue17> {
                 byte[] currentIdArray = (byte[]) BukkitQueue17.fieldIds.get(section);
                 NibbleArray currentDataArray = (NibbleArray) BukkitQueue17.fieldData.get(section);
                 boolean data = currentDataArray != null && newDataArray != null;
-                if (!data) {
+                if (currentDataArray == null && newDataArray != null) {
                     section.setDataArray(newDataArray);
                 }
                 if (currentIdArray == null) {

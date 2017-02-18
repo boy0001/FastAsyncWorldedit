@@ -263,7 +263,7 @@ public class ForgeChunk_All extends CharFaweChunk<Chunk, ForgeQueue_All> {
                 byte[] currentIdArray = section.getBlockLSBArray();
                 NibbleArray currentDataArray = section.getMetadataArray();
                 boolean data = currentDataArray != null && newDataArray != null;
-                if (!data) {
+                if (currentDataArray == null && newDataArray != null) {
                     section.setBlockMetadataArray(newDataArray);
                 }
                 int solid = 0;

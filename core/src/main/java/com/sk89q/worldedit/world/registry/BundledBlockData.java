@@ -215,10 +215,11 @@ public class BundledBlockData {
                     new Vector(0, -1, 0)};
             int len = dir.values.size();
             int index = 0;
+            int amount = (dir.values.size() + 7)/ 8;
             for (Map.Entry<String, FaweStateValue> valuesEntry : dir.values.entrySet()) {
                 FaweStateValue state = valuesEntry.getValue();
                 if (state != null) {
-                    state.setDirection(dirs[index]);
+                    state.setDirection(dirs[index / amount]);
                 }
                 index++;
             }
