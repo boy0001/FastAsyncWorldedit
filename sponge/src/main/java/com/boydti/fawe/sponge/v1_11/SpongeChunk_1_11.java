@@ -239,7 +239,7 @@ public class SpongeChunk_1_11 extends CharFaweChunk<Chunk, SpongeQueue_1_11> {
                         if (entityKey != null) {
                             Entity entity = EntityList.createEntityByIDFromName(entityKey, nmsWorld);
                             if (entity != null) {
-                                NBTTagCompound tag = (NBTTagCompound) SpongeQueue_1_11.methodFromNative.invoke(null, nativeTag);
+                                NBTTagCompound tag = (NBTTagCompound) SpongeQueue_1_11.methodFromNative.invoke(SpongeQueue_1_11.adapter, nativeTag);
                                 entity.readFromNBT(tag);
                                 tag.removeTag("UUIDMost");
                                 tag.removeTag("UUIDLeast");
@@ -383,7 +383,7 @@ public class SpongeChunk_1_11 extends CharFaweChunk<Chunk, SpongeQueue_1_11> {
                 BlockPos pos = new BlockPos(x, y, z); // Set pos
                 TileEntity tileEntity = nmsWorld.getTileEntity(pos);
                 if (tileEntity != null) {
-                    NBTTagCompound tag = (NBTTagCompound) SpongeQueue_1_11.methodFromNative.invoke(null, nativeTag);
+                    NBTTagCompound tag = (NBTTagCompound) SpongeQueue_1_11.methodFromNative.invoke(SpongeQueue_1_11.adapter, nativeTag);
                     tag.setInteger("x", pos.getX());
                     tag.setInteger("y", pos.getY());
                     tag.setInteger("z", pos.getZ());

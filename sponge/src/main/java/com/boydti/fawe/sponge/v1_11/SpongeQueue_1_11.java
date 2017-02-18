@@ -12,6 +12,8 @@ import com.boydti.fawe.util.ReflectionUtils;
 import com.sk89q.jnbt.CompoundTag;
 import com.sk89q.jnbt.StringTag;
 import com.sk89q.jnbt.Tag;
+import com.sk89q.worldedit.sponge.SpongeWorldEdit;
+import com.sk89q.worldedit.sponge.adapter.SpongeImplAdapter;
 import com.sk89q.worldedit.world.biome.BaseBiome;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufAllocator;
@@ -81,12 +83,14 @@ public class SpongeQueue_1_11 extends NMSMappedFaweQueue<World, net.minecraft.wo
 
     private static MutableGenLayer genLayer;
 
+    protected static final SpongeImplAdapter adapter;
+
     static {
         try {
             emptySection = new ExtendedBlockStorage(0, true);
-            Class<?> converter = Class.forName("com.sk89q.worldedit.sponge.nms.NBTConverter");
-            methodFromNative = converter.getDeclaredMethod("toNative", Tag.class);
-            methodToNative = converter.getDeclaredMethod("fromNative", NBTBase.class);
+            adapter = SpongeWorldEdit.inst().getAdapter();
+            methodFromNative = adapter.getClass().getDeclaredMethod("toNative", Tag.class);
+            methodToNative = adapter.getClass().getDeclaredMethod("fromNative", NBTBase.class);
             methodFromNative.setAccessible(true);
             methodToNative.setAccessible(true);
 
@@ -399,7 +403,7 @@ public class SpongeQueue_1_11 extends NMSMappedFaweQueue<World, net.minecraft.wo
                 NBTTagCompound tag = new NBTTagCompound();
                 tile.writeToNBT(tag); // readTileEntityIntoTag
                 BlockPos pos = entry.getKey();
-                CompoundTag nativeTag = (CompoundTag) methodToNative.invoke(null, tag);
+                CompoundTag nativeTag = (CompoundTag) methodToNative.invoke(SpongeQueue_1_11.adapter, tag);
                 previous.setTile(pos.getX(), pos.getY(), pos.getZ(), nativeTag);
             }
         }
@@ -423,7 +427,7 @@ public class SpongeQueue_1_11 extends NMSMappedFaweQueue<World, net.minecraft.wo
                         if (id != null) {
                             NBTTagCompound tag = new NBTTagCompound();
                             ent.writeToNBT(tag);  // readEntityIntoTag
-                            CompoundTag nativeTag = (CompoundTag) methodToNative.invoke(null, tag);
+                            CompoundTag nativeTag = (CompoundTag) methodToNative.invoke(SpongeQueue_1_11.adapter, tag);
                             Map<String, Tag> map = ReflectionUtils.getMap(nativeTag.getValue());
                             map.put("Id", new StringTag(id));
                             previous.setEntity(nativeTag);
