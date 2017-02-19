@@ -83,6 +83,11 @@ public class FastWorldEditExtent extends AbstractDelegateExtent implements HasFa
     }
 
     @Override
+    public String toString() {
+        return super.toString() + ":" + queue + "(" + getExtent() + ")";
+    }
+
+    @Override
     public BaseBiome getBiome(final Vector2D position) {
         return FaweCache.CACHE_BIOME[queue.getBiomeId(position.getBlockX(), position.getBlockZ())];
     }

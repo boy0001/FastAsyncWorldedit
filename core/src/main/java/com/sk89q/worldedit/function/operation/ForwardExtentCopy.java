@@ -252,11 +252,12 @@ public class ForwardExtentCopy implements Operation {
         List<? extends Entity> entities = source.getEntities(region);
 
         for (int i = 0; i < repetitions; i++) {
+            Operations.completeBlindly(blockVisitor);
+
             ExtentEntityCopy entityCopy = new ExtentEntityCopy(from, destination, to, currentTransform);
             entityCopy.setRemoving(removingEntities);
             EntityVisitor entityVisitor = new EntityVisitor(entities.iterator(), entityCopy);
 
-            Operations.completeBlindly(blockVisitor);
             Operations.completeBlindly(entityVisitor);
 
             if (transExt != null) {

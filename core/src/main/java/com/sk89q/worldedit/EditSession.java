@@ -420,7 +420,8 @@ public class EditSession extends AbstractWorld implements HasFaweQueue, Lighting
         NullExtent nullExtent = new NullExtent(world, BBC.WORLDEDIT_CANCEL_REASON_MANUAL);
         while (traverser != null) {
             ExtentTraverser next = traverser.next();
-            if (traverser.get() instanceof AbstractDelegateExtent) {
+            Extent get = traverser.get();
+            if (get instanceof AbstractDelegateExtent && !(get instanceof NullExtent)) {
                 traverser.setNext(nullExtent);
             }
             traverser = next;
@@ -813,6 +814,11 @@ public class EditSession extends AbstractWorld implements HasFaweQueue, Lighting
         return new HashMap<>();
     }
 
+    @Override
+    public String toString() {
+        return super.toString() + ":" + extent.toString();
+    }
+
     /**
      * Get the number of blocks changed, including repeated block changes.
      *
@@ -863,6 +869,7 @@ public class EditSession extends AbstractWorld implements HasFaweQueue, Lighting
     @Override
     public BaseBlock getLazyBlock(final Vector position) {
         if (position.getY() > maxY || position.getY() < 0) {
+            if (!limit.MAX_FAILS()) throw new FaweException(BBC.WORLDEDIT_CANCEL_REASON_MAX_CHECKS);
             return nullBlock;
         }
         return getLazyBlock(position.getBlockX(), position.getBlockY(), position.getBlockZ());
@@ -879,6 +886,7 @@ public class EditSession extends AbstractWorld implements HasFaweQueue, Lighting
     @Override
     public BaseBlock getBlock(final Vector position) {
         if (position.getY() > maxY || position.getY() < 0) {
+            if (!limit.MAX_FAILS()) throw new FaweException(BBC.WORLDEDIT_CANCEL_REASON_MAX_CHECKS);
             return nullBlock;
         }
         return getLazyBlock(position.getBlockX(), position.getBlockY(), position.getBlockZ());
@@ -1167,8 +1175,8 @@ public class EditSession extends AbstractWorld implements HasFaweQueue, Lighting
      *
      * @param position the position
      * @param block the block
-     * @param probability a probability between 0 and 1, inclusive
      * @return whether a block was changed
+     * @param probability a probability between 0 and 1, inclusive
      * @throws MaxChangedBlocksException thrown if too many blocks are changed
      */
     public boolean setChanceBlockIfAir(final Vector position, final BaseBlock block, final double probability) throws MaxChangedBlocksException {

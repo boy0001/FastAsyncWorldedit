@@ -182,6 +182,11 @@ public abstract class AbstractDelegateExtent implements LightingExtent {
     }
 
     @Override
+    public String toString() {
+        return super.toString() + ":" + extent.toString();
+    }
+
+    @Override
     public final @Nullable Operation commit() {
         Operation ours = commitBefore();
         Operation other = extent.commit();

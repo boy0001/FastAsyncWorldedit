@@ -59,6 +59,11 @@ public class NullExtent extends FaweRegionExtent {
     }
 
     @Override
+    public boolean setBlock(int x, int y, int z, BaseBlock block) throws WorldEditException {
+        throw new FaweException(reason);
+    }
+
+    @Override
     public BaseBlock getLazyBlock(int x, int y, int z) {
         throw new FaweException(reason);
     }

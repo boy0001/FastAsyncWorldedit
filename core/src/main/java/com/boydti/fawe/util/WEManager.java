@@ -25,7 +25,10 @@ public class WEManager {
         try {
             final Field field = AbstractDelegateExtent.class.getDeclaredField("extent");
             field.setAccessible(true);
-            field.set(parent, new NullExtent((Extent) field.get(parent), reason));
+            Object currentExtent = field.get(parent);
+            if (!(currentExtent instanceof NullExtent)) {
+                field.set(parent, new NullExtent((Extent) field.get(parent), reason));
+            }
         } catch (final Exception e) {
             MainUtil.handleError(e);
         }

@@ -24,6 +24,7 @@ import com.boydti.fawe.config.Settings;
 import com.boydti.fawe.example.MappedFaweQueue;
 import com.boydti.fawe.object.FaweQueue;
 import com.boydti.fawe.object.HasFaweQueue;
+import com.boydti.fawe.object.exception.FaweException;
 import com.sk89q.worldedit.BlockVector;
 import com.sk89q.worldedit.EditSession;
 import com.sk89q.worldedit.Vector;
@@ -159,12 +160,16 @@ public class RegionVisitor implements Operation {
                     apply(trailIter.next());
                     apply(trailIter.next());
                 }
+            } catch (FaweException e) {
+                throw new RuntimeException(e);
             } catch (Throwable ignore) {}
             try {
                 for (;;) {
                     apply(trailIter.next());
                     apply(trailIter.next());
                 }
+            } catch (FaweException e) {
+                throw new RuntimeException(e);
             } catch (Throwable ignore) {}
         } else {
             for (Vector pt : iterable) {
