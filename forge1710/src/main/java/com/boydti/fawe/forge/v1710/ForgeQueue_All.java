@@ -376,7 +376,7 @@ public class ForgeQueue_All extends NMSMappedFaweQueue<World, Chunk, ExtendedBlo
                         int y = FaweCache.CACHE_Y[layer][j];
                         int z = FaweCache.CACHE_Z[layer][j];
                         int id = currentIdArray[j] & 0xFF;
-                        byte data = (byte) currentDataArray.get(x, y & 15, z);
+                        byte data = (byte) (currentDataArray != null ? currentDataArray.get(x, y & 15, z) : 0);
                         previous.setBlock(x, y, z, id, data);
                     }
                 }
