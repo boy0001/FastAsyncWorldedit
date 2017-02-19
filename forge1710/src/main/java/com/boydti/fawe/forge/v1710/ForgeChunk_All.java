@@ -10,6 +10,7 @@ import com.sk89q.jnbt.ListTag;
 import com.sk89q.jnbt.StringTag;
 import com.sk89q.jnbt.Tag;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -249,7 +250,9 @@ public class ForgeChunk_All extends CharFaweChunk<Chunk, ForgeQueue_All> {
                     }
                     sections[j] = section = new ExtendedBlockStorage(j << 4, !getParent().getWorld().provider.hasNoSky);
                     section.setBlockLSBArray(newIdArray);
-                    section.setBlockMetadataArray(newDataArray);
+                    if (newDataArray != null) {
+                        section.setBlockMetadataArray(newDataArray);
+                    }
                     continue;
                 } else if (count >= 4096) {
                     if (count == countAir) {
@@ -257,7 +260,12 @@ public class ForgeChunk_All extends CharFaweChunk<Chunk, ForgeQueue_All> {
                         continue;
                     }
                     section.setBlockLSBArray(newIdArray);
-                    section.setBlockMetadataArray(newDataArray);
+                    if (newDataArray != null) {
+                        section.setBlockMetadataArray(newDataArray);
+                    } else {
+                        NibbleArray nibble = section.getBlockMSBArray();
+                        Arrays.fill(nibble.data, (byte) 0);
+                    }
                     continue;
                 }
                 byte[] currentIdArray = section.getBlockLSBArray();

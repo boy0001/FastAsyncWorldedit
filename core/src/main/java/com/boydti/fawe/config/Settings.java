@@ -206,13 +206,13 @@ public class Settings extends Config {
         public boolean SMALL_EDITS = false;
     }
 
+    @Comment("This relates to how FAWE places chunks")
     public static class QUEUE {
         @Create
         public static PROGRESS PROGRESS;
         @Comment({
-            "If no blocks from completed edits are queued, and if the global queue has more available ",
-            "chunks to place from still-processing edits than the target size setting, it will begin",
-            "placing available blocks from edits still in the preprocessing stage."
+            "If you are changing more than this many chunks",
+            "it can start start placing before all the changes are calculated"
         })
         public int TARGET_SIZE = 64;
         @Comment({
@@ -221,15 +221,16 @@ public class Settings extends Config {
         public int PARALLEL_THREADS = Math.max(1, Runtime.getRuntime().availableProcessors());
         @Comment({
                 "The time in milliseconds that the global queue can be idle before it is forced to start",
-                "on edits which are still in the preprocessing stage."
+                "on edits which are still in the processing stage."
         })
         public int MAX_WAIT_MS = 1000;
 
         @Comment({
-                "Increase or decrease queue intensity (0 = balance of performance / stability)",
-                "Should not need to change this.  Increasing it (positive value) too high ",
-                "will probably cause the server to freeze, and decreasing it (negative value)",
-                "may reduce load on the server but should not be necessary."
+                "Increase or decrease queue intensity (ms):",
+                "    0 = balance of performance / stability",
+                "    -10 = Allocate 10ms less for chunk placement",
+                "Too high will can cause lag spikes",
+                "Too low will reduce load and result in slower changes",
         })
         public int EXTRA_TIME_MS = 0;
 
