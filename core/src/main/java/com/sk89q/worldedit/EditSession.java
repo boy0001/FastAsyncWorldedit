@@ -185,8 +185,6 @@ public class EditSession extends AbstractWorld implements HasFaweQueue, Lighting
     private int changes = 0;
     private BlockBag blockBag;
 
-    private MutableBlockVector mutable = new MutableBlockVector();
-
     private final int maxY;
 
     public static final UUID CONSOLE = UUID.fromString("1-1-3-3-7");
@@ -1943,6 +1941,7 @@ public class EditSession extends AbstractWorld implements HasFaweQueue, Lighting
 
         final com.sk89q.worldedit.function.pattern.Pattern pattern = replacement != null ? new BlockPattern(replacement) : new BlockPattern(new BaseBlock(BlockID.AIR));
         final BlockReplace remove = new BlockReplace(EditSession.this, pattern) {
+            private MutableBlockVector mutable = new MutableBlockVector();
             @Override
             // Only copy what's necessary
             public boolean apply(Vector position) throws WorldEditException {

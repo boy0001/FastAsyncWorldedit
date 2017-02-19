@@ -96,7 +96,7 @@ public class BrushCommands {
     }
 
     @Command(
-            aliases = { "blendball", "bb" },
+            aliases = { "blendball", "bb", "blend" },
             usage = "[radius]",
             desc = "Choose the blend ball brush",
             help = "Chooses the blend ball brush",

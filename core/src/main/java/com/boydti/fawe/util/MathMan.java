@@ -64,6 +64,22 @@ public class MathMan {
         return (((long)x) << 32) | (y & 0xffffffffL);
     }
 
+    public static final long tripleWorldCoord(int x, int y, int z) {
+        return y + (((long) x & 0x3FFFFFF) << 8) + (((long) z & 0x3FFFFFF) << 34);
+    }
+
+    public static final long untripleWorldCoordX(long triple) {
+        return (((triple >> 8) & 0x3FFFFFF) << 38) >> 38;
+    }
+
+    public static final long untripleWorldCoordY(long triple) {
+        return triple & 0xFF;
+    }
+
+    public static final long untripleWorldCoordZ(long triple) {
+        return (((triple >> 34) & 0x3FFFFFF) << 38) >> 38;
+    }
+
     public static final short tripleBlockCoord(int x, int y, int z) {
         return (short) ((x & 15) << 12 | (z & 15) << 8 | y);
     }

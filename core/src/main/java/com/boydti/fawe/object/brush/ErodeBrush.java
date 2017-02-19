@@ -6,14 +6,12 @@ import com.boydti.fawe.object.RunnableVal2;
 import com.boydti.fawe.object.clipboard.CPUOptimizedClipboard;
 import com.boydti.fawe.object.clipboard.FaweClipboard;
 import com.boydti.fawe.object.clipboard.OffsetFaweClipboard;
-import com.google.common.collect.Maps;
 import com.sk89q.worldedit.EditSession;
 import com.sk89q.worldedit.MaxChangedBlocksException;
 import com.sk89q.worldedit.Vector;
 import com.sk89q.worldedit.blocks.BaseBlock;
 import com.sk89q.worldedit.function.pattern.Pattern;
-import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
-import java.util.Map;
+import java.util.Arrays;
 
 public class ErodeBrush implements DoubleActionBrush {
 
@@ -25,18 +23,18 @@ public class ErodeBrush implements DoubleActionBrush {
     public void build(DoubleActionBrushTool.BrushAction action, EditSession editSession, Vector position, Pattern pattern, double size) throws MaxChangedBlocksException {
         switch (action) {
             case PRIMARY: {
-                int erodeFaces = this.rand.nextInt(5) + 1;
-                int erodeRec = this.rand.nextInt(4) + 1;
-                int fillFaces = (int)(this.rand.nextDouble() * this.rand.nextDouble() * 5) + 1;
-                int fillRec = this.rand.nextInt(3) + 1;
+                int erodeFaces = 2;
+                int erodeRec = 1;
+                int fillFaces = 5;
+                int fillRec = 1;
                 this.erosion(editSession, erodeFaces, erodeRec, fillFaces, fillRec, position, size);
                 break;
             }
             case SECONDARY: {
-                int erodeFaces = (int)(this.rand.nextDouble() * this.rand.nextDouble() * 5) + 1;
-                int erodeRec = this.rand.nextInt(3) + 1;
-                int fillFaces = this.rand.nextInt(5) + 1;
-                int fillRec = this.rand.nextInt(4) + 1;
+                int erodeFaces = 6;
+                int erodeRec = 0;
+                int fillFaces = 1;
+                int fillRec = 1;
                 this.erosion(editSession, erodeFaces, erodeRec, fillFaces, fillRec, position, size);
                 break;
             }
@@ -45,20 +43,20 @@ public class ErodeBrush implements DoubleActionBrush {
 
     protected void erosion(final EditSession es, int erodeFaces, int erodeRec, int fillFaces, int fillRec, Vector target, double size) {
         int brushSize = (int) size + 1;
-        int brushSizeSquared = (int) size * (int) size;
+        int brushSizeSquared = (int) (size * size);
         int dimension = brushSize * 2 + 1;
-        FaweClipboard buffer1 = new OffsetFaweClipboard(new CPUOptimizedClipboard(dimension + 2, dimension + 2, dimension + 2), brushSize + 1);
-        FaweClipboard buffer2 = new OffsetFaweClipboard(new CPUOptimizedClipboard(dimension + 2, dimension + 2, dimension + 2), brushSize + 1);
+        FaweClipboard buffer1 = new OffsetFaweClipboard(new CPUOptimizedClipboard(dimension, dimension, dimension), brushSize);
+        FaweClipboard buffer2 = new OffsetFaweClipboard(new CPUOptimizedClipboard(dimension, dimension, dimension), brushSize);
 
         final int bx = target.getBlockX();
         final int by = target.getBlockY();
         final int bz = target.getBlockZ();
 
-        for (int x = -brushSize - 1; x <= brushSize + 1; x++) {
+        for (int x = -brushSize; x <= brushSize; x++) {
             int x0 = x + bx;
-            for (int y = -brushSize - 1; y <= brushSize + 1; y++) {
+            for (int y = -brushSize; y <= brushSize; y++) {
                 int y0 = y + by;
-                for (int z = -brushSize - 1; z <= brushSize + 1; z++) {
+                for (int z = -brushSize; z <= brushSize; z++) {
                     int z0 = z + bz;
                     BaseBlock state = es.getBlock(x0, y0, z0);
                     buffer1.setBlock(x, y, z, state);
@@ -88,12 +86,15 @@ public class ErodeBrush implements DoubleActionBrush {
     }
 
     private void fillIteration(int brushSize, int brushSizeSquared, int fillFaces, FaweClipboard current, FaweClipboard target) {
-        Map<BaseBlock, Integer> frequency = Maps.newHashMap();
+        int[] frequency = null;
         for (int x = -brushSize; x <= brushSize; x++) {
-            for (int y = -brushSize; y <= brushSize; y++) {
-                for (int z = -brushSize; z <= brushSize; z++) {
+            int x2 = x * x;
+            for (int z = -brushSize; z <= brushSize; z++) {
+                int x2y2 = x2 + z * z;
+                for (int y = -brushSize; y <= brushSize; y++) {
+                    int cube = x2y2 + y * y;
                     target.setBlock(x, y, z, current.getBlock(x, y, z));
-                    if (x * x + y * y + z * z >= brushSizeSquared) {
+                    if (cube >= brushSizeSquared) {
                         continue;
                     }
                     BaseBlock state = current.getBlock(x, y, z);
@@ -103,26 +104,24 @@ public class ErodeBrush implements DoubleActionBrush {
                     int total = 0;
                     int highest = 1;
                     BaseBlock highestState = state;
-                    frequency.clear();
+                    if (frequency == null) {
+                        frequency = new int[4096];
+                    } else {
+                        Arrays.fill(frequency, 0);
+                    }
                     for (Vector offs : FACES_TO_CHECK) {
                         BaseBlock next = current.getBlock(x + offs.getBlockX(), y + offs.getBlockY(), z + offs.getBlockZ());
                         if (FaweCache.isLiquidOrGas(next.getId())) {
                             continue;
                         }
                         total++;
-                        Integer count = frequency.get(next);
-                        if (count == null) {
-                            count = 1;
-                        } else {
-                            count++;
-                        }
-                        if (count > highest) {
+                        int count = ++frequency[next.getType()];
+                        if (count >= highest) {
                             highest = count;
                             highestState = next;
                         }
-                        frequency.put(next, count);
                     }
-                    if (total > fillFaces) {
+                    if (total >= fillFaces) {
                         target.setBlock(x, y, z, highestState);
                     }
                 }
@@ -131,13 +130,15 @@ public class ErodeBrush implements DoubleActionBrush {
     }
 
     private void erosionIteration(int brushSize, int brushSizeSquared, int erodeFaces, FaweClipboard current, FaweClipboard target) {
-        Int2ObjectOpenHashMap<Integer> frequency = new Int2ObjectOpenHashMap<>();
-
+        int[] frequency = null;
         for (int x = -brushSize; x <= brushSize; x++) {
-            for (int y = -brushSize; y <= brushSize; y++) {
-                for (int z = -brushSize; z <= brushSize; z++) {
+            int x2 = x * x;
+            for (int z = -brushSize; z <= brushSize; z++) {
+                int x2y2 = x2 + z * z;
+                for (int y = -brushSize; y <= brushSize; y++) {
+                    int cube = x2y2 + y * y;
                     target.setBlock(x, y, z, current.getBlock(x, y, z));
-                    if (x * x + y * y + z * z >= brushSizeSquared) {
+                    if (cube >= brushSizeSquared) {
                         continue;
                     }
                     BaseBlock state = current.getBlock(x, y, z);
@@ -146,31 +147,26 @@ public class ErodeBrush implements DoubleActionBrush {
                     }
                     int total = 0;
                     int highest = 1;
-                    int highestState = FaweCache.getCombined(state);
-                    frequency.clear();
+                    int highestState = state.getType();
+                    if (frequency == null) {
+                        frequency = new int[4096];
+                    } else {
+                        Arrays.fill(frequency, 0);
+                    }
                     for (Vector offs : FACES_TO_CHECK) {
                         BaseBlock next = current.getBlock(x + offs.getBlockX(), y + offs.getBlockY(), z + offs.getBlockZ());
                         if (!FaweCache.isLiquidOrGas(next.getId())) {
                             continue;
                         }
                         total++;
-                        Integer count = frequency.get(next.getType());
-                        if (count == null) {
-                            count = 1;
-                        } else {
-                            count++;
-                        }
+                        int count = ++frequency[next.getType()];
                         if (count > highest) {
                             highest = count;
-                            int combined = FaweCache.getCombined(next);
-                            highestState = combined;
-                            frequency.put(combined, count);
-                        } else {
-                            frequency.put(FaweCache.getCombined(next), count);
+                            highestState = next.getType();
                         }
                     }
-                    if (total > erodeFaces) {
-                        target.setBlock(x, y, z, FaweCache.CACHE_BLOCK[highestState]);
+                    if (total >= erodeFaces) {
+                        target.setBlock(x, y, z, FaweCache.CACHE_BLOCK[highestState << 4]);
                     }
                 }
             }
