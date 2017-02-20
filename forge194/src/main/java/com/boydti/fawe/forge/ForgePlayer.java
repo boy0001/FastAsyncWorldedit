@@ -22,12 +22,10 @@ public class ForgePlayer extends FawePlayer<EntityPlayerMP> {
 
     @Override
     public void sendTitle(String head, String sub) { // Not supported
-        Settings.IMP.QUEUE.PROGRESS.DISPLAY = false;
     }
 
     @Override
     public void resetTitle() { // Not supported
-        Settings.IMP.QUEUE.PROGRESS.DISPLAY = false;
     }
 
     @Override
