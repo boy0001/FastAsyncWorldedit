@@ -204,7 +204,7 @@ public enum BBC {
 
     COMMAND_INVALID_SYNTAX("The command was not used properly (no more help available).", "WorldEdit.Command"),
 
-    PROGRESS_MESSAGE("[ Queue: %s0 | Dispatched: %s1 ]", "Progress"),
+    PROGRESS_MESSAGE("%s1/%s0 (%s2%) @%s3cps %s4s left", "Progress"),
     PROGRESS_FINISHED("[ Done! ]", "Progress"),
 
     COMMAND_SYNTAX("&cUsage: &7%s0", "Error"),

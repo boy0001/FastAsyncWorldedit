@@ -222,6 +222,9 @@ public abstract class MappedFaweQueue<WORLD, CHUNK, CHUNKSECTIONS, SECTION> exte
     }
 
     public void end(FaweChunk chunk) {
+        if (getProgressTask() != null) {
+            getProgressTask().run(ProgressType.DISPATCH, size() + 1);
+        }
         chunk.end();
     }
 

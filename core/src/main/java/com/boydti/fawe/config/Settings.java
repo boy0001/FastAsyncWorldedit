@@ -248,10 +248,16 @@ public class Settings extends Config {
         public static int DISCARD_AFTER_MS = 60000;
 
         public static class PROGRESS {
-            @Comment("Display constant titles about the progress of a user's edit")
-            public boolean DISPLAY = false;
+            @Comment({"Display constant titles about the progress of a user's edit",
+                    " - false = disabled",
+                    " - title = Display progress titles",
+                    " - chat = Display progress in chat"
+            })
+            public String DISPLAY = "false";
             @Comment("How often edit progress is displayed")
             public int INTERVAL = 1;
+            @Comment("Delay sending progress in milliseconds (so quick edits don't spam)")
+            public int DELAY = 5000;
         }
     }
 

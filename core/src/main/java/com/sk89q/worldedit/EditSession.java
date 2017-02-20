@@ -54,6 +54,7 @@ import com.boydti.fawe.object.extent.SlowExtent;
 import com.boydti.fawe.object.extent.SourceMaskExtent;
 import com.boydti.fawe.object.function.block.LegacyBlockReplace;
 import com.boydti.fawe.object.mask.ResettableMask;
+import com.boydti.fawe.object.progress.ChatProgressTracker;
 import com.boydti.fawe.object.progress.DefaultProgressTracker;
 import com.boydti.fawe.object.visitor.FastChunkIterator;
 import com.boydti.fawe.util.ExtentTraverser;
@@ -269,8 +270,16 @@ public class EditSession extends AbstractWorld implements HasFaweQueue, Lighting
         }
         this.queue = queue;
         this.queue.addEditSession(this);
-        if (Settings.IMP.QUEUE.PROGRESS.DISPLAY && player != null) {
-            this.queue.setProgressTask(new DefaultProgressTracker(player));
+        if (!Settings.IMP.QUEUE.PROGRESS.DISPLAY.equalsIgnoreCase("false") && player != null) {
+            switch (Settings.IMP.QUEUE.PROGRESS.DISPLAY.toLowerCase()) {
+                case "chat":
+                    this.queue.setProgressTask(new ChatProgressTracker(player));
+                    break;
+                case "title":
+                case "true":
+                default:
+                    this.queue.setProgressTask(new DefaultProgressTracker(player));
+            }
         }
         this.bypassAll = wrapExtent(new FastWorldEditExtent(world, queue), bus, event, Stage.BEFORE_CHANGE);
         this.bypassHistory = (this.extent = wrapExtent(bypassAll, bus, event, Stage.BEFORE_REORDER));
