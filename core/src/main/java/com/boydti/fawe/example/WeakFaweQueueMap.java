@@ -33,7 +33,7 @@ public class WeakFaweQueueMap implements IFaweQueueMap {
         public Reference<FaweChunk> put(long key, Reference<FaweChunk> value) {
             if (parent.getProgressTask() != null) {
                 try {
-                    parent.getProgressTask().run(FaweQueue.ProgressType.QUEUE, size() + 1);
+                    parent.getProgressTask().run(FaweQueue.ProgressType.QUEUE, size());
                 } catch (Throwable e) {
                     e.printStackTrace();
                 }

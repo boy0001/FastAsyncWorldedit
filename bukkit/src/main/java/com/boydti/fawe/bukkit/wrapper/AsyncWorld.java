@@ -121,9 +121,19 @@ public class AsyncWorld extends DelegateFaweQueue implements World, HasFaweQueue
     }
 
     public void changeWorld(World world, FaweQueue queue) {
-        flush();
         this.parent = world;
-        this.queue = queue;
+        if (queue != this.queue) {
+            if (this.queue != null) {
+                final FaweQueue oldQueue = this.queue;
+                TaskManager.IMP.async(new Runnable() {
+                    @Override
+                    public void run() {
+                        oldQueue.flush();
+                    }
+                });
+            }
+            this.queue = queue;
+        }
         setParent(queue);
     }
 

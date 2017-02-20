@@ -196,7 +196,7 @@ public class NMSRelighter implements Relighter{
         Map<Integer, Object> currentMap = lightQueue.get(index);
         if (currentMap == null) {
             currentMap = new Int2ObjectOpenHashMap<>();
-            synchronized (lightQueue) {
+            synchronized (this) {
                 this.lightQueue.put(index, currentMap);
             }
         }
