@@ -2711,11 +2711,13 @@ public class EditSession extends AbstractWorld implements HasFaweQueue, Lighting
     public int deformRegion(final Region region, final Vector zero, final Vector unit, final String expressionString) throws ExpressionException, MaxChangedBlocksException {
         final Expression expression = Expression.compile(expressionString, "x", "y", "z");
         expression.optimize();
-        final RValue x = expression.getVariable("x", false);
-        final RValue y = expression.getVariable("y", false);
-        final RValue z = expression.getVariable("z", false);
+        final RValue x = expression.getVariable("x", false).optimize();
+        final RValue y = expression.getVariable("y", false).optimize();
+        final RValue z = expression.getVariable("z", false).optimize();
         final WorldEditExpressionEnvironment environment = new WorldEditExpressionEnvironment(this, unit, zero);
         expression.setEnvironment(environment);
+        final Vector zero2 = zero.add(0.5, 0.5, 0.5);
+
         RegionVisitor visitor = new RegionVisitor(region, new RegionFunction() {
 
             private MutableBlockVector mutable = new MutableBlockVector();
@@ -2723,18 +2725,19 @@ public class EditSession extends AbstractWorld implements HasFaweQueue, Lighting
             @Override
             public boolean apply(Vector position) throws WorldEditException {
                 try {
-                    int mx = (position.getBlockX() - zero.getBlockX()) / unit.getBlockX();
-                    int my = (position.getBlockY() - zero.getBlockY()) / unit.getBlockY();
-                    int mz = (position.getBlockZ() - zero.getBlockZ()) / unit.getBlockZ();
-                    mutable.setComponents(mx, my, mz);
-//                    final Vector scaled = position.subtract(zero).divide(unit);
+                    // offset, scale
+                    double sx = (position.getX() - zero.getX()) / unit.getX();
+                    double sy = (position.getY() - zero.getY()) / unit.getY();
+                    double sz = (position.getZ() - zero.getZ()) / unit.getZ();
                     // transform
-                    expression.evaluate(mutable.getX(), mutable.getY(), mutable.getZ());
-                    final BlockVector sourcePosition = environment.toWorld(x.getValue(), y.getValue(), z.getValue());
+                    expression.evaluate(sx, sy, sz);
+                    int xv = (int) (x.getValue() * unit.getX() + zero2.getX());
+                    int yv = (int) (y.getValue() * unit.getY() + zero2.getY());
+                    int zv = (int) (z.getValue() * unit.getZ() + zero2.getZ());
                     // read block from world
-                    BaseBlock material = FaweCache.CACHE_BLOCK[queue.getCombinedId4DataDebug(sourcePosition.getBlockX(), sourcePosition.getBlockY(), sourcePosition.getBlockZ(), 0, EditSession.this)];
+                    BaseBlock material = FaweCache.CACHE_BLOCK[queue.getCombinedId4DataDebug(xv, yv, zv, 0, EditSession.this)];
                     // queue operation
-                    return extent.setBlock(position, material);
+                    return setBlockFast(position, material);
                 } catch (EvaluationException e) {
                     throw new RuntimeException(e);
                 }
