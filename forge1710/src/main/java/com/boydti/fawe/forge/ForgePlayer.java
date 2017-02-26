@@ -73,7 +73,7 @@ public class ForgePlayer extends FawePlayer<EntityPlayerMP> {
     }
 
     @Override
-    public Player getPlayer() {
+    public Player toWorldEditPlayer() {
         return ForgeWorldEdit.inst.wrap(this.parent);
     }
 }

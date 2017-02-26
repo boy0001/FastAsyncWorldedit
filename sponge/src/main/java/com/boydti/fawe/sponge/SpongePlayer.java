@@ -73,7 +73,7 @@ public class SpongePlayer extends FawePlayer<Player> {
     }
 
     @Override
-    public com.sk89q.worldedit.entity.Player getPlayer() {
+    public com.sk89q.worldedit.entity.Player toWorldEditPlayer() {
         if (WorldEdit.getInstance().getPlatformManager().queryCapability(Capability.USER_COMMANDS) != null) {
             for (Platform platform : WorldEdit.getInstance().getPlatformManager().getPlatforms()) {
                 return platform.matchPlayer(new FakePlayer(getName(), getUUID(), null));

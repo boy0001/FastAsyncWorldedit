@@ -415,6 +415,22 @@ public class EditSession extends AbstractWorld implements HasFaweQueue, Lighting
         return traverser == null ? null : traverser.get();
     }
 
+    public Extent getBypassAll() {
+        return bypassAll;
+    }
+
+    public Extent getBypassHistory() {
+        return bypassHistory;
+    }
+
+    public Extent getExtent() {
+        return extent;
+    }
+
+    public void setExtent(AbstractDelegateExtent extent) {
+        this.extent = extent;
+    }
+
     /**
      * Get the FawePlayer or null
      * @return
@@ -2151,20 +2167,26 @@ public class EditSession extends AbstractWorld implements HasFaweQueue, Lighting
         final double invRadiusX = 1 / radiusX;
         final double invRadiusZ = 1 / radiusZ;
 
+        int px = pos.getBlockX();
+        int py = pos.getBlockY();
+        int pz = pos.getBlockZ();
+        MutableBlockVector mutable = new MutableBlockVector();
+
         final int ceilRadiusX = (int) Math.ceil(radiusX);
         final int ceilRadiusZ = (int) Math.ceil(radiusZ);
-
+        double dx, dxz, dz;
         double nextXn = 0;
         forX: for (int x = 0; x <= ceilRadiusX; ++x) {
             final double xn = nextXn;
             nextXn = (x + 1) * invRadiusX;
             double nextZn = 0;
+            dx = xn * xn;
             forZ: for (int z = 0; z <= ceilRadiusZ; ++z) {
                 final double zn = nextZn;
                 nextZn = (z + 1) * invRadiusZ;
-
-                final double distanceSq = this.lengthSq(xn, zn);
-                if (distanceSq > 1) {
+                dz = zn * zn;
+                dxz = dx + dz;
+                if (dxz > 1) {
                     if (z == 0) {
                         break forX;
                     }
@@ -2172,21 +2194,97 @@ public class EditSession extends AbstractWorld implements HasFaweQueue, Lighting
                 }
 
                 if (!filled) {
-                    if ((this.lengthSq(nextXn, zn) <= 1) && (this.lengthSq(xn, nextZn) <= 1)) {
+                    if ((dz + nextXn * nextXn <= 1) && (nextZn * nextZn + dx <= 1)) {
                         continue;
                     }
                 }
 
                 for (int y = 0; y < height; ++y) {
-                    this.setBlock(pos.add(x, y, z), block);
-                    this.setBlock(pos.add(-x, y, z), block);
-                    this.setBlock(pos.add(x, y, -z), block);
-                    this.setBlock(pos.add(-x, y, -z), block);
+                    this.setBlock(mutable.setComponents(px + x, py + y, pz + z), block);
+                    this.setBlock(mutable.setComponents(px - x, py + y, pz + z), block);
+                    this.setBlock(mutable.setComponents(px + x, py + y, pz - z), block);
+                    this.setBlock(mutable.setComponents(px - x, py + y, pz - z), block);
                 }
             }
         }
 
         return this.changes;
+    }
+
+    public int makeCircle(Vector pos, final Pattern block, double radiusX, double radiusY, double radiusZ, boolean filled, Vector normal) throws MaxChangedBlocksException {
+        radiusX += 0.5;
+        radiusY += 0.5;
+        radiusZ += 0.5;
+
+        normal = normal.normalize();
+        double nx = normal.getX();
+        double ny = normal.getY();
+        double nz = normal.getZ();
+
+
+        final double invRadiusX = 1 / radiusX;
+        final double invRadiusY = 1 / radiusY;
+        final double invRadiusZ = 1 / radiusZ;
+
+        int px = pos.getBlockX();
+        int py = pos.getBlockY();
+        int pz = pos.getBlockZ();
+        MutableBlockVector mutable = new MutableBlockVector();
+
+        final int ceilRadiusX = (int) Math.ceil(radiusX);
+        final int ceilRadiusY = (int) Math.ceil(radiusY);
+        final int ceilRadiusZ = (int) Math.ceil(radiusZ);
+
+        double threshold = 0.5;
+
+        LocalBlockVectorSet set = new LocalBlockVectorSet();
+
+        double nextXn = 0;
+        double dx, dy, dz, dxy, dxyz;
+        forX: for (int x = 0; x <= ceilRadiusX; ++x) {
+            final double xn = nextXn;
+            dx = xn * xn;
+            nextXn = (x + 1) * invRadiusX;
+            double nextYn = 0;
+            forY: for (int y = 0; y <= ceilRadiusY; ++y) {
+                final double yn = nextYn;
+                dy = yn * yn;
+                dxy = dx + dy;
+                nextYn = (y + 1) * invRadiusY;
+                double nextZn = 0;
+                forZ: for (int z = 0; z <= ceilRadiusZ; ++z) {
+                    final double zn = nextZn;
+                    dz = zn * zn;
+                    dxyz = dxy + dz;
+                    nextZn = (z + 1) * invRadiusZ;
+                    if (dxyz > 1) {
+                        if (z == 0) {
+                            if (y == 0) {
+                                break forX;
+                            }
+                            break forY;
+                        }
+                        break forZ;
+                    }
+                    if (!filled) {
+                        if (nextXn * nextXn + dy + dz <= 1 && nextYn * nextYn + dx + dz <= 1 && nextZn * nextZn + dx + dy <= 1) {
+                            continue;
+                        }
+                    }
+
+                    if (Math.abs((x) * nx + (y) * ny + (z) * nz) < threshold) setBlock(mutable.setComponents(px + x, py + y, pz + z), block);
+                    if (Math.abs((-x) * nx + (y) * ny + (z) * nz) < threshold) setBlock(mutable.setComponents(px - x, py + y, pz + z), block);
+                    if (Math.abs((x) * nx + (-y) * ny + (z) * nz) < threshold) setBlock(mutable.setComponents(px + x, py - y, pz + z), block);
+                    if (Math.abs((x) * nx + (y) * ny + (-z) * nz) < threshold) setBlock(mutable.setComponents(px + x, py + y, pz - z), block);
+                    if (Math.abs((-x) * nx + (-y) * ny + (z) * nz) < threshold) setBlock(mutable.setComponents(px - x, py - y, pz + z), block);
+                    if (Math.abs((x) * nx + (-y) * ny + (-z) * nz) < threshold) setBlock(mutable.setComponents(px + x, py - y, pz - z), block);
+                    if (Math.abs((-x) * nx + (y) * ny + (-z) * nz) < threshold) setBlock(mutable.setComponents(px - x, py + y, pz - z), block);
+                    if (Math.abs((-x) * nx + (-y) * ny + (-z) * nz) < threshold) setBlock(mutable.setComponents(px - x, py - y, pz - z), block);
+                }
+            }
+        }
+
+        return changes;
     }
 
     /**
@@ -2224,25 +2322,34 @@ public class EditSession extends AbstractWorld implements HasFaweQueue, Lighting
         final double invRadiusY = 1 / radiusY;
         final double invRadiusZ = 1 / radiusZ;
 
+        int px = pos.getBlockX();
+        int py = pos.getBlockY();
+        int pz = pos.getBlockZ();
+        MutableBlockVector mutable = new MutableBlockVector();
+
         final int ceilRadiusX = (int) Math.ceil(radiusX);
         final int ceilRadiusY = (int) Math.ceil(radiusY);
         final int ceilRadiusZ = (int) Math.ceil(radiusZ);
 
         double nextXn = 0;
+        double dx, dy, dz, dxy, dxyz;
         forX: for (int x = 0; x <= ceilRadiusX; ++x) {
             final double xn = nextXn;
+            dx = xn * xn;
             nextXn = (x + 1) * invRadiusX;
             double nextYn = 0;
             forY: for (int y = 0; y <= ceilRadiusY; ++y) {
                 final double yn = nextYn;
+                dy = yn * yn;
+                dxy = dx + dy;
                 nextYn = (y + 1) * invRadiusY;
                 double nextZn = 0;
                 forZ: for (int z = 0; z <= ceilRadiusZ; ++z) {
                     final double zn = nextZn;
+                    dz = zn * zn;
+                    dxyz = dxy + dz;
                     nextZn = (z + 1) * invRadiusZ;
-
-                    final double distanceSq = this.lengthSq(xn, yn, zn);
-                    if (distanceSq > 1) {
+                    if (dxyz > 1) {
                         if (z == 0) {
                             if (y == 0) {
                                 break forX;
@@ -2253,19 +2360,19 @@ public class EditSession extends AbstractWorld implements HasFaweQueue, Lighting
                     }
 
                     if (!filled) {
-                        if ((this.lengthSq(nextXn, yn, zn) <= 1) && (this.lengthSq(xn, nextYn, zn) <= 1) && (this.lengthSq(xn, yn, nextZn) <= 1)) {
+                        if (nextXn * nextXn + dy + dz <= 1 && nextYn * nextYn + dx + dz <= 1 && nextZn * nextZn + dx + dy <= 1 ) {
                             continue;
                         }
                     }
 
-                    this.setBlock(pos.add(x, y, z), block);
-                    this.setBlock(pos.add(-x, y, z), block);
-                    this.setBlock(pos.add(x, -y, z), block);
-                    this.setBlock(pos.add(x, y, -z), block);
-                    this.setBlock(pos.add(-x, -y, z), block);
-                    this.setBlock(pos.add(x, -y, -z), block);
-                    this.setBlock(pos.add(-x, y, -z), block);
-                    this.setBlock(pos.add(-x, -y, -z), block);
+                    this.setBlock(mutable.setComponents(px + x, py + y, pz + z), block);
+                    this.setBlock(mutable.setComponents(px - x, py + y, pz + z), block);
+                    this.setBlock(mutable.setComponents(px + x, py - y, pz + z), block);
+                    this.setBlock(mutable.setComponents(px + x, py + y, pz - z), block);
+                    this.setBlock(mutable.setComponents(px - x, py - y, pz + z), block);
+                    this.setBlock(mutable.setComponents(px + x, py - y, pz - z), block);
+                    this.setBlock(mutable.setComponents(px - x, py + y, pz - z), block);
+                    this.setBlock(mutable.setComponents(px - x, py - y, pz - z), block);
                 }
             }
         }
@@ -2960,9 +3067,11 @@ public class EditSession extends AbstractWorld implements HasFaweQueue, Lighting
     }
 
     private Set<Vector> getBallooned(final Set<Vector> vset, final double radius) {
+        if (radius < 1) {
+            return vset;
+        }
         final Set returnset = new LocalBlockVectorSet();
         final int ceilrad = (int) Math.ceil(radius);
-
         for (final Vector v : vset) {
             final int tipx = v.getBlockX(), tipy = v.getBlockY(), tipz = v.getBlockZ();
             for (int loopx = tipx - ceilrad; loopx <= (tipx + ceilrad); loopx++) {
@@ -2979,6 +3088,9 @@ public class EditSession extends AbstractWorld implements HasFaweQueue, Lighting
     }
 
     private Set<Vector> getStretched(final Set<Vector> vset, final double radius) {
+        if (radius < 1) {
+            return vset;
+        }
         final Set returnset = new LocalBlockVectorSet();
         final int ceilrad = (int) Math.ceil(radius);
         for (final Vector v : vset) {

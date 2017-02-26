@@ -69,6 +69,11 @@ public abstract class FaweChangeSet implements ChangeSet {
         return world;
     }
 
+    @Deprecated
+    public boolean flushAsync() {
+        return closeAsync();
+    }
+
     public boolean closeAsync() {
         waitingAsync.incrementAndGet();
         TaskManager.IMP.async(new Runnable() {

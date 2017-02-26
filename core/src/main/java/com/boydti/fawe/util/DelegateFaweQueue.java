@@ -16,7 +16,6 @@ import com.sk89q.worldedit.world.World;
 import com.sk89q.worldedit.world.biome.BaseBiome;
 import java.io.File;
 import java.util.Collection;
-import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentLinkedDeque;
@@ -222,8 +221,8 @@ public class DelegateFaweQueue extends FaweQueue {
     }
 
     @Override
-    public void sendBlockUpdate(Map<Long, Map<Short, Character>> blockMap, FawePlayer... players) {
-        parent.sendBlockUpdate(blockMap, players);
+    public void sendBlockUpdate(FaweChunk chunk, FawePlayer... players) {
+        parent.sendBlockUpdate(chunk, players);
     }
 
     @Deprecated

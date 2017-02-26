@@ -46,6 +46,7 @@ public class RegionVisitor implements Operation {
     public final Iterable<? extends Vector> iterable;
     public final RegionFunction function;
     private final MappedFaweQueue queue;
+    private boolean useCuboidIterator = false;
     public int affected = 0;
 
     /**

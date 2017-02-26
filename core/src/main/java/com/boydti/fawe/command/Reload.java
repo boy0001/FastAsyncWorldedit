@@ -7,12 +7,14 @@ import com.boydti.fawe.object.FaweCommand;
 import com.boydti.fawe.object.FawePlayer;
 import com.boydti.fawe.util.HastebinUtility;
 import com.boydti.fawe.util.MainUtil;
+import com.boydti.fawe.util.Updater;
 import java.io.File;
 import java.io.IOException;
-import java.time.LocalDate;
+import java.net.URL;
 import java.util.Date;
 import java.util.GregorianCalendar;
 import java.util.Map;
+import java.util.Scanner;
 
 public class Reload extends FaweCommand {
 
@@ -23,7 +25,7 @@ public class Reload extends FaweCommand {
     @Override
     public boolean execute(final FawePlayer player, final String... args) {
         if (args.length != 1) {
-            BBC.COMMAND_SYNTAX.send(player, "/fawe [reload|version|debugpaste|threads]");
+            BBC.COMMAND_SYNTAX.send(player, "/fawe [reload|version|debugpaste|threads|changelog]");
             return false;
         }
         switch (args[0].toLowerCase()) {
@@ -53,6 +55,22 @@ public class Reload extends FaweCommand {
                     player.sendMessage("&cSee console.");
                 }
                 return true;
+            }
+            case "changelog": {
+                try {
+                    Updater updater = Fawe.get().getUpdater();
+                    String changes = updater != null ? updater.getChanges() : null;
+                    if (changes == null) {
+                        try (Scanner scanner = new Scanner(new URL("http://boydti.com/fawe/cl?" + Integer.toHexString(Fawe.get().getVersion().hash)).openStream(), "UTF-8")) {
+                            changes = scanner.useDelimiter("\\A").next();
+                        }
+                    }
+                    player.sendMessage(BBC.getPrefix() + changes);
+                    return true;
+                } catch (IOException e) {
+                    e.printStackTrace();
+                    return false;
+                }
             }
             case "debugpaste":
             case "paste": {

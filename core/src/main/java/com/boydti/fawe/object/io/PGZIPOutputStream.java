@@ -37,7 +37,7 @@ public class PGZIPOutputStream extends FilterOutputStream {
     private int strategy = Deflater.HUFFMAN_ONLY;
 
     @Nonnull
-    private Deflater newDeflater() {
+    protected Deflater newDeflater() {
         Deflater def = new Deflater(level, true);
         def.setStrategy(strategy);
         return def;
@@ -52,63 +52,16 @@ public class PGZIPOutputStream extends FilterOutputStream {
     }
 
     @Nonnull
-    private static DeflaterOutputStream newDeflaterOutputStream(@Nonnull OutputStream out, @Nonnull Deflater deflater) {
+    protected static DeflaterOutputStream newDeflaterOutputStream(@Nonnull OutputStream out, @Nonnull Deflater deflater) {
         return new DeflaterOutputStream(out, deflater, 512, true);
     }
 
-    private class Block implements Callable<byte[]> {
-
-        private class State {
-
-            private final Deflater def = newDeflater();
-            private final ByteArrayOutputStream buf = new ByteArrayOutputStream(SIZE);
-            private final DeflaterOutputStream str = newDeflaterOutputStream(buf, def);
-        }
-        /** This ThreadLocal avoids the recycling of a lot of memory, causing lumpy performance. */
-        private final ThreadLocal<State> STATE = new ThreadLocal<State>() {
-            @Override
-            protected State initialValue() {
-                return new State();
-            }
-        };
-        public static final int SIZE = 64 * 1024;
-        // private final int index;
-        private final byte[] in = new byte[SIZE];
-        private int in_length = 0;
-
-        /*
-         public Block(@Nonnegative int index) {
-         this.index = index;
-         }
-         */
-        // Only on worker thread
-        @Override
-        public byte[] call() throws Exception {
-            // LOG.info("Processing " + this + " on " + Thread.currentThread());
-
-            State state = STATE.get();
-            // ByteArrayOutputStream buf = new ByteArrayOutputStream(in.length);   // Overestimate output size required.
-            // DeflaterOutputStream def = newDeflaterOutputStream(buf);
-            state.def.reset();
-            state.buf.reset();
-            state.str.write(in, 0, in_length);
-            state.str.flush();
-
-            // return Arrays.copyOf(in, in_length);
-            return state.buf.toByteArray();
-        }
-
-        @Override
-        public String toString() {
-            return "Block" /* + index */ + "(" + in_length + "/" + in.length + " bytes)";
-        }
-    }
     // TODO: Share, daemonize.
     private final ExecutorService executor;
     private final int nthreads;
     private final CRC32 crc = new CRC32();
     private final BlockingQueue<Future<byte[]>> emitQueue;
-    private Block block = new Block(/* 0 */);
+    private PGZIPBlock block = new PGZIPBlock(this/* 0 */);
     /** Used as a sentinel for 'closed'. */
     private int bytesWritten = 0;
 
@@ -201,7 +154,7 @@ public class PGZIPOutputStream extends FilterOutputStream {
     private void submit() throws IOException {
         emitUntil(nthreads - 1);
         emitQueue.add(executor.submit(block));
-        block = new Block(/* block.index + 1 */);
+        block = new PGZIPBlock(this/* block.index + 1 */);
     }
 
     // Emit If Available - submit always

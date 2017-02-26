@@ -14,9 +14,6 @@ dependencies {
     }
 }
 
-sourceCompatibility = 1.7
-targetCompatibility = 1.7
-
 processResources {
     from('src/main/resources') {
         include 'fawe.properties'

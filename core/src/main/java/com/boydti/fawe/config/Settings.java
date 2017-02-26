@@ -2,7 +2,6 @@ package com.boydti.fawe.config;
 
 import com.boydti.fawe.object.FaweLimit;
 import com.boydti.fawe.object.FawePlayer;
-import com.sk89q.worldedit.LocalSession;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -26,6 +25,9 @@ public class Settings extends Config {
     @Final
     public String PLATFORM; // These values are set from FAWE before loading
 
+    @Comment({"Options: de",
+              "Create a PR to contribute a translation: https://github.com/boy0001/FastAsyncWorldedit/new/master/core/src/main/resources",})
+    public String LANGUAGE = "";
     @Comment("Allow the plugin to update")
     public boolean UPDATE = true;
     @Comment("Send anonymous usage statistics to MCStats.org")
@@ -330,9 +332,6 @@ public class Settings extends Config {
     public void reload(File file) {
         load(file);
         save(file);
-        if (HISTORY.USE_DISK) {
-            LocalSession.MAX_HISTORY_SIZE = Integer.MAX_VALUE;
-        }
     }
 
     public FaweLimit getLimit(FawePlayer player) {

@@ -4,15 +4,21 @@ import com.boydti.fawe.Fawe;
 import com.boydti.fawe.FaweVersion;
 import java.io.File;
 import java.io.FileOutputStream;
+import java.io.IOException;
 import java.net.URL;
 import java.nio.channels.Channels;
 import java.nio.channels.ReadableByteChannel;
 import java.util.Scanner;
 
 public class Updater {
-    private static FaweVersion newVersion = null;
+    private FaweVersion newVersion;
+    private String changes = "N/A";
 
-    public static void update(String platform, FaweVersion currentVersion) {
+    public String getChanges() throws IOException {
+        return changes;
+    }
+
+    public void update(String platform, FaweVersion currentVersion) {
         if (currentVersion == null || platform == null) {
             return;
         }
@@ -42,7 +48,11 @@ public class Updater {
                             fos.getChannel().transferFrom(rbc, 0, Long.MAX_VALUE);
                         }
                         Fawe.debug("Updated FAWE to " + versionString);
-                        MainUtil.sendAdmin("Restart to update FAWE with these changes: " + "http://boydti.com/fawe/cl?" + Integer.toHexString(Fawe.get().getVersion().hash));
+                        Scanner scanner = new Scanner(new URL("http://boydti.com/fawe/cl?" + Integer.toHexString(Fawe.get().getVersion().hash)).openStream(), "UTF-8");
+                        changes = scanner.useDelimiter("\\A").next();
+                        scanner.close();
+                        MainUtil.sendAdmin("&7Restart to update FAWE with these changes: &c/fawe changelog &7or&c " + "http://boydti.com/fawe/cl?" + Integer.toHexString(currentVersion.hash));
+
                     }
                 }
             }

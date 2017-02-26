@@ -1,7 +1,6 @@
 package com.sk89q.worldedit.command;
 
 import com.boydti.fawe.config.BBC;
-import com.boydti.fawe.object.brush.DoubleActionBrushTool;
 import com.boydti.fawe.object.extent.DefaultTransformParser;
 import com.boydti.fawe.object.extent.ResettableExtent;
 import com.sk89q.minecraft.util.commands.Command;
@@ -77,8 +76,6 @@ public class ToolUtilCommands {
         if (context == null || context.argsLength() == 0) {
             if (tool instanceof BrushTool) {
                 ((BrushTool) tool).setMask(null);
-            } else if (tool instanceof DoubleActionBrushTool) {
-                ((DoubleActionBrushTool) tool).setMask(null);
             }
             BBC.BRUSH_MASK_DISABLED.send(player);
         } else {
@@ -90,8 +87,6 @@ public class ToolUtilCommands {
             Mask mask = we.getMaskFactory().parseFromInput(context.getJoinedStrings(0), parserContext);
             if (tool instanceof BrushTool) {
                 ((BrushTool) tool).setMask(mask);
-            } else if (tool instanceof DoubleActionBrushTool) {
-                ((DoubleActionBrushTool) tool).setMask(mask);
             }
             BBC.BRUSH_MASK.send(player);
         }
@@ -114,8 +109,6 @@ public class ToolUtilCommands {
         if (context == null || context.argsLength() == 0) {
             if (tool instanceof BrushTool) {
                 ((BrushTool) tool).setSourceMask(null);
-            } else if (tool instanceof DoubleActionBrushTool) {
-                ((DoubleActionBrushTool) tool).setMask(null);
             }
             BBC.BRUSH_SOURCE_MASK_DISABLED.send(player);
         } else {
@@ -127,8 +120,6 @@ public class ToolUtilCommands {
             Mask mask = we.getMaskFactory().parseFromInput(context.getJoinedStrings(0), parserContext);
             if (tool instanceof BrushTool) {
                 ((BrushTool) tool).setSourceMask(mask);
-            } else if (tool instanceof DoubleActionBrushTool) {
-                ((DoubleActionBrushTool) tool).setSourceMask(mask);
             }
             BBC.BRUSH_SOURCE_MASK.send(player);
         }
@@ -150,8 +141,6 @@ public class ToolUtilCommands {
         if (context == null || context.argsLength() == 0) {
             if (tool instanceof BrushTool) {
                 ((BrushTool) tool).setTransform(null);
-            } else if (tool instanceof DoubleActionBrushTool) {
-                ((DoubleActionBrushTool) tool).setTransform(null);
             }
             BBC.BRUSH_TRANSFORM_DISABLED.send(player);
         } else {
@@ -163,8 +152,6 @@ public class ToolUtilCommands {
             ResettableExtent transform = transformParser.parseFromInput(context.getJoinedStrings(0), parserContext);
             if (tool instanceof BrushTool) {
                 ((BrushTool) tool).setTransform(transform);
-            } else if (tool instanceof DoubleActionBrushTool) {
-                ((DoubleActionBrushTool) tool).setTransform(transform);
             }
             BBC.BRUSH_TRANSFORM.send(player);
         }
@@ -181,9 +168,7 @@ public class ToolUtilCommands {
     public void material(Player player, LocalSession session, Pattern pattern) throws WorldEditException {
         Tool tool = session.getTool(player.getItemInHand());
         if (tool instanceof BrushTool) {
-            ((BrushTool) tool).setMask(null);
-        } else if (tool instanceof DoubleActionBrushTool) {
-            ((DoubleActionBrushTool) tool).setFill(pattern);
+            ((BrushTool) tool).setFill(pattern);
         }
         BBC.BRUSH_MATERIAL.send(player);
     }
@@ -197,12 +182,10 @@ public class ToolUtilCommands {
     )
     @CommandPermissions("worldedit.brush.options.range")
     public void range(Player player, LocalSession session, CommandContext args) throws WorldEditException {
-        int range = args.getInteger(0);
+        int range = Math.max(0, Math.min(256, args.getInteger(0)));
         Tool tool = session.getTool(player.getItemInHand());
         if (tool instanceof BrushTool) {
-            ((BrushTool) tool).setMask(null);
-        } else if (tool instanceof DoubleActionBrushTool) {
-            ((DoubleActionBrushTool) tool).setRange(range);
+            ((BrushTool) tool).setRange(range);
         }
         BBC.BRUSH_RANGE.send(player);
     }
@@ -222,9 +205,7 @@ public class ToolUtilCommands {
 
         Tool tool = session.getTool(player.getItemInHand());
         if (tool instanceof BrushTool) {
-            ((BrushTool) tool).setMask(null);
-        } else if (tool instanceof DoubleActionBrushTool) {
-            ((DoubleActionBrushTool) tool).setSize(radius);
+            ((BrushTool) tool).setSize(radius);
         }
         BBC.BRUSH_SIZE.send(player);
     }

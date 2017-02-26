@@ -122,7 +122,7 @@ public class FakePlayer extends LocalPlayer {
             }
 
             @Override
-            public Player getPlayer() {
+            public Player toWorldEditPlayer() {
                 return FakePlayer.this;
             }
         };

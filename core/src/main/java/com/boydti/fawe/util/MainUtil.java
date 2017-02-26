@@ -56,6 +56,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.UUID;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.zip.GZIPInputStream;
 import java.util.zip.ZipEntry;
@@ -178,6 +179,29 @@ public class MainUtil {
         catch (IOException e) {
             throw new AssertionError ("walkFileTree will not throw IOException if the FileVisitor does not");
         }
+    }
+
+    public static int getMaxFileId(File folder) {
+        final AtomicInteger max = new AtomicInteger();
+        if (folder.exists()) {
+            MainUtil.traverse(folder.toPath(), new RunnableVal2<Path, BasicFileAttributes>() {
+                @Override
+                public void run(Path path, BasicFileAttributes attr) {
+                    try {
+                        String file = path.getFileName().toString();
+                        int index = file.indexOf('.');
+                        if (index == -1) {
+                            return;
+                        }
+                        int id = Integer.parseInt(file.substring(0, index));
+                        if (id > max.get()) {
+                            max.set(id);
+                        }
+                    } catch (NumberFormatException ignore){}
+                }
+            });
+        }
+        return max.get() + 1;
     }
 
     public static File getFile(File base, String path) {

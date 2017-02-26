@@ -9,6 +9,7 @@ import com.boydti.fawe.example.NMSMappedFaweQueue;
 import com.boydti.fawe.object.FaweChunk;
 import com.boydti.fawe.object.FawePlayer;
 import com.boydti.fawe.object.RunnableVal;
+import com.boydti.fawe.object.visitor.FaweChunkVisitor;
 import com.boydti.fawe.util.MathMan;
 import com.boydti.fawe.util.TaskManager;
 import com.sk89q.worldedit.bukkit.WorldEditPlugin;
@@ -142,9 +143,9 @@ public abstract class BukkitQueue_0<CHUNK, CHUNKSECTIONS, SECTION> extends NMSMa
             if ((BukkitQueue_0.adapter = adapter) != null) {
                 fieldAdapter.set(instance, adapter);
             } else {
-                BukkitQueue_0.adapter = (BukkitImplAdapter) fieldAdapter.get(instance);
+                BukkitQueue_0.adapter = adapter = (BukkitImplAdapter) fieldAdapter.get(instance);
             }
-            for (Method method : BukkitQueue_0.adapter.getClass().getDeclaredMethods()) {
+            for (Method method : adapter.getClass().getDeclaredMethods()) {
                 switch (method.getName()) {
                     case "toNative":
                         methodToNative = method;
@@ -237,28 +238,41 @@ public abstract class BukkitQueue_0<CHUNK, CHUNKSECTIONS, SECTION> extends NMSMa
     }
 
     @Override
-    public void sendBlockUpdate(Map<Long, Map<Short, Character>> blockMap, FawePlayer... players) {
-        for (FawePlayer player : players) {
-            Player bukkitPlayer = ((BukkitPlayer) player).parent;
-            World world = bukkitPlayer.getWorld();
-            for (Map.Entry<Long, Map<Short, Character>> entry : blockMap.entrySet()) {
-                long chunkHash = entry.getKey();
-                int cx = MathMan.unpairIntX(chunkHash);
-                int cz = MathMan.unpairIntY(chunkHash);
-                Map<Short, Character> blocks = entry.getValue();
-                for (Map.Entry<Short, Character> blockEntry : blocks.entrySet()) {
-                    short blockHash = blockEntry.getKey();
-                    int x = (blockHash >> 12 & 0xF) + (cx << 4);
-                    int y = (blockHash & 0xFF);
-                    int z = (blockHash >> 8 & 0xF) + (cz << 4);
-                    char combined = blockEntry.getValue();
-                    int id = FaweCache.getId(combined);
-                    byte data = (byte) FaweCache.getData(combined);
-                    Location loc = new Location(world, x, y, z);
-                    bukkitPlayer.sendBlockChange(loc, id, data);
-                }
+    public void sendBlockUpdate(final FaweChunk chunk, FawePlayer... players) {
+        if (players.length == 0) {
+            return;
+        }
+        int cx = chunk.getX();
+        int cz = chunk.getZ();
+        int view = Bukkit.getServer().getViewDistance();
+        boolean sendAny = false;
+        boolean[] send = new boolean[players.length];
+        for (int i = 0; i < players.length; i++) {
+            FawePlayer player = players[i];
+            Player bp = ((BukkitPlayer) player).parent;
+            Location loc = bp.getLocation();
+            if (Math.abs((loc.getBlockX() >> 4) - cx) <= view && Math.abs((loc.getBlockZ() >> 4) - cz) <= view) {
+                sendAny = true;
+                send[i] = true;
             }
         }
+        if (!sendAny) {
+            return;
+        }
+        final World world = getWorld();
+        final int bx = cx << 4;
+        final int bz = cz << 4;
+        chunk.forEachQueuedBlock(new FaweChunkVisitor() {
+            @Override
+            public void run(int localX, int y, int localZ, int combined) {
+                Location loc = new Location(world, bx + localX, y, bz + localZ);
+                for (int i = 0; i < players.length; i++) {
+                    if (send[i]) {
+                        ((BukkitPlayer) players[i]).parent.sendBlockChange(loc, FaweCache.getId(combined), (byte) FaweCache.getData(combined));
+                    }
+                }
+            }
+        });
     }
 
     @Override

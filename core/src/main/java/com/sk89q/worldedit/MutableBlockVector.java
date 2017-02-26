@@ -1,6 +1,17 @@
 package com.sk89q.worldedit;
 
 public class MutableBlockVector extends BlockVector {
+    private static ThreadLocal<MutableBlockVector> MUTABLE_CACHE = new ThreadLocal<MutableBlockVector>() {
+        @Override
+        protected MutableBlockVector initialValue() {
+            return new MutableBlockVector();
+        }
+    };
+
+    public static Vector get(int x, int y, int z) {
+        return MUTABLE_CACHE.get().setComponents(x, y, z);
+    }
+
     private int x,y,z;
 
     public MutableBlockVector(Vector v) {

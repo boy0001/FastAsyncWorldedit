@@ -84,6 +84,10 @@ public class BlockVector extends Vector {
 
     }
 
+    public boolean equals(BlockVector obj) {
+        return obj.getBlockX() == this.getBlockX() && obj.getBlockY() == this.getBlockY() && obj.getBlockZ() == this.getBlockZ();
+    }
+
     @Override
     public int hashCode() {
         return ((int) getX() ^ ((int) getZ() << 16)) ^ ((int) getY() << 30);

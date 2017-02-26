@@ -8,6 +8,7 @@ import com.boydti.fawe.config.BBC;
 import com.boydti.fawe.config.Commands;
 import com.boydti.fawe.config.Settings;
 import com.boydti.fawe.object.FawePlayer;
+import com.boydti.fawe.object.brush.visualization.VisualQueue;
 import com.boydti.fawe.regions.general.plot.PlotSquaredFeature;
 import com.boydti.fawe.util.FaweTimer;
 import com.boydti.fawe.util.MainUtil;
@@ -26,6 +27,7 @@ import com.sk89q.worldedit.LocalSession;
 import com.sk89q.worldedit.Vector;
 import com.sk89q.worldedit.Vector2D;
 import com.sk89q.worldedit.WorldEdit;
+import com.sk89q.worldedit.blocks.BaseBlock;
 import com.sk89q.worldedit.blocks.BlockData;
 import com.sk89q.worldedit.command.BiomeCommands;
 import com.sk89q.worldedit.command.BrushCommands;
@@ -69,6 +71,7 @@ import com.sk89q.worldedit.extent.transform.BlockTransformExtent;
 import com.sk89q.worldedit.function.entity.ExtentEntityCopy;
 import com.sk89q.worldedit.function.mask.BlockMask;
 import com.sk89q.worldedit.function.mask.FuzzyBlockMask;
+import com.sk89q.worldedit.function.mask.Mask;
 import com.sk89q.worldedit.function.mask.MaskUnion;
 import com.sk89q.worldedit.function.mask.Masks;
 import com.sk89q.worldedit.function.mask.OffsetMask;
@@ -77,6 +80,7 @@ import com.sk89q.worldedit.function.operation.ChangeSetExecutor;
 import com.sk89q.worldedit.function.operation.ForwardExtentCopy;
 import com.sk89q.worldedit.function.operation.Operations;
 import com.sk89q.worldedit.function.pattern.ClipboardPattern;
+import com.sk89q.worldedit.function.pattern.Pattern;
 import com.sk89q.worldedit.function.pattern.Patterns;
 import com.sk89q.worldedit.function.pattern.RandomPattern;
 import com.sk89q.worldedit.function.visitor.BreadthFirstSearch;
@@ -167,6 +171,8 @@ public class Fawe {
      */
     private final FaweTimer timer;
     private FaweVersion version;
+    private VisualQueue visualQueue;
+    private Updater updater;
 
     /**
      * Get the implementation specific class
@@ -242,7 +248,7 @@ public class Fawe {
          * Instance independent stuff
          */
         this.setupMemoryListener();
-        timer = new FaweTimer();
+        this.timer = new FaweTimer();
         Fawe.this.IMP.setupVault();
 
         // Delayed worldedit setup
@@ -250,6 +256,7 @@ public class Fawe {
             @Override
             public void run() {
                 try {
+                    visualQueue = new VisualQueue();
                     WEManager.IMP.managers.addAll(Fawe.this.IMP.getMaskManagers());
                     WEManager.IMP.managers.add(new PlotSquaredFeature());
                     Fawe.debug("Plugin 'PlotSquared' found. Using it now.");
@@ -265,7 +272,8 @@ public class Fawe {
             TaskManager.IMP.repeatAsync(new Runnable() {
                 @Override
                 public void run() {
-                    Updater.update(IMP.getPlatform(), getVersion());
+                    updater = new Updater();
+                    updater.update(IMP.getPlatform(), getVersion());
                 }
             }, 36000);
         }
@@ -278,11 +286,28 @@ public class Fawe {
     }
 
     /**
+     * The FAWE updater class
+     *  - Use to get basic update information (changelog/version etc)
+     * @return
+     */
+    public Updater getUpdater() {
+        return updater;
+    }
+
+    /**
      * The FaweTimer is a useful class for monitoring TPS
      * @return FaweTimer
      */
     public FaweTimer getTimer() {
         return timer;
+    }
+
+    /**
+     * The visual queue is used to queue visualizations
+     * @return
+     */
+    public VisualQueue getVisualQueue() {
+        return visualQueue;
     }
 
     /**
@@ -306,6 +331,7 @@ public class Fawe {
     }
 
     public void setupConfigs() {
+        MainUtil.copyFile(MainUtil.getJarFile(), "de/messages.yml", null);
         // Setting up config.yml
         File file = new File(this.IMP.getDirectory(), "config.yml");
         Settings.IMP.PLATFORM = IMP.getPlatform().replace("\"", "");
@@ -345,7 +371,7 @@ public class Fawe {
             Commands.inject(); // Translations
             EditSession.inject(); // Custom block placer + optimizations
             EditSessionEvent.inject(); // Add EditSession to event (API)
-            LocalSession.inject(); // Add remember order / queue flushing / Optimizations for disk
+            LocalSession.inject(); // Add remember order / queue flushing / Optimizations for disk / brush visualization
             SessionManager.inject(); // Faster custom session saving + Memory improvements
             Request.inject(); // Custom pattern extent
             // Commands
@@ -381,7 +407,7 @@ public class Fawe {
             LongRangeBuildTool.inject();
             AreaPickaxe.inject(); // Fixes
             RecursivePickaxe.inject(); // Fixes
-            BrushTool.inject(); // Add transform
+            BrushTool.inject(); // Add transform + support for double action brushes + visualizations
             // Selectors
             CuboidRegionSelector.inject(); // Translations
             EllipsoidRegion.inject(); // Optimizations
@@ -415,13 +441,17 @@ public class Fawe {
             BlockVector.inject(); // Optimizations
             Vector.inject(); // Optimizations
             Vector2D.inject(); // Optimizations
+            // Block
+            BaseBlock.inject(); // Optimizations
             // Pattern
+            Pattern.inject(); // Simplify API
             Patterns.inject(); // Optimizations (reduce object creation)
             RandomPattern.inject(); // Optimizations
             ClipboardPattern.inject(); // Optimizations
             HashTagPatternParser.inject(); // Add new patterns
             DefaultBlockParser.inject(); // Fix block lookups
             // Mask
+            Mask.inject(); // Extend deprecated mask
             BlockMask.inject(); // Optimizations
             SolidBlockMask.inject(); // Optimizations
             FuzzyBlockMask.inject(); // Optimizations

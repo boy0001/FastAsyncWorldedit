@@ -14,9 +14,10 @@ import com.sk89q.jnbt.LongTag;
 import com.sk89q.jnbt.ShortTag;
 import com.sk89q.jnbt.StringTag;
 import com.sk89q.jnbt.Tag;
-import com.sk89q.worldedit.CuboidClipboard;
 import com.sk89q.worldedit.blocks.BaseBlock;
 import com.sk89q.worldedit.blocks.BaseItem;
+import com.sk89q.worldedit.blocks.ImmutableBlock;
+import com.sk89q.worldedit.blocks.ImmutableDatalessBlock;
 import com.sk89q.worldedit.world.biome.BaseBiome;
 import com.sk89q.worldedit.world.registry.BundledBlockData;
 import java.awt.Color;
@@ -171,34 +172,11 @@ public class FaweCache {
         for (int i = 0; i < Character.MAX_VALUE; i++) {
             int id = i >> 4;
             int data = i & 0xf;
-            CACHE_BLOCK[i] = new BaseBlock(id, data) {
-                @Override
-                public void setData(int data) {
-                    throw new IllegalStateException("Cannot set data");
-                }
-
-                @Override
-                public void setId(int id) {
-                    throw new IllegalStateException("Cannot set id");
-                }
-
-                @Override
-                public BaseBlock flip() {
-                    BaseBlock clone = new BaseBlock(getId(), getData(), getNbtData());
-                    return clone.flip();
-                }
-
-                @Override
-                public BaseBlock flip(CuboidClipboard.FlipDirection direction) {
-                    BaseBlock clone = new BaseBlock(getId(), getData(), getNbtData());
-                    return clone.flip(direction);
-                }
-
-                @Override
-                public boolean hasWildcardData() {
-                    return true;
-                }
-            };
+            if (FaweCache.hasData(id)) {
+                CACHE_BLOCK[i] = new ImmutableBlock(id, data);
+            } else {
+                CACHE_BLOCK[i] = new ImmutableDatalessBlock(id);
+            }
             CACHE_ITEM[i] = new BaseItem(id, (short) data) {
 
                 @Override

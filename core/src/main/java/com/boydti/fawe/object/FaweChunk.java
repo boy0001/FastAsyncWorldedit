@@ -1,6 +1,7 @@
 package com.boydti.fawe.object;
 
 import com.boydti.fawe.FaweCache;
+import com.boydti.fawe.object.visitor.FaweChunkVisitor;
 import com.boydti.fawe.util.MainUtil;
 import com.sk89q.jnbt.CompoundTag;
 import com.sk89q.worldedit.blocks.BaseBlock;
@@ -145,6 +146,20 @@ public abstract class FaweChunk<T> implements Callable<FaweChunk> {
     }
 
     public abstract byte[] getBiomeArray();
+
+    public void forEachQueuedBlock(FaweChunkVisitor onEach) {
+        for (int y = 0; y < HEIGHT; y++) {
+            for (int z = 0; z < 16; z++) {
+                for (int x = 0; x < 16; x++) {
+                    int combined = getBlockCombinedId(x, y, z);
+                    if (combined == 0) {
+                        continue;
+                    }
+                    onEach.run(x, y, z, combined);
+                }
+            }
+        }
+    }
 
     public char[][] getCombinedIdArrays() {
         char[][] ids = new char[HEIGHT >> 4][];

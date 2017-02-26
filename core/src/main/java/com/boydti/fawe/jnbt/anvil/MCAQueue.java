@@ -350,9 +350,9 @@ public class MCAQueue extends NMSMappedFaweQueue<FaweQueue, FaweChunk, FaweChunk
     }
 
     @Override
-    public void sendBlockUpdate(Map<Long, Map<Short, Character>> blockMap, FawePlayer... players) {
+    public void sendBlockUpdate(FaweChunk chunk, FawePlayer... players) {
         if (parent != null) {
-            parentNMS.sendBlockUpdate(blockMap, players);
+            parentNMS.sendBlockUpdate(chunk, players);
         }
     }
 }

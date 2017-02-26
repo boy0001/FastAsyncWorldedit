@@ -52,9 +52,6 @@ dependencies {
     compile name: 'worldedit-core-6.1.7-SNAPSHOT-dist'
 }
 
-sourceCompatibility = 1.8
-targetCompatibility = 1.8
-
 minecraft {
     version = "1.11"
     mappings = "snapshot_20161116"

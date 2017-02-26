@@ -1,6 +1,7 @@
 package com.boydti.fawe.object.brush;
 
 import com.boydti.fawe.config.BBC;
+import com.boydti.fawe.object.brush.visualization.VisualExtent;
 import com.boydti.fawe.object.exception.FaweException;
 import com.boydti.fawe.object.mask.IdMask;
 import com.boydti.fawe.object.visitor.DFSRecursiveVisitor;
@@ -9,6 +10,7 @@ import com.sk89q.worldedit.LocalSession;
 import com.sk89q.worldedit.MaxChangedBlocksException;
 import com.sk89q.worldedit.Vector;
 import com.sk89q.worldedit.WorldEditException;
+import com.sk89q.worldedit.command.tool.BrushTool;
 import com.sk89q.worldedit.entity.Player;
 import com.sk89q.worldedit.function.RegionFunction;
 import com.sk89q.worldedit.function.mask.Mask;
@@ -16,8 +18,6 @@ import com.sk89q.worldedit.function.mask.MaskIntersection;
 import com.sk89q.worldedit.function.operation.Operations;
 import com.sk89q.worldedit.function.pattern.Pattern;
 import com.sk89q.worldedit.function.pattern.Patterns;
-import com.sk89q.worldedit.math.interpolation.Interpolation;
-import com.sk89q.worldedit.math.interpolation.KochanekBartelsInterpolation;
 import com.sk89q.worldedit.math.interpolation.Node;
 import com.sk89q.worldedit.math.transform.AffineTransform;
 import java.util.ArrayList;
@@ -30,11 +30,11 @@ public class SplineBrush implements DoubleActionBrush {
     private ArrayList<ArrayList<Vector>> positionSets;
     private int numSplines;
 
-    private final DoubleActionBrushTool tool;
+    private final BrushTool tool;
     private final LocalSession session;
     private final Player player;
 
-    public SplineBrush(Player player, LocalSession session, DoubleActionBrushTool tool) {
+    public SplineBrush(Player player, LocalSession session, BrushTool tool) {
         this.tool = tool;
         this.session = session;
         this.player = player;
@@ -42,15 +42,20 @@ public class SplineBrush implements DoubleActionBrush {
     }
 
     @Override
-    public void build(DoubleActionBrushTool.BrushAction action, EditSession editSession, final Vector position, Pattern pattern, double size) throws MaxChangedBlocksException {
+    public void build(BrushTool.BrushAction action, EditSession editSession, final Vector position, Pattern pattern, double size) throws MaxChangedBlocksException {
         Mask mask = tool.getMask();
         if (mask == null) {
             mask = new IdMask(editSession);
         } else {
             mask = new MaskIntersection(mask, new IdMask(editSession));
         }
+        boolean visualization = editSession.getExtent() instanceof VisualExtent;
+        if (visualization && positionSets.isEmpty()) {
+            return;
+        }
+        int originalSize = numSplines;
         switch (action) {
-            case PRIMARY: { // Right
+            case PRIMARY: {
                 if (positionSets.size() >= MAX_POINTS) {
                     throw new FaweException(BBC.WORLDEDIT_CANCEL_REASON_MAX_CHECKS);
                 }
@@ -62,6 +67,17 @@ public class SplineBrush implements DoubleActionBrush {
                         return true;
                     }
                 }, (int) size, 1);
+                Collection<Vector> directions = visitor.getDirections();
+                for (int x = -1; x <= 1; x++) {
+                    for (int y = -1; y <= 1; y++) {
+                        for (int z = -1; z <= 1; z++) {
+                            Vector pos = new Vector(x, y, z);
+                            if (!directions.contains(pos)) {
+                                directions.add(pos);
+                            }
+                        }
+                    }
+                }
                 visitor.visit(position);
                 Operations.completeBlindly(visitor);
                 if (points.size() > numSplines) {
@@ -69,7 +85,9 @@ public class SplineBrush implements DoubleActionBrush {
                 }
                 this.positionSets.add(points);
                 player.print(BBC.getPrefix() + BBC.BRUSH_SPLINE_PRIMARY.s());
-                break;
+                if (!visualization) {
+                    break;
+                }
             }
             case SECONDARY: {
                 if (positionSets.size() < 2) {
@@ -88,7 +106,6 @@ public class SplineBrush implements DoubleActionBrush {
 
                 final List<Node> nodes = new ArrayList<Node>(centroids.size());
 
-                final Interpolation interpol = new KochanekBartelsInterpolation();
                 for (final Vector nodevector : centroids) {
                     final Node n = new Node(nodevector);
                     n.setTension(tension);
@@ -113,8 +130,13 @@ public class SplineBrush implements DoubleActionBrush {
                     editSession.drawSpline(Patterns.wrap(pattern), currentSpline, 0, 0, 0, 10, 0, true);
                 }
                 player.print(BBC.getPrefix() + BBC.BRUSH_SPLINE_SECONDARY.s());
-                positionSets.clear();
-                numSplines = 0;
+                if (visualization) {
+                    positionSets.clear();
+                    numSplines = 0;
+                } else {
+                    numSplines = originalSize;
+                    positionSets.remove(positionSets.size() - 1);
+                }
                 break;
             }
         }

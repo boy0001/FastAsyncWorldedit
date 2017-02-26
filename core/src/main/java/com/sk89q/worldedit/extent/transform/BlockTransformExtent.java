@@ -204,7 +204,7 @@ public class BlockTransformExtent extends ResettableExtent {
                 if (value != null && value.getDirection() != null) {
                     StateValue newValue = getNewStateValue(state, transform, value.getDirection());
                     if (newValue != null) {
-                        if (changedBlock.hasWildcardData()) {
+                        if (changedBlock.isImmutable()) {
                             changedBlock = new BaseBlock(changedBlock.getId(), changedBlock.getData(), changedBlock.getNbtData());
                         }
                         newValue.set(changedBlock);

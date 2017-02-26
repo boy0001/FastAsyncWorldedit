@@ -43,6 +43,20 @@ public class MathMan {
             253, 254, 254, 255
     };
 
+    public static final int wrap(int value, int min, int max) {
+        if (max <= min) {
+            return value;
+        }
+        int diff = max - min + 1;
+        if (value < min) {
+            return max - ((min - value) % diff);
+        } else if (value > max) {
+            return min + ((value - min) % diff);
+        } else {
+            return value;
+        }
+    }
+
     public static final long inverseRound(double val) {
         long round = Math.round(val);
         return (long) (round + Math.signum(val - round));
@@ -82,6 +96,22 @@ public class MathMan {
 
     public static final short tripleBlockCoord(int x, int y, int z) {
         return (short) ((x & 15) << 12 | (z & 15) << 8 | y);
+    }
+
+    public static final char tripleBlockCoordChar(int x, int y, int z) {
+        return (char) ((x & 15) << 12 | (z & 15) << 8 | y);
+    }
+
+    public static final int untripleBlockCoordX(int triple) {
+        return (triple >> 12) & 0xF;
+    }
+
+    public static final int untripleBlockCoordY(int triple) {
+        return (triple & 0xFF);
+    }
+
+    public static final int untripleBlockCoordZ(int triple) {
+        return (triple >> 8) & 0xF;
     }
 
     public static int tripleSearchCoords(int x, int y, int z) {

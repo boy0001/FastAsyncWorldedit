@@ -14,10 +14,21 @@ import com.sk89q.worldedit.function.RegionFunction;
 import com.sk89q.worldedit.function.operation.Operation;
 import com.sk89q.worldedit.function.operation.RunContext;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 
 public abstract class BreadthFirstSearch implements Operation {
+
+    public static Vector[] DEFAULT_DIRECTIONS = new Vector[6];
+    static {
+        DEFAULT_DIRECTIONS[0] = (new MutableBlockVector(0, -1, 0));
+        DEFAULT_DIRECTIONS[1] = (new MutableBlockVector(0, 1, 0));
+        DEFAULT_DIRECTIONS[2] = (new MutableBlockVector(-1, 0, 0));
+        DEFAULT_DIRECTIONS[3] = (new MutableBlockVector(1, 0, 0));
+        DEFAULT_DIRECTIONS[4] = (new MutableBlockVector(0, 0, -1));
+        DEFAULT_DIRECTIONS[5] = (new MutableBlockVector(0, 0, 1));
+    }
 
     private final RegionFunction function;
     private final List<Vector> directions = new ArrayList<>();
@@ -41,12 +52,7 @@ public abstract class BreadthFirstSearch implements Operation {
         this.queue = new BlockVectorSet();
         this.visited = new BlockVectorSet();
         this.function = function;
-        this.directions.add(new Vector(0, -1, 0));
-        this.directions.add(new Vector(0, 1, 0));
-        this.directions.add(new Vector(-1, 0, 0));
-        this.directions.add(new Vector(1, 0, 0));
-        this.directions.add(new Vector(0, 0, -1));
-        this.directions.add(new Vector(0, 0, 1));
+        this.directions.addAll(Arrays.asList(DEFAULT_DIRECTIONS));
         this.maxDepth = maxDepth;
     }
 

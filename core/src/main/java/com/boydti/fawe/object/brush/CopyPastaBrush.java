@@ -11,6 +11,7 @@ import com.sk89q.worldedit.LocalSession;
 import com.sk89q.worldedit.MaxChangedBlocksException;
 import com.sk89q.worldedit.Vector;
 import com.sk89q.worldedit.blocks.BaseBlock;
+import com.sk89q.worldedit.command.tool.BrushTool;
 import com.sk89q.worldedit.extent.clipboard.Clipboard;
 import com.sk89q.worldedit.function.mask.Mask;
 import com.sk89q.worldedit.function.mask.Masks;
@@ -23,14 +24,14 @@ import com.sk89q.worldedit.session.ClipboardHolder;
 
 public class CopyPastaBrush implements DoubleActionBrush {
 
-    private final DoubleActionBrushTool tool;
+    private final BrushTool tool;
 
-    public CopyPastaBrush(DoubleActionBrushTool tool) {
+    public CopyPastaBrush(BrushTool tool) {
         this.tool = tool;
     }
 
     @Override
-    public void build(DoubleActionBrushTool.BrushAction action, final EditSession editSession, Vector position, Pattern pattern, double size) throws MaxChangedBlocksException {
+    public void build(BrushTool.BrushAction action, final EditSession editSession, Vector position, Pattern pattern, double size) throws MaxChangedBlocksException {
         FawePlayer fp = editSession.getPlayer();
         LocalSession session = fp.getSession();
         switch (action) {

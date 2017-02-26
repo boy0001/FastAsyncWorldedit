@@ -25,7 +25,7 @@ import com.boydti.fawe.object.FaweInputStream;
 import com.boydti.fawe.object.FaweOutputStream;
 import com.boydti.fawe.object.FawePlayer;
 import com.boydti.fawe.object.RunnableVal2;
-import com.boydti.fawe.object.brush.DoubleActionBrushTool;
+import com.boydti.fawe.object.brush.visualization.VisualBrush;
 import com.boydti.fawe.object.changeset.DiskStorageHistory;
 import com.boydti.fawe.object.changeset.FaweChangeSet;
 import com.boydti.fawe.object.clipboard.DiskOptimizedClipboard;
@@ -42,6 +42,7 @@ import com.sk89q.worldedit.command.tool.BrushTool;
 import com.sk89q.worldedit.command.tool.InvalidToolBindException;
 import com.sk89q.worldedit.command.tool.SinglePickaxe;
 import com.sk89q.worldedit.command.tool.Tool;
+import com.sk89q.worldedit.command.tool.brush.Brush;
 import com.sk89q.worldedit.entity.Player;
 import com.sk89q.worldedit.extension.platform.Actor;
 import com.sk89q.worldedit.extent.clipboard.BlockArrayClipboard;
@@ -440,6 +441,9 @@ public class LocalSession {
     }
 
     public synchronized void remember(final EditSession editSession, final boolean append, final boolean sendMessage, int limitMb) {
+        if (Settings.IMP.HISTORY.USE_DISK) {
+            LocalSession.MAX_HISTORY_SIZE = Integer.MAX_VALUE;
+        }
         // It should have already been flushed, but just in case!
         editSession.flushQueue();
         if (editSession == null || editSession.getChangeSet() == null || limitMb == 0 || ((historySize >> 20) > limitMb && !append)) {
@@ -953,6 +957,14 @@ public class LocalSession {
         return tools.get(item);
     }
 
+    @Nullable
+    public Tool getTool(Player player) {
+        if (tools.isEmpty()) {
+            return null;
+        }
+        return getTool(player.getItemInHand());
+    }
+
     /**
      * Get the brush tool assigned to the item. If there is no tool assigned
      * or the tool is not assigned, the slot will be replaced with the
@@ -963,34 +975,18 @@ public class LocalSession {
      * @throws InvalidToolBindException if the item can't be bound to that item
      */
     public BrushTool getBrushTool(int item) throws InvalidToolBindException {
+        return getBrushTool(item, null);
+    }
+
+    public BrushTool getBrushTool(int item, Player player) throws InvalidToolBindException {
         Tool tool = getTool(item);
 
         if (tool == null || !(tool instanceof BrushTool)) {
             tool = new BrushTool("worldedit.brush.sphere");
-            setTool(item, tool);
+            setTool(item, tool, player);
         }
 
         return (BrushTool) tool;
-    }
-
-    /**
-     * Get the brush tool assigned to the item. If there is no tool assigned
-     * or the tool is not assigned, the slot will be replaced with the
-     * brush tool.
-     *
-     * @param item the item type ID
-     * @return the tool, or {@code null}
-     * @throws InvalidToolBindException if the item can't be bound to that item
-     */
-    public DoubleActionBrushTool getDoubleActionBrushTool(int item) throws InvalidToolBindException {
-        Tool tool = getTool(item);
-
-        if (tool == null || !(tool instanceof DoubleActionBrushTool)) {
-            tool = new DoubleActionBrushTool("worldedit.brush.sphere");
-            setTool(item, tool);
-        }
-
-        return (DoubleActionBrushTool) tool;
     }
 
     /**
@@ -1001,6 +997,10 @@ public class LocalSession {
      * @throws InvalidToolBindException if the item can't be bound to that item
      */
     public void setTool(int item, @Nullable Tool tool) throws InvalidToolBindException {
+        setTool(item, tool, null);
+    }
+
+    public void setTool(int item, @Nullable Tool tool, Player player) throws InvalidToolBindException {
         if (item > 0 && item < 255) {
             throw new InvalidToolBindException(item, "Blocks can't be used");
         } else if (item == config.wandItem) {
@@ -1008,8 +1008,17 @@ public class LocalSession {
         } else if (item == config.navigationWand) {
             throw new InvalidToolBindException(item, "Already used for the navigation wand");
         }
-
-        this.tools.put(item, tool);
+        Tool previous = this.tools.put(item, tool);
+        if (player != null) {
+            if (previous instanceof BrushTool) {
+                Brush brush = ((BrushTool) previous).getBrush();
+                if (brush instanceof VisualBrush) {
+                    ((VisualBrush) brush).clear(player);
+                }
+            } else if (previous instanceof VisualBrush) {
+                ((VisualBrush) tool).clear(player);
+            }
+        }
     }
 
     /**

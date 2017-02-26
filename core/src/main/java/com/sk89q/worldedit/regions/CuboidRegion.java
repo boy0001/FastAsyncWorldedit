@@ -44,6 +44,7 @@ public class CuboidRegion extends AbstractRegion implements FlatRegion {
 
     private Vector pos1;
     private Vector pos2;
+    private boolean useOldIterator;
     private int minX,minY,minZ,maxX,maxY,maxZ;
 
     /**
@@ -78,6 +79,10 @@ public class CuboidRegion extends AbstractRegion implements FlatRegion {
         this.pos1 = pos1;
         this.pos2 = pos2;
         recalculate();
+    }
+
+    public void setUseOldIterator(boolean useOldIterator) {
+        this.useOldIterator = useOldIterator;
     }
 
     /**
@@ -400,7 +405,7 @@ public class CuboidRegion extends AbstractRegion implements FlatRegion {
 
     @Override
     public Iterator<BlockVector> iterator() {
-        if (Settings.IMP.HISTORY.COMPRESSION_LEVEL >= 9) {
+        if (Settings.IMP.HISTORY.COMPRESSION_LEVEL >= 9 || useOldIterator) {
             return iterator_old();
         }
         return new Iterator<BlockVector>() {
@@ -445,7 +450,7 @@ public class CuboidRegion extends AbstractRegion implements FlatRegion {
                             y = by;
                             if (x > tx) {
                                 x = bx;
-                                if (z >= tz) {
+                                if (z > tz) {
                                     if (!hasNext) {
                                         throw new NoSuchElementException("End of iterator") {
                                             @Override
@@ -494,10 +499,11 @@ public class CuboidRegion extends AbstractRegion implements FlatRegion {
             private int nextX = min.getBlockX();
             private int nextY = min.getBlockY();
             private int nextZ = min.getBlockZ();
+            private boolean hasNext = true;
 
             @Override
             public boolean hasNext() {
-                return (nextZ != Integer.MIN_VALUE);
+                return hasNext;
             }
 
             @Override
@@ -507,10 +513,10 @@ public class CuboidRegion extends AbstractRegion implements FlatRegion {
                 mutable.mutZ(nextZ);
                 if (++nextX > max.getBlockX()) {
                     nextX = min.getBlockX();
-                    if (++nextY > max.getBlockY()) {
-                        nextY = min.getBlockY();
-                        if (++nextZ > max.getBlockZ()) {
-                            if (nextZ == Integer.MIN_VALUE) {
+                    if (++nextZ > max.getBlockZ()) {
+                        nextZ = min.getBlockZ();
+                        if (++nextY > max.getBlockY()) {
+                            if (!hasNext) {
                                 throw new NoSuchElementException("End of iterator") {
                                     @Override
                                     public synchronized Throwable fillInStackTrace() {
@@ -519,8 +525,9 @@ public class CuboidRegion extends AbstractRegion implements FlatRegion {
                                 };
                             }
                             nextX = max.getBlockX();
+                            nextZ = max.getBlockZ();
                             nextY = max.getBlockY();
-                            nextZ = Integer.MIN_VALUE;
+                            hasNext = false;
                         }
                     }
                 }

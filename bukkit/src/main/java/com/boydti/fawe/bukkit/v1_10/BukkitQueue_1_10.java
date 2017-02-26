@@ -25,10 +25,13 @@ import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ExecutorCompletionService;
+import net.minecraft.server.v1_10_R1.BiomeBase;
+import net.minecraft.server.v1_10_R1.BiomeCache;
 import net.minecraft.server.v1_10_R1.Block;
 import net.minecraft.server.v1_10_R1.BlockPosition;
+import net.minecraft.server.v1_10_R1.ChunkProviderGenerate;
+import net.minecraft.server.v1_10_R1.ChunkProviderServer;
 import net.minecraft.server.v1_10_R1.ChunkSection;
-import net.minecraft.server.v1_10_R1.DataBits;
 import net.minecraft.server.v1_10_R1.DataPaletteBlock;
 import net.minecraft.server.v1_10_R1.Entity;
 import net.minecraft.server.v1_10_R1.EntityPlayer;
@@ -47,6 +50,7 @@ import net.minecraft.server.v1_10_R1.PlayerChunk;
 import net.minecraft.server.v1_10_R1.PlayerChunkMap;
 import net.minecraft.server.v1_10_R1.ServerNBTManager;
 import net.minecraft.server.v1_10_R1.TileEntity;
+import net.minecraft.server.v1_10_R1.WorldChunkManager;
 import net.minecraft.server.v1_10_R1.WorldData;
 import net.minecraft.server.v1_10_R1.WorldManager;
 import net.minecraft.server.v1_10_R1.WorldServer;
@@ -68,6 +72,8 @@ public class BukkitQueue_1_10 extends BukkitQueue_0<net.minecraft.server.v1_10_R
 
     protected static IBlockData air;
     protected static Field fieldBits;
+    protected static Field fieldPalette;
+    protected static Field fieldSize;
     protected static Method getEntitySlices;
     protected static Field fieldTickingBlockCount;
     protected static Field fieldNonEmptyBlockCount;
@@ -80,8 +86,9 @@ public class BukkitQueue_1_10 extends BukkitQueue_0<net.minecraft.server.v1_10_R
     protected static Field fieldGenLayer1;
     protected static Field fieldGenLayer2;
     protected static MutableGenLayer genLayer;
-    public static final IBlockData[] IBD_CACHE = new IBlockData[Character.MAX_VALUE];
     protected static ChunkSection emptySection;
+
+    public static final IBlockData[] IBD_CACHE = new IBlockData[Character.MAX_VALUE + 1];
 
     static {
         try {
@@ -93,21 +100,26 @@ public class BukkitQueue_1_10 extends BukkitQueue_0<net.minecraft.server.v1_10_R
             fieldTickingBlockCount.setAccessible(true);
             fieldNonEmptyBlockCount.setAccessible(true);
 
-            fieldBiomes = net.minecraft.server.v1_10_R1.ChunkProviderGenerate.class.getDeclaredField("C");
+            fieldBiomes = ChunkProviderGenerate.class.getDeclaredField("D");
             fieldBiomes.setAccessible(true);
-            fieldChunkGenerator = net.minecraft.server.v1_10_R1.ChunkProviderServer.class.getDeclaredField("chunkGenerator");
+            fieldChunkGenerator = ChunkProviderServer.class.getDeclaredField("chunkGenerator");
             fieldChunkGenerator.setAccessible(true);
-            fieldSeed = net.minecraft.server.v1_10_R1.WorldData.class.getDeclaredField("e");
+            fieldSeed = WorldData.class.getDeclaredField("e");
             fieldSeed.setAccessible(true);
-            fieldBiomeCache = net.minecraft.server.v1_10_R1.WorldChunkManager.class.getDeclaredField("c");
+            fieldBiomeCache = WorldChunkManager.class.getDeclaredField("d");
             fieldBiomeCache.setAccessible(true);
-            fieldBiomes2 = net.minecraft.server.v1_10_R1.WorldChunkManager.class.getDeclaredField("d");
+            fieldBiomes2 = WorldChunkManager.class.getDeclaredField("e");
             fieldBiomes2.setAccessible(true);
-            fieldGenLayer1 = net.minecraft.server.v1_10_R1.WorldChunkManager.class.getDeclaredField("a") ;
-            fieldGenLayer2 = net.minecraft.server.v1_10_R1.WorldChunkManager.class.getDeclaredField("b") ;
+            fieldGenLayer1 = WorldChunkManager.class.getDeclaredField("b") ;
+            fieldGenLayer2 = WorldChunkManager.class.getDeclaredField("c") ;
             fieldGenLayer1.setAccessible(true);
             fieldGenLayer2.setAccessible(true);
-            
+
+            fieldPalette = DataPaletteBlock.class.getDeclaredField("c");
+            fieldPalette.setAccessible(true);
+            fieldSize = DataPaletteBlock.class.getDeclaredField("e");
+            fieldSize.setAccessible(true);
+
             Field fieldAir = DataPaletteBlock.class.getDeclaredField("a");
             fieldAir.setAccessible(true);
             air = (IBlockData) fieldAir.get(null);
@@ -115,12 +127,10 @@ public class BukkitQueue_1_10 extends BukkitQueue_0<net.minecraft.server.v1_10_R
             fieldBits.setAccessible(true);
             getEntitySlices = net.minecraft.server.v1_10_R1.Chunk.class.getDeclaredMethod("getEntitySlices");
             getEntitySlices.setAccessible(true);
-            if (adapter == null) {
-                setupAdapter(new com.boydti.fawe.bukkit.v1_10.FaweAdapter_1_10());
-                Fawe.debug("Using adapter: " + adapter);
-                Fawe.debug("=========================================");
-            }
-            for (int i = 0; i < Character.MAX_VALUE; i++) {
+            setupAdapter(new com.boydti.fawe.bukkit.v1_10.FaweAdapter_1_10());
+            Fawe.debug("Using adapter: " + adapter);
+            Fawe.debug("=========================================");
+            for (int i = 0; i < IBD_CACHE.length; i++) {
                 try {
                     IBD_CACHE[i] = Block.getById(i >> 4).fromLegacyData(i & 0xF);
                 } catch (Throwable ignore) {}
@@ -141,6 +151,40 @@ public class BukkitQueue_1_10 extends BukkitQueue_0<net.minecraft.server.v1_10_R
     }
 
     @Override
+    public ChunkSection[] getSections(net.minecraft.server.v1_10_R1.Chunk chunk) {
+        return chunk.getSections();
+    }
+
+    @Override
+    public net.minecraft.server.v1_10_R1.Chunk loadChunk(World world, int x, int z, boolean generate) {
+        net.minecraft.server.v1_10_R1.ChunkProviderServer provider = ((org.bukkit.craftbukkit.v1_10_R1.CraftWorld) world).getHandle().getChunkProviderServer();
+        if (generate) {
+            return provider.getOrLoadChunkAt(x, z);
+        } else {
+            return provider.loadChunk(x, z);
+        }
+    }
+
+    @Override
+    public ChunkSection[] getCachedSections(World world, int cx, int cz) {
+        net.minecraft.server.v1_10_R1.Chunk chunk = ((org.bukkit.craftbukkit.v1_10_R1.CraftWorld) world).getHandle().getChunkProviderServer().getChunkIfLoaded(cx, cz);
+        if (chunk != null) {
+            return chunk.getSections();
+        }
+        return null;
+    }
+
+    @Override
+    public net.minecraft.server.v1_10_R1.Chunk getCachedChunk(World world, int cx, int cz) {
+        return ((org.bukkit.craftbukkit.v1_10_R1.CraftWorld) world).getHandle().getChunkProviderServer().getChunkIfLoaded(cx, cz);
+    }
+
+    @Override
+    public ChunkSection getCachedSection(ChunkSection[] chunkSections, int cy) {
+        return chunkSections[cy];
+    }
+
+    @Override
     public boolean regenerateChunk(World world, int x, int z, BaseBiome biome, Long seed) {
         if (biome != null) {
             try {
@@ -149,10 +193,10 @@ public class BukkitQueue_1_10 extends BukkitQueue_0<net.minecraft.server.v1_10_R
                 }
                 nmsWorld.worldData.getSeed();
                 boolean result;
-                net.minecraft.server.v1_10_R1.ChunkProviderGenerate generator = new net.minecraft.server.v1_10_R1.ChunkProviderGenerate(nmsWorld, seed, false, "");
+                ChunkProviderGenerate generator = new ChunkProviderGenerate(nmsWorld, seed, false, "");
                 Biome bukkitBiome = adapter.getBiome(biome.getId());
-                net.minecraft.server.v1_10_R1.BiomeBase base = net.minecraft.server.v1_10_R1.BiomeBase.getBiome(biome.getId());
-                fieldBiomes.set(generator, new net.minecraft.server.v1_10_R1.BiomeBase[]{base});
+                BiomeBase base = BiomeBase.getBiome(biome.getId());
+                fieldBiomes.set(generator, new BiomeBase[]{base});
                 boolean cold = base.getTemperature() <= 1;
                 net.minecraft.server.v1_10_R1.ChunkGenerator existingGenerator = nmsWorld.getChunkProviderServer().chunkGenerator;
                 long existingSeed = world.getSeed();
@@ -166,7 +210,7 @@ public class BukkitQueue_1_10 extends BukkitQueue_0<net.minecraft.server.v1_10_R
 
                     fieldSeed.set(nmsWorld.worldData, seed);
 
-                    ReflectionUtils.setFailsafeFieldValue(fieldBiomeCache, this.nmsWorld.getWorldChunkManager(), new net.minecraft.server.v1_10_R1.BiomeCache(this.nmsWorld.getWorldChunkManager()));
+                    ReflectionUtils.setFailsafeFieldValue(fieldBiomeCache, this.nmsWorld.getWorldChunkManager(), new BiomeCache(this.nmsWorld.getWorldChunkManager()));
 
                     ReflectionUtils.setFailsafeFieldValue(fieldChunkGenerator, this.nmsWorld.getChunkProviderServer(), generator);
 
@@ -216,9 +260,6 @@ public class BukkitQueue_1_10 extends BukkitQueue_0<net.minecraft.server.v1_10_R
     public void setBlockLight(ChunkSection section, int x, int y, int z, int value) {
         section.getEmittedLightArray().a(x & 15, y & 15, z & 15, value);
     }
-
-    protected DataBits lastBits;
-    protected DataPaletteBlock lastBlocks;
 
     @Override
     public World createWorld(final WorldCreator creator) {
@@ -304,46 +345,6 @@ public class BukkitQueue_1_10 extends BukkitQueue_0<net.minecraft.server.v1_10_R
     }
 
     @Override
-    public int getBiome(net.minecraft.server.v1_10_R1.Chunk chunk, int x, int z) {
-        return chunk.getBiomeIndex()[((z & 15) << 4) + (x & 15)];
-    }
-
-    @Override
-    public net.minecraft.server.v1_10_R1.ChunkSection[] getSections(net.minecraft.server.v1_10_R1.Chunk chunk) {
-        return chunk.getSections();
-    }
-
-    @Override
-    public net.minecraft.server.v1_10_R1.Chunk loadChunk(World world, int x, int z, boolean generate) {
-        net.minecraft.server.v1_10_R1.Chunk chunk;
-        net.minecraft.server.v1_10_R1.ChunkProviderServer provider = ((org.bukkit.craftbukkit.v1_10_R1.CraftWorld) world).getHandle().getChunkProviderServer();
-        if (generate) {
-            return provider.getOrLoadChunkAt(x, z);
-        } else {
-            return provider.loadChunk(x, z);
-        }
-    }
-
-    @Override
-    public net.minecraft.server.v1_10_R1.ChunkSection[] getCachedSections(World world, int cx, int cz) {
-        net.minecraft.server.v1_10_R1.Chunk chunk = ((org.bukkit.craftbukkit.v1_10_R1.CraftWorld) world).getHandle().getChunkProviderServer().getChunkIfLoaded(cx, cz);
-        if (chunk != null) {
-            return chunk.getSections();
-        }
-        return null;
-    }
-
-    @Override
-    public net.minecraft.server.v1_10_R1.Chunk getCachedChunk(World world, int cx, int cz) {
-        return ((org.bukkit.craftbukkit.v1_10_R1.CraftWorld) world).getHandle().getChunkProviderServer().getChunkIfLoaded(cx, cz);
-    }
-
-    @Override
-    public net.minecraft.server.v1_10_R1.ChunkSection getCachedSection(net.minecraft.server.v1_10_R1.ChunkSection[] chunkSections, int cy) {
-        return chunkSections[cy];
-    }
-
-    @Override
     public int getCombinedId4Data(ChunkSection lastSection, int x, int y, int z) {
         DataPaletteBlock dataPalette = lastSection.getBlocks();
         IBlockData ibd = dataPalette.a(x & 15, y & 15, z & 15);
@@ -354,6 +355,11 @@ public class BukkitQueue_1_10 extends BukkitQueue_0<net.minecraft.server.v1_10_R
         } else {
             return id << 4;
         }
+    }
+
+    @Override
+    public int getBiome(net.minecraft.server.v1_10_R1.Chunk chunk, int x, int z) {
+        return chunk.getBiomeIndex()[((z & 15) << 4) + (x & 15)];
     }
 
     @Override
@@ -401,6 +407,13 @@ public class BukkitQueue_1_10 extends BukkitQueue_0<net.minecraft.server.v1_10_R
             return;
         }
         if (playerChunk.c.isEmpty()) {
+            return;
+        }
+        if (mask == 0) {
+            PacketPlayOutMapChunk packet = new PacketPlayOutMapChunk(nmsChunk, 65535);
+            for (EntityPlayer player : playerChunk.c) {
+                player.playerConnection.sendPacket(packet);
+            }
             return;
         }
         // Send chunks
@@ -523,7 +536,6 @@ public class BukkitQueue_1_10 extends BukkitQueue_0<net.minecraft.server.v1_10_R
     }
 
     public void setPalette(ChunkSection section, DataPaletteBlock palette) throws NoSuchFieldException, IllegalAccessException {
-        fieldSection.setAccessible(true);
         fieldSection.set(section, palette);
         Arrays.fill(section.getEmittedLightArray().asBytes(), (byte) 0);
     }
@@ -554,33 +566,18 @@ public class BukkitQueue_1_10 extends BukkitQueue_0<net.minecraft.server.v1_10_R
     public BukkitChunk_1_10 getPrevious(CharFaweChunk fs, ChunkSection[] sections, Map<?, ?> tilesGeneric, Collection<?>[] entitiesGeneric, Set<UUID> createdEntities, boolean all) throws Exception {
         Map<BlockPosition, TileEntity> tiles = (Map<BlockPosition, TileEntity>) tilesGeneric;
         Collection<Entity>[] entities = (Collection<Entity>[]) entitiesGeneric;
-        BukkitChunk_1_10 previous = getFaweChunk(fs.getX(), fs.getZ());
         // Copy blocks
-        char[][] idPrevious = previous.getCombinedIdArrays();
+        BukkitChunk_1_10_Copy previous = new BukkitChunk_1_10_Copy(this, fs.getX(), fs.getZ());
         for (int layer = 0; layer < sections.length; layer++) {
             if (fs.getCount(layer) != 0 || all) {
                 ChunkSection section = sections[layer];
                 if (section != null) {
-                    short solid = 0;
-                    char[] previousLayer = idPrevious[layer] = new char[4096];
                     DataPaletteBlock blocks = section.getBlocks();
-                    for (int j = 0; j < 4096; j++) {
-                        int x = FaweCache.CACHE_X[0][j];
-                        int y = FaweCache.CACHE_Y[0][j];
-                        int z = FaweCache.CACHE_Z[0][j];
-                        IBlockData ibd = blocks.a(x, y, z);
-                        Block block = ibd.getBlock();
-                        int combined = Block.getId(block);
-                        if (FaweCache.hasData(combined)) {
-                            combined = (combined << 4) + block.toLegacyData(ibd);
-                        } else {
-                            combined = combined << 4;
-                        }
-                        if (combined > 1) {
-                            solid++;
-                        }
-                        previousLayer[j] = (char) combined;
-                    }
+                    byte[] ids = new byte[4096];
+                    NibbleArray data = new NibbleArray();
+                    blocks.exportData(ids, data);
+                    previous.set(layer, ids, data.asBytes());
+                    short solid = (short) fieldNonEmptyBlockCount.getInt(section);
                     previous.count[layer] = solid;
                     previous.air[layer] = (short) (4096 - solid);
                 }
@@ -605,7 +602,7 @@ public class BukkitQueue_1_10 extends BukkitQueue_0<net.minecraft.server.v1_10_R
                     }
                     int x = ((int) Math.round(ent.locX) & 15);
                     int z = ((int) Math.round(ent.locZ) & 15);
-                    int y = ((int) Math.round(ent.locY)) & 255;
+                    int y = ((int) Math.round(ent.locY) & 0xFF);
                     int i = FaweCache.CACHE_I[y][z][x];
                     char[] array = fs.getIdArray(i);
                     if (array == null) {

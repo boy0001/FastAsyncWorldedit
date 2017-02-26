@@ -454,14 +454,14 @@ public class CuboidClipboard {
                     }
                     if (reverse) {
                         for (int i = 0; i < numRotations; ++i) {
-                            if (block.hasWildcardData()) {
+                            if (block.isImmutable()) {
                                 block = new BaseBlock(block);
                             }
                             block.rotate90Reverse();
                         }
                     } else {
                         for (int i = 0; i < numRotations; ++i) {
-                            if (block.hasWildcardData()) {
+                            if (block.isImmutable()) {
                                 block = new BaseBlock(block);
                             }
                             block.rotate90();

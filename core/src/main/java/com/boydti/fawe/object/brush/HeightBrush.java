@@ -6,6 +6,7 @@ import com.boydti.fawe.object.exception.FaweException;
 import com.sk89q.worldedit.EditSession;
 import com.sk89q.worldedit.MaxChangedBlocksException;
 import com.sk89q.worldedit.Vector;
+import com.sk89q.worldedit.command.tool.BrushTool;
 import com.sk89q.worldedit.extent.clipboard.Clipboard;
 import com.sk89q.worldedit.function.mask.Mask;
 import com.sk89q.worldedit.function.mask.Masks;
@@ -18,14 +19,13 @@ public class HeightBrush implements DoubleActionBrush {
     public final ScalableHeightMap heightMap;
     public final int rotation;
     public final double yscale;
-    public final DoubleActionBrushTool tool;
+    public final BrushTool tool;
 
-    public HeightBrush(InputStream stream, int rotation, double yscale, DoubleActionBrushTool tool, Clipboard clipboard) {
+    public HeightBrush(InputStream stream, int rotation, double yscale, BrushTool tool, Clipboard clipboard) {
         this(stream, rotation, yscale, tool, clipboard, ScalableHeightMap.Shape.CONE);
     }
 
-    public HeightBrush(InputStream stream, int rotation, double yscale, DoubleActionBrushTool tool, Clipboard clipboard, ScalableHeightMap.Shape shape) {
-        this.tool = tool;
+    public HeightBrush(InputStream stream, int rotation, double yscale, BrushTool tool, Clipboard clipboard, ScalableHeightMap.Shape shape) {
         this.rotation = (rotation / 90) % 4;
         this.yscale = yscale;
         if (stream != null) {
@@ -39,16 +39,17 @@ public class HeightBrush implements DoubleActionBrush {
         } else {
             heightMap = ScalableHeightMap.fromShape(shape);
         }
+        this.tool = tool;
     }
 
     @Override
-    public void build(DoubleActionBrushTool.BrushAction action, EditSession editSession, Vector position, Pattern pattern, double sizeDouble) throws MaxChangedBlocksException {
+    public void build(BrushTool.BrushAction action, EditSession editSession, Vector position, Pattern pattern, double sizeDouble) throws MaxChangedBlocksException {
         int size = (int) sizeDouble;
         Mask mask = tool.getMask();
         if (mask == Masks.alwaysTrue() || mask == Masks.alwaysTrue2D()) {
             mask = null;
         }
         heightMap.setSize(size);
-        heightMap.apply(editSession, mask, position, size, rotation, action == DoubleActionBrushTool.BrushAction.PRIMARY ? yscale : -yscale, true, false);
+        heightMap.apply(editSession, mask, position, size, rotation, action == BrushTool.BrushAction.PRIMARY ? yscale : -yscale, true, false);
     }
 }

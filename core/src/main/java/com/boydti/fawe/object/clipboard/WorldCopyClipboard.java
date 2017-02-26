@@ -53,6 +53,7 @@ public class WorldCopyClipboard extends ReadOnlyClipboard {
         final Vector pos = new Vector();
         if (region instanceof CuboidRegion) {
             if (air) {
+                ((CuboidRegion) region).setUseOldIterator(true);
                 RegionVisitor visitor = new RegionVisitor(region, new RegionFunction() {
                     @Override
                     public boolean apply(Vector pos) throws WorldEditException {
@@ -76,27 +77,33 @@ public class WorldCopyClipboard extends ReadOnlyClipboard {
                 }, editSession);
                 Operations.completeBlindly(visitor);
             } else {
-                RegionVisitor visitor = new RegionVisitor(region, new RegionFunction() {
+                CuboidRegion cuboidEquivalent = new CuboidRegion(region.getMinimumPoint(), region.getMaximumPoint());
+                cuboidEquivalent.setUseOldIterator(true);
+                RegionVisitor visitor = new RegionVisitor(cuboidEquivalent, new RegionFunction() {
                     @Override
                     public boolean apply(Vector pos) throws WorldEditException {
-                        int x = pos.getBlockX();
-                        int y = pos.getBlockY();
-                        int z = pos.getBlockZ();
-                        BaseBlock block = getBlockAbs(x, y, z);
-                        if (block == EditSession.nullBlock) {
-                            return false;
+                        if (region.contains(pos)) {
+                            int x = pos.getBlockX();
+                            int y = pos.getBlockY();
+                            int z = pos.getBlockZ();
+                            BaseBlock block = getBlockAbs(x, y, z);
+                            pos.mutX(x - mx);
+                            pos.mutY(y - my);
+                            pos.mutZ(z - mz);
+                            CompoundTag tag = block.getNbtData();
+                            if (tag != null) {
+                                Map<String, Tag> values = ReflectionUtils.getMap(tag.getValue());
+                                values.put("x", new IntTag(pos.getBlockX()));
+                                values.put("y", new IntTag(pos.getBlockY()));
+                                values.put("z", new IntTag(pos.getBlockZ()));
+                            }
+                            task.run(pos, block);
+                        } else {
+                            pos.mutX(pos.getBlockX() - mx);
+                            pos.mutY(pos.getBlockY() - my);
+                            pos.mutZ(pos.getBlockZ() - mz);
+                            task.run(pos, EditSession.nullBlock);
                         }
-                        pos.mutX(x - mx);
-                        pos.mutY(y - my);
-                        pos.mutZ(z - mz);
-                        CompoundTag tag = block.getNbtData();
-                        if (tag != null) {
-                            Map<String, Tag> values = ReflectionUtils.getMap(tag.getValue());
-                            values.put("x", new IntTag(pos.getBlockX()));
-                            values.put("y", new IntTag(pos.getBlockY()));
-                            values.put("z", new IntTag(pos.getBlockZ()));
-                        }
-                        task.run(pos, block);
                         return true;
                     }
                 }, editSession);

@@ -447,14 +447,18 @@ public class PlatformManager {
                 }
             }
         } catch (Throwable e) {
-            FaweException faweException = FaweException.get(e);
-            if (faweException != null) {
-                BBC.WORLDEDIT_CANCEL_REASON.send(actor, faweException.getMessage());
-            } else {
-                actor.printError("Please report this error: [See console]");
-                actor.printRaw(e.getClass().getName() + ": " + e.getMessage());
-                MainUtil.handleError(e);
-            }
+            handleThrowable(e, actor);
+        }
+    }
+
+    public void handleThrowable(Throwable e, Actor actor) {
+        FaweException faweException = FaweException.get(e);
+        if (faweException != null) {
+            BBC.WORLDEDIT_CANCEL_REASON.send(actor, faweException.getMessage());
+        } else {
+            actor.printError("Please report this error: [See console]");
+            actor.printRaw(e.getClass().getName() + ": " + e.getMessage());
+            MainUtil.handleError(e);
         }
     }
 

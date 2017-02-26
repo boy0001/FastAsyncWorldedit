@@ -92,7 +92,7 @@ public class BukkitPlayer extends FawePlayer<Player> {
     }
 
     @Override
-    public com.sk89q.worldedit.entity.Player getPlayer() {
+    public com.sk89q.worldedit.entity.Player toWorldEditPlayer() {
         return PlayerWrapper.wrap(Fawe.<FaweBukkit> imp().getWorldEditPlugin().wrapPlayer(this.parent));
     }
 

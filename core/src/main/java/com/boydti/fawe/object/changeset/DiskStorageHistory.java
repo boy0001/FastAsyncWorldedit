@@ -75,19 +75,8 @@ public class DiskStorageHistory extends FaweStreamChangeSet {
 
     private void init(UUID uuid, String worldName) {
         File folder = MainUtil.getFile(Fawe.imp().getDirectory(), Settings.IMP.PATHS.HISTORY + File.separator + worldName + File.separator + uuid);
-        int max = 0;
-        if (folder.exists()) {
-            for (File file : folder.listFiles()) {
-                String name = file.getName().split("\\.")[0];
-                if (name.matches("\\d+")) {
-                    int index = Integer.parseInt(name);
-                    if (index > max) {
-                        max = index;
-                    }
-                }
-            }
-        }
-        init(uuid, ++max);
+        int max = MainUtil.getMaxFileId(folder);
+        init(uuid, max);
     }
 
     public DiskStorageHistory(String world, UUID uuid, int index) {

@@ -66,7 +66,7 @@ public class FaweNukkitPlayer extends FawePlayer<Player> {
     }
 
     @Override
-    public com.sk89q.worldedit.entity.Player getPlayer() {
+    public com.sk89q.worldedit.entity.Player toWorldEditPlayer() {
         return new NukkitPlayer((NukkitPlatform) Fawe.<FaweNukkit> imp().getPlugin().getPlatform(), parent);
     }
 

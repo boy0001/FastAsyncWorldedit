@@ -22,6 +22,9 @@ public final class Patterns {
      * @return a new-style pattern
      */
     public static Pattern wrap(final com.sk89q.worldedit.patterns.Pattern pattern) {
+        if (pattern instanceof Pattern) {
+            return (Pattern) pattern;
+        }
         checkNotNull(pattern);
         return new Pattern() {
             @Override

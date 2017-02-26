@@ -17,39 +17,36 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-package com.sk89q.worldedit.patterns;
+package com.sk89q.worldedit.function.pattern;
 
-import com.sk89q.worldedit.*;
+import com.sk89q.worldedit.MutableBlockVector;
+import com.sk89q.worldedit.Vector;
 import com.sk89q.worldedit.blocks.BaseBlock;
 
 /**
- * @deprecated See {@link com.sk89q.worldedit.function.pattern.Pattern}
+ * Returns a {@link BaseBlock} for a given position.
  */
-@Deprecated
-public interface Pattern { //extends com.sk89q.worldedit.function.pattern.Pattern {
+public interface Pattern extends com.sk89q.worldedit.patterns.Pattern {
 
     /**
-     * Get a block for a position. This return value of this method does
-     * not have to be consistent for the same position.
+     * Return a {@link BaseBlock} for the given position.
      *
-     * @param position the position where a block is needed
+     * @param position the position
      * @return a block
      */
-    public BaseBlock next(Vector position);
+    BaseBlock apply(Vector position);
 
-    /**
-     * Get a block for a position. This return value of this method does
-     * not have to be consistent for the same position.
-     *
-     * @param x the X coordinate
-     * @param y the Y coordinate
-     * @param z the Z coordinate
-     * @return a block
-     */
-    public BaseBlock next(int x, int y, int z);
+    @Override
+    default BaseBlock next(Vector position) {
+        return apply(position);
+    }
 
-//    @Override
-//    default BaseBlock apply(Vector position) {
-//        return next(position);
-//    }
+    @Override
+    default BaseBlock next(int x, int y, int z) {
+        return apply(MutableBlockVector.get(x, y, z));
+    }
+
+    public static Class<Pattern> inject() {
+        return Pattern.class;
+    }
 }

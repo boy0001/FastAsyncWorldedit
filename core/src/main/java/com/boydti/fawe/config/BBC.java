@@ -123,6 +123,7 @@ public enum BBC {
     BRUSH_SPLINE_SECONDARY("Created spline", "WorldEdit.Brush"),
     BRUSH_BLEND_BALL("Blend ball brush equipped (%s0).", "WorldEdit.Brush"),
     BRUSH_ERODE("Erode brush equipped (%s0). Right click to erode, left click to pull.", "WorldEdit.Brush"),
+    BRUSH_CIRCLE("Circle brush equipped (%s0). Right click to create a circle.", "WorldEdit.Brush"),
     BRUSH_RECURSIVE("Recursive brush equipped (%s0).", "WorldEdit.Brush"),
     BRUSH_PASTE_NONE("Nothing to paste", "WorldEdit.Brush"),
     BRUSH_SIZE("Brush size set", "WorldEdit.Brush"),

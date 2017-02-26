@@ -209,7 +209,7 @@ public abstract class FawePlayer<T> extends Metadatable {
         try {
             if (file.exists() && file.length() > 5) {
                 DiskOptimizedClipboard doc = new DiskOptimizedClipboard(file);
-                Player player = getPlayer();
+                Player player = toWorldEditPlayer();
                 LocalSession session = getSession();
                 try {
                     if (session.getClipboard() != null) {
@@ -331,7 +331,16 @@ public abstract class FawePlayer<T> extends Metadatable {
      * Get the WorldEdit player object
      * @return
      */
-    public abstract Player getPlayer();
+    public abstract Player toWorldEditPlayer();
+
+    private Player cachedWorldEditPlayer;
+
+    public Player getPlayer() {
+        if (cachedWorldEditPlayer == null) {
+            cachedWorldEditPlayer = toWorldEditPlayer();
+        }
+        return cachedWorldEditPlayer;
+    }
 
     /**
      * Get the player's current selection (or null)
@@ -382,7 +391,7 @@ public abstract class FawePlayer<T> extends Metadatable {
      * @param selector
      */
     public void setSelection(final RegionSelector selector) {
-        this.getSession().setRegionSelector(getPlayer().getWorld(), selector);
+        this.getSession().setRegionSelector(toWorldEditPlayer().getWorld(), selector);
     }
 
     /**
@@ -422,7 +431,7 @@ public abstract class FawePlayer<T> extends Metadatable {
     public void unregister() {
         if (Settings.IMP.HISTORY.DELETE_ON_LOGOUT) {
             session = getSession();
-            WorldEdit.getInstance().removeSession(getPlayer());
+            WorldEdit.getInstance().removeSession(toWorldEditPlayer());
             session.setClipboard(null);
             session.clearHistory();
         }
@@ -433,7 +442,7 @@ public abstract class FawePlayer<T> extends Metadatable {
      * Get a new EditSession from this player
      */
     public EditSession getNewEditSession() {
-        return WorldEdit.getInstance().getEditSessionFactory().getEditSession(getWorld(), -1, getPlayer());
+        return WorldEdit.getInstance().getEditSessionFactory().getEditSession(getWorld(), -1, toWorldEditPlayer());
     }
 
 
