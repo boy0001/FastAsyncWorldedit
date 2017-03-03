@@ -2,6 +2,7 @@ package com.boydti.fawe.object.brush.scroll;
 
 import com.boydti.fawe.util.MathMan;
 import com.sk89q.worldedit.command.tool.BrushTool;
+import com.sk89q.worldedit.entity.Player;
 import com.sk89q.worldedit.function.mask.Mask;
 
 public class ScrollMask extends ScrollAction {
@@ -15,7 +16,7 @@ public class ScrollMask extends ScrollAction {
 
 
     @Override
-    public boolean increment(int amount) {
+    public boolean increment(Player player, int amount) {
         if (masks.length  > 1) {
             tool.setMask(masks[MathMan.wrap(index += amount, 0, masks.length - 1)]);
             return true;

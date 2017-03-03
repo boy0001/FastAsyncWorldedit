@@ -63,6 +63,7 @@ public class BundledBlockData {
     private static final BundledBlockData INSTANCE = new BundledBlockData();
 
     private final Map<String, BlockEntry> idMap = new HashMap<String, BlockEntry>();
+    private final Map<String, BaseBlock> stateMap = new HashMap<String, BaseBlock>();
     private final Map<String, BlockEntry> localIdMap = new HashMap<String, BlockEntry>();
 
     private final BlockEntry[] legacyMap = new BlockEntry[4096];
@@ -140,12 +141,22 @@ public class BundledBlockData {
         if (!overwrite && (idMap.containsKey(entry.id) || legacyMap[entry.legacyId] != null)) {
             return false;
         }
-        String id = entry.id.contains(":") ? entry.id.split(":")[1] : entry.id;
         idMap.put(entry.id, entry);
-        localIdMap.put(id.toLowerCase().replace(" ", "_"), entry);
+        String id = (entry.id.contains(":") ? entry.id.split(":")[1] : entry.id).toLowerCase().replace(" ", "_");
+        if (!idMap.containsKey(id)) {
+            idMap.put(id, entry);
+        }
         legacyMap[entry.legacyId] = entry;
         if (entry.states == null) {
             return true;
+        }
+        for (Map.Entry<String, FaweState> stateEntry : entry.states.entrySet()) {
+            for (Map.Entry<String, FaweStateValue> valueEntry : stateEntry.getValue().valueMap().entrySet()) {
+                String key = valueEntry.getKey();
+                if (!stateMap.containsKey(key)) {
+                    stateMap.put(key, new BaseBlock(entry.legacyId, valueEntry.getValue().data));
+                }
+            }
         }
         FaweState half = entry.states.get("half");
         if (half != null && half.values != null) {
@@ -230,6 +241,10 @@ public class BundledBlockData {
         return true;
     }
 
+    public BaseBlock findByState(String state) {
+        return stateMap.get(state);
+    }
+
     /**
      * Return the entry for the given block ID.
      *
@@ -238,11 +253,7 @@ public class BundledBlockData {
      */
     @Nullable
     public BlockEntry findById(String id) {
-        BlockEntry result = idMap.get(id);
-        if (result == null) {
-            result = localIdMap.get(id);
-        }
-        return result;
+        return idMap.get(id);
     }
 
     /**

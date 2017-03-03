@@ -16,11 +16,16 @@ import java.util.Set;
 public class LocalBlockVectorSet implements Set<Vector> {
     private int offsetX, offsetZ;
     private final SparseBitSet set;
-    private BlockVector mVec = new BlockVector(0, 0, 0);
 
     public LocalBlockVectorSet() {
         offsetX = offsetZ = Integer.MAX_VALUE;
         this.set = new SparseBitSet();
+    }
+
+    public LocalBlockVectorSet(int x, int z, SparseBitSet set) {
+        this.offsetX = x;
+        this.offsetZ = z;
+        this.set = set;
     }
 
     public SparseBitSet getBitSet() {
@@ -46,6 +51,38 @@ public class LocalBlockVectorSet implements Set<Vector> {
         if (o instanceof Vector) {
             Vector v = (Vector) o;
             return contains(v.getBlockX(), v.getBlockY(), v.getBlockZ());
+        }
+        return false;
+    }
+
+    @Override
+    public LocalBlockVectorSet clone() {
+        return new LocalBlockVectorSet(offsetX, offsetZ, set.clone());
+    }
+
+    public boolean containsRadius(int x, int y, int z, int radius) {
+        int length = radius * 2;
+        if (size() < length * length * length) {
+            int index = -1;
+            while ((index = set.nextSetBit(index + 1)) != -1) {
+                int b1 = (index & 0xFF);
+                int b2 = ((byte) (index >> 8)) & 0x7F;
+                int b3 = ((byte)(index >> 15)) & 0xFF;
+                int b4 = ((byte) (index >> 23)) & 0xFF;
+                if (Math.abs((offsetX + (((b3 + ((MathMan.unpair8x(b2)) << 8)) << 21) >> 21)) - x) <= radius && Math.abs((offsetZ + (((b4 + ((MathMan.unpair8y(b2)) << 8)) << 21) >> 21)) - z) <= radius && Math.abs((b1) - y) <= radius) {
+                    return true;
+                }
+            }
+            return false;
+        }
+        for (int xx = -radius; xx <= radius; xx++) {
+            for (int yy = -radius; yy <= radius; yy++) {
+                for (int zz = -radius; zz <= radius; zz++) {
+                    if (contains(x + xx, y + yy, z + zz)) {
+                        return true;
+                    }
+                }
+            }
         }
         return false;
     }
@@ -134,9 +171,12 @@ public class LocalBlockVectorSet implements Set<Vector> {
             throw new UnsupportedOperationException("LocalVectorSet can only contain vectors from y elem:[0,255]");
         }
         int index = getIndex(x, y, z);
-        boolean value = set.get(index);
-        set.set(index);
-        return !value;
+        if (set.get(index)) {
+            return false;
+        } else {
+            set.set(index);
+            return true;
+        }
     }
 
     @Override
@@ -196,9 +236,10 @@ public class LocalBlockVectorSet implements Set<Vector> {
     public boolean retainAll(Collection<?> c) {
         boolean result = false;
         int size = size();
-        int index = 0;
+        int index = -1;
+        Vector mVec = MutableBlockVector.get(0, 0, 0);
         for (int i = 0; i < size; i++) {
-            index = set.nextSetBit(index);
+            index = set.nextSetBit(index + 1);
             int b1 = (index & 0xFF);
             int b2 = ((byte) (index >> 8)) & 0x7F;
             int b3 = ((byte)(index >> 15)) & 0xFF;
@@ -210,7 +251,6 @@ public class LocalBlockVectorSet implements Set<Vector> {
                 result = true;
                 set.clear(index);
             }
-            index++;
         }
         return result;
     }
@@ -222,6 +262,27 @@ public class LocalBlockVectorSet implements Set<Vector> {
             result |= remove(o);
         }
         return result;
+    }
+
+    public void forEach(BlockVectorSetVisitor visitor) {
+        int size = size();
+        int index = -1;
+        Vector mVec = MutableBlockVector.get(0, 0, 0);
+        for (int i = 0; i < size; i++) {
+            index = set.nextSetBit(index + 1);
+            int b1 = (index & 0xFF);
+            int b2 = ((byte) (index >> 8)) & 0x7F;
+            int b3 = ((byte)(index >> 15)) & 0xFF;
+            int b4 = ((byte) (index >> 23)) & 0xFF;
+            int x = offsetX + (((b3 + ((MathMan.unpair8x(b2)) << 8)) << 21) >> 21);
+            int y = b1;
+            int z = offsetZ + (((b4 + ((MathMan.unpair8y(b2)) << 8)) << 21) >> 21);
+            visitor.run(x, y, z, index);
+        }
+    }
+
+    public static abstract class BlockVectorSetVisitor {
+        public abstract void run(int x, int y, int z, int index);
     }
 
     @Override

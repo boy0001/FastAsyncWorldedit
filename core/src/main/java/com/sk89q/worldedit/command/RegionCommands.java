@@ -257,7 +257,7 @@ public class RegionCommands {
     }
 
     @Command(
-            aliases = { "/curve" },
+            aliases = { "/curve", "/spline" },
             usage = "<block> [thickness]",
             desc = "Draws a spline through selected points",
             help =

@@ -16,7 +16,7 @@ import org.spongepowered.api.plugin.Plugin;
 import org.spongepowered.api.plugin.PluginContainer;
 import org.spongepowered.api.profile.GameProfileManager;
 
-@Plugin(id = "fastasyncworldedit", name = "FastAsyncWorldEdit", description = "fawe", url = "https://github.com/boy0001/FastAsyncWorldedit", version = "development", authors = "Empire92")
+@Plugin(id = "fastasyncworldedit", name = " FastAsyncWorldEdit", description = "fawe", url = "https://github.com/boy0001/FastAsyncWorldedit", version = "development", authors = "Empire92")
 public class SpongeMain {
     @Inject
     public PluginContainer plugin;

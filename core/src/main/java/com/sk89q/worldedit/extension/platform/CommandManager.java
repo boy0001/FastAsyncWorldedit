@@ -185,7 +185,9 @@ public final class CommandManager {
                 .group("superpickaxe", "pickaxe", "sp").describeAs("Super-pickaxe commands")
                 .registerMethods(new SuperPickaxeCommands(worldEdit)).parent().group("tool")
                 .describeAs("Bind functions to held items")
-                .registerMethods(new ToolCommands(worldEdit)).parent().graph().getDispatcher();
+                .registerMethods(new ToolCommands(worldEdit))
+                .registerMethods(new BrushCommands(worldEdit))
+                .parent().graph().getDispatcher();
     }
 
     public static CommandManager getInstance() {
@@ -251,7 +253,7 @@ public final class CommandManager {
         return split;
     }
 
-    public void handleCommandOnCurrentThread(final CommandEvent event, boolean checkLimit) {
+    public void handleCommandOnCurrentThread(final CommandEvent event) {
         Actor actor = platformManager.createProxyActor(event.getActor());
         final String args = event.getArguments();
         final String[] split = commandDetection(args.split(" "));
@@ -294,93 +296,95 @@ public final class CommandManager {
         }
         locals.put(Actor.class, actor);
         final Actor finalActor = actor;
-        if (!fp.runAction(new Runnable() {
-            @Override
-            public void run() {
-                locals.put("arguments", args);
-                final long start = System.currentTimeMillis();
-                try {
-                    // This is a bit of a hack, since the call method can only throw CommandExceptions
-                    // everything needs to be wrapped at least once. Which means to handle all WorldEdit
-                    // exceptions without writing a hook into every dispatcher, we need to unwrap these
-                    // exceptions and rethrow their converted form, if their is one.
-                    try {
-                        dispatcher.call(Joiner.on(" ").join(split), locals, new String[0]);
-                    } catch (Throwable t) {
-                        // Use the exception converter to convert the exception if any of its causes
-                        // can be converted, otherwise throw the original exception
-                        Throwable next = t;
-                        do {
-                            exceptionConverter.convert(next);
-                            next = next.getCause();
-                        } while (next != null);
 
-                        throw t;
-                    }
-                } catch (CommandPermissionsException e) {
-                    BBC.NO_PERM.send(finalActor, StringMan.join(failedPermissions, " "));
-                } catch (InvalidUsageException e) {
-                    if (e.isFullHelpSuggested()) {
-                        finalActor.printRaw(ColorCodeBuilder.asColorCodes(new CommandUsageBox(e.getCommand(), e.getCommandUsed("/", ""), locals)));
-                        String message = e.getMessage();
-                        if (message != null) {
-                            finalActor.printError(message);
-                        }
-                    } else {
-                        String message = e.getMessage();
-                        finalActor.print(BBC.getPrefix() + (message != null ? message : "The command was not used properly (no more help available)."));
-                        BBC.COMMAND_SYNTAX.send(finalActor, e.getSimpleUsageString("/"));
-                    }
-                } catch (WrappedCommandException e) {
-                    FaweException faweException = FaweException.get(e);
-                    if (faweException != null) {
-                        BBC.WORLDEDIT_CANCEL_REASON.send(finalActor, faweException.getMessage());
-                    } else {
-                        Throwable t = e.getCause();
-                        while (t.getCause() != null) {
-                            t = t.getCause();
-                        }
-                        finalActor.printError("There was an error handling a FAWE command: [See console]");
-                        finalActor.printRaw(t.getClass().getName() + ": " + t.getMessage());
-                        log.log(Level.SEVERE, "An unexpected error occurred while handling a FAWE command", t);
-                    }
-                } catch (CommandException e) {
-                    String message = e.getMessage();
-                    if (message != null) {
-                        finalActor.printError(e.getMessage());
-                    } else {
-                        finalActor.printError("An unknown error has occurred! Please see console.");
-                        log.log(Level.SEVERE, "An unknown error occurred", e);
-                    }
-                } finally {
-                    final EditSession editSession = locals.get(EditSession.class);
-                    boolean hasSession = false;
-                    if (editSession != null) {
-                        editSession.flushQueue();
-                        worldEdit.flushBlockBag(finalActor, editSession);
-                        session.remember(editSession);
-                        final long time = System.currentTimeMillis() - start;
-                        if (time > 250 && hasSession) {
-                            BBC.ACTION_COMPLETE.send(finalActor, (time / 1000d));
-                        }
-                    }
+        locals.put("arguments", args);
+        final long start = System.currentTimeMillis();
+        try {
+            // This is a bit of a hack, since the call method can only throw CommandExceptions
+            // everything needs to be wrapped at least once. Which means to handle all WorldEdit
+            // exceptions without writing a hook into every dispatcher, we need to unwrap these
+            // exceptions and rethrow their converted form, if their is one.
+            try {
+                dispatcher.call(Joiner.on(" ").join(split), locals, new String[0]);
+            } catch (Throwable t) {
+                // Use the exception converter to convert the exception if any of its causes
+                // can be converted, otherwise throw the original exception
+                Throwable next = t;
+                do {
+                    exceptionConverter.convert(next);
+                    next = next.getCause();
+                } while (next != null);
+
+                throw t;
+            }
+        } catch (CommandPermissionsException e) {
+            BBC.NO_PERM.send(finalActor, StringMan.join(failedPermissions, " "));
+        } catch (InvalidUsageException e) {
+            if (e.isFullHelpSuggested()) {
+                finalActor.printRaw(ColorCodeBuilder.asColorCodes(new CommandUsageBox(e.getCommand(), e.getCommandUsed("/", ""), locals)));
+                String message = e.getMessage();
+                if (message != null) {
+                    finalActor.printError(message);
+                }
+            } else {
+                String message = e.getMessage();
+                finalActor.print(BBC.getPrefix() + (message != null ? message : "The command was not used properly (no more help available)."));
+                BBC.COMMAND_SYNTAX.send(finalActor, e.getSimpleUsageString("/"));
+            }
+        } catch (WrappedCommandException e) {
+            FaweException faweException = FaweException.get(e);
+            if (faweException != null) {
+                BBC.WORLDEDIT_CANCEL_REASON.send(finalActor, faweException.getMessage());
+            } else {
+                Throwable t = e.getCause();
+                while (t.getCause() != null) {
+                    t = t.getCause();
+                }
+                finalActor.printError("There was an error handling a FAWE command: [See console]");
+                finalActor.printRaw(t.getClass().getName() + ": " + t.getMessage());
+                log.log(Level.SEVERE, "An unexpected error occurred while handling a FAWE command", t);
+            }
+        } catch (CommandException e) {
+            String message = e.getMessage();
+            if (message != null) {
+                finalActor.printError(e.getMessage());
+            } else {
+                finalActor.printError("An unknown error has occurred! Please see console.");
+                log.log(Level.SEVERE, "An unknown error occurred", e);
+            }
+        } finally {
+            final EditSession editSession = locals.get(EditSession.class);
+            boolean hasSession = false;
+            if (editSession != null) {
+                editSession.flushQueue();
+                worldEdit.flushBlockBag(finalActor, editSession);
+                session.remember(editSession);
+                final long time = System.currentTimeMillis() - start;
+                if (time > 250 && hasSession) {
+                    BBC.ACTION_COMPLETE.send(finalActor, (time / 1000d));
                 }
             }
-        }, checkLimit, false)) {
-            BBC.WORLDEDIT_COMMAND_LIMIT.send(fp);
         }
     }
 
     @Subscribe
     public void handleCommand(final CommandEvent event) {
         Request.reset();
+        final FawePlayer<Object> fp = FawePlayer.wrap(event.getActor());
         TaskManager.IMP.taskNow(new Runnable() {
             @Override
             public void run() {
-                handleCommandOnCurrentThread(event, true);
+                if (!fp.runAction(new Runnable() {
+                    @Override
+                    public void run() {
+                        handleCommandOnCurrentThread(event);
+                    }
+                }, true, false)) {
+                    BBC.WORLDEDIT_COMMAND_LIMIT.send(fp);
+                }
+                event.setCancelled(true);
             }
         }, Fawe.isMainThread());
-        event.setCancelled(true);
     }
 
     @Subscribe
@@ -388,7 +392,6 @@ public final class CommandManager {
         try {
             CommandLocals locals = new CommandLocals();
             locals.put(Actor.class, event.getActor());
-            locals.put("arguments", event.getArguments());
             event.setSuggestions(dispatcher.getSuggestions(event.getArguments(), locals));
         } catch (CommandException e) {
             event.getActor().printError(e.getMessage());

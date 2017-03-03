@@ -79,6 +79,7 @@ import com.sk89q.worldedit.function.mask.SolidBlockMask;
 import com.sk89q.worldedit.function.operation.ChangeSetExecutor;
 import com.sk89q.worldedit.function.operation.ForwardExtentCopy;
 import com.sk89q.worldedit.function.operation.Operations;
+import com.sk89q.worldedit.function.pattern.BlockPattern;
 import com.sk89q.worldedit.function.pattern.ClipboardPattern;
 import com.sk89q.worldedit.function.pattern.Pattern;
 import com.sk89q.worldedit.function.pattern.Patterns;
@@ -450,6 +451,7 @@ public class Fawe {
             ClipboardPattern.inject(); // Optimizations
             HashTagPatternParser.inject(); // Add new patterns
             DefaultBlockParser.inject(); // Fix block lookups
+            BlockPattern.inject(); // Optimization
             // Mask
             Mask.inject(); // Extend deprecated mask
             BlockMask.inject(); // Optimizations

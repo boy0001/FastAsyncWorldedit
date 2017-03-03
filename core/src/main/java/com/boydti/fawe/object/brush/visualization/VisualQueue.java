@@ -35,17 +35,13 @@ public class VisualQueue {
                         Tool tool = session.getTool(player.getItemInHand());
                         Brush brush;
                         if (tool instanceof BrushTool) {
-                            brush = ((BrushTool) tool).getBrush();
-                        } else if (tool instanceof VisualBrush) {
-                            brush = (Brush) tool;
-                        } else {
-                            continue;
-                        }
-                        if (brush instanceof VisualBrush) {
-                            try {
-                                ((VisualBrush) brush).visualize(BrushTool.BrushAction.PRIMARY, player);
-                            } catch (Throwable e) {
-                                WorldEdit.getInstance().getPlatformManager().handleThrowable(e, player);
+                            BrushTool brushTool = (BrushTool) tool;
+                            if (brushTool.getVisualMode() != VisualMode.NONE) {
+                                try {
+                                    brushTool.visualize(BrushTool.BrushAction.PRIMARY, player);
+                                } catch (Throwable e) {
+                                    WorldEdit.getInstance().getPlatformManager().handleThrowable(e, player);
+                                }
                             }
                         }
                     }

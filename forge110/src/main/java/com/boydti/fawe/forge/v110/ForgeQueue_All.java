@@ -6,6 +6,9 @@ import com.boydti.fawe.example.NMSMappedFaweQueue;
 import com.boydti.fawe.forge.ForgePlayer;
 import com.boydti.fawe.object.FaweChunk;
 import com.boydti.fawe.object.FawePlayer;
+import com.boydti.fawe.object.brush.visualization.VisualChunk;
+import com.boydti.fawe.object.number.LongAdder;
+import com.boydti.fawe.object.visitor.FaweChunkVisitor;
 import com.boydti.fawe.util.MainUtil;
 import com.boydti.fawe.util.MathMan;
 import com.boydti.fawe.util.ReflectionUtils;
@@ -16,6 +19,7 @@ import com.sk89q.worldedit.world.biome.BaseBiome;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufAllocator;
 import java.io.File;
+import java.io.IOException;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.ArrayDeque;
@@ -146,30 +150,53 @@ public class ForgeQueue_All extends NMSMappedFaweQueue<World, Chunk, ExtendedBlo
     }
 
     @Override
-    public void sendBlockUpdate(Map<Long, Map<Short, Character>> blockMap, FawePlayer... players) {
-        for (Map.Entry<Long, Map<Short, Character>> chunkEntry : blockMap.entrySet()) {
-            try {
-                long chunkHash = chunkEntry.getKey();
-                Map<Short, Character> blocks = chunkEntry.getValue();
-                SPacketMultiBlockChange packet = new SPacketMultiBlockChange();
-                int cx = MathMan.unpairIntX(chunkHash);
-                int cz = MathMan.unpairIntY(chunkHash);
-                ByteBuf byteBuf = ByteBufAllocator.DEFAULT.buffer();
-                PacketBuffer buffer = new PacketBuffer(byteBuf);
-                buffer.writeInt(cx);
-                buffer.writeInt(cz);
-                buffer.writeVarIntToBuffer(blocks.size());
-                for (Map.Entry<Short, Character> blockEntry : blocks.entrySet()) {
-                    buffer.writeShort(blockEntry.getKey());
-                    buffer.writeVarIntToBuffer(blockEntry.getValue());
+    public void sendBlockUpdate(FaweChunk chunk, FawePlayer... players) {
+        try {
+            PlayerChunkMap playerManager = ((WorldServer) getWorld()).getPlayerChunkMap();
+            boolean watching = false;
+            for (int i = 0; i < players.length; i++) {
+                EntityPlayerMP player = (EntityPlayerMP) ((ForgePlayer) players[i]).parent;
+                if (!playerManager.isPlayerWatchingChunk(player, chunk.getX(), chunk.getZ())) {
+                    players[i] = null;
+                } else {
+                    watching = true;
                 }
-                packet.readPacketData(buffer);
-                for (FawePlayer player : players) {
-                    ((ForgePlayer) player).parent.connection.sendPacket(packet);
-                }
-            } catch (Throwable e) {
-                e.printStackTrace();
             }
+            if (!watching) return;
+            final LongAdder size = new LongAdder();
+            if (chunk instanceof VisualChunk) {
+                size.add(((VisualChunk) chunk).size());
+            } else if (chunk instanceof CharFaweChunk) {
+                size.add(((CharFaweChunk) chunk).getTotalCount());
+            } else {
+                chunk.forEachQueuedBlock(new FaweChunkVisitor() {
+                    @Override
+                    public void run(int localX, int y, int localZ, int combined) {
+                        size.add(1);
+                    }
+                });
+            }
+            if (size.intValue() == 0) return;
+            SPacketMultiBlockChange packet = new SPacketMultiBlockChange();
+            ByteBuf byteBuf = ByteBufAllocator.DEFAULT.buffer();
+            final PacketBuffer buffer = new PacketBuffer(byteBuf);
+            buffer.writeInt(chunk.getX());
+            buffer.writeInt(chunk.getZ());
+            buffer.writeVarIntToBuffer(size.intValue());
+            chunk.forEachQueuedBlock(new FaweChunkVisitor() {
+                @Override
+                public void run(int localX, int y, int localZ, int combined) {
+                    short index = (short) (localX << 12 | localZ << 8 | y);
+                    buffer.writeShort(index);
+                    buffer.writeVarIntToBuffer(combined);
+                }
+            });
+            packet.readPacketData(buffer);
+            for (FawePlayer player : players) {
+                if (player != null) ((EntityPlayerMP) ((ForgePlayer) player).parent).connection.sendPacket(packet);
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
         }
     }
 

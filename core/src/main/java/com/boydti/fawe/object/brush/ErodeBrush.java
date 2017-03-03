@@ -10,39 +10,22 @@ import com.sk89q.worldedit.EditSession;
 import com.sk89q.worldedit.MaxChangedBlocksException;
 import com.sk89q.worldedit.Vector;
 import com.sk89q.worldedit.blocks.BaseBlock;
-import com.sk89q.worldedit.command.tool.BrushTool;
+import com.sk89q.worldedit.command.tool.brush.Brush;
 import com.sk89q.worldedit.function.pattern.Pattern;
 import java.util.Arrays;
 
-public class ErodeBrush implements DoubleActionBrush {
+public class ErodeBrush implements Brush {
 
     private PseudoRandom rand = new PseudoRandom();
 
     private static final Vector[] FACES_TO_CHECK = {new Vector(0, 0, 1), new Vector(0, 0, -1), new Vector(0, 1, 0), new Vector(0, -1, 0), new Vector(1, 0, 0), new Vector(-1, 0, 0)};
     
     @Override
-    public void build(BrushTool.BrushAction action, EditSession editSession, Vector position, Pattern pattern, double size) throws MaxChangedBlocksException {
-        switch (action) {
-            case PRIMARY: {
-                int erodeFaces = 2;
-                int erodeRec = 1;
-                int fillFaces = 5;
-                int fillRec = 1;
-                this.erosion(editSession, erodeFaces, erodeRec, fillFaces, fillRec, position, size);
-                break;
-            }
-            case SECONDARY: {
-                int erodeFaces = 6;
-                int erodeRec = 0;
-                int fillFaces = 1;
-                int fillRec = 1;
-                this.erosion(editSession, erodeFaces, erodeRec, fillFaces, fillRec, position, size);
-                break;
-            }
-        }
+    public void build(EditSession editSession, Vector position, Pattern pattern, double size) throws MaxChangedBlocksException {
+        this.erosion(editSession, 2, 1, 5, 1, position, size);
     }
 
-    protected void erosion(final EditSession es, int erodeFaces, int erodeRec, int fillFaces, int fillRec, Vector target, double size) {
+    public void erosion(final EditSession es, int erodeFaces, int erodeRec, int fillFaces, int fillRec, Vector target, double size) {
         int brushSize = (int) size + 1;
         int brushSizeSquared = (int) (size * size);
         int dimension = brushSize * 2 + 1;
@@ -86,7 +69,7 @@ public class ErodeBrush implements DoubleActionBrush {
         }, true);
     }
 
-    private void fillIteration(int brushSize, int brushSizeSquared, int fillFaces, FaweClipboard current, FaweClipboard target) {
+    public void fillIteration(int brushSize, int brushSizeSquared, int fillFaces, FaweClipboard current, FaweClipboard target) {
         int[] frequency = null;
         for (int x = -brushSize; x <= brushSize; x++) {
             int x2 = x * x;
@@ -130,7 +113,7 @@ public class ErodeBrush implements DoubleActionBrush {
         }
     }
 
-    private void erosionIteration(int brushSize, int brushSizeSquared, int erodeFaces, FaweClipboard current, FaweClipboard target) {
+    public void erosionIteration(int brushSize, int brushSizeSquared, int erodeFaces, FaweClipboard current, FaweClipboard target) {
         int[] frequency = null;
         for (int x = -brushSize; x <= brushSize; x++) {
             int x2 = x * x;

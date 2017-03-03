@@ -51,7 +51,7 @@ public class CommandBrush implements Brush {
         String[] cmds = replaced.split(";");
         for (String cmd : cmds) {
             CommandEvent event = new CommandEvent(wePlayer, cmd);
-            CommandManager.getInstance().handleCommand(event);
+            CommandManager.getInstance().handleCommandOnCurrentThread(event);
         }
     }
 }

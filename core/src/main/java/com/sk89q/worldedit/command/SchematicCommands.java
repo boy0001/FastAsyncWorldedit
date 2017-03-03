@@ -22,6 +22,7 @@ package com.sk89q.worldedit.command;
 import com.boydti.fawe.config.BBC;
 import com.boydti.fawe.config.Settings;
 import com.boydti.fawe.object.schematic.StructureFormat;
+import com.boydti.fawe.util.MainUtil;
 import com.boydti.fawe.util.MathMan;
 import com.sk89q.minecraft.util.commands.Command;
 import com.sk89q.minecraft.util.commands.CommandContext;
@@ -114,11 +115,30 @@ public class SchematicCommands {
                     BBC.NO_PERM.send(player, "worldedit.clipboard.load");
                     return;
                 }
-                final File dir = this.worldEdit.getWorkingDirectoryFile(config.saveDir);
-                final File f = this.worldEdit.getSafeOpenFile(player, dir, filename, format.getExtension(), format.getExtension());
-                if (!f.exists()) {
-                    player.printError("Schematic " + filename + " does not exist!");
+                if (filename.contains("../") && !player.hasPermission("worldedit.schematic.load.other")) {
+                    BBC.NO_PERM.send(player, "worldedit.schematic.load.other");
                     return;
+                }
+                File dir = new File(this.worldEdit.getWorkingDirectoryFile(config.saveDir), player.getUniqueId().toString());
+                File f = this.worldEdit.getSafeSaveFile(player, dir, filename, format.getExtension(), format.getExtension());
+                if (f.getName().replaceAll("." + format.getExtension(), "").isEmpty()) {
+                    File directory = f.getParentFile();
+                    if (directory.exists()) {
+                        int max = MainUtil.getMaxFileId(directory) - 1;
+                        f = new File(directory, max + "." + format.getExtension());
+                    } else {
+                        f = new File(directory, "1." + format.getExtension());
+                    }
+                }
+                if (!f.exists()) {
+                    if (!filename.contains("/") && !filename.contains("\\")) {
+                        dir = this.worldEdit.getWorkingDirectoryFile(config.saveDir);
+                        f = this.worldEdit.getSafeSaveFile(player, dir, filename, format.getExtension(), format.getExtension());
+                    }
+                    if (!f.exists()) {
+                        player.printError("Schematic " + filename + " does not exist!");
+                        return;
+                    }
                 }
                 final String filePath = f.getCanonicalPath();
                 final String dirPath = dir.getCanonicalPath();
@@ -156,16 +176,28 @@ public class SchematicCommands {
     @Command(aliases = { "save" }, usage = "[<format>] <filename>", desc = "Save a schematic into your clipboard")
     @Deprecated
     @CommandPermissions({ "worldedit.clipboard.save", "worldedit.schematic.save" })
-    public void save(final Player player, final LocalSession session, @Optional("schematic") final String formatName, final String filename) throws CommandException, WorldEditException {
+    public void save(final Player player, final LocalSession session, @Optional("schematic") final String formatName, String filename) throws CommandException, WorldEditException {
         final LocalConfiguration config = this.worldEdit.getConfiguration();
         final ClipboardFormat format = ClipboardFormat.findByAlias(formatName);
         if (format == null) {
             player.printError("Unknown schematic format: " + formatName);
             return;
         }
-
-        final File dir = this.worldEdit.getWorkingDirectoryFile(config.saveDir);
-        final File f = this.worldEdit.getSafeSaveFile(player, dir, filename, format.getExtension(), format.getExtension());
+        if (filename.contains("../") && !player.hasPermission("worldedit.schematic.save.other")) {
+            BBC.NO_PERM.send(player, "worldedit.schematic.save.other");
+            return;
+        }
+        final File dir = new File(this.worldEdit.getWorkingDirectoryFile(config.saveDir), player.getUniqueId().toString());
+        File f = this.worldEdit.getSafeSaveFile(player, dir, filename, format.getExtension(), format.getExtension());
+        if (f.getName().replaceAll("." + format.getExtension(), "").isEmpty()) {
+            File directory = f.getParentFile();
+            if (directory.exists()) {
+                int max = MainUtil.getMaxFileId(directory);
+                f = new File(directory, max + "." + format.getExtension());
+            } else {
+                f = new File(directory, "1." + format.getExtension());
+            }
+        }
         final File parent = f.getParentFile();
         if ((parent != null) && !parent.exists()) {
             if (!parent.mkdirs()) {

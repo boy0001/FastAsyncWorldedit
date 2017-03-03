@@ -25,7 +25,6 @@ import com.boydti.fawe.object.FaweInputStream;
 import com.boydti.fawe.object.FaweOutputStream;
 import com.boydti.fawe.object.FawePlayer;
 import com.boydti.fawe.object.RunnableVal2;
-import com.boydti.fawe.object.brush.visualization.VisualBrush;
 import com.boydti.fawe.object.changeset.DiskStorageHistory;
 import com.boydti.fawe.object.changeset.FaweChangeSet;
 import com.boydti.fawe.object.clipboard.DiskOptimizedClipboard;
@@ -42,7 +41,6 @@ import com.sk89q.worldedit.command.tool.BrushTool;
 import com.sk89q.worldedit.command.tool.InvalidToolBindException;
 import com.sk89q.worldedit.command.tool.SinglePickaxe;
 import com.sk89q.worldedit.command.tool.Tool;
-import com.sk89q.worldedit.command.tool.brush.Brush;
 import com.sk89q.worldedit.entity.Player;
 import com.sk89q.worldedit.extension.platform.Actor;
 import com.sk89q.worldedit.extent.clipboard.BlockArrayClipboard;
@@ -777,6 +775,11 @@ public class LocalSession {
         return clipboard;
     }
 
+    @Nullable
+    public ClipboardHolder getExistingClipboard() {
+        return clipboard;
+    }
+
     /**
      * Sets the clipboard.
      *
@@ -979,11 +982,19 @@ public class LocalSession {
     }
 
     public BrushTool getBrushTool(int item, Player player) throws InvalidToolBindException {
+        return getBrushTool(item, player, true);
+    }
+
+    public BrushTool getBrushTool(int item, Player player, boolean create) throws InvalidToolBindException {
         Tool tool = getTool(item);
 
-        if (tool == null || !(tool instanceof BrushTool)) {
-            tool = new BrushTool("worldedit.brush.sphere");
-            setTool(item, tool, player);
+        if ((tool == null || !(tool instanceof BrushTool))) {
+            if (create) {
+                tool = new BrushTool("worldedit.brush.sphere");
+                setTool(item, tool, player);
+            } else {
+                return null;
+            }
         }
 
         return (BrushTool) tool;
@@ -1011,12 +1022,8 @@ public class LocalSession {
         Tool previous = this.tools.put(item, tool);
         if (player != null) {
             if (previous instanceof BrushTool) {
-                Brush brush = ((BrushTool) previous).getBrush();
-                if (brush instanceof VisualBrush) {
-                    ((VisualBrush) brush).clear(player);
-                }
-            } else if (previous instanceof VisualBrush) {
-                ((VisualBrush) tool).clear(player);
+                BrushTool brushTool = (BrushTool) previous;
+                brushTool.clear(player);
             }
         }
     }

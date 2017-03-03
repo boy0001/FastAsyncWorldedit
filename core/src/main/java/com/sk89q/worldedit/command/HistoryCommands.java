@@ -73,7 +73,7 @@ public class HistoryCommands {
     }
 
     @Command(
-            aliases = { "/frb", "frb", "fawerollback", "/fawerollback" },
+            aliases = { "/frb", "frb", "fawerollback", "/fawerollback", "/rollback" },
             usage = "<user> <radius> <time>",
             desc = "Undo edits within a radius",
             min = 1,

@@ -1,22 +1,18 @@
 package com.boydti.fawe.bukkit;
 
-import com.boydti.fawe.config.BBC;
 import com.boydti.fawe.object.FawePlayer;
-import com.boydti.fawe.object.brush.MovableBrush;
-import com.boydti.fawe.object.brush.scroll.ScrollableBrush;
-import com.boydti.fawe.object.brush.visualization.VisualBrush;
+import com.boydti.fawe.object.brush.MovableTool;
+import com.boydti.fawe.object.brush.ResettableTool;
+import com.boydti.fawe.object.brush.scroll.ScrollTool;
 import com.sk89q.worldedit.LocalSession;
-import com.sk89q.worldedit.WorldEdit;
-import com.sk89q.worldedit.command.tool.BrushTool;
-import com.sk89q.worldedit.command.tool.InvalidToolBindException;
 import com.sk89q.worldedit.command.tool.Tool;
-import com.sk89q.worldedit.command.tool.brush.Brush;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
+import org.bukkit.event.block.Action;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerItemHeldEvent;
 import org.bukkit.event.player.PlayerMoveEvent;
@@ -40,39 +36,25 @@ public class BrushListener implements Listener {
         LocalSession session = fp.getSession();
         Tool tool = session.getTool(player);
         if (tool != null) {
-            ScrollableBrush scrollable;
-            if (tool instanceof ScrollableBrush) {
-                scrollable = (ScrollableBrush) tool;
-            } else if (tool instanceof BrushTool) {
-                Brush brush = ((BrushTool) tool).getBrush();
-                scrollable = brush instanceof ScrollableBrush ? (ScrollableBrush) brush : null;
-            } else {
-                return;
+            if (tool instanceof ScrollTool) {
+
             }
-            if (scrollable != null) {
-                final int slot = event.getNewSlot();
-                final int oldSlot = event.getPreviousSlot();
-                final int ri;
-                if ((((slot - oldSlot) <= 4) && ((slot - oldSlot) > 0)) || (((slot - oldSlot) < -4))) {
-                    ri = 1;
-                } else {
-                    ri = -1;
-                }
-                if (scrollable.increment(ri)) {
-                    final PlayerInventory inv = bukkitPlayer.getInventory();
-                    final ItemStack item = inv.getItem(slot);
-                    final ItemStack newItem = inv.getItem(oldSlot);
-                    inv.setItem(slot, newItem);
-                    inv.setItem(oldSlot, item);
-                    bukkitPlayer.updateInventory();
-                    if (scrollable instanceof VisualBrush) {
-                        try {
-                            ((VisualBrush) scrollable).queueVisualization(fp);
-                        } catch (Throwable e) {
-                            WorldEdit.getInstance().getPlatformManager().handleThrowable(e, player);
-                        }
-                    }
-                }
+            final int slot = event.getNewSlot();
+            final int oldSlot = event.getPreviousSlot();
+            final int ri;
+            if ((((slot - oldSlot) <= 4) && ((slot - oldSlot) > 0)) || (((slot - oldSlot) < -4))) {
+                ri = 1;
+            } else {
+                ri = -1;
+            }
+            ScrollTool scrollable = (ScrollTool) tool;
+            if (scrollable.increment(player, ri)) {
+                final PlayerInventory inv = bukkitPlayer.getInventory();
+                final ItemStack item = inv.getItem(slot);
+                final ItemStack newItem = inv.getItem(oldSlot);
+                inv.setItem(slot, newItem);
+                inv.setItem(oldSlot, item);
+                bukkitPlayer.updateInventory();
             }
         }
     }
@@ -88,21 +70,8 @@ public class BrushListener implements Listener {
             LocalSession session = fp.getSession();
             Tool tool = session.getTool(player);
             if (tool != null) {
-                if (tool instanceof MovableBrush) {
-                    ((MovableBrush) tool).move(player);
-                } else if (tool instanceof BrushTool) {
-                    Brush brush = ((BrushTool) tool).getBrush();
-                    if (brush instanceof MovableBrush) {
-                        if (((MovableBrush) brush).move(player)) {
-                            if (brush instanceof VisualBrush) {
-                                try {
-                                    ((VisualBrush) brush).queueVisualization(fp);
-                                } catch (Throwable e) {
-                                    WorldEdit.getInstance().getPlatformManager().handleThrowable(e, player);
-                                }
-                            }
-                        }
-                    }
+                if (tool instanceof MovableTool) {
+                    ((MovableTool) tool).move(player);
                 }
             }
         }
@@ -110,26 +79,21 @@ public class BrushListener implements Listener {
 
     @EventHandler(priority = EventPriority.LOWEST)
     public void onPlayerInteract(final PlayerInteractEvent event) {
-        switch (event.getAction()) {
-            case LEFT_CLICK_AIR:
-            case LEFT_CLICK_BLOCK:
-                Player bukkitPlayer = event.getPlayer();
-                if (!bukkitPlayer.isSneaking()) {
-                    return;
+        Player bukkitPlayer = event.getPlayer();
+        if (bukkitPlayer.isSneaking()) {
+            if (event.getAction() == Action.PHYSICAL) {
+                return;
+            }
+            FawePlayer<Object> fp = FawePlayer.wrap(bukkitPlayer);
+            com.sk89q.worldedit.entity.Player player = fp.getPlayer();
+            LocalSession session = fp.getSession();
+            int item = player.getItemInHand();
+            Tool tool = session.getTool(item);
+            if (tool instanceof ResettableTool) {
+                if (((ResettableTool) tool).reset()) {
+                    event.setCancelled(true);
                 }
-                FawePlayer<Object> fp = FawePlayer.wrap(bukkitPlayer);
-                com.sk89q.worldedit.entity.Player player = fp.getPlayer();
-                LocalSession session = fp.getSession();
-                int item = player.getItemInHand();
-                Tool tool = session.getTool(item);
-                if (tool != null) {
-                    try {
-                        session.setTool(item, null, player);
-                        BBC.TOOL_NONE.send(player);
-                    } catch (InvalidToolBindException e) {
-                        e.printStackTrace();
-                    }
-                }
+            }
         }
     }
 }

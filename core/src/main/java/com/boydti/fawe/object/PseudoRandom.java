@@ -31,7 +31,7 @@ public class PseudoRandom {
     }
 
     public double nextDouble() {
-        return Math.max(0, Math.min(1, Math.abs(nextLong() / Long.MAX_VALUE)));
+        return Math.max(0, Math.min(1, Math.abs((double) nextLong() / Long.MAX_VALUE)));
     }
 
     public int random(final int n) {

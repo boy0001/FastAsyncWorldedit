@@ -33,6 +33,7 @@ public class NukkitRegistryDumper {
         }
     }
 
+
     public NukkitRegistryDumper(File file) {
         this.file = file;
         GsonBuilder builder = new GsonBuilder().setPrettyPrinting();

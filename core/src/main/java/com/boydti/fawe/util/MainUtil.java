@@ -523,6 +523,10 @@ public class MainUtil {
                     }
                     return newFile;
                 }
+                File parent = newFile.getParentFile();
+                if (!parent.exists()) {
+                    parent.mkdirs();
+                }
                 newFile.createNewFile();
                 try (FileOutputStream fos = new FileOutputStream(newFile)) {
                     int len;

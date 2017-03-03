@@ -17,6 +17,7 @@ import com.boydti.fawe.nukkit.optimization.FaweNukkit;
 import com.boydti.fawe.nukkit.optimization.FaweNukkitPlayer;
 import com.boydti.fawe.object.FaweChunk;
 import com.boydti.fawe.object.FawePlayer;
+import com.boydti.fawe.object.visitor.FaweChunkVisitor;
 import com.boydti.fawe.util.MathMan;
 import com.sk89q.jnbt.CompoundTag;
 import com.sk89q.worldedit.world.World;
@@ -128,39 +129,40 @@ public class NukkitQueue extends NMSMappedFaweQueue<Level, BaseFullChunk, BaseFu
     }
 
     @Override
-    public void sendBlockUpdate(Map<Long, Map<Short, Character>> blockMap, FawePlayer... players) {
-        ArrayList<Block> blocks = new ArrayList<Block>();
-        for (Map.Entry<Long, Map<Short, Character>> entry : blockMap.entrySet()) {
-            long chunkHash = entry.getKey();
-            int cx = MathMan.unpairIntX(chunkHash);
-            int cz = MathMan.unpairIntY(chunkHash);
-            Map<Short, Character> ids = entry.getValue();
-            for (Map.Entry<Short, Character> blockEntry : ids.entrySet()) {
-                char combined = blockEntry.getValue();
-                int id = FaweCache.getId(combined);
-                int data = FaweCache.getData(combined);
-                Block block = Block.get(id, data);
-                short blockHash = blockEntry.getKey();
-                block.x = (blockHash >> 12 & 0xF) + (cx << 4);
-                block.y = (blockHash & 0xFF);
-                block.z = (blockHash >> 8 & 0xF) + (cz << 4);
-                blocks.add(block);
+    public void sendBlockUpdate(FaweChunk chunk, FawePlayer... players) {
+        try {
+            boolean watching = true; // TODO check if player can see chunk
+            if (!watching) return;
+            final ArrayList<Block> blocks = new ArrayList<>();
+            final int bx = chunk.getX() << 4;
+            final int bz = chunk.getZ() << 4;
+            chunk.forEachQueuedBlock(new FaweChunkVisitor() {
+                @Override
+                public void run(int localX, int y, int localZ, int combined) {
+                    Block block = Block.get(FaweCache.getId(combined), FaweCache.getData(combined));
+                    block.x = bz + localX;
+                    block.y = y;
+                    block.z = bx + localZ;
+                    blocks.add(block);
+                }
+            });
+            Map<Level, List<Player>> playerMap = new HashMap<>();
+            for (FawePlayer player : players) {
+                Player nukkitPlayer = ((FaweNukkitPlayer) player).parent;
+                List<Player> list = playerMap.get(nukkitPlayer.getLevel());
+                if (list == null) {
+                    list = new ArrayList<>();
+                    playerMap.put(nukkitPlayer.getLevel(), list);
+                }
+                list.add(nukkitPlayer);
             }
-        }
-        Map<Level, List<Player>> playerMap = new HashMap<>();
-        for (FawePlayer player : players) {
-            Player nukkitPlayer = ((FaweNukkitPlayer) player).parent;
-            List<Player> list = playerMap.get(nukkitPlayer.getLevel());
-            if (list == null) {
-                list = new ArrayList<>();
-                playerMap.put(nukkitPlayer.getLevel(), list);
+            Block[] blocksArray = blocks.toArray(new Block[blocks.size()]);
+            for (Map.Entry<Level, List<Player>> levelListEntry : playerMap.entrySet()) {
+                List<Player> playerList = levelListEntry.getValue();
+                levelListEntry.getKey().sendBlocks(playerList.toArray(new Player[playerList.size()]), blocksArray, UpdateBlockPacket.FLAG_ALL_PRIORITY);
             }
-            list.add(nukkitPlayer);
-        }
-        Block[] blocksArray = blocks.toArray(new Block[blocks.size()]);
-        for (Map.Entry<Level, List<Player>> levelListEntry : playerMap.entrySet()) {
-            List<Player> playerList = levelListEntry.getValue();
-            levelListEntry.getKey().sendBlocks(playerList.toArray(new Player[playerList.size()]), blocksArray, UpdateBlockPacket.FLAG_ALL_PRIORITY);
+        } catch (Throwable e) {
+            e.printStackTrace();
         }
     }
 

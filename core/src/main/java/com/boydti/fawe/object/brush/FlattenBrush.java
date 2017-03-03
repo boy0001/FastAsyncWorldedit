@@ -18,13 +18,13 @@ public class FlattenBrush extends HeightBrush {
     }
 
     @Override
-    public void build(BrushTool.BrushAction action, EditSession editSession, Vector position, Pattern pattern, double sizeDouble) throws MaxChangedBlocksException {
+    public void build(EditSession editSession, Vector position, Pattern pattern, double sizeDouble) throws MaxChangedBlocksException {
         int size = (int) sizeDouble;
         Mask mask = tool.getMask();
         if (mask == Masks.alwaysTrue() || mask == Masks.alwaysTrue2D()) {
             mask = null;
         }
         heightMap.setSize(size);
-        heightMap.apply(editSession, mask, position, size, rotation, action == BrushTool.BrushAction.PRIMARY ? yscale : -yscale, true, true);
+        heightMap.apply(editSession, mask, position, size, rotation, yscale, true, true);
     }
 }

@@ -2,6 +2,7 @@ package com.boydti.fawe.object.brush.scroll;
 
 import com.boydti.fawe.util.MathMan;
 import com.sk89q.worldedit.command.tool.BrushTool;
+import com.sk89q.worldedit.entity.Player;
 import com.sk89q.worldedit.function.pattern.Pattern;
 
 public class ScrollPattern extends ScrollAction {
@@ -15,7 +16,7 @@ public class ScrollPattern extends ScrollAction {
 
 
     @Override
-    public boolean increment(int amount) {
+    public boolean increment(Player player, int amount) {
         if (patterns.length  > 1) {
             tool.setFill(patterns[MathMan.wrap(index += amount, 0, patterns.length - 1)]);
             return true;

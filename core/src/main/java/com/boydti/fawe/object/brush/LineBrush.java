@@ -3,11 +3,11 @@ package com.boydti.fawe.object.brush;
 import com.sk89q.worldedit.EditSession;
 import com.sk89q.worldedit.MaxChangedBlocksException;
 import com.sk89q.worldedit.Vector;
-import com.sk89q.worldedit.command.tool.BrushTool;
+import com.sk89q.worldedit.command.tool.brush.Brush;
 import com.sk89q.worldedit.function.pattern.Pattern;
 import com.sk89q.worldedit.function.pattern.Patterns;
 
-public class LineBrush implements DoubleActionBrush {
+public class LineBrush implements Brush, ResettableTool {
 
     private final boolean shell, select, flat;
     private Vector pos1;
@@ -19,20 +19,21 @@ public class LineBrush implements DoubleActionBrush {
     }
 
     @Override
-    public void build(BrushTool.BrushAction action, EditSession editSession, Vector position, final Pattern pattern, double size) throws MaxChangedBlocksException {
-        switch (action) {
-            case PRIMARY:
-                if (pos1 == null) {
-                    pos1 = position;
-                    return;
-                }
-                editSession.drawLine(Patterns.wrap(pattern), pos1, position, size, !shell, flat);
-                if (!select) {
-                    return;
-                }
-            case SECONDARY:
-                pos1 = position;
-                return;
+    public void build(EditSession editSession, Vector position, final Pattern pattern, double size) throws MaxChangedBlocksException {
+        if (pos1 == null) {
+            pos1 = position;
+            return;
         }
+        editSession.drawLine(Patterns.wrap(pattern), pos1, position, size, !shell, flat);
+        if (!select) {
+            pos1 = null;
+            return;
+        }
+    }
+
+    @Override
+    public boolean reset() {
+        pos1 = null;
+        return true;
     }
 }

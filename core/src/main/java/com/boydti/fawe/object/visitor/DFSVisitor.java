@@ -10,7 +10,6 @@ import com.sk89q.worldedit.function.operation.Operation;
 import com.sk89q.worldedit.function.operation.RunContext;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
@@ -50,7 +49,7 @@ public abstract class DFSVisitor implements Operation {
 
     public abstract boolean isVisitable(Vector from, Vector to);
 
-    public Collection<Vector> getDirections() {
+    public List<Vector> getDirections() {
         return this.directions;
     }
 

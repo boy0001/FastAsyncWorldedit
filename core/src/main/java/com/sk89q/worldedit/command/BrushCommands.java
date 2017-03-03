@@ -32,10 +32,24 @@ import com.boydti.fawe.object.brush.ErodeBrush;
 import com.boydti.fawe.object.brush.FlattenBrush;
 import com.boydti.fawe.object.brush.HeightBrush;
 import com.boydti.fawe.object.brush.LineBrush;
+import com.boydti.fawe.object.brush.RaiseBrush;
 import com.boydti.fawe.object.brush.RecurseBrush;
 import com.boydti.fawe.object.brush.SplineBrush;
+import com.boydti.fawe.object.brush.TargetMode;
 import com.boydti.fawe.object.brush.heightmap.ScalableHeightMap;
+import com.boydti.fawe.object.brush.scroll.ScrollClipboard;
+import com.boydti.fawe.object.brush.scroll.ScrollMask;
+import com.boydti.fawe.object.brush.scroll.ScrollPattern;
+import com.boydti.fawe.object.brush.scroll.ScrollRange;
+import com.boydti.fawe.object.brush.scroll.ScrollSize;
+import com.boydti.fawe.object.brush.scroll.ScrollTarget;
+import com.boydti.fawe.object.brush.visualization.VisualMode;
+import com.boydti.fawe.object.clipboard.LazyClipboardHolder;
+import com.boydti.fawe.object.io.FastByteArrayOutputStream;
 import com.boydti.fawe.object.mask.IdMask;
+import com.boydti.fawe.util.MathMan;
+import com.google.common.io.ByteSource;
+import com.google.common.io.Files;
 import com.sk89q.minecraft.util.commands.Command;
 import com.sk89q.minecraft.util.commands.CommandContext;
 import com.sk89q.minecraft.util.commands.CommandPermissions;
@@ -59,14 +73,21 @@ import com.sk89q.worldedit.command.tool.brush.SmoothBrush;
 import com.sk89q.worldedit.command.tool.brush.SphereBrush;
 import com.sk89q.worldedit.command.util.CreatureButcher;
 import com.sk89q.worldedit.entity.Player;
+import com.sk89q.worldedit.event.platform.CommandEvent;
+import com.sk89q.worldedit.extension.input.ParserContext;
+import com.sk89q.worldedit.extension.platform.CommandManager;
 import com.sk89q.worldedit.extent.clipboard.Clipboard;
+import com.sk89q.worldedit.extent.clipboard.io.ClipboardFormat;
 import com.sk89q.worldedit.function.mask.BlockMask;
+import com.sk89q.worldedit.function.mask.Mask;
 import com.sk89q.worldedit.function.pattern.BlockPattern;
 import com.sk89q.worldedit.function.pattern.Pattern;
 import com.sk89q.worldedit.session.ClipboardHolder;
 import com.sk89q.worldedit.util.command.binding.Switch;
 import com.sk89q.worldedit.util.command.parametric.Optional;
+import com.sk89q.worldedit.world.registry.WorldData;
 import java.io.File;
+import java.io.FileFilter;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -74,6 +95,10 @@ import java.io.InputStream;
 import java.net.URL;
 import java.nio.channels.Channels;
 import java.nio.channels.ReadableByteChannel;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipInputStream;
 
 
 import static com.google.common.base.Preconditions.checkNotNull;
@@ -93,6 +118,227 @@ public class BrushCommands {
     public BrushCommands(WorldEdit worldEdit) {
         checkNotNull(worldEdit);
         this.worldEdit = worldEdit;
+    }
+
+    @Command(
+            aliases = { "primary" },
+            usage = "[brush arguments]",
+            desc = "Set the right click brush",
+            help = "Set the right click brush",
+            min = 1
+    )
+    public void primary(Player player, LocalSession session, CommandContext args) throws WorldEditException {
+        int item = player.getItemInHand();
+        BrushTool tool = session.getBrushTool(item, player, false);
+        session.setTool(item, null);
+        String cmd = "brush " + args.getJoinedStrings(0);
+        CommandEvent event = new CommandEvent(player, cmd);
+        CommandManager.getInstance().handleCommandOnCurrentThread(event);
+        BrushTool newTool = session.getBrushTool(item, player, false);
+        if (newTool != null && tool != null) {
+            newTool.setSecondary(tool.getSecondary());
+        }
+    }
+
+    @Command(
+            aliases = { "secondary" },
+            usage = "[brush arguments]",
+            desc = "Set the left click brush",
+            help = "Set the left click brush",
+            min = 1
+    )
+    public void secondary(Player player, LocalSession session, CommandContext args) throws WorldEditException {
+        int item = player.getItemInHand();
+        BrushTool tool = session.getBrushTool(item, player, false);
+        session.setTool(item, null);
+        String cmd = "brush " + args.getJoinedStrings(0);
+        CommandEvent event = new CommandEvent(player, cmd);
+        CommandManager.getInstance().handleCommandOnCurrentThread(event);
+        BrushTool newTool = session.getBrushTool(item, player, false);
+        if (newTool != null && tool != null) {
+            newTool.setPrimary(tool.getPrimary());
+        }
+    }
+
+    @Command(
+            aliases = { "visualize", "visual", "vis" },
+            usage = "[mode]",
+            desc = "Toggle between different visualization modes",
+            min = 0,
+            max = 1
+    )
+    public void visual(Player player, LocalSession session, @Optional("0") int mode) throws WorldEditException {
+        int item = player.getItemInHand();
+        BrushTool tool = session.getBrushTool(item, player, false);
+        if (tool == null) {
+            BBC.BRUSH_NONE.send(player);
+            return;
+        }
+        VisualMode[] modes = VisualMode.values();
+        VisualMode newMode = modes[MathMan.wrap(mode, 0, modes.length - 1)];
+        tool.setVisualMode(newMode);
+        BBC.BRUSH_VISUAL_MODE_SET.send(player, newMode);
+    }
+
+    @Command(
+            aliases = { "target", "tar" },
+            usage = "[mode]",
+            desc = "Toggle between different target modes",
+            min = 0,
+            max = 1
+    )
+    public void target(Player player, LocalSession session, @Optional("0") int mode) throws WorldEditException {
+        int item = player.getItemInHand();
+        BrushTool tool = session.getBrushTool(item, player, false);
+        if (tool == null) {
+            BBC.BRUSH_NONE.send(player);
+            return;
+        }
+        TargetMode[] modes = TargetMode.values();
+        TargetMode newMode = modes[MathMan.wrap(mode, 0, modes.length - 1)];
+        tool.setTargetMode(newMode);
+        BBC.BRUSH_TARGET_MODE_SET.send(player, newMode);
+    }
+
+
+    @Command(
+            aliases = { "scroll" },
+            usage = "[none|clipboard|mask|pattern|range|size|visual|target]",
+            desc = "Toggle between different target modes",
+            min = 1,
+            max = -1
+    )
+    public void scroll(Player player, EditSession editSession, LocalSession session, CommandContext args) throws WorldEditException {
+        int item = player.getItemInHand();
+        BrushTool tool = session.getBrushTool(item, player, false);
+        if (tool == null) {
+            BBC.BRUSH_NONE.send(player);
+            return;
+        }
+        ParserContext parserContext = new ParserContext();
+        parserContext.setActor(player);
+        parserContext.setWorld(player.getWorld());
+        parserContext.setSession(session);
+        parserContext.setExtent(editSession);
+        final LocalConfiguration config = this.worldEdit.getConfiguration();
+        switch (args.getString(0).toLowerCase()) {
+            case "none":
+                tool.setScrollAction(null);
+                break;
+            case "clipboard":
+                if (args.argsLength() != 2) {
+                    BBC.COMMAND_SYNTAX.send(player, "clipboard [file]");
+                    return;
+                }
+                String filename = args.getString(1);
+                try {
+                    WorldData worldData = player.getWorld().getWorldData();
+                    if (filename.startsWith("http")) {
+                        URL url = new URL(filename);
+                        URL webInterface = new URL(Settings.IMP.WEB.URL);
+                        if (!url.getHost().equalsIgnoreCase(webInterface.getHost())) {
+                            BBC.WEB_UNAUTHORIZED.send(player, url);
+                            return;
+                        }
+                        List<LazyClipboardHolder> clipboards = new ArrayList<>();
+                        try (ReadableByteChannel rbc = Channels.newChannel(url.openStream())) {
+                            try (InputStream in = Channels.newInputStream(rbc)) {
+                                try (ZipInputStream zip = new ZipInputStream(in)) {
+                                    ZipEntry entry;
+                                    byte[] buffer = new byte[8192];
+                                    while ((entry = zip.getNextEntry()) != null) {
+                                        if (entry.getName().endsWith(".schematic")) {
+                                            FastByteArrayOutputStream out = new FastByteArrayOutputStream();
+                                            int len = 0;
+                                            while ((len = zip.read(buffer)) > 0) {
+                                                out.write(buffer, 0, len);
+                                            }
+                                            byte[] array = out.toByteArray();
+                                            ByteSource source = ByteSource.wrap(array);
+                                            LazyClipboardHolder clipboard = new LazyClipboardHolder(source, ClipboardFormat.SCHEMATIC, worldData, null);
+                                            clipboards.add(clipboard);
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                        tool.setScrollAction(new ScrollClipboard(tool, session, clipboards.toArray(new LazyClipboardHolder[clipboards.size()])));
+                    } else {
+                        if (filename.contains("../") && !player.hasPermission("worldedit.schematic.load.other")) {
+                            BBC.NO_PERM.send(player, "worldedit.schematic.load.other");
+                            return;
+                        }
+                        File dir = new File(this.worldEdit.getWorkingDirectoryFile(config.saveDir), player.getUniqueId() + File.separator + filename);
+                        if (!dir.exists()) {
+                            if (!filename.contains("/") && !filename.contains("\\")) {
+                                dir = new File(this.worldEdit.getWorkingDirectoryFile(config.saveDir), filename);
+                            }
+                        }
+                        if (!dir.exists() || !dir.isDirectory()) {
+                            BBC.SCHEMATIC_NOT_FOUND.send(player, filename);
+                            return;
+                        }
+                        File[] files = dir.listFiles(new FileFilter() {
+                            @Override
+                            public boolean accept(File pathname) {
+                                return pathname.getName().endsWith(".schematic");
+                            }
+                        });
+                        if (files.length < 1) {
+                            BBC.SCHEMATIC_NOT_FOUND.send(player, filename);
+                            return;
+                        }
+                        LazyClipboardHolder[] clipboards = new LazyClipboardHolder[files.length];
+                        for (int i = 0; i < files.length; i++) {
+                            File file = files[i];
+                            ByteSource source = Files.asByteSource(file);
+                            clipboards[i] = new LazyClipboardHolder(source, ClipboardFormat.SCHEMATIC, worldData, null);
+                        }
+                        tool.setScrollAction(new ScrollClipboard(tool, session, clipboards));
+                    }
+                    break;
+                } catch (IOException e) {
+                    throw new RuntimeException(e);
+                }
+            case "mask":
+                if (args.argsLength() < 2) {
+                    BBC.COMMAND_SYNTAX.send(player, "mask [mask 1] [mask 2] [mask 3]...");
+                    return;
+                }
+                Mask[] masks = new Mask[args.argsLength() - 1];
+                for (int i = 1; i < args.argsLength(); i++) {
+                    String arg = args.getString(i);
+                    masks[i - 1] = worldEdit.getMaskFactory().parseFromInput(arg, parserContext);
+                }
+                tool.setScrollAction(new ScrollMask(tool, masks));
+                break;
+            case "pattern":
+                if (args.argsLength() < 2) {
+                    BBC.COMMAND_SYNTAX.send(player, "pattern [pattern 1] [pattern 2] [pattern 3]...");
+                    return;
+                }
+                Pattern[] patterns = new Pattern[args.argsLength() - 1];
+                for (int i = 1; i < args.argsLength(); i++) {
+                    String arg = args.getString(i);
+                    patterns[i - 1] = worldEdit.getPatternFactory().parseFromInput(arg, parserContext);
+                }
+                tool.setScrollAction(new ScrollPattern(tool, patterns));
+                break;
+            case "range":
+                tool.setScrollAction(new ScrollRange(tool));
+                break;
+            case "size":
+                tool.setScrollAction(new ScrollSize(tool));
+                break;
+            case "target":
+                tool.setScrollAction(new ScrollTarget(tool));
+                break;
+            default:
+                BBC.COMMAND_SYNTAX.send(player, "[none|clipboard|mask|pattern|range|size|visual|target]");
+                return;
+
+        }
+        BBC.BRUSH_SCROLL_ACTION_SET.send(player, args.getJoinedStrings(0));
     }
 
     @Command(
@@ -126,6 +372,23 @@ public class BrushCommands {
         BrushTool tool = session.getBrushTool(player.getItemInHand(), player);
         tool.setSize(radius);
         tool.setBrush(new ErodeBrush(), "worldedit.brush.erode", player);
+        player.print(BBC.getPrefix() + BBC.BRUSH_ERODE.f(radius));
+    }
+
+    @Command(
+            aliases = { "raise" },
+            usage = "[radius]",
+            desc = "Choose the raise brush",
+            help = "Chooses the raise brush",
+            min = 0,
+            max = 1
+    )
+    @CommandPermissions("worldedit.brush.raise")
+    public void raiseBrush(Player player, LocalSession session, @Optional("5") double radius) throws WorldEditException {
+        worldEdit.checkMaxBrushRadius(radius);
+        BrushTool tool = session.getBrushTool(player.getItemInHand(), player);
+        tool.setSize(radius);
+        tool.setBrush(new RaiseBrush(), "worldedit.brush.erode", player);
         player.print(BBC.getPrefix() + BBC.BRUSH_ERODE.f(radius));
     }
 
@@ -191,7 +454,7 @@ public class BrushCommands {
     }
 
     @Command(
-            aliases = { "spline", "spl" },
+            aliases = { "spline", "spl", "curve" },
             usage = "<pattern>",
             desc = "Choose the spline brush",
             help = "Chooses the spline brush",
@@ -245,6 +508,28 @@ public class BrushCommands {
         player.print(BBC.getPrefix() + BBC.BRUSH_SPHERE.f(radius));
         if (!FawePlayer.wrap(player).hasPermission("fawe.tips")) BBC.TIP_BRUSH_COMMAND.or(BBC.TIP_BRUSH_RELATIVE, BBC.TIP_BRUSH_TRANSFORM, BBC.TIP_BRUSH_MASK_SOURCE, BBC.TIP_BRUSH_MASK, BBC.TIP_BRUSH_COPY, BBC.TIP_BRUSH_HEIGHT, BBC.TIP_BRUSH_SPLINE).send(player);
     }
+
+//    @Command(
+//            aliases = { "test" },
+//            usage = "<pattern> [radius] [count] [distance]",
+//            flags = "h",
+//            desc = "Choose the sphere brush",
+//            help =
+//                    "Chooses the sphere brush.\n" +
+//                            "The -h flag creates hollow spheres instead.",
+//            min = 1,
+//            max = -1
+//    )
+//    @CommandPermissions("worldedit.brush.test")
+//    public void testBrush(Player player, LocalSession session, Pattern fill, @Optional("10") double radius, @Optional("10") int count, @Optional("10") int distance) throws WorldEditException {
+//        worldEdit.checkMaxBrushRadius(radius);
+//
+//        BrushTool tool = session.getBrushTool(player.getItemInHand(), player);
+//        tool.setFill(fill);
+//        tool.setSize(radius);
+//        tool.setBrush(new Test(count), "worldedit.brush.test");
+//        player.print("equiped");
+//    }
 
     @Command(
             aliases = { "cylinder", "cyl", "c" },
@@ -484,7 +769,7 @@ public class BrushCommands {
         worldEdit.checkMaxBrushRadius(radius);
         BrushTool tool = session.getBrushTool(player.getItemInHand(), player);
         tool.setSize(radius);
-        tool.setBrush(new CopyPastaBrush(tool), "worldedit.brush.copy", player);
+        tool.setBrush(new CopyPastaBrush(tool, session), "worldedit.brush.copy", player);
         player.print(BBC.getPrefix() + BBC.BRUSH_COPY.f(radius));
     }
 
