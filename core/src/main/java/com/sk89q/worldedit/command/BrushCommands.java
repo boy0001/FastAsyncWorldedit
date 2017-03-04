@@ -235,7 +235,7 @@ public class BrushCommands {
                     WorldData worldData = player.getWorld().getWorldData();
                     if (filename.startsWith("http")) {
                         URL url = new URL(filename);
-                        URL webInterface = new URL(Settings.IMP.WEB.URL);
+                        URL webInterface = new URL(Settings.IMP.WEB.ASSETS);
                         if (!url.getHost().equalsIgnoreCase(webInterface.getHost())) {
                             BBC.WEB_UNAUTHORIZED.send(player, url);
                             return;
