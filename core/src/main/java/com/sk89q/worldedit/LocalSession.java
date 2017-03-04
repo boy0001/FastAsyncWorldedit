@@ -20,6 +20,7 @@
 package com.sk89q.worldedit;
 
 import com.boydti.fawe.Fawe;
+import com.boydti.fawe.FaweCache;
 import com.boydti.fawe.config.Settings;
 import com.boydti.fawe.object.FaweInputStream;
 import com.boydti.fawe.object.FaweOutputStream;
@@ -955,9 +956,15 @@ public class LocalSession {
      * @param item the item type ID
      * @return the tool, which may be {@link null}
      */
+    @Deprecated
     @Nullable
     public Tool getTool(int item) {
-        return tools.get(item);
+        return tools.get(FaweCache.getCombined(item, 0));
+    }
+
+    @Nullable
+    public Tool getTool(int id, int data) {
+        return tools.get(FaweCache.getCombined(id, data));
     }
 
     @Nullable
@@ -1007,19 +1014,25 @@ public class LocalSession {
      * @param tool the tool to set, which can be {@code null}
      * @throws InvalidToolBindException if the item can't be bound to that item
      */
+    @Deprecated
     public void setTool(int item, @Nullable Tool tool) throws InvalidToolBindException {
         setTool(item, tool, null);
     }
 
+    @Deprecated
     public void setTool(int item, @Nullable Tool tool, Player player) throws InvalidToolBindException {
-        if (item > 0 && item < 255) {
-            throw new InvalidToolBindException(item, "Blocks can't be used");
-        } else if (item == config.wandItem) {
-            throw new InvalidToolBindException(item, "Already used for the wand");
-        } else if (item == config.navigationWand) {
-            throw new InvalidToolBindException(item, "Already used for the navigation wand");
+        setTool(item, 0, tool, player);
+    }
+
+    public void setTool(int id, int data, @Nullable Tool tool, Player player) throws InvalidToolBindException {
+        if (id > 0 && id < 255) {
+            throw new InvalidToolBindException(id, "Blocks can't be used");
+        } else if (id == config.wandItem) {
+            throw new InvalidToolBindException(id, "Already used for the wand");
+        } else if (id == config.navigationWand) {
+            throw new InvalidToolBindException(id, "Already used for the navigation wand");
         }
-        Tool previous = this.tools.put(item, tool);
+        Tool previous = this.tools.put(FaweCache.getCombined(id, data), tool);
         if (player != null) {
             if (previous instanceof BrushTool) {
                 BrushTool brushTool = (BrushTool) previous;

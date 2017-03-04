@@ -331,6 +331,7 @@ public class Settings extends Config {
                 "If packet sending should be delayed until relight is finished",
         })
         public boolean DELAY_PACKET_SENDING = true;
+        public boolean ASYNC = true;
         @Comment({
                 "The relighting mode to use:",
                 " - 0 = None (Do no relighting)",

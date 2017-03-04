@@ -1,10 +1,13 @@
 package com.boydti.fawe.example;
 
 import com.boydti.fawe.FaweCache;
+import com.boydti.fawe.config.Settings;
 import com.boydti.fawe.object.FaweChunk;
 import com.boydti.fawe.object.FaweQueue;
 import com.boydti.fawe.object.IntegerTrio;
+import com.boydti.fawe.object.RunnableVal;
 import com.boydti.fawe.util.MathMan;
+import com.boydti.fawe.util.TaskManager;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
 import java.util.ArrayDeque;
@@ -220,15 +223,25 @@ public class NMSRelighter implements Relighter{
     }
 
     public synchronized void sendChunks() {
-        Iterator<Map.Entry<Long, Integer>> iter = chunksToSend.entrySet().iterator();
-        while (iter.hasNext()) {
-            Map.Entry<Long, Integer> entry = iter.next();
-            long pair = entry.getKey();
-            int bitMask = entry.getValue();
-            int x = MathMan.unpairIntX(pair);
-            int z = MathMan.unpairIntY(pair);
-            queue.sendChunk(x, z, bitMask);
-            iter.remove();
+        RunnableVal<Object> runnable = new RunnableVal<Object>() {
+            @Override
+            public void run(Object value) {
+                Iterator<Map.Entry<Long, Integer>> iter = chunksToSend.entrySet().iterator();
+                while (iter.hasNext()) {
+                    Map.Entry<Long, Integer> entry = iter.next();
+                    long pair = entry.getKey();
+                    int bitMask = entry.getValue();
+                    int x = MathMan.unpairIntX(pair);
+                    int z = MathMan.unpairIntY(pair);
+                    queue.sendChunk(x, z, bitMask);
+                    iter.remove();
+                }
+            }
+        };
+        if (Settings.IMP.LIGHTING.ASYNC) {
+            runnable.run();
+        } else {
+            TaskManager.IMP.sync(runnable);
         }
     }
 
