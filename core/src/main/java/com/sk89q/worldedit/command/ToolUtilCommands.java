@@ -16,6 +16,7 @@ import com.sk89q.worldedit.entity.Player;
 import com.sk89q.worldedit.extension.input.ParserContext;
 import com.sk89q.worldedit.function.mask.Mask;
 import com.sk89q.worldedit.function.pattern.Pattern;
+import com.sk89q.worldedit.util.command.binding.Switch;
 import com.sk89q.worldedit.util.command.parametric.Optional;
 
 /**
@@ -165,7 +166,7 @@ public class ToolUtilCommands {
             max = 1
     )
     @CommandPermissions("worldedit.brush.options.material")
-    public void material(Player player, LocalSession session, Pattern pattern) throws WorldEditException {
+    public void material(Player player, LocalSession session, Pattern pattern, @Switch('h') boolean hand) throws WorldEditException {
         Tool tool = session.getTool(player.getItemInHand());
         if (tool instanceof BrushTool) {
             ((BrushTool) tool).setFill(pattern);
@@ -198,7 +199,7 @@ public class ToolUtilCommands {
             max = 1
     )
     @CommandPermissions("worldedit.brush.options.size")
-    public void size(Player player, LocalSession session, CommandContext args) throws WorldEditException {
+    public void size(Player player, LocalSession session, CommandContext args, @Switch('h') boolean hand) throws WorldEditException {
 
         int radius = args.getInteger(0);
         we.checkMaxBrushRadius(radius);

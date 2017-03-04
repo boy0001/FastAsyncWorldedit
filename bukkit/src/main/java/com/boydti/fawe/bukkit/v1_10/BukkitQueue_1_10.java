@@ -24,7 +24,6 @@ import java.util.Collections;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
-import java.util.concurrent.ExecutorCompletionService;
 import net.minecraft.server.v1_10_R1.BiomeBase;
 import net.minecraft.server.v1_10_R1.BiomeCache;
 import net.minecraft.server.v1_10_R1.Block;
@@ -100,18 +99,18 @@ public class BukkitQueue_1_10 extends BukkitQueue_0<net.minecraft.server.v1_10_R
             fieldTickingBlockCount.setAccessible(true);
             fieldNonEmptyBlockCount.setAccessible(true);
 
-            fieldBiomes = ChunkProviderGenerate.class.getDeclaredField("D");
+            fieldBiomes = ChunkProviderGenerate.class.getDeclaredField("C");
             fieldBiomes.setAccessible(true);
             fieldChunkGenerator = ChunkProviderServer.class.getDeclaredField("chunkGenerator");
             fieldChunkGenerator.setAccessible(true);
             fieldSeed = WorldData.class.getDeclaredField("e");
             fieldSeed.setAccessible(true);
-            fieldBiomeCache = WorldChunkManager.class.getDeclaredField("d");
+            fieldBiomeCache = WorldChunkManager.class.getDeclaredField("c");
             fieldBiomeCache.setAccessible(true);
-            fieldBiomes2 = WorldChunkManager.class.getDeclaredField("e");
+            fieldBiomes2 = WorldChunkManager.class.getDeclaredField("d");
             fieldBiomes2.setAccessible(true);
-            fieldGenLayer1 = WorldChunkManager.class.getDeclaredField("b") ;
-            fieldGenLayer2 = WorldChunkManager.class.getDeclaredField("c") ;
+            fieldGenLayer1 = WorldChunkManager.class.getDeclaredField("a") ;
+            fieldGenLayer2 = WorldChunkManager.class.getDeclaredField("b") ;
             fieldGenLayer1.setAccessible(true);
             fieldGenLayer2.setAccessible(true);
 
