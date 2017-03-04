@@ -101,7 +101,7 @@ public class SplineBrush implements Brush {
                     points.add(position);
                 }
                 this.positionSets.add(points);
-                player.print(BBC.getPrefix() + BBC.BRUSH_SPLINE_PRIMARY.s());
+                player.print(BBC.getPrefix() + BBC.BRUSH_SPLINE_PRIMARY_2.s());
                 if (!visualization) {
                     return;
                 }
@@ -147,11 +147,11 @@ public class SplineBrush implements Brush {
         }
         player.print(BBC.getPrefix() + BBC.BRUSH_SPLINE_SECONDARY.s());
         if (visualization) {
-            positionSets.clear();
-            numSplines = 0;
-        } else {
             numSplines = originalSize;
             positionSets.remove(positionSets.size() - 1);
+        } else {
+            positionSets.clear();
+            numSplines = 0;
         }
     }
 

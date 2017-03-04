@@ -36,9 +36,6 @@ public class BrushListener implements Listener {
         LocalSession session = fp.getSession();
         Tool tool = session.getTool(player);
         if (tool != null) {
-            if (tool instanceof ScrollTool) {
-
-            }
             final int slot = event.getNewSlot();
             final int oldSlot = event.getPreviousSlot();
             final int ri;

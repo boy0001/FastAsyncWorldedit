@@ -122,7 +122,7 @@ public enum BBC {
     BRUSH_SPHERE("Sphere brush shape equipped (%s0).", "WorldEdit.Brush"),
     BRUSH_LINE("Line brush shape equipped (%s0).", "WorldEdit.Brush"),
     BRUSH_SPLINE("Spline brush shape equipped (%s0). Right click an end to add a shape", "WorldEdit.Brush"),
-    BRUSH_SPLINE_PRIMARY("Added position, Click the same spot to join!", "WorldEdit.Brush"),
+    BRUSH_SPLINE_PRIMARY_2("Added position, Click the same spot to join!", "WorldEdit.Brush"),
     BRUSH_SPLINE_SECONDARY_ERROR("Not enough positions set!", "WorldEdit.Brush"),
     BRUSH_SPLINE_SECONDARY("Created spline", "WorldEdit.Brush"),
     BRUSH_BLEND_BALL("Blend ball brush  equipped (%s0).", "WorldEdit.Brush"),

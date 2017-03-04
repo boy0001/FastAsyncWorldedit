@@ -68,28 +68,35 @@ public class ToolUtilCommands {
             max = -1
     )
     @CommandPermissions("worldedit.brush.options.mask")
-    public void mask(Player player, LocalSession session, EditSession editSession, @Optional CommandContext context) throws WorldEditException {
+    public void mask(Player player, LocalSession session, EditSession editSession, @Optional CommandContext context, @Switch('h') boolean offHand) throws WorldEditException {
         Tool tool = session.getTool(player.getItemInHand());
         if (tool == null) {
             player.print(BBC.getPrefix() + BBC.BRUSH_NONE.f());
             return;
         }
+        Mask mask;
         if (context == null || context.argsLength() == 0) {
-            if (tool instanceof BrushTool) {
-                ((BrushTool) tool).setMask(null);
-            }
-            BBC.BRUSH_MASK_DISABLED.send(player);
+            mask = null;
         } else {
             ParserContext parserContext = new ParserContext();
             parserContext.setActor(player);
             parserContext.setWorld(player.getWorld());
             parserContext.setSession(session);
             parserContext.setExtent(editSession);
-            Mask mask = we.getMaskFactory().parseFromInput(context.getJoinedStrings(0), parserContext);
-            if (tool instanceof BrushTool) {
+            mask = we.getMaskFactory().parseFromInput(context.getJoinedStrings(0), parserContext);
+        }
+        if (tool instanceof BrushTool) {
+            BrushTool bt = (BrushTool) tool;
+            if (offHand) {
+                bt.getSecondary().mask = mask;
+            } else {
                 ((BrushTool) tool).setMask(mask);
             }
-            BBC.BRUSH_MASK.send(player);
+        }
+        if (mask == null) {
+            BBC.BRUSH_SOURCE_MASK_DISABLED.send(player);
+        } else {
+            BBC.BRUSH_SOURCE_MASK.send(player);
         }
     }
 
@@ -101,27 +108,34 @@ public class ToolUtilCommands {
             max = -1
     )
     @CommandPermissions("worldedit.brush.options.mask")
-    public void smask(Player player, LocalSession session, EditSession editSession, @Optional CommandContext context) throws WorldEditException {
+    public void smask(Player player, LocalSession session, EditSession editSession, @Optional CommandContext context, @Switch('h') boolean offHand) throws WorldEditException {
         Tool tool = session.getTool(player.getItemInHand());
         if (tool == null) {
             player.print(BBC.getPrefix() + BBC.BRUSH_NONE.f());
             return;
         }
+        Mask mask;
         if (context == null || context.argsLength() == 0) {
-            if (tool instanceof BrushTool) {
-                ((BrushTool) tool).setSourceMask(null);
-            }
-            BBC.BRUSH_SOURCE_MASK_DISABLED.send(player);
+            mask = null;
         } else {
             ParserContext parserContext = new ParserContext();
             parserContext.setActor(player);
             parserContext.setWorld(player.getWorld());
             parserContext.setSession(session);
             parserContext.setExtent(editSession);
-            Mask mask = we.getMaskFactory().parseFromInput(context.getJoinedStrings(0), parserContext);
-            if (tool instanceof BrushTool) {
+            mask = we.getMaskFactory().parseFromInput(context.getJoinedStrings(0), parserContext);
+        }
+        if (tool instanceof BrushTool) {
+            BrushTool bt = (BrushTool) tool;
+            if (offHand) {
+                bt.getSecondary().sourceMask = mask;
+            } else {
                 ((BrushTool) tool).setSourceMask(mask);
             }
+        }
+        if (mask == null) {
+            BBC.BRUSH_SOURCE_MASK_DISABLED.send(player);
+        } else {
             BBC.BRUSH_SOURCE_MASK.send(player);
         }
     }
@@ -134,26 +148,33 @@ public class ToolUtilCommands {
             max = -1
     )
     @CommandPermissions("worldedit.brush.options.transform")
-    public void transform(Player player, LocalSession session, EditSession editSession, @Optional CommandContext context) throws WorldEditException {
+    public void transform(Player player, LocalSession session, EditSession editSession, @Optional CommandContext context, @Switch('h') boolean offHand) throws WorldEditException {
         Tool tool = session.getTool(player.getItemInHand());
         if (tool == null) {
             return;
         }
+        ResettableExtent transform;
         if (context == null || context.argsLength() == 0) {
-            if (tool instanceof BrushTool) {
-                ((BrushTool) tool).setTransform(null);
-            }
-            BBC.BRUSH_TRANSFORM_DISABLED.send(player);
+            transform = null;
         } else {
             ParserContext parserContext = new ParserContext();
             parserContext.setActor(player);
             parserContext.setWorld(player.getWorld());
             parserContext.setSession(session);
             parserContext.setExtent(editSession);
-            ResettableExtent transform = transformParser.parseFromInput(context.getJoinedStrings(0), parserContext);
-            if (tool instanceof BrushTool) {
+            transform = transformParser.parseFromInput(context.getJoinedStrings(0), parserContext);
+        }
+        if (tool instanceof BrushTool) {
+            BrushTool bt = (BrushTool) tool;
+            if (offHand) {
+                bt.getSecondary().transform = transform;
+            } else {
                 ((BrushTool) tool).setTransform(transform);
             }
+        }
+        if (transform == null) {
+            BBC.BRUSH_TRANSFORM_DISABLED.send(player);
+        } else {
             BBC.BRUSH_TRANSFORM.send(player);
         }
     }
@@ -166,10 +187,15 @@ public class ToolUtilCommands {
             max = 1
     )
     @CommandPermissions("worldedit.brush.options.material")
-    public void material(Player player, LocalSession session, Pattern pattern, @Switch('h') boolean hand) throws WorldEditException {
+    public void material(Player player, LocalSession session, Pattern pattern, @Switch('h') boolean offHand) throws WorldEditException {
         Tool tool = session.getTool(player.getItemInHand());
         if (tool instanceof BrushTool) {
-            ((BrushTool) tool).setFill(pattern);
+            BrushTool bt = (BrushTool) tool;
+            if (offHand) {
+                bt.getSecondary().material = pattern;
+            } else {
+                ((BrushTool) tool).setFill(pattern);
+            }
         }
         BBC.BRUSH_MATERIAL.send(player);
     }
@@ -186,6 +212,7 @@ public class ToolUtilCommands {
         int range = Math.max(0, Math.min(256, args.getInteger(0)));
         Tool tool = session.getTool(player.getItemInHand());
         if (tool instanceof BrushTool) {
+            BrushTool bt = (BrushTool) tool;
             ((BrushTool) tool).setRange(range);
         }
         BBC.BRUSH_RANGE.send(player);
@@ -199,14 +226,19 @@ public class ToolUtilCommands {
             max = 1
     )
     @CommandPermissions("worldedit.brush.options.size")
-    public void size(Player player, LocalSession session, CommandContext args, @Switch('h') boolean hand) throws WorldEditException {
+    public void size(Player player, LocalSession session, CommandContext args, @Switch('h') boolean offHand) throws WorldEditException {
 
         int radius = args.getInteger(0);
         we.checkMaxBrushRadius(radius);
 
         Tool tool = session.getTool(player.getItemInHand());
         if (tool instanceof BrushTool) {
-            ((BrushTool) tool).setSize(radius);
+            BrushTool bt = (BrushTool) tool;
+            if (offHand) {
+                bt.getSecondary().size = radius;
+            } else {
+                ((BrushTool) tool).setSize(radius);
+            }
         }
         BBC.BRUSH_SIZE.send(player);
     }

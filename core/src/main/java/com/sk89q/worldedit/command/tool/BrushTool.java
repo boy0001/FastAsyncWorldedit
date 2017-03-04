@@ -360,8 +360,8 @@ public class BrushTool implements DoubleActionTraceTool, ScrollTool, MovableTool
                 } catch (Throwable e) {
                     WorldEdit.getInstance().getPlatformManager().handleThrowable(e, player);
                 }
-                return true;
             }
+            return true;
         }
         return false;
     }
