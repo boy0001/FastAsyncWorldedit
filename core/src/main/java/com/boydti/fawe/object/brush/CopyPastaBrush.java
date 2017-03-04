@@ -2,6 +2,7 @@ package com.boydti.fawe.object.brush;
 
 import com.boydti.fawe.config.BBC;
 import com.boydti.fawe.object.FawePlayer;
+import com.boydti.fawe.object.PseudoRandom;
 import com.boydti.fawe.object.brush.visualization.VisualExtent;
 import com.boydti.fawe.object.clipboard.ResizableClipboardBuilder;
 import com.boydti.fawe.object.function.NullRegionFunction;
@@ -20,6 +21,7 @@ import com.sk89q.worldedit.function.operation.Operation;
 import com.sk89q.worldedit.function.operation.Operations;
 import com.sk89q.worldedit.function.pattern.Pattern;
 import com.sk89q.worldedit.function.visitor.RecursiveVisitor;
+import com.sk89q.worldedit.math.transform.AffineTransform;
 import com.sk89q.worldedit.regions.Region;
 import com.sk89q.worldedit.session.ClipboardHolder;
 
@@ -27,11 +29,13 @@ public class CopyPastaBrush implements Brush, ResettableTool {
 
     private final BrushTool tool;
     private final LocalSession session;
+    private final boolean randomRotate;
 
-    public CopyPastaBrush(BrushTool tool, LocalSession session) {
+    public CopyPastaBrush(BrushTool tool, LocalSession session, boolean randomRotate) {
         this.tool = tool;
         session.setClipboard(null);
         this.session = session;
+        this.randomRotate = randomRotate;
     }
 
     @Override
@@ -82,6 +86,10 @@ public class CopyPastaBrush implements Brush, ResettableTool {
             BBC.COMMAND_COPY.send(fp, blocks);
             return;
         } else {
+            if (randomRotate) {
+                int rotate = 90 * PseudoRandom.random.nextInt(4);
+                clipboard.setTransform(rotate != 0 ? new AffineTransform().rotateY(rotate) : new AffineTransform());
+            }
             Clipboard faweClip = clipboard.getClipboard();
             Region region = faweClip.getRegion();
             Vector centerOffset = region.getCenter().subtract(faweClip.getOrigin());

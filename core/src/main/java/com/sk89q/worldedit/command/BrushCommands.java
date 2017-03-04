@@ -401,7 +401,7 @@ public class BrushCommands {
             max = 2
     )
     @CommandPermissions("worldedit.brush.sphere")
-    public void circleBrush(Player player, LocalSession session, Pattern fill, @Optional("5") double radius, @Switch('h') boolean hollow) throws WorldEditException {
+    public void circleBrush(Player player, LocalSession session, Pattern fill, @Optional("5") double radius) throws WorldEditException {
         worldEdit.checkMaxBrushRadius(radius);
         BrushTool tool = session.getBrushTool(player.getItemInHand(), player);
         tool.setSize(radius);
@@ -760,16 +760,17 @@ public class BrushCommands {
             desc = "Copy Paste brush",
             help =
                     "Left click the base of an object to copy.\n" +
-                    "Right click to paste",
+                    "Right click to paste\n" +
+                    "The -r flag Will apply random rotation on paste",
             min = 0,
             max = 1
     )
     @CommandPermissions("worldedit.brush.copy")
-    public void copy(Player player, LocalSession session, @Optional("5") double radius) throws WorldEditException {
+    public void copy(Player player, LocalSession session, @Optional("5") double radius, @Switch('r') boolean rotate) throws WorldEditException {
         worldEdit.checkMaxBrushRadius(radius);
         BrushTool tool = session.getBrushTool(player.getItemInHand(), player);
         tool.setSize(radius);
-        tool.setBrush(new CopyPastaBrush(tool, session), "worldedit.brush.copy", player);
+        tool.setBrush(new CopyPastaBrush(tool, session, rotate), "worldedit.brush.copy", player);
         player.print(BBC.getPrefix() + BBC.BRUSH_COPY.f(radius));
     }
 
