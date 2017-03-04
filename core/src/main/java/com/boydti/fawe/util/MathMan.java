@@ -44,8 +44,11 @@ public class MathMan {
     };
 
     public static final int wrap(int value, int min, int max) {
-        if (max <= min) {
+        if (max < min) {
             return value;
+        }
+        if (min == max) {
+            return min;
         }
         int diff = max - min + 1;
         if (value < min) {
