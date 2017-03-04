@@ -141,20 +141,7 @@ public class FaweAPI {
      * @return The download URL or null
      */
     public static URL upload(final Clipboard clipboard, final ClipboardFormat format) {
-        return MainUtil.upload(null, "clipboard", format.getExtension(), new RunnableVal<OutputStream>() {
-            @Override
-            public void run(OutputStream value) {
-                try {
-                    try (PGZIPOutputStream gzip = new PGZIPOutputStream(value)) {
-                        try (ClipboardWriter writer = format.getWriter(gzip)) {
-                            writer.write(clipboard, null);
-                        }
-                    }
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-            }
-        });
+        return format.uploadAnonymous(clipboard);
     }
 
     /**

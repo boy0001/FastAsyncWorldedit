@@ -272,8 +272,19 @@ public class Settings extends Config {
     }
 
     public static class WEB {
-        @Comment("I am already hosting a web interface for you here")
+        @Comment({
+                "The web interface for clipboards",
+                " - All schematics are anonymous and private",
+                " - Downloads can be deleted by the user",
+                " - Supports clipboard uploads, downloads and saves",
+        })
         public String URL = "http://empcraft.com/fawe/";
+        @Comment({
+                "The web interface for assets",
+                " - All schematics are organized and public",
+                " - Assets can be searched, selected and downloaded",
+        })
+        public String ASSETS = "http://empcraft.com/assetpack/";
     }
 
     public static class EXTENT {

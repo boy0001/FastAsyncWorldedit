@@ -322,23 +322,26 @@ public class MainUtil {
     }
 
     public static URL upload(UUID uuid, String file, String extension, final RunnableVal<OutputStream> writeTask) {
+        return upload(Settings.IMP.WEB.URL, uuid != null, uuid != null ? uuid.toString() : (String) null, file, extension, writeTask);
+    }
+
+    public static URL upload(String urlStr, boolean save, String uuid, String file, String extension, final RunnableVal<OutputStream> writeTask) {
         if (writeTask == null) {
             Fawe.debug("&cWrite task cannot be null");
             return null;
         }
-        final String filename;
+        String filename = (file == null ? "plot" : file) + (extension != null ? "." + extension : "");
+        uuid = uuid == null ? UUID.randomUUID().toString() : uuid;
         final String website;
-        if (uuid == null) {
-            uuid = UUID.randomUUID();
-            website = Settings.IMP.WEB.URL + "upload.php?" + uuid;
-            filename = "plot." + extension;
+        if (!save) {
+            website = urlStr + "upload.php?" + uuid;
+
         } else {
-            website = Settings.IMP.WEB.URL  + "save.php?" + uuid;
-            filename = file + '.' + extension;
+            website = urlStr + "save.php?" + uuid;
         }
         final URL url;
         try {
-            url = new URL(Settings.IMP.WEB.URL  + "?key=" + uuid + "&type=" + extension);
+            url = new URL(urlStr  + "?key=" + uuid + "&type=" + "" + extension);
             String boundary = Long.toHexString(System.currentTimeMillis());
             URLConnection con = new URL(website).openConnection();
             con.setDoOutput(true);
@@ -366,6 +369,10 @@ public class MainUtil {
                 writer.append("--" + boundary + "--").append(CRLF).flush();
             }
             int responseCode = ((HttpURLConnection) con).getResponseCode();
+            java.util.Scanner scanner = new java.util.Scanner(con.getInputStream()).useDelimiter("\\A");
+            String content = scanner.next().trim();
+            scanner.close();
+            Fawe.debug(content);
             if (responseCode == 200) {
                 return url;
             }

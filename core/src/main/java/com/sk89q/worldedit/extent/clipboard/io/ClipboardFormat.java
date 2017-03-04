@@ -19,9 +19,13 @@
 
 package com.sk89q.worldedit.extent.clipboard.io;
 
+import com.boydti.fawe.config.Settings;
+import com.boydti.fawe.jnbt.NBTStreamer;
 import com.boydti.fawe.object.FaweOutputStream;
+import com.boydti.fawe.object.RunnableVal;
 import com.boydti.fawe.object.clipboard.AbstractClipboardFormat;
 import com.boydti.fawe.object.clipboard.DiskOptimizedClipboard;
+import com.boydti.fawe.object.clipboard.FaweClipboard;
 import com.boydti.fawe.object.clipboard.IClipboardFormat;
 import com.boydti.fawe.object.io.PGZIPOutputStream;
 import com.boydti.fawe.object.io.ResettableFileInputStream;
@@ -31,11 +35,24 @@ import com.boydti.fawe.object.schematic.Schematic;
 import com.boydti.fawe.object.schematic.StructureFormat;
 import com.boydti.fawe.util.MainUtil;
 import com.boydti.fawe.util.ReflectionUtils;
+import com.google.gson.Gson;
 import com.sk89q.jnbt.NBTConstants;
 import com.sk89q.jnbt.NBTInputStream;
 import com.sk89q.jnbt.NBTOutputStream;
-import java.io.*;
+import com.sk89q.worldedit.Vector;
+import com.sk89q.worldedit.extent.clipboard.BlockArrayClipboard;
+import com.sk89q.worldedit.extent.clipboard.Clipboard;
+import java.io.BufferedInputStream;
+import java.io.BufferedOutputStream;
+import java.io.DataInputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.net.URL;
 import java.util.EnumSet;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
@@ -242,6 +259,63 @@ public enum ClipboardFormat {
 
     ClipboardFormat(IClipboardFormat format) {
         this.format = format;
+    }
+
+    public URL uploadPublic(final Clipboard clipboard, String category, String user) {
+        // summary
+        // blocks
+        HashMap<String, Object> map = new HashMap<String, Object>();
+        Vector dimensions = clipboard.getDimensions();
+        map.put("width", dimensions.getX());
+        map.put("height", dimensions.getY());
+        map.put("length", dimensions.getZ());
+        map.put("creator", user);
+        if (clipboard instanceof BlockArrayClipboard) {
+            FaweClipboard fc = ((BlockArrayClipboard) clipboard).IMP;
+            final int[] ids = new int[4096];
+            fc.streamIds(new NBTStreamer.ByteReader() {
+                @Override
+                public void run(int index, int byteValue) {
+                    ids[byteValue]++;
+                }
+            });
+            Map<Integer, Integer> blocks = new HashMap<Integer, Integer>();
+            for (int i = 0; i < ids.length; i++) {
+                if (ids[i] != 0) {
+                    blocks.put(i, ids[i]);
+                }
+            }
+            map.put("blocks", blocks);
+        }
+        Gson gson = new Gson();
+        String json = gson.toJson(map);
+        return MainUtil.upload(Settings.IMP.WEB.ASSETS, false, json, category, null, new RunnableVal<OutputStream>() {
+            @Override
+            public void run(OutputStream value) {
+                write(value, clipboard);
+            }
+        });
+    }
+
+    private void write(OutputStream value, Clipboard clipboard) {
+        try {
+            try (PGZIPOutputStream gzip = new PGZIPOutputStream(value)) {
+                try (ClipboardWriter writer = format.getWriter(gzip)) {
+                    writer.write(clipboard, null);
+                }
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public URL uploadAnonymous(final Clipboard clipboard) {
+        return MainUtil.upload(null, null, format.getExtension(), new RunnableVal<OutputStream>() {
+            @Override
+            public void run(OutputStream value) {
+                write(value, clipboard);
+            }
+        });
     }
 
     public IClipboardFormat getFormat() {

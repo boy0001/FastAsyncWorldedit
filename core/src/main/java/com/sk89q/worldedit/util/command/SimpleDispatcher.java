@@ -19,6 +19,7 @@
 
 package com.sk89q.worldedit.util.command;
 
+import com.boydti.fawe.Fawe;
 import com.boydti.fawe.util.StringMan;
 import com.google.common.base.Joiner;
 import com.sk89q.minecraft.util.commands.CommandContext;
@@ -62,7 +63,7 @@ public class SimpleDispatcher implements Dispatcher {
         for (String a : alias) {
             String lower = a.toLowerCase();
             if (commands.containsKey(lower)) {
-                System.out.println("Replacing commands is currently undefined behavior: " + StringMan.getString(alias));
+                Fawe.debug("Replacing commands is currently undefined behavior: " + StringMan.getString(alias));
                 return;
             }
         }

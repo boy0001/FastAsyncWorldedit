@@ -313,6 +313,43 @@ public class ClipboardCommands {
     }
 
     @Command(
+            aliases = { "asset", "createasset", "makeasset" },
+            usage = "[category]",
+            desc = "Create an asset",
+            help = "Saves your clipboard to the asset web interface",
+            min = 1,
+            max = 1
+    )
+    @CommandPermissions({ "worldedit.clipboard.asset"})
+    public void asset(final Player player, final LocalSession session, String category) throws CommandException, WorldEditException {
+        final ClipboardFormat format = ClipboardFormat.SCHEMATIC;
+        ClipboardHolder holder = session.getClipboard();
+        Clipboard clipboard = holder.getClipboard();
+        final Transform transform = holder.getTransform();
+        final Clipboard target;
+        // If we have a transform, bake it into the copy
+        if (!transform.isIdentity()) {
+            final FlattenedClipboardTransform result = FlattenedClipboardTransform.transform(clipboard, transform, holder.getWorldData());
+            target = new BlockArrayClipboard(result.getTransformedRegion(), player.getUniqueId());
+            target.setOrigin(clipboard.getOrigin());
+            Operations.completeLegacy(result.copyTo(target));
+        } else {
+            target = clipboard;
+        }
+        BBC.GENERATING_LINK.send(player, format.name());
+        if (Settings.IMP.WEB.ASSETS.isEmpty()) {
+            BBC.SETTING_DISABLE.send(player, "web.assets");
+            return;
+        }
+        URL url = format.uploadPublic(target, category.replaceAll("[/|\\\\]", "."), player.getName());
+        if (url == null) {
+            BBC.GENERATING_LINK_FAILED.send(player);
+        } else {
+            BBC.DOWNLOAD_LINK.send(player, Settings.IMP.WEB.ASSETS);
+        }
+    }
+
+    @Command(
             aliases = { "/paste" },
             usage = "",
             flags = "sao",
