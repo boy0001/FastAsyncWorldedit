@@ -14,6 +14,9 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.concurrent.ExecutorCompletionService;
+import java.util.concurrent.ForkJoinPool;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
 
 public class WeakFaweQueueMap implements IFaweQueueMap {
 
@@ -149,7 +152,7 @@ public class WeakFaweQueueMap implements IFaweQueueMap {
     private int lastZ = Integer.MIN_VALUE;
 
     @Override
-    public boolean next(int amount, ExecutorCompletionService pool, long time) {
+    public boolean next(int amount, long time) {
         synchronized (blocks) {
             try {
                 boolean skip = parent.getStage() == SetQueue.QueueStage.INACTIVE;
@@ -179,6 +182,8 @@ public class WeakFaweQueueMap implements IFaweQueueMap {
                     } while (System.currentTimeMillis() - start < time);
                     return !blocks.isEmpty();
                 }
+                ExecutorCompletionService service = SetQueue.IMP.getCompleterService();
+                ForkJoinPool pool = SetQueue.IMP.getForkJoinPool();
                 boolean result = true;
                 // amount = 8;
                 for (int i = 0; i < amount && (result = iter.hasNext());) {
@@ -191,7 +196,7 @@ public class WeakFaweQueueMap implements IFaweQueueMap {
                     iter.remove();
                     if (chunk != null) {
                         parent.start(chunk);
-                        pool.submit(chunk);
+                        service.submit(chunk);
                         added++;
                         i++;
                     } else {
@@ -212,15 +217,20 @@ public class WeakFaweQueueMap implements IFaweQueueMap {
                             iter.remove();
                             if (chunk != null) {
                                 parent.start(chunk);
-                                pool.submit(chunk);
-                                FaweChunk fc = ((FaweChunk) pool.take().get());
-                                parent.end(fc);
+                                service.submit(chunk);
+                                Future future = service.poll(50, TimeUnit.MILLISECONDS);
+                                if (future != null) {
+                                    FaweChunk fc = (FaweChunk) future.get();
+                                    parent.end(fc);
+                                }
                             }
                         }
                     }
                 }
-                for (int i = 0; i < added; i++) {
-                    FaweChunk fc = ((FaweChunk) pool.take().get());
+                pool.awaitQuiescence(Long.MAX_VALUE, TimeUnit.MILLISECONDS);
+                Future future;
+                while ((future = service.poll()) != null) {
+                    FaweChunk fc = (FaweChunk) future.get();
                     parent.end(fc);
                 }
             } catch (Throwable e) {

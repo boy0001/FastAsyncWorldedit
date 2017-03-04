@@ -247,8 +247,8 @@ public class BukkitQueue_1_11 extends BukkitQueue_0<net.minecraft.server.v1_11_R
     }
 
     @Override
-    public boolean next(int amount, ExecutorCompletionService pool, long time) {
-        return super.next(amount, pool, time);
+    public boolean next(int amount, long time) {
+        return super.next(amount, time);
     }
 
     @Override

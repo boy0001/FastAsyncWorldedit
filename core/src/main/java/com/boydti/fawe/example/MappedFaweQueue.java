@@ -21,7 +21,6 @@ import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.UUID;
-import java.util.concurrent.ExecutorCompletionService;
 import java.util.concurrent.ForkJoinPool;
 import java.util.concurrent.TimeUnit;
 
@@ -213,8 +212,8 @@ public abstract class MappedFaweQueue<WORLD, CHUNK, CHUNKSECTIONS, SECTION> exte
     }
 
     @Override
-    public boolean next(int amount, ExecutorCompletionService pool, long time) {
-        return map.next(amount, pool, time);
+    public boolean next(int amount, long time) {
+        return map.next(amount, time);
     }
 
     public void start(FaweChunk chunk) {

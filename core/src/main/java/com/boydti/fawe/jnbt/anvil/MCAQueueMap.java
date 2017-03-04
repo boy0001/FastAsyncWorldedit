@@ -14,7 +14,6 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ExecutorCompletionService;
 
 public class MCAQueueMap implements IFaweQueueMap {
 
@@ -150,7 +149,7 @@ public class MCAQueueMap implements IFaweQueueMap {
     }
 
     @Override
-    public boolean next(int size, ExecutorCompletionService dispatcher, long time) {
+    public boolean next(int size, long time) {
         lastX = Integer.MIN_VALUE;
         lastZ = Integer.MIN_VALUE;
         lastFileX = Integer.MIN_VALUE;

@@ -54,6 +54,11 @@ public class SetQueue {
         return completer;
     }
 
+    @Deprecated
+    public ForkJoinPool getForkJoinPool() {
+        return pool;
+    }
+
     public void runMiscTasks() {
         while (Fawe.get().getTimer().isAbove(targetTPS)) {
             Runnable task = tasks.poll();
@@ -116,7 +121,7 @@ public class SetQueue {
                     boolean parallel = Settings.IMP.QUEUE.PARALLEL_THREADS > 1;
                     queue.startSet(parallel);
                     try {
-                        if (!queue.next(Settings.IMP.QUEUE.PARALLEL_THREADS, getCompleterService(), time) && queue.getStage() == QueueStage.ACTIVE) {
+                        if (!queue.next(Settings.IMP.QUEUE.PARALLEL_THREADS, time) && queue.getStage() == QueueStage.ACTIVE) {
                             queue.setStage(QueueStage.NONE);
                             queue.runTasks();
                         }
@@ -216,7 +221,7 @@ public class SetQueue {
     public void flush(FaweQueue queue) {
         queue.startSet(Settings.IMP.QUEUE.PARALLEL_THREADS > 1);
         try {
-            queue.next(Settings.IMP.QUEUE.PARALLEL_THREADS, getCompleterService(), Long.MAX_VALUE);
+            queue.next(Settings.IMP.QUEUE.PARALLEL_THREADS, Long.MAX_VALUE);
         } catch (Throwable e) {
             pool.awaitQuiescence(Settings.IMP.QUEUE.DISCARD_AFTER_MS, TimeUnit.MILLISECONDS);
             completer = new ExecutorCompletionService(pool);

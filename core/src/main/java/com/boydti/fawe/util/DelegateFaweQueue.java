@@ -19,7 +19,6 @@ import java.util.Collection;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentLinkedDeque;
-import java.util.concurrent.ExecutorCompletionService;
 import javax.annotation.Nullable;
 
 public class DelegateFaweQueue extends FaweQueue {
@@ -232,8 +231,8 @@ public class DelegateFaweQueue extends FaweQueue {
     }
 
     @Override
-    public boolean next(int amount, ExecutorCompletionService pool, long time) {
-        return parent.next(amount, pool, time);
+    public boolean next(int amount, long time) {
+        return parent.next(amount, time);
     }
 
     @Override

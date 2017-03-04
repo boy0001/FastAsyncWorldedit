@@ -314,14 +314,14 @@ public abstract class FaweQueue implements HasFaweQueue {
         int amount = Settings.IMP.QUEUE.PARALLEL_THREADS;
         ExecutorCompletionService service = SetQueue.IMP.getCompleterService();
         long time = 20; // 30ms
-        return next(amount, service, time);
+        return next(amount, time);
     }
 
     /**
      * Gets the FaweChunk and sets the requested blocks
      * @return
      */
-    public abstract boolean next(int amount, ExecutorCompletionService pool, long time);
+    public abstract boolean next(int amount, long time);
 
     public void saveMemory() {
         MainUtil.sendAdmin(BBC.OOM.s());

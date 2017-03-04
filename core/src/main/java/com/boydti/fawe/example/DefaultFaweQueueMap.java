@@ -11,6 +11,9 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.concurrent.ExecutorCompletionService;
+import java.util.concurrent.ForkJoinPool;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
 
 public class DefaultFaweQueueMap implements IFaweQueueMap {
 
@@ -116,7 +119,7 @@ public class DefaultFaweQueueMap implements IFaweQueueMap {
     private int lastZ = Integer.MIN_VALUE;
 
     @Override
-    public boolean next(int amount, ExecutorCompletionService pool, long time) {
+    public boolean next(int amount, long time) {
         synchronized (blocks) {
             try {
                 boolean skip = parent.getStage() == SetQueue.QueueStage.INACTIVE;
@@ -139,19 +142,21 @@ public class DefaultFaweQueueMap implements IFaweQueueMap {
                         }
                     } while (System.currentTimeMillis() - start < time);
                 } else {
+                    ExecutorCompletionService service = SetQueue.IMP.getCompleterService();
+                    ForkJoinPool pool = SetQueue.IMP.getForkJoinPool();
                     boolean result = true;
                     // amount = 8;
-                    for (int i = 0; i < amount && (result = iter.hasNext()); i++, added++) {
+                    for (int i = 0; i < amount && (result = iter.hasNext()); i++) {
                         Map.Entry<Long, FaweChunk> item = iter.next();
                         FaweChunk chunk = item.getValue();
                         if (skip && chunk == lastWrappedChunk) {
                             i--;
-                            added--;
                             continue;
                         }
                         iter.remove();
                         parent.start(chunk);
-                        pool.submit(chunk);
+                        service.submit(chunk);
+                        added++;
                     }
                     // if result, then submitted = amount
                     if (result) {
@@ -165,14 +170,19 @@ public class DefaultFaweQueueMap implements IFaweQueueMap {
                                 }
                                 iter.remove();
                                 parent.start(chunk);
-                                pool.submit(chunk);
-                                FaweChunk fc = ((FaweChunk) pool.take().get());
-                                parent.end(fc);
+                                service.submit(chunk);
+                                Future future = service.poll(50, TimeUnit.MILLISECONDS);
+                                if (future != null) {
+                                    FaweChunk fc = (FaweChunk) future.get();
+                                    parent.end(fc);
+                                }
                             }
                         }
                     }
-                    for (int i = 0; i < added; i++) {
-                        FaweChunk fc = ((FaweChunk) pool.take().get());
+                    pool.awaitQuiescence(Long.MAX_VALUE, TimeUnit.MILLISECONDS);
+                    Future future;
+                    while ((future = service.poll()) != null) {
+                        FaweChunk fc = (FaweChunk) future.get();
                         parent.end(fc);
                     }
                 }
