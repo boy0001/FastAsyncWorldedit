@@ -28,6 +28,9 @@ plugins {
 apply plugin: 'net.minecrell.vanilla.server.library'
 apply plugin: 'com.github.johnrengelman.shadow'
 
+sourceCompatibility = 1.8
+targetCompatibility = 1.8
+
 repositories {
     flatDir {dirs 'lib'}
     maven {

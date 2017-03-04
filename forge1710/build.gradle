@@ -21,6 +21,9 @@ dependencies {
     compile 'net.minecraftforge.gradle:ForgeGradle:1.2-SNAPSHOT'
 }
 
+sourceCompatibility = 1.8
+targetCompatibility = 1.8
+
 repositories {
     maven {
         name = 'forge'

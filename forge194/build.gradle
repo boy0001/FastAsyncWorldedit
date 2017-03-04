@@ -20,6 +20,9 @@ dependencies {
     compile 'com.sk89q.worldedit:worldedit-forge-mc1.8.9:6.1.1'
 }
 
+sourceCompatibility = 1.8
+targetCompatibility = 1.8
+
 repositories {
     maven {
         name = 'forge'
