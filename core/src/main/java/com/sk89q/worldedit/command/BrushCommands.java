@@ -376,19 +376,19 @@ public class BrushCommands {
     }
 
     @Command(
-            aliases = { "raise" },
+            aliases = { "pull" },
             usage = "[radius]",
             desc = "Choose the raise brush",
             help = "Chooses the raise brush",
             min = 0,
             max = 1
     )
-    @CommandPermissions("worldedit.brush.raise")
-    public void raiseBrush(Player player, LocalSession session, @Optional("5") double radius) throws WorldEditException {
+    @CommandPermissions("worldedit.brush.pull")
+    public void pullBrush(Player player, LocalSession session, @Optional("5") double radius) throws WorldEditException {
         worldEdit.checkMaxBrushRadius(radius);
         BrushTool tool = session.getBrushTool(player.getItemInHand(), player);
         tool.setSize(radius);
-        tool.setBrush(new RaiseBrush(), "worldedit.brush.erode", player);
+        tool.setBrush(new RaiseBrush(), "worldedit.brush.pull", player);
         player.print(BBC.getPrefix() + BBC.BRUSH_ERODE.f(radius));
     }
 
