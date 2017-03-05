@@ -17,33 +17,43 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-package com.boydti.fawe.nukkit.core;
+package com.sk89q.worldedit.bukkit;
 
-import cn.nukkit.Player;
-import cn.nukkit.inventory.PlayerInventory;
-import cn.nukkit.item.Item;
-import cn.nukkit.level.Location;
+import com.boydti.fawe.FaweCache;
+import com.sk89q.util.StringUtil;
 import com.sk89q.worldedit.EditSession;
 import com.sk89q.worldedit.LocalPlayer;
 import com.sk89q.worldedit.LocalWorld;
+import com.sk89q.worldedit.ServerInterface;
 import com.sk89q.worldedit.Vector;
 import com.sk89q.worldedit.WorldEditException;
 import com.sk89q.worldedit.WorldVector;
 import com.sk89q.worldedit.blocks.BaseBlock;
+import com.sk89q.worldedit.blocks.BlockID;
+import com.sk89q.worldedit.blocks.BlockType;
+import com.sk89q.worldedit.blocks.ItemID;
+import com.sk89q.worldedit.blocks.SkullBlock;
 import com.sk89q.worldedit.entity.BaseEntity;
 import com.sk89q.worldedit.extent.inventory.BlockBag;
 import com.sk89q.worldedit.internal.cui.CUIEvent;
 import com.sk89q.worldedit.session.SessionKey;
 import java.util.UUID;
 import javax.annotation.Nullable;
+import org.bukkit.Bukkit;
+import org.bukkit.DyeColor;
+import org.bukkit.GameMode;
+import org.bukkit.Location;
+import org.bukkit.entity.Player;
+import org.bukkit.inventory.ItemStack;
+import org.bukkit.material.Dye;
 
-public class NukkitPlayer extends LocalPlayer {
+public class BukkitPlayer extends LocalPlayer {
 
-    private final NukkitPlatform platform;
     private Player player;
+    private WorldEditPlugin plugin;
 
-    public NukkitPlayer(NukkitPlatform platform, Player player) {
-        this.platform = platform;
+    public BukkitPlayer(WorldEditPlugin plugin, ServerInterface server, Player player) {
+        this.plugin = plugin;
         this.player = player;
     }
 
@@ -54,19 +64,36 @@ public class NukkitPlayer extends LocalPlayer {
 
     @Override
     public int getItemInHand() {
-        PlayerInventory inv = player.getInventory();
-        Item itemStack = inv.getItemInHand();
-        return itemStack != null ? itemStack.getId() : 0;
+        ItemStack itemStack = player.getItemInHand();
+        return itemStack != null ? itemStack.getTypeId() : 0;
     }
 
     @Override
     public BaseBlock getBlockInHand() throws WorldEditException {
-        PlayerInventory inv = player.getInventory();
-        Item itemStack = inv.getItemInHand();
+        ItemStack itemStack = player.getItemInHand();
         if (itemStack == null) {
             return EditSession.nullBlock;
         }
-        return new BaseBlock(itemStack.getId(), itemStack.getMaxDurability() != 0 ? 0 : itemStack.getDamage());
+        final int typeId = itemStack.getTypeId();
+        switch (typeId) {
+            case ItemID.INK_SACK:
+                final Dye materialData = (Dye) itemStack.getData();
+                if (materialData.getColor() == DyeColor.BROWN) {
+                    return FaweCache.getBlock(BlockID.COCOA_PLANT, 0);
+                }
+                break;
+
+            case ItemID.HEAD:
+                return new SkullBlock(0, (byte) itemStack.getDurability());
+
+            default:
+                final BaseBlock baseBlock = BlockType.getBlockForItem(typeId, itemStack.getDurability());
+                if (baseBlock != null) {
+                    return baseBlock;
+                }
+                break;
+        }
+        return FaweCache.getBlock(typeId, itemStack.getType().getMaxDurability() != 0 ? 0 : Math.max(0, itemStack.getDurability()));
     }
 
     @Override
@@ -77,7 +104,7 @@ public class NukkitPlayer extends LocalPlayer {
     @Override
     public WorldVector getPosition() {
         Location loc = player.getLocation();
-        return new WorldVector(NukkitUtil.getLocalWorld(loc.getLevel()),
+        return new WorldVector(BukkitUtil.getLocalWorld(loc.getWorld()),
                 loc.getX(), loc.getY(), loc.getZ());
     }
 
@@ -93,7 +120,7 @@ public class NukkitPlayer extends LocalPlayer {
 
     @Override
     public void giveItem(int type, int amt) {
-        player.getInventory().addItem(new Item(type, 0, amt));
+        player.getInventory().addItem(new ItemStack(type, amt));
     }
 
     @Override
@@ -126,35 +153,40 @@ public class NukkitPlayer extends LocalPlayer {
 
     @Override
     public void setPosition(Vector pos, float pitch, float yaw) {
-        player.teleport(new Location(pos.getX(), pos.getY(), pos.getZ(), yaw, pitch, player.getLevel()));
+        player.teleport(new Location(player.getWorld(), pos.getX(), pos.getY(),
+                pos.getZ(), yaw, pitch));
     }
 
     @Override
-        public String[] getGroups() {
-        // Is this ever used?
-        return new String[0];
+    public String[] getGroups() {
+        return plugin.getPermissionsResolver().getGroups(player);
     }
 
     @Override
     public BlockBag getInventoryBlockBag() {
-        return new NukkitPlayerBlockBag(player);
+        return new BukkitPlayerBlockBag(player);
     }
 
     @Override
     public boolean hasPermission(String perm) {
-        NukkitConfiguration config = platform.getMod().getWEConfig();
-        return (!config.noOpPermissions && player.isOp()) || player.hasPermission(perm);
+        return (!plugin.getLocalConfiguration().noOpPermissions && player.isOp())
+                || plugin.getPermissionsResolver().hasPermission(
+                player.getWorld().getName(), player, perm);
     }
 
     @Override
     public LocalWorld getWorld() {
-        return NukkitUtil.getLocalWorld(player.getLevel());
+        return BukkitUtil.getLocalWorld(player.getWorld());
     }
 
     @Override
     public void dispatchCUIEvent(CUIEvent event) {
-        // No WE-CUI on MCPE
-        return;
+        String[] params = event.getParameters();
+        String send = event.getTypeId();
+        if (params.length > 0) {
+            send = send + "|" + StringUtil.joinString(params, "|");
+        }
+        player.sendPluginMessage(plugin, WorldEditPlugin.CUI_PLUGIN_CHANNEL, send.getBytes(CUIChannelListener.UTF_8_CHARSET));
     }
 
     public Player getPlayer() {
@@ -163,7 +195,7 @@ public class NukkitPlayer extends LocalPlayer {
 
     @Override
     public boolean hasCreativeMode() {
-        return player.getGamemode() == 1;
+        return player.getGameMode() == GameMode.CREATIVE;
     }
 
     @Override
@@ -174,8 +206,7 @@ public class NukkitPlayer extends LocalPlayer {
         }
 
         setPosition(new Vector(x + 0.5, y, z + 0.5));
-        player.getAdventureSettings().setCanFly(true);
-        player.getAdventureSettings().update();
+        player.setFlying(true);
     }
 
     @Override
@@ -186,12 +217,12 @@ public class NukkitPlayer extends LocalPlayer {
     @Override
     public com.sk89q.worldedit.util.Location getLocation() {
         Location nativeLocation = player.getLocation();
-        Vector position = NukkitUtil.toVector(nativeLocation);
+        Vector position = BukkitUtil.toVector(nativeLocation);
         return new com.sk89q.worldedit.util.Location(
                 getWorld(),
                 position,
-                (float) nativeLocation.getYaw(),
-                (float) nativeLocation.getPitch());
+                nativeLocation.getYaw(),
+                nativeLocation.getPitch());
     }
 
     @Nullable
@@ -229,11 +260,11 @@ public class NukkitPlayer extends LocalPlayer {
 
         @Override
         public boolean isActive() {
-            // This is a thread safe call on CraftNukkit because it uses a
-            // CopyOnWrite list for the list of players, but the Nukkit
+            // This is a thread safe call on CraftBukkit because it uses a
+            // CopyOnWrite list for the list of players, but the Bukkit
             // specification doesn't require thread safety (though the
             // spec is extremely incomplete)
-            return NukkitWorldEdit.inst().getServer().getPlayer(name) != null;
+            return Bukkit.getServer().getPlayerExact(name) != null;
         }
 
         @Override
@@ -243,4 +274,7 @@ public class NukkitPlayer extends LocalPlayer {
 
     }
 
+    public static Class<BukkitPlayer> inject() {
+        return BukkitPlayer.class;
+    }
 }

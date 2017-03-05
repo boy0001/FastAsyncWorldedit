@@ -8,7 +8,6 @@ import com.sk89q.worldedit.function.pattern.Pattern;
 
 public class BrushSettings {
     public Brush brush = null;
-
     public Mask mask = null;
     public Mask sourceMask = null;
     public ResettableExtent transform = null;

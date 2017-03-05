@@ -36,6 +36,7 @@ public class FaweSponge implements IFawe {
         try {
             Fawe.set(this);
             Fawe.setupInjector();
+            com.sk89q.worldedit.sponge.SpongePlayer.inject();
         } catch (final Throwable e) {
             MainUtil.handleError(e);
         }

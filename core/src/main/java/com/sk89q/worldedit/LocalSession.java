@@ -975,7 +975,7 @@ public class LocalSession {
         }
         try {
             BaseBlock block = player.getBlockInHand();
-            return getTool(block.getId(), block.getType());
+            return getTool(block.getId(), block.getData());
         } catch (WorldEditException e) {
             e.printStackTrace();
             return null;

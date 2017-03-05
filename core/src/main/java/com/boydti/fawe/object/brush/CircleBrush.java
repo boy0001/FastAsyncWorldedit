@@ -4,7 +4,6 @@ import com.boydti.fawe.wrappers.LocationMaskedPlayerWrapper;
 import com.sk89q.worldedit.EditSession;
 import com.sk89q.worldedit.MaxChangedBlocksException;
 import com.sk89q.worldedit.Vector;
-import com.sk89q.worldedit.command.tool.BrushTool;
 import com.sk89q.worldedit.command.tool.brush.Brush;
 import com.sk89q.worldedit.entity.Player;
 import com.sk89q.worldedit.function.pattern.Pattern;
@@ -12,10 +11,8 @@ import com.sk89q.worldedit.math.transform.AffineTransform;
 
 public class CircleBrush implements Brush {
     private final Player player;
-    private final BrushTool tool;
 
-    public CircleBrush(BrushTool tool, Player player) {
-        this.tool = tool;
+    public CircleBrush(Player player) {
         this.player = LocationMaskedPlayerWrapper.unwrap(player);
     }
 

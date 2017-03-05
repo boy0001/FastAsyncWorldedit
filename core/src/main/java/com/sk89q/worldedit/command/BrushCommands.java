@@ -403,7 +403,7 @@ public class BrushCommands {
         BrushTool tool = session.getBrushTool(player);
         tool.setSize(radius);
         tool.setFill(fill);
-        tool.setBrush(new CircleBrush(tool, player), "worldedit.brush.circle", player);
+        tool.setBrush(new CircleBrush(player), "worldedit.brush.circle", player);
         player.print(BBC.getPrefix() + BBC.BRUSH_CIRCLE.f(radius));
     }
 
@@ -421,7 +421,7 @@ public class BrushCommands {
         worldEdit.checkMaxBrushRadius(radius);
         BrushTool tool = session.getBrushTool(player);
         tool.setSize(radius);
-        tool.setBrush(new RecurseBrush(tool, depthFirst), "worldedit.brush.recursive", player);
+        tool.setBrush(new RecurseBrush(depthFirst), "worldedit.brush.recursive", player);
         tool.setMask(new IdMask(editSession));
         tool.setFill(fill);
         player.print(BBC.getPrefix() + BBC.BRUSH_RECURSIVE.f(radius));
@@ -464,7 +464,7 @@ public class BrushCommands {
         BrushTool tool = session.getBrushTool(player);
         tool.setFill(fill);
         tool.setSize(radius);
-        tool.setBrush(new SplineBrush(player, session, tool), "worldedit.brush.spline", player);
+        tool.setBrush(new SplineBrush(player, session), "worldedit.brush.spline", player);
         player.print(BBC.getPrefix() + BBC.BRUSH_SPLINE.f(radius));
     }
 
@@ -735,15 +735,15 @@ public class BrushCommands {
         tool.setSize(radius);
         if (flat) {
             try {
-                tool.setBrush(new FlattenBrush(stream, rotation, yscale, tool, filename.equalsIgnoreCase("#clipboard") ? session.getClipboard().getClipboard() : null, shape), "worldedit.brush.height", player);
+                tool.setBrush(new FlattenBrush(stream, rotation, yscale, filename.equalsIgnoreCase("#clipboard") ? session.getClipboard().getClipboard() : null, shape), "worldedit.brush.height", player);
             } catch (EmptyClipboardException ignore) {
-                tool.setBrush(new FlattenBrush(stream, rotation, yscale, tool, null, shape), "worldedit.brush.height", player);
+                tool.setBrush(new FlattenBrush(stream, rotation, yscale, null, shape), "worldedit.brush.height", player);
             }
         } else {
             try {
-                tool.setBrush(new HeightBrush(stream, rotation, yscale, tool, filename.equalsIgnoreCase("#clipboard") ? session.getClipboard().getClipboard() : null), "worldedit.brush.height", player);
+                tool.setBrush(new HeightBrush(stream, rotation, yscale, filename.equalsIgnoreCase("#clipboard") ? session.getClipboard().getClipboard() : null), "worldedit.brush.height", player);
             } catch (EmptyClipboardException ignore) {
-                tool.setBrush(new HeightBrush(stream, rotation, yscale, tool, null), "worldedit.brush.height", player);
+                tool.setBrush(new HeightBrush(stream, rotation, yscale, null), "worldedit.brush.height", player);
             }
         }
         player.print(BBC.getPrefix() + BBC.BRUSH_HEIGHT.f(radius));
@@ -767,7 +767,7 @@ public class BrushCommands {
         worldEdit.checkMaxBrushRadius(radius);
         BrushTool tool = session.getBrushTool(player);
         tool.setSize(radius);
-        tool.setBrush(new CopyPastaBrush(tool, session, rotate), "worldedit.brush.copy", player);
+        tool.setBrush(new CopyPastaBrush(session, rotate), "worldedit.brush.copy", player);
         player.print(BBC.getPrefix() + BBC.BRUSH_COPY.f(radius));
     }
 
@@ -784,7 +784,7 @@ public class BrushCommands {
     public void command(Player player, LocalSession session, @Optional("5") double radius, CommandContext args) throws WorldEditException {
         BrushTool tool = session.getBrushTool(player);
         String cmd = args.getJoinedStrings(1);
-        tool.setBrush(new CommandBrush(tool, cmd, radius), "worldedit.brush.copy", player);
+        tool.setBrush(new CommandBrush(cmd, radius), "worldedit.brush.copy", player);
         player.print(BBC.getPrefix() + BBC.BRUSH_COMMAND.f(cmd));
     }
 

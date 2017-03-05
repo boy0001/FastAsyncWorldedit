@@ -12,11 +12,11 @@ public class ScrollTarget extends ScrollAction {
 
     @Override
     public boolean increment(Player player, int amount) {
-        TargetMode mode = tool.getTargetMode();
+        TargetMode mode = getTool().getTargetMode();
         int index = mode.ordinal() + amount;
         TargetMode[] modes = TargetMode.values();
         TargetMode newMode = modes[MathMan.wrap(index, 0, modes.length - 1)];
-        tool.setTargetMode(newMode);
+        getTool().setTargetMode(newMode);
         return true;
     }
 }

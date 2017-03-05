@@ -18,7 +18,7 @@ public class ScrollMask extends ScrollAction {
     @Override
     public boolean increment(Player player, int amount) {
         if (masks.length  > 1) {
-            tool.setMask(masks[MathMan.wrap(index += amount, 0, masks.length - 1)]);
+            getTool().setMask(masks[MathMan.wrap(index += amount, 0, masks.length - 1)]);
             return true;
         }
         return false;

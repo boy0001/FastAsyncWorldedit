@@ -18,7 +18,7 @@ public class ScrollPattern extends ScrollAction {
     @Override
     public boolean increment(Player player, int amount) {
         if (patterns.length  > 1) {
-            tool.setFill(patterns[MathMan.wrap(index += amount, 0, patterns.length - 1)]);
+            getTool().setFill(patterns[MathMan.wrap(index += amount, 0, patterns.length - 1)]);
             return true;
         }
         return false;

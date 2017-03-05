@@ -13,8 +13,8 @@ public class ScrollRange extends ScrollAction {
     @Override
     public boolean increment(Player player, int amount) {
         int max = WorldEdit.getInstance().getConfiguration().maxBrushRadius;
-        int newSize = MathMan.wrap(tool.getRange() + amount, (int) (tool.getSize() + 1), max);
-        tool.setRange(newSize);
+        int newSize = MathMan.wrap(getTool().getRange() + amount, (int) (getTool().getSize() + 1), max);
+        getTool().setRange(newSize);
         return true;
     }
 }

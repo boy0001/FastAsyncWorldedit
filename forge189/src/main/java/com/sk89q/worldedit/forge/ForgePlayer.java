@@ -21,8 +21,10 @@ package com.sk89q.worldedit.forge;
 
 import com.boydti.fawe.forge.ForgePlayerBlockBag;
 import com.sk89q.util.StringUtil;
+import com.sk89q.worldedit.EditSession;
 import com.sk89q.worldedit.Vector;
 import com.sk89q.worldedit.WorldVector;
+import com.sk89q.worldedit.blocks.BaseBlock;
 import com.sk89q.worldedit.entity.BaseEntity;
 import com.sk89q.worldedit.extension.platform.AbstractPlayerActor;
 import com.sk89q.worldedit.extent.inventory.BlockBag;
@@ -30,19 +32,16 @@ import com.sk89q.worldedit.internal.LocalWorldAdapter;
 import com.sk89q.worldedit.internal.cui.CUIEvent;
 import com.sk89q.worldedit.session.SessionKey;
 import com.sk89q.worldedit.util.Location;
-
+import io.netty.buffer.Unpooled;
+import java.util.UUID;
+import javax.annotation.Nullable;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.network.PacketBuffer;
 import net.minecraft.network.play.server.S3FPacketCustomPayload;
 import net.minecraft.util.ChatComponentText;
-import io.netty.buffer.Unpooled;
 import net.minecraft.util.EnumChatFormatting;
-
-import javax.annotation.Nullable;
-
-import java.util.UUID;
 
 public class ForgePlayer extends AbstractPlayerActor {
 
@@ -64,6 +63,12 @@ public class ForgePlayer extends AbstractPlayerActor {
     public int getItemInHand() {
         ItemStack is = this.player.getCurrentEquippedItem();
         return is == null ? 0 : Item.getIdFromItem(is.getItem());
+    }
+
+    @Override
+    public BaseBlock getBlockInHand() {
+        ItemStack is = this.player.getCurrentEquippedItem();
+        return is == null ? EditSession.nullBlock : new BaseBlock(Item.getIdFromItem(is.getItem()), is.isItemStackDamageable() ? 0 : is.getItemDamage());
     }
 
     @Override

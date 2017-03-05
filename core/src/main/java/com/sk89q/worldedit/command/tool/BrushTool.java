@@ -50,9 +50,12 @@ public class BrushTool implements DoubleActionTraceTool, ScrollTool, MovableTool
     private VisualMode visualMode = VisualMode.NONE;
     private TargetMode targetMode = TargetMode.TARGET_BLOCK_RANGE;
 
-    private BrushSettings context = new BrushSettings();
+    private transient BrushSettings context = new BrushSettings();
     private BrushSettings primary = context;
     private BrushSettings secondary = context;
+
+    private transient VisualExtent visualExtent;
+    private transient Lock lock = new ReentrantLock();
 
     /**
      * Construct the tool.
@@ -61,19 +64,31 @@ public class BrushTool implements DoubleActionTraceTool, ScrollTool, MovableTool
      */
     public BrushTool(String permission) {
         checkNotNull(permission);
-        this.context.permission = permission;
+        this.getContext().permission = permission;
+    }
+
+    public BrushSettings getContext() {
+        BrushSettings tmp = context;
+        if (tmp == null) {
+            context = tmp = primary;
+        }
+        return tmp;
+    }
+
+    public void setContext(BrushSettings context) {
+        this.context = context;
     }
 
     @Override
     public boolean canUse(Actor player) {
         if (primary == secondary) {
-            return player.hasPermission(context.permission);
+            return player.hasPermission(getContext().permission);
         }
         return player.hasPermission(primary.permission) && player.hasPermission(secondary.permission);
     }
 
     public ResettableExtent getTransform() {
-        return context.transform;
+        return getContext().transform;
     }
 
     public BrushSettings getPrimary() {
@@ -95,7 +110,7 @@ public class BrushTool implements DoubleActionTraceTool, ScrollTool, MovableTool
     }
 
     public void setTransform(ResettableExtent transform) {
-        this.context.transform = transform;
+        this.getContext().transform = transform;
     }
 
     /**
@@ -104,7 +119,7 @@ public class BrushTool implements DoubleActionTraceTool, ScrollTool, MovableTool
      * @return the filter
      */
     public Mask getMask() {
-        return context.mask;
+        return getContext().mask;
     }
 
     /**
@@ -113,7 +128,7 @@ public class BrushTool implements DoubleActionTraceTool, ScrollTool, MovableTool
      * @return the filter
      */
     public Mask getSourceMask() {
-        return context.sourceMask;
+        return getContext().sourceMask;
     }
 
     /**
@@ -122,7 +137,7 @@ public class BrushTool implements DoubleActionTraceTool, ScrollTool, MovableTool
      * @param filter the filter to set
      */
     public void setMask(Mask filter) {
-        this.context.mask = filter;
+        this.getContext().mask = filter;
     }
 
     /**
@@ -131,7 +146,7 @@ public class BrushTool implements DoubleActionTraceTool, ScrollTool, MovableTool
      * @param filter the filter to set
      */
     public void setSourceMask(Mask filter) {
-        this.context.sourceMask = filter;
+        this.getContext().sourceMask = filter;
     }
 
     /**
@@ -146,7 +161,7 @@ public class BrushTool implements DoubleActionTraceTool, ScrollTool, MovableTool
 
     public void setBrush(Brush brush, String permission, Player player) {
         if (player != null) clear(player);
-        BrushSettings current = context;
+        BrushSettings current = getContext();
         current.brush = brush;
         current.permission = permission;
     }
@@ -157,7 +172,7 @@ public class BrushTool implements DoubleActionTraceTool, ScrollTool, MovableTool
      * @return the current brush
      */
     public Brush getBrush() {
-        return context.brush;
+        return getContext().brush;
     }
 
     /**
@@ -166,7 +181,7 @@ public class BrushTool implements DoubleActionTraceTool, ScrollTool, MovableTool
      * @param material the material
      */
     public void setFill(@Nullable Pattern material) {
-        this.context.material = material;
+        this.getContext().material = material;
     }
 
     /**
@@ -175,7 +190,7 @@ public class BrushTool implements DoubleActionTraceTool, ScrollTool, MovableTool
      * @return the material
      */
     @Nullable public Pattern getMaterial() {
-        return context.material;
+        return getContext().material;
     }
 
     /**
@@ -184,7 +199,7 @@ public class BrushTool implements DoubleActionTraceTool, ScrollTool, MovableTool
      * @return a radius
      */
     public double getSize() {
-        return context.size;
+        return getContext().size;
     }
 
     /**
@@ -193,7 +208,7 @@ public class BrushTool implements DoubleActionTraceTool, ScrollTool, MovableTool
      * @param radius a radius
      */
     public void setSize(double radius) {
-        this.context.size = radius;
+        this.getContext().size = radius;
     }
 
     /**
@@ -253,14 +268,14 @@ public class BrushTool implements DoubleActionTraceTool, ScrollTool, MovableTool
     public boolean act(BrushAction action, Platform server, LocalConfiguration config, Player player, LocalSession session) {
         switch (action) {
             case PRIMARY:
-                context = primary;
+                setContext(primary);
                 break;
             case SECONDARY:
-                context = secondary;
+                setContext(secondary);
                 break;
         }
 
-        BrushSettings current = context;
+        BrushSettings current = getContext();
 
         EditSession editSession = session.createEditSession(player);
         Vector target = getPosition(editSession, player);
@@ -330,7 +345,7 @@ public class BrushTool implements DoubleActionTraceTool, ScrollTool, MovableTool
     }
 
     public void setScrollAction(ScrollAction scrollAction) {
-        this.context.scrollAction = scrollAction;
+        this.getContext().scrollAction = scrollAction;
     }
 
     public void setTargetMode(TargetMode targetMode) {
@@ -351,18 +366,22 @@ public class BrushTool implements DoubleActionTraceTool, ScrollTool, MovableTool
 
     @Override
     public boolean increment(Player player, int amount) {
-        BrushSettings current = context;
+        BrushSettings current = getContext();
         ScrollAction tmp = current.scrollAction;
-        if (tmp != null && tmp.increment(player, amount)) {
-            if  (visualMode != VisualMode.NONE) {
-                try {
-                    queueVisualization(FawePlayer.wrap(player));
-                } catch (Throwable e) {
-                    WorldEdit.getInstance().getPlatformManager().handleThrowable(e, player);
+        if (tmp != null) {
+            tmp.setTool(this);
+            if (tmp.increment(player, amount)) {
+                if  (visualMode != VisualMode.NONE) {
+                    try {
+                        queueVisualization(FawePlayer.wrap(player));
+                    } catch (Throwable e) {
+                        WorldEdit.getInstance().getPlatformManager().handleThrowable(e, player);
+                    }
                 }
+                return true;
             }
-            return true;
-        } else if (visualMode != VisualMode.NONE) {
+        }
+        if (visualMode != VisualMode.NONE) {
             clear(player);
         }
         return false;
@@ -397,7 +416,7 @@ public class BrushTool implements DoubleActionTraceTool, ScrollTool, MovableTool
                     break;
                 }
                 case OUTLINE: {
-                    BrushSettings current = context;
+                    BrushSettings current = getContext();
                     current.brush.build(editSession, position, current.material, current.size);
                     break;
                 }
@@ -427,7 +446,4 @@ public class BrushTool implements DoubleActionTraceTool, ScrollTool, MovableTool
         }
         return false;
     }
-
-    private VisualExtent visualExtent;
-    private Lock lock = new ReentrantLock();
 }

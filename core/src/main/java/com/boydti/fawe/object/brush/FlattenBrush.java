@@ -4,7 +4,6 @@ import com.boydti.fawe.object.brush.heightmap.ScalableHeightMap;
 import com.sk89q.worldedit.EditSession;
 import com.sk89q.worldedit.MaxChangedBlocksException;
 import com.sk89q.worldedit.Vector;
-import com.sk89q.worldedit.command.tool.BrushTool;
 import com.sk89q.worldedit.extent.clipboard.Clipboard;
 import com.sk89q.worldedit.function.mask.Mask;
 import com.sk89q.worldedit.function.mask.Masks;
@@ -13,14 +12,14 @@ import java.io.InputStream;
 
 public class FlattenBrush extends HeightBrush {
 
-    public FlattenBrush(InputStream stream, int rotation, double yscale, BrushTool tool, Clipboard clipboard, ScalableHeightMap.Shape shape) {
-        super(stream, rotation, yscale, tool, clipboard, shape);
+    public FlattenBrush(InputStream stream, int rotation, double yscale, Clipboard clipboard, ScalableHeightMap.Shape shape) {
+        super(stream, rotation, yscale, clipboard, shape);
     }
 
     @Override
     public void build(EditSession editSession, Vector position, Pattern pattern, double sizeDouble) throws MaxChangedBlocksException {
         int size = (int) sizeDouble;
-        Mask mask = tool.getMask();
+        Mask mask = editSession.getMask();
         if (mask == Masks.alwaysTrue() || mask == Masks.alwaysTrue2D()) {
             mask = null;
         }

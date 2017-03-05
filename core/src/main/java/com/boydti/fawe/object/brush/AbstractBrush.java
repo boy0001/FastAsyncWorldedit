@@ -1,11 +1,12 @@
-package com.boydti.fawe.object.brush.scroll;
+package com.boydti.fawe.object.brush;
 
 import com.sk89q.worldedit.command.tool.BrushTool;
+import com.sk89q.worldedit.command.tool.brush.Brush;
 
-public abstract class ScrollAction implements ScrollTool {
+public abstract class AbstractBrush implements Brush {
     private BrushTool tool;
 
-    public ScrollAction(BrushTool tool) {
+    public AbstractBrush(BrushTool tool) {
         this.tool = tool;
     }
 

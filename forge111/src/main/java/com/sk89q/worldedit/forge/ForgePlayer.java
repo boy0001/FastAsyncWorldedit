@@ -21,8 +21,10 @@ package com.sk89q.worldedit.forge;
 
 import com.boydti.fawe.forge.ForgePlayerBlockBag;
 import com.sk89q.util.StringUtil;
+import com.sk89q.worldedit.EditSession;
 import com.sk89q.worldedit.Vector;
 import com.sk89q.worldedit.WorldVector;
+import com.sk89q.worldedit.blocks.BaseBlock;
 import com.sk89q.worldedit.entity.BaseEntity;
 import com.sk89q.worldedit.extension.platform.AbstractPlayerActor;
 import com.sk89q.worldedit.extent.inventory.BlockBag;
@@ -30,7 +32,6 @@ import com.sk89q.worldedit.internal.LocalWorldAdapter;
 import com.sk89q.worldedit.internal.cui.CUIEvent;
 import com.sk89q.worldedit.session.SessionKey;
 import com.sk89q.worldedit.util.Location;
-
 import io.netty.buffer.Unpooled;
 import java.util.UUID;
 import javax.annotation.Nullable;
@@ -61,6 +62,12 @@ public class ForgePlayer extends AbstractPlayerActor {
     public int getItemInHand() {
         ItemStack is = this.player.getHeldItem(EnumHand.MAIN_HAND);
         return is == null ? 0 : Item.getIdFromItem(is.getItem());
+    }
+
+    @Override
+    public BaseBlock getBlockInHand() {
+        ItemStack is = this.player.getHeldItem(EnumHand.MAIN_HAND);
+        return is == null ? EditSession.nullBlock : new BaseBlock(Item.getIdFromItem(is.getItem()), is.isItemStackDamageable() ? 0 : is.getItemDamage());
     }
 
     @Override

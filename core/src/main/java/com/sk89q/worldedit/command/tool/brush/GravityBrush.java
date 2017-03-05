@@ -31,16 +31,14 @@ import com.sk89q.worldedit.function.pattern.Pattern;
 public class GravityBrush implements Brush {
 
     private final boolean fullHeight;
-    private final BrushTool tool;
 
     public GravityBrush(boolean fullHeight, BrushTool tool) {
         this.fullHeight = fullHeight;
-        this.tool = tool;
     }
 
     @Override
     public void build(EditSession editSession, Vector position, Pattern pattern, double sizeDouble) throws MaxChangedBlocksException {
-        Mask mask = tool.getMask();
+        Mask mask = editSession.getMask();
         if (mask == Masks.alwaysTrue() || mask == Masks.alwaysTrue2D()) {
             mask = null;
         }

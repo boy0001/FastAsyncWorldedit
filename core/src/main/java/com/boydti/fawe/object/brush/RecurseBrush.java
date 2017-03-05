@@ -6,7 +6,6 @@ import com.sk89q.worldedit.EditSession;
 import com.sk89q.worldedit.MaxChangedBlocksException;
 import com.sk89q.worldedit.Vector;
 import com.sk89q.worldedit.blocks.BaseBlock;
-import com.sk89q.worldedit.command.tool.BrushTool;
 import com.sk89q.worldedit.command.tool.brush.Brush;
 import com.sk89q.worldedit.function.block.BlockReplace;
 import com.sk89q.worldedit.function.mask.Mask;
@@ -17,17 +16,15 @@ import com.sk89q.worldedit.function.visitor.RecursiveVisitor;
 
 public class RecurseBrush implements Brush {
 
-    private final BrushTool tool;
     private final boolean dfs;
 
-    public RecurseBrush(BrushTool tool, boolean dfs) {
-        this.tool = tool;
+    public RecurseBrush(boolean dfs) {
         this.dfs = dfs;
     }
 
     @Override
     public void build(final EditSession editSession, final Vector position, Pattern to, double size) throws MaxChangedBlocksException {
-        Mask mask = tool.getMask();
+        Mask mask = editSession.getMask();
         if (mask == null) {
             mask = Masks.alwaysTrue();
         }

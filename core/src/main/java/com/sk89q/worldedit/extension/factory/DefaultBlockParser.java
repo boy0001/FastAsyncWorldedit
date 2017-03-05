@@ -63,7 +63,12 @@ public class DefaultBlockParser extends InputParser<BaseBlock> {
     private static BaseBlock getBlockInHand(Actor actor) throws InputParseException {
         if (actor instanceof Player) {
             try {
-                return ((Player) actor).getBlockInHand();
+                BaseBlock block = ((Player) actor).getBlockInHand();
+                if(((Player) actor).getWorld().isValidBlockType(block.getId())) {
+                    return block;
+                } else {
+                    throw new InputParseException("You're not holding a block!");
+                }
             } catch (NotABlockException e) {
                 throw new InputParseException("You're not holding a block!");
             } catch (WorldEditException e) {

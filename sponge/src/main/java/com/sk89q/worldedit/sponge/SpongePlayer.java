@@ -17,13 +17,12 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-package com.sk89q.worldedit.forge;
+package com.sk89q.worldedit.sponge;
 
-import com.boydti.fawe.FaweCache;
-import com.boydti.fawe.forge.ForgePlayerBlockBag;
+import com.flowpowered.math.vector.Vector3d;
 import com.sk89q.util.StringUtil;
-import com.sk89q.worldedit.EditSession;
 import com.sk89q.worldedit.Vector;
+import com.sk89q.worldedit.WorldEditException;
 import com.sk89q.worldedit.WorldVector;
 import com.sk89q.worldedit.blocks.BaseBlock;
 import com.sk89q.worldedit.entity.BaseEntity;
@@ -33,47 +32,44 @@ import com.sk89q.worldedit.internal.LocalWorldAdapter;
 import com.sk89q.worldedit.internal.cui.CUIEvent;
 import com.sk89q.worldedit.session.SessionKey;
 import com.sk89q.worldedit.util.Location;
+import org.spongepowered.api.data.type.HandTypes;
+import org.spongepowered.api.entity.living.player.Player;
+import org.spongepowered.api.item.inventory.ItemStack;
+import org.spongepowered.api.text.Text;
+import org.spongepowered.api.text.format.TextColor;
+import org.spongepowered.api.text.format.TextColors;
+import org.spongepowered.api.text.serializer.TextSerializers;
+import org.spongepowered.api.world.World;
 
-import io.netty.buffer.Unpooled;
-import java.util.UUID;
 import javax.annotation.Nullable;
-import net.minecraft.entity.player.EntityPlayerMP;
-import net.minecraft.item.Item;
-import net.minecraft.item.ItemStack;
-import net.minecraft.network.PacketBuffer;
-import net.minecraft.network.play.server.SPacketCustomPayload;
-import net.minecraft.util.EnumHand;
-import net.minecraft.util.text.TextComponentString;
-import net.minecraft.util.text.TextFormatting;
+import java.nio.charset.StandardCharsets;
+import java.util.Optional;
+import java.util.UUID;
 
-public class ForgePlayer extends AbstractPlayerActor {
+public class SpongePlayer extends AbstractPlayerActor {
 
-    private final ForgePlatform platform;
-    private final EntityPlayerMP player;
+    private final Player player;
 
-    protected ForgePlayer(ForgePlatform platform, EntityPlayerMP player) {
-        this.platform = platform;
+    public SpongePlayer(SpongePlatform platform, Player player) {
         this.player = player;
         ThreadSafeCache.getInstance().getOnlineIds().add(getUniqueId());
     }
 
     @Override
     public UUID getUniqueId() {
-        return player.getUniqueID();
+        return player.getUniqueId();
     }
 
     @Override
     public int getItemInHand() {
-        ItemStack is = this.player.getHeldItem(EnumHand.MAIN_HAND);
-        return is == null ? 0 : Item.getIdFromItem(is.getItem());
+        Optional<ItemStack> is = this.player.getItemInHand(HandTypes.MAIN_HAND);
+        return is.isPresent() ? SpongeWorldEdit.inst().getAdapter().resolve(is.get().getItem()) : 0;
     }
 
     @Override
-    public BaseBlock getBlockInHand() {
-        ItemStack is = this.player.getHeldItem(EnumHand.MAIN_HAND);
-        return is == null ? EditSession.nullBlock : new BaseBlock(Item.getIdFromItem(is.getItem()), is.isItemStackDamageable() ? 0 : is.getItemDamage());
+    public BaseBlock getBlockInHand() throws WorldEditException {
+        return new BaseBlock(getItemInHand(), 0);
     }
-
 
     @Override
     public String getName() {
@@ -87,38 +83,36 @@ public class ForgePlayer extends AbstractPlayerActor {
 
     @Override
     public Location getLocation() {
-        Vector position = new Vector(this.player.posX, this.player.posY, this.player.posZ);
-        return new Location(
-                ForgeWorldEdit.inst.getWorld(this.player.worldObj),
-                position,
-                this.player.rotationYaw,
-                this.player.rotationPitch);
+        org.spongepowered.api.world.Location<World> entityLoc = this.player.getLocation();
+        Vector3d entityRot = this.player.getRotation();
+
+        return SpongeWorldEdit.inst().getAdapter().adapt(entityLoc, entityRot);
     }
 
-    @SuppressWarnings("deprecation")
     @Override
     public WorldVector getPosition() {
-        return new WorldVector(LocalWorldAdapter.adapt(ForgeWorldEdit.inst.getWorld(this.player.worldObj)), this.player.posX, this.player.posY, this.player.posZ);
+        Vector3d pos = this.player.getLocation().getPosition();
+        return new WorldVector(LocalWorldAdapter.adapt(SpongeWorldEdit.inst().getAdapter().getWorld(this.player.getWorld())), pos.getX(), pos.getY(), pos.getZ());
     }
 
     @Override
     public com.sk89q.worldedit.world.World getWorld() {
-        return ForgeWorldEdit.inst.getWorld(this.player.worldObj);
+        return SpongeWorldEdit.inst().getAdapter().getWorld(player.getWorld());
     }
 
     @Override
     public double getPitch() {
-        return this.player.rotationPitch;
+        return getLocation().getPitch();
     }
 
     @Override
     public double getYaw() {
-        return this.player.rotationYaw;
+        return getLocation().getYaw();
     }
 
     @Override
     public void giveItem(int type, int amt) {
-        this.player.inventory.addItemStackToInventory(new ItemStack(Item.getItemById(type), amt, 0));
+        this.player.getInventory().offer(ItemStack.of(SpongeWorldEdit.inst().getAdapter().resolveItem(type), amt));
     }
 
     @Override
@@ -128,59 +122,61 @@ public class ForgePlayer extends AbstractPlayerActor {
         if (params.length > 0) {
             send = send + "|" + StringUtil.joinString(params, "|");
         }
-        PacketBuffer buffer = new PacketBuffer(Unpooled.copiedBuffer(send.getBytes(WECUIPacketHandler.UTF_8_CHARSET)));
-        SPacketCustomPayload packet = new SPacketCustomPayload(ForgeWorldEdit.CUI_PLUGIN_CHANNEL, buffer);
-        this.player.connection.sendPacket(packet);
+
+        String finalData = send;
+        CUIChannelHandler.getActiveChannel().sendTo(player, buffer -> buffer.writeBytes(finalData.getBytes(StandardCharsets.UTF_8)));
     }
 
     @Override
     public void printRaw(String msg) {
         for (String part : msg.split("\n")) {
-            this.player.addChatMessage(new TextComponentString(part));
+            this.player.sendMessage(TextSerializers.LEGACY_FORMATTING_CODE.deserialize(part));
         }
     }
 
     @Override
     public void printDebug(String msg) {
-        sendColorized(msg, TextFormatting.GRAY);
+        sendColorized(msg, TextColors.GRAY);
     }
 
     @Override
     public void print(String msg) {
-        sendColorized(msg, TextFormatting.LIGHT_PURPLE);
+        sendColorized(msg, TextColors.LIGHT_PURPLE);
     }
 
     @Override
     public void printError(String msg) {
-        sendColorized(msg, TextFormatting.RED);
+        sendColorized(msg, TextColors.RED);
     }
 
-    private void sendColorized(String msg, TextFormatting formatting) {
+    private void sendColorized(String msg, TextColor formatting) {
         for (String part : msg.split("\n")) {
-            TextComponentString component = new TextComponentString(part);
-            component.getStyle().setColor(formatting);
-            this.player.addChatMessage(component);
+            this.player.sendMessage(Text.of(formatting, TextSerializers.LEGACY_FORMATTING_CODE.deserialize(part)));
         }
     }
 
     @Override
     public void setPosition(Vector pos, float pitch, float yaw) {
-        this.player.connection.setPlayerLocation(pos.getX(), pos.getY(), pos.getZ(), yaw, pitch);
+        org.spongepowered.api.world.Location<World> loc = new org.spongepowered.api.world.Location<>(
+                this.player.getWorld(), pos.getX(), pos.getY(), pos.getZ()
+        );
+
+        this.player.setLocationAndRotation(loc, new Vector3d(pitch, yaw, 0));
     }
 
     @Override
     public String[] getGroups() {
-        return new String[]{}; // WorldEditMod.inst.getPermissionsResolver().getGroups(this.player.username);
+        return SpongeWorldEdit.inst().getPermissionsProvider().getGroups(this.player);
     }
 
     @Override
     public BlockBag getInventoryBlockBag() {
-        return new ForgePlayerBlockBag(player);
+        return null;
     }
 
     @Override
     public boolean hasPermission(String perm) {
-        return ForgeWorldEdit.inst.getPermissionsProvider().hasPermission(player, perm);
+        return SpongeWorldEdit.inst().getPermissionsProvider().hasPermission(player, perm);
     }
 
     @Nullable
@@ -191,7 +187,7 @@ public class ForgePlayer extends AbstractPlayerActor {
 
     @Override
     public SessionKey getSessionKey() {
-        return new SessionKeyImpl(player.getUniqueID(), player.getName());
+        return new SessionKeyImpl(player.getUniqueId(), player.getName());
     }
 
     private static class SessionKeyImpl implements SessionKey {
@@ -230,7 +226,8 @@ public class ForgePlayer extends AbstractPlayerActor {
 
     }
 
-    public static Class<ForgePlayer> inject() {
-        return ForgePlayer.class;
+    public static Class<SpongePlayer> inject() {
+        return SpongePlayer.class;
     }
+
 }

@@ -10,7 +10,6 @@ import com.sk89q.worldedit.LocalSession;
 import com.sk89q.worldedit.MaxChangedBlocksException;
 import com.sk89q.worldedit.Vector;
 import com.sk89q.worldedit.WorldEditException;
-import com.sk89q.worldedit.command.tool.BrushTool;
 import com.sk89q.worldedit.command.tool.brush.Brush;
 import com.sk89q.worldedit.entity.Player;
 import com.sk89q.worldedit.function.RegionFunction;
@@ -33,13 +32,11 @@ public class SplineBrush implements Brush {
     private ArrayList<ArrayList<Vector>> positionSets;
     private int numSplines;
 
-    private final BrushTool tool;
     private final LocalSession session;
     private final Player player;
     private Vector position;
 
-    public SplineBrush(Player player, LocalSession session, BrushTool tool) {
-        this.tool = tool;
+    public SplineBrush(Player player, LocalSession session) {
         this.session = session;
         this.player = player;
         this.positionSets = new ArrayList<>();
@@ -47,7 +44,7 @@ public class SplineBrush implements Brush {
 
     @Override
     public void build(EditSession editSession, final Vector position, Pattern pattern, double size) throws MaxChangedBlocksException {
-        Mask mask = tool.getMask();
+        Mask mask = editSession.getMask();
         if (mask == null) {
             mask = new IdMask(editSession);
         } else {
@@ -65,7 +62,7 @@ public class SplineBrush implements Brush {
                     throw new FaweException(BBC.WORLDEDIT_CANCEL_REASON_MAX_CHECKS);
                 }
                 final ArrayList<Vector> points = new ArrayList<>();
-                if (tool.getSize() > 0) {
+                if (size > 0) {
                     DFSRecursiveVisitor visitor = new DFSRecursiveVisitor(mask, new RegionFunction() {
                         @Override
                         public boolean apply(Vector p) throws WorldEditException {

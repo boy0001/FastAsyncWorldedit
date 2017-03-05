@@ -70,6 +70,7 @@ public class FaweBukkit implements IFawe, Listener {
         try {
             Fawe.set(this);
             setupInjector();
+            com.sk89q.worldedit.bukkit.BukkitPlayer.inject();
             new BrushListener(plugin);
             if (Bukkit.getVersion().contains("git-Spigot")) {
                 debug("====== USE PAPER ======");

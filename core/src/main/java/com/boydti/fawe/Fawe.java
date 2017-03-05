@@ -59,8 +59,10 @@ import com.sk89q.worldedit.event.extent.EditSessionEvent;
 import com.sk89q.worldedit.extension.factory.DefaultBlockParser;
 import com.sk89q.worldedit.extension.factory.DefaultMaskParser;
 import com.sk89q.worldedit.extension.factory.HashTagPatternParser;
+import com.sk89q.worldedit.extension.platform.AbstractPlayerActor;
 import com.sk89q.worldedit.extension.platform.CommandManager;
 import com.sk89q.worldedit.extension.platform.PlatformManager;
+import com.sk89q.worldedit.extension.platform.PlayerProxy;
 import com.sk89q.worldedit.extent.AbstractDelegateExtent;
 import com.sk89q.worldedit.extent.clipboard.BlockArrayClipboard;
 import com.sk89q.worldedit.extent.clipboard.io.ClipboardFormat;
@@ -374,6 +376,8 @@ public class Fawe {
             EditSessionEvent.inject(); // Add EditSession to event (API)
             LocalSession.inject(); // Add remember order / queue flushing / Optimizations for disk / brush visualization
             SessionManager.inject(); // Faster custom session saving + Memory improvements
+            PlayerProxy.inject(); // Fixes getBlockInHand not being extended
+            AbstractPlayerActor.inject(); // Don't use exception for getBlockInHand control flow
             Request.inject(); // Custom pattern extent
             // Commands
             BiomeCommands.inject(); // Translations + Optimizations
