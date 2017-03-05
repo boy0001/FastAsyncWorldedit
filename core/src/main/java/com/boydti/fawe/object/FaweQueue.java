@@ -28,7 +28,6 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentLinkedDeque;
-import java.util.concurrent.ExecutorCompletionService;
 import javax.annotation.Nullable;
 
 public abstract class FaweQueue implements HasFaweQueue {
@@ -312,7 +311,6 @@ public abstract class FaweQueue implements HasFaweQueue {
     @Deprecated
     public boolean next() {
         int amount = Settings.IMP.QUEUE.PARALLEL_THREADS;
-        ExecutorCompletionService service = SetQueue.IMP.getCompleterService();
         long time = 20; // 30ms
         return next(amount, time);
     }

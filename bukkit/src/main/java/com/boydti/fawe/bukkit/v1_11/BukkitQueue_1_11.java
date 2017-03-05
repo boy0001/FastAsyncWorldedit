@@ -24,7 +24,6 @@ import java.util.Collections;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
-import java.util.concurrent.ExecutorCompletionService;
 import net.minecraft.server.v1_11_R1.BiomeBase;
 import net.minecraft.server.v1_11_R1.BiomeCache;
 import net.minecraft.server.v1_11_R1.Block;
