@@ -37,6 +37,7 @@ import com.sk89q.jchronic.Chronic;
 import com.sk89q.jchronic.Options;
 import com.sk89q.jchronic.utils.Span;
 import com.sk89q.jchronic.utils.Time;
+import com.sk89q.worldedit.blocks.BaseBlock;
 import com.sk89q.worldedit.command.tool.BlockTool;
 import com.sk89q.worldedit.command.tool.BrushTool;
 import com.sk89q.worldedit.command.tool.InvalidToolBindException;
@@ -959,7 +960,7 @@ public class LocalSession {
     @Deprecated
     @Nullable
     public Tool getTool(int item) {
-        return tools.get(FaweCache.getCombined(item, 0));
+        return getTool(item, 0);
     }
 
     @Nullable
@@ -972,7 +973,13 @@ public class LocalSession {
         if (tools.isEmpty()) {
             return null;
         }
-        return getTool(player.getItemInHand());
+        try {
+            BaseBlock block = player.getBlockInHand();
+            return getTool(block.getId(), block.getType());
+        } catch (WorldEditException e) {
+            e.printStackTrace();
+            return null;
+        }
     }
 
     /**
@@ -985,20 +992,32 @@ public class LocalSession {
      * @throws InvalidToolBindException if the item can't be bound to that item
      */
     public BrushTool getBrushTool(int item) throws InvalidToolBindException {
-        return getBrushTool(item, null);
+        return getBrushTool(item, 0, null, true);
     }
 
-    public BrushTool getBrushTool(int item, Player player) throws InvalidToolBindException {
-        return getBrushTool(item, player, true);
+    public BrushTool getBrushTool(Player player) throws InvalidToolBindException {
+        return getBrushTool(player, true);
     }
 
-    public BrushTool getBrushTool(int item, Player player, boolean create) throws InvalidToolBindException {
-        Tool tool = getTool(item);
+    public BrushTool getBrushTool(Player player, boolean create) throws InvalidToolBindException {
+        BaseBlock block;
+        try {
+            block = player.getBlockInHand();
+        } catch (WorldEditException e) {
+            e.printStackTrace();
+            block = EditSession.nullBlock;
+        }
+        return getBrushTool(block.getId(), block.getData(), player, create);
+    }
+
+
+    public BrushTool getBrushTool(int id, int data, Player player, boolean create) throws InvalidToolBindException {
+        Tool tool = getTool(id, data);
 
         if ((tool == null || !(tool instanceof BrushTool))) {
             if (create) {
                 tool = new BrushTool("worldedit.brush.sphere");
-                setTool(item, tool, player);
+                setTool(id, data, tool, player);
             } else {
                 return null;
             }
@@ -1016,12 +1035,18 @@ public class LocalSession {
      */
     @Deprecated
     public void setTool(int item, @Nullable Tool tool) throws InvalidToolBindException {
-        setTool(item, tool, null);
+        setTool(item, 0, tool, null);
     }
 
-    @Deprecated
-    public void setTool(int item, @Nullable Tool tool, Player player) throws InvalidToolBindException {
-        setTool(item, 0, tool, player);
+    public void setTool(@Nullable Tool tool, Player player) throws InvalidToolBindException {
+        BaseBlock item;
+        try {
+            item = player.getBlockInHand();
+        } catch (WorldEditException e) {
+            item = EditSession.nullBlock;
+            e.printStackTrace();
+        }
+        setTool(item.getId(), item.getData(), tool, player);
     }
 
     public void setTool(int id, int data, @Nullable Tool tool, Player player) throws InvalidToolBindException {

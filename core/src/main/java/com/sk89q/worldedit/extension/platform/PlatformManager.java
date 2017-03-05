@@ -394,7 +394,7 @@ public class PlatformManager {
                             return;
                         }
                     }
-                    final Tool tool = session.getTool(player.getItemInHand());
+                    final Tool tool = session.getTool(player);
                     if (tool != null && tool instanceof DoubleActionBlockTool) {
                         if (tool.canUse(player)) {
                             FawePlayer<?> fp = FawePlayer.wrap(player);
@@ -431,7 +431,7 @@ public class PlatformManager {
                         return;
                     }
 
-                    final Tool tool = session.getTool(player.getItemInHand());
+                    final Tool tool = session.getTool(player);
                     if (tool != null && tool instanceof BlockTool) {
                         if (tool.canUse(player)) {
                             FawePlayer<?> fp = FawePlayer.wrap(player);
@@ -495,7 +495,7 @@ public class PlatformManager {
 
                     final LocalSession session = worldEdit.getSessionManager().get(player);
 
-                    final Tool tool = session.getTool(player.getItemInHand());
+                    final Tool tool = session.getTool(player);
                     if (tool != null && tool instanceof DoubleActionTraceTool) {
                         if (tool.canUse(player)) {
                             FawePlayer<?> fp = FawePlayer.wrap(player);
@@ -533,7 +533,7 @@ public class PlatformManager {
 
                     final LocalSession session = worldEdit.getSessionManager().get(player);
 
-                    final Tool tool = session.getTool(player.getItemInHand());
+                    final Tool tool = session.getTool(player);
                     if (tool != null && tool instanceof TraceTool) {
                         if (tool.canUse(player)) {
                             FawePlayer<?> fp = FawePlayer.wrap(player);

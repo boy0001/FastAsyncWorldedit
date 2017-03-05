@@ -61,7 +61,7 @@ public class ToolCommands {
     )
     @CommandPermissions("worldedit.tool.inspect")
     public void inspectBrush(Player player, LocalSession session, @Optional("1") double radius) throws WorldEditException {
-        session.setTool(player.getItemInHand(), new InspectBrush(), player);
+        session.setTool(new InspectBrush(), player);
         BBC.TOOL_INSPECT.send(player, ItemType.toHeldName(player.getItemInHand()));
     }
 
@@ -73,7 +73,7 @@ public class ToolCommands {
             max = 0
     )
     public void none(Player player, LocalSession session, CommandContext args) throws WorldEditException {
-        session.setTool(player.getItemInHand(), null, player);
+        session.setTool(null, player);
         BBC.TOOL_NONE.send(player);
     }
 
@@ -86,7 +86,7 @@ public class ToolCommands {
     )
     @CommandPermissions("worldedit.tool.info")
     public void info(Player player, LocalSession session, CommandContext args) throws WorldEditException {
-        session.setTool(player.getItemInHand(), new QueryTool(), player);
+        session.setTool(new QueryTool(), player);
         BBC.TOOL_INFO.send(player, ItemType.toHeldName(player.getItemInHand()));
     }
 
@@ -110,7 +110,7 @@ public class ToolCommands {
             return;
         }
 
-        session.setTool(player.getItemInHand(), new TreePlanter(new TreeGenerator(type)), player);
+        session.setTool(new TreePlanter(new TreeGenerator(type)), player);
         BBC.TOOL_TREE.send(player, ItemType.toHeldName(player.getItemInHand()));
     }
 
@@ -124,7 +124,7 @@ public class ToolCommands {
     @CommandPermissions("worldedit.tool.replacer")
     public void repl(Player player, LocalSession session, CommandContext args) throws WorldEditException {
         BaseBlock targetBlock = we.getBlock(player, args.getString(0));
-        session.setTool(player.getItemInHand(), new BlockReplacer(targetBlock), player);
+        session.setTool(new BlockReplacer(targetBlock), player);
         BBC.TOOL_REPL.send(player, ItemType.toHeldName(player.getItemInHand()));
     }
 
@@ -138,7 +138,7 @@ public class ToolCommands {
     @CommandPermissions("worldedit.tool.data-cycler")
     public void cycler(Player player, LocalSession session, CommandContext args) throws WorldEditException {
 
-        session.setTool(player.getItemInHand(), new BlockDataCyler(), player);
+        session.setTool(new BlockDataCyler(), player);
         BBC.TOOL_CYCLER.send(player, ItemType.toHeldName(player.getItemInHand()));
     }
 
@@ -160,7 +160,7 @@ public class ToolCommands {
         }
 
         Pattern pattern = we.getBlockPattern(player, args.getString(0));
-        session.setTool(player.getItemInHand(), new FloodFillTool(range, pattern), player);
+        session.setTool(new FloodFillTool(range, pattern), player);
         BBC.TOOL_FLOOD_FILL.send(player, ItemType.toHeldName(player.getItemInHand()));
     }
 
@@ -173,7 +173,7 @@ public class ToolCommands {
     )
     @CommandPermissions("worldedit.tool.deltree")
     public void deltree(Player player, LocalSession session, CommandContext args) throws WorldEditException {
-        session.setTool(player.getItemInHand(), new FloatingTreeRemover(), player);
+        session.setTool(new FloatingTreeRemover(), player);
         BBC.TOOL_DELTREE.send(player, ItemType.toHeldName(player.getItemInHand()));
     }
 
@@ -186,7 +186,7 @@ public class ToolCommands {
     )
     @CommandPermissions("worldedit.tool.farwand")
     public void farwand(Player player, LocalSession session, CommandContext args) throws WorldEditException {
-        session.setTool(player.getItemInHand(), new DistanceWand(), player);
+        session.setTool(new DistanceWand(), player);
         BBC.TOOL_FARWAND.send(player, ItemType.toHeldName(player.getItemInHand()));
     }
 
@@ -202,7 +202,7 @@ public class ToolCommands {
 
         BaseBlock secondary = we.getBlock(player, args.getString(0));
         BaseBlock primary = we.getBlock(player, args.getString(1));
-        session.setTool(player.getItemInHand(), new LongRangeBuildTool(primary, secondary), player);
+        session.setTool(new LongRangeBuildTool(primary, secondary), player);
         BBC.TOOL_LRBUILD_BOUND.send(player, ItemType.toHeldName(player.getItemInHand()));
         BBC.TOOL_LRBUILD_INFO.send(player, ItemType.toName(secondary.getType()), ItemType.toName(primary.getType()));
     }

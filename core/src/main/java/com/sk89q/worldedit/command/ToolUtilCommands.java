@@ -69,7 +69,7 @@ public class ToolUtilCommands {
     )
     @CommandPermissions("worldedit.brush.options.mask")
     public void mask(Player player, LocalSession session, EditSession editSession, @Optional CommandContext context, @Switch('h') boolean offHand) throws WorldEditException {
-        Tool tool = session.getTool(player.getItemInHand());
+        Tool tool = session.getTool(player);
         if (tool == null) {
             player.print(BBC.getPrefix() + BBC.BRUSH_NONE.f());
             return;
@@ -109,7 +109,7 @@ public class ToolUtilCommands {
     )
     @CommandPermissions("worldedit.brush.options.mask")
     public void smask(Player player, LocalSession session, EditSession editSession, @Optional CommandContext context, @Switch('h') boolean offHand) throws WorldEditException {
-        Tool tool = session.getTool(player.getItemInHand());
+        Tool tool = session.getTool(player);
         if (tool == null) {
             player.print(BBC.getPrefix() + BBC.BRUSH_NONE.f());
             return;
@@ -149,7 +149,7 @@ public class ToolUtilCommands {
     )
     @CommandPermissions("worldedit.brush.options.transform")
     public void transform(Player player, LocalSession session, EditSession editSession, @Optional CommandContext context, @Switch('h') boolean offHand) throws WorldEditException {
-        Tool tool = session.getTool(player.getItemInHand());
+        Tool tool = session.getTool(player);
         if (tool == null) {
             return;
         }
@@ -188,7 +188,7 @@ public class ToolUtilCommands {
     )
     @CommandPermissions("worldedit.brush.options.material")
     public void material(Player player, LocalSession session, Pattern pattern, @Switch('h') boolean offHand) throws WorldEditException {
-        Tool tool = session.getTool(player.getItemInHand());
+        Tool tool = session.getTool(player);
         if (tool instanceof BrushTool) {
             BrushTool bt = (BrushTool) tool;
             if (offHand) {
@@ -210,7 +210,7 @@ public class ToolUtilCommands {
     @CommandPermissions("worldedit.brush.options.range")
     public void range(Player player, LocalSession session, CommandContext args) throws WorldEditException {
         int range = Math.max(0, Math.min(256, args.getInteger(0)));
-        Tool tool = session.getTool(player.getItemInHand());
+        Tool tool = session.getTool(player);
         if (tool instanceof BrushTool) {
             BrushTool bt = (BrushTool) tool;
             ((BrushTool) tool).setRange(range);
@@ -231,7 +231,7 @@ public class ToolUtilCommands {
         int radius = args.getInteger(0);
         we.checkMaxBrushRadius(radius);
 
-        Tool tool = session.getTool(player.getItemInHand());
+        Tool tool = session.getTool(player);
         if (tool instanceof BrushTool) {
             BrushTool bt = (BrushTool) tool;
             if (offHand) {
