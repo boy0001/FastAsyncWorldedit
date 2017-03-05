@@ -362,6 +362,8 @@ public class BrushTool implements DoubleActionTraceTool, ScrollTool, MovableTool
                 }
             }
             return true;
+        } else if (visualMode != VisualMode.NONE) {
+            clear(player);
         }
         return false;
     }
