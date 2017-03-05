@@ -308,7 +308,7 @@ public class EditSession extends AbstractWorld implements HasFaweQueue, Lighting
                 if (this.blockBag != null && limit.INVENTORY_MODE > 0) {
                     changeSet = new BlockBagChangeSet(changeSet, blockBag, limit.INVENTORY_MODE == 1);
                 }
-                if (combineStages) {
+                if (combineStages && limit.FAST_PLACEMENT) {
                     changeTask = changeSet;
                     changeSet.addChangeTask(queue);
                 } else {
