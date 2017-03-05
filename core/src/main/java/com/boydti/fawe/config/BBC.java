@@ -239,10 +239,6 @@ public enum BBC {
     WORLDEDIT_CANCEL_REASON_NO_REGION("No allowed region (bypass with /wea, or disable `region-restrictions` in config.yml)", "Cancel"),
     WORLDEDIT_FAILED_LOAD_CHUNK("&cSkipped loading chunk: &7%s0;%s1&c. Try increasing chunk-wait.", "Cancel"),
 
-    LOADING_CLIPBOARD("Loading clipboard from disk, please wait.", "History"),
-    INDEXING_HISTORY("Indexing %s history objects on disk, please wait.", "History"),
-    INDEXING_COMPLETE("Indexing complete. Took: %s seconds!", "History"),
-
     ASCEND_FAIL("No free spot above you found.", "Navigation"),
     ASCENDED_PLURAL("Ascended %s0 levels.", "Navigation"),
     ASCENDED_SINGULAR("Ascended a level.", "Navigation"),

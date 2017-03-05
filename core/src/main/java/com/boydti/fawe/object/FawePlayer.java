@@ -217,7 +217,6 @@ public abstract class FawePlayer<T> extends Metadatable {
                     }
                 } catch (EmptyClipboardException e) {}
                 if (player != null && session != null) {
-                    BBC.LOADING_CLIPBOARD.send(this);
                     WorldData worldData = player.getWorld().getWorldData();
                     Clipboard clip = doc.toClipboard();
                     ClipboardHolder holder = new ClipboardHolder(clip, worldData);
