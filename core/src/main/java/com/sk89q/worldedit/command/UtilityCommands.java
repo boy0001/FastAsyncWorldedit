@@ -514,17 +514,7 @@ public class UtilityCommands {
     @CommandPermissions("worldedit.calc")
     public void calc(final Actor actor, @Text String input) throws CommandException {
         try {
-            FaweLimit limit;
-            FawePlayer player = null;
-            if (actor != null) {
-                player = FawePlayer.wrap(actor);
-            }
-            if (player == null) {
-                limit = FaweLimit.MAX;
-            } else {
-                limit = player.getLimit();
-            }
-
+            FaweLimit limit = FawePlayer.wrap(actor).getLimit();
             final Expression expression = Expression.compile(input);
             final AtomicDouble result = new AtomicDouble(Double.NaN);
             ExecutorService executor = Executors.newSingleThreadExecutor();
@@ -535,7 +525,7 @@ public class UtilityCommands {
                         result.set(expression.evaluate());
                         return null;
                     }
-                }), limit.MAX_CALC_MS, TimeUnit.MILLISECONDS); // Default timeout of 50 milliseconds to prevent abuse.
+                }), limit.MAX_EXPRESSION_MS, TimeUnit.MILLISECONDS); // Default timeout of 50 milliseconds to prevent abuse.
             } catch (InterruptedException e) {
                 throw new RuntimeException(e);
             }

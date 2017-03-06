@@ -108,7 +108,7 @@ public class Settings extends Config {
         })
         public int MAX_HISTORY_MB = -1;
         @Comment("Maximum time in milliseconds //calc can execute")
-        public int MAX_CALC_MS = 50;
+        public int MAX_EXPRESSION_MS = 50;
         @Comment({
                 "Cinematic block placement:",
                 " - Adds a delay to block placement (ms/block)",
@@ -367,7 +367,7 @@ public class Settings extends Config {
                 limit.MAX_FAILS = Math.max(limit.MAX_FAILS, newLimit.MAX_FAILS != -1 ? newLimit.MAX_FAILS : Integer.MAX_VALUE);
                 limit.MAX_ITERATIONS = Math.max(limit.MAX_ITERATIONS, newLimit.MAX_ITERATIONS != -1 ? newLimit.MAX_ITERATIONS : Integer.MAX_VALUE);
                 limit.MAX_HISTORY = Math.max(limit.MAX_HISTORY, newLimit.MAX_HISTORY_MB != -1 ? newLimit.MAX_HISTORY_MB : Integer.MAX_VALUE);
-                limit.MAX_CALC_MS = Math.max(limit.MAX_CALC_MS, newLimit.MAX_CALC_MS != -1 ? newLimit.MAX_CALC_MS : Integer.MAX_VALUE);
+                limit.MAX_EXPRESSION_MS = Math.max(limit.MAX_EXPRESSION_MS, newLimit.MAX_EXPRESSION_MS != -1 ? newLimit.MAX_EXPRESSION_MS : Integer.MAX_VALUE);
                 limit.INVENTORY_MODE = Math.min(limit.INVENTORY_MODE, newLimit.INVENTORY_MODE);
                 limit.SPEED_REDUCTION = Math.min(limit.SPEED_REDUCTION, newLimit.SPEED_REDUCTION);
                 limit.FAST_PLACEMENT |= newLimit.FAST_PLACEMENT;
