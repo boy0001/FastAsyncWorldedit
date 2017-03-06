@@ -20,19 +20,13 @@
 package com.sk89q.worldedit.command;
 
 import com.boydti.fawe.config.BBC;
+import com.boydti.fawe.object.FaweLimit;
+import com.boydti.fawe.object.FawePlayer;
 import com.google.common.base.Joiner;
 import com.google.common.util.concurrent.AtomicDouble;
-import com.sk89q.minecraft.util.commands.Command;
-import com.sk89q.minecraft.util.commands.CommandContext;
-import com.sk89q.minecraft.util.commands.CommandException;
-import com.sk89q.minecraft.util.commands.CommandPermissions;
-import com.sk89q.minecraft.util.commands.Logging;
-import com.sk89q.worldedit.EditSession;
-import com.sk89q.worldedit.LocalConfiguration;
-import com.sk89q.worldedit.LocalSession;
+import com.sk89q.minecraft.util.commands.*;
+import com.sk89q.worldedit.*;
 import com.sk89q.worldedit.Vector;
-import com.sk89q.worldedit.WorldEdit;
-import com.sk89q.worldedit.WorldEditException;
 import com.sk89q.worldedit.blocks.BaseBlock;
 import com.sk89q.worldedit.command.util.CreatureButcher;
 import com.sk89q.worldedit.command.util.EntityRemover;
@@ -64,16 +58,12 @@ import com.sk89q.worldedit.util.formatting.component.Code;
 import com.sk89q.worldedit.util.formatting.component.CommandListBox;
 import com.sk89q.worldedit.util.formatting.component.CommandUsageBox;
 import com.sk89q.worldedit.world.World;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
-import java.util.Set;
+
+import java.util.*;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
-
 
 import static com.sk89q.minecraft.util.commands.Logging.LogMode.PLACEMENT;
 
@@ -208,7 +198,7 @@ public class UtilityCommands {
     @CommandPermissions("worldedit.removeabove")
     @Logging(PLACEMENT)
     public void removeAbove(Player player, LocalSession session, EditSession editSession, CommandContext args) throws WorldEditException {
-        
+
         int size = args.argsLength() > 0 ? Math.max(1, args.getInteger(0)) : 1;
         we.checkMaxRadius(size);
         World world = player.getWorld();
@@ -269,7 +259,7 @@ public class UtilityCommands {
     @CommandPermissions("worldedit.replacenear")
     @Logging(PLACEMENT)
     public void replaceNear(Player player, LocalSession session, EditSession editSession, CommandContext args) throws WorldEditException {
-        
+
         int size = Math.max(1, args.getInteger(0));
         int affected;
         Set<BaseBlock> from;
@@ -524,6 +514,17 @@ public class UtilityCommands {
     @CommandPermissions("worldedit.calc")
     public void calc(final Actor actor, @Text String input) throws CommandException {
         try {
+            FaweLimit limit;
+            FawePlayer player = null;
+            if (actor != null) {
+                player = FawePlayer.wrap(actor);
+            }
+            if (player == null) {
+                limit = FaweLimit.MAX;
+            } else {
+                limit = player.getLimit();
+            }
+
             final Expression expression = Expression.compile(input);
             final AtomicDouble result = new AtomicDouble(Double.NaN);
             ExecutorService executor = Executors.newSingleThreadExecutor();
@@ -534,7 +535,7 @@ public class UtilityCommands {
                         result.set(expression.evaluate());
                         return null;
                     }
-                }), 10, TimeUnit.SECONDS); // Timeout of 10 minutes.
+                }), limit.MAX_CALC_MS, TimeUnit.MILLISECONDS); // Default timeout of 50 milliseconds to prevent abuse.
             } catch (InterruptedException e) {
                 throw new RuntimeException(e);
             }
