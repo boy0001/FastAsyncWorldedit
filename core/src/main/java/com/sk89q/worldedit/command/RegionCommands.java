@@ -573,8 +573,10 @@ public class RegionCommands {
             BBC.COMMAND_REGEN_2.send(player);
         } else if (biome == null) {
             BBC.COMMAND_REGEN_0.send(player);
+            if (!FawePlayer.wrap(player).hasPermission("fawe.tips")) BBC.TIP_REGEN_0.send(player);
         } else if (seed == null) {
             BBC.COMMAND_REGEN_1.send(player);
+            if (!FawePlayer.wrap(player).hasPermission("fawe.tips")) BBC.TIP_REGEN_1.send(player);
         } else {
             BBC.COMMAND_REGEN_2.send(player);
         }

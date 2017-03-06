@@ -73,9 +73,10 @@ public enum BBC {
     COMMAND_ROTATE("The clipboard has been rotated", "WorldEdit.Rotate"),
 
     COMMAND_FLIPPED("The clipboard has been flipped", "WorldEdit.Flip"),
-    COMMAND_REGEN_0("Region regenerated.\nTip: Use a biome with /regen [biome]", "WorldEdit.Regen"),
-    COMMAND_REGEN_1("Region regenerated.\nTip: Use a seed with /regen [biome] [seed]", "WorldEdit.Regen"),
+    COMMAND_REGEN_0("Region regenerated.", "WorldEdit.Regen"),
+    COMMAND_REGEN_1("Region regenerated.", "WorldEdit.Regen"),
     COMMAND_REGEN_2("Region regenerated.", "WorldEdit.Regen"),
+
     COMMAND_TREE("%s0 trees created.", "WorldEdit.Tree"),
     COMMAND_PUMPKIN("%s0 pumpkin patches created.", "WorldEdit.Tree"),
     COMMAND_FLORA("%s0 flora created.", "WorldEdit.Flora"),
@@ -307,6 +308,10 @@ public enum BBC {
     TIP_BRUSH_TRANSFORM("&7Tip: Set a brush transform with &c/transform", "Tips"),
     TIP_BRUSH_RELATIVE("&7Tip: Use a relative clipboard pattern with //br sphere #~:#copy", "Tips"),
     TIP_BRUSH_COMMAND("&7Tip: Try the command brush &c//br cmd <radius> <cmd1;cmd2>", "Tips"),
+
+    // regen
+    TIP_REGEN_0("Tip: Use a biome with /regen [biome]", "Tips"),
+    TIP_REGEN_1("Tip: Use a seed with /regen [biome] [seed]", "Tips"),
 
 
 
