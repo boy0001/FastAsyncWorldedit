@@ -369,10 +369,10 @@ public class MainUtil {
                 writer.append("--" + boundary + "--").append(CRLF).flush();
             }
             int responseCode = ((HttpURLConnection) con).getResponseCode();
-            java.util.Scanner scanner = new java.util.Scanner(con.getInputStream()).useDelimiter("\\A");
-            String content = scanner.next().trim();
-            scanner.close();
-            Fawe.debug(content);
+//            java.util.Scanner scanner = new java.util.Scanner(con.getInputStream()).useDelimiter("\\A");
+//            String content = scanner.next().trim();
+//            scanner.close();
+//            Fawe.debug(content);
             if (responseCode == 200) {
                 return url;
             }
