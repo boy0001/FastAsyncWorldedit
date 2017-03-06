@@ -70,6 +70,8 @@ public class Settings extends Config {
     public static final class PATHS {
         public String HISTORY = "history";
         public String CLIPBOARD = "clipboard";
+        @Comment("Each player has their own sub directory for schematics")
+        public boolean PER_PLAYER_SCHEMATICS = true;
     }
 
 

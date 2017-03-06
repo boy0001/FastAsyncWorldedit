@@ -119,7 +119,8 @@ public class SchematicCommands {
                     BBC.NO_PERM.send(player, "worldedit.schematic.load.other");
                     return;
                 }
-                File dir = new File(this.worldEdit.getWorkingDirectoryFile(config.saveDir), player.getUniqueId().toString());
+                File working = this.worldEdit.getWorkingDirectoryFile(config.saveDir);
+                File dir = Settings.IMP.PATHS.PER_PLAYER_SCHEMATICS ? new File(working, player.getUniqueId().toString()) : working;
                 File f = this.worldEdit.getSafeSaveFile(player, dir, filename, format.getExtension(), format.getExtension());
                 if (f.getName().replaceAll("." + format.getExtension(), "").isEmpty()) {
                     File directory = f.getParentFile();
@@ -187,7 +188,8 @@ public class SchematicCommands {
             BBC.NO_PERM.send(player, "worldedit.schematic.save.other");
             return;
         }
-        final File dir = new File(this.worldEdit.getWorkingDirectoryFile(config.saveDir), player.getUniqueId().toString());
+        File working = this.worldEdit.getWorkingDirectoryFile(config.saveDir);
+        File dir = Settings.IMP.PATHS.PER_PLAYER_SCHEMATICS ? new File(working, player.getUniqueId().toString()) : working;
         File f = this.worldEdit.getSafeSaveFile(player, dir, filename, format.getExtension(), format.getExtension());
         if (f.getName().replaceAll("." + format.getExtension(), "").isEmpty()) {
             File directory = f.getParentFile();

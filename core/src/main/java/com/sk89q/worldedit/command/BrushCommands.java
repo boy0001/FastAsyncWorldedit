@@ -265,7 +265,8 @@ public class BrushCommands {
                             BBC.NO_PERM.send(player, "worldedit.schematic.load.other");
                             return;
                         }
-                        File dir = new File(this.worldEdit.getWorkingDirectoryFile(config.saveDir), player.getUniqueId() + File.separator + filename);
+                        File working = this.worldEdit.getWorkingDirectoryFile(config.saveDir);
+                        File dir = new File(working, (Settings.IMP.PATHS.PER_PLAYER_SCHEMATICS ? (player.getUniqueId().toString() + File.separator) : "") + filename);
                         if (!dir.exists()) {
                             if (!filename.contains("/") && !filename.contains("\\")) {
                                 dir = new File(this.worldEdit.getWorkingDirectoryFile(config.saveDir), filename);
