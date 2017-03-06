@@ -137,6 +137,11 @@ public class AsyncWorld extends DelegateFaweQueue implements World, HasFaweQueue
         setParent(queue);
     }
 
+    @Override
+    public String toString() {
+        return super.toString() + ":" + queue.toString();
+    }
+
     public World getBukkitWorld() {
         return parent;
     }
@@ -153,7 +158,8 @@ public class AsyncWorld extends DelegateFaweQueue implements World, HasFaweQueue
      */
     public synchronized static AsyncWorld create(final WorldCreator creator) {
         BukkitQueue_0 queue = (BukkitQueue_0) SetQueue.IMP.getNewQueue(creator.name(), true, false);
-        World world = queue.createWorld(creator);
+        World world = queue.createWorld(
+                creator);
         return wrap(world);
     }
 
@@ -245,7 +251,7 @@ public class AsyncWorld extends DelegateFaweQueue implements World, HasFaweQueue
     @Override
     @Deprecated
     public int getBlockTypeIdAt(int x, int y, int z) {
-        return queue.getCombinedId4Data(x, y & 0xFF, z, 0) >> 4;
+        return queue.getCachedCombinedId4Data(x, y & 0xFF, z, 0) >> 4;
     }
 
     @Override
@@ -257,7 +263,7 @@ public class AsyncWorld extends DelegateFaweQueue implements World, HasFaweQueue
     @Override
     public int getHighestBlockYAt(int x, int z) {
         for (int y = getMaxHeight() - 1; y >= 0; y--) {
-            if (queue.getCombinedId4Data(x, y, z, 0) != 0) {
+            if (queue.getCachedCombinedId4Data(x, y, z, 0) != 0) {
                 return y;
             }
         }

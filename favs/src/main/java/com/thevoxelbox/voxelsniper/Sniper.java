@@ -4,22 +4,22 @@ import com.boydti.fawe.Fawe;
 import com.boydti.fawe.FaweAPI;
 import com.boydti.fawe.bukkit.wrapper.AsyncWorld;
 import com.boydti.fawe.config.BBC;
+import com.boydti.fawe.config.Settings;
 import com.boydti.fawe.logging.LoggingChangeSet;
 import com.boydti.fawe.object.ChangeSetFaweQueue;
 import com.boydti.fawe.object.FawePlayer;
 import com.boydti.fawe.object.FaweQueue;
 import com.boydti.fawe.object.MaskedFaweQueue;
 import com.boydti.fawe.object.RegionWrapper;
-import com.boydti.fawe.object.RunnableVal;
 import com.boydti.fawe.object.changeset.FaweChangeSet;
-import com.boydti.fawe.util.StringMan;
+import com.boydti.fawe.util.SetQueue;
+import com.boydti.fawe.util.TaskManager;
 import com.boydti.fawe.util.WEManager;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.BiMap;
 import com.google.common.collect.ClassToInstanceMap;
 import com.google.common.collect.HashBiMap;
 import com.google.common.collect.ImmutableBiMap;
-import com.google.common.collect.Maps;
 import com.google.common.collect.MutableClassToInstanceMap;
 import com.sk89q.worldedit.LocalSession;
 import com.thevoxelbox.voxelsniper.brush.IBrush;
@@ -28,11 +28,13 @@ import com.thevoxelbox.voxelsniper.brush.perform.PerformBrush;
 import com.thevoxelbox.voxelsniper.brush.perform.Performer;
 import com.thevoxelbox.voxelsniper.event.SniperMaterialChangedEvent;
 import com.thevoxelbox.voxelsniper.event.SniperReplaceMaterialChangedEvent;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
+import org.bukkit.World;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
 import org.bukkit.entity.Player;
@@ -47,7 +49,7 @@ public class Sniper {
     private final UUID player;
     private boolean enabled = true;
 //    private LinkedList<FaweChangeSet> undoList = new LinkedList<>();
-    private Map<String, SniperTool> tools = Maps.newHashMap();
+    private Map<String, SniperTool> tools = new HashMap<>();
 
     public Sniper(VoxelSniper plugin, Player player) {
         this.plugin = plugin;
@@ -77,57 +79,20 @@ public class Sniper {
 
     // Added
     private AsyncWorld permanentWorld;
-    private MaskedFaweQueue maskQueue;
-    private ChangeSetFaweQueue changeQueue;
-    private FaweQueue baseQueue;
 
     public void storeUndo(Undo undo) {
-        ChangeSetFaweQueue tmpQueue;
-        synchronized (this) {
-            tmpQueue = changeQueue;
-            maskQueue = null;
-            baseQueue = null;
-            changeQueue = null;
-        }
-        if (tmpQueue != null) {
-            FaweChangeSet changeSet = tmpQueue.getChangeSet();
-            changeSet.closeAsync();
-            FawePlayer<Object> fp = FawePlayer.wrap(getPlayer());
-            LocalSession session = fp.getSession();
-            session.remember(changeSet.toEditSession(fp));
-        }
     }
 
     // Added
     public AsyncWorld getWorld() {
-        synchronized (this) {
-            if (permanentWorld == null) {
-                permanentWorld = new AsyncWorld(null, null);
-            }
-            if (this.maskQueue == null) {
-                Player player = getPlayer();
-                FawePlayer<Player> fp = FawePlayer.wrap(player);
-                if (this.baseQueue == null || !StringMan.isEqual(baseQueue.getWorldName(), player.getWorld().getName())) {
-                    this.baseQueue = FaweAPI.createQueue(fp.getLocation().world, false);
-                }
-                RegionWrapper[] mask = WEManager.IMP.getMask(fp);
-                this.maskQueue = new MaskedFaweQueue(baseQueue, mask);
-                com.sk89q.worldedit.world.World worldEditWorld = fp.getWorld();
-                FaweChangeSet changeSet = FaweChangeSet.getDefaultChangeSet(worldEditWorld, fp.getUUID());
-                if (Fawe.imp().getBlocksHubApi() != null) {
-                    changeSet = LoggingChangeSet.wrap(fp, changeSet);
-                }
-                this.changeQueue = new ChangeSetFaweQueue(changeSet, maskQueue);
-                permanentWorld.changeWorld(player.getWorld(), changeQueue);
-            }
-            return permanentWorld;
+        AsyncWorld world = permanentWorld;
+        if (world == null) {
+            Player bukkitPlayer = getPlayer();
+            World bukkitWorld = bukkitPlayer.getWorld();
+            world = AsyncWorld.wrap(bukkitWorld);
+            permanentWorld = world;
         }
-    }
-
-    public void resetMask() {
-        synchronized (this) {
-            maskQueue = null;
-        }
+        return world;
     }
 
     public Player getPlayer() {
@@ -143,15 +108,23 @@ public class Sniper {
      * @param clickedFace  Face of that targeted Block
      * @return true if command visibly processed, false otherwise.
      */
-    public boolean snipe(Action action, Material itemInHand, Block clickedBlock, BlockFace clickedFace) {
+    public boolean snipe(final Action action, final Material itemInHand, final Block clickedBlock, final BlockFace clickedFace) {
         try {
             Player player = getPlayer();
-            FawePlayer<Player> fp = FawePlayer.wrap(player);
-            resetMask();
-            if (clickedBlock != null) {
-                clickedBlock = getWorld().getBlockAt(clickedBlock.getX(), clickedBlock.getY(), clickedBlock.getZ());
-            }
-            return snipe(action, itemInHand, getWorld(), clickedBlock, clickedFace);
+            final FawePlayer<Player> fp = FawePlayer.wrap(player);
+            TaskManager.IMP.taskNow(new Runnable() {
+                @Override
+                public void run() {
+                    if (!fp.runAction(new Runnable() {
+                        @Override
+                        public void run() {
+                            snipeOnCurrentThread(fp, action, itemInHand, clickedBlock, clickedFace);
+                        }
+                    }, true, false)) {
+                        BBC.WORLDEDIT_COMMAND_LIMIT.send(fp);
+                    }
+                }
+            }, Fawe.isMainThread());
         } catch (Throwable e) {
             e.printStackTrace();
         }
@@ -159,7 +132,33 @@ public class Sniper {
     }
 
     // Old method (plus world arg)
-    public boolean snipe(final Action action, final Material itemInHand, final AsyncWorld world, final Block clickedBlock, final BlockFace clickedFace) {
+    public synchronized boolean snipeOnCurrentThread(FawePlayer fp, final Action action, final Material itemInHand, Block clickedBlock, final BlockFace clickedFace) {
+        Player bukkitPlayer = getPlayer();
+        World bukkitWorld = bukkitPlayer.getWorld();
+
+        FaweQueue baseQueue = FaweAPI.createQueue(fp.getLocation().world, false);
+        RegionWrapper[] mask = WEManager.IMP.getMask(fp);
+        MaskedFaweQueue maskQueue = new MaskedFaweQueue(baseQueue, mask);
+        com.sk89q.worldedit.world.World worldEditWorld = fp.getWorld();
+        FaweChangeSet changeSet = FaweChangeSet.getDefaultChangeSet(worldEditWorld, fp.getUUID());
+        if (Fawe.imp().getBlocksHubApi() != null) {
+            changeSet = LoggingChangeSet.wrap(fp, changeSet);
+        }
+        FaweQueue changeQueue;
+        if (Settings.IMP.HISTORY.COMBINE_STAGES) {
+            changeQueue = maskQueue;
+            changeSet.addChangeTask(baseQueue);
+        } else {
+            changeQueue = new ChangeSetFaweQueue(changeSet, maskQueue);
+        }
+        AsyncWorld world = getWorld();
+        world.changeWorld(bukkitWorld, changeQueue);
+
+        if (clickedBlock != null) {
+            clickedBlock = world.getBlockAt(clickedBlock.getX(), clickedBlock.getY(), clickedBlock.getZ());
+        }
+
+
         String toolId = getToolId(itemInHand);
         SniperTool sniperTool = tools.get(toolId);
 
@@ -320,17 +319,22 @@ public class Sniper {
                     PerformBrush performerBrush = (PerformBrush) sniperTool.getCurrentBrush();
                     performerBrush.initP(snipeData);
                 }
-                final FawePlayer<Player> fp = FawePlayer.wrap(getPlayer());
-                fp.runAsyncIfFree(new RunnableVal<Boolean>() {
-                    @Override
-                    public void run(Boolean value) {
-                        boolean result = brush.perform(snipeAction, snipeData, targetBlock, lastBlock);
-                        if (result) {
-                            MetricsManager.increaseBrushUsage(brush.getName());
-                        }
-                        world.commit();
+
+                boolean result = brush.perform(snipeAction, snipeData, targetBlock, lastBlock);
+                if (Fawe.isMainThread()) {
+                    SetQueue.IMP.flush(changeQueue);
+                } else {
+                    changeQueue.flush();
+                }
+                if (changeSet != null) {
+                    if (Settings.IMP.HISTORY.COMBINE_STAGES) {
+                        changeSet.closeAsync();
+                    } else {
+                        changeSet.close();
                     }
-                });
+                    LocalSession session = fp.getSession();
+                    session.remember(changeSet.toEditSession(fp));
+                }
                 return true;
             }
         }

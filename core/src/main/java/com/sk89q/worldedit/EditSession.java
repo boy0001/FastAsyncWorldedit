@@ -247,6 +247,9 @@ public class EditSession extends AbstractWorld implements HasFaweQueue, Lighting
         if (combineStages == null) {
             combineStages = Settings.IMP.HISTORY.COMBINE_STAGES && !(queue instanceof MCAQueue);
         }
+        if (limit.FAST_PLACEMENT) {
+            combineStages = false;
+        }
         if (checkMemory) {
             if (MemUtil.isMemoryLimitedSlow()) {
                 if (Perm.hasPermission(player, "worldedit.fast")) {
@@ -292,7 +295,7 @@ public class EditSession extends AbstractWorld implements HasFaweQueue, Lighting
                     } else {
                         changeSet = new DiskStorageHistory(world, uuid);
                     }
-                } else if (Settings.IMP.HISTORY.COMBINE_STAGES && Settings.IMP.HISTORY.COMPRESSION_LEVEL == 0 && !(queue instanceof MCAQueue)) {
+                } else if (combineStages && Settings.IMP.HISTORY.COMPRESSION_LEVEL == 0 && !(queue instanceof MCAQueue)) {
                     changeSet = new CPUOptimizedChangeSet(world);
                 } else {
                     changeSet = new MemoryOptimizedHistory(world);
@@ -308,7 +311,7 @@ public class EditSession extends AbstractWorld implements HasFaweQueue, Lighting
                 if (this.blockBag != null && limit.INVENTORY_MODE > 0) {
                     changeSet = new BlockBagChangeSet(changeSet, blockBag, limit.INVENTORY_MODE == 1);
                 }
-                if (combineStages && limit.FAST_PLACEMENT) {
+                if (combineStages) {
                     changeTask = changeSet;
                     changeSet.addChangeTask(queue);
                 } else {

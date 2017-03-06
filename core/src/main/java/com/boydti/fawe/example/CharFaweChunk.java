@@ -94,6 +94,14 @@ public abstract class CharFaweChunk<T, V extends FaweQueue> extends FaweChunk<T>
         return total;
     }
 
+    public int getTotalAir() {
+        int total = 0;
+        for (int i = 0; i < air.length; i++) {
+            total += Math.min(4096, this.air[i]);
+        }
+        return total;
+    }
+
     @Override
     public int getBitMask() {
         int bitMask = 0;
