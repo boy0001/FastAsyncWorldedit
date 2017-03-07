@@ -48,6 +48,6 @@ public class HeightBrush implements Brush {
             mask = null;
         }
         heightMap.setSize(size);
-        heightMap.apply(editSession, mask, position, size, rotation, yscale, true, false);
+        heightMap.perform(editSession, mask, position, size, rotation, yscale, true, false);
     }
 }

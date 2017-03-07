@@ -55,6 +55,7 @@ import java.io.InputStream;
 import java.net.URL;
 import java.nio.channels.Channels;
 import java.nio.channels.ReadableByteChannel;
+import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
@@ -132,7 +133,7 @@ public class SchematicCommands {
                     }
                 }
                 if (!f.exists()) {
-                    if (!filename.contains("/") && !filename.contains("\\")) {
+                    if ((!filename.contains("/") && !filename.contains("\\")) || player.hasPermission("worldedit.schematic.load.other")) {
                         dir = this.worldEdit.getWorkingDirectoryFile(config.saveDir);
                         f = this.worldEdit.getSafeSaveFile(player, dir, filename, format.getExtension(), format.getExtension());
                     }
@@ -203,8 +204,13 @@ public class SchematicCommands {
         final File parent = f.getParentFile();
         if ((parent != null) && !parent.exists()) {
             if (!parent.mkdirs()) {
-                log.info("Could not create folder for schematics!");
-                return;
+                try {
+                    Files.createDirectories(parent.toPath());
+                } catch (IOException e) {
+                    e.printStackTrace();
+                    log.info("Could not create folder for schematics!");
+                    return;
+                }
             }
         }
         try {

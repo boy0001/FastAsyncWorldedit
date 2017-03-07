@@ -24,6 +24,6 @@ public class FlattenBrush extends HeightBrush {
             mask = null;
         }
         heightMap.setSize(size);
-        heightMap.apply(editSession, mask, position, size, rotation, yscale, true, true);
+        heightMap.perform(editSession, mask, position, size, rotation, yscale, true, true);
     }
 }

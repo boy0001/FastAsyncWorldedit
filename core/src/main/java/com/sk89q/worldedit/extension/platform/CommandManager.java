@@ -119,6 +119,7 @@ public final class CommandManager {
     private final WorldEdit worldEdit;
     private final PlatformManager platformManager;
     private volatile Dispatcher dispatcher;
+    private volatile Platform platform;
     private final DynamicStreamHandler dynamicHandler = new DynamicStreamHandler();
     private final ExceptionConverter exceptionConverter;
 
@@ -246,7 +247,9 @@ public final class CommandManager {
                 .registerMethods(new BrushCommands(worldEdit))
                 .parent().graph().getDispatcher();
 
-
+        if (platform != null) {
+            platform.registerCommands(dispatcher);
+        }
     }
 
     public static CommandManager getInstance() {
@@ -281,7 +284,7 @@ public final class CommandManager {
             }
         }
 
-        platform.registerCommands(dispatcher);
+        this.platform = platform;
     }
 
     public void unregister() {

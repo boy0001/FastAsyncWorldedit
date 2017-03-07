@@ -118,7 +118,32 @@ public class ScalableHeightMap {
         return new ArrayHeightMap(array);
     }
 
-    public void apply(EditSession session, Mask mask, Vector pos, int size, int rotationMode, double yscale, boolean smooth, boolean towards) throws MaxChangedBlocksException {
+    public void perform(EditSession session, Mask mask, Vector pos, int size, int rotationMode, double yscale, boolean smooth, boolean towards) throws MaxChangedBlocksException {
+        int[] data = generateHeightData(session, mask, pos, size, rotationMode, yscale, smooth, towards);
+        applyHeightMapData(data, session, mask, pos, size, rotationMode, yscale, smooth, towards);
+    }
+
+    public void applyHeightMapData(int[] data, EditSession session, Mask mask, Vector pos, int size, int rotationMode, double yscale, boolean smooth, boolean towards) throws MaxChangedBlocksException {
+        Vector top = session.getMaximumPoint();
+        int maxY = top.getBlockY();
+        int diameter = 2 * size + 1;
+        int iterations = 1;
+        WorldVector min = new WorldVector(LocalWorldAdapter.adapt(session.getWorld()), pos.subtract(size, maxY, size));
+        Vector max = pos.add(size, maxY, size);
+        Region region = new CuboidRegion(session.getWorld(), min, max);
+        HeightMap heightMap = new HeightMap(session, region, true);
+        if (smooth) {
+            try {
+                HeightMapFilter filter = (HeightMapFilter) HeightMapFilter.class.getConstructors()[0].newInstance(GaussianKernel.class.getConstructors()[0].newInstance(5, 1));
+                data = filter.filter(data, diameter, diameter);
+            } catch (Throwable e) {
+                MainUtil.handleError(e);
+            }
+        }
+        heightMap.apply(data);
+    }
+
+    public int[] generateHeightData(EditSession session, Mask mask, Vector pos, int size, int rotationMode, double yscale, boolean smooth, boolean towards) {
         Vector top = session.getMaximumPoint();
         int maxY = top.getBlockY();
         int diameter = 2 * size + 1;
@@ -201,19 +226,6 @@ public class ScalableHeightMap {
                 }
             }
         }
-        int iterations = 1;
-        WorldVector min = new WorldVector(LocalWorldAdapter.adapt(session.getWorld()), pos.subtract(size, maxY, size));
-        Vector max = pos.add(size, maxY, size);
-        Region region = new CuboidRegion(session.getWorld(), min, max);
-        HeightMap heightMap = new HeightMap(session, region, true);
-        if (smooth) {
-            try {
-                HeightMapFilter filter = (HeightMapFilter) HeightMapFilter.class.getConstructors()[0].newInstance(GaussianKernel.class.getConstructors()[0].newInstance(5, 1));
-                newData = filter.filter(newData, diameter, diameter);
-            } catch (Throwable e) {
-                MainUtil.handleError(e);
-            }
-        }
-        heightMap.apply(newData);
+        return newData;
     }
 }

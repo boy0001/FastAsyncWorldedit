@@ -18,6 +18,7 @@ import com.sk89q.worldedit.EditSession;
 import com.sk89q.worldedit.LocalConfiguration;
 import com.sk89q.worldedit.LocalSession;
 import com.sk89q.worldedit.MaxChangedBlocksException;
+import com.sk89q.worldedit.MutableBlockVector;
 import com.sk89q.worldedit.Vector;
 import com.sk89q.worldedit.WorldEdit;
 import com.sk89q.worldedit.blocks.BaseBlock;
@@ -232,7 +233,7 @@ public class BrushTool implements DoubleActionTraceTool, ScrollTool, MovableTool
     public Vector getPosition(EditSession editSession, Player player) {
         switch (targetMode) {
             case TARGET_BLOCK_RANGE:
-                return player.getBlockTrace(getRange(), true);
+                return new MutableBlockVector(player.getBlockTrace(getRange(), true));
             case FOWARD_POINT_PITCH: {
                 int d = 0;
                 Location loc = player.getLocation();
@@ -241,7 +242,7 @@ public class BrushTool implements DoubleActionTraceTool, ScrollTool, MovableTool
                 d += (int) (Math.sin(Math.toRadians(pitch)) * 50);
                 final Vector vector = loc.getDirection().setY(0).normalize().multiply(d);
                 vector.add(loc.getX(), loc.getY(), loc.getZ()).toBlockVector();
-                return vector;
+                return new MutableBlockVector(vector);
             }
             case TARGET_POINT_HEIGHT: {
                 Location loc = player.getLocation();
@@ -256,10 +257,10 @@ public class BrushTool implements DoubleActionTraceTool, ScrollTool, MovableTool
                     }
                 }
                 final int distance = (height - y) + 8;
-                return player.getBlockTrace(distance, true);
+                return new MutableBlockVector(player.getBlockTrace(distance, true));
             }
             case TARGET_FACE_RANGE:
-                return player.getBlockTraceFace(getRange(), true);
+                return new MutableBlockVector(player.getBlockTraceFace(getRange(), true));
             default:
                 return null;
         }

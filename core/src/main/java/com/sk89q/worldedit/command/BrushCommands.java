@@ -35,7 +35,9 @@ import com.boydti.fawe.object.brush.LineBrush;
 import com.boydti.fawe.object.brush.RaiseBrush;
 import com.boydti.fawe.object.brush.RecurseBrush;
 import com.boydti.fawe.object.brush.SplineBrush;
+import com.boydti.fawe.object.brush.StencilBrush;
 import com.boydti.fawe.object.brush.TargetMode;
+import com.boydti.fawe.object.brush.ShatterBrush;
 import com.boydti.fawe.object.brush.heightmap.ScalableHeightMap;
 import com.boydti.fawe.object.brush.scroll.ScrollClipboard;
 import com.boydti.fawe.object.brush.scroll.ScrollMask;
@@ -79,6 +81,7 @@ import com.sk89q.worldedit.extension.platform.CommandManager;
 import com.sk89q.worldedit.extent.clipboard.Clipboard;
 import com.sk89q.worldedit.extent.clipboard.io.ClipboardFormat;
 import com.sk89q.worldedit.function.mask.BlockMask;
+import com.sk89q.worldedit.function.mask.ExistingBlockMask;
 import com.sk89q.worldedit.function.mask.Mask;
 import com.sk89q.worldedit.function.pattern.BlockPattern;
 import com.sk89q.worldedit.function.pattern.Pattern;
@@ -268,7 +271,7 @@ public class BrushCommands {
                         File working = this.worldEdit.getWorkingDirectoryFile(config.saveDir);
                         File dir = new File(working, (Settings.IMP.PATHS.PER_PLAYER_SCHEMATICS ? (player.getUniqueId().toString() + File.separator) : "") + filename);
                         if (!dir.exists()) {
-                            if (!filename.contains("/") && !filename.contains("\\")) {
+                            if ((!filename.contains("/") && !filename.contains("\\")) || player.hasPermission("worldedit.schematic.load.other")) {
                                 dir = new File(this.worldEdit.getWorkingDirectoryFile(config.saveDir), filename);
                             }
                         }
@@ -507,27 +510,52 @@ public class BrushCommands {
         if (!FawePlayer.wrap(player).hasPermission("fawe.tips")) BBC.TIP_BRUSH_COMMAND.or(BBC.TIP_BRUSH_RELATIVE, BBC.TIP_BRUSH_TRANSFORM, BBC.TIP_BRUSH_MASK_SOURCE, BBC.TIP_BRUSH_MASK, BBC.TIP_BRUSH_COPY, BBC.TIP_BRUSH_HEIGHT, BBC.TIP_BRUSH_SPLINE).send(player);
     }
 
-//    @Command(
-//            aliases = { "test" },
-//            usage = "<pattern> [radius] [count] [distance]",
-//            flags = "h",
-//            desc = "Choose the sphere brush",
-//            help =
-//                    "Chooses the sphere brush.\n" +
-//                            "The -h flag creates hollow spheres instead.",
-//            min = 1,
-//            max = -1
-//    )
-//    @CommandPermissions("worldedit.brush.test")
-//    public void testBrush(Player player, LocalSession session, Pattern fill, @Optional("10") double radius, @Optional("10") int count, @Optional("10") int distance) throws WorldEditException {
-//        worldEdit.checkMaxBrushRadius(radius);
-//
-//        BrushTool tool = session.getBrushTool(player);
-//        tool.setFill(fill);
-//        tool.setSize(radius);
-//        tool.setBrush(new Test(count), "worldedit.brush.test");
-//        player.print("equiped");
-//    }
+    @Command(
+            aliases = { "shatter", "partition", "split" },
+            usage = "<pattern> [radius] [count] [distance]",
+            desc = "Creates random lines to break the terrain into pieces",
+            help =
+                    "Chooses the shatter brush",
+            min = 1,
+            max = -1
+    )
+    @CommandPermissions("worldedit.brush.shatter")
+    public void shatterBrush(Player player, EditSession editSession, LocalSession session, Pattern fill, @Optional("10") double radius, @Optional("10") int count) throws WorldEditException {
+        worldEdit.checkMaxBrushRadius(radius);
+
+        BrushTool tool = session.getBrushTool(player);
+        tool.setFill(fill);
+        tool.setSize(radius);
+        tool.setMask(new ExistingBlockMask(editSession));
+        tool.setBrush(new ShatterBrush(count), "worldedit.brush.shatter");
+        player.print(BBC.getPrefix() + BBC.BRUSH_SHATTER.f(radius, count));
+    }
+
+    @Command(
+            aliases = { "stencil", "color"},
+            usage = "<pattern> [radius] [file|#clipboard|null] [rotation] [yscale]",
+            desc = "Use a height map to paint a surface",
+            help =
+                    "Chooses the stencil brush.\n" +
+                            "The -w flag will only apply at maximum saturation",
+            min = 1,
+            max = -1
+    )
+    @CommandPermissions("worldedit.brush.stencil")
+    public void stencilBrush(Player player, LocalSession session, Pattern fill, @Optional("5") double radius, @Optional("") final String filename, @Optional("0") final int rotation, @Optional("1") final double yscale, @Switch('w') boolean onlyWhite) throws WorldEditException {
+        worldEdit.checkMaxBrushRadius(radius);
+        BrushTool tool = session.getBrushTool(player);
+        InputStream stream = getHeightmapStream(filename);
+        tool.setFill(fill);
+        tool.setSize(radius);
+        try {
+            tool.setBrush(new StencilBrush(stream, rotation, yscale, onlyWhite, filename.equalsIgnoreCase("#clipboard") ? session.getClipboard().getClipboard() : null), "worldedit.brush.height", player);
+        } catch (EmptyClipboardException ignore) {
+            tool.setBrush(new StencilBrush(stream, rotation, yscale, onlyWhite, null), "worldedit.brush.height", player);
+        }
+
+        player.print(BBC.getPrefix() + BBC.BRUSH_STENCIL.f(radius));
+    }
 
     @Command(
             aliases = { "cylinder", "cyl", "c" },
@@ -701,11 +729,9 @@ public class BrushCommands {
         terrainBrush(player, session, radius, filename, rotation, yscale, true, ScalableHeightMap.Shape.CONE);
     }
 
-    private void terrainBrush(Player player, LocalSession session, double radius, String filename, int rotation, double yscale, boolean flat, ScalableHeightMap.Shape shape) throws WorldEditException {
-        worldEdit.checkMaxBrushRadius(radius);
+    private InputStream getHeightmapStream(String filename) {
         String filenamePng = (filename.endsWith(".png") ? filename : filename + ".png");
         File file = new File(Fawe.imp().getDirectory(), "heightmap" + File.separator + filenamePng);
-        InputStream stream = null;
         if (!file.exists()) {
             if (!filename.equals("#clipboard") && filename.length() >= 7) {
                 try {
@@ -719,19 +745,24 @@ public class BrushCommands {
                         url = new URL("https://i.imgur.com/" + filenamePng);
                     }
                     ReadableByteChannel rbc = Channels.newChannel(url.openStream());
-                    stream = Channels.newInputStream(rbc);
+                    return Channels.newInputStream(rbc);
                 } catch (IOException e) {
                     throw new RuntimeException(e);
                 }
             }
         } else if (!filename.equalsIgnoreCase("#clipboard")){
             try {
-                stream = new FileInputStream(file);
+                return new FileInputStream(file);
             } catch (FileNotFoundException e) {
                 throw new RuntimeException(e);
             }
         }
+        return null;
+    }
 
+    private void terrainBrush(Player player, LocalSession session, double radius, String filename, int rotation, double yscale, boolean flat, ScalableHeightMap.Shape shape) throws WorldEditException {
+        worldEdit.checkMaxBrushRadius(radius);
+        InputStream stream = getHeightmapStream(filename);
         BrushTool tool = session.getBrushTool(player);
         tool.setSize(radius);
         if (flat) {
