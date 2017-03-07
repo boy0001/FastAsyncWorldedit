@@ -80,6 +80,7 @@ import com.sk89q.worldedit.util.command.Dispatcher;
 import com.sk89q.worldedit.util.command.InvalidUsageException;
 import com.sk89q.worldedit.util.command.composition.ProvidedValue;
 import com.sk89q.worldedit.util.command.fluent.CommandGraph;
+import com.sk89q.worldedit.util.command.fluent.DispatcherNode;
 import com.sk89q.worldedit.util.command.parametric.ExceptionConverter;
 import com.sk89q.worldedit.util.command.parametric.LegacyCommandsHandler;
 import com.sk89q.worldedit.util.command.parametric.ParametricBuilder;
@@ -91,7 +92,9 @@ import com.sk89q.worldedit.util.logging.LogFormat;
 import java.io.File;
 import java.io.IOException;
 import java.util.LinkedHashSet;
+import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.FileHandler;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -115,9 +118,12 @@ public final class CommandManager {
 
     private final WorldEdit worldEdit;
     private final PlatformManager platformManager;
-    private final Dispatcher dispatcher;
+    private volatile Dispatcher dispatcher;
     private final DynamicStreamHandler dynamicHandler = new DynamicStreamHandler();
     private final ExceptionConverter exceptionConverter;
+
+
+    private Map<Object, String[]> methodMap;
 
     private static CommandManager INSTANCE;
 
@@ -142,7 +148,45 @@ public final class CommandManager {
         commandLog.addHandler(dynamicHandler);
         dynamicHandler.setFormatter(new LogFormat());
 
-        // Set up the commands manager
+        this.methodMap = new ConcurrentHashMap<>();
+
+        TaskManager.IMP.task(new Runnable() {
+            @Override
+            public void run() {
+                setupDispatcher();
+            }
+        });
+    }
+
+    /**
+     * Register all the methods in the class as commands<br>
+     *  - You should try to register commands during startup
+     * @param clazz The class containing all the commands
+     */
+    public void registerCommands(Object clazz) {
+        registerCommands(clazz, new String[0]);
+        if (dispatcher != null) {
+            setupDispatcher();
+        }
+    }
+
+    /**
+     * Create a command with the provided aliases and register all methods of the class as sub commands.<br>
+     *  - You should try to register commands during startup
+     * @param clazz The class containing all the sub command methods
+     * @param aliases The aliases to give the command
+     */
+    public void registerCommands(Object clazz, String... aliases) {
+        methodMap.put(clazz, aliases);
+        if (dispatcher != null) {
+            setupDispatcher();
+        }
+    }
+
+    /**
+     * Initialize the dispatcher
+     */
+    public void setupDispatcher() {
         ParametricBuilder builder = new ParametricBuilder();
         builder.setAuthorizer(new ActorAuthorizer());
         builder.setDefaultCompleter(new UserCommandCompleter(platformManager));
@@ -153,8 +197,21 @@ public final class CommandManager {
 
         builder.addInvokeListener(new LegacyCommandsHandler());
         builder.addInvokeListener(new CommandLoggingHandler(worldEdit, commandLog));
-        dispatcher = new CommandGraph().builder(builder).commands()
-                .registerMethods(new AnvilCommands(worldEdit)) // Added
+        DispatcherNode graph = new CommandGraph().builder(builder).commands();
+
+        for (Map.Entry<Object, String[]> entry : methodMap.entrySet()) {
+            // add  command
+            String[] aliases = entry.getValue();
+            if (aliases.length == 0) {
+                graph = graph.registerMethods(entry.getKey());
+            } else {
+                graph = graph.group(aliases).registerMethods(entry.getKey()).parent();
+            }
+        }
+
+
+        dispatcher = graph
+                .registerMethods(new AnvilCommands(worldEdit))
                 .registerMethods(new BiomeCommands(worldEdit))
                 .registerMethods(new ChunkCommands(worldEdit))
                 .registerMethods(new ClipboardCommands(worldEdit))
@@ -188,6 +245,8 @@ public final class CommandManager {
                 .registerMethods(new ToolCommands(worldEdit))
                 .registerMethods(new BrushCommands(worldEdit))
                 .parent().graph().getDispatcher();
+
+
     }
 
     public static CommandManager getInstance() {
