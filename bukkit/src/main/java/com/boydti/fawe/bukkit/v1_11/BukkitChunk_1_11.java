@@ -206,6 +206,12 @@ public class BukkitChunk_1_11 extends CharFaweChunk<Chunk, com.boydti.fawe.bukki
         getChunk().load(true);
     }
 
+    private void removeEntity(Entity entity) {
+        entity.b(false);
+        entity.die();
+        entity.valid = false;
+    }
+
     @Override
     public FaweChunk call() {
         try {
@@ -227,18 +233,18 @@ public class BukkitChunk_1_11 extends CharFaweChunk<Chunk, com.boydti.fawe.bukki
             // Remove entities
             HashSet<UUID> entsToRemove = this.getEntityRemoves();
             if (!entsToRemove.isEmpty()) {
-                synchronized (BukkitQueue_0.class) {
-                    for (int i = 0; i < entities.length; i++) {
-                        Collection<Entity> ents = entities[i];
-                        if (ents.isEmpty()) {
-                            Entity[] entsArr = ents.toArray(new Entity[ents.size()]);
-                            for (Entity entity : entsArr) {
-                                if (entsToRemove.contains(entity.getUniqueID())) {
-                                    if (copy != null) {
-                                        copy.storeEntity(entity);
-                                    }
-                                    nmsWorld.removeEntity(entity);
+                for (int i = 0; i < entities.length; i++) {
+                    Collection<Entity> ents = entities[i];
+                    if (!ents.isEmpty()) {
+                        Iterator<Entity> iter = ents.iterator();
+                        while (iter.hasNext()) {
+                            Entity entity = iter.next();
+                            if (entsToRemove.contains(entity.getUniqueID())) {
+                                if (copy != null) {
+                                    copy.storeEntity(entity);
                                 }
+                                removeEntity(entity);
+                                iter.remove();
                             }
                         }
                     }
@@ -264,23 +270,23 @@ public class BukkitChunk_1_11 extends CharFaweChunk<Chunk, com.boydti.fawe.bukki
                     Collection<Entity> ents = entities[i];
                     if (!ents.isEmpty()) {
                         char[] array = this.getIdArray(i);
-                        if (array == null || ents == null || ents.isEmpty()) continue;
-                        Entity[] entsArr = ents.toArray(new Entity[ents.size()]);
-                        synchronized (BukkitQueue_0.class) {
-                            for (Entity entity : entsArr) {
-                                if (entity instanceof EntityPlayer) {
-                                    continue;
+                        if (array == null) continue;
+                        Iterator<Entity> iter = ents.iterator();
+                        while (iter.hasNext()) {
+                            Entity entity = iter.next();
+                            if (entity instanceof EntityPlayer) {
+                                continue;
+                            }
+                            int x = ((int) Math.round(entity.locX) & 15);
+                            int z = ((int) Math.round(entity.locZ) & 15);
+                            int y = (int) Math.round(entity.locY);
+                            if (y < 0 || y > 255) continue;
+                            if (array[FaweCache.CACHE_J[y][z][x]] != 0) {
+                                if (copy != null) {
+                                    copy.storeEntity(entity);
                                 }
-                                int x = ((int) Math.round(entity.locX) & 15);
-                                int z = ((int) Math.round(entity.locZ) & 15);
-                                int y = (int) Math.round(entity.locY);
-                                if (y < 0 || y > 255) continue;
-                                if (array[FaweCache.CACHE_J[y][z][x]] != 0) {
-                                    if (copy != null) {
-                                        copy.storeEntity(entity);
-                                    }
-                                    nmsWorld.removeEntity(entity);
-                                }
+                                iter.remove();
+                                removeEntity(entity);
                             }
                         }
                     }

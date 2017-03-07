@@ -1,3 +1,4 @@
+
 package com.boydti.fawe.bukkit.v1_10;
 
 import com.boydti.fawe.Fawe;
@@ -16,6 +17,8 @@ import com.sk89q.jnbt.Tag;
 import com.sk89q.worldedit.internal.Constants;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
+import java.lang.reflect.InvocationTargetException;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -25,7 +28,6 @@ import java.util.Set;
 import java.util.UUID;
 import net.minecraft.server.v1_10_R1.Block;
 import net.minecraft.server.v1_10_R1.BlockPosition;
-import net.minecraft.server.v1_10_R1.ChunkSection;
 import net.minecraft.server.v1_10_R1.DataBits;
 import net.minecraft.server.v1_10_R1.DataPalette;
 import net.minecraft.server.v1_10_R1.DataPaletteBlock;
@@ -38,7 +40,6 @@ import net.minecraft.server.v1_10_R1.NBTTagCompound;
 import net.minecraft.server.v1_10_R1.TileEntity;
 import org.bukkit.Chunk;
 import org.bukkit.World;
-import org.bukkit.craftbukkit.v1_10_R1.CraftChunk;
 import org.bukkit.event.entity.CreatureSpawnEvent;
 
 public class BukkitChunk_1_10 extends CharFaweChunk<Chunk, BukkitQueue_1_10> {
@@ -173,70 +174,121 @@ public class BukkitChunk_1_10 extends CharFaweChunk<Chunk, BukkitQueue_1_10> {
         getChunk().load(true);
     }
 
+    private void removeEntity(Entity entity) {
+        entity.b(false);
+        entity.die();
+        entity.valid = false;
+    }
+
+    public void storeBiomes(byte[] biomes) {
+        this.biomes = Arrays.copyOf(biomes, biomes.length);
+    }
+
+    public boolean storeEntity(Entity ent) throws InvocationTargetException, IllegalAccessException {
+        if (ent instanceof EntityPlayer) {
+            return false;
+        }
+        int x = ((int) Math.round(ent.locX) & 15);
+        int z = ((int) Math.round(ent.locZ) & 15);
+        int y = ((int) Math.round(ent.locY) & 0xFF);
+        int i = FaweCache.CACHE_I[y][z][x];
+        int j = FaweCache.CACHE_J[y][z][x];
+        String id = EntityTypes.b(ent);
+        if (id != null) {
+            NBTTagCompound tag = new NBTTagCompound();
+            ent.e(tag); // readEntityIntoTag
+            CompoundTag nativeTag = (CompoundTag) getParent().methodToNative.invoke(getParent().adapter, tag);
+            Map<String, Tag> map = ReflectionUtils.getMap(nativeTag.getValue());
+            map.put("Id", new StringTag(id));
+            setEntity(nativeTag);
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    public boolean storeTile(TileEntity tile, BlockPosition pos) {
+        NBTTagCompound tag = new NBTTagCompound();
+        CompoundTag nativeTag = getParent().getTag(tile);
+        setTile(pos.getX() & 15, pos.getY(), pos.getZ() & 15, nativeTag);
+        return true;
+    }
+
     @Override
     public FaweChunk call() {
         try {
+            BukkitChunk_1_10_Copy copy = getParent().getChangeTask() != null ? new BukkitChunk_1_10_Copy(getParent(), getX(), getZ()) : null;
             final Chunk chunk = this.getChunk();
             final World world = chunk.getWorld();
             int bx = this.getX() << 4;
             int bz = this.getZ() << 4;
             final boolean flag = world.getEnvironment() == World.Environment.NORMAL;
-            net.minecraft.server.v1_10_R1.Chunk nmsChunk = ((CraftChunk) chunk).getHandle();
+            net.minecraft.server.v1_10_R1.Chunk nmsChunk = ((org.bukkit.craftbukkit.v1_10_R1.CraftChunk) chunk).getHandle();
             nmsChunk.f(true); // Set Modified
             nmsChunk.mustSave = true;
             net.minecraft.server.v1_10_R1.World nmsWorld = nmsChunk.world;
-            ChunkSection[] sections = nmsChunk.getSections();
-            Class<? extends net.minecraft.server.v1_10_R1.Chunk> clazzChunk = nmsChunk.getClass();
-            final Collection<Entity>[] entities = (Collection<Entity>[]) getParent().getEntitySlices.invoke(nmsChunk);
-            Map<BlockPosition, TileEntity> tiles = nmsChunk.getTileEntities();
+            net.minecraft.server.v1_10_R1.ChunkSection[] sections = nmsChunk.getSections();
+            final Collection<net.minecraft.server.v1_10_R1.Entity>[] entities = (Collection<net.minecraft.server.v1_10_R1.Entity>[]) getParent().getEntitySlices.invoke(nmsChunk);
+            Map<net.minecraft.server.v1_10_R1.BlockPosition, net.minecraft.server.v1_10_R1.TileEntity> tiles = nmsChunk.getTileEntities();
             // Set heightmap
             getParent().setHeightMap(this, heightMap);
             // Remove entities
-            for (int i = 0; i < entities.length; i++) {
-                int count = this.getCount(i);
-                if (count == 0) {
-                    continue;
-                } else if (count >= 4096) {
-                    Collection<Entity> ents = entities[i];
+            HashSet<UUID> entsToRemove = this.getEntityRemoves();
+            if (!entsToRemove.isEmpty()) {
+                for (int i = 0; i < entities.length; i++) {
+                    Collection<net.minecraft.server.v1_10_R1.Entity> ents = entities[i];
                     if (!ents.isEmpty()) {
-                        synchronized (BukkitQueue_0.class) {
-                            ents.clear();
-                        }
-                    }
-                } else {
-                    Collection<Entity> ents = entities[i];
-                    if (!ents.isEmpty()) {
-                        char[] array = this.getIdArray(i);
-                        if (array == null || entities[i] == null || entities[i].isEmpty()) continue;
-                        Entity[] entsArr = ents.toArray(new Entity[ents.size()]);
-                        synchronized (BukkitQueue_0.class) {
-                            for (Entity entity : entsArr) {
-                                if (entity instanceof EntityPlayer) {
-                                    continue;
+                        Iterator<net.minecraft.server.v1_10_R1.Entity> iter = ents.iterator();
+                        while (iter.hasNext()) {
+                            net.minecraft.server.v1_10_R1.Entity entity = iter.next();
+                            if (entsToRemove.contains(entity.getUniqueID())) {
+                                if (copy != null) {
+                                    copy.storeEntity(entity);
                                 }
-                                int x = ((int) Math.round(entity.locX) & 15);
-                                int z = ((int) Math.round(entity.locZ) & 15);
-                                int y = (int) Math.round(entity.locY);
-                                if (y < 0 || y > 255) continue;
-                                if (array[FaweCache.CACHE_J[y][z][x]] != 0) {
-                                    nmsWorld.removeEntity(entity);
-                                }
+                                removeEntity(entity);
+                                iter.remove();
                             }
                         }
                     }
                 }
             }
-            HashSet<UUID> entsToRemove = this.getEntityRemoves();
-            if (!entsToRemove.isEmpty()) {
-                synchronized (BukkitQueue_0.class) {
-                    for (int i = 0; i < entities.length; i++) {
-                        Collection<Entity> ents = entities[i];
-                        if (ents.isEmpty()) {
-                            Entity[] entsArr = ents.toArray(new Entity[ents.size()]);
-                            for (Entity entity : entsArr) {
-                                if (entsToRemove.contains(entity.getUniqueID())) {
-                                    nmsWorld.removeEntity(entity);
+            for (int i = 0; i < entities.length; i++) {
+                int count = this.getCount(i);
+                if (count == 0) {
+                    continue;
+                } else if (count >= 4096) {
+                    Collection<net.minecraft.server.v1_10_R1.Entity> ents = entities[i];
+                    if (!ents.isEmpty()) {
+                        if (copy != null) {
+                            for (net.minecraft.server.v1_10_R1.Entity entity : ents) {
+                                copy.storeEntity(entity);
+                            }
+                        }
+                        synchronized (BukkitQueue_0.class) {
+                            ents.clear();
+                        }
+                    }
+                } else {
+                    Collection<net.minecraft.server.v1_10_R1.Entity> ents = entities[i];
+                    if (!ents.isEmpty()) {
+                        char[] array = this.getIdArray(i);
+                        if (array == null) continue;
+                        Iterator<net.minecraft.server.v1_10_R1.Entity> iter = ents.iterator();
+                        while (iter.hasNext()) {
+                            net.minecraft.server.v1_10_R1.Entity entity = iter.next();
+                            if (entity instanceof net.minecraft.server.v1_10_R1.EntityPlayer) {
+                                continue;
+                            }
+                            int x = ((int) Math.round(entity.locX) & 15);
+                            int z = ((int) Math.round(entity.locZ) & 15);
+                            int y = (int) Math.round(entity.locY);
+                            if (y < 0 || y > 255) continue;
+                            if (array[FaweCache.CACHE_J[y][z][x]] != 0) {
+                                if (copy != null) {
+                                    copy.storeEntity(entity);
                                 }
+                                iter.remove();
+                                removeEntity(entity);
                             }
                         }
                     }
@@ -281,17 +333,12 @@ public class BukkitChunk_1_10 extends CharFaweChunk<Chunk, BukkitQueue_1_10> {
                     }
                 }
             }
-            // Change task?
-            if (getParent().getChangeTask() != null) {
-                BukkitChunk_1_10 previous = getParent().getPrevious(this, sections, tiles, entities, createdEntities, false);
-                getParent().getChangeTask().run(previous, this);
-            }
             // Trim tiles
-            Iterator<Map.Entry<BlockPosition, TileEntity>> iterator = tiles.entrySet().iterator();
-            HashMap<BlockPosition, TileEntity> toRemove = null;
+            Iterator<Map.Entry<net.minecraft.server.v1_10_R1.BlockPosition, net.minecraft.server.v1_10_R1.TileEntity>> iterator = tiles.entrySet().iterator();
+            HashMap<net.minecraft.server.v1_10_R1.BlockPosition, net.minecraft.server.v1_10_R1.TileEntity> toRemove = null;
             while (iterator.hasNext()) {
-                Map.Entry<BlockPosition, TileEntity> tile = iterator.next();
-                BlockPosition pos = tile.getKey();
+                Map.Entry<net.minecraft.server.v1_10_R1.BlockPosition, net.minecraft.server.v1_10_R1.TileEntity> tile = iterator.next();
+                net.minecraft.server.v1_10_R1.BlockPosition pos = tile.getKey();
                 int lx = pos.getX() & 15;
                 int ly = pos.getY();
                 int lz = pos.getZ() & 15;
@@ -305,13 +352,16 @@ public class BukkitChunk_1_10 extends CharFaweChunk<Chunk, BukkitQueue_1_10> {
                     if (toRemove == null) {
                         toRemove = new HashMap<>();
                     }
+                    if (copy != null) {
+                        storeTile(tile.getValue(), tile.getKey());
+                    }
                     toRemove.put(tile.getKey(), tile.getValue());
                 }
             }
             if (toRemove != null) {
-                for (Map.Entry<BlockPosition, TileEntity> entry : toRemove.entrySet()) {
-                    BlockPosition bp = entry.getKey();
-                    TileEntity tile = entry.getValue();
+                for (Map.Entry<net.minecraft.server.v1_10_R1.BlockPosition, net.minecraft.server.v1_10_R1.TileEntity> entry : toRemove.entrySet()) {
+                    net.minecraft.server.v1_10_R1.BlockPosition bp = entry.getKey();
+                    net.minecraft.server.v1_10_R1.TileEntity tile = entry.getValue();
                     tiles.remove(bp);
                     tile.y();
                     nmsWorld.s(bp);
@@ -325,12 +375,15 @@ public class BukkitChunk_1_10 extends CharFaweChunk<Chunk, BukkitQueue_1_10> {
                 if (count == 0) {
                     continue;
                 }
+                int countAir = this.getAir(j);
                 final char[] array = this.getIdArray(j);
                 if (array == null) {
                     continue;
                 }
-                int countAir = this.getAir(j);
-                ChunkSection section = sections[j];
+                net.minecraft.server.v1_10_R1.ChunkSection section = sections[j];
+                if (copy != null) {
+                    copy.storeSection(section, j);
+                }
                 if (section == null) {
                     if (count == countAir) {
                         continue;
@@ -342,8 +395,8 @@ public class BukkitChunk_1_10 extends CharFaweChunk<Chunk, BukkitQueue_1_10> {
                         continue;
                     } else {
                         sections[j] = getParent().newChunkSection(j << 4, flag, array);
+                        continue;
                     }
-                    continue;
                 } else if (count >= 4096) {
                     if (countAir >= 4096) {
                         sections[j] = null;
@@ -355,13 +408,13 @@ public class BukkitChunk_1_10 extends CharFaweChunk<Chunk, BukkitQueue_1_10> {
                         continue;
                     } else {
                         sections[j] = getParent().newChunkSection(j << 4, flag, array);
+                        continue;
                     }
-                    continue;
                 }
                 int by = j << 4;
-                DataPaletteBlock nibble = section.getBlocks();
+                net.minecraft.server.v1_10_R1.DataPaletteBlock nibble = section.getBlocks();
                 int nonEmptyBlockCount = 0;
-                IBlockData existing;
+                net.minecraft.server.v1_10_R1.IBlockData existing;
                 for (int y = 0; y < 16; y++) {
                     short[][] i1 = FaweCache.CACHE_J[y];
                     for (int z = 0; z < 16; z++) {
@@ -399,6 +452,9 @@ public class BukkitChunk_1_10 extends CharFaweChunk<Chunk, BukkitQueue_1_10> {
             }
             // Set biomes
             if (this.biomes != null) {
+                if (copy != null) {
+                    copy.storeBiomes(nmsChunk.getBiomeIndex());
+                }
                 byte[] currentBiomes = nmsChunk.getBiomeIndex();
                 for (int i = 0 ; i < this.biomes.length; i++) {
                     if (this.biomes[i] != 0) {
@@ -408,20 +464,23 @@ public class BukkitChunk_1_10 extends CharFaweChunk<Chunk, BukkitQueue_1_10> {
             }
             // Set tiles
             Map<Short, CompoundTag> tilesToSpawn = this.getTiles();
-
             for (Map.Entry<Short, CompoundTag> entry : tilesToSpawn.entrySet()) {
                 CompoundTag nativeTag = entry.getValue();
                 short blockHash = entry.getKey();
                 int x = (blockHash >> 12 & 0xF) + bx;
                 int y = (blockHash & 0xFF);
                 int z = (blockHash >> 8 & 0xF) + bz;
-                BlockPosition pos = new BlockPosition(x, y, z); // Set pos
-                TileEntity tileEntity = nmsWorld.getTileEntity(pos);
+                net.minecraft.server.v1_10_R1.BlockPosition pos = new net.minecraft.server.v1_10_R1.BlockPosition(x, y, z); // Set pos
+                net.minecraft.server.v1_10_R1.TileEntity tileEntity = nmsWorld.getTileEntity(pos);
                 if (tileEntity != null) {
-                    NBTTagCompound tag = (NBTTagCompound) BukkitQueue_1_10.methodFromNative.invoke(BukkitQueue_1_10.adapter, nativeTag);
+                    net.minecraft.server.v1_10_R1.NBTTagCompound tag = (net.minecraft.server.v1_10_R1.NBTTagCompound) com.boydti.fawe.bukkit.v1_10.BukkitQueue_1_10.methodFromNative.invoke(com.boydti.fawe.bukkit.v1_10.BukkitQueue_1_10.adapter, nativeTag);
                     tileEntity.a(tag); // ReadTagIntoTile
                 }
-             }
+            }
+            // Change task
+            if (copy != null) {
+                getParent().getChangeTask().run(copy, this);
+            }
         } catch (Throwable e) {
             MainUtil.handleError(e);
         }
