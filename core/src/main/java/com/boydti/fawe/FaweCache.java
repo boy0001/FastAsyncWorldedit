@@ -16,6 +16,7 @@ import com.sk89q.jnbt.StringTag;
 import com.sk89q.jnbt.Tag;
 import com.sk89q.worldedit.blocks.BaseBlock;
 import com.sk89q.worldedit.blocks.BaseItem;
+import com.sk89q.worldedit.blocks.BlockType;
 import com.sk89q.worldedit.blocks.ImmutableBlock;
 import com.sk89q.worldedit.blocks.ImmutableDatalessBlock;
 import com.sk89q.worldedit.world.biome.BaseBiome;
@@ -51,16 +52,8 @@ public class FaweCache {
      */
     public final static byte[][] CACHE_Z = new byte[16][4096];
 
-    /**
-     * [ combined ] => id
-     * (combined >> 4) = id
-     */
-    public final static short[] CACHE_ID = new short[65535];
-    /**
-     * [ combined ] => data
-     * (combined & 0xF) = data
-     */
-    public final static byte[] CACHE_DATA = new byte[65535];
+    public final static boolean[] CACHE_PASSTHROUGH = new boolean[65535];
+    public final static boolean[] CACHE_TRANSLUSCENT = new boolean[65535];
 
     /**
      * Immutable biome cache
@@ -162,13 +155,24 @@ public class FaweCache {
                 }
             }
         }
-        for (int i = 0; i < 65535; i++) {
-            final int j = i >> 4;
-        final int k = i & 0xF;
-        CACHE_ID[i] = (short) j;
-        CACHE_DATA[i] = (byte) k;
-        }
-
+        try {
+            BundledBlockData bundled = BundledBlockData.getInstance();
+            bundled.loadFromResource();
+            for (int i = 0; i < Character.MAX_VALUE; i++) {
+                int id = i >> 4;
+                int data = i & 0xf;
+                CACHE_TRANSLUSCENT[i] = BlockType.isTranslucent(id);
+                CACHE_PASSTHROUGH[i] = BlockType.canPassThrough(id, data);
+                BundledBlockData.BlockEntry blockEntry = bundled.findById(id);
+                if (blockEntry != null) {
+                    BundledBlockData.FaweBlockMaterial material = blockEntry.material;
+                    if (material != null) {
+                        CACHE_TRANSLUSCENT[i] = !material.isOpaque();
+                        CACHE_PASSTHROUGH[i] = !material.isMovementBlocker();
+                    }
+                }
+            }
+        } catch (Throwable ignore) {}
         for (int i = 0; i < Character.MAX_VALUE; i++) {
             int id = i >> 4;
             int data = i & 0xf;
@@ -264,6 +268,14 @@ public class FaweCache {
         CACHE_COLOR[getCombined(35, 13)] =  new Color(48, 160, 0); // Cactus green
         CACHE_COLOR[getCombined(35, 14)] =  new Color(255, 0, 0); // Red
         CACHE_COLOR[getCombined(35, 15)] =  new Color(0, 0, 0); // Black
+    }
+
+    public static boolean canPassThrough(int id, int data) {
+        return CACHE_PASSTHROUGH[FaweCache.getCombined(id, data)];
+    }
+
+    public static boolean isTranslucent(int id, int data) {
+        return CACHE_TRANSLUSCENT[FaweCache.getCombined(id, data)];
     }
 
     public static boolean isLiquidOrGas(int id) {

@@ -472,11 +472,6 @@ public class Fawe {
             // BlockData
             BlockData.inject(); // Temporary fix for 1.9.4
             BundledBlockData.inject(); // Add custom rotation
-            try {
-                BundledBlockData.getInstance().loadFromResource();
-            } catch (IOException e) {
-                MainUtil.handleError(e);
-            }
             File jar = MainUtil.getJarFile();
             File extraBlocks = MainUtil.copyFile(jar, "extrablocks.json", null);
             if (extraBlocks != null && extraBlocks.exists()) {

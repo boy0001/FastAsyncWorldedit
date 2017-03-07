@@ -1,11 +1,12 @@
 package com.boydti.fawe.object.brush;
 
+import com.boydti.fawe.object.PseudoRandom;
 import com.sk89q.worldedit.EditSession;
 import com.sk89q.worldedit.MaxChangedBlocksException;
 import com.sk89q.worldedit.Vector;
 import com.sk89q.worldedit.extent.clipboard.Clipboard;
+import com.sk89q.worldedit.function.mask.ExistingBlockMask;
 import com.sk89q.worldedit.function.mask.Mask;
-import com.sk89q.worldedit.function.mask.Masks;
 import com.sk89q.worldedit.function.pattern.Pattern;
 import java.io.InputStream;
 
@@ -20,15 +21,15 @@ public class StencilBrush extends HeightBrush {
     @Override
     public void build(EditSession editSession, Vector position, Pattern pattern, double sizeDouble) throws MaxChangedBlocksException {
         int size = (int) sizeDouble;
-        Mask mask = editSession.getMask();
-        if (mask == Masks.alwaysTrue() || mask == Masks.alwaysTrue2D()) {
-            mask = null;
-        }
+        Mask mask = new ExistingBlockMask(editSession);
+        int maxY = editSession.getMaxY();
+        double scale = (yscale / sizeDouble) * (maxY + 1);
         heightMap.setSize(size);
+        int cutoff = onlyWhite ? maxY : 0;
+
         for (int x = -size; x <= size; x++) {
             int xx = position.getBlockX() + x;
             for (int z = -size; z <= size; z++) {
-                int zz = position.getBlockZ() + z;
                 double raise;
                 switch (rotation) {
                     default:raise = heightMap.getHeight(x, z); break;
@@ -36,19 +37,16 @@ public class StencilBrush extends HeightBrush {
                     case 2: raise = heightMap.getHeight(-x, -z); break;
                     case 3: raise = heightMap.getHeight(-z, -x);break;
                 }
-                raise *= yscale;
-                if (raise == 0 || (onlyWhite && raise < 255)) {
+                int val = (int) Math.ceil(raise * scale);
+                if (val <= cutoff) {
                     continue;
+                }
+                if (val >= 255 || PseudoRandom.random.random(maxY) < val) {
+                    int zz = position.getBlockZ() + z;
+                    int y = editSession.getNearestSurfaceTerrainBlock(xx, zz, position.getBlockY(), 0, maxY);
+                    editSession.setBlock(xx, y, zz, pattern);
                 }
             }
         }
-
-
-        int[] data = heightMap.generateHeightData(editSession, mask, position, size, rotation, yscale, true, false);
-        int diameter = size * 2;
-        int x = position.getBlockX();
-        int y = position.getBlockY();
-        int z = position.getBlockZ();
     }
-
 }

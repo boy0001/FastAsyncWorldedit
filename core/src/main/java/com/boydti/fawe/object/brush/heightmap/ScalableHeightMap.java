@@ -131,7 +131,7 @@ public class ScalableHeightMap {
         WorldVector min = new WorldVector(LocalWorldAdapter.adapt(session.getWorld()), pos.subtract(size, maxY, size));
         Vector max = pos.add(size, maxY, size);
         Region region = new CuboidRegion(session.getWorld(), min, max);
-        HeightMap heightMap = new HeightMap(session, region, true);
+        HeightMap heightMap = new HeightMap(session, region, false);
         if (smooth) {
             try {
                 HeightMapFilter filter = (HeightMapFilter) HeightMapFilter.class.getConstructors()[0].newInstance(GaussianKernel.class.getConstructors()[0].newInstance(5, 1));
@@ -178,7 +178,7 @@ public class ScalableHeightMap {
                             raise = getHeight(-z, -x);
                             break;
                     }
-                    int height = session.getHighestTerrainBlock(xx, zz, 0, 255, false);
+                    int height = session.getNearestSurfaceTerrainBlock(xx, zz, pos.getBlockY(), 0, 255);
                     if (height == 0) {
                         newData[index] = centerY;
                         continue;
@@ -214,7 +214,7 @@ public class ScalableHeightMap {
                             raise = getHeight(-z, -x);
                             break;
                     }
-                    int height = session.getHighestTerrainBlock(xx, zz, 0, maxY, false);
+                    int height = session.getNearestSurfaceTerrainBlock(xx, zz, pos.getBlockY(), 0, maxY);
                     if (height == 0) {
                         newData[index] = centerY;
                         continue;
