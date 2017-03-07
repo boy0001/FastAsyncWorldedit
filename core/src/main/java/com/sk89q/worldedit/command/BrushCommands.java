@@ -512,7 +512,7 @@ public class BrushCommands {
 
     @Command(
             aliases = { "shatter", "partition", "split" },
-            usage = "<pattern> [radius] [count] [distance]",
+            usage = "<pattern> [radius] [count]",
             desc = "Creates random lines to break the terrain into pieces",
             help =
                     "Chooses the shatter brush",

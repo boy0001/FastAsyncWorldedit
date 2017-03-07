@@ -78,7 +78,7 @@ public class PlotSquaredFeature extends FaweMaskManager {
         } else {
             regions = WEManager.getMask(pp);
         }
-        if (regions.size() == 0) {
+        if (regions == null || regions.size() == 0) {
             return null;
         }
         final HashSet<com.boydti.fawe.object.RegionWrapper> faweRegions = new HashSet<>();
