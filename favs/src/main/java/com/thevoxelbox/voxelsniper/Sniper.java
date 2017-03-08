@@ -125,6 +125,11 @@ public class Sniper {
                     }
                 }
             }, Fawe.isMainThread());
+            String toolId = getToolId(itemInHand);
+            SniperTool sniperTool = tools.get(toolId);
+            if (sniperTool.hasToolAssigned(itemInHand) && sniperTool.getCurrentBrush() != null) {
+                return true;
+            }
         } catch (Throwable e) {
             e.printStackTrace();
         }
