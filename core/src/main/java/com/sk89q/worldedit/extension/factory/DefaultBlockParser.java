@@ -129,18 +129,17 @@ public class DefaultBlockParser extends InputParser<BaseBlock> {
 
         int data = -1;
 
+        CompoundTag nbt = null;
+
         boolean parseDataValue = true;
 
         if ("hand".equalsIgnoreCase(testId)) {
             // Get the block type from the item in the user's hand.
             final BaseBlock blockInHand = getBlockInHand(context.requireActor());
-            if (blockInHand.getClass() != BaseBlock.class) {
-                return blockInHand;
-            }
-
             blockId = blockInHand.getId();
             blockType = BlockType.fromID(blockId);
             data = blockInHand.getData();
+            nbt = blockInHand.getNbtData();
         } else if ("pos1".equalsIgnoreCase(testId)) {
             // Get the block type from the "primary position"
             final World world = context.requireWorld();
@@ -151,13 +150,10 @@ public class DefaultBlockParser extends InputParser<BaseBlock> {
                 throw new InputParseException("Your selection is not complete.");
             }
             final BaseBlock blockInHand = world.getBlock(primaryPosition);
-            if (blockInHand.getClass() != BaseBlock.class) {
-                return blockInHand;
-            }
-
             blockId = blockInHand.getId();
             blockType = BlockType.fromID(blockId);
             data = blockInHand.getData();
+            nbt = blockInHand.getNbtData();
         } else {
             // Attempt to parse the item ID or otherwise resolve an item/block
             // name to its numeric ID
@@ -332,16 +328,16 @@ public class DefaultBlockParser extends InputParser<BaseBlock> {
         if (blockAndExtraData.length > 1 && blockAndExtraData[1].startsWith("{")) {
             String joined = StringMan.join(Arrays.copyOfRange(blockAndExtraData, 1, blockAndExtraData.length), "|");
             try {
-                CompoundTag nbt = JSON2NBT.getTagFromJson(joined);
-                if (nbt != null) {
-                    if (context.isRestricted() && actor != null && !actor.hasPermission("worldedit.anyblock")) {
-                        throw new DisallowedUsageException("You are not allowed to nbt'");
-                    }
-                    return new BaseBlock(blockId, data, nbt);
-                }
+                nbt = JSON2NBT.getTagFromJson(joined);
             } catch (NBTException e) {
                 throw new NoMatchException(e.getMessage());
             }
+        }
+        if (nbt != null) {
+            if (context.isRestricted() && actor != null && !actor.hasPermission("worldedit.anyblock")) {
+                throw new DisallowedUsageException("You are not allowed to nbt'");
+            }
+            return new BaseBlock(blockId, data, nbt);
         }
 
         switch (blockType) {

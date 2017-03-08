@@ -570,7 +570,6 @@ public class FaweCache {
             case 56:
             case 57:
             case 58:
-            case 60:
             case 7:
             case 11:
             case 73:
