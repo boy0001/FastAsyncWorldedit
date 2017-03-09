@@ -140,9 +140,9 @@ public class NukkitQueue extends NMSMappedFaweQueue<Level, BaseFullChunk, BaseFu
                 @Override
                 public void run(int localX, int y, int localZ, int combined) {
                     Block block = Block.get(FaweCache.getId(combined), FaweCache.getData(combined));
-                    block.x = bz + localX;
+                    block.x = bx + localX;
                     block.y = y;
-                    block.z = bx + localZ;
+                    block.z = bz + localZ;
                     blocks.add(block);
                 }
             });

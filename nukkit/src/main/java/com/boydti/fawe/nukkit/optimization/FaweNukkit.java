@@ -9,6 +9,7 @@ import com.boydti.fawe.IFawe;
 import com.boydti.fawe.config.Settings;
 import com.boydti.fawe.nukkit.core.NukkitTaskManager;
 import com.boydti.fawe.nukkit.core.NukkitWorldEdit;
+import com.boydti.fawe.nukkit.listener.BrushListener;
 import com.boydti.fawe.nukkit.optimization.queue.NukkitQueue;
 import com.boydti.fawe.object.FaweChunk;
 import com.boydti.fawe.object.FaweCommand;
@@ -31,8 +32,9 @@ public class FaweNukkit implements IFawe, Listener {
     public FaweNukkit(NukkitWorldEdit mod) {
         this.plugin = mod;
         FaweChunk.HEIGHT = 256;
-        VisualChunk.VISUALIZE_BLOCK = 241 << 4;
+        VisualChunk.VISUALIZE_BLOCK = 20 << 4;
         plugin.getServer().getPluginManager().registerEvents(this, plugin);
+        new BrushListener(mod);
     }
 
     @EventHandler

@@ -156,7 +156,6 @@ public class WorldEditListener implements Listener {
             }
 
         } else if (action == PlayerInteractEvent.LEFT_CLICK_AIR) {
-
             if (we.handleArmSwing(player)) {
                 event.setCancelled(true);
             }
