@@ -51,24 +51,13 @@ public class GravityBrush implements Brush {
             for (int z = position.getBlockZ() + size; z > position.getBlockZ() - size; --z) {
                 int freeSpot = startCheckY;
                 for (int y = startCheckY; y <= endY; y++) {
-                    if (y < startPerformY) {
-                        if (editSession.getLazyBlock(x, y, z) != EditSession.nullBlock) {
-                            freeSpot = y + 1;
-                        }
-                        continue;
-                    }
                     BaseBlock block = editSession.getLazyBlock(x, y, z);
-                    mutablePos.mutX(x);
-                    mutablePos.mutY(y);
-                    mutablePos.mutZ(z);
-                    if (block != EditSession.nullBlock && (mask == null || mask.test(mutablePos))) {
-                        if (freeSpot != y) {
-                            mutablePos.mutY(freeSpot);
-                            editSession.setBlockFast(mutablePos, block);
-                            mutablePos.mutY(y);
-                            editSession.setBlockFast(mutablePos, EditSession.nullBlock);
+                    if (block.getId() != 0) {
+                        if (y != freeSpot) {
+                            editSession.setBlock(x, y, z, EditSession.nullBlock);
+                            editSession.setBlock(x, freeSpot, z, block);
                         }
-                        freeSpot++;
+                        freeSpot = y + 1;
                     }
                 }
             }
