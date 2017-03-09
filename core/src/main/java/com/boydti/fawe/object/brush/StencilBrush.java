@@ -12,10 +12,12 @@ import java.io.InputStream;
 
 public class StencilBrush extends HeightBrush {
     private final boolean onlyWhite;
+    private final int depth;
 
-    public StencilBrush(InputStream stream, int rotation, double yscale, boolean onlyWhite, Clipboard clipboard) {
+    public StencilBrush(InputStream stream, int depth, int rotation, double yscale, boolean onlyWhite, Clipboard clipboard) {
         super(stream, rotation, yscale, clipboard);
         this.onlyWhite = onlyWhite;
+        this.depth = depth;
     }
 
     @Override
@@ -44,7 +46,9 @@ public class StencilBrush extends HeightBrush {
                 if (val >= 255 || PseudoRandom.random.random(maxY) < val) {
                     int zz = position.getBlockZ() + z;
                     int y = editSession.getNearestSurfaceTerrainBlock(xx, zz, position.getBlockY(), 0, maxY);
-                    editSession.setBlock(xx, y, zz, pattern);
+                    for (int i = 0; i < depth; i++) {
+                        editSession.setBlock(xx, y - i, zz, pattern);
+                    }
                 }
             }
         }

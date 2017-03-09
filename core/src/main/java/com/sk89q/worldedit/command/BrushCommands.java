@@ -34,10 +34,10 @@ import com.boydti.fawe.object.brush.HeightBrush;
 import com.boydti.fawe.object.brush.LineBrush;
 import com.boydti.fawe.object.brush.RaiseBrush;
 import com.boydti.fawe.object.brush.RecurseBrush;
+import com.boydti.fawe.object.brush.ShatterBrush;
 import com.boydti.fawe.object.brush.SplineBrush;
 import com.boydti.fawe.object.brush.StencilBrush;
 import com.boydti.fawe.object.brush.TargetMode;
-import com.boydti.fawe.object.brush.ShatterBrush;
 import com.boydti.fawe.object.brush.heightmap.ScalableHeightMap;
 import com.boydti.fawe.object.brush.scroll.ScrollClipboard;
 import com.boydti.fawe.object.brush.scroll.ScrollMask;
@@ -533,7 +533,7 @@ public class BrushCommands {
 
     @Command(
             aliases = { "stencil", "color"},
-            usage = "<pattern> [radius] [file|#clipboard|null] [rotation] [yscale]",
+            usage = "<pattern> [radius] [depth] [file|#clipboard|null] [rotation] [yscale]",
             desc = "Use a height map to paint a surface",
             help =
                     "Chooses the stencil brush.\n" +
@@ -542,16 +542,16 @@ public class BrushCommands {
             max = -1
     )
     @CommandPermissions("worldedit.brush.stencil")
-    public void stencilBrush(Player player, LocalSession session, Pattern fill, @Optional("5") double radius, @Optional("") final String filename, @Optional("0") final int rotation, @Optional("1") final double yscale, @Switch('w') boolean onlyWhite) throws WorldEditException {
+    public void stencilBrush(Player player, LocalSession session, Pattern fill, @Optional("5") double radius, @Optional("1") double depth, @Optional("") final String filename, @Optional("0") final int rotation, @Optional("1") final double yscale, @Switch('w') boolean onlyWhite) throws WorldEditException {
         worldEdit.checkMaxBrushRadius(radius);
         BrushTool tool = session.getBrushTool(player);
         InputStream stream = getHeightmapStream(filename);
         tool.setFill(fill);
         tool.setSize(radius);
         try {
-            tool.setBrush(new StencilBrush(stream, rotation, yscale, onlyWhite, filename.equalsIgnoreCase("#clipboard") ? session.getClipboard().getClipboard() : null), "worldedit.brush.height", player);
+            tool.setBrush(new StencilBrush(stream, (int) depth, rotation, yscale, onlyWhite, filename.equalsIgnoreCase("#clipboard") ? session.getClipboard().getClipboard() : null), "worldedit.brush.height", player);
         } catch (EmptyClipboardException ignore) {
-            tool.setBrush(new StencilBrush(stream, rotation, yscale, onlyWhite, null), "worldedit.brush.height", player);
+            tool.setBrush(new StencilBrush(stream, (int) depth, rotation, yscale, onlyWhite, null), "worldedit.brush.height", player);
         }
 
         player.print(BBC.getPrefix() + BBC.BRUSH_STENCIL.f(radius));
