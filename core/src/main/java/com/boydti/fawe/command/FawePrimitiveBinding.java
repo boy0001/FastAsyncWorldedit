@@ -116,8 +116,6 @@ public class FawePrimitiveBinding extends BindingHelper {
         if (input == null) {
             return null;
         }
-        System.out.println("PARSE " + input);
-
         try {
             return Double.parseDouble(input);
         } catch (NumberFormatException e1) {
