@@ -194,7 +194,7 @@ public class NMSRelighter implements Relighter{
         }
     }
 
-    public void addLightUpdate(int x, int y, int z) {
+    public synchronized void addLightUpdate(int x, int y, int z) {
         long index = MathMan.pairInt((int) x >> 4, (int) z >> 4);
         Map<Integer, Object> currentMap = lightQueue.get(index);
         if (currentMap == null) {

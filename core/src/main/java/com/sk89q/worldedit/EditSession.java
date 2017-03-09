@@ -236,7 +236,7 @@ public class EditSession extends AbstractWorld implements HasFaweQueue, Lighting
         }
         if (fastmode == null) {
             if (player == null) {
-                fastmode = Settings.IMP.HISTORY.ENABLE_FOR_CONSOLE;
+                fastmode = !Settings.IMP.HISTORY.ENABLE_FOR_CONSOLE;
             } else {
                 fastmode = player.getSession().hasFastMode();
             }

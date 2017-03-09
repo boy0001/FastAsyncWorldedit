@@ -19,6 +19,7 @@
 
 package com.sk89q.worldedit.command;
 
+import com.boydti.fawe.command.FawePrimitiveBinding;
 import com.boydti.fawe.config.BBC;
 import com.sk89q.minecraft.util.commands.Command;
 import com.sk89q.minecraft.util.commands.CommandPermissions;
@@ -40,10 +41,14 @@ import com.sk89q.worldedit.util.command.binding.Range;
 import com.sk89q.worldedit.util.command.binding.Switch;
 import com.sk89q.worldedit.util.command.binding.Text;
 import com.sk89q.worldedit.util.command.parametric.Optional;
+import com.sk89q.worldedit.util.command.parametric.ParameterException;
 import com.sk89q.worldedit.world.biome.BaseBiome;
 
+
 import static com.google.common.base.Preconditions.checkNotNull;
-import static com.sk89q.minecraft.util.commands.Logging.LogMode.*;
+import static com.sk89q.minecraft.util.commands.Logging.LogMode.ALL;
+import static com.sk89q.minecraft.util.commands.Logging.LogMode.PLACEMENT;
+import static com.sk89q.minecraft.util.commands.Logging.LogMode.POSITION;
 
 /**
  * Commands for the generation of shapes and other objects.
@@ -76,7 +81,7 @@ public class GenerationCommands {
     )
     @CommandPermissions("worldedit.generation.cylinder")
     @Logging(PLACEMENT)
-    public void hcyl(Player player, LocalSession session, EditSession editSession, Pattern pattern, String radiusString, @Optional("1") int height) throws WorldEditException {
+    public void hcyl(Player player, LocalSession session, EditSession editSession, Pattern pattern, String radiusString, @Optional("1") int height) throws WorldEditException, ParameterException {
         cyl(player, session, editSession, pattern, radiusString, height, true);
     }
 
@@ -95,17 +100,17 @@ public class GenerationCommands {
     )
     @CommandPermissions("worldedit.generation.cylinder")
     @Logging(PLACEMENT)
-    public void cyl(Player player, LocalSession session, EditSession editSession, Pattern pattern, String radiusString, @Optional("1") int height, @Switch('h') boolean hollow) throws WorldEditException {
+    public void cyl(Player player, LocalSession session, EditSession editSession, Pattern pattern, String radiusString, @Optional("1") int height, @Switch('h') boolean hollow) throws WorldEditException, ParameterException {
         String[] radii = radiusString.split(",");
         final double radiusX, radiusZ;
         switch (radii.length) {
         case 1:
-            radiusX = radiusZ = Math.max(1, Double.parseDouble(radii[0]));
+            radiusX = radiusZ = Math.max(1, FawePrimitiveBinding.parseNumericInput(radii[0]));
             break;
 
         case 2:
-            radiusX = Math.max(1, Double.parseDouble(radii[0]));
-            radiusZ = Math.max(1, Double.parseDouble(radii[1]));
+            radiusX = Math.max(1, FawePrimitiveBinding.parseNumericInput(radii[0]));
+            radiusZ = Math.max(1, FawePrimitiveBinding.parseNumericInput(radii[1]));
             break;
 
         default:
@@ -136,7 +141,7 @@ public class GenerationCommands {
     )
     @CommandPermissions("worldedit.generation.sphere")
     @Logging(PLACEMENT)
-    public void hsphere(Player player, LocalSession session, EditSession editSession, Pattern pattern, String radiusString, @Optional("false") boolean raised) throws WorldEditException {
+    public void hsphere(Player player, LocalSession session, EditSession editSession, Pattern pattern, String radiusString, @Optional("false") boolean raised) throws WorldEditException, ParameterException {
         sphere(player, session, editSession, pattern, radiusString, raised, true);
     }
 
@@ -155,18 +160,18 @@ public class GenerationCommands {
     )
     @CommandPermissions("worldedit.generation.sphere")
     @Logging(PLACEMENT)
-    public void sphere(Player player, LocalSession session, EditSession editSession, Pattern pattern, String radiusString, @Optional("false") boolean raised, @Switch('h') boolean hollow) throws WorldEditException {
+    public void sphere(Player player, LocalSession session, EditSession editSession, Pattern pattern, String radiusString, @Optional("false") boolean raised, @Switch('h') boolean hollow) throws WorldEditException, ParameterException {
         String[] radii = radiusString.split(",");
         final double radiusX, radiusY, radiusZ;
         switch (radii.length) {
         case 1:
-            radiusX = radiusY = radiusZ = Math.max(1, Double.parseDouble(radii[0]));
+            radiusX = radiusY = radiusZ = Math.max(1, FawePrimitiveBinding.parseNumericInput(radii[0]));
             break;
 
         case 3:
-            radiusX = Math.max(1, Double.parseDouble(radii[0]));
-            radiusY = Math.max(1, Double.parseDouble(radii[1]));
-            radiusZ = Math.max(1, Double.parseDouble(radii[2]));
+            radiusX = Math.max(1, FawePrimitiveBinding.parseNumericInput(radii[0]));
+            radiusY = Math.max(1, FawePrimitiveBinding.parseNumericInput(radii[1]));
+            radiusZ = Math.max(1, FawePrimitiveBinding.parseNumericInput(radii[2]));
             break;
 
         default:
@@ -198,7 +203,7 @@ public class GenerationCommands {
     @CommandPermissions("worldedit.generation.forest")
     @Logging(POSITION)
     @SuppressWarnings("deprecation")
-    public void forestGen(Player player, LocalSession session, EditSession editSession, @Optional("10") int size, @Optional("tree") TreeType type, @Optional("5") double density) throws WorldEditException {
+    public void forestGen(Player player, LocalSession session, EditSession editSession, @Optional("10") int size, @Optional("tree") TreeType type, @Optional("5") double density) throws WorldEditException, ParameterException {
         density = density / 100;
         int affected = editSession.makeForest(session.getPlacementPosition(player), size, density, new TreeGenerator(type));
         BBC.COMMAND_TREE.send(player, affected);
@@ -213,7 +218,7 @@ public class GenerationCommands {
     )
     @CommandPermissions("worldedit.generation.pumpkins")
     @Logging(POSITION)
-    public void pumpkins(Player player, LocalSession session, EditSession editSession, @Optional("10") int apothem) throws WorldEditException {
+    public void pumpkins(Player player, LocalSession session, EditSession editSession, @Optional("10") int apothem) throws WorldEditException, ParameterException {
         int affected = editSession.makePumpkinPatches(session.getPlacementPosition(player), apothem);
         BBC.COMMAND_PUMPKIN.send(player, affected);
     }
@@ -227,7 +232,7 @@ public class GenerationCommands {
     )
     @CommandPermissions("worldedit.generation.pyramid")
     @Logging(PLACEMENT)
-    public void hollowPyramid(Player player, LocalSession session, EditSession editSession, Pattern pattern, @Range(min = 1) int size) throws WorldEditException {
+    public void hollowPyramid(Player player, LocalSession session, EditSession editSession, Pattern pattern, @Range(min = 1) int size) throws WorldEditException, ParameterException {
         pyramid(player, session, editSession, pattern, size, true);
     }
 
@@ -241,7 +246,7 @@ public class GenerationCommands {
     )
     @CommandPermissions("worldedit.generation.pyramid")
     @Logging(PLACEMENT)
-    public void pyramid(Player player, LocalSession session, EditSession editSession, Pattern pattern, @Range(min = 1) int size, @Switch('h') boolean hollow) throws WorldEditException {
+    public void pyramid(Player player, LocalSession session, EditSession editSession, Pattern pattern, @Range(min = 1) int size, @Switch('h') boolean hollow) throws WorldEditException, ParameterException {
         Vector pos = session.getPlacementPosition(player);
         worldEdit.checkMaxRadius(size);
         int affected = editSession.makePyramid(pos, Patterns.wrap(pattern), size, !hollow);
@@ -277,7 +282,7 @@ public class GenerationCommands {
                          @Switch('h') boolean hollow,
                          @Switch('r') boolean useRawCoords,
                          @Switch('o') boolean offset,
-                         @Switch('c') boolean offsetCenter) throws WorldEditException {
+                         @Switch('c') boolean offsetCenter) throws WorldEditException, ParameterException {
 
         final Vector zero;
         Vector unit;
@@ -343,7 +348,7 @@ public class GenerationCommands {
                               @Switch('h') boolean hollow,
                               @Switch('r') boolean useRawCoords,
                               @Switch('o') boolean offset,
-                              @Switch('c') boolean offsetCenter) throws WorldEditException {
+                              @Switch('c') boolean offsetCenter) throws WorldEditException, ParameterException {
         final Vector zero;
         Vector unit;
 
