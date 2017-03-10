@@ -290,7 +290,7 @@ public class RegionCommands {
     }
 
     @Command(
-            aliases = { "/replace", "/re", "/rep" },
+            aliases = { "/replace", "/re", "/rep", "/r" },
             usage = "[from-block] <to-block>",
             desc = "Replace all blocks in the selection with another",
             flags = "f",

@@ -132,7 +132,7 @@ public class ClipboardCommands {
 
 
     @Command(
-            aliases = { "/copy" },
+            aliases = { "/copy", "/c" },
             flags = "em",
             desc = "Copy the selection to the clipboard",
             help = "Copy the selection to the clipboard\n" +
@@ -350,7 +350,7 @@ public class ClipboardCommands {
     }
 
     @Command(
-            aliases = { "/paste" },
+            aliases = { "/paste", "/p" },
             usage = "",
             flags = "sao",
             desc = "Paste the clipboard's contents",

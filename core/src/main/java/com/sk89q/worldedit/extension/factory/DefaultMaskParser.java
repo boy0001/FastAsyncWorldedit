@@ -252,17 +252,17 @@ public class DefaultMaskParser extends FaweParser<Mask> {
                     throw new SuggestInputParseException(input, "/<min-angle>:<max-angle>");
                 }
                 try {
-                    int y1,y2;
+                    double y1,y2;
                     if (split[0].endsWith("d")) {
                         double y1d = Expression.compile(split[0].substring(0, split[0].length() - 1)).evaluate();
                         double y2d = Expression.compile(split[1].substring(0, split[1].length() - 1)).evaluate();
-                        y1 = (int) Math.round(Math.tan(y1d * (Math.PI / 180)));
-                        y2 = (int) Math.round(Math.tan(y2d * (Math.PI / 180)));
+                        y1 = (Math.tan(y1d * (Math.PI / 180)));
+                        y2 = (Math.tan(y2d * (Math.PI / 180)));
                     } else {
-                        y1 = (int) (Expression.compile(split[0]).evaluate());
-                        y2 = (int) (Expression.compile(split[1]).evaluate());
+                        y1 = (Expression.compile(split[0]).evaluate());
+                        y2 = (Expression.compile(split[1]).evaluate());
                     }
-                    return new AngleMask(extent, y1, y2);
+                    return new AngleMask(Request.request().getEditSession(), y1, y2);
                 } catch (NumberFormatException | ExpressionException e) {
                     throw new SuggestInputParseException(input, "/<min-angle>:<max-angle>");
                 }

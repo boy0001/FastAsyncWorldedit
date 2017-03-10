@@ -1,112 +1,55 @@
 package com.boydti.fawe.object.mask;
 
-import com.boydti.fawe.Fawe;
-import com.boydti.fawe.util.MathMan;
+import com.sk89q.worldedit.EditSession;
 import com.sk89q.worldedit.MutableBlockVector;
 import com.sk89q.worldedit.Vector;
-import com.sk89q.worldedit.extent.Extent;
+import com.sk89q.worldedit.blocks.BaseBlock;
 import com.sk89q.worldedit.function.mask.Mask2D;
 import com.sk89q.worldedit.function.mask.SolidBlockMask;
-import java.util.HashMap;
 import javax.annotation.Nullable;
 
-public class AngleMask extends SolidBlockMask implements ResettableMask {
-    private final int max;
-    private final int min;
+public class AngleMask extends SolidBlockMask {
+
+    private static double ADJACENT_MOD = 0.5;
+    private static double DIAGONAL_MOD = 1 / Math.sqrt(8);
+
+    private final double max;
+    private final double min;
+    private final EditSession extent;
+    private MutableBlockVector mutable = new MutableBlockVector();
     private int maxY;
 
-    public AngleMask(Extent extent, int min, int max) {
-        super(extent);
-        this.maxY = extent.getMaximumPoint().getBlockY();
+    public AngleMask(EditSession editSession, double min, double max) {
+        super(editSession);
+        this.extent = editSession;
         this.min = min;
         this.max = max;
+        this.maxY = extent.getMaxY();
     }
-
-    private HashMap<Long, Integer> heights = new HashMap<>();
-    private long tick = 0;
 
     @Override
     public boolean test(Vector vector) {
-        return testAngle(vector) && getExtent().getLazyBlock(vector).getId() != 0;
-    }
-
-    private boolean testAngle(Vector vector) {
-        long currentTick = Fawe.get().getTimer().getTick();
-        if (tick != (tick = currentTick)) {
-            heights.clear();
-            tick = currentTick;
-        }
-        return getAngle(vector);
-    }
-
-
-
-    @Override
-    public void reset() {
-        this.heights.clear();
-    }
-
-    public boolean getAngle(Vector vector) {
         int x = vector.getBlockX();
-        int z = vector.getBlockZ();
-//        int o = getHighestTerrainBlock(x, z, 0, maxY);
         int y = vector.getBlockY();
-        if (getHighestTerrainBlock(x - 1, z, y + min, y + max) != -1) {
+        int z = vector.getBlockZ();
+        BaseBlock block = extent.getBlock(x, y, z);
+        if (!test(block.getId(), block.getData())) {
+            return false;
+        }
+        block = extent.getBlock(x, y + 1, z);
+        if (test(block.getId(), block.getData())) {
+            return false;
+        }
+        double slope;
+        boolean aboveMin;
+        slope = Math.abs(extent.getNearestSurfaceTerrainBlock(x + 1, z, y, 0, maxY) - extent.getNearestSurfaceTerrainBlock(x - 1, z, y, 0, maxY)) * ADJACENT_MOD;
+        if (slope >= min && max >= Math.max(maxY - y, y)) {
             return true;
         }
-        if (getHighestTerrainBlock(x + 1, z, y + min, y + max) != -1) {
-            return true;
-        }
-        if (getHighestTerrainBlock(x, z - 1, y + min, y + max) != -1) {
-            return true;
-        }
-        if (getHighestTerrainBlock(x, z + 1, y + min, y + max) != -1) {
-            return true;
-        }
-        return false;
-    }
-
-    private MutableBlockVector mutable = new MutableBlockVector();
-
-    private int getHighestTerrainBlock(final int x, final int z, int minY, int maxY) {
-        long pair = MathMan.pairInt(x, z);
-        Integer height = heights.get(pair);
-        if (height != null) {
-            if (height >= minY && height <= maxY && height >= 0 && height <= this.maxY) {
-                return height;
-            } else {
-                return -1;
-            }
-        }
-        int maxSearchY = Math.min(this.maxY, Math.max(0, maxY));
-        int minSearchY = Math.min(this.maxY, Math.max(0, minY));
-        mutable.mutX(x);
-        mutable.mutZ(z);
-        boolean air = false;
-        if (maxSearchY != this.maxY) {
-            mutable.mutY(maxSearchY + 1);
-            air = !super.test(mutable);
-        }
-        for (int y = maxSearchY; y >= minSearchY; --y) {
-            mutable.mutY(y);
-            if (super.test(mutable)) {
-                if (!air) {
-                    break;
-                }
-                heights.put(pair, y);
-                return y;
-
-            } else {
-                air = true;
-            }
-        }
-        if (minSearchY == 0 && maxSearchY == this.maxY) {
-            heights.put(pair, -1);
-        } else {
-            int value = getHighestTerrainBlock(x, z, 0, this.maxY);
-            heights.put(pair, value);
-        }
-        return -1;
+        slope = Math.max(slope, Math.abs(extent.getNearestSurfaceTerrainBlock(x, z + 1, y, 0, maxY) - extent.getNearestSurfaceTerrainBlock(x, z - 1, y, 0, maxY)) * ADJACENT_MOD);
+        slope = Math.max(slope, Math.abs(extent.getNearestSurfaceTerrainBlock(x + 1, z + 1, y, 0, maxY) - extent.getNearestSurfaceTerrainBlock(x - 1, z - 1, y, 0, maxY)) * DIAGONAL_MOD);
+        slope = Math.max(slope, Math.abs(extent.getNearestSurfaceTerrainBlock(x - 1, z + 1, y, 0, maxY) - extent.getNearestSurfaceTerrainBlock(x + 1, z - 1, y, 0, maxY)) * DIAGONAL_MOD);
+        return (slope >= min && slope <= max);
     }
 
     @Nullable
