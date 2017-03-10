@@ -16,11 +16,14 @@ import com.sk89q.worldedit.function.operation.RunContext;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 
 public abstract class BreadthFirstSearch implements Operation {
 
-    public static Vector[] DEFAULT_DIRECTIONS = new Vector[6];
+    public static final Vector[] DEFAULT_DIRECTIONS = new Vector[6];
+    public static final Vector[] DIAGONAL_DIRECTIONS;
     static {
         DEFAULT_DIRECTIONS[0] = (new MutableBlockVector(0, -1, 0));
         DEFAULT_DIRECTIONS[1] = (new MutableBlockVector(0, 1, 0));
@@ -28,10 +31,30 @@ public abstract class BreadthFirstSearch implements Operation {
         DEFAULT_DIRECTIONS[3] = (new MutableBlockVector(1, 0, 0));
         DEFAULT_DIRECTIONS[4] = (new MutableBlockVector(0, 0, -1));
         DEFAULT_DIRECTIONS[5] = (new MutableBlockVector(0, 0, 1));
+        List<MutableBlockVector> list = new ArrayList<>();
+        for (int x = -1; x <= 1; x++) {
+            for (int y = -1; y <= 1; y++) {
+                for (int z = -1; z <= 1; z++) {
+                    if (x != 0 || y != 0 || z != 0) {
+                        MutableBlockVector pos = new MutableBlockVector(x, y, z);
+                        if (!list.contains(pos)) {
+                            list.add(pos);
+                        }
+                    }
+                }
+            }
+        }
+        Collections.sort(list, new Comparator<Vector>() {
+            @Override
+            public int compare(Vector o1, Vector o2) {
+                return (int) Math.signum(o1.lengthSq() - o2.lengthSq());
+            }
+        });
+        DIAGONAL_DIRECTIONS = list.toArray(new Vector[list.size()]);
     }
 
     private final RegionFunction function;
-    private final List<Vector> directions = new ArrayList<>();
+    private List<Vector> directions = new ArrayList<>();
     private BlockVectorSet visited;
     private final MappedFaweQueue mFaweQueue;
     private BlockVectorSet queue;
@@ -62,6 +85,10 @@ public abstract class BreadthFirstSearch implements Operation {
         return this.directions;
     }
 
+    public void setDirections(List<Vector> directions) {
+        this.directions = directions;
+    }
+
     private IntegerTrio[] getIntDirections() {
         IntegerTrio[] array = new IntegerTrio[directions.size()];
         for (int i = 0; i < array.length; i++) {
@@ -90,8 +117,6 @@ public abstract class BreadthFirstSearch implements Operation {
     public boolean isVisited(Vector pos) {
         return visited.contains(pos);
     }
-
-
 
     @Override
     public Operation resume(RunContext run) throws WorldEditException {

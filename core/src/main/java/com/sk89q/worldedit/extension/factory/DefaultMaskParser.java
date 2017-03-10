@@ -241,7 +241,7 @@ public class DefaultMaskParser extends FaweParser<Mask> {
                         return new WallMask(extent, Arrays.asList(new BaseBlock(0)), 1, 8);
                     case "#surface":
                         masks.add(new ExistingBlockMask(extent));
-                        return new AdjacentMask(extent, Arrays.asList(new BaseBlock(0)), 1, 8);
+                        return new AdjacentAnyMask(extent, Arrays.asList(new BaseBlock(0)));
                     default:
                         throw new SuggestInputParseException(input, HASHTAG_MASKS);
                 }
@@ -297,6 +297,9 @@ public class DefaultMaskParser extends FaweParser<Mask> {
                         }
                     }
                     if (firstChar == '~') {
+                        if (requiredMax >= 8 && requiredMin == 1) {
+                            return new AdjacentAnyMask(extent, worldEdit.getBlockFactory().parseFromListInput(split[0], tempContext));
+                        }
                         return new AdjacentMask(extent, worldEdit.getBlockFactory().parseFromListInput(split[0], tempContext), requiredMin, requiredMax);
                     } else {
                         return new WallMask(extent, worldEdit.getBlockFactory().parseFromListInput(input.substring(1), tempContext), requiredMin, requiredMax);

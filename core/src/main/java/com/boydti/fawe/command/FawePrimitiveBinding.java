@@ -119,7 +119,6 @@ public class FawePrimitiveBinding extends BindingHelper {
         try {
             return Double.parseDouble(input);
         } catch (NumberFormatException e1) {
-            System.out.println("NUMBER FORMAT EXCEPTION " + e1);
             try {
                 Expression expression = Expression.compile(input);
                 return expression.evaluate();

@@ -45,7 +45,9 @@ public interface Mask extends com.sk89q.worldedit.masks.Mask {
      * @return a 2D mask version or {@code null} if this mask can't be 2D
      */
     @Nullable
-    Mask2D toMask2D();
+    default Mask2D toMask2D() {
+        return null;
+    }
 
     default void prepare(LocalSession session, LocalPlayer player, Vector target) {}
 

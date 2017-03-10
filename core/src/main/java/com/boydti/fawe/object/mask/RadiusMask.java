@@ -1,5 +1,6 @@
 package com.boydti.fawe.object.mask;
 
+import com.sk89q.worldedit.MutableBlockVector;
 import com.sk89q.worldedit.Vector;
 import com.sk89q.worldedit.function.mask.Mask;
 import com.sk89q.worldedit.function.mask.Mask2D;
@@ -24,19 +25,19 @@ public class RadiusMask implements Mask, ResettableMask{
     @Override
     public boolean test(Vector to) {
         if (pos == null) {
-            pos = new Vector(to);
+            pos = new MutableBlockVector(to);
         }
-        int dx = Math.abs((int) (pos.getX() - to.getX()));
-        int dy = Math.abs((int) (pos.getY() - to.getY()));
-        int dz = Math.abs((int) (pos.getZ() - to.getZ()));
+        int dx = pos.getBlockX() - to.getBlockX();
         int d = dx * dx;
-        if (d < minSqr || d > maxSqr) {
+        if (d > maxSqr) {
             return false;
         }
+        int dz = pos.getBlockZ() - to.getBlockZ();
         d += dz * dz;
-        if (d < minSqr || d > maxSqr) {
+        if (d > maxSqr) {
             return false;
         }
+        int dy = pos.getBlockY() - to.getBlockY();
         d += dy * dy;
         if (d < minSqr || d > maxSqr) {
             return false;
