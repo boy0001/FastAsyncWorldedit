@@ -230,6 +230,7 @@ public class SetQueue {
             queue.setStage(QueueStage.NONE);
             queue.runTasks();
         }
+        queue.endSet(Settings.IMP.QUEUE.PARALLEL_THREADS > 1);
     }
 
     public FaweQueue getNextQueue() {
