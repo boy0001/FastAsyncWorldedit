@@ -1108,7 +1108,7 @@ public class EditSession extends AbstractWorld implements HasFaweQueue, Lighting
     public boolean setBlock(int x, int y, int z, Pattern pattern) {
         this.changes++;
         try {
-            return this.extent.setBlock(x, y, z, pattern.next(x, y, z));
+            return pattern.apply(extent, MutableBlockVector.get(x, y, z));
         } catch (WorldEditException e) {
             throw new RuntimeException("Unexpected exception", e);
         }
