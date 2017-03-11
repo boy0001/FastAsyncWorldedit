@@ -28,7 +28,7 @@ ext {
     date = git.head().date.format("yy.MM.dd")
     revision = "-${git.head().abbreviatedId}"
     parents = git.head().parentIds;
-    index = -87;  // Offset to mach CI
+    index = -88;  // Offset to mach CI
     int major, minor, patch;
     major = minor = patch = 0;
     for (;parents != null && !parents.isEmpty();index++) {

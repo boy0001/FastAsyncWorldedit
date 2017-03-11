@@ -1,5 +1,6 @@
 package com.boydti.fawe.object.brush;
 
+import com.boydti.fawe.object.brush.heightmap.HeightMap;
 import com.boydti.fawe.object.brush.heightmap.ScalableHeightMap;
 import com.sk89q.worldedit.EditSession;
 import com.sk89q.worldedit.MaxChangedBlocksException;
@@ -23,7 +24,8 @@ public class FlattenBrush extends HeightBrush {
         if (mask == Masks.alwaysTrue() || mask == Masks.alwaysTrue2D()) {
             mask = null;
         }
-        heightMap.setSize(size);
-        heightMap.perform(editSession, mask, position, size, rotation, yscale, true, true);
+        HeightMap map = getHeightMap();
+        map.setSize(size);
+        map.perform(editSession, mask, position, size, rotation, yscale, true, true);
     }
 }

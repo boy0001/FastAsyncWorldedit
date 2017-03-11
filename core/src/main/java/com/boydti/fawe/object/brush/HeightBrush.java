@@ -1,6 +1,9 @@
 package com.boydti.fawe.object.brush;
 
 import com.boydti.fawe.config.BBC;
+import com.boydti.fawe.object.PseudoRandom;
+import com.boydti.fawe.object.brush.heightmap.HeightMap;
+import com.boydti.fawe.object.brush.heightmap.RotatableHeightMap;
 import com.boydti.fawe.object.brush.heightmap.ScalableHeightMap;
 import com.boydti.fawe.object.exception.FaweException;
 import com.sk89q.worldedit.EditSession;
@@ -16,7 +19,8 @@ import java.io.InputStream;
 
 public class HeightBrush implements Brush {
 
-    public final ScalableHeightMap heightMap;
+    private HeightMap heightMap;
+    private boolean randomRotate;
     public final int rotation;
     public final double yscale;
 
@@ -40,6 +44,21 @@ public class HeightBrush implements Brush {
         }
     }
 
+    public HeightMap getHeightMap() {
+        if (randomRotate) {
+            if (!(heightMap instanceof RotatableHeightMap)) {
+                heightMap = new RotatableHeightMap(heightMap);
+            }
+            RotatableHeightMap rotatable = (RotatableHeightMap) heightMap;
+            rotatable.rotate(PseudoRandom.random.nextInt(360));
+        }
+        return heightMap;
+    }
+
+    public void setRandomRotate(boolean randomRotate) {
+        this.randomRotate = randomRotate;
+    }
+
     @Override
     public void build(EditSession editSession, Vector position, Pattern pattern, double sizeDouble) throws MaxChangedBlocksException {
         int size = (int) sizeDouble;
@@ -47,7 +66,8 @@ public class HeightBrush implements Brush {
         if (mask == Masks.alwaysTrue() || mask == Masks.alwaysTrue2D()) {
             mask = null;
         }
-        heightMap.setSize(size);
-        heightMap.perform(editSession, mask, position, size, rotation, yscale, true, false);
+        HeightMap map = getHeightMap();
+        map.setSize(size);
+        map.perform(editSession, mask, position, size, rotation, yscale, true, false);
     }
 }

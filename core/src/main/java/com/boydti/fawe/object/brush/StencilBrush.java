@@ -1,6 +1,7 @@
 package com.boydti.fawe.object.brush;
 
 import com.boydti.fawe.object.PseudoRandom;
+import com.boydti.fawe.object.brush.heightmap.HeightMap;
 import com.boydti.fawe.object.mask.AdjacentAnyMask;
 import com.boydti.fawe.object.mask.RadiusMask;
 import com.sk89q.worldedit.EditSession;
@@ -11,10 +12,12 @@ import com.sk89q.worldedit.blocks.BaseBlock;
 import com.sk89q.worldedit.extent.clipboard.Clipboard;
 import com.sk89q.worldedit.function.RegionFunction;
 import com.sk89q.worldedit.function.mask.Mask;
+import com.sk89q.worldedit.function.mask.RegionMask;
 import com.sk89q.worldedit.function.mask.SolidBlockMask;
 import com.sk89q.worldedit.function.operation.Operations;
 import com.sk89q.worldedit.function.pattern.Pattern;
 import com.sk89q.worldedit.function.visitor.RecursiveVisitor;
+import com.sk89q.worldedit.regions.CuboidRegion;
 import java.io.InputStream;
 import java.util.Arrays;
 
@@ -35,21 +38,23 @@ public class StencilBrush extends HeightBrush {
 
         int maxY = editSession.getMaxY();
         double scale = (yscale / sizeDouble) * (maxY + 1);
-        heightMap.setSize(size);
+        final HeightMap map = getHeightMap();
+        map.setSize(size);
         int cutoff = onlyWhite ? maxY : 0;
 
         final AdjacentAnyMask adjacent = new AdjacentAnyMask(editSession, Arrays.asList(new BaseBlock(0)));
         final SolidBlockMask solid = new SolidBlockMask(editSession);
+        RegionMask region = new RegionMask(new CuboidRegion(position.subtract(size, size, size), position.add(size, size, size)));
         final RadiusMask radius = new RadiusMask(0, size);
         RecursiveVisitor visitor = new RecursiveVisitor(new Mask() {
             @Override
             public boolean test(Vector vector) {
                 if (solid.test(vector) && radius.test(vector)) {
+                    int dx = vector.getBlockX() - cx;
+                    int dy = vector.getBlockY() - cy;
+                    int dz = vector.getBlockZ() - cz;
                     Vector dir = adjacent.direction(vector);
                     if (dir != null) {
-                        int dx = vector.getBlockX() - cx;
-                        int dy = vector.getBlockY() - cy;
-                        int dz = vector.getBlockZ() - cz;
                         if (dy != 0) {
                             if (dir.getBlockX() != 0) {
                                 dx += dir.getBlockX() * dy;
@@ -57,7 +62,7 @@ public class StencilBrush extends HeightBrush {
                                 dz += dir.getBlockZ() * dy;
                             }
                         }
-                        double raise = heightMap.getHeight(dx, dz);
+                        double raise = map.getHeight(dx, dz);
                         int val = (int) Math.ceil(raise * scale);
                         if (val <= cutoff) {
                             return true;

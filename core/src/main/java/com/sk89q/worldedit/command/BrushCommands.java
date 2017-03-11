@@ -542,18 +542,22 @@ public class BrushCommands {
             max = -1
     )
     @CommandPermissions("worldedit.brush.stencil")
-    public void stencilBrush(Player player, EditSession editSession, LocalSession session, Pattern fill, @Optional("5") double radius, @Optional("") final String filename, @Optional("0") final int rotation, @Optional("1") final double yscale, @Switch('w') boolean onlyWhite) throws WorldEditException {
+    public void stencilBrush(Player player, EditSession editSession, LocalSession session, Pattern fill, @Optional("5") double radius, @Optional("") final String filename, @Optional("0") final int rotation, @Optional("1") final double yscale, @Switch('w') boolean onlyWhite, @Switch('r') boolean randomRotate) throws WorldEditException {
         worldEdit.checkMaxBrushRadius(radius);
         BrushTool tool = session.getBrushTool(player);
         InputStream stream = getHeightmapStream(filename);
         tool.setFill(fill);
         tool.setSize(radius);
+        HeightBrush brush;
         try {
-            tool.setBrush(new StencilBrush(stream, rotation, yscale, onlyWhite, filename.equalsIgnoreCase("#clipboard") ? session.getClipboard().getClipboard() : null), "worldedit.brush.height", player);
+            brush = new StencilBrush(stream, rotation, yscale, onlyWhite, filename.equalsIgnoreCase("#clipboard") ? session.getClipboard().getClipboard() : null);
         } catch (EmptyClipboardException ignore) {
-            tool.setBrush(new StencilBrush(stream, rotation, yscale, onlyWhite, null), "worldedit.brush.height", player);
+            brush = new StencilBrush(stream, rotation, yscale, onlyWhite, null);
         }
-
+        tool.setBrush(brush, "worldedit.brush.height", player);
+        if (randomRotate) {
+            brush.setRandomRotate(true);
+        }
         player.print(BBC.getPrefix() + BBC.BRUSH_STENCIL.f(radius));
     }
 
@@ -695,8 +699,8 @@ public class BrushCommands {
             max = 4
     )
     @CommandPermissions("worldedit.brush.height")
-    public void heightBrush(Player player, LocalSession session, @Optional("5") double radius, @Optional("") final String filename, @Optional("0") final int rotation, @Optional("1") final double yscale) throws WorldEditException {
-        terrainBrush(player, session, radius, filename, rotation, yscale, false, ScalableHeightMap.Shape.CONE);
+    public void heightBrush(Player player, LocalSession session, @Optional("5") double radius, @Optional("") final String filename, @Optional("0") final int rotation, @Optional("1") final double yscale, @Switch('r') boolean randomRotate) throws WorldEditException {
+        terrainBrush(player, session, radius, filename, rotation, yscale, false, randomRotate, ScalableHeightMap.Shape.CONE);
     }
 
     @Command(
@@ -710,8 +714,8 @@ public class BrushCommands {
             max = 4
     )
     @CommandPermissions("worldedit.brush.height")
-    public void cliffBrush(Player player, LocalSession session, @Optional("5") double radius, @Optional("") final String filename, @Optional("0") final int rotation, @Optional("1") final double yscale) throws WorldEditException {
-        terrainBrush(player, session, radius, filename, rotation, yscale, true, ScalableHeightMap.Shape.CYLINDER);
+    public void cliffBrush(Player player, LocalSession session, @Optional("5") double radius, @Optional("") final String filename, @Optional("0") final int rotation, @Optional("1") final double yscale, @Switch('r') boolean randomRotate) throws WorldEditException {
+        terrainBrush(player, session, radius, filename, rotation, yscale, true, randomRotate, ScalableHeightMap.Shape.CYLINDER);
     }
 
     @Command(
@@ -725,8 +729,8 @@ public class BrushCommands {
             max = 4
     )
     @CommandPermissions("worldedit.brush.height")
-    public void flattenBrush(Player player, LocalSession session, @Optional("5") double radius, @Optional("") final String filename, @Optional("0") final int rotation, @Optional("1") final double yscale) throws WorldEditException {
-        terrainBrush(player, session, radius, filename, rotation, yscale, true, ScalableHeightMap.Shape.CONE);
+    public void flattenBrush(Player player, LocalSession session, @Optional("5") double radius, @Optional("") final String filename, @Optional("0") final int rotation, @Optional("1") final double yscale, @Switch('r') boolean randomRotate) throws WorldEditException {
+        terrainBrush(player, session, radius, filename, rotation, yscale, true, randomRotate, ScalableHeightMap.Shape.CONE);
     }
 
     private InputStream getHeightmapStream(String filename) {
@@ -760,23 +764,28 @@ public class BrushCommands {
         return null;
     }
 
-    private void terrainBrush(Player player, LocalSession session, double radius, String filename, int rotation, double yscale, boolean flat, ScalableHeightMap.Shape shape) throws WorldEditException {
+    private void terrainBrush(Player player, LocalSession session, double radius, String filename, int rotation, double yscale, boolean flat, boolean randomRotate, ScalableHeightMap.Shape shape) throws WorldEditException {
         worldEdit.checkMaxBrushRadius(radius);
         InputStream stream = getHeightmapStream(filename);
         BrushTool tool = session.getBrushTool(player);
         tool.setSize(radius);
+        HeightBrush brush;
         if (flat) {
             try {
-                tool.setBrush(new FlattenBrush(stream, rotation, yscale, filename.equalsIgnoreCase("#clipboard") ? session.getClipboard().getClipboard() : null, shape), "worldedit.brush.height", player);
+                brush = new FlattenBrush(stream, rotation, yscale, filename.equalsIgnoreCase("#clipboard") ? session.getClipboard().getClipboard() : null, shape);
             } catch (EmptyClipboardException ignore) {
-                tool.setBrush(new FlattenBrush(stream, rotation, yscale, null, shape), "worldedit.brush.height", player);
+                brush = new FlattenBrush(stream, rotation, yscale, null, shape);
             }
         } else {
             try {
-                tool.setBrush(new HeightBrush(stream, rotation, yscale, filename.equalsIgnoreCase("#clipboard") ? session.getClipboard().getClipboard() : null), "worldedit.brush.height", player);
+                brush = new HeightBrush(stream, rotation, yscale, filename.equalsIgnoreCase("#clipboard") ? session.getClipboard().getClipboard() : null);
             } catch (EmptyClipboardException ignore) {
-                tool.setBrush(new HeightBrush(stream, rotation, yscale, null), "worldedit.brush.height", player);
+                brush = new HeightBrush(stream, rotation, yscale, null);
             }
+        }
+        tool.setBrush(brush, "worldedit.brush.height", player);
+        if (randomRotate) {
+            brush.setRandomRotate(true);
         }
         player.print(BBC.getPrefix() + BBC.BRUSH_HEIGHT.f(radius));
     }
