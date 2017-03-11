@@ -538,7 +538,7 @@ public class BrushCommands {
 
     @Command(
             aliases = { "stencil", "color"},
-            usage = "<pattern> [radius] [depth] [file|#clipboard|null] [rotation] [yscale]",
+            usage = "<pattern> [radius] [file|#clipboard|null] [rotation] [yscale]",
             desc = "Use a height map to paint a surface",
             help =
                     "Chooses the stencil brush.\n" +
@@ -600,7 +600,7 @@ public class BrushCommands {
             help =
                     "Chooses the Splatter brush.",
             min = 1,
-            max = 4
+            max = 5
     )
     @CommandPermissions("worldedit.brush.splatter")
     public void splatterBrush(Player player, EditSession editSession, LocalSession session, Pattern fill, @Optional("5") double radius, @Optional("1") double points, @Optional("5") double recursion, @Optional("true") boolean solid) throws WorldEditException {

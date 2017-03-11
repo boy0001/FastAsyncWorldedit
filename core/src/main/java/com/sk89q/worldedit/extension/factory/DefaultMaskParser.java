@@ -101,7 +101,7 @@ public class DefaultMaskParser extends FaweParser<Mask> {
     public void addMask(String id, Class<? extends CustomMask> clazz) {
         checkNotNull(clazz);
         checkNotNull(id);
-        customMasks.put(id, clazz);
+        customMasks.put(id.toLowerCase(), clazz);
     }
 
     public static Map<String, Class<? extends CustomMask>> getCustomMasks() {
