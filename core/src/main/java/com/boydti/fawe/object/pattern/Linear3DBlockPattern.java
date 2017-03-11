@@ -29,11 +29,11 @@ public class Linear3DBlockPattern extends AbstractPattern {
     }
 
     @Override
-    public boolean apply(Extent extent, Vector position) throws WorldEditException {
-        int index = (position.getBlockX() + position.getBlockY() + position.getBlockZ()) % patternsArray.length;
+    public boolean apply(Extent extent, Vector set, Vector get) throws WorldEditException {
+        int index = (get.getBlockX() + get.getBlockY() + get.getBlockZ()) % patternsArray.length;
         if (index < 0) {
             index += patternsArray.length;
         }
-        return patternsArray[index].apply(extent, position);
+        return patternsArray[index].apply(extent, set, get);
     }
 }

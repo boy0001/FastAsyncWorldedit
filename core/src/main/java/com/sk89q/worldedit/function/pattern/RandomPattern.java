@@ -43,8 +43,8 @@ public class RandomPattern extends AbstractPattern {
     }
 
     @Override
-    public boolean apply(Extent extent, Vector position) throws WorldEditException {
-        return collection.next().apply(extent, position);
+    public boolean apply(Extent extent, Vector set, Vector get) throws WorldEditException {
+        return collection.next().apply(extent, set, get);
     }
 
     private static class Chance {

@@ -39,8 +39,8 @@ public interface Pattern{
      */
     public BaseBlock next(Vector position);
 
-    default boolean apply(Extent extent, Vector position) throws WorldEditException {
-        return extent.setBlock(position, next(position));
+    default boolean apply(Extent extent, Vector setPosition, Vector getPosition) throws WorldEditException {
+        return extent.setBlock(setPosition, next(getPosition));
     }
 
     /**

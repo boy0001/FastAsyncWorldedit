@@ -31,14 +31,14 @@ public class RelativePattern extends AbstractPattern implements ResettablePatter
     }
 
     @Override
-    public boolean apply(Extent extent, Vector pos) throws WorldEditException {
+    public boolean apply(Extent extent, Vector set, Vector get) throws WorldEditException {
         if (origin == null) {
-            origin = new Vector(pos);
+            origin = new Vector(get);
         }
-        mutable.mutX((pos.getX() - origin.getX()));
-        mutable.mutY((pos.getY() - origin.getY()));
-        mutable.mutZ((pos.getZ() - origin.getZ()));
-        return pattern.apply(extent, mutable);
+        mutable.mutX((get.getX() - origin.getX()));
+        mutable.mutY((get.getY() - origin.getY()));
+        mutable.mutZ((get.getZ() - origin.getZ()));
+        return pattern.apply(extent, set, mutable);
     }
 
     @Override

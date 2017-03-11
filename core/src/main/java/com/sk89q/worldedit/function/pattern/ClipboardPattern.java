@@ -16,6 +16,7 @@ public class ClipboardPattern extends AbstractPattern {
     private final Clipboard clipboard;
     private final int sx, sy, sz;
     private final Vector min;
+    private MutableBlockVector mutable = new MutableBlockVector();
 
     /**
      * Create a new clipboard pattern.
@@ -31,8 +32,6 @@ public class ClipboardPattern extends AbstractPattern {
         this.sz = size.getBlockZ();
         this.min = clipboard.getMinimumPoint();
     }
-
-    private MutableBlockVector mutable = new MutableBlockVector();
 
     @Override
     public BaseBlock apply(Vector position) {

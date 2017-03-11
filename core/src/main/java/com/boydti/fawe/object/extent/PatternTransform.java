@@ -16,6 +16,6 @@ public class PatternTransform extends ResettableExtent {
 
     @Override
     public boolean setBlock(Vector location, BaseBlock block) throws WorldEditException {
-        return pattern.apply(getExtent(), location);
+        return pattern.apply(getExtent(), location, location);
     }
 }

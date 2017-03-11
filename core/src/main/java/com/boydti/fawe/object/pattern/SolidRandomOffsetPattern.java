@@ -50,15 +50,15 @@ public class SolidRandomOffsetPattern extends AbstractPattern {
     }
 
     @Override
-    public boolean apply(Extent extent, Vector position) throws WorldEditException {
-        mutable.mutX((position.getX() + r.nextInt(dx2) - dx));
-        mutable.mutY((position.getY() + r.nextInt(dy2) - dy));
-        mutable.mutZ((position.getZ() + r.nextInt(dz2) - dz));
+    public boolean apply(Extent extent, Vector set, Vector get) throws WorldEditException {
+        mutable.mutX((get.getX() + r.nextInt(dx2) - dx));
+        mutable.mutY((get.getY() + r.nextInt(dy2) - dy));
+        mutable.mutZ((get.getZ() + r.nextInt(dz2) - dz));
         BaseBlock block = pattern.apply(mutable);
         if (solid[FaweCache.getCombined(block)]) {
-            return pattern.apply(extent, mutable);
+            return pattern.apply(extent, set, mutable);
         } else {
-            return pattern.apply(extent, position);
+            return pattern.apply(extent, set, get);
         }
     }
 }

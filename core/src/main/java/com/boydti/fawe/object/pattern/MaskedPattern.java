@@ -35,11 +35,11 @@ public class MaskedPattern extends AbstractPattern {
     }
 
     @Override
-    public boolean apply(Extent extent, Vector position) throws WorldEditException {
-        patternExtent.setTarget(position);
-        if (mask.test(position)) {
-            return patternExtent.getAndResetTarget(extent, position);
+    public boolean apply(Extent extent, Vector set, Vector get) throws WorldEditException {
+        patternExtent.setTarget(get);
+        if (mask.test(get)) {
+            return patternExtent.getAndResetTarget(extent, set, get);
         }
-        return secondaryPattern.apply(extent, position);
+        return secondaryPattern.apply(extent, set, get);
     }
 }

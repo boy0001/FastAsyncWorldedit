@@ -35,10 +35,10 @@ public class RandomOffsetPattern extends AbstractPattern {
     }
 
     @Override
-    public boolean apply(Extent extent, Vector position) throws WorldEditException {
-        mutable.mutX((position.getX() + r.nextInt(dx2) - dx));
-        mutable.mutY((position.getY() + r.nextInt(dy2) - dy));
-        mutable.mutZ((position.getZ() + r.nextInt(dz2) - dz));
-        return pattern.apply(extent, mutable);
+    public boolean apply(Extent extent, Vector set, Vector get) throws WorldEditException {
+        mutable.mutX((get.getX() + r.nextInt(dx2) - dx));
+        mutable.mutY((get.getY() + r.nextInt(dy2) - dy));
+        mutable.mutZ((get.getZ() + r.nextInt(dz2) - dz));
+        return pattern.apply(extent, set, mutable);
     }
 }

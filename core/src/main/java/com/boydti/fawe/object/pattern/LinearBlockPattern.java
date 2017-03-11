@@ -29,11 +29,11 @@ public class LinearBlockPattern extends AbstractPattern implements ResettablePat
     }
 
     @Override
-    public boolean apply(Extent extent, Vector position) throws WorldEditException {
+    public boolean apply(Extent extent, Vector set, Vector get) throws WorldEditException {
         if (index == patternsArray.length) {
             index = 0;
         }
-        return patternsArray[index++].apply(extent, position);
+        return patternsArray[index++].apply(extent, set, get);
     }
 
     @Override

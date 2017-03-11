@@ -30,10 +30,10 @@ public class OffsetPattern extends AbstractPattern {
     }
 
     @Override
-    public boolean apply(Extent extent, Vector position) throws WorldEditException {
-        mutable.mutX((position.getX() + dx));
-        mutable.mutY((position.getY() + dy));
-        mutable.mutZ((position.getZ() + dz));
-        return pattern.apply(extent, mutable);
+    public boolean apply(Extent extent, Vector set, Vector get) throws WorldEditException {
+        mutable.mutX((get.getX() + dx));
+        mutable.mutY((get.getY() + dy));
+        mutable.mutZ((get.getZ() + dz));
+        return pattern.apply(extent, set, mutable);
     }
 }

@@ -180,6 +180,8 @@ public class EditSession extends AbstractWorld implements HasFaweQueue, Lighting
     private FawePlayer player;
     private FaweChangeSet changeTask;
 
+    private MutableBlockVector mutable = new MutableBlockVector();
+
     private int changes = 0;
     private BlockBag blockBag;
 
@@ -1108,7 +1110,8 @@ public class EditSession extends AbstractWorld implements HasFaweQueue, Lighting
     public boolean setBlock(int x, int y, int z, Pattern pattern) {
         this.changes++;
         try {
-            return pattern.apply(extent, MutableBlockVector.get(x, y, z));
+            mutable.setComponents(x, y, z);
+            return pattern.apply(extent, mutable, mutable);
         } catch (WorldEditException e) {
             throw new RuntimeException("Unexpected exception", e);
         }
@@ -1132,7 +1135,7 @@ public class EditSession extends AbstractWorld implements HasFaweQueue, Lighting
     public boolean setBlock(final Vector position, final Pattern pattern) throws MaxChangedBlocksException {
         this.changes++;
         try {
-            return pattern.apply(this.extent, position);
+            return pattern.apply(this.extent, position, position);
         } catch (WorldEditException e) {
             throw new RuntimeException(e);
         }
@@ -2943,7 +2946,7 @@ public class EditSession extends AbstractWorld implements HasFaweQueue, Lighting
                     }
                 }
                 this.changes++;
-                pattern.apply(this.extent, position);
+                pattern.apply(this.extent, position, position);
             }
         } catch (WorldEditException e) {
             throw new RuntimeException(e);
