@@ -23,7 +23,7 @@ import com.sk89q.worldedit.Vector;
 import com.sk89q.worldedit.WorldEditException;
 import com.sk89q.worldedit.extent.Extent;
 import com.sk89q.worldedit.function.RegionFunction;
-import com.sk89q.worldedit.function.pattern.Pattern;
+import com.sk89q.worldedit.patterns.Pattern;
 
 
 import static com.google.common.base.Preconditions.checkNotNull;
@@ -47,6 +47,10 @@ public class BlockReplace implements RegionFunction {
         checkNotNull(pattern);
         this.extent = extent;
         this.pattern = pattern;
+    }
+
+    public BlockReplace(Extent extent, com.sk89q.worldedit.function.pattern.Pattern pattern) {
+        this(extent, (Pattern) pattern);
     }
 
     @Override

@@ -19,7 +19,8 @@
 
 package com.sk89q.worldedit.patterns;
 
-import com.sk89q.worldedit.*;
+import com.sk89q.worldedit.Vector;
+import com.sk89q.worldedit.WorldEditException;
 import com.sk89q.worldedit.blocks.BaseBlock;
 import com.sk89q.worldedit.extent.Extent;
 
@@ -27,7 +28,7 @@ import com.sk89q.worldedit.extent.Extent;
  * @deprecated See {@link com.sk89q.worldedit.function.pattern.Pattern}
  */
 @Deprecated
-public interface Pattern extends com.sk89q.worldedit.function.pattern.Pattern{
+public interface Pattern{
 
     /**
      * Get a block for a position. This return value of this method does
@@ -38,19 +39,8 @@ public interface Pattern extends com.sk89q.worldedit.function.pattern.Pattern{
      */
     public BaseBlock next(Vector position);
 
-    @Override
     default boolean apply(Extent extent, Vector position) throws WorldEditException {
-        return extent.setBlock(position, apply(position));
-    }
-
-    @Override
-    default BaseBlock apply(Vector position) {
-        return next(position);
-    }
-
-    @Override
-    default BaseBlock apply(int x, int y, int z) {
-        return next(x, y, z);
+        return extent.setBlock(position, next(position));
     }
 
     /**

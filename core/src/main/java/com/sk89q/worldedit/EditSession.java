@@ -97,8 +97,6 @@ import com.sk89q.worldedit.function.operation.ForwardExtentCopy;
 import com.sk89q.worldedit.function.operation.Operation;
 import com.sk89q.worldedit.function.operation.Operations;
 import com.sk89q.worldedit.function.pattern.BlockPattern;
-import com.sk89q.worldedit.function.pattern.Pattern;
-import com.sk89q.worldedit.function.pattern.Patterns;
 import com.sk89q.worldedit.function.util.RegionOffset;
 import com.sk89q.worldedit.function.visitor.DownwardVisitor;
 import com.sk89q.worldedit.function.visitor.LayerVisitor;
@@ -116,6 +114,7 @@ import com.sk89q.worldedit.math.interpolation.KochanekBartelsInterpolation;
 import com.sk89q.worldedit.math.interpolation.Node;
 import com.sk89q.worldedit.math.noise.RandomNoise;
 import com.sk89q.worldedit.math.transform.AffineTransform;
+import com.sk89q.worldedit.patterns.Pattern;
 import com.sk89q.worldedit.regions.CuboidRegion;
 import com.sk89q.worldedit.regions.EllipsoidRegion;
 import com.sk89q.worldedit.regions.FlatRegion;
@@ -1109,7 +1108,7 @@ public class EditSession extends AbstractWorld implements HasFaweQueue, Lighting
     public boolean setBlock(int x, int y, int z, Pattern pattern) {
         this.changes++;
         try {
-            return this.extent.setBlock(x, y, z, pattern.apply(x, y, z));
+            return this.extent.setBlock(x, y, z, pattern.next(x, y, z));
         } catch (WorldEditException e) {
             throw new RuntimeException("Unexpected exception", e);
         }
@@ -1646,10 +1645,6 @@ public class EditSession extends AbstractWorld implements HasFaweQueue, Lighting
             throw new RuntimeException("Unexpected exception", e);
         }
         return changes;
-    }
-
-    public int setBlocks(final Region region, final com.sk89q.worldedit.patterns.Pattern pattern) throws MaxChangedBlocksException {
-        return setBlocks(region, Patterns.wrap(pattern));
     }
 
     /**
@@ -3070,7 +3065,7 @@ public class EditSession extends AbstractWorld implements HasFaweQueue, Lighting
             final int tipy = (int) Math.round(tipv.getY());
             final int tipz = (int) Math.round(tipv.getZ());
             if (radius == 0) {
-                setBlock(tipx, tipy, tipz, pattern.apply(tipx, tipy, tipz));
+                setBlock(tipx, tipy, tipz, pattern.next(tipx, tipy, tipz));
             }  else {
                 vset.add(new Vector(tipx, tipy, tipz));
             }

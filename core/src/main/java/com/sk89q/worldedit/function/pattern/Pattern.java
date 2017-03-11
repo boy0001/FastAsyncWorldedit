@@ -21,14 +21,12 @@ package com.sk89q.worldedit.function.pattern;
 
 import com.sk89q.worldedit.MutableBlockVector;
 import com.sk89q.worldedit.Vector;
-import com.sk89q.worldedit.WorldEditException;
 import com.sk89q.worldedit.blocks.BaseBlock;
-import com.sk89q.worldedit.extent.Extent;
 
 /**
  * Returns a {@link BaseBlock} for a given position.
  */
-public interface Pattern {
+public interface Pattern extends com.sk89q.worldedit.patterns.Pattern{
 
     /**
      * Return a {@link BaseBlock} for the given position.
@@ -42,8 +40,14 @@ public interface Pattern {
         return apply(MutableBlockVector.get(x, y, z));
     }
 
-    default boolean apply(Extent extent,Vector position) throws WorldEditException {
-        return extent.setBlock(position, apply(position));
+    @Override
+    default BaseBlock next(Vector position) {
+        return apply(position);
+    }
+
+    @Override
+    default BaseBlock next(int x, int y, int z) {
+        return apply(x, y, z);
     }
 
     public static Class<Pattern> inject() {

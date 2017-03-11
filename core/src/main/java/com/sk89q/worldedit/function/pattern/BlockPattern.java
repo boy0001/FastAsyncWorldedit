@@ -6,7 +6,7 @@ import com.sk89q.worldedit.blocks.BaseBlock;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
-public class BlockPattern extends AbstractPattern {
+public class BlockPattern implements Pattern {
 
     private BaseBlock block;
 

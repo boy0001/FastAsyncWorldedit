@@ -61,6 +61,40 @@ public class HashTagPatternParser extends FaweParser<Pattern> {
         if (input.isEmpty()) {
             throw new SuggestInputParseException(input, ALL_PATTERNS);
         }
+        List<String> items = StringMan.split(input, ',');
+        if (items.size() == 1) {
+            return parseSinglePatternFromInput(items.get(0), context);
+        }
+        RandomPattern randomPattern = new RandomPattern();
+        try {
+            for (String token : items) {
+                Pattern pattern;
+                double chance;
+                // Parse special percentage syntax
+                if (token.matches("[0-9]+(\\.[0-9]*)?%.*")) {
+                    String[] p = token.split("%");
+                    if (p.length < 2) {
+                        throw new InputParseException("Missing the pattern after the % symbol for '" + input + "'");
+                    } else {
+                        chance = Expression.compile(p[0]).evaluate();
+                        pattern = catchSuggestion(input, p[1], context);
+                    }
+                } else {
+                    chance = 1;
+                    pattern = catchSuggestion(input, token, context);
+                }
+                randomPattern.add(pattern, chance);
+            }
+        } catch (NumberFormatException | ExpressionException e) {
+            throw new InputParseException("Invalid, see: https://github.com/boy0001/FastAsyncWorldedit/wiki/WorldEdit-and-FAWE-patterns");
+        }
+        return randomPattern;
+    }
+
+    public Pattern parseSinglePatternFromInput(String input, ParserContext context) throws InputParseException {
+        if (input.isEmpty()) {
+            throw new SuggestInputParseException(input, ALL_PATTERNS);
+        }
         switch (input.toLowerCase().charAt(0)) {
             case '#': {
                 switch (input) {

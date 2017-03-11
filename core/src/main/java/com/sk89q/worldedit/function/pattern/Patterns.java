@@ -1,9 +1,5 @@
 package com.sk89q.worldedit.function.pattern;
 
-import com.sk89q.worldedit.MutableBlockVector;
-import com.sk89q.worldedit.Vector;
-import com.sk89q.worldedit.blocks.BaseBlock;
-
 /**
  * Utility methods related to {@link Pattern}s.
  */
@@ -19,7 +15,10 @@ public final class Patterns {
      * @return a new-style pattern
      */
     public static Pattern wrap(final com.sk89q.worldedit.patterns.Pattern pattern) {
-        return pattern;
+        if (pattern instanceof Pattern) {
+            return (Pattern) pattern;
+        }
+        return position -> pattern.next(position);
     }
 
     /**
@@ -29,24 +28,7 @@ public final class Patterns {
      * @return an old-style pattern
      */
     public static com.sk89q.worldedit.patterns.Pattern wrap(final Pattern pattern) {
-        if (pattern instanceof com.sk89q.worldedit.patterns.Pattern) {
-            return (com.sk89q.worldedit.patterns.Pattern) pattern;
-        }
-        return new com.sk89q.worldedit.patterns.Pattern() {
-            private MutableBlockVector mutable = new MutableBlockVector(0, 0, 0);
-            @Override
-            public BaseBlock next(Vector position) {
-                return pattern.apply(position);
-            }
-
-            @Override
-            public BaseBlock next(int x, int y, int z) {
-                mutable.mutX(x);
-                mutable.mutY(y);
-                mutable.mutZ(z);
-                return next(mutable);
-            }
-        };
+        return pattern;
     }
 
     public static Class<?> inject() {
