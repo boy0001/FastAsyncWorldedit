@@ -69,6 +69,13 @@ public class Worldguard extends BukkitMaskManager implements Listener {
         } else if (region.isOwner("*")) {
             return true;
         }
+        if (localplayer.hasPermission("fawe.worldguard.member")) {
+            if (region.isMember(localplayer) || region.isMember(localplayer.getName())) {
+                return true;
+            } else if (region.isMember("*")) {
+                return true;
+            }
+        }
         return false;
     }
 
