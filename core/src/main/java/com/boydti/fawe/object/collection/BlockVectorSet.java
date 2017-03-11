@@ -32,6 +32,31 @@ public class BlockVectorSet extends AbstractCollection<Vector> implements Set<Ve
         return size;
     }
 
+    public Vector get(int index) {
+        int count = 0;
+        ObjectIterator<Int2ObjectMap.Entry<LocalBlockVectorSet>> iter = localSets.int2ObjectEntrySet().iterator();
+        while (iter.hasNext()) {
+            Int2ObjectMap.Entry<LocalBlockVectorSet> entry = iter.next();
+            LocalBlockVectorSet set = entry.getValue();
+            int size = set.size();
+            int newSize = count + size;
+            if (newSize > index) {
+                int localIndex = index - count;
+                Vector pos = set.getIndex(localIndex);
+                if (pos != null) {
+                    int pair = entry.getIntKey();
+                    int cx = MathMan.unpairX(pair);
+                    int cz = MathMan.unpairY(pair);
+                    pos.mutX((cx << 11) + pos.getBlockX());
+                    pos.mutZ((cz << 11) + pos.getBlockZ());
+                    return pos;
+                }
+            }
+            count = newSize;
+        }
+        return null;
+    }
+
     @Override
     public boolean isEmpty() {
         for (Int2ObjectMap.Entry<LocalBlockVectorSet> entry : localSets.int2ObjectEntrySet()) {

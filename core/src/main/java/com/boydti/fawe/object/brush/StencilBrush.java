@@ -3,7 +3,6 @@ package com.boydti.fawe.object.brush;
 import com.boydti.fawe.object.PseudoRandom;
 import com.boydti.fawe.object.brush.heightmap.HeightMap;
 import com.boydti.fawe.object.mask.AdjacentAnyMask;
-import com.boydti.fawe.object.mask.RadiusMask;
 import com.sk89q.worldedit.EditSession;
 import com.sk89q.worldedit.MaxChangedBlocksException;
 import com.sk89q.worldedit.Vector;
@@ -45,11 +44,10 @@ public class StencilBrush extends HeightBrush {
         final AdjacentAnyMask adjacent = new AdjacentAnyMask(editSession, Arrays.asList(new BaseBlock(0)));
         final SolidBlockMask solid = new SolidBlockMask(editSession);
         RegionMask region = new RegionMask(new CuboidRegion(position.subtract(size, size, size), position.add(size, size, size)));
-        final RadiusMask radius = new RadiusMask(0, size);
         RecursiveVisitor visitor = new RecursiveVisitor(new Mask() {
             @Override
             public boolean test(Vector vector) {
-                if (solid.test(vector) && radius.test(vector)) {
+                if (solid.test(vector) && region.test(vector)) {
                     int dx = vector.getBlockX() - cx;
                     int dy = vector.getBlockY() - cy;
                     int dz = vector.getBlockZ() - cz;

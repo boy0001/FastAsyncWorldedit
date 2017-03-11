@@ -34,7 +34,10 @@ import com.boydti.fawe.object.brush.HeightBrush;
 import com.boydti.fawe.object.brush.LineBrush;
 import com.boydti.fawe.object.brush.RaiseBrush;
 import com.boydti.fawe.object.brush.RecurseBrush;
+import com.boydti.fawe.object.brush.ScatterBrush;
+import com.boydti.fawe.object.brush.ScatterCommand;
 import com.boydti.fawe.object.brush.ShatterBrush;
+import com.boydti.fawe.object.brush.SplatterBrush;
 import com.boydti.fawe.object.brush.SplineBrush;
 import com.boydti.fawe.object.brush.StencilBrush;
 import com.boydti.fawe.object.brush.TargetMode;
@@ -537,7 +540,8 @@ public class BrushCommands {
             desc = "Use a height map to paint a surface",
             help =
                     "Chooses the stencil brush.\n" +
-                            "The -w flag will only apply at maximum saturation",
+                            "The -w flag will only apply at maximum saturation\n" +
+                            "The -r flag will apply random rotation",
             min = 1,
             max = -1
     )
@@ -559,6 +563,62 @@ public class BrushCommands {
             brush.setRandomRotate(true);
         }
         player.print(BBC.getPrefix() + BBC.BRUSH_STENCIL.f(radius));
+    }
+
+    @Command(
+            aliases = { "scatter" },
+            usage = "<pattern> [radius=5] [points=5] [distance=1]",
+            desc = "Scatter blocks on a surface",
+            help =
+                    "Chooses the scatter brush.",
+            min = 1,
+            max = 4
+    )
+    @CommandPermissions("worldedit.brush.scatter")
+    public void scatterBrush(Player player, EditSession editSession, LocalSession session, Pattern fill, @Optional("5") double radius, @Optional("5") double points, @Optional("1") double distance) throws WorldEditException {
+        worldEdit.checkMaxBrushRadius(radius);
+        BrushTool tool = session.getBrushTool(player);
+        tool.setFill(fill);
+        tool.setSize(radius);
+        tool.setBrush(new ScatterBrush((int) points, (int) distance), "worldedit.brush.scatter", player);
+        player.print(BBC.getPrefix() + BBC.BRUSH_SCATTER.f(radius, points));
+    }
+
+    @Command(
+            aliases = { "splatter" },
+            usage = "<pattern> [radius=5] [seeds=1] [recursion=5] [solid=true]",
+            desc = "Splatter blocks on a surface",
+            help =
+                    "Chooses the Splatter brush.",
+            min = 1,
+            max = 4
+    )
+    @CommandPermissions("worldedit.brush.splatter")
+    public void splatterBrush(Player player, EditSession editSession, LocalSession session, Pattern fill, @Optional("5") double radius, @Optional("1") double points, @Optional("5") double recursion, @Optional("true") boolean solid) throws WorldEditException {
+        worldEdit.checkMaxBrushRadius(radius);
+        BrushTool tool = session.getBrushTool(player);
+        tool.setFill(fill);
+        tool.setSize(radius);
+        tool.setBrush(new SplatterBrush((int) points, (int) recursion, solid), "worldedit.brush.splatter", player);
+        player.print(BBC.getPrefix() + BBC.BRUSH_SCATTER.f(radius, points));
+    }
+
+    @Command(
+            aliases = { "scmd", "scattercmd", "scattercommand", "scommand" },
+            usage = "<scatter-radius> <points> <cmd-radius=1> <cmd1;cmd2...>",
+            desc = "Scatter commands on a surface",
+            help =
+                    "Chooses the scatter command brush.",
+            min = 1,
+            max = -1
+    )
+    @CommandPermissions("worldedit.brush.scattercommand")
+    public void scatterCommandBrush(Player player, EditSession editSession, LocalSession session, double radius, double points, double distance, CommandContext args) throws WorldEditException {
+        worldEdit.checkMaxBrushRadius(radius);
+        BrushTool tool = session.getBrushTool(player);
+        tool.setSize(radius);
+        tool.setBrush(new ScatterCommand((int) points, (int) distance, args.getJoinedStrings(3)), "worldedit.brush.scattercommand", player);
+        player.print(BBC.getPrefix() + BBC.BRUSH_SCATTER.f(radius, points));
     }
 
     @Command(
@@ -822,7 +882,7 @@ public class BrushCommands {
             max = 99
     )
     @CommandPermissions("worldedit.brush.command")
-    public void command(Player player, LocalSession session, @Optional("5") double radius, CommandContext args) throws WorldEditException {
+    public void command(Player player, LocalSession session, double radius, CommandContext args) throws WorldEditException {
         BrushTool tool = session.getBrushTool(player);
         String cmd = args.getJoinedStrings(1);
         tool.setBrush(new CommandBrush(cmd, radius), "worldedit.brush.copy", player);

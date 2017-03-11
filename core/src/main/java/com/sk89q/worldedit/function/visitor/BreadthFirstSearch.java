@@ -60,6 +60,7 @@ public abstract class BreadthFirstSearch implements Operation {
     private BlockVectorSet queue;
     private final int maxDepth;
     private int affected = 0;
+    private int maxBranch = Integer.MAX_VALUE;
 
     public BreadthFirstSearch(final RegionFunction function) {
         this(function, Integer.MAX_VALUE);
@@ -118,6 +119,10 @@ public abstract class BreadthFirstSearch implements Operation {
         return visited.contains(pos);
     }
 
+    public void setMaxBranch(int maxBranch) {
+        this.maxBranch = maxBranch;
+    }
+
     @Override
     public Operation resume(RunContext run) throws WorldEditException {
         MutableBlockVector mutable = new MutableBlockVector();
@@ -151,7 +156,8 @@ public abstract class BreadthFirstSearch implements Operation {
             }
             for (Vector from : queue) {
                 if (function.apply(from)) affected++;
-                for (IntegerTrio direction : dirs) {
+                for (int i = 0, j = 0; i < dirs.length && j < maxBranch; i++) {
+                    IntegerTrio direction = dirs[i];
                     int y = from.getBlockY() + direction.y;
                     if (y < 0 || y >= 256) {
                         continue;
@@ -163,6 +169,7 @@ public abstract class BreadthFirstSearch implements Operation {
                         mutable2.mutY(y);
                         mutable2.mutZ(z);
                         if (isVisitable(from, mutable2)) {
+                            j++;
                             visited.add(x, y, z);
                             tempQueue.add(x, y, z);
                         }

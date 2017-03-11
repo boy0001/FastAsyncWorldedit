@@ -1,9 +1,11 @@
 package com.boydti.fawe.util;
 
 import java.lang.reflect.Array;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Comparator;
+import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
@@ -28,6 +30,29 @@ public class StringMan {
             }
         }
         return sb.toString();
+    }
+
+    public static List<String> split(String input, char delim) {
+        List<String> result = new ArrayList<String>();
+        int start = 0;
+        int bracket = 0;
+        boolean inQuotes = false;
+        for (int current = 0; current < input.length(); current++) {
+            char currentChar = input.charAt(current);
+            boolean atLastChar = (current == input.length() - 1);
+            if (!atLastChar && (bracket > 0 || (currentChar == '{' && ++bracket > 0) || (current == '}' && --bracket <= 0))) continue;
+            if (currentChar == '\"') inQuotes = !inQuotes; // toggle state
+            if(atLastChar) result.add(input.substring(start));
+            else if (currentChar == delim && !inQuotes) {
+                String toAdd = input.substring(start, current);
+                if (toAdd.startsWith("\"")) {
+                    toAdd = toAdd.substring(1, toAdd.length() - 1);
+                }
+                result.add(toAdd);
+                start = current + 1;
+            }
+        }
+        return result;
     }
 
     public static int intersection(final Set<String> options, final String[] toCheck) {

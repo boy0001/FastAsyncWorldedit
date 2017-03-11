@@ -90,13 +90,13 @@ public class DefaultMaskParser extends FaweParser<Mask> {
     public Mask parseFromInput(String input, ParserContext context) throws InputParseException {
         List<Mask> masks = new ArrayList<Mask>();
 
-        for (String component : split(input, ' ')) {
+        for (String component : StringMan.split(input, ' ')) {
             if (component.isEmpty()) {
                 continue;
             }
             HashSet<BaseBlock> blocks = new HashSet<BaseBlock>();
             List<Mask> masksUnion = new ArrayList<Mask>();
-            for (String elem : split(component, ',')) {
+            for (String elem : StringMan.split(component, ',')) {
                 ArrayList<Mask> list = new ArrayList<Mask>();
                 list.add(catchSuggestion(input, list, elem, context));
                 if (list.size() == 1) {

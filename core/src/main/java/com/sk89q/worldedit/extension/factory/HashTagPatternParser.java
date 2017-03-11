@@ -197,7 +197,7 @@ public class HashTagPatternParser extends FaweParser<Pattern> {
                         case "#l":
                         case "#linear": {
                             ArrayList<Pattern> patterns = new ArrayList<>();
-                            for (String token : split(rest, ',')) {
+                            for (String token : StringMan.split(rest, ',')) {
                                 patterns.add(catchSuggestion(input, token, context));
                             }
                             if (patterns.isEmpty()) {
@@ -208,7 +208,7 @@ public class HashTagPatternParser extends FaweParser<Pattern> {
                         case "#l3d":
                         case "#linear3d": {
                             ArrayList<Pattern> patterns = new ArrayList<>();
-                            for (String token : split(rest, ',')) {
+                            for (String token : StringMan.split(rest, ',')) {
                                 patterns.add(catchSuggestion(input, token, context));
                             }
                             if (patterns.isEmpty()) {
@@ -250,7 +250,7 @@ public class HashTagPatternParser extends FaweParser<Pattern> {
                     case "<block>":
                         throw new SuggestInputParseException(input, BundledBlockData.getInstance().getBlockNames());
                 }
-                List<String> items = split(input, ',');
+                List<String> items = StringMan.split(input, ',');
                 if (items.size() == 1) {
                     return new BlockPattern(worldEdit.getBlockFactory().parseFromInput(items.get(0), context));
                 }

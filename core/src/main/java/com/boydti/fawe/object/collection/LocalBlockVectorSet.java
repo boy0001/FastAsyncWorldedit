@@ -61,6 +61,9 @@ public class LocalBlockVectorSet implements Set<Vector> {
     }
 
     public boolean containsRadius(int x, int y, int z, int radius) {
+        if (radius <= 0) {
+            return contains(x, y, z);
+        }
         int length = radius * 2;
         if (size() < length * length * length) {
             int index = -1;
@@ -95,6 +98,28 @@ public class LocalBlockVectorSet implements Set<Vector> {
     public void setOffset(int x, int z) {
         this.offsetX = x;
         this.offsetZ = z;
+    }
+
+    public Vector getIndex(int getIndex) {
+        int size = size();
+        if (getIndex > size) {
+            return null;
+        }
+        int index = -1;
+        for (int i = 0; i < getIndex; i++) {
+            index = set.nextSetBit(index + 1);
+        }
+        if (index != -1) {
+            int b1 = (index & 0xFF);
+            int b2 = ((byte) (index >> 8)) & 0x7F;
+            int b3 = ((byte)(index >> 15)) & 0xFF;
+            int b4 = ((byte) (index >> 23)) & 0xFF;
+            int x = offsetX + (((b3 + ((MathMan.unpair8x(b2)) << 8)) << 21) >> 21);
+            int y = b1;
+            int z = offsetZ + (((b4 + ((MathMan.unpair8y(b2)) << 8)) << 21) >> 21);
+            return MutableBlockVector.get(x, y, z);
+        }
+        return null;
     }
 
     @Override

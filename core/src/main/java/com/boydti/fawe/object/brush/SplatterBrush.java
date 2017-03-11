@@ -1,0 +1,63 @@
+package com.boydti.fawe.object.brush;
+
+import com.boydti.fawe.object.PseudoRandom;
+import com.boydti.fawe.object.collection.LocalBlockVectorSet;
+import com.boydti.fawe.object.mask.AdjacentAnyMask;
+import com.sk89q.worldedit.EditSession;
+import com.sk89q.worldedit.MaxChangedBlocksException;
+import com.sk89q.worldedit.Vector;
+import com.sk89q.worldedit.WorldEditException;
+import com.sk89q.worldedit.blocks.BaseBlock;
+import com.sk89q.worldedit.function.RegionFunction;
+import com.sk89q.worldedit.function.mask.Mask;
+import com.sk89q.worldedit.function.mask.SolidBlockMask;
+import com.sk89q.worldedit.function.operation.Operations;
+import com.sk89q.worldedit.function.pattern.BlockPattern;
+import com.sk89q.worldedit.function.pattern.Pattern;
+import com.sk89q.worldedit.function.visitor.RecursiveVisitor;
+import java.util.Arrays;
+
+public class SplatterBrush extends ScatterBrush {
+    private final boolean solid;
+    private final int recursion;
+
+    public SplatterBrush(int count, int distance, boolean solid) {
+        super(count, 1);
+        this.recursion = distance;
+        this.solid = solid;
+    }
+
+    @Override
+    public void apply(final EditSession editSession, final LocalBlockVectorSet placed, final Vector position, Pattern p, double size) throws MaxChangedBlocksException {
+        final Pattern finalPattern;
+        if (solid) {
+            finalPattern = new BlockPattern(p.apply(position));
+        } else {
+            finalPattern = p;
+        }
+        final int size2 = (int) (size * size);
+        final AdjacentAnyMask adjacent = new AdjacentAnyMask(editSession, Arrays.asList(new BaseBlock(0)));
+        final SolidBlockMask solid = new SolidBlockMask(editSession);
+
+        RecursiveVisitor visitor = new RecursiveVisitor(new Mask() {
+            @Override
+            public boolean test(Vector vector) {
+                double dist = vector.distanceSq(position);
+                if (!placed.contains(vector) && (PseudoRandom.random.random(5) < 2) && solid.test(vector) && adjacent.test(vector)) {
+                    placed.add(vector);
+                    return true;
+                }
+                return false;
+            }
+        }, new RegionFunction() {
+            @Override
+            public boolean apply(Vector vector) throws WorldEditException {
+                return editSession.setBlock(vector, finalPattern);
+            }
+        }, recursion, editSession);
+        visitor.setMaxBranch(2);
+        visitor.setDirections(Arrays.asList(visitor.DIAGONAL_DIRECTIONS));
+        visitor.visit(position);
+        Operations.completeBlindly(visitor);
+    }
+}

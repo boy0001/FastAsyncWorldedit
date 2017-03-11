@@ -121,6 +121,7 @@ public enum BBC {
     BRUSH_HEIGHT_INVALID("Invalid height map file (%s0)", "WorldEdit.Brush"),
     BRUSH_SMOOTH("Smooth brush equipped (%s0 x %s1 using %s2. Note: Use the blend brush if you want to smooth overhangs or caves.).", "WorldEdit.Brush"),
     BRUSH_SPHERE("Sphere brush shape equipped (%s0).", "WorldEdit.Brush"),
+    BRUSH_SCATTER("Scatter brush shape equipped (%s0, %s1).", "WorldEdit.Brush"),
     BRUSH_SHATTER("Shatter brush shape equipped (%s0, %s1).", "WorldEdit.Brush"),
     BRUSH_STENCIL("Stencil brush equipped (%s0).", "WorldEdit.Brush"),
     BRUSH_LINE("Line brush shape equipped (%s0).", "WorldEdit.Brush"),
