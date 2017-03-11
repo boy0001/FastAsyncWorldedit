@@ -24,6 +24,7 @@ public class ScatterBrush implements Brush {
     private final int count;
     private final int distance;
     private Mask mask;
+    private AdjacentAnyMask adjacent;
 
     public ScatterBrush(int count, int distance) {
         this.count = count;
@@ -44,7 +45,7 @@ public class ScatterBrush implements Brush {
         if (this.mask == null) {
             this.mask = Masks.alwaysTrue();
         }
-        final AdjacentAnyMask adjacent = new AdjacentAnyMask(editSession, Arrays.asList(new BaseBlock(0)));
+        this.adjacent = new AdjacentAnyMask(editSession, Arrays.asList(new BaseBlock(0)));
         final SolidBlockMask solid = new SolidBlockMask(editSession);
         final RadiusMask radius = new RadiusMask(0, (int) size);
 
@@ -81,6 +82,10 @@ public class ScatterBrush implements Brush {
 
     public boolean canApply(EditSession editSession, Vector pos) {
         return mask.test(pos);
+    }
+
+    public Vector getDirection(Vector pt) {
+        return adjacent.direction(pt);
     }
 
     public void apply(EditSession editSession, LocalBlockVectorSet placed, Vector pt, Pattern p, double size) throws MaxChangedBlocksException {

@@ -11,6 +11,9 @@ import java.util.Collection;
  * Just an optimized version of the Adjacent Mask for single adjacency
  */
 public class AdjacentAnyMask extends BlockMask {
+    
+    private MutableBlockVector mutable = new MutableBlockVector();
+    
     public AdjacentAnyMask(Extent extent, Collection<BaseBlock> blocks) {
         super(extent, blocks);
     }
@@ -43,19 +46,19 @@ public class AdjacentAnyMask extends BlockMask {
         int y = v.getBlockY();
         int z = v.getBlockZ();
         v.mutY(y + 1);
-        if (super.test(v)) { v.mutY(y); return MutableBlockVector.get(0, 1, 0); }
+        if (super.test(v)) { v.mutY(y); return mutable.setComponents(0, 1, 0); }
         v.mutY(y - 1);
-        if (super.test(v)) { v.mutY(y); return MutableBlockVector.get(0, -1, 0); }
+        if (super.test(v)) { v.mutY(y); return mutable.setComponents(0, -1, 0); }
         v.mutY(y);
         v.mutX(x + 1);
-        if (super.test(v)) { v.mutX(x); return MutableBlockVector.get(1, 0, 0); }
+        if (super.test(v)) { v.mutX(x); return mutable.setComponents(1, 0, 0); }
         v.mutX(x - 1);
-        if (super.test(v)) { v.mutX(x); return MutableBlockVector.get(-1, 0, 0); }
+        if (super.test(v)) { v.mutX(x); return mutable.setComponents(-1, 0, 0); }
         v.mutX(x);
         v.mutZ(z + 1);
-        if (super.test(v)) { v.mutZ(z); return MutableBlockVector.get(0, 0, 1); }
+        if (super.test(v)) { v.mutZ(z); return mutable.setComponents(0, 0, 1); }
         v.mutZ(z - 1);
-        if (super.test(v)) { v.mutZ(z); return MutableBlockVector.get(0, 0, - 1); }
+        if (super.test(v)) { v.mutZ(z); return mutable.setComponents(0, 0, - 1); }
         v.mutZ(z);
         return null;
     }

@@ -36,6 +36,7 @@ import com.boydti.fawe.object.brush.RaiseBrush;
 import com.boydti.fawe.object.brush.RecurseBrush;
 import com.boydti.fawe.object.brush.ScatterBrush;
 import com.boydti.fawe.object.brush.ScatterCommand;
+import com.boydti.fawe.object.brush.ScatterOverlayBrush;
 import com.boydti.fawe.object.brush.ShatterBrush;
 import com.boydti.fawe.object.brush.SplatterBrush;
 import com.boydti.fawe.object.brush.SplineBrush;
@@ -68,6 +69,7 @@ import com.sk89q.worldedit.WorldEditException;
 import com.sk89q.worldedit.blocks.BaseBlock;
 import com.sk89q.worldedit.blocks.BlockID;
 import com.sk89q.worldedit.command.tool.BrushTool;
+import com.sk89q.worldedit.command.tool.brush.Brush;
 import com.sk89q.worldedit.command.tool.brush.ButcherBrush;
 import com.sk89q.worldedit.command.tool.brush.ClipboardBrush;
 import com.sk89q.worldedit.command.tool.brush.CylinderBrush;
@@ -570,17 +572,24 @@ public class BrushCommands {
             usage = "<pattern> [radius=5] [points=5] [distance=1]",
             desc = "Scatter blocks on a surface",
             help =
-                    "Chooses the scatter brush.",
+                    "Chooses the scatter brush.\n" +
+                            " The -o flag will overlay the block",
             min = 1,
             max = 4
     )
     @CommandPermissions("worldedit.brush.scatter")
-    public void scatterBrush(Player player, EditSession editSession, LocalSession session, Pattern fill, @Optional("5") double radius, @Optional("5") double points, @Optional("1") double distance) throws WorldEditException {
+    public void scatterBrush(Player player, EditSession editSession, LocalSession session, Pattern fill, @Optional("5") double radius, @Optional("5") double points, @Optional("1") double distance, @Switch('o') boolean overlay) throws WorldEditException {
         worldEdit.checkMaxBrushRadius(radius);
         BrushTool tool = session.getBrushTool(player);
         tool.setFill(fill);
         tool.setSize(radius);
-        tool.setBrush(new ScatterBrush((int) points, (int) distance), "worldedit.brush.scatter", player);
+        Brush brush;
+        if (overlay) {
+            brush = new ScatterOverlayBrush((int) points, (int) distance);
+        } else {
+            brush = new ScatterBrush((int) points, (int) distance);
+        }
+        tool.setBrush(brush, "worldedit.brush.scatter", player);
         player.print(BBC.getPrefix() + BBC.BRUSH_SCATTER.f(radius, points));
     }
 
