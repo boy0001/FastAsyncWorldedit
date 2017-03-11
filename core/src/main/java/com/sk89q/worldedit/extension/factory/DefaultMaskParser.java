@@ -2,7 +2,23 @@ package com.sk89q.worldedit.extension.factory;
 
 import com.boydti.fawe.command.FaweParser;
 import com.boydti.fawe.command.SuggestInputParseException;
-import com.boydti.fawe.object.mask.*;
+import com.boydti.fawe.object.mask.AdjacentAnyMask;
+import com.boydti.fawe.object.mask.AdjacentMask;
+import com.boydti.fawe.object.mask.AngleMask;
+import com.boydti.fawe.object.mask.BlockLightMask;
+import com.boydti.fawe.object.mask.BrightnessMask;
+import com.boydti.fawe.object.mask.CustomMask;
+import com.boydti.fawe.object.mask.DataMask;
+import com.boydti.fawe.object.mask.IdDataMask;
+import com.boydti.fawe.object.mask.IdMask;
+import com.boydti.fawe.object.mask.LightMask;
+import com.boydti.fawe.object.mask.OpacityMask;
+import com.boydti.fawe.object.mask.RadiusMask;
+import com.boydti.fawe.object.mask.SkyLightMask;
+import com.boydti.fawe.object.mask.WallMask;
+import com.boydti.fawe.object.mask.XAxisMask;
+import com.boydti.fawe.object.mask.YAxisMask;
+import com.boydti.fawe.object.mask.ZAxisMask;
 import com.boydti.fawe.util.MainUtil;
 import com.boydti.fawe.util.StringMan;
 import com.sk89q.worldedit.EditSession;
@@ -39,7 +55,9 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 
 
 import static com.google.common.base.Preconditions.checkNotNull;
@@ -73,17 +91,21 @@ public class DefaultMaskParser extends FaweParser<Mask> {
         super(worldEdit);
     }
 
-    private static CustomMask[] customMasks = new CustomMask[0];
+    private static Map<String, Class<? extends CustomMask>> customMasks = new ConcurrentHashMap<>();
 
-    public void addMask(CustomMask mask) {
-        checkNotNull(mask);
-        List<CustomMask> list = new ArrayList<>(Arrays.asList(customMasks));
-        list.add(mask);
-        customMasks = list.toArray(new CustomMask[list.size()]);
+    /**
+     * Register a mask!
+     * @param id
+     * @param clazz
+     */
+    public void addMask(String id, Class<? extends CustomMask> clazz) {
+        checkNotNull(clazz);
+        checkNotNull(id);
+        customMasks.put(id, clazz);
     }
 
-    public List<CustomMask> getCustomMasks() {
-        return Arrays.asList(customMasks);
+    public static Map<String, Class<? extends CustomMask>> getCustomMasks() {
+        return customMasks;
     }
 
     @Override
@@ -148,9 +170,18 @@ public class DefaultMaskParser extends FaweParser<Mask> {
                 int colon = input.indexOf(':');
                 String component = input;
                 if (colon != -1) {
-                    component = component.substring(0, colon);
+                    component = component.substring(0, colon).toLowerCase();
                     String rest = input.substring(colon + 1);
-                    switch (component.toLowerCase()) {
+                    Class<? extends CustomMask> customMask = customMasks.get(component);
+                    if (customMask != null) {
+                        try {
+                            Constructor<? extends CustomMask> constructor = customMask.getDeclaredConstructor(List.class, String.class, ParserContext.class);
+                            return constructor.newInstance(masks, rest, context);
+                        } catch (Throwable e) {
+                            throw new RuntimeException(e);
+                        }
+                    }
+                    switch (component) {
                         case "#light":
                         case "#skylight":
                         case "#blocklight":
@@ -166,7 +197,7 @@ public class DefaultMaskParser extends FaweParser<Mask> {
                             try {
                                 int y1 = (int) Math.abs(Expression.compile(split[0]).evaluate());
                                 int y2 = (int) Math.abs(Expression.compile(split[1]).evaluate());
-                                switch (component.toLowerCase()) {
+                                switch (component) {
                                     case "#light":
                                         return new LightMask(extent, y1, y2);
                                     case "#skylight":
@@ -201,6 +232,16 @@ public class DefaultMaskParser extends FaweParser<Mask> {
                     }
                     Mask mask = catchSuggestion(input, masks, rest, context);
                     masks.add(mask);
+                } else {
+                    Class<? extends CustomMask> customMask = customMasks.get(component);
+                    if (customMask != null) {
+                        try {
+                            Constructor<? extends CustomMask> constructor = customMask.getDeclaredConstructor(List.class, String.class, ParserContext.class);
+                            return constructor.newInstance(masks, "", context);
+                        } catch (Throwable e) {
+                            throw new RuntimeException(e);
+                        }
+                    }
                 }
                 switch (component.toLowerCase()) {
                     case "#haslight":
@@ -357,16 +398,6 @@ public class DefaultMaskParser extends FaweParser<Mask> {
                 }
                 throw new SuggestInputParseException(input, "!<mask>");
             default:
-                for (CustomMask mask : customMasks) {
-                    if (mask.accepts(input)) {
-                        try {
-                            Constructor<? extends CustomMask> constructor = mask.getClass().getDeclaredConstructor(List.class, String.class, ParserContext.class);
-                            return constructor.newInstance(masks, input, context);
-                        } catch (Throwable e) {
-                            e.printStackTrace();
-                        }
-                    }
-                }
                 ParserContext tempContext = new ParserContext(context);
                 tempContext.setRestricted(false);
                 tempContext.setPreferringWildcard(true);

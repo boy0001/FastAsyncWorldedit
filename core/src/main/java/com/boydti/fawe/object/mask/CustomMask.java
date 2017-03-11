@@ -8,11 +8,12 @@ public abstract class CustomMask implements Mask {
 
     /**
      * Constructor for custom mask
+     * When used in commands, use #custom:<input>
      * @param masks Any previous masks set (usually from //mask [previous] [thismask]
-     * @param component The input to parse
+     * @param input The input to parse
      * @param context The context (for extent, player etc)
      */
-    public CustomMask(List<Mask> masks, String component, ParserContext context) {
+    public CustomMask(List<Mask> masks, String input, ParserContext context) {
         try {
             this.getClass(). getConstructor ( List.class, String.class, ParserContext.class ) ;
         } catch (NoSuchMethodException e) {
@@ -21,6 +22,4 @@ public abstract class CustomMask implements Mask {
     }
 
     public abstract String description();
-
-    public abstract boolean accepts(String input);
 }

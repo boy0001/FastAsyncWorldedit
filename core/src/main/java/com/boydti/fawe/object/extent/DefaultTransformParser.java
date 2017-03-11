@@ -157,6 +157,6 @@ public class DefaultTransformParser extends InputParser<ResettableExtent> {
     }
 
     public static Class<?> inject() {
-        return DefaultMaskParser.class;
+        return DefaultTransformParser.class;
     }
 }

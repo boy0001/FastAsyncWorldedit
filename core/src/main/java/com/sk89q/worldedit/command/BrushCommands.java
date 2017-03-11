@@ -568,7 +568,7 @@ public class BrushCommands {
     }
 
     @Command(
-            aliases = { "scatter" },
+            aliases = { "scatter", "scat" },
             usage = "<pattern> [radius=5] [points=5] [distance=1]",
             desc = "Scatter blocks on a surface",
             help =
@@ -594,7 +594,7 @@ public class BrushCommands {
     }
 
     @Command(
-            aliases = { "splatter" },
+            aliases = { "splatter", "splat" },
             usage = "<pattern> [radius=5] [seeds=1] [recursion=5] [solid=true]",
             desc = "Splatter blocks on a surface",
             help =

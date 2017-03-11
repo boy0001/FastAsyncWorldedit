@@ -18,6 +18,7 @@ import com.sk89q.worldedit.Vector;
 import com.sk89q.worldedit.WorldEdit;
 import com.sk89q.worldedit.WorldEditException;
 import com.sk89q.worldedit.extension.factory.DefaultMaskParser;
+import com.sk89q.worldedit.extension.platform.CommandManager;
 import com.sk89q.worldedit.extent.Extent;
 import com.sk89q.worldedit.extent.clipboard.Clipboard;
 import com.sk89q.worldedit.extent.clipboard.io.ClipboardFormat;
@@ -66,18 +67,19 @@ public class FaweAPI {
     }
 
     /**
-     * Add a custom mask for use in //mask [values...]
-     * @param mask
+     * Add a custom mask for use in e.g //mask #id:<input>
+     * @param name The mask id
+     * @param mask The mask class
      * @return true if the mask was registered
      */
-    public static boolean registerMask(CustomMask mask) {
+    public static boolean registerMask(String name, Class<? extends CustomMask> mask) {
         try {
             Field field = AbstractFactory.class.getDeclaredField("parsers");
             field.setAccessible(true);
             List<InputParser> parsers = (List<InputParser>) field.get(WorldEdit.getInstance().getMaskFactory());
             for (InputParser parser : parsers) {
                 if (parser instanceof DefaultMaskParser) {
-                    ((DefaultMaskParser) parser).addMask(mask);
+                    ((DefaultMaskParser) parser).addMask(name, mask);
                     return true;
                 }
             }
@@ -85,6 +87,17 @@ public class FaweAPI {
             throw new RuntimeException(e);
         }
         return false;
+    }
+
+    /**
+     * Create a command with the provided aliases and register all methods of the class as sub commands.<br>
+     *  - You should try to register commands during startup
+     *  - If no aliases are specified, all methods become root commands
+     * @param clazz The class containing all the sub command methods
+     * @param aliases The aliases to give the command (or none)
+     */
+    public static void registerCommands(Object clazz, String... aliases) {
+        CommandManager.getInstance().registerCommands(clazz, aliases);
     }
 
     /**
