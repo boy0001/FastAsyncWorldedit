@@ -40,8 +40,6 @@ public class ScatterBrush implements Brush {
 
     @Override
     public void build(EditSession editSession, Vector position, Pattern pattern, double size) throws MaxChangedBlocksException {
-        // pick a bunch of random points
-        // expand randomly from them
         this.mask = editSession.getMask();
         if (this.mask == null) {
             this.mask = Masks.alwaysTrue();

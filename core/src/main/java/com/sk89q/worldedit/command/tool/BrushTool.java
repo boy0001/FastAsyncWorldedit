@@ -13,6 +13,7 @@ import com.boydti.fawe.object.brush.visualization.VisualChunk;
 import com.boydti.fawe.object.brush.visualization.VisualExtent;
 import com.boydti.fawe.object.brush.visualization.VisualMode;
 import com.boydti.fawe.object.extent.ResettableExtent;
+import com.boydti.fawe.object.pattern.PatternTraverser;
 import com.boydti.fawe.util.EditSessionBuilder;
 import com.sk89q.worldedit.EditSession;
 import com.sk89q.worldedit.LocalConfiguration;
@@ -286,7 +287,6 @@ public class BrushTool implements DoubleActionTraceTool, ScrollTool, MovableTool
             BBC.NO_BLOCK.send(player);
             return true;
         }
-
         BlockBag bag = session.getBlockBag(player);
         Request.request().setEditSession(editSession);
         if (current.mask != null) {
@@ -319,6 +319,7 @@ public class BrushTool implements DoubleActionTraceTool, ScrollTool, MovableTool
             editSession.addTransform(current.transform);
         }
         try {
+            new PatternTraverser(current).reset(editSession);
             current.brush.build(editSession, target, current.material, current.size);
         } catch (MaxChangedBlocksException e) {
             player.printError("Max blocks change limit reached."); // Never happens
@@ -418,6 +419,7 @@ public class BrushTool implements DoubleActionTraceTool, ScrollTool, MovableTool
                 }
                 case OUTLINE: {
                     BrushSettings current = getContext();
+                    new PatternTraverser(current).reset(editSession);
                     current.brush.build(editSession, position, current.material, current.size);
                     break;
                 }

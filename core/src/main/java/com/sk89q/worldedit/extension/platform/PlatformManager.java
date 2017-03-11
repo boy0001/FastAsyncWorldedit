@@ -33,6 +33,7 @@ import com.sk89q.worldedit.Vector;
 import com.sk89q.worldedit.WorldEdit;
 import com.sk89q.worldedit.WorldVector;
 import com.sk89q.worldedit.command.tool.BlockTool;
+import com.sk89q.worldedit.command.tool.BrushTool;
 import com.sk89q.worldedit.command.tool.DoubleActionBlockTool;
 import com.sk89q.worldedit.command.tool.DoubleActionTraceTool;
 import com.sk89q.worldedit.command.tool.Tool;
@@ -438,7 +439,11 @@ public class PlatformManager {
                             fp.runAction(new Runnable() {
                                 @Override
                                 public void run() {
-                                    reset((BlockTool) tool).actPrimary(queryCapability(Capability.WORLD_EDITING), getConfiguration(), player, session, location);
+                                    if (tool instanceof BrushTool) {
+                                        ((BlockTool) tool).actPrimary(queryCapability(Capability.WORLD_EDITING), getConfiguration(), player, session, location);
+                                    } else {
+                                        reset((BlockTool) tool).actPrimary(queryCapability(Capability.WORLD_EDITING), getConfiguration(), player, session, location);
+                                    }
                                 }
                             }, true, true);
                             event.setCancelled(true);

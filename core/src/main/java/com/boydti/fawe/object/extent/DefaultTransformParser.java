@@ -75,6 +75,21 @@ public class DefaultTransformParser extends InputParser<ResettableExtent> {
                             Pattern pattern = worldEdit.getPatternFactory().parseFromInput(rest, context);
                             return new PatternTransform(parent, pattern);
                         }
+                        case "#offset": {
+                            try {
+                                String[] split2 = component.split(":");
+                                double x = Math.abs(Expression.compile(split2[1]).evaluate());
+                                double y = Math.abs(Expression.compile(split2[2]).evaluate());
+                                double z = Math.abs(Expression.compile(split2[3]).evaluate());
+                                rest = rest.substring(Math.min(rest.length(), split2[1].length() + split2[2].length() + split2[3].length() + 3));
+                                if (!rest.isEmpty()) {
+                                    parent = parseFromInput(rest, context);
+                                }
+                                return new OffsetExtent(parent, (int) x, (int) y, (int) z);
+                            } catch (NumberFormatException | ExpressionException e) {
+                                throw new InputParseException("The correct format is #offset:<dx>:<dy>:<dz>");
+                            }
+                        }
                         case "#scale": {
                             try {
                                 String[] split2 = component.split(":");
