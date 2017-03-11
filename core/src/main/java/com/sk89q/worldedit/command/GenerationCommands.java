@@ -31,7 +31,6 @@ import com.sk89q.worldedit.WorldEdit;
 import com.sk89q.worldedit.WorldEditException;
 import com.sk89q.worldedit.entity.Player;
 import com.sk89q.worldedit.function.pattern.Pattern;
-import com.sk89q.worldedit.function.pattern.Patterns;
 import com.sk89q.worldedit.internal.annotation.Selection;
 import com.sk89q.worldedit.internal.expression.ExpressionException;
 import com.sk89q.worldedit.regions.Region;
@@ -123,7 +122,7 @@ public class GenerationCommands {
         worldEdit.checkMaxRadius(height);
 
         Vector pos = session.getPlacementPosition(player);
-        int affected = editSession.makeCylinder(pos, Patterns.wrap(pattern), radiusX, radiusZ, height, !hollow);
+        int affected = editSession.makeCylinder(pos, pattern, radiusX, radiusZ, height, !hollow);
         BBC.VISITOR_BLOCK.send(player, affected);
     }
 
@@ -188,7 +187,7 @@ public class GenerationCommands {
             pos = pos.add(0, radiusY, 0);
         }
 
-        int affected = editSession.makeSphere(pos, Patterns.wrap(pattern), radiusX, radiusY, radiusZ, !hollow);
+        int affected = editSession.makeSphere(pos, pattern, radiusX, radiusY, radiusZ, !hollow);
         player.findFreePosition();
         BBC.VISITOR_BLOCK.send(player, affected);
     }
@@ -249,7 +248,7 @@ public class GenerationCommands {
     public void pyramid(Player player, LocalSession session, EditSession editSession, Pattern pattern, @Range(min = 1) int size, @Switch('h') boolean hollow) throws WorldEditException, ParameterException {
         Vector pos = session.getPlacementPosition(player);
         worldEdit.checkMaxRadius(size);
-        int affected = editSession.makePyramid(pos, Patterns.wrap(pattern), size, !hollow);
+        int affected = editSession.makePyramid(pos, pattern, size, !hollow);
         player.findFreePosition();
         BBC.VISITOR_BLOCK.send(player, affected);
     }
@@ -312,7 +311,7 @@ public class GenerationCommands {
         }
 
         try {
-            final int affected = editSession.makeShape(region, zero, unit, Patterns.wrap(pattern), expression, hollow);
+            final int affected = editSession.makeShape(region, zero, unit, pattern, expression, hollow);
             player.findFreePosition();
             BBC.VISITOR_BLOCK.send(player, affected);
         } catch (ExpressionException e) {

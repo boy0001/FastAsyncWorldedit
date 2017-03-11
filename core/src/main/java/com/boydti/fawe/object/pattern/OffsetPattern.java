@@ -2,7 +2,9 @@ package com.boydti.fawe.object.pattern;
 
 import com.sk89q.worldedit.MutableBlockVector;
 import com.sk89q.worldedit.Vector;
+import com.sk89q.worldedit.WorldEditException;
 import com.sk89q.worldedit.blocks.BaseBlock;
+import com.sk89q.worldedit.extent.Extent;
 import com.sk89q.worldedit.function.pattern.AbstractPattern;
 import com.sk89q.worldedit.function.pattern.Pattern;
 
@@ -25,5 +27,13 @@ public class OffsetPattern extends AbstractPattern {
         mutable.mutY((position.getY() + dy));
         mutable.mutZ((position.getZ() + dz));
         return pattern.apply(mutable);
+    }
+
+    @Override
+    public boolean apply(Extent extent, Vector position) throws WorldEditException {
+        mutable.mutX((position.getX() + dx));
+        mutable.mutY((position.getY() + dy));
+        mutable.mutZ((position.getZ() + dz));
+        return pattern.apply(extent, mutable);
     }
 }

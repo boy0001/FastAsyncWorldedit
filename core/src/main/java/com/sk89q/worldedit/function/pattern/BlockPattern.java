@@ -20,12 +20,7 @@ public class BlockPattern extends AbstractPattern {
     }
 
     @Override
-    public BaseBlock next(int x, int y, int z) {
-        return block;
-    }
-
-    @Override
-    public BaseBlock next(Vector position) {
+    public BaseBlock apply(int x, int y, int z) {
         return block;
     }
 

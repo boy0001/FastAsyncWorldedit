@@ -39,7 +39,7 @@ import com.sk89q.worldedit.command.tool.LongRangeBuildTool;
 import com.sk89q.worldedit.command.tool.QueryTool;
 import com.sk89q.worldedit.command.tool.TreePlanter;
 import com.sk89q.worldedit.entity.Player;
-import com.sk89q.worldedit.patterns.Pattern;
+import com.sk89q.worldedit.function.pattern.Pattern;
 import com.sk89q.worldedit.util.TreeGenerator;
 import com.sk89q.worldedit.util.command.parametric.Optional;
 
@@ -150,17 +150,13 @@ public class ToolCommands {
             max = 2
     )
     @CommandPermissions("worldedit.tool.flood-fill")
-    public void floodFill(Player player, LocalSession session, CommandContext args) throws WorldEditException {
+    public void floodFill(Player player, LocalSession session, Pattern pattern, double range) throws WorldEditException {
         LocalConfiguration config = we.getConfiguration();
-        int range = args.getInteger(1);
-
         if (range > config.maxSuperPickaxeSize) {
             BBC.TOOL_RANGE_ERROR.send(player, config.maxSuperPickaxeSize);
             return;
         }
-
-        Pattern pattern = we.getBlockPattern(player, args.getString(0));
-        session.setTool(new FloodFillTool(range, pattern), player);
+        session.setTool(new FloodFillTool((int) range, pattern), player);
         BBC.TOOL_FLOOD_FILL.send(player, ItemType.toHeldName(player.getItemInHand()));
     }
 

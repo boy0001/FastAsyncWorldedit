@@ -52,7 +52,6 @@ import com.boydti.fawe.object.extent.ProcessedWEExtent;
 import com.boydti.fawe.object.extent.ResettableExtent;
 import com.boydti.fawe.object.extent.SlowExtent;
 import com.boydti.fawe.object.extent.SourceMaskExtent;
-import com.boydti.fawe.object.function.block.LegacyBlockReplace;
 import com.boydti.fawe.object.mask.ResettableMask;
 import com.boydti.fawe.object.progress.ChatProgressTracker;
 import com.boydti.fawe.object.progress.DefaultProgressTracker;
@@ -98,6 +97,7 @@ import com.sk89q.worldedit.function.operation.ForwardExtentCopy;
 import com.sk89q.worldedit.function.operation.Operation;
 import com.sk89q.worldedit.function.operation.Operations;
 import com.sk89q.worldedit.function.pattern.BlockPattern;
+import com.sk89q.worldedit.function.pattern.Pattern;
 import com.sk89q.worldedit.function.pattern.Patterns;
 import com.sk89q.worldedit.function.util.RegionOffset;
 import com.sk89q.worldedit.function.visitor.DownwardVisitor;
@@ -116,8 +116,6 @@ import com.sk89q.worldedit.math.interpolation.KochanekBartelsInterpolation;
 import com.sk89q.worldedit.math.interpolation.Node;
 import com.sk89q.worldedit.math.noise.RandomNoise;
 import com.sk89q.worldedit.math.transform.AffineTransform;
-import com.sk89q.worldedit.patterns.Pattern;
-import com.sk89q.worldedit.patterns.SingleBlockPattern;
 import com.sk89q.worldedit.regions.CuboidRegion;
 import com.sk89q.worldedit.regions.EllipsoidRegion;
 import com.sk89q.worldedit.regions.FlatRegion;
@@ -1111,7 +1109,7 @@ public class EditSession extends AbstractWorld implements HasFaweQueue, Lighting
     public boolean setBlock(int x, int y, int z, Pattern pattern) {
         this.changes++;
         try {
-            return this.extent.setBlock(x, y, z, pattern.next(x, y, z));
+            return this.extent.setBlock(x, y, z, pattern.apply(x, y, z));
         } catch (WorldEditException e) {
             throw new RuntimeException("Unexpected exception", e);
         }
@@ -1131,31 +1129,19 @@ public class EditSession extends AbstractWorld implements HasFaweQueue, Lighting
         }
     }
 
-    /**
-     * Sets the block at a position, subject to both history and block re-ordering.
-     *
-     * @param position the position
-     * @param pattern a pattern to use
-     * @return Whether the block changed -- not entirely dependable
-     * @throws MaxChangedBlocksException thrown if too many blocks are changed
-     */
     @SuppressWarnings("deprecation")
     public boolean setBlock(final Vector position, final Pattern pattern) throws MaxChangedBlocksException {
-        return this.setBlockFast(position, pattern.next(position));
+        this.changes++;
+        try {
+            return pattern.apply(this.extent, position);
+        } catch (WorldEditException e) {
+            throw new RuntimeException(e);
+        }
     }
 
-    /**
-     * Set blocks that are in a set of positions and return the number of times
-     * that the block set calls returned true.
-     *
-     * @param vset a set of positions
-     * @param pattern the pattern
-     * @return the number of changed blocks
-     * @throws MaxChangedBlocksException thrown if too many blocks are changed
-     */
     @SuppressWarnings("deprecation")
     private int setBlocks(final Set<Vector> vset, final Pattern pattern) throws MaxChangedBlocksException {
-        RegionVisitor visitor = new RegionVisitor(vset, new LegacyBlockReplace(extent, pattern), this);
+        RegionVisitor visitor = new RegionVisitor(vset, new BlockReplace(extent, pattern), this);
         Operations.completeBlindly(visitor);
         changes += visitor.getAffected();
         return changes;
@@ -1431,7 +1417,7 @@ public class EditSession extends AbstractWorld implements HasFaweQueue, Lighting
      */
     @SuppressWarnings("deprecation")
     public int fillXZ(final Vector origin, final BaseBlock block, final double radius, final int depth, final boolean recursive) throws MaxChangedBlocksException {
-        return this.fillXZ(origin, new SingleBlockPattern(block), radius, depth, recursive);
+        return this.fillXZ(origin, new BlockPattern(block), radius, depth, recursive);
     }
 
     /**
@@ -1456,7 +1442,7 @@ public class EditSession extends AbstractWorld implements HasFaweQueue, Lighting
                 (origin.getBlockY() - depth) + 1, 0), Math.min(EditSession.this.getMaximumPoint().getBlockY(), origin.getBlockY())), Masks.negate(new ExistingBlockMask(EditSession.this)));
 
         // Want to replace blocks
-        final BlockReplace replace = new BlockReplace(EditSession.this, Patterns.wrap(pattern));
+        final BlockReplace replace = new BlockReplace(EditSession.this, pattern);
 
         // Pick how we're going to visit blocks
         RecursiveVisitor visitor;
@@ -1514,7 +1500,7 @@ public class EditSession extends AbstractWorld implements HasFaweQueue, Lighting
                 (origin.getBlockY() - depth) + 1, 0), Math.min(EditSession.this.getMaximumPoint().getBlockY(), origin.getBlockY())), Masks.negate(new ExistingBlockMask(EditSession.this)));
 
         // Want to replace blocks
-        final BlockReplace replace = new BlockReplace(EditSession.this, Patterns.wrap(pattern));
+        final BlockReplace replace = new BlockReplace(EditSession.this, pattern);
 
         // Pick how we're going to visit blocks
         RecursiveVisitor visitor;
@@ -1549,7 +1535,7 @@ public class EditSession extends AbstractWorld implements HasFaweQueue, Lighting
 
         final Region region = new CuboidRegion(this.getWorld(), // Causes clamping of Y range
         position.add(-apothem + 1, 0, -apothem + 1), position.add(apothem - 1, height - 1, apothem - 1));
-        final Pattern pattern = new SingleBlockPattern(new BaseBlock(BlockID.AIR));
+        final Pattern pattern = new BlockPattern(new BaseBlock(BlockID.AIR));
         return this.setBlocks(region, pattern);
     }
 
@@ -1570,7 +1556,7 @@ public class EditSession extends AbstractWorld implements HasFaweQueue, Lighting
 
         final Region region = new CuboidRegion(this.getWorld(), // Causes clamping of Y range
         position.add(-apothem + 1, 0, -apothem + 1), position.add(apothem - 1, -height + 1, apothem - 1));
-        final Pattern pattern = new SingleBlockPattern(new BaseBlock(BlockID.AIR));
+        final Pattern pattern = new BlockPattern(new BaseBlock(BlockID.AIR));
         return this.setBlocks(region, pattern);
     }
 
@@ -1592,7 +1578,7 @@ public class EditSession extends AbstractWorld implements HasFaweQueue, Lighting
         final Vector adjustment = new Vector(1, 1, 1).multiply(apothem - 1);
         final Region region = new CuboidRegion(this.getWorld(), // Causes clamping of Y range
         position.add(adjustment.multiply(-1)), position.add(adjustment));
-        final Pattern pattern = new SingleBlockPattern(new BaseBlock(BlockID.AIR));
+        final Pattern pattern = new BlockPattern(new BaseBlock(BlockID.AIR));
         return this.replaceBlocks(region, mask, pattern);
     }
 
@@ -1643,7 +1629,7 @@ public class EditSession extends AbstractWorld implements HasFaweQueue, Lighting
         }
         try {
             if (hasExtraExtents()) {
-                RegionVisitor visitor = new RegionVisitor(region, new LegacyBlockReplace(extent, new SingleBlockPattern(block)), this);
+                RegionVisitor visitor = new RegionVisitor(region, new BlockReplace(extent, new BlockPattern(block)), this);
                 Operations.completeBlindly(visitor);
                 this.changes += visitor.getAffected();
             } else {
@@ -1662,6 +1648,10 @@ public class EditSession extends AbstractWorld implements HasFaweQueue, Lighting
         return changes;
     }
 
+    public int setBlocks(final Region region, final com.sk89q.worldedit.patterns.Pattern pattern) throws MaxChangedBlocksException {
+        return setBlocks(region, Patterns.wrap(pattern));
+    }
+
     /**
      * Sets all the blocks inside a region to a given pattern.
      *
@@ -1677,7 +1667,7 @@ public class EditSession extends AbstractWorld implements HasFaweQueue, Lighting
         if (pattern instanceof BlockPattern) {
             return setBlocks(region, ((BlockPattern) pattern).getBlock());
         }
-        final BlockReplace replace = new BlockReplace(EditSession.this, Patterns.wrap(pattern));
+        final BlockReplace replace = new BlockReplace(EditSession.this, pattern);
         final RegionVisitor visitor = new RegionVisitor(region, replace, queue instanceof MappedFaweQueue ? (MappedFaweQueue) queue : null);
         Operations.completeBlindly(visitor);
         return this.changes = visitor.getAffected();
@@ -1700,8 +1690,10 @@ public class EditSession extends AbstractWorld implements HasFaweQueue, Lighting
 //            return changes = region.getArea();
 //        }
         // TODO fast replace
-        return this.replaceBlocks(region, filter, new SingleBlockPattern(replacement));
+        return this.replaceBlocks(region, filter, new BlockPattern(replacement));
     }
+
+
 
     /**
      * Replaces all the blocks matching a given filter, within a given region, to a block
@@ -1741,7 +1733,7 @@ public class EditSession extends AbstractWorld implements HasFaweQueue, Lighting
         checkNotNull(region);
         checkNotNull(mask);
         checkNotNull(pattern);
-        final BlockReplace replace = new BlockReplace(EditSession.this, Patterns.wrap(pattern));
+        final BlockReplace replace = new BlockReplace(EditSession.this, pattern);
         final RegionMaskingFilter filter = new RegionMaskingFilter(mask, replace);
         final RegionVisitor visitor = new RegionVisitor(region, filter, queue instanceof MappedFaweQueue ? (MappedFaweQueue) queue : null);
         Operations.completeBlindly(visitor);
@@ -1779,7 +1771,7 @@ public class EditSession extends AbstractWorld implements HasFaweQueue, Lighting
      */
     @SuppressWarnings("deprecation")
     public int makeCuboidFaces(final Region region, final BaseBlock block) throws MaxChangedBlocksException {
-        return this.makeCuboidFaces(region, new SingleBlockPattern(block));
+        return this.makeCuboidFaces(region, new BlockPattern(block));
     }
 
     /**
@@ -1811,7 +1803,7 @@ public class EditSession extends AbstractWorld implements HasFaweQueue, Lighting
      * @throws MaxChangedBlocksException thrown if too many blocks are changed
      */
     @SuppressWarnings("deprecation")
-    public int makeFaces(final Region region, final Pattern pattern) throws MaxChangedBlocksException {
+    public int makeFaces(final Region region, final Pattern pattern) throws WorldEditException {
         checkNotNull(region);
         checkNotNull(pattern);
 
@@ -1833,7 +1825,7 @@ public class EditSession extends AbstractWorld implements HasFaweQueue, Lighting
      */
     @SuppressWarnings("deprecation")
     public int makeCuboidWalls(final Region region, final BaseBlock block) throws MaxChangedBlocksException {
-        return this.makeCuboidWalls(region, new SingleBlockPattern(block));
+        return this.makeCuboidWalls(region, new BlockPattern(block));
     }
 
     /**
@@ -1866,7 +1858,7 @@ public class EditSession extends AbstractWorld implements HasFaweQueue, Lighting
      * @throws MaxChangedBlocksException thrown if too many blocks are changed
      */
     @SuppressWarnings("deprecation")
-    public int makeWalls(final Region region, final Pattern pattern) throws MaxChangedBlocksException {
+    public int makeWalls(final Region region, final Pattern pattern) throws WorldEditException {
         checkNotNull(region);
         checkNotNull(pattern);
 
@@ -1877,7 +1869,7 @@ public class EditSession extends AbstractWorld implements HasFaweQueue, Lighting
             final int maxY = region.getMaximumPoint().getBlockY();
             final ArbitraryShape shape = new RegionShape(region) {
                 @Override
-                protected BaseBlock getMaterial(final int x, final int y, final int z, final BaseBlock defaultMaterial) {
+                public BaseBlock getMaterial(final int x, final int y, final int z, final BaseBlock defaultMaterial) {
                     if ((y > maxY) || (y < minY)) {
                         // Put holes into the floor and ceiling by telling ArbitraryShape that the shape goes on outside the region
                         return defaultMaterial;
@@ -1903,7 +1895,7 @@ public class EditSession extends AbstractWorld implements HasFaweQueue, Lighting
     public int overlayCuboidBlocks(final Region region, final BaseBlock block) throws MaxChangedBlocksException {
         checkNotNull(block);
 
-        return this.overlayCuboidBlocks(region, new SingleBlockPattern(block));
+        return this.overlayCuboidBlocks(region, new BlockPattern(block));
     }
 
     /**
@@ -1919,7 +1911,7 @@ public class EditSession extends AbstractWorld implements HasFaweQueue, Lighting
     public int overlayCuboidBlocks(final Region region, final Pattern pattern) throws MaxChangedBlocksException {
         checkNotNull(region);
         checkNotNull(pattern);
-        final BlockReplace replace = new BlockReplace(EditSession.this, Patterns.wrap(pattern));
+        final BlockReplace replace = new BlockReplace(EditSession.this, pattern);
         final RegionOffset offset = new RegionOffset(new Vector(0, 1, 0), replace);
         final GroundFunction ground = new GroundFunction(new ExistingBlockMask(EditSession.this), offset);
         final LayerVisitor visitor = new LayerVisitor(asFlatRegion(region), minimumBlockY(region), maximumBlockY(region), ground);
@@ -2819,7 +2811,7 @@ public class EditSession extends AbstractWorld implements HasFaweQueue, Lighting
 
         final ArbitraryShape shape = new ArbitraryShape(region) {
             @Override
-            protected BaseBlock getMaterial(final int x, final int y, final int z, final BaseBlock defaultMaterial) {
+            public BaseBlock getMaterial(final int x, final int y, final int z, final BaseBlock defaultMaterial) {
                 final Vector current = new Vector(x, y, z);
                 environment.setCurrentBlock(current);
                 final Vector scaled = current.subtract(zero).divide(unit);
@@ -2837,7 +2829,11 @@ public class EditSession extends AbstractWorld implements HasFaweQueue, Lighting
             }
         };
 
-        return shape.generate(this, pattern, hollow);
+        try {
+            return shape.generate(this, pattern, hollow);
+        } catch (WorldEditException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     public int deformRegion(final Region region, final Vector zero, final Vector unit, final String expressionString) throws ExpressionException, MaxChangedBlocksException {
@@ -2941,15 +2937,21 @@ public class EditSession extends AbstractWorld implements HasFaweQueue, Lighting
             outside.addAll(newOutside);
         }
 
-        outer: for (final BlockVector position : region) {
-            for (final Vector recurseDirection : this.recurseDirections) {
-                final BlockVector neighbor = position.add(recurseDirection).toBlockVector();
+        try {
+            outer:
+            for (final BlockVector position : region) {
+                for (final Vector recurseDirection : this.recurseDirections) {
+                    final BlockVector neighbor = position.add(recurseDirection).toBlockVector();
 
-                if (outside.contains(neighbor)) {
-                    continue outer;
+                    if (outside.contains(neighbor)) {
+                        continue outer;
+                    }
                 }
+                this.changes++;
+                pattern.apply(this.extent, position);
             }
-            this.setBlockFast(position, pattern.next(position));
+        } catch (WorldEditException e) {
+            throw new RuntimeException(e);
         }
 
         return changes;
@@ -3068,7 +3070,7 @@ public class EditSession extends AbstractWorld implements HasFaweQueue, Lighting
             final int tipy = (int) Math.round(tipv.getY());
             final int tipz = (int) Math.round(tipv.getZ());
             if (radius == 0) {
-                setBlock(tipx, tipy, tipz, pattern.next(tipx, tipy, tipz));
+                setBlock(tipx, tipy, tipz, pattern.apply(tipx, tipy, tipz));
             }  else {
                 vset.add(new Vector(tipx, tipy, tipz));
             }

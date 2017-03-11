@@ -67,6 +67,16 @@ public class PatternExtent extends AbstractPattern implements Extent {
         this.target = vector;
     }
 
+    public boolean getAndResetTarget(Extent extent, Vector position) throws WorldEditException {
+        BaseBlock result = block;
+        if (result != null) {
+            block = null;
+            return extent.setBlock(position, result);
+        } else {
+            return pattern.apply(extent, target);
+        }
+    }
+
     public BaseBlock getAndResetTarget() {
         BaseBlock result = block;
         if (result != null) {
@@ -106,5 +116,10 @@ public class PatternExtent extends AbstractPattern implements Extent {
     @Override
     public BaseBlock apply(Vector position) {
         return pattern.apply(position);
+    }
+
+    @Override
+    public boolean apply(Extent extent, Vector position) throws WorldEditException {
+        return pattern.apply(extent, position);
     }
 }

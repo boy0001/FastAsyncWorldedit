@@ -5,7 +5,6 @@ import com.sk89q.worldedit.MaxChangedBlocksException;
 import com.sk89q.worldedit.Vector;
 import com.sk89q.worldedit.command.tool.brush.Brush;
 import com.sk89q.worldedit.function.pattern.Pattern;
-import com.sk89q.worldedit.function.pattern.Patterns;
 
 public class LineBrush implements Brush, ResettableTool {
 
@@ -24,7 +23,7 @@ public class LineBrush implements Brush, ResettableTool {
             pos1 = position;
             return;
         }
-        editSession.drawLine(Patterns.wrap(pattern), pos1, position, size, !shell, flat);
+        editSession.drawLine(pattern, pos1, position, size, !shell, flat);
         if (!select) {
             pos1 = null;
             return;

@@ -2,7 +2,9 @@ package com.boydti.fawe.object.pattern;
 
 import com.sk89q.worldedit.MutableBlockVector;
 import com.sk89q.worldedit.Vector;
+import com.sk89q.worldedit.WorldEditException;
 import com.sk89q.worldedit.blocks.BaseBlock;
+import com.sk89q.worldedit.extent.Extent;
 import com.sk89q.worldedit.function.pattern.AbstractPattern;
 import com.sk89q.worldedit.function.pattern.Pattern;
 
@@ -21,5 +23,12 @@ public class NoYPattern extends AbstractPattern {
         mutable.mutX((pos.getX()));
         mutable.mutZ((pos.getZ()));
         return pattern.apply(mutable);
+    }
+
+    @Override
+    public boolean apply(Extent extent, Vector pos) throws WorldEditException {
+        mutable.mutX((pos.getX()));
+        mutable.mutZ((pos.getZ()));
+        return pattern.apply(extent, mutable);
     }
 }

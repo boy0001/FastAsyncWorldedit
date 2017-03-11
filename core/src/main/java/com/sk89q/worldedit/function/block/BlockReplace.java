@@ -17,36 +17,45 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-package com.sk89q.worldedit.function.pattern;
+package com.sk89q.worldedit.function.block;
 
-import com.sk89q.worldedit.MutableBlockVector;
 import com.sk89q.worldedit.Vector;
 import com.sk89q.worldedit.WorldEditException;
-import com.sk89q.worldedit.blocks.BaseBlock;
 import com.sk89q.worldedit.extent.Extent;
+import com.sk89q.worldedit.function.RegionFunction;
+import com.sk89q.worldedit.function.pattern.Pattern;
+
+
+import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
- * Returns a {@link BaseBlock} for a given position.
+ * Replaces blocks with a given pattern.
  */
-public interface Pattern {
+public class BlockReplace implements RegionFunction {
+
+    private final Extent extent;
+    private Pattern pattern;
 
     /**
-     * Return a {@link BaseBlock} for the given position.
+     * Create a new instance.
      *
-     * @param position the position
-     * @return a block
+     * @param extent an extent
+     * @param pattern a pattern
      */
-    BaseBlock apply(Vector position);
-
-    default BaseBlock apply(int x, int y, int z) {
-        return apply(MutableBlockVector.get(x, y, z));
+    public BlockReplace(Extent extent, Pattern pattern) {
+        checkNotNull(extent);
+        checkNotNull(pattern);
+        this.extent = extent;
+        this.pattern = pattern;
     }
 
-    default boolean apply(Extent extent,Vector position) throws WorldEditException {
-        return extent.setBlock(position, apply(position));
+    @Override
+    public boolean apply(Vector position) throws WorldEditException {
+        return pattern.apply(extent, position);
     }
 
-    public static Class<Pattern> inject() {
-        return Pattern.class;
+    public static Class<?> inject() {
+        return BlockReplace.class;
     }
+
 }

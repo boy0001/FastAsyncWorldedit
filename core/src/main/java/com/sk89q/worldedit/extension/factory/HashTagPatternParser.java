@@ -24,6 +24,10 @@ import com.sk89q.worldedit.internal.expression.ExpressionException;
 import com.sk89q.worldedit.regions.shape.WorldEditExpressionEnvironment;
 import com.sk89q.worldedit.session.ClipboardHolder;
 import com.sk89q.worldedit.session.request.Request;
+import com.sk89q.worldedit.world.World;
+import com.sk89q.worldedit.world.biome.BaseBiome;
+import com.sk89q.worldedit.world.biome.Biomes;
+import com.sk89q.worldedit.world.registry.BiomeRegistry;
 import com.sk89q.worldedit.world.registry.BundledBlockData;
 import java.util.ArrayList;
 import java.util.List;
@@ -103,6 +107,13 @@ public class HashTagPatternParser extends FaweParser<Pattern> {
                         }
                         case "#data": {
                             return new DataPattern(Request.request().getEditSession(), catchSuggestion(input, rest, context));
+                        }
+                        case "#biome": {
+                            World world = context.getWorld();
+                            BiomeRegistry biomeRegistry = world.getWorldData().getBiomeRegistry();
+                            List<BaseBiome> knownBiomes = biomeRegistry.getBiomes();
+                            BaseBiome biome = Biomes.findBiomeByName(knownBiomes, rest, biomeRegistry);
+                            return new BiomePattern(Request.request().getEditSession(), biome);
                         }
                         case "#~":
                         case "#r":

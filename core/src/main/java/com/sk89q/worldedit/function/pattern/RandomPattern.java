@@ -2,7 +2,9 @@ package com.sk89q.worldedit.function.pattern;
 
 import com.boydti.fawe.object.collection.RandomCollection;
 import com.sk89q.worldedit.Vector;
+import com.sk89q.worldedit.WorldEditException;
 import com.sk89q.worldedit.blocks.BaseBlock;
+import com.sk89q.worldedit.extent.Extent;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
@@ -38,6 +40,11 @@ public class RandomPattern extends AbstractPattern {
     @Override
     public BaseBlock apply(Vector position) {
         return collection.next().apply(position);
+    }
+
+    @Override
+    public boolean apply(Extent extent, Vector position) throws WorldEditException {
+        return collection.next().apply(extent, position);
     }
 
     private static class Chance {

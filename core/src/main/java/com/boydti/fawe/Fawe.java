@@ -51,6 +51,7 @@ import com.sk89q.worldedit.command.WorldEditCommands;
 import com.sk89q.worldedit.command.composition.SelectionCommand;
 import com.sk89q.worldedit.command.tool.AreaPickaxe;
 import com.sk89q.worldedit.command.tool.BrushTool;
+import com.sk89q.worldedit.command.tool.FloodFillTool;
 import com.sk89q.worldedit.command.tool.LongRangeBuildTool;
 import com.sk89q.worldedit.command.tool.RecursivePickaxe;
 import com.sk89q.worldedit.command.tool.brush.GravityBrush;
@@ -70,6 +71,8 @@ import com.sk89q.worldedit.extent.clipboard.io.SchematicReader;
 import com.sk89q.worldedit.extent.clipboard.io.SchematicWriter;
 import com.sk89q.worldedit.extent.inventory.BlockBagExtent;
 import com.sk89q.worldedit.extent.transform.BlockTransformExtent;
+import com.sk89q.worldedit.function.block.BlockReplace;
+import com.sk89q.worldedit.function.block.ExtentBlockCopy;
 import com.sk89q.worldedit.function.entity.ExtentEntityCopy;
 import com.sk89q.worldedit.function.mask.BlockMask;
 import com.sk89q.worldedit.function.mask.FuzzyBlockMask;
@@ -101,6 +104,7 @@ import com.sk89q.worldedit.math.transform.AffineTransform;
 import com.sk89q.worldedit.regions.CuboidRegion;
 import com.sk89q.worldedit.regions.EllipsoidRegion;
 import com.sk89q.worldedit.regions.selector.CuboidRegionSelector;
+import com.sk89q.worldedit.regions.shape.ArbitraryShape;
 import com.sk89q.worldedit.session.PasteBuilder;
 import com.sk89q.worldedit.session.SessionManager;
 import com.sk89q.worldedit.session.request.Request;
@@ -110,7 +114,6 @@ import com.sk89q.worldedit.util.command.parametric.ParametricBuilder;
 import com.sk89q.worldedit.util.command.parametric.ParametricCallable;
 import com.sk89q.worldedit.world.registry.BundledBlockData;
 import java.io.File;
-import java.io.IOException;
 import java.io.InputStream;
 import java.lang.management.ManagementFactory;
 import java.lang.management.MemoryMXBean;
@@ -408,6 +411,7 @@ public class Fawe {
             ClipboardFormat.inject(); // Optimizations + new formats + api
             PasteBuilder.inject(); // Optimizations
             // Brushes/Tools
+            FloodFillTool.inject();
             GravityBrush.inject(); // Fix for instant placement assumption
             LongRangeBuildTool.inject();
             AreaPickaxe.inject(); // Fixes
@@ -449,7 +453,9 @@ public class Fawe {
             // Block
             BaseBlock.inject(); // Optimizations
             // Pattern
+            ArbitraryShape.inject(); // Optimizations + update from legacy code
             Pattern.inject(); // Simplify API
+            com.sk89q.worldedit.patterns.Pattern.inject(); // Simplify API
             Patterns.inject(); // Optimizations (reduce object creation)
             RandomPattern.inject(); // Optimizations
             ClipboardPattern.inject(); // Optimizations
@@ -467,6 +473,8 @@ public class Fawe {
             MaskUnion.inject(); // Optimizations
             // Operations
             Operations.inject(); // Optimizations
+            ExtentBlockCopy.inject(); // Optimizations
+            BlockReplace.inject(); // Optimizations + Features
             ForwardExtentCopy.inject(); // Fixes + optimizations
             ChangeSetExecutor.inject(); // Optimizations
             // BlockData

@@ -117,4 +117,8 @@ public class ExtentBlockCopy implements RegionFunction {
         return state;
     }
 
+    public static Class<?> inject() {
+        return ExtentBlockCopy.class;
+    }
+
 }

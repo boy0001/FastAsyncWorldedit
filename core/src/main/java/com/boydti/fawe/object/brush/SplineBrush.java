@@ -17,7 +17,6 @@ import com.sk89q.worldedit.function.mask.Mask;
 import com.sk89q.worldedit.function.mask.MaskIntersection;
 import com.sk89q.worldedit.function.operation.Operations;
 import com.sk89q.worldedit.function.pattern.Pattern;
-import com.sk89q.worldedit.function.pattern.Patterns;
 import com.sk89q.worldedit.math.interpolation.Node;
 import com.sk89q.worldedit.math.transform.AffineTransform;
 import java.util.ArrayList;
@@ -140,7 +139,7 @@ public class SplineBrush implements Brush {
                 int index = (int) (i * listSize / (double) (numSplines));
                 currentSpline.add(points.get(index));
             }
-            editSession.drawSpline(Patterns.wrap(pattern), currentSpline, 0, 0, 0, 10, 0, true);
+            editSession.drawSpline(pattern, currentSpline, 0, 0, 0, 10, 0, true);
         }
         player.print(BBC.getPrefix() + BBC.BRUSH_SPLINE_SECONDARY.s());
         if (visualization) {

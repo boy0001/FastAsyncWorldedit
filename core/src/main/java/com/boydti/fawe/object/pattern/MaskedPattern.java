@@ -1,7 +1,9 @@
 package com.boydti.fawe.object.pattern;
 
 import com.sk89q.worldedit.Vector;
+import com.sk89q.worldedit.WorldEditException;
 import com.sk89q.worldedit.blocks.BaseBlock;
+import com.sk89q.worldedit.extent.Extent;
 import com.sk89q.worldedit.function.mask.Mask;
 import com.sk89q.worldedit.function.pattern.AbstractPattern;
 import com.sk89q.worldedit.function.pattern.Pattern;
@@ -30,5 +32,14 @@ public class MaskedPattern extends AbstractPattern {
             return patternExtent.getAndResetTarget();
         }
         return secondaryPattern.apply(position);
+    }
+
+    @Override
+    public boolean apply(Extent extent, Vector position) throws WorldEditException {
+        patternExtent.setTarget(position);
+        if (mask.test(position)) {
+            return patternExtent.getAndResetTarget(extent, position);
+        }
+        return secondaryPattern.apply(extent, position);
     }
 }

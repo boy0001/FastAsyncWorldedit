@@ -50,7 +50,6 @@ import com.sk89q.worldedit.function.mask.NoiseFilter2D;
 import com.sk89q.worldedit.function.operation.Operations;
 import com.sk89q.worldedit.function.pattern.BlockPattern;
 import com.sk89q.worldedit.function.pattern.Pattern;
-import com.sk89q.worldedit.function.pattern.Patterns;
 import com.sk89q.worldedit.function.visitor.LayerVisitor;
 import com.sk89q.worldedit.internal.annotation.Direction;
 import com.sk89q.worldedit.internal.annotation.Selection;
@@ -251,7 +250,7 @@ public class RegionCommands {
         CuboidRegion cuboidregion = (CuboidRegion) region;
         Vector pos1 = cuboidregion.getPos1();
         Vector pos2 = cuboidregion.getPos2();
-        int blocksChanged = editSession.drawLine(Patterns.wrap(pattern), pos1, pos2, thickness, !shell);
+        int blocksChanged = editSession.drawLine(pattern, pos1, pos2, thickness, !shell);
 
         BBC.VISITOR_BLOCK.send(player, blocksChanged);
     }
@@ -284,7 +283,7 @@ public class RegionCommands {
         ConvexPolyhedralRegion cpregion = (ConvexPolyhedralRegion) region;
         List<Vector> vectors = new ArrayList<Vector>(cpregion.getVertices());
 
-        int blocksChanged = editSession.drawSpline(Patterns.wrap(pattern), vectors, 0, 0, 0, 10, thickness, !shell);
+        int blocksChanged = editSession.drawSpline(pattern, vectors, 0, 0, 0, 10, thickness, !shell);
 
         BBC.VISITOR_BLOCK.send(player, blocksChanged);
     }
@@ -303,7 +302,7 @@ public class RegionCommands {
         if (from == null) {
             from = new ExistingBlockMask(editSession);
         }
-        int affected = editSession.replaceBlocks(region, from, Patterns.wrap(to));
+        int affected = editSession.replaceBlocks(region, from, to);
         BBC.VISITOR_BLOCK.send(player, affected);
         if (!FawePlayer.wrap(player).hasPermission("fawe.tips")) BBC.TIP_REPLACE_ID.or(BBC.TIP_REPLACE_LIGHT, BBC.TIP_REPLACE_MARKER, BBC.TIP_TAB_COMPLETE).send(player);
     }
@@ -322,7 +321,7 @@ public class RegionCommands {
         if (from == null) {
             from = new ExistingBlockMask(editSession);
         }
-        int affected = editSession.replaceBlocks(region, from, Patterns.wrap(to));
+        int affected = editSession.replaceBlocks(region, from, to);
         BBC.VISITOR_BLOCK.send(player, affected);
     }
 
@@ -340,7 +339,7 @@ public class RegionCommands {
         if (to instanceof BlockPattern) {
             affected = editSession.setBlocks(selection, ((BlockPattern) to).getBlock());
         } else {
-            affected = editSession.setBlocks(selection, Patterns.wrap(to));
+            affected = editSession.setBlocks(selection, to);
         }
         if (affected != 0) {
             BBC.OPERATION.send(player, affected);
@@ -358,7 +357,7 @@ public class RegionCommands {
     @CommandPermissions("worldedit.region.overlay")
     @Logging(REGION)
     public void overlay(Player player, EditSession editSession, @Selection Region region, Pattern pattern) throws WorldEditException {
-        int affected = editSession.overlayCuboidBlocks(region, Patterns.wrap(pattern));
+        int affected = editSession.overlayCuboidBlocks(region, pattern);
         BBC.VISITOR_BLOCK.send(player, affected);
     }
 
@@ -372,7 +371,7 @@ public class RegionCommands {
     @Logging(REGION)
     @CommandPermissions("worldedit.region.center")
     public void center(Player player, EditSession editSession, @Selection Region region, Pattern pattern) throws WorldEditException {
-        int affected = editSession.center(region, Patterns.wrap(pattern));
+        int affected = editSession.center(region, pattern);
         BBC.VISITOR_BLOCK.send(player, affected);
     }
 
@@ -400,7 +399,7 @@ public class RegionCommands {
     @CommandPermissions("worldedit.region.walls")
     @Logging(REGION)
     public void walls(Player player, EditSession editSession, @Selection Region region, Pattern pattern) throws WorldEditException {
-        int affected = editSession.makeCuboidWalls(region, Patterns.wrap(pattern));
+        int affected = editSession.makeCuboidWalls(region, pattern);
         BBC.VISITOR_BLOCK.send(player, affected);
     }
 
@@ -414,7 +413,7 @@ public class RegionCommands {
     @CommandPermissions("worldedit.region.faces")
     @Logging(REGION)
     public void faces(Player player, EditSession editSession, @Selection Region region, Pattern pattern) throws WorldEditException {
-        int affected = editSession.makeCuboidFaces(region, Patterns.wrap(pattern));
+        int affected = editSession.makeCuboidFaces(region, pattern);
         BBC.VISITOR_BLOCK.send(player, affected);
     }
 
@@ -650,7 +649,7 @@ public class RegionCommands {
                        @Optional("0") @Range(min = 0) int thickness,
                        @Optional("air") Pattern pattern) throws WorldEditException {
 
-        int affected = editSession.hollowOutRegion(region, thickness, Patterns.wrap(pattern));
+        int affected = editSession.hollowOutRegion(region, thickness, pattern);
         BBC.VISITOR_BLOCK.send(player, affected);
     }
 

@@ -4,9 +4,6 @@ import com.sk89q.worldedit.MutableBlockVector;
 import com.sk89q.worldedit.Vector;
 import com.sk89q.worldedit.blocks.BaseBlock;
 
-
-import static com.google.common.base.Preconditions.checkNotNull;
-
 /**
  * Utility methods related to {@link Pattern}s.
  */
@@ -22,16 +19,7 @@ public final class Patterns {
      * @return a new-style pattern
      */
     public static Pattern wrap(final com.sk89q.worldedit.patterns.Pattern pattern) {
-        if (pattern instanceof Pattern) {
-            return (Pattern) pattern;
-        }
-        checkNotNull(pattern);
-        return new Pattern() {
-            @Override
-            public BaseBlock apply(Vector position) {
-                return pattern.next(position);
-            }
-        };
+        return pattern;
     }
 
     /**
@@ -41,7 +29,9 @@ public final class Patterns {
      * @return an old-style pattern
      */
     public static com.sk89q.worldedit.patterns.Pattern wrap(final Pattern pattern) {
-        checkNotNull(pattern);
+        if (pattern instanceof com.sk89q.worldedit.patterns.Pattern) {
+            return (com.sk89q.worldedit.patterns.Pattern) pattern;
+        }
         return new com.sk89q.worldedit.patterns.Pattern() {
             private MutableBlockVector mutable = new MutableBlockVector(0, 0, 0);
             @Override
@@ -62,5 +52,4 @@ public final class Patterns {
     public static Class<?> inject() {
         return Patterns.class;
     }
-
 }
