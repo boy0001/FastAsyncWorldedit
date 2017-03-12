@@ -148,7 +148,6 @@ public class HashTagPatternParser extends FaweParser<Pattern> {
                                     try {
                                         ClipboardHolder[] clipboards = ClipboardFormat.SCHEMATIC.loadAllFromInput(context.getActor(), context.requireWorld().getWorldData(), location, true);
                                         if (clipboards == null) {
-                                            System.out.println("NULL!");
                                             throw new InputParseException("#fullcopy:<source>");
                                         }
                                         boolean random = split2.length == 3 && split2[2].equalsIgnoreCase("true");

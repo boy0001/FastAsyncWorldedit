@@ -58,6 +58,7 @@ import com.boydti.fawe.object.progress.DefaultProgressTracker;
 import com.boydti.fawe.object.visitor.FastChunkIterator;
 import com.boydti.fawe.util.ExtentTraverser;
 import com.boydti.fawe.util.MaskTraverser;
+import com.boydti.fawe.util.MathMan;
 import com.boydti.fawe.util.MemUtil;
 import com.boydti.fawe.util.Perm;
 import com.boydti.fawe.util.SetQueue;
@@ -1142,7 +1143,7 @@ public class EditSession extends AbstractWorld implements HasFaweQueue, Lighting
     }
 
     @SuppressWarnings("deprecation")
-    private int setBlocks(final Set<Vector> vset, final Pattern pattern) throws MaxChangedBlocksException {
+    public int setBlocks(final Set<Vector> vset, final Pattern pattern) throws MaxChangedBlocksException {
         RegionVisitor visitor = new RegionVisitor(vset, new BlockReplace(extent, pattern), this);
         Operations.completeBlindly(visitor);
         changes += visitor.getAffected();
@@ -1713,7 +1714,7 @@ public class EditSession extends AbstractWorld implements HasFaweQueue, Lighting
     }
 
 //    public int replaceBlocks(final Region region, final Mask mask, final BaseBlock block) throws MaxChangedBlocksException {
-        // TODO
+        // TODO fast replace
 //    }
 
     /**
@@ -2663,7 +2664,7 @@ public class EditSession extends AbstractWorld implements HasFaweQueue, Lighting
                     for (int y = basePosition.getBlockY(); y >= (basePosition.getBlockY() - 10); --y) {
                         final int t = getLazyBlock(x, y, z).getType();
                         if ((t == BlockID.GRASS) || (t == BlockID.DIRT)) {
-                            treeGenerator.generate(EditSession.this, new Vector(x, y + 1, z));
+                            treeGenerator.generate(EditSession.this, mutable.setComponents(x, y + 1, z));
                             break;
                         } else if (t == BlockID.SNOW) {
                             setBlock(x, y, z, nullBlock);
@@ -2810,7 +2811,8 @@ public class EditSession extends AbstractWorld implements HasFaweQueue, Lighting
         final ArbitraryShape shape = new ArbitraryShape(region) {
             @Override
             public BaseBlock getMaterial(final int x, final int y, final int z, final BaseBlock defaultMaterial) {
-                final Vector current = new Vector(x, y, z);
+                //TODO Optimize - avoid vector creation (math)
+                final Vector current = mutable.setComponents(x, y, z);
                 environment.setCurrentBlock(current);
                 final Vector scaled = current.subtract(zero).divide(unit);
 
@@ -2973,7 +2975,7 @@ public class EditSession extends AbstractWorld implements HasFaweQueue, Lighting
      */
     public int drawLine(final Pattern pattern, final Vector pos1, final Vector pos2, final double radius, final boolean filled, boolean flat) throws MaxChangedBlocksException {
 
-        Set vset = new LocalBlockVectorSet();
+        LocalBlockVectorSet vset = new LocalBlockVectorSet();
         boolean notdrawn = true;
 
         final int x1 = pos1.getBlockX(), y1 = pos1.getBlockY(), z1 = pos1.getBlockZ();
@@ -2982,7 +2984,7 @@ public class EditSession extends AbstractWorld implements HasFaweQueue, Lighting
         final int dx = Math.abs(x2 - x1), dy = Math.abs(y2 - y1), dz = Math.abs(z2 - z1);
 
         if ((dx + dy + dz) == 0) {
-            vset.add(new Vector(tipx, tipy, tipz));
+            vset.add(tipx, tipy, tipz);
             notdrawn = false;
         }
 
@@ -2991,7 +2993,7 @@ public class EditSession extends AbstractWorld implements HasFaweQueue, Lighting
                 tipx = x1 + (domstep * ((x2 - x1) > 0 ? 1 : -1));
                 tipy = (int) Math.round(y1 + (((domstep * ((double) dy)) / (dx)) * ((y2 - y1) > 0 ? 1 : -1)));
                 tipz = (int) Math.round(z1 + (((domstep * ((double) dz)) / (dx)) * ((z2 - z1) > 0 ? 1 : -1)));
-                vset.add(new Vector(tipx, tipy, tipz));
+                vset.add(tipx, tipy, tipz);
             }
             notdrawn = false;
         }
@@ -3002,7 +3004,7 @@ public class EditSession extends AbstractWorld implements HasFaweQueue, Lighting
                 tipx = (int) Math.round(x1 + (((domstep * ((double) dx)) / (dy)) * ((x2 - x1) > 0 ? 1 : -1)));
                 tipz = (int) Math.round(z1 + (((domstep * ((double) dz)) / (dy)) * ((z2 - z1) > 0 ? 1 : -1)));
 
-                vset.add(new Vector(tipx, tipy, tipz));
+                vset.add(tipx, tipy, tipz);
             }
             notdrawn = false;
         }
@@ -3012,21 +3014,22 @@ public class EditSession extends AbstractWorld implements HasFaweQueue, Lighting
                 tipz = z1 + (domstep * ((z2 - z1) > 0 ? 1 : -1));
                 tipy = (int) Math.round(y1 + (((domstep * ((double) dy)) / (dz)) * ((y2 - y1) > 0 ? 1 : -1)));
                 tipx = (int) Math.round(x1 + (((domstep * ((double) dx)) / (dz)) * ((x2 - x1) > 0 ? 1 : -1)));
-                vset.add(new Vector(tipx, tipy, tipz));
+                vset.add(tipx, tipy, tipz);
             }
         }
+        Set<Vector> newVset;
         if (flat) {
-            vset = this.getStretched(vset, radius);
+            newVset = this.getStretched(vset, radius);
             if (!filled) {
-                vset = this.getOutline(vset);
+                newVset = this.getOutline(newVset);
             }
         } else {
-            vset = this.getBallooned(vset, radius);
+            newVset = this.getBallooned(vset, radius);
             if (!filled) {
-                vset = this.getHollowed(vset);
+                newVset = this.getHollowed(newVset);
             }
         }
-        return this.setBlocks(vset, pattern);
+        return this.setBlocks(newVset, pattern);
     }
 
     /**
@@ -3044,10 +3047,8 @@ public class EditSession extends AbstractWorld implements HasFaweQueue, Lighting
      * @return number of blocks affected
      * @throws MaxChangedBlocksException thrown if too many blocks are changed
      */
-    public int drawSpline(final Pattern pattern, final List<Vector> nodevectors, final double tension, final double bias, final double continuity, final double quality, final double radius,
-    final boolean filled) throws MaxChangedBlocksException {
-
-        Set vset = new LocalBlockVectorSet();
+    public int drawSpline(final Pattern pattern, final List<Vector> nodevectors, final double tension, final double bias, final double continuity, final double quality, final double radius, final boolean filled) throws MaxChangedBlocksException {
+        LocalBlockVectorSet vset = new LocalBlockVectorSet();
         final List<Node> nodes = new ArrayList<Node>(nodevectors.size());
 
         final KochanekBartelsInterpolation interpol = new KochanekBartelsInterpolation();
@@ -3070,40 +3071,33 @@ public class EditSession extends AbstractWorld implements HasFaweQueue, Lighting
             if (radius == 0) {
                 setBlock(tipx, tipy, tipz, pattern.next(tipx, tipy, tipz));
             }  else {
-                vset.add(new Vector(tipx, tipy, tipz));
+                vset.add(tipx, tipy, tipz);
             }
         }
+        Set<Vector> newVset;
         if (radius != 0) {
-            vset = this.getBallooned(vset, radius);
+            newVset = this.getBallooned(vset, radius);
             if (!filled) {
-                vset = this.getHollowed(vset);
+                newVset = this.getHollowed(newVset);
             }
-            return this.setBlocks(vset, pattern);
+            return this.setBlocks(newVset, pattern);
         }
         return changes;
-    }
-
-    private double hypot(final double... pars) {
-        double sum = 0;
-        for (final double d : pars) {
-            sum += Math.pow(d, 2);
-        }
-        return Math.sqrt(sum);
     }
 
     private Set<Vector> getBallooned(final Set<Vector> vset, final double radius) {
         if (radius < 1) {
             return vset;
         }
-        final Set returnset = new LocalBlockVectorSet();
+        final LocalBlockVectorSet returnset = new LocalBlockVectorSet();
         final int ceilrad = (int) Math.ceil(radius);
         for (final Vector v : vset) {
             final int tipx = v.getBlockX(), tipy = v.getBlockY(), tipz = v.getBlockZ();
             for (int loopx = tipx - ceilrad; loopx <= (tipx + ceilrad); loopx++) {
                 for (int loopy = tipy - ceilrad; loopy <= (tipy + ceilrad); loopy++) {
                     for (int loopz = tipz - ceilrad; loopz <= (tipz + ceilrad); loopz++) {
-                        if (this.hypot(loopx - tipx, loopy - tipy, loopz - tipz) <= radius) {
-                            returnset.add(new Vector(loopx, loopy, loopz));
+                        if (MathMan.hypot(loopx - tipx, loopy - tipy, loopz - tipz) <= radius) {
+                            returnset.add(loopx, loopy, loopz);
                         }
                     }
                 }
@@ -3112,18 +3106,18 @@ public class EditSession extends AbstractWorld implements HasFaweQueue, Lighting
         return returnset;
     }
 
-    private Set<Vector> getStretched(final Set<Vector> vset, final double radius) {
+    public Set<Vector> getStretched(final Set<Vector> vset, final double radius) {
         if (radius < 1) {
             return vset;
         }
-        final Set returnset = new LocalBlockVectorSet();
+        final LocalBlockVectorSet returnset = new LocalBlockVectorSet();
         final int ceilrad = (int) Math.ceil(radius);
         for (final Vector v : vset) {
             final int tipx = v.getBlockX(), tipy = v.getBlockY(), tipz = v.getBlockZ();
             for (int loopx = tipx - ceilrad; loopx <= (tipx + ceilrad); loopx++) {
                 for (int loopz = tipz - ceilrad; loopz <= (tipz + ceilrad); loopz++) {
-                    if (this.hypot(loopx - tipx, 0, loopz - tipz) <= radius) {
-                        returnset.add(new Vector(loopx, v.getY(), loopz));
+                    if (MathMan.hypot(loopx - tipx, 0, loopz - tipz) <= radius) {
+                        returnset.add(loopx, v.getBlockY(), loopz);
                     }
                 }
             }
@@ -3131,8 +3125,9 @@ public class EditSession extends AbstractWorld implements HasFaweQueue, Lighting
         return returnset;
     }
 
-    private Set<Vector> getOutline(final Set<Vector> vset) {
-        final Set returnset = new LocalBlockVectorSet();
+    public Set<Vector> getOutline(final Set<Vector> vset) {
+        // TODO optimize - vset instanceof LocalBlockVectorSet -> avoid Vector creation
+        final LocalBlockVectorSet returnset = new LocalBlockVectorSet();
         for (final Vector v : vset) {
             final double x = v.getX(), y = v.getY(), z = v.getZ();
             if (!(vset.contains(new Vector(x + 1, y, z))
@@ -3144,7 +3139,8 @@ public class EditSession extends AbstractWorld implements HasFaweQueue, Lighting
         return returnset;
     }
 
-    private Set<Vector> getHollowed(final Set<Vector> vset) {
+    public Set<Vector> getHollowed(final Set<Vector> vset) {
+        //TODO Optimize - avoid vector creation
         final Set returnset = new LocalBlockVectorSet();
         for (final Vector v : vset) {
             final double x = v.getX(), y = v.getY(), z = v.getZ();
@@ -3159,7 +3155,8 @@ public class EditSession extends AbstractWorld implements HasFaweQueue, Lighting
         return returnset;
     }
 
-    private void recurseHollow(final Region region, final BlockVector origin, final Set<BlockVector> outside) {
+    public void recurseHollow(final Region region, final BlockVector origin, final Set<BlockVector> outside) {
+        //TODO Optimize - avoid vector creation
         final ArrayDeque<BlockVector> queue = new ArrayDeque<BlockVector>();
         queue.addLast(origin);
 
@@ -3283,6 +3280,7 @@ public class EditSession extends AbstractWorld implements HasFaweQueue, Lighting
     }
 
     public boolean regenerate(final Region region, final BaseBiome biome, final Long seed) {
+        //TODO Optimize - avoid Vector2D creation (make mutable)
         final FaweQueue queue = this.getQueue();
         queue.setChangeTask(null);
         final FaweChangeSet fcs = (FaweChangeSet) this.getChangeSet();

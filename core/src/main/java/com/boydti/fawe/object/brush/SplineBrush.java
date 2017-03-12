@@ -18,7 +18,6 @@ import com.sk89q.worldedit.function.mask.MaskIntersection;
 import com.sk89q.worldedit.function.operation.Operations;
 import com.sk89q.worldedit.function.pattern.Pattern;
 import com.sk89q.worldedit.math.interpolation.Node;
-import com.sk89q.worldedit.math.transform.AffineTransform;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -125,12 +124,6 @@ public class SplineBrush implements Brush {
             n.setContinuity(continuity);
             nodes.add(n);
         }
-
-        Vector up = new Vector(0, 1, 0);
-        AffineTransform transform = new AffineTransform();
-
-        // TODO index offset based on transform
-
         int samples = numSplines;
         for (int i = 0; i < numSplines; i++) {
             List<Vector> currentSpline = new ArrayList<>();

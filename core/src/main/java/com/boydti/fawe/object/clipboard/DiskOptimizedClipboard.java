@@ -36,7 +36,6 @@ import java.util.UUID;
  *  - Uses an auto closable RandomAccessFile for getting / setting id / data
  *  - I don't know how to reduce nbt / entities to O(2) complexity, so it is stored in memory.
  *
- *  TODO load on join
  */
 public class DiskOptimizedClipboard extends FaweClipboard implements Closeable {
 

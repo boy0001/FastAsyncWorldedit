@@ -41,6 +41,7 @@ import com.boydti.fawe.object.brush.ShatterBrush;
 import com.boydti.fawe.object.brush.SplatterBrush;
 import com.boydti.fawe.object.brush.SplineBrush;
 import com.boydti.fawe.object.brush.StencilBrush;
+import com.boydti.fawe.object.brush.SurfaceSpline;
 import com.boydti.fawe.object.brush.TargetMode;
 import com.boydti.fawe.object.brush.heightmap.ScalableHeightMap;
 import com.boydti.fawe.object.brush.scroll.ScrollClipboard;
@@ -404,6 +405,26 @@ public class BrushCommands {
         tool.setFill(fill);
         tool.setSize(radius);
         tool.setBrush(new SplineBrush(player, session), "worldedit.brush.spline", player);
+        player.print(BBC.getPrefix() + BBC.BRUSH_SPLINE.f(radius));
+    }
+
+                                                                                                                        // final double tension, final double bias, final double continuity, final double quality
+
+    @Command(
+            aliases = { "sspl", "sspline", "surfacespline" },
+            usage = "<pattern> [size] [tension] [bias] [continuity] [quality]",
+            desc = "Draws a spline on the surface",
+            help = "Chooses the surface spline brush",
+            min = 0,
+            max = 2
+    )
+    @CommandPermissions("worldedit.brush.surfacespline") // 0, 0, 0, 10, 0,
+    public void surfaceSpline(Player player, LocalSession session, Pattern fill, @Optional("0") double radius, @Optional("0") double tension, @Optional("0") double bias, @Optional("0") double continuity, @Optional("10") double quality) throws WorldEditException {
+        worldEdit.checkMaxBrushRadius(radius);
+        BrushTool tool = session.getBrushTool(player);
+        tool.setFill(fill);
+        tool.setSize(radius);
+        tool.setBrush(new SurfaceSpline(tension, bias, continuity, quality), "worldedit.brush.spline", player);
         player.print(BBC.getPrefix() + BBC.BRUSH_SPLINE.f(radius));
     }
 

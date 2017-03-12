@@ -43,6 +43,22 @@ public class MathMan {
             253, 254, 254, 255
     };
 
+    public static double hypot(final double... pars) {
+        double sum = 0;
+        for (final double d : pars) {
+            sum += Math.pow(d, 2);
+        }
+        return Math.sqrt(sum);
+    }
+
+    public static double hypot2(final double... pars) {
+        double sum = 0;
+        for (final double d : pars) {
+            sum += Math.pow(d, 2);
+        }
+        return sum;
+    }
+
     public static final int wrap(int value, int min, int max) {
         if (max < min) {
             return value;
