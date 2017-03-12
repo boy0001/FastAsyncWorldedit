@@ -246,7 +246,6 @@ public final class CommandManager {
                 .registerMethods(new ToolCommands(worldEdit))
                 .registerMethods(new BrushCommands(worldEdit))
                 .parent().graph().getDispatcher();
-
         if (platform != null) {
             platform.registerCommands(dispatcher);
         }

@@ -2,6 +2,7 @@ package com.boydti.fawe.object.pattern;
 
 import com.sk89q.worldedit.MutableBlockVector;
 import com.sk89q.worldedit.Vector;
+import com.sk89q.worldedit.WorldEditException;
 import com.sk89q.worldedit.blocks.BaseBlock;
 import com.sk89q.worldedit.extent.Extent;
 import com.sk89q.worldedit.extent.clipboard.Clipboard;
@@ -20,8 +21,6 @@ import static com.google.common.base.Preconditions.checkNotNull;
 public class FullClipboardPattern extends AbstractPattern {
     private final Extent extent;
     private final Clipboard clipboard;
-    private final BaseBlock block;
-
     private final MutableBlockVector mutable = new MutableBlockVector();
 
     /**
@@ -33,16 +32,19 @@ public class FullClipboardPattern extends AbstractPattern {
         checkNotNull(clipboard);
         this.clipboard = clipboard;
         this.extent = extent;
-        Vector origin = clipboard.getOrigin();
-        block = clipboard.getBlock(origin);
     }
 
     @Override
-    public BaseBlock apply(Vector to) {
+    public boolean apply(Extent extent, Vector setPosition, Vector getPosition) throws WorldEditException {
         Region region = clipboard.getRegion();
-        ForwardExtentCopy copy = new ForwardExtentCopy(clipboard, clipboard.getRegion(), clipboard.getOrigin(), extent, to);
+        ForwardExtentCopy copy = new ForwardExtentCopy(clipboard, clipboard.getRegion(), clipboard.getOrigin(), extent, setPosition);
         copy.setSourceMask(new ExistingBlockMask(clipboard));
         Operations.completeBlindly(copy);
-        return block;
+        return true;
+    }
+
+    @Override
+    public BaseBlock apply(Vector position) {
+        throw new IllegalStateException("Incorrect use. This pattern can only be applied to an extent!");
     }
 }

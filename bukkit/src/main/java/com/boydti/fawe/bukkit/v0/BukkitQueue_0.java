@@ -39,6 +39,7 @@ public abstract class BukkitQueue_0<CHUNK, CHUNKSECTIONS, SECTION> extends NMSMa
     public static BukkitImplAdapter adapter;
     public static Method methodToNative;
     public static Method methodFromNative;
+    private static boolean setupAdapter = false;
 
     public BukkitQueue_0(final com.sk89q.worldedit.world.World world) {
         super(world);
@@ -137,6 +138,9 @@ public abstract class BukkitQueue_0<CHUNK, CHUNKSECTIONS, SECTION> extends NMSMa
 
     public static void setupAdapter(BukkitImplAdapter adapter) {
         try {
+            if (setupAdapter == (setupAdapter = true)) {
+                return;
+            }
             WorldEditPlugin instance = (WorldEditPlugin) Bukkit.getPluginManager().getPlugin("WorldEdit");
             Field fieldAdapter = WorldEditPlugin.class.getDeclaredField("bukkitAdapter");
             fieldAdapter.setAccessible(true);

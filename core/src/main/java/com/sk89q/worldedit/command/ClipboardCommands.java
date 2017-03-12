@@ -24,11 +24,11 @@ import com.boydti.fawe.config.BBC;
 import com.boydti.fawe.config.Settings;
 import com.boydti.fawe.object.FaweLimit;
 import com.boydti.fawe.object.FawePlayer;
-import com.boydti.fawe.object.RunnableVal2;
 import com.boydti.fawe.object.clipboard.ReadOnlyClipboard;
 import com.boydti.fawe.object.clipboard.WorldCutClipboard;
 import com.boydti.fawe.object.exception.FaweException;
 import com.boydti.fawe.object.io.FastByteArrayOutputStream;
+import com.boydti.fawe.object.schematic.Schematic;
 import com.boydti.fawe.util.ImgurUtility;
 import com.boydti.fawe.util.MaskTraverser;
 import com.sk89q.minecraft.util.commands.Command;
@@ -40,14 +40,11 @@ import com.sk89q.worldedit.LocalSession;
 import com.sk89q.worldedit.Vector;
 import com.sk89q.worldedit.WorldEdit;
 import com.sk89q.worldedit.WorldEditException;
-import com.sk89q.worldedit.blocks.BaseBlock;
-import com.sk89q.worldedit.entity.Entity;
 import com.sk89q.worldedit.entity.Player;
 import com.sk89q.worldedit.extent.clipboard.BlockArrayClipboard;
 import com.sk89q.worldedit.extent.clipboard.Clipboard;
 import com.sk89q.worldedit.extent.clipboard.io.ClipboardFormat;
 import com.sk89q.worldedit.extent.clipboard.io.ClipboardWriter;
-import com.sk89q.worldedit.function.RegionFunction;
 import com.sk89q.worldedit.function.block.BlockReplace;
 import com.sk89q.worldedit.function.mask.Mask;
 import com.sk89q.worldedit.function.mask.Masks;
@@ -55,17 +52,14 @@ import com.sk89q.worldedit.function.operation.ForwardExtentCopy;
 import com.sk89q.worldedit.function.operation.Operation;
 import com.sk89q.worldedit.function.operation.Operations;
 import com.sk89q.worldedit.function.pattern.Pattern;
-import com.sk89q.worldedit.function.visitor.RegionVisitor;
 import com.sk89q.worldedit.internal.annotation.Direction;
 import com.sk89q.worldedit.internal.annotation.Selection;
 import com.sk89q.worldedit.math.transform.AffineTransform;
 import com.sk89q.worldedit.math.transform.Transform;
-import com.sk89q.worldedit.regions.CuboidRegion;
 import com.sk89q.worldedit.regions.Region;
 import com.sk89q.worldedit.regions.RegionSelector;
 import com.sk89q.worldedit.regions.selector.CuboidRegionSelector;
 import com.sk89q.worldedit.session.ClipboardHolder;
-import com.sk89q.worldedit.util.Location;
 import com.sk89q.worldedit.util.command.binding.Switch;
 import com.sk89q.worldedit.util.command.parametric.Optional;
 import java.io.IOException;
@@ -373,7 +367,6 @@ public class ClipboardCommands {
             place(player, session, editSession, ignoreAirBlocks, atOrigin, selectPasted);
             return;
         }
-
         Clipboard clipboard = holder.getClipboard();
         Region region = clipboard.getRegion();
         Vector to = atOrigin ? clipboard.getOrigin() : session.getPlacementPosition(player);
@@ -420,63 +413,13 @@ public class ClipboardCommands {
                       @Switch('s') boolean selectPasted) throws WorldEditException {
         ClipboardHolder holder = session.getClipboard();
         final Clipboard clipboard = holder.getClipboard();
-        Region region = clipboard.getRegion().clone();
-
-        final int maxY = editSession.getMaxY();
-        final Vector bot = clipboard.getMinimumPoint();
         final Vector origin = clipboard.getOrigin();
         final Vector to = atOrigin ? origin : session.getPlacementPosition(player);
-        // Optimize for BlockArrayClipboard
-        if (clipboard instanceof BlockArrayClipboard && region instanceof CuboidRegion) {
-            // To is relative to the world origin (player loc + small clipboard offset) (As the positions supplied are relative to the clipboard min)
-            final int relx = to.getBlockX() + bot.getBlockX() - origin.getBlockX();
-            final int rely = to.getBlockY() + bot.getBlockY() - origin.getBlockY();
-            final int relz = to.getBlockZ() + bot.getBlockZ() - origin.getBlockZ();
-            BlockArrayClipboard bac = (BlockArrayClipboard) clipboard;
-            bac.IMP.forEach(new RunnableVal2<Vector, BaseBlock>() {
-                @Override
-                public void run(Vector mutable, BaseBlock block) {
-                    mutable.mutX(mutable.getX() + relx);
-                    mutable.mutY(mutable.getY() + rely);
-                    mutable.mutZ(mutable.getZ() + relz);
-                    if (mutable.getY() >= 0 && mutable.getY() <= maxY) {
-                        editSession.setBlockFast(mutable, block);
-                    }
-                }
-            }, !ignoreAirBlocks);
-        } else {
-            // To must be relative to the clipboard origin ( player location - clipboard origin ) (as the locations supplied are relative to the world origin)
-            final int relx = to.getBlockX() - origin.getBlockX();
-            final int rely = to.getBlockY() - origin.getBlockY();
-            final int relz = to.getBlockZ() - origin.getBlockZ();
-            RegionVisitor visitor = new RegionVisitor(region, new RegionFunction() {
-                @Override
-                public boolean apply(Vector mutable) throws WorldEditException {
-                    BaseBlock block = clipboard.getBlock(mutable);
-                    if (block == EditSession.nullBlock && ignoreAirBlocks) {
-                        return false;
-                    }
-                    mutable.mutX(mutable.getX() + relx);
-                    mutable.mutY(mutable.getY() + rely);
-                    mutable.mutZ(mutable.getZ() + relz);
-                    if (mutable.getY() >= 0 && mutable.getY() <= maxY) {
-                        return editSession.setBlockFast(mutable, block);
-                    }
-                    return false;
-                }
-            }, editSession);
-            Operations.completeBlindly(visitor);
-        }
-        // Entity offset is the paste location subtract the clipboard origin (entity's location is already relative to the world origin)
-        final int entityOffsetX = to.getBlockX() - origin.getBlockX();
-        final int entityOffsetY = to.getBlockY() - origin.getBlockY();
-        final int entityOffsetZ = to.getBlockZ() - origin.getBlockZ();
-        // entities
-        for (Entity entity : clipboard.getEntities()) {
-            Location pos = entity.getLocation();
-            Location newPos = new Location(pos.getExtent(), pos.getX() + entityOffsetX, pos.getY() + entityOffsetY, pos.getZ() + entityOffsetZ, pos.getYaw(), pos.getPitch());
-            editSession.createEntity(newPos, entity.getState());
-        }
+
+        Schematic schem = new Schematic(clipboard);
+        schem.paste(editSession, to, !ignoreAirBlocks);
+
+        Region region = clipboard.getRegion().clone();
         if (selectPasted) {
             Vector max = to.add(region.getMaximumPoint().subtract(region.getMinimumPoint()));
             RegionSelector selector = new CuboidRegionSelector(player.getWorld(), to, max);

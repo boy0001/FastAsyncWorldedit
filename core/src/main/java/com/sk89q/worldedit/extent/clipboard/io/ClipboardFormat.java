@@ -19,6 +19,7 @@
 
 package com.sk89q.worldedit.extent.clipboard.io;
 
+import com.boydti.fawe.config.BBC;
 import com.boydti.fawe.config.Settings;
 import com.boydti.fawe.jnbt.NBTStreamer;
 import com.boydti.fawe.object.FaweOutputStream;
@@ -27,6 +28,8 @@ import com.boydti.fawe.object.clipboard.AbstractClipboardFormat;
 import com.boydti.fawe.object.clipboard.DiskOptimizedClipboard;
 import com.boydti.fawe.object.clipboard.FaweClipboard;
 import com.boydti.fawe.object.clipboard.IClipboardFormat;
+import com.boydti.fawe.object.clipboard.LazyClipboardHolder;
+import com.boydti.fawe.object.io.FastByteArrayOutputStream;
 import com.boydti.fawe.object.io.PGZIPOutputStream;
 import com.boydti.fawe.object.io.ResettableFileInputStream;
 import com.boydti.fawe.object.schematic.FaweFormat;
@@ -35,29 +38,43 @@ import com.boydti.fawe.object.schematic.Schematic;
 import com.boydti.fawe.object.schematic.StructureFormat;
 import com.boydti.fawe.util.MainUtil;
 import com.boydti.fawe.util.ReflectionUtils;
+import com.google.common.io.ByteSource;
+import com.google.common.io.Files;
 import com.google.gson.Gson;
 import com.sk89q.jnbt.NBTConstants;
 import com.sk89q.jnbt.NBTInputStream;
 import com.sk89q.jnbt.NBTOutputStream;
+import com.sk89q.worldedit.LocalConfiguration;
 import com.sk89q.worldedit.Vector;
+import com.sk89q.worldedit.WorldEdit;
+import com.sk89q.worldedit.extension.platform.Actor;
 import com.sk89q.worldedit.extent.clipboard.BlockArrayClipboard;
 import com.sk89q.worldedit.extent.clipboard.Clipboard;
+import com.sk89q.worldedit.session.ClipboardHolder;
+import com.sk89q.worldedit.world.registry.WorldData;
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
 import java.io.DataInputStream;
 import java.io.File;
+import java.io.FileFilter;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.URL;
+import java.nio.channels.Channels;
+import java.nio.channels.ReadableByteChannel;
+import java.util.ArrayList;
 import java.util.EnumSet;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.zip.GZIPInputStream;
 import java.util.zip.GZIPOutputStream;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipInputStream;
 import javax.annotation.Nullable;
 
 
@@ -295,6 +312,87 @@ public enum ClipboardFormat {
                 write(value, clipboard);
             }
         });
+    }
+
+    public ClipboardHolder[] loadAllFromInput(Actor player, WorldData worldData, String input, boolean message) throws IOException {
+        checkNotNull(player);
+        checkNotNull(input);
+        WorldEdit worldEdit = WorldEdit.getInstance();
+        LocalConfiguration config = worldEdit.getConfiguration();
+        if (input.startsWith("http")) {
+            URL url = new URL(input);
+            URL webInterface = new URL(Settings.IMP.WEB.ASSETS);
+            if (!url.getHost().equalsIgnoreCase(webInterface.getHost())) {
+                if (message) BBC.WEB_UNAUTHORIZED.send(player, url);
+                return null;
+            }
+            ClipboardHolder[] clipboards = loadAllFromUrl(url, worldData);
+            return clipboards;
+        } else {
+            if (input.contains("../") && !player.hasPermission("worldedit.schematic.load.other")) {
+                if (message) BBC.NO_PERM.send(player, "worldedit.schematic.load.other");
+                return null;
+            }
+            File working = worldEdit.getWorkingDirectoryFile(config.saveDir);
+            File dir = new File(working, (Settings.IMP.PATHS.PER_PLAYER_SCHEMATICS ? (player.getUniqueId().toString() + File.separator) : "") + input);
+            if (!dir.exists()) {
+                if ((!input.contains("/") && !input.contains("\\")) || player.hasPermission("worldedit.schematic.load.other")) {
+                    dir = new File(worldEdit.getWorkingDirectoryFile(config.saveDir), input);
+                }
+            }
+            if (!dir.exists() || !dir.isDirectory()) {
+                if (message) BBC.SCHEMATIC_NOT_FOUND.send(player, input);
+                return null;
+            }
+            ClipboardHolder[] clipboards = loadAllFromDirectory(dir, worldData);
+            if (clipboards.length < 1) {
+                if (message) BBC.SCHEMATIC_NOT_FOUND.send(player, input);
+                return null;
+            }
+            return clipboards;
+        }
+    }
+
+    public ClipboardHolder[] loadAllFromDirectory(File dir, WorldData worldData) {
+        File[] files = dir.listFiles(new FileFilter() {
+            @Override
+            public boolean accept(File pathname) {
+                return pathname.getName().endsWith(".schematic");
+            }
+        });
+        LazyClipboardHolder[] clipboards = new LazyClipboardHolder[files.length];
+        for (int i = 0; i < files.length; i++) {
+            File file = files[i];
+            ByteSource source = Files.asByteSource(file);
+            clipboards[i] = new LazyClipboardHolder(source, this, worldData, null);
+        }
+        return clipboards;
+    }
+
+    public ClipboardHolder[] loadAllFromUrl(URL url, WorldData worldData) throws IOException {
+        List<LazyClipboardHolder> clipboards = new ArrayList<>();
+        try (ReadableByteChannel rbc = Channels.newChannel(url.openStream())) {
+            try (InputStream in = Channels.newInputStream(rbc)) {
+                try (ZipInputStream zip = new ZipInputStream(in)) {
+                    ZipEntry entry;
+                    byte[] buffer = new byte[8192];
+                    while ((entry = zip.getNextEntry()) != null) {
+                        if (entry.getName().endsWith(".schematic")) {
+                            FastByteArrayOutputStream out = new FastByteArrayOutputStream();
+                            int len = 0;
+                            while ((len = zip.read(buffer)) > 0) {
+                                out.write(buffer, 0, len);
+                            }
+                            byte[] array = out.toByteArray();
+                            ByteSource source = ByteSource.wrap(array);
+                            LazyClipboardHolder clipboard = new LazyClipboardHolder(source, this, worldData, null);
+                            clipboards.add(clipboard);
+                        }
+                    }
+                }
+            }
+        }
+        return clipboards.toArray(new LazyClipboardHolder[clipboards.size()]);
     }
 
     private void write(OutputStream value, Clipboard clipboard) {

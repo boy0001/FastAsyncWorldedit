@@ -50,12 +50,8 @@ import com.boydti.fawe.object.brush.scroll.ScrollRange;
 import com.boydti.fawe.object.brush.scroll.ScrollSize;
 import com.boydti.fawe.object.brush.scroll.ScrollTarget;
 import com.boydti.fawe.object.brush.visualization.VisualMode;
-import com.boydti.fawe.object.clipboard.LazyClipboardHolder;
-import com.boydti.fawe.object.io.FastByteArrayOutputStream;
 import com.boydti.fawe.object.mask.IdMask;
 import com.boydti.fawe.util.MathMan;
-import com.google.common.io.ByteSource;
-import com.google.common.io.Files;
 import com.sk89q.minecraft.util.commands.Command;
 import com.sk89q.minecraft.util.commands.CommandContext;
 import com.sk89q.minecraft.util.commands.CommandPermissions;
@@ -93,9 +89,7 @@ import com.sk89q.worldedit.function.pattern.Pattern;
 import com.sk89q.worldedit.session.ClipboardHolder;
 import com.sk89q.worldedit.util.command.binding.Switch;
 import com.sk89q.worldedit.util.command.parametric.Optional;
-import com.sk89q.worldedit.world.registry.WorldData;
 import java.io.File;
-import java.io.FileFilter;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -103,10 +97,6 @@ import java.io.InputStream;
 import java.net.URL;
 import java.nio.channels.Channels;
 import java.nio.channels.ReadableByteChannel;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.zip.ZipEntry;
-import java.util.zip.ZipInputStream;
 
 
 import static com.google.common.base.Preconditions.checkNotNull;
@@ -237,71 +227,11 @@ public class BrushCommands {
                 }
                 String filename = args.getString(1);
                 try {
-                    WorldData worldData = player.getWorld().getWorldData();
-                    if (filename.startsWith("http")) {
-                        URL url = new URL(filename);
-                        URL webInterface = new URL(Settings.IMP.WEB.ASSETS);
-                        if (!url.getHost().equalsIgnoreCase(webInterface.getHost())) {
-                            BBC.WEB_UNAUTHORIZED.send(player, url);
-                            return;
-                        }
-                        List<LazyClipboardHolder> clipboards = new ArrayList<>();
-                        try (ReadableByteChannel rbc = Channels.newChannel(url.openStream())) {
-                            try (InputStream in = Channels.newInputStream(rbc)) {
-                                try (ZipInputStream zip = new ZipInputStream(in)) {
-                                    ZipEntry entry;
-                                    byte[] buffer = new byte[8192];
-                                    while ((entry = zip.getNextEntry()) != null) {
-                                        if (entry.getName().endsWith(".schematic")) {
-                                            FastByteArrayOutputStream out = new FastByteArrayOutputStream();
-                                            int len = 0;
-                                            while ((len = zip.read(buffer)) > 0) {
-                                                out.write(buffer, 0, len);
-                                            }
-                                            byte[] array = out.toByteArray();
-                                            ByteSource source = ByteSource.wrap(array);
-                                            LazyClipboardHolder clipboard = new LazyClipboardHolder(source, ClipboardFormat.SCHEMATIC, worldData, null);
-                                            clipboards.add(clipboard);
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                        tool.setScrollAction(new ScrollClipboard(tool, session, clipboards.toArray(new LazyClipboardHolder[clipboards.size()])));
-                    } else {
-                        if (filename.contains("../") && !player.hasPermission("worldedit.schematic.load.other")) {
-                            BBC.NO_PERM.send(player, "worldedit.schematic.load.other");
-                            return;
-                        }
-                        File working = this.worldEdit.getWorkingDirectoryFile(config.saveDir);
-                        File dir = new File(working, (Settings.IMP.PATHS.PER_PLAYER_SCHEMATICS ? (player.getUniqueId().toString() + File.separator) : "") + filename);
-                        if (!dir.exists()) {
-                            if ((!filename.contains("/") && !filename.contains("\\")) || player.hasPermission("worldedit.schematic.load.other")) {
-                                dir = new File(this.worldEdit.getWorkingDirectoryFile(config.saveDir), filename);
-                            }
-                        }
-                        if (!dir.exists() || !dir.isDirectory()) {
-                            BBC.SCHEMATIC_NOT_FOUND.send(player, filename);
-                            return;
-                        }
-                        File[] files = dir.listFiles(new FileFilter() {
-                            @Override
-                            public boolean accept(File pathname) {
-                                return pathname.getName().endsWith(".schematic");
-                            }
-                        });
-                        if (files.length < 1) {
-                            BBC.SCHEMATIC_NOT_FOUND.send(player, filename);
-                            return;
-                        }
-                        LazyClipboardHolder[] clipboards = new LazyClipboardHolder[files.length];
-                        for (int i = 0; i < files.length; i++) {
-                            File file = files[i];
-                            ByteSource source = Files.asByteSource(file);
-                            clipboards[i] = new LazyClipboardHolder(source, ClipboardFormat.SCHEMATIC, worldData, null);
-                        }
-                        tool.setScrollAction(new ScrollClipboard(tool, session, clipboards));
+                    ClipboardHolder[] clipboards = ClipboardFormat.SCHEMATIC.loadAllFromInput(player, player.getWorld().getWorldData(), filename, true);
+                    if (clipboards == null) {
+                        return;
                     }
+                    tool.setScrollAction(new ScrollClipboard(tool, session, clipboards));
                     break;
                 } catch (IOException e) {
                     throw new RuntimeException(e);
