@@ -1,6 +1,7 @@
 package com.boydti.fawe.object.brush;
 
 import com.boydti.fawe.config.BBC;
+import com.boydti.fawe.object.brush.visualization.VisualExtent;
 import com.boydti.fawe.object.collection.LocalBlockVectorSet;
 import com.boydti.fawe.util.MathMan;
 import com.sk89q.worldedit.EditSession;
@@ -28,55 +29,57 @@ public class SurfaceSpline implements Brush {
     @Override
     public void build(EditSession editSession, Vector pos, Pattern pattern, double radius) throws MaxChangedBlocksException {
         int maxY = editSession.getMaxY();
+        boolean vis = editSession.getExtent() instanceof VisualExtent;
         if (path.isEmpty() || !pos.equals(path.get(path.size() - 1))) {
             int max = editSession.getNearestSurfaceTerrainBlock(pos.getBlockX(), pos.getBlockZ(), pos.getBlockY(), 0, editSession.getMaxY());
             pos.mutY(max);
             path.add(pos);
             editSession.getPlayer().sendMessage(BBC.getPrefix() + BBC.BRUSH_SPLINE_PRIMARY_2.s());
-        } else{
-            LocalBlockVectorSet vset = new LocalBlockVectorSet();
-            final List<Node> nodes = new ArrayList<>(path.size());
-            final KochanekBartelsInterpolation interpol = new KochanekBartelsInterpolation();
+            if (!vis) return;
+        }
+        LocalBlockVectorSet vset = new LocalBlockVectorSet();
+        final List<Node> nodes = new ArrayList<>(path.size());
+        final KochanekBartelsInterpolation interpol = new KochanekBartelsInterpolation();
 
-            for (final Vector nodevector : path) {
-                final Node n = new Node(nodevector);
-                n.setTension(tension);
-                n.setBias(bias);
-                n.setContinuity(continuity);
-                nodes.add(n);
+        for (final Vector nodevector : path) {
+            final Node n = new Node(nodevector);
+            n.setTension(tension);
+            n.setBias(bias);
+            n.setContinuity(continuity);
+            nodes.add(n);
+        }
+        interpol.setNodes(nodes);
+        final double splinelength = interpol.arcLength(0, 1);
+        for (double loop = 0; loop <= 1; loop += 1D / splinelength / quality) {
+            final Vector tipv = interpol.getPosition(loop);
+            final int tipx = (int) Math.round(tipv.getX());
+            final int tipz = (int) tipv.getZ();
+            int tipy = (int) Math.round(tipv.getY());
+            tipy = editSession.getNearestSurfaceTerrainBlock(tipx, tipz, tipy, 0, maxY);
+            if (radius == 0) {
+                editSession.setBlock(tipx, tipy, tipz, pattern.next(tipx, tipy, tipz));
+            }  else {
+                vset.add(tipx, tipy, tipz);
             }
-            interpol.setNodes(nodes);
-            final double splinelength = interpol.arcLength(0, 1);
-            for (double loop = 0; loop <= 1; loop += 1D / splinelength / quality) {
-                final Vector tipv = interpol.getPosition(loop);
-                final int tipx = (int) Math.round(tipv.getX());
-                final int tipz = (int) tipv.getZ();
-                int tipy = (int) Math.round(tipv.getY());
-                tipy = editSession.getNearestSurfaceTerrainBlock(tipx, tipz, tipy, 0, maxY);
-                if (radius == 0) {
-                    editSession.setBlock(tipx, tipy, tipz, pattern.next(tipx, tipy, tipz));
-                }  else {
-                    vset.add(tipx, tipy, tipz);
-                }
-            }
-            if (radius != 0) {
-                double radius2 = (radius * radius);
-                LocalBlockVectorSet newSet = new LocalBlockVectorSet();
-                final int ceilrad = (int) Math.ceil(radius);
-                for (final Vector v : vset) {
-                    final int tipx = v.getBlockX(), tipy = v.getBlockY(), tipz = v.getBlockZ();
-                    for (int loopx = tipx - ceilrad; loopx <= (tipx + ceilrad); loopx++) {
-                        for (int loopz = tipz - ceilrad; loopz <= (tipz + ceilrad); loopz++) {
-                            if (MathMan.hypot2(loopx - tipx, 0, loopz - tipz) <= radius2) {
-                                int y = editSession.getNearestSurfaceTerrainBlock(loopx, loopz, v.getBlockY(), 0, maxY);
-                                newSet.add(loopx, y, loopz);
-                            }
+        }
+        if (radius != 0) {
+            double radius2 = (radius * radius);
+            LocalBlockVectorSet newSet = new LocalBlockVectorSet();
+            final int ceilrad = (int) Math.ceil(radius);
+            for (final Vector v : vset) {
+                final int tipx = v.getBlockX(), tipy = v.getBlockY(), tipz = v.getBlockZ();
+                for (int loopx = tipx - ceilrad; loopx <= (tipx + ceilrad); loopx++) {
+                    for (int loopz = tipz - ceilrad; loopz <= (tipz + ceilrad); loopz++) {
+                        if (MathMan.hypot2(loopx - tipx, 0, loopz - tipz) <= radius2) {
+                            int y = editSession.getNearestSurfaceTerrainBlock(loopx, loopz, v.getBlockY(), 0, maxY);
+                            newSet.add(loopx, y, loopz);
                         }
                     }
                 }
-                editSession.setBlocks(newSet, pattern);
             }
-            editSession.getPlayer().sendMessage(BBC.getPrefix() + BBC.BRUSH_SPLINE_SECONDARY.s());
+            editSession.setBlocks(newSet, pattern);
+            if (!vis) path.clear();
         }
+        editSession.getPlayer().sendMessage(BBC.getPrefix() + BBC.BRUSH_SPLINE_SECONDARY.s());
     }
 }
