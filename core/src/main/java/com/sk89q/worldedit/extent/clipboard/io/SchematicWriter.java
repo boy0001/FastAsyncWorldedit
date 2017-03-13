@@ -216,6 +216,8 @@ public class SchematicWriter implements ClipboardWriter {
                 if (hasTile) {
                     final List<CompoundTag> tileEntities = clipboard.IMP.getTileEntities();
                     out.writeNamedTag("TileEntities", new ListTag(CompoundTag.class, tileEntities));
+                } else {
+                    out.writeNamedTag("TileEntities", new ListTag(CompoundTag.class, new ArrayList<Tag>()));
                 }
 
                 List<Tag> entities = new ArrayList<Tag>();
