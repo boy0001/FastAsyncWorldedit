@@ -1334,9 +1334,9 @@ public class EditSession extends AbstractWorld implements HasFaweQueue, Lighting
             Operations.completeBlindly(visitor);
             return visitor.getAffected();
         }
-        final boolean[] ids = new boolean[256];
+        final boolean[] ids = new boolean[4096];
         for (final int id : searchIDs) {
-            if ((id < 256) && (id >= 0)) {
+            if ((id < 4096) && (id >= 0)) {
                 ids[id] = true;
             }
         }

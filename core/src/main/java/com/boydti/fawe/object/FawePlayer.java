@@ -31,6 +31,7 @@ import com.sk89q.worldedit.world.World;
 import com.sk89q.worldedit.world.registry.WorldData;
 import java.io.File;
 import java.lang.reflect.Field;
+import java.lang.reflect.Method;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
@@ -54,7 +55,7 @@ public abstract class FawePlayer<T> extends Metadatable {
      * @param <V>
      * @return
      */
-    public static <V> FawePlayer<V> wrap(final Object obj) {
+    public static <V> FawePlayer<V> wrap(Object obj) {
         if (obj == null) {
             return FakePlayer.getConsole().toFawePlayer();
         }
@@ -92,6 +93,15 @@ public abstract class FawePlayer<T> extends Metadatable {
             }
             FakePlayer fake = new FakePlayer(actor.getName(), actor.getUniqueId(), actor);
             return fake.toFawePlayer();
+        }
+        if (obj != null && obj.getClass().getName().contains("CraftPlayer") && !Fawe.imp().getPlatform().equals("bukkit")) {
+            try {
+                Method methodGetHandle = obj.getClass().getDeclaredMethod("getHandle");
+                obj = methodGetHandle.invoke(obj);
+            } catch (Throwable e) {
+                e.printStackTrace();
+                return null;
+            }
         }
         return Fawe.imp().wrap(obj);
     }

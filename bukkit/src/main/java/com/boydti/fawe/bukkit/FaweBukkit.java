@@ -29,6 +29,7 @@ import com.sk89q.worldedit.world.World;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.lang.reflect.Field;
+import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.net.URL;
 import java.nio.channels.Channels;
@@ -150,6 +151,14 @@ public class FaweBukkit implements IFawe, Listener {
             Player player = (Player) obj;
             FawePlayer existing = Fawe.get().getCachedPlayer(player.getName());
             return existing != null ? existing : new BukkitPlayer(player);
+        } else if (obj != null && obj.getClass().getName().contains("EntityPlayer")) {
+            try {
+                Method method = obj.getClass().getDeclaredMethod("getBukkitEntity");
+                return wrap(method.invoke(obj));
+            } catch (Throwable e) {
+                e.printStackTrace();
+                return null;
+            }
         } else {
             return null;
         }
