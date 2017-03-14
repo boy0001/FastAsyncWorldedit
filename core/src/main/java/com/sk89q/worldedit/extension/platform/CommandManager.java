@@ -151,12 +151,13 @@ public final class CommandManager {
 
         this.methodMap = new ConcurrentHashMap<>();
 
-        TaskManager.IMP.task(new Runnable() {
-            @Override
-            public void run() {
-                setupDispatcher();
-            }
-        });
+//        TaskManager.IMP.task(new Runnable() {
+//            @Override
+//            public void run() {
+//
+//            }
+//        });
+        setupDispatcher();
     }
 
     /**
