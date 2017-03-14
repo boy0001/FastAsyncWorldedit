@@ -1,12 +1,17 @@
 package com.sk89q.worldedit.math.convolution;
 
 import com.boydti.fawe.FaweCache;
+import com.boydti.fawe.object.visitor.Fast2DIterator;
 import com.sk89q.worldedit.EditSession;
 import com.sk89q.worldedit.MaxChangedBlocksException;
+import com.sk89q.worldedit.MutableBlockVector;
 import com.sk89q.worldedit.Vector;
+import com.sk89q.worldedit.Vector2D;
 import com.sk89q.worldedit.WorldEditException;
 import com.sk89q.worldedit.blocks.BaseBlock;
 import com.sk89q.worldedit.regions.Region;
+import com.sk89q.worldedit.regions.Regions;
+import java.util.Iterator;
 
 
 import static com.google.common.base.Preconditions.checkNotNull;
@@ -18,6 +23,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
  */
 public class HeightMap {
 
+    private final boolean layers;
     private int[] data;
     private int width;
     private int height;
@@ -36,6 +42,10 @@ public class HeightMap {
     }
 
     public HeightMap(EditSession session, Region region, boolean naturalOnly) {
+        this(session, region, naturalOnly, false);
+    }
+
+    public HeightMap(EditSession session, Region region, boolean naturalOnly, boolean layers) {
         checkNotNull(session);
         checkNotNull(region);
 
@@ -45,21 +55,44 @@ public class HeightMap {
         this.width = region.getWidth();
         this.height = region.getLength();
 
+        this.layers = layers;
+
         int minX = region.getMinimumPoint().getBlockX();
         int minY = region.getMinimumPoint().getBlockY();
         int minZ = region.getMinimumPoint().getBlockZ();
         int maxY = region.getMaximumPoint().getBlockY();
 
-        // Store current heightmap data
-        data = new int[width * height];
-        for (int z = 0; z < height; ++z) {
-            for (int x = 0; x < width; ++x) {
-                data[z * width + x] = session.getHighestTerrainBlock(x + minX, z + minZ, minY, maxY, naturalOnly);
+        if (layers) {
+            Vector min = region.getMinimumPoint();
+            Vector max = region.getMaximumPoint();
+            int width = region.getWidth();
+            int height = region.getLength();
+            data = new int[width * height];
+            int bx = min.getBlockX();
+            int bz = min.getBlockZ();
+            Iterable<Vector2D> flat = Regions.asFlatRegion(region).asFlatRegion();
+            Iterator<Vector2D> iter = new Fast2DIterator(flat, session).iterator();
+            int y = 0;
+            MutableBlockVector mutable = new MutableBlockVector();
+            while (iter.hasNext()) {
+                Vector2D pos = iter.next();
+                int x = pos.getBlockX();
+                int z = pos.getBlockZ();
+                y = session.getNearestSurfaceLayer(x, z, y, 0, maxY);
+                data[(z - bz) * width + (x - bx)] = y;
+            }
+        } else {
+            // Store current heightmap data
+            data = new int[width * height];
+            for (int z = 0; z < height; ++z) {
+                for (int x = 0; x < width; ++x) {
+                    data[z * width + x] = session.getHighestTerrainBlock(x + minX, z + minZ, minY, maxY, naturalOnly);
+                }
             }
         }
     }
 
-    public HeightMap(EditSession session, Region region, int[] data) {
+    public HeightMap(EditSession session, Region region, int[] data, boolean layers) {
         this.session = session;
         this.region = region;
 
@@ -67,6 +100,8 @@ public class HeightMap {
         this.height = region.getLength();
 
         this.data = data;
+
+        this.layers = layers;
     }
 
     /**
@@ -77,7 +112,6 @@ public class HeightMap {
      * @return number of blocks affected
      * @throws MaxChangedBlocksException
      */
-
     public int applyFilter(HeightMapFilter filter, int iterations) throws WorldEditException {
         checkNotNull(filter);
 
@@ -88,7 +122,7 @@ public class HeightMap {
             newData = filter.filter(newData, width, height);
         }
 
-        return apply(newData);
+        return layers ? applyLayers(newData) : apply(newData);
     }
 
     public int applyLayers(int[] data) throws WorldEditException {

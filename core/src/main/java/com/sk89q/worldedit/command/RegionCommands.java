@@ -22,9 +22,12 @@ package com.sk89q.worldedit.command;
 import com.boydti.fawe.FaweAPI;
 import com.boydti.fawe.config.BBC;
 import com.boydti.fawe.example.NMSMappedFaweQueue;
+import com.boydti.fawe.object.FaweLimit;
 import com.boydti.fawe.object.FaweLocation;
 import com.boydti.fawe.object.FawePlayer;
 import com.boydti.fawe.object.FaweQueue;
+import com.boydti.fawe.object.exception.FaweException;
+import com.boydti.fawe.object.visitor.Fast2DIterator;
 import com.boydti.fawe.util.MathMan;
 import com.boydti.fawe.util.SetQueue;
 import com.sk89q.jnbt.CompoundTag;
@@ -34,6 +37,7 @@ import com.sk89q.minecraft.util.commands.CommandPermissions;
 import com.sk89q.minecraft.util.commands.Logging;
 import com.sk89q.worldedit.EditSession;
 import com.sk89q.worldedit.LocalSession;
+import com.sk89q.worldedit.MutableBlockVector;
 import com.sk89q.worldedit.Vector;
 import com.sk89q.worldedit.Vector2D;
 import com.sk89q.worldedit.WorldEdit;
@@ -62,6 +66,7 @@ import com.sk89q.worldedit.regions.ConvexPolyhedralRegion;
 import com.sk89q.worldedit.regions.CuboidRegion;
 import com.sk89q.worldedit.regions.Region;
 import com.sk89q.worldedit.regions.RegionOperationException;
+import com.sk89q.worldedit.regions.Regions;
 import com.sk89q.worldedit.util.TreeGenerator;
 import com.sk89q.worldedit.util.TreeGenerator.TreeType;
 import com.sk89q.worldedit.util.command.binding.Range;
@@ -72,6 +77,7 @@ import com.sk89q.worldedit.world.biome.BaseBiome;
 import com.sk89q.worldedit.world.biome.Biomes;
 import com.sk89q.worldedit.world.registry.BiomeRegistry;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 
 
@@ -307,23 +313,23 @@ public class RegionCommands {
         if (!FawePlayer.wrap(player).hasPermission("fawe.tips")) BBC.TIP_REPLACE_ID.or(BBC.TIP_REPLACE_LIGHT, BBC.TIP_REPLACE_MARKER, BBC.TIP_TAB_COMPLETE).send(player);
     }
 
-    @Command(
-            aliases = { "/mapreplace", "/mr", "/maprep" },
-            usage = "<from-block-1,from-block-2> <to-block-1,to-block-2>",
-            desc = "Replace all blocks in a selection 1:1 with the ",
-            flags = "f",
-            min = 1,
-            max = 2
-    )
-    @CommandPermissions("worldedit.region.mapreplace")
-    @Logging(REGION)
-    public void mapreplace(Player player, EditSession editSession, @Selection Region region, @Optional Mask from, Pattern to) throws WorldEditException {
-        if (from == null) {
-            from = new ExistingBlockMask(editSession);
-        }
-        int affected = editSession.replaceBlocks(region, from, to);
-        BBC.VISITOR_BLOCK.send(player, affected);
-    }
+//    @Command(
+//            aliases = { "/mapreplace", "/mr", "/maprep" },
+//            usage = "<from-block-1,from-block-2> <to-block-1,to-block-2>",
+//            desc = "Replace all blocks in a selection 1:1 with the ",
+//            flags = "f",
+//            min = 1,
+//            max = 2
+//    )
+//    @CommandPermissions("worldedit.region.mapreplace")
+//    @Logging(REGION)
+//    public void mapreplace(Player player, EditSession editSession, @Selection Region region, @Optional Mask from, Pattern to) throws WorldEditException {
+//        if (from == null) {
+//            from = new ExistingBlockMask(editSession);
+//        }
+//        int affected = editSession.replaceBlocks(region, from, to);
+//        BBC.VISITOR_BLOCK.send(player, affected);
+//    }
 
     @Command(
             aliases = { "/set" },
@@ -358,6 +364,39 @@ public class RegionCommands {
     @Logging(REGION)
     public void overlay(Player player, EditSession editSession, @Selection Region region, Pattern pattern) throws WorldEditException {
         int affected = editSession.overlayCuboidBlocks(region, pattern);
+        BBC.VISITOR_BLOCK.send(player, affected);
+    }
+
+    @Command(
+            aliases = { "/lay" },
+            usage = "<block>",
+            desc = "Set the top block in the region",
+            min = 1,
+            max = 1
+    )
+    @CommandPermissions("worldedit.region.overlay")
+    @Logging(REGION)
+    public void lay(Player player, EditSession editSession, @Selection Region region, Pattern pattern) throws WorldEditException {
+        Vector min = region.getMinimumPoint();
+        Vector max = region.getMaximumPoint();
+        int maxY = max.getBlockY();
+        int width = region.getWidth();
+        int height = region.getLength();
+        int bx = min.getBlockX();
+        int bz = min.getBlockZ();
+        Iterable<Vector2D> flat = Regions.asFlatRegion(region).asFlatRegion();
+        Iterator<Vector2D> iter = new Fast2DIterator(flat, editSession).iterator();
+        int y = 0;
+        int affected = 0;
+        MutableBlockVector mutable = new MutableBlockVector();
+        while (iter.hasNext()) {
+            Vector2D pos = iter.next();
+            int x = pos.getBlockX();
+            int z = pos.getBlockZ();
+            y = editSession.getNearestSurfaceTerrainBlock(x, z, y, 0, maxY);
+            editSession.setBlock(x, y, z, pattern);
+            affected++;
+        }
         BBC.VISITOR_BLOCK.send(player, affected);
     }
 
@@ -424,15 +463,23 @@ public class RegionCommands {
             desc = "Smooth the elevation in the selection",
             help =
                     "Smooths the elevation in the selection.\n" +
-                            "The -n flag makes it only consider naturally occuring blocks.",
+                            "The -n flag makes it only consider naturally occuring blocks.\n" +
+                            "The -s flag makes it only consider snow.",
             min = 0,
-            max = 1
+            max = 2
     )
-    @CommandPermissions("worldedit.region.smooth")
+    @CommandPermissions("worldedit.region.smoothsnow")
     @Logging(REGION)
-    public void smooth(Player player, EditSession editSession, @Selection Region region, @Optional("1") int iterations, @Switch('n') boolean affectNatural) throws WorldEditException {
-        HeightMap heightMap = new HeightMap(editSession, region, affectNatural);
+    public void smooth(Player player, EditSession editSession, @Selection Region region, @Optional("1") int iterations, @Switch('n') boolean affectNatural, @Switch('s') boolean snow) throws WorldEditException {
         try {
+            Vector min = region.getMinimumPoint();
+            Vector max = region.getMaximumPoint();
+            long volume = (((long)max.getX() - (long)min.getX() + 1) * ((long)max.getY() - (long)min.getY() + 1) * ((long)max.getZ() - (long)min.getZ() + 1));
+            FaweLimit limit = FawePlayer.wrap(player).getLimit();
+            if (volume >= limit.MAX_CHECKS) {
+                throw new FaweException(BBC.WORLDEDIT_CANCEL_REASON_MAX_CHECKS);
+            }
+            HeightMap heightMap = new HeightMap(editSession, region, affectNatural, snow);
             HeightMapFilter filter = (HeightMapFilter) HeightMapFilter.class.getConstructors()[0].newInstance(GaussianKernel.class.getConstructors()[0].newInstance(5, 1));
             int affected = heightMap.applyFilter(filter, iterations);
             BBC.VISITOR_BLOCK.send(player, affected);
