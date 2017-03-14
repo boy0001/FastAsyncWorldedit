@@ -157,7 +157,6 @@ public final class CommandManager {
 //
 //            }
 //        });
-        setupDispatcher();
     }
 
     /**
@@ -285,6 +284,7 @@ public final class CommandManager {
         }
 
         this.platform = platform;
+        setupDispatcher();
     }
 
     public void unregister() {
