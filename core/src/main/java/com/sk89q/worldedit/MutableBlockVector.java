@@ -8,7 +8,7 @@ public class MutableBlockVector extends BlockVector {
         }
     };
 
-    public static Vector get(int x, int y, int z) {
+    public static MutableBlockVector get(int x, int y, int z) {
         return MUTABLE_CACHE.get().setComponents(x, y, z);
     }
 
@@ -30,8 +30,16 @@ public class MutableBlockVector extends BlockVector {
     }
 
     @Override
-    public Vector setComponents(double x, double y, double z) {
+    public MutableBlockVector setComponents(double x, double y, double z) {
         return this.setComponents((int) x, (int) y, (int) z);
+    }
+
+    @Override
+    public MutableBlockVector setComponents(int x, int y, int z) {
+        this.mutX(x);
+        this.mutY(y);
+        this.mutZ(z);
+        return this;
     }
 
     @Override

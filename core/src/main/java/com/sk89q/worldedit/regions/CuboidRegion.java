@@ -24,6 +24,7 @@ import com.boydti.fawe.object.collection.LocalBlockVectorSet;
 import com.sk89q.worldedit.BlockVector;
 import com.sk89q.worldedit.LocalWorld;
 import com.sk89q.worldedit.MutableBlockVector;
+import com.sk89q.worldedit.MutableBlockVector2D;
 import com.sk89q.worldedit.Vector;
 import com.sk89q.worldedit.Vector2D;
 import com.sk89q.worldedit.world.World;
@@ -333,7 +334,7 @@ public class CuboidRegion extends AbstractRegion implements FlatRegion {
             @Override
             public Iterator<Vector2D> iterator() {
                 return new Iterator<Vector2D>() {
-                    private Vector2D pos = new Vector2D(minX, minZ);
+                    private MutableBlockVector2D pos = new MutableBlockVector2D().setComponents(minX, minZ);
                     @Override
                     public boolean hasNext() {
                         return pos != null;
@@ -344,9 +345,9 @@ public class CuboidRegion extends AbstractRegion implements FlatRegion {
                         Vector2D result = pos;
                         // calc next
                         if (pos.getX() < maxX) {
-                            pos = new Vector2D(pos.getX() + 1, pos.getZ());
+                            pos.setComponents(pos.getX() + 1, pos.getZ());
                         } else if (pos.getZ() < maxZ) {
-                            pos = new Vector2D(minX, pos.getZ() + 1);
+                            pos.setComponents(minX, pos.getZ() + 1);
                         } else {
                             pos = null;
                         }
@@ -566,6 +567,7 @@ public class CuboidRegion extends AbstractRegion implements FlatRegion {
         return new Iterable<Vector2D>() {
             @Override
             public Iterator<Vector2D> iterator() {
+                MutableBlockVector2D mutable = new MutableBlockVector2D();
                 return new Iterator<Vector2D>() {
                     private Vector min = getMinimumPoint();
                     private Vector max = getMaximumPoint();
@@ -580,11 +582,11 @@ public class CuboidRegion extends AbstractRegion implements FlatRegion {
                     @Override
                     public Vector2D next() {
                         if (!hasNext()) throw new java.util.NoSuchElementException();
-                        Vector2D answer = new Vector2D(nextX, nextZ);
-                        if (++nextX > max.getBlockX()) {
-                            nextX = min.getBlockX();
-                            if (++nextZ > max.getBlockZ()) {
-                                nextX = Integer.MIN_VALUE;
+                        Vector2D answer = mutable.setComponents(nextX, nextZ);
+                        if (++nextZ > max.getBlockZ()) {
+                            nextZ = min.getBlockZ();
+                            if (++nextX > max.getBlockX()) {
+                                nextZ = Integer.MIN_VALUE;
                             }
                         }
                         return answer;

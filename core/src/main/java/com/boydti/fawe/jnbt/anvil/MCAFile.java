@@ -263,7 +263,12 @@ public class MCAFile {
             return null;
         }
         FastByteArrayOutputStream baos = new FastByteArrayOutputStream(buffer3);
-        DeflaterOutputStream deflater = new DeflaterOutputStream(baos, new Deflater(9), 1, true);
+
+//        PGZIPOutputStream deflater = new PGZIPOutputStream(baos);
+//        deflater.setStrategy(Deflater.FILTERED);
+                Deflater deflate = new Deflater(1);
+        deflate.setStrategy(Deflater.FILTERED);
+        DeflaterOutputStream deflater = new DeflaterOutputStream(baos, deflate, 1, true);
         fieldBuf5.set(deflater, buffer2);
         BufferedOutputStream bos = new BufferedOutputStream(deflater, 1);
         fieldBuf6.set(bos, buffer1);
@@ -380,7 +385,7 @@ public class MCAFile {
                         MCAChunk cached = getCachedChunk(cx, cz);
                         if (cached == null || !cached.isModified()) {
                             start += size;
-                            written = start;
+                            written = start + size;
                             continue;
                         } else {
                             newBytes = toBytes(cached);
@@ -398,26 +403,31 @@ public class MCAFile {
                 int newSize = (len + 4095) >> 12;
                 int nextOffset2 = nextOffset;
                 while (start + len > end) {
-                    int nextLoc = offsetMap.get(nextOffset2);
-                    short nextCXZ = MathMan.unpairX(nextLoc);
-                    int nextCX = MathMan.unpairShortX(nextCXZ);
-                    int nextCZ = MathMan.unpairShortY(nextCXZ);
-                    if (getCachedChunk(nextCX, nextCZ) == null) {
-                        byte[] nextBytes = getChunkCompressedBytes(nextOffset2);
-                        relocate.put(pair, nextBytes);
-                    }
+                    Integer nextLoc = offsetMap.get(nextOffset2);
+                    if (nextLoc != null) {
+                        short nextCXZ = MathMan.unpairX(nextLoc);
+                        int nextCX = MathMan.unpairShortX(nextCXZ);
+                        int nextCZ = MathMan.unpairShortY(nextCXZ);
+                        if (getCachedChunk(nextCX, nextCZ) == null) {
+                            byte[] nextBytes = getChunkCompressedBytes(nextOffset2);
+                            relocate.put(pair, nextBytes);
+                        }
 //                    System.out.println("Relocating " + nextCX + "," + nextCZ);
-                    int nextSize = MathMan.unpairY(nextLoc) << 12;
-                    end += nextSize;
-                    nextOffset2 += nextSize;
+                        int nextSize = MathMan.unpairY(nextLoc) << 12;
+                        end += nextSize;
+                        nextOffset2 += nextSize;
+                    } else {
+                        end = start + len;
+                        break;
+                    }
                 }
 //                System.out.println("Writing: " + cx + "," + cz);
                 writeSafe(start, newBytes);
-                if (offset != start || end != start + size || oldSize != newSize) {
+                if (offset != start || end != start + size || oldSize != newSize || true) {
 //                    System.out.println("Header: " + cx + "," + cz + " | " + offset + "," + start + " | " + end + "," + (start + size) + " | " + size + " | " + start);
                     writeHeader(cx, cz, start >> 12, newSize);
                 }
-                written = start + newBytes.length + 6;
+                written = start + newBytes.length + 5;
                 start += newSize << 12;
             }
             raf.setLength(written);

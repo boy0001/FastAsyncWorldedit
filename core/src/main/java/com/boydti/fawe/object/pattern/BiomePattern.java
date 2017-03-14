@@ -1,7 +1,7 @@
 package com.boydti.fawe.object.pattern;
 
+import com.sk89q.worldedit.MutableBlockVector2D;
 import com.sk89q.worldedit.Vector;
-import com.sk89q.worldedit.Vector2D;
 import com.sk89q.worldedit.WorldEditException;
 import com.sk89q.worldedit.blocks.BaseBlock;
 import com.sk89q.worldedit.extent.Extent;
@@ -10,6 +10,7 @@ import com.sk89q.worldedit.world.biome.BaseBiome;
 public class BiomePattern extends ExistingPattern {
     private final BaseBiome biome;
     private BiomePatternException exception;
+    private MutableBlockVector2D mutable = new MutableBlockVector2D();
 
     public BiomePattern(Extent extent, BaseBiome biome) {
         super(extent);
@@ -24,7 +25,7 @@ public class BiomePattern extends ExistingPattern {
 
     @Override
     public boolean apply(Extent extent, Vector setPosition, Vector getPosition) throws WorldEditException {
-        return extent.setBiome(new Vector2D(setPosition.getBlockX(), setPosition.getBlockZ()), biome);
+        return extent.setBiome(mutable.setComponents(setPosition.getBlockX(), setPosition.getBlockZ()), biome);
     }
 
     public class BiomePatternException extends RuntimeException {

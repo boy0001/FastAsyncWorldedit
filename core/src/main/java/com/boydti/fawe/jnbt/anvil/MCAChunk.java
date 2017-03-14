@@ -390,6 +390,8 @@ public class MCAChunk extends FaweChunk<Void> {
         if (idsLayer == null) {
             idsLayer = this.ids[layer] = new byte[4096];
             this.data[layer] = new byte[2048];
+            this.skyLight[layer] = new byte[2048];
+            this.blockLight[layer] = new byte[2048];
         }
         int j = FaweCache.CACHE_J[y][z & 15][x & 15];
         idsLayer[j] = (byte) id;

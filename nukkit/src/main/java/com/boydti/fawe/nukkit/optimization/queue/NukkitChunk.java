@@ -13,7 +13,7 @@ import com.boydti.fawe.object.FaweQueue;
 import com.boydti.fawe.util.MainUtil;
 import com.sk89q.jnbt.CompoundTag;
 import com.sk89q.worldedit.LocalWorld;
-import com.sk89q.worldedit.Vector2D;
+import com.sk89q.worldedit.MutableBlockVector2D;
 import java.io.IOException;
 import java.util.Map;
 
@@ -85,12 +85,11 @@ public class NukkitChunk extends CharFaweChunk<BaseFullChunk, NukkitQueue> {
             final LocalWorld lw = NukkitUtil.getLocalWorld(world);
             final byte[] biomes = getBiomeArray();
             int index = 0;
-            Vector2D mutable = new Vector2D();
             for (int z = 0; z < 16; z++) {
-                mutable.z = Z + z;
+                int zz = Z + z;
                 for (int x = 0; x < 16; x++) {
-                    mutable.x = X + x;
-                    lw.setBiome(mutable, FaweCache.getBiome(biomes[index++] & 0xFF));
+                    int xx = X + x;
+                    lw.setBiome(MutableBlockVector2D.get(xx, zz), FaweCache.getBiome(biomes[index++] & 0xFF));
                 }
             }
         }

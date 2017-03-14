@@ -8,7 +8,7 @@ import com.boydti.fawe.object.FaweQueue;
 import com.boydti.fawe.util.MainUtil;
 import com.sk89q.jnbt.CompoundTag;
 import com.sk89q.worldedit.LocalWorld;
-import com.sk89q.worldedit.Vector2D;
+import com.sk89q.worldedit.MutableBlockVector2D;
 import com.sk89q.worldedit.blocks.BaseBlock;
 import com.sk89q.worldedit.bukkit.BukkitUtil;
 import java.util.ArrayList;
@@ -89,12 +89,11 @@ public class BukkitChunk_All extends CharFaweChunk<Chunk, BukkitQueue_All> {
                 if (biomes != null) {
                     final LocalWorld lw = BukkitUtil.getLocalWorld(world);
                     int index = 0;
-                    Vector2D mutable = new Vector2D();
                     for (int z = 0; z < 16; z++) {
-                        mutable.z = bx + z;
+                        int zz = bx + z;
                         for (int x = 0; x < 16; x++) {
-                            mutable.x = bz + x;
-                            lw.setBiome(mutable, FaweCache.getBiome(biomes[index++] & 0xFF));
+                            int xx = bz + x;
+                            lw.setBiome(MutableBlockVector2D.get(xx, zz), FaweCache.getBiome(biomes[index++] & 0xFF));
                         }
                     }
                 }

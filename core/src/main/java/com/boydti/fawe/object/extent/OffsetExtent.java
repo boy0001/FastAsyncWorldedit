@@ -1,5 +1,6 @@
 package com.boydti.fawe.object.extent;
 
+import com.sk89q.worldedit.MutableBlockVector2D;
 import com.sk89q.worldedit.Vector;
 import com.sk89q.worldedit.Vector2D;
 import com.sk89q.worldedit.WorldEditException;
@@ -9,6 +10,7 @@ import com.sk89q.worldedit.world.biome.BaseBiome;
 
 public class OffsetExtent extends ResettableExtent {
     private final int dx, dy, dz;
+    private MutableBlockVector2D mutable = new MutableBlockVector2D();
 
     public OffsetExtent(Extent parent, int dx, int dy, int dz) {
         super(parent);
@@ -19,7 +21,7 @@ public class OffsetExtent extends ResettableExtent {
 
     @Override
     public boolean setBiome(Vector2D position, BaseBiome biome) {
-        return super.setBiome(new Vector2D(position.getBlockX() + dx, position.getBlockZ() + dz), biome);
+        return super.setBiome(mutable.setComponents(position.getBlockX() + dx, position.getBlockZ() + dz), biome);
     }
 
     @Override

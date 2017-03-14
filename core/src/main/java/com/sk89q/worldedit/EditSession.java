@@ -3354,11 +3354,12 @@ public class EditSession extends AbstractWorld implements HasFaweQueue, Lighting
             if (((containsBot2 && containsTop2)) && !containsBot1 && !containsTop1) {
                 continue;
             }
+            final MutableBlockVector2D mutable = new MutableBlockVector2D();
             RunnableVal<Vector2D> r = new RunnableVal<Vector2D>() {
                 @Override
                 public void run(Vector2D chunk) {
-                    boolean conNextX = chunks.contains(new Vector2D(cx + 1, cz));
-                    boolean conNextZ = chunks.contains(new Vector2D(cx, cz + 1));
+                    boolean conNextX = chunks.contains(mutable.setComponents(cx + 1, cz));
+                    boolean conNextZ = chunks.contains(mutable.setComponents(cx, cz + 1));
                     boolean containsAny = false;
                     if (cuboid && containsBot1 && containsBot2 && containsTop1 && containsTop2 && conNextX && conNextZ) {
                         containsAny = true;
@@ -3393,7 +3394,7 @@ public class EditSession extends AbstractWorld implements HasFaweQueue, Lighting
                         if (!conNextZ) {
                             setExistingBlocks(new Vector(bx, 0, bz + 16), new Vector(bx + 15, getMaxY(), bz + 31));
                         }
-                        if (!chunks.contains(new Vector2D(cx + 1, cz + 1)) && !conNextX && !conNextZ) {
+                        if (!chunks.contains(mutable.setComponents(cx + 1, cz + 1)) && !conNextX && !conNextZ) {
                             setExistingBlocks(new Vector(bx + 16, 0, bz + 16), new Vector(bx + 31, getMaxY(), bz + 31));
                         }
                         MutableBlockVector mutable = new MutableBlockVector(0,0,0);

@@ -79,7 +79,7 @@ public class HeightMap {
                 int x = pos.getBlockX();
                 int z = pos.getBlockZ();
                 y = session.getNearestSurfaceLayer(x, z, y, 0, maxY);
-                data[(z - bz) * width + (x - bx)] = y;
+                data[(z - bz) * width + (x - bx)] = 7 + (y << 3);
             }
         } else {
             // Store current heightmap data
@@ -238,20 +238,13 @@ public class HeightMap {
                         ++blocksChanged;
 
                         // Grow -- start from 1 below top replacing airblocks
-                        for (int y = newHeight - 1 - originY; y >= 0; --y) {
+                        for (int y = newHeight - 1 - originY; y >= curHeight; --y) {
                             int copyFrom = (int) (y * scale);
                             session.setBlock(xr, originY + y, zr, session.getBlock(xr, originY + copyFrom, zr));
                             ++blocksChanged;
                         }
                     }
                 } else if (curHeight > newHeight) {
-                    // Shrink -- start from bottom
-                    for (int y = 0; y < newHeight - originY; ++y) {
-                        int copyFrom = (int) (y * scale);
-                        session.setBlock(xr, originY + y, zr, session.getBlock(xr, originY + copyFrom, zr));
-                        ++blocksChanged;
-                    }
-
                     // Set the top block of the column to be the same type
                     // (this could otherwise go wrong with rounding)
                     session.setBlock(xr, newHeight, zr, session.getBlock(xr, curHeight, zr));
