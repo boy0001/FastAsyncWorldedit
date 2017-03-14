@@ -714,13 +714,15 @@ public class BrushCommands {
             flags = "h",
             desc = "Height brush",
             help =
-                    "This brush raises and lowers land.\n",
+                    "This brush raises and lowers land.\n" +
+                            "The -r flag enables random off-axis rotation\n" +
+                            "The -l flag will work on snow layers",
             min = 1,
             max = 4
     )
     @CommandPermissions("worldedit.brush.height")
-    public void heightBrush(Player player, LocalSession session, @Optional("5") double radius, @Optional("") final String filename, @Optional("0") final int rotation, @Optional("1") final double yscale, @Switch('r') boolean randomRotate) throws WorldEditException {
-        terrainBrush(player, session, radius, filename, rotation, yscale, false, randomRotate, ScalableHeightMap.Shape.CONE);
+    public void heightBrush(Player player, LocalSession session, @Optional("5") double radius, @Optional("") final String filename, @Optional("0") final int rotation, @Optional("1") final double yscale, @Switch('r') boolean randomRotate, @Switch('l') boolean layers) throws WorldEditException {
+        terrainBrush(player, session, radius, filename, rotation, yscale, false, randomRotate, layers, ScalableHeightMap.Shape.CONE);
     }
 
     @Command(
@@ -729,28 +731,32 @@ public class BrushCommands {
             flags = "h",
             desc = "Cliff brush",
             help =
-                    "This brush flattens terrain and creates cliffs.\n",
+                    "This brush flattens terrain and creates cliffs.\n" +
+                            "The -r flag enables random off-axis rotation\n" +
+                            "The -l flag will work on snow layers",
             min = 1,
             max = 4
     )
     @CommandPermissions("worldedit.brush.height")
-    public void cliffBrush(Player player, LocalSession session, @Optional("5") double radius, @Optional("") final String filename, @Optional("0") final int rotation, @Optional("1") final double yscale, @Switch('r') boolean randomRotate) throws WorldEditException {
-        terrainBrush(player, session, radius, filename, rotation, yscale, true, randomRotate, ScalableHeightMap.Shape.CYLINDER);
+    public void cliffBrush(Player player, LocalSession session, @Optional("5") double radius, @Optional("") final String filename, @Optional("0") final int rotation, @Optional("1") final double yscale, @Switch('r') boolean randomRotate, @Switch('l') boolean layers) throws WorldEditException {
+        terrainBrush(player, session, radius, filename, rotation, yscale, true, randomRotate, layers, ScalableHeightMap.Shape.CYLINDER);
     }
 
     @Command(
             aliases = { "flatten", "flatmap", "flat" },
             usage = "[radius] [file|#clipboard|null] [rotation] [yscale]",
             flags = "h",
-            desc = "Flatten brush",
+            desc = "Flatten brush makes terrain flatter\n" +
+                    "The -r flag enables random off-axis rotation\n" +
+                    "The -l flag will work on snow layers",
             help =
                     "This brush raises and lowers land towards the clicked point\n",
             min = 1,
             max = 4
     )
     @CommandPermissions("worldedit.brush.height")
-    public void flattenBrush(Player player, LocalSession session, @Optional("5") double radius, @Optional("") final String filename, @Optional("0") final int rotation, @Optional("1") final double yscale, @Switch('r') boolean randomRotate) throws WorldEditException {
-        terrainBrush(player, session, radius, filename, rotation, yscale, true, randomRotate, ScalableHeightMap.Shape.CONE);
+    public void flattenBrush(Player player, LocalSession session, @Optional("5") double radius, @Optional("") final String filename, @Optional("0") final int rotation, @Optional("1") final double yscale, @Switch('r') boolean randomRotate, @Switch('l') boolean layers) throws WorldEditException {
+        terrainBrush(player, session, radius, filename, rotation, yscale, true, randomRotate, layers, ScalableHeightMap.Shape.CONE);
     }
 
     private InputStream getHeightmapStream(String filename) {
@@ -784,7 +790,7 @@ public class BrushCommands {
         return null;
     }
 
-    private void terrainBrush(Player player, LocalSession session, double radius, String filename, int rotation, double yscale, boolean flat, boolean randomRotate, ScalableHeightMap.Shape shape) throws WorldEditException {
+    private void terrainBrush(Player player, LocalSession session, double radius, String filename, int rotation, double yscale, boolean flat, boolean randomRotate, boolean layers, ScalableHeightMap.Shape shape) throws WorldEditException {
         worldEdit.checkMaxBrushRadius(radius);
         InputStream stream = getHeightmapStream(filename);
         BrushTool tool = session.getBrushTool(player);
@@ -792,15 +798,15 @@ public class BrushCommands {
         HeightBrush brush;
         if (flat) {
             try {
-                brush = new FlattenBrush(stream, rotation, yscale, filename.equalsIgnoreCase("#clipboard") ? session.getClipboard().getClipboard() : null, shape);
+                brush = new FlattenBrush(stream, rotation, yscale, layers, filename.equalsIgnoreCase("#clipboard") ? session.getClipboard().getClipboard() : null, shape);
             } catch (EmptyClipboardException ignore) {
-                brush = new FlattenBrush(stream, rotation, yscale, null, shape);
+                brush = new FlattenBrush(stream, rotation, yscale, layers, null, shape);
             }
         } else {
             try {
-                brush = new HeightBrush(stream, rotation, yscale, filename.equalsIgnoreCase("#clipboard") ? session.getClipboard().getClipboard() : null);
+                brush = new HeightBrush(stream, rotation, yscale, layers, filename.equalsIgnoreCase("#clipboard") ? session.getClipboard().getClipboard() : null);
             } catch (EmptyClipboardException ignore) {
-                brush = new HeightBrush(stream, rotation, yscale, null);
+                brush = new HeightBrush(stream, rotation, yscale, layers, null);
             }
         }
         tool.setBrush(brush, "worldedit.brush.height", player);

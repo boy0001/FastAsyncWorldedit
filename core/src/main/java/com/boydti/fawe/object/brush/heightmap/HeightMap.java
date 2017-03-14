@@ -5,6 +5,7 @@ import com.boydti.fawe.util.MainUtil;
 import com.sk89q.worldedit.EditSession;
 import com.sk89q.worldedit.MaxChangedBlocksException;
 import com.sk89q.worldedit.Vector;
+import com.sk89q.worldedit.WorldEditException;
 import com.sk89q.worldedit.WorldVector;
 import com.sk89q.worldedit.function.mask.Mask;
 import com.sk89q.worldedit.internal.LocalWorldAdapter;
@@ -19,12 +20,12 @@ public interface HeightMap {
     public void setSize(int size);
 
 
-    default void perform(EditSession session, Mask mask, Vector pos, int size, int rotationMode, double yscale, boolean smooth, boolean towards) throws MaxChangedBlocksException {
-        int[] data = generateHeightData(session, mask, pos, size, rotationMode, yscale, smooth, towards);
-        applyHeightMapData(data, session, mask, pos, size, rotationMode, yscale, smooth, towards);
+    default void perform(EditSession session, Mask mask, Vector pos, int size, int rotationMode, double yscale, boolean smooth, boolean towards, boolean layers) throws MaxChangedBlocksException {
+        int[][] data = generateHeightData(session, mask, pos, size, rotationMode, yscale, smooth, towards, layers);
+        applyHeightMapData(data, session, mask, pos, size, rotationMode, yscale, smooth, towards, layers);
     }
 
-    default void applyHeightMapData(int[] data, EditSession session, Mask mask, Vector pos, int size, int rotationMode, double yscale, boolean smooth, boolean towards) throws MaxChangedBlocksException {
+    default void applyHeightMapData(int[][] data, EditSession session, Mask mask, Vector pos, int size, int rotationMode, double yscale, boolean smooth, boolean towards, boolean layers) throws MaxChangedBlocksException {
         Vector top = session.getMaximumPoint();
         int maxY = top.getBlockY();
         int diameter = 2 * size + 1;
@@ -32,19 +33,29 @@ public interface HeightMap {
         WorldVector min = new WorldVector(LocalWorldAdapter.adapt(session.getWorld()), pos.subtract(size, maxY, size));
         Vector max = pos.add(size, maxY, size);
         Region region = new CuboidRegion(session.getWorld(), min, max);
-        com.sk89q.worldedit.math.convolution.HeightMap heightMap = new com.sk89q.worldedit.math.convolution.HeightMap(session, region, false);
+        com.sk89q.worldedit.math.convolution.HeightMap heightMap = new com.sk89q.worldedit.math.convolution.HeightMap(session, region, data[0]);
         if (smooth) {
             try {
                 HeightMapFilter filter = (HeightMapFilter) HeightMapFilter.class.getConstructors()[0].newInstance(GaussianKernel.class.getConstructors()[0].newInstance(5, 1));
-                data = filter.filter(data, diameter, diameter);
+                data[1] = filter.filter(data[1], diameter, diameter);
             } catch (Throwable e) {
                 MainUtil.handleError(e);
             }
         }
-        heightMap.apply(data);
+        try {
+            if (layers) {
+                heightMap.applyLayers(data[1]);
+            } else {
+                heightMap.apply(data[1]);
+            }
+        } catch (MaxChangedBlocksException e) {
+            throw e;
+        } catch (WorldEditException e2) {
+            throw new RuntimeException(e2);
+        }
     }
 
-    default int[] generateHeightData(EditSession session, Mask mask, Vector pos, int size, int rotationMode, double yscale, boolean smooth, boolean towards) {
+    default int[][] generateHeightData(EditSession session, Mask mask, Vector pos, int size, int rotationMode, double yscale, boolean smooth, boolean towards, final boolean layers) {
         Vector top = session.getMaximumPoint();
         int maxY = top.getBlockY();
         int diameter = 2 * size + 1;
@@ -53,7 +64,12 @@ public interface HeightMap {
         int centerY = pos.getBlockY();
         int endY = pos.getBlockY() + size;
         int startY = pos.getBlockY() - size;
-        int[] newData = new int[diameter * diameter];
+        int[] oldData = new int[diameter * diameter];
+        int[] newData = new int[oldData.length];
+        if (layers) { // Pixel accuracy
+            centerY <<= 3;
+            maxY <<= 3;
+        }
         Vector mutablePos = new Vector(0, 0, 0);
         if (towards) {
             double sizePow = Math.pow(size, yscale);
@@ -79,7 +95,13 @@ public interface HeightMap {
                             raise = getHeight(-z, -x);
                             break;
                     }
-                    int height = session.getNearestSurfaceTerrainBlock(xx, zz, pos.getBlockY(), 0, 255);
+                    int height;
+                    if (layers) {
+                        height = session.getNearestSurfaceLayer(xx, zz, pos.getBlockY(), 0, maxY);
+                    } else {
+                        height = session.getNearestSurfaceTerrainBlock(xx, zz, pos.getBlockY(), 0, maxY);
+                    }
+                    oldData[index] = height;
                     if (height == 0) {
                         newData[index] = centerY;
                         continue;
@@ -115,18 +137,24 @@ public interface HeightMap {
                             raise = getHeight(-z, -x);
                             break;
                     }
-                    int height = session.getNearestSurfaceTerrainBlock(xx, zz, pos.getBlockY(), 0, maxY);
+                    int height;
+                    if (layers) {
+                        height = session.getNearestSurfaceLayer(xx, zz, pos.getBlockY(), 0, maxY);
+                    } else {
+                        height = session.getNearestSurfaceTerrainBlock(xx, zz, pos.getBlockY(), 0, 255);
+                    }
+                    oldData[index] = height;
                     if (height == 0) {
                         newData[index] = centerY;
                         continue;
                     }
                     raise = (yscale * raise);
-                    int random = PseudoRandom.random.random(maxY + 1) < (int) ((raise - (int) raise) * (maxY + 1)) ? 1 : 0;
+                    int random = PseudoRandom.random.random(256) < (int) ((raise - (int) raise) * (256)) ? 1 : 0;
                     int newHeight = height + (int) raise + random;
                     newData[index] = newHeight;
                 }
             }
         }
-        return newData;
+        return new int[][] {oldData, newData};
     }
 }

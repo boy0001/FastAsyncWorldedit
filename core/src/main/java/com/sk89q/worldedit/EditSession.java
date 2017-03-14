@@ -981,6 +981,52 @@ public class EditSession extends AbstractWorld implements HasFaweQueue, Lighting
         return this.getHighestTerrainBlock(x, z, minY, maxY, false);
     }
 
+    public int getNearestSurfaceLayer(int x, int z, int y, int minY, int maxY) {
+        int clearanceAbove = maxY - y;
+        int clearanceBelow = y - minY;
+        int clearance = Math.min(clearanceAbove, clearanceBelow);
+
+        BaseBlock block = getBlock(x, y, z);
+        boolean state = FaweCache.isLiquidOrGas(block.getId());
+        int data1 = block.getData();
+        int data2 = block.getData();
+        int offset = state ? 0 : 1;
+        for (int d = 0; d <= clearance; d++) {
+            int y1 = y + d;
+            block = getLazyBlock(x, y1, z);
+            if (FaweCache.isLiquidOrGas(block.getId()) != state) {
+                return ((y1 - offset) << 3) - (7 - (state ? block.getData() : data1));
+            }
+            data1 = block.getData();
+            int y2 = y - d;
+            block = getLazyBlock(x, y2, z);
+            if (FaweCache.isLiquidOrGas(block.getId()) != state) {
+                return ((y2 + offset) << 3) - (7 - (state ? block.getData() : data2));
+            }
+            data2 = block.getData();
+        }
+        if (clearanceAbove != clearanceBelow) {
+            if (clearanceAbove < clearanceBelow) {
+                for (int layer = y - clearance - 1; layer >= minY; layer--) {
+                    block = getLazyBlock(x, layer, z);
+                    if (FaweCache.isLiquidOrGas(block.getId()) != state) {
+                        return ((layer + offset) << 3) - (7 - (state ? block.getData() : data1));
+                    }
+                    data1 = block.getData();
+                }
+            } else {
+                for (int layer = y + clearance + 1; layer <= maxY; layer++) {
+                    block = getLazyBlock(x, layer, z);
+                    if (FaweCache.isLiquidOrGas(block.getId()) != state) {
+                        return ((layer - offset) << 3) - (7 - (state ? block.getData() : data2));
+                    }
+                    data2 = block.getData();
+                }
+            }
+        }
+        return maxY << 4;
+    }
+
     public int getNearestSurfaceTerrainBlock(int x, int z, int y, int minY, int maxY) {
         int clearanceAbove = maxY - y;
         int clearanceBelow = y - minY;

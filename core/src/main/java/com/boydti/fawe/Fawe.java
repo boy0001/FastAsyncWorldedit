@@ -99,6 +99,7 @@ import com.sk89q.worldedit.function.visitor.RecursiveVisitor;
 import com.sk89q.worldedit.function.visitor.RegionVisitor;
 import com.sk89q.worldedit.history.change.EntityCreate;
 import com.sk89q.worldedit.history.change.EntityRemove;
+import com.sk89q.worldedit.math.convolution.HeightMap;
 import com.sk89q.worldedit.math.interpolation.KochanekBartelsInterpolation;
 import com.sk89q.worldedit.math.transform.AffineTransform;
 import com.sk89q.worldedit.regions.CuboidRegion;
@@ -432,6 +433,7 @@ public class Fawe {
             ExtentEntityCopy.inject(); // Async entity create fix
             // Transforms
             FlattenedClipboardTransform.inject(); // public access
+            HeightMap.inject(); // Optimizations + Features
             // Entity create/remove
             EntityCreate.inject(); // Optimizations
             EntityRemove.inject(); // Optimizations

@@ -13,8 +13,8 @@ import java.io.InputStream;
 
 public class FlattenBrush extends HeightBrush {
 
-    public FlattenBrush(InputStream stream, int rotation, double yscale, Clipboard clipboard, ScalableHeightMap.Shape shape) {
-        super(stream, rotation, yscale, clipboard, shape);
+    public FlattenBrush(InputStream stream, int rotation, double yscale, boolean layers, Clipboard clipboard, ScalableHeightMap.Shape shape) {
+        super(stream, rotation, yscale, layers, clipboard, shape);
     }
 
     @Override
@@ -26,6 +26,6 @@ public class FlattenBrush extends HeightBrush {
         }
         HeightMap map = getHeightMap();
         map.setSize(size);
-        map.perform(editSession, mask, position, size, rotation, yscale, true, true);
+        map.perform(editSession, mask, position, size, rotation, yscale, true, true, layers);
     }
 }

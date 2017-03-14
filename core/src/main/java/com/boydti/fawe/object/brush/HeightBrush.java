@@ -23,14 +23,16 @@ public class HeightBrush implements Brush {
     private boolean randomRotate;
     public final int rotation;
     public final double yscale;
+    public final boolean layers;
 
-    public HeightBrush(InputStream stream, int rotation, double yscale, Clipboard clipboard) {
-        this(stream, rotation, yscale, clipboard, ScalableHeightMap.Shape.CONE);
+    public HeightBrush(InputStream stream, int rotation, double yscale, boolean layers, Clipboard clipboard) {
+        this(stream, rotation, yscale, layers, clipboard, ScalableHeightMap.Shape.CONE);
     }
 
-    public HeightBrush(InputStream stream, int rotation, double yscale, Clipboard clipboard, ScalableHeightMap.Shape shape) {
+    public HeightBrush(InputStream stream, int rotation, double yscale, boolean layers, Clipboard clipboard, ScalableHeightMap.Shape shape) {
         this.rotation = (rotation / 90) % 4;
         this.yscale = yscale;
+        this.layers = layers;
         if (stream != null) {
             try {
                 heightMap = ScalableHeightMap.fromPNG(stream);
@@ -68,6 +70,6 @@ public class HeightBrush implements Brush {
         }
         HeightMap map = getHeightMap();
         map.setSize(size);
-        map.perform(editSession, mask, position, size, rotation, yscale, true, false);
+        map.perform(editSession, mask, position, size, rotation, yscale, true, false, layers);
     }
 }
