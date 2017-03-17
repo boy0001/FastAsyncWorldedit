@@ -30,8 +30,8 @@ public class Vector2D {
     public static final Vector2D UNIT_Z = new Vector2D(0, 1);
     public static final Vector2D ONE = new Vector2D(1, 1);
 
-    private double x;
-    private double z;
+    public double x;
+    public double z;
 
     /**
      * Construct an instance.
