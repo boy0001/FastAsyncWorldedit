@@ -576,16 +576,16 @@ public class CuboidRegion extends AbstractRegion implements FlatRegion {
 
                     @Override
                     public boolean hasNext() {
-                        return (nextX != Integer.MIN_VALUE);
+                        return (nextZ != Integer.MIN_VALUE);
                     }
 
                     @Override
                     public Vector2D next() {
                         if (!hasNext()) throw new java.util.NoSuchElementException();
                         Vector2D answer = mutable.setComponents(nextX, nextZ);
-                        if (++nextZ > max.getBlockZ()) {
-                            nextZ = min.getBlockZ();
-                            if (++nextX > max.getBlockX()) {
+                        if (++nextX > max.getBlockX()) {
+                            nextX = min.getBlockX();
+                            if (++nextZ > max.getBlockZ()) {
                                 nextZ = Integer.MIN_VALUE;
                             }
                         }
