@@ -82,6 +82,7 @@ subprojects {
         maven { url = "https://mvnrepository.com/artifact/"}
         maven {url "http://ci.emc.gs/nexus/content/groups/aikar/" }
         maven {url "http://ci.regularbox.com/plugin/repository/everything/"}
+        maven {url "http://ci.athion.net/job/PlotSquared/ws/mvn/"}
         maven {url "http://empcraft.com/maven2"}
         maven {url "https://hub.spigotmc.org/nexus/content/groups/public/"}
         maven {url "http://maven.sk89q.com/repo/"}
