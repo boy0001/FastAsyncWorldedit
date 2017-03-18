@@ -13,7 +13,6 @@ import com.intellectualcrafters.plot.object.Plot;
 import com.intellectualcrafters.plot.object.PlotArea;
 import com.intellectualcrafters.plot.object.PlotPlayer;
 import com.intellectualcrafters.plot.util.expiry.ExpireManager;
-import com.plotsquared.bukkit.events.PlayerEnterPlotEvent;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -178,7 +177,6 @@ public class PlotTrim implements Listener {
             }
         });
         player.sendMessage("Done!");
-        PlayerEnterPlotEvent.getHandlerList().unregister(this);
     }
 
     private int count = 0;
