@@ -18,7 +18,6 @@ import com.intellectualcrafters.plot.util.MainUtil;
 import com.intellectualcrafters.plot.util.Permissions;
 import com.intellectualcrafters.plot.util.StringMan;
 import com.intellectualcrafters.plot.util.WorldUtil;
-import com.plotsquared.bukkit.object.BukkitPlayer;
 import com.plotsquared.general.commands.Command;
 import com.plotsquared.general.commands.CommandDeclaration;
 import com.sk89q.worldedit.EditSession;
@@ -78,7 +77,7 @@ public class PlotSetBiome extends Command {
                         .autoQueue(false)
                         .checkMemory(false)
                         .allowedRegionsEverywhere()
-                        .player(FawePlayer.wrap(((BukkitPlayer) player).player))
+                        .player(FawePlayer.wrap(player.getName()))
                         .limitUnlimited()
                         .build();
                         long seed = PseudoRandom.random.nextLong();

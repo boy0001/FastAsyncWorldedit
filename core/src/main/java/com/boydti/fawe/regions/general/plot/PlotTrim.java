@@ -23,7 +23,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import org.bukkit.Bukkit;
-import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.plugin.Plugin;
 
@@ -57,16 +56,6 @@ public class PlotTrim implements Listener {
 
     public void setChunk(int x, int z) {
         this.ids = ((MCAChunk) originalQueue.getFaweChunk(x, z)).ids;
-    }
-
-    @EventHandler
-    public void onPlotClaim(PlayerEnterPlotEvent event) {
-        // Allow deletion
-        Plot plot = event.getPlot();
-        if (plot.getMeta("checkFaweTrim") == null) {
-            plot.setMeta("checkFaweTrim", true);
-            removeChunks(plot);
-        }
     }
 
     private Map<Long, Object> chunks = new ConcurrentHashMap<>();
