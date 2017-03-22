@@ -177,7 +177,7 @@ public class SessionManager {
             try {
                 session = store.load(getKey(sessionKey));
                 session.postLoad();
-            } catch (IOException e) {
+            } catch (Throwable e) {
                 log.log(Level.WARNING, "Failed to load saved session", e);
                 session = new LocalSession();
             }
