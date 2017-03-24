@@ -628,8 +628,12 @@ public class LocalSession {
      */
     public RegionSelector getRegionSelector(World world) {
         checkNotNull(world);
-        if (selector.getWorld() == null || !selector.getWorld().equals(world)) {
-            selector.setWorld(world);
+        try {
+            if (selector.getWorld() == null || !selector.getWorld().equals(world)) {
+                selector.setWorld(world);
+                selector.clear();
+            }
+        } catch (Throwable ignore) {
             selector.clear();
         }
         return selector;
