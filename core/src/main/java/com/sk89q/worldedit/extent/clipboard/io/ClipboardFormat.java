@@ -358,6 +358,11 @@ public enum ClipboardFormat {
     }
 
     public ClipboardHolder[] loadAllFromDirectory(File dir, WorldData worldData) {
+        if (worldData == null) {
+            try {
+                worldData = WorldEdit.getInstance().getServer().getWorlds().get(0).getWorldData();
+            } catch (Throwable ignore) {}
+        }
         File[] files = dir.listFiles(new FileFilter() {
             @Override
             public boolean accept(File pathname) {

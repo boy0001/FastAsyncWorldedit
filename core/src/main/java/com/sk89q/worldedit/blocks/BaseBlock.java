@@ -66,7 +66,7 @@ public class BaseBlock extends Block implements TileEntityBlock, Pattern {
      * reasons), which coincides with the number of possible IDs that official
      * Minecraft supports as of version 1.7.
      */
-    public static final int MAX_ID = 4095;
+    public static final int MAX_ID = 65535;
 
     /**
      * Indicates the maximum data value (inclusive) that can be used. A future
@@ -149,10 +149,8 @@ public class BaseBlock extends Block implements TileEntityBlock, Pattern {
      */
     protected final void internalSetId(int id) {
         if (id > MAX_ID) {
-            throw new IllegalArgumentException("Can't have a block ID above "
-                    + MAX_ID + " (" + id + " given)");
+            throw new IllegalArgumentException("Can't have a block ID above " + MAX_ID + " (" + id + " given)");
         }
-
         if (id < 0) {
             throw new IllegalArgumentException("Can't have a block ID below 0");
         }
