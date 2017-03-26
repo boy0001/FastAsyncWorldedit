@@ -467,21 +467,12 @@ public class MCAChunk extends FaweChunk<Void> {
         }
     }
 
-    public void setIdUnsafe(int layer, int index, byte id) {
-        byte[] idsLayer = ids[layer];
+    public void setIdUnsafe(byte[] idsLayer, int index, byte id) {
         idsLayer[index] = id;
     }
 
-    public void setBlockUnsafe(int layer, int index, byte id, int data) {
-        byte[] idsLayer = ids[layer];
-        if (idsLayer == null) {
-            idsLayer = this.ids[layer] = new byte[4096];
-            this.data[layer] = new byte[2048];
-            this.skyLight[layer] = new byte[2048];
-            this.blockLight[layer] = new byte[2048];
-        }
+    public void setBlockUnsafe(byte[] idsLayer, byte[] dataLayer, int index, byte id, int data) {
         idsLayer[index] = id;
-        byte[] dataLayer = this.data[layer];
         setNibble(index, dataLayer, data);
     }
 

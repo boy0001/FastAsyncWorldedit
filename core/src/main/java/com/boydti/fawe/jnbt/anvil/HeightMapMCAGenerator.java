@@ -19,8 +19,6 @@ import com.sk89q.worldedit.regions.CuboidRegion;
 import com.sk89q.worldedit.session.ClipboardHolder;
 import com.sk89q.worldedit.world.biome.BaseBiome;
 import com.sk89q.worldedit.world.registry.WorldData;
-import it.unimi.dsi.fastutil.chars.Char2CharMap;
-import it.unimi.dsi.fastutil.chars.Char2CharOpenHashMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import java.awt.image.BufferedImage;
 import java.io.File;
@@ -34,7 +32,7 @@ public class HeightMapMCAGenerator implements Extent {
     private final MutableBlockVector mutable = new MutableBlockVector();
     private final ForkJoinPool pool = new ForkJoinPool();
 
-    final Int2ObjectOpenHashMap<Char2CharOpenHashMap> blocks = new Int2ObjectOpenHashMap<>();
+    final Int2ObjectOpenHashMap<char[][][]> blocks = new Int2ObjectOpenHashMap<>();
 
     private final byte[] heights;
     private final byte[] biomes;
@@ -139,14 +137,34 @@ public class HeightMapMCAGenerator implements Extent {
         short chunkX = (short) (x >> 4);
         short chunkZ = (short) (z >> 4);
         int pair = MathMan.pair(chunkX, chunkZ);
-        Char2CharOpenHashMap map = blocks.get(pair);
+        char[][][] map = blocks.get(pair);
         if (map == null) {
-            map = new Char2CharOpenHashMap();
+            map = new char[256][][];
             blocks.put(pair, map);
         }
-        char blockPair = (char) (((y >> 4) << 12) + (x & 15) + ((z & 15) << 4) + ((y & 15) << 8));
-        map.put(blockPair, combined != 0 ? combined : 1);
+        char[][] yMap = map[y];
+        if (yMap == null) {
+            map[y] = yMap = new char[16][];
+        }
+        z = z & 15;
+        char[] zMap = yMap[z];
+        if (zMap == null) {
+            yMap[z] = zMap = new char[16];
+        }
+        zMap[x & 15] = combined != 0 ? combined : 1;
         return true;
+    }
+
+    private char get(char[][][] map, int x, int y, int z) {
+        char[][] yMap = map[y];
+        if (yMap == null) {
+            return 0;
+        }
+        char[] zMap = yMap[z & 15];
+        if (zMap == null) {
+            return 0;
+        }
+        return zMap[x & 15];
     }
 
     @Override
@@ -179,10 +197,9 @@ public class HeightMapMCAGenerator implements Extent {
                 short chunkX = (short) (x >> 4);
                 short chunkZ = (short) (z >> 4);
                 int pair = MathMan.pair(chunkX, chunkZ);
-                Char2CharOpenHashMap map = blocks.get(pair);
+                char[][][] map = blocks.get(pair);
                 if (map != null) {
-                    char blockPair = (char)(((y >> 4) << 12) + (x & 15) + ((z & 15) << 4) + ((y & 15) << 8));
-                    char combined = map.get(blockPair);
+                    char combined = get(map, x, y, z);
                     if (combined != 0) {
                         return FaweCache.CACHE_BLOCK[combined];
                     }
@@ -196,10 +213,9 @@ public class HeightMapMCAGenerator implements Extent {
                 short chunkX = (short) (x >> 4);
                 short chunkZ = (short) (z >> 4);
                 int pair = MathMan.pair(chunkX, chunkZ);
-                Char2CharOpenHashMap map = blocks.get(pair);
+                char[][][] map = blocks.get(pair);
                 if (map != null) {
-                    char blockPair = (char)(((y >> 4) << 12) + (x & 15) + ((z & 15) << 4) + ((y & 15) << 8));
-                    char combined = map.get(blockPair);
+                    char combined = get(map, x, y, z);
                     if (combined != 0) {
                         return FaweCache.CACHE_BLOCK[combined];
                     }
@@ -702,7 +718,7 @@ public class HeightMapMCAGenerator implements Extent {
                         final int fcx = cx;
                         final int fcz = cz;
                         int chunkPair = MathMan.pair((short) cx, (short) cz);
-                        final Char2CharOpenHashMap localBlocks = blocks.get(chunkPair);
+                        final char[][][] localBlocks = blocks.get(chunkPair);
                         pool.submit(new Runnable() {
                             @Override
                             public void run() {
@@ -845,32 +861,41 @@ public class HeightMapMCAGenerator implements Extent {
                                             }
                                         }
                                     }
-                                    if (localBlocks != null && !localBlocks.isEmpty()) {
-                                        for (Char2CharMap.Entry entry : localBlocks.char2CharEntrySet()) {
-                                            char key = entry.getCharKey();
-                                            char combined = entry.getCharValue();
-                                            byte id = (byte) FaweCache.getId(combined);
-
-                                            int and = key & 4095;
-                                            int y = ((key >> 12) << 4) + (and >> 8);
-                                            int x = and & 0xF;
-                                            int z = (and >> 4) & 0xF;
-                                            int layer = key >> 12;
-                                            int localIndex = key & 4095;
-                                            if (!FaweCache.hasData(id)) {
-                                                if (chunk.ids[layer] == null) {
-                                                    chunk.ids[layer] = new byte[4096];
-                                                    chunk.data[layer] = new byte[2048];
-                                                    chunk.skyLight[layer] = new byte[2048];
-                                                    chunk.blockLight[layer] = new byte[2048];
+                                    if (localBlocks != null) {
+                                        for (int layer = 0; layer < 16; layer++) {
+                                            int by = layer << 4;
+                                            int ty = by + 15;
+                                            index = 0;
+                                            for (int y = by; y <= ty; y++, index += 256) {
+                                                char[][] yBlocks = localBlocks[y];
+                                                if (yBlocks != null) {
+                                                    if (chunk.ids[layer] == null) {
+                                                        chunk.ids[layer] = new byte[4096];
+                                                        chunk.data[layer] = new byte[2048];
+                                                        chunk.skyLight[layer] = new byte[2048];
+                                                        chunk.blockLight[layer] = new byte[2048];
+                                                    }
+                                                    byte[] idsLayer = chunk.ids[layer];
+                                                    byte[] dataLayer = chunk.data[layer];
+                                                    for (int z = 0; z < yBlocks.length; z++) {
+                                                        char[] zBlocks = yBlocks[z];
+                                                        if (zBlocks != null) {
+                                                            int zIndex = index + (z << 4);
+                                                            for (int x = 0; x < zBlocks.length; x++, zIndex++) {
+                                                                char combined = zBlocks[x];
+                                                                if (combined == 0) continue;
+                                                                int id = FaweCache.getId(combined);
+                                                                if (!FaweCache.hasData(id)) {
+                                                                    chunk.setIdUnsafe(idsLayer, zIndex, (byte) id);
+                                                                } else {
+                                                                    chunk.setBlockUnsafe(idsLayer, dataLayer, zIndex, (byte) id, FaweCache.getData(combined));
+                                                                }
+                                                            }
+                                                        }
+                                                    }
                                                 }
-                                                chunk.setIdUnsafe(layer, localIndex, id);
-                                            } else {
-                                                int data = FaweCache.getData(combined);
-                                                chunk.setBlockUnsafe(layer, localIndex, id, data);
                                             }
                                         }
-
                                     }
                                     chunk.setLoc(null, fcx, fcz);
                                     byte[] bytes = chunk.toBytes(byteStore1.get());

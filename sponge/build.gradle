@@ -77,7 +77,7 @@ shadowJar {
         include(dependency(':core'))
         include(dependency('com.github.luben:zstd-jni:1.1.1'))
 //        include(dependency('org.javassist:javassist:3.22.0-CR1'))
-        include(dependency('it.unimi.dsi:fastutil:6.5.1'))
+        include(dependency('co.aikar:fastutil-lite:1.0'))
         include(dependency(name: 'worldedit-core-6.1.7-SNAPSHOT-dist'))
         include(dependency('com.sk89q.worldedit:worldedit-sponge:6.1.7-SNAPSHOT'))
         include(dependency('org.yaml:snakeyaml:1.16'))
