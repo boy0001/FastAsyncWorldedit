@@ -13,7 +13,7 @@ import com.boydti.fawe.util.MainUtil;
 import com.boydti.fawe.util.MathMan;
 import com.sk89q.jnbt.NBTInputStream;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
-import it.unimi.dsi.fastutil.io.FastBufferedInputStream;
+import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
 import java.io.File;
 import java.io.IOException;
@@ -264,7 +264,7 @@ public class MCAFile {
             FastByteArrayInputStream bais = new FastByteArrayInputStream(data);
             InflaterInputStream iis = new InflaterInputStream(bais, new Inflater(), 1);
             fieldBuf2.set(iis, byteStore2.get());
-            FastBufferedInputStream bis = new FastBufferedInputStream(iis, byteStore1.get());
+            BufferedInputStream bis = new BufferedInputStream(iis);
             NBTInputStream nis = new NBTInputStream(bis);
             fieldBuf3.set(nis, byteStore3.get());
             return nis;

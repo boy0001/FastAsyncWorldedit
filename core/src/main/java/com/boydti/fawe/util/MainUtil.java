@@ -24,7 +24,7 @@ import com.sk89q.jnbt.Tag;
 import com.sk89q.worldedit.entity.Entity;
 import com.sk89q.worldedit.history.changeset.ChangeSet;
 import com.sk89q.worldedit.util.Location;
-import it.unimi.dsi.fastutil.io.FastBufferedInputStream;
+import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
@@ -343,14 +343,14 @@ public class MainUtil {
 
     public static FaweInputStream getCompressedIS(InputStream is, int buffer) throws IOException {
         int amount = (byte) is.read();
-        is = new FastBufferedInputStream(is, buffer);
+        is = new BufferedInputStream(is, buffer);
         if (amount == 0) {
             return new FaweInputStream(is);
         }
         int amountAbs = Math.abs(amount);
         if (amountAbs > 6) {
             if (amount > 0) {
-                is = new FastBufferedInputStream(new GZIPInputStream(is, buffer));
+                is = new BufferedInputStream(new GZIPInputStream(is, buffer));
             } else {
                 is = new ZstdInputStream(is);
             }

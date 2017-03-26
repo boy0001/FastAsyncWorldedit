@@ -52,7 +52,7 @@ import com.sk89q.worldedit.extent.clipboard.BlockArrayClipboard;
 import com.sk89q.worldedit.extent.clipboard.Clipboard;
 import com.sk89q.worldedit.session.ClipboardHolder;
 import com.sk89q.worldedit.world.registry.WorldData;
-import it.unimi.dsi.fastutil.io.FastBufferedInputStream;
+import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
 import java.io.DataInputStream;
 import java.io.File;
@@ -94,8 +94,8 @@ public enum ClipboardFormat {
             if (inputStream instanceof FileInputStream) {
                 inputStream = new ResettableFileInputStream((FileInputStream) inputStream);
             }
-            FastBufferedInputStream buffered = new FastBufferedInputStream(inputStream);
-            NBTInputStream nbtStream = new NBTInputStream(new FastBufferedInputStream(new GZIPInputStream(buffered)));
+            BufferedInputStream buffered = new BufferedInputStream(inputStream);
+            NBTInputStream nbtStream = new NBTInputStream(new BufferedInputStream(new GZIPInputStream(buffered)));
             SchematicReader input = new SchematicReader(nbtStream);
             input.setUnderlyingStream(inputStream);
             return input;
@@ -151,8 +151,8 @@ public enum ClipboardFormat {
     STRUCTURE(new AbstractClipboardFormat("STRUCTURE", "structure", "nbt") {
         @Override
         public ClipboardReader getReader(InputStream inputStream) throws IOException {
-            inputStream = new FastBufferedInputStream(inputStream);
-            NBTInputStream nbtStream = new NBTInputStream(new FastBufferedInputStream(new GZIPInputStream(inputStream)));
+            inputStream = new BufferedInputStream(inputStream);
+            NBTInputStream nbtStream = new NBTInputStream(new BufferedInputStream(new GZIPInputStream(inputStream)));
             return new StructureFormat(nbtStream);
         }
 
