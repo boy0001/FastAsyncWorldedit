@@ -15,7 +15,7 @@ import com.intellectualcrafters.plot.object.PlotPlayer;
 import com.intellectualcrafters.plot.object.RunnableVal2;
 import com.intellectualcrafters.plot.object.RunnableVal3;
 import com.intellectualcrafters.plot.object.worlds.SinglePlotArea;
-import com.plotsquared.bukkit.util.BukkitSetupUtils;
+import com.intellectualcrafters.plot.util.SetupUtils;
 import com.plotsquared.general.commands.Command;
 import com.plotsquared.general.commands.CommandDeclaration;
 import com.sk89q.worldedit.event.platform.CommandEvent;
@@ -55,7 +55,7 @@ public class ReplaceAll extends Command {
                             TaskManager.IMP.sync(new RunnableVal<Object>() {
                                 @Override
                                 public void run(Object value) {
-                                    BukkitSetupUtils.manager.unload(worldName, true);
+                                    SetupUtils.manager.unload(worldName, true);
                                 }
                             });
                             FakePlayer actor = FakePlayer.getConsole();
