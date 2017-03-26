@@ -48,12 +48,17 @@ public class HeightMapMCAGenerator implements Extent {
     private boolean modifiedMain = false;
 
     public HeightMapMCAGenerator(BufferedImage img, File regionFolder) {
+        this(img.getWidth(), img.getHeight(), regionFolder);
+        setHeight(img);
+    }
+
+    public HeightMapMCAGenerator(int width, int length, File regionFolder) {
         if (!regionFolder.exists()) {
             regionFolder.mkdirs();
         }
         this.folder = regionFolder;
-        this.width = img.getWidth();
-        this.length = img.getHeight();
+        this.width = width;
+        this.length = length;
         this.area = width * length;
         heights = new byte[area];
         biomes = new byte[area];
@@ -63,6 +68,9 @@ public class HeightMapMCAGenerator implements Extent {
         char grass = (char) FaweCache.getCombined(2, 0);
         Arrays.fill(main, stone);
         Arrays.fill(floor, grass);
+    }
+
+    public void setHeight(BufferedImage img) {
         int index = 0;
         for (int z = 0; z < length; z++) {
             for (int x = 0; x < width; x++, index++){

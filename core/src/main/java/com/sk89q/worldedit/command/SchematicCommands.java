@@ -308,14 +308,18 @@ public class SchematicCommands {
     )
     @CommandPermissions("worldedit.schematic.list")
     public void list(Actor actor, CommandContext args, @Switch('p') @Optional("1") int page) throws WorldEditException {
-        if (Settings.IMP.PATHS.PER_PLAYER_SCHEMATICS) {
-
-        }
-
         File dir = worldEdit.getWorkingDirectoryFile(worldEdit.getConfiguration().saveDir);
-        List<File> fileList = allFiles(dir, true);
-
-        if (fileList == null || fileList.isEmpty()) {
+        List<File> fileList = new ArrayList<>();
+        if (Settings.IMP.PATHS.PER_PLAYER_SCHEMATICS) {
+            File playerDir = new File(dir, actor.getUniqueId().toString());
+            if (playerDir.exists()) {
+                fileList.addAll(allFiles(playerDir, true));
+            }
+            fileList.addAll(allFiles(dir, false));
+        } else {
+            fileList.addAll(allFiles(dir, true));
+        }
+        if (fileList.isEmpty()) {
             BBC.SCHEMATIC_NONE.send(actor);
             return;
         }
