@@ -24,8 +24,10 @@ import com.sk89q.jnbt.CompoundTag;
 import com.sk89q.jnbt.StringTag;
 import com.sk89q.jnbt.Tag;
 import com.sk89q.worldedit.CuboidClipboard.FlipDirection;
+import com.sk89q.worldedit.Vector;
 import com.sk89q.worldedit.foundation.Block;
 import com.sk89q.worldedit.function.mask.Mask;
+import com.sk89q.worldedit.function.pattern.Pattern;
 import com.sk89q.worldedit.world.registry.WorldData;
 
 import javax.annotation.Nullable;
@@ -55,7 +57,7 @@ import java.util.Collection;
  * more appropriate.</p>
  */
 @SuppressWarnings("deprecation")
-public class BaseBlock extends Block implements TileEntityBlock {
+public class BaseBlock extends Block implements TileEntityBlock, Pattern {
 
     /**
      * Indicates the highest possible block ID (inclusive) that can be used.
@@ -418,6 +420,16 @@ public class BaseBlock extends Block implements TileEntityBlock {
 
     public boolean isImmutable() {
         return false;
+    }
+
+    @Override
+    public BaseBlock apply(Vector position) {
+        return this;
+    }
+
+    @Override
+    public BaseBlock apply(int x, int y, int z) {
+        return this;
     }
 
     public static Class<BaseBlock> inject() {
