@@ -21,6 +21,76 @@ public class MathMan {
         }
     }
 
+    private static float[] ANGLES = new float[65536];
+
+    public static float sinInexact(double paramFloat) {
+        return ANGLES[(int)(paramFloat * 10430.378F) & 0xFFFF];
+    }
+
+    public static float cosInexact(double paramFloat) {
+        return ANGLES[(int)(paramFloat * 10430.378F + 16384.0F) & 0xFFFF];
+    }
+
+    public static int floorZero(double d0) {
+        int i = (int)d0;
+        return d0 < (double) i ? i - 1 : i;
+    }
+
+    public static double max(double... values) {
+        double max = Double.MIN_VALUE;
+        for (double d : values) {
+            if (d > max) {
+                max = d;
+            }
+        }
+        return max;
+    }
+
+    public static int max(int... values) {
+        int max = Integer.MIN_VALUE;
+        for (int d : values) {
+            if (d > max) {
+                max = d;
+            }
+        }
+        return max;
+    }
+
+    public static int min(int... values) {
+        int min = Integer.MAX_VALUE;
+        for (int d : values) {
+            if (d < min) {
+                min = d;
+            }
+        }
+        return min;
+    }
+
+    public static double min(double... values) {
+        double min = Double.MAX_VALUE;
+        for (double d : values) {
+            if (d < min) {
+                min = d;
+            }
+        }
+        return min;
+    }
+
+    public static int ceilZero(float floatNumber) {
+        int floor = (int)floatNumber;
+        return floatNumber > (float) floor ? floor + 1 : floor;
+    }
+
+    public static int clamp(int check, int min, int max) {
+        return check > max?max:(check < min?min:check);
+    }
+
+    static {
+        for(int i = 0; i < 65536; ++i) {
+            ANGLES[i] = (float)Math.sin((double)i * 3.141592653589793D * 2.0D / 65536.0D);
+        }
+    }
+
     private final static int[] table = {
             0,    16,  22,  27,  32,  35,  39,  42,  45,  48,  50,  53,  55,  57,
             59,   61,  64,  65,  67,  69,  71,  73,  75,  76,  78,  80,  81,  83,

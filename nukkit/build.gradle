@@ -23,8 +23,8 @@ jar.enabled = false
 shadowJar {
     dependencies {
         include(dependency('com.github.luben:zstd-jni:1.1.1'))
-        include(dependency('org.javassist:javassist:3.22.0-CR1'))
-        include(dependency('co.aikar:fastutil-lite:1.0'))
+//        include(dependency('org.javassist:javassist:3.22.0-CR1'))
+        include(dependency('it.unimi.dsi:fastutil:6.5.1'))
         include(dependency(name: 'worldedit-core-6.1.4-SNAPSHOT-dist'))
         include(dependency('com.google.code.gson:gson:2.2.4'))
         include(dependency('org.yaml:snakeyaml:1.16'))

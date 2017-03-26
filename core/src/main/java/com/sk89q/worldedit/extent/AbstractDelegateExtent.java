@@ -117,6 +117,7 @@ public abstract class AbstractDelegateExtent implements LightingExtent {
 
     private MutableBlockVector mutable = new MutableBlockVector(0,0,0);
 
+    @Override
     public BaseBlock getLazyBlock(int x, int y, int z) {
         mutable.mutX(x);
         mutable.mutY(y);
@@ -129,6 +130,7 @@ public abstract class AbstractDelegateExtent implements LightingExtent {
         return extent.getLazyBlock(position);
     }
 
+    @Override
     public boolean setBlock(int x, int y, int z, BaseBlock block) throws WorldEditException {
         mutable.mutX(x);
         mutable.mutY(y);

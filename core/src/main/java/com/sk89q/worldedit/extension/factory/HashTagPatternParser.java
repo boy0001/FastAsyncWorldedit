@@ -22,6 +22,7 @@ import com.boydti.fawe.object.pattern.RelativePattern;
 import com.boydti.fawe.object.pattern.SolidRandomOffsetPattern;
 import com.boydti.fawe.object.pattern.SurfaceRandomOffsetPattern;
 import com.boydti.fawe.util.MainUtil;
+import com.boydti.fawe.util.MathMan;
 import com.boydti.fawe.util.StringMan;
 import com.sk89q.worldedit.EditSession;
 import com.sk89q.worldedit.EmptyClipboardException;
@@ -122,7 +123,7 @@ public class HashTagPatternParser extends FaweParser<Pattern> {
                 switch (split2[0].toLowerCase()) {
                     case "#*":
                     case "#existing": {
-                        return new ExistingPattern(Request.request().getEditSession());
+                        return new ExistingPattern(Request.request().getExtent());
                     }
                     case "#clipboard":
                     case "#copy": {
@@ -151,7 +152,7 @@ public class HashTagPatternParser extends FaweParser<Pattern> {
                                             throw new InputParseException("#fullcopy:<source>");
                                         }
                                         boolean random = split2.length == 3 && split2[2].equalsIgnoreCase("true");
-                                        return new RandomFullClipboardPattern(Request.request().getEditSession(), context.requireWorld().getWorldData(), clipboards, random);
+                                        return new RandomFullClipboardPattern(Request.request().getExtent(), context.requireWorld().getWorldData(), clipboards, random);
 
                                     } catch (IOException e) {
                                         throw new RuntimeException(e);
@@ -159,7 +160,7 @@ public class HashTagPatternParser extends FaweParser<Pattern> {
                                 }
                                 ClipboardHolder holder = session.getClipboard();
                                 Clipboard clipboard = holder.getClipboard();
-                                return new FullClipboardPattern(Request.request().getEditSession(), clipboard);
+                                return new FullClipboardPattern(Request.request().getExtent(), clipboard);
                             } catch (EmptyClipboardException e) {
                                 throw new InputParseException("To use #fullcopy, please first copy something to your clipboard");
                             }
@@ -168,17 +169,20 @@ public class HashTagPatternParser extends FaweParser<Pattern> {
                         }
                     }
                     case "#id": {
-                        return new IdPattern(Request.request().getEditSession(), catchSuggestion(input, rest, context));
+                        return new IdPattern(Request.request().getExtent(), catchSuggestion(input, rest, context));
                     }
                     case "#data": {
-                        return new DataPattern(Request.request().getEditSession(), catchSuggestion(input, rest, context));
+                        return new DataPattern(Request.request().getExtent(), catchSuggestion(input, rest, context));
                     }
                     case "#biome": {
+                        if (MathMan.isInteger(rest)) {
+                            return new BiomePattern(Request.request().getExtent(), new BaseBiome(Integer.parseInt(rest)));
+                        }
                         World world = context.requireWorld();
                         BiomeRegistry biomeRegistry = world.getWorldData().getBiomeRegistry();
                         List<BaseBiome> knownBiomes = biomeRegistry.getBiomes();
                         BaseBiome biome = Biomes.findBiomeByName(knownBiomes, rest, biomeRegistry);
-                        return new BiomePattern(Request.request().getEditSession(), biome);
+                        return new BiomePattern(Request.request().getExtent(), biome);
                     }
                     case "#~":
                     case "#r":
@@ -272,6 +276,9 @@ public class HashTagPatternParser extends FaweParser<Pattern> {
                     }
                     case "#l":
                     case "#linear": {
+                        if (rest.startsWith("\"") && rest.endsWith("\"")) {
+                            rest = rest.substring(1, rest.length() - 1);
+                        }
                         ArrayList<Pattern> patterns = new ArrayList<>();
                         for (String token : StringMan.split(rest, ',')) {
                             patterns.add(catchSuggestion(input, token, context));
@@ -283,6 +290,9 @@ public class HashTagPatternParser extends FaweParser<Pattern> {
                     }
                     case "#l3d":
                     case "#linear3d": {
+                        if (rest.startsWith("\"") && rest.endsWith("\"")) {
+                            rest = rest.substring(1, rest.length() - 1);
+                        }
                         ArrayList<Pattern> patterns = new ArrayList<>();
                         for (String token : StringMan.split(rest, ',')) {
                             patterns.add(catchSuggestion(input, token, context));

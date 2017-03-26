@@ -100,7 +100,7 @@ public class SelectionCommand extends SimpleCommand<Operation> {
                     FawePlayer fp = FawePlayer.wrap(player);
                     FaweRegionExtent regionExtent = editSession.getRegionExtent();
 
-                    if (function instanceof BlockReplace && regionExtent == null) {
+                    if (function instanceof BlockReplace && regionExtent == null || regionExtent.isGlobal()) {
                         try {
                             BlockReplace replace = ((BlockReplace) function);
                             Field field = replace.getClass().getDeclaredField("pattern");
@@ -148,7 +148,6 @@ public class SelectionCommand extends SimpleCommand<Operation> {
                                     }
                                 });
                                 queue.enqueue();
-                                long start = System.currentTimeMillis();
                                 BBC.OPERATION.send(actor, BBC.VISITOR_BLOCK.format(cuboid.getArea()));
                                 queue.flush();
                                 return null;

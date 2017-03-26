@@ -293,11 +293,13 @@ public class SchematicCommands {
         }
     }
 
+    // schem list all|mine|global page
+
     @Command(
             aliases = {"list", "all", "ls"},
             desc = "List saved schematics",
             min = 0,
-            max = 1,
+            max = 2,
             flags = "dnp",
             help = "List all schematics in the schematics directory\n" +
                     " -d sorts by date, oldest first\n" +
@@ -306,8 +308,12 @@ public class SchematicCommands {
     )
     @CommandPermissions("worldedit.schematic.list")
     public void list(Actor actor, CommandContext args, @Switch('p') @Optional("1") int page) throws WorldEditException {
+        if (Settings.IMP.PATHS.PER_PLAYER_SCHEMATICS) {
+
+        }
+
         File dir = worldEdit.getWorkingDirectoryFile(worldEdit.getConfiguration().saveDir);
-        List<File> fileList = allFiles(dir);
+        List<File> fileList = allFiles(dir, true);
 
         if (fileList == null || fileList.isEmpty()) {
             BBC.SCHEMATIC_NONE.send(actor);
@@ -367,13 +373,13 @@ public class SchematicCommands {
     }
 
 
-    private List<File> allFiles(File root) {
+    private List<File> allFiles(File root, boolean recursive) {
         File[] files = root.listFiles();
         if (files == null) return null;
         List<File> fileList = new ArrayList<File>();
         for (File f : files) {
-            if (f.isDirectory()) {
-                List<File> subFiles = allFiles(f);
+            if (recursive && f.isDirectory()) {
+                List<File> subFiles = allFiles(f, recursive);
                 if (subFiles == null) continue; // empty subdir
                 fileList.addAll(subFiles);
             } else {

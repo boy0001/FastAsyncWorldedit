@@ -141,6 +141,17 @@ public class BufferedRandomAccessFile extends RandomAccessFile
         this.init(size);
     }
 
+    public BufferedRandomAccessFile(File file, String mode, byte[] buf) throws FileNotFoundException
+    {
+        super(file, mode);
+        this.dirty_ = this.closed_ = false;
+        this.lo_ = this.curr_ = this.hi_ = 0;
+        this.buff_ = buf;
+        this.maxHi_ = (long) BuffSz_;
+        this.hitEOF_ = false;
+        this.diskPos_ = 0L;
+    }
+
     private void init(int size)
     {
         this.dirty_ = this.closed_ = false;

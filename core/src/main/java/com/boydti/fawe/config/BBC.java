@@ -123,6 +123,8 @@ public enum BBC {
     BRUSH_SPHERE("Sphere brush shape equipped (%s0).", "WorldEdit.Brush"),
     BRUSH_SCATTER("Scatter brush shape equipped (%s0, %s1).", "WorldEdit.Brush"),
     BRUSH_SHATTER("Shatter brush shape equipped (%s0, %s1).", "WorldEdit.Brush"),
+    BRUSH_POPULATE("Populate brush shape equipped (%s0, %s1).", "WorldEdit.Brush"),
+    BRUSH_LAYER("Layer brush shape equipped (%s0, %s1).", "WorldEdit.Brush"),
     BRUSH_STENCIL("Stencil brush equipped (%s0).", "WorldEdit.Brush"),
     BRUSH_LINE("Line brush shape equipped (%s0).", "WorldEdit.Brush"),
     BRUSH_SPLINE("Spline brush shape equipped (%s0). Right click an end to add a shape", "WorldEdit.Brush"),

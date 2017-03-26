@@ -1,5 +1,6 @@
 package com.sk89q.worldedit.function.pattern;
 
+import com.boydti.fawe.FaweCache;
 import com.sk89q.worldedit.Vector;
 import com.sk89q.worldedit.blocks.BaseBlock;
 
@@ -12,6 +13,14 @@ public class BlockPattern implements Pattern {
 
     public BlockPattern(BaseBlock block) {
         this.block = block;
+    }
+
+    public BlockPattern(int id) {
+        this.block = FaweCache.getBlock(id, 0);
+    }
+
+    public BlockPattern(int id, int data) {
+        this.block = FaweCache.getBlock(id, data);
     }
 
     @Override

@@ -295,6 +295,14 @@ public abstract class FaweChunk<T> implements Callable<FaweChunk> {
 
     public abstract void setBiome(final int x, final int z, final byte biome);
 
+    public void setBiome(final byte biome) {
+        for (int z = 0; z < 16; z++) {
+            for (int x = 0; x < 16; x++) {
+                setBiome(x, z, biome);
+            }
+        }
+    }
+
     /**
      * Spend time now so that the chunk can be more efficiently dispatched later<br>
      *     - Modifications after this call will be ignored

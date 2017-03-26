@@ -58,6 +58,7 @@ public abstract class BreadthFirstSearch implements Operation {
     private BlockVectorSet visited;
     private final MappedFaweQueue mFaweQueue;
     private BlockVectorSet queue;
+    private int currentDepth = 0;
     private final int maxDepth;
     private int affected = 0;
     private int maxBranch = Integer.MAX_VALUE;
@@ -107,6 +108,12 @@ public abstract class BreadthFirstSearch implements Operation {
         }
     }
 
+    public void resetVisited() {
+        queue.clear();
+        visited.clear();
+        affected = 0;
+    }
+
     public void setVisited(BlockVectorSet set) {
         this.visited = set;
     }
@@ -131,7 +138,7 @@ public abstract class BreadthFirstSearch implements Operation {
         IntegerTrio[] dirs = getIntDirections();
         BlockVectorSet tempQueue = new BlockVectorSet();
         BlockVectorSet chunkLoadSet = new BlockVectorSet();
-        for (int layer = 0; !queue.isEmpty() && layer <= maxDepth; layer++) {
+        for (currentDepth = 0; !queue.isEmpty() && currentDepth <= maxDepth; currentDepth++) {
             if (mFaweQueue != null && Settings.IMP.QUEUE.PRELOAD_CHUNKS > 1) {
                 int cx = Integer.MIN_VALUE;
                 int cz = Integer.MIN_VALUE;
@@ -176,7 +183,7 @@ public abstract class BreadthFirstSearch implements Operation {
                     }
                 }
             }
-            if (layer == maxDepth) {
+            if (currentDepth == maxDepth) {
                 break;
             }
             int size = queue.size();
@@ -188,6 +195,10 @@ public abstract class BreadthFirstSearch implements Operation {
 
         }
         return null;
+    }
+
+    public int getDepth() {
+        return currentDepth;
     }
 
     @Override

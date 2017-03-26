@@ -195,7 +195,8 @@ public abstract class BukkitQueue_0<CHUNK, CHUNKSECTIONS, SECTION> extends NMSMa
 
     @Override
     public boolean hasSky() {
-        return getWorld().getEnvironment() == World.Environment.NORMAL;
+        World world = getWorld();
+        return world == null || world.getEnvironment() == World.Environment.NORMAL;
     }
 
     private volatile boolean timingsEnabled;

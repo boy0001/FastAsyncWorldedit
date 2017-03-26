@@ -1,10 +1,9 @@
 package com.boydti.fawe.object.extent;
 
-import com.boydti.fawe.FaweCache;
 import com.boydti.fawe.config.BBC;
 import com.boydti.fawe.object.FaweLimit;
-import com.boydti.fawe.object.RegionWrapper;
 import com.boydti.fawe.util.WEManager;
+import com.sk89q.jnbt.CompoundTag;
 import com.sk89q.worldedit.EditSession;
 import com.sk89q.worldedit.Vector;
 import com.sk89q.worldedit.Vector2D;
@@ -17,25 +16,16 @@ import com.sk89q.worldedit.extent.Extent;
 import com.sk89q.worldedit.regions.Region;
 import com.sk89q.worldedit.util.Location;
 import com.sk89q.worldedit.world.biome.BaseBiome;
-import java.util.Arrays;
-import java.util.Collection;
 import java.util.List;
 
-public class ProcessedWEExtent extends FaweRegionExtent {
+public class ProcessedWEExtent extends AbstractDelegateExtent {
     private final FaweLimit limit;
-    private final RegionWrapper[] mask;
     private final AbstractDelegateExtent extent;
 
-    public ProcessedWEExtent(final Extent parent, final RegionWrapper[] mask, FaweLimit limit) {
+    public ProcessedWEExtent(final Extent parent, FaweLimit limit) {
         super(parent);
-        this.mask = mask;
         this.limit = limit;
         this.extent = (AbstractDelegateExtent) parent;
-    }
-
-    @Override
-    public Collection<RegionWrapper> getRegions() {
-        return Arrays.asList(mask);
     }
 
     public void setLimit(FaweLimit other) {
@@ -47,16 +37,11 @@ public class ProcessedWEExtent extends FaweRegionExtent {
         if (entity == null) {
             return null;
         }
-        if (WEManager.IMP.maskContains(this.mask, location.getBlockX(), location.getBlockZ())) {
-            if (!limit.MAX_ENTITIES()) {
-                WEManager.IMP.cancelEditSafe(this, BBC.WORLDEDIT_CANCEL_REASON_MAX_ENTITIES);
-                return null;
-            }
-            return super.createEntity(location, entity);
-        } else if (!limit.MAX_FAILS()) {
-            WEManager.IMP.cancelEditSafe(this, BBC.WORLDEDIT_CANCEL_REASON_MAX_FAILS);
+        if (!limit.MAX_ENTITIES()) {
+            WEManager.IMP.cancelEditSafe(this, BBC.WORLDEDIT_CANCEL_REASON_MAX_ENTITIES);
+            return null;
         }
-        return null;
+        return super.createEntity(location, entity);
     }
 
     @Override
@@ -74,23 +59,13 @@ public class ProcessedWEExtent extends FaweRegionExtent {
         return super.getEntities(region);
     }
 
-    int count = 0;
-
     @Override
     public BaseBlock getLazyBlock(int x, int y, int z) {
-        count++;
-        if (WEManager.IMP.maskContains(this.mask, x, z)) {
-            if (!limit.MAX_CHECKS()) {
-                WEManager.IMP.cancelEditSafe(this, BBC.WORLDEDIT_CANCEL_REASON_MAX_CHECKS);
-                return EditSession.nullBlock;
-            } else {
-                return extent.getLazyBlock(x, y, z);
-            }
-        } else if (!limit.MAX_FAILS()) {
-            WEManager.IMP.cancelEditSafe(this, BBC.WORLDEDIT_CANCEL_REASON_MAX_FAILS);
+        if (!limit.MAX_CHECKS()) {
+            WEManager.IMP.cancelEditSafe(this, BBC.WORLDEDIT_CANCEL_REASON_MAX_CHECKS);
             return EditSession.nullBlock;
         } else {
-            return EditSession.nullBlock;
+            return extent.getLazyBlock(x, y, z);
         }
     }
 
@@ -106,56 +81,33 @@ public class ProcessedWEExtent extends FaweRegionExtent {
 
     @Override
     public boolean setBlock(int x, int y, int z, BaseBlock block) throws WorldEditException {
-        if (block.hasNbtData() && FaweCache.hasNBT(block.getType())) {
+        CompoundTag nbt = block.getNbtData();
+        if (nbt != null) {
             if (!limit.MAX_BLOCKSTATES()) {
                 WEManager.IMP.cancelEdit(this, BBC.WORLDEDIT_CANCEL_REASON_MAX_TILES);
                 return false;
-            } else if (WEManager.IMP.maskContains(this.mask, x, z)) {
+            } else {
                 if (!limit.MAX_CHANGES()) {
                     WEManager.IMP.cancelEdit(this, BBC.WORLDEDIT_CANCEL_REASON_MAX_CHANGES);
                     return false;
                 }
                 return extent.setBlock(x, y, z, block);
-            } else if (!limit.MAX_FAILS()) {
-                WEManager.IMP.cancelEdit(this, BBC.WORLDEDIT_CANCEL_REASON_MAX_FAILS);
-                return false;
-            } else {
-                return false;
             }
         }
-        if (WEManager.IMP.maskContains(this.mask, x, z)) {
-            if (!limit.MAX_CHANGES()) {
-                WEManager.IMP.cancelEdit(this, BBC.WORLDEDIT_CANCEL_REASON_MAX_CHANGES);
-                return false;
-            } else {
-                return extent.setBlock(x, y, z, block);
-            }
-        } else if (!limit.MAX_FAILS()) {
-            WEManager.IMP.cancelEdit(this, BBC.WORLDEDIT_CANCEL_REASON_MAX_FAILS);
+        if (!limit.MAX_CHANGES()) {
+            WEManager.IMP.cancelEdit(this, BBC.WORLDEDIT_CANCEL_REASON_MAX_CHANGES);
             return false;
         } else {
-            return false;
+            return extent.setBlock(x, y, z, block);
         }
     }
 
     @Override
     public boolean setBiome(final Vector2D position, final BaseBiome biome) {
-        if (WEManager.IMP.maskContains(this.mask, position.getBlockX(), position.getBlockZ())) {
-            if (!limit.MAX_CHANGES()) {
-                WEManager.IMP.cancelEditSafe(this, BBC.WORLDEDIT_CANCEL_REASON_MAX_CHANGES);
-                return false;
-            }
-            return super.setBiome(position, biome);
-        } else if (!limit.MAX_FAILS()) {
-            WEManager.IMP.cancelEditSafe(this, BBC.WORLDEDIT_CANCEL_REASON_MAX_FAILS);
-            return false;
-        } else {
+        if (!limit.MAX_CHANGES()) {
+            WEManager.IMP.cancelEditSafe(this, BBC.WORLDEDIT_CANCEL_REASON_MAX_CHANGES);
             return false;
         }
-    }
-
-    @Override
-    public boolean contains(int x, int y, int z) {
-        return WEManager.IMP.maskContains(this.mask, x, z);
+        return super.setBiome(position, biome);
     }
 }

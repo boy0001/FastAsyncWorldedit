@@ -58,8 +58,8 @@ shadowJar {
     relocate 'org.yaml.snakeyaml', 'com.boydti.fawe.yaml'
     dependencies {
         include(dependency('com.github.luben:zstd-jni:1.1.1'))
-        include(dependency('org.javassist:javassist:3.22.0-CR1'))
-        include(dependency('co.aikar:fastutil-lite:1.0'))
+//        include(dependency('org.javassist:javassist:3.22.0-CR1'))
+        include(dependency('it.unimi.dsi:fastutil:6.5.1'))
         include(dependency(':core'))
         include(dependency('org.yaml:snakeyaml:1.16'))
     }

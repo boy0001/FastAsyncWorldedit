@@ -5,11 +5,15 @@ import com.boydti.fawe.jnbt.NBTStreamer;
 import com.boydti.fawe.object.FaweChunk;
 import com.boydti.fawe.object.FaweQueue;
 import com.boydti.fawe.object.RunnableVal2;
+import com.boydti.fawe.object.io.FastByteArrayOutputStream;
 import com.boydti.fawe.util.MainUtil;
 import com.boydti.fawe.util.MathMan;
 import com.sk89q.jnbt.CompoundTag;
 import com.sk89q.jnbt.ListTag;
+import com.sk89q.jnbt.NBTConstants;
 import com.sk89q.jnbt.NBTInputStream;
+import com.sk89q.jnbt.NBTOutputStream;
+import java.io.DataOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -18,6 +22,9 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
+
+
+import static com.google.common.base.Preconditions.checkNotNull;
 
 public class MCAChunk extends FaweChunk<Void> {
 
@@ -46,6 +53,65 @@ public class MCAChunk extends FaweChunk<Void> {
     public int compressedSize;
     private boolean modified;
     private boolean deleted;
+
+    public byte[] toBytes(byte[] buffer) throws IOException {
+        checkNotNull(buffer);
+        if (buffer == null) {
+            buffer = new byte[8192];
+        }
+        FastByteArrayOutputStream buffered = new FastByteArrayOutputStream(buffer);
+        DataOutputStream dataOut = new DataOutputStream(buffered);
+        NBTOutputStream nbtOut = new NBTOutputStream(dataOut);
+        nbtOut.writeNamedTagName("", NBTConstants.TYPE_COMPOUND);
+        nbtOut.writeLazyCompoundTag("Level", new NBTOutputStream.LazyWrite() {
+            @Override
+            public void write(NBTOutputStream out) throws IOException {
+                out.writeNamedTag("V", (byte) 1);
+                out.writeNamedTag("xPos", getX());
+                out.writeNamedTag("zPos", getZ());
+                out.writeNamedTag("LightPopulated", (byte) 0);
+                out.writeNamedTag("TerrainPopulated", (byte) 1);
+                if (entities.isEmpty()) {
+                    out.writeNamedEmptyList("Entities");
+                } else {
+                    out.writeNamedTag("Entities", new ListTag(CompoundTag.class, new ArrayList<CompoundTag>(entities.values())));
+                }
+                if (tiles.isEmpty()) {
+                    out.writeNamedEmptyList("TileEntities");
+                } else {
+                    out.writeNamedTag("TileEntities", new ListTag(CompoundTag.class, new ArrayList<CompoundTag>(tiles.values())));
+                }
+                out.writeNamedTag("InhabitedTime", inhabitedTime);
+                out.writeNamedTag("LastUpdate", lastUpdate);
+                if (biomes != null) {
+                    out.writeNamedTag("Biomes", biomes);
+                }
+                out.writeNamedTag("HeightMap", heightMap);
+                out.writeNamedTagName("Sections", NBTConstants.TYPE_LIST);
+                dataOut.writeByte(NBTConstants.TYPE_COMPOUND);
+                int len = 0;
+                for (int layer = 0; layer < ids.length; layer++) {
+                    if (ids[layer] != null) len++;
+                }
+                dataOut.writeInt(len);
+                for (int layer = 0; layer < ids.length; layer++) {
+                    byte[] idLayer = ids[layer];
+                    if (idLayer == null) {
+                        continue;
+                    }
+                    out.writeNamedTag("Y", (byte) layer);
+                    out.writeNamedTag("BlockLight", blockLight[layer]);
+                    out.writeNamedTag("SkyLight", skyLight[layer]);
+                    out.writeNamedTag("Blocks", idLayer);
+                    out.writeNamedTag("Data", data[layer]);
+                    out.writeEndTag();
+                }
+            }
+        });
+        nbtOut.writeEndTag();
+        nbtOut.close();
+        return buffered.toByteArray();
+    }
 
     public CompoundTag toTag() {
         if (deleted) {
@@ -85,6 +151,20 @@ public class MCAChunk extends FaweChunk<Void> {
         HashMap<String, Object> root = new HashMap<>();
         root.put("Level", level);
         return FaweCache.asTag(root);
+    }
+
+    public MCAChunk(FaweQueue queue, int x, int z) {
+        super(queue, x, z);
+        this.ids = new byte[16][];
+        this.data = new byte[16][];
+        this.skyLight = new byte[16][];
+        this.blockLight = new byte[16][];
+        this.biomes = new byte[256];
+        this.tiles = new HashMap<>();
+        this.entities = new HashMap<>();
+        this.lastUpdate = System.currentTimeMillis();
+        this.heightMap = new int[256];
+        this.modified = true;
     }
 
     public MCAChunk(MCAChunk parent, boolean shallow) {
@@ -127,7 +207,6 @@ public class MCAChunk extends FaweChunk<Void> {
         skyLight = new byte[16][];
         blockLight = new byte[16][];
         this.compressedSize = compressedSize;
-//        NamedTag tag = nis.readNamedTag();
         NBTStreamer streamer = new NBTStreamer(nis);
         streamer.addReader(".Level.InhabitedTime", new RunnableVal2<Integer, Long>() {
             @Override
@@ -151,7 +230,7 @@ public class MCAChunk extends FaweChunk<Void> {
                 blockLight[layer] = tag.getByteArray("BlockLight");
             }
         });
-        streamer.addReader(".Level.Entities.#", new RunnableVal2<Integer, CompoundTag>() {
+        streamer.addReader(".Level.TileEntities.#", new RunnableVal2<Integer, CompoundTag>() {
             @Override
             public void run(Integer index, CompoundTag tile) {
                 int x = tile.getInt("x") & 15;
@@ -161,12 +240,13 @@ public class MCAChunk extends FaweChunk<Void> {
                 tiles.put(pair, tile);
             }
         });
-        streamer.addReader(".Level.TileEntities.#", new RunnableVal2<Integer, CompoundTag>() {
+        streamer.addReader(".Level.Entities.#", new RunnableVal2<Integer, CompoundTag>() {
             @Override
             public void run(Integer index, CompoundTag entityTag) {
                 if (entities == null) {
                     entities = new HashMap<UUID, CompoundTag>();
                 }
+
                 long least = entityTag.getLong("UUIDLeast");
                 long most = entityTag.getLong("UUIDMost");
                 entities.put(new UUID(most, least), entityTag);
@@ -205,7 +285,7 @@ public class MCAChunk extends FaweChunk<Void> {
     }
 
     @Deprecated
-    public void setModified() {
+    public final void setModified() {
         this.modified = true;
     }
 
@@ -375,11 +455,34 @@ public class MCAChunk extends FaweChunk<Void> {
 
     public void setNibble(int index, byte[] array, int value) {
         int indexShift = index >> 1;
-        if((index & 1) == 0) {
-            array[indexShift] = (byte)(array[indexShift] & 240 | value & 15);
-        } else {
-            array[indexShift] = (byte)(array[indexShift] & 15 | (value & 15) << 4);
+        byte existing = array[indexShift];
+        int valueShift = value << 4;
+        if (existing == value + valueShift) {
+            return;
         }
+        if((index & 1) == 0) {
+            array[indexShift] = (byte)(existing & 240 | value);
+        } else {
+            array[indexShift] = (byte)(existing & 15 | valueShift);
+        }
+    }
+
+    public void setIdUnsafe(int layer, int index, byte id) {
+        byte[] idsLayer = ids[layer];
+        idsLayer[index] = id;
+    }
+
+    public void setBlockUnsafe(int layer, int index, byte id, int data) {
+        byte[] idsLayer = ids[layer];
+        if (idsLayer == null) {
+            idsLayer = this.ids[layer] = new byte[4096];
+            this.data[layer] = new byte[2048];
+            this.skyLight[layer] = new byte[2048];
+            this.blockLight[layer] = new byte[2048];
+        }
+        idsLayer[index] = id;
+        byte[] dataLayer = this.data[layer];
+        setNibble(index, dataLayer, data);
     }
 
     @Override
@@ -397,6 +500,11 @@ public class MCAChunk extends FaweChunk<Void> {
         idsLayer[j] = (byte) id;
         byte[] dataLayer = this.data[layer];
         setNibble(j, dataLayer, data);
+    }
+
+    @Override
+    public void setBiome(byte biome) {
+        Arrays.fill(biomes, biome);
     }
 
     @Override

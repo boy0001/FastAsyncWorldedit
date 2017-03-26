@@ -146,7 +146,7 @@ public class HistoryExtent extends AbstractDelegateExtent {
         }
     }
 
-    private class TrackedEntity implements Entity {
+    public class TrackedEntity implements Entity {
         private final Entity entity;
 
         private TrackedEntity(final Entity entity) {

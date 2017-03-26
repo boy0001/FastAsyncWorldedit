@@ -5,7 +5,6 @@ import com.boydti.fawe.bukkit.v0.BukkitQueue_0;
 import com.boydti.fawe.bukkit.v0.BukkitQueue_All;
 import com.boydti.fawe.bukkit.v1_10.BukkitQueue_1_10;
 import com.boydti.fawe.bukkit.v1_11.BukkitQueue_1_11;
-import com.boydti.fawe.bukkit.v1_11.compression.CompressionOptimizer;
 import com.boydti.fawe.bukkit.v1_7.BukkitQueue17;
 import com.boydti.fawe.bukkit.v1_8.BukkitQueue18R3;
 import com.boydti.fawe.bukkit.v1_9.BukkitQueue_1_9_R1;
@@ -68,15 +67,6 @@ public class BukkitMain extends JavaPlugin {
                 this.version = v;
                 break;
             } catch (IllegalStateException e) {}
-        }
-        switch (version) {
-            case v1_11_R1:
-                try {
-                    CompressionOptimizer optimizer = new CompressionOptimizer();
-//                    optimizer.optimize();
-                } catch (Throwable throwable) {
-                    throwable.printStackTrace();
-                }
         }
     }
 

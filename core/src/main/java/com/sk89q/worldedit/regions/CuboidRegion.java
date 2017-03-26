@@ -474,7 +474,7 @@ public class CuboidRegion extends AbstractRegion implements FlatRegion {
                                     if (!hasNext) {
                                         throw new NoSuchElementException("End of iterator") {
                                             @Override
-                                            public synchronized Throwable fillInStackTrace() {
+                                            public Throwable fillInStackTrace() {
                                                 return this;
                                             }
                                         };
@@ -539,7 +539,7 @@ public class CuboidRegion extends AbstractRegion implements FlatRegion {
                             if (!hasNext) {
                                 throw new NoSuchElementException("End of iterator") {
                                     @Override
-                                    public synchronized Throwable fillInStackTrace() {
+                                    public Throwable fillInStackTrace() {
                                         return this;
                                     }
                                 };
@@ -561,7 +561,6 @@ public class CuboidRegion extends AbstractRegion implements FlatRegion {
         };
     }
 
-
     @Override
     public Iterable<Vector2D> asFlatRegion() {
         return new Iterable<Vector2D>() {
@@ -576,7 +575,7 @@ public class CuboidRegion extends AbstractRegion implements FlatRegion {
 
                     @Override
                     public boolean hasNext() {
-                        return (nextZ != Integer.MIN_VALUE);
+                        return (nextZ != Integer.MAX_VALUE);
                     }
 
                     @Override
@@ -586,7 +585,16 @@ public class CuboidRegion extends AbstractRegion implements FlatRegion {
                         if (++nextX > max.getBlockX()) {
                             nextX = min.getBlockX();
                             if (++nextZ > max.getBlockZ()) {
-                                nextZ = Integer.MIN_VALUE;
+                                if (nextZ == Integer.MIN_VALUE) {
+                                    throw new NoSuchElementException("End of iterator") {
+                                        @Override
+                                        public Throwable fillInStackTrace() {
+                                            return this;
+                                        }
+                                    };
+                                }
+                                nextZ = Integer.MAX_VALUE;
+                                nextX = Integer.MAX_VALUE;
                             }
                         }
                         return answer;
@@ -621,6 +629,12 @@ public class CuboidRegion extends AbstractRegion implements FlatRegion {
     public static CuboidRegion makeCuboid(Region region) {
         checkNotNull(region);
         return new CuboidRegion(region.getMinimumPoint(), region.getMaximumPoint());
+    }
+
+    public static boolean contains(CuboidRegion region) {
+        Vector min = region.getMinimumPoint();
+        Vector max = region.getMaximumPoint();
+        return region.contains(min.getBlockX(), min.getBlockY(), min.getBlockZ()) && region.contains(max.getBlockX(), max.getBlockY(), max.getBlockZ());
     }
 
     /**

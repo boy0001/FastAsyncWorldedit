@@ -76,7 +76,7 @@ public class WEManager {
      */
     public RegionWrapper[] getMask(final FawePlayer<?> player, FaweMaskManager.MaskType type) {
         if (player.hasPermission("fawe.bypass") || !Settings.IMP.REGION_RESTRICTIONS) {
-            return new RegionWrapper[] {new RegionWrapper(Integer.MIN_VALUE, Integer.MAX_VALUE, Integer.MIN_VALUE, Integer.MAX_VALUE)};
+            return new RegionWrapper[] {RegionWrapper.GLOBAL()};
         }
         HashSet<RegionWrapper> mask = new HashSet<>();
         String world = player.getLocation().world;

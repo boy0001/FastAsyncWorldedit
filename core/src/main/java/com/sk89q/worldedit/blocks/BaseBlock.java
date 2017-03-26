@@ -19,6 +19,7 @@
 
 package com.sk89q.worldedit.blocks;
 
+import com.boydti.fawe.FaweCache;
 import com.sk89q.jnbt.CompoundTag;
 import com.sk89q.jnbt.StringTag;
 import com.sk89q.jnbt.Tag;
@@ -123,6 +124,10 @@ public class BaseBlock extends Block implements TileEntityBlock {
      */
     public BaseBlock(BaseBlock other) {
         this(other.getId(), other.getData(), other.getNbtData());
+    }
+
+    public final int getCombined() {
+        return FaweCache.getCombined(this);
     }
 
     /**

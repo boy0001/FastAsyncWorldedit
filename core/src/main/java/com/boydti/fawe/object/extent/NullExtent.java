@@ -1,6 +1,7 @@
 package com.boydti.fawe.object.extent;
 
 import com.boydti.fawe.config.BBC;
+import com.boydti.fawe.object.FaweLimit;
 import com.boydti.fawe.object.RegionWrapper;
 import com.boydti.fawe.object.exception.FaweException;
 import com.sk89q.worldedit.Vector;
@@ -29,7 +30,7 @@ public class NullExtent extends FaweRegionExtent {
      * @param extent the extent
      */
     public NullExtent(Extent extent, BBC failReason) {
-        super(extent);
+        super(extent, FaweLimit.MAX);
         this.reason = failReason;
     }
 
@@ -94,7 +95,14 @@ public class NullExtent extends FaweRegionExtent {
     }
 
     @Override
-    public boolean contains(int x, int y, int z) { return false; }
+    public boolean contains(int x, int z) {
+        throw new FaweException(reason);
+    }
+
+    @Override
+    public boolean contains(int x, int y, int z) {
+        throw new FaweException(reason);
+    }
 
     @Override
     public Collection<RegionWrapper> getRegions() {

@@ -5,8 +5,11 @@ import com.boydti.fawe.config.BBC;
 import com.boydti.fawe.jnbt.anvil.MCAChunk;
 import com.boydti.fawe.jnbt.anvil.MCAFilter;
 import com.boydti.fawe.jnbt.anvil.MCAQueue;
+import com.boydti.fawe.object.FaweQueue;
 import com.boydti.fawe.object.mask.FaweBlockMatcher;
 import com.boydti.fawe.object.number.LongAdder;
+import com.boydti.fawe.util.SetQueue;
+import com.boydti.fawe.util.StringMan;
 import com.sk89q.minecraft.util.commands.Command;
 import com.sk89q.minecraft.util.commands.CommandPermissions;
 import com.sk89q.worldedit.EditSession;
@@ -16,9 +19,12 @@ import com.sk89q.worldedit.WorldEditException;
 import com.sk89q.worldedit.blocks.BaseBlock;
 import com.sk89q.worldedit.entity.Player;
 import com.sk89q.worldedit.function.pattern.Pattern;
+import com.sk89q.worldedit.function.pattern.RandomPattern;
 import com.sk89q.worldedit.util.command.binding.Switch;
 import com.sk89q.worldedit.util.command.parametric.Optional;
 import java.io.File;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Set;
 
 
@@ -60,61 +66,107 @@ public class AnvilCommands {
         final FaweBlockMatcher matchTo = FaweBlockMatcher.setBlocks(worldEdit.getBlocks(player, to, true));
         File root = new File(folder + File.separator + "region");
         MCAQueue queue = new MCAQueue(folder, root, true);
-        final LongAdder count = new LongAdder();
         queue.filterWorld(new MCAFilter() {
             @Override
             public void applyBlock(int x, int y, int z, BaseBlock block) {
-                if (matchFrom.apply(block) && matchTo.apply(block)) {
-                    count.add(1);
-                }
+                if (matchFrom.apply(block)) matchTo.apply(block);
             }
         });
-        player.print(BBC.getPrefix() + BBC.VISITOR_BLOCK.format(count.longValue()));
+        player.print(BBC.getPrefix() + BBC.VISITOR_BLOCK.format(-1));
     }
 
     @Command(
             aliases = {"/replaceallpattern", "/reap", "/repallpat"},
             usage = "<folder> [from-block] <to-pattern>",
             desc = "Replace all blocks in the selection with another",
-            flags = "d",
+            flags = "dm",
             min = 2,
             max = 4
     )
     @CommandPermissions("worldedit.anvil.replaceall")
-    public void replaceAllPattern(Player player, EditSession editSession, String folder, @Optional String from, final Pattern to, @Switch('d') boolean useData) throws WorldEditException {
-        final FaweBlockMatcher matchFrom;
-        if (from == null) {
-            matchFrom = FaweBlockMatcher.NOT_AIR;
-        } else {
-            if (from.contains(":")) {
-                useData = true; //override d flag, if they specified data they want it
-            }
-            matchFrom = FaweBlockMatcher.fromBlocks(worldEdit.getBlocks(player, from, true), useData);
-        }
-        File root = new File(folder + File.separator + "region");
-        MCAQueue queue = new MCAQueue(folder, root, true);
-        final LongAdder count = new LongAdder();
-        queue.filterWorld(new MCAFilter() {
-            private final MutableBlockVector mutable = new MutableBlockVector(0, 0, 0);
-
-            @Override
-            public void applyBlock(int x, int y, int z, BaseBlock block) {
-                if (matchFrom.apply(block)) {
-                    mutable.mutX(x);
-                    mutable.mutY(y);
-                    mutable.mutZ(z);
-                    BaseBlock newBlock = to.apply(mutable);
-                    int currentId = block.getId();
-                    if (FaweCache.hasNBT(currentId)) {
-                        block.setNbtData(null);
+    public void replaceAllPattern(Player player, String folder, @Optional String from, final Pattern to, @Switch('d') boolean useData, @Switch('m') boolean useMap) throws WorldEditException {
+        FaweQueue defaultQueue = SetQueue.IMP.getNewQueue(folder, true, false);
+        MCAQueue queue = new MCAQueue(folder, defaultQueue.getSaveFolder(), defaultQueue.hasSky());
+        if (useMap) {
+            List<String> split = StringMan.split(from, ',');
+            if (to instanceof RandomPattern) {
+                Pattern[] patterns = ((RandomPattern) to).getPatterns().toArray(new Pattern[0]);
+                if (patterns.length == split.size()) {
+                    Pattern[] map = new Pattern[Character.MAX_VALUE + 1];
+                    for (int i = 0; i < split.size(); i++) {
+                        Pattern pattern = patterns[i];
+                        String arg = split.get(i);
+                        ArrayList<BaseBlock> blocks = new ArrayList<BaseBlock>();
+                        for (String arg2 : arg.split(",")) {
+                            BaseBlock block = worldEdit.getBlock(player, arg, true);
+                            if (!useData && !arg2.contains(":")) {
+                                block = new BaseBlock(block.getId(), -1);
+                            }
+                            blocks.add(block);
+                        }
+                        for (BaseBlock block : blocks) {
+                            if (block.getData() != -1) {
+                                int combined = FaweCache.getCombined(block);
+                                map[combined] = pattern;
+                            } else {
+                                for (int data = 0; data < 16; data++) {
+                                    int combined = FaweCache.getCombined(block.getId(), data);
+                                    map[combined] = pattern;
+                                }
+                            }
+                        }
                     }
-                    block.setId(newBlock.getId());
-                    block.setData(newBlock.getData());
-                    count.add(1);
+                    queue.filterWorld(new MCAFilter() {
+                        private final MutableBlockVector mutable = new MutableBlockVector(0, 0, 0);
+                        @Override
+                        public void applyBlock(int x, int y, int z, BaseBlock block) {
+                            int id = block.getId();
+                            int data = FaweCache.hasData(id) ? block.getData() : 0;
+                            int combined = FaweCache.getCombined(id, data);
+                            Pattern p = map[combined];
+                            if (p != null) {
+                                BaseBlock newBlock = p.apply(x, y, z);
+                                int currentId = block.getId();
+                                if (FaweCache.hasNBT(currentId)) {
+                                    block.setNbtData(null);
+                                }
+                                block.setId(newBlock.getId());
+                                block.setData(newBlock.getData());
+                            }
+                        }
+                    });
+                } else {
+                    player.print(BBC.getPrefix() + "Mask:Pattern must be a 1:1 match");
                 }
+            } else {
+                player.print(BBC.getPrefix() + "Must be a pattern list!");
             }
-        });
-        player.print(BBC.getPrefix() + BBC.VISITOR_BLOCK.format(count.longValue()));
+        } else {
+            final FaweBlockMatcher matchFrom;
+            if (from == null) {
+                matchFrom = FaweBlockMatcher.NOT_AIR;
+            } else {
+                if (from.contains(":")) {
+                    useData = true; //override d flag, if they specified data they want it
+                }
+                matchFrom = FaweBlockMatcher.fromBlocks(worldEdit.getBlocks(player, from, true), useData);
+            }
+            queue.filterWorld(new MCAFilter() {
+                @Override
+                public void applyBlock(int x, int y, int z, BaseBlock block) {
+                    if (matchFrom.apply(block)) {
+                        BaseBlock newBlock = to.apply(x, y, z);
+                        int currentId = block.getId();
+                        if (FaweCache.hasNBT(currentId)) {
+                            block.setNbtData(null);
+                        }
+                        block.setId(newBlock.getId());
+                        block.setData(newBlock.getData());
+                    }
+                }
+            });
+        }
+        player.print(BBC.getPrefix() + BBC.VISITOR_BLOCK.format(-1));
     }
 
     @Command(

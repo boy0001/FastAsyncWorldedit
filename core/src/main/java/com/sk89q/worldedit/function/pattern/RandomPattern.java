@@ -6,6 +6,7 @@ import com.sk89q.worldedit.WorldEditException;
 import com.sk89q.worldedit.blocks.BaseBlock;
 import com.sk89q.worldedit.extent.Extent;
 import java.util.HashMap;
+import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Set;
 
@@ -19,7 +20,7 @@ public class RandomPattern extends AbstractPattern {
 
     private Map<Pattern, Double> weights = new HashMap<>();
     private RandomCollection<Pattern> collection;
-    private Set<Pattern> patterns;
+    private LinkedHashSet<Pattern> patterns = new LinkedHashSet<>();
 
     /**
      * Add a pattern to the weight list of patterns.
@@ -34,7 +35,11 @@ public class RandomPattern extends AbstractPattern {
         checkNotNull(pattern);
         weights.put(pattern, chance);
         collection = RandomCollection.of(weights);
-        this.patterns = weights.keySet();
+        this.patterns.add(pattern);
+    }
+
+    public Set<Pattern> getPatterns() {
+        return patterns;
     }
 
     @Override

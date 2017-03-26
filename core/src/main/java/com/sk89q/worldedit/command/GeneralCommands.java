@@ -44,7 +44,6 @@ public class GeneralCommands {
             aliases = { "/tips", "tips" },
             desc = "Toggle WorldEdit tips"
     )
-    @CommandPermissions("fawe.use")
     public void tips(Player player, LocalSession session) throws WorldEditException {
         FawePlayer<Object> fp = FawePlayer.wrap(player);
         if (fp.toggle("fawe.tips")) {

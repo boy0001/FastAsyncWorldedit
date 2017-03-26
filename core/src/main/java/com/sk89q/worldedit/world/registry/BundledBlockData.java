@@ -143,9 +143,8 @@ public class BundledBlockData {
         }
         idMap.put(entry.id, entry);
         String id = (entry.id.contains(":") ? entry.id.split(":")[1] : entry.id).toLowerCase().replace(" ", "_");
-        if (!idMap.containsKey(id)) {
-            idMap.put(id, entry);
-        }
+        localIdMap.putIfAbsent(id, entry);
+        idMap.putIfAbsent(id, entry);
         legacyMap[entry.legacyId] = entry;
         if (entry.states == null) {
             return true;

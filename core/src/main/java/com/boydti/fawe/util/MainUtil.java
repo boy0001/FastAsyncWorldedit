@@ -24,8 +24,9 @@ import com.sk89q.jnbt.Tag;
 import com.sk89q.worldedit.entity.Entity;
 import com.sk89q.worldedit.history.changeset.ChangeSet;
 import com.sk89q.worldedit.util.Location;
-import java.io.BufferedInputStream;
+import it.unimi.dsi.fastutil.io.FastBufferedInputStream;
 import java.io.BufferedOutputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
@@ -58,7 +59,10 @@ import java.util.Map.Entry;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.zip.DataFormatException;
+import java.util.zip.Deflater;
 import java.util.zip.GZIPInputStream;
+import java.util.zip.Inflater;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 import net.jpountz.lz4.LZ4Compressor;
@@ -244,6 +248,43 @@ public class MainUtil {
         return LZ4Utils.maxCompressedLength(size);
     }
 
+    public static byte[] compress(byte[] bytes, byte[] buffer, Deflater deflate) throws IOException {
+        if (buffer == null) {
+            buffer = new byte[8192];
+        }
+        if (deflate == null) {
+            deflate = new Deflater(1, false);
+        } else {
+            deflate.reset();
+        }
+        deflate.setInput(bytes);
+        deflate.finish();
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        while (!deflate.finished()) {
+            int n = deflate.deflate(buffer);
+            if (n != 0) baos.write(buffer, 0, n);
+        }
+        return baos.toByteArray();
+    }
+
+    public static byte[] decompress(byte[] bytes, byte[] buffer, Inflater inflater) throws IOException, DataFormatException {
+        if (buffer == null) {
+            buffer = new byte[8192];
+        }
+        if (inflater == null) {
+            inflater = new Inflater(false);
+        } else {
+            inflater.reset();
+        }
+        inflater.setInput(bytes);
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        while (!inflater.finished()) {
+            int n = inflater.inflate(buffer);
+            if (n != 0) baos.write(buffer, 0, n);
+        }
+        return baos.toByteArray();
+    }
+
     public static byte[] compress(byte[] bytes, byte[] buffer, int level) {
         if (level == 0) {
             return bytes;
@@ -302,14 +343,14 @@ public class MainUtil {
 
     public static FaweInputStream getCompressedIS(InputStream is, int buffer) throws IOException {
         int amount = (byte) is.read();
-        is = new BufferedInputStream(is, buffer);
+        is = new FastBufferedInputStream(is, buffer);
         if (amount == 0) {
             return new FaweInputStream(is);
         }
         int amountAbs = Math.abs(amount);
         if (amountAbs > 6) {
             if (amount > 0) {
-                is = new BufferedInputStream(new GZIPInputStream(is, buffer));
+                is = new FastBufferedInputStream(new GZIPInputStream(is, buffer));
             } else {
                 is = new ZstdInputStream(is);
             }
@@ -836,8 +877,7 @@ public class MainUtil {
                     if (file.isDirectory()) {
                         deleteDirectory(files[i]);
                     } else {
-                        Fawe.debug("Deleting file: " + file);
-                        file.delete();
+                        Fawe.debug("Deleting file: " + file + " | " + file.delete());
                     }
                 }
             }

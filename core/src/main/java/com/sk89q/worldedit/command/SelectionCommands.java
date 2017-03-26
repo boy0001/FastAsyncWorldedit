@@ -23,6 +23,7 @@ import com.boydti.fawe.config.BBC;
 import com.boydti.fawe.object.FawePlayer;
 import com.boydti.fawe.object.mask.IdMask;
 import com.boydti.fawe.object.regions.selector.FuzzyRegionSelector;
+import com.boydti.fawe.object.regions.selector.PolyhedralRegionSelector;
 import com.google.common.base.Optional;
 import com.sk89q.minecraft.util.commands.Command;
 import com.sk89q.minecraft.util.commands.CommandContext;
@@ -736,7 +737,7 @@ public class SelectionCommands {
         } else if (typeName.equalsIgnoreCase("cyl")) {
             selector = new CylinderRegionSelector(oldSelector);
             player.print(BBC.getPrefix() + BBC.SEL_CYLINDRICAL.s());
-        } else if (typeName.equalsIgnoreCase("convex") || typeName.equalsIgnoreCase("hull") || typeName.equalsIgnoreCase("polyhedron")) {
+        } else if (typeName.equalsIgnoreCase("convex") || typeName.equalsIgnoreCase("hull")) {
             selector = new ConvexPolyhedralRegionSelector(oldSelector);
             player.print(BBC.getPrefix() + BBC.SEL_CONVEX_POLYHEDRAL.s());
             Optional<Integer> limit = ActorSelectorLimits.forActor(player).getPolyhedronVertexLimit();
@@ -744,6 +745,14 @@ public class SelectionCommands {
                 player.print(BBC.getPrefix() + BBC.SEL_MAX.f(limit.get()));
             }
             player.print(BBC.getPrefix() + BBC.SEL_LIST.s());
+        } else if (typeName.equalsIgnoreCase("polyhedral") || typeName.equalsIgnoreCase("polyhedron")) {
+                selector = new PolyhedralRegionSelector(player.getWorld());
+                player.print(BBC.getPrefix() + BBC.SEL_CONVEX_POLYHEDRAL.s());
+                Optional<Integer> limit = ActorSelectorLimits.forActor(player).getPolyhedronVertexLimit();
+                if (limit.isPresent()) {
+                    player.print(BBC.getPrefix() + BBC.SEL_MAX.f(limit.get()));
+                }
+                player.print(BBC.getPrefix() + BBC.SEL_LIST.s());
         } else if (typeName.startsWith("fuzzy") || typeName.startsWith("magic")) {
             Mask mask;
             if (typeName.length() > 6) {
@@ -772,6 +781,7 @@ public class SelectionCommands {
             box.appendCommand("//sel sphere", "Select a sphere");
             box.appendCommand("//sel cyl", "Select a cylinder");
             box.appendCommand("//sel convex", "Select a convex polyhedral");
+            box.appendCommand("//sel polyhedral", "Select a hollow polyhedral");
             box.appendCommand("//sel fuzzy[=<mask>]", "Select all connected blocks");
 
             player.printRaw(ColorCodeBuilder.asColorCodes(box));

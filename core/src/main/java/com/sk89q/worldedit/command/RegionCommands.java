@@ -313,24 +313,6 @@ public class RegionCommands {
         if (!FawePlayer.wrap(player).hasPermission("fawe.tips")) BBC.TIP_REPLACE_ID.or(BBC.TIP_REPLACE_LIGHT, BBC.TIP_REPLACE_MARKER, BBC.TIP_TAB_COMPLETE).send(player);
     }
 
-//    @Command(
-//            aliases = { "/mapreplace", "/mr", "/maprep" },
-//            usage = "<from-block-1,from-block-2> <to-block-1,to-block-2>",
-//            desc = "Replace all blocks in a selection 1:1 with the ",
-//            flags = "f",
-//            min = 1,
-//            max = 2
-//    )
-//    @CommandPermissions("worldedit.region.mapreplace")
-//    @Logging(REGION)
-//    public void mapreplace(Player player, EditSession editSession, @Selection Region region, @Optional Mask from, Pattern to) throws WorldEditException {
-//        if (from == null) {
-//            from = new ExistingBlockMask(editSession);
-//        }
-//        int affected = editSession.replaceBlocks(region, from, to);
-//        BBC.VISITOR_BLOCK.send(player, affected);
-//    }
-
     @Command(
             aliases = { "/set" },
             usage = "[pattern]",

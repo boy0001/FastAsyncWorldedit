@@ -146,16 +146,16 @@ public class SchematicWriter implements ClipboardWriter {
             public void write(NBTOutputStream out) throws IOException {
                 int volume = width * height * length;
 
-                out.writeNamedTag("Width", new ShortTag((short) width));
-                out.writeNamedTag("Length", new ShortTag((short) length));
-                out.writeNamedTag("Height", new ShortTag((short) height));
-                out.writeNamedTag("Materials", new StringTag("Alpha"));
-                out.writeNamedTag("WEOriginX", new IntTag(min.getBlockX()));
-                out.writeNamedTag("WEOriginY", new IntTag(min.getBlockY()));
-                out.writeNamedTag("WEOriginZ", new IntTag(min.getBlockZ()));
-                out.writeNamedTag("WEOffsetX", new IntTag(offset.getBlockX()));
-                out.writeNamedTag("WEOffsetY", new IntTag(offset.getBlockY()));
-                out.writeNamedTag("WEOffsetZ", new IntTag(offset.getBlockZ()));
+                out.writeNamedTag("Width", ((short) width));
+                out.writeNamedTag("Length", ((short) length));
+                out.writeNamedTag("Height", ((short) height));
+                out.writeNamedTag("Materials", ("Alpha"));
+                out.writeNamedTag("WEOriginX", (min.getBlockX()));
+                out.writeNamedTag("WEOriginY", (min.getBlockY()));
+                out.writeNamedTag("WEOriginZ", (min.getBlockZ()));
+                out.writeNamedTag("WEOffsetX", (offset.getBlockX()));
+                out.writeNamedTag("WEOffsetY", (offset.getBlockY()));
+                out.writeNamedTag("WEOffsetZ", (offset.getBlockZ()));
 
                 out.writeNamedTagName("Blocks", NBTConstants.TYPE_BYTE_ARRAY);
                 out.getOutputStream().writeInt(volume);
@@ -217,7 +217,7 @@ public class SchematicWriter implements ClipboardWriter {
                     final List<CompoundTag> tileEntities = clipboard.IMP.getTileEntities();
                     out.writeNamedTag("TileEntities", new ListTag(CompoundTag.class, tileEntities));
                 } else {
-                    out.writeNamedTag("TileEntities", new ListTag(CompoundTag.class, new ArrayList<Tag>()));
+                    out.writeNamedEmptyList("TileEntities");
                 }
 
                 List<Tag> entities = new ArrayList<Tag>();
@@ -242,7 +242,11 @@ public class SchematicWriter implements ClipboardWriter {
                         entities.add(entityTag);
                     }
                 }
-                out.writeNamedTag("Entities", new ListTag(CompoundTag.class, entities));
+                if (entities.isEmpty()) {
+                    out.writeNamedEmptyList("Entities");
+                } else {
+                    out.writeNamedTag("Entities", new ListTag(CompoundTag.class, entities));
+                }
             }
         });
         outputStream.flush();

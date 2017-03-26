@@ -13,6 +13,8 @@
 *.log
 gradle.log
 /lib
+/core/lib
+/bukkit/lib
 /core/build
 /forge189/build
 /forge1710/build

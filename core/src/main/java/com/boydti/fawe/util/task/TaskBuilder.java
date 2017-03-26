@@ -346,7 +346,7 @@ public class TaskBuilder extends Metadatable {
 
     public static final class TaskAbortException extends RuntimeException {
         @Override
-        public synchronized Throwable fillInStackTrace() {
+        public Throwable fillInStackTrace() {
             return this;
         }
     }

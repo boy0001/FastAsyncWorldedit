@@ -88,6 +88,12 @@ public class Vector implements Comparable<Vector> {
         this.mutZ(other.getZ());
     }
 
+    public Vector(double[] arr) {
+        this.mutX(arr[0]);
+        this.mutY(arr[1]);
+        this.mutZ(arr[2]);
+    }
+
     /**
      * Construct a new instance with X, Y, and Z coordinates set to 0.
      *

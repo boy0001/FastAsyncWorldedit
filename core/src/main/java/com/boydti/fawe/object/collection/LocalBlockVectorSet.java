@@ -312,6 +312,8 @@ public class LocalBlockVectorSet implements Set<Vector> {
 
     @Override
     public void clear() {
+        offsetZ = Integer.MAX_VALUE;
+        offsetX = Integer.MAX_VALUE;
         set.clear();
     }
 }

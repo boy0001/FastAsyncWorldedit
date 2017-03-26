@@ -164,6 +164,7 @@ public class DefaultMaskParser extends FaweParser<Mask> {
 
     private Mask getBlockMaskComponent(List<Mask> masks, String input, ParserContext context) throws InputParseException {
         Extent extent = Request.request().getExtent();
+        if (extent == null) extent = context.getExtent();
         final char firstChar = input.charAt(0);
         switch (firstChar) {
             case '#':
@@ -303,7 +304,7 @@ public class DefaultMaskParser extends FaweParser<Mask> {
                         y1 = (Expression.compile(split[0]).evaluate());
                         y2 = (Expression.compile(split[1]).evaluate());
                     }
-                    return new AngleMask(Request.request().getEditSession(), y1, y2);
+                    return new AngleMask(extent, y1, y2);
                 } catch (NumberFormatException | ExpressionException e) {
                     throw new SuggestInputParseException(input, "/<min-angle>:<max-angle>");
                 }
@@ -385,7 +386,7 @@ public class DefaultMaskParser extends FaweParser<Mask> {
                 try {
                     Expression exp = Expression.compile(input.substring(1), "x", "y", "z");
                     WorldEditExpressionEnvironment env = new WorldEditExpressionEnvironment(
-                            Request.request().getEditSession(), Vector.ONE, Vector.ZERO);
+                            Request.request().getEditSession    (), Vector.ONE, Vector.ZERO);
                     exp.setEnvironment(env);
                     return new ExpressionMask(exp);
                 } catch (ExpressionException e) {

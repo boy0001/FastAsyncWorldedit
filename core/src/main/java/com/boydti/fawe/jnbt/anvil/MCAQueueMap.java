@@ -162,8 +162,7 @@ public class MCAQueueMap implements IFaweQueueMap {
                 if (result = iter.hasNext()) {
                     MCAFile file = iter.next().getValue();
                     iter.remove();
-                    file.flush();
-                    file.close();
+                    file.close(null);
                 } else {
                     break;
                 }

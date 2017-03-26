@@ -14,7 +14,7 @@ import com.sk89q.worldedit.entity.BaseEntity;
 import com.sk89q.worldedit.extent.clipboard.BlockArrayClipboard;
 import com.sk89q.worldedit.extent.clipboard.Clipboard;
 import com.sk89q.worldedit.regions.CuboidRegion;
-import java.io.BufferedInputStream;
+import it.unimi.dsi.fastutil.io.FastBufferedInputStream;
 import java.io.DataInputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -49,7 +49,7 @@ public class CorruptSchematicStreamer {
         try {
             stream.reset();
             stream.mark(Integer.MAX_VALUE);
-            DataInputStream dataInput = new DataInputStream(new BufferedInputStream(new GZIPInputStream(stream)));
+            DataInputStream dataInput = new DataInputStream(new FastBufferedInputStream(new GZIPInputStream(stream)));
             byte[] match = matchTag.getBytes();
             int[] matchValue = new int[match.length];
             int matchIndex = 0;

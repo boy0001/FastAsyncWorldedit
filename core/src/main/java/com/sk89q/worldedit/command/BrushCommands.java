@@ -31,7 +31,9 @@ import com.boydti.fawe.object.brush.CopyPastaBrush;
 import com.boydti.fawe.object.brush.ErodeBrush;
 import com.boydti.fawe.object.brush.FlattenBrush;
 import com.boydti.fawe.object.brush.HeightBrush;
+import com.boydti.fawe.object.brush.LayerBrush;
 import com.boydti.fawe.object.brush.LineBrush;
+import com.boydti.fawe.object.brush.PopulateSchem;
 import com.boydti.fawe.object.brush.RaiseBrush;
 import com.boydti.fawe.object.brush.RecurseBrush;
 import com.boydti.fawe.object.brush.ScatterBrush;
@@ -98,6 +100,8 @@ import java.io.InputStream;
 import java.net.URL;
 import java.nio.channels.Channels;
 import java.nio.channels.ReadableByteChannel;
+import java.util.ArrayList;
+import java.util.List;
 
 
 import static com.google.common.base.Preconditions.checkNotNull;
@@ -525,6 +529,7 @@ public class BrushCommands {
             help =
                     "Chooses the scatter brush.\n" +
                             " The -o flag will overlay the block",
+            flags = "o",
             min = 1,
             max = 4
     )
@@ -542,6 +547,62 @@ public class BrushCommands {
         }
         tool.setBrush(brush, "worldedit.brush.scatter", player);
         player.print(BBC.getPrefix() + BBC.BRUSH_SCATTER.f(radius, points));
+    }
+
+    @Command(
+            aliases = { "populateschematic", "populateschem", "popschem", "pschem", "ps" },
+            usage = "<mask> <file|folder|url> [radius=30] [points=5]",
+            desc = "Scatter a schematic on a surface",
+            help =
+                    "Chooses the scatter schematic brush.\n" +
+                            "The -r flag will apply random rotation",
+            flags = "r",
+            min = 2,
+            max = 4
+    )
+    @CommandPermissions("worldedit.brush.populateschematic")
+    public void scatterSchemBrush(Player player, EditSession editSession, LocalSession session, Mask mask, String clipboard, @Optional("30") double radius, @Optional("50") double density, @Switch('r') boolean rotate) throws WorldEditException {
+        worldEdit.checkMaxBrushRadius(radius);
+        BrushTool tool = session.getBrushTool(player);
+        tool.setSize(radius);
+        try {
+            ClipboardHolder[] clipboards = ClipboardFormat.SCHEMATIC.loadAllFromInput(player, player.getWorld().getWorldData(), clipboard, true);
+            if (clipboards == null) {
+                return;
+            }
+            Brush brush = new PopulateSchem(mask, clipboards, (int) density, rotate);
+            tool.setBrush(brush, "worldedit.brush.populateschematic", player);
+            player.print(BBC.getPrefix() + BBC.BRUSH_POPULATE.f(radius, density));
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    @Command(
+            aliases = { "layer" },
+            usage = "<radius> <pattern1> <patern2> <pattern3>...",
+            desc = "Scatter a schematic on a surface",
+            help = "Chooses the layer brush.",
+            min = 3,
+            max = 999
+    )
+    @CommandPermissions("worldedit.brush.layer")
+    public void surfaceLayer(Player player, EditSession editSession, LocalSession session, double radius, CommandContext args) throws WorldEditException {
+        worldEdit.checkMaxBrushRadius(radius);
+        BrushTool tool = session.getBrushTool(player);
+        tool.setSize(radius);
+        ParserContext parserContext = new ParserContext();
+        parserContext.setActor(player);
+        parserContext.setWorld(player.getWorld());
+        parserContext.setSession(session);
+        parserContext.setExtent(editSession);
+        List<BaseBlock> blocks = new ArrayList<>();
+        for (int i = 1; i < args.argsLength(); i++) {
+            String arg = args.getString(i);
+            blocks.add(worldEdit.getBlockFactory().parseFromInput(arg, parserContext));
+        }
+        tool.setBrush(new LayerBrush(blocks.toArray(new BaseBlock[blocks.size()])), "worldedit.brush.layer", player);
+        player.print(BBC.getPrefix() + BBC.BRUSH_LAYER.f(radius, args.getJoinedStrings(1)));
     }
 
     @Command(
@@ -852,6 +913,7 @@ public class BrushCommands {
         BrushTool tool = session.getBrushTool(player);
         String cmd = args.getJoinedStrings(1);
         tool.setBrush(new CommandBrush(cmd, radius), "worldedit.brush.copy", player);
+        tool.setSize(radius);
         player.print(BBC.getPrefix() + BBC.BRUSH_COMMAND.f(cmd));
     }
 

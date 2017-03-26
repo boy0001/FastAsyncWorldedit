@@ -52,7 +52,7 @@ import com.sk89q.worldedit.extent.clipboard.BlockArrayClipboard;
 import com.sk89q.worldedit.extent.clipboard.Clipboard;
 import com.sk89q.worldedit.session.ClipboardHolder;
 import com.sk89q.worldedit.world.registry.WorldData;
-import java.io.BufferedInputStream;
+import it.unimi.dsi.fastutil.io.FastBufferedInputStream;
 import java.io.BufferedOutputStream;
 import java.io.DataInputStream;
 import java.io.File;
@@ -94,8 +94,8 @@ public enum ClipboardFormat {
             if (inputStream instanceof FileInputStream) {
                 inputStream = new ResettableFileInputStream((FileInputStream) inputStream);
             }
-            BufferedInputStream buffered = new BufferedInputStream(inputStream);
-            NBTInputStream nbtStream = new NBTInputStream(new BufferedInputStream(new GZIPInputStream(buffered)));
+            FastBufferedInputStream buffered = new FastBufferedInputStream(inputStream);
+            NBTInputStream nbtStream = new NBTInputStream(new FastBufferedInputStream(new GZIPInputStream(buffered)));
             SchematicReader input = new SchematicReader(nbtStream);
             input.setUnderlyingStream(inputStream);
             return input;
@@ -151,8 +151,8 @@ public enum ClipboardFormat {
     STRUCTURE(new AbstractClipboardFormat("STRUCTURE", "structure", "nbt") {
         @Override
         public ClipboardReader getReader(InputStream inputStream) throws IOException {
-            inputStream = new BufferedInputStream(inputStream);
-            NBTInputStream nbtStream = new NBTInputStream(new BufferedInputStream(new GZIPInputStream(inputStream)));
+            inputStream = new FastBufferedInputStream(inputStream);
+            NBTInputStream nbtStream = new NBTInputStream(new FastBufferedInputStream(new GZIPInputStream(inputStream)));
             return new StructureFormat(nbtStream);
         }
 
@@ -340,9 +340,13 @@ public enum ClipboardFormat {
                     dir = new File(worldEdit.getWorkingDirectoryFile(config.saveDir), input);
                 }
             }
-            if (!dir.exists() || !dir.isDirectory()) {
+            if (!dir.exists()) {
                 if (message) BBC.SCHEMATIC_NOT_FOUND.send(player, input);
                 return null;
+            }
+            if (!dir.isDirectory()) {
+                ByteSource source = Files.asByteSource(dir);
+                return new ClipboardHolder[] {new LazyClipboardHolder(source, this, worldData, null)};
             }
             ClipboardHolder[] clipboards = loadAllFromDirectory(dir, worldData);
             if (clipboards.length < 1) {

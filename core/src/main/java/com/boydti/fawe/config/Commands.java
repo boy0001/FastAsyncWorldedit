@@ -9,6 +9,7 @@ import java.lang.annotation.Annotation;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 public class Commands {
@@ -34,6 +35,15 @@ public class Commands {
             return command;
         }
         return new TranslatedCommand(command);
+    }
+
+    public static String getAlias(String command) {
+        if (cmdConfig == null) {
+            return command;
+        }
+        ConfigurationSection commands = cmdConfig.getConfigurationSection(command);
+        List<String> aliases = commands.getStringList("aliases");
+        return (aliases == null || aliases.isEmpty()) ? command : aliases.get(0);
     }
 
     public static class TranslatedCommand implements Command {

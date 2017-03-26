@@ -3,7 +3,7 @@ package com.boydti.fawe.util;
 import com.boydti.fawe.object.io.FastByteArrayOutputStream;
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
-import java.io.BufferedInputStream;
+import it.unimi.dsi.fastutil.io.FastBufferedInputStream;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
@@ -24,7 +24,7 @@ public class ImgurUtility {
     }
 
     public static URL uploadImage(InputStream is) throws IOException {
-        is = new BufferedInputStream(is);
+        is = new FastBufferedInputStream(is);
         FastByteArrayOutputStream baos = new FastByteArrayOutputStream(Short.MAX_VALUE);
         int d;
         while ((d = is.read()) != -1) {

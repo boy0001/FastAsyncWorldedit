@@ -33,6 +33,10 @@ public class PlotSquaredFeature extends FaweMaskManager {
         }
         if (MainCommand.getInstance().getCommand("generatebiome") == null) {
             new PlotSetBiome();
+            new CreateFromImage();
+        }
+        if (Settings.Enabled_Components.WORLDS) {
+            new ReplaceAll();
         }
     }
 

@@ -21,6 +21,7 @@ package com.sk89q.worldedit.command;
 
 import com.boydti.fawe.command.FawePrimitiveBinding;
 import com.boydti.fawe.config.BBC;
+import com.boydti.fawe.jnbt.anvil.generator.CavesGen;
 import com.sk89q.minecraft.util.commands.Command;
 import com.sk89q.minecraft.util.commands.CommandPermissions;
 import com.sk89q.minecraft.util.commands.Logging;
@@ -30,6 +31,7 @@ import com.sk89q.worldedit.Vector;
 import com.sk89q.worldedit.WorldEdit;
 import com.sk89q.worldedit.WorldEditException;
 import com.sk89q.worldedit.entity.Player;
+import com.sk89q.worldedit.function.mask.Mask;
 import com.sk89q.worldedit.function.pattern.Pattern;
 import com.sk89q.worldedit.internal.annotation.Selection;
 import com.sk89q.worldedit.internal.expression.ExpressionException;
@@ -64,6 +66,49 @@ public class GenerationCommands {
     public GenerationCommands(WorldEdit worldEdit) {
         checkNotNull(worldEdit);
         this.worldEdit = worldEdit;
+    }
+
+    @Command(
+            aliases = { "/caves [size=8] [freq=40] [rarity=7] [minY=8] [maxY=127] [sysFreq=1] [sysRarity=25] [pocketRarity=0] [pocketMin=0] [pocketMax=3]" },
+            desc = "Generates caves",
+            help = "Generates a cave network"
+    )
+    @CommandPermissions("worldedit.generation.cylinder")
+    @Logging(PLACEMENT)
+    public void caves(Player player, LocalSession session, EditSession editSession, @Selection Region region, @Optional("8") int size, @Optional("40") int frequency, @Optional("7") int rarity, @Optional("8") int minY, @Optional("127") int maxY, @Optional("1") int systemFrequency, @Optional("25") int individualRarity, @Optional("0") int pocketChance, @Optional("0") int pocketMin, @Optional("3") int pocketMax) throws WorldEditException, ParameterException {
+        CavesGen gen = new CavesGen(size, frequency, rarity, minY, maxY, systemFrequency, individualRarity, pocketChance, pocketMin, pocketMax);
+        editSession.generate(region, gen);
+        BBC.VISITOR_BLOCK.send(player, editSession.getBlockChangeCount());
+    }
+
+    // public void addOre(Mask mask, Pattern material, int size, int frequency, int rarity, int minY, int maxY) throws WorldEditException {
+
+    @Command(
+            aliases = { "/ores" },
+            desc = "Generates ores",
+            help = "Generates ores",
+            min = 1,
+            max = 1
+    )
+    @CommandPermissions("worldedit.generation.cylinder")
+    @Logging(PLACEMENT)
+    public void ores(Player player, LocalSession session, EditSession editSession, @Selection Region region, Mask mask) throws WorldEditException, ParameterException {
+        editSession.addOres(region, mask);
+        BBC.VISITOR_BLOCK.send(player, editSession.getBlockChangeCount());
+    }
+
+    @Command(
+            aliases = { "/ore <mask> <pattern> <size> <freq> <rarity> <minY> <maxY>" },
+            desc = "Generates ores",
+            help = "Generates ores",
+            min = 7,
+            max = 7
+    )
+    @CommandPermissions("worldedit.generation.cylinder")
+    @Logging(PLACEMENT)
+    public void ore(Player player, LocalSession session, EditSession editSession, @Selection Region region, Mask mask, Pattern material, int size, int freq, int rarity, int minY, int maxY) throws WorldEditException, ParameterException {
+        editSession.addOre(region, mask, material, size, freq, rarity, minY, maxY);
+        BBC.VISITOR_BLOCK.send(player, editSession.getBlockChangeCount());
     }
 
     @Command(

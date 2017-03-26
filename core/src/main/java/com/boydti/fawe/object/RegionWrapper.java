@@ -5,6 +5,8 @@ import com.sk89q.worldedit.Vector;
 public class RegionWrapper {
     public int minX;
     public int maxX;
+    public int minY;
+    public int maxY;
     public int minZ;
     public int maxZ;
 
@@ -13,10 +15,16 @@ public class RegionWrapper {
     }
 
     public RegionWrapper(final int minX, final int maxX, final int minZ, final int maxZ) {
+        this(minX, maxX, 0, 255, minZ, maxZ);
+    }
+
+    public RegionWrapper(final int minX, final int maxX, final int minY, final int maxY, final int minZ, final int maxZ) {
         this.maxX = maxX;
         this.minX = minX;
         this.maxZ = maxZ;
         this.minZ = minZ;
+        this.minY = minY;
+        this.maxY = Math.min(255, maxY);
     }
 
     public RegionWrapper(final Vector pos1, final Vector pos2) {
@@ -24,10 +32,33 @@ public class RegionWrapper {
         this.minZ = Math.min(pos1.getBlockZ(), pos2.getBlockZ());
         this.maxX = Math.max(pos1.getBlockX(), pos2.getBlockX());
         this.maxZ = Math.max(pos1.getBlockZ(), pos2.getBlockZ());
+        this.minY = Math.min(pos1.getBlockY(), pos2.getBlockY());
+        this.maxY = Math.max(pos1.getBlockY(), pos2.getBlockY());
     }
 
     public RegionWrapper[] toArray() {
         return new RegionWrapper[]{this};
+    }
+
+    private int ly = Integer.MIN_VALUE;
+    private int lz = Integer.MIN_VALUE;
+    private boolean lr, lry, lrz;
+
+    public boolean isIn(int x, int y, int z) {
+        if (z != lz) {
+            lz = z;
+            lrz = z >= this.minZ && z <= this.maxZ;
+            if (y != ly) {
+                ly = y;
+                lry = y >= this.minY && y <= this.maxY;
+            }
+            lr = lrz && lry;
+        } else if (y != ly) {
+            ly = y;
+            lry = y >= this.minY && y <= this.maxY;
+            lr = lrz && lry;
+        }
+        return lr && (x >= this.minX && x <= this.maxX);
     }
 
     public boolean isIn(final int x, final int z) {
@@ -91,7 +122,7 @@ public class RegionWrapper {
     }
 
     public boolean isGlobal() {
-        return minX == Integer.MIN_VALUE && minZ == Integer.MIN_VALUE && maxX == Integer.MAX_VALUE && maxZ == Integer.MAX_VALUE;
+        return minX == Integer.MIN_VALUE && minZ == Integer.MIN_VALUE && maxX == Integer.MAX_VALUE && maxZ == Integer.MAX_VALUE && minY <= 0 && maxY >= 255;
     }
 
     public boolean contains(RegionWrapper current) {

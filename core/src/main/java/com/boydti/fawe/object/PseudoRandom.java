@@ -1,7 +1,5 @@
 package com.boydti.fawe.object;
 
-import java.util.Random;
-
 public class PseudoRandom {
 
     public static PseudoRandom random = new PseudoRandom();
@@ -10,10 +8,13 @@ public class PseudoRandom {
 
     public PseudoRandom() {
         this.state = System.nanoTime();
-        new Random().nextDouble();
     }
 
     public PseudoRandom(final long state) {
+        this.state = state;
+    }
+
+    public void setSeed(long state) {
         this.state = state;
     }
 
@@ -44,5 +45,9 @@ public class PseudoRandom {
 
     public int nextInt(int i) {
         return random(i);
+    }
+
+    public int nextInt(int start, int end) {
+        return nextInt(end - start + 1) + start;
     }
 }

@@ -10,7 +10,6 @@ import com.sk89q.jnbt.DoubleTag;
 import com.sk89q.jnbt.ListTag;
 import com.sk89q.jnbt.StringTag;
 import com.sk89q.jnbt.Tag;
-import com.sk89q.worldedit.EditSession;
 import com.sk89q.worldedit.Vector;
 import com.sk89q.worldedit.Vector2D;
 import com.sk89q.worldedit.WorldEditException;
@@ -105,9 +104,6 @@ public class FastWorldEditExtent extends AbstractDelegateExtent implements HasFa
 
     @Override
     public BaseBlock getLazyBlock(int x, int y, int z) {
-        if (y > maxY || y < 0) {
-            return EditSession.nullBlock;
-        }
         int combinedId4Data = queue.getCombinedId4Data(x, y, z, 0);
         int id = FaweCache.getId(combinedId4Data);
         if (!FaweCache.hasNBT(id)) {
@@ -149,9 +145,6 @@ public class FastWorldEditExtent extends AbstractDelegateExtent implements HasFa
 
     @Override
     public boolean setBlock(int x, int y, int z, final BaseBlock block) throws WorldEditException {
-        if (y > maxY || y < 0) {
-            return false;
-        }
         final short id = (short) block.getId();
         switch (id) {
             case 63:

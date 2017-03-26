@@ -206,7 +206,7 @@ public class NMSRelighter implements Relighter{
         currentMap.put((int) MathMan.tripleBlockCoord(x, y, z), present);
     }
 
-    public synchronized void fixLightingSafe(boolean sky) {
+    public void fixLightingSafe(boolean sky) {
         try {
             if (sky) {
                 fixSkyLighting();

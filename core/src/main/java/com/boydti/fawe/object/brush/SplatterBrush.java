@@ -50,7 +50,7 @@ public class SplatterBrush extends ScatterBrush {
             @Override
             public boolean test(Vector vector) {
                 double dist = vector.distanceSq(position);
-                if (!placed.contains(vector) && (PseudoRandom.random.random(5) < 2) && solid.test(vector) && adjacent.test(vector)) {
+                if (dist < size2 && !placed.contains(vector) && (PseudoRandom.random.random(5) < 2) && solid.test(vector) && adjacent.test(vector)) {
                     placed.add(vector);
                     return true;
                 }

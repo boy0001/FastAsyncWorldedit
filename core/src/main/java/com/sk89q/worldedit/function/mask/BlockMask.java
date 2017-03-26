@@ -115,6 +115,28 @@ public class BlockMask extends AbstractExtentMask {
         return computedLegacyList;
     }
 
+    public Collection<BaseBlock> getInverseBlocks() {
+        if (computedLegacyList != null) {
+            return computedLegacyList;
+        }
+        computedLegacyList = new LinkedHashSet<>();
+        for (int id = 0; id < FaweCache.getId(blocks.length); id++) {
+            boolean all = true;
+            ArrayList<BaseBlock> tmp = new ArrayList<BaseBlock>(16);
+            for (int data = 0; data < 16; data++) {
+                if (!blocks[FaweCache.getCombined(id, data)]) {
+                    tmp.add(FaweCache.getBlock(id, data));
+                }
+            }
+            if (tmp.size() == 16) {
+                computedLegacyList.add(new BaseBlock(id, -1));
+            } else {
+                computedLegacyList.addAll(tmp);
+            }
+        }
+        return computedLegacyList;
+    }
+
     @Override
     public String toString() {
         return StringMan.getString(getBlocks());

@@ -27,7 +27,6 @@ public class SchematicStreamer extends NBTStreamer {
     }
 
     public void addBlockReaders() {
-        final long start = System.currentTimeMillis();
         NBTStreamReader initializer = new NBTStreamReader<Integer, Integer>() {
             @Override
             public void run(Integer length, Integer type) {

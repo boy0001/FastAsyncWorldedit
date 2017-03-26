@@ -80,6 +80,72 @@ public final class NBTOutputStream implements Closeable {
         writeTagPayload(tag);
     }
 
+    public void writeNamedTag(String name, String value) throws IOException {
+        checkNotNull(name);
+        checkNotNull(value);
+        int type = NBTConstants.TYPE_STRING;
+        writeNamedTagName(name, type);
+        byte[] bytes = value.getBytes(NBTConstants.CHARSET);
+        os.writeShort(bytes.length);
+        os.write(bytes);
+    }
+
+    public void writeNamedTag(String name, int value) throws IOException {
+        checkNotNull(name);
+        int type = NBTConstants.TYPE_INT;
+        writeNamedTagName(name, type);
+        os.writeInt(value);
+    }
+
+    public void writeNamedTag(String name, byte value) throws IOException {
+        checkNotNull(name);
+        int type = NBTConstants.TYPE_BYTE;
+        writeNamedTagName(name, type);
+        os.writeByte(value);
+    }
+
+    public void writeNamedTag(String name, short value) throws IOException {
+        checkNotNull(name);
+        int type = NBTConstants.TYPE_SHORT;
+        writeNamedTagName(name, type);
+        os.writeShort(value);
+    }
+
+    public void writeNamedTag(String name, long value) throws IOException {
+        checkNotNull(name);
+        int type = NBTConstants.TYPE_LONG;
+        writeNamedTagName(name, type);
+        os.writeLong(value);
+    }
+
+    public void writeNamedTag(String name, byte[] bytes) throws IOException {
+        checkNotNull(name);
+        int type = NBTConstants.TYPE_BYTE_ARRAY;
+        writeNamedTagName(name, type);
+        os.writeInt(bytes.length);
+        os.write(bytes);
+    }
+
+    public void writeNamedTag(String name, int[] data) throws IOException {
+        checkNotNull(name);
+        int type = NBTConstants.TYPE_INT_ARRAY;
+        writeNamedTagName(name, type);
+        os.writeInt(data.length);
+        for (int aData : data) {
+            os.writeInt(aData);
+        }
+    }
+
+    public void writeNamedEmptyList(String name) throws IOException {
+        writeNamedEmptyList(name, NBTConstants.TYPE_COMPOUND);
+    }
+
+    public void writeNamedEmptyList(String name, int type) throws IOException {
+        writeNamedTagName(name, NBTConstants.TYPE_LIST);
+        os.writeByte(type);
+        os.writeInt(0);
+    }
+
     public void writeNamedTagName(String name, int type) throws IOException {
         byte[] nameBytes = name.getBytes(NBTConstants.CHARSET);
         os.writeByte(type);
@@ -213,6 +279,9 @@ public final class NBTOutputStream implements Closeable {
      */
     private void writeListTagPayload(ListTag tag) throws IOException {
         Class<? extends Tag> clazz = tag.getType();
+        if (clazz == null) {
+            clazz = CompoundTag.class;
+        }
         List<Tag> tags = tag.getValue();
         int size = tags.size();
         if (!tags.isEmpty()) {

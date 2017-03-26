@@ -70,6 +70,12 @@ public class MCAQueue extends NMSMappedFaweQueue<FaweQueue, FaweChunk, FaweChunk
     public void filterWorld(final MCAFilter filter) {
         File folder = getSaveFolder();
         final ForkJoinPool pool = new ForkJoinPool();
+        final ThreadLocal<MutableMCABackedBaseBlock> blockStore = new ThreadLocal<MutableMCABackedBaseBlock>() {
+            @Override
+            protected MutableMCABackedBaseBlock initialValue() {
+                return new MutableMCABackedBaseBlock();
+            }
+        };
         for (final File file : folder.listFiles()) {
             try {
                 String name = file.getName();
@@ -82,18 +88,16 @@ public class MCAQueue extends NMSMappedFaweQueue<FaweQueue, FaweChunk, FaweChunk
                     final MCAFile finalFile = filter.applyFile(mcaFile);
                     if (finalFile != null) {
                         finalFile.init();
-                        Runnable run = new Runnable() {
+                        // May not do anything, but seems to lead to smaller lag spikes
+                        final int cbx = mcaX << 5;
+                        final int cbz = mcaZ << 5;
+
+                        finalFile.forEachSortedChunk(new RunnableVal4<Integer, Integer, Integer, Integer>() {
                             @Override
-                            public void run() {
-                                // May not do anything, but seems to lead to smaller lag spikes
-                                System.gc();
-                                System.gc();
-                                final MutableMCABackedBaseBlock mutableBlock = new MutableMCABackedBaseBlock();
-                                final int cbx = mcaX << 5;
-                                final int cbz = mcaZ << 5;
-                                finalFile.forEachChunk(new RunnableVal4<Integer, Integer, Integer, Integer>() {
+                            public void run(final Integer rcx, final Integer rcz, Integer offset, Integer size) {
+                                pool.submit(new Runnable() {
                                     @Override
-                                    public void run(final Integer rcx, final Integer rcz, Integer offset, Integer size) {
+                                    public void run() {
                                         int cx = cbx + rcx;
                                         int cz = cbz + rcz;
                                         if (filter.appliesChunk(cx, cz)) {
@@ -102,6 +106,7 @@ public class MCAQueue extends NMSMappedFaweQueue<FaweQueue, FaweChunk, FaweChunk
                                                 try {
                                                     chunk = filter.applyChunk(chunk);
                                                     if (chunk != null) {
+                                                        final MutableMCABackedBaseBlock mutableBlock = blockStore.get();
                                                         mutableBlock.setChunk(chunk);
                                                         int bx = cx << 4;
                                                         int bz = cz << 4;
@@ -111,9 +116,12 @@ public class MCAQueue extends NMSMappedFaweQueue<FaweQueue, FaweChunk, FaweChunk
                                                                 int yStart = layer << 4;
                                                                 int index = 0;
                                                                 for (int y = yStart; y < yStart + 16; y++) {
+                                                                    mutableBlock.setY(y);
                                                                     for (int z = bz; z < bz + 16; z++) {
+                                                                        mutableBlock.setZ(z);
                                                                         for (int x = bx; x < bx + 16; x++,index++) {
-                                                                            mutableBlock.setIndex(x & 15, y, z & 15, index);
+                                                                            mutableBlock.setX(x);
+                                                                            mutableBlock.setIndex(index);
                                                                             filter.applyBlock(x, y, z, mutableBlock);
                                                                         }
                                                                     }
@@ -131,26 +139,26 @@ public class MCAQueue extends NMSMappedFaweQueue<FaweQueue, FaweChunk, FaweChunk
                                         }
                                     }
                                 });
-                                original.close();
-                                finalFile.close();
-                                System.gc();
-                                System.gc();
                             }
-                        };
-                        pool.submit(run);
+                        });
+                        pool.awaitQuiescence(Long.MAX_VALUE, TimeUnit.MILLISECONDS);
+                        original.close(pool);
+                        if (original != finalFile) finalFile.close(pool);
                     } else {
                         try {
-                            original.close();
+                            original.close(pool);
                             file.delete();
                         } catch (Throwable ignore) {}
                     }
                 }
-            } catch (Throwable ignore) {}
+            } catch (Throwable ignore) {
+                ignore.printStackTrace();
+            }
         }
         pool.shutdown();
         try {
             pool.awaitTermination(Long.MAX_VALUE, TimeUnit.MILLISECONDS);
-        } catch (InterruptedException e) {
+        } catch (Throwable e) {
             e.printStackTrace();
         }
     }

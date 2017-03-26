@@ -31,28 +31,37 @@ public class MutableMCABackedBaseBlock extends BaseBlock {
         data = chunk.data[layer];
     }
 
-    public void setIndex(int x, int y, int z, int index) {
+    public void setX(int x) {
         this.x = x;
+    }
+
+    public void setY(int y) {
         this.y = y;
+    }
+
+    public void setZ(int z) {
         this.z = z;
+    }
+
+    public void setIndex(int index) {
         this.index = index;
     }
 
     @Override
     public int getId() {
-        return ids[index] & 0xFF;
+        return Byte.toUnsignedInt(ids[index]);
     }
 
     @Override
     public int getData() {
-        if (!FaweCache.hasData(ids[index])) {
+        if (!FaweCache.hasData(ids[index] & 0xFF)) {
             return 0;
         } else {
             int indexShift = index >> 1;
             if ((index & 1) == 0) {
-                return data[index] & 15;
+                return data[indexShift] & 15;
             } else {
-                return data[index] >> 4 & 15;
+                return (data[indexShift] >> 4) & 15;
             }
         }
     }

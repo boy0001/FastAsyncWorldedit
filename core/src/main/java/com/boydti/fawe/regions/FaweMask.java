@@ -30,7 +30,7 @@ public class FaweMask {
     public HashSet<RegionWrapper> getRegions() {
         final BlockVector lower = this.getLowerBound();
         final BlockVector upper = this.getUpperBound();
-        return new HashSet<>(Arrays.asList(new RegionWrapper(lower.getBlockX(), upper.getBlockX(), lower.getBlockZ(), upper.getBlockZ())));
+        return new HashSet<>(Arrays.asList(new RegionWrapper(lower.getBlockX(), upper.getBlockX(), lower.getBlockY(), upper.getBlockY(), lower.getBlockZ(), upper.getBlockZ())));
     }
 
     public String getName() {

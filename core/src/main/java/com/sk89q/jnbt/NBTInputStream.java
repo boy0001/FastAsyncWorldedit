@@ -157,12 +157,12 @@ public final class NBTInputStream implements Closeable {
                     int i = 0;
                     if (is instanceof InputStream) {
                         DataInputStream dis = (DataInputStream) is;
-                        if (length > 720) {
+                        if (length > 1024) {
                             if (buf == null) {
-                                buf = new byte[720];
+                                buf = new byte[1024];
                             }
                             int left = length;
-                            for (; left > 720; left -= 720) {
+                            for (; left > 1024; left -= 1024) {
                                 dis.readFully(buf);
                                 for (byte b : buf) {
                                     byteReader.run(i++, b & 0xFF);
@@ -173,12 +173,12 @@ public final class NBTInputStream implements Closeable {
                             byteReader.run(i, dis.read());
                         }
                     } else {
-                        if (length > 720) {
+                        if (length > 1024) {
                             if (buf == null) {
-                                buf = new byte[720];
+                                buf = new byte[1024];
                             }
                             int left = length;
-                            for (; left > 720; left -= 720) {
+                            for (; left > 1024; left -= 1024) {
                                 is.readFully(buf);
                                 for (byte b : buf) {
                                     byteReader.run(i++, b & 0xFF);
@@ -338,8 +338,17 @@ public final class NBTInputStream implements Closeable {
             case NBTConstants.TYPE_INT_ARRAY:
                 length = is.readInt();
                 int[] data = new int[length];
-                for (int i = 0; i < length; i++) {
-                    data[i] = is.readInt();
+                if (buf == null) {
+                    buf = new byte[1024];
+                }
+                int index = 0;
+                while (length > 0) {
+                    int toRead = Math.min(length << 2, buf.length);
+                    is.readFully(buf, 0, toRead);
+                    for (int i = 0; i < toRead; i += 4, index++) {
+                        data[index] = ((buf[i] << 24) + (buf[i + 1]<< 16) + (buf[i + 2] << 8) + (buf[i + 3] << 0));
+                    }
+                    length -= toRead;
                 }
                 return (data);
             default:
