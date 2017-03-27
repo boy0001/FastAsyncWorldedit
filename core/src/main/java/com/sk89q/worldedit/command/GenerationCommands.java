@@ -69,11 +69,12 @@ public class GenerationCommands {
     }
 
     @Command(
-            aliases = { "/caves [size=8] [freq=40] [rarity=7] [minY=8] [maxY=127] [sysFreq=1] [sysRarity=25] [pocketRarity=0] [pocketMin=0] [pocketMax=3]" },
+            aliases = { "/caves" },
+            usage = "[size=8] [freq=40] [rarity=7] [minY=8] [maxY=127] [sysFreq=1] [sysRarity=25] [pocketRarity=0] [pocketMin=0] [pocketMax=3]",
             desc = "Generates caves",
             help = "Generates a cave network"
     )
-    @CommandPermissions("worldedit.generation.cylinder")
+    @CommandPermissions("worldedit.generation.caves")
     @Logging(PLACEMENT)
     public void caves(Player player, LocalSession session, EditSession editSession, @Selection Region region, @Optional("8") int size, @Optional("40") int frequency, @Optional("7") int rarity, @Optional("8") int minY, @Optional("127") int maxY, @Optional("1") int systemFrequency, @Optional("25") int individualRarity, @Optional("0") int pocketChance, @Optional("0") int pocketMin, @Optional("3") int pocketMax) throws WorldEditException, ParameterException {
         CavesGen gen = new CavesGen(size, frequency, rarity, minY, maxY, systemFrequency, individualRarity, pocketChance, pocketMin, pocketMax);
@@ -98,7 +99,8 @@ public class GenerationCommands {
     }
 
     @Command(
-            aliases = { "/ore <mask> <pattern> <size> <freq> <rarity> <minY> <maxY>" },
+            aliases = { "/ore" },
+            usage = "<mask> <pattern> <size> <freq> <rarity> <minY> <maxY>",
             desc = "Generates ores",
             help = "Generates ores",
             min = 7,
