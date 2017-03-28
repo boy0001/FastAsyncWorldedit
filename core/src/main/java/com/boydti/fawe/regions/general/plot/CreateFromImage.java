@@ -24,6 +24,7 @@ import com.intellectualcrafters.plot.object.worlds.SinglePlotAreaManager;
 import com.intellectualcrafters.plot.util.MainUtil;
 import com.plotsquared.general.commands.Command;
 import com.plotsquared.general.commands.CommandDeclaration;
+import com.sk89q.worldedit.Vector2D;
 import com.sk89q.worldedit.WorldEdit;
 import com.sk89q.worldedit.extension.input.InputParseException;
 import com.sk89q.worldedit.extension.input.ParserContext;
@@ -51,7 +52,7 @@ import javax.imageio.ImageIO;
         category = CommandCategory.APPEARANCE,
         requiredType = RequiredType.NONE,
         description = "Generate a world from an image",
-        usage = "/plots cfi [url]"
+        usage = "/plots cfi [url or dimensions]"
 )
 public class CreateFromImage extends Command {
     private final WorldEdit we;
@@ -71,19 +72,32 @@ public class CreateFromImage extends Command {
                 @Override
                 public void run() {
                     FawePlayer<Object> fp = FawePlayer.wrap(player.getName());
-                    if (argList.get(0).toLowerCase().startsWith("http")) {
+                    HeightMapMCAGenerator generator = player.getMeta("HMGenerator");
+                    Plot plot = player.getMeta("HMGeneratorPlot");
+                    if (generator == null) {
+                        final Vector2D dimensions;
                         final BufferedImage image;
-                        try {
-                            URL url = new URL(argList.get(0));
-                            if (!url.getHost().equals("i.imgur.com")) {
-                                player.sendMessage("Images can only be loaded from i.imgur.com");
+                        if (argList.get(0).toLowerCase().startsWith("http")) {
+                            try {
+                                URL url = new URL(argList.get(0));
+                                if (!url.getHost().equals("i.imgur.com")) {
+                                    player.sendMessage("Images can only be loaded from i.imgur.com");
+                                    return;
+                                }
+                                player.sendMessage(BBC.getPrefix() + "Loading image... (1)");
+                                image = ImageIO.read(url);
+                            } catch (IOException e) {
+                                player.sendMessage(e.getMessage());
                                 return;
                             }
-                            player.sendMessage(BBC.getPrefix() + "Loading image... (1)");
-                            image = ImageIO.read(url);
-                        } catch (IOException e) {
-                            player.sendMessage(e.getMessage());
-                            return;
+                            dimensions = null;
+                        } else {
+                            image = null;
+                            if (argList.size() != 2) {
+                                C.COMMAND_SYNTAX.send(player, getUsage());
+                                return;
+                            }
+                            dimensions = new Vector2D(Integer.parseInt(argList.get(0)), Integer.parseInt(argList.get(1)));
                         }
                         fp.runAction(new Runnable() {
                             @Override
@@ -123,10 +137,16 @@ public class CreateFromImage extends Command {
                                 fp.sendMessage(BBC.getPrefix() + "/2 cfi addcaves");
                                 fp.sendMessage(BBC.getPrefix() + "/2 cfi addore[s]");
                                 fp.sendMessage(BBC.getPrefix() + "/2 cfi addschems");
+                                fp.sendMessage(BBC.getPrefix() + "/2 cfi setheight");
                                 fp.sendMessage(BBC.getPrefix() + "/2 cfi done");
                                 fp.sendMessage(BBC.getPrefix() + "/2 cfi cancel");
                                 File folder = new File(PS.imp().getWorldContainer(), plot.getWorldName() + File.separator + "region");
-                                HeightMapMCAGenerator generator = new HeightMapMCAGenerator(image, folder);
+                                HeightMapMCAGenerator generator;
+                                if (image != null) {
+                                    generator = new HeightMapMCAGenerator(image, folder);
+                                } else {
+                                    generator = new HeightMapMCAGenerator(dimensions.getBlockX(), dimensions.getBlockZ(), folder);
+                                }
                                 player.setMeta("HMGenerator", generator);
                                 player.setMeta("HMGeneratorPlot", plot);
                             }
@@ -136,8 +156,6 @@ public class CreateFromImage extends Command {
                     fp.runAction(new Runnable() {
                         @Override
                         public void run() {
-                            HeightMapMCAGenerator generator = player.getMeta("HMGenerator");
-                            Plot plot = player.getMeta("HMGeneratorPlot");
                             if (generator == null) {
                                 C.COMMAND_SYNTAX.send(player, getUsage());
                                 return;
@@ -147,8 +165,8 @@ public class CreateFromImage extends Command {
                                     C.COMMAND_SYNTAX.send(player, "/2 cfi " + argList.get(0) + " <image or mask> <value> [white-only]");
                                     C.COMMAND_SYNTAX.send(player, "/2 cfi " + argList.get(0) + " <value>");
                                     return;
-                                } else if (!StringMan.isEqualIgnoreCaseToAny(argList.get(0), "done", "cancel", "addcaves", "addore", "addores", "addschems")) {
-                                    C.COMMAND_SYNTAX.send(player, "/2 cfi <setbiome|setoverlay|setmain|setfloor|setcolumn|done|cancel|addcaves|addore[s]|addschems>");
+                                } else if (!StringMan.isEqualIgnoreCaseToAny(argList.get(0), "done", "cancel", "addcaves", "addore", "addores", "addschems", "setheight")) {
+                                    C.COMMAND_SYNTAX.send(player, "/2 cfi <setbiome|setoverlay|setmain|setfloor|setcolumn|done|cancel|addcaves|addore[s]|addschems|setheight>");
                                     return;
                                 }
                             }
@@ -176,6 +194,21 @@ public class CreateFromImage extends Command {
                                         boolean rotate = Boolean.parseBoolean(argList.get(4));
                                         generator.addSchems(mask, wd, clipboards, rarity, rotate);
                                         player.sendMessage(BBC.getPrefix() + "Added schems, what's next?");
+                                        return;
+                                    }
+                                    case "setheight": {
+                                        if (argList.size() != 2) {
+                                            C.COMMAND_SYNTAX.send(player, "/2 cfi " + argList.get(0) + " <height>");
+                                            return;
+                                        }
+                                        if (argList.get(1).startsWith("http")) {
+                                            player.sendMessage("Loading image (3)...");
+                                            BufferedImage image = getImgurImage(argList.get(1), fp);
+                                            generator.setHeight(image);
+                                        } else {
+                                            generator.setHeights(Integer.parseInt(args[1]));
+                                        }
+                                        player.sendMessage("Set height, what's next?");
                                         return;
                                     }
                                     case "addores":
