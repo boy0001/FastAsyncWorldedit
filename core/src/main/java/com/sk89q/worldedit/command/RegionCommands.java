@@ -532,7 +532,7 @@ public class RegionCommands {
     @Command(
             aliases = { "/stack" },
             usage = "[count] [direction]",
-            flags = "sa",
+            flags = "sam",
             desc = "Repeat the contents of the selection",
             help =
                     "Repeats the contents of the selection.\n" +
@@ -549,7 +549,10 @@ public class RegionCommands {
                       @Optional("1") @Range(min = 1) int count,
                       @Optional(Direction.AIM) @Direction Vector direction,
                       @Switch('s') boolean moveSelection,
-                      @Switch('a') boolean ignoreAirBlocks) throws WorldEditException {
+                      @Switch('a') boolean ignoreAirBlocks, @Switch('m') Mask sourceMask) throws WorldEditException {
+        if (sourceMask != null) {
+            editSession.addSourceMask(sourceMask);
+        }
         int affected = editSession.stackCuboidRegion(region, direction, count, !ignoreAirBlocks);
 
         if (moveSelection) {

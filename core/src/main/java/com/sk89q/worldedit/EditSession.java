@@ -690,6 +690,22 @@ public class EditSession extends AbstractWorld implements HasFaweQueue, Lighting
         }
     }
 
+    public void addSourceMask(Mask mask) {
+        checkNotNull(mask);
+        Mask existing = getSourceMask();
+        if (existing != null) {
+            if (existing instanceof MaskIntersection) {
+                ((MaskIntersection) existing).add(mask);
+                return;
+            } else {
+                MaskIntersection intersection = new MaskIntersection(existing);
+                intersection.add(mask);
+                mask = intersection;
+            }
+        }
+        setSourceMask(mask);
+    }
+
     /**
      * Set a mask.
      *

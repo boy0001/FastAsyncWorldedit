@@ -303,17 +303,7 @@ public class BrushTool implements DoubleActionTraceTool, ScrollTool, MovableTool
             }
         }
         if (current.sourceMask != null) {
-            Mask existingMask = editSession.getSourceMask();
-
-            if (existingMask == null) {
-                editSession.setSourceMask(current.sourceMask);
-            } else if (existingMask instanceof MaskIntersection) {
-                ((MaskIntersection) existingMask).add(current.sourceMask);
-            } else {
-                MaskIntersection newMask = new MaskIntersection(existingMask);
-                newMask.add(current.sourceMask);
-                editSession.setSourceMask(newMask);
-            }
+            editSession.addSourceMask(current.sourceMask);
         }
         if (current.transform != null) {
             editSession.addTransform(current.transform);
