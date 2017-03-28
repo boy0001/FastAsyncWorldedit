@@ -175,11 +175,11 @@ public interface Extent extends InputExtent, OutputExtent {
     }
 
     default public void addOres(Region region, Mask mask) throws WorldEditException {
-        addOre(region, mask, new BlockPattern(BlockID.DIRT), 30, 4, 100, 0, 255);
-        addOre(region, mask, new BlockPattern(BlockID.GRAVEL), 30, 2, 100, 0, 255);
-        addOre(region, mask, new BlockPattern(BlockID.STONE, 1), 30, 4, 100, 0, 79);
-        addOre(region, mask, new BlockPattern(BlockID.STONE, 3), 30, 4, 100, 0, 79);
-        addOre(region, mask, new BlockPattern(BlockID.STONE, 5), 30, 4, 100, 0, 79);
+        addOre(region, mask, new BlockPattern(BlockID.DIRT), 33, 10, 100, 0, 255);
+        addOre(region, mask, new BlockPattern(BlockID.GRAVEL), 33, 8, 100, 0, 255);
+        addOre(region, mask, new BlockPattern(BlockID.STONE, 1), 33, 10, 100, 0, 79);
+        addOre(region, mask, new BlockPattern(BlockID.STONE, 3), 33, 10, 100, 0, 79);
+        addOre(region, mask, new BlockPattern(BlockID.STONE, 5), 33, 10, 100, 0, 79);
         addOre(region, mask, new BlockPattern(BlockID.COAL_ORE), 17, 20, 100, 0, 127);
         addOre(region, mask, new BlockPattern(BlockID.IRON_ORE), 9, 20, 100, 0, 63);
         addOre(region, mask, new BlockPattern(BlockID.GOLD_ORE), 9, 2, 100, 0, 31);

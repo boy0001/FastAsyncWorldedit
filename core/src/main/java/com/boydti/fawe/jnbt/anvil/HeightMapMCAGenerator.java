@@ -121,11 +121,8 @@ public class HeightMapMCAGenerator implements Extent {
         return true;
     }
 
-    public int count;
-
     @Override
     public boolean setBlock(int x, int y, int z, BaseBlock block) throws WorldEditException {
-        count++;
         int index = z * width + x;
         if (index < 0 || index >= heights.length) return false;
         int height = heights[index] & 0xFF;
@@ -733,9 +730,14 @@ public class HeightMapMCAGenerator implements Extent {
                                 try {
                                     MCAChunk chunk = chunkStore.get();
                                     int[] indexes = indexStore.get();
-                                    for (byte[] array : chunk.ids) {
-                                        if (array != null) {
-                                            Arrays.fill(array, (byte) 0);
+                                    for (int i = 0; i < chunk.ids.length; i++) {
+                                        byte[] idsArray = chunk.ids[i];
+                                        if (idsArray != null) {
+                                            Arrays.fill(idsArray, (byte) 0);
+                                        }
+                                        byte[] dataArray = chunk.data[i];
+                                        if (dataArray != null) {
+                                            Arrays.fill(dataArray, (byte) 0);
                                         }
                                     }
                                     int index = 0;
@@ -859,6 +861,7 @@ public class HeightMapMCAGenerator implements Extent {
                                     int maxYMod = 15 + (maxLayer << 4);
                                     for (int layer = (maxY >> 4) + 1; layer < 16; layer++) {
                                         chunk.ids[layer] = null;
+                                        chunk.data[layer] = null;
                                     }
                                     index = 0;
                                     { // Bedrock
