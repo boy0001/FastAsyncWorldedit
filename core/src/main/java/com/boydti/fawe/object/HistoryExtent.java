@@ -72,7 +72,7 @@ public class HistoryExtent extends AbstractDelegateExtent {
         }
         try {
             if (!FaweCache.hasNBT(id)) {
-                if (FaweCache.hasNBT(block.getId())) {
+                if (block.canStoreNBTData()) {
                     this.changeSet.add(x, y, z, combined, block);
                 } else {
                     this.changeSet.add(x, y, z, combined, (block.getId() << 4) + block.getData());

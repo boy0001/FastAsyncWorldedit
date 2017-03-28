@@ -233,31 +233,6 @@ public class DiskOptimizedClipboard extends FaweClipboard implements Closeable {
 
     public static long start;
 
-    public static void main(String[] args) throws Throwable {
-        BaseBlock block = FaweCache.getBlock(0, 0);
-        DiskOptimizedClipboard clip = new DiskOptimizedClipboard(443, 256, 443, new File("test"));
-        start = System.currentTimeMillis();
-        clip.forEach(new BlockReader() {
-            @Override
-            public void run(int x, int y, int z, BaseBlock value2) {
-
-            }
-        }, true);
-        clip.close();
-//        BufferedRandomAccessFile raf = new BufferedRandomAccessFile(new File("test"), "rw");
-//        int len = 50000000;
-//        raf.setLength(len * 2);
-//        long start = System.currentTimeMillis();
-//        long total = 0;
-//        for (int i = 0; i < len; i++) {
-//            total += raf.readChar();
-//        }
-//        raf.close();
-        System.out.println(System.currentTimeMillis() - start + "ms");
-//        System.out.println("Total " + total);
-        System.exit(1);
-    }
-
     @Override
     public void streamDatas(NBTStreamer.ByteReader task) {
         try {
@@ -324,7 +299,7 @@ public class DiskOptimizedClipboard extends FaweClipboard implements Closeable {
                             int combinedId = raf.readChar();
                             if (combinedId != 0) {
                                 BaseBlock block = FaweCache.CACHE_BLOCK[combinedId];
-                                if (FaweCache.hasNBT(block.getId())) {
+                                if (block.canStoreNBTData()) {
                                     trio.set(x, y, z);
                                     CompoundTag nbt = nbtMap.get(trio);
                                     if (nbt != null) {
@@ -357,7 +332,7 @@ public class DiskOptimizedClipboard extends FaweClipboard implements Closeable {
             last = i;
             int combinedId = raf.readChar();
             BaseBlock block = FaweCache.CACHE_BLOCK[combinedId];
-            if (FaweCache.hasNBT(block.getId())) {
+            if (block.canStoreNBTData()) {
                 CompoundTag nbt = nbtMap.get(new IntegerTrio(x, y, z));
                 if (nbt != null) {
                     block = new BaseBlock(block.getId(), block.getData());
