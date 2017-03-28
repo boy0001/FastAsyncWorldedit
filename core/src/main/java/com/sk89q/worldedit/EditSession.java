@@ -250,7 +250,7 @@ public class EditSession extends AbstractWorld implements HasFaweQueue, Lighting
         if (combineStages == null) {
             combineStages = Settings.IMP.HISTORY.COMBINE_STAGES && !(queue instanceof MCAQueue);
         }
-        if (limit.FAST_PLACEMENT) {
+        if (!limit.FAST_PLACEMENT) {
             combineStages = false;
         }
         if (checkMemory) {
@@ -314,6 +314,7 @@ public class EditSession extends AbstractWorld implements HasFaweQueue, Lighting
                 if (this.blockBag != null && limit.INVENTORY_MODE > 0) {
                     changeSet = new BlockBagChangeSet(changeSet, blockBag, limit.INVENTORY_MODE == 1);
                 }
+                System.out.println("Combine stages " + combineStages);
                 if (combineStages) {
                     changeTask = changeSet;
                     changeSet.addChangeTask(queue);
@@ -3213,17 +3214,13 @@ public class EditSession extends AbstractWorld implements HasFaweQueue, Lighting
     }
 
     @Override
-    public boolean clearContainerBlockContents(Vector position) {
-        BaseBlock block = getBlock(position);
+    public boolean clearContainerBlockContents(Vector pos) {
+        BaseBlock block = getBlock(pos);
         CompoundTag nbt = block.getNbtData();
         if (nbt != null) {
             if (nbt.containsKey("items")) {
                 block.setNbtData(null);
-                try {
-                    return setBlock(position, block);
-                } catch (WorldEditException e) {
-                    e.printStackTrace();
-                }
+                return setBlock(pos.getBlockX(), pos.getBlockY(), pos.getBlockZ(), block);
             }
         }
         return false;

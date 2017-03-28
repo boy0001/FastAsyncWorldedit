@@ -2,7 +2,6 @@ package com.sk89q.worldedit.extent.clipboard.io;
 
 import com.boydti.fawe.FaweCache;
 import com.boydti.fawe.jnbt.NBTStreamer;
-import com.boydti.fawe.object.RunnableVal2;
 import com.boydti.fawe.object.clipboard.FaweClipboard;
 import com.boydti.fawe.util.ReflectionUtils;
 import com.sk89q.jnbt.ByteArrayTag;
@@ -54,7 +53,7 @@ public class SchematicWriter implements ClipboardWriter {
         this.outputStream = outputStream;
     }
 
-    private static class ForEach extends RunnableVal2<Vector, BaseBlock> {
+    private static class ForEach extends FaweClipboard.BlockReader {
         int x = -1;
         int y = 0;
         int z = 0;
@@ -76,10 +75,7 @@ public class SchematicWriter implements ClipboardWriter {
         }
 
         @Override
-        public void run(Vector point, BaseBlock block) {
-            int x = (int) point.getX();
-            int y = (int) point.getY();
-            int z = (int) point.getZ();
+        public void run(int x, int y, int z, BaseBlock block) {
             if (this.x == x - 1 && this.y == y && this.z == z) {
                 this.x++;
                 index++;
@@ -164,6 +160,7 @@ public class SchematicWriter implements ClipboardWriter {
                     public void run(int index, int byteValue) {
                         try {
                             if (byteValue >= 256) {
+                                System.out.println("Add block");
                                 hasAdd  = true;
                             }
                             if (FaweCache.hasData(byteValue)) {
@@ -205,6 +202,7 @@ public class SchematicWriter implements ClipboardWriter {
                         @Override
                         public void run(int index, int byteValue) {
                             try {
+                                System.out.println("Add " + (byteValue >> 8));
                                 rawStream.writeByte(byteValue >> 8);
                             } catch (IOException e) {
                                 e.printStackTrace();
@@ -312,10 +310,10 @@ public class SchematicWriter implements ClipboardWriter {
             MutableBlockVector mutable = new MutableBlockVector(0, 0, 0);
             ForEach forEach = new ForEach(yarea, zwidth, blocks, blockData, tileEntities);
             for (Vector point : region) {
-                mutable.mutX((point.getX() - mx));
-                mutable.mutY((point.getY() - my));
-                mutable.mutZ((point.getZ() - mz));
-                forEach.run(mutable, clipboard.getBlock(point));
+                int x = (point.getBlockX() - mx);
+                int y = (point.getBlockY() - my);
+                int z = (point.getBlockZ() - mz);
+                forEach.run(x, y, z, clipboard.getBlock(point));
             }
             addBlocks = forEach.addBlocks;
         }

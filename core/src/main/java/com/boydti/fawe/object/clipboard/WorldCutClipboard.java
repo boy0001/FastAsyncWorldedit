@@ -28,7 +28,7 @@ public class WorldCutClipboard extends WorldCopyClipboard {
     }
 
     @Override
-    public void forEach(RunnableVal2<Vector, BaseBlock> task, boolean air) {
+    public void forEach(BlockReader task, boolean air) {
         super.forEach(task, air);
         editSession.flushQueue();
     }

@@ -1,7 +1,6 @@
 package com.boydti.fawe.object.clipboard;
 
 import com.boydti.fawe.jnbt.NBTStreamer;
-import com.boydti.fawe.object.RunnableVal2;
 import com.boydti.fawe.util.ReflectionUtils;
 import com.sk89q.jnbt.CompoundTag;
 import com.sk89q.jnbt.IntTag;
@@ -50,23 +49,27 @@ public abstract class FaweClipboard {
      * @param task
      * @param air
      */
-    public abstract void forEach(final RunnableVal2<Vector,BaseBlock> task, boolean air);
+    public abstract void forEach(BlockReader task, boolean air);
+
+    public static abstract class BlockReader {
+        public abstract void run(int x, int y, int z, BaseBlock block);
+    }
 
     public void streamIds(final NBTStreamer.ByteReader task) {
-        forEach(new RunnableVal2<Vector, BaseBlock>() {
+        forEach(new BlockReader() {
             private int index = 0;
             @Override
-            public void run(Vector pos, BaseBlock block) {
+            public void run(int x, int y, int z, BaseBlock block) {
                 task.run(index++, block.getId());
             }
         }, true);
     }
 
     public void streamDatas(final NBTStreamer.ByteReader task) {
-        forEach(new RunnableVal2<Vector, BaseBlock>() {
+        forEach(new BlockReader() {
             private int index = 0;
             @Override
-            public void run(Vector pos, BaseBlock block) {
+            public void run(int x, int y, int z, BaseBlock block) {
                 task.run(index++, block.getData());
             }
         }, true);
@@ -74,16 +77,16 @@ public abstract class FaweClipboard {
 
     public List<CompoundTag> getTileEntities() {
         final List<CompoundTag> tiles = new ArrayList<>();
-        forEach(new RunnableVal2<Vector, BaseBlock>() {
+        forEach(new BlockReader() {
             private int index = 0;
             @Override
-            public void run(Vector pos, BaseBlock block) {
+            public void run(int x, int y, int z, BaseBlock block) {
                 CompoundTag tag = block.getNbtData();
                 if (tag != null) {
                     Map<String, Tag> values = ReflectionUtils.getMap(tag.getValue());
-                    values.put("x", new IntTag(pos.getBlockX()));
-                    values.put("y", new IntTag(pos.getBlockY()));
-                    values.put("z", new IntTag(pos.getBlockZ()));
+                    values.put("x", new IntTag(x));
+                    values.put("y", new IntTag(y));
+                    values.put("z", new IntTag(z));
                     tiles.add(tag);
                 }
             }

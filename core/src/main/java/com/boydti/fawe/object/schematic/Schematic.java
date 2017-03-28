@@ -1,7 +1,7 @@
 package com.boydti.fawe.object.schematic;
 
 import com.boydti.fawe.object.HasFaweQueue;
-import com.boydti.fawe.object.RunnableVal2;
+import com.boydti.fawe.object.clipboard.FaweClipboard;
 import com.boydti.fawe.object.clipboard.ReadOnlyClipboard;
 import com.boydti.fawe.util.EditSessionBuilder;
 import com.boydti.fawe.util.MaskTraverser;
@@ -167,18 +167,13 @@ public class Schematic {
             final int rely = to.getBlockY() + bot.getBlockY() - origin.getBlockY();
             final int relz = to.getBlockZ() + bot.getBlockZ() - origin.getBlockZ();
             BlockArrayClipboard bac = (BlockArrayClipboard) clipboard;
-            bac.IMP.forEach(new RunnableVal2<Vector, BaseBlock>() {
+            bac.IMP.forEach(new FaweClipboard.BlockReader() {
                 @Override
-                public void run(Vector mutable, BaseBlock block) {
-                    mutable.mutX(mutable.getX() + relx);
-                    mutable.mutY(mutable.getY() + rely);
-                    mutable.mutZ(mutable.getZ() + relz);
-                    if (mutable.getY() >= 0 && mutable.getY() <= maxY) {
-                        try {
-                            extent.setBlock(mutable, block);
-                        } catch (WorldEditException e) {
-                            throw new RuntimeException(e);
-                        }
+                public void run(int x, int y, int z, BaseBlock block) {
+                    try {
+                        extent.setBlock(x + relx, y + rely, z + relz, block);
+                    } catch (WorldEditException e) {
+                        throw new RuntimeException(e);
                     }
                 }
             }, pasteAir);
@@ -194,12 +189,7 @@ public class Schematic {
                     if (block == EditSession.nullBlock && !pasteAir) {
                         return false;
                     }
-                    mutable.mutX(mutable.getX() + relx);
-                    mutable.mutY(mutable.getY() + rely);
-                    mutable.mutZ(mutable.getZ() + relz);
-                    if (mutable.getY() >= 0 && mutable.getY() <= maxY) {
-                        return extent.setBlock(mutable, block);
-                    }
+                    extent.setBlock(mutable.getBlockX() + relx, mutable.getBlockY() + rely, mutable.getBlockZ() + relz, block);
                     return false;
                 }
             }, (HasFaweQueue) (extent instanceof HasFaweQueue ? extent : null));

@@ -2,6 +2,8 @@ package com.boydti.fawe.jnbt;
 
 import com.boydti.fawe.object.RunnableVal2;
 import com.sk89q.jnbt.NBTInputStream;
+import com.sk89q.worldedit.Vector;
+import com.sk89q.worldedit.blocks.BaseBlock;
 import java.io.IOException;
 import java.util.HashMap;
 

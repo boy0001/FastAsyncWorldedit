@@ -3,7 +3,6 @@ package com.boydti.fawe.object.clipboard;
 import com.boydti.fawe.FaweCache;
 import com.boydti.fawe.jnbt.NBTStreamer;
 import com.boydti.fawe.object.IntegerTrio;
-import com.boydti.fawe.object.RunnableVal2;
 import com.boydti.fawe.util.ReflectionUtils;
 import com.sk89q.jnbt.CompoundTag;
 import com.sk89q.jnbt.IntTag;
@@ -156,19 +155,15 @@ public class CPUOptimizedClipboard extends FaweClipboard {
     }
 
     @Override
-    public void forEach(final RunnableVal2<Vector,BaseBlock> task, boolean air) {
-        task.value1 = new Vector(0, 0, 0);
+    public void forEach(final BlockReader task, boolean air) {
         for (int y = 0, index = 0; y < height; y++) {
             for (int z = 0; z < length; z++) {
                 for (int x = 0; x < width; x++, index++) {
-                    task.value2 = getBlock(index);
-                    if (!air && task.value2.getId() == 0) {
+                    BaseBlock block = getBlock(index);
+                    if (!air && block.getId() == 0) {
                         continue;
                     }
-                    task.value1.mutX(x);
-                    task.value1.mutY(y);
-                    task.value1.mutZ(z);
-                    task.run();
+                    task.run(x, y, z, block);
                 }
             }
         }

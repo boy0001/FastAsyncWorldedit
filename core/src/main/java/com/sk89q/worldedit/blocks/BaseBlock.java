@@ -237,6 +237,11 @@ public class BaseBlock extends Block implements TileEntityBlock, Pattern {
         return getNbtData() != null;
     }
 
+    public boolean canStoreNBTData() {
+        return FaweCache.hasNBT(getId());
+    }
+
+
     @Override
     public String getNbtId() {
         CompoundTag nbtData = getNbtData();

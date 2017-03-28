@@ -1,6 +1,5 @@
 package com.boydti.fawe.object.clipboard;
 
-import com.boydti.fawe.object.RunnableVal2;
 import com.boydti.fawe.util.ReflectionUtils;
 import com.sk89q.jnbt.CompoundTag;
 import com.sk89q.jnbt.IntTag;
@@ -47,7 +46,7 @@ public class WorldCopyClipboard extends ReadOnlyClipboard {
     }
 
     @Override
-    public void forEach(final RunnableVal2<Vector, BaseBlock> task, boolean air) {
+    public void forEach(BlockReader task, boolean air) {
         Vector min = region.getMinimumPoint();
         Vector max = region.getMaximumPoint();
         final Vector pos = new Vector();
@@ -57,21 +56,18 @@ public class WorldCopyClipboard extends ReadOnlyClipboard {
                 RegionVisitor visitor = new RegionVisitor(region, new RegionFunction() {
                     @Override
                     public boolean apply(Vector pos) throws WorldEditException {
-                        int x = pos.getBlockX();
-                        int y = pos.getBlockY();
-                        int z = pos.getBlockZ();
-                        BaseBlock block = getBlockAbs(x, y, z);
-                        pos.mutX(x - mx);
-                        pos.mutY(y - my);
-                        pos.mutZ(z - mz);
+                        BaseBlock block = getBlockAbs(pos.getBlockX(), pos.getBlockY(), pos.getBlockZ());
+                        int x = pos.getBlockX() - mx;
+                        int y = pos.getBlockY() - my;
+                        int z = pos.getBlockZ() - mz;
                         CompoundTag tag = block.getNbtData();
                         if (tag != null) {
                             Map<String, Tag> values = ReflectionUtils.getMap(tag.getValue());
-                            values.put("x", new IntTag(pos.getBlockX()));
-                            values.put("y", new IntTag(pos.getBlockY()));
-                            values.put("z", new IntTag(pos.getBlockZ()));
+                            values.put("x", new IntTag(x));
+                            values.put("y", new IntTag(y));
+                            values.put("z", new IntTag(z));
                         }
-                        task.run(pos, block);
+                        task.run(x, y, z, block);
                         return true;
                     }
                 }, editSession);
@@ -82,27 +78,21 @@ public class WorldCopyClipboard extends ReadOnlyClipboard {
                 RegionVisitor visitor = new RegionVisitor(cuboidEquivalent, new RegionFunction() {
                     @Override
                     public boolean apply(Vector pos) throws WorldEditException {
+                        int x = pos.getBlockX() - mx;
+                        int y = pos.getBlockY() - my;
+                        int z = pos.getBlockZ() - mz;
                         if (region.contains(pos)) {
-                            int x = pos.getBlockX();
-                            int y = pos.getBlockY();
-                            int z = pos.getBlockZ();
-                            BaseBlock block = getBlockAbs(x, y, z);
-                            pos.mutX(x - mx);
-                            pos.mutY(y - my);
-                            pos.mutZ(z - mz);
+                            BaseBlock block = getBlockAbs(pos.getBlockX(), pos.getBlockY(), pos.getBlockZ());
                             CompoundTag tag = block.getNbtData();
                             if (tag != null) {
                                 Map<String, Tag> values = ReflectionUtils.getMap(tag.getValue());
-                                values.put("x", new IntTag(pos.getBlockX()));
-                                values.put("y", new IntTag(pos.getBlockY()));
-                                values.put("z", new IntTag(pos.getBlockZ()));
+                                values.put("x", new IntTag(x));
+                                values.put("y", new IntTag(y));
+                                values.put("z", new IntTag(z));
                             }
-                            task.run(pos, block);
+                            task.run(x, y, z, block);
                         } else {
-                            pos.mutX(pos.getBlockX() - mx);
-                            pos.mutY(pos.getBlockY() - my);
-                            pos.mutZ(pos.getBlockZ() - mz);
-                            task.run(pos, EditSession.nullBlock);
+                            task.run(x, y, z, EditSession.nullBlock);
                         }
                         return true;
                     }
@@ -111,32 +101,29 @@ public class WorldCopyClipboard extends ReadOnlyClipboard {
             }
         } else {
             for (int y = min.getBlockY(); y <= max.getBlockY(); y++) {
+                pos.mutY(y);
+                int yy = pos.getBlockY() - my;
                 for (int z = min.getBlockZ(); z <= max.getBlockZ(); z++) {
+                    pos.mutZ(z);
+                    int zz = pos.getBlockZ() - mz;
                     for (int x = min.getBlockX(); x <= max.getBlockX(); x++) {
                         pos.mutX(x);
-                        pos.mutY(y);
-                        pos.mutZ(z);
+                        int xx = pos.getBlockX() - mx;
                         if (region.contains(pos)) {
                             BaseBlock block = getBlockAbs(x, y, z);
                             if (!air && block == EditSession.nullBlock) {
                                 continue;
                             }
-                            pos.mutX(pos.getX() - mx);
-                            pos.mutY(pos.getY() - my);
-                            pos.mutZ(pos.getZ() - mz);
                             CompoundTag tag = block.getNbtData();
                             if (tag != null) {
                                 Map<String, Tag> values = ReflectionUtils.getMap(tag.getValue());
-                                values.put("x", new IntTag(pos.getBlockX()));
-                                values.put("y", new IntTag(pos.getBlockY()));
-                                values.put("z", new IntTag(pos.getBlockZ()));
+                                values.put("x", new IntTag(xx));
+                                values.put("y", new IntTag(yy));
+                                values.put("z", new IntTag(zz));
                             }
-                            task.run(pos, block);
+                            task.run(xx, yy, zz, block);
                         } else if (air) {
-                            pos.mutX(pos.getX() - mx);
-                            pos.mutY(pos.getY() - my);
-                            pos.mutZ(pos.getZ() - mz);
-                            task.run(pos, EditSession.nullBlock);
+                            task.run(xx, yy, zz, EditSession.nullBlock);
                         }
                     }
                 }

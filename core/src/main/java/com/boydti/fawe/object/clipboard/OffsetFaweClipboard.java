@@ -1,8 +1,6 @@
 package com.boydti.fawe.object.clipboard;
 
-import com.boydti.fawe.object.RunnableVal2;
 import com.sk89q.jnbt.CompoundTag;
-import com.sk89q.worldedit.Vector;
 import com.sk89q.worldedit.blocks.BaseBlock;
 
 public class OffsetFaweClipboard extends AbstractDelegateFaweClipboard {
@@ -35,14 +33,11 @@ public class OffsetFaweClipboard extends AbstractDelegateFaweClipboard {
     }
 
     @Override
-    public void forEach(final RunnableVal2<Vector, BaseBlock> task, boolean air) {
-        super.forEach(new RunnableVal2<Vector, BaseBlock>() {
+    public void forEach(final BlockReader task, boolean air) {
+        super.forEach(new BlockReader() {
             @Override
-            public void run(Vector value, BaseBlock block) {
-                value.mutX(value.getX() - ox);
-                value.mutY(value.getY() - oy);
-                value.mutZ(value.getZ() - oz);
-                task.run(value, block);
+            public void run(int x, int y, int z, BaseBlock block) {
+                task.run(x - ox, y - oy, z - oz, block);
             }
         }, air);
     }

@@ -19,6 +19,7 @@ import com.sk89q.worldedit.blocks.BaseItem;
 import com.sk89q.worldedit.blocks.BlockType;
 import com.sk89q.worldedit.blocks.ImmutableBlock;
 import com.sk89q.worldedit.blocks.ImmutableDatalessBlock;
+import com.sk89q.worldedit.blocks.ImmutableNBTBlock;
 import com.sk89q.worldedit.world.biome.BaseBiome;
 import com.sk89q.worldedit.world.registry.BundledBlockData;
 import java.awt.Color;
@@ -176,7 +177,9 @@ public class FaweCache {
         for (int i = 0; i < Character.MAX_VALUE; i++) {
             int id = i >> 4;
             int data = i & 0xf;
-            if (FaweCache.hasData(id)) {
+            if (FaweCache.hasNBT(id)) {
+                CACHE_BLOCK[i] = new ImmutableNBTBlock(id, data);
+            } else if (FaweCache.hasData(id)) {
                 CACHE_BLOCK[i] = new ImmutableBlock(id, data);
             } else {
                 CACHE_BLOCK[i] = new ImmutableDatalessBlock(id);

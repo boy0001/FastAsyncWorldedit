@@ -23,4 +23,9 @@ public class ImmutableDatalessBlock extends ImmutableBlock {
             return false;
         }
     }
+
+    @Override
+    public boolean canStoreNBTData() {
+        return false;
+    }
 }

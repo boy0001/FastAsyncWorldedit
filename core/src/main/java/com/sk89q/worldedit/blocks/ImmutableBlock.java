@@ -30,6 +30,11 @@ public class ImmutableBlock extends BaseBlock {
     }
 
     @Override
+    public boolean canStoreNBTData() {
+        return false;
+    }
+
+    @Override
     public boolean isImmutable() {
         return true;
     }

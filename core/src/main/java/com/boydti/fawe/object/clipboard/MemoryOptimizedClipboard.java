@@ -4,7 +4,6 @@ import com.boydti.fawe.FaweCache;
 import com.boydti.fawe.config.Settings;
 import com.boydti.fawe.jnbt.NBTStreamer;
 import com.boydti.fawe.object.IntegerTrio;
-import com.boydti.fawe.object.RunnableVal2;
 import com.boydti.fawe.util.MainUtil;
 import com.boydti.fawe.util.ReflectionUtils;
 import com.sk89q.jnbt.CompoundTag;
@@ -377,20 +376,26 @@ public class MemoryOptimizedClipboard extends FaweClipboard {
     }
 
     @Override
-    public void forEach(final RunnableVal2<Vector,BaseBlock> task, boolean air) {
+    public void forEach(final BlockReader task, final boolean air) {
 //        Fawe.debug("Compressed: " + size() + "b | Uncompressed: " + (volume << 0x5) + "b");
-        task.value1 = new Vector(0, 0, 0);
-        for (int y = 0, index = 0; y < height; y++) {
-            for (int z = 0; z < length; z++) {
-                for (int x = 0; x < width; x++, index++) {
-                    task.value2 = getBlock(index);
-                    if (!air && task.value2.getId() == 0) {
-                        continue;
+        if (air) {
+            for (int y = 0, index = 0; y < height; y++) {
+                for (int z = 0; z < length; z++) {
+                    for (int x = 0; x < width; x++, index++) {
+                        BaseBlock block = getBlock(index);
+                        task.run(x, y, z, block);
                     }
-                    task.value1.mutX(x);
-                    task.value1.mutY(y);
-                    task.value1.mutZ(z);
-                    task.run();
+                }
+            }
+        } else {
+            for (int y = 0, index = 0; y < height; y++) {
+                for (int z = 0; z < length; z++) {
+                    for (int x = 0; x < width; x++, index++) {
+                        BaseBlock block = getBlock(index);
+                        if (block.getId() == 0) {
+                            task.run(x, y, z, block);
+                        }
+                    }
                 }
             }
         }

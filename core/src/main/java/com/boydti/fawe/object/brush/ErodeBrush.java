@@ -2,7 +2,6 @@ package com.boydti.fawe.object.brush;
 
 import com.boydti.fawe.FaweCache;
 import com.boydti.fawe.object.PseudoRandom;
-import com.boydti.fawe.object.RunnableVal2;
 import com.boydti.fawe.object.clipboard.CPUOptimizedClipboard;
 import com.boydti.fawe.object.clipboard.FaweClipboard;
 import com.boydti.fawe.object.clipboard.OffsetFaweClipboard;
@@ -61,10 +60,10 @@ public class ErodeBrush implements Brush {
         }
         FaweClipboard finalBuffer = swap % 2 == 0 ? buffer1 : buffer2;
 
-        finalBuffer.forEach(new RunnableVal2<Vector, BaseBlock>() {
+        finalBuffer.forEach(new FaweClipboard.BlockReader() {
             @Override
-            public void run(Vector pos, BaseBlock block) {
-                es.setBlock(pos.getBlockX() + bx, pos.getBlockY() + by, pos.getBlockZ() + bz, block);
+            public void run(int x, int y, int z, BaseBlock block) {
+                es.setBlock(x + bx, y + by, z + bz, block);
             }
         }, true);
     }

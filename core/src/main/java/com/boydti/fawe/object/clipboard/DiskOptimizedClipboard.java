@@ -5,14 +5,12 @@ import com.boydti.fawe.FaweCache;
 import com.boydti.fawe.config.Settings;
 import com.boydti.fawe.jnbt.NBTStreamer;
 import com.boydti.fawe.object.IntegerTrio;
-import com.boydti.fawe.object.RunnableVal2;
 import com.boydti.fawe.object.io.BufferedRandomAccessFile;
 import com.boydti.fawe.util.MainUtil;
 import com.boydti.fawe.util.ReflectionUtils;
 import com.sk89q.jnbt.CompoundTag;
 import com.sk89q.jnbt.IntTag;
 import com.sk89q.jnbt.Tag;
-import com.sk89q.worldedit.BlockVector;
 import com.sk89q.worldedit.EditSession;
 import com.sk89q.worldedit.Vector;
 import com.sk89q.worldedit.blocks.BaseBlock;
@@ -233,6 +231,33 @@ public class DiskOptimizedClipboard extends FaweClipboard implements Closeable {
         }
     }
 
+    public static long start;
+
+    public static void main(String[] args) throws Throwable {
+        BaseBlock block = FaweCache.getBlock(0, 0);
+        DiskOptimizedClipboard clip = new DiskOptimizedClipboard(443, 256, 443, new File("test"));
+        start = System.currentTimeMillis();
+        clip.forEach(new BlockReader() {
+            @Override
+            public void run(int x, int y, int z, BaseBlock value2) {
+
+            }
+        }, true);
+        clip.close();
+//        BufferedRandomAccessFile raf = new BufferedRandomAccessFile(new File("test"), "rw");
+//        int len = 50000000;
+//        raf.setLength(len * 2);
+//        long start = System.currentTimeMillis();
+//        long total = 0;
+//        for (int i = 0; i < len; i++) {
+//            total += raf.readChar();
+//        }
+//        raf.close();
+        System.out.println(System.currentTimeMillis() - start + "ms");
+//        System.out.println("Total " + total);
+        System.exit(1);
+    }
+
     @Override
     public void streamDatas(NBTStreamer.ByteReader task) {
         try {
@@ -257,29 +282,38 @@ public class DiskOptimizedClipboard extends FaweClipboard implements Closeable {
     }
 
     @Override
-    public void forEach(final RunnableVal2<Vector,BaseBlock> task, boolean air) {
+    public void forEach(final BlockReader task, boolean air) {
         try {
             raf.seek(HEADER_SIZE);
-            BlockVector pos = new BlockVector(0, 0, 0);
             IntegerTrio trio = new IntegerTrio();
+            final boolean hasTile = !nbtMap.isEmpty();
             if (air) {
-                for (int y = 0; y < height; y++) {
-                    for (int z = 0; z < length; z++) {
-                        for (int x = 0; x < width; x++) {
-                            int combinedId = raf.readChar();
-                            BaseBlock block = FaweCache.CACHE_BLOCK[combinedId];
-                            if (FaweCache.hasNBT(block.getId())) {
-                                trio.set(x, y, z);
-                                CompoundTag nbt = nbtMap.get(trio);
-                                if (nbt != null) {
-                                    block = new BaseBlock(block.getId(), block.getData());
-                                    block.setNbtData(nbt);
+                if (hasTile) {
+                    for (int y = 0; y < height; y++) {
+                        for (int z = 0; z < length; z++) {
+                            for (int x = 0; x < width; x++) {
+                                char combinedId = raf.readChar();
+                                BaseBlock block = FaweCache.CACHE_BLOCK[combinedId];
+                                if (block.canStoreNBTData()) {
+                                    trio.set(x, y, z);
+                                    CompoundTag nbt = nbtMap.get(trio);
+                                    if (nbt != null) {
+                                        block = new BaseBlock(block.getId(), block.getData());
+                                        block.setNbtData(nbt);
+                                    }
                                 }
+                                task.run(x, y, z, block);
                             }
-                            pos.mutX(x);
-                            pos.mutY(y);
-                            pos.mutZ(z);
-                            task.run(pos, block);
+                        }
+                    }
+                } else {
+                    for (int y = 0; y < height; y++) {
+                        for (int z = 0; z < length; z++) {
+                            for (int x = 0; x < width; x++) {
+                                char combinedId = raf.readChar();
+                                BaseBlock block = FaweCache.CACHE_BLOCK[combinedId];
+                                task.run(x, y, z, block);
+                            }
                         }
                     }
                 }
@@ -298,10 +332,7 @@ public class DiskOptimizedClipboard extends FaweClipboard implements Closeable {
                                         block.setNbtData(nbt);
                                     }
                                 }
-                                pos.mutX(x);
-                                pos.mutY(y);
-                                pos.mutZ(z);
-                                task.run(pos, block);
+                                task.run(x, y, z, block);
                             }
                         }
                     }
