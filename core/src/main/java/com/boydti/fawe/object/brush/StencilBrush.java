@@ -33,7 +33,12 @@ public class StencilBrush extends HeightBrush {
         final int cy = position.getBlockY();
         final int cz = position.getBlockZ();
         int size = (int) sizeDouble;
-
+        int add;
+        if (yscale < 0) {
+            add = 255;
+        } else {
+            add = 0;
+        }
         int maxY = editSession.getMaxY();
         double scale = (yscale / sizeDouble) * (maxY + 1);
         final HeightMap map = getHeightMap();
@@ -59,7 +64,7 @@ public class StencilBrush extends HeightBrush {
                             }
                         }
                         double raise = map.getHeight(dx, dz);
-                        int val = (int) Math.ceil(raise * scale);
+                        int val = (int) Math.ceil(raise * scale) + add;
                         if (val <= cutoff) {
                             return true;
                         }
