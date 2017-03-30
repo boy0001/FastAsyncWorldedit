@@ -42,6 +42,7 @@ import com.boydti.fawe.object.changeset.CPUOptimizedChangeSet;
 import com.boydti.fawe.object.changeset.DiskStorageHistory;
 import com.boydti.fawe.object.changeset.FaweChangeSet;
 import com.boydti.fawe.object.changeset.MemoryOptimizedHistory;
+import com.boydti.fawe.object.clipboard.WorldCopyClipboard;
 import com.boydti.fawe.object.collection.LocalBlockVectorSet;
 import com.boydti.fawe.object.exception.FaweException;
 import com.boydti.fawe.object.extent.FastWorldEditExtent;
@@ -79,6 +80,7 @@ import com.sk89q.worldedit.extent.AbstractDelegateExtent;
 import com.sk89q.worldedit.extent.ChangeSetExtent;
 import com.sk89q.worldedit.extent.Extent;
 import com.sk89q.worldedit.extent.MaskingExtent;
+import com.sk89q.worldedit.extent.clipboard.BlockArrayClipboard;
 import com.sk89q.worldedit.extent.inventory.BlockBag;
 import com.sk89q.worldedit.extent.world.SurvivalModeExtent;
 import com.sk89q.worldedit.function.GroundFunction;
@@ -376,6 +378,18 @@ public class EditSession extends AbstractWorld implements HasFaweQueue, Lighting
      */
     public EditSession(final EventBus eventBus, World world, final int maxBlocks, @Nullable final BlockBag blockBag, EditSessionEvent event) {
         this(world, null, null, null, null, null, true, null, null, null, blockBag, eventBus, event);
+    }
+
+    /**
+     * Lazily copy a region
+     * @param region
+     * @return
+     */
+    public BlockArrayClipboard lazyCopy(Region region) {
+        WorldCopyClipboard faweClipboard = new WorldCopyClipboard(this, region);
+        BlockArrayClipboard weClipboard = new BlockArrayClipboard(region, faweClipboard);
+        weClipboard.setOrigin(region.getMinimumPoint());
+        return weClipboard;
     }
 
     /**

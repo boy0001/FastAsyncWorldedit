@@ -192,7 +192,7 @@ public class Schematic {
                     extent.setBlock(mutable.getBlockX() + relx, mutable.getBlockY() + rely, mutable.getBlockZ() + relz, block);
                     return false;
                 }
-            }, (HasFaweQueue) (extent instanceof HasFaweQueue ? extent : null));
+            }, null);
             Operations.completeBlindly(visitor);
         }
         // Entity offset is the paste location subtract the clipboard origin (entity's location is already relative to the world origin)

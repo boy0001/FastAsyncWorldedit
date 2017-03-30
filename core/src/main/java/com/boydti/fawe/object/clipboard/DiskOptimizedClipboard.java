@@ -49,7 +49,6 @@ public class DiskOptimizedClipboard extends FaweClipboard implements Closeable {
     private final HashMap<IntegerTrio, CompoundTag> nbtMap;
     private final HashSet<ClipboardEntity> entities;
     private final File file;
-    private final byte[] buffer;
 
     private final BufferedRandomAccessFile raf;
     private int last;
@@ -62,7 +61,6 @@ public class DiskOptimizedClipboard extends FaweClipboard implements Closeable {
         try {
             nbtMap = new HashMap<>();
             entities = new HashSet<>();
-            this.buffer = new byte[2];
             this.file = file;
             this.raf = new BufferedRandomAccessFile(file, "rw", 16);
             raf.setLength(file.length());
@@ -111,7 +109,6 @@ public class DiskOptimizedClipboard extends FaweClipboard implements Closeable {
             nbtMap = new HashMap<>();
             entities = new HashSet<>();
             this.file = file;
-            this.buffer = new byte[2];
             this.width = width;
             this.height = height;
             this.length = length;
