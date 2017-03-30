@@ -156,14 +156,25 @@ public class CPUOptimizedClipboard extends FaweClipboard {
 
     @Override
     public void forEach(final BlockReader task, boolean air) {
-        for (int y = 0, index = 0; y < height; y++) {
-            for (int z = 0; z < length; z++) {
-                for (int x = 0; x < width; x++, index++) {
-                    BaseBlock block = getBlock(index);
-                    if (!air && block.getId() == 0) {
-                        continue;
+        if (air) {
+            for (int y = 0, index = 0; y < height; y++) {
+                for (int z = 0; z < length; z++) {
+                    for (int x = 0; x < width; x++, index++) {
+                        BaseBlock block = getBlock(index);
+                        task.run(x, y, z, block);
                     }
-                    task.run(x, y, z, block);
+                }
+            }
+        } else {
+            for (int y = 0, index = 0; y < height; y++) {
+                for (int z = 0; z < length; z++) {
+                    for (int x = 0; x < width; x++, index++) {
+                        BaseBlock block = getBlock(index);
+                        System.out.println(block);
+                        if (block.getId() != 0) {
+                            task.run(x, y, z, block);
+                        }
+                    }
                 }
             }
         }

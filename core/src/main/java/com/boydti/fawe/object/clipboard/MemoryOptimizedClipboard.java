@@ -377,7 +377,6 @@ public class MemoryOptimizedClipboard extends FaweClipboard {
 
     @Override
     public void forEach(final BlockReader task, final boolean air) {
-//        Fawe.debug("Compressed: " + size() + "b | Uncompressed: " + (volume << 0x5) + "b");
         if (air) {
             for (int y = 0, index = 0; y < height; y++) {
                 for (int z = 0; z < length; z++) {
@@ -392,7 +391,7 @@ public class MemoryOptimizedClipboard extends FaweClipboard {
                 for (int z = 0; z < length; z++) {
                     for (int x = 0; x < width; x++, index++) {
                         BaseBlock block = getBlock(index);
-                        if (block.getId() == 0) {
+                        if (block.getId() != 0) {
                             task.run(x, y, z, block);
                         }
                     }

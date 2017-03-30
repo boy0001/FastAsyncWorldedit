@@ -2,6 +2,7 @@ package com.boydti.fawe.object.brush;
 
 import com.boydti.fawe.object.PseudoRandom;
 import com.boydti.fawe.object.brush.heightmap.HeightMap;
+import com.boydti.fawe.object.brush.heightmap.ScalableHeightMap;
 import com.boydti.fawe.object.mask.AdjacentAnyMask;
 import com.sk89q.worldedit.EditSession;
 import com.sk89q.worldedit.MaxChangedBlocksException;
@@ -17,6 +18,7 @@ import com.sk89q.worldedit.function.pattern.Pattern;
 import com.sk89q.worldedit.function.visitor.RecursiveVisitor;
 import com.sk89q.worldedit.regions.CuboidRegion;
 import java.io.InputStream;
+import java.net.URL;
 import java.util.Arrays;
 
 public class StencilBrush extends HeightBrush {
@@ -33,13 +35,13 @@ public class StencilBrush extends HeightBrush {
         final int cy = position.getBlockY();
         final int cz = position.getBlockZ();
         int size = (int) sizeDouble;
+        int maxY = editSession.getMaxY();
         int add;
         if (yscale < 0) {
-            add = 255;
+            add = maxY;
         } else {
             add = 0;
         }
-        int maxY = editSession.getMaxY();
         double scale = (yscale / sizeDouble) * (maxY + 1);
         final HeightMap map = getHeightMap();
         map.setSize(size);
@@ -65,7 +67,7 @@ public class StencilBrush extends HeightBrush {
                         }
                         double raise = map.getHeight(dx, dz);
                         int val = (int) Math.ceil(raise * scale) + add;
-                        if (val <= cutoff) {
+                        if (val < cutoff) {
                             return true;
                         }
                         if (val >= 255 || PseudoRandom.random.random(maxY) < val) {
