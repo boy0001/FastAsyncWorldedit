@@ -265,9 +265,7 @@ public class Fawe {
                     WEManager.IMP.managers.addAll(Fawe.this.IMP.getMaskManagers());
                     WEManager.IMP.managers.add(new PlotSquaredFeature());
                     Fawe.debug("Plugin 'PlotSquared' found. Using it now.");
-                } catch (Throwable e) {
-                    e.printStackTrace();
-                }
+                } catch (Throwable e) {}
                 Fawe.this.worldedit = WorldEdit.getInstance();
             }
         }, 0);
