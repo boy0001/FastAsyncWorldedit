@@ -2,10 +2,15 @@ package com.boydti.fawe.bukkit.v1_9;
 
 import com.boydti.fawe.Fawe;
 import com.boydti.fawe.FaweCache;
+import com.boydti.fawe.bukkit.BukkitPlayer;
 import com.boydti.fawe.bukkit.v0.BukkitQueue_0;
 import com.boydti.fawe.example.CharFaweChunk;
 import com.boydti.fawe.object.FaweChunk;
+import com.boydti.fawe.object.FawePlayer;
 import com.boydti.fawe.object.RunnableVal;
+import com.boydti.fawe.object.brush.visualization.VisualChunk;
+import com.boydti.fawe.object.number.LongAdder;
+import com.boydti.fawe.object.visitor.FaweChunkVisitor;
 import com.boydti.fawe.util.MainUtil;
 import com.boydti.fawe.util.MathMan;
 import com.boydti.fawe.util.ReflectionUtils;
@@ -14,7 +19,10 @@ import com.sk89q.jnbt.CompoundTag;
 import com.sk89q.jnbt.StringTag;
 import com.sk89q.jnbt.Tag;
 import com.sk89q.worldedit.world.biome.BaseBiome;
+import io.netty.buffer.ByteBuf;
+import io.netty.buffer.ByteBufAllocator;
 import java.io.File;
+import java.io.IOException;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.util.Arrays;
@@ -40,7 +48,9 @@ import net.minecraft.server.v1_9_R2.IDataManager;
 import net.minecraft.server.v1_9_R2.MinecraftServer;
 import net.minecraft.server.v1_9_R2.NBTTagCompound;
 import net.minecraft.server.v1_9_R2.NibbleArray;
+import net.minecraft.server.v1_9_R2.PacketDataSerializer;
 import net.minecraft.server.v1_9_R2.PacketPlayOutMapChunk;
+import net.minecraft.server.v1_9_R2.PacketPlayOutMultiBlockChange;
 import net.minecraft.server.v1_9_R2.PlayerChunk;
 import net.minecraft.server.v1_9_R2.PlayerChunkMap;
 import net.minecraft.server.v1_9_R2.ServerNBTManager;
@@ -58,6 +68,7 @@ import org.bukkit.block.Biome;
 import org.bukkit.craftbukkit.v1_9_R2.CraftChunk;
 import org.bukkit.craftbukkit.v1_9_R2.CraftServer;
 import org.bukkit.craftbukkit.v1_9_R2.CraftWorld;
+import org.bukkit.craftbukkit.v1_9_R2.entity.CraftPlayer;
 import org.bukkit.event.world.WorldInitEvent;
 import org.bukkit.event.world.WorldLoadEvent;
 import org.bukkit.generator.ChunkGenerator;
@@ -248,6 +259,58 @@ public class BukkitQueue_1_9_R1 extends BukkitQueue_0<net.minecraft.server.v1_9_
         net.minecraft.server.v1_9_R2.Chunk chunk = getCachedChunk(getWorld(), x, z);
         if (chunk != null) {
             sendChunk(chunk, bitMask);
+        }
+    }
+
+    @Override
+    public void sendBlockUpdate(FaweChunk chunk, FawePlayer... players) {
+        try {
+            PlayerChunkMap playerManager = ((CraftWorld) getWorld()).getHandle().getPlayerChunkMap();
+            boolean watching = false;
+            for (int i = 0; i < players.length; i++) {
+                EntityPlayer player = ((CraftPlayer) ((BukkitPlayer) players[i]).parent).getHandle();
+                if (!playerManager.a(player, chunk.getX(), chunk.getZ())) {
+                    players[i] = null;
+                } else {
+                    watching = true;
+                }
+            }
+            if (!watching) return;
+            final LongAdder size = new LongAdder();
+            if (chunk instanceof VisualChunk) {
+                size.add(((VisualChunk) chunk).size());
+            } else if (chunk instanceof CharFaweChunk) {
+                size.add(((CharFaweChunk) chunk).getTotalCount());
+            } else {
+                chunk.forEachQueuedBlock(new FaweChunkVisitor() {
+                    @Override
+                    public void run(int localX, int y, int localZ, int combined) {
+                        size.add(1);
+                    }
+                });
+            }
+            if (size.intValue() == 0) return;
+            PacketPlayOutMultiBlockChange packet = new PacketPlayOutMultiBlockChange();
+            ByteBuf byteBuf = ByteBufAllocator.DEFAULT.buffer();
+            final PacketDataSerializer buffer = new PacketDataSerializer(byteBuf);
+            buffer.writeInt(chunk.getX());
+            buffer.writeInt(chunk.getZ());
+            buffer.d(size.intValue());
+            chunk.forEachQueuedBlock(new FaweChunkVisitor() {
+                @Override
+                public void run(int localX, int y, int localZ, int combined) {
+                    short index = (short) (localX << 12 | localZ << 8 | y);
+                    if (combined < 16) combined = 0;
+                    buffer.writeShort(index);
+                    buffer.d(combined);
+                }
+            });
+            packet.a(buffer);
+            for (FawePlayer player : players) {
+                if (player != null) ((CraftPlayer) ((BukkitPlayer) player).parent).getHandle().playerConnection.sendPacket(packet);
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
         }
     }
 
