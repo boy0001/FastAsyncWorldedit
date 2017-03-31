@@ -252,11 +252,11 @@ public class ForgeQueue_All extends NMSMappedFaweQueue<World, Chunk, ExtendedBlo
         try {
             PlayerChunkMap playerManager = ((WorldServer) getWorld()).getPlayerChunkMap();
             boolean watching = false;
+            boolean[] watchingArr = new boolean[players.length];
             for (int i = 0; i < players.length; i++) {
                 EntityPlayerMP player = (EntityPlayerMP) ((ForgePlayer) players[i]).parent;
-                if (!playerManager.isPlayerWatchingChunk(player, chunk.getX(), chunk.getZ())) {
-                    players[i] = null;
-                } else {
+                if (playerManager.isPlayerWatchingChunk(player, chunk.getX(), chunk.getZ())) {
+                    watchingArr[i] = true;
                     watching = true;
                 }
             }
@@ -290,8 +290,8 @@ public class ForgeQueue_All extends NMSMappedFaweQueue<World, Chunk, ExtendedBlo
                 }
             });
             packet.readPacketData(buffer);
-            for (FawePlayer player : players) {
-                if (player != null) ((EntityPlayerMP) ((ForgePlayer) player).parent).connection.sendPacket(packet);
+            for (int i = 0; i < players.length; i++) {
+                if (watchingArr[i]) ((EntityPlayerMP) ((ForgePlayer) players[i]).parent).connection.sendPacket(packet);
             }
         } catch (IOException e) {
             e.printStackTrace();

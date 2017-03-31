@@ -267,11 +267,11 @@ public class BukkitQueue_1_9_R1 extends BukkitQueue_0<net.minecraft.server.v1_9_
         try {
             PlayerChunkMap playerManager = ((CraftWorld) getWorld()).getHandle().getPlayerChunkMap();
             boolean watching = false;
+            boolean[] watchingArr = new boolean[players.length];
             for (int i = 0; i < players.length; i++) {
                 EntityPlayer player = ((CraftPlayer) ((BukkitPlayer) players[i]).parent).getHandle();
-                if (!playerManager.a(player, chunk.getX(), chunk.getZ())) {
-                    players[i] = null;
-                } else {
+                if (playerManager.a(player, chunk.getX(), chunk.getZ())) {
+                    watchingArr[i] = true;
                     watching = true;
                 }
             }
@@ -306,8 +306,8 @@ public class BukkitQueue_1_9_R1 extends BukkitQueue_0<net.minecraft.server.v1_9_
                 }
             });
             packet.a(buffer);
-            for (FawePlayer player : players) {
-                if (player != null) ((CraftPlayer) ((BukkitPlayer) player).parent).getHandle().playerConnection.sendPacket(packet);
+            for (int i = 0; i < players.length; i++) {
+                if (watchingArr[i]) ((CraftPlayer) ((BukkitPlayer) players[i]).parent).getHandle().playerConnection.sendPacket(packet);
             }
         } catch (IOException e) {
             e.printStackTrace();
