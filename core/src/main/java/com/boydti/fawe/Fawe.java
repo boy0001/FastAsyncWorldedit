@@ -2,8 +2,6 @@ package com.boydti.fawe;
 
 import com.boydti.fawe.command.Cancel;
 import com.boydti.fawe.command.Reload;
-import com.boydti.fawe.command.Wea;
-import com.boydti.fawe.command.WorldEditRegion;
 import com.boydti.fawe.config.BBC;
 import com.boydti.fawe.config.Commands;
 import com.boydti.fawe.config.Settings;
@@ -267,7 +265,9 @@ public class Fawe {
                     WEManager.IMP.managers.addAll(Fawe.this.IMP.getMaskManagers());
                     WEManager.IMP.managers.add(new PlotSquaredFeature());
                     Fawe.debug("Plugin 'PlotSquared' found. Using it now.");
-                } catch (Throwable e) {}
+                } catch (Throwable e) {
+                    e.printStackTrace();
+                }
                 Fawe.this.worldedit = WorldEdit.getInstance();
             }
         }, 0);
@@ -331,8 +331,6 @@ public class Fawe {
     }
 
     private void setupCommands() {
-        this.IMP.setupCommand("wea", new Wea());
-        this.IMP.setupCommand("select", new WorldEditRegion());
         this.IMP.setupCommand("fawe", new Reload());
         this.IMP.setupCommand("fcancel", new Cancel());
     }

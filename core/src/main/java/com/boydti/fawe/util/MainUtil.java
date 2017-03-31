@@ -399,7 +399,7 @@ public class MainUtil {
                 writer.append("Content-Type: " + URLConnection.guessContentTypeFromName(filename)).append(CRLF);
                 writer.append("Content-Transfer-Encoding: binary").append(CRLF);
                 writer.append(CRLF).flush();
-                OutputStream nonClosable = new AbstractDelegateOutputStream(output) {
+                OutputStream nonClosable = new AbstractDelegateOutputStream(new BufferedOutputStream(output)) {
                     @Override
                     public void close() throws IOException {  } // Don't close
                 };
@@ -410,10 +410,12 @@ public class MainUtil {
                 writer.append("--" + boundary + "--").append(CRLF).flush();
             }
             int responseCode = ((HttpURLConnection) con).getResponseCode();
-//            java.util.Scanner scanner = new java.util.Scanner(con.getInputStream()).useDelimiter("\\A");
-//            String content = scanner.next().trim();
-//            scanner.close();
-//            Fawe.debug(content);
+            java.util.Scanner scanner = new java.util.Scanner(con.getInputStream()).useDelimiter("\\A");
+            String content = scanner.next().trim();
+            scanner.close();
+            if (content != null && !content.startsWith("<")) {
+                Fawe.debug(content);
+            }
             if (responseCode == 200) {
                 return url;
             }

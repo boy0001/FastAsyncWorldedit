@@ -214,42 +214,50 @@ public class Settings extends Config {
 
     @Comment("This relates to how FAWE places chunks")
     public static class QUEUE {
+        @Comment({
+                "This should equal the number of processors you have",
+                " - Set this to 1 if you need reliable `/timings`"
+        })
+        public int PARALLEL_THREADS = Math.max(1, Runtime.getRuntime().availableProcessors());
         @Create
         public static PROGRESS PROGRESS;
         @Comment({
-            "If you are changing more than this many chunks",
-            "it can start start placing before all the changes are calculated"
+            "When doing edits that effect more than this many chunks:",
+            " - FAWE will start placing before all calculations are finished",
+            " - A larger value will use slightly less CPU time",
+            " - A smaller value will reduce memory usage",
+            " - A value too small may break some operations (deform?)"
+
         })
         public int TARGET_SIZE = 64;
         @Comment({
-            "This should equal the number of processors you have"
-        })
-        public int PARALLEL_THREADS = Math.max(1, Runtime.getRuntime().availableProcessors());
-        @Comment({
-                "The time in milliseconds that the global queue can be idle before it is forced to start",
-                "on edits which are still in the processing stage."
+                "Force FAWE to start placing chunks regardless of whether an edit is finished processing",
+                " - A larger value will use slightly less CPU time",
+                " - A smaller value will reduce memory usage",
+                " - A value too small may break some operations (deform?)"
         })
         public int MAX_WAIT_MS = 1000;
 
         @Comment({
-                "Increase or decrease queue intensity (ms):",
+                "Increase or decrease queue intensity (ms) [-50,50]:",
                 "    0 = balance of performance / stability",
                 "    -10 = Allocate 10ms less for chunk placement",
-                "Too high will can cause lag spikes",
-                "Too low will reduce load and result in slower changes",
+                "Too high will can cause lag spikes (you might be okay with this)",
+                "Too low will result in slow edits",
         })
         public int EXTRA_TIME_MS = 0;
 
         @Comment({
                 "Loading the right amount of chunks beforehand can speed up operations",
-                " - Low values will result in FAWE waiting on requests to the main thread",
-                " - Higher values will use memory and is slower if the operation ends early",
+                " - Low values may result in FAWE waiting on requests to the main thread",
+                " - Higher values use more memory and isn't noticeably faster",
         })
         public int PRELOAD_CHUNKS = 32;
 
         @Comment({
-                "Discard edits which have been idle for a certain amount of time (ms) (e.g. a plugin creates",
-                "an EditSession but never does anything with it)."
+                "Discard edits which have been idle for a certain amount of time (ms)",
+                " - E.g. A plugin creates an EditSession but never does anything with it",
+                " - This only applies to plugins improperly using WorldEdit's legacy API"
         })
         public static int DISCARD_AFTER_MS = 60000;
 
@@ -267,7 +275,11 @@ public class Settings extends Config {
         }
     }
 
-    @Comment("Experimental options, use at your own risk")
+    @Comment({
+            "Experimental options, use at your own risk",
+            " - Apparently that wasn't enough, need an all caps warning?",
+            " - DO NOT USE IF YOU ARE CLUELESS!"
+    })
     public static class EXPERIMENTAL {
         @Comment({
                 "Directly modify the region files.",
@@ -293,10 +305,11 @@ public class Settings extends Config {
 
     public static class EXTENT {
         @Comment({
-                "Don't bug console when these plugins slow down WorldEdit operations"
+                "Don't bug console when these plugins slow down WorldEdit operations",
+                " - You'll see a message in console if you need to change this option"
         })
         public List<String> ALLOWED_PLUGINS = new ArrayList<>();
-        @Comment("Disable the messages completely")
+        @Comment("Should debug messages be sent when third party extents are used?")
         public boolean DEBUG = true;
     }
 
@@ -312,11 +325,14 @@ public class Settings extends Config {
         public int PHYSICS = 512;
         @Comment("Max item spawns per interval (per chunk)")
         public int ITEMS = 128;
-
     }
 
     public static class CLIPBOARD {
-        @Comment("Store the clipboard on disk instead of memory")
+        @Comment({
+                "Store the clipboard on disk instead of memory",
+                " - Will be slightly slower",
+                " - Uses 2 bytes per block",
+        })
         public boolean USE_DISK = true;
         @Comment({
                 "Compress the clipboard to reduce the size:",

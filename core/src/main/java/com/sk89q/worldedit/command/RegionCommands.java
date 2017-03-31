@@ -26,6 +26,7 @@ import com.boydti.fawe.object.FaweLimit;
 import com.boydti.fawe.object.FaweLocation;
 import com.boydti.fawe.object.FawePlayer;
 import com.boydti.fawe.object.FaweQueue;
+import com.boydti.fawe.object.RegionWrapper;
 import com.boydti.fawe.object.exception.FaweException;
 import com.boydti.fawe.object.visitor.Fast2DIterator;
 import com.boydti.fawe.util.MathMan;
@@ -469,6 +470,39 @@ public class RegionCommands {
             throw new RuntimeException(e);
         }
     }
+
+    @Command(
+            aliases = { "/wea", "wea", "worldeditanywhere", "/worldeditanywhere", "/weanywhere" },
+            desc = "Bypass region restrictions",
+            help = "Bypass region restrictions"
+    )
+    @CommandPermissions("fawe.admin")
+    public void wea(Player player) throws WorldEditException {
+        FawePlayer<Object> fp = FawePlayer.wrap(player);
+        if (fp.toggle("fawe.bypass")) {
+            BBC.WORLDEDIT_BYPASSED.send(fp);
+        } else {
+            BBC.WORLDEDIT_RESTRICTED.send(fp);
+        }
+    }
+
+    @Command(
+            aliases = { "/wer", "wer", "worldeditregion", "/worldeditregion", "select", "/select" },
+            desc = "Select your current allowed region",
+            help = "Select your current allowed region"
+    )
+    @CommandPermissions("fawe.worldeditregion")
+    public void wer(Player player) throws WorldEditException {
+        FawePlayer<Object> fp = FawePlayer.wrap(player);
+        final RegionWrapper region = fp.getLargestRegion();
+        if (region == null) {
+            BBC.NO_REGION.send(fp);
+        } else {
+            fp.setSelection(region);
+            BBC.SET_REGION.send(fp);
+        }
+    }
+
 
     @Command(
             aliases = { "/move" },

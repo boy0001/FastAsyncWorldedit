@@ -105,7 +105,7 @@ public class ChunkListener implements Listener {
                     badChunks.add(MathMan.pairInt(cx, cz));
                     if (rateLimit <= 0) {
                         rateLimit = 120;
-                        Fawe.debug("[Tick Limiter] Detected and cancelled physics  lag source at " + block.getLocation());
+                        Fawe.debug("[FAWE `tick-limiter`] Detected and cancelled physics  lag source at " + block.getLocation());
                     }
                 }
                 return;
@@ -132,7 +132,7 @@ public class ChunkListener implements Listener {
                 if (count.y == Settings.IMP.TICK_LIMITER.FALLING) {
                     count.x = Settings.IMP.TICK_LIMITER.PHYSICS;
                     badChunks.add(MathMan.pairInt(cx, cz));
-                    Fawe.debug("[Tick Limiter] Detected and cancelled falling block lag source at " + block.getLocation());
+                    Fawe.debug("[FAWE `tick-limiter`] Detected and cancelled falling block lag source at " + block.getLocation());
                 }
                 event.setCancelled(true);
                 return;
@@ -157,7 +157,7 @@ public class ChunkListener implements Listener {
                 badChunks.add(MathMan.pairInt(cx, cz));
                 if (rateLimit <= 0) {
                     rateLimit = 120;
-                    Fawe.debug("[Tick Limiter] Detected and cancelled item lag source at " + loc);
+                    Fawe.debug("[FAWE `tick-limiter`] Detected and cancelled item lag source at " + loc);
                 }
             }
             event.setCancelled(true);
