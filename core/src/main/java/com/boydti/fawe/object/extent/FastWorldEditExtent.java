@@ -265,7 +265,6 @@ public class FastWorldEditExtent extends AbstractDelegateExtent implements HasFa
             case 165:
             case 166:
             case 169:
-            case 170:
             case 172:
             case 173:
             case 174:

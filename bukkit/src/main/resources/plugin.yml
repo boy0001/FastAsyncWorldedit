@@ -36,14 +36,10 @@ permissions:
       worldedit.clipboard.cut: true
       worldedit.clipboard.paste: true
       worldedit.schematic.formats: true
-      worldedit.clipboard.load: true
       worldedit.schematic.load: true
       worldedit.schematic.list: true
-      worldedit.clipboard.save: true
       worldedit.schematic.save: true
       worldedit.clipboard.clear: true
-      worldedit.clipboard.load: true
-      worldedit.clipboard.save: true
       worldedit.clipboard.copy: true
       worldedit.clipboard.lazycopy: true
       worldedit.clipboard.place: true
