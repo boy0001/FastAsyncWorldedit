@@ -7,6 +7,7 @@ import com.boydti.fawe.object.pattern.DataPattern;
 import com.boydti.fawe.object.pattern.ExistingPattern;
 import com.boydti.fawe.object.pattern.ExpressionPattern;
 import com.boydti.fawe.object.pattern.FullClipboardPattern;
+import com.boydti.fawe.object.pattern.IdDataMaskPattern;
 import com.boydti.fawe.object.pattern.IdPattern;
 import com.boydti.fawe.object.pattern.Linear3DBlockPattern;
 import com.boydti.fawe.object.pattern.LinearBlockPattern;
@@ -167,6 +168,14 @@ public class HashTagPatternParser extends FaweParser<Pattern> {
                         } else {
                             throw new InputParseException("No session is available, so no clipboard is available");
                         }
+                    }
+                    case "#iddatamask": {
+                        String[] split = rest.split(":", 1);
+                        if (split.length != 2) {
+                            throw new InputParseException("#iddatamask:<mask>:<pattern>");
+                        }
+                        int mask = Integer.parseInt(split[0]);
+                        return new IdDataMaskPattern(Request.request().getExtent(), catchSuggestion(input, split[1], context), mask);
                     }
                     case "#id": {
                         return new IdPattern(Request.request().getExtent(), catchSuggestion(input, rest, context));
