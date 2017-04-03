@@ -17,6 +17,7 @@ import com.sk89q.minecraft.util.commands.Command;
 import com.sk89q.minecraft.util.commands.CommandPermissions;
 import com.sk89q.worldedit.EditSession;
 import com.sk89q.worldedit.MutableBlockVector;
+import com.sk89q.worldedit.Vector;
 import com.sk89q.worldedit.WorldEdit;
 import com.sk89q.worldedit.WorldEditException;
 import com.sk89q.worldedit.blocks.BaseBlock;
@@ -31,6 +32,7 @@ import com.sk89q.worldedit.util.command.binding.Switch;
 import com.sk89q.worldedit.util.command.parametric.Optional;
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
@@ -384,6 +386,55 @@ public class AnvilCommands {
             player.print(BBC.getPrefix() + BBC.VISITOR_BLOCK.format(filter.getTotal()));
         }
     }
+
+    @Command(
+            aliases = {"removelayer"},
+            usage = "<id>",
+            desc = "Replace all blocks in the selection with another"
+    )
+    @CommandPermissions("worldedit.anvil.removelayer")
+    public void removeLayer(Player player, EditSession editSession, @Selection Region selection, int id) throws WorldEditException {
+        Vector min = selection.getMinimumPoint();
+        Vector max = selection.getMaximumPoint();
+        int minY = min.getBlockY();
+        int maxY = max.getBlockY();
+        final int startLayer = minY >> 4;
+        final int endLayer = maxY >> 4;
+        MCAFilterCounter filter = runWithSelection(player, editSession, selection, new MCAFilterCounter() {
+            @Override
+            public MCAChunk applyChunk(MCAChunk chunk, MutableLong cache) {
+                for (int layer = startLayer; layer <= endLayer; layer++) {
+                    byte[] ids = chunk.ids[layer];
+                    if (ids == null) {
+                        return null;
+                    }
+                    int startY = Math.max(minY, layer << 4) & 15;
+                    int endY = Math.min(maxY, 15 + (layer << 4)) & 15;
+                    System.out.println(startY + " | " + endY);
+                    for (int y = startY; y <= endY; y++) {
+                        int indexStart = y << 8;
+                        int indexEnd = indexStart + 255;
+                        for (int index = indexStart; index <= indexEnd; index++) {
+                            if (ids[index] != id) {
+                                return null;
+                            }
+                        }
+                    }
+                    for (int y = startY; y <= endY; y++) {
+                        int indexStart = y << 8;
+                        int indexEnd = indexStart + 255;
+                        Arrays.fill(ids, indexStart, indexEnd + 1, (byte) 0);
+                    }
+                    chunk.setModified();
+                }
+                return null;
+            }
+        });
+        if (filter != null) {
+            player.print(BBC.getPrefix() + BBC.VISITOR_BLOCK.format(filter.getTotal()));
+        }
+    }
+
 //
 //    @Command(
 //            aliases = {"copychunks"},
