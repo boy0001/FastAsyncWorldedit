@@ -410,7 +410,6 @@ public class AnvilCommands {
                     }
                     int startY = Math.max(minY, layer << 4) & 15;
                     int endY = Math.min(maxY, 15 + (layer << 4)) & 15;
-                    System.out.println(startY + " | " + endY);
                     for (int y = startY; y <= endY; y++) {
                         int indexStart = y << 8;
                         int indexEnd = indexStart + 255;
