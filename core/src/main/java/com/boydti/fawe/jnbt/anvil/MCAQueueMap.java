@@ -133,7 +133,16 @@ public class MCAQueueMap implements IFaweQueueMap {
 
     @Override
     public void clear() {
+        for (Map.Entry<Long, MCAFile> entry : mcaFileMap.entrySet()) {
+            entry.getValue().clear();
+        }
         mcaFileMap.clear();
+        lastChunk = null;
+        lastFile = null;
+        lastFileX = Integer.MIN_VALUE;
+        lastFileZ = Integer.MIN_VALUE;
+        lastX = Integer.MIN_VALUE;
+        lastZ = Integer.MIN_VALUE;
         if (isHybridQueue) {
             queue.clear();
         }

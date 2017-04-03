@@ -136,6 +136,7 @@ public class PlotTrim implements Listener {
                 ChunkLoc loc = new ChunkLoc(mcaX, mcaZ);
                 if (mcas.contains(loc)) {
                     player.sendMessage("Delete MCA " + mca);
+                    mca.setDeleted(true);
                     return null;
                 }
                 try {
@@ -159,7 +160,7 @@ public class PlotTrim implements Listener {
             }
 
             @Override
-            public MCAChunk applyChunk(MCAChunk chunk) {
+            public MCAChunk applyChunk(MCAChunk chunk, Object ignore) {
                 long pair = MathMan.pairInt(chunk.getX(), chunk.getZ());
                 if (chunks.containsKey(pair)) {
                     chunk.setDeleted(true);

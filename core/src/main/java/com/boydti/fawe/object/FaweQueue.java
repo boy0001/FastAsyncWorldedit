@@ -220,6 +220,10 @@ public abstract class FaweQueue implements HasFaweQueue {
 
     public abstract Collection<FaweChunk> getFaweChunks();
 
+    public boolean setMCA(Runnable whileLocked, RegionWrapper region, boolean unload) {
+        return false;
+    }
+
     public abstract void setChunk(final FaweChunk chunk);
 
     public abstract File getSaveFolder();

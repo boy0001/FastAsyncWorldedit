@@ -44,6 +44,11 @@ public abstract class FawePlayer<T> extends Metadatable {
     public final T parent;
     private LocalSession session;
 
+    public static final class METADATA_KEYS {
+        public static final String ANVIL_CLIPBOARD = "anvil-clipboard";
+        public static final String ROLLBACK = "rollback";
+    }
+
     /**
      * Wrap some object into a FawePlayer<br>
      *     - org.bukkit.entity.Player

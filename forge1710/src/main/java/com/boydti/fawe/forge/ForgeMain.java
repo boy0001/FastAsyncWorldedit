@@ -71,9 +71,5 @@ public class ForgeMain {
         if (player.worldObj.isRemote) {
             return;
         }
-        FawePlayer fp = FawePlayer.wrap(player);
-        if (fp.getMeta("lastWorld") != event.world) {
-            fp.setMeta("lastWorld", event.world);
-        }
     }
 }

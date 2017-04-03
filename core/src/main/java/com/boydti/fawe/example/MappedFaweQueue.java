@@ -259,6 +259,11 @@ public abstract class MappedFaweQueue<WORLD, CHUNK, CHUNKSECTIONS, SECTION> exte
 
     @Override
     public void clear() {
+        lastSectionX = Integer.MIN_VALUE;
+        lastSectionZ = Integer.MIN_VALUE;
+        lastSectionY = -1;
+        lastChunk = null;
+        lastChunkSections = null;
         map.clear();
         runTasks();
     }

@@ -948,7 +948,7 @@ public class BrushCommands {
         if (player.hasPermission("worldedit.butcher")) {
             maxRadius = Math.max(config.maxBrushRadius, config.butcherMaxRadius);
         }
-        if (radius > maxRadius) {
+        if (radius > maxRadius && maxRadius != -1) {
             BBC.TOOL_RADIUS_ERROR.send(player, maxRadius);
             return;
         }

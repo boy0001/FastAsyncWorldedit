@@ -1,12 +1,13 @@
 package com.boydti.fawe.jnbt.anvil;
 
+import com.boydti.fawe.object.collection.IterableThreadLocal;
 import com.sk89q.worldedit.blocks.BaseBlock;
 
 /**
  * MCAQueue.filterWorld(MCAFilter)<br>
  *  - Read and modify the world
  */
-public class MCAFilter {
+public class MCAFilter<T> extends IterableThreadLocal<T> {
 
     /**
      * Check whether a .mca file should be read
@@ -46,7 +47,7 @@ public class MCAFilter {
      * @param chunk
      * @return
      */
-    public MCAChunk applyChunk(MCAChunk chunk) {
+    public MCAChunk applyChunk(MCAChunk chunk, T cache) {
         return chunk;
     }
 
@@ -59,5 +60,13 @@ public class MCAFilter {
      * @param z
      * @param block
      */
-    public void applyBlock(int x, int y, int z, BaseBlock block) {}
+    public void applyBlock(int x, int y, int z, BaseBlock block, T cache) {}
+
+    /**
+     * Do something with the MCAChunk after block filtering<br>
+     * @param chunk
+     * @param cache
+     * @return
+     */
+    public void finishChunk(MCAChunk chunk, T cache) {}
 }

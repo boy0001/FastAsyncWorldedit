@@ -63,6 +63,7 @@ import com.sk89q.worldedit.extension.platform.CommandManager;
 import com.sk89q.worldedit.extension.platform.PlatformManager;
 import com.sk89q.worldedit.extension.platform.PlayerProxy;
 import com.sk89q.worldedit.extent.AbstractDelegateExtent;
+import com.sk89q.worldedit.extent.MaskingExtent;
 import com.sk89q.worldedit.extent.clipboard.BlockArrayClipboard;
 import com.sk89q.worldedit.extent.clipboard.io.ClipboardFormat;
 import com.sk89q.worldedit.extent.clipboard.io.SchematicReader;
@@ -440,6 +441,7 @@ public class Fawe {
             // Regions
             CuboidRegion.inject(); // Optimizations
             // Extents
+            MaskingExtent.inject(); // Features
             BlockTransformExtent.inject(); // Fix for cache not being mutable
             AbstractDelegateExtent.inject(); // Optimizations
             BlockBagExtent.inject(); // Fixes + Optimizations

@@ -94,9 +94,9 @@ public class ToolUtilCommands {
             }
         }
         if (mask == null) {
-            BBC.BRUSH_SOURCE_MASK_DISABLED.send(player);
+            BBC.BRUSH_MASK_DISABLED.send(player);
         } else {
-            BBC.BRUSH_SOURCE_MASK.send(player);
+            BBC.BRUSH_MASK.send(player);
         }
     }
 

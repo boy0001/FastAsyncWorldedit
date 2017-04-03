@@ -5,6 +5,7 @@ import com.boydti.fawe.example.Relighter;
 import com.boydti.fawe.object.FaweChunk;
 import com.boydti.fawe.object.FawePlayer;
 import com.boydti.fawe.object.FaweQueue;
+import com.boydti.fawe.object.RegionWrapper;
 import com.boydti.fawe.object.RunnableVal2;
 import com.boydti.fawe.object.exception.FaweException;
 import com.sk89q.jnbt.CompoundTag;
@@ -41,6 +42,11 @@ public class DelegateFaweQueue extends FaweQueue {
     @Override
     public void sendChunk(int x, int z, int bitMask) {
         parent.sendChunk(x, z, bitMask);
+    }
+
+    @Override
+    public boolean setMCA(Runnable whileLocked, RegionWrapper region, boolean unload) {
+        return parent.setMCA(whileLocked, region, unload);
     }
 
     @Override

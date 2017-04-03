@@ -364,6 +364,8 @@ public class CreateFromImage extends Command {
                                 player.sendMessage("Invalid mask " + e.getMessage());
                             } catch (Throwable e) {
                                 player.sendMessage("Error " + e.getMessage());
+                            } finally {
+                                Request.reset();
                             }
                         }
                     }, true, false);

@@ -62,7 +62,7 @@ public class Rollback extends FaweCommand {
                     BBC.COMMAND_SYNTAX.send(player, "/frb <info|undo> u:<uuid> r:<radius> t:<time>");
                     return false;
                 }
-                player.deleteMeta("rollback");
+                player.deleteMeta(FawePlayer.METADATA_KEYS.ROLLBACK);
                 final FaweLocation origin = player.getLocation();
                 rollback(player, !player.hasPermission("fawe.rollback.deep"), Arrays.copyOfRange(args, 1, args.length), new RunnableVal<List<DiskStorageHistory>>() {
                     @Override
@@ -91,7 +91,7 @@ public class Rollback extends FaweCommand {
                         player.sendMessage("&dSize: " + (((double) (total / 1024)) / 1000) + "MB");
                         player.sendMessage("&dTo rollback: /frb undo");
                         player.sendMessage("&d==================================================");
-                        player.setMeta("rollback", edits);
+                        player.setMeta(FawePlayer.METADATA_KEYS.ROLLBACK, edits);
                     }
                 });
                 break;
@@ -102,8 +102,8 @@ public class Rollback extends FaweCommand {
                     BBC.NO_PERM.send(player, "fawe.rollback.perform");
                     return false;
                 }
-                final List<DiskStorageHistory> edits = (List<DiskStorageHistory>) player.getMeta("rollback");
-                player.deleteMeta("rollback");
+                final List<DiskStorageHistory> edits = (List<DiskStorageHistory>) player.getMeta(FawePlayer.METADATA_KEYS.ROLLBACK);
+                player.deleteMeta(FawePlayer.METADATA_KEYS.ROLLBACK);
                 if (edits == null) {
                     BBC.COMMAND_SYNTAX.send(player, "/frb info u:<uuid> r:<radius> t:<time>");
                     return false;

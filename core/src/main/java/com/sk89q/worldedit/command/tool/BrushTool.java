@@ -318,6 +318,7 @@ public class BrushTool implements DoubleActionTraceTool, ScrollTool, MovableTool
                 bag.flushChanges();
             }
             session.remember(editSession);
+            Request.reset();
         }
         return true;
     }

@@ -61,6 +61,22 @@ public class RegionWrapper {
         return lr && (x >= this.minX && x <= this.maxX);
     }
 
+    public boolean isInChunk(int cx, int cz) {
+        int bx = cx << 4;
+        int bz = cz << 4;
+        int tx = bx + 15;
+        int tz = bz + 15;
+        return ((tx >= this.minX) && (bx <= this.maxX) && (tz >= this.minZ) && (bz <= this.maxZ));
+    }
+
+    public boolean isInMCA(int mcaX, int mcaZ) {
+        int bx = mcaX << 9;
+        int bz = mcaZ << 9;
+        int tx = bx + 511;
+        int tz = bz + 511;
+        return ((tx >= this.minX) && (bx <= this.maxX) && (tz >= this.minZ) && (bz <= this.maxZ));
+    }
+
     public boolean isIn(final int x, final int z) {
         return ((x >= this.minX) && (x <= this.maxX) && (z >= this.minZ) && (z <= this.maxZ));
     }
@@ -110,7 +126,7 @@ public class RegionWrapper {
 
     @Override
     public String toString() {
-        return this.minX + "," + this.minZ + "->" + this.maxX + "," + this.maxZ;
+        return this.minX + "," + this.minY + "," + this.minZ + "->" + this.maxX + "," + this.maxY + "," + this.maxZ;
     }
 
     public Vector getBottomVector() {

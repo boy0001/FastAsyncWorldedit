@@ -19,6 +19,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
@@ -50,8 +51,7 @@ public class MCAChunk extends FaweChunk<Void> {
     private long lastUpdate;
     private int[] heightMap;
 
-    public int compressedSize;
-    private boolean modified;
+    private int modified;
     private boolean deleted;
 
     public byte[] toBytes(byte[] buffer) throws IOException {
@@ -113,6 +113,91 @@ public class MCAChunk extends FaweChunk<Void> {
         return buffered.toByteArray();
     }
 
+    public void copyFrom(MCAChunk other, int minY, int maxY) {
+        for (int layer = 0; layer < ids.length; layer++) {
+            byte[] otherIds = other.ids[layer];
+            byte[] currentIds = ids[layer];
+            int by = layer << 4;
+            int ty = layer >> 4;
+            if (by >= minY && ty <= maxY) {
+                if (otherIds != null) {
+                    ids[layer] = otherIds;
+                    data[layer] = other.data[layer];
+                    skyLight[layer] = other.skyLight[layer];
+                    blockLight[layer] = other.blockLight[layer];
+                } else {
+                    ids[layer] = null;
+                }
+            } else {
+                by = Math.max(by, minY) & 15;
+                ty = Math.min(ty, maxY) & 15;
+                int indexStart = by << 8;
+                int indexEnd = 255 + (ty << 8);
+                int indexStartShift = indexStart >> 1;
+                int indexEndShift = indexEnd >> 1;
+                if (otherIds == null) {
+                    if (currentIds != null) {
+                        Arrays.fill(currentIds, indexStart, indexEnd, (byte) 0);
+                        Arrays.fill(data[layer], indexStartShift, indexEndShift, (byte) 0);
+                        Arrays.fill(skyLight[layer], indexStartShift, indexEndShift, (byte) 0);
+                        Arrays.fill(blockLight[layer], indexStartShift, indexEndShift, (byte) 0);
+                    }
+                } else {
+                    if (currentIds == null) {
+                        currentIds = this.ids[layer] = new byte[4096];
+                        this.data[layer] = new byte[2048];
+                        this.skyLight[layer] = new byte[2048];
+                        this.blockLight[layer] = new byte[2048];
+                    }
+                    System.arraycopy(other.ids[layer], indexStart, ids[layer], indexStart, indexEnd - indexStart);
+                    System.arraycopy(other.data[layer], indexStartShift, data[layer], indexStartShift, indexEndShift - indexStartShift);
+                    System.arraycopy(other.skyLight[layer], indexStartShift, skyLight[layer], indexStartShift, indexEndShift - indexStartShift);
+                    System.arraycopy(other.blockLight[layer], indexStartShift, blockLight[layer], indexStartShift, indexEndShift - indexStartShift);
+                }
+            }
+        }
+        // Copy nbt
+        if (!tiles.isEmpty()) {
+            Iterator<Map.Entry<Short, CompoundTag>> iter = tiles.entrySet().iterator();
+            while (iter.hasNext()) {
+                int y = MathMan.untripleBlockCoordY(iter.next().getKey());
+                if (y >= minY && y <= maxY) iter.remove();
+            }
+        }
+        if (!other.tiles.isEmpty()) {
+            for (Map.Entry<Short, CompoundTag> entry : other.tiles.entrySet()) {
+                short key = entry.getKey();
+                int y = MathMan.untripleBlockCoordY(key);
+                if (y >= minY && y <= maxY) {
+                    tiles.put(key, entry.getValue());
+                }
+            }
+        }
+        if (!other.entities.isEmpty()) {
+            for (Map.Entry<UUID, CompoundTag> entry : other.entities.entrySet()) {
+                // TODO
+            }
+        }
+    }
+
+    public int getMinLayer() {
+        for (int layer = 0; layer < ids.length; layer++) {
+            if (ids[layer] != null) {
+                return layer;
+            }
+        }
+        return Integer.MAX_VALUE;
+    }
+
+    public int getMaxLayer() {
+        for (int layer = ids.length - 1; layer >= 0; layer--) {
+            if (ids[layer] != null) {
+                return layer;
+            }
+        }
+        return Integer.MIN_VALUE;
+    }
+
     public CompoundTag toTag() {
         if (deleted) {
             return null;
@@ -164,7 +249,7 @@ public class MCAChunk extends FaweChunk<Void> {
         this.entities = new HashMap<>();
         this.lastUpdate = System.currentTimeMillis();
         this.heightMap = new int[256];
-        this.modified = true;
+        this.setModified();
     }
 
     public MCAChunk(MCAChunk parent, boolean shallow) {
@@ -180,7 +265,6 @@ public class MCAChunk extends FaweChunk<Void> {
             this.inhabitedTime = parent.inhabitedTime;
             this.lastUpdate = parent.lastUpdate;
             this.heightMap = parent.heightMap;
-            this.compressedSize = parent.compressedSize;
             this.modified = parent.modified;
             this.deleted = parent.deleted;
         } else {
@@ -194,7 +278,6 @@ public class MCAChunk extends FaweChunk<Void> {
             this.inhabitedTime = parent.inhabitedTime;
             this.lastUpdate = parent.lastUpdate;
             this.heightMap = parent.heightMap.clone();
-            this.compressedSize = parent.compressedSize;
             this.modified = parent.modified;
             this.deleted = parent.deleted;
         }
@@ -206,7 +289,6 @@ public class MCAChunk extends FaweChunk<Void> {
         data = new byte[16][];
         skyLight = new byte[16][];
         blockLight = new byte[16][];
-        this.compressedSize = compressedSize;
         NBTStreamer streamer = new NBTStreamer(nis);
         streamer.addReader(".Level.InhabitedTime", new RunnableVal2<Integer, Long>() {
             @Override
@@ -281,12 +363,16 @@ public class MCAChunk extends FaweChunk<Void> {
     }
 
     public boolean isModified() {
+        return modified != 0;
+    }
+
+    public int getModified() {
         return modified;
     }
 
     @Deprecated
     public final void setModified() {
-        this.modified = true;
+        this.modified++;
     }
 
     @Override
@@ -302,7 +388,7 @@ public class MCAChunk extends FaweChunk<Void> {
 
     @Override
     public void setTile(int x, int y, int z, CompoundTag tile) {
-        modified = true;
+        setModified();
         short pair = MathMan.tripleBlockCoord(x, y, z);
         if (tile != null) {
             tiles.put(pair, tile);
@@ -313,7 +399,7 @@ public class MCAChunk extends FaweChunk<Void> {
 
     @Override
     public void setEntity(CompoundTag entityTag) {
-        modified = true;
+        setModified();
         long least = entityTag.getLong("UUIDLeast");
         long most = entityTag.getLong("UUIDMost");
         entities.put(new UUID(most, least), entityTag);
@@ -321,7 +407,7 @@ public class MCAChunk extends FaweChunk<Void> {
 
     @Override
     public void setBiome(int x, int z, byte biome) {
-        modified = true;
+        setModified();
         biomes[x + (z << 4)] = biome;
     }
 
@@ -382,7 +468,7 @@ public class MCAChunk extends FaweChunk<Void> {
     }
 
     public void setSkyLight(int x, int y, int z, int value) {
-        modified = true;
+        setModified();
         int layer = y >> 4;
         byte[] skyLayer = skyLight[layer];
         if (skyLayer == null) {
@@ -393,7 +479,7 @@ public class MCAChunk extends FaweChunk<Void> {
     }
 
     public void setBlockLight(int x, int y, int z, int value) {
-        modified = true;
+        setModified();
         int layer = y >> 4;
         byte[] blockLayer = blockLight[layer];
         if (blockLayer == null) {
@@ -424,7 +510,7 @@ public class MCAChunk extends FaweChunk<Void> {
     }
 
     public void setFullbright() {
-        modified = true;
+        setModified();
         for (byte[] array : skyLight) {
             if (array != null) {
                 Arrays.fill(array, (byte) 255);
@@ -478,7 +564,7 @@ public class MCAChunk extends FaweChunk<Void> {
 
     @Override
     public void setBlock(int x, int y, int z, int id, int data) {
-        modified = true;
+        setModified();
         int layer = y >> 4;
         byte[] idsLayer = ids[layer];
         if (idsLayer == null) {
@@ -500,7 +586,7 @@ public class MCAChunk extends FaweChunk<Void> {
 
     @Override
     public void removeEntity(UUID uuid) {
-        modified = true;
+        setModified();
         entities.remove(uuid);
     }
 

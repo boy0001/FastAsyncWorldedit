@@ -8,13 +8,12 @@ import com.boydti.fawe.object.RunnableVal4;
 import com.boydti.fawe.object.exception.FaweException;
 import com.boydti.fawe.object.io.BufferedRandomAccessFile;
 import com.boydti.fawe.object.io.FastByteArrayInputStream;
-import com.boydti.fawe.object.io.FastByteArrayOutputStream;
 import com.boydti.fawe.util.MainUtil;
 import com.boydti.fawe.util.MathMan;
 import com.sk89q.jnbt.NBTInputStream;
+import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import java.io.BufferedInputStream;
-import java.io.BufferedOutputStream;
 import java.io.File;
 import java.io.IOException;
 import java.io.RandomAccessFile;
@@ -25,7 +24,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ForkJoinPool;
 import java.util.concurrent.TimeUnit;
-import java.util.zip.DeflaterOutputStream;
 import java.util.zip.Inflater;
 import java.util.zip.InflaterInputStream;
 
@@ -37,30 +35,24 @@ public class MCAFile {
 
     private static Field fieldBuf2;
     private static Field fieldBuf3;
-    private static Field fieldBuf4;
-    private static Field fieldBuf5;
-    private static Field fieldBuf6;
     static {
         try {
             fieldBuf2 = InflaterInputStream.class.getDeclaredField("buf");
             fieldBuf2.setAccessible(true);
             fieldBuf3 = NBTInputStream.class.getDeclaredField("buf");
             fieldBuf3.setAccessible(true);
-            fieldBuf4 = FastByteArrayOutputStream.class.getDeclaredField("buffer");
-            fieldBuf4.setAccessible(true);
-            fieldBuf5 = DeflaterOutputStream.class.getDeclaredField("buf");
-            fieldBuf5.setAccessible(true);
-            fieldBuf6 = BufferedOutputStream.class.getDeclaredField("buf");
-            fieldBuf6.setAccessible(true);
         } catch (Throwable e) {
             e.printStackTrace();
         }
     }
 
-    private FaweQueue queue;
-    private File file;
+    private final FaweQueue queue;
+    private final File file;
     private RandomAccessFile raf;
     private byte[] locations;
+    private boolean deleted;
+    private final int X, Z;
+    private final Int2ObjectOpenHashMap<MCAChunk> chunks = new Int2ObjectOpenHashMap<>();
 
     final ThreadLocal<byte[]> byteStore1 = new ThreadLocal<byte[]>() {
         @Override
@@ -81,10 +73,6 @@ public class MCAFile {
         }
     };
 
-    private final int X, Z;
-
-    private Int2ObjectOpenHashMap<MCAChunk> chunks = new Int2ObjectOpenHashMap<>();
-
     public MCAFile(FaweQueue parent, File file) {
         this.queue = parent;
         this.file = file;
@@ -96,6 +84,26 @@ public class MCAFile {
         Z = Integer.parseInt(split[2]);
     }
 
+    public void clear() {
+        if (raf != null) {
+            try {
+                raf.close();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+        chunks.clear();
+        locations = null;
+    }
+
+    public void setDeleted(boolean deleted) {
+        this.deleted = deleted;
+    }
+
+    public boolean isDeleted() {
+        return deleted;
+    }
+
     public FaweQueue getParent() {
         return queue;
     }
@@ -105,9 +113,12 @@ public class MCAFile {
             if (raf == null) {
                 this.locations = new byte[4096];
                 this.raf = new RandomAccessFile(file, "rw");
-                raf.seek(0);
-                raf.readFully(locations);
-
+                if (raf.length() < 8192) {
+                    raf.setLength(8192);
+                } else {
+                    raf.seek(0);
+                    raf.readFully(locations);
+                }
             }
         } catch (Throwable e) {
             e.printStackTrace();
@@ -135,6 +146,13 @@ public class MCAFile {
         synchronized (chunks) {
             return chunks.get(pair);
         }
+    }
+
+    public void setChunk(MCAChunk chunk) {
+        int cx = chunk.getX();
+        int cz = chunk.getZ();
+        int pair = MathMan.pair((short) (cx & 31), (short) (cz & 31));
+        chunks.put(pair, chunk);
     }
 
     public MCAChunk getChunk(int cx, int cz) throws IOException {
@@ -348,6 +366,10 @@ public class MCAFile {
 
     private void writeHeader(RandomAccessFile raf, int cx, int cz, int offsetMedium, int sizeByte, boolean writeTime) throws IOException {
         int i = ((cx & 31) << 2) + ((cz & 31) << 7);
+        locations[i] = (byte) (offsetMedium >> 16);
+        locations[i + 1] = (byte) (offsetMedium >> 8);
+        locations[i + 2] = (byte) (offsetMedium);
+        locations[i + 3] = (byte) sizeByte;
         raf.seek(i);
         raf.write((offsetMedium >> 16));
         raf.write((offsetMedium >> 8));
@@ -370,11 +392,8 @@ public class MCAFile {
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
-                file = null;
                 raf = null;
                 locations = null;
-                queue = null;
-                chunks = null;
             }
         }
     }
@@ -389,6 +408,7 @@ public class MCAFile {
             Int2ObjectOpenHashMap<byte[]> relocate = new Int2ObjectOpenHashMap<>();
             final Int2ObjectOpenHashMap<Integer> offsetMap = new Int2ObjectOpenHashMap<>(); // Offset -> <byte cx, byte cz, short size>
             final Int2ObjectOpenHashMap<byte[]> compressedMap = new Int2ObjectOpenHashMap<>();
+            final Int2ObjectOpenHashMap<byte[]> append = new Int2ObjectOpenHashMap<>();
             boolean modified = false;
             for (MCAChunk chunk : getCachedChunks()) {
                 if (chunk.isModified()) {
@@ -400,8 +420,14 @@ public class MCAFile {
                                 try {
                                     byte[] compressed = toBytes(chunk);
                                     int pair = MathMan.pair((short) (chunk.getX() & 31), (short) (chunk.getZ() & 31));
-                                    synchronized (compressedMap) {
-                                        compressedMap.put(pair, compressed);
+                                    Int2ObjectOpenHashMap map;
+                                    if (getOffset(chunk.getX(), chunk.getZ()) == 0) {
+                                        map = append;
+                                    } else {
+                                        map = compressedMap;
+                                    }
+                                    synchronized (map) {
+                                        map.put(pair, compressed);
                                     }
                                 } catch (Throwable e) {
                                     e.printStackTrace();
@@ -473,7 +499,8 @@ public class MCAFile {
                                 short nextCXZ = MathMan.unpairX(nextLoc);
                                 int nextCX = MathMan.unpairShortX(nextCXZ);
                                 int nextCZ = MathMan.unpairShortY(nextCXZ);
-                                if (getCachedChunk(nextCX, nextCZ) == null) {
+                                MCAChunk cached = getCachedChunk(nextCX, nextCZ);
+                                if (cached == null || !cached.isModified()) {
                                     byte[] nextBytes = getChunkCompressedBytes(nextOffset2);
                                     relocate.put(MathMan.pair((short) (nextCX & 31), (short) (nextCZ & 31)), nextBytes);
                                 }
@@ -489,6 +516,22 @@ public class MCAFile {
                         writeHeader(raf, cx, cz, start >> 12, newSize, true);
                         written = start + newBytes.length + 5;
                         start += newSize << 12;
+                    }
+                    // TODO this doesn't work
+                    if (!append.isEmpty()) {
+                        for (Int2ObjectMap.Entry<byte[]> entry : append.int2ObjectEntrySet()) {
+                            int pair = entry.getIntKey();
+                            short cx = MathMan.unpairX(pair);
+                            short cz = MathMan.unpairY(pair);
+                            byte[] bytes = entry.getValue();
+                            int len = bytes.length + 5;
+                            int newSize = (len + 4095) >> 12;
+                            writeSafe(raf, start, bytes);
+                            writeHeader(raf, cx, cz, start >> 12, newSize, true);
+                            written = start + bytes.length + 5;
+                            start += newSize << 12;
+                        }
+
                     }
                     raf.setLength(4096 * ((written + 4095) / 4096));
                     if (raf instanceof BufferedRandomAccessFile) {

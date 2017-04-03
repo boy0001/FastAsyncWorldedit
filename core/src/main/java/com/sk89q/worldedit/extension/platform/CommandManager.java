@@ -212,7 +212,9 @@ public final class CommandManager {
 
 
         dispatcher = graph
-                .registerMethods(new AnvilCommands(worldEdit))
+                .group("/anvil", "anvil")
+                .describeAs("Anvil command")
+                .registerMethods(new AnvilCommands(worldEdit)).parent()
                 .registerMethods(new BiomeCommands(worldEdit))
                 .registerMethods(new ChunkCommands(worldEdit))
                 .registerMethods(new ClipboardCommands(worldEdit))
@@ -425,6 +427,7 @@ public final class CommandManager {
                 if (time > 250 && hasSession) {
                     BBC.ACTION_COMPLETE.send(finalActor, (time / 1000d));
                 }
+                Request.reset();
             }
         }
     }

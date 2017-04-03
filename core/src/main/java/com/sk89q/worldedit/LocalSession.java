@@ -1303,7 +1303,6 @@ public class LocalSession {
         if (transform != null) {
             editSession.addTransform(transform);
         }
-
         return editSession;
     }
 

@@ -217,7 +217,7 @@ public class FaweBukkit implements IFawe, Listener {
             Settings.IMP.QUEUE.PARALLEL_THREADS = 1; // BukkitAPI placer is too slow to parallel thread at the chunk level
             Settings.IMP.HISTORY.COMBINE_STAGES = false; // Performing a chunk copy (if possible) wouldn't be faster using the BukkitAPI
             if (hasNMS) {
-                ignore.printStackTrace();
+
                 debug("====== NO NMS BLOCK PLACER FOUND ======");
                 debug("FAWE couldn't find a fast block placer");
                 debug("Bukkit version: " + Bukkit.getVersion());
@@ -226,6 +226,8 @@ public class FaweBukkit implements IFawe, Listener {
                 debug("=======================================");
                 debug("Download the version of FAWE for your platform");
                 debug(" - http://ci.athion.net/job/FastAsyncWorldEdit/lastSuccessfulBuild/artifact/target");
+                debug("=======================================");
+                ignore.printStackTrace();
                 debug("=======================================");
                 TaskManager.IMP.laterAsync(new Runnable() {
                     @Override
@@ -262,9 +264,11 @@ public class FaweBukkit implements IFawe, Listener {
                 } catch (Throwable ignore) {
                 }
             }
+            Throwable error = null;
             try {
                 return plugin.getQueue(world);
             } catch (Throwable ignore) {
+                error = ignore;
             }
             // Disable incompatible settings
             Settings.IMP.QUEUE.PARALLEL_THREADS = 1; // BukkitAPI placer is too slow to parallel thread at the chunk level
@@ -273,11 +277,13 @@ public class FaweBukkit implements IFawe, Listener {
                 debug("====== NO NMS BLOCK PLACER FOUND ======");
                 debug("FAWE couldn't find a fast block placer");
                 debug("Bukkit version: " + Bukkit.getVersion());
-                debug("NMS label: " + plugin.getClass().getSimpleName().split("_")[1]);
+                debug("NMS label: " + plugin.getClass().getSimpleName());
                 debug("Fallback placer: " + BukkitQueue_All.class);
                 debug("=======================================");
                 debug("Download the version of FAWE for your platform");
                 debug(" - http://ci.athion.net/job/FastAsyncWorldEdit/lastSuccessfulBuild/artifact/target");
+                debug("=======================================");
+                error.printStackTrace();
                 debug("=======================================");
                 TaskManager.IMP.laterAsync(new Runnable() {
                     @Override

@@ -313,14 +313,6 @@ public class CuboidRegion extends AbstractRegion implements FlatRegion {
     }
 
     @Override
-    public void shift(Vector change) throws RegionOperationException {
-        pos1 = pos1.add(change);
-        pos2 = pos2.add(change);
-
-        recalculate();
-    }
-
-    @Override
     public Set<Vector2D> getChunks() {
         Vector min = getMinimumPoint();
         Vector max = getMaximumPoint();
@@ -376,6 +368,14 @@ public class CuboidRegion extends AbstractRegion implements FlatRegion {
                 }
             }
         };
+    }
+
+    @Override
+    public void shift(Vector change) throws RegionOperationException {
+        pos1 = pos1.add(change);
+        pos2 = pos2.add(change);
+
+        recalculate();
     }
 
     @Override
