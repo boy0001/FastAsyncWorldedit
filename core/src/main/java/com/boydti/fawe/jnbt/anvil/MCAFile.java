@@ -517,7 +517,6 @@ public class MCAFile {
                         written = start + newBytes.length + 5;
                         start += newSize << 12;
                     }
-                    // TODO this doesn't work
                     if (!append.isEmpty()) {
                         for (Int2ObjectMap.Entry<byte[]> entry : append.int2ObjectEntrySet()) {
                             int pair = entry.getIntKey();
@@ -531,7 +530,6 @@ public class MCAFile {
                             written = start + bytes.length + 5;
                             start += newSize << 12;
                         }
-
                     }
                     raf.setLength(4096 * ((written + 4095) / 4096));
                     if (raf instanceof BufferedRandomAccessFile) {

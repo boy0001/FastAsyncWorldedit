@@ -220,11 +220,11 @@ public class MCAChunk extends FaweChunk<Void> {
             int offsetLayer = offsetY >> 4;
             int startLayer = minY >> 4;
             int endLayer = maxY >> 4;
-            for (int thisLayer = startLayer + offsetLayer, otherLayer = startLayer; thisLayer < endLayer; thisLayer++, otherLayer++) {
+            for (int thisLayer = startLayer + offsetLayer, otherLayer = startLayer; thisLayer <= endLayer; thisLayer++, otherLayer++) {
                 byte[] otherIds = other.ids[otherLayer];
                 byte[] currentIds = ids[thisLayer];
                 int by = otherLayer << 4;
-                int ty = otherLayer >> 4;
+                int ty = by + 15;
                 if (by >= minY && ty <= maxY) {
                     if (otherIds != null) {
                         ids[thisLayer] = otherIds;
@@ -337,11 +337,15 @@ public class MCAChunk extends FaweChunk<Void> {
         return Integer.MIN_VALUE;
     }
 
+    /**
+     * Deprecated, use the toBytes method
+     * @return
+     */
+    @Deprecated
     public CompoundTag toTag() {
         if (deleted) {
             return null;
         }
-        // TODO optimize this as it's slow
         // e.g. by precalculating the length
         HashMap<String, Object> level = new HashMap<String, Object>();
         level.put("Entities", new ListTag(CompoundTag.class, new ArrayList<CompoundTag>(entities.values())));

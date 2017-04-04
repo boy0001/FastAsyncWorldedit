@@ -34,6 +34,10 @@ public class MCAQueueMap implements IFaweQueueMap {
     private int lastFileX = Integer.MIN_VALUE;
     private int lastFileZ = Integer.MIN_VALUE;
 
+    private FaweChunk lastChunk;
+    private int lastX = Integer.MIN_VALUE;
+    private int lastZ = Integer.MIN_VALUE;
+
     public MCAFile getMCAFile(int cx, int cz) {
         int mcaX = cx >> 5;
         int mcaZ = cz >> 5;
@@ -73,10 +77,6 @@ public class MCAQueueMap implements IFaweQueueMap {
             onEach.run(chunk);
         }
     }
-
-    private FaweChunk lastChunk;
-    private int lastX = Integer.MIN_VALUE;
-    private int lastZ = Integer.MIN_VALUE;
 
     @Override
     public FaweChunk getFaweChunk(int cx, int cz) {

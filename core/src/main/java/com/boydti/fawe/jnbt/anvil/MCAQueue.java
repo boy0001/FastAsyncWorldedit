@@ -180,101 +180,12 @@ public class MCAQueue extends NMSMappedFaweQueue<FaweQueue, FaweChunk, FaweChunk
                         }
                     }
                 }
-
-
-
-                // If oX & 15 == 0 && oZ && 15 == 0
-//                if ((oX & 15) == 0 && (oZ & 15) == 0) {
-//                    if (oY == 0) {
-//                        if (regionFrom.minY == 0 && regionFrom.maxY == 255) {
-//                            for (int cz = bcz; cz <= tcz; cz++) {
-//                                for (int cx = bcx; cx <= tcx; cx++) {
-//                                    FaweChunk chunk = from.getFaweChunk(cx - oCX, cz - oCZ);
-//                                    if (!(chunk instanceof NullFaweChunk)) {
-//                                        MCAChunk mcaChunk = (MCAChunk) chunk;
-//                                        mcaChunk.setLoc(null, cx, cz);
-//                                        mcaChunk.setModified();
-//                                        mcaFile.setChunk(mcaChunk);
-//                                    }
-//                                }
-//                            }
-//                        } else {
-//                            for (int cz = bcz; cz <= tcz; cz++) {
-//                                for (int cx = bcx; cx <= tcx; cx++) {
-//                                    FaweChunk chunk = from.getFaweChunk(cx - oCX, cz - oCZ);
-//                                    if (!(chunk instanceof NullFaweChunk)) {
-//                                        MCAChunk mcaChunk = (MCAChunk) chunk;
-//                                        MCAChunk toChunk = mcaFile.getChunk(cx, cz);
-//                                        if (toChunk == null || (toChunk.getMinLayer() << 4 >= regionTo.minY && (toChunk.getMaxLayer() << 4) + 15 <= regionTo.maxY)) {
-//                                            mcaChunk.setLoc(null, cx, cz);
-//                                            mcaChunk.setModified();
-//                                            mcaFile.setChunk(mcaChunk);
-//                                        } else {
-//                                            // TODO
-//                                        }
-//                                    }
-//                                }
-//                            }
-//                        }
-//                    } else if ((oY & 15) == 0) {
-//
-//                    } else {
-//
-//                    }
-//                } else {
-//                }
                 mcaFile.close(pool);
                 from.clear();
             }
         }
+        from.clear();
         pool.awaitQuiescence(Long.MAX_VALUE, TimeUnit.MILLISECONDS);
-    }
-
-//    [17:52:49 INFO]: RegionFrom 139,3,454->139,3,454
-//    [17:52:49 INFO]: 8,31 | 132>132,502>502
-//    [17:52:49 INFO]: Copy from 8,28
-//    [17:52:49 INFO]: 128/139,448/454
-//    [17:52:49 INFO]: Set 11>15,3>3,6>15 | -11,0,-6
-
-    public static void main(String[] args) {
-        int ox = 2;
-        int oz = 0;
-        int bx = 5;
-        int bz = 5;
-        int tx = 5;
-        int tz = 5;
-        int obx = bx - ox;
-        int obz = bz - oz;
-        int otx = tx - ox;
-        int otz = tz - oz;
-
-
-        int otherBCX = (obx) >> 4;
-        int otherBCZ = (obz) >> 4;
-        int otherTCX = (otx) >> 4;
-        int otherTCZ = (otz) >> 4;
-
-
-        for (int otherCZ = otherBCZ; otherCZ <= otherTCZ; otherCZ++) {
-            for (int otherCX = otherBCX; otherCX <= otherTCX; otherCX++) {
-
-                int ocbx = otherCX << 4;
-                int ocbz = otherCZ << 4;
-                int octx = obx + 15;
-                int octz = obz + 15;
-                int offsetX, offsetZ;
-
-                int minX = obx > ocbx ? (obx - ocbx) & 15 : 0;
-                int maxX = otx < octx ? (otx - ocbx) : 15;
-
-                int minZ = obz > ocbz ? (obz - ocbz) & 15 : 0;
-                int maxZ = otz < octz ? (otz - ocbz) : 15;
-
-
-
-
-            }
-        }
     }
 
     public <G, T extends MCAFilter<G>> T filterRegion(final T filter, final RegionWrapper region) {
