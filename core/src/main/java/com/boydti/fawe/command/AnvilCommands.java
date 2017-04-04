@@ -4,18 +4,22 @@ import com.boydti.fawe.Fawe;
 import com.boydti.fawe.FaweCache;
 import com.boydti.fawe.config.BBC;
 import com.boydti.fawe.jnbt.anvil.MCAChunk;
+import com.boydti.fawe.jnbt.anvil.MCAClipboard;
 import com.boydti.fawe.jnbt.anvil.MCAFilter;
 import com.boydti.fawe.jnbt.anvil.MCAFilterCounter;
 import com.boydti.fawe.jnbt.anvil.MCAQueue;
+import com.boydti.fawe.object.FawePlayer;
 import com.boydti.fawe.object.FaweQueue;
 import com.boydti.fawe.object.RegionWrapper;
 import com.boydti.fawe.object.mask.FaweBlockMatcher;
 import com.boydti.fawe.object.number.MutableLong;
+import com.boydti.fawe.util.ArrayUtil;
 import com.boydti.fawe.util.SetQueue;
 import com.boydti.fawe.util.StringMan;
 import com.sk89q.minecraft.util.commands.Command;
 import com.sk89q.minecraft.util.commands.CommandPermissions;
 import com.sk89q.worldedit.EditSession;
+import com.sk89q.worldedit.LocalSession;
 import com.sk89q.worldedit.MutableBlockVector;
 import com.sk89q.worldedit.Vector;
 import com.sk89q.worldedit.WorldEdit;
@@ -32,7 +36,6 @@ import com.sk89q.worldedit.util.command.binding.Switch;
 import com.sk89q.worldedit.util.command.parametric.Optional;
 import java.io.File;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
@@ -87,7 +90,7 @@ public class AnvilCommands {
     }
 
     @Command(
-            aliases = {"/replaceallpattern", "/reap", "/repallpat"},
+            aliases = {"replaceallpattern", "reap", "repallpat"},
             usage = "<folder> [from-block] <to-pattern>",
             desc = "Replace all blocks in the selection with another",
             flags = "dm",
@@ -388,12 +391,13 @@ public class AnvilCommands {
     }
 
     @Command(
-            aliases = {"removelayer"},
+            aliases = {"removelayers"},
             usage = "<id>",
-            desc = "Replace all blocks in the selection with another"
+            desc = "Removes matching chunk layers",
+            help = "Remove if all the selected layers in a chunk match the provided id"
     )
     @CommandPermissions("worldedit.anvil.removelayer")
-    public void removeLayer(Player player, EditSession editSession, @Selection Region selection, int id) throws WorldEditException {
+    public void removeLayers(Player player, EditSession editSession, @Selection Region selection, int id) throws WorldEditException {
         Vector min = selection.getMinimumPoint();
         Vector max = selection.getMaximumPoint();
         int minY = min.getBlockY();
@@ -422,7 +426,7 @@ public class AnvilCommands {
                     for (int y = startY; y <= endY; y++) {
                         int indexStart = y << 8;
                         int indexEnd = indexStart + 255;
-                        Arrays.fill(ids, indexStart, indexEnd + 1, (byte) 0);
+                        ArrayUtil.fill(ids, indexStart, indexEnd + 1, (byte) 0);
                     }
                     chunk.setModified();
                 }
@@ -434,71 +438,79 @@ public class AnvilCommands {
         }
     }
 
-//
-//    @Command(
-//            aliases = {"copychunks"},
-//            desc = "Lazily copy chunks to your anvil clipboard"
-//    )
-//    @CommandPermissions("worldedit.anvil.copychunks")
-//    public void copy(Player player, LocalSession session, EditSession editSession, @Selection Region selection) throws WorldEditException {
-//        if (!(selection instanceof CuboidRegion)) {
-//            BBC.NO_REGION.send(player);
-//            return;
-//        }
-//        CuboidRegion cuboid = (CuboidRegion) selection;
-//        String worldName = Fawe.imp().getWorldName(editSession.getWorld());
-//        FaweQueue tmp = SetQueue.IMP.getNewQueue(worldName, true, false);
-//        File folder = tmp.getSaveFolder();
-//        MCAQueue queue = new MCAQueue(worldName, folder, tmp.hasSky());
-//        Vector origin = session.getPlacementPosition(player);
-//        MCAClipboard clipboard = new MCAClipboard(queue, cuboid, origin);
-//        FawePlayer fp = FawePlayer.wrap(player);
-//        fp.setMeta(FawePlayer.METADATA_KEYS.ANVIL_CLIPBOARD, clipboard);
-//        BBC.COMMAND_COPY.send(player, selection.getArea());
-//    }
-//
-//    @Command(
-//            aliases = {"pastechunks"},
-//            desc = "Paste chunks from your anvil clipboard"
-//    )
-//    @CommandPermissions("worldedit.anvil.pastechunks")
-//    public void paste(Player player, LocalSession session, EditSession editSession) throws WorldEditException {
-//        FawePlayer fp = FawePlayer.wrap(player);
-//        MCAClipboard clipboard = fp.getMeta(FawePlayer.METADATA_KEYS.ANVIL_CLIPBOARD);
-//        if (clipboard == null) {
-//            fp.sendMessage(BBC.getPrefix() + "You must first copy to your clipboard");
-//            return;
-//        }
-//        CuboidRegion cuboid = clipboard.getRegion();
-//        RegionWrapper copyRegion = new RegionWrapper(cuboid.getMinimumPoint(), cuboid.getMaximumPoint());
-//        Vector offset = player.getPosition().subtract(clipboard.getOrigin());
-//        int oX = offset.getBlockX();
-//        int oZ = offset.getBlockZ();
-//        RegionWrapper pasteRegion = new RegionWrapper(copyRegion.minX + oX, copyRegion.maxX + oX, copyRegion.minZ + oZ, copyRegion.maxZ + oZ);
-//        String pasteWorldName = Fawe.imp().getWorldName(editSession.getWorld());
-//        FaweQueue tmpTo = SetQueue.IMP.getNewQueue(pasteWorldName, true, false);
-//        FaweQueue tmpFrom = SetQueue.IMP.getNewQueue(clipboard.getQueue().getWorldName(), true, false);
-//        File folder = tmpTo.getSaveFolder();
-//        MCAQueue copyQueue = clipboard.getQueue();
-//        MCAQueue pasteQueue = new MCAQueue(pasteWorldName, folder, tmpTo.hasSky());
-//        player.print(BBC.getPrefix() + "Safely unloading regions...");
-//        tmpTo.setMCA(new Runnable() {
-//            @Override
-//            public void run() {
-//                tmpFrom.setMCA(new Runnable() {
-//                    @Override
-//                    public void run() {
-//                        try {
-//                            player.print(BBC.getPrefix() + "Performing operation...");
-//                            pasteQueue.pasteRegion(copyQueue, copyRegion, offset);
-//                            player.print(BBC.getPrefix() + "Safely loading regions...");
-//                        } catch (Throwable e) {
-//                            e.printStackTrace();
-//                        }
-//                    }
-//                }, copyRegion, false);
-//            }
-//        }, pasteRegion, true);
-//        player.print("Done!");
-//    }
+
+    @Command(
+            aliases = {"copy"},
+            desc = "Lazily copy chunks to your anvil clipboard"
+    )
+    @CommandPermissions("worldedit.anvil.copychunks")
+    public void copy(Player player, LocalSession session, EditSession editSession, @Selection Region selection) throws WorldEditException {
+        if (!(selection instanceof CuboidRegion)) {
+            BBC.NO_REGION.send(player);
+            return;
+        }
+        CuboidRegion cuboid = (CuboidRegion) selection;
+        String worldName = Fawe.imp().getWorldName(editSession.getWorld());
+        FaweQueue tmp = SetQueue.IMP.getNewQueue(worldName, true, false);
+        File folder = tmp.getSaveFolder();
+        MCAQueue queue = new MCAQueue(worldName, folder, tmp.hasSky());
+        Vector origin = session.getPlacementPosition(player);
+        MCAClipboard clipboard = new MCAClipboard(queue, cuboid, origin);
+        FawePlayer fp = FawePlayer.wrap(player);
+        fp.setMeta(FawePlayer.METADATA_KEYS.ANVIL_CLIPBOARD, clipboard);
+        BBC.COMMAND_COPY.send(player, selection.getArea());
+    }
+
+    @Command(
+            aliases = {"paste"},
+            desc = "Paste chunks from your anvil clipboard",
+            help =
+                    "Paste the chunks from your anvil clipboard.\n" +
+                            "The -c will align the paste to the chunks.",
+            flags = "c"
+
+    )
+    @CommandPermissions("worldedit.anvil.pastechunks")
+    public void paste(Player player, LocalSession session, EditSession editSession, @Switch('c') boolean alignChunk) throws WorldEditException {
+        FawePlayer fp = FawePlayer.wrap(player);
+        MCAClipboard clipboard = fp.getMeta(FawePlayer.METADATA_KEYS.ANVIL_CLIPBOARD);
+        if (clipboard == null) {
+            fp.sendMessage(BBC.getPrefix() + "You must first copy to your clipboard");
+            return;
+        }
+        CuboidRegion cuboid = clipboard.getRegion();
+        RegionWrapper copyRegion = new RegionWrapper(cuboid.getMinimumPoint(), cuboid.getMaximumPoint());
+        final Vector offset = player.getPosition().subtract(clipboard.getOrigin());
+        if (alignChunk) {
+            offset.setComponents((offset.getBlockX() >> 4) << 4, offset.getBlockY(), (offset.getBlockZ() >> 4) << 4);
+        }
+        int oX = offset.getBlockX();
+        int oZ = offset.getBlockZ();
+        RegionWrapper pasteRegion = new RegionWrapper(copyRegion.minX + oX, copyRegion.maxX + oX, copyRegion.minZ + oZ, copyRegion.maxZ + oZ);
+        String pasteWorldName = Fawe.imp().getWorldName(editSession.getWorld());
+        FaweQueue tmpTo = SetQueue.IMP.getNewQueue(pasteWorldName, true, false);
+        FaweQueue tmpFrom = SetQueue.IMP.getNewQueue(clipboard.getQueue().getWorldName(), true, false);
+        File folder = tmpTo.getSaveFolder();
+        MCAQueue copyQueue = clipboard.getQueue();
+        MCAQueue pasteQueue = new MCAQueue(pasteWorldName, folder, tmpTo.hasSky());
+        player.print(BBC.getPrefix() + "Safely unloading regions...");
+        tmpTo.setMCA(new Runnable() {
+            @Override
+            public void run() {
+                tmpFrom.setMCA(new Runnable() {
+                    @Override
+                    public void run() {
+                        try {
+                            player.print(BBC.getPrefix() + "Performing operation...");
+                            pasteQueue.pasteRegion(copyQueue, copyRegion, offset);
+                            player.print(BBC.getPrefix() + "Safely loading regions...");
+                        } catch (Throwable e) {
+                            e.printStackTrace();
+                        }
+                    }
+                }, copyRegion, false);
+            }
+        }, pasteRegion, true);
+        player.print("Done!");
+    }
 }

@@ -82,7 +82,6 @@ public class MCAQueue extends NMSMappedFaweQueue<FaweQueue, FaweChunk, FaweChunk
     }
 
     public void pasteRegion(MCAQueue from, final RegionWrapper regionFrom, Vector offset) throws IOException {
-        offset = new Vector((offset.getBlockX() >> 4) << 4, 0, (offset.getBlockZ() >> 4) << 4);
         int oX = offset.getBlockX();
         int oZ = offset.getBlockZ();
         int oY = offset.getBlockY();
@@ -107,49 +106,175 @@ public class MCAQueue extends NMSMappedFaweQueue<FaweQueue, FaweChunk, FaweChunk
                 }
                 MCAFile mcaFile = new MCAFile(null, file);
                 mcaFile.init();
-                // If oX & 15 == 0 && oZ && 15 == 0
-                if ((oX & 15) == 0 && (oZ & 15) == 0) {
-                    if (oY == 0) {
-                        if (regionFrom.minY == 0 && regionFrom.maxY == 255) {
-                            for (int cz = bcz; cz <= tcz; cz++) {
-                                for (int cx = bcx; cx <= tcx; cx++) {
-                                    FaweChunk chunk = from.getFaweChunk(cx - oCX, cz - oCZ);
-                                    if (!(chunk instanceof NullFaweChunk)) {
+                for (int cz = bcz; cz <= tcz; cz++) {
+                    for (int cx = bcx; cx <= tcx; cx++) {
+                        int bx = cx << 4;
+                        int bz = cz << 4;
+                        int tx = bx + 15;
+                        int tz = bz + 15;
+                        if (oX == 0 && oZ == 0) {
+                            if (bx >= regionTo.minX && tx <= regionTo.maxX && bz >= regionTo.minZ && tz <= regionTo.maxZ) {
+                                FaweChunk chunk = from.getFaweChunk(cx - oCX, cz - oCZ);
+                                if (!(chunk instanceof NullFaweChunk)) {
+                                    if (regionTo.minY == 0 && regionTo.maxY == 255) {
                                         MCAChunk mcaChunk = (MCAChunk) chunk;
                                         mcaChunk.setLoc(null, cx, cz);
                                         mcaChunk.setModified();
                                         mcaFile.setChunk(mcaChunk);
+                                    } else {
+                                        MCAChunk newChunk = mcaFile.getChunk(cx, cz);
+                                        if (newChunk == null) {
+                                            newChunk = new MCAChunk(this, cx, cz);
+                                            mcaFile.setChunk(newChunk);
+                                        } else {
+                                            newChunk.setModified();
+                                        }
+                                        newChunk.copyFrom((MCAChunk) chunk, regionFrom.minY, regionFrom.maxY, oY);
                                     }
                                 }
+                                continue;
                             }
+                        }
+                        bx = Math.max(regionTo.minX, bx);
+                        bz = Math.max(regionTo.minZ, bz);
+                        tx = Math.min(regionTo.maxX, tx);
+                        tz = Math.min(regionTo.maxZ, tz);
+                        int obx = bx - oX;
+                        int obz = bz - oZ;
+                        int otx = tx - oX;
+                        int otz = tz - oZ;
+                        int otherBCX = (obx) >> 4;
+                        int otherBCZ = (obz) >> 4;
+                        int otherTCX = (otx) >> 4;
+                        int otherTCZ = (otz) >> 4;
+                        MCAChunk newChunk = mcaFile.getChunk(cx, cz);
+                        if (newChunk == null) {
+                            newChunk = new MCAChunk(this, cx, cz);
+                            mcaFile.setChunk(newChunk);
                         } else {
-                            for (int cz = bcz; cz <= tcz; cz++) {
-                                for (int cx = bcx; cx <= tcx; cx++) {
-                                    FaweChunk chunk = from.getFaweChunk(cx - oCX, cz - oCZ);
-                                    if (!(chunk instanceof NullFaweChunk)) {
-                                        MCAChunk mcaChunk = (MCAChunk) chunk;
-                                        MCAChunk toChunk = mcaFile.getChunk(cx, cz);
-                                        if (toChunk == null || (toChunk.getMinLayer() << 4 >= regionTo.minY && (toChunk.getMaxLayer() << 4) + 15 <= regionTo.maxY)) {
-                                            mcaChunk.setLoc(null, cx, cz);
-                                            mcaChunk.setModified();
-                                            mcaFile.setChunk(mcaChunk);
-                                        } else {
-
-                                        }
-                                    }
+                            newChunk.setModified();
+                        }
+                        int cbx = (cx << 4) - oX;
+                        int cbz = (cz << 4) - oZ;
+                        for (int otherCZ = otherBCZ; otherCZ <= otherTCZ; otherCZ++) {
+                            for (int otherCX = otherBCX; otherCX <= otherTCX; otherCX++) {
+                                FaweChunk chunk = from.getFaweChunk(otherCX, otherCZ);
+                                if (!(chunk instanceof NullFaweChunk)) {
+                                    MCAChunk other = (MCAChunk) chunk;
+                                    int ocbx = otherCX << 4;
+                                    int ocbz = otherCZ << 4;
+                                    int octx = ocbx + 15;
+                                    int octz = ocbz + 15;
+                                    int minY = regionFrom.minY;
+                                    int maxY = regionFrom.maxY;
+                                    int offsetY = oY;
+                                    int minX = obx > ocbx ? (obx - ocbx) & 15 : 0;
+                                    int maxX = otx < octx ? (otx - ocbx) : 15;
+                                    int minZ = obz > ocbz ? (obz - ocbz) & 15 : 0;
+                                    int maxZ = otz < octz ? (otz - ocbz) : 15;
+                                    int offsetX = ocbx - cbx;
+                                    int offsetZ = ocbz - cbz;
+                                    newChunk.copyFrom(other, minX, maxX, minY, maxY, minZ, maxZ, offsetX, offsetY, offsetZ);
                                 }
                             }
                         }
-                    } else if ((oY & 15) == 0) {
-                    } else {
                     }
-                } else {
                 }
+
+
+
+                // If oX & 15 == 0 && oZ && 15 == 0
+//                if ((oX & 15) == 0 && (oZ & 15) == 0) {
+//                    if (oY == 0) {
+//                        if (regionFrom.minY == 0 && regionFrom.maxY == 255) {
+//                            for (int cz = bcz; cz <= tcz; cz++) {
+//                                for (int cx = bcx; cx <= tcx; cx++) {
+//                                    FaweChunk chunk = from.getFaweChunk(cx - oCX, cz - oCZ);
+//                                    if (!(chunk instanceof NullFaweChunk)) {
+//                                        MCAChunk mcaChunk = (MCAChunk) chunk;
+//                                        mcaChunk.setLoc(null, cx, cz);
+//                                        mcaChunk.setModified();
+//                                        mcaFile.setChunk(mcaChunk);
+//                                    }
+//                                }
+//                            }
+//                        } else {
+//                            for (int cz = bcz; cz <= tcz; cz++) {
+//                                for (int cx = bcx; cx <= tcx; cx++) {
+//                                    FaweChunk chunk = from.getFaweChunk(cx - oCX, cz - oCZ);
+//                                    if (!(chunk instanceof NullFaweChunk)) {
+//                                        MCAChunk mcaChunk = (MCAChunk) chunk;
+//                                        MCAChunk toChunk = mcaFile.getChunk(cx, cz);
+//                                        if (toChunk == null || (toChunk.getMinLayer() << 4 >= regionTo.minY && (toChunk.getMaxLayer() << 4) + 15 <= regionTo.maxY)) {
+//                                            mcaChunk.setLoc(null, cx, cz);
+//                                            mcaChunk.setModified();
+//                                            mcaFile.setChunk(mcaChunk);
+//                                        } else {
+//                                            // TODO
+//                                        }
+//                                    }
+//                                }
+//                            }
+//                        }
+//                    } else if ((oY & 15) == 0) {
+//
+//                    } else {
+//
+//                    }
+//                } else {
+//                }
                 mcaFile.close(pool);
                 from.clear();
             }
         }
         pool.awaitQuiescence(Long.MAX_VALUE, TimeUnit.MILLISECONDS);
+    }
+
+//    [17:52:49 INFO]: RegionFrom 139,3,454->139,3,454
+//    [17:52:49 INFO]: 8,31 | 132>132,502>502
+//    [17:52:49 INFO]: Copy from 8,28
+//    [17:52:49 INFO]: 128/139,448/454
+//    [17:52:49 INFO]: Set 11>15,3>3,6>15 | -11,0,-6
+
+    public static void main(String[] args) {
+        int ox = 2;
+        int oz = 0;
+        int bx = 5;
+        int bz = 5;
+        int tx = 5;
+        int tz = 5;
+        int obx = bx - ox;
+        int obz = bz - oz;
+        int otx = tx - ox;
+        int otz = tz - oz;
+
+
+        int otherBCX = (obx) >> 4;
+        int otherBCZ = (obz) >> 4;
+        int otherTCX = (otx) >> 4;
+        int otherTCZ = (otz) >> 4;
+
+
+        for (int otherCZ = otherBCZ; otherCZ <= otherTCZ; otherCZ++) {
+            for (int otherCX = otherBCX; otherCX <= otherTCX; otherCX++) {
+
+                int ocbx = otherCX << 4;
+                int ocbz = otherCZ << 4;
+                int octx = obx + 15;
+                int octz = obz + 15;
+                int offsetX, offsetZ;
+
+                int minX = obx > ocbx ? (obx - ocbx) & 15 : 0;
+                int maxX = otx < octx ? (otx - ocbx) : 15;
+
+                int minZ = obz > ocbz ? (obz - ocbz) & 15 : 0;
+                int maxZ = otz < octz ? (otz - ocbz) : 15;
+
+
+
+
+            }
+        }
     }
 
     public <G, T extends MCAFilter<G>> T filterRegion(final T filter, final RegionWrapper region) {

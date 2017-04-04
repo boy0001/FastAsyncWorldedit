@@ -6,6 +6,7 @@ import com.boydti.fawe.object.FaweChunk;
 import com.boydti.fawe.object.FaweQueue;
 import com.boydti.fawe.object.RunnableVal2;
 import com.boydti.fawe.object.io.FastByteArrayOutputStream;
+import com.boydti.fawe.util.ArrayUtil;
 import com.boydti.fawe.util.MainUtil;
 import com.boydti.fawe.util.MathMan;
 import com.sk89q.jnbt.CompoundTag;
@@ -113,63 +114,201 @@ public class MCAChunk extends FaweChunk<Void> {
         return buffered.toByteArray();
     }
 
-    public void copyFrom(MCAChunk other, int minY, int maxY) {
-        for (int layer = 0; layer < ids.length; layer++) {
-            byte[] otherIds = other.ids[layer];
-            byte[] currentIds = ids[layer];
-            int by = layer << 4;
-            int ty = layer >> 4;
-            if (by >= minY && ty <= maxY) {
-                if (otherIds != null) {
-                    ids[layer] = otherIds;
-                    data[layer] = other.data[layer];
-                    skyLight[layer] = other.skyLight[layer];
-                    blockLight[layer] = other.blockLight[layer];
-                } else {
-                    ids[layer] = null;
+    public void copyFrom(MCAChunk other, int minX, int maxX, int minY, int maxY, int minZ, int maxZ, int offsetX, int offsetY, int offsetZ) {
+        minY = Math.max(-offsetY - minY, minY);
+        maxY = Math.min(255 - offsetY, maxY);
+        minZ = Math.max(-offsetZ - minZ, minZ);
+        maxZ = Math.min(15 - offsetZ, maxZ);
+        minX = Math.max(-offsetX - minX, minX);
+        maxX = Math.min(15 - offsetX, maxX);
+        if (minX > maxX || minZ > maxZ || minY > maxY) return;
+        int startLayer = minY >> 4;
+        int endLayer = maxY >> 4;
+        for (int otherY = minY, thisY = minY + offsetY; otherY <= maxY; otherY++, thisY++) {
+            int thisLayer = thisY >> 4;
+            int otherLayer = otherY >> 4;
+            byte[] thisIds = ids[thisLayer];
+            byte[] otherIds = other.ids[otherLayer];
+            if (otherIds == null) {
+                if (thisIds != null) {
+                    int indexY = (thisY & 15) << 8;
+                    byte[] thisData = data[thisLayer];
+                    byte[] thisSkyLight = skyLight[thisLayer];
+                    byte[] thisBlockLight = blockLight[thisLayer];
+                    for (int otherZ = minZ, thisZ = minZ + offsetZ; otherZ <= maxZ; otherZ++, thisZ++) {
+                        int startIndex = indexY + (thisZ << 4) + minX + offsetX;
+                        int endIndex = startIndex + maxX - minX;
+                        ArrayUtil.fill(thisIds, startIndex, endIndex + 1, (byte) 0);
+                        int startIndexShift = startIndex >> 1;
+                        int endIndexShift = endIndex >> 1;
+                        if ((startIndex & 1) != 0) {
+                            startIndexShift++;
+                            setNibble(startIndex, thisData, (byte) 0);
+                            setNibble(startIndex, thisSkyLight, (byte) 0);
+                            setNibble(startIndex, thisBlockLight, (byte) 0);
+                        }
+                        if ((endIndex & 1) != 1) {
+                            endIndexShift--;
+                            setNibble(endIndex, thisData, (byte) 0);
+                            setNibble(endIndex, thisSkyLight, (byte) 0);
+                            setNibble(endIndex, thisBlockLight, (byte) 0);
+                        }
+                        ArrayUtil.fill(thisData, startIndexShift, endIndexShift + 1, (byte) 0);
+                        ArrayUtil.fill(thisSkyLight, startIndexShift, endIndexShift + 1, (byte) 0);
+                        ArrayUtil.fill(thisBlockLight, startIndexShift, endIndexShift + 1, (byte) 0);
+                    }
                 }
-            } else {
-                by = Math.max(by, minY) & 15;
-                ty = Math.min(ty, maxY) & 15;
-                int indexStart = by << 8;
-                int indexEnd = 255 + (ty << 8);
-                int indexStartShift = indexStart >> 1;
-                int indexEndShift = indexEnd >> 1;
-                if (otherIds == null) {
-                    if (currentIds != null) {
-                        Arrays.fill(currentIds, indexStart, indexEnd, (byte) 0);
-                        Arrays.fill(data[layer], indexStartShift, indexEndShift, (byte) 0);
-                        Arrays.fill(skyLight[layer], indexStartShift, indexEndShift, (byte) 0);
-                        Arrays.fill(blockLight[layer], indexStartShift, indexEndShift, (byte) 0);
+                continue;
+            } else if (thisIds == null) {
+                ids[thisLayer] = thisIds = new byte[4096];
+                data[thisLayer] = new byte[2048];
+                skyLight[thisLayer] = new byte[2048];
+                blockLight[thisLayer] = new byte[2048];
+            }
+            int indexY = (thisY & 15) << 8;
+            int otherIndexY = (otherY & 15) << 8;
+            byte[] thisData = data[thisLayer];
+            byte[] thisSkyLight = skyLight[thisLayer];
+            byte[] thisBlockLight = blockLight[thisLayer];
+            byte[] otherData = other.data[otherLayer];
+            byte[] otherSkyLight = other.skyLight[otherLayer];
+            byte[] otherBlockLight = other.blockLight[otherLayer];
+            for (int otherZ = minZ, thisZ = minZ + offsetZ; otherZ <= maxZ; otherZ++, thisZ++) {
+                int startIndex = indexY + (thisZ << 4) + minX + offsetX;
+                int endIndex = startIndex + maxX - minX;
+                int otherStartIndex = otherIndexY + (otherZ << 4) + minX;
+                int otherEndIndex = otherStartIndex + maxX - minX;
+                System.arraycopy(otherIds, otherStartIndex, thisIds, startIndex, endIndex - startIndex + 1);
+                if ((startIndex & 1) == (otherStartIndex & 1)) {
+                    int startIndexShift = startIndex >> 1;
+                    int endIndexShift = endIndex >> 1;
+                    int otherStartIndexShift = otherStartIndex >> 1;
+                    int otherEndIndexShift = otherEndIndex >> 1;
+                    if ((startIndex & 1) != 0) {
+                        startIndexShift++;
+                        otherStartIndexShift++;
+                        setNibble(startIndex, thisData, getNibble(otherStartIndex, otherData));
+                        setNibble(startIndex, thisSkyLight, getNibble(otherStartIndex, otherSkyLight));
+                        setNibble(startIndex, thisBlockLight, getNibble(otherStartIndex, otherBlockLight));
                     }
+                    if ((endIndex & 1) != 1) {
+                        endIndexShift--;
+                        otherEndIndexShift--;
+                        setNibble(endIndex, thisData, getNibble(otherEndIndex, otherData));
+                        setNibble(endIndex, thisSkyLight, getNibble(otherEndIndex, otherSkyLight));
+                        setNibble(endIndex, thisBlockLight, getNibble(otherEndIndex, otherBlockLight));
+                    }
+                    System.arraycopy(otherData, otherStartIndexShift, thisData, startIndexShift, endIndexShift - startIndexShift + 1);
+                    System.arraycopy(otherSkyLight, otherStartIndexShift, thisSkyLight, startIndexShift, endIndexShift - startIndexShift + 1);
+                    System.arraycopy(otherBlockLight, otherStartIndexShift, thisBlockLight, startIndexShift, endIndexShift - startIndexShift + 1);
                 } else {
-                    if (currentIds == null) {
-                        currentIds = this.ids[layer] = new byte[4096];
-                        this.data[layer] = new byte[2048];
-                        this.skyLight[layer] = new byte[2048];
-                        this.blockLight[layer] = new byte[2048];
+                    for (int thisIndex = startIndex, otherIndex = otherStartIndex; thisIndex <= endIndex; thisIndex++, otherIndex++) {
+                        setNibble(thisIndex, thisData, getNibble(otherIndex, otherData));
+                        setNibble(thisIndex, thisSkyLight, getNibble(otherIndex, otherSkyLight));
+                        setNibble(thisIndex, thisBlockLight, getNibble(otherIndex, otherBlockLight));
                     }
-                    System.arraycopy(other.ids[layer], indexStart, ids[layer], indexStart, indexEnd - indexStart);
-                    System.arraycopy(other.data[layer], indexStartShift, data[layer], indexStartShift, indexEndShift - indexStartShift);
-                    System.arraycopy(other.skyLight[layer], indexStartShift, skyLight[layer], indexStartShift, indexEndShift - indexStartShift);
-                    System.arraycopy(other.blockLight[layer], indexStartShift, blockLight[layer], indexStartShift, indexEndShift - indexStartShift);
                 }
             }
         }
+    }
+
+    public void copyFrom(MCAChunk other, int minY, int maxY, int offsetY) {
+        minY = Math.max(-offsetY - minY, minY);
+        maxY = Math.min(255 - offsetY, maxY);
+        if (minY > maxY) return;
+        if ((offsetY & 15) == 0) {
+            int offsetLayer = offsetY >> 4;
+            int startLayer = minY >> 4;
+            int endLayer = maxY >> 4;
+            for (int thisLayer = startLayer + offsetLayer, otherLayer = startLayer; thisLayer < endLayer; thisLayer++, otherLayer++) {
+                byte[] otherIds = other.ids[otherLayer];
+                byte[] currentIds = ids[thisLayer];
+                int by = otherLayer << 4;
+                int ty = otherLayer >> 4;
+                if (by >= minY && ty <= maxY) {
+                    if (otherIds != null) {
+                        ids[thisLayer] = otherIds;
+                        data[thisLayer] = other.data[otherLayer];
+                        skyLight[thisLayer] = other.skyLight[otherLayer];
+                        blockLight[thisLayer] = other.blockLight[otherLayer];
+                    } else {
+                        ids[thisLayer] = null;
+                    }
+                } else {
+                    by = Math.max(by, minY) & 15;
+                    ty = Math.min(ty, maxY) & 15;
+                    int indexStart = by << 8;
+                    int indexEnd = 256 + (ty << 8);
+                    int indexStartShift = indexStart >> 1;
+                    int indexEndShift = indexEnd >> 1;
+                    if (otherIds == null) {
+                        if (currentIds != null) {
+                            ArrayUtil.fill(currentIds, indexStart, indexEnd, (byte) 0);
+                            ArrayUtil.fill(data[thisLayer], indexStartShift, indexEndShift, (byte) 0);
+                            ArrayUtil.fill(skyLight[thisLayer], indexStartShift, indexEndShift, (byte) 0);
+                            ArrayUtil.fill(blockLight[thisLayer], indexStartShift, indexEndShift, (byte) 0);
+                        }
+                    } else {
+                        if (currentIds == null) {
+                            currentIds = this.ids[thisLayer] = new byte[4096];
+                            this.data[thisLayer] = new byte[2048];
+                            this.skyLight[thisLayer] = new byte[2048];
+                            this.blockLight[thisLayer] = new byte[2048];
+                        }
+                        System.arraycopy(other.ids[otherLayer], indexStart, currentIds, indexStart, indexEnd - indexStart);
+                        System.arraycopy(other.data[otherLayer], indexStartShift, data[thisLayer], indexStartShift, indexEndShift - indexStartShift);
+                        System.arraycopy(other.skyLight[otherLayer], indexStartShift, skyLight[thisLayer], indexStartShift, indexEndShift - indexStartShift);
+                        System.arraycopy(other.blockLight[otherLayer], indexStartShift, blockLight[thisLayer], indexStartShift, indexEndShift - indexStartShift);
+                    }
+                }
+            }
+        } else {
+            for (int otherY = minY, thisY = minY + offsetY; otherY <= maxY; otherY++, thisY++) {
+                int otherLayer = otherY >> 4;
+                int thisLayer = thisY >> 4;
+                byte[] thisIds = this.ids[thisLayer];
+                byte[] otherIds = other.ids[otherLayer];
+                int thisStartIndex = (thisY & 15) << 8;
+                int thisStartIndexShift = thisStartIndex >> 1;
+                if (otherIds == null) {
+                    if (thisIds == null) {
+                        continue;
+                    }
+                    ArrayUtil.fill(thisIds, thisStartIndex, thisStartIndex + 256, (byte) 0);
+                    ArrayUtil.fill(this.data[thisLayer], thisStartIndexShift, thisStartIndexShift + 128, (byte) 0);
+                    ArrayUtil.fill(this.skyLight[thisLayer], thisStartIndexShift, thisStartIndexShift + 128, (byte) 0);
+                    ArrayUtil.fill(this.blockLight[thisLayer], thisStartIndexShift, thisStartIndexShift + 128, (byte) 0);
+                    continue;
+                } else if (thisIds == null) {
+                    ids[thisLayer] = thisIds = new byte[4096];
+                    data[thisLayer] = new byte[2048];
+                    skyLight[thisLayer] = new byte[2048];
+                    blockLight[thisLayer] = new byte[2048];
+                }
+                int otherStartIndex = (otherY & 15) << 8;
+                int otherStartIndexShift = otherStartIndex >> 1;
+                System.arraycopy(other.ids[otherLayer], otherStartIndex, thisIds, thisStartIndex, 256);
+                System.arraycopy(other.data[otherLayer], otherStartIndexShift, data[thisLayer], thisStartIndexShift, 128);
+                System.arraycopy(other.skyLight[otherLayer], otherStartIndexShift, skyLight[thisLayer], thisStartIndexShift, 128);
+                System.arraycopy(other.blockLight[otherLayer], otherStartIndexShift, blockLight[thisLayer], thisStartIndexShift, 128);
+            }
+        }
         // Copy nbt
+        int thisMinY = minY + offsetY;
+        int thisMaxY = maxY + offsetY;
         if (!tiles.isEmpty()) {
             Iterator<Map.Entry<Short, CompoundTag>> iter = tiles.entrySet().iterator();
             while (iter.hasNext()) {
                 int y = MathMan.untripleBlockCoordY(iter.next().getKey());
-                if (y >= minY && y <= maxY) iter.remove();
+                if (y >= thisMinY && y <= thisMaxY) iter.remove();
             }
         }
         if (!other.tiles.isEmpty()) {
             for (Map.Entry<Short, CompoundTag> entry : other.tiles.entrySet()) {
-                short key = entry.getKey();
+                int key = entry.getKey();
                 int y = MathMan.untripleBlockCoordY(key);
                 if (y >= minY && y <= maxY) {
-                    tiles.put(key, entry.getValue());
+                    tiles.put((short) (key + offsetY), entry.getValue());
                 }
             }
         }
