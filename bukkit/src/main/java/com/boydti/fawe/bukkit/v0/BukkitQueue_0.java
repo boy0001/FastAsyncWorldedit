@@ -11,13 +11,11 @@ import com.boydti.fawe.object.FawePlayer;
 import com.boydti.fawe.object.RunnableVal;
 import com.boydti.fawe.object.visitor.FaweChunkVisitor;
 import com.boydti.fawe.util.MathMan;
-import com.boydti.fawe.util.ReflectionUtils;
 import com.boydti.fawe.util.TaskManager;
 import com.sk89q.worldedit.bukkit.WorldEditPlugin;
 import com.sk89q.worldedit.bukkit.adapter.BukkitImplAdapter;
 import com.sk89q.worldedit.world.biome.BaseBiome;
 import java.io.File;
-import java.io.RandomAccessFile;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.Collection;
@@ -206,11 +204,6 @@ public abstract class BukkitQueue_0<CHUNK, CHUNKSECTIONS, SECTION> extends NMSMa
     private static Field fieldTimingsEnabled;
     private static Field fieldAsyncCatcherEnabled;
     private static Method methodCheck;
-    private static Class<?> classRegionFile;
-    private static Class<?> classRegionFileCache;
-    private static Field fieldRegionMap;
-    private static Field fieldRegionFile;
-    private static Method methodUnloadChunk;
     static {
         try {
             fieldAsyncCatcherEnabled = Class.forName("org.spigotmc.AsyncCatcher").getField("enabled");
@@ -222,29 +215,6 @@ public abstract class BukkitQueue_0<CHUNK, CHUNKSECTIONS, SECTION> extends NMSMa
             methodCheck = Class.forName("co.aikar.timings.TimingsManager").getDeclaredMethod("recheckEnabled");
             methodCheck.setAccessible(true);
         } catch (Throwable ignore){}
-        try {
-            classRegionFile = ReflectionUtils.getNmsClass("RegionFile");
-            classRegionFileCache = ReflectionUtils.getNmsClass("RegionFileCache");
-            for (Field field : classRegionFileCache.getDeclaredFields()) {
-                if (Map.class.isAssignableFrom(field.getType())) {
-                    fieldRegionMap = field;
-                    fieldRegionMap.setAccessible(true);
-                    break;
-                }
-            }
-            for (Field field : classRegionFile.getDeclaredFields()) {
-                if (RandomAccessFile.class.isAssignableFrom(field.getType())) {
-                    fieldRegionFile = field;
-                    fieldRegionFile.setAccessible(true);
-                    break;
-                }
-            }
-            Class<?> classCraftWorld = ReflectionUtils.getCbClass("CraftWorld");
-            methodUnloadChunk = classCraftWorld.getDeclaredMethod("unloadChunk0", int.class, int.class, boolean.class);
-            methodUnloadChunk.setAccessible(true);
-        } catch (Throwable ignore) {
-            ignore.printStackTrace();
-        }
     }
 
     @Override
