@@ -275,10 +275,10 @@ public class Fawe {
 
         if (Settings.IMP.UPDATE && isJava8()) {
             // Delayed updating
+            updater = new Updater();
             TaskManager.IMP.repeatAsync(new Runnable() {
                 @Override
                 public void run() {
-                    updater = new Updater();
                     updater.update(IMP.getPlatform(), getVersion());
                 }
             }, 36000);

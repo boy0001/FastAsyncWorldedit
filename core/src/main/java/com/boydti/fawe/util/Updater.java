@@ -12,9 +12,14 @@ import java.util.Scanner;
 
 public class Updater {
     private FaweVersion newVersion;
-    private String changes = "N/A";
+    private String changes;
 
     public String getChanges() throws IOException {
+        if (changes == null) {
+            try (Scanner scanner = new Scanner(new URL("http://boydti.com/fawe/cl?" + Integer.toHexString(Fawe.get().getVersion().hash)).openStream(), "UTF-8")) {
+                changes = scanner.useDelimiter("\\A").next();
+            }
+        }
         return changes;
     }
 
@@ -29,7 +34,7 @@ public class Updater {
             try (Scanner reader = new Scanner(url.openStream())) {
                 String versionString = reader.next();
                 FaweVersion version = new FaweVersion(versionString);
-                if (currentVersion == null || version.isNewer(newVersion != null ? newVersion : currentVersion)) {
+                if (version.isNewer(newVersion != null ? newVersion : currentVersion)) {
                     newVersion = version;
                     URL download = new URL(downloadUrl.replaceAll("%platform%", platform).replaceAll("%version%", versionString));
                     try (ReadableByteChannel rbc = Channels.newChannel(download.openStream())) {
@@ -48,12 +53,10 @@ public class Updater {
                             fos.getChannel().transferFrom(rbc, 0, Long.MAX_VALUE);
                         }
                         Fawe.debug("Updated FAWE to " + versionString);
-                        Scanner scanner = new Scanner(new URL("http://boydti.com/fawe/cl?" + Integer.toHexString(Fawe.get().getVersion().hash)).openStream(), "UTF-8");
-                        changes = scanner.useDelimiter("\\A").next();
-                        scanner.close();
                         MainUtil.sendAdmin("&7Restart to update FAWE with these changes: &c/fawe changelog &7or&c " + "http://boydti.com/fawe/cl?" + Integer.toHexString(currentVersion.hash));
-
                     }
+                } else {
+                    System.out.println("Not newer");
                 }
             }
         } catch (Throwable ignore) {}
