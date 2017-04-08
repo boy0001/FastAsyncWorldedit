@@ -56,7 +56,6 @@ public class MCAChunk extends FaweChunk<Void> {
     private boolean deleted;
 
     public byte[] toBytes(byte[] buffer) throws IOException {
-        checkNotNull(buffer);
         if (buffer == null) {
             buffer = new byte[8192];
         }

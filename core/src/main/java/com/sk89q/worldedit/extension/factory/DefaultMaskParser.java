@@ -295,6 +295,13 @@ public class DefaultMaskParser extends FaweParser<Mask> {
                 }
                 try {
                     double y1,y2;
+                    boolean override;
+                    if (split[1].endsWith("o")) {
+                        override = true;
+                        split[1] = split[1].substring(0, split[1].length() - 1);
+                    } else {
+                        override = false;
+                    }
                     if (split[0].endsWith("d")) {
                         double y1d = Expression.compile(split[0].substring(0, split[0].length() - 1)).evaluate();
                         double y2d = Expression.compile(split[1].substring(0, split[1].length() - 1)).evaluate();
@@ -304,7 +311,7 @@ public class DefaultMaskParser extends FaweParser<Mask> {
                         y1 = (Expression.compile(split[0]).evaluate());
                         y2 = (Expression.compile(split[1]).evaluate());
                     }
-                    return new AngleMask(extent, y1, y2);
+                    return new AngleMask(extent, y1, y2, override);
                 } catch (NumberFormatException | ExpressionException e) {
                     throw new SuggestInputParseException(input, "/<min-angle>:<max-angle>");
                 }

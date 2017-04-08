@@ -55,8 +55,6 @@ public class Updater {
                         Fawe.debug("Updated FAWE to " + versionString);
                         MainUtil.sendAdmin("&7Restart to update FAWE with these changes: &c/fawe changelog &7or&c " + "http://boydti.com/fawe/cl?" + Integer.toHexString(currentVersion.hash));
                     }
-                } else {
-                    System.out.println("Not newer");
                 }
             }
         } catch (Throwable ignore) {}

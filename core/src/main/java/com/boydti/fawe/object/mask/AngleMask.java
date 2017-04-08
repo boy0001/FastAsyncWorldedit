@@ -16,15 +16,17 @@ public class AngleMask extends SolidBlockMask {
     private final double max;
     private final double min;
     private final Extent extent;
+    private final boolean overlay;
     private MutableBlockVector mutable = new MutableBlockVector();
     private int maxY;
 
-    public AngleMask(Extent extent, double min, double max) {
+    public AngleMask(Extent extent, double min, double max, boolean overlay) {
         super(extent);
         this.extent = extent;
         this.min = min;
         this.max = max;
         this.maxY = extent.getMaximumPoint().getBlockY();
+        this.overlay = overlay;
     }
 
     @Override
@@ -37,7 +39,7 @@ public class AngleMask extends SolidBlockMask {
             return false;
         }
         block = extent.getLazyBlock(x, y + 1, z);
-        if (test(block.getId(), block.getData())) {
+        if (overlay && test(block.getId(), block.getData())) {
             return false;
         }
         double slope;

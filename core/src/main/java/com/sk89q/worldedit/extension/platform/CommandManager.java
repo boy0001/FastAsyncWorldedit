@@ -150,13 +150,6 @@ public final class CommandManager {
         dynamicHandler.setFormatter(new LogFormat());
 
         this.methodMap = new ConcurrentHashMap<>();
-
-//        TaskManager.IMP.task(new Runnable() {
-//            @Override
-//            public void run() {
-//
-//            }
-//        });
     }
 
     /**
@@ -166,9 +159,6 @@ public final class CommandManager {
      */
     public void registerCommands(Object clazz) {
         registerCommands(clazz, new String[0]);
-        if (dispatcher != null) {
-            setupDispatcher();
-        }
     }
 
     /**
@@ -178,9 +168,26 @@ public final class CommandManager {
      * @param aliases The aliases to give the command
      */
     public void registerCommands(Object clazz, String... aliases) {
-        methodMap.put(clazz, aliases);
-        if (dispatcher != null) {
-            setupDispatcher();
+        if (platform != null) {
+            ParametricBuilder builder = new ParametricBuilder();
+            builder.setAuthorizer(new ActorAuthorizer());
+            builder.setDefaultCompleter(new UserCommandCompleter(platformManager));
+            builder.addBinding(new WorldEditBinding(worldEdit));
+
+            builder.addBinding(new PatternBinding(worldEdit), com.sk89q.worldedit.function.pattern.Pattern.class);
+            builder.addBinding(new MaskBinding(worldEdit), com.sk89q.worldedit.function.mask.Mask.class);
+
+            DispatcherNode graph = new CommandGraph().builder(builder).commands();
+            if (aliases.length == 0) {
+                graph = graph.registerMethods(clazz);
+            } else {
+                graph = graph.group(aliases).registerMethods(clazz).parent();
+            }
+            Dispatcher dispatcher = graph.graph().getDispatcher();
+            platform.registerCommands(dispatcher);
+        } else {
+            System.out.println("Put in method map " + clazz);
+            methodMap.put(clazz, aliases);
         }
     }
 
@@ -188,6 +195,7 @@ public final class CommandManager {
      * Initialize the dispatcher
      */
     public void setupDispatcher() {
+        System.out.println("Setup dispatcher!");
         ParametricBuilder builder = new ParametricBuilder();
         builder.setAuthorizer(new ActorAuthorizer());
         builder.setDefaultCompleter(new UserCommandCompleter(platformManager));
@@ -204,12 +212,13 @@ public final class CommandManager {
             // add  command
             String[] aliases = entry.getValue();
             if (aliases.length == 0) {
+                System.out.println("Add class " + entry.getKey());
                 graph = graph.registerMethods(entry.getKey());
             } else {
                 graph = graph.group(aliases).registerMethods(entry.getKey()).parent();
             }
         }
-
+        methodMap.clear();
 
         dispatcher = graph
                 .group("/anvil", "anvil")

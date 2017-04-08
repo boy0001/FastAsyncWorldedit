@@ -35,7 +35,7 @@ public enum BBC {
     WORLDEDIT_VOLUME("&7You cannot select a volume of %current%. The maximum volume you can modify is %max%.", "Info"),
     WORLDEDIT_ITERATIONS("&7You cannot iterate %current% times. The maximum number of iterations allowed is %max%.", "Info"),
     WORLDEDIT_UNSAFE("&7Access to that command has been blocked", "Info"),
-    WORLDEDIT_DANGEROUS_WORLDEDIT("&cFAWE processed unsafe WorldEdit at %s0 by %s1", "Info"),
+    WORLDEDIT_DANGEROUS_WORLDEDIT("&cProcessed unsafe WorldEdit at %s0 by %s1", "Info"),
     WORLDEDIT_BYPASS("&7&oTo bypass your restrictions use &c/wea", "Info"),
     WORLDEDIT_EXTEND("&cYour WorldEdit may have extended outside your allowed region.", "Error"),
     WORLDEDIT_TOGGLE_TIPS_ON("&7Disabled WorldEdit tips.", "Info"),
@@ -115,7 +115,7 @@ public enum BBC {
     BRUSH_EXTINGUISHER("Extinguisher equipped (%s0).", "WorldEdit.Brush"),
     BRUSH_GRAVITY("Gravity brush equipped (%s0)", "WorldEdit.Brush"),
     BRUSH_HEIGHT("Height brush equipped (%s0)", "WorldEdit.Brush"),
-    BRUSH_TRY_OTHER("&cFAWE adds other, more suitable brushes e.g.\n&8 - &7//br height [radius=5] [#clipboard|file=null] [rotation=0] [yscale=1.00]", "WorldEdit.Brush"),
+    BRUSH_TRY_OTHER("&cThere are other more suitable brushes e.g.\n&8 - &7//br height [radius=5] [#clipboard|file=null] [rotation=0] [yscale=1.00]", "WorldEdit.Brush"),
     BRUSH_COPY("Copy brush equipped (%s0). Left click the base of an object to copy, right click to paste. Increase the brush radius if necessary.", "WorldEdit.Brush"),
     BRUSH_COMMAND("Command brush equipped (%s0)", "WorldEdit.Brush"),
     BRUSH_HEIGHT_INVALID("Invalid height map file (%s0)", "WorldEdit.Brush"),
@@ -226,7 +226,7 @@ public enum BBC {
     NOT_PLAYER("&cYou must be a player to perform this action!", "Error"),
     PLAYER_NOT_FOUND("&cPlayer not found:&7 %s0", "Error"),
     OOM(
-            "&8[&cCritical&8] &cDetected low memory i.e. < 1%. FAWE will take the following actions:\n&8 - &7Terminate WE block placement\n&8 - &7Clear WE history\n&8 - &7Unload non essential chunks\n&8 - &7Kill entities\n&8 - &7Garbage collect\n&cIgnore this if trying to crash server.\n&7Note: Low memory is likely (but not necessarily) caused by WE",
+            "&8[&cCritical&8] &cDetected low memory i.e. < 1%. We will take the following actions:\n&8 - &7Terminate WE block placement\n&8 - &7Clear WE history\n&8 - &7Unload non essential chunks\n&8 - &7Kill entities\n&8 - &7Garbage collect\n&cIgnore this if trying to crash server.\n&7Note: Low memory is likely (but not necessarily) caused by WE",
             "Error"),
 
     WORLDEDIT_SOME_FAILS("&c%s0 blocks weren't placed because they were outside your allowed region.", "Error"),
