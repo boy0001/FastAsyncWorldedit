@@ -18,11 +18,11 @@ import com.sk89q.worldedit.entity.Entity;
 import com.sk89q.worldedit.extension.platform.Platform;
 import com.sk89q.worldedit.function.mask.Mask;
 import com.sk89q.worldedit.function.operation.Operation;
+import com.sk89q.worldedit.internal.LocalWorldAdapter;
 import com.sk89q.worldedit.regions.Region;
 import com.sk89q.worldedit.util.Direction;
 import com.sk89q.worldedit.util.Location;
 import com.sk89q.worldedit.util.TreeGenerator;
-import com.sk89q.worldedit.world.AbstractWorld;
 import com.sk89q.worldedit.world.World;
 import com.sk89q.worldedit.world.biome.BaseBiome;
 import com.sk89q.worldedit.world.registry.WorldData;
@@ -31,9 +31,9 @@ import javax.annotation.Nullable;
 
 public class WorldWrapper extends LocalWorld {
 
-    private final AbstractWorld parent;
+    private final World parent;
 
-    public static WorldWrapper wrap(AbstractWorld world) {
+    public static WorldWrapper wrap(World world) {
         if (world == null) {
             return null;
         }
@@ -45,16 +45,19 @@ public class WorldWrapper extends LocalWorld {
 
     public static World unwrap(World world) {
         if (world instanceof WorldWrapper) {
-            return ((WorldWrapper) world).getParent();
+            return unwrap(((WorldWrapper) world).getParent());
+        }
+        if (world instanceof LocalWorldAdapter) {
+            return unwrap(LocalWorldAdapter.unwrap(world));
         }
         return world;
     }
 
-    private WorldWrapper(AbstractWorld parent) {
+    private WorldWrapper(World parent) {
         this.parent = parent;
     }
 
-    public AbstractWorld getParent() {
+    public World getParent() {
         return parent instanceof WorldWrapper ? ((WorldWrapper) parent).getParent() : parent;
     }
 

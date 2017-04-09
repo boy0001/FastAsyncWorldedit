@@ -98,6 +98,7 @@ import com.sk89q.worldedit.function.visitor.RecursiveVisitor;
 import com.sk89q.worldedit.function.visitor.RegionVisitor;
 import com.sk89q.worldedit.history.change.EntityCreate;
 import com.sk89q.worldedit.history.change.EntityRemove;
+import com.sk89q.worldedit.internal.LocalWorldAdapter;
 import com.sk89q.worldedit.math.convolution.HeightMap;
 import com.sk89q.worldedit.math.interpolation.KochanekBartelsInterpolation;
 import com.sk89q.worldedit.math.transform.AffineTransform;
@@ -445,6 +446,7 @@ public class Fawe {
             BlockTransformExtent.inject(); // Fix for cache not being mutable
             AbstractDelegateExtent.inject(); // Optimizations
             BlockBagExtent.inject(); // Fixes + Optimizations
+            LocalWorldAdapter.inject();
             // Vector
             BlockWorldVector.inject(); // Optimizations
             BlockVector.inject(); // Optimizations
