@@ -21,6 +21,7 @@ package com.sk89q.worldedit.extension.platform;
 
 import com.sk89q.worldedit.BlockWorldVector;
 import com.sk89q.worldedit.LocalPlayer;
+import com.sk89q.worldedit.LocalWorld;
 import com.sk89q.worldedit.PlayerDirection;
 import com.sk89q.worldedit.Vector;
 import com.sk89q.worldedit.WorldEditException;
@@ -92,7 +93,7 @@ public abstract class AbstractPlayerActor implements Actor, Player, Cloneable {
 
     @Override
     public void findFreePosition(WorldVector searchPos) {
-        World world = searchPos.getWorld();
+        LocalWorld world = searchPos.getWorld();
         int x = searchPos.getBlockX();
         int y = Math.max(0, searchPos.getBlockY());
         int origY = y;
@@ -108,23 +109,21 @@ public abstract class AbstractPlayerActor implements Actor, Player, Cloneable {
             }
 
             if (free == 2) {
-                if (y - 1 != origY) {
-                    final Vector pos = new Vector(x, y - 2, z);
-                    final int id = world.getBlockType(pos);
-                    final int data = world.getBlockData(pos);
-                    setPosition(new Vector(x + 0.5, y - 2 + BlockType.centralTopLimit(id, data), z + 0.5));
-                }
-
+                final Vector pos = new Vector(x, y - 2, z);
+                final int id = world.getBlockType(pos);
+                final int data = world.getBlockData(pos);
+                setPosition(new WorldVector(world, x + 0.5, y - 2 + BlockType.centralTopLimit(id, data), z + 0.5));
                 return;
             }
 
             ++y;
         }
+        System.out.println("Not found");
     }
 
     @Override
     public void setOnGround(WorldVector searchPos) {
-        World world = searchPos.getWorld();
+        LocalWorld world = searchPos.getWorld();
         int x = searchPos.getBlockX();
         int y = Math.max(0, searchPos.getBlockY());
         int z = searchPos.getBlockZ();
@@ -134,7 +133,7 @@ public abstract class AbstractPlayerActor implements Actor, Player, Cloneable {
             final int id = world.getBlockType(pos);
             final int data = world.getBlockData(pos);
             if (!BlockType.canPassThrough(id, data)) {
-                setPosition(new Vector(x + 0.5, y + BlockType.centralTopLimit(id, data), z + 0.5));
+                setPosition(new WorldVector(world, x + 0.5, y + BlockType.centralTopLimit(id, data), z + 0.5));
                 return;
             }
 

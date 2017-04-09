@@ -163,6 +163,10 @@ public class Config {
 
         private HashMap<String, T> INSTANCES = new HashMap<>();
 
+        public T remove(String key) {
+            return INSTANCES.remove(key);
+        }
+
         public T get(String key) {
             return INSTANCES.get(key);
         }
@@ -253,7 +257,7 @@ public class Config {
                         }
                     }
                     BlockName blockNames = current.getAnnotation(BlockName.class);
-                    if (blockNames != null) {
+                        if (blockNames != null) {
                         writer.write(spacing + toNodeName(current.getSimpleName()) + ":" + CTRF);
                         ConfigBlock configBlock = (ConfigBlock) field.get(instance);
                         if (configBlock == null || configBlock.getInstances().isEmpty()) {

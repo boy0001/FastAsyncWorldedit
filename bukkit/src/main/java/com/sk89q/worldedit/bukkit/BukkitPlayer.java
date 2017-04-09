@@ -20,6 +20,7 @@
 package com.sk89q.worldedit.bukkit;
 
 import com.boydti.fawe.FaweCache;
+import com.boydti.fawe.wrappers.WorldWrapper;
 import com.sk89q.util.StringUtil;
 import com.sk89q.worldedit.EditSession;
 import com.sk89q.worldedit.LocalPlayer;
@@ -43,6 +44,7 @@ import org.bukkit.Bukkit;
 import org.bukkit.DyeColor;
 import org.bukkit.GameMode;
 import org.bukkit.Location;
+import org.bukkit.World;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.material.Dye;
@@ -153,8 +155,13 @@ public class BukkitPlayer extends LocalPlayer {
 
     @Override
     public void setPosition(Vector pos, float pitch, float yaw) {
-        player.teleport(new Location(player.getWorld(), pos.getX(), pos.getY(),
-                pos.getZ(), yaw, pitch));
+        World world;
+        if (pos instanceof WorldVector) {
+            world = ((BukkitWorld) WorldWrapper.unwrap(((WorldVector) pos).getWorld())).getWorld();
+        } else {
+            world = player.getWorld();
+        }
+        player.teleport(new Location(world, pos.getX(), pos.getY(), pos.getZ(), yaw, pitch));
     }
 
     @Override

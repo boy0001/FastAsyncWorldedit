@@ -41,6 +41,7 @@ import org.bukkit.Bukkit;
 import org.bukkit.command.ConsoleCommandSender;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
+import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.event.world.ChunkLoadEvent;
@@ -146,7 +147,8 @@ public class FaweBukkit implements IFawe, Listener {
             if (existing != null) {
                 return existing;
             }
-            return new BukkitPlayer(Bukkit.getPlayer(name));
+            Player player = Bukkit.getPlayer(name);
+            return player != null ? new BukkitPlayer(player) : null;
         } else if (obj instanceof Player) {
             Player player = (Player) obj;
             FawePlayer existing = Fawe.get().getCachedPlayer(player.getName());
@@ -404,7 +406,7 @@ public class FaweBukkit implements IFawe, Listener {
         SetQueue.IMP.runMiscTasks();
     }
 
-    @EventHandler
+    @EventHandler(priority = EventPriority.MONITOR)
     public void onPlayerQuit(PlayerQuitEvent event) {
         Player player = event.getPlayer();
         FawePlayer fp = FawePlayer.wrap(player);

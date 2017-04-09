@@ -379,12 +379,12 @@ public class SchematicCommands {
 
     private List<File> allFiles(File root, boolean recursive) {
         File[] files = root.listFiles();
-        if (files == null) return null;
+        if (files == null) return new ArrayList<>();
         List<File> fileList = new ArrayList<File>();
         for (File f : files) {
             if (recursive && f.isDirectory()) {
                 List<File> subFiles = allFiles(f, recursive);
-                if (subFiles == null) continue; // empty subdir
+                if (subFiles == null || subFiles.isEmpty()) continue; // empty subdir
                 fileList.addAll(subFiles);
             } else {
                 fileList.add(f);

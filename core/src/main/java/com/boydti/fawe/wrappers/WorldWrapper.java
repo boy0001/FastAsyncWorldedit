@@ -23,6 +23,7 @@ import com.sk89q.worldedit.util.Direction;
 import com.sk89q.worldedit.util.Location;
 import com.sk89q.worldedit.util.TreeGenerator;
 import com.sk89q.worldedit.world.AbstractWorld;
+import com.sk89q.worldedit.world.World;
 import com.sk89q.worldedit.world.biome.BaseBiome;
 import com.sk89q.worldedit.world.registry.WorldData;
 import java.util.List;
@@ -40,6 +41,13 @@ public class WorldWrapper extends LocalWorld {
             return (WorldWrapper) world;
         }
         return new WorldWrapper(world);
+    }
+
+    public static World unwrap(World world) {
+        if (world instanceof WorldWrapper) {
+            return ((WorldWrapper) world).getParent();
+        }
+        return world;
     }
 
     private WorldWrapper(AbstractWorld parent) {

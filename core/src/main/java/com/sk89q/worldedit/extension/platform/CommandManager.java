@@ -186,7 +186,6 @@ public final class CommandManager {
             Dispatcher dispatcher = graph.graph().getDispatcher();
             platform.registerCommands(dispatcher);
         } else {
-            System.out.println("Put in method map " + clazz);
             methodMap.put(clazz, aliases);
         }
     }
@@ -195,7 +194,6 @@ public final class CommandManager {
      * Initialize the dispatcher
      */
     public void setupDispatcher() {
-        System.out.println("Setup dispatcher!");
         ParametricBuilder builder = new ParametricBuilder();
         builder.setAuthorizer(new ActorAuthorizer());
         builder.setDefaultCompleter(new UserCommandCompleter(platformManager));
@@ -212,7 +210,6 @@ public final class CommandManager {
             // add  command
             String[] aliases = entry.getValue();
             if (aliases.length == 0) {
-                System.out.println("Add class " + entry.getKey());
                 graph = graph.registerMethods(entry.getKey());
             } else {
                 graph = graph.group(aliases).registerMethods(entry.getKey()).parent();

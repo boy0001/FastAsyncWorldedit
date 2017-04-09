@@ -80,34 +80,7 @@ public class PlayerWrapper extends AbstractPlayerActor {
         TaskManager.IMP.sync(new RunnableVal<Boolean>() {
             @Override
             public void run(Boolean value) {
-                World world = searchPos.getWorld();
-                int x = searchPos.getBlockX();
-                int y = Math.max(0, searchPos.getBlockY());
-                int origY = y;
-                int z = searchPos.getBlockZ();
-
-                byte free = 0;
-
-                while (y <= world.getMaxY() + 2) {
-                    if (BlockType.canPassThrough(world.getBlock(new Vector(x, y, z)))) {
-                        ++free;
-                    } else {
-                        free = 0;
-                    }
-
-                    if (free == 2) {
-                        if (y - 1 != origY) {
-                            final Vector pos = new Vector(x, y - 2, z);
-                            final int id = world.getBlockType(pos);
-                            final int data = world.getBlockData(pos);
-                            setPosition(new WorldVector((LocalWorld) world, x + 0.5, y - 2 + BlockType.centralTopLimit(id, data), z + 0.5));
-                        }
-
-                        return;
-                    }
-
-                    ++y;
-                }
+                PlayerWrapper.super.findFreePosition(searchPos);
             }
         });
     }
@@ -117,22 +90,7 @@ public class PlayerWrapper extends AbstractPlayerActor {
         TaskManager.IMP.sync(new RunnableVal<Boolean>() {
             @Override
             public void run(Boolean value) {
-                World world = searchPos.getWorld();
-                int x = searchPos.getBlockX();
-                int y = Math.max(0, searchPos.getBlockY());
-                int z = searchPos.getBlockZ();
-
-                while (y >= 0) {
-                    final Vector pos = new Vector(x, y, z);
-                    final int id = world.getBlockType(pos);
-                    final int data = world.getBlockData(pos);
-                    if (!BlockType.canPassThrough(id, data)) {
-                        setPosition(new WorldVector((LocalWorld) world, x + 0.5, y + BlockType.centralTopLimit(id, data), z + 0.5));
-                        return;
-                    }
-
-                    --y;
-                }
+                PlayerWrapper.super.setOnGround(searchPos);
             }
         });
     }
