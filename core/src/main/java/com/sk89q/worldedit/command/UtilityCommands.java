@@ -571,50 +571,12 @@ public class UtilityCommands {
         boolean isRootLevel = true;
         List<String> visited = new ArrayList<String>();
 
-        // Drill down to the command
-        for (int i = 0; i < effectiveLength; i++) {
-            String command = args.getString(i);
-
-            if (callable instanceof Dispatcher) {
-                // Chop off the beginning / if we're are the root level
-                if (isRootLevel && command.length() > 1 && command.charAt(0) == '/') {
-                    command = command.substring(1);
-                }
-
-                CommandMapping mapping = detectCommand((Dispatcher) callable, command, isRootLevel);
-                if (mapping != null) {
-                    callable = mapping.getCallable();
-                } else {
-                    if (isRootLevel) {
-                        if (effectiveLength != 1) {
-                            actor.printError(String.format("The command '%s' could not be found.", args.getString(i)));
-                            return;
-                        }
-                        break;
-                    } else {
-                        actor.printError(String.format("The sub-command '%s' under '%s' could not be found.",
-                                command, Joiner.on(" ").join(visited)));
-                        return;
-                    }
-                }
-                effectiveLength--;
-
-                visited.add(args.getString(i));
-                isRootLevel = false;
-            } else {
-                actor.printError(String.format("'%s' has no sub-commands. (Maybe '%s' is for a parameter?)",
-                        Joiner.on(" ").join(visited), command));
-                return;
-            }
-        }
-
         // Create the message
         if (callable instanceof Dispatcher) {
             Dispatcher dispatcher = (Dispatcher) callable;
 
             // Get a list of aliases
             List<CommandMapping> aliases = new ArrayList<CommandMapping>(dispatcher.getCommands());
-            List<String> cmdStrings = new ArrayList<>();
             // Group by callable
 
             if (page == -1 || effectiveLength > 0) {
@@ -636,10 +598,51 @@ public class UtilityCommands {
                 }
                 if (effectiveLength > 0) {
                     String cat = args.getString(0);
-                    aliases = grouped.get(cat);
-                    if (aliases == null) {
-                        actor.printError(String.format("The command or group '%s' could not be found.", cat));
-                        return;
+                    ArrayList<CommandMapping> mappings = grouped.get(cat);
+                    if (mappings == null) {
+                        System.out.println("Aliases not found!");
+                        // Drill down to the command
+                        for (int i = 0; i < effectiveLength; i++) {
+                            String command = args.getString(i);
+
+                            if (callable instanceof Dispatcher) {
+                                // Chop off the beginning / if we're are the root level
+                                if (isRootLevel && command.length() > 1 && command.charAt(0) == '/') {
+                                    command = command.substring(1);
+                                }
+
+                                CommandMapping mapping = detectCommand((Dispatcher) callable, command, isRootLevel);
+                                if (mapping != null) {
+                                    callable = mapping.getCallable();
+                                } else {
+                                    if (isRootLevel) {
+                                        actor.printError(String.format("The command '%s' could not be found.", args.getString(i)));
+                                        return;
+                                    } else {
+                                        actor.printError(String.format("The sub-command '%s' under '%s' could not be found.",
+                                                command, Joiner.on(" ").join(visited)));
+                                        return;
+                                    }
+                                }
+                                effectiveLength--;
+
+                                visited.add(args.getString(i));
+                                isRootLevel = false;
+                            } else {
+                                actor.printError(String.format("'%s' has no sub-commands. (Maybe '%s' is for a parameter?)",
+                                        Joiner.on(" ").join(visited), command));
+                                return;
+                            }
+                        }
+                        if (!(callable instanceof Dispatcher)) {
+                            actor.printRaw(ColorCodeBuilder.asColorCodes(new CommandUsageBox(callable, Joiner.on(" ").join(visited))));
+                            return;
+                        }
+                        dispatcher = (Dispatcher) callable;
+                        aliases = new ArrayList<CommandMapping>(dispatcher.getCommands());
+                    } else {
+                        System.out.println("Set aliases " + aliases);
+                        aliases = mappings;
                     }
                     page = Math.max(0, page);
                 } else {
@@ -649,7 +652,7 @@ public class UtilityCommands {
                     StringBuilder builder = new StringBuilder();
                     boolean first = true;
                     for (Map.Entry<String, ArrayList<CommandMapping>> entry : grouped.entrySet()) {
-                        String s1 = "&a/" + cmd + " " + entry.getKey();
+                        String s1 = "&a//help " + entry.getKey();
                         String s2 = entry.getValue().size() + "";
                         message.append(BBC.HELP_ITEM_ALLOWED.format(s1, s2) + "\n");
                     }
@@ -700,8 +703,7 @@ public class UtilityCommands {
                 actor.print(BBC.color(message.toString()));
             }
         } else {
-            CommandUsageBox box = new CommandUsageBox(callable, Joiner.on(" ").join(visited));
-            actor.printRaw(ColorCodeBuilder.asColorCodes(box));
+            actor.printRaw(ColorCodeBuilder.asColorCodes(new CommandUsageBox(callable, Joiner.on(" ").join(visited))));
         }
     }
 

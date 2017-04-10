@@ -807,10 +807,10 @@ public class BrushCommands {
             aliases = { "flatten", "flatmap", "flat" },
             usage = "[radius] [file|#clipboard|null] [rotation] [yscale]",
             flags = "h",
-            desc = "Flatten brush makes terrain flatter\n" +
+            help = "Flatten brush makes terrain flatter\n" +
                     "The -r flag enables random off-axis rotation\n" +
                     "The -l flag will work on snow layers",
-            help =
+            desc =
                     "This brush raises and lowers land towards the clicked point\n",
             min = 1,
             max = 4
