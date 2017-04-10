@@ -598,9 +598,8 @@ public class UtilityCommands {
                 }
                 if (effectiveLength > 0) {
                     String cat = args.getString(0);
-                    ArrayList<CommandMapping> mappings = grouped.get(cat);
+                    ArrayList<CommandMapping> mappings = effectiveLength == 1 ? grouped.get(cat) : null;
                     if (mappings == null) {
-                        System.out.println("Aliases not found!");
                         // Drill down to the command
                         for (int i = 0; i < effectiveLength; i++) {
                             String command = args.getString(i);
@@ -624,8 +623,6 @@ public class UtilityCommands {
                                         return;
                                     }
                                 }
-                                effectiveLength--;
-
                                 visited.add(args.getString(i));
                                 isRootLevel = false;
                             } else {
@@ -641,7 +638,6 @@ public class UtilityCommands {
                         dispatcher = (Dispatcher) callable;
                         aliases = new ArrayList<CommandMapping>(dispatcher.getCommands());
                     } else {
-                        System.out.println("Set aliases " + aliases);
                         aliases = mappings;
                     }
                     page = Math.max(0, page);
@@ -683,9 +679,7 @@ public class UtilityCommands {
                     for (CommandMapping mapping : list) {
                         CommandCallable c = mapping.getCallable();
                         StringBuilder s1 = new StringBuilder();
-                        if (isRootLevel) {
-                            s1.append("/");
-                        }
+                        s1.append("/");
                         if (!visited.isEmpty()) {
                             s1.append(Joiner.on(" ").join(visited));
                             s1.append(" ");

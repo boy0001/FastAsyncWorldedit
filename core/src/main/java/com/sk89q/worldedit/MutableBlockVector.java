@@ -29,6 +29,10 @@ public class MutableBlockVector extends BlockVector {
         super(0, 0, 0);
     }
 
+    public MutableBlockVector setComponents(Vector other) {
+        return setComponents(other.getBlockX(), other.getBlockY(), other.getBlockZ());
+    }
+
     @Override
     public MutableBlockVector setComponents(double x, double y, double z) {
         return this.setComponents((int) x, (int) y, (int) z);

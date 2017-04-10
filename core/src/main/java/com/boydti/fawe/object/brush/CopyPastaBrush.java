@@ -13,6 +13,7 @@ import com.sk89q.worldedit.MaxChangedBlocksException;
 import com.sk89q.worldedit.Vector;
 import com.sk89q.worldedit.blocks.BaseBlock;
 import com.sk89q.worldedit.command.tool.brush.Brush;
+import com.sk89q.worldedit.entity.Player;
 import com.sk89q.worldedit.extent.clipboard.Clipboard;
 import com.sk89q.worldedit.function.mask.Mask;
 import com.sk89q.worldedit.function.mask.Masks;
@@ -28,9 +29,11 @@ public class CopyPastaBrush implements Brush, ResettableTool {
 
     private final LocalSession session;
     private final boolean randomRotate;
+    private final Player player;
 
-    public CopyPastaBrush(LocalSession session, boolean randomRotate) {
+    public CopyPastaBrush(Player player, LocalSession session, boolean randomRotate) {
         session.setClipboard(null);
+        this.player = player;
         this.session = session;
         this.randomRotate = randomRotate;
     }
@@ -38,6 +41,7 @@ public class CopyPastaBrush implements Brush, ResettableTool {
     @Override
     public boolean reset() {
         session.setClipboard(null);
+        BBC.BRUSH_RESET.send(player);
         return true;
     }
 

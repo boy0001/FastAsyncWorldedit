@@ -5,6 +5,7 @@ import com.sk89q.worldedit.Vector;
 import com.sk89q.worldedit.blocks.BaseBlock;
 import com.sk89q.worldedit.extent.Extent;
 import com.sk89q.worldedit.function.mask.BlockMask;
+import java.util.Arrays;
 import java.util.Collection;
 
 /**
@@ -13,7 +14,11 @@ import java.util.Collection;
 public class AdjacentAnyMask extends BlockMask {
     
     private MutableBlockVector mutable = new MutableBlockVector();
-    
+
+    public AdjacentAnyMask(Extent extent, BaseBlock... blocks) {
+        this(extent, Arrays.asList(blocks));
+    }
+
     public AdjacentAnyMask(Extent extent, Collection<BaseBlock> blocks) {
         super(extent, blocks);
     }

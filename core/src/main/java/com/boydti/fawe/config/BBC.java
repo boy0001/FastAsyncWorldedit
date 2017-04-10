@@ -105,6 +105,7 @@ public enum BBC {
     SELECTION_SHIFT("Region shifted", "WorldEdit.Selection"),
     SELECTION_CLEARED("Selection cleared", "WorldEdit.Selection"),
 
+    BRUSH_RESET("Reset your brush.", "WorldEdit.Brush"),
     BRUSH_NONE("You aren't holding a brush!", "WorldEdit.Brush"),
     BRUSH_SCROLL_ACTION_SET("Set scroll action to %s0", "WorldEdit.Brush"),
     BRUSH_VISUAL_MODE_SET("Set visual mode to %s0", "WorldEdit.Brush"),

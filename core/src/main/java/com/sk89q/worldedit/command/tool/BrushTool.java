@@ -6,6 +6,7 @@ import com.boydti.fawe.config.BBC;
 import com.boydti.fawe.object.FawePlayer;
 import com.boydti.fawe.object.brush.BrushSettings;
 import com.boydti.fawe.object.brush.MovableTool;
+import com.boydti.fawe.object.brush.ResettableTool;
 import com.boydti.fawe.object.brush.TargetMode;
 import com.boydti.fawe.object.brush.scroll.ScrollAction;
 import com.boydti.fawe.object.brush.scroll.ScrollTool;
@@ -40,7 +41,7 @@ import javax.annotation.Nullable;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
-public class BrushTool implements DoubleActionTraceTool, ScrollTool, MovableTool {
+public class BrushTool implements DoubleActionTraceTool, ScrollTool, MovableTool, ResettableTool {
 
     public enum BrushAction {
         PRIMARY,
@@ -131,6 +132,15 @@ public class BrushTool implements DoubleActionTraceTool, ScrollTool, MovableTool
      */
     public Mask getSourceMask() {
         return getContext().sourceMask;
+    }
+
+    @Override
+    public boolean reset() {
+        Brush br = getBrush();
+        if (br instanceof ResettableTool) {
+            return ((ResettableTool) br).reset();
+        }
+        return false;
     }
 
     /**

@@ -895,7 +895,7 @@ public class BrushCommands {
         worldEdit.checkMaxBrushRadius(radius);
         BrushTool tool = session.getBrushTool(player);
         tool.setSize(radius);
-        tool.setBrush(new CopyPastaBrush(session, rotate), "worldedit.brush.copy", player);
+        tool.setBrush(new CopyPastaBrush(player, session, rotate), "worldedit.brush.copy", player);
         player.print(BBC.getPrefix() + BBC.BRUSH_COPY.f(radius));
     }
 

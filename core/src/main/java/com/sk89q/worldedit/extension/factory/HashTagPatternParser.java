@@ -245,15 +245,13 @@ public class HashTagPatternParser extends FaweParser<Pattern> {
                         }
                     case "#surfacespread": {
                         try {
-                            List<String> split3 = suggestRemaining(rest, "#surfacespread", "<dx>", "<dy>", "<dz>", "<pattern>");
-                            int x = (int) Math.abs(Expression.compile(split3.get(0)).evaluate());
-                            int y = (int) Math.abs(Expression.compile(split3.get(1)).evaluate());
-                            int z = (int) Math.abs(Expression.compile(split3.get(2)).evaluate());
-                            rest = StringMan.join(split3.subList(3, split3.size()), ":");
+                            List<String> split3 = suggestRemaining(rest, "#surfacespread", "<distance>", "<pattern>");
+                            int dist = (int) Math.abs(Expression.compile(split3.get(0)).evaluate());
+                            rest = StringMan.join(split3.subList(1, split3.size()), ":");
                             Pattern pattern = catchSuggestion(input, rest, context);
-                            return new SurfaceRandomOffsetPattern(pattern, x, y, z);
+                            return new SurfaceRandomOffsetPattern(Request.request().getExtent(), pattern, dist);
                         } catch (NumberFormatException | ExpressionException | IndexOutOfBoundsException e) {
-                            throw new SuggestInputParseException(null, "#surfacespread:<dx>:<dy>:<dz>:<pattern>");
+                            throw new SuggestInputParseException(null, "#surfacespread:<distance>:<pattern>");
                         }
                     }
                     case "#solidspread": {

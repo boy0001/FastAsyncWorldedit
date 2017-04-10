@@ -21,6 +21,7 @@ package com.sk89q.worldedit.command;
 
 import com.boydti.fawe.config.BBC;
 import com.boydti.fawe.config.Settings;
+import com.boydti.fawe.object.clipboard.MultiClipboardHolder;
 import com.boydti.fawe.object.schematic.StructureFormat;
 import com.boydti.fawe.util.MainUtil;
 import com.boydti.fawe.util.MathMan;
@@ -89,6 +90,28 @@ public class SchematicCommands {
         this.worldEdit = worldEdit;
     }
 
+    @Command(aliases = { "loadall" }, usage = "[<format>] <filename|url>", desc = "Load a schematic into your clipboard")
+    @Deprecated
+    @CommandPermissions({ "worldedit.clipboard.load", "worldedit.schematic.load", "worldedit.schematic.upload" })
+    public void loadall(final Player player, final LocalSession session, @Optional("schematic") final String formatName, final String filename) throws FilenameException {
+        final ClipboardFormat format = ClipboardFormat.findByAlias(formatName);
+        if (format == null) {
+            BBC.CLIPBOARD_INVALID_FORMAT.send(player, formatName);
+            return;
+        }
+        try {
+            WorldData wd = player.getWorld().getWorldData();
+            ClipboardHolder[] all = format.loadAllFromInput(player, wd, filename, true);
+            if (all != null) {
+                MultiClipboardHolder multi = new MultiClipboardHolder(wd, all);
+                session.setClipboard(multi);
+                BBC.SCHEMATIC_LOADED.send(player, filename);
+            }
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
     @Command(aliases = { "load" }, usage = "[<format>] <filename>", desc = "Load a schematic into your clipboard")
     @Deprecated
     @CommandPermissions({ "worldedit.clipboard.load", "worldedit.schematic.load", "worldedit.schematic.upload" })
@@ -96,7 +119,7 @@ public class SchematicCommands {
         final LocalConfiguration config = this.worldEdit.getConfiguration();
         final ClipboardFormat format = ClipboardFormat.findByAlias(formatName);
         if (format == null) {
-            player.printError("Unknown schematic format: " + formatName);
+            BBC.CLIPBOARD_INVALID_FORMAT.send(player, formatName);
             return;
         }
         InputStream in = null;
