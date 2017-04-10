@@ -5,6 +5,7 @@ import com.boydti.fawe.FaweCache;
 import com.boydti.fawe.config.BBC;
 import com.boydti.fawe.jnbt.anvil.MCAChunk;
 import com.boydti.fawe.jnbt.anvil.MCAClipboard;
+import com.boydti.fawe.jnbt.anvil.MCAFile;
 import com.boydti.fawe.jnbt.anvil.MCAFilter;
 import com.boydti.fawe.jnbt.anvil.MCAFilterCounter;
 import com.boydti.fawe.jnbt.anvil.MCAQueue;
@@ -35,6 +36,9 @@ import com.sk89q.worldedit.regions.Region;
 import com.sk89q.worldedit.util.command.binding.Switch;
 import com.sk89q.worldedit.util.command.parametric.Optional;
 import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.attribute.BasicFileAttributes;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -87,6 +91,45 @@ public class AnvilCommands {
             }
         });
         player.print(BBC.getPrefix() + BBC.VISITOR_BLOCK.format(counter.getTotal()));
+    }
+
+    @Command(
+            aliases = {"deleteallold"},
+            usage = "<folder> <age-ticks> [file-age=60000]",
+            desc = "Delete all chunks which haven't been occupied for `age-ticks` and have been accessed since `file-age` (ms) after creation",
+            min = 2,
+            max = 3
+    )
+    @CommandPermissions("worldedit.anvil.deleteallold")
+    public void deleteAllOld(Player player, EditSession editSession, String folder, int inhabitedTicks, @Optional("60000") int fileAgeMillis) throws WorldEditException {
+        FaweQueue defaultQueue = SetQueue.IMP.getNewQueue(folder, true, false);
+        MCAQueue queue = new MCAQueue(folder, defaultQueue.getSaveFolder(), defaultQueue.hasSky());
+        MCAFilterCounter result = queue.filterWorld(new MCAFilterCounter() {
+            @Override
+            public MCAFile applyFile(MCAFile mca) {
+                File file = mca.getFile();
+                try {
+                    BasicFileAttributes attr = Files.readAttributes(file.toPath(), BasicFileAttributes.class);
+                    long creation = attr.creationTime().toMillis();
+                    long modified = attr.lastModifiedTime().toMillis();
+                    if (modified - creation < fileAgeMillis) {
+                        mca.setDeleted(true);
+                        get().add(512 * 512 * 256);
+                    }
+                } catch (IOException | UnsupportedOperationException ignore) {}
+                return mca;
+            }
+
+            @Override
+            public MCAChunk applyChunk(MCAChunk chunk, MutableLong count) {
+                if (chunk.getInhabitedTime() <= inhabitedTicks) {
+                    count.add(16 * 16 * 256);
+                    chunk.setDeleted(true);
+                }
+                return null;
+            }
+        });
+        player.print(BBC.getPrefix() + BBC.VISITOR_BLOCK.format(result.getTotal()));
     }
 
     @Command(

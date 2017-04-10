@@ -384,6 +384,7 @@ public class MCAFile {
     }
 
     public void close(ForkJoinPool pool) {
+        if (raf == null) return;
         synchronized (raf) {
             if (raf != null) {
                 flush(pool);
@@ -411,7 +412,7 @@ public class MCAFile {
             final Int2ObjectOpenHashMap<byte[]> append = new Int2ObjectOpenHashMap<>();
             boolean modified = false;
             for (MCAChunk chunk : getCachedChunks()) {
-                if (chunk.isModified()) {
+                if (chunk.isModified() || chunk.isDeleted()) {
                     modified = true;
                     if (!chunk.isDeleted()) {
                         pool.submit(new Runnable() {
@@ -468,8 +469,8 @@ public class MCAFile {
                         int pair = MathMan.pair((short) (cx & 31), (short) (cz & 31));
                         byte[] newBytes = relocate.get(pair);
                         if (newBytes == null) {
+                            MCAChunk cached = getCachedChunk(cx, cz);
                             if (offset == start) {
-                                MCAChunk cached = getCachedChunk(cx, cz);
                                 if (cached == null || !cached.isModified()) {
                                     writeHeader(raf, cx, cz, start >> 12, size >> 12, true);
                                     start += size;
@@ -481,7 +482,9 @@ public class MCAFile {
                             } else {
                                 newBytes = compressedMap.get(pair);
                                 if (newBytes == null) {
-                                    newBytes = getChunkCompressedBytes(getOffset(cx, cz));
+                                    if (cached == null || !cached.isDeleted()) {
+                                        newBytes = getChunkCompressedBytes(getOffset(cx, cz));
+                                    }
                                 }
                             }
                         }
