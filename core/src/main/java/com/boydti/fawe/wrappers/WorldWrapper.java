@@ -37,7 +37,7 @@ public class WorldWrapper extends LocalWorld {
         if (world == null) {
             return null;
         }
-        if (world instanceof  WorldWrapper) {
+        if (world instanceof WorldWrapper) {
             return (WorldWrapper) world;
         }
         return new WorldWrapper(world);

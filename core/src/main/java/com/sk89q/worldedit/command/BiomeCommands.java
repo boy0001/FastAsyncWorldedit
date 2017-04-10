@@ -20,6 +20,7 @@
 package com.sk89q.worldedit.command;
 
 import com.boydti.fawe.config.BBC;
+import com.boydti.fawe.object.FawePlayer;
 import com.boydti.fawe.object.visitor.Fast2DIterator;
 import com.sk89q.minecraft.util.commands.Command;
 import com.sk89q.minecraft.util.commands.CommandContext;
@@ -223,6 +224,7 @@ public class BiomeCommands {
         Operations.completeLegacy(visitor);
 
         BBC.BIOME_CHANGED.send(player, visitor.getAffected());
+        if (!FawePlayer.wrap(player).hasPermission("fawe.tips")) BBC.TIP_BIOME_PATTERN.or(BBC.TIP_BIOME_MASK).send(player);
     }
 
     public static Class<BiomeCommands> inject() {

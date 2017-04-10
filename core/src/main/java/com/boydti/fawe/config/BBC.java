@@ -214,6 +214,10 @@ public enum BBC {
 
     COMMAND_INVALID_SYNTAX("The command was not used properly (no more help available).", "WorldEdit.Command"),
 
+    HELP_HEADER_CATEGORIES("Command Types", "WorldEdit.Help"),
+    HELP_HEADER("Help: page %s0/%s1", "WorldEdit.Help"),
+    HELP_HEADER_FOOTER("&7Use: &8//help [type|command] [#]&7\n&7Wiki: https://git.io/vSKE5", "WorldEdit.Help"),
+
     PROGRESS_MESSAGE("%s1/%s0 (%s2%) @%s3cps %s4s left", "Progress"),
     PROGRESS_FINISHED("[ Done! ]", "Progress"),
 
@@ -317,6 +321,9 @@ public enum BBC {
     // regen
     TIP_REGEN_0("Tip: Use a biome with /regen [biome]", "Tips"),
     TIP_REGEN_1("Tip: Use a seed with /regen [biome] [seed]", "Tips"),
+
+    TIP_BIOME_PATTERN("Tip: The &c#biome:forest&7 pattern can be used in any command", "Tips"),
+    TIP_BIOME_MASK("Tip: Restrict to a biome with the `$jungle` mask", "Tips"),
 
 
 

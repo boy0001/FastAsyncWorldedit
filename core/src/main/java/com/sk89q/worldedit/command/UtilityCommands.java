@@ -27,6 +27,7 @@ import com.google.common.util.concurrent.AtomicDouble;
 import com.sk89q.minecraft.util.commands.Command;
 import com.sk89q.minecraft.util.commands.CommandContext;
 import com.sk89q.minecraft.util.commands.CommandException;
+import com.sk89q.minecraft.util.commands.CommandLocals;
 import com.sk89q.minecraft.util.commands.CommandPermissions;
 import com.sk89q.minecraft.util.commands.Logging;
 import com.sk89q.worldedit.EditSession;
@@ -62,17 +63,16 @@ import com.sk89q.worldedit.util.command.Dispatcher;
 import com.sk89q.worldedit.util.command.PrimaryAliasComparator;
 import com.sk89q.worldedit.util.command.binding.Text;
 import com.sk89q.worldedit.util.command.parametric.Optional;
+import com.sk89q.worldedit.util.command.parametric.ParametricCallable;
 import com.sk89q.worldedit.util.formatting.ColorCodeBuilder;
-import com.sk89q.worldedit.util.formatting.Style;
-import com.sk89q.worldedit.util.formatting.StyledFragment;
-import com.sk89q.worldedit.util.formatting.component.Code;
-import com.sk89q.worldedit.util.formatting.component.CommandListBox;
 import com.sk89q.worldedit.util.formatting.component.CommandUsageBox;
 import com.sk89q.worldedit.world.World;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
+import java.util.TreeMap;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -548,24 +548,25 @@ public class UtilityCommands {
     public static void help(CommandContext args, WorldEdit we, Actor actor) {
         CommandCallable callable = we.getPlatformManager().getCommandManager().getDispatcher();
 
-        int page = 0;
+        CommandLocals locals = args.getLocals();
+
+        int page = -1;
+        String category = null;
         final int perPage = actor instanceof Player ? 8 : 20; // More pages for console
         int effectiveLength = args.argsLength();
 
         // Detect page from args
         try {
-            if (args.argsLength() > 0) {
+            if (effectiveLength > 0) {
                 page = args.getInteger(args.argsLength() - 1);
                 if (page <= 0) {
                     page = 1;
                 } else {
                     page--;
                 }
-
                 effectiveLength--;
             }
-        } catch (NumberFormatException ignored) {
-        }
+        } catch (NumberFormatException ignored) {}
 
         boolean isRootLevel = true;
         List<String> visited = new ArrayList<String>();
@@ -585,14 +586,18 @@ public class UtilityCommands {
                     callable = mapping.getCallable();
                 } else {
                     if (isRootLevel) {
-                        actor.printError(String.format("The command '%s' could not be found.", args.getString(i)));
-                        return;
+                        if (effectiveLength != 1) {
+                            actor.printError(String.format("The command '%s' could not be found.", args.getString(i)));
+                            return;
+                        }
+                        break;
                     } else {
                         actor.printError(String.format("The sub-command '%s' under '%s' could not be found.",
                                 command, Joiner.on(" ").join(visited)));
                         return;
                     }
                 }
+                effectiveLength--;
 
                 visited.add(args.getString(i));
                 isRootLevel = false;
@@ -609,42 +614,89 @@ public class UtilityCommands {
 
             // Get a list of aliases
             List<CommandMapping> aliases = new ArrayList<CommandMapping>(dispatcher.getCommands());
-            Collections.sort(aliases, new PrimaryAliasComparator(CommandManager.COMMAND_CLEAN_PATTERN));
+            List<String> cmdStrings = new ArrayList<>();
+            // Group by callable
 
-            // Calculate pagination
-            int offset = perPage * page;
-            int pageTotal = (int) Math.ceil(aliases.size() / (double) perPage);
-
-            // Box
-            CommandListBox box = new CommandListBox(String.format("Help: page %d/%d ", page + 1, pageTotal));
-            StyledFragment contents = box.getContents();
-            StyledFragment tip = contents.createFragment(Style.GRAY);
-
-            if (offset >= aliases.size()) {
-                tip.createFragment(Style.RED).append(String.format("There is no page %d (total number of pages is %d).", page + 1, pageTotal)).newLine();
-            } else {
-                List<CommandMapping> list = aliases.subList(offset, Math.min(offset + perPage, aliases.size()));
-
-                tip.append("Type ");
-                tip.append(new Code().append("//help ").append("<command> [<page>]"));
-                tip.append(" for more information.").newLine();
-
-                // Add each command
-                for (CommandMapping mapping : list) {
+            if (page == -1 || effectiveLength > 0) {
+                Map<String, ArrayList<CommandMapping>> grouped = new TreeMap<>(String.CASE_INSENSITIVE_ORDER);
+                for (CommandMapping mapping : aliases) {
+                    CommandCallable c = mapping.getCallable();
+                    String group;
+                    if (c instanceof ParametricCallable) {
+                        group = ((ParametricCallable) c).getObject().getClass().getSimpleName().replaceAll("Commands", "");
+                    } else {
+                        group = "Miscellaneous";
+                    }
+                    ArrayList<CommandMapping> queue = grouped.get(group);
+                    if (queue == null) {
+                        queue = new ArrayList<>();
+                        grouped.put(group, queue);
+                    }
+                    queue.add(mapping);
+                }
+                if (effectiveLength > 0) {
+                    String cat = args.getString(0);
+                    aliases = grouped.get(cat);
+                    if (aliases == null) {
+                        actor.printError(String.format("The command or group '%s' could not be found.", cat));
+                        return;
+                    }
+                    page = Math.max(0, page);
+                } else {
+                    StringBuilder message = new StringBuilder();
+                    String cmd = args.getCommand();
+                    message.append(BBC.getPrefix() + BBC.HELP_HEADER_CATEGORIES.s() + "\n");
                     StringBuilder builder = new StringBuilder();
-                    if (isRootLevel) {
-                        builder.append("/");
+                    boolean first = true;
+                    for (Map.Entry<String, ArrayList<CommandMapping>> entry : grouped.entrySet()) {
+                        message.append("&a/" + cmd + " " + entry.getKey() + "&8 - &7" + entry.getValue().size() + "\n");
                     }
-                    if (!visited.isEmpty()) {
-                        builder.append(Joiner.on(" ").join(visited));
-                        builder.append(" ");
-                    }
-                    builder.append(mapping.getPrimaryAlias());
-                    box.appendCommand(builder.toString(), mapping.getDescription().getDescription());
+                    message.append(BBC.HELP_HEADER_FOOTER.s());
+                    actor.print(BBC.color(message.toString()));
+                    return;
                 }
             }
+//            else
+            {
+                Collections.sort(aliases, new PrimaryAliasComparator(CommandManager.COMMAND_CLEAN_PATTERN));
 
-            actor.printRaw(ColorCodeBuilder.asColorCodes(box));
+                // Calculate pagination
+                int offset = perPage * page;
+                int pageTotal = (int) Math.ceil(aliases.size() / (double) perPage);
+
+                // Box
+                StringBuilder message = new StringBuilder();
+
+                if (offset >= aliases.size()) {
+                    message.append("&c").append(String.format("There is no page %d (total number of pages is %d).", page + 1, pageTotal));
+                } else {
+                    message.append(BBC.getPrefix() + BBC.HELP_HEADER.format(page + 1, pageTotal) + "\n");
+                    List<CommandMapping> list = aliases.subList(offset, Math.min(offset + perPage, aliases.size()));
+
+                    boolean first = true;
+                    // Add each command
+                    for (CommandMapping mapping : list) {
+                        CommandCallable c = mapping.getCallable();
+                        boolean perm = c.testPermission(locals);
+//                        String primary = BBC.color(perm ? "&2" : "&4");
+                        String color = BBC.color(perm ? "&a" : "&c");
+                        message.append(color);
+                        if (isRootLevel) {
+                            message.append("/");
+                        }
+                        if (!visited.isEmpty()) {
+                            message.append(Joiner.on(" ").join(visited));
+                            message.append(" ");
+                        }
+                        message.append(mapping.getPrimaryAlias());
+                        message.append("&8 - &7");
+                        message.append(mapping.getDescription().getDescription());
+                        message.append('\n');
+                    }
+                    message.append(BBC.HELP_HEADER_FOOTER.f());
+                }
+                actor.print(BBC.color(message.toString()));
+            }
         } else {
             CommandUsageBox box = new CommandUsageBox(callable, Joiner.on(" ").join(visited));
             actor.printRaw(ColorCodeBuilder.asColorCodes(box));

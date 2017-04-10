@@ -118,7 +118,6 @@ public abstract class AbstractPlayerActor implements Actor, Player, Cloneable {
 
             ++y;
         }
-        System.out.println("Not found");
     }
 
     @Override

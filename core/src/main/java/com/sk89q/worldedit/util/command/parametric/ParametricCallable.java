@@ -268,6 +268,14 @@ public class ParametricCallable implements CommandCallable {
         return true;
     }
 
+    public Object getObject() {
+        return object;
+    }
+
+    public Method getMethod() {
+        return method;
+    }
+
     @Override
     public List<String> getSuggestions(String arguments, CommandLocals locals) throws CommandException {
         String[] split = CommandContext.split("ignored" + " " + arguments);
