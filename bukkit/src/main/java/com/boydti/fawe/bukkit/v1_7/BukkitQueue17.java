@@ -234,7 +234,7 @@ public class BukkitQueue17 extends BukkitQueue_0<net.minecraft.server.v1_7_R4.Ch
         byte[] ids = ls.getIdArray();
         NibbleArray datasNibble = ls.getDataArray();
         int i = FaweCache.CACHE_J[y & 15][z & 15][x & 15];
-        int combined = (ids[i] << 4) + (datasNibble == null ? 0 : datasNibble.a(x & 15, y & 15, z & 15));
+        int combined = ((ids[i] & 0xFF)  << 4) + (datasNibble == null ? 0 : datasNibble.a(x & 15, y & 15, z & 15));
         return combined;
     }
 

@@ -163,7 +163,7 @@ public class ForgeQueue_All extends NMSMappedFaweQueue<World, Chunk, ExtendedBlo
         byte[] ids = ls.getBlockLSBArray();
         NibbleArray datasNibble = ls.getBlockMSBArray();
         int i = FaweCache.CACHE_J[y & 15][z & 15][x & 15];
-        int combined = (ids[i] << 4) + (datasNibble == null ? 0 : datasNibble.get(x & 15, y & 15, z & 15));
+        int combined = ((ids[i] & 0xFF) << 4) + (datasNibble == null ? 0 : datasNibble.get(x & 15, y & 15, z & 15));
         return combined;
     }
 
