@@ -3,6 +3,7 @@ package com.boydti.fawe.command;
 import com.boydti.fawe.Fawe;
 import com.boydti.fawe.FaweCache;
 import com.boydti.fawe.config.BBC;
+import com.boydti.fawe.jnbt.NBTStreamer;
 import com.boydti.fawe.jnbt.anvil.MCAChunk;
 import com.boydti.fawe.jnbt.anvil.MCAClipboard;
 import com.boydti.fawe.jnbt.anvil.MCAFile;
@@ -12,6 +13,9 @@ import com.boydti.fawe.jnbt.anvil.MCAQueue;
 import com.boydti.fawe.object.FawePlayer;
 import com.boydti.fawe.object.FaweQueue;
 import com.boydti.fawe.object.RegionWrapper;
+import com.boydti.fawe.object.RunnableVal;
+import com.boydti.fawe.object.RunnableVal2;
+import com.boydti.fawe.object.RunnableVal4;
 import com.boydti.fawe.object.mask.FaweBlockMatcher;
 import com.boydti.fawe.object.number.MutableLong;
 import com.boydti.fawe.util.ArrayUtil;
@@ -44,6 +48,8 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.ForkJoinPool;
+import java.util.concurrent.TimeUnit;
 
 
 import static com.google.common.base.Preconditions.checkNotNull;
@@ -101,7 +107,7 @@ public class AnvilCommands {
             max = 3
     )
     @CommandPermissions("worldedit.anvil.deleteallold")
-    public void deleteAllOld(Player player, EditSession editSession, String folder, int inhabitedTicks, @Optional("60000") int fileAgeMillis) throws WorldEditException {
+    public void deleteAllOld(Player player, String folder, int inhabitedTicks, @Optional("60000") int fileAgeMillis) throws WorldEditException {
         FaweQueue defaultQueue = SetQueue.IMP.getNewQueue(folder, true, false);
         MCAQueue queue = new MCAQueue(folder, defaultQueue.getSaveFolder(), defaultQueue.hasSky());
         MCAFilterCounter result = queue.filterWorld(new MCAFilterCounter() {
@@ -115,16 +121,56 @@ public class AnvilCommands {
                     if (modified - creation < fileAgeMillis) {
                         mca.setDeleted(true);
                         get().add(512 * 512 * 256);
+                        return null;
                     }
                 } catch (IOException | UnsupportedOperationException ignore) {}
-                return mca;
-            }
-
-            @Override
-            public MCAChunk applyChunk(MCAChunk chunk, MutableLong count) {
-                if (chunk.getInhabitedTime() <= inhabitedTicks) {
-                    count.add(16 * 16 * 256);
-                    chunk.setDeleted(true);
+                try {
+                    ForkJoinPool pool = new ForkJoinPool();
+                    mca.init();
+                    mca.forEachSortedChunk(new RunnableVal4<Integer, Integer, Integer, Integer>() {
+                        @Override
+                        public void run(Integer x, Integer z, Integer offset, Integer size) {
+                            try {
+                                byte[] bytes = mca.getChunkCompressedBytes(offset);
+                                if (bytes == null) return;
+                                Runnable task = new Runnable() {
+                                    @Override
+                                    public void run() {
+                                        try {
+                                            mca.streamChunk(offset, new RunnableVal<NBTStreamer>() {
+                                                @Override
+                                                public void run(NBTStreamer value) {
+                                                    value.addReader(".Level.InhabitedTime", new RunnableVal2<Integer, Long>() {
+                                                        @Override
+                                                        public void run(Integer index, Long value) {
+                                                            if (value <= inhabitedTicks) {
+                                                                MCAChunk chunk = new MCAChunk(queue, x, z);
+                                                                chunk.setDeleted(true);
+                                                                synchronized (mca) {
+                                                                    mca.setChunk(chunk);
+                                                                }
+                                                                get().add(16 * 16 * 256);
+                                                            }
+                                                        }
+                                                    });
+                                                }
+                                            });
+                                        } catch (IOException e) {
+                                            e.printStackTrace();
+                                        }
+                                    }
+                                };
+                                pool.submit(task);
+                            } catch (IOException e) {
+                                e.printStackTrace();
+                            }
+                        }
+                    });
+                    pool.awaitQuiescence(Long.MAX_VALUE, TimeUnit.MILLISECONDS);
+                    mca.close(pool);
+                    pool.shutdown();
+                } catch (IOException e) {
+                    e.printStackTrace();
                 }
                 return null;
             }

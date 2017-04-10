@@ -52,6 +52,51 @@ public class MCAChunk extends FaweChunk<Void> {
     private int modified;
     private boolean deleted;
 
+    public MCAChunk(FaweQueue queue, int x, int z) {
+        super(queue, x, z);
+        this.ids = new byte[16][];
+        this.data = new byte[16][];
+        this.skyLight = new byte[16][];
+        this.blockLight = new byte[16][];
+        this.biomes = new byte[256];
+        this.tiles = new HashMap<>();
+        this.entities = new HashMap<>();
+        this.lastUpdate = System.currentTimeMillis();
+        this.heightMap = new int[256];
+        this.setModified();
+    }
+
+    public MCAChunk(MCAChunk parent, boolean shallow) {
+        super(parent.getParent(), parent.getX(), parent.getZ());
+        if (shallow) {
+            this.ids = parent.ids;
+            this.data = parent.data;
+            this.skyLight = parent.skyLight;
+            this.blockLight = parent.blockLight;
+            this.biomes = parent.biomes;
+            this.tiles = parent.tiles;
+            this.entities = parent.entities;
+            this.inhabitedTime = parent.inhabitedTime;
+            this.lastUpdate = parent.lastUpdate;
+            this.heightMap = parent.heightMap;
+            this.modified = parent.modified;
+            this.deleted = parent.deleted;
+        } else {
+            this.ids = (byte[][]) MainUtil.copyNd(parent.ids);
+            this.data = (byte[][]) MainUtil.copyNd(parent.data);
+            this.skyLight = (byte[][]) MainUtil.copyNd(parent.skyLight);
+            this.blockLight = (byte[][]) MainUtil.copyNd(parent.blockLight);
+            this.biomes = parent.biomes.clone();
+            this.tiles = new HashMap<>(parent.tiles);
+            this.entities = new HashMap<>(parent.entities);
+            this.inhabitedTime = parent.inhabitedTime;
+            this.lastUpdate = parent.lastUpdate;
+            this.heightMap = parent.heightMap.clone();
+            this.modified = parent.modified;
+            this.deleted = parent.deleted;
+        }
+    }
+
     public byte[] toBytes(byte[] buffer) throws IOException {
         if (buffer == null) {
             buffer = new byte[8192];
@@ -391,51 +436,6 @@ public class MCAChunk extends FaweChunk<Void> {
         HashMap<String, Object> root = new HashMap<>();
         root.put("Level", level);
         return FaweCache.asTag(root);
-    }
-
-    public MCAChunk(FaweQueue queue, int x, int z) {
-        super(queue, x, z);
-        this.ids = new byte[16][];
-        this.data = new byte[16][];
-        this.skyLight = new byte[16][];
-        this.blockLight = new byte[16][];
-        this.biomes = new byte[256];
-        this.tiles = new HashMap<>();
-        this.entities = new HashMap<>();
-        this.lastUpdate = System.currentTimeMillis();
-        this.heightMap = new int[256];
-        this.setModified();
-    }
-
-    public MCAChunk(MCAChunk parent, boolean shallow) {
-        super(parent.getParent(), parent.getX(), parent.getZ());
-        if (shallow) {
-            this.ids = parent.ids;
-            this.data = parent.data;
-            this.skyLight = parent.skyLight;
-            this.blockLight = parent.blockLight;
-            this.biomes = parent.biomes;
-            this.tiles = parent.tiles;
-            this.entities = parent.entities;
-            this.inhabitedTime = parent.inhabitedTime;
-            this.lastUpdate = parent.lastUpdate;
-            this.heightMap = parent.heightMap;
-            this.modified = parent.modified;
-            this.deleted = parent.deleted;
-        } else {
-            this.ids = (byte[][]) MainUtil.copyNd(parent.ids);
-            this.data = (byte[][]) MainUtil.copyNd(parent.data);
-            this.skyLight = (byte[][]) MainUtil.copyNd(parent.skyLight);
-            this.blockLight = (byte[][]) MainUtil.copyNd(parent.blockLight);
-            this.biomes = parent.biomes.clone();
-            this.tiles = new HashMap<>(parent.tiles);
-            this.entities = new HashMap<>(parent.entities);
-            this.inhabitedTime = parent.inhabitedTime;
-            this.lastUpdate = parent.lastUpdate;
-            this.heightMap = parent.heightMap.clone();
-            this.modified = parent.modified;
-            this.deleted = parent.deleted;
-        }
     }
 
     public MCAChunk(NBTInputStream nis, FaweQueue parent, int x, int z, int compressedSize) throws IOException {

@@ -262,7 +262,7 @@ public class MCAFile {
         return values;
     }
 
-    private byte[] getChunkCompressedBytes(int offset) throws IOException{
+    public byte[] getChunkCompressedBytes(int offset) throws IOException{
         if (offset == 0) {
             return null;
         }
@@ -296,15 +296,28 @@ public class MCAFile {
         streamChunk(getOffset(cx, cz), addReaders);
     }
 
-    public void streamChunk(int offset, RunnableVal<NBTStreamer> addReaders) throws IOException {
-        if (offset == 0) {
-            return;
+    public void streamChunk(int offset, RunnableVal<NBTStreamer> withStream) throws IOException {
+        byte[] data = getChunkCompressedBytes(offset);
+        streamChunk(data, withStream);
+    }
+
+    public void streamChunk(byte[] data, RunnableVal<NBTStreamer> withStream) throws IOException {
+        if (data != null) {
+            try {
+                FastByteArrayInputStream nbtIn = new FastByteArrayInputStream(data);
+                FastByteArrayInputStream bais = new FastByteArrayInputStream(data);
+                InflaterInputStream iis = new InflaterInputStream(bais, new Inflater(), 1);
+                fieldBuf2.set(iis, byteStore2.get());
+                BufferedInputStream bis = new BufferedInputStream(iis);
+                NBTInputStream nis = new NBTInputStream(bis);
+                fieldBuf3.set(nis, byteStore3.get());
+                NBTStreamer streamer = new NBTStreamer(nis);
+                withStream.run(streamer);
+                streamer.readQuick();
+            } catch (IllegalAccessException unlikely) {
+                unlikely.printStackTrace();
+            }
         }
-        NBTInputStream is = getChunkIS(offset);
-        NBTStreamer ns = new NBTStreamer(is);
-        addReaders.run(ns);
-        ns.readFully();
-        is.close();
     }
 
     /**

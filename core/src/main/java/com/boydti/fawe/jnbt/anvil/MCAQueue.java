@@ -340,7 +340,6 @@ public class MCAQueue extends NMSMappedFaweQueue<FaweQueue, FaweChunk, FaweChunk
                                                     }
                                                 }
                                             } catch (Throwable e) {
-                                                System.out.println("Failed to load: r." + mcaX + "." + mcaZ + ".mca -> (local) " + rcx + "," + rcz);
                                                 e.printStackTrace();
                                             }
                                         }

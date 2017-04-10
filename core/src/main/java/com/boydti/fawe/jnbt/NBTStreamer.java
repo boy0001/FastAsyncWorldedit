@@ -1,9 +1,9 @@
 package com.boydti.fawe.jnbt;
 
+import com.boydti.fawe.config.BBC;
 import com.boydti.fawe.object.RunnableVal2;
+import com.boydti.fawe.object.exception.FaweException;
 import com.sk89q.jnbt.NBTInputStream;
-import com.sk89q.worldedit.Vector;
-import com.sk89q.worldedit.blocks.BaseBlock;
 import java.io.IOException;
 import java.util.HashMap;
 
@@ -23,6 +23,21 @@ public class NBTStreamer {
                 this.value2 = readers.get(node);
             }
         });
+        is.close();
+    }
+
+    public void readQuick() throws IOException {
+        try {
+            is.readNamedTagLazy(new RunnableVal2<String, RunnableVal2>() {
+                @Override
+                public void run(String node, RunnableVal2 result) {
+                    if (readers.isEmpty()) {
+                        throw new FaweException(BBC.WORLDEDIT_CANCEL_REASON_MANUAL);
+                    }
+                    this.value2 = readers.remove(node);
+                }
+            });
+        } catch (FaweException ignore) {}
         is.close();
     }
 
