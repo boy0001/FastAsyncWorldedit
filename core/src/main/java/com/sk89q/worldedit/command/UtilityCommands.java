@@ -649,7 +649,9 @@ public class UtilityCommands {
                     StringBuilder builder = new StringBuilder();
                     boolean first = true;
                     for (Map.Entry<String, ArrayList<CommandMapping>> entry : grouped.entrySet()) {
-                        message.append("&a/" + cmd + " " + entry.getKey() + "&8 - &7" + entry.getValue().size() + "\n");
+                        String s1 = "&a/" + cmd + " " + entry.getKey();
+                        String s2 = entry.getValue().size() + "";
+                        message.append(BBC.HELP_ITEM_ALLOWED.format(s1, s2) + "\n");
                     }
                     message.append(BBC.HELP_HEADER_FOOTER.s());
                     actor.print(BBC.color(message.toString()));
@@ -677,21 +679,21 @@ public class UtilityCommands {
                     // Add each command
                     for (CommandMapping mapping : list) {
                         CommandCallable c = mapping.getCallable();
-                        boolean perm = c.testPermission(locals);
-//                        String primary = BBC.color(perm ? "&2" : "&4");
-                        String color = BBC.color(perm ? "&a" : "&c");
-                        message.append(color);
+                        StringBuilder s1 = new StringBuilder();
                         if (isRootLevel) {
-                            message.append("/");
+                            s1.append("/");
                         }
                         if (!visited.isEmpty()) {
-                            message.append(Joiner.on(" ").join(visited));
-                            message.append(" ");
+                            s1.append(Joiner.on(" ").join(visited));
+                            s1.append(" ");
                         }
-                        message.append(mapping.getPrimaryAlias());
-                        message.append("&8 - &7");
-                        message.append(mapping.getDescription().getDescription());
-                        message.append('\n');
+                        s1.append(mapping.getPrimaryAlias());
+                        String s2 = mapping.getDescription().getDescription();
+                        if (c.testPermission(locals)) {
+                            message.append(BBC.HELP_ITEM_ALLOWED.format(s1, s2) + "\n");
+                        } else {
+                            message.append(BBC.HELP_ITEM_DENIED.format(s1, s2) + "\n");
+                        }
                     }
                     message.append(BBC.HELP_HEADER_FOOTER.f());
                 }

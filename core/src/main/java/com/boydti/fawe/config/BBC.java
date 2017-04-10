@@ -215,6 +215,8 @@ public enum BBC {
     COMMAND_INVALID_SYNTAX("The command was not used properly (no more help available).", "WorldEdit.Command"),
 
     HELP_HEADER_CATEGORIES("Command Types", "WorldEdit.Help"),
+    HELP_ITEM_ALLOWED("&a%s0&8 - &7%s1", "WorldEdit.Help"),
+    HELP_ITEM_DENIED("&c%s0&8 - &7%s1", "WorldEdit.Help"),
     HELP_HEADER("Help: page %s0/%s1", "WorldEdit.Help"),
     HELP_HEADER_FOOTER("&7Use: &8//help [type|command] [#]&7\n&7Wiki: https://git.io/vSKE5", "WorldEdit.Help"),
 
