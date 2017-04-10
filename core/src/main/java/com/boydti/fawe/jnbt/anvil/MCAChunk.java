@@ -25,9 +25,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 
-
-import static com.google.common.base.Preconditions.checkNotNull;
-
 public class MCAChunk extends FaweChunk<Void> {
 
 //    ids: byte[16][4096]
@@ -111,6 +108,22 @@ public class MCAChunk extends FaweChunk<Void> {
         nbtOut.writeEndTag();
         nbtOut.close();
         return buffered.toByteArray();
+    }
+
+    public long getInhabitedTime() {
+        return inhabitedTime;
+    }
+
+    public long getLastUpdate() {
+        return lastUpdate;
+    }
+
+    public void setInhabitedTime(long inhabitedTime) {
+        this.inhabitedTime = inhabitedTime;
+    }
+
+    public void setLastUpdate(long lastUpdate) {
+        this.lastUpdate = lastUpdate;
     }
 
     public void copyFrom(MCAChunk other, int minX, int maxX, int minY, int maxY, int minZ, int maxZ, int offsetX, int offsetY, int offsetZ) {
