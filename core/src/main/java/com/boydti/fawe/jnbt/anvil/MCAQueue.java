@@ -348,6 +348,7 @@ public class MCAQueue extends NMSMappedFaweQueue<FaweQueue, FaweChunk, FaweChunk
                             });
                             pool.awaitQuiescence(Long.MAX_VALUE, TimeUnit.MILLISECONDS);
                             original.close(pool);
+                            pool.shutdown();
                             if (original != finalFile) finalFile.close(pool);
                         } else if (mcaFile.isDeleted()) {
                             try {
