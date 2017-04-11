@@ -1,5 +1,6 @@
 package com.boydti.fawe.jnbt.anvil;
 
+import com.boydti.fawe.Fawe;
 import com.boydti.fawe.example.CharFaweChunk;
 import com.boydti.fawe.example.NMSMappedFaweQueue;
 import com.boydti.fawe.example.NullFaweChunk;
@@ -287,6 +288,7 @@ public class MCAQueue extends NMSMappedFaweQueue<FaweQueue, FaweChunk, FaweChunk
                     final int mcaZ = Integer.parseInt(split[2]);
                     if (filter.appliesFile(mcaX, mcaZ)) {
                         File file = path.toFile();
+                        Fawe.debug("Apply file " + file);
                         MCAFile mcaFile = new MCAFile(MCAQueue.this, file);
                         final MCAFile original = mcaFile;
                         final MCAFile finalFile = filter.applyFile(mcaFile);
