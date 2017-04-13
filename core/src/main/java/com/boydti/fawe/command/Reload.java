@@ -35,7 +35,7 @@ public class Reload extends FaweCommand {
                     MainUtil.sendMessage(player, "No version information available.");
                     return false;
                 }
-                Date date = new GregorianCalendar(2000 + version.year - 1, version.month - 1, version.day).getTime();
+                Date date = new GregorianCalendar(2000 + version.year, version.month - 1, version.day).getTime();
                 MainUtil.sendMessage(player, "Version Date: " + date.toLocaleString());
                 MainUtil.sendMessage(player, "Version Commit: " + Integer.toHexString(version.hash));
                 MainUtil.sendMessage(player, "Version Build: #" + version.build);
