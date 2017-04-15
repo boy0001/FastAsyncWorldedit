@@ -118,7 +118,7 @@ public class AnvilCommands {
                     BasicFileAttributes attr = Files.readAttributes(file.toPath(), BasicFileAttributes.class);
                     long creation = attr.creationTime().toMillis();
                     long modified = attr.lastModifiedTime().toMillis();
-                    if (modified - creation < fileAgeMillis) {
+                    if (modified - creation < fileAgeMillis && modified > creation) {
                         mca.setDeleted(true);
                         get().add(512 * 512 * 256);
                         return null;
