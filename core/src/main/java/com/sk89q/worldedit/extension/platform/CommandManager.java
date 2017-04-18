@@ -235,7 +235,7 @@ public final class CommandManager {
                 .registerMethods(new ToolUtilCommands(worldEdit))
                 .registerMethods(new ToolCommands(worldEdit))
                 .registerMethods(new UtilityCommands(worldEdit))
-                .group("worldedit", "we")
+                .group("worldedit", "we", "fawe")
                 .describeAs("WorldEdit commands")
                 .registerMethods(new WorldEditCommands(worldEdit)).parent().group("schematic", "schem", "/schematic", "/schem")
                 .describeAs("Schematic commands for saving/loading areas")
@@ -391,14 +391,14 @@ public final class CommandManager {
             BBC.NO_PERM.send(finalActor, StringMan.join(failedPermissions, " "));
         } catch (InvalidUsageException e) {
             if (e.isFullHelpSuggested()) {
-                finalActor.printRaw(ColorCodeBuilder.asColorCodes(new CommandUsageBox(e.getCommand(), e.getCommandUsed("/", ""), locals)));
+                finalActor.print(BBC.getPrefix() + ColorCodeBuilder.asColorCodes(new CommandUsageBox(e.getCommand(), e.getCommandUsed("/", ""), locals)));
                 String message = e.getMessage();
                 if (message != null) {
                     finalActor.printError(message);
                 }
             } else {
                 String message = e.getMessage();
-                finalActor.print(BBC.getPrefix() + (message != null ? message : "The command was not used properly (no more help available)."));
+                finalActor.printRaw(BBC.getPrefix() + (message != null ? message : "The command was not used properly (no more help available)."));
                 BBC.COMMAND_SYNTAX.send(finalActor, e.getSimpleUsageString("/"));
             }
         } catch (WrappedCommandException e) {

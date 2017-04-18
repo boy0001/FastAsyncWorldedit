@@ -216,6 +216,8 @@ public enum BBC {
     COMMAND_INVALID_SYNTAX("The command was not used properly (no more help available).", "WorldEdit.Command"),
 
     HELP_HEADER_CATEGORIES("Command Types", "WorldEdit.Help"),
+    HELP_HEADER_SUBCOMMANDS("Subcommands", "WorldEdit.Help"),
+    HELP_HEADER_COMMAND("&cHelp for: &7%s0", "WorldEdit.Help"),
     HELP_ITEM_ALLOWED("&a%s0&8 - &7%s1", "WorldEdit.Help"),
     HELP_ITEM_DENIED("&c%s0&8 - &7%s1", "WorldEdit.Help"),
     HELP_HEADER("Help: page %s0/%s1", "WorldEdit.Help"),
@@ -272,7 +274,7 @@ public enum BBC {
     SEL_SPHERE("Sphere selector: left click=center, right click to set radius", "Selection"),
     SEL_CYLINDRICAL("Cylindrical selector: Left click=center, right click to extend.", "Selection"),
     SEL_MAX("%s0 points maximum.", "Selection"),
-    SEL_FUZZY("Fuzzy selector: Left click to select all contingent blocks, right click to add", "Selection"),
+    SEL_FUZZY("Fuzzy selector: Left click to select all contingent blocks, right click to add. To select an air cavity, use //pos1.", "Selection"),
     SEL_CONVEX_POLYHEDRAL("Convex polyhedral selector: Left click=First vertex, right click to add more.", "Selection"),
     SEL_LIST("For a list of selection types use:&c //sel list", "Selection"),
     SEL_MODES("Select one of the modes below:", "Selection"),

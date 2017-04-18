@@ -71,6 +71,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
 /**
  * Commands that work with schematic files.
  */
+@Command(aliases = {"schematic", "schem", "/schematic", "/schem"}, desc = "Commands that work with schematic files")
 public class SchematicCommands {
 
     /**
@@ -90,7 +91,7 @@ public class SchematicCommands {
         this.worldEdit = worldEdit;
     }
 
-    @Command(aliases = { "loadall" }, usage = "[<format>] <filename|url>", desc = "Load a schematic into your clipboard")
+    @Command(aliases = { "loadall" }, usage = "[<format>] <filename|url>", desc = "Load multiple clipboards (paste will randomly choose one)")
     @Deprecated
     @CommandPermissions({ "worldedit.clipboard.load", "worldedit.schematic.load", "worldedit.schematic.upload" })
     public void loadall(final Player player, final LocalSession session, @Optional("schematic") final String formatName, final String filename) throws FilenameException {

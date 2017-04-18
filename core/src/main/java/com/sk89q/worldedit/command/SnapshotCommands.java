@@ -42,6 +42,7 @@ import java.util.logging.Logger;
 /**
  * Snapshot commands.
  */
+@Command(aliases = {"snapshot", "snap"}, desc = "List, load and view information related to snapshots")
 public class SnapshotCommands {
 
     private static final Logger logger = Logger.getLogger("Minecraft.WorldEdit");

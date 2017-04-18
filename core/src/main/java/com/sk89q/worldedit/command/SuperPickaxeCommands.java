@@ -29,6 +29,7 @@ import com.sk89q.worldedit.command.tool.RecursivePickaxe;
 import com.sk89q.worldedit.command.tool.SinglePickaxe;
 import com.sk89q.worldedit.entity.Player;
 
+@Command(aliases = {"superpickaxe", "pickaxe", "sp"}, desc = "Super-pickaxe commands: [More Info](http://wiki.sk89q.com/wiki/WorldEdit/Super_pickaxe)")
 public class SuperPickaxeCommands {
     private final WorldEdit we;
 

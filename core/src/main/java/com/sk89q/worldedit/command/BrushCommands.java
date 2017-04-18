@@ -109,6 +109,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
 /**
  * Commands to set brush shape.
  */
+@Command(aliases = { "brush", "br" }, desc = "Commands to build and draw from far away: [More Info](https://github.com/boy0001/FastAsyncWorldedit/wiki/Brushes)")
 public class BrushCommands {
 
     private final WorldEdit worldEdit;
@@ -810,8 +811,7 @@ public class BrushCommands {
             help = "Flatten brush makes terrain flatter\n" +
                     "The -r flag enables random off-axis rotation\n" +
                     "The -l flag will work on snow layers",
-            desc =
-                    "This brush raises and lowers land towards the clicked point\n",
+            desc = "This brush raises and lowers land towards the clicked point\n",
             min = 1,
             max = 4
     )

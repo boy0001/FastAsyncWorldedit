@@ -73,6 +73,7 @@ import static com.sk89q.minecraft.util.commands.Logging.LogMode.REGION;
 /**
  * Clipboard commands.
  */
+@Command(aliases = {}, desc = "Related commands to copy and pasting blocks: [More Info](http://wiki.sk89q.com/wiki/WorldEdit/Clipboard)")
 public class ClipboardCommands {
 
     private final WorldEdit worldEdit;
@@ -251,7 +252,7 @@ public class ClipboardCommands {
         if (!FawePlayer.wrap(player).hasPermission("fawe.tips")) BBC.TIP_LAZYCUT.send(player);
     }
 
-    @Command(aliases = { "download" }, desc = "Download your clipboard")
+    @Command(aliases = { "download" }, desc = "Downloads your clipboard through the configured web interface")
     @Deprecated
     @CommandPermissions({ "worldedit.clipboard.download"})
     public void download(final Player player, final LocalSession session, @Optional("schematic") final String formatName) throws CommandException, WorldEditException {

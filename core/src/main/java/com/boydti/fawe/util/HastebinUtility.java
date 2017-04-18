@@ -1,5 +1,7 @@
 package com.boydti.fawe.util;
 
+import com.boydti.fawe.Fawe;
+import com.boydti.fawe.config.BBC;
 import java.io.*;
 import java.net.HttpURLConnection;
 import java.net.URL;
@@ -58,6 +60,43 @@ public class HastebinUtility {
             content.append(lines.get(i)).append("\n");
         }
         return upload(content.toString());
+    }
+
+    public static String debugPaste() throws IOException {
+        String settingsYML = HastebinUtility.upload(new File(Fawe.imp().getDirectory(), "config.yml"));
+        String messagesYML = HastebinUtility.upload(new File(Fawe.imp().getDirectory(), "message.yml"));
+        String commandsYML = HastebinUtility.upload(new File(Fawe.imp().getDirectory(), "commands.yml"));
+        String latestLOG;
+        try {
+            latestLOG = HastebinUtility.upload(new File(Fawe.imp().getDirectory(), "../../logs/latest.log"));
+        } catch (IOException ignored) {
+            latestLOG = "too big :(";
+        }
+        StringBuilder b = new StringBuilder();
+        b.append(
+                "# Welcome to this paste\n# It is meant to provide us at IntellectualSites with better information about your "
+                        + "problem\n\n# We will start with some informational files\n");
+        b.append("links.config_yml: ").append(settingsYML).append('\n');
+        b.append("links.messages_yml: ").append(messagesYML).append('\n');
+        b.append("links.commands_yml: ").append(commandsYML).append('\n');
+        b.append("links.latest_log: ").append(latestLOG).append('\n');
+        b.append("\n# Server Information\n");
+        b.append("version.server: ").append(Fawe.imp().getPlatform()).append('\n');
+        b.append("\n\n# YAY! Now, let's see what we can find in your JVM\n");
+        Runtime runtime = Runtime.getRuntime();
+        b.append("memory.free: ").append(runtime.freeMemory()).append('\n');
+        b.append("memory.max: ").append(runtime.maxMemory()).append('\n');
+        b.append("java.specification.version: '").append(System.getProperty("java.specification.version")).append("'\n");
+        b.append("java.vendor: '").append(System.getProperty("java.vendor")).append("'\n");
+        b.append("java.version: '").append(System.getProperty("java.version")).append("'\n");
+        b.append("os.arch: '").append(System.getProperty("os.arch")).append("'\n");
+        b.append("os.name: '").append(System.getProperty("os.name")).append("'\n");
+        b.append("os.version: '").append(System.getProperty("os.version")).append("'\n\n");
+        b.append("# Okay :D Great. You are now ready to create your bug report!");
+        b.append("\n# You can do so at https://github.com/boy0001/FastAsyncWorldedit/issues");
+
+        String link = HastebinUtility.upload(b.toString());
+        return link;
     }
 
 }

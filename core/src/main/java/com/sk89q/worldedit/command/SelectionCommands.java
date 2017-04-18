@@ -73,6 +73,7 @@ import static com.sk89q.minecraft.util.commands.Logging.LogMode.REGION;
 /**
  * Selection commands.
  */
+@Command(aliases = {}, desc = "Change your selection points, mode or view info about your selection: [More Info](http://wiki.sk89q.com/wiki/WorldEdit/Selection)")
 public class SelectionCommands {
 
     private final WorldEdit we;
@@ -782,7 +783,7 @@ public class SelectionCommands {
             box.appendCommand("//sel cyl", "Select a cylinder");
             box.appendCommand("//sel convex", "Select a convex polyhedral");
             box.appendCommand("//sel polyhedral", "Select a hollow polyhedral");
-            box.appendCommand("//sel fuzzy[=<mask>]", "Select all connected blocks");
+            box.appendCommand("//sel fuzzy[=<mask>]", "Select all connected blocks (magic wand)");
 
             player.printRaw(ColorCodeBuilder.asColorCodes(box));
             return;

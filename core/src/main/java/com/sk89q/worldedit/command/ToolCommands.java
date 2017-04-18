@@ -43,6 +43,7 @@ import com.sk89q.worldedit.function.pattern.Pattern;
 import com.sk89q.worldedit.util.TreeGenerator;
 import com.sk89q.worldedit.util.command.parametric.Optional;
 
+@Command(aliases = {"tool"}, desc = "Bind functions to held items: [More Info](http://wiki.sk89q.com/wiki/WorldEdit/Tools)")
 public class ToolCommands {
     private final WorldEdit we;
 

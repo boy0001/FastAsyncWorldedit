@@ -54,6 +54,7 @@ import static com.sk89q.minecraft.util.commands.Logging.LogMode.POSITION;
 /**
  * Commands for the generation of shapes and other objects.
  */
+@Command(aliases = {}, desc = "Create structures and features: [More Info](http://wiki.sk89q.com/wiki/WorldEdit/Generation)")
 public class GenerationCommands {
 
     private final WorldEdit worldEdit;
