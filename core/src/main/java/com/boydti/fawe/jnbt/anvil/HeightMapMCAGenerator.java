@@ -150,18 +150,6 @@ public class HeightMapMCAGenerator extends MCAWriter implements Extent {
         return true;
     }
 
-    private char get(char[][][] map, int x, int y, int z) {
-        char[][] yMap = map[y];
-        if (yMap == null) {
-            return 0;
-        }
-        char[] zMap = yMap[z & 15];
-        if (zMap == null) {
-            return 0;
-        }
-        return zMap[x & 15];
-    }
-
     @Override
     public BaseBiome getBiome(Vector2D position) {
         int index = position.getBlockZ() * getWidth() + position.getBlockX();
@@ -247,62 +235,6 @@ public class HeightMapMCAGenerator extends MCAWriter implements Extent {
         }
     }
 
-    private void setOverlay(BufferedImage img, char combined, boolean white) {
-        if (img.getWidth() != getWidth() || img.getHeight() != getLength()) throw new IllegalArgumentException("Input image dimensions do not match the current height map!");
-        if (overlay == null) overlay = new char[getArea()];
-        int index = 0;
-        for (int z = 0; z < getLength(); z++) {
-            for (int x = 0; x < getWidth(); x++, index++){
-                int height = img.getRGB(x, z) & 0xFF;
-                if (height == 255 || height > 0 && white && PseudoRandom.random.nextInt(256) <= height) {
-                    overlay[index] = combined;
-                }
-            }
-        }
-    }
-
-    private void setMain(BufferedImage img, char combined, boolean white) {
-        if (img.getWidth() != getWidth() || img.getHeight() != getLength()) throw new IllegalArgumentException("Input image dimensions do not match the current height map!");
-        modifiedMain = true;
-        int index = 0;
-        for (int z = 0; z < getLength(); z++) {
-            for (int x = 0; x < getWidth(); x++, index++){
-                int height = img.getRGB(x, z) & 0xFF;
-                if (height == 255 || height > 0 && white && PseudoRandom.random.nextInt(256) <= height) {
-                    main[index] = combined;
-                }
-            }
-        }
-    }
-
-    private void setFloor(BufferedImage img, char combined, boolean white) {
-        if (img.getWidth() != getWidth() || img.getHeight() != getLength()) throw new IllegalArgumentException("Input image dimensions do not match the current height map!");
-        int index = 0;
-        for (int z = 0; z < getLength(); z++) {
-            for (int x = 0; x < getWidth(); x++, index++){
-                int height = img.getRGB(x, z) & 0xFF;
-                if (height == 255 || height > 0 && white && PseudoRandom.random.nextInt(256) <= height) {
-                    floor[index] = combined;
-                }
-            }
-        }
-    }
-
-    private void setColumn(BufferedImage img, char combined, boolean white) {
-        if (img.getWidth() != getWidth() || img.getHeight() != getLength()) throw new IllegalArgumentException("Input image dimensions do not match the current height map!");
-        modifiedMain = true;
-        int index = 0;
-        for (int z = 0; z < getLength(); z++) {
-            for (int x = 0; x < getWidth(); x++, index++){
-                int height = img.getRGB(x, z) & 0xFF;
-                if (height == 255 || height > 0 && white && PseudoRandom.random.nextInt(256) <= height) {
-                    main[index] = combined;
-                    floor[index] = combined;
-                }
-            }
-        }
-    }
-
     public void setBiome(Mask mask, byte biome) {
         int index = 0;
         for (int z = 0; z < getLength(); z++) {
@@ -313,70 +245,6 @@ public class HeightMapMCAGenerator extends MCAWriter implements Extent {
                 mutable.mutY(y);
                 if (mask.test(mutable)) {
                     biomes[index] = biome;
-                }
-            }
-        }
-    }
-
-    private void setOverlay(Mask mask, char combined) {
-        int index = 0;
-        if (overlay == null) overlay = new char[getArea()];
-        for (int z = 0; z < getLength(); z++) {
-            mutable.mutZ(z);
-            for (int x = 0; x < getWidth(); x++, index++){
-                int y = heights[index] & 0xFF;
-                mutable.mutX(x);
-                mutable.mutY(y);
-                if (mask.test(mutable)) {
-                    overlay[index] = combined;
-                }
-            }
-        }
-    }
-
-    private void setFloor(Mask mask, char combined) {
-        int index = 0;
-        for (int z = 0; z < getLength(); z++) {
-            mutable.mutZ(z);
-            for (int x = 0; x < getWidth(); x++, index++){
-                int y = heights[index] & 0xFF;
-                mutable.mutX(x);
-                mutable.mutY(y);
-                if (mask.test(mutable)) {
-                    floor[index] = combined;
-                }
-            }
-        }
-    }
-
-    private void setMain(Mask mask, char combined) {
-        modifiedMain = true;
-        int index = 0;
-        for (int z = 0; z < getLength(); z++) {
-            mutable.mutZ(z);
-            for (int x = 0; x < getWidth(); x++, index++){
-                int y = heights[index] & 0xFF;
-                mutable.mutX(x);
-                mutable.mutY(y);
-                if (mask.test(mutable)) {
-                    main[index] = combined;
-                }
-            }
-        }
-    }
-
-    private void setColumn(Mask mask, char combined) {
-        modifiedMain = true;
-        int index = 0;
-        for (int z = 0; z < getLength(); z++) {
-            mutable.mutZ(z);
-            for (int x = 0; x < getWidth(); x++, index++){
-                int y = heights[index] & 0xFF;
-                mutable.mutX(x);
-                mutable.mutY(y);
-                if (mask.test(mutable)) {
-                    floor[index] = combined;
-                    main[index] = combined;
                 }
             }
         }
@@ -550,25 +418,6 @@ public class HeightMapMCAGenerator extends MCAWriter implements Extent {
 
     public void setBiome(int biome) {
         Arrays.fill(biomes, (byte) biome);
-    }
-
-    private void setFloor(int value) {
-        Arrays.fill(floor, (char) value);
-    }
-
-    private void setColumn(int value) {
-        setFloor(value);
-        setMain(value);
-    }
-
-    private void setMain(int value) {
-        modifiedMain = true;
-        Arrays.fill(main, (char) value);
-    }
-
-    private void setOverlay(int value) {
-        if (overlay == null) overlay = new char[getArea()];
-        Arrays.fill(overlay, (char) value);
     }
 
     public void setFloor(Pattern value) {
@@ -835,5 +684,156 @@ public class HeightMapMCAGenerator extends MCAWriter implements Extent {
             }
         }
         return chunk;
+    }
+
+    private char get(char[][][] map, int x, int y, int z) {
+        char[][] yMap = map[y];
+        if (yMap == null) {
+            return 0;
+        }
+        char[] zMap = yMap[z & 15];
+        if (zMap == null) {
+            return 0;
+        }
+        return zMap[x & 15];
+    }
+
+    private void setOverlay(Mask mask, char combined) {
+        int index = 0;
+        if (overlay == null) overlay = new char[getArea()];
+        for (int z = 0; z < getLength(); z++) {
+            mutable.mutZ(z);
+            for (int x = 0; x < getWidth(); x++, index++){
+                int y = heights[index] & 0xFF;
+                mutable.mutX(x);
+                mutable.mutY(y);
+                if (mask.test(mutable)) {
+                    overlay[index] = combined;
+                }
+            }
+        }
+    }
+
+    private void setFloor(Mask mask, char combined) {
+        int index = 0;
+        for (int z = 0; z < getLength(); z++) {
+            mutable.mutZ(z);
+            for (int x = 0; x < getWidth(); x++, index++){
+                int y = heights[index] & 0xFF;
+                mutable.mutX(x);
+                mutable.mutY(y);
+                if (mask.test(mutable)) {
+                    floor[index] = combined;
+                }
+            }
+        }
+    }
+
+    private void setMain(Mask mask, char combined) {
+        modifiedMain = true;
+        int index = 0;
+        for (int z = 0; z < getLength(); z++) {
+            mutable.mutZ(z);
+            for (int x = 0; x < getWidth(); x++, index++){
+                int y = heights[index] & 0xFF;
+                mutable.mutX(x);
+                mutable.mutY(y);
+                if (mask.test(mutable)) {
+                    main[index] = combined;
+                }
+            }
+        }
+    }
+
+    private void setColumn(Mask mask, char combined) {
+        modifiedMain = true;
+        int index = 0;
+        for (int z = 0; z < getLength(); z++) {
+            mutable.mutZ(z);
+            for (int x = 0; x < getWidth(); x++, index++){
+                int y = heights[index] & 0xFF;
+                mutable.mutX(x);
+                mutable.mutY(y);
+                if (mask.test(mutable)) {
+                    floor[index] = combined;
+                    main[index] = combined;
+                }
+            }
+        }
+    }
+
+    private void setFloor(int value) {
+        Arrays.fill(floor, (char) value);
+    }
+
+    private void setColumn(int value) {
+        setFloor(value);
+        setMain(value);
+    }
+
+    private void setMain(int value) {
+        modifiedMain = true;
+        Arrays.fill(main, (char) value);
+    }
+
+    private void setOverlay(int value) {
+        if (overlay == null) overlay = new char[getArea()];
+        Arrays.fill(overlay, (char) value);
+    }
+
+    private void setOverlay(BufferedImage img, char combined, boolean white) {
+        if (img.getWidth() != getWidth() || img.getHeight() != getLength()) throw new IllegalArgumentException("Input image dimensions do not match the current height map!");
+        if (overlay == null) overlay = new char[getArea()];
+        int index = 0;
+        for (int z = 0; z < getLength(); z++) {
+            for (int x = 0; x < getWidth(); x++, index++){
+                int height = img.getRGB(x, z) & 0xFF;
+                if (height == 255 || height > 0 && white && PseudoRandom.random.nextInt(256) <= height) {
+                    overlay[index] = combined;
+                }
+            }
+        }
+    }
+
+    private void setMain(BufferedImage img, char combined, boolean white) {
+        if (img.getWidth() != getWidth() || img.getHeight() != getLength()) throw new IllegalArgumentException("Input image dimensions do not match the current height map!");
+        modifiedMain = true;
+        int index = 0;
+        for (int z = 0; z < getLength(); z++) {
+            for (int x = 0; x < getWidth(); x++, index++){
+                int height = img.getRGB(x, z) & 0xFF;
+                if (height == 255 || height > 0 && white && PseudoRandom.random.nextInt(256) <= height) {
+                    main[index] = combined;
+                }
+            }
+        }
+    }
+
+    private void setFloor(BufferedImage img, char combined, boolean white) {
+        if (img.getWidth() != getWidth() || img.getHeight() != getLength()) throw new IllegalArgumentException("Input image dimensions do not match the current height map!");
+        int index = 0;
+        for (int z = 0; z < getLength(); z++) {
+            for (int x = 0; x < getWidth(); x++, index++){
+                int height = img.getRGB(x, z) & 0xFF;
+                if (height == 255 || height > 0 && white && PseudoRandom.random.nextInt(256) <= height) {
+                    floor[index] = combined;
+                }
+            }
+        }
+    }
+
+    private void setColumn(BufferedImage img, char combined, boolean white) {
+        if (img.getWidth() != getWidth() || img.getHeight() != getLength()) throw new IllegalArgumentException("Input image dimensions do not match the current height map!");
+        modifiedMain = true;
+        int index = 0;
+        for (int z = 0; z < getLength(); z++) {
+            for (int x = 0; x < getWidth(); x++, index++){
+                int height = img.getRGB(x, z) & 0xFF;
+                if (height == 255 || height > 0 && white && PseudoRandom.random.nextInt(256) <= height) {
+                    main[index] = combined;
+                    floor[index] = combined;
+                }
+            }
+        }
     }
 }

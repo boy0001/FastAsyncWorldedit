@@ -17,6 +17,7 @@ import com.boydti.fawe.util.EditSessionBuilder;
 import com.boydti.fawe.util.MainUtil;
 import com.boydti.fawe.util.MemUtil;
 import com.boydti.fawe.util.SetQueue;
+import com.boydti.fawe.util.StringMan;
 import com.boydti.fawe.util.TaskManager;
 import com.boydti.fawe.util.WEManager;
 import com.boydti.fawe.wrappers.WorldWrapper;
@@ -211,9 +212,10 @@ public class FaweAPI {
     }
 
     /**
-     * If you just need things to look random, use this faster alternative
-     * @return PseudoRandom
+     * Use ThreadLocalRandom instead
+     * @return
      */
+    @Deprecated
     public static PseudoRandom getFastRandom() {
         return new PseudoRandom();
     }

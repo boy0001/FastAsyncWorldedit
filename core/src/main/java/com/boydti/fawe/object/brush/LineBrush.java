@@ -1,5 +1,6 @@
 package com.boydti.fawe.object.brush;
 
+import com.boydti.fawe.object.brush.visualization.VisualExtent;
 import com.sk89q.worldedit.EditSession;
 import com.sk89q.worldedit.MaxChangedBlocksException;
 import com.sk89q.worldedit.Vector;
@@ -19,12 +20,13 @@ public class LineBrush implements Brush, ResettableTool {
 
     @Override
     public void build(EditSession editSession, Vector position, final Pattern pattern, double size) throws MaxChangedBlocksException {
+        boolean visual = (editSession.getExtent() instanceof VisualExtent);
         if (pos1 == null) {
-            pos1 = position;
+            if (!visual) pos1 = position;
             return;
         }
         editSession.drawLine(pattern, pos1, position, size, !shell, flat);
-        if (!select) {
+        if (!select && !visual) {
             pos1 = null;
             return;
         }

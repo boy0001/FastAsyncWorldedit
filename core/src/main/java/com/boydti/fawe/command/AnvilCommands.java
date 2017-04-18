@@ -133,7 +133,7 @@ public class AnvilCommands {
                             try {
                                 byte[] bytes = mca.getChunkCompressedBytes(offset);
                                 if (bytes == null) return;
-                                Runnable task = new Runnable() {
+                                    Runnable task = new Runnable() {
                                     @Override
                                     public void run() {
                                         try {

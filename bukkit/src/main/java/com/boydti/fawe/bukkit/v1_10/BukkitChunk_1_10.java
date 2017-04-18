@@ -353,7 +353,7 @@ public class BukkitChunk_1_10 extends CharFaweChunk<Chunk, BukkitQueue_1_10> {
                         toRemove = new HashMap<>();
                     }
                     if (copy != null) {
-                        storeTile(tile.getValue(), tile.getKey());
+                        copy.storeTile(tile.getValue(), tile.getKey());
                     }
                     toRemove.put(tile.getKey(), tile.getValue());
                 }

@@ -390,6 +390,20 @@ public class FaweBukkit implements IFawe, Listener {
         }
         return managers;
     }
+//
+//    @EventHandler
+//    public void onWorldLoad(WorldLoadEvent event) {
+//        org.bukkit.World world = event.getWorld();
+//        world.setKeepSpawnInMemory(false);
+//        WorldServer nmsWorld = ((CraftWorld) world).getHandle();
+//        ChunkProviderServer provider = nmsWorld.getChunkProviderServer();
+//        try {
+//            Field fieldChunkLoader = provider.getClass().getDeclaredField("chunkLoader");
+//            ReflectionUtils.setFailsafeFieldValue(fieldChunkLoader, provider, new FaweChunkLoader());
+//        } catch (Throwable e) {
+//            e.printStackTrace();
+//        }
+//    }
 
     @EventHandler
     public void onChunkLoad(ChunkLoadEvent event) {

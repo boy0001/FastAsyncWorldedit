@@ -354,21 +354,16 @@ public class PlatformManager {
 
             // At this time, only handle interaction from players
             if (actor instanceof Player) {
-                final Player player = new LocationMaskedPlayerWrapper(PlayerWrapper.wrap((Player) actor), ((Player) actor).getLocation());
                 final LocalSession session = worldEdit.getSessionManager().get(actor);
-
+                Player playerActor = (Player) actor;
                 if (event.getType() == Interaction.HIT) {
-                    if (player.getItemInHand() == getConfiguration().wandItem) {
-                        if (!session.isToolControlEnabled()) {
+                    if (session.isToolControlEnabled() && playerActor.getItemInHand() == getConfiguration().wandItem) {
+                        FawePlayer<?> fp = FawePlayer.wrap(playerActor);
+                        if (!fp.hasPermission("worldedit.selection.pos")) {
                             return;
                         }
-
-                        if (!actor.hasPermission("worldedit.selection.pos")) {
-                            return;
-                        }
-
-                        final RegionSelector selector = session.getRegionSelector(player.getWorld());
-                        FawePlayer<?> fp = FawePlayer.wrap(player);
+                        final RegionSelector selector = session.getRegionSelector(playerActor.getWorld());
+                        final Player player = new LocationMaskedPlayerWrapper(PlayerWrapper.wrap((Player) actor), ((Player) actor).getLocation());
                         fp.runAction(new Runnable() {
                             @Override
                             public void run() {
@@ -381,10 +376,11 @@ public class PlatformManager {
                         event.setCancelled(true);
                         return;
                     }
-                    if (player.isHoldingPickAxe() && session.hasSuperPickAxe()) {
+                    if (session.hasSuperPickAxe() && playerActor.isHoldingPickAxe()) {
                         final BlockTool superPickaxe = session.getSuperPickaxe();
-                        if (superPickaxe != null && superPickaxe.canUse(player)) {
-                            FawePlayer<?> fp = FawePlayer.wrap(player);
+                        if (superPickaxe != null && superPickaxe.canUse(playerActor)) {
+                            FawePlayer<?> fp = FawePlayer.wrap(playerActor);
+                            final Player player = new LocationMaskedPlayerWrapper(PlayerWrapper.wrap((Player) actor), ((Player) actor).getLocation());
                             fp.runAction(new Runnable() {
                                 @Override
                                 public void run() {
@@ -395,10 +391,11 @@ public class PlatformManager {
                             return;
                         }
                     }
-                    final Tool tool = session.getTool(player);
+                    final Tool tool = session.getTool(playerActor);
                     if (tool != null && tool instanceof DoubleActionBlockTool) {
-                        if (tool.canUse(player)) {
-                            FawePlayer<?> fp = FawePlayer.wrap(player);
+                        if (tool.canUse(playerActor)) {
+                            FawePlayer<?> fp = FawePlayer.wrap(playerActor);
+                            final Player player = new LocationMaskedPlayerWrapper(PlayerWrapper.wrap((Player) actor), ((Player) actor).getLocation());
                             fp.runAction(new Runnable() {
                                 @Override
                                 public void run() {
@@ -409,16 +406,13 @@ public class PlatformManager {
                         }
                     }
                 } else if (event.getType() == Interaction.OPEN) {
-                    if (player.getItemInHand() == getConfiguration().wandItem) {
-                        if (!session.isToolControlEnabled()) {
+                    if (session.isToolControlEnabled() && playerActor.getItemInHand() == getConfiguration().wandItem) {
+                        FawePlayer<?> fp = FawePlayer.wrap(playerActor);
+                        if (!fp.hasPermission("worldedit.selection.pos")) {
                             return;
                         }
-
-                        if (!actor.hasPermission("worldedit.selection.pos")) {
-                            return;
-                        }
-                        final RegionSelector selector = session.getRegionSelector(player.getWorld());
-                        FawePlayer<?> fp = FawePlayer.wrap(player);
+                        final RegionSelector selector = session.getRegionSelector(playerActor.getWorld());
+                        final Player player = new LocationMaskedPlayerWrapper(PlayerWrapper.wrap((Player) actor), ((Player) actor).getLocation());
                         fp.runAction(new Runnable() {
                             @Override
                             public void run() {
@@ -432,10 +426,11 @@ public class PlatformManager {
                         return;
                     }
 
-                    final Tool tool = session.getTool(player);
+                    final Tool tool = session.getTool(playerActor);
                     if (tool != null && tool instanceof BlockTool) {
-                        if (tool.canUse(player)) {
-                            FawePlayer<?> fp = FawePlayer.wrap(player);
+                        if (tool.canUse(playerActor)) {
+                            FawePlayer<?> fp = FawePlayer.wrap(playerActor);
+                            final Player player = new LocationMaskedPlayerWrapper(PlayerWrapper.wrap((Player) actor), ((Player) actor).getLocation());
                             fp.runAction(new Runnable() {
                                 @Override
                                 public void run() {
