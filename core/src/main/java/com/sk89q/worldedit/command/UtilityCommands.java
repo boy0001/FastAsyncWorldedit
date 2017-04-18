@@ -84,6 +84,7 @@ import static com.sk89q.minecraft.util.commands.Logging.LogMode.PLACEMENT;
 /**
  * Utility commands.
  */
+@Command(aliases = {}, desc = "Various utility commands: [More Info](http://wiki.sk89q.com/wiki/WorldEdit/Utilities)")
 public class UtilityCommands {
 
     private final WorldEdit we;
@@ -632,7 +633,7 @@ public class UtilityCommands {
                             }
                         }
                         if (!(callable instanceof Dispatcher)) {
-                            actor.printRaw(ColorCodeBuilder.asColorCodes(new CommandUsageBox(callable, Joiner.on(" ").join(visited))));
+                            actor.printRaw(BBC.getPrefix() + ColorCodeBuilder.asColorCodes(new CommandUsageBox(callable, Joiner.on(" ").join(visited))));
                             return;
                         }
                         dispatcher = (Dispatcher) callable;
@@ -697,7 +698,7 @@ public class UtilityCommands {
                 actor.print(BBC.color(message.toString()));
             }
         } else {
-            actor.printRaw(ColorCodeBuilder.asColorCodes(new CommandUsageBox(callable, Joiner.on(" ").join(visited))));
+            actor.printRaw(BBC.getPrefix() + ColorCodeBuilder.asColorCodes(new CommandUsageBox(callable, Joiner.on(" ").join(visited))));
         }
     }
 

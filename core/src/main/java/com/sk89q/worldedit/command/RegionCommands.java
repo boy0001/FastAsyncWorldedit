@@ -93,6 +93,7 @@ import static com.sk89q.worldedit.regions.Regions.minimumBlockY;
 /**
  * Commands that operate on regions.
  */
+@Command(aliases = {}, desc = "Commands that operate on regions: [More Info](http://wiki.sk89q.com/wiki/WorldEdit/Region_operations)")
 public class RegionCommands {
 
     private final WorldEdit worldEdit;

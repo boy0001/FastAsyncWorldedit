@@ -40,6 +40,7 @@ import java.util.logging.Logger;
 
 import static com.sk89q.minecraft.util.commands.Logging.LogMode.REGION;
 
+@Command(aliases = {}, desc = "[More Info](http://wiki.sk89q.com/wiki/WorldEdit/Snapshots)")
 public class SnapshotUtilCommands {
 
     private static final Logger logger = Logger.getLogger("Minecraft.WorldEdit");

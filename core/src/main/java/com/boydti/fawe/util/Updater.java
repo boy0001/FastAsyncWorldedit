@@ -14,13 +14,20 @@ public class Updater {
     private FaweVersion newVersion;
     private String changes;
 
-    public String getChanges() throws IOException {
+    public String getChanges() {
         if (changes == null) {
             try (Scanner scanner = new Scanner(new URL("http://boydti.com/fawe/cl?" + Integer.toHexString(Fawe.get().getVersion().hash)).openStream(), "UTF-8")) {
                 changes = scanner.useDelimiter("\\A").next();
+            } catch (IOException e) {
+                e.printStackTrace();
+                return "";
             }
         }
         return changes;
+    }
+
+    public boolean isOutdated() {
+        return newVersion != null;
     }
 
     public void update(String platform, FaweVersion currentVersion) {

@@ -24,6 +24,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
 /**
  * General WorldEdit commands.
  */
+@Command(aliases = {}, desc = "Player toggles, settings and item info")
 public class GeneralCommands {
 
     private final WorldEdit worldEdit;
@@ -56,7 +57,7 @@ public class GeneralCommands {
     @Command(
             aliases = { "/fast" },
             usage = "[on|off]",
-            desc = "Toggle fast mode",
+            desc = "Toggles WorldEdit undo",
             min = 0,
             max = 1
     )

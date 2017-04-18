@@ -58,6 +58,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
 /**
  * Commands to undo, redo, and clear history.
  */
+@Command(aliases = {}, desc = "Commands to undo, redo, and clear history: [More Info](http://wiki.sk89q.com/wiki/WorldEdit/Features#History)")
 public class HistoryCommands {
 
     private final WorldEdit worldEdit;
@@ -74,8 +75,8 @@ public class HistoryCommands {
 
     @Command(
             aliases = { "/frb", "frb", "fawerollback", "/fawerollback", "/rollback" },
-            usage = "<user> <radius> <time>",
-            desc = "Undo edits within a radius",
+            usage = "<user=Empire92> <radius=5> <time=3d4h>",
+            desc = "Undo a specific edit. The time uses s, m, h, d, y.",
             min = 1,
             max = 3
     )

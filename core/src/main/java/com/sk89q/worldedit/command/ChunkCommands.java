@@ -41,6 +41,7 @@ import static com.sk89q.minecraft.util.commands.Logging.LogMode.REGION;
 /**
  * Commands for working with chunks.
  */
+@Command(aliases = {}, desc = "[legacy] Inspect chunks: [More Info](http://wiki.sk89q.com/wiki/WorldEdit/Chunk_tools)")
 public class ChunkCommands {
 
     private final WorldEdit worldEdit;

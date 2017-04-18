@@ -22,6 +22,7 @@ import com.sk89q.worldedit.util.command.parametric.Optional;
 /**
  * Tool commands.
  */
+@Command(aliases = {}, desc = "Tool commands")
 public class ToolUtilCommands {
     private final WorldEdit we;
     private final DefaultTransformParser transformParser;

@@ -1,7 +1,6 @@
 package com.boydti.fawe;
 
 import com.boydti.fawe.command.Cancel;
-import com.boydti.fawe.command.Reload;
 import com.boydti.fawe.config.BBC;
 import com.boydti.fawe.config.Commands;
 import com.boydti.fawe.config.Settings;
@@ -113,6 +112,10 @@ import com.sk89q.worldedit.util.command.SimpleDispatcher;
 import com.sk89q.worldedit.util.command.parametric.ParameterData;
 import com.sk89q.worldedit.util.command.parametric.ParametricBuilder;
 import com.sk89q.worldedit.util.command.parametric.ParametricCallable;
+import com.sk89q.worldedit.util.formatting.Fragment;
+import com.sk89q.worldedit.util.formatting.component.CommandListBox;
+import com.sk89q.worldedit.util.formatting.component.CommandUsageBox;
+import com.sk89q.worldedit.util.formatting.component.MessageBox;
 import com.sk89q.worldedit.world.registry.BundledBlockData;
 import java.io.File;
 import java.io.InputStream;
@@ -277,13 +280,27 @@ public class Fawe {
         if (Settings.IMP.UPDATE && isJava8()) {
             // Delayed updating
             updater = new Updater();
+            TaskManager.IMP.async(new Runnable() {
+                @Override
+                public void run() {
+                    update();
+                }
+            });
             TaskManager.IMP.repeatAsync(new Runnable() {
                 @Override
                 public void run() {
-                    updater.update(IMP.getPlatform(), getVersion());
+                    update();
                 }
             }, 36000);
         }
+    }
+
+    private boolean update() {
+        if (updater != null) {
+            updater.update(IMP.getPlatform(), getVersion());
+            return true;
+        }
+        return false;
     }
 
     private boolean isJava8 = MainUtil.getJavaVersion() >= 1.8;
@@ -331,7 +348,6 @@ public class Fawe {
     }
 
     private void setupCommands() {
-        this.IMP.setupCommand("fawe", new Reload());
         this.IMP.setupCommand("fcancel", new Cancel());
     }
 
@@ -404,6 +420,11 @@ public class Fawe {
             ParameterData.inject(); // Translations
             ToolUtilCommands.inject(); // Fixes + Translations
             GeneralCommands.inject(); // Translations + gmask args
+            // Formatting
+            MessageBox.inject();
+            Fragment.inject();
+            CommandListBox.inject();
+            CommandUsageBox.inject();
             // Schematic
             SchematicReader.inject(); // Optimizations
             SchematicWriter.inject(); // Optimizations

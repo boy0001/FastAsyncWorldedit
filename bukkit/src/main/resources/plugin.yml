@@ -8,9 +8,6 @@ load: STARTUP
 database: false
 #softdepend: [WorldGuard, PlotSquared, MCore, Factions, GriefPrevention, Residence, Towny, PlotMe, PreciousStones]
 commands:
-  fawe:
-    description: (FAWE) Reload the plugin
-    aliases: [/fawe,/fawereload]
   fcancel:
     description: (FAWE) Cancel your edit
     aliases: [fawecancel,/fcancel,/cancel,/fawecancel]
