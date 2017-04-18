@@ -241,11 +241,11 @@ public class AnvilCommands {
                         }
                     });
                 } else {
-                    player.print(BBC.getPrefix() + "Mask:Pattern must be a 1:1 match");
+                    player.print(BBC.getPrefix() + "Маска:Шаблон должен соответствовать соотношению 1: 1");
                     return;
                 }
             } else {
-                player.print(BBC.getPrefix() + "Must be a pattern list!");
+                player.print(BBC.getPrefix() + "Должен быть список шаблонов!");
                 return;
             }
         } else {
@@ -436,13 +436,13 @@ public class AnvilCommands {
         FaweQueue tmp = SetQueue.IMP.getNewQueue(worldName, true, false);
         File folder = tmp.getSaveFolder();
         MCAQueue queue = new MCAQueue(worldName, folder, tmp.hasSky());
-        player.print(BBC.getPrefix() + "Safely unloading regions...");
+        player.print(BBC.getPrefix() + "Безопасная выгрузка регионов...");
         tmp.setMCA(new Runnable() {
             @Override
             public void run() {
-                player.print(BBC.getPrefix() + "Performing operation...");
+                player.print(BBC.getPrefix() + "Выполнение операции...");
                 queue.filterRegion(filter, wrappedRegion);
-                player.print(BBC.getPrefix() + "Safely loading regions...");
+                player.print(BBC.getPrefix() + "Безопасная загрузка регионов...");
             }
         }, wrappedRegion, true);
         return filter;
@@ -564,7 +564,7 @@ public class AnvilCommands {
         FawePlayer fp = FawePlayer.wrap(player);
         MCAClipboard clipboard = fp.getMeta(FawePlayer.METADATA_KEYS.ANVIL_CLIPBOARD);
         if (clipboard == null) {
-            fp.sendMessage(BBC.getPrefix() + "You must first copy to your clipboard");
+            fp.sendMessage(BBC.getPrefix() + "Вы должны сначала скопировать в буфер обмена");
             return;
         }
         CuboidRegion cuboid = clipboard.getRegion();
@@ -582,7 +582,7 @@ public class AnvilCommands {
         File folder = tmpTo.getSaveFolder();
         MCAQueue copyQueue = clipboard.getQueue();
         MCAQueue pasteQueue = new MCAQueue(pasteWorldName, folder, tmpTo.hasSky());
-        player.print(BBC.getPrefix() + "Safely unloading regions...");
+        player.print(BBC.getPrefix() + "Безопасная выгрузка регионов...");
         tmpTo.setMCA(new Runnable() {
             @Override
             public void run() {
@@ -590,9 +590,9 @@ public class AnvilCommands {
                     @Override
                     public void run() {
                         try {
-                            player.print(BBC.getPrefix() + "Performing operation...");
+                            player.print(BBC.getPrefix() + "Выполнение операции...");
                             pasteQueue.pasteRegion(copyQueue, copyRegion, offset);
-                            player.print(BBC.getPrefix() + "Safely loading regions...");
+                            player.print(BBC.getPrefix() + "Безопасная загрузка регионов...");
                         } catch (Throwable e) {
                             e.printStackTrace();
                         }
@@ -600,6 +600,6 @@ public class AnvilCommands {
                 }, copyRegion, false);
             }
         }, pasteRegion, true);
-        player.print("Done!");
+        player.print("Готово!");
     }
 }

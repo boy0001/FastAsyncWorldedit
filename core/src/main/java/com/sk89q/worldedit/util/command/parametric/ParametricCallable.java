@@ -129,7 +129,7 @@ public class ParametricCallable implements CommandCallable {
 
                 // Don't know how to parse for this type of value
                 if (parameter.getBinding() == null) {
-                    throw new ParametricException("Don't know how to handle the parameter type '" + type + "' in\n" + method.toGenericString());
+                    throw new ParametricException("Не знаю, как обрабатывать тип параметра '" + type + "' в\n" + method.toGenericString());
                 }
             }
 
@@ -143,10 +143,10 @@ public class ParametricCallable implements CommandCallable {
                 if (numOptional > 0 && parameter.isNonFlagConsumer()) {
                     if (parameter.getConsumedCount() < 0) {
                         throw new ParametricException(
-                                "Found an parameter using the binding " +
+                                "Нашел параметр, используя привязку " +
                                         parameter.getBinding().getClass().getCanonicalName() +
-                                        "\nthat does not know how many arguments it consumes, but " +
-                                        "it follows an optional parameter\nMethod: " +
+                                        "\nкоторый не знает, сколько аргументов он использует, но " +
+                                        "он следует необязательному параметру\nМетод: " +
                                         method.toGenericString());
                     }
                 }
@@ -248,14 +248,14 @@ public class ParametricCallable implements CommandCallable {
                 handler.postInvoke(handler, method, parameters, args, context);
             }
         } catch (MissingParameterException e) {
-            throw new InvalidUsageException("Too few parameters!", this);
+            throw new InvalidUsageException("Слишком мало параметров!", this);
         } catch (UnconsumedParameterException e) {
-            throw new InvalidUsageException("Too many parameters! Unused parameters: " + e.getUnconsumed(), this);
+            throw new InvalidUsageException("Слишком много параметров! Неиспользуемые параметры: " + e.getUnconsumed(), this);
         } catch (ParameterException e) {
             assert parameter != null;
             String name = parameter.getName();
 
-            throw new InvalidUsageException("For parameter '" + name + "': " + e.getMessage(), this);
+            throw new InvalidUsageException("Для параметра '" + name + "': " + e.getMessage(), this);
         } catch (InvocationTargetException e) {
             if (e.getCause() instanceof CommandException) {
                 throw (CommandException) e.getCause();
@@ -334,7 +334,7 @@ public class ParametricCallable implements CommandCallable {
                         // For /command| value1 value2
                         // This should never occur
                     } else {
-                        throw new RuntimeException("Invalid suggestion context");
+                        throw new RuntimeException("Недопустимый контекст предложения");
                     }
                 }
             } catch (ParameterException | InvocationTargetException e) {
@@ -344,7 +344,7 @@ public class ParametricCallable implements CommandCallable {
                 }
                 if (suggestable.forHangingValue()) {
                     String name = getDescription().getParameters().get(consumerIndex).getName();
-                    throw new InvalidUsageException("For parameter '" + name + "': " + e.getMessage(), this);
+                    throw new InvalidUsageException("Для параметра '" + name + "': " + e.getMessage(), this);
                 } else {
                     return parameter.getBinding().getSuggestions(parameter, "");
                 }
@@ -361,7 +361,7 @@ public class ParametricCallable implements CommandCallable {
                 return lastConsumer.getBinding().getSuggestions(lastConsumer, lastConsumed);
                 // This should never occur
             } else {
-                throw new RuntimeException("Invalid suggestion context");
+                throw new RuntimeException("Недопустимый контекст предложения");
             }
 
         }
@@ -477,9 +477,9 @@ public class ParametricCallable implements CommandCallable {
                 return parameter.getBinding().bind(parameter, new StringArgumentStack(context, defaultValue, false), false);
             } catch (MissingParameterException e) {
                 throw new ParametricException(
-                        "The default value of the parameter using the binding " +
-                                parameter.getBinding().getClass() + " in the method\n" +
-                                method.toGenericString() + "\nis invalid");
+                        "Значение по умолчанию параметра с использованием привязки " +
+                                parameter.getBinding().getClass() + " в методе\n" +
+                                method.toGenericString() + "\nне действительный");
             }
         }
 

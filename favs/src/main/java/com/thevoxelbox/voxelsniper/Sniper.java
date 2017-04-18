@@ -179,11 +179,11 @@ public class Sniper {
 
         if (sniperTool.hasToolAssigned(itemInHand)) {
             if (sniperTool.getCurrentBrush() == null) {
-                getPlayer().sendMessage("No Brush selected.");
+                getPlayer().sendMessage("Нет выбранных кистей.");
                 return true;
             }
             if (!getPlayer().hasPermission(sniperTool.getCurrentBrush().getPermissionNode())) {
-                getPlayer().sendMessage("You are not allowed to use this brush. You're missing the permission node '" + sniperTool.getCurrentBrush().getPermissionNode() + "'");
+                getPlayer().sendMessage("Вам не разрешено использовать эту кисть. У вас нет разрешения '" + sniperTool.getCurrentBrush().getPermissionNode() + "'");
                 return true;
             }
 
@@ -305,7 +305,7 @@ public class Sniper {
                     targetBlock = clickedBlock;
                     lastBlock = clickedBlock.getRelative(clickedFace);
                     if (lastBlock == null || targetBlock == null) {
-                        getPlayer().sendMessage(ChatColor.RED + "Snipe target block must be visible.");
+                        getPlayer().sendMessage(ChatColor.RED + "Целевой блок должен быть видимым.");
                         return true;
                     }
                 } else {
@@ -314,7 +314,7 @@ public class Sniper {
                     lastBlock = rangeBlockHelper.getLastBlock();
 
                     if (targetBlock == null || lastBlock == null) {
-                        getPlayer().sendMessage(ChatColor.RED + "Snipe target block must be visible.");
+                        getPlayer().sendMessage(ChatColor.RED + "Целевой блок должен быть видимым.");
                         return true;
                     }
                 }
@@ -446,9 +446,9 @@ public class Sniper {
         String currentToolId = getCurrentToolId();
         SniperTool sniperTool = tools.get(currentToolId);
         IBrush brush = sniperTool.getCurrentBrush();
-        getPlayer().sendMessage("Current Tool: " + ((currentToolId != null) ? currentToolId : "Default Tool"));
+        getPlayer().sendMessage("Текущий инструмент: " + ((currentToolId != null) ? currentToolId : "Стандартный инструмент"));
         if (brush == null) {
-            getPlayer().sendMessage("No brush selected.");
+            getPlayer().sendMessage("Не выбрана кисть.");
             return;
         }
         brush.info(sniperTool.getMessageHelper());
@@ -525,11 +525,11 @@ public class Sniper {
         }
 
         public IBrush setCurrentBrush(Class<? extends IBrush> brush) {
-            Preconditions.checkNotNull(brush, "Can't set brush to null.");
+            Preconditions.checkNotNull(brush, "Не удается установить кисть в нуль.");
             IBrush brushInstance = brushes.get(brush);
             if (brushInstance == null) {
                 brushInstance = instantiateBrush(brush);
-                Preconditions.checkNotNull(brushInstance, "Could not instanciate brush class.");
+                Preconditions.checkNotNull(brushInstance, "Не удалось инициализировать класс кисти.");
                 if (snipeData.owner().getPlayer().hasPermission(brushInstance.getPermissionNode())) {
                     brushes.put(brush, brushInstance);
                     previousBrush = currentBrush;

@@ -32,13 +32,14 @@ public class Reload extends FaweCommand {
             case "version": {
                 FaweVersion version = Fawe.get().getVersion();
                 if (version == null) {
-                    MainUtil.sendMessage(player, "No version information available.");
+                    MainUtil.sendMessage(player, "Сведения о версии отсутствуют.");
                     return false;
                 }
                 Date date = new GregorianCalendar(2000 + version.year, version.month - 1, version.day).getTime();
-                MainUtil.sendMessage(player, "Version Date: " + date.toLocaleString());
-                MainUtil.sendMessage(player, "Version Commit: " + Integer.toHexString(version.hash));
-                MainUtil.sendMessage(player, "Version Build: #" + version.build);
+                MainUtil.sendMessage(player, "Дата версии: " + date.toLocaleString());
+                MainUtil.sendMessage(player, "Фиксация версии: " + Integer.toHexString(version.hash));
+                MainUtil.sendMessage(player, "Версия сборки: #" + version.build);
+                MainUtil.sendMessage(player, "Плагин перевел: DarkFort - vk.com/b_o_d_ik");
                 return true;
             }
             case "threads": {
@@ -52,7 +53,7 @@ public class Reload extends FaweCommand {
                     }
                 }
                 if (player != null) {
-                    player.sendMessage("&cSee console.");
+                    player.sendMessage("&cСм. консоль.");
                 }
                 return true;
             }
@@ -82,8 +83,8 @@ public class Reload extends FaweCommand {
                     try {
                         latestLOG = HastebinUtility.upload(new File(Fawe.imp().getDirectory(), "../../logs/latest.log"));
                     } catch (IOException ignored) {
-                        MainUtil.sendMessage(player, "&clatest.log is too big to be pasted, will ignore");
-                        latestLOG = "too big :(";
+                        MainUtil.sendMessage(player, "&clatest.log слишком большой, чтобы его можно было вставить, игнорирование");
+                        latestLOG = "слишком большой :(";
                     }
                     StringBuilder b = new StringBuilder();
                     b.append(
@@ -117,7 +118,7 @@ public class Reload extends FaweCommand {
             }
             case "reload": {
                 Fawe.get().setupConfigs();
-                MainUtil.sendMessage(player, "Reloaded (" + Fawe.get().getVersion() + ").");
+                MainUtil.sendMessage(player, "Перезагружено (" + Fawe.get().getVersion() + ").");
                 return true;
             }
             default:
