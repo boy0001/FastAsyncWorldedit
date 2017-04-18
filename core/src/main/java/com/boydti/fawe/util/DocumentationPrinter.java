@@ -75,7 +75,13 @@ public final class DocumentationPrinter {
                     "Command documentation will be consistent with what is available ingame");
             stream.println();
             stream.println();
-            stream.print("To view this information ingame use `//help`");
+            stream.print("To view this information ingame use `//help [category|command]`\n");
+            stream.print("## Command Syntax     \n");
+            stream.print(" - `<arg>` - A required parameter     \n");
+            stream.print(" - `[arg]` - An optional parameter     \n");
+            stream.print(" - `<arg1|arg2>` - Multiple parameters options     \n");
+            stream.print(" - `<arg=value>` - Default or suggested value     \n");
+            stream.print(" - `-a` - A command flag e.g. `//<command> -a [flag-value]`");
             stream.println();
             stream.print("## See also\n");
             stream.print(" - [Masks](https://github.com/boy0001/FastAsyncWorldedit/wiki/WorldEdit---FAWE-mask-list)\n");
@@ -148,7 +154,7 @@ public final class DocumentationPrinter {
             Command cmd = method.getAnnotation(Command.class);
             String[] aliases = cmd.aliases();
             String usage = prefix + aliases[0] + " " + cmd.usage();
-            if (cmd.anyFlags()) {
+            if (!cmd.flags().isEmpty()) {
                 for (char c : cmd.flags().toCharArray()) {
                     usage += " [-" + c + "]";
                 }
@@ -159,7 +165,8 @@ public final class DocumentationPrinter {
                 CommandPermissions perms = method.getAnnotation(CommandPermissions.class);
                 stream.append("**Perm**: `" + StringMan.join(perms.value(), "`, `") + "`    \n");
             }
-            stream.append("**Desc**: " + cmd.desc().trim().replaceAll("\n", "<br />") + "    \n");
+            String help = cmd.help() == null || cmd.help().isEmpty() ? cmd.desc() : cmd.help();
+            stream.append("**Desc**: " + help.trim().replaceAll("\n", "<br />") + "    \n");
 
             if (method.isAnnotationPresent(NestedCommand.class)) {
                 NestedCommand nested =
