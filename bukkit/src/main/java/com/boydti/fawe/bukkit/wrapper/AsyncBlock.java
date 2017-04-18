@@ -28,7 +28,7 @@ public class AsyncBlock implements Block {
         this.world = world;
         this.queue = queue;
         this.x = x;
-        this.y = y & 0xFF;
+        this.y = Math.max(0, Math.min(255, y));
         this.z = z;
     }
 
