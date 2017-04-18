@@ -126,7 +126,7 @@ public final class DocumentationPrinter {
 
     private static void writePermissionsWikiTable(PrintStream stream, StringBuilder content, String prefix, Class<?> cls) {
         String title = cls.getSimpleName().replaceAll("(\\p{Ll})(\\p{Lu})", "$1 $2");
-        stream.print(" - [`" + title + "`](#" + title.replaceAll(" ", "-") + "-) ");
+        stream.print(" - [`" + title + "`](#" + title.replaceAll(" ", "-").toLowerCase() + "-) ");
         Command cmd = cls.getAnnotation(Command.class);
         if (cmd != null) {
             stream.print(" (" + cmd.desc() + ")");
