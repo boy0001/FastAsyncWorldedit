@@ -19,8 +19,13 @@
 
 package com.sk89q.worldedit.function.entity;
 
+import com.boydti.fawe.util.ReflectionUtils;
+import com.sk89q.jnbt.ByteTag;
 import com.sk89q.jnbt.CompoundTag;
-import com.sk89q.jnbt.CompoundTagBuilder;
+import com.sk89q.jnbt.FloatTag;
+import com.sk89q.jnbt.IntTag;
+import com.sk89q.jnbt.ListTag;
+import com.sk89q.jnbt.Tag;
 import com.sk89q.worldedit.Vector;
 import com.sk89q.worldedit.WorldEditException;
 import com.sk89q.worldedit.entity.BaseEntity;
@@ -32,6 +37,8 @@ import com.sk89q.worldedit.math.transform.Transform;
 import com.sk89q.worldedit.util.Direction;
 import com.sk89q.worldedit.util.Direction.Flag;
 import com.sk89q.worldedit.util.Location;
+import java.util.Arrays;
+import java.util.Map;
 
 
 import static com.google.common.base.Preconditions.checkNotNull;
@@ -126,36 +133,63 @@ public class ExtentEntityCopy implements EntityFunction {
      */
     private BaseEntity transformNbtData(BaseEntity state) {
         CompoundTag tag = state.getNbtData();
-
         if (tag != null) {
             // Handle hanging entities (paintings, item frames, etc.)
+
+            tag = tag.createBuilder().build();
+
+            Map<String, Tag> values = ReflectionUtils.getMap(tag.getValue());
+
             boolean hasTilePosition = tag.containsKey("TileX") && tag.containsKey("TileY") && tag.containsKey("TileZ");
             boolean hasDirection = tag.containsKey("Direction");
             boolean hasLegacyDirection = tag.containsKey("Dir");
+            boolean hasFacing = tag.containsKey("Facing");
 
             if (hasTilePosition) {
                 Vector tilePosition = new Vector(tag.asInt("TileX"), tag.asInt("TileY"), tag.asInt("TileZ"));
                 Vector newTilePosition = transform.apply(tilePosition.subtract(from)).add(to);
 
-                CompoundTagBuilder builder = tag.createBuilder()
-                        .putInt("TileX", newTilePosition.getBlockX())
-                        .putInt("TileY", newTilePosition.getBlockY())
-                        .putInt("TileZ", newTilePosition.getBlockZ());
+                values.put("TileX", new IntTag(newTilePosition.getBlockX()));
+                values.put("TileY", new IntTag(newTilePosition.getBlockY()));
+                values.put("TileZ", new IntTag(newTilePosition.getBlockZ()));
 
-                if (hasDirection || hasLegacyDirection) {
-                    int d = hasDirection ? tag.asInt("Direction") : MCDirections.fromLegacyHanging((byte) tag.asInt("Dir"));
+                if (hasDirection || hasLegacyDirection || hasFacing) {
+                    int d;
+                    if (hasDirection) {
+                        d = tag.asInt("Direction");
+                    } else if (hasLegacyDirection) {
+                        d = MCDirections.fromLegacyHanging((byte) tag.asInt("Dir"));
+                    } else {
+                        d = tag.asInt("Facing");
+                    }
+
                     Direction direction = MCDirections.fromHanging(d);
 
                     if (direction != null) {
-                        Vector vector = new Vector(transform.apply(direction.toVector())).subtract(transform.apply(Vector.ZERO)).normalize();
+                        Vector vector = transform.apply(direction.toVector()).subtract(transform.apply(Vector.ZERO)).normalize();
                         Direction newDirection = Direction.findClosest(vector, Flag.CARDINAL);
 
-                        builder.putByte("Direction", (byte) MCDirections.toHanging(newDirection));
-                        builder.putByte("Dir", MCDirections.toLegacyHanging(MCDirections.toHanging(newDirection)));
+                        if (newDirection != null) {
+                            byte hangingByte = (byte) MCDirections.toHanging(newDirection);
+                            values.put("Direction", new ByteTag(hangingByte));
+                            values.put("Facing", new ByteTag(hangingByte));
+                            values.put("Dir", new ByteTag(MCDirections.toLegacyHanging(MCDirections.toHanging(newDirection))));
+                        }
                     }
                 }
+            }
 
-                return new BaseEntity(state.getTypeId(), builder.build());
+            ListTag rotation = tag.getListTag("Rotation");
+            if (rotation != null) {
+                double yaw = Math.toRadians(rotation.getFloat(0));
+                double pitch = Math.toRadians(rotation.getFloat(1));
+
+                double xz = Math.cos(pitch);
+                Vector direction = new Vector(-xz * Math.sin(yaw), -Math.sin(pitch), xz * Math.cos(yaw));
+                direction = transform.apply(direction);
+                FloatTag yawTag = new FloatTag(direction.toYaw());
+                FloatTag pitchTag = new FloatTag(direction.toPitch());
+                values.put("Rotation", new ListTag(FloatTag.class, Arrays.asList(yawTag, pitchTag)));
             }
         }
 
