@@ -1,5 +1,6 @@
 package com.boydti.fawe.object.brush;
 
+import com.boydti.fawe.FaweCache;
 import com.boydti.fawe.object.PseudoRandom;
 import com.boydti.fawe.object.collection.BlockVectorSet;
 import com.boydti.fawe.object.collection.LocalBlockVectorSet;
@@ -46,6 +47,11 @@ public class ScatterBrush implements Brush {
             this.mask = Masks.alwaysTrue();
         }
         this.adjacent = new AdjacentAnyMask(editSession, Arrays.asList(new BaseBlock(0)));
+        for (int id = 0; id < 256; id++) {
+            if (FaweCache.canPassThrough(id, 0)) {
+                adjacent.add(new BaseBlock(id, -1));
+            }
+        }
         final SolidBlockMask solid = new SolidBlockMask(editSession);
         final RadiusMask radius = new RadiusMask(0, (int) size);
 
@@ -57,6 +63,10 @@ public class ScatterBrush implements Brush {
         Operations.completeBlindly(visitor);
         BlockVectorSet visited = visitor.getVisited();
         int length = visited.size();
+        if (size == 0) {
+            length = 1;
+            visited.add(position);
+        }
 
         LocalBlockVectorSet placed = new LocalBlockVectorSet();
         int maxFails = 1000;

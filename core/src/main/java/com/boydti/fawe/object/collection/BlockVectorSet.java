@@ -52,7 +52,7 @@ public class BlockVectorSet extends AbstractCollection<Vector> implements Set<Ve
                     return pos;
                 }
             }
-            count = newSize;
+            count += newSize;
         }
         return null;
     }

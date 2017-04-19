@@ -38,25 +38,29 @@ public class MCAQueueMap implements IFaweQueueMap {
     private int lastX = Integer.MIN_VALUE;
     private int lastZ = Integer.MIN_VALUE;
 
-    public MCAFile getMCAFile(int cx, int cz) {
+    public synchronized MCAFile getMCAFile(int cx, int cz) {
         int mcaX = cx >> 5;
         int mcaZ = cz >> 5;
         if (mcaX == lastFileX && mcaZ == lastFileZ) {
             return lastFile;
         }
         long pair = MathMan.pairInt(lastFileX = mcaX, lastFileZ = mcaZ);
-        lastFile = mcaFileMap.get(pair);
+        MCAFile tmp;
+        lastFile = tmp = mcaFileMap.get(pair);
         if (lastFile == null) {
             try {
-                lastFile = new MCAFile(queue, lastFileX, lastFileZ);
+                lastFile = tmp = new MCAFile(queue, lastFileX, lastFileZ);
             } catch (FaweException.FaweChunkLoadException ignore) {
+                lastFile = null;
+                return null;
             } catch (Exception e) {
                 e.printStackTrace();
-                return lastFile = null;
+                lastFile = null;
+                return null;
             }
-            mcaFileMap.put(pair, lastFile);
+            mcaFileMap.put(pair, tmp);
         }
-        return lastFile;
+        return tmp;
     }
 
     @Override

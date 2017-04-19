@@ -107,6 +107,16 @@ public class MCAQueue extends NMSMappedFaweQueue<FaweQueue, FaweChunk, FaweChunk
                 }
                 MCAFile mcaFile = new MCAFile(null, file);
                 mcaFile.init();
+
+                final long heapSize = Runtime.getRuntime().totalMemory();
+                final long heapMaxSize = Runtime.getRuntime().maxMemory();
+                int free = (int) (((heapMaxSize - heapSize) + Runtime.getRuntime().freeMemory()) / (1024 * 1024));
+
+//                int obcx = bcx - oCX;
+//                int obcz = bcz - oCX;
+//                int otcx = tcx - oCX;
+//                int otcz = tcz - oCX;
+
                 for (int cz = bcz; cz <= tcz; cz++) {
                     for (int cx = bcx; cx <= tcx; cx++) {
                         int bx = cx << 4;
@@ -149,12 +159,15 @@ public class MCAQueue extends NMSMappedFaweQueue<FaweQueue, FaweChunk, FaweChunk
                         int otherTCX = (otx) >> 4;
                         int otherTCZ = (otz) >> 4;
                         MCAChunk newChunk = mcaFile.getChunk(cx, cz);
+                        boolean created;
                         if (newChunk == null) {
                             newChunk = new MCAChunk(this, cx, cz);
-                            mcaFile.setChunk(newChunk);
+                            created = true;
                         } else {
+                            created = false;
                             newChunk.setModified();
                         }
+                        boolean modified = false;
                         int cbx = (cx << 4) - oX;
                         int cbz = (cz << 4) - oZ;
                         for (int otherCZ = otherBCZ; otherCZ <= otherTCZ; otherCZ++) {
@@ -176,11 +189,17 @@ public class MCAQueue extends NMSMappedFaweQueue<FaweQueue, FaweChunk, FaweChunk
                                     int offsetX = ocbx - cbx;
                                     int offsetZ = ocbz - cbz;
                                     newChunk.copyFrom(other, minX, maxX, minY, maxY, minZ, maxZ, offsetX, offsetY, offsetZ);
+                                    newChunk.setModified();
+                                    modified = true;
                                 }
                             }
                         }
+                        if (created && modified) {
+                            mcaFile.setChunk(newChunk);
+                        }
                     }
                 }
+                pool.awaitQuiescence(Long.MAX_VALUE, TimeUnit.MILLISECONDS);
                 mcaFile.close(pool);
                 from.clear();
             }
@@ -350,7 +369,6 @@ public class MCAQueue extends NMSMappedFaweQueue<FaweQueue, FaweChunk, FaweChunk
                             });
                             pool.awaitQuiescence(Long.MAX_VALUE, TimeUnit.MILLISECONDS);
                             original.close(pool);
-                            pool.shutdown();
                             if (original != finalFile) finalFile.close(pool);
                         } else if (mcaFile.isDeleted()) {
                             try {

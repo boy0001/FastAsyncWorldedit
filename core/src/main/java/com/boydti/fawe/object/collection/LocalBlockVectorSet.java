@@ -106,7 +106,7 @@ public class LocalBlockVectorSet implements Set<Vector> {
             return null;
         }
         int index = -1;
-        for (int i = 0; i < getIndex; i++) {
+        for (int i = 0; i <= getIndex; i++) {
             index = set.nextSetBit(index + 1);
         }
         if (index != -1) {
