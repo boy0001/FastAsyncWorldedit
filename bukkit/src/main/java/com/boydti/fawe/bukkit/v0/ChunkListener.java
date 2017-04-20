@@ -3,12 +3,10 @@ package com.boydti.fawe.bukkit.v0;
 import com.boydti.fawe.Fawe;
 import com.boydti.fawe.bukkit.FaweBukkit;
 import com.boydti.fawe.config.Settings;
-import com.boydti.fawe.object.IntegerTrio;
 import com.boydti.fawe.util.MathMan;
 import com.boydti.fawe.util.TaskManager;
 import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
 import java.util.HashSet;
-import java.util.Map;
 import org.bukkit.Bukkit;
 import org.bukkit.Chunk;
 import org.bukkit.Location;
@@ -39,7 +37,7 @@ public class ChunkListener implements Listener {
                     counter.clear();
                     lastZ = Integer.MIN_VALUE;
                     for (Long badChunk : badChunks) {
-                        counter.put(badChunk, new IntegerTrio(Settings.IMP.TICK_LIMITER.PHYSICS, Settings.IMP.TICK_LIMITER.ITEMS, Settings.IMP.TICK_LIMITER.FALLING));
+                        counter.put(badChunk, new int[]{Settings.IMP.TICK_LIMITER.PHYSICS, Settings.IMP.TICK_LIMITER.ITEMS, Settings.IMP.TICK_LIMITER.FALLING});
                     }
                     badChunks.clear();
                 }
@@ -51,20 +49,20 @@ public class ChunkListener implements Listener {
     public static boolean itemFreeze = false;
 
     private HashSet<Long> badChunks = new HashSet<>();
-    private Map<Long, IntegerTrio> counter = new Long2ObjectOpenHashMap<>();
+    private Long2ObjectOpenHashMap<int[]> counter = new Long2ObjectOpenHashMap<>();
     private int lastX = Integer.MIN_VALUE, lastZ = Integer.MIN_VALUE;
-    private IntegerTrio lastCount;
+    private int[] lastCount;
 
-    public IntegerTrio getCount(int cx, int cz) {
+    public int[] getCount(int cx, int cz) {
         if (lastX == cx && lastZ == cz) {
             return lastCount;
         }
         lastX = cx;
         lastZ = cz;
         long pair = MathMan.pairInt(cx, cz);
-        IntegerTrio tmp = lastCount = counter.get(pair);
+        int[] tmp = lastCount = counter.get(pair);
         if (tmp == null) {
-            lastCount = tmp =  new IntegerTrio();
+            lastCount = tmp =  new int[3];
             counter.put(pair, tmp);
         }
         return tmp;
@@ -92,16 +90,16 @@ public class ChunkListener implements Listener {
         int z = block.getZ();
         int cx = x >> 4;
         int cz = z >> 4;
-        IntegerTrio count = getCount(cx, cz);
-        if (count.x >= Settings.IMP.TICK_LIMITER.PHYSICS) {
+        int[] count = getCount(cx, cz);
+        if (count[0] >= Settings.IMP.TICK_LIMITER.PHYSICS) {
             event.setCancelled(true);
             return;
         }
-        if (event.getChangedType() == block.getType()) {
+        if (event.getChangedTypeId() == block.getTypeId()) {
             int y = block.getY();
             if (y != lastPhysY) {
                 lastPhysY = y;
-                if (++count.x == Settings.IMP.TICK_LIMITER.PHYSICS) {
+                if (++count[0] == Settings.IMP.TICK_LIMITER.PHYSICS) {
                     badChunks.add(MathMan.pairInt(cx, cz));
                     if (rateLimit <= 0) {
                         rateLimit = 120;
@@ -127,10 +125,10 @@ public class ChunkListener implements Listener {
             int z = block.getZ();
             int cx = x >> 4;
             int cz = z >> 4;
-            IntegerTrio count = getCount(cx, cz);
-            if (++count.y >= Settings.IMP.TICK_LIMITER.FALLING) {
-                if (count.y == Settings.IMP.TICK_LIMITER.FALLING) {
-                    count.x = Settings.IMP.TICK_LIMITER.PHYSICS;
+            int[] count = getCount(cx, cz);
+            if (++count[1] >= Settings.IMP.TICK_LIMITER.FALLING) {
+                if (count[1] == Settings.IMP.TICK_LIMITER.FALLING) {
+                    count[0] = Settings.IMP.TICK_LIMITER.PHYSICS;
                     badChunks.add(MathMan.pairInt(cx, cz));
                     Fawe.debug("[FAWE `tick-limiter`] Detected and cancelled falling block lag source at " + block.getLocation());
                 }
@@ -149,10 +147,10 @@ public class ChunkListener implements Listener {
         Location loc = event.getLocation();
         int cx = loc.getBlockX() >> 4;
         int cz = loc.getBlockZ() >> 4;
-        IntegerTrio count = getCount(cx, cz);
-        if (++count.z >= Settings.IMP.TICK_LIMITER.ITEMS) {
-            if (count.z == Settings.IMP.TICK_LIMITER.ITEMS) {
-                count.x = Settings.IMP.TICK_LIMITER.PHYSICS;
+        int[] count = getCount(cx, cz);
+        if (++count[2] >= Settings.IMP.TICK_LIMITER.ITEMS) {
+            if (count[2] == Settings.IMP.TICK_LIMITER.ITEMS) {
+                count[0] = Settings.IMP.TICK_LIMITER.PHYSICS;
                 cleanup(loc.getChunk());
                 badChunks.add(MathMan.pairInt(cx, cz));
                 if (rateLimit <= 0) {

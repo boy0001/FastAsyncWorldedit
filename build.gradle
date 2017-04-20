@@ -24,7 +24,15 @@ def buildNumber = ""
 def semver = ""
 def date = ""
 ext {
+<<<<<<< HEAD
     index = -88;  // Offset to mach CI
+=======
+    git = org.ajoberstar.grgit.Grgit.open(file(".git"))
+    date = git.head().date.format("yy.MM.dd")
+    revision = "-${git.head().abbreviatedId}"
+    parents = git.head().parentIds;
+    index = -90;  // Offset to mach CI
+>>>>>>> refs/remotes/boy0001/master
     int major, minor, patch;
     major = minor = patch = 0;
     buildNumber = "-${index}"
