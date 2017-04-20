@@ -1471,63 +1471,63 @@ public class EditSession extends AbstractWorld implements HasFaweQueue, Lighting
         return this.changes = visitor.getAffected();
     }
 
-    public int fillDirection(final Vector origin, PlayerDirection direction, final Pattern pattern, final double radius, final int depth, final boolean recursive) throws MaxChangedBlocksException {
-        checkNotNull(origin);
-        checkNotNull(pattern);
-        checkArgument(radius >= 0, "radius >= 0");
-        checkArgument(depth >= 1, "depth >= 1");
-
-        Vector dirVec = direction.vector();
-        BlockVector min = origin.toBlockVector();
-        BlockVector max = origin.toBlockVector();
-
-        CuboidRegion cuboid = new CuboidRegion(new Vector(), new Vector());
-        switch (direction) {
-            case NORTH:
-                break;
-            case NORTH_EAST:
-                break;
-            case EAST:
-                break;
-            case SOUTH_EAST:
-                break;
-            case SOUTH:
-                break;
-            case SOUTH_WEST:
-                break;
-            case WEST:
-                break;
-            case NORTH_WEST:
-                break;
-            case UP:
-                break;
-            case DOWN:
-                break;
-        }
-
-
-
-        final MaskIntersection mask = new MaskIntersection(new RegionMask(new EllipsoidRegion(null, origin, new Vector(radius, radius, radius))), new BoundedHeightMask(Math.max(
-                (origin.getBlockY() - depth) + 1, 0), Math.min(EditSession.this.getMaximumPoint().getBlockY(), origin.getBlockY())), Masks.negate(new ExistingBlockMask(EditSession.this)));
-
-        // Want to replace blocks
-        final BlockReplace replace = new BlockReplace(EditSession.this, pattern);
-
-        // Pick how we're going to visit blocks
-        RecursiveVisitor visitor;
-        if (recursive) {
-            visitor = new RecursiveVisitor(mask, replace, (int) (radius * 2 + 1), this);
-        } else {
-            visitor = new DownwardVisitor(mask, replace, origin.getBlockY(), (int) (radius * 2 + 1), this);
-        }
-
-        // Start at the origin
-        visitor.visit(origin);
-
-        // Execute
-        Operations.completeBlindly(visitor);
-        return this.changes = visitor.getAffected();
-    }
+//    public int fillDirection(final Vector origin, PlayerDirection direction, final Pattern pattern, final double radius, final int depth, final boolean recursive) throws MaxChangedBlocksException {
+//        checkNotNull(origin);
+//        checkNotNull(pattern);
+//        checkArgument(radius >= 0, "radius >= 0");
+//        checkArgument(depth >= 1, "depth >= 1");
+//
+//        Vector dirVec = direction.vector();
+//        BlockVector min = origin.toBlockVector();
+//        BlockVector max = origin.toBlockVector();
+//
+//        CuboidRegion cuboid = new CuboidRegion(new Vector(), new Vector());
+//        switch (direction) {
+//            case NORTH:
+//                break;
+//            case NORTH_EAST:
+//                break;
+//            case EAST:
+//                break;
+//            case SOUTH_EAST:
+//                break;
+//            case SOUTH:
+//                break;
+//            case SOUTH_WEST:
+//                break;
+//            case WEST:
+//                break;
+//            case NORTH_WEST:
+//                break;
+//            case UP:
+//                break;
+//            case DOWN:
+//                break;
+//        }
+//
+//
+//
+//        final MaskIntersection mask = new MaskIntersection(new RegionMask(new EllipsoidRegion(null, origin, new Vector(radius, radius, radius))), new BoundedHeightMask(Math.max(
+//                (origin.getBlockY() - depth) + 1, 0), Math.min(EditSession.this.getMaximumPoint().getBlockY(), origin.getBlockY())), Masks.negate(new ExistingBlockMask(EditSession.this)));
+//
+//        // Want to replace blocks
+//        final BlockReplace replace = new BlockReplace(EditSession.this, pattern);
+//
+//        // Pick how we're going to visit blocks
+//        RecursiveVisitor visitor;
+//        if (recursive) {
+//            visitor = new RecursiveVisitor(mask, replace, (int) (radius * 2 + 1), this);
+//        } else {
+//            visitor = new DownwardVisitor(mask, replace, origin.getBlockY(), (int) (radius * 2 + 1), this);
+//        }
+//
+//        // Start at the origin
+//        visitor.visit(origin);
+//
+//        // Execute
+//        Operations.completeBlindly(visitor);
+//        return this.changes = visitor.getAffected();
+//    }
 
     /**
      * Remove a cuboid above the given position with a given apothem and a given height.
@@ -2141,7 +2141,7 @@ public class EditSession extends AbstractWorld implements HasFaweQueue, Lighting
         }
 
         Operations.completeBlindly(visitor);
-        return visitor.getAffected();
+        return getBlockChangeCount();
     }
 
     /**
