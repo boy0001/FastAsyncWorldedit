@@ -256,23 +256,27 @@ public class ForgeChunk_All extends CharFaweChunk<Chunk, ForgeQueue_All> {
                 getParent().getChangeTask().run(previous, this);
             }
             // Trim tiles
-            Set<Map.Entry<BlockPos, TileEntity>> entryset = tiles.entrySet();
-            Iterator<Map.Entry<BlockPos, TileEntity>> iterator = entryset.iterator();
-            while (iterator.hasNext()) {
-                Map.Entry<BlockPos, TileEntity> tile = iterator.next();
-                BlockPos pos = tile.getKey();
-                int lx = pos.getX() & 15;
-                int ly = pos.getY();
-                int lz = pos.getZ() & 15;
-                int j = FaweCache.CACHE_I[ly][lz][lx];
-                char[] array = this.getIdArray(j);
-                if (array == null) {
-                    continue;
-                }
-                int k = FaweCache.CACHE_J[ly][lz][lx];
-                if (array[k] != 0) {
-                    tile.getValue().invalidate();;
-                    iterator.remove();
+            if (!tiles.isEmpty()) {
+                Set<Map.Entry<BlockPos, TileEntity>> entryset = tiles.entrySet();
+                Iterator<Map.Entry<BlockPos, TileEntity>> iterator = entryset.iterator();
+                while (iterator.hasNext()) {
+                    Map.Entry<BlockPos, TileEntity> tile = iterator.next();
+                    BlockPos pos = tile.getKey();
+                    int lx = pos.getX() & 15;
+                    int ly = pos.getY();
+                    int lz = pos.getZ() & 15;
+                    int j = FaweCache.CACHE_I[ly][lz][lx];
+                    char[] array = this.getIdArray(j);
+                    if (array == null) {
+                        continue;
+                    }
+                    int k = FaweCache.CACHE_J[ly][lz][lx];
+                    if (array[k] != 0) {
+                        synchronized (ForgeChunk_All.class) {
+                            tile.getValue().invalidate();
+                            iterator.remove();
+                        }
+                    }
                 }
             }
             // Efficiently merge sections
