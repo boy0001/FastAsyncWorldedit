@@ -359,7 +359,7 @@ public class PlatformManager {
                 if (event.getType() == Interaction.HIT) {
                     if (session.isToolControlEnabled() && playerActor.getItemInHand() == getConfiguration().wandItem) {
                         FawePlayer<?> fp = FawePlayer.wrap(playerActor);
-                        if (!fp.hasPermission("worldedit.selection.pos")) {
+                        if (!actor.hasPermission("worldedit.selection.pos")) {
                             return;
                         }
                         final RegionSelector selector = session.getRegionSelector(playerActor.getWorld());
@@ -408,7 +408,7 @@ public class PlatformManager {
                 } else if (event.getType() == Interaction.OPEN) {
                     if (session.isToolControlEnabled() && playerActor.getItemInHand() == getConfiguration().wandItem) {
                         FawePlayer<?> fp = FawePlayer.wrap(playerActor);
-                        if (!fp.hasPermission("worldedit.selection.pos")) {
+                        if (!actor.hasPermission("worldedit.selection.pos")) {
                             return;
                         }
                         final RegionSelector selector = session.getRegionSelector(playerActor.getWorld());
