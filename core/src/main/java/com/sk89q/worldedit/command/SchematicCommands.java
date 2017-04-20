@@ -53,6 +53,7 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.URI;
 import java.net.URL;
 import java.nio.channels.Channels;
 import java.nio.channels.ReadableByteChannel;
@@ -322,8 +323,9 @@ public class SchematicCommands {
     @Command(
             aliases = {"list", "all", "ls"},
             desc = "List saved schematics",
+            usage = "[mine|<filter>] [page=1]",
             min = 0,
-            max = 2,
+            max = -1,
             flags = "dnp",
             help = "List all schematics in the schematics directory\n" +
                     " -d sorts by date, oldest first\n" +
@@ -334,25 +336,47 @@ public class SchematicCommands {
     public void list(Actor actor, CommandContext args, @Switch('p') @Optional("1") int page) throws WorldEditException {
         File dir = worldEdit.getWorkingDirectoryFile(worldEdit.getConfiguration().saveDir);
         List<File> fileList = new ArrayList<>();
+        int len = args.argsLength();
+        List<String> filters = new ArrayList<>();
+        boolean mine = false;
+        if (len > 0) {
+            int max = len;
+            if (MathMan.isInteger(args.getString(len - 1))) {
+                page = args.getInteger(--len);
+            }
+            for (int i = 0; i < len; i++) {
+                switch (args.getString(i).toLowerCase()) {
+                    case "mine":
+                        mine = true;
+                        break;
+                    default:
+                        filters.add(args.getString(i));
+                        break;
+                }
+            }
+        }
         if (Settings.IMP.PATHS.PER_PLAYER_SCHEMATICS) {
             File playerDir = new File(dir, actor.getUniqueId().toString());
             if (playerDir.exists()) {
                 fileList.addAll(allFiles(playerDir, true));
             }
-            fileList.addAll(allFiles(dir, false));
+            if (!mine) {
+                fileList.addAll(allFiles(dir, false));
+            }
         } else {
             fileList.addAll(allFiles(dir, true));
+        }
+        if (!filters.isEmpty()) {
+            for (String filter : filters) {
+                fileList.removeIf(file -> !file.getPath().contains(filter));
+            }
         }
         if (fileList.isEmpty()) {
             BBC.SCHEMATIC_NONE.send(actor);
             return;
         }
-
         File[] files = new File[fileList.size()];
         fileList.toArray(files);
-        if (args.argsLength() > 0 && MathMan.isInteger(args.getString(0))) {
-            page = args.getInteger(0);
-        }
         int pageCount = files.length / SCHEMATICS_PER_PAGE + 1;
         if (page < 1) {
             BBC.SCHEMATIC_PAGE.send(actor, ">0");
@@ -384,7 +408,7 @@ public class SchematicCommands {
             }
         });
 
-        List<String> schematics = listFiles(worldEdit.getConfiguration().saveDir, files);
+        List<String> schematics = listFiles(files, worldEdit.getConfiguration().saveDir, Settings.IMP.PATHS.PER_PLAYER_SCHEMATICS ? actor.getUniqueId() : null);
         int offset = (page - 1) * SCHEMATICS_PER_PAGE;
 
         BBC.SCHEMATIC_LIST.send(actor, page, pageCount);
@@ -417,22 +441,36 @@ public class SchematicCommands {
         return fileList;
     }
 
-    private List<String> listFiles(String prefix, File[] files) {
-        File dir = worldEdit.getWorkingDirectoryFile(prefix);
+    private List<String> listFiles(File[] files, String prefix, UUID uuid) {
         if (prefix == null) prefix = "";
+        File root = worldEdit.getWorkingDirectoryFile(prefix);
+        File dir;
+        if (uuid != null) {
+            dir = new File(root, uuid.toString());
+        } else {
+            dir = root;
+        }
         List<String> result = new ArrayList<String>();
         for (File file : files) {
             StringBuilder build = new StringBuilder();
 
             build.append("\u00a72");
             ClipboardFormat format = ClipboardFormat.findByFile(file);
-            boolean inRoot = file.getParentFile().getName().equals(prefix);
-            if (inRoot) {
-                build.append(file.getName());
-            } else {
-                String relative = dir.toURI().relativize(file.toURI()).getPath();
-                build.append(relative);
+//            boolean inRoot = file.getParentFile().getName().equals(prefix);
+//            if (inRoot) {
+//                build.append(file.getName());
+//            } else {
+//                String relative = dir.toURI().relativize(file.toURI()).getPath();
+//                build.append(relative);
+//            }
+            URI relative = dir.toURI().relativize(file.toURI());
+            String name = "";
+            if (relative.isAbsolute()) {
+                relative = root.toURI().relativize(file.toURI());
+                name += "../";
             }
+            name += relative.getPath();
+            build.append(name);
             build.append(": ").append(format == null ? "Unknown" : format.name());
             result.add(build.toString());
         }
