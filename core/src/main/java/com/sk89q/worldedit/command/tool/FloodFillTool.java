@@ -79,6 +79,7 @@ public class FloodFillTool implements BlockTool {
         } catch (WorldEditException e) {
             throw new RuntimeException(e);
         }
+        editSession.flushQueue();
         return true;
     }
 
