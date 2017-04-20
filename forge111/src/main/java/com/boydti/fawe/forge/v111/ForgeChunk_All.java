@@ -74,11 +74,11 @@ public class ForgeChunk_All extends CharFaweChunk<Chunk, ForgeQueue_All> {
         if (sectionPalettes != null) {
             copy.sectionPalettes = new BlockStateContainer[16];
             try {
-                Field fieldBits = BlockStateContainer.class.getDeclaredField("storage");
+                Field fieldBits = BlockStateContainer.class.getDeclaredField("field_186021_b");
                 fieldBits.setAccessible(true);
-                Field fieldPalette = BlockStateContainer.class.getDeclaredField("palette");
+                Field fieldPalette = BlockStateContainer.class.getDeclaredField("field_186022_c");
                 fieldPalette.setAccessible(true);
-                Field fieldSize = BlockStateContainer.class.getDeclaredField("bits");
+                Field fieldSize = BlockStateContainer.class.getDeclaredField("field_186024_e");
                 fieldSize.setAccessible(true);
                 for (int i = 0; i < sectionPalettes.length; i++) {
                     BlockStateContainer current = sectionPalettes[i];
