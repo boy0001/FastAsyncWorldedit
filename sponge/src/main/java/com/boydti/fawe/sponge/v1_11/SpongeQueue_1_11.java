@@ -254,7 +254,7 @@ public class SpongeQueue_1_11 extends NMSMappedFaweQueue<World, net.minecraft.wo
         try {
             NBTTagCompound tag = new NBTTagCompound();
             tile.writeToNBT(tag); // readTagIntoEntity
-            CompoundTag result = (CompoundTag) methodToNative.invoke(null, tag);
+            CompoundTag result = (CompoundTag) methodToNative.invoke(SpongeQueue_1_11.adapter, tag);
             return result;
         } catch (Exception e) {
             MainUtil.handleError(e);
