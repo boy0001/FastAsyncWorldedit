@@ -16,6 +16,7 @@ import com.boydti.fawe.object.brush.visualization.VisualMode;
 import com.boydti.fawe.object.extent.ResettableExtent;
 import com.boydti.fawe.object.pattern.PatternTraverser;
 import com.boydti.fawe.util.EditSessionBuilder;
+import com.sk89q.worldedit.BlockWorldVector;
 import com.sk89q.worldedit.EditSession;
 import com.sk89q.worldedit.LocalConfiguration;
 import com.sk89q.worldedit.LocalSession;
@@ -280,7 +281,11 @@ public class BrushTool implements DoubleActionTraceTool, ScrollTool, MovableTool
 
     private Vector trace(Player player, int range, boolean useLastBlock) {
         TargetBlock tb = new TargetBlock(player, range, 0.2);
-        return (useLastBlock ? tb.getSolidTargetBlock() : tb.getTargetBlock());
+        BlockWorldVector result = tb.getSolidTargetBlock();
+        if (result == null && useLastBlock) {
+            result = tb.getPreviousBlock();
+        }
+        return result;
     }
 
     public boolean act(BrushAction action, Platform server, LocalConfiguration config, Player player, LocalSession session) {
