@@ -2,6 +2,10 @@ dependencies {
     compile project(':bukkit')
 }
 
+compileJava {
+  options.encoding = "UTF-8"
+}
+
 processResources {
     from('src/main/resources') {
         include 'plugin.yml'
