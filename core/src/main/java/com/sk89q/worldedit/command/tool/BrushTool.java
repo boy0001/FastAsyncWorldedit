@@ -16,6 +16,7 @@ import com.boydti.fawe.object.brush.visualization.VisualMode;
 import com.boydti.fawe.object.extent.ResettableExtent;
 import com.boydti.fawe.object.pattern.PatternTraverser;
 import com.boydti.fawe.util.EditSessionBuilder;
+import com.sk89q.worldedit.BlockWorldVector;
 import com.sk89q.worldedit.EditSession;
 import com.sk89q.worldedit.LocalConfiguration;
 import com.sk89q.worldedit.LocalSession;
@@ -34,6 +35,7 @@ import com.sk89q.worldedit.function.mask.MaskIntersection;
 import com.sk89q.worldedit.function.pattern.Pattern;
 import com.sk89q.worldedit.session.request.Request;
 import com.sk89q.worldedit.util.Location;
+import com.sk89q.worldedit.util.TargetBlock;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 import javax.annotation.Nullable;
@@ -244,7 +246,7 @@ public class BrushTool implements DoubleActionTraceTool, ScrollTool, MovableTool
     public Vector getPosition(EditSession editSession, Player player) {
         switch (targetMode) {
             case TARGET_BLOCK_RANGE:
-                return new MutableBlockVector(player.getBlockTrace(getRange(), true));
+                return new MutableBlockVector(trace(player, getRange(), true));
             case FOWARD_POINT_PITCH: {
                 int d = 0;
                 Location loc = player.getLocation();
@@ -268,13 +270,22 @@ public class BrushTool implements DoubleActionTraceTool, ScrollTool, MovableTool
                     }
                 }
                 final int distance = (height - y) + 8;
-                return new MutableBlockVector(player.getBlockTrace(distance, true));
+                return new MutableBlockVector(trace(player, distance, true));
             }
             case TARGET_FACE_RANGE:
-                return new MutableBlockVector(player.getBlockTraceFace(getRange(), true));
+                return new MutableBlockVector(trace(player, getRange(), true));
             default:
                 return null;
         }
+    }
+
+    private Vector trace(Player player, int range, boolean useLastBlock) {
+        TargetBlock tb = new TargetBlock(player, range, 0.2);
+        BlockWorldVector result = tb.getSolidTargetBlock();
+        if (result == null && useLastBlock) {
+            result = tb.getPreviousBlock();
+        }
+        return result;
     }
 
     public boolean act(BrushAction action, Platform server, LocalConfiguration config, Player player, LocalSession session) {

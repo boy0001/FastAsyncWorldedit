@@ -2,7 +2,6 @@ package com.boydti.fawe.object.brush;
 
 import com.boydti.fawe.object.PseudoRandom;
 import com.boydti.fawe.object.brush.heightmap.HeightMap;
-import com.boydti.fawe.object.brush.heightmap.ScalableHeightMap;
 import com.boydti.fawe.object.mask.AdjacentAnyMask;
 import com.sk89q.worldedit.EditSession;
 import com.sk89q.worldedit.MaxChangedBlocksException;
@@ -18,14 +17,13 @@ import com.sk89q.worldedit.function.pattern.Pattern;
 import com.sk89q.worldedit.function.visitor.RecursiveVisitor;
 import com.sk89q.worldedit.regions.CuboidRegion;
 import java.io.InputStream;
-import java.net.URL;
 import java.util.Arrays;
 
 public class StencilBrush extends HeightBrush {
     private final boolean onlyWhite;
 
     public StencilBrush(InputStream stream, int rotation, double yscale, boolean onlyWhite, Clipboard clipboard) {
-        super(stream, rotation, yscale, false, clipboard);
+        super(stream, rotation, yscale, false, true, clipboard);
         this.onlyWhite = onlyWhite;
     }
 

@@ -79,7 +79,7 @@ public class HeightMap {
                 int x = pos.getBlockX();
                 int z = pos.getBlockZ();
                 y = session.getNearestSurfaceLayer(x, z, y, 0, maxY);
-                data[(z - bz) * width + (x - bx)] = 7 + (y << 3);
+                data[(z - bz) * width + (x - bx)] = y;
             }
         } else {
             // Store current heightmap data
