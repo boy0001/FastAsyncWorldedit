@@ -105,6 +105,7 @@ import com.sk89q.worldedit.regions.CuboidRegion;
 import com.sk89q.worldedit.regions.EllipsoidRegion;
 import com.sk89q.worldedit.regions.selector.CuboidRegionSelector;
 import com.sk89q.worldedit.regions.shape.ArbitraryShape;
+import com.sk89q.worldedit.session.ClipboardHolder;
 import com.sk89q.worldedit.session.PasteBuilder;
 import com.sk89q.worldedit.session.SessionManager;
 import com.sk89q.worldedit.session.request.Request;
@@ -460,6 +461,7 @@ public class Fawe {
             // Clipboards
             BlockArrayClipboard.inject(); // Optimizations + disk
             CuboidClipboard.inject(); // Optimizations
+            ClipboardHolder.inject(); // Closeable
             // Regions
             CuboidRegion.inject(); // Optimizations
             // Extents

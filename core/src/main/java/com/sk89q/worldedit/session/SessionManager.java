@@ -221,6 +221,7 @@ public class SessionManager {
 
     private void save(SessionHolder holder) {
         SessionKey key = holder.key;
+        holder.session.setClipboard(null);
         if (key.isPersistent()) {
             try {
                 if (holder.session.compareAndResetDirty()) {

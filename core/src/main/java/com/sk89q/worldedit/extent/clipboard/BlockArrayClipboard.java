@@ -115,6 +115,10 @@ public class BlockArrayClipboard implements Clipboard, LightingExtent {
         this.mz = origin.getBlockZ();
     }
 
+    public void close() {
+        IMP.close();
+    }
+
     @Override
     public Region getRegion() {
         return region.clone();

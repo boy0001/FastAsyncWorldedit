@@ -112,6 +112,7 @@ public class ClipboardCommands {
         if (volume >= limit.MAX_CHECKS) {
             throw new FaweException(BBC.WORLDEDIT_CANCEL_REASON_MAX_CHECKS);
         }
+        session.setClipboard(null);
         final Vector origin = region.getMinimumPoint();
         final int mx = origin.getBlockX();
         final int my = origin.getBlockY();
@@ -149,7 +150,7 @@ public class ClipboardCommands {
         if (volume >= limit.MAX_CHECKS) {
             throw new FaweException(BBC.WORLDEDIT_CANCEL_REASON_MAX_CHECKS);
         }
-
+        session.setClipboard(null);
         BlockArrayClipboard clipboard = new BlockArrayClipboard(region, player.getUniqueId());
         clipboard.setOrigin(session.getPlacementPosition(player));
         ForwardExtentCopy copy = new ForwardExtentCopy(editSession, region, clipboard, region.getMinimumPoint());
@@ -193,6 +194,7 @@ public class ClipboardCommands {
         if (volume >= limit.MAX_CHANGES) {
             throw new FaweException(BBC.WORLDEDIT_CANCEL_REASON_MAX_CHANGES);
         }
+        session.setClipboard(null);
         final Vector origin = region.getMinimumPoint();
         final int mx = origin.getBlockX();
         final int my = origin.getBlockY();
@@ -232,6 +234,7 @@ public class ClipboardCommands {
         if (volume >= limit.MAX_CHANGES) {
             throw new FaweException(BBC.WORLDEDIT_CANCEL_REASON_MAX_CHANGES);
         }
+        session.setClipboard(null);
         BlockArrayClipboard clipboard = new BlockArrayClipboard(region, player.getUniqueId());
         clipboard.setOrigin(session.getPlacementPosition(player));
         ForwardExtentCopy copy = new ForwardExtentCopy(editSession, region, clipboard, region.getMinimumPoint());

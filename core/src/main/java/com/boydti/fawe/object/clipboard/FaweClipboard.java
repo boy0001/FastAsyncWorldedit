@@ -94,6 +94,10 @@ public abstract class FaweClipboard {
         return tiles;
     }
 
+    public void close() {}
+
+    public void flush() {}
+
     /**
      * Stores entity data.
      */

@@ -39,19 +39,19 @@ public class SchematicStreamer extends NBTStreamer {
         addReader("Schematic.Blocks.#", new ByteReader() {
             @Override
             public void run(int index, int value) {
-                fc.setId(index, value);
+                if (value != 0) fc.setId(index, value);
             }
         });
         addReader("Schematic.Data.#", new ByteReader() {
             @Override
             public void run(int index, int value) {
-                fc.setData(index, value);
+                if (value != 0) fc.setData(index, value);
             }
         });
         addReader("Schematic.AddBlocks.#", new ByteReader() {
             @Override
             public void run(int index, int value) {
-                fc.setAdd(index, value);
+                if (value != 0) fc.setAdd(index, value);
             }
         });
 
