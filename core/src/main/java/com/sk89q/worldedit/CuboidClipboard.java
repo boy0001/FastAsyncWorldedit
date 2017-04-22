@@ -30,6 +30,7 @@ import com.sk89q.worldedit.command.SchematicCommands;
 import com.sk89q.worldedit.extent.Extent;
 import com.sk89q.worldedit.extent.clipboard.BlockArrayClipboard;
 import com.sk89q.worldedit.extent.clipboard.Clipboard;
+import com.sk89q.worldedit.extent.clipboard.io.ClipboardFormat;
 import com.sk89q.worldedit.function.operation.ForwardExtentCopy;
 import com.sk89q.worldedit.regions.CuboidRegion;
 import com.sk89q.worldedit.regions.Region;
@@ -93,7 +94,7 @@ public class CuboidClipboard {
      */
     public CuboidClipboard(Vector size) {
         checkNotNull(size);
-        MainUtil.warnDeprecated(BlockArrayClipboard.class);
+        MainUtil.warnDeprecated(BlockArrayClipboard.class, ClipboardFormat.class);
         origin = new Vector();
         offset = new Vector();
         this.size = size;
@@ -113,6 +114,7 @@ public class CuboidClipboard {
     public CuboidClipboard(Vector size, Vector origin) {
         checkNotNull(size);
         checkNotNull(origin);
+        MainUtil.warnDeprecated(BlockArrayClipboard.class, ClipboardFormat.class);
         this.origin = origin;
         this.offset = new Vector();
         this.size = size;
@@ -134,6 +136,7 @@ public class CuboidClipboard {
         checkNotNull(size);
         checkNotNull(origin);
         checkNotNull(offset);
+        MainUtil.warnDeprecated(BlockArrayClipboard.class, ClipboardFormat.class);
         this.origin = origin;
         this.offset = offset;
         this.size = size;
@@ -433,7 +436,7 @@ public class CuboidClipboard {
         final int width = getWidth();
         final int length = getLength();
         final int height = getHeight();
-        final Vector sizeRotated = size.transform2D(angle, 0, 0, 0, 0);
+        final Vector sizeRotated = size.transform2D(angle, 0, 0, 0, 0).round();
         final int shiftX = sizeRotated.getX() < 0 ? -sizeRotated.getBlockX() - 1 : 0;
         final int shiftZ = sizeRotated.getZ() < 0 ? -sizeRotated.getBlockZ() - 1 : 0;
 
@@ -443,7 +446,7 @@ public class CuboidClipboard {
 
         for (int x = 0; x < width; ++x) {
             for (int z = 0; z < length; ++z) {
-                final Vector2D v = new Vector2D(x, z).transform2D(angle, 0, 0, shiftX, shiftZ);
+                final Vector2D v = new Vector2D(x, z).transform2D(angle, 0, 0, shiftX, shiftZ).round();
                 final int newX = v.getBlockX();
                 final int newZ = v.getBlockZ();
                 for (int y = 0; y < height; ++y) {
