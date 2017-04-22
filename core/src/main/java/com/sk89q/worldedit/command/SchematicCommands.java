@@ -103,6 +103,7 @@ public class SchematicCommands {
         }
         try {
             WorldData wd = player.getWorld().getWorldData();
+            session.setClipboard(null);
             ClipboardHolder[] all = format.loadAllFromInput(player, wd, filename, true);
             if (all != null) {
                 MultiClipboardHolder multi = new MultiClipboardHolder(wd, all);
@@ -177,6 +178,7 @@ public class SchematicCommands {
             final ClipboardReader reader = format.getReader(in);
             final WorldData worldData = player.getWorld().getWorldData();
             final Clipboard clipboard;
+            session.setClipboard(null);
             if (reader instanceof SchematicReader) {
                 clipboard = ((SchematicReader) reader).read(player.getWorld().getWorldData(), player.getUniqueId());
             } else if (reader instanceof StructureFormat) {

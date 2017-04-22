@@ -34,4 +34,11 @@ public class MultiClipboardHolder extends ClipboardHolder{
     public void setTransform(Transform transform) {
         holder.setTransform(transform);
     }
+
+    @Override
+    public void close() {
+        for (ClipboardHolder holder : holders) {
+            if (holder != null) holder.close();
+        }
+    }
 }

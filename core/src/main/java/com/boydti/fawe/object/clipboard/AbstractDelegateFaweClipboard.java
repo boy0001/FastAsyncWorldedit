@@ -72,6 +72,16 @@ public class AbstractDelegateFaweClipboard extends FaweClipboard {
     }
 
     @Override
+    public void flush() {
+        parent.flush();
+    }
+
+    @Override
+    public void close() {
+        parent.close();
+    }
+
+    @Override
     public Vector getDimensions() {
         return parent.getDimensions();
     }

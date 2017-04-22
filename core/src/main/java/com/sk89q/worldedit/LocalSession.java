@@ -28,7 +28,6 @@ import com.boydti.fawe.object.FawePlayer;
 import com.boydti.fawe.object.RunnableVal2;
 import com.boydti.fawe.object.changeset.DiskStorageHistory;
 import com.boydti.fawe.object.changeset.FaweChangeSet;
-import com.boydti.fawe.object.clipboard.DiskOptimizedClipboard;
 import com.boydti.fawe.object.extent.ResettableExtent;
 import com.boydti.fawe.util.EditSessionBuilder;
 import com.boydti.fawe.util.MainUtil;
@@ -45,8 +44,6 @@ import com.sk89q.worldedit.command.tool.SinglePickaxe;
 import com.sk89q.worldedit.command.tool.Tool;
 import com.sk89q.worldedit.entity.Player;
 import com.sk89q.worldedit.extension.platform.Actor;
-import com.sk89q.worldedit.extent.clipboard.BlockArrayClipboard;
-import com.sk89q.worldedit.extent.clipboard.Clipboard;
 import com.sk89q.worldedit.extent.inventory.BlockBag;
 import com.sk89q.worldedit.function.mask.Mask;
 import com.sk89q.worldedit.function.mask.Masks;
@@ -794,14 +791,8 @@ public class LocalSession {
      * @param clipboard the clipboard, or null if the clipboard is to be cleared
      */
     public void setClipboard(@Nullable ClipboardHolder clipboard) {
-        if (this.clipboard != null && clipboard != null) {
-            Clipboard clip = clipboard.getClipboard();
-            if (clip instanceof BlockArrayClipboard) {
-                BlockArrayClipboard bac = (BlockArrayClipboard) clip;
-                if (bac.IMP instanceof DiskOptimizedClipboard) {
-                    ((DiskOptimizedClipboard) bac.IMP).flush();
-                }
-            }
+        if (this.clipboard != null) {
+            this.clipboard.close();
         }
         this.clipboard = clipboard;
     }

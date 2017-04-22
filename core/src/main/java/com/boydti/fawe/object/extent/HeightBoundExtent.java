@@ -9,7 +9,7 @@ import java.util.Collection;
 public class HeightBoundExtent extends FaweRegionExtent {
 
     private final int min, max;
-    private int lastY;
+    private int lastY = -1;
     private boolean lastResult;
 
     public HeightBoundExtent(Extent extent, FaweLimit limit, int min, int max) {
