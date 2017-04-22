@@ -90,6 +90,7 @@ public enum BBC {
     OPERATION("Operation queued (%s0)", "WorldEdit.Operation"),
 
     SELECTION_WAND("Left click: select pos #1; Right click: select pos #2", "WorldEdit.Selection"),
+    NAVIGATION_WAND_ERROR("&cNothing to pass through", "WorldEdit.Navigation"),
 
     SELECTION_WAND_DISABLE("Edit wand disabled.", "WorldEdit.Selection"),
     SELECTION_WAND_ENABLE("Edit wand enabled.", "WorldEdit.Selection"),

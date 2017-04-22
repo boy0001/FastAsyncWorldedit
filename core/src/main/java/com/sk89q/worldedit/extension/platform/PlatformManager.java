@@ -524,7 +524,7 @@ public class PlatformManager {
                         }
 
                         if (!player.passThroughForwardWall(40)) {
-                            player.printError("Nothing to pass through!");
+                            BBC.NAVIGATION_WAND_ERROR.send(player);
                         }
 
                         event.setCancelled(true);
