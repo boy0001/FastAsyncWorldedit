@@ -89,6 +89,11 @@ public class ForgeQueue_All extends NMSMappedFaweQueue<World, Chunk, ExtendedBlo
     }
 
     @Override
+    public void saveChunk(Chunk chunk) {
+        chunk.setChunkModified();
+    }
+
+    @Override
     public ExtendedBlockStorage[] getSections(Chunk chunk) {
         return chunk.getBlockStorageArray();
     }

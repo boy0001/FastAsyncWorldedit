@@ -112,6 +112,11 @@ public class NukkitQueue extends NMSMappedFaweQueue<Level, BaseFullChunk, BaseFu
     }
 
     @Override
+    public void saveChunk(BaseFullChunk baseFullChunk) {
+        baseFullChunk.setChanged();
+    }
+
+    @Override
     public void refreshChunk(FaweChunk fs) {
         sendChunk(fs.getX(), fs.getZ(), fs.getBitMask());
     }

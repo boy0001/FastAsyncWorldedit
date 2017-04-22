@@ -20,7 +20,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Queue;
 
-public class NMSRelighter implements Relighter{
+public class NMSRelighter implements Relighter {
     private final NMSMappedFaweQueue queue;
 
     private final Map<Long, RelightSkyEntry> skyToRelight;
@@ -313,7 +313,7 @@ public class NMSRelighter implements Relighter{
                 }
                 int bx = chunk.x << 4;
                 int bz = chunk.z << 4;
-                queue.ensureChunkLoaded(chunk.x, chunk.z);
+                Object chunkObj = queue.ensureChunkLoaded(chunk.x, chunk.z);
                 Object sections = queue.getCachedSections(queue.getWorld(), chunk.x, chunk.z);
                 if (sections == null)continue;
                 Object section = queue.getCachedSection(sections, layer);
@@ -372,6 +372,7 @@ public class NMSRelighter implements Relighter{
                     chunk.smooth = true;
                     queue.setSkyLight(section, x, y, z, value);
                 }
+                queue.saveChunk(chunkObj);
             }
             for (RelightSkyEntry chunk : chunks) { // Smooth forwards
                 if (chunk.smooth) {

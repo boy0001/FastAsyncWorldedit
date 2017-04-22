@@ -86,6 +86,11 @@ public class ForgeQueue_All extends NMSMappedFaweQueue<World, Chunk, ExtendedBlo
     }
 
     @Override
+    public void saveChunk(Chunk chunk) {
+        chunk.setChunkModified();
+    }
+
+    @Override
     public void setHeightMap(FaweChunk chunk, byte[] heightMap) {
         Chunk forgeChunk = (Chunk) chunk.getChunk();
         if (forgeChunk != null) {

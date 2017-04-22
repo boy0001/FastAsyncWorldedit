@@ -187,6 +187,11 @@ public class SpongeQueue_1_11 extends NMSMappedFaweQueue<World, net.minecraft.wo
     }
 
     @Override
+    public void saveChunk(Chunk chunk) {
+        chunk.setChunkModified();
+    }
+
+    @Override
     public ExtendedBlockStorage[] getSections(Chunk chunk) {
         return chunk.getBlockStorageArray();
     }
