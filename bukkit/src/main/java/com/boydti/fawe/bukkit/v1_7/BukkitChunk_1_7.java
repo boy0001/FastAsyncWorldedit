@@ -94,13 +94,23 @@ public class BukkitChunk_1_7 extends CharFaweChunk<Chunk, BukkitQueue17> {
         char[] vs2 = this.ids[i];
         if (vs2 == null) {
             vs2 = this.ids[i] = new char[4096];
+            this.count[i]++;
+        } else {
+            switch (vs2[j]) {
+                case 0:
+                    this.count[i]++;
+                    break;
+                case 1:
+                    this.air[i]--;
+                    break;
+            }
         }
         if (vs == null) {
             vs = this.byteIds[i] = new byte[4096];
         }
-        this.count[i]++;
         switch (id) {
             case 0:
+                this.air[i]++;
                 vs[j] = 0;
                 vs2[j] = (char) 1;
                 return;
@@ -295,6 +305,7 @@ public class BukkitChunk_1_7 extends CharFaweChunk<Chunk, BukkitQueue17> {
                     }
                     sections[j] = section = new ChunkSection(j << 4, flag);
                     section.setIdArray(newIdArray);
+                    getParent().setCount(0, count - this.getAir(j), section);
                     if (newDataArray != null) {
                         section.setDataArray(newDataArray);
                     }
@@ -306,6 +317,7 @@ public class BukkitChunk_1_7 extends CharFaweChunk<Chunk, BukkitQueue17> {
                         continue;
                     }
                     section.setIdArray(newIdArray);
+                    getParent().setCount(0, count - this.getAir(j), section);
                     if (newDataArray != null) {
                         section.setDataArray(newDataArray);
                     }
@@ -319,23 +331,31 @@ public class BukkitChunk_1_7 extends CharFaweChunk<Chunk, BukkitQueue17> {
                 }
                 if (currentIdArray == null) {
                     section.setIdArray(newIdArray);
+                    getParent().setCount(0, count - this.getAir(j), section);
                     continue;
                 }
-                int solid = 0;
+                int nonEmptyBlockCount = 0;
                 char[] charArray = this.getIdArray(j);
                 for (int k = 0; k < newIdArray.length; k++) {
                     char combined = charArray[k];
                     switch (combined) {
                         case 0:
-                            if (currentIdArray[k] != 0) {
-                                solid++;
+                            continue;
+                        case 1: {
+                            byte existing = currentIdArray[k];
+                            if (existing != 0) {
+                                currentIdArray[k] = 0;
+                                nonEmptyBlockCount--;
                             }
                             continue;
-                        case 1:
-                            currentIdArray[k] = 0;
-                            continue;
+                        }
                         default:
-                            solid++;
+                            byte existing = currentIdArray[k];
+                            if (existing != 0) {
+                                // TODO unlight
+                            } else {
+                                nonEmptyBlockCount++;
+                            }
                             currentIdArray[k] = newIdArray[k];
                             if (data) {
                                 int dataByte = FaweCache.getData(combined);
@@ -348,7 +368,7 @@ public class BukkitChunk_1_7 extends CharFaweChunk<Chunk, BukkitQueue17> {
                             continue;
                     }
                 }
-                getParent().setCount(0, solid, section);
+                getParent().setCount(0, getParent().getNonEmptyBlockCount(section) + nonEmptyBlockCount, section);
             }
 
             // Set biomes
