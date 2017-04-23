@@ -248,16 +248,6 @@ public class Sniper {
                         targetBlock = snipeData.isRanged() ? rangeBlockHelper.getRangeBlock() : rangeBlockHelper.getTargetBlock();
                     }
 
-<<<<<<< HEAD
-        if (sniperTool.hasToolAssigned(itemInHand)) {
-            if (sniperTool.getCurrentBrush() == null) {
-                getPlayer().sendMessage("Нет выбранных кистей.");
-                return true;
-            }
-            if (!getPlayer().hasPermission(sniperTool.getCurrentBrush().getPermissionNode())) {
-                getPlayer().sendMessage("Вам не разрешено использовать эту кисть. У вас нет разрешения '" + sniperTool.getCurrentBrush().getPermissionNode() + "'");
-                return true;
-=======
                     switch (snipeAction) {
                         case ARROW:
                             if (targetBlock != null) {
@@ -309,7 +299,6 @@ public class Sniper {
                     break;
                 default:
                     return false;
->>>>>>> refs/remotes/boy0001/master
             }
 
             if (clickedBlock != null) {
@@ -320,36 +309,6 @@ public class Sniper {
                     return true;
                 }
             } else {
-<<<<<<< HEAD
-                final Block targetBlock;
-                final Block lastBlock;
-                final SnipeAction snipeAction = sniperTool.getActionAssigned(itemInHand);
-
-                switch (action) {
-                    case RIGHT_CLICK_AIR:
-                    case RIGHT_CLICK_BLOCK:
-                        break;
-                    default:
-                        return false;
-                }
-
-                if (clickedBlock != null) {
-                    targetBlock = clickedBlock;
-                    lastBlock = clickedBlock.getRelative(clickedFace);
-                    if (lastBlock == null || targetBlock == null) {
-                        getPlayer().sendMessage(ChatColor.RED + "Целевой блок должен быть видимым.");
-                        return true;
-                    }
-                } else {
-                    RangeBlockHelper rangeBlockHelper = snipeData.isRanged() ? new RangeBlockHelper(getPlayer(), world, snipeData.getRange()) : new RangeBlockHelper(getPlayer(), world);
-                    targetBlock = snipeData.isRanged() ? rangeBlockHelper.getRangeBlock() : rangeBlockHelper.getTargetBlock();
-                    lastBlock = rangeBlockHelper.getLastBlock();
-
-                    if (targetBlock == null || lastBlock == null) {
-                        getPlayer().sendMessage(ChatColor.RED + "Целевой блок должен быть видимым.");
-                        return true;
-                    }
-=======
                 RangeBlockHelper rangeBlockHelper = snipeData.isRanged() ? new RangeBlockHelper(getPlayer(), world, snipeData.getRange()) : new RangeBlockHelper(getPlayer(), world);
                 targetBlock = snipeData.isRanged() ? rangeBlockHelper.getRangeBlock() : rangeBlockHelper.getTargetBlock();
                 lastBlock = rangeBlockHelper.getLastBlock();
@@ -357,7 +316,6 @@ public class Sniper {
                 if (targetBlock == null || lastBlock == null) {
                     getPlayer().sendMessage(ChatColor.RED + "Snipe target block must be visible.");
                     return true;
->>>>>>> refs/remotes/boy0001/master
                 }
             }
 
@@ -487,9 +445,9 @@ public class Sniper {
         String currentToolId = getCurrentToolId();
         SniperTool sniperTool = tools.get(currentToolId);
         IBrush brush = sniperTool.getCurrentBrush();
-        getPlayer().sendMessage("Текущий инструмент: " + ((currentToolId != null) ? currentToolId : "Стандартный инструмент"));
+        getPlayer().sendMessage("Current Tool: " + ((currentToolId != null) ? currentToolId : "Default Tool"));
         if (brush == null) {
-            getPlayer().sendMessage("Не выбрана кисть.");
+            getPlayer().sendMessage("No brush selected.");
             return;
         }
         brush.info(sniperTool.getMessageHelper());
@@ -566,11 +524,11 @@ public class Sniper {
         }
 
         public IBrush setCurrentBrush(Class<? extends IBrush> brush) {
-            Preconditions.checkNotNull(brush, "Не удается установить кисть в нуль.");
+            Preconditions.checkNotNull(brush, "Can't set brush to null.");
             IBrush brushInstance = brushes.get(brush);
             if (brushInstance == null) {
                 brushInstance = instantiateBrush(brush);
-                Preconditions.checkNotNull(brushInstance, "Не удалось инициализировать класс кисти.");
+                Preconditions.checkNotNull(brushInstance, "Could not instanciate brush class.");
                 if (snipeData.owner().getPlayer().hasPermission(brushInstance.getPermissionNode())) {
                     brushes.put(brush, brushInstance);
                     previousBrush = currentBrush;
