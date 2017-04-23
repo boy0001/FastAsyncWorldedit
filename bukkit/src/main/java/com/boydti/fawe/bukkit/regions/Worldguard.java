@@ -35,11 +35,10 @@ public class Worldguard extends BukkitMaskManager implements Listener {
 
     }
 
-    public ProtectedRegion getRegion(final Player player, final Location loc) {
-        final com.sk89q.worldguard.LocalPlayer localplayer = this.worldguard.wrapPlayer(player);
-        RegionManager manager = this.worldguard.getRegionManager(player.getWorld());
+    public ProtectedRegion getRegion(final com.sk89q.worldguard.LocalPlayer player, final Location loc) {
+        RegionManager manager = this.worldguard.getRegionManager(loc.getWorld());
         if (manager == null) {
-            if (this.worldguard.getGlobalStateManager().get(player.getWorld()).useRegions) {
+            if (this.worldguard.getGlobalStateManager().get(loc.getWorld()).useRegions) {
                 System.out.println("Region capability is not enabled for WorldGuard.");
             } else {
                 System.out.println("WorldGuard is not enabled for that world.");
@@ -47,12 +46,12 @@ public class Worldguard extends BukkitMaskManager implements Listener {
             return null;
         }
         final ProtectedRegion global = manager.getRegion("__global__");
-        if (global != null && isAllowed(localplayer, global)) {
+        if (global != null && isAllowed(player, global)) {
             return global;
         }
-        final ApplicableRegionSet regions = manager.getApplicableRegions(player.getLocation());
+        final ApplicableRegionSet regions = manager.getApplicableRegions(loc);
         for (final ProtectedRegion region : regions) {
-            if (isAllowed(localplayer, region)) {
+            if (isAllowed(player, region)) {
                 return region;
             }
         }
@@ -82,8 +81,9 @@ public class Worldguard extends BukkitMaskManager implements Listener {
     @Override
     public BukkitMask getMask(final FawePlayer<Player> fp) {
         final Player player = fp.parent;
+        final com.sk89q.worldguard.LocalPlayer localplayer = this.worldguard.wrapPlayer(player);
         final Location location = player.getLocation();
-        final ProtectedRegion myregion = this.getRegion(player, location);
+        final ProtectedRegion myregion = this.getRegion(localplayer, location);
         if (myregion != null) {
             final Location pos1;
             final Location pos2;
@@ -98,6 +98,11 @@ public class Worldguard extends BukkitMaskManager implements Listener {
                 @Override
                 public String getName() {
                     return myregion.getId();
+                }
+
+                @Override
+                public boolean isValid(FawePlayer player, MaskType type) {
+                    return isAllowed(worldguard.wrapPlayer((Player) player.parent), myregion);
                 }
             };
         } else {

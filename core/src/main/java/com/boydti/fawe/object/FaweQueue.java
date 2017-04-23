@@ -392,7 +392,6 @@ public abstract class FaweQueue implements HasFaweQueue {
         try {
             return getCombinedId4Data(x, y, z);
         } catch (FaweException ignore) {
-            ignore.printStackTrace();
             return def;
         }
     }

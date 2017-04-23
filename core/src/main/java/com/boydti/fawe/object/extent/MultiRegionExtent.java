@@ -17,7 +17,7 @@ public class MultiRegionExtent extends FaweRegionExtent {
      *
      * @param extent the extent
      */
-    public MultiRegionExtent(Extent extent, FaweLimit limit, RegionWrapper[]regions) {
+    public MultiRegionExtent(Extent extent, FaweLimit limit, RegionWrapper[] regions) {
         super(extent, limit);
         this.index = 0;
         this.region = regions[0];

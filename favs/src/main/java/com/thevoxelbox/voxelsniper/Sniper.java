@@ -109,6 +109,30 @@ public class Sniper {
      * @return true if command visibly processed, false otherwise.
      */
     public boolean snipe(final Action action, final Material itemInHand, final Block clickedBlock, final BlockFace clickedFace) {
+        switch (action) {
+            case LEFT_CLICK_AIR:
+            case LEFT_CLICK_BLOCK:
+            case RIGHT_CLICK_AIR:
+            case RIGHT_CLICK_BLOCK:
+                break;
+            default:
+                return false;
+        }
+        if (tools.isEmpty()) {
+            return false;
+        }
+        String toolId = getToolId(itemInHand);
+        SniperTool sniperTool = tools.get(toolId);
+        if (sniperTool == null) {
+            return false;
+        }
+        if (!sniperTool.hasToolAssigned(itemInHand)) {
+            return false;
+        }
+        if (sniperTool.getCurrentBrush() == null) {
+            getPlayer().sendMessage("No Brush selected.");
+            return false;
+        }
         try {
             Player player = getPlayer();
             final FawePlayer<Player> fp = FawePlayer.wrap(player);
@@ -118,18 +142,14 @@ public class Sniper {
                     if (!fp.runAction(new Runnable() {
                         @Override
                         public void run() {
-                            snipeOnCurrentThread(fp, action, itemInHand, clickedBlock, clickedFace);
+                            snipeOnCurrentThread(fp, action, itemInHand, clickedBlock, clickedFace, sniperTool, toolId);
                         }
                     }, true, false)) {
                         BBC.WORLDEDIT_COMMAND_LIMIT.send(fp);
                     }
                 }
             }, Fawe.isMainThread());
-            String toolId = getToolId(itemInHand);
-            SniperTool sniperTool = tools.get(toolId);
-            if (sniperTool.hasToolAssigned(itemInHand) && sniperTool.getCurrentBrush() != null) {
-                return true;
-            }
+            return true;
         } catch (Throwable e) {
             e.printStackTrace();
         }
@@ -137,7 +157,7 @@ public class Sniper {
     }
 
     // Old method (plus world arg)
-    public synchronized boolean snipeOnCurrentThread(FawePlayer fp, final Action action, final Material itemInHand, Block clickedBlock, final BlockFace clickedFace) {
+    public synchronized boolean snipeOnCurrentThread(FawePlayer fp, final Action action, final Material itemInHand, Block clickedBlock, final BlockFace clickedFace, SniperTool sniperTool, String toolId) {
         Player bukkitPlayer = getPlayer();
         World bukkitWorld = bukkitPlayer.getWorld();
 
@@ -162,186 +182,165 @@ public class Sniper {
         if (clickedBlock != null) {
             clickedBlock = world.getBlockAt(clickedBlock.getX(), clickedBlock.getY(), clickedBlock.getZ());
         }
-
-
-        String toolId = getToolId(itemInHand);
-        SniperTool sniperTool = tools.get(toolId);
-
-        switch (action) {
-            case LEFT_CLICK_AIR:
-            case LEFT_CLICK_BLOCK:
-            case RIGHT_CLICK_AIR:
-            case RIGHT_CLICK_BLOCK:
-                break;
-            default:
-                return false;
+        if (!getPlayer().hasPermission(sniperTool.getCurrentBrush().getPermissionNode())) {
+            getPlayer().sendMessage("You are not allowed to use this brush. You're missing the permission node '" + sniperTool.getCurrentBrush().getPermissionNode() + "'");
+            return true;
         }
 
-        if (sniperTool.hasToolAssigned(itemInHand)) {
-            if (sniperTool.getCurrentBrush() == null) {
-                getPlayer().sendMessage("No Brush selected.");
-                return true;
+        final SnipeData snipeData = sniperTool.getSnipeData();
+        if (getPlayer().isSneaking()) {
+            Block targetBlock;
+            SnipeAction snipeAction = sniperTool.getActionAssigned(itemInHand);
+
+            switch (action) {
+                case LEFT_CLICK_BLOCK:
+                case LEFT_CLICK_AIR:
+                    if (clickedBlock != null) {
+                        targetBlock = clickedBlock;
+                    } else {
+                        RangeBlockHelper rangeBlockHelper = snipeData.isRanged() ? new RangeBlockHelper(getPlayer(), world, snipeData.getRange()) : new RangeBlockHelper(getPlayer(), world);
+                        targetBlock = snipeData.isRanged() ? rangeBlockHelper.getRangeBlock() : rangeBlockHelper.getTargetBlock();
+                    }
+
+                    switch (snipeAction) {
+                        case ARROW:
+                            if (targetBlock != null) {
+                                int originalVoxel = snipeData.getVoxelId();
+                                snipeData.setVoxelId(targetBlock.getTypeId());
+                                SniperMaterialChangedEvent event = new SniperMaterialChangedEvent(this, toolId, new MaterialData(originalVoxel, snipeData.getData()), new MaterialData(snipeData.getVoxelId(), snipeData.getData()));
+                                Bukkit.getPluginManager().callEvent(event);
+                                snipeData.getVoxelMessage().voxel();
+                                return true;
+                            } else {
+                                int originalVoxel = snipeData.getVoxelId();
+                                snipeData.setVoxelId(0);
+                                SniperMaterialChangedEvent event = new SniperMaterialChangedEvent(this, toolId, new MaterialData(originalVoxel, snipeData.getData()), new MaterialData(snipeData.getVoxelId(), snipeData.getData()));
+                                Bukkit.getPluginManager().callEvent(event);
+                                snipeData.getVoxelMessage().voxel();
+                                return true;
+                            }
+                        case GUNPOWDER:
+                            if (targetBlock != null) {
+                                byte originalData = snipeData.getData();
+                                snipeData.setData(targetBlock.getData());
+                                SniperMaterialChangedEvent event = new SniperMaterialChangedEvent(this, toolId, new MaterialData(snipeData.getVoxelId(), originalData), new MaterialData(snipeData.getVoxelId(), snipeData.getData()));
+                                Bukkit.getPluginManager().callEvent(event);
+                                snipeData.getVoxelMessage().data();
+                                return true;
+                            } else {
+                                byte originalData = snipeData.getData();
+                                snipeData.setData((byte) 0);
+                                SniperMaterialChangedEvent event = new SniperMaterialChangedEvent(this, toolId, new MaterialData(snipeData.getVoxelId(), originalData), new MaterialData(snipeData.getVoxelId(), snipeData.getData()));
+                                Bukkit.getPluginManager().callEvent(event);
+                                snipeData.getVoxelMessage().data();
+                                return true;
+                            }
+                        default:
+                            break;
+                    }
+                    break;
+                case RIGHT_CLICK_AIR:
+                case RIGHT_CLICK_BLOCK:
+                    if (clickedBlock != null) {
+                        targetBlock = clickedBlock;
+                    } else {
+                        RangeBlockHelper rangeBlockHelper = snipeData.isRanged() ? new RangeBlockHelper(getPlayer(), world, snipeData.getRange()) : new RangeBlockHelper(getPlayer(), world);
+                        targetBlock = snipeData.isRanged() ? rangeBlockHelper.getRangeBlock() : rangeBlockHelper.getTargetBlock();
+                    }
+
+                    switch (snipeAction) {
+                        case ARROW:
+                            if (targetBlock != null) {
+                                int originalId = snipeData.getReplaceId();
+                                snipeData.setReplaceId(targetBlock.getTypeId());
+                                SniperReplaceMaterialChangedEvent event = new SniperReplaceMaterialChangedEvent(this, toolId, new MaterialData(originalId, snipeData.getReplaceData()), new MaterialData(snipeData.getReplaceId(), snipeData.getReplaceData()));
+                                Bukkit.getPluginManager().callEvent(event);
+                                snipeData.getVoxelMessage().replace();
+                                return true;
+                            } else {
+                                int originalId = snipeData.getReplaceId();
+                                snipeData.setReplaceId(0);
+                                SniperReplaceMaterialChangedEvent event = new SniperReplaceMaterialChangedEvent(this, toolId, new MaterialData(originalId, snipeData.getReplaceData()), new MaterialData(snipeData.getReplaceId(), snipeData.getReplaceData()));
+                                Bukkit.getPluginManager().callEvent(event);
+                                snipeData.getVoxelMessage().replace();
+                                return true;
+                            }
+                        case GUNPOWDER:
+                            if (targetBlock != null) {
+                                byte originalData = snipeData.getReplaceData();
+                                snipeData.setReplaceData(targetBlock.getData());
+                                SniperReplaceMaterialChangedEvent event = new SniperReplaceMaterialChangedEvent(this, toolId, new MaterialData(snipeData.getReplaceId(), originalData), new MaterialData(snipeData.getReplaceId(), snipeData.getReplaceData()));
+                                Bukkit.getPluginManager().callEvent(event);
+                                snipeData.getVoxelMessage().replaceData();
+                                return true;
+                            } else {
+                                byte originalData = snipeData.getReplaceData();
+                                snipeData.setReplaceData((byte) 0);
+                                SniperReplaceMaterialChangedEvent event = new SniperReplaceMaterialChangedEvent(this, toolId, new MaterialData(snipeData.getReplaceId(), originalData), new MaterialData(snipeData.getReplaceId(), snipeData.getReplaceData()));
+                                Bukkit.getPluginManager().callEvent(event);
+                                snipeData.getVoxelMessage().replaceData();
+                                return true;
+                            }
+                        default:
+                            break;
+                    }
+                    break;
+                default:
+                    return false;
             }
-            if (!getPlayer().hasPermission(sniperTool.getCurrentBrush().getPermissionNode())) {
-                getPlayer().sendMessage("You are not allowed to use this brush. You're missing the permission node '" + sniperTool.getCurrentBrush().getPermissionNode() + "'");
-                return true;
+        } else {
+            final Block targetBlock;
+            final Block lastBlock;
+            final SnipeAction snipeAction = sniperTool.getActionAssigned(itemInHand);
+
+            switch (action) {
+                case RIGHT_CLICK_AIR:
+                case RIGHT_CLICK_BLOCK:
+                    break;
+                default:
+                    return false;
             }
 
-            final SnipeData snipeData = sniperTool.getSnipeData();
-            if (getPlayer().isSneaking()) {
-                Block targetBlock;
-                SnipeAction snipeAction = sniperTool.getActionAssigned(itemInHand);
-
-                switch (action) {
-                    case LEFT_CLICK_BLOCK:
-                    case LEFT_CLICK_AIR:
-                        if (clickedBlock != null) {
-                            targetBlock = clickedBlock;
-                        } else {
-                            RangeBlockHelper rangeBlockHelper = snipeData.isRanged() ? new RangeBlockHelper(getPlayer(), world, snipeData.getRange()) : new RangeBlockHelper(getPlayer(), world);
-                            targetBlock = snipeData.isRanged() ? rangeBlockHelper.getRangeBlock() : rangeBlockHelper.getTargetBlock();
-                        }
-
-                        switch (snipeAction) {
-                            case ARROW:
-                                if (targetBlock != null) {
-                                    int originalVoxel = snipeData.getVoxelId();
-                                    snipeData.setVoxelId(targetBlock.getTypeId());
-                                    SniperMaterialChangedEvent event = new SniperMaterialChangedEvent(this, toolId, new MaterialData(originalVoxel, snipeData.getData()), new MaterialData(snipeData.getVoxelId(), snipeData.getData()));
-                                    Bukkit.getPluginManager().callEvent(event);
-                                    snipeData.getVoxelMessage().voxel();
-                                    return true;
-                                } else {
-                                    int originalVoxel = snipeData.getVoxelId();
-                                    snipeData.setVoxelId(0);
-                                    SniperMaterialChangedEvent event = new SniperMaterialChangedEvent(this, toolId, new MaterialData(originalVoxel, snipeData.getData()), new MaterialData(snipeData.getVoxelId(), snipeData.getData()));
-                                    Bukkit.getPluginManager().callEvent(event);
-                                    snipeData.getVoxelMessage().voxel();
-                                    return true;
-                                }
-                            case GUNPOWDER:
-                                if (targetBlock != null) {
-                                    byte originalData = snipeData.getData();
-                                    snipeData.setData(targetBlock.getData());
-                                    SniperMaterialChangedEvent event = new SniperMaterialChangedEvent(this, toolId, new MaterialData(snipeData.getVoxelId(), originalData), new MaterialData(snipeData.getVoxelId(), snipeData.getData()));
-                                    Bukkit.getPluginManager().callEvent(event);
-                                    snipeData.getVoxelMessage().data();
-                                    return true;
-                                } else {
-                                    byte originalData = snipeData.getData();
-                                    snipeData.setData((byte) 0);
-                                    SniperMaterialChangedEvent event = new SniperMaterialChangedEvent(this, toolId, new MaterialData(snipeData.getVoxelId(), originalData), new MaterialData(snipeData.getVoxelId(), snipeData.getData()));
-                                    Bukkit.getPluginManager().callEvent(event);
-                                    snipeData.getVoxelMessage().data();
-                                    return true;
-                                }
-                            default:
-                                break;
-                        }
-                        break;
-                    case RIGHT_CLICK_AIR:
-                    case RIGHT_CLICK_BLOCK:
-                        if (clickedBlock != null) {
-                            targetBlock = clickedBlock;
-                        } else {
-                            RangeBlockHelper rangeBlockHelper = snipeData.isRanged() ? new RangeBlockHelper(getPlayer(), world, snipeData.getRange()) : new RangeBlockHelper(getPlayer(), world);
-                            targetBlock = snipeData.isRanged() ? rangeBlockHelper.getRangeBlock() : rangeBlockHelper.getTargetBlock();
-                        }
-
-                        switch (snipeAction) {
-                            case ARROW:
-                                if (targetBlock != null) {
-                                    int originalId = snipeData.getReplaceId();
-                                    snipeData.setReplaceId(targetBlock.getTypeId());
-                                    SniperReplaceMaterialChangedEvent event = new SniperReplaceMaterialChangedEvent(this, toolId, new MaterialData(originalId, snipeData.getReplaceData()), new MaterialData(snipeData.getReplaceId(), snipeData.getReplaceData()));
-                                    Bukkit.getPluginManager().callEvent(event);
-                                    snipeData.getVoxelMessage().replace();
-                                    return true;
-                                } else {
-                                    int originalId = snipeData.getReplaceId();
-                                    snipeData.setReplaceId(0);
-                                    SniperReplaceMaterialChangedEvent event = new SniperReplaceMaterialChangedEvent(this, toolId, new MaterialData(originalId, snipeData.getReplaceData()), new MaterialData(snipeData.getReplaceId(), snipeData.getReplaceData()));
-                                    Bukkit.getPluginManager().callEvent(event);
-                                    snipeData.getVoxelMessage().replace();
-                                    return true;
-                                }
-                            case GUNPOWDER:
-                                if (targetBlock != null) {
-                                    byte originalData = snipeData.getReplaceData();
-                                    snipeData.setReplaceData(targetBlock.getData());
-                                    SniperReplaceMaterialChangedEvent event = new SniperReplaceMaterialChangedEvent(this, toolId, new MaterialData(snipeData.getReplaceId(), originalData), new MaterialData(snipeData.getReplaceId(), snipeData.getReplaceData()));
-                                    Bukkit.getPluginManager().callEvent(event);
-                                    snipeData.getVoxelMessage().replaceData();
-                                    return true;
-                                } else {
-                                    byte originalData = snipeData.getReplaceData();
-                                    snipeData.setReplaceData((byte) 0);
-                                    SniperReplaceMaterialChangedEvent event = new SniperReplaceMaterialChangedEvent(this, toolId, new MaterialData(snipeData.getReplaceId(), originalData), new MaterialData(snipeData.getReplaceId(), snipeData.getReplaceData()));
-                                    Bukkit.getPluginManager().callEvent(event);
-                                    snipeData.getVoxelMessage().replaceData();
-                                    return true;
-                                }
-                            default:
-                                break;
-                        }
-                        break;
-                    default:
-                        return false;
+            if (clickedBlock != null) {
+                targetBlock = clickedBlock;
+                lastBlock = clickedBlock.getRelative(clickedFace);
+                if (lastBlock == null || targetBlock == null) {
+                    getPlayer().sendMessage(ChatColor.RED + "Snipe target block must be visible.");
+                    return true;
                 }
             } else {
-                final Block targetBlock;
-                final Block lastBlock;
-                final SnipeAction snipeAction = sniperTool.getActionAssigned(itemInHand);
+                RangeBlockHelper rangeBlockHelper = snipeData.isRanged() ? new RangeBlockHelper(getPlayer(), world, snipeData.getRange()) : new RangeBlockHelper(getPlayer(), world);
+                targetBlock = snipeData.isRanged() ? rangeBlockHelper.getRangeBlock() : rangeBlockHelper.getTargetBlock();
+                lastBlock = rangeBlockHelper.getLastBlock();
 
-                switch (action) {
-                    case RIGHT_CLICK_AIR:
-                    case RIGHT_CLICK_BLOCK:
-                        break;
-                    default:
-                        return false;
+                if (targetBlock == null || lastBlock == null) {
+                    getPlayer().sendMessage(ChatColor.RED + "Snipe target block must be visible.");
+                    return true;
                 }
-
-                if (clickedBlock != null) {
-                    targetBlock = clickedBlock;
-                    lastBlock = clickedBlock.getRelative(clickedFace);
-                    if (lastBlock == null || targetBlock == null) {
-                        getPlayer().sendMessage(ChatColor.RED + "Snipe target block must be visible.");
-                        return true;
-                    }
-                } else {
-                    RangeBlockHelper rangeBlockHelper = snipeData.isRanged() ? new RangeBlockHelper(getPlayer(), world, snipeData.getRange()) : new RangeBlockHelper(getPlayer(), world);
-                    targetBlock = snipeData.isRanged() ? rangeBlockHelper.getRangeBlock() : rangeBlockHelper.getTargetBlock();
-                    lastBlock = rangeBlockHelper.getLastBlock();
-
-                    if (targetBlock == null || lastBlock == null) {
-                        getPlayer().sendMessage(ChatColor.RED + "Snipe target block must be visible.");
-                        return true;
-                    }
-                }
-
-                final IBrush brush = sniperTool.getCurrentBrush();
-                if (sniperTool.getCurrentBrush() instanceof PerformBrush) {
-                    PerformBrush performerBrush = (PerformBrush) sniperTool.getCurrentBrush();
-                    performerBrush.initP(snipeData);
-                }
-
-                boolean result = brush.perform(snipeAction, snipeData, targetBlock, lastBlock);
-                if (Fawe.isMainThread()) {
-                    SetQueue.IMP.flush(changeQueue);
-                } else {
-                    changeQueue.flush();
-                }
-                if (changeSet != null) {
-                    if (Settings.IMP.HISTORY.COMBINE_STAGES) {
-                        changeSet.closeAsync();
-                    } else {
-                        changeSet.close();
-                    }
-                    LocalSession session = fp.getSession();
-                    session.remember(changeSet.toEditSession(fp));
-                }
-                return true;
             }
+
+            final IBrush brush = sniperTool.getCurrentBrush();
+            if (sniperTool.getCurrentBrush() instanceof PerformBrush) {
+                PerformBrush performerBrush = (PerformBrush) sniperTool.getCurrentBrush();
+                performerBrush.initP(snipeData);
+            }
+
+            boolean result = brush.perform(snipeAction, snipeData, targetBlock, lastBlock);
+            if (Fawe.isMainThread()) {
+                SetQueue.IMP.flush(changeQueue);
+            } else {
+                changeQueue.flush();
+            }
+            if (changeSet != null) {
+                if (Settings.IMP.HISTORY.COMBINE_STAGES) {
+                    changeSet.closeAsync();
+                } else {
+                    changeSet.close();
+                }
+                LocalSession session = fp.getSession();
+                session.remember(changeSet.toEditSession(fp));
+            }
+            return true;
         }
         return false;
     }

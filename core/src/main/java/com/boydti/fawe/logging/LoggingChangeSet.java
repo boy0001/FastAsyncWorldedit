@@ -45,7 +45,6 @@ public class LoggingChangeSet extends AbstractDelegateChangeSet {
             constructor.setAccessible(true);
             this.world = (IWorld) constructor.newInstance(asyncWorld);
         } catch (Throwable ignore) {
-            ignore.printStackTrace();
             this.world = api.getWorld(world);
         }
         this.loc = new MutableVector();

@@ -21,13 +21,17 @@ public class ResidenceFeature extends BukkitMaskManager implements Listener {
 
     }
 
+    public boolean isAllowed(Player player, ClaimedResidence residence, MaskType type) {
+        return residence != null && (residence.getOwner().equals(player.getName()) || residence.getOwner().equals(player.getUniqueId().toString()) || type == MaskType.MEMBER && residence.getPlayersInResidence().contains(player));
+    }
+
     @Override
-    public BukkitMask getMask(final FawePlayer<Player> fp, MaskType type) {
+    public BukkitMask getMask(final FawePlayer<Player> fp, final MaskType type) {
         final Player player = fp.parent;
         final Location location = player.getLocation();
         final ClaimedResidence residence = Residence.getInstance().getResidenceManager().getByLoc(location);
         if (residence != null) {
-            if (residence.getOwner().equals(player.getName()) || residence.getOwner().equals(player.getUniqueId().toString()) || type == MaskType.MEMBER && residence.getPlayersInResidence().contains(player)) {
+            if (isAllowed(player, residence, type)) {
                 final CuboidArea area = residence.getAreaArray()[0];
                 final Location pos1 = area.getHighLoc();
                 final Location pos2 = area.getLowLoc();
@@ -35,6 +39,11 @@ public class ResidenceFeature extends BukkitMaskManager implements Listener {
                     @Override
                     public String getName() {
                         return "RESIDENCE: " + residence.getName();
+                    }
+
+                    @Override
+                    public boolean isValid(FawePlayer player, MaskType type) {
+                        return isAllowed((Player) player.parent, residence, type);
                     }
                 };
             }

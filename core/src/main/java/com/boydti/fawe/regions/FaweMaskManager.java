@@ -31,4 +31,8 @@ public abstract class FaweMaskManager<T> {
     public FaweMask getMask(final FawePlayer<T> player, MaskType type) {
         return getMask(player);
     }
+
+    public boolean isValid(FaweMask mask) {
+        return true;
+    }
 }

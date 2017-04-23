@@ -44,9 +44,7 @@ public class Favs extends JavaPlugin {
 
                 }
             });
-        } catch (Throwable ignore) {
-            ignore.printStackTrace();
-        }
+        } catch (Throwable ignore) {}
     }
 
     public void setupCommand(final String label, final FaweCommand cmd) {
