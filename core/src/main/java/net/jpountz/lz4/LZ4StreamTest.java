@@ -1,8 +1,8 @@
 package net.jpountz.lz4;
 
-import com.boydti.fawe.object.io.FastByteArrayOutputStream;
-import com.boydti.fawe.object.io.FastByteArraysInputStream;
 import com.boydti.fawe.util.MainUtil;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Random;
@@ -19,7 +19,7 @@ public class LZ4StreamTest {
     private Random rand;
 
     private byte randomContent[];
-    private byte compressedOutput[][];
+    private byte compressedOutput[];
 
     @Before
     public void setUp() throws IOException {
@@ -35,7 +35,7 @@ public class LZ4StreamTest {
     }
     
     private void compressContent() throws IOException {
-        FastByteArrayOutputStream compressedOutputStream = new FastByteArrayOutputStream();
+        ByteArrayOutputStream compressedOutputStream = new ByteArrayOutputStream();
 
         LZ4OutputStream os = new LZ4OutputStream(compressedOutputStream);
         int currentContentPosition = 0;
@@ -69,13 +69,13 @@ public class LZ4StreamTest {
         
         os.close();
 
-        compressedOutput = compressedOutputStream.toByteArrays();
+        compressedOutput = compressedOutputStream.toByteArray();
     }
 
     @Test
     public void randomizedTest() throws IOException {
         try {
-            InputStream is = new LZ4InputStream(new FastByteArraysInputStream(compressedOutput));
+            InputStream is = new LZ4BlockInputStream(new ByteArrayInputStream(compressedOutput));
 
             int currentContentPosition = 0;
 

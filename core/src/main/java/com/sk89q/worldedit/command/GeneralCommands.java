@@ -43,7 +43,7 @@ public class GeneralCommands {
 
     @Command(
             aliases = { "/tips", "tips" },
-            desc = "Toggle WorldEdit tips"
+            desc = "Toggle FAWE tips"
     )
     public void tips(Player player, LocalSession session) throws WorldEditException {
         FawePlayer<Object> fp = FawePlayer.wrap(player);
@@ -57,7 +57,7 @@ public class GeneralCommands {
     @Command(
             aliases = { "/fast" },
             usage = "[on|off]",
-            desc = "Toggles WorldEdit undo",
+            desc = "Toggles FAWE undo",
             min = 0,
             max = 1
     )

@@ -95,10 +95,10 @@ public class SnapshotUtilCommands {
                     File dir = config.snapshotRepo.getDirectory();
 
                     try {
-                        logger.info("WorldEdit found no snapshots: looked in: "
+                        logger.info("FAWE found no snapshots: looked in: "
                                 + dir.getCanonicalPath());
                     } catch (IOException e) {
-                        logger.info("WorldEdit found no snapshots: looked in "
+                        logger.info("FAWE found no snapshots: looked in "
                                 + "(NON-RESOLVABLE PATH - does it exist?): "
                                 + dir.getPath());
                     }
