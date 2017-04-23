@@ -18,7 +18,6 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.Map;
 import java.util.UUID;
@@ -316,21 +315,21 @@ public class DiskStorageHistory extends FaweStreamChangeSet {
     }
 
     @Override
-    public InputStream getBlockIS() throws IOException {
+    public FaweInputStream getBlockIS() throws IOException {
         if (!bdFile.exists()) {
             return null;
         }
-        InputStream is = MainUtil.getCompressedIS(new FileInputStream(bdFile));
+        FaweInputStream is = MainUtil.getCompressedIS(new FileInputStream(bdFile));
         readHeader(is);
         return is;
     }
 
     @Override
-    public InputStream getBiomeIS() throws IOException {
+    public FaweInputStream getBiomeIS() throws IOException {
         if (!bioFile.exists()) {
             return null;
         }
-        InputStream is = MainUtil.getCompressedIS(new FileInputStream(bioFile));
+        FaweInputStream is = MainUtil.getCompressedIS(new FileInputStream(bioFile));
         return is;
     }
 
@@ -376,7 +375,7 @@ public class DiskStorageHistory extends FaweStreamChangeSet {
             try (FileInputStream fis = new FileInputStream(bdFile)) {
                 FaweInputStream gis = MainUtil.getCompressedIS(fis);
                 // skip mode
-                gis.skip(1);
+                gis.skipFully(1);
                 // origin
                 ox = ((gis.read() << 24) + (gis.read() << 16) + (gis.read() << 8) + (gis.read() << 0));
                 oz = ((gis.read() << 24) + (gis.read() << 16) + (gis.read() << 8) + (gis.read() << 0));
@@ -415,9 +414,9 @@ public class DiskStorageHistory extends FaweStreamChangeSet {
         int oz = getOriginZ();
         if (ox == 0 && oz == 0 && bdFile.exists()) {
             try (FileInputStream fis = new FileInputStream(bdFile)) {
-                final InputStream gis = MainUtil.getCompressedIS(fis);
+                final FaweInputStream gis = MainUtil.getCompressedIS(fis);
                 // skip mode
-                gis.skip(1);
+                gis.skipFully(1);
                 // origin
                 ox = ((gis.read() << 24) + (gis.read() << 16) + (gis.read() << 8) + (gis.read() << 0));
                 oz = ((gis.read() << 24) + (gis.read() << 16) + (gis.read() << 8) + (gis.read() << 0));

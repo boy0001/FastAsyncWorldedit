@@ -66,11 +66,11 @@ import java.util.zip.Inflater;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 import net.jpountz.lz4.LZ4BlockInputStream;
+import net.jpountz.lz4.LZ4BlockOutputStream;
 import net.jpountz.lz4.LZ4Compressor;
 import net.jpountz.lz4.LZ4Factory;
 import net.jpountz.lz4.LZ4FastDecompressor;
 import net.jpountz.lz4.LZ4InputStream;
-import net.jpountz.lz4.LZ4OutputStream;
 import net.jpountz.lz4.LZ4Utils;
 
 public class MainUtil {
@@ -312,8 +312,7 @@ public class MainUtil {
     }
 
     public static FaweOutputStream getCompressedOS(OutputStream os, int amount, int buffer) throws IOException {
-//        os.write((byte) 10 + amount);
-        os.write((byte) -amount);
+        os.write((byte) 10 + amount);
         os = new BufferedOutputStream(os, buffer);
         if (amount == 0) {
             return new FaweOutputStream(os);
@@ -326,14 +325,14 @@ public class MainUtil {
         LZ4Factory factory = LZ4Factory.fastestInstance();
         int fastAmount = 1 + ((amount - 1) % 3);
         for (int i = 0; i < fastAmount; i++) {
-            os = new LZ4OutputStream(os, buffer, factory.fastCompressor());
+            os = new LZ4BlockOutputStream(os, buffer, factory.fastCompressor());
         }
         int highAmount = amount > 3 ? 1 : 0;
         for (int i = 0; i < highAmount; i++) {
             if (amount == 9) {
-                os = new LZ4OutputStream(os, buffer, factory.highCompressor(17));
+                os = new LZ4BlockOutputStream(os, buffer, factory.highCompressor(17));
             } else {
-                os = new LZ4OutputStream(os, buffer, factory.highCompressor());
+                os = new LZ4BlockOutputStream(os, buffer, factory.highCompressor());
             }
         }
         return new FaweOutputStream(os);
@@ -352,7 +351,7 @@ public class MainUtil {
         boolean legacy;
         if (mode > 10) {
             legacy = false;
-            mode = -mode + 9;
+            mode = -mode + 10;
         } else {
             legacy = true;
         }

@@ -167,7 +167,8 @@ public class Settings extends Config {
         public int COMPRESSION_LEVEL = 3;
         @Comment({
                 "The buffer size for compression:",
-                " - Larger = better ratio but uses more upfront memory"
+                " - Larger = better ratio but uses more upfront memory",
+                " - Must be in the range [64, 33554432]",
         })
         public int BUFFER_SIZE = 531441;
 

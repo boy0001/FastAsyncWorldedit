@@ -70,15 +70,15 @@ public abstract class FaweStreamChangeSet extends FaweChangeSet {
 
     public interface FaweStreamPositionDelegate {
         void write(OutputStream out, int x, int y, int z) throws IOException;
-        int readX(InputStream in) throws IOException;
-        int readY(InputStream in) throws IOException;
-        int readZ(InputStream in) throws IOException;
+        int readX(FaweInputStream in) throws IOException;
+        int readY(FaweInputStream in) throws IOException;
+        int readZ(FaweInputStream in) throws IOException;
     }
 
     public interface FaweStreamIdDelegate {
         void writeChange(OutputStream out, int from, int to) throws IOException;
-        void readCombined(InputStream in, MutableBlockChange change, boolean dir) throws IOException;
-        void readCombined(InputStream in, MutableFullBlockChange change, boolean dir) throws IOException;
+        void readCombined(FaweInputStream in, MutableBlockChange change, boolean dir) throws IOException;
+        void readCombined(FaweInputStream in, MutableFullBlockChange change, boolean dir) throws IOException;
     }
 
     private void setupStreamDelegates(int mode) {
@@ -94,9 +94,9 @@ public abstract class FaweStreamChangeSet extends FaweChangeSet {
                 }
 
                 @Override
-                public void readCombined(InputStream is, MutableBlockChange change, boolean dir) throws IOException {
+                public void readCombined(FaweInputStream is, MutableBlockChange change, boolean dir) throws IOException {
                     if (dir) {
-                        is.skip(2);
+                        is.skipFully(2);
                         int to1 = is.read();
                         int to2 = is.read();
                         change.id = (short) ((to2 << 4) + (to1 >> 4));
@@ -104,14 +104,14 @@ public abstract class FaweStreamChangeSet extends FaweChangeSet {
                     } else {
                         int from1 = is.read();
                         int from2 = is.read();
-                        is.skip(2);
+                        is.skipFully(2);
                         change.id = (short) ((from2 << 4) + (from1 >> 4));
                         change.data = (byte) (from1 & 0xf);
                     }
                 }
 
                 @Override
-                public void readCombined(InputStream is, MutableFullBlockChange change, boolean dir) throws IOException {
+                public void readCombined(FaweInputStream is, MutableFullBlockChange change, boolean dir) throws IOException {
                     change.from = ((byte) is.read() & 0xFF) + ((byte) is.read() << 8);
                     change.to = ((byte) is.read() & 0xFF) + ((byte) is.read() << 8);
                 }
@@ -125,7 +125,7 @@ public abstract class FaweStreamChangeSet extends FaweChangeSet {
                 }
 
                 @Override
-                public void readCombined(InputStream in, MutableBlockChange change, boolean dir) throws IOException {
+                public void readCombined(FaweInputStream in, MutableBlockChange change, boolean dir) throws IOException {
                     int from1 = in.read();
                     int from2 = in.read();
                     change.id = (short) ((from2 << 4) + (from1 >> 4));
@@ -133,7 +133,7 @@ public abstract class FaweStreamChangeSet extends FaweChangeSet {
                 }
 
                 @Override
-                public void readCombined(InputStream is, MutableFullBlockChange change, boolean dir) throws IOException {
+                public void readCombined(FaweInputStream is, MutableFullBlockChange change, boolean dir) throws IOException {
                     change.from = ((byte) is.read() & 0xFF) + ((byte) is.read() << 8);
                     change.to = 0;
                 }
@@ -162,20 +162,18 @@ public abstract class FaweStreamChangeSet extends FaweChangeSet {
                 byte[] buffer = new byte[4];
 
                 @Override
-                public int readX(InputStream in) throws IOException {
-                    if (in.read(buffer) == -1) {
-                        throw new EOFException();
-                    }
+                public int readX(FaweInputStream in) throws IOException {
+                    in.readFully(buffer);
                     return lx = lx + ((((buffer[1] & 0xFF) + ((MathMan.unpair16x(buffer[3])) << 8)) << 20) >> 20);
                 }
 
                 @Override
-                public int readY(InputStream in) {
+                public int readY(FaweInputStream in) {
                     return (ly = ly + buffer[0]) & 0xFF;
                 }
 
                 @Override
-                public int readZ(InputStream in) throws IOException {
+                public int readZ(FaweInputStream in) throws IOException {
                     return lz = lz + ((((buffer[2] & 0xFF) + ((MathMan.unpair16y(buffer[3])) << 8)) << 20) >> 20);
                 }
             };
@@ -196,20 +194,18 @@ public abstract class FaweStreamChangeSet extends FaweChangeSet {
                 }
 
                 @Override
-                public int readX(InputStream is) throws IOException {
-                    if (is.read(buffer) == -1) {
-                        throw new EOFException();
-                    }
+                public int readX(FaweInputStream is) throws IOException {
+                    is.readFully(buffer);
                     return lx = (lx + (buffer[0] & 0xFF) + (buffer[1] << 8));
                 }
 
                 @Override
-                public int readY(InputStream is) throws IOException {
+                public int readY(FaweInputStream is) throws IOException {
                     return (ly = (ly + (buffer[4]))) & 0xFF;
                 }
 
                 @Override
-                public int readZ(InputStream is) throws IOException {
+                public int readZ(FaweInputStream is) throws IOException {
                     return lz = (lz + (buffer[2] & 0xFF) + (buffer[3] << 8));
                 }
             };
@@ -249,6 +245,9 @@ public abstract class FaweStreamChangeSet extends FaweChangeSet {
         if (blockSize > 0) {
             return false;
         }
+        if (waitingCombined.get() != 0 || waitingAsync.get() != 0) {
+            return false;
+        }
         flush();
         return blockSize == 0;
     }
@@ -275,8 +274,8 @@ public abstract class FaweStreamChangeSet extends FaweChangeSet {
     public abstract NBTOutputStream getTileCreateOS() throws IOException;
     public abstract NBTOutputStream getTileRemoveOS() throws IOException;
 
-    public abstract InputStream getBlockIS() throws IOException;
-    public abstract InputStream getBiomeIS() throws IOException;
+    public abstract FaweInputStream getBlockIS() throws IOException;
+    public abstract FaweInputStream getBiomeIS() throws IOException;
     public abstract NBTInputStream getEntityCreateIS() throws IOException;
     public abstract NBTInputStream getEntityRemoveIS() throws IOException;
     public abstract NBTInputStream getTileCreateIS() throws IOException;
@@ -391,7 +390,7 @@ public abstract class FaweStreamChangeSet extends FaweChangeSet {
     }
 
     public Iterator<MutableBlockChange> getBlockIterator(final boolean dir) throws IOException {
-        final InputStream is = getBlockIS();
+        final FaweInputStream is = getBlockIS();
         if (is == null) {
             return new ArrayList<MutableBlockChange>().iterator();
         }

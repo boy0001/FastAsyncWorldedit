@@ -182,7 +182,7 @@ public final class LZ4BlockOutputStream extends FilterOutputStream {
             checksum.update(buffer, 0, o);
             check = (int) checksum.getValue();
         } else {
-            check = 0;
+            check = 1;
         }
         int compressedLength = compressor.compress(buffer, 0, o, compressedBuffer, HEADER_LENGTH);
         final int compressMethod;

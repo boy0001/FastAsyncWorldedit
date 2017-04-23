@@ -28,6 +28,13 @@ public class FaweInputStream extends DataInputStream {
 
     private NBTInputStream nbtIn;
 
+    public void skipFully(int num) throws IOException {
+        long skipped = skip(num);
+        while (skipped != num) {
+            skipped += skip(num - skipped);
+        }
+    }
+
     public NamedTag readNBT() throws IOException {
         if (nbtIn == null) {
             nbtIn = new NBTInputStream(parent);
