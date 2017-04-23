@@ -66,22 +66,9 @@ public class WorldEditCommands {
         max = 0
     )
     public void version(Actor actor) throws WorldEditException {
-        actor.print(BBC.getPrefix() + "WorldEdit " + WorldEdit.getVersion());
-        PlatformManager pm = we.getPlatformManager();
-        actor.printDebug("------------------------------------");
-        actor.printDebug("Platforms:");
-        for (Platform platform : pm.getPlatforms()) {
-            actor.printDebug(String.format(" - %s (%s)", platform.getPlatformName(), platform.getPlatformVersion()));
-        }
-        actor.printDebug("Capabilities:");
-        for (Capability capability : Capability.values()) {
-            Platform platform = pm.queryCapability(capability);
-            actor.printDebug(String.format(" - %s: %s", capability.name(), platform != null ? platform.getPlatformName() : "NONE"));
-        }
-        actor.printDebug("------------------------------------");
         FaweVersion fVer = Fawe.get().getVersion();
         String fVerStr = fVer == null ? "unknown" : fVer.year + "." + fVer.month + "." + fVer.day + "-" + Integer.toHexString(fVer.hash) + "-" + fVer.build;
-        actor.print(BBC.getPrefix() + "FAWE " + fVerStr);
+        actor.print(BBC.getPrefix() + "FAWE " + fVerStr + " by Empire92");
         if (fVer != null) {
             actor.printDebug("------------------------------------");
             FaweVersion version = Fawe.get().getVersion();
@@ -99,8 +86,21 @@ public class WorldEditCommands {
                 actor.printDebug(" - UPDATES: Latest Version");
             }
             actor.printDebug("------------------------------------");
-            actor.printDebug("Wiki: " + "https://github.com/boy0001/FastAsyncWorldedit/wiki");
         }
+        actor.print(BBC.getPrefix() + "WorldEdit " + WorldEdit.getVersion() + " by sk89q");
+        PlatformManager pm = we.getPlatformManager();
+        actor.printDebug("------------------------------------");
+        actor.printDebug("Platforms:");
+        for (Platform platform : pm.getPlatforms()) {
+            actor.printDebug(String.format(" - %s (%s)", platform.getPlatformName(), platform.getPlatformVersion()));
+        }
+        actor.printDebug("Capabilities:");
+        for (Capability capability : Capability.values()) {
+            Platform platform = pm.queryCapability(capability);
+            actor.printDebug(String.format(" - %s: %s", capability.name(), platform != null ? platform.getPlatformName() : "NONE"));
+        }
+        actor.printDebug("------------------------------------");
+        actor.printDebug("Wiki: " + "https://github.com/boy0001/FastAsyncWorldedit/wiki");
     }
 
     @Command(
@@ -202,7 +202,7 @@ public class WorldEditCommands {
     @Command(
         aliases = { "help" },
         usage = "[<command>]",
-            desc = "Displays help for WorldEdit commands",
+            desc = "Displays help for FAWE commands",
         min = 0,
         max = -1
     )

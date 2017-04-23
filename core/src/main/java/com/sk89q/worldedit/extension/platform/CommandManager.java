@@ -236,7 +236,7 @@ public final class CommandManager {
                 .registerMethods(new ToolCommands(worldEdit))
                 .registerMethods(new UtilityCommands(worldEdit))
                 .group("worldedit", "we", "fawe")
-                .describeAs("WorldEdit commands")
+                .describeAs("FAWE commands")
                 .registerMethods(new WorldEditCommands(worldEdit)).parent().group("schematic", "schem", "/schematic", "/schem")
                 .describeAs("Schematic commands for saving/loading areas")
                 .registerMethods(new SchematicCommands(worldEdit)).parent().group("snapshot", "snap")

@@ -31,6 +31,7 @@ import com.boydti.fawe.object.changeset.FaweChangeSet;
 import com.boydti.fawe.object.extent.ResettableExtent;
 import com.boydti.fawe.util.EditSessionBuilder;
 import com.boydti.fawe.util.MainUtil;
+import com.boydti.fawe.util.TaskManager;
 import com.boydti.fawe.wrappers.WorldWrapper;
 import com.sk89q.jchronic.Chronic;
 import com.sk89q.jchronic.Options;
@@ -101,14 +102,6 @@ public class LocalSession {
     private transient RegionSelector selector = new CuboidRegionSelector();
     private transient boolean placeAtPos1 = false;
     private transient List<Object> history = Collections.synchronizedList(new LinkedList<Object>() {
-        @Override
-        public void add(int index, Object element) { // Integer = Lazy evaluated FaweChangeSet
-            if (element instanceof Integer || element instanceof FaweChangeSet) {
-                super.add(index, element);
-            } else {
-                throw new ClassCastException("Must add either Integer (index) or FaweChangeSet");
-            }
-        }
         @Override
         public Object get(int index) {
             Object value = super.get(index);
@@ -478,6 +471,7 @@ public class LocalSession {
                 }
             }
         }
+
         historySize += MainUtil.getSize(changeSet);
         if (append) {
             history.add(changeSet);

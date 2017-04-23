@@ -22,6 +22,9 @@ public class PlotMeFeature extends BukkitMaskManager implements Listener {
         this.plugin = p3;
 
     }
+    public boolean isAllowed(Player player, Plot plot, MaskType type) {
+        return plot != null && type == MaskType.MEMBER ? plot.isAllowed(player.getUniqueId()) : player.getUniqueId().equals(plot.getOwnerId());
+    }
 
     @Override
     public BukkitMask getMask(final FawePlayer<Player> fp, MaskType type) {
@@ -31,8 +34,7 @@ public class PlotMeFeature extends BukkitMaskManager implements Listener {
         if (plot == null) {
             return null;
         }
-        final boolean isallowed = type == MaskType.MEMBER ? plot.isAllowed(player.getUniqueId()) : player.getUniqueId().equals(plot.getOwnerId());
-        if (isallowed) {
+        if (isAllowed(player, plot, type)) {
             final Location pos1 = new Location(location.getWorld(), this.plotme.getGenManager(player.getWorld().getName()).bottomX(plot.getId(), new BukkitWorld(player.getWorld())), 0, this.plotme
             .getGenManager(player.getWorld().getName()).bottomZ(plot.getId(), new BukkitWorld(player.getWorld())));
             final Location pos2 = new Location(location.getWorld(), this.plotme.getGenManager(player.getWorld().getName()).topX(plot.getId(), new BukkitWorld(player.getWorld())), 256, this.plotme
@@ -41,6 +43,11 @@ public class PlotMeFeature extends BukkitMaskManager implements Listener {
                 @Override
                 public String getName() {
                     return plot.getId();
+                }
+
+                @Override
+                public boolean isValid(FawePlayer player, MaskType type) {
+                    return isAllowed((Player) player.parent, plot, type);
                 }
             };
         }

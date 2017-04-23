@@ -25,6 +25,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 import net.minecraft.server.v1_7_R4.Block;
+import net.minecraft.server.v1_7_R4.Chunk;
 import net.minecraft.server.v1_7_R4.ChunkCoordIntPair;
 import net.minecraft.server.v1_7_R4.ChunkPosition;
 import net.minecraft.server.v1_7_R4.ChunkSection;
@@ -111,6 +112,12 @@ public class BukkitQueue17 extends BukkitQueue_0<net.minecraft.server.v1_7_R4.Ch
     public BukkitQueue17(final String world) {
         super(world);
         getImpWorld();
+    }
+
+    @Override
+    public void saveChunk(Chunk nmsChunk) {
+        nmsChunk.e(); // Modified
+        nmsChunk.mustSave = true;
     }
 
     @Override

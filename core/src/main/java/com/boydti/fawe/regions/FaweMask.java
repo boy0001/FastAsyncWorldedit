@@ -1,5 +1,6 @@
 package com.boydti.fawe.regions;
 
+import com.boydti.fawe.object.FawePlayer;
 import com.boydti.fawe.object.RegionWrapper;
 import com.sk89q.worldedit.BlockVector;
 import java.util.Arrays;
@@ -52,6 +53,10 @@ public class FaweMask {
         this.position1 = new BlockVector(Math.min(pos1.getBlockX(), pos2.getBlockX()), 0, Math.min(pos1.getBlockZ(), pos2.getBlockZ()));
         this.position2 = new BlockVector(Math.max(pos1.getBlockX(), pos2.getBlockX()), 256, Math.max(pos1.getBlockZ(), pos2.getBlockZ()));
     }
+
+    public boolean isValid(FawePlayer player, FaweMaskManager.MaskType type) {
+        return false;
+    };
 
     public BlockVector[] getBounds() {
         final BlockVector[] BlockVectors = { this.position1, this.position2 };

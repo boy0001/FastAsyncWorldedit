@@ -3,6 +3,7 @@ package com.boydti.fawe.bukkit.regions;
 import com.boydti.fawe.bukkit.FaweBukkit;
 import com.boydti.fawe.object.FawePlayer;
 import com.palmergames.bukkit.towny.Towny;
+import com.palmergames.bukkit.towny.exceptions.NotRegisteredException;
 import com.palmergames.bukkit.towny.object.PlayerCache;
 import com.palmergames.bukkit.towny.object.TownBlock;
 import com.palmergames.bukkit.towny.object.TownyUniverse;
@@ -21,6 +22,25 @@ public class TownyFeature extends BukkitMaskManager implements Listener {
         super(townyPlugin.getName());
         this.towny = townyPlugin;
         this.plugin = p3;
+    }
+
+    public boolean isAllowed(Player player, TownBlock block) {
+        if (block == null) {
+            return false;
+        }
+        try {
+            if (block.getResident().getName().equals(player.getName())) {
+                return true;
+            }
+        } catch (final Exception ignore) {}
+        if (player.hasPermission("fawe.towny.*")) {
+            return true;
+        } else try {
+            if (block.getTown().isMayor(TownyUniverse.getDataSource().getResident(player.getName()))) {
+                return true;
+            }
+        } catch (NotRegisteredException ignore) {}
+        return false;
     }
 
     @Override
@@ -60,6 +80,11 @@ public class TownyFeature extends BukkitMaskManager implements Listener {
                             @Override
                             public String getName() {
                                 return "PLOT:" + location.getChunk().getX() + "," + location.getChunk().getZ();
+                            }
+
+                            @Override
+                            public boolean isValid(FawePlayer player, MaskType type) {
+                                return isAllowed((Player) player.parent, myplot);
                             }
                         };
                     }

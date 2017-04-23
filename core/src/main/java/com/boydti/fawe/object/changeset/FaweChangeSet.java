@@ -207,7 +207,7 @@ public abstract class FaweChangeSet implements ChangeSet {
     }
 
     public boolean isEmpty() {
-        return size() == 0;
+        return waitingCombined.get() == 0 && waitingAsync.get() == 0 && size() == 0;
     }
 
     public void add(int x, int y, int z, int combinedFrom, BaseBlock to) {

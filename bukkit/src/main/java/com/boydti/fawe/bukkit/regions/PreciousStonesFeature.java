@@ -24,6 +24,10 @@ public class PreciousStonesFeature extends BukkitMaskManager implements Listener
 
     }
 
+    public boolean isAllowed(Player player, Field field, MaskType type, boolean allowMember) {
+        return field != null && (field.isOwner(player.getName()) || (type == MaskType.MEMBER && allowMember && field.getAllAllowed().contains(player.getName())));
+    }
+
     @Override
     public FaweMask getMask(final FawePlayer<Player> fp, MaskType type) {
         final Player player = fp.parent;
@@ -35,10 +39,15 @@ public class PreciousStonesFeature extends BukkitMaskManager implements Listener
         String name = player.getName();
         boolean member = fp.hasPermission("fawe.preciousstones.member");
         for (final Field myField : fields) {
-            if (myField.isOwner(name) || (type == MaskType.MEMBER && member && myField.getAllAllowed().contains(player.getName()))) {
+            if (isAllowed(player, myField, type, member)) {
                 BlockVector pos1 = new BlockVector(myField.getMinx(), myField.getMiny(), myField.getMinz());
                 BlockVector pos2 = new BlockVector(myField.getMaxx(), myField.getMaxy(), myField.getMaxz());
-                return new FaweMask(pos1, pos2, "FIELD: " + myField);
+                return new FaweMask(pos1, pos2, "FIELD: " + myField) {
+                    @Override
+                    public boolean isValid(FawePlayer player, MaskType type) {
+                        return isAllowed((Player) player.parent, myField, type, fp.hasPermission("fawe.preciousstones.member"));
+                    }
+                };
             }
         }
         return null;

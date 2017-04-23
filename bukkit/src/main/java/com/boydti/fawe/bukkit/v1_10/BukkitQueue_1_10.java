@@ -166,6 +166,12 @@ public class BukkitQueue_1_10 extends BukkitQueue_0<net.minecraft.server.v1_10_R
     }
 
     @Override
+    public void saveChunk(net.minecraft.server.v1_10_R1.Chunk chunk) {
+        chunk.f(true); // Set Modified
+        chunk.mustSave = true;
+    }
+
+    @Override
     public ChunkSection[] getSections(net.minecraft.server.v1_10_R1.Chunk chunk) {
         return chunk.getSections();
     }

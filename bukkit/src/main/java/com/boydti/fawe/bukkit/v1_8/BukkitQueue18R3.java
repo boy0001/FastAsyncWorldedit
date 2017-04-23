@@ -24,6 +24,7 @@ import java.util.Set;
 import java.util.UUID;
 import net.minecraft.server.v1_8_R3.Block;
 import net.minecraft.server.v1_8_R3.BlockPosition;
+import net.minecraft.server.v1_8_R3.Chunk;
 import net.minecraft.server.v1_8_R3.ChunkSection;
 import net.minecraft.server.v1_8_R3.Entity;
 import net.minecraft.server.v1_8_R3.EntityPlayer;
@@ -115,6 +116,12 @@ public class BukkitQueue18R3 extends BukkitQueue_0<net.minecraft.server.v1_8_R3.
     public BukkitQueue18R3(final String world) {
         super(world);
         getImpWorld();
+    }
+
+    @Override
+    public void saveChunk(Chunk nmsChunk) {
+        nmsChunk.f(true); // Modified
+        nmsChunk.mustSave = true;
     }
 
     @Override

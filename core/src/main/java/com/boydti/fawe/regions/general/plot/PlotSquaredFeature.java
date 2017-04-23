@@ -19,6 +19,7 @@ import com.intellectualcrafters.plot.util.block.QueueProvider;
 import com.plotsquared.listener.WEManager;
 import com.sk89q.worldedit.BlockVector;
 import java.util.HashSet;
+import java.util.UUID;
 
 public class PlotSquaredFeature extends FaweMaskManager {
     public PlotSquaredFeature() {
@@ -75,16 +76,30 @@ public class PlotSquaredFeature extends FaweMaskManager {
         }
     }
 
+    public boolean isAllowed(FawePlayer fp, Plot plot, MaskType type) {
+        if (plot == null) {
+            return false;
+        }
+        UUID uid = fp.getUUID();
+        return (plot.isOwner(uid) || (type == MaskType.MEMBER && (plot.getTrusted().contains(uid) || (plot.getMembers().contains(uid) && fp.hasPermission("fawe.plotsquared.member")))));
+    }
+
     @Override
     public FaweMask getMask(FawePlayer fp, MaskType type) {
         final PlotPlayer pp = PlotPlayer.wrap(fp.parent);
         final HashSet<RegionWrapper> regions;
         Plot plot = pp.getCurrentPlot();
-        PlotArea area = pp.getApplicablePlotArea();
-        if (plot != null && (plot.isOwner(pp.getUUID()) || (type == MaskType.MEMBER && (plot.getTrusted().contains(pp.getUUID()) || (plot.getMembers().contains(pp.getUUID()) && pp.hasPermission("fawe.plotsquared.member")))))) {
+        if (isAllowed(fp, plot, type)) {
             regions = plot.getRegions();
         } else {
+            plot = null;
             regions = WEManager.getMask(pp);
+            if (regions.size() == 1) {
+                RegionWrapper region = regions.iterator().next();
+                if (region.minX == Integer.MIN_VALUE && region.maxX == Integer.MAX_VALUE) {
+                    regions.clear();
+                }
+            }
         }
         if (regions == null || regions.size() == 0) {
             return null;
@@ -93,11 +108,13 @@ public class PlotSquaredFeature extends FaweMaskManager {
         for (final RegionWrapper current : regions) {
             faweRegions.add(new com.boydti.fawe.object.RegionWrapper(current.minX, current.maxX, current.minZ, current.maxZ));
         }
+        PlotArea area = pp.getApplicablePlotArea();
         int min = area != null ? area.MIN_BUILD_HEIGHT : 0;
         int max = area != null ? area.MAX_BUILD_HEIGHT : 255;
         final RegionWrapper region = regions.iterator().next();
         final BlockVector pos1 = new BlockVector(region.minX, min, region.minZ);
         final BlockVector pos2 = new BlockVector(region.maxX, max, region.maxZ);
+        final Plot finalPlot = plot;
         return new FaweMask(pos1, pos2) {
             @Override
             public String getName() {
@@ -107,6 +124,11 @@ public class PlotSquaredFeature extends FaweMaskManager {
             @Override
             public boolean contains(BlockVector loc) {
                 return WEManager.maskContains(regions, loc.getBlockX(), loc.getBlockY(), loc.getBlockZ());
+            }
+
+            @Override
+            public boolean isValid(FawePlayer player, MaskType type) {
+                return isAllowed(player, finalPlot, type);
             }
 
             @Override

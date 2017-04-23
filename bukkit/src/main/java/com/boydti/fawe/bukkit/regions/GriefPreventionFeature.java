@@ -20,6 +20,10 @@ public class GriefPreventionFeature extends BukkitMaskManager implements Listene
         this.plugin = p3;
     }
 
+    public boolean isAllowed(Player player, Claim claim, MaskType type) {
+        return claim != null && (claim.getOwnerName().equalsIgnoreCase(player.getName()) || claim.getOwnerName().equals(player.getUniqueId()) || (type == MaskType.MEMBER && (claim.allowBuild(player, Material.AIR) == null)));
+    }
+
     @Override
     public BukkitMask getMask(final FawePlayer<Player> fp, MaskType type) {
         final Player player = fp.parent;
@@ -27,7 +31,7 @@ public class GriefPreventionFeature extends BukkitMaskManager implements Listene
         final Claim claim = GriefPrevention.instance.dataStore.getClaimAt(location, true, null);
         if (claim != null) {
             final String uuid = player.getUniqueId().toString();
-            if (claim.getOwnerName().equalsIgnoreCase(player.getName()) || claim.getOwnerName().equals(uuid) || (type == MaskType.MEMBER && (claim.allowBuild(player, Material.AIR) == null))) {
+            if (isAllowed(player, claim, type)) {
                 claim.getGreaterBoundaryCorner().getBlockX();
                 final Location pos1 = new Location(location.getWorld(), claim.getLesserBoundaryCorner().getBlockX(), 0, claim.getLesserBoundaryCorner().getBlockZ());
                 final Location pos2 = new Location(location.getWorld(), claim.getGreaterBoundaryCorner().getBlockX(), 256, claim.getGreaterBoundaryCorner().getBlockZ());
@@ -35,6 +39,11 @@ public class GriefPreventionFeature extends BukkitMaskManager implements Listene
                     @Override
                     public String getName() {
                         return "CLAIM:" + claim.toString();
+                    }
+
+                    @Override
+                    public boolean isValid(FawePlayer player, MaskType type) {
+                        return isAllowed((Player) player.parent, claim, type);
                     }
                 };
             }

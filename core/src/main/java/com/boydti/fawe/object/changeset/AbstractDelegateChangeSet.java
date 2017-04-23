@@ -21,6 +21,8 @@ public class AbstractDelegateChangeSet extends FaweChangeSet {
     public AbstractDelegateChangeSet(FaweChangeSet parent) {
         super(parent.getWorld());
         this.parent = parent;
+        this.waitingCombined = parent.waitingCombined;
+        this.waitingAsync = parent.waitingAsync;
     }
 
     @Override
@@ -31,6 +33,11 @@ public class AbstractDelegateChangeSet extends FaweChangeSet {
     @Override
     public boolean closeAsync() {
         return super.closeAsync();
+    }
+
+    @Override
+    public boolean flush() {
+        return parent.flush();
     }
 
     @Override
@@ -50,6 +57,12 @@ public class AbstractDelegateChangeSet extends FaweChangeSet {
     @Override
     public World getWorld() {
         return parent.getWorld();
+    }
+
+    @Override
+    @Deprecated
+    public boolean flushAsync() {
+        return parent.flushAsync();
     }
 
     @Override

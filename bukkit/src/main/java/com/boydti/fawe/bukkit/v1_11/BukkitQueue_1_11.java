@@ -200,6 +200,12 @@ public class BukkitQueue_1_11 extends BukkitQueue_0<net.minecraft.server.v1_11_R
     }
 
     @Override
+    public void saveChunk(net.minecraft.server.v1_11_R1.Chunk chunk) {
+        chunk.f(true); // Set Modified
+        chunk.mustSave = true;
+    }
+
+    @Override
     public boolean regenerateChunk(World world, int x, int z, BaseBiome biome, Long seed) {
         if (biome != null) {
             try {

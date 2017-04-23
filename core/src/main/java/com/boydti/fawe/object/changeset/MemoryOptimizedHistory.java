@@ -10,7 +10,6 @@ import com.sk89q.jnbt.NBTInputStream;
 import com.sk89q.jnbt.NBTOutputStream;
 import com.sk89q.worldedit.world.World;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.OutputStream;
 
 /**
@@ -153,7 +152,7 @@ public class MemoryOptimizedHistory extends FaweStreamChangeSet {
     }
 
     @Override
-    public InputStream getBiomeIS() throws IOException {
+    public FaweInputStream getBiomeIS() throws IOException {
         if (biomes == null) {
             return null;
         }
@@ -174,7 +173,7 @@ public class MemoryOptimizedHistory extends FaweStreamChangeSet {
     }
 
     @Override
-    public InputStream getBlockIS() throws IOException {
+    public FaweInputStream getBlockIS() throws IOException {
         if (ids == null) {
             return null;
         }
