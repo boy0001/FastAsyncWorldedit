@@ -4,6 +4,7 @@ import com.boydti.fawe.Fawe;
 import com.boydti.fawe.FaweCache;
 import com.boydti.fawe.config.BBC;
 import com.boydti.fawe.object.FawePlayer;
+import com.boydti.fawe.object.RunnableVal;
 import com.boydti.fawe.object.brush.BrushSettings;
 import com.boydti.fawe.object.brush.MovableTool;
 import com.boydti.fawe.object.brush.ResettableTool;
@@ -16,6 +17,7 @@ import com.boydti.fawe.object.brush.visualization.VisualMode;
 import com.boydti.fawe.object.extent.ResettableExtent;
 import com.boydti.fawe.object.pattern.PatternTraverser;
 import com.boydti.fawe.util.EditSessionBuilder;
+import com.boydti.fawe.util.TaskManager;
 import com.sk89q.worldedit.BlockWorldVector;
 import com.sk89q.worldedit.EditSession;
 import com.sk89q.worldedit.LocalConfiguration;
@@ -281,11 +283,16 @@ public class BrushTool implements DoubleActionTraceTool, ScrollTool, MovableTool
 
     private Vector trace(Player player, int range, boolean useLastBlock) {
         TargetBlock tb = new TargetBlock(player, range, 0.2);
-        BlockWorldVector result = tb.getSolidTargetBlock();
-        if (result == null && useLastBlock) {
-            result = tb.getPreviousBlock();
-        }
-        return result;
+        return TaskManager.IMP.sync(new RunnableVal<Vector>() {
+            @Override
+            public void run(Vector value) {
+                BlockWorldVector result = tb.getSolidTargetBlock();
+                if (result == null && useLastBlock) {
+                    result = tb.getPreviousBlock();
+                }
+                this.value = result;
+            }
+        });
     }
 
     public boolean act(BrushAction action, Platform server, LocalConfiguration config, Player player, LocalSession session) {
