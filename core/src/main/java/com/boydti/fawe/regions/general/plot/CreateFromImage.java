@@ -162,12 +162,12 @@ public class CreateFromImage extends Command {
                                 return;
                             }
                             if (argList.size() == 1) {
-                                if (StringMan.isEqualIgnoreCaseToAny(argList.get(0), "setbiome", "setoverlay", "setmain", "setfloor", "setcolumn", "setcolor")) {
+                                if (StringMan.isEqualIgnoreCaseToAny(argList.get(0), "setbiome", "setoverlay", "setmain", "setfloor", "setcolumn", "setcolor", "setglasscolor")) {
                                     C.COMMAND_SYNTAX.send(player, "/2 cfi " + argList.get(0) + " <image or mask> <value> [white-only]");
                                     C.COMMAND_SYNTAX.send(player, "/2 cfi " + argList.get(0) + " <value>");
                                     return;
                                 } else if (!StringMan.isEqualIgnoreCaseToAny(argList.get(0), "done", "cancel", "addcaves", "addore", "addores", "addschems", "setheight")) {
-                                    C.COMMAND_SYNTAX.send(player, "/2 cfi <setbiome|setoverlay|setmain|setfloor|setcolumn|done|cancel|addcaves|addore[s]|addschems|setheight|setcolor>");
+                                    C.COMMAND_SYNTAX.send(player, "/2 cfi <setbiome|setoverlay|setmain|setfloor|setcolumn|done|cancel|addcaves|addore[s]|addschems|setheight|setcolor|setglasscolor>");
                                     return;
                                 }
                             }
@@ -205,6 +205,16 @@ public class CreateFromImage extends Command {
                                         BufferedImage image = getImgurImage(argList.get(1), fp);
                                         generator.setColor(image);
                                         player.sendMessage("Set color, what's next?");
+                                        return;
+                                    }
+                                    case "setglasscolor": {
+                                        if (argList.size() != 2) {
+                                            C.COMMAND_SYNTAX.send(player, "/2 cfi " + argList.get(0) + " <url>");
+                                            return;
+                                        }
+                                        BufferedImage image = getImgurImage(argList.get(1), fp);
+                                        generator.setColorWithGlass(image);
+                                        player.sendMessage("Set glass color, what's next?");
                                         return;
                                     }
                                     case "setheight": {

@@ -34,9 +34,9 @@ import org.json.simple.parser.ParseException;
 public class TextureUtil {
     private final File folder;
 
-    private int[] blockColors = new int[Character.MAX_VALUE + 1];
-    private int[] validColors;
-    private int[] validBlockIds;
+    protected int[] blockColors = new int[Character.MAX_VALUE + 1];
+    protected int[] validColors;
+    protected char[] validBlockIds;
 
     public TextureUtil() {
         this(MainUtil.getFile(Fawe.imp().getDirectory(), Settings.IMP.PATHS.TEXTURES));
@@ -81,6 +81,21 @@ public class TextureUtil {
 
     public File getFolder() {
         return folder;
+    }
+
+    protected int combine(int top, int bottom) {
+        int alpha1 = (top >> 24) & 0xFF;
+        int alpha2 = 255 - alpha1;
+        int red1 = (top >> 16) & 0xFF;
+        int green1 = (top >> 8) & 0xFF;
+        int blue1 = (top >> 0) & 0xFF;
+        int red2 = (bottom >> 16) & 0xFF;
+        int green2 = (bottom >> 8) & 0xFF;
+        int blue2 = (bottom >> 0) & 0xFF;
+        int red = ((red1 * alpha1) + (red2 * alpha2)) / 255;
+        int green = ((green1 * alpha1) + (green2 * alpha2)) / 255;
+        int blue = ((blue1 * alpha1) + (blue2 * alpha2)) / 255;
+        return (red << 16) + (green << 8) + (blue << 0) + (255 << 24);
     }
 
     public void loadModTextures() throws IOException, ParseException {
@@ -162,13 +177,25 @@ public class TextureUtil {
                     }
                     // Try to match the textures to a block
                     Int2ObjectOpenHashMap<String> idMap = new Int2ObjectOpenHashMap<>();
+                    HashSet<Integer> map2 = new HashSet<>();
                     for (String id : bundled.stateMap.keySet()) {
                         if (id.startsWith(modId)) {
                             BaseBlock block = bundled.findByState(id);
                             BundledBlockData.BlockEntry state = bundled.findById(block.getId());
                             // Ignore non blocks
-                            if (!state.material.isRenderedAsNormalBlock()) {
-                                continue;
+                            if (!state.material.isFullCube() && !state.material.isRenderedAsNormalBlock()) {
+                                switch (block.getId()) {
+                                    case 20:
+                                    case 95:
+                                        break;
+                                    default:
+                                        continue;
+                                }
+                            } else if (!state.material.isFullCube() || !state.material.isRenderedAsNormalBlock()) {
+                                switch (block.getId()) {
+                                    case 52:
+                                        continue;
+                                }
                             }
                             if (state.material.getLightValue() != 0) {
                                 continue;
@@ -205,14 +232,14 @@ public class TextureUtil {
             }
         }
         // Convert the color map to a simple array
-        validBlockIds = new int[colorMap.size()];
+        validBlockIds = new char[colorMap.size()];
         validColors = new int[colorMap.size()];
         int index = 0;
         for (Int2ObjectMap.Entry<Integer> entry : colorMap.int2ObjectEntrySet()) {
             int combinedId = entry.getIntKey();
             int color = entry.getValue();
             blockColors[combinedId] = color;
-            validBlockIds[index] = combinedId;
+            validBlockIds[index] = (char) combinedId;
             validColors[index] = color;
             index++;
         }
@@ -326,19 +353,19 @@ public class TextureUtil {
         }
     }
 
-    private boolean hasAlpha(int color) {
+    protected boolean hasAlpha(int color) {
         int alpha = (color >> 24) & 0xFF;
         return alpha != 255;
     }
 
-    public long colorDistance(int c1, int c2) {
+    protected long colorDistance(int c1, int c2) {
         int red1 = (c1 >> 16) & 0xFF;
         int green1 = (c1 >> 8) & 0xFF;
         int blue1 = (c1 >> 0) & 0xFF;
         return colorDistance(red1, green1, blue1, c2);
     }
 
-    private long colorDistance(int red1, int green1, int blue1, int c2) {
+    protected long colorDistance(int red1, int green1, int blue1, int c2) {
         int red2 = (c2 >> 16) & 0xFF;
         int green2 = (c2 >> 8) & 0xFF;
         int blue2 = (c2 >> 0) & 0xFF;
@@ -349,7 +376,7 @@ public class TextureUtil {
         return (((512 + rmean) * r * r) >> 8) + 4 * g * g + (((767 - rmean) * b * b) >> 8);
     }
 
-    public int getColor(BufferedImage image) {
+    protected int getColor(BufferedImage image) {
         int width = image.getWidth();
         int height = image.getHeight();
         long totalRed = 0;

@@ -255,6 +255,24 @@ public class HeightMapMCAGenerator extends MCAWriter implements Extent {
         }
     }
 
+    public void setColorWithGlass(BufferedImage img) {
+            CachedTextureUtil textureUtil = new CachedTextureUtil(Fawe.get().getTextureUtil());
+            if (img.getWidth() != getWidth() || img.getHeight() != getLength())
+                throw new IllegalArgumentException("Input image dimensions do not match the current height map!");
+            int index = 0;
+            for (int y = 0; y < img.getHeight(); y++) {
+                for (int x = 0; x < img.getWidth(); x++) {
+                    int color = img.getRGB(x, y);
+                    char[] layer = textureUtil.getNearestLayer(color);
+                    if (layer == null) {
+                        continue;
+                    }
+                    floor[index] = layer[0];
+                    main[index++] = layer[1];
+                }
+            }
+    }
+
     public void setBiome(Mask mask, byte biome) {
         int index = 0;
         for (int z = 0; z < getLength(); z++) {
