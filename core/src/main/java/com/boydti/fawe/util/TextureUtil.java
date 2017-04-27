@@ -38,6 +38,224 @@ public class TextureUtil {
     private int[] validColors;
     private int[] validBlockIds;
 
+    public TextureUtil() {
+        this(MainUtil.getFile(Fawe.imp().getDirectory(), Settings.IMP.PATHS.TEXTURES));
+    }
+
+    public TextureUtil(File folder) {
+        this.folder = folder;
+    }
+
+    public BaseBlock getNearestBlock(int color) {
+        long min = Long.MAX_VALUE;
+        int closest = 0;
+        int red1 = (color >> 16) & 0xFF;
+        int green1 = (color >> 8) & 0xFF;
+        int blue1 = (color >> 0) & 0xFF;
+        int alpha = (color >> 24) & 0xFF;
+        for (int i = 0; i < validColors.length; i++) {
+            int other = validColors[i];
+            if (((other >> 24) & 0xFF) == alpha) {
+                long distance = colorDistance(red1, green1, blue1, other);
+                if (distance < min) {
+                    min = distance;
+                    closest = validBlockIds[i];
+                }
+            }
+        }
+        if (min == Long.MAX_VALUE) return null;
+        return FaweCache.CACHE_BLOCK[closest];
+    }
+
+    public BaseBlock getLighterBlock(BaseBlock block) {
+        return getNearestBlock(block, false);
+    }
+
+    public BaseBlock getDarkerBlock(BaseBlock block) {
+        return getNearestBlock(block, false);
+    }
+
+    public int getColor(BaseBlock block) {
+        return blockColors[block.getCombined()];
+    }
+
+    public File getFolder() {
+        return folder;
+    }
+
+    public void loadModTextures() throws IOException, ParseException {
+        Int2ObjectOpenHashMap<Integer> colorMap = new Int2ObjectOpenHashMap<>();
+        if (folder.exists()) {
+            // Get all the jar files
+            for (File file : folder.listFiles(new FilenameFilter() {
+                @Override
+                public boolean accept(File dir, String name) {
+                    return name.endsWith(".jar");
+                }
+            })) {
+                ZipFile zipFile = new ZipFile(file);
+
+                BundledBlockData bundled = BundledBlockData.getInstance();
+
+                // Get all the groups in the current jar
+                // The vanilla textures are in `assets/minecraft`
+                // A jar may contain textures for multiple mods
+                Set<String> mods = new HashSet<String>();
+                {
+                    Enumeration<? extends ZipEntry> entries = zipFile.entries();
+                    while (entries.hasMoreElements()) {
+                        ZipEntry entry = entries.nextElement();
+                        String name = entry.getName();
+                        Path path = Paths.get(name);
+                        if (path.startsWith("assets" + File.separator)) {
+                            String[] split = path.toString().split(Pattern.quote(File.separator));
+                            if (split.length > 1) {
+                                String modId = split[1];
+                                mods.add(modId);
+                            }
+                        }
+                        continue;
+                    }
+                }
+                for (String modId : mods) {
+                    String modelsDir = "assets" + "/" + modId + "/" + "models" + "/" + "block";
+                    String texturesDir = "assets" + "/" + modId + "/" + "textures" + "/" + "blocks";
+                    Map<String, String> texturesMap = new ConcurrentHashMap<>();
+                    { // Read models
+                        Enumeration<? extends ZipEntry> entries = zipFile.entries();
+                        while (entries.hasMoreElements()) {
+                            ZipEntry entry = entries.nextElement();
+                            if (entry.isDirectory()) {
+                                continue;
+                            }
+                            String name = entry.getName();
+                            if (!name.endsWith(".json")) {
+                                continue;
+                            }
+                            Path path = Paths.get(name);
+                            if (path.startsWith(modelsDir)) {
+                                String[] split = path.toString().split("[/|\\\\|\\.]");
+                                String blockName = getFileName(path.toString());
+                                // Ignore special models
+                                if (blockName.startsWith("#")) {
+                                    continue;
+                                }
+                                try (InputStream is = zipFile.getInputStream(entry)) { //Read from a file, or a HttpRequest, or whatever.
+                                    JSONParser parser = new JSONParser();
+                                    JSONObject root = (JSONObject) parser.parse(new InputStreamReader(is, "UTF-8"));
+                                    // Try to work out the texture names for this file
+                                    addTextureNames(blockName, root, texturesMap);
+                                }
+                            }
+                        }
+                    }
+                    // Add some possible variations for the file names to try and match it to a block
+                    // - As vanilla minecraft doesn't use consistent naming for the assets and block names
+                    for (String key : new ArrayList<>(texturesMap.keySet())) {
+                        String value = texturesMap.get(key);
+                        texturesMap.put(alphabetize(key), value);
+                        String[] split = key.split("_");
+                        if (split.length > 1) {
+                            key = StringMan.join(Arrays.copyOfRange(split, 0, split.length - 1), "_");
+                            texturesMap.putIfAbsent(key, value);
+                        }
+                    }
+                    // Try to match the textures to a block
+                    Int2ObjectOpenHashMap<String> idMap = new Int2ObjectOpenHashMap<>();
+                    for (String id : bundled.stateMap.keySet()) {
+                        if (id.startsWith(modId)) {
+                            BaseBlock block = bundled.findByState(id);
+                            BundledBlockData.BlockEntry state = bundled.findById(block.getId());
+                            // Ignore non blocks
+                            if (!state.material.isRenderedAsNormalBlock()) {
+                                continue;
+                            }
+                            if (state.material.getLightValue() != 0) {
+                                continue;
+                            }
+                            id = id.substring(modId.length() + 1).replaceAll(":", "_");
+                            String texture = texturesMap.remove(id);
+                            if (texture == null) {
+                                texture = texturesMap.remove(alphabetize(id));
+                            }
+                            if (texture != null) {
+                                int combined = block.getCombined();
+                                if (id.startsWith("log_") || id.startsWith("log2_")) {
+                                    combined += 12;
+                                }
+                                idMap.put(combined, texture);
+                            }
+                        }
+                    }
+                    { // Calculate the colors for each  block
+                        for (Int2ObjectMap.Entry<String> entry : idMap.int2ObjectEntrySet()) {
+                            int combined = entry.getIntKey();
+                            String path = texturesDir + "/" + entry.getValue() + ".png";
+                            ZipEntry textureEntry = zipFile.getEntry(path);
+                            try (InputStream is = zipFile.getInputStream(textureEntry)) {
+                                BufferedImage image = ImageIO.read(is);
+                                int color = getColor(image);
+                                colorMap.put((int) combined, (Integer) color);
+                            }
+                        }
+                    }
+                }
+                // Close the file
+                zipFile.close();
+            }
+        }
+        // Convert the color map to a simple array
+        validBlockIds = new int[colorMap.size()];
+        validColors = new int[colorMap.size()];
+        int index = 0;
+        for (Int2ObjectMap.Entry<Integer> entry : colorMap.int2ObjectEntrySet()) {
+            int combinedId = entry.getIntKey();
+            int color = entry.getValue();
+            blockColors[combinedId] = color;
+            validBlockIds[index] = combinedId;
+            validColors[index] = color;
+            index++;
+        }
+    }
+
+    protected BaseBlock getNearestBlock(BaseBlock block, boolean darker) {
+        int color = getColor(block);
+        if (color == 0) {
+            return block;
+        }
+        BaseBlock darkerBlock = getNearestBlock(color, darker);
+        return darkerBlock != null ? darkerBlock : block;
+    }
+
+    protected BaseBlock getNearestBlock(int color, boolean darker) {
+        long min = Long.MAX_VALUE;
+        int closest = 0;
+        int red1 = (color >> 16) & 0xFF;
+        int green1 = (color >> 8) & 0xFF;
+        int blue1 = (color >> 0) & 0xFF;
+        int alpha = (color >> 24) & 0xFF;
+        int intensity1 = red1 + green1 + blue1;
+        for (int i = 0; i < validColors.length; i++) {
+            int other = validColors[i];
+            if (other != color && ((other >> 24) & 0xFF) == alpha) {
+                int red2 = (other >> 16) & 0xFF;
+                int green2 = (other >> 8) & 0xFF;
+                int blue2 = (other >> 0) & 0xFF;
+                int intensity2 = red2 + green2 + blue2;
+                if (darker ? intensity2 >= intensity1 : intensity1 >= intensity2) {
+                    continue;
+                }
+                long distance = colorDistance(red1, green1, blue1, other);
+                if (distance < min) {
+                    min = distance;
+                    closest = validBlockIds[i];
+                }
+            }
+        }
+        if (min == Long.MAX_VALUE) return null;
+        return FaweCache.CACHE_BLOCK[closest];
+    }
+
     private String getFileName(String path) {
         String[] split = path.toString().split("[/|\\\\]");
         String name = split[split.length - 1];
@@ -108,162 +326,6 @@ public class TextureUtil {
         }
     }
 
-    public TextureUtil() throws IOException, ParseException {
-        this(MainUtil.getFile(Fawe.imp().getDirectory(), Settings.IMP.PATHS.TEXTURES));
-    }
-
-    public TextureUtil(File folder) throws IOException, ParseException {
-        this.folder = folder;
-        loadModTextures();
-    }
-
-    public void loadModTextures() throws IOException, ParseException {
-        if (!folder.exists()) {
-            return;
-        }
-        for (File file : folder.listFiles(new FilenameFilter() {
-            @Override
-            public boolean accept(File dir, String name) {
-                return name.endsWith(".jar");
-            }
-        })) {
-            ZipFile zipFile = new ZipFile(file);
-            // get mods
-
-            BundledBlockData bundled = BundledBlockData.getInstance();
-            bundled.loadFromResource();
-
-            Set<String> mods = new HashSet<String>();
-            {
-                Enumeration<? extends ZipEntry> entries = zipFile.entries();
-                while (entries.hasMoreElements()) {
-                    ZipEntry entry = entries.nextElement();
-                    String name = entry.getName();
-                    Path path = Paths.get(name);
-                    if (path.startsWith("assets" + File.separator)) {
-                        String[] split = path.toString().split(Pattern.quote(File.separator));
-                        if (split.length > 1) {
-                            String modId = split[1];
-                            if (mods.add(modId)) {
-                            }
-                        }
-                    }
-                    continue;
-                }
-            }
-            Int2ObjectOpenHashMap<Integer> colorMap = new Int2ObjectOpenHashMap<>();
-            for (String modId : mods) {
-                String modelsDir = "assets" + "/" + modId + "/" + "models" + "/" + "block";
-                String texturesDir = "assets" + "/" + modId + "/" + "textures" + "/" + "blocks";
-                Map<String, String> texturesMap = new ConcurrentHashMap<>();
-                // Read models
-                {
-                    // Read .json
-                    // Find texture file
-                    Enumeration<? extends ZipEntry> entries = zipFile.entries();
-                    while (entries.hasMoreElements()) {
-                        ZipEntry entry = entries.nextElement();
-                        if (entry.isDirectory()) {
-                            continue;
-                        }
-                        String name = entry.getName();
-                        if (!name.endsWith(".json")) {
-                            continue;
-                        }
-                        Path path = Paths.get(name);
-                        if (path.startsWith(modelsDir)) {
-                            String[] split = path.toString().split("[/|\\\\|\\.]");
-                            String blockName = getFileName(path.toString());
-                            // Ignore special models
-                            if (blockName.startsWith("#")) {
-                                continue;
-                            }
-                            try (InputStream is = zipFile.getInputStream(entry)) { //Read from a file, or a HttpRequest, or whatever.
-                                JSONParser parser = new JSONParser();
-                                JSONObject root = (JSONObject) parser.parse(new InputStreamReader(is, "UTF-8"));
-                                addTextureNames(blockName, root, texturesMap);
-                            }
-                        }
-                    }
-                }
-                for (String key : new ArrayList<>(texturesMap.keySet())) {
-                    String value = texturesMap.get(key);
-                    texturesMap.put(alphabetize(key), value);
-                    String[] split = key.split("_");
-                    if (split.length > 1) {
-                        key = StringMan.join(Arrays.copyOfRange(split, 0, split.length - 1), "_");
-                        texturesMap.putIfAbsent(key, value);
-                    }
-                }
-                Int2ObjectOpenHashMap<String> idMap = new Int2ObjectOpenHashMap<>();
-                for (String id : bundled.stateMap.keySet()) {
-                    if (id.startsWith(modId)) {
-                        BaseBlock block = bundled.findByState(id);
-                        id = id.substring(modId.length() + 1).replaceAll(":", "_");
-                        String texture = texturesMap.remove(id);
-                        if (texture == null) {
-                            texture = texturesMap.remove(alphabetize(id));
-                        }
-                        if (texture != null) {
-                            idMap.put(block.getCombined(), texture);
-                        }
-                    }
-                }
-                {
-                    for (Int2ObjectMap.Entry<String> entry : idMap.int2ObjectEntrySet()) {
-                        int combined = entry.getIntKey();
-                        String path = texturesDir + "/" + entry.getValue() + ".png";
-                        ZipEntry textureEntry = zipFile.getEntry(path);
-                        try (InputStream is = zipFile.getInputStream(textureEntry)) {
-                            BufferedImage image = ImageIO.read(is);
-                            int color = getColor(image);
-                            colorMap.put((int) combined, (Integer) color);
-                        }
-                    }
-                    // Load and map the textures
-                    //
-                }
-            }
-            validBlockIds = new int[colorMap.size()];
-            validColors = new int[colorMap.size()];
-            Arrays.fill(blockColors, 0);
-            int index = 0;
-            for (Int2ObjectMap.Entry<Integer> entry : colorMap.int2ObjectEntrySet()) {
-                int combinedId = entry.getIntKey();
-                int color = entry.getValue();
-                blockColors[combinedId] = color;
-                validBlockIds[index] = combinedId;
-                validColors[index] = color;
-                index++;
-            }
-            zipFile.close();
-        }
-    }
-
-    public BaseBlock getNearestBlock(int color) {
-        long min = Long.MAX_VALUE;
-        int closest = 0;
-        int red1 = (color >> 16) & 0xFF;
-        int green1 = (color >> 8) & 0xFF;
-        int blue1 = (color >> 0) & 0xFF;
-        int alpha = (color >> 24) & 0xFF;
-        for (int i = 0; i < validColors.length; i++) {
-            int other = validColors[i];
-            if (((other >> 24) & 0xFF) == alpha) {
-                long distance = colorDistance(red1, green1, blue1, other);
-                if (distance < min) {
-                    min = distance;
-                    closest = validBlockIds[i];
-                }
-            }
-        }
-        return FaweCache.CACHE_BLOCK[closest];
-    }
-
-    public int getColor(BaseBlock block) {
-        return blockColors[block.getCombined()];
-    }
-
     private boolean hasAlpha(int color) {
         int alpha = (color >> 24) & 0xFF;
         return alpha != 255;
@@ -307,12 +369,4 @@ public class TextureUtil {
         Color color = new Color((int) (totalRed / a), (int) (totalGreen / a), (int) (totalBlue / a), (int) (totalAlpha / a));
         return color.getRGB();
     }
-
-//    public Color getColor(BaseBlock block) {
-//        long r;
-//        long b;
-//        long g;
-//        long a;
-//
-//    }
 }

@@ -1,7 +1,9 @@
 package com.boydti.fawe.jnbt.anvil;
 
+import com.boydti.fawe.Fawe;
 import com.boydti.fawe.FaweCache;
 import com.boydti.fawe.object.PseudoRandom;
+import com.boydti.fawe.util.CachedTextureUtil;
 import com.boydti.fawe.util.MathMan;
 import com.sk89q.worldedit.EditSession;
 import com.sk89q.worldedit.MutableBlockVector;
@@ -231,6 +233,24 @@ public class HeightMapMCAGenerator extends MCAWriter implements Extent {
                 if (height == 255 || height > 0 && white && PseudoRandom.random.nextInt(256) <= height) {
                     biomes[index] = biome;
                 }
+            }
+        }
+    }
+
+    public void setColor(BufferedImage img) {
+        CachedTextureUtil textureUtil = new CachedTextureUtil(Fawe.get().getTextureUtil());
+        if (img.getWidth() != getWidth() || img.getHeight() != getLength()) throw new IllegalArgumentException("Input image dimensions do not match the current height map!");
+        int index = 0;
+        for (int y = 0; y < img.getHeight(); y++) {
+            for (int x = 0; x < img.getWidth(); x++) {
+                int color = img.getRGB(x, y);
+                BaseBlock block = textureUtil.getNearestBlock(color);
+                if (block == null) {
+                    continue;
+                }
+                char combined = (char) block.getCombined();
+                main[index] = combined;
+                floor[index++] = combined;
             }
         }
     }

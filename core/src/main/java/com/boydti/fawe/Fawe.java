@@ -120,6 +120,7 @@ import com.sk89q.worldedit.util.formatting.component.CommandUsageBox;
 import com.sk89q.worldedit.util.formatting.component.MessageBox;
 import com.sk89q.worldedit.world.registry.BundledBlockData;
 import java.io.File;
+import java.io.IOException;
 import java.io.InputStream;
 import java.lang.management.ManagementFactory;
 import java.lang.management.MemoryMXBean;
@@ -135,6 +136,7 @@ import javax.management.InstanceAlreadyExistsException;
 import javax.management.Notification;
 import javax.management.NotificationEmitter;
 import javax.management.NotificationListener;
+import org.json.simple.parser.ParseException;
 
 /**[ WorldEdit action]
 *       |
@@ -326,7 +328,14 @@ public class Fawe {
             synchronized (this) {
                 tmp = textures;
                 if (tmp == null) {
-                    textures = tmp = new TextureUtil();
+                    try {
+                        textures = tmp = new TextureUtil();
+                        tmp.loadModTextures();
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    } catch (ParseException e) {
+                        e.printStackTrace();
+                    }
                 }
             }
         }
@@ -518,6 +527,7 @@ public class Fawe {
             File extraBlocks = MainUtil.copyFile(jar, "extrablocks.json", null);
             if (extraBlocks != null && extraBlocks.exists()) {
                 try {
+                    BundledBlockData.getInstance().loadFromResource();
                     BundledBlockData.getInstance().add(extraBlocks.toURI().toURL(), true);
                 } catch (Throwable ignore) {
                     Fawe.debug("Invalid format: extrablocks.json");

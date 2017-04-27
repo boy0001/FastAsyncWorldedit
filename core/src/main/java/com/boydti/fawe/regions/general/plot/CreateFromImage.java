@@ -138,6 +138,7 @@ public class CreateFromImage extends Command {
                                 fp.sendMessage(BBC.getPrefix() + "/2 cfi addore[s]");
                                 fp.sendMessage(BBC.getPrefix() + "/2 cfi addschems");
                                 fp.sendMessage(BBC.getPrefix() + "/2 cfi setheight");
+                                fp.sendMessage(BBC.getPrefix() + "/2 cfi setcolor");
                                 fp.sendMessage(BBC.getPrefix() + "/2 cfi done");
                                 fp.sendMessage(BBC.getPrefix() + "/2 cfi cancel");
                                 File folder = new File(PS.imp().getWorldContainer(), plot.getWorldName() + File.separator + "region");
@@ -161,12 +162,12 @@ public class CreateFromImage extends Command {
                                 return;
                             }
                             if (argList.size() == 1) {
-                                if (StringMan.isEqualIgnoreCaseToAny(argList.get(0), "setbiome", "setoverlay", "setmain", "setfloor", "setcolumn")) {
+                                if (StringMan.isEqualIgnoreCaseToAny(argList.get(0), "setbiome", "setoverlay", "setmain", "setfloor", "setcolumn", "setcolor")) {
                                     C.COMMAND_SYNTAX.send(player, "/2 cfi " + argList.get(0) + " <image or mask> <value> [white-only]");
                                     C.COMMAND_SYNTAX.send(player, "/2 cfi " + argList.get(0) + " <value>");
                                     return;
                                 } else if (!StringMan.isEqualIgnoreCaseToAny(argList.get(0), "done", "cancel", "addcaves", "addore", "addores", "addschems", "setheight")) {
-                                    C.COMMAND_SYNTAX.send(player, "/2 cfi <setbiome|setoverlay|setmain|setfloor|setcolumn|done|cancel|addcaves|addore[s]|addschems|setheight>");
+                                    C.COMMAND_SYNTAX.send(player, "/2 cfi <setbiome|setoverlay|setmain|setfloor|setcolumn|done|cancel|addcaves|addore[s]|addschems|setheight|setcolor>");
                                     return;
                                 }
                             }
@@ -194,6 +195,16 @@ public class CreateFromImage extends Command {
                                         boolean rotate = Boolean.parseBoolean(argList.get(4));
                                         generator.addSchems(mask, wd, clipboards, rarity, rotate);
                                         player.sendMessage(BBC.getPrefix() + "Added schems, what's next?");
+                                        return;
+                                    }
+                                    case "setcolor": {
+                                        if (argList.size() != 2) {
+                                            C.COMMAND_SYNTAX.send(player, "/2 cfi " + argList.get(0) + " <url>");
+                                            return;
+                                        }
+                                        BufferedImage image = getImgurImage(argList.get(1), fp);
+                                        generator.setColor(image);
+                                        player.sendMessage("Set color, what's next?");
                                         return;
                                     }
                                     case "setheight": {
