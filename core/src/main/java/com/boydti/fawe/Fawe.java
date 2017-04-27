@@ -12,6 +12,7 @@ import com.boydti.fawe.util.MainUtil;
 import com.boydti.fawe.util.MemUtil;
 import com.boydti.fawe.util.StringMan;
 import com.boydti.fawe.util.TaskManager;
+import com.boydti.fawe.util.TextureUtil;
 import com.boydti.fawe.util.Updater;
 import com.boydti.fawe.util.WEManager;
 import com.sk89q.jnbt.NBTInputStream;
@@ -184,6 +185,7 @@ public class Fawe {
     private FaweVersion version;
     private VisualQueue visualQueue;
     private Updater updater;
+    private TextureUtil textures;
 
     /**
      * Get the implementation specific class
@@ -272,7 +274,6 @@ public class Fawe {
                     WEManager.IMP.managers.add(new PlotSquaredFeature());
                     Fawe.debug("Plugin 'PlotSquared' found. Using it now.");
                 } catch (Throwable e) {}
-                Fawe.this.worldedit = WorldEdit.getInstance();
             }
         }, 0);
 
@@ -317,6 +318,19 @@ public class Fawe {
      */
     public Updater getUpdater() {
         return updater;
+    }
+
+    public TextureUtil getTextureUtil() {
+        TextureUtil tmp = textures;
+        if (tmp == null) {
+            synchronized (this) {
+                tmp = textures;
+                if (tmp == null) {
+                    textures = tmp = new TextureUtil();
+                }
+            }
+        }
+        return tmp;
     }
 
     /**
@@ -372,13 +386,8 @@ public class Fawe {
         BBC.load(new File(this.IMP.getDirectory(), "message.yml"));
     }
 
-    private WorldEdit worldedit;
-
     public WorldEdit getWorldEdit() {
-        if (this.worldedit == null) {
-            return worldedit = WorldEdit.getInstance();
-        }
-        return this.worldedit;
+        return WorldEdit.getInstance();
     }
 
     public static void setupInjector() {

@@ -28,14 +28,12 @@ import com.boydti.fawe.database.RollbackDatabase;
 import com.boydti.fawe.logging.rollback.RollbackOptimizedHistory;
 import com.boydti.fawe.object.FawePlayer;
 import com.boydti.fawe.object.FaweQueue;
-import com.boydti.fawe.object.MaskedFaweQueue;
 import com.boydti.fawe.object.RegionWrapper;
 import com.boydti.fawe.object.RunnableVal;
 import com.boydti.fawe.object.changeset.DiskStorageHistory;
 import com.boydti.fawe.regions.FaweMaskManager;
 import com.boydti.fawe.util.MainUtil;
 import com.boydti.fawe.util.MathMan;
-import com.boydti.fawe.util.SetQueue;
 import com.sk89q.minecraft.util.commands.Command;
 import com.sk89q.minecraft.util.commands.CommandContext;
 import com.sk89q.minecraft.util.commands.CommandPermissions;
@@ -180,15 +178,21 @@ public class HistoryCommands {
 
         final FaweQueue finalQueue;
         RegionWrapper[] allowedRegions = fp.getCurrentRegions(FaweMaskManager.MaskType.OWNER);
-        if (allowedRegions.length != 1 || !allowedRegions[0].isGlobal()) {
-            finalQueue = new MaskedFaweQueue(SetQueue.IMP.getNewQueue(fp.getWorld(), true, false), allowedRegions);
-        } else {
-            finalQueue = SetQueue.IMP.getNewQueue(fp.getWorld(), true, false);
+        if (allowedRegions == null) {
+            BBC.NO_REGION.send(fp);
+            return;
         }
+        // TODO mask the regions bot / top to the bottom and top coord in the allowedRegions
+        // TODO: then mask the edit to the bot / top
+//        if (allowedRegions.length != 1 || !allowedRegions[0].isGlobal()) {
+//            finalQueue = new MaskedFaweQueue(SetQueue.IMP.getNewQueue(fp.getWorld(), true, false), allowedRegions);
+//        } else {
+//            finalQueue = SetQueue.IMP.getNewQueue(fp.getWorld(), true, false);
+//        }
         database.getPotentialEdits(other, System.currentTimeMillis() - timeDiff, bot, top, new RunnableVal<DiskStorageHistory>() {
                 @Override
                 public void run(DiskStorageHistory edit) {
-                    edit.undo(fp);
+                    edit.undo(fp, allowedRegions);
                     BBC.ROLLBACK_ELEMENT.send(player, Fawe.imp().getWorldName(edit.getWorld()) + "/" + user + "-" + edit.getIndex());
                     count.incrementAndGet();
                 }

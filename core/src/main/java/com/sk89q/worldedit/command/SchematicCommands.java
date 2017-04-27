@@ -92,10 +92,16 @@ public class SchematicCommands {
         this.worldEdit = worldEdit;
     }
 
-    @Command(aliases = { "loadall" }, usage = "[<format>] <filename|url>", desc = "Load multiple clipboards (paste will randomly choose one)")
+    @Command(
+            aliases = { "loadall" },
+            usage = "[<format>] <filename|url>",
+            help = "Load multiple clipboards\n" +
+                    "The -r flag will apply random rotation",
+            desc = "Load multiple clipboards (paste will randomly choose one)"
+    )
     @Deprecated
     @CommandPermissions({ "worldedit.clipboard.load", "worldedit.schematic.load", "worldedit.schematic.upload" })
-    public void loadall(final Player player, final LocalSession session, @Optional("schematic") final String formatName, final String filename) throws FilenameException {
+    public void loadall(final Player player, final LocalSession session, @Optional("schematic") final String formatName, final String filename, @Switch('r') boolean randomRotate) throws FilenameException {
         final ClipboardFormat format = ClipboardFormat.findByAlias(formatName);
         if (format == null) {
             BBC.CLIPBOARD_INVALID_FORMAT.send(player, formatName);
@@ -348,6 +354,7 @@ public class SchematicCommands {
             }
             for (int i = 0; i < len; i++) {
                 switch (args.getString(i).toLowerCase()) {
+                    case "me":
                     case "mine":
                         mine = true;
                         break;

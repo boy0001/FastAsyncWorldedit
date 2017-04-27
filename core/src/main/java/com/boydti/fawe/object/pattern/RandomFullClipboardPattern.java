@@ -10,6 +10,7 @@ import com.sk89q.worldedit.extent.Extent;
 import com.sk89q.worldedit.extent.clipboard.Clipboard;
 import com.sk89q.worldedit.function.pattern.AbstractPattern;
 import com.sk89q.worldedit.math.transform.AffineTransform;
+import com.sk89q.worldedit.math.transform.Transform;
 import com.sk89q.worldedit.session.ClipboardHolder;
 import com.sk89q.worldedit.world.registry.WorldData;
 
@@ -21,9 +22,10 @@ public class RandomFullClipboardPattern extends AbstractPattern {
     private final ClipboardHolder[] clipboards;
     private final MutableBlockVector mutable = new MutableBlockVector();
     private boolean randomRotate;
+    private boolean randomFlip;
     private WorldData worldData;
 
-    public RandomFullClipboardPattern(Extent extent, WorldData worldData, ClipboardHolder[] clipboards, boolean randomRotate) {
+    public RandomFullClipboardPattern(Extent extent, WorldData worldData, ClipboardHolder[] clipboards, boolean randomRotate, boolean randomFlip) {
         checkNotNull(clipboards);
         this.clipboards = clipboards;
         this.extent = extent;
@@ -34,15 +36,24 @@ public class RandomFullClipboardPattern extends AbstractPattern {
     @Override
     public boolean apply(Extent extent, Vector setPosition, Vector getPosition) throws WorldEditException {
         ClipboardHolder holder = clipboards[PseudoRandom.random.random(clipboards.length)];
+        AffineTransform transform = new AffineTransform();
         if (randomRotate) {
+            transform = transform.rotateY(PseudoRandom.random.random(4) * 90);
             holder.setTransform(new AffineTransform().rotateY(PseudoRandom.random.random(4) * 90));
+        }
+        if (randomFlip) {
+            transform = transform.scale(new Vector(1, 0, 0).multiply(-2).add(1, 1, 1));
+        }
+        if (!transform.isIdentity()) {
+            holder.setTransform(transform);
         }
         Clipboard clipboard = holder.getClipboard();
         Schematic schematic = new Schematic(clipboard);
-        if (holder.getTransform().isIdentity()) {
+        Transform newTransform = holder.getTransform();
+        if (newTransform.isIdentity()) {
             schematic.paste(extent, setPosition, false);
         } else {
-            schematic.paste(extent, worldData, setPosition, false, holder.getTransform());
+            schematic.paste(extent, worldData, setPosition, false, newTransform);
         }
         return true;
     }

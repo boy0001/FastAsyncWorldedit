@@ -135,10 +135,14 @@ public class DiskStorageHistory extends FaweStreamChangeSet {
         enttFile.delete();
     }
 
-    public void undo(FawePlayer fp) {
-        EditSession session = toEditSession(fp);
+    public void undo(FawePlayer fp, RegionWrapper[] regions) {
+        EditSession session = toEditSession(fp, regions);
         session.undo(session);
         deleteFiles();
+    }
+
+    public void undo(FawePlayer fp) {
+        undo(fp, null);
     }
 
     public UUID getUUID() {

@@ -7,6 +7,7 @@ import com.boydti.fawe.config.Settings;
 import com.boydti.fawe.object.FaweChunk;
 import com.boydti.fawe.object.FawePlayer;
 import com.boydti.fawe.object.FaweQueue;
+import com.boydti.fawe.object.RegionWrapper;
 import com.boydti.fawe.object.RunnableVal2;
 import com.boydti.fawe.util.EditSessionBuilder;
 import com.boydti.fawe.util.MainUtil;
@@ -138,7 +139,17 @@ public abstract class FaweChangeSet implements ChangeSet {
     public void delete() {};
 
     public EditSession toEditSession(FawePlayer player) {
-        EditSession editSession = new EditSessionBuilder(getWorld()).player(player).autoQueue(false).fastmode(false).checkMemory(false).changeSet(this).limitUnlimited().allowedRegionsEverywhere().build();
+        return toEditSession(player, null);
+    }
+
+    public EditSession toEditSession(FawePlayer player, RegionWrapper[] regions) {
+        EditSessionBuilder builder = new EditSessionBuilder(getWorld()).player(player).autoQueue(false).fastmode(false).checkMemory(false).changeSet(this).limitUnlimited();
+        if (regions != null) {
+            builder.allowedRegions(regions);
+        } else {
+            builder.allowedRegionsEverywhere();
+        }
+        EditSession editSession = builder.build();
         editSession.setSize(1);
         return editSession;
     }

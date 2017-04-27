@@ -68,6 +68,10 @@ public class Settings extends Config {
 
     @Comment("Paths for various directories")
     public static final class PATHS {
+        @Comment({
+                "Put any minecraft or mod jars for FAWE to be aware of block textures",
+        })
+        public String TEXTURES = "textures";
         public String HISTORY = "history";
         public String CLIPBOARD = "clipboard";
         @Comment("Each player has their own sub directory for schematics")

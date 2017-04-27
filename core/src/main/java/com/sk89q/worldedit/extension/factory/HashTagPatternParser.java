@@ -1,5 +1,6 @@
 package com.sk89q.worldedit.extension.factory;
 
+import com.boydti.fawe.Fawe;
 import com.boydti.fawe.command.FaweParser;
 import com.boydti.fawe.command.SuggestInputParseException;
 import com.boydti.fawe.object.pattern.BiomePattern;
@@ -30,6 +31,7 @@ import com.sk89q.worldedit.EmptyClipboardException;
 import com.sk89q.worldedit.LocalSession;
 import com.sk89q.worldedit.Vector;
 import com.sk89q.worldedit.WorldEdit;
+import com.sk89q.worldedit.blocks.BaseBlock;
 import com.sk89q.worldedit.entity.Player;
 import com.sk89q.worldedit.extension.input.InputParseException;
 import com.sk89q.worldedit.extension.input.ParserContext;
@@ -53,6 +55,7 @@ import com.sk89q.worldedit.world.registry.BundledBlockData;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import javafx.scene.paint.Color;
 
 public class HashTagPatternParser extends FaweParser<Pattern> {
 
@@ -141,6 +144,16 @@ public class HashTagPatternParser extends FaweParser<Pattern> {
                             throw new InputParseException("No session is available, so no clipboard is available");
                         }
                     }
+                    case "#color": {
+                        if (split2.length > 1) {
+                            Color color = Color.web(split2[1]);
+                            java.awt.Color awtColor = new java.awt.Color((float) color.getRed(), (float) color.getGreen(), (float) color.getBlue(), (float) color.getOpacity());
+                            BaseBlock block = Fawe.get().getTextureUtil().getNearestBlock(awtColor.getRGB());
+                            return new BlockPattern(block);
+                        } else {
+                            throw new InputParseException("#color:<hex>");
+                        }
+                    }
                     case "#fullcopy": {
                         LocalSession session = context.requireSession();
                         if (session != null) {
@@ -148,12 +161,26 @@ public class HashTagPatternParser extends FaweParser<Pattern> {
                                 if (split2.length > 1) {
                                     String location = split2[1];
                                     try {
-                                        ClipboardHolder[] clipboards = ClipboardFormat.SCHEMATIC.loadAllFromInput(context.getActor(), context.requireWorld().getWorldData(), location, true);
+                                        ClipboardHolder[] clipboards;
+                                        switch (location.toLowerCase()) {
+                                            case "#copy":
+                                            case "#clipboard":
+                                                ClipboardHolder clipboard = session.getExistingClipboard();
+                                                if (clipboard == null) {
+                                                    throw new InputParseException("To use #fullcopy, please first copy something to your clipboard");
+                                                }
+                                                clipboards = new ClipboardHolder[] {clipboard};
+                                                break;
+                                            default:
+                                                clipboards = ClipboardFormat.SCHEMATIC.loadAllFromInput(context.getActor(), context.requireWorld().getWorldData(), location, true);
+                                                break;
+                                        }
                                         if (clipboards == null) {
                                             throw new InputParseException("#fullcopy:<source>");
                                         }
-                                        boolean random = split2.length == 3 && split2[2].equalsIgnoreCase("true");
-                                        return new RandomFullClipboardPattern(Request.request().getExtent(), context.requireWorld().getWorldData(), clipboards, random);
+                                        boolean randomRotate = split2.length >= 3 && split2[2].equalsIgnoreCase("true");
+                                        boolean randomFlip = split2.length >= 4 && split2[3].equalsIgnoreCase("true");
+                                        return new RandomFullClipboardPattern(Request.request().getExtent(), context.requireWorld().getWorldData(), clipboards, randomRotate, randomFlip);
 
                                     } catch (IOException e) {
                                         throw new RuntimeException(e);
