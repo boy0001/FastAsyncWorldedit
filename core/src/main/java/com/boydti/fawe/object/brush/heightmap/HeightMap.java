@@ -116,6 +116,7 @@ public interface HeightMap {
                 }
             }
         } else {
+            int height = pos.getBlockY();
             for (int x = -size; x <= size; x++) {
                 int xx = centerX + x;
                 mutablePos.mutX(xx);
@@ -137,11 +138,10 @@ public interface HeightMap {
                             raise = getHeight(-z, -x);
                             break;
                     }
-                    int height;
                     if (layers) {
-                        height = session.getNearestSurfaceLayer(xx, zz, pos.getBlockY(), 0, maxY);
+                        height = session.getNearestSurfaceLayer(xx, zz, height, 0, maxY);
                     } else {
-                        height = session.getNearestSurfaceTerrainBlock(xx, zz, pos.getBlockY(), 0, 255);
+                        height = session.getNearestSurfaceTerrainBlock(xx, zz, height, 0, 255);
                     }
                     oldData[index] = height;
                     if (height == 0) {

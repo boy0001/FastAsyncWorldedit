@@ -135,6 +135,34 @@ public class FaweCache {
     }
 
     static {
+        for (int i = 0; i < Character.MAX_VALUE; i++) {
+            int id = i >> 4;
+            int data = i & 0xf;
+            if (FaweCache.hasNBT(id)) {
+                CACHE_BLOCK[i] = new ImmutableNBTBlock(id, data);
+            } else if (FaweCache.hasData(id)) {
+                CACHE_BLOCK[i] = new ImmutableBlock(id, data);
+            } else {
+                CACHE_BLOCK[i] = new ImmutableDatalessBlock(id);
+            }
+            CACHE_ITEM[i] = new BaseItem(id, (short) data) {
+
+                @Override
+                public void setData(short data) {
+                    throw new IllegalStateException("Cannot set data");
+                }
+
+                @Override
+                public void setDamage(short data) {
+                    throw new IllegalStateException("Cannot set data");
+                }
+
+                @Override
+                public void setType(int id) {
+                    throw new IllegalStateException("Cannot set id");
+                }
+            };
+        }
         for (int i = 0; i < 256; i++) {
             CACHE_BIOME[i] = new BaseBiome(i) {
                 @Override
@@ -173,36 +201,9 @@ public class FaweCache {
                     }
                 }
             }
-        } catch (Throwable ignore) {}
-        for (int i = 0; i < Character.MAX_VALUE; i++) {
-            int id = i >> 4;
-            int data = i & 0xf;
-            if (FaweCache.hasNBT(id)) {
-                CACHE_BLOCK[i] = new ImmutableNBTBlock(id, data);
-            } else if (FaweCache.hasData(id)) {
-                CACHE_BLOCK[i] = new ImmutableBlock(id, data);
-            } else {
-                CACHE_BLOCK[i] = new ImmutableDatalessBlock(id);
-            }
-            CACHE_ITEM[i] = new BaseItem(id, (short) data) {
-
-                @Override
-                public void setData(short data) {
-                    throw new IllegalStateException("Cannot set data");
-                }
-
-                @Override
-                public void setDamage(short data) {
-                    throw new IllegalStateException("Cannot set data");
-                }
-
-                @Override
-                public void setType(int id) {
-                    throw new IllegalStateException("Cannot set id");
-                }
-            };
+        } catch (Throwable ignore) {
+            ignore.printStackTrace();
         }
-
         CACHE_COLOR[getCombined(0, 0)] =  new Color(128, 128, 128); //Air
         CACHE_COLOR[getCombined(1, 0)] =  new Color(180, 180, 180); //stone
         CACHE_COLOR[getCombined(2, 0)] =  new Color(0, 225, 0); //grass
