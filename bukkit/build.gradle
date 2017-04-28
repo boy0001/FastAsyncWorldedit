@@ -25,6 +25,10 @@ dependencies {
     compile 'org.bukkit.craftbukkit:CraftBukkit:1.8.8'
 }
 
+compileJava {
+  options.encoding = "UTF-8"
+}
+
 processResources {
     from('src/main/resources') {
         include 'plugin.yml'
