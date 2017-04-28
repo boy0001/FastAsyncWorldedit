@@ -222,6 +222,9 @@ public class DiskOptimizedClipboard extends FaweClipboard implements Closeable {
             braf.close();
             file.setWritable(true);
             closeDirectBuffer(mbb);
+            mbb = null;
+            fc = null;
+            braf = null;
         } catch (IOException e) {
             MainUtil.handleError(e);
         }
