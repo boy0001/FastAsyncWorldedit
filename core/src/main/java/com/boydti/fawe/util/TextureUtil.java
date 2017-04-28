@@ -37,6 +37,8 @@ public class TextureUtil {
     protected int[] blockColors = new int[Character.MAX_VALUE + 1];
     protected int[] validColors;
     protected char[] validBlockIds;
+    protected int[] validLayerColors;
+    protected char[][] validLayerBlocks;
 
     public TextureUtil() {
         this(MainUtil.getFile(Fawe.imp().getDirectory(), Settings.IMP.PATHS.TEXTURES));
@@ -67,6 +69,31 @@ public class TextureUtil {
         return FaweCache.CACHE_BLOCK[closest];
     }
 
+    /**
+     * Returns the block combined ids as an array
+     * @param color
+     * @return
+     */
+    public char[] getNearestLayer(int color) {
+        char[] closest = null;
+        long min = Long.MAX_VALUE;
+        int red1 = (color >> 16) & 0xFF;
+        int green1 = (color >> 8) & 0xFF;
+        int blue1 = (color >> 0) & 0xFF;
+        int alpha = (color >> 24) & 0xFF;
+        for (int i = 0; i < validLayerColors.length; i++) {
+            int other = validLayerColors[i];
+            if (((other >> 24) & 0xFF) == alpha) {
+                long distance = colorDistance(red1, green1, blue1, other);
+                if (distance < min) {
+                    min = distance;
+                    closest = validLayerBlocks[i];
+                }
+            }
+        }
+        return closest;
+    }
+
     public BaseBlock getLighterBlock(BaseBlock block) {
         return getNearestBlock(block, false);
     }
@@ -83,7 +110,10 @@ public class TextureUtil {
         return folder;
     }
 
-    protected int combine(int top, int bottom) {
+    /**
+     * Assumes the top layer is a transparent color and the bottom is opaque
+     */
+    protected int combineTransparency(int top, int bottom) {
         int alpha1 = (top >> 24) & 0xFF;
         int alpha2 = 255 - alpha1;
         int red1 = (top >> 16) & 0xFF;
@@ -96,6 +126,31 @@ public class TextureUtil {
         int green = ((green1 * alpha1) + (green2 * alpha2)) / 255;
         int blue = ((blue1 * alpha1) + (blue2 * alpha2)) / 255;
         return (red << 16) + (green << 8) + (blue << 0) + (255 << 24);
+    }
+
+    private void calculateLayerArrays() {
+        Int2ObjectOpenHashMap<char[]> colorLayerMap = new Int2ObjectOpenHashMap<>();
+        for (int i = 0; i < validBlockIds.length; i++) {
+            int color = validColors[i];
+            int combined = validBlockIds[i];
+            if (hasAlpha(color)) {
+                for (int j = 0; j < validBlockIds.length; j++) {
+                    int colorOther = validColors[j];
+                    if (!hasAlpha(colorOther)) {
+                        int combinedOther = validBlockIds[j];
+                        int combinedColor = combineTransparency(color, colorOther);
+                        colorLayerMap.put(combinedColor, new char[] {(char) combined, (char) combinedOther});
+                    }
+                }
+            }
+        }
+        this.validLayerColors = new int[colorLayerMap.size()];
+        this.validLayerBlocks = new char[colorLayerMap.size()][];
+        int index = 0;
+        for (Int2ObjectMap.Entry<char[]> entry : colorLayerMap.int2ObjectEntrySet()) {
+            validLayerColors[index] = entry.getIntKey();
+            validLayerBlocks[index++] = entry.getValue();
+        }
     }
 
     public void loadModTextures() throws IOException, ParseException {
@@ -243,6 +298,7 @@ public class TextureUtil {
             validColors[index] = color;
             index++;
         }
+        calculateLayerArrays();
     }
 
     protected BaseBlock getNearestBlock(BaseBlock block, boolean darker) {

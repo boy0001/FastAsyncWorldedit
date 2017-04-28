@@ -401,26 +401,26 @@ public class CuboidRegion extends AbstractRegion implements FlatRegion {
         return contains(position.getBlockX(), position.getBlockY(), position.getBlockZ());
     }
 
-    private int ly = Integer.MIN_VALUE;
-    private int lz = Integer.MIN_VALUE;
-    private boolean lr, lry, lrz;
+//    private int ly = Integer.MIN_VALUE;
+//    private int lz = Integer.MIN_VALUE;
+//    private boolean lr, lry, lrz;
 
     public boolean contains(int x, int y, int z) {
-//        return x >= this.minX && x <= this.maxX && z >= this.minZ && z <= this.maxZ && y >= this.minY && y <= this.maxY;
-        if (z != lz) {
-            lz = z;
-            lrz = z >= this.minZ && z <= this.maxZ;
-            if (y != ly) {
-                ly = y;
-                lry = y >= this.minY && y <= this.maxY;
-            }
-            lr = lrz && lry;
-        } else if (y != ly) {
-            ly = y;
-            lry = y >= this.minY && y <= this.maxY;
-            lr = lrz && lry;
-        }
-        return lr && (x >= this.minX && x <= this.maxX);
+        return x >= this.minX && x <= this.maxX && z >= this.minZ && z <= this.maxZ && y >= this.minY && y <= this.maxY;
+//        if (z != lz) {
+//            lz = z;
+//            lrz = z >= this.minZ && z <= this.maxZ;
+//            if (y != ly) {
+//                ly = y;
+//                lry = y >= this.minY && y <= this.maxY;
+//            }
+//            lr = lrz && lry;
+//        } else if (y != ly) {
+//            ly = y;
+//            lry = y >= this.minY && y <= this.maxY;
+//            lr = lrz && lry;
+//        }
+//        return lr && (x >= this.minX && x <= this.maxX);
     }
 
     @Override
