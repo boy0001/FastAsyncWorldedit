@@ -180,7 +180,7 @@ public class ExtentEntityCopy implements EntityFunction {
             }
 
             ListTag rotation = tag.getListTag("Rotation");
-            if (rotation != null) {
+            if (rotation != null && rotation.getValue().size() >= 2) {
                 double yaw = Math.toRadians(rotation.getFloat(0));
                 double pitch = Math.toRadians(rotation.getFloat(1));
 

@@ -1,10 +1,10 @@
 package com.boydti.fawe.object.clipboard;
 
-import com.boydti.fawe.object.PseudoRandom;
-import com.sk89q.worldedit.extent.clipboard.Clipboard;
-import com.sk89q.worldedit.math.transform.Transform;
-import com.sk89q.worldedit.session.ClipboardHolder;
-import com.sk89q.worldedit.world.registry.WorldData;
+        import com.boydti.fawe.object.PseudoRandom;
+        import com.sk89q.worldedit.extent.clipboard.Clipboard;
+        import com.sk89q.worldedit.math.transform.Transform;
+        import com.sk89q.worldedit.session.ClipboardHolder;
+        import com.sk89q.worldedit.world.registry.WorldData;
 
 public class MultiClipboardHolder extends ClipboardHolder{
     private final ClipboardHolder[] holders;

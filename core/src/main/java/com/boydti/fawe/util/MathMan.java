@@ -82,7 +82,7 @@ public class MathMan {
     }
 
     public static int clamp(int check, int min, int max) {
-        return check > max?max:(check < min?min:check);
+        return check > max ? max : (check < min ? min : check);
     }
 
     static {

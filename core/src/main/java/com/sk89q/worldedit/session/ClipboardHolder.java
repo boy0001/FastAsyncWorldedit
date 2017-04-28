@@ -34,7 +34,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
 public class ClipboardHolder {
 
     private final WorldData worldData;
-    private final Clipboard clipboard;
+    private Clipboard clipboard;
     private Transform transform = new Identity();
 
     /**
@@ -103,6 +103,7 @@ public class ClipboardHolder {
         if (clipboard instanceof BlockArrayClipboard) {
             ((BlockArrayClipboard) clipboard).close();
         }
+        clipboard = null;
     }
 
     public static Class<?> inject() {

@@ -125,6 +125,16 @@ public class HeightMap {
         return layers ? applyLayers(newData) : apply(newData);
     }
 
+//    TODO
+//    public int averageFilter(int iterations) throws WorldEditException {
+//        Vector min = region.getMinimumPoint();
+//        Vector max = region.getMaximumPoint();
+//        int shift = layers ? 3 : 0;
+//        AverageHeightMapFilter filter = new AverageHeightMapFilter(data, width, height, min.getBlockY() << shift, max.getBlockY() << shift);
+//        int[] newData = filter.filter(iterations);
+//        return layers ? applyLayers(newData) : apply(newData);
+//    }
+
     public int applyLayers(int[] data) throws WorldEditException {
         checkNotNull(data);
 

@@ -8,6 +8,7 @@ import com.sk89q.worldedit.extent.Extent;
 import com.sk89q.worldedit.extent.clipboard.Clipboard;
 import com.sk89q.worldedit.function.mask.Mask;
 import com.sk89q.worldedit.math.transform.AffineTransform;
+import com.sk89q.worldedit.math.transform.Transform;
 import com.sk89q.worldedit.session.ClipboardHolder;
 import com.sk89q.worldedit.world.registry.WorldData;
 
@@ -45,10 +46,11 @@ public class SchemGen extends Resource {
         }
         Clipboard clipboard = holder.getClipboard();
         Schematic schematic = new Schematic(clipboard);
-        if (holder.getTransform().isIdentity()) {
+        Transform transform = holder.getTransform();
+        if (transform.isIdentity()) {
             schematic.paste(extent, mutable, false);
         } else {
-            schematic.paste(extent, worldData, mutable, false, holder.getTransform());
+            schematic.paste(extent, worldData, mutable, false, transform);
         }
         mutable.mutY(y);
         return true;

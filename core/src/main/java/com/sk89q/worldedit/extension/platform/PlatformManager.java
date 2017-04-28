@@ -509,7 +509,6 @@ public class PlatformManager {
                             return;
                         }
                     }
-
                     break;
                 }
 

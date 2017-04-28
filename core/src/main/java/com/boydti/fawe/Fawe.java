@@ -12,6 +12,7 @@ import com.boydti.fawe.util.MainUtil;
 import com.boydti.fawe.util.MemUtil;
 import com.boydti.fawe.util.StringMan;
 import com.boydti.fawe.util.TaskManager;
+import com.boydti.fawe.util.TextureUtil;
 import com.boydti.fawe.util.Updater;
 import com.boydti.fawe.util.WEManager;
 import com.sk89q.jnbt.NBTInputStream;
@@ -119,6 +120,7 @@ import com.sk89q.worldedit.util.formatting.component.CommandUsageBox;
 import com.sk89q.worldedit.util.formatting.component.MessageBox;
 import com.sk89q.worldedit.world.registry.BundledBlockData;
 import java.io.File;
+import java.io.IOException;
 import java.io.InputStream;
 import java.lang.management.ManagementFactory;
 import java.lang.management.MemoryMXBean;
@@ -134,6 +136,7 @@ import javax.management.InstanceAlreadyExistsException;
 import javax.management.Notification;
 import javax.management.NotificationEmitter;
 import javax.management.NotificationListener;
+import org.json.simple.parser.ParseException;
 
 /**[ WorldEdit action]
 *       |
@@ -184,6 +187,7 @@ public class Fawe {
     private FaweVersion version;
     private VisualQueue visualQueue;
     private Updater updater;
+    private TextureUtil textures;
 
     /**
      * Get the implementation specific class
@@ -272,7 +276,6 @@ public class Fawe {
                     WEManager.IMP.managers.add(new PlotSquaredFeature());
                     Fawe.debug("Plugin 'PlotSquared' found. Using it now.");
                 } catch (Throwable e) {}
-                Fawe.this.worldedit = WorldEdit.getInstance();
             }
         }, 0);
 
@@ -317,6 +320,26 @@ public class Fawe {
      */
     public Updater getUpdater() {
         return updater;
+    }
+
+    public TextureUtil getTextureUtil() {
+        TextureUtil tmp = textures;
+        if (tmp == null) {
+            synchronized (this) {
+                tmp = textures;
+                if (tmp == null) {
+                    try {
+                        textures = tmp = new TextureUtil();
+                        tmp.loadModTextures();
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    } catch (ParseException e) {
+                        e.printStackTrace();
+                    }
+                }
+            }
+        }
+        return tmp;
     }
 
     /**
@@ -372,13 +395,8 @@ public class Fawe {
         BBC.load(new File(this.IMP.getDirectory(), "message.yml"));
     }
 
-    private WorldEdit worldedit;
-
     public WorldEdit getWorldEdit() {
-        if (this.worldedit == null) {
-            return worldedit = WorldEdit.getInstance();
-        }
-        return this.worldedit;
+        return WorldEdit.getInstance();
     }
 
     public static void setupInjector() {
@@ -509,6 +527,7 @@ public class Fawe {
             File extraBlocks = MainUtil.copyFile(jar, "extrablocks.json", null);
             if (extraBlocks != null && extraBlocks.exists()) {
                 try {
+                    BundledBlockData.getInstance().loadFromResource();
                     BundledBlockData.getInstance().add(extraBlocks.toURI().toURL(), true);
                 } catch (Throwable ignore) {
                     Fawe.debug("Invalid format: extrablocks.json");

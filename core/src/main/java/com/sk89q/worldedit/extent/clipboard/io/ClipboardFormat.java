@@ -336,8 +336,14 @@ public enum ClipboardFormat {
             File working = worldEdit.getWorkingDirectoryFile(config.saveDir);
             File dir = new File(working, (Settings.IMP.PATHS.PER_PLAYER_SCHEMATICS ? (player.getUniqueId().toString() + File.separator) : "") + input);
             if (!dir.exists()) {
+                dir = new File(dir + "." + getExtension());
+            }
+            if (!dir.exists()) {
                 if ((!input.contains("/") && !input.contains("\\")) || player.hasPermission("worldedit.schematic.load.other")) {
                     dir = new File(worldEdit.getWorkingDirectoryFile(config.saveDir), input);
+                }
+                if (!dir.exists()) {
+                    dir = new File(dir + "." + getExtension());
                 }
             }
             if (!dir.exists()) {

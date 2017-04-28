@@ -19,6 +19,7 @@
 
 package com.sk89q.worldedit.world.registry;
 
+import com.boydti.fawe.FaweCache;
 import com.google.common.io.Resources;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
@@ -43,6 +44,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Logger;
 import javax.annotation.Nullable;
 
@@ -62,9 +64,9 @@ public class BundledBlockData {
     private static final Logger log = Logger.getLogger(BundledBlockData.class.getCanonicalName());
     private static final BundledBlockData INSTANCE = new BundledBlockData();
 
-    private final Map<String, BlockEntry> idMap = new HashMap<String, BlockEntry>();
-    private final Map<String, BaseBlock> stateMap = new HashMap<String, BaseBlock>();
-    private final Map<String, BlockEntry> localIdMap = new HashMap<String, BlockEntry>();
+    private final Map<String, BlockEntry> idMap = new ConcurrentHashMap<>();
+    public final Map<String, BaseBlock> stateMap = new ConcurrentHashMap<>();
+    private final Map<String, BlockEntry> localIdMap = new ConcurrentHashMap<>();
 
     private final BlockEntry[] legacyMap = new BlockEntry[4096];
 
@@ -100,6 +102,10 @@ public class BundledBlockData {
 
     public Set<String> getBlockNames() {
         return localIdMap.keySet();
+    }
+
+    public Set<String> getStateNames() {
+        return stateMap.keySet();
     }
 
     public List<String> getBlockNames(String partial) {
@@ -142,19 +148,33 @@ public class BundledBlockData {
             return false;
         }
         idMap.put(entry.id, entry);
-        String id = (entry.id.contains(":") ? entry.id.split(":")[1] : entry.id).toLowerCase().replace(" ", "_");
-        localIdMap.putIfAbsent(id, entry);
+        String modId, id;
+        if (entry.id.contains(":")) {
+            String[] split = entry.id.split(":");
+            id = split[1];
+            modId = split[0];
+        } else {
+            modId = "";
+            id = entry.id;
+        }
         idMap.putIfAbsent(id, entry);
+        localIdMap.putIfAbsent(id, entry);
         legacyMap[entry.legacyId] = entry;
+        stateMap.putIfAbsent(id, FaweCache.getBlock(entry.legacyId, 0));
+        stateMap.putIfAbsent(entry.id, FaweCache.getBlock(entry.legacyId, 0));
         if (entry.states == null) {
             return true;
         }
         for (Map.Entry<String, FaweState> stateEntry : entry.states.entrySet()) {
             for (Map.Entry<String, FaweStateValue> valueEntry : stateEntry.getValue().valueMap().entrySet()) {
                 String key = valueEntry.getKey();
-                if (!stateMap.containsKey(key)) {
-                    stateMap.put(key, new BaseBlock(entry.legacyId, valueEntry.getValue().data));
+                if (key.equals("true")) {
+                    key = stateEntry.getKey();
                 }
+                stateMap.putIfAbsent(id + ":" + key, FaweCache.getBlock(entry.legacyId, valueEntry.getValue().data));
+                stateMap.putIfAbsent(entry.id + ":" + key, FaweCache.getBlock(entry.legacyId, valueEntry.getValue().data));
+                stateMap.putIfAbsent(modId + ":" + key, FaweCache.getBlock(entry.legacyId, valueEntry.getValue().data));
+                stateMap.putIfAbsent(key, FaweCache.getBlock(entry.legacyId, valueEntry.getValue().data));
             }
         }
         FaweState half = entry.states.get("half");
@@ -275,11 +295,22 @@ public class BundledBlockData {
     @Nullable
     public Integer toLegacyId(String id) {
         BlockEntry entry = findById(id);
-        if (entry != null) {
-            return entry.legacyId;
-        } else {
-            return null;
+        if (entry == null) {
+            entry = localIdMap.get(id);
+            if (entry == null) {
+                int index = id.lastIndexOf('_');
+                if (index == -1) {
+                    return null;
+                }
+                String data = id.substring(index + 1, id.length());
+                id = id.substring(0, index);
+                entry = localIdMap.get(id + ":" + data);
+                if (entry == null) {
+                    return null;
+                }
+            }
         }
+        return entry.legacyId;
     }
 
     /**
