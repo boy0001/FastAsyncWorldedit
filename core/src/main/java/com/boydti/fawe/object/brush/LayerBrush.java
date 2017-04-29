@@ -73,7 +73,7 @@ public class LayerBrush implements Brush {
             public boolean apply(Vector pos) throws WorldEditException {
                 int depth = visitor.getDepth();
                 BaseBlock currentPattern = layers[depth];
-                return editSession.setBlock(pos, currentPattern);
+                return editSession.setBlockFast(pos, currentPattern);
             }
         }, layers.length - 1, editSession);
         for (Vector pos : visited) {

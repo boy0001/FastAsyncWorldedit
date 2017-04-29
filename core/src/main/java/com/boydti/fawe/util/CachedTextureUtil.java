@@ -7,6 +7,7 @@ import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 public class CachedTextureUtil extends DelegateTextureUtil {
     private final TextureUtil parent;
     private Int2ObjectOpenHashMap<Integer> colorBlockMap;
+    private Int2ObjectOpenHashMap<Integer> colorBiomeMap;
     private Int2ObjectOpenHashMap<char[]> colorLayerMap;
 
     public CachedTextureUtil(TextureUtil parent) {
@@ -14,6 +15,7 @@ public class CachedTextureUtil extends DelegateTextureUtil {
         this.parent = parent;
         this.colorBlockMap = new Int2ObjectOpenHashMap<>();
         this.colorLayerMap = new Int2ObjectOpenHashMap<>();
+        this.colorBiomeMap = new Int2ObjectOpenHashMap<>();
     }
 
     @Override
@@ -27,6 +29,19 @@ public class CachedTextureUtil extends DelegateTextureUtil {
             colorLayerMap.put(color, closest);
         }
         return closest;
+    }
+
+    @Override
+    public BiomeColor getNearestBiome(int color) {
+        Integer value = colorBiomeMap.get(color);
+        if (value != null) {
+            return getBiome(value);
+        }
+        BiomeColor result = parent.getNearestBiome(color);
+        if (result != null) {
+            colorBiomeMap.put((int) color, (Integer) result.id);
+        }
+        return result;
     }
 
     @Override

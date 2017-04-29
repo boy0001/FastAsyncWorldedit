@@ -160,8 +160,8 @@ public class BundledBlockData {
         idMap.putIfAbsent(id, entry);
         localIdMap.putIfAbsent(id, entry);
         legacyMap[entry.legacyId] = entry;
-        stateMap.putIfAbsent(id, FaweCache.getBlock(entry.legacyId, 0));
-        stateMap.putIfAbsent(entry.id, FaweCache.getBlock(entry.legacyId, 0));
+        stateMap.put(entry.id, FaweCache.getBlock(entry.legacyId, 0));
+        stateMap.put(id, FaweCache.getBlock(entry.legacyId, 0));
         if (entry.states == null) {
             return true;
         }
@@ -171,8 +171,8 @@ public class BundledBlockData {
                 if (key.equals("true")) {
                     key = stateEntry.getKey();
                 }
-                stateMap.putIfAbsent(id + ":" + key, FaweCache.getBlock(entry.legacyId, valueEntry.getValue().data));
-                stateMap.putIfAbsent(entry.id + ":" + key, FaweCache.getBlock(entry.legacyId, valueEntry.getValue().data));
+                stateMap.put(entry.id + ":" + key, FaweCache.getBlock(entry.legacyId, valueEntry.getValue().data));
+                stateMap.put(id + ":" + key, FaweCache.getBlock(entry.legacyId, valueEntry.getValue().data));
                 stateMap.putIfAbsent(modId + ":" + key, FaweCache.getBlock(entry.legacyId, valueEntry.getValue().data));
                 stateMap.putIfAbsent(key, FaweCache.getBlock(entry.legacyId, valueEntry.getValue().data));
             }
