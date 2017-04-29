@@ -24,6 +24,8 @@ import com.sk89q.jnbt.Tag;
 import com.sk89q.worldedit.entity.Entity;
 import com.sk89q.worldedit.history.changeset.ChangeSet;
 import com.sk89q.worldedit.util.Location;
+import java.awt.Graphics2D;
+import java.awt.image.BufferedImage;
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
 import java.io.ByteArrayOutputStream;
@@ -547,6 +549,15 @@ public class MainUtil {
             }
         }
         return destFile;
+    }
+
+    public static BufferedImage toRGB(BufferedImage src) {
+        if (src == null) return src;
+        BufferedImage img = new BufferedImage(src.getWidth(), src.getHeight(), BufferedImage.TYPE_INT_BGR);
+        Graphics2D g2d = img.createGraphics();
+        g2d.drawImage(src, 0, 0, null);
+        g2d.dispose();
+        return img;
     }
 
     public static File copyFile(File jar, String resource, File output) {

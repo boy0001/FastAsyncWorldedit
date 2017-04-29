@@ -85,6 +85,10 @@ public class MathMan {
         return check > max ? max : (check < min ? min : check);
     }
 
+    public static float clamp(float check, float min, float max) {
+        return check > max ? max : (check < min ? min : check);
+    }
+
     static {
         for(int i = 0; i < 65536; ++i) {
             ANGLES[i] = (float)Math.sin((double)i * 3.141592653589793D * 2.0D / 65536.0D);

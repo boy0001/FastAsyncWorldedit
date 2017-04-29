@@ -6,6 +6,7 @@ import com.boydti.fawe.object.PseudoRandom;
 import com.boydti.fawe.util.CachedTextureUtil;
 import com.boydti.fawe.util.MathMan;
 import com.boydti.fawe.util.RandomTextureUtil;
+import com.boydti.fawe.util.TextureUtil;
 import com.sk89q.worldedit.EditSession;
 import com.sk89q.worldedit.MutableBlockVector;
 import com.sk89q.worldedit.Vector;
@@ -42,6 +43,8 @@ public class HeightMapMCAGenerator extends MCAWriter implements Extent {
     private final char[] floor;
     private final char[] main;
     private char[] overlay;
+    private TextureUtil textureUtil;
+    private boolean randomVariation = true;
 
     private boolean modifiedMain = false;
 
@@ -63,11 +66,30 @@ public class HeightMapMCAGenerator extends MCAWriter implements Extent {
         Arrays.fill(floor, grass);
     }
 
+    public TextureUtil getTextureUtil() {
+        if (textureUtil == null) {
+            textureUtil = Fawe.get().getTextureUtil();
+        }
+        if (randomVariation) {
+            return new RandomTextureUtil(textureUtil);
+        } else {
+            return new CachedTextureUtil(textureUtil);
+        }
+    }
+
+    public void setTextureRandomVariation(boolean randomVariation) {
+        this.randomVariation = randomVariation;
+    }
+
+    public void setTextureUtil(TextureUtil textureUtil) {
+        this.textureUtil = textureUtil;
+    }
+
     public void setHeight(BufferedImage img) {
         int index = 0;
         for (int z = 0; z < getLength(); z++) {
             for (int x = 0; x < getWidth(); x++, index++){
-                heights[index] = (byte) img.getRGB(x, z);
+                heights[index] = (byte) (img.getRGB(x, z) >> 8);
             }
         }
     }
@@ -238,43 +260,100 @@ public class HeightMapMCAGenerator extends MCAWriter implements Extent {
         }
     }
 
-    public void setColor(BufferedImage img) {
-        try {
-            RandomTextureUtil textureUtil = new RandomTextureUtil(Fawe.get().getTextureUtil());
-            if (img.getWidth() != getWidth() || img.getHeight() != getLength())
-                throw new IllegalArgumentException("Input image dimensions do not match the current height map!");
-            int index = 0;
-            for (int y = 0; y < img.getHeight(); y++) {
-                for (int x = 0; x < img.getWidth(); x++) {
-                    int color = img.getRGB(x, y);
-                    BaseBlock block = textureUtil.getNearestBlock(color);
-                    if (block == null) {
-                        continue;
+    public void setBlockAndBiomeColor(BufferedImage img) {
+        if (img.getWidth() != getWidth() || img.getHeight() != getLength())
+            throw new IllegalArgumentException("Input image dimensions do not match the current height map!");
+        TextureUtil textureUtil = getTextureUtil();
+        int index = 0;
+        int widthIndex = img.getWidth() - 1;
+        int heightIndex = img.getHeight() - 1;
+        int maxIndex = biomes.length - 1;
+        for (int y = 0; y < img.getHeight(); y++) {
+            boolean yBiome = y > 0 && y < heightIndex;
+            for (int x = 0; x < img.getWidth(); x++) {
+                int color = img.getRGB(x, y);
+                BaseBlock block = textureUtil.getNearestBlock(color);
+                TextureUtil.BiomeColor biome = textureUtil.getNearestBiome(color);
+                int blockColor = textureUtil.getColor(block);
+                if (textureUtil.colorDistance(biome.grass, color) <= textureUtil.colorDistance(blockColor, color)) {
+                    byte biomeByte = (byte) biome.id;
+                    biomes[index] = biomeByte;
+                    if (yBiome && x > 0 && x < widthIndex) {
+                        setBiomeIfZero(index + 1, biomeByte);
+                        setBiomeIfZero(index - 1, biomeByte);
+                        setBiomeIfZero(index + getWidth(), biomeByte);
+                        setBiomeIfZero(index + getWidth() + 1, biomeByte);
+                        setBiomeIfZero(index + getWidth() - 1, biomeByte);
+                        setBiomeIfZero(index - getWidth(), biomeByte);
+                        setBiomeIfZero(index - getWidth() + 1, biomeByte);
+                        setBiomeIfZero(index - getWidth() - 1, biomeByte);
                     }
+                } else {
                     char combined = (char) block.getCombined();
                     main[index] = combined;
-                    floor[index++] = combined;
+                    floor[index] = combined;
                 }
+                index++;
             }
-        } catch (Throwable e) {
-            e.printStackTrace();
+        }
+    }
+
+    private void setBiomeIfZero(int index, byte value) {
+        if (biomes[index] == 0) {
+            biomes[index] = value;
+        }
+    }
+
+    public void setBiomeColor(BufferedImage img) {
+        if (img.getWidth() != getWidth() || img.getHeight() != getLength())
+            throw new IllegalArgumentException("Input image dimensions do not match the current height map!");
+        TextureUtil textureUtil = getTextureUtil();
+        int index = 0;
+        for (int y = 0; y < img.getHeight(); y++) {
+            for (int x = 0; x < img.getWidth(); x++) {
+                int color = img.getRGB(x, y);
+                TextureUtil.BiomeColor biome = textureUtil.getNearestBiome(color);
+                if (biome != null) {
+                    biomes[index] = (byte) biome.id;
+                }
+                index++;
+            }
+        }
+    }
+
+    public void setColor(BufferedImage img) {
+        if (img.getWidth() != getWidth() || img.getHeight() != getLength())
+            throw new IllegalArgumentException("Input image dimensions do not match the current height map!");
+        TextureUtil textureUtil = getTextureUtil();
+        int index = 0;
+        for (int y = 0; y < img.getHeight(); y++) {
+            for (int x = 0; x < img.getWidth(); x++) {
+                int color = img.getRGB(x, y);
+                BaseBlock block = textureUtil.getNearestBlock(color);
+                if (block != null) {
+                    char combined = (char) block.getCombined();
+                    main[index] = combined;
+                    floor[index] = combined;
+                }
+                index++;
+            }
         }
     }
 
     public void setColorWithGlass(BufferedImage img) {
-            CachedTextureUtil textureUtil = new CachedTextureUtil(Fawe.get().getTextureUtil());
             if (img.getWidth() != getWidth() || img.getHeight() != getLength())
                 throw new IllegalArgumentException("Input image dimensions do not match the current height map!");
+        TextureUtil textureUtil = getTextureUtil();
             int index = 0;
             for (int y = 0; y < img.getHeight(); y++) {
                 for (int x = 0; x < img.getWidth(); x++) {
                     int color = img.getRGB(x, y);
                     char[] layer = textureUtil.getNearestLayer(color);
-                    if (layer == null) {
-                        continue;
+                    if (layer != null) {
+                        floor[index] = layer[0];
+                        main[index] = layer[1];
                     }
-                    floor[index] = layer[0];
-                    main[index++] = layer[1];
+                    index++;
                 }
             }
     }
@@ -565,6 +644,7 @@ public class HeightMapMCAGenerator extends MCAWriter implements Extent {
             globalIndex = z * getWidth() + csx;
             for (int x = csx; x <= cex; x++, index++, globalIndex++) {
                 indexes[index] = globalIndex;
+                chunk.biomes[index] = biomes[globalIndex];
                 int height = heights[globalIndex] & 0xFF;
                 heightMap[index] = height;
                 maxY = Math.max(maxY, height);

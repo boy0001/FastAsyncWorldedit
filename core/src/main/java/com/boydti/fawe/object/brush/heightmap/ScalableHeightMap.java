@@ -1,6 +1,7 @@
 package com.boydti.fawe.object.brush.heightmap;
 
 import com.boydti.fawe.object.IntegerPair;
+import com.boydti.fawe.util.MainUtil;
 import com.boydti.fawe.util.MathMan;
 import com.sk89q.worldedit.EditSession;
 import com.sk89q.worldedit.Vector;
@@ -91,7 +92,7 @@ public class ScalableHeightMap implements com.boydti.fawe.object.brush.heightmap
     }
 
     public static ScalableHeightMap fromPNG(InputStream stream) throws IOException {
-        BufferedImage heightFile = ImageIO.read(stream);
+        BufferedImage heightFile = MainUtil.toRGB(ImageIO.read(stream));
         int width = heightFile.getWidth();
         int length = heightFile.getHeight();
         Raster data = heightFile.getData();

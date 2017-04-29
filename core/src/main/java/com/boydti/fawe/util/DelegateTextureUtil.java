@@ -40,6 +40,16 @@ public class DelegateTextureUtil extends TextureUtil {
     }
 
     @Override
+    public BiomeColor getBiome(int biome) {
+        return parent.getBiome(biome);
+    }
+
+    @Override
+    public BiomeColor getNearestBiome(int color) {
+        return parent.getNearestBiome(color);
+    }
+
+    @Override
     public File getFolder() {
         return parent.getFolder();
     }
@@ -50,8 +60,18 @@ public class DelegateTextureUtil extends TextureUtil {
     }
 
     @Override
+    public void calculateLayerArrays() {
+        parent.calculateLayerArrays();
+    }
+
+    @Override
     public void loadModTextures() throws IOException, ParseException {
         parent.loadModTextures();
+    }
+
+    @Override
+    public int multiply(int c1, int c2) {
+        return parent.multiply(c1, c2);
     }
 
     @Override
@@ -79,8 +99,17 @@ public class DelegateTextureUtil extends TextureUtil {
         return parent.colorDistance(red1, green1, blue1, c2);
     }
 
+    public static int hueDistance(int red1, int green1, int blue1, int red2, int green2, int blue2) {
+        return TextureUtil.hueDistance(red1, green1, blue1, red2, green2, blue2);
+    }
+
     @Override
     public int getColor(BufferedImage image) {
         return parent.getColor(image);
+    }
+
+    @Override
+    public long getDistance(BufferedImage image, int c1) {
+        return parent.getDistance(image, c1);
     }
 }

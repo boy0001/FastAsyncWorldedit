@@ -1,16 +1,22 @@
 package com.boydti.fawe.util;
 
+import com.boydti.fawe.FaweCache;
 import com.boydti.fawe.object.PseudoRandom;
 import com.sk89q.worldedit.blocks.BaseBlock;
+import com.sk89q.worldedit.blocks.BlockID;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 
 public class RandomTextureUtil extends CachedTextureUtil {
 
+    private final int grassColor;
+
     public RandomTextureUtil(TextureUtil parent) {
         super(parent);
+        this.grassColor = parent.getColor(FaweCache.getBlock(BlockID.GRASS, 0));
     }
 
     private Int2ObjectOpenHashMap<Integer> offsets = new Int2ObjectOpenHashMap<>();
+    private Int2ObjectOpenHashMap<Integer> biomeOffsets = new Int2ObjectOpenHashMap<>();
 
     protected int addRandomColor(int c1, int c2) {
         int red1 = (c1 >> 16) & 0xFF;
@@ -25,13 +31,32 @@ public class RandomTextureUtil extends CachedTextureUtil {
         return (red << 16) + (green << 8) + (blue << 0) + (255 << 24);
     }
 
-
     private int random(int i) {
         if (i < 0) {
-            return -PseudoRandom.random.nextInt(-i);
+            return -PseudoRandom.random.nextInt((-i));
         } else {
             return PseudoRandom.random.nextInt(i);
         }
+//        return i;
+    }
+
+    @Override
+    public BiomeColor getNearestBiome(int color) {
+        int offsetColor = biomeOffsets.getOrDefault(color, 0);
+        if (offsetColor != 0) {
+            offsetColor = addRandomColor(color, offsetColor);
+        } else {
+            offsetColor = color;
+        }
+        BiomeColor res = super.getNearestBiome(offsetColor);
+        int newColor = res.grass;
+        {
+            byte dr = (byte) (((color >> 16) & 0xFF) - ((newColor >> 16) & 0xFF));
+            byte dg = (byte) (((color >> 8) & 0xFF) - ((newColor >> 8) & 0xFF));
+            byte db = (byte) (((color >> 0) & 0xFF) - ((newColor >> 0) & 0xFF));
+            biomeOffsets.put(color, (Integer) ((dr << 16) + (dg << 8) + (db << 0)));
+        }
+        return res;
     }
 
     @Override
