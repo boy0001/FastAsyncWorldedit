@@ -9,10 +9,6 @@ import org.json.simple.parser.ParseException;
 public class DelegateTextureUtil extends TextureUtil {
     private final TextureUtil parent;
 
-    public static void main(String[] args) throws Throwable {
-        TextureUtil.main(args);
-    }
-
     public DelegateTextureUtil(TextureUtil parent) {
         super(parent.getFolder());
         this.parent = parent;
