@@ -7,6 +7,7 @@ import java.util.Set;
 public class FilteredTextureUtil extends TextureUtil {
     public FilteredTextureUtil(TextureUtil parent, Set<BaseBlock> blocks) {
         super(parent.getFolder());
+        this.validBiomes = parent.validBiomes;
         this.blockColors = parent.blockColors;
         this.blockDistance = parent.blockDistance;
         this.distances = parent.distances;

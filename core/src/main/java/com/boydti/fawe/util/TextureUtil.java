@@ -52,7 +52,7 @@ public class TextureUtil {
     /**
      * https://github.com/erich666/Mineways/blob/master/Win/biomes.cpp
      */
-    private BiomeColor[] validBiomes;
+    protected BiomeColor[] validBiomes;
     private BiomeColor[] biomes = new BiomeColor[] {
             //    ID    Name             Temperature, rainfall, grass, foliage colors
             //    - note: the colors here are just placeholders, they are computed in the program
@@ -823,7 +823,7 @@ public class TextureUtil {
         int g = green1 - green2;
         int b = blue1 - blue2;
         int hd = hueDistance(red1, green1, blue1, red2, green2, blue2);
-        return (((512 + rmean) * r * r) >> 8) + 4 * g * g + (((767 - rmean) * b * b) >> 8) + (hd);
+        return (((512 + rmean) * r * r) >> 8) + 4 * g * g + (((767 - rmean) * b * b) >> 8) + (hd * hd);
     }
 
     protected static int hueDistance(int red1, int green1, int blue1, int red2, int green2, int blue2) {

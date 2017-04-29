@@ -275,18 +275,18 @@ public class HeightMapMCAGenerator extends MCAWriter implements Extent {
                 BaseBlock block = textureUtil.getNearestBlock(color);
                 TextureUtil.BiomeColor biome = textureUtil.getNearestBiome(color);
                 int blockColor = textureUtil.getColor(block);
-                if (textureUtil.colorDistance(biome.grass, color) < textureUtil.colorDistance(blockColor, color)) {
+                if (textureUtil.colorDistance(biome.grass, color) <= textureUtil.colorDistance(blockColor, color)) {
                     byte biomeByte = (byte) biome.id;
                     biomes[index] = biomeByte;
                     if (yBiome && x > 0 && x < widthIndex) {
-                        setBiomeIfZero(index+ 1, biomeByte);
-                        setBiomeIfZero(index- 1, biomeByte);
-                        setBiomeIfZero(index+ getWidth(), biomeByte);
-                        setBiomeIfZero(index+ getWidth() + 1, biomeByte);
-                        setBiomeIfZero(index+ getWidth() - 1, biomeByte);
-                        setBiomeIfZero(index- getWidth(), biomeByte);
-                        setBiomeIfZero(index- getWidth() + 1, biomeByte);
-                        setBiomeIfZero(index- getWidth() - 1, biomeByte);
+                        setBiomeIfZero(index + 1, biomeByte);
+                        setBiomeIfZero(index - 1, biomeByte);
+                        setBiomeIfZero(index + getWidth(), biomeByte);
+                        setBiomeIfZero(index + getWidth() + 1, biomeByte);
+                        setBiomeIfZero(index + getWidth() - 1, biomeByte);
+                        setBiomeIfZero(index - getWidth(), biomeByte);
+                        setBiomeIfZero(index - getWidth() + 1, biomeByte);
+                        setBiomeIfZero(index - getWidth() - 1, biomeByte);
                     }
                 } else {
                     char combined = (char) block.getCombined();

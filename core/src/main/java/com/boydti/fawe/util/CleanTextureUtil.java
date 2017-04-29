@@ -11,6 +11,7 @@ public class CleanTextureUtil extends TextureUtil {
         long max = parent.distances[maxIndex];
         int num = maxIndex - minIndex + 1;
 
+        this.validBiomes = parent.validBiomes;
         this.blockColors = parent.blockColors;
         this.blockDistance = parent.blockDistance;
         this.distances = Arrays.copyOfRange(parent.blockDistance, minIndex, maxIndex + 1);
