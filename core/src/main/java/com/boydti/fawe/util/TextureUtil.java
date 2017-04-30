@@ -3,6 +3,9 @@ package com.boydti.fawe.util;
 import com.boydti.fawe.Fawe;
 import com.boydti.fawe.FaweCache;
 import com.boydti.fawe.config.Settings;
+import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
+import com.google.gson.stream.JsonReader;
 import com.sk89q.worldedit.blocks.BaseBlock;
 import com.sk89q.worldedit.blocks.BlockID;
 import com.sk89q.worldedit.world.registry.BundledBlockData;
@@ -14,6 +17,7 @@ import java.io.FilenameFilter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.lang.reflect.Type;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
@@ -29,9 +33,6 @@ import java.util.regex.Pattern;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 import javax.imageio.ImageIO;
-import org.json.simple.JSONObject;
-import org.json.simple.parser.JSONParser;
-import org.json.simple.parser.ParseException;
 
 public class TextureUtil {
     private final File folder;
@@ -416,9 +417,10 @@ public class TextureUtil {
         return colorDistance(red1, green1, blue1, c2);
     }
 
-    public void loadModTextures() throws IOException, ParseException {
+    public void loadModTextures() throws IOException {
         Int2ObjectOpenHashMap<Integer> colorMap = new Int2ObjectOpenHashMap<>();
         Int2ObjectOpenHashMap<Long> distanceMap = new Int2ObjectOpenHashMap<>();
+        Gson gson = new Gson();
         if (folder.exists()) {
             // Get all the jar files
             for (File file : folder.listFiles(new FilenameFilter() {
@@ -475,8 +477,9 @@ public class TextureUtil {
                                     continue;
                                 }
                                 try (InputStream is = zipFile.getInputStream(entry)) { //Read from a file, or a HttpRequest, or whatever.
-                                    JSONParser parser = new JSONParser();
-                                    JSONObject root = (JSONObject) parser.parse(new InputStreamReader(is, "UTF-8"));
+                                    JsonReader reader = new JsonReader(new InputStreamReader(is, "UTF-8"));
+                                    Type type = new TypeToken<Map<String, Object>>(){}.getType();
+                                    Map<String, Object> root = gson.fromJson(reader, type);
                                     // Try to work out the texture names for this file
                                     addTextureNames(blockName, root, texturesMap);
                                 }
@@ -581,8 +584,8 @@ public class TextureUtil {
                             biomes[6].grass = 0;
                             biomes[134].grass = 0;
                             // roofed forest: averaged w/ 0x28340A
-                            biomes[29].grass = multiply(biomes[29].grass, 0x28340A + (255 << 24));
-                            biomes[157].grass = multiply(biomes[157].grass, 0x28340A + (255 << 24));
+                            biomes[29].grass = multiplyColor(biomes[29].grass, 0x28340A + (255 << 24));
+                            biomes[157].grass = multiplyColor(biomes[157].grass, 0x28340A + (255 << 24));
                             // mesa : 0x90814D
                             biomes[37].grass = 0x90814D + (255 << 24);
                             biomes[38].grass = 0x90814D + (255 << 24);
@@ -593,7 +596,7 @@ public class TextureUtil {
                             List<BiomeColor> valid = new ArrayList<>();
                             for (int i = 0; i < biomes.length; i++) {
                                 BiomeColor biome = biomes[i];
-                                biome.grass = multiply(biome.grass, grass);
+                                biome.grass = multiplyColor(biome.grass, grass);
                                 if (biome.grass != 0 && !biome.name.equalsIgnoreCase("Unknown Biome")) {
                                     valid.add(biome);
                                 }
@@ -631,7 +634,7 @@ public class TextureUtil {
         calculateLayerArrays();
     }
 
-    protected int multiply(int c1, int c2) {
+    public int multiplyColor(int c1, int c2) {
         int alpha1 = (c1 >> 24) & 0xFF;
         int alpha2 = (c2 >> 24) & 0xFF;
         int red1 = (c1 >> 16) & 0xFF;
@@ -752,8 +755,8 @@ public class TextureUtil {
      *  - Match by appending / removing <br>
      *  - Match by hardcoded values <br>
      */
-    private void addTextureNames(String modelName, JSONObject root, Map<String, String> texturesMap) {
-        JSONObject textures = (JSONObject) root.get("textures");
+    private void addTextureNames(String modelName, Map<String, Object> root, Map<String, String> texturesMap) {
+        Map textures = (Map) root.get("textures");
         if (textures == null) {
             return;
         }

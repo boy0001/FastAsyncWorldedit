@@ -136,7 +136,6 @@ import javax.management.InstanceAlreadyExistsException;
 import javax.management.Notification;
 import javax.management.NotificationEmitter;
 import javax.management.NotificationListener;
-import org.json.simple.parser.ParseException;
 
 /**[ WorldEdit action]
 *       |
@@ -332,8 +331,6 @@ public class Fawe {
                         textures = tmp = new TextureUtil();
                         tmp.loadModTextures();
                     } catch (IOException e) {
-                        e.printStackTrace();
-                    } catch (ParseException e) {
                         e.printStackTrace();
                     }
                 }

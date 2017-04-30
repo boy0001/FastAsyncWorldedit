@@ -4,7 +4,6 @@ import com.sk89q.worldedit.blocks.BaseBlock;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
-import org.json.simple.parser.ParseException;
 
 public class DelegateTextureUtil extends TextureUtil {
     private final TextureUtil parent;
@@ -65,13 +64,13 @@ public class DelegateTextureUtil extends TextureUtil {
     }
 
     @Override
-    public void loadModTextures() throws IOException, ParseException {
+    public void loadModTextures() throws IOException {
         parent.loadModTextures();
     }
 
     @Override
-    public int multiply(int c1, int c2) {
-        return parent.multiply(c1, c2);
+    public int multiplyColor(int c1, int c2) {
+        return parent.multiplyColor(c1, c2);
     }
 
     @Override
