@@ -152,6 +152,7 @@ public class CreateFromImage extends Command {
                             fp.sendMessage(BBC.getPrefix() + "/2 cfi paletteComplexity <min=0> <max=100>");
                             fp.sendMessage(BBC.getPrefix() + "/2 cfi paletteRandomization <true|false>");
                             fp.sendMessage(BBC.getPrefix() + "/2 cfi paletteBlocks <block-list>");
+                            fp.sendMessage(BBC.getPrefix() + "/2 cfi paletteBiomePriority <percent=50>");
                             fp.sendMessage(BBC.getPrefix() + "/2 cfi done");
                             fp.sendMessage(BBC.getPrefix() + "/2 cfi cancel");
                             File folder = new File(PS.imp().getWorldContainer(), plot.getWorldName() + File.separator + "region");
@@ -243,6 +244,19 @@ public class CreateFromImage extends Command {
                                     Set<BaseBlock> blocks = we.getBlockFactory().parseFromListInput(argList.get(1), context);
                                     generator.setTextureUtil(new FilteredTextureUtil(Fawe.get().getTextureUtil(), blocks));
                                     player.sendMessage("Set color palette blocks, what's next?");
+                                    return;
+                                }
+                                case "biomepriority":
+                                case "palettebiomepriority":
+                                case "setpalettebiomepriority": {
+                                    // roughness
+                                    // blocks
+                                    if (argList.size() != 2) {
+                                        C.COMMAND_SYNTAX.send(player, "/2 cfi " + argList.get(0) + " <percent=50>");
+                                        return;
+                                    }
+                                    generator.setBiomePriority(Integer.parseInt(argList.get(1)));
+                                    player.sendMessage("Set color palette biome priority, what's next?");
                                     return;
                                 }
                                 case "color":
@@ -482,7 +496,7 @@ public class CreateFromImage extends Command {
                                     player.sendMessage(BBC.getPrefix() + "Cancelled!");
                                     return;
                                 default:
-                                    C.COMMAND_SYNTAX.send(player, "/2 cfi <setBiome|setOverlay|setMain|setFloor|setColumn|addCaves|addOre[s]|addSchems|setHeight|setColor|setGlassColor|setBiomeColor|setBlockAndBiomeColor|setColorPaletteComplexity|setColorPaletteRandomization|setColorPaletteBlocks|done|cancel|>");
+                                    C.COMMAND_SYNTAX.send(player, "/2 cfi <setBiome|setOverlay|setMain|setFloor|setColumn|addCaves|addOre[s]|addSchems|setHeight|setColor|setGlassColor|setBiomeColor|setBlockAndBiomeColor|setColorPaletteComplexity|setColorPaletteRandomization|setColorPaletteBlocks|biomepriority|done|cancel|>");
                                     return;
                             }
                         } catch (IOException e) {

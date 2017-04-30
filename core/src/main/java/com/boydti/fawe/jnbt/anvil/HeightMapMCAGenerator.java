@@ -45,6 +45,7 @@ public class HeightMapMCAGenerator extends MCAWriter implements Extent {
     private char[] overlay;
     private TextureUtil textureUtil;
     private boolean randomVariation = true;
+    private int biomePriority = 0;
 
     private boolean modifiedMain = false;
 
@@ -260,6 +261,10 @@ public class HeightMapMCAGenerator extends MCAWriter implements Extent {
         }
     }
 
+    public void setBiomePriority(int value) {
+        this.biomePriority = ((value * 65536) / 100) - 32768;
+    }
+
     public void setBlockAndBiomeColor(BufferedImage img) {
         if (img.getWidth() != getWidth() || img.getHeight() != getLength())
             throw new IllegalArgumentException("Input image dimensions do not match the current height map!");
@@ -275,7 +280,7 @@ public class HeightMapMCAGenerator extends MCAWriter implements Extent {
                 BaseBlock block = textureUtil.getNearestBlock(color);
                 TextureUtil.BiomeColor biome = textureUtil.getNearestBiome(color);
                 int blockColor = textureUtil.getColor(block);
-                if (textureUtil.colorDistance(biome.grass, color) <= textureUtil.colorDistance(blockColor, color)) {
+                if (textureUtil.colorDistance(biome.grass, color) - biomePriority <= textureUtil.colorDistance(blockColor, color)) {
                     byte biomeByte = (byte) biome.id;
                     biomes[index] = biomeByte;
                     if (yBiome && x > 0 && x < widthIndex) {
