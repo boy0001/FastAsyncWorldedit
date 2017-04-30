@@ -145,8 +145,8 @@ public class CreateFromImage extends Command {
                             fp.sendMessage(BBC.getPrefix() + "/2 cfi ore[s]");
                             fp.sendMessage(BBC.getPrefix() + "/2 cfi schem <mask> <schem> <rarity> <rotate>");
                             fp.sendMessage(BBC.getPrefix() + "/2 cfi height <image-url|height>");
-                            fp.sendMessage(BBC.getPrefix() + "/2 cfi waterheight <height>");
-                            fp.sendMessage(BBC.getPrefix() + "/2 cfi waterid <number-id>");
+                            fp.sendMessage(BBC.getPrefix() + "/2 cfi waterHeight <height>");
+                            fp.sendMessage(BBC.getPrefix() + "/2 cfi waterId <number-id>");
                             fp.sendMessage(BBC.getPrefix() + "/2 cfi color <image-url>");
                             fp.sendMessage(BBC.getPrefix() + "/2 cfi glass <image-url>");
                             fp.sendMessage(BBC.getPrefix() + "/2 cfi biomeColor <image-url>");
