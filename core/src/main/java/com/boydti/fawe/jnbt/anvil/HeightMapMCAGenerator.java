@@ -13,6 +13,7 @@ import com.sk89q.worldedit.Vector;
 import com.sk89q.worldedit.Vector2D;
 import com.sk89q.worldedit.WorldEditException;
 import com.sk89q.worldedit.blocks.BaseBlock;
+import com.sk89q.worldedit.blocks.BlockID;
 import com.sk89q.worldedit.extent.Extent;
 import com.sk89q.worldedit.function.mask.Mask;
 import com.sk89q.worldedit.function.pattern.BlockPattern;
@@ -43,10 +44,11 @@ public class HeightMapMCAGenerator extends MCAWriter implements Extent {
     private final char[] floor;
     private final char[] main;
     private char[] overlay;
+    private int waterHeight = 0;
     private TextureUtil textureUtil;
     private boolean randomVariation = true;
     private int biomePriority = 0;
-
+    private byte waterId = BlockID.STATIONARY_WATER;
     private boolean modifiedMain = false;
 
     public HeightMapMCAGenerator(BufferedImage img, File regionFolder) {
@@ -76,6 +78,14 @@ public class HeightMapMCAGenerator extends MCAWriter implements Extent {
         } else {
             return new CachedTextureUtil(textureUtil);
         }
+    }
+
+    public void setWaterHeight(int waterHeight) {
+        this.waterHeight = waterHeight;
+    }
+
+    public void setWaterId(int waterId) {
+        this.waterId = (byte) waterId;
     }
 
     public void setTextureRandomVariation(boolean randomVariation) {
@@ -213,6 +223,9 @@ public class HeightMapMCAGenerator extends MCAWriter implements Extent {
                         return FaweCache.CACHE_BLOCK[combined];
                     }
                 }
+            }
+            if (y > waterHeight) {
+                return FaweCache.CACHE_BLOCK[waterId << 4];
             }
             return FaweCache.CACHE_BLOCK[0];
         } else if (y == height) {
@@ -630,180 +643,203 @@ public class HeightMapMCAGenerator extends MCAWriter implements Extent {
 
     @Override
     public MCAChunk write(MCAChunk chunk, int csx, int cex, int csz, int cez) {
-        int cx = chunk.getX();
-        int cz = chunk.getZ();
-        int[] indexes = indexStore.get();
-        for (int i = 0; i < chunk.ids.length; i++) {
-            byte[] idsArray = chunk.ids[i];
-            if (idsArray != null) {
-                Arrays.fill(idsArray, (byte) 0);
-                Arrays.fill(chunk.data[i], (byte) 0);
+        try {
+            int cx = chunk.getX();
+            int cz = chunk.getZ();
+            int[] indexes = indexStore.get();
+            for (int i = 0; i < chunk.ids.length; i++) {
+                byte[] idsArray = chunk.ids[i];
+                if (idsArray != null) {
+                    Arrays.fill(idsArray, (byte) 0);
+                    Arrays.fill(chunk.data[i], (byte) 0);
+                }
             }
-        }
-        int index = 0;
-        int maxY = 0;
-        int minY = Integer.MAX_VALUE;
-        int[] heightMap = chunk.getHeightMapArray();
-        int globalIndex;
-        for (int z = csz; z <= cez; z++) {
-            globalIndex = z * getWidth() + csx;
-            for (int x = csx; x <= cex; x++, index++, globalIndex++) {
-                indexes[index] = globalIndex;
-                chunk.biomes[index] = biomes[globalIndex];
-                int height = heights[globalIndex] & 0xFF;
-                heightMap[index] = height;
-                maxY = Math.max(maxY, height);
-                minY = Math.min(minY, height);
+            int index = 0;
+            int maxY = 0;
+            int minY = Integer.MAX_VALUE;
+            int[] heightMap = chunk.getHeightMapArray();
+            int globalIndex;
+            for (int z = csz; z <= cez; z++) {
+                globalIndex = z * getWidth() + csx;
+                for (int x = csx; x <= cex; x++, index++, globalIndex++) {
+                    indexes[index] = globalIndex;
+                    chunk.biomes[index] = biomes[globalIndex];
+                    int height = heights[globalIndex] & 0xFF;
+                    heightMap[index] = height;
+                    maxY = Math.max(maxY, height);
+                    minY = Math.min(minY, height);
+                }
             }
-        }
-        boolean hasOverlay = this.overlay != null;
-        if (hasOverlay) {
-            maxY++;
-        }
-        int maxLayer = maxY >> 4;
-        int fillLayers = Math.max(0, (minY - 1)) >> 4;
-        for (int layer = 0; layer <= maxLayer; layer++) {
-            if (chunk.ids[layer] == null) {
-                chunk.ids[layer] = new byte[4096];
-                chunk.data[layer] = new byte[2048];
-                chunk.skyLight[layer] = new byte[2048];
-                chunk.blockLight[layer] = new byte[2048];
+            boolean hasOverlay = this.overlay != null;
+            if (hasOverlay) {
+                maxY++;
             }
-        }
-        if (modifiedMain) { // If the main block is modified, we can't short circuit this
-            for (int layer = 0; layer < fillLayers; layer++) {
-                index = 0;
+            int maxLayer = maxY >> 4;
+            int fillLayers = Math.max(0, (minY - 1)) >> 4;
+            for (int layer = 0; layer <= maxLayer; layer++) {
+                if (chunk.ids[layer] == null) {
+                    chunk.ids[layer] = new byte[4096];
+                    chunk.data[layer] = new byte[2048];
+                    chunk.skyLight[layer] = new byte[2048];
+                    chunk.blockLight[layer] = new byte[2048];
+                }
+            }
+            if (modifiedMain) { // If the main block is modified, we can't short circuit this
+                for (int layer = 0; layer < fillLayers; layer++) {
+                    index = 0;
+                    byte[] layerIds = chunk.ids[layer];
+                    byte[] layerDatas = chunk.data[layer];
+                    for (int z = csz; z <= cez; z++) {
+                        for (int x = csx; x <= cex; x++, index++) {
+                            globalIndex = indexes[index];
+                            char mainCombined = main[globalIndex];
+                            byte id = (byte) FaweCache.getId(mainCombined);
+                            int data = FaweCache.getData(mainCombined);
+                            if (data != 0) {
+                                for (int y = 0; y < 16; y++) {
+                                    int mainIndex = index + (y << 8);
+                                    chunk.setNibble(mainIndex, layerDatas, data);
+                                }
+                            }
+                            for (int y = 0; y < 16; y++) {
+                                layerIds[index + (y << 8)] = id;
+                            }
+                        }
+                    }
+                }
+            } else {
+                for (int layer = 0; layer < fillLayers; layer++) {
+                    Arrays.fill(chunk.ids[layer], (byte) 1);
+                }
+            }
+            if (waterHeight != 0) {
+                maxY = Math.max(maxY, waterHeight);
+                int maxWaterLayer = ((waterHeight + 15) >> 4);
+                for (int layer = 0; layer < maxWaterLayer; layer++) {
+                    boolean fillAll = (layer << 4) + 15 <= waterHeight;
+                    byte[] ids = chunk.ids[layer];
+                    if (ids == null) {
+                        chunk.ids[layer] = ids = new byte[4096];
+                        chunk.data[layer] = new byte[2048];
+                        chunk.skyLight[layer] = new byte[2048];
+                        chunk.blockLight[layer] = new byte[2048];
+                        Arrays.fill(chunk.skyLight[layer], (byte) 255);
+                    }
+                    if (fillAll) {
+                        Arrays.fill(ids, waterId);
+                    } else {
+                        int maxIndex = maxWaterLayer << 8;
+                        Arrays.fill(ids, 0, maxIndex, waterId);
+                    }
+                }
+            }
+            for (int layer = fillLayers; layer <= maxLayer; layer++) {
+                Arrays.fill(chunk.skyLight[layer], (byte) 255);
                 byte[] layerIds = chunk.ids[layer];
                 byte[] layerDatas = chunk.data[layer];
+                index = 0;
+                int startY = layer << 4;
+                int endY = startY + 15;
                 for (int z = csz; z <= cez; z++) {
                     for (int x = csx; x <= cex; x++, index++) {
                         globalIndex = indexes[index];
+                        int height = heightMap[index];
+                        int diff;
+                        if (height > endY) {
+                            diff = 16;
+                        } else if (height >= startY) {
+                            diff = height - startY;
+                            char floorCombined = floor[globalIndex];
+                            int id = FaweCache.getId(floorCombined);
+                            int floorIndex = index + ((height & 15) << 8);
+                            layerIds[floorIndex] = (byte) id;
+                            int data = FaweCache.getData(floorCombined);
+                            if (data != 0) {
+                                chunk.setNibble(floorIndex, layerDatas, data);
+                            }
+                            if (hasOverlay && height >= startY - 1 && height < endY) {
+                                char overlayCombined = overlay[globalIndex];
+                                id = FaweCache.getId(overlayCombined);
+                                int overlayIndex = index + (((height + 1) & 15) << 8);
+                                layerIds[overlayIndex] = (byte) id;
+                                data = FaweCache.getData(overlayCombined);
+                                if (data != 0) {
+                                    chunk.setNibble(overlayIndex, layerDatas, data);
+                                }
+                            }
+                        } else if (hasOverlay && height == startY - 1) {
+                            char overlayCombined = overlay[globalIndex];
+                            int id = FaweCache.getId(overlayCombined);
+                            int overlayIndex = index + (((height + 1) & 15) << 8);
+                            layerIds[overlayIndex] = (byte) id;
+                            int data = FaweCache.getData(overlayCombined);
+                            if (data != 0) {
+                                chunk.setNibble(overlayIndex, layerDatas, data);
+                            }
+                            continue;
+                        } else {
+                            continue;
+                        }
                         char mainCombined = main[globalIndex];
                         byte id = (byte) FaweCache.getId(mainCombined);
                         int data = FaweCache.getData(mainCombined);
                         if (data != 0) {
-                            for (int y = 0; y < 16; y++) {
+                            for (int y = 0; y < diff; y++) {
                                 int mainIndex = index + (y << 8);
                                 chunk.setNibble(mainIndex, layerDatas, data);
                             }
                         }
-                        for (int y = 0; y < 16; y++) {
+                        for (int y = 0; y < diff; y++) {
                             layerIds[index + (y << 8)] = id;
                         }
                     }
                 }
             }
-        } else {
-            for (int layer = 0; layer < fillLayers; layer++) {
-                Arrays.fill(chunk.ids[layer], (byte) 1);
+            int maxYMod = 15 + (maxLayer << 4);
+            for (int layer = (maxY >> 4) + 1; layer < 16; layer++) {
+                chunk.ids[layer] = null;
+                chunk.data[layer] = null;
             }
-        }
-        for (int layer = fillLayers; layer <= maxLayer; layer++) {
-            Arrays.fill(chunk.skyLight[layer], (byte) 255);
-            byte[] layerIds = chunk.ids[layer];
-            byte[] layerDatas = chunk.data[layer];
             index = 0;
-            int startY = layer << 4;
-            int endY = startY + 15;
-            for (int z = csz; z <= cez; z++) {
-                for (int x = csx; x <= cex; x++, index++) {
-                    globalIndex = indexes[index];
-                    int height = heightMap[index];
-                    int diff;
-                    if (height > endY) {
-                        diff = 16;
-                    } else if (height >= startY) {
-                        diff = height - startY;
-                        char floorCombined = floor[globalIndex];
-                        int id = FaweCache.getId(floorCombined);
-                        int floorIndex = index + ((height & 15) << 8);
-                        layerIds[floorIndex] = (byte) id;
-                        int data = FaweCache.getData(floorCombined);
-                        if (data != 0) {
-                            chunk.setNibble(floorIndex, layerDatas, data);
-                        }
-                        if (hasOverlay && height >= startY - 1 && height < endY) {
-                            char overlayCombined = overlay[globalIndex];
-                            id = FaweCache.getId(overlayCombined);
-                            int overlayIndex = index + (((height + 1) & 15) << 8);
-                            layerIds[overlayIndex] = (byte) id;
-                            data = FaweCache.getData(overlayCombined);
-                            if (data != 0) {
-                                chunk.setNibble(overlayIndex, layerDatas, data);
+            { // Bedrock
+                byte[] layerIds = chunk.ids[0];
+                for (int z = csz; z <= cez; z++) {
+                    for (int x = csx; x <= cex; x++) {
+                        layerIds[index++] = (byte) 7;
+                    }
+                }
+            }
+            int chunkPair = MathMan.pair((short) cx, (short) cz);
+            char[][][] localBlocks = blocks.get(chunkPair);
+            if (localBlocks != null) {
+                for (int layer = 0; layer < 16; layer++) {
+                    int by = layer << 4;
+                    int ty = by + 15;
+                    index = 0;
+                    for (int y = by; y <= ty; y++, index += 256) {
+                        char[][] yBlocks = localBlocks[y];
+                        if (yBlocks != null) {
+                            if (chunk.ids[layer] == null) {
+                                chunk.ids[layer] = new byte[4096];
+                                chunk.data[layer] = new byte[2048];
+                                chunk.skyLight[layer] = new byte[2048];
+                                chunk.blockLight[layer] = new byte[2048];
                             }
-                        }
-                    } else if (hasOverlay && height == startY - 1) {
-                        char overlayCombined = overlay[globalIndex];
-                        int id = FaweCache.getId(overlayCombined);
-                        int overlayIndex = index + (((height + 1) & 15) << 8);
-                        layerIds[overlayIndex] = (byte) id;
-                        int data = FaweCache.getData(overlayCombined);
-                        if (data != 0) {
-                            chunk.setNibble(overlayIndex, layerDatas, data);
-                        }
-                        continue;
-                    } else {
-                        continue;
-                    }
-                    char mainCombined = main[globalIndex];
-                    byte id = (byte) FaweCache.getId(mainCombined);
-                    int data = FaweCache.getData(mainCombined);
-                    if (data != 0) {
-                        for (int y = 0; y < diff; y++) {
-                            int mainIndex = index + (y << 8);
-                            chunk.setNibble(mainIndex, layerDatas, data);
-                        }
-                    }
-                    for (int y = 0; y < diff; y++) {
-                        layerIds[index + (y << 8)] = id;
-                    }
-                }
-            }
-        }
-        int maxYMod = 15 + (maxLayer << 4);
-        for (int layer = (maxY >> 4) + 1; layer < 16; layer++) {
-            chunk.ids[layer] = null;
-            chunk.data[layer] = null;
-        }
-        index = 0;
-        { // Bedrock
-            byte[] layerIds = chunk.ids[0];
-            for (int z = csz; z <= cez; z++) {
-                for (int x = csx; x <= cex; x++) {
-                    layerIds[index++] = (byte) 7;
-                }
-            }
-        }
-        int chunkPair = MathMan.pair((short) cx, (short) cz);
-        char[][][] localBlocks = blocks.get(chunkPair);
-        if (localBlocks != null) {
-            for (int layer = 0; layer < 16; layer++) {
-                int by = layer << 4;
-                int ty = by + 15;
-                index = 0;
-                for (int y = by; y <= ty; y++, index += 256) {
-                    char[][] yBlocks = localBlocks[y];
-                    if (yBlocks != null) {
-                        if (chunk.ids[layer] == null) {
-                            chunk.ids[layer] = new byte[4096];
-                            chunk.data[layer] = new byte[2048];
-                            chunk.skyLight[layer] = new byte[2048];
-                            chunk.blockLight[layer] = new byte[2048];
-                        }
-                        byte[] idsLayer = chunk.ids[layer];
-                        byte[] dataLayer = chunk.data[layer];
-                        for (int z = 0; z < yBlocks.length; z++) {
-                            char[] zBlocks = yBlocks[z];
-                            if (zBlocks != null) {
-                                int zIndex = index + (z << 4);
-                                for (int x = 0; x < zBlocks.length; x++, zIndex++) {
-                                    char combined = zBlocks[x];
-                                    if (combined == 0) continue;
-                                    int id = FaweCache.getId(combined);
-                                    if (!FaweCache.hasData(id)) {
-                                        chunk.setIdUnsafe(idsLayer, zIndex, (byte) id);
-                                    } else {
-                                        chunk.setBlockUnsafe(idsLayer, dataLayer, zIndex, (byte) id, FaweCache.getData(combined));
+                            byte[] idsLayer = chunk.ids[layer];
+                            byte[] dataLayer = chunk.data[layer];
+                            for (int z = 0; z < yBlocks.length; z++) {
+                                char[] zBlocks = yBlocks[z];
+                                if (zBlocks != null) {
+                                    int zIndex = index + (z << 4);
+                                    for (int x = 0; x < zBlocks.length; x++, zIndex++) {
+                                        char combined = zBlocks[x];
+                                        if (combined == 0) continue;
+                                        int id = FaweCache.getId(combined);
+                                        if (!FaweCache.hasData(id)) {
+                                            chunk.setIdUnsafe(idsLayer, zIndex, (byte) id);
+                                        } else {
+                                            chunk.setBlockUnsafe(idsLayer, dataLayer, zIndex, (byte) id, FaweCache.getData(combined));
+                                        }
                                     }
                                 }
                             }
@@ -811,6 +847,8 @@ public class HeightMapMCAGenerator extends MCAWriter implements Extent {
                     }
                 }
             }
+        } catch (Throwable e) {
+            e.printStackTrace();
         }
         return chunk;
     }

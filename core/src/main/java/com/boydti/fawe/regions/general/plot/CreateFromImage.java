@@ -145,6 +145,8 @@ public class CreateFromImage extends Command {
                             fp.sendMessage(BBC.getPrefix() + "/2 cfi ore[s]");
                             fp.sendMessage(BBC.getPrefix() + "/2 cfi schem <mask> <schem> <rarity> <rotate>");
                             fp.sendMessage(BBC.getPrefix() + "/2 cfi height <image-url|height>");
+                            fp.sendMessage(BBC.getPrefix() + "/2 cfi waterheight <height>");
+                            fp.sendMessage(BBC.getPrefix() + "/2 cfi waterid <number-id>");
                             fp.sendMessage(BBC.getPrefix() + "/2 cfi color <image-url>");
                             fp.sendMessage(BBC.getPrefix() + "/2 cfi glass <image-url>");
                             fp.sendMessage(BBC.getPrefix() + "/2 cfi biomeColor <image-url>");
@@ -302,6 +304,30 @@ public class CreateFromImage extends Command {
                                     BufferedImage image = getImgurImage(argList.get(1), fp);
                                     generator.setColorWithGlass(image);
                                     player.sendMessage("Set glass color, what's next?");
+                                    return;
+                                }
+                                case "waterheight":
+                                case "setwaterheight": {
+                                    // roughness
+                                    // blocks
+                                    if (argList.size() != 2) {
+                                        C.COMMAND_SYNTAX.send(player, "/2 cfi " + argList.get(0) + " <height>");
+                                        return;
+                                    }
+                                    generator.setWaterHeight(Integer.parseInt(argList.get(1)));
+                                    player.sendMessage("Set water height, what's next?");
+                                    return;
+                                }
+                                case "waterid":
+                                case "setwaterid": {
+                                    // roughness
+                                    // blocks
+                                    if (argList.size() != 2) {
+                                        C.COMMAND_SYNTAX.send(player, "/2 cfi " + argList.get(0) + " <id>");
+                                        return;
+                                    }
+                                    generator.setWaterId(Integer.parseInt(argList.get(1)));
+                                    player.sendMessage("Set water id, what's next?");
                                     return;
                                 }
                                 case "height":
