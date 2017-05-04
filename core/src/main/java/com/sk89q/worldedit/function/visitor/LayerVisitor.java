@@ -43,6 +43,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
  * maximum Y down to a minimum Y), and then applies a {@link LayerFunction} to
  * each layer.</p>
  */
+@Deprecated
 public class LayerVisitor implements Operation {
 
     private final LayerFunction function;

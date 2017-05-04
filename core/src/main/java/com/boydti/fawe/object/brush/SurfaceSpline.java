@@ -32,6 +32,7 @@ public class SurfaceSpline implements Brush {
         boolean vis = editSession.getExtent() instanceof VisualExtent;
         if (path.isEmpty() || !pos.equals(path.get(path.size() - 1))) {
             int max = editSession.getNearestSurfaceTerrainBlock(pos.getBlockX(), pos.getBlockZ(), pos.getBlockY(), 0, editSession.getMaxY());
+            if (max == -1) return;
             pos.mutY(max);
             path.add(pos);
             editSession.getPlayer().sendMessage(BBC.getPrefix() + BBC.BRUSH_SPLINE_PRIMARY_2.s());
@@ -56,6 +57,7 @@ public class SurfaceSpline implements Brush {
             final int tipz = (int) tipv.getZ();
             int tipy = (int) Math.round(tipv.getY());
             tipy = editSession.getNearestSurfaceTerrainBlock(tipx, tipz, tipy, 0, maxY);
+            if (tipy == -1) continue;
             if (radius == 0) {
                 editSession.setBlock(tipx, tipy, tipz, pattern.next(tipx, tipy, tipz));
             }  else {
@@ -72,6 +74,7 @@ public class SurfaceSpline implements Brush {
                     for (int loopz = tipz - ceilrad; loopz <= (tipz + ceilrad); loopz++) {
                         if (MathMan.hypot2(loopx - tipx, 0, loopz - tipz) <= radius2) {
                             int y = editSession.getNearestSurfaceTerrainBlock(loopx, loopz, v.getBlockY(), 0, maxY);
+                            if (y == -1) continue;
                             newSet.add(loopx, y, loopz);
                         }
                     }

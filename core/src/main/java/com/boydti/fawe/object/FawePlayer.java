@@ -197,6 +197,12 @@ public abstract class FawePlayer<T> extends Metadatable {
     }
 
     public boolean runAction(final Runnable ifFree, boolean checkFree, boolean async) {
+        long[] actionTime = getMeta("lastActionTime");
+        if (actionTime == null) {
+            setMeta("lastActionTime", actionTime = new long[2]);
+        }
+        actionTime[1] = actionTime[0];
+        actionTime[0] = Fawe.get().getTimer().getTick();
         if (checkFree) {
             if (async) {
                 TaskManager.IMP.taskNow(new Runnable() {

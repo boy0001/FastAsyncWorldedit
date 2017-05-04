@@ -26,9 +26,13 @@ public class LineBrush implements Brush, ResettableTool {
             return;
         }
         editSession.drawLine(pattern, pos1, position, size, !shell, flat);
-        if (!select && !visual) {
-            pos1 = null;
-            return;
+        if (!visual) {
+            if (!select) {
+                pos1 = null;
+                return;
+            } else {
+                pos1 = position;
+            }
         }
     }
 

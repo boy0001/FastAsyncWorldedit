@@ -24,6 +24,7 @@ import com.boydti.fawe.object.brush.InspectBrush;
 import com.sk89q.minecraft.util.commands.Command;
 import com.sk89q.minecraft.util.commands.CommandContext;
 import com.sk89q.minecraft.util.commands.CommandPermissions;
+import com.sk89q.worldedit.EditSession;
 import com.sk89q.worldedit.LocalConfiguration;
 import com.sk89q.worldedit.LocalSession;
 import com.sk89q.worldedit.WorldEdit;
@@ -151,7 +152,7 @@ public class ToolCommands {
             max = 2
     )
     @CommandPermissions("worldedit.tool.flood-fill")
-    public void floodFill(Player player, LocalSession session, Pattern pattern, double range) throws WorldEditException {
+    public void floodFill(Player player, EditSession editSession, LocalSession session, Pattern pattern, double range) throws WorldEditException {
         LocalConfiguration config = we.getConfiguration();
         if (range > config.maxSuperPickaxeSize) {
             BBC.TOOL_RANGE_ERROR.send(player, config.maxSuperPickaxeSize);

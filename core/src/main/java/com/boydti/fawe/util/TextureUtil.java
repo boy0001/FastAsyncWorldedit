@@ -344,6 +344,33 @@ public class TextureUtil {
         return FaweCache.CACHE_BLOCK[closest];
     }
 
+    public BaseBlock getNearestBlock(BaseBlock block) {
+        int color = getColor(block);
+        if (color == 0) return null;
+        return getNextNearestBlock(color);
+    }
+
+    public BaseBlock getNextNearestBlock(int color) {
+        long min = Long.MAX_VALUE;
+        int closest = 0;
+        int red1 = (color >> 16) & 0xFF;
+        int green1 = (color >> 8) & 0xFF;
+        int blue1 = (color >> 0) & 0xFF;
+        int alpha = (color >> 24) & 0xFF;
+        for (int i = 0; i < validColors.length; i++) {
+            int other = validColors[i];
+            if (other != color && ((other >> 24) & 0xFF) == alpha) {
+                long distance = colorDistance(red1, green1, blue1, other);
+                if (distance < min) {
+                    min = distance;
+                    closest = validBlockIds[i];
+                }
+            }
+        }
+        if (min == Long.MAX_VALUE) return null;
+        return FaweCache.CACHE_BLOCK[closest];
+    }
+
     /**
      * Returns the block combined ids as an array
      * @param color
@@ -374,7 +401,7 @@ public class TextureUtil {
     }
 
     public BaseBlock getDarkerBlock(BaseBlock block) {
-        return getNearestBlock(block, false);
+        return getNearestBlock(block, true);
     }
 
     public int getColor(BaseBlock block) {
@@ -644,9 +671,25 @@ public class TextureUtil {
         int green2 = (c2 >> 8) & 0xFF;
         int blue2 = (c2 >> 0) & 0xFF;
         int red = ((red1 * red2)) / 255;
-        int green = ((green1 * green2)) / 256;
-        int blue = ((blue1 * blue2)) / 256;
-        int alpha = ((alpha1 * alpha2)) / 256;
+        int green = ((green1 * green2)) / 255;
+        int blue = ((blue1 * blue2)) / 255;
+        int alpha = ((alpha1 * alpha2)) / 255;
+        return (alpha << 24) + (red << 16) + (green << 8) + (blue << 0);
+    }
+
+    public int averageColor(int c1, int c2) {
+        int alpha1 = (c1 >> 24) & 0xFF;
+        int alpha2 = (c2 >> 24) & 0xFF;
+        int red1 = (c1 >> 16) & 0xFF;
+        int green1 = (c1 >> 8) & 0xFF;
+        int blue1 = (c1 >> 0) & 0xFF;
+        int red2 = (c2 >> 16) & 0xFF;
+        int green2 = (c2 >> 8) & 0xFF;
+        int blue2 = (c2 >> 0) & 0xFF;
+        int red = ((red1 + red2)) / 2;
+        int green = ((green1 + green2)) / 2;
+        int blue = ((blue1 + blue2)) / 2;
+        int alpha = ((alpha1 + alpha2)) / 2;
         return (alpha << 24) + (red << 16) + (green << 8) + (blue << 0);
     }
 
@@ -709,14 +752,14 @@ public class TextureUtil {
         int green1 = (color >> 8) & 0xFF;
         int blue1 = (color >> 0) & 0xFF;
         int alpha = (color >> 24) & 0xFF;
-        int intensity1 = red1 + green1 + blue1;
+        int intensity1 = 2 * red1 + 4 * green1 + 3 * blue1;
         for (int i = 0; i < validColors.length; i++) {
             int other = validColors[i];
             if (other != color && ((other >> 24) & 0xFF) == alpha) {
                 int red2 = (other >> 16) & 0xFF;
                 int green2 = (other >> 8) & 0xFF;
                 int blue2 = (other >> 0) & 0xFF;
-                int intensity2 = red2 + green2 + blue2;
+                int intensity2 = 2 * red2 + 4 * green2 + 3 * blue2;
                 if (darker ? intensity2 >= intensity1 : intensity1 >= intensity2) {
                     continue;
                 }

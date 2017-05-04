@@ -424,13 +424,12 @@ public final class CommandManager {
             }
         } finally {
             final EditSession editSession = locals.get(EditSession.class);
-            boolean hasSession = false;
             if (editSession != null) {
                 editSession.flushQueue();
                 worldEdit.flushBlockBag(finalActor, editSession);
                 session.remember(editSession);
                 final long time = System.currentTimeMillis() - start;
-                if (time > 250 && hasSession) {
+                if (time > 1000) {
                     BBC.ACTION_COMPLETE.send(finalActor, (time / 1000d));
                 }
                 Request.reset();

@@ -9,9 +9,8 @@ import com.sk89q.worldedit.function.mask.SolidBlockMask;
 import javax.annotation.Nullable;
 
 public class AngleMask extends SolidBlockMask {
-
-    private static double ADJACENT_MOD = 0.5;
-    private static double DIAGONAL_MOD = 1 / Math.sqrt(8);
+    public static double ADJACENT_MOD = 0.5;
+    public static double DIAGONAL_MOD = 1 / Math.sqrt(8);
 
     private final double max;
     private final double min;

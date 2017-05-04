@@ -143,7 +143,7 @@ public class CreateFromImage extends Command {
                             fp.sendMessage(BBC.getPrefix() + "/2 cfi column [url|mask] <pattern> [white=false]");
                             fp.sendMessage(BBC.getPrefix() + "/2 cfi caves");
                             fp.sendMessage(BBC.getPrefix() + "/2 cfi ore[s]");
-                            fp.sendMessage(BBC.getPrefix() + "/2 cfi schem <mask> <schem> <rarity> <rotate>");
+                            fp.sendMessage(BBC.getPrefix() + "/2 cfi schem [url] <mask> <schem> <rarity> <distance> <rotate>");
                             fp.sendMessage(BBC.getPrefix() + "/2 cfi height <image-url|height>");
                             fp.sendMessage(BBC.getPrefix() + "/2 cfi waterHeight <height>");
                             fp.sendMessage(BBC.getPrefix() + "/2 cfi waterId <number-id>");
@@ -185,23 +185,35 @@ public class CreateFromImage extends Command {
                         Request.request().setExtent(generator);
                         try {
                             switch (argList.get(0).toLowerCase()) {
+                                // BufferedImage, Mask, WorldData, ClipboardHolder[], rarity, distance, randomRotate
                                 case "schem":
                                 case "schems":
                                 case "addschems": {
-                                    if (argList.size() != 5) {
-                                        C.COMMAND_SYNTAX.send(player, "/2 cfi " + argList.get(0) + " <mask> <file|folder|url> <rarity> <rotate>");
+                                    if (argList.size() != 6 && argList.size() != 7) {
+                                        C.COMMAND_SYNTAX.send(player, "/2 cfi " + argList.get(0) + " [url] <mask> <file|folder|url> <rarity> <distance> <rotate>");
                                         return;
+                                    }
+                                    int argOffset = 0;
+                                    BufferedImage img = null;
+                                    if (argList.get(1).startsWith("http")) {
+                                        img = getImgurImage(argList.get(1), fp);
+                                        argOffset++;
                                     }
                                     World world = fp.getWorld();
                                     WorldData wd = world.getWorldData();
-                                    Mask mask = we.getMaskFactory().parseFromInput(argList.get(1), context);
-                                    ClipboardHolder[] clipboards = ClipboardFormat.SCHEMATIC.loadAllFromInput(fp.getPlayer(), wd, argList.get(2), true);
+                                    Mask mask = we.getMaskFactory().parseFromInput(argList.get(1 + argOffset), context);
+                                    ClipboardHolder[] clipboards = ClipboardFormat.SCHEMATIC.loadAllFromInput(fp.getPlayer(), wd, argList.get(2 + argOffset), true);
                                     if (clipboards == null) {
                                         return;
                                     }
-                                    int rarity = Integer.parseInt(argList.get(3));
-                                    boolean rotate = Boolean.parseBoolean(argList.get(4));
-                                    generator.addSchems(mask, wd, clipboards, rarity, rotate);
+                                    int rarity = Integer.parseInt(argList.get(3 + argOffset));
+                                    int distance = Integer.parseInt(argList.get(4 + argOffset));
+                                    boolean rotate = Boolean.parseBoolean(argList.get(5 + argOffset));
+                                    if (img == null) {
+                                        generator.addSchems(mask, wd, clipboards, rarity, rotate);
+                                    } else {
+                                        generator.addSchems(img, mask, wd, clipboards, rarity, distance, rotate);
+                                    }
                                     player.sendMessage(BBC.getPrefix() + "Added schems, what's next?");
                                     return;
                                 }
@@ -530,6 +542,7 @@ public class CreateFromImage extends Command {
                         } catch (InputParseException e) {
                             player.sendMessage("Invalid mask " + e.getMessage());
                         } catch (Throwable e) {
+                            e.printStackTrace();
                             player.sendMessage("Error " + e.getMessage());
                         } finally {
                             Request.reset();

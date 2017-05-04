@@ -7,11 +7,16 @@ import com.sk89q.worldedit.extent.Extent;
 import com.sk89q.worldedit.function.pattern.AbstractPattern;
 import com.sk89q.worldedit.function.pattern.Pattern;
 
+
+import static com.google.common.base.Preconditions.checkNotNull;
+
 public class IdPattern extends AbstractPattern {
     private final Extent extent;
     private final Pattern pattern;
 
     public IdPattern(Extent extent, Pattern parent) {
+        checkNotNull(extent);
+        checkNotNull(parent);
         this.extent = extent;
         this.pattern = parent;
     }

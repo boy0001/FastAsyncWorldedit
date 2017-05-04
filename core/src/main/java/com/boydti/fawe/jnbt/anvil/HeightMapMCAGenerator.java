@@ -3,6 +3,8 @@ package com.boydti.fawe.jnbt.anvil;
 import com.boydti.fawe.Fawe;
 import com.boydti.fawe.FaweCache;
 import com.boydti.fawe.object.PseudoRandom;
+import com.boydti.fawe.object.collection.LocalBlockVector2DSet;
+import com.boydti.fawe.object.schematic.Schematic;
 import com.boydti.fawe.util.CachedTextureUtil;
 import com.boydti.fawe.util.MathMan;
 import com.boydti.fawe.util.RandomTextureUtil;
@@ -15,9 +17,12 @@ import com.sk89q.worldedit.WorldEditException;
 import com.sk89q.worldedit.blocks.BaseBlock;
 import com.sk89q.worldedit.blocks.BlockID;
 import com.sk89q.worldedit.extent.Extent;
+import com.sk89q.worldedit.extent.clipboard.Clipboard;
 import com.sk89q.worldedit.function.mask.Mask;
 import com.sk89q.worldedit.function.pattern.BlockPattern;
 import com.sk89q.worldedit.function.pattern.Pattern;
+import com.sk89q.worldedit.math.transform.AffineTransform;
+import com.sk89q.worldedit.math.transform.Transform;
 import com.sk89q.worldedit.regions.CuboidRegion;
 import com.sk89q.worldedit.session.ClipboardHolder;
 import com.sk89q.worldedit.world.biome.BaseBiome;
@@ -110,9 +115,57 @@ public class HeightMapMCAGenerator extends MCAWriter implements Extent {
         addCaves(region);
     }
 
+    @Deprecated
     public  void addSchems(Mask mask, WorldData worldData, ClipboardHolder[] clipboards, int rarity, boolean rotate) throws WorldEditException{
         CuboidRegion region = new CuboidRegion(new Vector(0, 0, 0), new Vector(getWidth(), 255, getLength()));
         addSchems(region, mask, worldData, clipboards, rarity, rotate);
+    }
+
+    public void addSchems(BufferedImage img, Mask mask, WorldData worldData, ClipboardHolder[] clipboards, int rarity, int distance, boolean randomRotate) throws WorldEditException{
+        if (img.getWidth() != getWidth() || img.getHeight() != getLength()) throw new IllegalArgumentException("Input image dimensions do not match the current height map!");
+        double doubleRarity = rarity / 100d;
+        int index = 0;
+        AffineTransform identity = new AffineTransform();
+        LocalBlockVector2DSet placed = new LocalBlockVector2DSet();
+        for (int z = 0; z < getLength(); z++) {
+            mutable.mutZ(z);
+            for (int x = 0; x < getWidth(); x++, index++){
+                int y = heights[index];
+                int height = img.getRGB(x, z) & 0xFF;
+                if (height == 0 || PseudoRandom.random.nextInt(256) > height * doubleRarity) {
+                    continue;
+                }
+                mutable.mutX(x);
+                mutable.mutY(y);
+                if (!mask.test(mutable)) {
+                    continue;
+                }
+                if (placed.containsRadius(x, z, distance)) {
+                    continue;
+                }
+                placed.add(x, z);
+                ClipboardHolder holder = clipboards[PseudoRandom.random.random(clipboards.length)];
+                if (randomRotate) {
+                    int rotate = PseudoRandom.random.random(4) * 90;
+                    if (rotate != 0) {
+                        holder.setTransform(new AffineTransform().rotateY(PseudoRandom.random.random(4) * 90));
+                    } else {
+                        holder.setTransform(identity);
+                    }
+                }
+                Clipboard clipboard = holder.getClipboard();
+                Schematic schematic = new Schematic(clipboard);
+                Transform transform = holder.getTransform();
+                if (transform.isIdentity()) {
+                    schematic.paste(this, mutable, false);
+                } else {
+                    schematic.paste(this, worldData, mutable, false, transform);
+                }
+                x += distance;
+                index += distance;
+                continue;
+            }
+        }
     }
 
     public void addOre(Mask mask, Pattern material, int size, int frequency, int rarity, int minY, int maxY) throws WorldEditException {
