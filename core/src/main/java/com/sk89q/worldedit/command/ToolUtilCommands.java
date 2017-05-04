@@ -188,7 +188,7 @@ public class ToolUtilCommands {
             max = 1
     )
     @CommandPermissions("worldedit.brush.options.material")
-    public void material(Player player, LocalSession session, Pattern pattern, @Switch('h') boolean offHand) throws WorldEditException {
+    public void material(Player player, EditSession editSession, LocalSession session, Pattern pattern, @Switch('h') boolean offHand) throws WorldEditException {
         Tool tool = session.getTool(player);
         if (tool instanceof BrushTool) {
             BrushTool bt = (BrushTool) tool;

@@ -20,6 +20,10 @@
 package com.sk89q.worldedit.function.visitor;
 
 import com.boydti.fawe.config.BBC;
+import com.boydti.fawe.example.MappedFaweQueue;
+import com.boydti.fawe.object.FaweQueue;
+import com.boydti.fawe.object.HasFaweQueue;
+import com.boydti.fawe.object.visitor.Fast2DIterator;
 import com.sk89q.worldedit.Vector2D;
 import com.sk89q.worldedit.WorldEditException;
 import com.sk89q.worldedit.function.FlatRegionFunction;
@@ -38,6 +42,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
 public class FlatRegionVisitor implements Operation {
 
     private final FlatRegionFunction function;
+    private MappedFaweQueue queue;
     private int affected = 0;
     private final Iterable<Vector2D> iterator;
 
@@ -54,6 +59,15 @@ public class FlatRegionVisitor implements Operation {
         this.iterator = flatRegion.asFlatRegion();
     }
 
+    public FlatRegionVisitor(final FlatRegion flatRegion, final FlatRegionFunction function, HasFaweQueue hasFaweQueue) {
+        checkNotNull(flatRegion);
+        checkNotNull(function);
+        this.function = function;
+        this.iterator = flatRegion.asFlatRegion();
+        FaweQueue queue = hasFaweQueue.getQueue();
+        this.queue =  (MappedFaweQueue) (queue instanceof MappedFaweQueue ? queue : null);
+    }
+
     /**
      * Get the number of affected objects.
      *
@@ -65,9 +79,13 @@ public class FlatRegionVisitor implements Operation {
 
     @Override
     public Operation resume(final RunContext run) throws WorldEditException {
-        for (final Vector2D pt : this.iterator) {
-            if (this.function.apply(pt)) {
-                affected++;
+        if (this.queue != null) {
+            for (final Vector2D pt : new Fast2DIterator(this.iterator, queue)) {
+                if (this.function.apply(pt)) affected++;
+            }
+        } else {
+            for (final Vector2D pt : this.iterator) {
+                if (this.function.apply(pt)) affected++;
             }
         }
         return null;

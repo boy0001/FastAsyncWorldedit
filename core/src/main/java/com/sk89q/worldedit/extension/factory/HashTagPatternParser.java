@@ -3,8 +3,14 @@ package com.sk89q.worldedit.extension.factory;
 import com.boydti.fawe.Fawe;
 import com.boydti.fawe.command.FaweParser;
 import com.boydti.fawe.command.SuggestInputParseException;
+import com.boydti.fawe.object.DataAngleMask;
+import com.boydti.fawe.object.FawePlayer;
+import com.boydti.fawe.object.pattern.AngleColorPattern;
+import com.boydti.fawe.object.pattern.AverageColorPattern;
 import com.boydti.fawe.object.pattern.BiomePattern;
+import com.boydti.fawe.object.pattern.BufferedPattern;
 import com.boydti.fawe.object.pattern.DataPattern;
+import com.boydti.fawe.object.pattern.DesaturatePattern;
 import com.boydti.fawe.object.pattern.ExistingPattern;
 import com.boydti.fawe.object.pattern.ExpressionPattern;
 import com.boydti.fawe.object.pattern.FullClipboardPattern;
@@ -21,11 +27,14 @@ import com.boydti.fawe.object.pattern.PatternExtent;
 import com.boydti.fawe.object.pattern.RandomFullClipboardPattern;
 import com.boydti.fawe.object.pattern.RandomOffsetPattern;
 import com.boydti.fawe.object.pattern.RelativePattern;
+import com.boydti.fawe.object.pattern.SaturatePattern;
+import com.boydti.fawe.object.pattern.ShadePattern;
 import com.boydti.fawe.object.pattern.SolidRandomOffsetPattern;
 import com.boydti.fawe.object.pattern.SurfaceRandomOffsetPattern;
 import com.boydti.fawe.util.MainUtil;
 import com.boydti.fawe.util.MathMan;
 import com.boydti.fawe.util.StringMan;
+import com.boydti.fawe.util.TextureUtil;
 import com.sk89q.worldedit.EditSession;
 import com.sk89q.worldedit.EmptyClipboardException;
 import com.sk89q.worldedit.LocalSession;
@@ -124,7 +133,8 @@ public class HashTagPatternParser extends FaweParser<Pattern> {
             case '#': {
                 String[] split2 = input.split(":");
                 String rest = split2.length > 1 ? input.substring(split2[0].length() + 1) : "";
-                switch (split2[0].toLowerCase()) {
+                String arg = split2[0].toLowerCase();
+                switch (arg) {
                     case "#*":
                     case "#existing": {
                         return new ExistingPattern(Request.request().getExtent());
@@ -153,6 +163,40 @@ public class HashTagPatternParser extends FaweParser<Pattern> {
                         } else {
                             throw new InputParseException("#color:<hex>");
                         }
+                    }
+                    case "#anglecolor": {
+                        TextureUtil util = Fawe.get().getCachedTextureUtil(split2.length < 2 ? true : Boolean.parseBoolean(split2[1]), 0, split2.length < 3 ? 100 : Integer.parseInt(split2[2]));
+                        return new AngleColorPattern(util, Request.request().getExtent());
+                    }
+                    case "#angledata": {
+                        return new DataAngleMask(Request.request().getExtent());
+                    }
+                    case "#saturate":
+                    case "#averagecolor": {
+                        try {
+                            TextureUtil util = Fawe.get().getCachedTextureUtil(split2.length < 3 ? true : Boolean.parseBoolean(split2[2]), 0, split2.length < 4 ? 100 : Integer.parseInt(split2[3]));
+                            Color color = Color.web(split2[1]);
+                            java.awt.Color awtColor = new java.awt.Color((float) color.getRed(), (float) color.getGreen(), (float) color.getBlue(), (float) color.getOpacity());
+                            if (arg.equals("#saturate"))
+                                return new SaturatePattern(Request.request().getExtent(), util, awtColor.getRGB());
+                            else return new AverageColorPattern(Request.request().getExtent(), util, awtColor.getRGB());
+                        } catch (NumberFormatException | IndexOutOfBoundsException e) {
+                            throw new SuggestInputParseException(null, "#" + arg + "[:<color>:<randomize=true>:<complexity=100>]");
+                        }
+                    }
+                    case "#desaturate": {
+                        try {
+                            TextureUtil util = Fawe.get().getCachedTextureUtil(split2.length < 3 ? true : Boolean.parseBoolean(split2[2]), 0, split2.length < 4 ? 100 : Integer.parseInt(split2[3]));
+                            double chance = split2.length < 2 ? 100 : Expression.compile(split2[1]).evaluate();
+                            return new DesaturatePattern(Request.request().getExtent(), util, chance / 100d);
+                        } catch (NumberFormatException | ExpressionException | IndexOutOfBoundsException e) {
+                            throw new SuggestInputParseException(null, "#desaturate[:<percent=100>:<randomize=true>:<complexity=100>]");
+                        }
+                    }
+                    case "#lighten":
+                    case "#darken": {
+                        TextureUtil util = Fawe.get().getCachedTextureUtil(split2.length < 2 ? true : Boolean.parseBoolean(split2[1]), 0, split2.length < 3 ? 100 : Integer.parseInt(split2[2]));
+                        return new ShadePattern(Request.request().getExtent(), util, arg.equals("#darken"));
                     }
                     case "#fullcopy": {
                         LocalSession session = context.requireSession();
@@ -195,6 +239,9 @@ public class HashTagPatternParser extends FaweParser<Pattern> {
                         } else {
                             throw new InputParseException("No session is available, so no clipboard is available");
                         }
+                    }
+                    case "#buffer": {
+                        return new BufferedPattern(FawePlayer.wrap(context.requireActor()), catchSuggestion(input, rest, context));
                     }
                     case "#iddatamask": {
                         String[] split = rest.split(":", 1);

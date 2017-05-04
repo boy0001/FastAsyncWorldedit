@@ -7,9 +7,12 @@ import com.boydti.fawe.config.Settings;
 import com.boydti.fawe.object.FawePlayer;
 import com.boydti.fawe.object.brush.visualization.VisualQueue;
 import com.boydti.fawe.regions.general.plot.PlotSquaredFeature;
+import com.boydti.fawe.util.CachedTextureUtil;
+import com.boydti.fawe.util.CleanTextureUtil;
 import com.boydti.fawe.util.FaweTimer;
 import com.boydti.fawe.util.MainUtil;
 import com.boydti.fawe.util.MemUtil;
+import com.boydti.fawe.util.RandomTextureUtil;
 import com.boydti.fawe.util.StringMan;
 import com.boydti.fawe.util.TaskManager;
 import com.boydti.fawe.util.TextureUtil;
@@ -136,7 +139,6 @@ import javax.management.InstanceAlreadyExistsException;
 import javax.management.Notification;
 import javax.management.NotificationEmitter;
 import javax.management.NotificationListener;
-import org.json.simple.parser.ParseException;
 
 /**[ WorldEdit action]
 *       |
@@ -322,6 +324,13 @@ public class Fawe {
         return updater;
     }
 
+    public TextureUtil getCachedTextureUtil(boolean randomize, int min, int max) {
+        TextureUtil tu = getTextureUtil();
+        tu = min == 0 && max == 100 ? tu : new CleanTextureUtil(tu, min, max);
+        tu = randomize ? new RandomTextureUtil(tu) : new CachedTextureUtil(tu);
+        return tu;
+    }
+
     public TextureUtil getTextureUtil() {
         TextureUtil tmp = textures;
         if (tmp == null) {
@@ -332,8 +341,6 @@ public class Fawe {
                         textures = tmp = new TextureUtil();
                         tmp.loadModTextures();
                     } catch (IOException e) {
-                        e.printStackTrace();
-                    } catch (ParseException e) {
                         e.printStackTrace();
                     }
                 }
@@ -688,10 +695,4 @@ public class Fawe {
     public Collection<FawePlayer> getCachedPlayers() {
         return players.values();
     }
-
-    /*
-     * TODO FIXME
-     *  - Async packet sending
-     *  - Optimize lighting updates / chunk sending
-     */
 }

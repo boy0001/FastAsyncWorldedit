@@ -143,8 +143,10 @@ public class CreateFromImage extends Command {
                             fp.sendMessage(BBC.getPrefix() + "/2 cfi column [url|mask] <pattern> [white=false]");
                             fp.sendMessage(BBC.getPrefix() + "/2 cfi caves");
                             fp.sendMessage(BBC.getPrefix() + "/2 cfi ore[s]");
-                            fp.sendMessage(BBC.getPrefix() + "/2 cfi schem <mask> <schem> <rarity> <rotate>");
+                            fp.sendMessage(BBC.getPrefix() + "/2 cfi schem [url] <mask> <schem> <rarity> <distance> <rotate>");
                             fp.sendMessage(BBC.getPrefix() + "/2 cfi height <image-url|height>");
+                            fp.sendMessage(BBC.getPrefix() + "/2 cfi waterHeight <height>");
+                            fp.sendMessage(BBC.getPrefix() + "/2 cfi waterId <number-id>");
                             fp.sendMessage(BBC.getPrefix() + "/2 cfi color <image-url>");
                             fp.sendMessage(BBC.getPrefix() + "/2 cfi glass <image-url>");
                             fp.sendMessage(BBC.getPrefix() + "/2 cfi biomeColor <image-url>");
@@ -152,6 +154,7 @@ public class CreateFromImage extends Command {
                             fp.sendMessage(BBC.getPrefix() + "/2 cfi paletteComplexity <min=0> <max=100>");
                             fp.sendMessage(BBC.getPrefix() + "/2 cfi paletteRandomization <true|false>");
                             fp.sendMessage(BBC.getPrefix() + "/2 cfi paletteBlocks <block-list>");
+                            fp.sendMessage(BBC.getPrefix() + "/2 cfi paletteBiomePriority <percent=50>");
                             fp.sendMessage(BBC.getPrefix() + "/2 cfi done");
                             fp.sendMessage(BBC.getPrefix() + "/2 cfi cancel");
                             File folder = new File(PS.imp().getWorldContainer(), plot.getWorldName() + File.separator + "region");
@@ -182,23 +185,35 @@ public class CreateFromImage extends Command {
                         Request.request().setExtent(generator);
                         try {
                             switch (argList.get(0).toLowerCase()) {
+                                // BufferedImage, Mask, WorldData, ClipboardHolder[], rarity, distance, randomRotate
                                 case "schem":
                                 case "schems":
                                 case "addschems": {
-                                    if (argList.size() != 5) {
-                                        C.COMMAND_SYNTAX.send(player, "/2 cfi " + argList.get(0) + " <mask> <file|folder|url> <rarity> <rotate>");
+                                    if (argList.size() != 6 && argList.size() != 7) {
+                                        C.COMMAND_SYNTAX.send(player, "/2 cfi " + argList.get(0) + " [url] <mask> <file|folder|url> <rarity> <distance> <rotate>");
                                         return;
+                                    }
+                                    int argOffset = 0;
+                                    BufferedImage img = null;
+                                    if (argList.get(1).startsWith("http")) {
+                                        img = getImgurImage(argList.get(1), fp);
+                                        argOffset++;
                                     }
                                     World world = fp.getWorld();
                                     WorldData wd = world.getWorldData();
-                                    Mask mask = we.getMaskFactory().parseFromInput(argList.get(1), context);
-                                    ClipboardHolder[] clipboards = ClipboardFormat.SCHEMATIC.loadAllFromInput(fp.getPlayer(), wd, argList.get(2), true);
+                                    Mask mask = we.getMaskFactory().parseFromInput(argList.get(1 + argOffset), context);
+                                    ClipboardHolder[] clipboards = ClipboardFormat.SCHEMATIC.loadAllFromInput(fp.getPlayer(), wd, argList.get(2 + argOffset), true);
                                     if (clipboards == null) {
                                         return;
                                     }
-                                    int rarity = Integer.parseInt(argList.get(3));
-                                    boolean rotate = Boolean.parseBoolean(argList.get(4));
-                                    generator.addSchems(mask, wd, clipboards, rarity, rotate);
+                                    int rarity = Integer.parseInt(argList.get(3 + argOffset));
+                                    int distance = Integer.parseInt(argList.get(4 + argOffset));
+                                    boolean rotate = Boolean.parseBoolean(argList.get(5 + argOffset));
+                                    if (img == null) {
+                                        generator.addSchems(mask, wd, clipboards, rarity, rotate);
+                                    } else {
+                                        generator.addSchems(img, mask, wd, clipboards, rarity, distance, rotate);
+                                    }
                                     player.sendMessage(BBC.getPrefix() + "Added schems, what's next?");
                                     return;
                                 }
@@ -245,6 +260,19 @@ public class CreateFromImage extends Command {
                                     player.sendMessage("Set color palette blocks, what's next?");
                                     return;
                                 }
+                                case "biomepriority":
+                                case "palettebiomepriority":
+                                case "setpalettebiomepriority": {
+                                    // roughness
+                                    // blocks
+                                    if (argList.size() != 2) {
+                                        C.COMMAND_SYNTAX.send(player, "/2 cfi " + argList.get(0) + " <percent=50>");
+                                        return;
+                                    }
+                                    generator.setBiomePriority(Integer.parseInt(argList.get(1)));
+                                    player.sendMessage("Set color palette biome priority, what's next?");
+                                    return;
+                                }
                                 case "color":
                                 case "setcolor": {
                                     if (argList.size() != 2) {
@@ -288,6 +316,30 @@ public class CreateFromImage extends Command {
                                     BufferedImage image = getImgurImage(argList.get(1), fp);
                                     generator.setColorWithGlass(image);
                                     player.sendMessage("Set glass color, what's next?");
+                                    return;
+                                }
+                                case "waterheight":
+                                case "setwaterheight": {
+                                    // roughness
+                                    // blocks
+                                    if (argList.size() != 2) {
+                                        C.COMMAND_SYNTAX.send(player, "/2 cfi " + argList.get(0) + " <height>");
+                                        return;
+                                    }
+                                    generator.setWaterHeight(Integer.parseInt(argList.get(1)));
+                                    player.sendMessage("Set water height, what's next?");
+                                    return;
+                                }
+                                case "waterid":
+                                case "setwaterid": {
+                                    // roughness
+                                    // blocks
+                                    if (argList.size() != 2) {
+                                        C.COMMAND_SYNTAX.send(player, "/2 cfi " + argList.get(0) + " <id>");
+                                        return;
+                                    }
+                                    generator.setWaterId(Integer.parseInt(argList.get(1)));
+                                    player.sendMessage("Set water id, what's next?");
                                     return;
                                 }
                                 case "height":
@@ -482,7 +534,7 @@ public class CreateFromImage extends Command {
                                     player.sendMessage(BBC.getPrefix() + "Cancelled!");
                                     return;
                                 default:
-                                    C.COMMAND_SYNTAX.send(player, "/2 cfi <setBiome|setOverlay|setMain|setFloor|setColumn|addCaves|addOre[s]|addSchems|setHeight|setColor|setGlassColor|setBiomeColor|setBlockAndBiomeColor|setColorPaletteComplexity|setColorPaletteRandomization|setColorPaletteBlocks|done|cancel|>");
+                                    C.COMMAND_SYNTAX.send(player, "/2 cfi <setBiome|setOverlay|setMain|setFloor|setColumn|addCaves|addOre[s]|addSchems|setHeight|setColor|setGlassColor|setBiomeColor|setBlockAndBiomeColor|setColorPaletteComplexity|setColorPaletteRandomization|setColorPaletteBlocks|biomepriority|done|cancel|>");
                                     return;
                             }
                         } catch (IOException e) {
@@ -490,6 +542,7 @@ public class CreateFromImage extends Command {
                         } catch (InputParseException e) {
                             player.sendMessage("Invalid mask " + e.getMessage());
                         } catch (Throwable e) {
+                            e.printStackTrace();
                             player.sendMessage("Error " + e.getMessage());
                         } finally {
                             Request.reset();

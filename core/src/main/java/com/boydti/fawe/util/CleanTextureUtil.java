@@ -5,12 +5,13 @@ import java.util.Arrays;
 public class CleanTextureUtil extends TextureUtil {
     public CleanTextureUtil(TextureUtil parent, int minPercent, int maxPercent) {
         super(parent.getFolder());
-        int minIndex = (parent.distances.length * minPercent) / 100;
-        int maxIndex = (parent.distances.length * maxPercent) / 100;
+        int minIndex = ((parent.distances.length - 1) * minPercent) / 100;
+        int maxIndex = ((parent.distances.length - 1) * maxPercent) / 100;
         long min = parent.distances[minIndex];
         long max = parent.distances[maxIndex];
+        for (; minIndex > 0 && parent.distances[minIndex - 1] == min; minIndex--);
+        for (; maxIndex < parent.distances.length - 2 && parent.distances[maxIndex + 1] == max; maxIndex++);
         int num = maxIndex - minIndex + 1;
-
         this.validBiomes = parent.validBiomes;
         this.blockColors = parent.blockColors;
         this.blockDistance = parent.blockDistance;

@@ -90,6 +90,8 @@ public final class DocumentationPrinter {
             stream.println();
             stream.print("## Content");
             stream.println();
+            stream.print("Click on a category to go to the list of commands, or `More Info` for detailed descriptions ");
+            stream.println();
             StringBuilder builder = new StringBuilder();
             writePermissionsWikiTable(stream, builder, "/we ", WorldEditCommands.class);
             writePermissionsWikiTable(stream, builder, "/", GeneralCommands.class);
@@ -117,7 +119,7 @@ public final class DocumentationPrinter {
             stream.append("| --- | --- | --- | --- |\n");
             stream.append("| //cancel | fawe.cancel | | Cancels your current operations |\n");
             stream.append("| /plot replaceall | plots.replaceall | | Replace all blocks in the plot world |\n");
-            stream.append("| /plot createfromimage | plots.createfromimage | | Starts world creation from a heightmap image: [More Info](https://www.youtube.com/watch?v=cJZk1GTig7A) |\n");
+            stream.append("| /plot createfromimage | plots.createfromimage | | Starts world creation from a heightmap image: [More Info](https://github.com/boy0001/FastAsyncWorldedit/wiki/CreateFromImage) |\n");
             stream.print("\n---\n");
 
             stream.print(builder);
@@ -139,7 +141,12 @@ public final class DocumentationPrinter {
         //  //setbiome || worldedit.biome.set || //setbiome || p || Sets the biome of the player's current block or region.
         if (title) {
             String path = "https://github.com/boy0001/FastAsyncWorldedit/edit/master/core/src/main/java/" + cls.getName().replaceAll("\\.", "/") + ".java";
-            stream.append("### **" + cls.getSimpleName().replaceAll("(\\p{Ll})(\\p{Lu})","$1 $2") + "** [`✎`](" + path + ")");
+            stream.append("### **" + cls.getSimpleName().replaceAll("(\\p{Ll})(\\p{Lu})","$1 $2") + "** [`✎`](" + path + ")[`▲`](#overview)");
+            stream.append("\n");
+            Command cmd = cls.getAnnotation(Command.class);
+            if (cmd != null) {
+                stream.append(" (" + (cmd.help().isEmpty() ? cmd.desc() : cmd.help()) + ")");
+            }
             stream.append("\n");
             stream.append("\n");
             stream.append("---");

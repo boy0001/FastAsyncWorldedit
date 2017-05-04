@@ -56,6 +56,7 @@ import com.boydti.fawe.object.extent.ResettableExtent;
 import com.boydti.fawe.object.extent.SingleRegionExtent;
 import com.boydti.fawe.object.extent.SlowExtent;
 import com.boydti.fawe.object.extent.SourceMaskExtent;
+import com.boydti.fawe.object.function.SurfaceRegionFunction;
 import com.boydti.fawe.object.mask.ResettableMask;
 import com.boydti.fawe.object.progress.ChatProgressTracker;
 import com.boydti.fawe.object.progress.DefaultProgressTracker;
@@ -105,6 +106,7 @@ import com.sk89q.worldedit.function.operation.Operations;
 import com.sk89q.worldedit.function.pattern.BlockPattern;
 import com.sk89q.worldedit.function.util.RegionOffset;
 import com.sk89q.worldedit.function.visitor.DownwardVisitor;
+import com.sk89q.worldedit.function.visitor.FlatRegionVisitor;
 import com.sk89q.worldedit.function.visitor.LayerVisitor;
 import com.sk89q.worldedit.function.visitor.NonRisingVisitor;
 import com.sk89q.worldedit.function.visitor.RecursiveVisitor;
@@ -1901,7 +1903,6 @@ public class EditSession extends AbstractWorld implements HasFaweQueue, Lighting
     @SuppressWarnings("deprecation")
     public int overlayCuboidBlocks(final Region region, final BaseBlock block) throws MaxChangedBlocksException {
         checkNotNull(block);
-
         return this.overlayCuboidBlocks(region, new BlockPattern(block));
     }
 
@@ -1920,10 +1921,12 @@ public class EditSession extends AbstractWorld implements HasFaweQueue, Lighting
         checkNotNull(pattern);
         final BlockReplace replace = new BlockReplace(EditSession.this, pattern);
         final RegionOffset offset = new RegionOffset(new Vector(0, 1, 0), replace);
-        final GroundFunction ground = new GroundFunction(new ExistingBlockMask(EditSession.this), offset);
-        final LayerVisitor visitor = new LayerVisitor(asFlatRegion(region), minimumBlockY(region), maximumBlockY(region), ground);
+        int minY = region.getMinimumPoint().getBlockY();
+        int maxY = Math.min(getMaximumPoint().getBlockY(), region.getMaximumPoint().getBlockY() + 1);
+        SurfaceRegionFunction surface = new SurfaceRegionFunction(this, offset, minY, maxY);
+        FlatRegionVisitor visitor = new FlatRegionVisitor(asFlatRegion(region), surface, this);
         Operations.completeBlindly(visitor);
-        return this.changes = ground.getAffected();
+        return this.changes = visitor.getAffected();
     }
 
     /**

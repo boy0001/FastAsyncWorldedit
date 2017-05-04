@@ -35,6 +35,7 @@ public class SchemGen extends Resource {
         mutable.mutX(x);
         mutable.mutZ(z);
         int y = extent.getNearestSurfaceTerrainBlock(x, z, mutable.getBlockY(), 0, 255);
+        if (y == -1) return false;
         mutable.mutY(y);
         if (!mask.test(mutable)) {
             return false;

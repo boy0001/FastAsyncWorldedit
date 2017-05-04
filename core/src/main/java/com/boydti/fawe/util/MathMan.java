@@ -155,6 +155,18 @@ public class MathMan {
         return (long) (round + Math.signum(val - round));
     }
 
+    public static final int pair(short x, short y) {
+        return (x << 16) | (y & 0xFFFF);
+    }
+
+    public static final short unpairX(int hash) {
+        return (short) (hash >> 16);
+    }
+
+    public static final short unpairY(int hash) {
+        return (short) (hash & 0xFFFF);
+    }
+
     public static final short pairByte(int x, int y) {
         return (short) ((x << 8) | (y & 0xFF));
     }
@@ -219,6 +231,33 @@ public class MathMan {
                 + ((b3 & 0xFF) << 15)
                 + ((b4 & 0xFF) << 23))
                 ;
+    }
+
+    public static int pairSearchCoords(int x, int y) {
+        byte b1 = (byte) ((x & 0xF) + ((y & 0xF) << 4));
+        byte b2 = (byte) ((x >> 4) & 0xFF);
+        byte b3 = (byte) ((y >> 4) & 0xFF);
+        int x16 = (x >> 12) & 0xF;
+        int y16 = (y >> 12) & 0xF;
+        byte b4 = (byte) ((x16 & 0xF) + ((y16 & 0xF) << 4));
+        return ((b1 & 0xFF)
+                + ((b2 & 0xFF) << 8)
+                + ((b3 & 0xFF) << 16)
+                + ((b4 & 0xFF) << 24));
+    }
+
+    public static int unpairSearchCoordsX(int pair) {
+        int x1 = (pair >> 24) & 0x7;
+        int x2 = (pair >> 8) & 0xFF;
+        int x3 = (pair & 0xF);
+        return x3 + (x2 << 4) + (x1 << 12);
+    }
+
+    public static int unpairSearchCoordsY(int pair) {
+        int y1 = ((pair >> 24) & 0x7F) >> 3;
+        int y2 = (pair >> 16) & 0xFF;
+        int y3 = (pair & 0xFF) >> 4;
+        return y3 + (y2 << 4) + (y1 << 12);
     }
 
     public static final long chunkXZ2Int(int x, int z) {
@@ -358,18 +397,6 @@ public class MathMan {
             count += i;
         }
         return count / array.length;
-    }
-
-    public static final int pair(short x, short y) {
-        return (x << 16) | (y & 0xFFFF);
-    }
-
-    public static final short unpairX(int hash) {
-        return (short) (hash >> 16);
-    }
-
-    public static final short unpairY(int hash) {
-        return (short) (hash & 0xFFFF);
     }
 
     /**

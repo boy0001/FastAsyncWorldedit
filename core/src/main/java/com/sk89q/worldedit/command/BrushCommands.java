@@ -43,6 +43,7 @@ import com.boydti.fawe.object.brush.ShatterBrush;
 import com.boydti.fawe.object.brush.SplatterBrush;
 import com.boydti.fawe.object.brush.SplineBrush;
 import com.boydti.fawe.object.brush.StencilBrush;
+import com.boydti.fawe.object.brush.SurfaceSphereBrush;
 import com.boydti.fawe.object.brush.SurfaceSpline;
 import com.boydti.fawe.object.brush.TargetMode;
 import com.boydti.fawe.object.brush.heightmap.ScalableHeightMap;
@@ -109,7 +110,9 @@ import static com.google.common.base.Preconditions.checkNotNull;
 /**
  * Commands to set brush shape.
  */
-@Command(aliases = { "brush", "br" }, desc = "Commands to build and draw from far away: [More Info](https://github.com/boy0001/FastAsyncWorldedit/wiki/Brushes)")
+@Command(aliases = { "brush", "br" },
+        desc = "Commands to build and draw from far away. [More Info](https://github.com/boy0001/FastAsyncWorldedit/wiki/Brushes)"
+)
 public class BrushCommands {
 
     private final WorldEdit worldEdit;
@@ -285,9 +288,10 @@ public class BrushCommands {
 
     @Command(
             aliases = { "blendball", "bb", "blend" },
-            usage = "[radius]",
-            desc = "Choose the blend ball brush",
-            help = "Chooses the blend ball brush",
+            usage = "[radius=5]",
+            desc = "Smooths and blends terrain",
+            help = "Smooths and blends terrain\n" +
+                    "Pic: https://i.imgur.com/cNUQUkj.png -> https://i.imgur.com/hFOFsNf.png",
             min = 0,
             max = 1
     )
@@ -302,9 +306,9 @@ public class BrushCommands {
 
     @Command(
             aliases = { "erode", "e" },
-            usage = "[radius]",
-            desc = "Choose the erode brush",
-            help = "Chooses the erode brush",
+            usage = "[radius=5]",
+            desc = "Erodes terrain",
+            help = "Erodes terrain",
             min = 0,
             max = 1
     )
@@ -319,9 +323,9 @@ public class BrushCommands {
 
     @Command(
             aliases = { "pull" },
-            usage = "[radius]",
-            desc = "Choose the raise brush",
-            help = "Chooses the raise brush",
+            usage = "[radius=5]",
+            desc = "Pull terrain towards you",
+            help = "Pull terrain towards you",
             min = 0,
             max = 1
     )
@@ -336,14 +340,15 @@ public class BrushCommands {
 
     @Command(
             aliases = { "circle" },
-            usage = "<pattern> [radius]",
-            desc = "Choose the circle brush",
-            help = "Chooses the circle brush.",
+            usage = "<pattern> [radius=5]",
+            desc = "Creates a circle which revolves around your facing direction",
+            help = "Creates a circle which revolves around your facing direction.\n" +
+                    "Note: Decrease brush radius, and enabled visualization to assist with placement mid-air",
             min = 1,
             max = 2
     )
     @CommandPermissions("worldedit.brush.sphere")
-    public void circleBrush(Player player, LocalSession session, Pattern fill, @Optional("5") double radius) throws WorldEditException {
+    public void circleBrush(Player player, EditSession editSession, LocalSession session, Pattern fill, @Optional("5") double radius) throws WorldEditException {
         worldEdit.checkMaxBrushRadius(radius);
         BrushTool tool = session.getBrushTool(player);
         tool.setSize(radius);
@@ -354,15 +359,16 @@ public class BrushCommands {
 
     @Command(
             aliases = { "recursive", "recurse", "r" },
-            usage = "<pattern-to> [radius]",
-            desc = "Choose the recursive brush",
-            help = "Chooses the recursive brush\n" +
-                    "The -d flag Will apply in depth first order",
+            usage = "<pattern-to> [radius=5]",
+            desc = "Set all connected blocks",
+            help = "Set all connected blocks\n" +
+                    "The -d flag Will apply in depth first order\n" +
+                    "Note: Set a mask to recurse along specific blocks",
             min = 0,
             max = 3
     )
     @CommandPermissions("worldedit.brush.recursive")
-    public void recursiveBrush(Player player, LocalSession session, EditSession editSession, Pattern fill, @Optional("2") double radius, @Switch('d') boolean depthFirst) throws WorldEditException {
+    public void recursiveBrush(Player player, LocalSession session, EditSession editSession, Pattern fill, @Optional("5") double radius, @Switch('d') boolean depthFirst) throws WorldEditException {
         worldEdit.checkMaxBrushRadius(radius);
         BrushTool tool = session.getBrushTool(player);
         tool.setSize(radius);
@@ -374,11 +380,11 @@ public class BrushCommands {
 
     @Command(
             aliases = { "line", "l" },
-            usage = "<pattern> [radius]",
+            usage = "<pattern> [radius=0]",
             flags = "hsf",
-            desc = "Choose the line brush",
+            desc = "Create lines",
             help =
-                    "Chooses the line brush.\n" +
+                    "Create lines.\n" +
                             "The -h flag creates only a shell\n" +
                             "The -s flag selects the clicked point after drawing\n" +
                             "The -f flag creates a flat line",
@@ -386,7 +392,7 @@ public class BrushCommands {
             max = 2
     )
     @CommandPermissions("worldedit.brush.line")
-    public void lineBrush(Player player, LocalSession session, Pattern fill, @Optional("0") double radius, @Switch('h') boolean shell, @Switch('s') boolean select, @Switch('f') boolean flat) throws WorldEditException {
+    public void lineBrush(Player player, EditSession editSession, LocalSession session, Pattern fill, @Optional("0") double radius, @Switch('h') boolean shell, @Switch('s') boolean select, @Switch('f') boolean flat) throws WorldEditException {
         worldEdit.checkMaxBrushRadius(radius);
         BrushTool tool = session.getBrushTool(player);
         tool.setFill(fill);
@@ -398,13 +404,16 @@ public class BrushCommands {
     @Command(
             aliases = { "spline", "spl", "curve" },
             usage = "<pattern>",
-            desc = "Choose the spline brush",
-            help = "Chooses the spline brush",
+            desc = "Join multiple objects together in a curve",
+            help = "Click to select some objects,click the same block twice to connect the objects.\n" +
+                    "Insufficient brush radius, or clicking the the wrong spot will result in undesired shapes. The shapes must be simple lines or loops.\n" +
+                    "Pic1: http://i.imgur.com/CeRYAoV.jpg -> http://i.imgur.com/jtM0jA4.png\n" +
+                    "Pic2: http://i.imgur.com/bUeyc72.png -> http://i.imgur.com/tg6MkcF.png",
             min = 0,
             max = 2
     )
     @CommandPermissions("worldedit.brush.spline")
-    public void splineBrush(Player player, LocalSession session, Pattern fill, @Optional("25") double radius) throws WorldEditException {
+    public void splineBrush(Player player, EditSession editSession, LocalSession session, Pattern fill, @Optional("25") double radius) throws WorldEditException {
         worldEdit.checkMaxBrushRadius(radius);
         BrushTool tool = session.getBrushTool(player);
         tool.setFill(fill);
@@ -417,14 +426,15 @@ public class BrushCommands {
 
     @Command(
             aliases = { "sspl", "sspline", "surfacespline" },
-            usage = "<pattern> [size] [tension] [bias] [continuity] [quality]",
-            desc = "Draws a spline on the surface",
-            help = "Chooses the surface spline brush",
+            usage = "<pattern> [size=0] [tension=0] [bias=0] [continuity=0] [quality=10]",
+            desc = "Draws a spline (curved line) on the surface",
+            help = "Create a spline on the surface\n" +
+                    "Video: https://www.youtube.com/watch?v=zSN-2jJxXlM",
             min = 0,
             max = 2
     )
     @CommandPermissions("worldedit.brush.surfacespline") // 0, 0, 0, 10, 0,
-    public void surfaceSpline(Player player, LocalSession session, Pattern fill, @Optional("0") double radius, @Optional("0") double tension, @Optional("0") double bias, @Optional("0") double continuity, @Optional("10") double quality) throws WorldEditException {
+    public void surfaceSpline(Player player, EditSession editSession, LocalSession session, Pattern fill, @Optional("0") double radius, @Optional("0") double tension, @Optional("0") double bias, @Optional("0") double continuity, @Optional("10") double quality) throws WorldEditException {
         worldEdit.checkMaxBrushRadius(radius);
         BrushTool tool = session.getBrushTool(player);
         tool.setFill(fill);
@@ -435,17 +445,17 @@ public class BrushCommands {
 
     @Command(
             aliases = { "sphere", "s" },
-            usage = "<pattern> [radius]",
+            usage = "<pattern> [radius=2]",
             flags = "h",
-            desc = "Choose the sphere brush",
+            desc = "Creates a sphere",
             help =
-                    "Chooses the sphere brush.\n" +
+                    "Creates a sphere.\n" +
                             "The -h flag creates hollow spheres instead.",
             min = 1,
             max = 2
     )
     @CommandPermissions("worldedit.brush.sphere")
-    public void sphereBrush(Player player, LocalSession session, Pattern fill, @Optional("2") double radius, @Switch('h') boolean hollow) throws WorldEditException {
+    public void sphereBrush(Player player, EditSession editSession, LocalSession session, Pattern fill, @Optional("2") double radius, @Switch('h') boolean hollow) throws WorldEditException {
         worldEdit.checkMaxBrushRadius(radius);
 
         BrushTool tool = session.getBrushTool(player);
@@ -473,10 +483,11 @@ public class BrushCommands {
 
     @Command(
             aliases = { "shatter", "partition", "split" },
-            usage = "<pattern> [radius] [count]",
+            usage = "<pattern> [radius=10] [count=10]",
             desc = "Creates random lines to break the terrain into pieces",
             help =
-                    "Chooses the shatter brush",
+                    "Creates uneven lines separating terrain into multiple pieces\n" +
+                            "Pic: https://i.imgur.com/2xKsZf2.png",
             min = 1,
             max = -1
     )
@@ -494,10 +505,10 @@ public class BrushCommands {
 
     @Command(
             aliases = { "stencil", "color"},
-            usage = "<pattern> [radius] [file|#clipboard|null] [rotation] [yscale]",
+            usage = "<pattern> [radius=5] [file|#clipboard|imgur=null] [rotation=360] [yscale=1.0]",
             desc = "Use a height map to paint a surface",
             help =
-                    "Chooses the stencil brush.\n" +
+                    "Use a height map to paint any surface.\n" +
                             "The -w flag will only apply at maximum saturation\n" +
                             "The -r flag will apply random rotation",
             min = 1,
@@ -524,12 +535,34 @@ public class BrushCommands {
     }
 
     @Command(
+            aliases = { "surface", "surf"},
+            usage = "<pattern> [radius=5]",
+            desc = "Use a height map to paint a surface",
+            help =
+                    "Use a height map to paint any surface.\n" +
+                            "The -w flag will only apply at maximum saturation\n" +
+                            "The -r flag will apply random rotation",
+            min = 1,
+            max = -1
+    )
+    @CommandPermissions("worldedit.brush.surface")
+    public void surfaceBrush(Player player, EditSession editSession, LocalSession session, Pattern fill, @Optional("5") double radius) throws WorldEditException {
+        worldEdit.checkMaxBrushRadius(radius);
+        BrushTool tool = session.getBrushTool(player);
+        tool.setFill(fill);
+        tool.setSize(radius);
+        tool.setBrush(new SurfaceSphereBrush(), "worldedit.brush.surface");
+        player.print(BBC.getPrefix() + BBC.BRUSH_SURFACE.f(radius));
+    }
+
+    @Command(
             aliases = { "scatter", "scat" },
             usage = "<pattern> [radius=5] [points=5] [distance=1]",
-            desc = "Scatter blocks on a surface",
+            desc = "Scatter a pattern on a surface",
             help =
-                    "Chooses the scatter brush.\n" +
-                            " The -o flag will overlay the block",
+                    "Set a number of blocks randomly on a surface each a certain distance apart.\n" +
+                            " The -o flag will overlay the block\n" +
+                            "Video: https://youtu.be/RPZIaTbqoZw?t=34s",
             flags = "o",
             min = 1,
             max = 4
@@ -581,9 +614,11 @@ public class BrushCommands {
 
     @Command(
             aliases = { "layer" },
-            usage = "<radius> <pattern1> <patern2> <pattern3>...",
-            desc = "Scatter a schematic on a surface",
-            help = "Chooses the layer brush.",
+            usage = "<radius> <pattern1> <patern2>...",
+            desc = "Replaces terrain with a layer.",
+            help = "Replaces terrain with a layer.\n" +
+                    "Example: /br layer 5 95:1 95:2 35:15 - Places several layers on a surface\n" +
+                    "Pic: https://i.imgur.com/XV0vYoX.png",
             min = 3,
             max = 999
     )
@@ -609,9 +644,11 @@ public class BrushCommands {
     @Command(
             aliases = { "splatter", "splat" },
             usage = "<pattern> [radius=5] [seeds=1] [recursion=5] [solid=true]",
-            desc = "Splatter blocks on a surface",
-            help =
-                    "Chooses the Splatter brush.",
+            desc = "Splatter a pattern on a surface",
+            help = "Sets a bunch of blocks randomly on a surface.\n" +
+                    "Pic: https://i.imgur.com/hMD29oO.png\n" +
+                    "Example: /br splatter stone,dirt 30 15\n" +
+                    "Note: The seeds define how many splotches there are, recursion defines how large, solid defines whether the pattern is applied per seed, else per block.",
             min = 1,
             max = 5
     )
@@ -628,9 +665,12 @@ public class BrushCommands {
     @Command(
             aliases = { "scmd", "scattercmd", "scattercommand", "scommand" },
             usage = "<scatter-radius> <points> <cmd-radius=1> <cmd1;cmd2...>",
-            desc = "Scatter commands on a surface",
+            desc = "Run commands at random points on a surface",
             help =
-                    "Chooses the scatter command brush.",
+                    "Run commands at random points on a surface\n" +
+                            " - The scatter radius is the min distance between each point\n" +
+                            " - Your selection will be expanded to the specified size around each point\n" +
+                            " - Placeholders: {x}, {y}, {z}, {world}, {size}",
             min = 1,
             max = -1
     )
@@ -645,17 +685,17 @@ public class BrushCommands {
 
     @Command(
             aliases = { "cylinder", "cyl", "c" },
-            usage = "<block> [radius] [height]",
+            usage = "<block> [radius=2] [height=1]",
             flags = "h",
-            desc = "Choose the cylinder brush",
+            desc = "Creates a cylinder",
             help =
-                    "Chooses the cylinder brush.\n" +
+                    "Creates a cylinder.\n" +
                             "The -h flag creates hollow cylinders instead.",
             min = 1,
             max = 3
     )
     @CommandPermissions("worldedit.brush.cylinder")
-    public void cylinderBrush(Player player, LocalSession session, Pattern fill,
+    public void cylinderBrush(Player player, EditSession editSession, LocalSession session, Pattern fill,
                               @Optional("2") double radius, @Optional("1") int height, @Switch('h') boolean hollow) throws WorldEditException {
         worldEdit.checkMaxBrushRadius(radius);
         worldEdit.checkMaxBrushRadius(height);
@@ -675,7 +715,7 @@ public class BrushCommands {
     @Command(
             aliases = { "clipboard"},
             usage = "",
-            desc = "Choose the clipboard brush",
+            desc = "Choose the clipboard brush (Recommended: `/br copypaste`)",
             help =
                     "Chooses the clipboard brush.\n" +
                             "The -a flag makes it not paste air.\n" +
@@ -701,9 +741,9 @@ public class BrushCommands {
 
     @Command(
             aliases = { "smooth" },
-            usage = "[size] [iterations]",
+            usage = "[size=2] [iterations=4]",
             flags = "n",
-            desc = "Choose the terrain softener brush",
+            desc = "Smooths terrain (Recommended: `/br blendball`)",
             help =
                     "Chooses the terrain softener brush.\n" +
                             "The -n flag makes it only consider naturally occurring blocks.",
@@ -729,7 +769,7 @@ public class BrushCommands {
 
     @Command(
             aliases = { "ex", "extinguish" },
-            usage = "[radius]",
+            usage = "[radius=5]",
             desc = "Shortcut fire extinguisher brush",
             min = 0,
             max = 1
@@ -750,7 +790,7 @@ public class BrushCommands {
 
     @Command(
             aliases = { "gravity", "grav" },
-            usage = "[radius]",
+            usage = "[radius=5]",
             flags = "h",
             desc = "Gravity brush",
             help =
@@ -772,14 +812,16 @@ public class BrushCommands {
 
     @Command(
             aliases = { "height", "heightmap" },
-            usage = "[radius] [file|#clipboard|null] [rotation] [yscale]",
+            usage = "[radius=5] [file|#clipboard|imgur=null] [rotation=0] [yscale=1.00]",
             flags = "h",
-            desc = "Height brush",
+            desc = "Raise or lower terrain using a heightmap",
             help =
                     "This brush raises and lowers land.\n" +
-                            "The -r flag enables random off-axis rotation\n" +
-                            "The -l flag will work on snow layers\n" +
-                            "The -s flag disables smoothing",
+                            " - The `-r` flag enables random off-axis rotation\n" +
+                            " - The `-l` flag will work on snow layers\n" +
+                            " - The `-s` flag disables smoothing\n" +
+                    "Note: Note: Use a negative yscale to reduce height\n" +
+                    "Snow Pic: https://i.imgur.com/Hrzn0I4.png",
             min = 1,
             max = 4
     )
@@ -790,14 +832,14 @@ public class BrushCommands {
 
     @Command(
             aliases = { "cliff", "flatcylinder" },
-            usage = "[radius] [file|#clipboard|null] [rotation] [yscale]",
+            usage = "[radius=5] [file|#clipboard|imgur=null] [rotation=0] [yscale=1.00]",
             flags = "h",
             desc = "Cliff brush",
             help =
                     "This brush flattens terrain and creates cliffs.\n" +
-                            "The -r flag enables random off-axis rotation\n" +
-                            "The -l flag will work on snow layers\n" +
-                            "The -s flag disables smoothing",
+                            " - The `-r` flag enables random off-axis rotation\n" +
+                            " - The `-l` flag will work on snow layers\n" +
+                            " - The `-s` flag disables smoothing",
             min = 1,
             max = 4
     )
@@ -808,12 +850,12 @@ public class BrushCommands {
 
     @Command(
             aliases = { "flatten", "flatmap", "flat" },
-            usage = "[radius] [file|#clipboard|null] [rotation] [yscale]",
+            usage = "[radius=5] [file|#clipboard|imgur=null] [rotation=0] [yscale=1.00]",
             flags = "h",
-            help = "Flatten brush makes terrain flatter\n" +
-                    "The -r flag enables random off-axis rotation\n" +
-                    "The -l flag will work on snow layers\n" +
-                    "The -s flag disables smoothing",
+            help = "Flatten brush flattens terrain\n" +
+                    " - The `-r` flag enables random off-axis rotation\n" +
+                    " - The `-l` flag will work on snow layers\n" +
+                    " - The `-s` flag disables smoothing",
             desc = "This brush raises and lowers land towards the clicked point\n",
             min = 1,
             max = 4
@@ -884,12 +926,13 @@ public class BrushCommands {
 
     @Command(
             aliases = { "copypaste", "copy", "paste", "cp", "copypasta" },
-            usage = "[depth]",
+            usage = "[depth=5]",
             desc = "Copy Paste brush",
-            help =
-                    "Left click the base of an object to copy.\n" +
+            help = "Left click the base of an object to copy.\n" +
                     "Right click to paste\n" +
-                    "The -r flag Will apply random rotation on paste",
+                    "The -r flag Will apply random rotation on paste\n" +
+                    "Note: Works well with the clipboard scroll action\n" +
+                    "Video: https://www.youtube.com/watch?v=RPZIaTbqoZw",
             min = 0,
             max = 1
     )
@@ -907,7 +950,10 @@ public class BrushCommands {
             usage = "<radius> [cmd1;cmd2...]",
             desc = "Command brush",
             help =
-                    "Right click executes the command at the position.\n",
+                    "Run the commands at the clicked position.\n" +
+                    " - Your selection will be expanded to the specified size around each point\n" +
+                    " - Placeholders: {x}, {y}, {z}, {world}, {size}",
+
             min = 2,
             max = 99
     )
@@ -922,7 +968,7 @@ public class BrushCommands {
 
     @Command(
             aliases = { "butcher", "kill" },
-            usage = "[radius]",
+            usage = "[radius=5]",
             flags = "plangbtfr",
             desc = "Butcher brush",
             help = "Kills nearby mobs within the specified radius.\n" +
