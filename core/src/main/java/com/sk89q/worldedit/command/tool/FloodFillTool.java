@@ -80,6 +80,7 @@ public class FloodFillTool implements BlockTool {
             throw new RuntimeException(e);
         }
         editSession.flushQueue();
+        session.remember(editSession);
         return true;
     }
 
