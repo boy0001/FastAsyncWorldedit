@@ -78,7 +78,7 @@ public class LocalBlockVector2DSet implements Set<Vector2D> {
             for (int cx = bcx; cx <= tcx; cx++) {
                 int index = MathMan.pairSearchCoords(cx << 4, cy << 4) - 1;
                 int endIndex = index + 256;
-                while ((index = set.nextSetBit(index + 1)) <= endIndex && index != -1) {
+                while ((index = set.nextSetBit(index + 1)) != -1 && index <= endIndex) {
 //                    if (index == centerIndex) continue;
                     int curx = MathMan.unpairSearchCoordsX(index);
                     int cury = MathMan.unpairSearchCoordsY(index);

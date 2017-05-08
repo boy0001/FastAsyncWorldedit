@@ -1,6 +1,7 @@
 package com.boydti.fawe.regions.general.plot;
 
 import com.boydti.fawe.Fawe;
+import com.boydti.fawe.FaweCache;
 import com.boydti.fawe.config.BBC;
 import com.boydti.fawe.jnbt.anvil.HeightMapMCAGenerator;
 import com.boydti.fawe.object.FawePlayer;
@@ -27,11 +28,13 @@ import com.intellectualcrafters.plot.object.worlds.SinglePlotAreaManager;
 import com.intellectualcrafters.plot.util.MainUtil;
 import com.plotsquared.general.commands.Command;
 import com.plotsquared.general.commands.CommandDeclaration;
+import com.sk89q.worldedit.Vector;
 import com.sk89q.worldedit.Vector2D;
 import com.sk89q.worldedit.WorldEdit;
 import com.sk89q.worldedit.blocks.BaseBlock;
 import com.sk89q.worldedit.extension.input.InputParseException;
 import com.sk89q.worldedit.extension.input.ParserContext;
+import com.sk89q.worldedit.extent.clipboard.Clipboard;
 import com.sk89q.worldedit.extent.clipboard.io.ClipboardFormat;
 import com.sk89q.worldedit.function.mask.Mask;
 import com.sk89q.worldedit.function.pattern.Pattern;
@@ -46,6 +49,7 @@ import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
 import java.net.URL;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import javax.imageio.ImageIO;
@@ -153,7 +157,7 @@ public class CreateFromImage extends Command {
                             fp.sendMessage(BBC.getPrefix() + "/2 cfi blockBiomeColor <image-url>");
                             fp.sendMessage(BBC.getPrefix() + "/2 cfi paletteComplexity <min=0> <max=100>");
                             fp.sendMessage(BBC.getPrefix() + "/2 cfi paletteRandomization <true|false>");
-                            fp.sendMessage(BBC.getPrefix() + "/2 cfi paletteBlocks <block-list>");
+                            fp.sendMessage(BBC.getPrefix() + "/2 cfi paletteBlocks <block-list|#clipboard>");
                             fp.sendMessage(BBC.getPrefix() + "/2 cfi paletteBiomePriority <percent=50>");
                             fp.sendMessage(BBC.getPrefix() + "/2 cfi done");
                             fp.sendMessage(BBC.getPrefix() + "/2 cfi cancel");
@@ -210,7 +214,7 @@ public class CreateFromImage extends Command {
                                     int distance = Integer.parseInt(argList.get(4 + argOffset));
                                     boolean rotate = Boolean.parseBoolean(argList.get(5 + argOffset));
                                     if (img == null) {
-                                        generator.addSchems(mask, wd, clipboards, rarity, rotate);
+                                        generator.addSchems(mask, wd, clipboards, rarity, distance, rotate);
                                     } else {
                                         generator.addSchems(img, mask, wd, clipboards, rarity, distance, rotate);
                                     }
@@ -251,11 +255,25 @@ public class CreateFromImage extends Command {
                                     // roughness
                                     // blocks
                                     if (argList.size() != 2) {
-                                        C.COMMAND_SYNTAX.send(player, "/2 cfi " + argList.get(0) + " <pattern>");
+                                        C.COMMAND_SYNTAX.send(player, "/2 cfi " + argList.get(0) + " <pattern|#clipboard>");
                                         return;
                                     }
                                     context.setPreferringWildcard(true);
-                                    Set<BaseBlock> blocks = we.getBlockFactory().parseFromListInput(argList.get(1), context);
+                                    Set<BaseBlock> blocks;
+                                    if (argList.get(1).equalsIgnoreCase("#clipboard")) {
+                                        ClipboardHolder holder = fp.getSession().getClipboard();
+                                        Clipboard clipboard = holder.getClipboard();
+                                        boolean[] ids = new boolean[Character.MAX_VALUE + 1];
+                                        for (Vector pt : clipboard.getRegion()) {
+                                            ids[clipboard.getBlock(pt).getCombined()] = true;
+                                        }
+                                        blocks = new HashSet<>();
+                                        for (int combined = 0; combined < ids.length; combined++) {
+                                            if (ids[combined]) blocks.add(FaweCache.CACHE_BLOCK[combined]);
+                                        }
+                                    } else {
+                                        blocks = we.getBlockFactory().parseFromListInput(argList.get(1), context);
+                                    }
                                     generator.setTextureUtil(new FilteredTextureUtil(Fawe.get().getTextureUtil(), blocks));
                                     player.sendMessage("Set color palette blocks, what's next?");
                                     return;

@@ -161,9 +161,61 @@ public class HeightMapMCAGenerator extends MCAWriter implements Extent {
                 } else {
                     schematic.paste(this, worldData, mutable, false, transform);
                 }
-                x += distance;
-                index += distance;
-                continue;
+                if (x + distance < getWidth()) {
+                    x += distance;
+                    index += distance;
+                } else {
+                    break;
+                }
+            }
+        }
+    }
+
+    public void addSchems(Mask mask, WorldData worldData, ClipboardHolder[] clipboards, int rarity, int distance, boolean randomRotate) throws WorldEditException{
+        int scaledRarity = (256 * rarity) / 100;
+        int index = 0;
+        AffineTransform identity = new AffineTransform();
+        LocalBlockVector2DSet placed = new LocalBlockVector2DSet();
+        for (int z = 0; z < getLength(); z++) {
+            mutable.mutZ(z);
+            for (int x = 0; x < getWidth(); x++, index++){
+                int y = heights[index];
+                if (PseudoRandom.random.nextInt(256) > scaledRarity) {
+                    continue;
+                }
+                mutable.mutX(x);
+                mutable.mutY(y);
+                if (!mask.test(mutable)) {
+                    continue;
+                }
+                if (placed.containsRadius(x, z, distance)) {
+                    continue;
+                }
+                mutable.mutY(y + 1);
+                placed.add(x, z);
+                ClipboardHolder holder = clipboards[PseudoRandom.random.random(clipboards.length)];
+                if (randomRotate) {
+                    int rotate = PseudoRandom.random.random(4) * 90;
+                    if (rotate != 0) {
+                        holder.setTransform(new AffineTransform().rotateY(PseudoRandom.random.random(4) * 90));
+                    } else {
+                        holder.setTransform(identity);
+                    }
+                }
+                Clipboard clipboard = holder.getClipboard();
+                Schematic schematic = new Schematic(clipboard);
+                Transform transform = holder.getTransform();
+                if (transform.isIdentity()) {
+                    schematic.paste(this, mutable, false);
+                } else {
+                    schematic.paste(this, worldData, mutable, false, transform);
+                }
+                if (x + distance < getWidth()) {
+                    x += distance;
+                    index += distance;
+                } else {
+                    break;
+                }
             }
         }
     }
@@ -695,13 +747,14 @@ public class HeightMapMCAGenerator extends MCAWriter implements Extent {
                     Arrays.fill(chunk.data[i], (byte) 0);
                 }
             }
-            int index = 0;
+            int index;
             int maxY = 0;
             int minY = Integer.MAX_VALUE;
             int[] heightMap = chunk.getHeightMapArray();
             int globalIndex;
             for (int z = csz; z <= cez; z++) {
                 globalIndex = z * getWidth() + csx;
+                index = (z & 15) << 4;
                 for (int x = csx; x <= cex; x++, index++, globalIndex++) {
                     indexes[index] = globalIndex;
                     chunk.biomes[index] = biomes[globalIndex];
@@ -727,10 +780,10 @@ public class HeightMapMCAGenerator extends MCAWriter implements Extent {
             }
             if (modifiedMain) { // If the main block is modified, we can't short circuit this
                 for (int layer = 0; layer < fillLayers; layer++) {
-                    index = 0;
                     byte[] layerIds = chunk.ids[layer];
                     byte[] layerDatas = chunk.data[layer];
                     for (int z = csz; z <= cez; z++) {
+                        index = (z & 15) << 4;
                         for (int x = csx; x <= cex; x++, index++) {
                             globalIndex = indexes[index];
                             char mainCombined = main[globalIndex];
@@ -778,10 +831,10 @@ public class HeightMapMCAGenerator extends MCAWriter implements Extent {
                 Arrays.fill(chunk.skyLight[layer], (byte) 255);
                 byte[] layerIds = chunk.ids[layer];
                 byte[] layerDatas = chunk.data[layer];
-                index = 0;
                 int startY = layer << 4;
                 int endY = startY + 15;
                 for (int z = csz; z <= cez; z++) {
+                    index = (z & 15) << 4;
                     for (int x = csx; x <= cex; x++, index++) {
                         globalIndex = indexes[index];
                         int height = heightMap[index];
@@ -841,10 +894,10 @@ public class HeightMapMCAGenerator extends MCAWriter implements Extent {
                 chunk.ids[layer] = null;
                 chunk.data[layer] = null;
             }
-            index = 0;
             { // Bedrock
                 byte[] layerIds = chunk.ids[0];
                 for (int z = csz; z <= cez; z++) {
+                    index = (z & 15) << 4;
                     for (int x = csx; x <= cex; x++) {
                         layerIds[index++] = (byte) 7;
                     }
