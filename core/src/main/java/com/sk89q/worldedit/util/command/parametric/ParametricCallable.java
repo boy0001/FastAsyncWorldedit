@@ -129,7 +129,7 @@ public class ParametricCallable implements CommandCallable {
 
                 // Don't know how to parse for this type of value
                 if (parameter.getBinding() == null) {
-                    throw new ParametricException("Не знаю, как обрабатывать тип параметра '" + type + "' в\n" + method.toGenericString());
+                    throw new ParametricException("Не знаю, как обрабатывать тип параметра '" + type + "' in\n" + method.toGenericString());
                 }
             }
 
@@ -241,21 +241,22 @@ public class ParametricCallable implements CommandCallable {
             }
 
             // Execute!
-            method.invoke(object, args);
+            Object result = method.invoke(object, args);
 
             // postInvoke handlers
             for (InvokeHandler handler : handlers) {
                 handler.postInvoke(handler, method, parameters, args, context);
             }
+            return result;
         } catch (MissingParameterException e) {
-            throw new InvalidUsageException("Слишком мало параметров!", this);
+            throw new InvalidUsageException("Слишком мало параметров!", this, true);
         } catch (UnconsumedParameterException e) {
-            throw new InvalidUsageException("Слишком много параметров! Неиспользуемые параметры: " + e.getUnconsumed(), this);
+            throw new InvalidUsageException("Слишком много параметров! Неиспользуемые параметры: " + e.getUnconsumed(), this, true);
         } catch (ParameterException e) {
             assert parameter != null;
             String name = parameter.getName();
 
-            throw new InvalidUsageException("Для параметра '" + name + "': " + e.getMessage(), this);
+            throw new InvalidUsageException("Для параметра '" + name + "': " + e.getMessage(), this, true);
         } catch (InvocationTargetException e) {
             if (e.getCause() instanceof CommandException) {
                 throw (CommandException) e.getCause();
@@ -264,8 +265,6 @@ public class ParametricCallable implements CommandCallable {
         } catch (Throwable t) {
             throw new WrappedCommandException(t);
         }
-
-        return true;
     }
 
     public Object getObject() {
@@ -477,9 +476,9 @@ public class ParametricCallable implements CommandCallable {
                 return parameter.getBinding().bind(parameter, new StringArgumentStack(context, defaultValue, false), false);
             } catch (MissingParameterException e) {
                 throw new ParametricException(
-                        "Значение по умолчанию параметра с использованием привязки " +
-                                parameter.getBinding().getClass() + " в методе\n" +
-                                method.toGenericString() + "\nне действительный");
+                        "The default value of the parameter using the binding " +
+                                parameter.getBinding().getClass() + " in the method\n" +
+                                method.toGenericString() + "\nis invalid");
             }
         }
 
