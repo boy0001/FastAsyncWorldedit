@@ -1,5 +1,15 @@
 package com.boydti.fawe.command;
 
+import com.boydti.fawe.Fawe;
+import com.boydti.fawe.object.extent.NullExtent;
+import com.boydti.fawe.object.extent.ResettableExtent;
+import com.sk89q.worldedit.WorldEdit;
+import com.sk89q.worldedit.entity.Entity;
+import com.sk89q.worldedit.extension.factory.DefaultTransformParser;
+import com.sk89q.worldedit.extension.input.InputParseException;
+import com.sk89q.worldedit.extension.input.ParserContext;
+import com.sk89q.worldedit.extension.platform.Actor;
+import com.sk89q.worldedit.extent.Extent;
 import com.sk89q.worldedit.internal.expression.Expression;
 import com.sk89q.worldedit.internal.expression.ExpressionException;
 import com.sk89q.worldedit.internal.expression.runtime.EvaluationException;
@@ -11,6 +21,7 @@ import com.sk89q.worldedit.util.command.parametric.BindingBehavior;
 import com.sk89q.worldedit.util.command.parametric.BindingHelper;
 import com.sk89q.worldedit.util.command.parametric.BindingMatch;
 import com.sk89q.worldedit.util.command.parametric.ParameterException;
+import com.sk89q.worldedit.world.World;
 import java.lang.annotation.Annotation;
 import javax.annotation.Nullable;
 
@@ -48,6 +59,32 @@ public class FawePrimitiveBinding extends BindingHelper {
                 }
             }
         }
+    }
+
+    /**
+     * Gets an {@link com.sk89q.worldedit.extent.Extent} from a {@link ArgumentStack}.
+     *
+     * @param context the context
+     * @return an extent
+     * @throws ParameterException on other error
+     */
+    @BindingMatch(type = ResettableExtent.class,
+            behavior = BindingBehavior.PROVIDES)
+    public ResettableExtent getResettableExtent(ArgumentStack context) throws ParameterException, InputParseException {
+        String input = context.next();
+        if (input.equalsIgnoreCase("#null")) return new NullExtent();
+        DefaultTransformParser parser = Fawe.get().getTransformParser();
+        Actor actor = context.getContext().getLocals().get(Actor.class);
+        ParserContext parserContext = new ParserContext();
+        parserContext.setActor(context.getContext().getLocals().get(Actor.class));
+        if (actor instanceof Entity) {
+            Extent extent = ((Entity) actor).getExtent();
+            if (extent instanceof World) {
+                parserContext.setWorld((World) extent);
+            }
+        }
+        parserContext.setSession(WorldEdit.getInstance().getSessionManager().get(actor));
+        return parser.parseFromInput(input, parserContext);
     }
 
     /**

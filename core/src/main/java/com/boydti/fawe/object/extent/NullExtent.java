@@ -34,6 +34,16 @@ public class NullExtent extends FaweRegionExtent {
         this.reason = failReason;
     }
 
+    public NullExtent() {
+        super(new com.sk89q.worldedit.extent.NullExtent(), FaweLimit.MAX);
+        this.reason = BBC.WORLDEDIT_CANCEL_REASON_MANUAL;
+    }
+
+    @Override
+    public ResettableExtent setExtent(Extent extent) {
+        return this;
+    }
+
     @Override
     public BaseBiome getBiome(final Vector2D arg0) {
         throw new FaweException(reason);

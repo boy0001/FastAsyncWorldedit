@@ -375,8 +375,11 @@ public final class CommandManager {
             // exceptions without writing a hook into every dispatcher, we need to unwrap these
             // exceptions and rethrow their converted form, if their is one.
             try {
-                dispatcher.call(Joiner.on(" ").join(split), locals, new String[0]);
+                Object result = dispatcher.call(Joiner.on(" ").join(split), locals, new String[0]);
             } catch (Throwable t) {
+                while (t.getCause() != null) {
+                    t = t.getCause();
+                }
                 // Use the exception converter to convert the exception if any of its causes
                 // can be converted, otherwise throw the original exception
                 Throwable next = t;
@@ -391,7 +394,7 @@ public final class CommandManager {
             BBC.NO_PERM.send(finalActor, StringMan.join(failedPermissions, " "));
         } catch (InvalidUsageException e) {
             if (e.isFullHelpSuggested()) {
-                finalActor.print(BBC.getPrefix() + ColorCodeBuilder.asColorCodes(new CommandUsageBox(e.getCommand(), e.getCommandUsed("/", ""), locals)));
+                finalActor.printRaw(BBC.getPrefix() + ColorCodeBuilder.asColorCodes(new CommandUsageBox(e.getCommand(), e.getCommandUsed("", ""), locals)));
                 String message = e.getMessage();
                 if (message != null) {
                     finalActor.printError(message);
@@ -414,7 +417,7 @@ public final class CommandManager {
                 finalActor.printRaw(t.getClass().getName() + ": " + t.getMessage());
                 log.log(Level.SEVERE, "An unexpected error occurred while handling a FAWE command", t);
             }
-        } catch (CommandException e) {
+        } catch (Throwable e) {
             String message = e.getMessage();
             if (message != null) {
                 finalActor.printError(e.getMessage());

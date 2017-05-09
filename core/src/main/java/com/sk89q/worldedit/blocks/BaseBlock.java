@@ -25,6 +25,8 @@ import com.sk89q.jnbt.StringTag;
 import com.sk89q.jnbt.Tag;
 import com.sk89q.worldedit.CuboidClipboard.FlipDirection;
 import com.sk89q.worldedit.Vector;
+import com.sk89q.worldedit.WorldEditException;
+import com.sk89q.worldedit.extent.Extent;
 import com.sk89q.worldedit.foundation.Block;
 import com.sk89q.worldedit.function.mask.Mask;
 import com.sk89q.worldedit.function.pattern.Pattern;
@@ -433,6 +435,11 @@ public class BaseBlock extends Block implements TileEntityBlock, Pattern {
     @Override
     public BaseBlock apply(int x, int y, int z) {
         return this;
+    }
+
+    @Override
+    public boolean apply(Extent extent, Vector setPosition, Vector getPosition) throws WorldEditException {
+        return extent.setBlock(setPosition, this);
     }
 
     public static Class<BaseBlock> inject() {

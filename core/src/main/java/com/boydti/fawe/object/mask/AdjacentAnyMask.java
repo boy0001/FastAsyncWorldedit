@@ -2,25 +2,22 @@ package com.boydti.fawe.object.mask;
 
 import com.sk89q.worldedit.MutableBlockVector;
 import com.sk89q.worldedit.Vector;
-import com.sk89q.worldedit.blocks.BaseBlock;
-import com.sk89q.worldedit.extent.Extent;
-import com.sk89q.worldedit.function.mask.BlockMask;
-import java.util.Arrays;
-import java.util.Collection;
+import com.sk89q.worldedit.function.mask.Mask;
 
 /**
  * Just an optimized version of the Adjacent Mask for single adjacency
  */
-public class AdjacentAnyMask extends BlockMask {
-    
+public class AdjacentAnyMask implements Mask {
+
+    private final Mask mask;
     private MutableBlockVector mutable = new MutableBlockVector();
 
-    public AdjacentAnyMask(Extent extent, BaseBlock... blocks) {
-        this(extent, Arrays.asList(blocks));
+    public AdjacentAnyMask(Mask mask) {
+        this.mask = mask;
     }
 
-    public AdjacentAnyMask(Extent extent, Collection<BaseBlock> blocks) {
-        super(extent, blocks);
+    public Mask getMask() {
+        return mask;
     }
 
     @Override
@@ -29,19 +26,19 @@ public class AdjacentAnyMask extends BlockMask {
         int y = v.getBlockY();
         int z = v.getBlockZ();
         v.mutY(y + 1);
-        if (super.test(v)) { v.mutY(y); return true; }
+        if (mask.test(v)) { v.mutY(y); return true; }
         v.mutY(y - 1);
-        if (super.test(v)) { v.mutY(y); return true; }
+        if (mask.test(v)) { v.mutY(y); return true; }
         v.mutY(y);
         v.mutX(x + 1);
-        if (super.test(v)) { v.mutX(x); return true; }
+        if (mask.test(v)) { v.mutX(x); return true; }
         v.mutX(x - 1);
-        if (super.test(v)) { v.mutX(x); return true; }
+        if (mask.test(v)) { v.mutX(x); return true; }
         v.mutX(x);
         v.mutZ(z + 1);
-        if (super.test(v)) { v.mutZ(z); return true; }
+        if (mask.test(v)) { v.mutZ(z); return true; }
         v.mutZ(z - 1);
-        if (super.test(v)) { v.mutZ(z); return true; }
+        if (mask.test(v)) { v.mutZ(z); return true; }
         v.mutZ(z);
         return false;
     }
@@ -51,19 +48,19 @@ public class AdjacentAnyMask extends BlockMask {
         int y = v.getBlockY();
         int z = v.getBlockZ();
         v.mutY(y + 1);
-        if (super.test(v)) { v.mutY(y); return mutable.setComponents(0, 1, 0); }
+        if (mask.test(v)) { v.mutY(y); return mutable.setComponents(0, 1, 0); }
         v.mutY(y - 1);
-        if (super.test(v)) { v.mutY(y); return mutable.setComponents(0, -1, 0); }
+        if (mask.test(v)) { v.mutY(y); return mutable.setComponents(0, -1, 0); }
         v.mutY(y);
         v.mutX(x + 1);
-        if (super.test(v)) { v.mutX(x); return mutable.setComponents(1, 0, 0); }
+        if (mask.test(v)) { v.mutX(x); return mutable.setComponents(1, 0, 0); }
         v.mutX(x - 1);
-        if (super.test(v)) { v.mutX(x); return mutable.setComponents(-1, 0, 0); }
+        if (mask.test(v)) { v.mutX(x); return mutable.setComponents(-1, 0, 0); }
         v.mutX(x);
         v.mutZ(z + 1);
-        if (super.test(v)) { v.mutZ(z); return mutable.setComponents(0, 0, 1); }
+        if (mask.test(v)) { v.mutZ(z); return mutable.setComponents(0, 0, 1); }
         v.mutZ(z - 1);
-        if (super.test(v)) { v.mutZ(z); return mutable.setComponents(0, 0, - 1); }
+        if (mask.test(v)) { v.mutZ(z); return mutable.setComponents(0, 0, - 1); }
         v.mutZ(z);
         return null;
     }

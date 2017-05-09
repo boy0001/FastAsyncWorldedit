@@ -12,6 +12,7 @@ import com.sk89q.worldedit.WorldEditException;
 import com.sk89q.worldedit.blocks.BaseBlock;
 import com.sk89q.worldedit.command.tool.brush.Brush;
 import com.sk89q.worldedit.function.RegionFunction;
+import com.sk89q.worldedit.function.mask.BlockMask;
 import com.sk89q.worldedit.function.mask.Mask;
 import com.sk89q.worldedit.function.mask.SolidBlockMask;
 import com.sk89q.worldedit.function.operation.Operations;
@@ -33,7 +34,7 @@ public class LayerBrush implements Brush {
     @Override
     public void build(EditSession editSession, Vector position, Pattern ignore, double size) throws MaxChangedBlocksException {
         final FaweQueue queue = editSession.getQueue();
-        final AdjacentAnyMask adjacent = new AdjacentAnyMask(editSession, Arrays.asList(new BaseBlock(0)));
+        final AdjacentAnyMask adjacent = new AdjacentAnyMask(new BlockMask(editSession, new BaseBlock(0)));
         final SolidBlockMask solid = new SolidBlockMask(editSession);
         final RadiusMask radius = new RadiusMask(0, (int) size);
         visitor = new RecursiveVisitor(vector -> solid.test(vector) && radius.test(vector) && adjacent.test(vector), function -> true);

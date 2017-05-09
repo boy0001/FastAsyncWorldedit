@@ -26,6 +26,7 @@ import com.sk89q.minecraft.util.commands.Command;
 import com.sk89q.minecraft.util.commands.CommandContext;
 import com.sk89q.minecraft.util.commands.CommandException;
 import com.sk89q.minecraft.util.commands.CommandPermissions;
+import com.sk89q.worldedit.command.MethodCommands;
 import com.sk89q.worldedit.util.auth.Authorizer;
 import com.sk89q.worldedit.util.auth.NullAuthorizer;
 import com.sk89q.worldedit.util.command.CommandCallable;
@@ -156,8 +157,11 @@ public class ParametricBuilder {
         for (Method method : object.getClass().getDeclaredMethods()) {
             Command definition = method.getAnnotation(Command.class);
             if (definition != null) {
-                definition = Commands.translate(definition);
+                definition = Commands.translate(method.getDeclaringClass(), definition);
                 CommandCallable callable = build(object, method, definition);
+                if (object instanceof MethodCommands) {
+                    ((MethodCommands) object).register(method, callable, dispatcher);
+                }
                 dispatcher.registerCommand(callable, definition.aliases());
             }
         }

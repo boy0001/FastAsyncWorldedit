@@ -22,6 +22,7 @@ package com.sk89q.worldedit.command;
 import com.boydti.fawe.config.BBC;
 import com.boydti.fawe.object.FaweLimit;
 import com.boydti.fawe.object.FawePlayer;
+import com.boydti.fawe.util.StringMan;
 import com.google.common.base.Joiner;
 import com.google.common.util.concurrent.AtomicDouble;
 import com.sk89q.minecraft.util.commands.Command;
@@ -70,8 +71,10 @@ import com.sk89q.worldedit.world.World;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.TreeMap;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
@@ -85,13 +88,12 @@ import static com.sk89q.minecraft.util.commands.Logging.LogMode.PLACEMENT;
  * Utility commands.
  */
 @Command(aliases = {}, desc = "Various utility commands: [More Info](http://wiki.sk89q.com/wiki/WorldEdit/Utilities)")
-public class UtilityCommands {
-
-    private final WorldEdit we;
+public class UtilityCommands extends MethodCommands {
 
     public UtilityCommands(WorldEdit we) {
-        this.we = we;
+        super(we);
     }
+
 
     @Command(
         aliases = { "/fill" },
@@ -103,7 +105,7 @@ public class UtilityCommands {
     @CommandPermissions("worldedit.fill")
     @Logging(PLACEMENT)
     public void fill(Player player, LocalSession session, EditSession editSession, Pattern pattern, double radius, @Optional("1") double depth) throws WorldEditException {
-        we.checkMaxRadius(radius);
+        worldEdit.checkMaxRadius(radius);
         Vector pos = session.getPlacementPosition(player);
         int affected = 0;
         if (pattern instanceof BlockPattern) {
@@ -124,7 +126,7 @@ public class UtilityCommands {
     @CommandPermissions("worldedit.fill.recursive")
     @Logging(PLACEMENT)
     public void fillr(Player player, LocalSession session, EditSession editSession, Pattern pattern, double radius, @Optional("1") double depth) throws WorldEditException {
-        we.checkMaxRadius(radius);
+        worldEdit.checkMaxRadius(radius);
         Vector pos = session.getPlacementPosition(player);
         int affected = 0;
         if (pattern instanceof BlockPattern) {
@@ -145,7 +147,7 @@ public class UtilityCommands {
     @CommandPermissions("worldedit.drain")
     @Logging(PLACEMENT)
     public void drain(Player player, LocalSession session, EditSession editSession, double radius) throws WorldEditException {
-        we.checkMaxRadius(radius);
+        worldEdit.checkMaxRadius(radius);
         int affected = editSession.drainArea(
                 session.getPlacementPosition(player), radius);
         player.print(BBC.getPrefix() + affected + " block(s) have been changed.");
@@ -161,7 +163,7 @@ public class UtilityCommands {
     @CommandPermissions("worldedit.fixlava")
     @Logging(PLACEMENT)
     public void fixLava(Player player, LocalSession session, EditSession editSession, double radius) throws WorldEditException {
-        we.checkMaxRadius(radius);
+        worldEdit.checkMaxRadius(radius);
         int affected = editSession.fixLiquid(
                 session.getPlacementPosition(player), radius, 10, 11);
         player.print(BBC.getPrefix() + affected + " block(s) have been changed.");
@@ -177,7 +179,7 @@ public class UtilityCommands {
     @CommandPermissions("worldedit.fixwater")
     @Logging(PLACEMENT)
     public void fixWater(Player player, LocalSession session, EditSession editSession, double radius) throws WorldEditException {
-        we.checkMaxRadius(radius);
+        worldEdit.checkMaxRadius(radius);
         int affected = editSession.fixLiquid(
                 session.getPlacementPosition(player), radius, 8, 9);
         player.print(BBC.getPrefix() + affected + " block(s) have been changed.");
@@ -193,7 +195,7 @@ public class UtilityCommands {
     @CommandPermissions("worldedit.removeabove")
     @Logging(PLACEMENT)
     public void removeAbove(Player player, LocalSession session, EditSession editSession, @Optional("1") double size, @Optional("256") double height) throws WorldEditException {
-        we.checkMaxRadius(size);
+        worldEdit.checkMaxRadius(size);
         int affected = editSession.removeAbove(session.getPlacementPosition(player), (int) size, (int) height);
         player.print(BBC.getPrefix() + affected + " block(s) have been removed.");
     }
@@ -208,7 +210,7 @@ public class UtilityCommands {
     @CommandPermissions("worldedit.removebelow")
     @Logging(PLACEMENT)
     public void removeBelow(Player player, LocalSession session, EditSession editSession, @Optional("1") double size, @Optional("256") double height) throws WorldEditException {
-        we.checkMaxRadius(size);
+        worldEdit.checkMaxRadius(size);
         int affected = editSession.removeBelow(session.getPlacementPosition(player), (int) size, (int) height);
         player.print(BBC.getPrefix() + affected + " block(s) have been removed.");
     }
@@ -223,7 +225,7 @@ public class UtilityCommands {
     @CommandPermissions("worldedit.removenear")
     @Logging(PLACEMENT)
     public void removeNear(Player player, LocalSession session, EditSession editSession, BaseBlock block, @Optional("50") double size) throws WorldEditException {
-        we.checkMaxRadius(size);
+        worldEdit.checkMaxRadius(size);
         int affected = editSession.removeNear(session.getPlacementPosition(player), block.getId(), (int) size);
         player.print(BBC.getPrefix() + affected + " block(s) have been removed.");
     }
@@ -315,12 +317,12 @@ public class UtilityCommands {
     @Logging(PLACEMENT)
     public void extinguish(Player player, LocalSession session, EditSession editSession, CommandContext args) throws WorldEditException {
 
-        LocalConfiguration config = we.getConfiguration();
+        LocalConfiguration config = worldEdit.getConfiguration();
 
         int defaultRadius = config.maxRadius != -1 ? Math.min(40, config.maxRadius) : 40;
         int size = args.argsLength() > 0 ? Math.max(1, args.getInteger(0))
                 : defaultRadius;
-        we.checkMaxRadius(size);
+        worldEdit.checkMaxRadius(size);
 
         int affected = editSession.removeNear(session.getPlacementPosition(player), 51, size);
         player.print(BBC.getPrefix() + affected + " block(s) have been removed.");
@@ -349,7 +351,7 @@ public class UtilityCommands {
     @CommandPermissions("worldedit.butcher")
     @Logging(PLACEMENT)
     public void butcher(Actor actor, CommandContext args) throws WorldEditException {
-        LocalConfiguration config = we.getConfiguration();
+        LocalConfiguration config = worldEdit.getConfiguration();
         Player player = actor instanceof Player ? (Player) actor : null;
 
         // technically the default can be larger than the max, but that's not my problem
@@ -379,7 +381,7 @@ public class UtilityCommands {
         EditSession editSession = null;
 
         if (player != null) {
-            session = we.getSessionManager().get(player);
+            session = worldEdit.getSessionManager().get(player);
             Vector center = session.getPlacementPosition(player);
             editSession = session.createEditSession(player);
             List<? extends Entity> entities;
@@ -391,7 +393,7 @@ public class UtilityCommands {
             }
             visitors.add(new EntityVisitor(entities.iterator(), flags.createFunction(editSession.getWorld().getWorldData().getEntityRegistry())));
         } else {
-            Platform platform = we.getPlatformManager().queryCapability(Capability.WORLD_EDITING);
+            Platform platform = worldEdit.getPlatformManager().queryCapability(Capability.WORLD_EDITING);
             for (World world : platform.getWorlds()) {
                 List<? extends Entity> entities = world.getEntities();
                 visitors.add(new EntityVisitor(entities.iterator(), flags.createFunction(world.getWorldData().getEntityRegistry())));
@@ -439,7 +441,7 @@ public class UtilityCommands {
         EditSession editSession = null;
 
         if (player != null) {
-            session = we.getSessionManager().get(player);
+            session = worldEdit.getSessionManager().get(player);
             Vector center = session.getPlacementPosition(player);
             editSession = session.createEditSession(player);
             List<? extends Entity> entities;
@@ -451,7 +453,7 @@ public class UtilityCommands {
             }
             visitors.add(new EntityVisitor(entities.iterator(), remover.createFunction(editSession.getWorld().getWorldData().getEntityRegistry())));
         } else {
-            Platform platform = we.getPlatformManager().queryCapability(Capability.WORLD_EDITING);
+            Platform platform = worldEdit.getPlatformManager().queryCapability(Capability.WORLD_EDITING);
             for (World world : platform.getWorlds()) {
                 List<? extends Entity> entities = world.getEntities();
                 visitors.add(new EntityVisitor(entities.iterator(), remover.createFunction(world.getWorldData().getEntityRegistry())));
@@ -515,7 +517,7 @@ public class UtilityCommands {
     )
     @CommandPermissions("worldedit.help")
     public void help(Actor actor, CommandContext args) throws WorldEditException {
-        help(args, we, actor);
+        help(args, worldEdit, actor);
     }
 
     private static CommandMapping detectCommand(Dispatcher dispatcher, String command, boolean isRootLevel) {
@@ -547,8 +549,13 @@ public class UtilityCommands {
     }
 
     public static void help(CommandContext args, WorldEdit we, Actor actor) {
-        CommandCallable callable = we.getPlatformManager().getCommandManager().getDispatcher();
+        help(args, we, actor, "/", null);
+    }
 
+    public static void help(CommandContext args, WorldEdit we, Actor actor, String prefix, CommandCallable callable) {
+        if (callable == null) {
+            callable = we.getPlatformManager().getCommandManager().getDispatcher();
+        }
         CommandLocals locals = args.getLocals();
 
         int page = -1;
@@ -567,7 +574,8 @@ public class UtilityCommands {
                 }
                 effectiveLength--;
             }
-        } catch (NumberFormatException ignored) {}
+        } catch (NumberFormatException ignored) {
+        }
 
         boolean isRootLevel = true;
         List<String> visited = new ArrayList<String>();
@@ -616,7 +624,39 @@ public class UtilityCommands {
                                     callable = mapping.getCallable();
                                 } else {
                                     if (isRootLevel) {
-                                        actor.printError(String.format("The command '%s' could not be found.", args.getString(i)));
+                                        Set<String> found = new HashSet<>();
+                                        String arg = args.getString(i).toLowerCase();
+                                        String closest = null;
+                                        int distance = Integer.MAX_VALUE;
+                                        for (CommandMapping map : aliases) {
+                                            String desc = map.getDescription().getDescription();
+                                            if (desc == null) desc = map.getDescription().getHelp();
+                                            if (desc == null) desc = "";
+                                            String[] descSplit = desc.replaceAll("[^A-Za-z0-9]", "").toLowerCase().split(" ");
+                                            for (String alias : map.getAllAliases()) {
+                                                if (alias.equals(arg)) {
+                                                    closest = map.getPrimaryAlias();
+                                                    distance = 0;
+                                                    found.add(map.getPrimaryAlias());
+                                                } else if (alias.contains(arg)) {
+                                                    closest = map.getPrimaryAlias();
+                                                    distance = 1;
+                                                    found.add(map.getPrimaryAlias());
+                                                } else if (StringMan.isEqualIgnoreCaseToAny(arg, descSplit)) {
+                                                    closest = map.getPrimaryAlias();
+                                                    distance = 1;
+                                                    found.add(map.getPrimaryAlias());
+                                                } else {
+                                                    int currentDist = StringMan.getLevenshteinDistance(alias, arg);
+                                                    if (currentDist < distance) {
+                                                        distance = currentDist;
+                                                        closest = map.getPrimaryAlias();
+                                                    }
+                                                }
+                                            }
+                                        }
+                                        found.add(closest);
+                                        BBC.HELP_SUGGEST.send(actor, arg, StringMan.join(found, ", "));
                                         return;
                                     } else {
                                         actor.printError(String.format("The sub-command '%s' under '%s' could not be found.",
@@ -642,9 +682,8 @@ public class UtilityCommands {
                         aliases = mappings;
                     }
                     page = Math.max(0, page);
-                } else {
+                } else if (grouped.size() > 1) {
                     StringBuilder message = new StringBuilder();
-                    String cmd = args.getCommand();
                     message.append(BBC.getPrefix() + BBC.HELP_HEADER_CATEGORIES.s() + "\n");
                     StringBuilder builder = new StringBuilder();
                     boolean first = true;
@@ -663,7 +702,7 @@ public class UtilityCommands {
                 Collections.sort(aliases, new PrimaryAliasComparator(CommandManager.COMMAND_CLEAN_PATTERN));
 
                 // Calculate pagination
-                int offset = perPage * page;
+                int offset = perPage * Math.max(0, page);
                 int pageTotal = (int) Math.ceil(aliases.size() / (double) perPage);
 
                 // Box
@@ -673,14 +712,14 @@ public class UtilityCommands {
                     message.append("&c").append(String.format("There is no page %d (total number of pages is %d).", page + 1, pageTotal));
                 } else {
                     message.append(BBC.getPrefix() + BBC.HELP_HEADER.format(page + 1, pageTotal) + "\n");
-                    List<CommandMapping> list = aliases.subList(offset, Math.min(offset + perPage, aliases.size()));
+                    List<CommandMapping> list = aliases.subList(offset, Math.min(offset + perPage, aliases.size() - 1));
 
                     boolean first = true;
                     // Add each command
                     for (CommandMapping mapping : list) {
                         CommandCallable c = mapping.getCallable();
                         StringBuilder s1 = new StringBuilder();
-                        s1.append("/");
+                        s1.append(prefix);
                         if (!visited.isEmpty()) {
                             s1.append(Joiner.on(" ").join(visited));
                             s1.append(" ");

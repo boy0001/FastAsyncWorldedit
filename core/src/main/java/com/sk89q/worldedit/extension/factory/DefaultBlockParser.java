@@ -168,6 +168,9 @@ public class DefaultBlockParser extends InputParser<BaseBlock> {
                         blockType = BlockType.lookup(testId);
                         if (blockType == null) {
                             int t = worldEdit.getServer().resolveItem(testId);
+                            if (t == 0 && !testId.contains("air")) {
+                                throw new NoMatchException("Invalid block '" + input + "'.");
+                            }
                             if (t >= 0) {
                                 blockType = BlockType.fromID(t); // Could be null
                                 blockId = t;

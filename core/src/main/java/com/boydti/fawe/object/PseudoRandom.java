@@ -1,7 +1,10 @@
 package com.boydti.fawe.object;
 
+@Deprecated
+/**
+ * @Deprecated use ThreadLocalRandom instead
+ */
 public class PseudoRandom {
-
     public static PseudoRandom random = new PseudoRandom();
 
     private long state;
@@ -32,7 +35,7 @@ public class PseudoRandom {
     }
 
     public double nextDouble() {
-        return Math.max(0, Math.min(1, Math.abs((double) nextLong() / Long.MAX_VALUE)));
+        return 0x1.0p-63 * (((nextLong()) & 0x7FFFFFFFFFFFFFFFl));
     }
 
     public int random(final int n) {

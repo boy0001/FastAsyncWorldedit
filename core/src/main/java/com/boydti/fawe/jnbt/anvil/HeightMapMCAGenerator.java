@@ -372,7 +372,7 @@ public class HeightMapMCAGenerator extends MCAWriter implements Extent {
         for (int z = 0; z < getLength(); z++) {
             for (int x = 0; x < getWidth(); x++, index++){
                 int height = img.getRGB(x, z) & 0xFF;
-                if (height == 255 || height > 0 && white && PseudoRandom.random.nextInt(256) <= height) {
+                if (height == 255 || height > 0 && !white && PseudoRandom.random.nextInt(256) <= height) {
                     biomes[index] = biome;
                 }
             }
@@ -496,7 +496,7 @@ public class HeightMapMCAGenerator extends MCAWriter implements Extent {
             mutable.mutZ(z);
             for (int x = 0; x < getWidth(); x++, index++){
                 int height = img.getRGB(x, z) & 0xFF;
-                if (height == 255 || height > 0 && white && PseudoRandom.random.nextInt(256) <= height) {
+                if (height == 255 || height > 0 && !white && PseudoRandom.random.nextInt(256) <= height) {
                     mutable.mutX(x);
                     mutable.mutY(height);
                     overlay[index] = (char) pattern.apply(mutable).getCombined();
@@ -517,7 +517,7 @@ public class HeightMapMCAGenerator extends MCAWriter implements Extent {
             mutable.mutZ(z);
             for (int x = 0; x < getWidth(); x++, index++){
                 int height = img.getRGB(x, z) & 0xFF;
-                if (height == 255 || height > 0 && white && PseudoRandom.random.nextInt(256) <= height) {
+                if (height == 255 || height > 0 && !white && PseudoRandom.random.nextInt(256) <= height) {
                     mutable.mutX(x);
                     mutable.mutY(height);
                     main[index] = (char) pattern.apply(mutable).getCombined();
@@ -537,7 +537,7 @@ public class HeightMapMCAGenerator extends MCAWriter implements Extent {
             mutable.mutZ(z);
             for (int x = 0; x < getWidth(); x++, index++){
                 int height = img.getRGB(x, z) & 0xFF;
-                if (height == 255 || height > 0 && white && PseudoRandom.random.nextInt(256) <= height) {
+                if (height == 255 || height > 0 && !white && PseudoRandom.random.nextInt(256) <= height) {
                     mutable.mutX(x);
                     mutable.mutY(height);
                     floor[index] = (char) pattern.apply(mutable).getCombined();
@@ -558,7 +558,7 @@ public class HeightMapMCAGenerator extends MCAWriter implements Extent {
             mutable.mutZ(z);
             for (int x = 0; x < getWidth(); x++, index++){
                 int height = img.getRGB(x, z) & 0xFF;
-                if (height == 255 || height > 0 && white && PseudoRandom.random.nextInt(256) <= height) {
+                if (height == 255 || height > 0 && !white && PseudoRandom.random.nextInt(256) <= height) {
                     mutable.mutX(x);
                     mutable.mutY(height);
                     char combined = (char) pattern.apply(mutable).getCombined();
@@ -1063,7 +1063,7 @@ public class HeightMapMCAGenerator extends MCAWriter implements Extent {
         for (int z = 0; z < getLength(); z++) {
             for (int x = 0; x < getWidth(); x++, index++){
                 int height = img.getRGB(x, z) & 0xFF;
-                if (height == 255 || height > 0 && white && PseudoRandom.random.nextInt(256) <= height) {
+                if (height == 255 || height > 0 && !white && PseudoRandom.random.nextInt(256) <= height) {
                     main[index] = combined;
                 }
             }
@@ -1076,7 +1076,7 @@ public class HeightMapMCAGenerator extends MCAWriter implements Extent {
         for (int z = 0; z < getLength(); z++) {
             for (int x = 0; x < getWidth(); x++, index++){
                 int height = img.getRGB(x, z) & 0xFF;
-                if (height == 255 || height > 0 && white && PseudoRandom.random.nextInt(256) <= height) {
+                if (height == 255 || height > 0 && !white && PseudoRandom.random.nextInt(256) <= height) {
                     floor[index] = combined;
                 }
             }
@@ -1090,7 +1090,7 @@ public class HeightMapMCAGenerator extends MCAWriter implements Extent {
         for (int z = 0; z < getLength(); z++) {
             for (int x = 0; x < getWidth(); x++, index++){
                 int height = img.getRGB(x, z) & 0xFF;
-                if (height == 255 || height > 0 && white && PseudoRandom.random.nextInt(256) <= height) {
+                if (height == 255 || height > 0 && !white && PseudoRandom.random.nextInt(256) <= height) {
                     main[index] = combined;
                     floor[index] = combined;
                 }

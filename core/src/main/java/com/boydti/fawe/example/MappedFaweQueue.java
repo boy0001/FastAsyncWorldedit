@@ -18,7 +18,6 @@ import com.sk89q.worldedit.world.World;
 import com.sk89q.worldedit.world.biome.BaseBiome;
 import com.sk89q.worldedit.world.registry.BundledBlockData;
 import java.util.ArrayDeque;
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.UUID;
 import java.util.concurrent.ForkJoinPool;
@@ -87,7 +86,8 @@ public abstract class MappedFaweQueue<WORLD, CHUNK, CHUNKSECTIONS, SECTION> exte
     @Override
     public void optimize() {
         final ForkJoinPool pool = TaskManager.IMP.getPublicForkJoinPool();
-        if (Fawe.get().isJava8()) {
+//        if (Fawe.get().isJava8())
+        {
             map.forEachChunk(new RunnableVal<FaweChunk>() {
                 @Override
                 public void run(final FaweChunk chunk) {
@@ -100,21 +100,22 @@ public abstract class MappedFaweQueue<WORLD, CHUNK, CHUNKSECTIONS, SECTION> exte
                 }
             });
             pool.awaitQuiescence(Long.MAX_VALUE, TimeUnit.MILLISECONDS);
-        } else {
-            final ArrayList<Runnable> tasks = new ArrayList<Runnable>(map.size());
-            map.forEachChunk(new RunnableVal<FaweChunk>() {
-                @Override
-                public void run(final FaweChunk chunk) {
-                    tasks.add(new Runnable() {
-                        @Override
-                        public void run() {
-                            chunk.optimize();
-                        }
-                    });
-                }
-            });
-            TaskManager.IMP.parallel(tasks);
         }
+//        else {
+//            final ArrayList<Runnable> tasks = new ArrayList<Runnable>(map.size());
+//            map.forEachChunk(new RunnableVal<FaweChunk>() {
+//                @Override
+//                public void run(final FaweChunk chunk) {
+//                    tasks.add(new Runnable() {
+//                        @Override
+//                        public void run() {
+//                            chunk.optimize();
+//                        }
+//                    });
+//                }
+//            });
+//            TaskManager.IMP.parallel(tasks);
+//        }
 
     }
 

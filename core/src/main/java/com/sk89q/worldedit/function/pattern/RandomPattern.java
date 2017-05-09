@@ -1,6 +1,8 @@
 package com.sk89q.worldedit.function.pattern;
 
 import com.boydti.fawe.object.collection.RandomCollection;
+import com.boydti.fawe.object.random.SimpleRandom;
+import com.boydti.fawe.object.random.TrueRandom;
 import com.sk89q.worldedit.Vector;
 import com.sk89q.worldedit.WorldEditException;
 import com.sk89q.worldedit.blocks.BaseBlock;
@@ -18,9 +20,18 @@ import static com.google.common.base.Preconditions.checkNotNull;
  */
 public class RandomPattern extends AbstractPattern {
 
+    private final SimpleRandom random;
     private Map<Pattern, Double> weights = new HashMap<>();
     private RandomCollection<Pattern> collection;
     private LinkedHashSet<Pattern> patterns = new LinkedHashSet<>();
+
+    public RandomPattern() {
+        this(new TrueRandom());
+    }
+
+    public RandomPattern(SimpleRandom random) {
+        this.random = random;
+    }
 
     /**
      * Add a pattern to the weight list of patterns.
@@ -34,7 +45,7 @@ public class RandomPattern extends AbstractPattern {
     public void add(Pattern pattern, double chance) {
         checkNotNull(pattern);
         weights.put(pattern, chance);
-        collection = RandomCollection.of(weights);
+        collection = RandomCollection.of(weights, random);
         this.patterns.add(pattern);
     }
 
@@ -42,32 +53,18 @@ public class RandomPattern extends AbstractPattern {
         return patterns;
     }
 
+    public RandomCollection<Pattern> getCollection() {
+        return collection;
+    }
+
     @Override
-    public BaseBlock apply(Vector position) {
-        return collection.next().apply(position);
+    public BaseBlock apply(Vector get) {
+        return collection.next(get.getBlockX(), get.getBlockY(), get.getBlockZ()).apply(get);
     }
 
     @Override
     public boolean apply(Extent extent, Vector set, Vector get) throws WorldEditException {
-        return collection.next().apply(extent, set, get);
-    }
-
-    private static class Chance {
-        private Pattern pattern;
-        private double chance;
-
-        private Chance(Pattern pattern, double chance) {
-            this.pattern = pattern;
-            this.chance = chance;
-        }
-
-        public Pattern getPattern() {
-            return pattern;
-        }
-
-        public double getChance() {
-            return chance;
-        }
+        return collection.next(get.getBlockX(), get.getBlockY(), get.getBlockZ()).apply(extent, set, get);
     }
 
     public static Class<?> inject() {

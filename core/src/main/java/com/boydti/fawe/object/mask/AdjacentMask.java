@@ -1,16 +1,14 @@
 package com.boydti.fawe.object.mask;
 
 import com.sk89q.worldedit.Vector;
-import com.sk89q.worldedit.blocks.BaseBlock;
-import com.sk89q.worldedit.extent.Extent;
-import com.sk89q.worldedit.function.mask.BlockMask;
-import java.util.Collection;
+import com.sk89q.worldedit.function.mask.Mask;
 
-public class AdjacentMask extends BlockMask {
+public class AdjacentMask implements Mask {
     private final int min, max;
+    private final Mask mask;
 
-    public AdjacentMask(Extent extent, Collection<BaseBlock> blocks, int requiredMin, int requiredMax) {
-        super(extent, blocks);
+    public AdjacentMask(Mask mask, int requiredMin, int requiredMax) {
+        this.mask = mask;
         this.min = requiredMin;
         this.max = requiredMax;
     }
@@ -22,19 +20,19 @@ public class AdjacentMask extends BlockMask {
         double y = v.getY();
         double z = v.getZ();
         v.mutX(x + 1);
-        if (super.test(v) && ++count == min && max >= 8) { v.mutX(x); return true; }
+        if (mask.test(v) && ++count == min && max >= 8) { v.mutX(x); return true; }
         v.mutX(x - 1);
-        if (super.test(v) && ++count == min && max >= 8) { v.mutX(x); return true; }
+        if (mask.test(v) && ++count == min && max >= 8) { v.mutX(x); return true; }
         v.mutX(x);
         v.mutY(y + 1);
-        if (super.test(v) && ++count == min && max >= 8) { v.mutY(y); return true; }
+        if (mask.test(v) && ++count == min && max >= 8) { v.mutY(y); return true; }
         v.mutY(y - 1);
-        if (super.test(v) && ++count == min && max >= 8) { v.mutY(y); return true; }
+        if (mask.test(v) && ++count == min && max >= 8) { v.mutY(y); return true; }
         v.mutY(y);
         v.mutZ(z + 1);
-        if (super.test(v) && ++count == min && max >= 8) { v.mutZ(z); return true; }
+        if (mask.test(v) && ++count == min && max >= 8) { v.mutZ(z); return true; }
         v.mutZ(z - 1);
-        if (super.test(v) && ++count == min && max >= 8) { v.mutZ(z); return true; }
+        if (mask.test(v) && ++count == min && max >= 8) { v.mutZ(z); return true; }
         v.mutZ(z);
         return count >= min && count <= max;
     }

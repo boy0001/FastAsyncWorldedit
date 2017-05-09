@@ -32,6 +32,15 @@ public class StringMan {
         return sb.toString();
     }
 
+    public static int indexOf(String input, int start, char... values) {
+        for (int i = start; i < input.length(); i++){
+            for (char c : values) {
+                if (c == input.charAt(i)) return i;
+            }
+        }
+        return -1;
+    }
+
     public static List<String> split(String input, char delim) {
         List<String> result = new ArrayList<String>();
         int start = 0;
