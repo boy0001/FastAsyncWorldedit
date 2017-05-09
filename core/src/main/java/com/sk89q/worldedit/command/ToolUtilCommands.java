@@ -119,7 +119,7 @@ public class ToolUtilCommands extends MethodCommands {
             aliases = { "transforms" },
             usage = "[page=1|search|transform]",
             desc = "View help about transforms",
-            help = "Masks modify how a block is placed\n" +
+            help = "Transforms modify how a block is placed\n" +
                     " - Use [brackets] for arguments\n" +
                     " - Use , to OR multiple\n" +
                     " - Use & to AND multiple\n" +
