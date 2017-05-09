@@ -29,6 +29,7 @@ import com.sk89q.worldedit.Vector;
 import com.sk89q.worldedit.WorldEdit;
 import com.sk89q.worldedit.WorldEditException;
 import com.sk89q.worldedit.extension.factory.DefaultMaskParser;
+import com.sk89q.worldedit.extension.factory.DefaultTransformParser;
 import com.sk89q.worldedit.extension.factory.HashTagPatternParser;
 import com.sk89q.worldedit.extension.platform.CommandManager;
 import com.sk89q.worldedit.extent.Extent;
@@ -106,6 +107,18 @@ public class FaweAPI {
      */
     public static boolean registerPatterns(Object methods) {
         HashTagPatternParser parser = getParser(HashTagPatternParser.class);
+        if (parser != null) parser.register(methods);
+        return parser != null;
+    }
+
+    /**
+     * Add a custom transform for use in
+     * @see com.sk89q.worldedit.command.TransformCommands
+     * @param methods The class with a bunch of transform methods
+     * @return true if the transform was registered
+     */
+    public static boolean registerTransforms(Object methods) {
+        DefaultTransformParser parser = Fawe.get().getTransformParser();
         if (parser != null) parser.register(methods);
         return parser != null;
     }
