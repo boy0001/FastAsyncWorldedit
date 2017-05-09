@@ -217,13 +217,14 @@ public enum BBC {
 
     COMMAND_INVALID_SYNTAX("The command was not used properly (no more help available).", "WorldEdit.Command"),
 
+    HELP_SUGGEST("&7Couldn't find %s0. Maybe try one of &c%s1 &7?", "WorldEdit.Help"),
     HELP_HEADER_CATEGORIES("Command Types", "WorldEdit.Help"),
     HELP_HEADER_SUBCOMMANDS("Subcommands", "WorldEdit.Help"),
     HELP_HEADER_COMMAND("&cHelp for: &7%s0", "WorldEdit.Help"),
     HELP_ITEM_ALLOWED("&a%s0&8 - &7%s1", "WorldEdit.Help"),
     HELP_ITEM_DENIED("&c%s0&8 - &7%s1", "WorldEdit.Help"),
     HELP_HEADER("Help: page %s0/%s1", "WorldEdit.Help"),
-    HELP_HEADER_FOOTER("&7Use: &8//help [type|command] [#]&7\n&7Wiki: https://git.io/vSKE5", "WorldEdit.Help"),
+    HELP_HEADER_FOOTER("&7Use: &8//help [type|command|search] [#]&7\n&7Wiki: https://git.io/vSKE5", "WorldEdit.Help"),
 
     PROGRESS_MESSAGE("%s1/%s0 (%s2%) @%s3cps %s4s left", "Progress"),
     PROGRESS_FINISHED("[ Done! ]", "Progress"),
@@ -292,14 +293,14 @@ public enum BBC {
     TIP_FAST("&7Tip: Set fast and without undo using &c//fast", "Tips"),
     TIP_CANCEL("&7Tip: You can &c//cancel &7an edit in progress", "Tips"),
     TIP_MASK("&7Tip: Set a global destination mask with &c/gmask", "Tips"),
-    TIP_MASK_ANGLE("Tip: Replace upward slopes of 3-20 blocks using&c //replace /-20:-3 bedrock", "Tips"),
-    TIP_SET_LINEAR("&7Tip: Set blocks linearly with&c //set #l3d:wood,bedrock", "Tips"),
-    TIP_SURFACE_SPREAD("&7Tip: Spread a flat surface with&c //set #surfacespread:5:0:5:#existing", "Tips"),
+    TIP_MASK_ANGLE("Tip: Replace upward slopes of 3-20 blocks using&c //replace /[-20][-3] bedrock", "Tips"),
+    TIP_SET_LINEAR("&7Tip: Set blocks linearly with&c //set #l3d[wood,bedrock]", "Tips"),
+    TIP_SURFACE_SPREAD("&7Tip: Spread a flat surface with&c //set #surfacespread[5][0][5][#existing]", "Tips"),
     TIP_SET_HAND("&7Tip: Use your current hand with &c//set hand", "Tips"),
 
     // replace
-    TIP_REPLACE_ID("&7Tip: Replace only the block id:&c //replace woodenstair #id:cobblestair", "Tips"),
-    TIP_REPLACE_LIGHT("Tip: Remove light sources with&c //replace #brightness:1:15 0", "Tips"),
+    TIP_REPLACE_ID("&7Tip: Replace only the block id:&c //replace woodenstair #id[cobblestair]", "Tips"),
+    TIP_REPLACE_LIGHT("Tip: Remove light sources with&c //replace #brightness[1][15] 0", "Tips"),
     TIP_TAB_COMPLETE("Tip: The replace command supports tab completion", "Tips"),
 
     // clipboard
@@ -322,7 +323,7 @@ public enum BBC {
     TIP_BRUSH_MASK("&7Tip: Set a brush destination mask with &c/mask", "Tips"),
     TIP_BRUSH_MASK_SOURCE("&7Tip: Set a brush source mask with &c/smask", "Tips"),
     TIP_BRUSH_TRANSFORM("&7Tip: Set a brush transform with &c/transform", "Tips"),
-    TIP_BRUSH_RELATIVE("&7Tip: Use a relative clipboard pattern with //br sphere #~:#copy", "Tips"),
+    TIP_BRUSH_RELATIVE("&7Tip: Use a relative clipboard pattern with //br sphere #~[#copy]", "Tips"),
     TIP_BRUSH_COMMAND("&7Tip: Try the command brush &c//br cmd <radius> <cmd1;cmd2>", "Tips"),
 
     // regen
@@ -419,10 +420,10 @@ public enum BBC {
             if (args[i] == null) {
                 continue;
             }
-            m = m.replaceAll("%s" + i, args[i].toString());
+            m = m.replace("%s" + i, args[i].toString());
         }
         if (args.length > 0) {
-            m = m.replaceAll("%s", args[0].toString());
+            m = m.replace("%s", args[0].toString());
         }
         return m;
     }

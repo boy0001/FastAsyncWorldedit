@@ -10,6 +10,7 @@ import com.sk89q.worldedit.WorldEditException;
 import com.sk89q.worldedit.extent.clipboard.Clipboard;
 import com.sk89q.worldedit.function.RegionFunction;
 import com.sk89q.worldedit.function.mask.Mask;
+import com.sk89q.worldedit.function.mask.Masks;
 import com.sk89q.worldedit.function.mask.RegionMask;
 import com.sk89q.worldedit.function.mask.SolidBlockMask;
 import com.sk89q.worldedit.function.operation.Operations;
@@ -45,7 +46,7 @@ public class StencilBrush extends HeightBrush {
         map.setSize(size);
         int cutoff = onlyWhite ? maxY : 0;
         final SolidBlockMask solid = new SolidBlockMask(editSession);
-        final AdjacentAnyMask adjacent = new AdjacentAnyMask(editSession, solid.getInverseBlocks());
+        final AdjacentAnyMask adjacent = new AdjacentAnyMask(Masks.negate(solid));
         RegionMask region = new RegionMask(new CuboidRegion(position.subtract(size, size, size), position.add(size, size, size)));
         RecursiveVisitor visitor = new RecursiveVisitor(new Mask() {
             @Override

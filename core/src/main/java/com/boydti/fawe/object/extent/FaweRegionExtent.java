@@ -11,14 +11,13 @@ import com.sk89q.worldedit.WorldEditException;
 import com.sk89q.worldedit.blocks.BaseBlock;
 import com.sk89q.worldedit.entity.BaseEntity;
 import com.sk89q.worldedit.entity.Entity;
-import com.sk89q.worldedit.extent.AbstractDelegateExtent;
 import com.sk89q.worldedit.extent.Extent;
 import com.sk89q.worldedit.util.Location;
 import com.sk89q.worldedit.world.biome.BaseBiome;
 import java.util.Collection;
 import javax.annotation.Nullable;
 
-public abstract class FaweRegionExtent extends AbstractDelegateExtent {
+public abstract class FaweRegionExtent extends ResettableExtent {
     private final FaweLimit limit;
 
     /**

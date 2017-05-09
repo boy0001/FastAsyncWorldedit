@@ -30,11 +30,11 @@ public class Commands {
         }
     }
 
-    public static Command translate(final Command command) {
+    public static Command translate(Class clazz, final Command command) {
         if (cmdConfig == null || command instanceof TranslatedCommand) {
             return command;
         }
-        return new TranslatedCommand(command);
+        return new TranslatedCommand(clazz.getSimpleName(), command);
     }
 
     public static String getAlias(String command) {
@@ -53,12 +53,17 @@ public class Commands {
         private final String help;
         private final Command command;
 
-        public TranslatedCommand(Command command) {
+        public TranslatedCommand(String clazz, Command command) {
             String id = command.aliases()[0];
-            ConfigurationSection commands = cmdConfig.getConfigurationSection(id);
+            ConfigurationSection commands;
+            if (cmdConfig.contains(clazz + "." + id) || !cmdConfig.contains(id)) {
+                commands = cmdConfig.getConfigurationSection(clazz + "." + id);
+            } else {
+                commands = cmdConfig.getConfigurationSection(id);
+            }
             boolean set = false;
             if (commands == null) {
-                set = (commands = cmdConfig.createSection(id)) != null;
+                set = (commands = cmdConfig.createSection(clazz + "." + id)) != null;
             }
 
             HashMap<String, Object> options = new HashMap<>();

@@ -1,8 +1,8 @@
 package com.sk89q.worldedit.command;
 
+import com.boydti.fawe.Fawe;
 import com.boydti.fawe.config.BBC;
 import com.boydti.fawe.object.FawePlayer;
-import com.boydti.fawe.object.extent.DefaultTransformParser;
 import com.boydti.fawe.object.extent.ResettableExtent;
 import com.sk89q.minecraft.util.commands.Command;
 import com.sk89q.minecraft.util.commands.CommandContext;
@@ -28,7 +28,6 @@ import static com.google.common.base.Preconditions.checkNotNull;
 public class GeneralCommands {
 
     private final WorldEdit worldEdit;
-    private final DefaultTransformParser transformParser;
 
     /**
      * Create a new instance.
@@ -38,7 +37,6 @@ public class GeneralCommands {
     public GeneralCommands(WorldEdit worldEdit) {
         checkNotNull(worldEdit);
         this.worldEdit = worldEdit;
-        transformParser = new DefaultTransformParser(worldEdit);
     }
 
     @Command(
@@ -87,6 +85,7 @@ public class GeneralCommands {
     @Command(
             aliases = { "/gmask", "gmask", "globalmask", "/globalmask" },
             usage = "[mask]",
+            help = "The global destination mask applies to all edits you do and masks based on the destination blocks (i.e. the blocks in the world).",
             desc = "Set the global mask",
             min = 0,
             max = -1
@@ -112,6 +111,7 @@ public class GeneralCommands {
             aliases = { "/gsmask", "gsmask", "globalsourcemask", "/globalsourcemask" },
             usage = "[mask]",
             desc = "Set the global source mask",
+            help = "The global source mask applies to all edits you do and masks based on the source blocks (e.g. the blocks in your clipboard)",
             min = 0,
             max = -1
     )
@@ -150,7 +150,7 @@ public class GeneralCommands {
             parserContext.setWorld(player.getWorld());
             parserContext.setSession(session);
             parserContext.setExtent(editSession);
-            ResettableExtent transform = transformParser.parseFromInput(context.getJoinedStrings(0), parserContext);
+            ResettableExtent transform = Fawe.get().getTransformParser().parseFromInput(context.getJoinedStrings(0), parserContext);
             session.setTransform(transform);
             BBC.TRANSFORM.send(player);
         }

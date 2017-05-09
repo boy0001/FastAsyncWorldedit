@@ -21,21 +21,16 @@ public class OffsetExtent extends ResettableExtent {
 
     @Override
     public boolean setBiome(Vector2D position, BaseBiome biome) {
-        return super.setBiome(mutable.setComponents(position.getBlockX() + dx, position.getBlockZ() + dz), biome);
+        return getExtent().setBiome(mutable.setComponents(position.getBlockX() + dx, position.getBlockZ() + dz), biome);
     }
 
     @Override
     public boolean setBlock(Vector location, BaseBlock block) throws WorldEditException {
-        return super.setBlock(location.getBlockX() + dx, location.getBlockY() + dy, location.getBlockZ() + dz, block);
+        return getExtent().setBlock(location.getBlockX() + dx, location.getBlockY() + dy, location.getBlockZ() + dz, block);
     }
 
     @Override
     public boolean setBlock(int x, int y, int z, BaseBlock block) throws WorldEditException {
-        return super.setBlock(x + dx, y + dy, z + dz, block);
-    }
-
-    @Override
-    public ResettableExtent setExtent(Extent extent) {
-        return super.setExtent(extent);
+        return getExtent().setBlock(x + dx, y + dy, z + dz, block);
     }
 }

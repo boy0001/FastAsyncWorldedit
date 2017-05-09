@@ -1,16 +1,15 @@
 package com.boydti.fawe.object.collection;
 
-import com.boydti.fawe.object.PseudoRandom;
+import com.boydti.fawe.object.random.SimpleRandom;
 import com.boydti.fawe.util.MathMan;
 import java.util.ArrayList;
 import java.util.Map;
 
 public class FastRandomCollection<T> extends RandomCollection<T> {
-    private PseudoRandom random = new PseudoRandom();
     private T[] values;
 
-    public FastRandomCollection(Map<T, Double> weights) {
-        super(weights);
+    public FastRandomCollection(Map<T, Double> weights, SimpleRandom random) {
+        super(weights, random);
         int max = 0;
         int[] counts = new int[weights.size()];
         Double[] weightDoubles = weights.values().toArray(new Double[weights.size()]);
@@ -39,7 +38,7 @@ public class FastRandomCollection<T> extends RandomCollection<T> {
     }
 
     @Override
-    public T next() {
-        return values[random.nextInt(values.length)];
+    public T next(int x, int y, int z) {
+        return values[random.nextInt(x, y, z, values.length)];
     }
 }

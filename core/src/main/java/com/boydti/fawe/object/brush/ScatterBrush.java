@@ -1,19 +1,17 @@
 package com.boydti.fawe.object.brush;
 
-import com.boydti.fawe.FaweCache;
 import com.boydti.fawe.object.PseudoRandom;
 import com.boydti.fawe.object.collection.BlockVectorSet;
 import com.boydti.fawe.object.collection.LocalBlockVectorSet;
 import com.boydti.fawe.object.mask.AdjacentAnyMask;
 import com.boydti.fawe.object.mask.RadiusMask;
+import com.boydti.fawe.object.mask.SurfaceMask;
 import com.sk89q.worldedit.EditSession;
 import com.sk89q.worldedit.MaxChangedBlocksException;
 import com.sk89q.worldedit.Vector;
-import com.sk89q.worldedit.blocks.BaseBlock;
 import com.sk89q.worldedit.command.tool.brush.Brush;
 import com.sk89q.worldedit.function.mask.Mask;
 import com.sk89q.worldedit.function.mask.Masks;
-import com.sk89q.worldedit.function.mask.SolidBlockMask;
 import com.sk89q.worldedit.function.operation.Operations;
 import com.sk89q.worldedit.function.pattern.Pattern;
 import com.sk89q.worldedit.function.visitor.BreadthFirstSearch;
@@ -25,7 +23,7 @@ public class ScatterBrush implements Brush {
     private final int count;
     private final int distance;
     private Mask mask;
-    private AdjacentAnyMask adjacent;
+    private AdjacentAnyMask surface;
 
     public ScatterBrush(int count, int distance) {
         this.count = count;
@@ -46,18 +44,12 @@ public class ScatterBrush implements Brush {
         if (this.mask == null) {
             this.mask = Masks.alwaysTrue();
         }
-        this.adjacent = new AdjacentAnyMask(editSession, Arrays.asList(new BaseBlock(0)));
-        for (int id = 0; id < 256; id++) {
-            if (FaweCache.canPassThrough(id, 0)) {
-                adjacent.add(new BaseBlock(id, -1));
-            }
-        }
-        final SolidBlockMask solid = new SolidBlockMask(editSession);
+        surface = new SurfaceMask(editSession);
         final RadiusMask radius = new RadiusMask(0, (int) size);
 
         final int distance = Math.min((int) size, this.distance);
 
-        RecursiveVisitor visitor = new RecursiveVisitor(vector -> solid.test(vector) && radius.test(vector) && adjacent.test(vector), function -> true);
+        RecursiveVisitor visitor = new RecursiveVisitor(vector -> radius.test(vector) && surface.test(vector), function -> true);
         visitor.visit(position);
         visitor.setDirections(Arrays.asList(BreadthFirstSearch.DIAGONAL_DIRECTIONS));
         Operations.completeBlindly(visitor);
@@ -67,7 +59,6 @@ public class ScatterBrush implements Brush {
             length = 1;
             visited.add(position);
         }
-
         LocalBlockVectorSet placed = new LocalBlockVectorSet();
         int maxFails = 1000;
         for (int i = 0; i < count; i++) {
@@ -98,7 +89,7 @@ public class ScatterBrush implements Brush {
     }
 
     public Vector getDirection(Vector pt) {
-        return adjacent.direction(pt);
+        return surface.direction(pt);
     }
 
     public void apply(EditSession editSession, LocalBlockVectorSet placed, Vector pt, Pattern p, double size) throws MaxChangedBlocksException {

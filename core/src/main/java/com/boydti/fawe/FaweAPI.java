@@ -10,14 +10,12 @@ import com.boydti.fawe.object.FaweQueue;
 import com.boydti.fawe.object.PseudoRandom;
 import com.boydti.fawe.object.RegionWrapper;
 import com.boydti.fawe.object.changeset.DiskStorageHistory;
-import com.boydti.fawe.object.mask.CustomMask;
 import com.boydti.fawe.object.schematic.Schematic;
 import com.boydti.fawe.regions.FaweMaskManager;
 import com.boydti.fawe.util.EditSessionBuilder;
 import com.boydti.fawe.util.MainUtil;
 import com.boydti.fawe.util.MemUtil;
 import com.boydti.fawe.util.SetQueue;
-import com.boydti.fawe.util.StringMan;
 import com.boydti.fawe.util.TaskManager;
 import com.boydti.fawe.util.WEManager;
 import com.boydti.fawe.wrappers.WorldWrapper;
@@ -26,15 +24,13 @@ import com.sk89q.jnbt.IntTag;
 import com.sk89q.jnbt.NBTInputStream;
 import com.sk89q.jnbt.ShortTag;
 import com.sk89q.jnbt.Tag;
-import com.sk89q.minecraft.util.commands.Command;
-import com.sk89q.minecraft.util.commands.CommandPermissions;
 import com.sk89q.worldedit.EditSession;
-import com.sk89q.worldedit.LocalSession;
 import com.sk89q.worldedit.Vector;
 import com.sk89q.worldedit.WorldEdit;
 import com.sk89q.worldedit.WorldEditException;
-import com.sk89q.worldedit.command.tool.BrushTool;
 import com.sk89q.worldedit.extension.factory.DefaultMaskParser;
+import com.sk89q.worldedit.extension.factory.DefaultTransformParser;
+import com.sk89q.worldedit.extension.factory.HashTagPatternParser;
 import com.sk89q.worldedit.extension.platform.CommandManager;
 import com.sk89q.worldedit.extent.Extent;
 import com.sk89q.worldedit.extent.clipboard.Clipboard;
@@ -42,7 +38,6 @@ import com.sk89q.worldedit.extent.clipboard.io.ClipboardFormat;
 import com.sk89q.worldedit.internal.registry.AbstractFactory;
 import com.sk89q.worldedit.internal.registry.InputParser;
 import com.sk89q.worldedit.regions.Region;
-import com.sk89q.worldedit.util.command.binding.Switch;
 import com.sk89q.worldedit.world.AbstractWorld;
 import com.sk89q.worldedit.world.World;
 import java.io.File;
@@ -60,7 +55,6 @@ import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 import java.util.zip.GZIPInputStream;
@@ -94,26 +88,60 @@ public class FaweAPI {
     }
 
     /**
-     * Add a custom mask for use in e.g //mask #id:<input>
-     * @param name The mask id
-     * @param mask The mask class
+     * Add a custom mask for use in e.g {@literal //mask #id:<input>}
+     * @see com.sk89q.worldedit.command.MaskCommands
+     * @param methods The class with a bunch of mask methods
      * @return true if the mask was registered
      */
-    public static boolean registerMask(String name, Class<? extends CustomMask> mask) {
+    public static boolean registerMasks(Object methods) {
+        DefaultMaskParser parser = getParser(DefaultMaskParser.class);
+        if (parser != null) parser.register(methods);
+        return parser != null;
+    }
+
+    /**
+     * Add a custom material for use in e.g {@literal //material #id:<input>}
+     * @see com.sk89q.worldedit.command.PatternCommands
+     * @param methods The class with a bunch of pattern methods
+     * @return true if the mask was registered
+     */
+    public static boolean registerPatterns(Object methods) {
+        HashTagPatternParser parser = getParser(HashTagPatternParser.class);
+        if (parser != null) parser.register(methods);
+        return parser != null;
+    }
+
+    /**
+     * Add a custom transform for use in
+     * @see com.sk89q.worldedit.command.TransformCommands
+     * @param methods The class with a bunch of transform methods
+     * @return true if the transform was registered
+     */
+    public static boolean registerTransforms(Object methods) {
+        DefaultTransformParser parser = Fawe.get().getTransformParser();
+        if (parser != null) parser.register(methods);
+        return parser != null;
+    }
+
+    public static <T> T getParser(Class<T> parserClass) {
         try {
             Field field = AbstractFactory.class.getDeclaredField("parsers");
             field.setAccessible(true);
-            List<InputParser> parsers = (List<InputParser>) field.get(WorldEdit.getInstance().getMaskFactory());
+            ArrayList<InputParser> parsers = new ArrayList<>();
+            parsers.addAll((List<InputParser>) field.get(WorldEdit.getInstance().getMaskFactory()));
+            parsers.addAll((List<InputParser>) field.get(WorldEdit.getInstance().getBlockFactory()));
+            parsers.addAll((List<InputParser>) field.get(WorldEdit.getInstance().getItemFactory()));
+            parsers.addAll((List<InputParser>) field.get(WorldEdit.getInstance().getPatternFactory()));
             for (InputParser parser : parsers) {
-                if (parser instanceof DefaultMaskParser) {
-                    ((DefaultMaskParser) parser).addMask(name, mask);
-                    return true;
+                if (parserClass.isAssignableFrom(parser.getClass())) {
+                    return (T) parser;
                 }
             }
+            return null;
         } catch (Throwable e) {
+            e.printStackTrace();
             throw new RuntimeException(e);
         }
-        return false;
     }
 
     /**
@@ -151,7 +179,7 @@ public class FaweAPI {
      *     - The WorldEdit EditSession can do a lot more<br>
      * Remember to enqueue it when you're done!<br>
      * @see com.boydti.fawe.object.FaweQueue#enqueue()
-     * @param worldName The name of the world
+     * @param world The name of the world
      * @param autoqueue If it should start dispatching before you enqueue it.
      * @return
      */

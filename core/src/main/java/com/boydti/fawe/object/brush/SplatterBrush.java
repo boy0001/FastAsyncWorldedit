@@ -2,13 +2,12 @@ package com.boydti.fawe.object.brush;
 
 import com.boydti.fawe.object.PseudoRandom;
 import com.boydti.fawe.object.collection.LocalBlockVectorSet;
-import com.boydti.fawe.object.mask.AdjacentAnyMask;
+import com.boydti.fawe.object.mask.SurfaceMask;
 import com.boydti.fawe.object.pattern.BiomePattern;
 import com.sk89q.worldedit.EditSession;
 import com.sk89q.worldedit.MaxChangedBlocksException;
 import com.sk89q.worldedit.Vector;
 import com.sk89q.worldedit.WorldEditException;
-import com.sk89q.worldedit.blocks.BaseBlock;
 import com.sk89q.worldedit.function.RegionFunction;
 import com.sk89q.worldedit.function.mask.Mask;
 import com.sk89q.worldedit.function.mask.SolidBlockMask;
@@ -43,14 +42,14 @@ public class SplatterBrush extends ScatterBrush {
             finalPattern = p;
         }
         final int size2 = (int) (size * size);
-        final AdjacentAnyMask adjacent = new AdjacentAnyMask(editSession, Arrays.asList(new BaseBlock(0)));
+        SurfaceMask surface = new SurfaceMask(editSession);
         final SolidBlockMask solid = new SolidBlockMask(editSession);
 
         RecursiveVisitor visitor = new RecursiveVisitor(new Mask() {
             @Override
             public boolean test(Vector vector) {
                 double dist = vector.distanceSq(position);
-                if (dist < size2 && !placed.contains(vector) && (PseudoRandom.random.random(5) < 2) && solid.test(vector) && adjacent.test(vector)) {
+                if (dist < size2 && !placed.contains(vector) && (PseudoRandom.random.random(5) < 2) && surface.test(vector)) {
                     placed.add(vector);
                     return true;
                 }

@@ -60,6 +60,7 @@ import com.sk89q.worldedit.command.util.EntityRemover;
 import com.sk89q.worldedit.event.extent.EditSessionEvent;
 import com.sk89q.worldedit.extension.factory.DefaultBlockParser;
 import com.sk89q.worldedit.extension.factory.DefaultMaskParser;
+import com.sk89q.worldedit.extension.factory.DefaultTransformParser;
 import com.sk89q.worldedit.extension.factory.HashTagPatternParser;
 import com.sk89q.worldedit.extension.platform.AbstractPlayerActor;
 import com.sk89q.worldedit.extension.platform.CommandManager;
@@ -190,6 +191,10 @@ public class Fawe {
     private VisualQueue visualQueue;
     private Updater updater;
     private TextureUtil textures;
+    private DefaultTransformParser transformParser;
+
+//    @Deprecated
+//    private boolean isJava8 = MainUtil.getJavaVersion() >= 1.8;
 
     /**
      * Get the implementation specific class
@@ -273,6 +278,7 @@ public class Fawe {
             @Override
             public void run() {
                 try {
+                    transformParser = new DefaultTransformParser(getWorldEdit());
                     visualQueue = new VisualQueue();
                     WEManager.IMP.managers.addAll(Fawe.this.IMP.getMaskManagers());
                     WEManager.IMP.managers.add(new PlotSquaredFeature());
@@ -283,7 +289,7 @@ public class Fawe {
 
         TaskManager.IMP.repeat(timer, 1);
 
-        if (Settings.IMP.UPDATE && isJava8()) {
+        if (Settings.IMP.UPDATE) {
             // Delayed updating
             updater = new Updater();
             TaskManager.IMP.async(new Runnable() {
@@ -309,10 +315,13 @@ public class Fawe {
         return false;
     }
 
-    private boolean isJava8 = MainUtil.getJavaVersion() >= 1.8;
+//    @Deprecated
+//    public boolean isJava8() {
+//        return isJava8;
+//    }
 
-    public boolean isJava8() {
-        return isJava8;
+    public DefaultTransformParser getTransformParser() {
+        return transformParser;
     }
 
     /**
