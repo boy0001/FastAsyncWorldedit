@@ -405,9 +405,17 @@ public class FaweBukkit implements IFawe, Listener {
 //        }
 //    }
 
+    private boolean runChunkLoad = false;
+
     @EventHandler
     public void onChunkLoad(ChunkLoadEvent event) {
-        SetQueue.IMP.runMiscTasks();
+        if (runChunkLoad) return;
+        try {
+            runChunkLoad = true;
+            SetQueue.IMP.runMiscTasks();
+        } finally {
+            runChunkLoad = false;
+        }
     }
 
     @EventHandler

@@ -81,6 +81,10 @@ public class MathMan {
         return floatNumber > (float) floor ? floor + 1 : floor;
     }
 
+    public static int sqr(int val) {
+        return val * val;
+    }
+
     public static int clamp(int check, int min, int max) {
         return check > max ? max : (check < min ? min : check);
     }

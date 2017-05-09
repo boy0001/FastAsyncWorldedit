@@ -158,7 +158,7 @@ public class MaskCommands extends MethodCommands {
     }
 
     @Command(
-            aliases = {"#existing"},
+            aliases = {"#solid"},
             desc = "If there is a solid block"
     )
     public Mask solid(EditSession extent) {

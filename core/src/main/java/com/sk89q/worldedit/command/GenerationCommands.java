@@ -19,22 +19,32 @@
 
 package com.sk89q.worldedit.command;
 
+import com.boydti.fawe.Fawe;
 import com.boydti.fawe.command.FawePrimitiveBinding;
 import com.boydti.fawe.config.BBC;
 import com.boydti.fawe.jnbt.anvil.generator.CavesGen;
+import com.boydti.fawe.object.FawePlayer;
+import com.boydti.fawe.util.MainUtil;
+import com.boydti.fawe.util.TextureUtil;
 import com.sk89q.minecraft.util.commands.Command;
 import com.sk89q.minecraft.util.commands.CommandPermissions;
 import com.sk89q.minecraft.util.commands.Logging;
 import com.sk89q.worldedit.EditSession;
 import com.sk89q.worldedit.LocalSession;
+import com.sk89q.worldedit.MutableBlockVector;
 import com.sk89q.worldedit.Vector;
 import com.sk89q.worldedit.WorldEdit;
 import com.sk89q.worldedit.WorldEditException;
+import com.sk89q.worldedit.blocks.BaseBlock;
 import com.sk89q.worldedit.entity.Player;
+import com.sk89q.worldedit.function.RegionFunction;
 import com.sk89q.worldedit.function.mask.Mask;
+import com.sk89q.worldedit.function.operation.Operations;
 import com.sk89q.worldedit.function.pattern.Pattern;
+import com.sk89q.worldedit.function.visitor.RegionVisitor;
 import com.sk89q.worldedit.internal.annotation.Selection;
 import com.sk89q.worldedit.internal.expression.ExpressionException;
+import com.sk89q.worldedit.regions.CuboidRegion;
 import com.sk89q.worldedit.regions.Region;
 import com.sk89q.worldedit.util.TreeGenerator;
 import com.sk89q.worldedit.util.TreeGenerator.TreeType;
@@ -44,6 +54,10 @@ import com.sk89q.worldedit.util.command.binding.Text;
 import com.sk89q.worldedit.util.command.parametric.Optional;
 import com.sk89q.worldedit.util.command.parametric.ParameterException;
 import com.sk89q.worldedit.world.biome.BaseBiome;
+import java.awt.image.BufferedImage;
+import java.io.IOException;
+import java.net.URL;
+import javax.imageio.ImageIO;
 
 
 import static com.google.common.base.Preconditions.checkNotNull;
@@ -92,10 +106,51 @@ public class GenerationCommands {
             min = 1,
             max = 1
     )
-    @CommandPermissions("worldedit.generation.cylinder")
+    @CommandPermissions("worldedit.generation.ore")
     @Logging(PLACEMENT)
     public void ores(Player player, LocalSession session, EditSession editSession, @Selection Region region, Mask mask) throws WorldEditException, ParameterException {
         editSession.addOres(region, mask);
+        BBC.VISITOR_BLOCK.send(player, editSession.getBlockChangeCount());
+    }
+
+    @Command(
+            aliases = { "/image" },
+            desc = "Generate an image",
+            usage = "<imgur> [randomize=true] [complexity=100]",
+            min = 1,
+            max = 3
+    )
+    @CommandPermissions("worldedit.generation.image")
+    @Logging(PLACEMENT)
+    public void image(Player player, LocalSession session, EditSession editSession, String arg, @Optional("true") boolean randomize, @Optional("100") int threshold) throws WorldEditException, ParameterException, IOException {
+        TextureUtil tu = Fawe.get().getCachedTextureUtil(randomize, 0, threshold);
+        URL url = new URL(arg);
+        if (!url.getHost().equalsIgnoreCase("i.imgur.com")) {
+            throw new IOException("Only i.imgur.com links are allowed!");
+        }
+        FawePlayer<Object> fp = FawePlayer.wrap(player);
+        BufferedImage image = MainUtil.toRGB(ImageIO.read(url));
+        MutableBlockVector pos1 = new MutableBlockVector(player.getPosition());
+        MutableBlockVector pos2 = new MutableBlockVector(pos1.add(image.getWidth() - 1, 0, image.getHeight() - 1));
+        CuboidRegion region = new CuboidRegion(pos1, pos2);
+        int[] count = new int[1];
+        RegionVisitor visitor = new RegionVisitor(region, new RegionFunction() {
+            @Override
+            public boolean apply(Vector pos) throws WorldEditException {
+                try {
+                    int x = pos.getBlockX() - pos1.getBlockX();
+                    int z = pos.getBlockZ() - pos1.getBlockZ();
+                    int color = image.getRGB(x, z);
+                    BaseBlock block = tu.getNearestBlock(color);
+                    count[0]++;
+                    return editSession.setBlockFast(pos, block);
+                } catch (Throwable e) {
+                    e.printStackTrace();
+                }
+                return false;
+            }
+        }, editSession);
+        Operations.completeBlindly(visitor);
         BBC.VISITOR_BLOCK.send(player, editSession.getBlockChangeCount());
     }
 
@@ -107,7 +162,7 @@ public class GenerationCommands {
             min = 7,
             max = 7
     )
-    @CommandPermissions("worldedit.generation.cylinder")
+    @CommandPermissions("worldedit.generation.ore")
     @Logging(PLACEMENT)
     public void ore(Player player, LocalSession session, EditSession editSession, @Selection Region region, Mask mask, Pattern material, int size, int freq, int rarity, int minY, int maxY) throws WorldEditException, ParameterException {
         editSession.addOre(region, mask, material, size, freq, rarity, minY, maxY);

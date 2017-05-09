@@ -149,6 +149,7 @@ public class CreateFromImage extends Command {
                             fp.sendMessage(BBC.getPrefix() + "/2 cfi ore[s]");
                             fp.sendMessage(BBC.getPrefix() + "/2 cfi schem [url] <mask> <schem> <rarity> <distance> <rotate>");
                             fp.sendMessage(BBC.getPrefix() + "/2 cfi height <image-url|height>");
+                            fp.sendMessage(BBC.getPrefix() + "/2 cfi smooth <url|mask> <radius> <iterations> [whiteonly]");
                             fp.sendMessage(BBC.getPrefix() + "/2 cfi waterHeight <height>");
                             fp.sendMessage(BBC.getPrefix() + "/2 cfi waterId <number-id>");
                             fp.sendMessage(BBC.getPrefix() + "/2 cfi color <image-url>");
@@ -433,6 +434,25 @@ public class CreateFromImage extends Command {
                                     player.sendMessage(BBC.getPrefix() + "Set biome, what's next?");
                                     return;
                                 }
+                                case "smooth": {
+                                    int id;
+                                    if (argList.size() < 4) {
+                                        C.COMMAND_SYNTAX.send(player, "/2 cfi " + argList.get(0) + " <url|mask> <radius> <iterations> [whiteonly]");
+                                        return;
+                                    }
+                                    int radius = Integer.parseInt(argList.get(2));
+                                    int iterations = Integer.parseInt(argList.get(3));
+                                    BufferedImage img = getImgurImage(argList.get(1), fp);
+                                    if (img != null) {
+                                        boolean whiteOnly = argList.size() == 5 && Boolean.parseBoolean(argList.get(4));
+                                        generator.smooth(img, whiteOnly, radius, iterations);
+                                    } else {
+                                        Mask mask = we.getMaskFactory().parseFromInput(argList.get(1), context);
+                                        generator.smooth(mask, radius, iterations);
+                                    }
+                                    player.sendMessage(BBC.getPrefix() + "Smoothed terrain, what's next?");
+                                    return;
+                                }
                                 case "overlay":
                                 case "setoverlay": {
                                     Pattern id;
@@ -552,7 +572,7 @@ public class CreateFromImage extends Command {
                                     player.sendMessage(BBC.getPrefix() + "Cancelled!");
                                     return;
                                 default:
-                                    C.COMMAND_SYNTAX.send(player, "/2 cfi <setBiome|setOverlay|setMain|setFloor|setColumn|addCaves|addOre[s]|addSchems|setHeight|setColor|setGlassColor|setBiomeColor|setBlockAndBiomeColor|setColorPaletteComplexity|setColorPaletteRandomization|setColorPaletteBlocks|biomepriority|done|cancel|>");
+                                    C.COMMAND_SYNTAX.send(player, "/2 cfi <setBiome|setOverlay|setMain|setFloor|setColumn|addCaves|addOre[s]|addSchems|setHeight|setColor|setGlassColor|setBiomeColor|setBlockAndBiomeColor|setColorPaletteComplexity|setColorPaletteRandomization|setColorPaletteBlocks|biomepriority|smooth|done|cancel|>");
                                     return;
                             }
                         } catch (IOException e) {
