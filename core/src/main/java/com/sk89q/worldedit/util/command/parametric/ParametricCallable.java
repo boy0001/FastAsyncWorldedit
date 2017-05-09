@@ -188,7 +188,7 @@ public class ParametricCallable implements CommandCallable {
         }
 
         String calledCommand = parentCommands.length > 0 ? parentCommands[parentCommands.length - 1] : "_";
-        String[] split = CommandContext.split(calledCommand + " " + stringArguments);
+        String[] split = (calledCommand + " " + stringArguments).split(" ", -1);
         CommandContext context = new CommandContext(split, getValueFlags(), false, locals);
 
         // Provide help if -? is specified
@@ -277,7 +277,7 @@ public class ParametricCallable implements CommandCallable {
 
     @Override
     public List<String> getSuggestions(String arguments, CommandLocals locals) throws CommandException {
-        String[] split = CommandContext.split("ignored" + " " + arguments);
+        String[] split = ("ignored" + " " + arguments).split(" ", -1);
         CommandContext context = new CommandContext(split, getValueFlags(), !arguments.endsWith(" "), locals);
         ContextArgumentStack scoped = new ContextArgumentStack(context);
         SuggestionContext suggestable = context.getSuggestionContext();

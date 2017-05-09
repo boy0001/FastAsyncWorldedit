@@ -260,6 +260,7 @@ public class CreateFromImage extends Command {
                                         return;
                                     }
                                     context.setPreferringWildcard(true);
+                                    context.setRestricted(false);
                                     Set<BaseBlock> blocks;
                                     if (argList.get(1).equalsIgnoreCase("#clipboard")) {
                                         ClipboardHolder holder = fp.getSession().getClipboard();
