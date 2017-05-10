@@ -61,7 +61,7 @@ public class DiskOptimizedClipboard extends FaweClipboard implements Closeable {
     private FileChannel fc;
 
     public DiskOptimizedClipboard(int width, int height, int length, UUID uuid) {
-        this(width, height, length, MainUtil.getFile(Fawe.imp().getDirectory(), Settings.IMP.PATHS.CLIPBOARD + File.separator + uuid + ".bd"));
+        this(width, height, length, MainUtil.getFile(Fawe.get() != null ? Fawe.imp().getDirectory() : new File("."), Settings.IMP.PATHS.CLIPBOARD + File.separator + uuid + ".bd"));
     }
 
     public DiskOptimizedClipboard(File file) {
@@ -144,13 +144,15 @@ public class DiskOptimizedClipboard extends FaweClipboard implements Closeable {
             long volume = (long) width * (long) height * (long) length * 2l + (long) HEADER_SIZE;
             braf.setLength(0);
             braf.setLength(volume);
-            init();
-            // write length etc
-            mbb.position(2);
-            last = Integer.MIN_VALUE;
-            mbb.putChar((char) width);
-            mbb.putChar((char) height);
-            mbb.putChar((char) length);
+            if (width * height * length != 0) {
+                init();
+                // write length etc
+                mbb.position(2);
+                last = Integer.MIN_VALUE;
+                mbb.putChar((char) width);
+                mbb.putChar((char) height);
+                mbb.putChar((char) length);
+            }
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
@@ -419,71 +421,55 @@ public class DiskOptimizedClipboard extends FaweClipboard implements Closeable {
 
     @Override
     public void setId(int i, int id) {
-        try {
-            int index;
-            if (i != last + 1) {
-                index = (HEADER_SIZE) + (i << 1);
-            } else {
-                index = mbb.position();
-            }
-            last = i;
-            mbb.position(index + 1);
-            // 00000000 00000000
-            // [    id     ]data
-            byte id2 = mbb.get();
-            mbb.position(index);
-            mbb.put((byte) (id >> 4));
-            mbb.put((byte) (((id & 0xFF) << 4) + (id2 & 0xFF)));
-        }  catch (Exception e) {
-            MainUtil.handleError(e);
+        int index;
+        if (i != last + 1) {
+            index = (HEADER_SIZE) + (i << 1);
+        } else {
+            index = mbb.position();
         }
+        last = i;
+        mbb.position(index + 1);
+        // 00000000 00000000
+        // [    id     ]data
+        byte id2 = mbb.get();
+        mbb.position(index);
+        mbb.put((byte) (id >> 4));
+        mbb.put((byte) (((id & 0xFF) << 4) + (id2 & 0xFF)));
     }
 
     public void setCombined(int i, int combined) {
-        try {
-            if (i != last + 1) {
-                mbb.position((HEADER_SIZE) + (i << 1));
-            }
-            last = i;
-            mbb.putChar((char) combined);
-        }  catch (Exception e) {
-            MainUtil.handleError(e);
+        if (i != last + 1) {
+            mbb.position((HEADER_SIZE) + (i << 1));
         }
+        last = i;
+        mbb.putChar((char) combined);
     }
 
     @Override
     public void setAdd(int i, int add) {
-        try {
-            last = i;
-            int index = (HEADER_SIZE) + (i << 1);
-            mbb.position(index);
-            // 00000000 00000000
-            // [    id     ]data
-            char combined = mbb.getChar();
-            mbb.position(index);
-            mbb.putChar((char) ((combined & 0xFFFF) + (add << 12)));
-        }  catch (Exception e) {
-            MainUtil.handleError(e);
-        }
+        last = i;
+        int index = (HEADER_SIZE) + (i << 1);
+        mbb.position(index);
+        // 00000000 00000000
+        // [    id     ]data
+        char combined = mbb.getChar();
+        mbb.position(index);
+        mbb.putChar((char) ((combined & 0xFFFF) + (add << 12)));
     }
 
     @Override
     public void setData(int i, int data) {
-        try {
-            int index;
-            if (i != last + 1) {
-                index = (HEADER_SIZE) + (i << 1) + 1;
-            } else {
-                index = mbb.position() + 1;
-            }
-            mbb.position(index);
-            last = i;
-            byte id = mbb.get();
-            mbb.position(index);
-            mbb.put((byte) ((id & 0xF0) + data));
-        }  catch (Exception e) {
-            MainUtil.handleError(e);
+        int index;
+        if (i != last + 1) {
+            index = (HEADER_SIZE) + (i << 1) + 1;
+        } else {
+            index = mbb.position() + 1;
         }
+        mbb.position(index);
+        last = i;
+        byte id = mbb.get();
+        mbb.position(index);
+        mbb.put((byte) ((id & 0xF0) + data));
     }
 
     @Override

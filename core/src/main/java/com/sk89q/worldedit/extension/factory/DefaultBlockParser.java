@@ -230,8 +230,8 @@ public class DefaultBlockParser extends InputParser<BaseBlock> {
                 if (typeAndData.length > 1 && !typeAndData[1].isEmpty()) {
                     if (MathMan.isInteger(typeAndData[1])) {
                         data = Integer.parseInt(typeAndData[1]);
-                    } else {
                         data = -1; // Some invalid value
+                    } else {
                         BundledBlockData.BlockEntry block = BundledBlockData.getInstance().findById(blockId);
                         if (block != null && block.states != null) {
                             loop:

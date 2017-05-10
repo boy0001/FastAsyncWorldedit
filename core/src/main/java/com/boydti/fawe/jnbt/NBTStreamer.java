@@ -68,7 +68,7 @@ public class NBTStreamer {
     public static abstract class ByteReader extends RunnableVal2<Integer, Integer> {
         @Override
         public void run(Integer index, Integer value) {
-            run(index, value);
+            run((int) index, (int) value);
         }
 
         public abstract void run(int index, int byteValue);
