@@ -4,6 +4,7 @@ import com.boydti.fawe.Fawe;
 import com.boydti.fawe.FaweCache;
 import com.boydti.fawe.object.PseudoRandom;
 import com.boydti.fawe.object.collection.LocalBlockVector2DSet;
+import com.boydti.fawe.object.collection.SummedAreaTable;
 import com.boydti.fawe.object.schematic.Schematic;
 import com.boydti.fawe.util.CachedTextureUtil;
 import com.boydti.fawe.util.MathMan;
@@ -44,7 +45,7 @@ public class HeightMapMCAGenerator extends MCAWriter implements Extent {
 
     private final Int2ObjectOpenHashMap<char[][][]> blocks = new Int2ObjectOpenHashMap<>();
 
-    private final byte[] heights;
+    public final byte[] heights;
     private final byte[] biomes;
     private final char[] floor;
     private final char[] main;
@@ -99,6 +100,72 @@ public class HeightMapMCAGenerator extends MCAWriter implements Extent {
 
     public void setTextureUtil(TextureUtil textureUtil) {
         this.textureUtil = textureUtil;
+    }
+
+    public void smooth(BufferedImage img, boolean white, int radius, int iterations) {
+        smooth(img, null, white, radius, iterations);
+    }
+
+    public void smooth(Mask mask, int radius, int iterations) {
+        smooth(null, mask, false, radius, iterations);
+    }
+
+    private void smooth(BufferedImage img, Mask mask, boolean white, int radius, int iterations) {
+        char snow = 78 << 4;
+        long[] copy = new long[heights.length];
+        char[] layers = new char[heights.length];
+        int width = getWidth();
+        int length = getLength();
+        SummedAreaTable table = new SummedAreaTable(copy, layers, width, radius);
+        for (int j = 0; j < iterations; j++) {
+            for (int i = 0; i < heights.length; i++) {
+                char combined = floor[i];
+                int id = combined >> 4;
+                if (id == 78 || id == 80) {
+                    layers[i] = (char) (((heights[i] & 0xFF) << 3) + (floor[i] & 0x7) + 1);
+                } else {
+                    layers[i] = (char) (((heights[i] & 0xFF) << 3) + 8);
+                }
+            }
+            int index = 0;
+            table.processSummedAreaTable();
+            if (img != null) {
+                for (int z = 0; z < getLength(); z++) {
+                    for (int x = 0; x < getWidth(); x++, index++) {
+                        int height = img.getRGB(x, z) & 0xFF;
+                        if (height == 255 || height > 0 && !white && PseudoRandom.random.nextInt(256) <= height) {
+                            int newHeight = table.average(x, z, index);
+                            int blockHeight = (newHeight - 1) >> 3;
+                            int layerHeight = (newHeight - 1) & 0x7;
+                            heights[index] = (byte) blockHeight;
+                            int id = floor[index] >> 4;
+                            if (id == 78 || id == 80) {
+                                floor[index] = (char) (snow + layerHeight);
+                            }
+                        }
+                    }
+                }
+            } else if (mask != null) {
+                for (int z = 0; z < getLength(); z++) {
+                    mutable.mutZ(z);
+                    for (int x = 0; x < getWidth(); x++, index++) {
+                        int y = heights[index] & 0xFF;
+                        mutable.mutX(x);
+                        mutable.mutY(y);
+                        if (mask.test(mutable)) {
+                            int height = table.average(x, z, index);
+                            int blockHeight = (height - 1) >> 3;
+                            int layerHeight = (height - 1) & 0x7;
+                            heights[index] = (byte) blockHeight;
+                            int id = floor[index] >> 4;
+                            if (id == 78 || id == 80) {
+                                floor[index] = (char) (snow + layerHeight);
+                            }
+                        }
+                    }
+                }
+            }
+        }
     }
 
     public void setHeight(BufferedImage img) {

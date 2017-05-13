@@ -87,13 +87,8 @@ public class CreateFromImage extends Command {
                     final BufferedImage image;
                     if (argList.get(0).toLowerCase().startsWith("http")) {
                         try {
-                            URL url = new URL(argList.get(0));
-                            if (!url.getHost().equals("i.imgur.com")) {
-                                player.sendMessage("Images can only be loaded from i.imgur.com");
-                                return;
-                            }
                             player.sendMessage(BBC.getPrefix() + "Loading image... (1)");
-                            image = com.boydti.fawe.util.MainUtil.toRGB(ImageIO.read(url));
+                            image = getImage(argList.get(0), fp);
                         } catch (IOException e) {
                             player.sendMessage(e.getMessage());
                             return;
@@ -149,6 +144,7 @@ public class CreateFromImage extends Command {
                             fp.sendMessage(BBC.getPrefix() + "/2 cfi ore[s]");
                             fp.sendMessage(BBC.getPrefix() + "/2 cfi schem [url] <mask> <schem> <rarity> <distance> <rotate>");
                             fp.sendMessage(BBC.getPrefix() + "/2 cfi height <image-url|height>");
+                            fp.sendMessage(BBC.getPrefix() + "/2 cfi smooth <url|mask> <radius> <iterations> [whiteonly]");
                             fp.sendMessage(BBC.getPrefix() + "/2 cfi waterHeight <height>");
                             fp.sendMessage(BBC.getPrefix() + "/2 cfi waterId <number-id>");
                             fp.sendMessage(BBC.getPrefix() + "/2 cfi color <image-url>");
@@ -200,7 +196,7 @@ public class CreateFromImage extends Command {
                                     int argOffset = 0;
                                     BufferedImage img = null;
                                     if (argList.get(1).startsWith("http")) {
-                                        img = getImgurImage(argList.get(1), fp);
+                                        img = getImage(argList.get(1), fp);
                                         argOffset++;
                                     }
                                     World world = fp.getWorld();
@@ -259,6 +255,7 @@ public class CreateFromImage extends Command {
                                         return;
                                     }
                                     context.setPreferringWildcard(true);
+                                    context.setRestricted(false);
                                     Set<BaseBlock> blocks;
                                     if (argList.get(1).equalsIgnoreCase("#clipboard")) {
                                         ClipboardHolder holder = fp.getSession().getClipboard();
@@ -297,7 +294,7 @@ public class CreateFromImage extends Command {
                                         C.COMMAND_SYNTAX.send(player, "/2 cfi " + argList.get(0) + " <url>");
                                         return;
                                     }
-                                    BufferedImage image = getImgurImage(argList.get(1), fp);
+                                    BufferedImage image = getImage(argList.get(1), fp);
                                     generator.setColor(image);
                                     player.sendMessage("Set color, what's next?");
                                     return;
@@ -308,7 +305,7 @@ public class CreateFromImage extends Command {
                                         C.COMMAND_SYNTAX.send(player, "/2 cfi " + argList.get(0) + " <url>");
                                         return;
                                     }
-                                    BufferedImage image = getImgurImage(argList.get(1), fp);
+                                    BufferedImage image = getImage(argList.get(1), fp);
                                     generator.setBiomeColor(image);
                                     player.sendMessage("Set color, what's next?");
                                     return;
@@ -319,7 +316,7 @@ public class CreateFromImage extends Command {
                                         C.COMMAND_SYNTAX.send(player, "/2 cfi " + argList.get(0) + " <url>");
                                         return;
                                     }
-                                    BufferedImage image = getImgurImage(argList.get(1), fp);
+                                    BufferedImage image = getImage(argList.get(1), fp);
                                     generator.setBlockAndBiomeColor(image);
                                     player.sendMessage("Set color, what's next?");
                                     return;
@@ -331,7 +328,7 @@ public class CreateFromImage extends Command {
                                         C.COMMAND_SYNTAX.send(player, "/2 cfi " + argList.get(0) + " <url>");
                                         return;
                                     }
-                                    BufferedImage image = getImgurImage(argList.get(1), fp);
+                                    BufferedImage image = getImage(argList.get(1), fp);
                                     generator.setColorWithGlass(image);
                                     player.sendMessage("Set glass color, what's next?");
                                     return;
@@ -368,7 +365,7 @@ public class CreateFromImage extends Command {
                                     }
                                     if (argList.get(1).startsWith("http")) {
                                         player.sendMessage("Loading image (3)...");
-                                        BufferedImage image = getImgurImage(argList.get(1), fp);
+                                        BufferedImage image = getImage(argList.get(1), fp);
                                         generator.setHeight(image);
                                     } else {
                                         generator.setHeights(Integer.parseInt(args[1]));
@@ -422,7 +419,7 @@ public class CreateFromImage extends Command {
                                         generator.setBiome(id);
                                     } else {
                                         id = getBiome(argList.get(2), fp).getId();
-                                        BufferedImage img = getImgurImage(argList.get(1), fp);
+                                        BufferedImage img = getImage(argList.get(1), fp);
                                         if (img != null) {
                                             boolean whiteOnly = argList.size() == 4 && Boolean.parseBoolean(argList.get(3));
                                             generator.setBiome(img, (byte) id, whiteOnly);
@@ -431,6 +428,25 @@ public class CreateFromImage extends Command {
                                         }
                                     }
                                     player.sendMessage(BBC.getPrefix() + "Set biome, what's next?");
+                                    return;
+                                }
+                                case "smooth": {
+                                    int id;
+                                    if (argList.size() < 4) {
+                                        C.COMMAND_SYNTAX.send(player, "/2 cfi " + argList.get(0) + " <url|mask> <radius> <iterations> [whiteonly]");
+                                        return;
+                                    }
+                                    int radius = Integer.parseInt(argList.get(2));
+                                    int iterations = Integer.parseInt(argList.get(3));
+                                    BufferedImage img = getImage(argList.get(1), fp);
+                                    if (img != null) {
+                                        boolean whiteOnly = argList.size() == 5 && Boolean.parseBoolean(argList.get(4));
+                                        generator.smooth(img, whiteOnly, radius, iterations);
+                                    } else {
+                                        Mask mask = we.getMaskFactory().parseFromInput(argList.get(1), context);
+                                        generator.smooth(mask, radius, iterations);
+                                    }
+                                    player.sendMessage(BBC.getPrefix() + "Smoothed terrain, what's next?");
                                     return;
                                 }
                                 case "overlay":
@@ -445,7 +461,7 @@ public class CreateFromImage extends Command {
                                         generator.setOverlay(id);
                                     } else {
                                         id = we.getPatternFactory().parseFromInput(argList.get(2), context);
-                                        BufferedImage img = getImgurImage(argList.get(1), fp);
+                                        BufferedImage img = getImage(argList.get(1), fp);
                                         if (img != null) {
                                             boolean whiteOnly = argList.size() == 4 && Boolean.parseBoolean(argList.get(3));
                                             generator.setOverlay(img, id, whiteOnly);
@@ -468,7 +484,7 @@ public class CreateFromImage extends Command {
                                         generator.setMain(id);
                                     } else {
                                         id = we.getPatternFactory().parseFromInput(argList.get(2), context);
-                                        BufferedImage img = getImgurImage(argList.get(1), fp);
+                                        BufferedImage img = getImage(argList.get(1), fp);
                                         if (img != null) {
                                             boolean whiteOnly = argList.size() == 4 && Boolean.parseBoolean(argList.get(3));
                                             generator.setMain(img, id, whiteOnly);
@@ -491,7 +507,7 @@ public class CreateFromImage extends Command {
                                         generator.setFloor(id);
                                     } else {
                                         id = we.getPatternFactory().parseFromInput(argList.get(2), context);
-                                        BufferedImage img = getImgurImage(argList.get(1), fp);
+                                        BufferedImage img = getImage(argList.get(1), fp);
                                         if (img != null) {
                                             boolean whiteOnly = argList.size() == 4 && Boolean.parseBoolean(argList.get(3));
                                             generator.setFloor(img, id, whiteOnly);
@@ -514,7 +530,7 @@ public class CreateFromImage extends Command {
                                         generator.setColumn(id);
                                     } else {
                                         id = we.getPatternFactory().parseFromInput(argList.get(2), context);
-                                        BufferedImage img = getImgurImage(argList.get(1), fp);
+                                        BufferedImage img = getImage(argList.get(1), fp);
                                         if (img != null) {
                                             boolean whiteOnly = argList.size() == 4 && Boolean.parseBoolean(argList.get(3));
                                             generator.setColumn(img, id, whiteOnly);
@@ -552,7 +568,7 @@ public class CreateFromImage extends Command {
                                     player.sendMessage(BBC.getPrefix() + "Cancelled!");
                                     return;
                                 default:
-                                    C.COMMAND_SYNTAX.send(player, "/2 cfi <setBiome|setOverlay|setMain|setFloor|setColumn|addCaves|addOre[s]|addSchems|setHeight|setColor|setGlassColor|setBiomeColor|setBlockAndBiomeColor|setColorPaletteComplexity|setColorPaletteRandomization|setColorPaletteBlocks|biomepriority|done|cancel|>");
+                                    C.COMMAND_SYNTAX.send(player, "/2 cfi <setBiome|setOverlay|setMain|setFloor|setColumn|addCaves|addOre[s]|addSchems|setHeight|setColor|setGlassColor|setBiomeColor|setBlockAndBiomeColor|setColorPaletteComplexity|setColorPaletteRandomization|setColorPaletteBlocks|biomepriority|smooth|done|cancel|>");
                                     return;
                             }
                         } catch (IOException e) {
@@ -581,12 +597,9 @@ public class CreateFromImage extends Command {
         return Biomes.findBiomeByName(knownBiomes, arg, biomeRegistry);
     }
 
-    private BufferedImage getImgurImage(String arg, FawePlayer fp) throws IOException {
+    private BufferedImage getImage(String arg, FawePlayer fp) throws IOException {
         if (arg.startsWith("http")) {
             URL url = new URL(arg);
-            if (!url.getHost().equalsIgnoreCase("i.imgur.com")) {
-                throw new IOException("Only i.imgur.com links are allowed!");
-            }
             fp.sendMessage(BBC.getPrefix() + "Downloading image... (3)");
             return com.boydti.fawe.util.MainUtil.toRGB(ImageIO.read(url));
         }

@@ -26,7 +26,7 @@ public class RandomOffsetTransform extends ResettableExtent {
     public boolean setBiome(Vector2D pos, BaseBiome biome) {
         int x = pos.getBlockX() + random.nextInt(1 + (dx << 1)) - dx;
         int z = pos.getBlockZ() + random.nextInt(1 + (dz << 1)) - dz;
-        return super.setBiome(mutable.setComponents(x, z), biome);
+        return getExtent().setBiome(mutable.setComponents(x, z), biome);
     }
 
     @Override
@@ -34,7 +34,7 @@ public class RandomOffsetTransform extends ResettableExtent {
         int x = pos.getBlockX() + random.nextInt(1 + (dx << 1)) - dx;
         int y = pos.getBlockY() + random.nextInt(1 + (dy << 1)) - dy;
         int z = pos.getBlockZ() + random.nextInt(1 + (dz << 1)) - dz;
-        return super.setBlock(x, y, z, block);
+        return getExtent().setBlock(x, y, z, block);
     }
 
     @Override
@@ -42,7 +42,7 @@ public class RandomOffsetTransform extends ResettableExtent {
         x = x + random.nextInt(1 + (dx << 1)) - dx;
         y = y + random.nextInt(1 + (dy << 1)) - dy;
         z = z + random.nextInt(1 + (dz << 1)) - dz;
-        return super.setBlock(x, y, z, block);
+        return getExtent().setBlock(x, y, z, block);
     }
 
     @Override

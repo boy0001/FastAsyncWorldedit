@@ -158,7 +158,7 @@ public class MaskCommands extends MethodCommands {
     }
 
     @Command(
-            aliases = {"#existing"},
+            aliases = {"#solid"},
             desc = "If there is a solid block"
     )
     public Mask solid(EditSession extent) {
@@ -263,13 +263,13 @@ public class MaskCommands extends MethodCommands {
         double y1,y2;
         boolean override;
         if (max.endsWith("d")) {
-            double y1d = Expression.compile(max.substring(0, max.length() - 1)).evaluate();
-            double y2d = Expression.compile(min.substring(0, min.length() - 1)).evaluate();
+            double y1d = Expression.compile(min.substring(0, min.length() - 1)).evaluate();
+            double y2d = Expression.compile(max.substring(0, max.length() - 1)).evaluate();
             y1 = (Math.tan(y1d * (Math.PI / 180)));
             y2 = (Math.tan(y2d * (Math.PI / 180)));
         } else {
-            y1 = (Expression.compile(max).evaluate());
-            y2 = (Expression.compile(min).evaluate());
+            y1 = (Expression.compile(min).evaluate());
+            y2 = (Expression.compile(max).evaluate());
         }
         return new AngleMask(extent, y1, y2, overlay);
     }

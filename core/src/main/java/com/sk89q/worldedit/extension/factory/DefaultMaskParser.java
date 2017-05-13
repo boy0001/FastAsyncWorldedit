@@ -110,6 +110,8 @@ public class DefaultMaskParser extends FaweParser<Mask> {
                         }
                         if (mask == null) {
                             try {
+                                context.setPreferringWildcard(true);
+                                context.setRestricted(false);
                                 BaseBlock block = worldEdit.getBlockFactory().parseFromInput(command, context);
                                 if (pe.and) {
                                     mask = new BlockMask(extent, block);

@@ -218,6 +218,7 @@ public class DefaultBlockParser extends InputParser<BaseBlock> {
             }
         }
 
+
         if (!context.isPreferringWildcard() && data == -1) {
             // No wildcards allowed => eliminate them.
             data = 0;
@@ -230,7 +231,7 @@ public class DefaultBlockParser extends InputParser<BaseBlock> {
                     if (MathMan.isInteger(typeAndData[1])) {
                         data = Integer.parseInt(typeAndData[1]);
                     } else {
-                        data = Integer.MAX_VALUE; // Some invalid value
+                        data = -1; // Some invalid value
                         BundledBlockData.BlockEntry block = BundledBlockData.getInstance().findById(blockId);
                         if (block != null && block.states != null) {
                             loop:
@@ -238,7 +239,10 @@ public class DefaultBlockParser extends InputParser<BaseBlock> {
                                 for (Map.Entry<String, BundledBlockData.FaweStateValue> valueEntry : stateEntry.getValue().valueMap().entrySet()) {
                                     String key = valueEntry.getKey();
                                     if (key.equalsIgnoreCase(typeAndData[1])) {
-                                        data = valueEntry.getValue().data;
+                                        int newData = valueEntry.getValue().data;
+                                        if (newData != 0 || blockLocator.length > 1) {
+                                            data = valueEntry.getValue().data;
+                                        }
                                         break loop;
                                     }
                                 }
