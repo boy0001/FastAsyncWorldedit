@@ -22,6 +22,7 @@ package com.sk89q.worldedit.command;
 import com.boydti.fawe.config.BBC;
 import com.boydti.fawe.object.FaweLimit;
 import com.boydti.fawe.object.FawePlayer;
+import com.boydti.fawe.util.MathMan;
 import com.boydti.fawe.util.StringMan;
 import com.google.common.base.Joiner;
 import com.google.common.util.concurrent.AtomicDouble;
@@ -46,6 +47,7 @@ import com.sk89q.worldedit.extension.platform.Actor;
 import com.sk89q.worldedit.extension.platform.Capability;
 import com.sk89q.worldedit.extension.platform.CommandManager;
 import com.sk89q.worldedit.extension.platform.Platform;
+import com.sk89q.worldedit.extent.clipboard.io.ClipboardFormat;
 import com.sk89q.worldedit.function.mask.ExistingBlockMask;
 import com.sk89q.worldedit.function.mask.Mask;
 import com.sk89q.worldedit.function.operation.Operations;
@@ -60,6 +62,7 @@ import com.sk89q.worldedit.regions.CylinderRegion;
 import com.sk89q.worldedit.regions.Region;
 import com.sk89q.worldedit.util.command.CommandCallable;
 import com.sk89q.worldedit.util.command.CommandMapping;
+import com.sk89q.worldedit.util.command.DelegateCallable;
 import com.sk89q.worldedit.util.command.Dispatcher;
 import com.sk89q.worldedit.util.command.PrimaryAliasComparator;
 import com.sk89q.worldedit.util.command.binding.Text;
@@ -68,18 +71,24 @@ import com.sk89q.worldedit.util.command.parametric.ParametricCallable;
 import com.sk89q.worldedit.util.formatting.ColorCodeBuilder;
 import com.sk89q.worldedit.util.formatting.component.CommandUsageBox;
 import com.sk89q.worldedit.world.World;
+import java.io.File;
+import java.net.URI;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
+import java.util.UUID;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 
 import static com.sk89q.minecraft.util.commands.Logging.LogMode.PLACEMENT;
@@ -89,7 +98,6 @@ import static com.sk89q.minecraft.util.commands.Logging.LogMode.PLACEMENT;
  */
 @Command(aliases = {}, desc = "Various utility commands: [More Info](http://wiki.sk89q.com/wiki/WorldEdit/Utilities)")
 public class UtilityCommands extends MethodCommands {
-
     public UtilityCommands(WorldEdit we) {
         super(we);
     }
@@ -548,196 +556,363 @@ public class UtilityCommands extends MethodCommands {
         return null;
     }
 
+    public static void list(File dir, Actor actor, CommandContext args, int page, String formatName, boolean playerFolder) {
+        List<File> fileList = new ArrayList<>();
+        int len = args.argsLength();
+        List<String> filters = new ArrayList<>();
+        boolean mine = false;
+        if (len > 0) {
+            int max = len;
+            if (MathMan.isInteger(args.getString(len - 1))) {
+                page = args.getInteger(--len);
+            }
+            for (int i = 0; i < len; i++) {
+                switch (args.getString(i).toLowerCase()) {
+                    case "me":
+                    case "mine":
+                        mine = true;
+                        break;
+                    default:
+                        filters.add(args.getString(i));
+                        break;
+                }
+            }
+        }
+        if (playerFolder) {
+            File playerDir = new File(dir, actor.getUniqueId().toString());
+            if (playerDir.exists()) {
+                fileList.addAll(allFiles(playerDir, true));
+            }
+            if (!mine) {
+                fileList.addAll(allFiles(dir, false));
+            }
+        } else {
+            fileList.addAll(allFiles(dir, true));
+        }
+        if (!filters.isEmpty()) {
+            for (String filter : filters) {
+                fileList.removeIf(file -> !file.getPath().contains(filter));
+            }
+        }
+        if (fileList.isEmpty()) {
+            BBC.SCHEMATIC_NONE.send(actor);
+            return;
+        }
+        if (formatName != null) {
+            final ClipboardFormat cf = ClipboardFormat.findByAlias(formatName);
+            fileList = fileList.stream()
+                    .filter(file -> cf.isFormat(file))
+                    .collect(Collectors.toList());
+
+        }
+        File[] files = new File[fileList.size()];
+        fileList.toArray(files);
+        final int perPage = actor instanceof Player ? 8 : 20; // More pages for console
+        int pageCount = (files.length + perPage - 1) / perPage;
+        if (page < 1) {
+            BBC.SCHEMATIC_PAGE.send(actor, ">0");
+            return;
+        }
+        if (page > pageCount) {
+            BBC.SCHEMATIC_PAGE.send(actor, "<" + (pageCount + 1));
+            return;
+        }
+
+        final int sortType = args.hasFlag('d') ? -1 : args.hasFlag('n') ? 1 : 0;
+        // cleanup file list
+        Arrays.sort(files, new Comparator<File>(){
+            @Override
+            public int compare(File f1, File f2) {
+                int res;
+                if (sortType == 0) { // use name by default
+                    int p = f1.getParent().compareTo(f2.getParent());
+                    if (p == 0) { // same parent, compare names
+                        res = f1.getName().compareTo(f2.getName());
+                    } else { // different parent, sort by that
+                        res = p;
+                    }
+                } else {
+                    res = Long.valueOf(f1.lastModified()).compareTo(f2.lastModified()); // use date if there is a flag
+                    if (sortType == 1) res = -res; // flip date for newest first instead of oldest first
+                }
+                return res;
+            }
+        });
+
+        List<String> schematics = listFiles(dir, files, playerFolder ? actor.getUniqueId() : null);
+        int offset = (page - 1) * perPage;
+
+        StringBuilder build = new StringBuilder();
+        int limit = Math.min(offset + perPage, schematics.size());
+        for (int i = offset; i < limit;) {
+            build.append(schematics.get(i));
+            if (++i != limit) {
+                build.append("\n");
+            }
+        }
+        String heading = BBC.SCHEMATIC_LIST.f(page, pageCount);
+        actor.print(BBC.getPrefix() + heading + "\n" + build.toString());
+    }
+
+
+    private static List<File> allFiles(File root, boolean recursive) {
+        File[] files = root.listFiles();
+        if (files == null) return new ArrayList<>();
+        List<File> fileList = new ArrayList<File>();
+        for (File f : files) {
+            if (f.isDirectory()) {
+                if (recursive) {
+                    List<File> subFiles = allFiles(f, recursive);
+                    if (subFiles == null || subFiles.isEmpty()) continue; // empty subdir
+                    fileList.addAll(subFiles);
+                }
+            } else {
+                fileList.add(f);
+            }
+        }
+        return fileList;
+    }
+
+    private static List<String> listFiles(File root, File[] files, UUID uuid) {
+        File dir;
+        if (uuid != null) {
+            dir = new File(root, uuid.toString());
+        } else {
+            dir = root;
+        }
+        List<String> result = new ArrayList<String>();
+        for (File file : files) {
+            ClipboardFormat format = ClipboardFormat.findByFile(file);
+            URI relative = dir.toURI().relativize(file.toURI());
+            String name = "";
+            if (relative.isAbsolute()) {
+                relative = root.toURI().relativize(file.toURI());
+                name += "../";
+            }
+            name += relative.getPath();
+            String formatName;
+            if (format == null) {
+                String[] split = file.getName().split("\\.");
+                formatName = split.length > 1 ? split[split.length - 1].toUpperCase() : "Unknown";
+            } else {
+                formatName = format.toString();
+            }
+            result.add(BBC.SCHEMATIC_LIST_ELEM.f(name, formatName));
+        }
+        return result;
+    }
+
     public static void help(CommandContext args, WorldEdit we, Actor actor) {
         help(args, we, actor, "/", null);
     }
 
     public static void help(CommandContext args, WorldEdit we, Actor actor, String prefix, CommandCallable callable) {
-        if (callable == null) {
-            callable = we.getPlatformManager().getCommandManager().getDispatcher();
-        }
-        CommandLocals locals = args.getLocals();
-
-        int page = -1;
-        String category = null;
-        final int perPage = actor instanceof Player ? 8 : 20; // More pages for console
-        int effectiveLength = args.argsLength();
-
-        // Detect page from args
         try {
-            if (effectiveLength > 0) {
-                page = args.getInteger(args.argsLength() - 1);
-                if (page <= 0) {
-                    page = 1;
-                } else {
-                    page--;
-                }
-                effectiveLength--;
+            if (callable == null) {
+                callable = we.getPlatformManager().getCommandManager().getDispatcher();
             }
-        } catch (NumberFormatException ignored) {
-        }
+            CommandLocals locals = args.getLocals();
 
-        boolean isRootLevel = true;
-        List<String> visited = new ArrayList<String>();
+            int page = -1;
+            String category = null;
+            final int perPage = actor instanceof Player ? 8 : 20; // More pages for console
+            int effectiveLength = args.argsLength();
 
-        // Create the message
-        if (callable instanceof Dispatcher) {
-            Dispatcher dispatcher = (Dispatcher) callable;
-
-            // Get a list of aliases
-            List<CommandMapping> aliases = new ArrayList<CommandMapping>(dispatcher.getCommands());
-            // Group by callable
-
-            if (page == -1 || effectiveLength > 0) {
-                Map<String, ArrayList<CommandMapping>> grouped = new TreeMap<>(String.CASE_INSENSITIVE_ORDER);
-                for (CommandMapping mapping : aliases) {
-                    CommandCallable c = mapping.getCallable();
-                    String group;
-                    if (c instanceof ParametricCallable) {
-                        group = ((ParametricCallable) c).getObject().getClass().getSimpleName().replaceAll("Commands", "");
-                    } else {
-                        group = "Miscellaneous";
-                    }
-                    ArrayList<CommandMapping> queue = grouped.get(group);
-                    if (queue == null) {
-                        queue = new ArrayList<>();
-                        grouped.put(group, queue);
-                    }
-                    queue.add(mapping);
-                }
+            // Detect page from args
+            try {
                 if (effectiveLength > 0) {
-                    String cat = args.getString(0);
-                    ArrayList<CommandMapping> mappings = effectiveLength == 1 ? grouped.get(cat) : null;
-                    if (mappings == null) {
-                        // Drill down to the command
-                        for (int i = 0; i < effectiveLength; i++) {
-                            String command = args.getString(i);
+                    page = args.getInteger(args.argsLength() - 1);
+                    if (page <= 0) {
+                        page = 1;
+                    } else {
+                        page--;
+                    }
+                    effectiveLength--;
+                }
+            } catch (NumberFormatException ignored) {
+            }
 
-                            if (callable instanceof Dispatcher) {
-                                // Chop off the beginning / if we're are the root level
-                                if (isRootLevel && command.length() > 1 && command.charAt(0) == '/') {
-                                    command = command.substring(1);
-                                }
+            boolean isRootLevel = true;
+            List<String> visited = new ArrayList<String>();
 
-                                CommandMapping mapping = detectCommand((Dispatcher) callable, command, isRootLevel);
-                                if (mapping != null) {
-                                    callable = mapping.getCallable();
-                                } else {
-                                    if (isRootLevel) {
-                                        Set<String> found = new HashSet<>();
-                                        String arg = args.getString(i).toLowerCase();
-                                        String closest = null;
-                                        int distance = Integer.MAX_VALUE;
-                                        for (CommandMapping map : aliases) {
-                                            String desc = map.getDescription().getDescription();
-                                            if (desc == null) desc = map.getDescription().getHelp();
-                                            if (desc == null) desc = "";
-                                            String[] descSplit = desc.replaceAll("[^A-Za-z0-9]", "").toLowerCase().split(" ");
-                                            for (String alias : map.getAllAliases()) {
-                                                if (alias.equals(arg)) {
-                                                    closest = map.getPrimaryAlias();
-                                                    distance = 0;
-                                                    found.add(map.getPrimaryAlias());
-                                                } else if (alias.contains(arg)) {
-                                                    closest = map.getPrimaryAlias();
-                                                    distance = 1;
-                                                    found.add(map.getPrimaryAlias());
-                                                } else if (StringMan.isEqualIgnoreCaseToAny(arg, descSplit)) {
-                                                    closest = map.getPrimaryAlias();
-                                                    distance = 1;
-                                                    found.add(map.getPrimaryAlias());
-                                                } else {
-                                                    int currentDist = StringMan.getLevenshteinDistance(alias, arg);
-                                                    if (currentDist < distance) {
-                                                        distance = currentDist;
+            // Create the message
+            if (callable instanceof Dispatcher) {
+                Dispatcher dispatcher = (Dispatcher) callable;
+
+                // Get a list of aliases
+                List<CommandMapping> aliases = new ArrayList<CommandMapping>(dispatcher.getCommands());
+                // Group by callable
+
+                if (page == -1 || effectiveLength > 0) {
+                    Map<String, Set<CommandMapping>> grouped = new TreeMap<>(String.CASE_INSENSITIVE_ORDER);
+                    for (CommandMapping mapping : aliases) {
+                        CommandCallable c = mapping.getCallable();
+                        String group;
+                        if (c instanceof DelegateCallable) {
+                            c = ((DelegateCallable) c).getParent();
+                        }
+                        if (c instanceof ParametricCallable) {
+                            Object obj = ((ParametricCallable) c).getObject();
+                            Command command = obj.getClass().getAnnotation(Command.class);
+                            if (command != null && command.aliases().length != 0) {
+                                group = command.aliases()[0];
+                            } else {
+                                group = obj.getClass().getSimpleName().replaceAll("Commands", "").replaceAll("Util$", "");
+                            }
+                        } else if (c instanceof Dispatcher) {
+                            group = mapping.getPrimaryAlias();
+                        } else {
+                            group = "Unsorted";
+                        }
+                        group = StringMan.toProperCase(group);
+                        Set<CommandMapping> queue = grouped.get(group);
+                        if (queue == null) {
+                            queue = new LinkedHashSet<>();
+                            grouped.put(group, queue);
+                        }
+                        if (c instanceof Dispatcher) {
+                            queue.addAll(((Dispatcher) c).getCommands());
+                        } else {
+                            queue.add(mapping);
+                        }
+                    }
+                    if (effectiveLength > 0) {
+                        String cat = args.getString(0);
+                        Set<CommandMapping> mappings = effectiveLength == 1 ? grouped.get(cat) : null;
+                        if (mappings == null) {
+                            // Drill down to the command
+                            for (int i = 0; i < effectiveLength; i++) {
+                                String command = args.getString(i);
+
+                                if (callable instanceof Dispatcher) {
+                                    // Chop off the beginning / if we're are the root level
+                                    if (isRootLevel && command.length() > 1 && command.charAt(0) == '/') {
+                                        command = command.substring(1);
+                                    }
+
+                                    CommandMapping mapping = detectCommand((Dispatcher) callable, command, isRootLevel);
+                                    if (mapping != null) {
+                                        callable = mapping.getCallable();
+                                    } else {
+                                        if (isRootLevel) {
+                                            Set<String> found = new HashSet<>();
+                                            String arg = args.getString(i).toLowerCase();
+                                            String closest = null;
+                                            int distance = Integer.MAX_VALUE;
+                                            for (CommandMapping map : aliases) {
+                                                String desc = map.getDescription().getDescription();
+                                                if (desc == null) desc = map.getDescription().getHelp();
+                                                if (desc == null) desc = "";
+                                                String[] descSplit = desc.replaceAll("[^A-Za-z0-9]", "").toLowerCase().split(" ");
+                                                for (String alias : map.getAllAliases()) {
+                                                    if (alias.equals(arg)) {
                                                         closest = map.getPrimaryAlias();
+                                                        distance = 0;
+                                                        found.add(map.getPrimaryAlias());
+                                                    } else if (alias.contains(arg)) {
+                                                        closest = map.getPrimaryAlias();
+                                                        distance = 1;
+                                                        found.add(map.getPrimaryAlias());
+                                                    } else if (StringMan.isEqualIgnoreCaseToAny(arg, descSplit)) {
+                                                        closest = map.getPrimaryAlias();
+                                                        distance = 1;
+                                                        found.add(map.getPrimaryAlias());
+                                                    } else {
+                                                        int currentDist = StringMan.getLevenshteinDistance(alias, arg);
+                                                        if (currentDist < distance) {
+                                                            distance = currentDist;
+                                                            closest = map.getPrimaryAlias();
+                                                        }
                                                     }
                                                 }
                                             }
+                                            found.add(closest);
+                                            BBC.HELP_SUGGEST.send(actor, arg, StringMan.join(found, ", "));
+                                            return;
+                                        } else {
+                                            actor.printError(String.format("The sub-command '%s' under '%s' could not be found.",
+                                                    command, Joiner.on(" ").join(visited)));
+                                            return;
                                         }
-                                        found.add(closest);
-                                        BBC.HELP_SUGGEST.send(actor, arg, StringMan.join(found, ", "));
-                                        return;
-                                    } else {
-                                        actor.printError(String.format("The sub-command '%s' under '%s' could not be found.",
-                                                command, Joiner.on(" ").join(visited)));
-                                        return;
                                     }
+                                    visited.add(args.getString(i));
+                                    isRootLevel = false;
+                                } else {
+                                    actor.printError(String.format("'%s' has no sub-commands. (Maybe '%s' is for a parameter?)",
+                                            Joiner.on(" ").join(visited), command));
+                                    return;
                                 }
-                                visited.add(args.getString(i));
-                                isRootLevel = false;
-                            } else {
-                                actor.printError(String.format("'%s' has no sub-commands. (Maybe '%s' is for a parameter?)",
-                                        Joiner.on(" ").join(visited), command));
+                            }
+                            if (!(callable instanceof Dispatcher)) {
+                                actor.printRaw(BBC.getPrefix() + ColorCodeBuilder.asColorCodes(new CommandUsageBox(callable, Joiner.on(" ").join(visited))));
                                 return;
                             }
-                        }
-                        if (!(callable instanceof Dispatcher)) {
-                            actor.printRaw(BBC.getPrefix() + ColorCodeBuilder.asColorCodes(new CommandUsageBox(callable, Joiner.on(" ").join(visited))));
-                            return;
-                        }
-                        dispatcher = (Dispatcher) callable;
-                        aliases = new ArrayList<CommandMapping>(dispatcher.getCommands());
-                    } else {
-                        aliases = mappings;
-                    }
-                    page = Math.max(0, page);
-                } else if (grouped.size() > 1) {
-                    StringBuilder message = new StringBuilder();
-                    message.append(BBC.getPrefix() + BBC.HELP_HEADER_CATEGORIES.s() + "\n");
-                    StringBuilder builder = new StringBuilder();
-                    boolean first = true;
-                    for (Map.Entry<String, ArrayList<CommandMapping>> entry : grouped.entrySet()) {
-                        String s1 = "&a//help " + entry.getKey();
-                        String s2 = entry.getValue().size() + "";
-                        message.append(BBC.HELP_ITEM_ALLOWED.format(s1, s2) + "\n");
-                    }
-                    message.append(BBC.HELP_HEADER_FOOTER.s());
-                    actor.print(BBC.color(message.toString()));
-                    return;
-                }
-            }
-//            else
-            {
-                Collections.sort(aliases, new PrimaryAliasComparator(CommandManager.COMMAND_CLEAN_PATTERN));
-
-                // Calculate pagination
-                int offset = perPage * Math.max(0, page);
-                int pageTotal = (int) Math.ceil(aliases.size() / (double) perPage);
-
-                // Box
-                StringBuilder message = new StringBuilder();
-
-                if (offset >= aliases.size()) {
-                    message.append("&c").append(String.format("There is no page %d (total number of pages is %d).", page + 1, pageTotal));
-                } else {
-                    message.append(BBC.getPrefix() + BBC.HELP_HEADER.format(page + 1, pageTotal) + "\n");
-                    List<CommandMapping> list = aliases.subList(offset, Math.min(offset + perPage, aliases.size() - 1));
-
-                    boolean first = true;
-                    // Add each command
-                    for (CommandMapping mapping : list) {
-                        CommandCallable c = mapping.getCallable();
-                        StringBuilder s1 = new StringBuilder();
-                        s1.append(prefix);
-                        if (!visited.isEmpty()) {
-                            s1.append(Joiner.on(" ").join(visited));
-                            s1.append(" ");
-                        }
-                        s1.append(mapping.getPrimaryAlias());
-                        String s2 = mapping.getDescription().getDescription();
-                        if (c.testPermission(locals)) {
-                            message.append(BBC.HELP_ITEM_ALLOWED.format(s1, s2) + "\n");
+                            dispatcher = (Dispatcher) callable;
+                            aliases = new ArrayList<CommandMapping>(dispatcher.getCommands());
                         } else {
-                            message.append(BBC.HELP_ITEM_DENIED.format(s1, s2) + "\n");
+                            aliases = new ArrayList<>(mappings);
                         }
+                        page = Math.max(0, page);
+                    } else if (grouped.size() > 1) {
+                        StringBuilder message = new StringBuilder();
+                        message.append(BBC.getPrefix() + BBC.HELP_HEADER_CATEGORIES.s() + "\n");
+                        StringBuilder builder = new StringBuilder();
+                        boolean first = true;
+                        for (Map.Entry<String, Set<CommandMapping>> entry : grouped.entrySet()) {
+                            String s1 = "&a//help " + entry.getKey();
+                            String s2 = entry.getValue().size() + "";
+                            message.append(BBC.HELP_ITEM_ALLOWED.format(s1, s2) + "\n");
+                        }
+                        message.append(BBC.HELP_HEADER_FOOTER.s());
+                        actor.print(BBC.color(message.toString()));
+                        return;
                     }
-                    message.append(BBC.HELP_HEADER_FOOTER.f());
                 }
-                actor.print(BBC.color(message.toString()));
+//            else
+                {
+                    Collections.sort(aliases, new PrimaryAliasComparator(CommandManager.COMMAND_CLEAN_PATTERN));
+
+                    // Calculate pagination
+                    int offset = perPage * Math.max(0, page);
+                    int pageTotal = (int) Math.ceil(aliases.size() / (double) perPage);
+
+                    // Box
+                    StringBuilder message = new StringBuilder();
+
+                    if (offset >= aliases.size()) {
+                        message.append("&c").append(String.format("There is no page %d (total number of pages is %d).", page + 1, pageTotal));
+                    } else {
+                        message.append(BBC.getPrefix() + BBC.HELP_HEADER.format(page + 1, pageTotal) + "\n");
+                        List<CommandMapping> list = aliases.subList(offset, Math.min(offset + perPage, aliases.size()));
+
+                        boolean first = true;
+                        // Add each command
+                        for (CommandMapping mapping : list) {
+                            CommandCallable c = mapping.getCallable();
+                            StringBuilder s1 = new StringBuilder();
+                            s1.append(prefix);
+                            if (!visited.isEmpty()) {
+                                s1.append(Joiner.on(" ").join(visited));
+                                s1.append(" ");
+                            }
+                            s1.append(mapping.getPrimaryAlias());
+                            String s2 = mapping.getDescription().getDescription();
+                            if (c.testPermission(locals)) {
+                                message.append(BBC.HELP_ITEM_ALLOWED.format(s1, s2) + "\n");
+                            } else {
+                                message.append(BBC.HELP_ITEM_DENIED.format(s1, s2) + "\n");
+                            }
+                        }
+                        message.append(BBC.HELP_HEADER_FOOTER.f());
+                    }
+                    actor.print(BBC.color(message.toString()));
+                }
+            } else {
+                actor.printRaw(BBC.getPrefix() + ColorCodeBuilder.asColorCodes(new CommandUsageBox(callable, Joiner.on(" ").join(visited))));
             }
-        } else {
-            actor.printRaw(BBC.getPrefix() + ColorCodeBuilder.asColorCodes(new CommandUsageBox(callable, Joiner.on(" ").join(visited))));
+        } catch (Throwable e) {
+            e.printStackTrace();
+            throw new RuntimeException(e);
         }
     }
 

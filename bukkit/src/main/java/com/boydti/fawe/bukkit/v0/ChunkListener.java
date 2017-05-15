@@ -5,12 +5,11 @@ import com.boydti.fawe.bukkit.FaweBukkit;
 import com.boydti.fawe.config.Settings;
 import com.boydti.fawe.util.MathMan;
 import com.boydti.fawe.util.TaskManager;
+import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
 import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
-import java.util.HashSet;
 import org.bukkit.Bukkit;
 import org.bukkit.Chunk;
 import org.bukkit.Location;
-import org.bukkit.Material;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.EntityType;
@@ -23,7 +22,8 @@ import org.bukkit.event.entity.ItemSpawnEvent;
 
 public class ChunkListener implements Listener {
 
-    int rateLimit = 0;
+    private int rateLimit = 0;
+    private int[] badLimit = new int[]{Settings.IMP.TICK_LIMITER.PHYSICS, Settings.IMP.TICK_LIMITER.FALLING, Settings.IMP.TICK_LIMITER.ITEMS};
 
     public ChunkListener() {
         if (Settings.IMP.TICK_LIMITER.ENABLED) {
@@ -34,10 +34,14 @@ public class ChunkListener implements Listener {
                     rateLimit--;
                     physicsFreeze = false;
                     itemFreeze = false;
-                    counter.clear();
                     lastZ = Integer.MIN_VALUE;
-                    for (Long badChunk : badChunks) {
-                        counter.put(badChunk, new int[]{Settings.IMP.TICK_LIMITER.PHYSICS, Settings.IMP.TICK_LIMITER.ITEMS, Settings.IMP.TICK_LIMITER.FALLING});
+
+                    counter.clear();
+                    for (Long2ObjectMap.Entry<Boolean> entry : badChunks.long2ObjectEntrySet()) {
+                        long key = entry.getLongKey();
+                        int x = MathMan.unpairIntX(key);
+                        int z = MathMan.unpairIntY(key);
+                        counter.put(key, badLimit);
                     }
                     badChunks.clear();
                 }
@@ -48,7 +52,7 @@ public class ChunkListener implements Listener {
     public static boolean physicsFreeze = false;
     public static boolean itemFreeze = false;
 
-    private HashSet<Long> badChunks = new HashSet<>();
+    private Long2ObjectOpenHashMap<Boolean> badChunks = new Long2ObjectOpenHashMap<>();
     private Long2ObjectOpenHashMap<int[]> counter = new Long2ObjectOpenHashMap<>();
     private int lastX = Integer.MIN_VALUE, lastZ = Integer.MIN_VALUE;
     private int[] lastCount;
@@ -100,16 +104,31 @@ public class ChunkListener implements Listener {
             if (y != lastPhysY) {
                 lastPhysY = y;
                 if (++count[0] == Settings.IMP.TICK_LIMITER.PHYSICS) {
-                    badChunks.add(MathMan.pairInt(cx, cz));
+                    cancelNearby(cx, cz);
                     if (rateLimit <= 0) {
-                        rateLimit = 120;
+                        rateLimit = 20;
                         Fawe.debug("[FAWE `tick-limiter`] Detected and cancelled physics  lag source at " + block.getLocation());
                     }
+                    event.setCancelled(true);
                 }
                 return;
             }
             lastPhysY = y;
         }
+    }
+
+    private void cancelNearby(int cx, int cz) {
+        cancel(cx, cz);
+        cancel(cx + 1, cz);
+        cancel(cx - 1, cz);
+        cancel(cx, cz + 1);
+        cancel(cx, cz - 1);
+    }
+
+    private void cancel(int cx, int cz) {
+        long key = MathMan.pairInt(cx, cz);
+        badChunks.put(key, (Boolean) true);
+        counter.put(key, badLimit);
     }
 
     @EventHandler(priority = EventPriority.LOWEST)
@@ -118,18 +137,21 @@ public class ChunkListener implements Listener {
             event.setCancelled(true);
             return;
         }
-        Material to = event.getTo();
-        if (to == Material.AIR) {
-            Block block = event.getBlock();
-            int x = block.getX();
-            int z = block.getZ();
-            int cx = x >> 4;
-            int cz = z >> 4;
-            int[] count = getCount(cx, cz);
+        Block block = event.getBlock();
+        int x = block.getX();
+        int z = block.getZ();
+        int cx = x >> 4;
+        int cz = z >> 4;
+        int[] count = getCount(cx, cz);
+        if (count[1] >= Settings.IMP.TICK_LIMITER.FALLING) {
+            event.setCancelled(true);
+            return;
+        }
+        if (event.getEntityType() == EntityType.FALLING_BLOCK) {
             if (++count[1] >= Settings.IMP.TICK_LIMITER.FALLING) {
-                if (count[1] == Settings.IMP.TICK_LIMITER.FALLING) {
-                    count[0] = Settings.IMP.TICK_LIMITER.PHYSICS;
-                    badChunks.add(MathMan.pairInt(cx, cz));
+                cancelNearby(cx, cz);
+                if (rateLimit <= 0) {
+                    rateLimit = 20;
                     Fawe.debug("[FAWE `tick-limiter`] Detected and cancelled falling block lag source at " + block.getLocation());
                 }
                 event.setCancelled(true);
@@ -148,15 +170,16 @@ public class ChunkListener implements Listener {
         int cx = loc.getBlockX() >> 4;
         int cz = loc.getBlockZ() >> 4;
         int[] count = getCount(cx, cz);
+        if (count[2] >= Settings.IMP.TICK_LIMITER.ITEMS) {
+            event.setCancelled(true);
+            return;
+        }
         if (++count[2] >= Settings.IMP.TICK_LIMITER.ITEMS) {
-            if (count[2] == Settings.IMP.TICK_LIMITER.ITEMS) {
-                count[0] = Settings.IMP.TICK_LIMITER.PHYSICS;
-                cleanup(loc.getChunk());
-                badChunks.add(MathMan.pairInt(cx, cz));
-                if (rateLimit <= 0) {
-                    rateLimit = 120;
-                    Fawe.debug("[FAWE `tick-limiter`] Detected and cancelled item lag source at " + loc);
-                }
+            cleanup(loc.getChunk());
+            cancelNearby(cx, cz);
+            if (rateLimit <= 0) {
+                rateLimit = 20;
+                Fawe.debug("[FAWE `tick-limiter`] Detected and cancelled item lag source at " + loc);
             }
             event.setCancelled(true);
             return;

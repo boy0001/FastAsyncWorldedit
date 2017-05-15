@@ -23,13 +23,13 @@ import com.sk89q.worldedit.EditSession;
 import com.sk89q.worldedit.LocalPlayer;
 import com.sk89q.worldedit.LocalSession;
 import com.sk89q.worldedit.Vector;
-
+import java.io.Serializable;
 import javax.annotation.Nullable;
 
 /**
  * Tests whether a given vector meets a criteria.
  */
-public interface Mask extends com.sk89q.worldedit.masks.Mask {
+public interface Mask extends com.sk89q.worldedit.masks.Mask, Serializable {
 
     /**
      * Returns true if the criteria is met.

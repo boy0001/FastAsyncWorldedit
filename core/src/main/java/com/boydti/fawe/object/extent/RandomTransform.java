@@ -19,10 +19,11 @@ import static com.google.common.base.Preconditions.checkNotNull;
  */
 public class RandomTransform extends SelectTransform {
 
-    private final SimpleRandom random;
+    private SimpleRandom random;
     private Map<ResettableExtent, Double> weights = new HashMap<>();
-    private RandomCollection<ResettableExtent> collection;
-    private LinkedHashSet<ResettableExtent> extents = new LinkedHashSet<>();
+
+    private transient RandomCollection<ResettableExtent> collection;
+    private transient LinkedHashSet<ResettableExtent> extents = new LinkedHashSet<>();
 
     public RandomTransform() {
         this(new TrueRandom());
@@ -44,6 +45,10 @@ public class RandomTransform extends SelectTransform {
 
     @Override
     public ResettableExtent setExtent(Extent extent) {
+        if (collection == null) {
+            collection = RandomCollection.of(weights, random);
+            extents = new LinkedHashSet<>(weights.keySet());
+        }
         for (AbstractDelegateExtent current : extents) {
             if (current instanceof ResettableExtent) {
                 ((ResettableExtent) current).setExtent(extent);

@@ -21,6 +21,8 @@ package com.sk89q.worldedit.blocks;
 
 import com.boydti.fawe.FaweCache;
 import com.sk89q.jnbt.CompoundTag;
+import com.sk89q.jnbt.NBTInputStream;
+import com.sk89q.jnbt.NBTOutputStream;
 import com.sk89q.jnbt.StringTag;
 import com.sk89q.jnbt.Tag;
 import com.sk89q.worldedit.CuboidClipboard.FlipDirection;
@@ -31,9 +33,11 @@ import com.sk89q.worldedit.foundation.Block;
 import com.sk89q.worldedit.function.mask.Mask;
 import com.sk89q.worldedit.function.pattern.Pattern;
 import com.sk89q.worldedit.world.registry.WorldData;
-
-import javax.annotation.Nullable;
+import java.io.DataInputStream;
+import java.io.IOException;
+import java.io.Serializable;
 import java.util.Collection;
+import javax.annotation.Nullable;
 
 /**
  * Represents a mutable "snapshot" of a block.
@@ -59,7 +63,7 @@ import java.util.Collection;
  * more appropriate.</p>
  */
 @SuppressWarnings("deprecation")
-public class BaseBlock extends Block implements TileEntityBlock, Pattern {
+public class BaseBlock extends Block implements TileEntityBlock, Pattern, Serializable {
 
     /**
      * Indicates the highest possible block ID (inclusive) that can be used.
@@ -79,10 +83,10 @@ public class BaseBlock extends Block implements TileEntityBlock, Pattern {
     // Instances of this class should be _as small as possible_ because there will
     // be millions of instances of this object.
 
-    private short id;
-    private short data;
+    private transient short id;
+    private transient short data;
     @Nullable
-    private CompoundTag nbtData;
+    private transient CompoundTag nbtData;
 
     /**
      * Construct a block with the given ID and a data value of 0.
@@ -168,6 +172,11 @@ public class BaseBlock extends Block implements TileEntityBlock, Pattern {
     @Override
     public void setId(int id) {
         internalSetId(id);
+    }
+
+    public void setCombined(int combined) {
+        setId(FaweCache.getId(combined));
+        setData(FaweCache.getData(combined));
     }
 
     /**
@@ -440,6 +449,21 @@ public class BaseBlock extends Block implements TileEntityBlock, Pattern {
     @Override
     public boolean apply(Extent extent, Vector setPosition, Vector getPosition) throws WorldEditException {
         return extent.setBlock(setPosition, this);
+    }
+
+    private void writeObject(java.io.ObjectOutputStream stream) throws IOException {
+        stream.writeChar(getCombined());
+        stream.writeBoolean(nbtData != null);
+        if (nbtData != null) {
+            new NBTOutputStream(stream).writeTag(nbtData);
+        }
+    }
+
+    private void readObject(java.io.ObjectInputStream stream) throws IOException, ClassNotFoundException {
+        setCombined(stream.readChar());
+        if (stream.readBoolean()) {
+            this.nbtData = (CompoundTag) new NBTInputStream(new DataInputStream(stream)).readTag();
+        }
     }
 
     public static Class<BaseBlock> inject() {

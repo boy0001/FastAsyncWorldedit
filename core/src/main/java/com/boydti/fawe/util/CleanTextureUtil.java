@@ -10,7 +10,7 @@ public class CleanTextureUtil extends TextureUtil {
         long min = parent.distances[minIndex];
         long max = parent.distances[maxIndex];
         for (; minIndex > 0 && parent.distances[minIndex - 1] == min; minIndex--);
-        for (; maxIndex < parent.distances.length - 2 && parent.distances[maxIndex + 1] == max; maxIndex++);
+        for (; maxIndex < parent.distances.length - 1 && parent.distances[maxIndex + 1] == max; maxIndex++);
         int num = maxIndex - minIndex + 1;
         this.validBiomes = parent.validBiomes;
         this.blockColors = parent.blockColors;

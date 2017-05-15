@@ -11,9 +11,9 @@ import com.sk89q.worldedit.world.biome.BaseBiome;
 
 public class PositionTransformExtent extends ResettableExtent {
 
-    private final MutableBlockVector mutable = new MutableBlockVector();
+    private transient MutableBlockVector mutable = new MutableBlockVector();
+    private transient Vector min;
     private Transform transform;
-    private Vector min;
 
     public PositionTransformExtent(Extent parent, Transform transform) {
         super(parent);
@@ -22,6 +22,7 @@ public class PositionTransformExtent extends ResettableExtent {
 
     @Override
     public ResettableExtent setExtent(Extent extent) {
+        mutable = new MutableBlockVector();
         min = null;
         return super.setExtent(extent);
     }

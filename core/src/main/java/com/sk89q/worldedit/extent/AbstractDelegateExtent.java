@@ -45,7 +45,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
  */
 public class AbstractDelegateExtent implements LightingExtent {
 
-    private final Extent extent;
+    private transient final Extent extent;
 
     /**
      * Create a new instance.

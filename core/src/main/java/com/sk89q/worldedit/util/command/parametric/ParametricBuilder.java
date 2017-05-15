@@ -29,16 +29,17 @@ import com.sk89q.minecraft.util.commands.CommandPermissions;
 import com.sk89q.worldedit.command.MethodCommands;
 import com.sk89q.worldedit.util.auth.Authorizer;
 import com.sk89q.worldedit.util.auth.NullAuthorizer;
+import com.sk89q.worldedit.util.command.CallableProcessor;
 import com.sk89q.worldedit.util.command.CommandCallable;
 import com.sk89q.worldedit.util.command.CommandCompleter;
 import com.sk89q.worldedit.util.command.Dispatcher;
 import com.sk89q.worldedit.util.command.NullCompleter;
+import com.sk89q.worldedit.util.command.ProcessedCallable;
 import com.sk89q.worldedit.util.command.binding.PrimitiveBindings;
 import com.sk89q.worldedit.util.command.binding.StandardBindings;
 import com.sk89q.worldedit.util.command.binding.Switch;
 import com.thoughtworks.paranamer.CachingParanamer;
 import com.thoughtworks.paranamer.Paranamer;
-import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;
 import java.lang.reflect.Type;
 import java.util.ArrayList;
@@ -154,11 +155,27 @@ public class ParametricBuilder {
      * @throws com.sk89q.worldedit.util.command.parametric.ParametricException thrown if the commands cannot be registered
      */
     public void registerMethodsAsCommands(Dispatcher dispatcher, Object object) throws ParametricException {
+        registerMethodsAsCommands(dispatcher, object, null);
+    }
+
+    /**
+     * Build a list of commands from methods specially annotated with {@link Command}
+     * (and other relevant annotations) and register them all with the given
+     * {@link Dispatcher}.
+     *
+     * @param dispatcher the dispatcher to register commands with
+     * @param object the object contain the methods
+     * @throws com.sk89q.worldedit.util.command.parametric.ParametricException thrown if the commands cannot be registered
+     */
+    public void registerMethodsAsCommands(Dispatcher dispatcher, Object object, CallableProcessor processor) throws ParametricException {
         for (Method method : object.getClass().getDeclaredMethods()) {
             Command definition = method.getAnnotation(Command.class);
             if (definition != null) {
                 definition = Commands.translate(method.getDeclaringClass(), definition);
                 CommandCallable callable = build(object, method, definition);
+                if (processor != null) {
+                    callable = new ProcessedCallable(callable, processor);
+                }
                 if (object instanceof MethodCommands) {
                     ((MethodCommands) object).register(method, callable, dispatcher);
                 }
@@ -179,10 +196,7 @@ public class ParametricBuilder {
     private CommandCallable build(Object object, Method method, Command definition)
             throws ParametricException {
         try {
-            Class<?> clazz = Class.forName("com.sk89q.worldedit.util.command.parametric.ParametricCallable");
-            Constructor<?> constructor = clazz.getDeclaredConstructors()[0];
-            constructor.setAccessible(true);
-            return (CommandCallable) constructor.newInstance(this, object, method, definition);
+            return new ParametricCallable(this, object, method, definition);
         } catch (Throwable e) {
             if (e instanceof ParametricException) {
                 throw (ParametricException) e;

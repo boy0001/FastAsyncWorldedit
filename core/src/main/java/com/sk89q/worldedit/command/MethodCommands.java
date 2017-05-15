@@ -2,6 +2,9 @@ package com.sk89q.worldedit.command;
 
 import com.boydti.fawe.config.Commands;
 import com.sk89q.minecraft.util.commands.Command;
+import com.sk89q.minecraft.util.commands.CommandContext;
+import com.sk89q.minecraft.util.commands.CommandLocals;
+import com.sk89q.minecraft.util.commands.CommandPermissions;
 import com.sk89q.worldedit.WorldEdit;
 import com.sk89q.worldedit.util.command.CommandCallable;
 import com.sk89q.worldedit.util.command.Dispatcher;
@@ -66,5 +69,31 @@ public class MethodCommands {
             e.printStackTrace();
         }
         return null;
+    }
+
+    public String getArguments(CommandContext context) {
+        CommandLocals locals = context.getLocals();
+        if (locals != null) {
+            return (String) locals.get("arguments");
+        }
+        return null;
+    }
+
+    public String[] getPermissions() {
+        try {
+            StackTraceElement[] stack = new Exception().getStackTrace();
+            for (StackTraceElement elem : stack) {
+                Class<?> clazz = Class.forName(elem.getClassName());
+                for (Method method : clazz.getMethods()) {
+                    if (method.getName().equals(elem.getMethodName())) {
+                        CommandPermissions perm = method.getAnnotation(CommandPermissions.class);
+                        if (perm != null) return perm.value();
+                    }
+                }
+            }
+        } catch (Throwable e) {
+            e.printStackTrace();
+        }
+        return new String[0];
     }
 }

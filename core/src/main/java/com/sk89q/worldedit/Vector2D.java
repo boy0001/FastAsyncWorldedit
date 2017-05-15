@@ -20,18 +20,19 @@
 package com.sk89q.worldedit;
 
 import com.sk89q.worldedit.math.transform.AffineTransform;
+import java.io.IOException;
+import java.io.Serializable;
 
 /**
  * An immutable 2-dimensional vector.
  */
-public class Vector2D {
+public class Vector2D implements Serializable {
     public static final Vector2D ZERO = new Vector2D(0, 0);
     public static final Vector2D UNIT_X = new Vector2D(1, 0);
     public static final Vector2D UNIT_Z = new Vector2D(0, 1);
     public static final Vector2D ONE = new Vector2D(1, 1);
 
-    public double x;
-    public double z;
+    public transient double x, z;
 
     /**
      * Construct an instance.
@@ -663,6 +664,18 @@ public class Vector2D {
                 Math.max(v1.getX(), v2.getX()),
                 Math.max(v1.getZ(), v2.getZ())
         );
+    }
+
+    private void writeObject(java.io.ObjectOutputStream stream) throws IOException {
+        if (this instanceof MutableBlockVector2D) return;
+        stream.writeDouble(x);
+        stream.writeDouble(z);
+    }
+
+    private void readObject(java.io.ObjectInputStream stream) throws IOException, ClassNotFoundException {
+        if (this instanceof MutableBlockVector2D) return;
+        this.x = stream.readDouble();
+        this.z = stream.readDouble();
     }
 
     public static Class<?> inject() {

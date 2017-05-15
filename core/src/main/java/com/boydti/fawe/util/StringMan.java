@@ -41,6 +41,11 @@ public class StringMan {
         return -1;
     }
 
+    public static String toProperCase(String s) {
+        return s.substring(0, 1).toUpperCase() +
+                s.substring(1);
+    }
+
     public static List<String> split(String input, char delim) {
         List<String> result = new ArrayList<String>();
         int start = 0;

@@ -35,7 +35,7 @@ import com.sk89q.worldedit.command.BrushCommands;
 import com.sk89q.worldedit.command.ChunkCommands;
 import com.sk89q.worldedit.command.ClipboardCommands;
 import com.sk89q.worldedit.command.FlattenedClipboardTransform;
-import com.sk89q.worldedit.command.GeneralCommands;
+import com.sk89q.worldedit.command.OptionsCommands;
 import com.sk89q.worldedit.command.GenerationCommands;
 import com.sk89q.worldedit.command.HistoryCommands;
 import com.sk89q.worldedit.command.NavigationCommands;
@@ -46,7 +46,7 @@ import com.sk89q.worldedit.command.SnapshotCommands;
 import com.sk89q.worldedit.command.SnapshotUtilCommands;
 import com.sk89q.worldedit.command.SuperPickaxeCommands;
 import com.sk89q.worldedit.command.ToolCommands;
-import com.sk89q.worldedit.command.ToolUtilCommands;
+import com.sk89q.worldedit.command.BrushOptionsCommands;
 import com.sk89q.worldedit.command.UtilityCommands;
 import com.sk89q.worldedit.command.WorldEditCommands;
 import com.sk89q.worldedit.command.composition.SelectionCommand;
@@ -77,6 +77,8 @@ import com.sk89q.worldedit.extent.transform.BlockTransformExtent;
 import com.sk89q.worldedit.function.block.BlockReplace;
 import com.sk89q.worldedit.function.block.ExtentBlockCopy;
 import com.sk89q.worldedit.function.entity.ExtentEntityCopy;
+import com.sk89q.worldedit.function.mask.AbstractExtentMask;
+import com.sk89q.worldedit.function.mask.AbstractMask;
 import com.sk89q.worldedit.function.mask.BlockMask;
 import com.sk89q.worldedit.function.mask.FuzzyBlockMask;
 import com.sk89q.worldedit.function.mask.Mask;
@@ -87,6 +89,7 @@ import com.sk89q.worldedit.function.mask.SolidBlockMask;
 import com.sk89q.worldedit.function.operation.ChangeSetExecutor;
 import com.sk89q.worldedit.function.operation.ForwardExtentCopy;
 import com.sk89q.worldedit.function.operation.Operations;
+import com.sk89q.worldedit.function.pattern.AbstractPattern;
 import com.sk89q.worldedit.function.pattern.BlockPattern;
 import com.sk89q.worldedit.function.pattern.ClipboardPattern;
 import com.sk89q.worldedit.function.pattern.Pattern;
@@ -115,6 +118,7 @@ import com.sk89q.worldedit.session.PasteBuilder;
 import com.sk89q.worldedit.session.SessionManager;
 import com.sk89q.worldedit.session.request.Request;
 import com.sk89q.worldedit.util.command.SimpleDispatcher;
+import com.sk89q.worldedit.util.command.fluent.DispatcherNode;
 import com.sk89q.worldedit.util.command.parametric.ParameterData;
 import com.sk89q.worldedit.util.command.parametric.ParametricBuilder;
 import com.sk89q.worldedit.util.command.parametric.ParametricCallable;
@@ -133,6 +137,7 @@ import java.lang.management.MemoryUsage;
 import java.util.Collection;
 import java.util.Date;
 import java.util.List;
+import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
 import javax.annotation.Nullable;
@@ -423,8 +428,6 @@ public class Fawe {
          */
         try {
             // Setting up commands.yml
-            Commands.load(new File(INSTANCE.IMP.getDirectory(), "commands.yml"));
-            Commands.inject(); // Translations
             EditSession.inject(); // Custom block placer + optimizations
             EditSessionEvent.inject(); // Add EditSession to event (API)
             LocalSession.inject(); // Add remember order / queue flushing / Optimizations for disk / brush visualization
@@ -433,6 +436,8 @@ public class Fawe {
             AbstractPlayerActor.inject(); // Don't use exception for getBlockInHand control flow
             Request.inject(); // Custom pattern extent
             // Commands
+            Commands.load(new File(INSTANCE.IMP.getDirectory(), "commands.yml"));
+            Commands.inject(); // Translations
             BiomeCommands.inject(); // Translations + Optimizations
             ChunkCommands.inject(); // Translations + Optimizations
             GenerationCommands.inject(); // Translations + Optimizations
@@ -453,8 +458,9 @@ public class Fawe {
             ParametricBuilder.inject(); // Translations
             ParametricCallable.inject(); // Translations
             ParameterData.inject(); // Translations
-            ToolUtilCommands.inject(); // Fixes + Translations
-            GeneralCommands.inject(); // Translations + gmask args
+            BrushOptionsCommands.inject(); // Fixes + Translations
+            OptionsCommands.inject(); // Translations + gmask args
+            DispatcherNode.inject(); // Method command delegate
             // Formatting
             MessageBox.inject();
             Fragment.inject();
@@ -521,6 +527,7 @@ public class Fawe {
             HashTagPatternParser.inject(); // Add new patterns
             DefaultBlockParser.inject(); // Fix block lookups
             BlockPattern.inject(); // Optimization
+            AbstractPattern.inject();
             // Mask
             Mask.inject(); // Extend deprecated mask
             BlockMask.inject(); // Optimizations
@@ -530,6 +537,8 @@ public class Fawe {
             DefaultMaskParser.inject(); // Add new masks
             Masks.inject(); // Optimizations
             MaskUnion.inject(); // Optimizations
+            AbstractMask.inject(); // Serializing
+            AbstractExtentMask.inject(); // Serializing
             // Operations
             Operations.inject(); // Optimizations
             ExtentBlockCopy.inject(); // Optimizations
@@ -688,17 +697,24 @@ public class Fawe {
     }
 
     private ConcurrentHashMap<String, FawePlayer> players = new ConcurrentHashMap<>(8, 0.9f, 1);
+    private ConcurrentHashMap<UUID, FawePlayer> playersUUID = new ConcurrentHashMap<>(8, 0.9f, 1);
 
     public <T> void register(FawePlayer<T> player) {
         players.put(player.getName(), player);
+        playersUUID.put(player.getUUID(), player);
     }
 
     public <T> void unregister(String name) {
-        players.remove(name);
+        FawePlayer player = players.remove(name);
+        if (player != null) playersUUID.remove(player.getUUID());
     }
 
     public FawePlayer getCachedPlayer(String name) {
         return players.get(name);
+    }
+
+    public FawePlayer getCachedPlayer(UUID uuid) {
+        return playersUUID.get(uuid);
     }
 
     public Collection<FawePlayer> getCachedPlayers() {

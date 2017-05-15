@@ -2,17 +2,13 @@ package com.boydti.fawe.object.extent;
 
 import com.sk89q.worldedit.extent.AbstractDelegateExtent;
 import com.sk89q.worldedit.extent.Extent;
-import java.util.Arrays;
-import java.util.Collection;
 
 public class Linear3DTransform extends SelectTransform {
 
-    private final Collection<ResettableExtent> extents;
     private final ResettableExtent[] extentsArray;
 
     public Linear3DTransform(ResettableExtent[] extents) {
         this.extentsArray = extents;
-        this.extents = Arrays.asList(extents);
     }
 
     @Override

@@ -13,20 +13,20 @@ import java.util.Collection;
 import javax.annotation.Nullable;
 
 public class MultiTransform extends RandomTransform {
-    private AbstractDelegateExtent[] extents;
+    private ResettableExtent[] extents;
 
     public MultiTransform(Collection<ResettableExtent> extents) {
         for (ResettableExtent extent : extents) add(extent, 1);
     }
 
     public MultiTransform() {
-        this.extents = new AbstractDelegateExtent[0];
+        this.extents = new ResettableExtent[0];
     }
 
     @Override
     public void add(ResettableExtent extent, double chance) {
         super.add(extent, chance);
-        this.extents = getExtents().toArray(new AbstractDelegateExtent[getExtents().size()]);
+        this.extents = getExtents().toArray(new ResettableExtent[getExtents().size()]);
     }
     @Override
     public boolean setBlock(int x, int y, int z, BaseBlock block) throws WorldEditException {

@@ -23,12 +23,13 @@ import com.sk89q.worldedit.Vector;
 import com.sk89q.worldedit.WorldEditException;
 import com.sk89q.worldedit.blocks.BaseBlock;
 import com.sk89q.worldedit.extent.Extent;
+import java.io.Serializable;
 
 /**
  * @deprecated See {@link com.sk89q.worldedit.function.pattern.Pattern}
  */
 @Deprecated
-public interface Pattern{
+public interface Pattern extends Serializable {
 
     /**
      * Get a block for a position. This return value of this method does

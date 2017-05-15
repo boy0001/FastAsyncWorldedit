@@ -6,9 +6,9 @@ import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 
 public class CachedTextureUtil extends DelegateTextureUtil {
     private final TextureUtil parent;
-    private Int2ObjectOpenHashMap<Integer> colorBlockMap;
-    private Int2ObjectOpenHashMap<Integer> colorBiomeMap;
-    private Int2ObjectOpenHashMap<char[]> colorLayerMap;
+    private transient Int2ObjectOpenHashMap<Integer> colorBlockMap;
+    private transient Int2ObjectOpenHashMap<Integer> colorBiomeMap;
+    private transient Int2ObjectOpenHashMap<char[]> colorLayerMap;
 
     public CachedTextureUtil(TextureUtil parent) {
         super(parent);

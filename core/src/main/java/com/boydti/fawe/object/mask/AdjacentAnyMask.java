@@ -2,15 +2,16 @@ package com.boydti.fawe.object.mask;
 
 import com.sk89q.worldedit.MutableBlockVector;
 import com.sk89q.worldedit.Vector;
+import com.sk89q.worldedit.function.mask.AbstractMask;
 import com.sk89q.worldedit.function.mask.Mask;
 
 /**
  * Just an optimized version of the Adjacent Mask for single adjacency
  */
-public class AdjacentAnyMask implements Mask {
+public class AdjacentAnyMask extends AbstractMask implements ResettableMask {
 
     private final Mask mask;
-    private MutableBlockVector mutable = new MutableBlockVector();
+    private transient MutableBlockVector mutable = new MutableBlockVector();
 
     public AdjacentAnyMask(Mask mask) {
         this.mask = mask;
@@ -18,6 +19,11 @@ public class AdjacentAnyMask implements Mask {
 
     public Mask getMask() {
         return mask;
+    }
+
+    @Override
+    public void reset() {
+        mutable = new MutableBlockVector();
     }
 
     @Override

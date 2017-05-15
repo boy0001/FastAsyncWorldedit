@@ -1,7 +1,6 @@
 package com.boydti.fawe.object.pattern;
 
 import com.boydti.fawe.FaweCache;
-import com.boydti.fawe.object.PseudoRandom;
 import com.sk89q.worldedit.MutableBlockVector;
 import com.sk89q.worldedit.Vector;
 import com.sk89q.worldedit.WorldEditException;
@@ -10,19 +9,28 @@ import com.sk89q.worldedit.blocks.BlockType;
 import com.sk89q.worldedit.extent.Extent;
 import com.sk89q.worldedit.function.pattern.AbstractPattern;
 import com.sk89q.worldedit.function.pattern.Pattern;
+import java.io.IOException;
+import java.util.SplittableRandom;
 
 public class SolidRandomOffsetPattern extends AbstractPattern {
-    private final PseudoRandom r  = new PseudoRandom();
-    private final int dx, dy, dz, dx2, dy2, dz2;
+    private final int dx, dy, dz;
     private final Pattern pattern;
-    private final MutableBlockVector mutable = new MutableBlockVector();
-    boolean[] solid;
+
+    private transient int dx2, dy2, dz2;
+    private transient MutableBlockVector mutable;
+    private transient boolean[] solid;
+    private SplittableRandom r;
+
 
     public SolidRandomOffsetPattern(Pattern pattern, int dx, int dy, int dz) {
         this.pattern = pattern;
         this.dx = dx;
         this.dy = dy;
         this.dz = dz;
+        init();
+    }
+
+    private void init() {
         this.dx2 = dx * 2 + 1;
         this.dy2 = dy * 2 + 1;
         this.dz2 = dz * 2 + 1;
@@ -34,6 +42,8 @@ public class SolidRandomOffsetPattern extends AbstractPattern {
                 }
             }
         }
+        this.r = new SplittableRandom();
+        this.mutable = new MutableBlockVector();
     }
 
     @Override
@@ -60,5 +70,10 @@ public class SolidRandomOffsetPattern extends AbstractPattern {
         } else {
             return pattern.apply(extent, set, get);
         }
+    }
+
+    private void readObject(java.io.ObjectInputStream stream) throws IOException, ClassNotFoundException {
+        stream.defaultReadObject();
+        init();
     }
 }

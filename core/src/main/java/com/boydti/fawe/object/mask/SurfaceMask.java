@@ -7,7 +7,7 @@ import com.sk89q.worldedit.extent.Extent;
 import com.sk89q.worldedit.function.mask.BlockMask;
 
 public class SurfaceMask extends AdjacentAnyMask {
-    private final Extent extent;
+    private final transient Extent extent;
 
     public SurfaceMask(Extent extent) {
         super(new BlockMask(extent, new BaseBlock(0)));

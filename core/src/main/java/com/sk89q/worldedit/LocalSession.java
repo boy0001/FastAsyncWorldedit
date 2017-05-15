@@ -31,7 +31,6 @@ import com.boydti.fawe.object.changeset.FaweChangeSet;
 import com.boydti.fawe.object.extent.ResettableExtent;
 import com.boydti.fawe.util.EditSessionBuilder;
 import com.boydti.fawe.util.MainUtil;
-import com.boydti.fawe.util.TaskManager;
 import com.boydti.fawe.wrappers.WorldWrapper;
 import com.sk89q.jchronic.Chronic;
 import com.sk89q.jchronic.Options;
@@ -984,10 +983,12 @@ public class LocalSession {
         return getBrushTool(item, 0, null, true);
     }
 
+    @Deprecated
     public BrushTool getBrushTool(Player player) throws InvalidToolBindException {
         return getBrushTool(player, true);
     }
 
+    @Deprecated
     public BrushTool getBrushTool(Player player, boolean create) throws InvalidToolBindException {
         BaseBlock block;
         try {
@@ -1000,12 +1001,13 @@ public class LocalSession {
     }
 
 
+    @Deprecated
     public BrushTool getBrushTool(int id, int data, Player player, boolean create) throws InvalidToolBindException {
         Tool tool = getTool(id, data);
 
         if ((tool == null || !(tool instanceof BrushTool))) {
             if (create) {
-                tool = new BrushTool("worldedit.brush.sphere");
+                tool = new BrushTool();
                 setTool(id, data, tool, player);
             } else {
                 return null;

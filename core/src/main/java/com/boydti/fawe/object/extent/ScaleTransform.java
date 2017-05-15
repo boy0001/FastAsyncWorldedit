@@ -13,11 +13,12 @@ import com.sk89q.worldedit.world.biome.BaseBiome;
 import javax.annotation.Nullable;
 
 public class ScaleTransform extends ResettableExtent {
-    private final MutableBlockVector mutable = new MutableBlockVector();
-    private final double dx,dy,dz;
-    private int maxy;
+    private transient MutableBlockVector mutable = new MutableBlockVector();
+    private transient int maxy;
+    private transient Vector min;
 
-    private Vector min;
+    private final double dx,dy,dz;
+
 
     public ScaleTransform(Extent parent, double dx, double dy, double dz) {
         super(parent);
@@ -31,6 +32,7 @@ public class ScaleTransform extends ResettableExtent {
     public ResettableExtent setExtent(Extent extent) {
         min = null;
         maxy = extent.getMaximumPoint().getBlockY();
+        mutable = new MutableBlockVector();
         return super.setExtent(extent);
     }
 
@@ -110,8 +112,6 @@ public class ScaleTransform extends ResettableExtent {
         }
         return result;
     }
-
-
 
     @Nullable
     @Override

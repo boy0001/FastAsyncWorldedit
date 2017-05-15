@@ -1,9 +1,10 @@
 package com.boydti.fawe.object.mask;
 
 import com.sk89q.worldedit.Vector;
+import com.sk89q.worldedit.function.mask.AbstractMask;
 import com.sk89q.worldedit.function.mask.Mask;
 
-public class WallMask implements Mask {
+public class WallMask extends AbstractMask {
     private final int min, max;
     private final Mask mask;
 

@@ -2,22 +2,21 @@ package com.boydti.fawe.object.mask;
 
 import com.sk89q.worldedit.Vector;
 import com.sk89q.worldedit.extent.Extent;
-import com.sk89q.worldedit.function.mask.Mask;
+import com.sk89q.worldedit.function.mask.AbstractExtentMask;
 import com.sk89q.worldedit.function.mask.Mask2D;
 import javax.annotation.Nullable;
 
-public class IdMask implements Mask, ResettableMask {
+public class IdMask extends AbstractExtentMask implements ResettableMask {
 
-    private Extent extent;
+    private transient int id = -1;
 
     public IdMask(Extent extent) {
-        this.extent = extent;
+        super(extent);
     }
-
-    int id = -1;
 
     @Override
     public boolean test(Vector vector) {
+        Extent extent = getExtent();
         if (id != -1) {
             return extent.getLazyBlock(vector).getId() == id;
         } else {

@@ -3,6 +3,8 @@ package com.sk89q.worldedit.math.transform;
 import com.sk89q.worldedit.MutableBlockVector;
 import com.sk89q.worldedit.Vector;
 import com.sk89q.worldedit.math.MathUtils;
+import java.io.IOException;
+import java.io.Serializable;
 
 /**
  * An affine transform.
@@ -11,9 +13,9 @@ import com.sk89q.worldedit.math.MathUtils;
  * <a href="http://geom-java.sourceforge.net/index.html">JavaGeom project</a>,
  * which is licensed under LGPL v2.1.</p>
  */
-public class AffineTransform implements Transform {
+public class AffineTransform implements Transform, Serializable{
 
-    private MutableBlockVector mutable = new MutableBlockVector();
+    private transient MutableBlockVector mutable = new MutableBlockVector();
 
     /**
      * coefficients for x coordinate.
@@ -301,6 +303,11 @@ public class AffineTransform implements Transform {
     @Override
     public String toString() {
         return String.format("Affine[%g %g %g %g, %g %g %g %g, %g %g %g %g]}", m00, m01, m02, m03, m10, m11, m12, m13, m20, m21, m22, m23);
+    }
+
+    private void readObject(java.io.ObjectInputStream stream) throws IOException, ClassNotFoundException {
+        stream.defaultReadObject();
+        mutable = new MutableBlockVector();
     }
 
     public static Class<?> inject() {

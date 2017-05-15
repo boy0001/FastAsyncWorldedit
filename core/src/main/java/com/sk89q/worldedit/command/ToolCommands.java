@@ -44,12 +44,25 @@ import com.sk89q.worldedit.function.pattern.Pattern;
 import com.sk89q.worldedit.util.TreeGenerator;
 import com.sk89q.worldedit.util.command.parametric.Optional;
 
-@Command(aliases = {"tool"}, desc = "Bind functions to held items: [More Info](http://wiki.sk89q.com/wiki/WorldEdit/Tools)")
+@Command(aliases = {"brush", "br", "/b", "tool"}, desc = "Bind functions to held items: [More Info](http://wiki.sk89q.com/wiki/WorldEdit/Tools)")
 public class ToolCommands {
     private final WorldEdit we;
 
     public ToolCommands(WorldEdit we) {
         this.we = we;
+    }
+
+    @Command(
+            aliases = { "info", "/info" },
+            usage = "",
+            desc = "Block information tool",
+            min = 0,
+            max = 0
+    )
+    @CommandPermissions("worldedit.tool.info")
+    public void info(Player player, LocalSession session, CommandContext args) throws WorldEditException {
+        session.setTool(new QueryTool(), player);
+        BBC.TOOL_INFO.send(player, ItemType.toHeldName(player.getItemInHand()));
     }
 
     @Command(
@@ -65,31 +78,6 @@ public class ToolCommands {
     public void inspectBrush(Player player, LocalSession session, @Optional("1") double radius) throws WorldEditException {
         session.setTool(new InspectBrush(), player);
         BBC.TOOL_INSPECT.send(player, ItemType.toHeldName(player.getItemInHand()));
-    }
-
-    @Command(
-            aliases = { "none" },
-            usage = "",
-            desc = "Unbind a bound tool from your current item",
-            min = 0,
-            max = 0
-    )
-    public void none(Player player, LocalSession session, CommandContext args) throws WorldEditException {
-        session.setTool(null, player);
-        BBC.TOOL_NONE.send(player);
-    }
-
-    @Command(
-            aliases = { "info" },
-            usage = "",
-            desc = "Block information tool",
-            min = 0,
-            max = 0
-    )
-    @CommandPermissions("worldedit.tool.info")
-    public void info(Player player, LocalSession session, CommandContext args) throws WorldEditException {
-        session.setTool(new QueryTool(), player);
-        BBC.TOOL_INFO.send(player, ItemType.toHeldName(player.getItemInHand()));
     }
 
     @Command(

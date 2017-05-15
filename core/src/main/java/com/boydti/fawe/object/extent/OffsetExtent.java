@@ -10,7 +10,7 @@ import com.sk89q.worldedit.world.biome.BaseBiome;
 
 public class OffsetExtent extends ResettableExtent {
     private final int dx, dy, dz;
-    private MutableBlockVector2D mutable = new MutableBlockVector2D();
+    private transient MutableBlockVector2D mutable = new MutableBlockVector2D();
 
     public OffsetExtent(Extent parent, int dx, int dy, int dz) {
         super(parent);
@@ -32,5 +32,11 @@ public class OffsetExtent extends ResettableExtent {
     @Override
     public boolean setBlock(int x, int y, int z, BaseBlock block) throws WorldEditException {
         return getExtent().setBlock(x + dx, y + dy, z + dz, block);
+    }
+
+    @Override
+    public ResettableExtent setExtent(Extent extent) {
+        mutable = new MutableBlockVector2D();
+        return super.setExtent(extent);
     }
 }

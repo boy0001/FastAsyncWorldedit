@@ -6,7 +6,7 @@ import com.boydti.fawe.example.NMSMappedFaweQueue;
 import com.boydti.fawe.object.FaweChunk;
 import com.boydti.fawe.object.FawePlayer;
 import com.boydti.fawe.object.brush.visualization.VisualChunk;
-import com.boydti.fawe.object.number.LongAdder;
+import java.util.concurrent.atomic.LongAdder;
 import com.boydti.fawe.object.visitor.FaweChunkVisitor;
 import com.boydti.fawe.sponge.SpongePlayer;
 import com.boydti.fawe.util.MainUtil;

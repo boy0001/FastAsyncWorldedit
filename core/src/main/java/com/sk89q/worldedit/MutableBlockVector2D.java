@@ -1,6 +1,9 @@
 package com.sk89q.worldedit;
 
-public final class MutableBlockVector2D extends Vector2D {
+import java.io.IOException;
+import java.io.Serializable;
+
+public final class MutableBlockVector2D extends Vector2D implements Serializable {
     private static ThreadLocal<MutableBlockVector2D> MUTABLE_CACHE = new ThreadLocal<MutableBlockVector2D>() {
         @Override
         protected MutableBlockVector2D initialValue() {
@@ -12,7 +15,7 @@ public final class MutableBlockVector2D extends Vector2D {
         return MUTABLE_CACHE.get().setComponents(x, z);
     }
 
-    private int x, z;
+    private transient int x, z;
 
     public MutableBlockVector2D() {
         this.x = 0;
@@ -63,5 +66,15 @@ public final class MutableBlockVector2D extends Vector2D {
 
     public void mutZ(double z) {
         this.z = (int) z;
+    }
+
+    private void writeObject(java.io.ObjectOutputStream stream) throws IOException {
+        stream.writeInt(x);
+        stream.writeInt(z);
+    }
+
+    private void readObject(java.io.ObjectInputStream stream) throws IOException, ClassNotFoundException {
+        this.x = stream.readInt();
+        this.z = stream.readInt();
     }
 }

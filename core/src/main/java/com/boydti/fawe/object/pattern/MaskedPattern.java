@@ -7,21 +7,17 @@ import com.sk89q.worldedit.extent.Extent;
 import com.sk89q.worldedit.function.mask.Mask;
 import com.sk89q.worldedit.function.pattern.AbstractPattern;
 import com.sk89q.worldedit.function.pattern.Pattern;
-import java.util.Arrays;
-import java.util.List;
 
 public class MaskedPattern extends AbstractPattern {
 
     private final PatternExtent patternExtent;
     private final Pattern secondaryPattern;
-    private final List<Pattern> patterns;
     private Mask mask;
 
     public MaskedPattern(Mask mask, PatternExtent primary, Pattern secondary) {
         this.mask = mask;
         this.patternExtent = primary;
         this.secondaryPattern = secondary;
-        this.patterns = Arrays.asList(primary, secondary);
     }
 
 

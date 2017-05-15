@@ -11,7 +11,6 @@ import com.sk89q.worldedit.world.biome.BaseBiome;
 
 public class BlockTranslateExtent extends AbstractDelegateExtent {
     private final int dx,dy,dz;
-    private final Extent extent;
     private MutableBlockVector mutable = new MutableBlockVector();
 
     public BlockTranslateExtent(Extent extent, int dx, int dy, int dz) {
@@ -19,7 +18,6 @@ public class BlockTranslateExtent extends AbstractDelegateExtent {
         this.dx = dx;
         this.dy = dy;
         this.dz = dz;
-        this.extent = extent;
     }
 
     @Override
@@ -27,7 +25,7 @@ public class BlockTranslateExtent extends AbstractDelegateExtent {
         mutable.mutX((location.getX() + dx));
         mutable.mutY((location.getY() + dy));
         mutable.mutZ((location.getZ() + dz));
-        return extent.setBlock(mutable, block);
+        return getExtent().setBlock(mutable, block);
     }
 
     @Override
@@ -35,7 +33,7 @@ public class BlockTranslateExtent extends AbstractDelegateExtent {
         mutable.mutX(x + dx);
         mutable.mutY(y + dy);
         mutable.mutZ(z + dz);
-        return extent.setBlock(mutable, block);
+        return getExtent().setBlock(mutable, block);
     }
 
     @Override

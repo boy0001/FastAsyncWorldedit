@@ -10,9 +10,10 @@ import com.sk89q.worldedit.world.biome.BaseBiome;
 import java.util.SplittableRandom;
 
 public class RandomOffsetTransform extends ResettableExtent {
+    private transient SplittableRandom random;
+    private transient MutableBlockVector2D mutable = new MutableBlockVector2D();
+
     private final int dx, dy, dz;
-    private final SplittableRandom random;
-    private MutableBlockVector2D mutable = new MutableBlockVector2D();
 
     public RandomOffsetTransform(Extent parent, int dx, int dy, int dz) {
         super(parent);
@@ -47,6 +48,8 @@ public class RandomOffsetTransform extends ResettableExtent {
 
     @Override
     public ResettableExtent setExtent(Extent extent) {
+        random = new SplittableRandom();
+        mutable = new MutableBlockVector2D();
         return super.setExtent(extent);
     }
 }

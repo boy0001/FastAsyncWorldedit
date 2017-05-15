@@ -1,8 +1,3 @@
-//
-// Source code recreated from a .class file by IntelliJ IDEA
-// (powered by Fernflower decompiler)
-//
-
 package com.sk89q.worldedit.extension.platform;
 
 import com.google.common.base.Preconditions;

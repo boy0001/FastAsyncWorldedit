@@ -1,6 +1,11 @@
 package com.sk89q.worldedit;
 
-public class MutableBlockVector extends BlockVector {
+import java.io.IOException;
+import java.io.Serializable;
+
+public class MutableBlockVector extends BlockVector implements Serializable {
+    private transient int x,y,z;
+
     private static ThreadLocal<MutableBlockVector> MUTABLE_CACHE = new ThreadLocal<MutableBlockVector>() {
         @Override
         protected MutableBlockVector initialValue() {
@@ -11,8 +16,6 @@ public class MutableBlockVector extends BlockVector {
     public static MutableBlockVector get(int x, int y, int z) {
         return MUTABLE_CACHE.get().setComponents(x, y, z);
     }
-
-    private int x,y,z;
 
     public MutableBlockVector(Vector v) {
         this(v.getBlockX(), v.getBlockY(), v.getBlockZ());
@@ -104,5 +107,17 @@ public class MutableBlockVector extends BlockVector {
     @Override
     public int getBlockZ() {
         return this.z;
+    }
+
+    private void writeObject(java.io.ObjectOutputStream stream) throws IOException {
+        stream.writeInt(x);
+        stream.writeByte((byte) y);
+        stream.writeInt(z);
+    }
+
+    private void readObject(java.io.ObjectInputStream stream) throws IOException, ClassNotFoundException {
+        this.x = stream.readInt();
+        this.y = stream.readByte() & 0xFF;
+        this.z = stream.readInt();
     }
 }
