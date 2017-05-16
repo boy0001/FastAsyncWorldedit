@@ -764,6 +764,7 @@ public class UtilityCommands extends MethodCommands {
                         } else {
                             group = "Unsorted";
                         }
+                        group = group.replace("/", "");
                         group = StringMan.toProperCase(group);
                         Set<CommandMapping> queue = grouped.get(group);
                         if (queue == null) {
