@@ -6,17 +6,13 @@ import com.sk89q.worldedit.blocks.BaseBlock;
 import com.sk89q.worldedit.extent.Extent;
 import com.sk89q.worldedit.function.pattern.AbstractPattern;
 import com.sk89q.worldedit.function.pattern.Pattern;
-import java.util.Arrays;
-import java.util.Collection;
 
 public class Linear3DBlockPattern extends AbstractPattern {
 
-    private final Collection<Pattern> patterns;
     private final Pattern[] patternsArray;
 
     public Linear3DBlockPattern(Pattern[] patterns) {
         this.patternsArray = patterns;
-        this.patterns = Arrays.asList(patterns);
     }
 
     @Override

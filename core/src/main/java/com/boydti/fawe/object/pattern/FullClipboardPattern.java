@@ -9,8 +9,9 @@ import com.sk89q.worldedit.extent.clipboard.Clipboard;
 import com.sk89q.worldedit.function.mask.ExistingBlockMask;
 import com.sk89q.worldedit.function.operation.ForwardExtentCopy;
 import com.sk89q.worldedit.function.operation.Operations;
-import com.sk89q.worldedit.function.pattern.AbstractPattern;
 import com.sk89q.worldedit.regions.Region;
+import java.io.IOException;
+import java.io.NotSerializableException;
 
 
 import static com.google.common.base.Preconditions.checkNotNull;
@@ -18,8 +19,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
 /**
  * A pattern that reads from {@link Clipboard}.
  */
-public class FullClipboardPattern extends AbstractPattern {
-    private final Extent extent;
+public class FullClipboardPattern extends AbstractExtentPattern {
     private final Clipboard clipboard;
     private final MutableBlockVector mutable = new MutableBlockVector();
 
@@ -29,9 +29,9 @@ public class FullClipboardPattern extends AbstractPattern {
      * @param clipboard the clipboard
      */
     public FullClipboardPattern(Extent extent, Clipboard clipboard) {
+        super(extent);
         checkNotNull(clipboard);
         this.clipboard = clipboard;
-        this.extent = extent;
     }
 
     @Override
@@ -46,5 +46,9 @@ public class FullClipboardPattern extends AbstractPattern {
     @Override
     public BaseBlock apply(Vector position) {
         throw new IllegalStateException("Incorrect use. This pattern can only be applied to an extent!");
+    }
+
+    private void writeObject(java.io.ObjectOutputStream stream) throws IOException {
+        throw new NotSerializableException("Clipboard cannot be serialized!");
     }
 }

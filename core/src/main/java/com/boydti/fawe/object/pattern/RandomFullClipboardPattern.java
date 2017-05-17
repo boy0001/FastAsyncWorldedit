@@ -13,6 +13,8 @@ import com.sk89q.worldedit.math.transform.AffineTransform;
 import com.sk89q.worldedit.math.transform.Transform;
 import com.sk89q.worldedit.session.ClipboardHolder;
 import com.sk89q.worldedit.world.registry.WorldData;
+import java.io.IOException;
+import java.io.NotSerializableException;
 
 
 import static com.google.common.base.Preconditions.checkNotNull;
@@ -61,5 +63,9 @@ public class RandomFullClipboardPattern extends AbstractPattern {
     @Override
     public BaseBlock apply(Vector position) {
         throw new IllegalStateException("Incorrect use. This pattern can only be applied to an extent!");
+    }
+
+    private void writeObject(java.io.ObjectOutputStream stream) throws IOException {
+        throw new NotSerializableException("Clipboard cannot be serialized!");
     }
 }

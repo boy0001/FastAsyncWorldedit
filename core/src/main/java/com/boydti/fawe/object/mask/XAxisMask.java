@@ -1,16 +1,16 @@
 package com.boydti.fawe.object.mask;
 
 import com.sk89q.worldedit.Vector;
-import com.sk89q.worldedit.function.mask.Mask;
+import com.sk89q.worldedit.function.mask.AbstractMask;
 import com.sk89q.worldedit.function.mask.Mask2D;
 import javax.annotation.Nullable;
 
 /**
  * Restricts the
  */
-public class XAxisMask implements Mask, ResettableMask {
+public class XAxisMask extends AbstractMask implements ResettableMask {
 
-    private int layer = -1;
+    private transient int layer = -1;
 
     @Override
     public boolean test(Vector vector) {

@@ -4,26 +4,24 @@ import com.boydti.fawe.FaweCache;
 import com.sk89q.worldedit.Vector;
 import com.sk89q.worldedit.blocks.BaseBlock;
 import com.sk89q.worldedit.extent.Extent;
-import com.sk89q.worldedit.function.pattern.AbstractPattern;
 import com.sk89q.worldedit.function.pattern.Pattern;
 
-public class IdDataMaskPattern extends AbstractPattern {
-    private final Extent extent;
+public class IdDataMaskPattern extends AbstractExtentPattern {
     private final Pattern pattern;
-    private final int mask;
+    private final int bitMask;
 
-    public IdDataMaskPattern(Extent extent, Pattern parent, int mask) {
-        this.extent = extent;
+    public IdDataMaskPattern(Extent extent, Pattern parent, int bitMask) {
+        super(extent);
         this.pattern = parent;
-        this.mask = mask;
+        this.bitMask = bitMask;
     }
 
     @Override
     public BaseBlock apply(Vector position) {
-        BaseBlock oldBlock = extent.getBlock(position);
+        BaseBlock oldBlock = getExtent().getBlock(position);
         BaseBlock newBlock = pattern.apply(position);
         int oldData = oldBlock.getData();
-        int newData = newBlock.getData() + oldData - (oldData & mask);
+        int newData = newBlock.getData() + oldData - (oldData & bitMask);
         return FaweCache.getBlock(newBlock.getId(), newData);
     }
 }

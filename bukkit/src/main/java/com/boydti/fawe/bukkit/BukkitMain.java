@@ -5,6 +5,7 @@ import com.boydti.fawe.bukkit.v0.BukkitQueue_0;
 import com.boydti.fawe.bukkit.v0.BukkitQueue_All;
 import com.boydti.fawe.bukkit.v1_10.BukkitQueue_1_10;
 import com.boydti.fawe.bukkit.v1_11.BukkitQueue_1_11;
+import com.boydti.fawe.bukkit.v1_12.BukkitQueue_1_12;
 import com.boydti.fawe.bukkit.v1_7.BukkitQueue17;
 import com.boydti.fawe.bukkit.v1_8.BukkitQueue18R3;
 import com.boydti.fawe.bukkit.v1_9.BukkitQueue_1_9_R1;
@@ -76,6 +77,7 @@ public class BukkitMain extends JavaPlugin {
         v1_9_R2,
         v1_10_R1,
         v1_11_R1,
+        v1_12_R1,
         NONE,
     }
 
@@ -91,6 +93,8 @@ public class BukkitMain extends JavaPlugin {
                 return new BukkitQueue_1_10(world);
             case v1_11_R1:
                 return new BukkitQueue_1_11(world);
+            case v1_12_R1:
+                return new BukkitQueue_1_12(world);
             default:
             case NONE:
                 return new BukkitQueue_All(world);
@@ -109,6 +113,8 @@ public class BukkitMain extends JavaPlugin {
                 return new BukkitQueue_1_10(world);
             case v1_11_R1:
                 return new BukkitQueue_1_11(world);
+            case v1_12_R1:
+                return new BukkitQueue_1_12(world);
             default:
             case NONE:
                 return new BukkitQueue_All(world);

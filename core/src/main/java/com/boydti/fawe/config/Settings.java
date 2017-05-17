@@ -323,13 +323,13 @@ public class Settings extends Config {
         @Comment("Enable the limiter")
         public boolean ENABLED = true;
         @Comment("The interval in ticks")
-        public int INTERVAL = 1;
+        public int INTERVAL = 20;
         @Comment("Max falling blocks per interval (per chunk)")
-        public int FALLING = 512;
+        public int FALLING = 64;
         @Comment("Max physics per interval (per chunk)")
-        public int PHYSICS = 512;
+        public int PHYSICS = 8192;
         @Comment("Max item spawns per interval (per chunk)")
-        public int ITEMS = 128;
+        public int ITEMS = 64;
     }
 
     public static class CLIPBOARD {

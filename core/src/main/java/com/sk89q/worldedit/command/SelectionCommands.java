@@ -266,7 +266,7 @@ public class SelectionCommands {
     }
 
     @Command(
-            aliases = { "/wand" },
+            aliases = { "/wand", "/w" },
             usage = "",
             desc = "Get the wand object",
             min = 0,

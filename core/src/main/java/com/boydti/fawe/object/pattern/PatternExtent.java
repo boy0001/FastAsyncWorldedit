@@ -13,17 +13,23 @@ import com.sk89q.worldedit.function.pattern.Pattern;
 import com.sk89q.worldedit.regions.Region;
 import com.sk89q.worldedit.util.Location;
 import com.sk89q.worldedit.world.biome.BaseBiome;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import javax.annotation.Nullable;
 
 public class PatternExtent extends AbstractPattern implements Extent {
     private final Pattern pattern;
-    private BaseBlock block;
-    private Vector target = new Vector();
+    private transient BaseBlock block;
+    private transient Vector target = new Vector();
 
     public PatternExtent(Pattern pattern) {
         this.pattern = pattern;
+    }
+
+    private void readObject(java.io.ObjectInputStream stream) throws IOException, ClassNotFoundException {
+        stream.defaultReadObject();
+        target = new Vector();
     }
 
     @Override

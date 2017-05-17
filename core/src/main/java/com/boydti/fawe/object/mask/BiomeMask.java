@@ -7,13 +7,18 @@ import com.sk89q.worldedit.extent.Extent;
 import com.sk89q.worldedit.function.mask.AbstractExtentMask;
 import com.sk89q.worldedit.world.biome.BaseBiome;
 
-public class BiomeMask extends AbstractExtentMask {
+public class BiomeMask extends AbstractExtentMask implements ResettableMask {
     private final BaseBiome biome;
-    private MutableBlockVector2D mutable = new MutableBlockVector2D();
+    private transient MutableBlockVector2D mutable = new MutableBlockVector2D();
 
     public BiomeMask(Extent extent, BaseBiome biome) {
         super(extent);
         this.biome = biome;
+    }
+
+    @Override
+    public void reset() {
+        mutable = new MutableBlockVector2D();
     }
 
     @Override

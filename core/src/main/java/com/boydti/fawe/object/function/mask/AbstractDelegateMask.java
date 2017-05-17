@@ -1,11 +1,12 @@
 package com.boydti.fawe.object.function.mask;
 
 import com.sk89q.worldedit.Vector;
+import com.sk89q.worldedit.function.mask.AbstractMask;
 import com.sk89q.worldedit.function.mask.Mask;
 import com.sk89q.worldedit.function.mask.Mask2D;
 import javax.annotation.Nullable;
 
-public class AbstractDelegateMask implements Mask {
+public class AbstractDelegateMask extends AbstractMask {
 
     private final Mask mask;
 

@@ -316,7 +316,7 @@ public class RegionCommands {
     }
 
     @Command(
-            aliases = { "/set" },
+            aliases = { "/set", "/s" },
             usage = "[pattern]",
             desc = "Set all blocks within selection",
             min = 1,

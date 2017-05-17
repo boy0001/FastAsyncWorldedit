@@ -23,7 +23,6 @@ import com.sk89q.worldedit.EditSession;
 import com.sk89q.worldedit.MaxChangedBlocksException;
 import com.sk89q.worldedit.Vector;
 import com.sk89q.worldedit.blocks.BaseBlock;
-import com.sk89q.worldedit.command.tool.BrushTool;
 import com.sk89q.worldedit.function.mask.Mask;
 import com.sk89q.worldedit.function.mask.Masks;
 import com.sk89q.worldedit.function.pattern.Pattern;
@@ -32,7 +31,7 @@ public class GravityBrush implements Brush {
 
     private final boolean fullHeight;
 
-    public GravityBrush(boolean fullHeight, BrushTool tool) {
+    public GravityBrush(boolean fullHeight) {
         this.fullHeight = fullHeight;
     }
 

@@ -21,12 +21,14 @@ package com.sk89q.worldedit;
 
 import com.sk89q.worldedit.math.transform.AffineTransform;
 
+import java.io.IOException;
+import java.io.Serializable;
 import javax.annotation.Nullable;
 
 /**
  * An immutable 3-dimensional vector.
  */
-public class Vector implements Comparable<Vector> {
+public class Vector implements Comparable<Vector>, Serializable {
 
     public static final Vector ZERO = new Vector(0, 0, 0);
     public static final Vector UNIT_X = new Vector(1, 0, 0);
@@ -34,9 +36,7 @@ public class Vector implements Comparable<Vector> {
     public static final Vector UNIT_Z = new Vector(0, 0, 1);
     public static final Vector ONE = new Vector(1, 1, 1);
 
-    private double x;
-    private double y;
-    private double z;
+    private transient double x, y, z;
 
     /**
      * Construct an instance.
@@ -886,6 +886,21 @@ public class Vector implements Comparable<Vector> {
                 (v1.getY() + v2.getY()) / 2,
                 (v1.getZ() + v2.getZ()) / 2
         );
+    }
+
+    private void writeObject(java.io.ObjectOutputStream stream) throws IOException {
+        if (!(this instanceof Vector)) {
+            stream.writeDouble(x);
+            stream.writeDouble(y);
+            stream.writeDouble(z);
+        }
+    }
+
+    private void readObject(java.io.ObjectInputStream stream) throws IOException, ClassNotFoundException {
+        if (this instanceof MutableBlockVector) return;
+        this.x = stream.readDouble();
+        this.y = stream.readDouble();
+        this.z = stream.readDouble();
     }
 
     public static Class<?> inject() {

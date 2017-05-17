@@ -1,20 +1,26 @@
 package com.boydti.fawe.object.pattern;
 
+import com.boydti.fawe.Fawe;
 import com.boydti.fawe.util.TextureUtil;
 import com.sk89q.worldedit.Vector;
 import com.sk89q.worldedit.WorldEditException;
 import com.sk89q.worldedit.blocks.BaseBlock;
 import com.sk89q.worldedit.extent.Extent;
 import com.sk89q.worldedit.function.pattern.AbstractPattern;
+import java.io.IOException;
 
 public class DesaturatePattern extends AbstractPattern{
-    private final TextureUtil util;
+    private transient TextureUtil util;
+    private final boolean randomize;
+    private final int complexity;
     private final Extent extent;
     private final double value;
 
-    public DesaturatePattern(Extent extent, TextureUtil util, double value) {
+    public DesaturatePattern(Extent extent, double value, int complexity, boolean randomize) {
         this.extent = extent;
-        this.util = util;
+        this.complexity = complexity;
+        this.randomize = randomize;
+        this.util = Fawe.get().getCachedTextureUtil(randomize, 0, complexity);
         this.value = Math.max(0, Math.min(1, value));
     }
     @Override
@@ -54,5 +60,10 @@ public class DesaturatePattern extends AbstractPattern{
             return false;
         }
         return extent.setBlock(setPosition, newBlock);
+    }
+
+    private void readObject(java.io.ObjectInputStream stream) throws IOException, ClassNotFoundException {
+        stream.defaultReadObject();
+        util = Fawe.get().getCachedTextureUtil(randomize, 0, complexity);
     }
 }

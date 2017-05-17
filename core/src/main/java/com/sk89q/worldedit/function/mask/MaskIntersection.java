@@ -20,14 +20,16 @@
 package com.sk89q.worldedit.function.mask;
 
 import com.sk89q.worldedit.Vector;
-
-import javax.annotation.Nullable;
+import java.io.IOException;
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import javax.annotation.Nullable;
+
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
@@ -36,9 +38,9 @@ import static com.google.common.base.Preconditions.checkNotNull;
  * when a certain position is tested. It serves as a logical AND operation
  * on a list of masks.
  */
-public class MaskIntersection extends AbstractMask {
+public class MaskIntersection extends AbstractMask implements Serializable {
 
-    private final Set<Mask> masks = new HashSet<Mask>();
+    private transient Set<Mask> masks = new HashSet<Mask>();
     private Mask[] masksArray;
 
     /**
@@ -125,5 +127,10 @@ public class MaskIntersection extends AbstractMask {
             }
         }
         return new MaskIntersection2D(mask2dList);
+    }
+
+    private void readObject(java.io.ObjectInputStream stream) throws IOException, ClassNotFoundException {
+        stream.defaultReadObject();
+        masks = new HashSet(Arrays.asList(masksArray));
     }
 }

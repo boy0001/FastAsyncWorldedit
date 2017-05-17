@@ -6,21 +6,20 @@ import com.sk89q.worldedit.WorldEditException;
 import com.sk89q.worldedit.blocks.BaseBlock;
 import com.sk89q.worldedit.extent.Extent;
 import com.sk89q.worldedit.world.biome.BaseBiome;
+import java.io.IOException;
 
 public class BiomePattern extends ExistingPattern {
+    private transient MutableBlockVector2D mutable = new MutableBlockVector2D();
     private final BaseBiome biome;
-    private BiomePatternException exception;
-    private MutableBlockVector2D mutable = new MutableBlockVector2D();
 
     public BiomePattern(Extent extent, BaseBiome biome) {
         super(extent);
         this.biome = biome;
-        this.exception = new BiomePatternException();
     }
 
     @Override
     public BaseBlock apply(Vector position) {
-        throw exception;
+        throw new BiomePatternException();
     }
 
     @Override
@@ -29,10 +28,7 @@ public class BiomePattern extends ExistingPattern {
     }
 
     public class BiomePatternException extends RuntimeException {
-
-        public BiomePatternException() {
-            super("Haha, you failed Empire92! Should've done things properly instead of some hacky AF biome pattern.\nHey, you! The one reading this stacktrace, can you do me a favor and report this on GitHub so I can get around to fixing it?");
-        }
+        private BiomePatternException() {}
 
         public BiomePattern getPattern() {
             return BiomePattern.this;
@@ -46,5 +42,10 @@ public class BiomePattern extends ExistingPattern {
         public Throwable fillInStackTrace() {
             return this;
         }
+    }
+
+    private void readObject(java.io.ObjectInputStream stream) throws IOException, ClassNotFoundException {
+        stream.defaultReadObject();
+        mutable = new MutableBlockVector2D();
     }
 }

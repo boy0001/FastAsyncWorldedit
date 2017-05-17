@@ -7,17 +7,17 @@ import com.sk89q.worldedit.blocks.BaseBlock;
 import com.sk89q.worldedit.extent.Extent;
 import com.sk89q.worldedit.function.pattern.AbstractPattern;
 import com.sk89q.worldedit.function.pattern.Pattern;
+import java.io.IOException;
 
 public class RelativePattern extends AbstractPattern implements ResettablePattern {
 
     private final Pattern pattern;
+    private transient Vector origin;
+    private transient MutableBlockVector mutable = new MutableBlockVector();
 
     public RelativePattern(Pattern pattern) {
         this.pattern = pattern;
     }
-
-    private Vector origin;
-    private MutableBlockVector mutable = new MutableBlockVector();
 
     @Override
     public BaseBlock apply(Vector pos) {
@@ -39,6 +39,11 @@ public class RelativePattern extends AbstractPattern implements ResettablePatter
         mutable.mutY((get.getY() - origin.getY()));
         mutable.mutZ((get.getZ() - origin.getZ()));
         return pattern.apply(extent, set, mutable);
+    }
+
+    private void readObject(java.io.ObjectInputStream stream) throws IOException, ClassNotFoundException {
+        stream.defaultReadObject();
+        mutable = new MutableBlockVector();
     }
 
     @Override

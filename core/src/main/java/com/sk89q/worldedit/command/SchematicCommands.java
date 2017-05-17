@@ -24,7 +24,6 @@ import com.boydti.fawe.config.Settings;
 import com.boydti.fawe.object.clipboard.MultiClipboardHolder;
 import com.boydti.fawe.object.schematic.StructureFormat;
 import com.boydti.fawe.util.MainUtil;
-import com.boydti.fawe.util.MathMan;
 import com.sk89q.minecraft.util.commands.Command;
 import com.sk89q.minecraft.util.commands.CommandContext;
 import com.sk89q.minecraft.util.commands.CommandException;
@@ -53,15 +52,10 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.net.URI;
 import java.net.URL;
 import java.nio.channels.Channels;
 import java.nio.channels.ReadableByteChannel;
 import java.nio.file.Files;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Comparator;
-import java.util.List;
 import java.util.UUID;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -78,7 +72,7 @@ public class SchematicCommands {
     /**
      * 9 schematics per page fits in the MC chat window.
      */
-    private static final int SCHEMATICS_PER_PAGE = 9;
+
     private static final Logger log = Logger.getLogger(SchematicCommands.class.getCanonicalName());
     private final WorldEdit worldEdit;
 
@@ -336,154 +330,13 @@ public class SchematicCommands {
             max = -1,
             flags = "dnp",
             help = "List all schematics in the schematics directory\n" +
-                    " -d sorts by date, oldest first\n" +
-                    " -n sorts by date, newest first\n" +
-                    " -p <page> prints the requested page\n"
+                    " -p <page> prints the requested page\n" +
+                    " -f <format> restricts by format\n"
     )
     @CommandPermissions("worldedit.schematic.list")
-    public void list(Actor actor, CommandContext args, @Switch('p') @Optional("1") int page) throws WorldEditException {
+    public void list(Actor actor, CommandContext args, @Switch('p') @Optional("1") int page, @Switch('f') String formatName) throws WorldEditException {
         File dir = worldEdit.getWorkingDirectoryFile(worldEdit.getConfiguration().saveDir);
-        List<File> fileList = new ArrayList<>();
-        int len = args.argsLength();
-        List<String> filters = new ArrayList<>();
-        boolean mine = false;
-        if (len > 0) {
-            int max = len;
-            if (MathMan.isInteger(args.getString(len - 1))) {
-                page = args.getInteger(--len);
-            }
-            for (int i = 0; i < len; i++) {
-                switch (args.getString(i).toLowerCase()) {
-                    case "me":
-                    case "mine":
-                        mine = true;
-                        break;
-                    default:
-                        filters.add(args.getString(i));
-                        break;
-                }
-            }
-        }
-        if (Settings.IMP.PATHS.PER_PLAYER_SCHEMATICS) {
-            File playerDir = new File(dir, actor.getUniqueId().toString());
-            if (playerDir.exists()) {
-                fileList.addAll(allFiles(playerDir, true));
-            }
-            if (!mine) {
-                fileList.addAll(allFiles(dir, false));
-            }
-        } else {
-            fileList.addAll(allFiles(dir, true));
-        }
-        if (!filters.isEmpty()) {
-            for (String filter : filters) {
-                fileList.removeIf(file -> !file.getPath().contains(filter));
-            }
-        }
-        if (fileList.isEmpty()) {
-            BBC.SCHEMATIC_NONE.send(actor);
-            return;
-        }
-        File[] files = new File[fileList.size()];
-        fileList.toArray(files);
-        int pageCount = files.length / SCHEMATICS_PER_PAGE + 1;
-        if (page < 1) {
-            BBC.SCHEMATIC_PAGE.send(actor, ">0");
-            return;
-        }
-        if (page > pageCount) {
-            BBC.SCHEMATIC_PAGE.send(actor, "<" + (pageCount + 1));
-            return;
-        }
-
-        final int sortType = args.hasFlag('d') ? -1 : args.hasFlag('n') ? 1 : 0;
-        // cleanup file list
-        Arrays.sort(files, new Comparator<File>(){
-            @Override
-            public int compare(File f1, File f2) {
-                int res;
-                if (sortType == 0) { // use name by default
-                    int p = f1.getParent().compareTo(f2.getParent());
-                    if (p == 0) { // same parent, compare names
-                        res = f1.getName().compareTo(f2.getName());
-                    } else { // different parent, sort by that
-                        res = p;
-                    }
-                } else {
-                    res = Long.valueOf(f1.lastModified()).compareTo(f2.lastModified()); // use date if there is a flag
-                    if (sortType == 1) res = -res; // flip date for newest first instead of oldest first
-                }
-                return res;
-            }
-        });
-
-        List<String> schematics = listFiles(files, worldEdit.getConfiguration().saveDir, Settings.IMP.PATHS.PER_PLAYER_SCHEMATICS ? actor.getUniqueId() : null);
-        int offset = (page - 1) * SCHEMATICS_PER_PAGE;
-
-        BBC.SCHEMATIC_LIST.send(actor, page, pageCount);
-        StringBuilder build = new StringBuilder();
-        int limit = Math.min(offset + SCHEMATICS_PER_PAGE, schematics.size());
-        for (int i = offset; i < limit;) {
-            build.append(schematics.get(i));
-            if (++i != limit) {
-                build.append("\n");
-            }
-        }
-
-        actor.print(BBC.getPrefix() + build.toString());
-    }
-
-
-    private List<File> allFiles(File root, boolean recursive) {
-        File[] files = root.listFiles();
-        if (files == null) return new ArrayList<>();
-        List<File> fileList = new ArrayList<File>();
-        for (File f : files) {
-            if (recursive && f.isDirectory()) {
-                List<File> subFiles = allFiles(f, recursive);
-                if (subFiles == null || subFiles.isEmpty()) continue; // empty subdir
-                fileList.addAll(subFiles);
-            } else {
-                fileList.add(f);
-            }
-        }
-        return fileList;
-    }
-
-    private List<String> listFiles(File[] files, String prefix, UUID uuid) {
-        if (prefix == null) prefix = "";
-        File root = worldEdit.getWorkingDirectoryFile(prefix);
-        File dir;
-        if (uuid != null) {
-            dir = new File(root, uuid.toString());
-        } else {
-            dir = root;
-        }
-        List<String> result = new ArrayList<String>();
-        for (File file : files) {
-            StringBuilder build = new StringBuilder();
-
-            build.append("\u00a72");
-            ClipboardFormat format = ClipboardFormat.findByFile(file);
-//            boolean inRoot = file.getParentFile().getName().equals(prefix);
-//            if (inRoot) {
-//                build.append(file.getName());
-//            } else {
-//                String relative = dir.toURI().relativize(file.toURI()).getPath();
-//                build.append(relative);
-//            }
-            URI relative = dir.toURI().relativize(file.toURI());
-            String name = "";
-            if (relative.isAbsolute()) {
-                relative = root.toURI().relativize(file.toURI());
-                name += "../";
-            }
-            name += relative.getPath();
-            build.append(name);
-            build.append(": ").append(format == null ? "Unknown" : format.name());
-            result.add(build.toString());
-        }
-        return result;
+        UtilityCommands.list(dir, actor, args, page, formatName, Settings.IMP.PATHS.PER_PLAYER_SCHEMATICS);
     }
 
     public static Class<?> inject() {

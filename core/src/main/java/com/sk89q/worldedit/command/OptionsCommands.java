@@ -25,7 +25,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
  * General WorldEdit commands.
  */
 @Command(aliases = {}, desc = "Player toggles, settings and item info")
-public class GeneralCommands {
+public class OptionsCommands {
 
     private final WorldEdit worldEdit;
 
@@ -34,7 +34,7 @@ public class GeneralCommands {
      *
      * @param worldEdit reference to WorldEdit
      */
-    public GeneralCommands(WorldEdit worldEdit) {
+    public OptionsCommands(WorldEdit worldEdit) {
         checkNotNull(worldEdit);
         this.worldEdit = worldEdit;
     }
@@ -117,7 +117,7 @@ public class GeneralCommands {
     )
     @CommandPermissions("worldedit.global-mask")
     public void gsmask(Player player, LocalSession session, EditSession editSession, @Optional CommandContext context) throws WorldEditException {
-        if (context == null || context.argsLength() == 0) {
+        if (context.argsLength() == 0) {
             session.setSourceMask((Mask) null);
             BBC.SOURCE_MASK_DISABLED.send(player);
         } else {
@@ -141,7 +141,7 @@ public class GeneralCommands {
     )
     @CommandPermissions("worldedit.global-trasnform")
     public void gtransform(Player player, EditSession editSession, LocalSession session, @Optional CommandContext context) throws WorldEditException {
-        if (context == null || context.argsLength() == 0) {
+        if (context.argsLength() == 0) {
             session.setTransform(null);
             BBC.TRANSFORM_DISABLED.send(player);
         } else {
@@ -253,6 +253,6 @@ public class GeneralCommands {
     }
 
     public static Class<?> inject() {
-        return GeneralCommands.class;
+        return OptionsCommands.class;
     }
 }

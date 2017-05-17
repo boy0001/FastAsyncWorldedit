@@ -9,6 +9,7 @@ import com.sk89q.worldedit.internal.expression.Expression;
 import com.sk89q.worldedit.internal.expression.ExpressionException;
 import com.sk89q.worldedit.internal.expression.runtime.EvaluationException;
 import com.sk89q.worldedit.regions.shape.WorldEditExpressionEnvironment;
+import java.io.IOException;
 
 
 import static com.google.common.base.Preconditions.checkNotNull;
@@ -21,7 +22,8 @@ import static com.google.common.base.Preconditions.checkNotNull;
  */
 public class ExpressionPattern extends AbstractPattern {
 
-    private final Expression expression;
+    public String input;
+    private transient Expression expression;
 
     /**
      * Create a new instance.
@@ -29,9 +31,10 @@ public class ExpressionPattern extends AbstractPattern {
      * @param expression the expression
      * @throws ExpressionException thrown if there is an error with the expression
      */
-    public ExpressionPattern(String expression) throws ExpressionException {
-        checkNotNull(expression);
-        this.expression = Expression.compile(expression, "x", "y", "z");
+    public ExpressionPattern(String input) throws ExpressionException {
+        checkNotNull(input);
+        this.input = input;
+        this.expression = Expression.compile(input, "x", "y", "z");
     }
 
     /**
@@ -54,6 +57,15 @@ public class ExpressionPattern extends AbstractPattern {
             return FaweCache.CACHE_BLOCK[(char) combined];
         } catch (EvaluationException e) {
             return EditSession.nullBlock;
+        }
+    }
+
+    private void readObject(java.io.ObjectInputStream stream) throws IOException, ClassNotFoundException {
+        stream.defaultReadObject();
+        try {
+            this.expression = Expression.compile(input, "x", "y", "z");
+        } catch (ExpressionException e) {
+            e.printStackTrace();
         }
     }
 }

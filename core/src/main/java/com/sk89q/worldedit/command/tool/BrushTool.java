@@ -18,6 +18,9 @@ import com.boydti.fawe.object.extent.ResettableExtent;
 import com.boydti.fawe.object.pattern.PatternTraverser;
 import com.boydti.fawe.util.EditSessionBuilder;
 import com.boydti.fawe.util.TaskManager;
+import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
+import com.sk89q.minecraft.util.commands.CommandException;
 import com.sk89q.worldedit.BlockWorldVector;
 import com.sk89q.worldedit.EditSession;
 import com.sk89q.worldedit.LocalConfiguration;
@@ -29,6 +32,7 @@ import com.sk89q.worldedit.WorldEdit;
 import com.sk89q.worldedit.blocks.BaseBlock;
 import com.sk89q.worldedit.command.tool.brush.Brush;
 import com.sk89q.worldedit.entity.Player;
+import com.sk89q.worldedit.extension.input.InputParseException;
 import com.sk89q.worldedit.extension.platform.Actor;
 import com.sk89q.worldedit.extension.platform.Platform;
 import com.sk89q.worldedit.extent.inventory.BlockBag;
@@ -38,6 +42,11 @@ import com.sk89q.worldedit.function.pattern.Pattern;
 import com.sk89q.worldedit.session.request.Request;
 import com.sk89q.worldedit.util.Location;
 import com.sk89q.worldedit.util.TargetBlock;
+import java.io.IOException;
+import java.io.Serializable;
+import java.lang.reflect.Type;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 import javax.annotation.Nullable;
@@ -45,7 +54,11 @@ import javax.annotation.Nullable;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
-public class BrushTool implements DoubleActionTraceTool, ScrollTool, MovableTool, ResettableTool {
+public class BrushTool implements DoubleActionTraceTool, ScrollTool, MovableTool, ResettableTool, Serializable {
+//    TODO:
+    // Serialize methods
+    // serialize BrushSettings (primary and secondary only if different)
+    // set transient values e.g. context
 
     public enum BrushAction {
         PRIMARY,
@@ -58,20 +71,83 @@ public class BrushTool implements DoubleActionTraceTool, ScrollTool, MovableTool
     private TargetMode targetMode = TargetMode.TARGET_BLOCK_RANGE;
 
     private transient BrushSettings context = new BrushSettings();
-    private BrushSettings primary = context;
-    private BrushSettings secondary = context;
+    private transient BrushSettings primary = context;
+    private transient BrushSettings secondary = context;
 
     private transient VisualExtent visualExtent;
     private transient Lock lock = new ReentrantLock();
 
-    /**
-     * Construct the tool.
-     *
-     * @param permission the permission to check before use is allowed
-     */
     public BrushTool(String permission) {
-        checkNotNull(permission);
-        this.getContext().permission = permission;
+        getContext().addPermission(permission);
+    }
+
+    public BrushTool() {
+    }
+
+    public static BrushTool fromString(Player player, LocalSession session, String json) throws CommandException, InputParseException {
+        Gson gson = new Gson();
+        Type type = new TypeToken<Map<String, Object>>(){}.getType();
+        Map<String, Object> root = gson.fromJson(json, type);
+        Map<String, Object> primary = (Map<String, Object>) root.get("primary");
+        Map<String, Object> secondary = (Map<String, Object>) root.getOrDefault("secondary", primary);
+
+        VisualMode visual = VisualMode.valueOf((String) root.getOrDefault("visual", "NONE"));
+        TargetMode target = TargetMode.valueOf((String) root.getOrDefault("target", "TARGET_BLOCK_RANGE"));
+        int range = (int) root.getOrDefault("range", -1);
+
+        BrushTool tool = new BrushTool();
+        tool.visualMode = visual;
+        tool.targetMode = target;
+        tool.range = range;
+
+        BrushSettings primarySettings = BrushSettings.get(tool, player, session, primary);
+        tool.setPrimary(primarySettings);
+        if (primary != secondary) {
+            BrushSettings secondarySettings = BrushSettings.get(tool, player, session, secondary);
+            tool.setSecondary(secondarySettings);
+        }
+
+        return tool;
+    }
+
+    @Override
+    public String toString() {
+        HashMap<String, Object> map = new HashMap<>();
+        map.put("primary", primary.getSettings());
+        if (primary != secondary) {
+            map.put("secondary", secondary.getSettings());
+        }
+        if (visualMode != null) {
+            map.put("visual", visualMode);
+        }
+        if (targetMode != TargetMode.TARGET_BLOCK_RANGE) {
+            map.put("target", targetMode);
+        }
+        if (range != -1) {
+            map.put("range", range);
+        }
+        return new Gson().toJson(map);
+    }
+
+    private void writeObject(java.io.ObjectOutputStream stream) throws IOException {
+        stream.defaultWriteObject();
+        stream.writeBoolean(primary == secondary);
+        stream.writeObject(primary);
+        if (primary != secondary) {
+            stream.writeObject(secondary);
+        }
+    }
+
+    private void readObject(java.io.ObjectInputStream stream) throws IOException, ClassNotFoundException {
+        lock = new ReentrantLock();
+        boolean multi = stream.readBoolean();
+        primary = (BrushSettings) stream.readObject();
+        if (multi) {
+            secondary = (BrushSettings) stream.readObject();
+        } else {
+            secondary = primary;
+        }
+        context = primary;
     }
 
     public BrushSettings getContext() {
@@ -89,13 +165,13 @@ public class BrushTool implements DoubleActionTraceTool, ScrollTool, MovableTool
     @Override
     public boolean canUse(Actor player) {
         if (primary == secondary) {
-            return player.hasPermission(getContext().permission);
+            return primary.canUse(player);
         }
-        return player.hasPermission(primary.permission) && player.hasPermission(secondary.permission);
+        return primary.canUse(player) && secondary.canUse(player);
     }
 
     public ResettableExtent getTransform() {
-        return getContext().transform;
+        return getContext().getTransform();
     }
 
     public BrushSettings getPrimary() {
@@ -106,18 +182,26 @@ public class BrushTool implements DoubleActionTraceTool, ScrollTool, MovableTool
         return secondary;
     }
 
+    public BrushSettings getOffHand() {
+        return context == primary ? secondary : primary;
+    }
+
     public void setPrimary(BrushSettings primary) {
         checkNotNull(primary);
+        if (this.secondary.getBrush() == null) this.secondary = primary;
         this.primary = primary;
+        this.context = primary;
     }
 
     public void setSecondary(BrushSettings secondary) {
         checkNotNull(secondary);
+        if (this.primary.getBrush() == null) this.primary = secondary;
         this.secondary = secondary;
+        this.context = secondary;
     }
 
     public void setTransform(ResettableExtent transform) {
-        this.getContext().transform = transform;
+        getContext().setTransform(transform);
     }
 
     /**
@@ -126,7 +210,7 @@ public class BrushTool implements DoubleActionTraceTool, ScrollTool, MovableTool
      * @return the filter
      */
     public Mask getMask() {
-        return getContext().mask;
+        return getContext().getMask();
     }
 
     /**
@@ -135,7 +219,7 @@ public class BrushTool implements DoubleActionTraceTool, ScrollTool, MovableTool
      * @return the filter
      */
     public Mask getSourceMask() {
-        return getContext().sourceMask;
+        return getContext().getSourceMask();
     }
 
     @Override
@@ -153,7 +237,7 @@ public class BrushTool implements DoubleActionTraceTool, ScrollTool, MovableTool
      * @param filter the filter to set
      */
     public void setMask(Mask filter) {
-        this.getContext().mask = filter;
+        this.getContext().setMask(filter);
     }
 
     /**
@@ -162,7 +246,7 @@ public class BrushTool implements DoubleActionTraceTool, ScrollTool, MovableTool
      * @param filter the filter to set
      */
     public void setSourceMask(Mask filter) {
-        this.getContext().sourceMask = filter;
+        this.getContext().setSourceMask(filter);
     }
 
     /**
@@ -171,15 +255,18 @@ public class BrushTool implements DoubleActionTraceTool, ScrollTool, MovableTool
      * @param brush tbe brush
      * @param permission the permission
      */
+    @Deprecated
     public void setBrush(Brush brush, String permission) {
         setBrush(brush, permission, null);
     }
 
+    @Deprecated
     public void setBrush(Brush brush, String permission, Player player) {
         if (player != null) clear(player);
         BrushSettings current = getContext();
-        current.brush = brush;
-        current.permission = permission;
+        current.clear();
+        current.setBrush(brush);
+        current.addPermission(permission);
     }
 
     /**
@@ -188,7 +275,7 @@ public class BrushTool implements DoubleActionTraceTool, ScrollTool, MovableTool
      * @return the current brush
      */
     public Brush getBrush() {
-        return getContext().brush;
+        return getContext().getBrush();
     }
 
     /**
@@ -197,7 +284,7 @@ public class BrushTool implements DoubleActionTraceTool, ScrollTool, MovableTool
      * @param material the material
      */
     public void setFill(@Nullable Pattern material) {
-        this.getContext().material = material;
+        this.getContext().setFill(material);
     }
 
     /**
@@ -206,7 +293,7 @@ public class BrushTool implements DoubleActionTraceTool, ScrollTool, MovableTool
      * @return the material
      */
     @Nullable public Pattern getMaterial() {
-        return getContext().material;
+        return getContext().getMaterial();
     }
 
     /**
@@ -215,7 +302,7 @@ public class BrushTool implements DoubleActionTraceTool, ScrollTool, MovableTool
      * @return a radius
      */
     public double getSize() {
-        return getContext().size;
+        return getContext().getSize();
     }
 
     /**
@@ -224,7 +311,7 @@ public class BrushTool implements DoubleActionTraceTool, ScrollTool, MovableTool
      * @param radius a radius
      */
     public void setSize(double radius) {
-        this.getContext().size = radius;
+        this.getContext().setSize(radius);
     }
 
     /**
@@ -306,6 +393,8 @@ public class BrushTool implements DoubleActionTraceTool, ScrollTool, MovableTool
         }
 
         BrushSettings current = getContext();
+        Brush brush = current.getBrush();
+        if (brush == null) return false;
 
         EditSession editSession = session.createEditSession(player);
         Vector target = getPosition(editSession, player);
@@ -317,28 +406,31 @@ public class BrushTool implements DoubleActionTraceTool, ScrollTool, MovableTool
         }
         BlockBag bag = session.getBlockBag(player);
         Request.request().setEditSession(editSession);
-        if (current.mask != null) {
+        Mask mask = current.getMask();
+        if (mask != null) {
             Mask existingMask = editSession.getMask();
 
             if (existingMask == null) {
-                editSession.setMask(current.mask);
+                editSession.setMask(mask);
             } else if (existingMask instanceof MaskIntersection) {
-                ((MaskIntersection) existingMask).add(current.mask);
+                ((MaskIntersection) existingMask).add(mask);
             } else {
                 MaskIntersection newMask = new MaskIntersection(existingMask);
-                newMask.add(current.mask);
+                newMask.add(mask);
                 editSession.setMask(newMask);
             }
         }
-        if (current.sourceMask != null) {
-            editSession.addSourceMask(current.sourceMask);
+        Mask sourceMask = current.getSourceMask();
+        if (sourceMask != null) {
+            editSession.addSourceMask(sourceMask);
         }
-        if (current.transform != null) {
-            editSession.addTransform(current.transform);
+        ResettableExtent transform = current.getTransform();
+        if (transform != null) {
+            editSession.addTransform(transform);
         }
         try {
             new PatternTraverser(current).reset(editSession);
-            current.brush.build(editSession, target, current.material, current.size);
+            brush.build(editSession, target, current.getMaterial(), current.getSize());
         } catch (MaxChangedBlocksException e) {
             player.printError("Max blocks change limit reached."); // Never happens
         } finally {
@@ -366,7 +458,7 @@ public class BrushTool implements DoubleActionTraceTool, ScrollTool, MovableTool
     }
 
     public void setScrollAction(ScrollAction scrollAction) {
-        this.getContext().scrollAction = scrollAction;
+        this.getContext().setScrollAction(scrollAction);
     }
 
     public void setTargetMode(TargetMode targetMode) {
@@ -388,7 +480,7 @@ public class BrushTool implements DoubleActionTraceTool, ScrollTool, MovableTool
     @Override
     public boolean increment(Player player, int amount) {
         BrushSettings current = getContext();
-        ScrollAction tmp = current.scrollAction;
+        ScrollAction tmp = current.getScrollAction();
         if (tmp != null) {
             tmp.setTool(this);
             if (tmp.increment(player, amount)) {
@@ -439,7 +531,7 @@ public class BrushTool implements DoubleActionTraceTool, ScrollTool, MovableTool
                 case OUTLINE: {
                     BrushSettings current = getContext();
                     new PatternTraverser(current).reset(editSession);
-                    current.brush.build(editSession, position, current.material, current.size);
+                    current.getBrush().build(editSession, position, current.getMaterial(), current.getSize());
                     break;
                 }
             }

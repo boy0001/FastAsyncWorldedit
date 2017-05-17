@@ -7,6 +7,7 @@ import com.sk89q.worldedit.blocks.BaseBlock;
 import com.sk89q.worldedit.extent.Extent;
 import com.sk89q.worldedit.function.pattern.AbstractPattern;
 import com.sk89q.worldedit.function.pattern.Pattern;
+import java.io.IOException;
 
 public class NoZPattern extends AbstractPattern {
 
@@ -16,7 +17,7 @@ public class NoZPattern extends AbstractPattern {
         this.pattern = pattern;
     }
 
-    private MutableBlockVector mutable = new MutableBlockVector();
+    private transient MutableBlockVector mutable = new MutableBlockVector();
 
     @Override
     public BaseBlock apply(Vector pos) {
@@ -30,5 +31,10 @@ public class NoZPattern extends AbstractPattern {
         mutable.mutX((get.getX()));
         mutable.mutY((get.getY()));
         return pattern.apply(extent, set, mutable);
+    }
+
+    private void readObject(java.io.ObjectInputStream stream) throws IOException, ClassNotFoundException {
+        stream.defaultReadObject();
+        mutable = new MutableBlockVector();
     }
 }

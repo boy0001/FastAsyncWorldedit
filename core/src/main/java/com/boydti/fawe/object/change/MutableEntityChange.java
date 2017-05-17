@@ -95,7 +95,12 @@ public class MutableEntityChange implements Change {
 
     public void perform(FaweQueue queue) {
         Map<String, Tag> map = tag.getValue();
-        List<DoubleTag> pos = (List<DoubleTag>) map.get("Pos").getValue();
+        Tag posTag = map.get("Pos");
+        if (posTag == null) {
+            Fawe.debug("Missing pos tag: " + tag);
+            return;
+        }
+        List<DoubleTag> pos = (List<DoubleTag>) posTag.getValue();
         int x = (int) Math.round(pos.get(0).getValue());
         int y = (int) Math.round(pos.get(1).getValue());
         int z = (int) Math.round(pos.get(2).getValue());

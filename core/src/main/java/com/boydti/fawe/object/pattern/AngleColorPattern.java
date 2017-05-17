@@ -1,26 +1,31 @@
 package com.boydti.fawe.object.pattern;
 
+import com.boydti.fawe.Fawe;
 import com.boydti.fawe.object.DataAngleMask;
 import com.boydti.fawe.util.TextureUtil;
 import com.sk89q.worldedit.Vector;
 import com.sk89q.worldedit.WorldEditException;
 import com.sk89q.worldedit.blocks.BaseBlock;
 import com.sk89q.worldedit.extent.Extent;
+import java.io.IOException;
 
 public class AngleColorPattern extends DataAngleMask {
-    private final TextureUtil util;
-    private final int maxY;
-    private final double factor = 1d/196;
+    private static final double FACTOR = 1d/196;
+    private transient TextureUtil util;
 
-    public AngleColorPattern(TextureUtil util, Extent extent) {
+    private final boolean randomize;
+    private final int complexity;
+
+    public AngleColorPattern(Extent extent, int complexity, boolean randomize) {
         super(extent);
-        this.util = util;
-        this.maxY = extent.getMaximumPoint().getBlockY();
+        this.complexity = complexity;
+        this.randomize = randomize;
+        this.util = Fawe.get().getCachedTextureUtil(randomize, 0, complexity);
     }
 
     public int getColor(int color, int slope) {
         if (slope == 0) return color;
-        double newFactor = (196 - Math.min(196, slope)) * factor;
+        double newFactor = (196 - Math.min(196, slope)) * FACTOR;
         int newRed = (int) (((color >> 16) & 0xFF) * newFactor);
         int newGreen = (int) (((color >> 8) & 0xFF) * newFactor);
         int newBlue = (int) (((color >> 0) & 0xFF) * newFactor);
@@ -49,5 +54,10 @@ public class AngleColorPattern extends DataAngleMask {
         BaseBlock newBlock = util.getNearestBlock(newColor);
         if (newBlock == null) return false;
         return extent.setBlock(setPosition, newBlock);
+    }
+
+    private void readObject(java.io.ObjectInputStream stream) throws IOException, ClassNotFoundException {
+        stream.defaultReadObject();
+        util = Fawe.get().getCachedTextureUtil(randomize, 0, complexity);
     }
 }

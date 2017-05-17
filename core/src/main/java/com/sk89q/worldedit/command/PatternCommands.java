@@ -119,7 +119,7 @@ public class PatternCommands extends MethodCommands {
     )
     public Pattern anglecolor(EditSession editSession, @Optional("true") boolean randomize, @Optional("100") double maxComplexity) {
         TextureUtil util = Fawe.get().getCachedTextureUtil(randomize, 0, (int) maxComplexity);
-        return new AngleColorPattern(util, editSession);
+        return new AngleColorPattern(editSession, (int) maxComplexity, randomize);
     }
 
     @Command(
@@ -141,7 +141,7 @@ public class PatternCommands extends MethodCommands {
         TextureUtil util = Fawe.get().getCachedTextureUtil(randomize, 0, (int) maxComplexity);
         Color color = Color.web(arg);
         java.awt.Color awtColor = new java.awt.Color((float) color.getRed(), (float) color.getGreen(), (float) color.getBlue(), (float) color.getOpacity());
-        return new SaturatePattern(editSession, util, awtColor.getRGB());
+        return new SaturatePattern(editSession, awtColor.getRGB(), (int) maxComplexity, randomize);
     }
 
     @Command(
@@ -155,7 +155,7 @@ public class PatternCommands extends MethodCommands {
         TextureUtil util = Fawe.get().getCachedTextureUtil(randomize, 0, (int) maxComplexity);
         Color color = Color.web(arg);
         java.awt.Color awtColor = new java.awt.Color((float) color.getRed(), (float) color.getGreen(), (float) color.getBlue(), (float) color.getOpacity());
-        return new AverageColorPattern(editSession, util, awtColor.getRGB());
+        return new AverageColorPattern(editSession, awtColor.getRGB(), (int) maxComplexity, randomize);
     }
 
     @Command(
@@ -167,7 +167,7 @@ public class PatternCommands extends MethodCommands {
     )
     public Pattern desaturate(EditSession editSession, @Optional("100") double percent, @Optional("true") boolean randomize, @Optional("100") double maxComplexity) {
         TextureUtil util = Fawe.get().getCachedTextureUtil(randomize, 0, (int) maxComplexity);
-        return new DesaturatePattern(editSession, util, percent / 100d);
+        return new DesaturatePattern(editSession, percent / 100d, (int) maxComplexity, randomize);
     }
 
     @Command(
@@ -179,7 +179,7 @@ public class PatternCommands extends MethodCommands {
     )
     public Pattern lighten(EditSession editSession, @Optional("true") boolean randomize, @Optional("100") double maxComplexity) {
         TextureUtil util = Fawe.get().getCachedTextureUtil(randomize, 0, (int) maxComplexity);
-        return new ShadePattern(editSession, util, false);
+        return new ShadePattern(editSession, false, (int) maxComplexity, randomize);
     }
 
     @Command(
@@ -191,7 +191,7 @@ public class PatternCommands extends MethodCommands {
     )
     public Pattern darken(EditSession editSession, @Optional("true") boolean randomize, @Optional("100") double maxComplexity) {
         TextureUtil util = Fawe.get().getCachedTextureUtil(randomize, 0, (int) maxComplexity);
-        return new ShadePattern(editSession, util, true);
+        return new ShadePattern(editSession, true, (int) maxComplexity, randomize);
     }
 
     @Command(
@@ -371,8 +371,8 @@ public class PatternCommands extends MethodCommands {
             min = 2,
             max = 2
     )
-    public Pattern surfacespread(Actor actor, LocalSession session, EditSession editSession, double distance, Pattern pattern) {
-        return new SurfaceRandomOffsetPattern(editSession, pattern, (int) distance);
+    public Pattern surfacespread(Actor actor, LocalSession session, double distance, Pattern pattern) {
+        return new SurfaceRandomOffsetPattern(pattern, (int) distance);
     }
 
     @Command(

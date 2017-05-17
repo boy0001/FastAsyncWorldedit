@@ -3,50 +3,148 @@ package com.sk89q.worldedit.command;
 import com.boydti.fawe.Fawe;
 import com.boydti.fawe.FaweAPI;
 import com.boydti.fawe.config.BBC;
+import com.boydti.fawe.object.brush.BrushSettings;
 import com.boydti.fawe.object.brush.TargetMode;
-import com.boydti.fawe.object.brush.scroll.ScrollClipboard;
-import com.boydti.fawe.object.brush.scroll.ScrollMask;
-import com.boydti.fawe.object.brush.scroll.ScrollPattern;
-import com.boydti.fawe.object.brush.scroll.ScrollRange;
-import com.boydti.fawe.object.brush.scroll.ScrollSize;
-import com.boydti.fawe.object.brush.scroll.ScrollTarget;
+import com.boydti.fawe.object.brush.scroll.ScrollAction;
 import com.boydti.fawe.object.brush.visualization.VisualMode;
 import com.boydti.fawe.object.extent.ResettableExtent;
+import com.boydti.fawe.object.io.PGZIPOutputStream;
+import com.boydti.fawe.util.MainUtil;
 import com.boydti.fawe.util.MathMan;
 import com.sk89q.minecraft.util.commands.Command;
 import com.sk89q.minecraft.util.commands.CommandContext;
 import com.sk89q.minecraft.util.commands.CommandPermissions;
 import com.sk89q.worldedit.EditSession;
-import com.sk89q.worldedit.LocalConfiguration;
 import com.sk89q.worldedit.LocalSession;
 import com.sk89q.worldedit.WorldEdit;
 import com.sk89q.worldedit.WorldEditException;
 import com.sk89q.worldedit.blocks.BaseBlock;
 import com.sk89q.worldedit.command.tool.BrushTool;
-import com.sk89q.worldedit.command.tool.Tool;
 import com.sk89q.worldedit.entity.Player;
 import com.sk89q.worldedit.event.platform.CommandEvent;
 import com.sk89q.worldedit.extension.factory.DefaultMaskParser;
 import com.sk89q.worldedit.extension.factory.DefaultTransformParser;
 import com.sk89q.worldedit.extension.factory.HashTagPatternParser;
 import com.sk89q.worldedit.extension.input.ParserContext;
+import com.sk89q.worldedit.extension.platform.Actor;
 import com.sk89q.worldedit.extension.platform.CommandManager;
-import com.sk89q.worldedit.extent.clipboard.io.ClipboardFormat;
 import com.sk89q.worldedit.function.mask.Mask;
 import com.sk89q.worldedit.function.pattern.Pattern;
-import com.sk89q.worldedit.session.ClipboardHolder;
 import com.sk89q.worldedit.util.command.binding.Switch;
 import com.sk89q.worldedit.util.command.parametric.Optional;
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
+import java.io.File;
+import java.io.FileFilter;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.nio.file.FileSystems;
+import java.util.zip.GZIPInputStream;
 
 /**
  * Tool commands.
  */
 @Command(aliases = {}, desc = "Tool commands")
-public class ToolUtilCommands extends MethodCommands {
+public class BrushOptionsCommands extends MethodCommands {
 
-    public ToolUtilCommands(WorldEdit we) {
+    public BrushOptionsCommands(WorldEdit we) {
         super(we);
+    }
+
+    @Command(
+            aliases = { "/savebrush" },
+            usage = "[name]",
+            desc = "Save your current brush",
+            min = 1
+    )
+    @CommandPermissions("worldedit.brush.save")
+    public void saveBrush(Player player, LocalSession session, String name) throws WorldEditException, IOException {
+        BrushTool tool = session.getBrushTool(player);
+        if (tool != null) {
+            name = FileSystems.getDefault().getPath(name).getFileName().toString();
+            File folder = MainUtil.getFile(Fawe.imp().getDirectory(), "brushes");
+            name = name.endsWith(".jsgz") ? name : name + ".jsgz";
+            File file = new File(folder, player.getUniqueId() + File.separator + name);
+            File parent = file.getParentFile();
+            if (!parent.exists()) {
+                parent.mkdirs();
+            }
+            file.createNewFile();
+            try (DataOutputStream out = new DataOutputStream(new PGZIPOutputStream(new FileOutputStream(file)))) {
+                out.writeUTF(tool.toString());
+            } catch (Throwable e) {
+                e.printStackTrace();
+            }
+            BBC.SCHEMATIC_SAVED.send(player, name);
+        } else {
+            BBC.BRUSH_NONE.send(player);
+        }
+    }
+
+    @Command(
+            aliases = { "/loadbrush" },
+            desc = "load a brush",
+            usage = "[name]",
+            min = 1
+    )
+    @CommandPermissions("worldedit.brush.load")
+    public void loadBrush(Player player, LocalSession session, String name) throws WorldEditException, IOException {
+        name = FileSystems.getDefault().getPath(name).getFileName().toString();
+        File folder = MainUtil.getFile(Fawe.imp().getDirectory(), "brushes");
+        name = name.endsWith(".jsgz") ? name : name + ".jsgz";
+        File file = new File(folder, player.getUniqueId() + File.separator + name);
+        if (!file.exists()) {
+            file = new File(folder, name);
+        }
+        if (!file.exists()) {
+            File[] files = folder.listFiles(new FileFilter() {
+                @Override
+                public boolean accept(File pathname) {
+                    return false;
+                }
+            });
+            BBC.BRUSH_NOT_FOUND.send(player, name);
+            return;
+        }
+        try (DataInputStream in = new DataInputStream(new GZIPInputStream(new FileInputStream(file)))) {
+            String json = in.readUTF();
+            BrushTool tool = BrushTool.fromString(player, session, json);
+            BaseBlock item = player.getBlockInHand();
+            session.setTool(item.getId(), item.getData(), tool, player);
+            BBC.BRUSH_EQUIPPED.send(player, name);
+        } catch (Throwable e) {
+            e.printStackTrace();
+            BBC.BRUSH_INCOMPATIBLE.send(player);
+        }
+    }
+
+    @Command(
+            aliases = {"/listbrush"},
+            desc = "List saved brushes",
+            usage = "[mine|<filter>] [page=1]",
+            min = 0,
+            max = -1,
+            flags = "dnp",
+            help = "List all brushes in the brush directory\n" +
+                    " -p <page> prints the requested page\n"
+    )
+    @CommandPermissions("worldedit.brush.list")
+    public void list(Actor actor, CommandContext args, @Switch('p') @Optional("1") int page) throws WorldEditException {
+        File dir = MainUtil.getFile(Fawe.imp().getDirectory(), "brushes");
+        UtilityCommands.list(dir, actor, args, page, null, true);
+    }
+
+    @Command(
+            aliases = { "none", "/none" },
+            usage = "",
+            desc = "Unbind a bound tool from your current item",
+            min = 0,
+            max = 0
+    )
+    public void none(Player player, LocalSession session, CommandContext args) throws WorldEditException {
+        session.setTool(null, player);
+        BBC.TOOL_NONE.send(player);
     }
 
     @Command(
@@ -219,77 +317,22 @@ public class ToolUtilCommands extends MethodCommands {
             min = 1,
             max = -1
     )
-    public void scroll(Player player, EditSession editSession, LocalSession session, CommandContext args) throws WorldEditException {
-        BrushTool tool = session.getBrushTool(player, false);
-        if (tool == null) {
+    public void scroll(Player player, EditSession editSession, LocalSession session, @Optional @Switch('h') boolean offHand, CommandContext args) throws WorldEditException {
+        BrushTool bt = session.getBrushTool(player, false);
+        if (bt == null) {
             BBC.BRUSH_NONE.send(player);
             return;
         }
-        ParserContext parserContext = new ParserContext();
-        parserContext.setActor(player);
-        parserContext.setWorld(player.getWorld());
-        parserContext.setSession(session);
-        parserContext.setExtent(editSession);
-        final LocalConfiguration config = this.worldEdit.getConfiguration();
-        switch (args.getString(0).toLowerCase()) {
-            case "none":
-                tool.setScrollAction(null);
-                break;
-            case "clipboard":
-                if (args.argsLength() != 2) {
-                    BBC.COMMAND_SYNTAX.send(player, "clipboard [file]");
-                    return;
-                }
-                String filename = args.getString(1);
-                try {
-                    ClipboardHolder[] clipboards = ClipboardFormat.SCHEMATIC.loadAllFromInput(player, player.getWorld().getWorldData(), filename, true);
-                    if (clipboards == null) {
-                        return;
-                    }
-                    tool.setScrollAction(new ScrollClipboard(tool, session, clipboards));
-                    break;
-                } catch (IOException e) {
-                    throw new RuntimeException(e);
-                }
-            case "mask":
-                if (args.argsLength() < 2) {
-                    BBC.COMMAND_SYNTAX.send(player, "mask [mask 1] [mask 2] [mask 3]...");
-                    return;
-                }
-                Mask[] masks = new Mask[args.argsLength() - 1];
-                for (int i = 1; i < args.argsLength(); i++) {
-                    String arg = args.getString(i);
-                    masks[i - 1] = worldEdit.getMaskFactory().parseFromInput(arg, parserContext);
-                }
-                tool.setScrollAction(new ScrollMask(tool, masks));
-                break;
-            case "pattern":
-                if (args.argsLength() < 2) {
-                    BBC.COMMAND_SYNTAX.send(player, "pattern [pattern 1] [pattern 2] [pattern 3]...");
-                    return;
-                }
-                Pattern[] patterns = new Pattern[args.argsLength() - 1];
-                for (int i = 1; i < args.argsLength(); i++) {
-                    String arg = args.getString(i);
-                    patterns[i - 1] = worldEdit.getPatternFactory().parseFromInput(arg, parserContext);
-                }
-                tool.setScrollAction(new ScrollPattern(tool, patterns));
-                break;
-            case "range":
-                tool.setScrollAction(new ScrollRange(tool));
-                break;
-            case "size":
-                tool.setScrollAction(new ScrollSize(tool));
-                break;
-            case "target":
-                tool.setScrollAction(new ScrollTarget(tool));
-                break;
-            default:
-                BBC.COMMAND_SYNTAX.send(player, "[none|clipboard|mask|pattern|range|size|visual|target]");
-                return;
-
+        BrushSettings settings = offHand ? bt.getOffHand() : bt.getContext();
+        ScrollAction action = ScrollAction.fromArguments(bt, player, session, args.getJoinedStrings(0), true);
+        settings.setScrollAction(action);
+        if (args.getString(0).equalsIgnoreCase("none")) {
+            BBC.BRUSH_SCROLL_ACTION_UNSET.send(player);
+        } else if (action != null) {
+            String full = args.getJoinedStrings(0);
+            settings.addSetting(BrushSettings.SettingType.SCROLL_ACTION, full);
+            BBC.BRUSH_SCROLL_ACTION_SET.send(player, full);
         }
-        BBC.BRUSH_SCROLL_ACTION_SET.send(player, args.getJoinedStrings(0));
     }
 
     @Command(
@@ -300,36 +343,27 @@ public class ToolUtilCommands extends MethodCommands {
             max = -1
     )
     @CommandPermissions("worldedit.brush.options.mask")
-    public void mask(Player player, LocalSession session, EditSession editSession, @Optional CommandContext context, @Switch('h') boolean offHand) throws WorldEditException {
-        Tool tool = session.getTool(player);
+    public void mask(Player player, LocalSession session, EditSession editSession, @Optional @Switch('h') boolean offHand, CommandContext context) throws WorldEditException {
+        BrushTool tool = session.getBrushTool(player, false);
         if (tool == null) {
             player.print(BBC.getPrefix() + BBC.BRUSH_NONE.f());
             return;
         }
-        Mask mask;
-        if (context == null || context.argsLength() == 0) {
-            mask = null;
-        } else {
-            ParserContext parserContext = new ParserContext();
-            parserContext.setActor(player);
-            parserContext.setWorld(player.getWorld());
-            parserContext.setSession(session);
-            parserContext.setExtent(editSession);
-            mask = worldEdit.getMaskFactory().parseFromInput(context.getJoinedStrings(0), parserContext);
-        }
-        if (tool instanceof BrushTool) {
-            BrushTool bt = (BrushTool) tool;
-            if (offHand) {
-                bt.getSecondary().mask = mask;
-            } else {
-                ((BrushTool) tool).setMask(mask);
-            }
-        }
-        if (mask == null) {
+        if (context.argsLength() == 0) {
             BBC.BRUSH_MASK_DISABLED.send(player);
-        } else {
-            BBC.BRUSH_MASK.send(player);
+            tool.setMask(null);
+            return;
         }
+        ParserContext parserContext = new ParserContext();
+        parserContext.setActor(player);
+        parserContext.setWorld(player.getWorld());
+        parserContext.setSession(session);
+        parserContext.setExtent(editSession);
+        Mask mask = worldEdit.getMaskFactory().parseFromInput(context.getJoinedStrings(0), parserContext);
+        BrushSettings settings = offHand ? tool.getOffHand() : tool.getContext();
+        settings.addSetting(BrushSettings.SettingType.MASK, context.getString(context.argsLength() - 1));
+        settings.setMask(mask);
+        BBC.BRUSH_MASK.send(player);
     }
 
     @Command(
@@ -341,36 +375,27 @@ public class ToolUtilCommands extends MethodCommands {
             max = -1
     )
     @CommandPermissions("worldedit.brush.options.mask")
-    public void smask(Player player, LocalSession session, EditSession editSession, @Optional CommandContext context, @Switch('h') boolean offHand) throws WorldEditException {
-        Tool tool = session.getTool(player);
+    public void smask(Player player, LocalSession session, EditSession editSession, @Optional @Switch('h') boolean offHand, CommandContext context) throws WorldEditException {
+        BrushTool tool = session.getBrushTool(player, false);
         if (tool == null) {
             player.print(BBC.getPrefix() + BBC.BRUSH_NONE.f());
             return;
         }
-        Mask mask;
-        if (context == null || context.argsLength() == 0) {
-            mask = null;
-        } else {
-            ParserContext parserContext = new ParserContext();
-            parserContext.setActor(player);
-            parserContext.setWorld(player.getWorld());
-            parserContext.setSession(session);
-            parserContext.setExtent(editSession);
-            mask = worldEdit.getMaskFactory().parseFromInput(context.getJoinedStrings(0), parserContext);
-        }
-        if (tool instanceof BrushTool) {
-            BrushTool bt = (BrushTool) tool;
-            if (offHand) {
-                bt.getSecondary().sourceMask = mask;
-            } else {
-                ((BrushTool) tool).setSourceMask(mask);
-            }
-        }
-        if (mask == null) {
+        if (context.argsLength() == 0) {
             BBC.BRUSH_SOURCE_MASK_DISABLED.send(player);
-        } else {
-            BBC.BRUSH_SOURCE_MASK.send(player);
+            tool.setSourceMask(null);
+            return;
         }
+        ParserContext parserContext = new ParserContext();
+        parserContext.setActor(player);
+        parserContext.setWorld(player.getWorld());
+        parserContext.setSession(session);
+        parserContext.setExtent(editSession);
+        Mask mask = worldEdit.getMaskFactory().parseFromInput(context.getJoinedStrings(0), parserContext);
+        BrushSettings settings = offHand ? tool.getOffHand() : tool.getContext();
+        settings.addSetting(BrushSettings.SettingType.SOURCE_MASK, context.getString(context.argsLength() - 1));
+        settings.setSourceMask(mask);
+        BBC.BRUSH_SOURCE_MASK.send(player);
     }
 
     @Command(
@@ -381,35 +406,27 @@ public class ToolUtilCommands extends MethodCommands {
             max = -1
     )
     @CommandPermissions("worldedit.brush.options.transform")
-    public void transform(Player player, LocalSession session, EditSession editSession, @Optional CommandContext context, @Switch('h') boolean offHand) throws WorldEditException {
-        Tool tool = session.getTool(player);
+    public void transform(Player player, LocalSession session, EditSession editSession, @Optional @Switch('h') boolean offHand, CommandContext context) throws WorldEditException {
+        BrushTool tool = session.getBrushTool(player, false);
         if (tool == null) {
+            player.print(BBC.getPrefix() + BBC.BRUSH_NONE.f());
             return;
         }
-        ResettableExtent transform;
-        if (context == null || context.argsLength() == 0) {
-            transform = null;
-        } else {
-            ParserContext parserContext = new ParserContext();
-            parserContext.setActor(player);
-            parserContext.setWorld(player.getWorld());
-            parserContext.setSession(session);
-            parserContext.setExtent(editSession);
-            transform = Fawe.get().getTransformParser().parseFromInput(context.getJoinedStrings(0), parserContext);
-        }
-        if (tool instanceof BrushTool) {
-            BrushTool bt = (BrushTool) tool;
-            if (offHand) {
-                bt.getSecondary().transform = transform;
-            } else {
-                ((BrushTool) tool).setTransform(transform);
-            }
-        }
-        if (transform == null) {
+        if (context.argsLength() == 0) {
             BBC.BRUSH_TRANSFORM_DISABLED.send(player);
-        } else {
-            BBC.BRUSH_TRANSFORM.send(player);
+            tool.setTransform(null);
+            return;
         }
+        ParserContext parserContext = new ParserContext();
+        parserContext.setActor(player);
+        parserContext.setWorld(player.getWorld());
+        parserContext.setSession(session);
+        parserContext.setExtent(editSession);
+        ResettableExtent transform = Fawe.get().getTransformParser().parseFromInput(context.getJoinedStrings(0), parserContext);
+        BrushSettings settings = offHand ? tool.getOffHand() : tool.getContext();
+        settings.addSetting(BrushSettings.SettingType.TRANSFORM, context.getString(context.argsLength() - 1));
+        settings.setTransform(transform);
+        BBC.BRUSH_TRANSFORM.send(player);
     }
 
     @Command(
@@ -420,16 +437,20 @@ public class ToolUtilCommands extends MethodCommands {
             max = 1
     )
     @CommandPermissions("worldedit.brush.options.material")
-    public void material(Player player, EditSession editSession, LocalSession session, Pattern pattern, @Switch('h') boolean offHand) throws WorldEditException {
-        Tool tool = session.getTool(player);
-        if (tool instanceof BrushTool) {
-            BrushTool bt = (BrushTool) tool;
-            if (offHand) {
-                bt.getSecondary().material = pattern;
-            } else {
-                ((BrushTool) tool).setFill(pattern);
-            }
+    public void material(Player player, EditSession editSession, LocalSession session, Pattern pattern, @Switch('h') boolean offHand, CommandContext context) throws WorldEditException {
+        BrushTool tool = session.getBrushTool(player, false);
+        if (tool == null) {
+            player.print(BBC.getPrefix() + BBC.BRUSH_NONE.f());
+            return;
         }
+        if (context.argsLength() == 0) {
+            BBC.BRUSH_TRANSFORM_DISABLED.send(player);
+            tool.setFill(null);
+            return;
+        }
+        BrushSettings settings = offHand ? tool.getOffHand() : tool.getContext();
+        settings.setFill(pattern);
+        settings.addSetting(BrushSettings.SettingType.FILL, context.getString(context.argsLength() - 1));
         BBC.BRUSH_MATERIAL.send(player);
     }
 
@@ -443,11 +464,12 @@ public class ToolUtilCommands extends MethodCommands {
     @CommandPermissions("worldedit.brush.options.range")
     public void range(Player player, LocalSession session, CommandContext args) throws WorldEditException {
         int range = Math.max(0, Math.min(256, args.getInteger(0)));
-        Tool tool = session.getTool(player);
-        if (tool instanceof BrushTool) {
-            BrushTool bt = (BrushTool) tool;
-            ((BrushTool) tool).setRange(range);
+        BrushTool tool = session.getBrushTool(player, false);
+        if (tool == null) {
+            player.print(BBC.getPrefix() + BBC.BRUSH_NONE.f());
+            return;
         }
+        tool.setRange(range);
         BBC.BRUSH_RANGE.send(player);
     }
 
@@ -460,23 +482,19 @@ public class ToolUtilCommands extends MethodCommands {
     )
     @CommandPermissions("worldedit.brush.options.size")
     public void size(Player player, LocalSession session, CommandContext args, @Switch('h') boolean offHand) throws WorldEditException {
-
         int radius = args.getInteger(0);
         worldEdit.checkMaxBrushRadius(radius);
-
-        Tool tool = session.getTool(player);
-        if (tool instanceof BrushTool) {
-            BrushTool bt = (BrushTool) tool;
-            if (offHand) {
-                bt.getSecondary().size = radius;
-            } else {
-                ((BrushTool) tool).setSize(radius);
-            }
+        BrushTool tool = session.getBrushTool(player, false);
+        if (tool == null) {
+            player.print(BBC.getPrefix() + BBC.BRUSH_NONE.f());
+            return;
         }
+        BrushSettings settings = offHand ? tool.getOffHand() : tool.getContext();
+        settings.setSize(radius);
         BBC.BRUSH_SIZE.send(player);
     }
 
     public static Class<?> inject() {
-        return ToolUtilCommands.class;
+        return BrushOptionsCommands.class;
     }
 }

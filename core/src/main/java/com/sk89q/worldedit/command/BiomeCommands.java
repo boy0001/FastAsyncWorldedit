@@ -63,7 +63,7 @@ import static com.sk89q.minecraft.util.commands.Logging.LogMode.REGION;
 /**
  * Implements biome-related commands such as "/biomelist".
  */
-@Command(aliases = "/biome", desc = "Change, list and inspect biomes")
+@Command(aliases = {}, desc = "Change, list and inspect biomes")
 public class BiomeCommands {
 
     private final WorldEdit worldEdit;

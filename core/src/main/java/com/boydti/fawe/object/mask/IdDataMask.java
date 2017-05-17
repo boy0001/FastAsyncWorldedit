@@ -3,22 +3,20 @@ package com.boydti.fawe.object.mask;
 import com.boydti.fawe.FaweCache;
 import com.sk89q.worldedit.Vector;
 import com.sk89q.worldedit.extent.Extent;
-import com.sk89q.worldedit.function.mask.Mask;
+import com.sk89q.worldedit.function.mask.AbstractExtentMask;
 import com.sk89q.worldedit.function.mask.Mask2D;
 import javax.annotation.Nullable;
 
-public class IdDataMask implements Mask, ResettableMask {
-
-    private final Extent extent;
+public class IdDataMask extends AbstractExtentMask implements ResettableMask {
+    private transient int combined = -1;
 
     public IdDataMask(Extent extent) {
-        this.extent = extent;
+        super(extent);
     }
-
-    int combined = -1;
 
     @Override
     public boolean test(Vector vector) {
+        Extent extent = getExtent();
         if (combined != -1) {
             return FaweCache.getCombined(extent.getLazyBlock(vector)) == combined;
         } else {

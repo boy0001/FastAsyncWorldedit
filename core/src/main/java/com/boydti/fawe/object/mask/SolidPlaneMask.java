@@ -12,8 +12,8 @@ import javax.annotation.Nullable;
  */
 public class SolidPlaneMask extends SolidBlockMask implements ResettableMask {
 
-    private int mode = -1;
-    private MutableBlockVector mutable = new MutableBlockVector();
+    private transient int mode = -1;
+    private transient MutableBlockVector mutable = new MutableBlockVector();
 
     private int originX = Integer.MAX_VALUE,originY = Integer.MAX_VALUE,originZ = Integer.MAX_VALUE;
 
@@ -84,6 +84,7 @@ public class SolidPlaneMask extends SolidBlockMask implements ResettableMask {
     @Override
     public void reset() {
         mode = -1;
+        mutable = new MutableBlockVector();
     }
 
     @Nullable
