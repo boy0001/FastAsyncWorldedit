@@ -38,6 +38,7 @@ import net.minecraft.server.v1_11_R1.EntityTypes;
 import net.minecraft.server.v1_11_R1.IBlockData;
 import net.minecraft.server.v1_11_R1.MinecraftKey;
 import net.minecraft.server.v1_11_R1.NBTTagCompound;
+import net.minecraft.server.v1_11_R1.NBTTagInt;
 import net.minecraft.server.v1_11_R1.TileEntity;
 import org.bukkit.Chunk;
 import org.bukkit.World;
@@ -484,6 +485,9 @@ public class BukkitChunk_1_11 extends CharFaweChunk<Chunk, com.boydti.fawe.bukki
                 TileEntity tileEntity = nmsWorld.getTileEntity(pos);
                 if (tileEntity != null) {
                     NBTTagCompound tag = (NBTTagCompound) com.boydti.fawe.bukkit.v1_11.BukkitQueue_1_11.methodFromNative.invoke(com.boydti.fawe.bukkit.v1_11.BukkitQueue_1_11.adapter, nativeTag);
+                    tag.set("x", new NBTTagInt(x));
+                    tag.set("y", new NBTTagInt(x));
+                    tag.set("z", new NBTTagInt(x));
                     tileEntity.a(tag); // ReadTagIntoTile
                 }
             }
