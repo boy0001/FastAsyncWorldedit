@@ -356,6 +356,7 @@ public class ForgeChunk_All extends CharFaweChunk<Chunk, ForgeQueue_All> {
                     tileEntity.readFromNBT(tag); // ReadTagIntoTile
                 }
             }
+            sectionPalettes = null;
         } catch (Throwable e) {
             MainUtil.handleError(e);
         }

@@ -131,7 +131,7 @@ public class ForgeChunk_All extends CharFaweChunk<Chunk, ForgeQueue_All> {
                 }
                 if (id > 255) {
                     NibbleArray nibble = extended[i];
-                    if (extended == null) {
+                    if (nibble == null) {
                         extended[i] = nibble = new NibbleArray(4096, 4);
                     }
                     nibble.set(x, y & 15, z, id >> 8);
@@ -315,6 +315,12 @@ public class ForgeChunk_All extends CharFaweChunk<Chunk, ForgeQueue_All> {
                             continue;
                         case 1:
                             currentIdArray[k] = 0;
+                            if (extra) {
+                                int x = FaweCache.CACHE_X[0][k];
+                                int y = FaweCache.CACHE_Y[0][k];
+                                int z = FaweCache.CACHE_Z[0][k];
+                                currentExtraArray.set(x, y, z, 0);
+                            }
                             continue;
                         default:
                             solid++;

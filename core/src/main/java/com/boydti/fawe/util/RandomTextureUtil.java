@@ -5,12 +5,13 @@ import com.boydti.fawe.object.PseudoRandom;
 import com.sk89q.worldedit.blocks.BaseBlock;
 import com.sk89q.worldedit.blocks.BlockID;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
+import java.io.FileNotFoundException;
 
 public class RandomTextureUtil extends CachedTextureUtil {
 
     private final int grassColor;
 
-    public RandomTextureUtil(TextureUtil parent) {
+    public RandomTextureUtil(TextureUtil parent) throws FileNotFoundException {
         super(parent);
         this.grassColor = parent.getColor(FaweCache.getBlock(BlockID.GRASS, 0));
     }

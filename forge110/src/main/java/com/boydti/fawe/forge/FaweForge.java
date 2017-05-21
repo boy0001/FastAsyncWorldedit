@@ -19,10 +19,8 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
-import java.util.Map;
 import java.util.UUID;
 import javax.management.InstanceAlreadyExistsException;
-import net.minecraft.command.ServerCommandManager;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.server.MinecraftServer;
 import net.minecraftforge.fml.common.FMLCommonHandler;
@@ -75,11 +73,8 @@ public class FaweForge implements IFawe {
         this.commands.put(label, cmd);
     }
 
-    public void insertCommands() {
-        for (Map.Entry<String, FaweCommand> entry : commands.entrySet()) {
-            ServerCommandManager scm = (ServerCommandManager) FMLCommonHandler.instance().getMinecraftServerInstance().getCommandManager();
-            scm.registerCommand(new ForgeCommand(entry.getKey(), entry.getValue()));
-        }
+    public HashMap<String, FaweCommand> getCommands() {
+        return commands;
     }
 
     @Override

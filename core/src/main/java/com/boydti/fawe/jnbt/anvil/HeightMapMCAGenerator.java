@@ -31,6 +31,7 @@ import com.sk89q.worldedit.world.registry.WorldData;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import java.awt.image.BufferedImage;
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.util.Arrays;
 
 public class HeightMapMCAGenerator extends MCAWriter implements Extent {
@@ -79,11 +80,13 @@ public class HeightMapMCAGenerator extends MCAWriter implements Extent {
         if (textureUtil == null) {
             textureUtil = Fawe.get().getTextureUtil();
         }
-        if (randomVariation) {
-            return new RandomTextureUtil(textureUtil);
-        } else {
-            return new CachedTextureUtil(textureUtil);
-        }
+        try {
+            if (randomVariation) {
+                return new RandomTextureUtil(textureUtil);
+            } else {
+                return new CachedTextureUtil(textureUtil);
+            }
+        } catch (FileNotFoundException neverHappens) { neverHappens.printStackTrace(); return null; }
     }
 
     public void setWaterHeight(int waterHeight) {

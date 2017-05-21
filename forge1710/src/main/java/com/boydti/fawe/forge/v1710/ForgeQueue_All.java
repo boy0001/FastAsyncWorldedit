@@ -166,10 +166,18 @@ public class ForgeQueue_All extends NMSMappedFaweQueue<World, Chunk, ExtendedBlo
     @Override
     public int getCombinedId4Data(ExtendedBlockStorage ls, int x, int y, int z) {
         byte[] ids = ls.getBlockLSBArray();
-        NibbleArray datasNibble = ls.getBlockMSBArray();
+        NibbleArray currentDataArray = ls.getMetadataArray();
+        NibbleArray currentExtraArray = ls.getBlockMSBArray();
         int i = FaweCache.CACHE_J[y & 15][z & 15][x & 15];
-        int combined = ((ids[i] & 0xFF) << 4) + (datasNibble == null ? 0 : datasNibble.get(x & 15, y & 15, z & 15));
-        return combined;
+        int id = (ids[i] & 0xFF);
+        if (currentExtraArray != null) {
+            id += (currentExtraArray.get(x & 15, y & 15, z & 15)) << 8;
+        }
+        if (currentDataArray != null && FaweCache.hasData(id)) {
+            return (id << 4) + currentDataArray.get(x & 15, y & 15, z & 15);
+        } else {
+            return (id << 4);
+        }
     }
 
     @Override

@@ -13,6 +13,7 @@ import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import java.awt.image.BufferedImage;
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.FilenameFilter;
 import java.io.IOException;
 import java.io.InputStream;
@@ -49,6 +50,7 @@ public class TextureUtil {
     protected char[] validBlockIds;
     protected int[] validLayerColors;
     protected char[][] validLayerBlocks;
+
 
     /**
      * https://github.com/erich666/Mineways/blob/master/Win/biomes.cpp
@@ -315,12 +317,15 @@ public class TextureUtil {
             new BiomeColor(255, "Unknown Biome",				0.8f, 0.4f, 0x92BD59, 0x77AB2F ),
     };
 
-    public TextureUtil() {
+    public TextureUtil() throws FileNotFoundException {
         this(MainUtil.getFile(Fawe.imp().getDirectory(), Settings.IMP.PATHS.TEXTURES));
     }
 
-    public TextureUtil(File folder) {
+    public TextureUtil(File folder) throws FileNotFoundException {
         this.folder = folder;
+        if (!folder.exists()) {
+            throw new FileNotFoundException("Please create a `FastAsyncWorldEdit/textures` folder with `.minecraft/versions` jar or mods in it.");
+        }
     }
 
     public BaseBlock getNearestBlock(int color) {
@@ -807,6 +812,9 @@ public class TextureUtil {
         String all = (String) textures.get("all");
         if (all == null) {
             all = (String) textures.get("top");
+        }
+        if (all == null) {
+            all = (String) textures.get("pattern");
         }
         if (all != null) {
             String textureName = getFileName(all);

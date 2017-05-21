@@ -1,8 +1,10 @@
 package com.boydti.fawe.forge;
 
 import com.boydti.fawe.Fawe;
+import com.boydti.fawe.object.FaweCommand;
 import com.boydti.fawe.object.FawePlayer;
 import java.io.File;
+import java.util.Map;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraftforge.common.MinecraftForge;
@@ -33,7 +35,9 @@ public class ForgeMain {
 
     @Mod.EventHandler
     public void serverLoad(FMLServerStartingEvent event) {
-        IMP.insertCommands();
+        for (Map.Entry<String, FaweCommand> entry : IMP.getCommands().entrySet()) {
+            event.registerServerCommand(new ForgeCommand(entry.getKey(), entry.getValue()));
+        }
     }
 
     @SubscribeEvent(priority = EventPriority.LOWEST)
