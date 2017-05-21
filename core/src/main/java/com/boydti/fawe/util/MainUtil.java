@@ -357,6 +357,9 @@ public class MainUtil {
         } else {
             legacy = true;
         }
+        if (mode == 0) {
+            return new FaweInputStream(is);
+        }
         int amountAbs = Math.abs(mode);
         if (amountAbs > 6) {
             if (mode > 0) {
