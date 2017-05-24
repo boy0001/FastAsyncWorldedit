@@ -368,7 +368,7 @@ public class MaskCommands extends MethodCommands {
             max = 1
     )
     public Mask expression(EditSession editSession, String input) throws ExpressionException {
-        Expression exp = Expression.compile(input.substring(1), "x", "y", "z");
+        Expression exp = Expression.compile(input, "x", "y", "z");
         WorldEditExpressionEnvironment env = new WorldEditExpressionEnvironment(
                 editSession, Vector.ONE, Vector.ZERO);
         exp.setEnvironment(env);

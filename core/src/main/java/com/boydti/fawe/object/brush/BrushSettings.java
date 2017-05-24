@@ -137,6 +137,11 @@ public class BrushSettings {
         return this;
     }
 
+    public BrushSettings clearPerms() {
+        permissions.clear();
+        return this;
+    }
+
     public BrushSettings addSetting(SettingType type, String args) {
         constructor.put(type, args);
         return this;

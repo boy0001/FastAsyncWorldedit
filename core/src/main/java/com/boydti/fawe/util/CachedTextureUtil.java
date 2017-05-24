@@ -3,6 +3,7 @@ package com.boydti.fawe.util;
 import com.boydti.fawe.FaweCache;
 import com.sk89q.worldedit.blocks.BaseBlock;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
+import java.io.FileNotFoundException;
 
 public class CachedTextureUtil extends DelegateTextureUtil {
     private final TextureUtil parent;
@@ -10,7 +11,7 @@ public class CachedTextureUtil extends DelegateTextureUtil {
     private transient Int2ObjectOpenHashMap<Integer> colorBiomeMap;
     private transient Int2ObjectOpenHashMap<char[]> colorLayerMap;
 
-    public CachedTextureUtil(TextureUtil parent) {
+    public CachedTextureUtil(TextureUtil parent) throws FileNotFoundException {
         super(parent);
         this.parent = parent;
         this.colorBlockMap = new Int2ObjectOpenHashMap<>();

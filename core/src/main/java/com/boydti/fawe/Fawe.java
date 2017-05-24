@@ -32,13 +32,14 @@ import com.sk89q.worldedit.blocks.BaseBlock;
 import com.sk89q.worldedit.blocks.BlockData;
 import com.sk89q.worldedit.command.BiomeCommands;
 import com.sk89q.worldedit.command.BrushCommands;
+import com.sk89q.worldedit.command.BrushOptionsCommands;
 import com.sk89q.worldedit.command.ChunkCommands;
 import com.sk89q.worldedit.command.ClipboardCommands;
 import com.sk89q.worldedit.command.FlattenedClipboardTransform;
-import com.sk89q.worldedit.command.OptionsCommands;
 import com.sk89q.worldedit.command.GenerationCommands;
 import com.sk89q.worldedit.command.HistoryCommands;
 import com.sk89q.worldedit.command.NavigationCommands;
+import com.sk89q.worldedit.command.OptionsCommands;
 import com.sk89q.worldedit.command.RegionCommands;
 import com.sk89q.worldedit.command.SchematicCommands;
 import com.sk89q.worldedit.command.ScriptingCommands;
@@ -46,7 +47,6 @@ import com.sk89q.worldedit.command.SnapshotCommands;
 import com.sk89q.worldedit.command.SnapshotUtilCommands;
 import com.sk89q.worldedit.command.SuperPickaxeCommands;
 import com.sk89q.worldedit.command.ToolCommands;
-import com.sk89q.worldedit.command.BrushOptionsCommands;
 import com.sk89q.worldedit.command.UtilityCommands;
 import com.sk89q.worldedit.command.WorldEditCommands;
 import com.sk89q.worldedit.command.composition.SelectionCommand;
@@ -106,6 +106,9 @@ import com.sk89q.worldedit.function.visitor.RegionVisitor;
 import com.sk89q.worldedit.history.change.EntityCreate;
 import com.sk89q.worldedit.history.change.EntityRemove;
 import com.sk89q.worldedit.internal.LocalWorldAdapter;
+import com.sk89q.worldedit.internal.expression.Expression;
+import com.sk89q.worldedit.internal.expression.runtime.ExpressionEnvironment;
+import com.sk89q.worldedit.internal.expression.runtime.Functions;
 import com.sk89q.worldedit.math.convolution.HeightMap;
 import com.sk89q.worldedit.math.interpolation.KochanekBartelsInterpolation;
 import com.sk89q.worldedit.math.transform.AffineTransform;
@@ -113,6 +116,7 @@ import com.sk89q.worldedit.regions.CuboidRegion;
 import com.sk89q.worldedit.regions.EllipsoidRegion;
 import com.sk89q.worldedit.regions.selector.CuboidRegionSelector;
 import com.sk89q.worldedit.regions.shape.ArbitraryShape;
+import com.sk89q.worldedit.regions.shape.WorldEditExpressionEnvironment;
 import com.sk89q.worldedit.session.ClipboardHolder;
 import com.sk89q.worldedit.session.PasteBuilder;
 import com.sk89q.worldedit.session.SessionManager;
@@ -128,6 +132,7 @@ import com.sk89q.worldedit.util.formatting.component.CommandUsageBox;
 import com.sk89q.worldedit.util.formatting.component.MessageBox;
 import com.sk89q.worldedit.world.registry.BundledBlockData;
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.lang.management.ManagementFactory;
@@ -340,8 +345,10 @@ public class Fawe {
 
     public TextureUtil getCachedTextureUtil(boolean randomize, int min, int max) {
         TextureUtil tu = getTextureUtil();
-        tu = min == 0 && max == 100 ? tu : new CleanTextureUtil(tu, min, max);
-        tu = randomize ? new RandomTextureUtil(tu) : new CachedTextureUtil(tu);
+        try {
+            tu = min == 0 && max == 100 ? tu : new CleanTextureUtil(tu, min, max);
+            tu = randomize ? new RandomTextureUtil(tu) : new CachedTextureUtil(tu);
+        } catch (FileNotFoundException neverHappens) { neverHappens.printStackTrace(); }
         return tu;
     }
 
@@ -355,7 +362,7 @@ public class Fawe {
                         textures = tmp = new TextureUtil();
                         tmp.loadModTextures();
                     } catch (IOException e) {
-                        e.printStackTrace();
+                        throw new RuntimeException(e);
                     }
                 }
             }
@@ -545,6 +552,11 @@ public class Fawe {
             BlockReplace.inject(); // Optimizations + Features
             ForwardExtentCopy.inject(); // Fixes + optimizations
             ChangeSetExecutor.inject(); // Optimizations
+            // Expression
+            ExpressionEnvironment.inject(); // Optimizations + features
+            WorldEditExpressionEnvironment.inject(); // Optimizations + features
+            Expression.inject(); // Optimizations
+            Functions.inject(); // Optimizations
             // BlockData
             BlockData.inject(); // Temporary fix for 1.9.4
             BundledBlockData.inject(); // Add custom rotation

@@ -201,6 +201,7 @@ public enum BBC {
 
     COMMAND_INVALID_SYNTAX("The command was not used properly (no more help available).", "WorldEdit.Command"),
 
+    COMMAND_CLARIFYING_BRACKET("&7Added clarifying bracket for &c%s0", "WorldEdit.Help"),
     HELP_SUGGEST("&7Couldn't find %s0. Maybe try one of &c%s1 &7?", "WorldEdit.Help"),
     HELP_HEADER_CATEGORIES("Command Types", "WorldEdit.Help"),
     HELP_HEADER_SUBCOMMANDS("Subcommands", "WorldEdit.Help"),

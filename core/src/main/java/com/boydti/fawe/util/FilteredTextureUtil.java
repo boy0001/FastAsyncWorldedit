@@ -2,10 +2,11 @@ package com.boydti.fawe.util;
 
 import com.boydti.fawe.FaweCache;
 import com.sk89q.worldedit.blocks.BaseBlock;
+import java.io.FileNotFoundException;
 import java.util.Set;
 
 public class FilteredTextureUtil extends TextureUtil {
-    public FilteredTextureUtil(TextureUtil parent, Set<BaseBlock> blocks) {
+    public FilteredTextureUtil(TextureUtil parent, Set<BaseBlock> blocks) throws FileNotFoundException {
         super(parent.getFolder());
         this.validBiomes = parent.validBiomes;
         this.blockColors = parent.blockColors;

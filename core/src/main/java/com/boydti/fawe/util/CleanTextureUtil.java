@@ -1,9 +1,10 @@
 package com.boydti.fawe.util;
 
+import java.io.FileNotFoundException;
 import java.util.Arrays;
 
 public class CleanTextureUtil extends TextureUtil {
-    public CleanTextureUtil(TextureUtil parent, int minPercent, int maxPercent) {
+    public CleanTextureUtil(TextureUtil parent, int minPercent, int maxPercent) throws FileNotFoundException {
         super(parent.getFolder());
         int minIndex = ((parent.distances.length - 1) * minPercent) / 100;
         int maxIndex = ((parent.distances.length - 1) * maxPercent) / 100;

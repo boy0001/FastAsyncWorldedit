@@ -6,10 +6,12 @@ import com.boydti.fawe.bukkit.v0.BukkitQueue_All;
 import com.boydti.fawe.bukkit.v1_10.BukkitQueue_1_10;
 import com.boydti.fawe.bukkit.v1_11.BukkitQueue_1_11;
 import com.boydti.fawe.bukkit.v1_12.BukkitQueue_1_12;
+import com.boydti.fawe.bukkit.v1_12.NMSRegistryDumper;
 import com.boydti.fawe.bukkit.v1_7.BukkitQueue17;
 import com.boydti.fawe.bukkit.v1_8.BukkitQueue18R3;
 import com.boydti.fawe.bukkit.v1_9.BukkitQueue_1_9_R1;
 import com.boydti.fawe.object.FaweQueue;
+import com.boydti.fawe.util.MainUtil;
 import com.sk89q.worldedit.world.World;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
@@ -66,6 +68,15 @@ public class BukkitMain extends JavaPlugin {
             try {
                 BukkitQueue_0.checkVersion(v.name());
                 this.version = v;
+                if (version == Version.v1_12_R1) {
+                    try {
+                        Fawe.debug("Running 1.12 registry dumper!");
+                        NMSRegistryDumper dumper = new NMSRegistryDumper(MainUtil.getFile(getDataFolder(), "extrablocks.json"));
+                        dumper.run();
+                    } catch (Throwable e) {
+                        e.printStackTrace();
+                    }
+                }
                 break;
             } catch (IllegalStateException e) {}
         }

@@ -1,6 +1,7 @@
 package com.sk89q.worldedit.extension.factory;
 
 import com.boydti.fawe.command.FaweParser;
+import com.boydti.fawe.config.BBC;
 import com.boydti.fawe.util.StringMan;
 import com.sk89q.minecraft.util.commands.CommandLocals;
 import com.sk89q.worldedit.WorldEdit;
@@ -103,7 +104,7 @@ public class DefaultMaskParser extends FaweParser<Mask> {
                                     input = input.substring(input.indexOf(char0) + 1);
                                     mask = parseFromInput(char0 + "[" + input + "]", context);
                                     if (actor != null) {
-                                        actor.print("&7Added clarifying bracket for: " + char0 + "&c[&7" + input + "&c]&7");
+                                        BBC.COMMAND_CLARIFYING_BRACKET.send(actor, char0 + "[" + input + "]");
                                     }
                                     return mask;
                             }

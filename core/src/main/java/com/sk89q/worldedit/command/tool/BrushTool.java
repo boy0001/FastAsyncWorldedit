@@ -264,7 +264,7 @@ public class BrushTool implements DoubleActionTraceTool, ScrollTool, MovableTool
     public void setBrush(Brush brush, String permission, Player player) {
         if (player != null) clear(player);
         BrushSettings current = getContext();
-        current.clear();
+        current.clearPerms();
         current.setBrush(brush);
         current.addPermission(permission);
     }

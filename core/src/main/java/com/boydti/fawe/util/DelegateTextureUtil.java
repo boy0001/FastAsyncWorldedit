@@ -3,12 +3,13 @@ package com.boydti.fawe.util;
 import com.sk89q.worldedit.blocks.BaseBlock;
 import java.awt.image.BufferedImage;
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 
 public class DelegateTextureUtil extends TextureUtil {
     private final TextureUtil parent;
 
-    public DelegateTextureUtil(TextureUtil parent) {
+    public DelegateTextureUtil(TextureUtil parent) throws FileNotFoundException {
         super(parent.getFolder());
         this.parent = parent;
     }

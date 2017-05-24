@@ -28,7 +28,7 @@ public class ExpressionPattern extends AbstractPattern {
     /**
      * Create a new instance.
      *
-     * @param expression the expression
+     * @param input the expression
      * @throws ExpressionException thrown if there is an error with the expression
      */
     public ExpressionPattern(String input) throws ExpressionException {
@@ -56,7 +56,11 @@ public class ExpressionPattern extends AbstractPattern {
             double combined = expression.evaluate(vector.getX(), vector.getY(), vector.getZ());
             return FaweCache.CACHE_BLOCK[(char) combined];
         } catch (EvaluationException e) {
+            e.printStackTrace();
             return EditSession.nullBlock;
+        } catch (Throwable e) {
+            e.printStackTrace();
+            throw e;
         }
     }
 

@@ -16,7 +16,7 @@ public class Updater {
 
     public String getChanges() {
         if (changes == null) {
-            try (Scanner scanner = new Scanner(new URL("http://boydti.com/fawe/cl?" + Integer.toHexString(Fawe.get().getVersion().hash)).openStream(), "UTF-8")) {
+            try (Scanner scanner = new Scanner(new URL("http://empcraft.com/fawe/cl?" + Integer.toHexString(Fawe.get().getVersion().hash)).openStream(), "UTF-8")) {
                 changes = scanner.useDelimiter("\\A").next();
             } catch (IOException e) {
                 e.printStackTrace();
@@ -60,7 +60,7 @@ public class Updater {
                             fos.getChannel().transferFrom(rbc, 0, Long.MAX_VALUE);
                         }
                         Fawe.debug("Updated FAWE to " + versionString);
-                        MainUtil.sendAdmin("&7Restart to update FAWE with these changes: &c/fawe changelog &7or&c " + "http://boydti.com/fawe/cl?" + Integer.toHexString(currentVersion.hash));
+                        MainUtil.sendAdmin("&7Restart to update FAWE with these changes: &c/fawe changelog &7or&c " + "http://empcraft.com/fawe/cl?" + Integer.toHexString(currentVersion.hash));
                     }
                 }
             }
