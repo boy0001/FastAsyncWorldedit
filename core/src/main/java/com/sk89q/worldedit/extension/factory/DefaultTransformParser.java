@@ -68,7 +68,7 @@ public class DefaultTransformParser extends FaweParser<ResettableExtent> {
                 double chance = 1;
                 if (command.isEmpty()) {
                     transform = parseFromInput(StringMan.join(entry.getValue(), ','), context);
-                } if (dispatcher.get(command) == null) {
+                } else if (dispatcher.get(command) == null) {
                     // Legacy syntax
                     int percentIndex = command.indexOf('%');
                     if (percentIndex != -1) {  // Legacy percent pattern
