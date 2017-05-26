@@ -71,7 +71,7 @@ public class DefaultMaskParser extends FaweParser<Mask> {
                 Mask mask = null;
                 if (command.isEmpty()) {
                     mask = parseFromInput(StringMan.join(entry.getValue(), ','), context);
-                } if (dispatcher.get(command) == null) {
+                } else if (dispatcher.get(command) == null) {
                     // Legacy patterns
                     char char0 = command.charAt(0);
                     boolean charMask = input.length() > 1 && input.charAt(1) != '[';

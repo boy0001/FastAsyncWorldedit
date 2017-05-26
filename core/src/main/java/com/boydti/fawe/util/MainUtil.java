@@ -351,7 +351,7 @@ public class MainUtil {
             return new FaweInputStream(is);
         }
         boolean legacy;
-        if (mode > 10) {
+        if (mode >= 10) {
             legacy = false;
             mode = -mode + 10;
         } else {
