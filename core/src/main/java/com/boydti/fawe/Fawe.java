@@ -405,6 +405,8 @@ public class Fawe {
 
     public void setupConfigs() {
         MainUtil.copyFile(MainUtil.getJarFile(), "de/messages.yml", null);
+        MainUtil.copyFile(MainUtil.getJarFile(), "ru/messages.yml", null);
+        MainUtil.copyFile(MainUtil.getJarFile(), "ru/commands.yml", null);
         // Setting up config.yml
         File file = new File(this.IMP.getDirectory(), "config.yml");
         Settings.IMP.PLATFORM = IMP.getPlatform().replace("\"", "");

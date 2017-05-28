@@ -158,8 +158,7 @@ public class AsyncWorld extends DelegateFaweQueue implements World, HasFaweQueue
      */
     public synchronized static AsyncWorld create(final WorldCreator creator) {
         BukkitQueue_0 queue = (BukkitQueue_0) SetQueue.IMP.getNewQueue(creator.name(), true, false);
-        World world = queue.createWorld(
-                creator);
+        World world = queue.createWorld(creator);
         return wrap(world);
     }
 
