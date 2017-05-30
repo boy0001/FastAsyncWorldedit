@@ -24,7 +24,7 @@ def buildNumber = ""
 def semver = ""
 def date = ""
 ext {
-    index = -88;  // Offset to mach CI
+    index = -91;  // Offset to match CI
     int major, minor, patch;
     major = minor = patch = 0;
     buildNumber = "-${index}"
