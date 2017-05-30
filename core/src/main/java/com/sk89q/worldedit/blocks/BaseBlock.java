@@ -91,9 +91,11 @@ public class BaseBlock extends Block implements TileEntityBlock, Pattern, Serial
     /**
      * Construct a block with the given ID and a data value of 0.
      *
+     * @deprecated see {@link com.boydti.fawe.FaweCache#getBlock(int, int)}
      * @param id ID value
      * @see #setId(int)
      */
+    @Deprecated
     public BaseBlock(int id) {
         internalSetId(id);
         internalSetData(0);
@@ -102,11 +104,13 @@ public class BaseBlock extends Block implements TileEntityBlock, Pattern, Serial
     /**
      * Construct a block with the given ID and data value.
      *
+     * @deprecated see {@link com.boydti.fawe.FaweCache#getBlock(int, int)}
      * @param id ID value
      * @param data data value
      * @see #setId(int)
      * @see #setData(int)
      */
+    @Deprecated
     public BaseBlock(int id, int data) {
         internalSetId(id);
         internalSetData(data);
@@ -115,10 +119,12 @@ public class BaseBlock extends Block implements TileEntityBlock, Pattern, Serial
     /**
      * Construct a block with the given ID, data value and NBT data structure.
      *
+     * @deprecated see {@link com.boydti.fawe.FaweCache#getBlock(int, int)}
      * @param id ID value
      * @param data data value
      * @param nbtData NBT data, which may be null
      */
+    @Deprecated
     public BaseBlock(int id, int data, @Nullable CompoundTag nbtData) {
         setId(id);
         setData(data);
@@ -128,8 +134,10 @@ public class BaseBlock extends Block implements TileEntityBlock, Pattern, Serial
     /**
      * Create a clone of another block.
      *
+     * @deprecated see {@link com.boydti.fawe.FaweCache#getBlock(int, int)}
      * @param other the other block
      */
+    @Deprecated
     public BaseBlock(BaseBlock other) {
         this(other.getId(), other.getData(), other.getNbtData());
     }

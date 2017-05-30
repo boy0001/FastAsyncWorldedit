@@ -290,6 +290,7 @@ public abstract class BukkitQueue_0<CHUNK, CHUNKSECTIONS, SECTION> extends NMSMa
                 }
                 if (fieldTimingsEnabled != null && timingsEnabled) {
                     fieldTimingsEnabled.set(null, true);
+                    methodCheck.invoke(null);
                 }
             } catch (Throwable e) {
                 e.printStackTrace();
