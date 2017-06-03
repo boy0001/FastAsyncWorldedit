@@ -9,14 +9,9 @@ public class IntegerPair {
         this.z = z;
     }
 
-    int hash;
-
     @Override
     public int hashCode() {
-        if (hash == 0) {
-            this.hash = (x << 16) | (z & 0xFFFF);
-        }
-        return this.hash;
+        return (x << 16) | (z & 0xFFFF);
     }
 
     @Override
@@ -29,7 +24,7 @@ public class IntegerPair {
         if (this == obj) {
             return true;
         }
-        if ((obj == null) || (this.hashCode() != obj.hashCode()) || (this.getClass() != obj.getClass())) {
+        if ((obj == null) || (this.getClass() != obj.getClass())) {
             return false;
         }
         final IntegerPair other = (IntegerPair) obj;
