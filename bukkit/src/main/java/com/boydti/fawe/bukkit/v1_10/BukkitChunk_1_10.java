@@ -476,8 +476,8 @@ public class BukkitChunk_1_10 extends CharFaweChunk<Chunk, BukkitQueue_1_10> {
                 if (tileEntity != null) {
                     net.minecraft.server.v1_10_R1.NBTTagCompound tag = (net.minecraft.server.v1_10_R1.NBTTagCompound) com.boydti.fawe.bukkit.v1_10.BukkitQueue_1_10.methodFromNative.invoke(com.boydti.fawe.bukkit.v1_10.BukkitQueue_1_10.adapter, nativeTag);
                     tag.set("x", new NBTTagInt(x));
-                    tag.set("y", new NBTTagInt(x));
-                    tag.set("z", new NBTTagInt(x));
+                    tag.set("y", new NBTTagInt(y));
+                    tag.set("z", new NBTTagInt(z));
                     tileEntity.a(tag); // ReadTagIntoTile
                 }
             }

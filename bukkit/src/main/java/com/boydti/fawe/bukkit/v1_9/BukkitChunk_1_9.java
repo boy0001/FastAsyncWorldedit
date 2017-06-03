@@ -428,8 +428,8 @@ public class BukkitChunk_1_9 extends CharFaweChunk<Chunk, BukkitQueue_1_9_R1> {
                 if (tileEntity != null) {
                     NBTTagCompound tag = (NBTTagCompound) BukkitQueue_1_9_R1.methodFromNative.invoke(BukkitQueue_1_9_R1.adapter, nativeTag);
                     tag.set("x", new NBTTagInt(x));
-                    tag.set("y", new NBTTagInt(x));
-                    tag.set("z", new NBTTagInt(x));
+                    tag.set("y", new NBTTagInt(y));
+                    tag.set("z", new NBTTagInt(z));
                     tileEntity.a(tag); // ReadTagIntoTile
                 }
             }
