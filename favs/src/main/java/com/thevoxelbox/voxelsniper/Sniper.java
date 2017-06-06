@@ -11,6 +11,7 @@ import com.boydti.fawe.object.FawePlayer;
 import com.boydti.fawe.object.FaweQueue;
 import com.boydti.fawe.object.MaskedFaweQueue;
 import com.boydti.fawe.object.RegionWrapper;
+import com.boydti.fawe.object.RunnableVal;
 import com.boydti.fawe.object.changeset.FaweChangeSet;
 import com.boydti.fawe.util.SetQueue;
 import com.boydti.fawe.util.TaskManager;
@@ -325,7 +326,19 @@ public class Sniper {
                 performerBrush.initP(snipeData);
             }
 
-            boolean result = brush.perform(snipeAction, snipeData, targetBlock, lastBlock);
+            switch (brush.getClass().getSimpleName()) {
+                case "JockeyBrush":
+                    TaskManager.IMP.sync(new RunnableVal<Object>() {
+                        @Override
+                        public void run(Object value) {
+                            brush.perform(snipeAction, snipeData, targetBlock, lastBlock);
+                        }
+                    });
+                    break;
+                default:
+                    brush.perform(snipeAction, snipeData, targetBlock, lastBlock);
+                    break;
+            }
             if (Fawe.isMainThread()) {
                 SetQueue.IMP.flush(changeQueue);
             } else {

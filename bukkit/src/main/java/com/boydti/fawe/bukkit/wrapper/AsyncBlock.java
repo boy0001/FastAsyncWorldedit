@@ -1,5 +1,6 @@
 package com.boydti.fawe.bukkit.wrapper;
 
+import com.boydti.fawe.FaweCache;
 import com.boydti.fawe.object.FaweQueue;
 import java.util.Collection;
 import java.util.List;
@@ -22,9 +23,9 @@ public class AsyncBlock implements Block {
     public final int y;
     public final int x;
     public final FaweQueue queue;
-    public final World world;
+    public final AsyncWorld world;
 
-    public AsyncBlock(World world, FaweQueue queue, int x, int y, int z) {
+    public AsyncBlock(AsyncWorld world, FaweQueue queue, int x, int y, int z) {
         this.world = world;
         this.queue = queue;
         this.x = x;
@@ -64,17 +65,17 @@ public class AsyncBlock implements Block {
 
     @Override
     public byte getLightLevel() {
-        throw new UnsupportedOperationException("Not implemented yet");
+        return (byte) queue.getLight(x, y, z);
     }
 
     @Override
     public byte getLightFromSky() {
-        throw new UnsupportedOperationException("Not implemented yet");
+        return (byte) queue.getSkyLight(x, y, z);
     }
 
     @Override
     public byte getLightFromBlocks() {
-        throw new UnsupportedOperationException("Not implemented yet");
+        return (byte) queue.getEmmittedLight(x, y, z);
     }
 
     @Override
@@ -172,12 +173,13 @@ public class AsyncBlock implements Block {
 
     @Override
     public Biome getBiome() {
-        throw new UnsupportedOperationException("NOT IMPLEMENTED");
+        return world.getAdapter().getBiome(queue.getBiomeId(x, z));
     }
 
     @Override
     public void setBiome(Biome bio) {
-
+        int id = world.getAdapter().getBiomeId(bio);
+        queue.setBiome(x, z, FaweCache.getBiome(id));
     }
 
     @Override
@@ -217,7 +219,7 @@ public class AsyncBlock implements Block {
 
     @Override
     public boolean isLiquid() {
-        return false;
+        return FaweCache.isLiquid(getTypeId());
     }
 
     @Override
