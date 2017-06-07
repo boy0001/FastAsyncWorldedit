@@ -295,6 +295,18 @@ public class FaweCache {
         }
     }
 
+    public static boolean isLiquid(int id) {
+        switch (id) {
+            case 8:
+            case 9:
+            case 10:
+            case 11:
+                return true;
+            default:
+                return false;
+        }
+    }
+
     public static LightType getLight(int id) {
         switch (id) { // Lighting
             case 0:

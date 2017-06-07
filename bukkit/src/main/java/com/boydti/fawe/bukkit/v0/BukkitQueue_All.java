@@ -85,13 +85,13 @@ public class BukkitQueue_All extends BukkitQueue_0<ChunkSnapshot, ChunkSnapshot,
             keepLoaded.put(pair, Long.MAX_VALUE);
             if (world.isChunkLoaded(cx, cz)) {
                 Chunk chunk = world.getChunkAt(cx, cz);
+                ChunkSnapshot snapshot = chunk.getChunkSnapshot(false, true, false);
                 if (originalKeep != null) {
                     keepLoaded.put(pair, originalKeep);
                 } else {
                     keepLoaded.remove(pair);
                 }
-                return chunk.getChunkSnapshot(false, true, false);
-
+                return snapshot;
             } else {
                 keepLoaded.remove(pair);
                 return null;

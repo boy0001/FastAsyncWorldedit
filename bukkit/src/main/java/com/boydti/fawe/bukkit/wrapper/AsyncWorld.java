@@ -1043,4 +1043,8 @@ public class AsyncWorld extends DelegateFaweQueue implements World, HasFaweQueue
     public Set<String> getListeningPluginChannels() {
         return parent.getListeningPluginChannels();
     }
+
+    public BukkitImplAdapter getAdapter() {
+        return adapter;
+    }
 }
