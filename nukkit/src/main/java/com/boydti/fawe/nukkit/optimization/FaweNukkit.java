@@ -34,7 +34,13 @@ public class FaweNukkit implements IFawe, Listener {
         FaweChunk.HEIGHT = 256;
         VisualChunk.VISUALIZE_BLOCK = 20 << 4;
         plugin.getServer().getPluginManager().registerEvents(this, plugin);
-        new BrushListener(mod);
+        try {
+            new BrushListener(mod);
+        } catch (Throwable e) {
+            debug("====== BRUSH LISTENER FAILED ======");
+            e.printStackTrace();
+            debug("===================================");
+        }
     }
 
     @EventHandler
