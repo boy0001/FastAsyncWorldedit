@@ -62,9 +62,9 @@ public abstract class FaweParser<T> extends InputParser<T> {
         int len = command.length();
         String current = null;
         int end = -1;
+        boolean newEntry = true;
         for (int i = 0; i < len; i++) {
-            boolean newEntry = i == 0;
-            boolean prefix = false;
+            int prefix = 0;
             boolean or = false;
             char c = command.charAt(i);
             if (i < end) continue;
@@ -72,7 +72,7 @@ public abstract class FaweParser<T> extends InputParser<T> {
                 case '&':
                     or = true;
                 case ',': {
-                    prefix = true;
+                    prefix = 1;
                     if (current == null) {
                         throw new InputParseException("Duplicate separator");
                     }
@@ -98,18 +98,18 @@ public abstract class FaweParser<T> extends InputParser<T> {
                     }
                     String arg = command.substring(i + 1, end);
                     args.add(arg);
-                    // start
                     break;
                 }
             }
             if (newEntry) {
-                int index = StringMan.indexOf(command, i + 1, '[', '&', ',');
+                newEntry = false;
+                int index = StringMan.indexOf(command, i + prefix, '[', '&', ',');
                 if (index < 0) index = len;
                 end = index;
-                current = command.substring(i + (prefix ? 1 : 0), end);
-                args = new ArrayList<>();
+                current = command.substring(i + prefix, end);
+                if (prefix == 1) args = new ArrayList<>();
                 ParseEntry entry = new ParseEntry(current, or);
-                keys.add(new AbstractMap.SimpleEntry<ParseEntry, List<String>>(entry, args));
+                keys.add(new AbstractMap.SimpleEntry<>(entry, args));
             }
         }
         for (int i = 0; i < keys.size() - 1; i++) { // Apply greedy and
