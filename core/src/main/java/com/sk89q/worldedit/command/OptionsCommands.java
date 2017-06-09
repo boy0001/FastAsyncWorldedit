@@ -117,7 +117,7 @@ public class OptionsCommands {
     )
     @CommandPermissions("worldedit.global-mask")
     public void gsmask(Player player, LocalSession session, EditSession editSession, @Optional CommandContext context) throws WorldEditException {
-        if (context.argsLength() == 0) {
+        if (context == null || context.argsLength() == 0) {
             session.setSourceMask((Mask) null);
             BBC.SOURCE_MASK_DISABLED.send(player);
         } else {
@@ -141,7 +141,7 @@ public class OptionsCommands {
     )
     @CommandPermissions("worldedit.global-trasnform")
     public void gtransform(Player player, EditSession editSession, LocalSession session, @Optional CommandContext context) throws WorldEditException {
-        if (context.argsLength() == 0) {
+        if (context == null || context.argsLength() == 0) {
             session.setTransform(null);
             BBC.TRANSFORM_DISABLED.send(player);
         } else {
