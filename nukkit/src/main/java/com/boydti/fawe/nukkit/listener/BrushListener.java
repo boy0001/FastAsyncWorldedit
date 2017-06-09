@@ -76,7 +76,7 @@ public class BrushListener implements Listener {
     public void onPlayerInteract(final PlayerInteractEvent event) {
         Player nukkitPlayer = event.getPlayer();
         if (nukkitPlayer.isSneaking()) {
-            if (event.getAction() == PlayerInteractEvent.Action.PHYSICAL) {
+            if (event.getAction() == PlayerInteractEvent.PHYSICAL) {
                 return;
             }
             FawePlayer<Object> fp = FawePlayer.wrap(nukkitPlayer);
