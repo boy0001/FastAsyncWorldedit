@@ -24,7 +24,7 @@ def buildNumber = ""
 def semver = ""
 def date = ""
 ext {
-    index = -91;  // Offset to match CI
+    index = -92;  // Offset to match CI
     int major, minor, patch;
     major = minor = patch = 0;
     buildNumber = "-${index}"
@@ -50,7 +50,7 @@ subprojects {
         mavenCentral()
         maven { url = "https://mvnrepository.com/artifact/"}
         maven {url "http://ci.emc.gs/nexus/content/groups/aikar/" }
-        maven {url "http://ci.regularbox.com/plugin/repository/everything/"}
+        maven {url "http://ci.mengcraft.com:8080/plugin/repository/everything/"}
         maven {url "http://ci.athion.net/job/PlotSquared/ws/mvn/"}
         maven {url "http://empcraft.com/maven2"}
         maven {url "https://hub.spigotmc.org/nexus/content/groups/public/"}

@@ -40,14 +40,20 @@ task createPom << {
             artifactId 'fawe-api'
             version project.parent.version
         }
-    }.writeTo("../mvn/com/boydti/fawe-api/${project.parent.version}/fawe-api-${project.parent.version}.pom")
+    }
+    .getEffectivePom()
+    .setDependencies(new ArrayList<>())
+    .writeTo("../mvn/com/boydti/fawe-api/${project.parent.version}/fawe-api-${project.parent.version}.pom")
     pom {
         project {
             groupId 'com.boydti'
             artifactId 'fawe-api'
             version 'latest'
         }
-    }.writeTo("../mvn/com/boydti/fawe-api/latest/fawe-api-latest.pom")
+    }
+    .getEffectivePom()
+    .setDependencies(new ArrayList<>())
+    .writeTo("../mvn/com/boydti/fawe-api/latest/fawe-api-latest.pom")
 }
 
 task copyFiles {

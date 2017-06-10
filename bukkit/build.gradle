@@ -5,7 +5,7 @@ dependencies {
     compile project(':core')
     compile 'org.bukkit.craftbukkitv1_10:craftbukkitv1_10:1.10'
     compile 'org.bukkit.craftbukkitv1_11:Craftbukkit:1.11'
-    compile 'org.bukkit.craftbukkitv1_12_P2:Craftbukkit:1.12'
+    compile 'org.bukkit.craftbukkitv1_12:Craftbukkit:1.12'
     compile 'net.milkbowl.vault:VaultAPI:1.5'
     compile 'com.massivecraft:factions:2.8.0'
     compile 'com.drtshock:factions:1.6.9.5'
