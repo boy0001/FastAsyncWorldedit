@@ -31,6 +31,8 @@ import cn.nukkit.event.player.PlayerChatEvent;
 import cn.nukkit.event.player.PlayerCommandPreprocessEvent;
 import cn.nukkit.event.player.PlayerGameModeChangeEvent;
 import cn.nukkit.event.player.PlayerInteractEvent;
+import cn.nukkit.event.player.PlayerInteractEvent.Action;
+
 import com.google.common.base.Joiner;
 import com.sk89q.util.StringUtil;
 import com.sk89q.worldedit.LocalPlayer;
@@ -142,8 +144,8 @@ public class WorldEditListener implements Listener {
         final World world = player.getWorld();
         final WorldEdit we = WorldEdit.getInstance();
 
-        int action = event.getAction();
-        if (action == PlayerInteractEvent.LEFT_CLICK_BLOCK) {
+        Action action = event.getAction();
+        if (action == PlayerInteractEvent.Action.LEFT_CLICK_BLOCK) {
             final Block clickedBlock = event.getBlock();
             final WorldVector pos = new WorldVector(LocalWorldAdapter.adapt(world), clickedBlock.getX(), clickedBlock.getY(), clickedBlock.getZ());
 
@@ -155,13 +157,13 @@ public class WorldEditListener implements Listener {
                 event.setCancelled(true);
             }
 
-        } else if (action == PlayerInteractEvent.LEFT_CLICK_AIR) {
+        } else if (action == PlayerInteractEvent.Action.LEFT_CLICK_AIR) {
             if (we.handleArmSwing(player)) {
                 event.setCancelled(true);
             }
 
 
-        } else if (action == PlayerInteractEvent.RIGHT_CLICK_BLOCK) {
+        } else if (action == PlayerInteractEvent.Action.RIGHT_CLICK_BLOCK) {
             final Block clickedBlock = event.getBlock();
             final WorldVector pos = new WorldVector(LocalWorldAdapter.adapt(world), clickedBlock.getX(),
                     clickedBlock.getY(), clickedBlock.getZ());
@@ -173,7 +175,7 @@ public class WorldEditListener implements Listener {
             if (we.handleRightClick(player)) {
                 event.setCancelled(true);
             }
-        } else if (action == PlayerInteractEvent.RIGHT_CLICK_AIR) {
+        } else if (action == PlayerInteractEvent.Action.RIGHT_CLICK_AIR) {
             if (we.handleRightClick(player)) {
                 event.setCancelled(true);
             }
