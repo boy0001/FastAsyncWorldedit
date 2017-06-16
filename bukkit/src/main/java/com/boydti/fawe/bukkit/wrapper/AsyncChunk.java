@@ -164,4 +164,9 @@ public class AsyncChunk implements Chunk {
     public boolean unload() {
         return unload(true);
     }
+
+    @Override
+    public boolean isSlimeChunk() {
+        return false;
+    }
 }

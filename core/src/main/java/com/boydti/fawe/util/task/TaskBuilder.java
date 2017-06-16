@@ -464,6 +464,7 @@ public class TaskBuilder extends Metadatable {
         private long start;
         private Object asyncWaitLock = new Object();
         private Object syncWaitLock = new Object();
+
         private boolean finished;
 
         public SplitTask() {
@@ -483,6 +484,7 @@ public class TaskBuilder extends Metadatable {
                 public void run() {
                     try {
                         synchronized (asyncWaitLock) {
+                            asyncWaitLock.notifyAll();
                             asyncWaitLock.wait(Long.MAX_VALUE);
                         }
                     } catch (InterruptedException e) {
@@ -495,24 +497,31 @@ public class TaskBuilder extends Metadatable {
                     }
                 }
             });
-            thread.start();
+            try {
+                synchronized (asyncWaitLock) {
+                    thread.start();
+                    asyncWaitLock.wait();
+                }
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
             while (thread.isAlive()) {
                 TaskManager.IMP.syncWhenFree(new RunnableVal() {
                     @Override
                     public void run(Object ignore) {
                         queue.startSet(true);
                         start = System.currentTimeMillis();
-                        synchronized (asyncWaitLock) {
-                            asyncWaitLock.notifyAll();
-                        }
-                        synchronized (syncWaitLock) {
+                        try {
                             if (!finished) {
-                                try {
-                                    syncWaitLock.wait(Long.MAX_VALUE);
-                                } catch (InterruptedException e) {
-                                    e.printStackTrace();
+                                synchronized (asyncWaitLock) {
+                                    asyncWaitLock.notifyAll();
+                                }
+                                synchronized (syncWaitLock) {
+                                    syncWaitLock.wait();
                                 }
                             }
+                        } catch (InterruptedException e) {
+                            e.printStackTrace();
                         }
                         queue.endSet(true);
                     }
@@ -529,7 +538,7 @@ public class TaskBuilder extends Metadatable {
                         syncWaitLock.notifyAll();
                     }
                     synchronized (asyncWaitLock) {
-                        asyncWaitLock.wait(Long.MAX_VALUE);
+                        asyncWaitLock.wait();
                     }
                 } catch (InterruptedException e) {
                     e.printStackTrace();

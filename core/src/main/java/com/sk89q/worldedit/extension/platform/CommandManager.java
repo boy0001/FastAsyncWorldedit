@@ -379,9 +379,6 @@ public final class CommandManager {
             try {
                 Object result = dispatcher.call(Joiner.on(" ").join(split), locals, new String[0]);
             } catch (Throwable t) {
-                while (t.getCause() != null) {
-                    t = t.getCause();
-                }
                 // Use the exception converter to convert the exception if any of its causes
                 // can be converted, otherwise throw the original exception
                 Throwable next = t;
@@ -407,26 +404,22 @@ public final class CommandManager {
                 BBC.COMMAND_SYNTAX.send(finalActor, e.getSimpleUsageString("/"));
             }
         } catch (WrappedCommandException e) {
-            FaweException faweException = FaweException.get(e);
+            Exception faweException = FaweException.get(e);
+            String message = e.getMessage();
             if (faweException != null) {
                 BBC.WORLDEDIT_CANCEL_REASON.send(finalActor, faweException.getMessage());
             } else {
-                Throwable t = e.getCause();
-                while (t.getCause() != null) {
-                    t = t.getCause();
-                }
                 finalActor.printError("There was an error handling a FAWE command: [See console]");
-                finalActor.printRaw(t.getClass().getName() + ": " + t.getMessage());
-                log.log(Level.SEVERE, "An unexpected error occurred while handling a FAWE command", t);
+                finalActor.printRaw(e.getClass().getName() + ": " + e.getMessage());
+                log.log(Level.SEVERE, "An unexpected error occurred while handling a FAWE command", e);
             }
-        } catch (Throwable e) {
-            e.printStackTrace();
+        } catch (CommandException e) {
             String message = e.getMessage();
             if (message != null) {
-                finalActor.printError(e.getMessage());
+                actor.printError(e.getMessage());
             } else {
-                finalActor.printError("An unknown error has occurred! Please see console.");
-                log.log(Level.SEVERE, "An unknown error occurred", e);
+                actor.printError("An unknown FAWE error has occurred! Please see console.");
+                log.log(Level.SEVERE, "An unknown FAWE error occurred", e);
             }
         } finally {
             final EditSession editSession = locals.get(EditSession.class);

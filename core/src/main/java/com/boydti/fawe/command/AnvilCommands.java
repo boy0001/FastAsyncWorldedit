@@ -1,31 +1,32 @@
 package com.boydti.fawe.command;
 
 import com.boydti.fawe.Fawe;
+import com.boydti.fawe.FaweAPI;
 import com.boydti.fawe.FaweCache;
 import com.boydti.fawe.config.BBC;
-import com.boydti.fawe.jnbt.NBTStreamer;
-import com.boydti.fawe.jnbt.anvil.MCAChunk;
 import com.boydti.fawe.jnbt.anvil.MCAClipboard;
 import com.boydti.fawe.jnbt.anvil.MCAFile;
 import com.boydti.fawe.jnbt.anvil.MCAFilter;
 import com.boydti.fawe.jnbt.anvil.MCAFilterCounter;
 import com.boydti.fawe.jnbt.anvil.MCAQueue;
+import com.boydti.fawe.jnbt.anvil.filters.CountFilter;
+import com.boydti.fawe.jnbt.anvil.filters.CountIdFilter;
+import com.boydti.fawe.jnbt.anvil.filters.DeleteUninhabitedFilter;
+import com.boydti.fawe.jnbt.anvil.filters.MappedReplacePatternFilter;
+import com.boydti.fawe.jnbt.anvil.filters.RemoveLayerFilter;
+import com.boydti.fawe.jnbt.anvil.filters.ReplacePatternFilter;
+import com.boydti.fawe.jnbt.anvil.filters.ReplaceSimpleFilter;
 import com.boydti.fawe.object.FawePlayer;
 import com.boydti.fawe.object.FaweQueue;
 import com.boydti.fawe.object.RegionWrapper;
-import com.boydti.fawe.object.RunnableVal;
-import com.boydti.fawe.object.RunnableVal2;
 import com.boydti.fawe.object.RunnableVal4;
 import com.boydti.fawe.object.mask.FaweBlockMatcher;
-import com.boydti.fawe.object.number.MutableLong;
-import com.boydti.fawe.util.ArrayUtil;
 import com.boydti.fawe.util.SetQueue;
 import com.boydti.fawe.util.StringMan;
 import com.sk89q.minecraft.util.commands.Command;
 import com.sk89q.minecraft.util.commands.CommandPermissions;
 import com.sk89q.worldedit.EditSession;
 import com.sk89q.worldedit.LocalSession;
-import com.sk89q.worldedit.MutableBlockVector;
 import com.sk89q.worldedit.Vector;
 import com.sk89q.worldedit.WorldEdit;
 import com.sk89q.worldedit.WorldEditException;
@@ -41,15 +42,12 @@ import com.sk89q.worldedit.util.command.binding.Switch;
 import com.sk89q.worldedit.util.command.parametric.Optional;
 import java.io.File;
 import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.attribute.BasicFileAttributes;
+import java.io.RandomAccessFile;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Set;
-import java.util.concurrent.ForkJoinPool;
-import java.util.concurrent.TimeUnit;
 
 
 import static com.google.common.base.Preconditions.checkNotNull;
@@ -69,16 +67,70 @@ public class AnvilCommands {
         this.worldEdit = worldEdit;
     }
 
+    /**
+     * Run safely on an unloaded world (no selection)
+     * @param player
+     * @param folder
+     * @param filter
+     * @param <G>
+     * @param <T>
+     * @return
+     */
+    public static <G, T extends MCAFilter<G>> T runWithWorld(Player player, String folder, T filter) {
+        if (FaweAPI.getWorld(folder) != null) {
+            BBC.WORLD_IS_LOADED.send(player);
+            return null;
+        }
+        FaweQueue defaultQueue = SetQueue.IMP.getNewQueue(folder, true, false);
+        MCAQueue queue = new MCAQueue(folder, defaultQueue.getSaveFolder(), defaultQueue.hasSky());
+        return queue.filterWorld(filter);
+    }
+
+    /**
+     * Run safely on an existing world within a selection
+     * @param player
+     * @param editSession
+     * @param selection
+     * @param filter
+     * @param <G>
+     * @param <T>
+     * @return
+     */
+    public static <G, T extends MCAFilter<G>> T runWithSelection(Player player, EditSession editSession, Region selection, T filter) {
+        if (!(selection instanceof CuboidRegion)) {
+            BBC.NO_REGION.send(player);
+            return null;
+        }
+        CuboidRegion cuboid = (CuboidRegion) selection;
+        RegionWrapper wrappedRegion = new RegionWrapper(cuboid.getMinimumPoint(), cuboid.getMaximumPoint());
+        String worldName = Fawe.imp().getWorldName(editSession.getWorld());
+        FaweQueue tmp = SetQueue.IMP.getNewQueue(worldName, true, false);
+        File folder = tmp.getSaveFolder();
+        MCAQueue queue = new MCAQueue(worldName, folder, tmp.hasSky());
+        player.print(BBC.getPrefix() + "Safely unloading regions...");
+        tmp.setMCA(new Runnable() {
+            @Override
+            public void run() {
+                player.print(BBC.getPrefix() + "Performing operation...");
+                queue.filterRegion(filter, wrappedRegion);
+                player.print(BBC.getPrefix() + "Safely loading regions...");
+            }
+        }, wrappedRegion, true);
+        return filter;
+    }
+
     @Command(
             aliases = {"replaceall", "rea", "repall"},
             usage = "<folder> [from-block] <to-block>",
             desc = "Replace all blocks in the selection with another",
-            flags = "d",
+            help = "Replace all blocks in the selection with another\n" +
+                    "The -d flag disabled wildcard data matching\n",
+            flags = "df",
             min = 2,
             max = 4
     )
     @CommandPermissions("worldedit.anvil.replaceall")
-    public void replaceAll(Player player, EditSession editSession, String folder, @Optional String from, String to, @Switch('d') boolean useData) throws WorldEditException {
+    public void replaceAll(Player player, String folder, @Optional String from, String to, @Switch('d') boolean useData) throws WorldEditException {
         final FaweBlockMatcher matchFrom;
         if (from == null) {
             matchFrom = FaweBlockMatcher.NOT_AIR;
@@ -89,15 +141,9 @@ public class AnvilCommands {
             matchFrom = FaweBlockMatcher.fromBlocks(worldEdit.getBlocks(player, from, true), useData);
         }
         final FaweBlockMatcher matchTo = FaweBlockMatcher.setBlocks(worldEdit.getBlocks(player, to, true));
-        File root = new File(folder + File.separator + "region");
-        MCAQueue queue = new MCAQueue(folder, root, true);
-        MCAFilterCounter counter = queue.filterWorld(new MCAFilterCounter() {
-            @Override
-            public void applyBlock(int x, int y, int z, BaseBlock block, MutableLong ignore) {
-                if (matchFrom.apply(block)) matchTo.apply(block);
-            }
-        });
-        player.print(BBC.getPrefix() + BBC.VISITOR_BLOCK.format(counter.getTotal()));
+        ReplaceSimpleFilter filter = new ReplaceSimpleFilter(matchFrom, matchTo);
+        ReplaceSimpleFilter result = runWithWorld(player, folder, filter);
+        if (result != null) player.print(BBC.getPrefix() + BBC.VISITOR_BLOCK.format(result.getTotal()));
     }
 
     @Command(
@@ -108,75 +154,10 @@ public class AnvilCommands {
             max = 3
     )
     @CommandPermissions("worldedit.anvil.deleteallold")
-    public void deleteAllOld(Player player, String folder, int inhabitedTicks, @Optional("60000") int fileAgeMillis) throws WorldEditException {
-        FaweQueue defaultQueue = SetQueue.IMP.getNewQueue(folder, true, false);
-        MCAQueue queue = new MCAQueue(folder, defaultQueue.getSaveFolder(), defaultQueue.hasSky());
-        MCAFilterCounter result = queue.filterWorld(new MCAFilterCounter() {
-            @Override
-            public MCAFile applyFile(MCAFile mca) {
-                File file = mca.getFile();
-                try {
-                    BasicFileAttributes attr = Files.readAttributes(file.toPath(), BasicFileAttributes.class);
-                    long creation = attr.creationTime().toMillis();
-                    long modified = attr.lastModifiedTime().toMillis();
-                    if (modified - creation < fileAgeMillis && modified > creation) {
-                        mca.setDeleted(true);
-                        get().add(512 * 512 * 256);
-                        return null;
-                    }
-                } catch (IOException | UnsupportedOperationException ignore) {}
-                try {
-                    ForkJoinPool pool = new ForkJoinPool();
-                    mca.init();
-                    mca.forEachSortedChunk(new RunnableVal4<Integer, Integer, Integer, Integer>() {
-                        @Override
-                        public void run(Integer x, Integer z, Integer offset, Integer size) {
-                            try {
-                                byte[] bytes = mca.getChunkCompressedBytes(offset);
-                                if (bytes == null) return;
-                                    Runnable task = new Runnable() {
-                                    @Override
-                                    public void run() {
-                                        try {
-                                            mca.streamChunk(offset, new RunnableVal<NBTStreamer>() {
-                                                @Override
-                                                public void run(NBTStreamer value) {
-                                                    value.addReader(".Level.InhabitedTime", new RunnableVal2<Integer, Long>() {
-                                                        @Override
-                                                        public void run(Integer index, Long value) {
-                                                            if (value <= inhabitedTicks) {
-                                                                MCAChunk chunk = new MCAChunk(queue, x, z);
-                                                                chunk.setDeleted(true);
-                                                                synchronized (mca) {
-                                                                    mca.setChunk(chunk);
-                                                                }
-                                                                get().add(16 * 16 * 256);
-                                                            }
-                                                        }
-                                                    });
-                                                }
-                                            });
-                                        } catch (IOException e) {
-                                            e.printStackTrace();
-                                        }
-                                    }
-                                };
-                                pool.submit(task);
-                            } catch (IOException e) {
-                                e.printStackTrace();
-                            }
-                        }
-                    });
-                    pool.awaitQuiescence(Long.MAX_VALUE, TimeUnit.MILLISECONDS);
-                    mca.close(pool);
-                    pool.shutdown();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-                return null;
-            }
-        });
-        player.print(BBC.getPrefix() + BBC.VISITOR_BLOCK.format(result.getTotal()));
+    public void deleteAllOld(Player player, String folder, int inhabitedTicks, @Optional("60000") int fileAgeMillis, @Switch('f') boolean force) throws WorldEditException {
+        DeleteUninhabitedFilter filter = new DeleteUninhabitedFilter(fileAgeMillis, inhabitedTicks);
+        DeleteUninhabitedFilter result = runWithWorld(player, folder, filter);
+        if (result != null) player.print(BBC.getPrefix() + BBC.VISITOR_BLOCK.format(result.getTotal()));
     }
 
     @Command(
@@ -189,62 +170,11 @@ public class AnvilCommands {
     )
     @CommandPermissions("worldedit.anvil.replaceall")
     public void replaceAllPattern(Player player, String folder, @Optional String from, final Pattern to, @Switch('d') boolean useData, @Switch('m') boolean useMap) throws WorldEditException {
-        FaweQueue defaultQueue = SetQueue.IMP.getNewQueue(folder, true, false);
-        MCAQueue queue = new MCAQueue(folder, defaultQueue.getSaveFolder(), defaultQueue.hasSky());
-        MCAFilterCounter counter;
+        MCAFilterCounter filter;
         if (useMap) {
-            List<String> split = StringMan.split(from, ',');
             if (to instanceof RandomPattern) {
-                Pattern[] patterns = ((RandomPattern) to).getPatterns().toArray(new Pattern[0]);
-                if (patterns.length == split.size()) {
-                    Pattern[] map = new Pattern[Character.MAX_VALUE + 1];
-                    for (int i = 0; i < split.size(); i++) {
-                        Pattern pattern = patterns[i];
-                        String arg = split.get(i);
-                        ArrayList<BaseBlock> blocks = new ArrayList<BaseBlock>();
-                        for (String arg2 : arg.split(",")) {
-                            BaseBlock block = worldEdit.getBlock(player, arg, true);
-                            if (!useData && !arg2.contains(":")) {
-                                block = new BaseBlock(block.getId(), -1);
-                            }
-                            blocks.add(block);
-                        }
-                        for (BaseBlock block : blocks) {
-                            if (block.getData() != -1) {
-                                int combined = FaweCache.getCombined(block);
-                                map[combined] = pattern;
-                            } else {
-                                for (int data = 0; data < 16; data++) {
-                                    int combined = FaweCache.getCombined(block.getId(), data);
-                                    map[combined] = pattern;
-                                }
-                            }
-                        }
-                    }
-
-                    counter = queue.filterWorld(new MCAFilterCounter() {
-                        private final MutableBlockVector mutable = new MutableBlockVector(0, 0, 0);
-                        @Override
-                        public void applyBlock(int x, int y, int z, BaseBlock block, MutableLong ignore) {
-                            int id = block.getId();
-                            int data = FaweCache.hasData(id) ? block.getData() : 0;
-                            int combined = FaweCache.getCombined(id, data);
-                            Pattern p = map[combined];
-                            if (p != null) {
-                                BaseBlock newBlock = p.apply(x, y, z);
-                                int currentId = block.getId();
-                                if (FaweCache.hasNBT(currentId)) {
-                                    block.setNbtData(null);
-                                }
-                                block.setId(newBlock.getId());
-                                block.setData(newBlock.getData());
-                            }
-                        }
-                    });
-                } else {
-                    player.print(BBC.getPrefix() + "Mask:Pattern must be a 1:1 match");
-                    return;
-                }
+                List<String> split = StringMan.split(from, ',');
+                filter = new MappedReplacePatternFilter(from, (RandomPattern) to, useData);
             } else {
                 player.print(BBC.getPrefix() + "Must be a pattern list!");
                 return;
@@ -254,27 +184,12 @@ public class AnvilCommands {
             if (from == null) {
                 matchFrom = FaweBlockMatcher.NOT_AIR;
             } else {
-                if (from.contains(":")) {
-                    useData = true; //override d flag, if they specified data they want it
-                }
-                matchFrom = FaweBlockMatcher.fromBlocks(worldEdit.getBlocks(player, from, true), useData);
+                matchFrom = FaweBlockMatcher.fromBlocks(worldEdit.getBlocks(player, from, true), useData || from.contains(":"));
             }
-            counter = queue.filterWorld(new MCAFilterCounter() {
-                @Override
-                public void applyBlock(int x, int y, int z, BaseBlock block, MutableLong ignore) {
-                    if (matchFrom.apply(block)) {
-                        BaseBlock newBlock = to.apply(x, y, z);
-                        int currentId = block.getId();
-                        if (FaweCache.hasNBT(currentId)) {
-                            block.setNbtData(null);
-                        }
-                        block.setId(newBlock.getId());
-                        block.setData(newBlock.getData());
-                    }
-                }
-            });
+            filter = new ReplacePatternFilter(matchFrom, to);
         }
-        player.print(BBC.getPrefix() + BBC.VISITOR_BLOCK.format(counter.getTotal()));
+        MCAFilterCounter result = runWithWorld(player, folder, filter);
+        if (result != null) player.print(BBC.getPrefix() + BBC.VISITOR_BLOCK.format(result.getTotal()));
     }
 
     @Command(
@@ -285,70 +200,96 @@ public class AnvilCommands {
             min = 2,
             max = 3
     )
-    @CommandPermissions("worldedit.anvil.countallstone")
+    @CommandPermissions("worldedit.anvil.countall")
     public void countAll(Player player, EditSession editSession, String folder, String arg, @Switch('d') boolean useData) throws WorldEditException {
-        File root = new File(folder + File.separator + "region");
-        MCAQueue queue = new MCAQueue(folder, root, true);
-        if (arg.contains(":")) {
-            useData = true; //override d flag, if they specified data they want it
-        }
         Set<BaseBlock> searchBlocks = worldEdit.getBlocks(player, arg, true);
-        final boolean[] allowedId = new boolean[FaweCache.getId(Character.MAX_VALUE)];
-        for (BaseBlock block : searchBlocks) {
-            allowedId[block.getId()] = true;
-        }
         MCAFilterCounter filter;
-        if (useData) { // Optimize for both cases
-            final boolean[] allowed = new boolean[Character.MAX_VALUE];
-            for (BaseBlock block : searchBlocks) {
-                allowed[FaweCache.getCombined(block)] = true;
-            }
-            filter = new MCAFilterCounter() {
-                @Override
-                public MCAChunk applyChunk(MCAChunk chunk, MutableLong count) {
-                    for (int layer = 0; layer < chunk.ids.length; layer++) {
-                        byte[] ids = chunk.ids[layer];
-                        if (ids == null) {
-                            continue;
-                        }
-                        byte[] datas = chunk.data[layer];
-                        for (int i = 0; i < ids.length; i++) {
-                            int id = ids[i] & 0xFF;
-                            if (!allowedId[id]) {
-                                continue;
-                            }
-                            int combined = (id) << 4;
-                            if (FaweCache.hasData(id)) {
-                                combined += chunk.getNibble(i, datas);
-                            }
-                            if (allowed[combined]) {
-                                count.increment();
-                            }
-                        }
-                    }
-                    return null;
-                }
-            };
+        if (useData || arg.contains(":")) { // Optimize for both cases
+            CountFilter counter = new CountFilter();
+            searchBlocks.forEach(counter::addBlock);
+            filter = counter;
         } else {
-            filter = new MCAFilterCounter() {
-                @Override
-                public MCAChunk applyChunk(MCAChunk chunk, MutableLong count) {
-                    for (int layer = 0; layer < chunk.ids.length; layer++) {
-                        byte[] ids = chunk.ids[layer];
-                        if (ids != null) {
-                            for (byte i : ids) {
-                                if (allowedId[i & 0xFF]) {
-                                    count.increment();
+            CountIdFilter counter = new CountIdFilter();
+            searchBlocks.forEach(counter::addBlock);
+            filter = counter;
+        }
+        MCAFilterCounter result = runWithWorld(player, folder, filter);
+        if (result != null) player.print(BBC.getPrefix() + BBC.SELECTION_COUNT.format(result.getTotal()));
+    }
+
+    @Command(
+            aliases = {"clear", "unset"},
+            desc = "Clear the chunks in a selection (delete without defrag)"
+    )
+    @CommandPermissions("worldedit.anvil.replaceall")
+    public void unset(Player player, EditSession editSession, @Selection Region selection) throws WorldEditException {
+        Vector bot = selection.getMinimumPoint();
+        Vector top = selection.getMaximumPoint();
+        RegionWrapper region = new RegionWrapper(bot, top);
+
+        MCAFilterCounter filter = new MCAFilterCounter() {
+            @Override
+            public MCAFile applyFile(MCAFile file) {
+                int X = file.getX();
+                int Z = file.getZ();
+                int bcx = X << 5;
+                int bcz = Z << 5;
+                int bx = X << 9;
+                int bz = Z << 9;
+                if (region.isIn(bx, bz) && region.isIn(bx + 511, bz + 511)) {
+                    file.setDeleted(true);
+                    get().add(512 * 512 * 256);
+                } else if (region.isInMCA(X, Z)){
+                    file.init();
+                    final byte[] empty = new byte[4];
+                    RandomAccessFile raf = file.getRandomAccessFile();
+                    file.forEachChunk(new RunnableVal4<Integer, Integer, Integer, Integer>() {
+                        @Override
+                        public void run(Integer cx, Integer cz, Integer offset, Integer size) {
+                            if (region.isInChunk(bcx + cx, bcz + cz)) {
+                                int index = ((cx & 31) << 2) + ((cz & 31) << 7);
+                                try {
+                                    raf.seek(index);
+                                    raf.write(empty);
+                                    get().add(16 * 16 * 256);
+                                } catch (IOException e) {
+                                    e.printStackTrace();
                                 }
                             }
                         }
-                    }
-                    return null;
+                    });
+                    file.clear();
                 }
-            };
+                return null;
+            }
+        };
+        MCAFilterCounter result = runWithSelection(player, editSession, selection, filter);
+        if (result != null) player.print(BBC.getPrefix() + BBC.VISITOR_BLOCK.format(result.getTotal()));
+    }
+
+    @Command(
+            aliases = {"count"},
+            usage = "<ids>",
+            desc = "Count blocks in a selection",
+            flags = "d",
+            min = 1,
+            max = 2
+    )
+    @CommandPermissions("worldedit.anvil.count")
+    public void count(Player player, EditSession editSession, @Selection Region selection, String arg, @Switch('d') boolean useData) throws WorldEditException {
+        Set<BaseBlock> searchBlocks = worldEdit.getBlocks(player, arg, true);
+        MCAFilterCounter filter;
+        if (useData || arg.contains(":")) { // Optimize for both cases
+            CountFilter counter = new CountFilter();
+            searchBlocks.forEach(counter::addBlock);
+            filter = counter;
+        } else {
+            CountIdFilter counter = new CountIdFilter();
+            searchBlocks.forEach(counter::addBlock);
+            filter = counter;
         }
-        queue.filterWorld(filter);
-        player.print(BBC.getPrefix() + BBC.SELECTION_COUNT.format(filter.getTotal()));
+        MCAFilterCounter result = runWithSelection(player, editSession, selection, filter);
+        if (result != null) player.print(BBC.getPrefix() + BBC.SELECTION_COUNT.format(result.getTotal()));
     }
 
     @Command(
@@ -426,31 +367,8 @@ public class AnvilCommands {
         }
     }
 
-    private <G, T extends MCAFilter<G>> T runWithSelection(Player player, EditSession editSession, Region selection, T filter) {
-        if (!(selection instanceof CuboidRegion)) {
-            BBC.NO_REGION.send(player);
-            return null;
-        }
-        CuboidRegion cuboid = (CuboidRegion) selection;
-        RegionWrapper wrappedRegion = new RegionWrapper(cuboid.getMinimumPoint(), cuboid.getMaximumPoint());
-        String worldName = Fawe.imp().getWorldName(editSession.getWorld());
-        FaweQueue tmp = SetQueue.IMP.getNewQueue(worldName, true, false);
-        File folder = tmp.getSaveFolder();
-        MCAQueue queue = new MCAQueue(worldName, folder, tmp.hasSky());
-        player.print(BBC.getPrefix() + "Safely unloading regions...");
-        tmp.setMCA(new Runnable() {
-            @Override
-            public void run() {
-                player.print(BBC.getPrefix() + "Performing operation...");
-                queue.filterRegion(filter, wrappedRegion);
-                player.print(BBC.getPrefix() + "Safely loading regions...");
-            }
-        }, wrappedRegion, true);
-        return filter;
-    }
-
     @Command(
-            aliases = {"replace"},
+            aliases = {"replace", "r"},
             usage = "[from-block] <to-block>",
             desc = "Replace all blocks in the selection with another"
     )
@@ -460,23 +378,45 @@ public class AnvilCommands {
         if (from == null) {
             matchFrom = FaweBlockMatcher.NOT_AIR;
         } else {
-            if (from.contains(":")) {
-                useData = true; //override d flag, if they specified data they want it
-            }
-            matchFrom = FaweBlockMatcher.fromBlocks(worldEdit.getBlocks(player, from, true), useData);
+            matchFrom = FaweBlockMatcher.fromBlocks(worldEdit.getBlocks(player, from, true), useData || from.contains(":"));
         }
         final FaweBlockMatcher matchTo = FaweBlockMatcher.setBlocks(worldEdit.getBlocks(player, to, true));
-        MCAFilterCounter filter = runWithSelection(player, editSession, selection, new MCAFilterCounter() {
-            @Override
-            public void applyBlock(int x, int y, int z, BaseBlock block, MutableLong count) {
-                if (matchFrom.apply(block)) {
-                    matchTo.apply(block);
-                    count.increment();
-                }
+        ReplaceSimpleFilter filter = new ReplaceSimpleFilter(matchFrom, matchTo);
+        MCAFilterCounter result = runWithSelection(player, editSession, selection, filter);
+        if (result != null) {
+            player.print(BBC.getPrefix() + BBC.VISITOR_BLOCK.format(result.getTotal()));
+        }
+    }
+
+    @Command(
+            aliases = {"replacepattern", "preplace", "rp"},
+            usage = "[from-mask] <to-pattern>",
+            desc = "Replace all blocks in the selection with a pattern"
+    )
+    @CommandPermissions("worldedit.anvil.replace")
+    // Player player, String folder, @Optional String from, final Pattern to, @Switch('d') boolean useData, @Switch('m') boolean useMap
+    public void replacePattern(Player player, EditSession editSession, @Selection Region selection, @Optional String from, final Pattern to, @Switch('d') boolean useData, @Switch('m') boolean useMap) throws WorldEditException {
+        MCAFilterCounter filter;
+        if (useMap) {
+            if (to instanceof RandomPattern) {
+                List<String> split = StringMan.split(from, ',');
+                filter = new MappedReplacePatternFilter(from, (RandomPattern) to, useData);
+            } else {
+                player.print(BBC.getPrefix() + "Must be a pattern list!");
+                return;
             }
-        });
-        if (filter != null) {
-            player.print(BBC.getPrefix() + BBC.VISITOR_BLOCK.format(filter.getTotal()));
+        } else {
+            final FaweBlockMatcher matchFrom;
+            if (from == null) {
+                matchFrom = FaweBlockMatcher.NOT_AIR;
+            } else {
+                matchFrom = FaweBlockMatcher.fromBlocks(worldEdit.getBlocks(player, from, true), useData || from.contains(":"));
+            }
+            filter = new ReplacePatternFilter(matchFrom, to);
+        }
+        MCAFilterCounter result = runWithSelection(player, editSession, selection, filter);
+        if (result != null) {
+            player.print(BBC.getPrefix() + BBC.VISITOR_BLOCK.format(result.getTotal()));
         }
     }
 
@@ -492,39 +432,10 @@ public class AnvilCommands {
         Vector max = selection.getMaximumPoint();
         int minY = min.getBlockY();
         int maxY = max.getBlockY();
-        final int startLayer = minY >> 4;
-        final int endLayer = maxY >> 4;
-        MCAFilterCounter filter = runWithSelection(player, editSession, selection, new MCAFilterCounter() {
-            @Override
-            public MCAChunk applyChunk(MCAChunk chunk, MutableLong cache) {
-                for (int layer = startLayer; layer <= endLayer; layer++) {
-                    byte[] ids = chunk.ids[layer];
-                    if (ids == null) {
-                        return null;
-                    }
-                    int startY = Math.max(minY, layer << 4) & 15;
-                    int endY = Math.min(maxY, 15 + (layer << 4)) & 15;
-                    for (int y = startY; y <= endY; y++) {
-                        int indexStart = y << 8;
-                        int indexEnd = indexStart + 255;
-                        for (int index = indexStart; index <= indexEnd; index++) {
-                            if (ids[index] != id) {
-                                return null;
-                            }
-                        }
-                    }
-                    for (int y = startY; y <= endY; y++) {
-                        int indexStart = y << 8;
-                        int indexEnd = indexStart + 255;
-                        ArrayUtil.fill(ids, indexStart, indexEnd + 1, (byte) 0);
-                    }
-                    chunk.setModified();
-                }
-                return null;
-            }
-        });
-        if (filter != null) {
-            player.print(BBC.getPrefix() + BBC.VISITOR_BLOCK.format(filter.getTotal()));
+        RemoveLayerFilter filter = new RemoveLayerFilter(minY, maxY, id);
+        MCAFilterCounter result = runWithSelection(player, editSession, selection, filter);
+        if (result != null) {
+            player.print(BBC.getPrefix() + BBC.VISITOR_BLOCK.format(result.getTotal()));
         }
     }
 
@@ -601,6 +512,5 @@ public class AnvilCommands {
                 }, copyRegion, false);
             }
         }, pasteRegion, true);
-        player.print("Done!");
     }
 }

@@ -106,6 +106,8 @@ public enum BBC {
     SELECTION_SHIFT("Region shifted", "WorldEdit.Selection"),
     SELECTION_CLEARED("Selection cleared", "WorldEdit.Selection"),
 
+    WORLD_IS_LOADED("The world shouldn't be in use when executing. Unload the world, or use use -f to override (save first)", "WorldEdit.Anvil"),
+
     BRUSH_RESET("Reset your brush.", "WorldEdit.Brush"),
     BRUSH_NONE("You aren't holding a brush!", "WorldEdit.Brush"),
     BRUSH_SCROLL_ACTION_SET("Set scroll action to %s0", "WorldEdit.Brush"),

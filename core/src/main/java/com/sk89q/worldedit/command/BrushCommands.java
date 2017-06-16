@@ -680,7 +680,7 @@ public class BrushCommands extends MethodCommands {
 
     private InputStream getHeightmapStream(String filename) {
         String filenamePng = (filename.endsWith(".png") ? filename : filename + ".png");
-        File file = new File(Fawe.imp().getDirectory(), "heightmap" + File.separator + filenamePng);
+        File file = new File(Fawe.imp().getDirectory(), Settings.IMP.PATHS.HEIGHTMAP + File.separator + filenamePng);
         if (!file.exists()) {
             if (!filename.equals("#clipboard") && filename.length() >= 7) {
                 try {

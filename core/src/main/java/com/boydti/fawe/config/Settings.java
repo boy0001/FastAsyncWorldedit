@@ -72,6 +72,7 @@ public class Settings extends Config {
                 "Put any minecraft or mod jars for FAWE to be aware of block textures",
         })
         public String TEXTURES = "textures";
+        public String HEIGHTMAP = "heightmap";
         public String HISTORY = "history";
         public String CLIPBOARD = "clipboard";
         @Comment("Each player has their own sub directory for schematics")
@@ -281,15 +282,22 @@ public class Settings extends Config {
     }
 
     @Comment({
-            "Experimental options, use at your own risk",
-            " - Apparently that wasn't enough, need an all caps warning?",
-            " - DO NOT USE IF YOU ARE CLUELESS!"
+            "Experimental options, use at your own risk"
     })
     public static class EXPERIMENTAL {
         @Comment({
-                "Directly modify the region files.",
+                "[UNSAFE] Directly modify the region files. (OBSOLETE - USE ANVIL COMMANDS)",
+                " - IMPROPER USE CAN CAUSE WORLD CORRUPTION!",
         })
         public boolean ANVIL_QUEUE_MODE = false;
+        @Comment({
+                "[SAFE] Dynamically increase the number of chunks rendered",
+                " - Requires Paper: ci.destroystokyo.com/job/PaperSpigot/",
+                " - Set your server view distance to 1 (spigot.yml, server.properties)",
+                " - Based on tps and player movement",
+                " - Please provide feedback",
+        })
+        public boolean DYNAMIC_CHUNK_RENDERING = false;
     }
 
     public static class WEB {

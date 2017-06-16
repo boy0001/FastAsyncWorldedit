@@ -14,7 +14,6 @@ import java.util.Set;
  *  - This will use 8 bytes for every 64 Vector2Ds (about 800x less than a HashSet)
  */
 public class LocalBlockVector2DSet implements Set<Vector2D> {
-    private boolean chunksValid = true;
     private final SparseBitSet set;
     private final MutableBlockVector2D mutable = new MutableBlockVector2D();
 
@@ -115,7 +114,6 @@ public class LocalBlockVector2DSet implements Set<Vector2D> {
             int previous = -1;
             @Override
             public void remove() {
-                chunksValid = false;
                 set.clear(previous);
             }
             @Override
@@ -193,7 +191,6 @@ public class LocalBlockVector2DSet implements Set<Vector2D> {
         boolean value = set.get(index);
         if (value) {
             set.clear(index);
-            chunksValid = false;
         }
         return value;
     }
@@ -239,7 +236,6 @@ public class LocalBlockVector2DSet implements Set<Vector2D> {
             if (!c.contains(mutable)) {
                 result = true;
                 set.clear(index);
-                chunksValid = false;
             }
         }
         return result;
@@ -273,6 +269,5 @@ public class LocalBlockVector2DSet implements Set<Vector2D> {
     @Override
     public void clear() {
         set.clear();
-        chunksValid = true;
     }
 }
