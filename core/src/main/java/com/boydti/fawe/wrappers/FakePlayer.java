@@ -118,7 +118,13 @@ public class FakePlayer extends LocalPlayer {
             @Override
             public FaweLocation getLocation() {
                 Location loc = FakePlayer.this.getLocation();
-                return new FaweLocation(loc.getExtent().toString(), loc.getBlockX(), loc.getBlockY(), loc.getBlockZ());
+                String world;
+                if (loc.getExtent() instanceof World) {
+                    world = ((World) loc.getExtent()).getName();
+                } else {
+                    world = loc.getExtent().toString();
+                }
+                return new FaweLocation(world, loc.getBlockX(), loc.getBlockY(), loc.getBlockZ());
             }
 
             @Override
