@@ -152,6 +152,8 @@ public class ClipboardCommands {
         }
         session.setClipboard(null);
         BlockArrayClipboard clipboard = new BlockArrayClipboard(region, player.getUniqueId());
+        session.setClipboard(new ClipboardHolder(clipboard, editSession.getWorldData()));
+
         clipboard.setOrigin(session.getPlacementPosition(player));
         ForwardExtentCopy copy = new ForwardExtentCopy(editSession, region, clipboard, region.getMinimumPoint());
         Mask sourceMask = editSession.getSourceMask();
@@ -164,7 +166,6 @@ public class ClipboardCommands {
             copy.setSourceMask(mask);
         }
         Operations.completeLegacy(copy);
-        session.setClipboard(new ClipboardHolder(clipboard, editSession.getWorldData()));
         BBC.COMMAND_COPY.send(player, region.getArea());
         if (!FawePlayer.wrap(player).hasPermission("fawe.tips")) BBC.TIP_PASTE.or(BBC.TIP_DOWNLOAD, BBC.TIP_ROTATE, BBC.TIP_COPYPASTE, BBC.TIP_REPLACE_MARKER, BBC.TIP_COPY_PATTERN).send(player);
     }
