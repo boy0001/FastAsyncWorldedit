@@ -173,7 +173,7 @@ public class StructureFormat implements ClipboardReader, ClipboardWriter {
         Map<String, Object> structure = FaweCache.asMap("version", 1, "author", owner);
         // ignored: version / owner
         MutableBlockVector mutable = new MutableBlockVector(0, 0, 0);
-        int[] indexes = new int[MAX_SIZE];
+        int[] indexes = new int[Character.MAX_VALUE];
         // Size
         structure.put("size", Arrays.asList(width, height, length));
         // Palette

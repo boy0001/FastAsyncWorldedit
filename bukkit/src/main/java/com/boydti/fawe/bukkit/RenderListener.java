@@ -21,7 +21,6 @@ public class RenderListener implements Listener {
 
     private final Map<UUID, int[]> views = new ConcurrentHashMap<>();
     private Iterator<Map.Entry<UUID, int[]>> entrySet;
-    private final long GLOBAL_START = System.currentTimeMillis();
     private int OFFSET = 6;
 
     public RenderListener(Plugin plugin) {
@@ -130,6 +129,5 @@ public class RenderListener implements Listener {
         Player player = event.getPlayer();
         UUID uid = player.getUniqueId();
         views.remove(uid);
-        FawePlayer fp = FawePlayer.wrap(player);
     }
 }
