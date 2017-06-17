@@ -6,6 +6,7 @@ import com.sk89q.worldedit.blocks.BaseBlock;
 import com.sk89q.worldedit.extent.Extent;
 import com.sk89q.worldedit.function.mask.Mask2D;
 import com.sk89q.worldedit.function.mask.SolidBlockMask;
+import java.util.Arrays;
 import javax.annotation.Nullable;
 
 public class AngleMask extends SolidBlockMask implements ResettableMask {
@@ -30,6 +31,47 @@ public class AngleMask extends SolidBlockMask implements ResettableMask {
     @Override
     public void reset() {
         mutable = new MutableBlockVector();
+        cacheBotX = Integer.MIN_VALUE;
+        cacheBotZ = Integer.MIN_VALUE;
+        if (cacheHeights != null) {
+            Arrays.fill(cacheHeights, (byte) 0);
+        }
+    }
+
+    private transient int cacheCenX;
+    private transient int cacheCenZ;
+    private transient int cacheBotX = Integer.MIN_VALUE;
+    private transient int cacheBotZ = Integer.MIN_VALUE;
+    private transient int cacheCenterZ;
+    private transient byte[] cacheHeights = null;
+    private transient int lastY = 0;
+
+    public int getHeight(int x, int y, int z) {
+        try {
+            int rx = x - cacheBotX;
+            int rz = z - cacheBotZ;
+            int index = rx + (rz << 8);
+            if (index < 0 || index >= 65536) {
+                cacheBotX = x - 16;
+                cacheBotZ = z - 16;
+                rx = x - cacheBotX;
+                rz = z - cacheBotZ;
+                index = rx + (rz << 8);
+                if (cacheHeights == null) {
+                    cacheHeights = new byte[65536];
+                } else {
+                    Arrays.fill(cacheHeights, (byte) 0);
+                }
+            }
+            lastY = cacheHeights[index] & 0xFF;
+            if (lastY == 0) {
+                cacheHeights[index] = (byte) (lastY = getExtent().getNearestSurfaceTerrainBlock(x, z, lastY, 0, maxY));
+            }
+            return lastY;
+        } catch (Throwable e) {
+            e.printStackTrace();
+            throw e;
+        }
     }
 
     @Override
@@ -47,13 +89,13 @@ public class AngleMask extends SolidBlockMask implements ResettableMask {
         }
         double slope;
         boolean aboveMin;
-        slope = Math.abs(getExtent().getNearestSurfaceTerrainBlock(x + 1, z, y, 0, maxY) - getExtent().getNearestSurfaceTerrainBlock(x - 1, z, y, 0, maxY)) * ADJACENT_MOD;
+        slope = Math.abs(getHeight(x + 1, y, z) - getHeight(x - 1, y, z)) * ADJACENT_MOD;
         if (slope >= min && max >= Math.max(maxY - y, y)) {
             return true;
         }
-        slope = Math.max(slope, Math.abs(getExtent().getNearestSurfaceTerrainBlock(x, z + 1, y, 0, maxY) - getExtent().getNearestSurfaceTerrainBlock(x, z - 1, y, 0, maxY)) * ADJACENT_MOD);
-        slope = Math.max(slope, Math.abs(getExtent().getNearestSurfaceTerrainBlock(x + 1, z + 1, y, 0, maxY) - getExtent().getNearestSurfaceTerrainBlock(x - 1, z - 1, y, 0, maxY)) * DIAGONAL_MOD);
-        slope = Math.max(slope, Math.abs(getExtent().getNearestSurfaceTerrainBlock(x - 1, z + 1, y, 0, maxY) - getExtent().getNearestSurfaceTerrainBlock(x + 1, z - 1, y, 0, maxY)) * DIAGONAL_MOD);
+        slope = Math.max(slope, Math.abs(getHeight(x, y, z + 1) - getHeight(x, y, z - 1)) * ADJACENT_MOD);
+        slope = Math.max(slope, Math.abs(getHeight(x + 1, y, z + 1) - getHeight(x - 1, y, z - 1)) * DIAGONAL_MOD);
+        slope = Math.max(slope, Math.abs(getHeight(x - 1, y, z + 1) - getHeight(x + 1, y, z - 1)) * DIAGONAL_MOD);
         return (slope >= min && slope <= max);
     }
 

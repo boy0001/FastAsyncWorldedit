@@ -46,7 +46,9 @@ public class Updater {
                     URL download = new URL(downloadUrl.replaceAll("%platform%", platform).replaceAll("%version%", versionString));
                     try (ReadableByteChannel rbc = Channels.newChannel(download.openStream())) {
                         File jarFile = MainUtil.getJarFile();
-                        File outFile = new File(jarFile.getParent(), "update" + File.separator + jarFile.getName());
+
+                        File finalFile = new File(jarFile.getParent(), "update" + File.separator + jarFile.getName());
+                        File outFile = new File(jarFile.getParent(), "update" + File.separator + jarFile.getName().replace(".jar", ".part"));
                         boolean exists = outFile.exists();
                         if (exists) {
                             outFile.delete();
@@ -59,6 +61,7 @@ public class Updater {
                         try (FileOutputStream fos = new FileOutputStream(outFile)) {
                             fos.getChannel().transferFrom(rbc, 0, Long.MAX_VALUE);
                         }
+                        outFile.renameTo(finalFile);
                         Fawe.debug("Updated FAWE to " + versionString);
                         MainUtil.sendAdmin("&7Restart to update FAWE with these changes: &c/fawe changelog &7or&c " + "http://empcraft.com/fawe/cl?" + Integer.toHexString(currentVersion.hash));
                     }
