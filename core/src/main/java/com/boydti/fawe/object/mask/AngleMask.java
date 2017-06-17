@@ -63,11 +63,11 @@ public class AngleMask extends SolidBlockMask implements ResettableMask {
                     Arrays.fill(cacheHeights, (byte) 0);
                 }
             }
-            lastY = cacheHeights[index] & 0xFF;
-            if (lastY == 0) {
-                cacheHeights[index] = (byte) (lastY = getExtent().getNearestSurfaceTerrainBlock(x, z, lastY, 0, maxY));
+            int result = cacheHeights[index] & 0xFF;
+            if (result == 0) {
+                cacheHeights[index] = (byte) (result = lastY = getExtent().getNearestSurfaceTerrainBlock(x, z, lastY, 0, maxY));
             }
-            return lastY;
+            return result;
         } catch (Throwable e) {
             e.printStackTrace();
             throw e;
