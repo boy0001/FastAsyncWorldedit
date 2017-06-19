@@ -1,6 +1,7 @@
 package com.boydti.fawe.command;
 
 import com.boydti.fawe.Fawe;
+import com.boydti.fawe.object.FawePlayer;
 import com.boydti.fawe.object.extent.NullExtent;
 import com.boydti.fawe.object.extent.ResettableExtent;
 import com.sk89q.worldedit.WorldEdit;
@@ -58,6 +59,24 @@ public class FawePrimitiveBinding extends BindingHelper {
                                             "(you entered %s)", range.max(), number));
                 }
             }
+        }
+    }
+
+    /**
+     * Gets an {@link com.boydti.fawe.object.FawePlayer} from a {@link ArgumentStack}.
+     *
+     * @param context the context
+     * @return a FawePlayer
+     * @throws ParameterException on other error
+     */
+    @BindingMatch(type = FawePlayer.class,
+            behavior = BindingBehavior.PROVIDES)
+    public FawePlayer getFawePlayer(ArgumentStack context) throws ParameterException, InputParseException {
+        Actor sender = context.getContext().getLocals().get(Actor.class);
+        if (sender == null) {
+            throw new ParameterException("Missing 'Actor'");
+        } else {
+            return FawePlayer.wrap(sender);
         }
     }
 

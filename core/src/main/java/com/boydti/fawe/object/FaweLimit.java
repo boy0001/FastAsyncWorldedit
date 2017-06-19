@@ -16,6 +16,7 @@ public class FaweLimit {
     public int INVENTORY_MODE = Integer.MAX_VALUE;
     public int SPEED_REDUCTION = Integer.MAX_VALUE;
     public boolean FAST_PLACEMENT = false;
+    public boolean CONFIRM_LARGE = true;
 
 
     public static FaweLimit MAX;
@@ -58,6 +59,7 @@ public class FaweLimit {
         MAX.MAX_HISTORY = Integer.MAX_VALUE;
         MAX.MAX_EXPRESSION_MS = 50;
         MAX.FAST_PLACEMENT = true;
+        MAX.CONFIRM_LARGE = true;
     }
 
     public boolean MAX_CHANGES() {
@@ -109,6 +111,7 @@ public class FaweLimit {
         INVENTORY_MODE = limit.INVENTORY_MODE;
         SPEED_REDUCTION = limit.SPEED_REDUCTION;
         FAST_PLACEMENT = limit.FAST_PLACEMENT;
+        CONFIRM_LARGE = limit.CONFIRM_LARGE;
     }
 
     public FaweLimit copy() {
@@ -124,6 +127,7 @@ public class FaweLimit {
         limit.MAX_ITERATIONS = MAX_ITERATIONS;
         limit.MAX_HISTORY = MAX_HISTORY;
         limit.FAST_PLACEMENT = FAST_PLACEMENT;
+        limit.CONFIRM_LARGE = CONFIRM_LARGE;
         return limit;
     }
 

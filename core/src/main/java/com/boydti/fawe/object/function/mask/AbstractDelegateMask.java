@@ -14,6 +14,10 @@ public class AbstractDelegateMask extends AbstractMask {
         this.mask = parent;
     }
 
+    public final Mask getMask() {
+        return mask;
+    }
+
     @Override
     public boolean test(Vector vector) {
         return mask.test(vector);

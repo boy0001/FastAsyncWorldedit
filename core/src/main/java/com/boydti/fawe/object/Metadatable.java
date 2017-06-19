@@ -54,7 +54,7 @@ public class Metadatable {
      *  - deleting other plugin's metadata may cause issues
      * @param key
      */
-    public Object deleteMeta(String key) {
-        return this.meta == null ? null : this.meta.remove(key);
+    public <V> V deleteMeta(String key) {
+        return this.meta == null ? null : (V) this.meta.remove(key);
     }
 }

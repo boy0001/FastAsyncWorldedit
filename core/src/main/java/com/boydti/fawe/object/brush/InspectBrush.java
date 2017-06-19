@@ -63,7 +63,7 @@ public class InspectBrush extends BrushTool implements DoubleActionTraceTool {
             return false;
         }
         if (!Settings.IMP.HISTORY.USE_DATABASE) {
-            player.print(BBC.getPrefix() + BBC.SETTING_DISABLE.f("history.use-database"));
+            player.print(BBC.getPrefix() + BBC.SETTING_DISABLE.f("history.use-database (Import with /frb #import )"));
             return false;
         }
         WorldVector target = getTarget(player, rightClick);

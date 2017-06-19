@@ -517,13 +517,22 @@ public class UtilityCommands extends MethodCommands {
     }
 
     @Command(
+            aliases = { "/confirm" },
+            desc = "Confirm a command"
+    )
+    public void confirm(FawePlayer fp) throws WorldEditException {
+        if (!fp.confirm()) {
+            BBC.NOTHING_CONFIRMED.send(fp);
+        }
+    }
+
+    @Command(
         aliases = { "/help" },
         usage = "[<command>]",
         desc = "Displays help for WorldEdit commands",
         min = 0,
         max = -1
     )
-    @CommandPermissions("worldedit.help")
     public void help(Actor actor, CommandContext args) throws WorldEditException {
         help(args, worldEdit, actor);
     }
@@ -852,6 +861,7 @@ public class UtilityCommands extends MethodCommands {
                             aliases = new ArrayList<CommandMapping>(dispatcher.getCommands());
                         } else {
                             aliases = new ArrayList<>(mappings);
+                            visited.add(cat);
                         }
                         page = Math.max(0, page);
                     } else if (grouped.size() > 1) {

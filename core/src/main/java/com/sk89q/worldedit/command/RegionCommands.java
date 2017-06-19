@@ -94,7 +94,7 @@ import static com.sk89q.worldedit.regions.Regions.minimumBlockY;
  * Commands that operate on regions.
  */
 @Command(aliases = {}, desc = "Commands that operate on regions: [More Info](http://wiki.sk89q.com/wiki/WorldEdit/Region_operations)")
-public class RegionCommands {
+public class RegionCommands extends MethodCommands{
 
     private final WorldEdit worldEdit;
 
@@ -104,6 +104,7 @@ public class RegionCommands {
      * @param worldEdit reference to WorldEdit
      */
     public RegionCommands(WorldEdit worldEdit) {
+        super(worldEdit);
         checkNotNull(worldEdit);
         this.worldEdit = worldEdit;
     }
@@ -306,13 +307,14 @@ public class RegionCommands {
     )
     @CommandPermissions("worldedit.region.replace")
     @Logging(REGION)
-    public void replace(Player player, EditSession editSession, @Selection Region region, @Optional Mask from, Pattern to) throws WorldEditException {
+    public void replace(FawePlayer player, EditSession editSession, @Selection Region region, @Optional Mask from, Pattern to, CommandContext context) throws WorldEditException {
+        player.checkConfirmation(getArguments(context));
         if (from == null) {
             from = new ExistingBlockMask(editSession);
         }
         int affected = editSession.replaceBlocks(region, from, to);
         BBC.VISITOR_BLOCK.send(player, affected);
-        if (!FawePlayer.wrap(player).hasPermission("fawe.tips")) BBC.TIP_REPLACE_ID.or(BBC.TIP_REPLACE_LIGHT, BBC.TIP_REPLACE_MARKER, BBC.TIP_TAB_COMPLETE).send(player);
+        if (!player.hasPermission("fawe.tips")) BBC.TIP_REPLACE_ID.or(BBC.TIP_REPLACE_LIGHT, BBC.TIP_REPLACE_MARKER, BBC.TIP_TAB_COMPLETE).send(player);
     }
 
     @Command(
@@ -324,7 +326,8 @@ public class RegionCommands {
     )
     @CommandPermissions("worldedit.region.set")
     @Logging(REGION)
-    public void set(Player player, LocalSession session, EditSession editSession, @Selection Region selection, Pattern to) throws WorldEditException {
+    public void set(FawePlayer player, LocalSession session, EditSession editSession, @Selection Region selection, Pattern to, CommandContext context) throws WorldEditException {
+        player.checkConfirmation(getArguments(context));
         int affected;
         if (to instanceof BlockPattern) {
             affected = editSession.setBlocks(selection, ((BlockPattern) to).getBlock());
@@ -333,7 +336,7 @@ public class RegionCommands {
         }
         if (affected != 0) {
             BBC.OPERATION.send(player, affected);
-            if (!FawePlayer.wrap(player).hasPermission("fawe.tips")) BBC.TIP_FAST.or(BBC.TIP_CANCEL, BBC.TIP_MASK, BBC.TIP_MASK_ANGLE, BBC.TIP_SET_LINEAR, BBC.TIP_SURFACE_SPREAD, BBC.TIP_SET_HAND).send(player);
+            if (!player.hasPermission("fawe.tips")) BBC.TIP_FAST.or(BBC.TIP_CANCEL, BBC.TIP_MASK, BBC.TIP_MASK_ANGLE, BBC.TIP_SET_LINEAR, BBC.TIP_SURFACE_SPREAD, BBC.TIP_SET_HAND).send(player);
         }
     }
 

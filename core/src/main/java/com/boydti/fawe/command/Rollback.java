@@ -29,7 +29,7 @@ public class Rollback extends FaweCommand {
     @Override
     public boolean execute(final FawePlayer player, final String... args) {
         if (!Settings.IMP.HISTORY.USE_DATABASE) {
-            BBC.SETTING_DISABLE.send(player, "history.use-database");
+            BBC.SETTING_DISABLE.send(player, "history.use-database (Import with /frb #import )");
             return false;
         }
         if (args.length != 3) {

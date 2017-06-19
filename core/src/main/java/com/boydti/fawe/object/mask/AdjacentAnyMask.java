@@ -10,15 +10,12 @@ import com.sk89q.worldedit.function.mask.Mask;
  */
 public class AdjacentAnyMask extends AbstractMask implements ResettableMask {
 
-    private final Mask mask;
+    private final CachedMask mask;
     private transient MutableBlockVector mutable = new MutableBlockVector();
 
     public AdjacentAnyMask(Mask mask) {
-        this.mask = mask;
-    }
-
-    public Mask getMask() {
-        return mask;
+        this.mask = CachedMask.cache(mask);
+        mutable = new MutableBlockVector();
     }
 
     @Override
@@ -26,26 +23,21 @@ public class AdjacentAnyMask extends AbstractMask implements ResettableMask {
         mutable = new MutableBlockVector();
     }
 
+    public CachedMask getParentMask() {
+        return mask;
+    }
+
     @Override
     public boolean test(Vector v) {
         int x = v.getBlockX();
         int y = v.getBlockY();
         int z = v.getBlockZ();
-        v.mutY(y + 1);
-        if (mask.test(v)) { v.mutY(y); return true; }
-        v.mutY(y - 1);
-        if (mask.test(v)) { v.mutY(y); return true; }
-        v.mutY(y);
-        v.mutX(x + 1);
-        if (mask.test(v)) { v.mutX(x); return true; }
-        v.mutX(x - 1);
-        if (mask.test(v)) { v.mutX(x); return true; }
-        v.mutX(x);
-        v.mutZ(z + 1);
-        if (mask.test(v)) { v.mutZ(z); return true; }
-        v.mutZ(z - 1);
-        if (mask.test(v)) { v.mutZ(z); return true; }
-        v.mutZ(z);
+        if (mask.test(x, y + 1, z)) { return true; }
+        if (mask.test(x + 1, y, z)) { return true; }
+        if (mask.test(x - 1, y, z)) { return true; }
+        if (mask.test(x, y, z + 1)) { return true; }
+        if (mask.test(x, y, z - 1)) { return true; }
+        if (mask.test(x, y - 1, z)) { return true; }
         return false;
     }
 
@@ -53,21 +45,12 @@ public class AdjacentAnyMask extends AbstractMask implements ResettableMask {
         int x = v.getBlockX();
         int y = v.getBlockY();
         int z = v.getBlockZ();
-        v.mutY(y + 1);
-        if (mask.test(v)) { v.mutY(y); return mutable.setComponents(0, 1, 0); }
-        v.mutY(y - 1);
-        if (mask.test(v)) { v.mutY(y); return mutable.setComponents(0, -1, 0); }
-        v.mutY(y);
-        v.mutX(x + 1);
-        if (mask.test(v)) { v.mutX(x); return mutable.setComponents(1, 0, 0); }
-        v.mutX(x - 1);
-        if (mask.test(v)) { v.mutX(x); return mutable.setComponents(-1, 0, 0); }
-        v.mutX(x);
-        v.mutZ(z + 1);
-        if (mask.test(v)) { v.mutZ(z); return mutable.setComponents(0, 0, 1); }
-        v.mutZ(z - 1);
-        if (mask.test(v)) { v.mutZ(z); return mutable.setComponents(0, 0, - 1); }
-        v.mutZ(z);
+        if (mask.test(x, y + 1, z)) { return mutable.setComponents(0, 1, 0); }
+        if (mask.test(x + 1, y, z)) { return mutable.setComponents(1, 0, 0); }
+        if (mask.test(x - 1, y, z)) { return mutable.setComponents(-1, 0, 0); }
+        if (mask.test(x, y, z + 1)) { return mutable.setComponents(0, 0, 1); }
+        if (mask.test(x, y, z - 1)) { return mutable.setComponents(0, 0, - 1); }
+        if (mask.test(x, y - 1, z)) { return mutable.setComponents(0, -1, 0); }
         return null;
     }
 }

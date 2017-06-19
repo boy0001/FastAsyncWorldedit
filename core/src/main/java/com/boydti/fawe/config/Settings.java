@@ -130,9 +130,13 @@ public class Settings extends Config {
         })
         public int INVENTORY_MODE = 0;
         @Comment({
-            "Place chunks instead of individual blocks"
+                "Place chunks instead of individual blocks"
         })
         public boolean FAST_PLACEMENT = true;
+        @Comment({
+                "Should large edits require confirmation (>16384 chunks)",
+        })
+        public boolean CONFIRM_LARGE = true;
     }
 
     public static class HISTORY {
@@ -402,6 +406,7 @@ public class Settings extends Config {
                 limit.INVENTORY_MODE = Math.min(limit.INVENTORY_MODE, newLimit.INVENTORY_MODE);
                 limit.SPEED_REDUCTION = Math.min(limit.SPEED_REDUCTION, newLimit.SPEED_REDUCTION);
                 limit.FAST_PLACEMENT |= newLimit.FAST_PLACEMENT;
+                limit.CONFIRM_LARGE &= newLimit.CONFIRM_LARGE;
             }
         }
         return limit;
