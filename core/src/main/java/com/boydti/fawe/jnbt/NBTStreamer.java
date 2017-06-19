@@ -16,6 +16,10 @@ public class NBTStreamer {
         readers = new HashMap<>();
     }
 
+    /**
+     * Reads the entire stream and runs the applicable readers
+     * @throws IOException
+     */
     public void readFully() throws IOException {
         is.readNamedTagLazy(new RunnableVal2<String, RunnableVal2>() {
             @Override
@@ -26,6 +30,12 @@ public class NBTStreamer {
         is.close();
     }
 
+    /**
+     * Reads the stream until all readers have been used<br>
+     *     - Use readFully if you expect a reader to appear more than once
+     *     - Can exit early without having reading the entire file
+     * @throws IOException
+     */
     public void readQuick() throws IOException {
         try {
             is.readNamedTagLazy(new RunnableVal2<String, RunnableVal2>() {

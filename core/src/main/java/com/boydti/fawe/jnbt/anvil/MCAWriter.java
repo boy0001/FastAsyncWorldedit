@@ -2,7 +2,6 @@ package com.boydti.fawe.jnbt.anvil;
 
 import com.boydti.fawe.object.io.BufferedRandomAccessFile;
 import com.boydti.fawe.util.MainUtil;
-import com.boydti.fawe.util.MathMan;
 import java.io.File;
 import java.io.IOException;
 import java.util.concurrent.ForkJoinPool;
@@ -14,6 +13,8 @@ public abstract class MCAWriter {
     private final int length;
     private final int width;
     private final int area;
+    private int OX, OZ;
+
 
     public MCAWriter(int width, int length, File regionFolder) {
         if (!regionFolder.exists()) {
@@ -35,6 +36,26 @@ public abstract class MCAWriter {
 
     public final int getLength() {
         return length;
+    }
+
+    /**
+     * Set the MCA file offset (each mca file is 512 blocks)
+     *  - A negative value will shift the map negative
+     *  - This only applies to generation, not block get/set
+     * @param mcaOX
+     * @param mcaOZ
+     */
+    public void setMCAOffset(int mcaOX, int mcaOZ) {
+        OX = mcaOX << 9;
+        OZ = mcaOZ << 9;
+    }
+
+    public int getOffsetX() {
+        return OX;
+    }
+
+    public int getOffsetZ() {
+        return OZ;
     }
 
     public final int getArea() {
@@ -79,11 +100,16 @@ public abstract class MCAWriter {
             }
         };
         byte[] fileBuf = new byte[1 << 16];
-        for (int mcaZ = 0; mcaZ <= (length >> 9); mcaZ++) {
-            for (int mcaX = 0; mcaX <= (width >> 9); mcaX++) {
+        int mcaXMin = 0;
+        int mcaZMin = 0;
+        int mcaXMax = mcaXMin + width >> 9;
+        int mcaZMax = mcaZMin + length >> 9;
+
+        for (int mcaZ = mcaXMin; mcaZ <= mcaZMax; mcaZ++) {
+            for (int mcaX = mcaXMin; mcaX <= mcaXMax; mcaX++) {
                 final int fmcaX = mcaX;
                 final int fmcaZ = mcaZ;
-                File file = new File(folder, "r." + mcaX + "." + mcaZ + ".mca");
+                File file = new File(folder, "r." + (mcaX + (getOffsetX() >> 9)) + "." + (mcaZ + (getOffsetZ() >> 9)) + ".mca");
                 if (!file.exists()) {
                     file.createNewFile();
                 }
@@ -96,7 +122,6 @@ public abstract class MCAWriter {
                 int ecx = Math.min(scx + 31, tcx);
                 int scz = bz >> 4;
                 int ecz = Math.min(scz + 31, tcz);
-                short pair = MathMan.pairByte(mcaX, mcaZ);
                 for (int cz = scz; cz <= ecz; cz++) {
                     final int csz = cz << 4;
                     final int cez = Math.min(csz + 15, length - 1);
@@ -114,6 +139,9 @@ public abstract class MCAWriter {
                                         chunk.setLoc(null, fcx, fcz);
                                         chunk = write(chunk, csx, cex, csz, cez);
                                         if (chunk != null) {
+                                            // Generation offset
+                                            chunk.setLoc(null, fcx + (getOffsetX() >> 4), fcz + (getOffsetZ() >> 4));
+                                            // Compress
                                             byte[] bytes = chunk.toBytes(byteStore1.get());
                                             byte[] compressedBytes = MainUtil.compress(bytes, byteStore2.get(), deflateStore.get());
                                             int blocks = (compressed.length + 4095) >> 12;

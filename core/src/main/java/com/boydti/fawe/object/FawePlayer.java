@@ -21,9 +21,12 @@ import com.sk89q.worldedit.Vector;
 import com.sk89q.worldedit.WorldEdit;
 import com.sk89q.worldedit.WorldEditException;
 import com.sk89q.worldedit.entity.Player;
+import com.sk89q.worldedit.event.platform.CommandEvent;
 import com.sk89q.worldedit.extension.platform.Actor;
+import com.sk89q.worldedit.extension.platform.CommandManager;
 import com.sk89q.worldedit.extent.clipboard.Clipboard;
 import com.sk89q.worldedit.regions.Region;
+import com.sk89q.worldedit.regions.RegionOperationException;
 import com.sk89q.worldedit.regions.RegionSelector;
 import com.sk89q.worldedit.regions.selector.CuboidRegionSelector;
 import com.sk89q.worldedit.session.ClipboardHolder;
@@ -63,6 +66,9 @@ public abstract class FawePlayer<T> extends Metadatable {
     public static <V> FawePlayer<V> wrap(Object obj) {
         if (obj == null) {
             return FakePlayer.getConsole().toFawePlayer();
+        }
+        if (obj instanceof FawePlayer) {
+            return (FawePlayer<V>) obj;
         }
         if (obj instanceof FakePlayer) {
             return ((FakePlayer) obj).toFawePlayer();
@@ -118,6 +124,39 @@ public abstract class FawePlayer<T> extends Metadatable {
         if (Settings.IMP.CLIPBOARD.USE_DISK) {
             loadClipboardFromDisk();
         }
+    }
+
+    public void checkConfirmation(String command) throws RegionOperationException {
+        if (getMeta("cmdConfirmRunning", false)) {
+            return;
+        }
+        Region sel = getSelection();
+        if (sel != null) {
+            Vector min = sel.getMinimumPoint();
+            Vector max = sel.getMaximumPoint();
+            int area = (int) ((max.getX() - min.getX()) * (max.getZ() - min.getZ() + 1));
+            if (area > 2 << 22) {
+                setMeta("cmdConfirm", command);
+                throw new RegionOperationException(BBC.WORLDEDIT_CANCEL_REASON_CONFIRM.f(min, max, command));
+            }
+        }
+    }
+
+    public boolean confirm() {
+        String confirm = deleteMeta("cmdConfirm");
+        if (confirm == null) {
+            return false;
+        }
+        queueAction(new Runnable() {
+            @Override
+            public void run() {
+                setMeta("cmdConfirmRunning", true);
+                CommandEvent event = new CommandEvent(getPlayer(), confirm);
+                CommandManager.getInstance().handleCommandOnCurrentThread(event);
+                setMeta("cmdConfirmRunning", false);
+            }
+        });
+        return true;
     }
 
     public boolean toggle(String perm) {

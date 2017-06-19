@@ -106,6 +106,8 @@ public enum BBC {
     SELECTION_SHIFT("Region shifted", "WorldEdit.Selection"),
     SELECTION_CLEARED("Selection cleared", "WorldEdit.Selection"),
 
+    WORLD_IS_LOADED("The world shouldn't be in use when executing. Unload the world, or use use -f to override (save first)", "WorldEdit.Anvil"),
+
     BRUSH_RESET("Reset your brush.", "WorldEdit.Brush"),
     BRUSH_NONE("You aren't holding a brush!", "WorldEdit.Brush"),
     BRUSH_SCROLL_ACTION_SET("Set scroll action to %s0", "WorldEdit.Brush"),
@@ -170,6 +172,7 @@ public enum BBC {
     PLACE_DISABLED("Now placing at the block you stand in.", "WorldEdit.General"),
 
     KILL_SUCCESS("Killed %s0 entities in a radius of %s1.", "WorldEdit.Utility"),
+    NOTHING_CONFIRMED("You have no actions pending confirmation.", "WorldEdit.Utility"),
 
 
     SCHEMATIC_DELETE("%s0 has been deleted.", "Worldedit.Schematic"),
@@ -232,6 +235,7 @@ public enum BBC {
     WORLDEDIT_SOME_FAILS_BLOCKBAG("&cMissing blocks: %s0", "Error"),
 
     WORLDEDIT_CANCEL_COUNT("&cCancelled %s0 edits.", "Cancel"),
+    WORLDEDIT_CANCEL_REASON_CONFIRM("&7Your selection is large (%s0 -> %s1). Use &c//confirm &7to execute &c%s2", "Cancel"),
     WORLDEDIT_CANCEL_REASON("&cYour WorldEdit action was cancelled:&7 %s0&c.", "Cancel"),
     WORLDEDIT_CANCEL_REASON_MANUAL("Manual cancellation", "Cancel"),
     WORLDEDIT_CANCEL_REASON_LOW_MEMORY("Low memory", "Cancel"),

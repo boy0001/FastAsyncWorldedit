@@ -182,6 +182,21 @@ public class LocalBlockVectorSet implements Set<Vector> {
         return array;
     }
 
+    public boolean canAdd(int x, int y, int z) {
+        if (offsetX == Integer.MAX_VALUE) {
+            return false;
+        }
+        int relX = x - offsetX;
+        int relZ = z - offsetZ;
+        if (relX > 1023 || relX < -1024 || relZ > 1023 || relZ < -1024) {
+            return false;
+        }
+        if (y < 0 || y > 256) {
+            return false;
+        }
+        return true;
+    }
+
     public boolean add(int x, int y, int z) {
         if (offsetX == Integer.MAX_VALUE) {
             offsetX = x;

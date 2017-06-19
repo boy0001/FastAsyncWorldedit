@@ -173,7 +173,7 @@ public class StructureFormat implements ClipboardReader, ClipboardWriter {
         Map<String, Object> structure = FaweCache.asMap("version", 1, "author", owner);
         // ignored: version / owner
         MutableBlockVector mutable = new MutableBlockVector(0, 0, 0);
-        int[] indexes = new int[MAX_SIZE];
+        int[] indexes = new int[Character.MAX_VALUE];
         // Size
         structure.put("size", Arrays.asList(width, height, length));
         // Palette
@@ -184,6 +184,7 @@ public class StructureFormat implements ClipboardReader, ClipboardWriter {
             ArrayList<HashMap<String, Object>> palette = new ArrayList<>();
             for (Vector point : region) {
                 BaseBlock block = clipboard.getBlock(point);
+                if (block.getId() == 217) block = FaweCache.getBlock(0, 0); // Void
                 int combined = FaweCache.getCombined(block);
                 int index = indexes[combined];
                 if (index != -1) {
@@ -221,7 +222,9 @@ public class StructureFormat implements ClipboardReader, ClipboardWriter {
             Vector min = region.getMinimumPoint();
             for (Vector point : region) {
                 BaseBlock block = clipboard.getBlock(point);
+                if (block.getId() == 217) block = FaweCache.getBlock(0, 0); // Void
                 int combined = FaweCache.getCombined(block);
+                if (combined >> 4 == 217) combined = 0; // Structure void
                 int index = indexes[combined];
                 List<Integer> pos = Arrays.asList((int) (point.getX() - min.getX()), (int) (point.getY() - min.getY()), (int) (point.getZ() - min.getZ()));
                 if (!block.hasNbtData()) {

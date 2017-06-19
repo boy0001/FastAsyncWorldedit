@@ -137,6 +137,10 @@ public class MCAFile {
         return Z;
     }
 
+    public RandomAccessFile getRandomAccessFile() {
+        return raf;
+    }
+
     public File getFile() {
         return file;
     }
@@ -181,6 +185,11 @@ public class MCAFile {
         return chunk;
     }
 
+    /**
+     * CX, CZ, OFFSET, SIZE
+     * @param onEach
+     * @throws IOException
+     */
     public void forEachSortedChunk(RunnableVal4<Integer, Integer, Integer, Integer> onEach) throws IOException {
         char[] offsets = new char[(int) (raf.length() / 4096) - 2];
         Arrays.fill(offsets, Character.MAX_VALUE);

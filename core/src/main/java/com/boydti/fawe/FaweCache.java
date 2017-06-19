@@ -14,12 +14,15 @@ import com.sk89q.jnbt.LongTag;
 import com.sk89q.jnbt.ShortTag;
 import com.sk89q.jnbt.StringTag;
 import com.sk89q.jnbt.Tag;
+import com.sk89q.worldedit.WorldEdit;
 import com.sk89q.worldedit.blocks.BaseBlock;
 import com.sk89q.worldedit.blocks.BaseItem;
 import com.sk89q.worldedit.blocks.BlockType;
 import com.sk89q.worldedit.blocks.ImmutableBlock;
 import com.sk89q.worldedit.blocks.ImmutableDatalessBlock;
 import com.sk89q.worldedit.blocks.ImmutableNBTBlock;
+import com.sk89q.worldedit.extension.input.InputParseException;
+import com.sk89q.worldedit.extension.input.ParserContext;
 import com.sk89q.worldedit.world.biome.BaseBiome;
 import com.sk89q.worldedit.world.registry.BundledBlockData;
 import java.awt.Color;
@@ -116,6 +119,13 @@ public class FaweCache {
      */
     public static final int getCombined(BaseBlock block) {
         return getCombined(block.getId(), block.getData());
+    }
+
+    public static final BaseBlock getBlock(String block, boolean allAllowed, boolean allowNoData) throws InputParseException {
+        ParserContext context = new ParserContext();
+        context.setRestricted(!allAllowed);
+        context.setPreferringWildcard(allowNoData);
+        return WorldEdit.getInstance().getBlockFactory().parseFromInput(block, context);
     }
 
     public static final Color getColor(int id, int data) {

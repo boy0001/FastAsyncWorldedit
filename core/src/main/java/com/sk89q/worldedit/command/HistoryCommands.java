@@ -74,14 +74,16 @@ public class HistoryCommands {
     @Command(
             aliases = { "/frb", "frb", "fawerollback", "/fawerollback", "/rollback" },
             usage = "<user=Empire92> <radius=5> <time=3d4h>",
-            desc = "Undo a specific edit. The time uses s, m, h, d, y.",
+            desc = "Undo a specific edit. " +
+                    " - The time uses s, m, h, d, y.\n" +
+                    " - Import from disk: /frb #import",
             min = 1,
             max = 3
     )
     @CommandPermissions("worldedit.history.rollback")
     public void faweRollback(final Player player, LocalSession session, final String user, @Optional("0") int radius, @Optional("0") String time) throws WorldEditException {
         if (!Settings.IMP.HISTORY.USE_DATABASE) {
-            BBC.SETTING_DISABLE.send(player, "history.use-database");
+            BBC.SETTING_DISABLE.send(player, "history.use-database (Import with /frb #import )");
             return;
         }
         switch (user.charAt(0)) {
@@ -115,7 +117,7 @@ public class HistoryCommands {
                                             continue;
                                         }
                                         RollbackOptimizedHistory rollback = new RollbackOptimizedHistory(world, uuid, Integer.parseInt(name.substring(0, name.length() - 3)));
-                                        DiskStorageHistory.DiskStorageSummary summary = rollback.summarize(RegionWrapper.GLOBAL(), true);
+                                        DiskStorageHistory.DiskStorageSummary summary = rollback.summarize(RegionWrapper.GLOBAL(), false);
                                         if (summary != null) {
                                             rollback.setDimensions(new Vector(summary.minX, 0, summary.minZ), new Vector(summary.maxX, 255, summary.maxZ));
                                             rollback.setTime(historyFile.lastModified());
@@ -125,6 +127,7 @@ public class HistoryCommands {
                                         }
                                     }
                                 } catch (IllegalArgumentException e) {
+                                    e.printStackTrace();
                                     continue;
                                 }
                             }
@@ -135,7 +138,7 @@ public class HistoryCommands {
                 }
                 String toParse = user.substring(1);
                 if (!MathMan.isInteger(toParse)) {
-                    BBC.COMMAND_SYNTAX.send(player, "/frb <user> <radius> <time>");
+                    BBC.COMMAND_SYNTAX.send(player, "/frb #<index>");
                     return;
                 }
                 int index = Integer.parseInt(toParse);

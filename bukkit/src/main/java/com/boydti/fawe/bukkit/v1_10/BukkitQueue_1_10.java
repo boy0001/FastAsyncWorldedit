@@ -39,6 +39,7 @@ import net.minecraft.server.v1_10_R1.BiomeBase;
 import net.minecraft.server.v1_10_R1.BiomeCache;
 import net.minecraft.server.v1_10_R1.Block;
 import net.minecraft.server.v1_10_R1.BlockPosition;
+import net.minecraft.server.v1_10_R1.ChunkCoordIntPair;
 import net.minecraft.server.v1_10_R1.ChunkProviderGenerate;
 import net.minecraft.server.v1_10_R1.ChunkProviderServer;
 import net.minecraft.server.v1_10_R1.ChunkSection;
@@ -457,6 +458,7 @@ public class BukkitQueue_1_10 extends BukkitQueue_0<net.minecraft.server.v1_10_R
                                 for (net.minecraft.server.v1_10_R1.Chunk chunk : chunks) {
                                     chunk = provider.loadChunk(chunk.locX, chunk.locZ);
                                     if (chunk != null) {
+                                        provider.chunks.put(ChunkCoordIntPair.a(chunk.locX, chunk.locZ), chunk);
                                         sendChunk(chunk, 0);
                                     }
                                 }

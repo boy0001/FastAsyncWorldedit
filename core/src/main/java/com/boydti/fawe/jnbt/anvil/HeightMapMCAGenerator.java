@@ -83,6 +83,8 @@ public class HeightMapMCAGenerator extends MCAWriter implements Extent {
         try {
             if (randomVariation) {
                 return new RandomTextureUtil(textureUtil);
+            } else if (textureUtil instanceof CachedTextureUtil) {
+                return textureUtil;
             } else {
                 return new CachedTextureUtil(textureUtil);
             }
@@ -807,8 +809,6 @@ public class HeightMapMCAGenerator extends MCAWriter implements Extent {
     @Override
     public MCAChunk write(MCAChunk chunk, int csx, int cex, int csz, int cez) {
         try {
-            int cx = chunk.getX();
-            int cz = chunk.getZ();
             int[] indexes = indexStore.get();
             for (int i = 0; i < chunk.ids.length; i++) {
                 byte[] idsArray = chunk.ids[i];
@@ -848,6 +848,27 @@ public class HeightMapMCAGenerator extends MCAWriter implements Extent {
                     chunk.blockLight[layer] = new byte[2048];
                 }
             }
+            if (waterHeight != 0) {
+                maxY = Math.max(maxY, waterHeight);
+                int maxWaterLayer = ((waterHeight + 15) >> 4);
+                for (int layer = 0; layer < maxWaterLayer; layer++) {
+                    boolean fillAll = (layer << 4) + 15 <= waterHeight;
+                    byte[] ids = chunk.ids[layer];
+                    if (ids == null) {
+                        chunk.ids[layer] = ids = new byte[4096];
+                        chunk.data[layer] = new byte[2048];
+                        chunk.skyLight[layer] = new byte[2048];
+                        chunk.blockLight[layer] = new byte[2048];
+                        Arrays.fill(chunk.skyLight[layer], (byte) 255);
+                    }
+                    if (fillAll) {
+                        Arrays.fill(ids, waterId);
+                    } else {
+                        int maxIndex = maxWaterLayer << 8;
+                        Arrays.fill(ids, 0, maxIndex, waterId);
+                    }
+                }
+            }
             if (modifiedMain) { // If the main block is modified, we can't short circuit this
                 for (int layer = 0; layer < fillLayers; layer++) {
                     byte[] layerIds = chunk.ids[layer];
@@ -874,27 +895,6 @@ public class HeightMapMCAGenerator extends MCAWriter implements Extent {
             } else {
                 for (int layer = 0; layer < fillLayers; layer++) {
                     Arrays.fill(chunk.ids[layer], (byte) 1);
-                }
-            }
-            if (waterHeight != 0) {
-                maxY = Math.max(maxY, waterHeight);
-                int maxWaterLayer = ((waterHeight + 15) >> 4);
-                for (int layer = 0; layer < maxWaterLayer; layer++) {
-                    boolean fillAll = (layer << 4) + 15 <= waterHeight;
-                    byte[] ids = chunk.ids[layer];
-                    if (ids == null) {
-                        chunk.ids[layer] = ids = new byte[4096];
-                        chunk.data[layer] = new byte[2048];
-                        chunk.skyLight[layer] = new byte[2048];
-                        chunk.blockLight[layer] = new byte[2048];
-                        Arrays.fill(chunk.skyLight[layer], (byte) 255);
-                    }
-                    if (fillAll) {
-                        Arrays.fill(ids, waterId);
-                    } else {
-                        int maxIndex = maxWaterLayer << 8;
-                        Arrays.fill(ids, 0, maxIndex, waterId);
-                    }
                 }
             }
             for (int layer = fillLayers; layer <= maxLayer; layer++) {
@@ -973,7 +973,7 @@ public class HeightMapMCAGenerator extends MCAWriter implements Extent {
                     }
                 }
             }
-            int chunkPair = MathMan.pair((short) cx, (short) cz);
+            int chunkPair = MathMan.pair((short) chunk.getX(), (short) chunk.getZ());
             char[][][] localBlocks = blocks.get(chunkPair);
             if (localBlocks != null) {
                 for (int layer = 0; layer < 16; layer++) {

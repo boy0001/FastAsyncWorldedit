@@ -4,6 +4,7 @@ import com.boydti.fawe.FaweCache;
 import com.boydti.fawe.bukkit.v0.BukkitQueue_0;
 import com.boydti.fawe.example.CharFaweChunk;
 import com.boydti.fawe.object.FaweChunk;
+import com.boydti.fawe.object.RegionWrapper;
 import com.boydti.fawe.object.RunnableVal;
 import com.boydti.fawe.util.MainUtil;
 import com.boydti.fawe.util.MathMan;
@@ -15,9 +16,11 @@ import com.sk89q.jnbt.Tag;
 import com.sk89q.worldedit.world.biome.BaseBiome;
 import java.io.File;
 import java.lang.reflect.Field;
+import java.util.ArrayDeque;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -25,6 +28,8 @@ import java.util.UUID;
 import net.minecraft.server.v1_8_R3.Block;
 import net.minecraft.server.v1_8_R3.BlockPosition;
 import net.minecraft.server.v1_8_R3.Chunk;
+import net.minecraft.server.v1_8_R3.ChunkCoordIntPair;
+import net.minecraft.server.v1_8_R3.ChunkProviderServer;
 import net.minecraft.server.v1_8_R3.ChunkSection;
 import net.minecraft.server.v1_8_R3.Entity;
 import net.minecraft.server.v1_8_R3.EntityPlayer;
@@ -40,6 +45,8 @@ import net.minecraft.server.v1_8_R3.NibbleArray;
 import net.minecraft.server.v1_8_R3.Packet;
 import net.minecraft.server.v1_8_R3.PacketPlayOutMapChunk;
 import net.minecraft.server.v1_8_R3.PlayerChunkMap;
+import net.minecraft.server.v1_8_R3.RegionFile;
+import net.minecraft.server.v1_8_R3.RegionFileCache;
 import net.minecraft.server.v1_8_R3.ServerNBTManager;
 import net.minecraft.server.v1_8_R3.TileEntity;
 import net.minecraft.server.v1_8_R3.WorldData;
@@ -122,6 +129,74 @@ public class BukkitQueue18R3 extends BukkitQueue_0<net.minecraft.server.v1_8_R3.
     public void saveChunk(Chunk nmsChunk) {
         nmsChunk.f(true); // Modified
         nmsChunk.mustSave = true;
+    }
+
+    @Override
+    public boolean setMCA(Runnable whileLocked, RegionWrapper allowed, boolean unload) {
+        try {
+            TaskManager.IMP.sync(new RunnableVal<Object>() {
+                @Override
+                public void run(Object value) {
+                    try {
+                        synchronized (RegionFileCache.class) {
+                            ArrayDeque<Chunk> chunks = new ArrayDeque<>();
+                            World world = getWorld();
+                            world.setKeepSpawnInMemory(false);
+                            ChunkProviderServer provider = nmsWorld.chunkProviderServer;
+                            if (unload) { // Unload chunks
+                                boolean autoSave = world.isAutoSave();
+                                world.setAutoSave(true);
+                                int bcx = (allowed.minX >> 9) << 5;
+                                int bcz = (allowed.minZ >> 9) << 5;
+                                int tcx = 31 + (allowed.maxX >> 9) << 5;
+                                int tcz = 31 + (allowed.maxZ >> 9) << 5;
+                                Iterator<Chunk> iter = provider.a().iterator();
+                                while (iter.hasNext()) {
+                                    Chunk chunk = iter.next();
+                                    int cx = chunk.locX;
+                                    int cz = chunk.locZ;
+                                    if (cx >= bcx && cx <= tcx && cz >= bcz && cz <= tcz) {
+                                        provider.unloadQueue.add(ChunkCoordIntPair.a(chunk.locX, chunk.locZ));
+                                    }
+                                }
+                                for (int i = 0; i < 50 && !provider.getName().endsWith(" 0"); i++) provider.unloadChunks();
+                                world.setAutoSave(autoSave);
+                            }
+                            provider.c();
+
+                            if (unload) { // Unload regions
+                                Map<File, RegionFile> map = RegionFileCache.a;
+                                Iterator<Map.Entry<File, RegionFile>> iter = map.entrySet().iterator();
+                                while (iter.hasNext()) {
+                                    Map.Entry<File, RegionFile> entry = iter.next();
+                                    RegionFile regionFile = entry.getValue();
+                                    regionFile.c();
+                                    iter.remove();
+                                }
+                            }
+                            whileLocked.run();
+                            // Load the chunks again
+                            if (unload) {
+                                for (Chunk chunk : chunks) {
+                                    chunk = provider.loadChunk(chunk.locX, chunk.locZ);
+                                    if (chunk != null) {
+                                        provider.chunks.put(ChunkCoordIntPair.a(chunk.locX, chunk.locZ), chunk);
+                                        sendChunk(chunk, 0);
+                                    }
+                                }
+                            }
+
+                        }
+                    } catch (Throwable e) {
+                        e.printStackTrace();
+                    }
+                }
+            });
+            return true;
+        } catch (Throwable e) {
+            e.printStackTrace();
+            throw new RuntimeException(e);
+        }
     }
 
     @Override

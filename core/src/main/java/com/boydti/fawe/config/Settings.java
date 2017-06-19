@@ -72,6 +72,7 @@ public class Settings extends Config {
                 "Put any minecraft or mod jars for FAWE to be aware of block textures",
         })
         public String TEXTURES = "textures";
+        public String HEIGHTMAP = "heightmap";
         public String HISTORY = "history";
         public String CLIPBOARD = "clipboard";
         @Comment("Each player has their own sub directory for schematics")
@@ -129,9 +130,13 @@ public class Settings extends Config {
         })
         public int INVENTORY_MODE = 0;
         @Comment({
-            "Place chunks instead of individual blocks"
+                "Place chunks instead of individual blocks"
         })
         public boolean FAST_PLACEMENT = true;
+        @Comment({
+                "Should large edits require confirmation (>16384 chunks)",
+        })
+        public boolean CONFIRM_LARGE = true;
     }
 
     public static class HISTORY {
@@ -281,15 +286,22 @@ public class Settings extends Config {
     }
 
     @Comment({
-            "Experimental options, use at your own risk",
-            " - Apparently that wasn't enough, need an all caps warning?",
-            " - DO NOT USE IF YOU ARE CLUELESS!"
+            "Experimental options, use at your own risk"
     })
     public static class EXPERIMENTAL {
         @Comment({
-                "Directly modify the region files.",
+                "[UNSAFE] Directly modify the region files. (OBSOLETE - USE ANVIL COMMANDS)",
+                " - IMPROPER USE CAN CAUSE WORLD CORRUPTION!",
         })
         public boolean ANVIL_QUEUE_MODE = false;
+        @Comment({
+                "[SAFE] Dynamically increase the number of chunks rendered",
+                " - Requires Paper: ci.destroystokyo.com/job/PaperSpigot/",
+                " - Set your server view distance to 1 (spigot.yml, server.properties)",
+                " - Based on tps and player movement",
+                " - Please provide feedback",
+        })
+        public boolean DYNAMIC_CHUNK_RENDERING = false;
     }
 
     public static class WEB {
@@ -394,6 +406,7 @@ public class Settings extends Config {
                 limit.INVENTORY_MODE = Math.min(limit.INVENTORY_MODE, newLimit.INVENTORY_MODE);
                 limit.SPEED_REDUCTION = Math.min(limit.SPEED_REDUCTION, newLimit.SPEED_REDUCTION);
                 limit.FAST_PLACEMENT |= newLimit.FAST_PLACEMENT;
+                limit.CONFIRM_LARGE &= newLimit.CONFIRM_LARGE;
             }
         }
         return limit;

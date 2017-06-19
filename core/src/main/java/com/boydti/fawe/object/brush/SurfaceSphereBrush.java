@@ -19,7 +19,7 @@ public class SurfaceSphereBrush implements Brush {
         SurfaceMask surface = new SurfaceMask(editSession);
         final SolidBlockMask solid = new SolidBlockMask(editSession);
         final RadiusMask radius = new RadiusMask(0, (int) size);
-        RecursiveVisitor visitor = new RecursiveVisitor(vector -> radius.test(vector) && surface.test(vector), vector -> editSession.setBlock(vector, pattern));
+        RecursiveVisitor visitor = new RecursiveVisitor(vector -> surface.test(vector) && radius.test(vector), vector -> editSession.setBlock(vector, pattern));
         visitor.visit(position);
         visitor.setDirections(Arrays.asList(BreadthFirstSearch.DIAGONAL_DIRECTIONS));
         Operations.completeBlindly(visitor);

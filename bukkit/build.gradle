@@ -2,6 +2,7 @@ repositories {
     flatDir {dirs 'lib'}
 }
 dependencies {
+    compile 'com.destroystokyo.paper:paper-api:1.11.2-R0.1-SNAPSHOT'
     compile project(':core')
     compile 'org.bukkit.craftbukkitv1_10:craftbukkitv1_10:1.10'
     compile 'org.bukkit.craftbukkitv1_11:Craftbukkit:1.11'

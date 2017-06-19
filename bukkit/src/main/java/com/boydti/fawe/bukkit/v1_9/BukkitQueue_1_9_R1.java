@@ -37,6 +37,7 @@ import java.util.Set;
 import java.util.UUID;
 import net.minecraft.server.v1_9_R2.Block;
 import net.minecraft.server.v1_9_R2.BlockPosition;
+import net.minecraft.server.v1_9_R2.ChunkCoordIntPair;
 import net.minecraft.server.v1_9_R2.ChunkProviderServer;
 import net.minecraft.server.v1_9_R2.ChunkSection;
 import net.minecraft.server.v1_9_R2.DataBits;
@@ -318,6 +319,7 @@ public class BukkitQueue_1_9_R1 extends BukkitQueue_0<net.minecraft.server.v1_9_
                                 for (net.minecraft.server.v1_9_R2.Chunk chunk : chunks) {
                                     chunk = provider.loadChunk(chunk.locX, chunk.locZ);
                                     if (chunk != null) {
+                                        provider.chunks.put(ChunkCoordIntPair.a(chunk.locX, chunk.locZ), chunk);
                                         sendChunk(chunk, 0);
                                     }
                                 }

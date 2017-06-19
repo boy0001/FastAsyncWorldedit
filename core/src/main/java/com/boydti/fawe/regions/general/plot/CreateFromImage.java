@@ -8,6 +8,7 @@ import com.boydti.fawe.object.FawePlayer;
 import com.boydti.fawe.object.RunnableVal;
 import com.boydti.fawe.util.CleanTextureUtil;
 import com.boydti.fawe.util.FilteredTextureUtil;
+import com.boydti.fawe.util.MainUtil;
 import com.boydti.fawe.util.StringMan;
 import com.boydti.fawe.util.TaskManager;
 import com.intellectualcrafters.plot.PS;
@@ -25,7 +26,6 @@ import com.intellectualcrafters.plot.object.RunnableVal3;
 import com.intellectualcrafters.plot.object.worlds.PlotAreaManager;
 import com.intellectualcrafters.plot.object.worlds.SinglePlotArea;
 import com.intellectualcrafters.plot.object.worlds.SinglePlotAreaManager;
-import com.intellectualcrafters.plot.util.MainUtil;
 import com.plotsquared.general.commands.Command;
 import com.plotsquared.general.commands.CommandDeclaration;
 import com.sk89q.worldedit.Vector;
@@ -85,7 +85,8 @@ public class CreateFromImage extends Command {
                 if (generator == null) {
                     final Vector2D dimensions;
                     final BufferedImage image;
-                    if (argList.get(0).toLowerCase().startsWith("http")) {
+                    String arg0 = argList.get(0).toLowerCase();
+                    if (arg0.startsWith("http") || arg0.startsWith("file://")) {
                         try {
                             player.sendMessage(BBC.getPrefix() + "Loading image... (1)");
                             image = getImage(argList.get(0), fp);
@@ -113,7 +114,7 @@ public class CreateFromImage extends Command {
                                     int currentPlots = Settings.Limit.GLOBAL ? player.getPlotCount() : player.getPlotCount(area.worldname);
                                     int diff = player.getAllowedPlots() - currentPlots;
                                     if (diff < 1) {
-                                        MainUtil.sendMessage(player, C.CANT_CLAIM_MORE_PLOTS_NUM, -diff + "");
+                                        C.CANT_CLAIM_MORE_PLOTS_NUM.send(player, -diff);
                                         return;
                                     }
                                     if (area.getMeta("lastPlot") == null) {
@@ -195,7 +196,8 @@ public class CreateFromImage extends Command {
                                     }
                                     int argOffset = 0;
                                     BufferedImage img = null;
-                                    if (argList.get(1).startsWith("http")) {
+                                    String arg1 = argList.get(1);
+                                    if (arg1.startsWith("http") || arg1.startsWith("file://")) {
                                         img = getImage(argList.get(1), fp);
                                         argOffset++;
                                     }
@@ -601,7 +603,12 @@ public class CreateFromImage extends Command {
         if (arg.startsWith("http")) {
             URL url = new URL(arg);
             fp.sendMessage(BBC.getPrefix() + "Downloading image... (3)");
-            return com.boydti.fawe.util.MainUtil.toRGB(ImageIO.read(url));
+            return MainUtil.toRGB(ImageIO.read(url));
+        }
+        if (arg.startsWith("file://")) {
+            arg = arg.substring(7);
+            File file = MainUtil.getFile(Fawe.imp().getDirectory(), com.boydti.fawe.config.Settings.IMP.PATHS.HEIGHTMAP + File.separator + arg);
+            return MainUtil.toRGB(ImageIO.read(file));
         }
         return null;
     }

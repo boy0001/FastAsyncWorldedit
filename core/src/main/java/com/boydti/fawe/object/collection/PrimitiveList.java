@@ -178,6 +178,23 @@ public class PrimitiveList<T> extends AbstractList<T> {
         }
     }
 
+    public void set(int index, long value) {
+        switch (type) {
+            default:
+                setFast(index, value);
+                return;
+            case Integer:
+                ((int[]) arr)[index] = (int) value;
+                return;
+            case Long:
+                ((long[]) arr)[index] = value;
+                return;
+            case Double:
+                ((double[]) arr)[index] = (double) value;
+                return;
+        }
+    }
+
     public void set(int index, double value) {
         switch (type) {
             default:
@@ -266,6 +283,12 @@ public class PrimitiveList<T> extends AbstractList<T> {
     }
 
     public boolean add(int element) {
+        ensureAddCapacity();
+        set(length++, element);
+        return true;
+    }
+
+    public boolean add(long element) {
         ensureAddCapacity();
         set(length++, element);
         return true;

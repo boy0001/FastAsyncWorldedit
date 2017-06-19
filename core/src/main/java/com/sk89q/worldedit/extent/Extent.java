@@ -138,7 +138,7 @@ public interface Extent extends InputExtent, OutputExtent {
                 }
             }
         }
-        return maxY >= 255 ? maxY : -1;
+        return maxY == 255 && minY == 0 ? maxY : -1;
     }
 
     default public void addCaves(Region region) throws WorldEditException {

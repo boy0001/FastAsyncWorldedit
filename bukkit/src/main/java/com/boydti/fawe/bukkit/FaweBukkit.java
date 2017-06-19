@@ -21,7 +21,6 @@ import com.boydti.fawe.object.FaweQueue;
 import com.boydti.fawe.regions.FaweMaskManager;
 import com.boydti.fawe.util.MainUtil;
 import com.boydti.fawe.util.ReflectionUtils;
-import com.boydti.fawe.util.SetQueue;
 import com.boydti.fawe.util.TaskManager;
 import com.sk89q.worldedit.bukkit.EditSessionBlockChangeDelegate;
 import com.sk89q.worldedit.bukkit.WorldEditPlugin;
@@ -44,9 +43,6 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerQuitEvent;
-import org.bukkit.event.world.ChunkLoadEvent;
-import org.bukkit.event.world.ChunkPopulateEvent;
-import org.bukkit.event.world.ChunkUnloadEvent;
 import org.bukkit.plugin.Plugin;
 import org.primesoft.blockshub.BlocksHubBukkit;
 
@@ -86,6 +82,9 @@ public class FaweBukkit implements IFawe, Listener {
                 debug("GUIDE: https://www.spigotmc.org/threads/21726/");
                 debug(" - This is only a recommendation");
                 debug("==============================");
+            }
+            if (Bukkit.getVersion().contains("git-Paper") && Settings.IMP.EXPERIMENTAL.DYNAMIC_CHUNK_RENDERING) {
+                new RenderListener(plugin);
             }
         } catch (final Throwable e) {
             MainUtil.handleError(e);
@@ -410,29 +409,6 @@ public class FaweBukkit implements IFawe, Listener {
 //            e.printStackTrace();
 //        }
 //    }
-
-    private boolean runChunkLoad = false;
-
-    @EventHandler
-    public void onChunkLoad(ChunkLoadEvent event) {
-        if (runChunkLoad) return;
-        try {
-            runChunkLoad = true;
-            SetQueue.IMP.runMiscTasks();
-        } finally {
-            runChunkLoad = false;
-        }
-    }
-
-    @EventHandler
-    public void onChunkUnload(ChunkUnloadEvent event) {
-        SetQueue.IMP.runMiscTasks();
-    }
-
-    @EventHandler
-    public void onChunkPopulate(ChunkPopulateEvent event) {
-        SetQueue.IMP.runMiscTasks();
-    }
 
     @EventHandler(priority = EventPriority.MONITOR)
     public void onPlayerQuit(PlayerQuitEvent event) {

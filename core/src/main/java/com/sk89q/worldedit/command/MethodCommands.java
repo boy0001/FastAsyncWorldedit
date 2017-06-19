@@ -27,7 +27,7 @@ public class MethodCommands {
 
     @Deprecated
     public MethodCommands() {
-        this.worldEdit = WorldEdit.getInstance();
+        this(WorldEdit.getInstance());
     }
 
     public void register(Method method, CommandCallable callable, Dispatcher dispatcher) {
