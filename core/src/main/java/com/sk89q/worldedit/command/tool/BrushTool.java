@@ -75,7 +75,7 @@ public class BrushTool implements DoubleActionTraceTool, ScrollTool, MovableTool
 
     private transient BrushSettings context = new BrushSettings();
     private transient BrushSettings primary = context;
-    private transient BrushSettings secondary = context;
+    private transient BrushSettings secondary = new BrushSettings();
 
     private transient VisualExtent visualExtent;
     private transient Lock lock = new ReentrantLock();
@@ -392,6 +392,9 @@ public class BrushTool implements DoubleActionTraceTool, ScrollTool, MovableTool
                 setContext(primary);
                 break;
             case SECONDARY:
+                if (primary == secondary) {
+                    return false;
+                }
                 setContext(secondary);
                 break;
         }
