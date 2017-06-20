@@ -28,7 +28,8 @@ public class BiomePattern extends ExistingPattern {
     }
 
     public class BiomePatternException extends RuntimeException {
-        private BiomePatternException() {}
+        private BiomePatternException() {
+        }
 
         public BiomePattern getPattern() {
             return BiomePattern.this;

@@ -161,7 +161,7 @@ import static com.sk89q.worldedit.regions.Regions.minimumBlockY;
 /**
  * An {@link Extent} that handles history, {@link BlockBag}s, change limits,
  * block re-ordering, and much more. Most operations in WorldEdit use this class.
- *
+ * <p>
  * <p>Most of the actual functionality is implemented with a number of other
  * {@link Extent}s that are chained together. For example, history is logged
  * using the {@link ChangeSetExtent}.</p>
@@ -204,7 +204,7 @@ public class EditSession extends AbstractWorld implements HasFaweQueue, Lighting
             PlayerDirection.SOUTH.vector(),
             PlayerDirection.WEST.vector(),
             PlayerDirection.UP.vector(),
-            PlayerDirection.DOWN.vector(), };
+            PlayerDirection.DOWN.vector(),};
 
     @Deprecated
     public EditSession(@Nonnull World world, @Nullable FaweQueue queue, @Nullable FawePlayer player, @Nullable FaweLimit limit, @Nullable FaweChangeSet changeSet, @Nullable RegionWrapper[] allowedRegions, @Nullable Boolean autoQueue, @Nullable Boolean fastmode, @Nullable Boolean checkMemory, @Nullable Boolean combineStages, @Nullable BlockBag blockBag, @Nullable EventBus bus, @Nullable EditSessionEvent event) {
@@ -347,7 +347,7 @@ public class EditSession extends AbstractWorld implements HasFaweQueue, Lighting
     /**
      * Create a new instance.
      *
-     * @param world a world
+     * @param world     a world
      * @param maxBlocks the maximum number of blocks that can be changed, or -1 to use no limit
      * @deprecated use {@link WorldEdit#getEditSessionFactory()} to create {@link EditSession}s
      */
@@ -359,9 +359,9 @@ public class EditSession extends AbstractWorld implements HasFaweQueue, Lighting
     /**
      * Create a new instance.
      *
-     * @param world a world
+     * @param world     a world
      * @param maxBlocks the maximum number of blocks that can be changed, or -1 to use no limit
-     * @param blockBag the block bag to set, or null to use none
+     * @param blockBag  the block bag to set, or null to use none
      * @deprecated use {@link WorldEdit#getEditSessionFactory()} to create {@link EditSession}s
      */
     @Deprecated
@@ -372,11 +372,11 @@ public class EditSession extends AbstractWorld implements HasFaweQueue, Lighting
     /**
      * Construct the object with a maximum number of blocks and a block bag.
      *
-     * @param eventBus the event bus
-     * @param world the world
+     * @param eventBus  the event bus
+     * @param world     the world
      * @param maxBlocks the maximum number of blocks that can be changed, or -1 to use no limit
-     * @param blockBag an optional {@link BlockBag} to use, otherwise null
-     * @param event the event to call with the extent
+     * @param blockBag  an optional {@link BlockBag} to use, otherwise null
+     * @param event     the event to call with the extent
      */
     public EditSession(final EventBus eventBus, World world, final int maxBlocks, @Nullable final BlockBag blockBag, EditSessionEvent event) {
         this(world, null, null, null, null, null, true, null, null, null, blockBag, eventBus, event);
@@ -384,6 +384,7 @@ public class EditSession extends AbstractWorld implements HasFaweQueue, Lighting
 
     /**
      * Lazily copy a region
+     *
      * @param region
      * @return
      */
@@ -396,6 +397,7 @@ public class EditSession extends AbstractWorld implements HasFaweQueue, Lighting
 
     /**
      * The limit for this specific edit (blocks etc)
+     *
      * @return
      */
     public FaweLimit getLimit() {
@@ -412,6 +414,7 @@ public class EditSession extends AbstractWorld implements HasFaweQueue, Lighting
 
     /**
      * Returns a new limit representing how much of this edit's limit has been used so far
+     *
      * @return
      */
     public FaweLimit getLimitUsed() {
@@ -429,6 +432,7 @@ public class EditSession extends AbstractWorld implements HasFaweQueue, Lighting
 
     /**
      * Returns the remaining limits
+     *
      * @return
      */
     public FaweLimit getLimitLeft() {
@@ -437,6 +441,7 @@ public class EditSession extends AbstractWorld implements HasFaweQueue, Lighting
 
     /**
      * The region extent restricts block placements to allowed regions
+     *
      * @return FaweRegionExtent (may be null)
      */
     public FaweRegionExtent getRegionExtent() {
@@ -462,6 +467,7 @@ public class EditSession extends AbstractWorld implements HasFaweQueue, Lighting
 
     /**
      * Get the FawePlayer or null
+     *
      * @return
      */
     @Nullable
@@ -490,7 +496,7 @@ public class EditSession extends AbstractWorld implements HasFaweQueue, Lighting
 
     /**
      * Remove this EditSession from the queue<br>
-     *  - This doesn't necessarily stop it from being queued again
+     * - This doesn't necessarily stop it from being queued again
      */
     public void dequeue() {
         if (queue != null) {
@@ -500,6 +506,7 @@ public class EditSession extends AbstractWorld implements HasFaweQueue, Lighting
 
     /**
      * Add a task to run when this EditSession is done dispatching
+     *
      * @param whenDone
      */
     public void addNotifyTask(Runnable whenDone) {
@@ -510,6 +517,7 @@ public class EditSession extends AbstractWorld implements HasFaweQueue, Lighting
 
     /**
      * Send a debug message to the Actor responsible for this EditSession (or Console)
+     *
      * @param message
      * @param args
      */
@@ -519,7 +527,8 @@ public class EditSession extends AbstractWorld implements HasFaweQueue, Lighting
 
     /**
      * Get the FaweQueue this EditSession uses to queue the changes<br>
-     *  - Note: All implementation queues for FAWE are instances of NMSMappedFaweQueue
+     * - Note: All implementation queues for FAWE are instances of NMSMappedFaweQueue
+     *
      * @return
      */
     public FaweQueue getQueue() {
@@ -588,7 +597,8 @@ public class EditSession extends AbstractWorld implements HasFaweQueue, Lighting
 
     /**
      * Change the ChangeSet being used for this EditSession
-     *  - If history is disabled, no changeset can be set
+     * - If history is disabled, no changeset can be set
+     *
      * @param set (null = remove the changeset)
      */
     public void setChangeSet(@Nullable FaweChangeSet set) {
@@ -606,8 +616,8 @@ public class EditSession extends AbstractWorld implements HasFaweQueue, Lighting
     }
 
     /**
-     * @see #getLimit()
      * @return the limit (&gt;= 0) or -1 for no limit
+     * @see #getLimit()
      */
     @Deprecated
     public int getBlockChangeLimit() {
@@ -635,7 +645,8 @@ public class EditSession extends AbstractWorld implements HasFaweQueue, Lighting
     /**
      * Queue certain types of block for better reproduction of those blocks.
      */
-    public void enableQueue() {}
+    public void enableQueue() {
+    }
 
     /**
      * Disable the queue. This will close the queue.
@@ -775,7 +786,7 @@ public class EditSession extends AbstractWorld implements HasFaweQueue, Lighting
 
     /**
      * Set whether fast mode is enabled.
-     *
+     * <p>
      * <p>Fast mode may skip lighting checks or adjacent block
      * notification.</p>
      *
@@ -787,6 +798,7 @@ public class EditSession extends AbstractWorld implements HasFaweQueue, Lighting
 
     /**
      * Disable history (or re-enable)
+     *
      * @param disableHistory
      */
     public void disableHistory(boolean disableHistory) {
@@ -815,7 +827,7 @@ public class EditSession extends AbstractWorld implements HasFaweQueue, Lighting
 
     /**
      * Return fast mode status.
-     *
+     * <p>
      * <p>Fast mode may skip lighting checks or adjacent block
      * notification.</p>
      *
@@ -869,8 +881,8 @@ public class EditSession extends AbstractWorld implements HasFaweQueue, Lighting
                         int amount = entry.getValue();
                         BlockType type = BlockType.fromID(id);
                         str.append((type != null ? type.getName() : "" + id))
-                        .append((data != 0 ? ":" + data : ""))
-                        .append((amount != 1 ? "x" + amount : ""));
+                                .append((data != 0 ? ":" + data : ""))
+                                .append((amount != 1 ? "x" + amount : ""));
                         ++i;
                         if (i != size) {
                             str.append(", ");
@@ -891,7 +903,7 @@ public class EditSession extends AbstractWorld implements HasFaweQueue, Lighting
 
     /**
      * Get the number of blocks changed, including repeated block changes.
-     *
+     * <p>
      * <p>This number may not be accurate.</p>
      *
      * @return the number of block changes
@@ -1013,8 +1025,8 @@ public class EditSession extends AbstractWorld implements HasFaweQueue, Lighting
     /**
      * Returns the highest solid 'terrain' block which can occur naturally.
      *
-     * @param x the X coordinate
-     * @param z the Z cooridnate
+     * @param x    the X coordinate
+     * @param z    the Z cooridnate
      * @param minY minimal height
      * @param maxY maximal height
      * @return height of highest block found or 'minY'
@@ -1026,10 +1038,10 @@ public class EditSession extends AbstractWorld implements HasFaweQueue, Lighting
     /**
      * Returns the highest solid 'terrain' block which can occur naturally.
      *
-     * @param x the X coordinate
-     * @param z the Z coordinate
-     * @param minY minimal height
-     * @param maxY maximal height
+     * @param x           the X coordinate
+     * @param z           the Z coordinate
+     * @param minY        minimal height
+     * @param maxY        maximal height
      * @param naturalOnly look at natural blocks or all blocks
      * @return height of highest block found or 'minY'
      */
@@ -1058,8 +1070,8 @@ public class EditSession extends AbstractWorld implements HasFaweQueue, Lighting
      * Set a block, bypassing both history and block re-ordering.
      *
      * @param position the position to set the block at
-     * @param block the block
-     * @param stage the level
+     * @param block    the block
+     * @param stage    the level
      * @return whether the block changed
      * @throws WorldEditException thrown on a set error
      */
@@ -1081,7 +1093,7 @@ public class EditSession extends AbstractWorld implements HasFaweQueue, Lighting
      * Set a block, bypassing both history and block re-ordering.
      *
      * @param position the position to set the block at
-     * @param block the block
+     * @param block    the block
      * @return whether the block changed
      */
     public boolean rawSetBlock(final Vector position, final BaseBlock block) {
@@ -1097,7 +1109,7 @@ public class EditSession extends AbstractWorld implements HasFaweQueue, Lighting
      * Set a block, bypassing history but still utilizing block re-ordering.
      *
      * @param position the position to set the block at
-     * @param block the block
+     * @param block    the block
      * @return whether the block changed
      */
     public boolean smartSetBlock(final Vector position, final BaseBlock block) {
@@ -1164,10 +1176,10 @@ public class EditSession extends AbstractWorld implements HasFaweQueue, Lighting
      * Set a block (only if a previous block was not there) if {@link Math#random()}
      * returns a number less than the given probability.
      *
-     * @param position the position
-     * @param block the block
-     * @return whether a block was changed
+     * @param position    the position
+     * @param block       the block
      * @param probability a probability between 0 and 1, inclusive
+     * @return whether a block was changed
      * @throws MaxChangedBlocksException thrown if too many blocks are changed
      */
     public boolean setChanceBlockIfAir(final Vector position, final BaseBlock block, final double probability) throws MaxChangedBlocksException {
@@ -1178,7 +1190,7 @@ public class EditSession extends AbstractWorld implements HasFaweQueue, Lighting
      * Set a block only if there's no block already there.
      *
      * @param position the position
-     * @param block the block to set
+     * @param block    the block to set
      * @return if block was changed
      * @throws MaxChangedBlocksException thrown if too many blocks are changed
      * @deprecated Use your own method
@@ -1200,7 +1212,7 @@ public class EditSession extends AbstractWorld implements HasFaweQueue, Lighting
      *
      * @param position the position
      * @param existing the previous block at that position
-     * @param block the new block
+     * @param block    the new block
      * @deprecated Get the change set with {@link #getChangeSet()} and add the change with that
      */
     @Deprecated
@@ -1318,14 +1330,16 @@ public class EditSession extends AbstractWorld implements HasFaweQueue, Lighting
     }
 
     @Override
-    public @Nullable Operation commit() {
+    public
+    @Nullable
+    Operation commit() {
         return null;
     }
 
     /**
      * Count the number of blocks of a given list of types in a region.
      *
-     * @param region the region
+     * @param region    the region
      * @param searchIDs a list of IDs to search
      * @return the number of found blocks
      */
@@ -1367,7 +1381,7 @@ public class EditSession extends AbstractWorld implements HasFaweQueue, Lighting
     /**
      * Count the number of blocks of a list of types in a region.
      *
-     * @param region the region
+     * @param region       the region
      * @param searchBlocks the list of blocks to search
      * @return the number of blocks that matched the pattern
      */
@@ -1420,10 +1434,10 @@ public class EditSession extends AbstractWorld implements HasFaweQueue, Lighting
     /**
      * Fills an area recursively in the X/Z directions.
      *
-     * @param origin the location to start from
-     * @param block the block to fill with
-     * @param radius the radius of the spherical area to fill
-     * @param depth the maximum depth, starting from the origin
+     * @param origin    the location to start from
+     * @param block     the block to fill with
+     * @param radius    the radius of the spherical area to fill
+     * @param depth     the maximum depth, starting from the origin
      * @param recursive whether a breadth-first search should be performed
      * @return number of blocks affected
      * @throws MaxChangedBlocksException thrown if too many blocks are changed
@@ -1436,10 +1450,10 @@ public class EditSession extends AbstractWorld implements HasFaweQueue, Lighting
     /**
      * Fills an area recursively in the X/Z directions.
      *
-     * @param origin the origin to start the fill from
-     * @param pattern the pattern to fill with
-     * @param radius the radius of the spherical area to fill, with 0 as the smallest radius
-     * @param depth the maximum depth, starting from the origin, with 1 as the smallest depth
+     * @param origin    the origin to start the fill from
+     * @param pattern   the pattern to fill with
+     * @param radius    the radius of the spherical area to fill, with 0 as the smallest radius
+     * @param depth     the maximum depth, starting from the origin, with 1 as the smallest depth
      * @param recursive whether a breadth-first search should be performed
      * @return number of blocks affected
      * @throws MaxChangedBlocksException thrown if too many blocks are changed
@@ -1535,8 +1549,8 @@ public class EditSession extends AbstractWorld implements HasFaweQueue, Lighting
      * Remove a cuboid above the given position with a given apothem and a given height.
      *
      * @param position base position
-     * @param apothem an apothem of the cuboid (on the XZ plane), where the minimum is 1
-     * @param height the height of the cuboid, where the minimum is 1
+     * @param apothem  an apothem of the cuboid (on the XZ plane), where the minimum is 1
+     * @param height   the height of the cuboid, where the minimum is 1
      * @return number of blocks affected
      * @throws MaxChangedBlocksException thrown if too many blocks are changed
      */
@@ -1547,7 +1561,7 @@ public class EditSession extends AbstractWorld implements HasFaweQueue, Lighting
         checkArgument(height >= 1, "height >= 1");
 
         final Region region = new CuboidRegion(this.getWorld(), // Causes clamping of Y range
-        position.add(-apothem + 1, 0, -apothem + 1), position.add(apothem - 1, height - 1, apothem - 1));
+                position.add(-apothem + 1, 0, -apothem + 1), position.add(apothem - 1, height - 1, apothem - 1));
         final Pattern pattern = new BlockPattern(new BaseBlock(BlockID.AIR));
         return this.setBlocks(region, pattern);
     }
@@ -1556,8 +1570,8 @@ public class EditSession extends AbstractWorld implements HasFaweQueue, Lighting
      * Remove a cuboid below the given position with a given apothem and a given height.
      *
      * @param position base position
-     * @param apothem an apothem of the cuboid (on the XZ plane), where the minimum is 1
-     * @param height the height of the cuboid, where the minimum is 1
+     * @param apothem  an apothem of the cuboid (on the XZ plane), where the minimum is 1
+     * @param height   the height of the cuboid, where the minimum is 1
      * @return number of blocks affected
      * @throws MaxChangedBlocksException thrown if too many blocks are changed
      */
@@ -1568,7 +1582,7 @@ public class EditSession extends AbstractWorld implements HasFaweQueue, Lighting
         checkArgument(height >= 1, "height >= 1");
 
         final Region region = new CuboidRegion(this.getWorld(), // Causes clamping of Y range
-        position.add(-apothem + 1, 0, -apothem + 1), position.add(apothem - 1, -height + 1, apothem - 1));
+                position.add(-apothem + 1, 0, -apothem + 1), position.add(apothem - 1, -height + 1, apothem - 1));
         final Pattern pattern = new BlockPattern(new BaseBlock(BlockID.AIR));
         return this.setBlocks(region, pattern);
     }
@@ -1576,9 +1590,9 @@ public class EditSession extends AbstractWorld implements HasFaweQueue, Lighting
     /**
      * Remove blocks of a certain type nearby a given position.
      *
-     * @param position center position of cuboid
+     * @param position  center position of cuboid
      * @param blockType the block type to match
-     * @param apothem an apothem of the cuboid, where the minimum is 1
+     * @param apothem   an apothem of the cuboid, where the minimum is 1
      * @return number of blocks affected
      * @throws MaxChangedBlocksException thrown if too many blocks are changed
      */
@@ -1590,7 +1604,7 @@ public class EditSession extends AbstractWorld implements HasFaweQueue, Lighting
         final Mask mask = new FuzzyBlockMask(this, new BaseBlock(blockType, -1));
         final Vector adjustment = new Vector(1, 1, 1).multiply(apothem - 1);
         final Region region = new CuboidRegion(this.getWorld(), // Causes clamping of Y range
-        position.add(adjustment.multiply(-1)), position.add(adjustment));
+                position.add(adjustment.multiply(-1)), position.add(adjustment));
         final Pattern pattern = new BlockPattern(new BaseBlock(BlockID.AIR));
         return this.replaceBlocks(region, mask, pattern);
     }
@@ -1614,7 +1628,8 @@ public class EditSession extends AbstractWorld implements HasFaweQueue, Lighting
         }
         long area = region.getArea();
         FaweLimit left = getLimitLeft();
-        if (!left.isUnlimited() && (((get || getChangeTask() != null) && left.MAX_CHECKS <= area) || (set && left.MAX_CHANGES <= area))) return false;
+        if (!left.isUnlimited() && (((get || getChangeTask() != null) && left.MAX_CHECKS <= area) || (set && left.MAX_CHANGES <= area)))
+            return false;
         if (getChangeTask() != getChangeSet()) return false;
         if (!Masks.isNull(getMask()) || !Masks.isNull(getSourceMask())) return false;
         if (getBlockBag() != null) return false;
@@ -1629,7 +1644,7 @@ public class EditSession extends AbstractWorld implements HasFaweQueue, Lighting
      * Sets all the blocks inside a region to a given block type.
      *
      * @param region the region
-     * @param block the block
+     * @param block  the block
      * @return number of blocks affected
      * @throws MaxChangedBlocksException thrown if too many blocks are changed
      */
@@ -1664,7 +1679,7 @@ public class EditSession extends AbstractWorld implements HasFaweQueue, Lighting
     /**
      * Sets all the blocks inside a region to a given pattern.
      *
-     * @param region the region
+     * @param region  the region
      * @param pattern the pattern that provides the replacement block
      * @return number of blocks affected
      * @throws MaxChangedBlocksException thrown if too many blocks are changed
@@ -1686,8 +1701,8 @@ public class EditSession extends AbstractWorld implements HasFaweQueue, Lighting
      * Replaces all the blocks matching a given filter, within a given region, to a block
      * returned by a given pattern.
      *
-     * @param region the region to replace the blocks within
-     * @param filter a list of block types to match, or null to use {@link com.sk89q.worldedit.masks.ExistingBlockMask}
+     * @param region      the region to replace the blocks within
+     * @param filter      a list of block types to match, or null to use {@link com.sk89q.worldedit.masks.ExistingBlockMask}
      * @param replacement the replacement block
      * @return number of blocks affected
      * @throws MaxChangedBlocksException thrown if too many blocks are changed
@@ -1703,13 +1718,12 @@ public class EditSession extends AbstractWorld implements HasFaweQueue, Lighting
     }
 
 
-
     /**
      * Replaces all the blocks matching a given filter, within a given region, to a block
      * returned by a given pattern.
      *
-     * @param region the region to replace the blocks within
-     * @param filter a list of block types to match, or null to use {@link com.sk89q.worldedit.masks.ExistingBlockMask}
+     * @param region  the region to replace the blocks within
+     * @param filter  a list of block types to match, or null to use {@link com.sk89q.worldedit.masks.ExistingBlockMask}
      * @param pattern the pattern that provides the new blocks
      * @return number of blocks affected
      * @throws MaxChangedBlocksException thrown if too many blocks are changed
@@ -1724,15 +1738,15 @@ public class EditSession extends AbstractWorld implements HasFaweQueue, Lighting
     }
 
 //    public int replaceBlocks(final Region region, final Mask mask, final BaseBlock block) throws MaxChangedBlocksException {
-        // TODO fast replace
+    // TODO fast replace
 //    }
 
     /**
      * Replaces all the blocks matching a given mask, within a given region, to a block
      * returned by a given pattern.
      *
-     * @param region the region to replace the blocks within
-     * @param mask the mask that blocks must match
+     * @param region  the region to replace the blocks within
+     * @param mask    the mask that blocks must match
      * @param pattern the pattern that provides the new blocks
      * @return number of blocks affected
      * @throws MaxChangedBlocksException thrown if too many blocks are changed
@@ -1754,7 +1768,7 @@ public class EditSession extends AbstractWorld implements HasFaweQueue, Lighting
      * If the center sits between two blocks on a certain axis, then two blocks
      * will be placed to mark the center.
      *
-     * @param region the region to find the center of
+     * @param region  the region to find the center of
      * @param pattern the replacement pattern
      * @return the number of blocks placed
      * @throws MaxChangedBlocksException thrown if too many blocks are changed
@@ -1774,7 +1788,7 @@ public class EditSession extends AbstractWorld implements HasFaweQueue, Lighting
      * Make the faces of the given region as if it was a {@link CuboidRegion}.
      *
      * @param region the region
-     * @param block the block to place
+     * @param block  the block to place
      * @return number of blocks affected
      * @throws MaxChangedBlocksException thrown if too many blocks are changed
      */
@@ -1786,7 +1800,7 @@ public class EditSession extends AbstractWorld implements HasFaweQueue, Lighting
     /**
      * Make the faces of the given region as if it was a {@link CuboidRegion}.
      *
-     * @param region the region
+     * @param region  the region
      * @param pattern the pattern to place
      * @return number of blocks affected
      * @throws MaxChangedBlocksException thrown if too many blocks are changed
@@ -1806,7 +1820,7 @@ public class EditSession extends AbstractWorld implements HasFaweQueue, Lighting
      * may be inefficient, because there may not be an efficient implementation supported
      * for that specific shape.
      *
-     * @param region the region
+     * @param region  the region
      * @param pattern the pattern to place
      * @return number of blocks affected
      * @throws MaxChangedBlocksException thrown if too many blocks are changed
@@ -1828,7 +1842,7 @@ public class EditSession extends AbstractWorld implements HasFaweQueue, Lighting
      * as if it was a {@link CuboidRegion}.
      *
      * @param region the region
-     * @param block the block to place
+     * @param block  the block to place
      * @return number of blocks affected
      * @throws MaxChangedBlocksException thrown if too many blocks are changed
      */
@@ -1841,7 +1855,7 @@ public class EditSession extends AbstractWorld implements HasFaweQueue, Lighting
      * Make the walls (all faces but those parallel to the X-Z plane) of the given region
      * as if it was a {@link CuboidRegion}.
      *
-     * @param region the region
+     * @param region  the region
      * @param pattern the pattern to place
      * @return number of blocks affected
      * @throws MaxChangedBlocksException thrown if too many blocks are changed
@@ -1861,7 +1875,7 @@ public class EditSession extends AbstractWorld implements HasFaweQueue, Lighting
      * may be inefficient, because there may not be an efficient implementation supported
      * for that specific shape.
      *
-     * @param region the region
+     * @param region  the region
      * @param pattern the pattern to place
      * @return number of blocks affected
      * @throws MaxChangedBlocksException thrown if too many blocks are changed
@@ -1896,7 +1910,7 @@ public class EditSession extends AbstractWorld implements HasFaweQueue, Lighting
      * (as if it were a cuboid).
      *
      * @param region the region
-     * @param block the placed block
+     * @param block  the placed block
      * @return number of blocks affected
      * @throws MaxChangedBlocksException thrown if too many blocks are changed
      */
@@ -1910,7 +1924,7 @@ public class EditSession extends AbstractWorld implements HasFaweQueue, Lighting
      * Places a layer of blocks on top of ground blocks in the given region
      * (as if it were a cuboid).
      *
-     * @param region the region
+     * @param region  the region
      * @param pattern the placed block pattern
      * @return number of blocks affected
      * @throws MaxChangedBlocksException thrown if too many blocks are changed
@@ -1949,9 +1963,9 @@ public class EditSession extends AbstractWorld implements HasFaweQueue, Lighting
     /**
      * Stack a cuboid region.
      *
-     * @param region the region to stack
-     * @param dir the direction to stack
-     * @param count the number of times to stack
+     * @param region  the region to stack
+     * @param dir     the direction to stack
+     * @param count   the number of times to stack
      * @param copyAir true to also copy air blocks
      * @return number of blocks affected
      * @throws MaxChangedBlocksException thrown if too many blocks are changed
@@ -1981,10 +1995,10 @@ public class EditSession extends AbstractWorld implements HasFaweQueue, Lighting
     /**
      * Move the blocks in a region a certain direction.
      *
-     * @param region the region to move
-     * @param dir the direction
-     * @param distance the distance to move
-     * @param copyAir true to copy air blocks
+     * @param region      the region to move
+     * @param dir         the direction
+     * @param distance    the distance to move
+     * @param copyAir     true to copy air blocks
      * @param replacement the replacement block to fill in after moving, or null to use air
      * @return number of blocks moved
      * @throws MaxChangedBlocksException thrown if too many blocks are changed
@@ -2002,6 +2016,7 @@ public class EditSession extends AbstractWorld implements HasFaweQueue, Lighting
         final com.sk89q.worldedit.function.pattern.Pattern pattern = replacement != null ? new BlockPattern(replacement) : new BlockPattern(new BaseBlock(BlockID.AIR));
         final BlockReplace remove = new BlockReplace(EditSession.this, pattern) {
             private MutableBlockVector mutable = new MutableBlockVector();
+
             @Override
             // Only copy what's necessary
             public boolean apply(Vector position) throws WorldEditException {
@@ -2034,10 +2049,10 @@ public class EditSession extends AbstractWorld implements HasFaweQueue, Lighting
     /**
      * Move the blocks in a region a certain direction.
      *
-     * @param region the region to move
-     * @param dir the direction
-     * @param distance the distance to move
-     * @param copyAir true to copy air blocks
+     * @param region      the region to move
+     * @param dir         the direction
+     * @param distance    the distance to move
+     * @param copyAir     true to copy air blocks
      * @param replacement the replacement block to fill in after moving, or null to use air
      * @return number of blocks moved
      * @throws MaxChangedBlocksException thrown if too many blocks are changed
@@ -2062,17 +2077,17 @@ public class EditSession extends AbstractWorld implements HasFaweQueue, Lighting
 //        if (getWorld() != null) {
 //            liquidMask = getWorld().createLiquidMask();
 //        } else {
-            liquidMask = new BlockMask(this,
-                    new BaseBlock(BlockID.STATIONARY_LAVA, -1),
-                    new BaseBlock(BlockID.LAVA, -1),
-                    new BaseBlock(BlockID.STATIONARY_WATER, -1),
-                    new BaseBlock(BlockID.WATER, -1));
+        liquidMask = new BlockMask(this,
+                new BaseBlock(BlockID.STATIONARY_LAVA, -1),
+                new BaseBlock(BlockID.LAVA, -1),
+                new BaseBlock(BlockID.STATIONARY_WATER, -1),
+                new BaseBlock(BlockID.WATER, -1));
 //        }
         final MaskIntersection mask = new MaskIntersection(
                 new BoundedHeightMask(0, EditSession.this.getMaximumPoint().getBlockY()),
-                    new RegionMask(
+                new RegionMask(
                         new EllipsoidRegion(null, origin,
-                                new Vector(radius,radius, radius))), liquidMask);
+                                new Vector(radius, radius, radius))), liquidMask);
 
         final BlockReplace replace = new BlockReplace(EditSession.this, new BlockPattern(new BaseBlock(BlockID.AIR)));
         final RecursiveVisitor visitor = new RecursiveVisitor(mask, replace, (int) (radius * 2 + 1), this);
@@ -2091,9 +2106,9 @@ public class EditSession extends AbstractWorld implements HasFaweQueue, Lighting
     /**
      * Fix liquids so that they turn into stationary blocks and extend outward.
      *
-     * @param origin the original position
-     * @param radius the radius to fix
-     * @param moving the block ID of the moving liquid
+     * @param origin     the original position
+     * @param radius     the radius to fix
+     * @param moving     the block ID of the moving liquid
      * @param stationary the block ID of the stationary liquid
      * @return number of blocks affected
      * @throws MaxChangedBlocksException thrown if too many blocks are changed
@@ -2150,8 +2165,8 @@ public class EditSession extends AbstractWorld implements HasFaweQueue, Lighting
     /**
      * Makes a cylinder.
      *
-     * @param pos Center of the cylinder
-     * @param block The block pattern to use
+     * @param pos    Center of the cylinder
+     * @param block  The block pattern to use
      * @param radius The cylinder's radius
      * @param height The cylinder's up/down extent. If negative, extend downward.
      * @param filled If false, only a shell will be generated.
@@ -2165,12 +2180,12 @@ public class EditSession extends AbstractWorld implements HasFaweQueue, Lighting
     /**
      * Makes a cylinder.
      *
-     * @param pos Center of the cylinder
-     * @param block The block pattern to use
+     * @param pos     Center of the cylinder
+     * @param block   The block pattern to use
      * @param radiusX The cylinder's largest north/south extent
      * @param radiusZ The cylinder's largest east/west extent
-     * @param height The cylinder's up/down extent. If negative, extend downward.
-     * @param filled If false, only a shell will be generated.
+     * @param height  The cylinder's up/down extent. If negative, extend downward.
+     * @param filled  If false, only a shell will be generated.
      * @return number of blocks changed
      * @throws MaxChangedBlocksException thrown if too many blocks are changed
      */
@@ -2203,12 +2218,14 @@ public class EditSession extends AbstractWorld implements HasFaweQueue, Lighting
         final int ceilRadiusZ = (int) Math.ceil(radiusZ);
         double dx, dxz, dz;
         double nextXn = 0;
-        forX: for (int x = 0; x <= ceilRadiusX; ++x) {
+        forX:
+        for (int x = 0; x <= ceilRadiusX; ++x) {
             final double xn = nextXn;
             nextXn = (x + 1) * invRadiusX;
             double nextZn = 0;
             dx = xn * xn;
-            forZ: for (int z = 0; z <= ceilRadiusZ; ++z) {
+            forZ:
+            for (int z = 0; z <= ceilRadiusZ; ++z) {
                 final double zn = nextZn;
                 nextZn = (z + 1) * invRadiusZ;
                 dz = zn * zn;
@@ -2268,18 +2285,21 @@ public class EditSession extends AbstractWorld implements HasFaweQueue, Lighting
 
         double nextXn = 0;
         double dx, dy, dz, dxy, dxyz;
-        forX: for (int x = 0; x <= ceilRadiusX; ++x) {
+        forX:
+        for (int x = 0; x <= ceilRadiusX; ++x) {
             final double xn = nextXn;
             dx = xn * xn;
             nextXn = (x + 1) * invRadiusX;
             double nextYn = 0;
-            forY: for (int y = 0; y <= ceilRadiusY; ++y) {
+            forY:
+            for (int y = 0; y <= ceilRadiusY; ++y) {
                 final double yn = nextYn;
                 dy = yn * yn;
                 dxy = dx + dy;
                 nextYn = (y + 1) * invRadiusY;
                 double nextZn = 0;
-                forZ: for (int z = 0; z <= ceilRadiusZ; ++z) {
+                forZ:
+                for (int z = 0; z <= ceilRadiusZ; ++z) {
                     final double zn = nextZn;
                     dz = zn * zn;
                     dxyz = dxy + dz;
@@ -2299,14 +2319,22 @@ public class EditSession extends AbstractWorld implements HasFaweQueue, Lighting
                         }
                     }
 
-                    if (Math.abs((x) * nx + (y) * ny + (z) * nz) < threshold) setBlock(mutable.setComponents(px + x, py + y, pz + z), block);
-                    if (Math.abs((-x) * nx + (y) * ny + (z) * nz) < threshold) setBlock(mutable.setComponents(px - x, py + y, pz + z), block);
-                    if (Math.abs((x) * nx + (-y) * ny + (z) * nz) < threshold) setBlock(mutable.setComponents(px + x, py - y, pz + z), block);
-                    if (Math.abs((x) * nx + (y) * ny + (-z) * nz) < threshold) setBlock(mutable.setComponents(px + x, py + y, pz - z), block);
-                    if (Math.abs((-x) * nx + (-y) * ny + (z) * nz) < threshold) setBlock(mutable.setComponents(px - x, py - y, pz + z), block);
-                    if (Math.abs((x) * nx + (-y) * ny + (-z) * nz) < threshold) setBlock(mutable.setComponents(px + x, py - y, pz - z), block);
-                    if (Math.abs((-x) * nx + (y) * ny + (-z) * nz) < threshold) setBlock(mutable.setComponents(px - x, py + y, pz - z), block);
-                    if (Math.abs((-x) * nx + (-y) * ny + (-z) * nz) < threshold) setBlock(mutable.setComponents(px - x, py - y, pz - z), block);
+                    if (Math.abs((x) * nx + (y) * ny + (z) * nz) < threshold)
+                        setBlock(mutable.setComponents(px + x, py + y, pz + z), block);
+                    if (Math.abs((-x) * nx + (y) * ny + (z) * nz) < threshold)
+                        setBlock(mutable.setComponents(px - x, py + y, pz + z), block);
+                    if (Math.abs((x) * nx + (-y) * ny + (z) * nz) < threshold)
+                        setBlock(mutable.setComponents(px + x, py - y, pz + z), block);
+                    if (Math.abs((x) * nx + (y) * ny + (-z) * nz) < threshold)
+                        setBlock(mutable.setComponents(px + x, py + y, pz - z), block);
+                    if (Math.abs((-x) * nx + (-y) * ny + (z) * nz) < threshold)
+                        setBlock(mutable.setComponents(px - x, py - y, pz + z), block);
+                    if (Math.abs((x) * nx + (-y) * ny + (-z) * nz) < threshold)
+                        setBlock(mutable.setComponents(px + x, py - y, pz - z), block);
+                    if (Math.abs((-x) * nx + (y) * ny + (-z) * nz) < threshold)
+                        setBlock(mutable.setComponents(px - x, py + y, pz - z), block);
+                    if (Math.abs((-x) * nx + (-y) * ny + (-z) * nz) < threshold)
+                        setBlock(mutable.setComponents(px - x, py - y, pz - z), block);
                 }
             }
         }
@@ -2317,8 +2345,8 @@ public class EditSession extends AbstractWorld implements HasFaweQueue, Lighting
     /**
      * Makes a sphere.
      *
-     * @param pos Center of the sphere or ellipsoid
-     * @param block The block pattern to use
+     * @param pos    Center of the sphere or ellipsoid
+     * @param block  The block pattern to use
      * @param radius The sphere's radius
      * @param filled If false, only a shell will be generated.
      * @return number of blocks changed
@@ -2331,12 +2359,12 @@ public class EditSession extends AbstractWorld implements HasFaweQueue, Lighting
     /**
      * Makes a sphere or ellipsoid.
      *
-     * @param pos Center of the sphere or ellipsoid
-     * @param block The block pattern to use
+     * @param pos     Center of the sphere or ellipsoid
+     * @param block   The block pattern to use
      * @param radiusX The sphere/ellipsoid's largest north/south extent
      * @param radiusY The sphere/ellipsoid's largest up/down extent
      * @param radiusZ The sphere/ellipsoid's largest east/west extent
-     * @param filled If false, only a shell will be generated.
+     * @param filled  If false, only a shell will be generated.
      * @return number of blocks changed
      * @throws MaxChangedBlocksException thrown if too many blocks are changed
      */
@@ -2360,18 +2388,21 @@ public class EditSession extends AbstractWorld implements HasFaweQueue, Lighting
 
         double nextXn = 0;
         double dx, dy, dz, dxy, dxyz;
-        forX: for (int x = 0; x <= ceilRadiusX; ++x) {
+        forX:
+        for (int x = 0; x <= ceilRadiusX; ++x) {
             final double xn = nextXn;
             dx = xn * xn;
             nextXn = (x + 1) * invRadiusX;
             double nextYn = 0;
-            forY: for (int y = 0; y <= ceilRadiusY; ++y) {
+            forY:
+            for (int y = 0; y <= ceilRadiusY; ++y) {
                 final double yn = nextYn;
                 dy = yn * yn;
                 dxy = dx + dy;
                 nextYn = (y + 1) * invRadiusY;
                 double nextZn = 0;
-                forZ: for (int z = 0; z <= ceilRadiusZ; ++z) {
+                forZ:
+                for (int z = 0; z <= ceilRadiusZ; ++z) {
                     final double zn = nextZn;
                     dz = zn * zn;
                     dxyz = dxy + dz;
@@ -2387,7 +2418,7 @@ public class EditSession extends AbstractWorld implements HasFaweQueue, Lighting
                     }
 
                     if (!filled) {
-                        if (nextXn * nextXn + dy + dz <= 1 && nextYn * nextYn + dx + dz <= 1 && nextZn * nextZn + dx + dy <= 1 ) {
+                        if (nextXn * nextXn + dy + dz <= 1 && nextYn * nextYn + dx + dz <= 1 && nextZn * nextZn + dx + dy <= 1) {
                             continue;
                         }
                     }
@@ -2411,9 +2442,9 @@ public class EditSession extends AbstractWorld implements HasFaweQueue, Lighting
      * Makes a pyramid.
      *
      * @param position a position
-     * @param block a block
-     * @param size size of pyramid
-     * @param filled true if filled
+     * @param block    a block
+     * @param size     size of pyramid
+     * @param filled   true if filled
      * @return number of blocks changed
      * @throws MaxChangedBlocksException thrown if too many blocks are changed
      */
@@ -2441,7 +2472,7 @@ public class EditSession extends AbstractWorld implements HasFaweQueue, Lighting
      * Thaw blocks in a radius.
      *
      * @param position the position
-     * @param radius the radius
+     * @param radius   the radius
      * @return number of blocks affected
      * @throws MaxChangedBlocksException thrown if too many blocks are changed
      */
@@ -2492,12 +2523,12 @@ public class EditSession extends AbstractWorld implements HasFaweQueue, Lighting
      * Make snow in a radius.
      *
      * @param position a position
-     * @param radius a radius
+     * @param radius   a radius
      * @return number of blocks affected
      * @throws MaxChangedBlocksException thrown if too many blocks are changed
      */
     public int simulateSnow(final Vector position, final double radius) throws MaxChangedBlocksException {
-        
+
         final double radiusSq = radius * radius;
 
         final int ox = position.getBlockX();
@@ -2552,7 +2583,7 @@ public class EditSession extends AbstractWorld implements HasFaweQueue, Lighting
      * Make dirt green.
      *
      * @param position a position
-     * @param radius a radius
+     * @param radius   a radius
      * @return number of blocks affected
      * @throws MaxChangedBlocksException thrown if too many blocks are changed
      * @deprecated Use {@link #green(Vector, double, boolean)}.
@@ -2565,14 +2596,14 @@ public class EditSession extends AbstractWorld implements HasFaweQueue, Lighting
     /**
      * Make dirt green.
      *
-     * @param position a position
-     * @param radius a radius
+     * @param position       a position
+     * @param radius         a radius
      * @param onlyNormalDirt only affect normal dirt (data value 0)
      * @return number of blocks affected
      * @throws MaxChangedBlocksException thrown if too many blocks are changed
      */
     public int green(final Vector position, final double radius, final boolean onlyNormalDirt) throws MaxChangedBlocksException {
-        
+
         final double radiusSq = radius * radius;
 
         final int ox = position.getBlockX();
@@ -2591,7 +2622,8 @@ public class EditSession extends AbstractWorld implements HasFaweQueue, Lighting
                 if (dx2 + dz2 > radiusSq) {
                     continue;
                 }
-                loop: for (int y = maxY; y >= 1; --y) {
+                loop:
+                for (int y = maxY; y >= 1; --y) {
                     BaseBlock block = getLazyBlock(x, y, z);
                     final int id = block.getId();
                     final int data = block.getData();
@@ -2628,7 +2660,7 @@ public class EditSession extends AbstractWorld implements HasFaweQueue, Lighting
      * Makes pumpkin patches randomly in an area around the given position.
      *
      * @param position the base position
-     * @param apothem the apothem of the (square) area
+     * @param apothem  the apothem of the (square) area
      * @return number of patches created
      * @throws MaxChangedBlocksException thrown if too many blocks are changed
      */
@@ -2639,7 +2671,7 @@ public class EditSession extends AbstractWorld implements HasFaweQueue, Lighting
 
         // In a region of the given radius
         final FlatRegion region = new CuboidRegion(EditSession.this.getWorld(), // Causes clamping of Y range
-        position.add(-apothem, -5, -apothem), position.add(apothem, 10, apothem));
+                position.add(-apothem, -5, -apothem), position.add(apothem, 10, apothem));
         final double density = 0.02;
 
         final GroundFunction ground = new GroundFunction(new ExistingBlockMask(EditSession.this), generator);
@@ -2652,9 +2684,9 @@ public class EditSession extends AbstractWorld implements HasFaweQueue, Lighting
     /**
      * Makes a forest.
      *
-     * @param basePosition a position
-     * @param size a size
-     * @param density between 0 and 1, inclusive
+     * @param basePosition  a position
+     * @param size          a size
+     * @param density       between 0 and 1, inclusive
      * @param treeGenerator the tree genreator
      * @return number of trees created
      * @throws MaxChangedBlocksException thrown if too many blocks are changed
@@ -2685,7 +2717,8 @@ public class EditSession extends AbstractWorld implements HasFaweQueue, Lighting
                     }
                 }
             }
-        } catch (MaxChangedBlocksException ignore) {}
+        } catch (MaxChangedBlocksException ignore) {
+        }
         return this.changes;
     }
 
@@ -2809,7 +2842,7 @@ public class EditSession extends AbstractWorld implements HasFaweQueue, Lighting
     }
 
     public int makeShape(final Region region, final Vector zero, final Vector unit, final Pattern pattern, final String expressionString, final boolean hollow) throws ExpressionException,
-    MaxChangedBlocksException {
+            MaxChangedBlocksException {
         final Expression expression = Expression.compile(expressionString, "x", "y", "z", "type", "data");
         expression.optimize();
 
@@ -2890,15 +2923,14 @@ public class EditSession extends AbstractWorld implements HasFaweQueue, Lighting
     /**
      * Hollows out the region (Semi-well-defined for non-cuboid selections).
      *
-     * @param region the region to hollow out.
+     * @param region    the region to hollow out.
      * @param thickness the thickness of the shell to leave (manhattan distance)
-     * @param pattern The block pattern to use
-     *
+     * @param pattern   The block pattern to use
      * @return number of blocks affected
      * @throws MaxChangedBlocksException thrown if too many blocks are changed
      */
     public int hollowOutRegion(final Region region, final int thickness, final Pattern pattern) throws MaxChangedBlocksException {
-        
+
 
         final Set outside = new LocalBlockVectorSet();
 
@@ -2935,7 +2967,8 @@ public class EditSession extends AbstractWorld implements HasFaweQueue, Lighting
 
         for (int i = 1; i < thickness; ++i) {
             final Set newOutside = new LocalBlockVectorSet();
-            outer: for (final BlockVector position : region) {
+            outer:
+            for (final BlockVector position : region) {
                 for (final Vector recurseDirection : this.recurseDirections) {
                     final BlockVector neighbor = position.add(recurseDirection).toBlockVector();
 
@@ -2976,11 +3009,10 @@ public class EditSession extends AbstractWorld implements HasFaweQueue, Lighting
      * Draws a line (out of blocks) between two vectors.
      *
      * @param pattern The block pattern used to draw the line.
-     * @param pos1 One of the points that define the line.
-     * @param pos2 The other point that defines the line.
-     * @param radius The radius (thickness) of the line.
-     * @param filled If false, only a shell will be generated.
-     *
+     * @param pos1    One of the points that define the line.
+     * @param pos2    The other point that defines the line.
+     * @param radius  The radius (thickness) of the line.
+     * @param filled  If false, only a shell will be generated.
      * @return number of blocks affected
      * @throws MaxChangedBlocksException thrown if too many blocks are changed
      */
@@ -3046,15 +3078,14 @@ public class EditSession extends AbstractWorld implements HasFaweQueue, Lighting
     /**
      * Draws a spline (out of blocks) between specified vectors.
      *
-     * @param pattern The block pattern used to draw the spline.
+     * @param pattern     The block pattern used to draw the spline.
      * @param nodevectors The list of vectors to draw through.
-     * @param tension The tension of every node.
-     * @param bias The bias of every node.
-     * @param continuity The continuity of every node.
-     * @param quality The quality of the spline. Must be greater than 0.
-     * @param radius The radius (thickness) of the spline.
-     * @param filled If false, only a shell will be generated.
-     *
+     * @param tension     The tension of every node.
+     * @param bias        The bias of every node.
+     * @param continuity  The continuity of every node.
+     * @param quality     The quality of the spline. Must be greater than 0.
+     * @param radius      The radius (thickness) of the spline.
+     * @param filled      If false, only a shell will be generated.
      * @return number of blocks affected
      * @throws MaxChangedBlocksException thrown if too many blocks are changed
      */
@@ -3081,7 +3112,7 @@ public class EditSession extends AbstractWorld implements HasFaweQueue, Lighting
             final int tipz = (int) Math.round(tipv.getZ());
             if (radius == 0) {
                 setBlock(tipx, tipy, tipz, pattern.next(tipx, tipy, tipz));
-            }  else {
+            } else {
                 vset.add(tipx, tipy, tipz);
             }
         }
@@ -3156,10 +3187,10 @@ public class EditSession extends AbstractWorld implements HasFaweQueue, Lighting
         for (final Vector v : vset) {
             final double x = v.getX(), y = v.getY(), z = v.getZ();
             if (!(vset.contains(new Vector(x + 1, y, z))
-            && vset.contains(new Vector(x - 1, y, z))
-            && vset.contains(new Vector(x, y + 1, z))
-            && vset.contains(new Vector(x, y - 1, z))
-            && vset.contains(new Vector(x, y, z + 1)) && vset.contains(new Vector(x, y, z - 1)))) {
+                    && vset.contains(new Vector(x - 1, y, z))
+                    && vset.contains(new Vector(x, y + 1, z))
+                    && vset.contains(new Vector(x, y - 1, z))
+                    && vset.contains(new Vector(x, y, z + 1)) && vset.contains(new Vector(x, y, z - 1)))) {
                 returnset.add(v);
             }
         }
@@ -3192,7 +3223,7 @@ public class EditSession extends AbstractWorld implements HasFaweQueue, Lighting
     }
 
     public int makeBiomeShape(final Region region, final Vector zero, final Vector unit, final BaseBiome biomeType, final String expressionString, final boolean hollow) throws ExpressionException,
-    MaxChangedBlocksException {
+            MaxChangedBlocksException {
         final Vector2D zero2D = zero.toVector2D();
         final Vector2D unit2D = unit.toVector2D();
 
@@ -3358,7 +3389,7 @@ public class EditSession extends AbstractWorld implements HasFaweQueue, Lighting
                         if (!chunks.contains(mutable.setComponents(cx + 1, cz + 1)) && !conNextX && !conNextZ) {
                             setExistingBlocks(new Vector(bx + 16, 0, bz + 16), new Vector(bx + 31, getMaxY(), bz + 31));
                         }
-                        MutableBlockVector mutable = new MutableBlockVector(0,0,0);
+                        MutableBlockVector mutable = new MutableBlockVector(0, 0, 0);
                         for (int x = 0; x < tx; x++) {
                             int xx = x + bx;
                             mutable.mutX(xx);

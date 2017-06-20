@@ -9,15 +9,14 @@ import java.util.concurrent.ConcurrentLinkedDeque;
  * BufferedOutputStream that asynchronously flushes to disk, so callers don't
  * have to wait until the flush happens. Buffers are put into a queue that is
  * written asynchronously to disk once it is really available.
- *
+ * <p>
  * This class is thread-safe.
- *
+ * <p>
  * The error handling (as all stream ops are done asynchronously) is done during
  * write and close. Exceptions on the asynchronous thread will be thrown to the
  * caller either while writing or closing this stream.
  *
  * @author thomas.jungblut
- *
  */
 public final class AsyncBufferedOutputStream extends FilterOutputStream {
 
@@ -47,8 +46,8 @@ public final class AsyncBufferedOutputStream extends FilterOutputStream {
     /**
      * Creates an asynchronous buffered output stream.
      *
-     * @param out the outputstream to layer on.
-     * @param bufSize the buffer size.
+     * @param out        the outputstream to layer on.
+     * @param bufSize    the buffer size.
      * @param maxBuffers the number of buffers to keep in parallel.
      */
     public AsyncBufferedOutputStream(OutputStream out, int bufSize, int maxBuffers) {
@@ -62,7 +61,7 @@ public final class AsyncBufferedOutputStream extends FilterOutputStream {
      * Writes the specified byte to this buffered output stream.
      *
      * @param b the byte to be written.
-     * @exception IOException if an I/O error occurs.
+     * @throws IOException if an I/O error occurs.
      */
     @Override
     public synchronized void write(int b) throws IOException {
@@ -80,10 +79,10 @@ public final class AsyncBufferedOutputStream extends FilterOutputStream {
      * Writes <code>len</code> bytes from the specified byte array starting at
      * offset <code>off</code> to this buffered output stream.
      *
-     * @param b the data.
+     * @param b   the data.
      * @param off the start offset in the data.
      * @param len the number of bytes to write.
-     * @exception IOException if an I/O error occurs.
+     * @throws IOException if an I/O error occurs.
      */
     @Override
     public synchronized void write(byte[] b, int off, int len) throws IOException {
@@ -107,7 +106,7 @@ public final class AsyncBufferedOutputStream extends FilterOutputStream {
      * Flushes this buffered output stream. It will enforce that the current
      * buffer will be queue for asynchronous flushing no matter what size it has.
      *
-     * @exception IOException if an I/O error occurs.
+     * @throws IOException if an I/O error occurs.
      */
     @Override
     public synchronized void flush() throws IOException {

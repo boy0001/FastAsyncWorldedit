@@ -151,43 +151,44 @@ import javax.management.Notification;
 import javax.management.NotificationEmitter;
 import javax.management.NotificationListener;
 
-/**[ WorldEdit action]
-*       |
-*      \|/
-* [ EditSession ] - The change is processed (area restrictions, change limit, block type) 
-*       |
-*      \|/
-* [Block change] - A block change from some location
-*       |
-*      \|/
-* [ Set Queue ] - The SetQueue manages the implementation specific queue
-*       |
-*      \|/
-* [ Fawe Queue] - A queue of chunks - check if the queue has the chunk for a change 
-*       |
-*      \|/   
-* [ Fawe Chunk Implementation ] - Otherwise create a new FaweChunk object which is a wrapper around the Chunk object
-*       |
-*      \|/
-* [ Execution ] - When done, the queue then sets the blocks for the chunk, performs lighting updates and sends the chunk packet to the clients
-* 
-*  Why it's faster:
-*   - The chunk is modified directly rather than through the API
-*      \ Removes some overhead, and means some processing can be done async 
-*   - Lighting updates are performed on the chunk level rather than for every block
-*      \ e.g. A blob of stone: only the visible blocks need to have the lighting calculated
-*   - Block changes are sent with a chunk packet
-*      \ A chunk packet is generally quicker to create and smaller for large world edits
-*   - No physics updates
-*      \ Physics updates are slow, and are usually performed on each block
-*   - Block data shortcuts
-*      \ Some known blocks don't need to have the data set or accessed (e.g. air is never going to have data)
-*   - Remove redundant extents
-*      \ Up to 11 layers of extents can be removed
-*   - History bypassing
-*      \ FastMode bypasses history and means blocks in the world don't need to be checked and recorded
-*/
-public class Fawe { 
+/**
+ * [ WorldEdit action]
+ * |
+ * \|/
+ * [ EditSession ] - The change is processed (area restrictions, change limit, block type)
+ * |
+ * \|/
+ * [Block change] - A block change from some location
+ * |
+ * \|/
+ * [ Set Queue ] - The SetQueue manages the implementation specific queue
+ * |
+ * \|/
+ * [ Fawe Queue] - A queue of chunks - check if the queue has the chunk for a change
+ * |
+ * \|/
+ * [ Fawe Chunk Implementation ] - Otherwise create a new FaweChunk object which is a wrapper around the Chunk object
+ * |
+ * \|/
+ * [ Execution ] - When done, the queue then sets the blocks for the chunk, performs lighting updates and sends the chunk packet to the clients
+ * <p>
+ * Why it's faster:
+ * - The chunk is modified directly rather than through the API
+ * \ Removes some overhead, and means some processing can be done async
+ * - Lighting updates are performed on the chunk level rather than for every block
+ * \ e.g. A blob of stone: only the visible blocks need to have the lighting calculated
+ * - Block changes are sent with a chunk packet
+ * \ A chunk packet is generally quicker to create and smaller for large world edits
+ * - No physics updates
+ * \ Physics updates are slow, and are usually performed on each block
+ * - Block data shortcuts
+ * \ Some known blocks don't need to have the data set or accessed (e.g. air is never going to have data)
+ * - Remove redundant extents
+ * \ Up to 11 layers of extents can be removed
+ * - History bypassing
+ * \ FastMode bypasses history and means blocks in the world don't need to be checked and recorded
+ */
+public class Fawe {
     /**
      * The FAWE instance;
      */
@@ -208,6 +209,7 @@ public class Fawe {
 
     /**
      * Get the implementation specific class
+     *
      * @return
      */
     @SuppressWarnings("unchecked")
@@ -217,6 +219,7 @@ public class Fawe {
 
     /**
      * Get the implementation independent class
+     *
      * @return
      */
     public static Fawe get() {
@@ -225,6 +228,7 @@ public class Fawe {
 
     /**
      * Setup Fawe
+     *
      * @param implementation
      * @throws InstanceAlreadyExistsException
      */
@@ -248,6 +252,7 @@ public class Fawe {
 
     /**
      * Write something to the console
+     *
      * @param s
      */
     public static void debug(Object s) {
@@ -293,7 +298,8 @@ public class Fawe {
                     WEManager.IMP.managers.addAll(Fawe.this.IMP.getMaskManagers());
                     WEManager.IMP.managers.add(new PlotSquaredFeature());
                     Fawe.debug("Plugin 'PlotSquared' found. Using it now.");
-                } catch (Throwable e) {}
+                } catch (Throwable e) {
+                }
             }
         }, 0);
 
@@ -336,7 +342,8 @@ public class Fawe {
 
     /**
      * The FAWE updater class
-     *  - Use to get basic update information (changelog/version etc)
+     * - Use to get basic update information (changelog/version etc)
+     *
      * @return
      */
     public Updater getUpdater() {
@@ -348,7 +355,9 @@ public class Fawe {
         try {
             tu = min == 0 && max == 100 ? tu : new CleanTextureUtil(tu, min, max);
             tu = randomize ? new RandomTextureUtil(tu) : new CachedTextureUtil(tu);
-        } catch (FileNotFoundException neverHappens) { neverHappens.printStackTrace(); }
+        } catch (FileNotFoundException neverHappens) {
+            neverHappens.printStackTrace();
+        }
         return tu;
     }
 
@@ -372,6 +381,7 @@ public class Fawe {
 
     /**
      * The FaweTimer is a useful class for monitoring TPS
+     *
      * @return FaweTimer
      */
     public FaweTimer getTimer() {
@@ -380,6 +390,7 @@ public class Fawe {
 
     /**
      * The visual queue is used to queue visualizations
+     *
      * @return
      */
     public VisualQueue getVisualQueue() {
@@ -388,10 +399,13 @@ public class Fawe {
 
     /**
      * The FAWE version
-     *  - Unofficial jars may be lacking version information
+     * - Unofficial jars may be lacking version information
+     *
      * @return FaweVersion
      */
-    public @Nullable FaweVersion getVersion() {
+    public
+    @Nullable
+    FaweVersion getVersion() {
         return version;
     }
 
@@ -419,7 +433,8 @@ public class Fawe {
             Settings.IMP.DATE = new Date(100 + version.year, version.month, version.day).toGMTString();
             Settings.IMP.BUILD = "https://ci.athion.net/job/FastAsyncWorldEdit/" + version.build;
             Settings.IMP.COMMIT = "https://github.com/boy0001/FastAsyncWorldedit/commit/" + Integer.toHexString(version.hash);
-        } catch (Throwable ignore) {}
+        } catch (Throwable ignore) {
+        }
         Settings.IMP.reload(file);
         // Setting up message.yml
         BBC.load(new File(this.IMP.getDirectory(), "message.yml"));
@@ -638,7 +653,8 @@ public class Fawe {
                 debug(" - This is only a recommendation");
                 debug("====================================");
             }
-        } catch (Throwable ignore) {}
+        } catch (Throwable ignore) {
+        }
         if (MainUtil.getJavaVersion() < 1.8) {
             debug("====== UPGRADE TO JAVA 8 ======");
             debug("You are running " + System.getProperty("java.version"));
@@ -692,6 +708,7 @@ public class Fawe {
 
     /**
      * Get the main thread
+     *
      * @return
      */
     public Thread getMainThread() {
@@ -704,6 +721,7 @@ public class Fawe {
 
     /**
      * Sets the main thread to the current thread
+     *
      * @return
      */
     public Thread setMainThread() {

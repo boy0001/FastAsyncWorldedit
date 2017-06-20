@@ -40,7 +40,7 @@ public class OptionsCommands {
     }
 
     @Command(
-            aliases = { "/tips", "tips" },
+            aliases = {"/tips", "tips"},
             desc = "Toggle FAWE tips"
     )
     public void tips(Player player, LocalSession session) throws WorldEditException {
@@ -53,7 +53,7 @@ public class OptionsCommands {
     }
 
     @Command(
-            aliases = { "/fast" },
+            aliases = {"/fast"},
             usage = "[on|off]",
             desc = "Toggles FAWE undo",
             min = 0,
@@ -83,7 +83,7 @@ public class OptionsCommands {
     }
 
     @Command(
-            aliases = { "/gmask", "gmask", "globalmask", "/globalmask" },
+            aliases = {"/gmask", "gmask", "globalmask", "/globalmask"},
             usage = "[mask]",
             help = "The global destination mask applies to all edits you do and masks based on the destination blocks (i.e. the blocks in the world).",
             desc = "Set the global mask",
@@ -108,7 +108,7 @@ public class OptionsCommands {
     }
 
     @Command(
-            aliases = { "/gsmask", "gsmask", "globalsourcemask", "/globalsourcemask" },
+            aliases = {"/gsmask", "gsmask", "globalsourcemask", "/globalsourcemask"},
             usage = "[mask]",
             desc = "Set the global source mask",
             help = "The global source mask applies to all edits you do and masks based on the source blocks (e.g. the blocks in your clipboard)",
@@ -133,7 +133,7 @@ public class OptionsCommands {
     }
 
     @Command(
-            aliases = { "/gtransform", "gtransform" },
+            aliases = {"/gtransform", "gtransform"},
             usage = "[transform]",
             desc = "Set the global transform",
             min = 0,
@@ -157,7 +157,7 @@ public class OptionsCommands {
     }
 
     @Command(
-            aliases = { "/toggleplace", "toggleplace" },
+            aliases = {"/toggleplace", "toggleplace"},
             usage = "",
             desc = "Switch between your position and pos1 for placement",
             min = 0,
@@ -173,7 +173,7 @@ public class OptionsCommands {
     }
 
     @Command(
-            aliases = { "/searchitem", "/l", "/search", "searchitem" },
+            aliases = {"/searchitem", "/l", "/search", "searchitem"},
             usage = "<query>",
             flags = "bi",
             desc = "Search for an item",

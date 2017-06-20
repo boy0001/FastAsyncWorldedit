@@ -79,10 +79,10 @@ public class BiomeCommands {
     }
 
     @Command(
-        aliases = { "biomelist", "biomels" },
-        usage = "[page]",
-        desc = "Gets all biomes available.",
-        max = 1
+            aliases = {"biomelist", "biomels"},
+            usage = "[page]",
+            desc = "Gets all biomes available.",
+            max = 1
     )
     @CommandPermissions("worldedit.biome.list")
     public void biomeList(Player player, CommandContext args) throws WorldEditException {
@@ -119,15 +119,15 @@ public class BiomeCommands {
     }
 
     @Command(
-        aliases = { "biomeinfo" },
-        flags = "pt",
-        desc = "Get the biome of the targeted block.",
-        help =
-            "Get the biome of the block.\n" +
-            "By default use all the blocks contained in your selection.\n" +
-            "-t use the block you are looking at.\n" +
-            "-p use the block you are currently in",
-        max = 0
+            aliases = {"biomeinfo"},
+            flags = "pt",
+            desc = "Get the biome of the targeted block.",
+            help =
+                    "Get the biome of the block.\n" +
+                            "By default use all the blocks contained in your selection.\n" +
+                            "-t use the block you are looking at.\n" +
+                            "-p use the block you are currently in",
+            max = 0
     )
     @CommandPermissions("worldedit.biome.info")
     public void biomeInfo(Player player, LocalSession session, final EditSession editSession, CommandContext args) throws WorldEditException {
@@ -194,14 +194,14 @@ public class BiomeCommands {
     }
 
     @Command(
-            aliases = { "/setbiome" },
+            aliases = {"/setbiome"},
             usage = "<biome>",
             flags = "p",
             desc = "Sets the biome of the player's current block or region.",
             help =
                     "Set the biome of the region.\n" +
-                    "By default use all the blocks contained in your selection.\n" +
-                    "-p use the block you are currently in"
+                            "By default use all the blocks contained in your selection.\n" +
+                            "-p use the block you are currently in"
     )
     @Logging(REGION)
     @CommandPermissions("worldedit.biome.set")
@@ -225,7 +225,8 @@ public class BiomeCommands {
         Operations.completeLegacy(visitor);
 
         BBC.BIOME_CHANGED.send(player, visitor.getAffected());
-        if (!FawePlayer.wrap(player).hasPermission("fawe.tips")) BBC.TIP_BIOME_PATTERN.or(BBC.TIP_BIOME_MASK).send(player);
+        if (!FawePlayer.wrap(player).hasPermission("fawe.tips"))
+            BBC.TIP_BIOME_PATTERN.or(BBC.TIP_BIOME_MASK).send(player);
     }
 
     public static Class<BiomeCommands> inject() {

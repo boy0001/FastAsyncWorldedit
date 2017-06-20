@@ -34,18 +34,18 @@ import static com.sk89q.worldedit.EditSession.Stage;
 
 /**
  * Raised (several times) when a new {@link EditSession} is being instantiated.
- *
+ * <p>
  * <p></p>Block loggers, as well as block set interceptors, can use this event to wrap
  * the given {@link Extent} with their own, which would allow them to intercept
  * all changes made to the world. For example, the code below would wrap the
  * existing extent with a custom one, and the custom extent would receive
  * all method calls <strong>before</strong> the extent fetched from
  * {@link #getExtent()} would.</p>
- *
+ * <p>
  * <pre>
  * event.setExtent(new MyExtent(event.getExtent())
  * </pre>
- *
+ * <p>
  * <p></p>This event is fired several times during the creation of a single
  * {@link EditSession}, but {@link #getStage()} will differ each time.
  * The stage determines at which point {@link Extent}s added to this event
@@ -71,10 +71,10 @@ public class EditSessionEvent extends Event {
     /**
      * Create a new event.
      *
-     * @param world the world
-     * @param actor the actor, or null if there is no actor specified
+     * @param world     the world
+     * @param actor     the actor, or null if there is no actor specified
      * @param maxBlocks the maximum number of block changes
-     * @param stage the stage
+     * @param stage     the stage
      */
     public EditSessionEvent(@Nullable World world, Actor actor, int maxBlocks, Stage stage) {
         this.world = world;
@@ -96,7 +96,9 @@ public class EditSessionEvent extends Event {
      *
      * @return the actor, which may be null if unavailable
      */
-    public @Nullable Actor getActor() {
+    public
+    @Nullable
+    Actor getActor() {
         return actor;
     }
 
@@ -105,7 +107,9 @@ public class EditSessionEvent extends Event {
      *
      * @return the world
      */
-    public @Nullable World getWorld() {
+    public
+    @Nullable
+    World getWorld() {
         return world;
     }
 

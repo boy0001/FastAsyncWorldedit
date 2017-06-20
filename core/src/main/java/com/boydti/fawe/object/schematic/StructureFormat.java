@@ -99,7 +99,7 @@ public class StructureFormat implements ClipboardReader, ClipboardWriter {
                         System.out.println("Invalid property: " + property.getKey());
                         continue;
                     }
-                    BundledBlockData.FaweStateValue value = state.valueMap().get(((StringTag)property.getValue()).getValue());
+                    BundledBlockData.FaweStateValue value = state.valueMap().get(((StringTag) property.getValue()).getValue());
                     if (value == null) {
                         System.out.println("Invalid property: " + property.getKey() + ":" + property.getValue());
                         continue;

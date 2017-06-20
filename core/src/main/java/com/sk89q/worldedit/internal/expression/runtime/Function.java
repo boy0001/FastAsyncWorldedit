@@ -21,7 +21,6 @@ package com.sk89q.worldedit.internal.expression.runtime;
 
 import com.sk89q.worldedit.internal.expression.Expression;
 import com.sk89q.worldedit.internal.expression.parser.ParserException;
-
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.reflect.InvocationTargetException;
@@ -37,7 +36,8 @@ public class Function extends Node {
      * for the same inputs and on functions with side-effects.
      */
     @Retention(RetentionPolicy.RUNTIME)
-    public @interface Dynamic { }
+    public @interface Dynamic {
+    }
 
     public final Method method;
     public final RValue[] args;

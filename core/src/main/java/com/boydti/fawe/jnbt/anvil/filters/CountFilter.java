@@ -10,14 +10,15 @@ public class CountFilter extends MCAFilterCounter {
     private final boolean[] allowedId = new boolean[FaweCache.getId(Character.MAX_VALUE)];
     private final boolean[] allowed = new boolean[Character.MAX_VALUE];
 
-    public CountFilter() {}
+    public CountFilter() {
+    }
 
     public CountFilter addBlock(BaseBlock block) {
         addBlock(block.getId(), block.getData());
         return this;
     }
 
-    public CountFilter addBlock(int  id, int data) {
+    public CountFilter addBlock(int id, int data) {
         allowedId[id] = true;
         allowed[FaweCache.getCombined(id, data)] = true;
         return this;

@@ -88,7 +88,10 @@ public class HeightMapMCAGenerator extends MCAWriter implements Extent {
             } else {
                 return new CachedTextureUtil(textureUtil);
             }
-        } catch (FileNotFoundException neverHappens) { neverHappens.printStackTrace(); return null; }
+        } catch (FileNotFoundException neverHappens) {
+            neverHappens.printStackTrace();
+            return null;
+        }
     }
 
     public void setWaterHeight(int waterHeight) {
@@ -176,7 +179,7 @@ public class HeightMapMCAGenerator extends MCAWriter implements Extent {
     public void setHeight(BufferedImage img) {
         int index = 0;
         for (int z = 0; z < getLength(); z++) {
-            for (int x = 0; x < getWidth(); x++, index++){
+            for (int x = 0; x < getWidth(); x++, index++) {
                 heights[index] = (byte) (img.getRGB(x, z) >> 8);
             }
         }
@@ -188,20 +191,21 @@ public class HeightMapMCAGenerator extends MCAWriter implements Extent {
     }
 
     @Deprecated
-    public  void addSchems(Mask mask, WorldData worldData, ClipboardHolder[] clipboards, int rarity, boolean rotate) throws WorldEditException{
+    public void addSchems(Mask mask, WorldData worldData, ClipboardHolder[] clipboards, int rarity, boolean rotate) throws WorldEditException {
         CuboidRegion region = new CuboidRegion(new Vector(0, 0, 0), new Vector(getWidth(), 255, getLength()));
         addSchems(region, mask, worldData, clipboards, rarity, rotate);
     }
 
-    public void addSchems(BufferedImage img, Mask mask, WorldData worldData, ClipboardHolder[] clipboards, int rarity, int distance, boolean randomRotate) throws WorldEditException{
-        if (img.getWidth() != getWidth() || img.getHeight() != getLength()) throw new IllegalArgumentException("Input image dimensions do not match the current height map!");
+    public void addSchems(BufferedImage img, Mask mask, WorldData worldData, ClipboardHolder[] clipboards, int rarity, int distance, boolean randomRotate) throws WorldEditException {
+        if (img.getWidth() != getWidth() || img.getHeight() != getLength())
+            throw new IllegalArgumentException("Input image dimensions do not match the current height map!");
         double doubleRarity = rarity / 100d;
         int index = 0;
         AffineTransform identity = new AffineTransform();
         LocalBlockVector2DSet placed = new LocalBlockVector2DSet();
         for (int z = 0; z < getLength(); z++) {
             mutable.mutZ(z);
-            for (int x = 0; x < getWidth(); x++, index++){
+            for (int x = 0; x < getWidth(); x++, index++) {
                 int y = heights[index];
                 int height = img.getRGB(x, z) & 0xFF;
                 if (height == 0 || PseudoRandom.random.nextInt(256) > height * doubleRarity) {
@@ -243,14 +247,14 @@ public class HeightMapMCAGenerator extends MCAWriter implements Extent {
         }
     }
 
-    public void addSchems(Mask mask, WorldData worldData, ClipboardHolder[] clipboards, int rarity, int distance, boolean randomRotate) throws WorldEditException{
+    public void addSchems(Mask mask, WorldData worldData, ClipboardHolder[] clipboards, int rarity, int distance, boolean randomRotate) throws WorldEditException {
         int scaledRarity = (256 * rarity) / 100;
         int index = 0;
         AffineTransform identity = new AffineTransform();
         LocalBlockVector2DSet placed = new LocalBlockVector2DSet();
         for (int z = 0; z < getLength(); z++) {
             mutable.mutZ(z);
-            for (int x = 0; x < getWidth(); x++, index++){
+            for (int x = 0; x < getWidth(); x++, index++) {
                 int y = heights[index];
                 if (PseudoRandom.random.nextInt(256) > scaledRarity) {
                     continue;
@@ -439,10 +443,11 @@ public class HeightMapMCAGenerator extends MCAWriter implements Extent {
     }
 
     public void setBiome(BufferedImage img, byte biome, boolean white) {
-        if (img.getWidth() != getWidth() || img.getHeight() != getLength()) throw new IllegalArgumentException("Input image dimensions do not match the current height map!");
+        if (img.getWidth() != getWidth() || img.getHeight() != getLength())
+            throw new IllegalArgumentException("Input image dimensions do not match the current height map!");
         int index = 0;
         for (int z = 0; z < getLength(); z++) {
-            for (int x = 0; x < getWidth(); x++, index++){
+            for (int x = 0; x < getWidth(); x++, index++) {
                 int height = img.getRGB(x, z) & 0xFF;
                 if (height == 255 || height > 0 && !white && PseudoRandom.random.nextInt(256) <= height) {
                     biomes[index] = biome;
@@ -524,28 +529,28 @@ public class HeightMapMCAGenerator extends MCAWriter implements Extent {
     }
 
     public void setColorWithGlass(BufferedImage img) {
-            if (img.getWidth() != getWidth() || img.getHeight() != getLength())
-                throw new IllegalArgumentException("Input image dimensions do not match the current height map!");
+        if (img.getWidth() != getWidth() || img.getHeight() != getLength())
+            throw new IllegalArgumentException("Input image dimensions do not match the current height map!");
         TextureUtil textureUtil = getTextureUtil();
-            int index = 0;
-            for (int y = 0; y < img.getHeight(); y++) {
-                for (int x = 0; x < img.getWidth(); x++) {
-                    int color = img.getRGB(x, y);
-                    char[] layer = textureUtil.getNearestLayer(color);
-                    if (layer != null) {
-                        floor[index] = layer[0];
-                        main[index] = layer[1];
-                    }
-                    index++;
+        int index = 0;
+        for (int y = 0; y < img.getHeight(); y++) {
+            for (int x = 0; x < img.getWidth(); x++) {
+                int color = img.getRGB(x, y);
+                char[] layer = textureUtil.getNearestLayer(color);
+                if (layer != null) {
+                    floor[index] = layer[0];
+                    main[index] = layer[1];
                 }
+                index++;
             }
+        }
     }
 
     public void setBiome(Mask mask, byte biome) {
         int index = 0;
         for (int z = 0; z < getLength(); z++) {
             mutable.mutZ(z);
-            for (int x = 0; x < getWidth(); x++, index++){
+            for (int x = 0; x < getWidth(); x++, index++) {
                 int y = heights[index] & 0xFF;
                 mutable.mutX(x);
                 mutable.mutY(y);
@@ -561,12 +566,13 @@ public class HeightMapMCAGenerator extends MCAWriter implements Extent {
             setOverlay(img, (char) ((BlockPattern) pattern).getBlock().getCombined(), white);
             return;
         }
-        if (img.getWidth() != getWidth() || img.getHeight() != getLength()) throw new IllegalArgumentException("Input image dimensions do not match the current height map!");
+        if (img.getWidth() != getWidth() || img.getHeight() != getLength())
+            throw new IllegalArgumentException("Input image dimensions do not match the current height map!");
         if (overlay == null) overlay = new char[getArea()];
         int index = 0;
         for (int z = 0; z < getLength(); z++) {
             mutable.mutZ(z);
-            for (int x = 0; x < getWidth(); x++, index++){
+            for (int x = 0; x < getWidth(); x++, index++) {
                 int height = img.getRGB(x, z) & 0xFF;
                 if (height == 255 || height > 0 && !white && PseudoRandom.random.nextInt(256) <= height) {
                     mutable.mutX(x);
@@ -582,12 +588,13 @@ public class HeightMapMCAGenerator extends MCAWriter implements Extent {
             setMain(img, (char) ((BlockPattern) pattern).getBlock().getCombined(), white);
             return;
         }
-        if (img.getWidth() != getWidth() || img.getHeight() != getLength()) throw new IllegalArgumentException("Input image dimensions do not match the current height map!");
+        if (img.getWidth() != getWidth() || img.getHeight() != getLength())
+            throw new IllegalArgumentException("Input image dimensions do not match the current height map!");
         modifiedMain = true;
         int index = 0;
         for (int z = 0; z < getLength(); z++) {
             mutable.mutZ(z);
-            for (int x = 0; x < getWidth(); x++, index++){
+            for (int x = 0; x < getWidth(); x++, index++) {
                 int height = img.getRGB(x, z) & 0xFF;
                 if (height == 255 || height > 0 && !white && PseudoRandom.random.nextInt(256) <= height) {
                     mutable.mutX(x);
@@ -603,11 +610,12 @@ public class HeightMapMCAGenerator extends MCAWriter implements Extent {
             setFloor(img, (char) ((BlockPattern) pattern).getBlock().getCombined(), white);
             return;
         }
-        if (img.getWidth() != getWidth() || img.getHeight() != getLength()) throw new IllegalArgumentException("Input image dimensions do not match the current height map!");
+        if (img.getWidth() != getWidth() || img.getHeight() != getLength())
+            throw new IllegalArgumentException("Input image dimensions do not match the current height map!");
         int index = 0;
         for (int z = 0; z < getLength(); z++) {
             mutable.mutZ(z);
-            for (int x = 0; x < getWidth(); x++, index++){
+            for (int x = 0; x < getWidth(); x++, index++) {
                 int height = img.getRGB(x, z) & 0xFF;
                 if (height == 255 || height > 0 && !white && PseudoRandom.random.nextInt(256) <= height) {
                     mutable.mutX(x);
@@ -623,12 +631,13 @@ public class HeightMapMCAGenerator extends MCAWriter implements Extent {
             setColumn(img, (char) ((BlockPattern) pattern).getBlock().getCombined(), white);
             return;
         }
-        if (img.getWidth() != getWidth() || img.getHeight() != getLength()) throw new IllegalArgumentException("Input image dimensions do not match the current height map!");
+        if (img.getWidth() != getWidth() || img.getHeight() != getLength())
+            throw new IllegalArgumentException("Input image dimensions do not match the current height map!");
         modifiedMain = true;
         int index = 0;
         for (int z = 0; z < getLength(); z++) {
             mutable.mutZ(z);
-            for (int x = 0; x < getWidth(); x++, index++){
+            for (int x = 0; x < getWidth(); x++, index++) {
                 int height = img.getRGB(x, z) & 0xFF;
                 if (height == 255 || height > 0 && !white && PseudoRandom.random.nextInt(256) <= height) {
                     mutable.mutX(x);
@@ -650,7 +659,7 @@ public class HeightMapMCAGenerator extends MCAWriter implements Extent {
         if (overlay == null) overlay = new char[getArea()];
         for (int z = 0; z < getLength(); z++) {
             mutable.mutZ(z);
-            for (int x = 0; x < getWidth(); x++, index++){
+            for (int x = 0; x < getWidth(); x++, index++) {
                 int y = heights[index] & 0xFF;
                 mutable.mutX(x);
                 mutable.mutY(y);
@@ -669,7 +678,7 @@ public class HeightMapMCAGenerator extends MCAWriter implements Extent {
         int index = 0;
         for (int z = 0; z < getLength(); z++) {
             mutable.mutZ(z);
-            for (int x = 0; x < getWidth(); x++, index++){
+            for (int x = 0; x < getWidth(); x++, index++) {
                 int y = heights[index] & 0xFF;
                 mutable.mutX(x);
                 mutable.mutY(y);
@@ -689,7 +698,7 @@ public class HeightMapMCAGenerator extends MCAWriter implements Extent {
         int index = 0;
         for (int z = 0; z < getLength(); z++) {
             mutable.mutZ(z);
-            for (int x = 0; x < getWidth(); x++, index++){
+            for (int x = 0; x < getWidth(); x++, index++) {
                 int y = heights[index] & 0xFF;
                 mutable.mutX(x);
                 mutable.mutY(y);
@@ -709,7 +718,7 @@ public class HeightMapMCAGenerator extends MCAWriter implements Extent {
         int index = 0;
         for (int z = 0; z < getLength(); z++) {
             mutable.mutZ(z);
-            for (int x = 0; x < getWidth(); x++, index++){
+            for (int x = 0; x < getWidth(); x++, index++) {
                 int y = heights[index] & 0xFF;
                 mutable.mutX(x);
                 mutable.mutY(y);
@@ -1034,7 +1043,7 @@ public class HeightMapMCAGenerator extends MCAWriter implements Extent {
         if (overlay == null) overlay = new char[getArea()];
         for (int z = 0; z < getLength(); z++) {
             mutable.mutZ(z);
-            for (int x = 0; x < getWidth(); x++, index++){
+            for (int x = 0; x < getWidth(); x++, index++) {
                 int y = heights[index] & 0xFF;
                 mutable.mutX(x);
                 mutable.mutY(y);
@@ -1049,7 +1058,7 @@ public class HeightMapMCAGenerator extends MCAWriter implements Extent {
         int index = 0;
         for (int z = 0; z < getLength(); z++) {
             mutable.mutZ(z);
-            for (int x = 0; x < getWidth(); x++, index++){
+            for (int x = 0; x < getWidth(); x++, index++) {
                 int y = heights[index] & 0xFF;
                 mutable.mutX(x);
                 mutable.mutY(y);
@@ -1065,7 +1074,7 @@ public class HeightMapMCAGenerator extends MCAWriter implements Extent {
         int index = 0;
         for (int z = 0; z < getLength(); z++) {
             mutable.mutZ(z);
-            for (int x = 0; x < getWidth(); x++, index++){
+            for (int x = 0; x < getWidth(); x++, index++) {
                 int y = heights[index] & 0xFF;
                 mutable.mutX(x);
                 mutable.mutY(y);
@@ -1081,7 +1090,7 @@ public class HeightMapMCAGenerator extends MCAWriter implements Extent {
         int index = 0;
         for (int z = 0; z < getLength(); z++) {
             mutable.mutZ(z);
-            for (int x = 0; x < getWidth(); x++, index++){
+            for (int x = 0; x < getWidth(); x++, index++) {
                 int y = heights[index] & 0xFF;
                 mutable.mutX(x);
                 mutable.mutY(y);
@@ -1113,11 +1122,12 @@ public class HeightMapMCAGenerator extends MCAWriter implements Extent {
     }
 
     private void setOverlay(BufferedImage img, char combined, boolean white) {
-        if (img.getWidth() != getWidth() || img.getHeight() != getLength()) throw new IllegalArgumentException("Input image dimensions do not match the current height map!");
+        if (img.getWidth() != getWidth() || img.getHeight() != getLength())
+            throw new IllegalArgumentException("Input image dimensions do not match the current height map!");
         if (overlay == null) overlay = new char[getArea()];
         int index = 0;
         for (int z = 0; z < getLength(); z++) {
-            for (int x = 0; x < getWidth(); x++, index++){
+            for (int x = 0; x < getWidth(); x++, index++) {
                 int height = img.getRGB(x, z) & 0xFF;
                 if (height == 255 || height > 0 && white && PseudoRandom.random.nextInt(256) <= height) {
                     overlay[index] = combined;
@@ -1127,11 +1137,12 @@ public class HeightMapMCAGenerator extends MCAWriter implements Extent {
     }
 
     private void setMain(BufferedImage img, char combined, boolean white) {
-        if (img.getWidth() != getWidth() || img.getHeight() != getLength()) throw new IllegalArgumentException("Input image dimensions do not match the current height map!");
+        if (img.getWidth() != getWidth() || img.getHeight() != getLength())
+            throw new IllegalArgumentException("Input image dimensions do not match the current height map!");
         modifiedMain = true;
         int index = 0;
         for (int z = 0; z < getLength(); z++) {
-            for (int x = 0; x < getWidth(); x++, index++){
+            for (int x = 0; x < getWidth(); x++, index++) {
                 int height = img.getRGB(x, z) & 0xFF;
                 if (height == 255 || height > 0 && !white && PseudoRandom.random.nextInt(256) <= height) {
                     main[index] = combined;
@@ -1141,10 +1152,11 @@ public class HeightMapMCAGenerator extends MCAWriter implements Extent {
     }
 
     private void setFloor(BufferedImage img, char combined, boolean white) {
-        if (img.getWidth() != getWidth() || img.getHeight() != getLength()) throw new IllegalArgumentException("Input image dimensions do not match the current height map!");
+        if (img.getWidth() != getWidth() || img.getHeight() != getLength())
+            throw new IllegalArgumentException("Input image dimensions do not match the current height map!");
         int index = 0;
         for (int z = 0; z < getLength(); z++) {
-            for (int x = 0; x < getWidth(); x++, index++){
+            for (int x = 0; x < getWidth(); x++, index++) {
                 int height = img.getRGB(x, z) & 0xFF;
                 if (height == 255 || height > 0 && !white && PseudoRandom.random.nextInt(256) <= height) {
                     floor[index] = combined;
@@ -1154,11 +1166,12 @@ public class HeightMapMCAGenerator extends MCAWriter implements Extent {
     }
 
     private void setColumn(BufferedImage img, char combined, boolean white) {
-        if (img.getWidth() != getWidth() || img.getHeight() != getLength()) throw new IllegalArgumentException("Input image dimensions do not match the current height map!");
+        if (img.getWidth() != getWidth() || img.getHeight() != getLength())
+            throw new IllegalArgumentException("Input image dimensions do not match the current height map!");
         modifiedMain = true;
         int index = 0;
         for (int z = 0; z < getLength(); z++) {
-            for (int x = 0; x < getWidth(); x++, index++){
+            for (int x = 0; x < getWidth(); x++, index++) {
                 int height = img.getRGB(x, z) & 0xFF;
                 if (height == 255 || height > 0 && !white && PseudoRandom.random.nextInt(256) <= height) {
                     main[index] = combined;

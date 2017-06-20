@@ -160,7 +160,7 @@ public class SchematicWriter implements ClipboardWriter {
                     public void run(int index, int byteValue) {
                         try {
                             if (byteValue >= 256) {
-                                hasAdd  = true;
+                                hasAdd = true;
                             }
                             if (FaweCache.hasData(byteValue)) {
                                 hasData = true;

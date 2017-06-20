@@ -24,16 +24,21 @@ import com.sk89q.minecraft.util.commands.Command;
 import com.sk89q.minecraft.util.commands.CommandContext;
 import com.sk89q.minecraft.util.commands.CommandPermissions;
 import com.sk89q.minecraft.util.commands.Logging;
-import com.sk89q.worldedit.*;
+import com.sk89q.worldedit.LocalConfiguration;
+import com.sk89q.worldedit.LocalSession;
+import com.sk89q.worldedit.Vector;
+import com.sk89q.worldedit.Vector2D;
+import com.sk89q.worldedit.WorldEdit;
+import com.sk89q.worldedit.WorldEditException;
 import com.sk89q.worldedit.entity.Player;
 import com.sk89q.worldedit.math.MathUtils;
 import com.sk89q.worldedit.world.storage.LegacyChunkStore;
 import com.sk89q.worldedit.world.storage.McRegionChunkStore;
-
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.util.Set;
+
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.sk89q.minecraft.util.commands.Logging.LogMode.REGION;
@@ -45,18 +50,18 @@ import static com.sk89q.minecraft.util.commands.Logging.LogMode.REGION;
 public class ChunkCommands {
 
     private final WorldEdit worldEdit;
-    
+
     public ChunkCommands(WorldEdit worldEdit) {
         checkNotNull(worldEdit);
         this.worldEdit = worldEdit;
     }
 
     @Command(
-        aliases = { "chunkinfo" },
-        usage = "",
-        desc = "Get information about the chunk that you are inside",
-        min = 0,
-        max = 0
+            aliases = {"chunkinfo"},
+            usage = "",
+            desc = "Get information about the chunk that you are inside",
+            min = 0,
+            max = 0
     )
     @CommandPermissions("worldedit.chunkinfo")
     public void chunkInfo(Player player, LocalSession session, CommandContext args) throws WorldEditException {
@@ -76,11 +81,11 @@ public class ChunkCommands {
     }
 
     @Command(
-        aliases = { "listchunks" },
-        usage = "",
-        desc = "List chunks that your selection includes",
-        min = 0,
-        max = 0
+            aliases = {"listchunks"},
+            usage = "",
+            desc = "List chunks that your selection includes",
+            min = 0,
+            max = 0
     )
     @CommandPermissions("worldedit.listchunks")
     public void listChunks(Player player, LocalSession session, CommandContext args) throws WorldEditException {
@@ -92,11 +97,11 @@ public class ChunkCommands {
     }
 
     @Command(
-        aliases = { "delchunks" },
-        usage = "",
-        desc = "Deprecated, use anvil commands",
-        min = 0,
-        max = 0
+            aliases = {"delchunks"},
+            usage = "",
+            desc = "Deprecated, use anvil commands",
+            min = 0,
+            max = 0
     )
     @CommandPermissions("worldedit.delchunks")
     @Logging(REGION)
@@ -137,7 +142,8 @@ public class ChunkCommands {
                 if (out != null) {
                     try {
                         out.close();
-                    } catch (IOException ignored) { }
+                    } catch (IOException ignored) {
+                    }
                 }
             }
         } else if (config.shellSaveType.equalsIgnoreCase("bash")) {

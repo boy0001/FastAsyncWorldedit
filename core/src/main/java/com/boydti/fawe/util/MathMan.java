@@ -24,15 +24,15 @@ public class MathMan {
     private static float[] ANGLES = new float[65536];
 
     public static float sinInexact(double paramFloat) {
-        return ANGLES[(int)(paramFloat * 10430.378F) & 0xFFFF];
+        return ANGLES[(int) (paramFloat * 10430.378F) & 0xFFFF];
     }
 
     public static float cosInexact(double paramFloat) {
-        return ANGLES[(int)(paramFloat * 10430.378F + 16384.0F) & 0xFFFF];
+        return ANGLES[(int) (paramFloat * 10430.378F + 16384.0F) & 0xFFFF];
     }
 
     public static int floorZero(double d0) {
-        int i = (int)d0;
+        int i = (int) d0;
         return d0 < (double) i ? i - 1 : i;
     }
 
@@ -77,7 +77,7 @@ public class MathMan {
     }
 
     public static int ceilZero(float floatNumber) {
-        int floor = (int)floatNumber;
+        int floor = (int) floatNumber;
         return floatNumber > (float) floor ? floor + 1 : floor;
     }
 
@@ -94,15 +94,15 @@ public class MathMan {
     }
 
     static {
-        for(int i = 0; i < 65536; ++i) {
-            ANGLES[i] = (float)Math.sin((double)i * 3.141592653589793D * 2.0D / 65536.0D);
+        for (int i = 0; i < 65536; ++i) {
+            ANGLES[i] = (float) Math.sin((double) i * 3.141592653589793D * 2.0D / 65536.0D);
         }
     }
 
     private final static int[] table = {
-            0,    16,  22,  27,  32,  35,  39,  42,  45,  48,  50,  53,  55,  57,
-            59,   61,  64,  65,  67,  69,  71,  73,  75,  76,  78,  80,  81,  83,
-            84,   86,  87,  89,  90,  91,  93,  94,  96,  97,  98,  99, 101, 102,
+            0, 16, 22, 27, 32, 35, 39, 42, 45, 48, 50, 53, 55, 57,
+            59, 61, 64, 65, 67, 69, 71, 73, 75, 76, 78, 80, 81, 83,
+            84, 86, 87, 89, 90, 91, 93, 94, 96, 97, 98, 99, 101, 102,
             103, 104, 106, 107, 108, 109, 110, 112, 113, 114, 115, 116, 117, 118,
             119, 120, 121, 122, 123, 124, 125, 126, 128, 128, 129, 130, 131, 132,
             133, 134, 135, 136, 137, 138, 139, 140, 141, 142, 143, 144, 144, 145,
@@ -184,7 +184,7 @@ public class MathMan {
     }
 
     public static final long pairInt(int x, int y) {
-        return (((long)x) << 32) | (y & 0xffffffffL);
+        return (((long) x) << 32) | (y & 0xffffffffL);
     }
 
     public static final long tripleWorldCoord(int x, int y, int z) {
@@ -265,15 +265,15 @@ public class MathMan {
     }
 
     public static final long chunkXZ2Int(int x, int z) {
-        return (long)x & 4294967295L | ((long)z & 4294967295L) << 32;
+        return (long) x & 4294967295L | ((long) z & 4294967295L) << 32;
     }
 
     public static final int unpairIntX(long pair) {
-        return (int)(pair >> 32);
+        return (int) (pair >> 32);
     }
 
     public static final int unpairIntY(long pair) {
-        return (int)pair;
+        return (int) pair;
     }
 
     public static final byte pair16(int x, int y) {
@@ -301,7 +301,7 @@ public class MathMan {
     }
 
     public static final int lossyFastDivide(int a, int b) {
-        return (a*((1<<16)/b))>>16;
+        return (a * ((1 << 16) / b)) >> 16;
     }
 
     public static final int gcd(int a, int b) {
@@ -318,7 +318,7 @@ public class MathMan {
         }
         return result;
     }
-    
+
     public static final int sqrt(int x) {
         int xn;
 
@@ -405,6 +405,7 @@ public class MathMan {
 
     /**
      * Returns [x, y, z]
+     *
      * @param yaw
      * @param pitch
      * @return
@@ -420,6 +421,7 @@ public class MathMan {
 
     /**
      * Returns [ pitch, yaw ]
+     *
      * @param x
      * @param y
      * @param z

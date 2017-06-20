@@ -75,7 +75,8 @@ public class EntityVisitor implements Operation {
     }
 
     @Override
-    public void cancel() {}
+    public void cancel() {
+    }
 
     @Override
     public void addStatusMessages(final List<String> messages) {

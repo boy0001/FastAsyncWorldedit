@@ -75,7 +75,7 @@ public class MCAQueue extends NMSMappedFaweQueue<FaweQueue, FaweChunk, FaweChunk
     public int getBiome(FaweChunk faweChunk, int x, int z) {
         if (faweChunk instanceof MCAChunk) {
             return ((MCAChunk) faweChunk).getBiomeArray()[((z & 0xF) << 4 | x & 0xF)];
-        } else if (parent != null){
+        } else if (parent != null) {
             return parent.getBiomeId(x, z);
         } else {
             return 0;

@@ -44,15 +44,15 @@ public class FaweCache {
     public final static short[][][] CACHE_J = new short[256][16][16];
 
     /**
-     *  [ i | j ] => x
+     * [ i | j ] => x
      */
     public final static byte[][] CACHE_X = new byte[16][4096];
     /**
-     *  [ i | j ] => y
+     * [ i | j ] => y
      */
     public final static short[][] CACHE_Y = new short[16][4096];
     /**
-     *  [ i | j ] => z
+     * [ i | j ] => z
      */
     public final static byte[][] CACHE_Z = new byte[16][4096];
 
@@ -81,7 +81,8 @@ public class FaweCache {
 
     /**
      * Get the cached BaseBlock object for an id/data<br>
-     *  - The block is immutable
+     * - The block is immutable
+     *
      * @param id
      * @param data
      * @return
@@ -96,6 +97,7 @@ public class FaweCache {
 
     /**
      * Get the combined data for a block
+     *
      * @param id
      * @param data
      * @return
@@ -114,6 +116,7 @@ public class FaweCache {
 
     /**
      * Get the combined id for a block
+     *
      * @param block
      * @return
      */
@@ -214,74 +217,74 @@ public class FaweCache {
         } catch (Throwable ignore) {
             ignore.printStackTrace();
         }
-        CACHE_COLOR[getCombined(0, 0)] =  new Color(128, 128, 128); //Air
-        CACHE_COLOR[getCombined(1, 0)] =  new Color(180, 180, 180); //stone
-        CACHE_COLOR[getCombined(2, 0)] =  new Color(0, 225, 0); //grass
-        CACHE_COLOR[getCombined(3, 0)] =  new Color(168, 117, 68); //dirt
-        CACHE_COLOR[getCombined(4, 0)] =  new Color(125, 125, 125); //cobblestone
-        CACHE_COLOR[getCombined(5, 0)] =  new Color(185, 133, 83); //wood planks
-        CACHE_COLOR[getCombined(6, 0)] =  new Color(0, 210, 0); //saplings
-        CACHE_COLOR[getCombined(7, 0)] =  new Color(60, 60, 60); //bedrock
-        CACHE_COLOR[getCombined(8, 0)] =  new Color(0, 0, 255); //water new Color(flowing)
-        CACHE_COLOR[getCombined(9, 0)] =  new Color(0, 0, 235); //water new Color(stationary)
-        CACHE_COLOR[getCombined(10, 0)] =  new Color(255, 155, 102); //lava new Color(flowing)
-        CACHE_COLOR[getCombined(11, 0)] =  new Color(255, 129, 61); //lava new Color(stationary)
-        CACHE_COLOR[getCombined(12, 0)] =  new Color(228, 216, 174); //sand
-        CACHE_COLOR[getCombined(13, 0)] =  new Color(190, 190, 210); //gravel
-        CACHE_COLOR[getCombined(14, 0)] =  new Color(245, 232, 73); //gold ore
-        CACHE_COLOR[getCombined(15, 0)] =  new Color(211, 179, 160); //iron ore
-        CACHE_COLOR[getCombined(16, 0)] =  new Color(61, 61, 61); //coal ore
-        CACHE_COLOR[getCombined(17, 0)] =  new Color(165, 103, 53); //wood
-        CACHE_COLOR[getCombined(18, 0)] =  new Color(76, 150, 24); //leaves
-        CACHE_COLOR[getCombined(20, 0)] =  new Color(158, 255, 243); //glass
-        CACHE_COLOR[getCombined(24, 0)] =  new Color(226, 206, 140); //sandstone
-        CACHE_COLOR[getCombined(31, 0)] =  new Color(0, 210, 0); //long grass
-        CACHE_COLOR[getCombined(32, 0)] =  new Color(224, 162, 64); //shrub
-        CACHE_COLOR[getCombined(37, 0)] =  new Color(255, 248, 56); //yellow flower
-        CACHE_COLOR[getCombined(38, 0)] =  new Color(225, 0, 0); //red rose
-        CACHE_COLOR[getCombined(41, 0)] =  new Color(255, 215, 0); //gold block
-        CACHE_COLOR[getCombined(42, 0)] =  new Color(135, 135, 135); //iron block
-        CACHE_COLOR[getCombined(44, 0)] =  new Color(165, 165, 165); //step
-        CACHE_COLOR[getCombined(50, 0)] =  new Color(255, 248, 56); //torch
-        CACHE_COLOR[getCombined(53, 0)] =  new Color(185, 133, 83); //wood stairs
-        CACHE_COLOR[getCombined(59, 0)] =  new Color(205, 222, 61); //wheat crops
-        CACHE_COLOR[getCombined(65, 0)] =  new Color(185, 133, 83); //ladder
-        CACHE_COLOR[getCombined(67, 0)] =  new Color(125, 125, 125); //cobblestone stairs
-        CACHE_COLOR[getCombined(78, 0)] =  new Color(230, 255, 255); //snow layer
-        CACHE_COLOR[getCombined(79, 0)] =  new Color(180, 255, 236); //ice
-        CACHE_COLOR[getCombined(81, 0)] =  new Color(76, 150, 24); //cactus
-        CACHE_COLOR[getCombined(82, 0)] =  new Color(150, 150, 180); //clay
-        CACHE_COLOR[getCombined(83, 0)] =  new Color(89, 255, 89); //reed
-        CACHE_COLOR[getCombined(85, 0)] =  new Color(185, 133, 83); //wood fence
-        CACHE_COLOR[getCombined(99, 0)] =  new Color(168, 125, 99); //large brown mushroom
-        CACHE_COLOR[getCombined(100, 0)] =  new Color(186, 27, 27); //large red mushroom
-        CACHE_COLOR[getCombined(102, 0)] =  new Color(158, 255, 243); //glass pane
-        CACHE_COLOR[getCombined(106, 0)] =  new Color(0, 150, 0); //vines
-        CACHE_COLOR[getCombined(110, 0)] =  new Color(100, 90, 100); //mycelium
-        CACHE_COLOR[getCombined(111, 0)] =  new Color(96, 188, 30); //lily pad
-        CACHE_COLOR[getCombined(128, 0)] =  new Color(226, 206, 140); //sandstone stairs
-        CACHE_COLOR[getCombined(134, 0)] =  new Color(185, 133, 83); //spruce wood stairs
-        CACHE_COLOR[getCombined(141, 0)] =  new Color(205, 222, 61); //carrot crops
-        CACHE_COLOR[getCombined(142, 0)] =  new Color(205, 222, 61); //potato crops
-        CACHE_COLOR[getCombined(161, 0)] =  new Color(67, 132, 21); //dark oak leaves
-        CACHE_COLOR[getCombined(38, 8)] =  new Color(255, 250, 155); //daisy flower
-        CACHE_COLOR[getCombined(175, 8)] =  new Color(0, 200, 0); //double tall grass and flowers top
-        CACHE_COLOR[getCombined(35, 0)] =  new Color(254, 254, 254); // White - Wools colors borrowed from Sk89q's draw script
-        CACHE_COLOR[getCombined(35, 1)] =  new Color(255, 100, 0); // Orange
-        CACHE_COLOR[getCombined(35, 2)] =  new Color(200, 0, 200); // Magenta
-        CACHE_COLOR[getCombined(35, 3)] =  new Color(87, 132, 223); // Light blue
-        CACHE_COLOR[getCombined(35, 4)] =  new Color(255, 255, 0); // Yellow
-        CACHE_COLOR[getCombined(35, 5)] =  new Color(0, 255, 0); // Green
-        CACHE_COLOR[getCombined(35, 6)] =  new Color(255, 180, 200); // Pink
-        CACHE_COLOR[getCombined(35, 7)] =  new Color(72, 72, 72); // Gray
-        CACHE_COLOR[getCombined(35, 8)] =  new Color(173, 173, 173); // Light grey
-        CACHE_COLOR[getCombined(35, 9)] =  new Color(0, 100, 160); // Cyan
-        CACHE_COLOR[getCombined(35, 10)] =  new Color(120, 0, 200); // Purple
-        CACHE_COLOR[getCombined(35, 11)] =  new Color(0, 0, 175); // Blue
-        CACHE_COLOR[getCombined(35, 12)] =  new Color(100, 60, 0); // Brown
-        CACHE_COLOR[getCombined(35, 13)] =  new Color(48, 160, 0); // Cactus green
-        CACHE_COLOR[getCombined(35, 14)] =  new Color(255, 0, 0); // Red
-        CACHE_COLOR[getCombined(35, 15)] =  new Color(0, 0, 0); // Black
+        CACHE_COLOR[getCombined(0, 0)] = new Color(128, 128, 128); //Air
+        CACHE_COLOR[getCombined(1, 0)] = new Color(180, 180, 180); //stone
+        CACHE_COLOR[getCombined(2, 0)] = new Color(0, 225, 0); //grass
+        CACHE_COLOR[getCombined(3, 0)] = new Color(168, 117, 68); //dirt
+        CACHE_COLOR[getCombined(4, 0)] = new Color(125, 125, 125); //cobblestone
+        CACHE_COLOR[getCombined(5, 0)] = new Color(185, 133, 83); //wood planks
+        CACHE_COLOR[getCombined(6, 0)] = new Color(0, 210, 0); //saplings
+        CACHE_COLOR[getCombined(7, 0)] = new Color(60, 60, 60); //bedrock
+        CACHE_COLOR[getCombined(8, 0)] = new Color(0, 0, 255); //water new Color(flowing)
+        CACHE_COLOR[getCombined(9, 0)] = new Color(0, 0, 235); //water new Color(stationary)
+        CACHE_COLOR[getCombined(10, 0)] = new Color(255, 155, 102); //lava new Color(flowing)
+        CACHE_COLOR[getCombined(11, 0)] = new Color(255, 129, 61); //lava new Color(stationary)
+        CACHE_COLOR[getCombined(12, 0)] = new Color(228, 216, 174); //sand
+        CACHE_COLOR[getCombined(13, 0)] = new Color(190, 190, 210); //gravel
+        CACHE_COLOR[getCombined(14, 0)] = new Color(245, 232, 73); //gold ore
+        CACHE_COLOR[getCombined(15, 0)] = new Color(211, 179, 160); //iron ore
+        CACHE_COLOR[getCombined(16, 0)] = new Color(61, 61, 61); //coal ore
+        CACHE_COLOR[getCombined(17, 0)] = new Color(165, 103, 53); //wood
+        CACHE_COLOR[getCombined(18, 0)] = new Color(76, 150, 24); //leaves
+        CACHE_COLOR[getCombined(20, 0)] = new Color(158, 255, 243); //glass
+        CACHE_COLOR[getCombined(24, 0)] = new Color(226, 206, 140); //sandstone
+        CACHE_COLOR[getCombined(31, 0)] = new Color(0, 210, 0); //long grass
+        CACHE_COLOR[getCombined(32, 0)] = new Color(224, 162, 64); //shrub
+        CACHE_COLOR[getCombined(37, 0)] = new Color(255, 248, 56); //yellow flower
+        CACHE_COLOR[getCombined(38, 0)] = new Color(225, 0, 0); //red rose
+        CACHE_COLOR[getCombined(41, 0)] = new Color(255, 215, 0); //gold block
+        CACHE_COLOR[getCombined(42, 0)] = new Color(135, 135, 135); //iron block
+        CACHE_COLOR[getCombined(44, 0)] = new Color(165, 165, 165); //step
+        CACHE_COLOR[getCombined(50, 0)] = new Color(255, 248, 56); //torch
+        CACHE_COLOR[getCombined(53, 0)] = new Color(185, 133, 83); //wood stairs
+        CACHE_COLOR[getCombined(59, 0)] = new Color(205, 222, 61); //wheat crops
+        CACHE_COLOR[getCombined(65, 0)] = new Color(185, 133, 83); //ladder
+        CACHE_COLOR[getCombined(67, 0)] = new Color(125, 125, 125); //cobblestone stairs
+        CACHE_COLOR[getCombined(78, 0)] = new Color(230, 255, 255); //snow layer
+        CACHE_COLOR[getCombined(79, 0)] = new Color(180, 255, 236); //ice
+        CACHE_COLOR[getCombined(81, 0)] = new Color(76, 150, 24); //cactus
+        CACHE_COLOR[getCombined(82, 0)] = new Color(150, 150, 180); //clay
+        CACHE_COLOR[getCombined(83, 0)] = new Color(89, 255, 89); //reed
+        CACHE_COLOR[getCombined(85, 0)] = new Color(185, 133, 83); //wood fence
+        CACHE_COLOR[getCombined(99, 0)] = new Color(168, 125, 99); //large brown mushroom
+        CACHE_COLOR[getCombined(100, 0)] = new Color(186, 27, 27); //large red mushroom
+        CACHE_COLOR[getCombined(102, 0)] = new Color(158, 255, 243); //glass pane
+        CACHE_COLOR[getCombined(106, 0)] = new Color(0, 150, 0); //vines
+        CACHE_COLOR[getCombined(110, 0)] = new Color(100, 90, 100); //mycelium
+        CACHE_COLOR[getCombined(111, 0)] = new Color(96, 188, 30); //lily pad
+        CACHE_COLOR[getCombined(128, 0)] = new Color(226, 206, 140); //sandstone stairs
+        CACHE_COLOR[getCombined(134, 0)] = new Color(185, 133, 83); //spruce wood stairs
+        CACHE_COLOR[getCombined(141, 0)] = new Color(205, 222, 61); //carrot crops
+        CACHE_COLOR[getCombined(142, 0)] = new Color(205, 222, 61); //potato crops
+        CACHE_COLOR[getCombined(161, 0)] = new Color(67, 132, 21); //dark oak leaves
+        CACHE_COLOR[getCombined(38, 8)] = new Color(255, 250, 155); //daisy flower
+        CACHE_COLOR[getCombined(175, 8)] = new Color(0, 200, 0); //double tall grass and flowers top
+        CACHE_COLOR[getCombined(35, 0)] = new Color(254, 254, 254); // White - Wools colors borrowed from Sk89q's draw script
+        CACHE_COLOR[getCombined(35, 1)] = new Color(255, 100, 0); // Orange
+        CACHE_COLOR[getCombined(35, 2)] = new Color(200, 0, 200); // Magenta
+        CACHE_COLOR[getCombined(35, 3)] = new Color(87, 132, 223); // Light blue
+        CACHE_COLOR[getCombined(35, 4)] = new Color(255, 255, 0); // Yellow
+        CACHE_COLOR[getCombined(35, 5)] = new Color(0, 255, 0); // Green
+        CACHE_COLOR[getCombined(35, 6)] = new Color(255, 180, 200); // Pink
+        CACHE_COLOR[getCombined(35, 7)] = new Color(72, 72, 72); // Gray
+        CACHE_COLOR[getCombined(35, 8)] = new Color(173, 173, 173); // Light grey
+        CACHE_COLOR[getCombined(35, 9)] = new Color(0, 100, 160); // Cyan
+        CACHE_COLOR[getCombined(35, 10)] = new Color(120, 0, 200); // Purple
+        CACHE_COLOR[getCombined(35, 11)] = new Color(0, 0, 175); // Blue
+        CACHE_COLOR[getCombined(35, 12)] = new Color(100, 60, 0); // Brown
+        CACHE_COLOR[getCombined(35, 13)] = new Color(48, 160, 0); // Cactus green
+        CACHE_COLOR[getCombined(35, 14)] = new Color(255, 0, 0); // Red
+        CACHE_COLOR[getCombined(35, 15)] = new Color(0, 0, 0); // Black
     }
 
     public static boolean canPassThrough(int id, int data) {
@@ -558,12 +561,14 @@ public class FaweCache {
             case 212:
             case 217:
                 return true;
-            default: return false;
+            default:
+                return false;
         }
     }
 
     /**
      * Check if an id might have data
+     *
      * @param id
      * @return
      */
@@ -643,6 +648,7 @@ public class FaweCache {
 
     /**
      * Check if an id might have nbt
+     *
      * @param id
      * @return
      */
@@ -720,12 +726,12 @@ public class FaweCache {
         if (entry == null) {
             return data != 0 ? id + ":" + data : id + "";
         }
-        return data != 0 ? entry.id.replace("minecraft:","") + ":" + data : entry.id.replace("minecraft:","");
+        return data != 0 ? entry.id.replace("minecraft:", "") + ":" + data : entry.id.replace("minecraft:", "");
     }
 
     public static Map<String, Object> asMap(Object... pairs) {
         HashMap<String, Object> map = new HashMap<String, Object>(pairs.length >> 1);
-        for (int i = 0; i < pairs.length; i+=2) {
+        for (int i = 0; i < pairs.length; i += 2) {
             String key = (String) pairs[i];
             Object value = pairs[i + 1];
             map.put(key, value);
@@ -783,27 +789,27 @@ public class FaweCache {
     public static Tag asTag(Object value) {
         if (value instanceof Integer) {
             return asTag((int) value);
-        } else if (value instanceof  Short) {
+        } else if (value instanceof Short) {
             return asTag((short) value);
-        } else if (value instanceof  Double) {
+        } else if (value instanceof Double) {
             return asTag((double) value);
-        } else if (value instanceof  Byte) {
+        } else if (value instanceof Byte) {
             return asTag((byte) value);
-        } else if (value instanceof  Float) {
+        } else if (value instanceof Float) {
             return asTag((float) value);
-        } else if (value instanceof  Long) {
+        } else if (value instanceof Long) {
             return asTag((long) value);
-        } else if (value instanceof  String) {
+        } else if (value instanceof String) {
             return asTag((String) value);
-        } else if (value instanceof  Map) {
+        } else if (value instanceof Map) {
             return asTag((Map) value);
-        } else if (value instanceof  Collection) {
+        } else if (value instanceof Collection) {
             return asTag((Collection) value);
-        } else if (value instanceof  byte[]) {
+        } else if (value instanceof byte[]) {
             return asTag((byte[]) value);
-        } else if (value instanceof  int[]) {
+        } else if (value instanceof int[]) {
             return asTag((int[]) value);
-        } else if (value instanceof  Tag) {
+        } else if (value instanceof Tag) {
             return (Tag) value;
         } else if (value == null) {
             System.out.println("Invalid nbt: " + value);

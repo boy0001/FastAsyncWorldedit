@@ -51,7 +51,7 @@ public class FastIterator implements Iterable<Vector> {
             int lastLeadChunkX = Integer.MIN_VALUE;
             int lastLeadChunkZ = Integer.MIN_VALUE;
             int loadingTarget = Settings.IMP.QUEUE.PRELOAD_CHUNKS;
-            int cx,cz;
+            int cx, cz;
 
             @Override
             public void remove() {
@@ -88,7 +88,8 @@ public class FastIterator implements Iterable<Vector> {
                                     count++;
                                 }
                             }
-                        } catch (Throwable ignore) {}
+                        } catch (Throwable ignore) {
+                        }
                     }
                 }
                 return pt;

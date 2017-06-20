@@ -56,51 +56,51 @@ public class SplineBrush implements Brush {
         boolean newPos = this.position == null || !position.equals(this.position);
         this.position = position;
         if (newPos) {
-                if (positionSets.size() >= MAX_POINTS) {
-                    throw new FaweException(BBC.WORLDEDIT_CANCEL_REASON_MAX_CHECKS);
-                }
-                final ArrayList<Vector> points = new ArrayList<>();
-                if (size > 0) {
-                    DFSRecursiveVisitor visitor = new DFSRecursiveVisitor(mask, new RegionFunction() {
-                        @Override
-                        public boolean apply(Vector p) throws WorldEditException {
-                            points.add(new Vector(p));
-                            return true;
-                        }
-                    }, (int) size, 1);
-                    List<Vector> directions = visitor.getDirections();
-                    for (int x = -1; x <= 1; x++) {
-                        for (int y = -1; y <= 1; y++) {
-                            for (int z = -1; z <= 1; z++) {
-                                if (x != 0 || y != 0 || z != 0) {
-                                    Vector pos = new Vector(x, y, z);
-                                    if (!directions.contains(pos)) {
-                                        directions.add(pos);
-                                    }
+            if (positionSets.size() >= MAX_POINTS) {
+                throw new FaweException(BBC.WORLDEDIT_CANCEL_REASON_MAX_CHECKS);
+            }
+            final ArrayList<Vector> points = new ArrayList<>();
+            if (size > 0) {
+                DFSRecursiveVisitor visitor = new DFSRecursiveVisitor(mask, new RegionFunction() {
+                    @Override
+                    public boolean apply(Vector p) throws WorldEditException {
+                        points.add(new Vector(p));
+                        return true;
+                    }
+                }, (int) size, 1);
+                List<Vector> directions = visitor.getDirections();
+                for (int x = -1; x <= 1; x++) {
+                    for (int y = -1; y <= 1; y++) {
+                        for (int z = -1; z <= 1; z++) {
+                            if (x != 0 || y != 0 || z != 0) {
+                                Vector pos = new Vector(x, y, z);
+                                if (!directions.contains(pos)) {
+                                    directions.add(pos);
                                 }
                             }
                         }
                     }
-                    Collections.sort(directions, new Comparator<Vector>() {
-                        @Override
-                        public int compare(Vector o1, Vector o2) {
-                            return (int) Math.signum(o1.lengthSq() - o2.lengthSq());
-                        }
-                    });
-                    visitor.visit(position);
-                    Operations.completeBlindly(visitor);
-                    if (points.size() > numSplines) {
-                        numSplines = points.size();
+                }
+                Collections.sort(directions, new Comparator<Vector>() {
+                    @Override
+                    public int compare(Vector o1, Vector o2) {
+                        return (int) Math.signum(o1.lengthSq() - o2.lengthSq());
                     }
-                } else {
-                    points.add(position);
+                });
+                visitor.visit(position);
+                Operations.completeBlindly(visitor);
+                if (points.size() > numSplines) {
+                    numSplines = points.size();
                 }
-                this.positionSets.add(points);
-                player.print(BBC.getPrefix() + BBC.BRUSH_SPLINE_PRIMARY_2.s());
-                if (!visualization) {
-                    return;
-                }
+            } else {
+                points.add(position);
             }
+            this.positionSets.add(points);
+            player.print(BBC.getPrefix() + BBC.BRUSH_SPLINE_PRIMARY_2.s());
+            if (!visualization) {
+                return;
+            }
+        }
         if (positionSets.size() < 2) {
             player.print(BBC.getPrefix() + BBC.BRUSH_SPLINE_SECONDARY_ERROR.s());
             return;
@@ -166,8 +166,12 @@ public class SplineBrush implements Brush {
         }
 
         // Calc full 3x3 covariance matrix, excluding symmetries:
-        double xx = 0.0; double xy = 0.0; double xz = 0.0;
-        double yy = 0.0; double yz = 0.0; double zz = 0.0;
+        double xx = 0.0;
+        double xy = 0.0;
+        double xz = 0.0;
+        double yy = 0.0;
+        double yz = 0.0;
+        double zz = 0.0;
 
         Vector r = new Vector();
         for (Vector p : points) {
@@ -182,9 +186,9 @@ public class SplineBrush implements Brush {
             zz += r.getZ() * r.getZ();
         }
 
-        double det_x = yy*zz - yz*yz;
-        double det_y = xx*zz - xz*xz;
-        double det_z = xx*yy - xy*xy;
+        double det_x = yy * zz - yz * yz;
+        double det_y = xx * zz - xz * xz;
+        double det_z = xx * yy - xy * xy;
 
         double det_max = Math.max(Math.max(det_x, det_y), det_z);
         if (det_max <= 0.0) {
@@ -194,18 +198,19 @@ public class SplineBrush implements Brush {
         // Pick path with best conditioning:
         Vector dir;
         if (det_max == det_x) {
-            double a = (xz*yz - xy*zz) / det_x;
-            double b = (xy*yz - xz*yy) / det_x;
+            double a = (xz * yz - xy * zz) / det_x;
+            double b = (xy * yz - xz * yy) / det_x;
             dir = new Vector(1.0, a, b);
         } else if (det_max == det_y) {
-            double a = (yz*xz - xy*zz) / det_y;
-            double b = (xy*xz - yz*xx) / det_y;
+            double a = (yz * xz - xy * zz) / det_y;
+            double b = (xy * xz - yz * xx) / det_y;
             dir = new Vector(a, 1.0, b);
         } else {
-            double a = (yz*xy - xz*yy) / det_z;
-            double b = (xz*xy - yz*xx) / det_z;
+            double a = (yz * xy - xz * yy) / det_z;
+            double b = (xz * xy - yz * xx) / det_z;
             dir = new Vector(a, b, 1.0);
-        };
+        }
+        ;
         return dir.normalize();
     }
 }

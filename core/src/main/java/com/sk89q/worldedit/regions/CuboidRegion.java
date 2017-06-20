@@ -46,7 +46,7 @@ public class CuboidRegion extends AbstractRegion implements FlatRegion {
     private Vector pos1;
     private Vector pos2;
     private boolean useOldIterator;
-    private int minX,minY,minZ,maxX,maxY,maxZ;
+    private int minX, minY, minZ, maxX, maxY, maxZ;
 
     /**
      * Construct a new instance of this cuboid using two corners of the cuboid.
@@ -327,6 +327,7 @@ public class CuboidRegion extends AbstractRegion implements FlatRegion {
             public Iterator<Vector2D> iterator() {
                 return new Iterator<Vector2D>() {
                     private MutableBlockVector2D pos = new MutableBlockVector2D().setComponents(minX, minZ);
+
                     @Override
                     public boolean hasNext() {
                         return pos != null;
@@ -429,7 +430,7 @@ public class CuboidRegion extends AbstractRegion implements FlatRegion {
             return iterator_old();
         }
         return new Iterator<BlockVector>() {
-            final MutableBlockVector mutable = new MutableBlockVector(0,0,0);
+            final MutableBlockVector mutable = new MutableBlockVector(0, 0, 0);
             private Vector min = getMinimumPoint();
             private Vector max = getMaximumPoint();
 
@@ -512,7 +513,7 @@ public class CuboidRegion extends AbstractRegion implements FlatRegion {
     }
 
     public Iterator<BlockVector> iterator_old() {
-        final MutableBlockVector mutable = new MutableBlockVector(0,0,0);
+        final MutableBlockVector mutable = new MutableBlockVector(0, 0, 0);
         return new Iterator<BlockVector>() {
             private Vector min = getMinimumPoint();
             private Vector max = getMaximumPoint();
@@ -640,7 +641,7 @@ public class CuboidRegion extends AbstractRegion implements FlatRegion {
     /**
      * Make a cuboid from the center.
      *
-     * @param origin the origin
+     * @param origin  the origin
      * @param apothem the apothem, where 0 is the minimum value to make a 1x1 cuboid
      * @return a cuboid region
      */

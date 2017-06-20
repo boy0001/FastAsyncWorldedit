@@ -56,10 +56,12 @@ public class FaweMask {
 
     public boolean isValid(FawePlayer player, FaweMaskManager.MaskType type) {
         return false;
-    };
+    }
+
+    ;
 
     public BlockVector[] getBounds() {
-        final BlockVector[] BlockVectors = { this.position1, this.position2 };
+        final BlockVector[] BlockVectors = {this.position1, this.position2};
         return BlockVectors;
     }
 

@@ -32,15 +32,24 @@ public final class Request {
 
     private static final ThreadLocal<Request> threadLocal =
             new ThreadLocal<Request>() {
-                @Override protected Request initialValue() {
+                @Override
+                protected Request initialValue() {
                     return new Request();
                 }
             };
 
-    private @Nullable World world;
-    private @Nullable LocalSession session;
-    private @Nullable EditSession editSession;
-    private @Nullable Extent extent;
+    private
+    @Nullable
+    World world;
+    private
+    @Nullable
+    LocalSession session;
+    private
+    @Nullable
+    EditSession editSession;
+    private
+    @Nullable
+    Extent extent;
 
     private Request() {
     }
@@ -50,7 +59,9 @@ public final class Request {
      *
      * @return the world, which may be null
      */
-    public @Nullable World getWorld() {
+    public
+    @Nullable
+    World getWorld() {
         return world;
     }
 
@@ -67,7 +78,9 @@ public final class Request {
         this.extent = extent;
     }
 
-    public @Nullable Extent getExtent() {
+    public
+    @Nullable
+    Extent getExtent() {
         if (extent != null) return extent;
         if (editSession != null) return editSession;
         if (world != null) return world;
@@ -79,7 +92,9 @@ public final class Request {
      *
      * @return the session, which may be null
      */
-    public @Nullable LocalSession getSession() {
+    public
+    @Nullable
+    LocalSession getSession() {
         return session;
     }
 
@@ -97,7 +112,9 @@ public final class Request {
      *
      * @return the edit session, which may be null
      */
-    public @Nullable EditSession getEditSession() {
+    public
+    @Nullable
+    EditSession getEditSession() {
         return editSession;
     }
 

@@ -148,8 +148,8 @@ public class PolyhedralRegionSelector implements RegionSelector, CUIRegion {
     public List<String> getInformationLines() {
         List<String> ret = new ArrayList<String>();
 
-        ret.add("Vertices: "+region.getVertices().size());
-        ret.add("Triangles: "+region.getTriangles().size());
+        ret.add("Vertices: " + region.getVertices().size());
+        ret.add("Triangles: " + region.getTriangles().size());
 
         return ret;
     }
@@ -163,7 +163,7 @@ public class PolyhedralRegionSelector implements RegionSelector, CUIRegion {
 
         session.describeCUI(player);
 
-        player.print("Started new selection with vertex "+pos+".");
+        player.print("Started new selection with vertex " + pos + ".");
     }
 
     @Override

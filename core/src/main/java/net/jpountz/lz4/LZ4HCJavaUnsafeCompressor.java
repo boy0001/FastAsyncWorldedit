@@ -9,14 +9,7 @@ import net.jpountz.util.ByteBufferUtils;
 import net.jpountz.util.UnsafeUtils;
 
 
-import static net.jpountz.lz4.LZ4Constants.DEFAULT_COMPRESSION_LEVEL;
-import static net.jpountz.lz4.LZ4Constants.HASH_TABLE_SIZE_HC;
-import static net.jpountz.lz4.LZ4Constants.LAST_LITERALS;
-import static net.jpountz.lz4.LZ4Constants.MAX_DISTANCE;
-import static net.jpountz.lz4.LZ4Constants.MF_LIMIT;
-import static net.jpountz.lz4.LZ4Constants.MIN_MATCH;
-import static net.jpountz.lz4.LZ4Constants.ML_MASK;
-import static net.jpountz.lz4.LZ4Constants.OPTIMAL_ML;
+import static net.jpountz.lz4.LZ4Constants.*;
 import static net.jpountz.lz4.LZ4Utils.copyTo;
 import static net.jpountz.lz4.LZ4Utils.hashHC;
 

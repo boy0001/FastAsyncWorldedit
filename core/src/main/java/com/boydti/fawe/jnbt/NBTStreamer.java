@@ -18,6 +18,7 @@ public class NBTStreamer {
 
     /**
      * Reads the entire stream and runs the applicable readers
+     *
      * @throws IOException
      */
     public void readFully() throws IOException {
@@ -32,8 +33,9 @@ public class NBTStreamer {
 
     /**
      * Reads the stream until all readers have been used<br>
-     *     - Use readFully if you expect a reader to appear more than once
-     *     - Can exit early without having reading the entire file
+     * - Use readFully if you expect a reader to appear more than once
+     * - Can exit early without having reading the entire file
+     *
      * @throws IOException
      */
     public void readQuick() throws IOException {
@@ -47,7 +49,8 @@ public class NBTStreamer {
                     this.value2 = readers.remove(node);
                 }
             });
-        } catch (FaweException ignore) {}
+        } catch (FaweException ignore) {
+        }
         is.close();
     }
 
@@ -64,8 +67,9 @@ public class NBTStreamer {
         }
     }
 
-    public static  abstract class NBTStreamReader<T, V> extends RunnableVal2<T, V> {
+    public static abstract class NBTStreamReader<T, V> extends RunnableVal2<T, V> {
         private String node;
+
         public void init(String node) {
             this.node = node;
         }

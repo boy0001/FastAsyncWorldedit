@@ -45,7 +45,7 @@ public class CommandUsageBox extends StyledFragment {
     /**
      * Create a new usage box.
      *
-     * @param command the command to describe
+     * @param command       the command to describe
      * @param commandString the command that was used, such as "/we" or "/brush sphere"
      */
     public CommandUsageBox(CommandCallable command, String commandString) {
@@ -55,9 +55,9 @@ public class CommandUsageBox extends StyledFragment {
     /**
      * Create a new usage box.
      *
-     * @param command the command to describe
+     * @param command       the command to describe
      * @param commandString the command that was used, such as "/we" or "/brush sphere"
-     * @param locals list of locals to use
+     * @param locals        list of locals to use
      */
     public CommandUsageBox(CommandCallable command, String commandString, @Nullable CommandLocals locals) {
         checkNotNull(command);

@@ -80,7 +80,8 @@ public class TaskBuilder extends Metadatable {
 
     /**
      * Run some sync tasks in parallel<br>
-     *  - All sync parallel tasks which occur directly after each other will be run at the same time
+     * - All sync parallel tasks which occur directly after each other will be run at the same time
+     *
      * @param run
      * @return this
      */
@@ -106,7 +107,8 @@ public class TaskBuilder extends Metadatable {
 
     /**
      * Run some async tasks in parallel<br>
-     *  - All async parallel tasks which occur directly after each other will be run at the same time
+     * - All async parallel tasks which occur directly after each other will be run at the same time
+     *
      * @param run
      * @return this
      */
@@ -132,9 +134,10 @@ public class TaskBuilder extends Metadatable {
 
     /**
      * Run a split task when the server has free time<br>
-     *  - i.e. To maintain high tps
-     *  - Use the split() method within task execution
-     *  - FAWE will be able to pause execution at these points
+     * - i.e. To maintain high tps
+     * - Use the split() method within task execution
+     * - FAWE will be able to pause execution at these points
+     *
      * @param run
      * @return this
      */
@@ -209,7 +212,7 @@ public class TaskBuilder extends Metadatable {
 
     /**
      * Have all async tasks run on a new thread<br>
-     *  - As opposed to trying to using the current thread
+     * - As opposed to trying to using the current thread
      */
     public void buildAsync() {
         TaskManager.IMP.async(new Runnable() {
@@ -222,7 +225,7 @@ public class TaskBuilder extends Metadatable {
 
     /**
      * Begins execution of the tasks<br>
-     *  - The builder will attempt to run on the current thread if possible
+     * - The builder will attempt to run on the current thread if possible
      */
     public void build() {
         RunnableTask peek;
@@ -466,6 +469,8 @@ public class TaskBuilder extends Metadatable {
         private Object syncWaitLock = new Object();
 
         private boolean finished;
+        private boolean waitingAsync = true;
+        private boolean waitingSync = false;
 
         public SplitTask() {
             this(20);
@@ -492,6 +497,8 @@ public class TaskBuilder extends Metadatable {
                     }
                     exec(previous);
                     finished = true;
+                    waitingAsync = true;
+                    waitingSync = false;
                     synchronized (syncWaitLock) {
                         syncWaitLock.notifyAll();
                     }
@@ -514,11 +521,15 @@ public class TaskBuilder extends Metadatable {
                         try {
                             if (!finished) {
                                 synchronized (asyncWaitLock) {
+                                    while (!waitingAsync) asyncWaitLock.wait(1);
                                     asyncWaitLock.notifyAll();
                                 }
+                                waitingSync = true;
                                 synchronized (syncWaitLock) {
+                                    syncWaitLock.notifyAll();
                                     syncWaitLock.wait();
                                 }
+                                waitingSync = false;
                             }
                         } catch (InterruptedException e) {
                             e.printStackTrace();
@@ -535,11 +546,15 @@ public class TaskBuilder extends Metadatable {
             if (now - start > allocation) {
                 try {
                     synchronized (syncWaitLock) {
+                        while (!waitingSync) syncWaitLock.wait(1);
                         syncWaitLock.notifyAll();
                     }
+                    waitingAsync = true;
                     synchronized (asyncWaitLock) {
+                        asyncWaitLock.notifyAll();
                         asyncWaitLock.wait();
                     }
+                    waitingAsync = false;
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 }

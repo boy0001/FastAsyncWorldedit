@@ -6,7 +6,7 @@ import com.sk89q.worldedit.extent.Extent;
 import java.util.Arrays;
 import java.util.Collection;
 
-public class SingleRegionExtent extends FaweRegionExtent{
+public class SingleRegionExtent extends FaweRegionExtent {
 
     private final RegionWrapper region;
 

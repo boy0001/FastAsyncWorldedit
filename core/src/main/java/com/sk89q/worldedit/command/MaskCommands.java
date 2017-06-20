@@ -45,7 +45,7 @@ import com.sk89q.worldedit.util.command.binding.Switch;
 import com.sk89q.worldedit.util.command.parametric.Optional;
 import com.sk89q.worldedit.world.biome.BaseBiome;
 
-@Command(aliases = { "masks" },
+@Command(aliases = {"masks"},
         desc = "Help for the various masks. [More Info](https://github.com/boy0001/FastAsyncWorldedit/wiki/WorldEdit---FAWE-mask-list)"
 )
 public class MaskCommands extends MethodCommands {
@@ -185,7 +185,7 @@ public class MaskCommands extends MethodCommands {
             aliases = {"#xaxis"},
             desc = "Restrict to initial x axis"
     )
-    public Mask xaxis()  {
+    public Mask xaxis() {
         return new XAxisMask();
     }
 
@@ -193,7 +193,7 @@ public class MaskCommands extends MethodCommands {
             aliases = {"#yaxis"},
             desc = "Restrict to initial y axis"
     )
-    public Mask yaxis()  {
+    public Mask yaxis() {
         return new YAxisMask();
     }
 
@@ -201,7 +201,7 @@ public class MaskCommands extends MethodCommands {
             aliases = {"#zaxis"},
             desc = "Restrict to initial z axis"
     )
-    public Mask zaxis()  {
+    public Mask zaxis() {
         return new ZAxisMask();
     }
 
@@ -209,7 +209,7 @@ public class MaskCommands extends MethodCommands {
             aliases = {"#id"},
             desc = "Restrict to initial id"
     )
-    public Mask id(EditSession editSession)  {
+    public Mask id(EditSession editSession) {
         return new IdMask(editSession);
     }
 
@@ -217,7 +217,7 @@ public class MaskCommands extends MethodCommands {
             aliases = {"#data"},
             desc = "Restrict to initial data"
     )
-    public Mask data(EditSession editSession)  {
+    public Mask data(EditSession editSession) {
         return new DataMask(editSession);
     }
 
@@ -225,7 +225,7 @@ public class MaskCommands extends MethodCommands {
             aliases = {"#iddata"},
             desc = "Restrict to initial block id and data"
     )
-    public Mask iddata(EditSession editSession)  {
+    public Mask iddata(EditSession editSession) {
         return new IdDataMask(editSession);
     }
 
@@ -233,7 +233,7 @@ public class MaskCommands extends MethodCommands {
             aliases = {"#wall"},
             desc = "Restrict to walls (any block n,e,s,w of air)"
     )
-    public Mask wall(EditSession extent)  {
+    public Mask wall(EditSession extent) {
         BlockMask blockMask = new BlockMask(extent, new BaseBlock(0));
         return new MaskUnion(new ExistingBlockMask(extent), new WallMask(blockMask, 1, 8));
     }
@@ -242,7 +242,7 @@ public class MaskCommands extends MethodCommands {
             aliases = {"#surface"},
             desc = "Restrict to surfaces (any solid block touching air)"
     )
-    public Mask surface(EditSession extent)  {
+    public Mask surface(EditSession extent) {
         return new MaskUnion(new ExistingBlockMask(extent), new AdjacentAnyMask(new BlockMask(extent, new BaseBlock(0))));
     }
 
@@ -260,7 +260,7 @@ public class MaskCommands extends MethodCommands {
             max = 2
     )
     public Mask angle(EditSession extent, String min, String max, @Switch('o') boolean overlay) throws ExpressionException {
-        double y1,y2;
+        double y1, y2;
         boolean override;
         if (max.endsWith("d")) {
             double y1d = Expression.compile(min.substring(0, min.length() - 1)).evaluate();
@@ -304,8 +304,10 @@ public class MaskCommands extends MethodCommands {
             max = 3
     )
     public Mask adjacent(Mask mask, @Optional("-1") double min, @Optional("-1") double max) throws ExpressionException {
-        if (min == -1 && max == -1) { min = 1; max = 8; }
-        else if (max == -1) max = min;
+        if (min == -1 && max == -1) {
+            min = 1;
+            max = 8;
+        } else if (max == -1) max = min;
         if (max >= 8 && min == 1) {
             return new AdjacentAnyMask(mask);
         }

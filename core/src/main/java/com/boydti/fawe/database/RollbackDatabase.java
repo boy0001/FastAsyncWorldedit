@@ -32,7 +32,7 @@ public class RollbackDatabase {
 
     private String INSERT_EDIT;
     private String CREATE_TABLE;
-//    private String GET_EDITS_POINT;
+    //    private String GET_EDITS_POINT;
     private String GET_EDITS;
     private String GET_EDITS_USER;
     private String DELETE_EDITS_USER;

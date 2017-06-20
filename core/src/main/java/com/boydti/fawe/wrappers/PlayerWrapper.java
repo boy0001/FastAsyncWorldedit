@@ -4,7 +4,17 @@ import com.boydti.fawe.Fawe;
 import com.boydti.fawe.object.FawePlayer;
 import com.boydti.fawe.object.RunnableVal;
 import com.boydti.fawe.util.TaskManager;
-import com.sk89q.worldedit.*;
+import com.sk89q.worldedit.BlockWorldVector;
+import com.sk89q.worldedit.EditSession;
+import com.sk89q.worldedit.EditSessionFactory;
+import com.sk89q.worldedit.LocalSession;
+import com.sk89q.worldedit.LocalWorld;
+import com.sk89q.worldedit.PlayerDirection;
+import com.sk89q.worldedit.Vector;
+import com.sk89q.worldedit.WorldEdit;
+import com.sk89q.worldedit.WorldEditException;
+import com.sk89q.worldedit.WorldVector;
+import com.sk89q.worldedit.WorldVectorFace;
 import com.sk89q.worldedit.blocks.BaseBlock;
 import com.sk89q.worldedit.blocks.BlockType;
 import com.sk89q.worldedit.entity.BaseEntity;
@@ -30,7 +40,7 @@ public class PlayerWrapper extends AbstractPlayerActor {
     }
 
     public static PlayerWrapper wrap(Player parent) {
-        if (parent instanceof  PlayerWrapper) {
+        if (parent instanceof PlayerWrapper) {
             return (PlayerWrapper) parent;
         }
         return new PlayerWrapper(parent);
@@ -221,7 +231,7 @@ public class PlayerWrapper extends AbstractPlayerActor {
             @Override
             public void run(WorldVector value) {
                 TargetBlock tb = new TargetBlock(PlayerWrapper.this, range, 0.2D);
-                this.value = useLastBlock?tb.getAnyTargetBlock():tb.getTargetBlock();
+                this.value = useLastBlock ? tb.getAnyTargetBlock() : tb.getTargetBlock();
             }
         });
     }
@@ -232,7 +242,7 @@ public class PlayerWrapper extends AbstractPlayerActor {
             @Override
             public void run(WorldVectorFace value) {
                 TargetBlock tb = new TargetBlock(PlayerWrapper.this, range, 0.2D);
-                this.value = useLastBlock?tb.getAnyTargetBlockFace():tb.getTargetBlockFace();
+                this.value = useLastBlock ? tb.getAnyTargetBlockFace() : tb.getTargetBlockFace();
             }
         });
     }
@@ -283,29 +293,29 @@ public class PlayerWrapper extends AbstractPlayerActor {
                 int freeToFind = 2;
                 boolean inFree = false;
 
-                while(true) {
+                while (true) {
                     BlockWorldVector block;
-                    while((block = hitBlox.getNextBlock()) != null) {
+                    while ((block = hitBlox.getNextBlock()) != null) {
                         boolean free = BlockType.canPassThrough(world.getBlock(block));
-                        if(firstBlock) {
+                        if (firstBlock) {
                             firstBlock = false;
-                            if(!free) {
+                            if (!free) {
                                 --freeToFind;
                                 continue;
                             }
                         }
 
                         ++searchDist;
-                        if(searchDist > 20) {
+                        if (searchDist > 20) {
                             this.value = false;
                             return;
                         }
 
-                        if(inFree != free && free) {
+                        if (inFree != free && free) {
                             --freeToFind;
                         }
 
-                        if(freeToFind == 0) {
+                        if (freeToFind == 0) {
                             PlayerWrapper.this.setOnGround(block);
                             this.value = true;
                             return;

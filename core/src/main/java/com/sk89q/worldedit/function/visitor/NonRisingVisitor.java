@@ -33,7 +33,7 @@ public class NonRisingVisitor extends RecursiveVisitor {
     /**
      * Create a new recursive visitor.
      *
-     * @param mask the mask
+     * @param mask     the mask
      * @param function the function
      */
 

@@ -14,7 +14,8 @@ public class MemoryConfiguration extends MemorySection implements Configuration 
     /**
      * Creates an empty {@link com.boydti.fawe.configuration.MemoryConfiguration} with no default values.
      */
-    public MemoryConfiguration() {}
+    public MemoryConfiguration() {
+    }
 
     /**
      * Creates an empty {@link com.boydti.fawe.configuration.MemoryConfiguration} using the specified {@link
@@ -83,7 +84,7 @@ public class MemoryConfiguration extends MemorySection implements Configuration 
         if (options == null) {
             options = new MemoryConfigurationOptions(this);
         }
-        
+
         return options;
     }
 }

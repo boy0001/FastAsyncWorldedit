@@ -60,7 +60,7 @@ public class NavigationCommands {
     }
 
     @Command(
-            aliases = { "unstuck", "!" },
+            aliases = {"unstuck", "!"},
             usage = "",
             desc = "Escape from being stuck inside a block",
             min = 0,
@@ -73,7 +73,7 @@ public class NavigationCommands {
     }
 
     @Command(
-            aliases = { "ascend", "asc" },
+            aliases = {"ascend", "asc"},
             usage = "[# of levels]",
             desc = "Go up a floor",
             min = 0,
@@ -97,7 +97,7 @@ public class NavigationCommands {
     }
 
     @Command(
-            aliases = { "descend", "desc" },
+            aliases = {"descend", "desc"},
             usage = "[# of floors]",
             desc = "Go down a floor",
             min = 0,
@@ -121,7 +121,7 @@ public class NavigationCommands {
     }
 
     @Command(
-            aliases = { "ceil" },
+            aliases = {"ceil"},
             usage = "[clearance]",
             desc = "Go to the celing",
             flags = "fg",
@@ -144,7 +144,7 @@ public class NavigationCommands {
     }
 
     @Command(
-            aliases = { "thru" },
+            aliases = {"thru"},
             usage = "",
             desc = "Passthrough walls",
             min = 0,
@@ -160,7 +160,7 @@ public class NavigationCommands {
     }
 
     @Command(
-            aliases = { "jumpto", "j" },
+            aliases = {"jumpto", "j"},
             usage = "[world,x,y,z]",
             desc = "Teleport to a location",
             min = 0,
@@ -191,7 +191,7 @@ public class NavigationCommands {
     }
 
     @Command(
-            aliases = { "up" },
+            aliases = {"up"},
             usage = "<block>",
             desc = "Go upwards some distance",
             flags = "fg",

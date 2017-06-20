@@ -111,7 +111,7 @@ public class MCAQueueMap implements IFaweQueueMap {
             ignore.printStackTrace();
         }
         if (isHybridQueue) { // Use parent queue for in use chunks
-            lastChunk = ((MappedFaweQueue)queue).getFaweQueueMap().getFaweChunk(cx, cz);
+            lastChunk = ((MappedFaweQueue) queue).getFaweQueueMap().getFaweChunk(cx, cz);
             return lastChunk;
         }
         nullChunk.setLoc(queue, lastX, lastZ);

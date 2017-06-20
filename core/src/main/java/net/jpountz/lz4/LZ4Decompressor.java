@@ -20,6 +20,6 @@ package net.jpountz.lz4;
 @Deprecated
 public interface LZ4Decompressor {
 
-  int decompress(byte[] src, int srcOff, byte[] dest, int destOff, int destLen);
+    int decompress(byte[] src, int srcOff, byte[] dest, int destOff, int destLen);
 
 }

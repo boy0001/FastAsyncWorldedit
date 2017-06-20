@@ -3,8 +3,8 @@ package com.boydti.fawe.object.progress;
 import com.boydti.fawe.config.BBC;
 import com.boydti.fawe.config.Settings;
 import com.boydti.fawe.object.FawePlayer;
-import com.boydti.fawe.object.RunnableVal2;
 import com.boydti.fawe.object.FaweQueue;
+import com.boydti.fawe.object.RunnableVal2;
 import com.boydti.fawe.util.StringMan;
 import com.boydti.fawe.util.TaskManager;
 

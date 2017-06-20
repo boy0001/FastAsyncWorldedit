@@ -19,7 +19,7 @@ import java.util.Map;
 
 public class WorldCopyClipboard extends ReadOnlyClipboard {
 
-    public final int mx,my,mz;
+    public final int mx, my, mz;
     public final EditSession editSession;
 
     public WorldCopyClipboard(EditSession editSession, Region region) {

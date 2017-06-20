@@ -7,10 +7,10 @@ import com.sk89q.worldedit.blocks.BaseBlock;
 import com.sk89q.worldedit.extent.Extent;
 import com.sk89q.worldedit.function.pattern.AbstractPattern;
 
-public class DataAngleMask extends AbstractPattern  {
+public class DataAngleMask extends AbstractPattern {
     public final Extent extent;
     public final int maxY;
-    public final double factor = 1d/255;
+    public final double factor = 1d / 255;
 
     public DataAngleMask(Extent extent) {
         this.extent = extent;

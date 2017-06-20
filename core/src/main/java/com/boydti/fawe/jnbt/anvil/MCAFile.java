@@ -35,6 +35,7 @@ public class MCAFile {
 
     private static Field fieldBuf2;
     private static Field fieldBuf3;
+
     static {
         try {
             fieldBuf2 = InflaterInputStream.class.getDeclaredField("buf");
@@ -170,7 +171,7 @@ public class MCAFile {
 
     public MCAChunk readChunk(int cx, int cz) throws IOException {
         int i = ((cx & 31) << 2) + ((cz & 31) << 7);
-        int offset = (((locations[i] & 0xFF) << 16) + ((locations[i + 1] & 0xFF) << 8) + ((locations[i+ 2] & 0xFF))) << 12;
+        int offset = (((locations[i] & 0xFF) << 16) + ((locations[i + 1] & 0xFF) << 8) + ((locations[i + 2] & 0xFF))) << 12;
         int size = (locations[i + 3] & 0xFF) << 12;
         if (offset == 0) {
             return null;
@@ -187,6 +188,7 @@ public class MCAFile {
 
     /**
      * CX, CZ, OFFSET, SIZE
+     *
      * @param onEach
      * @throws IOException
      */
@@ -196,7 +198,7 @@ public class MCAFile {
         char i = 0;
         for (int z = 0; z < 32; z++) {
             for (int x = 0; x < 32; x++, i += 4) {
-                int offset = (((locations[i] & 0xFF) << 16) + ((locations[i + 1] & 0xFF) << 8) + ((locations[i+ 2] & 0xFF))) - 2;
+                int offset = (((locations[i] & 0xFF) << 16) + ((locations[i + 1] & 0xFF) << 8) + ((locations[i + 2] & 0xFF))) - 2;
                 int size = locations[i + 3] & 0xFF;
                 if (size != 0) {
                     if (offset < offsets.length) {
@@ -227,7 +229,7 @@ public class MCAFile {
         int i = 0;
         for (int z = 0; z < 32; z++) {
             for (int x = 0; x < 32; x++, i += 4) {
-                int offset = (((locations[i] & 0xFF) << 16) + ((locations[i + 1] & 0xFF) << 8) + ((locations[i+ 2] & 0xFF)));
+                int offset = (((locations[i] & 0xFF) << 16) + ((locations[i + 1] & 0xFF) << 8) + ((locations[i + 2] & 0xFF)));
                 int size = locations[i + 3] & 0xFF;
                 if (size != 0) {
                     onEach.run(x, z, offset << 12, size << 12);
@@ -240,12 +242,13 @@ public class MCAFile {
         int i = 0;
         for (int z = 0; z < 32; z++) {
             for (int x = 0; x < 32; x++, i += 4) {
-                int offset = (((locations[i] & 0xFF) << 16) + ((locations[i + 1] & 0xFF) << 8) + ((locations[i+ 2] & 0xFF)));
+                int offset = (((locations[i] & 0xFF) << 16) + ((locations[i + 1] & 0xFF) << 8) + ((locations[i + 2] & 0xFF)));
                 int size = locations[i + 3] & 0xFF;
                 if (size != 0) {
                     try {
                         onEach.run(getChunk(x, z));
-                    } catch (Throwable ignore) {}
+                    } catch (Throwable ignore) {
+                    }
                 }
             }
         }
@@ -253,7 +256,7 @@ public class MCAFile {
 
     public int getOffset(int cx, int cz) {
         int i = ((cx & 31) << 2) + ((cz & 31) << 7);
-        int offset = (((locations[i] & 0xFF) << 16) + ((locations[i + 1] & 0xFF) << 8) + ((locations[i+ 2] & 0xFF)));
+        int offset = (((locations[i] & 0xFF) << 16) + ((locations[i + 1] & 0xFF) << 8) + ((locations[i + 2] & 0xFF)));
         return offset << 12;
     }
 
@@ -264,14 +267,14 @@ public class MCAFile {
 
     public List<Integer> getChunks() {
         final List<Integer> values = new ArrayList<>(chunks.size());
-        for (int i = 0; i < locations.length; i+=4) {
-            int offset = (((locations[i] & 0xFF) << 16) + ((locations[i + 1] & 0xFF) << 8) + ((locations[i+ 2] & 0xFF)));
+        for (int i = 0; i < locations.length; i += 4) {
+            int offset = (((locations[i] & 0xFF) << 16) + ((locations[i + 1] & 0xFF) << 8) + ((locations[i + 2] & 0xFF)));
             values.add(offset);
         }
         return values;
     }
 
-    public byte[] getChunkCompressedBytes(int offset) throws IOException{
+    public byte[] getChunkCompressedBytes(int offset) throws IOException {
         if (offset == 0) {
             return null;
         }
@@ -362,7 +365,7 @@ public class MCAFile {
         return compressed;
     }
 
-    private byte[] getChunkBytes(int cx, int cz) throws  Exception{
+    private byte[] getChunkBytes(int cx, int cz) throws Exception {
         MCAChunk mca = getCachedChunk(cx, cz);
         if (mca == null) {
             int offset = getOffset(cx, cz);

@@ -21,7 +21,8 @@ public class EmptyClipboard implements Clipboard {
 
     public static final EmptyClipboard INSTANCE = new EmptyClipboard();
 
-    private EmptyClipboard() {}
+    private EmptyClipboard() {
+    }
 
     @Override
     public Region getRegion() {
@@ -39,7 +40,8 @@ public class EmptyClipboard implements Clipboard {
     }
 
     @Override
-    public void setOrigin(Vector origin) {}
+    public void setOrigin(Vector origin) {
+    }
 
     @Override
     public Vector getMinimumPoint() {

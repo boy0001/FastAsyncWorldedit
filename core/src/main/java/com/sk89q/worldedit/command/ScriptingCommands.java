@@ -52,7 +52,7 @@ public class ScriptingCommands {
         this.worldEdit = worldEdit;
     }
 
-    @Command(aliases = { "cs" }, usage = "<filename> [args...]", desc = "Execute a CraftScript", min = 1, max = -1)
+    @Command(aliases = {"cs"}, usage = "<filename> [args...]", desc = "Execute a CraftScript", min = 1, max = -1)
     @CommandPermissions("worldedit.scripting.execute")
     @Logging(ALL)
     public void execute(final Player player, final LocalSession session, final CommandContext args) throws WorldEditException {
@@ -75,7 +75,7 @@ public class ScriptingCommands {
         }
     }
 
-    @Command(aliases = { ".s" }, usage = "[args...]", desc = "Execute last CraftScript", min = 0, max = -1)
+    @Command(aliases = {".s"}, usage = "[args...]", desc = "Execute last CraftScript", min = 0, max = -1)
     @CommandPermissions("worldedit.scripting.execute")
     @Logging(ALL)
     public void executeLast(final Player player, final LocalSession session, final CommandContext args) throws WorldEditException {

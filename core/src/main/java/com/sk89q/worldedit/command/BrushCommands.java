@@ -101,7 +101,7 @@ import javafx.scene.paint.Color;
 /**
  * Commands to set brush shape.
  */
-@Command(aliases = { "brush", "br", "/b" },
+@Command(aliases = {"brush", "br", "/b"},
         desc = "Commands to build and draw from far away. [More Info](https://github.com/boy0001/FastAsyncWorldedit/wiki/Brushes)"
 )
 public class BrushCommands extends MethodCommands {
@@ -125,7 +125,7 @@ public class BrushCommands extends MethodCommands {
 
 
     @Command(
-            aliases = { "blendball", "bb", "blend" },
+            aliases = {"blendball", "bb", "blend"},
             usage = "[radius=5]",
             desc = "Smooths and blends terrain",
             help = "Smooths and blends terrain\n" +
@@ -140,7 +140,7 @@ public class BrushCommands extends MethodCommands {
     }
 
     @Command(
-            aliases = { "erode", "e" },
+            aliases = {"erode", "e"},
             usage = "[radius=5]",
             desc = "Erodes terrain",
             help = "Erodes terrain",
@@ -154,7 +154,7 @@ public class BrushCommands extends MethodCommands {
     }
 
     @Command(
-            aliases = { "pull" },
+            aliases = {"pull"},
             usage = "[radius=5]",
             desc = "Pull terrain towards you",
             help = "Pull terrain towards you",
@@ -168,7 +168,7 @@ public class BrushCommands extends MethodCommands {
     }
 
     @Command(
-            aliases = { "circle" },
+            aliases = {"circle"},
             usage = "<pattern> [radius=5]",
             desc = "Creates a circle which revolves around your facing direction",
             help = "Creates a circle which revolves around your facing direction.\n" +
@@ -183,7 +183,7 @@ public class BrushCommands extends MethodCommands {
     }
 
     @Command(
-            aliases = { "recursive", "recurse", "r" },
+            aliases = {"recursive", "recurse", "r"},
             usage = "<pattern-to> [radius=5]",
             desc = "Set all connected blocks",
             help = "Set all connected blocks\n" +
@@ -196,14 +196,14 @@ public class BrushCommands extends MethodCommands {
     public BrushSettings recursiveBrush(Player player, LocalSession session, EditSession editSession, Pattern fill, @Optional("5") double radius, @Switch('d') boolean depthFirst, CommandContext context) throws WorldEditException {
         worldEdit.checkMaxBrushRadius(radius);
         return get(context)
-        .setBrush(new RecurseBrush(depthFirst))
-        .setSize(radius)
-        .setFill(fill)
-        .setMask(new IdMask(editSession));
+                .setBrush(new RecurseBrush(depthFirst))
+                .setSize(radius)
+                .setFill(fill)
+                .setMask(new IdMask(editSession));
     }
 
     @Command(
-            aliases = { "line", "l" },
+            aliases = {"line", "l"},
             usage = "<pattern> [radius=0]",
             flags = "hsf",
             desc = "Create lines",
@@ -225,7 +225,7 @@ public class BrushCommands extends MethodCommands {
     }
 
     @Command(
-            aliases = { "spline", "spl", "curve" },
+            aliases = {"spline", "spl", "curve"},
             usage = "<pattern>",
             desc = "Join multiple objects together in a curve",
             help = "Click to select some objects,click the same block twice to connect the objects.\n" +
@@ -245,10 +245,10 @@ public class BrushCommands extends MethodCommands {
                 .setFill(fill);
     }
 
-                                                                                                                        // final double tension, final double bias, final double continuity, final double quality
+    // final double tension, final double bias, final double continuity, final double quality
 
     @Command(
-            aliases = { "sspl", "sspline", "surfacespline" },
+            aliases = {"sspl", "sspline", "surfacespline"},
             usage = "<pattern> [size=0] [tension=0] [bias=0] [continuity=0] [quality=10]",
             desc = "Draws a spline (curved line) on the surface",
             help = "Create a spline on the surface\n" +
@@ -259,14 +259,15 @@ public class BrushCommands extends MethodCommands {
     @CommandPermissions("worldedit.brush.surfacespline") // 0, 0, 0, 10, 0,
     public BrushSettings surfaceSpline(Player player, EditSession editSession, LocalSession session, Pattern fill, @Optional("0") double radius, @Optional("0") double tension, @Optional("0") double bias, @Optional("0") double continuity, @Optional("10") double quality, CommandContext context) throws WorldEditException {
         player.print(BBC.getPrefix() + BBC.BRUSH_SPLINE.f(radius));
-        worldEdit.checkMaxBrushRadius(radius);return get(context)
+        worldEdit.checkMaxBrushRadius(radius);
+        return get(context)
                 .setBrush(new SurfaceSpline(tension, bias, continuity, quality))
                 .setSize(radius)
                 .setFill(fill);
     }
 
     @Command(
-            aliases = { "sphere", "s" },
+            aliases = {"sphere", "s"},
             usage = "<pattern> [radius=2]",
             flags = "h",
             desc = "Creates a sphere",
@@ -302,7 +303,7 @@ public class BrushCommands extends MethodCommands {
     }
 
     @Command(
-            aliases = { "shatter", "partition", "split" },
+            aliases = {"shatter", "partition", "split"},
             usage = "<pattern> [radius=10] [count=10]",
             desc = "Creates random lines to break the terrain into pieces",
             help =
@@ -322,7 +323,7 @@ public class BrushCommands extends MethodCommands {
     }
 
     @Command(
-            aliases = { "stencil", "color"},
+            aliases = {"stencil", "color"},
             usage = "<pattern> [radius=5] [file|#clipboard|imgur=null] [rotation=360] [yscale=1.0]",
             desc = "Use a height map to paint a surface",
             help =
@@ -352,7 +353,7 @@ public class BrushCommands extends MethodCommands {
     }
 
     @Command(
-            aliases = { "surface", "surf"},
+            aliases = {"surface", "surf"},
             usage = "<pattern> [radius=5]",
             desc = "Use a height map to paint a surface",
             help =
@@ -369,7 +370,7 @@ public class BrushCommands extends MethodCommands {
     }
 
     @Command(
-            aliases = { "scatter", "scat" },
+            aliases = {"scatter", "scat"},
             usage = "<pattern> [radius=5] [points=5] [distance=1]",
             desc = "Scatter a pattern on a surface",
             help =
@@ -396,7 +397,7 @@ public class BrushCommands extends MethodCommands {
     }
 
     @Command(
-            aliases = { "populateschematic", "populateschem", "popschem", "pschem", "ps" },
+            aliases = {"populateschematic", "populateschem", "popschem", "pschem", "ps"},
             usage = "<mask> <file|folder|url> [radius=30] [points=5]",
             desc = "Scatter a schematic on a surface",
             help =
@@ -425,7 +426,7 @@ public class BrushCommands extends MethodCommands {
     }
 
     @Command(
-            aliases = { "layer" },
+            aliases = {"layer"},
             usage = "<radius> [color|<pattern1> <patern2>...]",
             desc = "Replaces terrain with a layer.",
             help = "Replaces terrain with a layer.\n" +
@@ -465,7 +466,7 @@ public class BrushCommands extends MethodCommands {
     }
 
     @Command(
-            aliases = { "splatter", "splat" },
+            aliases = {"splatter", "splat"},
             usage = "<pattern> [radius=5] [seeds=1] [recursion=5] [solid=true]",
             desc = "Splatter a pattern on a surface",
             help = "Sets a bunch of blocks randomly on a surface.\n" +
@@ -485,7 +486,7 @@ public class BrushCommands extends MethodCommands {
     }
 
     @Command(
-            aliases = { "scmd", "scattercmd", "scattercommand", "scommand" },
+            aliases = {"scmd", "scattercmd", "scattercommand", "scommand"},
             usage = "<scatter-radius> <points> <cmd-radius=1> <cmd1;cmd2...>",
             desc = "Run commands at random points on a surface",
             help =
@@ -505,7 +506,7 @@ public class BrushCommands extends MethodCommands {
     }
 
     @Command(
-            aliases = { "cylinder", "cyl", "c" },
+            aliases = {"cylinder", "cyl", "c"},
             usage = "<block> [radius=2] [height=1]",
             flags = "h",
             desc = "Creates a cylinder",
@@ -517,7 +518,7 @@ public class BrushCommands extends MethodCommands {
     )
     @CommandPermissions("worldedit.brush.cylinder")
     public BrushSettings cylinderBrush(Player player, EditSession editSession, LocalSession session, Pattern fill,
-                              @Optional("2") double radius, @Optional("1") int height, @Switch('h') boolean hollow, CommandContext context) throws WorldEditException {
+                                       @Optional("2") double radius, @Optional("1") int height, @Switch('h') boolean hollow, CommandContext context) throws WorldEditException {
         worldEdit.checkMaxBrushRadius(radius);
         worldEdit.checkMaxBrushRadius(height);
         BrushSettings settings = get(context);
@@ -533,7 +534,7 @@ public class BrushCommands extends MethodCommands {
     }
 
     @Command(
-            aliases = { "clipboard"},
+            aliases = {"clipboard"},
             usage = "",
             desc = "Choose the clipboard brush (Recommended: `/br copypaste`)",
             help =
@@ -557,7 +558,7 @@ public class BrushCommands extends MethodCommands {
     }
 
     @Command(
-            aliases = { "smooth" },
+            aliases = {"smooth"},
             usage = "[size=2] [iterations=4]",
             flags = "n",
             desc = "Smooths terrain (Recommended: `/br blendball`)",
@@ -569,8 +570,8 @@ public class BrushCommands extends MethodCommands {
     )
     @CommandPermissions("worldedit.brush.smooth")
     public BrushSettings smoothBrush(Player player, LocalSession session, EditSession editSession,
-                            @Optional("2") double radius, @Optional("4") int iterations, @Switch('n')
-                                    boolean naturalBlocksOnly, CommandContext context) throws WorldEditException {
+                                     @Optional("2") double radius, @Optional("4") int iterations, @Switch('n')
+                                             boolean naturalBlocksOnly, CommandContext context) throws WorldEditException {
 
         worldEdit.checkMaxBrushRadius(radius);
 
@@ -584,7 +585,7 @@ public class BrushCommands extends MethodCommands {
     }
 
     @Command(
-            aliases = { "ex", "extinguish" },
+            aliases = {"ex", "extinguish"},
             usage = "[radius=5]",
             desc = "Shortcut fire extinguisher brush",
             min = 0,
@@ -603,7 +604,7 @@ public class BrushCommands extends MethodCommands {
     }
 
     @Command(
-            aliases = { "gravity", "grav" },
+            aliases = {"gravity", "grav"},
             usage = "[radius=5]",
             flags = "h",
             desc = "Gravity brush",
@@ -624,7 +625,7 @@ public class BrushCommands extends MethodCommands {
     }
 
     @Command(
-            aliases = { "height", "heightmap" },
+            aliases = {"height", "heightmap"},
             usage = "[radius=5] [file|#clipboard|imgur=null] [rotation=0] [yscale=1.00]",
             flags = "h",
             desc = "Raise or lower terrain using a heightmap",
@@ -633,8 +634,8 @@ public class BrushCommands extends MethodCommands {
                             " - The `-r` flag enables random off-axis rotation\n" +
                             " - The `-l` flag will work on snow layers\n" +
                             " - The `-s` flag disables smoothing\n" +
-                    "Note: Note: Use a negative yscale to reduce height\n" +
-                    "Snow Pic: https://i.imgur.com/Hrzn0I4.png",
+                            "Note: Note: Use a negative yscale to reduce height\n" +
+                            "Snow Pic: https://i.imgur.com/Hrzn0I4.png",
             min = 1,
             max = 4
     )
@@ -644,7 +645,7 @@ public class BrushCommands extends MethodCommands {
     }
 
     @Command(
-            aliases = { "cliff", "flatcylinder" },
+            aliases = {"cliff", "flatcylinder"},
             usage = "[radius=5] [file|#clipboard|imgur=null] [rotation=0] [yscale=1.00]",
             flags = "h",
             desc = "Cliff brush",
@@ -662,7 +663,7 @@ public class BrushCommands extends MethodCommands {
     }
 
     @Command(
-            aliases = { "flatten", "flatmap", "flat" },
+            aliases = {"flatten", "flatmap", "flat"},
             usage = "[radius=5] [file|#clipboard|imgur=null] [rotation=0] [yscale=1.00]",
             flags = "h",
             help = "Flatten brush flattens terrain\n" +
@@ -699,7 +700,7 @@ public class BrushCommands extends MethodCommands {
                     throw new RuntimeException(e);
                 }
             }
-        } else if (!filename.equalsIgnoreCase("#clipboard")){
+        } else if (!filename.equalsIgnoreCase("#clipboard")) {
             try {
                 return new FileInputStream(file);
             } catch (FileNotFoundException e) {
@@ -735,9 +736,8 @@ public class BrushCommands extends MethodCommands {
     }
 
 
-
     @Command(
-            aliases = { "copypaste", "copy", "paste", "cp", "copypasta" },
+            aliases = {"copypaste", "copy", "paste", "cp", "copypasta"},
             usage = "[depth=5]",
             desc = "Copy Paste brush",
             help = "Left click the base of an object to copy.\n" +
@@ -758,13 +758,13 @@ public class BrushCommands extends MethodCommands {
     }
 
     @Command(
-            aliases = { "command", "cmd" },
+            aliases = {"command", "cmd"},
             usage = "<radius> [cmd1;cmd2...]",
             desc = "Command brush",
             help =
                     "Run the commands at the clicked position.\n" +
-                    " - Your selection will be expanded to the specified size around each point\n" +
-                    " - Placeholders: {x}, {y}, {z}, {world}, {size}",
+                            " - Your selection will be expanded to the specified size around each point\n" +
+                            " - Placeholders: {x}, {y}, {z}, {world}, {size}",
 
             min = 2,
             max = 99
@@ -778,7 +778,7 @@ public class BrushCommands extends MethodCommands {
     }
 
     @Command(
-            aliases = { "butcher", "kill" },
+            aliases = {"butcher", "kill"},
             usage = "[radius=5]",
             flags = "plangbtfr",
             desc = "Butcher brush",

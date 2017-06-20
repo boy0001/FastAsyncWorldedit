@@ -113,7 +113,7 @@ public class FileConfigurationOptions extends MemoryConfigurationOptions {
      */
     public com.boydti.fawe.configuration.file.FileConfigurationOptions copyHeader(final boolean value) {
         copyHeader = value;
-        
+
         return this;
     }
 }

@@ -11,6 +11,7 @@ public class MutableBiomeChange implements Change {
     private MutableBlockVector2D mutable = new MutableBlockVector2D();
     private BaseBiome from;
     private BaseBiome to;
+
     public MutableBiomeChange() {
         this.from = new BaseBiome(0);
         this.to = new BaseBiome(0);

@@ -83,12 +83,13 @@ public class WEManager {
 
     /**
      * Get a player's mask
+     *
      * @param player
      * @return
      */
     public RegionWrapper[] getMask(final FawePlayer<?> player, FaweMaskManager.MaskType type) {
         if (player.hasPermission("fawe.bypass") || !Settings.IMP.REGION_RESTRICTIONS) {
-            return new RegionWrapper[] {RegionWrapper.GLOBAL()};
+            return new RegionWrapper[]{RegionWrapper.GLOBAL()};
         }
         FaweLocation loc = player.getLocation();
         String world = loc.world;
@@ -145,7 +146,6 @@ public class WEManager {
         }
         return regions.toArray(new RegionWrapper[regions.size()]);
     }
-
 
 
     public boolean intersects(final RegionWrapper region1, final RegionWrapper region2) {

@@ -38,7 +38,8 @@ public abstract class FaweClipboard {
 
     public abstract boolean remove(ClipboardEntity clipboardEntity);
 
-    public void setOrigin(Vector offset) {} // Do nothing
+    public void setOrigin(Vector offset) {
+    } // Do nothing
 
     public abstract void setDimensions(Vector dimensions);
 
@@ -46,6 +47,7 @@ public abstract class FaweClipboard {
 
     /**
      * The locations provided are relative to the clipboard min
+     *
      * @param task
      * @param air
      */
@@ -58,6 +60,7 @@ public abstract class FaweClipboard {
     public void streamIds(final NBTStreamer.ByteReader task) {
         forEach(new BlockReader() {
             private int index = 0;
+
             @Override
             public void run(int x, int y, int z, BaseBlock block) {
                 task.run(index++, block.getId());
@@ -68,6 +71,7 @@ public abstract class FaweClipboard {
     public void streamDatas(final NBTStreamer.ByteReader task) {
         forEach(new BlockReader() {
             private int index = 0;
+
             @Override
             public void run(int x, int y, int z, BaseBlock block) {
                 task.run(index++, block.getData());
@@ -79,6 +83,7 @@ public abstract class FaweClipboard {
         final List<CompoundTag> tiles = new ArrayList<>();
         forEach(new BlockReader() {
             private int index = 0;
+
             @Override
             public void run(int x, int y, int z, BaseBlock block) {
                 CompoundTag tag = block.getNbtData();
@@ -94,9 +99,11 @@ public abstract class FaweClipboard {
         return tiles;
     }
 
-    public void close() {}
+    public void close() {
+    }
 
-    public void flush() {}
+    public void flush() {
+    }
 
     /**
      * Stores entity data.
@@ -104,8 +111,8 @@ public abstract class FaweClipboard {
     public class ClipboardEntity implements Entity {
         private final BaseEntity entity;
         private final Extent world;
-        private final double x,y,z;
-        private final float yaw,pitch;
+        private final double x, y, z;
+        private final float yaw, pitch;
 
         public ClipboardEntity(Extent world, double x, double y, double z, float yaw, float pitch, BaseEntity entity) {
             checkNotNull(entity);

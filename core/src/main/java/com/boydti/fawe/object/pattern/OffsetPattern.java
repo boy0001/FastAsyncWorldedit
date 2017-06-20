@@ -11,7 +11,7 @@ import java.io.IOException;
 
 public class OffsetPattern extends AbstractPattern {
 
-    private final int dx,dy,dz;
+    private final int dx, dy, dz;
     private transient MutableBlockVector mutable = new MutableBlockVector();
     private final Pattern pattern;
 

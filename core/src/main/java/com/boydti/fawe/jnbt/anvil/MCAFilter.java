@@ -5,12 +5,13 @@ import com.sk89q.worldedit.blocks.BaseBlock;
 
 /**
  * MCAQueue.filterWorld(MCAFilter)<br>
- *  - Read and modify the world
+ * - Read and modify the world
  */
 public class MCAFilter<T> extends IterableThreadLocal<T> {
 
     /**
      * Check whether a .mca file should be read
+     *
      * @param mcaX
      * @param mcaZ
      * @return
@@ -21,8 +22,9 @@ public class MCAFilter<T> extends IterableThreadLocal<T> {
 
     /**
      * Do something with the MCAFile<br>
-     *  - Return null if you don't want to filter chunks<br>
-     *  - Return the same file if you do want to filter chunks<br>
+     * - Return null if you don't want to filter chunks<br>
+     * - Return the same file if you do want to filter chunks<br>
+     *
      * @param file
      * @return file or null
      */
@@ -32,6 +34,7 @@ public class MCAFilter<T> extends IterableThreadLocal<T> {
 
     /**
      * Check whether a chunk should be read
+     *
      * @param cx
      * @param cz
      * @return
@@ -42,8 +45,9 @@ public class MCAFilter<T> extends IterableThreadLocal<T> {
 
     /**
      * Do something with the MCAChunk<br>
-     *  - Return null if you don't want to filter blocks<br>
-     *  - Return the chunk if you do want to filter blocks<br>
+     * - Return null if you don't want to filter blocks<br>
+     * - Return the chunk if you do want to filter blocks<br>
+     *
      * @param chunk
      * @return
      */
@@ -53,20 +57,24 @@ public class MCAFilter<T> extends IterableThreadLocal<T> {
 
     /**
      * Make changes to the block here<br>
-     *  - e.g. block.setId(...)<br>
-     *  - Note: Performance is critical here<br>
+     * - e.g. block.setId(...)<br>
+     * - Note: Performance is critical here<br>
+     *
      * @param x
      * @param y
      * @param z
      * @param block
      */
-    public void applyBlock(int x, int y, int z, BaseBlock block, T cache) {}
+    public void applyBlock(int x, int y, int z, BaseBlock block, T cache) {
+    }
 
     /**
      * Do something with the MCAChunk after block filtering<br>
+     *
      * @param chunk
      * @param cache
      * @return
      */
-    public void finishChunk(MCAChunk chunk, T cache) {}
+    public void finishChunk(MCAChunk chunk, T cache) {
+    }
 }

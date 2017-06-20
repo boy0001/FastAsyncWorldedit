@@ -11,12 +11,14 @@ public class SilentPlayerWrapper extends PlayerWrapper {
     }
 
     @Override
-    public void print(String msg) {}
+    public void print(String msg) {
+    }
 
     @Override
     public void printDebug(String msg) {
     }
 
     @Override
-    public void printRaw(String msg) {}
+    public void printRaw(String msg) {
+    }
 }

@@ -42,20 +42,20 @@ public class EditSessionBuilder {
 
     /**
      * An EditSession builder<br>
-     *  - Unset values will revert to their default<br>
-     *  <br>
-     *  player: The player doing the edit (defaults to to null)<br>
-     *  limit: Block/Entity/Action limit (defaults to unlimited)<br>
-     *  changeSet: Stores changes (defaults to config.yml value)<br>
-     *  allowedRegions: Allowed editable regions (defaults to player's allowed regions, or everywhere)<br>
-     *  autoQueue: Changes can occur before flushQueue() (defaults true)<br>
-     *  fastmode: bypasses history (defaults to player fastmode or config.yml console history)<br>
-     *  checkMemory: If low memory checks are enabled (defaults to player's fastmode or true)<br>
-     *  combineStages: If history is combined with dispatching
+     * - Unset values will revert to their default<br>
+     * <br>
+     * player: The player doing the edit (defaults to to null)<br>
+     * limit: Block/Entity/Action limit (defaults to unlimited)<br>
+     * changeSet: Stores changes (defaults to config.yml value)<br>
+     * allowedRegions: Allowed editable regions (defaults to player's allowed regions, or everywhere)<br>
+     * autoQueue: Changes can occur before flushQueue() (defaults true)<br>
+     * fastmode: bypasses history (defaults to player fastmode or config.yml console history)<br>
+     * checkMemory: If low memory checks are enabled (defaults to player's fastmode or true)<br>
+     * combineStages: If history is combined with dispatching
      *
      * @param world A world must be provided for all EditSession(s)
      */
-    public EditSessionBuilder(@Nonnull World world){
+    public EditSessionBuilder(@Nonnull World world) {
         checkNotNull(world);
         this.world = world;
         this.worldName = Fawe.imp().getWorldName(world);
@@ -106,8 +106,8 @@ public class EditSessionBuilder {
     }
 
     /**
-     * @param disk If it should be stored on disk
-     * @param uuid The uuid to store it under (if on disk)
+     * @param disk        If it should be stored on disk
+     * @param uuid        The uuid to store it under (if on disk)
      * @param compression Compression level (0-9)
      * @return
      */

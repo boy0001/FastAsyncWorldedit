@@ -54,11 +54,12 @@ public abstract class FawePlayer<T> extends Metadatable {
 
     /**
      * Wrap some object into a FawePlayer<br>
-     *     - org.bukkit.entity.Player
-     *     - org.spongepowered.api.entity.living.player
-     *     - com.sk89q.worldedit.entity.Player
-     *     - String (name)
-     *     - UUID (player UUID)
+     * - org.bukkit.entity.Player
+     * - org.spongepowered.api.entity.living.player
+     * - com.sk89q.worldedit.entity.Player
+     * - String (name)
+     * - UUID (player UUID)
+     *
      * @param obj
      * @param <V>
      * @return
@@ -86,14 +87,15 @@ public abstract class FawePlayer<T> extends Metadatable {
                     MainUtil.handleError(e);
                     return Fawe.imp().wrap(actor.getName());
                 }
-            } else if (obj instanceof PlayerWrapper){
+            } else if (obj instanceof PlayerWrapper) {
                 return wrap(((PlayerWrapper) obj).getParent());
             } else {
                 try {
                     Field fieldPlayer = actor.getClass().getDeclaredField("player");
                     fieldPlayer.setAccessible(true);
                     return wrap(fieldPlayer.get(actor));
-                } catch (Throwable ignore) {}
+                } catch (Throwable ignore) {
+                }
             }
         }
         if (obj instanceof Actor) {
@@ -262,7 +264,7 @@ public abstract class FawePlayer<T> extends Metadatable {
 
     /**
      * Loads any history items from disk:
-     *  - Should already be called if history on disk is enabled
+     * - Should already be called if history on disk is enabled
      */
     public void loadClipboardFromDisk() {
         File file = MainUtil.getFile(Fawe.imp().getDirectory(), Settings.IMP.PATHS.CLIPBOARD + File.separator + getUUID() + ".bd");
@@ -275,7 +277,8 @@ public abstract class FawePlayer<T> extends Metadatable {
                     if (session.getClipboard() != null) {
                         return;
                     }
-                } catch (EmptyClipboardException e) {}
+                } catch (EmptyClipboardException e) {
+                }
                 if (player != null && session != null) {
                     WorldData worldData = player.getWorld().getWorldData();
                     Clipboard clip = doc.toClipboard();
@@ -295,6 +298,7 @@ public abstract class FawePlayer<T> extends Metadatable {
 
     /**
      * Get the current World
+     *
      * @return
      */
     public World getWorld() {
@@ -312,7 +316,8 @@ public abstract class FawePlayer<T> extends Metadatable {
 
     /**
      * Load all the undo EditSession's from disk for a world <br>
-     *     - Usually already called when necessary
+     * - Usually already called when necessary
+     *
      * @param world
      */
     public void loadSessionsFromDisk(final World world) {
@@ -324,6 +329,7 @@ public abstract class FawePlayer<T> extends Metadatable {
 
     /**
      * Send a title
+     *
      * @param head
      * @param sub
      */
@@ -336,6 +342,7 @@ public abstract class FawePlayer<T> extends Metadatable {
 
     /**
      * Get the player's limit
+     *
      * @return
      */
     public FaweLimit getLimit() {
@@ -344,18 +351,21 @@ public abstract class FawePlayer<T> extends Metadatable {
 
     /**
      * Get the player's name
+     *
      * @return
      */
     public abstract String getName();
 
     /**
      * Get the player's UUID
+     *
      * @return
      */
     public abstract UUID getUUID();
 
     /**
      * Check the player's permission
+     *
      * @param perm
      * @return
      */
@@ -363,6 +373,7 @@ public abstract class FawePlayer<T> extends Metadatable {
 
     /**
      * Set a permission (requires Vault)
+     *
      * @param perm
      * @param flag
      */
@@ -370,24 +381,28 @@ public abstract class FawePlayer<T> extends Metadatable {
 
     /**
      * Send a message to the player
+     *
      * @param message
      */
     public abstract void sendMessage(final String message);
 
     /**
      * Have the player execute a command
+     *
      * @param substring
      */
     public abstract void executeCommand(final String substring);
 
     /**
      * Get the player's location
+     *
      * @return
      */
     public abstract FaweLocation getLocation();
 
     /**
      * Get the WorldEdit player object
+     *
      * @return
      */
     public abstract Player toWorldEditPlayer();
@@ -403,6 +418,7 @@ public abstract class FawePlayer<T> extends Metadatable {
 
     /**
      * Get the player's current selection (or null)
+     *
      * @return
      */
     public Region getSelection() {
@@ -415,6 +431,7 @@ public abstract class FawePlayer<T> extends Metadatable {
 
     /**
      * Get the player's current LocalSession
+     *
      * @return
      */
     public LocalSession getSession() {
@@ -423,6 +440,7 @@ public abstract class FawePlayer<T> extends Metadatable {
 
     /**
      * Get the player's current allowed WorldEdit regions
+     *
      * @return
      */
     public RegionWrapper[] getCurrentRegions() {
@@ -435,6 +453,7 @@ public abstract class FawePlayer<T> extends Metadatable {
 
     /**
      * Set the player's WorldEdit selection to the following CuboidRegion
+     *
      * @param region
      */
     public void setSelection(final RegionWrapper region) {
@@ -447,6 +466,7 @@ public abstract class FawePlayer<T> extends Metadatable {
 
     /**
      * Set the player's WorldEdit selection
+     *
      * @param selector
      */
     public void setSelection(final RegionSelector selector) {
@@ -455,6 +475,7 @@ public abstract class FawePlayer<T> extends Metadatable {
 
     /**
      * Get the largest region in the player's allowed WorldEdit region
+     *
      * @return
      */
     public RegionWrapper getLargestRegion() {
@@ -477,6 +498,7 @@ public abstract class FawePlayer<T> extends Metadatable {
 
     /**
      * Check if the player has WorldEdit bypass enabled
+     *
      * @return
      */
     public boolean hasWorldEditBypass() {
@@ -485,7 +507,7 @@ public abstract class FawePlayer<T> extends Metadatable {
 
     /**
      * Unregister this player (delets all metadata etc)
-     *  - Usually called on logout
+     * - Usually called on logout
      */
     public void unregister() {
         if (Settings.IMP.HISTORY.DELETE_ON_LOGOUT) {
@@ -507,7 +529,8 @@ public abstract class FawePlayer<T> extends Metadatable {
 
     /**
      * Get the tracked EditSession(s) for this player<br>
-     *  - Queued or autoqueued EditSessions are considered tracked
+     * - Queued or autoqueued EditSessions are considered tracked
+     *
      * @param requiredStage
      * @return
      */

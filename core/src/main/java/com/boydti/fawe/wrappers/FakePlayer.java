@@ -24,7 +24,7 @@ import javax.annotation.Nullable;
 
 /**
  * Only really useful for executing commands from console<br>
- *     - The API itself doesn't any fake player anywhere
+ * - The API itself doesn't any fake player anywhere
  */
 public class FakePlayer extends LocalPlayer {
     private static FakePlayer CONSOLE;
@@ -80,10 +80,12 @@ public class FakePlayer extends LocalPlayer {
         final Actor actor = this;
         return fp = new FawePlayer(this) {
             @Override
-            public void sendTitle(String head, String sub) {}
+            public void sendTitle(String head, String sub) {
+            }
 
             @Override
-            public void resetTitle() {}
+            public void resetTitle() {
+            }
 
             @Override
             public String getName() {
@@ -145,7 +147,8 @@ public class FakePlayer extends LocalPlayer {
     }
 
     @Override
-    public void giveItem(int type, int amount) {}
+    public void giveItem(int type, int amount) {
+    }
 
     @Override
     public BlockBag getInventoryBlockBag() {
@@ -276,6 +279,7 @@ public class FakePlayer extends LocalPlayer {
     private static class FakeSessionKey implements SessionKey {
         private final UUID uuid;
         private final String name;
+
         private FakeSessionKey(UUID uuid, String name) {
             this.uuid = uuid;
             this.name = name;

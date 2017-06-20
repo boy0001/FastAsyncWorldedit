@@ -50,7 +50,7 @@ public class FlatRegionVisitor implements Operation {
      * Create a new visitor.
      *
      * @param flatRegion a flat region
-     * @param function a function to apply to columns
+     * @param function   a function to apply to columns
      */
     public FlatRegionVisitor(final FlatRegion flatRegion, final FlatRegionFunction function) {
         checkNotNull(flatRegion);
@@ -65,7 +65,7 @@ public class FlatRegionVisitor implements Operation {
         this.function = function;
         this.iterator = flatRegion.asFlatRegion();
         FaweQueue queue = hasFaweQueue.getQueue();
-        this.queue =  (MappedFaweQueue) (queue instanceof MappedFaweQueue ? queue : null);
+        this.queue = (MappedFaweQueue) (queue instanceof MappedFaweQueue ? queue : null);
     }
 
     /**
@@ -92,7 +92,8 @@ public class FlatRegionVisitor implements Operation {
     }
 
     @Override
-    public void cancel() {}
+    public void cancel() {
+    }
 
     @Override
     public void addStatusMessages(final List<String> messages) {

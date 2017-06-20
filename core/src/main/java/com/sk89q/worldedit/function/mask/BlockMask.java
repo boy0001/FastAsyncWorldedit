@@ -17,7 +17,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
 /**
  * A mask that checks whether blocks at the given positions are matched by
  * a block in a list.
- *
+ * <p>
  * <p>This mask checks for both an exact block ID and data value match, as well
  * for a block with the same ID but a data value of -1.</p>
  */
@@ -43,7 +43,7 @@ public class BlockMask extends AbstractExtentMask {
      * Create a new block mask.
      *
      * @param extent the extent
-     * @param block an array of blocks to match
+     * @param block  an array of blocks to match
      */
     public BlockMask(Extent extent, BaseBlock... block) {
         this(extent, Arrays.asList(checkNotNull(block)));

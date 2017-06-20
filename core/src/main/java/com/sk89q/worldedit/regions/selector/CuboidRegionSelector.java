@@ -95,7 +95,7 @@ public class CuboidRegionSelector extends com.sk89q.worldedit.regions.CuboidRegi
     /**
      * Create a new region selector with the given two positions.
      *
-     * @param world the world
+     * @param world     the world
      * @param position1 position 1
      * @param position2 position 2
      */

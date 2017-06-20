@@ -106,8 +106,9 @@ public abstract class FaweQueue implements HasFaweQueue {
 
     /**
      * Add a progress task<br>
-     *      - Progress type
-     *      - Amount of type
+     * - Progress type
+     * - Amount of type
+     *
      * @param progressTask
      */
     public void setProgressTracker(RunnableVal2<ProgressType, Integer> progressTask) {
@@ -150,7 +151,8 @@ public abstract class FaweQueue implements HasFaweQueue {
         return changeTask;
     }
 
-    public void optimize() {}
+    public void optimize() {
+    }
 
     public int setBlocks(CuboidRegion cuboid, final int id, final int data) {
         RegionWrapper current = new RegionWrapper(cuboid.getMinimumPoint(), cuboid.getMaximumPoint());
@@ -295,9 +297,11 @@ public abstract class FaweQueue implements HasFaweQueue {
 
     public abstract boolean regenerateChunk(int x, int z, @Nullable BaseBiome biome, @Nullable Long seed);
 
-    public void startSet(boolean parallel) {}
+    public void startSet(boolean parallel) {
+    }
 
-    public void endSet(boolean parallel) {}
+    public void endSet(boolean parallel) {
+    }
 
     public int cancel() {
         clear();
@@ -321,6 +325,7 @@ public abstract class FaweQueue implements HasFaweQueue {
 
     /**
      * Gets the FaweChunk and sets the requested blocks
+     *
      * @return
      */
     public abstract boolean next(int amount, long time);
@@ -346,10 +351,10 @@ public abstract class FaweQueue implements HasFaweQueue {
      * This method is called when the server is < 1% available memory
      */
     public abstract void clear();
-    
+
     public abstract void addNotifyTask(int x, int z, Runnable runnable);
 
-    public boolean hasBlock(int x, int y, int z) throws  FaweException.FaweChunkLoadException {
+    public boolean hasBlock(int x, int y, int z) throws FaweException.FaweChunkLoadException {
         return getCombinedId4Data(x, y, z) != 0;
     }
 

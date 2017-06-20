@@ -32,12 +32,24 @@ public class AdjacentAnyMask extends AbstractMask implements ResettableMask {
         int x = v.getBlockX();
         int y = v.getBlockY();
         int z = v.getBlockZ();
-        if (mask.test(x, y + 1, z)) { return true; }
-        if (mask.test(x + 1, y, z)) { return true; }
-        if (mask.test(x - 1, y, z)) { return true; }
-        if (mask.test(x, y, z + 1)) { return true; }
-        if (mask.test(x, y, z - 1)) { return true; }
-        if (mask.test(x, y - 1, z)) { return true; }
+        if (mask.test(x, y + 1, z)) {
+            return true;
+        }
+        if (mask.test(x + 1, y, z)) {
+            return true;
+        }
+        if (mask.test(x - 1, y, z)) {
+            return true;
+        }
+        if (mask.test(x, y, z + 1)) {
+            return true;
+        }
+        if (mask.test(x, y, z - 1)) {
+            return true;
+        }
+        if (mask.test(x, y - 1, z)) {
+            return true;
+        }
         return false;
     }
 
@@ -45,12 +57,24 @@ public class AdjacentAnyMask extends AbstractMask implements ResettableMask {
         int x = v.getBlockX();
         int y = v.getBlockY();
         int z = v.getBlockZ();
-        if (mask.test(x, y + 1, z)) { return mutable.setComponents(0, 1, 0); }
-        if (mask.test(x + 1, y, z)) { return mutable.setComponents(1, 0, 0); }
-        if (mask.test(x - 1, y, z)) { return mutable.setComponents(-1, 0, 0); }
-        if (mask.test(x, y, z + 1)) { return mutable.setComponents(0, 0, 1); }
-        if (mask.test(x, y, z - 1)) { return mutable.setComponents(0, 0, - 1); }
-        if (mask.test(x, y - 1, z)) { return mutable.setComponents(0, -1, 0); }
+        if (mask.test(x, y + 1, z)) {
+            return mutable.setComponents(0, 1, 0);
+        }
+        if (mask.test(x + 1, y, z)) {
+            return mutable.setComponents(1, 0, 0);
+        }
+        if (mask.test(x - 1, y, z)) {
+            return mutable.setComponents(-1, 0, 0);
+        }
+        if (mask.test(x, y, z + 1)) {
+            return mutable.setComponents(0, 0, 1);
+        }
+        if (mask.test(x, y, z - 1)) {
+            return mutable.setComponents(0, 0, -1);
+        }
+        if (mask.test(x, y - 1, z)) {
+            return mutable.setComponents(0, -1, 0);
+        }
         return null;
     }
 }

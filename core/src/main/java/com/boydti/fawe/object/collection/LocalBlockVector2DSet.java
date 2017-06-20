@@ -10,8 +10,8 @@ import java.util.Set;
 
 /**
  * The LocalPartitionedBlockVector2DSet is a Memory and CPU optimized Set for storing Vector2Ds which are all in a local region
- *  - All Vector2Ds must be within x[0,32768), y[0,32768)
- *  - This will use 8 bytes for every 64 Vector2Ds (about 800x less than a HashSet)
+ * - All Vector2Ds must be within x[0,32768), y[0,32768)
+ * - This will use 8 bytes for every 64 Vector2Ds (about 800x less than a HashSet)
  */
 public class LocalBlockVector2DSet implements Set<Vector2D> {
     private final SparseBitSet set;
@@ -112,14 +112,17 @@ public class LocalBlockVector2DSet implements Set<Vector2D> {
         return new Iterator<Vector2D>() {
             int index = set.nextSetBit(0);
             int previous = -1;
+
             @Override
             public void remove() {
                 set.clear(previous);
             }
+
             @Override
             public boolean hasNext() {
                 return index != -1;
             }
+
             @Override
             public Vector2D next() {
                 if (index != -1) {

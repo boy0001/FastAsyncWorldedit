@@ -56,7 +56,7 @@ public class MaskIntersection extends AbstractMask implements Serializable {
 
     private void formArray() {
         if (masks.isEmpty()) {
-            masksArray = new Mask[] {Masks.alwaysFalse()};
+            masksArray = new Mask[]{Masks.alwaysFalse()};
         } else {
             masksArray = masks.toArray(new Mask[masks.size()]);
         }

@@ -64,9 +64,9 @@ public class ParametricCallable implements CommandCallable {
     /**
      * Create a new instance.
      *
-     * @param builder the parametric builder
-     * @param object the object to invoke on
-     * @param method the method to invoke
+     * @param builder    the parametric builder
+     * @param object     the object to invoke on
+     * @param method     the method to invoke
      * @param definition the command definition annotation
      * @throws ParametricException thrown on an error
      */
@@ -399,7 +399,7 @@ public class ParametricCallable implements CommandCallable {
      * Get the right {@link ArgumentStack}.
      *
      * @param parameter the parameter
-     * @param existing the existing scoped context
+     * @param existing  the existing scoped context
      * @return the context to use
      */
     public static ArgumentStack getScopedContext(Parameter parameter, ArgumentStack existing) {
@@ -420,7 +420,7 @@ public class ParametricCallable implements CommandCallable {
     /**
      * Get whether a parameter is allowed to consume arguments.
      *
-     * @param i the index of the parameter
+     * @param i      the index of the parameter
      * @param scoped the scoped context
      * @return true if arguments may be consumed
      */
@@ -460,11 +460,11 @@ public class ParametricCallable implements CommandCallable {
     /**
      * Get the default value for a parameter.
      *
-     * @param i the index of the parameter
+     * @param i      the index of the parameter
      * @param scoped the scoped context
      * @return a value
      * @throws ParameterException on an error
-     * @throws CommandException on an error
+     * @throws CommandException   on an error
      */
     public Object getDefaultValue(int i, ContextArgumentStack scoped) throws ParameterException, CommandException, InvocationTargetException {
         CommandContext context = scoped.getContext();
@@ -489,7 +489,7 @@ public class ParametricCallable implements CommandCallable {
     /**
      * Check to see if all arguments, including flag arguments, were consumed.
      *
-     * @param scoped the argument scope 
+     * @param scoped the argument scope
      * @throws UnconsumedParameterException thrown if parameters were not consumed
      */
     public void checkUnconsumed(ContextArgumentStack scoped) throws UnconsumedParameterException {
@@ -553,9 +553,9 @@ public class ParametricCallable implements CommandCallable {
     /**
      * Generate a name for a parameter.
      *
-     * @param type the type
+     * @param type       the type
      * @param classifier the classifier
-     * @param index the index
+     * @param index      the index
      * @return a generated name
      */
     public static String generateName(Type type, Annotation classifier, int index) {

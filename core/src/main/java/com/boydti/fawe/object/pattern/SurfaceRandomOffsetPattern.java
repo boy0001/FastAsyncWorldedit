@@ -69,19 +69,37 @@ public class SurfaceRandomOffsetPattern extends AbstractPattern {
         int y = v.getBlockY();
         int z = v.getBlockZ();
         v.mutY(y + 1);
-        if (canPassthrough(v)) { v.mutY(y); return true; }
+        if (canPassthrough(v)) {
+            v.mutY(y);
+            return true;
+        }
         v.mutY(y - 1);
-        if (canPassthrough(v)) { v.mutY(y); return true; }
+        if (canPassthrough(v)) {
+            v.mutY(y);
+            return true;
+        }
         v.mutY(y);
         v.mutX(x + 1);
-        if (canPassthrough(v)) { v.mutX(x); return true; }
+        if (canPassthrough(v)) {
+            v.mutX(x);
+            return true;
+        }
         v.mutX(x - 1);
-        if (canPassthrough(v)) { v.mutX(x); return true; }
+        if (canPassthrough(v)) {
+            v.mutX(x);
+            return true;
+        }
         v.mutX(x);
         v.mutZ(z + 1);
-        if (canPassthrough(v)) { v.mutZ(z); return true; }
+        if (canPassthrough(v)) {
+            v.mutZ(z);
+            return true;
+        }
         v.mutZ(z - 1);
-        if (canPassthrough(v)) { v.mutZ(z); return true; }
+        if (canPassthrough(v)) {
+            v.mutZ(z);
+            return true;
+        }
         v.mutZ(z);
         return false;
     }

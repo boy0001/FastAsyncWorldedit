@@ -139,7 +139,8 @@ public abstract class NMSMappedFaweQueue<WORLD, CHUNK, CHUNKSECTION, SECTION> ex
         return section[j] >> 4;
     }
 
-    public void saveChunk(CHUNK chunk) {}
+    public void saveChunk(CHUNK chunk) {
+    }
 
     public abstract void relight(int x, int y, int z);
 

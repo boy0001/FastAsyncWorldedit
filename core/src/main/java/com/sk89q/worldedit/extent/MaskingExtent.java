@@ -42,7 +42,7 @@ public class MaskingExtent extends AbstractDelegateExtent {
      * Create a new instance.
      *
      * @param extent the extent
-     * @param mask the mask
+     * @param mask   the mask
      */
     public MaskingExtent(Extent extent, Mask mask) {
         super(extent);

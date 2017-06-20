@@ -66,7 +66,7 @@ public class EllipsoidRegion extends AbstractRegion {
     /**
      * Construct a new instance of this ellipsoid region.
      *
-     * @param world the world
+     * @param world  the world
      * @param center the center
      * @param radius the radius
      */

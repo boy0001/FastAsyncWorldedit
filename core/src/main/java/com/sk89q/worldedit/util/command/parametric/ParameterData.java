@@ -23,7 +23,6 @@ import com.sk89q.worldedit.util.command.SimpleParameter;
 import com.sk89q.worldedit.util.command.binding.PrimitiveBindings;
 import com.sk89q.worldedit.util.command.binding.Range;
 import com.sk89q.worldedit.util.command.binding.Text;
-
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
 import java.lang.reflect.Type;
@@ -58,7 +57,7 @@ public class ParameterData extends SimpleParameter {
 
     /**
      * Set the main type of this parameter.
-     *
+     * <p>
      * <p>The type is normally that is used to determine which binding is used
      * for a particular method's parameter.</p>
      *
@@ -80,7 +79,7 @@ public class ParameterData extends SimpleParameter {
 
     /**
      * Get the classifier annotation.
-     *
+     * <p>
      * <p>Normally, the type determines what binding is called, but classifiers
      * take precedence if one is found (and registered with
      * {@link ParametricBuilder#addBinding(Binding, Type...)}).
@@ -103,7 +102,7 @@ public class ParameterData extends SimpleParameter {
 
     /**
      * Get a list of modifier annotations.
-     *
+     * <p>
      * <p>Modifier annotations are not considered in the process of choosing a binding
      * for a method parameter, but they can be used to modify the behavior of a binding.
      * An example of a modifier annotation is {@link Range}, which can restrict

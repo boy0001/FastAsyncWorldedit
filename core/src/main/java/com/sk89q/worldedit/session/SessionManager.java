@@ -50,9 +50,9 @@ import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * Session manager for WorldEdit.
- *
+ * <p>
  * <p>Get a reference to one from {@link WorldEdit}.</p>
- *
+ * <p>
  * <p>While this class is thread-safe, the returned session may not be.</p>
  */
 public class SessionManager {
@@ -120,8 +120,8 @@ public class SessionManager {
             String test = holder.key.getName();
             if (test != null && name.equals(test)) {
 //                if (holder.key.isActive()) {
-                    iter.remove();
-                    sessions.put(key, holder);
+                iter.remove();
+                sessions.put(key, holder);
 //                }
                 return holder.session;
             }

@@ -84,7 +84,7 @@ public class GenerationCommands {
     }
 
     @Command(
-            aliases = { "/caves" },
+            aliases = {"/caves"},
             usage = "[size=8] [freq=40] [rarity=7] [minY=8] [maxY=127] [sysFreq=1] [sysRarity=25] [pocketRarity=0] [pocketMin=0] [pocketMax=3]",
             desc = "Generates caves",
             help = "Generates a cave network"
@@ -100,7 +100,7 @@ public class GenerationCommands {
     // public void addOre(Mask mask, Pattern material, int size, int frequency, int rarity, int minY, int maxY) throws WorldEditException {
 
     @Command(
-            aliases = { "/ores" },
+            aliases = {"/ores"},
             desc = "Generates ores",
             help = "Generates ores",
             min = 1,
@@ -114,7 +114,7 @@ public class GenerationCommands {
     }
 
     @Command(
-            aliases = { "/image", "/img" },
+            aliases = {"/image", "/img"},
             desc = "Generate an image",
             usage = "<imgur> [randomize=true] [complexity=100]",
             min = 1,
@@ -155,7 +155,7 @@ public class GenerationCommands {
     }
 
     @Command(
-            aliases = { "/ore" },
+            aliases = {"/ore"},
             usage = "<mask> <pattern> <size> <freq> <rarity> <minY> <maxY>",
             desc = "Generates ores",
             help = "Generates ores",
@@ -170,16 +170,16 @@ public class GenerationCommands {
     }
 
     @Command(
-        aliases = { "/hcyl" },
-        usage = "<pattern> <radius>[,<radius>] [height]",
-        desc = "Generates a hollow cylinder.",
-        help =
-            "Generates a hollow cylinder.\n" +
-            "By specifying 2 radii, separated by a comma,\n" +
-            "you can generate elliptical cylinders.\n" +
-            "The 1st radius is north/south, the 2nd radius is east/west.",
-        min = 2,
-        max = 3
+            aliases = {"/hcyl"},
+            usage = "<pattern> <radius>[,<radius>] [height]",
+            desc = "Generates a hollow cylinder.",
+            help =
+                    "Generates a hollow cylinder.\n" +
+                            "By specifying 2 radii, separated by a comma,\n" +
+                            "you can generate elliptical cylinders.\n" +
+                            "The 1st radius is north/south, the 2nd radius is east/west.",
+            min = 2,
+            max = 3
     )
     @CommandPermissions("worldedit.generation.cylinder")
     @Logging(PLACEMENT)
@@ -188,17 +188,17 @@ public class GenerationCommands {
     }
 
     @Command(
-        aliases = { "/cyl" },
-        usage = "<block> <radius>[,<radius>] [height]",
-        flags = "h",
-        desc = "Generates a cylinder.",
-        help =
-            "Generates a cylinder.\n" +
-            "By specifying 2 radii, separated by a comma,\n" +
-            "you can generate elliptical cylinders.\n" +
-            "The 1st radius is north/south, the 2nd radius is east/west.",
-        min = 2,
-        max = 3
+            aliases = {"/cyl"},
+            usage = "<block> <radius>[,<radius>] [height]",
+            flags = "h",
+            desc = "Generates a cylinder.",
+            help =
+                    "Generates a cylinder.\n" +
+                            "By specifying 2 radii, separated by a comma,\n" +
+                            "you can generate elliptical cylinders.\n" +
+                            "The 1st radius is north/south, the 2nd radius is east/west.",
+            min = 2,
+            max = 3
     )
     @CommandPermissions("worldedit.generation.cylinder")
     @Logging(PLACEMENT)
@@ -206,18 +206,18 @@ public class GenerationCommands {
         String[] radii = radiusString.split(",");
         final double radiusX, radiusZ;
         switch (radii.length) {
-        case 1:
-            radiusX = radiusZ = Math.max(1, FawePrimitiveBinding.parseNumericInput(radii[0]));
-            break;
+            case 1:
+                radiusX = radiusZ = Math.max(1, FawePrimitiveBinding.parseNumericInput(radii[0]));
+                break;
 
-        case 2:
-            radiusX = Math.max(1, FawePrimitiveBinding.parseNumericInput(radii[0]));
-            radiusZ = Math.max(1, FawePrimitiveBinding.parseNumericInput(radii[1]));
-            break;
+            case 2:
+                radiusX = Math.max(1, FawePrimitiveBinding.parseNumericInput(radii[0]));
+                radiusZ = Math.max(1, FawePrimitiveBinding.parseNumericInput(radii[1]));
+                break;
 
-        default:
-            player.printError("You must either specify 1 or 2 radius values.");
-            return;
+            default:
+                player.printError("You must either specify 1 or 2 radius values.");
+                return;
         }
 
         worldEdit.checkMaxRadius(radiusX);
@@ -230,16 +230,16 @@ public class GenerationCommands {
     }
 
     @Command(
-        aliases = { "/hsphere" },
-        usage = "<block> <radius>[,<radius>,<radius>] [raised?]",
-        desc = "Generates a hollow sphere.",
-        help =
-            "Generates a hollow sphere.\n" +
-            "By specifying 3 radii, separated by commas,\n" +
-            "you can generate an ellipsoid. The order of the ellipsoid radii\n" +
-            "is north/south, up/down, east/west.",
-        min = 2,
-        max = 3
+            aliases = {"/hsphere"},
+            usage = "<block> <radius>[,<radius>,<radius>] [raised?]",
+            desc = "Generates a hollow sphere.",
+            help =
+                    "Generates a hollow sphere.\n" +
+                            "By specifying 3 radii, separated by commas,\n" +
+                            "you can generate an ellipsoid. The order of the ellipsoid radii\n" +
+                            "is north/south, up/down, east/west.",
+            min = 2,
+            max = 3
     )
     @CommandPermissions("worldedit.generation.sphere")
     @Logging(PLACEMENT)
@@ -248,17 +248,17 @@ public class GenerationCommands {
     }
 
     @Command(
-        aliases = { "/sphere" },
-        usage = "<block> <radius>[,<radius>,<radius>] [raised?]",
-        flags = "h",
-        desc = "Generates a filled sphere.",
-        help =
-            "Generates a filled sphere.\n" +
-            "By specifying 3 radii, separated by commas,\n" +
-            "you can generate an ellipsoid. The order of the ellipsoid radii\n" +
-            "is north/south, up/down, east/west.",
-        min = 2,
-        max = 3
+            aliases = {"/sphere"},
+            usage = "<block> <radius>[,<radius>,<radius>] [raised?]",
+            flags = "h",
+            desc = "Generates a filled sphere.",
+            help =
+                    "Generates a filled sphere.\n" +
+                            "By specifying 3 radii, separated by commas,\n" +
+                            "you can generate an ellipsoid. The order of the ellipsoid radii\n" +
+                            "is north/south, up/down, east/west.",
+            min = 2,
+            max = 3
     )
     @CommandPermissions("worldedit.generation.sphere")
     @Logging(PLACEMENT)
@@ -266,19 +266,19 @@ public class GenerationCommands {
         String[] radii = radiusString.split(",");
         final double radiusX, radiusY, radiusZ;
         switch (radii.length) {
-        case 1:
-            radiusX = radiusY = radiusZ = Math.max(1, FawePrimitiveBinding.parseNumericInput(radii[0]));
-            break;
+            case 1:
+                radiusX = radiusY = radiusZ = Math.max(1, FawePrimitiveBinding.parseNumericInput(radii[0]));
+                break;
 
-        case 3:
-            radiusX = Math.max(1, FawePrimitiveBinding.parseNumericInput(radii[0]));
-            radiusY = Math.max(1, FawePrimitiveBinding.parseNumericInput(radii[1]));
-            radiusZ = Math.max(1, FawePrimitiveBinding.parseNumericInput(radii[2]));
-            break;
+            case 3:
+                radiusX = Math.max(1, FawePrimitiveBinding.parseNumericInput(radii[0]));
+                radiusY = Math.max(1, FawePrimitiveBinding.parseNumericInput(radii[1]));
+                radiusZ = Math.max(1, FawePrimitiveBinding.parseNumericInput(radii[2]));
+                break;
 
-        default:
-            player.printError("You must either specify 1 or 3 radius values.");
-            return;
+            default:
+                player.printError("You must either specify 1 or 3 radius values.");
+                return;
         }
 
         worldEdit.checkMaxRadius(radiusX);
@@ -296,11 +296,11 @@ public class GenerationCommands {
     }
 
     @Command(
-        aliases = { "forestgen" },
-        usage = "[size] [type] [density]",
-        desc = "Generate a forest",
-        min = 0,
-        max = 3
+            aliases = {"forestgen"},
+            usage = "[size] [type] [density]",
+            desc = "Generate a forest",
+            min = 0,
+            max = 3
     )
     @CommandPermissions("worldedit.generation.forest")
     @Logging(POSITION)
@@ -312,11 +312,11 @@ public class GenerationCommands {
     }
 
     @Command(
-        aliases = { "pumpkins" },
-        usage = "[size]",
-        desc = "Generate pumpkin patches",
-        min = 0,
-        max = 1
+            aliases = {"pumpkins"},
+            usage = "[size]",
+            desc = "Generate pumpkin patches",
+            min = 0,
+            max = 1
     )
     @CommandPermissions("worldedit.generation.pumpkins")
     @Logging(POSITION)
@@ -326,7 +326,7 @@ public class GenerationCommands {
     }
 
     @Command(
-            aliases = { "/hpyramid" },
+            aliases = {"/hpyramid"},
             usage = "<block> <size>",
             desc = "Generate a hollow pyramid",
             min = 2,
@@ -339,12 +339,12 @@ public class GenerationCommands {
     }
 
     @Command(
-        aliases = { "/pyramid" },
-        usage = "<block> <size>",
-        flags = "h",
-        desc = "Generate a filled pyramid",
-        min = 2,
-        max = 2
+            aliases = {"/pyramid"},
+            usage = "<block> <size>",
+            flags = "h",
+            desc = "Generate a filled pyramid",
+            min = 2,
+            max = 2
     )
     @CommandPermissions("worldedit.generation.pyramid")
     @Logging(PLACEMENT)
@@ -357,23 +357,23 @@ public class GenerationCommands {
     }
 
     @Command(
-        aliases = { "/generate", "/gen", "/g" },
-        usage = "<block> <expression>",
-        desc = "Generates a shape according to a formula.",
-        help =
-            "Generates a shape according to a formula that is expected to\n" +
-            "return positive numbers (true) if the point is inside the shape\n" +
-            "Optionally set type/data to the desired block.\n" +
-            "Flags:\n" +
-            "  -h to generate a hollow shape\n" +
-            "  -r to use raw minecraft coordinates\n" +
-            "  -o is like -r, except offset from placement.\n" +
-            "  -c is like -r, except offset selection center.\n" +
-            "If neither -r nor -o is given, the selection is mapped to -1..1\n" +
-            "See also tinyurl.com/wesyntax.",
-        flags = "hroc",
-        min = 2,
-        max = -1
+            aliases = {"/generate", "/gen", "/g"},
+            usage = "<block> <expression>",
+            desc = "Generates a shape according to a formula.",
+            help =
+                    "Generates a shape according to a formula that is expected to\n" +
+                            "return positive numbers (true) if the point is inside the shape\n" +
+                            "Optionally set type/data to the desired block.\n" +
+                            "Flags:\n" +
+                            "  -h to generate a hollow shape\n" +
+                            "  -r to use raw minecraft coordinates\n" +
+                            "  -o is like -r, except offset from placement.\n" +
+                            "  -c is like -r, except offset selection center.\n" +
+                            "If neither -r nor -o is given, the selection is mapped to -1..1\n" +
+                            "See also tinyurl.com/wesyntax.",
+            flags = "hroc",
+            min = 2,
+            max = -1
     )
     @CommandPermissions("worldedit.generation.shape")
     @Logging(ALL)
@@ -423,23 +423,23 @@ public class GenerationCommands {
     }
 
     @Command(
-        aliases = { "/generatebiome", "/genbiome", "/gb" },
-        usage = "<biome> <expression>",
-        desc = "Sets biome according to a formula.",
-        help =
-            "Generates a shape according to a formula that is expected to\n" +
-            "return positive numbers (true) if the point is inside the shape\n" +
-            "Sets the biome of blocks in that shape.\n" +
-            "Flags:\n" +
-            "  -h to generate a hollow shape\n" +
-            "  -r to use raw minecraft coordinates\n" +
-            "  -o is like -r, except offset from placement.\n" +
-            "  -c is like -r, except offset selection center.\n" +
-            "If neither -r nor -o is given, the selection is mapped to -1..1\n" +
-            "See also tinyurl.com/wesyntax.",
-        flags = "hroc",
-        min = 2,
-        max = -1
+            aliases = {"/generatebiome", "/genbiome", "/gb"},
+            usage = "<biome> <expression>",
+            desc = "Sets biome according to a formula.",
+            help =
+                    "Generates a shape according to a formula that is expected to\n" +
+                            "return positive numbers (true) if the point is inside the shape\n" +
+                            "Sets the biome of blocks in that shape.\n" +
+                            "Flags:\n" +
+                            "  -h to generate a hollow shape\n" +
+                            "  -r to use raw minecraft coordinates\n" +
+                            "  -o is like -r, except offset from placement.\n" +
+                            "  -c is like -r, except offset selection center.\n" +
+                            "If neither -r nor -o is given, the selection is mapped to -1..1\n" +
+                            "See also tinyurl.com/wesyntax.",
+            flags = "hroc",
+            min = 2,
+            max = -1
     )
     @CommandPermissions({"worldedit.generation.shape", "worldedit.biome.set"})
     @Logging(ALL)

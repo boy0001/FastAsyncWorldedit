@@ -6,7 +6,7 @@ public class ArrayHeightMap extends ScalableHeightMap {
     // The height map width/length
     private final int width, length;
     // The size to width/length ratio
-    private double rx,rz;
+    private double rx, rz;
 
     public ArrayHeightMap(byte[][] height) {
         setSize(5);

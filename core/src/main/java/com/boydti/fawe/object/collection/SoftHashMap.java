@@ -1,4 +1,5 @@
 package com.boydti.fawe.object.collection;
+
 import java.lang.ref.ReferenceQueue;
 import java.lang.ref.SoftReference;
 import java.util.ArrayList;
@@ -30,9 +31,9 @@ import java.util.concurrent.locks.ReentrantLock;
  * <p/>
  * This implementation is thread-safe and usable in concurrent environments.
  *
- * @since 0.8
  * @see SoftReference
  * @see <a href="http://shiro.apache.org">Apache Shiro</a>
+ * @since 0.8
  */
 public class SoftHashMap<K, V> implements Map<K, V> {
 

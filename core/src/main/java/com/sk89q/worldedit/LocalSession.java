@@ -143,7 +143,7 @@ public class LocalSession {
 
     /**
      * Construct the object.
-     *
+     * <p>
      * <p>{@link #setConfiguration(LocalConfiguration)} should be called
      * later with configuration.</p>
      */
@@ -179,7 +179,6 @@ public class LocalSession {
     }
 
     /**
-     *
      * @param uuid
      * @param world
      * @return If any loading occured
@@ -211,7 +210,7 @@ public class LocalSession {
         final List<Integer> editIds = new ArrayList<>();
         final File folder = MainUtil.getFile(Fawe.imp().getDirectory(), Settings.IMP.PATHS.HISTORY + File.separator + Fawe.imp().getWorldName(world) + File.separator + uuid);
         if (folder.isDirectory()) {
-            final FileNameExtensionFilter filter = new FileNameExtensionFilter("BlockData files","bd");
+            final FileNameExtensionFilter filter = new FileNameExtensionFilter("BlockData files", "bd");
             folder.listFiles(new FileFilter() {
                 @Override
                 public boolean accept(File pathname) {
@@ -270,7 +269,8 @@ public class LocalSession {
                         sizes.put(id, existingSize);
                     }
                     existingSize.addAndGet(size);
-                } catch (NumberFormatException ignore){}
+                } catch (NumberFormatException ignore) {
+                }
             }
         });
         if (totalSize.get() < maxBytes) {
@@ -493,7 +493,7 @@ public class LocalSession {
      * Performs an undo.
      *
      * @param newBlockBag a new block bag
-     * @param player the player
+     * @param player      the player
      * @return whether anything was undone
      */
     public EditSession undo(@Nullable BlockBag newBlockBag, LocalPlayer player) {
@@ -504,7 +504,7 @@ public class LocalSession {
      * Performs an undo.
      *
      * @param newBlockBag a new block bag
-     * @param player the player
+     * @param player      the player
      * @return whether anything was undone
      */
     public EditSession undo(@Nullable BlockBag newBlockBag, Player player) {
@@ -540,7 +540,7 @@ public class LocalSession {
      * Performs a redo
      *
      * @param newBlockBag a new block bag
-     * @param player the player
+     * @param player      the player
      * @return whether anything was redone
      */
     public EditSession redo(@Nullable BlockBag newBlockBag, LocalPlayer player) {
@@ -551,7 +551,7 @@ public class LocalSession {
      * Performs a redo
      *
      * @param newBlockBag a new block bag
-     * @param player the player
+     * @param player      the player
      * @return whether anything was redone
      */
     public EditSession redo(@Nullable BlockBag newBlockBag, Player player) {
@@ -648,7 +648,7 @@ public class LocalSession {
     /**
      * Set the region selector.
      *
-     * @param world the world
+     * @param world    the world
      * @param selector the selector
      */
     public void setRegionSelector(World world, RegionSelector selector) {
@@ -778,7 +778,7 @@ public class LocalSession {
 
     /**
      * Sets the clipboard.
-     *
+     * <p>
      * <p>Pass {@code null} to clear the clipboard.</p>
      *
      * @param clipboard the clipboard, or null if the clipboard is to be cleared

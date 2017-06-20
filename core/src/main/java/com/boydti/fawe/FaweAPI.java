@@ -63,17 +63,18 @@ import javax.annotation.Nullable;
 
 /**
  * The FaweAPI class offers a few useful functions.<br>
- *  - This class is not intended to replace the WorldEdit API<br>
- *  - With FAWE installed, you can use the EditSession and other WorldEdit classes from an async thread.<br>
- *  <br>
- *  FaweAPI.[some method]
+ * - This class is not intended to replace the WorldEdit API<br>
+ * - With FAWE installed, you can use the EditSession and other WorldEdit classes from an async thread.<br>
+ * <br>
+ * FaweAPI.[some method]
  */
 public class FaweAPI {
     /**
      * Offers a lot of options for building an EditSession
-     * @see com.boydti.fawe.util.EditSessionBuilder
+     *
      * @param world
      * @return A new EditSessionBuilder
+     * @see com.boydti.fawe.util.EditSessionBuilder
      */
     public static EditSessionBuilder getEditSessionBuilder(World world) {
         return new EditSessionBuilder(world);
@@ -81,6 +82,7 @@ public class FaweAPI {
 
     /**
      * The TaskManager has some useful methods for doing things asynchronously
+     *
      * @return TaskManager
      */
     public static TaskManager getTaskManager() {
@@ -89,9 +91,10 @@ public class FaweAPI {
 
     /**
      * Add a custom mask for use in e.g {@literal //mask #id:<input>}
-     * @see com.sk89q.worldedit.command.MaskCommands
+     *
      * @param methods The class with a bunch of mask methods
      * @return true if the mask was registered
+     * @see com.sk89q.worldedit.command.MaskCommands
      */
     public static boolean registerMasks(Object methods) {
         DefaultMaskParser parser = getParser(DefaultMaskParser.class);
@@ -101,9 +104,10 @@ public class FaweAPI {
 
     /**
      * Add a custom material for use in e.g {@literal //material #id:<input>}
-     * @see com.sk89q.worldedit.command.PatternCommands
+     *
      * @param methods The class with a bunch of pattern methods
      * @return true if the mask was registered
+     * @see com.sk89q.worldedit.command.PatternCommands
      */
     public static boolean registerPatterns(Object methods) {
         HashTagPatternParser parser = getParser(HashTagPatternParser.class);
@@ -113,9 +117,10 @@ public class FaweAPI {
 
     /**
      * Add a custom transform for use in
-     * @see com.sk89q.worldedit.command.TransformCommands
+     *
      * @param methods The class with a bunch of transform methods
      * @return true if the transform was registered
+     * @see com.sk89q.worldedit.command.TransformCommands
      */
     public static boolean registerTransforms(Object methods) {
         DefaultTransformParser parser = Fawe.get().getTransformParser();
@@ -146,9 +151,10 @@ public class FaweAPI {
 
     /**
      * Create a command with the provided aliases and register all methods of the class as sub commands.<br>
-     *  - You should try to register commands during startup
-     *  - If no aliases are specified, all methods become root commands
-     * @param clazz The class containing all the sub command methods
+     * - You should try to register commands during startup
+     * - If no aliases are specified, all methods become root commands
+     *
+     * @param clazz   The class containing all the sub command methods
      * @param aliases The aliases to give the command (or none)
      */
     public static void registerCommands(Object clazz, String... aliases) {
@@ -157,11 +163,12 @@ public class FaweAPI {
 
     /**
      * Wrap some object into a FawePlayer<br>
-     *     - org.bukkit.entity.Player
-     *     - org.spongepowered.api.entity.living.player
-     *     - com.sk89q.worldedit.entity.Player
-     *     - String (name)
-     *     - UUID (player UUID)
+     * - org.bukkit.entity.Player
+     * - org.spongepowered.api.entity.living.player
+     * - com.sk89q.worldedit.entity.Player
+     * - String (name)
+     * - UUID (player UUID)
+     *
      * @param obj
      * @return
      */
@@ -175,13 +182,14 @@ public class FaweAPI {
 
     /**
      * You can either use a FaweQueue or an EditSession to change blocks<br>
-     *     - The FaweQueue skips a bit of overhead so it's faster<br>
-     *     - The WorldEdit EditSession can do a lot more<br>
+     * - The FaweQueue skips a bit of overhead so it's faster<br>
+     * - The WorldEdit EditSession can do a lot more<br>
      * Remember to enqueue it when you're done!<br>
-     * @see com.boydti.fawe.object.FaweQueue#enqueue()
-     * @param world The name of the world
+     *
+     * @param world     The name of the world
      * @param autoqueue If it should start dispatching before you enqueue it.
      * @return
+     * @see com.boydti.fawe.object.FaweQueue#enqueue()
      */
     public static FaweQueue createQueue(World world, boolean autoqueue) {
         return SetQueue.IMP.getNewQueue(world, true, autoqueue);
@@ -204,8 +212,9 @@ public class FaweAPI {
 
     /**
      * Upload the clipboard to the configured web interface
+     *
      * @param clipboard The clipboard (may not be null)
-     * @param format The format to use (some formats may not be supported)
+     * @param format    The format to use (some formats may not be supported)
      * @return The download URL or null
      */
     public static URL upload(final Clipboard clipboard, final ClipboardFormat format) {
@@ -214,10 +223,11 @@ public class FaweAPI {
 
     /**
      * Just forwards to ClipboardFormat.SCHEMATIC.load(file)
-     * @see com.sk89q.worldedit.extent.clipboard.io.ClipboardFormat
-     * @see com.boydti.fawe.object.schematic.Schematic
+     *
      * @param file
      * @return
+     * @see com.sk89q.worldedit.extent.clipboard.io.ClipboardFormat
+     * @see com.boydti.fawe.object.schematic.Schematic
      */
     public static Schematic load(File file) throws IOException {
         return ClipboardFormat.SCHEMATIC.load(file);
@@ -225,6 +235,7 @@ public class FaweAPI {
 
     /**
      * Get a list of supported protection plugin masks.
+     *
      * @return Set of FaweMaskManager
      */
     public static Set<FaweMaskManager> getMaskManagers() {
@@ -233,6 +244,7 @@ public class FaweAPI {
 
     /**
      * Check if the server has more than the configured low memory threshold
+     *
      * @return True if the server has limited memory
      */
     public static boolean isMemoryLimited() {
@@ -241,6 +253,7 @@ public class FaweAPI {
 
     /**
      * Use ThreadLocalRandom instead
+     *
      * @return
      */
     @Deprecated
@@ -250,6 +263,7 @@ public class FaweAPI {
 
     /**
      * Get a player's allowed WorldEdit region
+     *
      * @param player
      * @return
      */
@@ -259,16 +273,18 @@ public class FaweAPI {
 
     /**
      * Cancel the edit with the following extent<br>
-     *     - The extent must be the one being used by an EditSession, otherwise an error may be thrown <br>
-     *     - Insert an extent into the EditSession using the EditSessionEvent: http://wiki.sk89q.com/wiki/WorldEdit/API/Hooking_EditSession <br>
-     * @see com.sk89q.worldedit.EditSession#getRegionExtent() To get the FaweExtent for an EditSession
+     * - The extent must be the one being used by an EditSession, otherwise an error may be thrown <br>
+     * - Insert an extent into the EditSession using the EditSessionEvent: http://wiki.sk89q.com/wiki/WorldEdit/API/Hooking_EditSession <br>
+     *
      * @param extent
      * @param reason
+     * @see com.sk89q.worldedit.EditSession#getRegionExtent() To get the FaweExtent for an EditSession
      */
     public static void cancelEdit(Extent extent, BBC reason) {
         try {
             WEManager.IMP.cancelEdit(extent, reason);
-        } catch (WorldEditException ignore) {}
+        } catch (WorldEditException ignore) {
+        }
     }
 
     public static void addMaskManager(FaweMaskManager maskMan) {
@@ -277,6 +293,7 @@ public class FaweAPI {
 
     /**
      * Get the DiskStorageHistory object representing a File
+     *
      * @param file
      * @return
      */
@@ -312,13 +329,14 @@ public class FaweAPI {
 
     /**
      * Used in the RollBack to generate a list of DiskStorageHistory objects<br>
-     *      - Note: An edit outside the radius may be included if it overlaps with an edit inside that depends on it.
-     * @param origin - The origin location
-     * @param user - The uuid (may be null)
-     * @param radius - The radius from the origin of the edit
+     * - Note: An edit outside the radius may be included if it overlaps with an edit inside that depends on it.
+     *
+     * @param origin   - The origin location
+     * @param user     - The uuid (may be null)
+     * @param radius   - The radius from the origin of the edit
      * @param timediff - The max age of the file in milliseconds
-     * @param shallow - If shallow is true, FAWE will only read the first Settings.IMP.BUFFER_SIZE bytes to obtain history info<br>
-     *                Reading only part of the file will result in unreliable bounds info for large edits
+     * @param shallow  - If shallow is true, FAWE will only read the first Settings.IMP.BUFFER_SIZE bytes to obtain history info<br>
+     *                 Reading only part of the file will result in unreliable bounds info for large edits
      * @return
      */
     public static List<DiskStorageHistory> getBDFiles(FaweLocation origin, UUID user, int radius, long timediff, boolean shallow) {
@@ -397,11 +415,12 @@ public class FaweAPI {
 
     /**
      * The DiskStorageHistory class is what FAWE uses to represent the undo on disk.
-     * @see com.boydti.fawe.object.changeset.DiskStorageHistory#toEditSession(com.boydti.fawe.object.FawePlayer)
+     *
      * @param world
      * @param uuid
      * @param index
      * @return
+     * @see com.boydti.fawe.object.changeset.DiskStorageHistory#toEditSession(com.boydti.fawe.object.FawePlayer)
      */
     public static DiskStorageHistory getChangeSetFromDisk(World world, UUID uuid, int index) {
         return new DiskStorageHistory(world, uuid, index);
@@ -409,6 +428,7 @@ public class FaweAPI {
 
     /**
      * Compare two versions
+     *
      * @param version
      * @param major
      * @param minor
@@ -436,9 +456,10 @@ public class FaweAPI {
 
     /**
      * Fix the lighting in a selection<br>
-     *  - First removes all lighting, then relights
-     *  - Relights in parallel (if enabled) for best performance<br>
-     *  - Also resends chunks<br>
+     * - First removes all lighting, then relights
+     * - Relights in parallel (if enabled) for best performance<br>
+     * - Also resends chunks<br>
+     *
      * @param world
      * @param selection (assumes cuboid)
      * @return
@@ -462,7 +483,7 @@ public class FaweAPI {
             final NMSMappedFaweQueue nmsQueue = (NMSMappedFaweQueue) queue;
             NMSRelighter relighter = new NMSRelighter(nmsQueue);
             for (int x = minX; x <= maxX; x++) {
-                for (int z = minZ; z <= maxZ; z ++) {
+                for (int z = minZ; z <= maxZ; z++) {
                     relighter.addChunk(x, z, null, 65535);
                     count++;
                 }
@@ -483,8 +504,9 @@ public class FaweAPI {
 
     /**
      * If a schematic is too large to be pasted normally<br>
-     *  - Skips any block history
-     *  - Ignores nbt
+     * - Skips any block history
+     * - Ignores nbt
+     *
      * @param file
      * @param loc
      * @return
@@ -500,12 +522,12 @@ public class FaweAPI {
     }
 
     /**
-     * @deprecated Since I haven't finished it yet
-     * If a schematic is too large to be pasted normally<br>
-     *  - Skips any block history
-     *  - Ignores nbt
      * @param url
      * @param loc
+     * @deprecated Since I haven't finished it yet
+     * If a schematic is too large to be pasted normally<br>
+     * - Skips any block history
+     * - Ignores nbt
      */
     @Deprecated
     public static void streamSchematic(final URL url, final FaweLocation loc) {
@@ -519,14 +541,14 @@ public class FaweAPI {
     }
 
     /**
-     * @deprecated Since I haven't finished it yet
-     * If a schematic is too large to be pasted normally<br>
-     *  - Skips any block history
-     *  - Ignores some block data
-     *  - Not actually streaming from disk, but it does skip a lot of overhead
      * @param is
      * @param loc
      * @throws IOException
+     * @deprecated Since I haven't finished it yet
+     * If a schematic is too large to be pasted normally<br>
+     * - Skips any block history
+     * - Ignores some block data
+     * - Not actually streaming from disk, but it does skip a lot of overhead
      */
     @Deprecated
     public static void streamSchematic(final InputStream is, final FaweLocation loc) throws IOException {
@@ -573,6 +595,7 @@ public class FaweAPI {
 
     /**
      * Set a task to run when the global queue (SetQueue class) is empty
+     *
      * @param whenDone
      */
     public static void addTask(final Runnable whenDone) {
@@ -581,6 +604,7 @@ public class FaweAPI {
 
     /**
      * Have a task run when the server is low on memory (configured threshold)
+     *
      * @param run
      */
     public static void addMemoryLimitedTask(Runnable run) {
@@ -589,6 +613,7 @@ public class FaweAPI {
 
     /**
      * Have a task run when the server is no longer low on memory (configured threshold)
+     *
      * @param run
      */
     public static void addMemoryPlentifulTask(Runnable run) {
@@ -596,16 +621,16 @@ public class FaweAPI {
     }
 
     /**
-     * @see BBC
      * @return
+     * @see BBC
      */
     public static BBC[] getTranslations() {
         return BBC.values();
     }
 
     /**
-     * @deprecated
      * @see #getEditSessionBuilder(com.sk89q.worldedit.world.World)
+     * @deprecated
      */
     @Deprecated
     public static EditSession getNewEditSession(@Nonnull FawePlayer player) {
@@ -616,8 +641,8 @@ public class FaweAPI {
     }
 
     /**
-     * @deprecated
      * @see #getEditSessionBuilder(com.sk89q.worldedit.world.World)
+     * @deprecated
      */
     @Deprecated
     public static EditSession getNewEditSession(World world) {

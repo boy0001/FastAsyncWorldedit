@@ -17,7 +17,7 @@ public class ScaleTransform extends ResettableExtent {
     private transient int maxy;
     private transient Vector min;
 
-    private final double dx,dy,dz;
+    private final double dx, dy, dz;
 
 
     public ScaleTransform(Extent parent, double dx, double dy, double dz) {

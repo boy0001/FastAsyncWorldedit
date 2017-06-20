@@ -147,7 +147,7 @@ public final class DocumentationPrinter {
         //  //setbiome || worldedit.biome.set || //setbiome || p || Sets the biome of the player's current block or region.
         if (title) {
             String path = "https://github.com/boy0001/FastAsyncWorldedit/edit/master/core/src/main/java/" + cls.getName().replaceAll("\\.", "/") + ".java";
-            stream.append("### **" + cls.getSimpleName().replaceAll("(\\p{Ll})(\\p{Lu})","$1 $2") + "** [`✎`](" + path + ")[`▲`](#overview)");
+            stream.append("### **" + cls.getSimpleName().replaceAll("(\\p{Ll})(\\p{Lu})", "$1 $2") + "** [`✎`](" + path + ")[`▲`](#overview)");
             stream.append("\n");
             Command cmd = cls.getAnnotation(Command.class);
             if (cmd != null) {

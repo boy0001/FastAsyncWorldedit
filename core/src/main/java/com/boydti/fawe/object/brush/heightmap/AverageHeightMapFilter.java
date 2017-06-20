@@ -16,6 +16,7 @@ public class AverageHeightMapFilter {
         this.maxY = maxY;
         this.buffer = new int[inData.length];
     }
+
     public int[] filter(int iterations) {
         for (int j = 0; j < iterations; j++) {
             int a = -width;

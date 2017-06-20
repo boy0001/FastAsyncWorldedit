@@ -22,7 +22,7 @@ public class FaweInputStream extends DataInputStream {
     public int readMedium() throws IOException {
         return (int) (
                 (read() << 16) +
-                (read() << 8) +
+                        (read() << 8) +
                         read());
     }
 

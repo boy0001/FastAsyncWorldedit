@@ -24,7 +24,11 @@ import com.sk89q.minecraft.util.commands.Command;
 import com.sk89q.minecraft.util.commands.CommandContext;
 import com.sk89q.minecraft.util.commands.CommandPermissions;
 import com.sk89q.minecraft.util.commands.Logging;
-import com.sk89q.worldedit.*;
+import com.sk89q.worldedit.EditSession;
+import com.sk89q.worldedit.LocalConfiguration;
+import com.sk89q.worldedit.LocalSession;
+import com.sk89q.worldedit.WorldEdit;
+import com.sk89q.worldedit.WorldEditException;
 import com.sk89q.worldedit.entity.Player;
 import com.sk89q.worldedit.regions.Region;
 import com.sk89q.worldedit.world.DataException;
@@ -33,10 +37,10 @@ import com.sk89q.worldedit.world.snapshot.Snapshot;
 import com.sk89q.worldedit.world.snapshot.SnapshotRestore;
 import com.sk89q.worldedit.world.storage.ChunkStore;
 import com.sk89q.worldedit.world.storage.MissingWorldException;
-
 import java.io.File;
 import java.io.IOException;
 import java.util.logging.Logger;
+
 
 import static com.sk89q.minecraft.util.commands.Logging.LogMode.REGION;
 
@@ -52,7 +56,7 @@ public class SnapshotUtilCommands {
     }
 
     @Command(
-            aliases = { "restore", "/restore" },
+            aliases = {"restore", "/restore"},
             usage = "[snapshot]",
             desc = "Restore the selection from a snapshot",
             min = 0,
@@ -142,7 +146,7 @@ public class SnapshotUtilCommands {
                 }
             } else {
                 player.print(BBC.getPrefix() + String.format("Restored; %d "
-                        + "missing chunks and %d other errors.",
+                                + "missing chunks and %d other errors.",
                         restore.getMissingChunks().size(),
                         restore.getErrorChunks().size()));
             }

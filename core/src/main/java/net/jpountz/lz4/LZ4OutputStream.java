@@ -50,7 +50,7 @@ public class LZ4OutputStream extends OutputStream {
     }
 
     public void write(int i) throws IOException {
-        byte b = (byte)i;
+        byte b = (byte) i;
         if (0 == bytesRemainingInCompressionInputBuffer) {
             flush();
         }
@@ -60,7 +60,7 @@ public class LZ4OutputStream extends OutputStream {
     }
 
     public void flush() throws IOException {
-        if(currentCompressionInputBufferPosition > 0) {
+        if (currentCompressionInputBufferPosition > 0) {
             LZ4StreamHelper.writeLength(currentCompressionInputBufferPosition, this.underlyingOutputStream);
             int bytesCompressed = compressor.compress(compressionInputBuffer, 0, currentCompressionInputBufferPosition, compressionOutputBuffer, 0, compressionOutputBuffer.length);
             LZ4StreamHelper.writeLength(bytesCompressed, this.underlyingOutputStream);

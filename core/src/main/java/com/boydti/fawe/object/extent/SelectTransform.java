@@ -6,7 +6,8 @@ import com.sk89q.worldedit.WorldEditException;
 import com.sk89q.worldedit.blocks.BaseBlock;
 import com.sk89q.worldedit.entity.BaseEntity;
 import com.sk89q.worldedit.entity.Entity;
-import com.sk89q.worldedit.extent.*;
+import com.sk89q.worldedit.extent.AbstractDelegateExtent;
+import com.sk89q.worldedit.extent.Extent;
 import com.sk89q.worldedit.extent.NullExtent;
 import com.sk89q.worldedit.util.Location;
 import com.sk89q.worldedit.world.biome.BaseBiome;
@@ -18,11 +19,13 @@ public abstract class SelectTransform extends ResettableExtent {
     }
 
     public abstract AbstractDelegateExtent getExtent(int x, int y, int z);
+
     public abstract AbstractDelegateExtent getExtent(int x, int z);
 
     public Extent getExtent(Vector pos) {
         return getExtent(pos.getBlockX(), pos.getBlockY(), pos.getBlockZ());
     }
+
     public Extent getExtent(Vector2D pos) {
         return getExtent(pos.getBlockX(), pos.getBlockZ());
     }

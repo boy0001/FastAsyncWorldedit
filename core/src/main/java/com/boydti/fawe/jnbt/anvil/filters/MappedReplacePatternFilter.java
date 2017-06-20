@@ -15,7 +15,8 @@ import java.util.List;
 public class MappedReplacePatternFilter extends MCAFilterCounter {
     private Pattern[] map = new Pattern[Character.MAX_VALUE + 1];
 
-    public MappedReplacePatternFilter() {}
+    public MappedReplacePatternFilter() {
+    }
 
     public MappedReplacePatternFilter(String from, RandomPattern to, boolean useData) throws InputParseException {
         List<String> split = StringMan.split(from, ',');

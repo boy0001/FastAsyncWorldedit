@@ -15,31 +15,31 @@ public class YamlConfigurationOptions extends FileConfigurationOptions {
     public YamlConfiguration configuration() {
         return (YamlConfiguration) super.configuration();
     }
-    
+
     @Override
     public com.boydti.fawe.configuration.file.YamlConfigurationOptions copyDefaults(final boolean value) {
         super.copyDefaults(value);
         return this;
     }
-    
+
     @Override
     public com.boydti.fawe.configuration.file.YamlConfigurationOptions pathSeparator(final char value) {
         super.pathSeparator(value);
         return this;
     }
-    
+
     @Override
     public com.boydti.fawe.configuration.file.YamlConfigurationOptions header(final String value) {
         super.header(value);
         return this;
     }
-    
+
     @Override
     public com.boydti.fawe.configuration.file.YamlConfigurationOptions copyHeader(final boolean value) {
         super.copyHeader(value);
         return this;
     }
-    
+
     /**
      * Gets how much spaces should be used to indent each line.
      * <p>
@@ -50,7 +50,7 @@ public class YamlConfigurationOptions extends FileConfigurationOptions {
     public int indent() {
         return indent;
     }
-    
+
     /**
      * Sets how much spaces should be used to indent each line.
      * <p>
@@ -66,7 +66,7 @@ public class YamlConfigurationOptions extends FileConfigurationOptions {
         if (value > 9) {
             throw new IllegalArgumentException("Indent cannot be greater than 9 characters");
         }
-        
+
         indent = value;
         return this;
     }

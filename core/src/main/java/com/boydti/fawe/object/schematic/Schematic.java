@@ -48,6 +48,7 @@ public class Schematic {
 
     /**
      * Get the schematic for a region
+     *
      * @param region
      */
     public Schematic(Region region) {
@@ -57,12 +58,15 @@ public class Schematic {
         this.clipboard = new BlockArrayClipboard(region, ReadOnlyClipboard.of(session, region));
     }
 
-    public @Nullable Clipboard getClipboard() {
+    public
+    @Nullable
+    Clipboard getClipboard() {
         return clipboard;
     }
 
     /**
      * Forwards to paste(world, to, true, true, null)
+     *
      * @param world
      * @param to
      * @return
@@ -86,6 +90,7 @@ public class Schematic {
 
     /**
      * Save this schematic to a stream
+     *
      * @param stream
      * @param format
      * @throws IOException
@@ -100,6 +105,7 @@ public class Schematic {
 
     /**
      * Paste this schematic in a world
+     *
      * @param world
      * @param to
      * @param allowUndo

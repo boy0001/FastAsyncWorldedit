@@ -70,14 +70,19 @@ public abstract class FaweStreamChangeSet extends FaweChangeSet {
 
     public interface FaweStreamPositionDelegate {
         void write(OutputStream out, int x, int y, int z) throws IOException;
+
         int readX(FaweInputStream in) throws IOException;
+
         int readY(FaweInputStream in) throws IOException;
+
         int readZ(FaweInputStream in) throws IOException;
     }
 
     public interface FaweStreamIdDelegate {
         void writeChange(OutputStream out, int from, int to) throws IOException;
+
         void readCombined(FaweInputStream in, MutableBlockChange change, boolean dir) throws IOException;
+
         void readCombined(FaweInputStream in, MutableFullBlockChange change, boolean dir) throws IOException;
     }
 
@@ -141,7 +146,8 @@ public abstract class FaweStreamChangeSet extends FaweChangeSet {
         }
         if (mode == 1 || mode == 4) { // small
             posDel = new FaweStreamPositionDelegate() {
-                int lx,ly,lz;
+                int lx, ly, lz;
+
                 @Override
                 public void write(OutputStream out, int x, int y, int z) throws IOException {
                     int rx = -lx + (lx = x);
@@ -180,7 +186,8 @@ public abstract class FaweStreamChangeSet extends FaweChangeSet {
         } else {
             posDel = new FaweStreamPositionDelegate() {
                 byte[] buffer = new byte[5];
-                int lx,ly,lz;
+                int lx, ly, lz;
+
                 @Override
                 public void write(OutputStream stream, int x, int y, int z) throws IOException {
                     int rx = -lx + (lx = x);
@@ -268,17 +275,27 @@ public abstract class FaweStreamChangeSet extends FaweChangeSet {
     }
 
     public abstract OutputStream getBlockOS(int x, int y, int z) throws IOException;
+
     public abstract OutputStream getBiomeOS() throws IOException;
+
     public abstract NBTOutputStream getEntityCreateOS() throws IOException;
+
     public abstract NBTOutputStream getEntityRemoveOS() throws IOException;
+
     public abstract NBTOutputStream getTileCreateOS() throws IOException;
+
     public abstract NBTOutputStream getTileRemoveOS() throws IOException;
 
     public abstract FaweInputStream getBlockIS() throws IOException;
+
     public abstract FaweInputStream getBiomeIS() throws IOException;
+
     public abstract NBTInputStream getEntityCreateIS() throws IOException;
+
     public abstract NBTInputStream getEntityRemoveIS() throws IOException;
+
     public abstract NBTInputStream getTileCreateIS() throws IOException;
+
     public abstract NBTInputStream getTileRemoveIS() throws IOException;
 
     private int blockSize;
@@ -310,8 +327,7 @@ public abstract class FaweStreamChangeSet extends FaweChangeSet {
             //x
             posDel.write(stream, x - originX, y, z - originZ);
             idDel.writeChange(stream, combinedFrom, combinedTo);
-        }
-        catch (Throwable e) {
+        } catch (Throwable e) {
             MainUtil.handleError(e);
         }
     }
@@ -331,8 +347,7 @@ public abstract class FaweStreamChangeSet extends FaweChangeSet {
             os.write((byte) (z));
             os.write(from.getId());
             os.write(to.getId());
-        }
-        catch (Throwable e) {
+        } catch (Throwable e) {
             MainUtil.handleError(e);
         }
     }
@@ -397,6 +412,7 @@ public abstract class FaweStreamChangeSet extends FaweChangeSet {
         final MutableBlockChange change = new MutableBlockChange(0, 0, 0, (short) 0, (byte) 0);
         return new Iterator<MutableBlockChange>() {
             private MutableBlockChange last = read();
+
             public MutableBlockChange read() {
                 try {
                     change.x = posDel.readX(is) + originX;
@@ -447,6 +463,7 @@ public abstract class FaweStreamChangeSet extends FaweChangeSet {
         final MutableBiomeChange change = new MutableBiomeChange();
         return new Iterator<MutableBiomeChange>() {
             private MutableBiomeChange last = new MutableBiomeChange();
+
             public MutableBiomeChange read() {
                 try {
                     int int1 = is.read();
@@ -513,6 +530,7 @@ public abstract class FaweStreamChangeSet extends FaweChangeSet {
         final MutableFullBlockChange change = new MutableFullBlockChange(blockBag, inventory, dir);
         return new Iterator<MutableFullBlockChange>() {
             private MutableFullBlockChange last = read();
+
             public MutableFullBlockChange read() {
                 try {
                     change.x = posDel.readX(is) + originX;
@@ -569,7 +587,8 @@ public abstract class FaweStreamChangeSet extends FaweChangeSet {
                         CompoundTag tag = (CompoundTag) is.readTag();
                         change.tag = tag;
                         return change;
-                    } catch (Exception ignoreOEF) {}
+                    } catch (Exception ignoreOEF) {
+                    }
                     try {
                         is.close();
                     } catch (IOException e) {
@@ -618,7 +637,8 @@ public abstract class FaweStreamChangeSet extends FaweChangeSet {
                         CompoundTag tag = (CompoundTag) is.readTag();
                         change.tag = tag;
                         return change;
-                    } catch (Exception ignoreOEF) {}
+                    } catch (Exception ignoreOEF) {
+                    }
                     try {
                         is.close();
                     } catch (IOException e) {

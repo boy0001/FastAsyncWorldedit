@@ -54,19 +54,22 @@ public class ShapeInterpolator {
         return instance.evaluate(v0, v1, fraction, unionBounds);
     }
 
-    /** Creates an interpolated shape from tight bounds. */
+    /**
+     * Creates an interpolated shape from tight bounds.
+     */
     public Shape evaluate(Shape v0, Shape v1, float fraction) {
         return evaluate(v0, v1, fraction, false);
     }
 
-    /** Creates an interpolated shape.
+    /**
+     * Creates an interpolated shape.
      *
-     * @param v0            the first shape
-     * @param v1            the second shape
-     * @param fraction      the fraction from zero (just first shape) to one (just second shape)
-     * @param unionBounds   if `true`, the shape reports bounds which are the union of
-     *                      the bounds of both shapes, if `false` it reports "tight" bounds
-     *                      using the actual interpolated path.
+     * @param v0          the first shape
+     * @param v1          the second shape
+     * @param fraction    the fraction from zero (just first shape) to one (just second shape)
+     * @param unionBounds if `true`, the shape reports bounds which are the union of
+     *                    the bounds of both shapes, if `false` it reports "tight" bounds
+     *                    using the actual interpolated path.
      */
     public Shape evaluate(Shape v0, Shape v1, float fraction, boolean unionBounds) {
         if (savedV0 != v0 || savedV1 != v1) {
@@ -87,9 +90,9 @@ public class ShapeInterpolator {
     private void recalculate(Shape v0, Shape v1) {
         geom0 = new Geometry(v0);
         geom1 = new Geometry(v1);
-        final float[] tVals0        = geom0.getTVals();
-        final float[] tVals1        = geom1.getTVals();
-        final float[] masterTVals   = mergeTVals(tVals0, tVals1);
+        final float[] tVals0 = geom0.getTVals();
+        final float[] tVals1 = geom1.getTVals();
+        final float[] masterTVals = mergeTVals(tVals0, tVals1);
         geom0.setTVals(masterTVals);
         geom1.setTVals(masterTVals);
     }
@@ -99,8 +102,8 @@ public class ShapeInterpolator {
     }
 
     private static float[] mergeTVals(float[] tVals0, float[] tVals1) {
-        final int count         = sortTVals(tVals0, tVals1, null);
-        final float[] newTVals  = new float[count];
+        final int count = sortTVals(tVals0, tVals1, null);
+        final float[] newTVals = new float[count];
         sortTVals(tVals0, tVals1, newTVals);
         return newTVals;
     }
@@ -136,13 +139,13 @@ public class ShapeInterpolator {
     }
 
     private static class Geometry {
-        static final float THIRD    = (1f / 3f);
-        static final float MIN_LEN  = 0.001f;
+        static final float THIRD = (1f / 3f);
+        static final float MIN_LEN = 0.001f;
 
-        final int   windingRule;
-        float[]     bezierCoordinates;
-        int         numCoordinates;
-        float[]     myTVals;
+        final int windingRule;
+        float[] bezierCoordinates;
+        int numCoordinates;
+        float[] myTVals;
 
         public Geometry(Shape s) {
             // Multiple of 6 plus 2 more for initial move-to
@@ -229,7 +232,7 @@ public class ShapeInterpolator {
             }
             // Now retrace our way back through all of the connecting
             // inter-sub-path segments
-            for (int i = savedPathEndPoints.size()-1; i >= 0; i--) {
+            for (int i = savedPathEndPoints.size() - 1; i >= 0; i--) {
                 final Point2D.Float p = savedPathEndPoints.get(i);
                 newX = p.x;
                 newY = p.y;
@@ -481,7 +484,7 @@ public class ShapeInterpolator {
         public void setTVals(float[] newTVals) {
             final float[] oldCoordinates = bezierCoordinates;
             final float[] newCoordinates = new float[2 + (newTVals.length - 1) * 6];
-            final float[] oldTVals       = getTVals();
+            final float[] oldTVals = getTVals();
             int oldCi = 0;
             float x0, xc0, xc1, x1;
             float y0, yc0, yc1, y1;
@@ -490,8 +493,8 @@ public class ShapeInterpolator {
             int newCi = 0;
             newCoordinates[newCi++] = x0;
             newCoordinates[newCi++] = y0;
-            float t0  = 0;
-            float t1  = 0;
+            float t0 = 0;
+            float t1 = 0;
             int oldTi = 1;
             int newTi = 1;
             while (newTi < newTVals.length) {
@@ -502,9 +505,9 @@ public class ShapeInterpolator {
                     yc0 = oldCoordinates[oldCi++];
                     xc1 = oldCoordinates[oldCi++];
                     yc1 = oldCoordinates[oldCi++];
-                    x1  = oldCoordinates[oldCi++];
-                    y1  = oldCoordinates[oldCi++];
-                    t1  = oldTVals      [oldTi++];
+                    x1 = oldCoordinates[oldCi++];
+                    y1 = oldCoordinates[oldCi++];
+                    t1 = oldTVals[oldTi++];
                 }
                 float nt = newTVals[newTi++];
                 // assert(nt > t0);
@@ -515,8 +518,8 @@ public class ShapeInterpolator {
                     newCoordinates[newCi++] = y0 = interp(y0, yc0, relT);
                     xc0 = interp(xc0, xc1, relT);
                     yc0 = interp(yc0, yc1, relT);
-                    xc1 = interp(xc1, x1 , relT);
-                    yc1 = interp(yc1, y1 , relT);
+                    xc1 = interp(xc1, x1, relT);
+                    yc1 = interp(yc1, y1, relT);
                     newCoordinates[newCi++] = x0 = interp(x0, xc0, relT);
                     newCoordinates[newCi++] = y0 = interp(y0, yc0, relT);
                     xc0 = interp(xc0, xc1, relT);
@@ -534,22 +537,22 @@ public class ShapeInterpolator {
                 t0 = nt;
             }
             bezierCoordinates = newCoordinates;
-            numCoordinates    = newCoordinates.length;
+            numCoordinates = newCoordinates.length;
             myTVals = newTVals;
         }
     }
 
     private static class MorphedShape implements Shape {
-        final Geometry  geom0;
-        final Geometry  geom1;
-        final float     t;
-        final boolean   unionBounds;
+        final Geometry geom0;
+        final Geometry geom1;
+        final float t;
+        final boolean unionBounds;
 
         MorphedShape(Geometry geom0, Geometry geom1, float t, boolean unionBounds) {
-            this.geom0      = geom0;
-            this.geom1      = geom1;
-            this.t          = t;
-            this.unionBounds= unionBounds;
+            this.geom0 = geom0;
+            this.geom1 = geom1;
+            this.t = t;
+            this.unionBounds = unionBounds;
         }
 
         public Rectangle getBounds() {
@@ -564,8 +567,8 @@ public class ShapeInterpolator {
                 xMin = xMax = geom0.getCoordinate(0);
                 yMin = yMax = geom0.getCoordinate(1);
                 for (int i = 2; i < n; i += 2) {
-                    final float x = geom0.getCoordinate(i  );
-                    final float y = geom0.getCoordinate(i+1);
+                    final float x = geom0.getCoordinate(i);
+                    final float y = geom0.getCoordinate(i + 1);
                     if (xMin > x) {
                         xMin = x;
                     }
@@ -581,8 +584,8 @@ public class ShapeInterpolator {
                 }
                 final int m = geom1.getNumCoordinates();
                 for (int i = 0; i < m; i += 2) {
-                    final float x = geom1.getCoordinate(i  );
-                    final float y = geom1.getCoordinate(i+1);
+                    final float x = geom1.getCoordinate(i);
+                    final float y = geom1.getCoordinate(i + 1);
                     if (xMin > x) {
                         xMin = x;
                     }
@@ -600,8 +603,8 @@ public class ShapeInterpolator {
                 xMin = xMax = interp(geom0.getCoordinate(0), geom1.getCoordinate(0), t);
                 yMin = yMax = interp(geom0.getCoordinate(1), geom1.getCoordinate(1), t);
                 for (int i = 2; i < n; i += 2) {
-                    final float x = interp(geom0.getCoordinate(i  ), geom1.getCoordinate(i  ), t);
-                    final float y = interp(geom0.getCoordinate(i+1), geom1.getCoordinate(i+1), t);
+                    final float x = interp(geom0.getCoordinate(i), geom1.getCoordinate(i), t);
+                    final float y = interp(geom0.getCoordinate(i + 1), geom1.getCoordinate(i + 1), t);
                     if (xMin > x) {
                         xMin = x;
                     }
@@ -665,7 +668,7 @@ public class ShapeInterpolator {
             this.at = at;
             this.g0 = g0;
             this.g1 = g1;
-            this.t  = t;
+            this.t = t;
         }
 
         /**

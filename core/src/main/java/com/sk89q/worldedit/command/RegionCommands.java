@@ -94,7 +94,7 @@ import static com.sk89q.worldedit.regions.Regions.minimumBlockY;
  * Commands that operate on regions.
  */
 @Command(aliases = {}, desc = "Commands that operate on regions: [More Info](http://wiki.sk89q.com/wiki/WorldEdit/Region_operations)")
-public class RegionCommands extends MethodCommands{
+public class RegionCommands extends MethodCommands {
 
     private final WorldEdit worldEdit;
 
@@ -110,7 +110,7 @@ public class RegionCommands extends MethodCommands{
     }
 
     @Command(
-            aliases = { "/fixlighting" },
+            aliases = {"/fixlighting"},
             desc = "Get the light at a position",
             min = 0,
             max = 0
@@ -130,7 +130,7 @@ public class RegionCommands extends MethodCommands{
     }
 
     @Command(
-            aliases = { "/getlighting" },
+            aliases = {"/getlighting"},
             desc = "Get the light at a position",
             min = 0,
             max = 0
@@ -144,7 +144,7 @@ public class RegionCommands extends MethodCommands{
     }
 
     @Command(
-            aliases = { "/removelight", "/removelighting" },
+            aliases = {"/removelight", "/removelighting"},
             desc = "Removing lighting in a selection",
             min = 0,
             max = 0
@@ -164,7 +164,7 @@ public class RegionCommands extends MethodCommands{
     }
 
     @Command(
-            aliases = { "/nbtinfo", "/nbt" },
+            aliases = {"/nbtinfo", "/nbt"},
             desc = "View nbt info for a block"
     )
     @CommandPermissions("worldedit.nbtinfo")
@@ -183,7 +183,7 @@ public class RegionCommands extends MethodCommands{
     }
 
     @Command(
-            aliases = { "/setblocklight", "/setlight" },
+            aliases = {"/setblocklight", "/setlight"},
             desc = "Set block lighting in a selection",
             min = 1,
             max = 1
@@ -207,7 +207,7 @@ public class RegionCommands extends MethodCommands{
     }
 
     @Command(
-            aliases = { "/setskylight"},
+            aliases = {"/setskylight"},
             desc = "Set sky lighting in a selection",
             min = 1,
             max = 1
@@ -231,7 +231,7 @@ public class RegionCommands extends MethodCommands{
     }
 
     @Command(
-            aliases = { "/line" },
+            aliases = {"/line"},
             usage = "<block> [thickness]",
             desc = "Draws a line segment between cuboid selection corners",
             help =
@@ -265,7 +265,7 @@ public class RegionCommands extends MethodCommands{
     }
 
     @Command(
-            aliases = { "/curve", "/spline" },
+            aliases = {"/curve", "/spline"},
             usage = "<block> [thickness]",
             desc = "Draws a spline through selected points",
             help =
@@ -298,7 +298,7 @@ public class RegionCommands extends MethodCommands{
     }
 
     @Command(
-            aliases = { "/replace", "/re", "/rep", "/r" },
+            aliases = {"/replace", "/re", "/rep", "/r"},
             usage = "[from-block] <to-block>",
             desc = "Replace all blocks in the selection with another",
             flags = "f",
@@ -314,11 +314,12 @@ public class RegionCommands extends MethodCommands{
         }
         int affected = editSession.replaceBlocks(region, from, to);
         BBC.VISITOR_BLOCK.send(player, affected);
-        if (!player.hasPermission("fawe.tips")) BBC.TIP_REPLACE_ID.or(BBC.TIP_REPLACE_LIGHT, BBC.TIP_REPLACE_MARKER, BBC.TIP_TAB_COMPLETE).send(player);
+        if (!player.hasPermission("fawe.tips"))
+            BBC.TIP_REPLACE_ID.or(BBC.TIP_REPLACE_LIGHT, BBC.TIP_REPLACE_MARKER, BBC.TIP_TAB_COMPLETE).send(player);
     }
 
     @Command(
-            aliases = { "/set", "/s" },
+            aliases = {"/set", "/s"},
             usage = "[pattern]",
             desc = "Set all blocks within selection",
             min = 1,
@@ -336,12 +337,13 @@ public class RegionCommands extends MethodCommands{
         }
         if (affected != 0) {
             BBC.OPERATION.send(player, affected);
-            if (!player.hasPermission("fawe.tips")) BBC.TIP_FAST.or(BBC.TIP_CANCEL, BBC.TIP_MASK, BBC.TIP_MASK_ANGLE, BBC.TIP_SET_LINEAR, BBC.TIP_SURFACE_SPREAD, BBC.TIP_SET_HAND).send(player);
+            if (!player.hasPermission("fawe.tips"))
+                BBC.TIP_FAST.or(BBC.TIP_CANCEL, BBC.TIP_MASK, BBC.TIP_MASK_ANGLE, BBC.TIP_SET_LINEAR, BBC.TIP_SURFACE_SPREAD, BBC.TIP_SET_HAND).send(player);
         }
     }
 
     @Command(
-            aliases = { "/overlay" },
+            aliases = {"/overlay"},
             usage = "<block>",
             desc = "Set a block on top of blocks in the region",
             min = 1,
@@ -355,7 +357,7 @@ public class RegionCommands extends MethodCommands{
     }
 
     @Command(
-            aliases = { "/lay" },
+            aliases = {"/lay"},
             usage = "<block>",
             desc = "Set the top block in the region",
             min = 1,
@@ -388,7 +390,7 @@ public class RegionCommands extends MethodCommands{
     }
 
     @Command(
-            aliases = { "/center", "/middle" },
+            aliases = {"/center", "/middle"},
             usage = "<block>",
             desc = "Set the center block(s)",
             min = 1,
@@ -402,7 +404,7 @@ public class RegionCommands extends MethodCommands{
     }
 
     @Command(
-            aliases = { "/naturalize" },
+            aliases = {"/naturalize"},
             usage = "",
             desc = "3 layers of dirt on top then rock below",
             min = 0,
@@ -416,7 +418,7 @@ public class RegionCommands extends MethodCommands{
     }
 
     @Command(
-            aliases = { "/walls" },
+            aliases = {"/walls"},
             usage = "<block>",
             desc = "Build the four sides of the selection",
             min = 1,
@@ -430,7 +432,7 @@ public class RegionCommands extends MethodCommands{
     }
 
     @Command(
-            aliases = { "/faces", "/outline" },
+            aliases = {"/faces", "/outline"},
             usage = "<block>",
             desc = "Build the walls, ceiling, and floor of a selection",
             min = 1,
@@ -444,7 +446,7 @@ public class RegionCommands extends MethodCommands{
     }
 
     @Command(
-            aliases = { "/smooth" },
+            aliases = {"/smooth"},
             usage = "[iterations]",
             flags = "n",
             desc = "Smooth the elevation in the selection",
@@ -461,7 +463,7 @@ public class RegionCommands extends MethodCommands{
         try {
             Vector min = region.getMinimumPoint();
             Vector max = region.getMaximumPoint();
-            long volume = (((long)max.getX() - (long)min.getX() + 1) * ((long)max.getY() - (long)min.getY() + 1) * ((long)max.getZ() - (long)min.getZ() + 1));
+            long volume = (((long) max.getX() - (long) min.getX() + 1) * ((long) max.getY() - (long) min.getY() + 1) * ((long) max.getZ() - (long) min.getZ() + 1));
             FaweLimit limit = FawePlayer.wrap(player).getLimit();
             if (volume >= limit.MAX_CHECKS) {
                 throw new FaweException(BBC.WORLDEDIT_CANCEL_REASON_MAX_CHECKS);
@@ -476,7 +478,7 @@ public class RegionCommands extends MethodCommands{
     }
 
     @Command(
-            aliases = { "/wea", "wea", "worldeditanywhere", "/worldeditanywhere", "/weanywhere" },
+            aliases = {"/wea", "wea", "worldeditanywhere", "/worldeditanywhere", "/weanywhere"},
             desc = "Bypass region restrictions",
             help = "Bypass region restrictions"
     )
@@ -491,7 +493,7 @@ public class RegionCommands extends MethodCommands{
     }
 
     @Command(
-            aliases = { "/wer", "wer", "worldeditregion", "/worldeditregion", "select", "/select" },
+            aliases = {"/wer", "wer", "worldeditregion", "/worldeditregion", "select", "/select"},
             desc = "Select your current allowed region",
             help = "Select your current allowed region"
     )
@@ -509,7 +511,7 @@ public class RegionCommands extends MethodCommands{
 
 
     @Command(
-            aliases = { "/move" },
+            aliases = {"/move"},
             usage = "[count] [direction] [leave-id]",
             flags = "s",
             desc = "Move the contents of the selection",
@@ -546,7 +548,7 @@ public class RegionCommands extends MethodCommands{
     }
 
     @Command(
-            aliases = { "/fall" },
+            aliases = {"/fall"},
             usage = "[replace]",
             flags = "m",
             desc = "Have the blocks in the selection fall",
@@ -568,7 +570,7 @@ public class RegionCommands extends MethodCommands{
     }
 
     @Command(
-            aliases = { "/stack" },
+            aliases = {"/stack"},
             usage = "[count] [direction]",
             flags = "sam",
             desc = "Repeat the contents of the selection",
@@ -611,7 +613,7 @@ public class RegionCommands extends MethodCommands{
     }
 
     @Command(
-            aliases = { "/regen" },
+            aliases = {"/regen"},
             usage = "[biome] [seed]",
             desc = "Regenerates the contents of the selection",
             help =
@@ -652,7 +654,7 @@ public class RegionCommands extends MethodCommands{
     }
 
     @Command(
-            aliases = { "/deform" },
+            aliases = {"/deform"},
             usage = "<expression>",
             desc = "Deforms a selected region with an expression",
             help =
@@ -702,7 +704,7 @@ public class RegionCommands extends MethodCommands{
     }
 
     @Command(
-            aliases = { "/hollow" },
+            aliases = {"/hollow"},
             usage = "[<thickness>[ <block>]]",
             desc = "Hollows out the object contained in this selection",
             help =
@@ -724,7 +726,7 @@ public class RegionCommands extends MethodCommands{
     }
 
     @Command(
-            aliases = { "/forest" },
+            aliases = {"/forest"},
             usage = "[type] [density]",
             desc = "Make a forest within the region",
             min = 0,
@@ -745,7 +747,7 @@ public class RegionCommands extends MethodCommands{
     }
 
     @Command(
-            aliases = { "/flora" },
+            aliases = {"/flora"},
             usage = "[density]",
             desc = "Make flora within the region",
             min = 0,

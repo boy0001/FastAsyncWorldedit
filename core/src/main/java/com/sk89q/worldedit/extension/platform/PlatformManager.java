@@ -70,7 +70,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
 /**
  * Manages registered {@link Platform}s for WorldEdit. Platforms are
  * implementations of WorldEdit.
- *
+ * <p>
  * <p>This class is thread-safe.</p>
  */
 public class PlatformManager {
@@ -81,7 +81,9 @@ public class PlatformManager {
     private final CommandManager commandManager;
     private final List<Platform> platforms = new ArrayList<Platform>();
     private final Map<Capability, Platform> preferences = new EnumMap<Capability, Platform>(Capability.class);
-    private @Nullable String firstSeenVersion;
+    private
+    @Nullable
+    String firstSeenVersion;
     private final AtomicBoolean initialized = new AtomicBoolean();
     private final AtomicBoolean configured = new AtomicBoolean();
 
@@ -118,7 +120,7 @@ public class PlatformManager {
             if (!firstSeenVersion.equals(platform.getVersion())) {
                 logger.log(Level.WARNING, "Multiple ports of WorldEdit are installed but they report different versions ({0} and {1}). " +
                                 "If these two versions are truly different, then you may run into unexpected crashes and errors.",
-                        new Object[]{ firstSeenVersion, platform.getVersion() });
+                        new Object[]{firstSeenVersion, platform.getVersion()});
             }
         } else {
             firstSeenVersion = platform.getVersion();
@@ -127,7 +129,7 @@ public class PlatformManager {
 
     /**
      * Unregister a platform from WorldEdit.
-     *
+     * <p>
      * <p>If the platform has been chosen for any capabilities, then a new
      * platform will be found.</p>
      *
@@ -218,7 +220,9 @@ public class PlatformManager {
      * @param capability the capability
      * @return the most preferred platform, or null if no platform was found
      */
-    private synchronized @Nullable Platform findMostPreferred(Capability capability) {
+    private synchronized
+    @Nullable
+    Platform findMostPreferred(Capability capability) {
         Platform preferred = null;
         Preference highest = null;
 
@@ -235,7 +239,7 @@ public class PlatformManager {
 
     /**
      * Get a list of loaded platforms.
-     *
+     * <p>
      * <p>The returned list is a copy of the original and is mutable.</p>
      *
      * @return a list of platforms
@@ -304,7 +308,7 @@ public class PlatformManager {
 
     /**
      * Get the current configuration.
-     *
+     * <p>
      * <p>If no platform has been registered yet, then a default configuration
      * will be returned.</p>
      *

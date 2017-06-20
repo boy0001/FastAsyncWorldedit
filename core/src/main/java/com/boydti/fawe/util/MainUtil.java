@@ -148,17 +148,17 @@ public class MainUtil {
         traverse(path, new RunnableVal2<Path, BasicFileAttributes>() {
             @Override
             public void run(Path path, BasicFileAttributes attrs) {
-                size.addAndGet (attrs.size());
+                size.addAndGet(attrs.size());
             }
         });
         return size.get();
     }
 
-    public static double getJavaVersion () {
+    public static double getJavaVersion() {
         String version = System.getProperty("java.version");
         int pos = version.indexOf('.');
-        pos = version.indexOf('.', pos+1);
-        return Double.parseDouble (version.substring (0, pos));
+        pos = version.indexOf('.', pos + 1);
+        return Double.parseDouble(version.substring(0, pos));
     }
 
     public static void stacktrace() {
@@ -168,23 +168,27 @@ public class MainUtil {
     public static void traverse(Path path, final RunnableVal2<Path, BasicFileAttributes> onEach) {
         try {
             Files.walkFileTree(path, new SimpleFileVisitor<Path>() {
-                @Override public FileVisitResult
+                @Override
+                public FileVisitResult
                 visitFile(Path file, BasicFileAttributes attrs) {
                     onEach.run(file, attrs);
                     return FileVisitResult.CONTINUE;
                 }
-                @Override public FileVisitResult
+
+                @Override
+                public FileVisitResult
                 visitFileFailed(Path file, IOException exc) {
                     return FileVisitResult.CONTINUE;
                 }
-                @Override public FileVisitResult
-                postVisitDirectory (Path dir, IOException exc) {
+
+                @Override
+                public FileVisitResult
+                postVisitDirectory(Path dir, IOException exc) {
                     return FileVisitResult.CONTINUE;
                 }
             });
-        }
-        catch (IOException e) {
-            throw new AssertionError ("walkFileTree will not throw IOException if the FileVisitor does not");
+        } catch (IOException e) {
+            throw new AssertionError("walkFileTree will not throw IOException if the FileVisitor does not");
         }
     }
 
@@ -204,7 +208,8 @@ public class MainUtil {
                         if (id > max.get()) {
                             max.set(id);
                         }
-                    } catch (NumberFormatException ignore){}
+                    } catch (NumberFormatException ignore) {
+                    }
                 }
             });
         }
@@ -227,7 +232,7 @@ public class MainUtil {
     }
 
     public static long getSize(ChangeSet changeSet) {
-        if (changeSet instanceof FaweStreamChangeSet){
+        if (changeSet instanceof FaweStreamChangeSet) {
             FaweStreamChangeSet fscs = (FaweStreamChangeSet) changeSet;
             return fscs.getSizeOnDisk() + fscs.getSizeInMemory();
         } else if (changeSet instanceof CPUOptimizedChangeSet) {
@@ -399,7 +404,7 @@ public class MainUtil {
         }
         final URL url;
         try {
-            url = new URL(urlStr  + "?key=" + uuid + "&type=" + "" + extension);
+            url = new URL(urlStr + "?key=" + uuid + "&type=" + "" + extension);
             String boundary = Long.toHexString(System.currentTimeMillis());
             URLConnection con = new URL(website).openConnection();
             con.setDoOutput(true);
@@ -418,7 +423,8 @@ public class MainUtil {
                 writer.append(CRLF).flush();
                 OutputStream nonClosable = new AbstractDelegateOutputStream(new BufferedOutputStream(output)) {
                     @Override
-                    public void close() throws IOException {  } // Don't close
+                    public void close() throws IOException {
+                    } // Don't close
                 };
                 writeTask.value = nonClosable;
                 writeTask.run();
@@ -476,8 +482,7 @@ public class MainUtil {
         return new File(new URL(url.toURI().toString().split("\\!")[0].replaceAll("jar:file", "file")).toURI().getPath());
     }
 
-    public static void sendCompressedMessage(FaweStreamChangeSet set, FawePlayer actor)
-    {
+    public static void sendCompressedMessage(FaweStreamChangeSet set, FawePlayer actor) {
         try {
             long elements = set.size();
             long compressedSize = set.getCompressedSize();
@@ -628,8 +633,8 @@ public class MainUtil {
             return;
         }
 //        if (!debug) {
-            e.printStackTrace();
-            return;
+        e.printStackTrace();
+        return;
 //        }
 //        String header = "====== FAWE: " + e.getLocalizedMessage() + " ======";
 //        Fawe.debug(header);
@@ -678,7 +683,8 @@ public class MainUtil {
                         break;
                     }
                 }
-            } catch(Throwable ignore) {}
+            } catch (Throwable ignore) {
+            }
             msg[i] = name + "." + methodName + argString + ":" + elem.getLineNumber();
         }
 //        msg[msg.length-1] = StringMan.getString(packages);
@@ -732,8 +738,7 @@ public class MainUtil {
                     Fawe.debug(" - Alternatives: " + StringMan.getString(alternatives));
                 } catch (Throwable ignore) {
                     ignore.printStackTrace();
-                }
-                finally {
+                } finally {
                     break;
                 }
             }
@@ -815,36 +820,36 @@ public class MainUtil {
     }
 
     public static String secToTime(long time) {
-            StringBuilder toreturn = new StringBuilder();
-            if (time>=33868800) {
-                int years = (int) (time/33868800);
-                time-=years*33868800;
-                toreturn.append(years+"y ");
-            }
-            if (time>=604800) {
-                int weeks = (int) (time/604800);
-                time-=weeks*604800;
-                toreturn.append(weeks+"w ");
-            }
-            if (time>=86400) {
-                int days = (int) (time/86400);
-                time-=days*86400;
-                toreturn.append(days+"d ");
-            }
-            if (time>=3600) {
-                int hours = (int) (time/3600);
-                time-=hours*3600;
-                toreturn.append(hours+"h ");
-            }
-            if (time>=60) {
-                int minutes = (int) (time/60);
-                time-=minutes*60;
-                toreturn.append(minutes+"m ");
-            }
-            if (toreturn.equals("")||time>0){
-                toreturn.append((time)+"s ");
-            }
-            return toreturn.toString().trim();
+        StringBuilder toreturn = new StringBuilder();
+        if (time >= 33868800) {
+            int years = (int) (time / 33868800);
+            time -= years * 33868800;
+            toreturn.append(years + "y ");
+        }
+        if (time >= 604800) {
+            int weeks = (int) (time / 604800);
+            time -= weeks * 604800;
+            toreturn.append(weeks + "w ");
+        }
+        if (time >= 86400) {
+            int days = (int) (time / 86400);
+            time -= days * 86400;
+            toreturn.append(days + "d ");
+        }
+        if (time >= 3600) {
+            int hours = (int) (time / 3600);
+            time -= hours * 3600;
+            toreturn.append(hours + "h ");
+        }
+        if (time >= 60) {
+            int minutes = (int) (time / 60);
+            time -= minutes * 60;
+            toreturn.append(minutes + "m ");
+        }
+        if (toreturn.equals("") || time > 0) {
+            toreturn.append((time) + "s ");
+        }
+        return toreturn.toString().trim();
     }
 
     public static long timeToSec(String string) {
@@ -907,7 +912,7 @@ public class MainUtil {
             }
         });
     }
-    
+
     public static boolean deleteDirectory(File directory) {
         if (directory.exists()) {
             File[] files = directory.listFiles();
@@ -928,14 +933,12 @@ public class MainUtil {
     public static boolean isValidTag(Tag tag) {
         if (tag instanceof EndTag) {
             return false;
-        }
-        else if (tag instanceof ListTag) {
+        } else if (tag instanceof ListTag) {
             ListTag lt = (ListTag) tag;
             if ((lt).getType() == EndTag.class) {
                 return false;
             }
-        }
-        else if (tag instanceof CompoundTag) {
+        } else if (tag instanceof CompoundTag) {
             for (Entry<String, Tag> entry : ((CompoundTag) tag).getValue().entrySet()) {
                 if (!isValidTag(entry.getValue())) {
                     return false;
@@ -955,16 +958,14 @@ public class MainUtil {
         return false;
     }
 
-    public enum OS
-    {
-        LINUX,  SOLARIS,  WINDOWS,  MACOS,  UNKNOWN;
+    public enum OS {
+        LINUX, SOLARIS, WINDOWS, MACOS, UNKNOWN;
     }
 
     public static File getWorkingDirectory(String applicationName) {
         String userHome = System.getProperty("user.home", ".");
         File workingDirectory = null;
-        switch (getPlatform())
-        {
+        switch (getPlatform()) {
             case LINUX:
             case SOLARIS:
                 workingDirectory = new File(userHome, '.' + applicationName + '/');

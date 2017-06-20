@@ -22,7 +22,7 @@ import sun.reflect.ReflectionFactory;
  * @author DPOH-VAR
  * @version 1.0
  */
-@SuppressWarnings({ "UnusedDeclaration", "rawtypes" })
+@SuppressWarnings({"UnusedDeclaration", "rawtypes"})
 public class ReflectionUtils {
     /**
      * prefix of bukkit classes
@@ -36,7 +36,10 @@ public class ReflectionUtils {
      * boolean value, TRUE if server uses forge or MCPC+
      */
     private static boolean forge = false;
-    /** check server version and class names */
+
+    /**
+     * check server version and class names
+     */
     public static void init() {
         if (Bukkit.getServer() != null) {
             if (Bukkit.getVersion().contains("MCPC") || Bukkit.getVersion().contains("Forge")) {
@@ -80,7 +83,7 @@ public class ReflectionUtils {
                 break;
             }
         }
-        AccessibleObject.setAccessible(new Field[] { valuesField }, true);
+        AccessibleObject.setAccessible(new Field[]{valuesField}, true);
 
         try {
 
@@ -92,8 +95,8 @@ public class ReflectionUtils {
             T newValue = (T) makeEnum(enumType, // The target enum class
                     enumName, // THE NEW ENUM INSTANCE TO BE DYNAMICALLY ADDED
                     values.size(),
-                    new Class<?>[] {}, // can be used to pass values to the enum constuctor
-            new Object[] {}); // can be used to pass values to the enum constuctor
+                    new Class<?>[]{}, // can be used to pass values to the enum constuctor
+                    new Object[]{}); // can be used to pass values to the enum constuctor
 
             // 4. add new value
             values.add(newValue);
@@ -155,7 +158,7 @@ public class ReflectionUtils {
             throws NoSuchFieldException, IllegalAccessException {
         for (Field field : Class.class.getDeclaredFields()) {
             if (field.getName().contains(fieldName)) {
-                AccessibleObject.setAccessible(new Field[] { field }, true);
+                AccessibleObject.setAccessible(new Field[]{field}, true);
                 setFailsafeFieldValue(field, enumClass, null);
                 break;
             }
@@ -347,9 +350,7 @@ public class ReflectionUtils {
      * {nm} to net.minecraft
      *
      * @param classes possible class paths
-     *
      * @return RefClass object
-     *
      * @throws RuntimeException if no class found
      */
     public static RefClass getRefClass(final String... classes) throws RuntimeException {
@@ -360,7 +361,8 @@ public class ReflectionUtils {
             try {
                 className = className.replace("{cb}", preClassB).replace("{nms}", preClassM).replace("{nm}", "net.minecraft");
                 return getRefClass(Class.forName(className));
-            } catch (final ClassNotFoundException ignored) {}
+            } catch (final ClassNotFoundException ignored) {
+            }
         }
         throw new RuntimeException("no class found: " + classes[0].replace("{cb}", preClassB).replace("{nms}", preClassM).replace("{nm}", "net.minecraft"));
     }
@@ -369,7 +371,6 @@ public class ReflectionUtils {
      * get RefClass object by real class
      *
      * @param clazz class
-     *
      * @return RefClass based on passed class
      */
     public static RefClass getRefClass(final Class clazz) {
@@ -399,7 +400,6 @@ public class ReflectionUtils {
          * see {@link Class#isInstance(Object)}
          *
          * @param object the object to check
-         *
          * @return true if object is an instance of this class
          */
         public boolean isInstance(final Object object) {
@@ -411,9 +411,7 @@ public class ReflectionUtils {
          *
          * @param name  name
          * @param types method parameters. can be Class or RefClass
-         *
          * @return RefMethod object
-         *
          * @throws RuntimeException if method not found
          */
         public RefMethod getMethod(final String name, final Object... types) throws NoSuchMethodException {
@@ -443,9 +441,7 @@ public class ReflectionUtils {
          * get existing constructor by types
          *
          * @param types parameters. can be Class or RefClass
-         *
          * @return RefMethod object
-         *
          * @throws RuntimeException if constructor not found
          */
         public RefConstructor getConstructor(final Object... types) {
@@ -475,9 +471,7 @@ public class ReflectionUtils {
          * find method by type parameters
          *
          * @param types parameters. can be Class or RefClass
-         *
          * @return RefMethod object
-         *
          * @throws RuntimeException if method not found
          */
         public RefMethod findMethod(final Object... types) {
@@ -495,7 +489,8 @@ public class ReflectionUtils {
             final List<Method> methods = new ArrayList<>();
             Collections.addAll(methods, this.clazz.getMethods());
             Collections.addAll(methods, this.clazz.getDeclaredMethods());
-            findMethod: for (final Method m : methods) {
+            findMethod:
+            for (final Method m : methods) {
                 final Class<?>[] methodTypes = m.getParameterTypes();
                 if (methodTypes.length != classes.length) {
                     continue;
@@ -514,9 +509,7 @@ public class ReflectionUtils {
          * find method by name
          *
          * @param names possible names of method
-         *
          * @return RefMethod object
-         *
          * @throws RuntimeException if method not found
          */
         public RefMethod findMethodByName(final String... names) {
@@ -537,9 +530,7 @@ public class ReflectionUtils {
          * find method by return value
          *
          * @param type type of returned value
-         *
          * @return RefMethod
-         *
          * @throws RuntimeException if method not found
          */
         public RefMethod findMethodByReturnType(final RefClass type) {
@@ -550,9 +541,7 @@ public class ReflectionUtils {
          * find method by return value
          *
          * @param type type of returned value
-         *
          * @return RefMethod
-         *
          * @throws RuntimeException if method not found
          */
         public RefMethod findMethodByReturnType(Class type) {
@@ -574,9 +563,7 @@ public class ReflectionUtils {
          * find constructor by number of arguments
          *
          * @param number number of arguments
-         *
          * @return RefConstructor
-         *
          * @throws RuntimeException if constructor not found
          */
         public RefConstructor findConstructor(final int number) {
@@ -595,9 +582,7 @@ public class ReflectionUtils {
          * get field by name
          *
          * @param name field name
-         *
          * @return RefField
-         *
          * @throws RuntimeException if field not found
          */
         public RefField getField(final String name) {
@@ -616,9 +601,7 @@ public class ReflectionUtils {
          * find field by type
          *
          * @param type field type
-         *
          * @return RefField
-         *
          * @throws RuntimeException if field not found
          */
         public RefField findField(final RefClass type) {
@@ -629,9 +612,7 @@ public class ReflectionUtils {
          * find field by type
          *
          * @param type field type
-         *
          * @return RefField
-         *
          * @throws RuntimeException if field not found
          */
         public RefField findField(Class type) {
@@ -686,7 +667,6 @@ public class ReflectionUtils {
          * apply method to object
          *
          * @param e object to which the method is applied
-         *
          * @return RefExecutor with method call(...)
          */
         public RefExecutor of(final Object e) {
@@ -697,7 +677,6 @@ public class ReflectionUtils {
          * call static method
          *
          * @param params sent parameters
-         *
          * @return return value
          */
         public Object call(final Object... params) {
@@ -719,9 +698,7 @@ public class ReflectionUtils {
              * apply method for selected object
              *
              * @param params sent parameters
-             *
              * @return return value
-             *
              * @throws RuntimeException if something went wrong
              */
             public Object call(final Object... params) {
@@ -763,9 +740,7 @@ public class ReflectionUtils {
          * create new instance with constructor
          *
          * @param params parameters for constructor
-         *
          * @return new object
-         *
          * @throws RuntimeException if something went wrong
          */
         public Object create(final Object... params) {
@@ -810,7 +785,6 @@ public class ReflectionUtils {
          * apply fiend for object
          *
          * @param e applied object
-         *
          * @return RefExecutor with getter and setter
          */
         public RefExecutor of(final Object e) {

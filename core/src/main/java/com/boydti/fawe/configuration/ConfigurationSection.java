@@ -20,7 +20,7 @@ public interface ConfigurationSection {
      * direct children, and not their own children.
      *
      * @param deep Whether or not to get a deep list, as opposed to a shallow
-     *     list.
+     *             list.
      * @return Set of keys contained within this ConfigurationSection.
      */
     Set<String> getKeys(boolean deep);
@@ -36,7 +36,7 @@ public interface ConfigurationSection {
      * values of any direct children, and not their own children.
      *
      * @param deep Whether or not to get a deep list, as opposed to a shallow
-     *     list.
+     *             list.
      * @return Map of keys and values of this section.
      */
     Map<String, Object> getValues(boolean deep);
@@ -49,7 +49,7 @@ public interface ConfigurationSection {
      *
      * @param path Path to check for existence.
      * @return True if this section contains the requested path, either via
-     *     default or being set.
+     * default or being set.
      * @throws IllegalArgumentException Thrown when path is null.
      */
     boolean contains(String path);
@@ -63,7 +63,7 @@ public interface ConfigurationSection {
      *
      * @param path Path to check for existence.
      * @return True if this section contains the requested path, regardless of
-     *     having a default.
+     * having a default.
      * @throws IllegalArgumentException Thrown when path is null.
      */
     boolean isSet(String path);
@@ -144,7 +144,7 @@ public interface ConfigurationSection {
      * {@link com.boydti.fawe.configuration.Configuration}.
      *
      * @param path Path of the Object to get.
-     * @param def The default value to return if the path is not found.
+     * @param def  The default value to return if the path is not found.
      * @return Requested Object.
      */
     Object get(String path, Object def);
@@ -160,7 +160,7 @@ public interface ConfigurationSection {
      * you to store {@link com.boydti.fawe.configuration.Configuration}s or {@link com.boydti.fawe.configuration.ConfigurationSection}s,
      * please use {@link #createSection(String)} for that.
      *
-     * @param path Path of the object to set.
+     * @param path  Path of the object to set.
      * @param value New value to set the path to.
      */
     void set(String path, Object value);
@@ -186,7 +186,7 @@ public interface ConfigurationSection {
      * be orphaned.
      *
      * @param path Path to create the section at.
-     * @param map The values to used.
+     * @param map  The values to used.
      * @return Newly created section
      */
     com.boydti.fawe.configuration.ConfigurationSection createSection(String path, Map<?, ?> map);
@@ -214,15 +214,15 @@ public interface ConfigurationSection {
      * {@link com.boydti.fawe.configuration.Configuration}.
      *
      * @param path Path of the String to get.
-     * @param def The default value to return if the path is not found or is
-     *     not a String.
+     * @param def  The default value to return if the path is not found or is
+     *             not a String.
      * @return Requested String.
      */
     String getString(String path, String def);
 
     /**
      * Checks if the specified path is a String.
-     *
+     * <p>
      * <p> If the path exists but is not a String, this will return false. If the
      * path does not exist, this will return false. If the path does not exist
      * but a default value has been specified, this will check if that default
@@ -235,7 +235,7 @@ public interface ConfigurationSection {
 
     /**
      * Gets the requested int by path.
-     *
+     * <p>
      * <p>If the int does not exist but a default value has been specified, this
      * will return the default value. If the int does not exist and no default
      * value was specified, this will return 0.</p>
@@ -247,21 +247,21 @@ public interface ConfigurationSection {
 
     /**
      * Gets the requested int by path, returning a default value if not found.
-     *
+     * <p>
      * <p>If the int does not exist then the specified default value will
      * returned regardless of if a default has been identified in the root
      * {@link com.boydti.fawe.configuration.Configuration}.</p>
      *
      * @param path Path of the int to get.
-     * @param def The default value to return if the path is not found or is
-     *     not an int.
+     * @param def  The default value to return if the path is not found or is
+     *             not an int.
      * @return Requested int.
      */
     int getInt(String path, int def);
 
     /**
      * Checks if the specified path is an int.
-     *
+     * <p>
      * <p>If the path exists but is not a int, this will return false. If the
      * path does not exist, this will return false. If the path does not exist
      * but a default value has been specified, this will check if that default
@@ -293,8 +293,8 @@ public interface ConfigurationSection {
      * {@link com.boydti.fawe.configuration.Configuration}.
      *
      * @param path Path of the boolean to get.
-     * @param def The default value to return if the path is not found or is
-     *     not a boolean.
+     * @param def  The default value to return if the path is not found or is
+     *             not a boolean.
      * @return Requested boolean.
      */
     boolean getBoolean(String path, boolean def);
@@ -333,8 +333,8 @@ public interface ConfigurationSection {
      * {@link com.boydti.fawe.configuration.Configuration}.
      *
      * @param path Path of the double to get.
-     * @param def The default value to return if the path is not found or is
-     *     not a double.
+     * @param def  The default value to return if the path is not found or is
+     *             not a double.
      * @return Requested double.
      */
     double getDouble(String path, double def);
@@ -373,8 +373,8 @@ public interface ConfigurationSection {
      * {@link com.boydti.fawe.configuration.Configuration}.
      *
      * @param path Path of the long to get.
-     * @param def The default value to return if the path is not found or is
-     *     not a long.
+     * @param def  The default value to return if the path is not found or is
+     *             not a long.
      * @return Requested long.
      */
     long getLong(String path, long def);
@@ -415,8 +415,8 @@ public interface ConfigurationSection {
      * {@link com.boydti.fawe.configuration.Configuration}.
      *
      * @param path Path of the List to get.
-     * @param def The default value to return if the path is not found or is
-     *     not a List.
+     * @param def  The default value to return if the path is not found or is
+     *             not a List.
      * @return Requested List.
      */
     List<?> getList(String path, List<?> def);
@@ -637,7 +637,7 @@ public interface ConfigurationSection {
      * this will create a new section at the path, replacing anything that may
      * have existed there previously.
      *
-     * @param path Path of the value to set.
+     * @param path  Path of the value to set.
      * @param value Value to set the default to.
      * @throws IllegalArgumentException Thrown if path is null.
      */

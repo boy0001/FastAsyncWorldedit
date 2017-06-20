@@ -5,7 +5,6 @@ import com.boydti.fawe.FaweCache;
 import com.boydti.fawe.config.BBC;
 import com.boydti.fawe.object.FawePlayer;
 import com.boydti.fawe.object.RunnableVal;
-import com.boydti.fawe.object.RunnableVal2;
 import com.boydti.fawe.object.brush.BrushSettings;
 import com.boydti.fawe.object.brush.MovableTool;
 import com.boydti.fawe.object.brush.ResettableTool;
@@ -19,10 +18,8 @@ import com.boydti.fawe.object.extent.ResettableExtent;
 import com.boydti.fawe.object.mask.MaskedTargetBlock;
 import com.boydti.fawe.object.pattern.PatternTraverser;
 import com.boydti.fawe.util.EditSessionBuilder;
-import com.boydti.fawe.util.MainUtil;
 import com.boydti.fawe.util.MaskTraverser;
 import com.boydti.fawe.util.TaskManager;
-import com.google.common.io.Files;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 import com.sk89q.minecraft.util.commands.CommandException;
@@ -47,16 +44,11 @@ import com.sk89q.worldedit.function.mask.SolidBlockMask;
 import com.sk89q.worldedit.function.pattern.Pattern;
 import com.sk89q.worldedit.session.request.Request;
 import com.sk89q.worldedit.util.Location;
-import java.io.File;
 import java.io.IOException;
 import java.io.Serializable;
 import java.lang.reflect.Type;
-import java.nio.file.Path;
-import java.nio.file.attribute.BasicFileAttributes;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Map;
-import java.util.Set;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 import javax.annotation.Nullable;
@@ -97,7 +89,8 @@ public class BrushTool implements DoubleActionTraceTool, ScrollTool, MovableTool
 
     public static BrushTool fromString(Player player, LocalSession session, String json) throws CommandException, InputParseException {
         Gson gson = new Gson();
-        Type type = new TypeToken<Map<String, Object>>(){}.getType();
+        Type type = new TypeToken<Map<String, Object>>() {
+        }.getType();
         Map<String, Object> root = gson.fromJson(json, type);
         Map<String, Object> primary = (Map<String, Object>) root.get("primary");
         Map<String, Object> secondary = (Map<String, Object>) root.getOrDefault("secondary", primary);
@@ -263,7 +256,7 @@ public class BrushTool implements DoubleActionTraceTool, ScrollTool, MovableTool
     /**
      * Set the brush.
      *
-     * @param brush tbe brush
+     * @param brush      tbe brush
      * @param permission the permission
      */
     @Deprecated
@@ -303,7 +296,8 @@ public class BrushTool implements DoubleActionTraceTool, ScrollTool, MovableTool
      *
      * @return the material
      */
-    @Nullable public Pattern getMaterial() {
+    @Nullable
+    public Pattern getMaterial() {
         return getContext().getMaterial();
     }
 
@@ -377,33 +371,6 @@ public class BrushTool implements DoubleActionTraceTool, ScrollTool, MovableTool
             default:
                 return null;
         }
-    }
-
-    public static void main(String[] args) throws IOException {
-        File folder = new File("C:\\Users\\Jesse\\Desktop\\OTHER\\Music".replace("\\", "/"));
-        File bad = new File(folder, "Bad");
-        File all = new File(folder, "All");
-        File good = new File(folder, "Good");
-        final Set<String> s = new HashSet<>();
-        MainUtil.traverse(all.toPath(), new RunnableVal2<Path, BasicFileAttributes>() {
-            @Override
-            public void run(Path value1, BasicFileAttributes value2) {
-                s.add(value1.getFileName().toString());
-            }
-        });
-        MainUtil.traverse(good.toPath(), new RunnableVal2<Path, BasicFileAttributes>() {
-            @Override
-            public void run(Path value1, BasicFileAttributes value2) {
-                s.remove(value1.getFileName().toString());
-            }
-        });
-        int i = 0;
-        for (String name : s) {
-            Files.copy(new File(all, name), new File(bad, name));
-            System.out.println(name + " | " + ((i * 100) / s.size()));
-            i++;
-        }
-        System.out.println(s.size());
     }
 
     private Vector trace(EditSession editSession, Player player, int range, boolean useLastBlock) {
@@ -529,7 +496,7 @@ public class BrushTool implements DoubleActionTraceTool, ScrollTool, MovableTool
         if (tmp != null) {
             tmp.setTool(this);
             if (tmp.increment(player, amount)) {
-                if  (visualMode != VisualMode.NONE) {
+                if (visualMode != VisualMode.NONE) {
                     try {
                         queueVisualization(FawePlayer.wrap(player));
                     } catch (Throwable e) {

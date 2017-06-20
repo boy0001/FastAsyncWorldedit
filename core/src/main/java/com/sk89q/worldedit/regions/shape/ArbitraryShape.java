@@ -78,9 +78,9 @@ public abstract class ArbitraryShape {
     /**
      * Override this function to specify the shape to generate.
      *
-     * @param x X coordinate to be queried
-     * @param y Y coordinate to be queried
-     * @param z Z coordinate to be queried
+     * @param x               X coordinate to be queried
+     * @param y               Y coordinate to be queried
+     * @param z               Z coordinate to be queried
      * @param defaultMaterial The material returned by the pattern for the current block.
      * @return material to place or null to not place anything.
      */
@@ -148,8 +148,8 @@ public abstract class ArbitraryShape {
      * Generates the shape.
      *
      * @param editSession The EditSession to use.
-     * @param pattern The pattern to generate default materials from.
-     * @param hollow Specifies whether to generate a hollow shape.
+     * @param pattern     The pattern to generate default materials from.
+     * @param hollow      Specifies whether to generate a hollow shape.
      * @return number of affected blocks.
      * @throws MaxChangedBlocksException
      */

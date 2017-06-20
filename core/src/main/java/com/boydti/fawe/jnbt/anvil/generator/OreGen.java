@@ -24,7 +24,7 @@ public class OreGen extends Resource {
     private double ONE_8 = 1 / 8F;
     private double ONE_16 = 1 / 16F;
 
-    public int laced =0;
+    public int laced = 0;
 
     public OreGen(Extent extent, Mask mask, Pattern pattern, int size, int minY, int maxY) {
         this.maxSize = size;

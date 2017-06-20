@@ -11,10 +11,10 @@ import com.sk89q.worldedit.world.biome.BaseBiome;
 import com.sk89q.worldedit.world.registry.BundledBlockData;
 
 public class TemporalExtent extends AbstractDelegateExtent {
-    private int x,y,z = Integer.MAX_VALUE;
+    private int x, y, z = Integer.MAX_VALUE;
     private BaseBlock block = EditSession.nullBlock;
 
-    private int bx,bz = Integer.MAX_VALUE;
+    private int bx, bz = Integer.MAX_VALUE;
     private BaseBiome biome = EditSession.nullBiome;
 
     /**

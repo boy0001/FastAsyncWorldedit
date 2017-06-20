@@ -9,7 +9,7 @@ import javax.annotation.Nullable;
 
 public class BrightnessMask extends AbstractExtentMask {
 
-    private final int min,max;
+    private final int min, max;
 
     public BrightnessMask(Extent extent, int min, int max) {
         super(extent);

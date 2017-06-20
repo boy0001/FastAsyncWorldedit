@@ -51,6 +51,7 @@ public class RegionVisitor implements Operation {
 
     /**
      * Deprecated in favor of the other constructors which will preload chunks during iteration
+     *
      * @param region
      * @param function
      */
@@ -101,7 +102,7 @@ public class RegionVisitor implements Operation {
             int lastLeadChunkZ = Integer.MIN_VALUE;
             int loadingTarget = Settings.IMP.QUEUE.PRELOAD_CHUNKS;
             try {
-                for (;;) {
+                for (; ; ) {
                     Vector pt = trailIter.next();
                     apply(pt);
                     int cx = pt.getBlockX() >> 4;
@@ -117,7 +118,7 @@ public class RegionVisitor implements Operation {
                         } else {
                             amount = 1;
                         }
-                        for (int count = 0; count < amount;) {
+                        for (int count = 0; count < amount; ) {
                             Vector v = leadIter.next();
                             int vcx = v.getBlockX() >> 4;
                             int vcz = v.getBlockZ() >> 4;
@@ -163,15 +164,17 @@ public class RegionVisitor implements Operation {
                 }
             } catch (FaweException e) {
                 throw new RuntimeException(e);
-            } catch (Throwable ignore) {}
+            } catch (Throwable ignore) {
+            }
             try {
-                for (;;) {
+                for (; ; ) {
                     apply(trailIter.next());
                     apply(trailIter.next());
                 }
             } catch (FaweException e) {
                 throw new RuntimeException(e);
-            } catch (Throwable ignore) {}
+            } catch (Throwable ignore) {
+            }
         } else {
             for (Vector pt : iterable) {
                 apply(pt);
@@ -187,7 +190,8 @@ public class RegionVisitor implements Operation {
     }
 
     @Override
-    public void cancel() {}
+    public void cancel() {
+    }
 
     @Override
     public void addStatusMessages(final List<String> messages) {

@@ -42,7 +42,8 @@ public class BufferedPattern extends AbstractPattern implements ResettablePatter
                 return false;
             }
             return pattern.apply(extent, setPosition, getPosition);
-        } catch (UnsupportedOperationException ignore) {}
+        } catch (UnsupportedOperationException ignore) {
+        }
         return false;
     }
 

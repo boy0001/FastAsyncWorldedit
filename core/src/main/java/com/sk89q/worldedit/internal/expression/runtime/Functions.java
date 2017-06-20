@@ -124,11 +124,13 @@ public final class Functions {
     }
 
     private static final Map<String, List<Overload>> functions = new HashMap<String, List<Overload>>();
+
     static {
         for (Method method : Functions.class.getMethods()) {
             try {
                 addFunction(method);
-            } catch (IllegalArgumentException ignored) { }
+            } catch (IllegalArgumentException ignored) {
+            }
         }
     }
 
@@ -353,11 +355,11 @@ public final class Functions {
         double minDistanceSquared = Double.MAX_VALUE;
 
         for (int i = 0; i < count; ++i) {
-            double currentX = getBufferItem(megabuf, index+0) - x;
-            double currentY = getBufferItem(megabuf, index+1) - y;
-            double currentZ = getBufferItem(megabuf, index+2) - z;
+            double currentX = getBufferItem(megabuf, index + 0) - x;
+            double currentY = getBufferItem(megabuf, index + 1) - y;
+            double currentZ = getBufferItem(megabuf, index + 2) - z;
 
-            double currentDistanceSquared = currentX*currentX + currentY*currentY + currentZ*currentZ;
+            double currentDistanceSquared = currentX * currentX + currentY * currentY + currentZ * currentZ;
 
             if (currentDistanceSquared < minDistanceSquared) {
                 minDistanceSquared = currentDistanceSquared;

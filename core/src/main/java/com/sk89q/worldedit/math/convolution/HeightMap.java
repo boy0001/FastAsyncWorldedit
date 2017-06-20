@@ -18,7 +18,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * Allows applications of Kernels onto the region's height map.
- *
+ * <p>
  * <p>Currently only used for smoothing (with a GaussianKernel)</p>.
  */
 public class HeightMap {
@@ -35,7 +35,7 @@ public class HeightMap {
      * Constructs the HeightMap
      *
      * @param session an edit session
-     * @param region the region
+     * @param region  the region
      */
     public HeightMap(EditSession session, Region region) {
         this(session, region, false);
@@ -107,7 +107,7 @@ public class HeightMap {
     /**
      * Apply the filter 'iterations' amount times.
      *
-     * @param filter the filter
+     * @param filter     the filter
      * @param iterations the number of iterations
      * @return number of blocks affected
      * @throws MaxChangedBlocksException

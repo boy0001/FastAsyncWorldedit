@@ -46,8 +46,8 @@ public class ChangeSetExecutor implements Operation {
      * Create a new instance.
      *
      * @param changeSet the change set
-     * @param type type of change
-     * @param context the undo context
+     * @param type      type of change
+     * @param context   the undo context
      */
     private ChangeSetExecutor(ChangeSet changeSet, Type type, UndoContext context, BlockBag blockBag, int inventory) {
         checkNotNull(changeSet);
@@ -57,8 +57,7 @@ public class ChangeSetExecutor implements Operation {
         this.context = context;
         if (changeSet instanceof FaweChangeSet) {
             iterator = ((FaweChangeSet) changeSet).getIterator(blockBag, inventory, type == Type.REDO);
-        }
-         else if (type == Type.UNDO) {
+        } else if (type == Type.UNDO) {
             iterator = changeSet.backwardIterator();
         } else {
             iterator = changeSet.forwardIterator();
@@ -95,7 +94,7 @@ public class ChangeSetExecutor implements Operation {
      * Create a new undo operation.
      *
      * @param changeSet the change set
-     * @param context an undo context
+     * @param context   an undo context
      * @return an operation
      */
     @Deprecated
@@ -107,7 +106,7 @@ public class ChangeSetExecutor implements Operation {
      * Create a new redo operation.
      *
      * @param changeSet the change set
-     * @param context an undo context
+     * @param context   an undo context
      * @return an operation
      */
     @Deprecated

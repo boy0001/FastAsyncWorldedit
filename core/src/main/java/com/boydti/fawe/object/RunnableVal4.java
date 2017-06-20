@@ -6,7 +6,8 @@ public abstract class RunnableVal4<T, U, V, W> implements Runnable {
     public V value3;
     public W value4;
 
-    public RunnableVal4() {}
+    public RunnableVal4() {
+    }
 
     public RunnableVal4(T value1, U value2, V value3, W value4) {
         this.value1 = value1;

@@ -189,7 +189,7 @@ public class InstallerFrame extends JFrame {
     public void prompt(String message) {
         JOptionPane.showMessageDialog(null, message);
     }
-    
+
     public void debug(String m) {
         System.out.println(m);
     }
@@ -223,7 +223,8 @@ public class InstallerFrame extends JFrame {
                         Class.forName("com.boydti.fawe.forge." + version + ".ForgeChunk_All");
                         supportedString = version;
                         break;
-                    } catch (ClassNotFoundException ignore){}
+                    } catch (ClassNotFoundException ignore) {
+                    }
                 }
                 if (supportedString == null) {
                     prompt("This version of FAWE cannot be installed this way.");
@@ -322,7 +323,7 @@ public class InstallerFrame extends JFrame {
                 }
                 try { // install FAWE
                     debug("Copying FastAsyncWorldEdit to mods directory");
-                    File file = new  File(InstallerFrame.class.getProtectionDomain().getCodeSource().getLocation().getPath());
+                    File file = new File(InstallerFrame.class.getProtectionDomain().getCodeSource().getLocation().getPath());
                     debug(" - " + file.getPath());
                     MainUtil.copyFile(file, new File(mods, "FastAsyncWorldEdit.jar"));
                     debug("Installation complete!");
@@ -352,7 +353,7 @@ public class InstallerFrame extends JFrame {
         thread.start();
     }
 
-    public static void main(String[] args) throws Exception{
+    public static void main(String[] args) throws Exception {
         InstallerFrame window = new InstallerFrame();
     }
 }

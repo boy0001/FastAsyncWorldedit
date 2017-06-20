@@ -396,6 +396,7 @@ public class MCAChunk extends FaweChunk<Void> {
 
     /**
      * Deprecated, use the toBytes method
+     *
      * @return
      */
     @Deprecated
@@ -687,7 +688,7 @@ public class MCAChunk extends FaweChunk<Void> {
 
     public int getNibble(int index, byte[] array) {
         int indexShift = index >> 1;
-        if((index & 1) == 0) {
+        if ((index & 1) == 0) {
             return array[indexShift] & 15;
         } else {
             return array[indexShift] >> 4 & 15;
@@ -701,10 +702,10 @@ public class MCAChunk extends FaweChunk<Void> {
         if (existing == value + valueShift) {
             return;
         }
-        if((index & 1) == 0) {
-            array[indexShift] = (byte)(existing & 240 | value);
+        if ((index & 1) == 0) {
+            array[indexShift] = (byte) (existing & 240 | value);
         } else {
-            array[indexShift] = (byte)(existing & 15 | valueShift);
+            array[indexShift] = (byte) (existing & 15 | valueShift);
         }
     }
 

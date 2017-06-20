@@ -16,7 +16,7 @@ import javax.annotation.Nullable;
 public abstract class FaweChunk<T> implements Callable<FaweChunk> {
 
     private FaweQueue parent;
-    private int x,z;
+    private int x, z;
     public static int HEIGHT = 256;
 
     private final ArrayDeque<Runnable> tasks = new ArrayDeque<Runnable>();
@@ -32,7 +32,8 @@ public abstract class FaweChunk<T> implements Callable<FaweChunk> {
 
     /**
      * Change the chunk's location<br>
-     *     - E.g. if you are cloning a chunk and want to set multiple
+     * - E.g. if you are cloning a chunk and want to set multiple
+     *
      * @param parent
      * @param x
      * @param z
@@ -45,6 +46,7 @@ public abstract class FaweChunk<T> implements Callable<FaweChunk> {
 
     /**
      * Get the parent queue this chunk belongs to
+     *
      * @return
      */
     public FaweQueue getParent() {
@@ -61,6 +63,7 @@ public abstract class FaweChunk<T> implements Callable<FaweChunk> {
 
     /**
      * Get a unique hashcode for this chunk
+     *
      * @return
      */
     public long longHash() {
@@ -69,6 +72,7 @@ public abstract class FaweChunk<T> implements Callable<FaweChunk> {
 
     /**
      * Get a hashcode; unique below abs(x/z) < Short.MAX_VALUE
+     *
      * @return
      */
     @Override
@@ -85,6 +89,7 @@ public abstract class FaweChunk<T> implements Callable<FaweChunk> {
 
     /**
      * The modified sections
+     *
      * @return
      */
     public abstract int getBitMask();
@@ -92,6 +97,7 @@ public abstract class FaweChunk<T> implements Callable<FaweChunk> {
     /**
      * Get the combined block id at a location<br>
      * combined = (id <<<< 4) + data
+     *
      * @param x
      * @param y
      * @param z
@@ -127,10 +133,13 @@ public abstract class FaweChunk<T> implements Callable<FaweChunk> {
 
     /**
      * Get the combined id array at a layer or null if it does not exist
+     *
      * @param layer
      * @return char[] or null
      */
-    public @Nullable char[] getIdArray(int layer) {
+    public
+    @Nullable
+    char[] getIdArray(int layer) {
         char[] ids = new char[4096];
         int by = layer << 4;
         int index = 0;
@@ -187,6 +196,7 @@ public abstract class FaweChunk<T> implements Callable<FaweChunk> {
 
     /**
      * Fill this chunk with a block
+     *
      * @param id
      * @param data
      */
@@ -196,6 +206,7 @@ public abstract class FaweChunk<T> implements Callable<FaweChunk> {
 
     /**
      * Fill a cuboid in this chunk with a block
+     *
      * @param x1
      * @param x2
      * @param y1
@@ -217,6 +228,7 @@ public abstract class FaweChunk<T> implements Callable<FaweChunk> {
 
     /**
      * Add a task to run when this chunk is dispatched
+     *
      * @param run
      */
     public void addNotifyTask(Runnable run) {
@@ -238,13 +250,15 @@ public abstract class FaweChunk<T> implements Callable<FaweChunk> {
 
     /**
      * Get the underlying chunk object
+     *
      * @return
      */
     public abstract T getChunk();
 
     /**
      * Set a tile entity at a location<br>
-     *     - May throw an error if an invalid block is at the location
+     * - May throw an error if an invalid block is at the location
+     *
      * @param x
      * @param y
      * @param z
@@ -266,22 +280,25 @@ public abstract class FaweChunk<T> implements Callable<FaweChunk> {
 
     /**
      * Get the UUID of entities being removed
+     *
      * @return
      */
     public abstract Set<UUID> getEntityRemoves();
 
     /**
      * Get the map of location to tile entity<br>
-     *     - The byte pair represents the location in the chunk<br>
+     * - The byte pair represents the location in the chunk<br>
+     *
+     * @return
      * @see com.boydti.fawe.util.MathMan#unpair16x (get0) => x
      * @see com.boydti.fawe.util.MathMan#unpair16y (get0) => z
      * get1 => y
-     * @return
      */
     public abstract Map<Short, CompoundTag> getTiles();
 
     /**
      * Get the tile at a location
+     *
      * @param x
      * @param y
      * @param z
@@ -305,9 +322,10 @@ public abstract class FaweChunk<T> implements Callable<FaweChunk> {
 
     /**
      * Spend time now so that the chunk can be more efficiently dispatched later<br>
-     *     - Modifications after this call will be ignored
+     * - Modifications after this call will be ignored
      */
-    public void optimize() {}
+    public void optimize() {
+    }
 
     @Override
     public boolean equals(final Object obj) {
@@ -319,9 +337,15 @@ public abstract class FaweChunk<T> implements Callable<FaweChunk> {
 
     public abstract FaweChunk<T> copy(boolean shallow);
 
-    public void start() {};
+    public void start() {
+    }
 
-    public void end() {};
+    ;
+
+    public void end() {
+    }
+
+    ;
 
     @Override
     public abstract FaweChunk call();

@@ -107,7 +107,7 @@ import static com.sk89q.worldedit.util.command.composition.LegacyCommandAdapter.
 
 /**
  * Handles the registration and invocation of commands.
- *
+ * <p>
  * <p>This class is primarily for internal usage.</p>
  */
 public final class CommandManager {
@@ -155,7 +155,8 @@ public final class CommandManager {
 
     /**
      * Register all the methods in the class as commands<br>
-     *  - You should try to register commands during startup
+     * - You should try to register commands during startup
+     *
      * @param clazz The class containing all the commands
      */
     public void registerCommands(Object clazz) {
@@ -164,8 +165,9 @@ public final class CommandManager {
 
     /**
      * Create a command with the provided aliases and register all methods of the class as sub commands.<br>
-     *  - You should try to register commands during startup
-     * @param clazz The class containing all the sub command methods
+     * - You should try to register commands during startup
+     *
+     * @param clazz   The class containing all the sub command methods
      * @param aliases The aliases to give the command
      */
     public void registerCommands(Object clazz, String... aliases) {

@@ -208,18 +208,17 @@ public enum ClipboardFormat {
 
     /**
      * The FAWE file format:
-     *  - Streamable for known dimensions with mode 0
-     *  - Streamable for unknown dimensions
-     *    - 1: Max size 256 x 256 x 256
-     *    - 2: Max size 65535 x 65535 x 65535
-     *    - 3: Includes BlockChange information
-     *  - O(1) Access to blocks if using compression level 0 and mode 0
-     *
-     *  DiskOptimizedClipboard: compression/mode -> 0/0
-     *  DiskStorageHistory: compression/mode -> Any/3
-     *  MemoryOptimizedHistory: compression/mode -> Any/3
-     *  FaweFormat: compression/mode -> Any/Any (slower)
-     *
+     * - Streamable for known dimensions with mode 0
+     * - Streamable for unknown dimensions
+     * - 1: Max size 256 x 256 x 256
+     * - 2: Max size 65535 x 65535 x 65535
+     * - 3: Includes BlockChange information
+     * - O(1) Access to blocks if using compression level 0 and mode 0
+     * <p>
+     * DiskOptimizedClipboard: compression/mode -> 0/0
+     * DiskStorageHistory: compression/mode -> Any/3
+     * MemoryOptimizedHistory: compression/mode -> Any/3
+     * FaweFormat: compression/mode -> Any/Any (slower)
      */
     FAWE(new AbstractClipboardFormat("FAWE", "fawe") {
         @Override
@@ -255,11 +254,10 @@ public enum ClipboardFormat {
         public DiskOptimizedClipboard createUncompressedReadWrite(int width, int height, int length, File file) {
             return new DiskOptimizedClipboard(width, height, length, file);
         }
-    }),
-
-    ;
+    }),;
 
     private static final Map<String, ClipboardFormat> aliasMap;
+
     static {
         aliasMap = new ConcurrentHashMap<>(8, 0.9f, 1);
         for (ClipboardFormat emum : ClipboardFormat.values()) {
@@ -268,6 +266,7 @@ public enum ClipboardFormat {
             }
         }
     }
+
     private IClipboardFormat format;
 
     ClipboardFormat() {
@@ -352,7 +351,7 @@ public enum ClipboardFormat {
             }
             if (!dir.isDirectory()) {
                 ByteSource source = Files.asByteSource(dir);
-                return new ClipboardHolder[] {new LazyClipboardHolder(source, this, worldData, null)};
+                return new ClipboardHolder[]{new LazyClipboardHolder(source, this, worldData, null)};
             }
             ClipboardHolder[] clipboards = loadAllFromDirectory(dir, worldData);
             if (clipboards.length < 1) {
@@ -367,7 +366,8 @@ public enum ClipboardFormat {
         if (worldData == null) {
             try {
                 worldData = WorldEdit.getInstance().getServer().getWorlds().get(0).getWorldData();
-            } catch (Throwable ignore) {}
+            } catch (Throwable ignore) {
+            }
         }
         File[] files = dir.listFiles(new FileFilter() {
             @Override
@@ -476,6 +476,7 @@ public enum ClipboardFormat {
 
     /**
      * Get the file extension used
+     *
      * @return file extension string
      */
     public String getExtension() {

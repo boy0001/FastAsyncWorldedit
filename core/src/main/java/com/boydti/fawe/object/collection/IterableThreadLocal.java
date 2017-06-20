@@ -9,7 +9,8 @@ public abstract class IterableThreadLocal<T> extends ThreadLocal<T> implements I
     private ThreadLocal<T> flag;
     private ConcurrentLinkedDeque<T> allValues = new ConcurrentLinkedDeque<T>();
 
-    public IterableThreadLocal() { }
+    public IterableThreadLocal() {
+    }
 
     @Override
     protected final T initialValue() {
@@ -25,7 +26,9 @@ public abstract class IterableThreadLocal<T> extends ThreadLocal<T> implements I
         return getAll().iterator();
     }
 
-    public T init() { return null; }
+    public T init() {
+        return null;
+    }
 
     public final Collection<T> getAll() {
         return Collections.unmodifiableCollection(allValues);

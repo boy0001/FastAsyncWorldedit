@@ -4,7 +4,8 @@ public class NullRelighter implements Relighter {
 
     public static NullRelighter INSTANCE = new NullRelighter();
 
-    private NullRelighter() {}
+    private NullRelighter() {
+    }
 
     @Override
     public boolean addChunk(int cx, int cz, byte[] fix, int bitmask) {
