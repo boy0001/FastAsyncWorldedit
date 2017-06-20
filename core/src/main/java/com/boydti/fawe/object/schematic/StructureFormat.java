@@ -37,7 +37,7 @@ import java.util.Map;
 import java.util.UUID;
 
 public class StructureFormat implements ClipboardReader, ClipboardWriter {
-    private static final int MAX_SIZE = 32;
+    private static final int WARN_SIZE = 32;
 
     private NBTInputStream in;
     private NBTOutputStream out;
@@ -160,16 +160,9 @@ public class StructureFormat implements ClipboardReader, ClipboardWriter {
         int width = region.getWidth();
         int height = region.getHeight();
         int length = region.getLength();
-        if (width > MAX_SIZE) {
-            throw new IllegalArgumentException("Width of region too large for a .nbt");
+        if (width > WARN_SIZE || height > WARN_SIZE || length > WARN_SIZE) {
+            Fawe.debug("A structure longer than 32 is unsupported by minecraft (but probably still works)");
         }
-        if (height > MAX_SIZE) {
-            throw new IllegalArgumentException("Height of region too large for a .nbt");
-        }
-        if (length > MAX_SIZE) {
-            throw new IllegalArgumentException("Length of region too large for a .nbt");
-        }
-
         Map<String, Object> structure = FaweCache.asMap("version", 1, "author", owner);
         // ignored: version / owner
         MutableBlockVector mutable = new MutableBlockVector(0, 0, 0);
