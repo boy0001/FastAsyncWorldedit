@@ -5,6 +5,7 @@ import com.boydti.fawe.FaweCache;
 import com.boydti.fawe.config.BBC;
 import com.boydti.fawe.object.FawePlayer;
 import com.boydti.fawe.object.RunnableVal;
+import com.boydti.fawe.object.RunnableVal2;
 import com.boydti.fawe.object.brush.BrushSettings;
 import com.boydti.fawe.object.brush.MovableTool;
 import com.boydti.fawe.object.brush.ResettableTool;
@@ -15,9 +16,13 @@ import com.boydti.fawe.object.brush.visualization.VisualChunk;
 import com.boydti.fawe.object.brush.visualization.VisualExtent;
 import com.boydti.fawe.object.brush.visualization.VisualMode;
 import com.boydti.fawe.object.extent.ResettableExtent;
+import com.boydti.fawe.object.mask.MaskedTargetBlock;
 import com.boydti.fawe.object.pattern.PatternTraverser;
 import com.boydti.fawe.util.EditSessionBuilder;
+import com.boydti.fawe.util.MainUtil;
+import com.boydti.fawe.util.MaskTraverser;
 import com.boydti.fawe.util.TaskManager;
+import com.google.common.io.Files;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 import com.sk89q.minecraft.util.commands.CommandException;
@@ -41,12 +46,16 @@ import com.sk89q.worldedit.function.mask.MaskIntersection;
 import com.sk89q.worldedit.function.pattern.Pattern;
 import com.sk89q.worldedit.session.request.Request;
 import com.sk89q.worldedit.util.Location;
-import com.sk89q.worldedit.util.TargetBlock;
+import java.io.File;
 import java.io.IOException;
 import java.io.Serializable;
 import java.lang.reflect.Type;
+import java.nio.file.Path;
+import java.nio.file.attribute.BasicFileAttributes;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 import javax.annotation.Nullable;
@@ -69,6 +78,7 @@ public class BrushTool implements DoubleActionTraceTool, ScrollTool, MovableTool
     protected int range = -1;
     private VisualMode visualMode = VisualMode.NONE;
     private TargetMode targetMode = TargetMode.TARGET_BLOCK_RANGE;
+    private Mask targetMask = null;
 
     private transient BrushSettings context = new BrushSettings();
     private transient BrushSettings primary = context;
@@ -335,7 +345,7 @@ public class BrushTool implements DoubleActionTraceTool, ScrollTool, MovableTool
     public Vector getPosition(EditSession editSession, Player player) {
         switch (targetMode) {
             case TARGET_BLOCK_RANGE:
-                return new MutableBlockVector(trace(player, getRange(), true));
+                return new MutableBlockVector(trace(editSession, player, getRange(), true));
             case FOWARD_POINT_PITCH: {
                 int d = 0;
                 Location loc = player.getLocation();
@@ -359,24 +369,51 @@ public class BrushTool implements DoubleActionTraceTool, ScrollTool, MovableTool
                     }
                 }
                 final int distance = (height - y) + 8;
-                return new MutableBlockVector(trace(player, distance, true));
+                return new MutableBlockVector(trace(editSession, player, distance, true));
             }
             case TARGET_FACE_RANGE:
-                return new MutableBlockVector(trace(player, getRange(), true));
+                return new MutableBlockVector(trace(editSession, player, getRange(), true));
             default:
                 return null;
         }
     }
 
-    private Vector trace(Player player, int range, boolean useLastBlock) {
-        TargetBlock tb = new TargetBlock(player, range, 0.2);
+    public static void main(String[] args) throws IOException {
+        File folder = new File("C:\\Users\\Jesse\\Desktop\\OTHER\\Music".replace("\\", "/"));
+        File bad = new File(folder, "Bad");
+        File all = new File(folder, "All");
+        File good = new File(folder, "Good");
+        final Set<String> s = new HashSet<>();
+        MainUtil.traverse(all.toPath(), new RunnableVal2<Path, BasicFileAttributes>() {
+            @Override
+            public void run(Path value1, BasicFileAttributes value2) {
+                s.add(value1.getFileName().toString());
+            }
+        });
+        MainUtil.traverse(good.toPath(), new RunnableVal2<Path, BasicFileAttributes>() {
+            @Override
+            public void run(Path value1, BasicFileAttributes value2) {
+                s.remove(value1.getFileName().toString());
+            }
+        });
+        int i = 0;
+        for (String name : s) {
+            Files.copy(new File(all, name), new File(bad, name));
+            System.out.println(name + " | " + ((i * 100) / s.size()));
+            i++;
+        }
+        System.out.println(s.size());
+    }
+
+    private Vector trace(EditSession editSession, Player player, int range, boolean useLastBlock) {
+        if (targetMask != null) {
+            new MaskTraverser(targetMask).reset(editSession);
+        }
+        MaskedTargetBlock tb = new MaskedTargetBlock(targetMask, player, range, 0.2);
         return TaskManager.IMP.sync(new RunnableVal<Vector>() {
             @Override
             public void run(Vector value) {
-                BlockWorldVector result = tb.getSolidTargetBlock();
-                if (result == null && useLastBlock) {
-                    result = tb.getPreviousBlock();
-                }
+                BlockWorldVector result = tb.getMaskedTargetBlock(useLastBlock);
                 this.value = result;
             }
         });
@@ -465,12 +502,20 @@ public class BrushTool implements DoubleActionTraceTool, ScrollTool, MovableTool
         this.targetMode = targetMode != null ? targetMode : TargetMode.TARGET_BLOCK_RANGE;
     }
 
+    public void setTargetMask(Mask mask) {
+        this.targetMask = mask;
+    }
+
     public void setVisualMode(VisualMode visualMode) {
         this.visualMode = visualMode != null ? visualMode : VisualMode.NONE;
     }
 
     public TargetMode getTargetMode() {
         return targetMode;
+    }
+
+    public Mask getTargetMask() {
+        return targetMask;
     }
 
     public VisualMode getVisualMode() {

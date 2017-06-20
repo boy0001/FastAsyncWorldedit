@@ -309,6 +309,28 @@ public class BrushOptionsCommands extends MethodCommands {
         BBC.BRUSH_TARGET_MODE_SET.send(player, newMode);
     }
 
+    @Command(
+            aliases = { "targetmask", "tarmask", "tm" },
+            usage = "[mask]",
+            desc = "Set the targeting mask",
+            min = 1,
+            max = -1
+    )
+    public void targetMask(Player player, EditSession editSession, LocalSession session, CommandContext context) throws WorldEditException {
+        BrushTool tool = session.getBrushTool(player, false);
+        if (tool == null) {
+            BBC.BRUSH_NONE.send(player);
+            return;
+        }
+        ParserContext parserContext = new ParserContext();
+        parserContext.setActor(player);
+        parserContext.setWorld(player.getWorld());
+        parserContext.setSession(session);
+        parserContext.setExtent(editSession);
+        Mask mask = worldEdit.getMaskFactory().parseFromInput(context.getJoinedStrings(0), parserContext);
+        tool.setTargetMask(mask);
+        BBC.BRUSH_TARGET_MASK_SET.send(player, context.getJoinedStrings(0));
+    }
 
     @Command(
             aliases = { "scroll" },
