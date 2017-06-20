@@ -1,7 +1,6 @@
 package com.boydti.fawe.object.mask;
 
 import com.sk89q.worldedit.BlockWorldVector;
-import com.sk89q.worldedit.blocks.BlockID;
 import com.sk89q.worldedit.entity.Player;
 import com.sk89q.worldedit.function.mask.Mask;
 import com.sk89q.worldedit.util.TargetBlock;
@@ -21,7 +20,7 @@ public class MaskedTargetBlock extends TargetBlock {
         boolean searchForLastBlock = true;
         BlockWorldVector lastBlock = null;
         while (getNextBlock() != null) {
-            if (mask == null ? world.getBlockType(getCurrentBlock()) == BlockID.AIR : !mask.test(getCurrentBlock())) {
+            if (!mask.test(getCurrentBlock())) {
                 if (searchForLastBlock) {
                     lastBlock = getCurrentBlock();
                     if (lastBlock.getBlockY() <= 0 || lastBlock.getBlockY() >= world.getMaxY()) {

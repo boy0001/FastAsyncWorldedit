@@ -43,6 +43,7 @@ import com.sk89q.worldedit.extension.platform.Platform;
 import com.sk89q.worldedit.extent.inventory.BlockBag;
 import com.sk89q.worldedit.function.mask.Mask;
 import com.sk89q.worldedit.function.mask.MaskIntersection;
+import com.sk89q.worldedit.function.mask.SolidBlockMask;
 import com.sk89q.worldedit.function.pattern.Pattern;
 import com.sk89q.worldedit.session.request.Request;
 import com.sk89q.worldedit.util.Location;
@@ -406,10 +407,9 @@ public class BrushTool implements DoubleActionTraceTool, ScrollTool, MovableTool
     }
 
     private Vector trace(EditSession editSession, Player player, int range, boolean useLastBlock) {
-        if (targetMask != null) {
-            new MaskTraverser(targetMask).reset(editSession);
-        }
-        MaskedTargetBlock tb = new MaskedTargetBlock(targetMask, player, range, 0.2);
+        Mask mask = targetMask == null ? new SolidBlockMask(editSession) : targetMask;
+        new MaskTraverser(mask).reset(editSession);
+        MaskedTargetBlock tb = new MaskedTargetBlock(mask, player, range, 0.2);
         return TaskManager.IMP.sync(new RunnableVal<Vector>() {
             @Override
             public void run(Vector value) {
