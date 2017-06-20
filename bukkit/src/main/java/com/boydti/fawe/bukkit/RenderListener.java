@@ -59,12 +59,14 @@ public class RenderListener implements Listener {
                     if (nowTick - value[1] >= timeOut) {
                         value[1] = nowTick + 1;
                         Player player = Bukkit.getPlayer(entry.getKey());
-                        setViewDistance(player, Math.max(4, value[0] + 1));
-                        long spent = System.currentTimeMillis() - now;
-                        if (spent > 5) {
-                            if (spent > 10)
-                            value[1] = nowTick + 20;
-                            return;
+                        if (player != null) {
+                            setViewDistance(player, Math.max(4, value[0] + 1));
+                            long spent = System.currentTimeMillis() - now;
+                            if (spent > 5) {
+                                if (spent > 10)
+                                    value[1] = nowTick + 20;
+                                return;
+                            }
                         }
                     }
                 }
