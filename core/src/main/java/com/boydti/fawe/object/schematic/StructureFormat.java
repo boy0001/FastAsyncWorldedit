@@ -177,7 +177,7 @@ public class StructureFormat implements ClipboardReader, ClipboardWriter {
             ArrayList<HashMap<String, Object>> palette = new ArrayList<>();
             for (Vector point : region) {
                 BaseBlock block = clipboard.getBlock(point);
-                if (block.getId() == 217) block = FaweCache.getBlock(0, 0); // Void
+                if (block.getId() == 217) continue; // Void
                 int combined = FaweCache.getCombined(block);
                 int index = indexes[combined];
                 if (index != -1) {
@@ -215,9 +215,8 @@ public class StructureFormat implements ClipboardReader, ClipboardWriter {
             Vector min = region.getMinimumPoint();
             for (Vector point : region) {
                 BaseBlock block = clipboard.getBlock(point);
-                if (block.getId() == 217) block = FaweCache.getBlock(0, 0); // Void
+                if (block.getId() == 217) continue; // Void
                 int combined = FaweCache.getCombined(block);
-                if (combined >> 4 == 217) combined = 0; // Structure void
                 int index = indexes[combined];
                 List<Integer> pos = Arrays.asList((int) (point.getX() - min.getX()), (int) (point.getY() - min.getY()), (int) (point.getZ() - min.getZ()));
                 if (!block.hasNbtData()) {
