@@ -89,9 +89,8 @@ public class ClipboardCommands {
     }
 
 
-
     @Command(
-            aliases = { "/lazycopy" },
+            aliases = {"/lazycopy"},
             flags = "em",
             desc = "Lazily copy the selection to the clipboard",
             help = "Lazily copy the selection to the clipboard\n" +
@@ -107,7 +106,7 @@ public class ClipboardCommands {
                          @Switch('m') Mask mask) throws WorldEditException {
         Vector min = region.getMinimumPoint();
         Vector max = region.getMaximumPoint();
-        long volume = (((long)max.getX() - (long)min.getX() + 1) * ((long)max.getY() - (long)min.getY() + 1) * ((long)max.getZ() - (long)min.getZ() + 1));
+        long volume = (((long) max.getX() - (long) min.getX() + 1) * ((long) max.getY() - (long) min.getY() + 1) * ((long) max.getZ() - (long) min.getZ() + 1));
         FaweLimit limit = FawePlayer.wrap(player).getLimit();
         if (volume >= limit.MAX_CHECKS) {
             throw new FaweException(BBC.WORLDEDIT_CANCEL_REASON_MAX_CHECKS);
@@ -123,12 +122,13 @@ public class ClipboardCommands {
         clipboard.setOrigin(session.getPlacementPosition(player));
         session.setClipboard(new ClipboardHolder(clipboard, editSession.getWorldData()));
         BBC.COMMAND_COPY.send(player, region.getArea());
-        if (!FawePlayer.wrap(player).hasPermission("fawe.tips")) BBC.TIP_PASTE.or(BBC.TIP_LAZYCOPY, BBC.TIP_DOWNLOAD, BBC.TIP_ROTATE, BBC.TIP_COPYPASTE, BBC.TIP_REPLACE_MARKER, BBC.TIP_COPY_PATTERN).send(player);
+        if (!FawePlayer.wrap(player).hasPermission("fawe.tips"))
+            BBC.TIP_PASTE.or(BBC.TIP_LAZYCOPY, BBC.TIP_DOWNLOAD, BBC.TIP_ROTATE, BBC.TIP_COPYPASTE, BBC.TIP_REPLACE_MARKER, BBC.TIP_COPY_PATTERN).send(player);
     }
 
 
     @Command(
-            aliases = { "/copy", "/c" },
+            aliases = {"/copy", "/c"},
             flags = "em",
             desc = "Copy the selection to the clipboard",
             help = "Copy the selection to the clipboard\n" +
@@ -145,7 +145,7 @@ public class ClipboardCommands {
                      @Switch('m') Mask mask) throws WorldEditException {
         Vector min = region.getMinimumPoint();
         Vector max = region.getMaximumPoint();
-        long volume = (((long)max.getX() - (long)min.getX() + 1) * ((long)max.getY() - (long)min.getY() + 1) * ((long)max.getZ() - (long)min.getZ() + 1));
+        long volume = (((long) max.getX() - (long) min.getX() + 1) * ((long) max.getY() - (long) min.getY() + 1) * ((long) max.getZ() - (long) min.getZ() + 1));
         FaweLimit limit = FawePlayer.wrap(player).getLimit();
         if (volume >= limit.MAX_CHECKS) {
             throw new FaweException(BBC.WORLDEDIT_CANCEL_REASON_MAX_CHECKS);
@@ -167,11 +167,12 @@ public class ClipboardCommands {
         }
         Operations.completeLegacy(copy);
         BBC.COMMAND_COPY.send(player, region.getArea());
-        if (!FawePlayer.wrap(player).hasPermission("fawe.tips")) BBC.TIP_PASTE.or(BBC.TIP_DOWNLOAD, BBC.TIP_ROTATE, BBC.TIP_COPYPASTE, BBC.TIP_REPLACE_MARKER, BBC.TIP_COPY_PATTERN).send(player);
+        if (!FawePlayer.wrap(player).hasPermission("fawe.tips"))
+            BBC.TIP_PASTE.or(BBC.TIP_DOWNLOAD, BBC.TIP_ROTATE, BBC.TIP_COPYPASTE, BBC.TIP_REPLACE_MARKER, BBC.TIP_COPY_PATTERN).send(player);
     }
 
     @Command(
-            aliases = { "/lazycut" },
+            aliases = {"/lazycut"},
             flags = "em",
             desc = "Lazily cut the selection to the clipboard",
             help = "Lazily cut the selection to the clipboard\n" +
@@ -183,11 +184,11 @@ public class ClipboardCommands {
     )
     @CommandPermissions("worldedit.clipboard.lazycut")
     public void lazyCut(Player player, LocalSession session, EditSession editSession,
-                         @Selection final Region region, @Switch('e') boolean copyEntities,
-                         @Switch('m') Mask mask) throws WorldEditException {
+                        @Selection final Region region, @Switch('e') boolean copyEntities,
+                        @Switch('m') Mask mask) throws WorldEditException {
         Vector min = region.getMinimumPoint();
         Vector max = region.getMaximumPoint();
-        long volume = (((long)max.getX() - (long)min.getX() + 1) * ((long)max.getY() - (long)min.getY() + 1) * ((long)max.getZ() - (long)min.getZ() + 1));
+        long volume = (((long) max.getX() - (long) min.getX() + 1) * ((long) max.getY() - (long) min.getY() + 1) * ((long) max.getZ() - (long) min.getZ() + 1));
         FaweLimit limit = FawePlayer.wrap(player).getLimit();
         if (volume >= limit.MAX_CHECKS) {
             throw new FaweException(BBC.WORLDEDIT_CANCEL_REASON_MAX_CHECKS);
@@ -208,7 +209,7 @@ public class ClipboardCommands {
     }
 
     @Command(
-            aliases = { "/cut" },
+            aliases = {"/cut"},
             flags = "em",
             usage = "[leave-id]",
             desc = "Cut the selection to the clipboard",
@@ -227,7 +228,7 @@ public class ClipboardCommands {
                     @Switch('m') Mask mask) throws WorldEditException {
         Vector min = region.getMinimumPoint();
         Vector max = region.getMaximumPoint();
-        long volume = (((long)max.getX() - (long)min.getX() + 1) * ((long)max.getY() - (long)min.getY() + 1) * ((long)max.getZ() - (long)min.getZ() + 1));
+        long volume = (((long) max.getX() - (long) min.getX() + 1) * ((long) max.getY() - (long) min.getY() + 1) * ((long) max.getZ() - (long) min.getZ() + 1));
         FaweLimit limit = FawePlayer.wrap(player).getLimit();
         if (volume >= limit.MAX_CHECKS) {
             throw new FaweException(BBC.WORLDEDIT_CANCEL_REASON_MAX_CHECKS);
@@ -256,9 +257,9 @@ public class ClipboardCommands {
         if (!FawePlayer.wrap(player).hasPermission("fawe.tips")) BBC.TIP_LAZYCUT.send(player);
     }
 
-    @Command(aliases = { "download" }, desc = "Downloads your clipboard through the configured web interface")
+    @Command(aliases = {"download"}, desc = "Downloads your clipboard through the configured web interface")
     @Deprecated
-    @CommandPermissions({ "worldedit.clipboard.download"})
+    @CommandPermissions({"worldedit.clipboard.download"})
     public void download(final Player player, final LocalSession session, @Optional("schematic") final String formatName) throws CommandException, WorldEditException {
         final ClipboardFormat format = ClipboardFormat.findByAlias(formatName);
         if (format == null) {
@@ -312,14 +313,14 @@ public class ClipboardCommands {
     }
 
     @Command(
-            aliases = { "asset", "createasset", "makeasset" },
+            aliases = {"asset", "createasset", "makeasset"},
             usage = "[category]",
             desc = "Create an asset",
             help = "Saves your clipboard to the asset web interface",
             min = 1,
             max = 1
     )
-    @CommandPermissions({ "worldedit.clipboard.asset"})
+    @CommandPermissions({"worldedit.clipboard.asset"})
     public void asset(final Player player, final LocalSession session, String category) throws CommandException, WorldEditException {
         final ClipboardFormat format = ClipboardFormat.SCHEMATIC;
         ClipboardHolder holder = session.getClipboard();
@@ -349,7 +350,7 @@ public class ClipboardCommands {
     }
 
     @Command(
-            aliases = { "/paste", "/p" },
+            aliases = {"/paste", "/p"},
             usage = "",
             flags = "sao",
             desc = "Paste the clipboard's contents",
@@ -392,11 +393,12 @@ public class ClipboardCommands {
             selector.explainRegionAdjust(player, session);
         }
         BBC.COMMAND_PASTE.send(player, to);
-        if (!FawePlayer.wrap(player).hasPermission("fawe.tips")) BBC.TIP_COPYPASTE.or(BBC.TIP_SOURCE_MASK, BBC.TIP_REPLACE_MARKER).send(player, to);
+        if (!FawePlayer.wrap(player).hasPermission("fawe.tips"))
+            BBC.TIP_COPYPASTE.or(BBC.TIP_SOURCE_MASK, BBC.TIP_REPLACE_MARKER).send(player, to);
     }
 
     @Command(
-            aliases = { "/place" },
+            aliases = {"/place"},
             usage = "",
             flags = "sao",
             desc = "Place the clipboard's contents without applying transformations (e.g. rotate)",
@@ -440,7 +442,7 @@ public class ClipboardCommands {
     }
 
     @Command(
-            aliases = { "/rotate" },
+            aliases = {"/rotate"},
             usage = "<y-axis> [<x-axis>] [<z-axis>]",
             desc = "Rotate the contents of the clipboard",
             help = "Non-destructively rotate the contents of the clipboard.\n" +
@@ -462,11 +464,12 @@ public class ClipboardCommands {
         transform = transform.rotateZ(-(zRotate != null ? zRotate : 0));
         holder.setTransform(holder.getTransform().combine(transform));
         BBC.COMMAND_ROTATE.send(player);
-        if (!FawePlayer.wrap(player).hasPermission("fawe.tips")) BBC.TIP_FLIP.or(BBC.TIP_DEFORM, BBC.TIP_TRANSFORM).send(player);
+        if (!FawePlayer.wrap(player).hasPermission("fawe.tips"))
+            BBC.TIP_FLIP.or(BBC.TIP_DEFORM, BBC.TIP_TRANSFORM).send(player);
     }
 
     @Command(
-            aliases = { "/flip" },
+            aliases = {"/flip"},
             usage = "[<direction>]",
             desc = "Flip the contents of the clipboard",
             help =
@@ -486,7 +489,7 @@ public class ClipboardCommands {
     }
 
     @Command(
-            aliases = { "clearclipboard" },
+            aliases = {"clearclipboard"},
             usage = "",
             desc = "Clear your clipboard",
             min = 0,

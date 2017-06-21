@@ -4,7 +4,7 @@ import java.io.IOException;
 import java.io.Serializable;
 
 public class MutableBlockVector extends BlockVector implements Serializable {
-    private transient int x,y,z;
+    private transient int x, y, z;
 
     private static ThreadLocal<MutableBlockVector> MUTABLE_CACHE = new ThreadLocal<MutableBlockVector>() {
         @Override

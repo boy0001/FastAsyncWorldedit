@@ -37,7 +37,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * Visits the layers within a region.
- *
+ * <p>
  * <p>This class works by iterating over all the columns in a {@link FlatRegion},
  * finding the first ground block in each column (searching from a given
  * maximum Y down to a minimum Y), and then applies a {@link LayerFunction} to
@@ -56,9 +56,9 @@ public class LayerVisitor implements Operation {
      * Create a new visitor.
      *
      * @param flatRegion the flat region to visit
-     * @param minY the minimum Y to stop the search at
-     * @param maxY the maximum Y to begin the search at
-     * @param function the layer function to apply t blocks
+     * @param minY       the minimum Y to stop the search at
+     * @param maxY       the maximum Y to begin the search at
+     * @param function   the layer function to apply t blocks
      */
     public LayerVisitor(final FlatRegion flatRegion, final int minY, final int maxY, final LayerFunction function) {
         checkNotNull(flatRegion);
@@ -125,10 +125,12 @@ public class LayerVisitor implements Operation {
     }
 
     @Override
-    public void cancel() {}
+    public void cancel() {
+    }
 
     @Override
-    public void addStatusMessages(final List<String> messages) {}
+    public void addStatusMessages(final List<String> messages) {
+    }
 
     public static Class<?> inject() {
         return Operations.class;

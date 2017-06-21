@@ -149,7 +149,8 @@ public class Rollback extends FaweCommand {
                         } else {
                             user = Fawe.imp().getUUID(split[1]);
                         }
-                    } catch (IllegalArgumentException e) {}
+                    } catch (IllegalArgumentException e) {
+                    }
                     if (user == null) {
                         player.sendMessage("&dНедействительный игрок: " + split[1]);
                         return;

@@ -13,7 +13,7 @@ import java.util.UUID;
 
 /**
  * FAWE visualizations display glass (20) as a placeholder
- *  - Using a non transparent block can cause FPS lag
+ * - Using a non transparent block can cause FPS lag
  */
 public class VisualChunk extends FaweChunk<FaweChunk> {
 
@@ -112,13 +112,13 @@ public class VisualChunk extends FaweChunk<FaweChunk> {
     public void setBlock(int x, int y, int z, int id, int data) {
         int index = getIndex(x, y, z);
         try {
-        if (id == 0) {
-            add.clear(index);
-            remove.set(index);
-        } else {
-            remove.clear(index);
-            add.set(index);
-        }
+            if (id == 0) {
+                add.clear(index);
+                remove.set(index);
+            } else {
+                remove.clear(index);
+                add.set(index);
+            }
         } catch (Throwable e) {
             e.printStackTrace();
         }

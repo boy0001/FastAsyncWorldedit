@@ -34,12 +34,12 @@ public class PatternExtent extends AbstractPattern implements Extent {
 
     @Override
     public Vector getMinimumPoint() {
-        return new Vector(Integer.MIN_VALUE,0,Integer.MIN_VALUE);
+        return new Vector(Integer.MIN_VALUE, 0, Integer.MIN_VALUE);
     }
 
     @Override
     public Vector getMaximumPoint() {
-        return new Vector(Integer.MAX_VALUE,255,Integer.MAX_VALUE);
+        return new Vector(Integer.MAX_VALUE, 255, Integer.MAX_VALUE);
     }
 
     @Override

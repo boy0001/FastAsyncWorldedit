@@ -56,7 +56,7 @@ import java.util.Map;
  */
 public class DefaultBlockParser extends InputParser<BaseBlock> {
 
-    public  DefaultBlockParser(WorldEdit worldEdit) {
+    public DefaultBlockParser(WorldEdit worldEdit) {
         super(worldEdit);
     }
 
@@ -64,7 +64,7 @@ public class DefaultBlockParser extends InputParser<BaseBlock> {
         if (actor instanceof Player) {
             try {
                 BaseBlock block = ((Player) actor).getBlockInHand();
-                if(((Player) actor).getWorld().isValidBlockType(block.getId())) {
+                if (((Player) actor).getWorld().isValidBlockType(block.getId())) {
                     return block;
                 } else {
                     throw new InputParseException("You're not holding a block!");
@@ -116,9 +116,9 @@ public class DefaultBlockParser extends InputParser<BaseBlock> {
         String[] typeAndData;
         switch (blockLocator.length) {
             case 3:
-                typeAndData = new String[] {
+                typeAndData = new String[]{
                         blockLocator[0] + ":" + blockLocator[1],
-                        blockLocator[2] };
+                        blockLocator[2]};
                 break;
             default:
                 typeAndData = blockLocator;

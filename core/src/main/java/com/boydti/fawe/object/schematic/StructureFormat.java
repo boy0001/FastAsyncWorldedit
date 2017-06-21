@@ -37,7 +37,7 @@ import java.util.Map;
 import java.util.UUID;
 
 public class StructureFormat implements ClipboardReader, ClipboardWriter {
-    private static final int MAX_SIZE = 32;
+    private static final int WARN_SIZE = 32;
 
     private NBTInputStream in;
     private NBTOutputStream out;
@@ -99,7 +99,7 @@ public class StructureFormat implements ClipboardReader, ClipboardWriter {
                         System.out.println("Invalid property: " + property.getKey());
                         continue;
                     }
-                    BundledBlockData.FaweStateValue value = state.valueMap().get(((StringTag)property.getValue()).getValue());
+                    BundledBlockData.FaweStateValue value = state.valueMap().get(((StringTag) property.getValue()).getValue());
                     if (value == null) {
                         System.out.println("Invalid property: " + property.getKey() + ":" + property.getValue());
                         continue;
@@ -160,16 +160,9 @@ public class StructureFormat implements ClipboardReader, ClipboardWriter {
         int width = region.getWidth();
         int height = region.getHeight();
         int length = region.getLength();
-        if (width > MAX_SIZE) {
-            throw new IllegalArgumentException("Width of region too large for a .nbt");
+        if (width > WARN_SIZE || height > WARN_SIZE || length > WARN_SIZE) {
+            Fawe.debug("A structure longer than 32 is unsupported by minecraft (but probably still works)");
         }
-        if (height > MAX_SIZE) {
-            throw new IllegalArgumentException("Height of region too large for a .nbt");
-        }
-        if (length > MAX_SIZE) {
-            throw new IllegalArgumentException("Length of region too large for a .nbt");
-        }
-
         Map<String, Object> structure = FaweCache.asMap("version", 1, "author", owner);
         // ignored: version / owner
         MutableBlockVector mutable = new MutableBlockVector(0, 0, 0);
@@ -184,7 +177,7 @@ public class StructureFormat implements ClipboardReader, ClipboardWriter {
             ArrayList<HashMap<String, Object>> palette = new ArrayList<>();
             for (Vector point : region) {
                 BaseBlock block = clipboard.getBlock(point);
-                if (block.getId() == 217) block = FaweCache.getBlock(0, 0); // Void
+                if (block.getId() == 217) continue; // Void
                 int combined = FaweCache.getCombined(block);
                 int index = indexes[combined];
                 if (index != -1) {
@@ -222,9 +215,8 @@ public class StructureFormat implements ClipboardReader, ClipboardWriter {
             Vector min = region.getMinimumPoint();
             for (Vector point : region) {
                 BaseBlock block = clipboard.getBlock(point);
-                if (block.getId() == 217) block = FaweCache.getBlock(0, 0); // Void
+                if (block.getId() == 217) continue; // Void
                 int combined = FaweCache.getCombined(block);
-                if (combined >> 4 == 217) combined = 0; // Structure void
                 int index = indexes[combined];
                 List<Integer> pos = Arrays.asList((int) (point.getX() - min.getX()), (int) (point.getY() - min.getY()), (int) (point.getZ() - min.getZ()));
                 if (!block.hasNbtData()) {

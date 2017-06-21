@@ -8,9 +8,9 @@ import com.sk89q.worldedit.entity.Entity;
 import com.sk89q.worldedit.entity.metadata.EntityType;
 import com.sk89q.worldedit.function.EntityFunction;
 import com.sk89q.worldedit.world.registry.EntityRegistry;
-
-import javax.annotation.Nullable;
 import java.util.regex.Pattern;
+import javax.annotation.Nullable;
+
 
 import static com.google.common.base.Preconditions.checkNotNull;
 

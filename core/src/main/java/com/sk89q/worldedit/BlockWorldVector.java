@@ -1,6 +1,8 @@
 package com.sk89q.worldedit;
 
-/** @deprecated */
+/**
+ * @deprecated
+ */
 @Deprecated
 public class BlockWorldVector extends WorldVector {
     public BlockWorldVector(WorldVector position) {
@@ -32,11 +34,11 @@ public class BlockWorldVector extends WorldVector {
     }
 
     public boolean equals(Object obj) {
-        if(!(obj instanceof Vector)) {
+        if (!(obj instanceof Vector)) {
             return false;
         } else {
-            Vector other = (Vector)obj;
-            return (int)other.getX() == (int)this.getX() && (int)other.getY() == (int)this.getY() && (int)other.getZ() == (int)this.getZ();
+            Vector other = (Vector) obj;
+            return (int) other.getX() == (int) this.getX() && (int) other.getY() == (int) this.getY() && (int) other.getZ() == (int) this.getZ();
         }
     }
 

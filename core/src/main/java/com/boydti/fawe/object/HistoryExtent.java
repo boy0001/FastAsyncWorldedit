@@ -37,7 +37,7 @@ public class HistoryExtent extends AbstractDelegateExtent {
     /**
      * Create a new instance.
      *
-     * @param extent the extent
+     * @param extent    the extent
      * @param changeSet the change set
      */
     public HistoryExtent(final EditSession session, final Extent extent, final FaweChangeSet changeSet, FaweQueue queue) {

@@ -10,8 +10,8 @@ import java.util.Set;
 
 /**
  * The LocalBlockVectorSet is a Memory and CPU optimized Set for storing BlockVectors which are all in a local region
- *  - All vectors must be in a 2048 * 2048 area centered around the first entry
- *  - This will use 8 bytes for every 64 BlockVectors (about 800x less than a HashSet)
+ * - All vectors must be in a 2048 * 2048 area centered around the first entry
+ * - This will use 8 bytes for every 64 BlockVectors (about 800x less than a HashSet)
  */
 public class LocalBlockVectorSet implements Set<Vector> {
     private int offsetX, offsetZ;
@@ -70,7 +70,7 @@ public class LocalBlockVectorSet implements Set<Vector> {
             while ((index = set.nextSetBit(index + 1)) != -1) {
                 int b1 = (index & 0xFF);
                 int b2 = ((byte) (index >> 8)) & 0x7F;
-                int b3 = ((byte)(index >> 15)) & 0xFF;
+                int b3 = ((byte) (index >> 15)) & 0xFF;
                 int b4 = ((byte) (index >> 23)) & 0xFF;
                 if (Math.abs((offsetX + (((b3 + ((MathMan.unpair8x(b2)) << 8)) << 21) >> 21)) - x) <= radius && Math.abs((offsetZ + (((b4 + ((MathMan.unpair8y(b2)) << 8)) << 21) >> 21)) - z) <= radius && Math.abs((b1) - y) <= radius) {
                     return true;
@@ -112,7 +112,7 @@ public class LocalBlockVectorSet implements Set<Vector> {
         if (index != -1) {
             int b1 = (index & 0xFF);
             int b2 = ((byte) (index >> 8)) & 0x7F;
-            int b3 = ((byte)(index >> 15)) & 0xFF;
+            int b3 = ((byte) (index >> 15)) & 0xFF;
             int b4 = ((byte) (index >> 23)) & 0xFF;
             int x = offsetX + (((b3 + ((MathMan.unpair8x(b2)) << 8)) << 21) >> 21);
             int y = b1;
@@ -128,20 +128,23 @@ public class LocalBlockVectorSet implements Set<Vector> {
             int index = set.nextSetBit(0);
             int previous = -1;
             MutableBlockVector mutable = new MutableBlockVector(0, 0, 0);
+
             @Override
             public void remove() {
                 set.clear(previous);
             }
+
             @Override
             public boolean hasNext() {
                 return index != -1;
             }
+
             @Override
             public BlockVector next() {
                 if (index != -1) {
                     int b1 = (index & 0xFF);
                     int b2 = ((byte) (index >> 8)) & 0x7F;
-                    int b3 = ((byte)(index >> 15)) & 0xFF;
+                    int b3 = ((byte) (index >> 15)) & 0xFF;
                     int b4 = ((byte) (index >> 23)) & 0xFF;
                     mutable.mutX(offsetX + (((b3 + ((MathMan.unpair8x(b2)) << 8)) << 21) >> 21));
                     mutable.mutY(b1);
@@ -171,7 +174,7 @@ public class LocalBlockVectorSet implements Set<Vector> {
             index = set.nextSetBit(index);
             int b1 = (index & 0xFF);
             int b2 = ((byte) (index >> 8)) & 0x7F;
-            int b3 = ((byte)(index >> 15)) & 0xFF;
+            int b3 = ((byte) (index >> 15)) & 0xFF;
             int b4 = ((byte) (index >> 23)) & 0xFF;
             int x = offsetX + (((b3 + ((MathMan.unpair8x(b2)) << 8)) << 21) >> 21);
             int y = b1;
@@ -282,7 +285,7 @@ public class LocalBlockVectorSet implements Set<Vector> {
             index = set.nextSetBit(index + 1);
             int b1 = (index & 0xFF);
             int b2 = ((byte) (index >> 8)) & 0x7F;
-            int b3 = ((byte)(index >> 15)) & 0xFF;
+            int b3 = ((byte) (index >> 15)) & 0xFF;
             int b4 = ((byte) (index >> 23)) & 0xFF;
             mVec.mutX(offsetX + (((b3 + ((MathMan.unpair8x(b2)) << 8)) << 21) >> 21));
             mVec.mutY(b1);
@@ -312,7 +315,7 @@ public class LocalBlockVectorSet implements Set<Vector> {
             index = set.nextSetBit(index + 1);
             int b1 = (index & 0xFF);
             int b2 = ((byte) (index >> 8)) & 0x7F;
-            int b3 = ((byte)(index >> 15)) & 0xFF;
+            int b3 = ((byte) (index >> 15)) & 0xFF;
             int b4 = ((byte) (index >> 23)) & 0xFF;
             int x = offsetX + (((b3 + ((MathMan.unpair8x(b2)) << 8)) << 21) >> 21);
             int y = b1;

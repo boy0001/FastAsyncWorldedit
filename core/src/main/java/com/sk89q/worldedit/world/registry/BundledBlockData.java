@@ -51,10 +51,10 @@ import javax.annotation.Nullable;
 /**
  * Provides block data based on the built-in block database that is bundled
  * with WorldEdit.
- *
+ * <p>
  * <p>A new instance cannot be created. Use {@link #getInstance()} to get
  * an instance.</p>
- *
+ * <p>
  * <p>The data is read from a JSON file that is bundled with WorldEdit. If
  * reading fails (which occurs when this class is first instantiated), then
  * the methods will return {@code null}s for all blocks.</p>
@@ -74,7 +74,8 @@ public class BundledBlockData {
     /**
      * Create a new instance.
      */
-    private BundledBlockData() {}
+    private BundledBlockData() {
+    }
 
     /**
      * Attempt to load the data from file.
@@ -94,7 +95,8 @@ public class BundledBlockData {
         gsonBuilder.registerTypeAdapter(Vector.class, new FaweVectorAdapter());
         Gson gson = gsonBuilder.create();
         String data = Resources.toString(url, Charset.defaultCharset());
-        List<BlockEntry> entries = gson.fromJson(data, new TypeToken<List<BlockEntry>>() {}.getType());
+        List<BlockEntry> entries = gson.fromJson(data, new TypeToken<List<BlockEntry>>() {
+        }.getType());
         for (BlockEntry entry : entries) {
             add(entry, overwrite);
         }
@@ -245,7 +247,7 @@ public class BundledBlockData {
                     new Vector(0, -1, 0)};
             int len = dir.values.size();
             int index = 0;
-            int amount = (dir.values.size() + 7)/ 8;
+            int amount = (dir.values.size() + 7) / 8;
             for (Map.Entry<String, FaweStateValue> valuesEntry : dir.values.entrySet()) {
                 FaweStateValue state = valuesEntry.getValue();
                 if (state != null) {
@@ -397,7 +399,8 @@ public class BundledBlockData {
         public Byte data;
         public Vector direction;
 
-        public FaweStateValue() {}
+        public FaweStateValue() {
+        }
 
         public FaweStateValue(FaweStateValue other) {
             this.state = other.state;

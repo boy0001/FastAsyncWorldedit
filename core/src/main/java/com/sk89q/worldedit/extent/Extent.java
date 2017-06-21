@@ -41,7 +41,9 @@ public interface Extent extends InputExtent, OutputExtent {
         return new ArrayList<>();
     }
 
-    default @Nullable Entity createEntity(Location location, BaseEntity entity) {
+    default
+    @Nullable
+    Entity createEntity(Location location, BaseEntity entity) {
         throw new UnsupportedOperationException(getClass() + " does not support entity creation!");
     }
 
@@ -151,7 +153,7 @@ public interface Extent extends InputExtent, OutputExtent {
         }
     }
 
-    default public void addSchems(Region region, Mask mask, WorldData worldData, ClipboardHolder[] clipboards, int rarity, boolean rotate) throws WorldEditException{
+    default public void addSchems(Region region, Mask mask, WorldData worldData, ClipboardHolder[] clipboards, int rarity, boolean rotate) throws WorldEditException {
         spawnResource(region, new SchemGen(mask, this, worldData, clipboards, rotate), rarity, 1);
     }
 

@@ -16,9 +16,9 @@ import java.util.Set;
 
 /**
  * The BlockVectorSet is a Memory optimized Set for storing BlockVectors
- *  - Internally it uses a map of Index->LocalBlockVectorSet
- *  - All BlockVectors must be a valid world coordinate: y=[0,255],x=[-30000000,30000000],z=[-30000000,30000000]
- *  - This will use ~8 bytes for every 64 BlockVectors (about 800x less than a HashSet)
+ * - Internally it uses a map of Index->LocalBlockVectorSet
+ * - All BlockVectors must be a valid world coordinate: y=[0,255],x=[-30000000,30000000],z=[-30000000,30000000]
+ * - This will use ~8 bytes for every 64 BlockVectors (about 800x less than a HashSet)
  */
 public class BlockVectorSet extends AbstractCollection<Vector> implements Set<Vector> {
     private Int2ObjectMap<LocalBlockVectorSet> localSets = new Int2ObjectOpenHashMap<>();
@@ -79,7 +79,7 @@ public class BlockVectorSet extends AbstractCollection<Vector> implements Set<Ve
             Vector v = (Vector) o;
             return contains(v.getBlockX(), v.getBlockY(), v.getBlockZ());
         }
-        return  false;
+        return false;
     }
 
     @Override
@@ -152,7 +152,6 @@ public class BlockVectorSet extends AbstractCollection<Vector> implements Set<Ve
     }
 
 
-
     @Override
     public boolean remove(Object o) {
         if (o instanceof Vector) {
@@ -203,7 +202,6 @@ public class BlockVectorSet extends AbstractCollection<Vector> implements Set<Ve
         }
         return result;
     }
-
 
 
     @Override

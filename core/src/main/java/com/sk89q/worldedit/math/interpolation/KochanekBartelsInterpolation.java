@@ -31,7 +31,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * A Kochanek-Bartels interpolation; continuous in the 2nd derivative.
- *
+ * <p>
  * <p>Supports {@link Node#tension tension}, {@link Node#bias bias} and
  * {@link Node#continuity continuity} parameters per {@link Node}.</p>
  */
@@ -83,14 +83,14 @@ public class KochanekBartelsInterpolation implements Interpolation {
             }
 
             // Kochanek-Bartels tangent coefficients
-            final double ta = (1-tensionA)*(1+biasA)*(1+continuityA)/2; // Factor for lhs of d[i]
-            final double tb = (1-tensionA)*(1-biasA)*(1-continuityA)/2; // Factor for rhs of d[i]
-            final double tc = (1-tensionB)*(1+biasB)*(1-continuityB)/2; // Factor for lhs of d[i+1]
-            final double td = (1-tensionB)*(1-biasB)*(1+continuityB)/2; // Factor for rhs of d[i+1]
+            final double ta = (1 - tensionA) * (1 + biasA) * (1 + continuityA) / 2; // Factor for lhs of d[i]
+            final double tb = (1 - tensionA) * (1 - biasA) * (1 - continuityA) / 2; // Factor for rhs of d[i]
+            final double tc = (1 - tensionB) * (1 + biasB) * (1 - continuityB) / 2; // Factor for lhs of d[i+1]
+            final double td = (1 - tensionB) * (1 - biasB) * (1 + continuityB) / 2; // Factor for rhs of d[i+1]
 
-            coeffA[i] = linearCombination(i,  -ta,    ta-  tb-tc+2,    tb+tc-td-2,  td);
-            coeffB[i] = linearCombination(i, 2*ta, -2*ta+2*tb+tc-3, -2*tb-tc+td+3, -td);
-            coeffC[i] = linearCombination(i,  -ta,    ta-  tb     ,    tb        ,   0);
+            coeffA[i] = linearCombination(i, -ta, ta - tb - tc + 2, tb + tc - td - 2, td);
+            coeffB[i] = linearCombination(i, 2 * ta, -2 * ta + 2 * tb + tc - 3, -2 * tb - tc + td + 3, -td);
+            coeffC[i] = linearCombination(i, -ta, ta - tb, tb, 0);
             //coeffD[i] = linearCombination(i,    0,               1,             0,   0);
             coeffD[i] = retrieve(i); // this is an optimization
         }
@@ -102,15 +102,15 @@ public class KochanekBartelsInterpolation implements Interpolation {
      * Returns the linear combination of the given coefficients with the nodes adjacent to baseIndex.
      *
      * @param baseIndex node index
-     * @param f1 coefficient for baseIndex-1
-     * @param f2 coefficient for baseIndex
-     * @param f3 coefficient for baseIndex+1
-     * @param f4 coefficient for baseIndex+2
+     * @param f1        coefficient for baseIndex-1
+     * @param f2        coefficient for baseIndex
+     * @param f3        coefficient for baseIndex+1
+     * @param f4        coefficient for baseIndex+2
      * @return linear combination of nodes[n-1..n+2] with f1..4
      */
     private Vector linearCombination(int baseIndex, double f1, double f2, double f3, double f4) {
         final Vector r1 = retrieve(baseIndex - 1).multiply(f1);
-        final Vector r2 = retrieve(baseIndex    ).multiply(f2);
+        final Vector r2 = retrieve(baseIndex).multiply(f2);
         final Vector r3 = retrieve(baseIndex + 1).multiply(f3);
         final Vector r4 = retrieve(baseIndex + 2).multiply(f4);
 
@@ -128,7 +128,7 @@ public class KochanekBartelsInterpolation implements Interpolation {
             return fastRetrieve(0);
 
         if (index >= nodes.size())
-            return fastRetrieve(nodes.size()-1);
+            return fastRetrieve(nodes.size() - 1);
 
         return fastRetrieve(index);
     }
@@ -182,7 +182,7 @@ public class KochanekBartelsInterpolation implements Interpolation {
         final Vector b = coeffB[index];
         final Vector c = coeffC[index];
 
-        return a.multiply(1.5*position - 3.0*index).add(b).multiply(2.0*position).add(a.multiply(1.5*index).subtract(b).multiply(2.0*index)).add(c).multiply(scaling);
+        return a.multiply(1.5 * position - 3.0 * index).add(b).multiply(2.0 * position).add(a.multiply(1.5 * index).subtract(b).multiply(2.0 * index)).add(c).multiply(scaling);
     }
 
     @Override
@@ -234,9 +234,9 @@ public class KochanekBartelsInterpolation implements Interpolation {
         final int nPoints = 8;
 
         double accum = a.multiply(remainderLeft).add(b).multiply(remainderLeft).add(c).length() / 2.0;
-        for (int i = 1; i < nPoints-1; ++i) {
+        for (int i = 1; i < nPoints - 1; ++i) {
             double t = ((double) i) / nPoints;
-            t = (remainderRight-remainderLeft)*t + remainderLeft;
+            t = (remainderRight - remainderLeft) * t + remainderLeft;
             accum += a.multiply(t).add(b).multiply(t).add(c).length();
         }
 

@@ -35,9 +35,8 @@ import java.util.UUID;
 
 /**
  * A clipboard with disk backed storage. (lower memory + loads on crash)
- *  - Uses an auto closable RandomAccessFile for getting / setting id / data
- *  - I don't know how to reduce nbt / entities to O(2) complexity, so it is stored in memory.
- *
+ * - Uses an auto closable RandomAccessFile for getting / setting id / data
+ * - I don't know how to reduce nbt / entities to O(2) complexity, so it is stored in memory.
  */
 public class DiskOptimizedClipboard extends FaweClipboard implements Closeable {
 
@@ -201,7 +200,7 @@ public class DiskOptimizedClipboard extends FaweClipboard implements Closeable {
     }
 
     private void closeDirectBuffer(ByteBuffer cb) {
-        if (cb==null || !cb.isDirect()) return;
+        if (cb == null || !cb.isDirect()) return;
 
         // we could use this type cast and call functions without reflection code,
         // but static import from sun.* package is risky for non-SUN virtual machine.
@@ -212,7 +211,8 @@ public class DiskOptimizedClipboard extends FaweClipboard implements Closeable {
             Method clean = Class.forName("sun.misc.Cleaner").getMethod("clean");
             clean.setAccessible(true);
             clean.invoke(cleaner.invoke(cb));
-        } catch(Exception ex) { }
+        } catch (Exception ex) {
+        }
         cb = null;
     }
 
@@ -380,7 +380,7 @@ public class DiskOptimizedClipboard extends FaweClipboard implements Closeable {
                 }
             }
             return block;
-        }  catch (Exception e) {
+        } catch (Exception e) {
             MainUtil.handleError(e);
         }
         return EditSession.nullBlock;
@@ -413,7 +413,7 @@ public class DiskOptimizedClipboard extends FaweClipboard implements Closeable {
                 setTile(x, y, z, tile);
             }
             return true;
-        }  catch (Exception e) {
+        } catch (Exception e) {
             MainUtil.handleError(e);
         }
         return false;

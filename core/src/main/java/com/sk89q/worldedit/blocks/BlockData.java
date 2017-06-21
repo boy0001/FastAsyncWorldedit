@@ -19,7 +19,6 @@
 
 package com.sk89q.worldedit.blocks;
 
-import com.boydti.fawe.util.StringMan;
 import com.sk89q.worldedit.CuboidClipboard.FlipDirection;
 
 /**
@@ -43,19 +42,27 @@ public final class BlockData {
             case BlockID.REDSTONE_TORCH_OFF:
             case BlockID.REDSTONE_TORCH_ON:
                 switch (data) {
-                    case 1: return 3;
-                    case 2: return 4;
-                    case 3: return 2;
-                    case 4: return 1;
+                    case 1:
+                        return 3;
+                    case 2:
+                        return 4;
+                    case 3:
+                        return 2;
+                    case 4:
+                        return 1;
                 }
                 break;
 
             case BlockID.MINECART_TRACKS:
                 switch (data) {
-                    case 6: return 7;
-                    case 7: return 8;
-                    case 8: return 9;
-                    case 9: return 6;
+                    case 6:
+                        return 7;
+                    case 7:
+                        return 8;
+                    case 8:
+                        return 9;
+                    case 9:
+                        return 6;
                 }
             /* FALL-THROUGH */
 
@@ -63,12 +70,18 @@ public final class BlockData {
             case BlockID.DETECTOR_RAIL:
             case BlockID.ACTIVATOR_RAIL:
                 switch (data & 0x7) {
-                    case 0: return 1 | (data & ~0x7);
-                    case 1: return 0 | (data & ~0x7);
-                    case 2: return 5 | (data & ~0x7);
-                    case 3: return 4 | (data & ~0x7);
-                    case 4: return 2 | (data & ~0x7);
-                    case 5: return 3 | (data & ~0x7);
+                    case 0:
+                        return 1 | (data & ~0x7);
+                    case 1:
+                        return 0 | (data & ~0x7);
+                    case 2:
+                        return 5 | (data & ~0x7);
+                    case 3:
+                        return 4 | (data & ~0x7);
+                    case 4:
+                        return 2 | (data & ~0x7);
+                    case 5:
+                        return 3 | (data & ~0x7);
                 }
                 break;
 
@@ -87,14 +100,22 @@ public final class BlockData {
             case BlockID.ACACIA_STAIRS:
             case BlockID.DARK_OAK_STAIRS:
                 switch (data) {
-                    case 0: return 2;
-                    case 1: return 3;
-                    case 2: return 1;
-                    case 3: return 0;
-                    case 4: return 6;
-                    case 5: return 7;
-                    case 6: return 5;
-                    case 7: return 4;
+                    case 0:
+                        return 2;
+                    case 1:
+                        return 3;
+                    case 2:
+                        return 1;
+                    case 3:
+                        return 0;
+                    case 4:
+                        return 6;
+                    case 5:
+                        return 7;
+                    case 6:
+                        return 5;
+                    case 7:
+                        return 4;
                 }
                 break;
 
@@ -102,10 +123,14 @@ public final class BlockData {
             case BlockID.WOODEN_BUTTON: {
                 int thrown = data & 0x8;
                 switch (data & ~0x8) {
-                    case 1: return 3 | thrown;
-                    case 2: return 4 | thrown;
-                    case 3: return 2 | thrown;
-                    case 4: return 1 | thrown;
+                    case 1:
+                        return 3 | thrown;
+                    case 2:
+                        return 4 | thrown;
+                    case 3:
+                        return 2 | thrown;
+                    case 4:
+                        return 1 | thrown;
                     // 0 and 5 are vertical
                 }
                 break;
@@ -114,14 +139,22 @@ public final class BlockData {
             case BlockID.LEVER: {
                 int thrown = data & 0x8;
                 switch (data & ~0x8) {
-                    case 1: return 3 | thrown;
-                    case 2: return 4 | thrown;
-                    case 3: return 2 | thrown;
-                    case 4: return 1 | thrown;
-                    case 5: return 6 | thrown;
-                    case 6: return 5 | thrown;
-                    case 7: return 0 | thrown;
-                    case 0: return 7 | thrown;
+                    case 1:
+                        return 3 | thrown;
+                    case 2:
+                        return 4 | thrown;
+                    case 3:
+                        return 2 | thrown;
+                    case 4:
+                        return 1 | thrown;
+                    case 5:
+                        return 6 | thrown;
+                    case 6:
+                        return 5 | thrown;
+                    case 7:
+                        return 0 | thrown;
+                    case 0:
+                        return 7 | thrown;
                 }
                 break;
             }
@@ -140,10 +173,14 @@ public final class BlockData {
                 int extra = data & ~0x3;
                 int withoutFlags = data & 0x3;
                 switch (withoutFlags) {
-                    case 0: return 1 | extra;
-                    case 1: return 2 | extra;
-                    case 2: return 3 | extra;
-                    case 3: return 0 | extra;
+                    case 0:
+                        return 1 | extra;
+                    case 1:
+                        return 2 | extra;
+                    case 2:
+                        return 3 | extra;
+                    case 3:
+                        return 0 | extra;
                 }
                 break;
             }
@@ -161,10 +198,14 @@ public final class BlockData {
                 int extra = data & 0x8;
                 int withoutFlags = data & ~0x8;
                 switch (withoutFlags) {
-                    case 2: return 5 | extra;
-                    case 3: return 4 | extra;
-                    case 4: return 2 | extra;
-                    case 5: return 3 | extra;
+                    case 2:
+                        return 5 | extra;
+                    case 3:
+                        return 4 | extra;
+                    case 4:
+                        return 2 | extra;
+                    case 5:
+                        return 3 | extra;
                 }
                 break;
             }
@@ -173,20 +214,28 @@ public final class BlockData {
             case BlockID.DROPPER:
                 int dispPower = data & 0x8;
                 switch (data & ~0x8) {
-                    case 2: return 5 | dispPower;
-                    case 3: return 4 | dispPower;
-                    case 4: return 2 | dispPower;
-                    case 5: return 3 | dispPower;
+                    case 2:
+                        return 5 | dispPower;
+                    case 3:
+                        return 4 | dispPower;
+                    case 4:
+                        return 2 | dispPower;
+                    case 5:
+                        return 3 | dispPower;
                 }
                 break;
 
             case BlockID.PUMPKIN:
             case BlockID.JACKOLANTERN:
                 switch (data) {
-                    case 0: return 1;
-                    case 1: return 2;
-                    case 2: return 3;
-                    case 3: return 0;
+                    case 0:
+                        return 1;
+                    case 1:
+                        return 2;
+                    case 2:
+                        return 3;
+                    case 3:
+                        return 0;
                 }
                 break;
 
@@ -203,10 +252,14 @@ public final class BlockData {
                 int dir = data & 0x03;
                 int delay = data - dir;
                 switch (dir) {
-                    case 0: return 1 | delay;
-                    case 1: return 2 | delay;
-                    case 2: return 3 | delay;
-                    case 3: return 0 | delay;
+                    case 0:
+                        return 1 | delay;
+                    case 1:
+                        return 2 | delay;
+                    case 2:
+                        return 3 | delay;
+                    case 3:
+                        return 0 | delay;
                 }
                 break;
 
@@ -215,10 +268,14 @@ public final class BlockData {
                 int withoutOrientation = data & ~0x3;
                 int orientation = data & 0x3;
                 switch (orientation) {
-                    case 0: return 3 | withoutOrientation;
-                    case 1: return 2 | withoutOrientation;
-                    case 2: return 0 | withoutOrientation;
-                    case 3: return 1 | withoutOrientation;
+                    case 0:
+                        return 3 | withoutOrientation;
+                    case 1:
+                        return 2 | withoutOrientation;
+                    case 2:
+                        return 0 | withoutOrientation;
+                    case 3:
+                        return 1 | withoutOrientation;
                 }
                 break;
 
@@ -227,10 +284,14 @@ public final class BlockData {
             case BlockID.PISTON_EXTENSION:
                 final int rest = data & ~0x7;
                 switch (data & 0x7) {
-                    case 2: return 5 | rest;
-                    case 3: return 4 | rest;
-                    case 4: return 2 | rest;
-                    case 5: return 3 | rest;
+                    case 2:
+                        return 5 | rest;
+                    case 3:
+                        return 4 | rest;
+                    case 4:
+                        return 2 | rest;
+                    case 5:
+                        return 3 | rest;
                 }
                 break;
 
@@ -248,10 +309,14 @@ public final class BlockData {
             case BlockID.ANVIL:
                 int damage = data & ~0x3;
                 switch (data & 0x3) {
-                    case 0: return 3 | damage;
-                    case 2: return 1 | damage;
-                    case 1: return 0 | damage;
-                    case 3: return 2 | damage;
+                    case 0:
+                        return 3 | damage;
+                    case 2:
+                        return 1 | damage;
+                    case 1:
+                        return 0 | damage;
+                    case 3:
+                        return 2 | damage;
                 }
                 break;
 
@@ -260,10 +325,14 @@ public final class BlockData {
 
             case BlockID.HEAD:
                 switch (data) {
-                    case 2: return 5;
-                    case 3: return 4;
-                    case 4: return 2;
-                    case 5: return 3;
+                    case 2:
+                        return 5;
+                    case 3:
+                        return 4;
+                    case 4:
+                        return 2;
+                    case 5:
+                        return 3;
                 }
         }
 
@@ -285,19 +354,27 @@ public final class BlockData {
             case BlockID.REDSTONE_TORCH_OFF:
             case BlockID.REDSTONE_TORCH_ON:
                 switch (data) {
-                    case 3: return 1;
-                    case 4: return 2;
-                    case 2: return 3;
-                    case 1: return 4;
+                    case 3:
+                        return 1;
+                    case 4:
+                        return 2;
+                    case 2:
+                        return 3;
+                    case 1:
+                        return 4;
                 }
                 break;
 
             case BlockID.MINECART_TRACKS:
                 switch (data) {
-                    case 7: return 6;
-                    case 8: return 7;
-                    case 9: return 8;
-                    case 6: return 9;
+                    case 7:
+                        return 6;
+                    case 8:
+                        return 7;
+                    case 9:
+                        return 8;
+                    case 6:
+                        return 9;
                 }
             /* FALL-THROUGH */
 
@@ -306,12 +383,18 @@ public final class BlockData {
             case BlockID.ACTIVATOR_RAIL:
                 int power = data & ~0x7;
                 switch (data & 0x7) {
-                    case 1: return 0 | power;
-                    case 0: return 1 | power;
-                    case 5: return 2 | power;
-                    case 4: return 3 | power;
-                    case 2: return 4 | power;
-                    case 3: return 5 | power;
+                    case 1:
+                        return 0 | power;
+                    case 0:
+                        return 1 | power;
+                    case 5:
+                        return 2 | power;
+                    case 4:
+                        return 3 | power;
+                    case 2:
+                        return 4 | power;
+                    case 3:
+                        return 5 | power;
                 }
                 break;
 
@@ -330,14 +413,22 @@ public final class BlockData {
             case BlockID.ACACIA_STAIRS:
             case BlockID.DARK_OAK_STAIRS:
                 switch (data) {
-                    case 2: return 0;
-                    case 3: return 1;
-                    case 1: return 2;
-                    case 0: return 3;
-                    case 6: return 4;
-                    case 7: return 5;
-                    case 5: return 6;
-                    case 4: return 7;
+                    case 2:
+                        return 0;
+                    case 3:
+                        return 1;
+                    case 1:
+                        return 2;
+                    case 0:
+                        return 3;
+                    case 6:
+                        return 4;
+                    case 7:
+                        return 5;
+                    case 5:
+                        return 6;
+                    case 4:
+                        return 7;
                 }
                 break;
 
@@ -345,10 +436,14 @@ public final class BlockData {
             case BlockID.WOODEN_BUTTON: {
                 int thrown = data & 0x8;
                 switch (data & ~0x8) {
-                    case 3: return 1 | thrown;
-                    case 4: return 2 | thrown;
-                    case 2: return 3 | thrown;
-                    case 1: return 4 | thrown;
+                    case 3:
+                        return 1 | thrown;
+                    case 4:
+                        return 2 | thrown;
+                    case 2:
+                        return 3 | thrown;
+                    case 1:
+                        return 4 | thrown;
                     // 0 and 5 are vertical
                 }
                 break;
@@ -357,14 +452,22 @@ public final class BlockData {
             case BlockID.LEVER: {
                 int thrown = data & 0x8;
                 switch (data & ~0x8) {
-                    case 3: return 1 | thrown;
-                    case 4: return 2 | thrown;
-                    case 2: return 3 | thrown;
-                    case 1: return 4 | thrown;
-                    case 6: return 5 | thrown;
-                    case 5: return 6 | thrown;
-                    case 0: return 7 | thrown;
-                    case 7: return 0 | thrown;
+                    case 3:
+                        return 1 | thrown;
+                    case 4:
+                        return 2 | thrown;
+                    case 2:
+                        return 3 | thrown;
+                    case 1:
+                        return 4 | thrown;
+                    case 6:
+                        return 5 | thrown;
+                    case 5:
+                        return 6 | thrown;
+                    case 0:
+                        return 7 | thrown;
+                    case 7:
+                        return 0 | thrown;
                 }
                 break;
             }
@@ -383,10 +486,14 @@ public final class BlockData {
                 int extra = data & ~0x3;
                 int withoutFlags = data & 0x3;
                 switch (withoutFlags) {
-                    case 1: return 0 | extra;
-                    case 2: return 1 | extra;
-                    case 3: return 2 | extra;
-                    case 0: return 3 | extra;
+                    case 1:
+                        return 0 | extra;
+                    case 2:
+                        return 1 | extra;
+                    case 3:
+                        return 2 | extra;
+                    case 0:
+                        return 3 | extra;
                 }
                 break;
             }
@@ -404,10 +511,14 @@ public final class BlockData {
                 int extra = data & 0x8;
                 int withoutFlags = data & ~0x8;
                 switch (withoutFlags) {
-                    case 5: return 2 | extra;
-                    case 4: return 3 | extra;
-                    case 2: return 4 | extra;
-                    case 3: return 5 | extra;
+                    case 5:
+                        return 2 | extra;
+                    case 4:
+                        return 3 | extra;
+                    case 2:
+                        return 4 | extra;
+                    case 3:
+                        return 5 | extra;
                 }
                 break;
             }
@@ -416,19 +527,27 @@ public final class BlockData {
             case BlockID.DROPPER:
                 int dispPower = data & 0x8;
                 switch (data & ~0x8) {
-                    case 5: return 2 | dispPower;
-                    case 4: return 3 | dispPower;
-                    case 2: return 4 | dispPower;
-                    case 3: return 5 | dispPower;
+                    case 5:
+                        return 2 | dispPower;
+                    case 4:
+                        return 3 | dispPower;
+                    case 2:
+                        return 4 | dispPower;
+                    case 3:
+                        return 5 | dispPower;
                 }
                 break;
             case BlockID.PUMPKIN:
             case BlockID.JACKOLANTERN:
                 switch (data) {
-                    case 1: return 0;
-                    case 2: return 1;
-                    case 3: return 2;
-                    case 0: return 3;
+                    case 1:
+                        return 0;
+                    case 2:
+                        return 1;
+                    case 3:
+                        return 2;
+                    case 0:
+                        return 3;
                 }
                 break;
             case BlockID.HAY_BLOCK:
@@ -444,10 +563,14 @@ public final class BlockData {
                 int dir = data & 0x03;
                 int delay = data - dir;
                 switch (dir) {
-                    case 1: return 0 | delay;
-                    case 2: return 1 | delay;
-                    case 3: return 2 | delay;
-                    case 0: return 3 | delay;
+                    case 1:
+                        return 0 | delay;
+                    case 2:
+                        return 1 | delay;
+                    case 3:
+                        return 2 | delay;
+                    case 0:
+                        return 3 | delay;
                 }
                 break;
 
@@ -456,10 +579,14 @@ public final class BlockData {
                 int withoutOrientation = data & ~0x3;
                 int orientation = data & 0x3;
                 switch (orientation) {
-                    case 3: return 0 | withoutOrientation;
-                    case 2: return 1 | withoutOrientation;
-                    case 0: return 2 | withoutOrientation;
-                    case 1: return 3 | withoutOrientation;
+                    case 3:
+                        return 0 | withoutOrientation;
+                    case 2:
+                        return 1 | withoutOrientation;
+                    case 0:
+                        return 2 | withoutOrientation;
+                    case 1:
+                        return 3 | withoutOrientation;
                 }
 
             case BlockID.PISTON_BASE:
@@ -467,10 +594,14 @@ public final class BlockData {
             case BlockID.PISTON_EXTENSION:
                 final int rest = data & ~0x7;
                 switch (data & 0x7) {
-                    case 5: return 2 | rest;
-                    case 4: return 3 | rest;
-                    case 2: return 4 | rest;
-                    case 3: return 5 | rest;
+                    case 5:
+                        return 2 | rest;
+                    case 4:
+                        return 3 | rest;
+                    case 2:
+                        return 4 | rest;
+                    case 3:
+                        return 5 | rest;
                 }
                 break;
 
@@ -488,10 +619,14 @@ public final class BlockData {
             case BlockID.ANVIL:
                 int damage = data & ~0x3;
                 switch (data & 0x3) {
-                    case 0: return 1 | damage;
-                    case 2: return 3 | damage;
-                    case 1: return 2 | damage;
-                    case 3: return 0 | damage;
+                    case 0:
+                        return 1 | damage;
+                    case 2:
+                        return 3 | damage;
+                    case 1:
+                        return 2 | damage;
+                    case 3:
+                        return 0 | damage;
                 }
                 break;
 
@@ -500,10 +635,14 @@ public final class BlockData {
 
             case BlockID.HEAD:
                 switch (data) {
-                    case 2: return 4;
-                    case 3: return 5;
-                    case 4: return 3;
-                    case 5: return 2;
+                    case 2:
+                        return 4;
+                    case 3:
+                        return 5;
+                    case 4:
+                        return 3;
+                    case 5:
+                        return 2;
                 }
         }
 
@@ -524,8 +663,8 @@ public final class BlockData {
     /**
      * Flip a block's data value.
      *
-     * @param type the type ID of the bock
-     * @param data the data ID of the block
+     * @param type      the type ID of the bock
+     * @param data      the data ID of the block
      * @param direction the direction to flip
      * @return the new data value
      */
@@ -554,20 +693,28 @@ public final class BlockData {
             case BlockID.REDSTONE_TORCH_ON:
                 if (data < 1 || data > 4) break;
                 switch (data) {
-                    case 1: return data + flipX;
-                    case 2: return data - flipX;
-                    case 3: return data + flipZ;
-                    case 4: return data - flipZ;
+                    case 1:
+                        return data + flipX;
+                    case 2:
+                        return data - flipX;
+                    case 3:
+                        return data + flipZ;
+                    case 4:
+                        return data - flipZ;
                 }
                 break;
 
             case BlockID.STONE_BUTTON:
             case BlockID.WOODEN_BUTTON: {
                 switch (data & ~0x8) {
-                    case 1: return data + flipX;
-                    case 2: return data - flipX;
-                    case 3: return data + flipZ;
-                    case 4: return data - flipZ;
+                    case 1:
+                        return data + flipX;
+                    case 2:
+                        return data - flipX;
+                    case 3:
+                        return data + flipZ;
+                    case 4:
+                        return data - flipZ;
                     case 0:
                     case 5:
                         return data ^ (flipY * 5);
@@ -577,10 +724,14 @@ public final class BlockData {
 
             case BlockID.LEVER:
                 switch (data & ~0x8) {
-                    case 1: return data + flipX;
-                    case 2: return data - flipX;
-                    case 3: return data + flipZ;
-                    case 4: return data - flipZ;
+                    case 1:
+                        return data + flipX;
+                    case 2:
+                        return data - flipX;
+                    case 3:
+                        return data + flipZ;
+                    case 4:
+                        return data - flipZ;
                     case 5:
                     case 7:
                         return data ^ flipY << 1;
@@ -592,10 +743,14 @@ public final class BlockData {
 
             case BlockID.MINECART_TRACKS:
                 switch (data) {
-                    case 6: return data + flipX + flipZ * 3;
-                    case 7: return data - flipX + flipZ;
-                    case 8: return data + flipX - flipZ;
-                    case 9: return data - flipX - flipZ * 3;
+                    case 6:
+                        return data + flipX + flipZ * 3;
+                    case 7:
+                        return data - flipX + flipZ;
+                    case 8:
+                        return data + flipX - flipZ;
+                    case 9:
+                        return data - flipX - flipZ * 3;
                 }
             /* FALL-THROUGH */
 
@@ -656,10 +811,14 @@ public final class BlockData {
                 }
 
                 switch (data & 0x3) {
-                    case 0: return data + flipX + flipZ * 3;
-                    case 1: return data - flipX + flipZ;
-                    case 2: return data + flipX - flipZ;
-                    case 3: return data - flipX - flipZ * 3;
+                    case 0:
+                        return data + flipX + flipZ * 3;
+                    case 1:
+                        return data - flipX + flipZ;
+                    case 2:
+                        return data + flipX - flipZ;
+                    case 3:
+                        return data - flipX - flipZ * 3;
                 }
                 break;
 
@@ -858,8 +1017,8 @@ public final class BlockData {
      * depending on the block. If it returns -1, it means the id and data specified
      * do not have anything to cycle to.
      *
-     * @param type block id to be cycled
-     * @param data block data value that it starts at
+     * @param type      block id to be cycled
+     * @param data      block data value that it starts at
      * @param increment whether to go forward (1) or backward (-1) in the cycle
      * @return the new data value for the block
      */
@@ -1058,22 +1217,38 @@ public final class BlockData {
      */
     public static int nextClothColor(int data) {
         switch (data) {
-            case ClothColor.ID.WHITE: return ClothColor.ID.LIGHT_GRAY;
-            case ClothColor.ID.LIGHT_GRAY: return ClothColor.ID.GRAY;
-            case ClothColor.ID.GRAY: return ClothColor.ID.BLACK;
-            case ClothColor.ID.BLACK: return ClothColor.ID.BROWN;
-            case ClothColor.ID.BROWN: return ClothColor.ID.RED;
-            case ClothColor.ID.RED: return ClothColor.ID.ORANGE;
-            case ClothColor.ID.ORANGE: return ClothColor.ID.YELLOW;
-            case ClothColor.ID.YELLOW: return ClothColor.ID.LIGHT_GREEN;
-            case ClothColor.ID.LIGHT_GREEN: return ClothColor.ID.DARK_GREEN;
-            case ClothColor.ID.DARK_GREEN: return ClothColor.ID.CYAN;
-            case ClothColor.ID.CYAN: return ClothColor.ID.LIGHT_BLUE;
-            case ClothColor.ID.LIGHT_BLUE: return ClothColor.ID.BLUE;
-            case ClothColor.ID.BLUE: return ClothColor.ID.PURPLE;
-            case ClothColor.ID.PURPLE: return ClothColor.ID.MAGENTA;
-            case ClothColor.ID.MAGENTA: return ClothColor.ID.PINK;
-            case ClothColor.ID.PINK: return ClothColor.ID.WHITE;
+            case ClothColor.ID.WHITE:
+                return ClothColor.ID.LIGHT_GRAY;
+            case ClothColor.ID.LIGHT_GRAY:
+                return ClothColor.ID.GRAY;
+            case ClothColor.ID.GRAY:
+                return ClothColor.ID.BLACK;
+            case ClothColor.ID.BLACK:
+                return ClothColor.ID.BROWN;
+            case ClothColor.ID.BROWN:
+                return ClothColor.ID.RED;
+            case ClothColor.ID.RED:
+                return ClothColor.ID.ORANGE;
+            case ClothColor.ID.ORANGE:
+                return ClothColor.ID.YELLOW;
+            case ClothColor.ID.YELLOW:
+                return ClothColor.ID.LIGHT_GREEN;
+            case ClothColor.ID.LIGHT_GREEN:
+                return ClothColor.ID.DARK_GREEN;
+            case ClothColor.ID.DARK_GREEN:
+                return ClothColor.ID.CYAN;
+            case ClothColor.ID.CYAN:
+                return ClothColor.ID.LIGHT_BLUE;
+            case ClothColor.ID.LIGHT_BLUE:
+                return ClothColor.ID.BLUE;
+            case ClothColor.ID.BLUE:
+                return ClothColor.ID.PURPLE;
+            case ClothColor.ID.PURPLE:
+                return ClothColor.ID.MAGENTA;
+            case ClothColor.ID.MAGENTA:
+                return ClothColor.ID.PINK;
+            case ClothColor.ID.PINK:
+                return ClothColor.ID.WHITE;
         }
 
         return ClothColor.ID.WHITE;
@@ -1088,22 +1263,38 @@ public final class BlockData {
      */
     public static int prevClothColor(int data) {
         switch (data) {
-            case ClothColor.ID.LIGHT_GRAY: return ClothColor.ID.WHITE;
-            case ClothColor.ID.GRAY: return ClothColor.ID.LIGHT_GRAY;
-            case ClothColor.ID.BLACK: return ClothColor.ID.GRAY;
-            case ClothColor.ID.BROWN: return ClothColor.ID.BLACK;
-            case ClothColor.ID.RED: return ClothColor.ID.BROWN;
-            case ClothColor.ID.ORANGE: return ClothColor.ID.RED;
-            case ClothColor.ID.YELLOW: return ClothColor.ID.ORANGE;
-            case ClothColor.ID.LIGHT_GREEN: return ClothColor.ID.YELLOW;
-            case ClothColor.ID.DARK_GREEN: return ClothColor.ID.LIGHT_GREEN;
-            case ClothColor.ID.CYAN: return ClothColor.ID.DARK_GREEN;
-            case ClothColor.ID.LIGHT_BLUE: return ClothColor.ID.CYAN;
-            case ClothColor.ID.BLUE: return ClothColor.ID.LIGHT_BLUE;
-            case ClothColor.ID.PURPLE: return ClothColor.ID.BLUE;
-            case ClothColor.ID.MAGENTA: return ClothColor.ID.PURPLE;
-            case ClothColor.ID.PINK: return ClothColor.ID.MAGENTA;
-            case ClothColor.ID.WHITE: return ClothColor.ID.PINK;
+            case ClothColor.ID.LIGHT_GRAY:
+                return ClothColor.ID.WHITE;
+            case ClothColor.ID.GRAY:
+                return ClothColor.ID.LIGHT_GRAY;
+            case ClothColor.ID.BLACK:
+                return ClothColor.ID.GRAY;
+            case ClothColor.ID.BROWN:
+                return ClothColor.ID.BLACK;
+            case ClothColor.ID.RED:
+                return ClothColor.ID.BROWN;
+            case ClothColor.ID.ORANGE:
+                return ClothColor.ID.RED;
+            case ClothColor.ID.YELLOW:
+                return ClothColor.ID.ORANGE;
+            case ClothColor.ID.LIGHT_GREEN:
+                return ClothColor.ID.YELLOW;
+            case ClothColor.ID.DARK_GREEN:
+                return ClothColor.ID.LIGHT_GREEN;
+            case ClothColor.ID.CYAN:
+                return ClothColor.ID.DARK_GREEN;
+            case ClothColor.ID.LIGHT_BLUE:
+                return ClothColor.ID.CYAN;
+            case ClothColor.ID.BLUE:
+                return ClothColor.ID.LIGHT_BLUE;
+            case ClothColor.ID.PURPLE:
+                return ClothColor.ID.BLUE;
+            case ClothColor.ID.MAGENTA:
+                return ClothColor.ID.PURPLE;
+            case ClothColor.ID.PINK:
+                return ClothColor.ID.MAGENTA;
+            case ClothColor.ID.WHITE:
+                return ClothColor.ID.PINK;
         }
 
         return ClothColor.ID.WHITE;

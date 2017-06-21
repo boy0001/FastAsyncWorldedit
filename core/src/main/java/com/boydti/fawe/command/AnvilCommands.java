@@ -69,6 +69,7 @@ public class AnvilCommands {
 
     /**
      * Run safely on an unloaded world (no selection)
+     *
      * @param player
      * @param folder
      * @param filter
@@ -88,6 +89,7 @@ public class AnvilCommands {
 
     /**
      * Run safely on an existing world within a selection
+     *
      * @param player
      * @param editSession
      * @param selection
@@ -221,7 +223,7 @@ public class AnvilCommands {
             aliases = {"clear", "unset"},
             desc = "Clear the chunks in a selection (delete without defrag)"
     )
-    @CommandPermissions("worldedit.anvil.replaceall")
+    @CommandPermissions("worldedit.anvil.clear")
     public void unset(Player player, EditSession editSession, @Selection Region selection) throws WorldEditException {
         Vector bot = selection.getMinimumPoint();
         Vector top = selection.getMaximumPoint();
@@ -239,7 +241,7 @@ public class AnvilCommands {
                 if (region.isIn(bx, bz) && region.isIn(bx + 511, bz + 511)) {
                     file.setDeleted(true);
                     get().add(512 * 512 * 256);
-                } else if (region.isInMCA(X, Z)){
+                } else if (region.isInMCA(X, Z)) {
                     file.init();
                     final byte[] empty = new byte[4];
                     RandomAccessFile raf = file.getRandomAccessFile();
@@ -307,6 +309,7 @@ public class AnvilCommands {
                 public void applyBlock(int x, int y, int z, BaseBlock block, long[] counts) {
                     counts[block.getCombined()]++;
                 }
+
                 @Override
                 public long[] init() {
                     return new long[Character.MAX_VALUE + 1];
@@ -319,6 +322,7 @@ public class AnvilCommands {
                 public void applyBlock(int x, int y, int z, BaseBlock block, long[] counts) {
                     counts[block.getId()]++;
                 }
+
                 @Override
                 public long[] init() {
                     return new long[4096];
@@ -334,7 +338,7 @@ public class AnvilCommands {
         }
         ArrayList<long[]> map = new ArrayList<>();
         for (int i = 0; i < count.length; i++) {
-            if (count[i] != 0) map.add(new long[] { i, count[i]});
+            if (count[i] != 0) map.add(new long[]{i, count[i]});
         }
         Collections.sort(map, new Comparator<long[]>() {
             @Override
@@ -467,7 +471,7 @@ public class AnvilCommands {
             desc = "Paste chunks from your anvil clipboard",
             help =
                     "Paste the chunks from your anvil clipboard.\n" +
-                            "The -c will align the paste to the chunks.",
+                            "The -c flag will align the paste to the chunks.",
             flags = "c"
 
     )

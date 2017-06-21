@@ -18,18 +18,18 @@ import java.io.FilterOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.util.zip.Checksum;
-
 import net.jpountz.util.SafeUtils;
 
 /**
  * Streaming LZ4.
  * <p>
  * This class compresses data into fixed-size blocks of compressed data.
+ *
  * @see LZ4BlockInputStream
  */
 public final class LZ4BlockOutputStream extends FilterOutputStream {
 
-    static final byte[] MAGIC = new byte[] { 'L', 'Z', '4', 'B', 'l', 'o', 'c', 'k' };
+    static final byte[] MAGIC = new byte[]{'L', 'Z', '4', 'B', 'l', 'o', 'c', 'k'};
     static final int MAGIC_LENGTH = MAGIC.length;
 
     static final int HEADER_LENGTH =
@@ -77,14 +77,14 @@ public final class LZ4BlockOutputStream extends FilterOutputStream {
      * blocks require more memory at compression and decompression time but
      * should improve the compression ratio.
      *
-     * @param out         the {@link OutputStream} to feed
-     * @param blockSize   the maximum number of bytes to try to compress at once,
-     *                    must be >= 64 and <= 32 M
-     * @param compressor  the {@link LZ4Compressor} instance to use to compress
-     *                    data
-     * @param checksum    the {@link Checksum} instance to use to check data for
-     *                    integrity.
-     * @param syncFlush   true if pending data should also be flushed on {@link #flush()}
+     * @param out        the {@link OutputStream} to feed
+     * @param blockSize  the maximum number of bytes to try to compress at once,
+     *                   must be >= 64 and <= 32 M
+     * @param compressor the {@link LZ4Compressor} instance to use to compress
+     *                   data
+     * @param checksum   the {@link Checksum} instance to use to check data for
+     *                   integrity.
+     * @param syncFlush  true if pending data should also be flushed on {@link #flush()}
      */
     public LZ4BlockOutputStream(OutputStream out, int blockSize, LZ4Compressor compressor, Checksum checksum, boolean syncFlush) {
         super(out);
@@ -108,6 +108,7 @@ public final class LZ4BlockOutputStream extends FilterOutputStream {
     /**
      * Create a new instance which compresses with the standard LZ4 compression
      * algorithm.
+     *
      * @see #LZ4BlockOutputStream(OutputStream, int, LZ4Compressor)
      * @see LZ4Factory#fastCompressor()
      */
@@ -117,6 +118,7 @@ public final class LZ4BlockOutputStream extends FilterOutputStream {
 
     /**
      * Create a new instance which compresses into blocks of 64 KB.
+     *
      * @see #LZ4BlockOutputStream(OutputStream, int)
      */
     public LZ4BlockOutputStream(OutputStream out) {
@@ -205,7 +207,7 @@ public final class LZ4BlockOutputStream extends FilterOutputStream {
 
     /**
      * Flush this compressed {@link OutputStream}.
-     *
+     * <p>
      * If the stream has been created with <code>syncFlush=true</code>, pending
      * data will be compressed and appended to the underlying {@link OutputStream}
      * before calling {@link OutputStream#flush()} on the underlying stream.

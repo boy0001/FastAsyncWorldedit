@@ -51,19 +51,19 @@ import java.util.TimeZone;
 @Command(aliases = {"we", "worldedit", "fawe"}, desc = "Обновить информацию, отладку и команды помощи")
 public class WorldEditCommands {
     private static final DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss z");
-    
+
     private final WorldEdit we;
-    
+
     public WorldEditCommands(WorldEdit we) {
         this.we = we;
     }
 
     @Command(
-        aliases = { "version", "ver" },
-        usage = "",
-        desc = "Показать версию WorldEdit/FAWE",
-        min = 0,
-        max = 0
+            aliases = {"version", "ver"},
+            usage = "",
+            desc = "Показать версию WorldEdit/FAWE",
+            min = 0,
+            max = 0
     )
     public void version(Actor actor) throws WorldEditException {
         FaweVersion fVer = Fawe.get().getVersion();
@@ -74,7 +74,7 @@ public class WorldEditCommands {
     }
 
     @Command(
-            aliases = { "reload" },
+            aliases = {"reload"},
             usage = "",
             desc = "Перезагрузить конфигурацию",
             min = 0,
@@ -89,9 +89,9 @@ public class WorldEditCommands {
     }
 
     @Command(
-            aliases = { "changelog", "cl" },
+            aliases = {"changelog", "cl"},
             usage = "",
-            desc = "Посмотреть изменения FAWE",
+            desc = "Посмотреть лог изменений FAWE",
             min = 0,
             max = 0
     )
@@ -112,7 +112,7 @@ public class WorldEditCommands {
     }
 
     @Command(
-            aliases = { "debugpaste" },
+            aliases = {"debugpaste"},
             usage = "",
             desc = "Загрузить отладочную информацию на hastebin.com",
             min = 0,
@@ -124,7 +124,7 @@ public class WorldEditCommands {
     }
 
     @Command(
-            aliases = { "threads" },
+            aliases = {"threads"},
             usage = "",
             desc = "Распечатать все стеки потоков",
             min = 0,
@@ -144,11 +144,11 @@ public class WorldEditCommands {
     }
 
     @Command(
-        aliases = { "cui" },
-        usage = "",
-        desc = "Полное рукопожатие CUI (внутреннее использование)",
-        min = 0,
-        max = 0
+            aliases = {"cui"},
+            usage = "",
+            desc = "Полное рукопожатие CUI (внутреннее использование)",
+            min = 0,
+            max = 0
     )
     public void cui(Player player, LocalSession session, CommandContext args) throws WorldEditException {
         session.setCUISupport(true);
@@ -156,11 +156,11 @@ public class WorldEditCommands {
     }
 
     @Command(
-        aliases = { "tz" },
-        usage = "[timezone]",
-        desc = "Установить часовой пояс для снапшотов",
-        min = 1,
-        max = 1
+            aliases = {"tz"},
+            usage = "[timezone]",
+            desc = "Установить часовой пояс для снапшотов",
+            min = 1,
+            max = 1
     )
     public void tz(Player player, LocalSession session, CommandContext args) throws WorldEditException {
         TimeZone tz = TimeZone.getTimeZone(args.getString(0));
@@ -170,11 +170,11 @@ public class WorldEditCommands {
     }
 
     @Command(
-        aliases = { "help" },
-        usage = "[<command>]",
+            aliases = {"help"},
+            usage = "[<command>]",
             desc = "Отобразить справку по командам FAWE",
-        min = 0,
-        max = -1
+            min = 0,
+            max = -1
     )
     @CommandPermissions("worldedit.help")
     public void help(Actor actor, CommandContext args) throws WorldEditException {

@@ -76,7 +76,7 @@ public class HashTagPatternParser extends FaweParser<Pattern> {
                                 String value = command + ((entry.getValue().isEmpty()) ? "" : "[" + StringMan.join(entry.getValue(), "][") + "]");
                                 if (value.contains(":")) {
                                     if (value.charAt(0) == ':') value.replaceFirst(":", "");
-                                    value= value.replaceAll(":", "][");
+                                    value = value.replaceAll(":", "][");
                                 }
                                 pattern = parseFromInput(char0 + "[" + value + "]", context);
                                 break;

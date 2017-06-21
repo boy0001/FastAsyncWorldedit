@@ -28,6 +28,7 @@ import static net.jpountz.lz4.LZ4BlockOutputStream.*;
  * {@link InputStream} implementation to decode data written with
  * {@link LZ4BlockOutputStream}. This class is not thread-safe and does not
  * support {@link #mark(int)}/{@link #reset()}.
+ *
  * @see LZ4BlockOutputStream
  */
 public final class LZ4BlockInputStream extends FilterInputStream {
@@ -43,12 +44,12 @@ public final class LZ4BlockInputStream extends FilterInputStream {
     /**
      * Create a new {@link InputStream}.
      *
-     * @param in            the {@link InputStream} to poll
-     * @param decompressor  the {@link LZ4FastDecompressor decompressor} instance to
-     *                      use
-     * @param checksum      the {@link Checksum} instance to use, must be
-     *                      equivalent to the instance which has been used to
-     *                      write the stream
+     * @param in           the {@link InputStream} to poll
+     * @param decompressor the {@link LZ4FastDecompressor decompressor} instance to
+     *                     use
+     * @param checksum     the {@link Checksum} instance to use, must be
+     *                     equivalent to the instance which has been used to
+     *                     write the stream
      */
     public LZ4BlockInputStream(InputStream in, LZ4FastDecompressor decompressor, Checksum checksum) {
         super(in);
@@ -66,6 +67,7 @@ public final class LZ4BlockInputStream extends FilterInputStream {
 
     /**
      * Create a new instance which uses the fastest {@link LZ4FastDecompressor} available.
+     *
      * @see LZ4Factory#fastestInstance()
      * @see #LZ4BlockInputStream(InputStream, LZ4FastDecompressor)
      */

@@ -27,7 +27,8 @@ import com.sk89q.worldedit.WorldEditException;
  */
 public final class Operations {
 
-    private Operations() {}
+    private Operations() {
+    }
 
     private static RunContext context = new RunContext();
 

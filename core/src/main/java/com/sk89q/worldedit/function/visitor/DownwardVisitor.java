@@ -32,7 +32,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
  * Visits adjacent points on the same X-Z plane as long as the points
  * pass the given mask, and then executes the provided region
  * function on the entire column.
- *
+ * <p>
  * <p>This is used by {@code //fill}.</p>
  */
 public class DownwardVisitor extends RecursiveVisitor {
@@ -42,9 +42,9 @@ public class DownwardVisitor extends RecursiveVisitor {
     /**
      * Create a new visitor.
      *
-     * @param mask the mask
+     * @param mask     the mask
      * @param function the function
-     * @param baseY the base Y
+     * @param baseY    the base Y
      */
     public DownwardVisitor(Mask mask, RegionFunction function, int baseY) {
         this(mask, function, baseY, Integer.MAX_VALUE, null);

@@ -26,7 +26,7 @@ public class PrimitiveList<T> extends AbstractList<T> {
             Class<T> boxed;
             if (type.isPrimitive()) {
                 this.primitive = type;
-                boxed = (Class<T>) Array.get(Array.newInstance(primitive,1),0).getClass();
+                boxed = (Class<T>) Array.get(Array.newInstance(primitive, 1), 0).getClass();
             } else {
                 this.primitive = (Class<?>) type.getField("TYPE").get(null);
                 boxed = type;

@@ -1,8 +1,6 @@
 package com.boydti.fawe.object.clipboard;
 
-import com.boydti.fawe.object.RunnableVal2;
 import com.sk89q.worldedit.EditSession;
-import com.sk89q.worldedit.Vector;
 import com.sk89q.worldedit.blocks.BaseBlock;
 import com.sk89q.worldedit.regions.Region;
 

@@ -115,7 +115,7 @@ public class AbstractDelegateExtent implements LightingExtent {
         return extent.getLazyBlock(position);
     }
 
-    private MutableBlockVector mutable = new MutableBlockVector(0,0,0);
+    private MutableBlockVector mutable = new MutableBlockVector(0, 0, 0);
 
     @Override
     public BaseBlock getLazyBlock(int x, int y, int z) {
@@ -189,7 +189,9 @@ public class AbstractDelegateExtent implements LightingExtent {
     }
 
     @Override
-    public final @Nullable Operation commit() {
+    public final
+    @Nullable
+    Operation commit() {
         Operation ours = commitBefore();
         Operation other = extent.commit();
         if (ours != null && other != null) {

@@ -186,7 +186,7 @@ public class WeakFaweQueueMap implements IFaweQueueMap {
                 ForkJoinPool pool = SetQueue.IMP.getForkJoinPool();
                 boolean result = true;
                 // amount = 8;
-                for (int i = 0; i < amount && (result = iter.hasNext());) {
+                for (int i = 0; i < amount && (result = iter.hasNext()); ) {
                     Map.Entry<Long, Reference<FaweChunk>> item = iter.next();
                     Reference<FaweChunk> chunkReference = item.getValue();
                     FaweChunk chunk = chunkReference.get();

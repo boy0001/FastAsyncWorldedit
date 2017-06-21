@@ -11,7 +11,8 @@ import java.util.Set;
 import java.util.UUID;
 
 public class NullFaweChunk extends FaweChunk<Void> {
-    public static final NullFaweChunk INSTANCE = new NullFaweChunk(null, 0 ,0);
+    public static final NullFaweChunk INSTANCE = new NullFaweChunk(null, 0, 0);
+
     /**
      * A FaweSections object represents a chunk and the blocks that you wish to change in it.
      *

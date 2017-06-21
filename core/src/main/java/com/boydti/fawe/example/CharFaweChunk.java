@@ -71,6 +71,7 @@ public abstract class CharFaweChunk<T, V extends FaweQueue> extends FaweChunk<T>
 
     /**
      * Get the number of block changes in a specified section
+     *
      * @param i
      * @return
      */
@@ -115,6 +116,7 @@ public abstract class CharFaweChunk<T, V extends FaweQueue> extends FaweChunk<T>
 
     /**
      * Get the raw data for a section
+     *
      * @param i
      * @return
      */

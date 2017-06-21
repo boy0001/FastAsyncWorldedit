@@ -19,6 +19,7 @@ public abstract class TaskManager {
 
     /**
      * Run a repeating task on the main thread
+     *
      * @param r
      * @param interval in ticks
      * @return
@@ -27,6 +28,7 @@ public abstract class TaskManager {
 
     /**
      * Run a repeating task asynchronously
+     *
      * @param r
      * @param interval in ticks
      * @return
@@ -35,20 +37,23 @@ public abstract class TaskManager {
 
     /**
      * Run a task asynchronously
+     *
      * @param r
      */
     public abstract void async(final Runnable r);
 
     /**
      * Run a task on the main thread
+     *
      * @param r
      */
     public abstract void task(final Runnable r);
 
     /**
      * Get the public ForkJoinPool<br>
-     *  - ONLY SUBMIT SHORT LIVED TASKS<br>
-     *  - DO NOT USE SLEEP/WAIT/LOCKS IN ANY SUBMITTED TASKS<br>
+     * - ONLY SUBMIT SHORT LIVED TASKS<br>
+     * - DO NOT USE SLEEP/WAIT/LOCKS IN ANY SUBMITTED TASKS<br>
+     *
      * @return
      */
     public ForkJoinPool getPublicForkJoinPool() {
@@ -57,6 +62,7 @@ public abstract class TaskManager {
 
     /**
      * Run a buch of tasks in parallel using the shared thread pool
+     *
      * @param runnables
      */
     public void parallel(Collection<Runnable> runnables) {
@@ -82,7 +88,8 @@ public abstract class TaskManager {
 
     /**
      * Run a bunch of tasks in parallel
-     * @param runnables The tasks to run
+     *
+     * @param runnables  The tasks to run
      * @param numThreads Number of threads (null = config.yml parallel threads)
      */
     @Deprecated
@@ -141,6 +148,7 @@ public abstract class TaskManager {
 
     /**
      * Disable async catching for a specific task
+     *
      * @param queue
      * @param run
      */
@@ -156,28 +164,30 @@ public abstract class TaskManager {
 
     /**
      * Run a task on the current thread or asynchronously
-     *  - If it's already the main thread, it will jst call run()
+     * - If it's already the main thread, it will jst call run()
+     *
      * @param r
      * @param async
      */
     public void taskNow(final Runnable r, boolean async) {
         if (async) {
             async(r);
-        } else if (r != null){
+        } else if (r != null) {
             r.run();
         }
     }
 
     /**
      * Run a task as soon as possible on the main thread
-     *  - Non blocking if not calling from the main thread
+     * - Non blocking if not calling from the main thread
+     *
      * @param r
      */
     public void taskNowMain(final Runnable r) {
         if (r == null) {
             return;
         }
-        if (Thread.currentThread() == Fawe.get().getMainThread()){
+        if (Thread.currentThread() == Fawe.get().getMainThread()) {
             r.run();
         } else {
             task(r);
@@ -186,8 +196,9 @@ public abstract class TaskManager {
 
     /**
      * Run a task as soon as possible not on the main thread
-     * @see com.boydti.fawe.Fawe#isMainThread()
+     *
      * @param r
+     * @see com.boydti.fawe.Fawe#isMainThread()
      */
     public void taskNowAsync(final Runnable r) {
         taskNow(r, Fawe.isMainThread());
@@ -195,6 +206,7 @@ public abstract class TaskManager {
 
     /**
      * Run a task on the main thread at the next tick or now async
+     *
      * @param r
      * @param async
      */
@@ -209,6 +221,7 @@ public abstract class TaskManager {
 
     /**
      * Run a task later on the main thread
+     *
      * @param r
      * @param delay in ticks
      */
@@ -216,6 +229,7 @@ public abstract class TaskManager {
 
     /**
      * Run a task later asynchronously
+     *
      * @param r
      * @param delay in ticks
      */
@@ -223,15 +237,17 @@ public abstract class TaskManager {
 
     /**
      * Cancel a task
+     *
      * @param task
      */
     public abstract void cancel(final int task);
 
     /**
      * Break up a task and run it in fragments of 5ms.<br>
-     *     - Each task will run on the main thread.<br>
-     * @param objects - The list of objects to run the task for
-     * @param task - The task to run on each object
+     * - Each task will run on the main thread.<br>
+     *
+     * @param objects  - The list of objects to run the task for
+     * @param task     - The task to run on each object
      * @param whenDone - When the object task completes
      * @param <T>
      */
@@ -257,14 +273,15 @@ public abstract class TaskManager {
 
     /**
      * Quickly run a task on the main thread, and wait for execution to finish:<br>
-     *     - Useful if you need to access something from the Bukkit API from another thread<br>
-     *     - Usualy wait time is around 25ms<br>
+     * - Useful if you need to access something from the Bukkit API from another thread<br>
+     * - Usualy wait time is around 25ms<br>
+     *
      * @param function
      * @param <T>
      * @return
      */
     public <T> T sync(final RunnableVal<T> function) {
-       return sync(function, Integer.MAX_VALUE);
+        return sync(function, Integer.MAX_VALUE);
     }
 
     public void wait(AtomicBoolean running, int timout) {
@@ -305,10 +322,11 @@ public abstract class TaskManager {
 
     /**
      * Run a task on the main thread when the TPS is high enough, and wait for execution to finish:<br>
-     *     - Useful if you need to access something from the Bukkit API from another thread<br>
-     *     - Usualy wait time is around 25ms<br>
+     * - Useful if you need to access something from the Bukkit API from another thread<br>
+     * - Usualy wait time is around 25ms<br>
+     *
      * @param function
-     * @param timeout - How long to wait for execution
+     * @param timeout  - How long to wait for execution
      * @param <T>
      * @return
      */
@@ -353,10 +371,11 @@ public abstract class TaskManager {
 
     /**
      * Quickly run a task on the main thread, and wait for execution to finish:<br>
-     *     - Useful if you need to access something from the Bukkit API from another thread<br>
-     *     - Usualy wait time is around 25ms<br>
+     * - Useful if you need to access something from the Bukkit API from another thread<br>
+     * - Usualy wait time is around 25ms<br>
+     *
      * @param function
-     * @param timeout - How long to wait for execution
+     * @param timeout  - How long to wait for execution
      * @param <T>
      * @return
      */

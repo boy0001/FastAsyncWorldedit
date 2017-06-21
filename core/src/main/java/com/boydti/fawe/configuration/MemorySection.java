@@ -26,7 +26,7 @@ public class MemorySection implements com.boydti.fawe.configuration.Configuratio
      * will throw an exception!
      *
      * @throws IllegalStateException Thrown if this is not a {@link
-     *     com.boydti.fawe.configuration.Configuration} root.
+     *                               com.boydti.fawe.configuration.Configuration} root.
      */
     protected MemorySection() {
         if (!(this instanceof Configuration)) {
@@ -43,10 +43,10 @@ public class MemorySection implements com.boydti.fawe.configuration.Configuratio
      * Creates an empty MemorySection with the specified parent and path.
      *
      * @param parent Parent section that contains this own section.
-     * @param path Path that you may access this section from via the root
-     *     {@link com.boydti.fawe.configuration.Configuration}.
+     * @param path   Path that you may access this section from via the root
+     *               {@link com.boydti.fawe.configuration.Configuration}.
      * @throws IllegalArgumentException Thrown is parent or path is null, or
-     *     if parent contains no root Configuration.
+     *                                  if parent contains no root Configuration.
      */
     protected MemorySection(com.boydti.fawe.configuration.ConfigurationSection parent, String path) {
         if (parent == null) {
@@ -129,7 +129,7 @@ public class MemorySection implements com.boydti.fawe.configuration.Configuratio
      * only {@link com.boydti.fawe.configuration.MemorySection}.
      *
      * @param section Section to create a path for.
-     * @param key Name of the specified section.
+     * @param key     Name of the specified section.
      * @return Full path of the section from its root.
      */
     public static String createPath(com.boydti.fawe.configuration.ConfigurationSection section, String key) {
@@ -143,8 +143,8 @@ public class MemorySection implements com.boydti.fawe.configuration.Configuratio
      * You may use this method for any given {@link com.boydti.fawe.configuration.ConfigurationSection}, not
      * only {@link com.boydti.fawe.configuration.MemorySection}.
      *
-     * @param section Section to create a path for.
-     * @param key Name of the specified section.
+     * @param section    Section to create a path for.
+     * @param key        Name of the specified section.
      * @param relativeTo Section to create the path relative to.
      * @return Full path of the section from its root.
      */

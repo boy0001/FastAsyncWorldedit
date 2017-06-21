@@ -10,7 +10,7 @@ import com.sk89q.worldedit.extent.Extent;
 import java.io.IOException;
 
 public class AngleColorPattern extends DataAngleMask {
-    private static final double FACTOR = 1d/196;
+    private static final double FACTOR = 1d / 196;
     private transient TextureUtil util;
 
     private final boolean randomize;

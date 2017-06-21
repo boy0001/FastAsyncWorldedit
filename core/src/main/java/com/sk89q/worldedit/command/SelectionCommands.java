@@ -83,7 +83,7 @@ public class SelectionCommands {
     }
 
     @Command(
-            aliases = { "/pos1", "posa", "/1" },
+            aliases = {"/pos1", "posa", "/1"},
             usage = "[coordinates]",
             desc = "Set position 1",
             min = 0,
@@ -115,7 +115,7 @@ public class SelectionCommands {
     }
 
     @Command(
-            aliases = { "/pos2", "posb", "/2" },
+            aliases = {"/pos2", "posb", "/2"},
             usage = "[coordinates]",
             desc = "Set position 2",
             min = 0,
@@ -149,7 +149,7 @@ public class SelectionCommands {
     }
 
     @Command(
-            aliases = { "/hpos1" },
+            aliases = {"/hpos1"},
             usage = "",
             desc = "Set position 1 to targeted block",
             min = 0,
@@ -173,7 +173,7 @@ public class SelectionCommands {
     }
 
     @Command(
-            aliases = { "/hpos2" },
+            aliases = {"/hpos2"},
             usage = "",
             desc = "Set position 2 to targeted block",
             min = 0,
@@ -197,7 +197,7 @@ public class SelectionCommands {
     }
 
     @Command(
-            aliases = { "/chunk" },
+            aliases = {"/chunk"},
             usage = "[x,z coordinates]",
             flags = "sc",
             desc = "Set the selection to your current chunk.",
@@ -205,7 +205,7 @@ public class SelectionCommands {
                     "Set the selection to the chunk you are currently in.\n" +
                             "With the -s flag, your current selection is expanded\n" +
                             "to encompass all chunks that are part of it.\n\n" +
-                            "Specifying coordinates will use those instead of your\n"+
+                            "Specifying coordinates will use those instead of your\n" +
                             "current position. Use -c to specify chunk coordinates,\n" +
                             "otherwise full coordinates will be implied.\n" +
                             "(for example, the coordinates 5,5 are the same as -c 0,0)",
@@ -266,7 +266,7 @@ public class SelectionCommands {
     }
 
     @Command(
-            aliases = { "/wand", "/w" },
+            aliases = {"/wand", "/w"},
             usage = "",
             desc = "Get the wand object",
             min = 0,
@@ -276,11 +276,12 @@ public class SelectionCommands {
     public void wand(Player player, LocalSession session, CommandContext args) throws WorldEditException {
         player.giveItem(we.getConfiguration().wandItem, 1);
         BBC.SELECTION_WAND.send(player);
-        if (!FawePlayer.wrap(player).hasPermission("fawe.tips")) BBC.TIP_SEL_LIST.or(BBC.TIP_SELECT_CONNECTED, BBC.TIP_SET_POS1, BBC.TIP_FARWAND).send(player);
+        if (!FawePlayer.wrap(player).hasPermission("fawe.tips"))
+            BBC.TIP_SEL_LIST.or(BBC.TIP_SELECT_CONNECTED, BBC.TIP_SET_POS1, BBC.TIP_FARWAND).send(player);
     }
 
     @Command(
-            aliases = { "toggleeditwand" },
+            aliases = {"toggleeditwand"},
             usage = "",
             desc = "Toggle functionality of the edit wand",
             min = 0,
@@ -298,7 +299,7 @@ public class SelectionCommands {
     }
 
     @Command(
-            aliases = { "/expand" },
+            aliases = {"/expand"},
             usage = "<amount> [reverse-amount] <direction>",
             desc = "Expand the selection area",
             min = 1,
@@ -389,7 +390,7 @@ public class SelectionCommands {
     }
 
     @Command(
-            aliases = { "/contract" },
+            aliases = {"/contract"},
             usage = "<amount> [reverse-amount] [direction]",
             desc = "Contract the selection area",
             min = 1,
@@ -462,7 +463,7 @@ public class SelectionCommands {
     }
 
     @Command(
-            aliases = { "/shift" },
+            aliases = {"/shift"},
             usage = "<amount> [direction]",
             desc = "Shift the selection area",
             min = 1,
@@ -502,7 +503,7 @@ public class SelectionCommands {
     }
 
     @Command(
-            aliases = { "/outset" },
+            aliases = {"/outset"},
             usage = "<amount>",
             desc = "Outset the selection area",
             help =
@@ -525,7 +526,7 @@ public class SelectionCommands {
     }
 
     @Command(
-            aliases = { "/inset" },
+            aliases = {"/inset"},
             usage = "<amount>",
             desc = "Inset the selection area",
             help =
@@ -567,7 +568,7 @@ public class SelectionCommands {
     }
 
     @Command(
-            aliases = { "/size" },
+            aliases = {"/size"},
             flags = "c",
             usage = "",
             desc = "Get information about the selection",
@@ -610,7 +611,7 @@ public class SelectionCommands {
 
 
     @Command(
-            aliases = { "/count" },
+            aliases = {"/count"},
             usage = "<block>",
             desc = "Counts the number of a certain type of block",
             flags = "d",
@@ -635,7 +636,7 @@ public class SelectionCommands {
     }
 
     @Command(
-            aliases = { "/distr" },
+            aliases = {"/distr"},
             usage = "",
             desc = "Get the distribution of blocks in the selection",
             help =
@@ -696,7 +697,7 @@ public class SelectionCommands {
     }
 
     @Command(
-            aliases = { "/sel", ";", "/desel", "/deselect" },
+            aliases = {"/sel", ";", "/desel", "/deselect"},
             flags = "d",
             usage = "[cuboid|extend|poly|ellipsoid|sphere|cyl|convex]",
             desc = "Choose a region selector",
@@ -748,13 +749,13 @@ public class SelectionCommands {
             }
             player.print(BBC.getPrefix() + BBC.SEL_LIST.s());
         } else if (typeName.equalsIgnoreCase("polyhedral") || typeName.equalsIgnoreCase("polyhedron")) {
-                selector = new PolyhedralRegionSelector(player.getWorld());
-                player.print(BBC.getPrefix() + BBC.SEL_CONVEX_POLYHEDRAL.s());
-                Optional<Integer> limit = ActorSelectorLimits.forActor(player).getPolyhedronVertexLimit();
-                if (limit.isPresent()) {
-                    player.print(BBC.getPrefix() + BBC.SEL_MAX.f(limit.get()));
-                }
-                player.print(BBC.getPrefix() + BBC.SEL_LIST.s());
+            selector = new PolyhedralRegionSelector(player.getWorld());
+            player.print(BBC.getPrefix() + BBC.SEL_CONVEX_POLYHEDRAL.s());
+            Optional<Integer> limit = ActorSelectorLimits.forActor(player).getPolyhedronVertexLimit();
+            if (limit.isPresent()) {
+                player.print(BBC.getPrefix() + BBC.SEL_MAX.f(limit.get()));
+            }
+            player.print(BBC.getPrefix() + BBC.SEL_LIST.s());
         } else if (typeName.startsWith("fuzzy") || typeName.startsWith("magic")) {
             Mask mask;
             if (typeName.length() > 6) {
@@ -763,7 +764,7 @@ public class SelectionCommands {
                 parserContext.setWorld(player.getWorld());
                 parserContext.setSession(session);
                 parserContext.setExtent(editSession);
-                mask = we.getMaskFactory().parseFromInput(typeName.substring(6),parserContext);
+                mask = we.getMaskFactory().parseFromInput(typeName.substring(6), parserContext);
             } else {
                 mask = new IdMask(editSession);
             }

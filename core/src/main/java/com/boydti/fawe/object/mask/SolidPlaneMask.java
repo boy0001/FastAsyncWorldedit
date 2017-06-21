@@ -15,7 +15,7 @@ public class SolidPlaneMask extends SolidBlockMask implements ResettableMask {
     private transient int mode = -1;
     private transient MutableBlockVector mutable = new MutableBlockVector();
 
-    private int originX = Integer.MAX_VALUE,originY = Integer.MAX_VALUE,originZ = Integer.MAX_VALUE;
+    private int originX = Integer.MAX_VALUE, originY = Integer.MAX_VALUE, originZ = Integer.MAX_VALUE;
 
     public SolidPlaneMask(Extent extent) {
         super(extent);

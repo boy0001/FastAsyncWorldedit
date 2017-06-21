@@ -11,6 +11,7 @@ import java.util.Set;
 public interface IClipboardFormat {
     /**
      * Returns the name of this format.
+     *
      * @return The name of the format
      */
     String getName();
@@ -43,6 +44,7 @@ public interface IClipboardFormat {
 
     /**
      * Get the default extension
+     *
      * @return
      */
     String getExtension();

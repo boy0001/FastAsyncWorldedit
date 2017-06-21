@@ -67,6 +67,7 @@ public class Updater {
                     }
                 }
             }
-        } catch (Throwable ignore) {}
+        } catch (Throwable ignore) {
+        }
     }
 }

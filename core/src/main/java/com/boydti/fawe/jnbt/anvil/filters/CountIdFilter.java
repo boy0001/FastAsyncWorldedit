@@ -9,7 +9,8 @@ import com.sk89q.worldedit.blocks.BaseBlock;
 public class CountIdFilter extends MCAFilterCounter {
     private final boolean[] allowedId = new boolean[FaweCache.getId(Character.MAX_VALUE)];
 
-    public CountIdFilter() {}
+    public CountIdFilter() {
+    }
 
     public CountIdFilter addBlock(int id) {
         allowedId[id] = true;

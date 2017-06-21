@@ -7,7 +7,9 @@ public class PGZIPBlock implements Callable<byte[]> {
         STATE = new PGZIPThreadLocal(parent);
     }
 
-    /** This ThreadLocal avoids the recycling of a lot of memory, causing lumpy performance. */
+    /**
+     * This ThreadLocal avoids the recycling of a lot of memory, causing lumpy performance.
+     */
     protected final ThreadLocal<PGZIPState> STATE;
     public static final int SIZE = 64 * 1024;
     // private final int index;

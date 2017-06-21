@@ -2,6 +2,7 @@ package com.boydti.fawe.object.random;
 
 public class SimplexRandom implements SimpleRandom {
     private final double scale;
+
     public SimplexRandom(double scale) {
         this.scale = scale;
     }

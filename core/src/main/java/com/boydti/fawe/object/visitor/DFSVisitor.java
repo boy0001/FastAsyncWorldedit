@@ -78,7 +78,7 @@ public abstract class DFSVisitor implements Operation {
         Node adjacent;
         MutableBlockVector mutable = new MutableBlockVector();
         Vector mutable2 = new Vector();
-        int countAdd,countAttempt;
+        int countAdd, countAttempt;
         IntegerTrio[] dirs = getIntDirections();
 
         for (int layer = 0; !queue.isEmpty(); layer++) {
@@ -160,7 +160,7 @@ public abstract class DFSVisitor implements Operation {
     }
 
     public static final class Node {
-        private int x,y,z;
+        private int x, y, z;
 
         public Node(int x, int y, int z) {
             this.x = x;

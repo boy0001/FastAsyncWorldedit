@@ -76,7 +76,7 @@ public class BlockArrayClipboard implements Clipboard, LightingExtent {
 
     /**
      * Create a new instance.
-     *
+     * <p>
      * <p>The origin will be placed at the region's lowest minimum point.</p>
      *
      * @param region the bounding region

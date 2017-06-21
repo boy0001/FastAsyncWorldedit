@@ -15,7 +15,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class SurfaceSpline implements Brush {
-    final double tension, bias,continuity, quality;
+    final double tension, bias, continuity, quality;
 
     public SurfaceSpline(final double tension, final double bias, final double continuity, final double quality) {
         this.tension = tension;
@@ -60,7 +60,7 @@ public class SurfaceSpline implements Brush {
             if (tipy == -1) continue;
             if (radius == 0) {
                 editSession.setBlock(tipx, tipy, tipz, pattern.next(tipx, tipy, tipz));
-            }  else {
+            } else {
                 vset.add(tipx, tipy, tipz);
             }
         }

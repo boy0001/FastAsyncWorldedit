@@ -11,7 +11,7 @@ import java.io.IOException;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
-public class ShadePattern extends AbstractPattern{
+public class ShadePattern extends AbstractPattern {
     private transient TextureUtil util;
     private final boolean randomize;
     private final int complexity;
@@ -26,6 +26,7 @@ public class ShadePattern extends AbstractPattern{
         this.util = Fawe.get().getCachedTextureUtil(randomize, 0, complexity);
         this.darken = darken;
     }
+
     @Override
     public BaseBlock apply(Vector position) {
         BaseBlock block = extent.getBlock(position);

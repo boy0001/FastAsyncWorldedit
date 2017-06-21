@@ -40,8 +40,9 @@ public abstract class MCAWriter {
 
     /**
      * Set the MCA file offset (each mca file is 512 blocks)
-     *  - A negative value will shift the map negative
-     *  - This only applies to generation, not block get/set
+     * - A negative value will shift the map negative
+     * - This only applies to generation, not block get/set
+     *
      * @param mcaOX
      * @param mcaOZ
      */

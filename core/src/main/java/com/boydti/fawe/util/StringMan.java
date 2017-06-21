@@ -33,7 +33,7 @@ public class StringMan {
     }
 
     public static int indexOf(String input, int start, char... values) {
-        for (int i = start; i < input.length(); i++){
+        for (int i = start; i < input.length(); i++) {
             for (char c : values) {
                 if (c == input.charAt(i)) return i;
             }
@@ -54,9 +54,10 @@ public class StringMan {
         for (int current = 0; current < input.length(); current++) {
             char currentChar = input.charAt(current);
             boolean atLastChar = (current == input.length() - 1);
-            if (!atLastChar && (bracket > 0 || (currentChar == '{' && ++bracket > 0) || (current == '}' && --bracket <= 0))) continue;
+            if (!atLastChar && (bracket > 0 || (currentChar == '{' && ++bracket > 0) || (current == '}' && --bracket <= 0)))
+                continue;
             if (currentChar == '\"') inQuotes = !inQuotes; // toggle state
-            if(atLastChar) result.add(input.substring(start));
+            if (atLastChar) result.add(input.substring(start));
             else if (currentChar == delim && !inQuotes) {
                 String toAdd = input.substring(start, current);
                 if (toAdd.startsWith("\"")) {

@@ -11,6 +11,7 @@ public class MinimizeButton extends InteractiveButton {
         super("-");
         this.window = window;
     }
+
     @Override
     public void actionPerformed(ActionEvent e) {
         window.setState(Frame.ICONIFIED);

@@ -28,12 +28,12 @@ public class JSON2NBT {
 
     public static CompoundTag getTagFromJson(String jsonString) throws NBTException {
         jsonString = jsonString.trim();
-        if(!jsonString.startsWith("{")) {
+        if (!jsonString.startsWith("{")) {
             throw new NBTException("Invalid tag encountered, expected \'{\' as first char.");
-        } else if(topTagsCount(jsonString) != 1) {
+        } else if (topTagsCount(jsonString) != 1) {
             throw new NBTException("Encountered multiple top tags, only one expected");
         } else {
-            return (CompoundTag)nameValueToNBT("tag", jsonString).parse();
+            return (CompoundTag) nameValueToNBT("tag", jsonString).parse();
         }
     }
 
@@ -42,27 +42,27 @@ public class JSON2NBT {
         boolean flag = false;
         Stack stack = new Stack();
 
-        for(int j = 0; j < str.length(); ++j) {
+        for (int j = 0; j < str.length(); ++j) {
             char c0 = str.charAt(j);
-            if(c0 == 34) {
-                if(isCharEscaped(str, j)) {
-                    if(!flag) {
+            if (c0 == 34) {
+                if (isCharEscaped(str, j)) {
+                    if (!flag) {
                         throw new NBTException("Illegal use of \\\": " + str);
                     }
                 } else {
                     flag = !flag;
                 }
-            } else if(!flag) {
-                if(c0 != 123 && c0 != 91) {
-                    if(c0 == 125 && (stack.isEmpty() || ((Character)stack.pop()).charValue() != 123)) {
+            } else if (!flag) {
+                if (c0 != 123 && c0 != 91) {
+                    if (c0 == 125 && (stack.isEmpty() || ((Character) stack.pop()).charValue() != 123)) {
                         throw new NBTException("Unbalanced curly brackets {}: " + str);
                     }
 
-                    if(c0 == 93 && (stack.isEmpty() || ((Character)stack.pop()).charValue() != 91)) {
+                    if (c0 == 93 && (stack.isEmpty() || ((Character) stack.pop()).charValue() != 91)) {
                         throw new NBTException("Unbalanced square brackets []: " + str);
                     }
                 } else {
-                    if(stack.isEmpty()) {
+                    if (stack.isEmpty()) {
                         ++i;
                     }
 
@@ -71,12 +71,12 @@ public class JSON2NBT {
             }
         }
 
-        if(flag) {
+        if (flag) {
             throw new NBTException("Unbalanced quotation: " + str);
-        } else if(!stack.isEmpty()) {
+        } else if (!stack.isEmpty()) {
             throw new NBTException("Unbalanced brackets: " + str);
         } else {
-            if(i == 0 && !str.isEmpty()) {
+            if (i == 0 && !str.isEmpty()) {
                 i = 1;
             }
 
@@ -93,45 +93,45 @@ public class JSON2NBT {
         String s;
         boolean c0;
         char c01;
-        if(value.startsWith("{")) {
+        if (value.startsWith("{")) {
             value = value.substring(1, value.length() - 1);
 
             JSON2NBT.Compound JSON2NBT$list1;
-            for(JSON2NBT$list1 = new JSON2NBT.Compound(key); value.length() > 0; value = value.substring(s.length() + 1)) {
+            for (JSON2NBT$list1 = new JSON2NBT.Compound(key); value.length() > 0; value = value.substring(s.length() + 1)) {
                 s = nextNameValuePair(value, true);
-                if(s.length() > 0) {
+                if (s.length() > 0) {
                     c0 = false;
                     JSON2NBT$list1.tagList.add(getTagFromNameValue(s, false));
                 }
 
-                if(value.length() < s.length() + 1) {
+                if (value.length() < s.length() + 1) {
                     break;
                 }
 
                 c01 = value.charAt(s.length());
-                if(c01 != 44 && c01 != 123 && c01 != 125 && c01 != 91 && c01 != 93) {
+                if (c01 != 44 && c01 != 123 && c01 != 125 && c01 != 91 && c01 != 93) {
                     throw new NBTException("Unexpected token \'" + c01 + "\' at: " + value.substring(s.length()));
                 }
             }
 
             return JSON2NBT$list1;
-        } else if(value.startsWith("[") && !INT_ARRAY_MATCHER.matcher(value).matches()) {
+        } else if (value.startsWith("[") && !INT_ARRAY_MATCHER.matcher(value).matches()) {
             value = value.substring(1, value.length() - 1);
 
             JSON2NBT.List JSON2NBT$list;
-            for(JSON2NBT$list = new JSON2NBT.List(key); value.length() > 0; value = value.substring(s.length() + 1)) {
+            for (JSON2NBT$list = new JSON2NBT.List(key); value.length() > 0; value = value.substring(s.length() + 1)) {
                 s = nextNameValuePair(value, false);
-                if(s.length() > 0) {
+                if (s.length() > 0) {
                     c0 = true;
                     JSON2NBT$list.tagList.add(getTagFromNameValue(s, true));
                 }
 
-                if(value.length() < s.length() + 1) {
+                if (value.length() < s.length() + 1) {
                     break;
                 }
 
                 c01 = value.charAt(s.length());
-                if(c01 != 44 && c01 != 123 && c01 != 125 && c01 != 91 && c01 != 93) {
+                if (c01 != 44 && c01 != 123 && c01 != 125 && c01 != 91 && c01 != 93) {
                     throw new NBTException("Unexpected token \'" + c01 + "\' at: " + value.substring(s.length()));
                 }
             }
@@ -151,15 +151,15 @@ public class JSON2NBT {
     private static String nextNameValuePair(String str, boolean isCompound) throws NBTException {
         int i = getNextCharIndex(str, ':');
         int j = getNextCharIndex(str, ',');
-        if(isCompound) {
-            if(i == -1) {
+        if (isCompound) {
+            if (i == -1) {
                 throw new NBTException("Unable to locate name/value separator for string: " + str);
             }
 
-            if(j != -1 && j < i) {
+            if (j != -1 && j < i) {
                 throw new NBTException("Name error at: " + str);
             }
-        } else if(i == -1 || i > j) {
+        } else if (i == -1 || i > j) {
             i = -1;
         }
 
@@ -173,34 +173,34 @@ public class JSON2NBT {
         boolean flag1 = false;
         boolean flag2 = false;
 
-        for(int j = 0; i < str.length(); ++i) {
+        for (int j = 0; i < str.length(); ++i) {
             char c0 = str.charAt(i);
-            if(c0 == 34) {
-                if(isCharEscaped(str, i)) {
-                    if(!flag) {
+            if (c0 == 34) {
+                if (isCharEscaped(str, i)) {
+                    if (!flag) {
                         throw new NBTException("Illegal use of \\\": " + str);
                     }
                 } else {
                     flag = !flag;
-                    if(flag && !flag2) {
+                    if (flag && !flag2) {
                         flag1 = true;
                     }
 
-                    if(!flag) {
+                    if (!flag) {
                         j = i;
                     }
                 }
-            } else if(!flag) {
-                if(c0 != 123 && c0 != 91) {
-                    if(c0 == 125 && (stack.isEmpty() || ((Character)stack.pop()).charValue() != 123)) {
+            } else if (!flag) {
+                if (c0 != 123 && c0 != 91) {
+                    if (c0 == 125 && (stack.isEmpty() || ((Character) stack.pop()).charValue() != 123)) {
                         throw new NBTException("Unbalanced curly brackets {}: " + str);
                     }
 
-                    if(c0 == 93 && (stack.isEmpty() || ((Character)stack.pop()).charValue() != 91)) {
+                    if (c0 == 93 && (stack.isEmpty() || ((Character) stack.pop()).charValue() != 91)) {
                         throw new NBTException("Unbalanced square brackets []: " + str);
                     }
 
-                    if(c0 == 44 && stack.isEmpty()) {
+                    if (c0 == 44 && stack.isEmpty()) {
                         return str.substring(0, i);
                     }
                 } else {
@@ -208,8 +208,8 @@ public class JSON2NBT {
                 }
             }
 
-            if(!Character.isWhitespace(c0)) {
-                if(!flag && flag1 && j != i) {
+            if (!Character.isWhitespace(c0)) {
+                if (!flag && flag1 && j != i) {
                     return str.substring(0, j + 1);
                 }
 
@@ -221,16 +221,16 @@ public class JSON2NBT {
     }
 
     private static String locateName(String str, boolean isArray) throws NBTException {
-        if(isArray) {
+        if (isArray) {
             str = str.trim();
-            if(str.startsWith("{") || str.startsWith("[")) {
+            if (str.startsWith("{") || str.startsWith("[")) {
                 return "";
             }
         }
 
         int i = getNextCharIndex(str, ':');
-        if(i == -1) {
-            if(isArray) {
+        if (i == -1) {
+            if (isArray) {
                 return "";
             } else {
                 throw new NBTException("Unable to locate name/value separator for string: " + str);
@@ -241,16 +241,16 @@ public class JSON2NBT {
     }
 
     private static String locateValue(String str, boolean isArray) throws NBTException {
-        if(isArray) {
+        if (isArray) {
             str = str.trim();
-            if(str.startsWith("{") || str.startsWith("[")) {
+            if (str.startsWith("{") || str.startsWith("[")) {
                 return str;
             }
         }
 
         int i = getNextCharIndex(str, ':');
-        if(i == -1) {
-            if(isArray) {
+        if (i == -1) {
+            if (isArray) {
                 return str;
             } else {
                 throw new NBTException("Unable to locate name/value separator for string: " + str);
@@ -263,18 +263,18 @@ public class JSON2NBT {
     private static int getNextCharIndex(String str, char targetChar) {
         int i = 0;
 
-        for(boolean flag = true; i < str.length(); ++i) {
+        for (boolean flag = true; i < str.length(); ++i) {
             char c0 = str.charAt(i);
-            if(c0 == 34) {
-                if(!isCharEscaped(str, i)) {
+            if (c0 == 34) {
+                if (!isCharEscaped(str, i)) {
                     flag = !flag;
                 }
-            } else if(flag) {
-                if(c0 == targetChar) {
+            } else if (flag) {
+                if (c0 == targetChar) {
                     return i;
                 }
 
-                if(c0 == 123 || c0 == 91) {
+                if (c0 == 123 || c0 == 91) {
                     return -1;
                 }
             }
@@ -305,50 +305,50 @@ public class JSON2NBT {
 
         public Tag parse() throws NBTException {
             try {
-                if(DOUBLE.matcher(this.jsonValue).matches()) {
+                if (DOUBLE.matcher(this.jsonValue).matches()) {
                     return new DoubleTag(Double.parseDouble(this.jsonValue.substring(0, this.jsonValue.length() - 1)));
                 }
 
-                if(FLOAT.matcher(this.jsonValue).matches()) {
+                if (FLOAT.matcher(this.jsonValue).matches()) {
                     return new FloatTag(Float.parseFloat(this.jsonValue.substring(0, this.jsonValue.length() - 1)));
                 }
 
-                if(BYTE.matcher(this.jsonValue).matches()) {
+                if (BYTE.matcher(this.jsonValue).matches()) {
                     return new ByteTag(Byte.parseByte(this.jsonValue.substring(0, this.jsonValue.length() - 1)));
                 }
 
-                if(LONG.matcher(this.jsonValue).matches()) {
+                if (LONG.matcher(this.jsonValue).matches()) {
                     return new LongTag(Long.parseLong(this.jsonValue.substring(0, this.jsonValue.length() - 1)));
                 }
 
-                if(SHORT.matcher(this.jsonValue).matches()) {
+                if (SHORT.matcher(this.jsonValue).matches()) {
                     return new ShortTag(Short.parseShort(this.jsonValue.substring(0, this.jsonValue.length() - 1)));
                 }
 
-                if(INTEGER.matcher(this.jsonValue).matches()) {
+                if (INTEGER.matcher(this.jsonValue).matches()) {
                     return new IntTag(Integer.parseInt(this.jsonValue));
                 }
 
-                if(DOUBLE_UNTYPED.matcher(this.jsonValue).matches()) {
+                if (DOUBLE_UNTYPED.matcher(this.jsonValue).matches()) {
                     return new DoubleTag(Double.parseDouble(this.jsonValue));
                 }
 
-                if("true".equalsIgnoreCase(this.jsonValue) || "false".equalsIgnoreCase(this.jsonValue)) {
-                    return new ByteTag((byte)(Boolean.parseBoolean(this.jsonValue)?1:0));
+                if ("true".equalsIgnoreCase(this.jsonValue) || "false".equalsIgnoreCase(this.jsonValue)) {
+                    return new ByteTag((byte) (Boolean.parseBoolean(this.jsonValue) ? 1 : 0));
                 }
             } catch (NumberFormatException var6) {
                 this.jsonValue = this.jsonValue.replaceAll("\\\\\"", "\"");
                 return new StringTag(this.jsonValue);
             }
 
-            if(this.jsonValue.startsWith("[") && this.jsonValue.endsWith("]")) {
+            if (this.jsonValue.startsWith("[") && this.jsonValue.endsWith("]")) {
                 String var7 = this.jsonValue.substring(1, this.jsonValue.length() - 1);
-                String[] var8 = (String[])((String[]) Iterables.toArray(SPLITTER.split(var7), String.class));
+                String[] var8 = (String[]) ((String[]) Iterables.toArray(SPLITTER.split(var7), String.class));
 
                 try {
                     int[] var5 = new int[var8.length];
 
-                    for(int j = 0; j < var8.length; ++j) {
+                    for (int j = 0; j < var8.length; ++j) {
                         var5[j] = Integer.parseInt(var8[j].trim());
                     }
 
@@ -357,15 +357,15 @@ public class JSON2NBT {
                     return new StringTag(this.jsonValue);
                 }
             } else {
-                if(this.jsonValue.startsWith("\"") && this.jsonValue.endsWith("\"")) {
+                if (this.jsonValue.startsWith("\"") && this.jsonValue.endsWith("\"")) {
                     this.jsonValue = this.jsonValue.substring(1, this.jsonValue.length() - 1);
                 }
 
                 this.jsonValue = this.jsonValue.replaceAll("\\\\\"", "\"");
                 StringBuilder stringbuilder = new StringBuilder();
 
-                for(int i = 0; i < this.jsonValue.length(); ++i) {
-                    if(i < this.jsonValue.length() - 1 && this.jsonValue.charAt(i) == 92 && this.jsonValue.charAt(i + 1) == 92) {
+                for (int i = 0; i < this.jsonValue.length(); ++i) {
+                    if (i < this.jsonValue.length() - 1 && this.jsonValue.charAt(i) == 92 && this.jsonValue.charAt(i + 1) == 92) {
                         stringbuilder.append('\\');
                         ++i;
                     } else {
@@ -389,8 +389,8 @@ public class JSON2NBT {
             ArrayList<Tag> list = new ArrayList<>();
             Iterator var2 = this.tagList.iterator();
 
-            while(var2.hasNext()) {
-                JSON2NBT.Any JSON2NBT$any = (JSON2NBT.Any)var2.next();
+            while (var2.hasNext()) {
+                JSON2NBT.Any JSON2NBT$any = (JSON2NBT.Any) var2.next();
                 list.add(JSON2NBT$any.parse());
             }
             Class<? extends Tag> tagType = list.isEmpty() ? CompoundTag.class : list.get(0).getClass();
@@ -409,8 +409,8 @@ public class JSON2NBT {
             HashMap<String, Tag> map = new HashMap<String, Tag>();
             Iterator var2 = this.tagList.iterator();
 
-            while(var2.hasNext()) {
-                JSON2NBT.Any JSON2NBT$any = (JSON2NBT.Any)var2.next();
+            while (var2.hasNext()) {
+                JSON2NBT.Any JSON2NBT$any = (JSON2NBT.Any) var2.next();
                 map.put(JSON2NBT$any.json, JSON2NBT$any.parse());
             }
 

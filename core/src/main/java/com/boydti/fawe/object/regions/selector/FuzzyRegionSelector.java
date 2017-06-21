@@ -31,11 +31,11 @@ public class FuzzyRegionSelector extends AbstractDelegateExtent implements Regio
 
     public FuzzyRegionSelector(Player player, @Nullable World world, Mask mask) {
         super(new EditSessionBuilder(world)
-        .player(FawePlayer.wrap(player))
-        .changeSetNull()
-        .checkMemory(false)
-        .autoQueue(true)
-        .build());
+                .player(FawePlayer.wrap(player))
+                .changeSetNull()
+                .checkMemory(false)
+                .autoQueue(true)
+                .build());
         this.player = player;
         this.region = new FuzzyRegion(world, getExtent(), mask);
         this.positions = new ArrayList<>();

@@ -35,7 +35,7 @@ import java.util.List;
         category = CommandCategory.APPEARANCE,
         requiredType = RequiredType.NONE,
         description = "Generate a biome in your plot",
-        aliases = {"bg","gb"},
+        aliases = {"bg", "gb"},
         usage = "/plots generatebiome <biome>"
 )
 public class PlotSetBiome extends Command {
@@ -74,12 +74,12 @@ public class PlotSetBiome extends Command {
                     @Override
                     public void run() {
                         EditSession session = new EditSessionBuilder(plot.getArea().worldname)
-                        .autoQueue(false)
-                        .checkMemory(false)
-                        .allowedRegionsEverywhere()
-                        .player(FawePlayer.wrap(player.getName()))
-                        .limitUnlimited()
-                        .build();
+                                .autoQueue(false)
+                                .checkMemory(false)
+                                .allowedRegionsEverywhere()
+                                .player(FawePlayer.wrap(player.getName()))
+                                .limitUnlimited()
+                                .build();
                         long seed = PseudoRandom.random.nextLong();
                         for (RegionWrapper region : regions) {
                             CuboidRegion cuboid = new CuboidRegion(new Vector(region.minX, 0, region.minZ), new Vector(region.maxX, 256, region.maxZ));

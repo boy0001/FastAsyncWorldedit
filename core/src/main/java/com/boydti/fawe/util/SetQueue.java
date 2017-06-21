@@ -46,8 +46,8 @@ public class SetQueue {
     private ExecutorCompletionService completer = new ExecutorCompletionService(pool);
 
     /**
-     * @see TaskManager#getPublicForkJoinPool()
      * @return ForkJoinPool
+     * @see TaskManager#getPublicForkJoinPool()
      */
     @Deprecated
     public ExecutorCompletionService getCompleterService() {
@@ -349,6 +349,7 @@ public class SetQueue {
 
     /**
      * Is the this empty
+     *
      * @return
      */
     public boolean isEmpty() {
@@ -361,6 +362,7 @@ public class SetQueue {
 
     /**
      * Add a task to run when it is empty
+     *
      * @param whenDone
      * @return
      */

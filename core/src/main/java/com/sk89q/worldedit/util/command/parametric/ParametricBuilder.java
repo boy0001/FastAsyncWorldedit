@@ -68,7 +68,7 @@ public class ParametricBuilder {
 
     /**
      * Create a new builder.
-     *
+     * <p>
      * <p>This method will install {@link PrimitiveBindings} and
      * {@link StandardBindings} and default bindings.</p>
      */
@@ -79,12 +79,12 @@ public class ParametricBuilder {
 
     /**
      * Add a binding for a given type or classifier (annotation).
-     *
+     * <p>
      * <p>Whenever a method parameter is encountered, a binding must be found for it
      * so that it can be called later to consume the stack of arguments provided by
      * the user and return an object that is later passed to
      * {@link Method#invoke(Object, Object...)}.</p>
-     *
+     * <p>
      * <p>Normally, a {@link Type} is used to discern between different bindings, but
      * if this is not specific enough, an annotation can be defined and used. This
      * makes it a "classifier" and it will take precedence over the base type. For
@@ -95,7 +95,7 @@ public class ParametricBuilder {
      * the {@link String} type.</p>
      *
      * @param binding the binding
-     * @param type a list of types (if specified) to override the binding's types
+     * @param type    a list of types (if specified) to override the binding's types
      */
     public void addBinding(Binding binding, Type... type) {
         if (type == null || type.length == 0) {
@@ -109,7 +109,7 @@ public class ParametricBuilder {
 
     /**
      * Attach an invocation listener.
-     *
+     * <p>
      * <p>Invocation handlers are called in order that their listeners are
      * registered with a {@link ParametricBuilder}. It is not guaranteed that
      * a listener may be called, in the case of a {@link CommandException} being
@@ -118,7 +118,7 @@ public class ParametricBuilder {
      * {@link com.sk89q.worldedit.util.command.parametric.InvokeHandler#preInvoke(Object, Method, com.sk89q.worldedit.util.command.parametric.ParameterData[], Object[], CommandContext)} to
      * be called for a invocation handler, but not the associated
      * {@link com.sk89q.worldedit.util.command.parametric.InvokeHandler#postInvoke(Object, Method, com.sk89q.worldedit.util.command.parametric.ParameterData[], Object[], CommandContext)}.</p>
-     *
+     * <p>
      * <p>An example of an invocation listener is one to handle
      * {@link CommandPermissions}, by first checking to see if permission is available
      * in a {@link com.sk89q.worldedit.util.command.parametric.InvokeHandler#preInvoke(Object, Method, com.sk89q.worldedit.util.command.parametric.ParameterData[], Object[], CommandContext)}
@@ -135,7 +135,7 @@ public class ParametricBuilder {
     /**
      * Attach an exception converter to this builder in order to wrap unknown
      * {@link Throwable}s into known {@link CommandException}s.
-     *
+     * <p>
      * <p>Exception converters are called in order that they are registered.</p>
      *
      * @param converter the converter
@@ -151,7 +151,7 @@ public class ParametricBuilder {
      * {@link Dispatcher}.
      *
      * @param dispatcher the dispatcher to register commands with
-     * @param object the object contain the methods
+     * @param object     the object contain the methods
      * @throws com.sk89q.worldedit.util.command.parametric.ParametricException thrown if the commands cannot be registered
      */
     public void registerMethodsAsCommands(Dispatcher dispatcher, Object object) throws ParametricException {
@@ -164,7 +164,7 @@ public class ParametricBuilder {
      * {@link Dispatcher}.
      *
      * @param dispatcher the dispatcher to register commands with
-     * @param object the object contain the methods
+     * @param object     the object contain the methods
      * @throws com.sk89q.worldedit.util.command.parametric.ParametricException thrown if the commands cannot be registered
      */
     public void registerMethodsAsCommands(Dispatcher dispatcher, Object object, CallableProcessor processor) throws ParametricException {
@@ -187,8 +187,8 @@ public class ParametricBuilder {
     /**
      * Build a {@link CommandCallable} for the given method.
      *
-     * @param object the object to be invoked on
-     * @param method the method to invoke
+     * @param object     the object to be invoked on
+     * @param method     the method to invoke
      * @param definition the command definition annotation
      * @return the command executor
      * @throws ParametricException thrown on an error

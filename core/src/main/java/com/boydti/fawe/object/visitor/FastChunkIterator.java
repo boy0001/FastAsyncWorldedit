@@ -37,7 +37,7 @@ public class FastChunkIterator implements Iterable<Vector2D> {
     public Iterable<? extends Vector2D> getIterable() {
         return iterable;
     }
-    
+
     @Override
     public Iterator<Vector2D> iterator() {
         if (queue == null || Settings.IMP.QUEUE.PRELOAD_CHUNKS <= 1) {

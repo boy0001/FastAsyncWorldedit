@@ -6,7 +6,7 @@ import com.sk89q.worldedit.function.mask.AbstractMask;
 import com.sk89q.worldedit.function.mask.Mask2D;
 import javax.annotation.Nullable;
 
-public class RadiusMask extends AbstractMask implements ResettableMask{
+public class RadiusMask extends AbstractMask implements ResettableMask {
 
     private transient Vector pos;
     private final int minSqr, maxSqr;

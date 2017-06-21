@@ -42,7 +42,7 @@ public class FaweOutputStream extends DataOutputStream {
         if (nbtOut == null) {
             nbtOut = new NBTOutputStream(parent);
         }
-        nbtOut.writeNamedTag(name,tag);
+        nbtOut.writeNamedTag(name, tag);
     }
 
     @Override

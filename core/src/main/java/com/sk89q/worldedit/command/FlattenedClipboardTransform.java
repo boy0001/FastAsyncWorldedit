@@ -32,11 +32,12 @@ import com.sk89q.worldedit.regions.CuboidRegion;
 import com.sk89q.worldedit.regions.Region;
 import com.sk89q.worldedit.world.registry.WorldData;
 
+
 import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * Helper class to 'bake' a transform into a clipboard.
- *
+ * <p>
  * <p>This class needs a better name and may need to be made more generic.</p>
  *
  * @see Clipboard
@@ -51,7 +52,7 @@ public class FlattenedClipboardTransform {
     /**
      * Create a new instance.
      *
-     * @param original the original clipboard
+     * @param original  the original clipboard
      * @param transform the transform
      * @param worldData the world data instance
      */
@@ -82,7 +83,7 @@ public class FlattenedClipboardTransform {
 
         // new Vector(minimum.getX(), minimum.getY(), minimum.getZ())
         // new Vector(maximum.getX(), maximum.getY(), maximum.getZ())
-        Vector[] corners = new Vector[] {
+        Vector[] corners = new Vector[]{
                 minimum,
                 maximum,
                 new Vector(maximum.getX(), minimum.getY(), minimum.getZ()),
@@ -90,7 +91,7 @@ public class FlattenedClipboardTransform {
                 new Vector(minimum.getX(), minimum.getY(), maximum.getZ()),
                 new Vector(minimum.getX(), maximum.getY(), maximum.getZ()),
                 new Vector(maximum.getX(), minimum.getY(), maximum.getZ()),
-                new Vector(maximum.getX(), maximum.getY(), minimum.getZ()) };
+                new Vector(maximum.getX(), maximum.getY(), minimum.getZ())};
 
         for (int i = 0; i < corners.length; i++) {
             corners[i] = transformAround.apply(new Vector(corners[i]));
@@ -129,7 +130,7 @@ public class FlattenedClipboardTransform {
     /**
      * Create a new instance to bake the transform with.
      *
-     * @param original the original clipboard
+     * @param original  the original clipboard
      * @param transform the transform
      * @param worldData the world data instance
      * @return a builder

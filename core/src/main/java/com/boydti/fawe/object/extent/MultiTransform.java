@@ -28,6 +28,7 @@ public class MultiTransform extends RandomTransform {
         super.add(extent, chance);
         this.extents = getExtents().toArray(new ResettableExtent[getExtents().size()]);
     }
+
     @Override
     public boolean setBlock(int x, int y, int z, BaseBlock block) throws WorldEditException {
         boolean result = false;

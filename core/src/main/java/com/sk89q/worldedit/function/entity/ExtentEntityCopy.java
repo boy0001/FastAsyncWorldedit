@@ -58,10 +58,10 @@ public class ExtentEntityCopy implements EntityFunction {
     /**
      * Create a new instance.
      *
-     * @param from the from position
+     * @param from        the from position
      * @param destination the destination {@code Extent}
-     * @param to the destination position
-     * @param transform the transformation to apply to both position and orientation
+     * @param to          the destination position
+     * @param transform   the transformation to apply to both position and orientation
      */
     public ExtentEntityCopy(Vector from, Extent destination, Vector to, Transform transform) {
         checkNotNull(from);

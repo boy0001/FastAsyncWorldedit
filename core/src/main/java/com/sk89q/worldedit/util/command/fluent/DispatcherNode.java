@@ -37,12 +37,12 @@ public class DispatcherNode {
     /**
      * Create a new instance.
      *
-     * @param graph the root fluent graph object
-     * @param parent the parent node, or null
+     * @param graph      the root fluent graph object
+     * @param parent     the parent node, or null
      * @param dispatcher the dispatcher for this node
      */
     public DispatcherNode(CommandGraph graph, DispatcherNode parent,
-                   SimpleDispatcher dispatcher) {
+                          SimpleDispatcher dispatcher) {
         this.graph = graph;
         this.parent = parent;
         this.dispatcher = dispatcher;
@@ -50,7 +50,7 @@ public class DispatcherNode {
 
     /**
      * Set the description.
-     *
+     * <p>
      * <p>This can only be used on {@link DispatcherNode}s returned by
      * {@link #group(String...)}.</p>
      *
@@ -66,7 +66,7 @@ public class DispatcherNode {
      * Register a command with this dispatcher.
      *
      * @param callable the executor
-     * @param alias the list of aliases, where the first alias is the primary one
+     * @param alias    the list of aliases, where the first alias is the primary one
      */
     public DispatcherNode register(CommandCallable callable, String... alias) {
         dispatcher.registerCommand(callable, alias);
@@ -104,7 +104,7 @@ public class DispatcherNode {
 
     /**
      * Create a new command that will contain sub-commands.
-     *
+     * <p>
      * <p>The object returned by this method can be used to add sub-commands. To
      * return to this "parent" context, use {@link DispatcherNode#graph()}.</p>
      *

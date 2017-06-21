@@ -82,7 +82,8 @@ public class ScatterBrush implements Brush {
         finish(editSession, placed, position, pattern, size);
     }
 
-    public void finish(EditSession editSession, LocalBlockVectorSet placed, Vector pos, Pattern pattern, double size) {}
+    public void finish(EditSession editSession, LocalBlockVectorSet placed, Vector pos, Pattern pattern, double size) {
+    }
 
     public boolean canApply(EditSession editSession, Vector pos) {
         return mask.test(pos);

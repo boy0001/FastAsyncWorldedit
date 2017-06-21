@@ -49,7 +49,8 @@ public interface Mask extends com.sk89q.worldedit.masks.Mask, Serializable {
         return null;
     }
 
-    default void prepare(LocalSession session, LocalPlayer player, Vector target) {}
+    default void prepare(LocalSession session, LocalPlayer player, Vector target) {
+    }
 
     default boolean matches(EditSession editSession, Vector position) {
         return test(position);

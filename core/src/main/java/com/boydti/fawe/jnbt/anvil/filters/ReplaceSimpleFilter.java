@@ -13,6 +13,7 @@ public class ReplaceSimpleFilter extends MCAFilterCounter {
         this.from = from;
         this.to = to;
     }
+
     @Override
     public void applyBlock(int x, int y, int z, BaseBlock block, MutableLong count) {
         if (from.apply(block)) {

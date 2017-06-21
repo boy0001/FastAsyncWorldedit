@@ -20,7 +20,6 @@
 package com.sk89q.worldedit;
 
 import com.sk89q.worldedit.math.transform.AffineTransform;
-
 import java.io.IOException;
 import java.io.Serializable;
 import javax.annotation.Nullable;
@@ -96,7 +95,7 @@ public class Vector implements Comparable<Vector>, Serializable {
 
     /**
      * Construct a new instance with X, Y, and Z coordinates set to 0.
-     *
+     * <p>
      * <p>One can also refer to a static {@link #ZERO}.</p>
      */
     public Vector() {
@@ -644,7 +643,7 @@ public class Vector implements Comparable<Vector>, Serializable {
 
     /**
      * Rounds all components to the closest integer.
-     *
+     * <p>
      * <p>Components &lt; 0.5 are rounded down, otherwise up.</p>
      *
      * @return a new vector
@@ -666,9 +665,9 @@ public class Vector implements Comparable<Vector>, Serializable {
     /**
      * Perform a 2D transformation on this vector and return a new one.
      *
-     * @param angle in degrees
-     * @param aboutX about which x coordinate to rotate
-     * @param aboutZ about which z coordinate to rotate
+     * @param angle      in degrees
+     * @param aboutX     about which x coordinate to rotate
+     * @param aboutZ     about which z coordinate to rotate
      * @param translateX what to add after rotation
      * @param translateZ what to add after rotation
      * @return a new vector

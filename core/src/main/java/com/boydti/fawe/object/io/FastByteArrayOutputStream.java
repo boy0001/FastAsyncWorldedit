@@ -99,20 +99,20 @@ public class FastByteArrayOutputStream extends OutputStream {
     }
 
     @Override
-        public void write(byte[] b) throws IOException {
-            if (b.length > blockSize) {
-                if (index > 0) {
-                    byte[] buf2 = new byte[index];
-                    System.arraycopy(buffer, 0, buf2, 0, index);
-                    buffer = buf2;
-                    addBuffer();
-                }
-                size += b.length;
-                buffers.addLast(b);
-            } else {
-                write(b, 0, b.length);
+    public void write(byte[] b) throws IOException {
+        if (b.length > blockSize) {
+            if (index > 0) {
+                byte[] buf2 = new byte[index];
+                System.arraycopy(buffer, 0, buf2, 0, index);
+                buffer = buf2;
+                addBuffer();
             }
+            size += b.length;
+            buffers.addLast(b);
+        } else {
+            write(b, 0, b.length);
         }
+    }
 
     public void write(int datum) {
         if (index == blockSize) {

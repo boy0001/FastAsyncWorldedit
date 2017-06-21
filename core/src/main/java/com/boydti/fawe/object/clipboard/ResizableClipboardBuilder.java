@@ -36,8 +36,7 @@ public class ResizableClipboardBuilder extends MemoryOptimizedHistory {
                 maxX = x;
             }
             minX = x;
-        }
-        else if (x > maxX) {
+        } else if (x > maxX) {
             maxX = x;
         }
         if (y < minY) {
@@ -45,8 +44,7 @@ public class ResizableClipboardBuilder extends MemoryOptimizedHistory {
                 maxY = y;
             }
             minY = y;
-        }
-        else if (y > maxY) {
+        } else if (y > maxY) {
             maxY = y;
         }
         if (z < minZ) {
@@ -54,8 +52,7 @@ public class ResizableClipboardBuilder extends MemoryOptimizedHistory {
                 maxZ = z;
             }
             minZ = z;
-        }
-        else if (z > maxZ) {
+        } else if (z > maxZ) {
             maxZ = z;
         }
     }

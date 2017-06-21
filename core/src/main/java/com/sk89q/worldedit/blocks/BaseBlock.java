@@ -41,13 +41,13 @@ import javax.annotation.Nullable;
 
 /**
  * Represents a mutable "snapshot" of a block.
- *
+ * <p>
  * <p>An instance of this block contains all the information needed to
  * accurately reproduce the block, provided that the instance was
  * made correctly. In some implementations, it may not be possible to get a
  * snapshot of blocks correctly, so, for example, the NBT data for a block
  * may be missing.</p>
- *
+ * <p>
  * <p>This class identifies blocks using an integer ID. However, IDs for
  * a given block may differ between worlds so it is important that users of
  * this class convert the ID from one "world space" to another "world space,"
@@ -56,7 +56,7 @@ import javax.annotation.Nullable;
  * they are more space efficient to store, and it also implies that internal
  * uses of this class (i.e. history, etc.) do not need to worry about
  * interning block string IDs.</p>
- *
+ * <p>
  * <p>A peculiar detail of this class is that it accepts {@code -1} as a
  * valid data value. This is due to legacy reasons: WorldEdit uses -1
  * as a "wildcard" block value, even though a {@link Mask} would be
@@ -91,9 +91,9 @@ public class BaseBlock extends Block implements TileEntityBlock, Pattern, Serial
     /**
      * Construct a block with the given ID and a data value of 0.
      *
-     * @deprecated see {@link com.boydti.fawe.FaweCache#getBlock(int, int)}
      * @param id ID value
      * @see #setId(int)
+     * @deprecated see {@link com.boydti.fawe.FaweCache#getBlock(int, int)}
      */
     @Deprecated
     public BaseBlock(int id) {
@@ -104,11 +104,11 @@ public class BaseBlock extends Block implements TileEntityBlock, Pattern, Serial
     /**
      * Construct a block with the given ID and data value.
      *
-     * @deprecated see {@link com.boydti.fawe.FaweCache#getBlock(int, int)}
-     * @param id ID value
+     * @param id   ID value
      * @param data data value
      * @see #setId(int)
      * @see #setData(int)
+     * @deprecated see {@link com.boydti.fawe.FaweCache#getBlock(int, int)}
      */
     @Deprecated
     public BaseBlock(int id, int data) {
@@ -119,10 +119,10 @@ public class BaseBlock extends Block implements TileEntityBlock, Pattern, Serial
     /**
      * Construct a block with the given ID, data value and NBT data structure.
      *
-     * @deprecated see {@link com.boydti.fawe.FaweCache#getBlock(int, int)}
-     * @param id ID value
-     * @param data data value
+     * @param id      ID value
+     * @param data    data value
      * @param nbtData NBT data, which may be null
+     * @deprecated see {@link com.boydti.fawe.FaweCache#getBlock(int, int)}
      */
     @Deprecated
     public BaseBlock(int id, int data, @Nullable CompoundTag nbtData) {
@@ -134,8 +134,8 @@ public class BaseBlock extends Block implements TileEntityBlock, Pattern, Serial
     /**
      * Create a clone of another block.
      *
-     * @deprecated see {@link com.boydti.fawe.FaweCache#getBlock(int, int)}
      * @param other the other block
+     * @deprecated see {@link com.boydti.fawe.FaweCache#getBlock(int, int)}
      */
     @Deprecated
     public BaseBlock(BaseBlock other) {
@@ -229,7 +229,7 @@ public class BaseBlock extends Block implements TileEntityBlock, Pattern, Serial
     /**
      * Set both the block's ID and data value.
      *
-     * @param id ID value
+     * @param id   ID value
      * @param data data value
      * @see #setId(int)
      * @see #setData(int)

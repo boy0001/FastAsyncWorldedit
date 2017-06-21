@@ -87,14 +87,14 @@ public class SchematicCommands {
     }
 
     @Command(
-            aliases = { "loadall" },
+            aliases = {"loadall"},
             usage = "[<format>] <filename|url>",
             help = "Load multiple clipboards\n" +
                     "The -r flag will apply random rotation",
             desc = "Load multiple clipboards (paste will randomly choose one)"
     )
     @Deprecated
-    @CommandPermissions({ "worldedit.clipboard.load", "worldedit.schematic.load", "worldedit.schematic.upload" })
+    @CommandPermissions({"worldedit.clipboard.load", "worldedit.schematic.load", "worldedit.schematic.upload"})
     public void loadall(final Player player, final LocalSession session, @Optional("schematic") final String formatName, final String filename, @Switch('r') boolean randomRotate) throws FilenameException {
         final ClipboardFormat format = ClipboardFormat.findByAlias(formatName);
         if (format == null) {
@@ -115,9 +115,9 @@ public class SchematicCommands {
         }
     }
 
-    @Command(aliases = { "load" }, usage = "[<format>] <filename>", desc = "Load a schematic into your clipboard")
+    @Command(aliases = {"load"}, usage = "[<format>] <filename>", desc = "Load a schematic into your clipboard")
     @Deprecated
-    @CommandPermissions({ "worldedit.clipboard.load", "worldedit.schematic.load", "worldedit.schematic.upload" })
+    @CommandPermissions({"worldedit.clipboard.load", "worldedit.schematic.load", "worldedit.schematic.upload"})
     public void load(final Player player, final LocalSession session, @Optional("schematic") final String formatName, final String filename) throws FilenameException {
         final LocalConfiguration config = this.worldEdit.getConfiguration();
         final ClipboardFormat format = ClipboardFormat.findByAlias(formatName);
@@ -188,7 +188,7 @@ public class SchematicCommands {
             }
             session.setClipboard(new ClipboardHolder(clipboard, worldData));
             BBC.SCHEMATIC_LOADED.send(player, filename);
-        } catch (IllegalArgumentException  e) {
+        } catch (IllegalArgumentException e) {
             player.printError("Unknown filename: " + filename);
         } catch (IOException e) {
             player.printError("File could not be read or it does not exist: " + e.getMessage());
@@ -197,14 +197,15 @@ public class SchematicCommands {
             if (in != null) {
                 try {
                     in.close();
-                } catch (IOException ignored) {}
+                } catch (IOException ignored) {
+                }
             }
         }
     }
 
-    @Command(aliases = { "save" }, usage = "[<format>] <filename>", desc = "Save a schematic into your clipboard")
+    @Command(aliases = {"save"}, usage = "[<format>] <filename>", desc = "Save a schematic into your clipboard")
     @Deprecated
-    @CommandPermissions({ "worldedit.clipboard.save", "worldedit.schematic.save" })
+    @CommandPermissions({"worldedit.clipboard.save", "worldedit.schematic.save"})
     public void save(final Player player, final LocalSession session, @Optional("schematic") final String formatName, String filename) throws CommandException, WorldEditException {
         final LocalConfiguration config = this.worldEdit.getConfiguration();
         final ClipboardFormat format = ClipboardFormat.findByAlias(formatName);
@@ -270,7 +271,7 @@ public class SchematicCommands {
                     BBC.SCHEMATIC_SAVED.send(player, filename);
                 }
             }
-        } catch (IllegalArgumentException  e) {
+        } catch (IllegalArgumentException e) {
             e.printStackTrace();
             player.printError("Unknown filename: " + filename);
         } catch (IOException e) {
@@ -280,7 +281,7 @@ public class SchematicCommands {
         }
     }
 
-    @Command(aliases = { "delete", "d" }, usage = "<filename>", desc = "Delete a saved schematic", help = "Delete a schematic from the schematic list", min = 1, max = 1)
+    @Command(aliases = {"delete", "d"}, usage = "<filename>", desc = "Delete a saved schematic", help = "Delete a schematic from the schematic list", min = 1, max = 1)
     @CommandPermissions("worldedit.schematic.delete")
     public void delete(final Player player, final LocalSession session, final CommandContext args) throws WorldEditException {
         final LocalConfiguration config = this.worldEdit.getConfiguration();
@@ -299,7 +300,7 @@ public class SchematicCommands {
         BBC.SCHEMATIC_DELETE.send(player, filename);
     }
 
-    @Command(aliases = { "formats", "listformats", "f" }, desc = "List available formats", max = 0)
+    @Command(aliases = {"formats", "listformats", "f"}, desc = "List available formats", max = 0)
     @CommandPermissions("worldedit.schematic.formats")
     public void formats(final Actor actor) throws WorldEditException {
         BBC.SCHEMATIC_FORMAT.send(actor);

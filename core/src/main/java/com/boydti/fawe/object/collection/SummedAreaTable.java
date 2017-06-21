@@ -18,15 +18,15 @@ public class SummedAreaTable {
         this.length = buffer.length / width;
         this.radius = radius;
         this.area = MathMan.sqr(radius * 2 + 1);
-        this.areaInverse = 1f/area;
+        this.areaInverse = 1f / area;
     }
 
     public void processSummedAreaTable() {
         int rowSize = source.length / width;
         int colSize = width;
         int index = 0;
-        for (int i=0; i<rowSize; i++) {
-            for (int j=0; j<colSize; j++, index++) {
+        for (int i = 0; i < rowSize; i++) {
+            for (int j = 0; j < colSize; j++, index++) {
                 summed[index] = getVal(i, j, index, source[index]);
             }
         }
@@ -66,10 +66,10 @@ public class SummedAreaTable {
     }
 
     private long getVal(int row, int col, int index, long curr) {
-        long leftSum;					// sub matrix sum of left matrix
-        long topSum;						// sub matrix sum of top matrix
-        long topLeftSum;					// sub matrix sum of top left matrix
-		/* top left value is itself */
+        long leftSum;                    // sub matrix sum of left matrix
+        long topSum;                        // sub matrix sum of top matrix
+        long topLeftSum;                    // sub matrix sum of top left matrix
+        /* top left value is itself */
         if (index == 0) {
             return curr;
         }
@@ -79,11 +79,10 @@ public class SummedAreaTable {
             return curr + leftSum;
         }
 		/* left-most column */
-        else if (row !=0 && col == 0) {
+        else if (row != 0 && col == 0) {
             topSum = summed[index - width];
             return curr + topSum;
-        }
-        else {
+        } else {
             leftSum = summed[index - 1];
             topSum = summed[index - width];
             topLeftSum = summed[index - width - 1]; // overlap between leftSum and topSum

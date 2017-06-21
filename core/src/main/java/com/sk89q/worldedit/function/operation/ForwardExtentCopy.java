@@ -48,7 +48,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * Makes a copy of a portion of one extent to another extent or another point.
- *
+ * <p>
  * <p>This is a forward extent copy, meaning that it iterates over the blocks
  * in the source extent, and will copy as many blocks as there are in the
  * source. Therefore, interpolation will not occur to fill in the gaps.</p>
@@ -72,10 +72,10 @@ public class ForwardExtentCopy implements Operation {
      * Create a new copy using the region's lowest minimum point as the
      * "from" position.
      *
-     * @param source the source extent
-     * @param region the region to copy
+     * @param source      the source extent
+     * @param region      the region to copy
      * @param destination the destination extent
-     * @param to the destination position
+     * @param to          the destination position
      * @see #ForwardExtentCopy(Extent, Region, Vector, Extent, Vector) the main constructor
      */
     public ForwardExtentCopy(Extent source, Region region, Extent destination, Vector to) {
@@ -85,11 +85,11 @@ public class ForwardExtentCopy implements Operation {
     /**
      * Create a new copy.
      *
-     * @param source the source extent
-     * @param region the region to copy
-     * @param from the source position
+     * @param source      the source extent
+     * @param region      the region to copy
+     * @param from        the source position
      * @param destination the destination extent
-     * @param to the destination position
+     * @param to          the destination position
      */
     public ForwardExtentCopy(Extent source, Region region, Vector from, Extent destination, Vector to) {
         checkNotNull(source);
@@ -106,7 +106,7 @@ public class ForwardExtentCopy implements Operation {
 
     /**
      * Get the transformation that will occur on every point.
-     *
+     * <p>
      * <p>The transformation will stack with each repetition.</p>
      *
      * @return a transformation
@@ -128,7 +128,7 @@ public class ForwardExtentCopy implements Operation {
 
     /**
      * Get the mask that gets applied to the source extent.
-     *
+     * <p>
      * <p>This mask can be used to filter what will be copied from the source.</p>
      *
      * @return a source mask
@@ -223,7 +223,7 @@ public class ForwardExtentCopy implements Operation {
         if (source instanceof EditSession) {
             queue = ((EditSession) source).getQueue();
         } else if (destination instanceof EditSession) {
-             queue = ((EditSession) destination).getQueue();
+            queue = ((EditSession) destination).getQueue();
         } else {
             queue = null;
         }

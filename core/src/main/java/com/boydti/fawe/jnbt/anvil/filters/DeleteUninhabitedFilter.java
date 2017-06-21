@@ -16,7 +16,7 @@ import java.util.concurrent.TimeUnit;
 
 /**
  * Deletes unvisited MCA files and Chunks<br>
- *  - This a global filter and cannot be used a selection<br>
+ * - This a global filter and cannot be used a selection<br>
  */
 public class DeleteUninhabitedFilter extends MCAFilterCounter {
     private final long inhabitedTicks;
@@ -26,6 +26,7 @@ public class DeleteUninhabitedFilter extends MCAFilterCounter {
         this.fileAgeMillis = fileAgeMillis;
         this.inhabitedTicks = inhabitedTicks;
     }
+
     @Override
     public MCAFile applyFile(MCAFile mca) {
         File file = mca.getFile();
@@ -38,7 +39,8 @@ public class DeleteUninhabitedFilter extends MCAFilterCounter {
                 get().add(512 * 512 * 256);
                 return null;
             }
-        } catch (IOException | UnsupportedOperationException ignore) {}
+        } catch (IOException | UnsupportedOperationException ignore) {
+        }
         try {
             ForkJoinPool pool = new ForkJoinPool();
             mca.init();

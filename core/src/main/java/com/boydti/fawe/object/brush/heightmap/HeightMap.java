@@ -157,6 +157,6 @@ public interface HeightMap {
                 }
             }
         }
-        return new int[][] {oldData, newData};
+        return new int[][]{oldData, newData};
     }
 }

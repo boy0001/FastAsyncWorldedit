@@ -24,10 +24,10 @@ import java.util.UUID;
 
 /**
  * Store the change on disk
- *  - High disk usage
- *  - Moderate CPU usage
- *  - Minimal memory usage
- *  - Slow
+ * - High disk usage
+ * - Moderate CPU usage
+ * - Minimal memory usage
+ * - Slow
  */
 public class DiskStorageHistory extends FaweStreamChangeSet {
 

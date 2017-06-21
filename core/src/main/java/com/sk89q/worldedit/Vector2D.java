@@ -79,7 +79,7 @@ public class Vector2D implements Serializable {
 
     /**
      * Construct a new instance with X and Z coordinates set to 0.
-     *
+     * <p>
      * <p>One can also refer to a static {@link #ZERO}.</p>
      */
     public Vector2D() {
@@ -510,7 +510,7 @@ public class Vector2D implements Serializable {
 
     /**
      * Rounds all components to the closest integer.
-     *
+     * <p>
      * <p>Components &lt; 0.5 are rounded down, otherwise up.</p>
      *
      * @return a new vector
@@ -532,9 +532,9 @@ public class Vector2D implements Serializable {
     /**
      * Perform a 2D transformation on this vector and return a new one.
      *
-     * @param angle in degrees
-     * @param aboutX about which x coordinate to rotate
-     * @param aboutZ about which z coordinate to rotate
+     * @param angle      in degrees
+     * @param aboutX     about which x coordinate to rotate
+     * @param aboutZ     about which z coordinate to rotate
      * @param translateX what to add after rotation
      * @param translateZ what to add after rotation
      * @return a new vector

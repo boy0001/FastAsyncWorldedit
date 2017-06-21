@@ -81,10 +81,10 @@ public class MutableMCABackedBaseBlock extends BaseBlock {
     @Override
     public void setData(int value) {
         int indexShift = index >> 1;
-        if((index & 1) == 0) {
-            data[indexShift] = (byte)(data[indexShift] & 240 | value & 15);
+        if ((index & 1) == 0) {
+            data[indexShift] = (byte) (data[indexShift] & 240 | value & 15);
         } else {
-            data[indexShift] = (byte)(data[indexShift] & 15 | (value & 15) << 4);
+            data[indexShift] = (byte) (data[indexShift] & 15 | (value & 15) << 4);
         }
         chunk.setModified();
     }

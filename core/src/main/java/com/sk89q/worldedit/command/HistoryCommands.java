@@ -72,7 +72,7 @@ public class HistoryCommands {
     }
 
     @Command(
-            aliases = { "/frb", "frb", "fawerollback", "/fawerollback", "/rollback" },
+            aliases = {"/frb", "frb", "fawerollback", "/fawerollback", "/rollback"},
             usage = "<user=Empire92> <radius=5> <time=3d4h>",
             desc = "Undo a specific edit. " +
                     " - The time uses s, m, h, d, y.\n" +
@@ -193,18 +193,18 @@ public class HistoryCommands {
 //            finalQueue = SetQueue.IMP.getNewQueue(fp.getWorld(), true, false);
 //        }
         database.getPotentialEdits(other, System.currentTimeMillis() - timeDiff, bot, top, new RunnableVal<DiskStorageHistory>() {
-                @Override
-                public void run(DiskStorageHistory edit) {
-                    edit.undo(fp, allowedRegions);
-                    BBC.ROLLBACK_ELEMENT.send(player, Fawe.imp().getWorldName(edit.getWorld()) + "/" + user + "-" + edit.getIndex());
-                    count.incrementAndGet();
-                }
-            }, new Runnable() {
-                @Override
-                public void run() {
-                    BBC.TOOL_INSPECT_INFO_FOOTER.send(player, count);
-                }
-            }, true
+                    @Override
+                    public void run(DiskStorageHistory edit) {
+                        edit.undo(fp, allowedRegions);
+                        BBC.ROLLBACK_ELEMENT.send(player, Fawe.imp().getWorldName(edit.getWorld()) + "/" + user + "-" + edit.getIndex());
+                        count.incrementAndGet();
+                    }
+                }, new Runnable() {
+                    @Override
+                    public void run() {
+                        BBC.TOOL_INSPECT_INFO_FOOTER.send(player, count);
+                    }
+                }, true
         );
     }
 
@@ -213,7 +213,7 @@ public class HistoryCommands {
     }
 
     @Command(
-            aliases = { "/undo", "undo" },
+            aliases = {"/undo", "undo"},
             usage = "[times] [player]",
             desc = "Undoes the last action",
             min = 0,
@@ -246,7 +246,7 @@ public class HistoryCommands {
     }
 
     @Command(
-            aliases = { "/redo", "redo" },
+            aliases = {"/redo", "redo"},
             usage = "[times] [player]",
             desc = "Redoes the last action (from history)",
             min = 0,
@@ -280,7 +280,7 @@ public class HistoryCommands {
     }
 
     @Command(
-            aliases = { "/clearhistory", "clearhistory" },
+            aliases = {"/clearhistory", "clearhistory"},
             usage = "",
             desc = "Clear your history",
             min = 0,

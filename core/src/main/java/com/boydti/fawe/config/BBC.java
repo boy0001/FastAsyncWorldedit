@@ -114,6 +114,7 @@ public enum BBC {
     BRUSH_SCROLL_ACTION_UNSET("Removed scrol action", "WorldEdit.Brush"),
     BRUSH_VISUAL_MODE_SET("Set visual mode to %s0", "WorldEdit.Brush"),
     BRUSH_TARGET_MODE_SET("Set target mode to %s0", "WorldEdit.Brush"),
+    BRUSH_TARGET_MASK_SET("Set target mask to %s0", "WorldEdit.Brush"),
     BRUSH_EQUIPPED("Equipped brush %s0", "WorldEdit.Brush"),
     BRUSH_TRY_OTHER("&cThere are other more suitable brushes e.g.\n&8 - &7//br height [radius=5] [#clipboard|file=null] [rotation=0] [yscale=1.00]", "WorldEdit.Brush"),
     BRUSH_COPY("Left click the base of an object to copy, right click to paste. Increase the brush radius if necessary.", "WorldEdit.Brush"),
@@ -137,8 +138,8 @@ public enum BBC {
     ROLLBACK_ELEMENT("Undoing %s0", "WorldEdit.Rollback"),
 
     TOOL_INSPECT("Inspect tool bound to %s0.", "WorldEdit.Tool"),
-    TOOL_INSPECT_INFO("&7%s0 changed %s1 to %s2 %s3 ago","WorldEdit.Tool"),
-    TOOL_INSPECT_INFO_FOOTER("&6Total: &7%s0 changes","WorldEdit.Tool"),
+    TOOL_INSPECT_INFO("&7%s0 changed %s1 to %s2 %s3 ago", "WorldEdit.Tool"),
+    TOOL_INSPECT_INFO_FOOTER("&6Total: &7%s0 changes", "WorldEdit.Tool"),
     TOOL_NONE("Tool unbound from your current item.", "WorldEdit.Tool"),
     TOOL_INFO("Info tool bound to %s0.", "WorldEdit.Tool"),
     TOOL_TREE("Tree tool bound to %s0.", "WorldEdit.Tool"),
@@ -219,7 +220,7 @@ public enum BBC {
 
     COMMAND_SYNTAX("&cUsage: &7%s0", "Error"),
     NO_PERM("&cYou are lacking the permission node: %s0", "Error"),
-    SETTING_DISABLE("&cLacking setting: %s0","Error"),
+    SETTING_DISABLE("&cLacking setting: %s0", "Error"),
     BRUSH_NOT_FOUND("&cAvailable brushes: %s0", "Error"),
     BRUSH_INCOMPATIBLE("&cBrush not compatible with this version", "Error"),
     SCHEMATIC_NOT_FOUND("&cSchematic not found: &7%s0", "Error"),
@@ -312,32 +313,7 @@ public enum BBC {
     TIP_REGEN_1("Tip: Use a seed with /regen [biome] [seed]", "Tips"),
 
     TIP_BIOME_PATTERN("Tip: The &c#biome:forest&7 pattern can be used in any command", "Tips"),
-    TIP_BIOME_MASK("Tip: Restrict to a biome with the `$jungle` mask", "Tips"),
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-    ;
+    TIP_BIOME_MASK("Tip: Restrict to a biome with the `$jungle` mask", "Tips"),;
 
 
     private static final HashMap<String, String> replacements = new HashMap<>();
@@ -370,7 +346,7 @@ public enum BBC {
     /**
      * Constructor
      *
-     * @param d default
+     * @param d      default
      * @param prefix use prefix
      */
     BBC(final String d, final boolean prefix, final String cat) {
@@ -549,34 +525,55 @@ public enum BBC {
 
     public static String getColorName(char code) {
         switch (code) {
-            case '0': return "BLACK";
-            case '1': return "DARK_BLUE";
-            case '2': return "DARK_GREEN";
-            case '3': return "DARK_AQUA";
-            case '4': return "DARK_RED";
-            case '5': return "DARK_PURPLE";
-            case '6': return "GOLD";
+            case '0':
+                return "BLACK";
+            case '1':
+                return "DARK_BLUE";
+            case '2':
+                return "DARK_GREEN";
+            case '3':
+                return "DARK_AQUA";
+            case '4':
+                return "DARK_RED";
+            case '5':
+                return "DARK_PURPLE";
+            case '6':
+                return "GOLD";
             default:
-            case '7': return "GRAY";
-            case '8': return "DARK_GRAY";
-            case '9': return "BLUE";
-            case 'a': return "GREEN";
-            case 'b': return "AQUA";
-            case 'c': return "RED";
-            case 'd': return "LIGHT_PURPLE";
-            case 'e': return "YELLOW";
-            case 'f': return "WHITE";
-            case 'k': return "OBFUSCATED";
-            case 'l': return "BOLD";
-            case 'm': return "STRIKETHROUGH";
-            case 'n': return "UNDERLINE";
-            case 'o': return "ITALIC";
-            case 'r': return "RESET";
+            case '7':
+                return "GRAY";
+            case '8':
+                return "DARK_GRAY";
+            case '9':
+                return "BLUE";
+            case 'a':
+                return "GREEN";
+            case 'b':
+                return "AQUA";
+            case 'c':
+                return "RED";
+            case 'd':
+                return "LIGHT_PURPLE";
+            case 'e':
+                return "YELLOW";
+            case 'f':
+                return "WHITE";
+            case 'k':
+                return "OBFUSCATED";
+            case 'l':
+                return "BOLD";
+            case 'm':
+                return "STRIKETHROUGH";
+            case 'n':
+                return "UNDERLINE";
+            case 'o':
+                return "ITALIC";
+            case 'r':
+                return "RESET";
         }
     }
 
     /**
-     *
      * @param m
      * @param runPart Part, Color, NewLine
      */

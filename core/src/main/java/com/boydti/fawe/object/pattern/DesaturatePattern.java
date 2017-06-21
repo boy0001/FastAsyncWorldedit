@@ -9,7 +9,7 @@ import com.sk89q.worldedit.extent.Extent;
 import com.sk89q.worldedit.function.pattern.AbstractPattern;
 import java.io.IOException;
 
-public class DesaturatePattern extends AbstractPattern{
+public class DesaturatePattern extends AbstractPattern {
     private transient TextureUtil util;
     private final boolean randomize;
     private final int complexity;
@@ -23,6 +23,7 @@ public class DesaturatePattern extends AbstractPattern{
         this.util = Fawe.get().getCachedTextureUtil(randomize, 0, complexity);
         this.value = Math.max(0, Math.min(1, value));
     }
+
     @Override
     public BaseBlock apply(Vector position) {
         BaseBlock block = extent.getBlock(position);

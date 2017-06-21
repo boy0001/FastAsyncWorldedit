@@ -36,7 +36,7 @@ public class Cancel extends FaweCommand {
                 }
             }
         }
-        BBC.WORLDEDIT_CANCEL_COUNT.send(player,cancelled);
+        BBC.WORLDEDIT_CANCEL_COUNT.send(player, cancelled);
         return true;
     }
 

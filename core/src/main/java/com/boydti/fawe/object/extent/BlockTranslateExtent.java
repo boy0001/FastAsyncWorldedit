@@ -10,7 +10,7 @@ import com.sk89q.worldedit.extent.Extent;
 import com.sk89q.worldedit.world.biome.BaseBiome;
 
 public class BlockTranslateExtent extends AbstractDelegateExtent {
-    private final int dx,dy,dz;
+    private final int dx, dy, dz;
     private MutableBlockVector mutable = new MutableBlockVector();
 
     public BlockTranslateExtent(Extent extent, int dx, int dy, int dz) {

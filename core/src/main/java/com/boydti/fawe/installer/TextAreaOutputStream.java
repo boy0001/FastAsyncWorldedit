@@ -11,6 +11,7 @@ public class TextAreaOutputStream extends PrintStream {
         super(new OutputStream() {
             private StringBuffer buffer = new StringBuffer();
             private String newLine = "";
+
             @Override
             public void write(int b) throws IOException {
                 if (b != '\n') {

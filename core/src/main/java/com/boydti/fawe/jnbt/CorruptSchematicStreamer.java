@@ -60,7 +60,7 @@ public class CorruptSchematicStreamer {
                     if (++matchIndex == match.length) {
                         break;
                     }
-                } else if (read == expected){
+                } else if (read == expected) {
                     if (++matchIndex == match.length) {
                         reader.run(dataInput);
                         break;
@@ -253,7 +253,7 @@ public class CorruptSchematicStreamer {
         for (int i = (int) Math.sqrt(volume); i > 0; i--) {
             if (volume % i == 0) {
                 factors.add(i);
-                factors.add(volume/i);
+                factors.add(volume / i);
             }
         }
         int min = Integer.MAX_VALUE;

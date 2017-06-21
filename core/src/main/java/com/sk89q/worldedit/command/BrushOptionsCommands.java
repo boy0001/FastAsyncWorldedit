@@ -53,7 +53,7 @@ public class BrushOptionsCommands extends MethodCommands {
     }
 
     @Command(
-            aliases = { "/savebrush" },
+            aliases = {"/savebrush"},
             usage = "[name]",
             desc = "Save your current brush",
             min = 1
@@ -83,7 +83,7 @@ public class BrushOptionsCommands extends MethodCommands {
     }
 
     @Command(
-            aliases = { "/loadbrush" },
+            aliases = {"/loadbrush"},
             desc = "load a brush",
             usage = "[name]",
             min = 1
@@ -136,7 +136,7 @@ public class BrushOptionsCommands extends MethodCommands {
     }
 
     @Command(
-            aliases = { "none", "/none" },
+            aliases = {"none", "/none"},
             usage = "",
             desc = "Unbind a bound tool from your current item",
             min = 0,
@@ -148,7 +148,7 @@ public class BrushOptionsCommands extends MethodCommands {
     }
 
     @Command(
-            aliases = { "/", "," },
+            aliases = {"/", ","},
             usage = "[on|off]",
             desc = "Toggle the super pickaxe function",
             min = 0,
@@ -177,7 +177,7 @@ public class BrushOptionsCommands extends MethodCommands {
     }
 
     @Command(
-            aliases = { "patterns" },
+            aliases = {"patterns"},
             usage = "[page=1|search|pattern]",
             desc = "View help about patterns",
             help = "Patterns determine what blocks are placed\n" +
@@ -195,7 +195,7 @@ public class BrushOptionsCommands extends MethodCommands {
     }
 
     @Command(
-            aliases = { "masks" },
+            aliases = {"masks"},
             usage = "[page=1|search|mask]",
             desc = "View help about masks",
             help = "Masks determine if a block can be placed\n" +
@@ -214,7 +214,7 @@ public class BrushOptionsCommands extends MethodCommands {
     }
 
     @Command(
-            aliases = { "transforms" },
+            aliases = {"transforms"},
             usage = "[page=1|search|transform]",
             desc = "View help about transforms",
             help = "Transforms modify how a block is placed\n" +
@@ -232,7 +232,7 @@ public class BrushOptionsCommands extends MethodCommands {
     }
 
     @Command(
-            aliases = { "primary" },
+            aliases = {"primary"},
             usage = "[brush arguments]",
             desc = "Set the right click brush",
             help = "Set the right click brush",
@@ -252,7 +252,7 @@ public class BrushOptionsCommands extends MethodCommands {
     }
 
     @Command(
-            aliases = { "secondary" },
+            aliases = {"secondary"},
             usage = "[brush arguments]",
             desc = "Set the left click brush",
             help = "Set the left click brush",
@@ -272,7 +272,7 @@ public class BrushOptionsCommands extends MethodCommands {
     }
 
     @Command(
-            aliases = { "visualize", "visual", "vis" },
+            aliases = {"visualize", "visual", "vis"},
             usage = "[mode]",
             desc = "Toggle between different visualization modes",
             min = 0,
@@ -291,7 +291,7 @@ public class BrushOptionsCommands extends MethodCommands {
     }
 
     @Command(
-            aliases = { "target", "tar" },
+            aliases = {"target", "tar"},
             usage = "[mode]",
             desc = "Toggle between different target modes",
             min = 0,
@@ -309,9 +309,31 @@ public class BrushOptionsCommands extends MethodCommands {
         BBC.BRUSH_TARGET_MODE_SET.send(player, newMode);
     }
 
+    @Command(
+            aliases = {"targetmask", "tarmask", "tm"},
+            usage = "[mask]",
+            desc = "Set the targeting mask",
+            min = 1,
+            max = -1
+    )
+    public void targetMask(Player player, EditSession editSession, LocalSession session, CommandContext context) throws WorldEditException {
+        BrushTool tool = session.getBrushTool(player, false);
+        if (tool == null) {
+            BBC.BRUSH_NONE.send(player);
+            return;
+        }
+        ParserContext parserContext = new ParserContext();
+        parserContext.setActor(player);
+        parserContext.setWorld(player.getWorld());
+        parserContext.setSession(session);
+        parserContext.setExtent(editSession);
+        Mask mask = worldEdit.getMaskFactory().parseFromInput(context.getJoinedStrings(0), parserContext);
+        tool.setTargetMask(mask);
+        BBC.BRUSH_TARGET_MASK_SET.send(player, context.getJoinedStrings(0));
+    }
 
     @Command(
-            aliases = { "scroll" },
+            aliases = {"scroll"},
             usage = "[none|clipboard|mask|pattern|range|size|visual|target]",
             desc = "Toggle between different target modes",
             min = 1,
@@ -336,7 +358,7 @@ public class BrushOptionsCommands extends MethodCommands {
     }
 
     @Command(
-            aliases = { "mask", "/mask" },
+            aliases = {"mask", "/mask"},
             usage = "[mask]",
             desc = "Set the brush destination mask",
             min = 0,
@@ -367,7 +389,7 @@ public class BrushOptionsCommands extends MethodCommands {
     }
 
     @Command(
-            aliases = { "smask", "/smask", "/sourcemask", "sourcemask" },
+            aliases = {"smask", "/smask", "/sourcemask", "sourcemask"},
             usage = "[mask]",
             desc = "Set the brush source mask",
             help = "Set the brush source mask",
@@ -399,7 +421,7 @@ public class BrushOptionsCommands extends MethodCommands {
     }
 
     @Command(
-            aliases = { "transform" },
+            aliases = {"transform"},
             usage = "[transform]",
             desc = "Set the brush transform",
             min = 0,
@@ -430,7 +452,7 @@ public class BrushOptionsCommands extends MethodCommands {
     }
 
     @Command(
-            aliases = { "mat", "material" },
+            aliases = {"mat", "material"},
             usage = "[pattern]",
             desc = "Set the brush material",
             min = 1,
@@ -455,7 +477,7 @@ public class BrushOptionsCommands extends MethodCommands {
     }
 
     @Command(
-            aliases = { "range" },
+            aliases = {"range"},
             usage = "[pattern]",
             desc = "Set the brush range",
             min = 1,
@@ -474,7 +496,7 @@ public class BrushOptionsCommands extends MethodCommands {
     }
 
     @Command(
-            aliases = { "size" },
+            aliases = {"size"},
             usage = "[pattern]",
             desc = "Set the brush size",
             min = 1,

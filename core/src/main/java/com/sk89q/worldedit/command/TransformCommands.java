@@ -21,7 +21,7 @@ import com.sk89q.worldedit.math.transform.AffineTransform;
 import com.sk89q.worldedit.util.command.parametric.Optional;
 import java.util.Set;
 
-@Command(aliases = { "transforms" },
+@Command(aliases = {"transforms"},
         desc = "Help for the various transforms. [More Info](https://github.com/boy0001/FastAsyncWorldedit/wiki/Transforms)"
 )
 public class TransformCommands extends MethodCommands {

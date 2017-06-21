@@ -47,8 +47,8 @@ public abstract class FileConfiguration extends MemoryConfiguration {
      * using UTF8.
      *
      * @param file File to save to.
-     * @throws java.io.IOException Thrown when the given file cannot be written to for
-     *     any reason.
+     * @throws java.io.IOException      Thrown when the given file cannot be written to for
+     *                                  any reason.
      * @throws IllegalArgumentException Thrown when file is null.
      */
     public void save(File file) throws IOException {
@@ -75,8 +75,8 @@ public abstract class FileConfiguration extends MemoryConfiguration {
      * using UTF8.
      *
      * @param file File to save to.
-     * @throws java.io.IOException Thrown when the given file cannot be written to for
-     *     any reason.
+     * @throws java.io.IOException      Thrown when the given file cannot be written to for
+     *                                  any reason.
      * @throws IllegalArgumentException Thrown when file is null.
      */
     public void save(String file) throws IOException {
@@ -106,12 +106,12 @@ public abstract class FileConfiguration extends MemoryConfiguration {
      * <p>
      *
      * @param file File to load from.
-     * @throws java.io.FileNotFoundException Thrown when the given file cannot be
-     *     opened.
-     * @throws java.io.IOException Thrown when the given file cannot be read.
+     * @throws java.io.FileNotFoundException                               Thrown when the given file cannot be
+     *                                                                     opened.
+     * @throws java.io.IOException                                         Thrown when the given file cannot be read.
      * @throws com.boydti.fawe.configuration.InvalidConfigurationException Thrown when the given file is not
-     *     a valid Configuration.
-     * @throws IllegalArgumentException Thrown when file is null.
+     *                                                                     a valid Configuration.
+     * @throws IllegalArgumentException                                    Thrown when file is null.
      */
     public void load(File file) throws IOException, InvalidConfigurationException {
         if (file == null) {
@@ -131,10 +131,10 @@ public abstract class FileConfiguration extends MemoryConfiguration {
      * from the given stream.
      *
      * @param reader the reader to load from
-     * @throws java.io.IOException thrown when underlying reader throws an IOException
+     * @throws java.io.IOException                                         thrown when underlying reader throws an IOException
      * @throws com.boydti.fawe.configuration.InvalidConfigurationException thrown when the reader does not
-     *      represent a valid Configuration
-     * @throws IllegalArgumentException thrown when reader is null
+     *                                                                     represent a valid Configuration
+     * @throws IllegalArgumentException                                    thrown when reader is null
      */
     public void load(Reader reader) throws IOException, InvalidConfigurationException {
 
@@ -163,12 +163,12 @@ public abstract class FileConfiguration extends MemoryConfiguration {
      * thrown.
      *
      * @param file File to load from.
-     * @throws java.io.FileNotFoundException Thrown when the given file cannot be
-     *     opened.
-     * @throws java.io.IOException Thrown when the given file cannot be read.
+     * @throws java.io.FileNotFoundException                               Thrown when the given file cannot be
+     *                                                                     opened.
+     * @throws java.io.IOException                                         Thrown when the given file cannot be read.
      * @throws com.boydti.fawe.configuration.InvalidConfigurationException Thrown when the given file is not
-     *     a valid Configuration.
-     * @throws IllegalArgumentException Thrown when file is null.
+     *                                                                     a valid Configuration.
+     * @throws IllegalArgumentException                                    Thrown when file is null.
      */
     public void load(String file) throws IOException, InvalidConfigurationException {
         if (file == null) {
@@ -190,8 +190,8 @@ public abstract class FileConfiguration extends MemoryConfiguration {
      *
      * @param contents Contents of a Configuration to load.
      * @throws com.boydti.fawe.configuration.InvalidConfigurationException Thrown if the specified string is
-     *     invalid.
-     * @throws IllegalArgumentException Thrown if contents is null.
+     *                                                                     invalid.
+     * @throws IllegalArgumentException                                    Thrown if contents is null.
      */
     public abstract void loadFromString(String contents) throws InvalidConfigurationException;
 
@@ -206,7 +206,7 @@ public abstract class FileConfiguration extends MemoryConfiguration {
      * @return Compiled header
      */
     protected abstract String buildHeader();
-    
+
     @Override
     public FileConfigurationOptions options() {
         if (this.options == null) {

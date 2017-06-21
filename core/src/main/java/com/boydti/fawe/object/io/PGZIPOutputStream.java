@@ -1,10 +1,18 @@
 package com.boydti.fawe.object.io;
 
-import java.io.*;
+import java.io.FilterOutputStream;
+import java.io.IOException;
+import java.io.InterruptedIOException;
+import java.io.OutputStream;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.util.ArrayList;
-import java.util.concurrent.*;
+import java.util.concurrent.ArrayBlockingQueue;
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 import java.util.zip.CRC32;
 import java.util.zip.Deflater;
 import java.util.zip.DeflaterOutputStream;
@@ -62,7 +70,9 @@ public class PGZIPOutputStream extends FilterOutputStream {
     private final CRC32 crc = new CRC32();
     private final BlockingQueue<Future<byte[]>> emitQueue;
     private PGZIPBlock block = new PGZIPBlock(this/* 0 */);
-    /** Used as a sentinel for 'closed'. */
+    /**
+     * Used as a sentinel for 'closed'.
+     */
     private int bytesWritten = 0;
 
     // Master thread only
@@ -162,7 +172,7 @@ public class PGZIPOutputStream extends FilterOutputStream {
     // Emit All Remaining - flush(), close()
     // Master thread only
     private void tryEmit() throws IOException, InterruptedException, ExecutionException {
-        for (;;) {
+        for (; ; ) {
             Future<byte[]> future = emitQueue.peek();
             // LOG.info("Peeked future " + future);
             if (future == null)
@@ -178,7 +188,10 @@ public class PGZIPOutputStream extends FilterOutputStream {
     }
 
     // Master thread only
-    /** Emits any opportunistically available blocks. Furthermore, emits blocks until the number of executing tasks is less than taskCountAllowed. */
+
+    /**
+     * Emits any opportunistically available blocks. Furthermore, emits blocks until the number of executing tasks is less than taskCountAllowed.
+     */
     private void emitUntil(@Nonnegative int taskCountAllowed) throws IOException {
         try {
             while (emitQueue.size() > taskCountAllowed) {

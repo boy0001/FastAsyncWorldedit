@@ -25,18 +25,20 @@ public class MaskTraverser {
             ((ResettableMask) mask).reset();
         }
         Class<?> current = mask.getClass();
-        while(current.getSuperclass() != null) {
+        while (current.getSuperclass() != null) {
             try {
                 Field field = current.getDeclaredField("extent");
                 field.setAccessible(true);
                 field.set(mask, newExtent);
-            } catch (NoSuchFieldException | IllegalAccessException ignore) {}
+            } catch (NoSuchFieldException | IllegalAccessException ignore) {
+            }
             try {
                 Field field = current.getDeclaredField("mask");
                 field.setAccessible(true);
                 Mask next = (Mask) field.get(mask);
                 reset(next, newExtent);
-            } catch (NoSuchFieldException | IllegalAccessException ignore) {}
+            } catch (NoSuchFieldException | IllegalAccessException ignore) {
+            }
             try {
                 Field field = current.getDeclaredField("masks");
                 field.setAccessible(true);
@@ -44,7 +46,8 @@ public class MaskTraverser {
                 for (Mask next : masks) {
                     reset(next, newExtent);
                 }
-            } catch (NoSuchFieldException | IllegalAccessException ignore) {}
+            } catch (NoSuchFieldException | IllegalAccessException ignore) {
+            }
             current = current.getSuperclass();
         }
     }

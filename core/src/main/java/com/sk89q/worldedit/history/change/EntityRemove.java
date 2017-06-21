@@ -41,7 +41,7 @@ public class EntityRemove implements Change {
      * Create a new instance.
      *
      * @param location the location
-     * @param state the state of the created entity
+     * @param state    the state of the created entity
      */
     public EntityRemove(Location location, BaseEntity state) {
         checkNotNull(location);
@@ -54,7 +54,7 @@ public class EntityRemove implements Change {
     public void undo(UndoContext context) throws WorldEditException {
         entity = checkNotNull(context.getExtent()).createEntity(location, state);
     }
-    
+
     @Override
     public void redo(UndoContext context) throws WorldEditException {
         if (entity != null) {

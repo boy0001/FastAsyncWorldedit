@@ -14,7 +14,7 @@ import java.io.InputStream;
 import java.util.HashSet;
 import javax.imageio.ImageIO;
 
-public class ScalableHeightMap implements com.boydti.fawe.object.brush.heightmap.HeightMap{
+public class ScalableHeightMap implements com.boydti.fawe.object.brush.heightmap.HeightMap {
     public int size2;
     public int size;
 
@@ -97,8 +97,8 @@ public class ScalableHeightMap implements com.boydti.fawe.object.brush.heightmap
         int length = heightFile.getHeight();
         Raster data = heightFile.getData();
         byte[][] array = new byte[width][length];
-        double third = 1/3.0;
-        double alphaInverse = 1/255.0;
+        double third = 1 / 3.0;
+        double alphaInverse = 1 / 255.0;
         for (int x = 0; x < width; x++) {
             for (int z = 0; z < length; z++) {
                 int pixel = heightFile.getRGB(x, z);

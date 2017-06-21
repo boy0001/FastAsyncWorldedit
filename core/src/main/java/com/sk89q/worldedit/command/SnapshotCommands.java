@@ -25,12 +25,14 @@ import com.boydti.fawe.config.BBC;
 import com.sk89q.minecraft.util.commands.Command;
 import com.sk89q.minecraft.util.commands.CommandContext;
 import com.sk89q.minecraft.util.commands.CommandPermissions;
-import com.sk89q.worldedit.*;
+import com.sk89q.worldedit.LocalConfiguration;
+import com.sk89q.worldedit.LocalSession;
+import com.sk89q.worldedit.WorldEdit;
+import com.sk89q.worldedit.WorldEditException;
 import com.sk89q.worldedit.entity.Player;
 import com.sk89q.worldedit.world.snapshot.InvalidSnapshotException;
 import com.sk89q.worldedit.world.snapshot.Snapshot;
 import com.sk89q.worldedit.world.storage.MissingWorldException;
-
 import java.io.File;
 import java.io.IOException;
 import java.text.DateFormat;
@@ -47,7 +49,7 @@ public class SnapshotCommands {
 
     private static final Logger logger = Logger.getLogger("Minecraft.WorldEdit");
     private static final DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss z");
-    
+
     private final WorldEdit we;
 
     public SnapshotCommands(WorldEdit we) {
@@ -55,7 +57,7 @@ public class SnapshotCommands {
     }
 
     @Command(
-            aliases = { "list" },
+            aliases = {"list"},
             usage = "[num]",
             desc = "List snapshots",
             min = 0,
@@ -105,7 +107,7 @@ public class SnapshotCommands {
     }
 
     @Command(
-            aliases = { "use" },
+            aliases = {"use"},
             usage = "<snapshot>",
             desc = "Choose a snapshot to use",
             min = 1,
@@ -148,7 +150,7 @@ public class SnapshotCommands {
     }
 
     @Command(
-            aliases = { "sel" },
+            aliases = {"sel"},
             usage = "<index>",
             desc = "Choose the snapshot based on the list id",
             min = 1,
@@ -195,7 +197,7 @@ public class SnapshotCommands {
     }
 
     @Command(
-            aliases = { "before" },
+            aliases = {"before"},
             usage = "<date>",
             desc = "Choose the nearest snapshot before a date",
             min = 1,
@@ -234,7 +236,7 @@ public class SnapshotCommands {
     }
 
     @Command(
-            aliases = { "after" },
+            aliases = {"after"},
             usage = "<date>",
             desc = "Choose the nearest snapshot after a date",
             min = 1,

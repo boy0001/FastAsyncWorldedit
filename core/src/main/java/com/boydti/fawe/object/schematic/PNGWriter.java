@@ -26,7 +26,6 @@ public class PNGWriter implements ClipboardWriter {
     }
 
 
-
     public static Color getTopColor(int id, int data) {
         return FaweCache.getColor(id, data);
     }
@@ -49,7 +48,7 @@ public class PNGWriter implements ClipboardWriter {
         BufferedImage img = new BufferedImage(imageSize, imageSize, BufferedImage.TYPE_INT_ARGB);
         Graphics2D g2 = img.createGraphics();
         double d = Math.min((double) imageSize / length, (double) imageSize / width) / 3;
-        double d_2 = d/2;
+        double d_2 = d / 2;
         double cx = (double) imageSize / 2;
         double cy = (double) imageSize / 2;
 

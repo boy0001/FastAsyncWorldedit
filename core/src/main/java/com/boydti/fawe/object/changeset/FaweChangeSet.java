@@ -127,16 +127,25 @@ public abstract class FaweChangeSet implements ChangeSet {
     }
 
     public abstract void addTileCreate(CompoundTag tag);
+
     public abstract void addTileRemove(CompoundTag tag);
+
     public abstract void addEntityRemove(CompoundTag tag);
+
     public abstract void addEntityCreate(CompoundTag tag);
+
     public abstract void addBiomeChange(int x, int z, BaseBiome from, BaseBiome to);
+
     public Iterator<Change> getIterator(BlockBag blockBag, int mode, boolean redo) {
         return getIterator(redo);
     }
+
     public abstract Iterator<Change> getIterator(boolean redo);
 
-    public void delete() {};
+    public void delete() {
+    }
+
+    ;
 
     public EditSession toEditSession(FawePlayer player) {
         return toEditSession(player, null);

@@ -55,16 +55,18 @@ public class RenderListener implements Listener {
                 int nowTick = (int) (Fawe.get().getTimer().getTick());
                 while (entrySet.hasNext()) {
                     Map.Entry<UUID, int[]> entry = entrySet.next();
-                    int[] value = entry.getValue();
-                    if (nowTick - value[1] >= timeOut) {
-                        value[1] = nowTick + 1;
-                        Player player = Bukkit.getPlayer(entry.getKey());
-                        setViewDistance(player, Math.max(4, value[0] + 1));
-                        long spent = System.currentTimeMillis() - now;
-                        if (spent > 5) {
-                            if (spent > 10)
-                            value[1] = nowTick + 20;
-                            return;
+                    Player player = Bukkit.getPlayer(entry.getKey());
+                    if (player != null) {
+                        int[] value = entry.getValue();
+                        if (nowTick - value[1] >= timeOut) {
+                            value[1] = nowTick + 1;
+                            setViewDistance(player, Math.max(4, value[0] + 1));
+                            long spent = System.currentTimeMillis() - now;
+                            if (spent > 5) {
+                                if (spent > 10)
+                                    value[1] = nowTick + 20;
+                                return;
+                            }
                         }
                     }
                 }

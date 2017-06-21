@@ -1,6 +1,8 @@
 package com.boydti.fawe.wrappers;
 
-import com.sk89q.worldedit.*;
+import com.sk89q.worldedit.LocalWorld;
+import com.sk89q.worldedit.Vector;
+import com.sk89q.worldedit.WorldVector;
 import com.sk89q.worldedit.entity.Player;
 import com.sk89q.worldedit.internal.LocalWorldAdapter;
 import com.sk89q.worldedit.util.Location;

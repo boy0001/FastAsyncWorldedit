@@ -52,17 +52,17 @@ import static com.google.common.base.Preconditions.checkNotNull;
  * The clipboard remembers the state of a cuboid region.
  *
  * @deprecated This is slowly being replaced with {@link Clipboard}, which is
- *             far more versatile. Transforms are supported using affine
- *             transformations and full entity support is provided because
- *             the clipboard properly implements {@link Extent}. However,
- *             the new clipboard class is only available in WorldEdit 6.x and
- *             beyond. We intend on keeping this deprecated class in WorldEdit
- *             for an extended amount of time so there is no rush to
- *             switch (but new features will not be supported). To copy between
- *             a clipboard and a world (or between any two {@code Extent}s),
- *             one can use {@link ForwardExtentCopy}. See
- *             {@link ClipboardCommands} and {@link SchematicCommands} for
- *             more information.
+ * far more versatile. Transforms are supported using affine
+ * transformations and full entity support is provided because
+ * the clipboard properly implements {@link Extent}. However,
+ * the new clipboard class is only available in WorldEdit 6.x and
+ * beyond. We intend on keeping this deprecated class in WorldEdit
+ * for an extended amount of time so there is no rush to
+ * switch (but new features will not be supported). To copy between
+ * a clipboard and a world (or between any two {@code Extent}s),
+ * one can use {@link ForwardExtentCopy}. See
+ * {@link ClipboardCommands} and {@link SchematicCommands} for
+ * more information.
  */
 @Deprecated
 public class CuboidClipboard {
@@ -100,14 +100,14 @@ public class CuboidClipboard {
         this.size = size;
         this.dx = size.getBlockX();
         this.dxz = dx * size.getBlockZ();
-        ids = new byte[dx * size.getBlockZ() * ((size.getBlockY() + 15) >>  4)][];
+        ids = new byte[dx * size.getBlockZ() * ((size.getBlockY() + 15) >> 4)][];
         nbtMap = new HashMap<>();
     }
 
     /**
      * Constructs the clipboard.
      *
-     * @param size the dimensions of the clipboard (should be at least 1 on every dimension)
+     * @param size   the dimensions of the clipboard (should be at least 1 on every dimension)
      * @param origin the origin point where the copy was made, which must be the
      *               {@link CuboidRegion#getMinimumPoint()} relative to the copy
      */
@@ -120,14 +120,14 @@ public class CuboidClipboard {
         this.size = size;
         this.dx = size.getBlockX();
         this.dxz = dx * size.getBlockZ();
-        ids = new byte[dx * size.getBlockZ() * ((size.getBlockY() + 15) >>  4)][];
+        ids = new byte[dx * size.getBlockZ() * ((size.getBlockY() + 15) >> 4)][];
         nbtMap = new HashMap<>();
     }
 
     /**
      * Constructs the clipboard.
      *
-     * @param size the dimensions of the clipboard (should be at least 1 on every dimension)
+     * @param size   the dimensions of the clipboard (should be at least 1 on every dimension)
      * @param origin the origin point where the copy was made, which must be the
      *               {@link CuboidRegion#getMinimumPoint()} relative to the copy
      * @param offset the offset from the minimum point of the copy where the user was
@@ -142,7 +142,7 @@ public class CuboidClipboard {
         this.size = size;
         this.dx = size.getBlockX();
         this.dxz = dx * size.getBlockZ();
-        ids = new byte[dx * size.getBlockZ() * ((size.getBlockY() + 15) >>  4)][];
+        ids = new byte[dx * size.getBlockZ() * ((size.getBlockY() + 15) >> 4)][];
         nbtMap = new HashMap<>();
     }
 
@@ -184,7 +184,7 @@ public class CuboidClipboard {
     }
 
     public void setBlock(Vector location, BaseBlock block) {
-        setBlock(location.getBlockX(),location.getBlockY(),location.getBlockZ(), block);
+        setBlock(location.getBlockX(), location.getBlockY(), location.getBlockZ(), block);
     }
 
     public boolean setBlock(int x, int y, int z, BaseBlock block) {
@@ -469,7 +469,7 @@ public class CuboidClipboard {
                             block.rotate90();
                         }
                     }
-                    cloned.setBlock(newX,y,newZ, block);
+                    cloned.setBlock(newX, y, newZ, block);
                 }
             }
         }
@@ -497,7 +497,7 @@ public class CuboidClipboard {
     /**
      * Flip the clipboard.
      *
-     * @param dir direction to flip
+     * @param dir          direction to flip
      * @param aroundPlayer flip the offset around the player
      */
     @SuppressWarnings("deprecation")
@@ -514,7 +514,7 @@ public class CuboidClipboard {
                 for (int xs = 0; xs < wid; ++xs) {
                     for (int z = 0; z < length; ++z) {
                         for (int y = 0; y < height; ++y) {
-                            BaseBlock block1 = getBlock(xs,y,z);
+                            BaseBlock block1 = getBlock(xs, y, z);
                             if (block1 != null) {
                                 block1.flip(dir);
                             }
@@ -522,12 +522,12 @@ public class CuboidClipboard {
                             if (xs == width - xs - 1) {
                                 continue;
                             }
-                            BaseBlock block2 = getBlock(width - xs - 1,y,z);
+                            BaseBlock block2 = getBlock(width - xs - 1, y, z);
                             if (block2 != null) {
                                 block2.flip(dir);
                             }
-                            setBlock(xs,y,z, block2);
-                            setBlock(width - xs - 1,y,z, block1);
+                            setBlock(xs, y, z, block2);
+                            setBlock(width - xs - 1, y, z, block1);
                         }
                     }
                 }
@@ -543,7 +543,7 @@ public class CuboidClipboard {
                 for (int zs = 0; zs < len; ++zs) {
                     for (int x = 0; x < width; ++x) {
                         for (int y = 0; y < height; ++y) {
-                            BaseBlock block1 = getBlock(x,y,zs);
+                            BaseBlock block1 = getBlock(x, y, zs);
                             if (block1 != null) {
                                 block1.flip(dir);
                             }
@@ -553,13 +553,13 @@ public class CuboidClipboard {
                                 continue;
                             }
 
-                            BaseBlock block2 = getBlock(x,y,length - zs - 1);
+                            BaseBlock block2 = getBlock(x, y, length - zs - 1);
                             if (block2 != null) {
                                 block2.flip(dir);
                             }
 
-                            setBlock(x,y,zs,block2);
-                            setBlock(x,y,length - zs - 1,block1);
+                            setBlock(x, y, zs, block2);
+                            setBlock(x, y, length - zs - 1, block1);
 
 
                         }
@@ -577,7 +577,7 @@ public class CuboidClipboard {
                 for (int ys = 0; ys < hei; ++ys) {
                     for (int x = 0; x < width; ++x) {
                         for (int z = 0; z < length; ++z) {
-                            BaseBlock block1 = getBlock(x,ys,z);
+                            BaseBlock block1 = getBlock(x, ys, z);
                             if (block1 != null) {
                                 block1.flip(dir);
                             }
@@ -587,13 +587,13 @@ public class CuboidClipboard {
                                 continue;
                             }
 
-                            BaseBlock block2 = getBlock(x,height - ys - 1,z);
+                            BaseBlock block2 = getBlock(x, height - ys - 1, z);
                             if (block2 != null) {
                                 block2.flip(dir);
                             }
 
-                            setBlock(x,ys,z, block2);
-                            setBlock(x,height - ys - 1,z, block1);
+                            setBlock(x, ys, z, block2);
+                            setBlock(x, height - ys - 1, z, block1);
                         }
                     }
                 }
@@ -625,7 +625,7 @@ public class CuboidClipboard {
      * Copies blocks to the clipboard.
      *
      * @param editSession The EditSession from which to take the blocks
-     * @param region A region that further constrains which blocks to take.
+     * @param region      A region that further constrains which blocks to take.
      */
     public void copy(EditSession editSession, Region region) {
         for (int x = 0; x < size.getBlockX(); ++x) {
@@ -644,15 +644,15 @@ public class CuboidClipboard {
 
     /**
      * Paste the clipboard at the given location using the given {@code EditSession}.
-     *
+     * <p>
      * <p>This method blocks the server/game until the entire clipboard is
      * pasted. In the future, {@link ForwardExtentCopy} will be recommended,
      * which, if combined with the proposed operation scheduler framework,
      * will not freeze the game/server.</p>
      *
      * @param editSession the EditSession to which blocks are to be copied to
-     * @param newOrigin the new origin point (must correspond to the minimum point of the cuboid)
-     * @param noAir true to not copy air blocks in the source
+     * @param newOrigin   the new origin point (must correspond to the minimum point of the cuboid)
+     * @param noAir       true to not copy air blocks in the source
      * @throws MaxChangedBlocksException thrown if too many blocks were changed
      */
     public void paste(EditSession editSession, Vector newOrigin, boolean noAir) throws MaxChangedBlocksException {
@@ -661,16 +661,16 @@ public class CuboidClipboard {
 
     /**
      * Paste the clipboard at the given location using the given {@code EditSession}.
-     *
+     * <p>
      * <p>This method blocks the server/game until the entire clipboard is
      * pasted. In the future, {@link ForwardExtentCopy} will be recommended,
      * which, if combined with the proposed operation scheduler framework,
      * will not freeze the game/server.</p>
      *
      * @param editSession the EditSession to which blocks are to be copied to
-     * @param newOrigin the new origin point (must correspond to the minimum point of the cuboid)
-     * @param noAir true to not copy air blocks in the source
-     * @param entities true to copy entities
+     * @param newOrigin   the new origin point (must correspond to the minimum point of the cuboid)
+     * @param noAir       true to not copy air blocks in the source
+     * @param entities    true to copy entities
      * @throws MaxChangedBlocksException thrown if too many blocks were changed
      */
     public void paste(EditSession editSession, Vector newOrigin, boolean noAir, boolean entities) throws MaxChangedBlocksException {
@@ -682,19 +682,19 @@ public class CuboidClipboard {
 
     /**
      * Paste the clipboard at the given location using the given {@code EditSession}.
-     *
+     * <p>
      * <p>This method blocks the server/game until the entire clipboard is
      * pasted. In the future, {@link ForwardExtentCopy} will be recommended,
      * which, if combined with the proposed operation scheduler framework,
      * will not freeze the game/server.</p>
      *
      * @param editSession the EditSession to which blocks are to be copied to
-     * @param newOrigin the new origin point (must correspond to the minimum point of the cuboid)
-     * @param noAir true to not copy air blocks in the source
+     * @param newOrigin   the new origin point (must correspond to the minimum point of the cuboid)
+     * @param noAir       true to not copy air blocks in the source
      * @throws MaxChangedBlocksException thrown if too many blocks were changed
      */
     public void place(EditSession editSession, Vector newOrigin, boolean noAir) throws MaxChangedBlocksException {
-        Vector v = new Vector(0,0,0);
+        Vector v = new Vector(0, 0, 0);
         int ox = newOrigin.getBlockX();
         int oy = newOrigin.getBlockY();
         int oz = newOrigin.getBlockZ();
@@ -704,7 +704,7 @@ public class CuboidClipboard {
                 v.mutY(y + oy);
                 for (int z = 0; z < size.getBlockZ(); ++z) {
                     v.mutZ(z + oz);
-                    final BaseBlock block = getBlock(x,y,z);
+                    final BaseBlock block = getBlock(x, y, z);
                     if (block == null) {
                         continue;
                     }
@@ -746,7 +746,7 @@ public class CuboidClipboard {
 
     /**
      * Get the block at the given position.
-     *
+     * <p>
      * <p>If the position is out of bounds, air will be returned.</p>
      *
      * @param position the point, relative to the origin of the copy (0, 0, 0) and not to the actual copy origin
@@ -777,7 +777,7 @@ public class CuboidClipboard {
      * Saves the clipboard data to a .schematic-format file.
      *
      * @param path the path to the file to save
-     * @throws IOException thrown on I/O error
+     * @throws IOException   thrown on I/O error
      * @throws DataException thrown on error writing the data for other reasons
      * @deprecated use {@link SchematicFormat#MCEDIT}
      */
@@ -792,7 +792,7 @@ public class CuboidClipboard {
      *
      * @param path the path to the file to load
      * @return a clipboard
-     * @throws IOException thrown on I/O error
+     * @throws IOException   thrown on I/O error
      * @throws DataException thrown on error writing the data for other reasons
      * @deprecated use {@link SchematicFormat#MCEDIT}
      */
@@ -828,7 +828,7 @@ public class CuboidClipboard {
     /**
      * Get the offset of the player to the clipboard's minimum point
      * (minimum X, Y, Z coordinates).
-     *
+     * <p>
      * <p>The offset is inverse (multiplied by -1).</p>
      *
      * @return the offset the offset
@@ -840,7 +840,7 @@ public class CuboidClipboard {
     /**
      * Set the offset of the player to the clipboard's minimum point
      * (minimum X, Y, Z coordinates).
-     *
+     * <p>
      * <p>The offset is inverse (multiplied by -1).</p>
      *
      * @param offset the new offset
@@ -865,7 +865,7 @@ public class CuboidClipboard {
         for (int x = 0; x < maxX; ++x) {
             for (int y = 0; y < maxY; ++y) {
                 for (int z = 0; z < maxZ; ++z) {
-                    final BaseBlock block = getBlock(x,y,z);
+                    final BaseBlock block = getBlock(x, y, z);
                     if (block == null) {
                         continue;
                     }
@@ -906,7 +906,7 @@ public class CuboidClipboard {
         for (int x = 0; x < maxX; ++x) {
             for (int y = 0; y < maxY; ++y) {
                 for (int z = 0; z < maxZ; ++z) {
-                    final BaseBlock block = getBlock(x,y,z);
+                    final BaseBlock block = getBlock(x, y, z);
                     if (block == null) {
                         continue;
                     }

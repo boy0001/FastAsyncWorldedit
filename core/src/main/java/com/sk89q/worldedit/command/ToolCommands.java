@@ -53,7 +53,7 @@ public class ToolCommands {
     }
 
     @Command(
-            aliases = { "info", "/info" },
+            aliases = {"info", "/info"},
             usage = "",
             desc = "Block information tool",
             min = 0,
@@ -66,7 +66,7 @@ public class ToolCommands {
     }
 
     @Command(
-            aliases = { "inspect" },
+            aliases = {"inspect"},
             usage = "",
             desc = "Inspect edits within a radius",
             help =
@@ -81,7 +81,7 @@ public class ToolCommands {
     }
 
     @Command(
-            aliases = { "tree" },
+            aliases = {"tree"},
             usage = "[type]",
             desc = "Tree generator tool",
             min = 0,
@@ -105,7 +105,7 @@ public class ToolCommands {
     }
 
     @Command(
-            aliases = { "repl" },
+            aliases = {"repl"},
             usage = "<block>",
             desc = "Block replacer tool",
             min = 1,
@@ -119,7 +119,7 @@ public class ToolCommands {
     }
 
     @Command(
-            aliases = { "cycler" },
+            aliases = {"cycler"},
             usage = "",
             desc = "Block data cycler tool",
             min = 0,
@@ -133,7 +133,7 @@ public class ToolCommands {
     }
 
     @Command(
-            aliases = { "floodfill", "flood" },
+            aliases = {"floodfill", "flood"},
             usage = "<pattern> <range>",
             desc = "Flood fill tool",
             min = 2,
@@ -151,7 +151,7 @@ public class ToolCommands {
     }
 
     @Command(
-            aliases = { "deltree" },
+            aliases = {"deltree"},
             usage = "",
             desc = "Floating tree remover tool",
             min = 0,
@@ -164,7 +164,7 @@ public class ToolCommands {
     }
 
     @Command(
-            aliases = { "farwand" },
+            aliases = {"farwand"},
             usage = "",
             desc = "Wand at a distance tool",
             min = 0,
@@ -177,7 +177,7 @@ public class ToolCommands {
     }
 
     @Command(
-            aliases = { "lrbuild", "/lrbuild" },
+            aliases = {"lrbuild", "/lrbuild"},
             usage = "<leftclick block> <rightclick block>",
             desc = "Long-range building tool",
             min = 2,

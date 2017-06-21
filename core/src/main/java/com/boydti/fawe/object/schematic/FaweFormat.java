@@ -88,7 +88,7 @@ public class FaweFormat implements ClipboardReader, ClipboardWriter {
         boolean from = false;
         boolean small = false;
         boolean knownSize = false;
-        switch(mode) {
+        switch (mode) {
             case 0:
                 knownSize = true;
                 break;
@@ -164,7 +164,7 @@ public class FaweFormat implements ClipboardReader, ClipboardWriter {
                 if (y > height) {
                     height = y;
                 }
-                if(z > length) {
+                if (z > length) {
                     length = z;
                 }
             }
@@ -177,7 +177,7 @@ public class FaweFormat implements ClipboardReader, ClipboardWriter {
             byte[] array = ((ByteArrayOutputStream) tmp.getParent()).toByteArray();
             FaweInputStream part = new FaweInputStream(new FastByteArrayInputStream(array));
             try {
-                for (int i = 0; i< array.length; i+= 9) {
+                for (int i = 0; i < array.length; i += 9) {
                     int x, y, z;
                     if (small) {
                         x = in.read();
@@ -224,7 +224,8 @@ public class FaweFormat implements ClipboardReader, ClipboardWriter {
 
                 }
             }
-        } catch (Throwable ignore) {}
+        } catch (Throwable ignore) {
+        }
         clipboard.setOrigin(new Vector(ox, oy, oz));
         return clipboard;
     }

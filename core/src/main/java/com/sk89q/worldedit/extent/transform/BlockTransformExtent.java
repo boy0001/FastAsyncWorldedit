@@ -166,12 +166,12 @@ public class BlockTransformExtent extends ResettableExtent {
 
     /**
      * Transform the given block using the given transform.
-     *
+     * <p>
      * <p>The provided block is modified.</p>
      *
-     * @param block the block
+     * @param block     the block
      * @param transform the transform
-     * @param registry the registry
+     * @param registry  the registry
      * @return the same block
      */
     public static BaseBlock transform(BaseBlock block, Transform transform, BlockRegistry registry) {
@@ -181,9 +181,9 @@ public class BlockTransformExtent extends ResettableExtent {
     /**
      * Transform the given block using the given transform.
      *
-     * @param block the block
-     * @param transform the transform
-     * @param registry the registry
+     * @param block        the block
+     * @param transform    the transform
+     * @param registry     the registry
      * @param changedBlock the block to change
      * @return the changed block
      */
@@ -219,8 +219,8 @@ public class BlockTransformExtent extends ResettableExtent {
     /**
      * Get the new value with the transformed direction.
      *
-     * @param state the state
-     * @param transform the transform
+     * @param state        the state
+     * @param transform    the transform
      * @param oldDirection the old direction to transform
      * @return a new state or null if none could be found
      */

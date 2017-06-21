@@ -24,6 +24,7 @@ public abstract class BreadthFirstSearch implements Operation {
 
     public static final Vector[] DEFAULT_DIRECTIONS = new Vector[6];
     public static final Vector[] DIAGONAL_DIRECTIONS;
+
     static {
         DEFAULT_DIRECTIONS[0] = (new MutableBlockVector(0, -1, 0));
         DEFAULT_DIRECTIONS[1] = (new MutableBlockVector(0, 1, 0));

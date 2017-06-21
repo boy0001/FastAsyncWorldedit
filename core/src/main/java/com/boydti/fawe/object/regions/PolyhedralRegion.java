@@ -123,8 +123,6 @@ public class PolyhedralRegion extends AbstractRegion {
     }
 
 
-
-
     /**
      * Add a vertex to the region.
      *

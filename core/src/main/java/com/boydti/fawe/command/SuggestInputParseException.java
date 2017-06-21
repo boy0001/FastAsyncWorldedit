@@ -63,7 +63,8 @@ public class SuggestInputParseException extends InputParseException {
         }
         if (suggestions.isEmpty()) {
             suggestions.addAll(inputs);
-        } return suggestions;
+        }
+        return suggestions;
     }
 
     private static ArrayList<String> getSuggestions(String input, String... inputs) {

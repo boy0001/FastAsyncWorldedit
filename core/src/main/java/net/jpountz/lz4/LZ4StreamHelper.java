@@ -5,10 +5,10 @@ import java.io.InputStream;
 import java.io.OutputStream;
 
 public class LZ4StreamHelper {
-   static void writeLength(int length, OutputStream os) throws IOException {
+    static void writeLength(int length, OutputStream os) throws IOException {
         int b1 = ((length & 0xff000000) >> 24);
         int b2 = ((length & 0x00ff0000) >> 16);
-        int b3 = ((length & 0x0000ff00) >>  8);
+        int b3 = ((length & 0x0000ff00) >> 8);
         int b4 = (length & 0xff0000ff);
         os.write(b1);
         os.write(b2);
@@ -25,10 +25,9 @@ public class LZ4StreamHelper {
         int b4 = is.read();
 
         int length;
-        if((-1 == b1) || (-1 == b2) || (-1 == b3) || (-1 == b4)) {
+        if ((-1 == b1) || (-1 == b2) || (-1 == b3) || (-1 == b4)) {
             length = -1;
-        }
-        else {
+        } else {
             length = ((b1 << 24) | (b2 << 16) | (b3 << 8) | b4);
         }
         return length;

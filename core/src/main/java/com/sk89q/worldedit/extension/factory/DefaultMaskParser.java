@@ -91,7 +91,7 @@ public class DefaultMaskParser extends FaweParser<Mask> {
                                     String value = command + ((entry.getValue().isEmpty()) ? "" : "[" + StringMan.join(entry.getValue(), "][") + "]");
                                     if (value.contains(":")) {
                                         if (value.charAt(0) == ':') value.replaceFirst(":", "");
-                                        value= value.replaceAll(":", "][");
+                                        value = value.replaceAll(":", "][");
                                     }
                                     mask = parseFromInput(char0 + "[" + value + "]", context);
                                     break;

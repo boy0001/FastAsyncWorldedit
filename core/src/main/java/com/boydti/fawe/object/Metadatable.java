@@ -8,6 +8,7 @@ public class Metadatable {
 
     /**
      * Set some session only metadata for the player
+     *
      * @param key
      * @param value
      * @return previous value
@@ -22,6 +23,7 @@ public class Metadatable {
 
     /**
      * Get the metadata for a key.
+     *
      * @param <V>
      * @param key
      * @return
@@ -35,6 +37,7 @@ public class Metadatable {
 
     /**
      * Get the metadata for a specific key (or return the default provided)
+     *
      * @param key
      * @param def
      * @param <V>
@@ -50,8 +53,9 @@ public class Metadatable {
 
     /**
      * Delete the metadata for a key.
-     *  - metadata is session only
-     *  - deleting other plugin's metadata may cause issues
+     * - metadata is session only
+     * - deleting other plugin's metadata may cause issues
+     *
      * @param key
      */
     public <V> V deleteMeta(String key) {

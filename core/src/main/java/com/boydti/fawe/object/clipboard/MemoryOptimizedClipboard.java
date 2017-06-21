@@ -54,7 +54,7 @@ public class MemoryOptimizedClipboard extends FaweClipboard {
     private boolean saveIds = false;
     private boolean saveDatas = false;
     private boolean saveAdd = false;
-    
+
     private int compressionLevel;
 
     public MemoryOptimizedClipboard(int width, int height, int length) {

@@ -14,9 +14,9 @@ import java.io.OutputStream;
 
 /**
  * ChangeSet optimized for low memory usage
- *  - No disk usage
- *  - High CPU usage
- *  - Low memory usage
+ * - No disk usage
+ * - High CPU usage
+ * - Low memory usage
  */
 public class MemoryOptimizedHistory extends FaweStreamChangeSet {
 

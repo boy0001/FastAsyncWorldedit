@@ -118,11 +118,11 @@ public class SelectionCommand extends SimpleCommand<Operation> {
                                 fc.fillCuboid(0, 15, minY, maxY, 0, 15, id, data);
                                 fc.optimize();
 
-                                int bcx = (current.minX) >>  4;
-                                int bcz = (current.minZ) >>  4;
+                                int bcx = (current.minX) >> 4;
+                                int bcz = (current.minZ) >> 4;
 
-                                int tcx = (current.maxX) >>  4;
-                                int tcz = (current.maxZ) >>  4;
+                                int tcx = (current.maxX) >> 4;
+                                int tcz = (current.maxZ) >> 4;
                                 // [chunkx, chunkz, pos1x, pos1z, pos2x, pos2z, isedge]
                                 MainUtil.chunkTaskSync(current, new RunnableVal<int[]>() {
                                     @Override

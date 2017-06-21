@@ -1,6 +1,5 @@
 package com.sk89q.worldedit.extent.inventory;
 
-import com.boydti.fawe.FaweCache;
 import com.sk89q.jnbt.CompoundTag;
 import com.sk89q.worldedit.Vector;
 import com.sk89q.worldedit.WorldEditException;
@@ -28,7 +27,7 @@ public class BlockBagExtent extends AbstractDelegateExtent {
     /**
      * Create a new instance.
      *
-     * @param extent the extent
+     * @param extent   the extent
      * @param blockBag the block bag
      */
     public BlockBagExtent(Extent extent, @Nonnull BlockBag blockBag) {
@@ -47,7 +46,9 @@ public class BlockBagExtent extends AbstractDelegateExtent {
      *
      * @return a block bag, which may be null if none is used
      */
-    public @Nullable BlockBag getBlockBag() {
+    public
+    @Nullable
+    BlockBag getBlockBag() {
         return blockBag;
     }
 
@@ -104,7 +105,8 @@ public class BlockBagExtent extends AbstractDelegateExtent {
             if (existing != 0) {
                 try {
                     blockBag.storeDroppedBlock(existing, lazyBlock.getData());
-                } catch (BlockBagException ignored) {}
+                } catch (BlockBagException ignored) {
+                }
             }
         }
         return super.setBlock(position, block);

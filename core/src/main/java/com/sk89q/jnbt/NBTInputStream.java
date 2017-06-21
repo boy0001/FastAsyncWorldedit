@@ -35,7 +35,7 @@ import java.util.Map;
  * This class reads <strong>NBT</strong>, or <strong>Named Binary Tag</strong>
  * streams, and produces an object graph of subclasses of the {@code Tag}
  * object.
- *
+ * <p>
  * <p>The NBT format was created by Markus Persson, and the specification may be
  * found at <a href="http://www.minecraft.net/docs/NBT.txt">
  * http://www.minecraft.net/docs/NBT.txt</a>.</p>
@@ -346,7 +346,7 @@ public final class NBTInputStream implements Closeable {
                     int toRead = Math.min(length << 2, buf.length);
                     is.readFully(buf, 0, toRead);
                     for (int i = 0; i < toRead; i += 4, index++) {
-                        data[index] = ((buf[i] << 24) + (buf[i + 1]<< 16) + (buf[i + 2] << 8) + (buf[i + 3] << 0));
+                        data[index] = ((buf[i] << 24) + (buf[i + 1] << 16) + (buf[i + 2] << 8) + (buf[i + 3] << 0));
                     }
                     length -= toRead;
                 }
@@ -359,7 +359,7 @@ public final class NBTInputStream implements Closeable {
     /**
      * Reads the payload of a tag given the type.
      *
-     * @param type the type
+     * @param type  the type
      * @param depth the depth
      * @return the tag
      * @throws IOException if an I/O error occurs.

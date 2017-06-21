@@ -27,7 +27,7 @@ public class FaweException extends RuntimeException {
 
     /**
      * This exception is thrown when a chunk fails to load in time
-     *  - Chunks are loaded on the main thread to be accessed async
+     * - Chunks are loaded on the main thread to be accessed async
      */
     public static class FaweChunkLoadException extends FaweException {
         public FaweChunkLoadException() {
@@ -43,6 +43,7 @@ public class FaweException extends RuntimeException {
 
     /**
      * Faster exception throwing if you don't fill the stacktrace
+     *
      * @return
      */
     @Override

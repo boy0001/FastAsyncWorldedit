@@ -27,7 +27,7 @@ import java.lang.annotation.Annotation;
 import javax.annotation.Nullable;
 
 public class FawePrimitiveBinding extends BindingHelper {
-    @BindingMatch(type = { Long.class, long.class },
+    @BindingMatch(type = {Long.class, long.class},
             behavior = BindingBehavior.CONSUMES,
             consumedCount = 1,
             provideModifiers = true)
@@ -109,8 +109,8 @@ public class FawePrimitiveBinding extends BindingHelper {
     /**
      * Gets a type from a {@link ArgumentStack}.
      *
-     * @param context the context
-     * @param text the text annotation
+     * @param context   the context
+     * @param text      the text annotation
      * @param modifiers a list of modifiers
      * @return the requested type
      * @throws ParameterException on error
@@ -130,7 +130,7 @@ public class FawePrimitiveBinding extends BindingHelper {
     /**
      * Gets a type from a {@link ArgumentStack}.
      *
-     * @param context the context
+     * @param context   the context
      * @param modifiers a list of modifiers
      * @return the requested type
      * @throws ParameterException on error
@@ -153,7 +153,7 @@ public class FawePrimitiveBinding extends BindingHelper {
      * @return the requested type
      * @throws ParameterException on error
      */
-    @BindingMatch(type = { Boolean.class, boolean.class },
+    @BindingMatch(type = {Boolean.class, boolean.class},
             behavior = BindingBehavior.CONSUMES,
             consumedCount = 1)
     public Boolean getBoolean(ArgumentStack context) throws ParameterException {
@@ -167,7 +167,8 @@ public class FawePrimitiveBinding extends BindingHelper {
      * @return a number
      * @throws ParameterException thrown on parse error
      */
-    public static @Nullable
+    public static
+    @Nullable
     Double parseNumericInput(@Nullable String input) throws ParameterException {
         if (input == null) {
             return null;
@@ -191,12 +192,12 @@ public class FawePrimitiveBinding extends BindingHelper {
     /**
      * Gets a type from a {@link ArgumentStack}.
      *
-     * @param context the context
+     * @param context   the context
      * @param modifiers a list of modifiers
      * @return the requested type
      * @throws ParameterException on error
      */
-    @BindingMatch(type = { Integer.class, int.class },
+    @BindingMatch(type = {Integer.class, int.class},
             behavior = BindingBehavior.CONSUMES,
             consumedCount = 1,
             provideModifiers = true)
@@ -214,12 +215,12 @@ public class FawePrimitiveBinding extends BindingHelper {
     /**
      * Gets a type from a {@link ArgumentStack}.
      *
-     * @param context the context
+     * @param context   the context
      * @param modifiers a list of modifiers
      * @return the requested type
      * @throws ParameterException on error
      */
-    @BindingMatch(type = { Short.class, short.class },
+    @BindingMatch(type = {Short.class, short.class},
             behavior = BindingBehavior.CONSUMES,
             consumedCount = 1,
             provideModifiers = true)
@@ -234,12 +235,12 @@ public class FawePrimitiveBinding extends BindingHelper {
     /**
      * Gets a type from a {@link ArgumentStack}.
      *
-     * @param context the context
+     * @param context   the context
      * @param modifiers a list of modifiers
      * @return the requested type
      * @throws ParameterException on error
      */
-    @BindingMatch(type = { Double.class, double.class },
+    @BindingMatch(type = {Double.class, double.class},
             behavior = BindingBehavior.CONSUMES,
             consumedCount = 1,
             provideModifiers = true)
@@ -256,12 +257,12 @@ public class FawePrimitiveBinding extends BindingHelper {
     /**
      * Gets a type from a {@link ArgumentStack}.
      *
-     * @param context the context
+     * @param context   the context
      * @param modifiers a list of modifiers
      * @return the requested type
      * @throws ParameterException on error
      */
-    @BindingMatch(type = { Float.class, float.class },
+    @BindingMatch(type = {Float.class, float.class},
             behavior = BindingBehavior.CONSUMES,
             consumedCount = 1,
             provideModifiers = true)
@@ -276,7 +277,7 @@ public class FawePrimitiveBinding extends BindingHelper {
     /**
      * Validate a number value using relevant modifiers.
      *
-     * @param number the number
+     * @param number    the number
      * @param modifiers the list of modifiers to scan
      * @throws ParameterException on a validation error
      */
@@ -303,7 +304,7 @@ public class FawePrimitiveBinding extends BindingHelper {
     /**
      * Validate a number value using relevant modifiers.
      *
-     * @param number the number
+     * @param number    the number
      * @param modifiers the list of modifiers to scan
      * @throws ParameterException on a validation error
      */
@@ -330,7 +331,7 @@ public class FawePrimitiveBinding extends BindingHelper {
     /**
      * Validate a string value using relevant modifiers.
      *
-     * @param string the string
+     * @param string    the string
      * @param modifiers the list of modifiers to scan
      * @throws ParameterException on a validation error
      */

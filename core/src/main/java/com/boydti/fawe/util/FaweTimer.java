@@ -2,7 +2,7 @@ package com.boydti.fawe.util;
 
 public class FaweTimer implements Runnable {
 
-    private final double[] history = new double[] {20d,20d,20d,20d,20d,20d,20d,20d,20d,20d,20d,20d,20d,20d,20d,20d,20d,20d,20d,20d};
+    private final double[] history = new double[]{20d, 20d, 20d, 20d, 20d, 20d, 20d, 20d, 20d, 20d, 20d, 20d, 20d, 20d, 20d, 20d, 20d, 20d, 20d, 20d};
     private int historyIndex = 0;
     private long lastPoll = System.currentTimeMillis();
     private long tickStart = System.currentTimeMillis();
@@ -21,8 +21,7 @@ public class FaweTimer implements Runnable {
             return;
         }
         long timeSpent = (tickStart - lastPoll);
-        if (timeSpent == 0)
-        {
+        if (timeSpent == 0) {
             timeSpent = 1;
         }
         double tps = millisPer20Interval / timeSpent;

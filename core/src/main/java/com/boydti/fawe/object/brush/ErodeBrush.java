@@ -18,7 +18,7 @@ public class ErodeBrush implements Brush {
     private PseudoRandom rand = new PseudoRandom();
 
     private static final Vector[] FACES_TO_CHECK = {new Vector(0, 0, 1), new Vector(0, 0, -1), new Vector(0, 1, 0), new Vector(0, -1, 0), new Vector(1, 0, 0), new Vector(-1, 0, 0)};
-    
+
     @Override
     public void build(EditSession editSession, Vector position, Pattern pattern, double size) throws MaxChangedBlocksException {
         this.erosion(editSession, 2, 1, 5, 1, position, size);

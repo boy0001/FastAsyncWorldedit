@@ -26,7 +26,7 @@ import com.sk89q.worldedit.blocks.BaseBlock;
 /**
  * Returns a {@link BaseBlock} for a given position.
  */
-public interface Pattern extends com.sk89q.worldedit.patterns.Pattern{
+public interface Pattern extends com.sk89q.worldedit.patterns.Pattern {
 
     /**
      * Return a {@link BaseBlock} for the given position.

@@ -1,7 +1,7 @@
 package com.boydti.fawe.object;
 
 public class IntegerTrio {
-    public int x,y,z;
+    public int x, y, z;
 
     public IntegerTrio(int x, int y, int z) {
         this.x = x;
@@ -15,7 +15,8 @@ public class IntegerTrio {
         this.z = node.z;
     }
 
-    public IntegerTrio() {}
+    public IntegerTrio() {
+    }
 
     public final void set(int x, int y, int z) {
         this.x = x;

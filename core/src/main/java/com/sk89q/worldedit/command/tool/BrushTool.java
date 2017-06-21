@@ -15,8 +15,10 @@ import com.boydti.fawe.object.brush.visualization.VisualChunk;
 import com.boydti.fawe.object.brush.visualization.VisualExtent;
 import com.boydti.fawe.object.brush.visualization.VisualMode;
 import com.boydti.fawe.object.extent.ResettableExtent;
+import com.boydti.fawe.object.mask.MaskedTargetBlock;
 import com.boydti.fawe.object.pattern.PatternTraverser;
 import com.boydti.fawe.util.EditSessionBuilder;
+import com.boydti.fawe.util.MaskTraverser;
 import com.boydti.fawe.util.TaskManager;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
@@ -38,10 +40,10 @@ import com.sk89q.worldedit.extension.platform.Platform;
 import com.sk89q.worldedit.extent.inventory.BlockBag;
 import com.sk89q.worldedit.function.mask.Mask;
 import com.sk89q.worldedit.function.mask.MaskIntersection;
+import com.sk89q.worldedit.function.mask.SolidBlockMask;
 import com.sk89q.worldedit.function.pattern.Pattern;
 import com.sk89q.worldedit.session.request.Request;
 import com.sk89q.worldedit.util.Location;
-import com.sk89q.worldedit.util.TargetBlock;
 import java.io.IOException;
 import java.io.Serializable;
 import java.lang.reflect.Type;
@@ -69,10 +71,11 @@ public class BrushTool implements DoubleActionTraceTool, ScrollTool, MovableTool
     protected int range = -1;
     private VisualMode visualMode = VisualMode.NONE;
     private TargetMode targetMode = TargetMode.TARGET_BLOCK_RANGE;
+    private Mask targetMask = null;
 
     private transient BrushSettings context = new BrushSettings();
     private transient BrushSettings primary = context;
-    private transient BrushSettings secondary = context;
+    private transient BrushSettings secondary = new BrushSettings();
 
     private transient VisualExtent visualExtent;
     private transient Lock lock = new ReentrantLock();
@@ -86,7 +89,8 @@ public class BrushTool implements DoubleActionTraceTool, ScrollTool, MovableTool
 
     public static BrushTool fromString(Player player, LocalSession session, String json) throws CommandException, InputParseException {
         Gson gson = new Gson();
-        Type type = new TypeToken<Map<String, Object>>(){}.getType();
+        Type type = new TypeToken<Map<String, Object>>() {
+        }.getType();
         Map<String, Object> root = gson.fromJson(json, type);
         Map<String, Object> primary = (Map<String, Object>) root.get("primary");
         Map<String, Object> secondary = (Map<String, Object>) root.getOrDefault("secondary", primary);
@@ -252,7 +256,7 @@ public class BrushTool implements DoubleActionTraceTool, ScrollTool, MovableTool
     /**
      * Set the brush.
      *
-     * @param brush tbe brush
+     * @param brush      tbe brush
      * @param permission the permission
      */
     @Deprecated
@@ -292,7 +296,8 @@ public class BrushTool implements DoubleActionTraceTool, ScrollTool, MovableTool
      *
      * @return the material
      */
-    @Nullable public Pattern getMaterial() {
+    @Nullable
+    public Pattern getMaterial() {
         return getContext().getMaterial();
     }
 
@@ -335,7 +340,7 @@ public class BrushTool implements DoubleActionTraceTool, ScrollTool, MovableTool
     public Vector getPosition(EditSession editSession, Player player) {
         switch (targetMode) {
             case TARGET_BLOCK_RANGE:
-                return new MutableBlockVector(trace(player, getRange(), true));
+                return new MutableBlockVector(trace(editSession, player, getRange(), true));
             case FOWARD_POINT_PITCH: {
                 int d = 0;
                 Location loc = player.getLocation();
@@ -359,24 +364,23 @@ public class BrushTool implements DoubleActionTraceTool, ScrollTool, MovableTool
                     }
                 }
                 final int distance = (height - y) + 8;
-                return new MutableBlockVector(trace(player, distance, true));
+                return new MutableBlockVector(trace(editSession, player, distance, true));
             }
             case TARGET_FACE_RANGE:
-                return new MutableBlockVector(trace(player, getRange(), true));
+                return new MutableBlockVector(trace(editSession, player, getRange(), true));
             default:
                 return null;
         }
     }
 
-    private Vector trace(Player player, int range, boolean useLastBlock) {
-        TargetBlock tb = new TargetBlock(player, range, 0.2);
+    private Vector trace(EditSession editSession, Player player, int range, boolean useLastBlock) {
+        Mask mask = targetMask == null ? new SolidBlockMask(editSession) : targetMask;
+        new MaskTraverser(mask).reset(editSession);
+        MaskedTargetBlock tb = new MaskedTargetBlock(mask, player, range, 0.2);
         return TaskManager.IMP.sync(new RunnableVal<Vector>() {
             @Override
             public void run(Vector value) {
-                BlockWorldVector result = tb.getSolidTargetBlock();
-                if (result == null && useLastBlock) {
-                    result = tb.getPreviousBlock();
-                }
+                BlockWorldVector result = tb.getMaskedTargetBlock(useLastBlock);
                 this.value = result;
             }
         });
@@ -388,6 +392,9 @@ public class BrushTool implements DoubleActionTraceTool, ScrollTool, MovableTool
                 setContext(primary);
                 break;
             case SECONDARY:
+                if (primary == secondary) {
+                    return false;
+                }
                 setContext(secondary);
                 break;
         }
@@ -465,12 +472,20 @@ public class BrushTool implements DoubleActionTraceTool, ScrollTool, MovableTool
         this.targetMode = targetMode != null ? targetMode : TargetMode.TARGET_BLOCK_RANGE;
     }
 
+    public void setTargetMask(Mask mask) {
+        this.targetMask = mask;
+    }
+
     public void setVisualMode(VisualMode visualMode) {
         this.visualMode = visualMode != null ? visualMode : VisualMode.NONE;
     }
 
     public TargetMode getTargetMode() {
         return targetMode;
+    }
+
+    public Mask getTargetMask() {
+        return targetMask;
     }
 
     public VisualMode getVisualMode() {
@@ -484,7 +499,7 @@ public class BrushTool implements DoubleActionTraceTool, ScrollTool, MovableTool
         if (tmp != null) {
             tmp.setTool(this);
             if (tmp.increment(player, amount)) {
-                if  (visualMode != VisualMode.NONE) {
+                if (visualMode != VisualMode.NONE) {
                     try {
                         queueVisualization(FawePlayer.wrap(player));
                     } catch (Throwable e) {

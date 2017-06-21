@@ -26,7 +26,7 @@ public class Settings extends Config {
     public String PLATFORM; // These values are set from FAWE before loading
 
     @Comment({"Options: de",
-              "Create a PR to contribute a translation: https://github.com/boy0001/FastAsyncWorldedit/new/master/core/src/main/resources",})
+            "Create a PR to contribute a translation: https://github.com/boy0001/FastAsyncWorldedit/new/master/core/src/main/resources",})
     public String LANGUAGE = "";
     @Comment("Allow the plugin to update")
     public boolean UPDATE = true;
@@ -232,11 +232,11 @@ public class Settings extends Config {
         @Create
         public static PROGRESS PROGRESS;
         @Comment({
-            "When doing edits that effect more than this many chunks:",
-            " - FAWE will start placing before all calculations are finished",
-            " - A larger value will use slightly less CPU time",
-            " - A smaller value will reduce memory usage",
-            " - A value too small may break some operations (deform?)"
+                "When doing edits that effect more than this many chunks:",
+                " - FAWE will start placing before all calculations are finished",
+                " - A larger value will use slightly less CPU time",
+                " - A smaller value will reduce memory usage",
+                " - A value too small may break some operations (deform?)"
 
         })
         public int TARGET_SIZE = 64;

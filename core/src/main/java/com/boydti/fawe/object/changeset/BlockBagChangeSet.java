@@ -30,7 +30,8 @@ public class BlockBagChangeSet extends AbstractDelegateChangeSet {
      *
      * @return a block bag, which may be null if none is used
      */
-    public @Nullable
+    public
+    @Nullable
     BlockBag getBlockBag() {
         return blockBag;
     }
@@ -79,7 +80,8 @@ public class BlockBagChangeSet extends AbstractDelegateChangeSet {
             if (combinedFrom != 0) {
                 try {
                     blockBag.storeDroppedBlock(FaweCache.getId(combinedFrom), FaweCache.getData(combinedFrom));
-                } catch (BlockBagException ignored) {}
+                } catch (BlockBagException ignored) {
+                }
             }
         }
         super.add(x, y, z, combinedFrom, combinedTo);

@@ -65,7 +65,7 @@ public class FaweSchematicHandler extends SchematicHandler {
 
                 Clipboard holder = new BlockArrayClipboard(region, clipboard);
                 com.sk89q.jnbt.CompoundTag weTag = SchematicWriter.writeTag(holder);
-                CompoundTag tag = new CompoundTag((Map<String, Tag>) (Map<?,?>) weTag.getValue());
+                CompoundTag tag = new CompoundTag((Map<String, Tag>) (Map<?, ?>) weTag.getValue());
                 whenDone.run(tag);
             }
         });

@@ -42,7 +42,7 @@ public class RecursiveVisitor extends BreadthFirstSearch {
     /**
      * Create a new recursive visitor.
      *
-     * @param mask the mask
+     * @param mask     the mask
      * @param function the function
      */
     public RecursiveVisitor(final Mask mask, final RegionFunction function, int maxDepth) {
