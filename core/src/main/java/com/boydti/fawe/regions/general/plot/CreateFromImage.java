@@ -603,7 +603,11 @@ public class CreateFromImage extends Command {
         if (arg.startsWith("http")) {
             URL url = new URL(arg);
             fp.sendMessage(BBC.getPrefix() + "Downloading image... (3)");
-            return MainUtil.toRGB(ImageIO.read(url));
+            BufferedImage img = MainUtil.toRGB(ImageIO.read(url));
+            if (img == null) {
+                throw new IOException("Failed to read " + url + ", please try again later");
+            }
+            return img;
         }
         if (arg.startsWith("file://")) {
             arg = arg.substring(7);
