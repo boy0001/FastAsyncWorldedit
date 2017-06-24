@@ -143,6 +143,11 @@ public class WorldEditListener implements Listener {
         final WorldEdit we = WorldEdit.getInstance();
 
         int action = event.getAction();
+        
+        if (action == null) {
+            return;
+        }
+        
         if (action == PlayerInteractEvent.LEFT_CLICK_BLOCK) {
             final Block clickedBlock = event.getBlock();
             final WorldVector pos = new WorldVector(LocalWorldAdapter.adapt(world), clickedBlock.getX(), clickedBlock.getY(), clickedBlock.getZ());
