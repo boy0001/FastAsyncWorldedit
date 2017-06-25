@@ -126,14 +126,14 @@ public class Schematic {
         }
         Extent extent = clipboard;
         Mask sourceMask = editSession.getSourceMask();
-        if (transform != null) {
+        if (transform != null && !transform.isIdentity()) {
             extent = new BlockTransformExtent(clipboard, transform, world.getWorldData().getBlockRegistry());
         } else if (sourceMask == null) {
             paste(editSession, to, pasteAir);
             return editSession;
         }
         ForwardExtentCopy copy = new ForwardExtentCopy(extent, clipboard.getRegion(), clipboard.getOrigin(), editSession, to);
-        if (transform != null) {
+        if (transform != null && !transform.isIdentity()) {
             copy.setTransform(transform);
         }
         if (sourceMask != null) {
