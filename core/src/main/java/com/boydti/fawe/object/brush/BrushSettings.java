@@ -234,10 +234,11 @@ public class BrushSettings {
     }
 
     public boolean canUse(Actor actor) {
-        for (String perm : getPermissions()) {
+        Set<String> perms = getPermissions();
+        for (String perm : perms) {
             if (actor.hasPermission(perm)) return true;
         }
-        return false;
+        return perms.isEmpty();
     }
 
 }
