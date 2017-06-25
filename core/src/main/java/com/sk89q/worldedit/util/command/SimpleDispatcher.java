@@ -61,7 +61,7 @@ public class SimpleDispatcher implements Dispatcher {
         for (String a : alias) {
             String lower = a.toLowerCase();
             if (commands.containsKey(lower)) {
-                Fawe.debug("Replacing commands is currently undefined behavior: " + StringMan.getString(alias));
+                Fawe.debug("Замена команды в настоящее время проявляется неопределенным поведением: " + StringMan.getString(alias));
                 return;
             }
         }
@@ -112,7 +112,7 @@ public class SimpleDispatcher implements Dispatcher {
         Set<String> aliases = getPrimaryAliases();
 
         if (aliases.isEmpty()) {
-            throw new InvalidUsageException("This command has no sub-commands.", this);
+            throw new InvalidUsageException("Эта команда не имеет субкоманды.", this);
         } else if (split.length > 0) {
             String subCommand = split[0];
             String subArguments = Joiner.on(" ").join(Arrays.copyOfRange(split, 1, split.length));
@@ -133,7 +133,7 @@ public class SimpleDispatcher implements Dispatcher {
 
         }
 
-        throw new InvalidUsageException("Please choose a sub-command.", this, true);
+        throw new InvalidUsageException("Пожалуйста, выберите субкоманду.", this, true);
     }
 
     @Override

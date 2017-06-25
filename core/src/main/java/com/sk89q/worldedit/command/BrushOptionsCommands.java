@@ -45,7 +45,7 @@ import java.util.zip.GZIPInputStream;
 /**
  * Tool commands.
  */
-@Command(aliases = {}, desc = "Tool commands")
+@Command(aliases = {}, desc = "Команды инструментов")
 public class BrushOptionsCommands extends MethodCommands {
 
     public BrushOptionsCommands(WorldEdit we) {
@@ -55,7 +55,7 @@ public class BrushOptionsCommands extends MethodCommands {
     @Command(
             aliases = {"/savebrush"},
             usage = "[name]",
-            desc = "Save your current brush",
+            desc = "Сохранитm текущую кисть",
             min = 1
     )
     @CommandPermissions("worldedit.brush.save")
@@ -84,7 +84,7 @@ public class BrushOptionsCommands extends MethodCommands {
 
     @Command(
             aliases = {"/loadbrush"},
-            desc = "load a brush",
+            desc = "Загрузить кисть",
             usage = "[name]",
             min = 1
     )
@@ -121,13 +121,13 @@ public class BrushOptionsCommands extends MethodCommands {
 
     @Command(
             aliases = {"/listbrush"},
-            desc = "List saved brushes",
+            desc = "Список сохраненных кистей",
             usage = "[mine|<filter>] [page=1]",
             min = 0,
             max = -1,
             flags = "dnp",
-            help = "List all brushes in the brush directory\n" +
-                    " -p <page> prints the requested page\n"
+            help = "Список всех кистей в каталоге кисти\n" +
+                    " -p <страница> скопировать запрошенную страницу\n"
     )
     @CommandPermissions("worldedit.brush.list")
     public void list(Actor actor, CommandContext args, @Switch('p') @Optional("1") int page) throws WorldEditException {
@@ -138,7 +138,7 @@ public class BrushOptionsCommands extends MethodCommands {
     @Command(
             aliases = {"none", "/none"},
             usage = "",
-            desc = "Unbind a bound tool from your current item",
+            desc = "Отвязать привязанный инструмент от вашего текущего предмета",
             min = 0,
             max = 0
     )
@@ -150,7 +150,7 @@ public class BrushOptionsCommands extends MethodCommands {
     @Command(
             aliases = {"/", ","},
             usage = "[on|off]",
-            desc = "Toggle the super pickaxe function",
+            desc = "Переключить функцию супер-кирки",
             min = 0,
             max = 1
     )
@@ -179,12 +179,12 @@ public class BrushOptionsCommands extends MethodCommands {
     @Command(
             aliases = {"patterns"},
             usage = "[page=1|search|pattern]",
-            desc = "View help about patterns",
-            help = "Patterns determine what blocks are placed\n" +
-                    " - Use [brackets] for arguments\n" +
-                    " - Use , to OR multiple\n" +
-                    "e.g. #surfacespread[10][#existing],andesite\n" +
-                    "More Info: https://git.io/vSPmA",
+            desc = "Просмотр справки о шаблонах",
+            help = "Шаблоны определяют, какие блоки расположены\n" +
+                    " - Используйте [brackets] для аргументов\n" +
+                    " - Используйте один или несколько\n" +
+                    "например #surfacespread[10][#existing],andesite\n" +
+                    "Больше информации: https://git.io/vSPmA",
             min = 1
     )
     public void patterns(Player player, LocalSession session, CommandContext args) throws WorldEditException {
@@ -197,13 +197,13 @@ public class BrushOptionsCommands extends MethodCommands {
     @Command(
             aliases = {"masks"},
             usage = "[page=1|search|mask]",
-            desc = "View help about masks",
-            help = "Masks determine if a block can be placed\n" +
-                    " - Use [brackets] for arguments\n" +
-                    " - Use , to OR multiple\n" +
-                    " - Use & to AND multiple\n" +
-                    "e.g. >[stone,dirt],#light[0][5],$jungle\n" +
-                    "More Info: https://git.io/v9r4K",
+            desc = "Просмотр справки о масках",
+            help = "Маски определяют, можно ли разместить блок\n" +
+                    " - Используйте [brackets] для аргементов\n" +
+                    " - Используйте один или несколько\n" +
+                    " - Используйте & один или несколько\n" +
+                    "например >[stone,dirt],#light[0][5],$jungle\n" +
+                    "Больше информации: https://git.io/v9r4K",
             min = 1
     )
     public void masks(Player player, LocalSession session, CommandContext args) throws WorldEditException {
@@ -216,12 +216,12 @@ public class BrushOptionsCommands extends MethodCommands {
     @Command(
             aliases = {"transforms"},
             usage = "[page=1|search|transform]",
-            desc = "View help about transforms",
-            help = "Transforms modify how a block is placed\n" +
-                    " - Use [brackets] for arguments\n" +
-                    " - Use , to OR multiple\n" +
-                    " - Use & to AND multiple\n" +
-                    "More Info: https://git.io/v9KHO",
+            desc = "Просмотр справки о преобразованиях",
+            help = "Преобразования изменяет способ размещения блока\n" +
+                    " - Используйте [brackets] для аргументов\n" +
+                    " - Используйте один или несколько\n" +
+                    " - Используйте & один или несколько\n" +
+                    "Больше информации: https://git.io/v9KHO",
             min = 1
     )
     public void transforms(Player player, LocalSession session, CommandContext args) throws WorldEditException {
@@ -234,8 +234,8 @@ public class BrushOptionsCommands extends MethodCommands {
     @Command(
             aliases = {"primary"},
             usage = "[brush arguments]",
-            desc = "Set the right click brush",
-            help = "Set the right click brush",
+            desc = "Установите кисть правого щелчка",
+            help = "Установите кисть правого щелчка",
             min = 1
     )
     public void primary(Player player, LocalSession session, CommandContext args) throws WorldEditException {
@@ -254,8 +254,8 @@ public class BrushOptionsCommands extends MethodCommands {
     @Command(
             aliases = {"secondary"},
             usage = "[brush arguments]",
-            desc = "Set the left click brush",
-            help = "Set the left click brush",
+            desc = "Установите кисть левого щелчка",
+            help = "Установите кисть левого щелчка",
             min = 1
     )
     public void secondary(Player player, LocalSession session, CommandContext args) throws WorldEditException {
@@ -274,7 +274,7 @@ public class BrushOptionsCommands extends MethodCommands {
     @Command(
             aliases = {"visualize", "visual", "vis"},
             usage = "[mode]",
-            desc = "Toggle between different visualization modes",
+            desc = "Переключение между различными режимами визуализации",
             min = 0,
             max = 1
     )
@@ -293,7 +293,7 @@ public class BrushOptionsCommands extends MethodCommands {
     @Command(
             aliases = {"target", "tar"},
             usage = "[mode]",
-            desc = "Toggle between different target modes",
+            desc = "Переключение между различными целевыми режимами",
             min = 0,
             max = 1
     )
@@ -312,7 +312,7 @@ public class BrushOptionsCommands extends MethodCommands {
     @Command(
             aliases = {"targetmask", "tarmask", "tm"},
             usage = "[mask]",
-            desc = "Set the targeting mask",
+            desc = "Установить маску таргетинга",
             min = 1,
             max = -1
     )
@@ -335,7 +335,7 @@ public class BrushOptionsCommands extends MethodCommands {
     @Command(
             aliases = {"scroll"},
             usage = "[none|clipboard|mask|pattern|range|size|visual|target]",
-            desc = "Toggle between different target modes",
+            desc = "Переключение между различными целевыми режимами",
             min = 1,
             max = -1
     )
@@ -360,7 +360,7 @@ public class BrushOptionsCommands extends MethodCommands {
     @Command(
             aliases = {"mask", "/mask"},
             usage = "[mask]",
-            desc = "Set the brush destination mask",
+            desc = "Установить маску назначения кисти",
             min = 0,
             max = -1
     )
@@ -391,8 +391,8 @@ public class BrushOptionsCommands extends MethodCommands {
     @Command(
             aliases = {"smask", "/smask", "/sourcemask", "sourcemask"},
             usage = "[mask]",
-            desc = "Set the brush source mask",
-            help = "Set the brush source mask",
+            desc = "Установить маску источника кисти",
+            help = "Установить маску источника кисти",
             min = 0,
             max = -1
     )
@@ -423,7 +423,7 @@ public class BrushOptionsCommands extends MethodCommands {
     @Command(
             aliases = {"transform"},
             usage = "[transform]",
-            desc = "Set the brush transform",
+            desc = "Задать преобразование кисти",
             min = 0,
             max = -1
     )
@@ -454,7 +454,7 @@ public class BrushOptionsCommands extends MethodCommands {
     @Command(
             aliases = {"mat", "material"},
             usage = "[pattern]",
-            desc = "Set the brush material",
+            desc = "Установить материал кисти",
             min = 1,
             max = 1
     )
@@ -479,7 +479,7 @@ public class BrushOptionsCommands extends MethodCommands {
     @Command(
             aliases = {"range"},
             usage = "[pattern]",
-            desc = "Set the brush range",
+            desc = "Установите диапазон кисти",
             min = 1,
             max = 1
     )
@@ -498,7 +498,7 @@ public class BrushOptionsCommands extends MethodCommands {
     @Command(
             aliases = {"size"},
             usage = "[pattern]",
-            desc = "Set the brush size",
+            desc = "Установить размер кисти",
             min = 1,
             max = 1
     )
