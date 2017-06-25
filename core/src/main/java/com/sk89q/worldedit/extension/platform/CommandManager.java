@@ -347,7 +347,9 @@ public final class CommandManager {
         }
         final Set<String> failedPermissions = new LinkedHashSet<>();
         if (actor instanceof Player) {
-            actor = new LocationMaskedPlayerWrapper((Player) actor, ((Player) actor).getLocation(), true) {
+            Player player = (Player) actor;
+            Player unwrapped = LocationMaskedPlayerWrapper.unwrap(player);
+            actor = new LocationMaskedPlayerWrapper((Player) unwrapped, player.getLocation(), true) {
                 @Override
                 public boolean hasPermission(String permission) {
                     if (!super.hasPermission(permission)) {
@@ -439,21 +441,27 @@ public final class CommandManager {
     }
 
     @Subscribe
-    public void handleCommand(final CommandEvent event) {
+    public void handleCommand(CommandEvent event) {
         Request.reset();
-        final FawePlayer<Object> fp = FawePlayer.wrap(event.getActor());
+        Actor actor = event.getActor();
+        if (actor instanceof Player) {
+            actor = LocationMaskedPlayerWrapper.wrap((Player) actor);
+        }
+        String args = event.getArguments();
+        CommandEvent finalEvent = new CommandEvent(actor, args);
+        final FawePlayer<Object> fp = FawePlayer.wrap(actor);
         TaskManager.IMP.taskNow(new Runnable() {
             @Override
             public void run() {
                 if (!fp.runAction(new Runnable() {
                     @Override
                     public void run() {
-                        handleCommandOnCurrentThread(event);
+                        handleCommandOnCurrentThread(finalEvent);
                     }
                 }, true, false)) {
                     BBC.WORLDEDIT_COMMAND_LIMIT.send(fp);
                 }
-                event.setCancelled(true);
+                finalEvent.setCancelled(true);
             }
         }, Fawe.isMainThread());
     }
