@@ -125,14 +125,17 @@ public class Schematic {
             editSession = builder.changeSetNull().fastmode(true).build();
         }
         Extent extent = clipboard;
+        Mask sourceMask = editSession.getSourceMask();
         if (transform != null) {
             extent = new BlockTransformExtent(clipboard, transform, world.getWorldData().getBlockRegistry());
+        } else if (sourceMask == null) {
+            paste(editSession, to, pasteAir);
+            return editSession;
         }
         ForwardExtentCopy copy = new ForwardExtentCopy(extent, clipboard.getRegion(), clipboard.getOrigin(), editSession, to);
         if (transform != null) {
             copy.setTransform(transform);
         }
-        Mask sourceMask = editSession.getSourceMask();
         if (sourceMask != null) {
             new MaskTraverser(sourceMask).reset(extent);
             copy.setSourceMask(sourceMask);
@@ -151,6 +154,7 @@ public class Schematic {
     }
 
     public void paste(Extent extent, WorldData worldData, Vector to, boolean pasteAir, Transform transform) {
+        checkNotNull(transform);
         Region region = clipboard.getRegion();
         BlockTransformExtent source = new BlockTransformExtent(clipboard, transform, worldData.getBlockRegistry());
         ForwardExtentCopy copy = new ForwardExtentCopy(source, clipboard.getRegion(), clipboard.getOrigin(), extent, to);
