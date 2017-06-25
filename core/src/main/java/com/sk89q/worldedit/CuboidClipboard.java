@@ -480,7 +480,7 @@ public class CuboidClipboard {
                 Math.abs(sizeRotated.getBlockY()),
                 Math.abs(sizeRotated.getBlockZ()));
         offset = offset.transform2D(angle, 0, 0, 0, 0)
-                .subtract(shiftX, 0, shiftZ);
+                .subtract(shiftX, 0, shiftZ).round();
         dx = cloned.dx;
         dxz = cloned.dxz;
     }
@@ -694,16 +694,12 @@ public class CuboidClipboard {
      * @throws MaxChangedBlocksException thrown if too many blocks were changed
      */
     public void place(EditSession editSession, Vector newOrigin, boolean noAir) throws MaxChangedBlocksException {
-        Vector v = new Vector(0, 0, 0);
         int ox = newOrigin.getBlockX();
         int oy = newOrigin.getBlockY();
         int oz = newOrigin.getBlockZ();
-        for (int x = 0; x < size.getBlockX(); ++x) {
-            v.mutX(x + ox);
-            for (int y = 0; y < size.getBlockY(); ++y) {
-                v.mutY(y + oy);
-                for (int z = 0; z < size.getBlockZ(); ++z) {
-                    v.mutZ(z + oz);
+        for (int y = 0; y < size.getBlockY(); ++y) {
+            for (int z = 0; z < size.getBlockZ(); ++z) {
+                for (int x = 0; x < size.getBlockX(); ++x) {
                     final BaseBlock block = getBlock(x, y, z);
                     if (block == null) {
                         continue;
@@ -711,7 +707,7 @@ public class CuboidClipboard {
                     if (noAir && block.isAir()) {
                         continue;
                     }
-                    editSession.setBlockFast(new Vector(x, y, z).add(newOrigin), block);
+                    editSession.setBlock(x + ox, y + oy, z + oz, block);
                 }
             }
         }

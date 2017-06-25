@@ -12,6 +12,7 @@ import com.boydti.fawe.util.SetQueue;
 import com.boydti.fawe.util.TaskManager;
 import com.boydti.fawe.util.WEManager;
 import com.boydti.fawe.wrappers.FakePlayer;
+import com.boydti.fawe.wrappers.LocationMaskedPlayerWrapper;
 import com.boydti.fawe.wrappers.PlayerWrapper;
 import com.sk89q.worldedit.EditSession;
 import com.sk89q.worldedit.EmptyClipboardException;
@@ -75,7 +76,7 @@ public abstract class FawePlayer<T> extends Metadatable {
             return ((FakePlayer) obj).toFawePlayer();
         }
         if (obj instanceof Player) {
-            Player actor = (Player) obj;
+            Player actor = LocationMaskedPlayerWrapper.unwrap((Player) obj);
             if (obj.getClass().getSimpleName().equals("PlayerProxy")) {
                 try {
                     Field fieldBasePlayer = actor.getClass().getDeclaredField("basePlayer");

@@ -73,9 +73,9 @@ public class BrushTool implements DoubleActionTraceTool, ScrollTool, MovableTool
     private TargetMode targetMode = TargetMode.TARGET_BLOCK_RANGE;
     private Mask targetMask = null;
 
-    private transient BrushSettings context = new BrushSettings();
-    private transient BrushSettings primary = context;
+    private transient BrushSettings primary = new BrushSettings();
     private transient BrushSettings secondary = new BrushSettings();
+    private transient BrushSettings context = primary;
 
     private transient VisualExtent visualExtent;
     private transient Lock lock = new ReentrantLock();
@@ -392,12 +392,10 @@ public class BrushTool implements DoubleActionTraceTool, ScrollTool, MovableTool
                 setContext(primary);
                 break;
             case SECONDARY:
-                if (primary == secondary) {
-                    return false;
-                }
                 setContext(secondary);
                 break;
         }
+
 
         BrushSettings current = getContext();
         Brush brush = current.getBrush();
