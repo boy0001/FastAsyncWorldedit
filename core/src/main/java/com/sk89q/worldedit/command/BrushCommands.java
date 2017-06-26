@@ -80,7 +80,6 @@ import com.sk89q.worldedit.extent.clipboard.io.ClipboardFormat;
 import com.sk89q.worldedit.function.mask.BlockMask;
 import com.sk89q.worldedit.function.mask.ExistingBlockMask;
 import com.sk89q.worldedit.function.mask.Mask;
-import com.sk89q.worldedit.function.pattern.BlockPattern;
 import com.sk89q.worldedit.function.pattern.Pattern;
 import com.sk89q.worldedit.session.ClipboardHolder;
 import com.sk89q.worldedit.util.command.InvalidUsageException;
@@ -102,7 +101,7 @@ import javafx.scene.paint.Color;
  * Commands to set brush shape.
  */
 @Command(aliases = {"brush", "br", "/b"},
-        desc = "Commands to build and draw from far away. [More Info](https://github.com/boy0001/FastAsyncWorldedit/wiki/Brushes)"
+        desc = "Commands to build and draw from far away. [More Info](https://git.io/vSPYf)"
 )
 public class BrushCommands extends MethodCommands {
 
@@ -287,8 +286,8 @@ public class BrushCommands extends MethodCommands {
         } else {
             brush = new SphereBrush();
         }
-        if (fill instanceof BlockPattern) {
-            BaseBlock block = ((BlockPattern) fill).getBlock();
+        if (fill instanceof BaseBlock) {
+            BaseBlock block = (BaseBlock) fill;
             switch (block.getId()) {
                 case BlockID.SAND:
                 case BlockID.GRAVEL:
@@ -595,7 +594,7 @@ public class BrushCommands extends MethodCommands {
     public BrushSettings extinguishBrush(Player player, LocalSession session, EditSession editSession, @Optional("5") double radius, CommandContext context) throws WorldEditException {
         worldEdit.checkMaxBrushRadius(radius);
 
-        Pattern fill = new BlockPattern(new BaseBlock(0));
+        Pattern fill = (new BaseBlock(0));
         return get(context)
                 .setBrush(new SphereBrush())
                 .setSize(radius)

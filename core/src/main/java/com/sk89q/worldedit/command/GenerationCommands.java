@@ -68,7 +68,7 @@ import static com.sk89q.minecraft.util.commands.Logging.LogMode.POSITION;
 /**
  * Commands for the generation of shapes and other objects.
  */
-@Command(aliases = {}, desc = "Create structures and features: [More Info](http://wiki.sk89q.com/wiki/WorldEdit/Generation)")
+@Command(aliases = {}, desc = "Create structures and features: [More Info](https://goo.gl/KuLFRW)")
 public class GenerationCommands {
 
     private final WorldEdit worldEdit;
@@ -125,8 +125,8 @@ public class GenerationCommands {
     public void image(Player player, LocalSession session, EditSession editSession, String arg, @Optional("true") boolean randomize, @Optional("100") int threshold) throws WorldEditException, ParameterException, IOException {
         TextureUtil tu = Fawe.get().getCachedTextureUtil(randomize, 0, threshold);
         URL url = new URL(arg);
-        if (!url.getHost().equalsIgnoreCase("i.imgur.com")) {
-            throw new IOException("Only i.imgur.com links are allowed!");
+        if (!url.getHost().equalsIgnoreCase("i.imgur.com") && !url.getHost().equalsIgnoreCase("empcraft.com")) {
+            throw new IOException("Only i.imgur.com or empcraft.com/ui links are allowed!");
         }
         FawePlayer<Object> fp = FawePlayer.wrap(player);
         BufferedImage image = MainUtil.toRGB(ImageIO.read(url));

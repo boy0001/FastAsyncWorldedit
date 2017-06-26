@@ -9,11 +9,14 @@ import com.boydti.fawe.object.io.FastByteArrayOutputStream;
 import com.boydti.fawe.util.ArrayUtil;
 import com.boydti.fawe.util.MainUtil;
 import com.boydti.fawe.util.MathMan;
+import com.boydti.fawe.util.ReflectionUtils;
 import com.sk89q.jnbt.CompoundTag;
+import com.sk89q.jnbt.IntTag;
 import com.sk89q.jnbt.ListTag;
 import com.sk89q.jnbt.NBTConstants;
 import com.sk89q.jnbt.NBTInputStream;
 import com.sk89q.jnbt.NBTOutputStream;
+import com.sk89q.jnbt.Tag;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -265,6 +268,27 @@ public class MCAChunk extends FaweChunk<Void> {
                         setNibble(thisIndex, thisBlockLight, getNibble(otherIndex, otherBlockLight));
                     }
                 }
+            }
+        }
+        if (!other.tiles.isEmpty()) {
+            for (Map.Entry<Short, CompoundTag> entry : other.tiles.entrySet()) {
+                int key = entry.getKey();
+                int x = MathMan.untripleBlockCoordX(key);
+                int y = MathMan.untripleBlockCoordY(key);
+                int z = MathMan.untripleBlockCoordZ(key);
+                if (x < minX || x > maxX) continue;
+                if (z < minZ || z > maxZ) continue;
+                if (y < minY || y > maxY) continue;
+                x += offsetX;
+                y += offsetY;
+                z += offsetZ;
+                short pair = MathMan.tripleBlockCoord(x, y, z);
+                CompoundTag tag = entry.getValue();
+                Map<String, Tag> map = ReflectionUtils.getMap(tag.getValue());
+                map.put("x", new IntTag(x + (getX() << 4)));
+                map.put("y", new IntTag(y));
+                map.put("z", new IntTag(z + (getZ() << 4)));
+                tiles.put(pair, tag);
             }
         }
     }
@@ -744,6 +768,57 @@ public class MCAChunk extends FaweChunk<Void> {
     public void removeEntity(UUID uuid) {
         setModified();
         entities.remove(uuid);
+    }
+
+    private final boolean idsEqual(byte[] a, byte[] b) {
+        // Assumes both are null, or none are (idsEqual - 2d array)
+        // Assumes length is 4096
+        if (a == b) return true;
+        for (char i = 0; i < 4096; i++) {
+            if (a[i] != b[i]) return false;
+        }
+        return true;
+    }
+
+    private final boolean idsEqual(byte[][] a, byte[][] b, boolean matchNullToAir) {
+        // Assumes length is 16
+        for (byte i = 0; i < 16; i++) {
+            if ((a[i] == null) != (b[i] == null)) {
+                if (matchNullToAir) {
+                    if (b[i] != null) {
+                        for (byte c : b[i]) {
+                            if (c != 0) return false;
+                        }
+                    } else if (a[i] != null) {
+                        for (byte c : a[i]) {
+                            if (c != 0) return false;
+                        }
+                    }
+                }
+                return false;
+            }
+        }
+        // Check the chunks close to the ground first
+        for (byte i = 4; i < 8; i++) {
+            if (!idsEqual(a[i], b[i])) return false;
+        }
+        for (byte i = 3; i >= 0; i--) {
+            if (!idsEqual(a[i], b[i])) return false;
+        }
+        for (byte i = 8; i < 16; i++) {
+            if (!idsEqual(a[i], b[i])) return false;
+        }
+        return true;
+    }
+
+    /**
+     * Check if the ids match the ids in the other chunk
+     * @param other
+     * @param matchNullToAir
+     * @return
+     */
+    public boolean idsEqual(MCAChunk other, boolean matchNullToAir) {
+        return idsEqual(other.ids, this.ids, matchNullToAir);
     }
 
     @Override

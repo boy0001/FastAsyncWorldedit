@@ -17,7 +17,6 @@ import com.sk89q.worldedit.entity.BaseEntity;
 import com.sk89q.worldedit.entity.Entity;
 import com.sk89q.worldedit.function.mask.Mask;
 import com.sk89q.worldedit.function.operation.Operation;
-import com.sk89q.worldedit.function.pattern.BlockPattern;
 import com.sk89q.worldedit.function.pattern.Pattern;
 import com.sk89q.worldedit.regions.Region;
 import com.sk89q.worldedit.session.ClipboardHolder;
@@ -176,17 +175,17 @@ public interface Extent extends InputExtent, OutputExtent {
     }
 
     default public void addOres(Region region, Mask mask) throws WorldEditException {
-        addOre(region, mask, new BlockPattern(BlockID.DIRT), 33, 10, 100, 0, 255);
-        addOre(region, mask, new BlockPattern(BlockID.GRAVEL), 33, 8, 100, 0, 255);
-        addOre(region, mask, new BlockPattern(BlockID.STONE, 1), 33, 10, 100, 0, 79);
-        addOre(region, mask, new BlockPattern(BlockID.STONE, 3), 33, 10, 100, 0, 79);
-        addOre(region, mask, new BlockPattern(BlockID.STONE, 5), 33, 10, 100, 0, 79);
-        addOre(region, mask, new BlockPattern(BlockID.COAL_ORE), 17, 20, 100, 0, 127);
-        addOre(region, mask, new BlockPattern(BlockID.IRON_ORE), 9, 20, 100, 0, 63);
-        addOre(region, mask, new BlockPattern(BlockID.GOLD_ORE), 9, 2, 100, 0, 31);
-        addOre(region, mask, new BlockPattern(BlockID.REDSTONE_ORE), 8, 8, 100, 0, 15);
-        addOre(region, mask, new BlockPattern(BlockID.DIAMOND_ORE), 8, 1, 100, 0, 15);
-        addOre(region, mask, new BlockPattern(BlockID.LAPIS_LAZULI_ORE), 7, 1, 100, 0, 15);
-        addOre(region, mask, new BlockPattern(BlockID.EMERALD_ORE), 5, 1, 100, 4, 31);
+        addOre(region, mask, FaweCache.getBlock(BlockID.DIRT, 0), 33, 10, 100, 0, 255);
+        addOre(region, mask, FaweCache.getBlock(BlockID.GRAVEL, 0), 33, 8, 100, 0, 255);
+        addOre(region, mask, FaweCache.getBlock(BlockID.STONE, 1), 33, 10, 100, 0, 79);
+        addOre(region, mask, FaweCache.getBlock(BlockID.STONE, 3), 33, 10, 100, 0, 79);
+        addOre(region, mask, FaweCache.getBlock(BlockID.STONE, 5), 33, 10, 100, 0, 79);
+        addOre(region, mask, FaweCache.getBlock(BlockID.COAL_ORE, 0), 17, 20, 100, 0, 127);
+        addOre(region, mask, FaweCache.getBlock(BlockID.IRON_ORE, 0), 9, 20, 100, 0, 63);
+        addOre(region, mask, FaweCache.getBlock(BlockID.GOLD_ORE, 0), 9, 2, 100, 0, 31);
+        addOre(region, mask, FaweCache.getBlock(BlockID.REDSTONE_ORE, 0), 8, 8, 100, 0, 15);
+        addOre(region, mask, FaweCache.getBlock(BlockID.DIAMOND_ORE, 0), 8, 1, 100, 0, 15);
+        addOre(region, mask, FaweCache.getBlock(BlockID.LAPIS_LAZULI_ORE, 0), 7, 1, 100, 0, 15);
+        addOre(region, mask, FaweCache.getBlock(BlockID.EMERALD_ORE, 0), 5, 1, 100, 4, 31);
     }
 }

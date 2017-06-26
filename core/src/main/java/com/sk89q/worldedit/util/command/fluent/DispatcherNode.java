@@ -19,11 +19,14 @@
 
 package com.sk89q.worldedit.util.command.fluent;
 
+import com.boydti.fawe.config.Commands;
+import com.sk89q.minecraft.util.commands.Command;
 import com.sk89q.worldedit.util.command.CallableProcessor;
 import com.sk89q.worldedit.util.command.CommandCallable;
 import com.sk89q.worldedit.util.command.Dispatcher;
 import com.sk89q.worldedit.util.command.SimpleDispatcher;
 import com.sk89q.worldedit.util.command.parametric.ParametricBuilder;
+import javax.annotation.Nullable;
 
 /**
  * A collection of commands.
@@ -93,13 +96,50 @@ public class DispatcherNode {
      * @return this object
      * @see ParametricBuilder#registerMethodsAsCommands(com.sk89q.worldedit.util.command.Dispatcher, Object)
      */
-    public DispatcherNode registerMethods(Object object, CallableProcessor processor) {
+    public DispatcherNode registerMethods(Object object, @Nullable CallableProcessor processor) {
         ParametricBuilder builder = graph.getBuilder();
         if (builder == null) {
             throw new RuntimeException("No ParametricBuilder set");
         }
         builder.registerMethodsAsCommands(getDispatcher(), object, processor);
         return this;
+    }
+
+    /**
+     * Build and register sub commands with this dispatcher using the
+     * {@link ParametricBuilder} assigned on the objects registered command aliases {@link com.sk89q.minecraft.util.commands.Command}.
+     *
+     * @param object the object provided to the {@link ParametricBuilder}
+     * @return this object
+     */
+    public DispatcherNode registerSubMethods(Object object) {
+        return registerSubMethods(object, null);
+    }
+
+    /**
+     * Build and register sub commands with this dispatcher using the
+     * {@link ParametricBuilder} assigned on the objects registered command aliases {@link com.sk89q.minecraft.util.commands.Command}.
+     *
+     * @param object the object provided to the {@link ParametricBuilder}
+     * @param processor the command processor
+     * @return this object
+     */
+    public DispatcherNode registerSubMethods(Object object, @Nullable CallableProcessor processor) {
+        Class<? extends Object> clazz = object.getClass();
+        return groupAndDescribe(clazz).registerMethods(object, processor).parent();
+    }
+
+    public DispatcherNode groupAndDescribe(Class clazz) {
+        Command cmd = (Command) clazz.getAnnotation(Command.class);
+        if (cmd == null) {
+            throw new RuntimeException("This class does not have any command annotations");
+        }
+        cmd = Commands.translate(clazz, cmd);
+        DispatcherNode res = group(cmd.aliases());
+        if (cmd.desc() != null && !cmd.desc().isEmpty()) {
+            res = res.describeAs(cmd.desc());
+        }
+        return res;
     }
 
     /**
@@ -114,7 +154,8 @@ public class DispatcherNode {
     public DispatcherNode group(String... alias) {
         SimpleDispatcher command = new SimpleDispatcher();
         getDispatcher().registerCommand(command, alias);
-        return new DispatcherNode(graph, this, command);
+        DispatcherNode res = new DispatcherNode(graph, this, command);
+        return res;
     }
 
     /**

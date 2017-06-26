@@ -36,10 +36,10 @@ public class PlotSquaredFeature extends FaweMaskManager {
             new PlotSetBiome();
         }
         try {
+            new MoveTo512();
             if (Settings.Enabled_Components.WORLDS) {
                 new CreateFromImage();
                 new ReplaceAll();
-                new MoveTo512();
             }
         } catch (Throwable e) {
             Fawe.debug("You need to update PlotSquared to access the CFI and REPLACEALL commands");

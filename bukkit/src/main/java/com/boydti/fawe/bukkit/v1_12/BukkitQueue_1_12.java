@@ -378,6 +378,7 @@ public class BukkitQueue_1_12 extends BukkitQueue_0<net.minecraft.server.v1_12_R
                                     iter.remove();
                                 }
                                 pool.awaitQuiescence(Long.MAX_VALUE, TimeUnit.MILLISECONDS);
+                                pool.shutdown();
                             }
                             synchronized (lock) {
                                 lock.notifyAll();

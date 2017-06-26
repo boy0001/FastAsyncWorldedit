@@ -37,7 +37,7 @@ import static com.sk89q.minecraft.util.commands.Logging.LogMode.ALL;
 /**
  * Commands related to scripting.
  */
-@Command(aliases = {}, desc = "Run craftscripts: [More Info](http://wiki.sk89q.com/wiki/WorldEdit/Scripting)")
+@Command(aliases = {}, desc = "Run craftscripts: [More Info](https://goo.gl/dHDxLG)")
 public class ScriptingCommands {
 
     private final WorldEdit worldEdit;

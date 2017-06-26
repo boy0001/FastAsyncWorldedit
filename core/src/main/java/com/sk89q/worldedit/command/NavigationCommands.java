@@ -43,7 +43,7 @@ import static com.sk89q.minecraft.util.commands.Logging.LogMode.POSITION;
 /**
  * Commands for moving the player around.
  */
-@Command(aliases = {}, desc = "Commands for moving the player around: [More Info](http://wiki.sk89q.com/wiki/WorldEdit/Getting_around)")
+@Command(aliases = {}, desc = "Commands for moving the player around: [More Info](https://goo.gl/uQTUiT)")
 public class NavigationCommands {
 
     @SuppressWarnings("unused")

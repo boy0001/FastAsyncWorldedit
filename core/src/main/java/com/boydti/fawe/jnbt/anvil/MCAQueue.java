@@ -10,6 +10,7 @@ import com.boydti.fawe.object.FaweQueue;
 import com.boydti.fawe.object.RegionWrapper;
 import com.boydti.fawe.object.RunnableVal2;
 import com.boydti.fawe.object.RunnableVal4;
+import com.boydti.fawe.object.collection.IterableThreadLocal;
 import com.boydti.fawe.util.MainUtil;
 import com.sk89q.jnbt.CompoundTag;
 import com.sk89q.worldedit.Vector;
@@ -37,6 +38,12 @@ public class MCAQueue extends NMSMappedFaweQueue<FaweQueue, FaweChunk, FaweChunk
             return new MutableMCABackedBaseBlock();
         }
     };
+
+    @Override
+    protected void finalize() throws Throwable {
+        IterableThreadLocal.clean(blockStore);
+        super.finalize();
+    }
 
     public MCAQueue(FaweQueue parent) {
         super(parent.getWEWorld(), new MCAQueueMap());
@@ -80,6 +87,59 @@ public class MCAQueue extends NMSMappedFaweQueue<FaweQueue, FaweChunk, FaweChunk
         } else {
             return 0;
         }
+    }
+
+    /**
+     *
+     * @param newChunk
+     * @param bx
+     * @param tx
+     * @param bz
+     * @param tz
+     * @param oX
+     * @param oZ
+     * @return true if the newChunk has been changed
+     */
+    public boolean copyTo(MCAChunk newChunk, int bx, int tx, int bz, int tz, int oX, int oZ) {
+        int obx = bx - oX;
+        int obz = bz - oZ;
+        int otx = tx - oX;
+        int otz = tz - oZ;
+        int otherBCX = (obx) >> 4;
+        int otherBCZ = (obz) >> 4;
+        int otherTCX = (otx) >> 4;
+        int otherTCZ = (otz) >> 4;
+        int cx = newChunk.getX();
+        int cz = newChunk.getZ();
+        int cbx = (cx << 4) - oX;
+        int cbz = (cz << 4) - oZ;
+
+        boolean changed = false;
+        for (int otherCZ = otherBCZ; otherCZ <= otherTCZ; otherCZ++) {
+            for (int otherCX = otherBCX; otherCX <= otherTCX; otherCX++) {
+                FaweChunk chunk;
+                synchronized (this) {
+                    chunk = this.getFaweChunk(otherCX, otherCZ);
+                }
+                if (!(chunk instanceof NullFaweChunk)) {
+                    changed = true;
+                    MCAChunk other = (MCAChunk) chunk;
+                    int ocbx = otherCX << 4;
+                    int ocbz = otherCZ << 4;
+                    int octx = ocbx + 15;
+                    int octz = ocbz + 15;
+                    int offsetY = 0;
+                    int minX = obx > ocbx ? (obx - ocbx) & 15 : 0;
+                    int maxX = otx < octx ? (otx - ocbx) : 15;
+                    int minZ = obz > ocbz ? (obz - ocbz) & 15 : 0;
+                    int maxZ = otz < octz ? (otz - ocbz) : 15;
+                    int offsetX = ocbx - cbx;
+                    int offsetZ = ocbz - cbz;
+                    newChunk.copyFrom(other, minX, maxX, 0, 255, minZ, maxZ, offsetX, offsetY, offsetZ);
+                }
+            }
+        }
+        return changed;
     }
 
     public void pasteRegion(MCAQueue from, final RegionWrapper regionFrom, Vector offset) throws IOException {
@@ -206,6 +266,7 @@ public class MCAQueue extends NMSMappedFaweQueue<FaweQueue, FaweChunk, FaweChunk
         }
         from.clear();
         pool.awaitQuiescence(Long.MAX_VALUE, TimeUnit.MILLISECONDS);
+        pool.shutdown();
     }
 
     public <G, T extends MCAFilter<G>> T filterRegion(final T filter, final RegionWrapper region) {

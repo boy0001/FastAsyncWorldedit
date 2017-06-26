@@ -58,7 +58,7 @@ import java.util.Set;
 import javafx.scene.paint.Color;
 
 @Command(aliases = {"patterns"},
-        desc = "Help for the various patterns. [More Info](https://github.com/boy0001/FastAsyncWorldedit/wiki/WorldEdit-and-FAWE-patterns)"
+        desc = "Help for the various patterns. [More Info](https://git.io/vSPmA)"
 )
 public class PatternCommands extends MethodCommands {
     public PatternCommands(WorldEdit worldEdit) {

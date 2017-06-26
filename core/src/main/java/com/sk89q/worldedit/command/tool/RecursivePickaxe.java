@@ -13,7 +13,6 @@ import com.sk89q.worldedit.extension.platform.Platform;
 import com.sk89q.worldedit.function.block.BlockReplace;
 import com.sk89q.worldedit.function.mask.Mask;
 import com.sk89q.worldedit.function.operation.Operations;
-import com.sk89q.worldedit.function.pattern.BlockPattern;
 import com.sk89q.worldedit.function.visitor.RecursiveVisitor;
 import com.sk89q.worldedit.world.World;
 
@@ -53,7 +52,7 @@ public class RecursivePickaxe implements BlockTool {
         editSession.getSurvivalExtent().setToolUse(config.superPickaxeManyDrop);
 
         final int radius = (int) range;
-        final BlockReplace replace = new BlockReplace(editSession, new BlockPattern(editSession.nullBlock));
+        final BlockReplace replace = new BlockReplace(editSession, (editSession.nullBlock));
         editSession.setMask((Mask) null);
         RecursiveVisitor visitor = new RecursiveVisitor(new IdMask(editSession), replace, radius, editSession);
         visitor.visit(pos);

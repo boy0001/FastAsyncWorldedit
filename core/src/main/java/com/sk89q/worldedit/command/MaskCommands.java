@@ -46,7 +46,7 @@ import com.sk89q.worldedit.util.command.parametric.Optional;
 import com.sk89q.worldedit.world.biome.BaseBiome;
 
 @Command(aliases = {"masks"},
-        desc = "Help for the various masks. [More Info](https://github.com/boy0001/FastAsyncWorldedit/wiki/WorldEdit---FAWE-mask-list)"
+        desc = "Help for the various masks. [More Info](https://git.io/v9r4K)"
 )
 public class MaskCommands extends MethodCommands {
     public MaskCommands(WorldEdit worldEdit) {

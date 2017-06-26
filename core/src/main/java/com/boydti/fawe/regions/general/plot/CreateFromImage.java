@@ -60,7 +60,7 @@ import javax.imageio.ImageIO;
         aliases = {"createfromheightmap", "createfromimage", "cfhm"},
         category = CommandCategory.APPEARANCE,
         requiredType = RequiredType.NONE,
-        description = "Generate a world from an image heightmap: [More info](https://www.youtube.com/watch?v=cJZk1GTig7A)",
+        description = "Generate a world from an image heightmap: [More info](https://goo.gl/friFbV)",
         usage = "/plots cfi [url or dimensions]"
 )
 public class CreateFromImage extends Command {

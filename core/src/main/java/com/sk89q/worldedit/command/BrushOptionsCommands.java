@@ -45,7 +45,8 @@ import java.util.zip.GZIPInputStream;
 /**
  * Tool commands.
  */
-@Command(aliases = {}, desc = "Tool commands")
+
+@Command(aliases = {"brush", "br", "/b"}, desc = "Tool commands")
 public class BrushOptionsCommands extends MethodCommands {
 
     public BrushOptionsCommands(WorldEdit we) {

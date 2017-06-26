@@ -51,7 +51,6 @@ import com.sk89q.worldedit.extent.clipboard.io.ClipboardFormat;
 import com.sk89q.worldedit.function.mask.ExistingBlockMask;
 import com.sk89q.worldedit.function.mask.Mask;
 import com.sk89q.worldedit.function.operation.Operations;
-import com.sk89q.worldedit.function.pattern.BlockPattern;
 import com.sk89q.worldedit.function.pattern.Pattern;
 import com.sk89q.worldedit.function.visitor.EntityVisitor;
 import com.sk89q.worldedit.internal.expression.Expression;
@@ -116,8 +115,8 @@ public class UtilityCommands extends MethodCommands {
         worldEdit.checkMaxRadius(radius);
         Vector pos = session.getPlacementPosition(player);
         int affected = 0;
-        if (pattern instanceof BlockPattern) {
-            affected = editSession.fillXZ(pos, ((BlockPattern) pattern).getBlock(), radius, (int) depth, false);
+        if (pattern instanceof BaseBlock) {
+            affected = editSession.fillXZ(pos, ((BaseBlock) pattern), radius, (int) depth, false);
         } else {
             affected = editSession.fillXZ(pos, pattern, radius, (int) depth, false);
         }
@@ -137,8 +136,8 @@ public class UtilityCommands extends MethodCommands {
         worldEdit.checkMaxRadius(radius);
         Vector pos = session.getPlacementPosition(player);
         int affected = 0;
-        if (pattern instanceof BlockPattern) {
-            affected = editSession.fillXZ(pos, ((BlockPattern) pattern).getBlock(), radius, (int) depth, true);
+        if (pattern instanceof BaseBlock) {
+            affected = editSession.fillXZ(pos, ((BaseBlock) pattern), radius, (int) depth, true);
         } else {
             affected = editSession.fillXZ(pos, pattern, radius, (int) depth, true);
         }

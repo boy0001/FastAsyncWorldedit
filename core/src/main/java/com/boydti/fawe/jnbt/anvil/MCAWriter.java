@@ -1,5 +1,6 @@
 package com.boydti.fawe.jnbt.anvil;
 
+import com.boydti.fawe.object.collection.IterableThreadLocal;
 import com.boydti.fawe.object.io.BufferedRandomAccessFile;
 import com.boydti.fawe.util.MainUtil;
 import java.io.File;
@@ -103,8 +104,8 @@ public abstract class MCAWriter {
         byte[] fileBuf = new byte[1 << 16];
         int mcaXMin = 0;
         int mcaZMin = 0;
-        int mcaXMax = mcaXMin + width >> 9;
-        int mcaZMax = mcaZMin + length >> 9;
+        int mcaXMax = mcaXMin + ((width - 1) >> 9);
+        int mcaZMax = mcaZMin + ((length - 1) >> 9);
 
         for (int mcaZ = mcaXMin; mcaZ <= mcaZMax; mcaZ++) {
             for (int mcaX = mcaXMin; mcaX <= mcaXMax; mcaX++) {
@@ -208,5 +209,9 @@ public abstract class MCAWriter {
             }
         }
         pool.awaitQuiescence(Long.MAX_VALUE, TimeUnit.MILLISECONDS);
+        pool.shutdown();
+        IterableThreadLocal.clean(byteStore1);
+        IterableThreadLocal.clean(byteStore2);
+        IterableThreadLocal.clean(deflateStore);
     }
 }
