@@ -48,7 +48,7 @@ import java.util.Map;
 import java.util.Scanner;
 import java.util.TimeZone;
 
-@Command(aliases = {"we", "worldedit", "fawe"}, desc = "Updating, informational, debug and help commands")
+@Command(aliases = {"worldedit", "we", "fawe"}, desc = "Updating, informational, debug and help commands")
 public class WorldEditCommands {
     private static final DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss z");
 

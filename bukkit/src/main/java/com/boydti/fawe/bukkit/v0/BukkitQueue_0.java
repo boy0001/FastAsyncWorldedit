@@ -59,6 +59,11 @@ public abstract class BukkitQueue_0<CHUNK, CHUNKSECTIONS, SECTION> extends NMSMa
         }
     }
 
+    public static BukkitImplAdapter getAdapter() {
+        if (adapter == null) setupAdapter(null);
+        return adapter;
+    }
+
     @Override
     public File getSaveFolder() {
         return new File(Bukkit.getWorldContainer(), getWorldName() + File.separator + "region");

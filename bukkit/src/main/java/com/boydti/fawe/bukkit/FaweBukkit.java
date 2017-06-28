@@ -22,6 +22,7 @@ import com.boydti.fawe.regions.FaweMaskManager;
 import com.boydti.fawe.util.MainUtil;
 import com.boydti.fawe.util.ReflectionUtils;
 import com.boydti.fawe.util.TaskManager;
+import com.sk89q.worldedit.bukkit.BukkitWorld;
 import com.sk89q.worldedit.bukkit.EditSessionBlockChangeDelegate;
 import com.sk89q.worldedit.bukkit.WorldEditPlugin;
 import com.sk89q.worldedit.world.World;
@@ -68,7 +69,8 @@ public class FaweBukkit implements IFawe, Listener {
         try {
             Fawe.set(this);
             setupInjector();
-            com.sk89q.worldedit.bukkit.BukkitPlayer.inject();
+            com.sk89q.worldedit.bukkit.BukkitPlayer.inject(); // Fixes
+            BukkitWorld.inject(); // Fixes
             try {
                 new BrushListener(plugin);
             } catch (Throwable e) {
