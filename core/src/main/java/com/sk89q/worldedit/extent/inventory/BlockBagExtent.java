@@ -80,7 +80,12 @@ public class BlockBagExtent extends AbstractDelegateExtent {
     }
 
     @Override
-    public boolean setBlock(Vector position, BaseBlock block) throws WorldEditException {
+    public boolean setBlock(Vector pos, BaseBlock block) throws WorldEditException {
+        return setBlock(pos.getBlockX(), pos.getBlockY(), pos.getBlockZ(), block);
+    }
+
+    @Override
+    public boolean setBlock(int x, int y, int z, BaseBlock block) throws WorldEditException {
         CompoundTag nbt = block.getNbtData();
         final int type = block.getType();
         if (type != 0) {
@@ -97,10 +102,12 @@ public class BlockBagExtent extends AbstractDelegateExtent {
             } catch (BlockBagException e) {
                 missingBlocks[type]++;
                 return false;
+            } catch (Throwable e) {
+                throw e;
             }
         }
         if (mine) {
-            BaseBlock lazyBlock = getExtent().getLazyBlock(position);
+            BaseBlock lazyBlock = getExtent().getLazyBlock(x, y, z);
             int existing = lazyBlock.getType();
             if (existing != 0) {
                 try {
@@ -109,7 +116,7 @@ public class BlockBagExtent extends AbstractDelegateExtent {
                 }
             }
         }
-        return super.setBlock(position, block);
+        return super.setBlock(x, y, z, block);
     }
 
     public static Class<?> inject() {

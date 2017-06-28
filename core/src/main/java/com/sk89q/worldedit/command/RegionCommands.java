@@ -298,7 +298,7 @@ public class RegionCommands extends MethodCommands {
 
     @Command(
             aliases = {"/replace", "/re", "/rep", "/r"},
-            usage = "[from-block] <to-block>",
+            usage = "[from-mask] <to-pattern>",
             desc = "Replace all blocks in the selection with another",
             flags = "f",
             min = 1,

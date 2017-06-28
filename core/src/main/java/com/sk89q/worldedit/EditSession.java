@@ -83,6 +83,7 @@ import com.sk89q.worldedit.extent.Extent;
 import com.sk89q.worldedit.extent.MaskingExtent;
 import com.sk89q.worldedit.extent.clipboard.BlockArrayClipboard;
 import com.sk89q.worldedit.extent.inventory.BlockBag;
+import com.sk89q.worldedit.extent.inventory.BlockBagExtent;
 import com.sk89q.worldedit.extent.world.SurvivalModeExtent;
 import com.sk89q.worldedit.function.GroundFunction;
 import com.sk89q.worldedit.function.RegionFunction;
@@ -315,14 +316,17 @@ public class EditSession extends AbstractWorld implements HasFaweQueue, Lighting
                 if (player != null && Fawe.imp().getBlocksHubApi() != null) {
                     changeSet = LoggingChangeSet.wrap(player, changeSet);
                 }
-                if (this.blockBag != null && limit.INVENTORY_MODE > 0) {
-                    changeSet = new BlockBagChangeSet(changeSet, blockBag, limit.INVENTORY_MODE == 1);
-                }
                 if (combineStages) {
+                    if (this.blockBag != null) {
+                        changeSet = new BlockBagChangeSet(changeSet, blockBag, limit.INVENTORY_MODE == 1);
+                    }
                     changeTask = changeSet;
                     changeSet.addChangeTask(queue);
                 } else {
                     this.extent = (history = new HistoryExtent(this, bypassHistory, changeSet, queue));
+                    if (this.blockBag != null) {
+                        this.extent = new BlockBagExtent(this.extent, blockBag, limit.INVENTORY_MODE == 1);
+                    }
                 }
             }
         }
