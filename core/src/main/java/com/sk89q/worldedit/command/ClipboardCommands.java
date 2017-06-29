@@ -73,7 +73,7 @@ import static com.sk89q.minecraft.util.commands.Logging.LogMode.REGION;
 /**
  * Clipboard commands.
  */
-@Command(aliases = {}, desc = "Related commands to copy and pasting blocks: [More Info](http://wiki.sk89q.com/wiki/WorldEdit/Clipboard)")
+@Command(aliases = {}, desc = "Related commands to copy and pasting blocks: [More Info](https://goo.gl/z2ScQR)")
 public class ClipboardCommands {
 
     private final WorldEdit worldEdit;
@@ -350,7 +350,7 @@ public class ClipboardCommands {
     }
 
     @Command(
-            aliases = {"/paste", "/p"},
+            aliases = {"/paste"},
             usage = "",
             flags = "sao",
             desc = "Paste the clipboard's contents",

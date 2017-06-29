@@ -47,7 +47,7 @@ import java.io.Serializable;
  * @version 1.0, 2009-03-17
  * @since 1.6
  */
-public class SparseBitSet implements Cloneable, Serializable {
+public final class SparseBitSet implements Cloneable, Serializable {
     /*  My apologies for listing all the additional authors, but concepts, code,
         and even comments have been re-used in this class definition from code in
         the JDK that was written and/or maintained by these people. I owe a debt,
@@ -541,14 +541,6 @@ public class SparseBitSet implements Cloneable, Serializable {
         return cache.cardinality;
     }
 
-    /**
-     * Sets the bit at the specified index to <code>false</code>.
-     *
-     * @param i a bit index.
-     * @throws IndexOutOfBoundsException if the specified index is negative
-     *                                   or equal to Integer.MAX_VALUE.
-     * @since 1.6
-     */
     public void clear(int i) {
         /*  In the interests of speed, no check is made here on whether the
             level3 block goes to all zero. This may be found and corrected
@@ -559,13 +551,14 @@ public class SparseBitSet implements Cloneable, Serializable {
             return;
         final int w = i >> SHIFT3;
         long[][] a2;
-        if ((a2 = bits[w >> SHIFT1]) == null)
+        int ws1 = w >> SHIFT1;
+        if (bits.length <= ws1 || (a2 = bits[ws1]) == null)
             return;
         long[] a3;
         if ((a3 = a2[(w >> SHIFT2) & MASK2]) == null)
             return;
         a3[w & MASK3] &= ~(1L << i); //  Clear the indicated bit
-        cache.hash = 0; //  Invalidate size, etc., 
+        cache.hash = 0; //  Invalidate size, etc.,
     }
 
     /**
@@ -1798,6 +1791,7 @@ public class SparseBitSet implements Cloneable, Serializable {
         long[][] a2;
         long[] a3;
         long word;
+        int last = 0;
         for (int w1 = 0; w1 != aLength1; ++w1)
             if ((a2 = a1[w1]) != null)
                 for (int w2 = 0; w2 != LENGTH2; ++w2)
@@ -1805,7 +1799,7 @@ public class SparseBitSet implements Cloneable, Serializable {
                         final int base = (w1 << SHIFT1) + (w2 << SHIFT2);
                         for (int w3 = 0; w3 != LENGTH3; ++w3)
                             if ((word = a3[w3]) != 0) {
-                                s.writeInt(base + w3);
+                                s.writeInt(-last + (last = (base + w3)));
                                 s.writeLong(word);
                                 --count;
                             }
@@ -1844,8 +1838,9 @@ public class SparseBitSet implements Cloneable, Serializable {
         /*  Read the keys and values, them into the set array, areas, and blocks. */
         long[][] a2;
         long[] a3;
+        int w = 0;
         for (int n = 0; n != count; ++n) {
-            final int w = s.readInt();
+            w += s.readInt();
             final int w3 = w & MASK3;
             final int w2 = (w >> SHIFT2) & MASK2;
             final int w1 = w >> SHIFT1;

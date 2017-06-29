@@ -3,6 +3,7 @@ package com.boydti.fawe.jnbt.anvil;
 import com.boydti.fawe.Fawe;
 import com.boydti.fawe.FaweCache;
 import com.boydti.fawe.object.PseudoRandom;
+import com.boydti.fawe.object.collection.IterableThreadLocal;
 import com.boydti.fawe.object.collection.LocalBlockVector2DSet;
 import com.boydti.fawe.object.collection.SummedAreaTable;
 import com.boydti.fawe.object.schematic.Schematic;
@@ -20,7 +21,6 @@ import com.sk89q.worldedit.blocks.BlockID;
 import com.sk89q.worldedit.extent.Extent;
 import com.sk89q.worldedit.extent.clipboard.Clipboard;
 import com.sk89q.worldedit.function.mask.Mask;
-import com.sk89q.worldedit.function.pattern.BlockPattern;
 import com.sk89q.worldedit.function.pattern.Pattern;
 import com.sk89q.worldedit.math.transform.AffineTransform;
 import com.sk89q.worldedit.math.transform.Transform;
@@ -562,8 +562,8 @@ public class HeightMapMCAGenerator extends MCAWriter implements Extent {
     }
 
     public void setOverlay(BufferedImage img, Pattern pattern, boolean white) {
-        if (pattern instanceof BlockPattern) {
-            setOverlay(img, (char) ((BlockPattern) pattern).getBlock().getCombined(), white);
+        if (pattern instanceof BaseBlock) {
+            setOverlay(img, (char) ((BaseBlock) pattern).getCombined(), white);
             return;
         }
         if (img.getWidth() != getWidth() || img.getHeight() != getLength())
@@ -584,8 +584,8 @@ public class HeightMapMCAGenerator extends MCAWriter implements Extent {
     }
 
     public void setMain(BufferedImage img, Pattern pattern, boolean white) {
-        if (pattern instanceof BlockPattern) {
-            setMain(img, (char) ((BlockPattern) pattern).getBlock().getCombined(), white);
+        if (pattern instanceof BaseBlock) {
+            setMain(img, (char) ((BaseBlock) pattern).getCombined(), white);
             return;
         }
         if (img.getWidth() != getWidth() || img.getHeight() != getLength())
@@ -606,8 +606,8 @@ public class HeightMapMCAGenerator extends MCAWriter implements Extent {
     }
 
     public void setFloor(BufferedImage img, Pattern pattern, boolean white) {
-        if (pattern instanceof BlockPattern) {
-            setFloor(img, (char) ((BlockPattern) pattern).getBlock().getCombined(), white);
+        if (pattern instanceof BaseBlock) {
+            setFloor(img, (char) ((BaseBlock) pattern).getCombined(), white);
             return;
         }
         if (img.getWidth() != getWidth() || img.getHeight() != getLength())
@@ -627,8 +627,8 @@ public class HeightMapMCAGenerator extends MCAWriter implements Extent {
     }
 
     public void setColumn(BufferedImage img, Pattern pattern, boolean white) {
-        if (pattern instanceof BlockPattern) {
-            setColumn(img, (char) ((BlockPattern) pattern).getBlock().getCombined(), white);
+        if (pattern instanceof BaseBlock) {
+            setColumn(img, (char) ((BaseBlock) pattern).getCombined(), white);
             return;
         }
         if (img.getWidth() != getWidth() || img.getHeight() != getLength())
@@ -651,8 +651,8 @@ public class HeightMapMCAGenerator extends MCAWriter implements Extent {
     }
 
     public void setOverlay(Mask mask, Pattern pattern) {
-        if (pattern instanceof BlockPattern) {
-            setOverlay(mask, (char) ((BlockPattern) pattern).getBlock().getCombined());
+        if (pattern instanceof BaseBlock) {
+            setOverlay(mask, (char) ((BaseBlock) pattern).getCombined());
             return;
         }
         int index = 0;
@@ -671,8 +671,8 @@ public class HeightMapMCAGenerator extends MCAWriter implements Extent {
     }
 
     public void setFloor(Mask mask, Pattern pattern) {
-        if (pattern instanceof BlockPattern) {
-            setFloor(mask, (char) ((BlockPattern) pattern).getBlock().getCombined());
+        if (pattern instanceof BaseBlock) {
+            setFloor(mask, (char) ((BaseBlock) pattern).getCombined());
             return;
         }
         int index = 0;
@@ -690,8 +690,8 @@ public class HeightMapMCAGenerator extends MCAWriter implements Extent {
     }
 
     public void setMain(Mask mask, Pattern pattern) {
-        if (pattern instanceof BlockPattern) {
-            setMain(mask, (char) ((BlockPattern) pattern).getBlock().getCombined());
+        if (pattern instanceof BaseBlock) {
+            setMain(mask, (char) ((BaseBlock) pattern).getCombined());
             return;
         }
         modifiedMain = true;
@@ -710,8 +710,8 @@ public class HeightMapMCAGenerator extends MCAWriter implements Extent {
     }
 
     public void setColumn(Mask mask, Pattern pattern) {
-        if (pattern instanceof BlockPattern) {
-            setColumn(mask, (char) ((BlockPattern) pattern).getBlock().getCombined());
+        if (pattern instanceof BaseBlock) {
+            setColumn(mask, (char) ((BaseBlock) pattern).getCombined());
             return;
         }
         modifiedMain = true;
@@ -736,8 +736,8 @@ public class HeightMapMCAGenerator extends MCAWriter implements Extent {
     }
 
     public void setFloor(Pattern value) {
-        if (value instanceof BlockPattern) {
-            setFloor(((BlockPattern) value).getBlock().getCombined());
+        if (value instanceof BaseBlock) {
+            setFloor(((BaseBlock) value).getCombined());
             return;
         }
         int index = 0;
@@ -753,8 +753,8 @@ public class HeightMapMCAGenerator extends MCAWriter implements Extent {
     }
 
     public void setColumn(Pattern value) {
-        if (value instanceof BlockPattern) {
-            setColumn(((BlockPattern) value).getBlock().getCombined());
+        if (value instanceof BaseBlock) {
+            setColumn(((BaseBlock) value).getCombined());
             return;
         }
         int index = 0;
@@ -772,8 +772,8 @@ public class HeightMapMCAGenerator extends MCAWriter implements Extent {
     }
 
     public void setMain(Pattern value) {
-        if (value instanceof BlockPattern) {
-            setMain(((BlockPattern) value).getBlock().getCombined());
+        if (value instanceof BaseBlock) {
+            setMain(((BaseBlock) value).getCombined());
             return;
         }
         int index = 0;
@@ -790,8 +790,8 @@ public class HeightMapMCAGenerator extends MCAWriter implements Extent {
 
     public void setOverlay(Pattern value) {
         if (overlay == null) overlay = new char[getArea()];
-        if (value instanceof BlockPattern) {
-            setOverlay(((BlockPattern) value).getBlock().getCombined());
+        if (value instanceof BaseBlock) {
+            setOverlay(((BaseBlock) value).getCombined());
             return;
         }
         int index = 0;
@@ -1179,5 +1179,11 @@ public class HeightMapMCAGenerator extends MCAWriter implements Extent {
                 }
             }
         }
+    }
+
+    @Override
+    protected void finalize() throws Throwable {
+        IterableThreadLocal.clean(indexStore);
+        super.finalize();
     }
 }

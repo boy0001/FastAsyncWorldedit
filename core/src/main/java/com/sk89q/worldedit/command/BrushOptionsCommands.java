@@ -45,7 +45,8 @@ import java.util.zip.GZIPInputStream;
 /**
  * Tool commands.
  */
-@Command(aliases = {}, desc = "Команды инструментов")
+
+@Command(aliases = {"brush", "br", "/b"}, desc = "Команды инструментов")
 public class BrushOptionsCommands extends MethodCommands {
 
     public BrushOptionsCommands(WorldEdit we) {
@@ -55,17 +56,23 @@ public class BrushOptionsCommands extends MethodCommands {
     @Command(
             aliases = {"/savebrush"},
             usage = "[name]",
-            desc = "Сохранитm текущую кисть",
+            desc = "Сохранить текущую кисть",
             min = 1
     )
     @CommandPermissions("worldedit.brush.save")
     public void saveBrush(Player player, LocalSession session, String name) throws WorldEditException, IOException {
         BrushTool tool = session.getBrushTool(player);
         if (tool != null) {
+            boolean root = name.startsWith("../");
             name = FileSystems.getDefault().getPath(name).getFileName().toString();
             File folder = MainUtil.getFile(Fawe.imp().getDirectory(), "brushes");
             name = name.endsWith(".jsgz") ? name : name + ".jsgz";
-            File file = new File(folder, player.getUniqueId() + File.separator + name);
+            File file;
+            if (root && player.hasPermission("worldedit.brush.save.other")) {
+                file = new File(folder, name);
+            } else {
+                file = new File(folder, player.getUniqueId() + File.separator + name);
+            }
             File parent = file.getParentFile();
             if (!parent.exists()) {
                 parent.mkdirs();

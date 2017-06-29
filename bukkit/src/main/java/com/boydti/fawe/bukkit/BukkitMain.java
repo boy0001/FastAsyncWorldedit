@@ -82,7 +82,11 @@ public class BukkitMain extends JavaPlugin {
         }
     }
 
-    private enum Version {
+    public Version getVersion() {
+        return version;
+    }
+
+    public enum Version {
         v1_7_R4,
         v1_8_R3,
         v1_9_R2,

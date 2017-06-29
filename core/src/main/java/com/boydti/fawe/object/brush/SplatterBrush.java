@@ -12,7 +12,6 @@ import com.sk89q.worldedit.function.RegionFunction;
 import com.sk89q.worldedit.function.mask.Mask;
 import com.sk89q.worldedit.function.mask.SolidBlockMask;
 import com.sk89q.worldedit.function.operation.Operations;
-import com.sk89q.worldedit.function.pattern.BlockPattern;
 import com.sk89q.worldedit.function.pattern.Pattern;
 import com.sk89q.worldedit.function.visitor.RecursiveVisitor;
 import java.util.Arrays;
@@ -33,7 +32,7 @@ public class SplatterBrush extends ScatterBrush {
         if (solid) {
             Pattern tmp;
             try {
-                tmp = new BlockPattern(p.apply(position));
+                tmp = p.apply(position);
             } catch (BiomePattern.BiomePatternException ignore) {
                 tmp = ignore.getPattern();
             }

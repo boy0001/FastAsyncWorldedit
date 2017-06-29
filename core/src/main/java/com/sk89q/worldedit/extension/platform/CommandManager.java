@@ -238,13 +238,10 @@ public final class CommandManager {
                 .registerMethods(new BrushOptionsCommands(worldEdit))
                 .registerMethods(new ToolCommands(worldEdit))
                 .registerMethods(new UtilityCommands(worldEdit))
-                .group("worldedit", "we", "fawe")
-                .describeAs("FAWE commands")
-                .registerMethods(new WorldEditCommands(worldEdit)).parent().group("schematic", "schem", "/schematic", "/schem")
-                .describeAs("Schematic commands for saving/loading areas")
-                .registerMethods(new SchematicCommands(worldEdit)).parent().group("snapshot", "snap")
-                .describeAs("Schematic commands for saving/loading areas")
-                .registerMethods(new SnapshotCommands(worldEdit)).parent().group("brush", "br", "/b", "tool").describeAs("Bind brushes and tools to items")
+                .registerSubMethods(new WorldEditCommands(worldEdit))
+                .registerSubMethods(new SchematicCommands(worldEdit))
+                .registerSubMethods(new SnapshotCommands(worldEdit))
+                .groupAndDescribe(BrushCommands.class)
                 .registerMethods(new ToolCommands(worldEdit))
                 .registerMethods(new BrushOptionsCommands(worldEdit))
                 .registerMethods(new BrushCommands(worldEdit), new BrushProcessor(worldEdit))
@@ -254,7 +251,8 @@ public final class CommandManager {
                 .register(adapt(new ShapedBrushCommand(new ApplyCommand(), "worldedit.brush.apply")), "apply")
                 .register(adapt(new ShapedBrushCommand(new PaintCommand(new TreeGeneratorParser("treeType")), "worldedit.brush.forest")), "forest")
                 .register(adapt(new ShapedBrushCommand(ProvidedValue.create(new Deform("y-=1", Mode.RAW_COORD), "Raise one block"), "worldedit.brush.raise")), "raise")
-                .register(adapt(new ShapedBrushCommand(ProvidedValue.create(new Deform("y+=1", Mode.RAW_COORD), "Lower one block"), "worldedit.brush.lower")), "lower").parent()
+                .register(adapt(new ShapedBrushCommand(ProvidedValue.create(new Deform("y+=1", Mode.RAW_COORD), "Lower one block"), "worldedit.brush.lower")), "lower")
+                .parent()
                 .group("superpickaxe", "pickaxe", "sp").describeAs("Super-pickaxe commands")
                 .registerMethods(new SuperPickaxeCommands(worldEdit))
                 .parent().graph().getDispatcher();
@@ -374,7 +372,7 @@ public final class CommandManager {
         final Actor finalActor = actor;
 
         locals.put("arguments", args);
-        final long start = System.currentTimeMillis();
+        long start = System.currentTimeMillis();
         try {
             // This is a bit of a hack, since the call method can only throw CommandExceptions
             // everything needs to be wrapped at least once. Which means to handle all WorldEdit

@@ -22,7 +22,7 @@ import com.sk89q.worldedit.util.command.parametric.Optional;
 import java.util.Set;
 
 @Command(aliases = {"transforms"},
-        desc = "Help for the various transforms. [More Info](https://github.com/boy0001/FastAsyncWorldedit/wiki/Transforms)"
+        desc = "Help for the various transforms. [More Info](https://git.io/v9KHO)"
 )
 public class TransformCommands extends MethodCommands {
     public TransformCommands(WorldEdit worldEdit) {

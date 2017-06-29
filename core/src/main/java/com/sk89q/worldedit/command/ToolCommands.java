@@ -44,7 +44,7 @@ import com.sk89q.worldedit.function.pattern.Pattern;
 import com.sk89q.worldedit.util.TreeGenerator;
 import com.sk89q.worldedit.util.command.parametric.Optional;
 
-@Command(aliases = {"brush", "br", "/b", "tool"}, desc = "Функция привязки к удерживаемым предметам: [Больше информации](http://wiki.sk89q.com/wiki/WorldEdit/Tools)")
+@Command(aliases = {"brush", "br", "tool"}, desc = "Функция привязки к удерживаемым предметам: [Больше информации](https://goo.gl/xPnPxj)")
 public class ToolCommands {
     private final WorldEdit we;
 

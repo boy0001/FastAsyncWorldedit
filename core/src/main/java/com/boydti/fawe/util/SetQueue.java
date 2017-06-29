@@ -34,7 +34,7 @@ public class SetQueue {
      * Used to calculate elapsed time in milliseconds and ensure block placement doesn't lag the server
      */
     private long last;
-    private long secondLast;
+    private long allocate = 50;
     private long lastSuccess;
 
     /**
@@ -78,6 +78,7 @@ public class SetQueue {
             @Override
             public void run() {
                 try {
+                    long now = System.currentTimeMillis();
                     targetTPS = 18 - Math.max(Settings.IMP.QUEUE.EXTRA_TIME_MS * 0.05, 0);
                     do {
                         Runnable task = tasks.poll();
@@ -88,13 +89,15 @@ public class SetQueue {
                         }
                     } while (Fawe.get().getTimer().isAbove(targetTPS));
                     if (inactiveQueues.isEmpty() && activeQueues.isEmpty()) {
-                        lastSuccess = System.currentTimeMillis();
+                        last = lastSuccess = now;
                         runEmptyTasks();
                         return;
                     }
                     if (!MemUtil.isMemoryFree()) {
                         final int mem = MemUtil.calculateMemory();
                         if (mem != Integer.MAX_VALUE) {
+                            last = now;
+                            allocate = Math.max(5, allocate - 1);
                             if ((mem <= 1) && Settings.IMP.PREVENT_CRASHES) {
                                 for (FaweQueue queue : getAllQueues()) {
                                     queue.saveMemory();
@@ -110,13 +113,26 @@ public class SetQueue {
                         }
                     }
                     FaweQueue queue = getNextQueue();
-                    if (queue == null || !Fawe.get().getTimer().isAbove(targetTPS)) {
+                    if (queue == null) {
+                        last = now;
+                        return;
+                    }
+                    if (!Fawe.get().getTimer().isAbove(targetTPS)) {
+                        allocate = Math.max(5, allocate - 1);
+                        last = now;
                         return;
                     }
                     if (Thread.currentThread() != Fawe.get().getMainThread()) {
                         throw new IllegalStateException("This shouldn't be possible for placement to occur off the main thread");
                     }
-                    long time = Settings.IMP.QUEUE.EXTRA_TIME_MS + 50 + Math.min((50 + SetQueue.this.last) - (SetQueue.this.last = System.currentTimeMillis()), SetQueue.this.secondLast - System.currentTimeMillis());
+                    long diff = (50 + SetQueue.this.last) - (SetQueue.this.last = now);
+                    long absDiff = Math.abs(diff);
+                    if (diff == 0) {
+                        allocate = Math.min(50, allocate + 1);
+                    } else if (diff < 0) {
+                        allocate = Math.max(5, allocate + diff);
+                    }
+                    long time = Settings.IMP.QUEUE.EXTRA_TIME_MS + allocate - absDiff - System.currentTimeMillis() + now;
                     // Disable the async catcher as it can't discern async vs parallel
                     boolean parallel = Settings.IMP.QUEUE.PARALLEL_THREADS > 1;
                     queue.startSet(parallel);
@@ -142,7 +158,6 @@ public class SetQueue {
 //                            completer = new ExecutorCompletionService(pool);
 //                        }
                     }
-                    secondLast = System.currentTimeMillis();
                     queue.endSet(parallel);
                 } catch (Throwable e) {
                     e.printStackTrace();

@@ -45,7 +45,6 @@ import com.sk89q.worldedit.function.RegionFunction;
 import com.sk89q.worldedit.function.block.BlockReplace;
 import com.sk89q.worldedit.function.operation.Operation;
 import com.sk89q.worldedit.function.operation.Operations;
-import com.sk89q.worldedit.function.pattern.BlockPattern;
 import com.sk89q.worldedit.function.pattern.Pattern;
 import com.sk89q.worldedit.function.visitor.RegionVisitor;
 import com.sk89q.worldedit.regions.CuboidRegion;
@@ -106,8 +105,8 @@ public class SelectionCommand extends SimpleCommand<Operation> {
                             Field field = replace.getClass().getDeclaredField("pattern");
                             field.setAccessible(true);
                             Pattern pattern = (Pattern) field.get(replace);
-                            if (pattern instanceof BlockPattern) {
-                                BaseBlock block = ((BlockPattern) pattern).getBlock();
+                            if (pattern instanceof BaseBlock) {
+                                BaseBlock block = ((BaseBlock) pattern);
                                 final FaweQueue queue = editSession.getQueue();
                                 final int minY = cuboid.getMinimumY();
                                 final int maxY = cuboid.getMaximumY();

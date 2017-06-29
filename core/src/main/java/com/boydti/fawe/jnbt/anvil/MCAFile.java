@@ -5,6 +5,7 @@ import com.boydti.fawe.jnbt.NBTStreamer;
 import com.boydti.fawe.object.FaweQueue;
 import com.boydti.fawe.object.RunnableVal;
 import com.boydti.fawe.object.RunnableVal4;
+import com.boydti.fawe.object.collection.IterableThreadLocal;
 import com.boydti.fawe.object.exception.FaweException;
 import com.boydti.fawe.object.io.BufferedRandomAccessFile;
 import com.boydti.fawe.object.io.FastByteArrayInputStream;
@@ -95,6 +96,14 @@ public class MCAFile {
         }
         chunks.clear();
         locations = null;
+    }
+
+    @Override
+    protected void finalize() throws Throwable {
+        IterableThreadLocal.clean(byteStore1);
+        IterableThreadLocal.clean(byteStore2);
+        IterableThreadLocal.clean(byteStore3);
+        super.finalize();
     }
 
     public void setDeleted(boolean deleted) {
@@ -573,5 +582,8 @@ public class MCAFile {
                 }
             }
         }
+        IterableThreadLocal.clean(byteStore1);
+        IterableThreadLocal.clean(byteStore2);
+        IterableThreadLocal.clean(byteStore3);
     }
 }

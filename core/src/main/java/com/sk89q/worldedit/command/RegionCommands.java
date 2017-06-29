@@ -53,7 +53,6 @@ import com.sk89q.worldedit.function.mask.ExistingBlockMask;
 import com.sk89q.worldedit.function.mask.Mask;
 import com.sk89q.worldedit.function.mask.NoiseFilter2D;
 import com.sk89q.worldedit.function.operation.Operations;
-import com.sk89q.worldedit.function.pattern.BlockPattern;
 import com.sk89q.worldedit.function.pattern.Pattern;
 import com.sk89q.worldedit.function.visitor.LayerVisitor;
 import com.sk89q.worldedit.internal.annotation.Direction;
@@ -299,7 +298,7 @@ public class RegionCommands extends MethodCommands {
 
     @Command(
             aliases = {"/replace", "/re", "/rep", "/r"},
-            usage = "[from-block] <to-block>",
+            usage = "[from-mask] <to-pattern>",
             desc = "Replace all blocks in the selection with another",
             flags = "f",
             min = 1,
@@ -330,11 +329,7 @@ public class RegionCommands extends MethodCommands {
     public void set(FawePlayer player, LocalSession session, EditSession editSession, @Selection Region selection, Pattern to, CommandContext context) throws WorldEditException {
         player.checkConfirmation(getArguments(context));
         int affected;
-        if (to instanceof BlockPattern) {
-            affected = editSession.setBlocks(selection, ((BlockPattern) to).getBlock());
-        } else {
-            affected = editSession.setBlocks(selection, to);
-        }
+        affected = editSession.setBlocks(selection, to);
         if (affected != 0) {
             BBC.OPERATION.send(player, affected);
             if (!player.hasPermission("fawe.tips"))

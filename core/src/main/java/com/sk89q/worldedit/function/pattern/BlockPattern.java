@@ -7,6 +7,10 @@ import com.sk89q.worldedit.blocks.BaseBlock;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
+/**
+ * @deprecated Just use BaseBlock directly
+ */
+@Deprecated
 public class BlockPattern implements Pattern {
 
     private BaseBlock block;

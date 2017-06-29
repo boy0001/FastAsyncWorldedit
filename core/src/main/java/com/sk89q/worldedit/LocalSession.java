@@ -895,7 +895,7 @@ public class LocalSession {
     @Nullable
     public BlockBag getBlockBag(Player player) {
         checkNotNull(player);
-        if (!useInventory) {
+        if (!useInventory && FawePlayer.wrap(player).getLimit().INVENTORY_MODE == 0) {
             return null;
         }
         return player.getInventoryBlockBag();
