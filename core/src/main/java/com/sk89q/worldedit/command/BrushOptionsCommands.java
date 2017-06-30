@@ -57,14 +57,14 @@ public class BrushOptionsCommands extends MethodCommands {
             aliases = {"/savebrush"},
             usage = "[name]",
             desc = "Save your current brush\n" +
-                    "prefix with ../ to save globally",
+                    "use the -g flag to save globally",
             min = 1
     )
     @CommandPermissions("worldedit.brush.save")
-    public void saveBrush(Player player, LocalSession session, String name) throws WorldEditException, IOException {
+    public void saveBrush(Player player, LocalSession session, String name, @Switch('g') boolean root) throws WorldEditException, IOException {
         BrushTool tool = session.getBrushTool(player);
         if (tool != null) {
-            boolean root = name.startsWith("../");
+            root |= name.startsWith("../");
             name = FileSystems.getDefault().getPath(name).getFileName().toString();
             File folder = MainUtil.getFile(Fawe.imp().getDirectory(), "brushes");
             name = name.endsWith(".jsgz") ? name : name + ".jsgz";

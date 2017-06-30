@@ -31,6 +31,7 @@ import org.bukkit.WorldCreator;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
+import org.bukkit.event.world.ChunkLoadEvent;
 import org.bukkit.event.world.ChunkUnloadEvent;
 import org.bukkit.event.world.WorldInitEvent;
 
@@ -106,13 +107,21 @@ public abstract class BukkitQueue_0<CHUNK, CHUNKSECTIONS, SECTION> extends NMSMa
 
     public static ConcurrentHashMap<Long, Long> keepLoaded = new ConcurrentHashMap<>(8, 0.9f, 1);
 
+
+    @EventHandler
+    public static void onChunkLoad(ChunkLoadEvent event) {
+        Chunk chunk = event.getChunk();
+        long pair = MathMan.pairInt(chunk.getX(), chunk.getZ());
+        keepLoaded.putIfAbsent(pair, Fawe.get().getTimer().getTickStart());
+    }
+
     @EventHandler
     public static void onChunkUnload(ChunkUnloadEvent event) {
         Chunk chunk = event.getChunk();
         long pair = MathMan.pairInt(chunk.getX(), chunk.getZ());
         Long lastLoad = keepLoaded.get(pair);
         if (lastLoad != null) {
-            if (System.currentTimeMillis() - lastLoad < 10000) {
+            if (Fawe.get().getTimer().getTickStart() - lastLoad < 10000) {
                 event.setCancelled(true);
             } else {
                 keepLoaded.remove(pair);
