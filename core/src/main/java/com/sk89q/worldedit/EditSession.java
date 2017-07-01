@@ -268,6 +268,9 @@ public class EditSession extends AbstractWorld implements HasFaweQueue, Lighting
         }
         this.originalLimit = limit;
         this.blockBag = limit.INVENTORY_MODE != 0 ? blockBag : null;
+        if (this.blockBag != null) {
+            combineStages = false;
+        }
         this.limit = limit.copy();
         if (queue == null) {
             if (world instanceof MCAWorld) {
