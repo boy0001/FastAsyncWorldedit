@@ -2,12 +2,18 @@ package com.boydti.fawe.jnbt.anvil;
 
 import com.boydti.fawe.object.collection.IterableThreadLocal;
 import com.sk89q.worldedit.blocks.BaseBlock;
+import java.nio.file.Path;
+import java.nio.file.attribute.BasicFileAttributes;
 
 /**
  * MCAQueue.filterWorld(MCAFilter)<br>
  * - Read and modify the world
  */
 public class MCAFilter<T> extends IterableThreadLocal<T> {
+
+    public boolean appliesFile(Path path, BasicFileAttributes attr) {
+        return true;
+    }
 
     /**
      * Check whether a .mca file should be read

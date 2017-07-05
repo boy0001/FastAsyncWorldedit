@@ -69,6 +69,7 @@ if ( project.hasProperty("lzNoVersion") ) { // gradle build -PlzNoVersion
 description = """FastAsyncWorldEdit"""
 
 subprojects {
+
     apply plugin: 'java'
     apply plugin: 'maven'
     apply plugin: 'eclipse'
@@ -79,10 +80,11 @@ subprojects {
 
     repositories {
         mavenCentral()
+        maven {url "http://repo.dmulloy2.net/content/groups/public/"}
         maven {url "https://repo.destroystokyo.com/repository/maven-public//"}
         maven { url = "https://mvnrepository.com/artifact/"}
         maven {url "http://ci.emc.gs/nexus/content/groups/aikar/" }
-        maven {url "http://ci.mengcraft.com:8080/plugin/repository/everything/"}
+        maven {url "http://ci.mengcraft.com:8080/plugin/repository/everything"}
         maven {url "http://ci.athion.net/job/PlotSquared/ws/mvn/"}
         maven {url "http://empcraft.com/maven2"}
         maven {url "https://hub.spigotmc.org/nexus/content/groups/public/"}
@@ -90,7 +92,7 @@ subprojects {
         maven {url "http://nexus.hc.to/content/repositories/pub_releases"}
         maven {url "http://repo.maven.apache.org/maven2"}
         maven {url "http://ci.frostcast.net/plugin/repository/everything"}
-        maven {url "http://maven.sk89q.com/artifactory/repo/"}
+        maven {url "http://maven.sk89q.com/artifactory/repo"}
         maven {url "http://repo.spongepowered.org/maven"}
     }
 }

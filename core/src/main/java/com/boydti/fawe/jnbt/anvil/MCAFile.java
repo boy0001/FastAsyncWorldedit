@@ -94,7 +94,9 @@ public class MCAFile {
                 e.printStackTrace();
             }
         }
-        chunks.clear();
+        synchronized (chunks) {
+            chunks.clear();
+        }
         locations = null;
     }
 
@@ -166,7 +168,9 @@ public class MCAFile {
         int cx = chunk.getX();
         int cz = chunk.getZ();
         int pair = MathMan.pair((short) (cx & 31), (short) (cz & 31));
-        chunks.put(pair, chunk);
+        synchronized (chunks) {
+            chunks.put(pair, chunk);
+        }
     }
 
     public MCAChunk getChunk(int cx, int cz) throws IOException {
@@ -275,7 +279,10 @@ public class MCAFile {
     }
 
     public List<Integer> getChunks() {
-        final List<Integer> values = new ArrayList<>(chunks.size());
+        final List<Integer> values;
+        synchronized (chunks) {
+            values = new ArrayList<>(chunks.size());
+        }
         for (int i = 0; i < locations.length; i += 4) {
             int offset = (((locations[i] & 0xFF) << 16) + ((locations[i + 1] & 0xFF) << 8) + ((locations[i + 2] & 0xFF)));
             values.add(offset);
@@ -433,6 +440,21 @@ public class MCAFile {
         }
     }
 
+    public boolean isModified() {
+        if (isDeleted()) {
+            return true;
+        }
+        synchronized (chunks) {
+            for (Int2ObjectMap.Entry<MCAChunk> entry : chunks.int2ObjectEntrySet()) {
+                MCAChunk chunk = entry.getValue();
+                if (chunk.isModified() || chunk.isDeleted()) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
     public void flush(ForkJoinPool pool) {
         synchronized (raf) {
             boolean wait;
@@ -445,9 +467,11 @@ public class MCAFile {
             final Int2ObjectOpenHashMap<byte[]> compressedMap = new Int2ObjectOpenHashMap<>();
             final Int2ObjectOpenHashMap<byte[]> append = new Int2ObjectOpenHashMap<>();
             boolean modified = false;
+            long now = System.currentTimeMillis();
             for (MCAChunk chunk : getCachedChunks()) {
                 if (chunk.isModified() || chunk.isDeleted()) {
                     modified = true;
+                    chunk.setLastUpdate(now);
                     if (!chunk.isDeleted()) {
                         pool.submit(new Runnable() {
                             @Override

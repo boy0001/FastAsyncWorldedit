@@ -25,6 +25,7 @@ dependencies {
     compile 'org.bukkit.craftbukkit.v1_9R2:craftbukkitv1_9R2:1.9.4'
     compile 'org.bukkit.craftbukkit:Craftbukkit:1.7.10'
     compile 'org.bukkit.craftbukkit:CraftBukkit:1.8.8'
+    compile 'com.comphenix.protocol:ProtocolLib-API:4.3.1-SNAPSHOT'
 }
 
 processResources {

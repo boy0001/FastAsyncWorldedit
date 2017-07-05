@@ -3,7 +3,7 @@ repositories {
 }
 dependencies {
     compile project(':core')
-    compile 'cn.nukkit:nukkit:1.0-SNAPSHOT'
+    compile group: "cn.nukkit", name: "nukkit", version: "1.0-20170704.231613-609", changing: true
     compile name: 'worldedit-core-6.1.4-SNAPSHOT-dist', changing: true
 }
 

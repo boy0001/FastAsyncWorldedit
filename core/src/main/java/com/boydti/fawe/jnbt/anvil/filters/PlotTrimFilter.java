@@ -1,8 +1,10 @@
 package com.boydti.fawe.jnbt.anvil.filters;
 
+import com.boydti.fawe.Fawe;
 import com.boydti.fawe.jnbt.anvil.MCAChunk;
 import com.boydti.fawe.jnbt.anvil.MCAFile;
-import com.boydti.fawe.object.RunnableVal;
+import com.boydti.fawe.object.RunnableVal4;
+import com.boydti.fawe.object.collection.LongHashSet;
 import com.intellectualcrafters.plot.PS;
 import com.intellectualcrafters.plot.generator.HybridGen;
 import com.intellectualcrafters.plot.generator.HybridPlotWorld;
@@ -11,8 +13,12 @@ import com.intellectualcrafters.plot.object.Location;
 import com.intellectualcrafters.plot.object.Plot;
 import com.intellectualcrafters.plot.object.PlotArea;
 import com.intellectualcrafters.plot.util.expiry.ExpireManager;
-import com.sk89q.worldguard.util.collect.LongHashSet;
+import com.sk89q.worldedit.world.World;
+import java.io.File;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.attribute.BasicFileAttributes;
 import java.util.ArrayList;
 import java.util.concurrent.ForkJoinPool;
 
@@ -32,27 +38,37 @@ public class PlotTrimFilter extends DeleteUninhabitedFilter {
         return false;
     }
 
-    public PlotTrimFilter(PlotArea area, long fileAgeMillis, long inhabitedTicks) {
-        super(fileAgeMillis, inhabitedTicks);
+    public PlotTrimFilter(World world, long fileDuration, long inhabitedTicks, long chunkInactivity) {
+        super(fileDuration, inhabitedTicks, chunkInactivity);
+        String worldName = Fawe.imp().getWorldName(world);
+        PlotArea area = PS.get().getPlotAreaByString(worldName);
         IndependentPlotGenerator gen = area.getGenerator();
         if (!(area instanceof HybridPlotWorld) || !(gen instanceof HybridGen)) {
             throw new UnsupportedOperationException("Trim does not support non hybrid plot worlds");
         }
         this.hg = (HybridGen) gen;
         this.hpw = (HybridPlotWorld) area;
-
-        if (hpw.PLOT_BEDROCK && !hpw.PLOT_SCHEMATIC && hpw.MAIN_BLOCK.length == 1  && hpw.TOP_BLOCK.length == 1) {
-            this.reference = new MCAChunk(null, 0, 0);
-            this.reference.fillCuboid(0, 15, 0, 0, 0, 15, 7, (byte) 0);
-            this.reference.fillCuboid(0, 15, 1, hpw.PLOT_HEIGHT - 1, 0, 15, hpw.MAIN_BLOCK[0].id, (byte) 0);
-            this.reference.fillCuboid(0, 15, hpw.PLOT_HEIGHT, hpw.PLOT_HEIGHT, 0, 15, hpw.TOP_BLOCK[0].id, (byte) 0);
-        } else {
-            this.reference = null;
+        if (!hpw.PLOT_BEDROCK || hpw.PLOT_SCHEMATIC || hpw.MAIN_BLOCK.length != 1 || hpw.TOP_BLOCK.length != 1) {
+            throw new UnsupportedOperationException("WIP - will implement later");
         }
         this.occupiedRegions = new LongHashSet();
         this.unoccupiedChunks = new LongHashSet();
-        ArrayList<Plot> plots = new ArrayList<>();
-        plots.addAll(PS.get().getPlots(area));
+
+        this.reference = calculateReference();
+
+        this.calculateClaimedArea();
+    }
+
+    private MCAChunk calculateReference() {
+        MCAChunk reference = new MCAChunk(null, 0, 0);
+        reference.fillCuboid(0, 15, 0, 0, 0, 15, 7, (byte) 0);
+        reference.fillCuboid(0, 15, 1, hpw.PLOT_HEIGHT - 1, 0, 15, hpw.MAIN_BLOCK[0].id, (byte) 0);
+        reference.fillCuboid(0, 15, hpw.PLOT_HEIGHT, hpw.PLOT_HEIGHT, 0, 15, hpw.TOP_BLOCK[0].id, (byte) 0);
+        return reference;
+    }
+
+    private void calculateClaimedArea() {
+        ArrayList<Plot> plots = new ArrayList<>(hpw.getPlots());
         if (ExpireManager.IMP != null) {
             plots.removeAll(ExpireManager.IMP.getPendingExpired());
         }
@@ -65,13 +81,12 @@ public class PlotTrimFilter extends DeleteUninhabitedFilter {
             int ccz2 = pos2.getZ() >> 9;
             for (int x = ccx1; x <= ccx2; x++) {
                 for (int z = ccz1; z <= ccz2; z++) {
-                    int bcx = x << 5;
-                    int bcz = z << 5;
-                    int tcx = bcx + 32;
-                    int tcz = bcz + 32;
                     if (!occupiedRegions.containsKey(x, z)) {
                         occupiedRegions.add(x, z);
-                    } else {
+                        int bcx = x << 5;
+                        int bcz = z << 5;
+                        int tcx = bcx + 32;
+                        int tcz = bcz + 32;
                         for (int cz = bcz; cz < tcz; cz++) {
                             for (int cx = bcx; cx < tcx; cx++) {
                                 unoccupiedChunks.add(cx, cz);
@@ -84,8 +99,8 @@ public class PlotTrimFilter extends DeleteUninhabitedFilter {
             int cz1 = pos1.getZ() >> 4;
             int cx2 = pos2.getX() >> 4;
             int cz2 = pos2.getZ() >> 4;
-            for (int cz = cx1; cz < cx2; cz++) {
-                for (int cx = cz1; cx < cz2; cx++) {
+            for (int cz = cz1; cz <= cz2; cz++) {
+                for (int cx = cx1; cx <= cx2; cx++) {
                     unoccupiedChunks.remove(cx, cz);
                 }
             }
@@ -93,15 +108,13 @@ public class PlotTrimFilter extends DeleteUninhabitedFilter {
     }
 
     @Override
-    public boolean shouldDelete(MCAFile mca) throws IOException {
-        int x = mca.getX();
-        int z = mca.getZ();
-        return !occupiedRegions.containsKey(x, z) || super.shouldDelete(mca);
+    public boolean shouldDelete(File file, BasicFileAttributes attr, int mcaX, int mcaZ) throws IOException {
+        return !occupiedRegions.containsKey(mcaX, mcaZ) || super.shouldDelete(file, attr, mcaX, mcaZ);
     }
 
     @Override
     public boolean shouldDeleteChunk(MCAFile mca, int cx, int cz) {
-        return !unoccupiedChunks.containsKey(cx, cz);
+        return unoccupiedChunks.containsKey(cx, cz);
     }
 
     @Override
@@ -110,17 +123,47 @@ public class PlotTrimFilter extends DeleteUninhabitedFilter {
             super.filter(mca, pool);
             return;
         }
-        mca.forEachChunk(new RunnableVal<MCAChunk>() {
+        Path file = mca.getFile().toPath();
+        BasicFileAttributes attr = Files.readAttributes(file, BasicFileAttributes.class);
+        long creationDate = attr.creationTime().toMillis();
+
+        mca.forEachSortedChunk(new RunnableVal4<Integer, Integer, Integer, Integer>() {
             @Override
-            public void run(MCAChunk value) {
-                if (value.getInhabitedTime() < getInhabitedTicks()) {
-                    value.setDeleted(true);
+            public void run(Integer x, Integer z, Integer offset, Integer size) {
+                int bx = mca.getX() << 5;
+                int bz = mca.getZ() << 5;
+                int cx = bx + x;
+                int cz = bz + z;
+                if (shouldDeleteChunk(mca, cx, cz)) {
+                    MCAChunk chunk = new MCAChunk(null, x, z);
+                    chunk.setDeleted(true);
+                    synchronized (mca) {
+                        mca.setChunk(chunk);
+                    }
+                    get().add(16 * 16 * 256);
                     return;
                 }
-                if (reference.idsEqual(value, false)) {
-                    value.setDeleted(true);
-                    return;
-                }
+                Runnable task = new Runnable() {
+                    @Override
+                    public void run() {
+                        try {
+                            MCAChunk chunk = mca.getChunk(x, z);
+                            if (chunk.getInhabitedTime() <= getInhabitedTicks()) {
+                                chunk.setDeleted(true);
+                                get().add(16 * 16 * 256);
+                                return;
+                            }
+                            if (reference.idsEqual(chunk, false)) {
+                                chunk.setDeleted(true);
+                                get().add(16 * 16 * 256);
+                                return;
+                            }
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                        }
+                    }
+                };
+                pool.submit(task);
             }
         });
     }

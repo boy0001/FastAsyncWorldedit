@@ -8,16 +8,20 @@ import com.boydti.fawe.object.FaweChunk;
 import com.boydti.fawe.object.FawePlayer;
 import com.boydti.fawe.object.FaweQueue;
 import com.boydti.fawe.object.RegionWrapper;
+import com.boydti.fawe.object.RunnableVal;
 import com.boydti.fawe.object.RunnableVal2;
 import com.boydti.fawe.object.RunnableVal4;
 import com.boydti.fawe.object.collection.IterableThreadLocal;
 import com.boydti.fawe.util.MainUtil;
 import com.sk89q.jnbt.CompoundTag;
 import com.sk89q.worldedit.Vector;
+import com.sk89q.worldedit.blocks.BaseBlock;
 import com.sk89q.worldedit.world.biome.BaseBiome;
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.StandardCopyOption;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.Collection;
 import java.util.Map;
@@ -269,8 +273,104 @@ public class MCAQueue extends NMSMappedFaweQueue<FaweQueue, FaweChunk, FaweChunk
         pool.shutdown();
     }
 
+    public <G, T extends MCAFilter<G>> T filterCopy(final T filter, boolean deleteOnCopyFail) {
+        this.filterWorld(new MCAFilter<G>() {
+            @Override
+            public boolean appliesFile(int mcaX, int mcaZ) {
+                return filter.appliesFile(mcaX, mcaZ);
+            }
+
+            @Override
+            public boolean appliesFile(Path path, BasicFileAttributes attr) {
+                return filter.appliesFile(path, attr);
+            }
+
+            @Override
+            public MCAFile applyFile(MCAFile mca) {
+                File file = mca.getFile();
+                File copyDest = new File(file.getParentFile(), file.getName() + "-copy");
+                try {
+                    Files.copy(file.toPath(), copyDest.toPath(), StandardCopyOption.REPLACE_EXISTING);
+                    MCAFile copy = new MCAFile(mca.getParent(), copyDest);
+                    MCAFile result = filter.applyFile(copy);
+                    if (result == null) {
+                        if (copy.isDeleted()) {
+                            copy.clear();
+                            result.clear();
+                            if (file.exists()) {
+                                file.delete();
+                            }
+                            if (copyDest.exists()) {
+                                if (!copyDest.delete()) {
+                                    copyDest.deleteOnExit();
+                                }
+                            }
+                        } else if (copy.isModified()) {
+                            if (copyDest.exists()) {
+                                copy.clear();
+                                file.delete();
+                                if (!copyDest.renameTo(file) && deleteOnCopyFail) {
+                                    if (!copyDest.delete()) {
+                                        copyDest.deleteOnExit();
+                                    }
+                                }
+                            }
+                        } else {
+                            copy.clear();
+                            if (!copyDest.delete()) {
+                                copyDest.deleteOnExit();
+                            }
+                        }
+                    }
+                    return result;
+                } catch (IOException e) {
+                    e.printStackTrace();
+                    return null;
+                }
+            }
+
+            @Override
+            public boolean appliesChunk(int cx, int cz) {
+                return filter.appliesChunk(cx, cz);
+            }
+
+            @Override
+            public MCAChunk applyChunk(MCAChunk chunk, G cache) {
+                return filter.applyChunk(chunk, cache);
+            }
+
+            @Override
+            public void applyBlock(int x, int y, int z, BaseBlock block, G cache) {
+                filter.applyBlock(x, y, z, block, cache);
+            }
+        }, true, new RunnableVal<MCAFile>() {
+            @Override
+            public void run(MCAFile value) {
+                if (deleteOnCopyFail) {
+                    File file = value.getFile();
+                    boolean result = file.delete();
+                    if (!result) {
+                        file.deleteOnExit();
+                    }
+                    Fawe.debug("Deleted " + file + " = " + result);
+                }
+            }
+        });
+        return filter;
+    }
+
     public <G, T extends MCAFilter<G>> T filterRegion(final T filter, final RegionWrapper region) {
         this.filterWorld(new MCAFilter<G>() {
+
+            @Override
+            public boolean appliesFile(Path path, BasicFileAttributes attr) {
+                String name = path.getFileName().toString();
+                String[] split = name.split("\\.");
+                final int mcaX = Integer.parseInt(split[1]);
+                final int mcaZ = Integer.parseInt(split[2]);
+                return region.isInMCA(mcaX, mcaZ) && filter.appliesFile(path, attr);
+            }
+
             @Override
             public boolean appliesFile(int mcaX, int mcaZ) {
                 return region.isInMCA(mcaX, mcaZ) && filter.appliesFile(mcaX, mcaZ);
@@ -356,6 +456,10 @@ public class MCAQueue extends NMSMappedFaweQueue<FaweQueue, FaweChunk, FaweChunk
     }
 
     public <G, T extends MCAFilter<G>> T filterWorld(final T filter) {
+        return filterWorld(filter, false, null);
+    }
+
+    private <G, T extends MCAFilter<G>> T filterWorld(final T filter, boolean replaceOriginalOnCopy, RunnableVal<MCAFile> onReplaceFail) {
         File folder = getSaveFolder();
         final ForkJoinPool pool = new ForkJoinPool();
         MainUtil.traverse(folder.toPath(), new RunnableVal2<Path, BasicFileAttributes>() {
@@ -363,15 +467,20 @@ public class MCAQueue extends NMSMappedFaweQueue<FaweQueue, FaweChunk, FaweChunk
             public void run(Path path, BasicFileAttributes attr) {
                 try {
                     String name = path.getFileName().toString();
+                    if (!name.endsWith(".mca")) {
+                        return;
+                    }
+                    if (!filter.appliesFile(path, attr)) {
+                        return;
+                    }
                     String[] split = name.split("\\.");
                     final int mcaX = Integer.parseInt(split[1]);
                     final int mcaZ = Integer.parseInt(split[2]);
                     if (filter.appliesFile(mcaX, mcaZ)) {
                         File file = path.toFile();
                         Fawe.debug("Apply file " + file);
-                        MCAFile mcaFile = new MCAFile(MCAQueue.this, file);
-                        final MCAFile original = mcaFile;
-                        final MCAFile finalFile = filter.applyFile(mcaFile);
+                        final MCAFile original = new MCAFile(MCAQueue.this, file);
+                        final MCAFile finalFile = filter.applyFile(original);
                         if (finalFile != null && !finalFile.isDeleted()) {
                             finalFile.init();
                             // May not do anything, but seems to lead to smaller lag spikes
@@ -428,15 +537,42 @@ public class MCAQueue extends NMSMappedFaweQueue<FaweQueue, FaweChunk, FaweChunk
                                     });
                                 }
                             });
-                            pool.awaitQuiescence(Long.MAX_VALUE, TimeUnit.MILLISECONDS);
-                            original.close(pool);
-                            if (original != finalFile) finalFile.close(pool);
-                        } else if (mcaFile.isDeleted()) {
+                        } else if (original.isDeleted()) {
                             try {
                                 original.close(pool);
                                 file.delete();
                             } catch (Throwable ignore) {
                                 ignore.printStackTrace();
+                            }
+                        }
+                        pool.awaitQuiescence(Long.MAX_VALUE, TimeUnit.MILLISECONDS);
+                        original.close(pool);
+                        if (original.isDeleted()) {
+                            file.delete();
+                        }
+                        if (finalFile != null) {
+                            if (original != finalFile) {
+                                if (finalFile.isModified()) {
+                                    finalFile.close(pool);
+                                    if (finalFile.isDeleted()) {
+                                        finalFile.getFile().delete();
+                                        if (replaceOriginalOnCopy && file.exists()) {
+                                            file.delete();
+                                        }
+                                    } else if (replaceOriginalOnCopy) {
+                                        File from = finalFile.getFile();
+                                        file.delete();
+                                        if (!from.renameTo(file)) {
+                                            Fawe.debug("Could not rename " + from + "to " + file + ".");
+                                            if (onReplaceFail != null) {
+                                                onReplaceFail.run(finalFile);
+                                            }
+                                        }
+                                    }
+                                } else if (replaceOriginalOnCopy) {
+                                    finalFile.clear();
+                                    finalFile.getFile().delete();
+                                }
                             }
                         }
                     }

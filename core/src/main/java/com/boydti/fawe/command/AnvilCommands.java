@@ -11,8 +11,10 @@ import com.boydti.fawe.jnbt.anvil.MCAFilterCounter;
 import com.boydti.fawe.jnbt.anvil.MCAQueue;
 import com.boydti.fawe.jnbt.anvil.filters.CountFilter;
 import com.boydti.fawe.jnbt.anvil.filters.CountIdFilter;
+import com.boydti.fawe.jnbt.anvil.filters.DeleteOldFilter;
 import com.boydti.fawe.jnbt.anvil.filters.DeleteUninhabitedFilter;
 import com.boydti.fawe.jnbt.anvil.filters.MappedReplacePatternFilter;
+import com.boydti.fawe.jnbt.anvil.filters.PlotTrimFilter;
 import com.boydti.fawe.jnbt.anvil.filters.RemoveLayerFilter;
 import com.boydti.fawe.jnbt.anvil.filters.ReplacePatternFilter;
 import com.boydti.fawe.jnbt.anvil.filters.ReplaceSimpleFilter;
@@ -21,6 +23,7 @@ import com.boydti.fawe.object.FaweQueue;
 import com.boydti.fawe.object.RegionWrapper;
 import com.boydti.fawe.object.RunnableVal4;
 import com.boydti.fawe.object.mask.FaweBlockMatcher;
+import com.boydti.fawe.util.MainUtil;
 import com.boydti.fawe.util.SetQueue;
 import com.boydti.fawe.util.StringMan;
 import com.sk89q.minecraft.util.commands.Command;
@@ -77,14 +80,22 @@ public class AnvilCommands {
      * @param <T>
      * @return
      */
-    public static <G, T extends MCAFilter<G>> T runWithWorld(Player player, String folder, T filter) {
+    public static <G, T extends MCAFilter<G>> T runWithWorld(Player player, String folder, T filter, boolean force) {
+        boolean copy = false;
         if (FaweAPI.getWorld(folder) != null) {
-            BBC.WORLD_IS_LOADED.send(player);
-            return null;
+            if (!force) {
+                BBC.WORLD_IS_LOADED.send(player);
+                return null;
+            }
+            copy = true;
         }
         FaweQueue defaultQueue = SetQueue.IMP.getNewQueue(folder, true, false);
         MCAQueue queue = new MCAQueue(folder, defaultQueue.getSaveFolder(), defaultQueue.hasSky());
-        return queue.filterWorld(filter);
+        if (copy) {
+            return queue.filterCopy(filter, true);
+        } else {
+            return queue.filterWorld(filter);
+        }
     }
 
     /**
@@ -132,7 +143,7 @@ public class AnvilCommands {
             max = 4
     )
     @CommandPermissions("worldedit.anvil.replaceall")
-    public void replaceAll(Player player, String folder, @Optional String from, String to, @Switch('d') boolean useData) throws WorldEditException {
+    public void replaceAll(Player player, String folder, @Optional String from, String to, @Switch('d') boolean useData, @Switch('f') boolean force) throws WorldEditException {
         final FaweBlockMatcher matchFrom;
         if (from == null) {
             matchFrom = FaweBlockMatcher.NOT_AIR;
@@ -144,21 +155,60 @@ public class AnvilCommands {
         }
         final FaweBlockMatcher matchTo = FaweBlockMatcher.setBlocks(worldEdit.getBlocks(player, to, true));
         ReplaceSimpleFilter filter = new ReplaceSimpleFilter(matchFrom, matchTo);
-        ReplaceSimpleFilter result = runWithWorld(player, folder, filter);
+        ReplaceSimpleFilter result = runWithWorld(player, folder, filter, force);
         if (result != null) player.print(BBC.getPrefix() + BBC.VISITOR_BLOCK.format(result.getTotal()));
     }
 
     @Command(
-            aliases = {"deleteallold"},
+            aliases = {"deleteallunvisited", "delunvisited" },
             usage = "<folder> <age-ticks> [file-age=60000]",
-            desc = "Delete all chunks which haven't been occupied for `age-ticks` and have been accessed since `file-age` (ms) after creation",
+            desc = "Delete all chunks which haven't been occupied for `age-ticks` (20t = 1s) and \n" +
+                    "Have not been accessed since `file-duration` (ms) after creation and\n" +
+                    "Have not been used in the past `chunk-inactivity` (ms)" +
+                    "The auto-save interval is the recommended value for `file-duration` and `chunk-inactivity`",
             min = 2,
             max = 3
     )
-    @CommandPermissions("worldedit.anvil.deleteallold")
-    public void deleteAllOld(Player player, String folder, int inhabitedTicks, @Optional("60000") int fileAgeMillis, @Switch('f') boolean force) throws WorldEditException {
-        DeleteUninhabitedFilter filter = new DeleteUninhabitedFilter(fileAgeMillis, inhabitedTicks);
-        DeleteUninhabitedFilter result = runWithWorld(player, folder, filter);
+    @CommandPermissions("worldedit.anvil.deleteallunvisited")
+    public void deleteAllUnvisited(Player player, String folder, int inhabitedTicks, @Optional("60000") int fileDurationMillis, @Switch('f') boolean force) throws WorldEditException {
+        long chunkInactivityMillis = fileDurationMillis; // Use same value for now
+        DeleteUninhabitedFilter filter = new DeleteUninhabitedFilter(fileDurationMillis, inhabitedTicks, chunkInactivityMillis);
+        DeleteUninhabitedFilter result = runWithWorld(player, folder, filter, force);
+        if (result != null) player.print(BBC.getPrefix() + BBC.VISITOR_BLOCK.format(result.getTotal()));
+    }
+
+    @Command(
+            aliases = {"deletealloldregions", "deloldreg" },
+            usage = "<folder> <time>",
+            desc = "Delete regions which haven't been accessed in a certain amount of time\n" +
+                    "You can use seconds (s), minutes (m), hours (h), days (d), weeks (w), years (y)\n" +
+                    "(months are not a unit of time)\n" +
+                    "E.g. 8h5m12s\n",
+            min = 2,
+            max = 3
+    )
+    @CommandPermissions("worldedit.anvil.deletealloldregions")
+    public void deleteAllOldRegions(Player player, String folder, String time, @Switch('f') boolean force) throws WorldEditException {
+        long duration = MainUtil.timeToSec(time) * 1000l;
+        DeleteOldFilter filter = new DeleteOldFilter(duration);
+        DeleteOldFilter result = runWithWorld(player, folder, filter, force);
+        if (result != null) player.print(BBC.getPrefix() + BBC.VISITOR_BLOCK.format(result.getTotal()));
+    }
+
+    @Command(
+            aliases = {"trimallplots", },
+            desc = "Trim chunks in a Plot World",
+            help = "Trim chunks in a Plot World\n" +
+                    "Unclaimed chunks will be deleted\n" +
+                    "Unmodified chunks will be deleted\n" +
+                    "Use -v to also delete unvisited chunks\n"
+    )
+    @CommandPermissions("worldedit.anvil.trimallplots")
+    public void trimAllPlots(Player player, @Switch('v') boolean deleteUnvisited) throws WorldEditException {
+        String folder = Fawe.imp().getWorldName(player.getWorld());
+        int visitTime = deleteUnvisited ? 1 : -1;
+        PlotTrimFilter filter = new PlotTrimFilter(player.getWorld(), 0, visitTime, 600000);
+        PlotTrimFilter result = runWithWorld(player, folder, filter, true);
         if (result != null) player.print(BBC.getPrefix() + BBC.VISITOR_BLOCK.format(result.getTotal()));
     }
 
@@ -171,7 +221,7 @@ public class AnvilCommands {
             max = 4
     )
     @CommandPermissions("worldedit.anvil.replaceall")
-    public void replaceAllPattern(Player player, String folder, @Optional String from, final Pattern to, @Switch('d') boolean useData, @Switch('m') boolean useMap) throws WorldEditException {
+    public void replaceAllPattern(Player player, String folder, @Optional String from, final Pattern to, @Switch('d') boolean useData, @Switch('m') boolean useMap, @Switch('f') boolean force) throws WorldEditException {
         MCAFilterCounter filter;
         if (useMap) {
             if (to instanceof RandomPattern) {
@@ -190,7 +240,7 @@ public class AnvilCommands {
             }
             filter = new ReplacePatternFilter(matchFrom, to);
         }
-        MCAFilterCounter result = runWithWorld(player, folder, filter);
+        MCAFilterCounter result = runWithWorld(player, folder, filter, force);
         if (result != null) player.print(BBC.getPrefix() + BBC.VISITOR_BLOCK.format(result.getTotal()));
     }
 
@@ -203,7 +253,7 @@ public class AnvilCommands {
             max = 3
     )
     @CommandPermissions("worldedit.anvil.countall")
-    public void countAll(Player player, EditSession editSession, String folder, String arg, @Switch('d') boolean useData) throws WorldEditException {
+    public void countAll(Player player, EditSession editSession, String folder, String arg, @Switch('d') boolean useData, @Switch('f') boolean force) throws WorldEditException {
         Set<BaseBlock> searchBlocks = worldEdit.getBlocks(player, arg, true);
         MCAFilterCounter filter;
         if (useData || arg.contains(":")) { // Optimize for both cases
@@ -215,7 +265,7 @@ public class AnvilCommands {
             searchBlocks.forEach(counter::addBlock);
             filter = counter;
         }
-        MCAFilterCounter result = runWithWorld(player, folder, filter);
+        MCAFilterCounter result = runWithWorld(player, folder, filter, force);
         if (result != null) player.print(BBC.getPrefix() + BBC.SELECTION_COUNT.format(result.getTotal()));
     }
 

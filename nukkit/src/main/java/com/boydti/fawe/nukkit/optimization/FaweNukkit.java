@@ -46,13 +46,11 @@ public class FaweNukkit implements IFawe, Listener {
 	@EventHandler
 	public void onPlayerQuit(PlayerQuitEvent event) {
 		Player player = event.getPlayer();
-		if (!event.getReason().equals("disconnectionScreen.serverFull")) {
-			FawePlayer fp = FawePlayer.wrap(player);
-			if (fp != null) {
-				fp.unregister();
-			}
-			Fawe.get().unregister(event.getPlayer().getName());
-		}
+        FawePlayer fp = FawePlayer.wrap(player);
+        if (fp != null) {
+            fp.unregister();
+        }
+        Fawe.get().unregister(event.getPlayer().getName());
 	}
 
     @Override

@@ -1696,7 +1696,7 @@ public class EditSession extends AbstractWorld implements HasFaweQueue, Lighting
         checkNotNull(region);
         checkNotNull(pattern);
         if (pattern instanceof BlockPattern) {
-            return setBlocks(region, ((BaseBlock) pattern));
+            return setBlocks(region, ((BlockPattern) pattern).getBlock());
         }
         if (pattern instanceof BaseBlock) {
             return setBlocks(region, (BaseBlock) pattern);

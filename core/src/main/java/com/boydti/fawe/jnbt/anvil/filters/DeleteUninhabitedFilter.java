@@ -10,7 +10,7 @@ import com.boydti.fawe.object.RunnableVal4;
 import com.boydti.fawe.object.exception.FaweException;
 import java.io.File;
 import java.io.IOException;
-import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.concurrent.ForkJoinPool;
 import java.util.concurrent.TimeUnit;
@@ -21,31 +21,53 @@ import java.util.concurrent.TimeUnit;
  */
 public class DeleteUninhabitedFilter extends MCAFilterCounter {
     private final long inhabitedTicks;
-    private final long fileAgeMillis;
+    private final long fileDurationMillis;
+    private final long cutoffChunkAgeEpoch;
 
-    public DeleteUninhabitedFilter(long fileAgeMillis, long inhabitedTicks) {
-        this.fileAgeMillis = fileAgeMillis;
+    public DeleteUninhabitedFilter(long fileDurationMillis, long inhabitedTicks, long chunkInactivityMillis) {
+        this.fileDurationMillis = fileDurationMillis;
         this.inhabitedTicks = inhabitedTicks;
+        this.cutoffChunkAgeEpoch = System.currentTimeMillis() - chunkInactivityMillis;
     }
 
     public long getInhabitedTicks() {
         return inhabitedTicks;
     }
 
-    public long getFileAgeMillis() {
-        return fileAgeMillis;
+    public long getFileDurationMillis() {
+        return fileDurationMillis;
+    }
+
+    public long getCutoffChunkAgeEpoch() {
+        return cutoffChunkAgeEpoch;
+    }
+
+    @Override
+    public boolean appliesFile(Path path, BasicFileAttributes attr) {
+        String name = path.getFileName().toString();
+        String[] split = name.split("\\.");
+        final int mcaX = Integer.parseInt(split[1]);
+        final int mcaZ = Integer.parseInt(split[2]);
+        File file = path.toFile();
+        long lastModified = attr.lastModifiedTime().toMillis();
+        if (lastModified > cutoffChunkAgeEpoch) {
+            return false;
+        }
+        try {
+            if (shouldDelete(file, attr, mcaX, mcaZ)) {
+                file.delete();
+                get().add(512 * 512 * 256);
+                return false;
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+            return false;
+        }
+        return true;
     }
 
     @Override
     public MCAFile applyFile(MCAFile mca) {
-        try {
-            if (shouldDelete(mca)) {
-                mca.setDeleted(true);
-                get().add(512 * 512 * 256);
-                return null;
-            }
-        } catch (IOException | UnsupportedOperationException ignore) {
-        }
         try {
             ForkJoinPool pool = new ForkJoinPool();
             mca.init();
@@ -53,18 +75,19 @@ public class DeleteUninhabitedFilter extends MCAFilterCounter {
             pool.awaitQuiescence(Long.MAX_VALUE, TimeUnit.MILLISECONDS);
             mca.close(pool);
             pool.shutdown();
+            pool.awaitTermination(Long.MAX_VALUE, TimeUnit.MILLISECONDS);
         } catch (IOException e) {
+            e.printStackTrace();
+        } catch (InterruptedException e) {
             e.printStackTrace();
         }
         return null;
     }
 
-    public boolean shouldDelete(MCAFile mca) throws IOException {
-        File file = mca.getFile();
-        BasicFileAttributes attr = Files.readAttributes(file.toPath(), BasicFileAttributes.class);
+    public boolean shouldDelete(File file, BasicFileAttributes attr, int mcaX, int mcaZ) throws IOException {
         long creation = attr.creationTime().toMillis();
         long modified = attr.lastModifiedTime().toMillis();
-        if ((modified - creation < fileAgeMillis && modified > creation) || file.length() < 12288) {
+        if ((modified - creation < fileDurationMillis && modified > creation) || file.length() < 12288) {
             return true;
         }
         return false;
@@ -78,40 +101,34 @@ public class DeleteUninhabitedFilter extends MCAFilterCounter {
         mca.forEachSortedChunk(new RunnableVal4<Integer, Integer, Integer, Integer>() {
             @Override
             public void run(Integer x, Integer z, Integer offset, Integer size) {
-                try {
-                    int bx = mca.getX() << 5;
-                    int bz = mca.getZ() << 5;
-                    if (shouldDeleteChunk(mca, bx, bz)) {
-                        MCAChunk chunk = new MCAChunk(null, x, z);
-                        chunk.setDeleted(true);
-                        synchronized (mca) {
-                            mca.setChunk(chunk);
-                        }
-                        get().add(16 * 16 * 256);
-                        return;
+                int bx = mca.getX() << 5;
+                int bz = mca.getZ() << 5;
+                if (shouldDeleteChunk(mca, bx, bz)) {
+                    MCAChunk chunk = new MCAChunk(null, x, z);
+                    chunk.setDeleted(true);
+                    synchronized (mca) {
+                        mca.setChunk(chunk);
                     }
-                    byte[] bytes = mca.getChunkCompressedBytes(offset);
-                    if (bytes == null) return;
-                    Runnable task = new Runnable() {
-                        @Override
-                        public void run() {
-                            try {
-                                mca.streamChunk(offset, new RunnableVal<NBTStreamer>() {
-                                    @Override
-                                    public void run(NBTStreamer value) {
-                                        addReaders(mca, x, z, value);
-                                    }
-                                });
-                            } catch (FaweException ignore) {
-                            } catch (IOException e) {
-                                e.printStackTrace();
-                            }
-                        }
-                    };
-                    pool.submit(task);
-                } catch (IOException e) {
-                    e.printStackTrace();
+                    get().add(16 * 16 * 256);
+                    return;
                 }
+                Runnable task = new Runnable() {
+                    @Override
+                    public void run() {
+                        try {
+                            mca.streamChunk(offset, new RunnableVal<NBTStreamer>() {
+                                @Override
+                                public void run(NBTStreamer value) {
+                                    addReaders(mca, x, z, value);
+                                }
+                            });
+                        } catch (FaweException ignore) {
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                        }
+                    }
+                };
+                pool.submit(task);
             }
         });
     }
