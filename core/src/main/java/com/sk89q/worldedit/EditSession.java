@@ -2390,7 +2390,6 @@ public class EditSession extends AbstractWorld implements HasFaweQueue, Lighting
         int px = pos.getBlockX();
         int py = pos.getBlockY();
         int pz = pos.getBlockZ();
-        MutableBlockVector mutable = new MutableBlockVector();
 
         final int ceilRadiusX = (int) Math.ceil(radiusX);
         final int ceilRadiusY = (int) Math.ceil(radiusY);
@@ -2433,14 +2432,14 @@ public class EditSession extends AbstractWorld implements HasFaweQueue, Lighting
                         }
                     }
 
-                    this.setBlock(mutable.setComponents(px + x, py + y, pz + z), block);
-                    this.setBlock(mutable.setComponents(px - x, py + y, pz + z), block);
-                    this.setBlock(mutable.setComponents(px + x, py - y, pz + z), block);
-                    this.setBlock(mutable.setComponents(px + x, py + y, pz - z), block);
-                    this.setBlock(mutable.setComponents(px - x, py - y, pz + z), block);
-                    this.setBlock(mutable.setComponents(px + x, py - y, pz - z), block);
-                    this.setBlock(mutable.setComponents(px - x, py + y, pz - z), block);
-                    this.setBlock(mutable.setComponents(px - x, py - y, pz - z), block);
+                    this.setBlock(px + x, py + y, pz + z, block);
+                    this.setBlock(px - x, py + y, pz + z, block);
+                    this.setBlock(px + x, py - y, pz + z, block);
+                    this.setBlock(px + x, py + y, pz - z, block);
+                    this.setBlock(px - x, py - y, pz + z, block);
+                    this.setBlock(px + x, py - y, pz - z, block);
+                    this.setBlock(px - x, py + y, pz - z, block);
+                    this.setBlock(px - x, py - y, pz - z, block);
                 }
             }
         }

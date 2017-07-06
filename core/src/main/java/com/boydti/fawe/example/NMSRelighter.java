@@ -8,7 +8,6 @@ import com.boydti.fawe.object.IntegerTrio;
 import com.boydti.fawe.object.RunnableVal;
 import com.boydti.fawe.util.MathMan;
 import com.boydti.fawe.util.TaskManager;
-import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
@@ -19,14 +18,21 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Queue;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 public class NMSRelighter implements Relighter {
     private final NMSMappedFaweQueue queue;
 
     private final Map<Long, RelightSkyEntry> skyToRelight;
-    private final Map<Long, Map<Integer, Object>> lightQueue;
     private final Object present = new Object();
     private final Map<Long, Integer> chunksToSend;
+    private final ConcurrentLinkedQueue<RelightSkyEntry> queuedSkyToRelight = new ConcurrentLinkedQueue<>();
+
+    private final Map<Long, long[][][] /* z y x */ > lightQueue;
+    private final AtomicBoolean lightLock = new AtomicBoolean(false);
+    private final ConcurrentHashMap<Long, long[][][]> concurrentLightQueue;
 
     private final int maxY;
     private volatile boolean relighting = false;
@@ -40,31 +46,77 @@ public class NMSRelighter implements Relighter {
         this.skyToRelight = new Long2ObjectOpenHashMap<>();
         this.lightQueue = new Long2ObjectOpenHashMap<>();
         this.chunksToSend = new Long2ObjectOpenHashMap<>();
+        this.concurrentLightQueue = new ConcurrentHashMap<>();
         this.maxY = queue.getMaxY();
     }
 
     @Override
     public boolean isEmpty() {
-        return skyToRelight.isEmpty() && lightQueue.isEmpty();
+        return skyToRelight.isEmpty() && lightQueue.isEmpty() && queuedSkyToRelight.isEmpty() && concurrentLightQueue.isEmpty();
     }
 
-    public synchronized boolean addChunk(int cx, int cz, byte[] fix, int bitmask) {
-        long pair = MathMan.pairInt(cx, cz);
-        RelightSkyEntry toPut = new RelightSkyEntry(cx, cz, fix, bitmask);
-        RelightSkyEntry existing = skyToRelight.put(pair, toPut);
-        if (existing != null) {
-            toPut.bitmask |= existing.bitmask;
-            if (fix != null) {
-                for (int i = 0; i < fix.length; i++) {
-                    toPut.fix[i] &= existing.fix[i];
+    private void set(int x, int y, int z, long[][][] map) {
+        long[][] m1 = map[z];
+        if (m1 == null) {
+            m1 = map[z] = new long[16][];
+        }
+        long[] m2 = m1[x];
+        if (m2 == null) {
+            m2 = m1[x] = new long[4];
+        }
+        long value = m2[y >> 6] |= 1l << y;
+    }
+
+    public void addLightUpdate(int x, int y, int z) {
+        long index = MathMan.pairInt(x >> 4, z >> 4);
+        if (lightLock.compareAndSet(false, true)) {
+            synchronized (lightQueue) {
+                try {
+                    long[][][] currentMap = lightQueue.get(index);
+                    if (currentMap == null) {
+                        currentMap = new long[16][][];
+                        this.lightQueue.put(index, currentMap);
+                    }
+                    set(x & 15, y, z & 15, currentMap);
+                } finally {
+                    lightLock.set(false);
                 }
             }
+        } else {
+            long[][][] currentMap = concurrentLightQueue.get(index);
+            if (currentMap == null) {
+                currentMap = new long[16][][];
+                this.concurrentLightQueue.put(index, currentMap);
+            }
+            set(x & 15, y, z & 15, currentMap);
         }
+    }
+
+    public boolean addChunk(int cx, int cz, byte[] fix, int bitmask) {
+        RelightSkyEntry toPut = new RelightSkyEntry(cx, cz, fix, bitmask);
+        queuedSkyToRelight.add(toPut);
         return true;
     }
 
+    private synchronized Map<Long, RelightSkyEntry> getSkyMap() {
+        RelightSkyEntry entry;
+        while ((entry = queuedSkyToRelight.poll()) != null) {
+            long pair = MathMan.pairInt(entry.x, entry.z);
+            RelightSkyEntry existing = skyToRelight.put(pair, entry);
+            if (existing != null) {
+                entry.bitmask |= existing.bitmask;
+                if (entry.fix != null) {
+                    for (int i = 0; i < entry.fix.length; i++) {
+                        entry.fix[i] &= existing.fix[i];
+                    }
+                }
+            }
+        }
+        return skyToRelight;
+    }
+
     public synchronized void removeLighting() {
-        Iterator<Map.Entry<Long, RelightSkyEntry>> iter = skyToRelight.entrySet().iterator();
+        Iterator<Map.Entry<Long, RelightSkyEntry>> iter = getSkyMap().entrySet().iterator();
         while (iter.hasNext()) {
             Map.Entry<Long, RelightSkyEntry> entry = iter.next();
             RelightSkyEntry chunk = entry.getValue();
@@ -78,7 +130,7 @@ public class NMSRelighter implements Relighter {
         }
     }
 
-    public synchronized void updateBlockLight(Map<Long, Map<Integer, Object>> map) {
+    public synchronized void updateBlockLight(Map<Long, long[][][]> map) {
         int size = map.size();
         if (size == 0) {
             return;
@@ -88,32 +140,46 @@ public class NMSRelighter implements Relighter {
         Map<IntegerTrio, Object> visited = new HashMap<>();
         Map<IntegerTrio, Object> removalVisited = new HashMap<>();
 
-        Iterator<Map.Entry<Long, Map<Integer, Object>>> iter = map.entrySet().iterator();
+        Iterator<Map.Entry<Long, long[][][]>> iter = map.entrySet().iterator();
         while (iter.hasNext() && size-- > 0) {
-            Map.Entry<Long, Map<Integer, Object>> entry = iter.next();
+            Map.Entry<Long, long[][][]> entry = iter.next();
             long index = entry.getKey();
-            Map<Integer, Object> blocks = entry.getValue();
+            long[][][] blocks = entry.getValue();
             int chunkX = MathMan.unpairIntX(index);
             int chunkZ = MathMan.unpairIntY(index);
             int bx = chunkX << 4;
             int bz = chunkZ << 4;
-            for (int blockHash : blocks.keySet()) {
-                int x = (blockHash >> 12 & 0xF) + bx;
-                int y = (blockHash & 0xFF);
-                int z = (blockHash >> 8 & 0xF) + bz;
-                int lcx = x & 0xF;
-                int lcz = z & 0xF;
-                int oldLevel = queue.getEmmittedLight(x, y, z);
-                int newLevel = queue.getBrightness(x, y, z);
-                if (oldLevel != newLevel) {
-                    queue.setBlockLight(x, y, z, newLevel);
-                    IntegerTrio node = new IntegerTrio(x, y, z);
-                    if (newLevel < oldLevel) {
-                        removalVisited.put(node, present);
-                        lightRemovalQueue.add(new Object[]{node, oldLevel});
-                    } else {
-                        visited.put(node, present);
-                        lightPropagationQueue.add(node);
+            for (int lz = 0; lz < blocks.length; lz++) {
+                long[][] m1 = blocks[lz];
+                if (m1 == null) continue;
+                for (int lx = 0; lx < m1.length; lx++) {
+                    long[] m2 = m1[lx];
+                    if (m2 == null) continue;
+                    for (int i = 0; i < m2.length; i++) {
+                        int yStart = i << 6;
+                        long value = m2[i];
+                        if (value != 0) {
+                            for (int j = 0; j < 64; j++) {
+                                if (((value >> j) & 1) == 1) {
+                                    int x = lx + bx;
+                                    int y = yStart + j;
+                                    int z = lz + bz;
+                                    int oldLevel = queue.getEmmittedLight(x, y, z);
+                                    int newLevel = queue.getBrightness(x, y, z);
+                                    if (oldLevel != newLevel) {
+                                        queue.setBlockLight(x, y, z, newLevel);
+                                        IntegerTrio node = new IntegerTrio(x, y, z);
+                                        if (newLevel < oldLevel) {
+                                            removalVisited.put(node, present);
+                                            lightRemovalQueue.add(new Object[]{node, oldLevel});
+                                        } else {
+                                            visited.put(node, present);
+                                            lightPropagationQueue.add(node);
+                                        }
+                                    }
+                                }
+                            }
+                        }
                     }
                 }
             }
@@ -194,18 +260,6 @@ public class NMSRelighter implements Relighter {
         }
     }
 
-    public synchronized void addLightUpdate(int x, int y, int z) {
-        long index = MathMan.pairInt((int) x >> 4, (int) z >> 4);
-        Map<Integer, Object> currentMap = lightQueue.get(index);
-        if (currentMap == null) {
-            currentMap = new Int2ObjectOpenHashMap<>();
-            synchronized (this) {
-                this.lightQueue.put(index, currentMap);
-            }
-        }
-        currentMap.put((int) MathMan.tripleBlockCoord(x, y, z), present);
-    }
-
     public void fixLightingSafe(boolean sky) {
         try {
             if (sky) {
@@ -219,7 +273,14 @@ public class NMSRelighter implements Relighter {
     }
 
     public void fixBlockLighting() {
-        updateBlockLight(this.lightQueue);
+        synchronized (lightQueue) {
+            while (!lightLock.compareAndSet(false, true));
+            try {
+                updateBlockLight(this.lightQueue);
+            } finally {
+                lightLock.set(false);
+            }
+        }
     }
 
     public synchronized void sendChunks() {
@@ -251,8 +312,9 @@ public class NMSRelighter implements Relighter {
 
     public synchronized void fixSkyLighting() {
         // Order chunks
-        ArrayList<RelightSkyEntry> chunksList = new ArrayList<>(skyToRelight.size());
-        Iterator<Map.Entry<Long, RelightSkyEntry>> iter = skyToRelight.entrySet().iterator();
+        Map<Long, RelightSkyEntry> map = getSkyMap();
+        ArrayList<RelightSkyEntry> chunksList = new ArrayList<>(map.size());
+        Iterator<Map.Entry<Long, RelightSkyEntry>> iter = map.entrySet().iterator();
         while (iter.hasNext()) {
             Map.Entry<Long, RelightSkyEntry> entry = iter.next();
             chunksToSend.put(entry.getKey(), entry.getValue().bitmask);
@@ -431,22 +493,6 @@ public class NMSRelighter implements Relighter {
             }
         }
         return true;
-    }
-
-    private class RelightBlockEntry {
-        public long coord;
-
-        public RelightBlockEntry(long pair) {
-            this.coord = pair;
-        }
-
-        public int getX() {
-            return MathMan.unpairIntX(coord);
-        }
-
-        public int getZ() {
-            return MathMan.unpairIntY(coord);
-        }
     }
 
     private class RelightSkyEntry implements Comparable {
