@@ -341,7 +341,7 @@ public class Settings extends Config {
         @Comment("Max physics per interval (per chunk)")
         public int PHYSICS = 8192;
         @Comment("Max item spawns per interval (per chunk)")
-        public int ITEMS = 64;
+        public int ITEMS = 256;
     }
 
     public static class CLIPBOARD {

@@ -1,18 +1,6 @@
 package com.boydti.fawe.bukkit;
 
 import com.boydti.fawe.Fawe;
-import com.boydti.fawe.bukkit.v0.BukkitQueue_0;
-import com.boydti.fawe.bukkit.v0.BukkitQueue_All;
-import com.boydti.fawe.bukkit.v1_10.BukkitQueue_1_10;
-import com.boydti.fawe.bukkit.v1_11.BukkitQueue_1_11;
-import com.boydti.fawe.bukkit.v1_12.BukkitQueue_1_12;
-import com.boydti.fawe.bukkit.v1_12.NMSRegistryDumper;
-import com.boydti.fawe.bukkit.v1_7.BukkitQueue17;
-import com.boydti.fawe.bukkit.v1_8.BukkitQueue18R3;
-import com.boydti.fawe.bukkit.v1_9.BukkitQueue_1_9_R1;
-import com.boydti.fawe.object.FaweQueue;
-import com.boydti.fawe.util.MainUtil;
-import com.sk89q.worldedit.world.World;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.List;
@@ -59,80 +47,8 @@ public class BukkitMain extends JavaPlugin {
         }
     }
 
-    private Version version = Version.NONE;
-
     @Override
     public void onEnable() {
         FaweBukkit imp = new FaweBukkit(this);
-        for (Version v : Version.values()) {
-            try {
-                BukkitQueue_0.checkVersion(v.name());
-                this.version = v;
-                if (version == Version.v1_12_R1) {
-                    try {
-                        Fawe.debug("Running 1.12 registry dumper!");
-                        NMSRegistryDumper dumper = new NMSRegistryDumper(MainUtil.getFile(getDataFolder(), "extrablocks.json"));
-                        dumper.run();
-                    } catch (Throwable e) {
-                        e.printStackTrace();
-                    }
-                }
-                break;
-            } catch (IllegalStateException e) {}
-        }
-    }
-
-    public Version getVersion() {
-        return version;
-    }
-
-    public enum Version {
-        v1_7_R4,
-        v1_8_R3,
-        v1_9_R2,
-        v1_10_R1,
-        v1_11_R1,
-        v1_12_R1,
-        NONE,
-    }
-
-    public FaweQueue getQueue(World world) {
-        switch (version) {
-            case v1_7_R4:
-                return new BukkitQueue17(world);
-            case v1_8_R3:
-                return new BukkitQueue18R3(world);
-            case v1_9_R2:
-                return new BukkitQueue_1_9_R1(world);
-            case v1_10_R1:
-                return new BukkitQueue_1_10(world);
-            case v1_11_R1:
-                return new BukkitQueue_1_11(world);
-            case v1_12_R1:
-                return new BukkitQueue_1_12(world);
-            default:
-            case NONE:
-                return new BukkitQueue_All(world);
-        }
-    }
-
-    public FaweQueue getQueue(String world) {
-        switch (version) {
-            case v1_7_R4:
-                return new BukkitQueue17(world);
-            case v1_8_R3:
-                return new BukkitQueue18R3(world);
-            case v1_9_R2:
-                return new BukkitQueue_1_9_R1(world);
-            case v1_10_R1:
-                return new BukkitQueue_1_10(world);
-            case v1_11_R1:
-                return new BukkitQueue_1_11(world);
-            case v1_12_R1:
-                return new BukkitQueue_1_12(world);
-            default:
-            case NONE:
-                return new BukkitQueue_All(world);
-        }
     }
 }

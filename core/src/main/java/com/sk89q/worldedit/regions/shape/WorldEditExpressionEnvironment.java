@@ -22,6 +22,7 @@ package com.sk89q.worldedit.regions.shape;
 import com.sk89q.worldedit.EditSession;
 import com.sk89q.worldedit.Vector;
 import com.sk89q.worldedit.blocks.BaseBlock;
+import com.sk89q.worldedit.extent.Extent;
 import com.sk89q.worldedit.internal.expression.runtime.ExpressionEnvironment;
 
 public class WorldEditExpressionEnvironment implements ExpressionEnvironment {
@@ -29,10 +30,14 @@ public class WorldEditExpressionEnvironment implements ExpressionEnvironment {
     private final Vector unit;
     private final Vector zero2;
     private Vector current = new Vector();
-    private EditSession editSession;
+    private Extent extent;
 
     public WorldEditExpressionEnvironment(EditSession editSession, Vector unit, Vector zero) {
-        this.editSession = editSession;
+        this((Extent) editSession, unit, zero);
+    }
+
+    public WorldEditExpressionEnvironment(Extent extent, Vector unit, Vector zero) {
+        this.extent = extent;
         this.unit = unit;
         this.zero2 = zero.add(0.5, 0.5, 0.5);
     }
@@ -42,12 +47,12 @@ public class WorldEditExpressionEnvironment implements ExpressionEnvironment {
         x = x * unit.getX() + zero2.getX();
         y = y * unit.getY() + zero2.getY();
         z = z * unit.getZ() + zero2.getZ();
-        return editSession.getBlock((int) x, (int) y, (int) z);
+        return extent.getLazyBlock((int) x, (int) y, (int) z);
     }
 
     @Override
     public BaseBlock getBlockAbs(double x, double y, double z) {
-        return editSession.getBlock((int) x, (int) y, (int) z);
+        return extent.getLazyBlock((int) x, (int) y, (int) z);
     }
 
     @Override
@@ -55,7 +60,7 @@ public class WorldEditExpressionEnvironment implements ExpressionEnvironment {
         x = x + current.getBlockX();
         y = y + current.getBlockY();
         z = z + current.getBlockZ();
-        return editSession.getBlock((int) x, (int) y, (int) z);
+        return extent.getLazyBlock((int) x, (int) y, (int) z);
     }
 
     public void setCurrentBlock(Vector current) {

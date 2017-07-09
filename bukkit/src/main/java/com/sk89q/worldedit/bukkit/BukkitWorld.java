@@ -118,7 +118,7 @@ public class BukkitWorld extends LocalWorld {
 
     private void addEntities(Entity ent, Collection<com.sk89q.worldedit.entity.Entity> ents) {
         ents.add(adapt(ent));
-        switch (Fawe.<FaweBukkit>imp().getPlugin().getVersion()) {
+        switch (Fawe.<FaweBukkit>imp().getVersion()) {
             case v1_7_R4:
             case v1_8_R3:
             case v1_9_R2:
@@ -536,14 +536,6 @@ public class BukkitWorld extends LocalWorld {
         } else {
             return false;
         }
-    }
-
-    /**
-     * @deprecated Use {@link #setBlock(Vector, BaseBlock, boolean)}
-     */
-    @Deprecated
-    public boolean setBlock(Vector pt, com.sk89q.worldedit.foundation.Block block, boolean notifyAdjacent) throws WorldEditException {
-        return setBlock(pt, (BaseBlock) block, notifyAdjacent);
     }
 
     public static Class<?> inject() {

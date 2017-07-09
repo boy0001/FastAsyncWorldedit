@@ -197,11 +197,12 @@ public class StructureFormat implements ClipboardReader, ClipboardWriter {
                                 String stateName = stateEntry.getKey();
                                 String stateValue = value.getKey();
                                 properties.put(stateName, stateValue);
-                                break loop;
                             }
                         }
                     }
-                    paletteEntry.put("Properties", properties);
+                    if (!properties.isEmpty()) {
+                        paletteEntry.put("Properties", properties);
+                    }
                 }
                 palette.add(paletteEntry);
             }

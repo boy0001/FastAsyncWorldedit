@@ -130,7 +130,7 @@ public class NMSRelighter implements Relighter {
         }
     }
 
-    public synchronized void updateBlockLight(Map<Long, long[][][]> map) {
+    public void updateBlockLight(Map<Long, long[][][]> map) {
         int size = map.size();
         if (size == 0) {
             return;

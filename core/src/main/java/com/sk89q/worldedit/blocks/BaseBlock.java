@@ -29,7 +29,6 @@ import com.sk89q.worldedit.CuboidClipboard.FlipDirection;
 import com.sk89q.worldedit.Vector;
 import com.sk89q.worldedit.WorldEditException;
 import com.sk89q.worldedit.extent.Extent;
-import com.sk89q.worldedit.foundation.Block;
 import com.sk89q.worldedit.function.mask.Mask;
 import com.sk89q.worldedit.function.pattern.Pattern;
 import com.sk89q.worldedit.world.registry.WorldData;
@@ -63,7 +62,7 @@ import javax.annotation.Nullable;
  * more appropriate.</p>
  */
 @SuppressWarnings("deprecation")
-public class BaseBlock extends Block implements TileEntityBlock, Pattern, Serializable {
+public class BaseBlock implements TileEntityBlock, Pattern, Serializable {
 
     /**
      * Indicates the highest possible block ID (inclusive) that can be used.
@@ -151,7 +150,6 @@ public class BaseBlock extends Block implements TileEntityBlock, Pattern, Serial
      *
      * @return ID (between 0 and {@link #MAX_ID})
      */
-    @Override
     public int getId() {
         return id;
     }
@@ -177,7 +175,6 @@ public class BaseBlock extends Block implements TileEntityBlock, Pattern, Serial
      *
      * @param id block id (between 0 and {@link #MAX_ID}).
      */
-    @Override
     public void setId(int id) {
         internalSetId(id);
     }
@@ -192,7 +189,6 @@ public class BaseBlock extends Block implements TileEntityBlock, Pattern, Serial
      *
      * @return data value (0-15)
      */
-    @Override
     public int getData() {
         return data;
     }
@@ -221,7 +217,6 @@ public class BaseBlock extends Block implements TileEntityBlock, Pattern, Serial
      *
      * @param data block data value (between 0 and {@link #MAX_DATA}).
      */
-    @Override
     public void setData(int data) {
         internalSetData(data);
     }
@@ -234,7 +229,6 @@ public class BaseBlock extends Block implements TileEntityBlock, Pattern, Serial
      * @see #setId(int)
      * @see #setData(int)
      */
-    @Override
     public void setIdAndData(int id, int data) {
         setId(id);
         setData(data);
@@ -246,7 +240,6 @@ public class BaseBlock extends Block implements TileEntityBlock, Pattern, Serial
      *
      * @return true if the data value is -1
      */
-    @Override
     public boolean hasWildcardData() {
         return getData() == -1;
     }

@@ -16,8 +16,11 @@ import com.sk89q.jnbt.CompoundTag;
 import com.sk89q.worldedit.EditSession;
 import com.sk89q.worldedit.MutableBlockVector;
 import com.sk89q.worldedit.Vector;
+import com.sk89q.worldedit.Vector2D;
+import com.sk89q.worldedit.WorldEditException;
 import com.sk89q.worldedit.blocks.BaseBlock;
 import com.sk89q.worldedit.blocks.BlockMaterial;
+import com.sk89q.worldedit.extent.Extent;
 import com.sk89q.worldedit.regions.CuboidRegion;
 import com.sk89q.worldedit.world.World;
 import com.sk89q.worldedit.world.biome.BaseBiome;
@@ -30,7 +33,7 @@ import java.util.UUID;
 import java.util.concurrent.ConcurrentLinkedDeque;
 import javax.annotation.Nullable;
 
-public abstract class FaweQueue implements HasFaweQueue {
+public abstract class FaweQueue implements HasFaweQueue, Extent {
 
     private World weWorld;
     private String world;
@@ -54,6 +57,61 @@ public abstract class FaweQueue implements HasFaweQueue {
 
     public Relighter getRelighter() {
         return NullRelighter.INSTANCE;
+    }
+
+    @Override
+    public Vector getMinimumPoint() {
+        return new Vector(-30000000, 0, -30000000);
+    }
+
+    @Override
+    public Vector getMaximumPoint() {
+        return new Vector(30000000, getMaxY(), 30000000);
+    }
+
+    @Override
+    public BaseBlock getLazyBlock(int x, int y, int z) {
+        int combinedId4Data = getCachedCombinedId4Data(x, y, z, 0);
+        int id = FaweCache.getId(combinedId4Data);
+        if (!FaweCache.hasNBT(id)) {
+            return FaweCache.CACHE_BLOCK[combinedId4Data];
+        }
+        try {
+            CompoundTag tile = getTileEntity(x, y, z);
+            if (tile != null) {
+                return new BaseBlock(id, FaweCache.getData(combinedId4Data), tile);
+            } else {
+                return FaweCache.CACHE_BLOCK[combinedId4Data];
+            }
+        } catch (Throwable e) {
+            MainUtil.handleError(e);
+            return FaweCache.CACHE_BLOCK[combinedId4Data];
+        }
+    }
+
+    @Override
+    public boolean setBlock(int x, int y, int z, BaseBlock block) throws WorldEditException {
+        return setBlock(x, y, z, block.getId(), block.getData(), block.getNbtData());
+    }
+
+    @Override
+    public BaseBlock getBlock(Vector position) {
+        return getLazyBlock(position.getBlockX(), position.getBlockY(), position.getBlockZ());
+    }
+
+    @Override
+    public BaseBiome getBiome(Vector2D position) {
+        return null;
+    }
+
+    @Override
+    public boolean setBlock(Vector position, BaseBlock block) throws WorldEditException {
+        return setBlock(position.getBlockX(), position.getBlockY(), position.getBlockZ(), block);
+    }
+
+    @Override
+    public boolean setBiome(Vector2D position, BaseBiome biome) {
+        return setBiome(position.getBlockX(), position.getBlockZ(), biome);
     }
 
     public enum ProgressType {
@@ -204,10 +262,15 @@ public abstract class FaweQueue implements HasFaweQueue {
 
     public boolean setBlock(int x, int y, int z, int id, int data, CompoundTag nbt) {
         if (nbt != null) {
-            MainUtil.setPosition(nbt, x, y, z);
-            setTile(x, y, z, nbt);
+            if (setBlock(x, y, z, id, data)) {
+                MainUtil.setPosition(nbt, x, y, z);
+                setTile(x, y, z, nbt);
+                return true;
+            }
+            return false;
+        } else {
+            return setBlock(x, y, z, id, data);
         }
-        return setBlock(x, y, z, id, data);
     }
 
     public abstract void setTile(int x, int y, int z, CompoundTag tag);

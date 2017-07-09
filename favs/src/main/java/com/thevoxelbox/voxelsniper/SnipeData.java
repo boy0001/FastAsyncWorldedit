@@ -1,5 +1,7 @@
 package com.thevoxelbox.voxelsniper;
 
+import com.sk89q.worldedit.extent.Extent;
+import com.sk89q.worldedit.function.pattern.Pattern;
 import com.thevoxelbox.voxelsniper.util.VoxelList;
 import org.bukkit.World;
 
@@ -53,12 +55,49 @@ public class SnipeData {
     private int range = 0;
     private boolean ranged = false;
     private boolean lightning = false;
+    private Extent extent;
+    private Pattern pattern;
+    private String patternInfo;
 
     /**
      * @param vs
      */
     public SnipeData(final Sniper vs) {
         this.owner = vs;
+    }
+
+    /**
+     * Get the extent currently being used to set blocks
+     * @return
+     */
+    public Extent getExtent() {
+        return extent;
+    }
+
+    /**
+     * Set the extent currently being used to set blocks
+     * @param extent
+     */
+    public void setExtent(Extent extent) {
+        this.extent = extent;
+    }
+
+    public void setPattern(Pattern pattern, String info) {
+        if (pattern != null) {
+            if (info == null) info = "";
+        } else {
+            info = null;
+        }
+        this.pattern = pattern;
+        this.patternInfo = info;
+    }
+
+    public Pattern getPattern() {
+        return pattern;
+    }
+
+    public String getPatternInfo() {
+        return patternInfo;
     }
 
     /**

@@ -4,8 +4,11 @@ import com.boydti.fawe.Fawe;
 import com.boydti.fawe.bukkit.BukkitCommand;
 import com.boydti.fawe.object.FaweCommand;
 import com.boydti.fawe.object.FawePlayer;
+import com.thevoxelbox.voxelsniper.RangeBlockHelper;
 import com.thevoxelbox.voxelsniper.SnipeData;
 import com.thevoxelbox.voxelsniper.Sniper;
+import com.thevoxelbox.voxelsniper.brush.perform.PerformBrush;
+import com.thevoxelbox.voxelsniper.command.VoxelVoxelCommand;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.net.URL;
@@ -42,6 +45,9 @@ public class Favs extends JavaPlugin {
             }
             SnipeData.inject();
             Sniper.inject();
+            VoxelVoxelCommand.inject();
+            PerformBrush.inject();
+            RangeBlockHelper.inject();
             // Forward the commands so //p and //d will work
             setupCommand("/p", new FaweCommand("voxelsniper.sniper") {
                 @Override

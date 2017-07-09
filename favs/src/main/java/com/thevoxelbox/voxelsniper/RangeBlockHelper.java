@@ -250,4 +250,8 @@ public class RangeBlockHelper {
         this.lastY = this.targetY;
         this.lastZ = this.targetZ;
     }
+
+    public static Class<?> inject() {
+        return RangeBlockHelper.class;
+    }
 }
