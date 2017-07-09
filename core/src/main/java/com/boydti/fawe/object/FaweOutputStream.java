@@ -36,6 +36,23 @@ public class FaweOutputStream extends DataOutputStream {
         write((byte) (m));
     }
 
+    public void writeVarInt(int i) throws IOException {
+        while((i & -128) != 0) {
+            this.writeByte(i & 127 | 128);
+            i >>>= 7;
+        }
+
+        this.writeByte(i);
+    }
+
+    public void write(long[] data) throws IOException {
+        this.writeVarInt(data.length);
+
+        for(int j = 0; j < data.length; ++j) {
+            this.writeLong(data[j]);
+        }
+    }
+
     private NBTOutputStream nbtOut;
 
     public void writeNBT(String name, Tag tag) throws IOException {

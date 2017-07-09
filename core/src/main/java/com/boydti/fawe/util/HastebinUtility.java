@@ -85,7 +85,8 @@ public class HastebinUtility {
         b.append("links.commands_yml: ").append(commandsYML).append('\n');
         b.append("links.latest_log: ").append(latestLOG).append('\n');
         b.append("\n# Server Information\n");
-        b.append("version.server: ").append(Fawe.imp().getPlatform()).append('\n');
+        b.append("server.platform: ").append(Fawe.imp().getPlatform()).append('\n');
+        b.append(Fawe.imp().getDebugInfo()).append('\n');
         b.append("\n\n# YAY! Now, let's see what we can find in your JVM\n");
         Runtime runtime = Runtime.getRuntime();
         b.append("memory.free: ").append(runtime.freeMemory()).append('\n');

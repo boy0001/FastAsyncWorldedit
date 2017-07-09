@@ -21,6 +21,7 @@ import com.boydti.fawe.object.FaweQueue;
 import com.boydti.fawe.regions.FaweMaskManager;
 import com.boydti.fawe.util.MainUtil;
 import com.boydti.fawe.util.ReflectionUtils;
+import com.boydti.fawe.util.StringMan;
 import com.boydti.fawe.util.TaskManager;
 import com.sk89q.worldedit.bukkit.BukkitWorld;
 import com.sk89q.worldedit.bukkit.EditSessionBlockChangeDelegate;
@@ -36,6 +37,7 @@ import java.nio.channels.Channels;
 import java.nio.channels.ReadableByteChannel;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
 import java.util.UUID;
 import org.bukkit.Bukkit;
 import org.bukkit.command.ConsoleCommandSender;
@@ -105,7 +107,7 @@ public class FaweBukkit implements IFawe, Listener {
         if (Bukkit.getPluginManager().getPlugin("WorldEdit") == null) {
             try {
                 File output = new File(getDirectory().getParentFile(), "WorldEdit.jar");
-                URL worldEditUrl = new URL("http://builds.enginehub.org/job/worldedit/9672/download/worldedit-bukkit-6.1.7-SNAPSHOT-dist.jar");
+                URL worldEditUrl = new URL("http://builds.enginehub.org/job/worldedit/9819/download/worldedit-bukkit-6.1.8-SNAPSHOT-dist.jar");
                 try (ReadableByteChannel rbc = Channels.newChannel(worldEditUrl.openStream())) {
                     try (FileOutputStream fos = new FileOutputStream(output)) {
                         fos.getChannel().transferFrom(rbc, 0, Long.MAX_VALUE);
@@ -190,6 +192,18 @@ public class FaweBukkit implements IFawe, Listener {
         } catch (final Throwable e) {
             this.debug("&dVault is used for persistent `/wea` toggles.");
         }
+    }
+
+    @Override
+    public String getDebugInfo() {
+        StringBuilder msg = new StringBuilder();
+        List<String> pl = new ArrayList<>();
+        for (Plugin p : Bukkit.getPluginManager().getPlugins()) {
+            pl.add(p.getName());
+        }
+        msg.append("server.plugins: \n - " + StringMan.join(pl, " - ") + "\n");
+        msg.append("server.version: " + Bukkit.getVersion() + " / " + Bukkit.getBukkitVersion());
+        return msg.toString();
     }
 
     /**

@@ -45,6 +45,7 @@ import org.bukkit.World;
         usage = "/plots moveto512 [world]"
 )
 public class MoveTo512 extends Command {
+
     public MoveTo512() {
         super(MainCommand.getInstance(), true);
     }

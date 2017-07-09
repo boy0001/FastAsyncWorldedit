@@ -68,7 +68,7 @@ public class BrushTool implements DoubleActionTraceTool, ScrollTool, MovableTool
     }
 
     protected static int MAX_RANGE = 500;
-    protected int range = -1;
+    protected int range = 240;
     private VisualMode visualMode = VisualMode.NONE;
     private TargetMode targetMode = TargetMode.TARGET_BLOCK_RANGE;
     private Mask targetMask = null;

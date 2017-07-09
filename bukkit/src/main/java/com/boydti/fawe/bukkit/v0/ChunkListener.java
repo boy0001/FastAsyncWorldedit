@@ -5,6 +5,7 @@ import com.boydti.fawe.bukkit.FaweBukkit;
 import com.boydti.fawe.config.Settings;
 import com.boydti.fawe.util.MathMan;
 import com.boydti.fawe.util.TaskManager;
+import com.sk89q.worldedit.blocks.BlockID;
 import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
 import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
 import org.bukkit.Bukkit;
@@ -99,21 +100,85 @@ public class ChunkListener implements Listener {
             event.setCancelled(true);
             return;
         }
-        if (event.getChangedTypeId() == block.getTypeId()) {
+        int blockId = block.getTypeId();
+        if (event.getChangedTypeId() == blockId) {
             int y = block.getY();
-            if (y != lastPhysY) {
-                lastPhysY = y;
-                if (++count[0] == Settings.IMP.TICK_LIMITER.PHYSICS) {
-                    cancelNearby(cx, cz);
-                    if (rateLimit <= 0) {
-                        rateLimit = 20;
-                        Fawe.debug("[FAWE `tick-limiter`] Detected and cancelled physics  lag source at " + block.getLocation());
-                    }
-                    event.setCancelled(true);
-                }
-                return;
-            }
+            int tmpLastY = lastPhysY;
             lastPhysY = y;
+            int amount;
+            switch (blockId) {
+                case BlockID.REDSTONE_BLOCK:
+                case BlockID.REDSTONE_LAMP_OFF:
+                case BlockID.REDSTONE_LAMP_ON:
+                case BlockID.REDSTONE_ORE:
+                case BlockID.REDSTONE_REPEATER_OFF:
+                case BlockID.REDSTONE_REPEATER_ON:
+                case BlockID.REDSTONE_TORCH_OFF:
+                case BlockID.REDSTONE_TORCH_ON:
+                case BlockID.REDSTONE_WIRE:
+                case BlockID.GLOWING_REDSTONE_ORE:
+                case BlockID.TRIPWIRE:
+                case BlockID.TRIPWIRE_HOOK:
+                case 218: // Observer
+                case BlockID.PISTON_BASE:
+                case BlockID.PISTON_STICKY_BASE:
+                case BlockID.IRON_DOOR:
+                case BlockID.ACACIA_DOOR:
+                case BlockID.BIRCH_DOOR:
+                case BlockID.DARK_OAK_DOOR:
+                case BlockID.IRON_TRAP_DOOR:
+                case BlockID.JUNGLE_DOOR:
+                case BlockID.SPRUCE_DOOR:
+                case BlockID.TRAP_DOOR:
+                case BlockID.WOODEN_DOOR:
+                case BlockID.FENCE_GATE:
+                case BlockID.ACACIA_FENCE_GATE:
+                case BlockID.BIRCH_FENCE_GATE:
+                case BlockID.DARK_OAK_FENCE_GATE:
+                case BlockID.JUNGLE_FENCE_GATE:
+                case BlockID.SPRUCE_FENCE_GATE:
+                case BlockID.LEVER:
+                case BlockID.WOODEN_BUTTON:
+                case BlockID.STONE_BUTTON:
+                case BlockID.STONE_PRESSURE_PLATE:
+                case BlockID.WOODEN_PRESSURE_PLATE:
+                case BlockID.PRESSURE_PLATE_HEAVY:
+                case BlockID.PRESSURE_PLATE_LIGHT:
+                case BlockID.POWERED_RAIL:
+                case BlockID.ACTIVATOR_RAIL:
+                case BlockID.DETECTOR_RAIL:
+                case BlockID.WATER:
+                case BlockID.STATIONARY_WATER:
+                case BlockID.LAVA:
+                case BlockID.STATIONARY_LAVA:
+                    if (y == tmpLastY) {
+                        return;
+                    }
+                    // Should cancel if excess, but need to be careful
+                    amount = 1;
+                    break;
+                case BlockID.SAND:
+                case BlockID.GRAVEL:
+                case BlockID.DRAGON_EGG:
+                case BlockID.ANVIL:
+                case BlockID.FIRE:
+                case BlockID.TORCH:
+                    // If there's lots of this, it's usually from abuse
+                    amount = 16;
+                    break;
+                default:
+                    // Uncategorized, but not redstone
+                    amount = 4;
+                    break;
+            }
+            if ((count[0] += amount) >= Settings.IMP.TICK_LIMITER.PHYSICS) {
+                cancelNearby(cx, cz);
+                if (rateLimit <= 0) {
+                    rateLimit = 20;
+                    Fawe.debug("[FAWE `tick-limiter`] Detected and cancelled physics  lag source at " + block.getLocation());
+                }
+                event.setCancelled(true);
+            }
         }
     }
 

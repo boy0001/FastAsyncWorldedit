@@ -55,6 +55,7 @@ import com.sk89q.worldedit.command.tool.BrushTool;
 import com.sk89q.worldedit.command.tool.FloodFillTool;
 import com.sk89q.worldedit.command.tool.LongRangeBuildTool;
 import com.sk89q.worldedit.command.tool.RecursivePickaxe;
+import com.sk89q.worldedit.command.tool.SinglePickaxe;
 import com.sk89q.worldedit.command.tool.brush.GravityBrush;
 import com.sk89q.worldedit.command.util.EntityRemover;
 import com.sk89q.worldedit.event.extent.EditSessionEvent;
@@ -433,8 +434,7 @@ public class Fawe {
             Settings.IMP.DATE = new Date(100 + version.year, version.month, version.day).toGMTString();
             Settings.IMP.BUILD = "https://ci.athion.net/job/FastAsyncWorldEdit/" + version.build;
             Settings.IMP.COMMIT = "https://github.com/boy0001/FastAsyncWorldedit/commit/" + Integer.toHexString(version.hash);
-        } catch (Throwable ignore) {
-        }
+        } catch (Throwable ignore) {}
         Settings.IMP.reload(file);
         // Setting up message.yml
         BBC.load(new File(this.IMP.getDirectory(), "message.yml"));
@@ -500,6 +500,7 @@ public class Fawe {
             GravityBrush.inject(); // Fix for instant placement assumption
             LongRangeBuildTool.inject();
             AreaPickaxe.inject(); // Fixes
+            SinglePickaxe.inject(); // Fixes
             RecursivePickaxe.inject(); // Fixes
             BrushTool.inject(); // Add transform + support for double action brushes + visualizations
             // Selectors

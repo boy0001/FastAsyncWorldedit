@@ -268,6 +268,9 @@ public class EditSession extends AbstractWorld implements HasFaweQueue, Lighting
         }
         this.originalLimit = limit;
         this.blockBag = limit.INVENTORY_MODE != 0 ? blockBag : null;
+        if (this.blockBag != null) {
+            combineStages = false;
+        }
         this.limit = limit.copy();
         if (queue == null) {
             if (world instanceof MCAWorld) {
@@ -1693,7 +1696,7 @@ public class EditSession extends AbstractWorld implements HasFaweQueue, Lighting
         checkNotNull(region);
         checkNotNull(pattern);
         if (pattern instanceof BlockPattern) {
-            return setBlocks(region, ((BaseBlock) pattern));
+            return setBlocks(region, ((BlockPattern) pattern).getBlock());
         }
         if (pattern instanceof BaseBlock) {
             return setBlocks(region, (BaseBlock) pattern);
@@ -2387,7 +2390,6 @@ public class EditSession extends AbstractWorld implements HasFaweQueue, Lighting
         int px = pos.getBlockX();
         int py = pos.getBlockY();
         int pz = pos.getBlockZ();
-        MutableBlockVector mutable = new MutableBlockVector();
 
         final int ceilRadiusX = (int) Math.ceil(radiusX);
         final int ceilRadiusY = (int) Math.ceil(radiusY);
@@ -2430,14 +2432,14 @@ public class EditSession extends AbstractWorld implements HasFaweQueue, Lighting
                         }
                     }
 
-                    this.setBlock(mutable.setComponents(px + x, py + y, pz + z), block);
-                    this.setBlock(mutable.setComponents(px - x, py + y, pz + z), block);
-                    this.setBlock(mutable.setComponents(px + x, py - y, pz + z), block);
-                    this.setBlock(mutable.setComponents(px + x, py + y, pz - z), block);
-                    this.setBlock(mutable.setComponents(px - x, py - y, pz + z), block);
-                    this.setBlock(mutable.setComponents(px + x, py - y, pz - z), block);
-                    this.setBlock(mutable.setComponents(px - x, py + y, pz - z), block);
-                    this.setBlock(mutable.setComponents(px - x, py - y, pz - z), block);
+                    this.setBlock(px + x, py + y, pz + z, block);
+                    this.setBlock(px - x, py + y, pz + z, block);
+                    this.setBlock(px + x, py - y, pz + z, block);
+                    this.setBlock(px + x, py + y, pz - z, block);
+                    this.setBlock(px - x, py - y, pz + z, block);
+                    this.setBlock(px + x, py - y, pz - z, block);
+                    this.setBlock(px - x, py + y, pz - z, block);
+                    this.setBlock(px - x, py - y, pz - z, block);
                 }
             }
         }

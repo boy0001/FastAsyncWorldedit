@@ -56,6 +56,10 @@ public class FaweTimer implements Runnable {
         return System.currentTimeMillis() - tickStart;
     }
 
+    public long getTickStart() {
+        return tickStart;
+    }
+
     private long skip = 0;
     private long skipTick = 0;
 
