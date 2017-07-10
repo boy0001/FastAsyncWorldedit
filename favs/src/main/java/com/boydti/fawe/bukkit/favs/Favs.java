@@ -4,6 +4,7 @@ import com.boydti.fawe.Fawe;
 import com.boydti.fawe.bukkit.BukkitCommand;
 import com.boydti.fawe.object.FaweCommand;
 import com.boydti.fawe.object.FawePlayer;
+import com.boydti.fawe.util.MainUtil;
 import com.thevoxelbox.voxelsniper.RangeBlockHelper;
 import com.thevoxelbox.voxelsniper.SnipeData;
 import com.thevoxelbox.voxelsniper.Sniper;
@@ -21,16 +22,30 @@ import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
 
 public class Favs extends JavaPlugin {
+
     @Override
     public void onEnable() {
         try {
             if (Bukkit.getPluginManager().getPlugin("VoxelSniper") == null) {
                 try {
-                    File output = new File(this.getDataFolder().getParentFile(), "VoxelSniper.jar");
-                    URL worldEditUrl = new URL("https://addons-origin.cursecdn.com/files/912/511/VoxelSniper-5.171.0-SNAPSHOT.jar");
-                    try (ReadableByteChannel rbc = Channels.newChannel(worldEditUrl.openStream())) {
-                        try (FileOutputStream fos = new FileOutputStream(output)) {
-                            fos.getChannel().transferFrom(rbc, 0, Long.MAX_VALUE);
+                    File thisFile = MainUtil.getJarFile();
+                    String thisName = thisFile.getName().toLowerCase();
+                    File output = null;
+                    for (File file : getDataFolder().getParentFile().listFiles()) {
+                        String name = file.getName().toLowerCase();
+                        if (name.endsWith(".jar") && name.contains("voxelsniper") && !name.contains("fastasyncvoxelsniper")) {
+                            output = file;
+                            System.out.println("File " + file + " | " + thisName);
+                            break;
+                        }
+                    }
+                    if (output == null) {
+                        output = new File(this.getDataFolder().getParentFile(), "VoxelSniper.jar");
+                        URL worldEditUrl = new URL("https://addons-origin.cursecdn.com/files/912/511/VoxelSniper-5.171.0-SNAPSHOT.jar");
+                        try (ReadableByteChannel rbc = Channels.newChannel(worldEditUrl.openStream())) {
+                            try (FileOutputStream fos = new FileOutputStream(output)) {
+                                fos.getChannel().transferFrom(rbc, 0, Long.MAX_VALUE);
+                            }
                         }
                     }
                     Bukkit.getPluginManager().loadPlugin(output);

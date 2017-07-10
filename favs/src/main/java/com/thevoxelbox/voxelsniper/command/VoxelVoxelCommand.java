@@ -5,19 +5,12 @@
 
 package com.thevoxelbox.voxelsniper.command;
 
-import com.boydti.fawe.config.BBC;
-import com.boydti.fawe.object.FawePlayer;
-import com.sk89q.worldedit.WorldEdit;
-import com.sk89q.worldedit.extension.input.InputParseException;
-import com.sk89q.worldedit.extension.input.ParserContext;
-import com.sk89q.worldedit.function.pattern.Pattern;
+import com.boydti.fawe.bukkit.favs.PatternUtil;
 import com.thevoxelbox.voxelsniper.RangeBlockHelper;
 import com.thevoxelbox.voxelsniper.SnipeData;
 import com.thevoxelbox.voxelsniper.Sniper;
 import com.thevoxelbox.voxelsniper.VoxelSniper;
 import com.thevoxelbox.voxelsniper.api.command.VoxelCommand;
-import com.thevoxelbox.voxelsniper.brush.perform.PerformBrush;
-import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
@@ -59,18 +52,7 @@ public class VoxelVoxelCommand extends VoxelCommand {
                     return true;
                 }
             } else {
-                ParserContext context = new ParserContext();
-                FawePlayer<Object> fp = FawePlayer.wrap(player);
-                context.setActor(fp.getPlayer());
-                context.setWorld(fp.getWorld());
-                context.setSession(fp.getSession());
-                try {
-                    Pattern pattern = WorldEdit.getInstance().getPatternFactory().parseFromInput(args[0], context);
-                    snipeData.setPattern(pattern, args[0]);
-                    snipeData.sendMessage(ChatColor.GOLD + "Voxel: " + ChatColor.RED + args[0]);
-                } catch (InputParseException e) {
-                    fp.sendMessage(BBC.getPrefix() + e.getMessage());
-                }
+                PatternUtil.parsePattern(player, snipeData, args[0]);
                 return true;
             }
         }

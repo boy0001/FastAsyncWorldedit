@@ -36,13 +36,9 @@ import com.sk89q.worldedit.bukkit.EditSessionBlockChangeDelegate;
 import com.sk89q.worldedit.bukkit.WorldEditPlugin;
 import com.sk89q.worldedit.world.World;
 import java.io.File;
-import java.io.FileOutputStream;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
-import java.net.URL;
-import java.nio.channels.Channels;
-import java.nio.channels.ReadableByteChannel;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -112,25 +108,6 @@ public class FaweBukkit implements IFawe, Listener {
     }
 
     public void setupInjector() {
-        if (Bukkit.getPluginManager().getPlugin("WorldEdit") == null) {
-            try {
-                File output = new File(getDirectory().getParentFile(), "WorldEdit.jar");
-                URL worldEditUrl = new URL("http://builds.enginehub.org/job/worldedit/9819/download/worldedit-bukkit-6.1.8-SNAPSHOT-dist.jar");
-                try (ReadableByteChannel rbc = Channels.newChannel(worldEditUrl.openStream())) {
-                    try (FileOutputStream fos = new FileOutputStream(output)) {
-                        fos.getChannel().transferFrom(rbc, 0, Long.MAX_VALUE);
-                    }
-                }
-                Bukkit.getPluginManager().loadPlugin(output);
-            } catch (Throwable e) {
-                e.printStackTrace();
-                Fawe.debug("====== INSTALL WORLDEDIT ======");
-                Fawe.debug("FAWE requires WorldEdit to function correctly");
-                Fawe.debug("Info: https://github.com/boy0001/FastAsyncWorldedit/releases/");
-                Fawe.debug("===============================");
-                return;
-            }
-        }
         Fawe.setupInjector();
         // Inject
         EditSessionBlockChangeDelegate.inject();

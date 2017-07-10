@@ -176,6 +176,7 @@ public abstract class BukkitQueue_0<CHUNK, CHUNKSECTIONS, SECTION> extends NMSMa
                 }
             }
         } catch (Throwable e) {
+            setupAdapter = false;
             Fawe.debug("====== NO NATIVE WORLDEDIT ADAPTER ======");
             e.printStackTrace();
             Fawe.debug("Try updating WorldEdit: ");
