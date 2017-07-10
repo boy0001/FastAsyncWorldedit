@@ -11,8 +11,16 @@ import com.boydti.fawe.bukkit.regions.PreciousStonesFeature;
 import com.boydti.fawe.bukkit.regions.ResidenceFeature;
 import com.boydti.fawe.bukkit.regions.TownyFeature;
 import com.boydti.fawe.bukkit.regions.Worldguard;
+import com.boydti.fawe.bukkit.v0.BukkitQueue_0;
 import com.boydti.fawe.bukkit.v0.BukkitQueue_All;
 import com.boydti.fawe.bukkit.v0.ChunkListener;
+import com.boydti.fawe.bukkit.v1_10.BukkitQueue_1_10;
+import com.boydti.fawe.bukkit.v1_11.BukkitQueue_1_11;
+import com.boydti.fawe.bukkit.v1_12.BukkitQueue_1_12;
+import com.boydti.fawe.bukkit.v1_12.NMSRegistryDumper;
+import com.boydti.fawe.bukkit.v1_7.BukkitQueue17;
+import com.boydti.fawe.bukkit.v1_8.BukkitQueue18R3;
+import com.boydti.fawe.bukkit.v1_9.BukkitQueue_1_9_R1;
 import com.boydti.fawe.config.BBC;
 import com.boydti.fawe.config.Settings;
 import com.boydti.fawe.object.FaweCommand;
@@ -28,13 +36,9 @@ import com.sk89q.worldedit.bukkit.EditSessionBlockChangeDelegate;
 import com.sk89q.worldedit.bukkit.WorldEditPlugin;
 import com.sk89q.worldedit.world.World;
 import java.io.File;
-import java.io.FileOutputStream;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
-import java.net.URL;
-import java.nio.channels.Channels;
-import java.nio.channels.ReadableByteChannel;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -104,25 +108,6 @@ public class FaweBukkit implements IFawe, Listener {
     }
 
     public void setupInjector() {
-        if (Bukkit.getPluginManager().getPlugin("WorldEdit") == null) {
-            try {
-                File output = new File(getDirectory().getParentFile(), "WorldEdit.jar");
-                URL worldEditUrl = new URL("http://builds.enginehub.org/job/worldedit/9819/download/worldedit-bukkit-6.1.8-SNAPSHOT-dist.jar");
-                try (ReadableByteChannel rbc = Channels.newChannel(worldEditUrl.openStream())) {
-                    try (FileOutputStream fos = new FileOutputStream(output)) {
-                        fos.getChannel().transferFrom(rbc, 0, Long.MAX_VALUE);
-                    }
-                }
-                Bukkit.getPluginManager().loadPlugin(output);
-            } catch (Throwable e) {
-                e.printStackTrace();
-                Fawe.debug("====== INSTALL WORLDEDIT ======");
-                Fawe.debug("FAWE requires WorldEdit to function correctly");
-                Fawe.debug("Info: https://github.com/boy0001/FastAsyncWorldedit/releases/");
-                Fawe.debug("===============================");
-                return;
-            }
-        }
         Fawe.setupInjector();
         // Inject
         EditSessionBlockChangeDelegate.inject();
@@ -214,8 +199,6 @@ public class FaweBukkit implements IFawe, Listener {
         return new BukkitTaskMan(plugin);
     }
 
-    private int[] version;
-
     private boolean hasNMS = true;
     private boolean playerChunk = false;
 
@@ -234,7 +217,7 @@ public class FaweBukkit implements IFawe, Listener {
             } catch (Throwable ignore) {}
         }
         try {
-            return plugin.getQueue(world);
+            return getQueue(world);
         } catch (Throwable ignore) {
             // Disable incompatible settings
             Settings.IMP.QUEUE.PARALLEL_THREADS = 1; // BukkitAPI placer is too slow to parallel thread at the chunk level
@@ -289,7 +272,7 @@ public class FaweBukkit implements IFawe, Listener {
             }
             Throwable error = null;
             try {
-                return plugin.getQueue(world);
+                return getQueue(world);
             } catch (Throwable ignore) {
                 error = ignore;
             }
@@ -464,5 +447,80 @@ public class FaweBukkit implements IFawe, Listener {
             return null;
         }
         return ((BlocksHubBukkit) blocksHubPlugin).getApi();
+    }
+
+    private Version version = null;
+
+    public Version getVersion() {
+        Version tmp = this.version;
+        if (tmp == null) {
+            for (Version v : Version.values()) {
+                try {
+                    BukkitQueue_0.checkVersion(v.name());
+                    this.version = tmp = v;
+                    if (tmp == Version.v1_12_R1) {
+                        try {
+                            Fawe.debug("Running 1.12 registry dumper!");
+                            NMSRegistryDumper dumper = new NMSRegistryDumper(MainUtil.getFile(plugin.getDataFolder(), "extrablocks.json"));
+                            dumper.run();
+                        } catch (Throwable e) {
+                            e.printStackTrace();
+                        }
+                    }
+                    break;
+                } catch (IllegalStateException e) {}
+            }
+        }
+        return tmp;
+    }
+
+    public enum Version {
+        v1_7_R4,
+        v1_8_R3,
+        v1_9_R2,
+        v1_10_R1,
+        v1_11_R1,
+        v1_12_R1,
+        NONE,
+    }
+
+    private FaweQueue getQueue(World world) {
+        switch (getVersion()) {
+            case v1_7_R4:
+                return new BukkitQueue17(world);
+            case v1_8_R3:
+                return new BukkitQueue18R3(world);
+            case v1_9_R2:
+                return new BukkitQueue_1_9_R1(world);
+            case v1_10_R1:
+                return new BukkitQueue_1_10(world);
+            case v1_11_R1:
+                return new BukkitQueue_1_11(world);
+            case v1_12_R1:
+                return new BukkitQueue_1_12(world);
+            default:
+            case NONE:
+                return new BukkitQueue_All(world);
+        }
+    }
+
+    private FaweQueue getQueue(String world) {
+        switch (getVersion()) {
+            case v1_7_R4:
+                return new BukkitQueue17(world);
+            case v1_8_R3:
+                return new BukkitQueue18R3(world);
+            case v1_9_R2:
+                return new BukkitQueue_1_9_R1(world);
+            case v1_10_R1:
+                return new BukkitQueue_1_10(world);
+            case v1_11_R1:
+                return new BukkitQueue_1_11(world);
+            case v1_12_R1:
+                return new BukkitQueue_1_12(world);
+            default:
+            case NONE:
+                return new BukkitQueue_All(world);
+        }
     }
 }

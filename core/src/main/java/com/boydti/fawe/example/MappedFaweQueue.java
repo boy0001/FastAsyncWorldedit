@@ -8,6 +8,7 @@ import com.boydti.fawe.object.FaweQueue;
 import com.boydti.fawe.object.IntegerPair;
 import com.boydti.fawe.object.RunnableVal;
 import com.boydti.fawe.object.exception.FaweException;
+import com.boydti.fawe.object.extent.LightingExtent;
 import com.boydti.fawe.util.MainUtil;
 import com.boydti.fawe.util.MathMan;
 import com.boydti.fawe.util.SetQueue;
@@ -23,7 +24,7 @@ import java.util.UUID;
 import java.util.concurrent.ForkJoinPool;
 import java.util.concurrent.TimeUnit;
 
-public abstract class MappedFaweQueue<WORLD, CHUNK, CHUNKSECTIONS, SECTION> extends FaweQueue {
+public abstract class MappedFaweQueue<WORLD, CHUNK, CHUNKSECTIONS, SECTION> extends FaweQueue implements LightingExtent {
 
     private WORLD impWorld;
 
@@ -86,37 +87,18 @@ public abstract class MappedFaweQueue<WORLD, CHUNK, CHUNKSECTIONS, SECTION> exte
     @Override
     public void optimize() {
         final ForkJoinPool pool = TaskManager.IMP.getPublicForkJoinPool();
-//        if (Fawe.get().isJava8())
-        {
-            map.forEachChunk(new RunnableVal<FaweChunk>() {
-                @Override
-                public void run(final FaweChunk chunk) {
-                    pool.submit(new Runnable() {
-                        @Override
-                        public void run() {
-                            chunk.optimize();
-                        }
-                    });
-                }
-            });
-            pool.awaitQuiescence(Long.MAX_VALUE, TimeUnit.MILLISECONDS);
-        }
-//        else {
-//            final ArrayList<Runnable> tasks = new ArrayList<Runnable>(map.size());
-//            map.forEachChunk(new RunnableVal<FaweChunk>() {
-//                @Override
-//                public void run(final FaweChunk chunk) {
-//                    tasks.add(new Runnable() {
-//                        @Override
-//                        public void run() {
-//                            chunk.optimize();
-//                        }
-//                    });
-//                }
-//            });
-//            TaskManager.IMP.parallel(tasks);
-//        }
-
+        map.forEachChunk(new RunnableVal<FaweChunk>() {
+            @Override
+            public void run(final FaweChunk chunk) {
+                pool.submit(new Runnable() {
+                    @Override
+                    public void run() {
+                        chunk.optimize();
+                    }
+                });
+            }
+        });
+        pool.awaitQuiescence(Long.MAX_VALUE, TimeUnit.MILLISECONDS);
     }
 
     public abstract WORLD getImpWorld();
@@ -458,6 +440,11 @@ public abstract class MappedFaweQueue<WORLD, CHUNK, CHUNKSECTIONS, SECTION> exte
             return getSkyLight(x, y + 16, z);
         }
         return getSkyLight(lastSection, x, y, z);
+    }
+
+    @Override
+    public int getBlockLight(int x, int y, int z) {
+        return getEmmittedLight(x, y, z);
     }
 
     @Override

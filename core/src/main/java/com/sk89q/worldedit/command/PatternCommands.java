@@ -34,13 +34,14 @@ import com.boydti.fawe.object.pattern.SurfaceRandomOffsetPattern;
 import com.boydti.fawe.object.random.SimplexRandom;
 import com.boydti.fawe.util.TextureUtil;
 import com.sk89q.minecraft.util.commands.Command;
-import com.sk89q.worldedit.EditSession;
 import com.sk89q.worldedit.EmptyClipboardException;
 import com.sk89q.worldedit.LocalSession;
 import com.sk89q.worldedit.Vector;
 import com.sk89q.worldedit.WorldEdit;
+import com.sk89q.worldedit.entity.Player;
 import com.sk89q.worldedit.extension.input.InputParseException;
 import com.sk89q.worldedit.extension.platform.Actor;
+import com.sk89q.worldedit.extent.Extent;
 import com.sk89q.worldedit.extent.clipboard.Clipboard;
 import com.sk89q.worldedit.extent.clipboard.io.ClipboardFormat;
 import com.sk89q.worldedit.function.mask.Mask;
@@ -68,8 +69,8 @@ public class PatternCommands extends MethodCommands {
     @Command(
             aliases = {"#existing", "#*"},
             desc = "Use the block that is already there")
-    public Pattern existing(EditSession editSession) {
-        return new ExistingPattern(editSession);
+    public Pattern existing(Extent extent) {
+        return new ExistingPattern(extent);
     }
 
     @Command(
@@ -117,17 +118,17 @@ public class PatternCommands extends MethodCommands {
             min = 0,
             max = 2
     )
-    public Pattern anglecolor(EditSession editSession, @Optional("true") boolean randomize, @Optional("100") double maxComplexity) {
+    public Pattern anglecolor(Extent extent, @Optional("true") boolean randomize, @Optional("100") double maxComplexity) {
         TextureUtil util = Fawe.get().getCachedTextureUtil(randomize, 0, (int) maxComplexity);
-        return new AngleColorPattern(editSession, (int) maxComplexity, randomize);
+        return new AngleColorPattern(extent, (int) maxComplexity, randomize);
     }
 
     @Command(
             aliases = {"#angledata"},
             desc = "Block data based on the existing terrain angle"
     )
-    public Pattern angledata(EditSession editSession) {
-        return new DataAngleMask(editSession);
+    public Pattern angledata(Extent extent) {
+        return new DataAngleMask(extent);
     }
 
     @Command(
@@ -137,11 +138,11 @@ public class PatternCommands extends MethodCommands {
             min = 1,
             max = 3
     )
-    public Pattern saturate(EditSession editSession, String arg, @Optional("true") boolean randomize, @Optional("100") double maxComplexity) {
+    public Pattern saturate(Extent extent, String arg, @Optional("true") boolean randomize, @Optional("100") double maxComplexity) {
         TextureUtil util = Fawe.get().getCachedTextureUtil(randomize, 0, (int) maxComplexity);
         Color color = Color.web(arg);
         java.awt.Color awtColor = new java.awt.Color((float) color.getRed(), (float) color.getGreen(), (float) color.getBlue(), (float) color.getOpacity());
-        return new SaturatePattern(editSession, awtColor.getRGB(), (int) maxComplexity, randomize);
+        return new SaturatePattern(extent, awtColor.getRGB(), (int) maxComplexity, randomize);
     }
 
     @Command(
@@ -151,11 +152,11 @@ public class PatternCommands extends MethodCommands {
             min = 1,
             max = 3
     )
-    public Pattern averagecolor(EditSession editSession, String arg, @Optional("true") boolean randomize, @Optional("100") double maxComplexity) {
+    public Pattern averagecolor(Extent extent, String arg, @Optional("true") boolean randomize, @Optional("100") double maxComplexity) {
         TextureUtil util = Fawe.get().getCachedTextureUtil(randomize, 0, (int) maxComplexity);
         Color color = Color.web(arg);
         java.awt.Color awtColor = new java.awt.Color((float) color.getRed(), (float) color.getGreen(), (float) color.getBlue(), (float) color.getOpacity());
-        return new AverageColorPattern(editSession, awtColor.getRGB(), (int) maxComplexity, randomize);
+        return new AverageColorPattern(extent, awtColor.getRGB(), (int) maxComplexity, randomize);
     }
 
     @Command(
@@ -165,9 +166,9 @@ public class PatternCommands extends MethodCommands {
             min = 0,
             max = 3
     )
-    public Pattern desaturate(EditSession editSession, @Optional("100") double percent, @Optional("true") boolean randomize, @Optional("100") double maxComplexity) {
+    public Pattern desaturate(Extent extent, @Optional("100") double percent, @Optional("true") boolean randomize, @Optional("100") double maxComplexity) {
         TextureUtil util = Fawe.get().getCachedTextureUtil(randomize, 0, (int) maxComplexity);
-        return new DesaturatePattern(editSession, percent / 100d, (int) maxComplexity, randomize);
+        return new DesaturatePattern(extent, percent / 100d, (int) maxComplexity, randomize);
     }
 
     @Command(
@@ -177,9 +178,9 @@ public class PatternCommands extends MethodCommands {
             min = 0,
             max = 2
     )
-    public Pattern lighten(EditSession editSession, @Optional("true") boolean randomize, @Optional("100") double maxComplexity) {
+    public Pattern lighten(Extent extent, @Optional("true") boolean randomize, @Optional("100") double maxComplexity) {
         TextureUtil util = Fawe.get().getCachedTextureUtil(randomize, 0, (int) maxComplexity);
-        return new ShadePattern(editSession, false, (int) maxComplexity, randomize);
+        return new ShadePattern(extent, false, (int) maxComplexity, randomize);
     }
 
     @Command(
@@ -189,9 +190,9 @@ public class PatternCommands extends MethodCommands {
             min = 0,
             max = 2
     )
-    public Pattern darken(EditSession editSession, @Optional("true") boolean randomize, @Optional("100") double maxComplexity) {
+    public Pattern darken(Extent extent, @Optional("true") boolean randomize, @Optional("100") double maxComplexity) {
         TextureUtil util = Fawe.get().getCachedTextureUtil(randomize, 0, (int) maxComplexity);
-        return new ShadePattern(editSession, true, (int) maxComplexity, randomize);
+        return new ShadePattern(extent, true, (int) maxComplexity, randomize);
     }
 
     @Command(
@@ -201,7 +202,7 @@ public class PatternCommands extends MethodCommands {
             min = 0,
             max = 2
     )
-    public Pattern fullcopy(Actor actor, EditSession editSession, LocalSession session, @Optional("#copy") String location, @Optional("false") boolean rotate, @Optional("false") boolean flip) throws EmptyClipboardException, InputParseException, IOException {
+    public Pattern fullcopy(Player player, Extent extent, LocalSession session, @Optional("#copy") String location, @Optional("false") boolean rotate, @Optional("false") boolean flip) throws EmptyClipboardException, InputParseException, IOException {
         ClipboardHolder[] clipboards;
         switch (location.toLowerCase()) {
             case "#copy":
@@ -211,18 +212,18 @@ public class PatternCommands extends MethodCommands {
                     throw new InputParseException("To use #fullcopy, please first copy something to your clipboard");
                 }
                 if (!rotate && !flip) {
-                    return new FullClipboardPattern(editSession, clipboard.getClipboard());
+                    return new FullClipboardPattern(extent, clipboard.getClipboard());
                 }
                 clipboards = new ClipboardHolder[]{clipboard};
                 break;
             default:
-                clipboards = ClipboardFormat.SCHEMATIC.loadAllFromInput(actor, editSession.getWorldData(), location, true);
+                clipboards = ClipboardFormat.SCHEMATIC.loadAllFromInput(player, player.getWorld().getWorldData(), location, true);
                 break;
         }
         if (clipboards == null) {
             throw new InputParseException("#fullcopy:<source>");
         }
-        return new RandomFullClipboardPattern(editSession, editSession.getWorldData(), clipboards, rotate, flip);
+        return new RandomFullClipboardPattern(extent, player.getWorld().getWorldData(), clipboards, rotate, flip);
     }
 
     @Command(
@@ -258,8 +259,8 @@ public class PatternCommands extends MethodCommands {
             min = 2,
             max = 2
     )
-    public Pattern iddatamask(Actor actor, LocalSession session, EditSession editSession, int bitmask, Pattern pattern) {
-        return new IdDataMaskPattern(editSession, pattern, bitmask);
+    public Pattern iddatamask(Actor actor, LocalSession session, Extent extent, int bitmask, Pattern pattern) {
+        return new IdDataMaskPattern(extent, pattern, bitmask);
     }
 
     @Command(
@@ -269,8 +270,8 @@ public class PatternCommands extends MethodCommands {
             min = 1,
             max = 1
     )
-    public Pattern id(Actor actor, LocalSession session, EditSession editSession, Pattern pattern) {
-        return new IdPattern(editSession, pattern);
+    public Pattern id(Actor actor, LocalSession session, Extent extent, Pattern pattern) {
+        return new IdPattern(extent, pattern);
     }
 
     @Command(
@@ -280,8 +281,8 @@ public class PatternCommands extends MethodCommands {
             min = 1,
             max = 1
     )
-    public Pattern data(Actor actor, LocalSession session, EditSession editSession, Pattern pattern) {
-        return new DataPattern(editSession, pattern);
+    public Pattern data(Actor actor, LocalSession session, Extent extent, Pattern pattern) {
+        return new DataPattern(extent, pattern);
     }
 
     @Command(
@@ -291,8 +292,8 @@ public class PatternCommands extends MethodCommands {
             min = 1,
             max = 1
     )
-    public Pattern data(Actor actor, LocalSession session, EditSession editSession, BaseBiome biome) {
-        return new BiomePattern(editSession, biome);
+    public Pattern data(Actor actor, LocalSession session, Extent extent, BaseBiome biome) {
+        return new BiomePattern(extent, biome);
     }
 
     @Command(
@@ -302,7 +303,7 @@ public class PatternCommands extends MethodCommands {
             min = 1,
             max = 1
     )
-    public Pattern relative(Actor actor, LocalSession session, EditSession editSession, Pattern pattern) {
+    public Pattern relative(Actor actor, LocalSession session, Extent extent, Pattern pattern) {
         return new RelativePattern(pattern);
     }
 
@@ -315,7 +316,7 @@ public class PatternCommands extends MethodCommands {
             min = 1,
             max = 1
     )
-    public Pattern nox(Actor actor, LocalSession session, EditSession editSession, Pattern pattern) {
+    public Pattern nox(Actor actor, LocalSession session, Extent extent, Pattern pattern) {
         return new NoXPattern(pattern);
     }
 
@@ -326,7 +327,7 @@ public class PatternCommands extends MethodCommands {
             min = 1,
             max = 1
     )
-    public Pattern noy(Actor actor, LocalSession session, EditSession editSession, Pattern pattern) {
+    public Pattern noy(Actor actor, LocalSession session, Extent extent, Pattern pattern) {
         return new NoYPattern(pattern);
     }
 
@@ -337,7 +338,7 @@ public class PatternCommands extends MethodCommands {
             min = 1,
             max = 1
     )
-    public Pattern noz(Actor actor, LocalSession session, EditSession editSession, Pattern pattern) {
+    public Pattern noz(Actor actor, LocalSession session, Extent extent, Pattern pattern) {
         return new NoZPattern(pattern);
     }
 
@@ -434,9 +435,9 @@ public class PatternCommands extends MethodCommands {
             min = 1,
             max = 1
     )
-    public Pattern expression(Actor actor, LocalSession session, EditSession editSession, String input) throws ExpressionException {
+    public Pattern expression(Actor actor, LocalSession session, Extent extent, String input) throws ExpressionException {
         Expression exp = Expression.compile(input, "x", "y", "z");
-        WorldEditExpressionEnvironment env = new WorldEditExpressionEnvironment(editSession, Vector.ONE, Vector.ZERO);
+        WorldEditExpressionEnvironment env = new WorldEditExpressionEnvironment(extent, Vector.ONE, Vector.ZERO);
         exp.setEnvironment(env);
         return new ExpressionPattern(exp);
     }

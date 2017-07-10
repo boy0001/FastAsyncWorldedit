@@ -13,6 +13,10 @@ import com.boydti.fawe.object.MaskedFaweQueue;
 import com.boydti.fawe.object.RegionWrapper;
 import com.boydti.fawe.object.RunnableVal;
 import com.boydti.fawe.object.changeset.FaweChangeSet;
+import com.boydti.fawe.object.extent.ResettableExtent;
+import com.boydti.fawe.object.extent.SourceMaskExtent;
+import com.boydti.fawe.object.queue.FaweQueueDelegateExtent;
+import com.boydti.fawe.util.MaskTraverser;
 import com.boydti.fawe.util.SetQueue;
 import com.boydti.fawe.util.TaskManager;
 import com.boydti.fawe.util.WEManager;
@@ -23,6 +27,10 @@ import com.google.common.collect.HashBiMap;
 import com.google.common.collect.ImmutableBiMap;
 import com.google.common.collect.MutableClassToInstanceMap;
 import com.sk89q.worldedit.LocalSession;
+import com.sk89q.worldedit.extent.MaskingExtent;
+import com.sk89q.worldedit.function.mask.Mask;
+import com.sk89q.worldedit.function.mask.Masks;
+import com.sk89q.worldedit.session.request.Request;
 import com.thevoxelbox.voxelsniper.brush.IBrush;
 import com.thevoxelbox.voxelsniper.brush.SnipeBrush;
 import com.thevoxelbox.voxelsniper.brush.perform.PerformBrush;
@@ -42,9 +50,6 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.block.Action;
 import org.bukkit.material.MaterialData;
 
-/**
- *
- */
 public class Sniper {
     private VoxelSniper plugin;
     private final UUID player;
@@ -177,6 +182,25 @@ public class Sniper {
         } else {
             changeQueue = new ChangeSetFaweQueue(changeSet, maskQueue);
         }
+        LocalSession session = fp.getSession();
+        { // Set mask etc
+            Mask destMask = session.getMask();
+            if (!Masks.isNull(destMask)) {
+                new MaskTraverser(destMask).reset(changeQueue);
+                changeQueue = new FaweQueueDelegateExtent(changeQueue, new MaskingExtent(changeQueue, destMask));
+            }
+            Mask sourceMask = session.getSourceMask();
+            if (!Masks.isNull(sourceMask)) {
+                new MaskTraverser(sourceMask).reset(changeQueue);
+                changeQueue = new FaweQueueDelegateExtent(changeQueue, new SourceMaskExtent(changeQueue, sourceMask));
+            }
+            ResettableExtent transform = session.getTransform();
+            if (transform != null) {
+                transform.setExtent(changeQueue);
+                changeQueue = new FaweQueueDelegateExtent(changeQueue, transform);
+            }
+        }
+
         AsyncWorld world = getWorld();
         world.changeWorld(bukkitWorld, changeQueue);
 
@@ -321,23 +345,31 @@ public class Sniper {
             }
 
             final IBrush brush = sniperTool.getCurrentBrush();
-            if (sniperTool.getCurrentBrush() instanceof PerformBrush) {
-                PerformBrush performerBrush = (PerformBrush) sniperTool.getCurrentBrush();
-                performerBrush.initP(snipeData);
-            }
 
-            switch (brush.getClass().getSimpleName()) {
-                case "JockeyBrush":
-                    TaskManager.IMP.sync(new RunnableVal<Object>() {
-                        @Override
-                        public void run(Object value) {
-                            brush.perform(snipeAction, snipeData, targetBlock, lastBlock);
+            try {
+                snipeData.setExtent(world);
+                Request.reset();
+                Request.request().setExtent(world);
+                switch (brush.getClass().getSimpleName()) {
+                    case "JockeyBrush":
+                        TaskManager.IMP.sync(new RunnableVal<Object>() {
+                            @Override
+                            public void run(Object value) {
+                                brush.perform(snipeAction, snipeData, targetBlock, lastBlock);
+                            }
+                        });
+                        break;
+                    default:
+                        if (sniperTool.getCurrentBrush() instanceof PerformBrush) {
+                            PerformBrush performerBrush = (PerformBrush) sniperTool.getCurrentBrush();
+                            performerBrush.initP(snipeData);
                         }
-                    });
-                    break;
-                default:
-                    brush.perform(snipeAction, snipeData, targetBlock, lastBlock);
-                    break;
+                        brush.perform(snipeAction, snipeData, targetBlock, lastBlock);
+                        break;
+                }
+            } finally {
+                snipeData.setExtent(null);
+                Request.reset();
             }
             if (Fawe.isMainThread()) {
                 SetQueue.IMP.flush(changeQueue);
@@ -350,7 +382,6 @@ public class Sniper {
                 } else {
                     changeSet.close();
                 }
-                LocalSession session = fp.getSession();
                 session.remember(changeSet.toEditSession(fp));
             }
             return true;

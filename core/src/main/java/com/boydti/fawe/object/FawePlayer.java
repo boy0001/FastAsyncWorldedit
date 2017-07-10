@@ -129,16 +129,42 @@ public abstract class FawePlayer<T> extends Metadatable {
         }
     }
 
-    public void checkConfirmation(String command) throws RegionOperationException {
+    public void checkConfirmationRadius(String command, int radius) throws RegionOperationException {
         if (getMeta("cmdConfirmRunning", false)) {
             return;
         }
-        Region sel = getSelection();
-        if (sel != null) {
-            Vector min = sel.getMinimumPoint();
-            Vector max = sel.getMaximumPoint();
-            int area = (int) ((max.getX() - min.getX()) * (max.getZ() - min.getZ() + 1));
-            if (area > 2 << 22) {
+        if (radius > 0) {
+            if (radius > 448) {
+                setMeta("cmdConfirm", command);
+                throw new RegionOperationException(BBC.WORLDEDIT_CANCEL_REASON_CONFIRM.f(0, radius, command));
+            }
+        }
+    }
+
+    public void checkConfirmationStack(String command, Region region, int times) throws RegionOperationException {
+        if (getMeta("cmdConfirmRunning", false)) {
+            return;
+        }
+        if (region != null) {
+            Vector min = region.getMinimumPoint();
+            Vector max = region.getMaximumPoint();
+            long area = (long) ((max.getX() - min.getX()) * (max.getZ() - min.getZ() + 1)) * times;
+            if (area > 2 << 18) {
+                setMeta("cmdConfirm", command);
+                throw new RegionOperationException(BBC.WORLDEDIT_CANCEL_REASON_CONFIRM.f(min, max, command));
+            }
+        }
+    }
+
+    public void checkConfirmationRegion(String command, Region region) throws RegionOperationException {
+        if (getMeta("cmdConfirmRunning", false)) {
+            return;
+        }
+        if (region != null) {
+            Vector min = region.getMinimumPoint();
+            Vector max = region.getMaximumPoint();
+            long area = (long) ((max.getX() - min.getX()) * (max.getZ() - min.getZ() + 1));
+            if (area > 2 << 18) {
                 setMeta("cmdConfirm", command);
                 throw new RegionOperationException(BBC.WORLDEDIT_CANCEL_REASON_CONFIRM.f(min, max, command));
             }

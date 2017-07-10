@@ -34,7 +34,6 @@ import com.google.common.base.Joiner;
 import com.sk89q.minecraft.util.commands.CommandException;
 import com.sk89q.minecraft.util.commands.CommandLocals;
 import com.sk89q.minecraft.util.commands.CommandPermissionsException;
-import com.sk89q.minecraft.util.commands.WrappedCommandException;
 import com.sk89q.worldedit.EditSession;
 import com.sk89q.worldedit.LocalConfiguration;
 import com.sk89q.worldedit.LocalSession;
@@ -368,6 +367,7 @@ public final class CommandManager {
                 }
             };
         }
+        Request.reset();
         locals.put(Actor.class, actor);
         final Actor finalActor = actor;
 
@@ -384,12 +384,12 @@ public final class CommandManager {
                 // Use the exception converter to convert the exception if any of its causes
                 // can be converted, otherwise throw the original exception
                 Throwable next = t;
-                do {
-                    exceptionConverter.convert(next);
+                exceptionConverter.convert(next);
+                while (next.getCause() != null) {
                     next = next.getCause();
-                } while (next != null);
-
-                throw t;
+                    exceptionConverter.convert(next);
+                }
+                throw next;
             }
         } catch (CommandPermissionsException e) {
             BBC.NO_PERM.send(finalActor, StringMan.join(failedPermissions, " "));
@@ -405,7 +405,15 @@ public final class CommandManager {
                 finalActor.printRaw(BBC.getPrefix() + (message != null ? message : "The command was not used properly (no more help available)."));
                 BBC.COMMAND_SYNTAX.send(finalActor, e.getSimpleUsageString("/"));
             }
-        } catch (WrappedCommandException e) {
+        } catch (CommandException e) {
+            String message = e.getMessage();
+            if (message != null) {
+                actor.printError(e.getMessage());
+            } else {
+                actor.printError("An unknown FAWE error has occurred! Please see console.");
+                log.log(Level.SEVERE, "An unknown FAWE error occurred", e);
+            }
+        } catch (Throwable e) {
             Exception faweException = FaweException.get(e);
             String message = e.getMessage();
             if (faweException != null) {
@@ -414,14 +422,6 @@ public final class CommandManager {
                 finalActor.printError("There was an error handling a FAWE command: [See console]");
                 finalActor.printRaw(e.getClass().getName() + ": " + e.getMessage());
                 log.log(Level.SEVERE, "An unexpected error occurred while handling a FAWE command", e);
-            }
-        } catch (CommandException e) {
-            String message = e.getMessage();
-            if (message != null) {
-                actor.printError(e.getMessage());
-            } else {
-                actor.printError("An unknown FAWE error has occurred! Please see console.");
-                log.log(Level.SEVERE, "An unknown FAWE error occurred", e);
             }
         } finally {
             final EditSession editSession = locals.get(EditSession.class);

@@ -145,11 +145,12 @@ public class FastWorldEditExtent extends AbstractDelegateExtent implements HasFa
 
     @Override
     public boolean setBlock(int x, int y, int z, final BaseBlock block) throws WorldEditException {
-        final short id = (short) block.getId();
+        int id = block.getId();
         switch (id) {
             case 63:
                 // Fix for signs
-                return queue.setBlock(x, y, z, id, (byte) block.getData(), block.hasNbtData() && !MainUtil.isValidSign(block.getNbtData()) ? null : block.getNbtData());
+                CompoundTag nbt = block.getNbtData();
+                return queue.setBlock(x, y, z, id, block.getData(), nbt != null && !MainUtil.isValidSign(nbt) ? null : nbt);
             case 65:
             case 68:
             case 54:
@@ -213,7 +214,7 @@ public class FastWorldEditExtent extends AbstractDelegateExtent implements HasFa
             case 233:
             case 234:
                 // Tile
-                return queue.setBlock(x, y, z, id, (byte) block.getData(), block.getNbtData());
+                return queue.setBlock(x, y, z, id, block.getData(), block.getNbtData());
             case 0:
             case 2:
             case 4:
@@ -276,7 +277,7 @@ public class FastWorldEditExtent extends AbstractDelegateExtent implements HasFa
                 // No data
                 return queue.setBlock(x, y, z, id);
             default: {
-                return queue.setBlock(x, y, z, id, (byte) block.getData());
+                return queue.setBlock(x, y, z, id, block.getData());
             }
         }
     }

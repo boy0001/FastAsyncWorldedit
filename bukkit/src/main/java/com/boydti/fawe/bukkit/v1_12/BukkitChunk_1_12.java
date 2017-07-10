@@ -78,7 +78,7 @@ public class BukkitChunk_1_12 extends CharFaweChunk<Chunk, BukkitQueue_1_12> {
     }
 
     public boolean storeEntity(Entity ent) throws InvocationTargetException, IllegalAccessException {
-        if (ent instanceof EntityPlayer) {
+        if (ent instanceof EntityPlayer || BukkitQueue_0.adapter == null) {
             return false;
         }
         int x = ((int) Math.round(ent.locX) & 15);
@@ -90,7 +90,7 @@ public class BukkitChunk_1_12 extends CharFaweChunk<Chunk, BukkitQueue_1_12> {
         if (id != null) {
             NBTTagCompound tag = new NBTTagCompound();
             ent.save(tag); // readEntityIntoTag
-            CompoundTag nativeTag = (CompoundTag) getParent().methodToNative.invoke(getParent().adapter, tag);
+            CompoundTag nativeTag = (CompoundTag) BukkitQueue_0.methodToNative.invoke(getParent().adapter, tag);
             Map<String, Tag> map = ReflectionUtils.getMap(nativeTag.getValue());
             map.put("Id", new StringTag(id));
             setEntity(nativeTag);

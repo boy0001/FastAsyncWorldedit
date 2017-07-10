@@ -143,6 +143,7 @@ import java.lang.management.MemoryUsage;
 import java.util.Collection;
 import java.util.Date;
 import java.util.List;
+import java.util.Objects;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
@@ -419,8 +420,8 @@ public class Fawe {
     }
 
     public void setupConfigs() {
-        MainUtil.copyFile(MainUtil.getJarFile(), "de/messages.yml", null);
-        MainUtil.copyFile(MainUtil.getJarFile(), "ru/messages.yml", null);
+        MainUtil.copyFile(MainUtil.getJarFile(), "de/message.yml", null);
+        MainUtil.copyFile(MainUtil.getJarFile(), "ru/message.yml", null);
         MainUtil.copyFile(MainUtil.getJarFile(), "ru/commands.yml", null);
         // Setting up config.yml
         File file = new File(this.IMP.getDirectory(), "config.yml");
@@ -437,8 +438,10 @@ public class Fawe {
         } catch (Throwable ignore) {}
         Settings.IMP.reload(file);
         // Setting up message.yml
-        BBC.load(new File(this.IMP.getDirectory(), "message.yml"));
+        String lang = Objects.toString(Settings.IMP.LANGUAGE);
+        BBC.load(new File(this.IMP.getDirectory(), (lang.isEmpty() ? "" : lang + File.separator) + "message.yml"));
     }
+
 
     public WorldEdit getWorldEdit() {
         return WorldEdit.getInstance();

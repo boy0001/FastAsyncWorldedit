@@ -89,17 +89,7 @@ public class ToolCommands {
     )
     @CommandPermissions("worldedit.tool.tree")
     @SuppressWarnings("deprecation")
-    public void tree(Player player, LocalSession session, CommandContext args) throws WorldEditException {
-
-        TreeGenerator.TreeType type = args.argsLength() > 0 ?
-                type = TreeGenerator.lookup(args.getString(0))
-                : TreeGenerator.TreeType.TREE;
-
-        if (type == null) {
-            BBC.TOOL_TREE_ERROR.send(player, args.getString(0));
-            return;
-        }
-
+    public void tree(Player player, LocalSession session, @Optional("tree") TreeGenerator.TreeType type, CommandContext args) throws WorldEditException {
         session.setTool(new TreePlanter(new TreeGenerator(type)), player);
         BBC.TOOL_TREE.send(player, ItemType.toHeldName(player.getItemInHand()));
     }

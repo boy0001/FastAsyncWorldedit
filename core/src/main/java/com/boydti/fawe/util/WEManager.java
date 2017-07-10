@@ -131,11 +131,15 @@ public class WEManager {
         }
         for (final FaweMaskManager manager : managers) {
             if (player.hasPermission("fawe." + manager.getKey())) {
-                final FaweMask fm = manager.getMask(player);
-                if (fm != null) {
-                    HashSet<RegionWrapper> cur = fm.getRegions();
-                    regions.addAll(cur);
-                    masks.add(fm);
+                try {
+                    final FaweMask fm = manager.getMask(player);
+                    if (fm != null) {
+                        HashSet<RegionWrapper> cur = fm.getRegions();
+                        regions.addAll(cur);
+                        masks.add(fm);
+                    }
+                } catch (Throwable e) {
+                    e.printStackTrace();
                 }
             }
         }

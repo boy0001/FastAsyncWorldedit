@@ -11,6 +11,7 @@ import com.boydti.fawe.util.StringMan;
 import com.boydti.fawe.util.TaskManager;
 import com.sk89q.worldedit.bukkit.WorldEditPlugin;
 import com.sk89q.worldedit.bukkit.adapter.BukkitImplAdapter;
+import com.sk89q.worldedit.function.operation.Operation;
 import com.sk89q.worldedit.world.biome.BaseBiome;
 import java.io.File;
 import java.lang.reflect.Field;
@@ -62,7 +63,7 @@ import org.bukkit.util.Vector;
  *  @see #wrap(org.bukkit.World)
  *  @see #create(org.bukkit.WorldCreator)
  */
-public class AsyncWorld extends DelegateFaweQueue implements World, HasFaweQueue{
+public class AsyncWorld extends DelegateFaweQueue implements World, HasFaweQueue {
 
     private World parent;
     private FaweQueue queue;
@@ -165,8 +166,9 @@ public class AsyncWorld extends DelegateFaweQueue implements World, HasFaweQueue
         return wrap(world);
     }
 
-    public void commit() {
+    public Operation commit() {
         flush();
+        return null;
     }
 
     public void flush() {
@@ -584,7 +586,7 @@ public class AsyncWorld extends DelegateFaweQueue implements World, HasFaweQueue
     }
 
     @Override
-    public List<Entity> getEntities() {
+    public List getEntities() {
         return TaskManager.IMP.sync(new RunnableVal<List<Entity>>() {
             @Override
             public void run(List<Entity> value) {

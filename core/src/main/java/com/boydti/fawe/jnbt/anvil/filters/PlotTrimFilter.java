@@ -28,6 +28,7 @@ public class PlotTrimFilter extends DeleteUninhabitedFilter {
     private final MCAChunk reference;
     private final LongHashSet occupiedRegions;
     private final LongHashSet unoccupiedChunks;
+    private boolean referenceIsVoid;
 
     public static boolean shouldSuggest(PlotArea area) {
         IndependentPlotGenerator gen = area.getGenerator();
@@ -48,7 +49,7 @@ public class PlotTrimFilter extends DeleteUninhabitedFilter {
         }
         this.hg = (HybridGen) gen;
         this.hpw = (HybridPlotWorld) area;
-        if (!hpw.PLOT_BEDROCK || hpw.PLOT_SCHEMATIC || hpw.MAIN_BLOCK.length != 1 || hpw.TOP_BLOCK.length != 1) {
+        if (hpw.PLOT_SCHEMATIC || hpw.MAIN_BLOCK.length != 1 || hpw.TOP_BLOCK.length != 1) {
             throw new UnsupportedOperationException("WIP - will implement later");
         }
         this.occupiedRegions = new LongHashSet();
@@ -61,7 +62,11 @@ public class PlotTrimFilter extends DeleteUninhabitedFilter {
 
     private MCAChunk calculateReference() {
         MCAChunk reference = new MCAChunk(null, 0, 0);
-        reference.fillCuboid(0, 15, 0, 0, 0, 15, 7, (byte) 0);
+        if (hpw.PLOT_BEDROCK) {
+            reference.fillCuboid(0, 15, 0, 0, 0, 15, 7, (byte) 0);
+        } else if (hpw.MAIN_BLOCK[0].id == 0 && hpw.TOP_BLOCK[0].id == 0) {
+            referenceIsVoid = true;
+        }
         reference.fillCuboid(0, 15, 1, hpw.PLOT_HEIGHT - 1, 0, 15, hpw.MAIN_BLOCK[0].id, (byte) 0);
         reference.fillCuboid(0, 15, hpw.PLOT_HEIGHT, hpw.PLOT_HEIGHT, 0, 15, hpw.TOP_BLOCK[0].id, (byte) 0);
         return reference;
@@ -153,11 +158,21 @@ public class PlotTrimFilter extends DeleteUninhabitedFilter {
                                 get().add(16 * 16 * 256);
                                 return;
                             }
-                            if (reference.idsEqual(chunk, false)) {
-                                chunk.setDeleted(true);
-                                get().add(16 * 16 * 256);
+                            if (referenceIsVoid) {
+                                for (int i = 0; i < chunk.ids.length; i++) {
+                                    byte[] arr = chunk.ids[i];
+                                    if (arr != null) {
+                                        for (byte b : arr) {
+                                            if (b != 0) return;
+                                        }
+                                    }
+                                }
+                            }
+                            else if (!reference.idsEqual(chunk, false)) {
                                 return;
                             }
+                            chunk.setDeleted(true);
+                            get().add(16 * 16 * 256);
                         } catch (IOException e) {
                             e.printStackTrace();
                         }

@@ -4,8 +4,11 @@ import com.boydti.fawe.Fawe;
 import com.boydti.fawe.object.FawePlayer;
 import com.boydti.fawe.object.extent.NullExtent;
 import com.boydti.fawe.object.extent.ResettableExtent;
+import com.sk89q.worldedit.EditSession;
+import com.sk89q.worldedit.LocalSession;
 import com.sk89q.worldedit.WorldEdit;
 import com.sk89q.worldedit.entity.Entity;
+import com.sk89q.worldedit.entity.Player;
 import com.sk89q.worldedit.extension.factory.DefaultTransformParser;
 import com.sk89q.worldedit.extension.input.InputParseException;
 import com.sk89q.worldedit.extension.input.ParserContext;
@@ -14,6 +17,7 @@ import com.sk89q.worldedit.extent.Extent;
 import com.sk89q.worldedit.internal.expression.Expression;
 import com.sk89q.worldedit.internal.expression.ExpressionException;
 import com.sk89q.worldedit.internal.expression.runtime.EvaluationException;
+import com.sk89q.worldedit.session.request.Request;
 import com.sk89q.worldedit.util.command.binding.Range;
 import com.sk89q.worldedit.util.command.binding.Text;
 import com.sk89q.worldedit.util.command.binding.Validate;
@@ -42,8 +46,7 @@ public class FawePrimitiveBinding extends BindingHelper {
         }
     }
 
-    private static void validate(long number, Annotation[] modifiers)
-            throws ParameterException {
+    private static void validate(long number, Annotation[] modifiers) throws ParameterException {
         for (Annotation modifier : modifiers) {
             if (modifier instanceof Range) {
                 Range range = (Range) modifier;
@@ -60,6 +63,26 @@ public class FawePrimitiveBinding extends BindingHelper {
                 }
             }
         }
+    }
+
+    @BindingMatch(
+            type = {Extent.class},
+            behavior = BindingBehavior.PROVIDES
+    )
+    public Extent getExtent(ArgumentStack context) throws ParameterException {
+        Extent extent = context.getContext().getLocals().get(EditSession.class);
+        if (extent != null) return extent;
+        extent = Request.request().getExtent();
+        if (extent != null) return extent;
+        Actor actor = context.getContext().getLocals().get(Actor.class);
+        if (actor == null) throw new ParameterException("No player to get a session for");
+        if (!(actor instanceof Player)) throw new ParameterException("Caller is not a player");
+        LocalSession session = WorldEdit.getInstance().getSessionManager().get(actor);
+        EditSession editSession = session.createEditSession((Player) actor);
+        editSession.enableQueue();
+        context.getContext().getLocals().put(EditSession.class, editSession);
+        session.tellVersion(actor);
+        return editSession;
     }
 
     /**

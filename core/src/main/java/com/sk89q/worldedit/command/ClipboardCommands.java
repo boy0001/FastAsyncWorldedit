@@ -32,6 +32,7 @@ import com.boydti.fawe.object.schematic.Schematic;
 import com.boydti.fawe.util.ImgurUtility;
 import com.boydti.fawe.util.MaskTraverser;
 import com.sk89q.minecraft.util.commands.Command;
+import com.sk89q.minecraft.util.commands.CommandContext;
 import com.sk89q.minecraft.util.commands.CommandException;
 import com.sk89q.minecraft.util.commands.CommandPermissions;
 import com.sk89q.minecraft.util.commands.Logging;
@@ -66,7 +67,6 @@ import java.io.IOException;
 import java.net.URL;
 
 
-import static com.google.common.base.Preconditions.checkNotNull;
 import static com.sk89q.minecraft.util.commands.Logging.LogMode.PLACEMENT;
 import static com.sk89q.minecraft.util.commands.Logging.LogMode.REGION;
 
@@ -74,9 +74,7 @@ import static com.sk89q.minecraft.util.commands.Logging.LogMode.REGION;
  * Clipboard commands.
  */
 @Command(aliases = {}, desc = "Related commands to copy and pasting blocks: [More Info](https://goo.gl/z2ScQR)")
-public class ClipboardCommands {
-
-    private final WorldEdit worldEdit;
+public class ClipboardCommands extends MethodCommands {
 
     /**
      * Create a new instance.
@@ -84,8 +82,7 @@ public class ClipboardCommands {
      * @param worldEdit reference to WorldEdit
      */
     public ClipboardCommands(WorldEdit worldEdit) {
-        checkNotNull(worldEdit);
-        this.worldEdit = worldEdit;
+        super(worldEdit);
     }
 
 
@@ -140,9 +137,10 @@ public class ClipboardCommands {
             max = 0
     )
     @CommandPermissions("worldedit.clipboard.copy")
-    public void copy(Player player, LocalSession session, EditSession editSession,
+    public void copy(FawePlayer fp, Player player, LocalSession session, EditSession editSession,
                      @Selection Region region, @Switch('e') boolean copyEntities,
-                     @Switch('m') Mask mask) throws WorldEditException {
+                     @Switch('m') Mask mask, CommandContext context) throws WorldEditException {
+        fp.checkConfirmationRegion(getArguments(context), region);
         Vector min = region.getMinimumPoint();
         Vector max = region.getMaximumPoint();
         long volume = (((long) max.getX() - (long) min.getX() + 1) * ((long) max.getY() - (long) min.getY() + 1) * ((long) max.getZ() - (long) min.getZ() + 1));
@@ -223,9 +221,10 @@ public class ClipboardCommands {
     )
     @CommandPermissions("worldedit.clipboard.cut")
     @Logging(REGION)
-    public void cut(Player player, LocalSession session, EditSession editSession,
+    public void cut(FawePlayer fp, Player player, LocalSession session, EditSession editSession,
                     @Selection Region region, @Optional("air") Pattern leavePattern, @Switch('e') boolean copyEntities,
-                    @Switch('m') Mask mask) throws WorldEditException {
+                    @Switch('m') Mask mask, CommandContext context) throws WorldEditException {
+        fp.checkConfirmationRegion(getArguments(context), region);
         Vector min = region.getMinimumPoint();
         Vector max = region.getMaximumPoint();
         long volume = (((long) max.getX() - (long) min.getX() + 1) * ((long) max.getY() - (long) min.getY() + 1) * ((long) max.getZ() - (long) min.getZ() + 1));

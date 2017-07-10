@@ -117,6 +117,7 @@ public class BukkitQueue_1_12 extends BukkitQueue_0<net.minecraft.server.v1_12_R
     static {
         try {
             emptySection = new ChunkSection(0, true);
+            Arrays.fill(emptySection.getSkyLightArray().asBytes(), (byte) 255);
             fieldSection = ChunkSection.class.getDeclaredField("blockIds");
             fieldTickingBlockCount = ChunkSection.class.getDeclaredField("tickingBlockCount");
             fieldNonEmptyBlockCount = ChunkSection.class.getDeclaredField("nonEmptyBlockCount");

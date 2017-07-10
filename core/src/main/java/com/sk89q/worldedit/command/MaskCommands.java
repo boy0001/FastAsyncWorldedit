@@ -20,13 +20,13 @@ import com.boydti.fawe.object.mask.XAxisMask;
 import com.boydti.fawe.object.mask.YAxisMask;
 import com.boydti.fawe.object.mask.ZAxisMask;
 import com.sk89q.minecraft.util.commands.Command;
-import com.sk89q.worldedit.EditSession;
 import com.sk89q.worldedit.IncompleteRegionException;
 import com.sk89q.worldedit.LocalSession;
 import com.sk89q.worldedit.Vector;
 import com.sk89q.worldedit.WorldEdit;
 import com.sk89q.worldedit.blocks.BaseBlock;
 import com.sk89q.worldedit.entity.Player;
+import com.sk89q.worldedit.extent.Extent;
 import com.sk89q.worldedit.function.mask.BlockMask;
 import com.sk89q.worldedit.function.mask.ExistingBlockMask;
 import com.sk89q.worldedit.function.mask.ExpressionMask;
@@ -74,8 +74,8 @@ public class MaskCommands extends MethodCommands {
             min = 2,
             max = 2
     )
-    public Mask light(EditSession editSession, double min, double max) {
-        return new LightMask(editSession, (int) min, (int) max);
+    public Mask light(Extent extent, double min, double max) {
+        return new LightMask(extent, (int) min, (int) max);
     }
 
     @Command(
@@ -85,8 +85,8 @@ public class MaskCommands extends MethodCommands {
             min = 2,
             max = 2
     )
-    public Mask skylight(EditSession editSession, double min, double max) {
-        return new SkyLightMask(editSession, (int) min, (int) max);
+    public Mask skylight(Extent extent, double min, double max) {
+        return new SkyLightMask(extent, (int) min, (int) max);
     }
 
     @Command(
@@ -96,8 +96,8 @@ public class MaskCommands extends MethodCommands {
             min = 2,
             max = 2
     )
-    public Mask blocklight(EditSession editSession, double min, double max) {
-        return new BlockLightMask(editSession, (int) min, (int) max);
+    public Mask blocklight(Extent extent, double min, double max) {
+        return new BlockLightMask(extent, (int) min, (int) max);
     }
 
     @Command(
@@ -107,8 +107,8 @@ public class MaskCommands extends MethodCommands {
             min = 2,
             max = 2
     )
-    public Mask opacity(EditSession editSession, double min, double max) {
-        return new OpacityMask(editSession, (int) min, (int) max);
+    public Mask opacity(Extent extent, double min, double max) {
+        return new OpacityMask(extent, (int) min, (int) max);
     }
 
     @Command(
@@ -118,8 +118,8 @@ public class MaskCommands extends MethodCommands {
             min = 2,
             max = 2
     )
-    public Mask brightness(EditSession editSession, double min, double max) {
-        return new BrightnessMask(editSession, (int) min, (int) max);
+    public Mask brightness(Extent extent, double min, double max) {
+        return new BrightnessMask(extent, (int) min, (int) max);
     }
 
     @Command(
@@ -137,7 +137,7 @@ public class MaskCommands extends MethodCommands {
             aliases = {"#haslight"},
             desc = "Restricts to blocks with light (sky or emitted)"
     )
-    public Mask haslight(EditSession extent) {
+    public Mask haslight(Extent extent) {
         return new LightMask(extent, 1, Integer.MAX_VALUE);
     }
 
@@ -145,7 +145,7 @@ public class MaskCommands extends MethodCommands {
             aliases = {"#nolight"},
             desc = "Restrict to blocks without light (sky or emitted)"
     )
-    public Mask nolight(EditSession extent) {
+    public Mask nolight(Extent extent) {
         return new LightMask(extent, 0, 0);
     }
 
@@ -153,7 +153,7 @@ public class MaskCommands extends MethodCommands {
             aliases = {"#existing"},
             desc = "If there is a non air block"
     )
-    public Mask existing(EditSession extent) {
+    public Mask existing(Extent extent) {
         return new ExistingBlockMask(extent);
     }
 
@@ -161,7 +161,7 @@ public class MaskCommands extends MethodCommands {
             aliases = {"#solid"},
             desc = "If there is a solid block"
     )
-    public Mask solid(EditSession extent) {
+    public Mask solid(Extent extent) {
         return new SolidBlockMask(extent);
     }
 
@@ -169,7 +169,7 @@ public class MaskCommands extends MethodCommands {
             aliases = {"#dregion", "#dselection", "#dsel"},
             desc = "inside the player's selection"
     )
-    public Mask dregion(EditSession extent) {
+    public Mask dregion() {
         return new RegionMask(new RequestSelection());
     }
 
@@ -209,31 +209,31 @@ public class MaskCommands extends MethodCommands {
             aliases = {"#id"},
             desc = "Restrict to initial id"
     )
-    public Mask id(EditSession editSession) {
-        return new IdMask(editSession);
+    public Mask id(Extent extent) {
+        return new IdMask(extent);
     }
 
     @Command(
             aliases = {"#data"},
             desc = "Restrict to initial data"
     )
-    public Mask data(EditSession editSession) {
-        return new DataMask(editSession);
+    public Mask data(Extent extent) {
+        return new DataMask(extent);
     }
 
     @Command(
             aliases = {"#iddata"},
             desc = "Restrict to initial block id and data"
     )
-    public Mask iddata(EditSession editSession) {
-        return new IdDataMask(editSession);
+    public Mask iddata(Extent extent) {
+        return new IdDataMask(extent);
     }
 
     @Command(
             aliases = {"#wall"},
             desc = "Restrict to walls (any block n,e,s,w of air)"
     )
-    public Mask wall(EditSession extent) {
+    public Mask wall(Extent extent) {
         BlockMask blockMask = new BlockMask(extent, new BaseBlock(0));
         return new MaskUnion(new ExistingBlockMask(extent), new WallMask(blockMask, 1, 8));
     }
@@ -242,7 +242,7 @@ public class MaskCommands extends MethodCommands {
             aliases = {"#surface"},
             desc = "Restrict to surfaces (any solid block touching air)"
     )
-    public Mask surface(EditSession extent) {
+    public Mask surface(Extent extent) {
         return new MaskUnion(new ExistingBlockMask(extent), new AdjacentAnyMask(new BlockMask(extent, new BaseBlock(0))));
     }
 
@@ -259,7 +259,7 @@ public class MaskCommands extends MethodCommands {
             min = 2,
             max = 2
     )
-    public Mask angle(EditSession extent, String min, String max, @Switch('o') boolean overlay) throws ExpressionException {
+    public Mask angle(Extent extent, String min, String max, @Switch('o') boolean overlay) throws ExpressionException {
         double y1, y2;
         boolean override;
         if (max.endsWith("d")) {
@@ -346,8 +346,8 @@ public class MaskCommands extends MethodCommands {
             min = 1,
             max = 1
     )
-    public Mask biome(EditSession editSession, BaseBiome biome) throws ExpressionException {
-        return new BiomeMask(editSession, biome);
+    public Mask biome(Extent extent, BaseBiome biome) throws ExpressionException {
+        return new BiomeMask(extent, biome);
     }
 
     @Command(
@@ -369,10 +369,9 @@ public class MaskCommands extends MethodCommands {
             min = 1,
             max = 1
     )
-    public Mask expression(EditSession editSession, String input) throws ExpressionException {
+    public Mask expression(Extent extent, String input) throws ExpressionException {
         Expression exp = Expression.compile(input, "x", "y", "z");
-        WorldEditExpressionEnvironment env = new WorldEditExpressionEnvironment(
-                editSession, Vector.ONE, Vector.ZERO);
+        WorldEditExpressionEnvironment env = new WorldEditExpressionEnvironment(extent, Vector.ONE, Vector.ZERO);
         exp.setEnvironment(env);
         return new ExpressionMask(exp);
     }
