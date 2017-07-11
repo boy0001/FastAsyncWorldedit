@@ -297,7 +297,7 @@ public class SchematicCommands {
             player.printError("Deletion of " + filename + " failed! Maybe it is read-only.");
             return;
         }
-        BBC.SCHEMATIC_DELETE.send(player, filename);
+        BBC.FILE_DELETED.send(player, filename);
     }
 
     @Command(aliases = {"formats", "listformats", "f"}, desc = "List available formats", max = 0)

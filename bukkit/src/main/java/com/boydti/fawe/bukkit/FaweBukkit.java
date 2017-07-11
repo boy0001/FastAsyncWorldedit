@@ -29,7 +29,6 @@ import com.boydti.fawe.object.FaweQueue;
 import com.boydti.fawe.regions.FaweMaskManager;
 import com.boydti.fawe.util.MainUtil;
 import com.boydti.fawe.util.ReflectionUtils;
-import com.boydti.fawe.util.StringMan;
 import com.boydti.fawe.util.TaskManager;
 import com.sk89q.worldedit.bukkit.BukkitWorld;
 import com.sk89q.worldedit.bukkit.EditSessionBlockChangeDelegate;
@@ -183,11 +182,11 @@ public class FaweBukkit implements IFawe, Listener {
     public String getDebugInfo() {
         StringBuilder msg = new StringBuilder();
         List<String> pl = new ArrayList<>();
+        msg.append("server.plugins: \n");
         for (Plugin p : Bukkit.getPluginManager().getPlugins()) {
-            pl.add(p.getName());
+            msg.append(" - " + p.getName() + ": " + p.getDescription().getVersion() + "\n");
         }
-        msg.append("server.plugins: \n - " + StringMan.join(pl, " - ") + "\n");
-        msg.append("server.version: " + Bukkit.getVersion() + " / " + Bukkit.getBukkitVersion());
+        msg.append("server.version: " + Bukkit.getVersion() + " / " + Bukkit.getBukkitVersion() + "\n");
         return msg.toString();
     }
 

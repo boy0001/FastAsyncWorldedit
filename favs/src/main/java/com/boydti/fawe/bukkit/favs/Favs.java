@@ -35,7 +35,6 @@ public class Favs extends JavaPlugin {
                         String name = file.getName().toLowerCase();
                         if (name.endsWith(".jar") && name.contains("voxelsniper") && !name.contains("fastasyncvoxelsniper")) {
                             output = file;
-                            System.out.println("File " + file + " | " + thisName);
                             break;
                         }
                     }

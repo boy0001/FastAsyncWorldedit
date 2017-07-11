@@ -33,6 +33,9 @@ import com.sk89q.worldedit.Vector;
 import com.sk89q.worldedit.WorldEdit;
 import com.sk89q.worldedit.blocks.BaseBlock;
 import com.sk89q.worldedit.blocks.BlockMaterial;
+import com.sk89q.worldedit.extent.transform.BlockTransformExtent;
+import com.sk89q.worldedit.math.transform.AffineTransform;
+import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.Type;
 import java.net.URL;
@@ -168,15 +171,37 @@ public class BundledBlockData {
             return true;
         }
         for (Map.Entry<String, FaweState> stateEntry : entry.states.entrySet()) {
-            for (Map.Entry<String, FaweStateValue> valueEntry : stateEntry.getValue().valueMap().entrySet()) {
+            FaweState faweState = stateEntry.getValue();
+            for (Map.Entry<String, FaweStateValue> valueEntry : faweState.valueMap().entrySet()) {
                 String key = valueEntry.getKey();
+                FaweStateValue faweStateValue = valueEntry.getValue();
                 if (key.equals("true")) {
                     key = stateEntry.getKey();
                 }
-                stateMap.put(entry.id + ":" + key, FaweCache.getBlock(entry.legacyId, valueEntry.getValue().data));
-                stateMap.put(id + ":" + key, FaweCache.getBlock(entry.legacyId, valueEntry.getValue().data));
-                stateMap.putIfAbsent(modId + ":" + key, FaweCache.getBlock(entry.legacyId, valueEntry.getValue().data));
-                stateMap.putIfAbsent(key, FaweCache.getBlock(entry.legacyId, valueEntry.getValue().data));
+                stateMap.put(entry.id + ":" + key, FaweCache.getBlock(entry.legacyId, faweStateValue.data));
+                stateMap.put(id + ":" + key, FaweCache.getBlock(entry.legacyId, faweStateValue.data));
+                stateMap.putIfAbsent(modId + ":" + key, FaweCache.getBlock(entry.legacyId, faweStateValue.data));
+                stateMap.putIfAbsent(key, FaweCache.getBlock(entry.legacyId, faweStateValue.data));
+            }
+        }
+        if (!entry.states.isEmpty()) { // Fix vine direction 2
+            String[] states = new String[] {"north", "east", "south", "west", "up", "down"};
+            Vector[] dirs = new Vector[] {
+                    new Vector(0, 0, -1),
+                    new Vector(1, 0, 0),
+                    new Vector(0, 0, 1),
+                    new Vector(-1, 0, 0),
+                    new Vector(0, 1, 0),
+                    new Vector(0, -1, 0),
+            };
+            for (int i = 0; i < states.length; i++) {
+                FaweState state = entry.states.get(states[i]);
+                if (state != null && !state.hasDirection()) {
+                    FaweStateValue active = state.valueMap().get("true");
+                    if (active != null) {
+                        entry.fixDirection(dirs[i], states[i], null, active.data);
+                    }
+                }
             }
         }
         FaweState half = entry.states.get("half");
@@ -370,7 +395,26 @@ public class BundledBlockData {
                 state.postDeserialization();
             }
         }
+
+        protected void fixDirection(Vector direction, String key, Byte mask, int data) {
+            FaweState state = states.remove(key);
+            if (state != null && !state.hasDirection()) {
+                FaweState facing = states.get("facing");
+                if (facing == null) {
+                    facing = BundledBlockData.getInstance().new FaweState();
+                    facing.values = new HashMap<>();
+                    states.put("facing", facing);
+                }
+                if (mask != null) facing.dataMask = (byte) (facing.getDataMask() | mask);
+                FaweStateValue value = BundledBlockData.getInstance().new FaweStateValue();
+                value.state = facing;
+                value.data = (byte) data;
+                value.direction = direction;
+                facing.values.put(key, value);
+            }
+        }
     }
+
 
     public static Class<?> inject() {
         return BundledBlockData.class;
@@ -414,7 +458,7 @@ public class BundledBlockData {
 
         @Override
         public boolean isSet(BaseBlock block) {
-            return data != null && (block.getData() & state.getDataMask()) == data;
+            return data != null && ((state.dataMask == null && block.getData() == data) || (block.getData() & state.getDataMask()) == data);
         }
 
         @Override

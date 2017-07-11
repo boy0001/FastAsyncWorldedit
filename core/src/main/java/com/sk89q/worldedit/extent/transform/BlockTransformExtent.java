@@ -198,7 +198,8 @@ public class BlockTransformExtent extends ResettableExtent {
             return changedBlock;
         }
 
-        for (State state : states.values()) {
+        for (Map.Entry<String, ? extends State> entry : states.entrySet()) {
+            State state = entry.getValue();
             if (state.hasDirection()) {
                 StateValue value = state.getValue(block);
                 if (value != null && value.getDirection() != null) {
@@ -231,7 +232,8 @@ public class BlockTransformExtent extends ResettableExtent {
         double closest = -2;
         boolean found = false;
 
-        for (StateValue v : state.valueMap().values()) {
+        for (Map.Entry<String, ? extends StateValue> entry : state.valueMap().entrySet()) {
+            StateValue v = entry.getValue();
             if (v.getDirection() != null) {
                 double dot = v.getDirection().normalize().dot(newDirection);
                 if (dot >= closest) {

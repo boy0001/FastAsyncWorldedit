@@ -13,6 +13,7 @@ import com.sk89q.jnbt.StringTag;
 import com.sk89q.jnbt.Tag;
 import com.sk89q.worldedit.internal.Constants;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -305,8 +306,10 @@ public class BukkitChunk_1_7 extends CharFaweChunk<Chunk, BukkitQueue17> {
                         continue;
                     }
                     sections[j] = section = new ChunkSection(j << 4, flag);
+                    section.setIdArray(null);
                     section.setIdArray(newIdArray);
                     getParent().setCount(0, count - this.getAir(j), section);
+                    section.setDataArray(null);
                     if (newDataArray != null) {
                         section.setDataArray(newDataArray);
                     }
@@ -317,26 +320,73 @@ public class BukkitChunk_1_7 extends CharFaweChunk<Chunk, BukkitQueue17> {
                         sections[j] = null;
                         continue;
                     }
+                    section.setIdArray(null);
                     section.setIdArray(newIdArray);
                     getParent().setCount(0, count - this.getAir(j), section);
+                    section.setDataArray(null);
                     if (newDataArray != null) {
                         section.setDataArray(newDataArray);
                     }
                     continue;
                 }
+                char[] charArray = this.getIdArray(j);
                 byte[] currentIdArray = (byte[]) BukkitQueue17.fieldIds.get(section);
                 NibbleArray currentDataArray = (NibbleArray) BukkitQueue17.fieldData.get(section);
                 boolean data = currentDataArray != null && newDataArray != null;
-                if (currentDataArray == null && newDataArray != null) {
-                    section.setDataArray(newDataArray);
+                if (currentDataArray == null) {
+                    byte compactData = (byte) section.getData(0, 0, 0);
+                    if (compactData != 0 && newDataArray == null) {
+                        newDataArray = new NibbleArray(new byte[2048], 4);
+                        byte full = (byte) ((compactData << 4) + compactData);
+                        Arrays.fill(newDataArray.a, full);
+                        for (int i = 0; i < newDataArray.a.length; i++) {
+                            int i2 = i << 1;
+                            int i3 = i2 + 1;
+                            byte val = newDataArray.a[i];
+                            if (FaweCache.hasData(charArray[i3] >> 4)) {
+                                newDataArray.a[i] = (byte) (val & 15);
+                            }
+                            if (FaweCache.hasData(charArray[i2] >> 4)) {
+                                newDataArray.a[i] = (byte) (val & 240);
+                            }
+                        }
+                    }
+                    else if (newDataArray != null) {
+                        if (compactData != 0) {
+                            byte full = (byte) ((compactData << 4) + compactData);
+                            for (int i = 0; i < newDataArray.a.length; i++) {
+                                int i2 = i << 1;
+                                int i3 = i2 + 1;
+                                byte val = newDataArray.a[i];
+                                if (charArray[i3] != 0) {
+                                    if (charArray[i2] != 0) continue;
+                                    newDataArray.a[i] = (byte) (val & 240 | compactData);
+                                    continue;
+                                }
+                                if (charArray[i2] != 0) {
+                                    if (charArray[i3] != 0) continue;
+                                    newDataArray.a[i] = (byte) (val & 15 | (compactData) << 4);
+                                    continue;
+                                }
+                                newDataArray.a[i] = full;
+                            }
+                        }
+                        section.setDataArray(null);
+                        section.setDataArray(newDataArray);
+                    }
                 }
-                if (currentIdArray == null) {
-                    section.setIdArray(newIdArray);
-                    getParent().setCount(0, count - this.getAir(j), section);
-                    continue;
+                if (currentIdArray == null && newIdArray != null) {
+                    int id = (int) BukkitQueue17.fieldCompactId.get(section);
+                    if (id == 0) {
+                        section.setIdArray(null);
+                        section.setIdArray(newIdArray);
+                        getParent().setCount(0, count - this.getAir(j), section);
+                        continue;
+                    } else {
+                        currentIdArray = section.getIdArray();
+                    }
                 }
                 int nonEmptyBlockCount = 0;
-                char[] charArray = this.getIdArray(j);
                 for (int k = 0; k < newIdArray.length; k++) {
                     char combined = charArray[k];
                     switch (combined) {
@@ -360,11 +410,11 @@ public class BukkitChunk_1_7 extends CharFaweChunk<Chunk, BukkitQueue17> {
                             currentIdArray[k] = newIdArray[k];
                             if (data) {
                                 int dataByte = FaweCache.getData(combined);
-                                int x = FaweCache.CACHE_X[0][k];
-                                int y = FaweCache.CACHE_Y[0][k];
-                                int z = FaweCache.CACHE_Z[0][k];
-                                int newData = newDataArray.a(x, y, z);
-                                currentDataArray.a(x, y, z, newData);
+                                if ((k & 1) == 0) {
+                                    currentDataArray.a[k] = (byte) (currentDataArray.a[k] & 240 | dataByte);
+                                } else {
+                                    currentDataArray.a[k] = (byte) (currentDataArray.a[k] & 15 | (dataByte) << 4);
+                                }
                             }
                             continue;
                     }

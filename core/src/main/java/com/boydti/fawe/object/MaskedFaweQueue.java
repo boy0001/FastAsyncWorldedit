@@ -40,6 +40,14 @@ public class MaskedFaweQueue extends DelegateFaweQueue {
     }
 
     @Override
+    public boolean setBlock(int x, int y, int z, int id, int data, CompoundTag nbt) {
+        if (WEManager.IMP.maskContains(mask, x, z)) {
+            return super.setBlock(x, y, z, id, data, nbt);
+        }
+        return false;
+    }
+
+    @Override
     public boolean setBiome(int x, int z, BaseBiome biome) {
         if (WEManager.IMP.maskContains(mask, x, z)) {
             return super.setBiome(x, z, biome);

@@ -69,6 +69,7 @@ public class BukkitQueue17 extends BukkitQueue_0<net.minecraft.server.v1_7_R4.Ch
 
     protected static Field fieldData;
     protected static Field fieldIds;
+    protected static Field fieldCompactId;
     protected static Field fieldTickingBlockCount;
     protected static Field fieldNonEmptyBlockCount;
     protected static Field fieldBiomes;
@@ -88,6 +89,8 @@ public class BukkitQueue17 extends BukkitQueue_0<net.minecraft.server.v1_7_R4.Ch
             fieldData.setAccessible(true);
             fieldIds = ChunkSection.class.getDeclaredField("blockIds");
             fieldIds.setAccessible(true);
+            fieldCompactId = ChunkSection.class.getDeclaredField("compactId");
+            fieldCompactId.setAccessible(true);
             fieldTickingBlockCount = ChunkSection.class.getDeclaredField("tickingBlockCount");
             fieldNonEmptyBlockCount = ChunkSection.class.getDeclaredField("nonEmptyBlockCount");
             fieldTickingBlockCount.setAccessible(true);
@@ -397,7 +400,7 @@ public class BukkitQueue17 extends BukkitQueue_0<net.minecraft.server.v1_7_R4.Ch
     @Override
     public CompoundTag getTileEntity(net.minecraft.server.v1_7_R4.Chunk chunk, int x, int y, int z) {
         Map<ChunkPosition, TileEntity> tiles = chunk.tileEntities;
-        ChunkPosition pos = new ChunkPosition(x, y, z);
+        ChunkPosition pos = new ChunkPosition(x & 15, y, z & 15);
         TileEntity tile = tiles.get(pos);
         return tile != null ? getTag(tile) : null;
     }
