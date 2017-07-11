@@ -23,6 +23,7 @@ public enum BBC {
      * Can use multiple arguments %s, %s1, %s2, %s3 etc
      */
     PREFIX("&8(&4&lFAWE&8)&r&7", "Info"),
+    FILE_DELETED("%s0 has been deleted.", "Info"),
     SCHEMATIC_PASTING("&7The schematic is pasting. This cannot be undone.", "Info"),
     LIGHTING_PROPOGATE_SELECTION("&7Lighting has been propogated in %s0 chunks. (Note: To remove light use //removelight)", "Info"),
     UPDATED_LIGHTING_SELECTION("&7Lighting has been updated in %s0 chunks. (It may take a second for the packets to send)", "Info"),

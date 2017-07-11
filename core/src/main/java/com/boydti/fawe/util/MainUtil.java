@@ -906,8 +906,8 @@ public class MainUtil {
             public void run(File file) {
                 long age = now - file.lastModified();
                 if (age > timeDiff) {
-                    Fawe.debug("Deleting file: " + file);
                     file.delete();
+                    BBC.SCHEMATIC_DELETE.send(null, file);
                 }
             }
         });
@@ -922,7 +922,8 @@ public class MainUtil {
                     if (file.isDirectory()) {
                         deleteDirectory(files[i]);
                     } else {
-                        Fawe.debug("Deleting file: " + file + " | " + file.delete());
+                        file.delete();
+                        BBC.SCHEMATIC_DELETE.send(null, file);
                     }
                 }
             }
