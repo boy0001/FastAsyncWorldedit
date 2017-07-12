@@ -370,7 +370,6 @@ public final class CommandManager {
         Request.reset();
         locals.put(Actor.class, actor);
         final Actor finalActor = actor;
-
         locals.put("arguments", args);
         long start = System.currentTimeMillis();
         try {

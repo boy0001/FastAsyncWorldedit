@@ -261,6 +261,7 @@ public class NMSRelighter implements Relighter {
     }
 
     public void fixLightingSafe(boolean sky) {
+        if (isEmpty()) return;
         try {
             if (sky) {
                 fixSkyLighting();

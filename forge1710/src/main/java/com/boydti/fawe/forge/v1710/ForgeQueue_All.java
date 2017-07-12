@@ -108,7 +108,7 @@ public class ForgeQueue_All extends NMSMappedFaweQueue<World, Chunk, ExtendedBlo
     @Override
     public CompoundTag getTileEntity(Chunk chunk, int x, int y, int z) {
         Map<ChunkPosition, TileEntity> tiles = chunk.chunkTileEntityMap;
-        ChunkPosition pos = new ChunkPosition(x, y, z);
+        ChunkPosition pos = new ChunkPosition(x & 15, y, z & 15);
         TileEntity tile = tiles.get(pos);
         return tile != null ? getTag(tile) : null;
     }

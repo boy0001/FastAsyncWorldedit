@@ -905,7 +905,7 @@ public class EditSession extends AbstractWorld implements HasFaweQueue, Lighting
 
     @Override
     public String toString() {
-        return super.toString() + ":" + extent.toString();
+        return super.toString() + ":" + extent;
     }
 
     /**

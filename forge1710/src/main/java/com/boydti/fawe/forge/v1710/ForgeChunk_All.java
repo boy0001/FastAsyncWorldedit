@@ -99,6 +99,7 @@ public class ForgeChunk_All extends CharFaweChunk<Chunk, ForgeQueue_All> {
         this.count[i]++;
         switch (id) {
             case 0:
+                this.air[i]++;
                 vs[j] = 0;
                 vs2[j] = (char) 1;
                 return;
@@ -280,15 +281,13 @@ public class ForgeChunk_All extends CharFaweChunk<Chunk, ForgeQueue_All> {
                     section.setBlockLSBArray(newIdArray);
                     if (newDataArray != null) {
                         section.setBlockMetadataArray(newDataArray);
-                    } else {
-                        NibbleArray nibble = section.getMetadataArray();
-                        Arrays.fill(nibble.data, (byte) 0);
+                    } else if (section.getMetadataArray() != null) {
+                        Arrays.fill(section.getMetadataArray().data, (byte) 0);
                     }
                     if (extendedArray != null) {
                         section.setBlockMSBArray(extendedArray);
-                    } else {
-                        NibbleArray nibble = section.getBlockMSBArray();
-                        Arrays.fill(nibble.data, (byte) 0);
+                    } else if (section.getBlockMSBArray() != null) {
+                        Arrays.fill(section.getBlockMSBArray().data, (byte) 0);
                     }
                     continue;
                 }
@@ -326,22 +325,32 @@ public class ForgeChunk_All extends CharFaweChunk<Chunk, ForgeQueue_All> {
                             solid++;
                             currentIdArray[k] = newIdArray[k];
                             if (data) {
-                                int dataByte = FaweCache.getData(combined);
-                                int x = FaweCache.CACHE_X[0][k];
-                                int y = FaweCache.CACHE_Y[0][k];
-                                int z = FaweCache.CACHE_Z[0][k];
-                                int newData = newDataArray.get(x, y, z);
-                                currentDataArray.set(x, y, z, newData);
-                            }
-                            if (extra) {
-                                int extraId = FaweCache.getId(combined) >> 8;
-                                if (extraId != 0) {
+                                if (FaweCache.hasData(combined >> 4)) {
+                                    int dataByte = FaweCache.getData(combined);
                                     int x = FaweCache.CACHE_X[0][k];
                                     int y = FaweCache.CACHE_Y[0][k];
                                     int z = FaweCache.CACHE_Z[0][k];
-                                    int newExtra = extendedArray.get(x, y, z);
-                                    currentExtraArray.set(x, y, z, newExtra);
+                                    int newData = newDataArray.get(x, y, z);
+                                    currentDataArray.set(x, y, z, newData);
                                 }
+                            } else if (currentDataArray != null) {
+                                int x = FaweCache.CACHE_X[0][k];
+                                int y = FaweCache.CACHE_Y[0][k];
+                                int z = FaweCache.CACHE_Z[0][k];
+                                currentDataArray.set(x, y, z, 0);
+                            }
+                            int extraId = FaweCache.getId(combined) >> 8;
+                            if (extra && extraId != 0) {
+                                int x = FaweCache.CACHE_X[0][k];
+                                int y = FaweCache.CACHE_Y[0][k];
+                                int z = FaweCache.CACHE_Z[0][k];
+                                int newExtra = extendedArray.get(x, y, z);
+                                currentExtraArray.set(x, y, z, newExtra);
+                            } else if (currentExtraArray != null) {
+                                int x = FaweCache.CACHE_X[0][k];
+                                int y = FaweCache.CACHE_Y[0][k];
+                                int z = FaweCache.CACHE_Z[0][k];
+                                currentExtraArray.set(x, y, z, 0);
                             }
                             continue;
                     }
@@ -373,8 +382,8 @@ public class ForgeChunk_All extends CharFaweChunk<Chunk, ForgeQueue_All> {
                 if (tileEntity != null) {
                     NBTTagCompound tag = (NBTTagCompound) ForgeQueue_All.methodFromNative.invoke(null, nativeTag);
                     tag.setInteger("x", x);
-                    tag.setInteger("y", x);
-                    tag.setInteger("z", x);
+                    tag.setInteger("y", y);
+                    tag.setInteger("z", z);
                     tileEntity.readFromNBT(tag); // ReadTagIntoTile
                 }
             }

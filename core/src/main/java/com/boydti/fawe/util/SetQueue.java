@@ -236,18 +236,18 @@ public class SetQueue {
     }
 
     public void flush(FaweQueue queue) {
-        queue.startSet(Settings.IMP.QUEUE.PARALLEL_THREADS > 1);
         try {
+            queue.startSet(Settings.IMP.QUEUE.PARALLEL_THREADS > 1);
             queue.next(Settings.IMP.QUEUE.PARALLEL_THREADS, Long.MAX_VALUE);
         } catch (Throwable e) {
             pool.awaitQuiescence(Settings.IMP.QUEUE.DISCARD_AFTER_MS, TimeUnit.MILLISECONDS);
             completer = new ExecutorCompletionService(pool);
             MainUtil.handleError(e);
         } finally {
+            queue.endSet(Settings.IMP.QUEUE.PARALLEL_THREADS > 1);
             queue.setStage(QueueStage.NONE);
             queue.runTasks();
         }
-        queue.endSet(Settings.IMP.QUEUE.PARALLEL_THREADS > 1);
     }
 
     public FaweQueue getNextQueue() {

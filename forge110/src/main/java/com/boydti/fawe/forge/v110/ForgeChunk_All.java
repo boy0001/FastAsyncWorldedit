@@ -134,10 +134,11 @@ public class ForgeChunk_All extends CharFaweChunk<Chunk, ForgeQueue_All> {
                 }
                 BlockStateContainer palette = new BlockStateContainer();
                 char[] blocks = getIdArray(layer);
+                int index = 0;
                 for (int y = 0; y < 16; y++) {
                     for (int z = 0; z < 16; z++) {
                         for (int x = 0; x < 16; x++) {
-                            char combinedId = blocks[FaweCache.CACHE_J[y][z][x]];
+                            char combinedId = blocks[index++];
                             if (combinedId > 1) {
                                 palette.set(x, y, z, Block.getBlockById(combinedId >> 4).getStateFromMeta(combinedId & 0xF));
                             }

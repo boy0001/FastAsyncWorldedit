@@ -27,6 +27,8 @@ import javax.management.InstanceAlreadyExistsException;
 import net.minecraft.command.ServerCommandManager;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.server.MinecraftServer;
+import net.minecraft.world.WorldServer;
+import net.minecraftforge.common.DimensionManager;
 import org.apache.logging.log4j.Logger;
 
 public class FaweForge implements IFawe {
@@ -120,6 +122,13 @@ public class FaweForge implements IFawe {
     }
 
     public String getWorldName(net.minecraft.world.World w) {
+        Integer[] ids = DimensionManager.getIDs();
+        WorldServer[] worlds = DimensionManager.getWorlds();
+        for (int i = 0; i < ids.length; i++) {
+            if (worlds[i] == w) {
+                return w.getWorldInfo().getWorldName() + ";" + ids[i];
+            }
+        }
         return w.getWorldInfo().getWorldName() + ";" + w.provider.dimensionId;
     }
 
