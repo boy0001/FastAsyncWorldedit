@@ -10,6 +10,7 @@ import com.sk89q.jnbt.CompoundTag;
 import com.sk89q.worldedit.LocalWorld;
 import com.sk89q.worldedit.MutableBlockVector2D;
 import com.sk89q.worldedit.blocks.BaseBlock;
+import com.sk89q.worldedit.blocks.BlockID;
 import com.sk89q.worldedit.bukkit.BukkitUtil;
 import java.util.ArrayList;
 import org.bukkit.Bukkit;
@@ -64,6 +65,58 @@ public class BukkitChunk_All extends CharFaweChunk<Chunk, BukkitQueue_All> {
     @Override
     public void start() {
         getChunk().load(true);
+    }
+
+    private static boolean canTick(int id) {
+        switch (id) {
+            case BlockID.VINE:
+            case BlockID.FIRE:
+            case BlockID.ICE:
+            case BlockID.PACKED_ICE:
+            case BlockID.FROSTED_ICE:
+            case BlockID.LEAVES:
+            case BlockID.LEAVES2:
+            case BlockID.SOIL:
+            case BlockID.CACTUS:
+            case BlockID.REED:
+            case BlockID.CHORUS_FLOWER:
+            case BlockID.CHORUS_PLANT:
+            case BlockID.GRASS:
+            case BlockID.MYCELIUM:
+            case BlockID.SAPLING:
+            case BlockID.WATER:
+            case BlockID.STATIONARY_WATER:
+            case BlockID.LAVA:
+            case BlockID.STATIONARY_LAVA:
+            case BlockID.GLOWING_REDSTONE_ORE:
+            case BlockID.REDSTONE_ORE:
+            case BlockID.PORTAL:
+            case BlockID.END_PORTAL:
+            case BlockID.REDSTONE_BLOCK:
+            case BlockID.REDSTONE_LAMP_OFF:
+            case BlockID.REDSTONE_LAMP_ON:
+            case BlockID.REDSTONE_REPEATER_OFF:
+            case BlockID.REDSTONE_REPEATER_ON:
+            case BlockID.COMMAND_BLOCK:
+            case BlockID.CHAIN_COMMAND_BLOCK:
+            case BlockID.REPEATING_COMMAND_BLOCK:
+            case BlockID.REDSTONE_TORCH_OFF:
+            case BlockID.REDSTONE_TORCH_ON:
+            case BlockID.REDSTONE_WIRE:
+            case BlockID.CROPS:
+            case BlockID.MELON_STEM:
+            case BlockID.PUMPKIN_STEM:
+            case BlockID.POTATOES:
+            case BlockID.CARROTS:
+            case BlockID.COCOA_PLANT:
+            case BlockID.BEETROOTS:
+            case BlockID.NETHER_WART:
+            case BlockID.NETHER_WART_BLOCK:
+            case BlockID.BROWN_MUSHROOM:
+            case BlockID.RED_MUSHROOM:
+                return true;
+            default: return false;
+        }
     }
 
     /**
@@ -138,6 +191,7 @@ public class BukkitChunk_All extends CharFaweChunk<Chunk, BukkitQueue_All> {
                         final Thread thread = new Thread(new Runnable() {
                             @Override
                             public void run() {
+                                Location mutableLoc = null;
                                 for (int m = l; m < l + 256; m++) {
                                     char combined = newArray[m];
                                     switch (combined) {
@@ -158,12 +212,25 @@ public class BukkitChunk_All extends CharFaweChunk<Chunk, BukkitQueue_All> {
                                                 if (FaweCache.hasNBT(id) && parent.adapter != null) {
                                                     CompoundTag nbt = getTile(x, y, z);
                                                     if (nbt != null) {
-                                                        parent.adapter.setBlock(new Location(world, bx + x, y, bz + z), new BaseBlock(id, combined & 0xF, nbt), false);
+                                                        if (mutableLoc == null) mutableLoc = new Location(world, 0, 0, 0);
+                                                        mutableLoc.setX(bx + x);
+                                                        mutableLoc.setY(y);
+                                                        mutableLoc.setZ(bz + z);
+                                                        synchronized (BukkitChunk_All.this) {
+                                                            parent.adapter.setBlock(mutableLoc, new BaseBlock(id, combined & 0xF, nbt), false);
+                                                        }
                                                         continue;
                                                     }
                                                 }
                                                 Block block = chunk.getBlock(x, y, z);
-                                                setBlock(block, id, (byte) (combined & 0xF));
+                                                byte data = (byte) (combined & 0xF);
+                                                if (canTick(id)) {
+                                                    synchronized (BukkitChunk_All.this) {
+                                                        setBlock(block, id, data);
+                                                    }
+                                                } else {
+                                                    setBlock(block, id, data);
+                                                }
                                             }
                                             continue;
                                     }
