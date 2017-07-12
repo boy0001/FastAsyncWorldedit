@@ -453,6 +453,7 @@ public class FaweBukkit implements IFawe, Listener {
     public Version getVersion() {
         Version tmp = this.version;
         if (tmp == null) {
+            tmp = Version.NONE;
             for (Version v : Version.values()) {
                 try {
                     BukkitQueue_0.checkVersion(v.name());
