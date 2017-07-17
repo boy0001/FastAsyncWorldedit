@@ -19,7 +19,6 @@
 
 package com.sk89q.bukkit.util;
 
-import com.sk89q.worldedit.WorldEdit;
 import org.bukkit.command.CommandMap;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -35,12 +34,7 @@ public class FallbackRegistrationListener implements Listener {
 
     @EventHandler(ignoreCancelled = true)
     public void onPlayerCommandPreprocess(PlayerCommandPreprocessEvent event) {
-        boolean doubleSlash = WorldEdit.getInstance().getConfiguration().noDoubleSlash;
-        String msg = event.getMessage();
-        if (doubleSlash || !msg.startsWith("/")) {
-            msg = "/" + msg;
-        }
-        if (commandRegistration.dispatch(event.getPlayer(), msg)) {
+        if (commandRegistration.dispatch(event.getPlayer(), event.getMessage().substring(1))) {
             event.setCancelled(true);
         }
     }
