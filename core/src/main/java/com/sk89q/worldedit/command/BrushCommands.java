@@ -49,6 +49,7 @@ import com.boydti.fawe.object.brush.SurfaceSphereBrush;
 import com.boydti.fawe.object.brush.SurfaceSpline;
 import com.boydti.fawe.object.brush.heightmap.ScalableHeightMap;
 import com.boydti.fawe.object.mask.IdMask;
+import com.boydti.fawe.util.ColorUtil;
 import com.sk89q.minecraft.util.commands.Command;
 import com.sk89q.minecraft.util.commands.CommandContext;
 import com.sk89q.minecraft.util.commands.CommandLocals;
@@ -85,6 +86,7 @@ import com.sk89q.worldedit.session.ClipboardHolder;
 import com.sk89q.worldedit.util.command.InvalidUsageException;
 import com.sk89q.worldedit.util.command.binding.Switch;
 import com.sk89q.worldedit.util.command.parametric.Optional;
+import java.awt.Color;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -95,7 +97,6 @@ import java.nio.channels.Channels;
 import java.nio.channels.ReadableByteChannel;
 import java.util.ArrayList;
 import java.util.List;
-import javafx.scene.paint.Color;
 
 /**
  * Commands to set brush shape.
@@ -447,9 +448,8 @@ public class BrushCommands extends MethodCommands {
             throw new InvalidUsageException(getCallable());
         }
         try {
-            Color color = Color.web(args.getString(1));
-            java.awt.Color awtColor = new java.awt.Color((float) color.getRed(), (float) color.getGreen(), (float) color.getBlue(), (float) color.getOpacity());
-            char[] glassLayers = Fawe.get().getTextureUtil().getNearestLayer(awtColor.getRGB());
+            Color color = ColorUtil.parseColor(args.getString(1));
+            char[] glassLayers = Fawe.get().getTextureUtil().getNearestLayer(color.getRGB());
             for (char layer : glassLayers) {
                 blocks.add(FaweCache.CACHE_BLOCK[layer]);
             }

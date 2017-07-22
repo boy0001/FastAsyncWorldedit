@@ -32,6 +32,7 @@ import com.boydti.fawe.object.pattern.ShadePattern;
 import com.boydti.fawe.object.pattern.SolidRandomOffsetPattern;
 import com.boydti.fawe.object.pattern.SurfaceRandomOffsetPattern;
 import com.boydti.fawe.object.random.SimplexRandom;
+import com.boydti.fawe.util.ColorUtil;
 import com.boydti.fawe.util.TextureUtil;
 import com.sk89q.minecraft.util.commands.Command;
 import com.sk89q.worldedit.EmptyClipboardException;
@@ -54,12 +55,18 @@ import com.sk89q.worldedit.regions.shape.WorldEditExpressionEnvironment;
 import com.sk89q.worldedit.session.ClipboardHolder;
 import com.sk89q.worldedit.util.command.parametric.Optional;
 import com.sk89q.worldedit.world.biome.BaseBiome;
+import java.awt.Color;
 import java.io.IOException;
 import java.util.Set;
-import javafx.scene.paint.Color;
 
 @Command(aliases = {"patterns"},
-        desc = "Help for the various patterns. [More Info](https://git.io/vSPmA)"
+        desc = "Help for the various patterns. [More Info](https://git.io/vSPmA)",
+        help = "Patterns determine what blocks are placed\n" +
+        " - Use [brackets] for arguments\n" +
+        " - Use , to OR multiple\n" +
+        "e.g. #surfacespread[10][#existing],andesite\n" +
+        "More Info: https://git.io/vSPmA"
+
 )
 public class PatternCommands extends MethodCommands {
     public PatternCommands(WorldEdit worldEdit) {
@@ -106,9 +113,8 @@ public class PatternCommands extends MethodCommands {
             max = 1
     )
     public Pattern color(String arg) {
-        Color color = Color.web(arg);
-        java.awt.Color awtColor = new java.awt.Color((float) color.getRed(), (float) color.getGreen(), (float) color.getBlue(), (float) color.getOpacity());
-        return Fawe.get().getTextureUtil().getNearestBlock(awtColor.getRGB());
+        Color color = ColorUtil.parseColor(arg);
+        return Fawe.get().getTextureUtil().getNearestBlock(color.getRGB());
     }
 
     @Command(
@@ -140,9 +146,8 @@ public class PatternCommands extends MethodCommands {
     )
     public Pattern saturate(Extent extent, String arg, @Optional("true") boolean randomize, @Optional("100") double maxComplexity) {
         TextureUtil util = Fawe.get().getCachedTextureUtil(randomize, 0, (int) maxComplexity);
-        Color color = Color.web(arg);
-        java.awt.Color awtColor = new java.awt.Color((float) color.getRed(), (float) color.getGreen(), (float) color.getBlue(), (float) color.getOpacity());
-        return new SaturatePattern(extent, awtColor.getRGB(), (int) maxComplexity, randomize);
+        Color color = ColorUtil.parseColor(arg);
+        return new SaturatePattern(extent, color.getRGB(), (int) maxComplexity, randomize);
     }
 
     @Command(
@@ -154,9 +159,8 @@ public class PatternCommands extends MethodCommands {
     )
     public Pattern averagecolor(Extent extent, String arg, @Optional("true") boolean randomize, @Optional("100") double maxComplexity) {
         TextureUtil util = Fawe.get().getCachedTextureUtil(randomize, 0, (int) maxComplexity);
-        Color color = Color.web(arg);
-        java.awt.Color awtColor = new java.awt.Color((float) color.getRed(), (float) color.getGreen(), (float) color.getBlue(), (float) color.getOpacity());
-        return new AverageColorPattern(extent, awtColor.getRGB(), (int) maxComplexity, randomize);
+        Color color = ColorUtil.parseColor(arg);
+        return new AverageColorPattern(extent, color.getRGB(), (int) maxComplexity, randomize);
     }
 
     @Command(
