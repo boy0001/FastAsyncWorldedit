@@ -27,6 +27,7 @@ import com.sk89q.worldedit.MutableBlockVector;
 import com.sk89q.worldedit.MutableBlockVector2D;
 import com.sk89q.worldedit.Vector;
 import com.sk89q.worldedit.Vector2D;
+import com.sk89q.worldedit.WorldVector;
 import com.sk89q.worldedit.world.World;
 import com.sk89q.worldedit.world.storage.ChunkStore;
 import java.util.AbstractSet;
@@ -79,6 +80,11 @@ public class CuboidRegion extends AbstractRegion implements FlatRegion {
         checkNotNull(pos2);
         this.pos1 = pos1;
         this.pos2 = pos2;
+        if (pos1 instanceof WorldVector) {
+            setWorld(((WorldVector) pos1).getWorld());
+        } else if (pos2 instanceof WorldVector) {
+            setWorld(((WorldVector) pos2).getWorld());
+        }
         recalculate();
     }
 
