@@ -410,10 +410,11 @@ public class BukkitChunk_1_7 extends CharFaweChunk<Chunk, BukkitQueue17> {
                             currentIdArray[k] = newIdArray[k];
                             if (data) {
                                 int dataByte = FaweCache.getData(combined);
+                                int kShift = k >> 1;
                                 if ((k & 1) == 0) {
-                                    currentDataArray.a[k] = (byte) (currentDataArray.a[k] & 240 | dataByte);
+                                    currentDataArray.a[kShift] = (byte) (currentDataArray.a[kShift] & 240 | dataByte);
                                 } else {
-                                    currentDataArray.a[k] = (byte) (currentDataArray.a[k] & 15 | (dataByte) << 4);
+                                    currentDataArray.a[kShift] = (byte) (currentDataArray.a[kShift] & 15 | (dataByte) << 4);
                                 }
                             }
                             continue;
