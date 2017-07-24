@@ -611,7 +611,6 @@ public class FaweCache {
             case 82:
             case 83:
             case 84:
-            case 85:
             case 87:
             case 88:
             case 101:
@@ -635,11 +634,6 @@ public class FaweCache {
             case 172:
             case 173:
             case 174:
-            case 188:
-            case 189:
-            case 190:
-            case 191:
-            case 192:
                 return false;
             default:
                 return true;
@@ -654,6 +648,7 @@ public class FaweCache {
      */
     public static boolean hasNBT(int id) {
         switch (id) {
+            case 26:
             case 218:
             case 54:
             case 130:
