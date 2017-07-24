@@ -33,9 +33,6 @@ import com.sk89q.worldedit.Vector;
 import com.sk89q.worldedit.WorldEdit;
 import com.sk89q.worldedit.blocks.BaseBlock;
 import com.sk89q.worldedit.blocks.BlockMaterial;
-import com.sk89q.worldedit.extent.transform.BlockTransformExtent;
-import com.sk89q.worldedit.math.transform.AffineTransform;
-import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.Type;
 import java.net.URL;
@@ -282,8 +279,29 @@ public class BundledBlockData {
             }
             return true;
         }
-
-
+        if (entry.legacyId == 155) {
+            FaweState variant = entry.states.get("variant");
+            System.out.println("Variant " + variant);
+            if (variant != null && variant.values != null) {
+                FaweStateValue x = variant.values.get("lines_x");
+                FaweStateValue y = variant.values.get("lines_y");
+                FaweStateValue z = variant.values.get("lines_z");
+                System.out.println("X " + x + "," + y + "," + z);
+                if (x != null) {
+                    x.setDirection(new Vector(1, 0, 0));
+                    variant.values.put("-lines_x", new FaweStateValue(x).setDirection(new Vector(-1, 0, 0)));
+                }
+                if (y != null) {
+                    y.setDirection(new Vector(0, 1, 0));
+                    variant.values.put("-lines_y", new FaweStateValue(y).setDirection(new Vector(0, -1, 0)));
+                }
+                if (z != null) {
+                    z.setDirection(new Vector(0, 0, 1));
+                    variant.values.put("-lines_z", new FaweStateValue(z).setDirection(new Vector(0, 0, -1)));
+                }
+                return true;
+            }
+        }
         return true;
     }
 
