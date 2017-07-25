@@ -281,12 +281,10 @@ public class BundledBlockData {
         }
         if (entry.legacyId == 155) {
             FaweState variant = entry.states.get("variant");
-            System.out.println("Variant " + variant);
             if (variant != null && variant.values != null) {
                 FaweStateValue x = variant.values.get("lines_x");
                 FaweStateValue y = variant.values.get("lines_y");
                 FaweStateValue z = variant.values.get("lines_z");
-                System.out.println("X " + x + "," + y + "," + z);
                 if (x != null) {
                     x.setDirection(new Vector(1, 0, 0));
                     variant.values.put("-lines_x", new FaweStateValue(x).setDirection(new Vector(-1, 0, 0)));
