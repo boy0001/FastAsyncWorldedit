@@ -474,8 +474,21 @@ public class BrushTool implements DoubleActionTraceTool, ScrollTool, MovableTool
         this.targetMask = mask;
     }
 
-    public void setVisualMode(VisualMode visualMode) {
-        this.visualMode = visualMode != null ? visualMode : VisualMode.NONE;
+    public void setVisualMode(Player player, VisualMode visualMode) {
+        if (visualMode == null) visualMode = VisualMode.NONE;
+        if (this.visualMode != visualMode) {
+            if (this.visualMode != VisualMode.NONE) {
+                clear(player);
+            }
+            this.visualMode = visualMode != null ? visualMode : VisualMode.NONE;
+            if (visualMode != VisualMode.NONE) {
+                try {
+                    queueVisualization(FawePlayer.wrap(player));
+                } catch (Throwable e) {
+                    WorldEdit.getInstance().getPlatformManager().handleThrowable(e, player);
+                }
+            }
+        }
     }
 
     public TargetMode getTargetMode() {

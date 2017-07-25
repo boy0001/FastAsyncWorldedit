@@ -294,7 +294,7 @@ public class BrushOptionsCommands extends MethodCommands {
         }
         VisualMode[] modes = VisualMode.values();
         VisualMode newMode = modes[MathMan.wrap(mode, 0, modes.length - 1)];
-        tool.setVisualMode(newMode);
+        tool.setVisualMode(player, newMode);
         BBC.BRUSH_VISUAL_MODE_SET.send(player, newMode);
     }
 
