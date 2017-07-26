@@ -27,6 +27,7 @@ import com.sk89q.worldedit.LocalPlayer;
 import com.sk89q.worldedit.LocalWorld;
 import com.sk89q.worldedit.ServerInterface;
 import com.sk89q.worldedit.Vector;
+import com.sk89q.worldedit.WorldEdit;
 import com.sk89q.worldedit.WorldEditException;
 import com.sk89q.worldedit.WorldVector;
 import com.sk89q.worldedit.blocks.BaseBlock;
@@ -47,6 +48,7 @@ import org.bukkit.Location;
 import org.bukkit.World;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.PlayerInventory;
 import org.bukkit.material.Dye;
 
 public class BukkitPlayer extends LocalPlayer {
@@ -122,7 +124,17 @@ public class BukkitPlayer extends LocalPlayer {
 
     @Override
     public void giveItem(int type, int amt) {
-        player.getInventory().addItem(new ItemStack(type, amt));
+        final PlayerInventory inv = player.getInventory();
+        final ItemStack newItem = new ItemStack(type, amt);
+        if (type == WorldEdit.getInstance().getConfiguration().wandItem) {
+            inv.remove(newItem);
+        }
+        final ItemStack item = player.getItemInHand();
+        player.setItemInHand(newItem);
+        if (item != null) {
+            inv.addItem(item);
+        }
+        player.updateInventory();
     }
 
     @Override
