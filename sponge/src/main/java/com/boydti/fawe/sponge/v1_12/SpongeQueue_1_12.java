@@ -1,26 +1,5 @@
-package com.boydti.fawe.sponge.v1_11;
+package com.boydti.fawe.sponge.v1_12;
 
-import com.boydti.fawe.FaweCache;
-import com.boydti.fawe.example.CharFaweChunk;
-import com.boydti.fawe.example.NMSMappedFaweQueue;
-import com.boydti.fawe.object.FaweChunk;
-import com.boydti.fawe.object.FawePlayer;
-import com.boydti.fawe.object.brush.visualization.VisualChunk;
-import java.util.concurrent.atomic.LongAdder;
-import com.boydti.fawe.object.visitor.FaweChunkVisitor;
-import com.boydti.fawe.sponge.SpongePlayer;
-import com.boydti.fawe.util.MainUtil;
-import com.boydti.fawe.util.MathMan;
-import com.boydti.fawe.util.ReflectionUtils;
-import com.sk89q.jnbt.CompoundTag;
-import com.sk89q.jnbt.StringTag;
-import com.sk89q.jnbt.Tag;
-import com.sk89q.worldedit.sponge.SpongeWorldEdit;
-import com.sk89q.worldedit.sponge.adapter.SpongeImplAdapter;
-import com.sk89q.worldedit.world.biome.BaseBiome;
-import io.netty.buffer.ByteBuf;
-import io.netty.buffer.ByteBufAllocator;
-import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
 import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.Field;
@@ -32,6 +11,31 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
+import java.util.concurrent.atomic.LongAdder;
+
+import org.spongepowered.api.Sponge;
+
+import com.boydti.fawe.FaweCache;
+import com.boydti.fawe.example.CharFaweChunk;
+import com.boydti.fawe.example.NMSMappedFaweQueue;
+import com.boydti.fawe.object.FaweChunk;
+import com.boydti.fawe.object.FawePlayer;
+import com.boydti.fawe.object.brush.visualization.VisualChunk;
+import com.boydti.fawe.object.visitor.FaweChunkVisitor;
+import com.boydti.fawe.sponge.SpongePlayer;
+import com.boydti.fawe.util.MainUtil;
+import com.boydti.fawe.util.MathMan;
+import com.boydti.fawe.util.ReflectionUtils;
+import com.sk89q.jnbt.CompoundTag;
+import com.sk89q.jnbt.StringTag;
+import com.sk89q.jnbt.Tag;
+import com.sk89q.worldedit.sponge.SpongeWorldEdit;
+import com.sk89q.worldedit.sponge.adapter.SpongeImplAdapter;
+import com.sk89q.worldedit.world.biome.BaseBiome;
+
+import io.netty.buffer.ByteBuf;
+import io.netty.buffer.ByteBufAllocator;
+import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockFalling;
 import net.minecraft.block.state.IBlockState;
@@ -58,16 +62,15 @@ import net.minecraft.world.biome.BiomeCache;
 import net.minecraft.world.biome.BiomeProvider;
 import net.minecraft.world.chunk.BlockStateContainer;
 import net.minecraft.world.chunk.Chunk;
-import net.minecraft.world.chunk.IChunkGenerator;
 import net.minecraft.world.chunk.IChunkProvider;
 import net.minecraft.world.chunk.NibbleArray;
 import net.minecraft.world.chunk.storage.ExtendedBlockStorage;
-import net.minecraft.world.gen.ChunkProviderOverworld;
+import net.minecraft.world.gen.ChunkGeneratorOverworld;
 import net.minecraft.world.gen.ChunkProviderServer;
+import net.minecraft.world.gen.IChunkGenerator;
 import net.minecraft.world.storage.WorldInfo;
-import org.spongepowered.api.Sponge;
 
-public class SpongeQueue_1_11 extends NMSMappedFaweQueue<World, net.minecraft.world.chunk.Chunk, ExtendedBlockStorage[], ExtendedBlockStorage> {
+public class SpongeQueue_1_12 extends NMSMappedFaweQueue<World, net.minecraft.world.chunk.Chunk, ExtendedBlockStorage[], ExtendedBlockStorage> {
 
     protected final static Method methodFromNative;
     protected final static Method methodToNative;
@@ -103,7 +106,7 @@ public class SpongeQueue_1_11 extends NMSMappedFaweQueue<World, net.minecraft.wo
             fieldId2ChunkMap.setAccessible(true);
             fieldChunkGenerator.setAccessible(true);
 
-            fieldBiomes = ChunkProviderOverworld.class.getDeclaredField("field_185981_C"); // biomesForGeneration
+            fieldBiomes = ChunkGeneratorOverworld.class.getDeclaredField("field_185981_C"); // biomesForGeneration
             fieldBiomes.setAccessible(true);
             fieldSeed = WorldInfo.class.getDeclaredField("field_76100_a"); // randomSeed
             fieldSeed.setAccessible(true);
@@ -125,12 +128,12 @@ public class SpongeQueue_1_11 extends NMSMappedFaweQueue<World, net.minecraft.wo
         }
     }
 
-    public SpongeQueue_1_11(com.sk89q.worldedit.world.World world) {
+    public SpongeQueue_1_12(com.sk89q.worldedit.world.World world) {
         super(world);
         getImpWorld();
     }
 
-    public SpongeQueue_1_11(String world) {
+    public SpongeQueue_1_12(String world) {
         super(world);
         getImpWorld();
     }
@@ -168,13 +171,13 @@ public class SpongeQueue_1_11 extends NMSMappedFaweQueue<World, net.minecraft.wo
             final PacketBuffer buffer = new PacketBuffer(byteBuf);
             buffer.writeInt(chunk.getX());
             buffer.writeInt(chunk.getZ());
-            buffer.writeVarIntToBuffer(size.intValue());
+            buffer.writeVarInt(size.intValue());
             chunk.forEachQueuedBlock(new FaweChunkVisitor() {
                 @Override
                 public void run(int localX, int y, int localZ, int combined) {
                     short index = (short) (localX << 12 | localZ << 8 | y);
                     buffer.writeShort(index);
-                    buffer.writeVarIntToBuffer(combined);
+                    buffer.writeVarInt(combined);
                 }
             });
             packet.readPacketData(buffer);
@@ -188,7 +191,7 @@ public class SpongeQueue_1_11 extends NMSMappedFaweQueue<World, net.minecraft.wo
 
     @Override
     public void saveChunk(Chunk chunk) {
-        chunk.setChunkModified();
+        chunk.setModified(true);
     }
 
     @Override
@@ -259,7 +262,7 @@ public class SpongeQueue_1_11 extends NMSMappedFaweQueue<World, net.minecraft.wo
         try {
             NBTTagCompound tag = new NBTTagCompound();
             tile.writeToNBT(tag); // readTagIntoEntity
-            CompoundTag result = (CompoundTag) methodToNative.invoke(SpongeQueue_1_11.adapter, tag);
+            CompoundTag result = (CompoundTag) methodToNative.invoke(SpongeQueue_1_12.adapter, tag);
             return result;
         } catch (Exception e) {
             MainUtil.handleError(e);
@@ -280,7 +283,7 @@ public class SpongeQueue_1_11 extends NMSMappedFaweQueue<World, net.minecraft.wo
             Chunk mcChunk;
             if (chunkServer.chunkExists(x, z)) {
                 mcChunk = chunkServer.loadChunk(x, z);
-                mcChunk.onChunkUnload();
+                mcChunk.onUnload();
             }
             PlayerChunkMap playerManager = ((WorldServer) getWorld()).getPlayerChunkMap();
             List<EntityPlayerMP> oldWatchers = null;
@@ -293,7 +296,7 @@ public class SpongeQueue_1_11 extends NMSMappedFaweQueue<World, net.minecraft.wo
                     oldWatchers = (List<EntityPlayerMP>) fieldPlayers.get(entry);
                     playerManager.removeEntry(entry);
                 }
-                mcChunk.onChunkUnload();
+                mcChunk.onUnload();
             }
             try {
                 Field droppedChunksSetField = chunkServer.getClass().getDeclaredField("field_73248_b");
@@ -305,11 +308,11 @@ public class SpongeQueue_1_11 extends NMSMappedFaweQueue<World, net.minecraft.wo
             }
             Long2ObjectMap<Chunk> id2ChunkMap = (Long2ObjectMap<Chunk>) fieldId2ChunkMap.get(chunkServer);
             id2ChunkMap.remove(pos);
-            mcChunk = gen.provideChunk(x, z);
+            mcChunk = gen.generateChunk(x, z);
             id2ChunkMap.put(pos, mcChunk);
             if (mcChunk != null) {
-                mcChunk.onChunkLoad();
-                mcChunk.populateChunk(chunkServer, gen);
+                mcChunk.onLoad();
+                mcChunk.populate(chunkServer, gen);
             }
             if (oldWatchers != null) {
                 for (EntityPlayerMP player : oldWatchers) {
@@ -334,7 +337,7 @@ public class SpongeQueue_1_11 extends NMSMappedFaweQueue<World, net.minecraft.wo
                 }
                 nmsWorld.getWorldInfo().getSeed();
                 boolean result;
-                ChunkProviderOverworld generator = new ChunkProviderOverworld(nmsWorld, seed, false, "");
+                ChunkGeneratorOverworld generator = new ChunkGeneratorOverworld(nmsWorld, seed, false, "");
                 net.minecraft.world.biome.Biome base = net.minecraft.world.biome.Biome.getBiome(biome.getId());
                 net.minecraft.world.biome.Biome[] existingBiomes = new net.minecraft.world.biome.Biome[256];
                 Arrays.fill(existingBiomes, base);
@@ -435,7 +438,7 @@ public class SpongeQueue_1_11 extends NMSMappedFaweQueue<World, net.minecraft.wo
                 NBTTagCompound tag = new NBTTagCompound();
                 tile.writeToNBT(tag); // readTileEntityIntoTag
                 BlockPos pos = entry.getKey();
-                CompoundTag nativeTag = (CompoundTag) methodToNative.invoke(SpongeQueue_1_11.adapter, tag);
+                CompoundTag nativeTag = (CompoundTag) methodToNative.invoke(SpongeQueue_1_12.adapter, tag);
                 previous.setTile(pos.getX(), pos.getY(), pos.getZ(), nativeTag);
             }
         }
@@ -459,7 +462,7 @@ public class SpongeQueue_1_11 extends NMSMappedFaweQueue<World, net.minecraft.wo
                         if (id != null) {
                             NBTTagCompound tag = new NBTTagCompound();
                             ent.writeToNBT(tag);  // readEntityIntoTag
-                            CompoundTag nativeTag = (CompoundTag) methodToNative.invoke(SpongeQueue_1_11.adapter, tag);
+                            CompoundTag nativeTag = (CompoundTag) methodToNative.invoke(SpongeQueue_1_12.adapter, tag);
                             Map<String, Tag> map = ReflectionUtils.getMap(nativeTag.getValue());
                             map.put("Id", new StringTag(id));
                             previous.setEntity(nativeTag);
@@ -500,11 +503,11 @@ public class SpongeQueue_1_11 extends NMSMappedFaweQueue<World, net.minecraft.wo
             return;
         }
         try {
-            ChunkPos pos = nmsChunk.getChunkCoordIntPair();
+            ChunkPos pos = nmsChunk.getPos();
             WorldServer w = (WorldServer) nmsChunk.getWorld();
             PlayerChunkMap chunkMap = w.getPlayerChunkMap();
-            int x = pos.chunkXPos;
-            int z = pos.chunkZPos;
+            int x = pos.x;
+            int z = pos.z;
             PlayerChunkMapEntry chunkMapEntry = chunkMap.getEntry(x, z);
             if (chunkMapEntry == null) {
                 return;
@@ -559,7 +562,7 @@ public class SpongeQueue_1_11 extends NMSMappedFaweQueue<World, net.minecraft.wo
 
     @Override
     public FaweChunk<Chunk> getFaweChunk(int x, int z) {
-        return new SpongeChunk_1_11(this, x, z);
+        return new SpongeChunk_1_12(this, x, z);
     }
 
     @Override
@@ -568,9 +571,9 @@ public class SpongeQueue_1_11 extends NMSMappedFaweQueue<World, net.minecraft.wo
             for (int i = 0; i < sections.length; i++) {
                 ExtendedBlockStorage section = sections[i];
                 if (section != null) {
-                    section.setBlocklightArray(new NibbleArray());
+                    section.setBlockLight(new NibbleArray());
                     if (sky) {
-                        section.setSkylightArray(new NibbleArray());
+                        section.setSkyLight(new NibbleArray());
                     }
                 }
             }
@@ -580,7 +583,7 @@ public class SpongeQueue_1_11 extends NMSMappedFaweQueue<World, net.minecraft.wo
 
     @Override
     public boolean hasSky() {
-        return !nmsWorld.provider.getHasNoSky();
+        return nmsWorld.provider.hasSkyLight();
     }
 
     @Override
@@ -588,7 +591,7 @@ public class SpongeQueue_1_11 extends NMSMappedFaweQueue<World, net.minecraft.wo
         for (int i = 0; i < sections.length; i++) {
             ExtendedBlockStorage section = sections[i];
             if (section != null) {
-                byte[] bytes = section.getSkylightArray().getData();
+                byte[] bytes = section.getSkyLight().getData();
                 Arrays.fill(bytes, (byte) 255);
             }
         }
@@ -613,22 +616,22 @@ public class SpongeQueue_1_11 extends NMSMappedFaweQueue<World, net.minecraft.wo
 
     @Override
     public void setSkyLight(ExtendedBlockStorage section, int x, int y, int z, int value) {
-        section.getSkylightArray().set(x & 15, y & 15, z & 15, value);
+        section.getSkyLight().set(x & 15, y & 15, z & 15, value);
     }
 
     @Override
     public void setBlockLight(ExtendedBlockStorage section, int x, int y, int z, int value) {
-        section.getBlocklightArray().set(x & 15, y & 15, z & 15, value);
+        section.getBlockLight().set(x & 15, y & 15, z & 15, value);
     }
 
     @Override
     public int getSkyLight(ExtendedBlockStorage section, int x, int y, int z) {
-        return section.getExtSkylightValue(x & 15, y & 15, z & 15);
+        return section.getSkyLight(x & 15, y & 15, z & 15);
     }
 
     @Override
     public int getEmmittedLight(ExtendedBlockStorage section, int x, int y, int z) {
-        return section.getExtBlocklightValue(x & 15, y & 15, z & 15);
+        return section.getBlockLight(x & 15, y & 15, z & 15);
     }
 
     @Override

@@ -89,12 +89,12 @@ public class FaweSponge implements IFawe {
 
     @Override
     public FaweQueue getNewQueue(World world, boolean fast) {
-        return new com.boydti.fawe.sponge.v1_11.SpongeQueue_1_11(getWorldName(world));
+        return new com.boydti.fawe.sponge.v1_12.SpongeQueue_1_12(getWorldName(world));
     }
 
     @Override
     public FaweQueue getNewQueue(String world, boolean fast) {
-        return new com.boydti.fawe.sponge.v1_11.SpongeQueue_1_11(world);
+        return new com.boydti.fawe.sponge.v1_12.SpongeQueue_1_12(world);
     }
 
     @Override

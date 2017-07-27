@@ -1,4 +1,4 @@
-package com.boydti.fawe.sponge.v1_11;
+package com.boydti.fawe.sponge.v1_12;
 
 import java.util.Arrays;
 import net.minecraft.world.gen.layer.GenLayer;
