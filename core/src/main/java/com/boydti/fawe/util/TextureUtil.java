@@ -453,6 +453,7 @@ public class TextureUtil {
     }
 
     public void loadModTextures() throws IOException {
+        BundledBlockData.getInstance().loadFromResource();
         Int2ObjectOpenHashMap<Integer> colorMap = new Int2ObjectOpenHashMap<>();
         Int2ObjectOpenHashMap<Long> distanceMap = new Int2ObjectOpenHashMap<>();
         Gson gson = new Gson();

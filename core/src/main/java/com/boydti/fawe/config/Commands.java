@@ -37,12 +37,14 @@ public class Commands {
         return new TranslatedCommand(clazz.getSimpleName(), command);
     }
 
-    public static String getAlias(String command) {
+    public static String getAlias(Class clazz, String command) {
         if (cmdConfig == null) {
             return command;
         }
-        ConfigurationSection commands = cmdConfig.getConfigurationSection(command);
-        List<String> aliases = commands.getStringList("aliases");
+        List<String> aliases = cmdConfig.getStringList(clazz + "." + command + ".aliases");
+        if (aliases == null) {
+            aliases = cmdConfig.getStringList(command + ".aliases");
+        }
         return (aliases == null || aliases.isEmpty()) ? command : aliases.get(0);
     }
 

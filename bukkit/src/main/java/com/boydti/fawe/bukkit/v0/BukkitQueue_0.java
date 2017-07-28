@@ -4,7 +4,6 @@ import com.boydti.fawe.Fawe;
 import com.boydti.fawe.FaweCache;
 import com.boydti.fawe.bukkit.BukkitPlayer;
 import com.boydti.fawe.bukkit.FaweBukkit;
-import com.boydti.fawe.config.Settings;
 import com.boydti.fawe.example.CharFaweChunk;
 import com.boydti.fawe.example.NMSMappedFaweQueue;
 import com.boydti.fawe.object.FaweChunk;
@@ -217,7 +216,6 @@ public abstract class BukkitQueue_0<CHUNK, CHUNKSECTIONS, SECTION> extends NMSMa
 
     private volatile boolean timingsEnabled;
     private static boolean alertTimingsChange = true;
-    private volatile int parallelThreads;
 
     private static Field fieldTimingsEnabled;
     private static Field fieldAsyncCatcherEnabled;
@@ -239,10 +237,6 @@ public abstract class BukkitQueue_0<CHUNK, CHUNKSECTIONS, SECTION> extends NMSMa
     public void startSet(boolean parallel) {
         ChunkListener.physicsFreeze = true;
         if (parallel) {
-            if (Fawe.get().isMainThread()) {
-                parallelThreads = Settings.IMP.QUEUE.PARALLEL_THREADS;
-                Settings.IMP.QUEUE.PARALLEL_THREADS = 1;
-            }
             try {
                 if (fieldAsyncCatcherEnabled != null) {
                     fieldAsyncCatcherEnabled.set(null, false);
@@ -268,9 +262,6 @@ public abstract class BukkitQueue_0<CHUNK, CHUNKSECTIONS, SECTION> extends NMSMa
     public void endSet(boolean parallel) {
         ChunkListener.physicsFreeze = false;
         if (parallel) {
-            if (Fawe.get().isMainThread() && parallelThreads != 0) {
-                Settings.IMP.QUEUE.PARALLEL_THREADS = parallelThreads;
-            }
             try {
                 if (fieldAsyncCatcherEnabled != null) {
                     fieldAsyncCatcherEnabled.set(null, true);
@@ -283,7 +274,6 @@ public abstract class BukkitQueue_0<CHUNK, CHUNKSECTIONS, SECTION> extends NMSMa
                 e.printStackTrace();
             }
         }
-        parallelThreads = 0;
     }
 
     @Override

@@ -4,6 +4,7 @@ import com.boydti.fawe.Fawe;
 import com.boydti.fawe.example.CharFaweChunk;
 import com.boydti.fawe.example.NMSMappedFaweQueue;
 import com.boydti.fawe.example.NullFaweChunk;
+import com.boydti.fawe.jnbt.anvil.filters.DelegateMCAFilter;
 import com.boydti.fawe.object.FaweChunk;
 import com.boydti.fawe.object.FawePlayer;
 import com.boydti.fawe.object.FaweQueue;
@@ -15,7 +16,6 @@ import com.boydti.fawe.object.collection.IterableThreadLocal;
 import com.boydti.fawe.util.MainUtil;
 import com.sk89q.jnbt.CompoundTag;
 import com.sk89q.worldedit.Vector;
-import com.sk89q.worldedit.blocks.BaseBlock;
 import com.sk89q.worldedit.world.biome.BaseBiome;
 import java.io.File;
 import java.io.IOException;
@@ -274,17 +274,7 @@ public class MCAQueue extends NMSMappedFaweQueue<FaweQueue, FaweChunk, FaweChunk
     }
 
     public <G, T extends MCAFilter<G>> T filterCopy(final T filter, boolean deleteOnCopyFail) {
-        this.filterWorld(new MCAFilter<G>() {
-            @Override
-            public boolean appliesFile(int mcaX, int mcaZ) {
-                return filter.appliesFile(mcaX, mcaZ);
-            }
-
-            @Override
-            public boolean appliesFile(Path path, BasicFileAttributes attr) {
-                return filter.appliesFile(path, attr);
-            }
-
+        this.filterWorld(new DelegateMCAFilter<G>(filter) {
             @Override
             public MCAFile applyFile(MCAFile mca) {
                 File file = mca.getFile();
@@ -328,21 +318,6 @@ public class MCAQueue extends NMSMappedFaweQueue<FaweQueue, FaweChunk, FaweChunk
                     return null;
                 }
             }
-
-            @Override
-            public boolean appliesChunk(int cx, int cz) {
-                return filter.appliesChunk(cx, cz);
-            }
-
-            @Override
-            public MCAChunk applyChunk(MCAChunk chunk, G cache) {
-                return filter.applyChunk(chunk, cache);
-            }
-
-            @Override
-            public void applyBlock(int x, int y, int z, BaseBlock block, G cache) {
-                filter.applyBlock(x, y, z, block, cache);
-            }
         }, true, new RunnableVal<MCAFile>() {
             @Override
             public void run(MCAFile value) {
@@ -360,7 +335,7 @@ public class MCAQueue extends NMSMappedFaweQueue<FaweQueue, FaweChunk, FaweChunk
     }
 
     public <G, T extends MCAFilter<G>> T filterRegion(final T filter, final RegionWrapper region) {
-        this.filterWorld(new MCAFilter<G>() {
+        this.filterWorld(new DelegateMCAFilter<G>(filter) {
 
             @Override
             public boolean appliesFile(Path path, BasicFileAttributes attr) {
@@ -374,11 +349,6 @@ public class MCAQueue extends NMSMappedFaweQueue<FaweQueue, FaweChunk, FaweChunk
             @Override
             public boolean appliesFile(int mcaX, int mcaZ) {
                 return region.isInMCA(mcaX, mcaZ) && filter.appliesFile(mcaX, mcaZ);
-            }
-
-            @Override
-            public MCAFile applyFile(MCAFile file) {
-                return filter.applyFile(file);
             }
 
             @Override
@@ -432,11 +402,6 @@ public class MCAQueue extends NMSMappedFaweQueue<FaweQueue, FaweChunk, FaweChunk
                     }
                 }
                 return null;
-            }
-
-            @Override
-            public void finishChunk(MCAChunk chunk, G cache) {
-                super.finishChunk(chunk, cache);
             }
         });
         return filter;
@@ -537,15 +502,19 @@ public class MCAQueue extends NMSMappedFaweQueue<FaweQueue, FaweChunk, FaweChunk
                                     });
                                 }
                             });
-                        } else if (original.isDeleted()) {
-                            try {
-                                original.close(pool);
-                                file.delete();
-                            } catch (Throwable ignore) {
-                                ignore.printStackTrace();
+                            pool.awaitQuiescence(Long.MAX_VALUE, TimeUnit.MILLISECONDS);
+                            filter.finishFile(finalFile, filter.get());
+                        } else {
+                            if (original.isDeleted()) {
+                                try {
+                                    original.close(pool);
+                                    file.delete();
+                                } catch (Throwable ignore) {
+                                    ignore.printStackTrace();
+                                }
                             }
+                            pool.awaitQuiescence(Long.MAX_VALUE, TimeUnit.MILLISECONDS);
                         }
-                        pool.awaitQuiescence(Long.MAX_VALUE, TimeUnit.MILLISECONDS);
                         original.close(pool);
                         if (original.isDeleted()) {
                             file.delete();

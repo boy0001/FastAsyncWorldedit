@@ -130,6 +130,9 @@ public class NukkitQueue extends NMSMappedFaweQueue<Level, BaseFullChunk, BaseFu
 
     @Override
     public File getSaveFolder() {
+        if (world == null) {
+            return new File("worlds" + File.separator + getWorldName() + File.separator + "region");
+        }
         return new File("worlds" + File.separator + world.getFolderName() + File.separator + "region");
     }
 
@@ -173,6 +176,7 @@ public class NukkitQueue extends NMSMappedFaweQueue<Level, BaseFullChunk, BaseFu
 
     @Override
     public boolean hasSky() {
+        if (world == null) return false;
         return world.getDimension() == 0;
     }
 

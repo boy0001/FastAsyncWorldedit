@@ -56,8 +56,8 @@ public class AngleMask extends SolidBlockMask implements ResettableMask {
         try {
             int rx = x - cacheBotX;
             int rz = z - cacheBotZ;
-            int index = rx + (rz << 8);
-            if (index < 0 || index >= 65536) {
+            int index;
+            if (((rx + 16) & 0xFF) != rx + 16 || ((rz + 16) & 0xFF) != rz + 16) {
                 cacheBotX = x - 16;
                 cacheBotZ = z - 16;
                 rx = x - cacheBotX;
@@ -68,6 +68,8 @@ public class AngleMask extends SolidBlockMask implements ResettableMask {
                 } else {
                     Arrays.fill(cacheHeights, (byte) 0);
                 }
+            } else {
+                index = rx + (rz << 8);
             }
             int result = cacheHeights[index] & 0xFF;
             if (result == 0) {

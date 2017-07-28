@@ -116,9 +116,9 @@ public final class DocumentationPrinter {
             writePermissionsWikiTable(stream, builder, "/", BrushOptionsCommands.class);
             writePermissionsWikiTable(stream, builder, "/tool ", ToolCommands.class);
             writePermissionsWikiTable(stream, builder, "/brush ", BrushCommands.class);
-            writePermissionsWikiTable(stream, builder, "/masks ", MaskCommands.class);
-            writePermissionsWikiTable(stream, builder, "/patterns ", PatternCommands.class);
-            writePermissionsWikiTable(stream, builder, "/transforms ", TransformCommands.class);
+            writePermissionsWikiTable(stream, builder, "", MaskCommands.class);
+            writePermissionsWikiTable(stream, builder, "", PatternCommands.class);
+            writePermissionsWikiTable(stream, builder, "", TransformCommands.class);
             stream.println();
             stream.print("#### Uncategorized\n");
             stream.append("| Aliases | Permission | flags | Usage |\n");
@@ -151,9 +151,13 @@ public final class DocumentationPrinter {
             stream.append("\n");
             Command cmd = cls.getAnnotation(Command.class);
             if (cmd != null) {
-                stream.append(" (" + (cmd.help().isEmpty() ? cmd.desc() : cmd.help()) + ")");
+                if (!cmd.desc().isEmpty()) {
+                    stream.append("> (" + (cmd.desc()) + ")    \n");
+                }
+                if (!cmd.help().isEmpty()) {
+                    stream.append("" + (cmd.help()) + "    \n");
+                }
             }
-            stream.append("\n");
             stream.append("\n");
             stream.append("---");
             stream.append("\n");

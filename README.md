@@ -1,15 +1,14 @@
 # FastAsyncWorldEdit
-FAWE is an addon for WorldEdit that has huge speed and memory improvements as well as a few extra features.
+FAWE is a fork of WorldEdit that has huge speed and memory improvements and considerably more features
 
-## Spigot page
-https://www.spigotmc.org/resources/13932/
+It is available for Bukkit, Forge, Sponge and Nukkit.
 
-## IRC
-Meet us on `irc.esper.net` in the `#IntellectualCrafters` channel or use the [webchat to join through browser](http://webchat.esper.net/?nick=&channels=IntellectualCrafters).
+## Chat
+Meet us on [`Discord`](https://discord.gg/ngZCzbU) or [`irc.esper.net #IntellectualCrafters`](http://webchat.esper.net/?nick=&channels=IntellectualCrafters).
 
 ## Releases
-You can find the most recent stable releases on GitHub  
-https://github.com/boy0001/FastAsyncWorldedit/releases
+
+https://github.com/boy0001/FastAsyncWorldedit/releases/latest
 
 ## Building
 FAWE uses gradle to build
@@ -23,4 +22,4 @@ $ gradlew build
 Have an idea for an optimization, or a cool feature?
  - I'll accept most PR's
  - Let me know what you've tested / what may need further testing
- - If you need any help, create a ticket or discuss on IRC
+ - If you need any help, create a ticket or discuss on Discord

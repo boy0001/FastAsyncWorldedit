@@ -54,9 +54,10 @@ public class BrushOptionsCommands extends MethodCommands {
     }
 
     @Command(
-            aliases = {"/savebrush"},
+            aliases = {"savebrush", "save"},
             usage = "[name]",
-            desc = "Save your current brush\n" +
+            desc = "Save your current brush",
+            help = "Save your current brush\n" +
                     "use the -g flag to save globally",
             min = 1
     )
@@ -91,7 +92,7 @@ public class BrushOptionsCommands extends MethodCommands {
     }
 
     @Command(
-            aliases = {"/loadbrush"},
+            aliases = {"loadbrush", "load"},
             desc = "load a brush",
             usage = "[name]",
             min = 1
@@ -281,12 +282,16 @@ public class BrushOptionsCommands extends MethodCommands {
 
     @Command(
             aliases = {"visualize", "visual", "vis"},
-            usage = "[mode]",
+            usage = "[mode=0]",
             desc = "Toggle between different visualization modes",
+            help = "Toggle between different visualization modes\n" +
+                    "0 = No visualization\n" +
+                    "1 = Single block at target position\n" +
+                    "2 = Glass showing what blocks will be changed",
             min = 0,
             max = 1
     )
-    public void visual(Player player, LocalSession session, @Optional("0") int mode) throws WorldEditException {
+    public void visual(Player player, LocalSession session, int mode) throws WorldEditException {
         BrushTool tool = session.getBrushTool(player, false);
         if (tool == null) {
             BBC.BRUSH_NONE.send(player);

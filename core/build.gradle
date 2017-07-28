@@ -7,7 +7,7 @@ dependencies {
     compile 'com.google.code.gson:gson:2.2.4'
     compile 'net.fabiozumbi12:redprotect:1.9.6'
     compile 'com.sk89q:worldguard:6.0.0-SNAPSHOT'
-    compile group: "com.plotsquared", name: "plotsquared-api", version: "latest", changing: true
+    compile group: "com.plotsquared", name: "plotsquared-api", version: "latest"
     compile 'org.primesoft:BlocksHub:2.0'
     compile 'com.github.luben:zstd-jni:1.1.1'
 //    compile 'org.javassist:javassist:3.22.0-CR1'

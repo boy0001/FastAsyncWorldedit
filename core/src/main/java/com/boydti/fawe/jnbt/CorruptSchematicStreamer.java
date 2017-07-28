@@ -96,141 +96,161 @@ public class CorruptSchematicStreamer {
     }
 
     public Clipboard recover() {
-        if (stream == null || !stream.markSupported()) {
-            throw new IllegalArgumentException("Can only recover from a marked and resettable stream!");
-        }
-        match("Width", new CorruptSchematicStreamer.CorruptReader() {
-            @Override
-            public void run(DataInputStream in) throws IOException {
-                width.set(in.readShort());
+        try {
+            if (stream == null || !stream.markSupported()) {
+                throw new IllegalArgumentException("Can only recover from a marked and resettable stream!");
             }
-        });
-        match("Height", new CorruptSchematicStreamer.CorruptReader() {
-            @Override
-            public void run(DataInputStream in) throws IOException {
-                height.set(in.readShort());
-            }
-        });
-        match("Length", new CorruptSchematicStreamer.CorruptReader() {
-            @Override
-            public void run(DataInputStream in) throws IOException {
-                length.set(in.readShort());
-            }
-        });
-        match("WEOffsetX", new CorruptSchematicStreamer.CorruptReader() {
-            @Override
-            public void run(DataInputStream in) throws IOException {
-                offsetX.set(in.readInt());
-            }
-        });
-        match("WEOffsetY", new CorruptSchematicStreamer.CorruptReader() {
-            @Override
-            public void run(DataInputStream in) throws IOException {
-                offsetY.set(in.readInt());
-            }
-        });
-        match("WEOffsetZ", new CorruptSchematicStreamer.CorruptReader() {
-            @Override
-            public void run(DataInputStream in) throws IOException {
-                offsetZ.set(in.readInt());
-            }
-        });
-        match("WEOriginX", new CorruptSchematicStreamer.CorruptReader() {
-            @Override
-            public void run(DataInputStream in) throws IOException {
-                originX.set(in.readInt());
-            }
-        });
-        match("WEOriginY", new CorruptSchematicStreamer.CorruptReader() {
-            @Override
-            public void run(DataInputStream in) throws IOException {
-                originY.set(in.readInt());
-            }
-        });
-        match("WEOriginZ", new CorruptSchematicStreamer.CorruptReader() {
-            @Override
-            public void run(DataInputStream in) throws IOException {
-                originZ.set(in.readInt());
-            }
-        });
-        match("Blocks", new CorruptSchematicStreamer.CorruptReader() {
-            @Override
-            public void run(DataInputStream in) throws IOException {
-                int length = in.readInt();
-                volume.set(length);
-                setupClipboard();
-                for (int i = 0; i < length; i++) {
-                    fc.setId(i, in.read());
+            match("Width", new CorruptSchematicStreamer.CorruptReader() {
+                @Override
+                public void run(DataInputStream in) throws IOException {
+                    width.set(in.readShort());
                 }
-            }
-        });
-        match("Data", new CorruptSchematicStreamer.CorruptReader() {
-            @Override
-            public void run(DataInputStream in) throws IOException {
-                int length = in.readInt();
-                volume.set(length);
-                setupClipboard();
-                for (int i = 0; i < length; i++) {
-                    fc.setData(i, in.read());
+            });
+            match("Height", new CorruptSchematicStreamer.CorruptReader() {
+                @Override
+                public void run(DataInputStream in) throws IOException {
+                    height.set(in.readShort());
                 }
-            }
-        });
-        match("Add", new CorruptSchematicStreamer.CorruptReader() {
-            @Override
-            public void run(DataInputStream in) throws IOException {
-                int length = in.readInt();
-                volume.set(length);
-                setupClipboard();
-                for (int i = 0; i < length; i++) {
-                    fc.setAdd(i, in.read());
+            });
+            match("Length", new CorruptSchematicStreamer.CorruptReader() {
+                @Override
+                public void run(DataInputStream in) throws IOException {
+                    length.set(in.readShort());
                 }
-            }
-        });
-        Vector dimensions = guessDimensions(volume.get(), width.get(), height.get(), length.get());
-        Vector min = new Vector(originX.get(), originY.get(), originZ.get());
-        Vector offset = new Vector(offsetX.get(), offsetY.get(), offsetZ.get());
-        Vector origin = min.subtract(offset);
-        CuboidRegion region = new CuboidRegion(min, min.add(dimensions.getBlockX(), dimensions.getBlockY(), dimensions.getBlockZ()).subtract(Vector.ONE));
-        fc.setOrigin(offset);
-        final BlockArrayClipboard clipboard = new BlockArrayClipboard(region, fc);
-        match("TileEntities", new CorruptSchematicStreamer.CorruptReader() {
-            @Override
-            public void run(DataInputStream in) throws IOException {
-                int childType = in.readByte();
-                int length = in.readInt();
-                NBTInputStream nis = new NBTInputStream(in);
-                for (int i = 0; i < length; ++i) {
-                    CompoundTag tag = (CompoundTag) nis.readTagPayload(childType, 1);
-                    int x = tag.getInt("x");
-                    int y = tag.getInt("y");
-                    int z = tag.getInt("z");
-                    fc.setTile(x, y, z, tag);
+            });
+            match("WEOffsetX", new CorruptSchematicStreamer.CorruptReader() {
+                @Override
+                public void run(DataInputStream in) throws IOException {
+                    offsetX.set(in.readInt());
                 }
-            }
-        });
-        match("Entities", new CorruptSchematicStreamer.CorruptReader() {
-            @Override
-            public void run(DataInputStream in) throws IOException {
-                int childType = in.readByte();
-                int length = in.readInt();
-                NBTInputStream nis = new NBTInputStream(in);
-                for (int i = 0; i < length; ++i) {
-                    CompoundTag tag = (CompoundTag) nis.readTagPayload(childType, 1);
-                    int x = tag.getInt("x");
-                    int y = tag.getInt("y");
-                    int z = tag.getInt("z");
-                    String id = tag.getString("id");
-                    if (id.isEmpty()) {
-                        return;
+            });
+            match("WEOffsetY", new CorruptSchematicStreamer.CorruptReader() {
+                @Override
+                public void run(DataInputStream in) throws IOException {
+                    offsetY.set(in.readInt());
+                }
+            });
+            match("WEOffsetZ", new CorruptSchematicStreamer.CorruptReader() {
+                @Override
+                public void run(DataInputStream in) throws IOException {
+                    offsetZ.set(in.readInt());
+                }
+            });
+            match("WEOriginX", new CorruptSchematicStreamer.CorruptReader() {
+                @Override
+                public void run(DataInputStream in) throws IOException {
+                    originX.set(in.readInt());
+                }
+            });
+            match("WEOriginY", new CorruptSchematicStreamer.CorruptReader() {
+                @Override
+                public void run(DataInputStream in) throws IOException {
+                    originY.set(in.readInt());
+                }
+            });
+            match("WEOriginZ", new CorruptSchematicStreamer.CorruptReader() {
+                @Override
+                public void run(DataInputStream in) throws IOException {
+                    originZ.set(in.readInt());
+                }
+            });
+            match("Blocks", new CorruptSchematicStreamer.CorruptReader() {
+                @Override
+                public void run(DataInputStream in) throws IOException {
+                    int length = in.readInt();
+                    volume.set(length);
+                    setupClipboard();
+                    for (int i = 0; i < length; i++) {
+                        fc.setId(i, in.read());
                     }
-                    ListTag positionTag = tag.getListTag("Pos");
-                    ListTag directionTag = tag.getListTag("Rotation");
-                    BaseEntity state = new BaseEntity(id, tag);
-                    fc.createEntity(clipboard, positionTag.asDouble(0), positionTag.asDouble(1), positionTag.asDouble(2), (float) directionTag.asDouble(0), (float) directionTag.asDouble(1), state);
                 }
-            }
-        });
-        return clipboard;
+            });
+            match("Data", new CorruptSchematicStreamer.CorruptReader() {
+                @Override
+                public void run(DataInputStream in) throws IOException {
+                    int length = in.readInt();
+                    volume.set(length);
+                    setupClipboard();
+                    for (int i = 0; i < length; i++) {
+                        fc.setData(i, in.read());
+                    }
+                }
+            });
+            match("Add", new CorruptSchematicStreamer.CorruptReader() {
+                @Override
+                public void run(DataInputStream in) throws IOException {
+                    int length = in.readInt();
+                    int expected = volume.get();
+                    if (expected == 0) {
+                        volume.set(length * 2);
+                    }
+                    setupClipboard();
+                    if (expected != length) {
+                        for (int i = 0; i < length; i++) {
+                            int value = in.read();
+                            int first = value & 0x0F;
+                            int second = (value & 0xF0) >> 4;
+                            int gIndex = i << 1;
+                            if (first != 0) fc.setAdd(gIndex, first);
+                            if (second != 0) fc.setAdd(gIndex + 1, second);
+                        }
+                    } else {
+                        for (int i = 0; i < length; i++) {
+                            int value = in.read();
+                            if (value != 0) fc.setAdd(i, value);
+                        }
+                    }
+                }
+            });
+            Vector dimensions = guessDimensions(volume.get(), width.get(), height.get(), length.get());
+            Vector min = new Vector(originX.get(), originY.get(), originZ.get());
+            Vector offset = new Vector(offsetX.get(), offsetY.get(), offsetZ.get());
+            Vector origin = min.subtract(offset);
+            CuboidRegion region = new CuboidRegion(min, min.add(dimensions.getBlockX(), dimensions.getBlockY(), dimensions.getBlockZ()).subtract(Vector.ONE));
+            fc.setOrigin(offset);
+            final BlockArrayClipboard clipboard = new BlockArrayClipboard(region, fc);
+            match("TileEntities", new CorruptSchematicStreamer.CorruptReader() {
+                @Override
+                public void run(DataInputStream in) throws IOException {
+                    int childType = in.readByte();
+                    int length = in.readInt();
+                    NBTInputStream nis = new NBTInputStream(in);
+                    for (int i = 0; i < length; ++i) {
+                        CompoundTag tag = (CompoundTag) nis.readTagPayload(childType, 1);
+                        int x = tag.getInt("x");
+                        int y = tag.getInt("y");
+                        int z = tag.getInt("z");
+                        fc.setTile(x, y, z, tag);
+                    }
+                }
+            });
+            match("Entities", new CorruptSchematicStreamer.CorruptReader() {
+                @Override
+                public void run(DataInputStream in) throws IOException {
+                    int childType = in.readByte();
+                    int length = in.readInt();
+                    NBTInputStream nis = new NBTInputStream(in);
+                    for (int i = 0; i < length; ++i) {
+                        CompoundTag tag = (CompoundTag) nis.readTagPayload(childType, 1);
+                        int x = tag.getInt("x");
+                        int y = tag.getInt("y");
+                        int z = tag.getInt("z");
+                        String id = tag.getString("id");
+                        if (id.isEmpty()) {
+                            return;
+                        }
+                        ListTag positionTag = tag.getListTag("Pos");
+                        ListTag directionTag = tag.getListTag("Rotation");
+                        BaseEntity state = new BaseEntity(id, tag);
+                        fc.createEntity(clipboard, positionTag.asDouble(0), positionTag.asDouble(1), positionTag.asDouble(2), (float) directionTag.asDouble(0), (float) directionTag.asDouble(1), state);
+                    }
+                }
+            });
+            return clipboard;
+        } catch (Throwable e) {
+            if (fc != null) fc.close();
+            throw e;
+        }
     }
 
     private Vector guessDimensions(int volume, int width, int height, int length) {

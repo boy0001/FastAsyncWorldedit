@@ -101,7 +101,7 @@ import java.util.List;
 /**
  * Commands to set brush shape.
  */
-@Command(aliases = {"brush", "br", "/b"},
+@Command(aliases = {"brush", "br", "tool"},
         desc = "Commands to build and draw from far away. [More Info](https://git.io/vSPYf)"
 )
 public class BrushCommands extends MethodCommands {
@@ -669,7 +669,7 @@ public class BrushCommands extends MethodCommands {
                     " - The `-r` flag enables random off-axis rotation\n" +
                     " - The `-l` flag will work on snow layers\n" +
                     " - The `-s` flag disables smoothing",
-            desc = "This brush raises and lowers land towards the clicked point\n",
+            desc = "This brush raises or lowers land towards the clicked point",
             min = 1,
             max = 4
     )

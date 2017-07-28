@@ -3,8 +3,8 @@ repositories {
 }
 dependencies {
     compile project(':core')
-    compile group: "cn.nukkit", name: "nukkit", version: "1.0-20170704.231613-609", changing: true
-    compile name: 'worldedit-core-6.1.4-SNAPSHOT-dist', changing: true
+    compile group: "cn.nukkit", name: "nukkit", version: "1.0-20170704.231613-609"
+    compile name: 'worldedit-core-6.1.4-SNAPSHOT-dist'
 }
 
 processResources {
@@ -33,6 +33,9 @@ shadowJar {
     }
     archiveName = "${parent.name}-${project.name}-${parent.version}.jar"
     destinationDir = file '../target'
+    manifest {
+        attributes("Main-Class": "com.boydti.fawe.nukkit.core.converter.ConverterFrame")
+    }
 
     relocate('com.google.gson', 'com.sk89q.worldedit.internal.gson')
     relocate 'org.yaml.snakeyaml', 'com.boydti.fawe.yaml'

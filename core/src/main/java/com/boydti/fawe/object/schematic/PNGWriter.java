@@ -108,7 +108,7 @@ public class PNGWriter implements ClipboardWriter {
                 for (int y = y0; y < y0 + height; y++) {
                     mutable.mutY(y);
                     BaseBlock block = clipboard.getBlock(mutable);
-                    if (block == EditSession.nullBlock) {
+                    if (block.getId() == 0) {
                         continue;
                     }
                     mutableTop.mutY(y + 1);

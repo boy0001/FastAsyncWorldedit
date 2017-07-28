@@ -3,8 +3,16 @@ package com.sk89q.worldedit.blocks;
 import com.sk89q.worldedit.CuboidClipboard;
 
 public class ImmutableBlock extends BaseBlock {
+    private final int combined;
+
     public ImmutableBlock(int id, int data) {
         super(id, data);
+        this.combined = super.getCombined();
+    }
+
+    @Override
+    public final int getCombined() {
+        return combined;
     }
 
     @Override

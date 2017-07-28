@@ -36,6 +36,11 @@ public abstract class ReadOnlyClipboard extends FaweClipboard {
     }
 
     @Override
+    public BaseBlock getBlock(int index) {
+        throw new UnsupportedOperationException("World based clipboards do not provide index access");
+    }
+
+    @Override
     public abstract BaseBlock getBlock(int x, int y, int z);
 
     @Override

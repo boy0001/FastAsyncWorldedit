@@ -9,6 +9,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
+import java.util.function.Function;
 
 public class StringMan {
     public static String replaceFromMap(final String string, final Map<String, String> replacements) {
@@ -25,6 +26,25 @@ public class StringMan {
                 final int end = start + key.length();
                 final int nextSearchStart = start + value.length();
                 sb.replace(start, end, value);
+                size -= end - start;
+                start = sb.indexOf(key, nextSearchStart);
+            }
+        }
+        return sb.toString();
+    }
+
+    public static String removeFromSet(final String string, final Collection<String> replacements) {
+        final StringBuilder sb = new StringBuilder(string);
+        int size = string.length();
+        for (final String key : replacements) {
+            if (size == 0) {
+                break;
+            }
+            int start = sb.indexOf(key, 0);
+            while (start > -1) {
+                final int end = start + key.length();
+                final int nextSearchStart = start + 0;
+                sb.delete(start, end);
                 size -= end - start;
                 start = sb.indexOf(key, nextSearchStart);
             }
@@ -260,6 +280,19 @@ public class StringMan {
             d = _d;
         }
         return p[n];
+    }
+
+    public static <T> String join(Collection<T> arr, final String delimiter, Function<T, String> funx) {
+        final StringBuilder result = new StringBuilder();
+        int i = 0;
+        for (T obj : arr) {
+            if (i > 0) {
+                result.append(delimiter);
+            }
+            result.append(funx.apply(obj));
+            i++;
+        }
+        return result.toString();
     }
 
     public static String join(final Object[] array, final String delimiter) {

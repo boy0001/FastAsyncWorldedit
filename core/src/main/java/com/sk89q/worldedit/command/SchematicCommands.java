@@ -19,8 +19,10 @@
 
 package com.sk89q.worldedit.command;
 
+import com.boydti.fawe.Fawe;
 import com.boydti.fawe.config.BBC;
 import com.boydti.fawe.config.Settings;
+import com.boydti.fawe.object.clipboard.ClipboardRemapper;
 import com.boydti.fawe.object.clipboard.MultiClipboardHolder;
 import com.boydti.fawe.object.schematic.StructureFormat;
 import com.boydti.fawe.util.MainUtil;
@@ -112,6 +114,23 @@ public class SchematicCommands {
             }
         } catch (IOException e) {
             throw new RuntimeException(e);
+        }
+    }
+
+    @Command(
+            aliases = {"remap"},
+            help = "Remap a clipboard between MCPE/PC values\n",
+            desc = "Remap a clipboard between MCPE/PC values\n"
+    )
+    @Deprecated
+    @CommandPermissions({"worldedit.schematic.remap"})
+    public void remap(final Player player, final LocalSession session) throws WorldEditException {
+        ClipboardHolder holder = session.getClipboard();
+        Clipboard clipboard = holder.getClipboard();
+        if (Fawe.imp().getPlatform().equalsIgnoreCase("nukkit")) {
+            new ClipboardRemapper(ClipboardRemapper.RemapPlatform.PC, ClipboardRemapper.RemapPlatform.PE).apply(clipboard);
+        } else {
+            new ClipboardRemapper(ClipboardRemapper.RemapPlatform.PE, ClipboardRemapper.RemapPlatform.PC).apply(clipboard);
         }
     }
 

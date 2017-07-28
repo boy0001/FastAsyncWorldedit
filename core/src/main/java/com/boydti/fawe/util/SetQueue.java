@@ -74,6 +74,7 @@ public class SetQueue {
         tasks = new ConcurrentLinkedDeque<>();
         activeQueues = new ConcurrentLinkedDeque();
         inactiveQueues = new ConcurrentLinkedDeque<>();
+        if (TaskManager.IMP == null) return;
         TaskManager.IMP.repeat(new Runnable() {
             @Override
             public void run() {
@@ -236,6 +237,13 @@ public class SetQueue {
     }
 
     public void flush(FaweQueue queue) {
+        int parallelThreads;
+        if (Fawe.get().isMainThread()) {
+            parallelThreads = Settings.IMP.QUEUE.PARALLEL_THREADS;
+            Settings.IMP.QUEUE.PARALLEL_THREADS = 1;
+        } else {
+            parallelThreads = 0;
+        }
         try {
             queue.startSet(Settings.IMP.QUEUE.PARALLEL_THREADS > 1);
             queue.next(Settings.IMP.QUEUE.PARALLEL_THREADS, Long.MAX_VALUE);
@@ -247,6 +255,9 @@ public class SetQueue {
             queue.endSet(Settings.IMP.QUEUE.PARALLEL_THREADS > 1);
             queue.setStage(QueueStage.NONE);
             queue.runTasks();
+            if (parallelThreads != 0) {
+                Settings.IMP.QUEUE.PARALLEL_THREADS = parallelThreads;
+            }
         }
     }
 

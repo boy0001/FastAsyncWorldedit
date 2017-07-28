@@ -24,6 +24,8 @@ public abstract class FaweClipboard {
 
     public abstract boolean setBlock(int x, int y, int z, BaseBlock block);
 
+    public abstract BaseBlock getBlock(int index);
+
     public abstract void setId(int index, int id);
 
     public abstract void setData(int index, int data);

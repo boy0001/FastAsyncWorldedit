@@ -83,4 +83,14 @@ public class MCAFilter<T> extends IterableThreadLocal<T> {
      */
     public void finishChunk(MCAChunk chunk, T cache) {
     }
+
+    /**
+     * Do something with the MCAChunk after block filtering<br>
+     *
+     * @param chunk
+     * @param cache
+     * @return
+     */
+    public void finishFile(MCAFile file, T cache) {
+    }
 }

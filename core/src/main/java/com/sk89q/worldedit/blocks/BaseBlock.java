@@ -33,6 +33,7 @@ import com.sk89q.worldedit.function.mask.Mask;
 import com.sk89q.worldedit.function.pattern.Pattern;
 import com.sk89q.worldedit.world.registry.WorldData;
 import java.io.DataInputStream;
+import java.io.DataOutput;
 import java.io.IOException;
 import java.io.Serializable;
 import java.util.Collection;
@@ -141,7 +142,7 @@ public class BaseBlock implements TileEntityBlock, Pattern, Serializable {
         this(other.getId(), other.getData(), other.getNbtData());
     }
 
-    public final int getCombined() {
+    public int getCombined() {
         return FaweCache.getCombined(this);
     }
 
@@ -456,7 +457,7 @@ public class BaseBlock implements TileEntityBlock, Pattern, Serializable {
         stream.writeChar(getCombined());
         stream.writeBoolean(nbtData != null);
         if (nbtData != null) {
-            new NBTOutputStream(stream).writeTag(nbtData);
+            new NBTOutputStream((DataOutput) stream).writeTag(nbtData);
         }
     }
 

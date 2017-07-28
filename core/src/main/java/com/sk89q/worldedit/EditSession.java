@@ -198,7 +198,7 @@ public class EditSession extends AbstractWorld implements HasFaweQueue, Lighting
 
     public static final UUID CONSOLE = UUID.fromString("1-1-3-3-7");
     public static final BaseBiome nullBiome = new BaseBiome(0);
-    public static final BaseBlock nullBlock = FaweCache.CACHE_BLOCK[0];
+    public static final BaseBlock nullBlock = new BaseBlock(0, 0);
     private static final Vector[] recurseDirections = {
             PlayerDirection.NORTH.vector(),
             PlayerDirection.EAST.vector(),
@@ -565,10 +565,10 @@ public class EditSession extends AbstractWorld implements HasFaweQueue, Lighting
                 Fawe.debug("&8 - &7For area restrictions, it is recommended to use the FaweAPI");
                 Fawe.debug("&8 - &7For block logging, it is recommended to use use BlocksHub");
                 Fawe.debug("&8 - &7To allow this plugin add it to the FAWE `allowed-plugins` list");
-                Fawe.debug("&8 - &7To hide this message set `debug` to false in the config.yml");
+                Fawe.debug("&8 - &7To hide this message set `debug` to false in the FAWE config.yml");
                 if (toReturn.getClass().getName().contains("CoreProtect")) {
                     Fawe.debug("Note on CoreProtect: ");
-                    Fawe.debug(" - If you disable CoreProtect's WorldEdit logger (CP config) it still tries to add it (CP bug?)");
+                    Fawe.debug(" - If you disable CP's WE logger (CP config) and this still shows, please update CP");
                     Fawe.debug(" - Use BlocksHub and set `debug` false in the FAWE config");
                 }
             }
@@ -1148,7 +1148,7 @@ public class EditSession extends AbstractWorld implements HasFaweQueue, Lighting
     }
 
     @Override
-    public boolean setBlock(final Vector position, final BaseBlock block, final boolean ignorePhysics) throws MaxChangedBlocksException {
+    public boolean setBlock(final Vector position, final BaseBlock block, final boolean ignorePhysics) {
         return setBlockFast(position, block);
     }
 
@@ -1162,7 +1162,7 @@ public class EditSession extends AbstractWorld implements HasFaweQueue, Lighting
     }
 
     @SuppressWarnings("deprecation")
-    public boolean setBlock(final Vector position, final Pattern pattern) throws MaxChangedBlocksException {
+    public boolean setBlock(final Vector position, final Pattern pattern) {
         this.changes++;
         try {
             return pattern.apply(this.extent, position, position);
@@ -1172,7 +1172,7 @@ public class EditSession extends AbstractWorld implements HasFaweQueue, Lighting
     }
 
     @SuppressWarnings("deprecation")
-    public int setBlocks(final Set<Vector> vset, final Pattern pattern) throws MaxChangedBlocksException {
+    public int setBlocks(final Set<Vector> vset, final Pattern pattern) {
         RegionVisitor visitor = new RegionVisitor(vset, new BlockReplace(extent, pattern), this);
         Operations.completeBlindly(visitor);
         changes += visitor.getAffected();
@@ -1189,7 +1189,7 @@ public class EditSession extends AbstractWorld implements HasFaweQueue, Lighting
      * @return whether a block was changed
      * @throws MaxChangedBlocksException thrown if too many blocks are changed
      */
-    public boolean setChanceBlockIfAir(final Vector position, final BaseBlock block, final double probability) throws MaxChangedBlocksException {
+    public boolean setChanceBlockIfAir(final Vector position, final BaseBlock block, final double probability) {
         return (FaweCache.RANDOM.random(65536) <= (probability * 65536)) && this.setBlockIfAir(position, block);
     }
 
@@ -1203,7 +1203,7 @@ public class EditSession extends AbstractWorld implements HasFaweQueue, Lighting
      * @deprecated Use your own method
      */
     @Deprecated
-    public boolean setBlockIfAir(final Vector position, final BaseBlock block) throws MaxChangedBlocksException {
+    public boolean setBlockIfAir(final Vector position, final BaseBlock block) {
         return this.getBlock(position).isAir() && this.setBlockFast(position, block);
     }
 
@@ -1450,7 +1450,7 @@ public class EditSession extends AbstractWorld implements HasFaweQueue, Lighting
      * @throws MaxChangedBlocksException thrown if too many blocks are changed
      */
     @SuppressWarnings("deprecation")
-    public int fillXZ(final Vector origin, final BaseBlock block, final double radius, final int depth, final boolean recursive) throws MaxChangedBlocksException {
+    public int fillXZ(final Vector origin, final BaseBlock block, final double radius, final int depth, final boolean recursive) {
         return this.fillXZ(origin, (Pattern) block, radius, depth, recursive);
     }
 
@@ -1466,7 +1466,7 @@ public class EditSession extends AbstractWorld implements HasFaweQueue, Lighting
      * @throws MaxChangedBlocksException thrown if too many blocks are changed
      */
     @SuppressWarnings("deprecation")
-    public int fillXZ(final Vector origin, final Pattern pattern, final double radius, final int depth, final boolean recursive) throws MaxChangedBlocksException {
+    public int fillXZ(final Vector origin, final Pattern pattern, final double radius, final int depth, final boolean recursive) {
         checkNotNull(origin);
         checkNotNull(pattern);
         checkArgument(radius >= 0, "radius >= 0");
@@ -1494,7 +1494,7 @@ public class EditSession extends AbstractWorld implements HasFaweQueue, Lighting
         return this.changes = visitor.getAffected();
     }
 
-//    public int fillDirection(final Vector origin, PlayerDirection direction, final Pattern pattern, final double radius, final int depth, final boolean recursive) throws MaxChangedBlocksException {
+//    public int fillDirection(final Vector origin, PlayerDirection direction, final Pattern pattern, final double radius, final int depth, final boolean recursive) {
 //        checkNotNull(origin);
 //        checkNotNull(pattern);
 //        checkArgument(radius >= 0, "radius >= 0");
@@ -1562,7 +1562,7 @@ public class EditSession extends AbstractWorld implements HasFaweQueue, Lighting
      * @throws MaxChangedBlocksException thrown if too many blocks are changed
      */
     @SuppressWarnings("deprecation")
-    public int removeAbove(final Vector position, final int apothem, final int height) throws MaxChangedBlocksException {
+    public int removeAbove(final Vector position, final int apothem, final int height) {
         checkNotNull(position);
         checkArgument(apothem >= 1, "apothem >= 1");
         checkArgument(height >= 1, "height >= 1");
@@ -1583,7 +1583,7 @@ public class EditSession extends AbstractWorld implements HasFaweQueue, Lighting
      * @throws MaxChangedBlocksException thrown if too many blocks are changed
      */
     @SuppressWarnings("deprecation")
-    public int removeBelow(final Vector position, final int apothem, final int height) throws MaxChangedBlocksException {
+    public int removeBelow(final Vector position, final int apothem, final int height) {
         checkNotNull(position);
         checkArgument(apothem >= 1, "apothem >= 1");
         checkArgument(height >= 1, "height >= 1");
@@ -1604,7 +1604,7 @@ public class EditSession extends AbstractWorld implements HasFaweQueue, Lighting
      * @throws MaxChangedBlocksException thrown if too many blocks are changed
      */
     @SuppressWarnings("deprecation")
-    public int removeNear(final Vector position, final int blockType, final int apothem) throws MaxChangedBlocksException {
+    public int removeNear(final Vector position, final int blockType, final int apothem) {
         checkNotNull(position);
         checkArgument(apothem >= 1, "apothem >= 1");
 
@@ -1656,7 +1656,7 @@ public class EditSession extends AbstractWorld implements HasFaweQueue, Lighting
      * @throws MaxChangedBlocksException thrown if too many blocks are changed
      */
     @SuppressWarnings("deprecation")
-    public int setBlocks(final Region region, final BaseBlock block) throws MaxChangedBlocksException {
+    public int setBlocks(final Region region, final BaseBlock block) {
         checkNotNull(region);
         checkNotNull(block);
         if (canBypassAll(region, false, true) && !block.hasNbtData()) {
@@ -1675,8 +1675,6 @@ public class EditSession extends AbstractWorld implements HasFaweQueue, Lighting
                     }
                 }
             }
-        } catch (final MaxChangedBlocksException e) {
-            throw e;
         } catch (final WorldEditException e) {
             throw new RuntimeException("Unexpected exception", e);
         }
@@ -1692,7 +1690,7 @@ public class EditSession extends AbstractWorld implements HasFaweQueue, Lighting
      * @throws MaxChangedBlocksException thrown if too many blocks are changed
      */
     @SuppressWarnings("deprecation")
-    public int setBlocks(final Region region, final Pattern pattern) throws MaxChangedBlocksException {
+    public int setBlocks(final Region region, final Pattern pattern) {
         checkNotNull(region);
         checkNotNull(pattern);
         if (pattern instanceof BlockPattern) {
@@ -1718,7 +1716,7 @@ public class EditSession extends AbstractWorld implements HasFaweQueue, Lighting
      * @throws MaxChangedBlocksException thrown if too many blocks are changed
      */
     @SuppressWarnings("deprecation")
-    public int replaceBlocks(final Region region, final Set<BaseBlock> filter, final BaseBlock replacement) throws MaxChangedBlocksException {
+    public int replaceBlocks(final Region region, final Set<BaseBlock> filter, final BaseBlock replacement) {
 //        if (canBypassAll()) {
 //            queue.replaceBlocks(regionWrapper, blocks, block);
 //            return changes = region.getArea();
@@ -1739,7 +1737,7 @@ public class EditSession extends AbstractWorld implements HasFaweQueue, Lighting
      * @throws MaxChangedBlocksException thrown if too many blocks are changed
      */
     @SuppressWarnings("deprecation")
-    public int replaceBlocks(final Region region, final Set<BaseBlock> filter, final Pattern pattern) throws MaxChangedBlocksException {
+    public int replaceBlocks(final Region region, final Set<BaseBlock> filter, final Pattern pattern) {
 //        if (pattern instanceof BaseBlock) {
 //            return replaceBlocks(region, filter, ((BaseBlock) pattern));
 //        }
@@ -1747,7 +1745,7 @@ public class EditSession extends AbstractWorld implements HasFaweQueue, Lighting
         return this.replaceBlocks(region, mask, pattern);
     }
 
-//    public int replaceBlocks(final Region region, final Mask mask, final BaseBlock block) throws MaxChangedBlocksException {
+//    public int replaceBlocks(final Region region, final Mask mask, final BaseBlock block) {
     // TODO fast replace
 //    }
 
@@ -1762,7 +1760,7 @@ public class EditSession extends AbstractWorld implements HasFaweQueue, Lighting
      * @throws MaxChangedBlocksException thrown if too many blocks are changed
      */
     @SuppressWarnings("deprecation")
-    public int replaceBlocks(final Region region, final Mask mask, final Pattern pattern) throws MaxChangedBlocksException {
+    public int replaceBlocks(final Region region, final Mask mask, final Pattern pattern) {
         checkNotNull(region);
         checkNotNull(mask);
         checkNotNull(pattern);
@@ -1784,7 +1782,7 @@ public class EditSession extends AbstractWorld implements HasFaweQueue, Lighting
      * @throws MaxChangedBlocksException thrown if too many blocks are changed
      */
     @SuppressWarnings("deprecation")
-    public int center(final Region region, final Pattern pattern) throws MaxChangedBlocksException {
+    public int center(final Region region, final Pattern pattern) {
         checkNotNull(region);
         checkNotNull(pattern);
 
@@ -1803,7 +1801,7 @@ public class EditSession extends AbstractWorld implements HasFaweQueue, Lighting
      * @throws MaxChangedBlocksException thrown if too many blocks are changed
      */
     @SuppressWarnings("deprecation")
-    public int makeCuboidFaces(final Region region, final BaseBlock block) throws MaxChangedBlocksException {
+    public int makeCuboidFaces(final Region region, final BaseBlock block) {
         return this.makeCuboidFaces(region, (Pattern) (block));
     }
 
@@ -1816,7 +1814,7 @@ public class EditSession extends AbstractWorld implements HasFaweQueue, Lighting
      * @throws MaxChangedBlocksException thrown if too many blocks are changed
      */
     @SuppressWarnings("deprecation")
-    public int makeCuboidFaces(final Region region, final Pattern pattern) throws MaxChangedBlocksException {
+    public int makeCuboidFaces(final Region region, final Pattern pattern) {
         checkNotNull(region);
         checkNotNull(pattern);
 
@@ -1857,7 +1855,7 @@ public class EditSession extends AbstractWorld implements HasFaweQueue, Lighting
      * @throws MaxChangedBlocksException thrown if too many blocks are changed
      */
     @SuppressWarnings("deprecation")
-    public int makeCuboidWalls(final Region region, final BaseBlock block) throws MaxChangedBlocksException {
+    public int makeCuboidWalls(final Region region, final BaseBlock block) {
         return this.makeCuboidWalls(region, (Pattern) (block));
     }
 
@@ -1871,7 +1869,7 @@ public class EditSession extends AbstractWorld implements HasFaweQueue, Lighting
      * @throws MaxChangedBlocksException thrown if too many blocks are changed
      */
     @SuppressWarnings("deprecation")
-    public int makeCuboidWalls(final Region region, final Pattern pattern) throws MaxChangedBlocksException {
+    public int makeCuboidWalls(final Region region, final Pattern pattern) {
         checkNotNull(region);
         checkNotNull(pattern);
 
@@ -1925,7 +1923,7 @@ public class EditSession extends AbstractWorld implements HasFaweQueue, Lighting
      * @throws MaxChangedBlocksException thrown if too many blocks are changed
      */
     @SuppressWarnings("deprecation")
-    public int overlayCuboidBlocks(final Region region, final BaseBlock block) throws MaxChangedBlocksException {
+    public int overlayCuboidBlocks(final Region region, final BaseBlock block) {
         checkNotNull(block);
         return this.overlayCuboidBlocks(region, (Pattern) (block));
     }
@@ -1940,7 +1938,7 @@ public class EditSession extends AbstractWorld implements HasFaweQueue, Lighting
      * @throws MaxChangedBlocksException thrown if too many blocks are changed
      */
     @SuppressWarnings("deprecation")
-    public int overlayCuboidBlocks(final Region region, final Pattern pattern) throws MaxChangedBlocksException {
+    public int overlayCuboidBlocks(final Region region, final Pattern pattern) {
         checkNotNull(region);
         checkNotNull(pattern);
         final BlockReplace replace = new BlockReplace(EditSession.this, pattern);
@@ -1961,7 +1959,7 @@ public class EditSession extends AbstractWorld implements HasFaweQueue, Lighting
      * @return number of blocks affected
      * @throws MaxChangedBlocksException thrown if too many blocks are changed
      */
-    public int naturalizeCuboidBlocks(final Region region) throws MaxChangedBlocksException {
+    public int naturalizeCuboidBlocks(final Region region) {
         checkNotNull(region);
         final Naturalizer naturalizer = new Naturalizer(EditSession.this);
         final FlatRegion flatRegion = Regions.asFlatRegion(region);
@@ -1980,7 +1978,7 @@ public class EditSession extends AbstractWorld implements HasFaweQueue, Lighting
      * @return number of blocks affected
      * @throws MaxChangedBlocksException thrown if too many blocks are changed
      */
-    public int stackCuboidRegion(final Region region, final Vector dir, final int count, final boolean copyAir) throws MaxChangedBlocksException {
+    public int stackCuboidRegion(final Region region, final Vector dir, final int count, final boolean copyAir) {
         checkNotNull(region);
         checkNotNull(dir);
         checkArgument(count >= 1, "count >= 1 required");
@@ -2013,7 +2011,7 @@ public class EditSession extends AbstractWorld implements HasFaweQueue, Lighting
      * @return number of blocks moved
      * @throws MaxChangedBlocksException thrown if too many blocks are changed
      */
-    public int moveRegion(final Region region, final Vector dir, final int distance, final boolean copyAir, final BaseBlock replacement) throws MaxChangedBlocksException {
+    public int moveRegion(final Region region, final Vector dir, final int distance, final boolean copyAir, final BaseBlock replacement) {
         checkNotNull(region);
         checkNotNull(dir);
         checkArgument(distance >= 1, "distance >= 1 required");
@@ -2067,7 +2065,7 @@ public class EditSession extends AbstractWorld implements HasFaweQueue, Lighting
      * @return number of blocks moved
      * @throws MaxChangedBlocksException thrown if too many blocks are changed
      */
-    public int moveCuboidRegion(final Region region, final Vector dir, final int distance, final boolean copyAir, final BaseBlock replacement) throws MaxChangedBlocksException {
+    public int moveCuboidRegion(final Region region, final Vector dir, final int distance, final boolean copyAir, final BaseBlock replacement) {
         return this.moveRegion(region, dir, distance, copyAir, replacement);
     }
 
@@ -2079,7 +2077,7 @@ public class EditSession extends AbstractWorld implements HasFaweQueue, Lighting
      * @return number of blocks affected
      * @throws MaxChangedBlocksException thrown if too many blocks are changed
      */
-    public int drainArea(final Vector origin, final double radius) throws MaxChangedBlocksException {
+    public int drainArea(final Vector origin, final double radius) {
         checkNotNull(origin);
         checkArgument(radius >= 0, "radius >= 0 required");
         Mask liquidMask;
@@ -2123,7 +2121,7 @@ public class EditSession extends AbstractWorld implements HasFaweQueue, Lighting
      * @return number of blocks affected
      * @throws MaxChangedBlocksException thrown if too many blocks are changed
      */
-    public int fixLiquid(final Vector origin, final double radius, final int moving, final int stationary) throws MaxChangedBlocksException {
+    public int fixLiquid(final Vector origin, final double radius, final int moving, final int stationary) {
         checkNotNull(origin);
         checkArgument(radius >= 0, "radius >= 0 required");
         // Our origins can only be liquids
@@ -2183,7 +2181,7 @@ public class EditSession extends AbstractWorld implements HasFaweQueue, Lighting
      * @return number of blocks changed
      * @throws MaxChangedBlocksException thrown if too many blocks are changed
      */
-    public int makeCylinder(final Vector pos, final Pattern block, final double radius, final int height, final boolean filled) throws MaxChangedBlocksException {
+    public int makeCylinder(final Vector pos, final Pattern block, final double radius, final int height, final boolean filled) {
         return this.makeCylinder(pos, block, radius, radius, height, filled);
     }
 
@@ -2199,7 +2197,7 @@ public class EditSession extends AbstractWorld implements HasFaweQueue, Lighting
      * @return number of blocks changed
      * @throws MaxChangedBlocksException thrown if too many blocks are changed
      */
-    public int makeCylinder(Vector pos, final Pattern block, double radiusX, double radiusZ, int height, final boolean filled) throws MaxChangedBlocksException {
+    public int makeCylinder(Vector pos, final Pattern block, double radiusX, double radiusZ, int height, final boolean filled) {
         radiusX += 0.5;
         radiusZ += 0.5;
 
@@ -2265,7 +2263,7 @@ public class EditSession extends AbstractWorld implements HasFaweQueue, Lighting
         return this.changes;
     }
 
-    public int makeCircle(Vector pos, final Pattern block, double radiusX, double radiusY, double radiusZ, boolean filled, Vector normal) throws MaxChangedBlocksException {
+    public int makeCircle(Vector pos, final Pattern block, double radiusX, double radiusY, double radiusZ, boolean filled, Vector normal) {
         radiusX += 0.5;
         radiusY += 0.5;
         radiusZ += 0.5;
@@ -2362,7 +2360,7 @@ public class EditSession extends AbstractWorld implements HasFaweQueue, Lighting
      * @return number of blocks changed
      * @throws MaxChangedBlocksException thrown if too many blocks are changed
      */
-    public int makeSphere(final Vector pos, final Pattern block, final double radius, final boolean filled) throws MaxChangedBlocksException {
+    public int makeSphere(final Vector pos, final Pattern block, final double radius, final boolean filled) {
         return this.makeSphere(pos, block, radius, radius, radius, filled);
     }
 
@@ -2378,7 +2376,7 @@ public class EditSession extends AbstractWorld implements HasFaweQueue, Lighting
      * @return number of blocks changed
      * @throws MaxChangedBlocksException thrown if too many blocks are changed
      */
-    public int makeSphere(final Vector pos, final Pattern block, double radiusX, double radiusY, double radiusZ, final boolean filled) throws MaxChangedBlocksException {
+    public int makeSphere(final Vector pos, final Pattern block, double radiusX, double radiusY, double radiusZ, final boolean filled) {
         radiusX += 0.5;
         radiusY += 0.5;
         radiusZ += 0.5;
@@ -2457,7 +2455,7 @@ public class EditSession extends AbstractWorld implements HasFaweQueue, Lighting
      * @return number of blocks changed
      * @throws MaxChangedBlocksException thrown if too many blocks are changed
      */
-    public int makePyramid(final Vector position, final Pattern block, int size, final boolean filled) throws MaxChangedBlocksException {
+    public int makePyramid(final Vector position, final Pattern block, int size, final boolean filled) {
         final int height = size;
 
         for (int y = 0; y <= height; ++y) {
@@ -2485,7 +2483,7 @@ public class EditSession extends AbstractWorld implements HasFaweQueue, Lighting
      * @return number of blocks affected
      * @throws MaxChangedBlocksException thrown if too many blocks are changed
      */
-    public int thaw(final Vector position, final double radius) throws MaxChangedBlocksException {
+    public int thaw(final Vector position, final double radius) {
         final double radiusSq = radius * radius;
 
         final int ox = position.getBlockX();
@@ -2536,7 +2534,7 @@ public class EditSession extends AbstractWorld implements HasFaweQueue, Lighting
      * @return number of blocks affected
      * @throws MaxChangedBlocksException thrown if too many blocks are changed
      */
-    public int simulateSnow(final Vector position, final double radius) throws MaxChangedBlocksException {
+    public int simulateSnow(final Vector position, final double radius) {
 
         final double radiusSq = radius * radius;
 
@@ -2598,7 +2596,7 @@ public class EditSession extends AbstractWorld implements HasFaweQueue, Lighting
      * @deprecated Use {@link #green(Vector, double, boolean)}.
      */
     @Deprecated
-    public int green(final Vector position, final double radius) throws MaxChangedBlocksException {
+    public int green(final Vector position, final double radius) {
         return this.green(position, radius, true);
     }
 
@@ -2611,7 +2609,7 @@ public class EditSession extends AbstractWorld implements HasFaweQueue, Lighting
      * @return number of blocks affected
      * @throws MaxChangedBlocksException thrown if too many blocks are changed
      */
-    public int green(final Vector position, final double radius, final boolean onlyNormalDirt) throws MaxChangedBlocksException {
+    public int green(final Vector position, final double radius, final boolean onlyNormalDirt) {
 
         final double radiusSq = radius * radius;
 
@@ -2673,7 +2671,7 @@ public class EditSession extends AbstractWorld implements HasFaweQueue, Lighting
      * @return number of patches created
      * @throws MaxChangedBlocksException thrown if too many blocks are changed
      */
-    public int makePumpkinPatches(final Vector position, final int apothem) throws MaxChangedBlocksException {
+    public int makePumpkinPatches(final Vector position, final int apothem) {
         // We want to generate pumpkins
         final GardenPatchGenerator generator = new GardenPatchGenerator(EditSession.this);
         generator.setPlant(GardenPatchGenerator.getPumpkinPattern());
@@ -2938,7 +2936,7 @@ public class EditSession extends AbstractWorld implements HasFaweQueue, Lighting
      * @return number of blocks affected
      * @throws MaxChangedBlocksException thrown if too many blocks are changed
      */
-    public int hollowOutRegion(final Region region, final int thickness, final Pattern pattern) throws MaxChangedBlocksException {
+    public int hollowOutRegion(final Region region, final int thickness, final Pattern pattern) {
 
 
         final Set outside = new LocalBlockVectorSet();
@@ -3010,7 +3008,7 @@ public class EditSession extends AbstractWorld implements HasFaweQueue, Lighting
         return changes;
     }
 
-    public int drawLine(final Pattern pattern, final Vector pos1, final Vector pos2, final double radius, final boolean filled) throws MaxChangedBlocksException {
+    public int drawLine(final Pattern pattern, final Vector pos1, final Vector pos2, final double radius, final boolean filled) {
         return drawLine(pattern, pos1, pos2, radius, filled, false);
     }
 
@@ -3025,7 +3023,7 @@ public class EditSession extends AbstractWorld implements HasFaweQueue, Lighting
      * @return number of blocks affected
      * @throws MaxChangedBlocksException thrown if too many blocks are changed
      */
-    public int drawLine(final Pattern pattern, final Vector pos1, final Vector pos2, final double radius, final boolean filled, boolean flat) throws MaxChangedBlocksException {
+    public int drawLine(final Pattern pattern, final Vector pos1, final Vector pos2, final double radius, final boolean filled, boolean flat) {
 
         LocalBlockVectorSet vset = new LocalBlockVectorSet();
         boolean notdrawn = true;
@@ -3098,7 +3096,7 @@ public class EditSession extends AbstractWorld implements HasFaweQueue, Lighting
      * @return number of blocks affected
      * @throws MaxChangedBlocksException thrown if too many blocks are changed
      */
-    public int drawSpline(final Pattern pattern, final List<Vector> nodevectors, final double tension, final double bias, final double continuity, final double quality, final double radius, final boolean filled) throws MaxChangedBlocksException {
+    public int drawSpline(final Pattern pattern, final List<Vector> nodevectors, final double tension, final double bias, final double continuity, final double quality, final double radius, final boolean filled) {
         LocalBlockVectorSet vset = new LocalBlockVectorSet();
         final List<Node> nodes = new ArrayList<Node>(nodevectors.size());
 
@@ -3463,14 +3461,18 @@ public class EditSession extends AbstractWorld implements HasFaweQueue, Lighting
         }
     }
 
-    public boolean generateTree(TreeGenerator.TreeType type, Vector position) throws MaxChangedBlocksException {
+    public boolean generateTree(TreeGenerator.TreeType type, Vector position) {
         return generateTree(type, this, position);
     }
 
     @Override
-    public boolean generateTree(TreeGenerator.TreeType type, EditSession editSession, Vector position) throws MaxChangedBlocksException {
+    public boolean generateTree(TreeGenerator.TreeType type, EditSession editSession, Vector position) {
         if (getWorld() != null) {
-            return getWorld().generateTree(type, editSession, position);
+            try {
+                return getWorld().generateTree(type, editSession, position);
+            } catch (MaxChangedBlocksException e) {
+                throw new RuntimeException(e);
+            }
         }
         return false;
     }

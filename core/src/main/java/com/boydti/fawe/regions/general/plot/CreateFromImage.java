@@ -611,7 +611,7 @@ public class CreateFromImage extends Command {
         }
         if (arg.startsWith("file://")) {
             arg = arg.substring(7);
-            File file = MainUtil.getFile(Fawe.imp().getDirectory(), com.boydti.fawe.config.Settings.IMP.PATHS.HEIGHTMAP + File.separator + arg);
+            File file = MainUtil.getFile(MainUtil.getFile(Fawe.imp().getDirectory(), com.boydti.fawe.config.Settings.IMP.PATHS.HEIGHTMAP), arg);
             return MainUtil.toRGB(ImageIO.read(file));
         }
         return null;

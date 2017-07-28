@@ -66,7 +66,7 @@ public abstract class FawePlayer<T> extends Metadatable {
      * @return
      */
     public static <V> FawePlayer<V> wrap(Object obj) {
-        if (obj == null) {
+        if (obj == null || (obj instanceof String && obj.equals("*"))) {
             return FakePlayer.getConsole().toFawePlayer();
         }
         if (obj instanceof FawePlayer) {

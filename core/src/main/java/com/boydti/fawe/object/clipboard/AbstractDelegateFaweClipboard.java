@@ -37,6 +37,11 @@ public class AbstractDelegateFaweClipboard extends FaweClipboard {
     }
 
     @Override
+    public BaseBlock getBlock(int index) {
+        return parent.getBlock(index);
+    }
+
+    @Override
     public void setAdd(int index, int id) {
         parent.setAdd(index, id);
     }

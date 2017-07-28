@@ -41,8 +41,8 @@ public class PGZIPOutputStream extends FilterOutputStream {
     // array list that contains the block sizes
     ArrayList<Integer> blockSizes = new ArrayList<Integer>();
 
-    private int level = Deflater.BEST_SPEED;
-    private int strategy = Deflater.HUFFMAN_ONLY;
+    private int level = Deflater.DEFAULT_COMPRESSION;
+    private int strategy = Deflater.DEFAULT_STRATEGY;
 
     @Nonnull
     protected Deflater newDeflater() {

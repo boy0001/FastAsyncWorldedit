@@ -1,5 +1,6 @@
 info:
   prefix: '&4&lFAWE:&f&7'
+  file_deleted: '%s0 wurde gelöscht.'
   schematic_pasting: '&7Die Schematic wird eingefügt. Dies kann nicht rückgängig gemacht
     werden.'
   updated_lighting_selection: '&7Das Licht wird in %s0 Chunks aktualisiert.
@@ -183,7 +184,6 @@ worldedit:
     tool_radius_error: 'Maximal erlaubter Pinsel Radius: %s0.'
     superpickaxe_area_enabled: 'Modus geändert. Linksklick mit einer Spitzhacke. // zum deaktivieren.'
   schematic:
-    schematic_delete: 'Schematic %s0 wurde gelöscht.'
     schematic_format: 'Verfügbare Zwischenablage Formate (Name: Suche Namen)'
     schematic_loaded: 'Schematic %s0 geladen. Platziere sie mit //paste'
     schematic_saved: 'Schematic %s0 gespeichert.'

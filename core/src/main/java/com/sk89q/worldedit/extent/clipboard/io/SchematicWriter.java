@@ -1,5 +1,6 @@
 package com.sk89q.worldedit.extent.clipboard.io;
 
+import com.boydti.fawe.Fawe;
 import com.boydti.fawe.FaweCache;
 import com.boydti.fawe.jnbt.NBTStreamer;
 import com.boydti.fawe.object.clipboard.FaweClipboard;
@@ -25,7 +26,7 @@ import com.sk89q.worldedit.extent.clipboard.Clipboard;
 import com.sk89q.worldedit.regions.Region;
 import com.sk89q.worldedit.util.Location;
 import com.sk89q.worldedit.world.registry.WorldData;
-import java.io.DataOutputStream;
+import java.io.DataOutput;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -88,7 +89,7 @@ public class SchematicWriter implements ClipboardWriter {
                 blockData[index] = (byte) block.getData();
                 if (id > 255) {
                     if (addBlocks == null) { // Lazily create section
-                        addBlocks = new byte[(blocks.length >> 1) + 1];
+                        addBlocks = new byte[((blocks.length + 1) >> 1)];
                     }
                     addBlocks[index >> 1] = (byte) (((index & 1) == 0) ? addBlocks[index >> 1] & 0xF0 | (id >> 8) & 0xF : addBlocks[index >> 1] & 0xF | ((id >> 8) & 0xF) << 4);
                 }
@@ -132,7 +133,7 @@ public class SchematicWriter implements ClipboardWriter {
         if (length > MAX_SIZE) {
             throw new IllegalArgumentException("Length of region too large for a .schematic");
         }
-        final DataOutputStream rawStream = outputStream.getOutputStream();
+        final DataOutput rawStream = outputStream.getOutputStream();
         outputStream.writeLazyCompoundTag("Schematic", new NBTOutputStream.LazyWrite() {
             private boolean hasAdd = false;
             private boolean hasTile = false;
@@ -152,6 +153,7 @@ public class SchematicWriter implements ClipboardWriter {
                 out.writeNamedTag("WEOffsetX", (offset.getBlockX()));
                 out.writeNamedTag("WEOffsetY", (offset.getBlockY()));
                 out.writeNamedTag("WEOffsetZ", (offset.getBlockZ()));
+                out.writeNamedTag("Platform", Fawe.imp().getPlatform());
 
                 out.writeNamedTagName("Blocks", NBTConstants.TYPE_BYTE_ARRAY);
                 out.getOutputStream().writeInt(volume);
@@ -196,17 +198,29 @@ public class SchematicWriter implements ClipboardWriter {
 
                 if (hasAdd) {
                     out.writeNamedTagName("AddBlocks", NBTConstants.TYPE_BYTE_ARRAY);
-                    out.getOutputStream().writeInt(volume);
+                    int addLength = (volume + 1) >> 1;
+                    out.getOutputStream().writeInt(addLength);
+
+                    final int[] lastAdd = new int[1];
+                    final boolean[] write = new boolean[1];
+
                     clipboard.IMP.streamIds(new NBTStreamer.ByteReader() {
                         @Override
                         public void run(int index, int byteValue) {
-                            try {
-                                rawStream.writeByte(byteValue >> 8);
-                            } catch (IOException e) {
-                                e.printStackTrace();
+                            if (write[0] ^= true) {
+                                try {
+                                    rawStream.write(((byteValue >> 8) << 4) + (lastAdd[0]));
+                                } catch (IOException e) {
+                                    e.printStackTrace();
+                                }
+                            } else {
+                                lastAdd[0] = byteValue >> 8;
                             }
                         }
                     });
+                    if (write[0]) {
+                        rawStream.write(lastAdd[0]);
+                    }
                 }
 
                 if (hasTile) {
@@ -281,6 +295,7 @@ public class SchematicWriter implements ClipboardWriter {
         schematic.put("WEOffsetX", new IntTag(offset.getBlockX()));
         schematic.put("WEOffsetY", new IntTag(offset.getBlockY()));
         schematic.put("WEOffsetZ", new IntTag(offset.getBlockZ()));
+        schematic.put("Platform", new StringTag(Fawe.imp().getPlatform()));
 
         final byte[] blocks = new byte[width * height * length];
         byte[] addBlocks;

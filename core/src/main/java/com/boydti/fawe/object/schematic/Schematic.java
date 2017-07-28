@@ -53,7 +53,7 @@ public class Schematic {
      */
     public Schematic(Region region) {
         checkNotNull(region);
-        checkNotNull(region.getWorld());
+        checkNotNull(region.getWorld(), "World cannot be null (use the other constructor for the region)");
         EditSession session = new EditSessionBuilder(region.getWorld()).allowedRegionsEverywhere().autoQueue(false).build();
         this.clipboard = new BlockArrayClipboard(region, ReadOnlyClipboard.of(session, region));
     }
@@ -206,7 +206,7 @@ public class Schematic {
                 @Override
                 public boolean apply(Vector mutable) throws WorldEditException {
                     BaseBlock block = clipboard.getBlock(mutable);
-                    if (block == EditSession.nullBlock && !pasteAir) {
+                    if (block.getId() == 0 && !pasteAir) {
                         return false;
                     }
                     extent.setBlock(mutable.getBlockX() + relx, mutable.getBlockY() + rely, mutable.getBlockZ() + relz, block);

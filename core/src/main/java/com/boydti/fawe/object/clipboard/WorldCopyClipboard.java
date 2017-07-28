@@ -111,7 +111,7 @@ public class WorldCopyClipboard extends ReadOnlyClipboard {
                         int xx = pos.getBlockX() - mx;
                         if (region.contains(pos)) {
                             BaseBlock block = getBlockAbs(x, y, z);
-                            if (!air && block == EditSession.nullBlock) {
+                            if (!air && block.getId() == 0) {
                                 continue;
                             }
                             CompoundTag tag = block.getNbtData();

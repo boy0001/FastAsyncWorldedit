@@ -372,8 +372,49 @@ public class DiskOptimizedClipboard extends FaweClipboard implements Closeable {
             last = i;
             int combinedId = mbb.getChar();
             BaseBlock block = FaweCache.CACHE_BLOCK[combinedId];
-            if (block.canStoreNBTData()) {
+            if (block.canStoreNBTData() && !nbtMap.isEmpty()) {
                 CompoundTag nbt = nbtMap.get(new IntegerTrio(x, y, z));
+                if (nbt != null) {
+                    block = new BaseBlock(block.getId(), block.getData());
+                    block.setNbtData(nbt);
+                }
+            }
+            return block;
+        } catch (Exception e) {
+            MainUtil.handleError(e);
+        }
+        return EditSession.nullBlock;
+    }
+
+    @Override
+    public BaseBlock getBlock(int i) {
+        try {
+            if (i != last + 1) {
+                mbb.position((HEADER_SIZE) + (i << 1));
+            }
+            last = i;
+            int combinedId = mbb.getChar();
+            BaseBlock block = FaweCache.CACHE_BLOCK[combinedId];
+            if (block.canStoreNBTData() && !nbtMap.isEmpty()) {
+                CompoundTag nbt;
+                if (nbtMap.size() < 4) {
+                    nbt = null;
+                    for (Map.Entry<IntegerTrio, CompoundTag> entry : nbtMap.entrySet()) {
+                        IntegerTrio key = entry.getKey();
+                        int index = getIndex(key.x, key.y, key.z);
+                        if (index == i) {
+                            nbt = entry.getValue();
+                            break;
+                        }
+                    }
+                } else {
+                    // x + z * width + y * area;
+                    int y = i / area;
+                    int newI = (i - (y * area));
+                    int z = newI / width;
+                    int x = newI - z * width;
+                    nbt = nbtMap.get(new IntegerTrio(x, y, z));
+                }
                 if (nbt != null) {
                     block = new BaseBlock(block.getId(), block.getData());
                     block.setNbtData(nbt);

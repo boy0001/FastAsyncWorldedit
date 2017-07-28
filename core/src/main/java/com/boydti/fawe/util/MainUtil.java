@@ -43,6 +43,7 @@ import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URISyntaxException;
 import java.net.URL;
+import java.net.URLClassLoader;
 import java.net.URLConnection;
 import java.nio.channels.FileChannel;
 import java.nio.charset.StandardCharsets;
@@ -468,6 +469,25 @@ public class MainUtil {
             posList.set(2, new DoubleTag(loc.getZ()));
         }
     }
+
+    private static final Class[] parameters = new Class[]{URL.class};
+
+    public static void loadURLClasspath(URL u) throws IOException {
+
+        URLClassLoader sysloader = (URLClassLoader) ClassLoader.getSystemClassLoader();
+        Class sysclass = URLClassLoader.class;
+
+        try {
+            Method method = sysclass.getDeclaredMethod("addURL", parameters);
+            method.setAccessible(true);
+            method.invoke(sysloader, new Object[]{u});
+        } catch (Throwable t) {
+            t.printStackTrace();
+            throw new IOException("Error, could not add URL to system classloader");
+        }
+
+    }
+
 
     public static File getJarFile() {
         try {
@@ -907,7 +927,7 @@ public class MainUtil {
                 long age = now - file.lastModified();
                 if (age > timeDiff) {
                     file.delete();
-                    BBC.SCHEMATIC_DELETE.send(null, file);
+                    BBC.FILE_DELETED.send(null, file);
                 }
             }
         });
@@ -923,7 +943,7 @@ public class MainUtil {
                         deleteDirectory(files[i]);
                     } else {
                         file.delete();
-                        BBC.SCHEMATIC_DELETE.send(null, file);
+                        BBC.FILE_DELETED.send(null, file);
                     }
                 }
             }

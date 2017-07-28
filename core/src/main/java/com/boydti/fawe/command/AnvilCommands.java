@@ -15,6 +15,7 @@ import com.boydti.fawe.jnbt.anvil.filters.DeleteOldFilter;
 import com.boydti.fawe.jnbt.anvil.filters.DeleteUninhabitedFilter;
 import com.boydti.fawe.jnbt.anvil.filters.MappedReplacePatternFilter;
 import com.boydti.fawe.jnbt.anvil.filters.PlotTrimFilter;
+import com.boydti.fawe.jnbt.anvil.filters.RemapFilter;
 import com.boydti.fawe.jnbt.anvil.filters.RemoveLayerFilter;
 import com.boydti.fawe.jnbt.anvil.filters.ReplacePatternFilter;
 import com.boydti.fawe.jnbt.anvil.filters.ReplaceSimpleFilter;
@@ -22,6 +23,7 @@ import com.boydti.fawe.object.FawePlayer;
 import com.boydti.fawe.object.FaweQueue;
 import com.boydti.fawe.object.RegionWrapper;
 import com.boydti.fawe.object.RunnableVal4;
+import com.boydti.fawe.object.clipboard.ClipboardRemapper;
 import com.boydti.fawe.object.mask.FaweBlockMatcher;
 import com.boydti.fawe.util.MainUtil;
 import com.boydti.fawe.util.SetQueue;
@@ -80,6 +82,7 @@ public class AnvilCommands {
      * @param <T>
      * @return
      */
+    @Deprecated
     public static <G, T extends MCAFilter<G>> T runWithWorld(Player player, String folder, T filter, boolean force) {
         boolean copy = false;
         if (FaweAPI.getWorld(folder) != null) {
@@ -109,6 +112,7 @@ public class AnvilCommands {
      * @param <T>
      * @return
      */
+    @Deprecated
     public static <G, T extends MCAFilter<G>> T runWithSelection(Player player, EditSession editSession, Region selection, T filter) {
         if (!(selection instanceof CuboidRegion)) {
             BBC.NO_REGION.send(player);
@@ -160,9 +164,36 @@ public class AnvilCommands {
     }
 
     @Command(
+            aliases = {"remapall"},
+            usage = "<folder>",
+            help = "Remap the world between MCPE/PC values",
+            desc = "Remap the world between MCPE/PC values",
+            min = 1,
+            max = 1
+    )
+    @CommandPermissions("worldedit.anvil.remapall")
+    public void remapall(Player player, String folder, @Switch('f') boolean force) throws WorldEditException {
+        ClipboardRemapper mapper;
+        ClipboardRemapper.RemapPlatform from;
+        ClipboardRemapper.RemapPlatform to;
+        if (Fawe.imp().getPlatform().equalsIgnoreCase("nukkit")) {
+            from = ClipboardRemapper.RemapPlatform.PC;
+            to = ClipboardRemapper.RemapPlatform.PE;
+        } else {
+            from = ClipboardRemapper.RemapPlatform.PE;
+            to = ClipboardRemapper.RemapPlatform.PC;
+        }
+        RemapFilter filter = new RemapFilter(from, to);
+        RemapFilter result = runWithWorld(player, folder, filter, force);
+        if (result != null) player.print(BBC.getPrefix() + BBC.VISITOR_BLOCK.format(result.getTotal()));
+    }
+
+
+    @Command(
             aliases = {"deleteallunvisited", "delunvisited" },
             usage = "<folder> <age-ticks> [file-age=60000]",
-            desc = "Delete all chunks which haven't been occupied for `age-ticks` (20t = 1s) and \n" +
+            desc = "Delete all chunks which haven't been occupied",
+            help = "Delete all chunks which haven't been occupied for `age-ticks` (20t = 1s) and \n" +
                     "Have not been accessed since `file-duration` (ms) after creation and\n" +
                     "Have not been used in the past `chunk-inactivity` (ms)" +
                     "The auto-save interval is the recommended value for `file-duration` and `chunk-inactivity`",
@@ -180,7 +211,8 @@ public class AnvilCommands {
     @Command(
             aliases = {"deletealloldregions", "deloldreg" },
             usage = "<folder> <time>",
-            desc = "Delete regions which haven't been accessed in a certain amount of time\n" +
+            desc = "Delete regions which haven't been accessed in a certain amount of time",
+            help = "Delete regions which haven't been accessed in a certain amount of time\n" +
                     "You can use seconds (s), minutes (m), hours (h), days (d), weeks (w), years (y)\n" +
                     "(months are not a unit of time)\n" +
                     "E.g. 8h5m12s\n",

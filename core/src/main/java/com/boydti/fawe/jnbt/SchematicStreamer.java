@@ -51,7 +51,13 @@ public class SchematicStreamer extends NBTStreamer {
         addReader("Schematic.AddBlocks.#", new ByteReader() {
             @Override
             public void run(int index, int value) {
-                if (value != 0) fc.setAdd(index, value);
+                if (value != 0) {
+                    int first = value & 0x0F;
+                    int second = (value & 0xF0) >> 4;
+                    int gIndex = index << 1;
+                    if (first != 0) fc.setAdd(gIndex, first);
+                    if (second != 0) fc.setAdd(gIndex + 1, second);
+                }
             }
         });
 
@@ -192,17 +198,24 @@ public class SchematicStreamer extends NBTStreamer {
     }
 
     public Clipboard getClipboard() throws IOException {
-        addDimensionReaders();
-        addBlockReaders();
-        readFully();
-        Vector min = new Vector(originX, originY, originZ);
-        Vector offset = new Vector(offsetX, offsetY, offsetZ);
-        Vector origin = min.subtract(offset);
-        Vector dimensions = new Vector(width, height, length);
-        fc.setDimensions(dimensions);
-        CuboidRegion region = new CuboidRegion(min, min.add(width, height, length).subtract(Vector.ONE));
-        clipboard.init(region, fc);
-        clipboard.setOrigin(origin);
-        return clipboard;
+        try {
+            addDimensionReaders();
+            addBlockReaders();
+            readFully();
+            Vector min = new Vector(originX, originY, originZ);
+            Vector offset = new Vector(offsetX, offsetY, offsetZ);
+            Vector origin = min.subtract(offset);
+            Vector dimensions = new Vector(width, height, length);
+            fc.setDimensions(dimensions);
+            CuboidRegion region = new CuboidRegion(min, min.add(width, height, length).subtract(Vector.ONE));
+            clipboard.init(region, fc);
+            clipboard.setOrigin(origin);
+            return clipboard;
+        } catch (Throwable e) {
+            if (fc != null) {
+                fc.close();
+            }
+            throw e;
+        }
     }
 }

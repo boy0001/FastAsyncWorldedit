@@ -13,11 +13,12 @@ import com.boydti.fawe.util.FaweTimer;
 import com.boydti.fawe.util.MainUtil;
 import com.boydti.fawe.util.MemUtil;
 import com.boydti.fawe.util.RandomTextureUtil;
-import com.boydti.fawe.util.StringMan;
 import com.boydti.fawe.util.TaskManager;
 import com.boydti.fawe.util.TextureUtil;
 import com.boydti.fawe.util.Updater;
 import com.boydti.fawe.util.WEManager;
+import com.boydti.fawe.util.chat.ChatManager;
+import com.boydti.fawe.util.chat.PlainChatManager;
 import com.sk89q.jnbt.NBTInputStream;
 import com.sk89q.jnbt.NBTOutputStream;
 import com.sk89q.worldedit.BlockVector;
@@ -122,6 +123,7 @@ import com.sk89q.worldedit.session.ClipboardHolder;
 import com.sk89q.worldedit.session.PasteBuilder;
 import com.sk89q.worldedit.session.SessionManager;
 import com.sk89q.worldedit.session.request.Request;
+import com.sk89q.worldedit.util.command.SimpleCommandMapping;
 import com.sk89q.worldedit.util.command.SimpleDispatcher;
 import com.sk89q.worldedit.util.command.fluent.DispatcherNode;
 import com.sk89q.worldedit.util.command.parametric.ParameterData;
@@ -152,6 +154,9 @@ import javax.management.InstanceAlreadyExistsException;
 import javax.management.Notification;
 import javax.management.NotificationEmitter;
 import javax.management.NotificationListener;
+
+
+import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * [ WorldEdit action]
@@ -205,6 +210,7 @@ public class Fawe {
     private Updater updater;
     private TextureUtil textures;
     private DefaultTransformParser transformParser;
+    private ChatManager chatManager = new PlainChatManager();
 
 //    @Deprecated
 //    private boolean isJava8 = MainUtil.getJavaVersion() >= 1.8;
@@ -246,7 +252,7 @@ public class Fawe {
 
     public static void debugPlain(String s) {
         if (INSTANCE != null) {
-            INSTANCE.IMP.debug(StringMan.getString(s));
+            INSTANCE.IMP.debug(s);
         } else {
             System.out.println(s);
         }
@@ -333,7 +339,16 @@ public class Fawe {
         return false;
     }
 
-//    @Deprecated
+    public ChatManager getChatManager() {
+        return chatManager;
+    }
+
+    public void setChatManager(ChatManager chatManager) {
+        checkNotNull(chatManager);
+        this.chatManager = chatManager;
+    }
+
+    //    @Deprecated
 //    public boolean isJava8() {
 //        return isJava8;
 //    }
@@ -601,6 +616,7 @@ public class Fawe {
                 CommandManager.inject(); // Async commands
                 PlatformManager.inject(); // Async brushes / tools
                 SimpleDispatcher.inject(); // Optimize perm checks
+                SimpleCommandMapping.inject(); // Hashcode + equals
             } catch (Throwable e) {
                 debug("====== UPDATE WORLDEDIT TO 6.1.1 ======");
                 MainUtil.handleError(e, false);
@@ -618,7 +634,7 @@ public class Fawe {
             debug(" - AsyncWorldEdit/WorldEditRegions isn't installed");
             debug(" - Any other errors in the startup log");
             debug("Contact Empire92 if you need assistance:");
-            debug(" - Send me a PM or ask on IRC");
+            debug(" - Send me a PM or ask on IRC/Discord");
             debug(" - http://webchat.esper.net/?nick=&channels=IntellectualCrafters");
             debug("=======================================");
         }

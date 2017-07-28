@@ -98,6 +98,9 @@ public class MCAFile {
             chunks.clear();
         }
         locations = null;
+        IterableThreadLocal.clean(byteStore1);
+        IterableThreadLocal.clean(byteStore2);
+        IterableThreadLocal.clean(byteStore3);
     }
 
     @Override
@@ -400,7 +403,7 @@ public class MCAFile {
         if (raf.length() - offset < len) {
             raf.setLength(((offset + len + 4095) / 4096) * 4096);
         }
-        raf.writeInt(data.length);
+        raf.writeInt(data.length + 1);
         raf.write(2);
         raf.write(data);
     }

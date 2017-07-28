@@ -10,6 +10,7 @@ import com.boydti.fawe.object.FaweQueue;
 import com.boydti.fawe.regions.FaweMaskManager;
 import com.boydti.fawe.util.MainUtil;
 import com.boydti.fawe.util.TaskManager;
+import com.sk89q.worldedit.sponge.chat.SpongeChatManager;
 import com.sk89q.worldedit.world.World;
 import java.io.File;
 import java.util.ArrayList;
@@ -37,6 +38,7 @@ public class FaweSponge implements IFawe {
             Fawe.set(this);
             Fawe.setupInjector();
             com.sk89q.worldedit.sponge.SpongePlayer.inject();
+            Fawe.get().setChatManager(new SpongeChatManager());
         } catch (final Throwable e) {
             MainUtil.handleError(e);
         }

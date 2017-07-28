@@ -130,6 +130,7 @@ public class CPUOptimizedClipboard extends FaweClipboard {
         return getBlock(index);
     }
 
+    @Override
     public BaseBlock getBlock(int index) {
         int id = getId(index);
         if (add != null) {
