@@ -25,7 +25,6 @@ import com.boydti.fawe.object.FawePlayer;
 import com.boydti.fawe.util.MathMan;
 import com.boydti.fawe.util.StringMan;
 import com.google.common.base.Joiner;
-import com.google.common.util.concurrent.AtomicDouble;
 import com.sk89q.minecraft.util.commands.Command;
 import com.sk89q.minecraft.util.commands.CommandContext;
 import com.sk89q.minecraft.util.commands.CommandException;
@@ -491,13 +490,13 @@ public class UtilityCommands extends MethodCommands {
         try {
             FaweLimit limit = FawePlayer.wrap(actor).getLimit();
             final Expression expression = Expression.compile(input);
-            final AtomicDouble result = new AtomicDouble(Double.NaN);
+            double[] result = new double[] { Double.NaN };
             ExecutorService executor = Executors.newSingleThreadExecutor();
             try {
                 executor.invokeAll(Arrays.asList(new Callable<Object>() {
                     @Override
                     public Object call() throws Exception {
-                        result.set(expression.evaluate());
+                        result[0] =  expression.evaluate();
                         return null;
                     }
                 }), limit.MAX_EXPRESSION_MS, TimeUnit.MILLISECONDS); // Default timeout of 50 milliseconds to prevent abuse.
@@ -505,7 +504,7 @@ public class UtilityCommands extends MethodCommands {
                 throw new RuntimeException(e);
             }
             executor.shutdown();
-            actor.print(BBC.getPrefix() + "= " + result);
+            actor.print(BBC.getPrefix() + "= " + result[0]);
         } catch (EvaluationException e) {
             actor.printError(String.format(
                     "'%s' could not be parsed as a valid expression", input));
