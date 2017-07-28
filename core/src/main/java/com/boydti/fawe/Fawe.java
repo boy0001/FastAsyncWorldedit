@@ -657,14 +657,7 @@ public class Fawe {
                 debug(" - This is only a recommendation");
                 debug("====================================");
             }
-        } catch (Throwable ignore) {
-        }
-        if (MainUtil.getJavaVersion() < 1.8) {
-            debug("====== UPGRADE TO JAVA 8 ======");
-            debug("You are running " + System.getProperty("java.version"));
-            debug(" - This is only a recommendation");
-            debug("====================================");
-        }
+        } catch (Throwable ignore) {}
     }
 
     private void setupMemoryListener() {
