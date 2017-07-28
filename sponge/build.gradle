@@ -22,7 +22,7 @@ buildscript {
 }
 
 plugins {
-    id 'org.spongepowered.plugin' version '0.8.1'
+    id 'org.spongepowered.plugin' version '0.6'
 }
 
 apply plugin: 'net.minecrell.vanilla.server.library'
