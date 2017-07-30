@@ -202,6 +202,15 @@ public class CorruptSchematicStreamer {
                     }
                 }
             });
+            match("Blocks", new CorruptSchematicStreamer.CorruptReader() {
+                @Override
+                public void run(DataInputStream in) throws IOException {
+                    int length = in.readInt();
+                    for (int i = 0; i < length; i++) {
+                        fc.setBiome(i, in.read());
+                    }
+                }
+            });
             Vector dimensions = guessDimensions(volume.get(), width.get(), height.get(), length.get());
             Vector min = new Vector(originX.get(), originY.get(), originZ.get());
             Vector offset = new Vector(offsetX.get(), offsetY.get(), offsetZ.get());

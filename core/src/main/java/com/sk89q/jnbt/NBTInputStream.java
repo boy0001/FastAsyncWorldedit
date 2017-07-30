@@ -246,8 +246,15 @@ public final class NBTInputStream implements Closeable {
                     is.skipBytes(length << 2);
                     return;
                 }
-                for (int i = 0; i < length; i++) {
-                    reader.run(i, is.readInt());
+                if (reader instanceof NBTStreamer.ByteReader) {
+                    NBTStreamer.ByteReader byteReader = (NBTStreamer.ByteReader) reader;
+                    for (int i = 0; i < length; i++) {
+                        byteReader.run(i, is.readInt());
+                    }
+                } else {
+                    for (int i = 0; i < length; i++) {
+                        reader.run(i, is.readInt());
+                    }
                 }
                 return;
             default:

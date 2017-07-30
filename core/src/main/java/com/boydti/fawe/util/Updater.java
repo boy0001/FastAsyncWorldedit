@@ -35,7 +35,7 @@ public class Updater {
             return;
         }
         try {
-            String downloadUrl = "http://ci.athion.net/job/FastAsyncWorldEdit/lastSuccessfulBuild/artifact/target/FastAsyncWorldEdit-%platform%-%version%.jar";
+            String downloadUrl = "https://ci.athion.net/job/FastAsyncWorldEdit/lastSuccessfulBuild/artifact/target/FastAsyncWorldEdit-%platform%-%version%.jar";
             String versionUrl = "http://empcraft.com/fawe/version.php?%platform%";
             URL url = new URL(versionUrl.replace("%platform%", platform));
             try (Scanner reader = new Scanner(url.openStream())) {

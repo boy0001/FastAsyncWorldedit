@@ -11,6 +11,7 @@ import com.sk89q.worldedit.entity.BaseEntity;
 import com.sk89q.worldedit.entity.Entity;
 import com.sk89q.worldedit.extent.Extent;
 import com.sk89q.worldedit.util.Location;
+import com.sk89q.worldedit.world.biome.BaseBiome;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -24,7 +25,17 @@ public abstract class FaweClipboard {
 
     public abstract boolean setBlock(int x, int y, int z, BaseBlock block);
 
+    public abstract boolean hasBiomes();
+
+    public abstract boolean setBiome(int x, int z, byte biome);
+
+    public abstract BaseBiome getBiome(int x, int z);
+
+    public abstract BaseBiome getBiome(int index);
+
     public abstract BaseBlock getBlock(int index);
+
+    public abstract void setBiome(int index, int biome);
 
     public abstract void setId(int index, int id);
 
@@ -58,6 +69,8 @@ public abstract class FaweClipboard {
     public static abstract class BlockReader {
         public abstract void run(int x, int y, int z, BaseBlock block);
     }
+
+    public abstract void streamBiomes(final NBTStreamer.ByteReader task);
 
     public void streamIds(final NBTStreamer.ByteReader task) {
         forEach(new BlockReader() {

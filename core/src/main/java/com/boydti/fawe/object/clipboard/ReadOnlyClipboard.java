@@ -1,5 +1,6 @@
 package com.boydti.fawe.object.clipboard;
 
+import com.boydti.fawe.jnbt.NBTStreamer;
 import com.sk89q.jnbt.CompoundTag;
 import com.sk89q.worldedit.EditSession;
 import com.sk89q.worldedit.Vector;
@@ -8,6 +9,7 @@ import com.sk89q.worldedit.entity.BaseEntity;
 import com.sk89q.worldedit.entity.Entity;
 import com.sk89q.worldedit.extent.Extent;
 import com.sk89q.worldedit.regions.Region;
+import com.sk89q.worldedit.world.biome.BaseBiome;
 import java.util.List;
 
 public abstract class ReadOnlyClipboard extends FaweClipboard {
@@ -41,7 +43,36 @@ public abstract class ReadOnlyClipboard extends FaweClipboard {
     }
 
     @Override
+    public BaseBiome getBiome(int index) {
+        throw new UnsupportedOperationException("World based clipboards do not provide index access");
+    }
+
+    @Override
+    public boolean setBiome(int x, int z, byte biome) {
+        throw new UnsupportedOperationException("Clipboard is immutable");
+    }
+
+    @Override
+    public void setBiome(int index, int biome) {
+        throw new UnsupportedOperationException("Clipboard is immutable");
+    }
+
+    @Override
+    public void streamBiomes(NBTStreamer.ByteReader task) {
+        Vector dim = getDimensions();
+        int index = 0;
+        for (int z = 0; z <= dim.getBlockZ(); z++) {
+            for (int x = 0; x <= dim.getBlockX(); x++, index++) {
+                task.run(index, getBiome(x, z).getId());
+            }
+        }
+    }
+
+    @Override
     public abstract BaseBlock getBlock(int x, int y, int z);
+
+    @Override
+    public abstract BaseBiome getBiome(int x, int z);
 
     @Override
     public abstract List<? extends Entity> getEntities();

@@ -155,6 +155,21 @@ public class SchematicWriter implements ClipboardWriter {
                 out.writeNamedTag("WEOffsetZ", (offset.getBlockZ()));
                 out.writeNamedTag("Platform", Fawe.imp().getPlatform());
 
+                if (clipboard.IMP.hasBiomes()) {
+                    out.writeNamedTagName("Biomes", NBTConstants.TYPE_BYTE_ARRAY);
+                    out.getOutputStream().writeInt(width * length); // area
+                    clipboard.IMP.streamBiomes(new NBTStreamer.ByteReader() {
+                        @Override
+                        public void run(int index, int byteValue) {
+                            try {
+                                rawStream.writeByte(byteValue);
+                            } catch (IOException e) {
+                                e.printStackTrace();
+                            }
+                        }
+                    });
+                }
+
                 out.writeNamedTagName("Blocks", NBTConstants.TYPE_BYTE_ARRAY);
                 out.getOutputStream().writeInt(volume);
                 clipboard.IMP.streamIds(new NBTStreamer.ByteReader() {

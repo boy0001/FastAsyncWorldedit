@@ -18,6 +18,7 @@ import com.sk89q.worldedit.entity.Entity;
 import com.sk89q.worldedit.extent.Extent;
 import com.sk89q.worldedit.extent.clipboard.BlockArrayClipboard;
 import com.sk89q.worldedit.regions.CuboidRegion;
+import com.sk89q.worldedit.world.biome.BaseBiome;
 import java.io.Closeable;
 import java.io.File;
 import java.io.IOException;
@@ -48,6 +49,7 @@ public class DiskOptimizedClipboard extends FaweClipboard implements Closeable {
     protected int height;
     protected int width;
     protected int area;
+    protected int volume;
 
     private final HashMap<IntegerTrio, CompoundTag> nbtMap;
     private final HashSet<ClipboardEntity> entities;
@@ -58,6 +60,7 @@ public class DiskOptimizedClipboard extends FaweClipboard implements Closeable {
 
     private int last;
     private FileChannel fc;
+    private boolean hasBiomes;
 
     public DiskOptimizedClipboard(int width, int height, int length, UUID uuid) {
         this(width, height, length, MainUtil.getFile(Fawe.get() != null ? Fawe.imp().getDirectory() : new File("."), Settings.IMP.PATHS.CLIPBOARD + File.separator + uuid + ".bd"));
@@ -71,14 +74,18 @@ public class DiskOptimizedClipboard extends FaweClipboard implements Closeable {
             this.braf = new RandomAccessFile(file, "rw");
             braf.setLength(file.length());
             init();
-            long size = (braf.length() - HEADER_SIZE) >> 1;
-
             mbb.position(2);
             last = Integer.MIN_VALUE;
             width = (int) mbb.getChar();
             height = (int) mbb.getChar();
             length = (int) mbb.getChar();
             area = width * length;
+            this.volume = length * width * height;
+
+            long size = (braf.length() - HEADER_SIZE) >> 1;
+            if (size == ((long) width * height * length) + area) {
+                hasBiomes = true;
+            }
             autoCloseTask();
         } catch (IOException e) {
             throw new RuntimeException(e);
@@ -90,6 +97,69 @@ public class DiskOptimizedClipboard extends FaweClipboard implements Closeable {
             this.fc = braf.getChannel();
             this.mbb = fc.map(FileChannel.MapMode.READ_WRITE, 0, file.length());
         }
+    }
+
+    private boolean initBiome() {
+        if (!hasBiomes) {
+            try {
+                hasBiomes = true;
+                if (mbb != null) {
+                    this.mbb.force();
+                    this.fc.close();
+                    closeDirectBuffer(mbb);
+                    long volume = (long) length * height * width;
+                    this.braf.setLength(HEADER_SIZE + volume + area);
+                    this.fc = braf.getChannel();
+                    this.mbb = fc.map(FileChannel.MapMode.READ_WRITE, 0, file.length());
+                }
+            } catch (IOException e) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    @Override
+    public boolean hasBiomes() {
+        return hasBiomes;
+    }
+
+    @Override
+    public boolean setBiome(int x, int z, byte biome) {
+        setBiome(getIndex(x, 0, z), biome);
+        return true;
+    }
+
+    @Override
+    public void setBiome(int index, int biome) {
+        if (initBiome()) {
+            mbb.put(HEADER_SIZE + volume + index, (byte) biome);
+        }
+    }
+
+    @Override
+    public BaseBiome getBiome(int index) {
+        if (!hasBiomes()) {
+            return EditSession.nullBiome;
+        }
+        int biomeId = mbb.get(HEADER_SIZE + volume + index) & 0xFF;
+        return FaweCache.CACHE_BIOME[biomeId];
+    }
+
+    @Override
+    public void streamBiomes(NBTStreamer.ByteReader task) {
+        if (!hasBiomes()) return;
+        int index = 0;
+        for (int z = 0; z < length; z++) {
+            for (int x = 0; x < width; x++, index++) {
+                task.run(index, getBiome(index).getId());
+            }
+        }
+    }
+
+    @Override
+    public BaseBiome getBiome(int x, int z) {
+        return getBiome(getIndex(x, 0, z));
     }
 
     @Override
@@ -128,6 +198,7 @@ public class DiskOptimizedClipboard extends FaweClipboard implements Closeable {
             this.height = height;
             this.length = length;
             this.area = width * length;
+            this.volume = width * length * height;
             try {
                 if (!file.exists()) {
                     File parent = file.getParentFile();
@@ -177,7 +248,8 @@ public class DiskOptimizedClipboard extends FaweClipboard implements Closeable {
             height = dimensions.getBlockY();
             length = dimensions.getBlockZ();
             area = width * length;
-            long size = width * height * length * 2l + HEADER_SIZE;
+            volume = width * length * height;
+            long size = width * height * length * 2l + HEADER_SIZE + (hasBiomes() ? area : 0);
             braf.setLength(size);
             init();
             mbb.position(2);
@@ -217,16 +289,23 @@ public class DiskOptimizedClipboard extends FaweClipboard implements Closeable {
     }
 
     @Override
+    protected void finalize() throws Throwable {
+        close();
+    }
+
+    @Override
     public void close() {
         try {
-            mbb.force();
-            fc.close();
-            braf.close();
-            file.setWritable(true);
-            closeDirectBuffer(mbb);
-            mbb = null;
-            fc = null;
-            braf = null;
+            if (mbb != null) {
+                mbb.force();
+                fc.close();
+                braf.close();
+                file.setWritable(true);
+                closeDirectBuffer(mbb);
+                mbb = null;
+                fc = null;
+                braf = null;
+            }
         } catch (IOException e) {
             MainUtil.handleError(e);
         }

@@ -325,7 +325,6 @@ public class MainUtil {
         if (amount == 0) {
             return new FaweOutputStream(os);
         }
-        os = new BufferedOutputStream(os, buffer);
         int gzipAmount = amount > 6 ? 1 : 0;
         for (int i = 0; i < gzipAmount; i++) {
             os = new ZstdOutputStream(os, 22);
@@ -343,6 +342,7 @@ public class MainUtil {
                 os = new LZ4BlockOutputStream(os, buffer, factory.highCompressor());
             }
         }
+        os = new BufferedOutputStream(os, buffer);
         return new FaweOutputStream(os);
     }
 

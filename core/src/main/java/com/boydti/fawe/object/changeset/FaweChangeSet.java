@@ -285,15 +285,13 @@ public abstract class FaweChangeSet implements ChangeSet {
                                         continue;
                                     }
                                     int startY = layer << 4;
+                                    int index = 0;
                                     for (int y = 0; y < 16; y++) {
-                                        short[][] i1 = FaweCache.CACHE_J[y];
                                         int yy = y + startY;
                                         for (int z = 0; z < 16; z++) {
                                             int zz = z + bz;
-                                            short[] i2 = i1[z];
-                                            for (int x = 0; x < 16; x++) {
+                                            for (int x = 0; x < 16; x++, index++) {
                                                 int xx = x + bx;
-                                                int index = i2[x];
                                                 int combinedIdCurrent = currentLayer[index];
                                                 switch (combinedIdCurrent) {
                                                     case 0:
@@ -314,26 +312,34 @@ public abstract class FaweChangeSet implements ChangeSet {
                                 {
                                     // Tiles created
                                     Map<Short, CompoundTag> tiles = next.getTiles();
-                                    for (Map.Entry<Short, CompoundTag> entry : tiles.entrySet()) {
-                                        addTileCreate(entry.getValue());
+                                    if (!tiles.isEmpty()) {
+                                        for (Map.Entry<Short, CompoundTag> entry : tiles.entrySet()) {
+                                            addTileCreate(entry.getValue());
+                                        }
                                     }
                                     // Tiles removed
                                     tiles = previous.getTiles();
-                                    for (Map.Entry<Short, CompoundTag> entry : tiles.entrySet()) {
-                                        addTileRemove(entry.getValue());
+                                    if (!tiles.isEmpty()) {
+                                        for (Map.Entry<Short, CompoundTag> entry : tiles.entrySet()) {
+                                            addTileRemove(entry.getValue());
+                                        }
                                     }
                                 }
                                 // Entity changes
                                 {
                                     // Entities created
                                     Set<CompoundTag> entities = next.getEntities();
-                                    for (CompoundTag entityTag : entities) {
-                                        addEntityCreate(entityTag);
+                                    if (!entities.isEmpty()) {
+                                        for (CompoundTag entityTag : entities) {
+                                            addEntityCreate(entityTag);
+                                        }
                                     }
                                     // Entities removed
                                     entities = previous.getEntities();
-                                    for (CompoundTag entityTag : entities) {
-                                        addEntityRemove(entityTag);
+                                    if (!entities.isEmpty()) {
+                                        for (CompoundTag entityTag : entities) {
+                                            addEntityRemove(entityTag);
+                                        }
                                     }
                                 }
                             }

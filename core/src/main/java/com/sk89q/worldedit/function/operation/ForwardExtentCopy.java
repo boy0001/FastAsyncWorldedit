@@ -40,6 +40,7 @@ import com.sk89q.worldedit.function.visitor.RegionVisitor;
 import com.sk89q.worldedit.math.transform.Identity;
 import com.sk89q.worldedit.math.transform.Transform;
 import com.sk89q.worldedit.regions.Region;
+import java.util.ArrayList;
 import java.util.List;
 
 
@@ -67,6 +68,7 @@ public class ForwardExtentCopy implements Operation {
     private Transform transform = new Identity();
     private Transform currentTransform = null;
     private int affected;
+    private boolean copyEntities = true;
 
     /**
      * Create a new copy using the region's lowest minimum point as the
@@ -135,6 +137,14 @@ public class ForwardExtentCopy implements Operation {
      */
     public Mask getSourceMask() {
         return sourceMask;
+    }
+
+    public void setCopyEntities(boolean copyEntities) {
+        this.copyEntities = copyEntities;
+    }
+
+    public boolean isCopyEntities() {
+        return copyEntities;
     }
 
     /**
@@ -249,16 +259,17 @@ public class ForwardExtentCopy implements Operation {
         }
         RegionVisitor blockVisitor = new RegionVisitor(region, copy, queue instanceof MappedFaweQueue ? (MappedFaweQueue) queue : null);
 
-        List<? extends Entity> entities = source.getEntities(region);
+        List<? extends Entity> entities = isCopyEntities() ? source.getEntities(region) : new ArrayList<>();
 
         for (int i = 0; i < repetitions; i++) {
             Operations.completeBlindly(blockVisitor);
 
-            ExtentEntityCopy entityCopy = new ExtentEntityCopy(from, destination, to, currentTransform);
-            entityCopy.setRemoving(removingEntities);
-            EntityVisitor entityVisitor = new EntityVisitor(entities.iterator(), entityCopy);
-
-            Operations.completeBlindly(entityVisitor);
+            if (!entities.isEmpty()) {
+                ExtentEntityCopy entityCopy = new ExtentEntityCopy(from, destination, to, currentTransform);
+                entityCopy.setRemoving(removingEntities);
+                EntityVisitor entityVisitor = new EntityVisitor(entities.iterator(), entityCopy);
+                Operations.completeBlindly(entityVisitor);
+            }
 
             if (transExt != null) {
                 currentTransform = currentTransform.combine(transform);
