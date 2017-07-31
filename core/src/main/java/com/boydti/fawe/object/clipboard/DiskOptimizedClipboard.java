@@ -82,8 +82,7 @@ public class DiskOptimizedClipboard extends FaweClipboard implements Closeable {
             area = width * length;
             this.volume = length * width * height;
 
-            long size = (braf.length() - HEADER_SIZE) >> 1;
-            if (size == ((long) width * height * length) + area) {
+            if ((braf.length() - HEADER_SIZE) == (volume << 1) + area) {
                 hasBiomes = true;
             }
             autoCloseTask();
@@ -103,16 +102,12 @@ public class DiskOptimizedClipboard extends FaweClipboard implements Closeable {
         if (!hasBiomes) {
             try {
                 hasBiomes = true;
-                if (mbb != null) {
-                    this.mbb.force();
-                    this.fc.close();
-                    closeDirectBuffer(mbb);
-                    long volume = (long) length * height * width;
-                    this.braf.setLength(HEADER_SIZE + volume + area);
-                    this.fc = braf.getChannel();
-                    this.mbb = fc.map(FileChannel.MapMode.READ_WRITE, 0, file.length());
-                }
+                close();
+                this.braf = new RandomAccessFile(file, "rw");
+                this.braf.setLength(HEADER_SIZE + (volume << 1) + area);
+                init();
             } catch (IOException e) {
+                e.printStackTrace();
                 return false;
             }
         }
@@ -125,7 +120,7 @@ public class DiskOptimizedClipboard extends FaweClipboard implements Closeable {
     }
 
     @Override
-    public boolean setBiome(int x, int z, byte biome) {
+    public boolean setBiome(int x, int z, int biome) {
         setBiome(getIndex(x, 0, z), biome);
         return true;
     }
@@ -133,7 +128,7 @@ public class DiskOptimizedClipboard extends FaweClipboard implements Closeable {
     @Override
     public void setBiome(int index, int biome) {
         if (initBiome()) {
-            mbb.put(HEADER_SIZE + volume + index, (byte) biome);
+            mbb.put(HEADER_SIZE + (volume << 1) + index, (byte) biome);
         }
     }
 
@@ -142,7 +137,7 @@ public class DiskOptimizedClipboard extends FaweClipboard implements Closeable {
         if (!hasBiomes()) {
             return EditSession.nullBiome;
         }
-        int biomeId = mbb.get(HEADER_SIZE + volume + index) & 0xFF;
+        int biomeId = mbb.get(HEADER_SIZE + (volume << 1) + index) & 0xFF;
         return FaweCache.CACHE_BIOME[biomeId];
     }
 
@@ -150,9 +145,11 @@ public class DiskOptimizedClipboard extends FaweClipboard implements Closeable {
     public void streamBiomes(NBTStreamer.ByteReader task) {
         if (!hasBiomes()) return;
         int index = 0;
+        int offset = HEADER_SIZE + (volume << 1);
         for (int z = 0; z < length; z++) {
             for (int x = 0; x < width; x++, index++) {
-                task.run(index, getBiome(index).getId());
+                int biome = mbb.get(offset + index) & 0xFF;
+                task.run(index, biome);
             }
         }
     }
@@ -268,7 +265,7 @@ public class DiskOptimizedClipboard extends FaweClipboard implements Closeable {
     }
 
     public DiskOptimizedClipboard(int width, int height, int length) {
-        this(width, height, length, MainUtil.getFile(Fawe.imp().getDirectory(), Settings.IMP.PATHS.CLIPBOARD + File.separator + UUID.randomUUID() + ".bd"));
+        this(width, height, length, MainUtil.getFile(Fawe.imp() != null ? Fawe.imp().getDirectory() : new File("."), Settings.IMP.PATHS.CLIPBOARD + File.separator + UUID.randomUUID() + ".bd"));
     }
 
     private void closeDirectBuffer(ByteBuffer cb) {

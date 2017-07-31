@@ -7,6 +7,7 @@ import com.boydti.fawe.util.EditSessionBuilder;
 import com.boydti.fawe.util.MaskTraverser;
 import com.sk89q.worldedit.EditSession;
 import com.sk89q.worldedit.MaxChangedBlocksException;
+import com.sk89q.worldedit.MutableBlockVector2D;
 import com.sk89q.worldedit.Vector;
 import com.sk89q.worldedit.WorldEditException;
 import com.sk89q.worldedit.blocks.BaseBlock;
@@ -157,9 +158,15 @@ public class Schematic {
     public void paste(Extent extent, WorldData worldData, Vector to, boolean pasteAir, Transform transform) {
         checkNotNull(transform);
         Region region = clipboard.getRegion();
-        BlockTransformExtent source = new BlockTransformExtent(clipboard, transform, worldData.getBlockRegistry());
+        Extent source = clipboard;
+        if (worldData != null && transform != null) {
+            source = new BlockTransformExtent(clipboard, transform, worldData.getBlockRegistry());
+        }
         ForwardExtentCopy copy = new ForwardExtentCopy(source, clipboard.getRegion(), clipboard.getOrigin(), extent, to);
-        copy.setTransform(transform);
+        if (transform != null) {
+            copy.setTransform(transform);
+        }
+        copy.setCopyBiomes(!(clipboard instanceof BlockArrayClipboard) || ((BlockArrayClipboard) clipboard).IMP.hasBiomes());
         if (extent instanceof EditSession) {
             EditSession editSession = (EditSession) extent;
             Mask sourceMask = editSession.getSourceMask();
@@ -175,11 +182,14 @@ public class Schematic {
         Operations.completeBlindly(copy);
     }
 
-    public void paste(Extent extent, Vector to, boolean pasteAir) {
+    public void paste(Extent extent, Vector to, final boolean pasteAir) {
         Region region = clipboard.getRegion().clone();
         final int maxY = extent.getMaximumPoint().getBlockY();
         final Vector bot = clipboard.getMinimumPoint();
         final Vector origin = clipboard.getOrigin();
+
+        final boolean copyBiomes = !(clipboard instanceof BlockArrayClipboard) || ((BlockArrayClipboard) clipboard).IMP.hasBiomes();
+
         // Optimize for BlockArrayClipboard
         if (clipboard instanceof BlockArrayClipboard && region instanceof CuboidRegion) {
             // To is relative to the world origin (player loc + small clipboard offset) (As the positions supplied are relative to the clipboard min)
@@ -187,29 +197,62 @@ public class Schematic {
             final int rely = to.getBlockY() + bot.getBlockY() - origin.getBlockY();
             final int relz = to.getBlockZ() + bot.getBlockZ() - origin.getBlockZ();
             BlockArrayClipboard bac = (BlockArrayClipboard) clipboard;
-            bac.IMP.forEach(new FaweClipboard.BlockReader() {
-                @Override
-                public void run(int x, int y, int z, BaseBlock block) {
-                    try {
-                        extent.setBlock(x + relx, y + rely, z + relz, block);
-                    } catch (WorldEditException e) {
-                        throw new RuntimeException(e);
+            if (copyBiomes) {
+                bac.IMP.forEach(new FaweClipboard.BlockReader() {
+                    MutableBlockVector2D mpos2d = new MutableBlockVector2D();
+                    {
+                        mpos2d.setComponents(Integer.MIN_VALUE, Integer.MIN_VALUE);
                     }
-                }
-            }, pasteAir);
+                    @Override
+                    public void run(int x, int y, int z, BaseBlock block) {
+                        try {
+                            int xx = x + relx;
+                            int zz = z + relz;
+                            if (xx != mpos2d.getBlockX() || zz != mpos2d.getBlockZ()) {
+                                mpos2d.setComponents(xx, zz);
+                                extent.setBiome(mpos2d, bac.IMP.getBiome(x, z));
+                            }
+                            if (!pasteAir && block.getId() == 0) {
+                                return;
+                            }
+                            extent.setBlock(xx, y + rely, zz, block);
+                        } catch (WorldEditException e) { throw new RuntimeException(e);}
+                    }
+                }, true);
+            } else {
+                bac.IMP.forEach(new FaweClipboard.BlockReader() {
+                    @Override
+                    public void run(int x, int y, int z, BaseBlock block) {
+                        try {
+                            extent.setBlock(x + relx, y + rely, z + relz, block);
+                        } catch (WorldEditException e) { throw new RuntimeException(e);}
+                    }
+                }, pasteAir);
+            }
         } else {
             // To must be relative to the clipboard origin ( player location - clipboard origin ) (as the locations supplied are relative to the world origin)
             final int relx = to.getBlockX() - origin.getBlockX();
             final int rely = to.getBlockY() - origin.getBlockY();
             final int relz = to.getBlockZ() - origin.getBlockZ();
             RegionVisitor visitor = new RegionVisitor(region, new RegionFunction() {
+                MutableBlockVector2D mpos2d_2 = new MutableBlockVector2D();
+                MutableBlockVector2D mpos2d = new MutableBlockVector2D();
+                {
+                    mpos2d.setComponents(Integer.MIN_VALUE, Integer.MIN_VALUE);
+                }
                 @Override
                 public boolean apply(Vector mutable) throws WorldEditException {
                     BaseBlock block = clipboard.getBlock(mutable);
-                    if (block.getId() == 0 && !pasteAir) {
+                    int xx = mutable.getBlockX() + relx;
+                    int zz = mutable.getBlockZ() + relz;
+                    if (copyBiomes && xx != mpos2d.getBlockX() && zz != mpos2d.getBlockZ()) {
+                        mpos2d.setComponents(xx, zz);
+                        extent.setBiome(mpos2d, clipboard.getBiome(mpos2d_2.setComponents(mutable.getBlockX(), mutable.getBlockZ())));
+                    }
+                    if (!pasteAir && block.getId() == 0) {
                         return false;
                     }
-                    extent.setBlock(mutable.getBlockX() + relx, mutable.getBlockY() + rely, mutable.getBlockZ() + relz, block);
+                    extent.setBlock(xx, mutable.getBlockY() + rely, zz, block);
                     return false;
                 }
             }, (HasFaweQueue) (null));

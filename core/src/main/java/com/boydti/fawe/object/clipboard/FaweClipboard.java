@@ -27,7 +27,7 @@ public abstract class FaweClipboard {
 
     public abstract boolean hasBiomes();
 
-    public abstract boolean setBiome(int x, int z, byte biome);
+    public abstract boolean setBiome(int x, int z, int biome);
 
     public abstract BaseBiome getBiome(int x, int z);
 

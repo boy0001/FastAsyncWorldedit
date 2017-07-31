@@ -23,12 +23,14 @@ import com.boydti.fawe.example.MappedFaweQueue;
 import com.boydti.fawe.object.FaweQueue;
 import com.boydti.fawe.object.extent.BlockTranslateExtent;
 import com.boydti.fawe.object.extent.PositionTransformExtent;
+import com.boydti.fawe.object.function.block.BiomeCopy;
 import com.boydti.fawe.object.function.block.SimpleBlockCopy;
 import com.sk89q.worldedit.EditSession;
 import com.sk89q.worldedit.Vector;
 import com.sk89q.worldedit.WorldEditException;
 import com.sk89q.worldedit.entity.Entity;
 import com.sk89q.worldedit.extent.Extent;
+import com.sk89q.worldedit.extent.clipboard.BlockArrayClipboard;
 import com.sk89q.worldedit.function.CombinedRegionFunction;
 import com.sk89q.worldedit.function.RegionFunction;
 import com.sk89q.worldedit.function.RegionMaskingFilter;
@@ -69,6 +71,7 @@ public class ForwardExtentCopy implements Operation {
     private Transform currentTransform = null;
     private int affected;
     private boolean copyEntities = true;
+    private boolean copyBiomes = false;
 
     /**
      * Create a new copy using the region's lowest minimum point as the
@@ -145,6 +148,14 @@ public class ForwardExtentCopy implements Operation {
 
     public boolean isCopyEntities() {
         return copyEntities;
+    }
+
+    public void setCopyBiomes(boolean copyBiomes) {
+        this.copyBiomes = copyBiomes;
+    }
+
+    public boolean isCopyBiomes() {
+        return copyBiomes;
     }
 
     /**
@@ -256,6 +267,9 @@ public class ForwardExtentCopy implements Operation {
         }
         if (sourceFunction != null) {
             copy = new CombinedRegionFunction(copy, sourceFunction);
+        }
+        if (copyBiomes && (!(source instanceof BlockArrayClipboard) || ((BlockArrayClipboard) source).IMP.hasBiomes())) {
+            copy = new CombinedRegionFunction(copy, new BiomeCopy(source, finalDest));
         }
         RegionVisitor blockVisitor = new RegionVisitor(region, copy, queue instanceof MappedFaweQueue ? (MappedFaweQueue) queue : null);
 

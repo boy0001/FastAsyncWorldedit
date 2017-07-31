@@ -1968,6 +1968,10 @@ public class EditSession extends AbstractWorld implements HasFaweQueue, Lighting
         return this.changes = naturalizer.getAffected();
     }
 
+    public int stackCuboidRegion(final Region region, final Vector dir, final int count, final boolean copyAir) {
+        return stackCuboidRegion(region, dir, count, copyAir, true, false);
+    }
+
     /**
      * Stack a cuboid region.
      *
@@ -1978,13 +1982,15 @@ public class EditSession extends AbstractWorld implements HasFaweQueue, Lighting
      * @return number of blocks affected
      * @throws MaxChangedBlocksException thrown if too many blocks are changed
      */
-    public int stackCuboidRegion(final Region region, final Vector dir, final int count, final boolean copyAir) {
+    public int stackCuboidRegion(final Region region, final Vector dir, final int count, final boolean copyAir, boolean copyEntities, boolean copyBiomes) {
         checkNotNull(region);
         checkNotNull(dir);
         checkArgument(count >= 1, "count >= 1 required");
         final Vector size = region.getMaximumPoint().subtract(region.getMinimumPoint()).add(1, 1, 1);
         final Vector to = region.getMinimumPoint();
         final ForwardExtentCopy copy = new ForwardExtentCopy(EditSession.this, region, EditSession.this, to);
+        copy.setCopyEntities(copyEntities);
+        copy.setCopyBiomes(copyBiomes);
         copy.setRepetitions(count);
         copy.setTransform(new AffineTransform().translate(dir.multiply(size)));
         Mask sourceMask = getSourceMask();
@@ -2012,6 +2018,10 @@ public class EditSession extends AbstractWorld implements HasFaweQueue, Lighting
      * @throws MaxChangedBlocksException thrown if too many blocks are changed
      */
     public int moveRegion(final Region region, final Vector dir, final int distance, final boolean copyAir, final BaseBlock replacement) {
+        return moveRegion(region, dir, distance, copyAir, true, false, replacement);
+    }
+
+    public int moveRegion(final Region region, final Vector dir, final int distance, final boolean copyAir, final boolean copyEntities, final boolean copyBiomes, final BaseBlock replacement) {
         checkNotNull(region);
         checkNotNull(dir);
         checkArgument(distance >= 1, "distance >= 1 required");
@@ -2038,6 +2048,8 @@ public class EditSession extends AbstractWorld implements HasFaweQueue, Lighting
             }
         };
 
+        copy.setCopyBiomes(copyBiomes);
+        copy.setCopyEntities(copyEntities);
         copy.setSourceFunction(remove);
         copy.setRepetitions(1);
         copy.setTransform(new AffineTransform().translate(dir.multiply(distance)));

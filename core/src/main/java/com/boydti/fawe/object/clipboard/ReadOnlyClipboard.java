@@ -20,7 +20,11 @@ public abstract class ReadOnlyClipboard extends FaweClipboard {
     }
 
     public static ReadOnlyClipboard of(final EditSession editSession, final Region region) {
-        return new WorldCopyClipboard(editSession, region);
+        return of(editSession, region, true, false);
+    }
+
+    public static ReadOnlyClipboard of(final EditSession editSession, final Region region, boolean copyEntities, boolean copyBiomes) {
+        return new WorldCopyClipboard(editSession, region, copyEntities, copyBiomes);
     }
 
     public Region getRegion() {
@@ -48,7 +52,7 @@ public abstract class ReadOnlyClipboard extends FaweClipboard {
     }
 
     @Override
-    public boolean setBiome(int x, int z, byte biome) {
+    public boolean setBiome(int x, int z, int biome) {
         throw new UnsupportedOperationException("Clipboard is immutable");
     }
 

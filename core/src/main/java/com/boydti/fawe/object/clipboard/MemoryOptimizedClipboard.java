@@ -95,7 +95,7 @@ public class MemoryOptimizedClipboard extends FaweClipboard {
     }
 
     @Override
-    public boolean setBiome(int x, int z, byte biome) {
+    public boolean setBiome(int x, int z, int biome) {
         setBiome(getIndex(x, 0, z), biome);
         return true;
     }

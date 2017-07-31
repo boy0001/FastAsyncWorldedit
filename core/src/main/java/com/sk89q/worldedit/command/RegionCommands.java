@@ -523,7 +523,10 @@ public class RegionCommands extends MethodCommands {
             desc = "Move the contents of the selection",
             help =
                     "Moves the contents of the selection.\n" +
-                            "The -s flag shifts the selection to the target location.\n" +
+                            "  -s flag shifts the selection to the target location.\n" +
+                            "  -b also copies biomes\n" +
+                            "  -e ignores entities\n" +
+                            "  -a ignores air\n" +
                             "Optionally fills the old location with <leave-id>.",
             min = 0,
             max = 3
@@ -535,11 +538,14 @@ public class RegionCommands extends MethodCommands {
                      @Optional("1") @Range(min = 1) int count,
                      @Optional(Direction.AIM) @Direction Vector direction,
                      @Optional("air") BaseBlock replace,
+                     @Switch('b') boolean copyBiomes,
+                     @Switch('e') boolean skipEntities,
+                     @Switch('a') boolean skipAir,
                      @Switch('s') boolean moveSelection,
                      CommandContext context) throws WorldEditException {
         player.checkConfirmationRegion(getArguments(context), region);
 
-        int affected = editSession.moveRegion(region, direction, count, true, replace);
+        int affected = editSession.moveRegion(region, direction, count, !skipAir, !skipEntities, copyBiomes, replace);
 
         if (moveSelection) {
             try {
@@ -598,12 +604,14 @@ public class RegionCommands extends MethodCommands {
                       @Optional("1") @Range(min = 1) int count,
                       @Optional(Direction.AIM) @Direction Vector direction,
                       @Switch('s') boolean moveSelection,
+                      @Switch('b') boolean copyBiomes,
+                      @Switch('e') boolean skipEntities,
                       @Switch('a') boolean ignoreAirBlocks, @Switch('m') Mask sourceMask, CommandContext context) throws WorldEditException {
         player.checkConfirmationStack(getArguments(context), region, count);
         if (sourceMask != null) {
             editSession.addSourceMask(sourceMask);
         }
-        int affected = editSession.stackCuboidRegion(region, direction, count, !ignoreAirBlocks);
+        int affected = editSession.stackCuboidRegion(region, direction, count, !ignoreAirBlocks, !skipEntities, copyBiomes);
 
         if (moveSelection) {
             try {

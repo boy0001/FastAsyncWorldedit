@@ -16,17 +16,26 @@ import com.sk89q.worldedit.function.visitor.RegionVisitor;
 import com.sk89q.worldedit.regions.CuboidRegion;
 import com.sk89q.worldedit.regions.Region;
 import com.sk89q.worldedit.world.biome.BaseBiome;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
 public class WorldCopyClipboard extends ReadOnlyClipboard {
 
     public final int mx, my, mz;
+    private final boolean hasBiomes;
+    private final boolean hasEntities;
     private MutableBlockVector2D mutableBlockVector2D = new MutableBlockVector2D();
     public final EditSession editSession;
 
     public WorldCopyClipboard(EditSession editSession, Region region) {
+        this(editSession, region, true, false);
+    }
+
+    public WorldCopyClipboard(EditSession editSession, Region region, boolean hasEntities, boolean hasBiomes) {
         super(region);
+        this.hasBiomes = hasBiomes;
+        this.hasEntities = hasEntities;
         final Vector origin = region.getMinimumPoint();
         this.mx = origin.getBlockX();
         this.my = origin.getBlockY();
@@ -50,12 +59,13 @@ public class WorldCopyClipboard extends ReadOnlyClipboard {
 
     @Override
     public List<? extends Entity> getEntities() {
+        if (!hasEntities) return new ArrayList<>();
         return editSession.getEntities(getRegion());
     }
 
     @Override
     public boolean hasBiomes() {
-        return true;
+        return hasBiomes;
     }
 
     @Override

@@ -219,12 +219,17 @@ public class BlockArrayClipboard implements Clipboard, LightingExtent {
 
     @Override
     public BaseBiome getBiome(Vector2D position) {
-        return new BaseBiome(0);
+        int x = position.getBlockX() - mx;
+        int z = position.getBlockZ() - mz;
+        return IMP.getBiome(x, z);
     }
 
     @Override
     public boolean setBiome(Vector2D position, BaseBiome biome) {
-        return false;
+        int x = position.getBlockX() - mx;
+        int z = position.getBlockZ() - mz;
+        IMP.setBiome(x, z, biome.getId());
+        return true;
     }
 
     @Nullable
