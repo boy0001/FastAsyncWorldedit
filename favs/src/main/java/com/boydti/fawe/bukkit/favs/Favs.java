@@ -11,6 +11,8 @@ import com.thevoxelbox.voxelsniper.SnipeData;
 import com.thevoxelbox.voxelsniper.Sniper;
 import com.thevoxelbox.voxelsniper.brush.perform.PerformBrush;
 import com.thevoxelbox.voxelsniper.command.VoxelVoxelCommand;
+import com.thevoxelbox.voxelsniper.event.SniperBrushChangedEvent;
+import com.thevoxelbox.voxelsniper.event.SniperMaterialChangedEvent;
 import java.io.File;
 import java.io.FileOutputStream;
 import org.bukkit.Bukkit;
@@ -58,6 +60,8 @@ public class Favs extends JavaPlugin {
             VoxelVoxelCommand.inject();
             PerformBrush.inject();
             RangeBlockHelper.inject();
+            SniperBrushChangedEvent.inject();
+            SniperMaterialChangedEvent.inject();
             // Forward the commands so //p and //d will work
             setupCommand("/p", new FaweCommand("voxelsniper.sniper") {
                 @Override
