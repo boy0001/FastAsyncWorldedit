@@ -192,7 +192,7 @@ public class NavigationCommands {
 
     @Command(
             aliases = {"up"},
-            usage = "<block>",
+            usage = "<number>",
             desc = "Go upwards some distance",
             flags = "fg",
             min = 1,

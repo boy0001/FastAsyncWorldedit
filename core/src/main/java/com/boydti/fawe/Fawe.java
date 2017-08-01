@@ -133,6 +133,7 @@ import com.sk89q.worldedit.util.formatting.Fragment;
 import com.sk89q.worldedit.util.formatting.component.CommandListBox;
 import com.sk89q.worldedit.util.formatting.component.CommandUsageBox;
 import com.sk89q.worldedit.util.formatting.component.MessageBox;
+import com.sk89q.worldedit.world.biome.BaseBiome;
 import com.sk89q.worldedit.world.registry.BundledBlockData;
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -560,6 +561,8 @@ public class Fawe {
             Vector2D.inject(); // Optimizations
             // Block
             BaseBlock.inject(); // Optimizations
+            // Biome
+            BaseBiome.inject(); // Features
             // Pattern
             ArbitraryShape.inject(); // Optimizations + update from legacy code
             Pattern.inject(); // Simplify API

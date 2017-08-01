@@ -39,6 +39,7 @@ import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
 import java.lang.reflect.Array;
 import java.lang.reflect.Method;
+import java.lang.reflect.Parameter;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URISyntaxException;
@@ -142,6 +143,31 @@ public class MainUtil {
         }
 
         return result;
+    }
+
+    public static <T> T getOf(Object[] arr, Class<T> ofType) {
+        for (Object a : arr) {
+            if (a != null && a.getClass() == ofType) {
+                return (T) a;
+            }
+        }
+        return null;
+    }
+
+    public static String[] getParameterNames(Method method) {
+        Parameter[] parameters = method.getParameters();
+        List<String> parameterNames = new ArrayList<>();
+
+        for (Parameter parameter : parameters) {
+            if(!parameter.isNamePresent()) {
+                throw new IllegalArgumentException("Parameter names are not present!");
+            }
+
+            String parameterName = parameter.getName();
+            parameterNames.add(parameterName);
+        }
+
+        return parameterNames.toArray(new String[parameterNames.size()]);
     }
 
     public static long getTotalSize(Path path) {

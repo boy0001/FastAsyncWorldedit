@@ -101,7 +101,7 @@ public final class DocumentationPrinter {
             writePermissionsWikiTable(stream, builder, "/", RegionCommands.class);
             writePermissionsWikiTable(stream, builder, "/", SelectionCommands.class);
             writePermissionsWikiTable(stream, builder, "/", HistoryCommands.class);
-            writePermissionsWikiTable(stream, builder, "/", SchematicCommands.class);
+            writePermissionsWikiTable(stream, builder, "/schematic ", SchematicCommands.class);
             writePermissionsWikiTable(stream, builder, "/", ClipboardCommands.class);
             writePermissionsWikiTable(stream, builder, "/", GenerationCommands.class);
             writePermissionsWikiTable(stream, builder, "/", BiomeCommands.class);
@@ -116,9 +116,9 @@ public final class DocumentationPrinter {
             writePermissionsWikiTable(stream, builder, "/", BrushOptionsCommands.class);
             writePermissionsWikiTable(stream, builder, "/tool ", ToolCommands.class);
             writePermissionsWikiTable(stream, builder, "/brush ", BrushCommands.class);
-            writePermissionsWikiTable(stream, builder, "", MaskCommands.class);
-            writePermissionsWikiTable(stream, builder, "", PatternCommands.class);
-            writePermissionsWikiTable(stream, builder, "", TransformCommands.class);
+            writePermissionsWikiTable(stream, builder, "", MaskCommands.class, "/Masks");
+            writePermissionsWikiTable(stream, builder, "", PatternCommands.class, "/Patterns");
+            writePermissionsWikiTable(stream, builder, "", TransformCommands.class, "/Transforms");
             stream.println();
             stream.print("#### Uncategorized\n");
             stream.append("| Aliases | Permission | flags | Usage |\n");
@@ -133,21 +133,28 @@ public final class DocumentationPrinter {
     }
 
     private static void writePermissionsWikiTable(PrintStream stream, StringBuilder content, String prefix, Class<?> cls) {
-        String title = cls.getSimpleName().replaceAll("(\\p{Ll})(\\p{Lu})", "$1 $2");
-        stream.print(" - [`" + title + "`](#" + title.replaceAll(" ", "-").toLowerCase() + "-) ");
+        writePermissionsWikiTable(stream, content, prefix, cls, getName(cls));
+    }
+
+    public static String getName(Class cls) {
+        return cls.getSimpleName().replaceAll("(\\p{Ll})(\\p{Lu})", "$1 $2");
+    }
+
+    private static void writePermissionsWikiTable(PrintStream stream, StringBuilder content, String prefix, Class<?> cls, String name) {
+        stream.print(" - [`" + name + "`](#" + name.replaceAll(" ", "-").toLowerCase() + "-edittop) ");
         Command cmd = cls.getAnnotation(Command.class);
         if (cmd != null) {
             stream.print(" (" + cmd.desc() + ")");
         }
         stream.println();
-        writePermissionsWikiTable(content, prefix, cls, true);
+        writePermissionsWikiTable(content, prefix, cls, name, true);
     }
 
-    private static void writePermissionsWikiTable(StringBuilder stream, String prefix, Class<?> cls, boolean title) {
+    private static void writePermissionsWikiTable(StringBuilder stream, String prefix, Class<?> cls, String name, boolean title) {
         //  //setbiome || worldedit.biome.set || //setbiome || p || Sets the biome of the player's current block or region.
         if (title) {
             String path = "https://github.com/boy0001/FastAsyncWorldedit/edit/master/core/src/main/java/" + cls.getName().replaceAll("\\.", "/") + ".java";
-            stream.append("### **" + cls.getSimpleName().replaceAll("(\\p{Ll})(\\p{Lu})", "$1 $2") + "** [`✎`](" + path + ")[`▲`](#overview)");
+            stream.append("### **" + name + "** `[`[`edit`](" + path + ")`|`[`top`](#overview)`]`");
             stream.append("\n");
             Command cmd = cls.getAnnotation(Command.class);
             if (cmd != null) {
@@ -191,7 +198,7 @@ public final class DocumentationPrinter {
 
                 Class<?>[] nestedClasses = nested.value();
                 for (Class clazz : nestedClasses) {
-                    writePermissionsWikiTable(stream, prefix + cmd.aliases()[0] + " ", clazz, false);
+                    writePermissionsWikiTable(stream, prefix + cmd.aliases()[0] + " ", clazz, getName(clazz), false);
                 }
             }
         }

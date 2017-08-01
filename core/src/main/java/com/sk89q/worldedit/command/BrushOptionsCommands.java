@@ -1,7 +1,6 @@
 package com.sk89q.worldedit.command;
 
 import com.boydti.fawe.Fawe;
-import com.boydti.fawe.FaweAPI;
 import com.boydti.fawe.config.BBC;
 import com.boydti.fawe.object.brush.BrushSettings;
 import com.boydti.fawe.object.brush.TargetMode;
@@ -22,14 +21,12 @@ import com.sk89q.worldedit.blocks.BaseBlock;
 import com.sk89q.worldedit.command.tool.BrushTool;
 import com.sk89q.worldedit.entity.Player;
 import com.sk89q.worldedit.event.platform.CommandEvent;
-import com.sk89q.worldedit.extension.factory.DefaultMaskParser;
-import com.sk89q.worldedit.extension.factory.DefaultTransformParser;
-import com.sk89q.worldedit.extension.factory.HashTagPatternParser;
 import com.sk89q.worldedit.extension.input.ParserContext;
 import com.sk89q.worldedit.extension.platform.Actor;
 import com.sk89q.worldedit.extension.platform.CommandManager;
 import com.sk89q.worldedit.function.mask.Mask;
 import com.sk89q.worldedit.function.pattern.Pattern;
+import com.sk89q.worldedit.util.command.binding.Range;
 import com.sk89q.worldedit.util.command.binding.Switch;
 import com.sk89q.worldedit.util.command.parametric.Optional;
 import java.io.DataInputStream;
@@ -186,63 +183,8 @@ public class BrushOptionsCommands extends MethodCommands {
     }
 
     @Command(
-            aliases = {"patterns"},
-            usage = "[page=1|search|pattern]",
-            desc = "View help about patterns",
-            help = "Patterns determine what blocks are placed\n" +
-                    " - Use [brackets] for arguments\n" +
-                    " - Use , to OR multiple\n" +
-                    "e.g. #surfacespread[10][#existing],andesite\n" +
-                    "More Info: https://git.io/vSPmA",
-            min = 1
-    )
-    public void patterns(Player player, LocalSession session, CommandContext args) throws WorldEditException {
-        HashTagPatternParser parser = FaweAPI.getParser(HashTagPatternParser.class);
-        if (parser != null) {
-            UtilityCommands.help(args, worldEdit, player, "/" + getCommand().aliases()[0] + " ", parser.getDispatcher());
-        }
-    }
-
-    @Command(
-            aliases = {"masks"},
-            usage = "[page=1|search|mask]",
-            desc = "View help about masks",
-            help = "Masks determine if a block can be placed\n" +
-                    " - Use [brackets] for arguments\n" +
-                    " - Use , to OR multiple\n" +
-                    " - Use & to AND multiple\n" +
-                    "e.g. >[stone,dirt],#light[0][5],$jungle\n" +
-                    "More Info: https://git.io/v9r4K",
-            min = 1
-    )
-    public void masks(Player player, LocalSession session, CommandContext args) throws WorldEditException {
-        DefaultMaskParser parser = FaweAPI.getParser(DefaultMaskParser.class);
-        if (parser != null) {
-            UtilityCommands.help(args, worldEdit, player, "/" + getCommand().aliases()[0] + " ", parser.getDispatcher());
-        }
-    }
-
-    @Command(
-            aliases = {"transforms"},
-            usage = "[page=1|search|transform]",
-            desc = "View help about transforms",
-            help = "Transforms modify how a block is placed\n" +
-                    " - Use [brackets] for arguments\n" +
-                    " - Use , to OR multiple\n" +
-                    " - Use & to AND multiple\n" +
-                    "More Info: https://git.io/v9KHO",
-            min = 1
-    )
-    public void transforms(Player player, LocalSession session, CommandContext args) throws WorldEditException {
-        DefaultTransformParser parser = Fawe.get().getTransformParser();
-        if (parser != null) {
-            UtilityCommands.help(args, worldEdit, player, "/" + getCommand().aliases()[0] + " ", parser.getDispatcher());
-        }
-    }
-
-    @Command(
             aliases = {"primary"},
-            usage = "[brush arguments]",
+            usage = "[brush-arguments]",
             desc = "Set the right click brush",
             help = "Set the right click brush",
             min = 1
@@ -262,7 +204,7 @@ public class BrushOptionsCommands extends MethodCommands {
 
     @Command(
             aliases = {"secondary"},
-            usage = "[brush arguments]",
+            usage = "[brush-arguments]",
             desc = "Set the left click brush",
             help = "Set the left click brush",
             min = 1
@@ -291,7 +233,7 @@ public class BrushOptionsCommands extends MethodCommands {
             min = 0,
             max = 1
     )
-    public void visual(Player player, LocalSession session, int mode) throws WorldEditException {
+    public void visual(Player player, LocalSession session, @Range(min = 0, max = 2)int mode) throws WorldEditException {
         BrushTool tool = session.getBrushTool(player, false);
         if (tool == null) {
             BBC.BRUSH_NONE.send(player);

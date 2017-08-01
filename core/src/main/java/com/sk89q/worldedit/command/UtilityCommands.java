@@ -19,6 +19,8 @@
 
 package com.sk89q.worldedit.command;
 
+import com.boydti.fawe.Fawe;
+import com.boydti.fawe.FaweAPI;
 import com.boydti.fawe.config.BBC;
 import com.boydti.fawe.config.Commands;
 import com.boydti.fawe.object.FaweLimit;
@@ -26,6 +28,7 @@ import com.boydti.fawe.object.FawePlayer;
 import com.boydti.fawe.util.MathMan;
 import com.boydti.fawe.util.StringMan;
 import com.boydti.fawe.util.chat.Message;
+import com.boydti.fawe.util.chat.UsageMessage;
 import com.google.common.base.Joiner;
 import com.sk89q.minecraft.util.commands.Command;
 import com.sk89q.minecraft.util.commands.CommandContext;
@@ -44,6 +47,9 @@ import com.sk89q.worldedit.command.util.CreatureButcher;
 import com.sk89q.worldedit.command.util.EntityRemover;
 import com.sk89q.worldedit.entity.Entity;
 import com.sk89q.worldedit.entity.Player;
+import com.sk89q.worldedit.extension.factory.DefaultMaskParser;
+import com.sk89q.worldedit.extension.factory.DefaultTransformParser;
+import com.sk89q.worldedit.extension.factory.HashTagPatternParser;
 import com.sk89q.worldedit.extension.platform.Actor;
 import com.sk89q.worldedit.extension.platform.Capability;
 import com.sk89q.worldedit.extension.platform.CommandManager;
@@ -65,11 +71,10 @@ import com.sk89q.worldedit.util.command.CommandMapping;
 import com.sk89q.worldedit.util.command.DelegateCallable;
 import com.sk89q.worldedit.util.command.Dispatcher;
 import com.sk89q.worldedit.util.command.PrimaryAliasComparator;
+import com.sk89q.worldedit.util.command.binding.Range;
 import com.sk89q.worldedit.util.command.binding.Text;
 import com.sk89q.worldedit.util.command.parametric.Optional;
 import com.sk89q.worldedit.util.command.parametric.ParametricCallable;
-import com.sk89q.worldedit.util.formatting.ColorCodeBuilder;
-import com.sk89q.worldedit.util.formatting.component.CommandUsageBox;
 import com.sk89q.worldedit.world.World;
 import java.io.File;
 import java.net.URI;
@@ -102,10 +107,79 @@ public class UtilityCommands extends MethodCommands {
         super(we);
     }
 
+    @Command(
+            aliases = {"patterns"},
+            usage = "[page=1|search|pattern]",
+            desc = "View help about patterns",
+            help = "Patterns determine what blocks are placed\n" +
+                    " - Use [brackets] for arguments\n" +
+                    " - Use , to OR multiple\n" +
+                    "e.g. #surfacespread[10][#existing],andesite\n" +
+                    "More Info: https://git.io/vSPmA"
+    )
+    public void patterns(Player player, LocalSession session, CommandContext args) throws WorldEditException {
+        if (args.argsLength() == 0) {
+            String base = getCommand().aliases()[0];
+            UsageMessage msg = new UsageMessage(getCallable(), base, args.getLocals());
+            msg.newline().paginate(base, 0, 1).send(player);
+            return;
+        }
+        HashTagPatternParser parser = FaweAPI.getParser(HashTagPatternParser.class);
+        if (parser != null) {
+            UtilityCommands.help(args, worldEdit, player, getCommand().aliases()[0] + " ", parser.getDispatcher());
+        }
+    }
+
+    @Command(
+            aliases = {"masks"},
+            usage = "[page=1|search|mask]",
+            desc = "View help about masks",
+            help = "Masks determine if a block can be placed\n" +
+                    " - Use [brackets] for arguments\n" +
+                    " - Use , to OR multiple\n" +
+                    " - Use & to AND multiple\n" +
+                    "e.g. >[stone,dirt],#light[0][5],$jungle\n" +
+                    "More Info: https://git.io/v9r4K"
+    )
+    public void masks(Player player, LocalSession session, CommandContext args) throws WorldEditException {
+        if (args.argsLength() == 0) {
+            String base = getCommand().aliases()[0];
+            UsageMessage msg = new UsageMessage(getCallable(), base, args.getLocals());
+            msg.newline().paginate(base, 0, 1).send(player);
+            return;
+        }
+        DefaultMaskParser parser = FaweAPI.getParser(DefaultMaskParser.class);
+        if (parser != null) {
+            UtilityCommands.help(args, worldEdit, player, getCommand().aliases()[0] + " ", parser.getDispatcher());
+        }
+    }
+
+    @Command(
+            aliases = {"transforms"},
+            usage = "[page=1|search|transform]",
+            desc = "View help about transforms",
+            help = "Transforms modify how a block is placed\n" +
+                    " - Use [brackets] for arguments\n" +
+                    " - Use , to OR multiple\n" +
+                    " - Use & to AND multiple\n" +
+                    "More Info: https://git.io/v9KHO"
+    )
+    public void transforms(Player player, LocalSession session, CommandContext args) throws WorldEditException {
+        if (args.argsLength() == 0) {
+            String base = getCommand().aliases()[0];
+            UsageMessage msg = new UsageMessage(getCallable(), base, args.getLocals());
+            msg.newline().paginate(base, 0, 1).send(player);
+            return;
+        }
+        DefaultTransformParser parser = Fawe.get().getTransformParser();
+        if (parser != null) {
+            UtilityCommands.help(args, worldEdit, player, getCommand().aliases()[0] + " ", parser.getDispatcher());
+        }
+    }
 
     @Command(
             aliases = {"/fill"},
-            usage = "<block> <radius> [depth]",
+            usage = "<pattern> <radius> [depth]",
             desc = "Fill a hole",
             min = 2,
             max = 3
@@ -126,7 +200,7 @@ public class UtilityCommands extends MethodCommands {
 
     @Command(
             aliases = {"/fillr"},
-            usage = "<block> <radius> [depth]",
+            usage = "<pattern> <radius> [depth]",
             desc = "Fill a hole recursively",
             min = 2,
             max = 3
@@ -565,7 +639,7 @@ public class UtilityCommands extends MethodCommands {
         return null;
     }
 
-    public static void list(File dir, Actor actor, CommandContext args, int page, String formatName, boolean playerFolder) {
+    public static void list(File dir, Actor actor, CommandContext args, @Range(min = 0) int page, String formatName, boolean playerFolder) {
         List<File> fileList = new ArrayList<>();
         int len = args.argsLength();
         List<String> filters = new ArrayList<>();
@@ -861,7 +935,7 @@ public class UtilityCommands extends MethodCommands {
                             }
                             if (!(callable instanceof Dispatcher)) {
                                 // TODO interactive box
-                                actor.printRaw(BBC.getPrefix() + ColorCodeBuilder.asColorCodes(new CommandUsageBox(callable, Joiner.on(" ").join(visited))));
+                                new UsageMessage(callable, Joiner.on(" ").join(visited)).send(actor);
                                 return;
                             }
                             dispatcher = (Dispatcher) callable;
@@ -928,10 +1002,9 @@ public class UtilityCommands extends MethodCommands {
                             s1.append(mapping.getPrimaryAlias());
                             String s2 = mapping.getDescription().getDescription();
                             if (c.testPermission(locals)) {
-                                // TODO interactive
-                                // Hover -> command help
-                                // Click -> Suggest command
                                 msg.text(BBC.HELP_ITEM_ALLOWED, s1, s2);
+                                String helpCmd = baseCommand + " " + mapping.getPrimaryAlias();
+                                msg.cmdTip(helpCmd);
                                 msg.newline();
                             } else {
                                 msg.text(BBC.HELP_ITEM_DENIED, s1, s2).newline();
@@ -945,7 +1018,7 @@ public class UtilityCommands extends MethodCommands {
                     msg.send(actor);
                 }
             } else {
-                actor.printRaw(BBC.getPrefix() + ColorCodeBuilder.asColorCodes(new CommandUsageBox(callable, Joiner.on(" ").join(visited))));
+                new UsageMessage(callable, Joiner.on(" ").join(visited)).send(actor);
             }
         } catch (Throwable e) {
             e.printStackTrace();

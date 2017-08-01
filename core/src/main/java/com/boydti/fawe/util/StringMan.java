@@ -296,14 +296,21 @@ public class StringMan {
     }
 
     public static String join(final Object[] array, final String delimiter) {
-        final StringBuilder result = new StringBuilder();
-        for (int i = 0, j = array.length; i < j; i++) {
-            if (i > 0) {
-                result.append(delimiter);
-            }
-            result.append(array[i]);
+        switch (array.length) {
+            case 0:
+                return "";
+            case 1:
+                return array[0].toString();
+            default:
+                final StringBuilder result = new StringBuilder();
+                for (int i = 0, j = array.length; i < j; i++) {
+                    if (i > 0) {
+                        result.append(delimiter);
+                    }
+                    result.append(array[i]);
+                }
+                return result.toString();
         }
-        return result.toString();
     }
 
     public static String join(final int[] array, final String delimiter) {

@@ -78,6 +78,7 @@ public class ParametricCallable implements CommandCallable {
         Annotation[][] annotations = method.getParameterAnnotations();
         String[] names = builder.getParanamer().lookupParameterNames(method, false);
         Type[] types = method.getGenericParameterTypes();
+
         parameters = new ParameterData[types.length];
         List<Parameter> userParameters = new ArrayList<Parameter>();
 

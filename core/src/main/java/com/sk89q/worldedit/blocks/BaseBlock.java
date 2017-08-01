@@ -25,6 +25,7 @@ import com.sk89q.jnbt.NBTInputStream;
 import com.sk89q.jnbt.NBTOutputStream;
 import com.sk89q.jnbt.StringTag;
 import com.sk89q.jnbt.Tag;
+import com.sk89q.minecraft.util.commands.Link;
 import com.sk89q.worldedit.CuboidClipboard.FlipDirection;
 import com.sk89q.worldedit.Vector;
 import com.sk89q.worldedit.WorldEditException;
@@ -63,6 +64,7 @@ import javax.annotation.Nullable;
  * more appropriate.</p>
  */
 @SuppressWarnings("deprecation")
+@Link(value = "http://minecraft-ids.grahamedgecombe.com")
 public class BaseBlock implements TileEntityBlock, Pattern, Serializable {
 
     /**

@@ -188,7 +188,7 @@ public class RegionCommands extends MethodCommands {
             max = 1
     )
     @CommandPermissions("worldedit.light.set")
-    public void setlighting(Player player, @Selection Region region, int value) {
+    public void setlighting(Player player, @Selection Region region, @Range(min = 0, max = 15) int value) {
         FawePlayer fp = FawePlayer.wrap(player);
         final FaweLocation loc = fp.getLocation();
         final int cx = loc.x >> 4;
@@ -212,7 +212,7 @@ public class RegionCommands extends MethodCommands {
             max = 1
     )
     @CommandPermissions("worldedit.light.set")
-    public void setskylighting(Player player, @Selection Region region, int value) {
+    public void setskylighting(Player player, @Selection Region region, @Range(min = 0, max = 15) int value) {
         FawePlayer fp = FawePlayer.wrap(player);
         final FaweLocation loc = fp.getLocation();
         final int cx = loc.x >> 4;
@@ -231,7 +231,7 @@ public class RegionCommands extends MethodCommands {
 
     @Command(
             aliases = {"/line"},
-            usage = "<block> [thickness]",
+            usage = "<pattern> [thickness]",
             desc = "Draws a line segment between cuboid selection corners",
             help =
                     "Draws a line segment between cuboid selection corners.\n" +
@@ -265,7 +265,7 @@ public class RegionCommands extends MethodCommands {
 
     @Command(
             aliases = {"/curve", "/spline"},
-            usage = "<block> [thickness]",
+            usage = "<pattern> [thickness]",
             desc = "Draws a spline through selected points",
             help =
                     "Draws a spline through selected points.\n" +
@@ -344,7 +344,7 @@ public class RegionCommands extends MethodCommands {
 
     @Command(
             aliases = {"/overlay"},
-            usage = "<block>",
+            usage = "<pattern>",
             desc = "Set a block on top of blocks in the region",
             min = 1,
             max = 1
@@ -359,7 +359,7 @@ public class RegionCommands extends MethodCommands {
 
     @Command(
             aliases = {"/lay"},
-            usage = "<block>",
+            usage = "<pattern>",
             desc = "Set the top block in the region",
             min = 1,
             max = 1
@@ -393,7 +393,7 @@ public class RegionCommands extends MethodCommands {
 
     @Command(
             aliases = {"/center", "/middle"},
-            usage = "<block>",
+            usage = "<pattern>",
             desc = "Set the center block(s)",
             min = 1,
             max = 1
@@ -422,7 +422,7 @@ public class RegionCommands extends MethodCommands {
 
     @Command(
             aliases = {"/walls"},
-            usage = "<block>",
+            usage = "<pattern>",
             desc = "Build the four sides of the selection",
             min = 1,
             max = 1
@@ -437,7 +437,7 @@ public class RegionCommands extends MethodCommands {
 
     @Command(
             aliases = {"/faces", "/outline"},
-            usage = "<block>",
+            usage = "<pattern>",
             desc = "Build the walls, ceiling, and floor of a selection",
             min = 1,
             max = 1
@@ -727,7 +727,7 @@ public class RegionCommands extends MethodCommands {
 
     @Command(
             aliases = {"/hollow"},
-            usage = "[<thickness>[ <block>]]",
+            usage = "[<thickness>[ <pattern>]]",
             desc = "Hollows out the object contained in this selection",
             help =
                     "Hollows out the object contained in this selection.\n" +

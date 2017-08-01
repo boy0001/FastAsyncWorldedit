@@ -78,6 +78,10 @@ subprojects {
     sourceCompatibility = 1.8
     targetCompatibility = 1.8
 
+    compileJava {
+        options.compilerArgs += ["-parameters"]
+    }
+
     repositories {
         mavenCentral()
         maven {url "http://repo.dmulloy2.net/content/groups/public/"}

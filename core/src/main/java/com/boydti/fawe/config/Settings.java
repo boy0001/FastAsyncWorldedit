@@ -74,6 +74,7 @@ public class Settings extends Config {
         public String TEXTURES = "textures";
         public String HEIGHTMAP = "heightmap";
         public String HISTORY = "history";
+        @Comment("Multiple servers can use the same clipboards")
         public String CLIPBOARD = "clipboard";
         @Comment("Each player has their own sub directory for schematics")
         public boolean PER_PLAYER_SCHEMATICS = true;
@@ -145,18 +146,19 @@ public class Settings extends Config {
                 " - Frees up a lot of memory",
                 " - Persists restarts",
                 " - Unlimited undo",
-                " - Enables the rollback command"
+                " - Does not affect edit performance if `combine-stages`",
         })
         public boolean USE_DISK = true;
         @Comment({
                 "Use a database to store disk storage summaries:",
-                " - Faster lookups and rollback from disk",
+                " - Enables inspection and rollback",
+                " - Does not impact performance",
         })
         public boolean USE_DATABASE = true;
         @Comment({
                 "Record history with dispatching:",
-                " - Faster as it avoids duplicate block checks",
-                " - Worse compression since dispatch order is different"
+                " - Much faster as it avoids duplicate block checks",
+                " - Slightly worse compression since dispatch order is different",
         })
         public boolean COMBINE_STAGES = true;
         @Comment({

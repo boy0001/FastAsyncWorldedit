@@ -506,7 +506,7 @@ public class BrushCommands extends MethodCommands {
 
     @Command(
             aliases = {"cylinder", "cyl", "c"},
-            usage = "<block> [radius=2] [height=1]",
+            usage = "<pattern> [radius=2] [height=1]",
             flags = "h",
             desc = "Creates a cylinder",
             help =
@@ -633,7 +633,7 @@ public class BrushCommands extends MethodCommands {
                             " - The `-r` flag enables random off-axis rotation\n" +
                             " - The `-l` flag will work on snow layers\n" +
                             " - The `-s` flag disables smoothing\n" +
-                            "Note: Note: Use a negative yscale to reduce height\n" +
+                            "Note: Use a negative yscale to reduce height\n" +
                             "Snow Pic: https://i.imgur.com/Hrzn0I4.png",
             min = 1,
             max = 4

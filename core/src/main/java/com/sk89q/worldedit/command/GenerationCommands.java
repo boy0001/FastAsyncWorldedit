@@ -164,7 +164,7 @@ public class GenerationCommands extends MethodCommands {
     )
     @CommandPermissions("worldedit.generation.ore")
     @Logging(PLACEMENT)
-    public void ore(FawePlayer player, LocalSession session, EditSession editSession, @Selection Region region, Mask mask, Pattern material, int size, int freq, int rarity, int minY, int maxY, CommandContext context) throws WorldEditException, ParameterException {
+    public void ore(FawePlayer player, LocalSession session, EditSession editSession, @Selection Region region, Mask mask, Pattern material, @Range(min = 0) int size, int freq, @Range(min = 0, max = 100) int rarity, @Range(min = 0, max = 255) int minY, @Range(min = 0, max = 255) int maxY, CommandContext context) throws WorldEditException, ParameterException {
         player.checkConfirmationRegion(getArguments(context), region);
         editSession.addOre(region, mask, material, size, freq, rarity, minY, maxY);
         BBC.VISITOR_BLOCK.send(player, editSession.getBlockChangeCount());
@@ -190,7 +190,7 @@ public class GenerationCommands extends MethodCommands {
 
     @Command(
             aliases = {"/cyl"},
-            usage = "<block> <radius>[,<radius>] [height]",
+            usage = "<pattern> <radius>[,<radius>] [height]",
             flags = "h",
             desc = "Generates a cylinder.",
             help =
@@ -235,7 +235,7 @@ public class GenerationCommands extends MethodCommands {
 
     @Command(
             aliases = {"/hsphere"},
-            usage = "<block> <radius>[,<radius>,<radius>] [raised?]",
+            usage = "<pattern> <radius>[,<radius>,<radius>] [raised?]",
             desc = "Generates a hollow sphere.",
             help =
                     "Generates a hollow sphere.\n" +
@@ -253,7 +253,7 @@ public class GenerationCommands extends MethodCommands {
 
     @Command(
             aliases = {"/sphere"},
-            usage = "<block> <radius>[,<radius>,<radius>] [raised?]",
+            usage = "<pattern> <radius>[,<radius>,<radius>] [raised?]",
             flags = "h",
             desc = "Generates a filled sphere.",
             help =
@@ -303,7 +303,7 @@ public class GenerationCommands extends MethodCommands {
 
     @Command(
             aliases = {"forestgen"},
-            usage = "[size] [type] [density]",
+            usage = "[size] [tree-type] [density]",
             desc = "Generate a forest",
             min = 0,
             max = 3
@@ -333,7 +333,7 @@ public class GenerationCommands extends MethodCommands {
 
     @Command(
             aliases = {"/hpyramid"},
-            usage = "<block> <size>",
+            usage = "<pattern> <size>",
             desc = "Generate a hollow pyramid",
             min = 2,
             max = 2
@@ -346,7 +346,7 @@ public class GenerationCommands extends MethodCommands {
 
     @Command(
             aliases = {"/pyramid"},
-            usage = "<block> <size>",
+            usage = "<pattern> <size>",
             flags = "h",
             desc = "Generate a filled pyramid",
             min = 2,
@@ -365,7 +365,7 @@ public class GenerationCommands extends MethodCommands {
 
     @Command(
             aliases = {"/generate", "/gen", "/g"},
-            usage = "<block> <expression>",
+            usage = "<pattern> <expression>",
             desc = "Generates a shape according to a formula.",
             help =
                     "Generates a shape according to a formula that is expected to\n" +

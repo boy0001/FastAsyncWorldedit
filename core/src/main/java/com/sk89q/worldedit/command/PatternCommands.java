@@ -53,6 +53,7 @@ import com.sk89q.worldedit.internal.expression.Expression;
 import com.sk89q.worldedit.internal.expression.ExpressionException;
 import com.sk89q.worldedit.regions.shape.WorldEditExpressionEnvironment;
 import com.sk89q.worldedit.session.ClipboardHolder;
+import com.sk89q.worldedit.util.command.binding.Range;
 import com.sk89q.worldedit.util.command.parametric.Optional;
 import com.sk89q.worldedit.world.biome.BaseBiome;
 import java.awt.Color;
@@ -263,7 +264,7 @@ public class PatternCommands extends MethodCommands {
             min = 2,
             max = 2
     )
-    public Pattern iddatamask(Actor actor, LocalSession session, Extent extent, int bitmask, Pattern pattern) {
+    public Pattern iddatamask(Actor actor, LocalSession session, Extent extent, @Range(min = 0, max = 15) int bitmask, Pattern pattern) {
         return new IdDataMaskPattern(extent, pattern, bitmask);
     }
 
