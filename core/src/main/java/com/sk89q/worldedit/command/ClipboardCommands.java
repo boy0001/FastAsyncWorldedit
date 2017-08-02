@@ -31,6 +31,7 @@ import com.boydti.fawe.object.io.FastByteArrayOutputStream;
 import com.boydti.fawe.object.schematic.Schematic;
 import com.boydti.fawe.util.ImgurUtility;
 import com.boydti.fawe.util.MaskTraverser;
+import com.boydti.fawe.util.chat.Message;
 import com.sk89q.minecraft.util.commands.Command;
 import com.sk89q.minecraft.util.commands.CommandContext;
 import com.sk89q.minecraft.util.commands.CommandException;
@@ -315,7 +316,7 @@ public class ClipboardCommands extends MethodCommands {
         if (url == null) {
             BBC.GENERATING_LINK_FAILED.send(player);
         } else {
-            BBC.DOWNLOAD_LINK.send(player, url.toString());
+            new Message(BBC.DOWNLOAD_LINK, url).link(url.getPath()).send(player);
         }
     }
 

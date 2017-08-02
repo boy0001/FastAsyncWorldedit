@@ -393,7 +393,7 @@ public final class CommandManager {
             BBC.NO_PERM.send(finalActor, StringMan.join(failedPermissions, " "));
         } catch (InvalidUsageException e) {
             if (e.isFullHelpSuggested()) {
-                UsageMessage usage = new UsageMessage(e.getCommand(), e.getCommandUsed("", ""), locals);
+                UsageMessage usage = new UsageMessage(e.getCommand(), e.getCommandUsed((WorldEdit.getInstance().getConfiguration().noDoubleSlash ? "" : "/"), ""), locals);
                 usage.send(fp);
                 String message = e.getMessage();
                 if (message != null) {

@@ -19,7 +19,6 @@
 
 package com.sk89q.worldedit.command;
 
-import com.boydti.fawe.Fawe;
 import com.boydti.fawe.FaweAPI;
 import com.boydti.fawe.config.BBC;
 import com.boydti.fawe.config.Commands;
@@ -47,8 +46,6 @@ import com.sk89q.worldedit.command.util.CreatureButcher;
 import com.sk89q.worldedit.command.util.EntityRemover;
 import com.sk89q.worldedit.entity.Entity;
 import com.sk89q.worldedit.entity.Player;
-import com.sk89q.worldedit.extension.factory.DefaultMaskParser;
-import com.sk89q.worldedit.extension.factory.DefaultTransformParser;
 import com.sk89q.worldedit.extension.factory.HashTagPatternParser;
 import com.sk89q.worldedit.extension.platform.Actor;
 import com.sk89q.worldedit.extension.platform.Capability;
@@ -118,16 +115,7 @@ public class UtilityCommands extends MethodCommands {
                     "More Info: https://git.io/vSPmA"
     )
     public void patterns(Player player, LocalSession session, CommandContext args) throws WorldEditException {
-        if (args.argsLength() == 0) {
-            String base = getCommand().aliases()[0];
-            UsageMessage msg = new UsageMessage(getCallable(), base, args.getLocals());
-            msg.newline().paginate(base, 0, 1).send(player);
-            return;
-        }
-        HashTagPatternParser parser = FaweAPI.getParser(HashTagPatternParser.class);
-        if (parser != null) {
-            UtilityCommands.help(args, worldEdit, player, getCommand().aliases()[0] + " ", parser.getDispatcher());
-        }
+        displayModifierHelp(player, args);
     }
 
     @Command(
@@ -142,16 +130,7 @@ public class UtilityCommands extends MethodCommands {
                     "More Info: https://git.io/v9r4K"
     )
     public void masks(Player player, LocalSession session, CommandContext args) throws WorldEditException {
-        if (args.argsLength() == 0) {
-            String base = getCommand().aliases()[0];
-            UsageMessage msg = new UsageMessage(getCallable(), base, args.getLocals());
-            msg.newline().paginate(base, 0, 1).send(player);
-            return;
-        }
-        DefaultMaskParser parser = FaweAPI.getParser(DefaultMaskParser.class);
-        if (parser != null) {
-            UtilityCommands.help(args, worldEdit, player, getCommand().aliases()[0] + " ", parser.getDispatcher());
-        }
+        displayModifierHelp(player, args);
     }
 
     @Command(
@@ -165,15 +144,29 @@ public class UtilityCommands extends MethodCommands {
                     "More Info: https://git.io/v9KHO"
     )
     public void transforms(Player player, LocalSession session, CommandContext args) throws WorldEditException {
+        displayModifierHelp(player, args);
+    }
+
+    private void displayModifierHelp(Player player, CommandContext args) {
         if (args.argsLength() == 0) {
             String base = getCommand().aliases()[0];
-            UsageMessage msg = new UsageMessage(getCallable(), base, args.getLocals());
+            UsageMessage msg = new UsageMessage(getCallable(), (WorldEdit.getInstance().getConfiguration().noDoubleSlash ? "" : "/") + base, args.getLocals());
             msg.newline().paginate(base, 0, 1).send(player);
             return;
         }
-        DefaultTransformParser parser = Fawe.get().getTransformParser();
+        HashTagPatternParser parser = FaweAPI.getParser(HashTagPatternParser.class);
         if (parser != null) {
-            UtilityCommands.help(args, worldEdit, player, getCommand().aliases()[0] + " ", parser.getDispatcher());
+            CommandMapping mapping = parser.getDispatcher().get(args.getString(0));
+            if (mapping != null) {
+                new UsageMessage(mapping.getCallable(), args.getString(0), args.getLocals()) {
+                    @Override
+                    public String separateArg(String arg) {
+                        return "&7[" + arg + "&7]";
+                    }
+                }.send(player);
+            } else {
+                UtilityCommands.help(args, worldEdit, player, getCommand().aliases()[0] + " ", parser.getDispatcher());
+            }
         }
     }
 
@@ -935,7 +928,7 @@ public class UtilityCommands extends MethodCommands {
                             }
                             if (!(callable instanceof Dispatcher)) {
                                 // TODO interactive box
-                                new UsageMessage(callable, Joiner.on(" ").join(visited)).send(actor);
+                                new UsageMessage(callable, (WorldEdit.getInstance().getConfiguration().noDoubleSlash ? "" : "/") + Joiner.on(" ").join(visited)).send(actor);
                                 return;
                             }
                             dispatcher = (Dispatcher) callable;
@@ -1018,7 +1011,7 @@ public class UtilityCommands extends MethodCommands {
                     msg.send(actor);
                 }
             } else {
-                new UsageMessage(callable, Joiner.on(" ").join(visited)).send(actor);
+                new UsageMessage(callable, (WorldEdit.getInstance().getConfiguration().noDoubleSlash ? "" : "/") + Joiner.on(" ").join(visited)).send(actor);
             }
         } catch (Throwable e) {
             e.printStackTrace();

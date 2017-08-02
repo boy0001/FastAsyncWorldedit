@@ -6,7 +6,6 @@ import com.boydti.fawe.util.MainUtil;
 import com.boydti.fawe.util.StringMan;
 import com.sk89q.minecraft.util.commands.CommandLocals;
 import com.sk89q.minecraft.util.commands.Link;
-import com.sk89q.worldedit.WorldEdit;
 import com.sk89q.worldedit.extension.platform.CommandManager;
 import com.sk89q.worldedit.util.command.CommandCallable;
 import com.sk89q.worldedit.util.command.CommandMapping;
@@ -70,6 +69,10 @@ public class UsageMessage extends Message {
         }
     }
 
+    public String separateArg(String arg) {
+        return " " + arg;
+    }
+
     private void attachCommandUsage(Description description, String commandString) {
         List<Parameter> params = description.getParameters();
         String[] usage;
@@ -96,12 +99,11 @@ public class UsageMessage extends Message {
 
         prefix();
         text("&cUsage: ");
-        commandString = (WorldEdit.getInstance().getConfiguration().noDoubleSlash ? "" : "/") + commandString;
         text("&7" + commandString);
         suggestTip(commandString + " ");
         for (int i = 0; i < usage.length; i++) {
             String argStr = usage[i];
-            text(" " + argStr.replaceAll("[\\[|\\]|<|>]", "&8$0&7"));
+            text(separateArg(argStr.replaceAll("[\\[|\\]|<|>]", "&0$0&7")));
 
             if (params.isEmpty()) continue;
             Parameter param = params.get(i);
