@@ -238,6 +238,8 @@ public class DiskOptimizedClipboard extends FaweClipboard implements Closeable {
             area = width * length;
             volume = width * length * height;
             long size = width * height * length * 2l + HEADER_SIZE + (hasBiomes() ? area : 0);
+            close();
+            this.braf = new RandomAccessFile(file, "rw");
             braf.setLength(size);
             init();
             mbb.putChar(2, (char) width);

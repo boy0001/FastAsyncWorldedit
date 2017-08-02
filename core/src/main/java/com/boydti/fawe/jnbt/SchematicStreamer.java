@@ -33,9 +33,15 @@ public class SchematicStreamer extends NBTStreamer {
                 setupClipboard(length);
             }
         };
+        NBTStreamReader initializer2 = new NBTStreamReader<Integer, Integer>() {
+            @Override
+            public void run(Integer length, Integer type) {
+                setupClipboard(length*2);
+            }
+        };
         addReader("Schematic.Blocks.?", initializer);
         addReader("Schematic.Data.?", initializer);
-        addReader("Schematic.AddBlocks.?", initializer);
+        addReader("Schematic.AddBlocks.?", initializer2);
         addReader("Schematic.Blocks.#", new ByteReader() {
             @Override
             public void run(int index, int value) {
