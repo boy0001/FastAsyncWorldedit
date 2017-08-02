@@ -2,6 +2,7 @@ package com.sk89q.worldedit.command;
 
 import com.boydti.fawe.Fawe;
 import com.boydti.fawe.config.BBC;
+import com.boydti.fawe.config.Commands;
 import com.boydti.fawe.object.brush.BrushSettings;
 import com.boydti.fawe.object.brush.TargetMode;
 import com.boydti.fawe.object.brush.scroll.ScrollAction;
@@ -137,8 +138,9 @@ public class BrushOptionsCommands extends MethodCommands {
     )
     @CommandPermissions("worldedit.brush.list")
     public void list(Actor actor, CommandContext args, @Switch('p') @Optional("1") int page) throws WorldEditException {
+        String baseCmd = Commands.getAlias(BrushCommands.class, "brush") + " " + Commands.getAlias(BrushOptionsCommands.class, "loadbrush");
         File dir = MainUtil.getFile(Fawe.imp().getDirectory(), "brushes");
-        UtilityCommands.list(dir, actor, args, page, null, true);
+        UtilityCommands.list(dir, actor, args, page, null, true, baseCmd);
     }
 
     @Command(

@@ -791,6 +791,12 @@ public class MainUtil {
         }
     }
 
+    public static boolean isInSubDirectory(File dir, File file) {
+        if (file == null) return false;
+        if (file.equals(dir)) return true;
+        return isInSubDirectory(dir, file.getParentFile());
+    }
+
     public static void iterateFiles(File directory, RunnableVal<File> task) {
         if (directory.exists()) {
             File[] files = directory.listFiles();

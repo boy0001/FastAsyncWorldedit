@@ -632,7 +632,7 @@ public class UtilityCommands extends MethodCommands {
         return null;
     }
 
-    public static void list(File dir, Actor actor, CommandContext args, @Range(min = 0) int page, String formatName, boolean playerFolder) {
+    public static void list(File dir, Actor actor, CommandContext args, @Range(min = 0) int page, String formatName, boolean playerFolder, String onClickCmd) {
         List<File> fileList = new ArrayList<>();
         int len = args.argsLength();
         List<String> filters = new ArrayList<>();
@@ -715,21 +715,30 @@ public class UtilityCommands extends MethodCommands {
             }
         });
 
-        List<String> schematics = listFiles(dir, files, playerFolder ? actor.getUniqueId() : null);
+        List<String[]> schematics = listFiles(dir, files, playerFolder ? actor.getUniqueId() : null);
         int offset = (page - 1) * perPage;
 
-        StringBuilder build = new StringBuilder();
         int limit = Math.min(offset + perPage, schematics.size());
-        for (int i = offset; i < limit; ) {
-            build.append(schematics.get(i));
-            if (++i != limit) {
-                build.append("\n");
-            }
-        }
-        String heading = BBC.SCHEMATIC_LIST.f(page, pageCount);
-        actor.print(BBC.getPrefix() + heading + "\n" + build.toString());
-    }
 
+        String fullArgs = (String) args.getLocals().get("arguments");
+        String baseCmd = null;
+        if (fullArgs != null) {
+            baseCmd = fullArgs.endsWith(" " + page) ? fullArgs.substring(0, fullArgs.length() - (" " + page).length()) : fullArgs;
+        }
+        Message m = new Message(BBC.SCHEMATIC_LIST, page, pageCount);
+
+        for (int i = offset; i < limit; i++) {
+            String[] fileinfo = schematics.get(i);
+            String fileName = fileinfo[0];
+            String fileFormat = fileinfo[1];
+            m.newline().text(BBC.SCHEMATIC_LIST_ELEM, fileName, formatName);
+            if (onClickCmd != null) m.cmdTip(onClickCmd + " " + fileName);
+        }
+        if (baseCmd != null) {
+            m.newline().paginate(baseCmd, page, pageCount);
+        }
+        m.send(actor);
+    }
 
     private static List<File> allFiles(File root, boolean recursive) {
         File[] files = root.listFiles();
@@ -749,14 +758,15 @@ public class UtilityCommands extends MethodCommands {
         return fileList;
     }
 
-    private static List<String> listFiles(File root, File[] files, UUID uuid) {
+    private static List<String[]> listFiles(File root, File[] files, UUID uuid) {
+        // List Elem [ File Name, Format Name ]
         File dir;
         if (uuid != null) {
             dir = new File(root, uuid.toString());
         } else {
             dir = root;
         }
-        List<String> result = new ArrayList<String>();
+        List<String[]> result = new ArrayList<>();
         for (File file : files) {
             ClipboardFormat format = ClipboardFormat.findByFile(file);
             URI relative = dir.toURI().relativize(file.toURI());
@@ -773,7 +783,7 @@ public class UtilityCommands extends MethodCommands {
             } else {
                 formatName = format.toString();
             }
-            result.add(BBC.SCHEMATIC_LIST_ELEM.f(name, formatName));
+            result.add(new String[] {name, formatName} );
         }
         return result;
     }

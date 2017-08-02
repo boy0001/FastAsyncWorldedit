@@ -21,11 +21,13 @@ package com.sk89q.worldedit.command;
 
 import com.boydti.fawe.Fawe;
 import com.boydti.fawe.config.BBC;
+import com.boydti.fawe.config.Commands;
 import com.boydti.fawe.config.Settings;
 import com.boydti.fawe.object.clipboard.ClipboardRemapper;
 import com.boydti.fawe.object.clipboard.MultiClipboardHolder;
 import com.boydti.fawe.object.schematic.StructureFormat;
 import com.boydti.fawe.util.MainUtil;
+import com.boydti.fawe.util.chat.Message;
 import com.sk89q.minecraft.util.commands.Command;
 import com.sk89q.minecraft.util.commands.CommandContext;
 import com.sk89q.minecraft.util.commands.CommandException;
@@ -61,22 +63,15 @@ import java.nio.file.Files;
 import java.util.UUID;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-
-
-import static com.google.common.base.Preconditions.checkNotNull;
+import java.util.regex.Pattern;
 
 /**
  * Commands that work with schematic files.
  */
 @Command(aliases = {"schematic", "schem", "/schematic", "/schem"}, desc = "Commands that work with schematic files")
-public class SchematicCommands {
-
-    /**
-     * 9 schematics per page fits in the MC chat window.
-     */
+public class SchematicCommands extends MethodCommands {
 
     private static final Logger log = Logger.getLogger(SchematicCommands.class.getCanonicalName());
-    private final WorldEdit worldEdit;
 
     /**
      * Create a new instance.
@@ -84,8 +79,7 @@ public class SchematicCommands {
      * @param worldEdit reference to WorldEdit
      */
     public SchematicCommands(final WorldEdit worldEdit) {
-        checkNotNull(worldEdit);
-        this.worldEdit = worldEdit;
+        super(worldEdit);
     }
 
     @Command(
@@ -137,7 +131,7 @@ public class SchematicCommands {
     @Command(aliases = {"load"}, usage = "[<format>] <filename>", desc = "Load a schematic into your clipboard")
     @Deprecated
     @CommandPermissions({"worldedit.clipboard.load", "worldedit.schematic.load", "worldedit.schematic.upload", "worldedit.schematic.load.other"})
-    public void load(final Player player, final LocalSession session, @Optional("schematic") final String formatName, final String filename) throws FilenameException {
+    public void load(final Player player, final LocalSession session, @Optional("schematic") final String formatName, String filename) throws FilenameException {
         final LocalConfiguration config = this.worldEdit.getConfiguration();
         final ClipboardFormat format = ClipboardFormat.findByAlias(formatName);
         if (format == null) {
@@ -161,13 +155,25 @@ public class SchematicCommands {
                     BBC.NO_PERM.send(player, "worldedit.clipboard.load");
                     return;
                 }
-                if (filename.contains("../") && !player.hasPermission("worldedit.schematic.load.other")) {
-                    BBC.NO_PERM.send(player, "worldedit.schematic.load.other");
-                    return;
-                }
                 File working = this.worldEdit.getWorkingDirectoryFile(config.saveDir);
                 File dir = Settings.IMP.PATHS.PER_PLAYER_SCHEMATICS ? new File(working, player.getUniqueId().toString()) : working;
-                File f = this.worldEdit.getSafeSaveFile(player, dir, filename, format.getExtension(), format.getExtension());
+                File f;
+                if (filename.startsWith("#")) {
+                    f = player.openFileOpenDialog(new String[] { format.getExtension() });
+                    if (!f.exists()) {
+                        player.printError("Schematic " + filename + " does not exist!");
+                        return;
+                    }
+                } else {
+                    if (Settings.IMP.PATHS.PER_PLAYER_SCHEMATICS && Pattern.compile("[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}").matcher(filename).find() && !player.hasPermission("worldedit.schematic.load.other")) {
+                        BBC.NO_PERM.send(player, "worldedit.schematic.load.other");
+                        return;
+                    }
+                    if (!filename.matches(".*\\.[\\w].*")) {
+                        filename += "." + format.getExtension();
+                    }
+                    f = new File(dir, filename);
+                }
                 if (f.getName().replaceAll("." + format.getExtension(), "").isEmpty()) {
                     File directory = f.getParentFile();
                     if (directory.exists()) {
@@ -178,19 +184,14 @@ public class SchematicCommands {
                     }
                 }
                 if (!f.exists()) {
-                    if ((!filename.contains("/") && !filename.contains("\\")) || player.hasPermission("worldedit.schematic.load.other")) {
+                    if (!filename.contains("../")) {
                         dir = this.worldEdit.getWorkingDirectoryFile(config.saveDir);
                         f = this.worldEdit.getSafeSaveFile(player, dir, filename, format.getExtension(), format.getExtension());
                     }
-                    if (!f.exists()) {
-                        player.printError("Schematic " + filename + " does not exist!");
-                        return;
-                    }
                 }
-                final String filePath = f.getCanonicalPath();
-                final String dirPath = dir.getCanonicalPath();
-                if (!filePath.substring(0, dirPath.length()).equals(dirPath)) {
-                    player.printError("Clipboard file could not read or it does not exist.");
+                if (!f.exists() || !MainUtil.isInSubDirectory(working, f)) {
+                    player.printError("Schematic " + filename + " does not exist!");
+                    return;
                 }
                 in = new FileInputStream(f);
             }
@@ -222,7 +223,7 @@ public class SchematicCommands {
         }
     }
 
-    @Command(aliases = {"save"}, usage = "[<format>] <filename>", desc = "Save a schematic into your clipboard")
+    @Command(aliases = {"save"}, usage = "[format] <filename>", desc = "Save a schematic into your clipboard")
     @Deprecated
     @CommandPermissions({"worldedit.clipboard.save", "worldedit.schematic.save", "worldedit.schematic.save.other"})
     public void save(final Player player, final LocalSession session, @Optional("schematic") final String formatName, String filename) throws CommandException, WorldEditException {
@@ -323,10 +324,11 @@ public class SchematicCommands {
     @CommandPermissions("worldedit.schematic.formats")
     public void formats(final Actor actor) throws WorldEditException {
         BBC.SCHEMATIC_FORMAT.send(actor);
-        StringBuilder builder;
+        Message m = new Message(BBC.SCHEMATIC_FORMAT).newline();
+        String baseCmd = Commands.getAlias(SchematicCommands.class, "schematic") + " " + Commands.getAlias(SchematicCommands.class, "save");
         boolean first = true;
         for (final ClipboardFormat format : ClipboardFormat.values()) {
-            builder = new StringBuilder();
+            StringBuilder builder = new StringBuilder();
             builder.append(format.name()).append(": ");
             for (final String lookupName : format.getAliases()) {
                 if (!first) {
@@ -335,9 +337,11 @@ public class SchematicCommands {
                 builder.append(lookupName);
                 first = false;
             }
+            String cmd = baseCmd + " " + format.name() + " <filename>";
+            m.text(builder).suggestTip(cmd).newline();
             first = true;
-            actor.print(BBC.getPrefix() + builder.toString());
         }
+        m.send(actor);
     }
 
     // schem list all|mine|global page
@@ -355,8 +359,9 @@ public class SchematicCommands {
     )
     @CommandPermissions("worldedit.schematic.list")
     public void list(Actor actor, CommandContext args, @Switch('p') @Optional("1") int page, @Switch('f') String formatName) throws WorldEditException {
+        String baseCmd = Commands.getAlias(SchematicCommands.class, "schematic") + " " + Commands.getAlias(SchematicCommands.class, "load");
         File dir = worldEdit.getWorkingDirectoryFile(worldEdit.getConfiguration().saveDir);
-        UtilityCommands.list(dir, actor, args, page, formatName, Settings.IMP.PATHS.PER_PLAYER_SCHEMATICS);
+        UtilityCommands.list(dir, actor, args, page, formatName, Settings.IMP.PATHS.PER_PLAYER_SCHEMATICS, baseCmd);
     }
 
     public static Class<?> inject() {
