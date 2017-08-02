@@ -731,7 +731,7 @@ public class UtilityCommands extends MethodCommands {
             String[] fileinfo = schematics.get(i);
             String fileName = fileinfo[0];
             String fileFormat = fileinfo[1];
-            m.newline().text(BBC.SCHEMATIC_LIST_ELEM, fileName, formatName);
+            m.newline().text(BBC.SCHEMATIC_LIST_ELEM, fileName, fileFormat);
             if (onClickCmd != null) m.cmdTip(onClickCmd + " " + fileName);
         }
         if (baseCmd != null) {
