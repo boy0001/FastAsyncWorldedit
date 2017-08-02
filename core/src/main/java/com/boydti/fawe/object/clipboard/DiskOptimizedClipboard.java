@@ -238,6 +238,8 @@ public class DiskOptimizedClipboard extends FaweClipboard implements Closeable {
             area = width * length;
             volume = width * length * height;
             long size = width * height * length * 2l + HEADER_SIZE + (hasBiomes() ? area : 0);
+            close();
+            this.braf = new RandomAccessFile(file, "rw");
             braf.setLength(size);
             init();
             mbb.putChar(2, (char) width);
@@ -519,9 +521,8 @@ public class DiskOptimizedClipboard extends FaweClipboard implements Closeable {
         int index = (HEADER_SIZE) + (i << 1);
         // 00000000 00000000
         // [    id     ]data
-        byte id2 = mbb.get(index + 1);
-        mbb.put(index, (byte) (id >> 4));
-        mbb.put(index + 1, (byte) (((id & 0xFF) << 4) + (id2 & 0xFF)));
+        char combined = mbb.getChar(index);
+        mbb.putChar(index, (char) ((combined & 0xF00F) + (id << 4)));
     }
 
     public void setCombined(int i, int combined) {
@@ -534,7 +535,7 @@ public class DiskOptimizedClipboard extends FaweClipboard implements Closeable {
         // 00000000 00000000
         // [    id     ]data
         char combined = mbb.getChar(index);
-        mbb.putChar(index, (char) ((combined & 0xFFFF) + (add << 12)));
+        mbb.putChar(index, (char) ((combined & 0x0FFF) + (add << 12)));
     }
 
     @Override
