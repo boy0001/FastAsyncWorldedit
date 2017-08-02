@@ -65,7 +65,7 @@ public class UsageMessage extends Message {
             newline();
             String cmd = prefix + mapping.getPrimaryAlias();
             text((perm ? BBC.HELP_ITEM_ALLOWED : BBC.HELP_ITEM_DENIED).format(cmd, mapping.getDescription().getDescription()));
-            cmdTip(cmd);
+            command(cmd);
         }
     }
 
