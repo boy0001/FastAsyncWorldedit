@@ -192,14 +192,12 @@ public class BrushTool implements DoubleActionTraceTool, ScrollTool, MovableTool
 
     public void setPrimary(BrushSettings primary) {
         checkNotNull(primary);
-        if (this.secondary.getBrush() == null) this.secondary = primary;
         this.primary = primary;
         this.context = primary;
     }
 
     public void setSecondary(BrushSettings secondary) {
         checkNotNull(secondary);
-        if (this.primary.getBrush() == null) this.primary = secondary;
         this.secondary = secondary;
         this.context = secondary;
     }

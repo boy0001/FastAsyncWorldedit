@@ -817,8 +817,6 @@ public class UtilityCommands extends MethodCommands {
                 }
             } catch (NumberFormatException ignored) {
             }
-            String baseCommand = (prefix.equals("/") ? Commands.getAlias(UtilityCommands.class, "/help") : prefix);
-            if (effectiveLength > 0) baseCommand += " " + args.getString(0, effectiveLength - 1);
 
             boolean isRootLevel = true;
             List<String> visited = new ArrayList<String>();
@@ -966,7 +964,7 @@ public class UtilityCommands extends MethodCommands {
                             msg.newline();
                         }
                         msg.text(BBC.HELP_FOOTER).link("https://git.io/vSKE5").newline();
-                        msg.paginate(baseCommand, 0, 1);
+                        msg.paginate((prefix.equals("/") ? Commands.getAlias(UtilityCommands.class, "/help") : prefix), 0, 1);
                         msg.send(actor);
                         return;
                     }
@@ -989,7 +987,6 @@ public class UtilityCommands extends MethodCommands {
                         int end = Math.min(offset + perPage, aliases.size());
                         List<CommandMapping> subAliases = aliases.subList(offset, end);
                         List<String> subPrefixes = prefixes.subList(offset, end);
-
                         boolean first = true;
                         // Add each command
                         for (int i = 0; i < subAliases.size(); i++) {
@@ -1006,7 +1003,7 @@ public class UtilityCommands extends MethodCommands {
                             String s2 = mapping.getDescription().getDescription();
                             if (c.testPermission(locals)) {
                                 msg.text(BBC.HELP_ITEM_ALLOWED, s1, s2);
-                                String helpCmd = baseCommand + " " + mapping.getPrimaryAlias();
+                                String helpCmd = (prefix.equals("/") ? Commands.getAlias(UtilityCommands.class, "/help") + " " : "") + s1;
                                 msg.cmdTip(helpCmd);
                                 msg.newline();
                             } else {
@@ -1016,6 +1013,8 @@ public class UtilityCommands extends MethodCommands {
                         if (args.argsLength() == 0) {
                             msg.text(BBC.HELP_FOOTER).newline();
                         }
+                        String baseCommand = (prefix.equals("/") ? Commands.getAlias(UtilityCommands.class, "/help") : prefix);
+                        if (effectiveLength > 0) baseCommand += " " + args.getString(0, effectiveLength - 1);
                         msg.paginate(baseCommand, page + 1, pageTotal);
                     }
                     msg.send(actor);
