@@ -1,14 +1,13 @@
 package com.boydti.fawe.util;
 
+import com.boydti.fawe.Fawe;
 import java.io.DataInputStream;
 import java.io.IOException;
+import java.math.BigInteger;
 import java.net.URL;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.Arrays;
-
-import com.boydti.fawe.Fawe;
-import com.google.common.io.BaseEncoding;
 
 public enum Jars {
     WE_B_6_1_7_2("https://addons.cursecdn.com/files/2431/372/worldedit-bukkit-6.1.7.2.jar",
@@ -48,12 +47,12 @@ public enum Jars {
             MessageDigest md;
             md = MessageDigest.getInstance("SHA-256");
             byte[] thisDigest = md.digest(jarBytes);
-            byte[] realDigest = BaseEncoding.base16().decode(this.digest.toUpperCase());
+            byte[] realDigest = new BigInteger(this.digest.toUpperCase(), 16).toByteArray();
 
             if (Arrays.equals(thisDigest, realDigest)) {
                 Fawe.debug("++++ HASH CHECK ++++");
                 Fawe.debug(this.url);
-                Fawe.debug(BaseEncoding.base16().encode(thisDigest));
+                Fawe.debug(javax.xml.bind.DatatypeConverter.printHexBinary(thisDigest));
                 return jarBytes;
             } else {
                 throw new IllegalStateException("downloaded jar does not match the hash");
@@ -62,6 +61,5 @@ public enum Jars {
             // Shouldn't ever happen, Minecraft won't even run on such a JRE
             throw new IllegalStateException("Your JRE does not support SHA-256");
         }
-
     }
 }
