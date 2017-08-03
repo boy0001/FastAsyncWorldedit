@@ -97,7 +97,7 @@ public class BrushTool implements DoubleActionTraceTool, ScrollTool, MovableTool
 
         VisualMode visual = VisualMode.valueOf((String) root.getOrDefault("visual", "NONE"));
         TargetMode target = TargetMode.valueOf((String) root.getOrDefault("target", "TARGET_BLOCK_RANGE"));
-        int range = (int) root.getOrDefault("range", -1);
+        int range = (int) (double) root.getOrDefault("range", -1);
 
         BrushTool tool = new BrushTool();
         tool.visualMode = visual;
