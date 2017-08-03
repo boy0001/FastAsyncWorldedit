@@ -356,6 +356,13 @@ public class ClipboardCommands extends MethodCommands {
         }
     }
 
+    @Deprecated
+    public void paste(Player player, LocalSession session, EditSession editSession,
+                      @Switch('a') boolean ignoreAirBlocks, @Switch('o') boolean atOrigin,
+                      @Switch('s') boolean selectPasted) throws WorldEditException {
+        this.paste(player, session, editSession, ignoreAirBlocks, false, false, atOrigin, selectPasted);
+    }
+
     @Command(
             aliases = {"/paste"},
             usage = "",
