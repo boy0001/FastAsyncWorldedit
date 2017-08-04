@@ -488,7 +488,11 @@ public class BukkitChunk_1_12 extends CharFaweChunk<Chunk, BukkitQueue_1_12> {
                     tag.set("x", new NBTTagInt(x));
                     tag.set("y", new NBTTagInt(y));
                     tag.set("z", new NBTTagInt(z));
-                    tileEntity.a(tag); // ReadTagIntoTile
+                    if (BukkitQueue_1_12.methodTileEntityLoad != null) {
+                        BukkitQueue_1_12.methodTileEntityLoad.invoke(tileEntity, tag);  // ReadTagIntoTile
+                    } else {
+                        tileEntity.load(tag);
+                    }
                 }
             }
             // Change task
