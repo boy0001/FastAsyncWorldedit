@@ -315,7 +315,7 @@ public class ClipboardCommands extends MethodCommands {
         if (url == null) {
             BBC.GENERATING_LINK_FAILED.send(player);
         } else {
-            BBC.DOWNLOAD_LINK.send(player, url.getPath());
+            BBC.DOWNLOAD_LINK.send(player, url);
         }
     }
 
