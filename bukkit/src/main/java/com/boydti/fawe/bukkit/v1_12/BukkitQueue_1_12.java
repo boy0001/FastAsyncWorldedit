@@ -97,6 +97,7 @@ public class BukkitQueue_1_12 extends BukkitQueue_0<net.minecraft.server.v1_12_R
     protected static Field fieldPalette;
     protected static Field fieldSize;
     protected static Method getEntitySlices;
+    protected static Method methodTileEntityLoad;
     protected static Field fieldTickingBlockCount;
     protected static Field fieldNonEmptyBlockCount;
     protected static Field fieldSection;
@@ -149,6 +150,11 @@ public class BukkitQueue_1_12 extends BukkitQueue_0<net.minecraft.server.v1_12_R
             fieldPalette.setAccessible(true);
             fieldSize = DataPaletteBlock.class.getDeclaredField("e");
             fieldSize.setAccessible(true);
+
+            try {
+                methodTileEntityLoad = TileEntity.class.getDeclaredMethod("a", NBTTagCompound.class);
+                methodTileEntityLoad.setAccessible(true);
+            } catch (Throwable ignore) {}
 
             Field fieldAir = DataPaletteBlock.class.getDeclaredField("a");
             fieldAir.setAccessible(true);

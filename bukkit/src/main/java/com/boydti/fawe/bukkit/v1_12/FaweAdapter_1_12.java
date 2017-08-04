@@ -64,6 +64,7 @@ public final class FaweAdapter_1_12 implements BukkitImplAdapter
     private final Logger logger = Logger.getLogger(getClass().getCanonicalName());
     private final Field nbtListTagListField;
     private final Method nbtCreateTagMethod;
+    protected static Method methodTileEntityLoad;
 
     public FaweAdapter_1_12() throws NoSuchFieldException, NoSuchMethodException {
         this.nbtListTagListField = NBTTagList.class.getDeclaredField("list");
@@ -71,11 +72,23 @@ public final class FaweAdapter_1_12 implements BukkitImplAdapter
 
         this.nbtCreateTagMethod = NBTBase.class.getDeclaredMethod("createTag", new Class[] { Byte.TYPE });
         this.nbtCreateTagMethod.setAccessible(true);
+        try {
+            methodTileEntityLoad = TileEntity.class.getDeclaredMethod("a", NBTTagCompound.class);
+            methodTileEntityLoad.setAccessible(true);
+        } catch (Throwable ignore) {}
     }
 
     private static void readTagIntoTileEntity(NBTTagCompound tag, TileEntity tileEntity)
     {
-        tileEntity.a(tag);
+        if (methodTileEntityLoad != null) {
+            try {
+                methodTileEntityLoad.invoke(tileEntity, tag);  // ReadTagIntoTile
+            } catch (Throwable e) {
+                e.printStackTrace();
+            }
+        } else {
+            tileEntity.load(tag);
+        }
     }
 
     private static void readTileEntityIntoTag(TileEntity tileEntity, NBTTagCompound tag)
