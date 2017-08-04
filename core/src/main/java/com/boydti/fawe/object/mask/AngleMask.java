@@ -54,14 +54,14 @@ public class AngleMask extends SolidBlockMask implements ResettableMask {
 
     public int getHeight(int x, int y, int z) {
         try {
-            int rx = x - cacheBotX;
-            int rz = z - cacheBotZ;
+            int rx = x - cacheBotX + 16;
+            int rz = z - cacheBotZ + 16;
             int index;
-            if (((rx + 16) & 0xFF) != rx + 16 || ((rz + 16) & 0xFF) != rz + 16) {
+            if (((rx & 0xFF) != rx || (rz & 0xFF) != rz)) {
                 cacheBotX = x - 16;
                 cacheBotZ = z - 16;
-                rx = x - cacheBotX;
-                rz = z - cacheBotZ;
+                rx = x - cacheBotX + 16;
+                rz = z - cacheBotZ + 16;
                 index = rx + (rz << 8);
                 if (cacheHeights == null) {
                     cacheHeights = new byte[65536];
