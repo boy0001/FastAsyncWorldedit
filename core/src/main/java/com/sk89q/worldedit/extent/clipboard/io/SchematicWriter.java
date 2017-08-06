@@ -222,7 +222,7 @@ public class SchematicWriter implements ClipboardWriter {
                     clipboard.IMP.streamIds(new NBTStreamer.ByteReader() {
                         @Override
                         public void run(int index, int byteValue) {
-                            if (write[0] ^= true) {
+                            if (write[0]) {
                                 try {
                                     rawStream.write(((byteValue >> 8) << 4) + (lastAdd[0]));
                                 } catch (IOException e) {
@@ -231,6 +231,7 @@ public class SchematicWriter implements ClipboardWriter {
                             } else {
                                 lastAdd[0] = byteValue >> 8;
                             }
+                            write[0] ^= true;
                         }
                     });
                     if (write[0]) {
