@@ -334,7 +334,7 @@ public class BukkitChunk_1_7 extends CharFaweChunk<Chunk, BukkitQueue17> {
                 NibbleArray currentDataArray = (NibbleArray) BukkitQueue17.fieldData.get(section);
                 boolean data = currentDataArray != null && newDataArray != null;
                 if (currentDataArray == null) {
-                    byte compactData = (byte) section.getData(0, 0, 0);
+                    int compactData = ((byte) BukkitQueue17.fieldCompactData.get(section)) & 0xFF;
                     if (compactData != 0 && newDataArray == null) {
                         newDataArray = new NibbleArray(new byte[2048], 4);
                         byte full = (byte) ((compactData << 4) + compactData);
@@ -358,13 +358,13 @@ public class BukkitChunk_1_7 extends CharFaweChunk<Chunk, BukkitQueue17> {
                                 int i2 = i << 1;
                                 int i3 = i2 + 1;
                                 byte val = newDataArray.a[i];
-                                if (charArray[i3] != 0) {
-                                    if (charArray[i2] != 0) continue;
+                                if (newIdArray[i3] != 0) {
+                                    if (newIdArray[i2] != 0) continue;
                                     newDataArray.a[i] = (byte) (val & 240 | compactData);
                                     continue;
                                 }
-                                if (charArray[i2] != 0) {
-                                    if (charArray[i3] != 0) continue;
+                                if (newIdArray[i2] != 0) {
+                                    if (newIdArray[i3] != 0) continue;
                                     newDataArray.a[i] = (byte) (val & 15 | (compactData) << 4);
                                     continue;
                                 }
@@ -374,53 +374,54 @@ public class BukkitChunk_1_7 extends CharFaweChunk<Chunk, BukkitQueue17> {
                         section.setDataArray(null);
                         section.setDataArray(newDataArray);
                     }
-                }
-                if (currentIdArray == null && newIdArray != null) {
-                    int id = (int) BukkitQueue17.fieldCompactId.get(section);
-                    if (id == 0) {
-                        section.setIdArray(null);
-                        section.setIdArray(newIdArray);
-                        getParent().setCount(0, count - this.getAir(j), section);
-                        continue;
-                    } else {
-                        currentIdArray = section.getIdArray();
-                    }
-                }
-                int nonEmptyBlockCount = 0;
-                for (int k = 0; k < newIdArray.length; k++) {
-                    char combined = charArray[k];
-                    switch (combined) {
-                        case 0:
-                            continue;
-                        case 1: {
-                            byte existing = currentIdArray[k];
-                            if (existing != 0) {
-                                currentIdArray[k] = 0;
-                                nonEmptyBlockCount--;
-                            }
+                } else if (newDataArray == null) {
+                    for (int i = 0; i < currentDataArray.a.length; i++) {
+                        int i2 = i << 1;
+                        int i3 = i2 + 1;
+                        byte val = currentDataArray.a[i];
+                        if (newIdArray[i3] == 0) {
+                            if (newIdArray[i2] != 0) currentDataArray.a[i] = (byte) (val & 240);
                             continue;
                         }
-                        default:
-                            byte existing = currentIdArray[k];
-                            if (existing != 0) {
-                                // TODO unlight
-                            } else {
-                                nonEmptyBlockCount++;
-                            }
-                            currentIdArray[k] = newIdArray[k];
-                            if (data) {
-                                int dataByte = FaweCache.getData(combined);
-                                int kShift = k >> 1;
-                                if ((k & 1) == 0) {
-                                    currentDataArray.a[kShift] = (byte) (currentDataArray.a[kShift] & 240 | dataByte);
-                                } else {
-                                    currentDataArray.a[kShift] = (byte) (currentDataArray.a[kShift] & 15 | (dataByte) << 4);
-                                }
-                            }
+                        if (newIdArray[i2] == 0) {
+                            if (newIdArray[i3] != 0) currentDataArray.a[i] = (byte) (val & 15);
                             continue;
+                        }
+                        currentDataArray.a[i] = 0;
                     }
                 }
-                getParent().setCount(0, getParent().getNonEmptyBlockCount(section) + nonEmptyBlockCount, section);
+                int solid = 0;
+                if (currentIdArray == null) {
+                    byte id = (byte) ((int) BukkitQueue17.fieldCompactId.get(section));
+                    if (id != 0) {
+                        solid = 4096;
+                        for (int i = 0; i < 4096; i++) {
+                            if (charArray[i] == 0) newIdArray[i] = id;
+                            else if (newIdArray[i] == 0) solid--;
+                        }
+                    } else {
+                        for (int i = 0; i < 4096; i++) if (newIdArray[i] != 0) solid++;
+                    }
+                    section.setIdArray(null);
+                    section.setIdArray(newIdArray);
+                } else {
+                    for (int i = 0; i < 4096; i++) {
+                        if (charArray[i] != 0) currentIdArray[i] = newIdArray[i];
+                    }
+                    for (int i = 0; i < 4096; i++) if (currentIdArray[i] != 0) solid++;
+                }
+                if (data) {
+                    for (int k = 0; k < 4096; k++) {
+                        int dataByte = FaweCache.getData(charArray[k]);
+                        int kShift = k >> 1;
+                        if ((k & 1) == 0) {
+                            currentDataArray.a[kShift] = (byte) (currentDataArray.a[kShift] & 240 | dataByte);
+                        } else {
+                            currentDataArray.a[kShift] = (byte) (currentDataArray.a[kShift] & 15 | (dataByte) << 4);
+                        }
+                    }
+                }
+                getParent().setCount(0, solid, section);
             }
 
             // Set biomes

@@ -70,6 +70,7 @@ public class BukkitQueue17 extends BukkitQueue_0<net.minecraft.server.v1_7_R4.Ch
     protected static Field fieldData;
     protected static Field fieldIds;
     protected static Field fieldCompactId;
+    protected static Field fieldCompactData;
     protected static Field fieldTickingBlockCount;
     protected static Field fieldNonEmptyBlockCount;
     protected static Field fieldBiomes;
@@ -91,6 +92,8 @@ public class BukkitQueue17 extends BukkitQueue_0<net.minecraft.server.v1_7_R4.Ch
             fieldIds.setAccessible(true);
             fieldCompactId = ChunkSection.class.getDeclaredField("compactId");
             fieldCompactId.setAccessible(true);
+            fieldCompactData = ChunkSection.class.getDeclaredField("compactData");
+            fieldCompactData.setAccessible(true);
             fieldTickingBlockCount = ChunkSection.class.getDeclaredField("tickingBlockCount");
             fieldNonEmptyBlockCount = ChunkSection.class.getDeclaredField("nonEmptyBlockCount");
             fieldTickingBlockCount.setAccessible(true);
