@@ -1,6 +1,7 @@
 package com.boydti.fawe.forge;
 
 import com.boydti.fawe.Fawe;
+import com.boydti.fawe.config.Settings;
 import com.boydti.fawe.object.FaweCommand;
 import com.boydti.fawe.object.FawePlayer;
 import java.io.File;
@@ -32,6 +33,10 @@ public class ForgeMain {
         MinecraftForge.EVENT_BUS.register(this);
         FMLCommonHandler.instance().bus().register(this);
         this.IMP = new FaweForge(this, event.getModLog(), event.getModMetadata(), directory);
+        try {
+            Class.forName("org.spongepowered.api.Sponge");
+            Settings.IMP.QUEUE.PARALLEL_THREADS = 1;
+        } catch (Throwable ignore) {}
     }
 
     @Mod.EventHandler

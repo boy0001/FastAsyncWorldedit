@@ -124,16 +124,18 @@ public class Settings extends Config {
         })
         public int SPEED_REDUCTION = 0;
         @Comment({
+                "Place chunks instead of individual blocks:",
+                " - Disabling this will negatively impact performance",
+                " - Only disable this for compatibility or cinematic placement",
+        })
+        public boolean FAST_PLACEMENT = true;
+        @Comment({
                 "Should WorldEdit use inventory?",
                 "0 = No inventory usage (creative)",
                 "1 = Inventory for removing and placing (freebuild)",
                 "2 = Inventory for placing (survival)",
         })
         public int INVENTORY_MODE = 0;
-        @Comment({
-                "Place chunks instead of individual blocks"
-        })
-        public boolean FAST_PLACEMENT = true;
         @Comment({
                 "Should large edits require confirmation (>16384 chunks)",
         })
@@ -271,7 +273,7 @@ public class Settings extends Config {
                 " - E.g. A plugin creates an EditSession but never does anything with it",
                 " - This only applies to plugins improperly using WorldEdit's legacy API"
         })
-        public static int DISCARD_AFTER_MS = 60000;
+        public int DISCARD_AFTER_MS = 60000;
 
         public static class PROGRESS {
             @Comment({"Display constant titles about the progress of a user's edit",
@@ -377,7 +379,7 @@ public class Settings extends Config {
                 " - 1 = Optimal (Relight changed light sources and changed blocks)",
                 " - 2 = All (Slowly relight every blocks)"
         })
-        public static int MODE = 1;
+        public int MODE = 1;
     }
 
     public void reload(File file) {
