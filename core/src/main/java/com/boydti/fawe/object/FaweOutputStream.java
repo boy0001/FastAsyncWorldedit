@@ -41,7 +41,6 @@ public class FaweOutputStream extends DataOutputStream {
             this.writeByte(i & 127 | 128);
             i >>>= 7;
         }
-
         this.writeByte(i);
     }
 

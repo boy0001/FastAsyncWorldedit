@@ -2,6 +2,7 @@ package com.boydti.fawe.object.extent;
 
 import com.boydti.fawe.util.ExtentTraverser;
 import com.boydti.fawe.util.ReflectionUtils;
+import com.sk89q.worldedit.Vector;
 import com.sk89q.worldedit.extent.AbstractDelegateExtent;
 import com.sk89q.worldedit.extent.Extent;
 import com.sk89q.worldedit.world.World;
@@ -15,6 +16,17 @@ import static com.google.common.base.Preconditions.checkNotNull;
 public class ResettableExtent extends AbstractDelegateExtent implements Serializable {
     public ResettableExtent(Extent parent) {
         super(parent);
+    }
+
+    public final void init(Vector pos) {
+        if (getExtent() instanceof ResettableExtent) {
+            ((ResettableExtent) getExtent()).init(pos);
+        }
+        setOrigin(pos);
+    }
+
+    protected void setOrigin(Vector pos) {
+
     }
 
     public ResettableExtent setExtent(Extent extent) {

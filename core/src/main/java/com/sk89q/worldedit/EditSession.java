@@ -700,6 +700,19 @@ public class EditSession extends AbstractWorld implements HasFaweQueue, Lighting
         }
     }
 
+    public @Nullable ResettableExtent getTransform() {
+        ExtentTraverser<AbstractDelegateExtent> traverser = new ExtentTraverser(this.extent).find(ResettableExtent.class);
+        if (traverser != null) {
+            return (ResettableExtent) traverser.get();
+        }
+        return null;
+    }
+
+    private void initTransform(Vector pos) {
+        ResettableExtent tfx = getTransform();
+        if (tfx != null) tfx.init(pos);
+    }
+
     /**
      * Set a mask.
      *
@@ -957,10 +970,6 @@ public class EditSession extends AbstractWorld implements HasFaweQueue, Lighting
 
     @Override
     public BaseBlock getLazyBlock(final Vector position) {
-        if (position.getY() > maxY || position.getY() < 0) {
-            if (!limit.MAX_FAILS()) throw new FaweException(BBC.WORLDEDIT_CANCEL_REASON_MAX_CHECKS);
-            return nullBlock;
-        }
         return getLazyBlock(position.getBlockX(), position.getBlockY(), position.getBlockZ());
     }
 
@@ -974,10 +983,6 @@ public class EditSession extends AbstractWorld implements HasFaweQueue, Lighting
 
     @Override
     public BaseBlock getBlock(final Vector position) {
-        if (position.getY() > maxY || position.getY() < 0) {
-            if (!limit.MAX_FAILS()) throw new FaweException(BBC.WORLDEDIT_CANCEL_REASON_MAX_CHECKS);
-            return nullBlock;
-        }
         return getLazyBlock(position.getBlockX(), position.getBlockY(), position.getBlockZ());
     }
 
@@ -1275,8 +1280,8 @@ public class EditSession extends AbstractWorld implements HasFaweQueue, Lighting
 
     @Override
     public Vector getMinimumPoint() {
-        if (getWorld() != null) {
-            return this.getWorld().getMinimumPoint();
+        if (extent != null) {
+            return this.extent.getMinimumPoint();
         } else {
             return new Vector(-30000000, 0, -30000000);
         }
@@ -1284,8 +1289,8 @@ public class EditSession extends AbstractWorld implements HasFaweQueue, Lighting
 
     @Override
     public Vector getMaximumPoint() {
-        if (getWorld() != null) {
-            return this.getWorld().getMaximumPoint();
+        if (extent != null) {
+            return this.extent.getMaximumPoint();
         } else {
             return new Vector(30000000, 255, 30000000);
         }
@@ -1471,9 +1476,9 @@ public class EditSession extends AbstractWorld implements HasFaweQueue, Lighting
         checkNotNull(pattern);
         checkArgument(radius >= 0, "radius >= 0");
         checkArgument(depth >= 1, "depth >= 1");
-
+        initTransform(origin);
         final MaskIntersection mask = new MaskIntersection(new RegionMask(new EllipsoidRegion(null, origin, new Vector(radius, radius, radius))), new BoundedHeightMask(Math.max(
-                (origin.getBlockY() - depth) + 1, 0), Math.min(EditSession.this.getMaximumPoint().getBlockY(), origin.getBlockY())), Masks.negate(new ExistingBlockMask(EditSession.this)));
+                (origin.getBlockY() - depth) + 1, getMinimumPoint().getBlockY()), Math.min(getMaximumPoint().getBlockY(), origin.getBlockY())), Masks.negate(new ExistingBlockMask(EditSession.this)));
 
         // Want to replace blocks
         final BlockReplace replace = new BlockReplace(EditSession.this, pattern);

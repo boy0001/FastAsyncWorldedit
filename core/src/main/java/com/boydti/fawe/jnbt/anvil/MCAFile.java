@@ -460,6 +460,11 @@ public class MCAFile {
 
     public void flush(ForkJoinPool pool) {
         synchronized (raf) {
+            if (isDeleted()) {
+                clear();
+                file.delete();
+                return;
+            }
             boolean wait;
             if (pool == null) {
                 wait = true;
@@ -500,6 +505,7 @@ public class MCAFile {
                 }
             }
             if (modified) {
+                file.setLastModified(now);
                 forEachChunk(new RunnableVal4<Integer, Integer, Integer, Integer>() {
                     @Override
                     public void run(Integer cx, Integer cz, Integer offset, Integer size) {

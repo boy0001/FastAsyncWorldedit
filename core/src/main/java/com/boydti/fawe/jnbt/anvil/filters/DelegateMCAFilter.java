@@ -3,14 +3,21 @@ package com.boydti.fawe.jnbt.anvil.filters;
 import com.boydti.fawe.jnbt.anvil.MCAChunk;
 import com.boydti.fawe.jnbt.anvil.MCAFile;
 import com.boydti.fawe.jnbt.anvil.MCAFilter;
+import com.boydti.fawe.jnbt.anvil.MCAQueue;
 import com.sk89q.worldedit.blocks.BaseBlock;
 import java.nio.file.Path;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.Spliterator;
+import java.util.concurrent.ForkJoinPool;
 import java.util.function.Consumer;
 
 public class DelegateMCAFilter<T> extends MCAFilter<T> {
     private final MCAFilter<T> filter;
+
+    @Override
+    public void withPool(ForkJoinPool pool, MCAQueue queue) {
+        filter.withPool(pool, queue);
+    }
 
     @Override
     public boolean appliesFile(Path path, BasicFileAttributes attr) {

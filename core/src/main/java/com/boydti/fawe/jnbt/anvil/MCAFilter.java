@@ -4,12 +4,18 @@ import com.boydti.fawe.object.collection.IterableThreadLocal;
 import com.sk89q.worldedit.blocks.BaseBlock;
 import java.nio.file.Path;
 import java.nio.file.attribute.BasicFileAttributes;
+import java.util.concurrent.AbstractExecutorService;
+import java.util.concurrent.ForkJoinPool;
 
 /**
  * MCAQueue.filterWorld(MCAFilter)<br>
  * - Read and modify the world
  */
 public class MCAFilter<T> extends IterableThreadLocal<T> {
+
+    public void withPool(ForkJoinPool pool, MCAQueue queue) {
+        return;
+    }
 
     public boolean appliesFile(Path path, BasicFileAttributes attr) {
         return true;

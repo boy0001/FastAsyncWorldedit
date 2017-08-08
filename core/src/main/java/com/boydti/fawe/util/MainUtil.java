@@ -791,6 +791,41 @@ public class MainUtil {
         }
     }
 
+    public static int[] regionNameToCoords(String fileName) {
+        int[] res = new int[2];
+        int len = fileName.length() - 4;
+        int val = 0;
+        boolean neg = false;
+        boolean reading = false;
+        int index = 1;
+        int numIndex = 1;
+        outer:
+        for (int i = len; i >= 2; i--) {
+            char c = fileName.charAt(i);
+            if (!reading) {
+                reading = (c == '.');
+                continue;
+            }
+            switch (c) {
+                case '-':
+                    val = -val;
+                    break;
+                case '.':
+                    res[index--] = val;
+                    if (index == -1) return res;
+                    val = 0;
+                    numIndex = 1;
+                    break;
+                default:
+                    val = val + (c - 48) * numIndex;
+                    numIndex *= 10;
+                    break;
+            }
+        }
+        res[index] = val;
+        return res;
+    }
+
     public static boolean isInSubDirectory(File dir, File file) {
         if (file == null) return false;
         if (file.equals(dir)) return true;
