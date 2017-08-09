@@ -105,13 +105,13 @@ public class PlotSquaredFeature extends FaweMaskManager {
         if (regions == null || regions.size() == 0) {
             return null;
         }
-        final HashSet<com.boydti.fawe.object.RegionWrapper> faweRegions = new HashSet<>();
-        for (final RegionWrapper current : regions) {
-            faweRegions.add(new com.boydti.fawe.object.RegionWrapper(current.minX, current.maxX, current.minZ, current.maxZ));
-        }
         PlotArea area = pp.getApplicablePlotArea();
         int min = area != null ? area.MIN_BUILD_HEIGHT : 0;
         int max = area != null ? area.MAX_BUILD_HEIGHT : 255;
+        final HashSet<com.boydti.fawe.object.RegionWrapper> faweRegions = new HashSet<>();
+        for (final RegionWrapper current : regions) {
+            faweRegions.add(new com.boydti.fawe.object.RegionWrapper(current.minX, current.maxX, min, max, current.minZ, current.maxZ));
+        }
         final RegionWrapper region = regions.iterator().next();
         final BlockVector pos1 = new BlockVector(region.minX, min, region.minZ);
         final BlockVector pos2 = new BlockVector(region.maxX, max, region.maxZ);
