@@ -252,12 +252,6 @@ public class EditSession extends AbstractWorld implements HasFaweQueue, Lighting
         if (checkMemory == null) {
             checkMemory = player != null && !fastmode;
         }
-        if (combineStages == null) {
-            combineStages = Settings.IMP.HISTORY.COMBINE_STAGES && !(queue instanceof MCAQueue);
-        }
-        if (!limit.FAST_PLACEMENT) {
-            combineStages = false;
-        }
         if (checkMemory) {
             if (MemUtil.isMemoryLimitedSlow()) {
                 if (Perm.hasPermission(player, "worldedit.fast")) {
@@ -268,9 +262,6 @@ public class EditSession extends AbstractWorld implements HasFaweQueue, Lighting
         }
         this.originalLimit = limit;
         this.blockBag = limit.INVENTORY_MODE != 0 ? blockBag : null;
-        if (this.blockBag != null) {
-            combineStages = false;
-        }
         this.limit = limit.copy();
         if (queue == null) {
             if (world instanceof MCAWorld) {
@@ -278,6 +269,15 @@ public class EditSession extends AbstractWorld implements HasFaweQueue, Lighting
             } else {
                 queue = SetQueue.IMP.getNewQueue(this, fastmode || limit.FAST_PLACEMENT, autoQueue);
             }
+        }
+        if (combineStages == null) {
+            combineStages = Settings.IMP.HISTORY.COMBINE_STAGES && !(queue instanceof MCAQueue);
+        }
+        if (!limit.FAST_PLACEMENT || !queue.supportsChangeTask()) {
+            combineStages = false;
+        }
+        if (this.blockBag != null) {
+            combineStages = false;
         }
         if (Settings.IMP.EXPERIMENTAL.ANVIL_QUEUE_MODE && !(queue instanceof MCAQueue)) {
             queue = new MCAQueue(queue);
@@ -3356,6 +3356,8 @@ public class EditSession extends AbstractWorld implements HasFaweQueue, Lighting
             }
         }
         final Set<Vector2D> chunks = region.getChunks();
+        MutableBlockVector mutable = new MutableBlockVector();
+        MutableBlockVector2D mutable2D = new MutableBlockVector2D();
         for (Vector2D chunk : new FastChunkIterator(chunks, this)) {
             final int cx = chunk.getBlockX();
             final int cz = chunk.getBlockZ();
@@ -3370,97 +3372,92 @@ public class EditSession extends AbstractWorld implements HasFaweQueue, Lighting
             if (((containsBot2 && containsTop2)) && !containsBot1 && !containsTop1) {
                 continue;
             }
-            final MutableBlockVector2D mutable = new MutableBlockVector2D();
-            RunnableVal<Vector2D> r = new RunnableVal<Vector2D>() {
-                @Override
-                public void run(Vector2D chunk) {
-                    boolean conNextX = chunks.contains(mutable.setComponents(cx + 1, cz));
-                    boolean conNextZ = chunks.contains(mutable.setComponents(cx, cz + 1));
-                    boolean containsAny = false;
-                    if (cuboid && containsBot1 && containsBot2 && containsTop1 && containsTop2 && conNextX && conNextZ) {
-                        containsAny = true;
-                        if (fcs != null) {
-                            for (int x = 0; x < 16; x++) {
-                                int xx = x + bx;
-                                for (int z = 0; z < 16; z++) {
-                                    int zz = z + bz;
-                                    for (int y = 0; y < getMaxY() + 1; y++) {
-                                        int from = queue.getCombinedId4DataDebug(xx, y, zz, 0, EditSession.this);
-                                        if (!FaweCache.hasNBT(from >> 4)) {
-                                            fcs.add(xx, y, zz, from, 0);
-                                        } else {
-                                            try {
-                                                Vector loc = new Vector(xx, y, zz);
-                                                BaseBlock block = getLazyBlock(loc);
-                                                fcs.add(loc, block, FaweCache.CACHE_BLOCK[0]);
-                                            } catch (Throwable e) {
-                                                fcs.add(xx, y, zz, from, 0);
-                                            }
-                                        }
+            boolean conNextX = chunks.contains(mutable2D.setComponents(cx + 1, cz));
+            boolean conNextZ = chunks.contains(mutable2D.setComponents(cx, cz + 1));
+            boolean containsAny = false;
+            if (cuboid && containsBot1 && containsBot2 && containsTop1 && containsTop2 && conNextX && conNextZ) {
+                containsAny = true;
+                if (fcs != null) {
+                    for (int x = 0; x < 16; x++) {
+                        int xx = x + bx;
+                        for (int z = 0; z < 16; z++) {
+                            int zz = z + bz;
+                            for (int y = 0; y < getMaxY() + 1; y++) {
+                                int from = queue.getCombinedId4DataDebug(xx, y, zz, 0, EditSession.this);
+                                if (!FaweCache.hasNBT(from >> 4)) {
+                                    fcs.add(xx, y, zz, from, 0);
+                                } else {
+                                    try {
+                                        Vector loc = new Vector(xx, y, zz);
+                                        BaseBlock block = getLazyBlock(loc);
+                                        fcs.add(loc, block, FaweCache.CACHE_BLOCK[0]);
+                                    } catch (Throwable e) {
+                                        fcs.add(xx, y, zz, from, 0);
                                     }
                                 }
                             }
                         }
-                    } else {
-                        int tx = 16;
-                        int tz = 16;
-                        if (!conNextX) {
-                            setExistingBlocks(new Vector(bx + 16, 0, bz), new Vector(bx + 31, getMaxY(), bz + 15));
-                        }
-                        if (!conNextZ) {
-                            setExistingBlocks(new Vector(bx, 0, bz + 16), new Vector(bx + 15, getMaxY(), bz + 31));
-                        }
-                        if (!chunks.contains(mutable.setComponents(cx + 1, cz + 1)) && !conNextX && !conNextZ) {
-                            setExistingBlocks(new Vector(bx + 16, 0, bz + 16), new Vector(bx + 31, getMaxY(), bz + 31));
-                        }
-                        MutableBlockVector mutable = new MutableBlockVector(0, 0, 0);
-                        for (int x = 0; x < tx; x++) {
-                            int xx = x + bx;
-                            mutable.mutX(xx);
-                            for (int z = 0; z < tz; z++) {
-                                int zz = z + bz;
-                                mutable.mutZ(zz);
-                                for (int y = 0; y < getMaxY() + 1; y++) {
-                                    mutable.mutY(y);
-                                    int from = queue.getCombinedId4Data(xx, y, zz);
-                                    boolean contains = (fe == null || fe.contains(xx, y, zz)) && region.contains(mutable);
-                                    if (contains) {
-                                        containsAny = true;
-                                        if (fcs != null) {
-                                            if (!FaweCache.hasNBT(from >> 4)) {
-                                                fcs.add(xx, y, zz, from, 0);
-                                            } else {
-                                                try {
-                                                    BaseBlock block = getLazyBlock(mutable);
-                                                    fcs.add(mutable, block, FaweCache.CACHE_BLOCK[0]);
-                                                } catch (Throwable e) {
-                                                    fcs.add(xx, y, zz, from, 0);
-                                                }
-                                            }
-                                        }
-                                    } else {
-                                        short id = (short) (from >> 4);
-                                        byte data = (byte) (from & 0xf);
-                                        queue.setBlock(xx, y, zz, id, data);
-                                        if (FaweCache.hasNBT(id)) {
-                                            CompoundTag tile = queue.getTileEntity(xx, y, zz);
-                                            if (tile != null) {
-                                                queue.setTile(xx, y, zz, tile);
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
-                    if (containsAny) {
-                        changes++;
-                        queue.regenerateChunk(cx, cz, biome, seed);
                     }
                 }
-            };
-            r.value = chunk;
-            TaskManager.IMP.sync(r);
+            } else {
+                if (!conNextX) {
+                    setExistingBlocks(new Vector(bx + 16, 0, bz), new Vector(bx + 31, getMaxY(), bz + 15));
+                }
+                if (!conNextZ) {
+                    setExistingBlocks(new Vector(bx, 0, bz + 16), new Vector(bx + 15, getMaxY(), bz + 31));
+                }
+                if (!chunks.contains(mutable2D.setComponents(cx + 1, cz + 1)) && !conNextX && !conNextZ) {
+                    setExistingBlocks(new Vector(bx + 16, 0, bz + 16), new Vector(bx + 31, getMaxY(), bz + 31));
+                }
+                for (int x = 0; x < 16; x++) {
+                    int xx = x + bx;
+                    mutable.mutX(xx);
+                    for (int z = 0; z < 16; z++) {
+                        int zz = z + bz;
+                        mutable.mutZ(zz);
+                        for (int y = 0; y < getMaxY() + 1; y++) {
+                            mutable.mutY(y);
+                            boolean contains = (fe == null || fe.contains(xx, y, zz)) && region.contains(mutable);
+                            if (contains) {
+                                containsAny = true;
+                                if (fcs != null) {
+                                    int from = queue.getCombinedId4Data(xx, y, zz);
+                                    if (!FaweCache.hasNBT(from >> 4)) {
+                                        fcs.add(xx, y, zz, from, 0);
+                                    } else {
+                                        try {
+                                            BaseBlock block = getLazyBlock(mutable);
+                                            fcs.add(mutable, block, FaweCache.CACHE_BLOCK[0]);
+                                        } catch (Throwable e) {
+                                            fcs.add(xx, y, zz, from, 0);
+                                        }
+                                    }
+                                }
+                            } else {
+                                int from = queue.getCombinedId4Data(xx, y, zz);
+                                short id = (short) (from >> 4);
+                                byte data = (byte) (from & 0xf);
+                                queue.setBlock(xx, y, zz, id, data);
+                                if (FaweCache.hasNBT(id)) {
+                                    CompoundTag tile = queue.getTileEntity(xx, y, zz);
+                                    if (tile != null) {
+                                        queue.setTile(xx, y, zz, tile);
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            if (containsAny) {
+                changes++;
+                TaskManager.IMP.sync(new RunnableVal<Object>() {
+                    @Override
+                    public void run(Object value) {
+                        queue.regenerateChunk(cx, cz, biome, seed);
+                    }
+                });
+            }
         }
         if (changes != 0) {
             flushQueue();

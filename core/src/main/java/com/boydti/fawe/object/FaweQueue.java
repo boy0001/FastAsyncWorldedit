@@ -201,6 +201,10 @@ public abstract class FaweQueue implements HasFaweQueue, Extent {
         this.progressTask = progressTask;
     }
 
+    public boolean supportsChangeTask() {
+        return true;
+    }
+
     public void setChangeTask(RunnableVal2<FaweChunk, FaweChunk> changeTask) {
         this.changeTask = changeTask;
     }

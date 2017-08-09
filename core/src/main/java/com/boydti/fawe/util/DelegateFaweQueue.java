@@ -11,6 +11,8 @@ import com.boydti.fawe.object.exception.FaweException;
 import com.sk89q.jnbt.CompoundTag;
 import com.sk89q.worldedit.EditSession;
 import com.sk89q.worldedit.Vector;
+import com.sk89q.worldedit.Vector2D;
+import com.sk89q.worldedit.WorldEditException;
 import com.sk89q.worldedit.blocks.BaseBlock;
 import com.sk89q.worldedit.regions.CuboidRegion;
 import com.sk89q.worldedit.world.World;
@@ -47,6 +49,11 @@ public class DelegateFaweQueue extends FaweQueue {
     @Override
     public boolean setMCA(int mcaX, int mcaZ, RegionWrapper region, Runnable whileLocked, boolean load) {
         return parent.setMCA(mcaX, mcaZ, region, whileLocked, load);
+    }
+
+    @Override
+    public boolean supportsChangeTask() {
+        return parent.supportsChangeTask();
     }
 
     @Override
@@ -394,6 +401,51 @@ public class DelegateFaweQueue extends FaweQueue {
     @Override
     public Relighter getRelighter() {
         return parent.getRelighter();
+    }
+
+    @Override
+    public Vector getMinimumPoint() {
+        return parent.getMinimumPoint();
+    }
+
+    @Override
+    public Vector getMaximumPoint() {
+        return parent.getMaximumPoint();
+    }
+
+    @Override
+    public BaseBlock getLazyBlock(int x, int y, int z) {
+        return parent.getLazyBlock(x, y, z);
+    }
+
+    @Override
+    public boolean setBlock(int x, int y, int z, BaseBlock block) throws WorldEditException {
+        return parent.setBlock(x, y, z, block);
+    }
+
+    @Override
+    public BaseBlock getBlock(Vector position) {
+        return parent.getBlock(position);
+    }
+
+    @Override
+    public BaseBiome getBiome(Vector2D position) {
+        return parent.getBiome(position);
+    }
+
+    @Override
+    public boolean setBlock(Vector position, BaseBlock block) throws WorldEditException {
+        return parent.setBlock(position, block);
+    }
+
+    @Override
+    public boolean setBiome(Vector2D position, BaseBiome biome) {
+        return parent.setBiome(position, biome);
+    }
+
+    @Override
+    public FaweQueue getQueue() {
+        return parent.getQueue();
     }
 
     @Override

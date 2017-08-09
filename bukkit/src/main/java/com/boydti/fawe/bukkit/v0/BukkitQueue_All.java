@@ -145,6 +145,11 @@ public class BukkitQueue_All extends BukkitQueue_0<ChunkSnapshot, ChunkSnapshot,
         return new BukkitChunk_All(this, x, z);
     }
 
+    @Override
+    public boolean supportsChangeTask() {
+        return false;
+    }
+
     private int skip;
 
     @Override

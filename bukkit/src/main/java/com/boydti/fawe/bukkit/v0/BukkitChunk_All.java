@@ -1,7 +1,6 @@
 package com.boydti.fawe.bukkit.v0;
 
 import com.boydti.fawe.FaweCache;
-import com.boydti.fawe.config.Settings;
 import com.boydti.fawe.example.CharFaweChunk;
 import com.boydti.fawe.object.FaweChunk;
 import com.boydti.fawe.object.FaweQueue;
@@ -269,7 +268,7 @@ public class BukkitChunk_All extends CharFaweChunk<Chunk, BukkitQueue_All> {
                                     continue;
                                 }
                                 if (light != place) {
-                                    light = light && Settings.IMP.LIGHTING.MODE != 0;
+                                    light = light && getParent().getSettings().LIGHTING.MODE != 0;
                                     if (light) {
                                         parent.enableLighting(disableResult);
                                     }

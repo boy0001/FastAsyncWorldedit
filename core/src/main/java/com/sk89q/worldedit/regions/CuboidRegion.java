@@ -332,7 +332,7 @@ public class CuboidRegion extends AbstractRegion implements FlatRegion {
             @Override
             public Iterator<Vector2D> iterator() {
                 return new Iterator<Vector2D>() {
-                    private MutableBlockVector2D pos = new MutableBlockVector2D().setComponents(minX, minZ);
+                    private MutableBlockVector2D pos = new MutableBlockVector2D().setComponents(maxX + 1, maxZ);
 
                     @Override
                     public boolean hasNext() {
@@ -343,12 +343,13 @@ public class CuboidRegion extends AbstractRegion implements FlatRegion {
                     public Vector2D next() {
                         Vector2D result = pos;
                         // calc next
-                        if (pos.getX() < maxX) {
-                            pos.setComponents(pos.getX() + 1, pos.getZ());
-                        } else if (pos.getZ() < maxZ) {
-                            pos.setComponents(minX, pos.getZ() + 1);
-                        } else {
-                            pos = null;
+                        pos.setComponents(pos.getX() - 1, pos.getZ());
+                        if (pos.getX() <= minX) {
+                            if (pos.getZ() == minZ) {
+                                pos = null;
+                            } else if (pos.getX() < minX) {
+                                pos.setComponents(maxX, pos.getZ() - 1);
+                            }
                         }
                         return result;
                     }
