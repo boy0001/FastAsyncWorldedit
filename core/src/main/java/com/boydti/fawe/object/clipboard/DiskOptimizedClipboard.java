@@ -366,38 +366,26 @@ public class DiskOptimizedClipboard extends FaweClipboard implements Closeable {
 
     @Override
     public void forEach(final BlockReader task, boolean air) {
-        try {
-            mbb.force();
-            int pos = HEADER_SIZE;
-            IntegerTrio trio = new IntegerTrio();
-            final boolean hasTile = !nbtMap.isEmpty();
-            if (air) {
-                if (hasTile) {
-                    for (int y = 0; y < height; y++) {
-                        for (int z = 0; z < length; z++) {
-                            for (int x = 0; x < width; x++, pos += 2) {
-                                char combinedId = mbb.getChar(pos);
-                                BaseBlock block = FaweCache.CACHE_BLOCK[combinedId];
-                                if (block.canStoreNBTData()) {
-                                    trio.set(x, y, z);
-                                    CompoundTag nbt = nbtMap.get(trio);
-                                    if (nbt != null) {
-                                        block = new BaseBlock(block.getId(), block.getData());
-                                        block.setNbtData(nbt);
-                                    }
+        mbb.force();
+        int pos = HEADER_SIZE;
+        IntegerTrio trio = new IntegerTrio();
+        final boolean hasTile = !nbtMap.isEmpty();
+        if (air) {
+            if (hasTile) {
+                for (int y = 0; y < height; y++) {
+                    for (int z = 0; z < length; z++) {
+                        for (int x = 0; x < width; x++, pos += 2) {
+                            char combinedId = mbb.getChar(pos);
+                            BaseBlock block = FaweCache.CACHE_BLOCK[combinedId];
+                            if (block.canStoreNBTData()) {
+                                trio.set(x, y, z);
+                                CompoundTag nbt = nbtMap.get(trio);
+                                if (nbt != null) {
+                                    block = new BaseBlock(block.getId(), block.getData());
+                                    block.setNbtData(nbt);
                                 }
-                                task.run(x, y, z, block);
                             }
-                        }
-                    }
-                } else {
-                    for (int y = 0; y < height; y++) {
-                        for (int z = 0; z < length; z++) {
-                            for (int x = 0; x < width; x++, pos += 2) {
-                                char combinedId = mbb.getChar(pos);
-                                BaseBlock block = FaweCache.CACHE_BLOCK[combinedId];
-                                task.run(x, y, z, block);
-                            }
+                            task.run(x, y, z, block);
                         }
                     }
                 }
@@ -405,25 +393,33 @@ public class DiskOptimizedClipboard extends FaweClipboard implements Closeable {
                 for (int y = 0; y < height; y++) {
                     for (int z = 0; z < length; z++) {
                         for (int x = 0; x < width; x++, pos += 2) {
-                            int combinedId = mbb.getChar(pos);
-                            if (combinedId != 0) {
-                                BaseBlock block = FaweCache.CACHE_BLOCK[combinedId];
-                                if (block.canStoreNBTData()) {
-                                    trio.set(x, y, z);
-                                    CompoundTag nbt = nbtMap.get(trio);
-                                    if (nbt != null) {
-                                        block = new BaseBlock(block.getId(), block.getData());
-                                        block.setNbtData(nbt);
-                                    }
-                                }
-                                task.run(x, y, z, block);
-                            }
+                            char combinedId = mbb.getChar(pos);
+                            BaseBlock block = FaweCache.CACHE_BLOCK[combinedId];
+                            task.run(x, y, z, block);
                         }
                     }
                 }
             }
-        } catch (Throwable e) {
-            MainUtil.handleError(e);
+        } else {
+            for (int y = 0; y < height; y++) {
+                for (int z = 0; z < length; z++) {
+                    for (int x = 0; x < width; x++, pos += 2) {
+                        int combinedId = mbb.getChar(pos);
+                        if (combinedId != 0) {
+                            BaseBlock block = FaweCache.CACHE_BLOCK[combinedId];
+                            if (block.canStoreNBTData()) {
+                                trio.set(x, y, z);
+                                CompoundTag nbt = nbtMap.get(trio);
+                                if (nbt != null) {
+                                    block = new BaseBlock(block.getId(), block.getData());
+                                    block.setNbtData(nbt);
+                                }
+                            }
+                            task.run(x, y, z, block);
+                        }
+                    }
+                }
+            }
         }
     }
 
