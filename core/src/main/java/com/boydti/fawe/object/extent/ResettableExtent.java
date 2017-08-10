@@ -19,8 +19,9 @@ public class ResettableExtent extends AbstractDelegateExtent implements Serializ
     }
 
     public final void init(Vector pos) {
-        if (getExtent() instanceof ResettableExtent) {
-            ((ResettableExtent) getExtent()).init(pos);
+        Extent extent = getExtent();
+        if (extent instanceof ResettableExtent && extent != this) {
+            ((ResettableExtent) extent).init(pos);
         }
         setOrigin(pos);
     }
