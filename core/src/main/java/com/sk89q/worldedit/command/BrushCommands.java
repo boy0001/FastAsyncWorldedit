@@ -27,6 +27,7 @@ import com.boydti.fawe.object.FaweLimit;
 import com.boydti.fawe.object.FawePlayer;
 import com.boydti.fawe.object.brush.BlendBall;
 import com.boydti.fawe.object.brush.BrushSettings;
+import com.boydti.fawe.object.brush.CatenaryBrush;
 import com.boydti.fawe.object.brush.CircleBrush;
 import com.boydti.fawe.object.brush.CommandBrush;
 import com.boydti.fawe.object.brush.CopyPastaBrush;
@@ -84,6 +85,7 @@ import com.sk89q.worldedit.function.mask.Mask;
 import com.sk89q.worldedit.function.pattern.Pattern;
 import com.sk89q.worldedit.session.ClipboardHolder;
 import com.sk89q.worldedit.util.command.InvalidUsageException;
+import com.sk89q.worldedit.util.command.binding.Range;
 import com.sk89q.worldedit.util.command.binding.Switch;
 import com.sk89q.worldedit.util.command.parametric.Optional;
 import java.awt.Color;
@@ -245,7 +247,25 @@ public class BrushCommands extends MethodCommands {
                 .setFill(fill);
     }
 
-    // final double tension, final double bias, final double continuity, final double quality
+    @Command(
+            aliases = {"catenary", "cat", "gravityline", "saggedline"},
+            usage = "<pattern> [length-factor=1.2] [size=0]",
+            desc = "Create a hanging line between two points",
+            help = "Create a hanging line between two points.\n" +
+                    "The length-factor controls how long the line is\n" +
+                    "The -h flag creates only a shell\n" +
+                    "The -s flag selects the clicked point after drawing\n",
+            min = 1,
+            max = 3
+    )
+    @CommandPermissions("worldedit.brush.spline")
+    public BrushSettings catenaryBrush(Player player, EditSession editSession, LocalSession session, Pattern fill, @Optional("1.2") @Range(min=1) double lengthFactor, @Optional("0") double radius, @Switch('h') boolean shell, @Switch('s') boolean select, CommandContext context) throws WorldEditException {
+        worldEdit.checkMaxBrushRadius(radius);
+        return get(context)
+                .setBrush(new CatenaryBrush(shell, select, lengthFactor))
+                .setSize(radius)
+                .setFill(fill);
+    }
 
     @Command(
             aliases = {"sspl", "sspline", "surfacespline"},
@@ -254,7 +274,7 @@ public class BrushCommands extends MethodCommands {
             help = "Create a spline on the surface\n" +
                     "Video: https://www.youtube.com/watch?v=zSN-2jJxXlM",
             min = 0,
-            max = 2
+            max = 6
     )
     @CommandPermissions("worldedit.brush.surfacespline") // 0, 0, 0, 10, 0,
     public BrushSettings surfaceSpline(Player player, EditSession editSession, LocalSession session, Pattern fill, @Optional("0") double radius, @Optional("0") double tension, @Optional("0") double bias, @Optional("0") double continuity, @Optional("10") double quality, CommandContext context) throws WorldEditException {

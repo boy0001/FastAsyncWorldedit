@@ -128,6 +128,8 @@ public enum BBC {
     BRUSH_HEIGHT_INVALID("Invalid height map file (%s0)", "WorldEdit.Brush"),
     BRUSH_SMOOTH("Note: Use the blend brush if you want to smooth overhangs or caves.", "WorldEdit.Brush"),
     BRUSH_SPLINE("Click to add a point, click the same spot to finish", "WorldEdit.Brush"),
+    BRUSH_LINE_PRIMARY("Added point %s0, click another position to create the line", "WorldEdit.Brush"),
+    BRUSH_LINE_SECONDARY("Created pline", "WorldEdit.Brush"),
     BRUSH_SPLINE_PRIMARY_2("Added position, Click the same spot to join!", "WorldEdit.Brush"),
     BRUSH_SPLINE_SECONDARY_ERROR("Not enough positions set!", "WorldEdit.Brush"),
     BRUSH_SPLINE_SECONDARY("Created spline", "WorldEdit.Brush"),
