@@ -118,7 +118,9 @@ public class BukkitWorld extends LocalWorld {
 
     private void addEntities(Entity ent, Collection<com.sk89q.worldedit.entity.Entity> ents) {
         ents.add(adapt(ent));
-        switch (Fawe.<FaweBukkit>imp().getVersion()) {
+        FaweBukkit.Version version = Fawe.<FaweBukkit>imp().getVersion();
+        switch (version) {
+            case NONE:
             case v1_7_R4:
             case v1_8_R3:
             case v1_9_R2:
