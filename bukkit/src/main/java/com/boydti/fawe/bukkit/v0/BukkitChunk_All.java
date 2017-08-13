@@ -1,22 +1,37 @@
 package com.boydti.fawe.bukkit.v0;
 
+import com.boydti.fawe.Fawe;
 import com.boydti.fawe.FaweCache;
 import com.boydti.fawe.example.CharFaweChunk;
 import com.boydti.fawe.object.FaweChunk;
 import com.boydti.fawe.object.FaweQueue;
+import com.boydti.fawe.object.RunnableVal2;
 import com.boydti.fawe.util.MainUtil;
+import com.boydti.fawe.util.ReflectionUtils;
 import com.sk89q.jnbt.CompoundTag;
+import com.sk89q.jnbt.ListTag;
+import com.sk89q.jnbt.LongTag;
+import com.sk89q.jnbt.Tag;
 import com.sk89q.worldedit.LocalWorld;
 import com.sk89q.worldedit.MutableBlockVector2D;
 import com.sk89q.worldedit.blocks.BaseBlock;
 import com.sk89q.worldedit.blocks.BlockID;
 import com.sk89q.worldedit.bukkit.BukkitUtil;
+import com.sk89q.worldedit.bukkit.adapter.BukkitImplAdapter;
+import com.sk89q.worldedit.entity.BaseEntity;
 import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
+import java.util.UUID;
 import org.bukkit.Bukkit;
 import org.bukkit.Chunk;
+import org.bukkit.ChunkSnapshot;
 import org.bukkit.Location;
 import org.bukkit.World;
 import org.bukkit.block.Block;
+import org.bukkit.block.BlockState;
+import org.bukkit.entity.Entity;
 
 public class BukkitChunk_All extends CharFaweChunk<Chunk, BukkitQueue_All> {
 
@@ -135,6 +150,70 @@ public class BukkitChunk_All extends CharFaweChunk<Chunk, BukkitQueue_All> {
         final int bx = getX() << 4;
         final int bz = getZ() << 4;
         if (layer == -1) {
+            BukkitImplAdapter adapter = BukkitQueue_0.getAdapter();
+            if (adapter != null)
+            {
+                // Run change task
+                RunnableVal2<FaweChunk, FaweChunk> task = parent.getChangeTask();
+                BukkitChunk_All_ReadonlySnapshot previous;
+                if (task != null){
+                    ChunkSnapshot snapshot = parent.ensureChunkLoaded(getX(), getZ());
+                    previous = new BukkitChunk_All_ReadonlySnapshot(parent, snapshot, biomes != null);
+                    for (BlockState tile : chunk.getTileEntities()) {
+                        int x = tile.getX();
+                        int y = tile.getY();
+                        int z = tile.getZ();
+                        if (getBlockCombinedId(x & 15, y, z & 15) != 0) {
+                            CompoundTag nbt = adapter.getBlock(new Location(world, x, y, z)).getNbtData();
+                            if (nbt != null) {
+                                previous.setTile(x & 15, y, z & 15, nbt);
+                            }
+                        }
+                    }
+                } else {
+                    previous = null;
+                }
+                // Set entities
+                if (adapter != null) {
+                    Set<CompoundTag> entitiesToSpawn = this.getEntities();
+                    if (!entitiesToSpawn.isEmpty()) {
+                        for (CompoundTag tag : entitiesToSpawn) {
+                            String id = tag.getString("Id");
+                            ListTag posTag = tag.getListTag("Pos");
+                            ListTag rotTag = tag.getListTag("Rotation");
+                            if (id == null || posTag == null || rotTag == null) {
+                                Fawe.debug("Unknown entity tag: " + tag);
+                                continue;
+                            }
+                            double x = posTag.getDouble(0);
+                            double y = posTag.getDouble(1);
+                            double z = posTag.getDouble(2);
+                            float yaw = rotTag.getFloat(0);
+                            float pitch = rotTag.getFloat(1);
+                            Location loc = new Location(world, x, y, z, yaw, pitch);
+                            Entity created = adapter.createEntity(loc, new BaseEntity(id, tag));
+                            if (previous != null) {
+                                UUID uuid = created.getUniqueId();
+                                Map<String, Tag> map = ReflectionUtils.getMap(tag.getValue());
+                                map.put("UUIDLeast", new LongTag(uuid.getLeastSignificantBits()));
+                                map.put("UUIDMost", new LongTag(uuid.getMostSignificantBits()));
+                            }
+                        }
+                    }
+                    HashSet<UUID> entsToRemove = this.getEntityRemoves();
+                    if (!entsToRemove.isEmpty()) {
+                        for (Entity entity : chunk.getEntities()) {
+                            if (entsToRemove.contains(entity.getUniqueId())) {
+                                entity.remove();
+                            }
+                        }
+                    }
+                }
+                if (previous != null) {
+                    task.run(previous, this);
+                }
+            }
+
             // Biomes
             if (layer == 0) {
                 final byte[] biomes = getBiomeArray();

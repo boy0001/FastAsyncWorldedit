@@ -195,6 +195,10 @@ public abstract class BukkitQueue_0<CHUNK, CHUNKSECTIONS, SECTION> extends NMSMa
                 fieldAdapter.set(instance, adapter);
             } else {
                 BukkitQueue_0.adapter = adapter = (BukkitImplAdapter) fieldAdapter.get(instance);
+                if (adapter == null) {
+                    BukkitQueue_0.adapter = adapter = new FaweAdapter_All();
+                    fieldAdapter.set(instance, adapter);
+                }
             }
             if (adapter != null) {
                 for (Method method : adapter.getClass().getDeclaredMethods()) {
@@ -213,17 +217,6 @@ public abstract class BukkitQueue_0<CHUNK, CHUNKSECTIONS, SECTION> extends NMSMa
             return;
         } catch (Throwable ignore) {
             ignore.printStackTrace();
-        }
-        if (BukkitQueue_0.adapter == null) {
-            if (backupAdaper == null) {
-                try {
-                    backupAdaper = new FaweAdapter_All();
-                    Fawe.debug("Native adapter failed. Backup adapter is functional.");
-                } catch (Throwable ignore) {
-                    Fawe.debug("Native and backup adapter failed! (Try updating the plugin)");
-                    ignore.printStackTrace();
-                }
-            }
         }
     }
 

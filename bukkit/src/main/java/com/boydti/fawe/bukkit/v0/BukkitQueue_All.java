@@ -308,7 +308,7 @@ public class BukkitQueue_All extends BukkitQueue_0<ChunkSnapshot, ChunkSnapshot,
 
     @Override
     public boolean supportsChangeTask() {
-        return false;
+        return getAdapter() != null;
     }
 
     private int skip;
