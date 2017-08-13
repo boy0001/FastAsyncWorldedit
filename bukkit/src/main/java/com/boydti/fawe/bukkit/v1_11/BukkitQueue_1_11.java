@@ -138,7 +138,7 @@ public class BukkitQueue_1_11 extends BukkitQueue_0<net.minecraft.server.v1_11_R
             getEntitySlices = net.minecraft.server.v1_11_R1.Chunk.class.getDeclaredMethod("getEntitySlices");
             getEntitySlices.setAccessible(true);
             setupAdapter(new com.boydti.fawe.bukkit.v1_11.FaweAdapter_1_11());
-            Fawe.debug("Using adapter: " + adapter);
+            Fawe.debug("Using adapter: " + getAdapter());
             Fawe.debug("=========================================");
             for (int i = 0; i < IBD_CACHE.length; i++) {
                 try {
@@ -210,7 +210,7 @@ public class BukkitQueue_1_11 extends BukkitQueue_0<net.minecraft.server.v1_11_R
                 nmsWorld.worldData.getSeed();
                 boolean result;
                 ChunkProviderGenerate generator = new ChunkProviderGenerate(nmsWorld, seed, false, "");
-                Biome bukkitBiome = adapter.getBiome(biome.getId());
+                Biome bukkitBiome = getAdapter().getBiome(biome.getId());
                 BiomeBase base = BiomeBase.getBiome(biome.getId());
                 fieldBiomes.set(generator, new BiomeBase[]{base});
                 boolean cold = base.getTemperature() <= 1;
@@ -805,7 +805,7 @@ public class BukkitQueue_1_11 extends BukkitQueue_0<net.minecraft.server.v1_11_R
                         if (id != null) {
                             NBTTagCompound tag = new NBTTagCompound();
                             ent.e(tag); // readEntityIntoTag
-                            CompoundTag nativeTag = (CompoundTag) methodToNative.invoke(adapter, tag);
+                            CompoundTag nativeTag = (CompoundTag) toNative(tag);
                             Map<String, Tag> map = ReflectionUtils.getMap(nativeTag.getValue());
                             map.put("Id", new StringTag(id));
                             previous.setEntity(nativeTag);
@@ -831,7 +831,7 @@ public class BukkitQueue_1_11 extends BukkitQueue_0<net.minecraft.server.v1_11_R
         try {
             NBTTagCompound tag = new NBTTagCompound();
             tile.save(tag); // readTagIntoEntity
-            return (CompoundTag) methodToNative.invoke(adapter, tag);
+            return (CompoundTag) toNative(tag);
         } catch (Exception e) {
             MainUtil.handleError(e);
             return null;

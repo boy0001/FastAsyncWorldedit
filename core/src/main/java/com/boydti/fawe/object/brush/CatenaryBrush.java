@@ -52,23 +52,23 @@ public class CatenaryBrush implements Brush, ResettableTool {
         return true;
     }
 
-public Vector getVertex(Vector pos1, Vector pos2, double lenPercent) {
-    double len = pos1.distance(pos2) * lenPercent;
+    public Vector getVertex(Vector pos1, Vector pos2, double lenPercent) {
+        double len = pos1.distance(pos2) * lenPercent;
 
-    double dy = pos2.getY() - pos1.getY();
-    double dx = pos2.getX() - pos1.getX();
-    double dz = pos2.getZ() - pos1.getZ();
-    double h = Math.sqrt(dx * dx + dz * dz);
+        double dy = pos2.getY() - pos1.getY();
+        double dx = pos2.getX() - pos1.getX();
+        double dz = pos2.getZ() - pos1.getZ();
+        double h = Math.sqrt(dx * dx + dz * dz);
 
-    double t = Math.sqrt(len * len - dy * dy) / h;
-    double z = 0.001;
-    for (; Math.sinh(z) < t*z; z += 0.001); // close enough
+        double t = Math.sqrt(len * len - dy * dy) / h;
+        double z = 0.001;
+        for (; Math.sinh(z) < t*z; z += 0.001); // close enough
 
-    double a = (h / 2) / z;
-    double p = (h - a * Math.log((len + dy) / (len - dy)))/2;
-    double q = (dy - len * Math.cosh(z) / Math.sinh(z)) / 2;
-    double y = a * 1 + q;
+        double a = (h / 2) / z;
+        double p = (h - a * Math.log((len + dy) / (len - dy)))/2;
+        double q = (dy - len * Math.cosh(z) / Math.sinh(z)) / 2;
+        double y = a * 1 + q;
 
-    return pos1.add(pos2.subtract(pos1).multiply(p / h).add(0, y, 0)).round();
-}
+        return pos1.add(pos2.subtract(pos1).multiply(p / h).add(0, y, 0)).round();
+    }
 }

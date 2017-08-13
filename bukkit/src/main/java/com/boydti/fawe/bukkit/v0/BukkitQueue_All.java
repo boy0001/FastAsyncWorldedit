@@ -3,11 +3,20 @@ package com.boydti.fawe.bukkit.v0;
 import com.boydti.fawe.FaweCache;
 import com.boydti.fawe.config.Settings;
 import com.boydti.fawe.object.FaweChunk;
+import com.boydti.fawe.object.RegionWrapper;
+import com.boydti.fawe.object.RunnableVal;
 import com.boydti.fawe.util.MathMan;
+import com.boydti.fawe.util.ReflectionUtils;
+import com.boydti.fawe.util.SetQueue;
+import com.boydti.fawe.util.TaskManager;
 import com.sk89q.jnbt.CompoundTag;
 import com.sk89q.worldedit.blocks.BaseBlock;
+import java.io.File;
+import java.io.RandomAccessFile;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
+import java.util.ArrayDeque;
+import java.util.Map;
 import org.bukkit.Chunk;
 import org.bukkit.ChunkSnapshot;
 import org.bukkit.Location;
@@ -35,6 +44,138 @@ public class BukkitQueue_All extends BukkitQueue_0<ChunkSnapshot, ChunkSnapshot,
             Settings.IMP.QUEUE.EXTRA_TIME_MS = Integer.MIN_VALUE;
             Settings.IMP.QUEUE.PARALLEL_THREADS = 1;
         }
+    }
+
+    private static Class<?> classRegionFileCache;
+    private static Class<?> classRegionFile;
+    private static Class<?> classCraftChunk;
+    private static Class<?> classCraftWorld;
+    private static Class<?> classNMSChunk;
+    private static Class<?> classNMSWorld;
+    private static Class<?> classChunkProviderServer;
+    private static Class<?> classIChunkLoader;
+    private static Class<?> classChunkRegionLoader;
+    private static Class<?> classIChunkProvider;
+    private static Method methodGetHandleChunk;
+    private static Method methodGetHandleWorld;
+    private static Method methodFlush;
+    private static Method methodNeedsSaving;
+    private static Field fieldChunkProvider;
+    private static Field fieldChunkLoader;
+    private static Field fieldRegionMap;
+    private static Field fieldRegionRAF;
+
+    static {
+        try {
+            ReflectionUtils.init();
+            classRegionFileCache = ReflectionUtils.getNmsClass("RegionFileCache");
+            classRegionFile = ReflectionUtils.getNmsClass("RegionFile");
+            classCraftChunk = ReflectionUtils.getCbClass("CraftChunk");
+            classNMSChunk = ReflectionUtils.getNmsClass("Chunk");
+            classCraftWorld = ReflectionUtils.getCbClass("CraftWorld");
+            classNMSWorld = ReflectionUtils.getNmsClass("World");
+            classChunkProviderServer = ReflectionUtils.getNmsClass("ChunkProviderServer");
+            classIChunkProvider = ReflectionUtils.getNmsClass("IChunkProvider");
+            classIChunkLoader = ReflectionUtils.getNmsClass("IChunkLoader");
+            classChunkRegionLoader = ReflectionUtils.getNmsClass("ChunkRegionLoader");
+
+            methodGetHandleChunk = ReflectionUtils.setAccessible(classCraftChunk.getDeclaredMethod("getHandle"));
+            methodGetHandleWorld = ReflectionUtils.setAccessible(classCraftWorld.getDeclaredMethod("getHandle"));
+            methodFlush = ReflectionUtils.findMethod(classChunkRegionLoader, boolean.class);
+            methodNeedsSaving = ReflectionUtils.findMethod(classNMSChunk, boolean.class, boolean.class);
+
+            fieldChunkProvider = ReflectionUtils.findField(classNMSWorld, classIChunkProvider);
+            fieldChunkLoader = ReflectionUtils.findField(classChunkProviderServer, classIChunkLoader);
+
+            fieldRegionMap = ReflectionUtils.findField(classRegionFileCache, Map.class);
+            fieldRegionRAF = ReflectionUtils.findField(classRegionFile, RandomAccessFile.class);
+        } catch (Throwable ignore) {
+            ignore.printStackTrace();
+        }
+    }
+
+    @Override
+    public boolean setMCA(int mcaX, int mcaZ, RegionWrapper allowed, Runnable whileLocked, boolean load) {
+        if (classRegionFileCache == null) {
+            return super.setMCA(mcaX, mcaZ, allowed, whileLocked, load);
+        }
+        TaskManager.IMP.sync(new RunnableVal<Boolean>() {
+            @Override
+            public void run(Boolean value) {
+                long start = System.currentTimeMillis();
+                long last = start;
+                synchronized (classRegionFileCache) {
+                    try {
+                        World world = getWorld();
+                        boolean autoSave = world.isAutoSave();
+
+                        if (world.getKeepSpawnInMemory()) world.setKeepSpawnInMemory(false);
+
+                        ArrayDeque<Chunk> unloaded = null;
+                        if (load) {
+                            int bcx = mcaX << 5;
+                            int bcz = mcaZ << 5;
+                            int tcx = bcx + 31;
+                            int tcz = bcz + 31;
+                            for (Chunk chunk : world.getLoadedChunks()) {
+                                int cx = chunk.getX();
+                                int cz = chunk.getZ();
+                                if (cx >= bcx && cx <= tcx && cz >= bcz && cz <= tcz) {
+                                    Object nmsChunk = methodGetHandleChunk.invoke(chunk);
+                                    boolean mustSave = (boolean) methodNeedsSaving.invoke(nmsChunk, false);
+                                    chunk.unload(mustSave, false);
+                                    if (unloaded == null) unloaded = new ArrayDeque<Chunk>();
+                                    unloaded.add(chunk);
+                                }
+                            }
+                        } else {
+                            world.save();
+                        }
+
+                        Object nmsWorld = methodGetHandleWorld.invoke(world);
+                        Object chunkProviderServer = fieldChunkProvider.get(nmsWorld);
+                        Object chunkRegionLoader = fieldChunkLoader.get(chunkProviderServer);
+                        while ((boolean) methodFlush.invoke(chunkRegionLoader));
+
+                        if (unloaded != null) {
+                            Map regionMap = (Map) fieldRegionMap.get(null);
+                            File file = new File(world.getWorldFolder(), "region" + File.separator + "r." + mcaX + "." + mcaZ + ".mca");
+                            Object regionFile = regionMap.remove(file);
+                            if (regionFile != null) {
+                                RandomAccessFile raf = (RandomAccessFile) fieldRegionRAF.get(regionFile);
+                                raf.close();
+                            }
+                        }
+
+                        whileLocked.run();
+
+                        if (load && unloaded != null) {
+                            final ArrayDeque<Chunk> finalUnloaded = unloaded;
+                            TaskManager.IMP.async(new Runnable() {
+                                @Override
+                                public void run() {
+                                    for (Chunk chunk : finalUnloaded) {
+                                        int cx = chunk.getX();
+                                        int cz = chunk.getZ();
+                                        if (world.isChunkLoaded(cx, cz)) continue;
+                                        SetQueue.IMP.addTask(() -> {
+                                            world.loadChunk(chunk.getX(), chunk.getZ(), false);
+                                            world.refreshChunk(chunk.getX(), chunk.getZ());
+                                        });
+
+                                    }
+                                }
+                            });
+                            // load chunks
+
+                        }
+                    } catch (Throwable e) {
+                        e.printStackTrace();
+                    }
+                }
+            }
+        });
+        return true;
     }
 
     @Override
@@ -69,7 +210,7 @@ public class BukkitQueue_All extends BukkitQueue_0<ChunkSnapshot, ChunkSnapshot,
     @Override
     public int getBiome(ChunkSnapshot chunkSnapshot, int x, int z) {
         Biome biome = chunkSnapshot.getBiome(x & 15, z & 15);
-        return adapter.getBiomeId(biome);
+        return getAdapter().getBiomeId(biome);
     }
 
     @Override
@@ -132,11 +273,11 @@ public class BukkitQueue_All extends BukkitQueue_0<ChunkSnapshot, ChunkSnapshot,
 
     @Override
     public CompoundTag getTileEntity(ChunkSnapshot chunk, int x, int y, int z) {
-        if (adapter == null) {
+        if (getAdapter() == null) {
             return null;
         }
         Location loc = new Location(getWorld(), x, y, z);
-        BaseBlock block = adapter.getBlock(loc);
+        BaseBlock block = getAdapter().getBlock(loc);
         return block != null ? block.getNbtData() : null;
     }
 

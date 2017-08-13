@@ -90,7 +90,7 @@ public class BukkitChunk_1_11 extends CharFaweChunk<Chunk, com.boydti.fawe.bukki
         if (id != null) {
             NBTTagCompound tag = new NBTTagCompound();
             ent.e(tag); // readEntityIntoTag
-            CompoundTag nativeTag = (CompoundTag) getParent().methodToNative.invoke(getParent().adapter, tag);
+            CompoundTag nativeTag = (CompoundTag) getParent().toNative(tag);
             Map<String, Tag> map = ReflectionUtils.getMap(nativeTag.getValue());
             map.put("Id", new StringTag(id));
             setEntity(nativeTag);
@@ -330,7 +330,7 @@ public class BukkitChunk_1_11 extends CharFaweChunk<Chunk, com.boydti.fawe.bukki
                                 entityTagMap.put("UUIDMost", new LongTag(uuid.getMostSignificantBits()));
                                 entityTagMap.put("UUIDLeast", new LongTag(uuid.getLeastSignificantBits()));
                                 if (nativeTag != null) {
-                                    NBTTagCompound tag = (NBTTagCompound) BukkitQueue_1_11.methodFromNative.invoke(BukkitQueue_1_11.adapter, nativeTag);
+                                    NBTTagCompound tag = (NBTTagCompound) BukkitQueue_1_11.fromNative(nativeTag);
                                     for (String name : Constants.NO_COPY_ENTITY_NBT_FIELDS) {
                                         tag.remove(name);
                                     }
@@ -484,7 +484,7 @@ public class BukkitChunk_1_11 extends CharFaweChunk<Chunk, com.boydti.fawe.bukki
                 BlockPosition pos = new BlockPosition(x, y, z); // Set pos
                 TileEntity tileEntity = nmsWorld.getTileEntity(pos);
                 if (tileEntity != null) {
-                    NBTTagCompound tag = (NBTTagCompound) com.boydti.fawe.bukkit.v1_11.BukkitQueue_1_11.methodFromNative.invoke(com.boydti.fawe.bukkit.v1_11.BukkitQueue_1_11.adapter, nativeTag);
+                    NBTTagCompound tag = (NBTTagCompound) com.boydti.fawe.bukkit.v1_11.BukkitQueue_1_11.fromNative(nativeTag);
                     tag.set("x", new NBTTagInt(x));
                     tag.set("y", new NBTTagInt(y));
                     tag.set("z", new NBTTagInt(z));

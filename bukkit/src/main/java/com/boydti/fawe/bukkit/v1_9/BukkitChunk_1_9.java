@@ -270,7 +270,7 @@ public class BukkitChunk_1_9 extends CharFaweChunk<Chunk, BukkitQueue_1_9_R1> {
                             entityTagMap.put("UUIDMost", new LongTag(uuid.getMostSignificantBits()));
                             entityTagMap.put("UUIDLeast", new LongTag(uuid.getLeastSignificantBits()));
                             if (nativeTag != null) {
-                                NBTTagCompound tag = (NBTTagCompound) BukkitQueue_1_9_R1.methodFromNative.invoke(BukkitQueue_1_9_R1.adapter, nativeTag);
+                                NBTTagCompound tag = (NBTTagCompound) BukkitQueue_1_9_R1.fromNative(nativeTag);
                                 for (String name : Constants.NO_COPY_ENTITY_NBT_FIELDS) {
                                     tag.remove(name);
                                 }
@@ -426,7 +426,7 @@ public class BukkitChunk_1_9 extends CharFaweChunk<Chunk, BukkitQueue_1_9_R1> {
                 BlockPosition pos = new BlockPosition(x, y, z); // Set pos
                 TileEntity tileEntity = nmsWorld.getTileEntity(pos);
                 if (tileEntity != null) {
-                    NBTTagCompound tag = (NBTTagCompound) BukkitQueue_1_9_R1.methodFromNative.invoke(BukkitQueue_1_9_R1.adapter, nativeTag);
+                    NBTTagCompound tag = (NBTTagCompound) BukkitQueue_1_9_R1.fromNative(nativeTag);
                     tag.set("x", new NBTTagInt(x));
                     tag.set("y", new NBTTagInt(y));
                     tag.set("z", new NBTTagInt(z));

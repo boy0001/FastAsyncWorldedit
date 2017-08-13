@@ -489,7 +489,7 @@ public class BukkitWorld extends LocalWorld {
 
     @Override
     public BaseBlock getBlock(Vector position) {
-        BukkitImplAdapter adapter = BukkitQueue_0.adapter;
+        BukkitImplAdapter adapter = BukkitQueue_0.getAdapter();
         if (adapter != null) {
             return adapter.getBlock(adapt(getWorld(), position));
         } else {

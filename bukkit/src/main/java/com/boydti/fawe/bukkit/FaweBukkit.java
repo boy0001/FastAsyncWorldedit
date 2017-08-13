@@ -491,6 +491,8 @@ public class FaweBukkit implements IFawe, Listener {
         v1_10_R1,
         v1_11_R1,
         v1_12_R1,
+        v1_12_R2,
+        v1_13_R1,
         NONE,
     }
 

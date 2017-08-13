@@ -122,9 +122,9 @@ public class BukkitQueue_1_9_R1 extends BukkitQueue_0<net.minecraft.server.v1_9_
             air = (IBlockData) fieldAir.get(null);
             fieldBits = DataPaletteBlock.class.getDeclaredField("b");
             fieldBits.setAccessible(true);
-            if (adapter == null) {
+            if (getAdapter() == null) {
                 setupAdapter(new FaweAdapter_1_9());
-                Fawe.debug("Using adapter: " + adapter);
+                Fawe.debug("Using adapter: " + getAdapter());
                 Fawe.debug("=========================================");
             }
         } catch (Throwable e) {
@@ -158,7 +158,7 @@ public class BukkitQueue_1_9_R1 extends BukkitQueue_0<net.minecraft.server.v1_9_
                 nmsWorld.worldData.getSeed();
                 boolean result;
                 net.minecraft.server.v1_9_R2.ChunkProviderGenerate generator = new net.minecraft.server.v1_9_R2.ChunkProviderGenerate(nmsWorld, seed, false, "");
-                Biome bukkitBiome = adapter.getBiome(biome.getId());
+                Biome bukkitBiome = getAdapter().getBiome(biome.getId());
                 net.minecraft.server.v1_9_R2.BiomeBase base = net.minecraft.server.v1_9_R2.BiomeBase.getBiome(biome.getId());
                 fieldBiomes.set(generator, new net.minecraft.server.v1_9_R2.BiomeBase[]{base});
                 net.minecraft.server.v1_9_R2.ChunkGenerator existingGenerator = nmsWorld.getChunkProviderServer().chunkGenerator;
@@ -758,7 +758,7 @@ public class BukkitQueue_1_9_R1 extends BukkitQueue_0<net.minecraft.server.v1_9_
                         if (id != null) {
                             NBTTagCompound tag = new NBTTagCompound();
                             ent.e(tag); // readEntityIntoTag
-                            CompoundTag nativeTag = (CompoundTag) methodToNative.invoke(adapter, tag);
+                            CompoundTag nativeTag = (CompoundTag) toNative(tag);
                             Map<String, Tag> map = ReflectionUtils.getMap(nativeTag.getValue());
                             map.put("Id", new StringTag(id));
                             previous.setEntity(nativeTag);
@@ -784,7 +784,7 @@ public class BukkitQueue_1_9_R1 extends BukkitQueue_0<net.minecraft.server.v1_9_
         try {
             NBTTagCompound tag = new NBTTagCompound();
             tile.save(tag); // readTagIntoEntity
-            return (CompoundTag) methodToNative.invoke(adapter, tag);
+            return (CompoundTag) toNative(tag);
         } catch (Exception e) {
             MainUtil.handleError(e);
             return null;

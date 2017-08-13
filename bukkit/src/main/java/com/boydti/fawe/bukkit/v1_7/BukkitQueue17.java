@@ -253,7 +253,7 @@ public class BukkitQueue17 extends BukkitQueue_0<net.minecraft.server.v1_7_R4.Ch
                 nmsWorld.worldData.getSeed();
                 boolean result;
                 net.minecraft.server.v1_7_R4.ChunkProviderGenerate generator = new net.minecraft.server.v1_7_R4.ChunkProviderGenerate(nmsWorld, seed, false);
-                Biome bukkitBiome = adapter.getBiome(biome.getId());
+                Biome bukkitBiome = getAdapter().getBiome(biome.getId());
                 net.minecraft.server.v1_7_R4.BiomeBase base = net.minecraft.server.v1_7_R4.BiomeBase.getBiome(biome.getId());
                 fieldBiomes.set(generator, new net.minecraft.server.v1_7_R4.BiomeBase[]{base});
                 net.minecraft.server.v1_7_R4.IChunkProvider existingGenerator = nmsWorld.chunkProviderServer.chunkProvider;
@@ -420,7 +420,7 @@ public class BukkitQueue17 extends BukkitQueue_0<net.minecraft.server.v1_7_R4.Ch
                         if (id != null) {
                             NBTTagCompound tag = new NBTTagCompound();
                             ent.e(tag); // readEntityIntoTag
-                            CompoundTag nativeTag = (CompoundTag) methodToNative.invoke(adapter, tag);
+                            CompoundTag nativeTag = (CompoundTag) toNative(tag);
                             Map<String, Tag> map = ReflectionUtils.getMap(nativeTag.getValue());
                             map.put("Id", new StringTag(id));
                             previous.setEntity(nativeTag);
@@ -436,7 +436,7 @@ public class BukkitQueue17 extends BukkitQueue_0<net.minecraft.server.v1_7_R4.Ch
         try {
             NBTTagCompound tag = new NBTTagCompound();
             tile.b(tag); // readTagIntoEntity
-            return (CompoundTag) methodToNative.invoke(adapter, tag);
+            return (CompoundTag) toNative(tag);
         } catch (Exception e) {
             MainUtil.handleError(e);
             return null;

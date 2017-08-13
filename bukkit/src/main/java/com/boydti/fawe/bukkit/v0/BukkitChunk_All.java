@@ -208,7 +208,7 @@ public class BukkitChunk_All extends CharFaweChunk<Chunk, BukkitQueue_All> {
                                                 int x = cacheX[m];
                                                 int z = cacheZ[m];
                                                 int id = combined >> 4;
-                                                if (FaweCache.hasNBT(id) && parent.adapter != null) {
+                                                if (FaweCache.hasNBT(id) && parent.getAdapter() != null) {
                                                     CompoundTag nbt = getTile(x, y, z);
                                                     if (nbt != null) {
                                                         if (mutableLoc == null) mutableLoc = new Location(world, 0, 0, 0);
@@ -216,7 +216,7 @@ public class BukkitChunk_All extends CharFaweChunk<Chunk, BukkitQueue_All> {
                                                         mutableLoc.setY(y);
                                                         mutableLoc.setZ(bz + z);
                                                         synchronized (BukkitChunk_All.this) {
-                                                            parent.adapter.setBlock(mutableLoc, new BaseBlock(id, combined & 0xF, nbt), false);
+                                                            parent.getAdapter().setBlock(mutableLoc, new BaseBlock(id, combined & 0xF, nbt), false);
                                                         }
                                                         continue;
                                                     }
@@ -276,10 +276,10 @@ public class BukkitChunk_All extends CharFaweChunk<Chunk, BukkitQueue_All> {
                                     int x = cacheX[j];
                                     int z = cacheZ[j];
                                     int y = cacheY[j];
-                                    if (FaweCache.hasNBT(id) && parent.adapter != null) {
+                                    if (FaweCache.hasNBT(id) && parent.getAdapter() != null) {
                                         CompoundTag tile = getTile(x, y, z);
                                         if (tile != null) {
-                                            parent.adapter.setBlock(new Location(world, bx + x, y, bz + z), new BaseBlock(id, combined & 0xF, tile), false);
+                                            parent.getAdapter().setBlock(new Location(world, bx + x, y, bz + z), new BaseBlock(id, combined & 0xF, tile), false);
                                             break;
                                         }
                                     }

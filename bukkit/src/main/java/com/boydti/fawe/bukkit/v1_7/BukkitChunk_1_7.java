@@ -237,7 +237,7 @@ public class BukkitChunk_1_7 extends CharFaweChunk<Chunk, BukkitQueue17> {
                         Entity entity = EntityTypes.createEntityByName(id, nmsWorld);
                         if (entity != null) {
                             if (nativeTag != null) {
-                                NBTTagCompound tag = (NBTTagCompound) BukkitQueue17.methodFromNative.invoke(BukkitQueue17.adapter, nativeTag);
+                                NBTTagCompound tag = (NBTTagCompound) BukkitQueue17.fromNative(nativeTag);
                                 for (String name : Constants.NO_COPY_ENTITY_NBT_FIELDS) {
                                     tag.remove(name);
                                 }
@@ -446,7 +446,7 @@ public class BukkitChunk_1_7 extends CharFaweChunk<Chunk, BukkitQueue17> {
                 int z = (blockHash >> 8 & 0xF) + bz;
                 TileEntity tileEntity = nmsWorld.getTileEntity(x, y, z);
                 if (tileEntity != null) {
-                    NBTTagCompound tag = (NBTTagCompound) BukkitQueue17.methodFromNative.invoke(BukkitQueue17.adapter, nativeTag);
+                    NBTTagCompound tag = (NBTTagCompound) BukkitQueue17.fromNative(nativeTag);
                     tag.set("x", new NBTTagInt(x));
                     tag.set("y", new NBTTagInt(y));
                     tag.set("z", new NBTTagInt(z));

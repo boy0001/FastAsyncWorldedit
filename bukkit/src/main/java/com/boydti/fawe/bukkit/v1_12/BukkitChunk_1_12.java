@@ -78,7 +78,7 @@ public class BukkitChunk_1_12 extends CharFaweChunk<Chunk, BukkitQueue_1_12> {
     }
 
     public boolean storeEntity(Entity ent) throws InvocationTargetException, IllegalAccessException {
-        if (ent instanceof EntityPlayer || BukkitQueue_0.adapter == null) {
+        if (ent instanceof EntityPlayer || BukkitQueue_0.getAdapter() == null) {
             return false;
         }
         int x = ((int) Math.round(ent.locX) & 15);
@@ -90,7 +90,7 @@ public class BukkitChunk_1_12 extends CharFaweChunk<Chunk, BukkitQueue_1_12> {
         if (id != null) {
             NBTTagCompound tag = new NBTTagCompound();
             ent.save(tag); // readEntityIntoTag
-            CompoundTag nativeTag = (CompoundTag) BukkitQueue_0.methodToNative.invoke(getParent().adapter, tag);
+            CompoundTag nativeTag = (CompoundTag) BukkitQueue_0.toNative(tag);
             Map<String, Tag> map = ReflectionUtils.getMap(nativeTag.getValue());
             map.put("Id", new StringTag(id));
             setEntity(nativeTag);
@@ -330,7 +330,7 @@ public class BukkitChunk_1_12 extends CharFaweChunk<Chunk, BukkitQueue_1_12> {
                                 entityTagMap.put("UUIDMost", new LongTag(uuid.getMostSignificantBits()));
                                 entityTagMap.put("UUIDLeast", new LongTag(uuid.getLeastSignificantBits()));
                                 if (nativeTag != null) {
-                                    NBTTagCompound tag = (NBTTagCompound) BukkitQueue_1_12.methodFromNative.invoke(BukkitQueue_1_12.adapter, nativeTag);
+                                    NBTTagCompound tag = (NBTTagCompound) BukkitQueue_1_12.fromNative(nativeTag);
                                     for (String name : Constants.NO_COPY_ENTITY_NBT_FIELDS) {
                                         tag.remove(name);
                                     }
@@ -484,7 +484,7 @@ public class BukkitChunk_1_12 extends CharFaweChunk<Chunk, BukkitQueue_1_12> {
                 BlockPosition pos = new BlockPosition(x, y, z); // Set pos
                 TileEntity tileEntity = nmsWorld.getTileEntity(pos);
                 if (tileEntity != null) {
-                    NBTTagCompound tag = (NBTTagCompound) BukkitQueue_1_12.methodFromNative.invoke(BukkitQueue_1_12.adapter, nativeTag);
+                    NBTTagCompound tag = (NBTTagCompound) BukkitQueue_1_12.fromNative(nativeTag);
                     tag.set("x", new NBTTagInt(x));
                     tag.set("y", new NBTTagInt(y));
                     tag.set("z", new NBTTagInt(z));
