@@ -137,7 +137,7 @@ public class FaweAdapter_All implements BukkitImplAdapter {
         int[] ids = new int[]{10, 1, 7, 6, 5, 3, 11, 9, 0, 8, 2, 4};
 
         int noMods = Modifier.STATIC;
-        int hasMods = Modifier.PRIVATE;
+        int hasMods = 0;
         for (int i = 0; i < nmsClasses.size(); i++) {
             Class<?> nmsClass = ReflectionUtils.getNmsClass(nmsClasses.get(i));
             Class<? extends Tag> weClass = weClasses.get(i);
@@ -221,7 +221,7 @@ public class FaweAdapter_All implements BukkitImplAdapter {
             classEntityTypes = ReflectionUtils.getNmsClass("EntityTypes");
 
             getBukkitEntity = ReflectionUtils.setAccessible(classEntity.getDeclaredMethod("getBukkitEntity"));
-            addEntity = ReflectionUtils.setAccessible(classWorld.getDeclaredMethod("addEntity", classEntity));
+            addEntity = ReflectionUtils.setAccessible(classWorld.getDeclaredMethod("addEntity", classEntity, CreatureSpawnEvent.SpawnReason.class));
             setLocation = ReflectionUtils.setAccessible(classEntity.getDeclaredMethod("setLocation", double.class, double.class, double.class, float.class, float.class));
 
             try {

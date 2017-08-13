@@ -290,7 +290,7 @@ public class ReflectionUtils {
 
     public static Field findField(final Class<?> clazz, final Class<?> type, int hasMods, int noMods) {
         for (Field field : clazz.getDeclaredFields()) {
-            if (type == null || field.getType() == type) {
+            if (type == null || type.isAssignableFrom(field.getType())) {
                 int mods = field.getModifiers();
                 if ((mods & hasMods) == hasMods && (mods & noMods) == 0) {
                     return setAccessible(field);
