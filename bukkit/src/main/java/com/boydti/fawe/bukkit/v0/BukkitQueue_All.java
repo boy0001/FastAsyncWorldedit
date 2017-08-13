@@ -2,6 +2,8 @@ package com.boydti.fawe.bukkit.v0;
 
 import com.boydti.fawe.FaweCache;
 import com.boydti.fawe.config.Settings;
+import com.boydti.fawe.example.NullRelighter;
+import com.boydti.fawe.example.Relighter;
 import com.boydti.fawe.object.FaweChunk;
 import com.boydti.fawe.object.RegionWrapper;
 import com.boydti.fawe.object.RunnableVal;
@@ -9,6 +11,7 @@ import com.boydti.fawe.util.MathMan;
 import com.boydti.fawe.util.ReflectionUtils;
 import com.boydti.fawe.util.SetQueue;
 import com.boydti.fawe.util.TaskManager;
+import com.google.common.collect.MapMaker;
 import com.sk89q.jnbt.CompoundTag;
 import com.sk89q.worldedit.blocks.BaseBlock;
 import java.io.File;
@@ -17,6 +20,7 @@ import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.ArrayDeque;
 import java.util.Map;
+import java.util.concurrent.ConcurrentMap;
 import org.bukkit.Chunk;
 import org.bukkit.ChunkSnapshot;
 import org.bukkit.Location;
@@ -27,6 +31,9 @@ public class BukkitQueue_All extends BukkitQueue_0<ChunkSnapshot, ChunkSnapshot,
 
     public static int ALLOCATE;
     private static int LIGHT_MASK = 0x739C0;
+    private ConcurrentMap<Long, ChunkSnapshot> chunkCache = new MapMaker()
+            .weakValues()
+            .makeMap();
 
     public BukkitQueue_All(com.sk89q.worldedit.world.World world) {
         super(world);
@@ -44,6 +51,11 @@ public class BukkitQueue_All extends BukkitQueue_0<ChunkSnapshot, ChunkSnapshot,
             Settings.IMP.QUEUE.EXTRA_TIME_MS = Integer.MIN_VALUE;
             Settings.IMP.QUEUE.PARALLEL_THREADS = 1;
         }
+    }
+
+    @Override
+    public Relighter getRelighter() {
+        return NullRelighter.INSTANCE;
     }
 
     private static Class<?> classRegionFileCache;
@@ -220,13 +232,15 @@ public class BukkitQueue_All extends BukkitQueue_0<ChunkSnapshot, ChunkSnapshot,
 
     @Override
     public ChunkSnapshot getCachedChunk(World world, int cx, int cz) {
+        long pair = MathMan.pairInt(cx, cz);
+        ChunkSnapshot cached = chunkCache.get(pair);
+        if (cached != null) return cached;
         if (world.isChunkLoaded(cx, cz)) {
-            long pair = MathMan.pairInt(cx, cz);
             Long originalKeep = keepLoaded.get(pair);
             keepLoaded.put(pair, Long.MAX_VALUE);
             if (world.isChunkLoaded(cx, cz)) {
                 Chunk chunk = world.getChunkAt(cx, cz);
-                ChunkSnapshot snapshot = chunk.getChunkSnapshot(false, true, false);
+                ChunkSnapshot snapshot = getAndCacheChunk(chunk);
                 if (originalKeep != null) {
                     keepLoaded.put(pair, originalKeep);
                 } else {
@@ -263,7 +277,13 @@ public class BukkitQueue_All extends BukkitQueue_0<ChunkSnapshot, ChunkSnapshot,
     public ChunkSnapshot loadChunk(World world, int x, int z, boolean generate) {
         Chunk chunk = world.getChunkAt(x, z);
         chunk.load(generate);
-        return chunk.isLoaded() ? chunk.getChunkSnapshot(false, true, false) : null;
+        return chunk.isLoaded() ? getAndCacheChunk(chunk) : null;
+    }
+
+    private ChunkSnapshot getAndCacheChunk(Chunk chunk) {
+        ChunkSnapshot snapshot = chunk.getChunkSnapshot(false, true, false);
+        chunkCache.put(MathMan.pairInt(chunk.getX(), chunk.getZ()), snapshot);
+        return snapshot;
     }
 
     @Override
