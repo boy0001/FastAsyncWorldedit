@@ -26,6 +26,7 @@ import com.boydti.fawe.config.Settings;
 import com.boydti.fawe.object.FaweLimit;
 import com.boydti.fawe.object.FawePlayer;
 import com.boydti.fawe.object.brush.BlendBall;
+import com.boydti.fawe.object.brush.BlobBrush;
 import com.boydti.fawe.object.brush.BrushSettings;
 import com.boydti.fawe.object.brush.CatenaryBrush;
 import com.boydti.fawe.object.brush.CircleBrush;
@@ -282,6 +283,24 @@ public class BrushCommands extends MethodCommands {
         worldEdit.checkMaxBrushRadius(radius);
         return get(context)
                 .setBrush(new SurfaceSpline(tension, bias, continuity, quality))
+                .setSize(radius)
+                .setFill(fill);
+    }
+
+    @Command(
+            aliases = {"blob", "rock"},
+            usage = "<pattern> [radius=10] [frequency=30] [amplitude=50]",
+            flags = "h",
+            desc = "Creates a distorted sphere",
+            min = 1,
+            max = 4
+    )
+    @CommandPermissions("worldedit.brush.blob")
+    public BrushSettings blobBrush(Player player, EditSession editSession, LocalSession session, Pattern fill, @Optional("10") double radius, @Optional("30") double frequency, @Optional("50") double amplitude, CommandContext context) throws WorldEditException {
+        worldEdit.checkMaxBrushRadius(radius);
+        Brush brush = new BlobBrush(frequency / 100, amplitude / 100);
+        return get(context)
+                .setBrush(brush)
                 .setSize(radius)
                 .setFill(fill);
     }
