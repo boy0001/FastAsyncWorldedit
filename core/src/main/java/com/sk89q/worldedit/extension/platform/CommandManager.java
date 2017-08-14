@@ -32,6 +32,7 @@ import com.boydti.fawe.util.chat.UsageMessage;
 import com.boydti.fawe.wrappers.FakePlayer;
 import com.boydti.fawe.wrappers.LocationMaskedPlayerWrapper;
 import com.google.common.base.Joiner;
+import com.sk89q.minecraft.util.commands.CommandContext;
 import com.sk89q.minecraft.util.commands.CommandException;
 import com.sk89q.minecraft.util.commands.CommandLocals;
 import com.sk89q.minecraft.util.commands.CommandPermissionsException;
@@ -77,6 +78,7 @@ import com.sk89q.worldedit.internal.command.WorldEditBinding;
 import com.sk89q.worldedit.internal.command.WorldEditExceptionConverter;
 import com.sk89q.worldedit.session.request.Request;
 import com.sk89q.worldedit.util.auth.AuthorizationException;
+import com.sk89q.worldedit.util.command.CommandCallable;
 import com.sk89q.worldedit.util.command.Dispatcher;
 import com.sk89q.worldedit.util.command.InvalidUsageException;
 import com.sk89q.worldedit.util.command.composition.ProvidedValue;
@@ -90,6 +92,7 @@ import com.sk89q.worldedit.util.logging.DynamicStreamHandler;
 import com.sk89q.worldedit.util.logging.LogFormat;
 import java.io.File;
 import java.io.IOException;
+import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Set;
@@ -393,8 +396,17 @@ public final class CommandManager {
             BBC.NO_PERM.send(finalActor, StringMan.join(failedPermissions, " "));
         } catch (InvalidUsageException e) {
             if (e.isFullHelpSuggested()) {
-                UsageMessage usage = new UsageMessage(e.getCommand(), e.getCommandUsed((WorldEdit.getInstance().getConfiguration().noDoubleSlash ? "" : "/"), ""), locals);
-                usage.send(fp);
+                CommandCallable cmd = e.getCommand();
+                if (cmd instanceof Dispatcher) {
+                    try {
+                        CommandContext context = new CommandContext(("ignoreThis " + Joiner.on(" ").join(split)).split(" "), new HashSet<>(), false, locals);
+                        UtilityCommands.help(context, worldEdit, actor);
+                    } catch (CommandException e1) {
+                        e1.printStackTrace();
+                    }
+                } else {
+                    new UsageMessage(cmd, e.getCommandUsed((WorldEdit.getInstance().getConfiguration().noDoubleSlash ? "" : "/"), ""), locals).send(fp);
+                }
                 String message = e.getMessage();
                 if (message != null) {
                     finalActor.printError(message);

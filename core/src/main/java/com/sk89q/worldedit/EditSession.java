@@ -547,6 +547,9 @@ public class EditSession extends AbstractWorld implements HasFaweQueue, Lighting
         event = event.clone(stage);
         event.setExtent(extent);
         eventBus.post(event);
+        if (event.isCancelled()) {
+            return new NullExtent(extent, BBC.WORLDEDIT_CANCEL_REASON_MANUAL);
+        }
         final Extent toReturn = event.getExtent();
         if (!(toReturn instanceof AbstractDelegateExtent)) {
             Fawe.debug("Extent " + toReturn + " must be AbstractDelegateExtent");
