@@ -273,8 +273,8 @@ public class SpongeChunk_1_12 extends CharFaweChunk<Chunk, SpongeQueue_1_12> {
                     int k = FaweCache.CACHE_J[ly][lz][lx];
                     if (array[k] != 0) {
                         synchronized (SpongeChunk_1_12.class) {
-                            tile.getValue().invalidate();
                             iterator.remove();
+                            tile.getValue().invalidate();
                         }
                     }
                 }
