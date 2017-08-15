@@ -128,7 +128,9 @@ public class FaweBukkit implements IFawe, Listener {
 
     @Override
     public String getPlatformVersion() {
-        return Bukkit.getVersion();
+        String bukkitVersion = Bukkit.getVersion();
+        int index = bukkitVersion.indexOf("MC: ");
+        return index == -1 ? bukkitVersion : bukkitVersion.substring(index + 4, bukkitVersion.length() - 1);
     }
 
     public void setupInjector() {

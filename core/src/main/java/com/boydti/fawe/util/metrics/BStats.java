@@ -3,8 +3,10 @@ package com.boydti.fawe.util.metrics;
 import com.boydti.fawe.Fawe;
 import com.boydti.fawe.configuration.file.YamlConfiguration;
 import com.boydti.fawe.object.io.PGZIPOutputStream;
+import com.google.gson.Gson;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
+import com.google.gson.JsonSyntaxException;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.ByteArrayOutputStream;
@@ -45,6 +47,7 @@ public class BStats implements Closeable {
     private final String serverVersion;
     private final String pluginVersion;
     private Thread task;
+    private Gson gson = new Gson();
 
     // Is bStats enabled on this server?
     private boolean enabled;
@@ -62,6 +65,10 @@ public class BStats implements Closeable {
         this("FastAsyncWorldEdit", Fawe.get().getVersion().toString(), Fawe.imp().getPlatformVersion(), Fawe.imp().getPlatform(), Fawe.imp().isOnlineMode());
     }
 
+    public int getPlayerCount() {
+        return Fawe.imp() == null ? 1 : Fawe.imp().getPlayerCount();
+    }
+
     private BStats(String plugin, String pluginVersion, String serverVersion, String platform, boolean online) {
         this.url = "https://bStats.org/submitData/" + platform;
         this.plugin = plugin;
@@ -69,8 +76,6 @@ public class BStats implements Closeable {
         this.serverVersion = serverVersion;
         this.platform = platform;
         this.online = online;
-
-        StringBuilder data = new StringBuilder();
 
         File configFile = new File(getJarFile().getParentFile(), "bStats" + File.separator + "config.yml");
 
@@ -161,9 +166,10 @@ public class BStats implements Closeable {
                     try {
                         if (enabled) Thread.sleep(TimeUnit.MINUTES.toMillis(30));
                     } catch (InterruptedException e) {
-                        return;
+                        break;
                     }
                 }
+                submitData();
             }
         });
         this.task.start();
@@ -178,6 +184,14 @@ public class BStats implements Closeable {
     @Override
     public void close() {
         enabled = false;
+        if (task != null) {
+            task.interrupt();
+            try {
+                task.join();
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        }
     }
 
     /**
@@ -186,7 +200,7 @@ public class BStats implements Closeable {
      * @return The server specific data.
      */
     private JsonObject getServerData() {
-        int playerAmount = Fawe.imp() != null ? Fawe.imp().getPlayerCount() : 1;
+        int playerAmount = getPlayerCount();
         int onlineMode = online ? 1 : 0;
 
         int managedServers = 1;
@@ -229,8 +243,11 @@ public class BStats implements Closeable {
                 Object plugin = metrics.getClass().getMethod("getPluginData").invoke(metrics);
                 if (plugin instanceof JsonObject) {
                     pluginData.add((JsonObject) plugin);
+                } else {
+                    pluginData.add(gson.fromJson(plugin.toString(), JsonObject.class));
                 }
-            } catch (NoSuchMethodException | IllegalAccessException | InvocationTargetException ignored) { }
+
+            } catch (NoSuchMethodException | IllegalAccessException | InvocationTargetException | NullPointerException | JsonSyntaxException ignored) { }
         }
 
         data.add("plugins", pluginData);
