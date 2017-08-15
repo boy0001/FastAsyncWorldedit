@@ -122,6 +122,7 @@ public enum BBC {
     BRUSH_VISUAL_MODE_SET("Set visual mode to %s0", "WorldEdit.Brush"),
     BRUSH_TARGET_MODE_SET("Set target mode to %s0", "WorldEdit.Brush"),
     BRUSH_TARGET_MASK_SET("Set target mask to %s0", "WorldEdit.Brush"),
+    BRUSH_TARGET_OFFSET_SET("Set target offset to %s0", "WorldEdit.Brush"),
     BRUSH_EQUIPPED("Equipped brush %s0", "WorldEdit.Brush"),
     BRUSH_TRY_OTHER("&cThere are other more suitable brushes e.g.\n&8 - &7//br height [radius=5] [#clipboard|file=null] [rotation=0] [yscale=1.00]", "WorldEdit.Brush"),
     BRUSH_COPY("Left click the base of an object to copy, right click to paste. Increase the brush radius if necessary.", "WorldEdit.Brush"),

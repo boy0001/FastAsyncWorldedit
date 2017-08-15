@@ -6,6 +6,7 @@ import com.boydti.fawe.object.extent.NullExtent;
 import com.boydti.fawe.object.extent.ResettableExtent;
 import com.sk89q.worldedit.EditSession;
 import com.sk89q.worldedit.LocalSession;
+import com.sk89q.worldedit.Vector;
 import com.sk89q.worldedit.WorldEdit;
 import com.sk89q.worldedit.entity.Entity;
 import com.sk89q.worldedit.entity.Player;
@@ -181,6 +182,38 @@ public class FawePrimitiveBinding extends BindingHelper {
             consumedCount = 1)
     public Boolean getBoolean(ArgumentStack context) throws ParameterException {
         return context.nextBoolean();
+    }
+
+    /**
+     * Gets a type from a {@link ArgumentStack}.
+     *
+     * @param context the context
+     * @return the requested type
+     * @throws ParameterException on error
+     */
+    @BindingMatch(type = Vector.class,
+            behavior = BindingBehavior.CONSUMES,
+            consumedCount = 1,
+            provideModifiers = true)
+    public Vector getVector(ArgumentStack context, Annotation[] modifiers) throws ParameterException {
+        String radiusString = context.next();
+        String[] radii = radiusString.split(",");
+        final double radiusX, radiusY, radiusZ;
+        switch (radii.length) {
+            case 1:
+                radiusX = radiusY = radiusZ = Math.max(1, FawePrimitiveBinding.parseNumericInput(radii[0]));
+                break;
+
+            case 3:
+                radiusX = Math.max(1, FawePrimitiveBinding.parseNumericInput(radii[0]));
+                radiusY = Math.max(1, FawePrimitiveBinding.parseNumericInput(radii[1]));
+                radiusZ = Math.max(1, FawePrimitiveBinding.parseNumericInput(radii[2]));
+                break;
+
+            default:
+                throw new ParameterException("You must either specify 1 or 3 radius values.");
+        }
+        return new Vector(radiusX, radiusY, radiusZ);
     }
 
     /**

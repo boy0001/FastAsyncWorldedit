@@ -52,6 +52,7 @@ import com.boydti.fawe.object.brush.SurfaceSpline;
 import com.boydti.fawe.object.brush.heightmap.ScalableHeightMap;
 import com.boydti.fawe.object.mask.IdMask;
 import com.boydti.fawe.util.ColorUtil;
+import com.boydti.fawe.util.MathMan;
 import com.sk89q.minecraft.util.commands.Command;
 import com.sk89q.minecraft.util.commands.CommandContext;
 import com.sk89q.minecraft.util.commands.CommandLocals;
@@ -296,12 +297,13 @@ public class BrushCommands extends MethodCommands {
             max = 4
     )
     @CommandPermissions("worldedit.brush.blob")
-    public BrushSettings blobBrush(Player player, EditSession editSession, LocalSession session, Pattern fill, @Optional("10") double radius, @Optional("30") double frequency, @Optional("50") double amplitude, CommandContext context) throws WorldEditException {
-        worldEdit.checkMaxBrushRadius(radius);
-        Brush brush = new BlobBrush(frequency / 100, amplitude / 100);
+    public BrushSettings blobBrush(Player player, EditSession editSession, LocalSession session, Pattern fill, @Optional("10") Vector radius, @Optional("30") double frequency, @Optional("50") double amplitude, CommandContext context) throws WorldEditException {
+        double max = MathMan.max(radius.getBlockX(), radius.getBlockY(), radius.getBlockZ());
+        worldEdit.checkMaxBrushRadius(max);
+        Brush brush = new BlobBrush(radius.divide(max), frequency / 100, amplitude / 100);
         return get(context)
                 .setBrush(brush)
-                .setSize(radius)
+                .setSize(max)
                 .setFill(fill);
     }
 

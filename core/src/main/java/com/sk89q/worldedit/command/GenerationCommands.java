@@ -247,8 +247,8 @@ public class GenerationCommands extends MethodCommands {
     )
     @CommandPermissions("worldedit.generation.sphere")
     @Logging(PLACEMENT)
-    public void hsphere(FawePlayer fp, Player player, LocalSession session, EditSession editSession, Pattern pattern, String radiusString, @Optional("false") boolean raised, CommandContext context) throws WorldEditException, ParameterException {
-        sphere(fp, player, session, editSession, pattern, radiusString, raised, true, context);
+    public void hsphere(FawePlayer fp, Player player, LocalSession session, EditSession editSession, Pattern pattern, Vector radius, @Optional("false") boolean raised, CommandContext context) throws WorldEditException, ParameterException {
+        sphere(fp, player, session, editSession, pattern, radius, raised, true, context);
     }
 
     @Command(
@@ -266,37 +266,17 @@ public class GenerationCommands extends MethodCommands {
     )
     @CommandPermissions("worldedit.generation.sphere")
     @Logging(PLACEMENT)
-    public void sphere(FawePlayer fp, Player player, LocalSession session, EditSession editSession, Pattern pattern, String radiusString, @Optional("false") boolean raised, @Switch('h') boolean hollow, CommandContext context) throws WorldEditException, ParameterException {
-        String[] radii = radiusString.split(",");
-        final double radiusX, radiusY, radiusZ;
-        switch (radii.length) {
-            case 1:
-                radiusX = radiusY = radiusZ = Math.max(1, FawePrimitiveBinding.parseNumericInput(radii[0]));
-                break;
-
-            case 3:
-                radiusX = Math.max(1, FawePrimitiveBinding.parseNumericInput(radii[0]));
-                radiusY = Math.max(1, FawePrimitiveBinding.parseNumericInput(radii[1]));
-                radiusZ = Math.max(1, FawePrimitiveBinding.parseNumericInput(radii[2]));
-                break;
-
-            default:
-                fp.sendMessage(BBC.getPrefix() + "You must either specify 1 or 3 radius values.");
-                return;
-        }
-        worldEdit.checkMaxRadius(radiusX);
-        worldEdit.checkMaxRadius(radiusY);
-        worldEdit.checkMaxRadius(radiusZ);
-
-        double max = MathMan.max(radiusX, radiusY, radiusZ);
+    public void sphere(FawePlayer fp, Player player, LocalSession session, EditSession editSession, Pattern pattern, Vector radius, @Optional("false") boolean raised, @Switch('h') boolean hollow, CommandContext context) throws WorldEditException, ParameterException {
+        double max = MathMan.max(radius.getBlockX(), radius.getBlockY(), radius.getBlockZ());
+        worldEdit.checkMaxBrushRadius(max);
         fp.checkConfirmationRadius(getArguments(context), (int) max);
 
         Vector pos = session.getPlacementPosition(player);
         if (raised) {
-            pos = pos.add(0, radiusY, 0);
+            pos = pos.add(0, radius.getBlockY(), 0);
         }
 
-        int affected = editSession.makeSphere(pos, pattern, radiusX, radiusY, radiusZ, !hollow);
+        int affected = editSession.makeSphere(pos, pattern, radius.getBlockX(), radius.getBlockY(), radius.getBlockZ(), !hollow);
         player.findFreePosition();
         BBC.VISITOR_BLOCK.send(fp, affected);
     }

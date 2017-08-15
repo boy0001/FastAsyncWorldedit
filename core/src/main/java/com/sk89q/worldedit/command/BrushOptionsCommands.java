@@ -290,6 +290,23 @@ public class BrushOptionsCommands extends MethodCommands {
     }
 
     @Command(
+            aliases = {"targetoffset", "to"},
+            usage = "[mask]",
+            desc = "Set the targeting mask",
+            min = 1,
+            max = -1
+    )
+    public void targetOffset(Player player, EditSession editSession, LocalSession session, int offset) throws WorldEditException {
+        BrushTool tool = session.getBrushTool(player, false);
+        if (tool == null) {
+            BBC.BRUSH_NONE.send(player);
+            return;
+        }
+        tool.setTargetOffset(offset);
+        BBC.BRUSH_TARGET_OFFSET_SET.send(player, offset);
+    }
+
+    @Command(
             aliases = {"scroll"},
             usage = "[none|clipboard|mask|pattern|range|size|visual|target]",
             desc = "Toggle between different target modes",

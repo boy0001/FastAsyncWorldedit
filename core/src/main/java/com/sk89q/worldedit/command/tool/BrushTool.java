@@ -72,6 +72,7 @@ public class BrushTool implements DoubleActionTraceTool, ScrollTool, MovableTool
     private VisualMode visualMode = VisualMode.NONE;
     private TargetMode targetMode = TargetMode.TARGET_BLOCK_RANGE;
     private Mask targetMask = null;
+    private int targetOffset;
 
     private transient BrushSettings primary = new BrushSettings();
     private transient BrushSettings secondary = new BrushSettings();
@@ -98,11 +99,13 @@ public class BrushTool implements DoubleActionTraceTool, ScrollTool, MovableTool
         VisualMode visual = VisualMode.valueOf((String) root.getOrDefault("visual", "NONE"));
         TargetMode target = TargetMode.valueOf((String) root.getOrDefault("target", "TARGET_BLOCK_RANGE"));
         int range = ((Number) root.getOrDefault("range", -1)).intValue();
+        int offset = ((Number) root.getOrDefault("offset", 0)).intValue();
 
         BrushTool tool = new BrushTool();
         tool.visualMode = visual;
         tool.targetMode = target;
         tool.range = range;
+        tool.targetOffset = offset;
 
         BrushSettings primarySettings = BrushSettings.get(tool, player, session, primary);
         tool.setPrimary(primarySettings);
@@ -129,6 +132,9 @@ public class BrushTool implements DoubleActionTraceTool, ScrollTool, MovableTool
         }
         if (range != -1) {
             map.put("range", range);
+        }
+        if (targetOffset != 0) {
+            map.put("offset", targetOffset);
         }
         return new Gson().toJson(map);
     }
@@ -336,21 +342,20 @@ public class BrushTool implements DoubleActionTraceTool, ScrollTool, MovableTool
     }
 
     public Vector getPosition(EditSession editSession, Player player) {
+        Location loc = player.getLocation();
         switch (targetMode) {
             case TARGET_BLOCK_RANGE:
-                return new MutableBlockVector(trace(editSession, player, getRange(), true));
+                return offset(new MutableBlockVector(trace(editSession, player, getRange(), true)), loc.toVector());
             case FOWARD_POINT_PITCH: {
                 int d = 0;
-                Location loc = player.getLocation();
                 float pitch = loc.getPitch();
                 pitch = 23 - (pitch / 4);
                 d += (int) (Math.sin(Math.toRadians(pitch)) * 50);
                 final Vector vector = loc.getDirection().setY(0).normalize().multiply(d);
                 vector.add(loc.getX(), loc.getY(), loc.getZ()).toBlockVector();
-                return new MutableBlockVector(vector);
+                return offset(new MutableBlockVector(vector), loc.toVector());
             }
             case TARGET_POINT_HEIGHT: {
-                Location loc = player.getLocation();
                 final int height = loc.getBlockY();
                 final int x = loc.getBlockX();
                 final int z = loc.getBlockZ();
@@ -362,13 +367,18 @@ public class BrushTool implements DoubleActionTraceTool, ScrollTool, MovableTool
                     }
                 }
                 final int distance = (height - y) + 8;
-                return new MutableBlockVector(trace(editSession, player, distance, true));
+                return offset(new MutableBlockVector(trace(editSession, player, distance, true)), loc.toVector());
             }
             case TARGET_FACE_RANGE:
-                return new MutableBlockVector(trace(editSession, player, getRange(), true));
+                return offset(new MutableBlockVector(trace(editSession, player, getRange(), true)), loc.toVector());
             default:
                 return null;
         }
+    }
+
+    private Vector offset(Vector target, Vector playerPos) {
+        if (targetOffset == 0) return target;
+        return target.subtract(target.subtract(playerPos).normalize().multiply(targetOffset));
     }
 
     private Vector trace(EditSession editSession, Player player, int range, boolean useLastBlock) {
@@ -464,6 +474,10 @@ public class BrushTool implements DoubleActionTraceTool, ScrollTool, MovableTool
         this.getContext().setScrollAction(scrollAction);
     }
 
+    public void setTargetOffset(int targetOffset) {
+        this.targetOffset = targetOffset;
+    }
+
     public void setTargetMode(TargetMode targetMode) {
         this.targetMode = targetMode != null ? targetMode : TargetMode.TARGET_BLOCK_RANGE;
     }
@@ -491,6 +505,10 @@ public class BrushTool implements DoubleActionTraceTool, ScrollTool, MovableTool
 
     public TargetMode getTargetMode() {
         return targetMode;
+    }
+
+    public int getTargetOffset() {
+        return targetOffset;
     }
 
     public Mask getTargetMask() {
