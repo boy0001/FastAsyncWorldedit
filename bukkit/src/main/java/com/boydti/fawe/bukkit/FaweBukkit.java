@@ -116,6 +116,21 @@ public class FaweBukkit implements IFawe, Listener {
         });
     }
 
+    @Override
+    public int getPlayerCount() {
+        return plugin.getServer().getOnlinePlayers().size();
+    }
+
+    @Override
+    public boolean isOnlineMode() {
+        return Bukkit.getOnlineMode();
+    }
+
+    @Override
+    public String getPlatformVersion() {
+        return Bukkit.getVersion();
+    }
+
     public void setupInjector() {
         Fawe.setupInjector();
         // Inject

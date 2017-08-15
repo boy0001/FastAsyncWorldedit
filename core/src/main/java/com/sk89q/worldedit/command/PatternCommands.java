@@ -1,7 +1,7 @@
 package com.sk89q.worldedit.command;
 
 import com.boydti.fawe.Fawe;
-import com.boydti.fawe.object.DataAngleMask;
+import com.boydti.fawe.object.DataAnglePattern;
 import com.boydti.fawe.object.FawePlayer;
 import com.boydti.fawe.object.collection.RandomCollection;
 import com.boydti.fawe.object.pattern.AngleColorPattern;
@@ -135,7 +135,7 @@ public class PatternCommands extends MethodCommands {
             desc = "Block data based on the existing terrain angle"
     )
     public Pattern angledata(Extent extent) {
-        return new DataAngleMask(extent);
+        return new DataAnglePattern(extent);
     }
 
     @Command(

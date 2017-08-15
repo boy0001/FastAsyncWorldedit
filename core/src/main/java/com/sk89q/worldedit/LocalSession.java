@@ -577,6 +577,10 @@ public class LocalSession {
         return null;
     }
 
+    public Map<Integer, Tool> getTools() {
+        return Collections.unmodifiableMap(tools);
+    }
+
     public int getSize() {
         return history.size();
     }

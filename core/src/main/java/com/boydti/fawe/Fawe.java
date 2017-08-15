@@ -19,6 +19,7 @@ import com.boydti.fawe.util.Updater;
 import com.boydti.fawe.util.WEManager;
 import com.boydti.fawe.util.chat.ChatManager;
 import com.boydti.fawe.util.chat.PlainChatManager;
+import com.boydti.fawe.util.metrics.BStats;
 import com.sk89q.jnbt.NBTInputStream;
 import com.sk89q.jnbt.NBTOutputStream;
 import com.sk89q.worldedit.BlockVector;
@@ -287,7 +288,18 @@ public class Fawe {
 
         TaskManager.IMP = this.IMP.getTaskManager();
         if (Settings.IMP.METRICS) {
-            this.IMP.startMetrics();
+            try {
+                this.IMP.startMetrics();
+                TaskManager.IMP.task(new Runnable() {
+                    @Override
+                    public void run() {
+                        // Run it when the plugin loads
+                        BStats stats = new BStats();
+                    }
+                });
+            } catch (Throwable ignore) {
+                ignore.printStackTrace();
+            }
         }
         this.setupCommands();
         /*

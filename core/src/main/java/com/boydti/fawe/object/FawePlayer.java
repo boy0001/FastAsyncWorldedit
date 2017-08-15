@@ -21,6 +21,8 @@ import com.sk89q.worldedit.LocalSession;
 import com.sk89q.worldedit.Vector;
 import com.sk89q.worldedit.WorldEdit;
 import com.sk89q.worldedit.WorldEditException;
+import com.sk89q.worldedit.command.tool.BrushTool;
+import com.sk89q.worldedit.command.tool.Tool;
 import com.sk89q.worldedit.entity.Player;
 import com.sk89q.worldedit.event.platform.CommandEvent;
 import com.sk89q.worldedit.extension.platform.Actor;
@@ -542,6 +544,12 @@ public abstract class FawePlayer<T> extends Metadatable {
             WorldEdit.getInstance().removeSession(toWorldEditPlayer());
             session.setClipboard(null);
             session.clearHistory();
+            for (Map.Entry<Integer, Tool> entry : session.getTools().entrySet()) {
+                Tool tool = entry.getValue();
+                if (tool instanceof BrushTool) {
+                    ((BrushTool) tool).clear(getPlayer());
+                }
+            }
         }
         Fawe.get().unregister(getName());
     }

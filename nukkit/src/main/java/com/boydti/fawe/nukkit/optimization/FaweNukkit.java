@@ -1,5 +1,6 @@
 package com.boydti.fawe.nukkit.optimization;
 
+import cn.nukkit.Nukkit;
 import cn.nukkit.Player;
 import cn.nukkit.event.EventHandler;
 import cn.nukkit.event.Listener;
@@ -41,6 +42,21 @@ public class FaweNukkit implements IFawe, Listener {
             e.printStackTrace();
             debug("===================================");
         }
+    }
+
+    @Override
+    public int getPlayerCount() {
+        return plugin.getServer().getOnlinePlayers().size();
+    }
+
+    @Override
+    public boolean isOnlineMode() {
+        return false;
+    }
+
+    @Override
+    public String getPlatformVersion() {
+        return Nukkit.VERSION;
     }
 
 	@EventHandler

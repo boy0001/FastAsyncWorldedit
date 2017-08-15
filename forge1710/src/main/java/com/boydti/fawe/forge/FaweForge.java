@@ -66,6 +66,21 @@ public class FaweForge implements IFawe {
     }
 
     @Override
+    public boolean isOnlineMode() {
+        return MinecraftServer.getServer().isServerInOnlineMode();
+    }
+
+    @Override
+    public String getPlatformVersion() {
+        return MinecraftServer.getServer().getMinecraftVersion();
+    }
+
+    @Override
+    public int getPlayerCount() {
+        return MinecraftServer.getServer().getCurrentPlayerCount();
+    }
+
+    @Override
     public File getDirectory() {
         return directory;
     }

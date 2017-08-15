@@ -2,7 +2,7 @@ package com.boydti.fawe.object.pattern;
 
 import com.boydti.fawe.Fawe;
 import com.boydti.fawe.FaweCache;
-import com.boydti.fawe.object.DataAngleMask;
+import com.boydti.fawe.object.DataAnglePattern;
 import com.boydti.fawe.util.TextureUtil;
 import com.sk89q.worldedit.Vector;
 import com.sk89q.worldedit.WorldEditException;
@@ -10,7 +10,7 @@ import com.sk89q.worldedit.blocks.BaseBlock;
 import com.sk89q.worldedit.extent.Extent;
 import java.io.IOException;
 
-public class AngleColorPattern extends DataAngleMask {
+public class AngleColorPattern extends DataAnglePattern {
     private static final double FACTOR = 1d / 256;
     private transient TextureUtil util;
 
@@ -51,7 +51,7 @@ public class AngleColorPattern extends DataAngleMask {
             int x = vector.getBlockX();
             int y = vector.getBlockY();
             int z = vector.getBlockZ();
-            int height = extent.getNearestSurfaceTerrainBlock(x, y, z, 0, maxY);
+            int height = extent.getNearestSurfaceTerrainBlock(x, z, y, 0, maxY);
             if (height > 0) {
                 BaseBlock below = extent.getLazyBlock(x, height - 1, z);
                 if (FaweCache.canPassThrough(block.getId(), block.getData())) {

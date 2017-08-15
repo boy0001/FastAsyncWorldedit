@@ -51,6 +51,21 @@ public class FaweSponge implements IFawe {
     }
 
     @Override
+    public boolean isOnlineMode() {
+        return Sponge.getServer().getOnlineMode();
+    }
+
+    @Override
+    public String getPlatformVersion() {
+        return Sponge.getPlatform().getMinecraftVersion().getName();
+    }
+
+    @Override
+    public int getPlayerCount() {
+        return Sponge.getServer().getOnlinePlayers().size();
+    }
+
+    @Override
     public File getDirectory() {
         return new File("config/FastAsyncWorldEdit");
     }
