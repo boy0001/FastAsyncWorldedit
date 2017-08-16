@@ -289,14 +289,14 @@ public class Fawe {
         TaskManager.IMP = this.IMP.getTaskManager();
         if (Settings.IMP.METRICS) {
             try {
+                BStats stats = new BStats();
                 this.IMP.startMetrics();
-                TaskManager.IMP.task(new Runnable() {
+                TaskManager.IMP.later(new Runnable() {
                     @Override
                     public void run() {
-                        // Run it when the plugin loads
-                        BStats stats = new BStats();
+                        stats.start();
                     }
-                });
+                }, 1);
             } catch (Throwable ignore) {
                 ignore.printStackTrace();
             }

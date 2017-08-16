@@ -21,7 +21,6 @@ import java.net.MalformedURLException;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.nio.file.Path;
-import java.util.Collection;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.TimeUnit;
@@ -59,7 +58,8 @@ public class BStats implements Closeable {
     private boolean logFailedRequests = false;
 
     // A list with all known metrics class objects including this one
-    private static final Collection<Object> knownMetricsInstances = new ConcurrentLinkedQueue<>();
+    private static Class<?> usedMetricsClass;
+    private static final ConcurrentLinkedQueue<Object> knownMetricsInstances = new ConcurrentLinkedQueue<>();
 
     public BStats() {
         this("FastAsyncWorldEdit", Fawe.get().getVersion().toString(), Fawe.imp().getPlatformVersion(), Fawe.imp().getPlatform(), Fawe.imp().isOnlineMode());
@@ -106,7 +106,12 @@ public class BStats implements Closeable {
         // Load the data
         serverUUID = UUID.fromString(config.getString("serverUuid"));
 
-        Class<?> usedMetricsClass = getFirstBStatsClass();
+        if (usedMetricsClass != null) {
+            // Already an instance of this class
+            linkMetrics(this);
+            return;
+        }
+        this.usedMetricsClass = getFirstBStatsClass();
         if (usedMetricsClass == null) {
             // Failed to get first metrics class
             return;
@@ -115,7 +120,6 @@ public class BStats implements Closeable {
             // We are the first! :)
             linkMetrics(this);
             enabled = true;
-            startSubmitting();
         } else {
             // We aren't the first so we link to the first metrics class
             try {
@@ -125,6 +129,12 @@ public class BStats implements Closeable {
                     System.out.println("Failed to link to first metrics class " + usedMetricsClass.getName() + "!");
                 }
             }
+        }
+    }
+
+    public void start() {
+        if (enabled) {
+            startSubmitting();
         }
     }
 
@@ -246,8 +256,7 @@ public class BStats implements Closeable {
                 } else {
                     pluginData.add(gson.fromJson(plugin.toString(), JsonObject.class));
                 }
-
-            } catch (NoSuchMethodException | IllegalAccessException | InvocationTargetException | NullPointerException | JsonSyntaxException ignored) { }
+            } catch (NoSuchMethodException | IllegalAccessException | InvocationTargetException | NullPointerException | JsonSyntaxException ignored) {}
         }
 
         data.add("plugins", pluginData);
