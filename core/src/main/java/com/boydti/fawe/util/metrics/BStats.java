@@ -21,9 +21,9 @@ import java.net.MalformedURLException;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.nio.file.Path;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.Collection;
 import java.util.UUID;
+import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.TimeUnit;
 import javax.net.ssl.HttpsURLConnection;
 
@@ -59,7 +59,7 @@ public class BStats implements Closeable {
     private boolean logFailedRequests = false;
 
     // A list with all known metrics class objects including this one
-    private static final List<Object> knownMetricsInstances = new ArrayList<>();
+    private static final Collection<Object> knownMetricsInstances = new ConcurrentLinkedQueue<>();
 
     public BStats() {
         this("FastAsyncWorldEdit", Fawe.get().getVersion().toString(), Fawe.imp().getPlatformVersion(), Fawe.imp().getPlatform(), Fawe.imp().isOnlineMode());

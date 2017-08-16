@@ -85,6 +85,11 @@ public class ForgeChunk_All extends CharFaweChunk<Chunk, ForgeQueue_All> {
     }
 
     @Override
+    public void setBlock(int x, int y, int z, int id) {
+        setBlock(x, y, z, id, 0);
+    }
+
+    @Override
     public void setBlock(int x, int y, int z, int id, int data) {
         int i = FaweCache.CACHE_I[y][z][x];
         int j = FaweCache.CACHE_J[y][z][x];
@@ -137,7 +142,6 @@ public class ForgeChunk_All extends CharFaweChunk<Chunk, ForgeQueue_All> {
                     }
                     nibble.set(x, y & 15, z, id >> 8);
                 }
-                return;
         }
     }
 
