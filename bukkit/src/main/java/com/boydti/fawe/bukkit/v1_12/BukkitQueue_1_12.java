@@ -25,6 +25,7 @@ import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.Arrays;
 import java.util.Collection;
@@ -90,6 +91,7 @@ public class BukkitQueue_1_12 extends BukkitQueue_0<net.minecraft.server.v1_12_R
     protected static Field fieldSize;
     protected static Method getEntitySlices;
     protected static Method methodTileEntityLoad;
+    protected static Method methodSaveChunk;
     protected static Field fieldTickingBlockCount;
     protected static Field fieldNonEmptyBlockCount;
     protected static Field fieldSection;
@@ -102,6 +104,7 @@ public class BukkitQueue_1_12 extends BukkitQueue_0<net.minecraft.server.v1_12_R
     protected static Field fieldGenLayer2;
     protected static Field fieldChunks;
     protected static Field fieldChunkLoader;
+    private static Field fieldSave;
     protected static MutableGenLayer genLayer;
     protected static ChunkSection emptySection;
 
@@ -132,6 +135,8 @@ public class BukkitQueue_1_12 extends BukkitQueue_0<net.minecraft.server.v1_12_R
             fieldGenLayer2 = WorldChunkManager.class.getDeclaredField("c") ;
             fieldGenLayer1.setAccessible(true);
             fieldGenLayer2.setAccessible(true);
+
+            fieldSave = ReflectionUtils.setAccessible(net.minecraft.server.v1_12_R1.Chunk.class.getDeclaredField("s"));
 
             fieldChunks = ChunkProviderServer.class.getDeclaredField("chunks");
             fieldChunkLoader = ChunkProviderServer.class.getDeclaredField("chunkLoader");
@@ -166,6 +171,9 @@ public class BukkitQueue_1_12 extends BukkitQueue_0<net.minecraft.server.v1_12_R
         } catch (Throwable e) {
             e.printStackTrace();
         }
+        try {
+            methodSaveChunk = ChunkProviderServer.class.getDeclaredMethod("saveChunk", net.minecraft.server.v1_12_R1.Chunk.class, boolean.class);
+        } catch (NoSuchMethodError | NoSuchMethodException ignore) { }
     }
 
     public BukkitQueue_1_12(final com.sk89q.worldedit.world.World world) {
@@ -176,6 +184,25 @@ public class BukkitQueue_1_12 extends BukkitQueue_0<net.minecraft.server.v1_12_R
     public BukkitQueue_1_12(final String world) {
         super(world);
         getImpWorld();
+    }
+
+    private boolean save(net.minecraft.server.v1_12_R1.Chunk chunk, ChunkProviderServer cps) {
+        try {
+            if (!(boolean) fieldSave.get(chunk)) return false;
+            if (methodSaveChunk != null) {
+
+                methodSaveChunk.invoke(cps, chunk, false);
+            } else {
+                cps.saveChunk(chunk);
+            }
+            cps.saveChunkNOP(chunk);
+            return true;
+        } catch (InvocationTargetException e) {
+            e.printStackTrace();
+        } catch (IllegalAccessException e) {
+            e.printStackTrace();
+        }
+        return false;
     }
 
     @Override
@@ -287,11 +314,7 @@ public class BukkitQueue_1_12 extends BukkitQueue_0<net.minecraft.server.v1_12_R
                                 boolean isIn = allowed.isInChunk(chunk.locX, chunk.locZ);
                                 if (isIn) {
                                     if (!load) {
-                                        if (chunk.a(false)) {
-                                            mustSave = true;
-                                            provider.saveChunk(chunk);
-                                            provider.saveChunkNOP(chunk);
-                                        }
+                                        mustSave |= save(chunk, provider);
                                         continue;
                                     }
                                     iter.remove();

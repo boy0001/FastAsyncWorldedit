@@ -176,16 +176,17 @@ public class CorruptSchematicStreamer {
                     }
                 }
             });
-            match("Add", new CorruptSchematicStreamer.CorruptReader() {
+            match("AddBlocks", new CorruptSchematicStreamer.CorruptReader() {
                 @Override
                 public void run(DataInputStream in) throws IOException {
                     int length = in.readInt();
                     int expected = volume.get();
                     if (expected == 0) {
-                        volume.set(length * 2);
+                        expected = length * 2;
+                        volume.set(expected);
                     }
                     setupClipboard();
-                    if (expected != length) {
+                    if (expected == length * 2) {
                         for (int i = 0; i < length; i++) {
                             int value = in.read();
                             int first = value & 0x0F;
@@ -202,7 +203,7 @@ public class CorruptSchematicStreamer {
                     }
                 }
             });
-            match("Blocks", new CorruptSchematicStreamer.CorruptReader() {
+            match("Biomes", new CorruptSchematicStreamer.CorruptReader() {
                 @Override
                 public void run(DataInputStream in) throws IOException {
                     int length = in.readInt();

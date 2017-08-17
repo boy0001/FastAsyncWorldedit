@@ -169,6 +169,10 @@ public class Sniper {
 
         FaweQueue baseQueue = FaweAPI.createQueue(fp.getLocation().world, false);
         RegionWrapper[] mask = WEManager.IMP.getMask(fp);
+        if (mask.length == 0) {
+            BBC.NO_REGION.send(fp);
+            return false;
+        }
         MaskedFaweQueue maskQueue = new MaskedFaweQueue(baseQueue, mask);
         com.sk89q.worldedit.world.World worldEditWorld = fp.getWorld();
         FaweChangeSet changeSet = FaweChangeSet.getDefaultChangeSet(worldEditWorld, fp.getUUID());

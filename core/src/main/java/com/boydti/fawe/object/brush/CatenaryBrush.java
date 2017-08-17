@@ -52,23 +52,20 @@ public class CatenaryBrush implements Brush, ResettableTool {
         return true;
     }
 
-    public Vector getVertex(Vector pos1, Vector pos2, double lenPercent) {
-        double len = pos1.distance(pos2) * lenPercent;
-
+    public static Vector getVertex(Vector pos1, Vector pos2, double lenPercent) {
+        if (lenPercent <= 1) return Vector.getMidpoint(pos1, pos2);
+        double curveLen = pos1.distance(pos2) * lenPercent;
         double dy = pos2.getY() - pos1.getY();
         double dx = pos2.getX() - pos1.getX();
         double dz = pos2.getZ() - pos1.getZ();
-        double h = Math.sqrt(dx * dx + dz * dz);
-
-        double t = Math.sqrt(len * len - dy * dy) / h;
-        double z = 0.001;
-        for (; Math.sinh(z) < t*z; z += 0.001); // close enough
-
-        double a = (h / 2) / z;
-        double p = (h - a * Math.log((len + dy) / (len - dy)))/2;
-        double q = (dy - len * Math.cosh(z) / Math.sinh(z)) / 2;
-        double y = a * 1 + q;
-
-        return pos1.add(pos2.subtract(pos1).multiply(p / h).add(0, y, 0)).round();
+        double dh = Math.sqrt(dx * dx + dz * dz);
+        double g = Math.sqrt(curveLen * curveLen - dy * dy) / 2;
+        double a = 0.00001;
+        for (;g < a * Math.sinh(dh/(2 * a)); a *= 1.00001);
+        double vertX = (dh-a*Math.log((curveLen + dy)/(curveLen - dy)))/2.0;
+        double z = (dh/2)/a;
+        double oY = (dy - curveLen * (Math.cosh(z) / Math.sinh(z))) / 2;
+        double vertY = a * 1 + oY;
+        return pos1.add(pos2.subtract(pos1).multiply(vertX / dh).add(0, vertY, 0)).round();
     }
 }
