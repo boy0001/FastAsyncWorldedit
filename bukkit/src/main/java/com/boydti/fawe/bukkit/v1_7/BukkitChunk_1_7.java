@@ -306,13 +306,11 @@ public class BukkitChunk_1_7 extends CharFaweChunk<Chunk, BukkitQueue17> {
                         continue;
                     }
                     sections[j] = section = new ChunkSection(j << 4, flag);
-                    section.setIdArray(null);
-                    section.setIdArray(newIdArray);
+                    BukkitQueue17.fieldCompactId.set(section, 0);
+                    BukkitQueue17.fieldIds.set(section, newIdArray);
                     getParent().setCount(0, count - this.getAir(j), section);
-                    section.setDataArray(null);
-                    if (newDataArray != null) {
-                        section.setDataArray(newDataArray);
-                    }
+                    BukkitQueue17.fieldCompactData.set(section, (byte) 0);
+                    BukkitQueue17.fieldData.set(section, newDataArray);
                     continue;
                 }
                 if (count >= 4096) {
@@ -320,13 +318,11 @@ public class BukkitChunk_1_7 extends CharFaweChunk<Chunk, BukkitQueue17> {
                         sections[j] = null;
                         continue;
                     }
-                    section.setIdArray(null);
-                    section.setIdArray(newIdArray);
+                    BukkitQueue17.fieldCompactId.set(section, 0);
+                    BukkitQueue17.fieldIds.set(section, newIdArray);
                     getParent().setCount(0, count - this.getAir(j), section);
-                    section.setDataArray(null);
-                    if (newDataArray != null) {
-                        section.setDataArray(newDataArray);
-                    }
+                    BukkitQueue17.fieldCompactData.set(section, (byte) 0);
+                    BukkitQueue17.fieldData.set(section, newDataArray);
                     continue;
                 }
                 char[] charArray = this.getIdArray(j);
@@ -358,21 +354,21 @@ public class BukkitChunk_1_7 extends CharFaweChunk<Chunk, BukkitQueue17> {
                                 int i2 = i << 1;
                                 int i3 = i2 + 1;
                                 byte val = newDataArray.a[i];
-                                if (newIdArray[i3] != 0) {
-                                    if (newIdArray[i2] != 0) continue;
+                                if (charArray[i3] != 0) {
+                                    if (charArray[i2] != 0) continue;
                                     newDataArray.a[i] = (byte) (val & 240 | compactData);
                                     continue;
                                 }
-                                if (newIdArray[i2] != 0) {
-                                    if (newIdArray[i3] != 0) continue;
+                                if (charArray[i2] != 0) {
+                                    if (charArray[i3] != 0) continue;
                                     newDataArray.a[i] = (byte) (val & 15 | (compactData) << 4);
                                     continue;
                                 }
                                 newDataArray.a[i] = full;
                             }
                         }
-                        section.setDataArray(null);
-                        section.setDataArray(newDataArray);
+                        BukkitQueue17.fieldCompactData.set(section, (byte) 0);
+                        BukkitQueue17.fieldData.set(section, newDataArray);
                     }
                 } else if (newDataArray == null) {
                     for (int i = 0; i < currentDataArray.a.length; i++) {
@@ -402,8 +398,8 @@ public class BukkitChunk_1_7 extends CharFaweChunk<Chunk, BukkitQueue17> {
                     } else {
                         for (int i = 0; i < 4096; i++) if (newIdArray[i] != 0) solid++;
                     }
-                    section.setIdArray(null);
-                    section.setIdArray(newIdArray);
+                    BukkitQueue17.fieldCompactId.set(section, 0);
+                    BukkitQueue17.fieldIds.set(section, newIdArray);
                 } else {
                     for (int i = 0; i < 4096; i++) {
                         if (charArray[i] != 0) currentIdArray[i] = newIdArray[i];
@@ -412,12 +408,15 @@ public class BukkitChunk_1_7 extends CharFaweChunk<Chunk, BukkitQueue17> {
                 }
                 if (data) {
                     for (int k = 0; k < 4096; k++) {
-                        int dataByte = FaweCache.getData(charArray[k]);
-                        int kShift = k >> 1;
-                        if ((k & 1) == 0) {
-                            currentDataArray.a[kShift] = (byte) (currentDataArray.a[kShift] & 240 | dataByte);
-                        } else {
-                            currentDataArray.a[kShift] = (byte) (currentDataArray.a[kShift] & 15 | (dataByte) << 4);
+                        int value = charArray[k];
+                        if (value != 0) {
+                            int dataByte = FaweCache.getData(value);
+                            int kShift = k >> 1;
+                            if ((k & 1) == 0) {
+                                currentDataArray.a[kShift] = (byte) (currentDataArray.a[kShift] & 240 | dataByte);
+                            } else {
+                                currentDataArray.a[kShift] = (byte) (currentDataArray.a[kShift] & 15 | (dataByte) << 4);
+                            }
                         }
                     }
                 }
