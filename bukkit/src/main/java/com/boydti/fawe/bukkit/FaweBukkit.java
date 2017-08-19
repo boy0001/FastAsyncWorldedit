@@ -215,6 +215,10 @@ public class FaweBukkit implements IFawe, Listener {
                                 Field URL = clazz.getDeclaredField("URL");
                                 ReflectionUtils.setFailsafeFieldValue(URL, null, null);
                             } catch (NoSuchFieldError | IllegalAccessException ignore) {}
+                            catch (Throwable e) {
+                                Fawe.debug("Error linking metrics: " + instance);
+                                e.printStackTrace();
+                            }
                         }
                     } catch (NoSuchFieldException ignored) { }
                 });

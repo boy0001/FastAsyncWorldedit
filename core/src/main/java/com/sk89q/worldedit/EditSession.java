@@ -2934,7 +2934,7 @@ public class EditSession extends AbstractWorld implements HasFaweQueue, Lighting
                     int yv = (int) (y.getValue() * unit.getY() + zero2.getY());
                     int zv = (int) (z.getValue() * unit.getZ() + zero2.getZ());
                     // read block from world
-                    BaseBlock material = FaweCache.CACHE_BLOCK[queue.getCombinedId4DataDebug(xv, yv, zv, 0, EditSession.this)];
+                    BaseBlock material = getLazyBlock(xv, yv, zv);
                     // queue operation
                     return setBlockFast(position, material);
                 } catch (EvaluationException e) {
