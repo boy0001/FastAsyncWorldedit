@@ -155,6 +155,10 @@ public class MCAQueue extends NMSMappedFaweQueue<FaweQueue, FaweChunk, FaweChunk
     }
 
     public void pasteRegion(MCAQueue from, final RegionWrapper regionFrom, Vector offset) throws IOException {
+        pasteRegion(from, regionFrom, offset, new NullAnvilHistory());
+    }
+
+    public void pasteRegion(MCAQueue from, final RegionWrapper regionFrom, Vector offset, IAnvilHistory history) throws IOException {
         int oX = offset.getBlockX();
         int oZ = offset.getBlockZ();
         int oY = offset.getBlockY();
@@ -199,12 +203,14 @@ public class MCAQueue extends NMSMappedFaweQueue<FaweQueue, FaweChunk, FaweChunk
                                 if (bx >= regionTo.minX && tx <= regionTo.maxX && bz >= regionTo.minZ && tz <= regionTo.maxZ) {
                                     FaweChunk chunk = from.getFaweChunk(cx - oCX, cz - oCZ);
                                     if (!(chunk instanceof NullFaweChunk)) {
-                                        if (regionTo.minY == 0 && regionTo.maxY == 255) {
-                                            MCAChunk mcaChunk = (MCAChunk) chunk;
-                                            mcaChunk.setLoc(null, cx, cz);
-                                            mcaChunk.setModified();
-                                            mcaFile.setChunk(mcaChunk);
-                                        } else {
+//                                        if (regionTo.minY == 0 && regionTo.maxY == 255) {
+//                                            System.out.println("Vertical");
+//                                            MCAChunk mcaChunk = (MCAChunk) chunk;
+//                                            mcaChunk.setLoc(null, cx, cz);
+//                                            mcaChunk.setModified();
+//                                            mcaFile.setChunk(mcaChunk);
+//                                        } else
+                                        {
                                             MCAChunk newChunk = mcaFile.getChunk(cx, cz);
                                             if (newChunk == null) {
                                                 newChunk = new MCAChunk(MCAQueue.this, cx, cz);
@@ -277,7 +283,7 @@ public class MCAQueue extends NMSMappedFaweQueue<FaweQueue, FaweChunk, FaweChunk
                 }
                 return null;
             }
-        }, regionTo);
+        }, regionTo, history);
         from.clear();
     }
 

@@ -38,6 +38,8 @@ import com.sk89q.worldedit.world.registry.WorldData;
 import java.io.File;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
+import java.util.Arrays;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
@@ -170,6 +172,20 @@ public abstract class FawePlayer<T> extends Metadatable {
                 setMeta("cmdConfirm", command);
                 throw new RegionOperationException(BBC.WORLDEDIT_CANCEL_REASON_CONFIRM.f(min, max, command));
             }
+        }
+    }
+
+    public void checkAllowedRegion(Region selection) {
+        checkAllowedRegion(new RegionWrapper(selection.getMinimumPoint(), selection.getMaximumPoint()));
+    }
+
+    public void checkAllowedRegion(RegionWrapper wrappedSelection) {
+        RegionWrapper[] allowed = WEManager.IMP.getMask(this, FaweMaskManager.MaskType.OWNER);
+        HashSet<RegionWrapper> allowedSet = new HashSet<>(Arrays.asList(allowed));
+        if (allowed.length == 0) {
+            throw new FaweException(BBC.WORLDEDIT_CANCEL_REASON_NO_REGION);
+        } else if (!WEManager.IMP.regionContains(wrappedSelection, allowedSet)) {
+            throw new FaweException(BBC.WORLDEDIT_CANCEL_REASON_MAX_FAILS);
         }
     }
 
