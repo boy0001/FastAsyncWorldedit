@@ -57,6 +57,7 @@ import com.sk89q.worldedit.function.mask.Mask;
 import com.sk89q.worldedit.function.operation.Operations;
 import com.sk89q.worldedit.function.pattern.Pattern;
 import com.sk89q.worldedit.function.visitor.EntityVisitor;
+import com.sk89q.worldedit.internal.annotation.Direction;
 import com.sk89q.worldedit.internal.expression.Expression;
 import com.sk89q.worldedit.internal.expression.ExpressionException;
 import com.sk89q.worldedit.internal.expression.runtime.EvaluationException;
@@ -175,19 +176,15 @@ public class UtilityCommands extends MethodCommands {
             usage = "<pattern> <radius> [depth]",
             desc = "Fill a hole",
             min = 2,
-            max = 3
+            max = 4
     )
     @CommandPermissions("worldedit.fill")
     @Logging(PLACEMENT)
-    public void fill(Player player, LocalSession session, EditSession editSession, Pattern pattern, double radius, @Optional("1") double depth) throws WorldEditException {
+    public void fill(Player player, LocalSession session, EditSession editSession, Pattern pattern, double radius, @Optional("1") double depth, @Optional("down") @Direction Vector direction) throws WorldEditException {
         worldEdit.checkMaxRadius(radius);
         Vector pos = session.getPlacementPosition(player);
-        int affected = 0;
-        if (pattern instanceof BaseBlock) {
-            affected = editSession.fillXZ(pos, ((BaseBlock) pattern), radius, (int) depth, false);
-        } else {
-            affected = editSession.fillXZ(pos, pattern, radius, (int) depth, false);
-        }
+        int affected;
+        affected = editSession.fillDirection(pos, pattern, radius, (int) depth, direction);
         player.print(BBC.getPrefix() + affected + " block(s) have been created.");
     }
 
@@ -203,12 +200,7 @@ public class UtilityCommands extends MethodCommands {
     public void fillr(Player player, LocalSession session, EditSession editSession, Pattern pattern, double radius, @Optional("1") double depth) throws WorldEditException {
         worldEdit.checkMaxRadius(radius);
         Vector pos = session.getPlacementPosition(player);
-        int affected;
-        if (pattern instanceof BaseBlock) {
-            affected = editSession.fillXZ(pos, ((BaseBlock) pattern), radius, (int) depth, true);
-        } else {
-            affected = editSession.fillXZ(pos, pattern, radius, (int) depth, true);
-        }
+        int affected = editSession.fillXZ(pos, pattern, radius, (int) depth, true);
         player.print(BBC.getPrefix() + affected + " block(s) have been created.");
     }
 

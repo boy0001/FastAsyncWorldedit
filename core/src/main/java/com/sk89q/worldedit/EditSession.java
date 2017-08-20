@@ -106,6 +106,7 @@ import com.sk89q.worldedit.function.operation.Operation;
 import com.sk89q.worldedit.function.operation.Operations;
 import com.sk89q.worldedit.function.pattern.BlockPattern;
 import com.sk89q.worldedit.function.util.RegionOffset;
+import com.sk89q.worldedit.function.visitor.DirectionalVisitor;
 import com.sk89q.worldedit.function.visitor.DownwardVisitor;
 import com.sk89q.worldedit.function.visitor.FlatRegionVisitor;
 import com.sk89q.worldedit.function.visitor.LayerVisitor;
@@ -1450,6 +1451,43 @@ public class EditSession extends AbstractWorld implements HasFaweQueue, Lighting
      * Fills an area recursively in the X/Z directions.
      *
      * @param origin    the location to start from
+     * @param pattern     the block to fill with
+     * @param radius    the radius of the spherical area to fill
+     * @param depth     the maximum depth, starting from the origin
+     * @param direction the direction to fill
+     * @return number of blocks affected
+     * @throws MaxChangedBlocksException thrown if too many blocks are changed
+     */
+    public int fillDirection(final Vector origin, final Pattern pattern, final double radius, final int depth, Vector direction) {
+        checkNotNull(origin);
+        checkNotNull(pattern);
+        checkArgument(radius >= 0, "radius >= 0");
+        checkArgument(depth >= 1, "depth >= 1");
+        initTransform(origin);
+        if (direction.equals(new Vector(0, -1, 0))) {
+            System.out.println("Fill down");
+            return fillXZ(origin, pattern, radius, depth, false);
+        }
+        final MaskIntersection mask = new MaskIntersection(new RegionMask(new EllipsoidRegion(null, origin, new Vector(radius, radius, radius))), Masks.negate(new ExistingBlockMask(EditSession.this)));
+
+        // Want to replace blocks
+        final BlockReplace replace = new BlockReplace(EditSession.this, pattern);
+
+        // Pick how we're going to visit blocks
+        RecursiveVisitor visitor = new DirectionalVisitor(mask, replace, origin, direction, (int) (radius * 2 + 1), this);
+
+        // Start at the origin
+        visitor.visit(origin);
+
+        // Execute
+        Operations.completeBlindly(visitor);
+        return this.changes = visitor.getAffected();
+    }
+
+    /**
+     * Fills an area recursively in the X/Z directions.
+     *
+     * @param origin    the location to start from
      * @param block     the block to fill with
      * @param radius    the radius of the spherical area to fill
      * @param depth     the maximum depth, starting from the origin
@@ -1501,64 +1539,6 @@ public class EditSession extends AbstractWorld implements HasFaweQueue, Lighting
         Operations.completeBlindly(visitor);
         return this.changes = visitor.getAffected();
     }
-
-//    public int fillDirection(final Vector origin, PlayerDirection direction, final Pattern pattern, final double radius, final int depth, final boolean recursive) {
-//        checkNotNull(origin);
-//        checkNotNull(pattern);
-//        checkArgument(radius >= 0, "radius >= 0");
-//        checkArgument(depth >= 1, "depth >= 1");
-//
-//        Vector dirVec = direction.vector();
-//        BlockVector min = origin.toBlockVector();
-//        BlockVector max = origin.toBlockVector();
-//
-//        CuboidRegion cuboid = new CuboidRegion(new Vector(), new Vector());
-//        switch (direction) {
-//            case NORTH:
-//                break;
-//            case NORTH_EAST:
-//                break;
-//            case EAST:
-//                break;
-//            case SOUTH_EAST:
-//                break;
-//            case SOUTH:
-//                break;
-//            case SOUTH_WEST:
-//                break;
-//            case WEST:
-//                break;
-//            case NORTH_WEST:
-//                break;
-//            case UP:
-//                break;
-//            case DOWN:
-//                break;
-//        }
-//
-//
-//
-//        final MaskIntersection mask = new MaskIntersection(new RegionMask(new EllipsoidRegion(null, origin, new Vector(radius, radius, radius))), new BoundedHeightMask(Math.max(
-//                (origin.getBlockY() - depth) + 1, 0), Math.min(EditSession.this.getMaximumPoint().getBlockY(), origin.getBlockY())), Masks.negate(new ExistingBlockMask(EditSession.this)));
-//
-//        // Want to replace blocks
-//        final BlockReplace replace = new BlockReplace(EditSession.this, pattern);
-//
-//        // Pick how we're going to visit blocks
-//        RecursiveVisitor visitor;
-//        if (recursive) {
-//            visitor = new RecursiveVisitor(mask, replace, (int) (radius * 2 + 1), this);
-//        } else {
-//            visitor = new DownwardVisitor(mask, replace, origin.getBlockY(), (int) (radius * 2 + 1), this);
-//        }
-//
-//        // Start at the origin
-//        visitor.visit(origin);
-//
-//        // Execute
-//        Operations.completeBlindly(visitor);
-//        return this.changes = visitor.getAffected();
-//    }
 
     /**
      * Remove a cuboid above the given position with a given apothem and a given height.
