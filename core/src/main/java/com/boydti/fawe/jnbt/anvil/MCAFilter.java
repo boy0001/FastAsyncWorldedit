@@ -4,7 +4,6 @@ import com.boydti.fawe.object.collection.IterableThreadLocal;
 import com.sk89q.worldedit.blocks.BaseBlock;
 import java.nio.file.Path;
 import java.nio.file.attribute.BasicFileAttributes;
-import java.util.concurrent.AbstractExecutorService;
 import java.util.concurrent.ForkJoinPool;
 
 /**
@@ -17,6 +16,12 @@ public class MCAFilter<T> extends IterableThreadLocal<T> {
         return;
     }
 
+    /**
+     * Check whether this .mca file should be read
+     * @param path
+     * @param attr
+     * @return
+     */
     public boolean appliesFile(Path path, BasicFileAttributes attr) {
         return true;
     }
@@ -91,9 +96,9 @@ public class MCAFilter<T> extends IterableThreadLocal<T> {
     }
 
     /**
-     * Do something with the MCAChunk after block filtering<br>
+     * Do something with the MCAFile after block filtering<br>
      *
-     * @param chunk
+     * @param file
      * @param cache
      * @return
      */
