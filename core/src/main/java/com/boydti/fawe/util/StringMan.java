@@ -313,6 +313,37 @@ public class StringMan {
         }
     }
 
+    public static Integer toInteger(String string, int start, int end) {
+        int value = 0;
+        char char0 = string.charAt(0);
+        boolean negative;
+        if (char0 == '-') {
+            negative = true;
+            start++;
+        }
+        else negative = false;
+        for (int i = start; i < end; i++) {
+            char c = string.charAt(i);
+            switch (c) {
+                case '0':
+                case '1':
+                case '2':
+                case '3':
+                case '4':
+                case '5':
+                case '6':
+                case '7':
+                case '8':
+                case '9':
+                    value = value * 10 + c - '0';
+                    break;
+                default:
+                    return null;
+            }
+        }
+        return negative ? -value : value;
+    }
+
     public static String join(final int[] array, final String delimiter) {
         final Integer[] wrapped = new Integer[array.length];
         for (int i = 0; i < array.length; i++) {

@@ -23,11 +23,15 @@ import com.boydti.fawe.object.FawePlayer;
 import com.boydti.fawe.object.FaweQueue;
 import com.boydti.fawe.object.RegionWrapper;
 import com.boydti.fawe.object.RunnableVal4;
+import com.boydti.fawe.object.changeset.AnvilHistory;
 import com.boydti.fawe.object.clipboard.ClipboardRemapper;
+import com.boydti.fawe.object.exception.FaweException;
 import com.boydti.fawe.object.mask.FaweBlockMatcher;
+import com.boydti.fawe.regions.FaweMaskManager;
 import com.boydti.fawe.util.MainUtil;
 import com.boydti.fawe.util.SetQueue;
 import com.boydti.fawe.util.StringMan;
+import com.boydti.fawe.util.WEManager;
 import com.sk89q.minecraft.util.commands.Command;
 import com.sk89q.minecraft.util.commands.CommandPermissions;
 import com.sk89q.worldedit.EditSession;
@@ -48,8 +52,10 @@ import com.sk89q.worldedit.util.command.parametric.Optional;
 import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
@@ -122,7 +128,23 @@ public class AnvilCommands {
         String worldName = Fawe.imp().getWorldName(editSession.getWorld());
         FaweQueue tmp = SetQueue.IMP.getNewQueue(worldName, true, false);
         MCAQueue queue = new MCAQueue(tmp);
-        queue.filterCopy(filter, wrappedRegion);
+        FawePlayer<Object> fp = FawePlayer.wrap(player);
+        LocalSession session = fp.getSession();
+        if (session == null || session.hasFastMode()) {
+            queue.filterCopy(filter, wrappedRegion);
+        } else {
+            RegionWrapper[] allowed = WEManager.IMP.getMask(fp, FaweMaskManager.MaskType.OWNER);
+            HashSet<RegionWrapper> allowedSet = new HashSet<>(Arrays.asList(allowed));
+            RegionWrapper wrappedSelection = new RegionWrapper(selection.getMinimumPoint(), selection.getMaximumPoint());
+            if (allowed.length == 0) {
+                throw new FaweException(BBC.WORLDEDIT_CANCEL_REASON_NO_REGION);
+            } else if (!WEManager.IMP.regionContains(wrappedSelection, allowedSet)) {
+                throw new FaweException(BBC.WORLDEDIT_CANCEL_REASON_MAX_FAILS);
+            }
+            AnvilHistory history = new AnvilHistory(worldName, player.getUniqueId());
+            queue.filterCopy(filter, wrappedRegion, history);
+            session.remember(player, editSession.getWorld(), history, fp.getLimit());
+        }
         return filter;
     }
 

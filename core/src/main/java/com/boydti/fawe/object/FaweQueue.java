@@ -289,7 +289,7 @@ public abstract class FaweQueue implements HasFaweQueue, Extent {
 
     public abstract Collection<FaweChunk> getFaweChunks();
 
-    public boolean setMCA(int mcaX, int mcaZ, RegionWrapper region, Runnable whileLocked, boolean load) {
+    public boolean setMCA(int mcaX, int mcaZ, RegionWrapper region, Runnable whileLocked, boolean save, boolean load) {
         if (whileLocked != null) whileLocked.run();
         return true;
     }

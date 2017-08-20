@@ -14,6 +14,7 @@ import com.boydti.fawe.object.visitor.FaweChunkVisitor;
 import com.boydti.fawe.util.MainUtil;
 import com.boydti.fawe.util.MathMan;
 import com.boydti.fawe.util.ReflectionUtils;
+import com.boydti.fawe.util.SetQueue;
 import com.boydti.fawe.util.TaskManager;
 import com.sk89q.jnbt.CompoundTag;
 import com.sk89q.jnbt.StringTag;
@@ -293,7 +294,7 @@ public class BukkitQueue_1_12 extends BukkitQueue_0<net.minecraft.server.v1_12_R
     }
 
     @Override
-    public boolean setMCA(final int mcaX, final int mcaZ, final RegionWrapper allowed, final Runnable whileLocked, final boolean load) {
+    public boolean setMCA(final int mcaX, final int mcaZ, final RegionWrapper allowed, final Runnable whileLocked, final boolean saveChunks, final boolean load) {
         TaskManager.IMP.sync(new RunnableVal<Boolean>() {
             @Override
             public void run(Boolean value) {
@@ -314,11 +315,11 @@ public class BukkitQueue_1_12 extends BukkitQueue_0<net.minecraft.server.v1_12_R
                                 boolean isIn = allowed.isInChunk(chunk.locX, chunk.locZ);
                                 if (isIn) {
                                     if (!load) {
-                                        mustSave |= save(chunk, provider);
+                                        mustSave |= saveChunks && save(chunk, provider);
                                         continue;
                                     }
                                     iter.remove();
-                                    boolean save = chunk.a(false);
+                                    boolean save = saveChunks && chunk.a(false);
                                     mustSave |= save;
                                     provider.unloadChunk(chunk, save);
                                     if (chunksUnloaded == null) {
@@ -334,7 +335,9 @@ public class BukkitQueue_1_12 extends BukkitQueue_0<net.minecraft.server.v1_12_R
                             }
                         }
                     }
-                    if (mustSave) provider.c(); // TODO only the necessary chunks
+                    if (mustSave) {
+                        provider.c(); // TODO only the necessary chunks
+                    }
 
                     File unloadedRegion = null;
                     if (load && !RegionFileCache.a.isEmpty()) {
@@ -378,9 +381,9 @@ public class BukkitQueue_1_12 extends BukkitQueue_0<net.minecraft.server.v1_12_R
                                             if (arr[z]) {
                                                 int cx = bx + x;
                                                 int cz = bz + z;
-                                                TaskManager.IMP.sync(new RunnableVal<Object>() {
+                                                SetQueue.IMP.addTask(new Runnable() {
                                                     @Override
-                                                    public void run(Object value1) {
+                                                    public void run() {
                                                         net.minecraft.server.v1_12_R1.Chunk chunk = provider.getChunkAt(cx, cz, null, false);
                                                         if (chunk != null) {
                                                             PlayerChunk pc = getPlayerChunk(nmsWorld, cx, cz);

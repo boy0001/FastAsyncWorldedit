@@ -208,7 +208,7 @@ public class PlayerWrapper extends AbstractPlayerActor {
             edit.flushQueue();
             LocalSession session = Fawe.get().getWorldEdit().getSession(this);
             if (session != null) {
-                session.remember(edit, true, false, FawePlayer.wrap(this).getLimit().MAX_HISTORY);
+                session.remember(edit, true, FawePlayer.wrap(this).getLimit().MAX_HISTORY);
             }
         } catch (RuntimeException e) {
             caught = e;

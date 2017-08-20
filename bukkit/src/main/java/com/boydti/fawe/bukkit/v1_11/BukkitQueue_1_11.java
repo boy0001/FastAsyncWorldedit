@@ -260,7 +260,7 @@ public class BukkitQueue_1_11 extends BukkitQueue_0<net.minecraft.server.v1_11_R
     }
 
     @Override
-    public boolean setMCA(final int mcaX, final int mcaZ, final RegionWrapper allowed, final Runnable whileLocked, final boolean load) {
+    public boolean setMCA(final int mcaX, final int mcaZ, final RegionWrapper allowed, final Runnable whileLocked, final boolean saveChunks, final boolean load) {
         TaskManager.IMP.sync(new RunnableVal<Boolean>() {
             @Override
             public void run(Boolean value) {
@@ -281,7 +281,7 @@ public class BukkitQueue_1_11 extends BukkitQueue_0<net.minecraft.server.v1_11_R
                                 boolean isIn = allowed.isInChunk(chunk.locX, chunk.locZ);
                                 if (isIn) {
                                     if (!load) {
-                                        if (chunk.a(false)) {
+                                        if (saveChunks && chunk.a(false)) {
                                             mustSave = true;
                                             provider.saveChunk(chunk);
                                             provider.saveChunkNOP(chunk);
@@ -289,7 +289,7 @@ public class BukkitQueue_1_11 extends BukkitQueue_0<net.minecraft.server.v1_11_R
                                         continue;
                                     }
                                     iter.remove();
-                                    boolean save = chunk.a(false);
+                                    boolean save = saveChunks && chunk.a(false);
                                     mustSave |= save;
                                     provider.unloadChunk(chunk, save);
                                     if (chunksUnloaded == null) {

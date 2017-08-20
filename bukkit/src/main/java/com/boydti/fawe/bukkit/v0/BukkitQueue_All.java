@@ -107,9 +107,9 @@ public class BukkitQueue_All extends BukkitQueue_0<ChunkSnapshot, ChunkSnapshot,
     }
 
     @Override
-    public boolean setMCA(int mcaX, int mcaZ, RegionWrapper allowed, Runnable whileLocked, boolean load) {
+    public boolean setMCA(int mcaX, int mcaZ, RegionWrapper allowed, Runnable whileLocked, boolean saveChunks, boolean load) {
         if (classRegionFileCache == null) {
-            return super.setMCA(mcaX, mcaZ, allowed, whileLocked, load);
+            return super.setMCA(mcaX, mcaZ, allowed, whileLocked, saveChunks, load);
         }
         TaskManager.IMP.sync(new RunnableVal<Boolean>() {
             @Override
@@ -134,7 +134,7 @@ public class BukkitQueue_All extends BukkitQueue_0<ChunkSnapshot, ChunkSnapshot,
                                 int cz = chunk.getZ();
                                 if (cx >= bcx && cx <= tcx && cz >= bcz && cz <= tcz) {
                                     Object nmsChunk = methodGetHandleChunk.invoke(chunk);
-                                    boolean mustSave = (boolean) methodNeedsSaving.invoke(nmsChunk, false);
+                                    boolean mustSave = saveChunks && (boolean) methodNeedsSaving.invoke(nmsChunk, false);
                                     chunk.unload(mustSave, false);
                                     if (unloaded == null) unloaded = new ArrayDeque<Chunk>();
                                     unloaded.add(chunk);

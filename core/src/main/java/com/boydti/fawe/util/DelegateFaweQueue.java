@@ -47,8 +47,8 @@ public class DelegateFaweQueue extends FaweQueue {
     }
 
     @Override
-    public boolean setMCA(int mcaX, int mcaZ, RegionWrapper region, Runnable whileLocked, boolean load) {
-        return parent.setMCA(mcaX, mcaZ, region, whileLocked, load);
+    public boolean setMCA(int mcaX, int mcaZ, RegionWrapper region, Runnable whileLocked, boolean save, boolean load) {
+        return parent.setMCA(mcaX, mcaZ, region, whileLocked, save, load);
     }
 
     @Override

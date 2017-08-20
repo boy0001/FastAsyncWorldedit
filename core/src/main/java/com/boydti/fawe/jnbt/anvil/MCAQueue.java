@@ -5,6 +5,8 @@ import com.boydti.fawe.example.CharFaweChunk;
 import com.boydti.fawe.example.NMSMappedFaweQueue;
 import com.boydti.fawe.example.NullFaweChunk;
 import com.boydti.fawe.jnbt.anvil.filters.DelegateMCAFilter;
+import com.boydti.fawe.jnbt.anvil.history.IAnvilHistory;
+import com.boydti.fawe.jnbt.anvil.history.NullAnvilHistory;
 import com.boydti.fawe.object.FaweChunk;
 import com.boydti.fawe.object.FawePlayer;
 import com.boydti.fawe.object.FaweQueue;
@@ -147,9 +149,9 @@ public class MCAQueue extends NMSMappedFaweQueue<FaweQueue, FaweChunk, FaweChunk
     }
 
     @Override
-    public boolean setMCA(int mcaX, int mcaZ, RegionWrapper region, Runnable whileLocked, boolean unload) {
-        if (parent != null) return parent.setMCA(mcaX, mcaZ, region, whileLocked, unload);
-        return super.setMCA(mcaX, mcaZ, region, whileLocked, unload);
+    public boolean setMCA(int mcaX, int mcaZ, RegionWrapper region, Runnable whileLocked, boolean save, boolean unload) {
+        if (parent != null) return parent.setMCA(mcaX, mcaZ, region, whileLocked, save, unload);
+        return super.setMCA(mcaX, mcaZ, region, whileLocked, save, unload);
     }
 
     public void pasteRegion(MCAQueue from, final RegionWrapper regionFrom, Vector offset) throws IOException {
@@ -279,27 +281,30 @@ public class MCAQueue extends NMSMappedFaweQueue<FaweQueue, FaweChunk, FaweChunk
         from.clear();
     }
 
-    private void performCopy(MCAFile original, MCAFile copy, RegionWrapper region, ForkJoinPool pool) {
+    private void performCopy(MCAFile original, MCAFile copy, RegionWrapper region, IAnvilHistory task, ForkJoinPool pool) {
         original.clear();
         File originalFile = original.getFile();
         File copyFile = copy.getFile();
         if (copy.isModified()) {
             if (copy.isDeleted()) {
-                if (originalFile.delete()) return;
-                setMCA(original.getX(), original.getZ(), region, () -> originalFile.delete(), true);
+                if (task.addFileChange(originalFile)) return;
+                setMCA(original.getX(), original.getZ(), region, () -> task.addFileChange(originalFile), true, true);
                 return;
             } else if (copyFile.exists()) {
-                try {
-                    copy.close(pool);
-                    Files.move(copyFile.toPath(), originalFile.toPath(), StandardCopyOption.ATOMIC_MOVE);
-                } catch (IOException e) {
-                    setMCA(original.getX(), original.getZ(), region, () -> {
-                        originalFile.delete();
-                        if (!copyFile.renameTo(originalFile)) {
-                            Fawe.debug("Failed to copy (2)");
-                        }
-                    }, true);
+                // If the task is the normal delete task, we can do a normal file move
+                copy.close(pool);
+                if (task.getClass() == NullAnvilHistory.class) {
+                    try {
+                        Files.move(copyFile.toPath(), originalFile.toPath(), StandardCopyOption.ATOMIC_MOVE);
+                        return;
+                    } catch (IOException ignore) {}
                 }
+                setMCA(original.getX(), original.getZ(), region, () -> {
+                    task.addFileChange(originalFile);
+                    if (!copyFile.renameTo(originalFile)) {
+                        Fawe.debug("Failed to copy (2)");
+                    }
+                }, true, true);
             }
         }
         copy.clear();
@@ -307,6 +312,11 @@ public class MCAQueue extends NMSMappedFaweQueue<FaweQueue, FaweChunk, FaweChunk
     }
 
     public <G, T extends MCAFilter<G>> T filterCopy(final T filter, RegionWrapper region) {
+        return filterCopy(filter, region, new NullAnvilHistory());
+    }
+
+
+    public <G, T extends MCAFilter<G>> T filterCopy(final T filter, RegionWrapper region, IAnvilHistory task) {
         DelegateMCAFilter<G> delegate = new DelegateMCAFilter<G>(filter) {
             MCAFile original;
             MCAFile copy;
@@ -330,11 +340,11 @@ public class MCAQueue extends NMSMappedFaweQueue<FaweQueue, FaweChunk, FaweChunk
                     } catch (IOException e) {
                         e.printStackTrace();
                     }
-                }, false);
+                }, true, false);
                 this.copy = new MCAFile(original.getParent(), copyDest);
                 MCAFile result = filter.applyFile(copy);
                 if (result == null) {
-                    performCopy(original, copy, region, pool);
+                    performCopy(original, copy, region, task, pool);
                 }
                 if (result == null || !copy.getFile().equals(result.getFile())) {
                     copy.clear();
@@ -345,7 +355,7 @@ public class MCAQueue extends NMSMappedFaweQueue<FaweQueue, FaweChunk, FaweChunk
 
             @Override
             public void finishFile(MCAFile newRegion, G cache) {
-                performCopy(original, newRegion, region, pool);
+                performCopy(original, newRegion, region, task, pool);
             }
         };
         if (region == RegionWrapper.GLOBAL()) {

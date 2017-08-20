@@ -30,6 +30,7 @@ import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
+import java.io.FileFilter;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -61,7 +62,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.UUID;
-import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.zip.DataFormatException;
 import java.util.zip.Deflater;
@@ -220,27 +220,23 @@ public class MainUtil {
     }
 
     public static int getMaxFileId(File folder) {
-        final AtomicInteger max = new AtomicInteger();
-        if (folder.exists()) {
-            MainUtil.traverse(folder.toPath(), new RunnableVal2<Path, BasicFileAttributes>() {
-                @Override
-                public void run(Path path, BasicFileAttributes attr) {
-                    try {
-                        String file = path.getFileName().toString();
-                        int index = file.indexOf('.');
-                        if (index == -1) {
-                            return;
-                        }
-                        int id = Integer.parseInt(file.substring(0, index));
-                        if (id > max.get()) {
-                            max.set(id);
-                        }
-                    } catch (NumberFormatException ignore) {
-                    }
+        final int[] max = new int[1];
+        folder.listFiles(new FileFilter() {
+            @Override
+            public boolean accept(File pathname) {
+                String name = pathname.getName();
+                Integer val = null;
+                if (pathname.isDirectory()) {
+                    val = StringMan.toInteger(name, 0, name.length());
+                } else {
+                    int i = name.lastIndexOf('.');
+                    if (i != -1) val = StringMan.toInteger(name, 0, i);
                 }
-            });
-        }
-        return max.get() + 1;
+                if (val != null && val > max[0]) max[0] = val;
+                return false;
+            }
+        });
+        return max[0] + 1;
     }
 
     public static File getFile(File base, String path) {

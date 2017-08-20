@@ -51,7 +51,7 @@ public class MCAQueueMap implements IFaweQueueMap {
         lastFile = tmp = mcaFileMap.get(pair);
         if (lastFile == null) {
             try {
-                queue.setMCA(lastFileX, lastFileZ, RegionWrapper.GLOBAL(), null, false);
+                queue.setMCA(lastFileX, lastFileZ, RegionWrapper.GLOBAL(), null, true, false);
                 lastFile = tmp = new MCAFile(queue, lastFileX, lastFileZ);
             } catch (FaweException.FaweChunkLoadException ignore) {
                 lastFile = null;
@@ -184,7 +184,7 @@ public class MCAQueueMap implements IFaweQueueMap {
                         public void run() {
                             file.close(SetQueue.IMP.getForkJoinPool());
                         }
-                    }, true);
+                    }, true, true);
                 } else {
                     break;
                 }

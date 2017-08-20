@@ -9,6 +9,7 @@ import com.boydti.fawe.object.RunnableVal;
 import com.boydti.fawe.util.MainUtil;
 import com.boydti.fawe.util.MathMan;
 import com.boydti.fawe.util.ReflectionUtils;
+import com.boydti.fawe.util.SetQueue;
 import com.boydti.fawe.util.TaskManager;
 import com.sk89q.jnbt.CompoundTag;
 import com.sk89q.jnbt.StringTag;
@@ -128,7 +129,7 @@ public class BukkitQueue18R3 extends BukkitQueue_0<net.minecraft.server.v1_8_R3.
     }
 
     @Override
-    public boolean setMCA(final int mcaX, final int mcaZ, final RegionWrapper allowed, final Runnable whileLocked, final boolean load) {
+    public boolean setMCA(final int mcaX, final int mcaZ, final RegionWrapper allowed, final Runnable whileLocked, final boolean saveChunks, final boolean load) {
         TaskManager.IMP.sync(new RunnableVal<Boolean>() {
             @Override
             public void run(Boolean value) {
@@ -149,7 +150,7 @@ public class BukkitQueue18R3 extends BukkitQueue_0<net.minecraft.server.v1_8_R3.
                                 boolean isIn = allowed.isInChunk(chunk.locX, chunk.locZ);
                                 if (isIn) {
                                     if (!load) {
-                                        if (chunk.a(false)) {
+                                        if (saveChunks && chunk.a(false)) {
                                             mustSave = true;
                                             provider.saveChunk(chunk);
                                             provider.saveChunkNOP(chunk);
@@ -157,7 +158,7 @@ public class BukkitQueue18R3 extends BukkitQueue_0<net.minecraft.server.v1_8_R3.
                                         continue;
                                     }
                                     iter.remove();
-                                    boolean save = chunk.a(false);
+                                    boolean save = saveChunks && chunk.a(false);
                                     mustSave |= save;
                                     chunk.bukkitChunk.unload(save, false);
                                     if (chunksUnloaded == null) {
@@ -217,9 +218,9 @@ public class BukkitQueue18R3 extends BukkitQueue_0<net.minecraft.server.v1_8_R3.
                                             if (arr[z]) {
                                                 int cx = bx + x;
                                                 int cz = bz + z;
-                                                TaskManager.IMP.sync(new RunnableVal<Object>() {
+                                                SetQueue.IMP.addTask(new Runnable() {
                                                     @Override
-                                                    public void run(Object value1) {
+                                                    public void run() {
                                                         net.minecraft.server.v1_8_R3.Chunk chunk = provider.getChunkAt(cx, cz, null);
                                                         if (chunk != null) {
                                                             if (nmsWorld.getPlayerChunkMap().isChunkInUse(cx, cz)) {

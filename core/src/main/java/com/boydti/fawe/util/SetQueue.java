@@ -80,24 +80,50 @@ public class SetQueue {
             public void run() {
                 try {
                     long now = System.currentTimeMillis();
-                    targetTPS = 18 - Math.max(Settings.IMP.QUEUE.EXTRA_TIME_MS * 0.05, 0);
-                    do {
-                        Runnable task = tasks.poll();
-                        if (task != null) {
-                            task.run();
-                        } else {
-                            break;
-                        }
-                    } while (Fawe.get().getTimer().isAbove(targetTPS));
-                    if (inactiveQueues.isEmpty() && activeQueues.isEmpty()) {
-                        last = lastSuccess = now;
+                    boolean empty = (inactiveQueues.isEmpty() && activeQueues.isEmpty());
+                    boolean emptyTasks = tasks.isEmpty();
+                    if (emptyTasks && empty) {
+                        last = now;
                         runEmptyTasks();
                         return;
                     }
+
+                    targetTPS = 18 - Math.max(Settings.IMP.QUEUE.EXTRA_TIME_MS * 0.05, 0);
+
+                    long diff = (50 + SetQueue.this.last) - (SetQueue.this.last = now);
+                    long absDiff = Math.abs(diff);
+                    if (diff == 0) {
+                        allocate = Math.min(50, allocate + 1);
+                    } else if (diff < 0) {
+                        allocate = Math.max(5, allocate + diff);
+                    } else if (!Fawe.get().getTimer().isAbove(targetTPS)) {
+                        allocate = Math.max(5, allocate - 1);
+                    }
+
+                    long currentAllocate = allocate - absDiff;
+
+                    if (!emptyTasks) {
+                        long taskAllocate = empty ? currentAllocate : currentAllocate >> 1;
+                        long used = 0;
+                        do {
+                            Runnable task = tasks.poll();
+                            if (task != null) {
+                                task.run();
+                            } else {
+                                break;
+                            }
+                        } while ((used = System.currentTimeMillis() - now) < taskAllocate);
+                        currentAllocate -= used;
+                    }
+
+                    if (empty) {
+                        runEmptyTasks();
+                        return;
+                    }
+
                     if (!MemUtil.isMemoryFree()) {
                         final int mem = MemUtil.calculateMemory();
                         if (mem != Integer.MAX_VALUE) {
-                            last = now;
                             allocate = Math.max(5, allocate - 1);
                             if ((mem <= 1) && Settings.IMP.PREVENT_CRASHES) {
                                 for (FaweQueue queue : getAllQueues()) {
@@ -113,27 +139,13 @@ public class SetQueue {
                             return;
                         }
                     }
+
                     FaweQueue queue = getNextQueue();
                     if (queue == null) {
-                        last = now;
                         return;
                     }
-                    if (!Fawe.get().getTimer().isAbove(targetTPS)) {
-                        allocate = Math.max(5, allocate - 1);
-                        last = now;
-                        return;
-                    }
-                    if (Thread.currentThread() != Fawe.get().getMainThread()) {
-                        throw new IllegalStateException("This shouldn't be possible for placement to occur off the main thread");
-                    }
-                    long diff = (50 + SetQueue.this.last) - (SetQueue.this.last = now);
-                    long absDiff = Math.abs(diff);
-                    if (diff == 0) {
-                        allocate = Math.min(50, allocate + 1);
-                    } else if (diff < 0) {
-                        allocate = Math.max(5, allocate + diff);
-                    }
-                    long time = Settings.IMP.QUEUE.EXTRA_TIME_MS + allocate - absDiff - System.currentTimeMillis() + now;
+
+                    long time = Settings.IMP.QUEUE.EXTRA_TIME_MS + currentAllocate - System.currentTimeMillis() + now;
                     // Disable the async catcher as it can't discern async vs parallel
                     boolean parallel = Settings.IMP.QUEUE.PARALLEL_THREADS > 1;
                     queue.startSet(parallel);
