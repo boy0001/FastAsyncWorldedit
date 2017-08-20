@@ -1465,7 +1465,6 @@ public class EditSession extends AbstractWorld implements HasFaweQueue, Lighting
         checkArgument(depth >= 1, "depth >= 1");
         initTransform(origin);
         if (direction.equals(new Vector(0, -1, 0))) {
-            System.out.println("Fill down");
             return fillXZ(origin, pattern, radius, depth, false);
         }
         final MaskIntersection mask = new MaskIntersection(new RegionMask(new EllipsoidRegion(null, origin, new Vector(radius, radius, radius))), Masks.negate(new ExistingBlockMask(EditSession.this)));
