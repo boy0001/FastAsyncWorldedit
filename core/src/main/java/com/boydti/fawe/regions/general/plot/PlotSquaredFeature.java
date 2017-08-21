@@ -82,7 +82,7 @@ public class PlotSquaredFeature extends FaweMaskManager {
             return false;
         }
         UUID uid = fp.getUUID();
-        return (plot.isOwner(uid) || (type == MaskType.MEMBER && (plot.getTrusted().contains(uid) || (plot.getMembers().contains(uid) && fp.hasPermission("fawe.plotsquared.member")))));
+        return (plot.isOwner(uid) || (type == MaskType.MEMBER && (plot.getTrusted().contains(uid) || (plot.getMembers().contains(uid) && fp.hasPermission("fawe.plotsquared.member"))))) || fp.hasPermission("fawe.plotsquared.admin");
     }
 
     @Override
