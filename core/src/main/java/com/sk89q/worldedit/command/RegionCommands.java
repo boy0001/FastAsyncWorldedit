@@ -537,7 +537,7 @@ public class RegionCommands extends MethodCommands {
                      @Selection Region region,
                      @Optional("1") @Range(min = 1) int count,
                      @Optional(Direction.AIM) @Direction Vector direction,
-                     @Optional("air") BaseBlock replace,
+                     @Optional("air") Pattern replace,
                      @Switch('b') boolean copyBiomes,
                      @Switch('e') boolean skipEntities,
                      @Switch('a') boolean skipAir,

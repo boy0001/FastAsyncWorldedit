@@ -58,6 +58,7 @@ import com.boydti.fawe.object.extent.SlowExtent;
 import com.boydti.fawe.object.extent.SourceMaskExtent;
 import com.boydti.fawe.object.function.SurfaceRegionFunction;
 import com.boydti.fawe.object.mask.ResettableMask;
+import com.boydti.fawe.object.pattern.ExistingPattern;
 import com.boydti.fawe.object.progress.ChatProgressTracker;
 import com.boydti.fawe.object.progress.DefaultProgressTracker;
 import com.boydti.fawe.object.visitor.FastChunkIterator;
@@ -2011,7 +2012,11 @@ public class EditSession extends AbstractWorld implements HasFaweQueue, Lighting
         return moveRegion(region, dir, distance, copyAir, true, false, replacement);
     }
 
-    public int moveRegion(final Region region, final Vector dir, final int distance, final boolean copyAir, final boolean copyEntities, final boolean copyBiomes, final BaseBlock replacement) {
+    public int moveRegion(final Region region, final Vector dir, final int distance, final boolean copyAir, final boolean copyEntities, final boolean copyBiomes, BaseBlock replacement) {
+        return moveRegion(region, dir, distance, copyAir, copyEntities, copyBiomes, (Pattern) replacement);
+    }
+
+    public int moveRegion(final Region region, final Vector dir, final int distance, final boolean copyAir, final boolean copyEntities, final boolean copyBiomes, Pattern replacement) {
         checkNotNull(region);
         checkNotNull(dir);
         checkArgument(distance >= 1, "distance >= 1 required");
@@ -2019,10 +2024,19 @@ public class EditSession extends AbstractWorld implements HasFaweQueue, Lighting
 
         final Vector size = region.getMaximumPoint().subtract(region.getMinimumPoint()).add(1, 1, 1);
         final Vector to = region.getMinimumPoint();
+
+        Vector disAbs = displace.positive();
+
+        if (disAbs.getBlockX() < size.getBlockX() && disAbs.getBlockY() < size.getBlockY() && disAbs.getBlockZ() < size.getBlockZ()) {
+            // Buffer if overlapping
+            queue.dequeue();
+        }
+
+
         final ForwardExtentCopy copy = new ForwardExtentCopy(EditSession.this, region, EditSession.this, to);
 
-        final com.sk89q.worldedit.function.pattern.Pattern pattern = replacement != null ? replacement : (new BaseBlock(BlockID.AIR));
-        final BlockReplace remove = new BlockReplace(EditSession.this, pattern) {
+        if (replacement == null) replacement = nullBlock;
+        final BlockReplace remove = replacement instanceof ExistingPattern ? null : new BlockReplace(EditSession.this, replacement) {
             private MutableBlockVector mutable = new MutableBlockVector();
 
             @Override
