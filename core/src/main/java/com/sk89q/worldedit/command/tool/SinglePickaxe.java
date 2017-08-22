@@ -51,13 +51,13 @@ public class SinglePickaxe implements BlockTool {
         editSession.getSurvivalExtent().setToolUse(config.superPickaxeDrop);
 
         try {
-            editSession.setBlock(clicked.getBlockX(), clicked.getBlockY(), clicked.getBlockZ(), EditSession.nullBlock);
+            if (editSession.setBlock(clicked.getBlockX(), clicked.getBlockY(), clicked.getBlockZ(), EditSession.nullBlock)) {
+                world.playEffect(clicked.toVector(), 2001, blockType);
+            }
         } finally {
             editSession.flushQueue();
             session.remember(editSession);
         }
-
-        world.playEffect(clicked.toVector(), 2001, blockType);
 
         return true;
     }

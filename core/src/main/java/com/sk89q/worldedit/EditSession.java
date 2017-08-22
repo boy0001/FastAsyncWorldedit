@@ -804,7 +804,10 @@ public class EditSession extends AbstractWorld implements HasFaweQueue, Lighting
         if (survivalExtent != null) {
             return survivalExtent.get();
         } else {
-            return (SurvivalModeExtent) (this.extent = new SurvivalModeExtent(this.extent, getWorld()));
+            AbstractDelegateExtent bypass = this.bypassAll;
+            SurvivalModeExtent survival = new SurvivalModeExtent(bypass.getExtent(), getWorld());
+            new ExtentTraverser(bypass).setNext(survival);
+            return survival;
         }
     }
 
