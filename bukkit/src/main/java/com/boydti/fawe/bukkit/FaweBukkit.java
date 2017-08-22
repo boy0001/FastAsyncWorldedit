@@ -210,10 +210,12 @@ public class FaweBukkit implements IFawe, Listener {
                             Bukkit.getServicesManager().unregister(service, instance);
                             try {
                                 Class<? extends Object> clazz = instance.getClass();
-                                Field logFailedRequests = ReflectionUtils.setAccessible(clazz.getDeclaredField("logFailedRequests"));
+                                Field logFailedRequests = ReflectionUtils.findField(clazz, boolean.class);
                                 logFailedRequests.set(null, false);
                                 Field url = null;
-                                try { url = clazz.getDeclaredField("URL"); } catch (NoSuchFieldException ignore) { url = clazz.getDeclaredField("bStatsUrl"); }
+                                try { url = clazz.getDeclaredField("URL"); } catch (NoSuchFieldException ignore) {
+                                for (Field field : clazz.getDeclaredFields()) if (ReflectionUtils.setAccessible(field).get(null).toString().startsWith("http")) { url = field; break; }
+                                }
                                 if (url != null) ReflectionUtils.setFailsafeFieldValue(url, null, null);
                             } catch (NoSuchFieldError | IllegalAccessException ignore) {}
                             catch (Throwable e) {
