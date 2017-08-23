@@ -16,6 +16,7 @@ import com.boydti.fawe.object.pattern.ExpressionPattern;
 import com.boydti.fawe.object.pattern.FullClipboardPattern;
 import com.boydti.fawe.object.pattern.IdDataMaskPattern;
 import com.boydti.fawe.object.pattern.IdPattern;
+import com.boydti.fawe.object.pattern.Linear2DBlockPattern;
 import com.boydti.fawe.object.pattern.Linear3DBlockPattern;
 import com.boydti.fawe.object.pattern.LinearBlockPattern;
 import com.boydti.fawe.object.pattern.MaskedPattern;
@@ -429,6 +430,21 @@ public class PatternCommands extends MethodCommands {
         if (other instanceof RandomPattern) {
             Set<Pattern> patterns = ((RandomPattern) other).getPatterns();
             return new Linear3DBlockPattern(patterns.toArray(new Pattern[patterns.size()]));
+        }
+        return other;
+    }
+
+    @Command(
+            aliases = {"#linear2d", "#l2d"},
+            desc = "Use the x,z coordinate to pick a block from the list",
+            usage = "<pattern>",
+            min = 1,
+            max = 1
+    )
+    public Pattern linear2d(Actor actor, LocalSession session, Pattern other) {
+        if (other instanceof RandomPattern) {
+            Set<Pattern> patterns = ((RandomPattern) other).getPatterns();
+            return new Linear2DBlockPattern(patterns.toArray(new Pattern[patterns.size()]));
         }
         return other;
     }
