@@ -546,7 +546,7 @@ public class BrushCommands extends MethodCommands {
     }
 
     @Command(
-            aliases = {"cylinder", "cyl", "c"},
+            aliases = {"cylinder", "cyl", "c", "disk", "disc"},
             usage = "<pattern> [radius=2] [height=1]",
             flags = "h",
             desc = "Creates a cylinder",

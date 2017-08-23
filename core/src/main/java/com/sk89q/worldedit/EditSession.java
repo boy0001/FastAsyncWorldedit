@@ -2214,6 +2214,14 @@ public class EditSession extends AbstractWorld implements HasFaweQueue, Lighting
      * @throws MaxChangedBlocksException thrown if too many blocks are changed
      */
     public int makeCylinder(Vector pos, final Pattern block, double radiusX, double radiusZ, int height, final boolean filled) {
+        return makeCylinder(pos, block, radiusX, radiusZ, height, 0, filled);
+    }
+
+    public int makeHollowCylinder(Vector pos, final Pattern block, double radiusX, double radiusZ, int height, int thickness) {
+        return makeCylinder(pos, block, radiusX, radiusZ, height, thickness, false);
+    }
+
+    private int makeCylinder(Vector pos, final Pattern block, double radiusX, double radiusZ, int height, int thickness, final boolean filled) {
         radiusX += 0.5;
         radiusZ += 0.5;
 
@@ -2230,8 +2238,8 @@ public class EditSession extends AbstractWorld implements HasFaweQueue, Lighting
             height = (maxY - pos.getBlockY()) + 1;
         }
 
-        final double invRadiusX = 1 / radiusX;
-        final double invRadiusZ = 1 / radiusZ;
+        final double invRadiusX = 1 / (radiusX);
+        final double invRadiusZ = 1 / (radiusZ);
 
         int px = pos.getBlockX();
         int py = pos.getBlockY();
@@ -2242,36 +2250,79 @@ public class EditSession extends AbstractWorld implements HasFaweQueue, Lighting
         final int ceilRadiusZ = (int) Math.ceil(radiusZ);
         double dx, dxz, dz;
         double nextXn = 0;
-        forX:
-        for (int x = 0; x <= ceilRadiusX; ++x) {
-            final double xn = nextXn;
-            nextXn = (x + 1) * invRadiusX;
-            double nextZn = 0;
-            dx = xn * xn;
-            forZ:
-            for (int z = 0; z <= ceilRadiusZ; ++z) {
-                final double zn = nextZn;
-                nextZn = (z + 1) * invRadiusZ;
-                dz = zn * zn;
-                dxz = dx + dz;
-                if (dxz > 1) {
-                    if (z == 0) {
-                        break forX;
-                    }
-                    break forZ;
-                }
 
-                if (!filled) {
-                    if ((dz + nextXn * nextXn <= 1) && (nextZn * nextZn + dx <= 1)) {
+        if (thickness != 0) {
+            double nextMinXn = 0;
+            final double minInvRadiusX = 1 / (radiusX - thickness);
+            final double minInvRadiusZ = 1 / (radiusZ - thickness);
+            forX:
+            for (int x = 0; x <= ceilRadiusX; ++x) {
+                final double xn = nextXn;
+                double dx2 = nextMinXn * nextMinXn;
+                nextXn = (x + 1) * invRadiusX;
+                nextMinXn = (x + 1) * minInvRadiusX;
+                double nextZn = 0;
+                double nextMinZn = 0;
+                dx = xn * xn;
+                forZ:
+                for (int z = 0; z <= ceilRadiusZ; ++z) {
+                    final double zn = nextZn;
+                    double dz2 = nextMinZn * nextMinZn;
+                    nextZn = (z + 1) * invRadiusZ;
+                    nextMinZn = (z + 1) * minInvRadiusZ;
+                    dz = zn * zn;
+                    dxz = dx + dz;
+                    if (dxz > 1) {
+                        if (z == 0) {
+                            break forX;
+                        }
+                        break forZ;
+                    }
+
+                    if ((dz2 + nextMinXn * nextMinXn <= 1) && (nextMinZn * nextMinZn + dx2 <= 1)) {
                         continue;
                     }
-                }
 
-                for (int y = 0; y < height; ++y) {
-                    this.setBlock(mutable.setComponents(px + x, py + y, pz + z), block);
-                    this.setBlock(mutable.setComponents(px - x, py + y, pz + z), block);
-                    this.setBlock(mutable.setComponents(px + x, py + y, pz - z), block);
-                    this.setBlock(mutable.setComponents(px - x, py + y, pz - z), block);
+                    for (int y = 0; y < height; ++y) {
+                        this.setBlock(mutable.setComponents(px + x, py + y, pz + z), block);
+                        this.setBlock(mutable.setComponents(px - x, py + y, pz + z), block);
+                        this.setBlock(mutable.setComponents(px + x, py + y, pz - z), block);
+                        this.setBlock(mutable.setComponents(px - x, py + y, pz - z), block);
+                    }
+                }
+            }
+        } else {
+            forX:
+            for (int x = 0; x <= ceilRadiusX; ++x) {
+                final double xn = nextXn;
+                nextXn = (x + 1) * invRadiusX;
+                double nextZn = 0;
+                dx = xn * xn;
+                forZ:
+                for (int z = 0; z <= ceilRadiusZ; ++z) {
+                    final double zn = nextZn;
+                    nextZn = (z + 1) * invRadiusZ;
+                    dz = zn * zn;
+                    dxz = dx + dz;
+                    if (dxz > 1) {
+                        if (z == 0) {
+                            break forX;
+                        }
+                        break forZ;
+                    }
+
+                    if (!filled) {
+                        if ((dz + nextXn * nextXn <= 1) && (nextZn * nextZn + dx <= 1)) {
+                            continue;
+                        }
+                    }
+
+                    for (int y = 0; y < height; ++y) {
+                        this.setBlock(mutable.setComponents(px + x, py + y, pz + z), block);
+                        this.setBlock(mutable.setComponents(px - x, py + y, pz + z), block);
+                        this.setBlock(mutable.setComponents(px + x, py + y, pz - z), block);
+                        this.setBlock(mutable.setComponents(px - x, py + y, pz - z), block);
+                    }
                 }
             }
         }

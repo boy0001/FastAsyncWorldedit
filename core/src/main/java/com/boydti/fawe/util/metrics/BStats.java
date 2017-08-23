@@ -2,7 +2,9 @@ package com.boydti.fawe.util.metrics;
 
 import com.boydti.fawe.Fawe;
 import com.boydti.fawe.configuration.file.YamlConfiguration;
+import com.boydti.fawe.object.RunnableVal;
 import com.boydti.fawe.object.io.PGZIPOutputStream;
+import com.boydti.fawe.util.TaskManager;
 import com.google.gson.Gson;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
@@ -21,9 +23,10 @@ import java.net.MalformedURLException;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.nio.file.Path;
+import java.util.Timer;
+import java.util.TimerTask;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentLinkedQueue;
-import java.util.concurrent.TimeUnit;
 import javax.net.ssl.HttpsURLConnection;
 
 /**
@@ -45,7 +48,7 @@ public class BStats implements Closeable {
     private final boolean online;
     private final String serverVersion;
     private final String pluginVersion;
-    private Thread task;
+    private Timer timer;
     private Gson gson = new Gson();
 
     // Is bStats enabled on this server?
@@ -145,7 +148,7 @@ public class BStats implements Closeable {
      * @param metrics An object of the metrics class to link.
      */
     public static void linkMetrics(Object metrics) {
-        knownMetricsInstances.add(metrics);
+        if (!knownMetricsInstances.contains(metrics)) knownMetricsInstances.add(metrics);
     }
 
     /**
@@ -167,22 +170,18 @@ public class BStats implements Closeable {
     }
 
     private void startSubmitting() {
-        // No delay, as this class is only instantiated after the server is loaded
-        this.task = new Thread(new Runnable() {
+        this.timer = new Timer(true);
+        timer.scheduleAtFixedRate(new TimerTask() {
             @Override
             public void run() {
-                while (enabled) {
-                    submitData();
-                    try {
-                        if (enabled) Thread.sleep(TimeUnit.MINUTES.toMillis(30));
-                    } catch (InterruptedException e) {
-                        break;
-                    }
+                if (!enabled) {
+                    timer.cancel();
+                    return;
                 }
                 submitData();
             }
-        });
-        this.task.start();
+        // No 2m delay, as this is only started after the server is loaded
+        }, 0, 1000*60*30);
     }
 
     @Override
@@ -194,13 +193,8 @@ public class BStats implements Closeable {
     @Override
     public void close() {
         enabled = false;
-        if (task != null) {
-            task.interrupt();
-            try {
-                task.join();
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
+        if (timer != null) {
+            timer.cancel();
         }
     }
 
@@ -249,14 +243,21 @@ public class BStats implements Closeable {
         final JsonArray pluginData = new JsonArray();
         // Search for all other bStats Metrics classes to get their plugin data
         for (Object metrics : knownMetricsInstances) {
-            try {
-                Object plugin = metrics.getClass().getMethod("getPluginData").invoke(metrics);
+            Object plugin = TaskManager.IMP.sync(new RunnableVal<Object>() {
+                @Override
+                public void run(Object value) {
+                    try {
+                    this.value = metrics.getClass().getMethod("getPluginData").invoke(metrics);
+                    } catch (NoSuchMethodException | IllegalAccessException | InvocationTargetException | NullPointerException | JsonSyntaxException ignored) {}
+                }
+            });
+            if (plugin != null) {
                 if (plugin instanceof JsonObject) {
                     pluginData.add((JsonObject) plugin);
                 } else {
                     pluginData.add(gson.fromJson(plugin.toString(), JsonObject.class));
                 }
-            } catch (NoSuchMethodException | IllegalAccessException | InvocationTargetException | NullPointerException | JsonSyntaxException ignored) {}
+            }
         }
 
         data.add("plugins", pluginData);

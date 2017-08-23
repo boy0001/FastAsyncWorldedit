@@ -221,6 +221,128 @@ public class ForgeQueue_All extends NMSMappedFaweQueue<World, Chunk, ExtendedBlo
         }
     }
 
+//    @Override
+//    public boolean setMCA(final int mcaX, final int mcaZ, final RegionWrapper allowed, final Runnable whileLocked, final boolean load) {
+//        TaskManager.IMP.sync(new RunnableVal<Boolean>() {
+//            @Override
+//            public void run(Boolean value) {
+//                long start = System.currentTimeMillis();
+//                long last = start;
+//                synchronized (RegionFileCache.class) {
+//                    WorldServer world = (WorldServer) getWorld();
+//                    ChunkProviderServer provider = nmsWorld.getChunkProvider();
+//
+//                    boolean mustSave = false;
+//                    boolean[][] chunksUnloaded = null;
+//                    { // Unload chunks
+//                        Iterator<Chunk> iter = provider.getLoadedChunks().iterator();
+//                        while (iter.hasNext()) {
+//                            Chunk chunk = iter.next();
+//                            if (chunk.x >> 5 == mcaX && chunk.z >> 5 == mcaZ) {
+//                                boolean isIn = allowed.isInChunk(chunk.x, chunk.x);
+//                                if (isIn) {
+//                                    if (!load) {
+//                                        if (chunk.needsSaving(false)) {
+//                                            mustSave = true;
+//                                            try {
+//                                                provider.chunkLoader.saveChunk(nmsWorld, chunk);
+//                                                provider.chunkLoader.saveExtraChunkData(nmsWorld, chunk);
+//                                            } catch (IOException | MinecraftException e) {
+//                                                e.printStackTrace();
+//                                            }
+//                                        }
+//                                        continue;
+//                                    }
+//                                    iter.remove();
+//                                    boolean save = chunk.needsSaving(false);
+//                                    mustSave |= save;
+//                                    if (save) {
+//                                        provider.queueUnload(chunk);
+//                                    } else {
+//                                        chunk.onUnload();
+//                                    }
+//                                    if (chunksUnloaded == null) {
+//                                        chunksUnloaded = new boolean[32][];
+//                                    }
+//                                    int relX = chunk.x & 31;
+//                                    boolean[] arr = chunksUnloaded[relX];
+//                                    if (arr == null) {
+//                                        arr = chunksUnloaded[relX] = new boolean[32];
+//                                    }
+//                                    arr[chunk.z & 31] = true;
+//                                }
+//                            }
+//                        }
+//                    }
+//                    if (mustSave) provider.flushToDisk(); // TODO only the necessary chunks
+//
+//                    File unloadedRegion = null;
+//                    if (load && !RegionFileCache.a.isEmpty()) {
+//                        Map<File, RegionFile> map = RegionFileCache.a;
+//                        Iterator<Map.Entry<File, RegionFile>> iter = map.entrySet().iterator();
+//                        String requiredPath = world.getName() + File.separator + "region";
+//                        while (iter.hasNext()) {
+//                            Map.Entry<File, RegionFile> entry = iter.next();
+//                            File file = entry.getKey();
+//                            int[] regPos = MainUtil.regionNameToCoords(file.getPath());
+//                            if (regPos[0] == mcaX && regPos[1] == mcaZ && file.getPath().contains(requiredPath)) {
+//                                if (file.exists()) {
+//                                    unloadedRegion = file;
+//                                    RegionFile regionFile = entry.getValue();
+//                                    iter.remove();
+//                                    try {
+//                                        regionFile.c();
+//                                    } catch (IOException e) {
+//                                        e.printStackTrace();
+//                                    }
+//                                }
+//                                break;
+//                            }
+//                        }
+//                    }
+//
+//                    long now = System.currentTimeMillis();
+//                    if (whileLocked != null) whileLocked.run();
+//                    if (!load) return;
+//
+//                    { // Load the region again
+//                        if (unloadedRegion != null && chunksUnloaded != null && unloadedRegion.exists()) {
+//                            final boolean[][] finalChunksUnloaded = chunksUnloaded;
+//                            TaskManager.IMP.async(() -> {
+//                                int bx = mcaX << 5;
+//                                int bz = mcaZ << 5;
+//                                for (int x = 0; x < finalChunksUnloaded.length; x++) {
+//                                    boolean[] arr = finalChunksUnloaded[x];
+//                                    if (arr != null) {
+//                                        for (int z = 0; z < arr.length; z++) {
+//                                            if (arr[z]) {
+//                                                int cx = bx + x;
+//                                                int cz = bz + z;
+//                                                TaskManager.IMP.sync(new RunnableVal<Object>() {
+//                                                    @Override
+//                                                    public void run(Object value1) {
+//                                                        Chunk chunk = provider.getChunkAt(cx, cz, null, false);
+//                                                        if (chunk != null) {
+//                                                            PlayerChunk pc = getPlayerChunk(nmsWorld, cx, cz);
+//                                                            if (pc != null) {
+//                                                                sendChunk(pc, chunk, 0);
+//                                                            }
+//                                                        }
+//                                                    }
+//                                                });
+//                                            }
+//                                        }
+//                                    }
+//                                }
+//                            });
+//                        }
+//                    }
+//                }
+//            }
+//        });
+//        return true;
+//    }
+
     @Override
     public void setHeightMap(FaweChunk chunk, byte[] heightMap) {
         Chunk forgeChunk = (Chunk) chunk.getChunk();

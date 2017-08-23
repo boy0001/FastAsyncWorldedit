@@ -20,7 +20,6 @@
 package com.sk89q.worldedit.command;
 
 import com.boydti.fawe.Fawe;
-import com.boydti.fawe.command.FawePrimitiveBinding;
 import com.boydti.fawe.config.BBC;
 import com.boydti.fawe.jnbt.anvil.generator.CavesGen;
 import com.boydti.fawe.object.FawePlayer;
@@ -35,6 +34,7 @@ import com.sk89q.worldedit.EditSession;
 import com.sk89q.worldedit.LocalSession;
 import com.sk89q.worldedit.MutableBlockVector;
 import com.sk89q.worldedit.Vector;
+import com.sk89q.worldedit.Vector2D;
 import com.sk89q.worldedit.WorldEdit;
 import com.sk89q.worldedit.WorldEditException;
 import com.sk89q.worldedit.blocks.BaseBlock;
@@ -180,12 +180,18 @@ public class GenerationCommands extends MethodCommands {
                             "you can generate elliptical cylinders.\n" +
                             "The 1st radius is north/south, the 2nd radius is east/west.",
             min = 2,
-            max = 3
+            max = 4
     )
     @CommandPermissions("worldedit.generation.cylinder")
     @Logging(PLACEMENT)
-    public void hcyl(FawePlayer fp, Player player, LocalSession session, EditSession editSession, Pattern pattern, String radiusString, @Optional("1") int height, CommandContext context) throws WorldEditException, ParameterException {
-        cyl(fp, player, session, editSession, pattern, radiusString, height, true, context);
+    public void hcyl(FawePlayer fp, Player player, LocalSession session, EditSession editSession, Pattern pattern, Vector2D radius, @Optional("1") int height, @Optional("1") int thickness, CommandContext context) throws WorldEditException, ParameterException {
+        double max = MathMan.max(radius.getBlockX(), radius.getBlockZ());
+        worldEdit.checkMaxBrushRadius(max);
+        fp.checkConfirmationRadius(getArguments(context), (int) max);
+        height = Math.min(256, height);
+        Vector pos = session.getPlacementPosition(player);
+        int affected = editSession.makeHollowCylinder(pos, pattern, radius.getBlockX(), radius.getBlockZ(), height, thickness);
+        BBC.VISITOR_BLOCK.send(fp, affected);
     }
 
     @Command(
@@ -203,33 +209,13 @@ public class GenerationCommands extends MethodCommands {
     )
     @CommandPermissions("worldedit.generation.cylinder")
     @Logging(PLACEMENT)
-    public void cyl(FawePlayer fp, Player player, LocalSession session, EditSession editSession, Pattern pattern, String radiusString, @Optional("1") int height, @Switch('h') boolean hollow, CommandContext context) throws WorldEditException, ParameterException {
-        String[] radii = radiusString.split(",");
-        final double radiusX, radiusZ;
-        switch (radii.length) {
-            case 1:
-                radiusX = radiusZ = Math.max(1, FawePrimitiveBinding.parseNumericInput(radii[0]));
-                break;
-
-            case 2:
-                radiusX = Math.max(1, FawePrimitiveBinding.parseNumericInput(radii[0]));
-                radiusZ = Math.max(1, FawePrimitiveBinding.parseNumericInput(radii[1]));
-                break;
-
-            default:
-                fp.sendMessage(BBC.getPrefix() + "You must either specify 1 or 2 radius values.");
-                return;
-        }
-        height = Math.min(256, height);
-        worldEdit.checkMaxRadius(radiusX);
-        worldEdit.checkMaxRadius(radiusZ);
-        worldEdit.checkMaxRadius(height);
-
-        double max = MathMan.max(radiusX, radiusZ, height);
+    public void cyl(FawePlayer fp, Player player, LocalSession session, EditSession editSession, Pattern pattern, Vector2D radius, @Optional("1") int height, @Switch('h') boolean hollow, CommandContext context) throws WorldEditException, ParameterException {
+        double max = MathMan.max(radius.getBlockX(), radius.getBlockZ());
+        worldEdit.checkMaxBrushRadius(max);
         fp.checkConfirmationRadius(getArguments(context), (int) max);
-
+        height = Math.min(256, height);
         Vector pos = session.getPlacementPosition(player);
-        int affected = editSession.makeCylinder(pos, pattern, radiusX, radiusZ, height, !hollow);
+        int affected = editSession.makeCylinder(pos, pattern, radius.getBlockX(), radius.getBlockZ(), height, !hollow);
         BBC.VISITOR_BLOCK.send(fp, affected);
     }
 
