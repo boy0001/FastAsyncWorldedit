@@ -327,8 +327,8 @@ public class ConverterFrame extends JFrame {
                     debug("Loading nukkit.jar");
                     File nukkit = new File("nukkit.jar");
                     if (!nukkit.exists()) {
-                        debug("Downloading: http://ci.mengcraft.com:8080/job/nukkit/614/artifact/target/nukkit-1.0-SNAPSHOT.jar");
-                        URL url = new URL("http://ci.mengcraft.com:8080/job/nukkit/614/artifact/target/nukkit-1.0-SNAPSHOT.jar");
+                        debug("Downloading: http://ci.mengcraft.com:8080/job/nukkit/lastSuccessfulBuild/artifact/target/nukkit-1.0-SNAPSHOT.jar");
+                        URL url = new URL("http://ci.mengcraft.com:8080/job/nukkit/lastSuccessfulBuild/artifact/target/nukkit-1.0-SNAPSHOT.jar");
                         ReadableByteChannel rbc = Channels.newChannel(url.openStream());
                         FileOutputStream fos = new FileOutputStream(nukkit);
                         fos.getChannel().transferFrom(rbc, 0, Long.MAX_VALUE);
