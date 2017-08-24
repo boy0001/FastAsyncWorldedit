@@ -469,12 +469,6 @@ public class ClipboardCommands extends MethodCommands {
     )
     @CommandPermissions("worldedit.clipboard.rotate")
     public void rotate(Player player, LocalSession session, Double yRotate, @Optional Double xRotate, @Optional Double zRotate) throws WorldEditException {
-        if ((yRotate != null && Math.abs(yRotate % 90) > 0.001) ||
-                xRotate != null && Math.abs(xRotate % 90) > 0.001 ||
-                zRotate != null && Math.abs(zRotate % 90) > 0.001) {
-            player.printDebug("Note: Interpolation is not yet supported, so angles that are multiples of 90 is recommended.");
-        }
-
         ClipboardHolder holder = session.getClipboard();
         AffineTransform transform = new AffineTransform();
         transform = transform.rotateY(-(yRotate != null ? yRotate : 0));

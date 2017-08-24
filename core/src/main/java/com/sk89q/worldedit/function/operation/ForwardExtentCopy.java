@@ -39,6 +39,7 @@ import com.sk89q.worldedit.function.mask.Mask;
 import com.sk89q.worldedit.function.mask.Masks;
 import com.sk89q.worldedit.function.visitor.EntityVisitor;
 import com.sk89q.worldedit.function.visitor.RegionVisitor;
+import com.sk89q.worldedit.math.transform.AffineTransform;
 import com.sk89q.worldedit.math.transform.Identity;
 import com.sk89q.worldedit.math.transform.Transform;
 import com.sk89q.worldedit.regions.Region;
@@ -253,30 +254,50 @@ public class ForwardExtentCopy implements Operation {
         if (!translation.equals(Vector.ZERO)) {
             finalDest = new BlockTranslateExtent(finalDest, translation.getBlockX(), translation.getBlockY(), translation.getBlockZ());
         }
-        PositionTransformExtent transExt;
+
+        Operation blockCopy = null;
+        PositionTransformExtent transExt = null;
         if (!currentTransform.isIdentity()) {
-            transExt = new PositionTransformExtent(finalDest, currentTransform);
-            transExt.setOrigin(from);
-            finalDest = transExt;
-        } else {
-            transExt = null;
+            if (!(currentTransform instanceof AffineTransform) || ((AffineTransform) currentTransform).isOffAxis()) {
+                transExt = new PositionTransformExtent(source, currentTransform.inverse());
+                transExt.setOrigin(from);
+
+                RegionFunction copy = new SimpleBlockCopy(transExt, finalDest);
+                if (sourceMask != Masks.alwaysTrue()) {
+                    copy = new RegionMaskingFilter(sourceMask, copy);
+                }
+                if (sourceFunction != null) {
+                    copy = new CombinedRegionFunction(copy, sourceFunction);
+                }
+                if (copyBiomes && (!(source instanceof BlockArrayClipboard) || ((BlockArrayClipboard) source).IMP.hasBiomes())) {
+                    copy = new CombinedRegionFunction(copy, new BiomeCopy(source, finalDest));
+                }
+                blockCopy = new BackwardsExtentBlockCopy(transExt, region, finalDest, from, transform, copy);
+            } else {
+                transExt = new PositionTransformExtent(finalDest, currentTransform);
+                transExt.setOrigin(from);
+                finalDest = transExt;
+            }
         }
-        RegionFunction copy = new SimpleBlockCopy(source, finalDest);
-        if (sourceMask != Masks.alwaysTrue()) {
-            copy = new RegionMaskingFilter(sourceMask, copy);
+
+        if (blockCopy == null) {
+            RegionFunction copy = new SimpleBlockCopy(source, finalDest);
+            if (sourceMask != Masks.alwaysTrue()) {
+                copy = new RegionMaskingFilter(sourceMask, copy);
+            }
+            if (sourceFunction != null) {
+                copy = new CombinedRegionFunction(copy, sourceFunction);
+            }
+            if (copyBiomes && (!(source instanceof BlockArrayClipboard) || ((BlockArrayClipboard) source).IMP.hasBiomes())) {
+                copy = new CombinedRegionFunction(copy, new BiomeCopy(source, finalDest));
+            }
+            blockCopy = new RegionVisitor(region, copy, queue instanceof MappedFaweQueue ? (MappedFaweQueue) queue : null);
         }
-        if (sourceFunction != null) {
-            copy = new CombinedRegionFunction(copy, sourceFunction);
-        }
-        if (copyBiomes && (!(source instanceof BlockArrayClipboard) || ((BlockArrayClipboard) source).IMP.hasBiomes())) {
-            copy = new CombinedRegionFunction(copy, new BiomeCopy(source, finalDest));
-        }
-        RegionVisitor blockVisitor = new RegionVisitor(region, copy, queue instanceof MappedFaweQueue ? (MappedFaweQueue) queue : null);
 
         List<? extends Entity> entities = isCopyEntities() ? source.getEntities(region) : new ArrayList<>();
 
         for (int i = 0; i < repetitions; i++) {
-            Operations.completeBlindly(blockVisitor);
+            Operations.completeBlindly(blockCopy);
 
             if (!entities.isEmpty()) {
                 ExtentEntityCopy entityCopy = new ExtentEntityCopy(from, destination, to, currentTransform);
@@ -291,7 +312,7 @@ public class ForwardExtentCopy implements Operation {
             }
 
         }
-        affected = blockVisitor.getAffected();
+        affected = region.getArea();
         return null;
     }
 

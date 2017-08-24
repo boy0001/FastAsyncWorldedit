@@ -133,6 +133,18 @@ public class AffineTransform implements Transform, Serializable {
         return new double[]{m00, m01, m02, m03, m10, m11, m12, m13, m20, m21, m22, m23};
     }
 
+    public boolean isOffAxis() {
+        double[] c = coefficients();
+        for (int i = 0; i < c.length; i++) {
+            if ((i + 1) % 4 != 0) {
+                if (Math.abs(c[i]) != 1 && c[i] != 0) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
     /**
      * Computes the determinant of this transform. Can be zero.
      *
