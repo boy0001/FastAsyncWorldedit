@@ -190,7 +190,7 @@ public class GenerationCommands extends MethodCommands {
         fp.checkConfirmationRadius(getArguments(context), (int) max);
         height = Math.min(256, height);
         Vector pos = session.getPlacementPosition(player);
-        int affected = editSession.makeHollowCylinder(pos, pattern, radius.getBlockX(), radius.getBlockZ(), height, thickness - 1);
+        int affected = editSession.makeHollowCylinder(pos, pattern, radius.getX(), radius.getZ(), height, thickness - 1);
         BBC.VISITOR_BLOCK.send(fp, affected);
     }
 
@@ -215,7 +215,7 @@ public class GenerationCommands extends MethodCommands {
         fp.checkConfirmationRadius(getArguments(context), (int) max);
         height = Math.min(256, height);
         Vector pos = session.getPlacementPosition(player);
-        int affected = editSession.makeCylinder(pos, pattern, radius.getBlockX(), radius.getBlockZ(), height, !hollow);
+        int affected = editSession.makeCylinder(pos, pattern, radius.getX(), radius.getZ(), height, !hollow);
         BBC.VISITOR_BLOCK.send(fp, affected);
     }
 
@@ -259,10 +259,10 @@ public class GenerationCommands extends MethodCommands {
 
         Vector pos = session.getPlacementPosition(player);
         if (raised) {
-            pos = pos.add(0, radius.getBlockY(), 0);
+            pos = pos.add(0, radius.getY(), 0);
         }
 
-        int affected = editSession.makeSphere(pos, pattern, radius.getBlockX(), radius.getBlockY(), radius.getBlockZ(), !hollow);
+        int affected = editSession.makeSphere(pos, pattern, radius.getX(), radius.getY(), radius.getZ(), !hollow);
         player.findFreePosition();
         BBC.VISITOR_BLOCK.send(fp, affected);
     }
