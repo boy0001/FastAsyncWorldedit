@@ -184,13 +184,13 @@ public class GenerationCommands extends MethodCommands {
     )
     @CommandPermissions("worldedit.generation.cylinder")
     @Logging(PLACEMENT)
-    public void hcyl(FawePlayer fp, Player player, LocalSession session, EditSession editSession, Pattern pattern, Vector2D radius, @Optional("1") int height, @Optional("1") int thickness, CommandContext context) throws WorldEditException, ParameterException {
+    public void hcyl(FawePlayer fp, Player player, LocalSession session, EditSession editSession, Pattern pattern, Vector2D radius, @Optional("1") int height, @Range(min = 1) @Optional("1") int thickness, CommandContext context) throws WorldEditException, ParameterException {
         double max = MathMan.max(radius.getBlockX(), radius.getBlockZ());
         worldEdit.checkMaxBrushRadius(max);
         fp.checkConfirmationRadius(getArguments(context), (int) max);
         height = Math.min(256, height);
         Vector pos = session.getPlacementPosition(player);
-        int affected = editSession.makeHollowCylinder(pos, pattern, radius.getBlockX(), radius.getBlockZ(), height, thickness);
+        int affected = editSession.makeHollowCylinder(pos, pattern, radius.getBlockX(), radius.getBlockZ(), height, thickness - 1);
         BBC.VISITOR_BLOCK.send(fp, affected);
     }
 
@@ -211,7 +211,7 @@ public class GenerationCommands extends MethodCommands {
     @Logging(PLACEMENT)
     public void cyl(FawePlayer fp, Player player, LocalSession session, EditSession editSession, Pattern pattern, Vector2D radius, @Optional("1") int height, @Switch('h') boolean hollow, CommandContext context) throws WorldEditException, ParameterException {
         double max = MathMan.max(radius.getBlockX(), radius.getBlockZ());
-        worldEdit.checkMaxBrushRadius(max);
+        worldEdit.checkMaxRadius(max);
         fp.checkConfirmationRadius(getArguments(context), (int) max);
         height = Math.min(256, height);
         Vector pos = session.getPlacementPosition(player);
@@ -254,7 +254,7 @@ public class GenerationCommands extends MethodCommands {
     @Logging(PLACEMENT)
     public void sphere(FawePlayer fp, Player player, LocalSession session, EditSession editSession, Pattern pattern, Vector radius, @Optional("false") boolean raised, @Switch('h') boolean hollow, CommandContext context) throws WorldEditException, ParameterException {
         double max = MathMan.max(radius.getBlockX(), radius.getBlockY(), radius.getBlockZ());
-        worldEdit.checkMaxBrushRadius(max);
+        worldEdit.checkMaxRadius(max);
         fp.checkConfirmationRadius(getArguments(context), (int) max);
 
         Vector pos = session.getPlacementPosition(player);

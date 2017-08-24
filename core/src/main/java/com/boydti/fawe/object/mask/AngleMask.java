@@ -55,7 +55,7 @@ public class AngleMask extends SolidBlockMask implements ResettableMask {
     private transient boolean lastValue;
 
     public int getHeight(int x, int y, int z) {
-        return lastY = getExtent().getNearestSurfaceTerrainBlock(x, z, y, 0, maxY);
+        return getExtent().getNearestSurfaceTerrainBlock(x, z, y, 0, maxY);
 //        try {
 //            int rx = x - cacheBotX + 16;
 //            int rz = z - cacheBotZ + 16;
