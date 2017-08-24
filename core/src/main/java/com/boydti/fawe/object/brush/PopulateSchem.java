@@ -29,7 +29,7 @@ public class PopulateSchem implements Brush {
     public void build(EditSession editSession, Vector position, Pattern pattern, double size) throws MaxChangedBlocksException {
         new MaskTraverser(mask).reset(editSession);
         SchemGen gen = new SchemGen(mask, editSession, editSession.getWorldData(), clipboards, randomRotate);
-        CuboidRegion cuboid = new CuboidRegion(position.subtract(size, size, size), position.add(size, size, size));
+        CuboidRegion cuboid = new CuboidRegion(editSession.getWorld(), position.subtract(size, size, size), position.add(size, size, size));
         try {
             editSession.addSchems(cuboid, mask, editSession.getWorldData(), clipboards, rarity, randomRotate);
         } catch (WorldEditException e) {

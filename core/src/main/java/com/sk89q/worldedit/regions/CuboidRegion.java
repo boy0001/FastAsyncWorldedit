@@ -137,8 +137,8 @@ public class CuboidRegion extends AbstractRegion implements FlatRegion {
         if (pos1 == null || pos2 == null) {
             return;
         }
-        pos1 = pos1.clampY(0, world == null ? 255 : world.getMaxY());
-        pos2 = pos2.clampY(0, world == null ? 255 : world.getMaxY());
+        pos1 = pos1.clampY(world == null ? Integer.MIN_VALUE : 0, world == null ? Integer.MAX_VALUE : world.getMaxY());
+        pos2 = pos2.clampY(world == null ? Integer.MIN_VALUE : 0, world == null ? Integer.MAX_VALUE : world.getMaxY());
         Vector min = getMinimumPoint();
         Vector max = getMaximumPoint();
         minX = min.getBlockX();

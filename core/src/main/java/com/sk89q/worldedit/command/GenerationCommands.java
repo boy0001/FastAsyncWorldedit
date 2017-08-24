@@ -184,7 +184,7 @@ public class GenerationCommands extends MethodCommands {
     )
     @CommandPermissions("worldedit.generation.cylinder")
     @Logging(PLACEMENT)
-    public void hcyl(FawePlayer fp, Player player, LocalSession session, EditSession editSession, Pattern pattern, Vector2D radius, @Optional("1") int height, @Range(min = 1) @Optional("1") int thickness, CommandContext context) throws WorldEditException, ParameterException {
+    public void hcyl(FawePlayer fp, Player player, LocalSession session, EditSession editSession, Pattern pattern, Vector2D radius, @Optional("1") int height, @Range(min = 1) @Optional("1") double thickness, CommandContext context) throws WorldEditException, ParameterException {
         double max = MathMan.max(radius.getBlockX(), radius.getBlockZ());
         worldEdit.checkMaxRadius(max);
         fp.checkConfirmationRadius(getArguments(context), (int) max);

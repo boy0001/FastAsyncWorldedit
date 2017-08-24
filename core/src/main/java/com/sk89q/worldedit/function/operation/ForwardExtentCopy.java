@@ -25,6 +25,7 @@ import com.boydti.fawe.object.extent.BlockTranslateExtent;
 import com.boydti.fawe.object.extent.PositionTransformExtent;
 import com.boydti.fawe.object.function.block.BiomeCopy;
 import com.boydti.fawe.object.function.block.SimpleBlockCopy;
+import com.boydti.fawe.util.MaskTraverser;
 import com.sk89q.worldedit.EditSession;
 import com.sk89q.worldedit.Vector;
 import com.sk89q.worldedit.WorldEditException;
@@ -249,8 +250,10 @@ public class ForwardExtentCopy implements Operation {
         } else {
             queue = null;
         }
+
         Extent finalDest = destination;
         Vector translation = to.subtract(from);
+
         if (!translation.equals(Vector.ZERO)) {
             finalDest = new BlockTranslateExtent(finalDest, translation.getBlockX(), translation.getBlockY(), translation.getBlockZ());
         }
@@ -264,6 +267,7 @@ public class ForwardExtentCopy implements Operation {
 
                 RegionFunction copy = new SimpleBlockCopy(transExt, finalDest);
                 if (sourceMask != Masks.alwaysTrue()) {
+                    new MaskTraverser(sourceMask).reset(transExt);
                     copy = new RegionMaskingFilter(sourceMask, copy);
                 }
                 if (sourceFunction != null) {

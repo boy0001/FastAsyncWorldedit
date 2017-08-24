@@ -783,17 +783,19 @@ public class BrushCommands extends MethodCommands {
             help = "Left click the base of an object to copy.\n" +
                     "Right click to paste\n" +
                     "The -r flag Will apply random rotation on paste\n" +
+                    "The -a flag Will apply auto view based rotation on paste\n" +
                     "Note: Works well with the clipboard scroll action\n" +
                     "Video: https://www.youtube.com/watch?v=RPZIaTbqoZw",
             min = 0,
             max = 1
     )
     @CommandPermissions("worldedit.brush.copy")
-    public BrushSettings copy(Player player, LocalSession session, @Optional("5") double radius, @Switch('r') boolean rotate, CommandContext context) throws WorldEditException {
+    public BrushSettings copy(Player player, LocalSession session, @Optional("5") double radius, @Switch('r') boolean randomRotate, @Switch('a') boolean autoRotate, CommandContext context) throws WorldEditException {
         worldEdit.checkMaxBrushRadius(radius);
         player.print(BBC.getPrefix() + BBC.BRUSH_COPY.f(radius));
+
         return get(context)
-                .setBrush(new CopyPastaBrush(player, session, rotate))
+                .setBrush(new CopyPastaBrush(player, session, randomRotate, autoRotate))
                 .setSize(radius);
     }
 

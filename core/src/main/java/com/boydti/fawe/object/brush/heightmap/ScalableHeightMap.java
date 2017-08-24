@@ -3,7 +3,6 @@ package com.boydti.fawe.object.brush.heightmap;
 import com.boydti.fawe.object.IntegerPair;
 import com.boydti.fawe.util.MainUtil;
 import com.boydti.fawe.util.MathMan;
-import com.sk89q.worldedit.EditSession;
 import com.sk89q.worldedit.Vector;
 import com.sk89q.worldedit.blocks.BaseBlock;
 import com.sk89q.worldedit.extent.clipboard.Clipboard;
@@ -79,7 +78,7 @@ public class ScalableHeightMap implements com.boydti.fawe.object.brush.heightmap
             for (int y = minY; y <= maxY; y++) {
                 pos.mutY(y);
                 BaseBlock block = clipboard.getBlock(pos);
-                if (block != EditSession.nullBlock) {
+                if (block.getId() != 0) {
                     highestY = y + 1;
                 }
             }

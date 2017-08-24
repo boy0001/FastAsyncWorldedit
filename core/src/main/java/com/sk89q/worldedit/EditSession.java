@@ -1430,13 +1430,13 @@ public class EditSession extends AbstractWorld implements HasFaweQueue, Lighting
                 int freeSpot = startCheckY;
                 for (int y = startCheckY; y <= endY; y++) {
                     if (y < startPerformY) {
-                        if (getLazyBlock(x, y, z) != EditSession.nullBlock) {
+                        if (getLazyBlock(x, y, z).getId() != 0) {
                             freeSpot = y + 1;
                         }
                         continue;
                     }
                     BaseBlock block = getLazyBlock(x, y, z);
-                    if (block != EditSession.nullBlock) {
+                    if (block.getId() != 0) {
                         if (freeSpot != y) {
                             setBlock(x, freeSpot, z, block);
                             setBlock(x, y, z, replace);
@@ -2217,11 +2217,11 @@ public class EditSession extends AbstractWorld implements HasFaweQueue, Lighting
         return makeCylinder(pos, block, radiusX, radiusZ, height, 0, filled);
     }
 
-    public int makeHollowCylinder(Vector pos, final Pattern block, double radiusX, double radiusZ, int height, int thickness) {
+    public int makeHollowCylinder(Vector pos, final Pattern block, double radiusX, double radiusZ, int height, double thickness) {
         return makeCylinder(pos, block, radiusX, radiusZ, height, thickness, false);
     }
 
-    private int makeCylinder(Vector pos, final Pattern block, double radiusX, double radiusZ, int height, int thickness, final boolean filled) {
+    private int makeCylinder(Vector pos, final Pattern block, double radiusX, double radiusZ, int height, double thickness, final boolean filled) {
         radiusX += 0.5;
         radiusZ += 0.5;
 

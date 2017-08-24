@@ -114,7 +114,7 @@ public class PNGWriter implements ClipboardWriter {
                     mutableTop.mutY(y + 1);
                     mutableRight.mutY(y);
                     mutableLeft.mutY(y);
-                    if (clipboard.getBlock(mutableTop) != EditSession.nullBlock && clipboard.getBlock(mutableRight) != EditSession.nullBlock && clipboard.getBlock(mutableLeft) != EditSession.nullBlock) {
+                    if (clipboard.getBlock(mutableTop).getId() != 0 && clipboard.getBlock(mutableRight) != EditSession.nullBlock && clipboard.getBlock(mutableLeft).getId() != 0 ) {
                         continue;
                     }
                     double cpy = cpy2 - dpxi[y - y0];
