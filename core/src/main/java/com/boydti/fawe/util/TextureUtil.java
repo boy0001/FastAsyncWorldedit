@@ -11,6 +11,8 @@ import com.sk89q.worldedit.blocks.BlockID;
 import com.sk89q.worldedit.world.registry.BundledBlockData;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
+import it.unimi.dsi.fastutil.ints.IntArraySet;
+import it.unimi.dsi.fastutil.longs.LongArrayList;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -50,8 +52,12 @@ public class TextureUtil {
     protected long[] distances;
     protected int[] validColors;
     protected char[] validBlockIds;
+
     protected int[] validLayerColors;
     protected char[][] validLayerBlocks;
+
+    protected int[] validMixBiomeColors;
+    protected long[] validMixBiomeIds;
 
 
     /**
@@ -420,6 +426,43 @@ public class TextureUtil {
         return biomes[biome];
     }
 
+    public boolean getIsBlockCloserThanBiome(int[] blockAndBiomeIdOutput, int color, int biomePriority) {
+        BaseBlock block = getNearestBlock(color);
+        TextureUtil.BiomeColor biome = getNearestBiome(color);
+        int blockColor = getColor(block);
+        blockAndBiomeIdOutput[0] = block.getCombined();
+        blockAndBiomeIdOutput[1] = biome.id;
+        if (colorDistance(biome.grass, color) - biomePriority > colorDistance(blockColor, color)) {
+            return true;
+        }
+        return false;
+    }
+
+    public int getBiomeMix(int[] biomeIdsOutput, int color) {
+        long closest = Long.MAX_VALUE;
+        int closestAverage = Integer.MAX_VALUE;
+        long min = Long.MAX_VALUE;
+        int red1 = (color >> 16) & 0xFF;
+        int green1 = (color >> 8) & 0xFF;
+        int blue1 = (color >> 0) & 0xFF;
+        int alpha = (color >> 24) & 0xFF;
+        for (int i = 0; i < validMixBiomeColors.length; i++) {
+            int other = validMixBiomeColors[i];
+            if (((other >> 24) & 0xFF) == alpha) {
+                long distance = colorDistance(red1, green1, blue1, other);
+                if (distance < min) {
+                    min = distance;
+                    closest = validMixBiomeIds[i];
+                    closestAverage = other;
+                }
+            }
+        }
+        biomeIdsOutput[0] = (int) ((closest >> 0) & 0xFF);
+        biomeIdsOutput[1] = (int) ((closest >> 8) & 0xFF);
+        biomeIdsOutput[2] = (int) ((closest >> 16) & 0xFF);
+        return closestAverage;
+    }
+
     public BiomeColor getNearestBiome(int color) {
         int grass = blockColors[2 << 4];
         if (grass == 0) {
@@ -633,12 +676,47 @@ public class TextureUtil {
                             List<BiomeColor> valid = new ArrayList<>();
                             for (int i = 0; i < biomes.length; i++) {
                                 BiomeColor biome = biomes[i];
-                                biome.grass = multiplyColor(biome.grass, grass);
+//                                biome.grass = multiplyColor(biome.grass, grass);
                                 if (biome.grass != 0 && !biome.name.equalsIgnoreCase("Unknown Biome")) {
                                     valid.add(biome);
                                 }
                             }
                             this.validBiomes = valid.toArray(new BiomeColor[valid.size()]);
+
+                            {
+                                ArrayList<BiomeColor> uniqueColors = new ArrayList<>();
+                                Set<Integer> uniqueBiomesColors = new IntArraySet();
+                                for (BiomeColor color : validBiomes) {
+                                    if (uniqueBiomesColors.add(color.grass)) {
+                                        uniqueColors.add(color);
+                                    }
+                                }
+                                int count = 0;
+                                int count2 = 0;
+                                uniqueBiomesColors.clear();
+
+                                LongArrayList layerIds = new LongArrayList();
+                                LongArrayList layerColors = new LongArrayList();
+                                for (int i = 0; i < uniqueColors.size(); i++) {
+                                    for (int j = i; j < uniqueColors.size(); j++) {
+                                        for (int k = j; k < uniqueColors.size(); k++) {
+                                            BiomeColor c1 = uniqueColors.get(i);
+                                            BiomeColor c2 = uniqueColors.get(j);
+                                            BiomeColor c3 = uniqueColors.get(k);
+                                            int average = averageColor(c1.grass, c2.grass, c3.grass);
+                                            if (uniqueBiomesColors.add(average)) {
+                                                count++;
+                                                layerColors.add((long) average);
+                                                layerIds.add((long) ((c1.id) + (c2.id << 8) + (c3.id << 16)));
+                                            }
+                                        }
+                                    }
+                                }
+
+                                validMixBiomeColors = new int[layerColors.size()];
+                                for (int i = 0; i < layerColors.size(); i++) validMixBiomeColors[i] = (int) layerColors.getLong(i);
+                                validMixBiomeIds = layerIds.toLongArray();
+                            }
                         }
 
                     }
@@ -700,6 +778,25 @@ public class TextureUtil {
         int green = ((green1 + green2)) / 2;
         int blue = ((blue1 + blue2)) / 2;
         int alpha = ((alpha1 + alpha2)) / 2;
+        return (alpha << 24) + (red << 16) + (green << 8) + (blue << 0);
+    }
+
+    public int averageColor(int... colors) {
+        int alpha = 0;
+        int red = 0;
+        int green = 0;
+        int blue = 0;
+        for (int c : colors) {
+            alpha += (c >> 24) & 0xFF;
+            red += (c >> 16) & 0xFF;
+            green += (c >> 8) & 0xFF;
+            blue += (c >> 0) & 0xFF;
+        }
+        int num = colors.length;
+        alpha /= num;
+        red /= num;
+        green /= num;
+        blue /= num;
         return (alpha << 24) + (red << 16) + (green << 8) + (blue << 0);
     }
 

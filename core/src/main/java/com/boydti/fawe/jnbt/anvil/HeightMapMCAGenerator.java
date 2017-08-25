@@ -468,20 +468,18 @@ public class HeightMapMCAGenerator extends MCAWriter implements Extent {
         int widthIndex = img.getWidth() - 1;
         int heightIndex = img.getHeight() - 1;
         int maxIndex = biomes.length - 1;
+
+        int[] buffer = new int[2];
         for (int y = 0; y < img.getHeight(); y++) {
             boolean yBiome = y > 0 && y < heightIndex;
-            for (int x = 0; x < img.getWidth(); x++) {
+            for (int x = 0; x < img.getWidth(); x++, index++) {
                 int color = img.getRGB(x, y);
-                BaseBlock block = textureUtil.getNearestBlock(color);
-                TextureUtil.BiomeColor biome = textureUtil.getNearestBiome(color);
-                int blockColor = textureUtil.getColor(block);
-                biomes[index] = (byte) biome.id;
-                if (textureUtil.colorDistance(biome.grass, color) - biomePriority > textureUtil.colorDistance(blockColor, color)) {
-                    char combined = (char) block.getCombined();
+                if (textureUtil.getIsBlockCloserThanBiome(buffer, color, biomePriority)) {
+                    char combined = (char) buffer[0];
                     main[index] = combined;
                     floor[index] = combined;
                 }
-                index++;
+                biomes[index] = (byte) buffer[1];
             }
         }
     }
