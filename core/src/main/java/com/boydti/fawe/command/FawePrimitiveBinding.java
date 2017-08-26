@@ -240,7 +240,7 @@ public class FawePrimitiveBinding extends BindingHelper {
 
             case 2:
                 radiusX = Math.max(1, FawePrimitiveBinding.parseNumericInput(radii[0]));
-                radiusZ = Math.max(1, FawePrimitiveBinding.parseNumericInput(radii[2]));
+                radiusZ = Math.max(1, FawePrimitiveBinding.parseNumericInput(radii[1]));
                 break;
 
             default:

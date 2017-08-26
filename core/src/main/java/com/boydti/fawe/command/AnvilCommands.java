@@ -19,6 +19,7 @@ import com.boydti.fawe.jnbt.anvil.filters.RemapFilter;
 import com.boydti.fawe.jnbt.anvil.filters.RemoveLayerFilter;
 import com.boydti.fawe.jnbt.anvil.filters.ReplacePatternFilter;
 import com.boydti.fawe.jnbt.anvil.filters.ReplaceSimpleFilter;
+import com.boydti.fawe.jnbt.anvil.filters.TrimAirFilter;
 import com.boydti.fawe.jnbt.anvil.history.IAnvilHistory;
 import com.boydti.fawe.jnbt.anvil.history.NullAnvilHistory;
 import com.boydti.fawe.object.FawePlayer;
@@ -251,6 +252,17 @@ public class AnvilCommands {
         int visitTime = deleteUnvisited ? 1 : -1;
         PlotTrimFilter filter = new PlotTrimFilter(player.getWorld(), 0, visitTime, 600000);
         PlotTrimFilter result = runWithWorld(player, folder, filter, true);
+        if (result != null) player.print(BBC.getPrefix() + BBC.VISITOR_BLOCK.format(result.getTotal()));
+    }
+
+    @Command(
+            aliases = {"trimallair", },
+            desc = "Trim all air in the world"
+    )
+    @CommandPermissions("worldedit.anvil.trimallair")
+    public void trimAllAir(Player player, String folder) throws WorldEditException {
+        TrimAirFilter filter = new TrimAirFilter();
+        TrimAirFilter result = runWithWorld(player, folder, filter, true);
         if (result != null) player.print(BBC.getPrefix() + BBC.VISITOR_BLOCK.format(result.getTotal()));
     }
 
