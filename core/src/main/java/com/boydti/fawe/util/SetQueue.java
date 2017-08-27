@@ -105,11 +105,20 @@ public class SetQueue {
                     if (!emptyTasks) {
                         long taskAllocate = empty ? currentAllocate : currentAllocate >> 1;
                         long used = 0;
+                        boolean wait = false;
                         do {
                             Runnable task = tasks.poll();
                             if (task != null) {
                                 task.run();
+                                wait = true;
                             } else {
+                                if (wait) {
+                                    synchronized (tasks) {
+                                        tasks.wait(1);
+                                    }
+                                    wait = false;
+                                    continue;
+                                }
                                 break;
                             }
                         } while ((used = System.currentTimeMillis() - now) < taskAllocate);
@@ -396,6 +405,9 @@ public class SetQueue {
 
     public void addTask(Runnable whenFree) {
         tasks.add(whenFree);
+        synchronized (tasks) {
+            tasks.notifyAll();
+        }
     }
 
     /**

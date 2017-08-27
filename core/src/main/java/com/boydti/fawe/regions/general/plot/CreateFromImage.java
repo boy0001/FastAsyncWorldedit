@@ -600,6 +600,9 @@ public class CreateFromImage extends Command {
     }
 
     private BufferedImage getImage(String arg, FawePlayer fp) throws IOException {
+        if (arg.endsWith(".jpg")) {
+            fp.sendMessage(BBC.getPrefix() + "JPG is lossy, you may see compression artifacts. For large image hosting you can try: empcraft.com/ui");
+        }
         if (arg.startsWith("http")) {
             URL url = new URL(arg);
             fp.sendMessage(BBC.getPrefix() + "Downloading image... (3)");
