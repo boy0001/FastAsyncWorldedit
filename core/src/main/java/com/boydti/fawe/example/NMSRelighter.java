@@ -265,6 +265,16 @@ public class NMSRelighter implements Relighter {
         try {
             if (sky) {
                 fixSkyLighting();
+            } else {
+                synchronized (this) {
+                    Map<Long, RelightSkyEntry> map = getSkyMap();
+                    Iterator<Map.Entry<Long, RelightSkyEntry>> iter = map.entrySet().iterator();
+                    while (iter.hasNext()) {
+                        Map.Entry<Long, RelightSkyEntry> entry = iter.next();
+                        chunksToSend.put(entry.getKey(), entry.getValue().bitmask);
+                        iter.remove();
+                    }
+                }
             }
             fixBlockLighting();
             sendChunks();
