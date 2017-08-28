@@ -72,6 +72,7 @@ public class MethodCommands {
     }
 
     public String getArguments(CommandContext context) {
+        if (context == null) return null;
         CommandLocals locals = context.getLocals();
         if (locals != null) {
             return (String) locals.get("arguments");

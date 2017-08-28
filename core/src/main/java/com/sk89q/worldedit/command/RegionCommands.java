@@ -322,6 +322,12 @@ public class RegionCommands extends MethodCommands {
             BBC.TIP_REPLACE_ID.or(BBC.TIP_REPLACE_LIGHT, BBC.TIP_REPLACE_MARKER, BBC.TIP_TAB_COMPLETE).send(player);
     }
 
+    // Compatibility for SKCompat
+    @Deprecated
+    public void set(Player player, LocalSession session, EditSession editSession, Pattern pattern) throws WorldEditException {
+        set(FawePlayer.wrap(player), session, editSession, session.getSelection(player.getWorld()), pattern, null);
+    }
+
     @Command(
             aliases = {"/set", "/s"},
             usage = "[pattern]",

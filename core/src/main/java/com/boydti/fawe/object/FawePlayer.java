@@ -134,7 +134,7 @@ public abstract class FawePlayer<T> extends Metadatable {
     }
 
     public void checkConfirmationRadius(String command, int radius) throws RegionOperationException {
-        if (getMeta("cmdConfirmRunning", false)) {
+        if (command == null || getMeta("cmdConfirmRunning", false)) {
             return;
         }
         if (radius > 0) {
@@ -146,7 +146,7 @@ public abstract class FawePlayer<T> extends Metadatable {
     }
 
     public void checkConfirmationStack(String command, Region region, int times) throws RegionOperationException {
-        if (getMeta("cmdConfirmRunning", false)) {
+        if (command == null || getMeta("cmdConfirmRunning", false)) {
             return;
         }
         if (region != null) {
@@ -161,7 +161,7 @@ public abstract class FawePlayer<T> extends Metadatable {
     }
 
     public void checkConfirmationRegion(String command, Region region) throws RegionOperationException {
-        if (getMeta("cmdConfirmRunning", false)) {
+        if (command == null || getMeta("cmdConfirmRunning", false)) {
             return;
         }
         if (region != null) {

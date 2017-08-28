@@ -69,7 +69,7 @@ public class ScriptingCommands {
         final File dir = this.worldEdit.getWorkingDirectoryFile(this.worldEdit.getConfiguration().scriptsDir);
         final File f = this.worldEdit.getSafeOpenFile(player, dir, name, "js", "js");
         try {
-            ScriptingCommands.this.worldEdit.runScript(LocationMaskedPlayerWrapper.unwrap(player), f, scriptArgs);
+            this.worldEdit.runScript(LocationMaskedPlayerWrapper.unwrap(player), f, scriptArgs);
         } catch (final WorldEditException ex) {
             player.printError("Error while executing CraftScript.");
         }
@@ -97,7 +97,7 @@ public class ScriptingCommands {
         final File f = this.worldEdit.getSafeOpenFile(player, dir, lastScript, "js", "js");
 
         try {
-            ScriptingCommands.this.worldEdit.runScript(LocationMaskedPlayerWrapper.unwrap(player), f, scriptArgs);
+            this.worldEdit.runScript(LocationMaskedPlayerWrapper.unwrap(player), f, scriptArgs);
         } catch (final WorldEditException ex) {
             player.printError("Error while executing CraftScript.");
         }
