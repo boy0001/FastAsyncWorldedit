@@ -39,7 +39,7 @@ public abstract class NMSMappedFaweQueue<WORLD, CHUNK, CHUNKSECTION, SECTION> ex
     public void runTasks() {
         super.runTasks();
         if (!getRelighter().isEmpty()) {
-            TaskManager.IMP.taskNowAsync(new Runnable() {
+            TaskManager.IMP.async(new Runnable() {
                 @Override
                 public void run() {
                     getRelighter().fixLightingSafe(hasSky());

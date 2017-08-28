@@ -134,6 +134,7 @@ public class ExtentEntityCopy implements EntityFunction {
     private BaseEntity transformNbtData(BaseEntity state) {
         CompoundTag tag = state.getNbtData();
         if (tag != null) {
+            boolean changed = false;
             // Handle hanging entities (paintings, item frames, etc.)
 
             tag = tag.createBuilder().build();
@@ -146,6 +147,7 @@ public class ExtentEntityCopy implements EntityFunction {
             boolean hasFacing = tag.containsKey("Facing");
 
             if (hasTilePosition) {
+                changed = true;
                 Vector tilePosition = new Vector(tag.asInt("TileX"), tag.asInt("TileY"), tag.asInt("TileZ"));
                 Vector newTilePosition = transform.apply(tilePosition.subtract(from)).add(to);
 
@@ -181,6 +183,7 @@ public class ExtentEntityCopy implements EntityFunction {
 
             ListTag rotation = tag.getListTag("Rotation");
             if (rotation != null && rotation.getValue().size() >= 2) {
+                changed = true;
                 double yaw = Math.toRadians(rotation.getFloat(0));
                 double pitch = Math.toRadians(rotation.getFloat(1));
 
@@ -190,6 +193,10 @@ public class ExtentEntityCopy implements EntityFunction {
                 FloatTag yawTag = new FloatTag(direction.toYaw());
                 FloatTag pitchTag = new FloatTag(direction.toPitch());
                 values.put("Rotation", new ListTag(FloatTag.class, Arrays.asList(yawTag, pitchTag)));
+            }
+
+            if (changed) {
+                return new BaseEntity(state.getTypeId(), tag);
             }
         }
 
