@@ -7,6 +7,7 @@ import com.boydti.fawe.example.CharFaweChunk;
 import com.boydti.fawe.object.FaweChunk;
 import com.boydti.fawe.object.FaweQueue;
 import com.boydti.fawe.util.MainUtil;
+import com.boydti.fawe.util.MathMan;
 import com.sk89q.jnbt.CompoundTag;
 import com.sk89q.jnbt.ListTag;
 import com.sk89q.jnbt.StringTag;
@@ -116,9 +117,9 @@ public class BukkitChunk_1_8 extends CharFaweChunk<Chunk, BukkitQueue18R3> {
                                 if (entity instanceof EntityPlayer) {
                                     continue;
                                 }
-                                int x = ((int) Math.round(entity.locX) & 15);
-                                int z = ((int) Math.round(entity.locZ) & 15);
-                                int y = (int) Math.round(entity.locY);
+                                int x = (MathMan.roundInt(entity.locX) & 15);
+                                int z = (MathMan.roundInt(entity.locZ) & 15);
+                                int y = MathMan.roundInt(entity.locY);
                                 if (y < 0 || y > 255) continue;
                                 if (array[FaweCache.CACHE_J[y][z][x]] != 0) {
                                     nmsWorld.removeEntity(entity);

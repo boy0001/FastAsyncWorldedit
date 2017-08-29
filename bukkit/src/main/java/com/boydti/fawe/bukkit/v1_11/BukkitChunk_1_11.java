@@ -7,6 +7,7 @@ import com.boydti.fawe.example.CharFaweChunk;
 import com.boydti.fawe.object.FaweChunk;
 import com.boydti.fawe.object.FaweQueue;
 import com.boydti.fawe.util.MainUtil;
+import com.boydti.fawe.util.MathMan;
 import com.boydti.fawe.util.ReflectionUtils;
 import com.sk89q.jnbt.CompoundTag;
 import com.sk89q.jnbt.ListTag;
@@ -81,9 +82,9 @@ public class BukkitChunk_1_11 extends CharFaweChunk<Chunk, com.boydti.fawe.bukki
         if (ent instanceof EntityPlayer) {
             return false;
         }
-        int x = ((int) Math.round(ent.locX) & 15);
-        int z = ((int) Math.round(ent.locZ) & 15);
-        int y = ((int) Math.round(ent.locY) & 0xFF);
+        int x = (MathMan.roundInt(ent.locX) & 15);
+        int z = (MathMan.roundInt(ent.locZ) & 15);
+        int y = (MathMan.roundInt(ent.locY) & 0xFF);
         int i = FaweCache.CACHE_I[y][z][x];
         int j = FaweCache.CACHE_J[y][z][x];
         String id = EntityTypes.b(ent);
@@ -278,9 +279,9 @@ public class BukkitChunk_1_11 extends CharFaweChunk<Chunk, com.boydti.fawe.bukki
                             if (entity instanceof EntityPlayer) {
                                 continue;
                             }
-                            int x = ((int) Math.round(entity.locX) & 15);
-                            int z = ((int) Math.round(entity.locZ) & 15);
-                            int y = (int) Math.round(entity.locY);
+                            int x = (MathMan.roundInt(entity.locX) & 15);
+                            int z = (MathMan.roundInt(entity.locZ) & 15);
+                            int y = MathMan.roundInt(entity.locY);
                             if (y < 0 || y > 255) continue;
                             if (array[FaweCache.CACHE_J[y][z][x]] != 0) {
                                 if (copy != null) {

@@ -192,9 +192,9 @@ public class SpongeChunk_1_11 extends CharFaweChunk<Chunk, SpongeQueue_1_11> {
                             if (entity instanceof EntityPlayer) {
                                 continue;
                             }
-                            int x = ((int) Math.round(entity.posX) & 15);
-                            int z = ((int) Math.round(entity.posZ) & 15);
-                            int y = (int) Math.round(entity.posY);
+                            int x = (MathMan.roundInt(entity.posX) & 15);
+                            int z = (MathMan.roundInt(entity.posZ) & 15);
+                            int y = MathMan.roundInt(entity.posY);
                             if (array == null) {
                                 continue;
                             }

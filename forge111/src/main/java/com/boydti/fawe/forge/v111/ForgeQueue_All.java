@@ -432,9 +432,9 @@ public class ForgeQueue_All extends NMSMappedFaweQueue<World, Chunk, ExtendedBlo
                     if (ent instanceof EntityPlayer || (!createdEntities.isEmpty() && createdEntities.contains(ent.getUniqueID()))) {
                         continue;
                     }
-                    int x = ((int) Math.round(ent.posX) & 15);
-                    int z = ((int) Math.round(ent.posZ) & 15);
-                    int y = (int) Math.round(ent.posY);
+                    int x = (MathMan.roundInt(ent.posX) & 15);
+                    int z = (MathMan.roundInt(ent.posZ) & 15);
+                    int y = MathMan.roundInt(ent.posY);
                     int i = FaweCache.CACHE_I[y][z][x];
                     char[] array = fs.getIdArray(i);
                     if (array == null) {

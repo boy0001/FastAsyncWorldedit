@@ -5,6 +5,7 @@ import com.boydti.fawe.object.FaweQueue;
 import com.boydti.fawe.object.HasFaweQueue;
 import com.boydti.fawe.object.extent.FastWorldEditExtent;
 import com.boydti.fawe.util.ExtentTraverser;
+import com.boydti.fawe.util.MathMan;
 import com.sk89q.jnbt.CompoundTag;
 import com.sk89q.jnbt.DoubleTag;
 import com.sk89q.jnbt.LongTag;
@@ -64,9 +65,9 @@ public class MutableEntityChange implements Change {
                 return;
             }
             List<DoubleTag> pos = (List<DoubleTag>) map.get("Pos").getValue();
-            int x = (int) Math.round(pos.get(0).getValue());
-            int y = (int) Math.round(pos.get(1).getValue());
-            int z = (int) Math.round(pos.get(2).getValue());
+            int x = MathMan.roundInt(pos.get(0).getValue());
+            int y = MathMan.roundInt(pos.get(1).getValue());
+            int z = MathMan.roundInt(pos.get(2).getValue());
             UUID uuid = new UUID(most, least);
             fwee.getQueue().removeEntity(x, y, z, uuid);
         } else {
@@ -101,9 +102,9 @@ public class MutableEntityChange implements Change {
             return;
         }
         List<DoubleTag> pos = (List<DoubleTag>) posTag.getValue();
-        int x = (int) Math.round(pos.get(0).getValue());
-        int y = (int) Math.round(pos.get(1).getValue());
-        int z = (int) Math.round(pos.get(2).getValue());
+        int x = MathMan.roundInt(pos.get(0).getValue());
+        int y = MathMan.roundInt(pos.get(1).getValue());
+        int z = MathMan.roundInt(pos.get(2).getValue());
         queue.setEntity(x, y, z, tag);
     }
 }

@@ -832,9 +832,9 @@ public class BukkitQueue_1_12 extends BukkitQueue_0<net.minecraft.server.v1_12_R
                     if (ent instanceof EntityPlayer || (!createdEntities.isEmpty() && createdEntities.contains(ent.getUniqueID()))) {
                         continue;
                     }
-                    int x = ((int) Math.round(ent.locX) & 15);
-                    int z = ((int) Math.round(ent.locZ) & 15);
-                    int y = ((int) Math.round(ent.locY) & 0xFF);
+                    int x = (MathMan.roundInt(ent.locX) & 15);
+                    int z = (MathMan.roundInt(ent.locZ) & 15);
+                    int y = (MathMan.roundInt(ent.locY) & 0xFF);
                     int i = FaweCache.CACHE_I[y][z][x];
                     char[] array = fs.getIdArray(i);
                     if (array == null) {

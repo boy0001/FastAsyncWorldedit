@@ -189,9 +189,9 @@ public class ForgeChunk_All extends CharFaweChunk<Chunk, ForgeQueue_All> {
                         if (entity instanceof EntityPlayer) {
                             continue;
                         }
-                        int x = ((int) Math.round(entity.posX) & 15);
-                        int z = ((int) Math.round(entity.posZ) & 15);
-                        int y = (int) Math.round(entity.posY);
+                        int x = (MathMan.roundInt(entity.posX) & 15);
+                        int z = (MathMan.roundInt(entity.posZ) & 15);
+                        int y = MathMan.roundInt(entity.posY);
                         if (y < 0 || y > 255) continue;
                         if (array[FaweCache.CACHE_J[y][z][x]] != 0) {
                             nmsWorld.removeEntity(entity);

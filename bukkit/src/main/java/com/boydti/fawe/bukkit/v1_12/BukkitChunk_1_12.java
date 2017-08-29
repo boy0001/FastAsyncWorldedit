@@ -7,6 +7,7 @@ import com.boydti.fawe.example.CharFaweChunk;
 import com.boydti.fawe.object.FaweChunk;
 import com.boydti.fawe.object.FaweQueue;
 import com.boydti.fawe.util.MainUtil;
+import com.boydti.fawe.util.MathMan;
 import com.boydti.fawe.util.ReflectionUtils;
 import com.sk89q.jnbt.CompoundTag;
 import com.sk89q.jnbt.ListTag;
@@ -81,9 +82,9 @@ public class BukkitChunk_1_12 extends CharFaweChunk<Chunk, BukkitQueue_1_12> {
         if (ent instanceof EntityPlayer || BukkitQueue_0.getAdapter() == null) {
             return false;
         }
-        int x = ((int) Math.round(ent.locX) & 15);
-        int z = ((int) Math.round(ent.locZ) & 15);
-        int y = ((int) Math.round(ent.locY) & 0xFF);
+        int x = (MathMan.roundInt(ent.locX) & 15);
+        int z = (MathMan.roundInt(ent.locZ) & 15);
+        int y = (MathMan.roundInt(ent.locY) & 0xFF);
         int i = FaweCache.CACHE_I[y][z][x];
         int j = FaweCache.CACHE_J[y][z][x];
         String id = EntityTypes.b(ent);
@@ -270,6 +271,8 @@ public class BukkitChunk_1_12 extends CharFaweChunk<Chunk, BukkitQueue_1_12> {
                 } else {
                     Collection<Entity> ents = entities[i];
                     if (!ents.isEmpty()) {
+                        int layerYStart = i << 4;
+                        int layerYEnd = layerYStart + 15;
                         char[] array = this.getIdArray(i);
                         if (array == null) continue;
                         Iterator<Entity> iter = ents.iterator();
@@ -278,10 +281,10 @@ public class BukkitChunk_1_12 extends CharFaweChunk<Chunk, BukkitQueue_1_12> {
                             if (entity instanceof EntityPlayer) {
                                 continue;
                             }
-                            int x = ((int) Math.round(entity.locX) & 15);
-                            int z = ((int) Math.round(entity.locZ) & 15);
-                            int y = (int) Math.round(entity.locY);
-                            if (y < 0 || y > 255) continue;
+                            int y = MathMan.roundInt(entity.locY);
+                            if (y > layerYEnd || y < layerYStart) continue;
+                            int x = (MathMan.roundInt(entity.locX) & 15);
+                            int z = (MathMan.roundInt(entity.locZ) & 15);
                             if (array[FaweCache.CACHE_J[y][z][x]] != 0) {
                                 if (copy != null) {
                                     copy.storeEntity(entity);
