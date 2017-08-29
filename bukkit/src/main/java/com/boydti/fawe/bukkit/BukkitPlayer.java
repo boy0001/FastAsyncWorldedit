@@ -62,10 +62,16 @@ public class BukkitPlayer extends FawePlayer<Player> {
 
     public void sendTitle(String title, String sub) {
         try {
-            Method methodSendTitle = Player.class.getDeclaredMethod("sendTitle", String.class, String.class);
-            methodSendTitle.invoke(parent, ChatColor.GOLD + title, ChatColor.GOLD + sub);
+            Method methodSendTitle = Player.class.getDeclaredMethod("sendTitle", String.class, String.class, int.class, int.class);
+            methodSendTitle.invoke(parent, ChatColor.GOLD + title, ChatColor.GOLD + sub, 0, 70, 20);
             return;
-        } catch (Throwable ignore) {}
+        } catch (Throwable ignore) {
+            try {
+                Method methodSendTitle = Player.class.getDeclaredMethod("sendTitle", String.class, String.class);
+                methodSendTitle.invoke(parent, ChatColor.GOLD + title, ChatColor.GOLD + sub);
+                return;
+            } catch (Throwable ignore2) {}
+        }
         if (console == null) {
             console = Bukkit.getConsoleSender();
             Bukkit.getServer().dispatchCommand(console, "gamerule sendCommandFeedback false");

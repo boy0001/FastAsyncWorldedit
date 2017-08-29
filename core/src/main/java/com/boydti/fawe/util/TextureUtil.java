@@ -502,12 +502,17 @@ public class TextureUtil {
         Gson gson = new Gson();
         if (folder.exists()) {
             // Get all the jar files
-            for (File file : folder.listFiles(new FilenameFilter() {
+            File[] files = folder.listFiles(new FilenameFilter() {
                 @Override
                 public boolean accept(File dir, String name) {
                     return name.endsWith(".jar");
                 }
-            })) {
+            });
+            if (files.length == 0) {
+                throw new FileNotFoundException("Please create a `FastAsyncWorldEdit/textures` folder with `.minecraft/versions` jar or mods in it." +
+                        "If the file exists, please make sure the server has read access to the directory");
+            }
+            for (File file : files) {
                 ZipFile zipFile = new ZipFile(file);
 
                 BundledBlockData bundled = BundledBlockData.getInstance();
