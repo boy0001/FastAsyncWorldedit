@@ -477,93 +477,99 @@ public class BukkitQueue17 extends BukkitQueue_0<net.minecraft.server.v1_7_R4.Ch
         }
     }
 
-    public void sendChunk(net.minecraft.server.v1_7_R4.Chunk nmsChunk, int mask) {
-        try {
-            ChunkCoordIntPair pos = nmsChunk.l(); // getPosition()
-            WorldServer w = (WorldServer) nmsChunk.world;
-            PlayerChunkMap chunkMap = w.getPlayerChunkMap();
-            int x = pos.x;
-            int z = pos.z;
-            if (!chunkMap.isChunkInUse(x, z)) {
-                return;
-            }
-            HashSet<EntityPlayer> set = new HashSet<EntityPlayer>();
-            EntityTracker tracker = w.getTracker();
-            // Get players
+    public void sendChunk(net.minecraft.server.v1_7_R4.Chunk nmsChunk, final int finalMask) {
+        TaskManager.IMP.sync(new RunnableVal<Object>() {
+            @Override
+            public void run(Object value) {
+                try {
+                    int mask = finalMask;
+                    ChunkCoordIntPair pos = nmsChunk.l(); // getPosition()
+                    WorldServer w = (WorldServer) nmsChunk.world;
+                    PlayerChunkMap chunkMap = w.getPlayerChunkMap();
+                    int x = pos.x;
+                    int z = pos.z;
+                    if (!chunkMap.isChunkInUse(x, z)) {
+                        return;
+                    }
+                    HashSet<EntityPlayer> set = new HashSet<EntityPlayer>();
+                    EntityTracker tracker = w.getTracker();
+                    // Get players
 
-            Field fieldChunkMap = chunkMap.getClass().getDeclaredField("d");
-            fieldChunkMap.setAccessible(true);
-            LongHashMap map = (LongHashMap) fieldChunkMap.get(chunkMap);
-            long pair = (long) x + 2147483647L | (long) z + 2147483647L << 32;
-            Object playerChunk = map.getEntry(pair);
-            Field fieldPlayers = playerChunk.getClass().getDeclaredField("b");
-            fieldPlayers.setAccessible(true);
-            final HashSet<EntityPlayer> players = new HashSet<>((Collection<EntityPlayer>)fieldPlayers.get(playerChunk));
-            if (players.size() == 0) {
-                return;
-            }
-            // Send chunks
-            boolean empty = false;
-            ChunkSection[] sections = nmsChunk.getSections();
-            for (int i = 0; i < sections.length; i++) {
-                if (sections[i] == null) {
-                    sections[i] = emptySection;
-                    empty = true;
-                }
-            }
-            int version = -1;
-            PacketPlayOutMapChunk packet = null;
-            Map<Integer, PacketPlayOutMapChunk> packets = null;
-            if (mask == 0 || mask == 65535 && hasEntities(nmsChunk)) {
-                for (EntityPlayer player : players) {
-                    int currentVersion = player.playerConnection.networkManager.getVersion();
-                    if (currentVersion != version) {
-                        if (packet != null) {
-                            if (packets == null) {
-                                packets = new HashMap<>();
+                    Field fieldChunkMap = chunkMap.getClass().getDeclaredField("d");
+                    fieldChunkMap.setAccessible(true);
+                    LongHashMap map = (LongHashMap) fieldChunkMap.get(chunkMap);
+                    long pair = (long) x + 2147483647L | (long) z + 2147483647L << 32;
+                    Object playerChunk = map.getEntry(pair);
+                    Field fieldPlayers = playerChunk.getClass().getDeclaredField("b");
+                    fieldPlayers.setAccessible(true);
+                    final HashSet<EntityPlayer> players = new HashSet<>((Collection<EntityPlayer>)fieldPlayers.get(playerChunk));
+                    if (players.size() == 0) {
+                        return;
+                    }
+                    // Send chunks
+                    boolean empty = false;
+                    ChunkSection[] sections = nmsChunk.getSections();
+                    for (int i = 0; i < sections.length; i++) {
+                        if (sections[i] == null) {
+                            sections[i] = emptySection;
+                            empty = true;
+                        }
+                    }
+                    int version = -1;
+                    PacketPlayOutMapChunk packet = null;
+                    Map<Integer, PacketPlayOutMapChunk> packets = null;
+                    if (mask == 0 || mask == 65535 && hasEntities(nmsChunk)) {
+                        for (EntityPlayer player : players) {
+                            int currentVersion = player.playerConnection.networkManager.getVersion();
+                            if (currentVersion != version) {
+                                if (packet != null) {
+                                    if (packets == null) {
+                                        packets = new HashMap<>();
+                                    }
+                                    packets.put(version, packet);
+                                    packet = packets.get(currentVersion);
+                                }
+                                version = currentVersion;
+                                if (packet == null) {
+                                    packet = new PacketPlayOutMapChunk(nmsChunk, false, 65280, version);
+                                }
                             }
-                            packets.put(version, packet);
-                            packet = packets.get(currentVersion);
+                            player.playerConnection.sendPacket(packet);
                         }
-                        version = currentVersion;
-                        if (packet == null) {
-                            packet = new PacketPlayOutMapChunk(nmsChunk, false, 65280, version);
+                        mask = 255;
+                        version = -1;
+                        packet = null;
+                        packets = null;
+                    }
+                    for (EntityPlayer player : players) {
+                        int currentVersion = player.playerConnection.networkManager.getVersion();
+                        if (currentVersion != version) {
+                            if (packet != null) {
+                                if (packets == null) {
+                                    packets = new HashMap<>();
+                                }
+                                packets.put(version, packet);
+                                packet = packets.get(currentVersion);
+                            }
+                            version = currentVersion;
+                            if (packet == null) {
+                                packet = new PacketPlayOutMapChunk(nmsChunk, false, mask, version);
+                            }
+                        }
+                        player.playerConnection.sendPacket(packet);
+                    }
+                    if (empty) {
+                        for (int i = 0; i < sections.length; i++) {
+                            if (sections[i] == emptySection) {
+                                sections[i] = null;
+                            }
                         }
                     }
-                    player.playerConnection.sendPacket(packet);
-                }
-                mask = 255;
-                version = -1;
-                packet = null;
-                packets = null;
-            }
-            for (EntityPlayer player : players) {
-                int currentVersion = player.playerConnection.networkManager.getVersion();
-                if (currentVersion != version) {
-                    if (packet != null) {
-                        if (packets == null) {
-                            packets = new HashMap<>();
-                        }
-                        packets.put(version, packet);
-                        packet = packets.get(currentVersion);
-                    }
-                    version = currentVersion;
-                    if (packet == null) {
-                        packet = new PacketPlayOutMapChunk(nmsChunk, false, mask, version);
-                    }
-                }
-                player.playerConnection.sendPacket(packet);
-            }
-            if (empty) {
-                for (int i = 0; i < sections.length; i++) {
-                    if (sections[i] == emptySection) {
-                        sections[i] = null;
-                    }
+                } catch (Throwable e) {
+                    MainUtil.handleError(e);
                 }
             }
-        } catch (Throwable e) {
-            MainUtil.handleError(e);
-        }
+        });
     }
 
     public boolean hasEntities(net.minecraft.server.v1_7_R4.Chunk nmsChunk) {
