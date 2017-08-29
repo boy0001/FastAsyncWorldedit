@@ -20,7 +20,6 @@ import java.lang.reflect.Field;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
@@ -515,47 +514,14 @@ public class BukkitQueue17 extends BukkitQueue_0<net.minecraft.server.v1_7_R4.Ch
                             empty = true;
                         }
                     }
-                    int version = -1;
-                    PacketPlayOutMapChunk packet = null;
-                    Map<Integer, PacketPlayOutMapChunk> packets = null;
-                    if (mask == 0 || mask == 65535 && hasEntities(nmsChunk)) {
-                        for (EntityPlayer player : players) {
-                            int currentVersion = player.playerConnection.networkManager.getVersion();
-                            if (currentVersion != version) {
-                                if (packet != null) {
-                                    if (packets == null) {
-                                        packets = new HashMap<>();
-                                    }
-                                    packets.put(version, packet);
-                                    packet = packets.get(currentVersion);
-                                }
-                                version = currentVersion;
-                                if (packet == null) {
-                                    packet = new PacketPlayOutMapChunk(nmsChunk, false, 65280, version);
-                                }
-                            }
-                            player.playerConnection.sendPacket(packet);
-                        }
-                        mask = 255;
-                        version = -1;
-                        packet = null;
-                        packets = null;
-                    }
                     for (EntityPlayer player : players) {
                         int currentVersion = player.playerConnection.networkManager.getVersion();
-                        if (currentVersion != version) {
-                            if (packet != null) {
-                                if (packets == null) {
-                                    packets = new HashMap<>();
-                                }
-                                packets.put(version, packet);
-                                packet = packets.get(currentVersion);
-                            }
-                            version = currentVersion;
-                            if (packet == null) {
-                                packet = new PacketPlayOutMapChunk(nmsChunk, false, mask, version);
-                            }
+                        if (mask == 0 || mask == 65535 && hasEntities(nmsChunk)) {
+                            PacketPlayOutMapChunk packet = new PacketPlayOutMapChunk(nmsChunk, true, 65280, currentVersion);
+                            player.playerConnection.sendPacket(packet);
+                            mask = 255;
                         }
+                        PacketPlayOutMapChunk packet = new PacketPlayOutMapChunk(nmsChunk, true, mask, currentVersion);
                         player.playerConnection.sendPacket(packet);
                     }
                     if (empty) {
