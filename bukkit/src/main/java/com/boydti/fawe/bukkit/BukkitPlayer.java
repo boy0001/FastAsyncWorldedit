@@ -62,7 +62,7 @@ public class BukkitPlayer extends FawePlayer<Player> {
 
     public void sendTitle(String title, String sub) {
         try {
-            Method methodSendTitle = Player.class.getDeclaredMethod("sendTitle", String.class, String.class, int.class, int.class);
+            Method methodSendTitle = Player.class.getDeclaredMethod("sendTitle", String.class, String.class, int.class, int.class, int.class);
             methodSendTitle.invoke(parent, ChatColor.GOLD + title, ChatColor.GOLD + sub, 0, 70, 20);
             return;
         } catch (Throwable ignore) {
