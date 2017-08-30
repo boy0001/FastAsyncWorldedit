@@ -251,10 +251,10 @@ public class BrushCommands extends MethodCommands {
 
     @Command(
             aliases = {"catenary", "cat", "gravityline", "saggedline"},
-            usage = "<pattern> [length-factor=1.2] [size=0]",
+            usage = "<pattern> [lengthFactor=1.2] [size=0]",
             desc = "Create a hanging line between two points",
             help = "Create a hanging line between two points.\n" +
-                    "The length-factor controls how long the line is\n" +
+                    "The lengthFactor controls how long the line is\n" +
                     "The -h flag creates only a shell\n" +
                     "The -s flag selects the clicked point after drawing\n",
             min = 1,
