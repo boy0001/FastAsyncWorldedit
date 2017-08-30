@@ -52,6 +52,7 @@ public class BukkitMain extends JavaPlugin {
 
     @Override
     public void onEnable() {
+        Plugin toLoad = null;
         if (Bukkit.getPluginManager().getPlugin("WorldEdit") == null) {
             try {
                 File output = new File(this.getDataFolder().getParentFile(), "WorldEdit.jar");
@@ -59,7 +60,7 @@ public class BukkitMain extends JavaPlugin {
                 try (FileOutputStream fos = new FileOutputStream(output)) {
                     fos.write(weJar);
                 }
-                Bukkit.getPluginManager().loadPlugin(output);
+                toLoad = Bukkit.getPluginManager().loadPlugin(output);
             } catch (Throwable e) {
                 e.printStackTrace();
                 Fawe.debug("====== INSTALL WORLDEDIT ======");
@@ -70,5 +71,8 @@ public class BukkitMain extends JavaPlugin {
             }
         }
         FaweBukkit imp = new FaweBukkit(this);
+        if (toLoad != null) {
+            Bukkit.getPluginManager().enablePlugin(toLoad);
+        }
     }
 }

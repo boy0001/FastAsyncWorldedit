@@ -79,10 +79,16 @@ public class FaweBukkit implements IFawe, Listener {
         try {
             Fawe.set(this);
             setupInjector();
-            com.sk89q.worldedit.bukkit.BukkitPlayer.inject(); // Fixes
-            BukkitWorld.inject(); // Fixes
-            FallbackRegistrationListener.inject(); // Fixes
-            BukkitPlayerBlockBag.inject(); // features
+            try {
+                com.sk89q.worldedit.bukkit.BukkitPlayer.inject(); // Fixes
+                BukkitWorld.inject(); // Fixes
+                BukkitPlayerBlockBag.inject(); // features
+                FallbackRegistrationListener.inject(); // Fixes
+            } catch (Throwable e) {
+                debug("========= INJECTOR FAILED =========");
+                e.printStackTrace();
+                debug("===================================");
+            }
             try {
                 new BrushListener(plugin);
             } catch (Throwable e) {
