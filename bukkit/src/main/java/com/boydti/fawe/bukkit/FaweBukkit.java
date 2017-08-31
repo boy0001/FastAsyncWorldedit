@@ -3,6 +3,8 @@ package com.boydti.fawe.bukkit;
 import com.boydti.fawe.Fawe;
 import com.boydti.fawe.IFawe;
 import com.boydti.fawe.bukkit.chat.BukkitChatManager;
+import com.boydti.fawe.bukkit.listener.BrushListener;
+import com.boydti.fawe.bukkit.listener.RenderListener;
 import com.boydti.fawe.bukkit.regions.FactionsFeature;
 import com.boydti.fawe.bukkit.regions.FactionsOneFeature;
 import com.boydti.fawe.bukkit.regions.FactionsUUIDFeature;
@@ -12,6 +14,9 @@ import com.boydti.fawe.bukkit.regions.PreciousStonesFeature;
 import com.boydti.fawe.bukkit.regions.ResidenceFeature;
 import com.boydti.fawe.bukkit.regions.TownyFeature;
 import com.boydti.fawe.bukkit.regions.Worldguard;
+import com.boydti.fawe.bukkit.util.BukkitTaskMan;
+import com.boydti.fawe.bukkit.util.ItemUtil;
+import com.boydti.fawe.bukkit.util.VaultUtil;
 import com.boydti.fawe.bukkit.v0.BukkitQueue_0;
 import com.boydti.fawe.bukkit.v0.BukkitQueue_All;
 import com.boydti.fawe.bukkit.v0.ChunkListener;
@@ -62,6 +67,7 @@ public class FaweBukkit implements IFawe, Listener {
     private final BukkitMain plugin;
     private VaultUtil vault;
     private WorldEditPlugin worldedit;
+    private ItemUtil itemUtil;
 
     public VaultUtil getVault() {
         return this.vault;
@@ -95,6 +101,16 @@ public class FaweBukkit implements IFawe, Listener {
                 debug("====== BRUSH LISTENER FAILED ======");
                 e.printStackTrace();
                 debug("===================================");
+            }
+            if (Settings.IMP.EXPERIMENTAL.PERSISTENT_BRUSHES) {
+                try {
+                    this.itemUtil = new ItemUtil();
+                } catch (Throwable e) {
+                    Settings.IMP.EXPERIMENTAL.PERSISTENT_BRUSHES = false;
+                    debug("===== PERSISTENT BRUSH FAILED =====");
+                    e.printStackTrace();
+                    debug("===================================");
+                }
             }
             if (Bukkit.getVersion().contains("git-Spigot")) {
                 debug("====== USE PAPER ======");
@@ -233,6 +249,10 @@ public class FaweBukkit implements IFawe, Listener {
                 });
             }
         });
+    }
+
+    public ItemUtil getItemUtil() {
+        return itemUtil;
     }
 
     /**

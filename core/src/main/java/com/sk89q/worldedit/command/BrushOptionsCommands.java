@@ -118,7 +118,7 @@ public class BrushOptionsCommands extends MethodCommands {
             String json = in.readUTF();
             BrushTool tool = BrushTool.fromString(player, session, json);
             BaseBlock item = player.getBlockInHand();
-            session.setTool(item.getId(), item.getData(), tool, player);
+            session.setTool(item, tool, player);
             BBC.BRUSH_EQUIPPED.send(player, name);
         } catch (Throwable e) {
             e.printStackTrace();
@@ -194,11 +194,11 @@ public class BrushOptionsCommands extends MethodCommands {
     public void primary(Player player, LocalSession session, CommandContext args) throws WorldEditException {
         BaseBlock item = player.getBlockInHand();
         BrushTool tool = session.getBrushTool(player, false);
-        session.setTool(item.getId(), item.getData(), null, player);
+        session.setTool(item, null, player);
         String cmd = "brush " + args.getJoinedStrings(0);
         CommandEvent event = new CommandEvent(player, cmd);
         CommandManager.getInstance().handleCommandOnCurrentThread(event);
-        BrushTool newTool = session.getBrushTool(item.getId(), item.getData(), player, false);
+        BrushTool newTool = session.getBrushTool(item, player, false);
         if (newTool != null && tool != null) {
             newTool.setSecondary(tool.getSecondary());
         }
@@ -214,11 +214,11 @@ public class BrushOptionsCommands extends MethodCommands {
     public void secondary(Player player, LocalSession session, CommandContext args) throws WorldEditException {
         BaseBlock item = player.getBlockInHand();
         BrushTool tool = session.getBrushTool(player, false);
-        session.setTool(item.getId(), item.getData(), null, player);
+        session.setTool(item, null, player);
         String cmd = "brush " + args.getJoinedStrings(0);
         CommandEvent event = new CommandEvent(player, cmd);
         CommandManager.getInstance().handleCommandOnCurrentThread(event);
-        BrushTool newTool = session.getBrushTool(item.getId(), item.getData(), player, false);
+        BrushTool newTool = session.getBrushTool(item, player, false);
         if (newTool != null && tool != null) {
             newTool.setPrimary(tool.getPrimary());
         }
@@ -329,6 +329,7 @@ public class BrushOptionsCommands extends MethodCommands {
             settings.addSetting(BrushSettings.SettingType.SCROLL_ACTION, full);
             BBC.BRUSH_SCROLL_ACTION_SET.send(player, full);
         }
+        bt.update();
     }
 
     @Command(
@@ -359,6 +360,7 @@ public class BrushOptionsCommands extends MethodCommands {
         BrushSettings settings = offHand ? tool.getOffHand() : tool.getContext();
         settings.addSetting(BrushSettings.SettingType.MASK, context.getString(context.argsLength() - 1));
         settings.setMask(mask);
+        tool.update();
         BBC.BRUSH_MASK.send(player);
     }
 
@@ -391,6 +393,7 @@ public class BrushOptionsCommands extends MethodCommands {
         BrushSettings settings = offHand ? tool.getOffHand() : tool.getContext();
         settings.addSetting(BrushSettings.SettingType.SOURCE_MASK, context.getString(context.argsLength() - 1));
         settings.setSourceMask(mask);
+        tool.update();
         BBC.BRUSH_SOURCE_MASK.send(player);
     }
 
@@ -422,6 +425,7 @@ public class BrushOptionsCommands extends MethodCommands {
         BrushSettings settings = offHand ? tool.getOffHand() : tool.getContext();
         settings.addSetting(BrushSettings.SettingType.TRANSFORM, context.getString(context.argsLength() - 1));
         settings.setTransform(transform);
+        tool.update();
         BBC.BRUSH_TRANSFORM.send(player);
     }
 
@@ -447,6 +451,7 @@ public class BrushOptionsCommands extends MethodCommands {
         BrushSettings settings = offHand ? tool.getOffHand() : tool.getContext();
         settings.setFill(pattern);
         settings.addSetting(BrushSettings.SettingType.FILL, context.getString(context.argsLength() - 1));
+        tool.update();
         BBC.BRUSH_MATERIAL.send(player);
     }
 
@@ -487,6 +492,7 @@ public class BrushOptionsCommands extends MethodCommands {
         }
         BrushSettings settings = offHand ? tool.getOffHand() : tool.getContext();
         settings.setSize(radius);
+        tool.update();
         BBC.BRUSH_SIZE.send(player);
     }
 

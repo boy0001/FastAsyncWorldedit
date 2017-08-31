@@ -41,6 +41,7 @@ import com.sk89q.jchronic.utils.Span;
 import com.sk89q.jchronic.utils.Time;
 import com.sk89q.worldedit.blocks.BaseBlock;
 import com.sk89q.worldedit.command.tool.BlockTool;
+import com.sk89q.worldedit.command.tool.BrushHolder;
 import com.sk89q.worldedit.command.tool.BrushTool;
 import com.sk89q.worldedit.command.tool.InvalidToolBindException;
 import com.sk89q.worldedit.command.tool.SinglePickaxe;
@@ -960,16 +961,24 @@ public class LocalSession {
 
     @Nullable
     public Tool getTool(Player player) {
-        if (tools.isEmpty()) {
+        if (!Settings.IMP.EXPERIMENTAL.PERSISTENT_BRUSHES && tools.isEmpty()) {
             return null;
         }
         try {
             BaseBlock block = player.getBlockInHand();
-            return getTool(block.getId(), block.getData());
+            return getTool(block, player);
         } catch (WorldEditException e) {
             e.printStackTrace();
             return null;
         }
+    }
+
+    public Tool getTool(BaseBlock block, Player player) {
+        if (block instanceof BrushHolder) {
+            BrushTool tool = ((BrushHolder) block).getTool();
+            if (tool != null) return tool;
+        }
+        return getTool(block.getId(), block.getData());
     }
 
     /**
@@ -981,16 +990,15 @@ public class LocalSession {
      * @return the tool, or {@code null}
      * @throws InvalidToolBindException if the item can't be bound to that item
      */
+    @Deprecated
     public BrushTool getBrushTool(int item) throws InvalidToolBindException {
-        return getBrushTool(item, 0, null, true);
+        return getBrushTool(FaweCache.getBlock(item, 0), null, true);
     }
 
-    @Deprecated
     public BrushTool getBrushTool(Player player) throws InvalidToolBindException {
         return getBrushTool(player, true);
     }
 
-    @Deprecated
     public BrushTool getBrushTool(Player player, boolean create) throws InvalidToolBindException {
         BaseBlock block;
         try {
@@ -999,18 +1007,16 @@ public class LocalSession {
             e.printStackTrace();
             block = EditSession.nullBlock;
         }
-        return getBrushTool(block.getId(), block.getData(), player, create);
+        return getBrushTool(block, player, create);
     }
 
 
-    @Deprecated
-    public BrushTool getBrushTool(int id, int data, Player player, boolean create) throws InvalidToolBindException {
-        Tool tool = getTool(id, data);
-
+    public BrushTool getBrushTool(BaseBlock item, Player player, boolean create) throws InvalidToolBindException {
+        Tool tool = getTool(item, player);
         if ((tool == null || !(tool instanceof BrushTool))) {
             if (create) {
                 tool = new BrushTool();
-                setTool(id, data, tool, player);
+                setTool(item, tool, player);
             } else {
                 return null;
             }
@@ -1028,7 +1034,7 @@ public class LocalSession {
      */
     @Deprecated
     public void setTool(int item, @Nullable Tool tool) throws InvalidToolBindException {
-        setTool(item, 0, tool, null);
+        setTool(FaweCache.getBlock(item, 0), tool, null);
     }
 
     public void setTool(@Nullable Tool tool, Player player) throws InvalidToolBindException {
@@ -1039,10 +1045,12 @@ public class LocalSession {
             item = EditSession.nullBlock;
             e.printStackTrace();
         }
-        setTool(item.getId(), item.getData(), tool, player);
+        setTool(item, tool, player);
     }
 
-    public void setTool(int id, int data, @Nullable Tool tool, Player player) throws InvalidToolBindException {
+    public void setTool(BaseBlock item, @Nullable Tool tool, Player player) throws InvalidToolBindException {
+        int id = item.getId();
+        int data = item.getData();
         if (id > 0 && id < 255) {
             throw new InvalidToolBindException(id, "Blocks can't be used");
         } else if (id == config.wandItem) {
@@ -1050,12 +1058,17 @@ public class LocalSession {
         } else if (id == config.navigationWand) {
             throw new InvalidToolBindException(id, "Already used for the navigation wand");
         }
-        Tool previous = this.tools.put(FaweCache.getCombined(id, data), tool);
-        if (player != null) {
-            if (previous instanceof BrushTool) {
-                BrushTool brushTool = (BrushTool) previous;
-                brushTool.clear(player);
-            }
+        Tool previous;
+        if (player != null && (tool instanceof BrushTool || tool == null) && item instanceof BrushHolder) {
+            BrushHolder holder = (BrushHolder) item;
+            previous = holder.setTool((BrushTool) tool);
+            if (tool != null) ((BrushTool) tool).setHolder(holder);
+        } else {
+            previous = this.tools.put(FaweCache.getCombined(id, data), tool);
+        }
+        if (previous != null && player != null && previous instanceof BrushTool) {
+            BrushTool brushTool = (BrushTool) previous;
+            brushTool.clear(player);
         }
     }
 

@@ -306,6 +306,10 @@ public class Settings extends Config {
                 " - Please provide feedback",
         })
         public boolean DYNAMIC_CHUNK_RENDERING = false;
+        @Comment({
+                "Allows brushes to be persistent",
+        })
+        public boolean PERSISTENT_BRUSHES = false;
     }
 
     public static class WEB {

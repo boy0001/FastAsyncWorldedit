@@ -81,6 +81,8 @@ public class BrushTool implements DoubleActionTraceTool, ScrollTool, MovableTool
     private transient VisualExtent visualExtent;
     private transient Lock lock = new ReentrantLock();
 
+    private transient BrushHolder holder;
+
     public BrushTool(String permission) {
         getContext().addPermission(permission);
     }
@@ -117,6 +119,14 @@ public class BrushTool implements DoubleActionTraceTool, ScrollTool, MovableTool
         return tool;
     }
 
+    public void setHolder(BrushHolder holder) {
+        this.holder = holder;
+    }
+
+    public boolean isSet() {
+        return primary.getBrush() != null || secondary.getBrush() != null;
+    }
+
     @Override
     public String toString() {
         HashMap<String, Object> map = new HashMap<>();
@@ -137,6 +147,12 @@ public class BrushTool implements DoubleActionTraceTool, ScrollTool, MovableTool
             map.put("offset", targetOffset);
         }
         return new Gson().toJson(map);
+    }
+
+    public void update() {
+        if (holder != null) {
+            holder.setTool(this);
+        }
     }
 
     private void writeObject(java.io.ObjectOutputStream stream) throws IOException {
@@ -200,16 +216,19 @@ public class BrushTool implements DoubleActionTraceTool, ScrollTool, MovableTool
         checkNotNull(primary);
         this.primary = primary;
         this.context = primary;
+        update();
     }
 
     public void setSecondary(BrushSettings secondary) {
         checkNotNull(secondary);
         this.secondary = secondary;
         this.context = secondary;
+        update();
     }
 
     public void setTransform(ResettableExtent transform) {
         getContext().setTransform(transform);
+        update();
     }
 
     /**
@@ -246,6 +265,7 @@ public class BrushTool implements DoubleActionTraceTool, ScrollTool, MovableTool
      */
     public void setMask(Mask filter) {
         this.getContext().setMask(filter);
+        update();
     }
 
     /**
@@ -255,6 +275,7 @@ public class BrushTool implements DoubleActionTraceTool, ScrollTool, MovableTool
      */
     public void setSourceMask(Mask filter) {
         this.getContext().setSourceMask(filter);
+        update();
     }
 
     /**
@@ -266,6 +287,7 @@ public class BrushTool implements DoubleActionTraceTool, ScrollTool, MovableTool
     @Deprecated
     public void setBrush(Brush brush, String permission) {
         setBrush(brush, permission, null);
+        update();
     }
 
     @Deprecated
@@ -472,18 +494,22 @@ public class BrushTool implements DoubleActionTraceTool, ScrollTool, MovableTool
 
     public void setScrollAction(ScrollAction scrollAction) {
         this.getContext().setScrollAction(scrollAction);
+        update();
     }
 
     public void setTargetOffset(int targetOffset) {
         this.targetOffset = targetOffset;
+        update();
     }
 
     public void setTargetMode(TargetMode targetMode) {
         this.targetMode = targetMode != null ? targetMode : TargetMode.TARGET_BLOCK_RANGE;
+        update();
     }
 
     public void setTargetMask(Mask mask) {
         this.targetMask = mask;
+        update();
     }
 
     public void setVisualMode(Player player, VisualMode visualMode) {
@@ -501,6 +527,7 @@ public class BrushTool implements DoubleActionTraceTool, ScrollTool, MovableTool
                 }
             }
         }
+        update();
     }
 
     public TargetMode getTargetMode() {
