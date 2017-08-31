@@ -72,6 +72,7 @@ public class BrushSettings {
         String args = constructor.substring(constructor.indexOf(' ') + 1);
         String[] parentArgs = new String[]{"brush", split[0]};
         BrushSettings bs = (BrushSettings) sphereCommand.call(args, locals, parentArgs);
+        bs.constructor.put(SettingType.BRUSH, constructor);
         if (settings.containsKey(SettingType.PERMISSIONS.name())) {
             bs.permissions.addAll((Collection<? extends String>) settings.get(SettingType.PERMISSIONS.name()));
         }

@@ -297,6 +297,7 @@ public class BrushTool implements DoubleActionTraceTool, ScrollTool, MovableTool
         current.clearPerms();
         current.setBrush(brush);
         current.addPermission(permission);
+        update();
     }
 
     /**

@@ -51,6 +51,7 @@ public class BrushBoundBaseBlock extends BaseBlock implements BrushHolder {
                 try {
                     this.tool = BrushTool.fromString(player, session, json);
                     this.tool.setHolder(this);
+                    brushCache.put(getKey(item), tool);
                 } catch (Throwable ignore) {
                     ignore.printStackTrace();
                 }
