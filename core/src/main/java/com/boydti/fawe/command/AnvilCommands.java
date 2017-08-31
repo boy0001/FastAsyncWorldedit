@@ -221,14 +221,14 @@ public class AnvilCommands {
     }
 
     @Command(
-            aliases = {"deleteallunclaimed", "delunclaimed" },
+            aliases = {"deleteallunclaimed", "delallunclaimed" },
             usage = "<age-ticks> [file-age=60000]",
             desc = "(Supports: WG, P2, GP) Delete all chunks which haven't been occupied AND claimed",
             help = "(Supports: WG, P2, GP) Delete all chunks which aren't claimed AND haven't been occupied for `age-ticks` (20t = 1s) and \n" +
                     "Have not been accessed since `file-duration` (ms) after creation and\n" +
                     "Have not been used in the past `chunk-inactivity` (ms)" +
                     "The auto-save interval is the recommended value for `file-duration` and `chunk-inactivity`",
-            min = 2,
+            min = 1,
             max = 3
     )
     @CommandPermissions("worldedit.anvil.deleteallunclaimed")
@@ -238,6 +238,27 @@ public class AnvilCommands {
         DeleteUnclaimedFilter filter = new DeleteUnclaimedFilter(player.getWorld(), fileDurationMillis, inhabitedTicks, chunkInactivityMillis);
         if (debug) filter.enableDebug();
         DeleteUnclaimedFilter result = runWithWorld(player, folder, filter, true);
+        if (result != null) player.print(BBC.getPrefix() + BBC.VISITOR_BLOCK.format(result.getTotal()));
+    }
+
+    @Command(
+            aliases = {"deleteunclaimed"},
+            usage = "<age-ticks> [file-age=60000]",
+            desc = "(Supports: WG, P2, GP) Delete all chunks which haven't been occupied AND claimed",
+            help = "(Supports: WG, P2, GP) Delete all chunks which aren't claimed AND haven't been occupied for `age-ticks` (20t = 1s) and \n" +
+                    "Have not been accessed since `file-duration` (ms) after creation and\n" +
+                    "Have not been used in the past `chunk-inactivity` (ms)" +
+                    "The auto-save interval is the recommended value for `file-duration` and `chunk-inactivity`",
+            min = 1,
+            max = 3
+    )
+    @CommandPermissions("worldedit.anvil.deleteunclaimed")
+    public void deleteUnclaimed(Player player, EditSession editSession, @Selection Region selection, int inhabitedTicks, @Optional("60000") int fileDurationMillis, @Switch('d') boolean debug) throws WorldEditException {
+        String folder = Fawe.imp().getWorldName(player.getWorld());
+        long chunkInactivityMillis = fileDurationMillis; // Use same value for now
+        DeleteUnclaimedFilter filter = new DeleteUnclaimedFilter(player.getWorld(), fileDurationMillis, inhabitedTicks, chunkInactivityMillis);
+        if (debug) filter.enableDebug();
+        DeleteUnclaimedFilter result = runWithSelection(player, editSession, selection, filter);
         if (result != null) player.print(BBC.getPrefix() + BBC.VISITOR_BLOCK.format(result.getTotal()));
     }
 
