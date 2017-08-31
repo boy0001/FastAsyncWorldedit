@@ -40,7 +40,7 @@ public class ItemUtil {
         try {
             Object nmsItem = fieldHandle.get(item);
             if (nmsItem == null) nmsItem = methodAsNMSCopy.invoke(null, item);
-            return item;
+            return nmsItem;
         } catch (Throwable e) {
             e.printStackTrace();
         }
