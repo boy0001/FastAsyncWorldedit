@@ -232,10 +232,11 @@ public class AnvilCommands {
             max = 3
     )
     @CommandPermissions("worldedit.anvil.deleteallunclaimed")
-    public void deleteAllUnclaimed(Player player, int inhabitedTicks, @Optional("60000") int fileDurationMillis) throws WorldEditException {
+    public void deleteAllUnclaimed(Player player, int inhabitedTicks, @Optional("60000") int fileDurationMillis, @Switch('d') boolean debug) throws WorldEditException {
         String folder = Fawe.imp().getWorldName(player.getWorld());
         long chunkInactivityMillis = fileDurationMillis; // Use same value for now
         DeleteUnclaimedFilter filter = new DeleteUnclaimedFilter(player.getWorld(), fileDurationMillis, inhabitedTicks, chunkInactivityMillis);
+        if (debug) filter.enableDebug();
         DeleteUnclaimedFilter result = runWithWorld(player, folder, filter, true);
         if (result != null) player.print(BBC.getPrefix() + BBC.VISITOR_BLOCK.format(result.getTotal()));
     }

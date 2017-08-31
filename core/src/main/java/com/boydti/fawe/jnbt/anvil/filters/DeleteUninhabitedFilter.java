@@ -1,5 +1,6 @@
 package com.boydti.fawe.jnbt.anvil.filters;
 
+import com.boydti.fawe.Fawe;
 import com.boydti.fawe.jnbt.NBTStreamer;
 import com.boydti.fawe.jnbt.anvil.MCAChunk;
 import com.boydti.fawe.jnbt.anvil.MCAFile;
@@ -12,6 +13,7 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.attribute.BasicFileAttributes;
+import java.util.Date;
 import java.util.concurrent.ForkJoinPool;
 import java.util.concurrent.TimeUnit;
 
@@ -23,11 +25,16 @@ public class DeleteUninhabitedFilter extends MCAFilterCounter {
     private final long inhabitedTicks;
     private final long fileDurationMillis;
     private final long cutoffChunkAgeEpoch;
+    private boolean debug = false;
 
     public DeleteUninhabitedFilter(long fileDurationMillis, long inhabitedTicks, long chunkInactivityMillis) {
         this.fileDurationMillis = fileDurationMillis;
         this.inhabitedTicks = inhabitedTicks;
         this.cutoffChunkAgeEpoch = System.currentTimeMillis() - chunkInactivityMillis;
+    }
+
+    public void enableDebug() {
+        this.debug = true;
     }
 
     public long getInhabitedTicks() {
@@ -55,6 +62,9 @@ public class DeleteUninhabitedFilter extends MCAFilterCounter {
         }
         try {
             if (shouldDelete(file, attr, mcaX, mcaZ)) {
+                if (debug) {
+                    Fawe.debug("Deleting " + file + " as it was modified at " + new Date(lastModified) + " and you provided a threshold of " + new Date(cutoffChunkAgeEpoch));
+                }
                 file.delete();
                 get().add(512 * 512 * 256);
                 return false;
@@ -134,6 +144,11 @@ public class DeleteUninhabitedFilter extends MCAFilterCounter {
             public void run(Integer index, Long value) {
                 if (value <= inhabitedTicks) {
                     MCAChunk chunk = new MCAChunk(null, x, z);
+                    if (debug) {
+                        int cx = (mca.getX() << 5) + (x & 31);
+                        int cz = (mca.getZ() << 5) + (z & 31);
+                        Fawe.debug("Deleting chunk " + cx + "," + cz + " as it was only inhabited for " + value + " and passed all other checks");
+                    }
                     chunk.setDeleted(true);
                     synchronized (mca) {
                         mca.setChunk(chunk);
