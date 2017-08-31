@@ -12,6 +12,7 @@ import com.boydti.fawe.jnbt.anvil.MCAQueue;
 import com.boydti.fawe.jnbt.anvil.filters.CountFilter;
 import com.boydti.fawe.jnbt.anvil.filters.CountIdFilter;
 import com.boydti.fawe.jnbt.anvil.filters.DeleteOldFilter;
+import com.boydti.fawe.jnbt.anvil.filters.DeleteUnclaimedFilter;
 import com.boydti.fawe.jnbt.anvil.filters.DeleteUninhabitedFilter;
 import com.boydti.fawe.jnbt.anvil.filters.MappedReplacePatternFilter;
 import com.boydti.fawe.jnbt.anvil.filters.PlotTrimFilter;
@@ -216,6 +217,26 @@ public class AnvilCommands {
         long chunkInactivityMillis = fileDurationMillis; // Use same value for now
         DeleteUninhabitedFilter filter = new DeleteUninhabitedFilter(fileDurationMillis, inhabitedTicks, chunkInactivityMillis);
         DeleteUninhabitedFilter result = runWithWorld(player, folder, filter, true);
+        if (result != null) player.print(BBC.getPrefix() + BBC.VISITOR_BLOCK.format(result.getTotal()));
+    }
+
+    @Command(
+            aliases = {"deleteallunclaimed", "delunclaimed" },
+            usage = "<age-ticks> [file-age=60000]",
+            desc = "(Supports: WG, P2, GP) Delete all chunks which haven't been occupied AND claimed",
+            help = "(Supports: WG, P2, GP) Delete all chunks which aren't claimed AND haven't been occupied for `age-ticks` (20t = 1s) and \n" +
+                    "Have not been accessed since `file-duration` (ms) after creation and\n" +
+                    "Have not been used in the past `chunk-inactivity` (ms)" +
+                    "The auto-save interval is the recommended value for `file-duration` and `chunk-inactivity`",
+            min = 2,
+            max = 3
+    )
+    @CommandPermissions("worldedit.anvil.deleteallunclaimed")
+    public void deleteAllUnclaimed(Player player, int inhabitedTicks, @Optional("60000") int fileDurationMillis) throws WorldEditException {
+        String folder = Fawe.imp().getWorldName(player.getWorld());
+        long chunkInactivityMillis = fileDurationMillis; // Use same value for now
+        DeleteUnclaimedFilter filter = new DeleteUnclaimedFilter(player.getWorld(), fileDurationMillis, inhabitedTicks, chunkInactivityMillis);
+        DeleteUnclaimedFilter result = runWithWorld(player, folder, filter, true);
         if (result != null) player.print(BBC.getPrefix() + BBC.VISITOR_BLOCK.format(result.getTotal()));
     }
 

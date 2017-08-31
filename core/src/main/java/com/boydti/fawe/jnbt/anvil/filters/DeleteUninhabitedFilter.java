@@ -94,7 +94,7 @@ public class DeleteUninhabitedFilter extends MCAFilterCounter {
     }
 
     public boolean shouldDeleteChunk(MCAFile mca, int cx, int cz) {
-        return false;
+        return true;
     }
 
     public void filter(MCAFile mca, ForkJoinPool pool) throws IOException {
@@ -103,32 +103,27 @@ public class DeleteUninhabitedFilter extends MCAFilterCounter {
             public void run(Integer x, Integer z, Integer offset, Integer size) {
                 int bx = mca.getX() << 5;
                 int bz = mca.getZ() << 5;
-                if (shouldDeleteChunk(mca, bx, bz)) {
-                    MCAChunk chunk = new MCAChunk(null, x, z);
-                    chunk.setDeleted(true);
-                    synchronized (mca) {
-                        mca.setChunk(chunk);
-                    }
-                    get().add(16 * 16 * 256);
-                    return;
-                }
-                Runnable task = new Runnable() {
-                    @Override
-                    public void run() {
-                        try {
-                            mca.streamChunk(offset, new RunnableVal<NBTStreamer>() {
-                                @Override
-                                public void run(NBTStreamer value) {
-                                    addReaders(mca, x, z, value);
-                                }
-                            });
-                        } catch (FaweException ignore) {
-                        } catch (IOException e) {
-                            e.printStackTrace();
+                int cx = bx + x;
+                int cz = bz + z;
+                if (shouldDeleteChunk(mca, cx, cz)) {
+                    Runnable task = new Runnable() {
+                        @Override
+                        public void run() {
+                            try {
+                                mca.streamChunk(offset, new RunnableVal<NBTStreamer>() {
+                                    @Override
+                                    public void run(NBTStreamer value) {
+                                        addReaders(mca, x, z, value);
+                                    }
+                                });
+                            } catch (FaweException ignore) {
+                            } catch (IOException e) {
+                                e.printStackTrace();
+                            }
                         }
-                    }
-                };
-                pool.submit(task);
+                    };
+                    pool.submit(task);
+                }
             }
         });
     }

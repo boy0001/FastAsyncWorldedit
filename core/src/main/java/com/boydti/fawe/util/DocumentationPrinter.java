@@ -141,7 +141,7 @@ public final class DocumentationPrinter {
     }
 
     private static void writePermissionsWikiTable(PrintStream stream, StringBuilder content, String prefix, Class<?> cls, String name) {
-        stream.print(" - [`" + name + "`](#" + name.replaceAll(" ", "-").toLowerCase() + "-edittop) ");
+        stream.print(" - [`" + name + "`](#" + name.replaceAll(" ", "-").replaceAll("/", "").toLowerCase() + "-edittop) ");
         Command cmd = cls.getAnnotation(Command.class);
         if (cmd != null) {
             stream.print(" (" + cmd.desc() + ")");

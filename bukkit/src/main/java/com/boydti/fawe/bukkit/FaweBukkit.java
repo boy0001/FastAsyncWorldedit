@@ -240,10 +240,7 @@ public class FaweBukkit implements IFawe, Listener {
                                 }
                                 if (url != null) ReflectionUtils.setFailsafeFieldValue(url, null, null);
                             } catch (NoSuchFieldError | IllegalAccessException ignore) {}
-                            catch (Throwable e) {
-                                Fawe.debug("Error linking metrics: " + instance);
-                                e.printStackTrace();
-                            }
+                            catch (Throwable e) {}
                         }
                     } catch (NoSuchFieldException ignored) { }
                 });

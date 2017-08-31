@@ -4,6 +4,7 @@ import com.boydti.fawe.Fawe;
 import com.boydti.fawe.object.FawePlayer;
 import com.boydti.fawe.regions.FaweMask;
 import com.boydti.fawe.regions.FaweMaskManager;
+import com.boydti.fawe.regions.general.RegionFilter;
 import com.intellectualcrafters.plot.PS;
 import com.intellectualcrafters.plot.commands.MainCommand;
 import com.intellectualcrafters.plot.config.Settings;
@@ -137,5 +138,10 @@ public class PlotSquaredFeature extends FaweMaskManager {
                 return faweRegions;
             }
         };
+    }
+
+    @Override
+    public RegionFilter getFilter(String world) {
+        return new PlotRegionFilter(PS.get().getPlotArea(world, null));
     }
 }

@@ -1,9 +1,12 @@
 package com.boydti.fawe.bukkit.regions;
 
 import com.boydti.fawe.bukkit.FaweBukkit;
+import com.boydti.fawe.bukkit.filter.GriefPreventionFilter;
 import com.boydti.fawe.object.FawePlayer;
+import com.boydti.fawe.regions.general.RegionFilter;
 import me.ryanhamshire.GriefPrevention.Claim;
 import me.ryanhamshire.GriefPrevention.GriefPrevention;
+import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
@@ -49,6 +52,10 @@ public class GriefPreventionFeature extends BukkitMaskManager implements Listene
             }
         }
         return null;
+    }
 
+    @Override
+    public RegionFilter getFilter(String world) {
+        return new GriefPreventionFilter(Bukkit.getWorld(world));
     }
 }
