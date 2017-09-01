@@ -1,5 +1,6 @@
 package com.boydti.fawe.bukkit.listener;
 
+import com.boydti.fawe.config.Settings;
 import com.boydti.fawe.object.FawePlayer;
 import com.boydti.fawe.object.brush.MovableTool;
 import com.boydti.fawe.object.brush.ResettableTool;
@@ -46,12 +47,16 @@ public class BrushListener implements Listener {
             }
             ScrollTool scrollable = (ScrollTool) tool;
             if (scrollable.increment(player, ri)) {
-                final PlayerInventory inv = bukkitPlayer.getInventory();
-                final ItemStack item = inv.getItem(slot);
-                final ItemStack newItem = inv.getItem(oldSlot);
-                inv.setItem(slot, newItem);
-                inv.setItem(oldSlot, item);
-                bukkitPlayer.updateInventory();
+                if (Settings.IMP.EXPERIMENTAL.PERSISTENT_BRUSHES) {
+                    bukkitPlayer.getInventory().setHeldItemSlot(oldSlot);
+                } else {
+                    final PlayerInventory inv = bukkitPlayer.getInventory();
+                    final ItemStack item = inv.getItem(slot);
+                    final ItemStack newItem = inv.getItem(oldSlot);
+                    inv.setItem(slot, newItem);
+                    inv.setItem(oldSlot, item);
+                    bukkitPlayer.updateInventory();
+                }
             }
         }
     }

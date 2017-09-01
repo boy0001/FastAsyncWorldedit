@@ -580,6 +580,9 @@ public class BrushTool implements DoubleActionTraceTool, ScrollTool, MovableTool
         if (mode == VisualMode.NONE) {
             return;
         }
+        BrushSettings current = getContext();
+        Brush brush = current.getBrush();
+        if (brush == null) return;
         FawePlayer<Object> fp = FawePlayer.wrap(player);
         EditSession editSession = new EditSessionBuilder(player.getWorld())
                 .player(fp)
@@ -599,9 +602,8 @@ public class BrushTool implements DoubleActionTraceTool, ScrollTool, MovableTool
                     break;
                 }
                 case OUTLINE: {
-                    BrushSettings current = getContext();
                     new PatternTraverser(current).reset(editSession);
-                    current.getBrush().build(editSession, position, current.getMaterial(), current.getSize());
+                    brush.build(editSession, position, current.getMaterial(), current.getSize());
                     break;
                 }
             }
