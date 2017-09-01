@@ -73,7 +73,9 @@ public class ScriptingCommands {
             new RhinoCraftScriptEngine();
         } catch (NoClassDefFoundError e) {
             player.printError("Failed to find an installed script engine.");
-            player.printError("Please ");
+            player.printError("Download: https://github.com/downloads/mozilla/rhino/rhino1_7R4.zip");
+            player.printError("Extract: `js.jar` to `plugins` or `mods` directory`");
+            player.printError("More info: https://github.com/boy0001/CraftScripts/");
             return;
         }
         this.worldEdit.runScript(LocationMaskedPlayerWrapper.unwrap(player), f, scriptArgs);
