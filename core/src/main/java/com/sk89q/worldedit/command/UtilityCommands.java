@@ -197,9 +197,10 @@ public class UtilityCommands extends MethodCommands {
     )
     @CommandPermissions("worldedit.fill.recursive")
     @Logging(PLACEMENT)
-    public void fillr(Player player, LocalSession session, EditSession editSession, Pattern pattern, double radius, @Optional("1") double depth) throws WorldEditException {
+    public void fillr(Player player, LocalSession session, EditSession editSession, Pattern pattern, double radius, @Optional("-1") double depth) throws WorldEditException {
         worldEdit.checkMaxRadius(radius);
         Vector pos = session.getPlacementPosition(player);
+        if (depth == -1) depth = Integer.MAX_VALUE;
         int affected = editSession.fillXZ(pos, pattern, radius, (int) depth, true);
         player.print(BBC.getPrefix() + affected + " block(s) have been created.");
     }
