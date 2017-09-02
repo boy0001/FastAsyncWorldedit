@@ -213,8 +213,8 @@ public class BundledBlockData {
             }
             return true;
         }
-        FaweState dir = entry.states.get("rotation");
-        if (dir != null && dir.values != null) {
+        FaweState rot = entry.states.get("rotation");
+        if (rot != null && rot.values != null) {
             Vector[] range = new Vector[]{new Vector(0, 0, -1),
                     new Vector(0.5, 0, -1),
                     new Vector(1, 0, -1),
@@ -231,7 +231,7 @@ public class BundledBlockData {
                     new Vector(-1, 0, -0.5),
                     new Vector(-1, 0, -1),
                     new Vector(-0.5, 0, -1)};
-            for (Map.Entry<String, FaweStateValue> valuesEntry : dir.values.entrySet()) {
+            for (Map.Entry<String, FaweStateValue> valuesEntry : rot.values.entrySet()) {
                 int index = Integer.parseInt(valuesEntry.getKey());
                 valuesEntry.getValue().setDirection(range[index]);
             }
@@ -257,7 +257,7 @@ public class BundledBlockData {
             return true;
         }
         if (entry.legacyId == 69) {
-            dir = entry.states.get("facing");
+            FaweState facing = entry.states.get("facing");
             Vector[] dirs = new Vector[]{
                     new Vector(0, -1, 0),
                     new Vector(1, 0, 0),
@@ -267,10 +267,10 @@ public class BundledBlockData {
                     new Vector(0, 1, 0),
                     new Vector(0, 1, 0),
                     new Vector(0, -1, 0)};
-            int len = dir.values.size();
+            int len = facing.values.size();
             int index = 0;
-            int amount = (dir.values.size() + 7) / 8;
-            for (Map.Entry<String, FaweStateValue> valuesEntry : dir.values.entrySet()) {
+            int amount = (facing.values.size() + 7) / 8;
+            for (Map.Entry<String, FaweStateValue> valuesEntry : facing.values.entrySet()) {
                 FaweStateValue state = valuesEntry.getValue();
                 if (state != null) {
                     state.setDirection(dirs[index / amount]);
@@ -298,6 +298,40 @@ public class BundledBlockData {
                     variant.values.put("-lines_z", new FaweStateValue(z).setDirection(new Vector(0, 0, -1)));
                 }
                 return true;
+            }
+        }
+        FaweState shape = entry.states.get("shape");
+        if (shape != null && shape.values != null) {
+            for (Map.Entry<String, FaweStateValue> valueEntry : new ArrayList<>(shape.values.entrySet())) {
+                String variantName = valueEntry.getKey();
+                FaweStateValue state = valueEntry.getValue();
+                if (state.getDirection() == null) {
+                    Vector dir = new Vector(0, 0, 0);
+                    for (String keyWord : variantName.split("_")) {
+                        switch (keyWord) {
+                            case "ascending":
+                                dir.mutY(1);
+                                break;
+                            case "north":
+                                dir.mutZ(-1);
+                                break;
+                            case "east":
+                                dir.mutX(1);
+                                break;
+                            case "south":
+                                dir.mutZ(1);
+                                break;
+                            case "west":
+                                dir.mutX(-1);
+                                break;
+                        }
+                    }
+                    if (dir.length() != 0) {
+                        Vector inverse = Vector.ZERO.subtract(dir);
+                        state.setDirection(dir);
+                        shape.values.put("-" + variantName, new FaweStateValue(state).setDirection(inverse));
+                    }
+                }
             }
         }
         return true;
