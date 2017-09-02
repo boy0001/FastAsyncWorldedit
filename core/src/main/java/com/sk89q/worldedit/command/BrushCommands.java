@@ -289,18 +289,18 @@ public class BrushCommands extends MethodCommands {
     }
 
     @Command(
-            aliases = {"blob", "rock"},
-            usage = "<pattern> [radius=10] [frequency=30] [amplitude=50]",
+            aliases = {"rock", "blob"},
+            usage = "<pattern> [radius=10] [roundness=100] [frequency=30] [amplitude=50]",
             flags = "h",
             desc = "Creates a distorted sphere",
             min = 1,
-            max = 4
+            max = 5
     )
-    @CommandPermissions("worldedit.brush.blob")
-    public BrushSettings blobBrush(Player player, EditSession editSession, LocalSession session, Pattern fill, @Optional("10") Vector radius, @Optional("30") double frequency, @Optional("50") double amplitude, CommandContext context) throws WorldEditException {
+    @CommandPermissions("worldedit.brush.rock")
+    public BrushSettings blobBrush(Player player, EditSession editSession, LocalSession session, Pattern fill, @Optional("10") Vector radius, @Optional("100") double sphericity, @Optional("30") double frequency, @Optional("50") double amplitude, CommandContext context) throws WorldEditException {
         double max = MathMan.max(radius.getBlockX(), radius.getBlockY(), radius.getBlockZ());
         worldEdit.checkMaxBrushRadius(max);
-        Brush brush = new BlobBrush(radius.divide(max), frequency / 100, amplitude / 100);
+        Brush brush = new BlobBrush(radius.divide(max), frequency / 100, amplitude / 100, sphericity / 100);
         return get(context)
                 .setBrush(brush)
                 .setSize(max)
