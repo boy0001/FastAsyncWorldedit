@@ -95,6 +95,10 @@ public class BrushTool implements DoubleActionTraceTool, ScrollTool, MovableTool
         Type type = new TypeToken<Map<String, Object>>() {
         }.getType();
         Map<String, Object> root = gson.fromJson(json, type);
+        if (root == null) {
+            Fawe.debug("Failed to load " + json);
+            return new BrushTool();
+        }
         Map<String, Object> primary = (Map<String, Object>) root.get("primary");
         Map<String, Object> secondary = (Map<String, Object>) root.getOrDefault("secondary", primary);
 

@@ -38,7 +38,7 @@ public class BrushSettings {
         SCROLL_ACTION,
     }
 
-    private Map<SettingType, Object> constructor = new ConcurrentHashMap<>();
+    private final Map<SettingType, Object> constructor = new ConcurrentHashMap<>();
 
     private Brush brush = null;
     private Mask mask = null;

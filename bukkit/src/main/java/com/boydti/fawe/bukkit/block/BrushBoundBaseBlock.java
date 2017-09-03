@@ -5,7 +5,6 @@ import com.boydti.fawe.FaweCache;
 import com.boydti.fawe.bukkit.FaweBukkit;
 import com.boydti.fawe.bukkit.util.ItemUtil;
 import com.boydti.fawe.object.brush.BrushSettings;
-import com.boydti.fawe.object.collection.SoftHashMap;
 import com.boydti.fawe.util.ReflectionUtils;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
@@ -19,10 +18,11 @@ import com.sk89q.worldedit.command.tool.BrushTool;
 import com.sk89q.worldedit.entity.Player;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.WeakHashMap;
 import org.bukkit.inventory.ItemStack;
 
 public class BrushBoundBaseBlock extends BaseBlock implements BrushHolder {
-    private static SoftHashMap<Object, BrushTool> brushCache = new SoftHashMap<>();
+    private static WeakHashMap<Object, BrushTool> brushCache = new WeakHashMap<>();
     private static Gson gson = new GsonBuilder().setPrettyPrinting().create();
 
     private final LocalSession session;
