@@ -142,9 +142,9 @@ public class HeightMapMCAGenerator extends MCAWriter implements Extent {
                     for (int x = 0; x < getWidth(); x++, index++) {
                         int height = img.getRGB(x, z) & 0xFF;
                         if (height == 255 || height > 0 && !white && PseudoRandom.random.nextInt(256) <= height) {
-                            int newHeight = table.average(x, z, index);
-                            int blockHeight = (newHeight - 1) >> 3;
-                            int layerHeight = (newHeight - 1) & 0x7;
+                            int newHeight = table.average(x, z, index) - 1;
+                            int blockHeight = (newHeight) >> 3;
+                            int layerHeight = (newHeight) & 0x7;
                             heights[index] = (byte) blockHeight;
                             int id = floor[index] >> 4;
                             if (id == 78 || id == 80) {
@@ -161,9 +161,9 @@ public class HeightMapMCAGenerator extends MCAWriter implements Extent {
                         mutable.mutX(x);
                         mutable.mutY(y);
                         if (mask.test(mutable)) {
-                            int height = table.average(x, z, index);
-                            int blockHeight = (height - 1) >> 3;
-                            int layerHeight = (height - 1) & 0x7;
+                            int newHeight = table.average(x, z, index) - 1;
+                            int blockHeight = (newHeight) >> 3;
+                            int layerHeight = (newHeight) & 0x7;
                             heights[index] = (byte) blockHeight;
                             int id = floor[index] >> 4;
                             if (id == 78 || id == 80) {
