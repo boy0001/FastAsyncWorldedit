@@ -149,7 +149,7 @@ public class BrushSettings {
     }
 
     public Map<SettingType, Object> getSettings() {
-        return Collections.unmodifiableMap(constructor);
+        return (constructor);
     }
 
     public BrushSettings setMask(Mask mask) {

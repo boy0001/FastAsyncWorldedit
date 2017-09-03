@@ -148,76 +148,76 @@ public class FaweCache {
     }
 
     static {
+        for (int i = 0; i < Character.MAX_VALUE; i++) {
+            int id = i >> 4;
+            int data = i & 0xf;
+            if (FaweCache.hasNBT(id)) {
+                CACHE_BLOCK[i] = new ImmutableNBTBlock(id, data);
+            } else if (FaweCache.hasData(id)) {
+                CACHE_BLOCK[i] = new ImmutableBlock(id, data);
+            } else {
+                CACHE_BLOCK[i] = new ImmutableDatalessBlock(id);
+            }
+            CACHE_ITEM[i] = new BaseItem(id, (short) data) {
+
+                @Override
+                public void setData(short data) {
+                    throw new IllegalStateException("Cannot set data");
+                }
+
+                @Override
+                public void setDamage(short data) {
+                    throw new IllegalStateException("Cannot set data");
+                }
+
+                @Override
+                public void setType(int id) {
+                    throw new IllegalStateException("Cannot set id");
+                }
+            };
+        }
+        for (int i = 0; i < 256; i++) {
+            CACHE_BIOME[i] = new BaseBiome(i) {
+                @Override
+                public void setId(int id) {
+                    throw new IllegalStateException("Cannot set id");
+                }
+            };
+        }
+        for (int x = 0; x < 16; x++) {
+            for (int z = 0; z < 16; z++) {
+                for (int y = 0; y < 256; y++) {
+                    final short i = (short) (y >> 4);
+                    final short j = (short) (((y & 0xF) << 8) | (z << 4) | x);
+                    CACHE_I[y][z][x] = i;
+                    CACHE_J[y][z][x] = j;
+                    CACHE_X[i][j] = (byte) x;
+                    CACHE_Y[i][j] = (short) y;
+                    CACHE_Z[i][j] = (byte) z;
+                }
+            }
+        }
         try {
+            BundledBlockData bundled = BundledBlockData.getInstance();
+            bundled.loadFromResource();
             for (int i = 0; i < Character.MAX_VALUE; i++) {
                 int id = i >> 4;
                 int data = i & 0xf;
-                if (FaweCache.hasNBT(id)) {
-                    CACHE_BLOCK[i] = new ImmutableNBTBlock(id, data);
-                } else if (FaweCache.hasData(id)) {
-                    CACHE_BLOCK[i] = new ImmutableBlock(id, data);
-                } else {
-                    CACHE_BLOCK[i] = new ImmutableDatalessBlock(id);
-                }
-                CACHE_ITEM[i] = new BaseItem(id, (short) data) {
-
-                    @Override
-                    public void setData(short data) {
-                        throw new IllegalStateException("Cannot set data");
-                    }
-
-                    @Override
-                    public void setDamage(short data) {
-                        throw new IllegalStateException("Cannot set data");
-                    }
-
-                    @Override
-                    public void setType(int id) {
-                        throw new IllegalStateException("Cannot set id");
-                    }
-                };
-            }
-            for (int i = 0; i < 256; i++) {
-                CACHE_BIOME[i] = new BaseBiome(i) {
-                    @Override
-                    public void setId(int id) {
-                        throw new IllegalStateException("Cannot set id");
-                    }
-                };
-            }
-            for (int x = 0; x < 16; x++) {
-                for (int z = 0; z < 16; z++) {
-                    for (int y = 0; y < 256; y++) {
-                        final short i = (short) (y >> 4);
-                        final short j = (short) (((y & 0xF) << 8) | (z << 4) | x);
-                        CACHE_I[y][z][x] = i;
-                        CACHE_J[y][z][x] = j;
-                        CACHE_X[i][j] = (byte) x;
-                        CACHE_Y[i][j] = (short) y;
-                        CACHE_Z[i][j] = (byte) z;
+                CACHE_TRANSLUSCENT[i] = BlockType.isTranslucent(id);
+                CACHE_PASSTHROUGH[i] = BlockType.canPassThrough(id, data);
+                BundledBlockData.BlockEntry blockEntry = bundled.findById(id);
+                if (blockEntry != null) {
+                    BundledBlockData.FaweBlockMaterial material = blockEntry.material;
+                    if (material != null) {
+                        CACHE_TRANSLUSCENT[i] = !material.isOpaque();
+                        CACHE_PASSTHROUGH[i] = !material.isMovementBlocker();
                     }
                 }
             }
-            try {
-                BundledBlockData bundled = BundledBlockData.getInstance();
-                bundled.loadFromResource();
-                for (int i = 0; i < Character.MAX_VALUE; i++) {
-                    int id = i >> 4;
-                    int data = i & 0xf;
-                    CACHE_TRANSLUSCENT[i] = BlockType.isTranslucent(id);
-                    CACHE_PASSTHROUGH[i] = BlockType.canPassThrough(id, data);
-                    BundledBlockData.BlockEntry blockEntry = bundled.findById(id);
-                    if (blockEntry != null) {
-                        BundledBlockData.FaweBlockMaterial material = blockEntry.material;
-                        if (material != null) {
-                            CACHE_TRANSLUSCENT[i] = !material.isOpaque();
-                            CACHE_PASSTHROUGH[i] = !material.isMovementBlocker();
-                        }
-                    }
-                }
-            } catch (Throwable ignore) {
-                ignore.printStackTrace();
-            }
+        } catch (Throwable ignore) {
+            ignore.printStackTrace();
+        }
+        try {
             CACHE_COLOR[getCombined(0, 0)] = new Color(128, 128, 128); //Air
             CACHE_COLOR[getCombined(1, 0)] = new Color(180, 180, 180); //stone
             CACHE_COLOR[getCombined(2, 0)] = new Color(0, 225, 0); //grass
@@ -288,7 +288,6 @@ public class FaweCache {
             CACHE_COLOR[getCombined(35, 15)] = new Color(0, 0, 0); // Black
         } catch (Throwable e) {
             e.printStackTrace();
-            throw e;
         }
     }
 
@@ -805,6 +804,8 @@ public class FaweCache {
             return asTag((Map) value);
         } else if (value instanceof Collection) {
             return asTag((Collection) value);
+        } else if (value instanceof Object[]) {
+            return asTag((Object[]) value);
         } else if (value instanceof byte[]) {
             return asTag((byte[]) value);
         } else if (value instanceof int[]) {
@@ -835,7 +836,7 @@ public class FaweCache {
 
     public static ListTag asTag(Object... values) {
         Class clazz = null;
-        List<Tag> list = new ArrayList<>();
+        List<Tag> list = new ArrayList<>(values.length);
         for (Object value : values) {
             Tag tag = asTag(value);
             if (clazz == null) {
@@ -848,7 +849,7 @@ public class FaweCache {
 
     public static ListTag asTag(Collection values) {
         Class clazz = null;
-        List<Tag> list = new ArrayList<>();
+        List<Tag> list = new ArrayList<>(values.size());
         for (Object value : values) {
             Tag tag = asTag(value);
             if (clazz == null) {

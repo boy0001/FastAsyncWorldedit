@@ -129,24 +129,28 @@ public class BrushTool implements DoubleActionTraceTool, ScrollTool, MovableTool
 
     @Override
     public String toString() {
+        return toString(new Gson());
+    }
+
+    public String toString(Gson gson) {
         HashMap<String, Object> map = new HashMap<>();
         map.put("primary", primary.getSettings());
         if (primary != secondary) {
             map.put("secondary", secondary.getSettings());
         }
-        if (visualMode != null) {
+        if (visualMode != null && visualMode != VisualMode.NONE) {
             map.put("visual", visualMode);
         }
         if (targetMode != TargetMode.TARGET_BLOCK_RANGE) {
             map.put("target", targetMode);
         }
-        if (range != -1) {
+        if (range != -1 && range != 240) {
             map.put("range", range);
         }
         if (targetOffset != 0) {
             map.put("offset", targetOffset);
         }
-        return new Gson().toJson(map);
+        return gson.toJson(map);
     }
 
     public void update() {

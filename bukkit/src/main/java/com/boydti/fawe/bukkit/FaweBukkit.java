@@ -102,16 +102,6 @@ public class FaweBukkit implements IFawe, Listener {
                 e.printStackTrace();
                 debug("===================================");
             }
-            if (Settings.IMP.EXPERIMENTAL.PERSISTENT_BRUSHES) {
-                try {
-                    this.itemUtil = new ItemUtil();
-                } catch (Throwable e) {
-                    Settings.IMP.EXPERIMENTAL.PERSISTENT_BRUSHES = false;
-                    debug("===== PERSISTENT BRUSH FAILED =====");
-                    e.printStackTrace();
-                    debug("===================================");
-                }
-            }
             if (Bukkit.getVersion().contains("git-Spigot")) {
                 debug("====== USE PAPER ======");
                 debug("DOWNLOAD: https://ci.destroystokyo.com/job/PaperSpigot/");
@@ -249,7 +239,18 @@ public class FaweBukkit implements IFawe, Listener {
     }
 
     public ItemUtil getItemUtil() {
-        return itemUtil;
+        ItemUtil tmp = itemUtil;
+        if (tmp == null) {
+            try {
+                this.itemUtil = tmp = new ItemUtil();
+            } catch (Throwable e) {
+                Settings.IMP.EXPERIMENTAL.PERSISTENT_BRUSHES = false;
+                debug("===== PERSISTENT BRUSH FAILED =====");
+                e.printStackTrace();
+                debug("===================================");
+            }
+        }
+        return tmp;
     }
 
     /**

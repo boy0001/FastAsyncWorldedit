@@ -1,10 +1,14 @@
 package com.boydti.fawe.bukkit.block;
 
 import com.boydti.fawe.Fawe;
+import com.boydti.fawe.FaweCache;
 import com.boydti.fawe.bukkit.FaweBukkit;
 import com.boydti.fawe.bukkit.util.ItemUtil;
+import com.boydti.fawe.object.brush.BrushSettings;
 import com.boydti.fawe.object.collection.SoftHashMap;
 import com.boydti.fawe.util.ReflectionUtils;
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 import com.sk89q.jnbt.CompoundTag;
 import com.sk89q.jnbt.StringTag;
 import com.sk89q.jnbt.Tag;
@@ -18,7 +22,9 @@ import java.util.Map;
 import org.bukkit.inventory.ItemStack;
 
 public class BrushBoundBaseBlock extends BaseBlock implements BrushHolder {
-    public static SoftHashMap<Object, BrushTool> brushCache = new SoftHashMap<>();
+    private static SoftHashMap<Object, BrushTool> brushCache = new SoftHashMap<>();
+    private static Gson gson = new GsonBuilder().setPrettyPrinting().create();
+
     private final LocalSession session;
     private final Player player;
 
@@ -78,11 +84,36 @@ public class BrushBoundBaseBlock extends BaseBlock implements BrushHolder {
             map = ReflectionUtils.getMap(nbt.getValue());
         }
         brushCache.remove(getKey(item));
+        CompoundTag display = (CompoundTag) map.get("display");
+        Map<String, Tag> displayMap;
         if (tool != null) {
-            String json = tool.toString();
+            String json = tool.toString(gson);
             map.put("weBrushJson", new StringTag(json));
+            if (display == null) {
+                map.put("display", new CompoundTag(displayMap = new HashMap()));
+            } else {
+                displayMap = ReflectionUtils.getMap(display.getValue());
+            }
+            displayMap.put("Lore", FaweCache.asTag(json.split("\\r?\\n")));
+            String primary = (String) tool.getPrimary().getSettings().get(BrushSettings.SettingType.BRUSH);
+            String secondary = (String) tool.getSecondary().getSettings().get(BrushSettings.SettingType.BRUSH);
+            if (primary == null) primary = secondary;
+            if (secondary == null) secondary = primary;
+            if (primary != null) {
+                String name = primary == secondary ? primary.split(" ")[0] : primary.split(" ")[0] + " / " + secondary.split(" ")[0];
+                displayMap.put("Name", new StringTag(name));
+            }
         } else if (map.containsKey("weBrushJson")) {
             map.remove("weBrushJson");
+            if (display != null) {
+                displayMap = ReflectionUtils.getMap(display.getValue());
+                displayMap.remove("Lore");
+                displayMap.remove("Name");
+                if (displayMap.isEmpty()) {
+                    map.remove("display");
+                }
+            }
+
         } else {
             return tool;
         }
