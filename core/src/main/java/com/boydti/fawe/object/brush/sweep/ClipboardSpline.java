@@ -11,6 +11,7 @@ import com.sk89q.worldedit.math.interpolation.Interpolation;
 import com.sk89q.worldedit.math.transform.AffineTransform;
 import com.sk89q.worldedit.math.transform.RoundedTransform;
 import com.sk89q.worldedit.math.transform.Transform;
+import com.sk89q.worldedit.regions.Region;
 import com.sk89q.worldedit.session.ClipboardHolder;
 
 /**
@@ -67,7 +68,8 @@ public class ClipboardSpline extends Spline {
         Clipboard clipboard = clipboardHolder.getClipboard();
         this.originalOrigin = clipboard.getOrigin();
 
-        center = clipboard.getRegion().getCenter();
+        Region region = clipboard.getRegion();
+        center = region.getCenter().setY(region.getMinimumPoint().getY());
         this.centerOffset = center.subtract(center.round());
         this.center = center.subtract(centerOffset);
         this.transform = transform;

@@ -46,7 +46,7 @@ public class SweepBrush implements Brush, ResettableTool {
         boolean newPos = this.position == null || !position.equals(this.position);
         this.position = position;
         if (newPos) {
-            positions.add(position.add(0, 1, 0));
+            positions.add(position);
             return;
         }
 
