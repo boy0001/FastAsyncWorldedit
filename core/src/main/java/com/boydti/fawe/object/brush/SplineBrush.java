@@ -24,7 +24,7 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 
-public class SplineBrush implements Brush {
+public class SplineBrush implements Brush, ResettableTool {
 
     public static int MAX_POINTS = 15;
     private ArrayList<ArrayList<Vector>> positionSets;
@@ -38,6 +38,15 @@ public class SplineBrush implements Brush {
         this.session = session;
         this.player = player;
         this.positionSets = new ArrayList<>();
+    }
+
+
+    @Override
+    public boolean reset() {
+        numSplines = 0;
+        positionSets.clear();
+        position = null;
+        return true;
     }
 
     @Override

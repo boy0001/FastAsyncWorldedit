@@ -19,6 +19,7 @@
 
 package com.sk89q.worldedit;
 
+import com.boydti.fawe.util.MathMan;
 import com.sk89q.worldedit.math.transform.AffineTransform;
 import java.io.IOException;
 import java.io.Serializable;
@@ -157,7 +158,7 @@ public class Vector implements Comparable<Vector>, Serializable {
      * @return the x coordinate
      */
     public int getBlockX() {
-        return (int) getX();
+        return MathMan.roundInt(getX());
     }
 
     /**
@@ -195,7 +196,7 @@ public class Vector implements Comparable<Vector>, Serializable {
      * @return the y coordinate
      */
     public int getBlockY() {
-        return (int) (getY());
+        return MathMan.roundInt(getY());
     }
 
     /**
@@ -233,7 +234,7 @@ public class Vector implements Comparable<Vector>, Serializable {
      * @return the z coordinate
      */
     public int getBlockZ() {
-        return (int) (getZ());
+        return MathMan.roundInt(getZ());
     }
 
     /**

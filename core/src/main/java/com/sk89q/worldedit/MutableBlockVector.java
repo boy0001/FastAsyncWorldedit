@@ -1,5 +1,6 @@
 package com.sk89q.worldedit;
 
+import com.boydti.fawe.util.MathMan;
 import java.io.IOException;
 import java.io.Serializable;
 
@@ -51,17 +52,17 @@ public class MutableBlockVector extends BlockVector implements Serializable {
 
     @Override
     public final void mutX(double x) {
-        this.x = (int) x;
+        this.x = MathMan.roundInt(x);
     }
 
     @Override
     public final void mutY(double y) {
-        this.y = (int) y;
+        this.y = MathMan.roundInt(y);
     }
 
     @Override
     public final void mutZ(double z) {
-        this.z = (int) z;
+        this.z = MathMan.roundInt(z);
     }
 
     @Override

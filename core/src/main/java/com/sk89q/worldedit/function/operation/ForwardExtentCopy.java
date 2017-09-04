@@ -39,6 +39,7 @@ import com.sk89q.worldedit.function.entity.ExtentEntityCopy;
 import com.sk89q.worldedit.function.mask.Mask;
 import com.sk89q.worldedit.function.mask.Masks;
 import com.sk89q.worldedit.function.visitor.EntityVisitor;
+import com.sk89q.worldedit.function.visitor.IntersectRegionFunction;
 import com.sk89q.worldedit.function.visitor.RegionVisitor;
 import com.sk89q.worldedit.math.transform.AffineTransform;
 import com.sk89q.worldedit.math.transform.Identity;
@@ -74,6 +75,7 @@ public class ForwardExtentCopy implements Operation {
     private int affected;
     private boolean copyEntities = true;
     private boolean copyBiomes = false;
+    private RegionFunction filterFunction;
 
     /**
      * Create a new copy using the region's lowest minimum point as the
@@ -171,6 +173,10 @@ public class ForwardExtentCopy implements Operation {
         this.sourceMask = sourceMask;
     }
 
+    public void setFilterFunction(RegionFunction filterFunction) {
+        this.filterFunction = filterFunction;
+    }
+
     /**
      * Get the function that gets applied to all source blocks <em>after</em>
      * the copy has been made.
@@ -266,6 +272,9 @@ public class ForwardExtentCopy implements Operation {
                 transExt.setOrigin(from);
 
                 RegionFunction copy = new SimpleBlockCopy(transExt, finalDest);
+                if (this.filterFunction != null) {
+                    copy = new IntersectRegionFunction(filterFunction, copy);
+                }
                 if (sourceMask != Masks.alwaysTrue()) {
                     new MaskTraverser(sourceMask).reset(transExt);
                     copy = new RegionMaskingFilter(sourceMask, copy);
@@ -286,6 +295,9 @@ public class ForwardExtentCopy implements Operation {
 
         if (blockCopy == null) {
             RegionFunction copy = new SimpleBlockCopy(source, finalDest);
+            if (this.filterFunction != null) {
+                copy = new IntersectRegionFunction(filterFunction, copy);
+            }
             if (sourceMask != Masks.alwaysTrue()) {
                 copy = new RegionMaskingFilter(sourceMask, copy);
             }

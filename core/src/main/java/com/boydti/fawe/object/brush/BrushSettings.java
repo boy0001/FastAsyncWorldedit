@@ -69,7 +69,7 @@ public class BrushSettings {
         CommandCallable sphereCommand = ((ProcessedCallable) brushDispatcher.get(split[0]).getCallable()).getParent();
         CommandLocals locals = new CommandLocals();
         locals.put(Actor.class, player);
-        String args = constructor.substring(constructor.indexOf(' ') + 1);
+        String args = constructor.replaceAll(split[0] + "[ ]?", "");
         String[] parentArgs = new String[]{"brush", split[0]};
         BrushSettings bs = (BrushSettings) sphereCommand.call(args, locals, parentArgs);
         bs.constructor.put(SettingType.BRUSH, constructor);

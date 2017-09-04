@@ -26,10 +26,10 @@ import com.sk89q.worldedit.extent.Extent;
 import com.sk89q.worldedit.extent.clipboard.BlockArrayClipboard;
 import com.sk89q.worldedit.extent.clipboard.Clipboard;
 import com.sk89q.worldedit.extent.transform.BlockTransformExtent;
+import com.sk89q.worldedit.function.RegionFunction;
 import com.sk89q.worldedit.function.mask.ExistingBlockMask;
 import com.sk89q.worldedit.function.mask.Mask;
 import com.sk89q.worldedit.function.operation.ForwardExtentCopy;
-import com.sk89q.worldedit.function.operation.Operation;
 import com.sk89q.worldedit.math.transform.Transform;
 import com.sk89q.worldedit.world.registry.WorldData;
 
@@ -51,6 +51,7 @@ public class PasteBuilder {
     private boolean ignoreAirBlocks;
     private boolean ignoreBiomes;
     private boolean ignoreEntities;
+    private RegionFunction canApply;
 
     /**
      * Create a new instance.
@@ -101,12 +102,17 @@ public class PasteBuilder {
         return this;
     }
 
+    public PasteBuilder filter(RegionFunction function) {
+        this.canApply = function;
+        return this;
+    }
+
     /**
      * Build the operation.
      *
      * @return the operation
      */
-    public Operation build() {
+    public ForwardExtentCopy build() {
         Extent extent = clipboard;
         if (!transform.isIdentity()) {
             extent = new BlockTransformExtent(extent, transform, targetWorldData.getBlockRegistry());
@@ -115,6 +121,9 @@ public class PasteBuilder {
         copy.setTransform(transform);
         copy.setCopyEntities(!ignoreEntities);
         copy.setCopyBiomes((!ignoreBiomes) && (!(clipboard instanceof BlockArrayClipboard) || ((BlockArrayClipboard) clipboard).IMP.hasBiomes()));
+        if (this.canApply != null) {
+            copy.setFilterFunction(this.canApply);
+        }
         if (targetExtent instanceof EditSession) {
             Mask sourceMask = ((EditSession) targetExtent).getSourceMask();
             if (sourceMask != null) {

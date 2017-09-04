@@ -50,6 +50,7 @@ import com.boydti.fawe.object.brush.StencilBrush;
 import com.boydti.fawe.object.brush.SurfaceSphereBrush;
 import com.boydti.fawe.object.brush.SurfaceSpline;
 import com.boydti.fawe.object.brush.heightmap.ScalableHeightMap;
+import com.boydti.fawe.object.brush.sweep.SweepBrush;
 import com.boydti.fawe.object.mask.IdMask;
 import com.boydti.fawe.util.ColorUtil;
 import com.boydti.fawe.util.MathMan;
@@ -247,6 +248,22 @@ public class BrushCommands extends MethodCommands {
                 .setBrush(new SplineBrush(player, session))
                 .setSize(radius)
                 .setFill(fill);
+    }
+
+    // Adapted from: https://github.com/Rafessor/VaeronTools
+    @Command(
+            aliases = {"sweep", "sw", "vaesweep"},
+            usage = "[copies=-1]",
+            desc = "Sweep your clipboard content along a curve",
+            help = "Sweeps your clipboard content along a curve.\n" +
+                    "Define a curve by selecting the individual points with a brush\n" +
+                    "Set [copies] to a value > 0 if you want to have your selection pasted a limited amount of times equally spaced on the curve",
+            max = 1
+    )
+    @CommandPermissions("worldedit.brush.sweep")
+    public BrushSettings sweepBrush(Player player, LocalSession session, EditSession editSession, @Optional("-1") int copies, CommandContext context) throws WorldEditException {
+        player.print(BBC.getPrefix() + BBC.BRUSH_SPLINE.s());
+        return get(context).setBrush(new SweepBrush(copies));
     }
 
     @Command(

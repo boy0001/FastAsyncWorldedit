@@ -21,7 +21,6 @@
 
 package com.sk89q.worldedit.math.interpolation;
 
-import com.sk89q.worldedit.MutableBlockVector;
 import com.sk89q.worldedit.Vector;
 import java.util.Collections;
 import java.util.List;
@@ -137,7 +136,7 @@ public class KochanekBartelsInterpolation implements Interpolation {
         return nodes.get(index).getPosition();
     }
 
-    private MutableBlockVector mutable = new MutableBlockVector();
+    private Vector mutable = new Vector();
 
     @Override
     public Vector getPosition(double position) {

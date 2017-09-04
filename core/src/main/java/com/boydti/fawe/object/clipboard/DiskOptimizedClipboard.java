@@ -441,6 +441,7 @@ public class DiskOptimizedClipboard extends FaweClipboard implements Closeable {
                 }
             }
             return block;
+        } catch (IndexOutOfBoundsException ignore) {
         } catch (Exception e) {
             MainUtil.handleError(e);
         }
@@ -479,6 +480,7 @@ public class DiskOptimizedClipboard extends FaweClipboard implements Closeable {
                 }
             }
             return block;
+        } catch (IndexOutOfBoundsException ignore) {
         } catch (Exception e) {
             MainUtil.handleError(e);
         }
