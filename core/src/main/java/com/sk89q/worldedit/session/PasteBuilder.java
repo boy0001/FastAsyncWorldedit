@@ -30,6 +30,7 @@ import com.sk89q.worldedit.function.RegionFunction;
 import com.sk89q.worldedit.function.mask.ExistingBlockMask;
 import com.sk89q.worldedit.function.mask.Mask;
 import com.sk89q.worldedit.function.operation.ForwardExtentCopy;
+import com.sk89q.worldedit.function.operation.Operation;
 import com.sk89q.worldedit.math.transform.Transform;
 import com.sk89q.worldedit.world.registry.WorldData;
 
@@ -112,7 +113,7 @@ public class PasteBuilder {
      *
      * @return the operation
      */
-    public ForwardExtentCopy build() {
+    public Operation build() {
         Extent extent = clipboard;
         if (!transform.isIdentity()) {
             extent = new BlockTransformExtent(extent, transform, targetWorldData.getBlockRegistry());

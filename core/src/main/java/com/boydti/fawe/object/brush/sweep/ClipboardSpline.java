@@ -6,6 +6,7 @@ import com.sk89q.worldedit.MaxChangedBlocksException;
 import com.sk89q.worldedit.Vector;
 import com.sk89q.worldedit.extent.clipboard.Clipboard;
 import com.sk89q.worldedit.function.operation.ForwardExtentCopy;
+import com.sk89q.worldedit.function.operation.Operation;
 import com.sk89q.worldedit.function.operation.Operations;
 import com.sk89q.worldedit.math.interpolation.Interpolation;
 import com.sk89q.worldedit.math.transform.AffineTransform;
@@ -98,7 +99,7 @@ public class ClipboardSpline extends Spline {
         final int offY = functionOffset.getBlockY();
         final int offZ = functionOffset.getBlockZ();
 
-        ForwardExtentCopy operation = clipboardHolder
+        Operation operation = clipboardHolder
                 .createPaste(editSession, editSession.getWorldData())
                 .to(target)
                 .ignoreAirBlocks(true)
@@ -110,6 +111,6 @@ public class ClipboardSpline extends Spline {
         clipboardHolder.setTransform(originalTransform);
         clipboard.setOrigin(originalOrigin);
 
-        return operation.getAffected();
+        return operation instanceof ForwardExtentCopy ? ((ForwardExtentCopy) operation).getAffected() : 0;
     }
 }
