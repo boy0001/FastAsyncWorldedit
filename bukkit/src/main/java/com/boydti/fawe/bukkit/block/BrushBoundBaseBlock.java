@@ -52,10 +52,10 @@ public class BrushBoundBaseBlock extends BaseBlock implements BrushHolder {
     @Override
     public BrushTool getTool() {
         if (tool == null && hasNbtData()) {
-            String json = getNbtData().getString("weBrushJson");
+            StringTag json = (StringTag) getNbtData().getValue().get("weBrushJson");
             if (json != null) {
                 try {
-                    this.tool = BrushTool.fromString(player, session, json);
+                    this.tool = BrushTool.fromString(player, session, json.getValue());
                     this.tool.setHolder(this);
                     brushCache.put(getKey(item), tool);
                 } catch (Throwable ignore) {
