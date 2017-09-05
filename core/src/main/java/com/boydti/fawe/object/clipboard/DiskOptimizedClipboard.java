@@ -163,12 +163,7 @@ public class DiskOptimizedClipboard extends FaweClipboard implements Closeable {
 
     public BlockArrayClipboard toClipboard() {
         try {
-            CuboidRegion region = new CuboidRegion(new Vector(0, 0, 0), new Vector(width - 1, height - 1, length - 1)) {
-                @Override
-                public boolean contains(Vector position) {
-                    return true;
-                }
-            };
+            CuboidRegion region = new CuboidRegion(new Vector(0, 0, 0), new Vector(width - 1, height - 1, length - 1));
             int ox = mbb.getShort(8);
             int oy = mbb.getShort(10);
             int oz = mbb.getShort(12);

@@ -52,7 +52,6 @@ import java.net.URL;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import javax.imageio.ImageIO;
 
 @CommandDeclaration(
         command = "cfi",
@@ -327,12 +326,24 @@ public class CreateFromImage extends Command {
                                 }
                                 case "blockbiomecolor":
                                 case "setblockandbiomecolor": {
-                                    if (argList.size() != 2) {
+                                    if (argList.size() < 2) {
                                         C.COMMAND_SYNTAX.send(player, "/2 cfi " + argList.get(0) + " <url>");
                                         return;
                                     }
                                     BufferedImage image = getImage(argList.get(1), fp);
-                                    generator.setBlockAndBiomeColor(image);
+                                    BufferedImage imgMask = null;
+                                    Mask mask = null;
+                                    boolean whiteOnly = true;
+                                    if (argList.size() > 2) {
+                                        String arg2 = argList.get(2);
+                                        if (arg2.startsWith("http") || arg2.startsWith("file://")) {
+                                            imgMask = getImage(arg2, fp);
+                                        } else {
+                                            mask = we.getMaskFactory().parseFromInput(argList.get(1), context);
+                                        }
+                                        whiteOnly = argList.size() < 4 || Boolean.parseBoolean(argList.get(3));
+                                    }
+                                    generator.setBlockAndBiomeColor(image, mask, imgMask, whiteOnly);
                                     player.sendMessage("Set color, what's next?");
                                     return;
                                 }
@@ -619,7 +630,7 @@ public class CreateFromImage extends Command {
         if (arg.startsWith("http")) {
             URL url = new URL(arg);
             fp.sendMessage(BBC.getPrefix() + "Downloading image... (3)");
-            BufferedImage img = MainUtil.toRGB(ImageIO.read(url));
+            BufferedImage img = MainUtil.readImage(url);
             if (img == null) {
                 throw new IOException("Failed to read " + url + ", please try again later");
             }
@@ -628,7 +639,7 @@ public class CreateFromImage extends Command {
         if (arg.startsWith("file://")) {
             arg = arg.substring(7);
             File file = MainUtil.getFile(MainUtil.getFile(Fawe.imp().getDirectory(), com.boydti.fawe.config.Settings.IMP.PATHS.HEIGHTMAP), arg);
-            return MainUtil.toRGB(ImageIO.read(file));
+            return MainUtil.readImage(file);
         }
         return null;
     }

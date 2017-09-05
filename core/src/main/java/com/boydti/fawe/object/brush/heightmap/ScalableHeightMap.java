@@ -11,7 +11,6 @@ import java.awt.image.Raster;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.HashSet;
-import javax.imageio.ImageIO;
 
 public class ScalableHeightMap implements com.boydti.fawe.object.brush.heightmap.HeightMap {
     public int size2;
@@ -91,7 +90,7 @@ public class ScalableHeightMap implements com.boydti.fawe.object.brush.heightmap
     }
 
     public static ScalableHeightMap fromPNG(InputStream stream) throws IOException {
-        BufferedImage heightFile = MainUtil.toRGB(ImageIO.read(stream));
+        BufferedImage heightFile = MainUtil.readImage(stream);
         int width = heightFile.getWidth();
         int length = heightFile.getHeight();
         Raster data = heightFile.getData();

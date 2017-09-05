@@ -45,8 +45,8 @@ public class BackwardsExtentBlockCopy implements Operation {
     private CuboidRegion transform(Transform transform, Region region) {
         Vector min = new MutableBlockVector(Integer.MAX_VALUE, Integer.MAX_VALUE, Integer.MAX_VALUE);
         Vector max = new MutableBlockVector(Integer.MIN_VALUE, Integer.MIN_VALUE, Integer.MIN_VALUE);
-        Vector pos1 = region.getMinimumPoint().subtract(1, 1, 1);
-        Vector pos2 = region.getMaximumPoint().add(1, 1, 1);
+        Vector pos1 = region.getMinimumPoint();
+        Vector pos2 = region.getMaximumPoint();
         for (int x : new int[] { pos1.getBlockX(), pos2.getBlockX() }) {
             for (int y : new int[] { pos1.getBlockY(), pos2.getBlockY() }) {
                 for (int z : new int[] { pos1.getBlockZ(), pos2.getBlockZ() }) {

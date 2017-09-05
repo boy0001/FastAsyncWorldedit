@@ -90,6 +90,7 @@ public class RandomTextureUtil extends CachedTextureUtil {
             offsetColor = color;
         }
         BaseBlock res = super.getNearestBlock(offsetColor);
+        if (res == null) return null;
         int newColor = getColor(res);
         {
             byte dr = (byte) (((color >> 16) & 0xFF) - ((newColor >> 16) & 0xFF));

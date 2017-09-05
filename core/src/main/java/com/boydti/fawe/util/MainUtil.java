@@ -29,6 +29,7 @@ import java.awt.image.BufferedImage;
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
 import java.io.ByteArrayOutputStream;
+import java.io.DataInputStream;
 import java.io.File;
 import java.io.FileFilter;
 import java.io.FileInputStream;
@@ -69,6 +70,7 @@ import java.util.zip.GZIPInputStream;
 import java.util.zip.Inflater;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
+import javax.imageio.ImageIO;
 import net.jpountz.lz4.LZ4BlockInputStream;
 import net.jpountz.lz4.LZ4BlockOutputStream;
 import net.jpountz.lz4.LZ4Compressor;
@@ -599,6 +601,25 @@ public class MainUtil {
             }
         }
         return destFile;
+    }
+
+    public static BufferedImage readImage(InputStream in) throws IOException {
+        try (DataInputStream dis = new DataInputStream(new BufferedInputStream(in, 1024))) {
+            dis.mark(1024);
+            boolean jpeg = dis.readInt() == 0xffd8ffe0;
+            dis.reset();
+            BufferedImage img = ImageIO.read(dis);
+            if (jpeg) img = toRGB(img);
+            return img;
+        }
+    }
+
+    public static BufferedImage readImage(URL url) throws IOException {
+        return readImage(url.openStream());
+    }
+
+    public static BufferedImage readImage(File file) throws IOException {
+        return readImage(new FileInputStream(file));
     }
 
     public static BufferedImage toRGB(BufferedImage src) {

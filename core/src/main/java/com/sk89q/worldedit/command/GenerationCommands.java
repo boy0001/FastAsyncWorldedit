@@ -59,7 +59,6 @@ import com.sk89q.worldedit.world.biome.BaseBiome;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.net.URL;
-import javax.imageio.ImageIO;
 
 
 import static com.sk89q.minecraft.util.commands.Logging.LogMode.ALL;
@@ -129,7 +128,7 @@ public class GenerationCommands extends MethodCommands {
             throw new IOException("Only i.imgur.com or empcraft.com/ui links are allowed!");
         }
         FawePlayer<Object> fp = FawePlayer.wrap(player);
-        BufferedImage image = MainUtil.toRGB(ImageIO.read(url));
+        BufferedImage image = MainUtil.readImage(url);
         MutableBlockVector pos1 = new MutableBlockVector(player.getPosition());
         MutableBlockVector pos2 = new MutableBlockVector(pos1.add(image.getWidth() - 1, 0, image.getHeight() - 1));
         CuboidRegion region = new CuboidRegion(pos1, pos2);
