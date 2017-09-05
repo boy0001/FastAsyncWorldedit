@@ -29,7 +29,6 @@ import java.awt.image.BufferedImage;
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
 import java.io.ByteArrayOutputStream;
-import java.io.DataInputStream;
 import java.io.File;
 import java.io.FileFilter;
 import java.io.FileInputStream;
@@ -604,14 +603,7 @@ public class MainUtil {
     }
 
     public static BufferedImage readImage(InputStream in) throws IOException {
-        try (DataInputStream dis = new DataInputStream(new BufferedInputStream(in, 1024))) {
-            dis.mark(1024);
-            boolean jpeg = dis.readInt() == 0xffd8ffe0;
-            dis.reset();
-            BufferedImage img = ImageIO.read(dis);
-            if (jpeg) img = toRGB(img);
-            return img;
-        }
+        return MainUtil.toRGB(ImageIO.read(in));
     }
 
     public static BufferedImage readImage(URL url) throws IOException {
@@ -624,7 +616,7 @@ public class MainUtil {
 
     public static BufferedImage toRGB(BufferedImage src) {
         if (src == null) return src;
-        BufferedImage img = new BufferedImage(src.getWidth(), src.getHeight(), BufferedImage.TYPE_INT_BGR);
+        BufferedImage img = new BufferedImage(src.getWidth(), src.getHeight(), BufferedImage.TYPE_INT_ARGB);
         Graphics2D g2d = img.createGraphics();
         g2d.drawImage(src, 0, 0, null);
         g2d.dispose();
