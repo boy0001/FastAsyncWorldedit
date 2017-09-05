@@ -507,14 +507,63 @@ public class HeightMapMCAGenerator extends MCAWriter implements Extent {
         }
     }
 
+    public void setColor(BufferedImage img, BufferedImage mask, boolean white) {
+        if (img.getWidth() != getWidth() || img.getHeight() != getLength())
+            throw new IllegalArgumentException("Input image dimensions do not match the current height map!");
+        if (mask.getWidth() != getWidth() || mask.getHeight() != getLength())
+            throw new IllegalArgumentException("Input image dimensions do not match the current height map!");
+        modifiedMain = true;
+        TextureUtil textureUtil = getTextureUtil();
+        int index = 0;
+        for (int z = 0; z < getLength(); z++) {
+            for (int x = 0; x < getWidth(); x++, index++) {
+                int height = mask.getRGB(x, z) & 0xFF;
+                if (height == 255 || height > 0 && !white && PseudoRandom.random.nextInt(256) <= height) {
+                    int color = img.getRGB(x, z);
+                    BaseBlock block = textureUtil.getNearestBlock(color);
+                    if (block != null) {
+                        char combined = (char) block.getCombined();
+                        main[index] = combined;
+                        floor[index] = combined;
+                    }
+                }
+            }
+        }
+    }
+
+    public void setColor(BufferedImage img, Mask mask, boolean white) {
+        if (img.getWidth() != getWidth() || img.getHeight() != getLength())
+            throw new IllegalArgumentException("Input image dimensions do not match the current height map!");
+        modifiedMain = true;
+        TextureUtil textureUtil = getTextureUtil();
+        int index = 0;
+        for (int z = 0; z < getLength(); z++) {
+            mutable.mutZ(z);
+            for (int x = 0; x < getWidth(); x++, index++) {
+                mutable.mutX(x);
+                mutable.mutY(heights[index] & 0xFF);
+                if (mask.test(mutable)) {
+                    int color = img.getRGB(x, z);
+                    BaseBlock block = textureUtil.getNearestBlock(color);
+                    if (block != null) {
+                        char combined = (char) block.getCombined();
+                        main[index] = combined;
+                        floor[index] = combined;
+                    }
+                }
+            }
+        }
+    }
+
     public void setColor(BufferedImage img) {
         if (img.getWidth() != getWidth() || img.getHeight() != getLength())
             throw new IllegalArgumentException("Input image dimensions do not match the current height map!");
+        modifiedMain = true;
         TextureUtil textureUtil = getTextureUtil();
         int index = 0;
-        for (int y = 0; y < img.getHeight(); y++) {
+        for (int z = 0; z < img.getHeight(); z++) {
             for (int x = 0; x < img.getWidth(); x++) {
-                int color = img.getRGB(x, y);
+                int color = img.getRGB(x, z);
                 BaseBlock block = textureUtil.getNearestBlock(color);
                 if (block != null) {
                     char combined = (char) block.getCombined();

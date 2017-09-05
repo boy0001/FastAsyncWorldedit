@@ -292,12 +292,25 @@ public class CreateFromImage extends Command {
                                 }
                                 case "color":
                                 case "setcolor": {
-                                    if (argList.size() != 2) {
-                                        C.COMMAND_SYNTAX.send(player, "/2 cfi " + argList.get(0) + " <url>");
+                                    if (argList.size() < 2) {
+                                        C.COMMAND_SYNTAX.send(player, "/2 cfi " + argList.get(0) + " <url> [mask] [whiteonly=true]");
                                         return;
                                     }
                                     BufferedImage image = getImage(argList.get(1), fp);
-                                    generator.setColor(image);
+                                    if (argList.size() > 2) {
+                                        String arg2 = argList.get(2);
+                                        if (arg2.startsWith("http") || arg2.startsWith("file://")) {
+                                            BufferedImage mask = getImage(arg2, fp);
+                                            boolean whiteOnly = argList.size() < 4 || Boolean.parseBoolean(argList.get(3));
+                                            generator.setColor(image, mask, whiteOnly);
+                                        } else {
+                                            Mask mask = we.getMaskFactory().parseFromInput(argList.get(1), context);
+                                            boolean whiteOnly = argList.size() < 4 || Boolean.parseBoolean(argList.get(3));
+                                            generator.setColor(image, mask, whiteOnly);
+                                        }
+                                    } else {
+                                        generator.setColor(image);
+                                    }
                                     player.sendMessage("Set color, what's next?");
                                     return;
                                 }
