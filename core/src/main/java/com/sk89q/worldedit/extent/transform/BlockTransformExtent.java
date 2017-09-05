@@ -88,9 +88,9 @@ public class BlockTransformExtent extends ResettableExtent {
                 if (direction != null) {
                     Vector applyAbsolute = transform.apply(direction.toVector());
                     Vector applyOrigin = transform.apply(Vector.ZERO);
-                    applyAbsolute.mutX(applyAbsolute.getBlockX() - applyOrigin.getBlockX());
-                    applyAbsolute.mutY(applyAbsolute.getBlockY() - applyOrigin.getBlockY());
-                    applyAbsolute.mutZ(applyAbsolute.getBlockZ() - applyOrigin.getBlockZ());
+                    applyAbsolute.mutX(applyAbsolute.getX() - applyOrigin.getX());
+                    applyAbsolute.mutY(applyAbsolute.getY() - applyOrigin.getY());
+                    applyAbsolute.mutZ(applyAbsolute.getZ() - applyOrigin.getZ());
 
                     Direction newDirection = Direction.findClosest(applyAbsolute, Direction.Flag.CARDINAL | Direction.Flag.ORDINAL | Direction.Flag.SECONDARY_ORDINAL);
 
@@ -117,9 +117,9 @@ public class BlockTransformExtent extends ResettableExtent {
                 if (direction != null) {
                     Vector applyAbsolute = transformInverse.apply(direction.toVector());
                     Vector applyOrigin = transformInverse.apply(Vector.ZERO);
-                    applyAbsolute.mutX(applyAbsolute.getBlockX() - applyOrigin.getBlockX());
-                    applyAbsolute.mutY(applyAbsolute.getBlockY() - applyOrigin.getBlockY());
-                    applyAbsolute.mutZ(applyAbsolute.getBlockZ() - applyOrigin.getBlockZ());
+                    applyAbsolute.mutX(applyAbsolute.getX() - applyOrigin.getX());
+                    applyAbsolute.mutY(applyAbsolute.getY() - applyOrigin.getY());
+                    applyAbsolute.mutZ(applyAbsolute.getZ() - applyOrigin.getZ());
 
                     Direction newDirection = Direction.findClosest(applyAbsolute, Direction.Flag.CARDINAL | Direction.Flag.ORDINAL | Direction.Flag.SECONDARY_ORDINAL);
 
