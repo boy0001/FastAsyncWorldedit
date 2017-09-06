@@ -19,16 +19,23 @@
 
 package com.sk89q.worldedit.bukkit;
 
+import com.boydti.fawe.Fawe;
+import com.boydti.fawe.bukkit.FaweBukkit;
+import com.boydti.fawe.bukkit.util.ItemUtil;
 import com.sk89q.worldedit.WorldVector;
-import org.bukkit.entity.Player;
-import org.bukkit.inventory.ItemStack;
-import com.sk89q.worldedit.extent.inventory.*;
 import com.sk89q.worldedit.blocks.BaseItem;
 import com.sk89q.worldedit.blocks.BaseItemStack;
 import com.sk89q.worldedit.blocks.BlockID;
 import com.sk89q.worldedit.blocks.ItemType;
+import com.sk89q.worldedit.extent.inventory.BlockBag;
+import com.sk89q.worldedit.extent.inventory.BlockBagException;
+import com.sk89q.worldedit.extent.inventory.OutOfBlocksException;
+import com.sk89q.worldedit.extent.inventory.OutOfSpaceException;
+import com.sk89q.worldedit.extent.inventory.SlottableBlockBag;
+import org.bukkit.entity.Player;
+import org.bukkit.inventory.ItemStack;
 
-public class BukkitPlayerBlockBag extends BlockBag {
+public class BukkitPlayerBlockBag extends BlockBag implements SlottableBlockBag {
 
     private Player player;
     private ItemStack[] items;
@@ -59,6 +66,59 @@ public class BukkitPlayerBlockBag extends BlockBag {
     public Player getPlayer() {
         return player;
     }
+
+    @Override
+    public BaseItem getItem(int slot) {
+        loadInventory();
+        return toBaseItem(items[slot]);
+    }
+
+    @Override
+    public void setItem(int slot, BaseItem block) {
+        loadInventory();
+        items[slot] = toItemStack(block);
+    }
+
+    @Override
+    public int getSelectedSlot() {
+        return player.getInventory().getHeldItemSlot();
+    }
+
+    private BaseItem toBaseItem(ItemStack item) {
+        if (item == null) return new BaseItemStack(0, 0);
+        int id = item.getTypeId();
+        short data;
+        if (id < 256) {
+            data = item.getData().getData();
+        } else {
+            data = item.getDurability();
+        }
+        BaseItemStack baseItem = new BaseItemStack(id, item.getAmount(), data);
+        ItemUtil itemUtil = Fawe.<FaweBukkit>imp().getItemUtil();
+        if (itemUtil != null && item.hasItemMeta()) {
+            baseItem.setNbtData(itemUtil.getNBT(item));
+        }
+        return baseItem;
+    }
+
+    private ItemStack toItemStack(BaseItem item) {
+        if (item == null) return null;
+        final int id = item.getType();
+        final int damage = item.getData();
+        int amount = (item instanceof BaseItemStack) ? ((BaseItemStack) item).getAmount() : 1;
+        ItemStack bukkitItem;
+        if (id < 256) {
+            bukkitItem = new ItemStack(id, amount, (short) 0, (byte) damage);
+        } else {
+            bukkitItem = new ItemStack(id, amount, (short) damage);
+        }
+        ItemUtil itemUtil = Fawe.<FaweBukkit>imp().getItemUtil();
+        if (itemUtil != null && item.hasNBTData()) {
+            bukkitItem = itemUtil.setNBT(bukkitItem, item.getNbtData());
+        }
+        return bukkitItem;
+    }
+
 
     @Override
     public void fetchItem(BaseItem item) throws BlockBagException {

@@ -31,6 +31,7 @@ import com.sk89q.worldedit.NotABlockException;
 import com.sk89q.worldedit.WorldEdit;
 import com.sk89q.worldedit.WorldEditException;
 import com.sk89q.worldedit.blocks.BaseBlock;
+import com.sk89q.worldedit.blocks.BaseItem;
 import com.sk89q.worldedit.blocks.BlockType;
 import com.sk89q.worldedit.blocks.ClothColor;
 import com.sk89q.worldedit.blocks.MobSpawnerBlock;
@@ -44,6 +45,8 @@ import com.sk89q.worldedit.extension.input.InputParseException;
 import com.sk89q.worldedit.extension.input.NoMatchException;
 import com.sk89q.worldedit.extension.input.ParserContext;
 import com.sk89q.worldedit.extension.platform.Actor;
+import com.sk89q.worldedit.extent.inventory.BlockBag;
+import com.sk89q.worldedit.extent.inventory.SlottableBlockBag;
 import com.sk89q.worldedit.internal.registry.InputParser;
 import com.sk89q.worldedit.world.World;
 import com.sk89q.worldedit.world.registry.BundledBlockData;
@@ -132,93 +135,120 @@ public class DefaultBlockParser extends InputParser<BaseBlock> {
         CompoundTag nbt = null;
 
         boolean parseDataValue = true;
-
-        if ("hand".equalsIgnoreCase(testId)) {
-            // Get the block type from the item in the user's hand.
-            final BaseBlock blockInHand = getBlockInHand(context.requireActor());
-            blockId = blockInHand.getId();
-            blockType = BlockType.fromID(blockId);
-            data = blockInHand.getData();
-            nbt = blockInHand.getNbtData();
-        } else if ("pos1".equalsIgnoreCase(testId)) {
-            // Get the block type from the "primary position"
-            final World world = context.requireWorld();
-            final BlockVector primaryPosition;
-            try {
-                primaryPosition = context.requireSession().getRegionSelector(world).getPrimaryPosition();
-            } catch (IncompleteRegionException e) {
-                throw new InputParseException("Your selection is not complete.");
-            }
-            final BaseBlock blockInHand = world.getBlock(primaryPosition);
-            blockId = blockInHand.getId();
-            blockType = BlockType.fromID(blockId);
-            data = blockInHand.getData();
-            nbt = blockInHand.getNbtData();
-        } else {
-            // Attempt to parse the item ID or otherwise resolve an item/block
-            // name to its numeric ID
-            if (MathMan.isInteger(testId)) {
-                blockId = Integer.parseInt(testId);
+        switch (testId.substring(0, Math.min(testId.length(), 4))) {
+            case "pos1": {
+                // Get the block type from the "primary position"
+                final World world = context.requireWorld();
+                final BlockVector primaryPosition;
+                try {
+                    primaryPosition = context.requireSession().getRegionSelector(world).getPrimaryPosition();
+                } catch (IncompleteRegionException e) {
+                    throw new InputParseException("Your selection is not complete.");
+                }
+                final BaseBlock block = world.getBlock(primaryPosition);
+                blockId = block.getId();
                 blockType = BlockType.fromID(blockId);
-            } else {
-                BundledBlockData.BlockEntry block = BundledBlockData.getInstance().findById(testId);
-                if (block == null) {
-                    BaseBlock baseBlock = BundledBlockData.getInstance().findByState(testId);
-                    if (baseBlock == null) {
-                        blockType = BlockType.lookup(testId);
-                        if (blockType == null) {
-                            int t = worldEdit.getServer().resolveItem(testId);
-                            if (t == 0 && !testId.contains("air")) {
-                                throw new NoMatchException("Invalid block '" + input + "'.");
-                            }
-                            if (t >= 0) {
-                                blockType = BlockType.fromID(t); // Could be null
-                                blockId = t;
-                            } else if (blockLocator.length == 2) { // Block IDs in MC 1.7 and above use mod:name
-                                t = worldEdit.getServer().resolveItem(blockAndExtraData[0]);
+                data = block.getData();
+                nbt = block.getNbtData();
+                break;
+            }
+            case "hand": {
+                BaseBlock blockInHand = getBlockInHand(context.requireActor());
+                blockId = blockInHand.getId();
+                blockType = BlockType.fromID(blockId);
+                data = blockInHand.getData();
+                nbt = blockInHand.getNbtData();
+                break;
+            }
+            case "slot": {
+                try {
+                    int slot = Integer.parseInt(testId.substring(4)) - 1;
+                    Actor actor = context.requireActor();
+                    if (!(actor instanceof Player)) {
+                        throw new InputParseException("The user is not a player!");
+                    }
+                    Player player = (Player) actor;
+                    BlockBag bag = player.getInventoryBlockBag();
+                    if (bag == null || !(bag instanceof SlottableBlockBag)) {
+                        throw new InputParseException("Unsupported!");
+                    }
+                    SlottableBlockBag slottable = (SlottableBlockBag) bag;
+                    BaseItem item = slottable.getItem(slot);
+
+                    blockId = item.getType();
+                    if (!player.getWorld().isValidBlockType(blockId)) {
+                        throw new InputParseException("You're not holding a block!");
+                    }
+                    blockType = BlockType.fromID(blockId);
+                    data = item.getData();
+                    nbt = item.getNbtData();
+                    break;
+                } catch (NumberFormatException ignore) {}
+            }
+            default: {
+                // Attempt to parse the item ID or otherwise resolve an item/block
+                // name to its numeric ID
+                if (MathMan.isInteger(testId)) {
+                    blockId = Integer.parseInt(testId);
+                    blockType = BlockType.fromID(blockId);
+                } else {
+                    BundledBlockData.BlockEntry block = BundledBlockData.getInstance().findById(testId);
+                    if (block == null) {
+                        BaseBlock baseBlock = BundledBlockData.getInstance().findByState(testId);
+                        if (baseBlock == null) {
+                            blockType = BlockType.lookup(testId);
+                            if (blockType == null) {
+                                int t = worldEdit.getServer().resolveItem(testId);
+                                if (t == 0 && !testId.contains("air")) {
+                                    throw new NoMatchException("Invalid block '" + input + "'.");
+                                }
                                 if (t >= 0) {
                                     blockType = BlockType.fromID(t); // Could be null
                                     blockId = t;
-                                    typeAndData = new String[]{blockAndExtraData[0]};
-                                    testId = blockAndExtraData[0];
+                                } else if (blockLocator.length == 2) { // Block IDs in MC 1.7 and above use mod:name
+                                    t = worldEdit.getServer().resolveItem(blockAndExtraData[0]);
+                                    if (t >= 0) {
+                                        blockType = BlockType.fromID(t); // Could be null
+                                        blockId = t;
+                                        typeAndData = new String[]{blockAndExtraData[0]};
+                                        testId = blockAndExtraData[0];
+                                    }
                                 }
                             }
+                        } else {
+                            blockId = baseBlock.getId();
+                            blockType = BlockType.fromID(blockId);
+                            data = baseBlock.getData();
                         }
                     } else {
-                        blockId = baseBlock.getId();
+                        blockId = block.legacyId;
                         blockType = BlockType.fromID(blockId);
-                        data = baseBlock.getData();
                     }
-                } else {
-                    blockId = block.legacyId;
-                    blockType = BlockType.fromID(blockId);
                 }
-            }
-            if (blockId == -1 && blockType == null) {
-                // Maybe it's a cloth
-                ClothColor col = ClothColor.lookup(testId);
-                if (col == null) {
-                    throw new NoMatchException("Can't figure out what block '" + input + "' refers to");
+                if (blockId == -1 && blockType == null) {
+                    // Maybe it's a cloth
+                    ClothColor col = ClothColor.lookup(testId);
+                    if (col == null) {
+                        throw new NoMatchException("Can't figure out what block '" + input + "' refers to");
+                    }
+
+                    blockType = BlockType.CLOTH;
+                    data = col.getID();
+
+                    // Prevent overriding the data value
+                    parseDataValue = false;
                 }
 
-                blockType = BlockType.CLOTH;
-                data = col.getID();
+                // Read block ID
+                if (blockId == -1) {
+                    blockId = blockType.getID();
+                }
 
-                // Prevent overriding the data value
-                parseDataValue = false;
-            }
-
-            // Read block ID
-            if (blockId == -1) {
-                blockId = blockType.getID();
-            }
-
-            if (!context.requireWorld().isValidBlockType(blockId)) {
-                throw new NoMatchException("Does not match a valid block type: '" + input + "'");
+                if (!context.requireWorld().isValidBlockType(blockId)) {
+                    throw new NoMatchException("Does not match a valid block type: '" + input + "'");
+                }
             }
         }
-
-
         if (!context.isPreferringWildcard() && data == -1) {
             // No wildcards allowed => eliminate them.
             data = 0;

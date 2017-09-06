@@ -31,6 +31,7 @@ import com.sk89q.worldedit.Vector;
 import com.sk89q.worldedit.Vector2D;
 import com.sk89q.worldedit.WorldEdit;
 import com.sk89q.worldedit.blocks.BaseBlock;
+import com.sk89q.worldedit.blocks.BaseItem;
 import com.sk89q.worldedit.blocks.BlockData;
 import com.sk89q.worldedit.command.BiomeCommands;
 import com.sk89q.worldedit.command.BrushCommands;
@@ -573,6 +574,7 @@ public class Fawe {
             Vector2D.inject(); // Optimizations
             // Block
             BaseBlock.inject(); // Optimizations
+            BaseItem.inject();
             // Biome
             BaseBiome.inject(); // Features
             // Pattern
