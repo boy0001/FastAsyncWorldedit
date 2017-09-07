@@ -305,7 +305,9 @@ public class AffineTransform implements Transform, Serializable {
 
     @Override
     public Transform combine(Transform other) {
-        if (other instanceof AffineTransform) {
+        if (other instanceof Identity || other.isIdentity()) {
+            return this;
+        } else if (other instanceof AffineTransform) {
             return concatenate((AffineTransform) other);
         } else {
             return new CombinedTransform(this, other);

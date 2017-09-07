@@ -474,7 +474,7 @@ public class ClipboardCommands extends MethodCommands {
         transform = transform.rotateY(-(yRotate != null ? yRotate : 0));
         transform = transform.rotateX(-(xRotate != null ? xRotate : 0));
         transform = transform.rotateZ(-(zRotate != null ? zRotate : 0));
-        holder.setTransform(holder.getTransform().combine(transform));
+        holder.setTransform(transform.combine(holder.getTransform()));
         BBC.COMMAND_ROTATE.send(player);
         if (!FawePlayer.wrap(player).hasPermission("fawe.tips"))
             BBC.TIP_FLIP.or(BBC.TIP_DEFORM, BBC.TIP_TRANSFORM).send(player);
@@ -496,7 +496,7 @@ public class ClipboardCommands extends MethodCommands {
         Clipboard clipboard = holder.getClipboard();
         AffineTransform transform = new AffineTransform();
         transform = transform.scale(direction.positive().multiply(-2).add(1, 1, 1));
-        holder.setTransform(holder.getTransform().combine(transform));
+        holder.setTransform(transform.combine(holder.getTransform()));
         BBC.COMMAND_FLIPPED.send(player);
     }
 
