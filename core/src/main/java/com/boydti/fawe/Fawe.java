@@ -27,6 +27,7 @@ import com.sk89q.worldedit.BlockWorldVector;
 import com.sk89q.worldedit.CuboidClipboard;
 import com.sk89q.worldedit.EditSession;
 import com.sk89q.worldedit.LocalSession;
+import com.sk89q.worldedit.PlayerDirection;
 import com.sk89q.worldedit.Vector;
 import com.sk89q.worldedit.Vector2D;
 import com.sk89q.worldedit.WorldEdit;
@@ -110,6 +111,7 @@ import com.sk89q.worldedit.function.visitor.RegionVisitor;
 import com.sk89q.worldedit.history.change.EntityCreate;
 import com.sk89q.worldedit.history.change.EntityRemove;
 import com.sk89q.worldedit.internal.LocalWorldAdapter;
+import com.sk89q.worldedit.internal.command.WorldEditBinding;
 import com.sk89q.worldedit.internal.expression.Expression;
 import com.sk89q.worldedit.internal.expression.runtime.ExpressionEnvironment;
 import com.sk89q.worldedit.internal.expression.runtime.Functions;
@@ -588,6 +590,8 @@ public class Fawe {
             DefaultBlockParser.inject(); // Fix block lookups
             BlockPattern.inject(); // Optimization
             AbstractPattern.inject();
+            PlayerDirection.inject(); // Diagonal commands
+            WorldEditBinding.inject(); //
             // Mask
             Mask.inject(); // Extend deprecated mask
             BlockMask.inject(); // Optimizations

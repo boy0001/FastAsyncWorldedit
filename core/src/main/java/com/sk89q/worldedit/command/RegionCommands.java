@@ -621,9 +621,8 @@ public class RegionCommands extends MethodCommands {
 
         if (moveSelection) {
             try {
-                final Vector size = region.getMaximumPoint().subtract(region.getMinimumPoint());
-
-                final Vector shiftVector = direction.multiply(count * (Math.abs(direction.dot(size)) + 1));
+                final Vector size = region.getMaximumPoint().subtract(region.getMinimumPoint()).add(1, 1, 1);
+                Vector shiftVector = new Vector(direction.getX() * size.getX() * count, direction.getY() * size.getY() * count, direction.getZ() * size.getZ() * count);
                 region.shift(shiftVector);
 
                 session.getRegionSelector(player.getWorld()).learnChanges();

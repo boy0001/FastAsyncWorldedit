@@ -147,10 +147,10 @@ public class CreateFromImage extends Command {
                             fp.sendMessage(BBC.getPrefix() + "/2 cfi smooth <url|mask> <radius> <iterations> [whiteonly]");
                             fp.sendMessage(BBC.getPrefix() + "/2 cfi waterHeight <height>");
                             fp.sendMessage(BBC.getPrefix() + "/2 cfi waterId <number-id>");
-                            fp.sendMessage(BBC.getPrefix() + "/2 cfi color <image-url>");
+                            fp.sendMessage(BBC.getPrefix() + "/2 cfi color <image-url> [image or fawe mask] [whiteOnly=true]");
                             fp.sendMessage(BBC.getPrefix() + "/2 cfi glass <image-url>");
                             fp.sendMessage(BBC.getPrefix() + "/2 cfi biomeColor <image-url>");
-                            fp.sendMessage(BBC.getPrefix() + "/2 cfi blockBiomeColor <image-url>");
+                            fp.sendMessage(BBC.getPrefix() + "/2 cfi blockBiomeColor <image-url> [image or fawe mask] [whiteOnly=true]");
                             fp.sendMessage(BBC.getPrefix() + "/2 cfi paletteComplexity <min=0> <max=100>");
                             fp.sendMessage(BBC.getPrefix() + "/2 cfi paletteRandomization <true|false>");
                             fp.sendMessage(BBC.getPrefix() + "/2 cfi paletteBlocks <block-list|#clipboard>");
