@@ -72,6 +72,14 @@ public class SchematicStreamer extends NBTStreamer {
                 fc.setBiome(index, value);
             }
         };
+        NBTStreamReader<Integer, Integer> initializer23 = new NBTStreamReader<Integer, Integer>() {
+            @Override
+            public void run(Integer value1, Integer value2) {
+                if (fc == null) setupClipboard(length * width * height);
+            }
+        };
+        addReader("Schematic.AWEBiomes.?", initializer23);
+        addReader("Schematic.Biomes.?", initializer23);
         addReader("Schematic.AWEBiomes.#", biomeReader); // AWE stores as an int[]
         addReader("Schematic.Biomes.#", biomeReader); // FAWE stores as a byte[] (4x smaller)
 
