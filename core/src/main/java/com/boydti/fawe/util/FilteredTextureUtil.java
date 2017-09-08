@@ -8,6 +8,8 @@ import java.util.Set;
 public class FilteredTextureUtil extends TextureUtil {
     public FilteredTextureUtil(TextureUtil parent, Set<BaseBlock> blocks) throws FileNotFoundException {
         super(parent.getFolder());
+        this.validMixBiomeColors = parent.validMixBiomeColors;
+        this.validMixBiomeIds = parent.validMixBiomeIds;
         this.validBiomes = parent.validBiomes;
         this.blockColors = parent.blockColors;
         this.blockDistance = parent.blockDistance;

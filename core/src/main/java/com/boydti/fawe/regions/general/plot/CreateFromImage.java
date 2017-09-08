@@ -252,7 +252,12 @@ public class CreateFromImage extends Command {
                                     // roughness
                                     // blocks
                                     if (argList.size() != 2) {
-                                        C.COMMAND_SYNTAX.send(player, "/2 cfi " + argList.get(0) + " <pattern|#clipboard>");
+                                        C.COMMAND_SYNTAX.send(player, "/2 cfi " + argList.get(0) + " <pattern|#clipboard|*>");
+                                        return;
+                                    }
+                                    if (argList.get(1).equalsIgnoreCase("*")) {
+                                        generator.setTextureUtil(Fawe.get().getTextureUtil());
+                                        player.sendMessage("Set color palette blocks, what's next?");
                                         return;
                                     }
                                     context.setPreferringWildcard(true);
