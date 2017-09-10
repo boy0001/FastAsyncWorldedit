@@ -33,9 +33,15 @@ public class SchematicStreamer extends NBTStreamer {
                 setupClipboard(length);
             }
         };
+        NBTStreamReader initializer2 = new NBTStreamReader<Integer, Integer>() {
+            @Override
+            public void run(Integer length, Integer type) {
+                setupClipboard(length*2);
+            }
+        };
         addReader("Schematic.Blocks.?", initializer);
         addReader("Schematic.Data.?", initializer);
-        addReader("Schematic.AddBlocks.?", initializer);
+        addReader("Schematic.AddBlocks.?", initializer2);
         addReader("Schematic.Blocks.#", new ByteReader() {
             @Override
             public void run(int index, int value) {
@@ -51,9 +57,31 @@ public class SchematicStreamer extends NBTStreamer {
         addReader("Schematic.AddBlocks.#", new ByteReader() {
             @Override
             public void run(int index, int value) {
-                if (value != 0) fc.setAdd(index, value);
+                if (value != 0) {
+                    int first = value & 0x0F;
+                    int second = (value & 0xF0) >> 4;
+                    int gIndex = index << 1;
+                    if (first != 0) fc.setAdd(gIndex, first);
+                    if (second != 0) fc.setAdd(gIndex + 1, second);
+                }
             }
         });
+        ByteReader biomeReader = new ByteReader() {
+            @Override
+            public void run(int index, int value) {
+                fc.setBiome(index, value);
+            }
+        };
+        NBTStreamReader<Integer, Integer> initializer23 = new NBTStreamReader<Integer, Integer>() {
+            @Override
+            public void run(Integer value1, Integer value2) {
+                if (fc == null) setupClipboard(length * width * height);
+            }
+        };
+        addReader("Schematic.AWEBiomes.?", initializer23);
+        addReader("Schematic.Biomes.?", initializer23);
+        addReader("Schematic.AWEBiomes.#", biomeReader); // AWE stores as an int[]
+        addReader("Schematic.Biomes.#", biomeReader); // FAWE stores as a byte[] (4x smaller)
 
         // Tiles
         addReader("Schematic.TileEntities.#", new RunnableVal2<Integer, CompoundTag>() {
@@ -192,17 +220,24 @@ public class SchematicStreamer extends NBTStreamer {
     }
 
     public Clipboard getClipboard() throws IOException {
-        addDimensionReaders();
-        addBlockReaders();
-        readFully();
-        Vector min = new Vector(originX, originY, originZ);
-        Vector offset = new Vector(offsetX, offsetY, offsetZ);
-        Vector origin = min.subtract(offset);
-        Vector dimensions = new Vector(width, height, length);
-        fc.setDimensions(dimensions);
-        CuboidRegion region = new CuboidRegion(min, min.add(width, height, length).subtract(Vector.ONE));
-        clipboard.init(region, fc);
-        clipboard.setOrigin(origin);
-        return clipboard;
+        try {
+            addDimensionReaders();
+            addBlockReaders();
+            readFully();
+            Vector min = new Vector(originX, originY, originZ);
+            Vector offset = new Vector(offsetX, offsetY, offsetZ);
+            Vector origin = min.subtract(offset);
+            Vector dimensions = new Vector(width, height, length);
+            fc.setDimensions(dimensions);
+            CuboidRegion region = new CuboidRegion(min, min.add(width, height, length).subtract(Vector.ONE));
+            clipboard.init(region, fc);
+            clipboard.setOrigin(origin);
+            return clipboard;
+        } catch (Throwable e) {
+            if (fc != null) {
+                fc.close();
+            }
+            throw e;
+        }
     }
 }

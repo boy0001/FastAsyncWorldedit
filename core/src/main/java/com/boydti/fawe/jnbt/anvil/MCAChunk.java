@@ -17,6 +17,7 @@ import com.sk89q.jnbt.NBTConstants;
 import com.sk89q.jnbt.NBTInputStream;
 import com.sk89q.jnbt.NBTOutputStream;
 import com.sk89q.jnbt.Tag;
+import java.io.DataOutput;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -106,7 +107,7 @@ public class MCAChunk extends FaweChunk<Void> {
         }
         FastByteArrayOutputStream buffered = new FastByteArrayOutputStream(buffer);
         DataOutputStream dataOut = new DataOutputStream(buffered);
-        NBTOutputStream nbtOut = new NBTOutputStream(dataOut);
+        NBTOutputStream nbtOut = new NBTOutputStream((DataOutput) dataOut);
         nbtOut.writeNamedTagName("", NBTConstants.TYPE_COMPOUND);
         nbtOut.writeLazyCompoundTag("Level", new NBTOutputStream.LazyWrite() {
             @Override

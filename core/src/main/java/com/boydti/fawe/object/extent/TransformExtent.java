@@ -28,6 +28,21 @@ public class TransformExtent extends BlockTransformExtent {
         return super.setExtent(extent);
     }
 
+    @Override
+    public Vector getMinimumPoint() {
+        Vector pos1 = new MutableBlockVector(getPos(super.getMinimumPoint()));
+        Vector pos2 = new MutableBlockVector(getPos(super.getMaximumPoint()));
+        return Vector.getMinimum(pos1, pos2);
+    }
+
+    @Override
+    public Vector getMaximumPoint() {
+        Vector pos1 = new MutableBlockVector(getPos(super.getMinimumPoint()));
+        Vector pos2 = new MutableBlockVector(getPos(super.getMaximumPoint()));
+        return Vector.getMaximum(pos1, pos2);
+    }
+
+    @Override
     public void setOrigin(Vector pos) {
         this.min = pos;
     }

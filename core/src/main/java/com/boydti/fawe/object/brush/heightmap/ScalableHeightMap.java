@@ -3,7 +3,6 @@ package com.boydti.fawe.object.brush.heightmap;
 import com.boydti.fawe.object.IntegerPair;
 import com.boydti.fawe.util.MainUtil;
 import com.boydti.fawe.util.MathMan;
-import com.sk89q.worldedit.EditSession;
 import com.sk89q.worldedit.Vector;
 import com.sk89q.worldedit.blocks.BaseBlock;
 import com.sk89q.worldedit.extent.clipboard.Clipboard;
@@ -12,7 +11,6 @@ import java.awt.image.Raster;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.HashSet;
-import javax.imageio.ImageIO;
 
 public class ScalableHeightMap implements com.boydti.fawe.object.brush.heightmap.HeightMap {
     public int size2;
@@ -79,7 +77,7 @@ public class ScalableHeightMap implements com.boydti.fawe.object.brush.heightmap
             for (int y = minY; y <= maxY; y++) {
                 pos.mutY(y);
                 BaseBlock block = clipboard.getBlock(pos);
-                if (block != EditSession.nullBlock) {
+                if (block.getId() != 0) {
                     highestY = y + 1;
                 }
             }
@@ -92,7 +90,7 @@ public class ScalableHeightMap implements com.boydti.fawe.object.brush.heightmap
     }
 
     public static ScalableHeightMap fromPNG(InputStream stream) throws IOException {
-        BufferedImage heightFile = MainUtil.toRGB(ImageIO.read(stream));
+        BufferedImage heightFile = MainUtil.readImage(stream);
         int width = heightFile.getWidth();
         int length = heightFile.getHeight();
         Raster data = heightFile.getData();

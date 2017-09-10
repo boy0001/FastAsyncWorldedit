@@ -33,6 +33,16 @@ public interface IFawe {
 
     public void startMetrics();
 
+
+    default int getPlayerCount() {
+        return Fawe.get().getCachedPlayers().size();
+    }
+
+    public String getPlatformVersion();
+
+    public boolean isOnlineMode();
+
+
     public String getPlatform();
 
     public UUID getUUID(String name);

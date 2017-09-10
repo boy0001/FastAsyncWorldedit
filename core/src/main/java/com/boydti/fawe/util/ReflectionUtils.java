@@ -288,6 +288,72 @@ public class ReflectionUtils {
         }
     }
 
+    public static Field findField(final Class<?> clazz, final Class<?> type, int hasMods, int noMods) {
+        for (Field field : clazz.getDeclaredFields()) {
+            if (type == null || type.isAssignableFrom(field.getType())) {
+                int mods = field.getModifiers();
+                if ((mods & hasMods) == hasMods && (mods & noMods) == 0) {
+                    return setAccessible(field);
+                }
+            }
+        }
+        return null;
+    }
+
+    public static Field findField(final Class<?> clazz, final Class<?> type) {
+        for (Field field : clazz.getDeclaredFields()) {
+            if (field.getType() == type) {
+                return setAccessible(field);
+            }
+        }
+        return null;
+    }
+
+    public static Method findMethod(final Class<?> clazz, final Class<?> returnType, Class... params) {
+        return findMethod(clazz, 0, returnType, params);
+    }
+
+    public static Method findMethod(final Class<?> clazz, int index, int hasMods, int noMods, final Class<?> returnType, Class... params) {
+        outer:
+        for (Method method : sortMethods(clazz.getDeclaredMethods())) {
+            if (returnType == null || method.getReturnType() == returnType) {
+                Class<?>[] mp = method.getParameterTypes();
+                int mods = method.getModifiers();
+                if ((mods & hasMods) != hasMods || (mods & noMods) != 0) continue;
+                if (params == null) {
+                    if (index-- == 0) return setAccessible(method);
+                    else {
+                        continue;
+                    }
+                }
+                if (mp.length == params.length) {
+                    for (int i = 0; i < mp.length; i++) {
+                        if (mp[i] != params[i]) continue outer;
+                    }
+                    if (index-- == 0) return setAccessible(method);
+                    else {
+                        continue;
+                    }
+                }
+            }
+        }
+        return null;
+    }
+
+    private static Method[] sortMethods(Method[] methods) {
+        Arrays.sort(methods, (o1, o2) -> o1.getName().compareTo(o2.getName()));
+        return methods;
+    }
+
+    public static Method findMethod(final Class<?> clazz, int index, final Class<?> returnType, Class... params) {
+        return findMethod(clazz, index, 0, 0, returnType, params);
+    }
+
+    public static <T extends AccessibleObject> T setAccessible(final T ao) {
+        ao.setAccessible(true);
+        return ao;
+    }
+
     @SuppressWarnings("unchecked")
     public static <T> T getField(final Field field, final Object instance) {
         if (field == null) {

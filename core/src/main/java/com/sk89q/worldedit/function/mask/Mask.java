@@ -19,16 +19,19 @@
 
 package com.sk89q.worldedit.function.mask;
 
+import com.sk89q.minecraft.util.commands.Link;
 import com.sk89q.worldedit.EditSession;
 import com.sk89q.worldedit.LocalPlayer;
 import com.sk89q.worldedit.LocalSession;
 import com.sk89q.worldedit.Vector;
+import com.sk89q.worldedit.command.UtilityCommands;
 import java.io.Serializable;
 import javax.annotation.Nullable;
 
 /**
  * Tests whether a given vector meets a criteria.
  */
+@Link(clazz = UtilityCommands.class, value = "masks")
 public interface Mask extends com.sk89q.worldedit.masks.Mask, Serializable {
 
     /**

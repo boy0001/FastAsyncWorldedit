@@ -26,6 +26,7 @@ import com.boydti.fawe.object.pattern.PatternTraverser;
 import com.boydti.fawe.util.MainUtil;
 import com.boydti.fawe.wrappers.LocationMaskedPlayerWrapper;
 import com.boydti.fawe.wrappers.PlayerWrapper;
+import com.boydti.fawe.wrappers.WorldWrapper;
 import com.sk89q.worldedit.LocalConfiguration;
 import com.sk89q.worldedit.LocalSession;
 import com.sk89q.worldedit.ServerInterface;
@@ -258,6 +259,7 @@ public class PlatformManager {
      */
     public World getWorldForEditing(World base) {
         checkNotNull(base);
+        base = WorldWrapper.unwrap(base);
         World match = queryCapability(Capability.WORLD_EDITING).matchWorld(base);
         return match != null ? match : base;
     }

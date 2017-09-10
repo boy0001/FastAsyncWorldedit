@@ -19,13 +19,16 @@
 
 package com.sk89q.worldedit.function.pattern;
 
+import com.sk89q.minecraft.util.commands.Link;
 import com.sk89q.worldedit.MutableBlockVector;
 import com.sk89q.worldedit.Vector;
 import com.sk89q.worldedit.blocks.BaseBlock;
+import com.sk89q.worldedit.command.UtilityCommands;
 
 /**
  * Returns a {@link BaseBlock} for a given position.
  */
+@Link(clazz = UtilityCommands.class, value = "patterns")
 public interface Pattern extends com.sk89q.worldedit.patterns.Pattern {
 
     /**

@@ -160,7 +160,7 @@ public interface Extent extends InputExtent, OutputExtent {
         PseudoRandom random = new PseudoRandom();
         for (Vector2D chunkPos : region.getChunks()) {
             for (int i = 0; i < frequency; i++) {
-                if (random.nextInt(101) > rarity) {
+                if (random.nextInt(100) > rarity) {
                     continue;
                 }
                 int x = (chunkPos.getBlockX() << 4) + PseudoRandom.random.nextInt(16);

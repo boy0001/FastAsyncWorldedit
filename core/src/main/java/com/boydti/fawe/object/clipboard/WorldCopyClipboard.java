@@ -5,6 +5,7 @@ import com.sk89q.jnbt.CompoundTag;
 import com.sk89q.jnbt.IntTag;
 import com.sk89q.jnbt.Tag;
 import com.sk89q.worldedit.EditSession;
+import com.sk89q.worldedit.MutableBlockVector2D;
 import com.sk89q.worldedit.Vector;
 import com.sk89q.worldedit.WorldEditException;
 import com.sk89q.worldedit.blocks.BaseBlock;
@@ -14,16 +15,27 @@ import com.sk89q.worldedit.function.operation.Operations;
 import com.sk89q.worldedit.function.visitor.RegionVisitor;
 import com.sk89q.worldedit.regions.CuboidRegion;
 import com.sk89q.worldedit.regions.Region;
+import com.sk89q.worldedit.world.biome.BaseBiome;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
 public class WorldCopyClipboard extends ReadOnlyClipboard {
 
     public final int mx, my, mz;
+    private final boolean hasBiomes;
+    private final boolean hasEntities;
+    private MutableBlockVector2D mutableBlockVector2D = new MutableBlockVector2D();
     public final EditSession editSession;
 
     public WorldCopyClipboard(EditSession editSession, Region region) {
+        this(editSession, region, true, false);
+    }
+
+    public WorldCopyClipboard(EditSession editSession, Region region, boolean hasEntities, boolean hasBiomes) {
         super(region);
+        this.hasBiomes = hasBiomes;
+        this.hasEntities = hasEntities;
         final Vector origin = region.getMinimumPoint();
         this.mx = origin.getBlockX();
         this.my = origin.getBlockY();
@@ -41,8 +53,19 @@ public class WorldCopyClipboard extends ReadOnlyClipboard {
     }
 
     @Override
+    public BaseBiome getBiome(int x, int z) {
+        return editSession.getBiome(mutableBlockVector2D.setComponents(mx + x, mz + z));
+    }
+
+    @Override
     public List<? extends Entity> getEntities() {
+        if (!hasEntities) return new ArrayList<>();
         return editSession.getEntities(getRegion());
+    }
+
+    @Override
+    public boolean hasBiomes() {
+        return hasBiomes;
     }
 
     @Override
@@ -111,7 +134,7 @@ public class WorldCopyClipboard extends ReadOnlyClipboard {
                         int xx = pos.getBlockX() - mx;
                         if (region.contains(pos)) {
                             BaseBlock block = getBlockAbs(x, y, z);
-                            if (!air && block == EditSession.nullBlock) {
+                            if (!air && block.getId() == 0) {
                                 continue;
                             }
                             CompoundTag tag = block.getNbtData();

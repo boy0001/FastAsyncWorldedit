@@ -92,15 +92,16 @@ public class ClipboardCommands extends MethodCommands {
             desc = "Lazily copy the selection to the clipboard",
             help = "Lazily copy the selection to the clipboard\n" +
                     "Flags:\n" +
-                    "  -e controls whether entities are copied\n" +
+                    "  -e skips copying entities\n" +
                     "  -m sets a source mask so that excluded blocks become air\n" +
+                    "  -b copies biomes\n" +
                     "WARNING: Pasting entities cannot yet be undone!",
             max = 0
     )
     @CommandPermissions("worldedit.clipboard.lazycopy")
     public void lazyCopy(Player player, LocalSession session, EditSession editSession,
-                         @Selection final Region region, @Switch('e') boolean copyEntities,
-                         @Switch('m') Mask mask) throws WorldEditException {
+                         @Selection final Region region, @Switch('e') boolean skipEntities,
+                         @Switch('m') Mask mask, @Switch('b') boolean copyBiomes) throws WorldEditException {
         Vector min = region.getMinimumPoint();
         Vector max = region.getMaximumPoint();
         long volume = (((long) max.getX() - (long) min.getX() + 1) * ((long) max.getY() - (long) min.getY() + 1) * ((long) max.getZ() - (long) min.getZ() + 1));
@@ -113,7 +114,7 @@ public class ClipboardCommands extends MethodCommands {
         final int mx = origin.getBlockX();
         final int my = origin.getBlockY();
         final int mz = origin.getBlockZ();
-        ReadOnlyClipboard lazyClipboard = ReadOnlyClipboard.of(editSession, region);
+        ReadOnlyClipboard lazyClipboard = ReadOnlyClipboard.of(editSession, region, !skipEntities, copyBiomes);
 
         BlockArrayClipboard clipboard = new BlockArrayClipboard(region, lazyClipboard);
         clipboard.setOrigin(session.getPlacementPosition(player));
@@ -130,16 +131,17 @@ public class ClipboardCommands extends MethodCommands {
             desc = "Copy the selection to the clipboard",
             help = "Copy the selection to the clipboard\n" +
                     "Flags:\n" +
-                    "  -e controls whether entities are copied\n" +
+                    "  -e skips copying entities\n" +
                     "  -m sets a source mask so that excluded blocks become air\n" +
+                    "  -b copies biomes\n" +
                     "WARNING: Pasting entities cannot yet be undone!",
             min = 0,
             max = 0
     )
     @CommandPermissions("worldedit.clipboard.copy")
     public void copy(FawePlayer fp, Player player, LocalSession session, EditSession editSession,
-                     @Selection Region region, @Switch('e') boolean copyEntities,
-                     @Switch('m') Mask mask, CommandContext context) throws WorldEditException {
+                     @Selection Region region, @Switch('e') boolean skipEntities,
+                     @Switch('m') Mask mask, CommandContext context, @Switch('b') boolean copyBiomes) throws WorldEditException {
         fp.checkConfirmationRegion(getArguments(context), region);
         Vector min = region.getMinimumPoint();
         Vector max = region.getMaximumPoint();
@@ -154,6 +156,8 @@ public class ClipboardCommands extends MethodCommands {
 
         clipboard.setOrigin(session.getPlacementPosition(player));
         ForwardExtentCopy copy = new ForwardExtentCopy(editSession, region, clipboard, region.getMinimumPoint());
+        copy.setCopyEntities(!skipEntities);
+        copy.setCopyBiomes(copyBiomes);
         Mask sourceMask = editSession.getSourceMask();
         if (sourceMask != null) {
             new MaskTraverser(sourceMask).reset(editSession);
@@ -175,15 +179,16 @@ public class ClipboardCommands extends MethodCommands {
             desc = "Lazily cut the selection to the clipboard",
             help = "Lazily cut the selection to the clipboard\n" +
                     "Flags:\n" +
-                    "  -e controls whether entities are cut\n" +
+                    "  -e skips entity copy\n" +
                     "  -m sets a source mask so that excluded blocks become air\n" +
+                    "  -b copies biomes\n" +
                     "WARNING: Pasting entities cannot yet be undone!",
             max = 0
     )
     @CommandPermissions("worldedit.clipboard.lazycut")
     public void lazyCut(Player player, LocalSession session, EditSession editSession,
-                        @Selection final Region region, @Switch('e') boolean copyEntities,
-                        @Switch('m') Mask mask) throws WorldEditException {
+                        @Selection final Region region, @Switch('e') boolean skipEntities,
+                        @Switch('m') Mask mask, @Switch('b') boolean copyBiomes) throws WorldEditException {
         Vector min = region.getMinimumPoint();
         Vector max = region.getMaximumPoint();
         long volume = (((long) max.getX() - (long) min.getX() + 1) * ((long) max.getY() - (long) min.getY() + 1) * ((long) max.getZ() - (long) min.getZ() + 1));
@@ -199,7 +204,7 @@ public class ClipboardCommands extends MethodCommands {
         final int mx = origin.getBlockX();
         final int my = origin.getBlockY();
         final int mz = origin.getBlockZ();
-        ReadOnlyClipboard lazyClipboard = new WorldCutClipboard(editSession, region);
+        ReadOnlyClipboard lazyClipboard = new WorldCutClipboard(editSession, region, !skipEntities, copyBiomes);
         BlockArrayClipboard clipboard = new BlockArrayClipboard(region, lazyClipboard);
         clipboard.setOrigin(session.getPlacementPosition(player));
         session.setClipboard(new ClipboardHolder(clipboard, editSession.getWorldData()));
@@ -213,8 +218,9 @@ public class ClipboardCommands extends MethodCommands {
             desc = "Cut the selection to the clipboard",
             help = "Copy the selection to the clipboard\n" +
                     "Flags:\n" +
-                    "  -e controls whether entities are copied\n" +
+                    "  -e skips entity copy\n" +
                     "  -m sets a source mask so that excluded blocks become air\n" +
+                    "  -b copies biomes\n" +
                     "WARNING: Cutting and pasting entities cannot yet be undone!",
             min = 0,
             max = 1
@@ -222,8 +228,8 @@ public class ClipboardCommands extends MethodCommands {
     @CommandPermissions("worldedit.clipboard.cut")
     @Logging(REGION)
     public void cut(FawePlayer fp, Player player, LocalSession session, EditSession editSession,
-                    @Selection Region region, @Optional("air") Pattern leavePattern, @Switch('e') boolean copyEntities,
-                    @Switch('m') Mask mask, CommandContext context) throws WorldEditException {
+                    @Selection Region region, @Optional("air") Pattern leavePattern, @Switch('e') boolean skipEntities,
+                    @Switch('m') Mask mask, @Switch('b') boolean copyBiomes, CommandContext context) throws WorldEditException {
         fp.checkConfirmationRegion(getArguments(context), region);
         Vector min = region.getMinimumPoint();
         Vector max = region.getMaximumPoint();
@@ -240,6 +246,8 @@ public class ClipboardCommands extends MethodCommands {
         clipboard.setOrigin(session.getPlacementPosition(player));
         ForwardExtentCopy copy = new ForwardExtentCopy(editSession, region, clipboard, region.getMinimumPoint());
         copy.setSourceFunction(new BlockReplace(editSession, leavePattern));
+        copy.setCopyEntities(!skipEntities);
+        copy.setCopyBiomes(copyBiomes);
         Mask sourceMask = editSession.getSourceMask();
         if (sourceMask != null) {
             new MaskTraverser(sourceMask).reset(editSession);
@@ -307,7 +315,7 @@ public class ClipboardCommands extends MethodCommands {
         if (url == null) {
             BBC.GENERATING_LINK_FAILED.send(player);
         } else {
-            BBC.DOWNLOAD_LINK.send(player, url.toString());
+            BBC.DOWNLOAD_LINK.send(player, url);
         }
     }
 
@@ -348,6 +356,13 @@ public class ClipboardCommands extends MethodCommands {
         }
     }
 
+    @Deprecated
+    public void paste(Player player, LocalSession session, EditSession editSession,
+                      @Switch('a') boolean ignoreAirBlocks, @Switch('o') boolean atOrigin,
+                      @Switch('s') boolean selectPasted) throws WorldEditException {
+        this.paste(player, session, editSession, ignoreAirBlocks, false, false, atOrigin, selectPasted);
+    }
+
     @Command(
             aliases = {"/paste"},
             usage = "",
@@ -357,6 +372,8 @@ public class ClipboardCommands extends MethodCommands {
                     "Pastes the clipboard's contents.\n" +
                             "Flags:\n" +
                             "  -a skips air blocks\n" +
+                            "  -b skips pasting biomes\n" +
+                            "  -e skips pasting entities\n" +
                             "  -o pastes at the original position\n" +
                             "  -s selects the region after pasting",
             min = 0,
@@ -365,7 +382,7 @@ public class ClipboardCommands extends MethodCommands {
     @CommandPermissions("worldedit.clipboard.paste")
     @Logging(PLACEMENT)
     public void paste(Player player, LocalSession session, EditSession editSession,
-                      @Switch('a') boolean ignoreAirBlocks, @Switch('o') boolean atOrigin,
+                      @Switch('a') boolean ignoreAirBlocks, @Switch('b') boolean ignoreBiomes, @Switch('e') boolean ignoreEntities, @Switch('o') boolean atOrigin,
                       @Switch('s') boolean selectPasted) throws WorldEditException {
         ClipboardHolder holder = session.getClipboard();
         if (holder.getTransform().isIdentity() && editSession.getSourceMask() == null) {
@@ -379,6 +396,8 @@ public class ClipboardCommands extends MethodCommands {
                 .createPaste(editSession, editSession.getWorldData())
                 .to(to)
                 .ignoreAirBlocks(ignoreAirBlocks)
+                .ignoreBiomes(ignoreBiomes)
+                .ignoreEntities(ignoreEntities)
                 .build();
         Operations.completeLegacy(operation);
 
@@ -450,18 +469,12 @@ public class ClipboardCommands extends MethodCommands {
     )
     @CommandPermissions("worldedit.clipboard.rotate")
     public void rotate(Player player, LocalSession session, Double yRotate, @Optional Double xRotate, @Optional Double zRotate) throws WorldEditException {
-        if ((yRotate != null && Math.abs(yRotate % 90) > 0.001) ||
-                xRotate != null && Math.abs(xRotate % 90) > 0.001 ||
-                zRotate != null && Math.abs(zRotate % 90) > 0.001) {
-            player.printDebug("Note: Interpolation is not yet supported, so angles that are multiples of 90 is recommended.");
-        }
-
         ClipboardHolder holder = session.getClipboard();
         AffineTransform transform = new AffineTransform();
         transform = transform.rotateY(-(yRotate != null ? yRotate : 0));
         transform = transform.rotateX(-(xRotate != null ? xRotate : 0));
         transform = transform.rotateZ(-(zRotate != null ? zRotate : 0));
-        holder.setTransform(holder.getTransform().combine(transform));
+        holder.setTransform(transform.combine(holder.getTransform()));
         BBC.COMMAND_ROTATE.send(player);
         if (!FawePlayer.wrap(player).hasPermission("fawe.tips"))
             BBC.TIP_FLIP.or(BBC.TIP_DEFORM, BBC.TIP_TRANSFORM).send(player);
@@ -483,7 +496,7 @@ public class ClipboardCommands extends MethodCommands {
         Clipboard clipboard = holder.getClipboard();
         AffineTransform transform = new AffineTransform();
         transform = transform.scale(direction.positive().multiply(-2).add(1, 1, 1));
-        holder.setTransform(holder.getTransform().combine(transform));
+        holder.setTransform(transform.combine(holder.getTransform()));
         BBC.COMMAND_FLIPPED.send(player);
     }
 

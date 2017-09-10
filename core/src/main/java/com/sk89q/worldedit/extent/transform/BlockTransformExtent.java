@@ -2,14 +2,19 @@ package com.sk89q.worldedit.extent.transform;
 
 import com.boydti.fawe.FaweCache;
 import com.boydti.fawe.object.extent.ResettableExtent;
+import com.boydti.fawe.util.ReflectionUtils;
+import com.sk89q.jnbt.ByteTag;
 import com.sk89q.jnbt.CompoundTag;
+import com.sk89q.jnbt.Tag;
 import com.sk89q.worldedit.Vector;
 import com.sk89q.worldedit.Vector2D;
 import com.sk89q.worldedit.WorldEditException;
 import com.sk89q.worldedit.blocks.BaseBlock;
 import com.sk89q.worldedit.extent.Extent;
+import com.sk89q.worldedit.internal.helper.MCDirections;
 import com.sk89q.worldedit.math.transform.AffineTransform;
 import com.sk89q.worldedit.math.transform.Transform;
+import com.sk89q.worldedit.util.Direction;
 import com.sk89q.worldedit.world.biome.BaseBiome;
 import com.sk89q.worldedit.world.registry.BlockRegistry;
 import com.sk89q.worldedit.world.registry.State;
@@ -75,26 +80,26 @@ public class BlockTransformExtent extends ResettableExtent {
         CompoundTag tag = block.getNbtData();
         if (tag != null) {
             newBlock = new BaseBlock(newBlock.getId(), newBlock.getData(), tag);
-//            if (tag.containsKey("Rot")) {
-//                int rot = tag.asInt("Rot");
-//
-//                Direction direction = MCDirections.fromRotation(rot);
-//
-//                if (direction != null) {
-//                    Vector applyAbsolute = transform.apply(direction.toVector());
-//                    Vector applyOrigin = transform.apply(Vector.ZERO);
-//                    applyAbsolute.x -= applyOrigin.x;
-//                    applyAbsolute.y -= applyOrigin.y;
-//                    applyAbsolute.z -= applyOrigin.z;
-//
-//                    Direction newDirection = Direction.findClosest(applyAbsolute, Direction.Flag.CARDINAL | Direction.Flag.ORDINAL | Direction.Flag.SECONDARY_ORDINAL);
-//
-//                    if (newDirection != null) {
-//                        Map<String, Tag> values = ReflectionUtils.getMap(tag.getValue());
-//                        values.put("Rot", new ByteTag((byte) MCDirections.toRotation(newDirection)));
-//                    }
-//                }
-//            }
+            if (tag.containsKey("Rot")) {
+                int rot = tag.asInt("Rot");
+
+                Direction direction = MCDirections.fromRotation(rot);
+
+                if (direction != null) {
+                    Vector applyAbsolute = transform.apply(direction.toVector());
+                    Vector applyOrigin = transform.apply(Vector.ZERO);
+                    applyAbsolute.mutX(applyAbsolute.getX() - applyOrigin.getX());
+                    applyAbsolute.mutY(applyAbsolute.getY() - applyOrigin.getY());
+                    applyAbsolute.mutZ(applyAbsolute.getZ() - applyOrigin.getZ());
+
+                    Direction newDirection = Direction.findClosest(applyAbsolute, Direction.Flag.CARDINAL | Direction.Flag.ORDINAL | Direction.Flag.SECONDARY_ORDINAL);
+
+                    if (newDirection != null) {
+                        Map<String, Tag> values = ReflectionUtils.getMap(tag.getValue());
+                        values.put("Rot", new ByteTag((byte) MCDirections.toRotation(newDirection)));
+                    }
+                }
+            }
         }
         return newBlock;
     }
@@ -104,26 +109,26 @@ public class BlockTransformExtent extends ResettableExtent {
         CompoundTag tag = block.getNbtData();
         if (tag != null) {
             newBlock = new BaseBlock(newBlock.getId(), newBlock.getData(), tag);
-//            if (tag.containsKey("Rot")) {
-//                int rot = tag.asInt("Rot");
-//
-//                Direction direction = MCDirections.fromRotation(rot);
-//
-//                if (direction != null) {
-//                    Vector applyAbsolute = transformInverse.apply(direction.toVector());
-//                    Vector applyOrigin = transformInverse.apply(Vector.ZERO);
-//                    applyAbsolute.x -= applyOrigin.x;
-//                    applyAbsolute.y -= applyOrigin.y;
-//                    applyAbsolute.z -= applyOrigin.z;
-//
-//                    Direction newDirection = Direction.findClosest(applyAbsolute, Direction.Flag.CARDINAL | Direction.Flag.ORDINAL | Direction.Flag.SECONDARY_ORDINAL);
-//
-//                    if (newDirection != null) {
-//                        Map<String, Tag> values = ReflectionUtils.getMap(tag.getValue());
-//                        values.put("Rot", new ByteTag((byte) MCDirections.toRotation(newDirection)));
-//                    }
-//                }
-//            }
+            if (tag.containsKey("Rot")) {
+                int rot = tag.asInt("Rot");
+
+                Direction direction = MCDirections.fromRotation(rot);
+
+                if (direction != null) {
+                    Vector applyAbsolute = transformInverse.apply(direction.toVector());
+                    Vector applyOrigin = transformInverse.apply(Vector.ZERO);
+                    applyAbsolute.mutX(applyAbsolute.getX() - applyOrigin.getX());
+                    applyAbsolute.mutY(applyAbsolute.getY() - applyOrigin.getY());
+                    applyAbsolute.mutZ(applyAbsolute.getZ() - applyOrigin.getZ());
+
+                    Direction newDirection = Direction.findClosest(applyAbsolute, Direction.Flag.CARDINAL | Direction.Flag.ORDINAL | Direction.Flag.SECONDARY_ORDINAL);
+
+                    if (newDirection != null) {
+                        Map<String, Tag> values = ReflectionUtils.getMap(tag.getValue());
+                        values.put("Rot", new ByteTag((byte) MCDirections.toRotation(newDirection)));
+                    }
+                }
+            }
         }
         return newBlock;
     }
@@ -198,7 +203,8 @@ public class BlockTransformExtent extends ResettableExtent {
             return changedBlock;
         }
 
-        for (State state : states.values()) {
+        for (Map.Entry<String, ? extends State> entry : states.entrySet()) {
+            State state = entry.getValue();
             if (state.hasDirection()) {
                 StateValue value = state.getValue(block);
                 if (value != null && value.getDirection() != null) {
@@ -231,7 +237,8 @@ public class BlockTransformExtent extends ResettableExtent {
         double closest = -2;
         boolean found = false;
 
-        for (StateValue v : state.valueMap().values()) {
+        for (Map.Entry<String, ? extends StateValue> entry : state.valueMap().entrySet()) {
+            StateValue v = entry.getValue();
             if (v.getDirection() != null) {
                 double dot = v.getDirection().normalize().dot(newDirection);
                 if (dot >= closest) {

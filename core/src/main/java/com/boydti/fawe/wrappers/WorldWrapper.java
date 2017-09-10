@@ -50,6 +50,9 @@ public class WorldWrapper extends LocalWorld {
         if (world instanceof LocalWorldAdapter) {
             return unwrap(LocalWorldAdapter.unwrap(world));
         }
+        else if (world instanceof EditSession) {
+            return unwrap(((EditSession) world).getWorld());
+        }
         return world;
     }
 

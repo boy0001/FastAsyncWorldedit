@@ -26,7 +26,9 @@ import com.boydti.fawe.config.Settings;
 import com.boydti.fawe.object.FaweLimit;
 import com.boydti.fawe.object.FawePlayer;
 import com.boydti.fawe.object.brush.BlendBall;
+import com.boydti.fawe.object.brush.BlobBrush;
 import com.boydti.fawe.object.brush.BrushSettings;
+import com.boydti.fawe.object.brush.CatenaryBrush;
 import com.boydti.fawe.object.brush.CircleBrush;
 import com.boydti.fawe.object.brush.CommandBrush;
 import com.boydti.fawe.object.brush.CopyPastaBrush;
@@ -48,7 +50,10 @@ import com.boydti.fawe.object.brush.StencilBrush;
 import com.boydti.fawe.object.brush.SurfaceSphereBrush;
 import com.boydti.fawe.object.brush.SurfaceSpline;
 import com.boydti.fawe.object.brush.heightmap.ScalableHeightMap;
+import com.boydti.fawe.object.brush.sweep.SweepBrush;
 import com.boydti.fawe.object.mask.IdMask;
+import com.boydti.fawe.util.ColorUtil;
+import com.boydti.fawe.util.MathMan;
 import com.sk89q.minecraft.util.commands.Command;
 import com.sk89q.minecraft.util.commands.CommandContext;
 import com.sk89q.minecraft.util.commands.CommandLocals;
@@ -83,8 +88,10 @@ import com.sk89q.worldedit.function.mask.Mask;
 import com.sk89q.worldedit.function.pattern.Pattern;
 import com.sk89q.worldedit.session.ClipboardHolder;
 import com.sk89q.worldedit.util.command.InvalidUsageException;
+import com.sk89q.worldedit.util.command.binding.Range;
 import com.sk89q.worldedit.util.command.binding.Switch;
 import com.sk89q.worldedit.util.command.parametric.Optional;
+import java.awt.Color;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -95,12 +102,11 @@ import java.nio.channels.Channels;
 import java.nio.channels.ReadableByteChannel;
 import java.util.ArrayList;
 import java.util.List;
-import javafx.scene.paint.Color;
 
 /**
  * Commands to set brush shape.
  */
-@Command(aliases = {"brush", "br", "/b"}, 
+@Command(aliases = {"brush", "br", "tool"}, 
         desc = "Команды строения и рисования издалека. [Больше информации](https://git.io/vSPYf)"               
 )
 public class BrushCommands extends MethodCommands {
@@ -244,7 +250,41 @@ public class BrushCommands extends MethodCommands {
                 .setFill(fill);
     }
 
-    // final double tension, final double bias, final double continuity, final double quality
+    // Adapted from: https://github.com/Rafessor/VaeronTools
+    @Command(
+            aliases = {"sweep", "sw", "vaesweep"},
+            usage = "[copies=-1]",
+            desc = "Sweep your clipboard content along a curve",
+            help = "Sweeps your clipboard content along a curve.\n" +
+                    "Define a curve by selecting the individual points with a brush\n" +
+                    "Set [copies] to a value > 0 if you want to have your selection pasted a limited amount of times equally spaced on the curve",
+            max = 1
+    )
+    @CommandPermissions("worldedit.brush.sweep")
+    public BrushSettings sweepBrush(Player player, LocalSession session, EditSession editSession, @Optional("-1") int copies, CommandContext context) throws WorldEditException {
+        player.print(BBC.getPrefix() + BBC.BRUSH_SPLINE.s());
+        return get(context).setBrush(new SweepBrush(copies));
+    }
+
+    @Command(
+            aliases = {"catenary", "cat", "gravityline", "saggedline"},
+            usage = "<pattern> [lengthFactor=1.2] [size=0]",
+            desc = "Create a hanging line between two points",
+            help = "Create a hanging line between two points.\n" +
+                    "The lengthFactor controls how long the line is\n" +
+                    "The -h flag creates only a shell\n" +
+                    "The -s flag selects the clicked point after drawing\n",
+            min = 1,
+            max = 3
+    )
+    @CommandPermissions("worldedit.brush.spline")
+    public BrushSettings catenaryBrush(Player player, EditSession editSession, LocalSession session, Pattern fill, @Optional("1.2") @Range(min=1) double lengthFactor, @Optional("0") double radius, @Switch('h') boolean shell, @Switch('s') boolean select, CommandContext context) throws WorldEditException {
+        worldEdit.checkMaxBrushRadius(radius);
+        return get(context)
+                .setBrush(new CatenaryBrush(shell, select, lengthFactor))
+                .setSize(radius)
+                .setFill(fill);
+    }
 
     @Command(
             aliases = {"sspl", "sspline", "surfacespline"},
@@ -253,7 +293,7 @@ public class BrushCommands extends MethodCommands {
             help = "Создайте сплайн на поверхности\n" +
                     "Видео: https://www.youtube.com/watch?v=zSN-2jJxXlM",
             min = 0,
-            max = 2
+            max = 6
     )
     @CommandPermissions("worldedit.brush.surfacespline") // 0, 0, 0, 10, 0,
     public BrushSettings surfaceSpline(Player player, EditSession editSession, LocalSession session, Pattern fill, @Optional("0") double radius, @Optional("0") double tension, @Optional("0") double bias, @Optional("0") double continuity, @Optional("10") double quality, CommandContext context) throws WorldEditException {
@@ -262,6 +302,25 @@ public class BrushCommands extends MethodCommands {
         return get(context)
                 .setBrush(new SurfaceSpline(tension, bias, continuity, quality))
                 .setSize(radius)
+                .setFill(fill);
+    }
+
+    @Command(
+            aliases = {"rock", "blob"},
+            usage = "<pattern> [radius=10] [roundness=100] [frequency=30] [amplitude=50]",
+            flags = "h",
+            desc = "Creates a distorted sphere",
+            min = 1,
+            max = 5
+    )
+    @CommandPermissions("worldedit.brush.rock")
+    public BrushSettings blobBrush(Player player, EditSession editSession, LocalSession session, Pattern fill, @Optional("10") Vector radius, @Optional("100") double sphericity, @Optional("30") double frequency, @Optional("50") double amplitude, CommandContext context) throws WorldEditException {
+        double max = MathMan.max(radius.getBlockX(), radius.getBlockY(), radius.getBlockZ());
+        worldEdit.checkMaxBrushRadius(max);
+        Brush brush = new BlobBrush(radius.divide(max), frequency / 100, amplitude / 100, sphericity / 100);
+        return get(context)
+                .setBrush(brush)
+                .setSize(max)
                 .setFill(fill);
     }
 
@@ -447,9 +506,8 @@ public class BrushCommands extends MethodCommands {
             throw new InvalidUsageException(getCallable());
         }
         try {
-            Color color = Color.web(args.getString(1));
-            java.awt.Color awtColor = new java.awt.Color((float) color.getRed(), (float) color.getGreen(), (float) color.getBlue(), (float) color.getOpacity());
-            char[] glassLayers = Fawe.get().getTextureUtil().getNearestLayer(awtColor.getRGB());
+            Color color = ColorUtil.parseColor(args.getString(1));
+            char[] glassLayers = Fawe.get().getTextureUtil().getNearestLayer(color.getRGB());
             for (char layer : glassLayers) {
                 blocks.add(FaweCache.CACHE_BLOCK[layer]);
             }
@@ -505,7 +563,7 @@ public class BrushCommands extends MethodCommands {
     }
 
     @Command(
-            aliases = {"cylinder", "cyl", "c"},
+            aliases = {"cylinder", "cyl", "c", "disk", "disc"},
             usage = "<блок> [радиус=2] [высота=1]",
             flags = "h",
             desc = "Создать цилиндр",
@@ -748,11 +806,12 @@ public class BrushCommands extends MethodCommands {
             max = 1
     )
     @CommandPermissions("worldedit.brush.copy")
-    public BrushSettings copy(Player player, LocalSession session, @Optional("5") double radius, @Switch('r') boolean rotate, CommandContext context) throws WorldEditException {
+    public BrushSettings copy(Player player, LocalSession session, @Optional("5") double radius, @Switch('r') boolean randomRotate, @Switch('a') boolean autoRotate, CommandContext context) throws WorldEditException {
         worldEdit.checkMaxBrushRadius(radius);
         player.print(BBC.getPrefix() + BBC.BRUSH_COPY.f(radius));
+
         return get(context)
-                .setBrush(new CopyPastaBrush(player, session, rotate))
+                .setBrush(new CopyPastaBrush(player, session, randomRotate, autoRotate))
                 .setSize(radius);
     }
 

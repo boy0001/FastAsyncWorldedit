@@ -142,9 +142,9 @@ public class HeightMapMCAGenerator extends MCAWriter implements Extent {
                     for (int x = 0; x < getWidth(); x++, index++) {
                         int height = img.getRGB(x, z) & 0xFF;
                         if (height == 255 || height > 0 && !white && PseudoRandom.random.nextInt(256) <= height) {
-                            int newHeight = table.average(x, z, index);
-                            int blockHeight = (newHeight - 1) >> 3;
-                            int layerHeight = (newHeight - 1) & 0x7;
+                            int newHeight = table.average(x, z, index) - 1;
+                            int blockHeight = (newHeight) >> 3;
+                            int layerHeight = (newHeight) & 0x7;
                             heights[index] = (byte) blockHeight;
                             int id = floor[index] >> 4;
                             if (id == 78 || id == 80) {
@@ -161,9 +161,9 @@ public class HeightMapMCAGenerator extends MCAWriter implements Extent {
                         mutable.mutX(x);
                         mutable.mutY(y);
                         if (mask.test(mutable)) {
-                            int height = table.average(x, z, index);
-                            int blockHeight = (height - 1) >> 3;
-                            int layerHeight = (height - 1) & 0x7;
+                            int newHeight = table.average(x, z, index) - 1;
+                            int blockHeight = (newHeight) >> 3;
+                            int layerHeight = (newHeight) & 0x7;
                             heights[index] = (byte) blockHeight;
                             int id = floor[index] >> 4;
                             if (id == 78 || id == 80) {
@@ -460,6 +460,43 @@ public class HeightMapMCAGenerator extends MCAWriter implements Extent {
         this.biomePriority = ((value * 65536) / 100) - 32768;
     }
 
+    public void setBlockAndBiomeColor(BufferedImage img, Mask mask, BufferedImage imgMask, boolean whiteOnly) {
+        if (mask == null && imgMask == null) {
+            setBlockAndBiomeColor(img);
+            return;
+        }
+        if (img.getWidth() != getWidth() || img.getHeight() != getLength())
+            throw new IllegalArgumentException("Input image dimensions do not match the current height map!");
+        TextureUtil textureUtil = getTextureUtil();
+        int index = 0;
+        int widthIndex = img.getWidth() - 1;
+        int heightIndex = img.getHeight() - 1;
+        int maxIndex = biomes.length - 1;
+
+        int[] buffer = new int[2];
+        for (int z = 0; z < img.getHeight(); z++) {
+            mutable.mutZ(z);
+            for (int x = 0; x < img.getWidth(); x++, index++) {
+                if (mask != null) {
+                    mutable.mutX(z);
+                    mutable.mutY(heights[index] & 0xFF);
+                    if (!mask.test(mutable)) continue;
+                }
+                if (imgMask != null) {
+                    int height = imgMask.getRGB(x, z) & 0xFF;
+                    if (height != 255 && (height <= 0 || !whiteOnly || PseudoRandom.random.nextInt(256) > height)) continue;
+                }
+                int color = img.getRGB(x, z);
+                if (textureUtil.getIsBlockCloserThanBiome(buffer, color, biomePriority)) {
+                    char combined = (char) buffer[0];
+                    main[index] = combined;
+                    floor[index] = combined;
+                }
+                biomes[index] = (byte) buffer[1];
+            }
+        }
+    }
+
     public void setBlockAndBiomeColor(BufferedImage img) {
         if (img.getWidth() != getWidth() || img.getHeight() != getLength())
             throw new IllegalArgumentException("Input image dimensions do not match the current height map!");
@@ -468,20 +505,18 @@ public class HeightMapMCAGenerator extends MCAWriter implements Extent {
         int widthIndex = img.getWidth() - 1;
         int heightIndex = img.getHeight() - 1;
         int maxIndex = biomes.length - 1;
+
+        int[] buffer = new int[2];
         for (int y = 0; y < img.getHeight(); y++) {
             boolean yBiome = y > 0 && y < heightIndex;
-            for (int x = 0; x < img.getWidth(); x++) {
+            for (int x = 0; x < img.getWidth(); x++, index++) {
                 int color = img.getRGB(x, y);
-                BaseBlock block = textureUtil.getNearestBlock(color);
-                TextureUtil.BiomeColor biome = textureUtil.getNearestBiome(color);
-                int blockColor = textureUtil.getColor(block);
-                biomes[index] = (byte) biome.id;
-                if (textureUtil.colorDistance(biome.grass, color) - biomePriority > textureUtil.colorDistance(blockColor, color)) {
-                    char combined = (char) block.getCombined();
+                if (textureUtil.getIsBlockCloserThanBiome(buffer, color, biomePriority)) {
+                    char combined = (char) buffer[0];
                     main[index] = combined;
                     floor[index] = combined;
                 }
-                index++;
+                biomes[index] = (byte) buffer[1];
             }
         }
     }
@@ -509,14 +544,63 @@ public class HeightMapMCAGenerator extends MCAWriter implements Extent {
         }
     }
 
+    public void setColor(BufferedImage img, BufferedImage mask, boolean white) {
+        if (img.getWidth() != getWidth() || img.getHeight() != getLength())
+            throw new IllegalArgumentException("Input image dimensions do not match the current height map!");
+        if (mask.getWidth() != getWidth() || mask.getHeight() != getLength())
+            throw new IllegalArgumentException("Input image dimensions do not match the current height map!");
+        modifiedMain = true;
+        TextureUtil textureUtil = getTextureUtil();
+        int index = 0;
+        for (int z = 0; z < getLength(); z++) {
+            for (int x = 0; x < getWidth(); x++, index++) {
+                int height = mask.getRGB(x, z) & 0xFF;
+                if (height == 255 || height > 0 && !white && PseudoRandom.random.nextInt(256) <= height) {
+                    int color = img.getRGB(x, z);
+                    BaseBlock block = textureUtil.getNearestBlock(color);
+                    if (block != null) {
+                        char combined = (char) block.getCombined();
+                        main[index] = combined;
+                        floor[index] = combined;
+                    }
+                }
+            }
+        }
+    }
+
+    public void setColor(BufferedImage img, Mask mask, boolean white) {
+        if (img.getWidth() != getWidth() || img.getHeight() != getLength())
+            throw new IllegalArgumentException("Input image dimensions do not match the current height map!");
+        modifiedMain = true;
+        TextureUtil textureUtil = getTextureUtil();
+        int index = 0;
+        for (int z = 0; z < getLength(); z++) {
+            mutable.mutZ(z);
+            for (int x = 0; x < getWidth(); x++, index++) {
+                mutable.mutX(x);
+                mutable.mutY(heights[index] & 0xFF);
+                if (mask.test(mutable)) {
+                    int color = img.getRGB(x, z);
+                    BaseBlock block = textureUtil.getNearestBlock(color);
+                    if (block != null) {
+                        char combined = (char) block.getCombined();
+                        main[index] = combined;
+                        floor[index] = combined;
+                    }
+                }
+            }
+        }
+    }
+
     public void setColor(BufferedImage img) {
         if (img.getWidth() != getWidth() || img.getHeight() != getLength())
             throw new IllegalArgumentException("Input image dimensions do not match the current height map!");
+        modifiedMain = true;
         TextureUtil textureUtil = getTextureUtil();
         int index = 0;
-        for (int y = 0; y < img.getHeight(); y++) {
+        for (int z = 0; z < img.getHeight(); z++) {
             for (int x = 0; x < img.getWidth(); x++) {
-                int color = img.getRGB(x, y);
+                int color = img.getRGB(x, z);
                 BaseBlock block = textureUtil.getNearestBlock(color);
                 if (block != null) {
                     char combined = (char) block.getCombined();

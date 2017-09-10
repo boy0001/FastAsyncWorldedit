@@ -1,4 +1,4 @@
-package com.boydti.fawe.bukkit;
+package com.boydti.fawe.bukkit.util;
 
 import com.boydti.fawe.util.TaskManager;
 import org.apache.commons.lang.mutable.MutableInt;

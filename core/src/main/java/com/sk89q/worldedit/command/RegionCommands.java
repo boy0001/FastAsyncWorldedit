@@ -188,7 +188,7 @@ public class RegionCommands extends MethodCommands {
             max = 1
     )
     @CommandPermissions("worldedit.light.set")
-    public void setlighting(Player player, @Selection Region region, int value) {
+    public void setlighting(Player player, @Selection Region region, @Range(min = 0, max = 15) int value) {
         FawePlayer fp = FawePlayer.wrap(player);
         final FaweLocation loc = fp.getLocation();
         final int cx = loc.x >> 4;
@@ -212,7 +212,7 @@ public class RegionCommands extends MethodCommands {
             max = 1
     )
     @CommandPermissions("worldedit.light.set")
-    public void setskylighting(Player player, @Selection Region region, int value) {
+    public void setskylighting(Player player, @Selection Region region, @Range(min = 0, max = 15) int value) {
         FawePlayer fp = FawePlayer.wrap(player);
         final FaweLocation loc = fp.getLocation();
         final int cx = loc.x >> 4;
@@ -231,7 +231,7 @@ public class RegionCommands extends MethodCommands {
 
     @Command(
             aliases = {"/line"},
-            usage = "<block> [thickness]",
+            usage = "<pattern> [thickness]",
             desc = "Draws a line segment between cuboid selection corners",
             help =
                     "Draws a line segment between cuboid selection corners.\n" +
@@ -265,7 +265,7 @@ public class RegionCommands extends MethodCommands {
 
     @Command(
             aliases = {"/curve", "/spline"},
-            usage = "<block> [thickness]",
+            usage = "<pattern> [thickness]",
             desc = "Draws a spline through selected points",
             help =
                     "Draws a spline through selected points.\n" +
@@ -322,6 +322,12 @@ public class RegionCommands extends MethodCommands {
             BBC.TIP_REPLACE_ID.or(BBC.TIP_REPLACE_LIGHT, BBC.TIP_REPLACE_MARKER, BBC.TIP_TAB_COMPLETE).send(player);
     }
 
+    // Compatibility for SKCompat
+    @Deprecated
+    public void set(Player player, LocalSession session, EditSession editSession, Pattern pattern) throws WorldEditException {
+        set(FawePlayer.wrap(player), session, editSession, session.getSelection(player.getWorld()), pattern, null);
+    }
+
     @Command(
             aliases = {"/set", "/s"},
             usage = "[pattern]",
@@ -344,7 +350,7 @@ public class RegionCommands extends MethodCommands {
 
     @Command(
             aliases = {"/overlay"},
-            usage = "<block>",
+            usage = "<pattern>",
             desc = "Set a block on top of blocks in the region",
             min = 1,
             max = 1
@@ -359,7 +365,7 @@ public class RegionCommands extends MethodCommands {
 
     @Command(
             aliases = {"/lay"},
-            usage = "<block>",
+            usage = "<pattern>",
             desc = "Set the top block in the region",
             min = 1,
             max = 1
@@ -393,7 +399,7 @@ public class RegionCommands extends MethodCommands {
 
     @Command(
             aliases = {"/center", "/middle"},
-            usage = "<block>",
+            usage = "<pattern>",
             desc = "Set the center block(s)",
             min = 1,
             max = 1
@@ -422,7 +428,7 @@ public class RegionCommands extends MethodCommands {
 
     @Command(
             aliases = {"/walls"},
-            usage = "<block>",
+            usage = "<pattern>",
             desc = "Build the four sides of the selection",
             min = 1,
             max = 1
@@ -437,7 +443,7 @@ public class RegionCommands extends MethodCommands {
 
     @Command(
             aliases = {"/faces", "/outline"},
-            usage = "<block>",
+            usage = "<pattern>",
             desc = "Build the walls, ceiling, and floor of a selection",
             min = 1,
             max = 1
@@ -523,7 +529,10 @@ public class RegionCommands extends MethodCommands {
             desc = "Move the contents of the selection",
             help =
                     "Moves the contents of the selection.\n" +
-                            "The -s flag shifts the selection to the target location.\n" +
+                            "  -s flag shifts the selection to the target location.\n" +
+                            "  -b also copies biomes\n" +
+                            "  -e ignores entities\n" +
+                            "  -a ignores air\n" +
                             "Optionally fills the old location with <leave-id>.",
             min = 0,
             max = 3
@@ -534,12 +543,15 @@ public class RegionCommands extends MethodCommands {
                      @Selection Region region,
                      @Optional("1") @Range(min = 1) int count,
                      @Optional(Direction.AIM) @Direction Vector direction,
-                     @Optional("air") BaseBlock replace,
+                     @Optional("air") Pattern replace,
+                     @Switch('b') boolean copyBiomes,
+                     @Switch('e') boolean skipEntities,
+                     @Switch('a') boolean skipAir,
                      @Switch('s') boolean moveSelection,
                      CommandContext context) throws WorldEditException {
         player.checkConfirmationRegion(getArguments(context), region);
 
-        int affected = editSession.moveRegion(region, direction, count, true, replace);
+        int affected = editSession.moveRegion(region, direction, count, !skipAir, !skipEntities, copyBiomes, replace);
 
         if (moveSelection) {
             try {
@@ -598,18 +610,19 @@ public class RegionCommands extends MethodCommands {
                       @Optional("1") @Range(min = 1) int count,
                       @Optional(Direction.AIM) @Direction Vector direction,
                       @Switch('s') boolean moveSelection,
+                      @Switch('b') boolean copyBiomes,
+                      @Switch('e') boolean skipEntities,
                       @Switch('a') boolean ignoreAirBlocks, @Switch('m') Mask sourceMask, CommandContext context) throws WorldEditException {
         player.checkConfirmationStack(getArguments(context), region, count);
         if (sourceMask != null) {
             editSession.addSourceMask(sourceMask);
         }
-        int affected = editSession.stackCuboidRegion(region, direction, count, !ignoreAirBlocks);
+        int affected = editSession.stackCuboidRegion(region, direction, count, !ignoreAirBlocks, !skipEntities, copyBiomes);
 
         if (moveSelection) {
             try {
-                final Vector size = region.getMaximumPoint().subtract(region.getMinimumPoint());
-
-                final Vector shiftVector = direction.multiply(count * (Math.abs(direction.dot(size)) + 1));
+                final Vector size = region.getMaximumPoint().subtract(region.getMinimumPoint()).add(1, 1, 1);
+                Vector shiftVector = new Vector(direction.getX() * size.getX() * count, direction.getY() * size.getY() * count, direction.getZ() * size.getZ() * count);
                 region.shift(shiftVector);
 
                 session.getRegionSelector(player.getWorld()).learnChanges();
@@ -719,7 +732,7 @@ public class RegionCommands extends MethodCommands {
 
     @Command(
             aliases = {"/hollow"},
-            usage = "[<thickness>[ <block>]]",
+            usage = "[<thickness>[ <pattern>]]",
             desc = "Hollows out the object contained in this selection",
             help =
                     "Hollows out the object contained in this selection.\n" +

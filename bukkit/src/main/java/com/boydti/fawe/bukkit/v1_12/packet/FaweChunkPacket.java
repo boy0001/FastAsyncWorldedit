@@ -1,4 +1,4 @@
-package com.boydti.fawe.bukkit.v1_12;
+package com.boydti.fawe.bukkit.v1_12.packet;
 
 import com.boydti.fawe.FaweCache;
 import com.boydti.fawe.jnbt.anvil.MCAChunk;
@@ -10,9 +10,6 @@ import com.comphenix.protocol.wrappers.nbt.NbtBase;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
-import net.minecraft.server.v1_12_R1.Block;
-import net.minecraft.server.v1_12_R1.DataBits;
-import net.minecraft.server.v1_12_R1.MathHelper;
 
 public class FaweChunkPacket {
 
@@ -49,19 +46,19 @@ public class FaweChunkPacket {
                     continue;
                 }
                 byte[] layerData = chunk.data[layer];
-                int num = MathHelper.d(Block.REGISTRY_ID.a());
+                int num = 9;
                 buffer.write(num); // num blocks, anything > 8 - doesn't need to be accurate
                 buffer.writeVarInt(0); // varint 0 - data palette global
-                DataBits bits = new DataBits(num, 4096);
+                BitArray bits = new BitArray(num, 4096);
                 for (int i = 0; i < 4096; i++) {
                     int id = layerIds[i];
                     if (id != 0) {
                         int data = FaweCache.hasData(id) ? chunk.getNibble(i, layerData) : 0;
                         int combined = FaweCache.getCombined(id, data);
-                        bits.a(i, combined);
+                        bits.setAt(i, combined);
                     }
                 }
-                buffer.write(bits.a());
+                buffer.write(bits.getBackingLongArray());
 
                 buffer.write(chunk.blockLight[layer]);
                 if (sky) {
@@ -74,7 +71,6 @@ public class FaweChunkPacket {
             }
 
             byteArray.write(0, fbaos.toByteArray());
-
             // TODO - empty
             StructureModifier<List<NbtBase<?>>> list = packet.getListNbtModifier();
             list.write(0, new ArrayList<>());

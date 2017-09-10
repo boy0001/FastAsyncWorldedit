@@ -1,12 +1,10 @@
 package com.boydti.fawe.bukkit;
 
 import com.boydti.fawe.Fawe;
+import com.boydti.fawe.util.Jars;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.lang.reflect.Field;
-import java.net.URL;
-import java.nio.channels.Channels;
-import java.nio.channels.ReadableByteChannel;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -54,16 +52,15 @@ public class BukkitMain extends JavaPlugin {
 
     @Override
     public void onEnable() {
+        Plugin toLoad = null;
         if (Bukkit.getPluginManager().getPlugin("WorldEdit") == null) {
             try {
                 File output = new File(this.getDataFolder().getParentFile(), "WorldEdit.jar");
-                URL worldEditUrl = new URL("https://addons.cursecdn.com/files/2431/372/worldedit-bukkit-6.1.7.2.jar");
-                try (ReadableByteChannel rbc = Channels.newChannel(worldEditUrl.openStream())) {
-                    try (FileOutputStream fos = new FileOutputStream(output)) {
-                        fos.getChannel().transferFrom(rbc, 0, Long.MAX_VALUE);
-                    }
+                byte[] weJar = Jars.WE_B_6_1_7_2.download();
+                try (FileOutputStream fos = new FileOutputStream(output)) {
+                    fos.write(weJar);
                 }
-                Bukkit.getPluginManager().loadPlugin(output);
+                toLoad = Bukkit.getPluginManager().loadPlugin(output);
             } catch (Throwable e) {
                 e.printStackTrace();
                 Fawe.debug("====== INSTALL WORLDEDIT ======");
@@ -74,5 +71,8 @@ public class BukkitMain extends JavaPlugin {
             }
         }
         FaweBukkit imp = new FaweBukkit(this);
+        if (toLoad != null) {
+            Bukkit.getPluginManager().enablePlugin(toLoad);
+        }
     }
 }

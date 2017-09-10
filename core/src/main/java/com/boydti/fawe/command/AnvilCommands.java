@@ -12,16 +12,23 @@ import com.boydti.fawe.jnbt.anvil.MCAQueue;
 import com.boydti.fawe.jnbt.anvil.filters.CountFilter;
 import com.boydti.fawe.jnbt.anvil.filters.CountIdFilter;
 import com.boydti.fawe.jnbt.anvil.filters.DeleteOldFilter;
+import com.boydti.fawe.jnbt.anvil.filters.DeleteUnclaimedFilter;
 import com.boydti.fawe.jnbt.anvil.filters.DeleteUninhabitedFilter;
 import com.boydti.fawe.jnbt.anvil.filters.MappedReplacePatternFilter;
 import com.boydti.fawe.jnbt.anvil.filters.PlotTrimFilter;
+import com.boydti.fawe.jnbt.anvil.filters.RemapFilter;
 import com.boydti.fawe.jnbt.anvil.filters.RemoveLayerFilter;
 import com.boydti.fawe.jnbt.anvil.filters.ReplacePatternFilter;
 import com.boydti.fawe.jnbt.anvil.filters.ReplaceSimpleFilter;
+import com.boydti.fawe.jnbt.anvil.filters.TrimAirFilter;
+import com.boydti.fawe.jnbt.anvil.history.IAnvilHistory;
+import com.boydti.fawe.jnbt.anvil.history.NullAnvilHistory;
 import com.boydti.fawe.object.FawePlayer;
 import com.boydti.fawe.object.FaweQueue;
 import com.boydti.fawe.object.RegionWrapper;
 import com.boydti.fawe.object.RunnableVal4;
+import com.boydti.fawe.object.changeset.AnvilHistory;
+import com.boydti.fawe.object.clipboard.ClipboardRemapper;
 import com.boydti.fawe.object.mask.FaweBlockMatcher;
 import com.boydti.fawe.util.MainUtil;
 import com.boydti.fawe.util.SetQueue;
@@ -43,7 +50,7 @@ import com.sk89q.worldedit.regions.CuboidRegion;
 import com.sk89q.worldedit.regions.Region;
 import com.sk89q.worldedit.util.command.binding.Switch;
 import com.sk89q.worldedit.util.command.parametric.Optional;
-import java.io.File;
+import com.sk89q.worldedit.world.World;
 import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.util.ArrayList;
@@ -51,6 +58,7 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Set;
+import java.util.function.Consumer;
 
 
 import static com.google.common.base.Preconditions.checkNotNull;
@@ -80,6 +88,7 @@ public class AnvilCommands {
      * @param <T>
      * @return
      */
+    @Deprecated
     public static <G, T extends MCAFilter<G>> T runWithWorld(Player player, String folder, T filter, boolean force) {
         boolean copy = false;
         if (FaweAPI.getWorld(folder) != null) {
@@ -90,9 +99,9 @@ public class AnvilCommands {
             copy = true;
         }
         FaweQueue defaultQueue = SetQueue.IMP.getNewQueue(folder, true, false);
-        MCAQueue queue = new MCAQueue(folder, defaultQueue.getSaveFolder(), defaultQueue.hasSky());
+        MCAQueue queue = new MCAQueue(defaultQueue);
         if (copy) {
-            return queue.filterCopy(filter, true);
+            return queue.filterCopy(filter, RegionWrapper.GLOBAL());
         } else {
             return queue.filterWorld(filter);
         }
@@ -109,6 +118,7 @@ public class AnvilCommands {
      * @param <T>
      * @return
      */
+    @Deprecated
     public static <G, T extends MCAFilter<G>> T runWithSelection(Player player, EditSession editSession, Region selection, T filter) {
         if (!(selection instanceof CuboidRegion)) {
             BBC.NO_REGION.send(player);
@@ -118,18 +128,24 @@ public class AnvilCommands {
         RegionWrapper wrappedRegion = new RegionWrapper(cuboid.getMinimumPoint(), cuboid.getMaximumPoint());
         String worldName = Fawe.imp().getWorldName(editSession.getWorld());
         FaweQueue tmp = SetQueue.IMP.getNewQueue(worldName, true, false);
-        File folder = tmp.getSaveFolder();
-        MCAQueue queue = new MCAQueue(worldName, folder, tmp.hasSky());
-        player.print(BBC.getPrefix() + "Safely unloading regions...");
-        tmp.setMCA(new Runnable() {
-            @Override
-            public void run() {
-                player.print(BBC.getPrefix() + "Performing operation...");
-                queue.filterRegion(filter, wrappedRegion);
-                player.print(BBC.getPrefix() + "Safely loading regions...");
-            }
-        }, wrappedRegion, true);
+        MCAQueue queue = new MCAQueue(tmp);
+        FawePlayer<Object> fp = FawePlayer.wrap(player);
+        fp.checkAllowedRegion(selection);
+        recordHistory(fp, editSession.getWorld(), iAnvilHistory -> {
+            queue.filterCopy(filter, wrappedRegion, iAnvilHistory);
+        });
         return filter;
+    }
+
+    public static void recordHistory(FawePlayer fp, World world, Consumer<IAnvilHistory> run) {
+        LocalSession session = fp.getSession();
+        if (session == null || session.hasFastMode()) {
+            run.accept(new NullAnvilHistory());
+        } else {
+            AnvilHistory history = new AnvilHistory(Fawe.imp().getWorldName(world), fp.getUUID());
+            run.accept(history);
+            session.remember(fp.getPlayer(), world, history, fp.getLimit());
+        }
     }
 
     @Command(
@@ -143,7 +159,7 @@ public class AnvilCommands {
             max = 4
     )
     @CommandPermissions("worldedit.anvil.replaceall")
-    public void replaceAll(Player player, String folder, @Optional String from, String to, @Switch('d') boolean useData, @Switch('f') boolean force) throws WorldEditException {
+    public void replaceAll(Player player, String folder, @Optional String from, String to, @Switch('d') boolean useData) throws WorldEditException {
         final FaweBlockMatcher matchFrom;
         if (from == null) {
             matchFrom = FaweBlockMatcher.NOT_AIR;
@@ -155,14 +171,41 @@ public class AnvilCommands {
         }
         final FaweBlockMatcher matchTo = FaweBlockMatcher.setBlocks(worldEdit.getBlocks(player, to, true));
         ReplaceSimpleFilter filter = new ReplaceSimpleFilter(matchFrom, matchTo);
-        ReplaceSimpleFilter result = runWithWorld(player, folder, filter, force);
+        ReplaceSimpleFilter result = runWithWorld(player, folder, filter, true);
         if (result != null) player.print(BBC.getPrefix() + BBC.VISITOR_BLOCK.format(result.getTotal()));
     }
 
     @Command(
+            aliases = {"remapall"},
+            usage = "<folder>",
+            help = "Remap the world between MCPE/PC values",
+            desc = "Remap the world between MCPE/PC values",
+            min = 1,
+            max = 1
+    )
+    @CommandPermissions("worldedit.anvil.remapall")
+    public void remapall(Player player, String folder) throws WorldEditException {
+        ClipboardRemapper mapper;
+        ClipboardRemapper.RemapPlatform from;
+        ClipboardRemapper.RemapPlatform to;
+        if (Fawe.imp().getPlatform().equalsIgnoreCase("nukkit")) {
+            from = ClipboardRemapper.RemapPlatform.PC;
+            to = ClipboardRemapper.RemapPlatform.PE;
+        } else {
+            from = ClipboardRemapper.RemapPlatform.PE;
+            to = ClipboardRemapper.RemapPlatform.PC;
+        }
+        RemapFilter filter = new RemapFilter(from, to);
+        RemapFilter result = runWithWorld(player, folder, filter, true);
+        if (result != null) player.print(BBC.getPrefix() + BBC.VISITOR_BLOCK.format(result.getTotal()));
+    }
+
+
+    @Command(
             aliases = {"deleteallunvisited", "delunvisited" },
             usage = "<folder> <age-ticks> [file-age=60000]",
-            desc = "Delete all chunks which haven't been occupied for `age-ticks` (20t = 1s) and \n" +
+            desc = "Delete all chunks which haven't been occupied",
+            help = "Delete all chunks which haven't been occupied for `age-ticks` (20t = 1s) and \n" +
                     "Have not been accessed since `file-duration` (ms) after creation and\n" +
                     "Have not been used in the past `chunk-inactivity` (ms)" +
                     "The auto-save interval is the recommended value for `file-duration` and `chunk-inactivity`",
@@ -170,17 +213,60 @@ public class AnvilCommands {
             max = 3
     )
     @CommandPermissions("worldedit.anvil.deleteallunvisited")
-    public void deleteAllUnvisited(Player player, String folder, int inhabitedTicks, @Optional("60000") int fileDurationMillis, @Switch('f') boolean force) throws WorldEditException {
+    public void deleteAllUnvisited(Player player, String folder, int inhabitedTicks, @Optional("60000") int fileDurationMillis) throws WorldEditException {
         long chunkInactivityMillis = fileDurationMillis; // Use same value for now
         DeleteUninhabitedFilter filter = new DeleteUninhabitedFilter(fileDurationMillis, inhabitedTicks, chunkInactivityMillis);
-        DeleteUninhabitedFilter result = runWithWorld(player, folder, filter, force);
+        DeleteUninhabitedFilter result = runWithWorld(player, folder, filter, true);
+        if (result != null) player.print(BBC.getPrefix() + BBC.VISITOR_BLOCK.format(result.getTotal()));
+    }
+
+    @Command(
+            aliases = {"deleteallunclaimed", "delallunclaimed" },
+            usage = "<age-ticks> [file-age=60000]",
+            desc = "(Supports: WG, P2, GP) Delete all chunks which haven't been occupied AND claimed",
+            help = "(Supports: WG, P2, GP) Delete all chunks which aren't claimed AND haven't been occupied for `age-ticks` (20t = 1s) and \n" +
+                    "Have not been accessed since `file-duration` (ms) after creation and\n" +
+                    "Have not been used in the past `chunk-inactivity` (ms)" +
+                    "The auto-save interval is the recommended value for `file-duration` and `chunk-inactivity`",
+            min = 1,
+            max = 3
+    )
+    @CommandPermissions("worldedit.anvil.deleteallunclaimed")
+    public void deleteAllUnclaimed(Player player, int inhabitedTicks, @Optional("60000") int fileDurationMillis, @Switch('d') boolean debug) throws WorldEditException {
+        String folder = Fawe.imp().getWorldName(player.getWorld());
+        long chunkInactivityMillis = fileDurationMillis; // Use same value for now
+        DeleteUnclaimedFilter filter = new DeleteUnclaimedFilter(player.getWorld(), fileDurationMillis, inhabitedTicks, chunkInactivityMillis);
+        if (debug) filter.enableDebug();
+        DeleteUnclaimedFilter result = runWithWorld(player, folder, filter, true);
+        if (result != null) player.print(BBC.getPrefix() + BBC.VISITOR_BLOCK.format(result.getTotal()));
+    }
+
+    @Command(
+            aliases = {"deleteunclaimed"},
+            usage = "<age-ticks> [file-age=60000]",
+            desc = "(Supports: WG, P2, GP) Delete all chunks which haven't been occupied AND claimed",
+            help = "(Supports: WG, P2, GP) Delete all chunks which aren't claimed AND haven't been occupied for `age-ticks` (20t = 1s) and \n" +
+                    "Have not been accessed since `file-duration` (ms) after creation and\n" +
+                    "Have not been used in the past `chunk-inactivity` (ms)" +
+                    "The auto-save interval is the recommended value for `file-duration` and `chunk-inactivity`",
+            min = 1,
+            max = 3
+    )
+    @CommandPermissions("worldedit.anvil.deleteunclaimed")
+    public void deleteUnclaimed(Player player, EditSession editSession, @Selection Region selection, int inhabitedTicks, @Optional("60000") int fileDurationMillis, @Switch('d') boolean debug) throws WorldEditException {
+        String folder = Fawe.imp().getWorldName(player.getWorld());
+        long chunkInactivityMillis = fileDurationMillis; // Use same value for now
+        DeleteUnclaimedFilter filter = new DeleteUnclaimedFilter(player.getWorld(), fileDurationMillis, inhabitedTicks, chunkInactivityMillis);
+        if (debug) filter.enableDebug();
+        DeleteUnclaimedFilter result = runWithSelection(player, editSession, selection, filter);
         if (result != null) player.print(BBC.getPrefix() + BBC.VISITOR_BLOCK.format(result.getTotal()));
     }
 
     @Command(
             aliases = {"deletealloldregions", "deloldreg" },
             usage = "<folder> <time>",
-            desc = "Delete regions which haven't been accessed in a certain amount of time\n" +
+            desc = "Delete regions which haven't been accessed in a certain amount of time",
+            help = "Delete regions which haven't been accessed in a certain amount of time\n" +
                     "You can use seconds (s), minutes (m), hours (h), days (d), weeks (w), years (y)\n" +
                     "(months are not a unit of time)\n" +
                     "E.g. 8h5m12s\n",
@@ -188,10 +274,10 @@ public class AnvilCommands {
             max = 3
     )
     @CommandPermissions("worldedit.anvil.deletealloldregions")
-    public void deleteAllOldRegions(Player player, String folder, String time, @Switch('f') boolean force) throws WorldEditException {
+    public void deleteAllOldRegions(Player player, String folder, String time) throws WorldEditException {
         long duration = MainUtil.timeToSec(time) * 1000l;
         DeleteOldFilter filter = new DeleteOldFilter(duration);
-        DeleteOldFilter result = runWithWorld(player, folder, filter, force);
+        DeleteOldFilter result = runWithWorld(player, folder, filter, true);
         if (result != null) player.print(BBC.getPrefix() + BBC.VISITOR_BLOCK.format(result.getTotal()));
     }
 
@@ -213,6 +299,17 @@ public class AnvilCommands {
     }
 
     @Command(
+            aliases = {"trimallair", },
+            desc = "Trim all air in the world"
+    )
+    @CommandPermissions("worldedit.anvil.trimallair")
+    public void trimAllAir(Player player, String folder) throws WorldEditException {
+        TrimAirFilter filter = new TrimAirFilter();
+        TrimAirFilter result = runWithWorld(player, folder, filter, true);
+        if (result != null) player.print(BBC.getPrefix() + BBC.VISITOR_BLOCK.format(result.getTotal()));
+    }
+
+    @Command(
             aliases = {"replaceallpattern", "reap", "repallpat"},
             usage = "<folder> [from-block] <to-pattern>",
             desc = "Replace all blocks in the selection with another",
@@ -221,7 +318,7 @@ public class AnvilCommands {
             max = 4
     )
     @CommandPermissions("worldedit.anvil.replaceall")
-    public void replaceAllPattern(Player player, String folder, @Optional String from, final Pattern to, @Switch('d') boolean useData, @Switch('m') boolean useMap, @Switch('f') boolean force) throws WorldEditException {
+    public void replaceAllPattern(Player player, String folder, @Optional String from, final Pattern to, @Switch('d') boolean useData, @Switch('m') boolean useMap) throws WorldEditException {
         MCAFilterCounter filter;
         if (useMap) {
             if (to instanceof RandomPattern) {
@@ -240,7 +337,7 @@ public class AnvilCommands {
             }
             filter = new ReplacePatternFilter(matchFrom, to);
         }
-        MCAFilterCounter result = runWithWorld(player, folder, filter, force);
+        MCAFilterCounter result = runWithWorld(player, folder, filter, true);
         if (result != null) player.print(BBC.getPrefix() + BBC.VISITOR_BLOCK.format(result.getTotal()));
     }
 
@@ -253,7 +350,7 @@ public class AnvilCommands {
             max = 3
     )
     @CommandPermissions("worldedit.anvil.countall")
-    public void countAll(Player player, EditSession editSession, String folder, String arg, @Switch('d') boolean useData, @Switch('f') boolean force) throws WorldEditException {
+    public void countAll(Player player, EditSession editSession, String folder, String arg, @Switch('d') boolean useData) throws WorldEditException {
         Set<BaseBlock> searchBlocks = worldEdit.getBlocks(player, arg, true);
         MCAFilterCounter filter;
         if (useData || arg.contains(":")) { // Optimize for both cases
@@ -265,7 +362,7 @@ public class AnvilCommands {
             searchBlocks.forEach(counter::addBlock);
             filter = counter;
         }
-        MCAFilterCounter result = runWithWorld(player, folder, filter, force);
+        MCAFilterCounter result = runWithWorld(player, folder, filter, true);
         if (result != null) player.print(BBC.getPrefix() + BBC.SELECTION_COUNT.format(result.getTotal()));
     }
 
@@ -507,8 +604,7 @@ public class AnvilCommands {
         CuboidRegion cuboid = (CuboidRegion) selection;
         String worldName = Fawe.imp().getWorldName(editSession.getWorld());
         FaweQueue tmp = SetQueue.IMP.getNewQueue(worldName, true, false);
-        File folder = tmp.getSaveFolder();
-        MCAQueue queue = new MCAQueue(worldName, folder, tmp.hasSky());
+        MCAQueue queue = new MCAQueue(tmp);
         Vector origin = session.getPlacementPosition(player);
         MCAClipboard clipboard = new MCAClipboard(queue, cuboid, origin);
         FawePlayer fp = FawePlayer.wrap(player);
@@ -526,7 +622,7 @@ public class AnvilCommands {
 
     )
     @CommandPermissions("worldedit.anvil.pastechunks")
-    public void paste(Player player, LocalSession session, EditSession editSession, @Switch('c') boolean alignChunk) throws WorldEditException {
+    public void paste(Player player, LocalSession session, EditSession editSession, @Switch('c') boolean alignChunk) throws WorldEditException, IOException {
         FawePlayer fp = FawePlayer.wrap(player);
         MCAClipboard clipboard = fp.getMeta(FawePlayer.METADATA_KEYS.ANVIL_CLIPBOARD);
         if (clipboard == null) {
@@ -544,27 +640,15 @@ public class AnvilCommands {
         RegionWrapper pasteRegion = new RegionWrapper(copyRegion.minX + oX, copyRegion.maxX + oX, copyRegion.minZ + oZ, copyRegion.maxZ + oZ);
         String pasteWorldName = Fawe.imp().getWorldName(editSession.getWorld());
         FaweQueue tmpTo = SetQueue.IMP.getNewQueue(pasteWorldName, true, false);
-        FaweQueue tmpFrom = SetQueue.IMP.getNewQueue(clipboard.getQueue().getWorldName(), true, false);
-        File folder = tmpTo.getSaveFolder();
         MCAQueue copyQueue = clipboard.getQueue();
-        MCAQueue pasteQueue = new MCAQueue(pasteWorldName, folder, tmpTo.hasSky());
-        player.print(BBC.getPrefix() + "Safely unloading regions...");
-        tmpTo.setMCA(new Runnable() {
-            @Override
-            public void run() {
-                tmpFrom.setMCA(new Runnable() {
-                    @Override
-                    public void run() {
-                        try {
-                            player.print(BBC.getPrefix() + "Performing operation...");
-                            pasteQueue.pasteRegion(copyQueue, copyRegion, offset);
-                            player.print(BBC.getPrefix() + "Safely loading regions...");
-                        } catch (Throwable e) {
-                            e.printStackTrace();
-                        }
-                    }
-                }, copyRegion, false);
-            }
-        }, pasteRegion, true);
+        MCAQueue pasteQueue = new MCAQueue(tmpTo);
+
+        fp.checkAllowedRegion(pasteRegion);
+        recordHistory(fp, editSession.getWorld(), iAnvilHistory -> {
+            try {
+                pasteQueue.pasteRegion(copyQueue, copyRegion, offset, iAnvilHistory);
+            } catch (IOException e) { throw new RuntimeException(e); }
+        });
+        BBC.COMMAND_PASTE.send(player, player.getPosition());
     }
 }

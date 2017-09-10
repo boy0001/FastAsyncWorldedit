@@ -5,6 +5,10 @@ import com.sk89q.worldedit.blocks.BaseBlock;
 import com.sk89q.worldedit.regions.Region;
 
 public class WorldCutClipboard extends WorldCopyClipboard {
+    public WorldCutClipboard(EditSession editSession, Region region, boolean copyEntities, boolean copyBiome) {
+        super(editSession, region, copyEntities, copyBiome);
+    }
+
     public WorldCutClipboard(EditSession editSession, Region region) {
         super(editSession, region);
     }

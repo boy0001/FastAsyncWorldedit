@@ -7,6 +7,7 @@ import com.boydti.fawe.example.CharFaweChunk;
 import com.boydti.fawe.object.FaweChunk;
 import com.boydti.fawe.object.FaweQueue;
 import com.boydti.fawe.util.MainUtil;
+import com.boydti.fawe.util.MathMan;
 import com.boydti.fawe.util.ReflectionUtils;
 import com.sk89q.jnbt.CompoundTag;
 import com.sk89q.jnbt.ListTag;
@@ -81,16 +82,16 @@ public class BukkitChunk_1_11 extends CharFaweChunk<Chunk, com.boydti.fawe.bukki
         if (ent instanceof EntityPlayer) {
             return false;
         }
-        int x = ((int) Math.round(ent.locX) & 15);
-        int z = ((int) Math.round(ent.locZ) & 15);
-        int y = ((int) Math.round(ent.locY) & 0xFF);
+        int x = (MathMan.roundInt(ent.locX) & 15);
+        int z = (MathMan.roundInt(ent.locZ) & 15);
+        int y = (MathMan.roundInt(ent.locY) & 0xFF);
         int i = FaweCache.CACHE_I[y][z][x];
         int j = FaweCache.CACHE_J[y][z][x];
         String id = EntityTypes.b(ent);
         if (id != null) {
             NBTTagCompound tag = new NBTTagCompound();
             ent.e(tag); // readEntityIntoTag
-            CompoundTag nativeTag = (CompoundTag) getParent().methodToNative.invoke(getParent().adapter, tag);
+            CompoundTag nativeTag = (CompoundTag) getParent().toNative(tag);
             Map<String, Tag> map = ReflectionUtils.getMap(nativeTag.getValue());
             map.put("Id", new StringTag(id));
             setEntity(nativeTag);
@@ -278,9 +279,9 @@ public class BukkitChunk_1_11 extends CharFaweChunk<Chunk, com.boydti.fawe.bukki
                             if (entity instanceof EntityPlayer) {
                                 continue;
                             }
-                            int x = ((int) Math.round(entity.locX) & 15);
-                            int z = ((int) Math.round(entity.locZ) & 15);
-                            int y = (int) Math.round(entity.locY);
+                            int x = (MathMan.roundInt(entity.locX) & 15);
+                            int z = (MathMan.roundInt(entity.locZ) & 15);
+                            int y = MathMan.roundInt(entity.locY);
                             if (y < 0 || y > 255) continue;
                             if (array[FaweCache.CACHE_J[y][z][x]] != 0) {
                                 if (copy != null) {
@@ -330,7 +331,7 @@ public class BukkitChunk_1_11 extends CharFaweChunk<Chunk, com.boydti.fawe.bukki
                                 entityTagMap.put("UUIDMost", new LongTag(uuid.getMostSignificantBits()));
                                 entityTagMap.put("UUIDLeast", new LongTag(uuid.getLeastSignificantBits()));
                                 if (nativeTag != null) {
-                                    NBTTagCompound tag = (NBTTagCompound) BukkitQueue_1_11.methodFromNative.invoke(BukkitQueue_1_11.adapter, nativeTag);
+                                    NBTTagCompound tag = (NBTTagCompound) BukkitQueue_1_11.fromNative(nativeTag);
                                     for (String name : Constants.NO_COPY_ENTITY_NBT_FIELDS) {
                                         tag.remove(name);
                                     }
@@ -484,7 +485,7 @@ public class BukkitChunk_1_11 extends CharFaweChunk<Chunk, com.boydti.fawe.bukki
                 BlockPosition pos = new BlockPosition(x, y, z); // Set pos
                 TileEntity tileEntity = nmsWorld.getTileEntity(pos);
                 if (tileEntity != null) {
-                    NBTTagCompound tag = (NBTTagCompound) com.boydti.fawe.bukkit.v1_11.BukkitQueue_1_11.methodFromNative.invoke(com.boydti.fawe.bukkit.v1_11.BukkitQueue_1_11.adapter, nativeTag);
+                    NBTTagCompound tag = (NBTTagCompound) com.boydti.fawe.bukkit.v1_11.BukkitQueue_1_11.fromNative(nativeTag);
                     tag.set("x", new NBTTagInt(x));
                     tag.set("y", new NBTTagInt(y));
                     tag.set("z", new NBTTagInt(z));

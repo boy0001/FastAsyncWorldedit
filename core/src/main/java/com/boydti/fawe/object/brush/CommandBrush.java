@@ -23,7 +23,7 @@ public class CommandBrush implements Brush {
     private final String command;
 
     public CommandBrush(String command, double radius) {
-        this.command = command;
+        this.command = command.charAt(0) == '/' ? "/" + command : command;
     }
 
     @Override

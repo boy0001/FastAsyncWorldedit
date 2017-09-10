@@ -19,7 +19,11 @@
 
 package com.sk89q.worldedit.bukkit;
 
+import com.boydti.fawe.Fawe;
 import com.boydti.fawe.FaweCache;
+import com.boydti.fawe.bukkit.FaweBukkit;
+import com.boydti.fawe.bukkit.block.BrushBoundBaseBlock;
+import com.boydti.fawe.config.Settings;
 import com.boydti.fawe.wrappers.WorldWrapper;
 import com.sk89q.util.StringUtil;
 import com.sk89q.worldedit.EditSession;
@@ -27,6 +31,7 @@ import com.sk89q.worldedit.LocalPlayer;
 import com.sk89q.worldedit.LocalWorld;
 import com.sk89q.worldedit.ServerInterface;
 import com.sk89q.worldedit.Vector;
+import com.sk89q.worldedit.WorldEdit;
 import com.sk89q.worldedit.WorldEditException;
 import com.sk89q.worldedit.WorldVector;
 import com.sk89q.worldedit.blocks.BaseBlock;
@@ -47,6 +52,7 @@ import org.bukkit.Location;
 import org.bukkit.World;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.PlayerInventory;
 import org.bukkit.material.Dye;
 
 public class BukkitPlayer extends LocalPlayer {
@@ -78,13 +84,14 @@ public class BukkitPlayer extends LocalPlayer {
         }
         final int typeId = itemStack.getTypeId();
         switch (typeId) {
+            case 0:
+                return EditSession.nullBlock;
             case ItemID.INK_SACK:
                 final Dye materialData = (Dye) itemStack.getData();
                 if (materialData.getColor() == DyeColor.BROWN) {
                     return FaweCache.getBlock(BlockID.COCOA_PLANT, 0);
                 }
                 break;
-
             case ItemID.HEAD:
                 return new SkullBlock(0, (byte) itemStack.getDurability());
 
@@ -95,7 +102,11 @@ public class BukkitPlayer extends LocalPlayer {
                 }
                 break;
         }
-        return FaweCache.getBlock(typeId, itemStack.getType().getMaxDurability() != 0 ? 0 : Math.max(0, itemStack.getDurability()));
+        BaseBlock block = FaweCache.getBlock(typeId, itemStack.getType().getMaxDurability() != 0 ? 0 : Math.max(0, itemStack.getDurability()));
+        if (Settings.IMP.EXPERIMENTAL.PERSISTENT_BRUSHES && Fawe.<FaweBukkit>imp().getItemUtil() != null) {
+            return new BrushBoundBaseBlock(this, WorldEdit.getInstance().getSession(this), itemStack);
+        }
+        return block;
     }
 
     @Override
@@ -122,7 +133,17 @@ public class BukkitPlayer extends LocalPlayer {
 
     @Override
     public void giveItem(int type, int amt) {
-        player.getInventory().addItem(new ItemStack(type, amt));
+        final PlayerInventory inv = player.getInventory();
+        final ItemStack newItem = new ItemStack(type, amt);
+        if (type == WorldEdit.getInstance().getConfiguration().wandItem) {
+            inv.remove(newItem);
+        }
+        final ItemStack item = player.getItemInHand();
+        player.setItemInHand(newItem);
+        if (item != null) {
+            inv.addItem(item);
+        }
+        player.updateInventory();
     }
 
     @Override

@@ -1,8 +1,12 @@
 package com.boydti.fawe.installer;
 
+import com.boydti.fawe.Fawe;
 import java.awt.event.ActionEvent;
 import java.io.File;
-import javax.swing.JFileChooser;
+import java.util.prefs.Preferences;
+import javafx.application.Platform;
+import javafx.embed.swing.JFXPanel;
+import javafx.stage.DirectoryChooser;
 
 public abstract class BrowseButton extends InteractiveButton {
     public BrowseButton() {
@@ -13,12 +17,24 @@ public abstract class BrowseButton extends InteractiveButton {
 
     @Override
     public void actionPerformed(ActionEvent e) {
-        JFileChooser chooser = new JFileChooser();
-        chooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
-        int returnValue = chooser.showOpenDialog(null);
-        if (returnValue == JFileChooser.APPROVE_OPTION) {
-            File selectedFile = chooser.getSelectedFile();
-            onSelect(selectedFile);
-        }
+        Preferences prefs = Preferences.userRoot().node(Fawe.class.getName());
+        String lastUsed = prefs.get("LAST_USED_FOLDER", null);
+        final File lastFile = lastUsed == null ? null : new File(lastUsed).getParentFile();
+        browse(lastFile);
+    }
+
+    public void browse(File from) {
+        DirectoryChooser folderChooser = new DirectoryChooser();
+        folderChooser.setInitialDirectory(from);
+
+        new JFXPanel(); // Init JFX Platform
+        Platform.runLater(() -> {
+            File file = folderChooser.showDialog(null);
+            if (file != null && file.exists()) {
+                File parent = file.getParentFile();
+                Preferences.userRoot().node(Fawe.class.getName()).put("LAST_USED_FOLDER", file.getPath());
+                onSelect(file);
+            }
+        });
     }
 }

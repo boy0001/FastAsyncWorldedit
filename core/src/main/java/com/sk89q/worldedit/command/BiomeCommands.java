@@ -20,8 +20,10 @@
 package com.sk89q.worldedit.command;
 
 import com.boydti.fawe.config.BBC;
+import com.boydti.fawe.config.Commands;
 import com.boydti.fawe.object.FawePlayer;
 import com.boydti.fawe.object.visitor.Fast2DIterator;
+import com.boydti.fawe.util.chat.Message;
 import com.sk89q.minecraft.util.commands.Command;
 import com.sk89q.minecraft.util.commands.CommandContext;
 import com.sk89q.minecraft.util.commands.CommandPermissions;
@@ -57,16 +59,13 @@ import java.util.Collections;
 import java.util.List;
 
 
-import static com.google.common.base.Preconditions.checkNotNull;
 import static com.sk89q.minecraft.util.commands.Logging.LogMode.REGION;
 
 /**
  * Implements biome-related commands such as "/biomelist".
  */
 @Command(aliases = {}, desc = "Change, list and inspect biomes")
-public class BiomeCommands {
-
-    private final WorldEdit worldEdit;
+public class BiomeCommands extends MethodCommands {
 
     /**
      * Create a new instance.
@@ -74,8 +73,7 @@ public class BiomeCommands {
      * @param worldEdit reference to WorldEdit
      */
     public BiomeCommands(WorldEdit worldEdit) {
-        checkNotNull(worldEdit);
-        this.worldEdit = worldEdit;
+        super(worldEdit);
     }
 
     @Command(
@@ -94,28 +92,31 @@ public class BiomeCommands {
             page = 1;
             offset = 0;
         } else {
-            offset = (page - 1) * 19;
+            offset = (page - 1) * 18;
         }
 
         BiomeRegistry biomeRegistry = player.getWorld().getWorldData().getBiomeRegistry();
         List<BaseBiome> biomes = biomeRegistry.getBiomes();
         int totalPages = biomes.size() / 19 + 1;
-        BBC.BIOME_LIST_HEADER.send(player, page, totalPages);
+        Message msg = BBC.BIOME_LIST_HEADER.m(page, totalPages);
+        String setBiome = Commands.getAlias(BiomeCommands.class, "/setbiome");
         for (BaseBiome biome : biomes) {
             if (offset > 0) {
                 offset--;
             } else {
                 BiomeData data = biomeRegistry.getData(biome);
                 if (data != null) {
-                    player.print(BBC.getPrefix() + " " + data.getName());
-                    if (++count == 19) {
-                        break;
-                    }
+                    msg.newline().text(data.getName()).cmdTip(setBiome + " " + data.getName());
                 } else {
-                    player.print(BBC.getPrefix() + " <? #" + biome.getId() + ">");
+                    msg.newline().text("<? #" + biome.getId() + ">").cmdTip(setBiome + " " + biome.getId());
+                }
+                if (++count == 18) {
+                    break;
                 }
             }
         }
+        msg.newline().paginate(getCommand().aliases()[0], page, totalPages);
+        msg.send(player);
     }
 
     @Command(

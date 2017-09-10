@@ -72,6 +72,7 @@ public class BrushTool implements DoubleActionTraceTool, ScrollTool, MovableTool
     private VisualMode visualMode = VisualMode.NONE;
     private TargetMode targetMode = TargetMode.TARGET_BLOCK_RANGE;
     private Mask targetMask = null;
+    private int targetOffset;
 
     private transient BrushSettings primary = new BrushSettings();
     private transient BrushSettings secondary = new BrushSettings();
@@ -79,6 +80,8 @@ public class BrushTool implements DoubleActionTraceTool, ScrollTool, MovableTool
 
     private transient VisualExtent visualExtent;
     private transient Lock lock = new ReentrantLock();
+
+    private transient BrushHolder holder;
 
     public BrushTool(String permission) {
         getContext().addPermission(permission);
@@ -92,17 +95,23 @@ public class BrushTool implements DoubleActionTraceTool, ScrollTool, MovableTool
         Type type = new TypeToken<Map<String, Object>>() {
         }.getType();
         Map<String, Object> root = gson.fromJson(json, type);
+        if (root == null) {
+            Fawe.debug("Failed to load " + json);
+            return new BrushTool();
+        }
         Map<String, Object> primary = (Map<String, Object>) root.get("primary");
         Map<String, Object> secondary = (Map<String, Object>) root.getOrDefault("secondary", primary);
 
         VisualMode visual = VisualMode.valueOf((String) root.getOrDefault("visual", "NONE"));
         TargetMode target = TargetMode.valueOf((String) root.getOrDefault("target", "TARGET_BLOCK_RANGE"));
-        int range = (int) root.getOrDefault("range", -1);
+        int range = ((Number) root.getOrDefault("range", -1)).intValue();
+        int offset = ((Number) root.getOrDefault("offset", 0)).intValue();
 
         BrushTool tool = new BrushTool();
         tool.visualMode = visual;
         tool.targetMode = target;
         tool.range = range;
+        tool.targetOffset = offset;
 
         BrushSettings primarySettings = BrushSettings.get(tool, player, session, primary);
         tool.setPrimary(primarySettings);
@@ -114,23 +123,44 @@ public class BrushTool implements DoubleActionTraceTool, ScrollTool, MovableTool
         return tool;
     }
 
+    public void setHolder(BrushHolder holder) {
+        this.holder = holder;
+    }
+
+    public boolean isSet() {
+        return primary.getBrush() != null || secondary.getBrush() != null;
+    }
+
     @Override
     public String toString() {
+        return toString(new Gson());
+    }
+
+    public String toString(Gson gson) {
         HashMap<String, Object> map = new HashMap<>();
         map.put("primary", primary.getSettings());
         if (primary != secondary) {
             map.put("secondary", secondary.getSettings());
         }
-        if (visualMode != null) {
+        if (visualMode != null && visualMode != VisualMode.NONE) {
             map.put("visual", visualMode);
         }
         if (targetMode != TargetMode.TARGET_BLOCK_RANGE) {
             map.put("target", targetMode);
         }
-        if (range != -1) {
+        if (range != -1 && range != 240) {
             map.put("range", range);
         }
-        return new Gson().toJson(map);
+        if (targetOffset != 0) {
+            map.put("offset", targetOffset);
+        }
+        return gson.toJson(map);
+    }
+
+    public void update() {
+        if (holder != null) {
+            holder.setTool(this);
+        }
     }
 
     private void writeObject(java.io.ObjectOutputStream stream) throws IOException {
@@ -192,20 +222,21 @@ public class BrushTool implements DoubleActionTraceTool, ScrollTool, MovableTool
 
     public void setPrimary(BrushSettings primary) {
         checkNotNull(primary);
-        if (this.secondary.getBrush() == null) this.secondary = primary;
         this.primary = primary;
         this.context = primary;
+        update();
     }
 
     public void setSecondary(BrushSettings secondary) {
         checkNotNull(secondary);
-        if (this.primary.getBrush() == null) this.primary = secondary;
         this.secondary = secondary;
         this.context = secondary;
+        update();
     }
 
     public void setTransform(ResettableExtent transform) {
         getContext().setTransform(transform);
+        update();
     }
 
     /**
@@ -242,6 +273,7 @@ public class BrushTool implements DoubleActionTraceTool, ScrollTool, MovableTool
      */
     public void setMask(Mask filter) {
         this.getContext().setMask(filter);
+        update();
     }
 
     /**
@@ -251,6 +283,7 @@ public class BrushTool implements DoubleActionTraceTool, ScrollTool, MovableTool
      */
     public void setSourceMask(Mask filter) {
         this.getContext().setSourceMask(filter);
+        update();
     }
 
     /**
@@ -262,6 +295,7 @@ public class BrushTool implements DoubleActionTraceTool, ScrollTool, MovableTool
     @Deprecated
     public void setBrush(Brush brush, String permission) {
         setBrush(brush, permission, null);
+        update();
     }
 
     @Deprecated
@@ -271,6 +305,7 @@ public class BrushTool implements DoubleActionTraceTool, ScrollTool, MovableTool
         current.clearPerms();
         current.setBrush(brush);
         current.addPermission(permission);
+        update();
     }
 
     /**
@@ -338,21 +373,20 @@ public class BrushTool implements DoubleActionTraceTool, ScrollTool, MovableTool
     }
 
     public Vector getPosition(EditSession editSession, Player player) {
+        Location loc = player.getLocation();
         switch (targetMode) {
             case TARGET_BLOCK_RANGE:
-                return new MutableBlockVector(trace(editSession, player, getRange(), true));
+                return offset(new MutableBlockVector(trace(editSession, player, getRange(), true)), loc.toVector());
             case FOWARD_POINT_PITCH: {
                 int d = 0;
-                Location loc = player.getLocation();
                 float pitch = loc.getPitch();
                 pitch = 23 - (pitch / 4);
                 d += (int) (Math.sin(Math.toRadians(pitch)) * 50);
                 final Vector vector = loc.getDirection().setY(0).normalize().multiply(d);
                 vector.add(loc.getX(), loc.getY(), loc.getZ()).toBlockVector();
-                return new MutableBlockVector(vector);
+                return offset(new MutableBlockVector(vector), loc.toVector());
             }
             case TARGET_POINT_HEIGHT: {
-                Location loc = player.getLocation();
                 final int height = loc.getBlockY();
                 final int x = loc.getBlockX();
                 final int z = loc.getBlockZ();
@@ -364,13 +398,18 @@ public class BrushTool implements DoubleActionTraceTool, ScrollTool, MovableTool
                     }
                 }
                 final int distance = (height - y) + 8;
-                return new MutableBlockVector(trace(editSession, player, distance, true));
+                return offset(new MutableBlockVector(trace(editSession, player, distance, true)), loc.toVector());
             }
             case TARGET_FACE_RANGE:
-                return new MutableBlockVector(trace(editSession, player, getRange(), true));
+                return offset(new MutableBlockVector(trace(editSession, player, getRange(), true)), loc.toVector());
             default:
                 return null;
         }
+    }
+
+    private Vector offset(Vector target, Vector playerPos) {
+        if (targetOffset == 0) return target;
+        return target.subtract(target.subtract(playerPos).normalize().multiply(targetOffset));
     }
 
     private Vector trace(EditSession editSession, Player player, int range, boolean useLastBlock) {
@@ -464,22 +503,48 @@ public class BrushTool implements DoubleActionTraceTool, ScrollTool, MovableTool
 
     public void setScrollAction(ScrollAction scrollAction) {
         this.getContext().setScrollAction(scrollAction);
+        update();
+    }
+
+    public void setTargetOffset(int targetOffset) {
+        this.targetOffset = targetOffset;
+        update();
     }
 
     public void setTargetMode(TargetMode targetMode) {
         this.targetMode = targetMode != null ? targetMode : TargetMode.TARGET_BLOCK_RANGE;
+        update();
     }
 
     public void setTargetMask(Mask mask) {
         this.targetMask = mask;
+        update();
     }
 
-    public void setVisualMode(VisualMode visualMode) {
-        this.visualMode = visualMode != null ? visualMode : VisualMode.NONE;
+    public void setVisualMode(Player player, VisualMode visualMode) {
+        if (visualMode == null) visualMode = VisualMode.NONE;
+        if (this.visualMode != visualMode) {
+            if (this.visualMode != VisualMode.NONE) {
+                clear(player);
+            }
+            this.visualMode = visualMode != null ? visualMode : VisualMode.NONE;
+            if (visualMode != VisualMode.NONE) {
+                try {
+                    queueVisualization(FawePlayer.wrap(player));
+                } catch (Throwable e) {
+                    WorldEdit.getInstance().getPlatformManager().handleThrowable(e, player);
+                }
+            }
+        }
+        update();
     }
 
     public TargetMode getTargetMode() {
         return targetMode;
+    }
+
+    public int getTargetOffset() {
+        return targetOffset;
     }
 
     public Mask getTargetMask() {
@@ -523,6 +588,9 @@ public class BrushTool implements DoubleActionTraceTool, ScrollTool, MovableTool
         if (mode == VisualMode.NONE) {
             return;
         }
+        BrushSettings current = getContext();
+        Brush brush = current.getBrush();
+        if (brush == null) return;
         FawePlayer<Object> fp = FawePlayer.wrap(player);
         EditSession editSession = new EditSessionBuilder(player.getWorld())
                 .player(fp)
@@ -542,9 +610,8 @@ public class BrushTool implements DoubleActionTraceTool, ScrollTool, MovableTool
                     break;
                 }
                 case OUTLINE: {
-                    BrushSettings current = getContext();
                     new PatternTraverser(current).reset(editSession);
-                    current.getBrush().build(editSession, position, current.getMaterial(), current.getSize());
+                    brush.build(editSession, position, current.getMaterial(), current.getSize());
                     break;
                 }
             }

@@ -24,18 +24,20 @@ import com.sk89q.worldedit.function.visitor.RecursiveVisitor;
 import com.sk89q.worldedit.math.transform.AffineTransform;
 import com.sk89q.worldedit.regions.Region;
 import com.sk89q.worldedit.session.ClipboardHolder;
+import com.sk89q.worldedit.util.Location;
 
 public class CopyPastaBrush implements Brush, ResettableTool {
 
     private final LocalSession session;
-    private final boolean randomRotate;
     private final Player player;
+    public boolean autoRotate, randomRotate;
 
-    public CopyPastaBrush(Player player, LocalSession session, boolean randomRotate) {
+    public CopyPastaBrush(Player player, LocalSession session, boolean randomRotate, boolean autoRotate) {
         session.setClipboard(null);
         this.player = player;
         this.session = session;
         this.randomRotate = randomRotate;
+        this.autoRotate = autoRotate;
     }
 
     @Override
@@ -65,7 +67,7 @@ public class CopyPastaBrush implements Brush, ResettableTool {
                 public boolean test(Vector vector) {
                     if (super.test(vector) && vector.getBlockY() >= minY) {
                         BaseBlock block = editSession.getLazyBlock(vector);
-                        if (block != EditSession.nullBlock) {
+                        if (block.getId() != 0) {
                             builder.add(vector, EditSession.nullBlock, block);
                             return true;
                         }
@@ -87,19 +89,33 @@ public class CopyPastaBrush implements Brush, ResettableTool {
             BBC.COMMAND_COPY.send(fp, blocks);
             return;
         } else {
+            AffineTransform transform = null;
             if (randomRotate) {
+                if (transform == null) transform = new AffineTransform();
                 int rotate = 90 * PseudoRandom.random.nextInt(4);
-                clipboard.setTransform(rotate != 0 ? new AffineTransform().rotateY(rotate) : new AffineTransform());
+                transform = transform.rotateY(rotate);
+            }
+            if (autoRotate) {
+                if (transform == null) transform = new AffineTransform();
+                Location loc = editSession.getPlayer().getPlayer().getLocation();
+                float yaw = loc.getYaw();
+                float pitch = loc.getPitch();
+                transform = transform.rotateY((-yaw) % 360);
+                transform = transform.rotateX(pitch - 90);
+            }
+            if (transform != null && !transform.isIdentity()) {
+                clipboard.setTransform(transform);
             }
             Clipboard faweClip = clipboard.getClipboard();
             Region region = faweClip.getRegion();
-            Vector centerOffset = region.getCenter().subtract(faweClip.getOrigin());
+
             Operation operation = clipboard
-                    .createPaste(editSession, editSession.getWorld().getWorldData())
+                    .createPaste(editSession, editSession.getWorldData())
                     .to(position.add(0, 1, 0))
                     .ignoreAirBlocks(true)
                     .build();
             Operations.completeLegacy(operation);
+            editSession.flushQueue();
         }
     }
 }

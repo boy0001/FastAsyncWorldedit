@@ -1,17 +1,17 @@
 package com.boydti.fawe.installer;
 
-import java.awt.Component;
 import java.awt.Point;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseMotionAdapter;
+import javax.swing.JFrame;
 import javax.swing.JPanel;
 
 public class MovablePanel extends JPanel {
     private Point initialClick;
-    private Component parent;
+    private JFrame parent;
 
-    public MovablePanel(final Component parent) {
+    public MovablePanel(final JFrame parent) {
         this.parent = parent;
 
         addMouseListener(new MouseAdapter() {

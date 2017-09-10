@@ -19,8 +19,11 @@
 
 package com.sk89q.jnbt;
 
+import com.boydti.fawe.object.io.LittleEndianOutputStream;
 import java.io.Closeable;
+import java.io.DataOutput;
 import java.io.DataOutputStream;
+import java.io.Flushable;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.util.List;
@@ -42,7 +45,7 @@ public final class NBTOutputStream implements Closeable {
     /**
      * The output stream.
      */
-    private final DataOutputStream os;
+    private DataOutput os;
 
     /**
      * Creates a new {@code NBTOutputStream}, which will write data to the
@@ -55,8 +58,18 @@ public final class NBTOutputStream implements Closeable {
         this.os = new DataOutputStream(os);
     }
 
-    public DataOutputStream getOutputStream() {
+    public NBTOutputStream(DataOutput os) throws IOException {
+        this.os = os;
+    }
+
+    public DataOutput getOutputStream() {
         return os;
+    }
+
+    public void setLittleEndian() {
+        if (!(os instanceof LittleEndianOutputStream)) {
+            this.os = new LittleEndianOutputStream((OutputStream) os);
+        }
     }
 
     /**
@@ -363,7 +376,7 @@ public final class NBTOutputStream implements Closeable {
 
     @Override
     public void close() throws IOException {
-        os.close();
+        if (os instanceof Closeable) ((Closeable) os).close();
     }
 
     /**
@@ -372,7 +385,7 @@ public final class NBTOutputStream implements Closeable {
      * @throws IOException
      */
     public void flush() throws IOException {
-        this.os.flush();
+        if (os instanceof Flushable) ((Flushable) os).flush();
     }
 
     public static Class<?> inject() {

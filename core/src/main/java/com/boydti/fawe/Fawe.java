@@ -13,11 +13,13 @@ import com.boydti.fawe.util.FaweTimer;
 import com.boydti.fawe.util.MainUtil;
 import com.boydti.fawe.util.MemUtil;
 import com.boydti.fawe.util.RandomTextureUtil;
-import com.boydti.fawe.util.StringMan;
 import com.boydti.fawe.util.TaskManager;
 import com.boydti.fawe.util.TextureUtil;
 import com.boydti.fawe.util.Updater;
 import com.boydti.fawe.util.WEManager;
+import com.boydti.fawe.util.chat.ChatManager;
+import com.boydti.fawe.util.chat.PlainChatManager;
+import com.boydti.fawe.util.metrics.BStats;
 import com.sk89q.jnbt.NBTInputStream;
 import com.sk89q.jnbt.NBTOutputStream;
 import com.sk89q.worldedit.BlockVector;
@@ -25,10 +27,12 @@ import com.sk89q.worldedit.BlockWorldVector;
 import com.sk89q.worldedit.CuboidClipboard;
 import com.sk89q.worldedit.EditSession;
 import com.sk89q.worldedit.LocalSession;
+import com.sk89q.worldedit.PlayerDirection;
 import com.sk89q.worldedit.Vector;
 import com.sk89q.worldedit.Vector2D;
 import com.sk89q.worldedit.WorldEdit;
 import com.sk89q.worldedit.blocks.BaseBlock;
+import com.sk89q.worldedit.blocks.BaseItem;
 import com.sk89q.worldedit.blocks.BlockData;
 import com.sk89q.worldedit.command.BiomeCommands;
 import com.sk89q.worldedit.command.BrushCommands;
@@ -107,6 +111,7 @@ import com.sk89q.worldedit.function.visitor.RegionVisitor;
 import com.sk89q.worldedit.history.change.EntityCreate;
 import com.sk89q.worldedit.history.change.EntityRemove;
 import com.sk89q.worldedit.internal.LocalWorldAdapter;
+import com.sk89q.worldedit.internal.command.WorldEditBinding;
 import com.sk89q.worldedit.internal.expression.Expression;
 import com.sk89q.worldedit.internal.expression.runtime.ExpressionEnvironment;
 import com.sk89q.worldedit.internal.expression.runtime.Functions;
@@ -122,6 +127,7 @@ import com.sk89q.worldedit.session.ClipboardHolder;
 import com.sk89q.worldedit.session.PasteBuilder;
 import com.sk89q.worldedit.session.SessionManager;
 import com.sk89q.worldedit.session.request.Request;
+import com.sk89q.worldedit.util.command.SimpleCommandMapping;
 import com.sk89q.worldedit.util.command.SimpleDispatcher;
 import com.sk89q.worldedit.util.command.fluent.DispatcherNode;
 import com.sk89q.worldedit.util.command.parametric.ParameterData;
@@ -131,6 +137,7 @@ import com.sk89q.worldedit.util.formatting.Fragment;
 import com.sk89q.worldedit.util.formatting.component.CommandListBox;
 import com.sk89q.worldedit.util.formatting.component.CommandUsageBox;
 import com.sk89q.worldedit.util.formatting.component.MessageBox;
+import com.sk89q.worldedit.world.biome.BaseBiome;
 import com.sk89q.worldedit.world.registry.BundledBlockData;
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -152,6 +159,9 @@ import javax.management.InstanceAlreadyExistsException;
 import javax.management.Notification;
 import javax.management.NotificationEmitter;
 import javax.management.NotificationListener;
+
+
+import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * [ WorldEdit action]
@@ -205,6 +215,7 @@ public class Fawe {
     private Updater updater;
     private TextureUtil textures;
     private DefaultTransformParser transformParser;
+    private ChatManager chatManager = new PlainChatManager();
 
 //    @Deprecated
 //    private boolean isJava8 = MainUtil.getJavaVersion() >= 1.8;
@@ -246,7 +257,7 @@ public class Fawe {
 
     public static void debugPlain(String s) {
         if (INSTANCE != null) {
-            INSTANCE.IMP.debug(StringMan.getString(s));
+            INSTANCE.IMP.debug(s);
         } else {
             System.out.println(s);
         }
@@ -280,7 +291,18 @@ public class Fawe {
 
         TaskManager.IMP = this.IMP.getTaskManager();
         if (Settings.IMP.METRICS) {
-            this.IMP.startMetrics();
+            try {
+                BStats stats = new BStats();
+                this.IMP.startMetrics();
+                TaskManager.IMP.later(new Runnable() {
+                    @Override
+                    public void run() {
+                        stats.start();
+                    }
+                }, 1);
+            } catch (Throwable ignore) {
+                ignore.printStackTrace();
+            }
         }
         this.setupCommands();
         /*
@@ -333,7 +355,16 @@ public class Fawe {
         return false;
     }
 
-//    @Deprecated
+    public ChatManager getChatManager() {
+        return chatManager;
+    }
+
+    public void setChatManager(ChatManager chatManager) {
+        checkNotNull(chatManager);
+        this.chatManager = chatManager;
+    }
+
+    //    @Deprecated
 //    public boolean isJava8() {
 //        return isJava8;
 //    }
@@ -545,6 +576,9 @@ public class Fawe {
             Vector2D.inject(); // Optimizations
             // Block
             BaseBlock.inject(); // Optimizations
+            BaseItem.inject();
+            // Biome
+            BaseBiome.inject(); // Features
             // Pattern
             ArbitraryShape.inject(); // Optimizations + update from legacy code
             Pattern.inject(); // Simplify API
@@ -556,6 +590,8 @@ public class Fawe {
             DefaultBlockParser.inject(); // Fix block lookups
             BlockPattern.inject(); // Optimization
             AbstractPattern.inject();
+            PlayerDirection.inject(); // Diagonal commands
+            WorldEditBinding.inject(); //
             // Mask
             Mask.inject(); // Extend deprecated mask
             BlockMask.inject(); // Optimizations
@@ -601,6 +637,7 @@ public class Fawe {
                 CommandManager.inject(); // Async commands
                 PlatformManager.inject(); // Async brushes / tools
                 SimpleDispatcher.inject(); // Optimize perm checks
+                SimpleCommandMapping.inject(); // Hashcode + equals
             } catch (Throwable e) {
                 debug("====== UPDATE WORLDEDIT TO 6.1.1 ======");
                 MainUtil.handleError(e, false);
@@ -618,7 +655,7 @@ public class Fawe {
             debug(" - AsyncWorldEdit/WorldEditRegions isn't installed");
             debug(" - Any other errors in the startup log");
             debug("Contact Empire92 if you need assistance:");
-            debug(" - Send me a PM or ask on IRC");
+            debug(" - Send me a PM or ask on IRC/Discord");
             debug(" - http://webchat.esper.net/?nick=&channels=IntellectualCrafters");
             debug("=======================================");
         }
@@ -657,14 +694,7 @@ public class Fawe {
                 debug(" - This is only a recommendation");
                 debug("====================================");
             }
-        } catch (Throwable ignore) {
-        }
-        if (MainUtil.getJavaVersion() < 1.8) {
-            debug("====== UPGRADE TO JAVA 8 ======");
-            debug("You are running " + System.getProperty("java.version"));
-            debug(" - This is only a recommendation");
-            debug("====================================");
-        }
+        } catch (Throwable ignore) {}
     }
 
     private void setupMemoryListener() {

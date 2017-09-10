@@ -52,7 +52,6 @@ import java.net.URL;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import javax.imageio.ImageIO;
 
 @CommandDeclaration(
         command = "cfi",
@@ -148,10 +147,10 @@ public class CreateFromImage extends Command {
                             fp.sendMessage(BBC.getPrefix() + "/2 cfi smooth <url|mask> <radius> <iterations> [whiteonly]");
                             fp.sendMessage(BBC.getPrefix() + "/2 cfi waterHeight <height>");
                             fp.sendMessage(BBC.getPrefix() + "/2 cfi waterId <number-id>");
-                            fp.sendMessage(BBC.getPrefix() + "/2 cfi color <image-url>");
+                            fp.sendMessage(BBC.getPrefix() + "/2 cfi color <image-url> [image or fawe mask] [whiteOnly=true]");
                             fp.sendMessage(BBC.getPrefix() + "/2 cfi glass <image-url>");
                             fp.sendMessage(BBC.getPrefix() + "/2 cfi biomeColor <image-url>");
-                            fp.sendMessage(BBC.getPrefix() + "/2 cfi blockBiomeColor <image-url>");
+                            fp.sendMessage(BBC.getPrefix() + "/2 cfi blockBiomeColor <image-url> [image or fawe mask] [whiteOnly=true]");
                             fp.sendMessage(BBC.getPrefix() + "/2 cfi paletteComplexity <min=0> <max=100>");
                             fp.sendMessage(BBC.getPrefix() + "/2 cfi paletteRandomization <true|false>");
                             fp.sendMessage(BBC.getPrefix() + "/2 cfi paletteBlocks <block-list|#clipboard>");
@@ -253,7 +252,12 @@ public class CreateFromImage extends Command {
                                     // roughness
                                     // blocks
                                     if (argList.size() != 2) {
-                                        C.COMMAND_SYNTAX.send(player, "/2 cfi " + argList.get(0) + " <pattern|#clipboard>");
+                                        C.COMMAND_SYNTAX.send(player, "/2 cfi " + argList.get(0) + " <pattern|#clipboard|*>");
+                                        return;
+                                    }
+                                    if (argList.get(1).equalsIgnoreCase("*")) {
+                                        generator.setTextureUtil(Fawe.get().getTextureUtil());
+                                        player.sendMessage("Set color palette blocks, what's next?");
                                         return;
                                     }
                                     context.setPreferringWildcard(true);
@@ -292,12 +296,25 @@ public class CreateFromImage extends Command {
                                 }
                                 case "color":
                                 case "setcolor": {
-                                    if (argList.size() != 2) {
-                                        C.COMMAND_SYNTAX.send(player, "/2 cfi " + argList.get(0) + " <url>");
+                                    if (argList.size() < 2) {
+                                        C.COMMAND_SYNTAX.send(player, "/2 cfi " + argList.get(0) + " <url> [mask] [whiteonly=true]");
                                         return;
                                     }
                                     BufferedImage image = getImage(argList.get(1), fp);
-                                    generator.setColor(image);
+                                    if (argList.size() > 2) {
+                                        String arg2 = argList.get(2);
+                                        if (arg2.startsWith("http") || arg2.startsWith("file://")) {
+                                            BufferedImage mask = getImage(arg2, fp);
+                                            boolean whiteOnly = argList.size() < 4 || Boolean.parseBoolean(argList.get(3));
+                                            generator.setColor(image, mask, whiteOnly);
+                                        } else {
+                                            Mask mask = we.getMaskFactory().parseFromInput(argList.get(1), context);
+                                            boolean whiteOnly = argList.size() < 4 || Boolean.parseBoolean(argList.get(3));
+                                            generator.setColor(image, mask, whiteOnly);
+                                        }
+                                    } else {
+                                        generator.setColor(image);
+                                    }
                                     player.sendMessage("Set color, what's next?");
                                     return;
                                 }
@@ -314,12 +331,24 @@ public class CreateFromImage extends Command {
                                 }
                                 case "blockbiomecolor":
                                 case "setblockandbiomecolor": {
-                                    if (argList.size() != 2) {
+                                    if (argList.size() < 2) {
                                         C.COMMAND_SYNTAX.send(player, "/2 cfi " + argList.get(0) + " <url>");
                                         return;
                                     }
                                     BufferedImage image = getImage(argList.get(1), fp);
-                                    generator.setBlockAndBiomeColor(image);
+                                    BufferedImage imgMask = null;
+                                    Mask mask = null;
+                                    boolean whiteOnly = true;
+                                    if (argList.size() > 2) {
+                                        String arg2 = argList.get(2);
+                                        if (arg2.startsWith("http") || arg2.startsWith("file://")) {
+                                            imgMask = getImage(arg2, fp);
+                                        } else {
+                                            mask = we.getMaskFactory().parseFromInput(argList.get(1), context);
+                                        }
+                                        whiteOnly = argList.size() < 4 || Boolean.parseBoolean(argList.get(3));
+                                    }
+                                    generator.setBlockAndBiomeColor(image, mask, imgMask, whiteOnly);
                                     player.sendMessage("Set color, what's next?");
                                     return;
                                 }
@@ -600,10 +629,13 @@ public class CreateFromImage extends Command {
     }
 
     private BufferedImage getImage(String arg, FawePlayer fp) throws IOException {
+        if (arg.endsWith(".jpg")) {
+            fp.sendMessage(BBC.getPrefix() + "JPG is lossy, you may see compression artifacts. For large image hosting you can try: empcraft.com/ui");
+        }
         if (arg.startsWith("http")) {
             URL url = new URL(arg);
             fp.sendMessage(BBC.getPrefix() + "Downloading image... (3)");
-            BufferedImage img = MainUtil.toRGB(ImageIO.read(url));
+            BufferedImage img = MainUtil.readImage(url);
             if (img == null) {
                 throw new IOException("Failed to read " + url + ", please try again later");
             }
@@ -611,8 +643,8 @@ public class CreateFromImage extends Command {
         }
         if (arg.startsWith("file://")) {
             arg = arg.substring(7);
-            File file = MainUtil.getFile(Fawe.imp().getDirectory(), com.boydti.fawe.config.Settings.IMP.PATHS.HEIGHTMAP + File.separator + arg);
-            return MainUtil.toRGB(ImageIO.read(file));
+            File file = MainUtil.getFile(MainUtil.getFile(Fawe.imp().getDirectory(), com.boydti.fawe.config.Settings.IMP.PATHS.HEIGHTMAP), arg);
+            return MainUtil.readImage(file);
         }
         return null;
     }

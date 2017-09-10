@@ -4,17 +4,17 @@ import com.boydti.fawe.Fawe;
 import com.boydti.fawe.bukkit.BukkitCommand;
 import com.boydti.fawe.object.FaweCommand;
 import com.boydti.fawe.object.FawePlayer;
+import com.boydti.fawe.util.Jars;
 import com.boydti.fawe.util.MainUtil;
 import com.thevoxelbox.voxelsniper.RangeBlockHelper;
 import com.thevoxelbox.voxelsniper.SnipeData;
 import com.thevoxelbox.voxelsniper.Sniper;
 import com.thevoxelbox.voxelsniper.brush.perform.PerformBrush;
 import com.thevoxelbox.voxelsniper.command.VoxelVoxelCommand;
+import com.thevoxelbox.voxelsniper.event.SniperBrushChangedEvent;
+import com.thevoxelbox.voxelsniper.event.SniperMaterialChangedEvent;
 import java.io.File;
 import java.io.FileOutputStream;
-import java.net.URL;
-import java.nio.channels.Channels;
-import java.nio.channels.ReadableByteChannel;
 import org.bukkit.Bukkit;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
@@ -35,17 +35,14 @@ public class Favs extends JavaPlugin {
                         String name = file.getName().toLowerCase();
                         if (name.endsWith(".jar") && name.contains("voxelsniper") && !name.contains("fastasyncvoxelsniper")) {
                             output = file;
-                            System.out.println("File " + file + " | " + thisName);
                             break;
                         }
                     }
                     if (output == null) {
                         output = new File(this.getDataFolder().getParentFile(), "VoxelSniper.jar");
-                        URL worldEditUrl = new URL("https://addons-origin.cursecdn.com/files/912/511/VoxelSniper-5.171.0-SNAPSHOT.jar");
-                        try (ReadableByteChannel rbc = Channels.newChannel(worldEditUrl.openStream())) {
-                            try (FileOutputStream fos = new FileOutputStream(output)) {
-                                fos.getChannel().transferFrom(rbc, 0, Long.MAX_VALUE);
-                            }
+                        byte[] vsJar = Jars.VS_B_5_171_0.download();
+                        try (FileOutputStream fos = new FileOutputStream(output)) {
+                            fos.write(vsJar);
                         }
                     }
                     Bukkit.getPluginManager().loadPlugin(output);
@@ -63,6 +60,8 @@ public class Favs extends JavaPlugin {
             VoxelVoxelCommand.inject();
             PerformBrush.inject();
             RangeBlockHelper.inject();
+            SniperBrushChangedEvent.inject();
+            SniperMaterialChangedEvent.inject();
             // Forward the commands so //p and //d will work
             setupCommand("/p", new FaweCommand("voxelsniper.sniper") {
                 @Override

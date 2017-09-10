@@ -12,11 +12,13 @@ import com.boydti.fawe.object.RunnableVal;
 import com.boydti.fawe.object.visitor.FaweChunkVisitor;
 import com.boydti.fawe.util.MathMan;
 import com.boydti.fawe.util.TaskManager;
+import com.sk89q.jnbt.Tag;
 import com.sk89q.worldedit.bukkit.WorldEditPlugin;
 import com.sk89q.worldedit.bukkit.adapter.BukkitImplAdapter;
 import com.sk89q.worldedit.world.biome.BaseBiome;
 import java.io.File;
 import java.lang.reflect.Field;
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.Collection;
 import java.util.Map;
@@ -37,9 +39,10 @@ import org.bukkit.event.world.WorldInitEvent;
 
 public abstract class BukkitQueue_0<CHUNK, CHUNKSECTIONS, SECTION> extends NMSMappedFaweQueue<World, CHUNK, CHUNKSECTIONS, SECTION> implements Listener {
 
-    public static BukkitImplAdapter adapter;
-    public static Method methodToNative;
-    public static Method methodFromNative;
+    private static BukkitImplAdapter adapter;
+    private static FaweAdapter_All backupAdaper;
+    private static Method methodToNative;
+    private static Method methodFromNative;
     private static boolean setupAdapter = false;
 
     public BukkitQueue_0(final com.sk89q.worldedit.world.World world) {
@@ -62,7 +65,36 @@ public abstract class BukkitQueue_0<CHUNK, CHUNKSECTIONS, SECTION> extends NMSMa
 
     public static BukkitImplAdapter getAdapter() {
         if (adapter == null) setupAdapter(null);
+        if (adapter == null) return backupAdaper;
         return adapter;
+    }
+
+    public static Tag toNative(Object tag) {
+        BukkitImplAdapter adapter = getAdapter();
+        if (adapter == null) {
+            if (backupAdaper != null) return backupAdaper.toNative(tag);
+            return null;
+        }
+        try {
+            return (Tag) methodToNative.invoke(adapter, tag);
+        } catch (InvocationTargetException | IllegalAccessException e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
+    public static Object fromNative(Tag tag) {
+        BukkitImplAdapter adapter = getAdapter();
+        if (adapter == null) {
+            if (backupAdaper != null) return backupAdaper.fromNative(tag);
+            return null;
+        }
+        try {
+            return methodFromNative.invoke(adapter, tag);
+        } catch (InvocationTargetException | IllegalAccessException e) {
+            e.printStackTrace();
+        }
+        return null;
     }
 
     @Override
@@ -152,37 +184,39 @@ public abstract class BukkitQueue_0<CHUNK, CHUNKSECTIONS, SECTION> extends NMSMa
 
     public static void setupAdapter(BukkitImplAdapter adapter) {
         try {
-            if (setupAdapter == (setupAdapter = true)) {
+            if (adapter == null && setupAdapter == (setupAdapter = true)) {
                 return;
             }
             WorldEditPlugin instance = (WorldEditPlugin) Bukkit.getPluginManager().getPlugin("WorldEdit");
             Field fieldAdapter = WorldEditPlugin.class.getDeclaredField("bukkitAdapter");
             fieldAdapter.setAccessible(true);
-            if ((BukkitQueue_0.adapter = adapter) != null) {
+            if (adapter != null) {
+                BukkitQueue_0.adapter = adapter;
                 fieldAdapter.set(instance, adapter);
             } else {
                 BukkitQueue_0.adapter = adapter = (BukkitImplAdapter) fieldAdapter.get(instance);
-            }
-            for (Method method : adapter.getClass().getDeclaredMethods()) {
-                switch (method.getName()) {
-                    case "toNative":
-                        methodToNative = method;
-                        methodToNative.setAccessible(true);
-                        break;
-                    case "fromNative":
-                        methodFromNative = method;
-                        methodFromNative.setAccessible(true);
-                        break;
+                if (adapter == null) {
+                    BukkitQueue_0.adapter = adapter = new FaweAdapter_All();
+                    fieldAdapter.set(instance, adapter);
                 }
             }
-        } catch (Throwable e) {
-            setupAdapter = false;
-            Fawe.debug("====== NO NATIVE WORLDEDIT ADAPTER ======");
-            e.printStackTrace();
-            Fawe.debug("Try updating WorldEdit: ");
-            Fawe.debug(" - http://builds.enginehub.org/job/worldedit?branch=master");
-            Fawe.debug("See also: http://wiki.sk89q.com/wiki/WorldEdit/Bukkit_adapters");
-            Fawe.debug("=========================================");
+            if (adapter != null) {
+                for (Method method : adapter.getClass().getDeclaredMethods()) {
+                    switch (method.getName()) {
+                        case "toNative":
+                            methodToNative = method;
+                            methodToNative.setAccessible(true);
+                            break;
+                        case "fromNative":
+                            methodFromNative = method;
+                            methodFromNative.setAccessible(true);
+                            break;
+                    }
+                }
+            }
+            return;
+        } catch (Throwable ignore) {
+            ignore.printStackTrace();
         }
     }
 
@@ -216,6 +250,7 @@ public abstract class BukkitQueue_0<CHUNK, CHUNKSECTIONS, SECTION> extends NMSMa
 
     private volatile boolean timingsEnabled;
     private static boolean alertTimingsChange = true;
+
     private static Field fieldTimingsEnabled;
     private static Field fieldAsyncCatcherEnabled;
     private static Method methodCheck;
@@ -250,6 +285,24 @@ public abstract class BukkitQueue_0<CHUNK, CHUNKSECTIONS, SECTION> extends NMSMa
                         fieldTimingsEnabled.set(null, false);
                         methodCheck.invoke(null);
                     }
+                }
+            } catch (Throwable e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
+    @Override
+    public void endSet(boolean parallel) {
+        ChunkListener.physicsFreeze = false;
+        if (parallel) {
+            try {
+                if (fieldAsyncCatcherEnabled != null) {
+                    fieldAsyncCatcherEnabled.set(null, true);
+                }
+                if (fieldTimingsEnabled != null && timingsEnabled) {
+                    fieldTimingsEnabled.set(null, true);
+                    methodCheck.invoke(null);
                 }
             } catch (Throwable e) {
                 e.printStackTrace();
@@ -293,23 +346,5 @@ public abstract class BukkitQueue_0<CHUNK, CHUNKSECTIONS, SECTION> extends NMSMa
                 }
             }
         });
-    }
-
-    @Override
-    public void endSet(boolean parallel) {
-        ChunkListener.physicsFreeze = false;
-        if (parallel) {
-            try {
-                if (fieldAsyncCatcherEnabled != null) {
-                    fieldAsyncCatcherEnabled.set(null, true);
-                }
-                if (fieldTimingsEnabled != null && timingsEnabled) {
-                    fieldTimingsEnabled.set(null, true);
-                    methodCheck.invoke(null);
-                }
-            } catch (Throwable e) {
-                e.printStackTrace();
-            }
-        }
     }
 }

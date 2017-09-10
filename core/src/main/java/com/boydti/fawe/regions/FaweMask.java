@@ -58,8 +58,6 @@ public class FaweMask {
         return false;
     }
 
-    ;
-
     public BlockVector[] getBounds() {
         final BlockVector[] BlockVectors = {this.position1, this.position2};
         return BlockVectors;

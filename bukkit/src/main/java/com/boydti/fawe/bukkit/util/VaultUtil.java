@@ -1,4 +1,4 @@
-package com.boydti.fawe.bukkit;
+package com.boydti.fawe.bukkit.util;
 
 import net.milkbowl.vault.permission.Permission;
 import org.bukkit.Bukkit;

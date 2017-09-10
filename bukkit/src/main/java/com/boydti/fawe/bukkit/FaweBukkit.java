@@ -2,6 +2,9 @@ package com.boydti.fawe.bukkit;
 
 import com.boydti.fawe.Fawe;
 import com.boydti.fawe.IFawe;
+import com.boydti.fawe.bukkit.chat.BukkitChatManager;
+import com.boydti.fawe.bukkit.listener.BrushListener;
+import com.boydti.fawe.bukkit.listener.RenderListener;
 import com.boydti.fawe.bukkit.regions.FactionsFeature;
 import com.boydti.fawe.bukkit.regions.FactionsOneFeature;
 import com.boydti.fawe.bukkit.regions.FactionsUUIDFeature;
@@ -11,6 +14,9 @@ import com.boydti.fawe.bukkit.regions.PreciousStonesFeature;
 import com.boydti.fawe.bukkit.regions.ResidenceFeature;
 import com.boydti.fawe.bukkit.regions.TownyFeature;
 import com.boydti.fawe.bukkit.regions.Worldguard;
+import com.boydti.fawe.bukkit.util.BukkitTaskMan;
+import com.boydti.fawe.bukkit.util.ItemUtil;
+import com.boydti.fawe.bukkit.util.VaultUtil;
 import com.boydti.fawe.bukkit.v0.BukkitQueue_0;
 import com.boydti.fawe.bukkit.v0.BukkitQueue_All;
 import com.boydti.fawe.bukkit.v0.ChunkListener;
@@ -29,8 +35,10 @@ import com.boydti.fawe.object.FaweQueue;
 import com.boydti.fawe.regions.FaweMaskManager;
 import com.boydti.fawe.util.MainUtil;
 import com.boydti.fawe.util.ReflectionUtils;
-import com.boydti.fawe.util.StringMan;
 import com.boydti.fawe.util.TaskManager;
+import com.boydti.fawe.util.metrics.BStats;
+import com.sk89q.bukkit.util.FallbackRegistrationListener;
+import com.sk89q.worldedit.bukkit.BukkitPlayerBlockBag;
 import com.sk89q.worldedit.bukkit.BukkitWorld;
 import com.sk89q.worldedit.bukkit.EditSessionBlockChangeDelegate;
 import com.sk89q.worldedit.bukkit.WorldEditPlugin;
@@ -51,6 +59,7 @@ import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.plugin.Plugin;
+import org.bukkit.plugin.RegisteredServiceProvider;
 import org.primesoft.blockshub.BlocksHubBukkit;
 
 public class FaweBukkit implements IFawe, Listener {
@@ -58,6 +67,7 @@ public class FaweBukkit implements IFawe, Listener {
     private final BukkitMain plugin;
     private VaultUtil vault;
     private WorldEditPlugin worldedit;
+    private ItemUtil itemUtil;
 
     public VaultUtil getVault() {
         return this.vault;
@@ -75,8 +85,16 @@ public class FaweBukkit implements IFawe, Listener {
         try {
             Fawe.set(this);
             setupInjector();
-            com.sk89q.worldedit.bukkit.BukkitPlayer.inject(); // Fixes
-            BukkitWorld.inject(); // Fixes
+            try {
+                com.sk89q.worldedit.bukkit.BukkitPlayer.inject(); // Fixes
+                BukkitWorld.inject(); // Fixes
+                BukkitPlayerBlockBag.inject(); // features
+                FallbackRegistrationListener.inject(); // Fixes
+            } catch (Throwable e) {
+                debug("========= INJECTOR FAILED =========");
+                e.printStackTrace();
+                debug("===================================");
+            }
             try {
                 new BrushListener(plugin);
             } catch (Throwable e) {
@@ -94,6 +112,11 @@ public class FaweBukkit implements IFawe, Listener {
             if (Bukkit.getVersion().contains("git-Paper") && Settings.IMP.EXPERIMENTAL.DYNAMIC_CHUNK_RENDERING) {
                 new RenderListener(plugin);
             }
+            try {
+                Fawe.get().setChatManager(new BukkitChatManager());
+            } catch (Throwable ignore) {
+                ignore.printStackTrace();
+            }
         } catch (final Throwable e) {
             MainUtil.handleError(e);
             Bukkit.getServer().shutdown();
@@ -105,6 +128,23 @@ public class FaweBukkit implements IFawe, Listener {
                 new ChunkListener();
             }
         });
+    }
+
+    @Override
+    public int getPlayerCount() {
+        return plugin.getServer().getOnlinePlayers().size();
+    }
+
+    @Override
+    public boolean isOnlineMode() {
+        return Bukkit.getOnlineMode();
+    }
+
+    @Override
+    public String getPlatformVersion() {
+        String bukkitVersion = Bukkit.getVersion();
+        int index = bukkitVersion.indexOf("MC: ");
+        return index == -1 ? bukkitVersion : bukkitVersion.substring(index + 4, bukkitVersion.length() - 1);
     }
 
     public void setupInjector() {
@@ -164,6 +204,53 @@ public class FaweBukkit implements IFawe, Listener {
     public void startMetrics() {
         Metrics metrics = new Metrics(plugin);
         metrics.start();
+        TaskManager.IMP.task(new Runnable() {
+            @Override
+            public void run() {
+                ArrayList<Class<?>> services = new ArrayList(Bukkit.getServicesManager().getKnownServices());
+                services.forEach(service -> {
+                    try {
+                        service.getField("B_STATS_VERSION");
+                        ArrayList<RegisteredServiceProvider<?>> providers = new ArrayList(Bukkit.getServicesManager().getRegistrations(service));
+                        for (RegisteredServiceProvider<?> provider : providers) {
+                            Object instance = provider.getProvider();
+
+                            // Link it to FAWE's metrics instead
+                            BStats.linkMetrics(instance);
+
+                            // Disable the other metrics
+                            Bukkit.getServicesManager().unregister(service, instance);
+                            try {
+                                Class<? extends Object> clazz = instance.getClass();
+                                Field logFailedRequests = ReflectionUtils.findField(clazz, boolean.class);
+                                logFailedRequests.set(null, false);
+                                Field url = null;
+                                try { url = clazz.getDeclaredField("URL"); } catch (NoSuchFieldException ignore) {
+                                for (Field field : clazz.getDeclaredFields()) if (ReflectionUtils.setAccessible(field).get(null).toString().startsWith("http")) { url = field; break; }
+                                }
+                                if (url != null) ReflectionUtils.setFailsafeFieldValue(url, null, null);
+                            } catch (NoSuchFieldError | IllegalAccessException ignore) {}
+                            catch (Throwable e) {}
+                        }
+                    } catch (NoSuchFieldException ignored) { }
+                });
+            }
+        });
+    }
+
+    public ItemUtil getItemUtil() {
+        ItemUtil tmp = itemUtil;
+        if (tmp == null) {
+            try {
+                this.itemUtil = tmp = new ItemUtil();
+            } catch (Throwable e) {
+                Settings.IMP.EXPERIMENTAL.PERSISTENT_BRUSHES = false;
+                debug("===== PERSISTENT BRUSH FAILED =====");
+                e.printStackTrace();
+                debug("===================================");
+            }
+        }
+        return tmp;
     }
 
     /**
@@ -183,11 +270,11 @@ public class FaweBukkit implements IFawe, Listener {
     public String getDebugInfo() {
         StringBuilder msg = new StringBuilder();
         List<String> pl = new ArrayList<>();
+        msg.append("server.plugins: \n");
         for (Plugin p : Bukkit.getPluginManager().getPlugins()) {
-            pl.add(p.getName());
+            msg.append(" - " + p.getName() + ": " + p.getDescription().getVersion() + "\n");
         }
-        msg.append("server.plugins: \n - " + StringMan.join(pl, " - ") + "\n");
-        msg.append("server.version: " + Bukkit.getVersion() + " / " + Bukkit.getBukkitVersion());
+        msg.append("server.version: " + Bukkit.getVersion() + " / " + Bukkit.getBukkitVersion() + "\n");
         return msg.toString();
     }
 
@@ -454,6 +541,7 @@ public class FaweBukkit implements IFawe, Listener {
     public Version getVersion() {
         Version tmp = this.version;
         if (tmp == null) {
+            tmp = Version.NONE;
             for (Version v : Version.values()) {
                 try {
                     BukkitQueue_0.checkVersion(v.name());
@@ -481,6 +569,8 @@ public class FaweBukkit implements IFawe, Listener {
         v1_10_R1,
         v1_11_R1,
         v1_12_R1,
+        v1_12_R2,
+        v1_13_R1,
         NONE,
     }
 

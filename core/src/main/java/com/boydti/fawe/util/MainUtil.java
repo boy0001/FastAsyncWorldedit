@@ -30,6 +30,7 @@ import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
+import java.io.FileFilter;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -39,10 +40,12 @@ import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
 import java.lang.reflect.Array;
 import java.lang.reflect.Method;
+import java.lang.reflect.Parameter;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URISyntaxException;
 import java.net.URL;
+import java.net.URLClassLoader;
 import java.net.URLConnection;
 import java.nio.channels.FileChannel;
 import java.nio.charset.StandardCharsets;
@@ -59,7 +62,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.UUID;
-import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.zip.DataFormatException;
 import java.util.zip.Deflater;
@@ -67,6 +69,7 @@ import java.util.zip.GZIPInputStream;
 import java.util.zip.Inflater;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
+import javax.imageio.ImageIO;
 import net.jpountz.lz4.LZ4BlockInputStream;
 import net.jpountz.lz4.LZ4BlockOutputStream;
 import net.jpountz.lz4.LZ4Compressor;
@@ -143,6 +146,31 @@ public class MainUtil {
         return result;
     }
 
+    public static <T> T getOf(Object[] arr, Class<T> ofType) {
+        for (Object a : arr) {
+            if (a != null && a.getClass() == ofType) {
+                return (T) a;
+            }
+        }
+        return null;
+    }
+
+    public static String[] getParameterNames(Method method) {
+        Parameter[] parameters = method.getParameters();
+        List<String> parameterNames = new ArrayList<>();
+
+        for (Parameter parameter : parameters) {
+            if(!parameter.isNamePresent()) {
+                throw new IllegalArgumentException("Parameter names are not present!");
+            }
+
+            String parameterName = parameter.getName();
+            parameterNames.add(parameterName);
+        }
+
+        return parameterNames.toArray(new String[parameterNames.size()]);
+    }
+
     public static long getTotalSize(Path path) {
         final AtomicLong size = new AtomicLong(0);
         traverse(path, new RunnableVal2<Path, BasicFileAttributes>() {
@@ -193,27 +221,23 @@ public class MainUtil {
     }
 
     public static int getMaxFileId(File folder) {
-        final AtomicInteger max = new AtomicInteger();
-        if (folder.exists()) {
-            MainUtil.traverse(folder.toPath(), new RunnableVal2<Path, BasicFileAttributes>() {
-                @Override
-                public void run(Path path, BasicFileAttributes attr) {
-                    try {
-                        String file = path.getFileName().toString();
-                        int index = file.indexOf('.');
-                        if (index == -1) {
-                            return;
-                        }
-                        int id = Integer.parseInt(file.substring(0, index));
-                        if (id > max.get()) {
-                            max.set(id);
-                        }
-                    } catch (NumberFormatException ignore) {
-                    }
+        final int[] max = new int[1];
+        folder.listFiles(new FileFilter() {
+            @Override
+            public boolean accept(File pathname) {
+                String name = pathname.getName();
+                Integer val = null;
+                if (pathname.isDirectory()) {
+                    val = StringMan.toInteger(name, 0, name.length());
+                } else {
+                    int i = name.lastIndexOf('.');
+                    if (i != -1) val = StringMan.toInteger(name, 0, i);
                 }
-            });
-        }
-        return max.get() + 1;
+                if (val != null && val > max[0]) max[0] = val;
+                return false;
+            }
+        });
+        return max[0] + 1;
     }
 
     public static File getFile(File base, String path) {
@@ -324,7 +348,6 @@ public class MainUtil {
         if (amount == 0) {
             return new FaweOutputStream(os);
         }
-        os = new BufferedOutputStream(os, buffer);
         int gzipAmount = amount > 6 ? 1 : 0;
         for (int i = 0; i < gzipAmount; i++) {
             os = new ZstdOutputStream(os, 22);
@@ -342,6 +365,7 @@ public class MainUtil {
                 os = new LZ4BlockOutputStream(os, buffer, factory.highCompressor());
             }
         }
+        os = new BufferedOutputStream(os, buffer);
         return new FaweOutputStream(os);
     }
 
@@ -469,6 +493,25 @@ public class MainUtil {
         }
     }
 
+    private static final Class[] parameters = new Class[]{URL.class};
+
+    public static void loadURLClasspath(URL u) throws IOException {
+
+        URLClassLoader sysloader = (URLClassLoader) ClassLoader.getSystemClassLoader();
+        Class sysclass = URLClassLoader.class;
+
+        try {
+            Method method = sysclass.getDeclaredMethod("addURL", parameters);
+            method.setAccessible(true);
+            method.invoke(sysloader, new Object[]{u});
+        } catch (Throwable t) {
+            t.printStackTrace();
+            throw new IOException("Error, could not add URL to system classloader");
+        }
+
+    }
+
+
     public static File getJarFile() {
         try {
             return getJarFile(Fawe.class);
@@ -559,9 +602,21 @@ public class MainUtil {
         return destFile;
     }
 
+    public static BufferedImage readImage(InputStream in) throws IOException {
+        return MainUtil.toRGB(ImageIO.read(in));
+    }
+
+    public static BufferedImage readImage(URL url) throws IOException {
+        return readImage(url.openStream());
+    }
+
+    public static BufferedImage readImage(File file) throws IOException {
+        return readImage(new FileInputStream(file));
+    }
+
     public static BufferedImage toRGB(BufferedImage src) {
         if (src == null) return src;
-        BufferedImage img = new BufferedImage(src.getWidth(), src.getHeight(), BufferedImage.TYPE_INT_BGR);
+        BufferedImage img = new BufferedImage(src.getWidth(), src.getHeight(), BufferedImage.TYPE_INT_ARGB);
         Graphics2D g2d = img.createGraphics();
         g2d.drawImage(src, 0, 0, null);
         g2d.dispose();
@@ -745,6 +800,47 @@ public class MainUtil {
         }
     }
 
+    public static int[] regionNameToCoords(String fileName) {
+        int[] res = new int[2];
+        int len = fileName.length() - 4;
+        int val = 0;
+        boolean neg = false;
+        boolean reading = false;
+        int index = 1;
+        int numIndex = 1;
+        outer:
+        for (int i = len; i >= 2; i--) {
+            char c = fileName.charAt(i);
+            if (!reading) {
+                reading = (c == '.');
+                continue;
+            }
+            switch (c) {
+                case '-':
+                    val = -val;
+                    break;
+                case '.':
+                    res[index--] = val;
+                    if (index == -1) return res;
+                    val = 0;
+                    numIndex = 1;
+                    break;
+                default:
+                    val = val + (c - 48) * numIndex;
+                    numIndex *= 10;
+                    break;
+            }
+        }
+        res[index] = val;
+        return res;
+    }
+
+    public static boolean isInSubDirectory(File dir, File file) {
+        if (file == null) return false;
+        if (file.equals(dir)) return true;
+        return isInSubDirectory(dir, file.getParentFile());
+    }
+
     public static void iterateFiles(File directory, RunnableVal<File> task) {
         if (directory.exists()) {
             File[] files = directory.listFiles();
@@ -906,8 +1002,8 @@ public class MainUtil {
             public void run(File file) {
                 long age = now - file.lastModified();
                 if (age > timeDiff) {
-                    Fawe.debug("Deleting file: " + file);
                     file.delete();
+                    BBC.FILE_DELETED.send(null, file);
                 }
             }
         });
@@ -922,7 +1018,8 @@ public class MainUtil {
                     if (file.isDirectory()) {
                         deleteDirectory(files[i]);
                     } else {
-                        Fawe.debug("Deleting file: " + file + " | " + file.delete());
+                        file.delete();
+                        BBC.FILE_DELETED.send(null, file);
                     }
                 }
             }

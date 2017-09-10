@@ -7,6 +7,7 @@ import com.boydti.fawe.example.CharFaweChunk;
 import com.boydti.fawe.object.FaweChunk;
 import com.boydti.fawe.object.FaweQueue;
 import com.boydti.fawe.util.MainUtil;
+import com.boydti.fawe.util.MathMan;
 import com.boydti.fawe.util.ReflectionUtils;
 import com.sk89q.jnbt.CompoundTag;
 import com.sk89q.jnbt.ListTag;
@@ -78,19 +79,19 @@ public class BukkitChunk_1_12 extends CharFaweChunk<Chunk, BukkitQueue_1_12> {
     }
 
     public boolean storeEntity(Entity ent) throws InvocationTargetException, IllegalAccessException {
-        if (ent instanceof EntityPlayer || BukkitQueue_0.adapter == null) {
+        if (ent instanceof EntityPlayer || BukkitQueue_0.getAdapter() == null) {
             return false;
         }
-        int x = ((int) Math.round(ent.locX) & 15);
-        int z = ((int) Math.round(ent.locZ) & 15);
-        int y = ((int) Math.round(ent.locY) & 0xFF);
+        int x = (MathMan.roundInt(ent.locX) & 15);
+        int z = (MathMan.roundInt(ent.locZ) & 15);
+        int y = (MathMan.roundInt(ent.locY) & 0xFF);
         int i = FaweCache.CACHE_I[y][z][x];
         int j = FaweCache.CACHE_J[y][z][x];
         String id = EntityTypes.b(ent);
         if (id != null) {
             NBTTagCompound tag = new NBTTagCompound();
             ent.save(tag); // readEntityIntoTag
-            CompoundTag nativeTag = (CompoundTag) BukkitQueue_0.methodToNative.invoke(getParent().adapter, tag);
+            CompoundTag nativeTag = (CompoundTag) BukkitQueue_0.toNative(tag);
             Map<String, Tag> map = ReflectionUtils.getMap(nativeTag.getValue());
             map.put("Id", new StringTag(id));
             setEntity(nativeTag);
@@ -270,6 +271,8 @@ public class BukkitChunk_1_12 extends CharFaweChunk<Chunk, BukkitQueue_1_12> {
                 } else {
                     Collection<Entity> ents = entities[i];
                     if (!ents.isEmpty()) {
+                        int layerYStart = i << 4;
+                        int layerYEnd = layerYStart + 15;
                         char[] array = this.getIdArray(i);
                         if (array == null) continue;
                         Iterator<Entity> iter = ents.iterator();
@@ -278,10 +281,10 @@ public class BukkitChunk_1_12 extends CharFaweChunk<Chunk, BukkitQueue_1_12> {
                             if (entity instanceof EntityPlayer) {
                                 continue;
                             }
-                            int x = ((int) Math.round(entity.locX) & 15);
-                            int z = ((int) Math.round(entity.locZ) & 15);
-                            int y = (int) Math.round(entity.locY);
-                            if (y < 0 || y > 255) continue;
+                            int y = MathMan.roundInt(entity.locY);
+                            if (y > layerYEnd || y < layerYStart) continue;
+                            int x = (MathMan.roundInt(entity.locX) & 15);
+                            int z = (MathMan.roundInt(entity.locZ) & 15);
                             if (array[FaweCache.CACHE_J[y][z][x]] != 0) {
                                 if (copy != null) {
                                     copy.storeEntity(entity);
@@ -330,7 +333,7 @@ public class BukkitChunk_1_12 extends CharFaweChunk<Chunk, BukkitQueue_1_12> {
                                 entityTagMap.put("UUIDMost", new LongTag(uuid.getMostSignificantBits()));
                                 entityTagMap.put("UUIDLeast", new LongTag(uuid.getLeastSignificantBits()));
                                 if (nativeTag != null) {
-                                    NBTTagCompound tag = (NBTTagCompound) BukkitQueue_1_12.methodFromNative.invoke(BukkitQueue_1_12.adapter, nativeTag);
+                                    NBTTagCompound tag = (NBTTagCompound) BukkitQueue_1_12.fromNative(nativeTag);
                                     for (String name : Constants.NO_COPY_ENTITY_NBT_FIELDS) {
                                         tag.remove(name);
                                     }
@@ -484,11 +487,15 @@ public class BukkitChunk_1_12 extends CharFaweChunk<Chunk, BukkitQueue_1_12> {
                 BlockPosition pos = new BlockPosition(x, y, z); // Set pos
                 TileEntity tileEntity = nmsWorld.getTileEntity(pos);
                 if (tileEntity != null) {
-                    NBTTagCompound tag = (NBTTagCompound) BukkitQueue_1_12.methodFromNative.invoke(BukkitQueue_1_12.adapter, nativeTag);
+                    NBTTagCompound tag = (NBTTagCompound) BukkitQueue_1_12.fromNative(nativeTag);
                     tag.set("x", new NBTTagInt(x));
                     tag.set("y", new NBTTagInt(y));
                     tag.set("z", new NBTTagInt(z));
-                    tileEntity.a(tag); // ReadTagIntoTile
+                    if (BukkitQueue_1_12.methodTileEntityLoad != null) {
+                        BukkitQueue_1_12.methodTileEntityLoad.invoke(tileEntity, tag);  // ReadTagIntoTile
+                    } else {
+                        tileEntity.load(tag);
+                    }
                 }
             }
             // Change task

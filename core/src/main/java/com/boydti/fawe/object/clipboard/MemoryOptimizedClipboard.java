@@ -9,11 +9,13 @@ import com.boydti.fawe.util.ReflectionUtils;
 import com.sk89q.jnbt.CompoundTag;
 import com.sk89q.jnbt.IntTag;
 import com.sk89q.jnbt.Tag;
+import com.sk89q.worldedit.EditSession;
 import com.sk89q.worldedit.Vector;
 import com.sk89q.worldedit.blocks.BaseBlock;
 import com.sk89q.worldedit.entity.BaseEntity;
 import com.sk89q.worldedit.entity.Entity;
 import com.sk89q.worldedit.extent.Extent;
+import com.sk89q.worldedit.world.biome.BaseBiome;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -37,6 +39,7 @@ public class MemoryOptimizedClipboard extends FaweClipboard {
     private byte[][] add;
 
     private byte[] buffer = new byte[MainUtil.getMaxCompressedLength(BLOCK_SIZE)];
+    private byte[] biomes = null;
 
     private final HashMap<IntegerTrio, CompoundTag> nbtMapLoc;
     private final HashMap<Integer, CompoundTag> nbtMapIndex;
@@ -84,6 +87,49 @@ public class MemoryOptimizedClipboard extends FaweClipboard {
             setTile(getIndex(key.x, key.y, key.z), entry.getValue());
         }
         nbtMapLoc.clear();
+    }
+
+    @Override
+    public boolean hasBiomes() {
+        return biomes != null;
+    }
+
+    @Override
+    public boolean setBiome(int x, int z, int biome) {
+        setBiome(getIndex(x, 0, z), biome);
+        return true;
+    }
+
+    @Override
+    public void setBiome(int index, int biome) {
+        if (biomes == null) {
+            biomes = new byte[area];
+        }
+        biomes[index] = (byte) biome;
+    }
+
+    @Override
+    public void streamBiomes(NBTStreamer.ByteReader task) {
+        if (!hasBiomes()) return;
+        int index = 0;
+        for (int z = 0; z < length; z++) {
+            for (int x = 0; x < width; x++, index++) {
+                task.run(index, biomes[index] & 0xFF);
+            }
+        }
+    }
+
+    @Override
+    public BaseBiome getBiome(int index) {
+        if (!hasBiomes()) {
+            return EditSession.nullBiome;
+        }
+        return FaweCache.CACHE_BIOME[biomes[index] & 0xFF];
+    }
+
+    @Override
+    public BaseBiome getBiome(int x, int z) {
+        return getBiome(getIndex(x, 0, z));
     }
 
     private CompoundTag getTag(int index) {
@@ -351,6 +397,7 @@ public class MemoryOptimizedClipboard extends FaweClipboard {
         return getBlock(index);
     }
 
+    @Override
     public BaseBlock getBlock(int index) {
         int id = getId(index);
         if (add != null) {

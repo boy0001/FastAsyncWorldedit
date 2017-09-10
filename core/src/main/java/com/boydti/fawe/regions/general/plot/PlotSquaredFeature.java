@@ -4,6 +4,7 @@ import com.boydti.fawe.Fawe;
 import com.boydti.fawe.object.FawePlayer;
 import com.boydti.fawe.regions.FaweMask;
 import com.boydti.fawe.regions.FaweMaskManager;
+import com.boydti.fawe.regions.general.RegionFilter;
 import com.intellectualcrafters.plot.PS;
 import com.intellectualcrafters.plot.commands.MainCommand;
 import com.intellectualcrafters.plot.config.Settings;
@@ -82,7 +83,7 @@ public class PlotSquaredFeature extends FaweMaskManager {
             return false;
         }
         UUID uid = fp.getUUID();
-        return (plot.isOwner(uid) || (type == MaskType.MEMBER && (plot.getTrusted().contains(uid) || (plot.getMembers().contains(uid) && fp.hasPermission("fawe.plotsquared.member")))));
+        return (plot.isOwner(uid) || (type == MaskType.MEMBER && (plot.getTrusted().contains(uid) || (plot.getMembers().contains(uid) && fp.hasPermission("fawe.plotsquared.member"))))) || fp.hasPermission("fawe.plotsquared.admin");
     }
 
     @Override
@@ -105,13 +106,13 @@ public class PlotSquaredFeature extends FaweMaskManager {
         if (regions == null || regions.size() == 0) {
             return null;
         }
-        final HashSet<com.boydti.fawe.object.RegionWrapper> faweRegions = new HashSet<>();
-        for (final RegionWrapper current : regions) {
-            faweRegions.add(new com.boydti.fawe.object.RegionWrapper(current.minX, current.maxX, current.minZ, current.maxZ));
-        }
         PlotArea area = pp.getApplicablePlotArea();
         int min = area != null ? area.MIN_BUILD_HEIGHT : 0;
         int max = area != null ? area.MAX_BUILD_HEIGHT : 255;
+        final HashSet<com.boydti.fawe.object.RegionWrapper> faweRegions = new HashSet<>();
+        for (final RegionWrapper current : regions) {
+            faweRegions.add(new com.boydti.fawe.object.RegionWrapper(current.minX, current.maxX, min, max, current.minZ, current.maxZ));
+        }
         final RegionWrapper region = regions.iterator().next();
         final BlockVector pos1 = new BlockVector(region.minX, min, region.minZ);
         final BlockVector pos2 = new BlockVector(region.maxX, max, region.maxZ);
@@ -137,5 +138,10 @@ public class PlotSquaredFeature extends FaweMaskManager {
                 return faweRegions;
             }
         };
+    }
+
+    @Override
+    public RegionFilter getFilter(String world) {
+        return new PlotRegionFilter(PS.get().getPlotArea(world, null));
     }
 }

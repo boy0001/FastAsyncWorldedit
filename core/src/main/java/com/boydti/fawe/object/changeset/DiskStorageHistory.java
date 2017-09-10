@@ -14,6 +14,7 @@ import com.sk89q.jnbt.NBTOutputStream;
 import com.sk89q.worldedit.EditSession;
 import com.sk89q.worldedit.world.World;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
+import java.io.DataOutput;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
@@ -281,7 +282,7 @@ public class DiskStorageHistory extends FaweStreamChangeSet {
         }
         enttFile.getParentFile().mkdirs();
         enttFile.createNewFile();
-        osENTCT = new NBTOutputStream(getCompressedOS(new FileOutputStream(enttFile)));
+        osENTCT = new NBTOutputStream((DataOutput) getCompressedOS(new FileOutputStream(enttFile)));
         return osENTCT;
     }
 
@@ -292,7 +293,7 @@ public class DiskStorageHistory extends FaweStreamChangeSet {
         }
         entfFile.getParentFile().mkdirs();
         entfFile.createNewFile();
-        osENTCF = new NBTOutputStream(getCompressedOS(new FileOutputStream(entfFile)));
+        osENTCF = new NBTOutputStream((DataOutput) getCompressedOS(new FileOutputStream(entfFile)));
         return osENTCF;
     }
 
@@ -303,7 +304,7 @@ public class DiskStorageHistory extends FaweStreamChangeSet {
         }
         nbttFile.getParentFile().mkdirs();
         nbttFile.createNewFile();
-        osNBTT = new NBTOutputStream(getCompressedOS(new FileOutputStream(nbttFile)));
+        osNBTT = new NBTOutputStream((DataOutput) getCompressedOS(new FileOutputStream(nbttFile)));
         return osNBTT;
     }
 
@@ -314,7 +315,7 @@ public class DiskStorageHistory extends FaweStreamChangeSet {
         }
         nbtfFile.getParentFile().mkdirs();
         nbtfFile.createNewFile();
-        osNBTF = new NBTOutputStream(getCompressedOS(new FileOutputStream(nbtfFile)));
+        osNBTF = new NBTOutputStream((DataOutput) getCompressedOS(new FileOutputStream(nbtfFile)));
         return osNBTF;
     }
 

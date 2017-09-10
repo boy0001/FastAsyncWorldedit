@@ -1,7 +1,9 @@
 package com.boydti.fawe.bukkit.regions;
 
 import com.boydti.fawe.bukkit.FaweBukkit;
+import com.boydti.fawe.bukkit.filter.WorldGuardFilter;
 import com.boydti.fawe.object.FawePlayer;
+import com.boydti.fawe.regions.general.RegionFilter;
 import com.sk89q.worldguard.LocalPlayer;
 import com.sk89q.worldguard.bukkit.WorldGuardPlugin;
 import com.sk89q.worldguard.protection.ApplicableRegionSet;
@@ -108,6 +110,10 @@ public class Worldguard extends BukkitMaskManager implements Listener {
         } else {
             return null;
         }
+    }
 
+    @Override
+    public RegionFilter getFilter(String world) {
+        return new WorldGuardFilter(Bukkit.getWorld(world));
     }
 }

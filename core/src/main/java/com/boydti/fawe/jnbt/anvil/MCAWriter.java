@@ -187,7 +187,7 @@ public abstract class MCAWriter {
                                     int cx = (fmcaX << 5) + (i & 31);
                                     int cz = (fmcaZ << 5) + (i >> 5);
                                     raf.seek(offset);
-                                    raf.writeInt(compressedBytes.length);
+                                    raf.writeInt(compressedBytes.length + 1);
                                     raf.write(2);
                                     raf.write(compressedBytes);
                                     offset += blocks * 4096;

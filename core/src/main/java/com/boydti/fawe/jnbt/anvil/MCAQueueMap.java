@@ -5,9 +5,11 @@ import com.boydti.fawe.example.MappedFaweQueue;
 import com.boydti.fawe.example.NullFaweChunk;
 import com.boydti.fawe.object.FaweChunk;
 import com.boydti.fawe.object.FaweQueue;
+import com.boydti.fawe.object.RegionWrapper;
 import com.boydti.fawe.object.RunnableVal;
 import com.boydti.fawe.object.exception.FaweException;
 import com.boydti.fawe.util.MathMan;
+import com.boydti.fawe.util.SetQueue;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Iterator;
@@ -49,6 +51,7 @@ public class MCAQueueMap implements IFaweQueueMap {
         lastFile = tmp = mcaFileMap.get(pair);
         if (lastFile == null) {
             try {
+                queue.setMCA(lastFileX, lastFileZ, RegionWrapper.GLOBAL(), null, true, false);
                 lastFile = tmp = new MCAFile(queue, lastFileX, lastFileZ);
             } catch (FaweException.FaweChunkLoadException ignore) {
                 lastFile = null;
@@ -93,7 +96,8 @@ public class MCAQueueMap implements IFaweQueueMap {
         lastX = cx;
         lastZ = cz;
         if (isHybridQueue) {
-            lastChunk = ((MappedFaweQueue) queue).getFaweQueueMap().getCachedFaweChunk(cx, cz);
+            MappedFaweQueue mfq = ((MappedFaweQueue) queue);
+            lastChunk = mfq.getFaweQueueMap().getCachedFaweChunk(cx, cz);
             if (lastChunk != null) {
                 return lastChunk;
             }
@@ -175,7 +179,12 @@ public class MCAQueueMap implements IFaweQueueMap {
                 if (result = iter.hasNext()) {
                     MCAFile file = iter.next().getValue();
                     iter.remove();
-                    file.close(null);
+                    queue.setMCA(file.getX(), file.getZ(), RegionWrapper.GLOBAL(), new Runnable() {
+                        @Override
+                        public void run() {
+                            file.close(SetQueue.IMP.getForkJoinPool());
+                        }
+                    }, true, true);
                 } else {
                     break;
                 }

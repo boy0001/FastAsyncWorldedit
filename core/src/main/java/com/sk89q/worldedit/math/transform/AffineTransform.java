@@ -133,12 +133,24 @@ public class AffineTransform implements Transform, Serializable {
         return new double[]{m00, m01, m02, m03, m10, m11, m12, m13, m20, m21, m22, m23};
     }
 
+    public boolean isOffAxis() {
+        double[] c = coefficients();
+        for (int i = 0; i < c.length; i++) {
+            if ((i + 1) % 4 != 0) {
+                if (Math.abs(c[i]) != 1 && c[i] != 0) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
     /**
      * Computes the determinant of this transform. Can be zero.
      *
      * @return the determinant of the transform.
      */
-    private double determinant() {
+    public double determinant() {
         return m00 * (m11 * m22 - m12 * m21) - m01 * (m10 * m22 - m20 * m12)
                 + m02 * (m10 * m21 - m20 * m11);
     }
@@ -151,17 +163,17 @@ public class AffineTransform implements Transform, Serializable {
         double det = this.determinant();
         return new AffineTransform(
                 (m11 * m22 - m21 * m12) / det,
-                (m21 * m01 - m01 * m22) / det,
+                (m02 * m21 - m22 * m01) / det,
                 (m01 * m12 - m11 * m02) / det,
                 (m01 * (m22 * m13 - m12 * m23) + m02 * (m11 * m23 - m21 * m13)
                         - m03 * (m11 * m22 - m21 * m12)) / det,
-                (m20 * m12 - m10 * m22) / det,
+                (m12 * m20 - m22 * m10) / det,
                 (m00 * m22 - m20 * m02) / det,
-                (m10 * m02 - m00 * m12) / det,
+                (m02 * m10 - m12 * m00) / det,
                 (m00 * (m12 * m23 - m22 * m13) - m02 * (m10 * m23 - m20 * m13)
                         + m03 * (m10 * m22 - m20 * m12)) / det,
                 (m10 * m21 - m20 * m11) / det,
-                (m20 * m01 - m00 * m21) / det,
+                (m01 * m20 - m21 * m00) / det,
                 (m00 * m11 - m10 * m01) / det,
                 (m00 * (m21 * m13 - m11 * m23) + m01 * (m10 * m23 - m20 * m13)
                         - m03 * (m10 * m21 - m20 * m11)) / det);
@@ -293,7 +305,9 @@ public class AffineTransform implements Transform, Serializable {
 
     @Override
     public Transform combine(Transform other) {
-        if (other instanceof AffineTransform) {
+        if (other instanceof Identity || other.isIdentity()) {
+            return this;
+        } else if (other instanceof AffineTransform) {
             return concatenate((AffineTransform) other);
         } else {
             return new CombinedTransform(this, other);

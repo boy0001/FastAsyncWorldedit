@@ -7,8 +7,8 @@ import com.sk89q.worldedit.function.RegionFunction;
 
 public class SimpleBlockCopy implements RegionFunction {
 
-    private final Extent source;
-    private final Extent destination;
+    protected final Extent source;
+    protected final Extent destination;
 
     public SimpleBlockCopy(Extent source, Extent destination) {
         this.source = source;

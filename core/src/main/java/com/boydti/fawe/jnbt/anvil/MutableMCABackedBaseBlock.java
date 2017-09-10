@@ -31,6 +31,10 @@ public class MutableMCABackedBaseBlock extends BaseBlock {
         data = chunk.data[layer];
     }
 
+    public MCAChunk getChunk() {
+        return chunk;
+    }
+
     public void setX(int x) {
         this.x = x;
     }

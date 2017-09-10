@@ -10,13 +10,12 @@ import com.boydti.fawe.object.FawePlayer;
 import com.boydti.fawe.object.RegionWrapper;
 import com.boydti.fawe.object.RunnableVal;
 import com.boydti.fawe.object.brush.visualization.VisualChunk;
-import com.boydti.fawe.object.collection.PrimitiveList;
 import com.boydti.fawe.object.visitor.FaweChunkVisitor;
 import com.boydti.fawe.util.MainUtil;
 import com.boydti.fawe.util.MathMan;
 import com.boydti.fawe.util.ReflectionUtils;
+import com.boydti.fawe.util.SetQueue;
 import com.boydti.fawe.util.TaskManager;
-import com.boydti.fawe.util.task.TaskBuilder;
 import com.sk89q.jnbt.CompoundTag;
 import com.sk89q.jnbt.StringTag;
 import com.sk89q.jnbt.Tag;
@@ -27,8 +26,8 @@ import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.util.ArrayDeque;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
@@ -36,17 +35,13 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
-import java.util.concurrent.ForkJoinPool;
-import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.LongAdder;
 import net.minecraft.server.v1_12_R1.BiomeBase;
 import net.minecraft.server.v1_12_R1.BiomeCache;
 import net.minecraft.server.v1_12_R1.Block;
 import net.minecraft.server.v1_12_R1.BlockPosition;
-import net.minecraft.server.v1_12_R1.ChunkCoordIntPair;
 import net.minecraft.server.v1_12_R1.ChunkProviderGenerate;
 import net.minecraft.server.v1_12_R1.ChunkProviderServer;
-import net.minecraft.server.v1_12_R1.ChunkRegionLoader;
 import net.minecraft.server.v1_12_R1.ChunkSection;
 import net.minecraft.server.v1_12_R1.DataPaletteBlock;
 import net.minecraft.server.v1_12_R1.Entity;
@@ -57,7 +52,6 @@ import net.minecraft.server.v1_12_R1.EnumDifficulty;
 import net.minecraft.server.v1_12_R1.EnumGamemode;
 import net.minecraft.server.v1_12_R1.EnumSkyBlock;
 import net.minecraft.server.v1_12_R1.IBlockData;
-import net.minecraft.server.v1_12_R1.IChunkLoader;
 import net.minecraft.server.v1_12_R1.IDataManager;
 import net.minecraft.server.v1_12_R1.MinecraftServer;
 import net.minecraft.server.v1_12_R1.NBTTagCompound;
@@ -97,6 +91,8 @@ public class BukkitQueue_1_12 extends BukkitQueue_0<net.minecraft.server.v1_12_R
     protected static Field fieldPalette;
     protected static Field fieldSize;
     protected static Method getEntitySlices;
+    protected static Method methodTileEntityLoad;
+    protected static Method methodSaveChunk;
     protected static Field fieldTickingBlockCount;
     protected static Field fieldNonEmptyBlockCount;
     protected static Field fieldSection;
@@ -109,6 +105,7 @@ public class BukkitQueue_1_12 extends BukkitQueue_0<net.minecraft.server.v1_12_R
     protected static Field fieldGenLayer2;
     protected static Field fieldChunks;
     protected static Field fieldChunkLoader;
+    private static Field fieldSave;
     protected static MutableGenLayer genLayer;
     protected static ChunkSection emptySection;
 
@@ -140,6 +137,8 @@ public class BukkitQueue_1_12 extends BukkitQueue_0<net.minecraft.server.v1_12_R
             fieldGenLayer1.setAccessible(true);
             fieldGenLayer2.setAccessible(true);
 
+            fieldSave = ReflectionUtils.setAccessible(net.minecraft.server.v1_12_R1.Chunk.class.getDeclaredField("s"));
+
             fieldChunks = ChunkProviderServer.class.getDeclaredField("chunks");
             fieldChunkLoader = ChunkProviderServer.class.getDeclaredField("chunkLoader");
             fieldChunks.setAccessible(true);
@@ -150,6 +149,11 @@ public class BukkitQueue_1_12 extends BukkitQueue_0<net.minecraft.server.v1_12_R
             fieldSize = DataPaletteBlock.class.getDeclaredField("e");
             fieldSize.setAccessible(true);
 
+            try {
+                methodTileEntityLoad = TileEntity.class.getDeclaredMethod("a", NBTTagCompound.class);
+                methodTileEntityLoad.setAccessible(true);
+            } catch (Throwable ignore) {}
+
             Field fieldAir = DataPaletteBlock.class.getDeclaredField("a");
             fieldAir.setAccessible(true);
             air = (IBlockData) fieldAir.get(null);
@@ -158,7 +162,7 @@ public class BukkitQueue_1_12 extends BukkitQueue_0<net.minecraft.server.v1_12_R
             getEntitySlices = net.minecraft.server.v1_12_R1.Chunk.class.getDeclaredMethod("getEntitySlices");
             getEntitySlices.setAccessible(true);
             setupAdapter(new FaweAdapter_1_12());
-            Fawe.debug("Using adapter: " + adapter);
+            Fawe.debug("Using adapter: " + getAdapter());
             Fawe.debug("=========================================");
             for (int i = 0; i < IBD_CACHE.length; i++) {
                 try {
@@ -168,6 +172,9 @@ public class BukkitQueue_1_12 extends BukkitQueue_0<net.minecraft.server.v1_12_R
         } catch (Throwable e) {
             e.printStackTrace();
         }
+        try {
+            methodSaveChunk = ChunkProviderServer.class.getDeclaredMethod("saveChunk", net.minecraft.server.v1_12_R1.Chunk.class, boolean.class);
+        } catch (NoSuchMethodError | NoSuchMethodException ignore) { }
     }
 
     public BukkitQueue_1_12(final com.sk89q.worldedit.world.World world) {
@@ -178,6 +185,25 @@ public class BukkitQueue_1_12 extends BukkitQueue_0<net.minecraft.server.v1_12_R
     public BukkitQueue_1_12(final String world) {
         super(world);
         getImpWorld();
+    }
+
+    private boolean save(net.minecraft.server.v1_12_R1.Chunk chunk, ChunkProviderServer cps) {
+        try {
+            if (!(boolean) fieldSave.get(chunk)) return false;
+            if (methodSaveChunk != null) {
+
+                methodSaveChunk.invoke(cps, chunk, false);
+            } else {
+                cps.saveChunk(chunk);
+            }
+            cps.saveChunkNOP(chunk);
+            return true;
+        } catch (InvocationTargetException e) {
+            e.printStackTrace();
+        } catch (IllegalAccessException e) {
+            e.printStackTrace();
+        }
+        return false;
     }
 
     @Override
@@ -230,7 +256,7 @@ public class BukkitQueue_1_12 extends BukkitQueue_0<net.minecraft.server.v1_12_R
                 nmsWorld.worldData.getSeed();
                 boolean result;
                 ChunkProviderGenerate generator = new ChunkProviderGenerate(nmsWorld, seed, false, "");
-                Biome bukkitBiome = adapter.getBiome(biome.getId());
+                Biome bukkitBiome = getAdapter().getBiome(biome.getId());
                 BiomeBase base = BiomeBase.getBiome(biome.getId());
                 fieldBiomes.set(generator, new BiomeBase[]{base});
                 boolean cold = base.getTemperature() <= 1;
@@ -267,153 +293,117 @@ public class BukkitQueue_1_12 extends BukkitQueue_0<net.minecraft.server.v1_12_R
         return super.regenerateChunk(world, x, z, biome, seed);
     }
 
-    private void unload(RegionWrapper allowed, PrimitiveList<Long> chunks) {
-        ArrayDeque<net.minecraft.server.v1_12_R1.Chunk> queue = TaskManager.IMP.sync(new RunnableVal<ArrayDeque<net.minecraft.server.v1_12_R1.Chunk>>() {
+    @Override
+    public boolean setMCA(final int mcaX, final int mcaZ, final RegionWrapper allowed, final Runnable whileLocked, final boolean saveChunks, final boolean load) {
+        TaskManager.IMP.sync(new RunnableVal<Boolean>() {
             @Override
-            public void run(ArrayDeque<net.minecraft.server.v1_12_R1.Chunk> value) {
-                this.value = new ArrayDeque<>();
-                ChunkProviderServer provider = nmsWorld.getChunkProviderServer();
-                int bcx = (allowed.minX >> 9) << 5;
-                int bcz = (allowed.minZ >> 9) << 5;
-                int tcx = 31 + (allowed.maxX >> 9) << 5;
-                int tcz = 31 + (allowed.maxZ >> 9) << 5;
-                Iterator<net.minecraft.server.v1_12_R1.Chunk> iter = provider.a().iterator();
-                while (iter.hasNext()) {
-                    net.minecraft.server.v1_12_R1.Chunk chunk = iter.next();
-                    int cx = chunk.locX;
-                    int cz = chunk.locZ;
-                    if (cx >= bcx && cx <= tcx && cz >= bcz && cz <= tcz) {
-                        this.value.add(chunk);
-                        if (getPlayerChunk(nmsWorld, cx, cz) != null) {
-                            chunks.add(ChunkCoordIntPair.a(chunk.locX, chunk.locZ));
+            public void run(Boolean value) {
+                long start = System.currentTimeMillis();
+                long last = start;
+                synchronized (RegionFileCache.class) {
+                    World world = getWorld();
+                    if (world.getKeepSpawnInMemory()) world.setKeepSpawnInMemory(false);
+                    ChunkProviderServer provider = nmsWorld.getChunkProviderServer();
+
+                    boolean mustSave = false;
+                    boolean[][] chunksUnloaded = null;
+                    { // Unload chunks
+                        Iterator<net.minecraft.server.v1_12_R1.Chunk> iter = provider.a().iterator();
+                        while (iter.hasNext()) {
+                            net.minecraft.server.v1_12_R1.Chunk chunk = iter.next();
+                            if (chunk.locX >> 5 == mcaX && chunk.locZ >> 5 == mcaZ) {
+                                boolean isIn = allowed.isInChunk(chunk.locX, chunk.locZ);
+                                if (isIn) {
+                                    if (!load) {
+                                        mustSave |= saveChunks && save(chunk, provider);
+                                        continue;
+                                    }
+                                    iter.remove();
+                                    boolean save = saveChunks && chunk.a(false);
+                                    mustSave |= save;
+                                    provider.unloadChunk(chunk, save);
+                                    if (chunksUnloaded == null) {
+                                        chunksUnloaded = new boolean[32][];
+                                    }
+                                    int relX = chunk.locX & 31;
+                                    boolean[] arr = chunksUnloaded[relX];
+                                    if (arr == null) {
+                                        arr = chunksUnloaded[relX] = new boolean[32];
+                                    }
+                                    arr[chunk.locZ & 31] = true;
+                                }
+                            }
+                        }
+                    }
+                    if (mustSave) {
+                        provider.c(); // TODO only the necessary chunks
+                    }
+
+                    File unloadedRegion = null;
+                    if (load && !RegionFileCache.a.isEmpty()) {
+                        Map<File, RegionFile> map = RegionFileCache.a;
+                        Iterator<Map.Entry<File, RegionFile>> iter = map.entrySet().iterator();
+                        String requiredPath = world.getName() + File.separator + "region";
+                        while (iter.hasNext()) {
+                            Map.Entry<File, RegionFile> entry = iter.next();
+                            File file = entry.getKey();
+                            int[] regPos = MainUtil.regionNameToCoords(file.getPath());
+                            if (regPos[0] == mcaX && regPos[1] == mcaZ && file.getPath().contains(requiredPath)) {
+                                if (file.exists()) {
+                                    unloadedRegion = file;
+                                    RegionFile regionFile = entry.getValue();
+                                    iter.remove();
+                                    try {
+                                        regionFile.c();
+                                    } catch (IOException e) {
+                                        e.printStackTrace();
+                                    }
+                                }
+                                break;
+                            }
+                        }
+                    }
+
+                    long now = System.currentTimeMillis();
+                    if (whileLocked != null) whileLocked.run();
+                    if (!load) return;
+
+                    { // Load the region again
+                        if (unloadedRegion != null && chunksUnloaded != null && unloadedRegion.exists()) {
+                            final boolean[][] finalChunksUnloaded = chunksUnloaded;
+                            TaskManager.IMP.async(() -> {
+                                int bx = mcaX << 5;
+                                int bz = mcaZ << 5;
+                                for (int x = 0; x < finalChunksUnloaded.length; x++) {
+                                    boolean[] arr = finalChunksUnloaded[x];
+                                    if (arr != null) {
+                                        for (int z = 0; z < arr.length; z++) {
+                                            if (arr[z]) {
+                                                int cx = bx + x;
+                                                int cz = bz + z;
+                                                SetQueue.IMP.addTask(new Runnable() {
+                                                    @Override
+                                                    public void run() {
+                                                        net.minecraft.server.v1_12_R1.Chunk chunk = provider.getChunkAt(cx, cz, null, false);
+                                                        if (chunk != null) {
+                                                            PlayerChunk pc = getPlayerChunk(nmsWorld, cx, cz);
+                                                            if (pc != null) {
+                                                                sendChunk(pc, chunk, 0);
+                                                            }
+                                                        }
+                                                    }
+                                                });
+                                            }
+                                        }
+                                    }
+                                }
+                            });
                         }
                     }
                 }
             }
         });
-        if (Fawe.get().getMainThread() == Thread.currentThread()) {
-            ChunkProviderServer provider = nmsWorld.getChunkProviderServer();
-            for (net.minecraft.server.v1_12_R1.Chunk chunk : queue) {
-                provider.unloadChunk(chunk, true);
-            }
-            World world = getWorld();
-            boolean autoSave = world.isAutoSave();
-            world.setAutoSave(true);
-            for (int i = 0; i < 50 && !provider.getName().endsWith(" 0"); i++) {
-                provider.unloadChunks();
-            }
-            world.setAutoSave(autoSave);
-        } else {
-            new TaskBuilder().syncWhenFree(new TaskBuilder.SplitTask(50) {
-                @Override
-                public Object exec(Object previous) {
-                    ChunkProviderServer provider = nmsWorld.getChunkProviderServer();
-                    for (net.minecraft.server.v1_12_R1.Chunk chunk : queue) {
-                        provider.unloadChunk(chunk, true);
-                        split();
-                    }
-                    try {
-                        IChunkLoader loader = (IChunkLoader) fieldChunkLoader.get(provider);
-                        if (loader instanceof ChunkRegionLoader) {
-                            ChunkRegionLoader crl = (ChunkRegionLoader) loader;
-                            for (int i = 0; i < queue.size() && crl.a(); i++) {
-                                split();
-                            }
-                        }
-                    } catch (IllegalAccessException e) {
-                        e.printStackTrace();
-                    }
-                    return null;
-                }
-            }).build();
-        }
-    }
-
-    @Override
-    public boolean setMCA(Runnable whileLocked, final RegionWrapper allowed, boolean unload) {
-        try {
-            Object lock = new Object();
-            ForkJoinPool pool = new ForkJoinPool();
-            PrimitiveList<Long> chunks = new PrimitiveList<Long>(Long.class);
-            if (unload && Fawe.get().getMainThread() != Thread.currentThread()) unload(allowed, chunks);
-            Thread operation = new Thread(new Runnable() {
-                @Override
-                public void run() {
-                    try {
-                        synchronized (lock) {
-                            lock.wait();
-                        }
-                        synchronized (RegionFileCache.class) {
-                            whileLocked.run();
-                        }
-                    } catch (Throwable e) {
-                        e.printStackTrace();
-                    }
-                }
-            });
-            TaskManager.IMP.sync(new RunnableVal<Object>() {
-                @Override
-                public void run(Object value) {
-                    try {
-                        synchronized (RegionFileCache.class) {
-                            operation.start(); // Async
-                            ChunkProviderServer provider = nmsWorld.getChunkProviderServer();
-                            if (unload) unload(allowed, chunks);
-                            provider.c();
-                            if (unload) { // Unload regions
-                                Map<File, RegionFile> map = RegionFileCache.a;
-                                Iterator<Map.Entry<File, RegionFile>> iter = map.entrySet().iterator();
-                                while (iter.hasNext()) {
-                                    Map.Entry<File, RegionFile> entry = iter.next();
-                                    RegionFile regionFile = entry.getValue();
-                                    pool.submit(new Runnable() {
-                                        @Override
-                                        public void run() {
-                                            try {
-                                                regionFile.c();
-                                            } catch (IOException e) {
-                                                e.printStackTrace();
-                                            }
-                                        }
-                                    });
-                                    iter.remove();
-                                }
-                                pool.awaitQuiescence(Long.MAX_VALUE, TimeUnit.MILLISECONDS);
-                                pool.shutdown();
-                            }
-                            synchronized (lock) {
-                                lock.notifyAll();
-                            }
-                        }
-                    } catch (Throwable e) {
-                        e.printStackTrace();
-                    }
-                }
-            });
-            operation.join();
-
-            new TaskBuilder().syncWhenFree(new TaskBuilder.SplitTask(5) {
-                @Override
-                public Object exec(Object previous) {
-                    ChunkProviderServer provider = nmsWorld.getChunkProviderServer();
-                    for (long pos : chunks) {
-                        int x = (int) pos;
-                        int z = (int) (pos >> 32);
-                        net.minecraft.server.v1_12_R1.Chunk chunk = provider.getOrLoadChunkAt(x, z);
-                        if (chunk != null) {
-                            PlayerChunk pc = getPlayerChunk(nmsWorld, x, z);
-                            sendChunk(pc, chunk, 0);
-                        }
-                        split();
-                    }
-                    return null;
-                }
-            }).buildAsync();
-            return true;
-        } catch (Throwable e) {
-            e.printStackTrace();
-            throw new RuntimeException(e);
-        }
+        return true;
     }
 
     @Override
@@ -842,9 +832,9 @@ public class BukkitQueue_1_12 extends BukkitQueue_0<net.minecraft.server.v1_12_R
                     if (ent instanceof EntityPlayer || (!createdEntities.isEmpty() && createdEntities.contains(ent.getUniqueID()))) {
                         continue;
                     }
-                    int x = ((int) Math.round(ent.locX) & 15);
-                    int z = ((int) Math.round(ent.locZ) & 15);
-                    int y = ((int) Math.round(ent.locY) & 0xFF);
+                    int x = (MathMan.roundInt(ent.locX) & 15);
+                    int z = (MathMan.roundInt(ent.locZ) & 15);
+                    int y = (MathMan.roundInt(ent.locY) & 0xFF);
                     int i = FaweCache.CACHE_I[y][z][x];
                     char[] array = fs.getIdArray(i);
                     if (array == null) {
@@ -856,7 +846,7 @@ public class BukkitQueue_1_12 extends BukkitQueue_0<net.minecraft.server.v1_12_R
                         if (id != null) {
                             NBTTagCompound tag = new NBTTagCompound();
                             ent.save(tag); // readEntityIntoTag
-                            CompoundTag nativeTag = (CompoundTag) methodToNative.invoke(adapter, tag);
+                            CompoundTag nativeTag = (CompoundTag) toNative(tag);
                             Map<String, Tag> map = ReflectionUtils.getMap(nativeTag.getValue());
                             map.put("Id", new StringTag(id));
                             previous.setEntity(nativeTag);
@@ -882,7 +872,7 @@ public class BukkitQueue_1_12 extends BukkitQueue_0<net.minecraft.server.v1_12_R
         try {
             NBTTagCompound tag = new NBTTagCompound();
             tile.save(tag); // readTagIntoEntity
-            return (CompoundTag) methodToNative.invoke(adapter, tag);
+            return (CompoundTag) toNative(tag);
         } catch (Exception e) {
             MainUtil.handleError(e);
             return null;
