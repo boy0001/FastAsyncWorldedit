@@ -162,6 +162,8 @@ public class FastWorldEditExtent extends AbstractDelegateExtent implements HasFa
                     data = 2;
                 }
                 return queue.setBlock(x, y, z, id, data, block.getNbtData());
+            case 26:
+            case 218:
             case 130:
             case 142:
             case 27:

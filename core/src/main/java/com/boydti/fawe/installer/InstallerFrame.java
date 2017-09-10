@@ -74,7 +74,6 @@ public class InstallerFrame extends JFrame {
             title.setAlignmentX(Component.RIGHT_ALIGNMENT);
             title.setForeground(LIGHT_GRAY);
 
-
             MinimizeButton minimize = new MinimizeButton(this);
             CloseButton exit = new CloseButton();
 
@@ -154,7 +153,7 @@ public class InstallerFrame extends JFrame {
                 String date = new Date(100 + version.year, version.month, version.day).toGMTString();
                 String build = "https://ci.athion.net/job/FastAsyncWorldEdit/" + version.build;
                 String commit = "https://github.com/boy0001/FastAsyncWorldedit/commit/" + Integer.toHexString(version.hash);
-                String footerMessage = "FAWE v" + version.major + "." + version.minor + "." + version.patch + " by Empire92 (c) 2016 (GPL v3.0)";
+                String footerMessage = "FAWE v" + version.major + "." + version.minor + "." + version.patch + " by Empire92 (c) 2017 (GPL v3.0)";
                 URL licenseUrl = new URL("https://github.com/boy0001/FastAsyncWorldedit/blob/master/LICENSE");
                 URLButton licenseButton = new URLButton(licenseUrl, footerMessage);
                 bottomBar.add(licenseButton);
@@ -330,7 +329,7 @@ public class InstallerFrame extends JFrame {
                 } catch (Throwable e) {
                     prompt("[ERROR] Copy installer failed, please copy this installer jar manually");
                 }
-                prompt("Installation comlete!\nLaunch the game using the forge profile.");
+                prompt("Installation complete!\nLaunch the game using the forge profile.");
             }
         });
         installThread.start();

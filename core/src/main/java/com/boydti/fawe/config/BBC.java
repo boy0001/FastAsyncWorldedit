@@ -8,12 +8,18 @@ import com.boydti.fawe.object.PseudoRandom;
 import com.boydti.fawe.object.RunnableVal3;
 import com.boydti.fawe.util.MainUtil;
 import com.boydti.fawe.util.StringMan;
+import com.boydti.fawe.util.chat.Message;
+import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
 import java.io.File;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 
 public enum BBC {
@@ -23,6 +29,7 @@ public enum BBC {
      * Can use multiple arguments %s, %s1, %s2, %s3 etc
      */
     PREFIX("&8(&4&lFAWE&8)&r&7", "Info"),
+    FILE_DELETED("%s0 has been deleted.", "Info"),
     SCHEMATIC_PASTING("&7The schematic is pasting. This cannot be undone.", "Info"),
     LIGHTING_PROPOGATE_SELECTION("&7Lighting has been propogated in %s0 chunks. (Note: To remove light use //removelight)", "Info"),
     UPDATED_LIGHTING_SELECTION("&7Lighting has been updated in %s0 chunks. (It may take a second for the packets to send)", "Info"),
@@ -115,12 +122,15 @@ public enum BBC {
     BRUSH_VISUAL_MODE_SET("Set visual mode to %s0", "WorldEdit.Brush"),
     BRUSH_TARGET_MODE_SET("Set target mode to %s0", "WorldEdit.Brush"),
     BRUSH_TARGET_MASK_SET("Set target mask to %s0", "WorldEdit.Brush"),
+    BRUSH_TARGET_OFFSET_SET("Set target offset to %s0", "WorldEdit.Brush"),
     BRUSH_EQUIPPED("Equipped brush %s0", "WorldEdit.Brush"),
     BRUSH_TRY_OTHER("&cThere are other more suitable brushes e.g.\n&8 - &7//br height [radius=5] [#clipboard|file=null] [rotation=0] [yscale=1.00]", "WorldEdit.Brush"),
     BRUSH_COPY("Left click the base of an object to copy, right click to paste. Increase the brush radius if necessary.", "WorldEdit.Brush"),
     BRUSH_HEIGHT_INVALID("Invalid height map file (%s0)", "WorldEdit.Brush"),
     BRUSH_SMOOTH("Note: Use the blend brush if you want to smooth overhangs or caves.", "WorldEdit.Brush"),
     BRUSH_SPLINE("Click to add a point, click the same spot to finish", "WorldEdit.Brush"),
+    BRUSH_LINE_PRIMARY("Added point %s0, click another position to create the line", "WorldEdit.Brush"),
+    BRUSH_LINE_SECONDARY("Created spline", "WorldEdit.Brush"),
     BRUSH_SPLINE_PRIMARY_2("Added position, Click the same spot to join!", "WorldEdit.Brush"),
     BRUSH_SPLINE_SECONDARY_ERROR("Not enough positions set!", "WorldEdit.Brush"),
     BRUSH_SPLINE_SECONDARY("Created spline", "WorldEdit.Brush"),
@@ -176,7 +186,6 @@ public enum BBC {
     NOTHING_CONFIRMED("You have no actions pending confirmation.", "WorldEdit.Utility"),
 
 
-    SCHEMATIC_DELETE("%s0 has been deleted.", "Worldedit.Schematic"),
     SCHEMATIC_FORMAT("Available formats (Name: Lookup names)", "Worldedit.Schematic"),
     SCHEMATIC_LOADED("%s0 loaded. Paste it with //paste", "Worldedit.Schematic"),
     SCHEMATIC_SAVED("%s0 saved.", "Worldedit.Schematic"),
@@ -213,7 +222,8 @@ public enum BBC {
     HELP_ITEM_ALLOWED("&a%s0&8 - &7%s1", "WorldEdit.Help"),
     HELP_ITEM_DENIED("&c%s0&8 - &7%s1", "WorldEdit.Help"),
     HELP_HEADER("Help: page %s0/%s1", "WorldEdit.Help"),
-    HELP_HEADER_FOOTER("&7Use: &8//help [type|command|search] [#]&7\n&7Wiki: https://git.io/vSKE5", "WorldEdit.Help"),
+    HELP_FOOTER("&7Wiki: https://git.io/vSKE5", "WorldEdit.Help"),
+    PAGE_FOOTER("Use %s0 to go to the next page", "WorldEdit.Utility"),
 
     PROGRESS_MESSAGE("%s1/%s0 (%s2%) @%s3cps %s4s left", "Progress"),
     PROGRESS_FINISHED("[ Done! ]", "Progress"),
@@ -317,6 +327,14 @@ public enum BBC {
 
 
     private static final HashMap<String, String> replacements = new HashMap<>();
+    static {
+        for (final char letter : "1234567890abcdefklmnor".toCharArray()) {
+            replacements.put("&" + letter, "\u00a7" + letter);
+        }
+        replacements.put("\\\\n", "\n");
+        replacements.put("\\n", "\n");
+        replacements.put("&-", "\n");
+    }
     /**
      * Translated
      */
@@ -427,13 +445,6 @@ public enum BBC {
                 changed = true;
                 yml.set(remove, null);
             }
-            replacements.clear();
-            for (final char letter : "1234567890abcdefklmnor".toCharArray()) {
-                replacements.put("&" + letter, "\u00a7" + letter);
-            }
-            replacements.put("\\\\n", "\n");
-            replacements.put("\\n", "\n");
-            replacements.put("&-", "\n");
             for (final BBC caption : all) {
                 if (!captions.contains(caption)) {
                     changed = true;
@@ -466,8 +477,17 @@ public enum BBC {
         return StringMan.replaceFromMap(string, replacements);
     }
 
+    public static String stripColor(String string) {
+
+        return StringMan.removeFromSet(string, replacements.keySet());
+    }
+
     public String s() {
         return this.s;
+    }
+
+    public Message m(Object... args) {
+        return new Message(this, args);
     }
 
     public String original() {
@@ -523,6 +543,56 @@ public enum BBC {
         }
     }
 
+    public static char getCode(String name) {
+        switch (name) {
+            case "BLACK":
+                return '0';
+            case "DARK_BLUE":
+                return '1';
+            case "DARK_GREEN":
+                return '2';
+            case "DARK_AQUA":
+                return '3';
+            case "DARK_RED":
+                return '4';
+            case "DARK_PURPLE":
+                return '5';
+            case "GOLD":
+                return '6';
+            case "GRAY":
+                return '7';
+            case "DARK_GRAY":
+                return '8';
+            case "BLUE":
+                return '9';
+            case "GREEN":
+                return 'a';
+            case "AQUA":
+                return 'b';
+            case "RED":
+                return 'c';
+            case "LIGHT_PURPLE":
+                return 'd';
+            case "YELLOW":
+                return 'e';
+            case "WHITE":
+                return 'f';
+            case "OBFUSCATED":
+                return 'k';
+            case "BOLD":
+                return 'l';
+            case "STRIKETHROUGH":
+                return 'm';
+            case "UNDERLINE":
+                return 'n';
+            case "ITALIC":
+                return 'o';
+            default:
+            case "RESET":
+                return 'r';
+        }
+    }
+
     public static String getColorName(char code) {
         switch (code) {
             case '0':
@@ -571,6 +641,68 @@ public enum BBC {
             case 'r':
                 return "RESET";
         }
+    }
+
+    private static Object[] append(StringBuilder builder, Map<String, Object> obj, String color, Map<String, Boolean> properties) {
+        Object[] style = new Object[] { color, properties };
+        for (Map.Entry<String, Object> entry : obj.entrySet()) {
+            switch (entry.getKey()) {
+                case "text":
+                    String text = (String) entry.getValue();
+                    String newColor = (String) obj.get("color");
+                    String newBold = (String) obj.get("bold");
+                    int index = builder.length();
+                    if (!Objects.equals(color, newColor)) {
+                        style[0] = newColor;
+                        char code = BBC.getCode(newColor.toUpperCase());
+                        builder.append('\u00A7').append(code);
+                    }
+                    for (Map.Entry<String, Object> entry2 : obj.entrySet()) {
+                        if (StringMan.isEqualIgnoreCaseToAny(entry2.getKey(), "bold", "italic", "underlined", "strikethrough", "obfuscated")) {
+                            boolean newValue = Boolean.valueOf((String) entry2.getValue());
+                            if (properties.put(entry2.getKey(), newValue) != newValue) {
+                                if (newValue) {
+                                    char code = BBC.getCode(entry2.getKey().toUpperCase());
+                                    builder.append('\u00A7').append(code);
+                                } else {
+                                    builder.insert(index, '\u00A7').append('r');
+                                    if (Objects.equals(color, newColor) && newColor != null) {
+                                        builder.append('\u00A7').append(BBC.getCode(newColor.toUpperCase()));
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    builder.append(text);
+                    break;
+                case "extra":
+                    List<Map<String, Object>> list = (List<Map<String, Object>>) entry.getValue();
+                    for (Map<String, Object> elem : list) {
+                        elem.putIfAbsent("color", obj.get("color"));
+                        for (Map.Entry<String, Object> entry2 : obj.entrySet()) {
+                            if (StringMan.isEqualIgnoreCaseToAny(entry2.getKey(), "bold", "italic", "underlined", "strikethrough", "obfuscated")) {
+                                elem.putIfAbsent(entry2.getKey(), entry2.getValue());
+                            }
+                        }
+                        style = append(builder, elem, (String) style[0], (Map) style[1]);
+                    }
+            }
+        }
+        return style;
+    }
+
+    public static String jsonToString(String text) {
+        Gson gson = new Gson();
+        StringBuilder builder = new StringBuilder();
+        Map<String, Object> obj = gson.fromJson(text, new TypeToken<Map<String, Object>>() {}.getType());
+        HashMap<String, Boolean> properties = new HashMap<>();
+        properties.put("bold", false);
+        properties.put("italic", false);
+        properties.put("underlined", false);
+        properties.put("strikethrough", false);
+        properties.put("obfuscated", false);
+        append(builder, obj, null, properties);
+        return builder.toString();
     }
 
     /**

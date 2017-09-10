@@ -7,6 +7,7 @@ import com.sk89q.worldedit.blocks.BaseBlock;
 import com.sk89q.worldedit.entity.BaseEntity;
 import com.sk89q.worldedit.entity.Entity;
 import com.sk89q.worldedit.extent.Extent;
+import com.sk89q.worldedit.world.biome.BaseBiome;
 import java.util.List;
 
 public class AbstractDelegateFaweClipboard extends FaweClipboard {
@@ -27,6 +28,26 @@ public class AbstractDelegateFaweClipboard extends FaweClipboard {
     }
 
     @Override
+    public boolean hasBiomes() {
+        return parent.hasBiomes();
+    }
+
+    @Override
+    public boolean setBiome(int x, int z, int biome) {
+        return parent.setBiome(x, z, biome);
+    }
+
+    @Override
+    public BaseBiome getBiome(int x, int z) {
+        return parent.getBiome(x, z);
+    }
+
+    @Override
+    public BaseBiome getBiome(int index) {
+        return parent.getBiome(index);
+    }
+
+    @Override
     public void setId(int index, int id) {
         parent.setId(index, id);
     }
@@ -34,6 +55,16 @@ public class AbstractDelegateFaweClipboard extends FaweClipboard {
     @Override
     public void setData(int index, int data) {
         parent.setData(index, data);
+    }
+
+    @Override
+    public BaseBlock getBlock(int index) {
+        return parent.getBlock(index);
+    }
+
+    @Override
+    public void setBiome(int index, int biome) {
+        parent.setBiome(index, biome);
     }
 
     @Override
@@ -89,6 +120,11 @@ public class AbstractDelegateFaweClipboard extends FaweClipboard {
     @Override
     public void forEach(BlockReader task, boolean air) {
         parent.forEach(task, air);
+    }
+
+    @Override
+    public void streamBiomes(NBTStreamer.ByteReader task) {
+        parent.streamBiomes(task);
     }
 
     @Override

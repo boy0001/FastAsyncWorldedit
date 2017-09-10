@@ -1,6 +1,7 @@
 package com.boydti.fawe.regions;
 
 import com.boydti.fawe.object.FawePlayer;
+import com.boydti.fawe.regions.general.RegionFilter;
 
 public abstract class FaweMaskManager<T> {
 
@@ -34,5 +35,9 @@ public abstract class FaweMaskManager<T> {
 
     public boolean isValid(FaweMask mask) {
         return true;
+    }
+
+    public RegionFilter getFilter(String world) {
+        return null;
     }
 }

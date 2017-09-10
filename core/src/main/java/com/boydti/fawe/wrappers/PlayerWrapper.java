@@ -26,7 +26,6 @@ import com.sk89q.worldedit.session.SessionKey;
 import com.sk89q.worldedit.util.Location;
 import com.sk89q.worldedit.util.TargetBlock;
 import com.sk89q.worldedit.util.auth.AuthorizationException;
-import com.sk89q.worldedit.world.AbstractWorld;
 import com.sk89q.worldedit.world.World;
 import java.io.File;
 import java.util.UUID;
@@ -52,7 +51,7 @@ public class PlayerWrapper extends AbstractPlayerActor {
 
     @Override
     public World getWorld() {
-        return WorldWrapper.wrap((AbstractWorld) parent.getWorld());
+        return WorldWrapper.wrap(parent.getWorld());
     }
 
     @Override
@@ -209,7 +208,7 @@ public class PlayerWrapper extends AbstractPlayerActor {
             edit.flushQueue();
             LocalSession session = Fawe.get().getWorldEdit().getSession(this);
             if (session != null) {
-                session.remember(edit, true, false, FawePlayer.wrap(this).getLimit().MAX_HISTORY);
+                session.remember(edit, true, FawePlayer.wrap(this).getLimit().MAX_HISTORY);
             }
         } catch (RuntimeException e) {
             caught = e;

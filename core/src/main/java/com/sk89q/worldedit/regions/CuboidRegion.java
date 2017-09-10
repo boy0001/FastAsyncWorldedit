@@ -27,6 +27,7 @@ import com.sk89q.worldedit.MutableBlockVector;
 import com.sk89q.worldedit.MutableBlockVector2D;
 import com.sk89q.worldedit.Vector;
 import com.sk89q.worldedit.Vector2D;
+import com.sk89q.worldedit.WorldVector;
 import com.sk89q.worldedit.world.World;
 import com.sk89q.worldedit.world.storage.ChunkStore;
 import java.util.AbstractSet;
@@ -79,6 +80,11 @@ public class CuboidRegion extends AbstractRegion implements FlatRegion {
         checkNotNull(pos2);
         this.pos1 = pos1;
         this.pos2 = pos2;
+        if (pos1 instanceof WorldVector) {
+            setWorld(((WorldVector) pos1).getWorld());
+        } else if (pos2 instanceof WorldVector) {
+            setWorld(((WorldVector) pos2).getWorld());
+        }
         recalculate();
     }
 
@@ -131,8 +137,8 @@ public class CuboidRegion extends AbstractRegion implements FlatRegion {
         if (pos1 == null || pos2 == null) {
             return;
         }
-        pos1 = pos1.clampY(0, world == null ? 255 : world.getMaxY());
-        pos2 = pos2.clampY(0, world == null ? 255 : world.getMaxY());
+        pos1 = pos1.clampY(world == null ? Integer.MIN_VALUE : 0, world == null ? Integer.MAX_VALUE : world.getMaxY());
+        pos2 = pos2.clampY(world == null ? Integer.MIN_VALUE : 0, world == null ? Integer.MAX_VALUE : world.getMaxY());
         Vector min = getMinimumPoint();
         Vector max = getMaximumPoint();
         minX = min.getBlockX();
@@ -326,7 +332,7 @@ public class CuboidRegion extends AbstractRegion implements FlatRegion {
             @Override
             public Iterator<Vector2D> iterator() {
                 return new Iterator<Vector2D>() {
-                    private MutableBlockVector2D pos = new MutableBlockVector2D().setComponents(minX, minZ);
+                    private MutableBlockVector2D pos = new MutableBlockVector2D().setComponents(maxX + 1, maxZ);
 
                     @Override
                     public boolean hasNext() {
@@ -337,12 +343,13 @@ public class CuboidRegion extends AbstractRegion implements FlatRegion {
                     public Vector2D next() {
                         Vector2D result = pos;
                         // calc next
-                        if (pos.getX() < maxX) {
-                            pos.setComponents(pos.getX() + 1, pos.getZ());
-                        } else if (pos.getZ() < maxZ) {
-                            pos.setComponents(minX, pos.getZ() + 1);
-                        } else {
-                            pos = null;
+                        pos.setComponents(pos.getX() - 1, pos.getZ());
+                        if (pos.getX() <= minX) {
+                            if (pos.getZ() == minZ) {
+                                pos = null;
+                            } else if (pos.getX() < minX) {
+                                pos.setComponents(maxX, pos.getZ() - 1);
+                            }
                         }
                         return result;
                     }

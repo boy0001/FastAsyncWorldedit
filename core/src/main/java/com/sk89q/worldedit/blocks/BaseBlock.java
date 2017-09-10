@@ -25,6 +25,7 @@ import com.sk89q.jnbt.NBTInputStream;
 import com.sk89q.jnbt.NBTOutputStream;
 import com.sk89q.jnbt.StringTag;
 import com.sk89q.jnbt.Tag;
+import com.sk89q.minecraft.util.commands.Link;
 import com.sk89q.worldedit.CuboidClipboard.FlipDirection;
 import com.sk89q.worldedit.Vector;
 import com.sk89q.worldedit.WorldEditException;
@@ -33,6 +34,7 @@ import com.sk89q.worldedit.function.mask.Mask;
 import com.sk89q.worldedit.function.pattern.Pattern;
 import com.sk89q.worldedit.world.registry.WorldData;
 import java.io.DataInputStream;
+import java.io.DataOutput;
 import java.io.IOException;
 import java.io.Serializable;
 import java.util.Collection;
@@ -62,6 +64,7 @@ import javax.annotation.Nullable;
  * more appropriate.</p>
  */
 @SuppressWarnings("deprecation")
+@Link(value = "http://minecraft-ids.grahamedgecombe.com")
 public class BaseBlock implements TileEntityBlock, Pattern, Serializable {
 
     /**
@@ -141,7 +144,7 @@ public class BaseBlock implements TileEntityBlock, Pattern, Serializable {
         this(other.getId(), other.getData(), other.getNbtData());
     }
 
-    public final int getCombined() {
+    public int getCombined() {
         return FaweCache.getCombined(this);
     }
 
@@ -456,7 +459,7 @@ public class BaseBlock implements TileEntityBlock, Pattern, Serializable {
         stream.writeChar(getCombined());
         stream.writeBoolean(nbtData != null);
         if (nbtData != null) {
-            new NBTOutputStream(stream).writeTag(nbtData);
+            new NBTOutputStream((DataOutput) stream).writeTag(nbtData);
         }
     }
 

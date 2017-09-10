@@ -13,6 +13,7 @@ public class AngleMask extends SolidBlockMask implements ResettableMask {
     public static double ADJACENT_MOD = 0.5;
     public static double DIAGONAL_MOD = 1 / Math.sqrt(8);
 
+    private final CachedMask mask;
     private final double max;
     private final double min;
     private final boolean overlay;
@@ -22,6 +23,7 @@ public class AngleMask extends SolidBlockMask implements ResettableMask {
 
     public AngleMask(Extent extent, double min, double max, boolean overlay) {
         super(extent);
+        this.mask = new CachedMask(new SolidBlockMask(extent));
         this.min = min;
         this.max = max;
         this.maxY = extent.getMaximumPoint().getBlockY();
@@ -53,31 +55,34 @@ public class AngleMask extends SolidBlockMask implements ResettableMask {
     private transient boolean lastValue;
 
     public int getHeight(int x, int y, int z) {
-        try {
-            int rx = x - cacheBotX;
-            int rz = z - cacheBotZ;
-            int index = rx + (rz << 8);
-            if (index < 0 || index >= 65536) {
-                cacheBotX = x - 16;
-                cacheBotZ = z - 16;
-                rx = x - cacheBotX;
-                rz = z - cacheBotZ;
-                index = rx + (rz << 8);
-                if (cacheHeights == null) {
-                    cacheHeights = new byte[65536];
-                } else {
-                    Arrays.fill(cacheHeights, (byte) 0);
-                }
-            }
-            int result = cacheHeights[index] & 0xFF;
-            if (result == 0) {
-                cacheHeights[index] = (byte) (result = lastY = getExtent().getNearestSurfaceTerrainBlock(x, z, lastY, 0, maxY));
-            }
-            return result;
-        } catch (Throwable e) {
-            e.printStackTrace();
-            throw e;
-        }
+        return getExtent().getNearestSurfaceTerrainBlock(x, z, y, 0, maxY);
+//        try {
+//            int rx = x - cacheBotX + 16;
+//            int rz = z - cacheBotZ + 16;
+//            int index;
+//            if (((rx & 0xFF) != rx || (rz & 0xFF) != rz)) {
+//                cacheBotX = x - 16;
+//                cacheBotZ = z - 16;
+//                rx = x - cacheBotX + 16;
+//                rz = z - cacheBotZ + 16;
+//                index = rx + (rz << 8);
+//                if (cacheHeights == null) {
+//                    cacheHeights = new byte[65536];
+//                } else {
+//                    Arrays.fill(cacheHeights, (byte) 0);
+//                }
+//            } else {
+//                index = rx + (rz << 8);
+//            }
+//            int result = cacheHeights[index] & 0xFF;
+//            if (result == 0) {
+//                cacheHeights[index] = (byte) (result = lastY = getExtent().getNearestSurfaceTerrainBlock(x, z, lastY, 0, maxY));
+//            }
+//            return result;
+//        } catch (Throwable e) {
+//            e.printStackTrace();
+//            throw e;
+//        }
     }
 
     private boolean testSlope(int x, int y, int z) {
@@ -96,6 +101,31 @@ public class AngleMask extends SolidBlockMask implements ResettableMask {
         return lastValue = (slope >= min && slope <= max);
     }
 
+    public boolean adjacentAir(Vector v) {
+        int x = v.getBlockX();
+        int y = v.getBlockY();
+        int z = v.getBlockZ();
+        if (mask.test(x + 1, y, z)) {
+            return true;
+        }
+        if (mask.test(x - 1, y, z)) {
+            return true;
+        }
+        if (mask.test(x, y, z + 1)) {
+            return true;
+        }
+        if (mask.test(x, y, z - 1)) {
+            return true;
+        }
+        if (y < 256 && mask.test(x, y + 1, z)) {
+            return true;
+        }
+        if (y > 0 && mask.test(x, y - 1, z)) {
+            return true;
+        }
+        return false;
+    }
+
     @Override
     public boolean test(Vector vector) {
         int x = vector.getBlockX();
@@ -108,6 +138,8 @@ public class AngleMask extends SolidBlockMask implements ResettableMask {
         if (overlay) {
             block = getExtent().getLazyBlock(x, y + 1, z);
             if (test(block.getId(), block.getData())) return lastValue = false;
+        } else if (!adjacentAir(vector)) {
+            return false;
         }
         return testSlope(x, y, z);
     }

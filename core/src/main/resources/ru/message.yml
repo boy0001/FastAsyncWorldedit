@@ -1,5 +1,6 @@
 info:
   prefix: '&7'
+  file_deleted: '%s0 был удален.'
   schematic_pasting: '&7Вставка схематического файла. Это не может быть отменено.'
   lighting_propogate_selection: '&7Освещение было распространено в %s0 чанках. (Примечание:
     Для удаления освещения используйте //removelight)'
@@ -189,7 +190,6 @@ worldedit:
     tool_radius_error: 'Максимально допустимый радиус кисти: %s0.'
     superpickaxe_area_enabled: Режим изменен. Щелкните левой кнопкой мыши с киркой. // для отключения.
   schematic:
-    schematic_delete: '%s0 был удален.'
     schematic_format: 'Доступные форматы буфера обмена (Имя: Имена поиска)'
     schematic_loaded: '%s0 загружен. Вставить его //paste'
     schematic_saved: '%s0 сохранен.'

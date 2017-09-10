@@ -32,9 +32,6 @@ public class AdjacentAnyMask extends AbstractMask implements ResettableMask {
         int x = v.getBlockX();
         int y = v.getBlockY();
         int z = v.getBlockZ();
-        if (mask.test(x, y + 1, z)) {
-            return true;
-        }
         if (mask.test(x + 1, y, z)) {
             return true;
         }
@@ -47,7 +44,10 @@ public class AdjacentAnyMask extends AbstractMask implements ResettableMask {
         if (mask.test(x, y, z - 1)) {
             return true;
         }
-        if (mask.test(x, y - 1, z)) {
+        if (y < 256 && mask.test(x, y + 1, z)) {
+            return true;
+        }
+        if (y > 0 && mask.test(x, y - 1, z)) {
             return true;
         }
         return false;
@@ -57,9 +57,6 @@ public class AdjacentAnyMask extends AbstractMask implements ResettableMask {
         int x = v.getBlockX();
         int y = v.getBlockY();
         int z = v.getBlockZ();
-        if (mask.test(x, y + 1, z)) {
-            return mutable.setComponents(0, 1, 0);
-        }
         if (mask.test(x + 1, y, z)) {
             return mutable.setComponents(1, 0, 0);
         }
@@ -72,7 +69,10 @@ public class AdjacentAnyMask extends AbstractMask implements ResettableMask {
         if (mask.test(x, y, z - 1)) {
             return mutable.setComponents(0, 0, -1);
         }
-        if (mask.test(x, y - 1, z)) {
+        if (y < 256 && mask.test(x, y + 1, z)) {
+            return mutable.setComponents(0, 1, 0);
+        }
+        if (y > 0 && mask.test(x, y - 1, z)) {
             return mutable.setComponents(0, -1, 0);
         }
         return null;

@@ -99,7 +99,7 @@ public class AsyncWorld extends DelegateFaweQueue implements World, HasFaweQueue
         this.parent = parent;
         this.queue = queue;
         if (queue instanceof BukkitQueue_0) {
-            this.adapter = (BukkitImplAdapter) ((BukkitQueue_0) queue).adapter;
+            this.adapter = (BukkitImplAdapter) ((BukkitQueue_0) queue).getAdapter();
         } else {
             try {
                 WorldEditPlugin instance = (WorldEditPlugin) Bukkit.getPluginManager().getPlugin("WorldEdit");

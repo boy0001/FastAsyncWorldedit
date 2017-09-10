@@ -38,11 +38,11 @@ public abstract class NMSMappedFaweQueue<WORLD, CHUNK, CHUNKSECTION, SECTION> ex
     @Override
     public void runTasks() {
         super.runTasks();
-        if (!relighter.isEmpty()) {
-            TaskManager.IMP.taskNowAsync(new Runnable() {
+        if (!getRelighter().isEmpty()) {
+            TaskManager.IMP.async(new Runnable() {
                 @Override
                 public void run() {
-                    relighter.fixLightingSafe(hasSky());
+                    getRelighter().fixLightingSafe(hasSky());
                 }
             });
         }
@@ -66,7 +66,7 @@ public abstract class NMSMappedFaweQueue<WORLD, CHUNK, CHUNKSECTION, SECTION> ex
             sendChunk(chunk);
         }
         if (Settings.IMP.LIGHTING.MODE == 2) {
-            relighter.addChunk(chunk.getX(), chunk.getZ(), null, chunk.getBitMask());
+            getRelighter().addChunk(chunk.getX(), chunk.getZ(), null, chunk.getBitMask());
             return;
         }
         CharFaweChunk cfc = (CharFaweChunk) chunk;
@@ -90,7 +90,7 @@ public abstract class NMSMappedFaweQueue<WORLD, CHUNK, CHUNKSECTION, SECTION> ex
             }
         }
         if (relight) {
-            relighter.addChunk(chunk.getX(), chunk.getZ(), fix, chunk.getBitMask());
+            getRelighter().addChunk(chunk.getX(), chunk.getZ(), fix, chunk.getBitMask());
         } else if (Settings.IMP.LIGHTING.DELAY_PACKET_SENDING) {
             sendChunk(chunk);
         }

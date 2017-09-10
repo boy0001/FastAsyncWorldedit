@@ -1,19 +1,20 @@
 package com.boydti.fawe.object;
 
 import com.boydti.fawe.FaweCache;
+import com.boydti.fawe.object.extent.ExtentHeightCacher;
 import com.sk89q.worldedit.Vector;
 import com.sk89q.worldedit.WorldEditException;
 import com.sk89q.worldedit.blocks.BaseBlock;
 import com.sk89q.worldedit.extent.Extent;
 import com.sk89q.worldedit.function.pattern.AbstractPattern;
 
-public class DataAngleMask extends AbstractPattern {
+public class DataAnglePattern extends AbstractPattern {
     public final Extent extent;
     public final int maxY;
     public final double factor = 1d / 255;
 
-    public DataAngleMask(Extent extent) {
-        this.extent = extent;
+    public DataAnglePattern(Extent extent) {
+        this.extent = new ExtentHeightCacher(extent);
         this.maxY = extent.getMaximumPoint().getBlockY();
     }
 

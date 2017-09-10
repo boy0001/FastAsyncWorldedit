@@ -47,7 +47,7 @@ public class StencilBrush extends HeightBrush {
         int cutoff = onlyWhite ? maxY : 0;
         final SolidBlockMask solid = new SolidBlockMask(editSession);
         final AdjacentAnyMask adjacent = new AdjacentAnyMask(Masks.negate(solid));
-        RegionMask region = new RegionMask(new CuboidRegion(position.subtract(size, size, size), position.add(size, size, size)));
+        RegionMask region = new RegionMask(new CuboidRegion(editSession.getWorld(), position.subtract(size, size, size), position.add(size, size, size)));
         RecursiveVisitor visitor = new RecursiveVisitor(new Mask() {
             @Override
             public boolean test(Vector vector) {

@@ -21,7 +21,11 @@ public class DBHandler {
             databases.put(worldName, database);
             return database;
         } catch (Throwable e) {
+            Fawe.debug("============ NO JDBC DRIVER! ============");
+            Fawe.debug("TODO: Bundle driver with FAWE (or disable database)");
+            Fawe.debug("=========================================");
             e.printStackTrace();
+            Fawe.debug("=========================================");
             return null;
         }
     }

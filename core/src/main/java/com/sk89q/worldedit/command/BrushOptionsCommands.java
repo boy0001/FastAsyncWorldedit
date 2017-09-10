@@ -1,8 +1,8 @@
 package com.sk89q.worldedit.command;
 
 import com.boydti.fawe.Fawe;
-import com.boydti.fawe.FaweAPI;
 import com.boydti.fawe.config.BBC;
+import com.boydti.fawe.config.Commands;
 import com.boydti.fawe.object.brush.BrushSettings;
 import com.boydti.fawe.object.brush.TargetMode;
 import com.boydti.fawe.object.brush.scroll.ScrollAction;
@@ -22,14 +22,12 @@ import com.sk89q.worldedit.blocks.BaseBlock;
 import com.sk89q.worldedit.command.tool.BrushTool;
 import com.sk89q.worldedit.entity.Player;
 import com.sk89q.worldedit.event.platform.CommandEvent;
-import com.sk89q.worldedit.extension.factory.DefaultMaskParser;
-import com.sk89q.worldedit.extension.factory.DefaultTransformParser;
-import com.sk89q.worldedit.extension.factory.HashTagPatternParser;
 import com.sk89q.worldedit.extension.input.ParserContext;
 import com.sk89q.worldedit.extension.platform.Actor;
 import com.sk89q.worldedit.extension.platform.CommandManager;
 import com.sk89q.worldedit.function.mask.Mask;
 import com.sk89q.worldedit.function.pattern.Pattern;
+import com.sk89q.worldedit.util.command.binding.Range;
 import com.sk89q.worldedit.util.command.binding.Switch;
 import com.sk89q.worldedit.util.command.parametric.Optional;
 import java.io.DataInputStream;
@@ -54,10 +52,11 @@ public class BrushOptionsCommands extends MethodCommands {
     }
 
     @Command(
-            aliases = {"/savebrush"},
+            aliases = {"savebrush", "save"},
             usage = "[name]",
-            desc = "Сохранить текущую кисть\n" +
-                    "Используйте флаг -g чтобы сохранить глобально",
+            desc = "Сохранить текущую кисть",
+            help = "Save your current brush\n" +
+                    "use the -g flag to save globally",
             min = 1
     )
     @CommandPermissions("worldedit.brush.save")
@@ -91,7 +90,7 @@ public class BrushOptionsCommands extends MethodCommands {
     }
 
     @Command(
-            aliases = {"/loadbrush"},
+            aliases = {"loadbrush", "load"},
             desc = "Загрузить кисть",
             usage = "[name]",
             min = 1
@@ -119,7 +118,7 @@ public class BrushOptionsCommands extends MethodCommands {
             String json = in.readUTF();
             BrushTool tool = BrushTool.fromString(player, session, json);
             BaseBlock item = player.getBlockInHand();
-            session.setTool(item.getId(), item.getData(), tool, player);
+            session.setTool(item, tool, player);
             BBC.BRUSH_EQUIPPED.send(player, name);
         } catch (Throwable e) {
             e.printStackTrace();
@@ -139,8 +138,9 @@ public class BrushOptionsCommands extends MethodCommands {
     )
     @CommandPermissions("worldedit.brush.list")
     public void list(Actor actor, CommandContext args, @Switch('p') @Optional("1") int page) throws WorldEditException {
+        String baseCmd = Commands.getAlias(BrushCommands.class, "brush") + " " + Commands.getAlias(BrushOptionsCommands.class, "loadbrush");
         File dir = MainUtil.getFile(Fawe.imp().getDirectory(), "brushes");
-        UtilityCommands.list(dir, actor, args, page, null, true);
+        UtilityCommands.list(dir, actor, args, page, null, true, baseCmd);
     }
 
     @Command(
@@ -185,63 +185,8 @@ public class BrushOptionsCommands extends MethodCommands {
     }
 
     @Command(
-            aliases = {"patterns"},
-            usage = "[page=1|search|pattern]",
-            desc = "Просмотр справки о шаблонах",
-            help = "Шаблоны определяют, какие блоки расположены\n" +
-                    " - Используйте [brackets] для аргументов\n" +
-                    " - Используйте один или несколько\n" +
-                    "например #surfacespread[10][#existing],andesite\n" +
-                    "Больше информации: https://git.io/vSPmA",
-            min = 1
-    )
-    public void patterns(Player player, LocalSession session, CommandContext args) throws WorldEditException {
-        HashTagPatternParser parser = FaweAPI.getParser(HashTagPatternParser.class);
-        if (parser != null) {
-            UtilityCommands.help(args, worldEdit, player, "/" + getCommand().aliases()[0] + " ", parser.getDispatcher());
-        }
-    }
-
-    @Command(
-            aliases = {"masks"},
-            usage = "[page=1|search|mask]",
-            desc = "Просмотр справки о масках",
-            help = "Маски определяют, можно ли разместить блок\n" +
-                    " - Используйте [brackets] для аргементов\n" +
-                    " - Используйте один или несколько\n" +
-                    " - Используйте & один или несколько\n" +
-                    "например >[stone,dirt],#light[0][5],$jungle\n" +
-                    "Больше информации: https://git.io/v9r4K",
-            min = 1
-    )
-    public void masks(Player player, LocalSession session, CommandContext args) throws WorldEditException {
-        DefaultMaskParser parser = FaweAPI.getParser(DefaultMaskParser.class);
-        if (parser != null) {
-            UtilityCommands.help(args, worldEdit, player, "/" + getCommand().aliases()[0] + " ", parser.getDispatcher());
-        }
-    }
-
-    @Command(
-            aliases = {"transforms"},
-            usage = "[page=1|search|transform]",
-            desc = "Просмотр справки о преобразованиях",
-            help = "Преобразования изменяет способ размещения блока\n" +
-                    " - Используйте [brackets] для аргументов\n" +
-                    " - Используйте один или несколько\n" +
-                    " - Используйте & один или несколько\n" +
-                    "Больше информации: https://git.io/v9KHO",
-            min = 1
-    )
-    public void transforms(Player player, LocalSession session, CommandContext args) throws WorldEditException {
-        DefaultTransformParser parser = Fawe.get().getTransformParser();
-        if (parser != null) {
-            UtilityCommands.help(args, worldEdit, player, "/" + getCommand().aliases()[0] + " ", parser.getDispatcher());
-        }
-    }
-
-    @Command(
             aliases = {"primary"},
-            usage = "[brush arguments]",
+            usage = "[brush-arguments]",
             desc = "Установите кисть правого щелчка",
             help = "Установите кисть правого щелчка",
             min = 1
@@ -249,11 +194,11 @@ public class BrushOptionsCommands extends MethodCommands {
     public void primary(Player player, LocalSession session, CommandContext args) throws WorldEditException {
         BaseBlock item = player.getBlockInHand();
         BrushTool tool = session.getBrushTool(player, false);
-        session.setTool(item.getId(), item.getData(), null, player);
+        session.setTool(item, null, player);
         String cmd = "brush " + args.getJoinedStrings(0);
         CommandEvent event = new CommandEvent(player, cmd);
         CommandManager.getInstance().handleCommandOnCurrentThread(event);
-        BrushTool newTool = session.getBrushTool(item.getId(), item.getData(), player, false);
+        BrushTool newTool = session.getBrushTool(item, player, false);
         if (newTool != null && tool != null) {
             newTool.setSecondary(tool.getSecondary());
         }
@@ -261,7 +206,7 @@ public class BrushOptionsCommands extends MethodCommands {
 
     @Command(
             aliases = {"secondary"},
-            usage = "[brush arguments]",
+            usage = "[brush-arguments]",
             desc = "Установите кисть левого щелчка",
             help = "Установите кисть левого щелчка",
             min = 1
@@ -269,11 +214,11 @@ public class BrushOptionsCommands extends MethodCommands {
     public void secondary(Player player, LocalSession session, CommandContext args) throws WorldEditException {
         BaseBlock item = player.getBlockInHand();
         BrushTool tool = session.getBrushTool(player, false);
-        session.setTool(item.getId(), item.getData(), null, player);
+        session.setTool(item, null, player);
         String cmd = "brush " + args.getJoinedStrings(0);
         CommandEvent event = new CommandEvent(player, cmd);
         CommandManager.getInstance().handleCommandOnCurrentThread(event);
-        BrushTool newTool = session.getBrushTool(item.getId(), item.getData(), player, false);
+        BrushTool newTool = session.getBrushTool(item, player, false);
         if (newTool != null && tool != null) {
             newTool.setPrimary(tool.getPrimary());
         }
@@ -281,12 +226,17 @@ public class BrushOptionsCommands extends MethodCommands {
 
     @Command(
             aliases = {"visualize", "visual", "vis"},
-            usage = "[mode]",
-            desc = "Переключение между различными режимами визуализации",
+
+            usage = "[mode=0]",
+            desc = "Toggle between different visualization modes",
+            help = "Toggle between different visualization modes\n" +
+                    "0 = No visualization\n" +
+                    "1 = Single block at target position\n" +
+                    "2 = Glass showing what blocks will be changed",
             min = 0,
             max = 1
     )
-    public void visual(Player player, LocalSession session, @Optional("0") int mode) throws WorldEditException {
+    public void visual(Player player, LocalSession session, @Range(min = 0, max = 2)int mode) throws WorldEditException {
         BrushTool tool = session.getBrushTool(player, false);
         if (tool == null) {
             BBC.BRUSH_NONE.send(player);
@@ -294,7 +244,7 @@ public class BrushOptionsCommands extends MethodCommands {
         }
         VisualMode[] modes = VisualMode.values();
         VisualMode newMode = modes[MathMan.wrap(mode, 0, modes.length - 1)];
-        tool.setVisualMode(newMode);
+        tool.setVisualMode(player, newMode);
         BBC.BRUSH_VISUAL_MODE_SET.send(player, newMode);
     }
 
@@ -341,6 +291,23 @@ public class BrushOptionsCommands extends MethodCommands {
     }
 
     @Command(
+            aliases = {"targetoffset", "to"},
+            usage = "[mask]",
+            desc = "Set the targeting mask",
+            min = 1,
+            max = -1
+    )
+    public void targetOffset(Player player, EditSession editSession, LocalSession session, int offset) throws WorldEditException {
+        BrushTool tool = session.getBrushTool(player, false);
+        if (tool == null) {
+            BBC.BRUSH_NONE.send(player);
+            return;
+        }
+        tool.setTargetOffset(offset);
+        BBC.BRUSH_TARGET_OFFSET_SET.send(player, offset);
+    }
+
+    @Command(
             aliases = {"scroll"},
             usage = "[none|clipboard|mask|pattern|range|size|visual|target]",
             desc = "Переключение между различными целевыми режимами",
@@ -363,6 +330,7 @@ public class BrushOptionsCommands extends MethodCommands {
             settings.addSetting(BrushSettings.SettingType.SCROLL_ACTION, full);
             BBC.BRUSH_SCROLL_ACTION_SET.send(player, full);
         }
+        bt.update();
     }
 
     @Command(
@@ -393,6 +361,7 @@ public class BrushOptionsCommands extends MethodCommands {
         BrushSettings settings = offHand ? tool.getOffHand() : tool.getContext();
         settings.addSetting(BrushSettings.SettingType.MASK, context.getString(context.argsLength() - 1));
         settings.setMask(mask);
+        tool.update();
         BBC.BRUSH_MASK.send(player);
     }
 
@@ -425,6 +394,7 @@ public class BrushOptionsCommands extends MethodCommands {
         BrushSettings settings = offHand ? tool.getOffHand() : tool.getContext();
         settings.addSetting(BrushSettings.SettingType.SOURCE_MASK, context.getString(context.argsLength() - 1));
         settings.setSourceMask(mask);
+        tool.update();
         BBC.BRUSH_SOURCE_MASK.send(player);
     }
 
@@ -456,6 +426,7 @@ public class BrushOptionsCommands extends MethodCommands {
         BrushSettings settings = offHand ? tool.getOffHand() : tool.getContext();
         settings.addSetting(BrushSettings.SettingType.TRANSFORM, context.getString(context.argsLength() - 1));
         settings.setTransform(transform);
+        tool.update();
         BBC.BRUSH_TRANSFORM.send(player);
     }
 
@@ -481,6 +452,7 @@ public class BrushOptionsCommands extends MethodCommands {
         BrushSettings settings = offHand ? tool.getOffHand() : tool.getContext();
         settings.setFill(pattern);
         settings.addSetting(BrushSettings.SettingType.FILL, context.getString(context.argsLength() - 1));
+        tool.update();
         BBC.BRUSH_MATERIAL.send(player);
     }
 
@@ -521,6 +493,7 @@ public class BrushOptionsCommands extends MethodCommands {
         }
         BrushSettings settings = offHand ? tool.getOffHand() : tool.getContext();
         settings.setSize(radius);
+        tool.update();
         BBC.BRUSH_SIZE.send(player);
     }
 

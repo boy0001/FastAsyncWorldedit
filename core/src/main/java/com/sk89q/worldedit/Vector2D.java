@@ -19,6 +19,7 @@
 
 package com.sk89q.worldedit;
 
+import com.boydti.fawe.util.MathMan;
 import com.sk89q.worldedit.math.transform.AffineTransform;
 import java.io.IOException;
 import java.io.Serializable;
@@ -102,7 +103,7 @@ public class Vector2D implements Serializable {
      * @return the x coordinate
      */
     public int getBlockX() {
-        return (int) Math.round(getX());
+        return MathMan.roundInt(getX());
     }
 
     /**
@@ -140,7 +141,7 @@ public class Vector2D implements Serializable {
      * @return the z coordinate
      */
     public int getBlockZ() {
-        return (int) Math.round(getZ());
+        return MathMan.roundInt(getZ());
     }
 
     /**

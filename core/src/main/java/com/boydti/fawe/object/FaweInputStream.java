@@ -42,6 +42,18 @@ public class FaweInputStream extends DataInputStream {
         return nbtIn.readNamedTag();
     }
 
+    public int readVarInt() throws IOException {
+        int i = 0;
+        int offset = 0;
+        int b;
+        while ((b = read()) > 127) {
+            i |= (b - 128) << offset;
+            offset += 7;
+        }
+        i |= b << offset;
+        return i;
+    }
+
     @Override
     public void close() throws IOException {
         if (nbtIn != null) {

@@ -23,14 +23,17 @@ import com.boydti.fawe.Fawe;
 import com.boydti.fawe.FaweCache;
 import com.boydti.fawe.config.Settings;
 import com.boydti.fawe.object.FaweInputStream;
+import com.boydti.fawe.object.FaweLimit;
 import com.boydti.fawe.object.FaweOutputStream;
 import com.boydti.fawe.object.FawePlayer;
-import com.boydti.fawe.object.RunnableVal2;
+import com.boydti.fawe.object.changeset.AnvilHistory;
 import com.boydti.fawe.object.changeset.DiskStorageHistory;
 import com.boydti.fawe.object.changeset.FaweChangeSet;
+import com.boydti.fawe.object.collection.SparseBitSet;
 import com.boydti.fawe.object.extent.ResettableExtent;
 import com.boydti.fawe.util.EditSessionBuilder;
 import com.boydti.fawe.util.MainUtil;
+import com.boydti.fawe.util.StringMan;
 import com.boydti.fawe.wrappers.WorldWrapper;
 import com.sk89q.jchronic.Chronic;
 import com.sk89q.jchronic.Options;
@@ -38,6 +41,7 @@ import com.sk89q.jchronic.utils.Span;
 import com.sk89q.jchronic.utils.Time;
 import com.sk89q.worldedit.blocks.BaseBlock;
 import com.sk89q.worldedit.command.tool.BlockTool;
+import com.sk89q.worldedit.command.tool.BrushHolder;
 import com.sk89q.worldedit.command.tool.BrushTool;
 import com.sk89q.worldedit.command.tool.InvalidToolBindException;
 import com.sk89q.worldedit.command.tool.SinglePickaxe;
@@ -47,6 +51,7 @@ import com.sk89q.worldedit.extension.platform.Actor;
 import com.sk89q.worldedit.extent.inventory.BlockBag;
 import com.sk89q.worldedit.function.mask.Mask;
 import com.sk89q.worldedit.function.mask.Masks;
+import com.sk89q.worldedit.history.changeset.ChangeSet;
 import com.sk89q.worldedit.internal.cui.CUIEvent;
 import com.sk89q.worldedit.internal.cui.CUIRegion;
 import com.sk89q.worldedit.internal.cui.SelectionShapeEvent;
@@ -63,11 +68,6 @@ import java.io.FileFilter;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.attribute.BasicFileAttributes;
-import java.util.ArrayDeque;
-import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Collections;
 import java.util.HashMap;
@@ -78,9 +78,7 @@ import java.util.Map;
 import java.util.TimeZone;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.concurrent.atomic.AtomicLong;
 import javax.annotation.Nullable;
-import javax.swing.filechooser.FileNameExtensionFilter;
 
 
 import static com.google.common.base.Preconditions.checkNotNull;
@@ -207,84 +205,35 @@ public class LocalSession {
     }
 
     private boolean loadHistoryChangeSets(UUID uuid, World world) {
-        final List<Integer> editIds = new ArrayList<>();
+        SparseBitSet set = new SparseBitSet();
         final File folder = MainUtil.getFile(Fawe.imp().getDirectory(), Settings.IMP.PATHS.HISTORY + File.separator + Fawe.imp().getWorldName(world) + File.separator + uuid);
         if (folder.isDirectory()) {
-            final FileNameExtensionFilter filter = new FileNameExtensionFilter("BlockData files", "bd");
             folder.listFiles(new FileFilter() {
                 @Override
                 public boolean accept(File pathname) {
                     String name = pathname.getName();
-                    int i = name.lastIndexOf('.');
-                    if ((name.length() == i + 3) && (name.charAt(i + 1) == 'b' && name.charAt(i + 2) == 'd')) {
-                        int index = Integer.parseInt(name.substring(0, i));
-                        editIds.add(index);
+                    Integer val = null;
+                    if (pathname.isDirectory()) {
+                        val = StringMan.toInteger(name, 0, name.length());
+
+                    } else {
+                        int i = name.lastIndexOf('.');
+                        if (i != -1) val = StringMan.toInteger(name, 0, i);
                     }
+                    if (val != null) set.set(val);
                     return false;
                 }
             });
         }
-        if (editIds.size() > 0) {
+        if (!set.isEmpty()) {
             historySize = MainUtil.getTotalSize(folder.toPath());
-            Collections.sort(editIds);
-            for (int index : editIds) {
+            for (int index = set.nextSetBit(0); index != -1; index = set.nextSetBit(index + 1)) {
                 history.add(index);
             }
         } else {
             historySize = 0;
         }
-        return editIds.size() > 0;
-    }
-
-    @Deprecated
-    private void deleteOldFiles(UUID uuid, World world, long maxBytes) throws IOException {
-        final File folder = MainUtil.getFile(Fawe.imp().getDirectory(), Settings.IMP.PATHS.HISTORY + File.separator + Fawe.imp().getWorldName(world) + File.separator + uuid);
-
-        final ArrayList<Integer> ids = new ArrayList<Integer>();
-        final HashMap<Integer, ArrayDeque<Path>> paths = new HashMap<>();
-        final HashMap<Integer, AtomicLong> sizes = new HashMap<>();
-        final AtomicLong totalSize = new AtomicLong();
-
-        MainUtil.traverse(folder.toPath(), new RunnableVal2<Path, BasicFileAttributes>() {
-            @Override
-            public void run(Path path, BasicFileAttributes attr) {
-                try {
-                    String file = path.getFileName().toString();
-                    int index = file.indexOf('.');
-                    if (index == -1) {
-                        return;
-                    }
-                    int id = Integer.parseInt(file.substring(0, index));
-                    long size = attr.size();
-                    totalSize.addAndGet(size);
-                    ArrayDeque<Path> existingPaths = paths.get(id);
-                    if (existingPaths == null) {
-                        existingPaths = new ArrayDeque<Path>();
-                        paths.put(id, existingPaths);
-                    }
-                    existingPaths.add(path);
-                    AtomicLong existingSize = sizes.get(id);
-                    if (existingSize == null) {
-                        existingSize = new AtomicLong();
-                        sizes.put(id, existingSize);
-                    }
-                    existingSize.addAndGet(size);
-                } catch (NumberFormatException ignore) {
-                }
-            }
-        });
-        if (totalSize.get() < maxBytes) {
-            return;
-        }
-        Collections.sort(ids);
-        long total = totalSize.get();
-        for (int i = 0; i < ids.size() && total > maxBytes; i++) {
-            int id = ids.get(i);
-            for (Path path : paths.get(id)) {
-                Files.delete(path);
-            }
-            total -= sizes.get(id).get();
-        }
+        return !set.isEmpty();
     }
 
     private void loadHistoryNegativeIndex(UUID uuid, World world) {
@@ -414,7 +363,7 @@ public class LocalSession {
     public void remember(EditSession editSession) {
         FawePlayer fp = editSession.getPlayer();
         int limit = fp == null ? Integer.MAX_VALUE : fp.getLimit().MAX_HISTORY;
-        remember(editSession, true, false, limit);
+        remember(editSession, true, limit);
     }
 
     private FaweChangeSet getChangeSet(Object o) {
@@ -424,12 +373,62 @@ public class LocalSession {
             return cs;
         }
         if (o instanceof Integer) {
-            return new DiskStorageHistory(currentWorld, this.uuid, (Integer) o);
+            File folder = MainUtil.getFile(Fawe.imp().getDirectory(), Settings.IMP.PATHS.HISTORY + File.separator + Fawe.imp().getWorldName(currentWorld) + File.separator + uuid);
+            File specific = new File(folder, o.toString());
+            if (specific.isDirectory()) {
+                return new AnvilHistory(Fawe.imp().getWorldName(currentWorld), specific);
+            } else {
+                return new DiskStorageHistory(currentWorld, this.uuid, (Integer) o);
+            }
         }
         return null;
     }
 
-    public synchronized void remember(final EditSession editSession, final boolean append, final boolean sendMessage, int limitMb) {
+    public synchronized void remember(Player player, World world, ChangeSet changeSet, FaweLimit limit) {
+        if (Settings.IMP.HISTORY.USE_DISK) {
+            LocalSession.MAX_HISTORY_SIZE = Integer.MAX_VALUE;
+        }
+        if (changeSet.size() == 0) {
+            return;
+        }
+        loadSessionHistoryFromDisk(player.getUniqueId(), world);
+        if (changeSet instanceof FaweChangeSet) {
+            int size = getHistoryNegativeIndex();
+            ListIterator<Object> iter = history.listIterator();
+            int i = 0;
+            int cutoffIndex = history.size() - getHistoryNegativeIndex();
+            while (iter.hasNext()) {
+                Object item = iter.next();
+                if (++i > cutoffIndex) {
+                    FaweChangeSet oldChangeSet;
+                    if (item instanceof FaweChangeSet) {
+                        oldChangeSet = (FaweChangeSet) item;
+                    } else {
+                        oldChangeSet = getChangeSet(item);
+                    }
+                    historySize -= MainUtil.getSize(oldChangeSet);
+                    iter.remove();
+                }
+            }
+        }
+        historySize += MainUtil.getSize(changeSet);
+        history.add(changeSet);
+        if (getHistoryNegativeIndex() != 0) {
+            setDirty();
+            historyNegativeIndex = 0;
+        }
+        if (limit != null) {
+            int limitMb = limit.MAX_HISTORY;
+            while (((!Settings.IMP.HISTORY.USE_DISK && history.size() > MAX_HISTORY_SIZE) || (historySize >> 20) > limitMb) && history.size() > 1) {
+                FaweChangeSet item = (FaweChangeSet) history.remove(0);
+                item.delete();
+                long size = MainUtil.getSize(item);
+                historySize -= size;
+            }
+        }
+    }
+
+    public synchronized void remember(final EditSession editSession, final boolean append, int limitMb) {
         if (Settings.IMP.HISTORY.USE_DISK) {
             LocalSession.MAX_HISTORY_SIZE = Integer.MAX_VALUE;
         }
@@ -575,6 +574,10 @@ public class LocalSession {
             return newEditSession;
         }
         return null;
+    }
+
+    public Map<Integer, Tool> getTools() {
+        return Collections.unmodifiableMap(tools);
     }
 
     public int getSize() {
@@ -958,16 +961,24 @@ public class LocalSession {
 
     @Nullable
     public Tool getTool(Player player) {
-        if (tools.isEmpty()) {
+        if (!Settings.IMP.EXPERIMENTAL.PERSISTENT_BRUSHES && tools.isEmpty()) {
             return null;
         }
         try {
             BaseBlock block = player.getBlockInHand();
-            return getTool(block.getId(), block.getData());
+            return getTool(block, player);
         } catch (WorldEditException e) {
             e.printStackTrace();
             return null;
         }
+    }
+
+    public Tool getTool(BaseBlock block, Player player) {
+        if (block instanceof BrushHolder) {
+            BrushTool tool = ((BrushHolder) block).getTool();
+            if (tool != null) return tool;
+        }
+        return getTool(block.getId(), block.getData());
     }
 
     /**
@@ -979,16 +990,15 @@ public class LocalSession {
      * @return the tool, or {@code null}
      * @throws InvalidToolBindException if the item can't be bound to that item
      */
+    @Deprecated
     public BrushTool getBrushTool(int item) throws InvalidToolBindException {
-        return getBrushTool(item, 0, null, true);
+        return getBrushTool(FaweCache.getBlock(item, 0), null, true);
     }
 
-    @Deprecated
     public BrushTool getBrushTool(Player player) throws InvalidToolBindException {
         return getBrushTool(player, true);
     }
 
-    @Deprecated
     public BrushTool getBrushTool(Player player, boolean create) throws InvalidToolBindException {
         BaseBlock block;
         try {
@@ -997,18 +1007,16 @@ public class LocalSession {
             e.printStackTrace();
             block = EditSession.nullBlock;
         }
-        return getBrushTool(block.getId(), block.getData(), player, create);
+        return getBrushTool(block, player, create);
     }
 
 
-    @Deprecated
-    public BrushTool getBrushTool(int id, int data, Player player, boolean create) throws InvalidToolBindException {
-        Tool tool = getTool(id, data);
-
+    public BrushTool getBrushTool(BaseBlock item, Player player, boolean create) throws InvalidToolBindException {
+        Tool tool = getTool(item, player);
         if ((tool == null || !(tool instanceof BrushTool))) {
             if (create) {
                 tool = new BrushTool();
-                setTool(id, data, tool, player);
+                setTool(item, tool, player);
             } else {
                 return null;
             }
@@ -1026,7 +1034,7 @@ public class LocalSession {
      */
     @Deprecated
     public void setTool(int item, @Nullable Tool tool) throws InvalidToolBindException {
-        setTool(item, 0, tool, null);
+        setTool(FaweCache.getBlock(item, 0), tool, null);
     }
 
     public void setTool(@Nullable Tool tool, Player player) throws InvalidToolBindException {
@@ -1037,10 +1045,12 @@ public class LocalSession {
             item = EditSession.nullBlock;
             e.printStackTrace();
         }
-        setTool(item.getId(), item.getData(), tool, player);
+        setTool(item, tool, player);
     }
 
-    public void setTool(int id, int data, @Nullable Tool tool, Player player) throws InvalidToolBindException {
+    public void setTool(BaseBlock item, @Nullable Tool tool, Player player) throws InvalidToolBindException {
+        int id = item.getId();
+        int data = item.getData();
         if (id > 0 && id < 255) {
             throw new InvalidToolBindException(id, "Blocks can't be used");
         } else if (id == config.wandItem) {
@@ -1048,12 +1058,17 @@ public class LocalSession {
         } else if (id == config.navigationWand) {
             throw new InvalidToolBindException(id, "Already used for the navigation wand");
         }
-        Tool previous = this.tools.put(FaweCache.getCombined(id, data), tool);
-        if (player != null) {
-            if (previous instanceof BrushTool) {
-                BrushTool brushTool = (BrushTool) previous;
-                brushTool.clear(player);
-            }
+        Tool previous;
+        if (player != null && (tool instanceof BrushTool || tool == null) && item instanceof BrushHolder) {
+            BrushHolder holder = (BrushHolder) item;
+            previous = holder.setTool((BrushTool) tool);
+            if (tool != null) ((BrushTool) tool).setHolder(holder);
+        } else {
+            previous = this.tools.put(FaweCache.getCombined(id, data), tool);
+        }
+        if (previous != null && player != null && previous instanceof BrushTool) {
+            BrushTool brushTool = (BrushTool) previous;
+            brushTool.clear(player);
         }
     }
 

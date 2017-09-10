@@ -4,23 +4,25 @@ import com.boydti.fawe.Fawe;
 import com.boydti.fawe.example.CharFaweChunk;
 import com.boydti.fawe.example.NMSMappedFaweQueue;
 import com.boydti.fawe.example.NullFaweChunk;
+import com.boydti.fawe.jnbt.anvil.filters.DelegateMCAFilter;
+import com.boydti.fawe.jnbt.anvil.history.IAnvilHistory;
+import com.boydti.fawe.jnbt.anvil.history.NullAnvilHistory;
 import com.boydti.fawe.object.FaweChunk;
 import com.boydti.fawe.object.FawePlayer;
 import com.boydti.fawe.object.FaweQueue;
 import com.boydti.fawe.object.RegionWrapper;
-import com.boydti.fawe.object.RunnableVal;
 import com.boydti.fawe.object.RunnableVal2;
 import com.boydti.fawe.object.RunnableVal4;
 import com.boydti.fawe.object.collection.IterableThreadLocal;
 import com.boydti.fawe.util.MainUtil;
 import com.sk89q.jnbt.CompoundTag;
 import com.sk89q.worldedit.Vector;
-import com.sk89q.worldedit.blocks.BaseBlock;
 import com.sk89q.worldedit.world.biome.BaseBiome;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.Collection;
@@ -146,239 +148,245 @@ public class MCAQueue extends NMSMappedFaweQueue<FaweQueue, FaweChunk, FaweChunk
         return changed;
     }
 
+    @Override
+    public boolean setMCA(int mcaX, int mcaZ, RegionWrapper region, Runnable whileLocked, boolean save, boolean unload) {
+        if (parent != null) return parent.setMCA(mcaX, mcaZ, region, whileLocked, save, unload);
+        return super.setMCA(mcaX, mcaZ, region, whileLocked, save, unload);
+    }
+
     public void pasteRegion(MCAQueue from, final RegionWrapper regionFrom, Vector offset) throws IOException {
+        pasteRegion(from, regionFrom, offset, new NullAnvilHistory());
+    }
+
+    public void pasteRegion(MCAQueue from, final RegionWrapper regionFrom, Vector offset, IAnvilHistory history) throws IOException {
         int oX = offset.getBlockX();
         int oZ = offset.getBlockZ();
         int oY = offset.getBlockY();
         int oCX = oX >> 4;
         int oCZ = oZ >> 4;
         RegionWrapper regionTo = new RegionWrapper(regionFrom.minX + oX, regionFrom.maxX + oX, regionFrom.minZ + oZ, regionFrom.maxZ + oZ);
+
         File folder = getSaveFolder();
-        final ForkJoinPool pool = new ForkJoinPool();
         int bMcaX = (regionTo.minX >> 9);
         int bMcaZ = (regionTo.minZ >> 9);
         int tMcaX = (regionTo.maxX >> 9);
         int tMcaZ = (regionTo.maxZ >> 9);
-        for (int mcaZ = bMcaZ; mcaZ <= tMcaZ; mcaZ++) {
-            for (int mcaX = bMcaX; mcaX <= tMcaX; mcaX++) {
-                int bcx = Math.max(mcaX << 5, regionTo.minX >> 4);
-                int bcz = Math.max(mcaZ << 5, regionTo.minZ >> 4);
-                int tcx = Math.min((mcaX << 5) + 31, regionTo.maxX >> 4);
-                int tcz = Math.min((mcaZ << 5) + 31, regionTo.maxZ >> 4);
-                File file = new File(folder, "r." + mcaX + "." + mcaZ + ".mca");
-                if (!file.exists()) {
-                    file.createNewFile();
-                }
-                MCAFile mcaFile = new MCAFile(null, file);
-                mcaFile.init();
 
-                final long heapSize = Runtime.getRuntime().totalMemory();
-                final long heapMaxSize = Runtime.getRuntime().maxMemory();
-                int free = (int) (((heapMaxSize - heapSize) + Runtime.getRuntime().freeMemory()) / (1024 * 1024));
+        filterCopy(new MCAFilter() {
+            @Override
+            public MCAFile applyFile(MCAFile mcaFile) {
+                try {
+                    int mcaX = mcaFile.getX();
+                    int mcaZ = mcaFile.getZ();
+                    int bcx = Math.max(mcaX << 5, regionTo.minX >> 4);
+                    int bcz = Math.max(mcaZ << 5, regionTo.minZ >> 4);
+                    int tcx = Math.min((mcaX << 5) + 31, regionTo.maxX >> 4);
+                    int tcz = Math.min((mcaZ << 5) + 31, regionTo.maxZ >> 4);
+                    mcaFile.init();
+
+                    final long heapSize = Runtime.getRuntime().totalMemory();
+                    final long heapMaxSize = Runtime.getRuntime().maxMemory();
+                    int free = (int) (((heapMaxSize - heapSize) + Runtime.getRuntime().freeMemory()) / (1024 * 1024));
 
 //                int obcx = bcx - oCX;
 //                int obcz = bcz - oCX;
 //                int otcx = tcx - oCX;
 //                int otcz = tcz - oCX;
 
-                for (int cz = bcz; cz <= tcz; cz++) {
-                    for (int cx = bcx; cx <= tcx; cx++) {
-                        int bx = cx << 4;
-                        int bz = cz << 4;
-                        int tx = bx + 15;
-                        int tz = bz + 15;
-                        if (oX == 0 && oZ == 0) {
-                            if (bx >= regionTo.minX && tx <= regionTo.maxX && bz >= regionTo.minZ && tz <= regionTo.maxZ) {
-                                FaweChunk chunk = from.getFaweChunk(cx - oCX, cz - oCZ);
-                                if (!(chunk instanceof NullFaweChunk)) {
-                                    if (regionTo.minY == 0 && regionTo.maxY == 255) {
-                                        MCAChunk mcaChunk = (MCAChunk) chunk;
-                                        mcaChunk.setLoc(null, cx, cz);
-                                        mcaChunk.setModified();
-                                        mcaFile.setChunk(mcaChunk);
-                                    } else {
-                                        MCAChunk newChunk = mcaFile.getChunk(cx, cz);
-                                        if (newChunk == null) {
-                                            newChunk = new MCAChunk(this, cx, cz);
-                                            mcaFile.setChunk(newChunk);
-                                        } else {
-                                            newChunk.setModified();
+                    for (int cz = bcz; cz <= tcz; cz++) {
+                        for (int cx = bcx; cx <= tcx; cx++) {
+                            int bx = cx << 4;
+                            int bz = cz << 4;
+                            int tx = bx + 15;
+                            int tz = bz + 15;
+                            if (oX == 0 && oZ == 0) {
+                                if (bx >= regionTo.minX && tx <= regionTo.maxX && bz >= regionTo.minZ && tz <= regionTo.maxZ) {
+                                    FaweChunk chunk = from.getFaweChunk(cx - oCX, cz - oCZ);
+                                    if (!(chunk instanceof NullFaweChunk)) {
+//                                        if (regionTo.minY == 0 && regionTo.maxY == 255) {
+//                                            System.out.println("Vertical");
+//                                            MCAChunk mcaChunk = (MCAChunk) chunk;
+//                                            mcaChunk.setLoc(null, cx, cz);
+//                                            mcaChunk.setModified();
+//                                            mcaFile.setChunk(mcaChunk);
+//                                        } else
+                                        {
+                                            MCAChunk newChunk = mcaFile.getChunk(cx, cz);
+                                            if (newChunk == null) {
+                                                newChunk = new MCAChunk(MCAQueue.this, cx, cz);
+                                                mcaFile.setChunk(newChunk);
+                                            } else {
+                                                newChunk.setModified();
+                                            }
+                                            newChunk.copyFrom((MCAChunk) chunk, regionFrom.minY, regionFrom.maxY, oY);
                                         }
-                                        newChunk.copyFrom((MCAChunk) chunk, regionFrom.minY, regionFrom.maxY, oY);
                                     }
-                                }
-                                continue;
-                            }
-                        }
-                        bx = Math.max(regionTo.minX, bx);
-                        bz = Math.max(regionTo.minZ, bz);
-                        tx = Math.min(regionTo.maxX, tx);
-                        tz = Math.min(regionTo.maxZ, tz);
-                        int obx = bx - oX;
-                        int obz = bz - oZ;
-                        int otx = tx - oX;
-                        int otz = tz - oZ;
-                        int otherBCX = (obx) >> 4;
-                        int otherBCZ = (obz) >> 4;
-                        int otherTCX = (otx) >> 4;
-                        int otherTCZ = (otz) >> 4;
-                        MCAChunk newChunk = mcaFile.getChunk(cx, cz);
-                        boolean created;
-                        if (newChunk == null) {
-                            newChunk = new MCAChunk(this, cx, cz);
-                            created = true;
-                        } else {
-                            created = false;
-                            newChunk.setModified();
-                        }
-                        boolean modified = false;
-                        int cbx = (cx << 4) - oX;
-                        int cbz = (cz << 4) - oZ;
-                        for (int otherCZ = otherBCZ; otherCZ <= otherTCZ; otherCZ++) {
-                            for (int otherCX = otherBCX; otherCX <= otherTCX; otherCX++) {
-                                FaweChunk chunk = from.getFaweChunk(otherCX, otherCZ);
-                                if (!(chunk instanceof NullFaweChunk)) {
-                                    MCAChunk other = (MCAChunk) chunk;
-                                    int ocbx = otherCX << 4;
-                                    int ocbz = otherCZ << 4;
-                                    int octx = ocbx + 15;
-                                    int octz = ocbz + 15;
-                                    int minY = regionFrom.minY;
-                                    int maxY = regionFrom.maxY;
-                                    int offsetY = oY;
-                                    int minX = obx > ocbx ? (obx - ocbx) & 15 : 0;
-                                    int maxX = otx < octx ? (otx - ocbx) : 15;
-                                    int minZ = obz > ocbz ? (obz - ocbz) & 15 : 0;
-                                    int maxZ = otz < octz ? (otz - ocbz) : 15;
-                                    int offsetX = ocbx - cbx;
-                                    int offsetZ = ocbz - cbz;
-                                    newChunk.copyFrom(other, minX, maxX, minY, maxY, minZ, maxZ, offsetX, offsetY, offsetZ);
-                                    newChunk.setModified();
-                                    modified = true;
+                                    continue;
                                 }
                             }
-                        }
-                        if (created && modified) {
-                            mcaFile.setChunk(newChunk);
-                        }
-                    }
-                }
-                pool.awaitQuiescence(Long.MAX_VALUE, TimeUnit.MILLISECONDS);
-                mcaFile.close(pool);
-                from.clear();
-            }
-        }
-        from.clear();
-        pool.awaitQuiescence(Long.MAX_VALUE, TimeUnit.MILLISECONDS);
-        pool.shutdown();
-    }
-
-    public <G, T extends MCAFilter<G>> T filterCopy(final T filter, boolean deleteOnCopyFail) {
-        this.filterWorld(new MCAFilter<G>() {
-            @Override
-            public boolean appliesFile(int mcaX, int mcaZ) {
-                return filter.appliesFile(mcaX, mcaZ);
-            }
-
-            @Override
-            public boolean appliesFile(Path path, BasicFileAttributes attr) {
-                return filter.appliesFile(path, attr);
-            }
-
-            @Override
-            public MCAFile applyFile(MCAFile mca) {
-                File file = mca.getFile();
-                File copyDest = new File(file.getParentFile(), file.getName() + "-copy");
-                try {
-                    Files.copy(file.toPath(), copyDest.toPath(), StandardCopyOption.REPLACE_EXISTING);
-                    MCAFile copy = new MCAFile(mca.getParent(), copyDest);
-                    MCAFile result = filter.applyFile(copy);
-                    if (result == null) {
-                        if (copy.isDeleted()) {
-                            copy.clear();
-                            result.clear();
-                            if (file.exists()) {
-                                file.delete();
+                            bx = Math.max(regionTo.minX, bx);
+                            bz = Math.max(regionTo.minZ, bz);
+                            tx = Math.min(regionTo.maxX, tx);
+                            tz = Math.min(regionTo.maxZ, tz);
+                            int obx = bx - oX;
+                            int obz = bz - oZ;
+                            int otx = tx - oX;
+                            int otz = tz - oZ;
+                            int otherBCX = (obx) >> 4;
+                            int otherBCZ = (obz) >> 4;
+                            int otherTCX = (otx) >> 4;
+                            int otherTCZ = (otz) >> 4;
+                            MCAChunk newChunk = mcaFile.getChunk(cx, cz);
+                            boolean created;
+                            if (newChunk == null) {
+                                newChunk = new MCAChunk(MCAQueue.this, cx, cz);
+                                created = true;
+                            } else {
+                                created = false;
+                                newChunk.setModified();
                             }
-                            if (copyDest.exists()) {
-                                if (!copyDest.delete()) {
-                                    copyDest.deleteOnExit();
-                                }
-                            }
-                        } else if (copy.isModified()) {
-                            if (copyDest.exists()) {
-                                copy.clear();
-                                file.delete();
-                                if (!copyDest.renameTo(file) && deleteOnCopyFail) {
-                                    if (!copyDest.delete()) {
-                                        copyDest.deleteOnExit();
+                            boolean modified = false;
+                            int cbx = (cx << 4) - oX;
+                            int cbz = (cz << 4) - oZ;
+                            for (int otherCZ = otherBCZ; otherCZ <= otherTCZ; otherCZ++) {
+                                for (int otherCX = otherBCX; otherCX <= otherTCX; otherCX++) {
+                                    FaweChunk chunk = from.getFaweChunk(otherCX, otherCZ);
+                                    if (!(chunk instanceof NullFaweChunk)) {
+                                        MCAChunk other = (MCAChunk) chunk;
+                                        int ocbx = otherCX << 4;
+                                        int ocbz = otherCZ << 4;
+                                        int octx = ocbx + 15;
+                                        int octz = ocbz + 15;
+                                        int minY = regionFrom.minY;
+                                        int maxY = regionFrom.maxY;
+                                        int offsetY = oY;
+                                        int minX = obx > ocbx ? (obx - ocbx) & 15 : 0;
+                                        int maxX = otx < octx ? (otx - ocbx) : 15;
+                                        int minZ = obz > ocbz ? (obz - ocbz) & 15 : 0;
+                                        int maxZ = otz < octz ? (otz - ocbz) : 15;
+                                        int offsetX = ocbx - cbx;
+                                        int offsetZ = ocbz - cbz;
+                                        newChunk.copyFrom(other, minX, maxX, minY, maxY, minZ, maxZ, offsetX, offsetY, offsetZ);
+                                        newChunk.setModified();
+                                        modified = true;
                                     }
                                 }
                             }
-                        } else {
-                            copy.clear();
-                            if (!copyDest.delete()) {
-                                copyDest.deleteOnExit();
+                            if (created && modified) {
+                                mcaFile.setChunk(newChunk);
                             }
                         }
                     }
-                    return result;
+                    from.clear();
                 } catch (IOException e) {
                     e.printStackTrace();
-                    return null;
                 }
+                return null;
             }
+        }, regionTo, history);
+        from.clear();
+    }
 
-            @Override
-            public boolean appliesChunk(int cx, int cz) {
-                return filter.appliesChunk(cx, cz);
-            }
-
-            @Override
-            public MCAChunk applyChunk(MCAChunk chunk, G cache) {
-                return filter.applyChunk(chunk, cache);
-            }
-
-            @Override
-            public void applyBlock(int x, int y, int z, BaseBlock block, G cache) {
-                filter.applyBlock(x, y, z, block, cache);
-            }
-        }, true, new RunnableVal<MCAFile>() {
-            @Override
-            public void run(MCAFile value) {
-                if (deleteOnCopyFail) {
-                    File file = value.getFile();
-                    boolean result = file.delete();
-                    if (!result) {
-                        file.deleteOnExit();
+    private void performCopy(MCAFile original, MCAFile copy, RegionWrapper region, IAnvilHistory task, ForkJoinPool pool) {
+        original.clear();
+        File originalFile = original.getFile();
+        File copyFile = copy.getFile();
+        if (copy.isModified()) {
+            if (copy.isDeleted()) {
+                if (task.addFileChange(originalFile)) return;
+                setMCA(original.getX(), original.getZ(), region, () -> task.addFileChange(originalFile), true, true);
+                return;
+            } else if (copyFile.exists()) {
+                // If the task is the normal delete task, we can do a normal file move
+                copy.close(pool);
+                if (task.getClass() == NullAnvilHistory.class) {
+                    try {
+                        Files.move(copyFile.toPath(), originalFile.toPath(), StandardCopyOption.ATOMIC_MOVE);
+                        return;
+                    } catch (IOException ignore) {}
+                }
+                setMCA(original.getX(), original.getZ(), region, () -> {
+                    task.addFileChange(originalFile);
+                    if (!copyFile.renameTo(originalFile)) {
+                        Fawe.debug("Failed to copy (2)");
                     }
-                    Fawe.debug("Deleted " + file + " = " + result);
-                }
+                }, true, true);
             }
-        });
+        }
+        copy.clear();
+        copyFile.delete();
+    }
+
+    public <G, T extends MCAFilter<G>> T filterCopy(final T filter, RegionWrapper region) {
+        return filterCopy(filter, region, new NullAnvilHistory());
+    }
+
+
+    public <G, T extends MCAFilter<G>> T filterCopy(final T filter, RegionWrapper region, IAnvilHistory task) {
+        DelegateMCAFilter<G> delegate = new DelegateMCAFilter<G>(filter) {
+            MCAFile original;
+            MCAFile copy;
+            ForkJoinPool pool;
+
+            @Override
+            public void withPool(ForkJoinPool pool, MCAQueue queue) {
+                this.pool = pool;
+            }
+
+            @Override
+            public MCAFile applyFile(MCAFile original) {
+                this.original = original;
+                this.original.clear();
+                File file = original.getFile();
+                file.setWritable(true);
+                File copyDest = new File(file.getParentFile(), file.getName() + "-copy");
+                setMCA(original.getX(), original.getZ(), region, () -> {
+                    try {
+                        Files.copy(file.toPath(), copyDest.toPath(), StandardCopyOption.REPLACE_EXISTING);
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                }, true, false);
+                this.copy = new MCAFile(original.getParent(), copyDest);
+                MCAFile result = filter.applyFile(copy);
+                if (result == null) {
+                    performCopy(original, copy, region, task, pool);
+                }
+                if (result == null || !copy.getFile().equals(result.getFile())) {
+                    copy.clear();
+                    if (copyDest.exists() && !copyDest.delete()) copyDest.deleteOnExit();
+                }
+                return result;
+            }
+
+            @Override
+            public void finishFile(MCAFile newRegion, G cache) {
+                performCopy(original, newRegion, region, task, pool);
+            }
+        };
+        if (region == RegionWrapper.GLOBAL()) {
+            this.filterWorld(delegate);
+        } else {
+            this.filterRegion(delegate, region);
+        }
         return filter;
     }
 
     public <G, T extends MCAFilter<G>> T filterRegion(final T filter, final RegionWrapper region) {
-        this.filterWorld(new MCAFilter<G>() {
+        DelegateMCAFilter<G> delegate = new DelegateMCAFilter<G>(filter) {
 
             @Override
             public boolean appliesFile(Path path, BasicFileAttributes attr) {
-                String name = path.getFileName().toString();
-                String[] split = name.split("\\.");
-                final int mcaX = Integer.parseInt(split[1]);
-                final int mcaZ = Integer.parseInt(split[2]);
+                String name = path.toString();
+                int[] coords = MainUtil.regionNameToCoords(name);
+                final int mcaX = coords[0];
+                final int mcaZ = coords[1];
                 return region.isInMCA(mcaX, mcaZ) && filter.appliesFile(path, attr);
             }
 
             @Override
             public boolean appliesFile(int mcaX, int mcaZ) {
                 return region.isInMCA(mcaX, mcaZ) && filter.appliesFile(mcaX, mcaZ);
-            }
-
-            @Override
-            public MCAFile applyFile(MCAFile file) {
-                return filter.applyFile(file);
             }
 
             @Override
@@ -433,12 +441,34 @@ public class MCAQueue extends NMSMappedFaweQueue<FaweQueue, FaweChunk, FaweChunk
                 }
                 return null;
             }
-
-            @Override
-            public void finishChunk(MCAChunk chunk, G cache) {
-                super.finishChunk(chunk, cache);
-            }
-        });
+        };
+        final int minMCAX = region.minX >> 9;
+        final int minMCAZ = region.minZ >> 9;
+        final int maxMCAX = region.maxX >> 9;
+        final int maxMCAZ = region.maxZ >> 9;
+        long mcaArea = (maxMCAX - minMCAX + 1l) * (maxMCAZ - minMCAZ + 1l);
+        if (mcaArea < 128) {
+            this.filterWorld(delegate, new RunnableVal2<Path, RunnableVal2<Path, BasicFileAttributes>>() {
+                @Override
+                public void run(Path root, RunnableVal2<Path, BasicFileAttributes> funx) {
+                    for (int x = minMCAX; x <= maxMCAX; x++) {
+                        for (int z = minMCAZ; z <= maxMCAZ; z++) {
+                            Path newPath = root.resolve(Paths.get("r." + x + "." + z + ".mca"));
+                            if (Files.exists(newPath)) {
+                                try {
+                                    BasicFileAttributes attrs = Files.readAttributes(newPath, BasicFileAttributes.class);
+                                    funx.run(newPath, attrs);
+                                } catch (IOException e) {
+                                    e.printStackTrace();
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        } else {
+            this.filterWorld(delegate);
+        }
         return filter;
     }
 
@@ -455,14 +485,8 @@ public class MCAQueue extends NMSMappedFaweQueue<FaweQueue, FaweChunk, FaweChunk
         return filter;
     }
 
-    public <G, T extends MCAFilter<G>> T filterWorld(final T filter) {
-        return filterWorld(filter, false, null);
-    }
-
-    private <G, T extends MCAFilter<G>> T filterWorld(final T filter, boolean replaceOriginalOnCopy, RunnableVal<MCAFile> onReplaceFail) {
-        File folder = getSaveFolder();
-        final ForkJoinPool pool = new ForkJoinPool();
-        MainUtil.traverse(folder.toPath(), new RunnableVal2<Path, BasicFileAttributes>() {
+    private <G, T extends MCAFilter<G>> RunnableVal2<Path, BasicFileAttributes> filterFunction(final T filter, ForkJoinPool pool) {
+        return new RunnableVal2<Path, BasicFileAttributes>() {
             @Override
             public void run(Path path, BasicFileAttributes attr) {
                 try {
@@ -478,7 +502,6 @@ public class MCAQueue extends NMSMappedFaweQueue<FaweQueue, FaweChunk, FaweChunk
                     final int mcaZ = Integer.parseInt(split[2]);
                     if (filter.appliesFile(mcaX, mcaZ)) {
                         File file = path.toFile();
-                        Fawe.debug("Apply file " + file);
                         final MCAFile original = new MCAFile(MCAQueue.this, file);
                         final MCAFile finalFile = filter.applyFile(original);
                         if (finalFile != null && !finalFile.isDeleted()) {
@@ -537,50 +560,37 @@ public class MCAQueue extends NMSMappedFaweQueue<FaweQueue, FaweChunk, FaweChunk
                                     });
                                 }
                             });
-                        } else if (original.isDeleted()) {
-                            try {
-                                original.close(pool);
-                                file.delete();
-                            } catch (Throwable ignore) {
-                                ignore.printStackTrace();
+                            pool.awaitQuiescence(Long.MAX_VALUE, TimeUnit.MILLISECONDS);
+                            filter.finishFile(finalFile, filter.get());
+                        } else {
+                            if (original.isDeleted()) {
+                                try {
+                                    original.close(pool);
+                                    file.delete();
+                                } catch (Throwable ignore) {
+                                    ignore.printStackTrace();
+                                }
                             }
+                            pool.awaitQuiescence(Long.MAX_VALUE, TimeUnit.MILLISECONDS);
                         }
-                        pool.awaitQuiescence(Long.MAX_VALUE, TimeUnit.MILLISECONDS);
                         original.close(pool);
                         if (original.isDeleted()) {
                             file.delete();
-                        }
-                        if (finalFile != null) {
-                            if (original != finalFile) {
-                                if (finalFile.isModified()) {
-                                    finalFile.close(pool);
-                                    if (finalFile.isDeleted()) {
-                                        finalFile.getFile().delete();
-                                        if (replaceOriginalOnCopy && file.exists()) {
-                                            file.delete();
-                                        }
-                                    } else if (replaceOriginalOnCopy) {
-                                        File from = finalFile.getFile();
-                                        file.delete();
-                                        if (!from.renameTo(file)) {
-                                            Fawe.debug("Could not rename " + from + "to " + file + ".");
-                                            if (onReplaceFail != null) {
-                                                onReplaceFail.run(finalFile);
-                                            }
-                                        }
-                                    }
-                                } else if (replaceOriginalOnCopy) {
-                                    finalFile.clear();
-                                    finalFile.getFile().delete();
-                                }
-                            }
                         }
                     }
                 } catch (Throwable ignore) {
                     ignore.printStackTrace();
                 }
             }
-        });
+        };
+    }
+
+    private <G, T extends MCAFilter<G>> T filterWorld(final T filter, RunnableVal2<Path, RunnableVal2<Path, BasicFileAttributes>> traverser) {
+        File folder = getSaveFolder();
+        final ForkJoinPool pool = new ForkJoinPool();
+        filter.withPool(pool, this);
+        RunnableVal2<Path, BasicFileAttributes> task = filterFunction(filter, pool);
+        traverser.run(folder.toPath(), task);
         pool.shutdown();
         try {
             pool.awaitTermination(Long.MAX_VALUE, TimeUnit.MILLISECONDS);
@@ -588,6 +598,15 @@ public class MCAQueue extends NMSMappedFaweQueue<FaweQueue, FaweChunk, FaweChunk
             e.printStackTrace();
         }
         return filter;
+    }
+
+    public <G, T extends MCAFilter<G>> T filterWorld(final T filter) {
+        return filterWorld(filter, new RunnableVal2<Path, RunnableVal2<Path, BasicFileAttributes>>() {
+            @Override
+            public void run(Path value1, RunnableVal2<Path, BasicFileAttributes> value2) {
+                MainUtil.traverse(value1, value2);
+            }
+        });
     }
 
     @Override

@@ -23,8 +23,10 @@ import com.boydti.fawe.util.MaskTraverser;
 import com.sk89q.worldedit.EditSession;
 import com.sk89q.worldedit.Vector;
 import com.sk89q.worldedit.extent.Extent;
+import com.sk89q.worldedit.extent.clipboard.BlockArrayClipboard;
 import com.sk89q.worldedit.extent.clipboard.Clipboard;
 import com.sk89q.worldedit.extent.transform.BlockTransformExtent;
+import com.sk89q.worldedit.function.RegionFunction;
 import com.sk89q.worldedit.function.mask.ExistingBlockMask;
 import com.sk89q.worldedit.function.mask.Mask;
 import com.sk89q.worldedit.function.operation.ForwardExtentCopy;
@@ -48,6 +50,9 @@ public class PasteBuilder {
 
     private Vector to = new Vector();
     private boolean ignoreAirBlocks;
+    private boolean ignoreBiomes;
+    private boolean ignoreEntities;
+    private RegionFunction canApply;
 
     /**
      * Create a new instance.
@@ -88,6 +93,21 @@ public class PasteBuilder {
         return this;
     }
 
+    public PasteBuilder ignoreBiomes(boolean ignoreBiomes) {
+        this.ignoreBiomes = ignoreBiomes;
+        return this;
+    }
+
+    public PasteBuilder ignoreEntities(boolean ignoreEntities) {
+        this.ignoreEntities = ignoreEntities;
+        return this;
+    }
+
+    public PasteBuilder filter(RegionFunction function) {
+        this.canApply = function;
+        return this;
+    }
+
     /**
      * Build the operation.
      *
@@ -100,6 +120,11 @@ public class PasteBuilder {
         }
         ForwardExtentCopy copy = new ForwardExtentCopy(extent, clipboard.getRegion(), clipboard.getOrigin(), targetExtent, to);
         copy.setTransform(transform);
+        copy.setCopyEntities(!ignoreEntities);
+        copy.setCopyBiomes((!ignoreBiomes) && (!(clipboard instanceof BlockArrayClipboard) || ((BlockArrayClipboard) clipboard).IMP.hasBiomes()));
+        if (this.canApply != null) {
+            copy.setFilterFunction(this.canApply);
+        }
         if (targetExtent instanceof EditSession) {
             Mask sourceMask = ((EditSession) targetExtent).getSourceMask();
             if (sourceMask != null) {

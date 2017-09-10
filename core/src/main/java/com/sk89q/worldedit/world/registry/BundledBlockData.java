@@ -168,15 +168,37 @@ public class BundledBlockData {
             return true;
         }
         for (Map.Entry<String, FaweState> stateEntry : entry.states.entrySet()) {
-            for (Map.Entry<String, FaweStateValue> valueEntry : stateEntry.getValue().valueMap().entrySet()) {
+            FaweState faweState = stateEntry.getValue();
+            for (Map.Entry<String, FaweStateValue> valueEntry : faweState.valueMap().entrySet()) {
                 String key = valueEntry.getKey();
+                FaweStateValue faweStateValue = valueEntry.getValue();
                 if (key.equals("true")) {
                     key = stateEntry.getKey();
                 }
-                stateMap.put(entry.id + ":" + key, FaweCache.getBlock(entry.legacyId, valueEntry.getValue().data));
-                stateMap.put(id + ":" + key, FaweCache.getBlock(entry.legacyId, valueEntry.getValue().data));
-                stateMap.putIfAbsent(modId + ":" + key, FaweCache.getBlock(entry.legacyId, valueEntry.getValue().data));
-                stateMap.putIfAbsent(key, FaweCache.getBlock(entry.legacyId, valueEntry.getValue().data));
+                stateMap.put(entry.id + ":" + key, FaweCache.getBlock(entry.legacyId, faweStateValue.data));
+                stateMap.put(id + ":" + key, FaweCache.getBlock(entry.legacyId, faweStateValue.data));
+                stateMap.putIfAbsent(modId + ":" + key, FaweCache.getBlock(entry.legacyId, faweStateValue.data));
+                stateMap.putIfAbsent(key, FaweCache.getBlock(entry.legacyId, faweStateValue.data));
+            }
+        }
+        if (!entry.states.isEmpty()) { // Fix vine direction 2
+            String[] states = new String[] {"north", "east", "south", "west", "up", "down"};
+            Vector[] dirs = new Vector[] {
+                    new Vector(0, 0, -1),
+                    new Vector(1, 0, 0),
+                    new Vector(0, 0, 1),
+                    new Vector(-1, 0, 0),
+                    new Vector(0, 1, 0),
+                    new Vector(0, -1, 0),
+            };
+            for (int i = 0; i < states.length; i++) {
+                FaweState state = entry.states.get(states[i]);
+                if (state != null && !state.hasDirection()) {
+                    FaweStateValue active = state.valueMap().get("true");
+                    if (active != null) {
+                        entry.fixDirection(dirs[i], states[i], null, active.data);
+                    }
+                }
             }
         }
         FaweState half = entry.states.get("half");
@@ -191,8 +213,8 @@ public class BundledBlockData {
             }
             return true;
         }
-        FaweState dir = entry.states.get("rotation");
-        if (dir != null && dir.values != null) {
+        FaweState rot = entry.states.get("rotation");
+        if (rot != null && rot.values != null) {
             Vector[] range = new Vector[]{new Vector(0, 0, -1),
                     new Vector(0.5, 0, -1),
                     new Vector(1, 0, -1),
@@ -209,7 +231,7 @@ public class BundledBlockData {
                     new Vector(-1, 0, -0.5),
                     new Vector(-1, 0, -1),
                     new Vector(-0.5, 0, -1)};
-            for (Map.Entry<String, FaweStateValue> valuesEntry : dir.values.entrySet()) {
+            for (Map.Entry<String, FaweStateValue> valuesEntry : rot.values.entrySet()) {
                 int index = Integer.parseInt(valuesEntry.getKey());
                 valuesEntry.getValue().setDirection(range[index]);
             }
@@ -235,7 +257,7 @@ public class BundledBlockData {
             return true;
         }
         if (entry.legacyId == 69) {
-            dir = entry.states.get("facing");
+            FaweState facing = entry.states.get("facing");
             Vector[] dirs = new Vector[]{
                     new Vector(0, -1, 0),
                     new Vector(1, 0, 0),
@@ -245,10 +267,10 @@ public class BundledBlockData {
                     new Vector(0, 1, 0),
                     new Vector(0, 1, 0),
                     new Vector(0, -1, 0)};
-            int len = dir.values.size();
+            int len = facing.values.size();
             int index = 0;
-            int amount = (dir.values.size() + 7) / 8;
-            for (Map.Entry<String, FaweStateValue> valuesEntry : dir.values.entrySet()) {
+            int amount = (facing.values.size() + 7) / 8;
+            for (Map.Entry<String, FaweStateValue> valuesEntry : facing.values.entrySet()) {
                 FaweStateValue state = valuesEntry.getValue();
                 if (state != null) {
                     state.setDirection(dirs[index / amount]);
@@ -257,8 +279,61 @@ public class BundledBlockData {
             }
             return true;
         }
-
-
+        if (entry.legacyId == 155) {
+            FaweState variant = entry.states.get("variant");
+            if (variant != null && variant.values != null) {
+                FaweStateValue x = variant.values.get("lines_x");
+                FaweStateValue y = variant.values.get("lines_y");
+                FaweStateValue z = variant.values.get("lines_z");
+                if (x != null) {
+                    x.setDirection(new Vector(1, 0, 0));
+                    variant.values.put("-lines_x", new FaweStateValue(x).setDirection(new Vector(-1, 0, 0)));
+                }
+                if (y != null) {
+                    y.setDirection(new Vector(0, 1, 0));
+                    variant.values.put("-lines_y", new FaweStateValue(y).setDirection(new Vector(0, -1, 0)));
+                }
+                if (z != null) {
+                    z.setDirection(new Vector(0, 0, 1));
+                    variant.values.put("-lines_z", new FaweStateValue(z).setDirection(new Vector(0, 0, -1)));
+                }
+                return true;
+            }
+        }
+        FaweState shape = entry.states.get("shape");
+        if (shape != null && shape.values != null) {
+            for (Map.Entry<String, FaweStateValue> valueEntry : new ArrayList<>(shape.values.entrySet())) {
+                String variantName = valueEntry.getKey();
+                FaweStateValue state = valueEntry.getValue();
+                if (state.getDirection() == null) {
+                    Vector dir = new Vector(0, 0, 0);
+                    for (String keyWord : variantName.split("_")) {
+                        switch (keyWord) {
+                            case "ascending":
+                                dir.mutY(1);
+                                break;
+                            case "north":
+                                dir.mutZ(-1);
+                                break;
+                            case "east":
+                                dir.mutX(1);
+                                break;
+                            case "south":
+                                dir.mutZ(1);
+                                break;
+                            case "west":
+                                dir.mutX(-1);
+                                break;
+                        }
+                    }
+                    if (dir.length() != 0) {
+                        Vector inverse = Vector.ZERO.subtract(dir);
+                        state.setDirection(dir);
+                        shape.values.put("-" + variantName, new FaweStateValue(state).setDirection(inverse));
+                    }
+                }
+            }
+        }
         return true;
     }
 
@@ -370,7 +445,26 @@ public class BundledBlockData {
                 state.postDeserialization();
             }
         }
+
+        protected void fixDirection(Vector direction, String key, Byte mask, int data) {
+            FaweState state = states.remove(key);
+            if (state != null && !state.hasDirection()) {
+                FaweState facing = states.get("facing");
+                if (facing == null) {
+                    facing = BundledBlockData.getInstance().new FaweState();
+                    facing.values = new HashMap<>();
+                    states.put("facing", facing);
+                }
+                if (mask != null) facing.dataMask = (byte) (facing.getDataMask() | mask);
+                FaweStateValue value = BundledBlockData.getInstance().new FaweStateValue();
+                value.state = facing;
+                value.data = (byte) data;
+                value.direction = direction;
+                facing.values.put(key, value);
+            }
+        }
     }
+
 
     public static Class<?> inject() {
         return BundledBlockData.class;
@@ -414,7 +508,7 @@ public class BundledBlockData {
 
         @Override
         public boolean isSet(BaseBlock block) {
-            return data != null && (block.getData() & state.getDataMask()) == data;
+            return data != null && ((state.dataMask == null && block.getData() == data) || (block.getData() & state.getDataMask()) == data);
         }
 
         @Override

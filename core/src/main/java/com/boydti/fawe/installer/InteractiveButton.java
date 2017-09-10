@@ -8,7 +8,7 @@ import java.awt.event.MouseListener;
 import javax.swing.JButton;
 
 public class InteractiveButton extends JButton implements ActionListener, MouseListener {
-    private final Color background;
+    private Color background;
 
     public InteractiveButton(String text) {
         this(text, new Color(0, 0, 0, 0));
@@ -17,8 +17,6 @@ public class InteractiveButton extends JButton implements ActionListener, MouseL
     public InteractiveButton(String text, Color background) {
         setText(text);
         setBorderPainted(false);
-        setBackground(background);
-        setFocusable(false);
         setVisible(true);
         setForeground(new Color(200, 200, 200));
         addActionListener(this);
@@ -27,8 +25,14 @@ public class InteractiveButton extends JButton implements ActionListener, MouseL
         if (background.getAlpha() != 0) {
             this.background = background;
         } else {
-            this.background = new Color(0x33, 0x33, 0x36);
+            this.background = new Color(0x38, 0x38, 0x39);
         }
+        setBackground(this.background);
+    }
+
+    public void setColor(Color background) {
+        setBackground(background);
+        this.background = background;
     }
 
     @Override

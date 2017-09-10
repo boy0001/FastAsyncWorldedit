@@ -22,7 +22,12 @@ import com.sk89q.worldedit.util.command.parametric.Optional;
 import java.util.Set;
 
 @Command(aliases = {"transforms"},
-        desc = "Help for the various transforms. [More Info](https://git.io/v9KHO)"
+        desc = "Help for the various transforms. [More Info](https://git.io/v9KHO)",
+        help = "Transforms modify how a block is placed\n" +
+                " - Use [brackets] for arguments\n" +
+                " - Use , to OR multiple\n" +
+                " - Use & to AND multiple\n" +
+                "More Info: https://git.io/v9KHO"
 )
 public class TransformCommands extends MethodCommands {
     public TransformCommands(WorldEdit worldEdit) {

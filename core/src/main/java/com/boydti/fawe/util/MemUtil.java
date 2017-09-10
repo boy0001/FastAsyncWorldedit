@@ -27,6 +27,15 @@ public class MemUtil {
         return false;
     }
 
+    public static long getUsedBytes() {
+        long used = Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory();
+        return used;
+    }
+
+    public static long getFreeBytes() {
+        return Runtime.getRuntime().maxMemory() - getUsedBytes();
+    }
+
     public static int calculateMemory() {
         final long heapSize = Runtime.getRuntime().totalMemory();
         final long heapMaxSize = Runtime.getRuntime().maxMemory();

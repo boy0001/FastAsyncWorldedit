@@ -9,6 +9,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
+import java.util.function.Function;
 
 public class StringMan {
     public static String replaceFromMap(final String string, final Map<String, String> replacements) {
@@ -25,6 +26,25 @@ public class StringMan {
                 final int end = start + key.length();
                 final int nextSearchStart = start + value.length();
                 sb.replace(start, end, value);
+                size -= end - start;
+                start = sb.indexOf(key, nextSearchStart);
+            }
+        }
+        return sb.toString();
+    }
+
+    public static String removeFromSet(final String string, final Collection<String> replacements) {
+        final StringBuilder sb = new StringBuilder(string);
+        int size = string.length();
+        for (final String key : replacements) {
+            if (size == 0) {
+                break;
+            }
+            int start = sb.indexOf(key, 0);
+            while (start > -1) {
+                final int end = start + key.length();
+                final int nextSearchStart = start + 0;
+                sb.delete(start, end);
                 size -= end - start;
                 start = sb.indexOf(key, nextSearchStart);
             }
@@ -262,15 +282,66 @@ public class StringMan {
         return p[n];
     }
 
-    public static String join(final Object[] array, final String delimiter) {
+    public static <T> String join(Collection<T> arr, final String delimiter, Function<T, String> funx) {
         final StringBuilder result = new StringBuilder();
-        for (int i = 0, j = array.length; i < j; i++) {
+        int i = 0;
+        for (T obj : arr) {
             if (i > 0) {
                 result.append(delimiter);
             }
-            result.append(array[i]);
+            result.append(funx.apply(obj));
+            i++;
         }
         return result.toString();
+    }
+
+    public static String join(final Object[] array, final String delimiter) {
+        switch (array.length) {
+            case 0:
+                return "";
+            case 1:
+                return array[0].toString();
+            default:
+                final StringBuilder result = new StringBuilder();
+                for (int i = 0, j = array.length; i < j; i++) {
+                    if (i > 0) {
+                        result.append(delimiter);
+                    }
+                    result.append(array[i]);
+                }
+                return result.toString();
+        }
+    }
+
+    public static Integer toInteger(String string, int start, int end) {
+        int value = 0;
+        char char0 = string.charAt(0);
+        boolean negative;
+        if (char0 == '-') {
+            negative = true;
+            start++;
+        }
+        else negative = false;
+        for (int i = start; i < end; i++) {
+            char c = string.charAt(i);
+            switch (c) {
+                case '0':
+                case '1':
+                case '2':
+                case '3':
+                case '4':
+                case '5':
+                case '6':
+                case '7':
+                case '8':
+                case '9':
+                    value = value * 10 + c - '0';
+                    break;
+                default:
+                    return null;
+            }
+        }
+        return negative ? -value : value;
     }
 
     public static String join(final int[] array, final String delimiter) {

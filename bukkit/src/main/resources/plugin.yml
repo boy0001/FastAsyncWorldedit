@@ -12,6 +12,10 @@ commands:
     description: (FAWE) Cancel your edit
     aliases: [fawecancel,/fcancel,/cancel,/fawecancel]
 permissions:
+  fawe.plotsquared:
+    default: true
+  fawe.plotme:
+    default: true
   fawe.bypass:
     default: false
   fawe.tips:

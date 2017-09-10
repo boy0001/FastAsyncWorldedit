@@ -53,9 +53,7 @@ public class DownwardVisitor extends RecursiveVisitor {
     public DownwardVisitor(Mask mask, RegionFunction function, int baseY, int depth, HasFaweQueue hasFaweQueue) {
         super(mask, function, depth, hasFaweQueue);
         checkNotNull(mask);
-
         this.baseY = baseY;
-
         final Collection<Vector> directions = this.getDirections();
         directions.clear();
         directions.add(new Vector(1, 0, 0));
@@ -68,7 +66,7 @@ public class DownwardVisitor extends RecursiveVisitor {
     @Override
     public boolean isVisitable(final Vector from, final Vector to) {
         final int fromY = from.getBlockY();
-        return ((fromY == this.baseY) || (to.subtract(from).getBlockY() < 0)) && super.isVisitable(from, to);
+        return ((fromY == this.baseY) || (to.getBlockY() - from.getBlockY() < 0)) && super.isVisitable(from, to);
     }
 
     public static Class<?> inject() {

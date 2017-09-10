@@ -63,11 +63,14 @@ public class HistoryExtent extends AbstractDelegateExtent {
         int id = (combined >> 4);
         if (id == block.getId()) {
             if (!FaweCache.hasData(id)) {
-                return false;
-            }
-            int data = combined & 0xF;
-            if (data == block.getData()) {
-                return false;
+                if (!block.hasNbtData()) {
+                    return false;
+                }
+            } else if (!block.hasNbtData()) {
+                int data = combined & 0xF;
+                if (data == block.getData()) {
+                    return false;
+                }
             }
         }
         try {

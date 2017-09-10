@@ -53,9 +53,9 @@ public class SurfaceSpline implements Brush {
         final double splinelength = interpol.arcLength(0, 1);
         for (double loop = 0; loop <= 1; loop += 1D / splinelength / quality) {
             final Vector tipv = interpol.getPosition(loop);
-            final int tipx = (int) Math.round(tipv.getX());
+            final int tipx = MathMan.roundInt(tipv.getX());
             final int tipz = (int) tipv.getZ();
-            int tipy = (int) Math.round(tipv.getY());
+            int tipy = MathMan.roundInt(tipv.getY());
             tipy = editSession.getNearestSurfaceTerrainBlock(tipx, tipz, tipy, 0, maxY);
             if (tipy == -1) continue;
             if (radius == 0) {

@@ -28,6 +28,7 @@ import com.sk89q.worldedit.LocalSession;
 import com.sk89q.worldedit.WorldEdit;
 import com.sk89q.worldedit.WorldEditException;
 import com.sk89q.worldedit.entity.Player;
+import com.sk89q.worldedit.scripting.RhinoCraftScriptEngine;
 import java.io.File;
 
 
@@ -69,10 +70,15 @@ public class ScriptingCommands {
         final File dir = this.worldEdit.getWorkingDirectoryFile(this.worldEdit.getConfiguration().scriptsDir);
         final File f = this.worldEdit.getSafeOpenFile(player, dir, name, "js", "js");
         try {
-            ScriptingCommands.this.worldEdit.runScript(LocationMaskedPlayerWrapper.unwrap(player), f, scriptArgs);
-        } catch (final WorldEditException ex) {
-            player.printError("Error while executing CraftScript.");
+            new RhinoCraftScriptEngine();
+        } catch (NoClassDefFoundError e) {
+            player.printError("Failed to find an installed script engine.");
+            player.printError("Download: https://github.com/downloads/mozilla/rhino/rhino1_7R4.zip");
+            player.printError("Extract: `js.jar` to `plugins` or `mods` directory`");
+            player.printError("More info: https://github.com/boy0001/CraftScripts/");
+            return;
         }
+        this.worldEdit.runScript(LocationMaskedPlayerWrapper.unwrap(player), f, scriptArgs);
     }
 
     @Command(aliases = {".s"}, usage = "[args...]", desc = "Execute last CraftScript", min = 0, max = -1)
@@ -97,7 +103,7 @@ public class ScriptingCommands {
         final File f = this.worldEdit.getSafeOpenFile(player, dir, lastScript, "js", "js");
 
         try {
-            ScriptingCommands.this.worldEdit.runScript(LocationMaskedPlayerWrapper.unwrap(player), f, scriptArgs);
+            this.worldEdit.runScript(LocationMaskedPlayerWrapper.unwrap(player), f, scriptArgs);
         } catch (final WorldEditException ex) {
             player.printError("Error while executing CraftScript.");
         }

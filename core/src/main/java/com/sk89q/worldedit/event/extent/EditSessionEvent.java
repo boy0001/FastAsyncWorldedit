@@ -22,6 +22,7 @@ package com.sk89q.worldedit.event.extent;
 import com.sk89q.worldedit.EditSession;
 import com.sk89q.worldedit.Vector;
 import com.sk89q.worldedit.blocks.BaseBlock;
+import com.sk89q.worldedit.event.Cancellable;
 import com.sk89q.worldedit.event.Event;
 import com.sk89q.worldedit.extension.platform.Actor;
 import com.sk89q.worldedit.extent.Extent;
@@ -59,7 +60,7 @@ import static com.sk89q.worldedit.EditSession.Stage;
  * and block interceptors intercept at BOTH {@link Stage#BEFORE_CHANGE} and
  * {@link Stage#BEFORE_HISTORY}.</p>
  */
-public class EditSessionEvent extends Event {
+public class EditSessionEvent extends Event implements Cancellable {
 
     private final World world;
     private final Actor actor;
@@ -67,6 +68,7 @@ public class EditSessionEvent extends Event {
     private final Stage stage;
     private Extent extent;
     private EditSession session;
+    private boolean cancelled;
 
     /**
      * Create a new event.
@@ -151,6 +153,16 @@ public class EditSessionEvent extends Event {
         this.extent = extent;
     }
 
+    @Override
+    public boolean isCancelled() {
+        return cancelled;
+    }
+
+    @Override
+    public void setCancelled(boolean cancelled) {
+        this.cancelled = cancelled;
+    }
+
     /**
      * Create a clone of this event with the given stage.
      *
@@ -166,5 +178,4 @@ public class EditSessionEvent extends Event {
     public static Class<?> inject() {
         return EditSessionEvent.class;
     }
-
 }

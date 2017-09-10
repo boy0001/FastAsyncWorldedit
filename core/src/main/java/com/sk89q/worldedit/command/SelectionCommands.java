@@ -292,7 +292,7 @@ public class SelectionCommands {
         session.setToolControl(!session.isToolControlEnabled());
 
         if (session.isToolControlEnabled()) {
-            BBC.SELECTION_WAND_ENABLE.send(player);
+            BBC.SELECTION_WAND_ENABLE.m().send(player);
         } else {
             BBC.SELECTION_WAND_DISABLE.send(player);
         }

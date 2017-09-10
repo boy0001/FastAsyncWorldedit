@@ -46,7 +46,13 @@ import com.sk89q.worldedit.util.command.parametric.Optional;
 import com.sk89q.worldedit.world.biome.BaseBiome;
 
 @Command(aliases = {"masks"},
-        desc = "Help for the various masks. [More Info](https://git.io/v9r4K)"
+        desc = "Help for the various masks. [More Info](https://git.io/v9r4K)",
+        help = "Masks determine if a block can be placed\n" +
+                " - Use [brackets] for arguments\n" +
+                " - Use , to OR multiple\n" +
+                " - Use & to AND multiple\n" +
+                "e.g. >[stone,dirt],#light[0][5],$jungle\n" +
+                "More Info: https://git.io/v9r4K"
 )
 public class MaskCommands extends MethodCommands {
     public MaskCommands(WorldEdit worldEdit) {

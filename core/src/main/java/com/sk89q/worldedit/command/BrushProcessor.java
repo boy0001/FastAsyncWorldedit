@@ -23,6 +23,7 @@ public class BrushProcessor implements CallableProcessor<BrushSettings> {
     public BrushSettings process(CommandLocals locals, BrushSettings settings) throws Command.CommandException, WorldEditException {
         Actor actor = locals.get(Actor.class);
         LocalSession session = worldEdit.getSessionManager().get(actor);
+        session.setTool(null, (Player) actor);
         BrushTool tool = session.getBrushTool((Player) actor);
         tool.setPrimary(settings);
         tool.setSecondary(settings);

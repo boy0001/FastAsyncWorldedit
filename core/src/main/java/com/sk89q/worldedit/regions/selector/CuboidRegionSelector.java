@@ -20,10 +20,13 @@
 package com.sk89q.worldedit.regions.selector;
 
 import com.boydti.fawe.config.BBC;
+import com.boydti.fawe.config.Commands;
+import com.boydti.fawe.util.chat.Message;
 import com.sk89q.worldedit.BlockVector;
 import com.sk89q.worldedit.IncompleteRegionException;
 import com.sk89q.worldedit.LocalSession;
 import com.sk89q.worldedit.Vector;
+import com.sk89q.worldedit.command.SelectionCommands;
 import com.sk89q.worldedit.extension.platform.Actor;
 import com.sk89q.worldedit.internal.cui.CUIRegion;
 import com.sk89q.worldedit.internal.cui.SelectionPointEvent;
@@ -152,11 +155,14 @@ public class CuboidRegionSelector extends com.sk89q.worldedit.regions.CuboidRegi
         checkNotNull(session);
         checkNotNull(pos);
 
+        Message msg;
         if (position1 != null && position2 != null) {
-            BBC.SELECTOR_CUBOID_POS1.send(player, position1, "(" + region.getArea() + ")");
+            msg = BBC.SELECTOR_CUBOID_POS1.m(position1, "(" + region.getArea() + ")");
         } else {
-            BBC.SELECTOR_CUBOID_POS1.send(player, position1, "");
+            msg = BBC.SELECTOR_CUBOID_POS1.m(position1, "");
         }
+        String cmd = Commands.getAlias(SelectionCommands.class, "/pos1") + " " + pos.getBlockX() + "," + pos.getBlockY() + "," + pos.getBlockZ();
+        msg.suggestTip(cmd).send(player);
 
         session.dispatchCUIEvent(player, new SelectionPointEvent(0, pos, getArea()));
     }
@@ -167,11 +173,14 @@ public class CuboidRegionSelector extends com.sk89q.worldedit.regions.CuboidRegi
         checkNotNull(session);
         checkNotNull(pos);
 
+        Message msg;
         if (position1 != null && position2 != null) {
-            BBC.SELECTOR_CUBOID_POS2.send(player, position2, "(" + region.getArea() + ")");
+            msg = BBC.SELECTOR_CUBOID_POS2.m(position2, "(" + region.getArea() + ")");
         } else {
-            BBC.SELECTOR_CUBOID_POS2.send(player, position2, "");
+            msg = BBC.SELECTOR_CUBOID_POS2.m(position2, "");
         }
+        String cmd = Commands.getAlias(SelectionCommands.class, "/pos2") + " " + pos.getBlockX() + "," + pos.getBlockY() + "," + pos.getBlockZ();
+        msg.suggestTip(cmd).send(player);
 
         session.dispatchCUIEvent(player, new SelectionPointEvent(1, pos, getArea()));
     }

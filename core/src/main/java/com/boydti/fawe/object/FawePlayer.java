@@ -21,6 +21,8 @@ import com.sk89q.worldedit.LocalSession;
 import com.sk89q.worldedit.Vector;
 import com.sk89q.worldedit.WorldEdit;
 import com.sk89q.worldedit.WorldEditException;
+import com.sk89q.worldedit.command.tool.BrushTool;
+import com.sk89q.worldedit.command.tool.Tool;
 import com.sk89q.worldedit.entity.Player;
 import com.sk89q.worldedit.event.platform.CommandEvent;
 import com.sk89q.worldedit.extension.platform.Actor;
@@ -36,6 +38,8 @@ import com.sk89q.worldedit.world.registry.WorldData;
 import java.io.File;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
+import java.util.Arrays;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
@@ -66,7 +70,7 @@ public abstract class FawePlayer<T> extends Metadatable {
      * @return
      */
     public static <V> FawePlayer<V> wrap(Object obj) {
-        if (obj == null) {
+        if (obj == null || (obj instanceof String && obj.equals("*"))) {
             return FakePlayer.getConsole().toFawePlayer();
         }
         if (obj instanceof FawePlayer) {
@@ -130,7 +134,7 @@ public abstract class FawePlayer<T> extends Metadatable {
     }
 
     public void checkConfirmationRadius(String command, int radius) throws RegionOperationException {
-        if (getMeta("cmdConfirmRunning", false)) {
+        if (command == null || getMeta("cmdConfirmRunning", false)) {
             return;
         }
         if (radius > 0) {
@@ -142,7 +146,7 @@ public abstract class FawePlayer<T> extends Metadatable {
     }
 
     public void checkConfirmationStack(String command, Region region, int times) throws RegionOperationException {
-        if (getMeta("cmdConfirmRunning", false)) {
+        if (command == null || getMeta("cmdConfirmRunning", false)) {
             return;
         }
         if (region != null) {
@@ -157,7 +161,7 @@ public abstract class FawePlayer<T> extends Metadatable {
     }
 
     public void checkConfirmationRegion(String command, Region region) throws RegionOperationException {
-        if (getMeta("cmdConfirmRunning", false)) {
+        if (command == null || getMeta("cmdConfirmRunning", false)) {
             return;
         }
         if (region != null) {
@@ -168,6 +172,20 @@ public abstract class FawePlayer<T> extends Metadatable {
                 setMeta("cmdConfirm", command);
                 throw new RegionOperationException(BBC.WORLDEDIT_CANCEL_REASON_CONFIRM.f(min, max, command));
             }
+        }
+    }
+
+    public void checkAllowedRegion(Region selection) {
+        checkAllowedRegion(new RegionWrapper(selection.getMinimumPoint(), selection.getMaximumPoint()));
+    }
+
+    public void checkAllowedRegion(RegionWrapper wrappedSelection) {
+        RegionWrapper[] allowed = WEManager.IMP.getMask(this, FaweMaskManager.MaskType.OWNER);
+        HashSet<RegionWrapper> allowedSet = new HashSet<>(Arrays.asList(allowed));
+        if (allowed.length == 0) {
+            throw new FaweException(BBC.WORLDEDIT_CANCEL_REASON_NO_REGION);
+        } else if (!WEManager.IMP.regionContains(wrappedSelection, allowedSet)) {
+            throw new FaweException(BBC.WORLDEDIT_CANCEL_REASON_MAX_FAILS);
         }
     }
 
@@ -542,6 +560,12 @@ public abstract class FawePlayer<T> extends Metadatable {
             WorldEdit.getInstance().removeSession(toWorldEditPlayer());
             session.setClipboard(null);
             session.clearHistory();
+            for (Map.Entry<Integer, Tool> entry : session.getTools().entrySet()) {
+                Tool tool = entry.getValue();
+                if (tool instanceof BrushTool) {
+                    ((BrushTool) tool).clear(getPlayer());
+                }
+            }
         }
         Fawe.get().unregister(getName());
     }

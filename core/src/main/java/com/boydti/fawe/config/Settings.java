@@ -74,6 +74,7 @@ public class Settings extends Config {
         public String TEXTURES = "textures";
         public String HEIGHTMAP = "heightmap";
         public String HISTORY = "history";
+        @Comment("Multiple servers can use the same clipboards")
         public String CLIPBOARD = "clipboard";
         @Comment("Each player has their own sub directory for schematics")
         public boolean PER_PLAYER_SCHEMATICS = true;
@@ -123,16 +124,18 @@ public class Settings extends Config {
         })
         public int SPEED_REDUCTION = 0;
         @Comment({
+                "Place chunks instead of individual blocks:",
+                " - Disabling this will negatively impact performance",
+                " - Only disable this for compatibility or cinematic placement",
+        })
+        public boolean FAST_PLACEMENT = true;
+        @Comment({
                 "Should WorldEdit use inventory?",
                 "0 = No inventory usage (creative)",
                 "1 = Inventory for removing and placing (freebuild)",
                 "2 = Inventory for placing (survival)",
         })
         public int INVENTORY_MODE = 0;
-        @Comment({
-                "Place chunks instead of individual blocks"
-        })
-        public boolean FAST_PLACEMENT = true;
         @Comment({
                 "Should large edits require confirmation (>16384 chunks)",
         })
@@ -145,18 +148,19 @@ public class Settings extends Config {
                 " - Frees up a lot of memory",
                 " - Persists restarts",
                 " - Unlimited undo",
-                " - Enables the rollback command"
+                " - Does not affect edit performance if `combine-stages`",
         })
         public boolean USE_DISK = true;
         @Comment({
                 "Use a database to store disk storage summaries:",
-                " - Faster lookups and rollback from disk",
+                " - Enables inspection and rollback",
+                " - Does not impact performance",
         })
         public boolean USE_DATABASE = true;
         @Comment({
                 "Record history with dispatching:",
-                " - Faster as it avoids duplicate block checks",
-                " - Worse compression since dispatch order is different"
+                " - Much faster as it avoids duplicate block checks",
+                " - Slightly worse compression since dispatch order is different",
         })
         public boolean COMBINE_STAGES = true;
         @Comment({
@@ -269,7 +273,7 @@ public class Settings extends Config {
                 " - E.g. A plugin creates an EditSession but never does anything with it",
                 " - This only applies to plugins improperly using WorldEdit's legacy API"
         })
-        public static int DISCARD_AFTER_MS = 60000;
+        public int DISCARD_AFTER_MS = 60000;
 
         public static class PROGRESS {
             @Comment({"Display constant titles about the progress of a user's edit",
@@ -302,6 +306,10 @@ public class Settings extends Config {
                 " - Please provide feedback",
         })
         public boolean DYNAMIC_CHUNK_RENDERING = false;
+        @Comment({
+                "Allows brushes to be persistent",
+        })
+        public boolean PERSISTENT_BRUSHES = false;
     }
 
     public static class WEB {
@@ -375,7 +383,7 @@ public class Settings extends Config {
                 " - 1 = Optimal (Relight changed light sources and changed blocks)",
                 " - 2 = All (Slowly relight every blocks)"
         })
-        public static int MODE = 1;
+        public int MODE = 1;
     }
 
     public void reload(File file) {

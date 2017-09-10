@@ -10,6 +10,7 @@ public class SummedAreaTable {
     private final int area;
     private final int radius;
     private final float areaInverse;
+    private final float[] areaInverses;
 
     public SummedAreaTable(long[] buffer, char[] matrix, int width, int radius) {
         this.source = matrix;
@@ -19,6 +20,10 @@ public class SummedAreaTable {
         this.radius = radius;
         this.area = MathMan.sqr(radius * 2 + 1);
         this.areaInverse = 1f / area;
+        this.areaInverses = new float[area - 2];
+        for (int area = 2; area < this.area; area++) {
+            this.areaInverses[area - 2] = 1f / area;
+        }
     }
 
     public void processSummedAreaTable() {
@@ -27,7 +32,8 @@ public class SummedAreaTable {
         int index = 0;
         for (int i = 0; i < rowSize; i++) {
             for (int j = 0; j < colSize; j++, index++) {
-                summed[index] = getVal(i, j, index, source[index]);
+                long val = getVal(i, j, index, source[index]);
+                summed[index] = val;
             }
         }
     }
@@ -43,8 +49,8 @@ public class SummedAreaTable {
         int minZ = Math.max(0, z - radius) - z;
         int maxX = Math.min(width - 1, x + radius) - x;
         int maxZ = Math.min(length - 1, z + radius) - z;
-        int maxzw = maxZ * width;
-        int XZ = index + maxzw + maxX;
+        int maxzwi = maxZ * width;
+        int XZ = index + maxzwi + maxX;
         int area = (maxX - minX + 1) * (maxZ - minZ + 1);
 
         long total = getSum(XZ);
@@ -52,7 +58,7 @@ public class SummedAreaTable {
         int minzw = minZ * width;
         int Z = index + minzw + maxX;
         if (x > radius) {
-            int X = index + minX + maxzw;
+            int X = index + minX + maxzwi;
             int M = index + minzw + minX;
             total -= summed[X - 1];
             total += getSum(M - width - 1);
@@ -61,7 +67,7 @@ public class SummedAreaTable {
         if (area == this.area) {
             return (int) (total * areaInverse);
         } else {
-            return MathMan.lossyFastDivide((int) total, area);
+            return Math.round(total * areaInverses[area - 2]);
         }
     }
 
