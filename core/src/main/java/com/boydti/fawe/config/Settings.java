@@ -310,10 +310,6 @@ public class Settings extends Config {
                 "Allows brushes to be persistent",
         })
         public boolean PERSISTENT_BRUSHES = false;
-        @Comment({
-                "Allow CFI visualization",
-        })
-        public boolean CFI_VISUALIZATION = false;
 
     }
 

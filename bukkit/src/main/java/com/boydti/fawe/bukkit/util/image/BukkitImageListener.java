@@ -151,12 +151,9 @@ public class BukkitImageListener implements Listener {
         try {
             tool = session.getBrushTool(fp.getPlayer(), false);
         } catch (InvalidToolBindException e) { return; }
-        if (tool == null) return;
-        BrushSettings context = primary ? tool.getPrimary() : tool.getSecondary();
-        Brush brush = context.getBrush();
 
         ItemFrame[][] frames = viewer.getItemFrames();
-        if (frames == null || brush == null) {
+        if (frames == null || tool == null) {
             viewer.selectFrame(itemFrame);
             TaskManager.IMP.laterAsync(new Runnable() {
                 @Override
@@ -167,6 +164,9 @@ public class BukkitImageListener implements Listener {
             return;
         }
 
+        if (tool == null) return;
+        BrushSettings context = primary ? tool.getPrimary() : tool.getSecondary();
+        Brush brush = context.getBrush();
         if (brush == null) return;
         tool.setContext(context);
 
