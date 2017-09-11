@@ -159,7 +159,7 @@ public class HeightMapMCAGenerator extends MCAWriter implements Extent {
             for (int i = 0; i < heights.length; i++) {
                 char combined = floor[i];
                 int id = combined >> 4;
-                if (id == 78 || id == 80) {
+                if (id == 78) {
                     layers[i] = (char) (((heights[i] & 0xFF) << 3) + (floor[i] & 0x7) + 1);
                 } else {
                     layers[i] = (char) (((heights[i] & 0xFF) << 3) + 8);

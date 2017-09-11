@@ -18,8 +18,8 @@ public class CFICommand extends MethodCommands {
 
     public CFICommand(WorldEdit worldEdit, ParametricBuilder builder) {
         super(worldEdit);
-        this.child = new CFICommands(worldEdit);
         this.dispatcher = new SimpleDispatcher();
+        this.child = new CFICommands(worldEdit, dispatcher);
         builder.registerMethodsAsCommands(dispatcher, child);
     }
 
@@ -34,6 +34,7 @@ public class CFICommand extends MethodCommands {
     @CommandPermissions("worldedit.anvil.cfi")
     public void cfi(FawePlayer fp, CommandContext context) throws CommandException {
         CFICommands.CFISettings settings = child.getSettings(fp);
+        settings.popMessages(fp);
         if (!settings.hasGenerator()) {
             switch (context.argsLength()) {
                 case 0: {
@@ -72,6 +73,7 @@ public class CFICommand extends MethodCommands {
         } else {
             switch (context.argsLength()) {
                 case 0:
+                    settings.setCategory("");
                     child.mainMenu(fp);
                     break;
                 default:

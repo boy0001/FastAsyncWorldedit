@@ -16,7 +16,9 @@ import com.sk89q.worldedit.Vector;
 import com.sk89q.worldedit.command.tool.BrushTool;
 import com.sk89q.worldedit.command.tool.InvalidToolBindException;
 import com.sk89q.worldedit.command.tool.brush.Brush;
+import java.util.ArrayDeque;
 import java.util.Collection;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
@@ -38,6 +40,7 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.hanging.HangingBreakByEntityEvent;
+import org.bukkit.event.player.AsyncPlayerChatEvent;
 import org.bukkit.event.player.PlayerEvent;
 import org.bukkit.event.player.PlayerInteractEntityEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
@@ -49,6 +52,27 @@ public class BukkitImageListener implements Listener {
 
     public BukkitImageListener(Plugin plugin) {
         Bukkit.getPluginManager().registerEvents(this, plugin);
+    }
+
+    @EventHandler(priority = EventPriority.LOWEST)
+    public void onPlayerInteractEntity(AsyncPlayerChatEvent event) {
+        Set<Player> recipients = event.getRecipients();
+        Iterator<Player> iter = recipients.iterator();
+        while (iter.hasNext()) {
+            Player player = iter.next();
+            FawePlayer<Object> fp = FawePlayer.wrap(player);
+            CFICommands.CFISettings settings = fp.getMeta("CFISettings");
+            if (settings != null && settings.hasGenerator()) {
+                String name = player.getName().toLowerCase();
+                if (!event.getMessage().toLowerCase().contains(name)) {
+                    ArrayDeque<String> buffered = fp.getMeta("CFIBufferedMessages");
+                    if (buffered == null) fp.setMeta("CFIBufferedMessaged", buffered = new ArrayDeque<String>());
+                    String full = String.format(event.getFormat(), event.getPlayer().getDisplayName(), event.getMessage());
+                    buffered.add(full);
+                    iter.remove();
+                }
+            }
+        }
     }
 
     @EventHandler(ignoreCancelled = true, priority = EventPriority.LOWEST)
@@ -155,6 +179,7 @@ public class BukkitImageListener implements Listener {
         ItemFrame[][] frames = viewer.getItemFrames();
         if (frames == null || tool == null) {
             viewer.selectFrame(itemFrame);
+            player.updateInventory();
             TaskManager.IMP.laterAsync(new Runnable() {
                 @Override
                 public void run() {

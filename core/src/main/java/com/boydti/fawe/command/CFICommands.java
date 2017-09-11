@@ -28,6 +28,7 @@ import com.intellectualcrafters.plot.object.worlds.SinglePlotAreaManager;
 import com.intellectualcrafters.plot.util.MathMan;
 import com.sk89q.minecraft.util.commands.Command;
 import com.sk89q.minecraft.util.commands.CommandContext;
+import com.sk89q.minecraft.util.commands.CommandException;
 import com.sk89q.minecraft.util.commands.CommandPermissions;
 import com.sk89q.worldedit.EmptyClipboardException;
 import com.sk89q.worldedit.Vector;
@@ -43,6 +44,7 @@ import com.sk89q.worldedit.function.mask.Mask;
 import com.sk89q.worldedit.function.pattern.Pattern;
 import com.sk89q.worldedit.session.ClipboardHolder;
 import com.sk89q.worldedit.session.request.Request;
+import com.sk89q.worldedit.util.command.Dispatcher;
 import com.sk89q.worldedit.util.command.binding.Switch;
 import com.sk89q.worldedit.util.command.parametric.Optional;
 import com.sk89q.worldedit.util.command.parametric.ParameterException;
@@ -56,6 +58,7 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.net.URL;
+import java.util.ArrayDeque;
 import java.util.HashSet;
 import java.util.Set;
 import javax.imageio.ImageIO;
@@ -63,13 +66,16 @@ import javax.imageio.ImageIO;
 @Command(aliases = {"/cfi"}, desc = "Create a world from images: [More Info](https://git.io/v5iDy)")
 public class CFICommands extends MethodCommands {
 
+    private final Dispatcher dispathcer;
+
     /**
      * Create a new instance.
      *
      * @param worldEdit reference to WorldEdit
      */
-    public CFICommands(WorldEdit worldEdit) {
+    public CFICommands(WorldEdit worldEdit, Dispatcher dispatcher) {
         super(worldEdit);
+        this.dispathcer= dispatcher;
     }
 
     @Command(
@@ -109,6 +115,7 @@ public class CFICommands extends MethodCommands {
     @CommandPermissions("worldedit.anvil.cfi")
     public void brush(FawePlayer fp) throws ParameterException{
         CFISettings settings = assertSettings(fp);
+        settings.popMessages(fp);
         Message msg;
         if (settings.getGenerator().getImageViewer() != null) {
             msg = msg("CFI supports using brushes during creation").newline()
@@ -118,7 +125,7 @@ public class CFICommands extends MethodCommands {
         } else {
             msg = msg("This is not supported with your platform/version").newline();
         }
-        msg.text("&8> &7[&aNext&7]").cmdTip(alias()).send(fp);
+        msg.text("&8< &7[&aBack&7]").cmdTip(alias()).send(fp);
     }
 
     @Command(
@@ -205,6 +212,7 @@ public class CFICommands extends MethodCommands {
         else if (mask != null) gen.setColumn(mask, pattern);
         else gen.setColumn(pattern);
         fp.sendMessage("Set column!");
+        component(fp);
     }
 
     @Command(
@@ -213,12 +221,17 @@ public class CFICommands extends MethodCommands {
             desc = "Set the floor (default: grass)"
     )
     @CommandPermissions("worldedit.anvil.cfi")
-    public void floor(FawePlayer fp, Pattern pattern, @Optional BufferedImage image, @Optional Mask mask, @Switch('w') boolean disableWhiteOnly) throws ParameterException{
+    public void floorCmd(FawePlayer fp, Pattern pattern, @Optional BufferedImage image, @Optional Mask mask, @Switch('w') boolean disableWhiteOnly) throws ParameterException{
+        floor(fp, pattern, image, mask, disableWhiteOnly);
+        fp.sendMessage("Set floor!");
+        component(fp);
+    }
+
+    private void floor(FawePlayer fp, Pattern pattern, @Optional BufferedImage image, @Optional Mask mask, @Switch('w') boolean disableWhiteOnly) throws ParameterException {
         HeightMapMCAGenerator gen = assertSettings(fp).getGenerator();
         if (image != null) gen.setFloor(image, pattern, !disableWhiteOnly);
         else if (mask != null) gen.setFloor(mask, pattern);
         else gen.setFloor(pattern);
-        fp.sendMessage("Set floor!");
     }
 
     @Command(
@@ -227,12 +240,17 @@ public class CFICommands extends MethodCommands {
             desc = "Set the main block (default: stone)"
     )
     @CommandPermissions("worldedit.anvil.cfi")
+    public void mainCmd(FawePlayer fp, Pattern pattern, @Optional BufferedImage image, @Optional Mask mask, @Switch('w') boolean disableWhiteOnly) throws ParameterException{
+        main(fp, pattern, image, mask, disableWhiteOnly);
+        fp.sendMessage("Set main!");
+        component(fp);
+    }
+
     public void main(FawePlayer fp, Pattern pattern, @Optional BufferedImage image, @Optional Mask mask, @Switch('w') boolean disableWhiteOnly) throws ParameterException{
         HeightMapMCAGenerator gen = assertSettings(fp).getGenerator();
         if (image != null) gen.setMain(image, pattern, !disableWhiteOnly);
         else if (mask != null) gen.setMain(mask, pattern);
         else gen.setMain(pattern);
-        fp.sendMessage("Set main!");
     }
 
     @Command(
@@ -249,6 +267,7 @@ public class CFICommands extends MethodCommands {
         else if (mask != null) gen.setOverlay(mask, pattern);
         else gen.setOverlay(pattern);
         fp.sendMessage("Set overlay!");
+        component(fp);
     }
 
     @Command(
@@ -261,11 +280,15 @@ public class CFICommands extends MethodCommands {
                     " - A good value for radius and iterations would be 1 8."
     )
     @CommandPermissions("worldedit.anvil.cfi")
-    public void smooth(FawePlayer fp, int radius, int iterations, @Optional BufferedImage image, @Optional Mask mask, @Switch('w') boolean disableWhiteOnly) throws ParameterException{
+    public void smoothCmd(FawePlayer fp, int radius, int iterations, @Optional BufferedImage image, @Optional Mask mask, @Switch('w') boolean disableWhiteOnly) throws ParameterException{
+        smooth(fp, radius, iterations, image, mask, disableWhiteOnly);
+        component(fp);
+    }
+
+    private void smooth(FawePlayer fp, int radius, int iterations, @Optional BufferedImage image, @Optional Mask mask, @Switch('w') boolean disableWhiteOnly) throws ParameterException{
         HeightMapMCAGenerator gen = assertSettings(fp).getGenerator();
         if (image != null) gen.smooth(image, !disableWhiteOnly, radius, iterations);
         else gen.smooth(mask, radius, iterations);
-        fp.sendMessage("Performed smooth!");
     }
 
     @Command(
@@ -277,8 +300,10 @@ public class CFICommands extends MethodCommands {
     public void snow(FawePlayer fp, @Optional BufferedImage image, @Optional Mask mask, @Switch('w') boolean disableWhiteOnly) throws ParameterException{
         HeightMapMCAGenerator gen = assertSettings(fp).getGenerator();
         floor(fp, FaweCache.getBlock(78, 7), image, mask, disableWhiteOnly);
+        main(fp, FaweCache.getBlock(80, 0), image, mask, disableWhiteOnly);
         smooth(fp, 1, 8, image, mask, disableWhiteOnly);
-        msg("Added snow!").newline().text("&8> &7[&aNext&7]").cmdTip(alias()).send(fp);
+        msg("Added snow!").send(fp);
+        populate(fp);
     }
 
     @Command(
@@ -411,7 +436,8 @@ public class CFICommands extends MethodCommands {
         } else {
             gen.addSchems(imageMask, mask, wd, clipboards, rarity, distance, rotate);
         }
-        msg("Added schematics!").newline().text("&8> &7[&aNext&7]").cmdTip(alias()).send(fp);
+        msg("Added schematics!").send(fp);
+        populate(fp);
     }
 
     @Command(
@@ -429,7 +455,8 @@ public class CFICommands extends MethodCommands {
         if (image != null) gen.setBiome(image, (byte) biome.getId(), !disableWhiteOnly);
         else if (mask != null) gen.setBiome(mask, (byte) biome.getId());
         else gen.setBiome((byte) biome.getId());
-        msg("Set biome!").newline().text("&8> &7[&aNext&7]").cmdTip(alias()).send(fp);
+        msg("Set biome!").send(fp);
+        component(fp);
     }
 
     @Command(
@@ -439,7 +466,8 @@ public class CFICommands extends MethodCommands {
     @CommandPermissions("worldedit.anvil.cfi")
     public void caves(FawePlayer fp) throws ParameterException, WorldEditException {
         assertSettings(fp).getGenerator().addCaves();
-        msg("Added caves!").newline().text("&8> &7[&aNext&7]").cmdTip(alias()).send(fp);
+        msg("Added caves!").send(fp);
+        populate(fp);
     }
 
     @Command(
@@ -451,7 +479,8 @@ public class CFICommands extends MethodCommands {
     @CommandPermissions("worldedit.anvil.cfi")
     public void ore(FawePlayer fp, Mask mask, Pattern pattern, int size, int frequency, int rariry, int minY, int maxY) throws ParameterException, WorldEditException {
         assertSettings(fp).getGenerator().addOre(mask, pattern, size, frequency, rariry, minY, maxY);
-        msg("Added ore!").newline().text("&8> &7[&aNext&7]").cmdTip(alias()).send(fp);
+        msg("Added ore!").send(fp);
+        populate(fp);
     }
 
     @Command(
@@ -462,7 +491,8 @@ public class CFICommands extends MethodCommands {
     @CommandPermissions("worldedit.anvil.cfi")
     public void ores(FawePlayer fp, Mask mask) throws ParameterException, WorldEditException {
         assertSettings(fp).getGenerator().addDefaultOres(mask);
-        msg("Added ores!").newline().text("&8> &7[&aNext&7]").cmdTip(alias()).send(fp);
+        msg("Added ores!").send(fp);
+        populate(fp);
     }
 
     @Command(
@@ -479,7 +509,8 @@ public class CFICommands extends MethodCommands {
         } else {
             gen.setHeights(Integer.parseInt(arg));
         }
-        msg("Set height!").newline().text("&8> &7[&aNext&7]").cmdTip(alias()).send(fp);
+        msg("Set height!").send(fp);
+        component(fp);
     }
 
     @Command(
@@ -491,7 +522,8 @@ public class CFICommands extends MethodCommands {
     @CommandPermissions("worldedit.anvil.cfi")
     public void waterId(FawePlayer fp, BaseBlock block) throws ParameterException, WorldEditException {
         assertSettings(fp).getGenerator().setWaterId(block.getId());
-        msg("Set water id!").newline().text("&8> &7[&aNext&7]").cmdTip(alias()).send(fp);
+        msg("Set water id!").send(fp);
+        component(fp);
     }
 
     @Command(
@@ -504,7 +536,8 @@ public class CFICommands extends MethodCommands {
     @CommandPermissions("worldedit.anvil.cfi")
     public void height(FawePlayer fp, int height) throws ParameterException, WorldEditException {
         assertSettings(fp).getGenerator().setWaterHeight(height);
-        msg("Set height!").newline().text("&8> &7[&aNext&7]").cmdTip(alias()).send(fp);
+        msg("Set height!").send(fp);
+        component(fp);
     }
 
     @Command(
@@ -514,8 +547,11 @@ public class CFICommands extends MethodCommands {
     )
     @CommandPermissions("worldedit.anvil.cfi")
     public void glass(FawePlayer fp, BufferedImage image, @Optional BufferedImage imageMask, @Optional Mask mask, @Switch('w') boolean disableWhiteOnly) throws ParameterException, WorldEditException {
-        assertSettings(fp).getGenerator().setColorWithGlass(image);
-        msg("Set color with glass!").newline().text("&8> &7[&aNext&7]").cmdTip(alias()).send(fp);
+        CFISettings settings = assertSettings(fp);
+        settings.getGenerator().setColorWithGlass(image);
+        msg("Set color with glass!").send(fp);
+        settings.resetColoring();
+        mainMenu(fp);
     }
 
     @Command(
@@ -528,11 +564,14 @@ public class CFICommands extends MethodCommands {
     )
     @CommandPermissions("worldedit.anvil.cfi")
     public void color(FawePlayer fp, BufferedImage image, @Optional BufferedImage imageMask, @Optional Mask mask, @Switch('w') boolean disableWhiteOnly) throws ParameterException, WorldEditException {
-        HeightMapMCAGenerator gen = assertSettings(fp).getGenerator();
+        CFISettings settings = assertSettings(fp);
+        HeightMapMCAGenerator gen = settings.getGenerator();
         if (imageMask != null) gen.setColor(image, imageMask, !disableWhiteOnly);
         else if (mask != null) gen.setColor(image, mask);
         else gen.setColor(image);
-        msg("Set color with blocks!").newline().text("&8> &7[&aNext&7]").cmdTip(alias()).send(fp);
+        settings.resetColoring();
+        msg("Set color with blocks!").send(fp);
+        mainMenu(fp);
     }
 
     @Command(
@@ -545,8 +584,11 @@ public class CFICommands extends MethodCommands {
     )
     @CommandPermissions("worldedit.anvil.cfi")
     public void blockbiome(FawePlayer fp, BufferedImage image, @Optional BufferedImage imageMask, @Optional Mask mask, @Switch('w') boolean disableWhiteOnly) throws ParameterException, WorldEditException {
-        assertSettings(fp).getGenerator().setBlockAndBiomeColor(image, mask, imageMask, !disableWhiteOnly);
-        msg("Set color with blocks and biomes!").newline().text("&8> &7[&aNext&7]").cmdTip(alias()).send(fp);
+        CFISettings settings = assertSettings(fp);
+        settings.getGenerator().setBlockAndBiomeColor(image, mask, imageMask, !disableWhiteOnly);
+        msg("Set color with blocks and biomes!").send(fp);
+        settings.resetColoring();
+        mainMenu(fp);
     }
 
     @Command(
@@ -558,8 +600,10 @@ public class CFICommands extends MethodCommands {
     )
     @CommandPermissions("worldedit.anvil.cfi")
     public void biomecolor(FawePlayer fp, BufferedImage image, @Optional BufferedImage imageMask, @Optional Mask mask, @Switch('w') boolean disableWhiteOnly) throws ParameterException, WorldEditException {
-        assertSettings(fp).getGenerator().setBiomeColor(image);
-        msg("Set color with biomes!").newline().text("&8> &7[&aNext&7]").cmdTip(alias()).send(fp);
+        CFISettings settings = assertSettings(fp);
+        settings.getGenerator().setBiomeColor(image);
+        msg("Set color with biomes!").send(fp);
+        mainMenu(fp);
     }
 
 
@@ -571,13 +615,15 @@ public class CFICommands extends MethodCommands {
     @CommandPermissions("worldedit.anvil.cfi")
     public void coloring(FawePlayer fp) throws ParameterException{
         CFISettings settings = assertSettings(fp);
+        settings.popMessages(fp);
+        settings.setCategory("coloring");
         HeightMapMCAGenerator gen = settings.getGenerator();
         boolean rand = gen.getTextureRandomVariation();
         String mask;
         if (settings.imageMask != null) {
-            mask = "Mask Image";
+            mask = settings.imageMaskArg;
         } else if (settings.mask != null) {
-            mask = "WorldEdit Mask";
+            mask = settings.maskArg;
         } else {
             mask = "NONE";
         }
@@ -608,7 +654,7 @@ public class CFICommands extends MethodCommands {
 
         int biomePriority = gen.getBiomePriority();
 
-        Message msg = msg("Current settings:").newline()
+        Message msg = msg("&8>>&7 Current Settings &8<<&7").newline()
         .text("Randomization ").text("&7[&a" + (Boolean.toString(rand).toUpperCase()) + "&7]").cmdTip(alias() + " randomization " + (!rand))
         .newline()
         .text("Mask ").text("&7[&a" + mask + "&7]").cmdTip(alias() + " mask")
@@ -628,13 +674,13 @@ public class CFICommands extends MethodCommands {
             msg.text("Image: ")
             .text("&7[&a" + settings.imageArg + "&7]").cmdTip(alias() + " " + Commands.getAlias(CFICommands.class, "image"))
             .newline().newline()
-            .text("Let's Color: ")
+            .text("&cLet's Color&7: ")
             .cmdOptions(alias() + " ", colorArgs.toString(), "Biomes", "Blocks", "BlockAndBiome", "Glass")
             .newline();
         } else {
             msg.newline().text("You can color a world using an image like ")
             .text("&7[&aThis&7]").linkTip("http://i.imgur.com/vJYinIU.jpg").newline()
-            .text("Please provide an image: ")
+            .text("&cYou MUST provide an image: ")
             .text("&7[&aNone&7]").cmdTip(alias() + " " + Commands.getAlias(Command.class, "image")).newline();
         }
         msg.text("&8< &7[&aBack&7]").cmdTip(alias()).send(fp);
@@ -654,16 +700,41 @@ public class CFICommands extends MethodCommands {
         settings.imageMaskArg = imageMask != null ? split[index++] : null;
         settings.mask = mask;
         settings.maskArg = mask != null ? split[index++] : null;
-        settings.whiteOnly = disableWhiteOnly;
+        settings.whiteOnly = !disableWhiteOnly;
 
         StringBuilder cmd = new StringBuilder(alias() + " mask ");
-        if (!settings.whiteOnly) cmd.append("-w ");
 
-        msg("Current settings:").newline()
+        msg("&8>>&7 Current Settings &8<<&7").newline()
                 .text("Image Mask ").text("&7[&a" + settings.imageMaskArg + "&7]").suggestTip(cmd + "http://")
                 .newline()
                 .text("WorldEdit Mask ").text("&7[&a" + settings.maskArg + "&7]").suggestTip(cmd + "<mask>")
-                .send(fp);
+                .newline()
+                .text("&8< &7[&aBack&7]").cmdTip(alias() + " " + settings.getCategory()).send(fp);
+    }
+
+    @Command(
+            aliases = {"pattern"},
+            usage = "<pattern>",
+            desc = "Select a pattern"
+    )
+    @CommandPermissions("worldedit.anvil.cfi")
+    public void pattern(FawePlayer fp, @Optional Pattern pattern, CommandContext context) throws ParameterException, CommandException {
+        CFISettings settings = assertSettings(fp);
+        String[] split = getArguments(context).split(" ");
+        int index = 2;
+        settings.pattern = pattern;
+        settings.patternArg = pattern == null ? null : split[index++];
+
+        StringBuilder cmd = new StringBuilder(alias() + " pattern ");
+
+        if (pattern != null) {
+            dispathcer.call(settings.getCategory(), context.getLocals(), new String[0]);
+        } else {
+            msg("&8>>&7 Current Settings &8<<&7").newline()
+                    .text("Pattern ").text("&7[&aClick Here&7]").suggestTip(cmd + " stone")
+                    .newline()
+                    .text("&8< &7[&aBack&7]").cmdTip(alias() + " " + settings.getCategory()).send(fp);
+        }
     }
 
     @Command(
@@ -688,7 +759,7 @@ public class CFICommands extends MethodCommands {
             desc = "Select an image"
     )
     @CommandPermissions("worldedit.anvil.cfi")
-    public void image(FawePlayer fp, @Optional BufferedImage image, CommandContext context) throws ParameterException{
+    public void image(FawePlayer fp, @Optional BufferedImage image, CommandContext context) throws ParameterException, CommandException {
         CFISettings settings = getSettings(fp).bind();
         String[] split = getArguments(context).split(" ");
         int index = 2;
@@ -705,13 +776,15 @@ public class CFICommands extends MethodCommands {
             .newline()
             .text("From a file: ").text("&7[&aClick Here&7]").suggestTip(cmd + "file://");
         } else {
-            msg = msg("Current image: ")
-            .text("&7[&a" + settings.imageArg + "&7]").suggestTip(cmd.toString())
-            .newline();
             if (settings.hasGenerator()) {
-                msg.text("&8< &7[&aBack&7]").cmdTip(alias() + " " + Commands.getAlias(CFICommands.class, "coloring"));
+                msg = msg("Current image: ")
+                .text("&7[&a" + settings.imageArg + "&7]").suggestTip(cmd.toString())
+                .newline()
+                .text("&8< &7[&aBack&7]").cmdTip(alias() + " " + Commands.getAlias(CFICommands.class, "coloring"));
             } else {
-                msg.text("&8> &7[&aNext&7]").cmdTip(alias() + " " + Commands.getAlias(CFICommands.class, "heightmap " + settings.imageArg));
+                String next = Commands.getAlias(CFICommands.class, "heightmap " + settings.imageArg);
+                dispathcer.call(next, context.getLocals(), new String[0]);
+                return;
             }
         }
         msg.send(fp);
@@ -725,9 +798,11 @@ public class CFICommands extends MethodCommands {
     @CommandPermissions("worldedit.anvil.cfi")
     public void populate(FawePlayer fp) throws ParameterException{
         CFISettings settings = assertSettings(fp);
-
+        settings.popMessages(fp);
+        settings.setCategory("populate");
         msg("What would you like to populate?").newline()
-        .cmdOptions(alias() + " ", "", "Ores", "Ore", "Caves", "Schematics", "Snow")
+        .text("(You will need to type these commands)")
+        .cmdOptions(alias() + " ", "", "Ores", "Ore", "Caves", "Schematics", "Smooth")
         .newline().text("&8< &7[&aBack&7]").cmdTip(alias())
         .send(fp);
     }
@@ -740,9 +815,63 @@ public class CFICommands extends MethodCommands {
     @CommandPermissions("worldedit.anvil.cfi")
     public void component(FawePlayer fp) throws ParameterException{
         CFISettings settings = assertSettings(fp);
-        msg("What component would you like to change?").newline()
-        .cmdOptions(alias() + " ", "", "WaterId", "WaterHeight", "Floor", "Main", "Column", "Overlay", "Height", "Smooth")
-        .newline().text("&8< &7[&aBack&7]").cmdTip(alias())
+        settings.popMessages(fp);
+        settings.setCategory("component");
+
+        String mask;
+        if (settings.imageMask != null) {
+            mask = settings.imageMaskArg;
+        } else if (settings.mask != null) {
+            mask = settings.maskArg;
+        } else {
+            mask = "NONE";
+        }
+
+        String pattern = settings.pattern == null ? "NONE" : settings.patternArg;
+
+        StringBuilder maskArgs = new StringBuilder();
+        if (settings.imageMask != null) maskArgs.append(" " + settings.imageMaskArg);
+        if (settings.mask != null) maskArgs.append(" " + settings.maskArg);
+        if (!settings.whiteOnly) maskArgs.append(" -w");
+
+
+        Message msg = msg("&8>>&7 Current Settings &8<<&7").newline()
+        .text("Mask ").text("&7[&a" + mask + "&7]").cmdTip(alias() + " mask")
+        .newline()
+        .text("Pattern ").text("&7[&a" + pattern + "&7]").cmdTip(alias() + " pattern")
+        .newline()
+        .newline()
+        .text("&8>>&7 Components &8<<&7")
+        .newline()
+        .text("&7[&aHeight&7]").suggestTip(alias() + " height 120").text(" - Terrain height for whole map")
+        .newline()
+        .text("&7[&aWaterHeight&7]").suggestTip(alias() + " waterHeight 60").text(" - Sea level for whole map")
+        .newline()
+        .text("&7[&aSnow&7]").suggestTip(alias() + " snow" + maskArgs).text(" - Set snow in the masked areas")
+        .newline();
+
+        if (pattern != null) {
+            String disabled = "You must specify a pattern";
+            msg
+            .text("&7[&cWaterId&7]").tooltip(disabled).newline()
+            .text("&7[&cFloor&7]").tooltip(disabled).newline()
+            .text("&7[&cMain&7]").tooltip(disabled).newline()
+            .text("&7[&cColumn&7]").tooltip(disabled).newline()
+            .text("&7[&cOverlay&7]").tooltip(disabled).newline();
+        } else {
+            StringBuilder compArgs = new StringBuilder();
+            compArgs.append(" " + settings.patternArg + maskArgs);
+
+            msg
+            .text("&7[&aWaterId&7]").cmdTip(alias() + " waterId " + pattern).text(" - Water id for whole map").newline()
+            .text("&7[&aFloor&7]").cmdTip(alias() + " floor" + compArgs).text(" - Set the floor in the masked areas").newline()
+            .text("&7[&aMain&7]").cmdTip(alias() + " main" + compArgs).text(" - Set the main block in the masked areas").newline()
+            .text("&7[&aColumn&7]").cmdTip(alias() + " column" + compArgs).text(" - Set the columns in the masked areas").newline()
+            .text("&7[&aOverlay&7]").cmdTip(alias() + " overlay" + compArgs).text(" - Set the overlay in the masked areas").newline();
+        }
+
+        msg.newline()
+        .text("&8< &7[&aBack&7]").cmdTip(alias())
         .send(fp);
     }
 
@@ -773,6 +902,11 @@ public class CFICommands extends MethodCommands {
         protected String maskArg;
         protected String imageMaskArg;
 
+        protected Pattern pattern;
+        protected String patternArg;
+
+        protected String category;
+
         public CFISettings(FawePlayer player) {
             this.fp = player;
         }
@@ -799,6 +933,35 @@ public class CFICommands extends MethodCommands {
             this.imageMaskArg = arg;
         }
 
+        public void resetColoring() {
+            image = null;
+            imageArg = null;
+            mask = null;
+            imageMask = null;
+            whiteOnly = true;
+            maskArg = null;
+            imageMaskArg = null;
+            generator.setTextureUtil(Fawe.get().getTextureUtil());
+        }
+
+        public void resetComponent() {
+            mask = null;
+            imageMask = null;
+            whiteOnly = true;
+            maskArg = null;
+            imageMaskArg = null;
+            patternArg = null;
+            pattern = null;
+        }
+
+        public String getCategory() {
+            return category;
+        }
+
+        public void setCategory(String category) {
+            this.category = category;
+        }
+
         public CFISettings setGenerator(HeightMapMCAGenerator generator) {
             this.generator = generator;
             return this;
@@ -809,7 +972,17 @@ public class CFICommands extends MethodCommands {
             return this;
         }
 
+        public void popMessages(FawePlayer fp) {
+            ArrayDeque<String> messages = fp.deleteMeta("CFIBufferedMessages");
+            if (messages != null) {
+                for (String message : messages) {
+                    fp.sendMessage(message);
+                }
+            }
+        }
+
         public CFISettings remove() {
+            popMessages(fp);
             fp.deleteMeta("CFISettings");
             generator = null;
             image = null;
@@ -834,7 +1007,7 @@ public class CFICommands extends MethodCommands {
 
     protected void mainMenu(FawePlayer fp) {
         msg("What do you want to do now?").newline()
-                .cmdOptions(alias() + " ", "", "Coloring", "Populate", "Component", "Brush")
+                .cmdOptions(alias() + " ", "", "Coloring", "Component", "Populate", "Brush")
                 .newline().text("&3<> &7[&aView&7]").command(alias() + " " + Commands.getAlias(CFICommands.class, "download")).tooltip("View full resolution image")
                 .newline().text("&4>< &7[&aCancel&7]").cmdTip(alias() + " " + Commands.getAlias(CFICommands.class, "cancel"))
                 .newline().text("&2>> &7[&aDone&7]").cmdTip(alias() + " " + Commands.getAlias(CFICommands.class, "done"))
