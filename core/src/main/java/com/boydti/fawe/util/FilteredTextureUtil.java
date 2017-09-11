@@ -6,8 +6,11 @@ import java.io.FileNotFoundException;
 import java.util.Set;
 
 public class FilteredTextureUtil extends TextureUtil {
+    private final Set<BaseBlock> blocks;
+
     public FilteredTextureUtil(TextureUtil parent, Set<BaseBlock> blocks) throws FileNotFoundException {
         super(parent.getFolder());
+        this.blocks = blocks;
         this.validMixBiomeColors = parent.validMixBiomeColors;
         this.validMixBiomeIds = parent.validMixBiomeIds;
         this.validBiomes = parent.validBiomes;
@@ -32,5 +35,9 @@ public class FilteredTextureUtil extends TextureUtil {
             }
         }
         this.calculateLayerArrays();
+    }
+
+    public Set<BaseBlock> getBlocks() {
+        return blocks;
     }
 }

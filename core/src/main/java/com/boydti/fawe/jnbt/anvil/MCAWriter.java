@@ -10,7 +10,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.zip.Deflater;
 
 public abstract class MCAWriter {
-    private final File folder;
+    private File folder;
     private final int length;
     private final int width;
     private final int area;
@@ -18,9 +18,6 @@ public abstract class MCAWriter {
 
 
     public MCAWriter(int width, int length, File regionFolder) {
-        if (!regionFolder.exists()) {
-            regionFolder.mkdirs();
-        }
         this.folder = regionFolder;
         this.width = width;
         this.length = length;
@@ -29,6 +26,10 @@ public abstract class MCAWriter {
 
     public final File getFolder() {
         return folder;
+    }
+
+    public void setFolder(File folder) {
+        this.folder = folder;
     }
 
     public final int getWidth() {
@@ -69,6 +70,9 @@ public abstract class MCAWriter {
     public abstract MCAChunk write(MCAChunk input, int startX, int endX, int startZ, int endZ);
 
     public void generate() throws IOException {
+        if (!folder.exists()) {
+            folder.mkdirs();
+        }
         final ForkJoinPool pool = new ForkJoinPool();
         int bcx = 0;
         int bcz = 0;

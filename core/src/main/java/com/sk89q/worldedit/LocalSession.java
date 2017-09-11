@@ -34,6 +34,7 @@ import com.boydti.fawe.object.extent.ResettableExtent;
 import com.boydti.fawe.util.EditSessionBuilder;
 import com.boydti.fawe.util.MainUtil;
 import com.boydti.fawe.util.StringMan;
+import com.boydti.fawe.util.cui.CUI;
 import com.boydti.fawe.wrappers.WorldWrapper;
 import com.sk89q.jchronic.Chronic;
 import com.sk89q.jchronic.Options;
@@ -1130,6 +1131,9 @@ public class LocalSession {
 
         if (hasCUISupport) {
             actor.dispatchCUIEvent(event);
+        } else {
+            CUI cui = Fawe.get().getCUI(actor);
+            if (cui != null) cui.dispatchCUIEvent(event);
         }
     }
 
@@ -1151,22 +1155,16 @@ public class LocalSession {
      */
     public void dispatchCUISelection(Actor actor) {
         checkNotNull(actor);
-
-        if (!hasCUISupport) {
-            return;
-        }
-
         if (selector instanceof CUIRegion) {
             CUIRegion tempSel = (CUIRegion) selector;
 
             if (tempSel.getProtocolVersion() > cuiVersion) {
-                actor.dispatchCUIEvent(new SelectionShapeEvent(tempSel.getLegacyTypeID()));
+                dispatchCUIEvent(actor, new SelectionShapeEvent(tempSel.getLegacyTypeID()));
                 tempSel.describeLegacyCUI(this, actor);
             } else {
-                actor.dispatchCUIEvent(new SelectionShapeEvent(tempSel.getTypeID()));
+                dispatchCUIEvent(actor, new SelectionShapeEvent(tempSel.getTypeID()));
                 tempSel.describeCUI(this, actor);
             }
-
         }
     }
 
@@ -1177,11 +1175,6 @@ public class LocalSession {
      */
     public void describeCUI(Actor actor) {
         checkNotNull(actor);
-
-        if (!hasCUISupport) {
-            return;
-        }
-
         if (selector instanceof CUIRegion) {
             CUIRegion tempSel = (CUIRegion) selector;
 

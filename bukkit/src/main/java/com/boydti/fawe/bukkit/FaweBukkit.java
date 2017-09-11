@@ -17,6 +17,8 @@ import com.boydti.fawe.bukkit.regions.Worldguard;
 import com.boydti.fawe.bukkit.util.BukkitTaskMan;
 import com.boydti.fawe.bukkit.util.ItemUtil;
 import com.boydti.fawe.bukkit.util.VaultUtil;
+import com.boydti.fawe.bukkit.util.image.BukkitImageListener;
+import com.boydti.fawe.bukkit.util.image.BukkitImageViewer;
 import com.boydti.fawe.bukkit.v0.BukkitQueue_0;
 import com.boydti.fawe.bukkit.v0.BukkitQueue_All;
 import com.boydti.fawe.bukkit.v0.ChunkListener;
@@ -33,9 +35,11 @@ import com.boydti.fawe.object.FaweCommand;
 import com.boydti.fawe.object.FawePlayer;
 import com.boydti.fawe.object.FaweQueue;
 import com.boydti.fawe.regions.FaweMaskManager;
+import com.boydti.fawe.util.Jars;
 import com.boydti.fawe.util.MainUtil;
 import com.boydti.fawe.util.ReflectionUtils;
 import com.boydti.fawe.util.TaskManager;
+import com.boydti.fawe.util.image.ImageViewer;
 import com.boydti.fawe.util.metrics.BStats;
 import com.sk89q.bukkit.util.FallbackRegistrationListener;
 import com.sk89q.worldedit.bukkit.BukkitPlayerBlockBag;
@@ -44,6 +48,7 @@ import com.sk89q.worldedit.bukkit.EditSessionBlockChangeDelegate;
 import com.sk89q.worldedit.bukkit.WorldEditPlugin;
 import com.sk89q.worldedit.world.World;
 import java.io.File;
+import java.io.FileOutputStream;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
@@ -59,6 +64,7 @@ import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.plugin.Plugin;
+import org.bukkit.plugin.PluginManager;
 import org.bukkit.plugin.RegisteredServiceProvider;
 import org.primesoft.blockshub.BlocksHubBukkit;
 
@@ -68,6 +74,8 @@ public class FaweBukkit implements IFawe, Listener {
     private VaultUtil vault;
     private WorldEditPlugin worldedit;
     private ItemUtil itemUtil;
+    private boolean listening;
+    private BukkitImageListener listener;
 
     public VaultUtil getVault() {
         return this.vault;
@@ -128,6 +136,35 @@ public class FaweBukkit implements IFawe, Listener {
                 new ChunkListener();
             }
         });
+    }
+
+    @Override
+    public synchronized ImageViewer getImageViewer(FawePlayer fp) {
+        if (listening && listener == null) return null;
+        try {
+            listening = true;
+            PluginManager manager = Bukkit.getPluginManager();
+            if (manager.getPlugin("PacketListenerApi") == null) {
+                File output = new File(plugin.getDataFolder().getParentFile(), "PacketListenerAPI_v3.6.0-SNAPSHOT.jar");
+                byte[] jarData = Jars.PL_v3_6_0.download();
+                try (FileOutputStream fos = new FileOutputStream(output)) {
+                    fos.write(jarData);
+                }
+            }
+            if (manager.getPlugin("MapManager") == null) {
+                File output = new File(plugin.getDataFolder().getParentFile(), "MapManager_v1.4.0-SNAPSHOT.jar");
+                byte[] jarData = Jars.MM_v1_4_0.download();
+                try (FileOutputStream fos = new FileOutputStream(output)) {
+                    fos.write(jarData);
+                }
+            }
+            BukkitImageViewer viewer = new BukkitImageViewer((Player) fp.parent);
+            if (listener == null) {
+                this.listener = new BukkitImageListener(plugin);
+            }
+            return viewer;
+        } catch (Throwable ignore) {}
+        return null;
     }
 
     @Override

@@ -20,13 +20,20 @@
 package com.sk89q.worldedit.util.command.parametric;
 
 import com.boydti.fawe.command.FawePrimitiveBinding;
+import com.boydti.fawe.command.MaskBinding;
+import com.boydti.fawe.command.PatternBinding;
 import com.boydti.fawe.config.Commands;
 import com.google.common.collect.ImmutableBiMap.Builder;
 import com.sk89q.minecraft.util.commands.Command;
 import com.sk89q.minecraft.util.commands.CommandContext;
 import com.sk89q.minecraft.util.commands.CommandException;
 import com.sk89q.minecraft.util.commands.CommandPermissions;
+import com.sk89q.worldedit.WorldEdit;
 import com.sk89q.worldedit.command.MethodCommands;
+import com.sk89q.worldedit.internal.command.ActorAuthorizer;
+import com.sk89q.worldedit.internal.command.CommandLoggingHandler;
+import com.sk89q.worldedit.internal.command.UserCommandCompleter;
+import com.sk89q.worldedit.internal.command.WorldEditBinding;
 import com.sk89q.worldedit.util.auth.Authorizer;
 import com.sk89q.worldedit.util.auth.NullAuthorizer;
 import com.sk89q.worldedit.util.command.CallableProcessor;

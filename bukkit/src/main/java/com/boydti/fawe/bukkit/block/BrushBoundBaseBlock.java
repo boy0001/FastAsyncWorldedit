@@ -42,7 +42,7 @@ public class BrushBoundBaseBlock extends BaseBlock implements BrushHolder {
     }
 
     public BrushBoundBaseBlock(Player player, LocalSession session, ItemStack item) {
-        super(item.getTypeId(), item.getType().getMaxDurability() != 0 ? 0 : Math.max(0, item.getDurability()), getNBT(item));
+        super(item.getTypeId(), item.getType().getMaxDurability() != 0 || item.getDurability() > 15 ? 0 : Math.max(0, item.getDurability()), getNBT(item));
         this.item = item;
         this.tool = brushCache.get(getKey(item));
         this.player = player;

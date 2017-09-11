@@ -28,13 +28,22 @@ public class ExtentTraverser<T extends Extent> {
     public boolean setNext(T next) {
         try {
             Field field = AbstractDelegateExtent.class.getDeclaredField("extent");
-            field.setAccessible(true);
-            field.set(root, next);
+            ReflectionUtils.setFailsafeFieldValue(field, root, next);
             return true;
         } catch (Throwable e) {
             e.printStackTrace();
             return false;
         }
+    }
+
+    public ExtentTraverser<T> last() {
+        ExtentTraverser<T> last = this;
+        ExtentTraverser<T> traverser = this;
+        while (traverser != null && traverser.get() instanceof AbstractDelegateExtent) {
+            last = traverser;
+            traverser = traverser.next();
+        }
+        return last;
     }
 
     public boolean insert(T extent) {
