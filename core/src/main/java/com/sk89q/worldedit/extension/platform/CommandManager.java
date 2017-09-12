@@ -169,9 +169,7 @@ public final class CommandManager {
             Class.forName("com.intellectualcrafters.plot.PS");
             CFICommand cfi = new CFICommand(worldEdit, builder);
             registerCommands(cfi);
-        } catch (ClassNotFoundException e) {
-            e.printStackTrace();
-        }
+        } catch (ClassNotFoundException e) {}
     }
 
     /**

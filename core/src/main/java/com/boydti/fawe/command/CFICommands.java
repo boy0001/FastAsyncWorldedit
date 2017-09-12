@@ -212,6 +212,7 @@ public class CFICommands extends MethodCommands {
         else if (mask != null) gen.setColumn(mask, pattern);
         else gen.setColumn(pattern);
         fp.sendMessage("Set column!");
+        assertSettings(fp).resetComponent();
         component(fp);
     }
 
@@ -224,6 +225,7 @@ public class CFICommands extends MethodCommands {
     public void floorCmd(FawePlayer fp, Pattern pattern, @Optional BufferedImage image, @Optional Mask mask, @Switch('w') boolean disableWhiteOnly) throws ParameterException{
         floor(fp, pattern, image, mask, disableWhiteOnly);
         fp.sendMessage("Set floor!");
+        assertSettings(fp).resetComponent();
         component(fp);
     }
 
@@ -243,6 +245,7 @@ public class CFICommands extends MethodCommands {
     public void mainCmd(FawePlayer fp, Pattern pattern, @Optional BufferedImage image, @Optional Mask mask, @Switch('w') boolean disableWhiteOnly) throws ParameterException{
         main(fp, pattern, image, mask, disableWhiteOnly);
         fp.sendMessage("Set main!");
+        assertSettings(fp).resetComponent();
         component(fp);
     }
 
@@ -282,6 +285,7 @@ public class CFICommands extends MethodCommands {
     @CommandPermissions("worldedit.anvil.cfi")
     public void smoothCmd(FawePlayer fp, int radius, int iterations, @Optional BufferedImage image, @Optional Mask mask, @Switch('w') boolean disableWhiteOnly) throws ParameterException{
         smooth(fp, radius, iterations, image, mask, disableWhiteOnly);
+        assertSettings(fp).resetComponent();
         component(fp);
     }
 
@@ -303,7 +307,8 @@ public class CFICommands extends MethodCommands {
         main(fp, FaweCache.getBlock(80, 0), image, mask, disableWhiteOnly);
         smooth(fp, 1, 8, image, mask, disableWhiteOnly);
         msg("Added snow!").send(fp);
-        populate(fp);
+        assertSettings(fp).resetComponent();
+        component(fp);
     }
 
     @Command(
@@ -456,6 +461,7 @@ public class CFICommands extends MethodCommands {
         else if (mask != null) gen.setBiome(mask, (byte) biome.getId());
         else gen.setBiome((byte) biome.getId());
         msg("Set biome!").send(fp);
+        assertSettings(fp).resetComponent();
         component(fp);
     }
 
@@ -521,8 +527,10 @@ public class CFICommands extends MethodCommands {
     )
     @CommandPermissions("worldedit.anvil.cfi")
     public void waterId(FawePlayer fp, BaseBlock block) throws ParameterException, WorldEditException {
-        assertSettings(fp).getGenerator().setWaterId(block.getId());
+        CFISettings settings = assertSettings(fp);
+        settings.getGenerator().setWaterId(block.getId());
         msg("Set water id!").send(fp);
+        settings.resetComponent();
         component(fp);
     }
 
@@ -534,7 +542,7 @@ public class CFICommands extends MethodCommands {
                     " - By default water is disabled (with a value of 0)"
     )
     @CommandPermissions("worldedit.anvil.cfi")
-    public void height(FawePlayer fp, int height) throws ParameterException, WorldEditException {
+    public void waterheight(FawePlayer fp, int height) throws ParameterException, WorldEditException {
         assertSettings(fp).getGenerator().setWaterHeight(height);
         msg("Set height!").send(fp);
         component(fp);
@@ -603,6 +611,7 @@ public class CFICommands extends MethodCommands {
         CFISettings settings = assertSettings(fp);
         settings.getGenerator().setBiomeColor(image);
         msg("Set color with biomes!").send(fp);
+        settings.resetColoring();
         mainMenu(fp);
     }
 
@@ -655,13 +664,13 @@ public class CFICommands extends MethodCommands {
         int biomePriority = gen.getBiomePriority();
 
         Message msg = msg("&8>>&7 Current Settings &8<<&7").newline()
-        .text("Randomization ").text("&7[&a" + (Boolean.toString(rand).toUpperCase()) + "&7]").cmdTip(alias() + " randomization " + (!rand))
+        .text("&7Randomization ").text("&7[&a" + (Boolean.toString(rand).toUpperCase()) + "&7]").cmdTip(alias() + " randomization " + (!rand))
         .newline()
-        .text("Mask ").text("&7[&a" + mask + "&7]").cmdTip(alias() + " mask")
+        .text("&7Mask ").text("&7[&a" + mask + "&7]").cmdTip(alias() + " mask")
         .newline()
-        .text("Blocks ").text("&7[&a" + blocks + "&7]").tooltip(blockList).command(alias() + " paletteBlocks")
+        .text("&7Blocks ").text("&7[&a" + blocks + "&7]").tooltip(blockList).command(alias() + " paletteBlocks")
         .newline()
-        .text("BiomePriority ").text("&7[&a" + biomePriority + "&7]").cmdTip(alias() + " biomepriority")
+        .text("&7BiomePriority ").text("&7[&a" + biomePriority + "&7]").cmdTip(alias() + " biomepriority")
         .newline();
 
         if (settings.image != null) {
@@ -671,7 +680,7 @@ public class CFICommands extends MethodCommands {
             if (settings.mask != null) colorArgs.append(" " + settings.maskArg);
             if (!settings.whiteOnly) colorArgs.append(" -w");
 
-            msg.text("Image: ")
+            msg.text("&7Image: ")
             .text("&7[&a" + settings.imageArg + "&7]").cmdTip(alias() + " " + Commands.getAlias(CFICommands.class, "image"))
             .newline().newline()
             .text("&cLet's Color&7: ")
@@ -705,9 +714,9 @@ public class CFICommands extends MethodCommands {
         StringBuilder cmd = new StringBuilder(alias() + " mask ");
 
         msg("&8>>&7 Current Settings &8<<&7").newline()
-                .text("Image Mask ").text("&7[&a" + settings.imageMaskArg + "&7]").suggestTip(cmd + "http://")
+                .text("&7Image Mask ").text("&7[&a" + settings.imageMaskArg + "&7]").suggestTip(cmd + "http://")
                 .newline()
-                .text("WorldEdit Mask ").text("&7[&a" + settings.maskArg + "&7]").suggestTip(cmd + "<mask>")
+                .text("&7WorldEdit Mask ").text("&7[&a" + settings.maskArg + "&7]").suggestTip(cmd + "<mask>")
                 .newline()
                 .text("&8< &7[&aBack&7]").cmdTip(alias() + " " + settings.getCategory()).send(fp);
     }
@@ -731,7 +740,7 @@ public class CFICommands extends MethodCommands {
             dispathcer.call(settings.getCategory(), context.getLocals(), new String[0]);
         } else {
             msg("&8>>&7 Current Settings &8<<&7").newline()
-                    .text("Pattern ").text("&7[&aClick Here&7]").suggestTip(cmd + " stone")
+                    .text("&7Pattern ").text("&7[&aClick Here&7]").suggestTip(cmd + " stone")
                     .newline()
                     .text("&8< &7[&aBack&7]").cmdTip(alias() + " " + settings.getCategory()).send(fp);
         }
@@ -769,25 +778,22 @@ public class CFICommands extends MethodCommands {
         String maskArg = settings.maskArg == null ? "Click Here" : settings.maskArg;
 
         StringBuilder cmd = new StringBuilder(alias() + " image ");
-        Message msg;
         if (image == null) {
-            msg = msg("Please provide an image:").newline()
+            msg("Please provide an image:").newline()
             .text("From a URL: ").text("&7[&aClick Here&7]").suggestTip(cmd + "http://")
             .newline()
-            .text("From a file: ").text("&7[&aClick Here&7]").suggestTip(cmd + "file://");
+            .text("From a file: ").text("&7[&aClick Here&7]").suggestTip(cmd + "file://")
+            .send(fp);
         } else {
             if (settings.hasGenerator()) {
-                msg = msg("Current image: ")
-                .text("&7[&a" + settings.imageArg + "&7]").suggestTip(cmd.toString())
-                .newline()
-                .text("&8< &7[&aBack&7]").cmdTip(alias() + " " + Commands.getAlias(CFICommands.class, "coloring"));
+                coloring(fp);
+                return;
             } else {
                 String next = Commands.getAlias(CFICommands.class, "heightmap " + settings.imageArg);
                 dispathcer.call(next, context.getLocals(), new String[0]);
                 return;
             }
         }
-        msg.send(fp);
     }
 
     @Command(
@@ -801,7 +807,7 @@ public class CFICommands extends MethodCommands {
         settings.popMessages(fp);
         settings.setCategory("populate");
         msg("What would you like to populate?").newline()
-        .text("(You will need to type these commands)")
+        .text("(You will need to type these commands)").newline()
         .cmdOptions(alias() + " ", "", "Ores", "Ore", "Caves", "Schematics", "Smooth")
         .newline().text("&8< &7[&aBack&7]").cmdTip(alias())
         .send(fp);
@@ -836,9 +842,9 @@ public class CFICommands extends MethodCommands {
 
 
         Message msg = msg("&8>>&7 Current Settings &8<<&7").newline()
-        .text("Mask ").text("&7[&a" + mask + "&7]").cmdTip(alias() + " mask")
+        .text("&7Mask ").text("&7[&a" + mask + "&7]").cmdTip(alias() + " mask")
         .newline()
-        .text("Pattern ").text("&7[&a" + pattern + "&7]").cmdTip(alias() + " pattern")
+        .text("&7Pattern ").text("&7[&a" + pattern + "&7]").cmdTip(alias() + " pattern")
         .newline()
         .newline()
         .text("&8>>&7 Components &8<<&7")
