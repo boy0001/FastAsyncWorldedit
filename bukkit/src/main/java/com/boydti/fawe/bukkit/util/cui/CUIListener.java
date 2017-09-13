@@ -19,7 +19,7 @@ public class CUIListener implements Listener {
     public void onPlayerMove(PlayerMoveEvent event) {
         Location from = event.getFrom();
         Location to = event.getTo();
-        if ((int) from.getX() >> 2 != (int) to.getX() >> 2 || (int) from.getZ()  >> 2 != (int) to.getZ() >> 2) {
+        if ((int) from.getX() >> 2 != (int) to.getX() >> 2 || (int) from.getZ()  >> 2 != (int) to.getZ() >> 2 || (int) from.getY()  >> 2 != (int) to.getY() >> 2) {
             FawePlayer<Object> player = FawePlayer.wrap(event.getPlayer());
             CUI cui = player.getMeta("CUI");
             if (cui instanceof StructureCUI) {
