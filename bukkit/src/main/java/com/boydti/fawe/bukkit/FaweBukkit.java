@@ -17,6 +17,8 @@ import com.boydti.fawe.bukkit.regions.Worldguard;
 import com.boydti.fawe.bukkit.util.BukkitTaskMan;
 import com.boydti.fawe.bukkit.util.ItemUtil;
 import com.boydti.fawe.bukkit.util.VaultUtil;
+import com.boydti.fawe.bukkit.util.cui.CUIListener;
+import com.boydti.fawe.bukkit.util.cui.StructureCUI;
 import com.boydti.fawe.bukkit.util.image.BukkitImageListener;
 import com.boydti.fawe.bukkit.util.image.BukkitImageViewer;
 import com.boydti.fawe.bukkit.v0.BukkitQueue_0;
@@ -39,6 +41,7 @@ import com.boydti.fawe.util.Jars;
 import com.boydti.fawe.util.MainUtil;
 import com.boydti.fawe.util.ReflectionUtils;
 import com.boydti.fawe.util.TaskManager;
+import com.boydti.fawe.util.cui.CUI;
 import com.boydti.fawe.util.image.ImageViewer;
 import com.boydti.fawe.util.metrics.BStats;
 import com.sk89q.bukkit.util.FallbackRegistrationListener;
@@ -74,8 +77,12 @@ public class FaweBukkit implements IFawe, Listener {
     private VaultUtil vault;
     private WorldEditPlugin worldedit;
     private ItemUtil itemUtil;
-    private boolean listening;
-    private BukkitImageListener listener;
+
+    private boolean listeningImages;
+    private BukkitImageListener imageListener;
+
+    private boolean listeningCui;
+    private CUIListener cuiListener;
 
     public VaultUtil getVault() {
         return this.vault;
@@ -139,10 +146,32 @@ public class FaweBukkit implements IFawe, Listener {
     }
 
     @Override
+    public CUI getCUI(FawePlayer player) {
+        if (Settings.IMP.EXPERIMENTAL.VANILLA_CUI) {
+            switch (getVersion()) {
+                case v1_12_R1: {
+                    if (listeningCui && cuiListener == null) return null;
+                    listeningCui = true;
+                    if (cuiListener == null) {
+                        Plugin protocolLib = Bukkit.getPluginManager().getPlugin("ProtocolLib");
+                        if (protocolLib != null && protocolLib.isEnabled()) {
+                            cuiListener = new CUIListener(plugin);
+                        } else {
+                            return null;
+                        }
+                    }
+                    return new StructureCUI(player);
+                }
+            }
+        }
+        return null;
+    }
+
+    @Override
     public synchronized ImageViewer getImageViewer(FawePlayer fp) {
-        if (listening && listener == null) return null;
+        if (listeningImages && imageListener == null) return null;
         try {
-            listening = true;
+            listeningImages = true;
             PluginManager manager = Bukkit.getPluginManager();
             if (manager.getPlugin("PacketListenerApi") == null) {
                 File output = new File(plugin.getDataFolder().getParentFile(), "PacketListenerAPI_v3.6.0-SNAPSHOT.jar");
@@ -159,8 +188,8 @@ public class FaweBukkit implements IFawe, Listener {
                 }
             }
             BukkitImageViewer viewer = new BukkitImageViewer((Player) fp.parent);
-            if (listener == null) {
-                this.listener = new BukkitImageListener(plugin);
+            if (imageListener == null) {
+                this.imageListener = new BukkitImageListener(plugin);
             }
             return viewer;
         } catch (Throwable ignore) {}
