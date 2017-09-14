@@ -131,6 +131,14 @@ public class AsyncBlockState implements BlockState {
         return result;
     }
 
+    public CompoundTag getNbtData() {
+        return nbt;
+    }
+
+    public void setNbtData(CompoundTag nbt) {
+        this.nbt = nbt;
+    }
+
     @Override
     public byte getRawData() {
         return data;

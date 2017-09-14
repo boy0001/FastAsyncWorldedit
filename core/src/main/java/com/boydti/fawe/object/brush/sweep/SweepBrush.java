@@ -45,12 +45,13 @@ public class SweepBrush implements Brush, ResettableTool {
 
         boolean newPos = this.position == null || !position.equals(this.position);
         this.position = position;
+        FawePlayer player = editSession.getPlayer();
         if (newPos) {
+            BBC.BRUSH_SPLINE_PRIMARY_2.send(player);
             positions.add(position);
             return;
         }
 
-        FawePlayer player = editSession.getPlayer();
         if (positions.size() < 2) {
             BBC.BRUSH_SPLINE_SECONDARY_ERROR.send(player);
             return;
@@ -116,6 +117,7 @@ public class SweepBrush implements Brush, ResettableTool {
                 break;
             }
         }
+        BBC.BRUSH_SPLINE_SECONDARY.send(player);
         reset();
     }
 

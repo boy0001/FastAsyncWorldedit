@@ -61,7 +61,6 @@ import com.boydti.fawe.object.mask.ResettableMask;
 import com.boydti.fawe.object.pattern.ExistingPattern;
 import com.boydti.fawe.object.progress.ChatProgressTracker;
 import com.boydti.fawe.object.progress.DefaultProgressTracker;
-import com.boydti.fawe.object.visitor.FastChunkIterator;
 import com.boydti.fawe.util.ExtentTraverser;
 import com.boydti.fawe.util.MaskTraverser;
 import com.boydti.fawe.util.MathMan;
@@ -3408,7 +3407,7 @@ public class EditSession extends AbstractWorld implements HasFaweQueue, Lighting
         final Set<Vector2D> chunks = region.getChunks();
         MutableBlockVector mutable = new MutableBlockVector();
         MutableBlockVector2D mutable2D = new MutableBlockVector2D();
-        for (Vector2D chunk : new FastChunkIterator(chunks, this)) {
+        for (Vector2D chunk : chunks) {
             final int cx = chunk.getBlockX();
             final int cz = chunk.getBlockZ();
             final int bx = cx << 4;

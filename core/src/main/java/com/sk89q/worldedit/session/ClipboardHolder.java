@@ -51,6 +51,10 @@ public class ClipboardHolder {
         this.worldData = worldData;
     }
 
+    protected ClipboardHolder() {
+        worldData = null;
+    }
+
     /**
      * Get the mapping used for blocks, entities, and so on.
      *

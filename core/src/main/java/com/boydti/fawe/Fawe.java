@@ -19,6 +19,7 @@ import com.boydti.fawe.util.Updater;
 import com.boydti.fawe.util.WEManager;
 import com.boydti.fawe.util.chat.ChatManager;
 import com.boydti.fawe.util.chat.PlainChatManager;
+import com.boydti.fawe.util.cui.CUI;
 import com.boydti.fawe.util.metrics.BStats;
 import com.sk89q.jnbt.NBTInputStream;
 import com.sk89q.jnbt.NBTOutputStream;
@@ -68,6 +69,7 @@ import com.sk89q.worldedit.extension.factory.DefaultMaskParser;
 import com.sk89q.worldedit.extension.factory.DefaultTransformParser;
 import com.sk89q.worldedit.extension.factory.HashTagPatternParser;
 import com.sk89q.worldedit.extension.platform.AbstractPlayerActor;
+import com.sk89q.worldedit.extension.platform.Actor;
 import com.sk89q.worldedit.extension.platform.CommandManager;
 import com.sk89q.worldedit.extension.platform.PlatformManager;
 import com.sk89q.worldedit.extension.platform.PlayerProxy;
@@ -353,6 +355,25 @@ public class Fawe {
             return true;
         }
         return false;
+    }
+
+    public CUI getCUI(Actor actor) {
+        FawePlayer<Object> fp = FawePlayer.wrap(actor);
+        CUI cui = fp.getMeta("CUI");
+        if (cui == null) {
+            cui = Fawe.imp().getCUI(fp);
+            if (cui != null) {
+                synchronized (fp) {
+                    CUI tmp = fp.getMeta("CUI");
+                    if (tmp == null) {
+                        fp.setMeta("CUI", cui);
+                    } else {
+                        cui = tmp;
+                    }
+                }
+            }
+        }
+        return cui;
     }
 
     public ChatManager getChatManager() {

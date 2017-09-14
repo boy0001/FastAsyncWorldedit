@@ -30,7 +30,7 @@ public class Settings extends Config {
     public String LANGUAGE = "";
     @Comment("Allow the plugin to update")
     public boolean UPDATE = true;
-    @Comment("Send anonymous usage statistics to mcstats.org")
+    @Comment("Send anonymous usage statistics")
     public boolean METRICS = true;
     @Comment("FAWE will skip chunks when there's not enough memory available")
     public boolean PREVENT_CRASHES = false;
@@ -310,6 +310,11 @@ public class Settings extends Config {
                 "Allows brushes to be persistent",
         })
         public boolean PERSISTENT_BRUSHES = false;
+        @Comment({
+                "Enable CUI without needing the mod installed (Requires ProtocolLib)",
+        })
+        public boolean VANILLA_CUI = false;
+
     }
 
     public static class WEB {

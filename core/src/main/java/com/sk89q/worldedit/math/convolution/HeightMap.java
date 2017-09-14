@@ -244,15 +244,14 @@ public class HeightMap {
 
                     // Skip water/lava
                     if (!FaweCache.isLiquidOrGas(existing.getId())) {
-                        session.setBlock(xr, newHeight, zr, existing);
-                        ++blocksChanged;
-
-                        // Grow -- start from 1 below top replacing airblocks
-                        for (int y = newHeight - 1 - originY; y >= curHeight; --y) {
+                        for (int y = curHeight; y <= newHeight - 1 - originY; y++) {
                             int copyFrom = (int) (y * scale);
                             session.setBlock(xr, originY + y, zr, session.getBlock(xr, originY + copyFrom, zr));
                             ++blocksChanged;
                         }
+
+                        session.setBlock(xr, newHeight, zr, existing);
+                        ++blocksChanged;
                     }
                 } else if (curHeight > newHeight) {
                     // Set the top block of the column to be the same type
