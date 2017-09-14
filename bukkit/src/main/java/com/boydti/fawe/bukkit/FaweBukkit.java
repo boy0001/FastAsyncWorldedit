@@ -148,21 +148,17 @@ public class FaweBukkit implements IFawe, Listener {
     @Override
     public CUI getCUI(FawePlayer player) {
         if (Settings.IMP.EXPERIMENTAL.VANILLA_CUI) {
-            switch (getVersion()) {
-                case v1_12_R1: {
-                    if (listeningCui && cuiListener == null) return null;
-                    listeningCui = true;
-                    if (cuiListener == null) {
-                        Plugin protocolLib = Bukkit.getPluginManager().getPlugin("ProtocolLib");
-                        if (protocolLib != null && protocolLib.isEnabled()) {
-                            cuiListener = new CUIListener(plugin);
-                        } else {
-                            return null;
-                        }
-                    }
-                    return new StructureCUI(player);
+            if (listeningCui && cuiListener == null) return null;
+            listeningCui = true;
+            if (cuiListener == null) {
+                Plugin protocolLib = Bukkit.getPluginManager().getPlugin("ProtocolLib");
+                if (protocolLib != null && protocolLib.isEnabled()) {
+                    cuiListener = new CUIListener(plugin);
+                } else {
+                    return null;
                 }
             }
+            return new StructureCUI(player);
         }
         return null;
     }

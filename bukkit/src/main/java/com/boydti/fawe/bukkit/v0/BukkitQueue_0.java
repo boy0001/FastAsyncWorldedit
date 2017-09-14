@@ -233,9 +233,10 @@ public abstract class BukkitQueue_0<CHUNK, CHUNKSECTIONS, SECTION> extends NMSMa
 
     @Override
     public boolean regenerateChunk(World world, int x, int z, BaseBiome biome, Long seed) {
-        return world.regenerateChunk(x, z);
+        if (!keepLoaded.isEmpty()) keepLoaded.remove(MathMan.pairInt(x, z));
+        boolean result = world.regenerateChunk(x, z);
+        return result;
     }
-
 
     @Override
     public CharFaweChunk getPrevious(CharFaweChunk fs, CHUNKSECTIONS sections, Map<?, ?> tiles, Collection<?>[] entities, Set<UUID> createdEntities, boolean all) throws Exception {

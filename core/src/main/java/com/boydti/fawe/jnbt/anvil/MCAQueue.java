@@ -52,7 +52,7 @@ public class MCAQueue extends NMSMappedFaweQueue<FaweQueue, FaweChunk, FaweChunk
     }
 
     public MCAQueue(FaweQueue parent) {
-        super(parent.getWEWorld(), new MCAQueueMap());
+        super(parent.getWorldName(), new MCAQueueMap());
         this.parent = parent;
         if (parent instanceof NMSMappedFaweQueue) {
             parentNMS = (NMSMappedFaweQueue) parent;

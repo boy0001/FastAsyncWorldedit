@@ -8,6 +8,7 @@ import com.comphenix.protocol.PacketType;
 import com.comphenix.protocol.ProtocolLibrary;
 import com.comphenix.protocol.ProtocolManager;
 import com.comphenix.protocol.events.PacketContainer;
+import com.comphenix.protocol.injector.PacketConstructor;
 import com.comphenix.protocol.wrappers.BlockPosition;
 import com.comphenix.protocol.wrappers.nbt.NbtBase;
 import com.comphenix.protocol.wrappers.nbt.NbtCompound;
@@ -105,16 +106,32 @@ public class StructureCUI extends CUI {
         return NbtFactory.fromNMSCompound(nmsTag);
     }
 
-    private void sendNbt(Vector pos, NbtCompound compound) {
-        ProtocolManager manager = ProtocolLibrary.getProtocolManager();
-        PacketContainer containter = new PacketContainer(PacketType.Play.Server.TILE_ENTITY_DATA);
-        containter.getBlockPositionModifier().write(0, new BlockPosition(pos.getBlockX(), pos.getBlockY(), pos.getBlockZ()));
-        containter.getIntegers().write(0, 7);
-        containter.getNbtModifier().write(0, compound);
-
+    private void sendOp() {
         Player player = this.<Player>getPlayer().parent;
+        ProtocolManager manager = ProtocolLibrary.getProtocolManager();
+
+        PacketConstructor statusCtr = manager.createPacketConstructor(PacketType.Play.Server.ENTITY_STATUS, player, (byte) 28);
+        PacketContainer status = statusCtr.createPacket(player, (byte) 28);
+
         try {
-            manager.sendServerPacket(player, containter);
+            manager.sendServerPacket(player, status);
+        } catch (InvocationTargetException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private void sendNbt(Vector pos, NbtCompound compound) {
+        Player player = this.<Player>getPlayer().parent;
+        ProtocolManager manager = ProtocolLibrary.getProtocolManager();
+
+        PacketContainer blockNbt = new PacketContainer(PacketType.Play.Server.TILE_ENTITY_DATA);
+        blockNbt.getBlockPositionModifier().write(0, new BlockPosition(pos.getBlockX(), pos.getBlockY(), pos.getBlockZ()));
+        blockNbt.getIntegers().write(0, 7);
+        blockNbt.getNbtModifier().write(0, compound);
+
+
+        try {
+            manager.sendServerPacket(player, blockNbt);
         } catch (InvocationTargetException e) {
             e.printStackTrace();
         }
@@ -123,6 +140,7 @@ public class StructureCUI extends CUI {
     public synchronized void update() {
         Player player = this.<Player>getPlayer().parent;
         Location playerLoc = player.getLocation();
+        boolean setOp = remove == null && !player.isOp();
         if (remove != null) {
             int cx = playerLoc.getBlockX() >> 4;
             int cz = playerLoc.getBlockZ() >> 4;
@@ -172,6 +190,7 @@ public class StructureCUI extends CUI {
 
         Location blockLoc = new Location(player.getWorld(), x, y, z);
         player.sendBlockChange(blockLoc, Material.STRUCTURE_BLOCK, (byte) 0);
+        if (setOp) sendOp();
         sendNbt(remove, compound);
     }
 }
