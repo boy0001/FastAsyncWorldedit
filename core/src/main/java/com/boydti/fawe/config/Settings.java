@@ -30,7 +30,7 @@ public class Settings extends Config {
     public String LANGUAGE = "";
     @Comment("Allow the plugin to update")
     public boolean UPDATE = true;
-    @Comment("Send anonymous usage statistics to mcstats.org")
+    @Comment("Send anonymous usage statistics")
     public boolean METRICS = true;
     @Comment("FAWE will skip chunks when there's not enough memory available")
     public boolean PREVENT_CRASHES = false;
