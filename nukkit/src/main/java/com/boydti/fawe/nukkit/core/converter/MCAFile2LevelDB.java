@@ -183,6 +183,11 @@ public class MCAFile2LevelDB implements Closeable {
                 Long time = tag.getLong("Time");
                 map.put("CurrentTick", new LongTag(time == null ? 0L : time));
                 map.put("spawnMobs", new ByteTag((byte) 1));
+                Long lastPlayed = tag.getLong("LastPlayed");
+                if (lastPlayed != null && lastPlayed > Integer.MAX_VALUE) {
+                    lastPlayed = lastPlayed / 1000;
+                    map.put("LastPlayed", new LongTag(lastPlayed));
+                }
             }
 
             ByteArrayOutputStream baos = new ByteArrayOutputStream();
