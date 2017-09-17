@@ -39,7 +39,6 @@ public class PlotSquaredFeature extends FaweMaskManager {
         try {
             new MoveTo512();
             if (Settings.Enabled_Components.WORLDS) {
-                new CreateFromImage();
                 new ReplaceAll();
             }
         } catch (Throwable e) {

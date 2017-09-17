@@ -126,8 +126,8 @@ public abstract class BukkitQueue_0<CHUNK, CHUNKSECTIONS, SECTION> extends NMSMa
         }
     }
 
-    private static boolean registered = false;
-    private static boolean disableChunkLoad = false;
+    protected static boolean registered = false;
+    protected static boolean disableChunkLoad = false;
 
     @EventHandler
     public static void onWorldLoad(WorldInitEvent event) {
