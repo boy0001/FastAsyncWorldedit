@@ -1007,7 +1007,8 @@ public class CFICommands extends MethodCommands {
     }
 
     protected Message msg(String text) {
-        return new Message(BBC.getPrefix())
+    return new Message().newline()
+                .text(BBC.getPrefix())
                 .text(text);
     }
 
