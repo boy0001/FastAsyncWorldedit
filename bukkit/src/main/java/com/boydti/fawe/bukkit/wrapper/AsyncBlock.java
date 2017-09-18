@@ -1,7 +1,9 @@
 package com.boydti.fawe.bukkit.wrapper;
 
 import com.boydti.fawe.FaweCache;
+import com.boydti.fawe.bukkit.wrapper.state.AsyncSign;
 import com.boydti.fawe.object.FaweQueue;
+import com.sk89q.worldedit.blocks.BlockID;
 import java.util.Collection;
 import java.util.List;
 import org.bukkit.Chunk;
@@ -168,6 +170,12 @@ public class AsyncBlock implements Block {
 
     @Override
     public BlockState getState() {
+        int combined = queue.getCombinedId4Data(x, y, z, 0);
+        switch (FaweCache.getId(combined)) {
+            case BlockID.SIGN_POST:
+            case BlockID.WALL_SIGN:
+                return new AsyncSign(this, combined);
+        }
         return new AsyncBlockState(this);
     }
 

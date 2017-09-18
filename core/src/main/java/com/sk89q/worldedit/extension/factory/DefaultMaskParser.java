@@ -110,18 +110,23 @@ public class DefaultMaskParser extends FaweParser<Mask> {
                             }
                         }
                         if (mask == null) {
-                            try {
-                                context.setPreferringWildcard(true);
-                                context.setRestricted(false);
-                                BaseBlock block = worldEdit.getBlockFactory().parseFromInput(command, context);
-                                if (pe.and) {
-                                    mask = new BlockMask(extent, block);
-                                } else {
-                                    blocks.add(block);
-                                    continue;
+                            if (command.startsWith("[")) {
+                                int end = command.lastIndexOf(']');
+                                mask = parseFromInput(command.substring(1, end == -1 ? command.length() : end), context);
+                            } else {
+                                try {
+                                    context.setPreferringWildcard(true);
+                                    context.setRestricted(false);
+                                    BaseBlock block = worldEdit.getBlockFactory().parseFromInput(command, context);
+                                    if (pe.and) {
+                                        mask = new BlockMask(extent, block);
+                                    } else {
+                                        blocks.add(block);
+                                        continue;
+                                    }
+                                } catch (NoMatchException e) {
+                                    throw new NoMatchException(e.getMessage() + " See: //masks");
                                 }
-                            } catch (NoMatchException e) {
-                                throw new NoMatchException(e.getMessage() + " See: //masks");
                             }
                         }
                     }

@@ -21,8 +21,11 @@ public class AsyncBlockState implements BlockState {
     private final AsyncBlock block;
 
     public AsyncBlockState(AsyncBlock block) {
+        this(block, block.queue.getCombinedId4Data(block.x, block.y, block.z, 0));
+    }
+
+    public AsyncBlockState(AsyncBlock block, int combined) {
         this.block = block;
-        int combined = block.queue.getCombinedId4Data(block.x, block.y, block.z, 0);
         this.id = (short) (combined >> 4);
         this.data = (byte) (combined & 0xF);
         if (FaweCache.hasNBT(id)) {
