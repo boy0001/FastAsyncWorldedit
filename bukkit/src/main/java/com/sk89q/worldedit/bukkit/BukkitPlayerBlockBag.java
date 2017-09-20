@@ -163,6 +163,7 @@ public class BukkitPlayerBlockBag extends BlockBag implements SlottableBlockBag 
                 bukkitItem.setAmount(currentAmount - 1);
                 found = true;
             } else {
+                bukkitItem.setAmount(0);
                 items[slot] = null;
                 found = true;
             }
