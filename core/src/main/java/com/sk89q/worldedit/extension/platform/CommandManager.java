@@ -21,6 +21,7 @@ package com.sk89q.worldedit.extension.platform;
 
 import com.boydti.fawe.Fawe;
 import com.boydti.fawe.command.AnvilCommands;
+import com.boydti.fawe.command.CFICommand;
 import com.boydti.fawe.command.MaskBinding;
 import com.boydti.fawe.command.PatternBinding;
 import com.boydti.fawe.config.BBC;
@@ -125,7 +126,7 @@ public final class CommandManager {
     private final DynamicStreamHandler dynamicHandler = new DynamicStreamHandler();
     private final ExceptionConverter exceptionConverter;
 
-
+    private ParametricBuilder builder;
     private Map<Object, String[]> methodMap;
 
     private static CommandManager INSTANCE;
@@ -151,7 +152,24 @@ public final class CommandManager {
         commandLog.addHandler(dynamicHandler);
         dynamicHandler.setFormatter(new LogFormat());
 
+        builder = new ParametricBuilder();
+        builder.setAuthorizer(new ActorAuthorizer());
+        builder.setDefaultCompleter(new UserCommandCompleter(platformManager));
+        builder.addBinding(new WorldEditBinding(worldEdit));
+
+        builder.addBinding(new PatternBinding(worldEdit), com.sk89q.worldedit.function.pattern.Pattern.class);
+        builder.addBinding(new MaskBinding(worldEdit), com.sk89q.worldedit.function.mask.Mask.class);
+
+        builder.addInvokeListener(new LegacyCommandsHandler());
+        builder.addInvokeListener(new CommandLoggingHandler(worldEdit, commandLog));
+
         this.methodMap = new ConcurrentHashMap<>();
+
+        try {
+            Class.forName("com.intellectualcrafters.plot.PS");
+            CFICommand cfi = new CFICommand(worldEdit, builder);
+            registerCommands(cfi);
+        } catch (ClassNotFoundException e) {}
     }
 
     /**
@@ -173,14 +191,6 @@ public final class CommandManager {
      */
     public void registerCommands(Object clazz, String... aliases) {
         if (platform != null) {
-            ParametricBuilder builder = new ParametricBuilder();
-            builder.setAuthorizer(new ActorAuthorizer());
-            builder.setDefaultCompleter(new UserCommandCompleter(platformManager));
-            builder.addBinding(new WorldEditBinding(worldEdit));
-
-            builder.addBinding(new PatternBinding(worldEdit), com.sk89q.worldedit.function.pattern.Pattern.class);
-            builder.addBinding(new MaskBinding(worldEdit), com.sk89q.worldedit.function.mask.Mask.class);
-
             DispatcherNode graph = new CommandGraph().builder(builder).commands();
             if (aliases.length == 0) {
                 graph = graph.registerMethods(clazz);
@@ -198,16 +208,6 @@ public final class CommandManager {
      * Initialize the dispatcher
      */
     public void setupDispatcher() {
-        ParametricBuilder builder = new ParametricBuilder();
-        builder.setAuthorizer(new ActorAuthorizer());
-        builder.setDefaultCompleter(new UserCommandCompleter(platformManager));
-        builder.addBinding(new WorldEditBinding(worldEdit));
-
-        builder.addBinding(new PatternBinding(worldEdit), com.sk89q.worldedit.function.pattern.Pattern.class);
-        builder.addBinding(new MaskBinding(worldEdit), com.sk89q.worldedit.function.mask.Mask.class);
-
-        builder.addInvokeListener(new LegacyCommandsHandler());
-        builder.addInvokeListener(new CommandLoggingHandler(worldEdit, commandLog));
         DispatcherNode graph = new CommandGraph().builder(builder).commands();
 
         for (Map.Entry<Object, String[]> entry : methodMap.entrySet()) {

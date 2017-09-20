@@ -103,7 +103,7 @@ public abstract class FaweParser<T> extends InputParser<T> {
             }
             if (newEntry) {
                 newEntry = false;
-                int index = StringMan.indexOf(command, i + prefix, '[', '&', ',');
+                int index = StringMan.indexOf(command, Math.max(i, end) + prefix, '[', '&', ',');
                 if (index < 0) index = len;
                 end = index;
                 current = command.substring(i + prefix, end);

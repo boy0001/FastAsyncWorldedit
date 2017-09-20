@@ -4,8 +4,12 @@ import java.io.FileNotFoundException;
 import java.util.Arrays;
 
 public class CleanTextureUtil extends TextureUtil {
+    private final int min, max;
+
     public CleanTextureUtil(TextureUtil parent, int minPercent, int maxPercent) throws FileNotFoundException {
         super(parent.getFolder());
+        this.min = minPercent;
+        this.max = maxPercent;
         int minIndex = ((parent.distances.length - 1) * minPercent) / 100;
         int maxIndex = ((parent.distances.length - 1) * maxPercent) / 100;
         long min = parent.distances[minIndex];
@@ -29,5 +33,13 @@ public class CleanTextureUtil extends TextureUtil {
             }
         }
         this.calculateLayerArrays();
+    }
+
+    public int getMin() {
+        return min;
+    }
+
+    public int getMax() {
+        return max;
     }
 }

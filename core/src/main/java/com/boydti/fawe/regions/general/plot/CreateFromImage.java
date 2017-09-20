@@ -79,8 +79,8 @@ public class CreateFromImage extends Command {
             @Override
             public void run() {
                 FawePlayer<Object> fp = FawePlayer.wrap(player.getName());
-                HeightMapMCAGenerator generator = player.getMeta("HMGenerator");
-                Plot plot = player.getMeta("HMGeneratorPlot");
+                HeightMapMCAGenerator generator = fp.getMeta("HMGenerator");
+                Plot plot = fp.getMeta("HMGeneratorPlot");
                 if (generator == null) {
                     final Vector2D dimensions;
                     final BufferedImage image;
@@ -164,7 +164,8 @@ public class CreateFromImage extends Command {
                             } else {
                                 generator = new HeightMapMCAGenerator(dimensions.getBlockX(), dimensions.getBlockZ(), folder);
                             }
-                            player.setMeta("HMGenerator", generator);
+                            generator.setImageViewer(Fawe.imp().getImageViewer(fp));
+                            fp.setMeta("HMGenerator", generator);
                             player.setMeta("HMGeneratorPlot", plot);
                         }
                     }, true, false);
@@ -310,7 +311,7 @@ public class CreateFromImage extends Command {
                                         } else {
                                             Mask mask = we.getMaskFactory().parseFromInput(argList.get(1), context);
                                             boolean whiteOnly = argList.size() < 4 || Boolean.parseBoolean(argList.get(3));
-                                            generator.setColor(image, mask, whiteOnly);
+                                            generator.setColor(image, mask);
                                         }
                                     } else {
                                         generator.setColor(image);
@@ -594,8 +595,8 @@ public class CreateFromImage extends Command {
                                     return;
                                 case "exit":
                                 case "cancel":
-                                    player.deleteMeta("HMGenerator");
-                                    player.deleteMeta("HMGeneratorPlot");
+                                    fp.deleteMeta("HMGenerator");
+                                    fp.deleteMeta("HMGeneratorPlot");
                                     player.sendMessage(BBC.getPrefix() + "Cancelled!");
                                     return;
                                 default:

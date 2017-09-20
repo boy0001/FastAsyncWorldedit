@@ -4,6 +4,7 @@ import com.boydti.fawe.Fawe;
 import com.boydti.fawe.object.FawePlayer;
 import com.boydti.fawe.object.extent.NullExtent;
 import com.boydti.fawe.object.extent.ResettableExtent;
+import com.boydti.fawe.util.image.ImageUtil;
 import com.sk89q.worldedit.EditSession;
 import com.sk89q.worldedit.LocalSession;
 import com.sk89q.worldedit.Vector;
@@ -29,6 +30,7 @@ import com.sk89q.worldedit.util.command.parametric.BindingHelper;
 import com.sk89q.worldedit.util.command.parametric.BindingMatch;
 import com.sk89q.worldedit.util.command.parametric.ParameterException;
 import com.sk89q.worldedit.world.World;
+import java.awt.image.BufferedImage;
 import java.lang.annotation.Annotation;
 import javax.annotation.Nullable;
 
@@ -65,6 +67,13 @@ public class FawePrimitiveBinding extends BindingHelper {
                 }
             }
         }
+    }
+    @BindingMatch(
+            type = {BufferedImage.class},
+            behavior = BindingBehavior.CONSUMES
+    )
+    public BufferedImage getImage(ArgumentStack context) throws ParameterException {
+        return ImageUtil.getImage(context.next());
     }
 
     @BindingMatch(

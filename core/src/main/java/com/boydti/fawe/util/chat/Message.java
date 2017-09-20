@@ -87,6 +87,19 @@ public class Message {
         return tooltip(commandAndTooltip).command(commandAndTooltip);
     }
 
+    public Message linkTip(String linkAndTooltip) {
+        return tooltip(linkAndTooltip).link(linkAndTooltip);
+    }
+
+    public Message cmdOptions(String prefix, String suffix, String... options) {
+        for (int i = 0; i < options.length; i++) {
+            if (i != 0) text(" &8|&7 ");
+            text("&7[&a" + options[i] + "&7]")
+            .cmdTip(prefix + options[i] + suffix);
+        }
+        return this;
+    }
+
     public Message suggestTip(String commandAndTooltip) {
         return tooltip(commandAndTooltip).suggest(commandAndTooltip);
     }

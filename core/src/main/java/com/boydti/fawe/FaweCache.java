@@ -812,6 +812,8 @@ public class FaweCache {
             return asTag((int[]) value);
         } else if (value instanceof Tag) {
             return (Tag) value;
+        } else if (value instanceof Boolean) {
+            return asTag((byte) ((boolean) value ? 1 : 0));
         } else if (value == null) {
             System.out.println("Invalid nbt: " + value);
             return null;

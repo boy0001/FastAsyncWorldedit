@@ -29,7 +29,6 @@ import static com.google.common.base.Preconditions.checkNotNull;
  */
 public class HistoryExtent extends AbstractDelegateExtent {
 
-    private final AbstractDelegateExtent extent;
     private FaweChangeSet changeSet;
     private final FaweQueue queue;
     private final EditSession session;
@@ -43,7 +42,6 @@ public class HistoryExtent extends AbstractDelegateExtent {
     public HistoryExtent(final EditSession session, final Extent extent, final FaweChangeSet changeSet, FaweQueue queue) {
         super(extent);
         checkNotNull(changeSet);
-        this.extent = (AbstractDelegateExtent) extent;
         this.queue = queue;
         this.changeSet = changeSet;
         this.session = session;
@@ -92,12 +90,7 @@ public class HistoryExtent extends AbstractDelegateExtent {
         } catch (FaweException ignore) {
             return false;
         }
-        return extent.setBlock(x, y, z, block);
-    }
-
-    @Override
-    public BaseBlock getLazyBlock(int x, int y, int z) {
-        return extent.getLazyBlock(x, y, z);
+        return getExtent().setBlock(x, y, z, block);
     }
 
     @Override
@@ -143,7 +136,7 @@ public class HistoryExtent extends AbstractDelegateExtent {
         BaseBiome oldBiome = this.getBiome(position);
         if (oldBiome.getId() != newBiome.getId()) {
             this.changeSet.addBiomeChange(position.getBlockX(), position.getBlockZ(), oldBiome, newBiome);
-            return extent.setBiome(position, newBiome);
+            return getExtent().setBiome(position, newBiome);
         } else {
             return false;
         }

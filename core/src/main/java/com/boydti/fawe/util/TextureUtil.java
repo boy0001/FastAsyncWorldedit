@@ -685,6 +685,7 @@ public class TextureUtil {
                                 if (biome.grass != 0 && !biome.name.equalsIgnoreCase("Unknown Biome")) {
                                     valid.add(biome);
                                 }
+                                biome.grassCombined = multiplyColor(grass, biome.grass);
                             }
                             this.validBiomes = valid.toArray(new BiomeColor[valid.size()]);
 
@@ -779,10 +780,10 @@ public class TextureUtil {
         int red2 = (c2 >> 16) & 0xFF;
         int green2 = (c2 >> 8) & 0xFF;
         int blue2 = (c2 >> 0) & 0xFF;
-        int red = ((red1 + red2)) / 2;
-        int green = ((green1 + green2)) / 2;
-        int blue = ((blue1 + blue2)) / 2;
-        int alpha = ((alpha1 + alpha2)) / 2;
+        int red = ((red1 + red2)) >> 1;
+        int green = ((green1 + green2)) >> 1;
+        int blue = ((blue1 + blue2)) >> 1;
+        int alpha = ((alpha1 + alpha2)) >> 1;
         return (alpha << 24) + (red << 16) + (green << 8) + (blue << 0);
     }
 
@@ -1049,6 +1050,7 @@ public class TextureUtil {
         public float temperature;
         public float rainfall;
         public int grass;
+        public int grassCombined;
         public int foliage;
 
         public BiomeColor(int id, String name, float temperature, float rainfall, int grass, int foliage) {
@@ -1057,7 +1059,12 @@ public class TextureUtil {
             this.temperature = temperature;
             this.rainfall = rainfall;
             this.grass = grass;
+            this.grassCombined = grass;
             this.foliage = foliage;
         }
+    }
+
+    public char[] getValidBlockIds() {
+        return validBlockIds.clone();
     }
 }
