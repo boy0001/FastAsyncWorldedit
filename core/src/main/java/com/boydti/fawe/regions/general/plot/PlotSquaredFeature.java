@@ -39,8 +39,8 @@ public class PlotSquaredFeature extends FaweMaskManager {
         try {
             new MoveTo512();
             if (Settings.Enabled_Components.WORLDS) {
-                new CreateFromImage();
                 new ReplaceAll();
+                new CFIRedirect();
             }
         } catch (Throwable e) {
             Fawe.debug("You need to update PlotSquared to access the CFI and REPLACEALL commands");

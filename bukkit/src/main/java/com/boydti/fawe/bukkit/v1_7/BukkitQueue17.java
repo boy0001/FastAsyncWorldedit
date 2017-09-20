@@ -613,7 +613,9 @@ public class BukkitQueue17 extends BukkitQueue_0<net.minecraft.server.v1_7_R4.Ch
         ServerNBTManager sdm = new ServerNBTManager(server.getWorldContainer(), name, true);
         final WorldSettings worldSettings = new WorldSettings(creator.seed(), EnumGamemode.getById(server.getDefaultGameMode().getValue()), generateStructures, hardcore, type);
         startSet(true);
+        disableChunkLoad = true;
         final WorldServer internal = new WorldServer(console, sdm, name, dimension, worldSettings, console.methodProfiler, creator.environment(), generator);
+        disableChunkLoad = false;
         endSet(true);
         internal.scoreboard = server.getScoreboardManager().getMainScoreboard().getHandle();
         internal.tracker = new EntityTracker(internal);

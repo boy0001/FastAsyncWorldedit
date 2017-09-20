@@ -360,7 +360,7 @@ public abstract class FaweChangeSet implements ChangeSet {
                 if (mainThread) {
                     run.run();
                 } else {
-                    TaskManager.IMP.async(run);
+                    TaskManager.IMP.getPublicForkJoinPool().submit(run);
                 }
             }
         });
