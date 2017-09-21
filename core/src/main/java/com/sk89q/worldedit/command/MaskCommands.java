@@ -15,6 +15,7 @@ import com.boydti.fawe.object.mask.RadiusMask;
 import com.boydti.fawe.object.mask.RandomMask;
 import com.boydti.fawe.object.mask.SimplexMask;
 import com.boydti.fawe.object.mask.SkyLightMask;
+import com.boydti.fawe.object.mask.SurfaceMask;
 import com.boydti.fawe.object.mask.WallMask;
 import com.boydti.fawe.object.mask.XAxisMask;
 import com.boydti.fawe.object.mask.YAxisMask;
@@ -249,7 +250,7 @@ public class MaskCommands extends MethodCommands {
             desc = "Restrict to surfaces (any solid block touching air)"
     )
     public Mask surface(Extent extent) {
-        return new MaskUnion(new ExistingBlockMask(extent), new AdjacentAnyMask(new BlockMask(extent, new BaseBlock(0))));
+        return new SurfaceMask(extent);
     }
 
     @Command(

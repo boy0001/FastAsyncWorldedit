@@ -10,8 +10,8 @@ import java.util.Map;
 import org.bukkit.block.Sign;
 
 public class AsyncSign extends AsyncBlockState implements Sign {
-    public AsyncSign(AsyncBlock block) {
-        super(block);
+    public AsyncSign(AsyncBlock block, int combined) {
+        super(block, combined);
     }
 
     @Override

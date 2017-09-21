@@ -84,20 +84,25 @@ public class HashTagPatternParser extends FaweParser<Pattern> {
                         }
                     }
                     if (pattern == null) {
-                        int percentIndex = command.indexOf('%');
-                        if (percentIndex != -1) {  // Legacy percent pattern
-                            chance = Expression.compile(command.substring(0, percentIndex)).evaluate();
-                            command = command.substring(percentIndex + 1);
-                            if (!entry.getValue().isEmpty()) {
-                                if (!command.isEmpty()) command += " ";
-                                command += StringMan.join(entry.getValue(), " ");
-                            }
-                            pattern = parseFromInput(command, context);
-                        } else { // legacy block pattern
-                            try {
-                                pattern = worldEdit.getBlockFactory().parseFromInput(command, context);
-                            } catch (NoMatchException e) {
-                                throw new NoMatchException(e.getMessage() + " See: //patterns");
+                        if (command.startsWith("[")) {
+                            int end = command.lastIndexOf(']');
+                            pattern = parseFromInput(command.substring(1, end == -1 ? command.length() : end), context);
+                        } else {
+                            int percentIndex = command.indexOf('%');
+                            if (percentIndex != -1) {  // Legacy percent pattern
+                                chance = Expression.compile(command.substring(0, percentIndex)).evaluate();
+                                command = command.substring(percentIndex + 1);
+                                if (!entry.getValue().isEmpty()) {
+                                    if (!command.isEmpty()) command += " ";
+                                    command += StringMan.join(entry.getValue(), " ");
+                                }
+                                pattern = parseFromInput(command, context);
+                            } else { // legacy block pattern
+                                try {
+                                    pattern = worldEdit.getBlockFactory().parseFromInput(command, context);
+                                } catch (NoMatchException e) {
+                                    throw new NoMatchException(e.getMessage() + " See: //patterns");
+                                }
                             }
                         }
                     }
