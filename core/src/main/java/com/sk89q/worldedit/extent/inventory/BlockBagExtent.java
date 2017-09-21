@@ -116,7 +116,7 @@ public class BlockBagExtent extends AbstractDelegateExtent {
                 }
             }
         }
-        return super.setBlock(x, y, z, block);
+        return getExtent().setBlock(x, y, z, block);
     }
 
     public static Class<?> inject() {
