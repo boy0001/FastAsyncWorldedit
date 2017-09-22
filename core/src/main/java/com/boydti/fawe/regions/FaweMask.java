@@ -16,16 +16,15 @@ public class FaweMask {
             throw new IllegalArgumentException("BlockVectors cannot be null!");
         }
         this.description = id;
-        this.position1 = new BlockVector(Math.min(pos1.getBlockX(), pos2.getBlockX()), 0, Math.min(pos1.getBlockZ(), pos2.getBlockZ()));
-        this.position2 = new BlockVector(Math.max(pos1.getBlockX(), pos2.getBlockX()), 256, Math.max(pos1.getBlockZ(), pos2.getBlockZ()));
+        this.position1 = new BlockVector(Math.min(pos1.getBlockX(), pos2.getBlockX()), pos1.getBlockY(), Math.min(pos1.getBlockZ(), pos2.getBlockZ()));
+        this.position2 = new BlockVector(Math.max(pos1.getBlockX(), pos2.getBlockX()), pos2.getBlockY(), Math.max(pos1.getBlockZ(), pos2.getBlockZ()));
     }
 
     public FaweMask(final BlockVector pos1, final BlockVector pos2) {
+        this(pos1, pos2, null);
         if ((pos1 == null) || (pos2 == null)) {
             throw new IllegalArgumentException("BlockVectors cannot be null!");
         }
-        this.position1 = new BlockVector(Math.min(pos1.getBlockX(), pos2.getBlockX()), 0, Math.min(pos1.getBlockZ(), pos2.getBlockZ()));
-        this.position2 = new BlockVector(Math.max(pos1.getBlockX(), pos2.getBlockX()), 256, Math.max(pos1.getBlockZ(), pos2.getBlockZ()));
     }
 
     public HashSet<RegionWrapper> getRegions() {

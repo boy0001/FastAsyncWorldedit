@@ -157,9 +157,9 @@ public class CuboidRegionSelector extends com.sk89q.worldedit.regions.CuboidRegi
 
         Message msg;
         if (position1 != null && position2 != null) {
-            msg = BBC.SELECTOR_CUBOID_POS1.m(position1, "(" + region.getArea() + ")");
+            msg = BBC.SELECTOR_POS.m(1, position1, region.getArea());
         } else {
-            msg = BBC.SELECTOR_CUBOID_POS1.m(position1, "");
+            msg = BBC.SELECTOR_POS.m(1, position1, "");
         }
         String cmd = Commands.getAlias(SelectionCommands.class, "/pos1") + " " + pos.getBlockX() + "," + pos.getBlockY() + "," + pos.getBlockZ();
         msg.suggestTip(cmd).send(player);
@@ -175,9 +175,9 @@ public class CuboidRegionSelector extends com.sk89q.worldedit.regions.CuboidRegi
 
         Message msg;
         if (position1 != null && position2 != null) {
-            msg = BBC.SELECTOR_CUBOID_POS2.m(position2, "(" + region.getArea() + ")");
+            msg = BBC.SELECTOR_POS.m(2, position2, region.getArea());
         } else {
-            msg = BBC.SELECTOR_CUBOID_POS2.m(position2, "");
+            msg = BBC.SELECTOR_POS.m(2, position2, "");
         }
         String cmd = Commands.getAlias(SelectionCommands.class, "/pos2") + " " + pos.getBlockX() + "," + pos.getBlockY() + "," + pos.getBlockZ();
         msg.suggestTip(cmd).send(player);

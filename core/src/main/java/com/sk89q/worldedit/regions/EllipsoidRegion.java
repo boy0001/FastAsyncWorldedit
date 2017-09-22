@@ -92,6 +92,7 @@ public class EllipsoidRegion extends AbstractRegion {
 
     @Override
     public int getArea() {
+        if (radius == null) return 0;
         return (int) Math.floor((4.0 / 3.0) * Math.PI * radius.getX() * radius.getY() * radius.getZ());
     }
 
@@ -173,6 +174,7 @@ public class EllipsoidRegion extends AbstractRegion {
      * @return radii
      */
     public Vector getRadius() {
+        if (radius == null) return null;
         return radius.subtract(0.5, 0.5, 0.5);
     }
 

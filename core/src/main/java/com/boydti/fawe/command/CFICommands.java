@@ -840,6 +840,9 @@ public class CFICommands extends MethodCommands {
         if (settings.mask != null) maskArgs.append(" " + settings.maskArg);
         if (!settings.whiteOnly) maskArgs.append(" -w");
 
+        String height = Commands.getAlias(CFICommands.class, "height");
+        String waterHeight = Commands.getAlias(CFICommands.class, "waterheight");
+        String snow = Commands.getAlias(CFICommands.class, "snow");
 
         Message msg = msg("&8>>&7 Current Settings &8<<&7").newline()
         .text("&7Mask ").text("&7[&a" + mask + "&7]").cmdTip(alias() + " mask")
@@ -849,11 +852,11 @@ public class CFICommands extends MethodCommands {
         .newline()
         .text("&8>>&7 Components &8<<&7")
         .newline()
-        .text("&7[&aHeight&7]").suggestTip(alias() + " height 120").text(" - Terrain height for whole map")
+        .text("&7[&aHeight&7]").suggestTip(alias() + " " + alias("height") + " 120").text(" - Terrain height for whole map")
         .newline()
-        .text("&7[&aWaterHeight&7]").suggestTip(alias() + " waterHeight 60").text(" - Sea level for whole map")
+        .text("&7[&aWaterHeight&7]").suggestTip(alias() + " " + alias("waterheight") + " 60").text(" - Sea level for whole map")
         .newline()
-        .text("&7[&aSnow&7]").suggestTip(alias() + " snow" + maskArgs).text(" - Set snow in the masked areas")
+        .text("&7[&aSnow&7]").suggestTip(alias() + " " + alias("snow") + maskArgs).text(" - Set snow in the masked areas")
         .newline();
 
         if (pattern != null) {
@@ -1004,6 +1007,10 @@ public class CFICommands extends MethodCommands {
 
     protected String alias() {
         return Commands.getAlias(CFICommand.class, "/cfi");
+    }
+
+    protected String alias(String command) {
+        return Commands.getAlias(CFICommands.class, command);
     }
 
     protected Message msg(String text) {

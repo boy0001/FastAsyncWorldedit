@@ -27,8 +27,9 @@ public class FactionsUUIDFeature extends BukkitMaskManager implements Listener {
         final Player player = fp.parent;
         final Chunk chunk = player.getLocation().getChunk();
         final boolean perm = Perm.hasPermission(FawePlayer.wrap(player), "fawe.factions.wilderness");
-        final RegionWrapper locs = new RegionWrapper(chunk.getX(), chunk.getX(), chunk.getZ(), chunk.getZ());
         final World world = player.getWorld();
+
+        RegionWrapper locs = new RegionWrapper(chunk.getX(), chunk.getX(), chunk.getZ(), chunk.getZ());
 
         int count = 32;
 
@@ -44,28 +45,28 @@ public class FactionsUUIDFeature extends BukkitMaskManager implements Listener {
                 chunkSelection = new RegionWrapper(locs.maxX + 1, locs.maxX + 1, locs.minZ, locs.maxZ);
 
                 if (this.isAdded(chunkSelection, world, player, perm, type)) {
-                    locs.maxX += 1;
+                    locs = new RegionWrapper(locs.minX, locs.maxX + 1, locs.minZ, locs.maxZ);
                     hasPerm = true;
                 }
 
                 chunkSelection = new RegionWrapper(locs.minX - 1, locs.minX - 1, locs.minZ, locs.maxZ);
 
                 if (this.isAdded(chunkSelection, world, player, perm, type)) {
-                    locs.minX -= 1;
+                    locs = new RegionWrapper(locs.minX - 1, locs.maxX, locs.minZ, locs.maxZ);
                     hasPerm = true;
                 }
 
                 chunkSelection = new RegionWrapper(locs.minX, locs.maxX, locs.maxZ + 1, locs.maxZ + 1);
 
                 if (this.isAdded(chunkSelection, world, player, perm, type)) {
-                    locs.maxZ += 1;
+                    locs = new RegionWrapper(locs.minX, locs.maxX, locs.minZ, locs.maxZ + 1);
                     hasPerm = true;
                 }
 
                 chunkSelection = new RegionWrapper(locs.minX, locs.maxX, locs.minZ - 1, locs.minZ - 1);
 
                 if (this.isAdded(chunkSelection, world, player, perm, type)) {
-                    locs.minZ -= 1;
+                    locs = new RegionWrapper(locs.minX, locs.maxX, locs.minZ - 1, locs.maxZ);
                     hasPerm = true;
                 }
             }
