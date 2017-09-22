@@ -32,6 +32,8 @@ import java.io.InputStream;
 import java.net.URL;
 import java.nio.channels.Channels;
 import java.nio.channels.ReadableByteChannel;
+import java.nio.file.Files;
+import java.nio.file.StandardCopyOption;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.Map;
@@ -324,16 +326,23 @@ public class ConverterFrame extends JFrame {
             public void run() {
                 FakePlayer console = FakePlayer.getConsole();
                 try {
-                    debug("Loading nukkit.jar");
-                    File nukkit = new File("nukkit.jar");
-                    if (!nukkit.exists()) {
-                        debug("Downloading: http://ci.mengcraft.com:8080/job/nukkit/lastSuccessfulBuild/artifact/target/nukkit-1.0-SNAPSHOT.jar");
-                        URL url = new URL("http://ci.mengcraft.com:8080/job/nukkit/lastSuccessfulBuild/artifact/target/nukkit-1.0-SNAPSHOT.jar");
-                        ReadableByteChannel rbc = Channels.newChannel(url.openStream());
-                        FileOutputStream fos = new FileOutputStream(nukkit);
-                        fos.getChannel().transferFrom(rbc, 0, Long.MAX_VALUE);
+                    debug("Loading leveldb.jar");
+                    File leveldb = new File("leveldb.jar");
+                    if (!leveldb.exists()) {
+                        File tempFile = File.createTempFile("leveldb.jar", ".tmp");
+                        tempFile.deleteOnExit();
+                        String download = "https://github.com/Nukkit/Nukkit/raw/master/lib/leveldb.jar";
+                        debug("Downloading: " + download);
+                        URL url = new URL(download);
+                        try (InputStream is = url.openStream()) {
+                            ReadableByteChannel rbc = Channels.newChannel(is);
+                            FileOutputStream fos = new FileOutputStream(tempFile);
+                            fos.getChannel().transferFrom(rbc, 0, Long.MAX_VALUE);
+                        }
+                        Files.copy(tempFile.toPath(), leveldb.toPath(), StandardCopyOption.REPLACE_EXISTING);
+                        tempFile.delete();
                     }
-                    MainUtil.loadURLClasspath(nukkit.toURL());
+                    MainUtil.loadURLClasspath(leveldb.toURL());
 
                     File newWorldFile = new File(output, dirMc.getName());
                     try (MCAFile2LevelDB converter = new MCAFile2LevelDB(newWorldFile)) {
