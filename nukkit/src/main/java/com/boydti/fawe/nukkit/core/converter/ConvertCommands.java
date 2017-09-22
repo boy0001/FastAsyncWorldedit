@@ -29,13 +29,14 @@ public class ConvertCommands extends MethodCommands {
     @Command(
             aliases = {"anvil2leveldb"},
             usage = "<folder>",
-            help = "Convert the world between MCPE/PC values\n",
-            desc = "Convert the world between MCPE/PC values\n",
+            desc = "Convert the world between MCPE/PC values",
+            help = "Convert the world between MCPE/PC values\n" +
+                    "The -r filter will skip block remapping",
             min = 1,
             max = 1
     )
     @CommandPermissions("worldedit.anvil.anvil2leveldb")
-    public void anvil2leveldb(Player player, String folder, @Switch('f') boolean force) throws WorldEditException {
+    public void anvil2leveldb(Player player, String folder, @Switch('f') boolean force, @Switch('r') boolean skipRemap) throws WorldEditException {
         ClipboardRemapper mapper;
         RemapFilter filter = new RemapFilter(ClipboardRemapper.RemapPlatform.PC, ClipboardRemapper.RemapPlatform.PE);
 
@@ -49,7 +50,7 @@ public class ConvertCommands extends MethodCommands {
                         @Override
                         public void run(MCAChunk value) {
                             try {
-                                converter.write(value);
+                                converter.write(value, !skipRemap);
                             } catch (IOException e) {
                                 e.printStackTrace();
                             }

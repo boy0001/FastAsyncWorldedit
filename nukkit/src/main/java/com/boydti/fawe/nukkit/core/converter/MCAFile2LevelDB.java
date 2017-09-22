@@ -67,6 +67,8 @@ public class MCAFile2LevelDB implements Closeable {
     private boolean closed;
     private LongAdder submitted = new LongAdder();
 
+    private boolean remap;
+
     public MCAFile2LevelDB(File folder) {
         try {
             this.folder = folder;
@@ -102,7 +104,7 @@ public class MCAFile2LevelDB implements Closeable {
                     @Override
                     public void run(MCAChunk value) {
                         try {
-                            write(value);
+                            write(value, !file.getFile().getName().endsWith(".mcapm"));
                         } catch (IOException e) {
                             e.printStackTrace();
                         }
@@ -204,7 +206,7 @@ public class MCAFile2LevelDB implements Closeable {
         }
     }
 
-    public void write(MCAChunk chunk) throws IOException {
+    public void write(MCAChunk chunk, boolean remap) throws IOException {
         submitted.add(1);
         if ((submitted.longValue() & 127) == 0) {
             pool.awaitQuiescence(Long.MAX_VALUE, TimeUnit.MILLISECONDS);
@@ -271,10 +273,17 @@ public class MCAFile2LevelDB implements Closeable {
                                 byte[] skyLight = chunk.skyLight[layer];
                                 byte[] blockLight = chunk.blockLight[layer];
 
-                                copySection(ids, value, 1);
-                                copySection(data, value, 1 + 4096);
-                                copySection(skyLight, value, 1 + 4096 + 2048);
-                                copySection(blockLight, value, 1 + 4096 + 2048 + 2048);
+                                if (remap) {
+                                    copySection(ids, value, 1);
+                                    copySection(data, value, 1 + 4096);
+                                    copySection(skyLight, value, 1 + 4096 + 2048);
+                                    copySection(blockLight, value, 1 + 4096 + 2048 + 2048);
+                                } else {
+                                    System.arraycopy(ids, 0, value, 1, ids.length);
+                                    System.arraycopy(data, 0, value, 1 + 4096, data.length);
+                                    System.arraycopy(skyLight, 0, value, 1 + 4096 + 2048, skyLight.length);
+                                    System.arraycopy(blockLight, 0, value, 1 + 4096 + 2048 + 2048, blockLight.length);
+                                }
                             }
                             update(key, value);
                         }

@@ -2,6 +2,7 @@ package com.boydti.fawe.jnbt.anvil.filters;
 
 import com.boydti.fawe.FaweCache;
 import com.boydti.fawe.jnbt.anvil.MCAChunk;
+import com.boydti.fawe.jnbt.anvil.MCAFile;
 import com.boydti.fawe.jnbt.anvil.MCAFilterCounter;
 import com.boydti.fawe.jnbt.anvil.MutableMCABackedBaseBlock;
 import com.boydti.fawe.object.clipboard.ClipboardRemapper;
@@ -11,6 +12,7 @@ import com.sk89q.jnbt.ByteTag;
 import com.sk89q.jnbt.CompoundTag;
 import com.sk89q.jnbt.Tag;
 import com.sk89q.worldedit.blocks.BaseBlock;
+import java.io.File;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
@@ -18,6 +20,7 @@ import java.util.Map;
 public class RemapFilter extends MCAFilterCounter {
     private final ClipboardRemapper remapper;
     private final ClipboardRemapper.RemapPlatform from;
+    private boolean skipRemap;
 
     public RemapFilter(ClipboardRemapper remapper) {
         this.remapper = remapper;
@@ -30,7 +33,15 @@ public class RemapFilter extends MCAFilterCounter {
     }
 
     @Override
+    public MCAFile applyFile(MCAFile mca) {
+        File file = mca.getFile();
+        this.skipRemap = file.getName().endsWith(".mcapm");
+        return super.applyFile(mca);
+    }
+
+    @Override
     public MCAChunk applyChunk(MCAChunk chunk, MutableLong cache) {
+        if (skipRemap) return null;
         return super.applyChunk(chunk, cache);
     }
 
