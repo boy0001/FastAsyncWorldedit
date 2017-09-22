@@ -1,5 +1,7 @@
 package com.sk89q.worldedit.extent.inventory;
 
+import com.boydti.fawe.FaweCache;
+import com.boydti.fawe.object.exception.FaweException;
 import com.sk89q.jnbt.CompoundTag;
 import com.sk89q.worldedit.Vector;
 import com.sk89q.worldedit.WorldEditException;
@@ -87,31 +89,23 @@ public class BlockBagExtent extends AbstractDelegateExtent {
     @Override
     public boolean setBlock(int x, int y, int z, BaseBlock block) throws WorldEditException {
         CompoundTag nbt = block.getNbtData();
-        final int type = block.getType();
-        if (type != 0) {
+        int combinedTo = block.getCombined();
+        if (combinedTo != 0) {
             try {
-                blockBag.fetchPlacedBlock(block.getId(), block.getData());
-                if (nbt != null) {
-                    // Remove items (to avoid duplication)
-                    if (nbt.containsKey("items")) {
-                        block.setNbtData(null);
-                    }
-                }
+                blockBag.fetchPlacedBlock(FaweCache.getId(combinedTo), FaweCache.getData(combinedTo));
             } catch (UnplaceableBlockException e) {
-                return false;
+                throw new FaweException.FaweBlockBagException();
             } catch (BlockBagException e) {
-                missingBlocks[type]++;
-                return false;
-            } catch (Throwable e) {
-                throw e;
+                missingBlocks[combinedTo]++;
+                throw new FaweException.FaweBlockBagException();
             }
         }
         if (mine) {
             BaseBlock lazyBlock = getExtent().getLazyBlock(x, y, z);
-            int existing = lazyBlock.getType();
-            if (existing != 0) {
+            int combinedFrom = lazyBlock.getCombined();
+            if (combinedFrom != 0) {
                 try {
-                    blockBag.storeDroppedBlock(existing, lazyBlock.getData());
+                    blockBag.storeDroppedBlock(FaweCache.getId(combinedFrom), FaweCache.getData(combinedFrom));
                 } catch (BlockBagException ignored) {
                 }
             }

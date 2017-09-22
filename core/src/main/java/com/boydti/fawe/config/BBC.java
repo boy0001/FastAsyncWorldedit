@@ -203,8 +203,10 @@ public enum BBC {
 
     SELECTOR_FUZZY_POS1("Region set and expanded from %s0 %s1.", "WorldEdit.Selector"),
     SELECTOR_FUZZY_POS2("Added expansion of %s0 %s1.", "WorldEdit.Selector"),
-    SELECTOR_CUBOID_POS1("pos1 set to %s0 %s1.", "WorldEdit.Selector"),
-    SELECTOR_CUBOID_POS2("pos2 set to %s0 %s1.", "WorldEdit.Selector"),
+    SELECTOR_POS("pos%s0 set to %s1 (%s2).", "WorldEdit.Selector"),
+    SELECTOR_CENTER("Center set to %s0 (%s1).", "WorldEdit.Selector"),
+    SELECTOR_RADIUS("Radius set to %s0 (%s1).", "WorldEdit.Selector"),
+    SELECTOR_EXPANDED("Expanded region to %s0 (%s1)", "WorldEdit.Selector"),
     SELECTOR_INVALID_COORDINATES("Invalid coordinates %s0", "WorldEdit.Selector"),
     SELECTOR_ALREADY_SET("Position already set.", "WorldEdit.Selector"),
     SELECTOR_SET_DEFAULT("Your default region selector is now %s0.", "WorldEdit.Selector"),
