@@ -126,6 +126,7 @@ public class SchematicCommands extends MethodCommands {
         } else {
             new ClipboardRemapper(ClipboardRemapper.RemapPlatform.PE, ClipboardRemapper.RemapPlatform.PC).apply(clipboard);
         }
+        player.print(BBC.getPrefix() + "Remapped schematic");
     }
 
     @Command(aliases = {"load"}, usage = "[<format>] <filename>", desc = "Load a schematic into your clipboard")
