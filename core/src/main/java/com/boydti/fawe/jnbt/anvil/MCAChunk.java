@@ -530,6 +530,35 @@ public class MCAChunk extends FaweChunk<Void> {
         streamer.readFully();
     }
 
+    public void filterBlocks(MutableMCABackedBaseBlock mutableBlock, MCAFilter filter) {
+        mutableBlock.setChunk(this);
+        int bx = getX() << 4;
+        int bz = getZ() << 4;
+        int tx = bx + 15;
+        int tz = bz + 15;
+        for (int layer = 0; layer < ids.length; layer++) {
+            if (doesSectionExist(layer)) {
+                mutableBlock.setArrays(layer);
+                int yStart = layer << 4;
+                int yEnd = yStart + 15;
+                for (int y = yStart, y0 = (yStart & 15); y <= yEnd; y++, y0++) {
+                    int yIndex = ((y0) << 8);
+                    mutableBlock.setY(y);
+                    for (int z = bz, z0 = bz & 15; z <= tz; z++, z0++) {
+                        int zIndex = yIndex + ((z0) << 4);
+                        mutableBlock.setZ(z);
+                        for (int x = bx, x0 = bx & 15; x <= tx; x++, x0++) {
+                            int xIndex = zIndex + x0;
+                            mutableBlock.setX(x);
+                            mutableBlock.setIndex(xIndex);
+                            filter.applyBlock(x, y, z, mutableBlock, null);
+                        }
+                    }
+                }
+            }
+        }
+    }
+
     public int[] getHeightMapArray() {
         return heightMap;
     }

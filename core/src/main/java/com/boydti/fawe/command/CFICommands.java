@@ -19,7 +19,9 @@ import com.intellectualcrafters.plot.PS;
 import com.intellectualcrafters.plot.commands.Auto;
 import com.intellectualcrafters.plot.config.C;
 import com.intellectualcrafters.plot.config.Settings;
+import com.intellectualcrafters.plot.database.DBFunc;
 import com.intellectualcrafters.plot.object.Plot;
+import com.intellectualcrafters.plot.object.PlotArea;
 import com.intellectualcrafters.plot.object.PlotId;
 import com.intellectualcrafters.plot.object.PlotPlayer;
 import com.intellectualcrafters.plot.object.worlds.PlotAreaManager;
@@ -139,6 +141,23 @@ public class CFICommands extends MethodCommands {
         fp.sendMessage(BBC.getPrefix() + "Cancelled!");
     }
 
+    @Deprecated
+    public static void autoClaimFromDatabase(PlotPlayer player, PlotArea area, PlotId start, com.intellectualcrafters.plot.object.RunnableVal<Plot> whenDone) {
+        final Plot plot = area.getNextFreePlot(player, start);
+        if (plot == null) {
+            whenDone.run(null);
+            return;
+        }
+        whenDone.value = plot;
+        plot.owner = player.getUUID();
+        DBFunc.createPlotSafe(plot, whenDone, new Runnable() {
+            @Override
+            public void run() {
+                autoClaimFromDatabase(player, area, plot.getId(), whenDone);
+            }
+        });
+    }
+
     @Command(
             aliases = {"done", "create"},
             usage = "",
@@ -164,6 +183,7 @@ public class CFICommands extends MethodCommands {
                         C.CANT_CLAIM_MORE_PLOTS_NUM.send(player, -diff);
                         return;
                     }
+
                     if (area.getMeta("lastPlot") == null) {
                         area.setMeta("lastPlot", new PlotId(0, 0));
                     }

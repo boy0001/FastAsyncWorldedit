@@ -11,8 +11,6 @@ import com.boydti.fawe.installer.MinimizeButton;
 import com.boydti.fawe.installer.MovablePanel;
 import com.boydti.fawe.installer.TextAreaOutputStream;
 import com.boydti.fawe.installer.URLButton;
-import com.boydti.fawe.jnbt.anvil.MCAFilter;
-import com.boydti.fawe.jnbt.anvil.MCAQueue;
 import com.boydti.fawe.util.MainUtil;
 import com.boydti.fawe.wrappers.FakePlayer;
 import java.awt.BorderLayout;
@@ -88,7 +86,7 @@ public class ConverterFrame extends JFrame {
             JPanel topBarCenter = new InvisiblePanel();
             JPanel topBarRight = new InvisiblePanel();
 
-            JLabel title = new JLabel("(FAWE) Anvil to LevelDB converter");
+            JLabel title = new JLabel("(FAWE) Anvil and LevelDB converter");
             title.setHorizontalAlignment(SwingConstants.CENTER);
             title.setAlignmentX(Component.RIGHT_ALIGNMENT);
             title.setForeground(Color.LIGHT_GRAY);
@@ -345,32 +343,9 @@ public class ConverterFrame extends JFrame {
                     MainUtil.loadURLClasspath(leveldb.toURL());
 
                     File newWorldFile = new File(output, dirMc.getName());
-                    try (MCAFile2LevelDB converter = new MCAFile2LevelDB(newWorldFile)) {
-                        debug("Starting world conversion");
 
-                        MCAFilter filter = converter.toFilter();
-                        MCAQueue queue = new MCAQueue(null, new File(dirMc, "region"), true);
-                        MCAFilter result = queue.filterWorld(filter);
-
-                        File levelDat = new File(dirMc, "level.dat");
-                        if (levelDat.exists()) {
-                            converter.copyLevelDat(levelDat);
-                        }
-                        converter.close();
-                        prompt(
-                                "Conversion complete!\n" +
-                                " - The world save is still being compacted, but you can close the program anytime\n" +
-                                " - There will be another prompt when this finishes\n" +
-                                "\n" +
-                                "What is not converted?\n" +
-                                " - Inventory is not copied\n" +
-                                " - Some block nbt may not copy\n" +
-                                " - Any custom generator settings may not work\n" +
-                                " - May not match up with new terrain"
-                        );
-                        converter.compact();
-                        prompt("Compaction complete!");
-                    }
+                    MapConverter converter = MapConverter.get(dirMc, newWorldFile);
+                    converter.accept(ConverterFrame.this);
                 } catch (Throwable e) {
                     e.printStackTrace();
                     prompt("[ERROR] Conversion failed, you will have to do it manually (Nukkit server + anvil2leveldb command)");

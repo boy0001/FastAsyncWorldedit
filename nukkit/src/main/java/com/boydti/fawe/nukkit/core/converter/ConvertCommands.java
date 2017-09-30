@@ -41,7 +41,7 @@ public class ConvertCommands extends MethodCommands {
         RemapFilter filter = new RemapFilter(ClipboardRemapper.RemapPlatform.PC, ClipboardRemapper.RemapPlatform.PE);
 
         FaweQueue defaultQueue = SetQueue.IMP.getNewQueue(folder, true, false);
-        try (MCAFile2LevelDB converter = new MCAFile2LevelDB(defaultQueue.getSaveFolder().getParentFile())) {
+        try (MCAFile2LevelDB converter = new MCAFile2LevelDB(null, defaultQueue.getSaveFolder().getParentFile())) {
 
             DelegateMCAFilter<MutableLong> delegate = new DelegateMCAFilter<MutableLong>(filter) {
                 @Override

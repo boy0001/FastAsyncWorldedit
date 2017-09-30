@@ -48,7 +48,7 @@ public class RemapFilter extends MCAFilterCounter {
     @Override
     public void applyBlock(int x, int y, int z, BaseBlock block, MutableLong cache) {
         int id = block.getId();
-        if (remapper.hasRemap(block.getId())) {
+        if (remapper.hasRemap(id)) {
             BaseBlock result = remapper.remap(block);
             if (result != block) {
                 cache.add(1);
@@ -63,71 +63,74 @@ public class RemapFilter extends MCAFilterCounter {
                 block.setData(result.getData());
             }
         }
-        outer:
-        switch (from) {
-            case PC: {
-                int newLight = 0;
-                switch (id) {
-                    case 29:
-                    case 33:
-                        Map<String, Object> map = new HashMap<>();
-                        map.put("Progress", 0f);
-                        map.put("State", (byte) 0);
-                        map.put("LastProgress", 0f);
-                        map.put("NewState", (byte) 0);
-                        map.put("isMoveable", (byte) 1);
-                        map.put("id", "PistonArm");
-                        map.put("AttachedBlocks", new ArrayList<>());
-                        map.put("Sticky", (byte) (id == 29 ? 1 : 0));
-                        map.put("x", x);
-                        map.put("y", y);
-                        map.put("z", z);
-                        block.setNbtData(FaweCache.asTag(map));
-                        break;
-                    case 44:
-                    case 182:
-                    case 158:
-                    case 53:
-                    case 67:
-                    case 108:
-                    case 109:
-                    case 114:
-                    case 128:
-                    case 134:
-                    case 135:
-                    case 136:
-                    case 156:
-                    case 163:
-                    case 164:
-                    case 180:
-                    case 203:
-                    case 198:
-                        MutableMCABackedBaseBlock mcaBlock = (MutableMCABackedBaseBlock) block;
-                        MCAChunk chunk = mcaBlock.getChunk();
-                        int currentLight = chunk.getSkyLight(x, y, z);
-                        if (currentLight >= 14) {
+        if (from != null) {
+            outer:
+            switch (from) {
+                case PC: {
+                    int newLight = 0;
+                    switch (id) {
+                        case 29:
+                        case 33:
+                            Map<String, Object> map = new HashMap<>();
+                            map.put("Progress", 0f);
+                            map.put("State", (byte) 0);
+                            map.put("LastProgress", 0f);
+                            map.put("NewState", (byte) 0);
+                            map.put("isMoveable", (byte) 1);
+                            map.put("id", "PistonArm");
+                            map.put("AttachedBlocks", new ArrayList<>());
+                            map.put("Sticky", (byte) (id == 29 ? 1 : 0));
+                            map.put("x", x);
+                            map.put("y", y);
+                            map.put("z", z);
+                            block.setNbtData(FaweCache.asTag(map));
                             break;
-                        }
-                        newLight = chunk.getSkyLight(x, (y + 1) & 0xFF, z);
-                        if (newLight > currentLight) break;
-                        if (x > 0) {
-                            if ((newLight = chunk.getSkyLight(x - 1, y, z)) > currentLight) break;
-                        }
-                        if (x < 16) {
-                            if ((newLight = chunk.getSkyLight(x + 1, y, z)) > currentLight) break;
-                        }
-                        if (z > 0) {
-                            if ((newLight = chunk.getSkyLight(x, y, z - 1)) > currentLight) break;
-                        }
-                        if (z < 16) {
-                            if ((newLight = chunk.getSkyLight(x, y, z + 1)) > currentLight) break;
-                        }
-                    default: break outer;
+                        case 44:
+                        case 182:
+                        case 158:
+                        case 53:
+                        case 67:
+                        case 108:
+                        case 109:
+                        case 114:
+                        case 128:
+                        case 134:
+                        case 135:
+                        case 136:
+                        case 156:
+                        case 163:
+                        case 164:
+                        case 180:
+                        case 203:
+                        case 198:
+                            MutableMCABackedBaseBlock mcaBlock = (MutableMCABackedBaseBlock) block;
+                            MCAChunk chunk = mcaBlock.getChunk();
+                            int currentLight = chunk.getSkyLight(x, y, z);
+                            if (currentLight >= 14) {
+                                break;
+                            }
+                            newLight = chunk.getSkyLight(x, (y + 1) & 0xFF, z);
+                            if (newLight > currentLight) break;
+                            if (x > 0) {
+                                if ((newLight = chunk.getSkyLight(x - 1, y, z)) > currentLight) break;
+                            }
+                            if (x < 16) {
+                                if ((newLight = chunk.getSkyLight(x + 1, y, z)) > currentLight) break;
+                            }
+                            if (z > 0) {
+                                if ((newLight = chunk.getSkyLight(x, y, z - 1)) > currentLight) break;
+                            }
+                            if (z < 16) {
+                                if ((newLight = chunk.getSkyLight(x, y, z + 1)) > currentLight) break;
+                            }
+                        default:
+                            break outer;
+                    }
+                    if (newLight != 0) {
+                        ((MutableMCABackedBaseBlock) block).getChunk().setSkyLight(x, y, z, newLight);
+                    }
+                    break;
                 }
-                if (newLight != 0) {
-                    ((MutableMCABackedBaseBlock) block).getChunk().setSkyLight(x, y, z, newLight);
-                }
-                break;
             }
         }
     }

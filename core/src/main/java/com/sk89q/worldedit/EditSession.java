@@ -316,8 +316,12 @@ public class EditSession extends AbstractWorld implements HasFaweQueue, Lighting
             if (this.limit.SPEED_REDUCTION > 0) {
                 this.bypassHistory = new SlowExtent(this.bypassHistory, this.limit.SPEED_REDUCTION);
             }
+            if (changeSet instanceof NullChangeSet && Fawe.imp().getBlocksHubApi() != null && player != null) {
+                changeSet = LoggingChangeSet.wrap(player, changeSet);
+            }
+            System.out.println("Changeset " + changeSet);
             if (!(changeSet instanceof NullChangeSet)) {
-                if (player != null && Fawe.imp().getBlocksHubApi() != null) {
+                if (!(changeSet instanceof LoggingChangeSet) && player != null && Fawe.imp().getBlocksHubApi() != null) {
                     changeSet = LoggingChangeSet.wrap(player, changeSet);
                 }
                 if (this.blockBag != null) {
@@ -1267,6 +1271,15 @@ public class EditSession extends AbstractWorld implements HasFaweQueue, Lighting
         Operations.completeBlindly(ChangeSetExecutor.create(changeSet, context, ChangeSetExecutor.Type.UNDO, editSession.getBlockBag(), editSession.getLimit().INVENTORY_MODE));
         flushQueue();
         editSession.changes = 1;
+    }
+
+    public void setBlocks(ChangeSet changeSet, ChangeSetExecutor.Type type) {
+        final UndoContext context = new UndoContext();
+        Extent bypass = (history == null) ? bypassAll : history;
+        context.setExtent(bypass);
+        Operations.completeBlindly(ChangeSetExecutor.create(changeSet, context, type, getBlockBag(), getLimit().INVENTORY_MODE));
+        flushQueue();
+        changes = 1;
     }
 
     /**

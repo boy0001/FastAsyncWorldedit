@@ -5,6 +5,7 @@ import com.boydti.fawe.config.BBC;
 import com.boydti.fawe.jnbt.anvil.MCAChunk;
 import com.boydti.fawe.jnbt.anvil.MCAFile;
 import com.boydti.fawe.jnbt.anvil.MCAFilter;
+import com.boydti.fawe.jnbt.anvil.MCAQueue;
 import com.boydti.fawe.jnbt.anvil.filters.DelegateMCAFilter;
 import com.boydti.fawe.jnbt.anvil.filters.RemapFilter;
 import com.boydti.fawe.object.RunnableVal;
@@ -26,7 +27,6 @@ import com.sk89q.jnbt.StringTag;
 import com.sk89q.worldedit.blocks.BaseBlock;
 import com.sk89q.worldedit.world.registry.BundledBlockData;
 import java.io.ByteArrayOutputStream;
-import java.io.Closeable;
 import java.io.DataOutput;
 import java.io.File;
 import java.io.FileInputStream;
@@ -49,7 +49,7 @@ import org.iq80.leveldb.DB;
 import org.iq80.leveldb.Options;
 import org.iq80.leveldb.impl.Iq80DBFactory;
 
-public class MCAFile2LevelDB implements Closeable {
+public class MCAFile2LevelDB extends MapConverter {
 
     private final ByteStore bufFinalizedState = new ByteStore(4);
     private final ByteStore keyStore9 = new ByteStore(9);
@@ -63,26 +63,25 @@ public class MCAFile2LevelDB implements Closeable {
     private final DB db;
     private final ClipboardRemapper remapper;
     private final ForkJoinPool pool;
-    private final File folder;
     private boolean closed;
     private LongAdder submitted = new LongAdder();
 
     private boolean remap;
 
-    public MCAFile2LevelDB(File folder) {
+    public MCAFile2LevelDB(File folderFrom, File folderTo) {
+        super(folderFrom, folderTo);
         try {
-            this.folder = folder;
-            if (!folder.exists()) {
-                folder.mkdirs();
+            if (!folderTo.exists()) {
+                folderTo.mkdirs();
             }
-            String worldName = folder.getName();
-            try (PrintStream out = new PrintStream(new FileOutputStream(new File(folder, "levelname.txt")))) {
+            String worldName = folderTo.getName();
+            try (PrintStream out = new PrintStream(new FileOutputStream(new File(folderTo, "levelname.txt")))) {
                 out.print(worldName);
             }
             this.pool = new ForkJoinPool();
             this.remapper = new ClipboardRemapper(ClipboardRemapper.RemapPlatform.PC, ClipboardRemapper.RemapPlatform.PE);
             BundledBlockData.getInstance().loadFromResource();
-            this.db = Iq80DBFactory.factory.open(new File(folder, "db"),
+            this.db = Iq80DBFactory.factory.open(new File(folderTo, "db"),
                     new Options()
                             .createIfMissing(true)
                             .verifyChecksums(false)
@@ -116,6 +115,37 @@ public class MCAFile2LevelDB implements Closeable {
         return delegate;
     }
 
+
+    @Override
+    public void accept(ConverterFrame app) {
+        MCAFilter filter = toFilter();
+        MCAQueue queue = new MCAQueue(null, new File(folderFrom, "region"), true);
+        MCAFilter result = queue.filterWorld(filter);
+
+        File levelDat = new File(folderFrom, "level.dat");
+        if (levelDat.exists()) {
+            try {
+                copyLevelDat(levelDat);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+        close();
+        app.prompt(
+                "Conversion complete!\n" +
+                        " - The world save is still being compacted, but you can close the program anytime\n" +
+                        " - There will be another prompt when this finishes\n" +
+                        "\n" +
+                        "What is not converted?\n" +
+                        " - Inventory is not copied\n" +
+                        " - Some block nbt may not copy\n" +
+                        " - Any custom generator settings may not work\n" +
+                        " - May not match up with new terrain"
+        );
+        compact();
+        app.prompt("Compaction complete!");
+    }
+
     @Override
     public void close() {
         try {
@@ -133,7 +163,7 @@ public class MCAFile2LevelDB implements Closeable {
 
     public void compact() {
         // Since the library doesn't support it, only way to flush the cache is to loop over everything
-        try (DB newDb = Iq80DBFactory.factory.open(new File(folder, "db"), new Options()
+        try (DB newDb = Iq80DBFactory.factory.open(new File(folderTo, "db"), new Options()
                 .verifyChecksums(false)
                 .blockSize(262144) // 256K
                 .cacheSize(8388608) // 8MB
@@ -147,7 +177,7 @@ public class MCAFile2LevelDB implements Closeable {
     }
 
     public void copyLevelDat(File in) throws IOException {
-        File levelDat = new File(folder, "level.dat");
+        File levelDat = new File(folderTo, "level.dat");
         try (NBTInputStream nis = new NBTInputStream(new GZIPInputStream(new FileInputStream(in)))) {
             if (!levelDat.exists()) {
                 levelDat.createNewFile();
@@ -175,7 +205,7 @@ public class MCAFile2LevelDB implements Closeable {
                         map.put(key, new ByteTag((byte) (value.equals("true") ? 1 : 0)));
                     }
                 }
-                map.put("LevelName", new StringTag(folder.getName()));
+                map.put("LevelName", new StringTag(folderTo.getName()));
                 map.put("StorageVersion", new IntTag(5));
                 Byte difficulty = tag.getByte("Difficulty");
                 map.put("Difficulty", new IntTag(difficulty == null ? 2 : difficulty));
@@ -300,7 +330,6 @@ public class MCAFile2LevelDB implements Closeable {
     }
 
     private void copySection(byte[] src, byte[] dest, int destPos) {
-        int len = src.length;
         switch (src.length) {
             case 4096: {
                 int index = 0;
@@ -355,41 +384,7 @@ public class MCAFile2LevelDB implements Closeable {
                 break;
             }
             default:
-                System.arraycopy(src, 0, dest, destPos, len);
-        }
-    }
-
-    private enum Tag {
-        Data2D(45),
-        @Deprecated Data2DLegacy(46),
-        SubChunkPrefix(47),
-        @Deprecated LegacyTerrain(48),
-        BlockEntity(49),
-        Entity(50),
-        PendingTicks(51),
-        BlockExtraData(52),
-        BiomeState(53),
-        FinalizedState(54),
-        Version(118),
-
-        ;
-        public final byte value;
-
-        Tag(int value) {
-            this.value = (byte) value;
-        }
-
-        public byte[] fill(int chunkX, int chunkZ, byte[] key) {
-            key[0] = (byte) (chunkX & 255);
-            key[1] = (byte) (chunkX >>> 8 & 255);
-            key[2] = (byte) (chunkX >>> 16 & 255);
-            key[3] = (byte) (chunkX >>> 24 & 255);
-            key[4] = (byte) (chunkZ & 255);
-            key[5] = (byte) (chunkZ >>> 8 & 255);
-            key[6] = (byte) (chunkZ >>> 16 & 255);
-            key[7] = (byte) (chunkZ >>> 24 & 255);
-            key[8] = value;
-            return key;
+                System.arraycopy(src, 0, dest, destPos, src.length);
         }
     }
 

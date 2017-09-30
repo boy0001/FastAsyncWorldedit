@@ -10,6 +10,7 @@ import com.sk89q.worldedit.regions.Region;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
+import static com.boydti.fawe.FaweCache.getBlock;
 
 public class ClipboardRemapper {
     public enum RemapPlatform {
@@ -65,6 +66,11 @@ public class ClipboardRemapper {
             mapPEtoPC.put(new BaseBlock(peId,5), new BaseBlock(pcId,3));
         }
 
+        for (int id : new int[] {29, 33}) {
+            addBoth(getBlock(id, 3), getBlock(id, 4));
+            addBoth(getBlock(id, 10), getBlock(id, 11));
+        }
+
         mapPEtoPC.put(new BaseBlock(236,-1), new BaseBlock(251,-1));
         mapPEtoPC.put(new BaseBlock(237,-1), new BaseBlock(252,-1));
         mapPEtoPC.put(new BaseBlock(240,-1), new BaseBlock(199,-1));
@@ -114,6 +120,7 @@ public class ClipboardRemapper {
         for (int data = 4; data < 8; data++)  mapPEtoPC.put(new BaseBlock(18,data + 8), new BaseBlock(161,data));
 
         for (int id : new int[] {96, 167}) { // trapdoor
+            for (int data = 0; data < 4; data++) mapPEtoPC.put(new BaseBlock(id, data), new BaseBlock(id, 3 - data));
             for (int data = 4; data < 12; data++) mapPEtoPC.put(new BaseBlock(id, data), new BaseBlock(id, 15 - data));
             for (int data = 12; data < 15; data++) mapPEtoPC.put(new BaseBlock(id, data), new BaseBlock(id, 27 - data));
         }
@@ -135,6 +142,11 @@ public class ClipboardRemapper {
                 add(to, from);
             }
         }
+    }
+
+    public void addBoth(BaseBlock from, BaseBlock to) {
+        add(from, to);
+        add(to, from);
     }
 
     public void apply(Clipboard clipboard) throws WorldEditException {
@@ -213,8 +225,6 @@ public class ClipboardRemapper {
             }
         }
     }
-
-
 
     public BaseBlock remap(BaseBlock block) {
         int combined = block.getCombined();

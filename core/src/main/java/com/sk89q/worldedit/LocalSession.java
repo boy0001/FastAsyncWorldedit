@@ -52,6 +52,7 @@ import com.sk89q.worldedit.extension.platform.Actor;
 import com.sk89q.worldedit.extent.inventory.BlockBag;
 import com.sk89q.worldedit.function.mask.Mask;
 import com.sk89q.worldedit.function.mask.Masks;
+import com.sk89q.worldedit.function.operation.ChangeSetExecutor;
 import com.sk89q.worldedit.history.changeset.ChangeSet;
 import com.sk89q.worldedit.internal.cui.CUIEvent;
 import com.sk89q.worldedit.internal.cui.CUIRegion;
@@ -516,13 +517,13 @@ public class LocalSession {
             EditSession newEditSession = new EditSessionBuilder(changeSet.getWorld())
                     .allowedRegionsEverywhere()
                     .checkMemory(false)
-                    .changeSet(changeSet)
+                    .changeSetNull()
                     .fastmode(false)
                     .limitUnprocessed(fp)
                     .player(fp)
                     .blockBag(getBlockBag(player))
                     .build();
-            newEditSession.undo(newEditSession);
+            newEditSession.setBlocks(changeSet, ChangeSetExecutor.Type.UNDO);
             setDirty();
             historyNegativeIndex++;
             return newEditSession;
@@ -565,13 +566,13 @@ public class LocalSession {
             EditSession newEditSession = new EditSessionBuilder(changeSet.getWorld())
                     .allowedRegionsEverywhere()
                     .checkMemory(false)
-                    .changeSet(changeSet)
+                    .changeSetNull()
                     .fastmode(false)
                     .limitUnprocessed(fp)
                     .player(fp)
                     .blockBag(getBlockBag(player))
                     .build();
-            newEditSession.redo(newEditSession);
+            newEditSession.setBlocks(changeSet, ChangeSetExecutor.Type.REDO);
             return newEditSession;
         }
         return null;

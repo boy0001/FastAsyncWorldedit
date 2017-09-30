@@ -737,7 +737,6 @@ public class FaweCache {
         return map;
     }
 
-
     public static ShortTag asTag(short value) {
         return new ShortTag(value);
     }
