@@ -329,7 +329,7 @@ public class ConverterFrame extends JFrame {
                     if (!leveldb.exists()) {
                         File tempFile = File.createTempFile("leveldb.jar", ".tmp");
                         tempFile.deleteOnExit();
-                        String download = "https://github.com/Nukkit/Nukkit/raw/master/lib/leveldb.jar";
+                        String download = "https://github.com/boy0001/FastAsyncWorldedit/raw/master/nukkit/lib/leveldb.jar";
                         debug("Downloading: " + download);
                         URL url = new URL(download);
                         try (InputStream is = url.openStream()) {
