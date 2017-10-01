@@ -6,6 +6,7 @@ import com.boydti.fawe.jnbt.NBTStreamer;
 import com.boydti.fawe.object.clipboard.FaweClipboard;
 import com.boydti.fawe.object.clipboard.WorldCopyClipboard;
 import com.boydti.fawe.object.io.FastByteArrayOutputStream;
+import com.boydti.fawe.object.io.PGZIPOutputStream;
 import com.boydti.fawe.util.ReflectionUtils;
 import com.google.common.io.ByteStreams;
 import com.sk89q.jnbt.ByteArrayTag;
@@ -167,9 +168,9 @@ public class SchematicWriter implements ClipboardWriter {
                     FastByteArrayOutputStream datas = new FastByteArrayOutputStream();
                     FastByteArrayOutputStream add = new FastByteArrayOutputStream();
 
-                    OutputStream idsOut = ids;//new PGZIPOutputStream(ids);
-                    OutputStream dataOut = datas;//new PGZIPOutputStream(datas);
-                    OutputStream addOut = add;//new PGZIPOutputStream(add);
+                    OutputStream idsOut = new PGZIPOutputStream(ids);
+                    OutputStream dataOut = new PGZIPOutputStream(datas);
+                    OutputStream addOut = new PGZIPOutputStream(add);
 
                     byte[] addAcc = new byte[1];
 
