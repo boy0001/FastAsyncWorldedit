@@ -87,10 +87,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
 import java.util.UUID;
-import java.util.concurrent.Callable;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.TimeUnit;
+import java.util.concurrent.*;
 import java.util.stream.Collectors;
 
 
@@ -552,21 +549,30 @@ public class UtilityCommands extends MethodCommands {
         try {
             FaweLimit limit = FawePlayer.wrap(actor).getLimit();
             final Expression expression = Expression.compile(input);
-            double[] result = new double[] { Double.NaN };
+
             ExecutorService executor = Executors.newSingleThreadExecutor();
+            Future<Double> futureResult = executor.submit(new Callable<Double>() {
+                @Override
+                public Double call() throws Exception {
+
+                    return expression.evaluate();
+                }
+            });
+
+            Double result = Double.NaN;
             try {
-                executor.invokeAll(Arrays.asList(new Callable<Object>() {
-                    @Override
-                    public Object call() throws Exception {
-                        result[0] =  expression.evaluate();
-                        return null;
-                    }
-                }), limit.MAX_EXPRESSION_MS, TimeUnit.MILLISECONDS); // Default timeout of 50 milliseconds to prevent abuse.
+                result = futureResult.get(limit.MAX_EXPRESSION_MS, TimeUnit.MILLISECONDS);
             } catch (InterruptedException e) {
-                throw new RuntimeException(e);
+                e.printStackTrace();
+            } catch (ExecutionException e) {
+                e.printStackTrace();
+            } catch (TimeoutException e) {
+                futureResult.cancel(true);
+                e.printStackTrace();
             }
-            executor.shutdown();
-            actor.print(BBC.getPrefix() + "= " + result[0]);
+
+            executor.shutdownNow();
+            actor.print(BBC.getPrefix() + "= " + result);
         } catch (EvaluationException e) {
             actor.printError(String.format(
                     "'%s' could not be parsed as a valid expression", input));

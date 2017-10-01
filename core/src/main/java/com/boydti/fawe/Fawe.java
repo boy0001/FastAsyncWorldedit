@@ -116,6 +116,7 @@ import com.sk89q.worldedit.internal.LocalWorldAdapter;
 import com.sk89q.worldedit.internal.command.WorldEditBinding;
 import com.sk89q.worldedit.internal.expression.Expression;
 import com.sk89q.worldedit.internal.expression.runtime.ExpressionEnvironment;
+import com.sk89q.worldedit.internal.expression.runtime.For;
 import com.sk89q.worldedit.internal.expression.runtime.Functions;
 import com.sk89q.worldedit.math.convolution.HeightMap;
 import com.sk89q.worldedit.math.interpolation.KochanekBartelsInterpolation;
@@ -645,6 +646,7 @@ public class Fawe {
             WorldEditExpressionEnvironment.inject(); // Optimizations + features
             Expression.inject(); // Optimizations
             Functions.inject(); // Optimizations
+            For.inject(); // Fixes
             // BlockData
             BlockData.inject(); // Temporary fix for 1.9.4
             BundledBlockData.inject(); // Add custom rotation
