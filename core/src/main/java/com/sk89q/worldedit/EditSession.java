@@ -319,7 +319,6 @@ public class EditSession extends AbstractWorld implements HasFaweQueue, Lighting
             if (changeSet instanceof NullChangeSet && Fawe.imp().getBlocksHubApi() != null && player != null) {
                 changeSet = LoggingChangeSet.wrap(player, changeSet);
             }
-            System.out.println("Changeset " + changeSet);
             if (!(changeSet instanceof NullChangeSet)) {
                 if (!(changeSet instanceof LoggingChangeSet) && player != null && Fawe.imp().getBlocksHubApi() != null) {
                     changeSet = LoggingChangeSet.wrap(player, changeSet);
