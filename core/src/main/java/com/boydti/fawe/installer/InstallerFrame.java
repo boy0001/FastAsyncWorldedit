@@ -100,7 +100,7 @@ public class InstallerFrame extends JFrame {
             text.setBackground(DARKER_GRAY);
             text.setOpaque(true);
             text.setBorder(new EmptyBorder(4, 4, 4, 4));
-            browse = new BrowseButton() {
+            browse = new BrowseButton("") {
                 @Override
                 public void onSelect(File folder) {
                     text.setText(folder.getPath());

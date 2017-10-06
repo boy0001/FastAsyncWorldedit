@@ -24,14 +24,9 @@ import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
 import java.awt.image.BufferedImage;
 import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
-import java.nio.channels.Channels;
-import java.nio.channels.ReadableByteChannel;
-import java.nio.file.Files;
-import java.nio.file.StandardCopyOption;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.Map;
@@ -115,13 +110,17 @@ public class ConverterFrame extends JFrame {
         final JPanel mainContent = new InvisiblePanel(new BorderLayout());
         {
             File world = MainUtil.getWorkingDirectory("minecraft");
+            long lastMod = Long.MIN_VALUE;
             if (world != null && world.exists()) {
                 File saves = new File(world, "saves");
                 if (saves.exists()) {
                     for (File file : saves.listFiles()) {
                         if (file.isDirectory()) {
-                            world = file;
-                            break;
+                            long modified = file.lastModified();
+                            if (modified > lastMod) {
+                                world = file;
+                                lastMod = modified;
+                            }
                         }
                     }
                 }
@@ -130,7 +129,7 @@ public class ConverterFrame extends JFrame {
             final InteractiveButton browseLoadText = new InteractiveButton(world.getPath(), DARKER_GRAY) {
                 @Override
                 public void actionPerformed(ActionEvent e) {
-                    browseLoad.browse(new File(getText()));
+                    browseLoad.browse(new File(getText()).getParentFile());
                 }
             };
             final InteractiveButton browseSaveText = new InteractiveButton(getDefaultOutput().getPath(), DARKER_GRAY) {
@@ -145,14 +144,14 @@ public class ConverterFrame extends JFrame {
                 button.setOpaque(true);
                 button.setBorder(new EmptyBorder(4, 4, 4, 4));
             }
-            browseLoad = new BrowseButton() {
+            browseLoad = new BrowseButton("_FROM") {
                 @Override
                 public void onSelect(File folder) {
                     browseLoadText.setText(folder.getPath());
                     movable.repaint();
                 }
             };
-            browseSave = new BrowseButton() {
+            browseSave = new BrowseButton("_TO") {
                 @Override
                 public void onSelect(File folder) {
                     browseSaveText.setText(folder.getPath());
@@ -325,21 +324,20 @@ public class ConverterFrame extends JFrame {
                 FakePlayer console = FakePlayer.getConsole();
                 try {
                     debug("Loading leveldb.jar");
-                    File leveldb = new File("leveldb.jar");
-                    if (!leveldb.exists()) {
-                        File tempFile = File.createTempFile("leveldb.jar", ".tmp");
-                        tempFile.deleteOnExit();
-                        String download = "https://github.com/boy0001/FastAsyncWorldedit/raw/master/nukkit/lib/leveldb.jar";
-                        debug("Downloading: " + download);
-                        URL url = new URL(download);
-                        try (InputStream is = url.openStream()) {
-                            ReadableByteChannel rbc = Channels.newChannel(is);
-                            FileOutputStream fos = new FileOutputStream(tempFile);
-                            fos.getChannel().transferFrom(rbc, 0, Long.MAX_VALUE);
-                        }
-                        Files.copy(tempFile.toPath(), leveldb.toPath(), StandardCopyOption.REPLACE_EXISTING);
-                        tempFile.delete();
-                    }
+
+                    File lib = new File("lib");
+                    File leveldb = new File(lib, "leveldb.jar");
+//                    File blocksPE = new File(lib, "blocks-pe.json");
+//                    File blocksPC = new File(lib, "blocks-pc.json");
+
+                    URL levelDbUrl = new URL("https://git.io/vdZ9e");
+//                    URL urlPE = new URL("https://git.io/vdZSj");
+//                    URL urlPC = new URL("https://git.io/vdZSx");
+
+                    MainUtil.download(levelDbUrl, leveldb);
+//                    MainUtil.download(urlPE, blocksPC);
+//                    MainUtil.download(urlPC, blocksPE);
+
                     MainUtil.loadURLClasspath(leveldb.toURL());
 
                     File newWorldFile = new File(output, dirMc.getName());

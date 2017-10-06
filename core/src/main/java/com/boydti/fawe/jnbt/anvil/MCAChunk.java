@@ -6,6 +6,7 @@ import com.boydti.fawe.object.FaweChunk;
 import com.boydti.fawe.object.FaweQueue;
 import com.boydti.fawe.object.RunnableVal2;
 import com.boydti.fawe.object.io.FastByteArrayOutputStream;
+import com.boydti.fawe.object.number.MutableLong;
 import com.boydti.fawe.util.ArrayUtil;
 import com.boydti.fawe.util.MainUtil;
 import com.boydti.fawe.util.MathMan;
@@ -530,7 +531,8 @@ public class MCAChunk extends FaweChunk<Void> {
         streamer.readFully();
     }
 
-    public void filterBlocks(MutableMCABackedBaseBlock mutableBlock, MCAFilter filter) {
+    public long filterBlocks(MutableMCABackedBaseBlock mutableBlock, MCAFilter filter) {
+        MutableLong result = new MutableLong();
         mutableBlock.setChunk(this);
         int bx = getX() << 4;
         int bz = getZ() << 4;
@@ -551,12 +553,13 @@ public class MCAChunk extends FaweChunk<Void> {
                             int xIndex = zIndex + x0;
                             mutableBlock.setX(x);
                             mutableBlock.setIndex(xIndex);
-                            filter.applyBlock(x, y, z, mutableBlock, null);
+                            filter.applyBlock(x, y, z, mutableBlock, result);
                         }
                     }
                 }
             }
         }
+        return result.get();
     }
 
     public int[] getHeightMapArray() {

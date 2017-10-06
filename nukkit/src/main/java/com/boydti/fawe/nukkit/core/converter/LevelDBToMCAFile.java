@@ -19,7 +19,7 @@ import com.sk89q.jnbt.NBTInputStream;
 import com.sk89q.jnbt.NBTOutputStream;
 import com.sk89q.jnbt.NamedTag;
 import com.sk89q.jnbt.StringTag;
-import com.sk89q.worldedit.world.registry.BundledBlockData;
+import java.io.ByteArrayInputStream;
 import java.io.DataInput;
 import java.io.File;
 import java.io.FileInputStream;
@@ -27,10 +27,12 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.file.Files;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ForkJoinPool;
 import java.util.concurrent.TimeUnit;
@@ -47,7 +49,7 @@ public class LevelDBToMCAFile extends MapConverter {
     public LevelDBToMCAFile(File from, File to) {
         super(from, to);
         try {
-            BundledBlockData.getInstance().loadFromResource();
+//            BundledBlockData.getInstance().loadFromResource();
             this.pool = new ForkJoinPool();
             this.remapper = new ClipboardRemapper(ClipboardRemapper.RemapPlatform.PE, ClipboardRemapper.RemapPlatform.PC);
             int bufferSize = (int) Math.min(Integer.MAX_VALUE, Math.max((long) (MemUtil.getFreeBytes() * 0.8), 134217728));
@@ -98,7 +100,6 @@ public class LevelDBToMCAFile extends MapConverter {
             File levelDat = new File(folderFrom, "level.dat");
             copyLevelDat(levelDat);
 
-
             // Chunks
             MCAQueue queue = new MCAQueue(worldName, new File(worldOut, "region"), true);
             RemapFilter filter = new RemapFilter(this.remapper);
@@ -117,7 +118,7 @@ public class LevelDBToMCAFile extends MapConverter {
                 MCAChunk chunk = (MCAChunk) queue.getFaweChunk(cx, cz);
 
                 switch (tag) {
-                    case Data2D:
+                    case Data2D: {
                         // height
                         ByteBuffer buffer = ByteBuffer.wrap(value);
                         int[] heightArray = chunk.getHeightMapArray();
@@ -130,7 +131,8 @@ public class LevelDBToMCAFile extends MapConverter {
                             System.arraycopy(value, biomeOffset, chunk.biomes, 0, chunk.biomes.length);
                         }
                         break;
-                    case SubChunkPrefix:
+                    }
+                    case SubChunkPrefix: {
                         int layer = key[9];
                         byte[] ids = getOrCreate(chunk.ids, layer, 4096);
                         byte[] data = getOrCreate(chunk.data, layer, 2048);
@@ -144,15 +146,25 @@ public class LevelDBToMCAFile extends MapConverter {
 
                         chunk.filterBlocks(new MutableMCABackedBaseBlock(), filter);
                         break;
-                    case BlockEntity:
+                    }
+                    case BlockEntity: {
+                        List<NamedTag> tags = read(value);
+                        for (NamedTag nt : tags) {
+                            com.sk89q.jnbt.Tag tile = nt.getTag();
+                        }
                         break;
+                    }
                     case Entity:
+                        List<NamedTag> tags = read(value);
+                        for (NamedTag nt : tags) {
+                            com.sk89q.jnbt.Tag ent = nt.getTag();
+//                            chunk.setEntity((CompoundTag) ent);
+                        }
                         break;
-                    // Ignore
                     case LegacyTerrain:
-                    case BiomeState:
                     case Data2DLegacy:
-                        System.out.println("Legacy terrain not supported, please update.");
+                        Fawe.debug("Legacy terrain not supported, please update. " + tag);
+                    case BiomeState:
                     case FinalizedState:
                     case PendingTicks:
                     case BlockExtraData:
@@ -167,8 +179,22 @@ public class LevelDBToMCAFile extends MapConverter {
             e.printStackTrace();
         } finally {
             close();
-            app.prompt("Compaction complete!");
+            app.prompt("Conversion complete!");
         }
+    }
+
+    private List<NamedTag> read(byte[] data) {
+        ArrayList<NamedTag> list = new ArrayList<>();
+        ByteArrayInputStream baos = new ByteArrayInputStream(data);
+        try (NBTInputStream in = new NBTInputStream((DataInput) new LittleEndianDataInputStream(baos))) {
+            while (baos.available() > 0) {
+                NamedTag nt = in.readNamedTag();
+                list.add(nt);
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return list;
     }
 
     private void copySection(byte[] dest, byte[] src, int srcPos) {
@@ -240,8 +266,14 @@ public class LevelDBToMCAFile extends MapConverter {
     }
 
     public void copyLevelDat(File in) throws IOException {
+        copyLevelDat(this.folderTo, in);
+    }
+
+
+    public static void copyLevelDat(File folderTo, File in) throws IOException {
         File levelDat = new File(folderTo, "level.dat");
         if (!levelDat.exists()) {
+            folderTo.mkdirs();
             levelDat.createNewFile();
         }
         try (LittleEndianDataInputStream ledis = new LittleEndianDataInputStream(new FileInputStream(in))) {
@@ -274,7 +306,9 @@ public class LevelDBToMCAFile extends MapConverter {
                 if (value instanceof ByteTag) {
                     value = new StringTag((Byte) value.getValue() == 1 ? "true" : "false");
                 }
-                ruleTagValue.put(rule.getValue(), value);
+                if (value != null) {
+                    ruleTagValue.put(rule.getValue(), value);
+                }
             }
 
             HashSet<String> allowed = new HashSet<>(Arrays.asList(
@@ -284,7 +318,6 @@ public class LevelDBToMCAFile extends MapConverter {
             while (iterator.hasNext()) {
                 Map.Entry<String, com.sk89q.jnbt.Tag> entry = iterator.next();
                 if (!allowed.contains(entry.getKey())) {
-                    System.out.println("TODO (Unsupported): " + entry.getKey() + " | " + entry.getValue());
                     iterator.remove();
                 }
             }

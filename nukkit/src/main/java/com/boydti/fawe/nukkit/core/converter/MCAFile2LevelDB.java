@@ -17,7 +17,9 @@ import com.boydti.fawe.util.ReflectionUtils;
 import com.boydti.fawe.util.StringMan;
 import com.sk89q.jnbt.ByteTag;
 import com.sk89q.jnbt.CompoundTag;
+import com.sk89q.jnbt.FloatTag;
 import com.sk89q.jnbt.IntTag;
+import com.sk89q.jnbt.ListTag;
 import com.sk89q.jnbt.LongTag;
 import com.sk89q.jnbt.NBTInputStream;
 import com.sk89q.jnbt.NBTOutputStream;
@@ -25,6 +27,7 @@ import com.sk89q.jnbt.NamedTag;
 import com.sk89q.jnbt.ShortTag;
 import com.sk89q.jnbt.StringTag;
 import com.sk89q.worldedit.blocks.BaseBlock;
+import com.sk89q.worldedit.blocks.BlockID;
 import com.sk89q.worldedit.world.registry.BundledBlockData;
 import java.io.ByteArrayOutputStream;
 import java.io.DataOutput;
@@ -55,7 +58,7 @@ public class MCAFile2LevelDB extends MapConverter {
     private final ByteStore keyStore9 = new ByteStore(9);
     private final ByteStore keyStore10 = new ByteStore(10);
     private final ByteStore bufData2D = new ByteStore(512 + 256);
-    private final ByteStore bufSubChunkPrefix = new ByteStore(1 + 4096 + 2058 + 2048 + 2048);
+    private final ByteStore bufSubChunkPrefix = new ByteStore(1 + 4096 + 2048 + 2048 + 2048);
 
     private final byte[] VERSION = new byte[] { 4 };
     private final byte[] COMPLETE_STATE = new byte[] { 2, 0, 0, 0 };
@@ -274,7 +277,7 @@ public class MCAFile2LevelDB extends MapConverter {
                         List<com.sk89q.jnbt.Tag> tiles = new ArrayList<>();
                         for (Map.Entry<Short, CompoundTag> entry : chunk.getTiles().entrySet()) {
                             CompoundTag tag = entry.getValue();
-                            tiles.add(transform(tag));
+                            tiles.add(transform(chunk, tag));
                         }
                         update(getKey(chunk, Tag.BlockEntity), write(tiles));
                     }
@@ -282,7 +285,7 @@ public class MCAFile2LevelDB extends MapConverter {
                     if (!chunk.entities.isEmpty()) {
                         List<com.sk89q.jnbt.Tag> entities = new ArrayList<>();
                         for (com.sk89q.jnbt.CompoundTag tag : chunk.getEntities()) {
-                            entities.add(transform(tag));
+                            entities.add(transform(chunk, tag));
                         }
                         update(getKey(chunk, Tag.Entity), write(entities));
                     }
@@ -399,42 +402,71 @@ public class MCAFile2LevelDB extends MapConverter {
         return baos.toByteArray();
     }
 
-    private String convertId(String input) {
-        input = input.replace("minecraft:", "");
-        StringBuilder result = new StringBuilder();
-        boolean toUpper = false;
-        for (int i = 0; i < input.length(); i++) {
-            char c = input.charAt(i);
-            if (i == 0) toUpper = true;
-            if (c == '_') {
-                toUpper = true;
-            } else {
-                result.append(toUpper ? Character.toUpperCase(c) : c);
-                toUpper = false;
+    private CompoundTag transformItem(CompoundTag item) {
+        String itemId = item.getString("id");
+        short damage = item.getShort("Damage");
+        BaseBlock remapped = remapper.remapItem(itemId, damage);
+        Map<String, com.sk89q.jnbt.Tag> map = ReflectionUtils.getMap(item.getValue());
+        map.put("id", new ShortTag((short) remapped.getId()));
+        map.put("Damage", new ShortTag((short) remapped.getData()));
+
+        CompoundTag tag = (CompoundTag) item.getValue().get("tag");
+        if (tag != null) {
+            List<CompoundTag> enchants = (List) tag.getList("ench");
+            if (enchants != null) {
+                for (CompoundTag ench : enchants) {
+                    Map<String, com.sk89q.jnbt.Tag> value = ReflectionUtils.getMap(ench.getValue());
+                    String id = ench.getString("id");
+                    String lvl = ench.getString("lvl");
+                    if (id != null) value.put("id", new ShortTag(Short.parseShort(id)));
+                    if (id != null) value.put("lvl", new ShortTag(Short.parseShort(id)));
+                }
             }
         }
-        return result.toString();
+        return item;
     }
 
-    private CompoundTag transform(CompoundTag tag) {
+    private CompoundTag transform(MCAChunk chunk, CompoundTag tag) {
         try {
             String id = tag.getString("id");
             if (id != null) {
                 Map<String, com.sk89q.jnbt.Tag> map = ReflectionUtils.getMap(tag.getValue());
-                id = convertId(id);
+                id = remapper.remapEntityId(id);
                 map.put("id", new StringTag(id));
                 { // Convert items
                     com.sk89q.jnbt.ListTag items = tag.getListTag("Items");
-                    for (CompoundTag item : (List<CompoundTag>) (List) items.getValue()) {
-                        String itemId = item.getString("id");
-                        BaseBlock state = BundledBlockData.getInstance().findByState(itemId);
-                        if (state != null) {
-                            int legacy = state.getId();
-                            ReflectionUtils.getMap(item.getValue()).put("id", new ShortTag((short) legacy));
+                    ((List<CompoundTag>) (List) items.getValue()).forEach(this::transformItem);
+                }
+                { // Convert item
+                    String item = tag.getString("Item");
+                    if (item != null) {
+                        short damage = tag.getShort("Data");
+                        BaseBlock remapped = remapper.remapItem(item, damage);
+                        map.put("Item", new ShortTag((short) remapped.getId()));
+                        map.put("mData", new IntTag(remapped.getData()));
+                    }
+                }
+                { // Health
+                    com.sk89q.jnbt.Tag health = map.get("Health");
+                    if (health != null && health instanceof FloatTag) {
+                        map.put("Health", new ShortTag((short) tag.getFloat("Health")));
+                    }
+                }
+                { // Orientation / Position
+                    for (String key : new String[] {"Orientation", "Position"}) {
+                        ListTag list = (ListTag) map.get(key);
+                        if (list != null) {
+                            List<com.sk89q.jnbt.Tag> value = list.getValue();
+                            ArrayList<FloatTag> newList = new ArrayList<>();
+                            for (com.sk89q.jnbt.Tag coord : value) {
+                                newList.add(new FloatTag(((Number) coord.getValue()).floatValue()));
+                            }
+                            map.put(key, new ListTag(FloatTag.class, newList));
                         }
                     }
                 }
                 switch (id) {
+                    case "EndGateway":
                     case "MobSpawner": {
                         map.clear();
                         break;
@@ -446,8 +478,30 @@ public class MCAFile2LevelDB extends MapConverter {
                             if (text != null && text.startsWith("{")) {
                                 map.put(key, new StringTag(BBC.jsonToString(text)));
                             }
-
                         }
+                        break;
+                    }
+                    case "CommandBlock": {
+                        int x = tag.getInt("x");
+                        int y = tag.getInt("y");
+                        int z = tag.getInt("z");
+
+                        map.put("Version", new IntTag(3));
+                        BaseBlock block = chunk.getBlock(x & 15, y, z & 15);
+                        int LPCommandMode = 0;
+                        switch (block.getId()) {
+                            case BlockID.CHAIN_COMMAND_BLOCK:
+                                LPCommandMode = 2;
+                                break;
+                            case BlockID.REPEATING_COMMAND_BLOCK:
+                                LPCommandMode = 1;
+                                break;
+                        }
+                        map.putIfAbsent("isMovable", new ByteTag((byte) 1));
+                        map.put("LPCommandMode", new IntTag(LPCommandMode));
+                        map.put("LPCondionalMode", new ByteTag((byte) (block.getData() > 7 ? 1 : 0)));
+                        map.put("LPRedstoneMode", new ByteTag(tag.getByte("auto")));
+                        break;
                     }
                 }
             }
