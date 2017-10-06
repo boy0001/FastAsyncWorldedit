@@ -342,14 +342,13 @@ public class ClipboardRemapper {
         for (int data = 4; data < 8; data++)  mapPEtoPC.put(new BaseBlock(18,data + 8), new BaseBlock(161,data));
 
         for (int id : new int[] {96, 167}) { // trapdoor
-            for (int data = 0; data < 4; data++) mapPEtoPC.put(new BaseBlock(id, data), new BaseBlock(id, 3 - data));
-            for (int data = 4; data < 12; data++) mapPEtoPC.put(new BaseBlock(id, data), new BaseBlock(id, 15 - data));
-            for (int data = 12; data < 15; data++) mapPEtoPC.put(new BaseBlock(id, data), new BaseBlock(id, 27 - data));
-
-            mapPEtoPC.put(new BaseBlock(id, 0), new BaseBlock(id, 2));
+            mapPEtoPC.put(new BaseBlock(id, 2), new BaseBlock(id, 0));
             mapPEtoPC.put(new BaseBlock(id, 3), new BaseBlock(id, 1));
-            mapPEtoPC.put(new BaseBlock(id, 9), new BaseBlock(id, 7));
             mapPEtoPC.put(new BaseBlock(id, 6), new BaseBlock(id, 8));
+            mapPEtoPC.put(new BaseBlock(id, 7), new BaseBlock(id, 9));
+            for (int data = 0; data < 4; data++) mapPEtoPC.putIfAbsent(new BaseBlock(id, data), new BaseBlock(id, 3 - data));
+            for (int data = 4; data < 12; data++) mapPEtoPC.putIfAbsent(new BaseBlock(id, data), new BaseBlock(id, 15 - data));
+            for (int data = 12; data < 16; data++) mapPEtoPC.putIfAbsent(new BaseBlock(id, data), new BaseBlock(id, 27 - data));
         }
 
         return mapPEtoPC;
