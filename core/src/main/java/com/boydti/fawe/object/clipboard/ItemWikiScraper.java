@@ -34,7 +34,7 @@ public class ItemWikiScraper {
             Map<String, Integer> cached = cache.get(platform);
             if (cached != null) return cached;
 
-            File file = new File("lib" + File.separator + "items-" + platform.name().toLowerCase() + ".json");
+            File file = new File("lib" + File.separator + "item-mappings-" + platform.name().toLowerCase() + ".json");
             Gson gson = new Gson();
             if (file.exists()) {
                 try {
@@ -62,7 +62,7 @@ public class ItemWikiScraper {
         String url = (platform == ClipboardRemapper.RemapPlatform.PC) ? PC : PE;
         String text = MainUtil.getText(url);
 
-        String header = "{{";
+        String header = platform == ClipboardRemapper.RemapPlatform.PE ? "=== Item IDs ===" : "{{";
         String footer = "{{-}}";
         String prefix = "{{id table|";
 
