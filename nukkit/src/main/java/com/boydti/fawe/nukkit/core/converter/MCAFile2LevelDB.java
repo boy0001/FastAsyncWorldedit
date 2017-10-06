@@ -27,7 +27,6 @@ import com.sk89q.jnbt.NamedTag;
 import com.sk89q.jnbt.ShortTag;
 import com.sk89q.jnbt.StringTag;
 import com.sk89q.worldedit.blocks.BaseBlock;
-import com.sk89q.worldedit.blocks.BlockID;
 import com.sk89q.worldedit.world.registry.BundledBlockData;
 import java.io.ByteArrayOutputStream;
 import java.io.DataOutput;
@@ -488,19 +487,21 @@ public class MCAFile2LevelDB extends MapConverter {
 
                         map.put("Version", new IntTag(3));
                         BaseBlock block = chunk.getBlock(x & 15, y, z & 15);
+
                         int LPCommandMode = 0;
                         switch (block.getId()) {
-                            case BlockID.CHAIN_COMMAND_BLOCK:
+                            case 189:
                                 LPCommandMode = 2;
                                 break;
-                            case BlockID.REPEATING_COMMAND_BLOCK:
+                            case 188:
                                 LPCommandMode = 1;
                                 break;
                         }
+
                         map.putIfAbsent("isMovable", new ByteTag((byte) 1));
                         map.put("LPCommandMode", new IntTag(LPCommandMode));
                         map.put("LPCondionalMode", new ByteTag((byte) (block.getData() > 7 ? 1 : 0)));
-                        map.put("LPRedstoneMode", new ByteTag(tag.getByte("auto")));
+                        map.put("LPRedstoneMode", new ByteTag((byte) (tag.getByte("auto") == 0 ? 1 : 0)));
                         break;
                     }
                 }

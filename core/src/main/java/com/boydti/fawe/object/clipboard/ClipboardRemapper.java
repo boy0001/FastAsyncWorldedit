@@ -346,10 +346,9 @@ public class ClipboardRemapper {
             for (int data = 4; data < 12; data++) mapPEtoPC.put(new BaseBlock(id, data), new BaseBlock(id, 15 - data));
             for (int data = 12; data < 15; data++) mapPEtoPC.put(new BaseBlock(id, data), new BaseBlock(id, 27 - data));
 
-            mapPEtoPC.put(new BaseBlock(id, 2), new BaseBlock(id, 0));
+            mapPEtoPC.put(new BaseBlock(id, 0), new BaseBlock(id, 2));
             mapPEtoPC.put(new BaseBlock(id, 3), new BaseBlock(id, 1));
-
-            mapPEtoPC.put(new BaseBlock(id, 7), new BaseBlock(id, 9));
+            mapPEtoPC.put(new BaseBlock(id, 9), new BaseBlock(id, 7));
             mapPEtoPC.put(new BaseBlock(id, 6), new BaseBlock(id, 8));
         }
 
