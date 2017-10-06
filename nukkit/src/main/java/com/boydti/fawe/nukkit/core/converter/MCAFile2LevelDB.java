@@ -39,6 +39,7 @@ import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
@@ -67,6 +68,8 @@ public class MCAFile2LevelDB extends MapConverter {
     private final ForkJoinPool pool;
     private boolean closed;
     private LongAdder submitted = new LongAdder();
+
+    private long time;
 
     private boolean remap;
 
@@ -120,10 +123,6 @@ public class MCAFile2LevelDB extends MapConverter {
 
     @Override
     public void accept(ConverterFrame app) {
-        MCAFilter filter = toFilter();
-        MCAQueue queue = new MCAQueue(null, new File(folderFrom, "region"), true);
-        MCAFilter result = queue.filterWorld(filter);
-
         File levelDat = new File(folderFrom, "level.dat");
         if (levelDat.exists()) {
             try {
@@ -132,6 +131,11 @@ public class MCAFile2LevelDB extends MapConverter {
                 e.printStackTrace();
             }
         }
+
+        MCAFilter filter = toFilter();
+        MCAQueue queue = new MCAQueue(null, new File(folderFrom, "region"), true);
+        MCAFilter result = queue.filterWorld(filter);
+
         close();
         app.prompt(
                 "Conversion complete!\n" +
@@ -215,6 +219,7 @@ public class MCAFile2LevelDB extends MapConverter {
                 map.put("Generator", new IntTag("flat".equalsIgnoreCase(generatorName) ? 2 : 1));
                 map.put("commandsEnabled", new ByteTag((byte) 1));
                 Long time = tag.getLong("Time");
+                if (time != null) this.time = time;
                 map.put("CurrentTick", new LongTag(time == null ? 0L : time));
                 map.put("spawnMobs", new ByteTag((byte) 1));
                 Long lastPlayed = tag.getLong("LastPlayed");
@@ -273,18 +278,44 @@ public class MCAFile2LevelDB extends MapConverter {
                     update(getKey(chunk, Tag.Data2D), data2d.array());
 
                     if (!chunk.tiles.isEmpty()) {
+                        List<CompoundTag> tickList = null;
                         List<com.sk89q.jnbt.Tag> tiles = new ArrayList<>();
                         for (Map.Entry<Short, CompoundTag> entry : chunk.getTiles().entrySet()) {
                             CompoundTag tag = entry.getValue();
-                            tiles.add(transform(chunk, tag));
+                            if (transform(chunk, tag) && time != 0l) {
+                                // Needs tick
+                                if (tickList == null) tickList = new ArrayList<>();
+
+                                int x = tag.getInt("x");
+                                int y = tag.getInt("y");
+                                int z = tag.getInt("z");
+                                BaseBlock block = chunk.getBlock(x & 15, y, z & 15);
+
+                                Map<String, com.sk89q.jnbt.Tag> tickable = new HashMap<>();
+                                tickable.put("tileID", new ByteTag((byte) block.getId()));
+                                tickable.put("x", new IntTag(x));
+                                tickable.put("y", new IntTag(y));
+                                tickable.put("z", new IntTag(z));
+                                tickable.put("time", new LongTag(1));
+                                tickList.add(new CompoundTag(tickable));
+                            }
+
+                            tiles.add(tag);
                         }
                         update(getKey(chunk, Tag.BlockEntity), write(tiles));
+
+                        if (tickList != null) {
+                            HashMap<String, com.sk89q.jnbt.Tag> root = new HashMap<String, com.sk89q.jnbt.Tag>();
+                            root.put("tickList", new ListTag(CompoundTag.class, tickList));
+                            update(getKey(chunk, Tag.PendingTicks), write(Arrays.asList(new CompoundTag(root))));
+                        }
                     }
 
                     if (!chunk.entities.isEmpty()) {
                         List<com.sk89q.jnbt.Tag> entities = new ArrayList<>();
                         for (com.sk89q.jnbt.CompoundTag tag : chunk.getEntities()) {
-                            entities.add(transform(chunk, tag));
+                            transform(chunk, tag);
+                            entities.add(tag);
                         }
                         update(getKey(chunk, Tag.Entity), write(entities));
                     }
@@ -425,7 +456,9 @@ public class MCAFile2LevelDB extends MapConverter {
         return item;
     }
 
-    private CompoundTag transform(MCAChunk chunk, CompoundTag tag) {
+    // currentTick
+
+    private boolean transform(MCAChunk chunk, CompoundTag tag) {
         try {
             String id = tag.getString("id");
             if (id != null) {
@@ -498,11 +531,19 @@ public class MCAFile2LevelDB extends MapConverter {
                                 break;
                         }
 
+                        // conditionMet
+
+                        boolean conditional = block.getData() > 7;
+                        byte auto = tag.getByte("auto");
                         map.putIfAbsent("isMovable", new ByteTag((byte) 1));
                         map.put("LPCommandMode", new IntTag(LPCommandMode));
-                        map.put("LPCondionalMode", new ByteTag((byte) (block.getData() > 7 ? 1 : 0)));
-                        map.put("LPRedstoneMode", new ByteTag((byte) (tag.getByte("auto") == 0 ? 1 : 0)));
-                        break;
+                        map.put("LPCondionalMode", new ByteTag((byte) (conditional ? 1 : 0)));
+                        map.put("LPRedstoneMode", new ByteTag((byte) (auto == 0 ? 1 : 0)));
+
+
+                        if (LPCommandMode == 1 && ((auto == 1 || tag.getByte("powered") == 1) && (!conditional || tag.getByte("conditionMet") == 1))) {
+                            return true;
+                        }
                     }
                 }
             }
@@ -510,7 +551,7 @@ public class MCAFile2LevelDB extends MapConverter {
             Fawe.debug("Error converting tag: " + tag);
             e.printStackTrace();
         }
-        return tag;
+        return false;
     }
 
     private byte[] getSectionKey(MCAChunk chunk, int layer) {
