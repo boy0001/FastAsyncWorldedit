@@ -118,12 +118,16 @@ public class Schematic {
         checkNotNull(world);
         checkNotNull(to);
         Region region = clipboard.getRegion();
-        EditSessionBuilder builder = new EditSessionBuilder(world).autoQueue(true).checkMemory(false).allowedRegionsEverywhere().limitUnlimited();
         EditSession editSession;
-        if (allowUndo) {
-            editSession = builder.build();
+        if (world instanceof EditSession) {
+            editSession = (EditSession) world;
         } else {
-            editSession = builder.changeSetNull().fastmode(true).build();
+            EditSessionBuilder builder = new EditSessionBuilder(world).autoQueue(true).checkMemory(false).allowedRegionsEverywhere().limitUnlimited();
+            if (allowUndo) {
+                editSession = builder.build();
+            } else {
+                editSession = builder.changeSetNull().fastmode(true).build();
+            }
         }
         Extent extent = clipboard;
         Mask sourceMask = editSession.getSourceMask();

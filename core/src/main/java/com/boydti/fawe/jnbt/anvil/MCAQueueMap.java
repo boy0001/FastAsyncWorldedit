@@ -10,6 +10,7 @@ import com.boydti.fawe.object.RunnableVal;
 import com.boydti.fawe.object.exception.FaweException;
 import com.boydti.fawe.util.MathMan;
 import com.boydti.fawe.util.SetQueue;
+import java.io.File;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Iterator;
@@ -40,7 +41,7 @@ public class MCAQueueMap implements IFaweQueueMap {
     private int lastX = Integer.MIN_VALUE;
     private int lastZ = Integer.MIN_VALUE;
 
-    public synchronized MCAFile getMCAFile(int cx, int cz) {
+    public synchronized MCAFile getMCAFile(int cx, int cz, boolean create) {
         int mcaX = cx >> 5;
         int mcaZ = cz >> 5;
         if (mcaX == lastFileX && mcaZ == lastFileZ) {
@@ -52,7 +53,13 @@ public class MCAQueueMap implements IFaweQueueMap {
         if (lastFile == null) {
             try {
                 queue.setMCA(lastFileX, lastFileZ, RegionWrapper.GLOBAL(), null, true, false);
-                lastFile = tmp = new MCAFile(queue, lastFileX, lastFileZ);
+                File file = new File(queue.getSaveFolder(), "r." + lastFileX + "." + lastFileZ + ".mca");
+                if (create) {
+                    File parent = file.getParentFile();
+                    if (!parent.exists()) parent.mkdirs();
+                    if (!file.exists()) file.createNewFile();
+                }
+                lastFile = tmp = new MCAFile(queue, file);
             } catch (FaweException.FaweChunkLoadException ignore) {
                 lastFile = null;
                 return null;
@@ -85,8 +92,7 @@ public class MCAQueueMap implements IFaweQueueMap {
         }
     }
 
-    @Override
-    public FaweChunk getFaweChunk(int cx, int cz) {
+    public FaweChunk getFaweChunk(int cx, int cz, boolean create) {
         if (cx == lastX && cz == lastZ) {
             if (nullChunk == lastChunk) {
                 nullChunk.setLoc(queue, lastX, lastZ);
@@ -103,12 +109,17 @@ public class MCAQueueMap implements IFaweQueueMap {
             }
         }
         try {
-            MCAFile mcaFile = getMCAFile(cx, cz);
+            MCAFile mcaFile = getMCAFile(cx, cz, create);
             if (mcaFile != null) {
                 mcaFile.init();
                 lastChunk = mcaFile.getChunk(cx, cz);
                 if (lastChunk != null) {
                     return lastChunk;
+                } else if (create) {
+                    MCAChunk chunk = new MCAChunk(queue, cx, cz);
+                    mcaFile.setChunk(chunk);
+                    lastChunk = chunk;
+                    return chunk;
                 }
             }
         } catch (Throwable ignore) {
@@ -120,6 +131,11 @@ public class MCAQueueMap implements IFaweQueueMap {
         }
         nullChunk.setLoc(queue, lastX, lastZ);
         return lastChunk = nullChunk;
+    }
+
+    @Override
+    public FaweChunk getFaweChunk(int cx, int cz) {
+        return getFaweChunk(cx, cz, !isHybridQueue);
     }
 
     @Override
@@ -171,6 +187,7 @@ public class MCAQueueMap implements IFaweQueueMap {
         lastZ = Integer.MIN_VALUE;
         lastFileX = Integer.MIN_VALUE;
         lastFileZ = Integer.MIN_VALUE;
+        System.out.println("Files " + mcaFileMap);
         if (!mcaFileMap.isEmpty()) {
             Iterator<Map.Entry<Long, MCAFile>> iter = mcaFileMap.entrySet().iterator();
             boolean result;

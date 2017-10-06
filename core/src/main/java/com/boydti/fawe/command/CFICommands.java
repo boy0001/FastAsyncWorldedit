@@ -19,7 +19,9 @@ import com.intellectualcrafters.plot.PS;
 import com.intellectualcrafters.plot.commands.Auto;
 import com.intellectualcrafters.plot.config.C;
 import com.intellectualcrafters.plot.config.Settings;
+import com.intellectualcrafters.plot.database.DBFunc;
 import com.intellectualcrafters.plot.object.Plot;
+import com.intellectualcrafters.plot.object.PlotArea;
 import com.intellectualcrafters.plot.object.PlotId;
 import com.intellectualcrafters.plot.object.PlotPlayer;
 import com.intellectualcrafters.plot.object.worlds.PlotAreaManager;
@@ -139,6 +141,23 @@ public class CFICommands extends MethodCommands {
         fp.sendMessage(BBC.getPrefix() + "Cancelled!");
     }
 
+    @Deprecated
+    public static void autoClaimFromDatabase(PlotPlayer player, PlotArea area, PlotId start, com.intellectualcrafters.plot.object.RunnableVal<Plot> whenDone) {
+        final Plot plot = area.getNextFreePlot(player, start);
+        if (plot == null) {
+            whenDone.run(null);
+            return;
+        }
+        whenDone.value = plot;
+        plot.owner = player.getUUID();
+        DBFunc.createPlotSafe(plot, whenDone, new Runnable() {
+            @Override
+            public void run() {
+                autoClaimFromDatabase(player, area, plot.getId(), whenDone);
+            }
+        });
+    }
+
     @Command(
             aliases = {"done", "create"},
             usage = "",
@@ -164,6 +183,7 @@ public class CFICommands extends MethodCommands {
                         C.CANT_CLAIM_MORE_PLOTS_NUM.send(player, -diff);
                         return;
                     }
+
                     if (area.getMeta("lastPlot") == null) {
                         area.setMeta("lastPlot", new PlotId(0, 0));
                     }
@@ -840,6 +860,9 @@ public class CFICommands extends MethodCommands {
         if (settings.mask != null) maskArgs.append(" " + settings.maskArg);
         if (!settings.whiteOnly) maskArgs.append(" -w");
 
+        String height = Commands.getAlias(CFICommands.class, "height");
+        String waterHeight = Commands.getAlias(CFICommands.class, "waterheight");
+        String snow = Commands.getAlias(CFICommands.class, "snow");
 
         Message msg = msg("&8>>&7 Current Settings &8<<&7").newline()
         .text("&7Mask ").text("&7[&a" + mask + "&7]").cmdTip(alias() + " mask")
@@ -849,11 +872,11 @@ public class CFICommands extends MethodCommands {
         .newline()
         .text("&8>>&7 Components &8<<&7")
         .newline()
-        .text("&7[&aHeight&7]").suggestTip(alias() + " height 120").text(" - Terrain height for whole map")
+        .text("&7[&aHeight&7]").suggestTip(alias() + " " + alias("height") + " 120").text(" - Terrain height for whole map")
         .newline()
-        .text("&7[&aWaterHeight&7]").suggestTip(alias() + " waterHeight 60").text(" - Sea level for whole map")
+        .text("&7[&aWaterHeight&7]").suggestTip(alias() + " " + alias("waterheight") + " 60").text(" - Sea level for whole map")
         .newline()
-        .text("&7[&aSnow&7]").suggestTip(alias() + " snow" + maskArgs).text(" - Set snow in the masked areas")
+        .text("&7[&aSnow&7]").suggestTip(alias() + " " + alias("snow") + maskArgs).text(" - Set snow in the masked areas")
         .newline();
 
         if (pattern != null) {
@@ -1004,6 +1027,10 @@ public class CFICommands extends MethodCommands {
 
     protected String alias() {
         return Commands.getAlias(CFICommand.class, "/cfi");
+    }
+
+    protected String alias(String command) {
+        return Commands.getAlias(CFICommands.class, command);
     }
 
     protected Message msg(String text) {

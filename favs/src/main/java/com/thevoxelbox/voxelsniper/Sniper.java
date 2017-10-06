@@ -461,18 +461,23 @@ public class Sniper {
 
     public void undo(int amount) {
         FawePlayer<Object> fp = FawePlayer.wrap(getPlayer());
-        int count = 0;
-        for (int i = 0; i < amount; i++) {
-            if (fp.getSession().undo(null, fp.getPlayer()) == null) {
-                break;
+        if (!fp.runAction(new Runnable() {
+            @Override
+            public void run() {
+                int count = 0;
+                for (int i = 0; i < amount; i++) {
+                    if (fp.getSession().undo(null, fp.getPlayer()) == null) {
+                        break;
+                    }
+                    count++;
+                }
+                if (count > 0) {
+                    BBC.COMMAND_UNDO_SUCCESS.send(fp);
+                } else {
+                    BBC.COMMAND_UNDO_ERROR.send(fp);
+                }
             }
-            count++;
-        }
-        if (count > 0) {
-            BBC.COMMAND_UNDO_SUCCESS.send(fp);
-        } else {
-            BBC.COMMAND_UNDO_ERROR.send(fp);
-        }
+        }, true, false));
     }
 
     public void reset(String toolId) {

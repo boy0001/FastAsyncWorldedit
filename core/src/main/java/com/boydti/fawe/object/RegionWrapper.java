@@ -3,12 +3,12 @@ package com.boydti.fawe.object;
 import com.sk89q.worldedit.Vector;
 
 public class RegionWrapper {
-    public int minX;
-    public int maxX;
-    public int minY;
-    public int maxY;
-    public int minZ;
-    public int maxZ;
+    public final int minX;
+    public final int maxX;
+    public final int minY;
+    public final int maxY;
+    public final int minZ;
+    public final int maxZ;
 
     public static RegionWrapper GLOBAL() {
         return new RegionWrapper(Integer.MIN_VALUE, Integer.MAX_VALUE, Integer.MIN_VALUE, Integer.MAX_VALUE);
@@ -40,25 +40,8 @@ public class RegionWrapper {
         return new RegionWrapper[]{this};
     }
 
-    private int ly = Integer.MIN_VALUE;
-    private int lz = Integer.MIN_VALUE;
-    private boolean lr, lry, lrz;
-
     public boolean isIn(int x, int y, int z) {
-        if (z != lz) {
-            lz = z;
-            lrz = z >= this.minZ && z <= this.maxZ;
-            if (y != ly) {
-                ly = y;
-                lry = y >= this.minY && y <= this.maxY;
-            }
-            lr = lrz && lry;
-        } else if (y != ly) {
-            ly = y;
-            lry = y >= this.minY && y <= this.maxY;
-            lr = lrz && lry;
-        }
-        return lr && (x >= this.minX && x <= this.maxX);
+        return (x >= this.minX) && (x <= this.maxX) && (z >= this.minZ) && (z <= this.maxZ) && (y >= this.minY) && (y <= this.maxY);
     }
 
     public boolean isInChunk(int cx, int cz) {

@@ -491,7 +491,7 @@ public class MCAQueue extends NMSMappedFaweQueue<FaweQueue, FaweChunk, FaweChunk
             public void run(Path path, BasicFileAttributes attr) {
                 try {
                     String name = path.getFileName().toString();
-                    if (!name.endsWith(".mca")) {
+                    if (!name.endsWith(".mca") && !name.endsWith(".mcapm")) {
                         return;
                     }
                     if (!filter.appliesFile(path, attr)) {

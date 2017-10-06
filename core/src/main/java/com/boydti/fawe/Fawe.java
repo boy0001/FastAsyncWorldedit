@@ -116,13 +116,19 @@ import com.sk89q.worldedit.internal.LocalWorldAdapter;
 import com.sk89q.worldedit.internal.command.WorldEditBinding;
 import com.sk89q.worldedit.internal.expression.Expression;
 import com.sk89q.worldedit.internal.expression.runtime.ExpressionEnvironment;
+import com.sk89q.worldedit.internal.expression.runtime.For;
 import com.sk89q.worldedit.internal.expression.runtime.Functions;
 import com.sk89q.worldedit.math.convolution.HeightMap;
 import com.sk89q.worldedit.math.interpolation.KochanekBartelsInterpolation;
 import com.sk89q.worldedit.math.transform.AffineTransform;
 import com.sk89q.worldedit.regions.CuboidRegion;
-import com.sk89q.worldedit.regions.EllipsoidRegion;
+import com.sk89q.worldedit.regions.selector.ConvexPolyhedralRegionSelector;
 import com.sk89q.worldedit.regions.selector.CuboidRegionSelector;
+import com.sk89q.worldedit.regions.selector.CylinderRegionSelector;
+import com.sk89q.worldedit.regions.selector.EllipsoidRegionSelector;
+import com.sk89q.worldedit.regions.selector.ExtendingCuboidRegionSelector;
+import com.sk89q.worldedit.regions.selector.Polygonal2DRegionSelector;
+import com.sk89q.worldedit.regions.selector.SphereRegionSelector;
 import com.sk89q.worldedit.regions.shape.ArbitraryShape;
 import com.sk89q.worldedit.regions.shape.WorldEditExpressionEnvironment;
 import com.sk89q.worldedit.session.ClipboardHolder;
@@ -560,7 +566,12 @@ public class Fawe {
             BrushTool.inject(); // Add transform + support for double action brushes + visualizations
             // Selectors
             CuboidRegionSelector.inject(); // Translations
-            EllipsoidRegion.inject(); // Optimizations
+            ExtendingCuboidRegionSelector.inject();
+            EllipsoidRegionSelector.inject();
+            SphereRegionSelector.inject();
+            ConvexPolyhedralRegionSelector.inject();
+            CylinderRegionSelector.inject();
+            Polygonal2DRegionSelector.inject();
             // Visitors
             BreadthFirstSearch.inject(); // Translations + Optimizations
             DownwardVisitor.inject(); // Optimizations
@@ -635,6 +646,7 @@ public class Fawe {
             WorldEditExpressionEnvironment.inject(); // Optimizations + features
             Expression.inject(); // Optimizations
             Functions.inject(); // Optimizations
+            For.inject(); // Fixes
             // BlockData
             BlockData.inject(); // Temporary fix for 1.9.4
             BundledBlockData.inject(); // Add custom rotation

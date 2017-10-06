@@ -496,8 +496,8 @@ public class MainUtil {
     private static final Class[] parameters = new Class[]{URL.class};
 
     public static void loadURLClasspath(URL u) throws IOException {
+        ClassLoader sysloader = ClassLoader.getSystemClassLoader();
 
-        URLClassLoader sysloader = (URLClassLoader) ClassLoader.getSystemClassLoader();
         Class sysclass = URLClassLoader.class;
 
         try {

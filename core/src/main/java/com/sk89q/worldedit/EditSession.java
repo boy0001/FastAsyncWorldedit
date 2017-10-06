@@ -268,13 +268,13 @@ public class EditSession extends AbstractWorld implements HasFaweQueue, Lighting
             if (world instanceof MCAWorld) {
                 queue = ((MCAWorld) world).getQueue();
             } else {
-                queue = SetQueue.IMP.getNewQueue(this, fastmode || limit.FAST_PLACEMENT, autoQueue);
+                queue = SetQueue.IMP.getNewQueue(this, fastmode || this.limit.FAST_PLACEMENT, autoQueue);
             }
         }
         if (combineStages == null) {
             combineStages = Settings.IMP.HISTORY.COMBINE_STAGES && !(queue instanceof MCAQueue);
         }
-        if (!limit.FAST_PLACEMENT || !queue.supportsChangeTask()) {
+        if (!this.limit.FAST_PLACEMENT || !queue.supportsChangeTask()) {
             combineStages = false;
         }
         if (this.blockBag != null) {
@@ -313,24 +313,28 @@ public class EditSession extends AbstractWorld implements HasFaweQueue, Lighting
                     changeSet = new MemoryOptimizedHistory(world);
                 }
             }
-            if (limit.SPEED_REDUCTION > 0) {
-                this.bypassHistory = new SlowExtent(this.bypassHistory, limit.SPEED_REDUCTION);
+            if (this.limit.SPEED_REDUCTION > 0) {
+                this.bypassHistory = new SlowExtent(this.bypassHistory, this.limit.SPEED_REDUCTION);
             }
+            if (changeSet instanceof NullChangeSet && Fawe.imp().getBlocksHubApi() != null && player != null) {
+                changeSet = LoggingChangeSet.wrap(player, changeSet);
+            }
+            System.out.println("Changeset " + changeSet);
             if (!(changeSet instanceof NullChangeSet)) {
-                if (player != null && Fawe.imp().getBlocksHubApi() != null) {
+                if (!(changeSet instanceof LoggingChangeSet) && player != null && Fawe.imp().getBlocksHubApi() != null) {
                     changeSet = LoggingChangeSet.wrap(player, changeSet);
                 }
+                if (this.blockBag != null) {
+                    changeSet = new BlockBagChangeSet(changeSet, blockBag, limit.INVENTORY_MODE == 1);
+                }
                 if (combineStages) {
-                    if (this.blockBag != null) {
-                        changeSet = new BlockBagChangeSet(changeSet, blockBag, limit.INVENTORY_MODE == 1);
-                    }
                     changeTask = changeSet;
                     changeSet.addChangeTask(queue);
                 } else {
                     this.extent = (history = new HistoryExtent(this, bypassHistory, changeSet, queue));
-                    if (this.blockBag != null) {
-                        this.extent = new BlockBagExtent(this.extent, blockBag, limit.INVENTORY_MODE == 1);
-                    }
+//                    if (this.blockBag != null) {
+//                        this.extent = new BlockBagExtent(this.extent, blockBag, limit.INVENTORY_MODE == 1);
+//                    }
                 }
             }
         }
@@ -341,13 +345,14 @@ public class EditSession extends AbstractWorld implements HasFaweQueue, Lighting
             } else {
                 this.extent = new ProcessedWEExtent(this.extent, this.limit);
                 if (allowedRegions.length == 1) {
-                    this.extent = new SingleRegionExtent(this.extent, limit, allowedRegions[0]);
+                    RegionWrapper region = allowedRegions[0];
+                    this.extent = new SingleRegionExtent(this.extent, this.limit, allowedRegions[0]);
                 } else {
-                    this.extent = new MultiRegionExtent(this.extent, limit, allowedRegions);
+                    this.extent = new MultiRegionExtent(this.extent, this.limit, allowedRegions);
                 }
             }
         } else {
-            this.extent = new HeightBoundExtent(this.extent, limit, 0, maxY);
+            this.extent = new HeightBoundExtent(this.extent, this.limit, 0, maxY);
         }
         this.extent = wrapExtent(this.extent, bus, event, Stage.BEFORE_HISTORY);
     }
@@ -889,35 +894,46 @@ public class EditSession extends AbstractWorld implements HasFaweQueue, Lighting
      * @return a map of missing blocks
      */
     public Map<Integer, Integer> popMissingBlocks() {
-        ChangeSet changeSet = getChangeSet();
-        if (changeSet instanceof BlockBagChangeSet) {
-            BlockBagChangeSet bbcs = (BlockBagChangeSet) changeSet;
-            BlockBag bag = bbcs.getBlockBag();
-            if (bag != null) {
-                bag.flushChanges();
-                Map<Integer, Integer> missingBlocks = ((BlockBagChangeSet) changeSet).popMissing();
-                if (!missingBlocks.isEmpty()) {
-                    StringBuilder str = new StringBuilder();
-                    int size = missingBlocks.size();
-                    int i = 0;
+        BlockBag bag = getBlockBag();
+        if (bag != null) {
+            bag.flushChanges();
 
-                    for (Map.Entry<Integer, Integer> entry : missingBlocks.entrySet()) {
-                        int combined = entry.getKey();
-                        int id = FaweCache.getId(combined);
-                        int data = FaweCache.getData(combined);
-                        int amount = entry.getValue();
-                        BlockType type = BlockType.fromID(id);
-                        str.append((type != null ? type.getName() : "" + id))
-                                .append((data != 0 ? ":" + data : ""))
-                                .append((amount != 1 ? "x" + amount : ""));
-                        ++i;
-                        if (i != size) {
-                            str.append(", ");
-                        }
-                    }
+            Map<Integer, Integer> missingBlocks;
+            ChangeSet changeSet = getChangeSet();
 
-                    BBC.WORLDEDIT_SOME_FAILS_BLOCKBAG.send(player, str.toString());
+
+            if (changeSet instanceof BlockBagChangeSet) {
+                missingBlocks = ((BlockBagChangeSet) changeSet).popMissing();
+            } else {
+                ExtentTraverser<BlockBagExtent> find = new ExtentTraverser(extent).find(BlockBagExtent.class);
+                if (find != null && find.get() != null) {
+                    missingBlocks = find.get().popMissing();
+                } else {
+                    missingBlocks = null;
                 }
+            }
+
+            if (missingBlocks != null && !missingBlocks.isEmpty()) {
+                StringBuilder str = new StringBuilder();
+                int size = missingBlocks.size();
+                int i = 0;
+
+                for (Map.Entry<Integer, Integer> entry : missingBlocks.entrySet()) {
+                    int combined = entry.getKey();
+                    int id = FaweCache.getId(combined);
+                    int data = FaweCache.getData(combined);
+                    int amount = entry.getValue();
+                    BlockType type = BlockType.fromID(id);
+                    str.append((type != null ? type.getName() : "" + id))
+                            .append((data != 0 ? ":" + data : ""))
+                            .append((amount != 1 ? "x" + amount : ""));
+                    ++i;
+                    if (i != size) {
+                        str.append(", ");
+                    }
+                }
+
+                BBC.WORLDEDIT_SOME_FAILS_BLOCKBAG.send(player, str.toString());
             }
         }
         return new HashMap<>();
@@ -1255,6 +1271,15 @@ public class EditSession extends AbstractWorld implements HasFaweQueue, Lighting
         Operations.completeBlindly(ChangeSetExecutor.create(changeSet, context, ChangeSetExecutor.Type.UNDO, editSession.getBlockBag(), editSession.getLimit().INVENTORY_MODE));
         flushQueue();
         editSession.changes = 1;
+    }
+
+    public void setBlocks(ChangeSet changeSet, ChangeSetExecutor.Type type) {
+        final UndoContext context = new UndoContext();
+        Extent bypass = (history == null) ? bypassAll : history;
+        context.setExtent(bypass);
+        Operations.completeBlindly(ChangeSetExecutor.create(changeSet, context, type, getBlockBag(), getLimit().INVENTORY_MODE));
+        flushQueue();
+        changes = 1;
     }
 
     /**
@@ -1616,7 +1641,7 @@ public class EditSession extends AbstractWorld implements HasFaweQueue, Lighting
             Vector pos2 = region.getMaximumPoint();
             boolean contains = false;
             for (RegionWrapper current : regionExtent.getRegions()) {
-                if (current.isIn((int) pos1.getX(), pos1.getBlockZ()) && current.isIn((int) pos2.getX(), pos2.getBlockZ())) {
+                if (current.isIn((int) pos1.getX(), pos1.getBlockY(), pos1.getBlockZ()) && current.isIn(pos2.getBlockX(), pos2.getBlockY(), pos2.getBlockZ())) {
                     contains = true;
                     break;
                 }

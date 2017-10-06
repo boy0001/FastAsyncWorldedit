@@ -626,7 +626,7 @@ public class AnvilCommands {
         FawePlayer fp = FawePlayer.wrap(player);
         MCAClipboard clipboard = fp.getMeta(FawePlayer.METADATA_KEYS.ANVIL_CLIPBOARD);
         if (clipboard == null) {
-            fp.sendMessage(BBC.getPrefix() + "You must first copy to your clipboard");
+            fp.sendMessage(BBC.getPrefix() + "You must first use `//anvil copy`");
             return;
         }
         CuboidRegion cuboid = clipboard.getRegion();
@@ -649,6 +649,6 @@ public class AnvilCommands {
                 pasteQueue.pasteRegion(copyQueue, copyRegion, offset, iAnvilHistory);
             } catch (IOException e) { throw new RuntimeException(e); }
         });
-        BBC.COMMAND_PASTE.send(player, player.getPosition());
+        BBC.COMMAND_PASTE.send(player, player.getPosition().toBlockVector());
     }
 }
