@@ -502,6 +502,7 @@ public class MCAQueue extends NMSMappedFaweQueue<FaweQueue, FaweChunk, FaweChunk
                     final int mcaZ = Integer.parseInt(split[2]);
                     if (filter.appliesFile(mcaX, mcaZ)) {
                         File file = path.toFile();
+                        Fawe.debug("Apply file: " + file.getName());
                         final MCAFile original = new MCAFile(MCAQueue.this, file);
                         final MCAFile finalFile = filter.applyFile(original);
                         if (finalFile != null && !finalFile.isDeleted()) {

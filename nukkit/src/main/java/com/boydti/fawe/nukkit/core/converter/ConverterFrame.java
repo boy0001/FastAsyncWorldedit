@@ -326,11 +326,22 @@ public class ConverterFrame extends JFrame {
                     debug("Loading leveldb.jar");
 
                     File lib = new File("lib");
-                    File leveldb = new File(lib, "leveldb.jar");
+
+                    File leveldb;
+                    URL levelDbUrl;
+
+                    if (new File(dirMc, "db").exists()) {
+                        leveldb = new File(lib, "leveldb.jar");
+                        levelDbUrl = new URL("https://git.io/vdZ9e");
+                    } else {
+                        leveldb = new File(lib, "leveldb-nukkit.jar");
+                        levelDbUrl = new URL("https://github.com/Nukkit/Nukkit/raw/master/lib/leveldb.jar");
+                    }
+
+
 //                    File blocksPE = new File(lib, "blocks-pe.json");
 //                    File blocksPC = new File(lib, "blocks-pc.json");
 
-                    URL levelDbUrl = new URL("https://git.io/vdZ9e");
 //                    URL urlPE = new URL("https://git.io/vdZSj");
 //                    URL urlPC = new URL("https://git.io/vdZSx");
 
@@ -341,6 +352,8 @@ public class ConverterFrame extends JFrame {
                     MainUtil.loadURLClasspath(leveldb.toURL());
 
                     File newWorldFile = new File(output, dirMc.getName());
+
+                    debug("Starting converter...");
 
                     MapConverter converter = MapConverter.get(dirMc, newWorldFile);
                     converter.accept(ConverterFrame.this);
