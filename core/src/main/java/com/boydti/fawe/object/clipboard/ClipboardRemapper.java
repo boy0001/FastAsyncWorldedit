@@ -278,12 +278,13 @@ public class ClipboardRemapper {
         for (int id : new int[] {29, 33, 34}) {
             mapPEtoPC.put(new BaseBlock(id,3), new BaseBlock(id,2));
             mapPEtoPC.put(new BaseBlock(id,2), new BaseBlock(id,3));
-            mapPEtoPC.put(new BaseBlock(id,10), new BaseBlock(id,11));
-            mapPEtoPC.put(new BaseBlock(id,11), new BaseBlock(id,10));
             mapPEtoPC.put(new BaseBlock(id,5), new BaseBlock(id,4));
-            mapPEtoPC.put(new BaseBlock(id,13), new BaseBlock(id,12));
             mapPEtoPC.put(new BaseBlock(id,4), new BaseBlock(id,5));
-            mapPEtoPC.put(new BaseBlock(id,12), new BaseBlock(id,13));
+
+//            mapPEtoPC.put(new BaseBlock(id,11), new BaseBlock(id,10));
+//            mapPEtoPC.put(new BaseBlock(id,10), new BaseBlock(id,11));
+//            mapPEtoPC.put(new BaseBlock(id,13), new BaseBlock(id,12));
+//            mapPEtoPC.put(new BaseBlock(id,12), new BaseBlock(id,13));
         }
         mapPEtoPC.put(new BaseBlock(250,-1), new BaseBlock(36,-1));
 
@@ -365,6 +366,16 @@ public class ClipboardRemapper {
         HashMap<BaseBlock, BaseBlock> mapPEtoPC = getPEtoPCMappings();
 
 
+        for (Map.Entry<BaseBlock, BaseBlock> entry : mapPEtoPC.entrySet()) {
+            BaseBlock from = entry.getKey();
+            BaseBlock to = entry.getValue();
+            if (fromPlatform == RemapPlatform.PE) {
+                add(from, to);
+            } else {
+                add(to, from);
+            }
+        }
+
         // TODO any custom ids
         switch (fromPlatform) {
             case PE:
@@ -380,17 +391,14 @@ public class ClipboardRemapper {
                 for (int data = 8; data < 16; data++) add(new BaseBlock(205, data), new BaseBlock(182, 9));
                 for (int data = 0; data < 8; data++) add(new BaseBlock(182, data), new BaseBlock(182, 0));
                 for (int data = 8; data < 16; data++) add(new BaseBlock(182, data), new BaseBlock(182, 8));
-                break;
-        }
 
-        for (Map.Entry<BaseBlock, BaseBlock> entry : mapPEtoPC.entrySet()) {
-            BaseBlock from = entry.getKey();
-            BaseBlock to = entry.getValue();
-            if (fromPlatform == RemapPlatform.PE) {
-                add(from, to);
-            } else {
-                add(to, from);
-            }
+                for (int id : new int[] {29, 33, 34}) {
+                    for (int data = 8; data < 16; data++) {
+                        add(new BaseBlock(id, data), remap(new BaseBlock(id, data - 8)));
+                    }
+                }
+
+                break;
         }
 
         this.from = fromPlatform;

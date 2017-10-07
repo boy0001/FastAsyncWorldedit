@@ -844,6 +844,7 @@ public class FaweCache {
             }
             list.add(tag);
         }
+        if (clazz == null) clazz = EndTag.class;
         return new ListTag(clazz, list);
     }
 
@@ -857,6 +858,7 @@ public class FaweCache {
             }
             list.add(tag);
         }
+        if (clazz == null) clazz = EndTag.class;
         return new ListTag(clazz, list);
     }
 }

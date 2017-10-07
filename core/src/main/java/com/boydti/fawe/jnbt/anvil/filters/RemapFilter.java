@@ -72,11 +72,11 @@ public class RemapFilter extends MCAFilterCounter {
                         case 29:
                         case 33:
                             Map<String, Object> map = new HashMap<>();
-                            map.put("Progress", 0f);
-                            map.put("State", (byte) 0);
-                            map.put("LastProgress", 0f);
-                            map.put("NewState", (byte) 0);
-                            map.put("isMoveable", (byte) 1);
+                            map.put("Progress", 1f);
+                            map.put("State", (byte) 2);
+                            map.put("LastProgress", 1f);
+                            map.put("NewState", (byte) 2);
+                            map.put("isMoveable", (byte) 0);
                             map.put("id", "PistonArm");
                             map.put("AttachedBlocks", new ArrayList<>());
                             map.put("Sticky", (byte) (id == 29 ? 1 : 0));
