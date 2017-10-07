@@ -47,13 +47,16 @@ import java.net.URISyntaxException;
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.net.URLConnection;
+import java.nio.channels.Channels;
 import java.nio.channels.FileChannel;
+import java.nio.channels.ReadableByteChannel;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.FileVisitResult;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.SimpleFileVisitor;
+import java.nio.file.StandardCopyOption;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -61,6 +64,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Scanner;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.zip.DataFormatException;
@@ -508,7 +512,28 @@ public class MainUtil {
             t.printStackTrace();
             throw new IOException("Error, could not add URL to system classloader");
         }
+    }
 
+    public static String getText(String url) throws IOException {
+        try (Scanner scanner = new Scanner(new URL(url).openStream(), "UTF-8")) {
+            return scanner.useDelimiter("\\A").next();
+        }
+    }
+
+    public static void download(URL url, File out) throws IOException {
+        File parent = out.getParentFile();
+        if (!out.exists()) {
+            if (parent != null) parent.mkdirs();
+            File tempFile = File.createTempFile(UUID.randomUUID().toString(), ".tmp", parent);
+            tempFile.deleteOnExit();
+            try (InputStream is = url.openStream()) {
+                ReadableByteChannel rbc = Channels.newChannel(is);
+                FileOutputStream fos = new FileOutputStream(tempFile);
+                fos.getChannel().transferFrom(rbc, 0, Long.MAX_VALUE);
+            }
+            Files.copy(tempFile.toPath(), out.toPath(), StandardCopyOption.REPLACE_EXISTING);
+            tempFile.delete();
+        }
     }
 
 
