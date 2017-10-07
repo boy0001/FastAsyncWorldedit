@@ -442,6 +442,7 @@ public class MCAFile2LevelDB extends MapConverter {
 
         CompoundTag tag = (CompoundTag) item.getValue().get("tag");
         if (tag != null) {
+            Map<String, com.sk89q.jnbt.Tag> tagMap = ReflectionUtils.getMap(tag.getValue());
             List<CompoundTag> enchants = (List) tag.getList("ench");
             if (enchants != null) {
                 for (CompoundTag ench : enchants) {
@@ -452,11 +453,13 @@ public class MCAFile2LevelDB extends MapConverter {
                     if (id != null) value.put("lvl", new ShortTag(Short.parseShort(id)));
                 }
             }
+            CompoundTag tile = (CompoundTag) tagMap.get("BlockEntityTag");
+            if (tile != null) {
+                tagMap.putAll(tile.getValue());
+            }
         }
         return item;
     }
-
-    // currentTick
 
     private boolean transform(MCAChunk chunk, CompoundTag tag) {
         try {

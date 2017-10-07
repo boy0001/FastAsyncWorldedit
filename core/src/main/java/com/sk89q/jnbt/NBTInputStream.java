@@ -105,6 +105,11 @@ public final class NBTInputStream implements Closeable {
         return readTagPayload(type, 0);
     }
 
+    public Object readData() throws IOException {
+        int type = is.readByte();
+        return readDataPayload(type, 0);
+    }
+
     public void readNamedTagLazy(RunnableVal2<String, RunnableVal2> getReader) throws IOException {
         int type = is.readByte();
         String name = readNamedTagName(type);
