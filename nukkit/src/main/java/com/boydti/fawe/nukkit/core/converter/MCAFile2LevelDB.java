@@ -84,6 +84,9 @@ public class MCAFile2LevelDB extends MapConverter {
             try (PrintStream out = new PrintStream(new FileOutputStream(new File(folderTo, "levelname.txt")))) {
                 out.print(worldName);
             }
+
+//            long presumableFreeMemory = Runtime.getRuntime().maxMemory() - allocatedMemory;
+
             this.pool = new ForkJoinPool();
             this.remapper = new ClipboardRemapper(ClipboardRemapper.RemapPlatform.PC, ClipboardRemapper.RemapPlatform.PE);
             BundledBlockData.getInstance().loadFromResource();
@@ -93,7 +96,7 @@ public class MCAFile2LevelDB extends MapConverter {
                             .verifyChecksums(false)
                             .blockSize(262144) // 256K
                             .cacheSize(8388608) // 8MB
-                            .writeBufferSize(134217728) // >=128MB
+                            .writeBufferSize(1342177280) // >=128MB
             );
         } catch (IOException e) {
             throw new RuntimeException(e);
@@ -149,6 +152,7 @@ public class MCAFile2LevelDB extends MapConverter {
                         " - Any custom generator settings may not work\n" +
                         " - May not match up with new terrain"
         );
+        Fawe.debug("Starting compaction");
         compact();
         app.prompt("Compaction complete!");
     }
@@ -261,100 +265,97 @@ public class MCAFile2LevelDB extends MapConverter {
                 }
             }
         }
-        pool.submit(new Runnable() {
-            @Override
-            public void run() {
-                try {
-                    update(getKey(chunk, Tag.Version), VERSION);
-                    update(getKey(chunk, Tag.FinalizedState), COMPLETE_STATE);
+        pool.submit((Runnable) () -> {
+            try {
+                update(getKey(chunk, Tag.Version), VERSION);
+                update(getKey(chunk, Tag.FinalizedState), COMPLETE_STATE);
 
-                    ByteBuffer data2d = ByteBuffer.wrap(bufData2D.get());
-                    int[] heightMap = chunk.getHeightMapArray();
-                    for (int i = 0; i < heightMap.length; i++) {
-                        data2d.putShort((short) heightMap[i]);
-                    }
-                    if (chunk.biomes != null) {
-                        System.arraycopy(chunk.biomes, 0, data2d.array(), 512, 256);
-                    }
-                    update(getKey(chunk, Tag.Data2D), data2d.array());
-
-                    if (!chunk.tiles.isEmpty()) {
-                        List<CompoundTag> tickList = null;
-                        List<com.sk89q.jnbt.Tag> tiles = new ArrayList<>();
-                        for (Map.Entry<Short, CompoundTag> entry : chunk.getTiles().entrySet()) {
-                            CompoundTag tag = entry.getValue();
-                            if (transform(chunk, tag) && time != 0l) {
-                                // Needs tick
-                                if (tickList == null) tickList = new ArrayList<>();
-
-                                int x = tag.getInt("x");
-                                int y = tag.getInt("y");
-                                int z = tag.getInt("z");
-                                BaseBlock block = chunk.getBlock(x & 15, y, z & 15);
-
-                                Map<String, com.sk89q.jnbt.Tag> tickable = new HashMap<>();
-                                tickable.put("tileID", new ByteTag((byte) block.getId()));
-                                tickable.put("x", new IntTag(x));
-                                tickable.put("y", new IntTag(y));
-                                tickable.put("z", new IntTag(z));
-                                tickable.put("time", new LongTag(1));
-                                tickList.add(new CompoundTag(tickable));
-                            }
-
-                            tiles.add(tag);
-                        }
-                        update(getKey(chunk, Tag.BlockEntity), write(tiles));
-
-                        if (tickList != null) {
-                            HashMap<String, com.sk89q.jnbt.Tag> root = new HashMap<String, com.sk89q.jnbt.Tag>();
-                            root.put("tickList", new ListTag(CompoundTag.class, tickList));
-                            update(getKey(chunk, Tag.PendingTicks), write(Arrays.asList(new CompoundTag(root))));
-                        }
-                    }
-
-                    if (!chunk.entities.isEmpty()) {
-                        List<com.sk89q.jnbt.Tag> entities = new ArrayList<>();
-                        for (com.sk89q.jnbt.CompoundTag tag : chunk.getEntities()) {
-                            transform(chunk, tag);
-                            entities.add(tag);
-                        }
-                        update(getKey(chunk, Tag.Entity), write(entities));
-                    }
-
-                    int maxLayer = chunk.ids.length - 1;
-                    while (maxLayer >= 0 && chunk.ids[maxLayer] == null) maxLayer--;
-                    if (maxLayer >= 0) {
-                        byte[] key = getSectionKey(chunk, 0);
-                        for (int layer = 0; layer <= maxLayer; layer++) {
-                            // Set layer
-                            key[9] = (byte) layer;
-                            byte[] value = bufSubChunkPrefix.get();
-                            byte[] ids = chunk.ids[layer];
-                            if (ids == null) {
-                                Arrays.fill(value, (byte) 0);
-                            } else {
-                                byte[] data = chunk.data[layer];
-                                byte[] skyLight = chunk.skyLight[layer];
-                                byte[] blockLight = chunk.blockLight[layer];
-
-                                if (remap) {
-                                    copySection(ids, value, 1);
-                                    copySection(data, value, 1 + 4096);
-                                    copySection(skyLight, value, 1 + 4096 + 2048);
-                                    copySection(blockLight, value, 1 + 4096 + 2048 + 2048);
-                                } else {
-                                    System.arraycopy(ids, 0, value, 1, ids.length);
-                                    System.arraycopy(data, 0, value, 1 + 4096, data.length);
-                                    System.arraycopy(skyLight, 0, value, 1 + 4096 + 2048, skyLight.length);
-                                    System.arraycopy(blockLight, 0, value, 1 + 4096 + 2048 + 2048, blockLight.length);
-                                }
-                            }
-                            update(key, value);
-                        }
-                    }
-                } catch (Throwable e) {
-                    e.printStackTrace();
+                ByteBuffer data2d = ByteBuffer.wrap(bufData2D.get());
+                int[] heightMap = chunk.getHeightMapArray();
+                for (int i = 0; i < heightMap.length; i++) {
+                    data2d.putShort((short) heightMap[i]);
                 }
+                if (chunk.biomes != null) {
+                    System.arraycopy(chunk.biomes, 0, data2d.array(), 512, 256);
+                }
+                update(getKey(chunk, Tag.Data2D), data2d.array());
+
+                if (!chunk.tiles.isEmpty()) {
+                    List<CompoundTag> tickList = null;
+                    List<com.sk89q.jnbt.Tag> tiles = new ArrayList<>();
+                    for (Map.Entry<Short, CompoundTag> entry : chunk.getTiles().entrySet()) {
+                        CompoundTag tag = entry.getValue();
+                        if (transform(chunk, tag) && time != 0l) {
+                            // Needs tick
+                            if (tickList == null) tickList = new ArrayList<>();
+
+                            int x = tag.getInt("x");
+                            int y = tag.getInt("y");
+                            int z = tag.getInt("z");
+                            BaseBlock block = chunk.getBlock(x & 15, y, z & 15);
+
+                            Map<String, com.sk89q.jnbt.Tag> tickable = new HashMap<>();
+                            tickable.put("tileID", new ByteTag((byte) block.getId()));
+                            tickable.put("x", new IntTag(x));
+                            tickable.put("y", new IntTag(y));
+                            tickable.put("z", new IntTag(z));
+                            tickable.put("time", new LongTag(1));
+                            tickList.add(new CompoundTag(tickable));
+                        }
+
+                        tiles.add(tag);
+                    }
+                    update(getKey(chunk, Tag.BlockEntity), write(tiles));
+
+                    if (tickList != null) {
+                        HashMap<String, com.sk89q.jnbt.Tag> root = new HashMap<String, com.sk89q.jnbt.Tag>();
+                        root.put("tickList", new ListTag(CompoundTag.class, tickList));
+                        update(getKey(chunk, Tag.PendingTicks), write(Arrays.asList(new CompoundTag(root))));
+                    }
+                }
+
+                if (!chunk.entities.isEmpty()) {
+                    List<com.sk89q.jnbt.Tag> entities = new ArrayList<>();
+                    for (CompoundTag tag : chunk.getEntities()) {
+                        transform(chunk, tag);
+                        entities.add(tag);
+                    }
+                    update(getKey(chunk, Tag.Entity), write(entities));
+                }
+
+                int maxLayer = chunk.ids.length - 1;
+                while (maxLayer >= 0 && chunk.ids[maxLayer] == null) maxLayer--;
+                if (maxLayer >= 0) {
+                    byte[] key = getSectionKey(chunk, 0);
+                    for (int layer = 0; layer <= maxLayer; layer++) {
+                        // Set layer
+                        key[9] = (byte) layer;
+                        byte[] value = bufSubChunkPrefix.get();
+                        byte[] ids = chunk.ids[layer];
+                        if (ids == null) {
+                            Arrays.fill(value, (byte) 0);
+                        } else {
+                            byte[] data = chunk.data[layer];
+                            byte[] skyLight = chunk.skyLight[layer];
+                            byte[] blockLight = chunk.blockLight[layer];
+
+                            if (remap) {
+                                copySection(ids, value, 1);
+                                copySection(data, value, 1 + 4096);
+                                copySection(skyLight, value, 1 + 4096 + 2048);
+                                copySection(blockLight, value, 1 + 4096 + 2048 + 2048);
+                            } else {
+                                System.arraycopy(ids, 0, value, 1, ids.length);
+                                System.arraycopy(data, 0, value, 1 + 4096, data.length);
+                                System.arraycopy(skyLight, 0, value, 1 + 4096 + 2048, skyLight.length);
+                                System.arraycopy(blockLight, 0, value, 1 + 4096 + 2048 + 2048, blockLight.length);
+                            }
+                        }
+                        update(key, value);
+                    }
+                }
+            } catch (Throwable e) {
+                e.printStackTrace();
             }
         });
     }
