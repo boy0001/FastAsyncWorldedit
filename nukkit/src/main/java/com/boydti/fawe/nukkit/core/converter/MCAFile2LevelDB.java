@@ -27,6 +27,7 @@ import com.sk89q.jnbt.NamedTag;
 import com.sk89q.jnbt.ShortTag;
 import com.sk89q.jnbt.StringTag;
 import com.sk89q.worldedit.blocks.BaseBlock;
+import com.sk89q.worldedit.blocks.BaseItem;
 import com.sk89q.worldedit.world.registry.BundledBlockData;
 import java.io.ByteArrayOutputStream;
 import java.io.DataOutput;
@@ -435,9 +436,9 @@ public class MCAFile2LevelDB extends MapConverter {
     private CompoundTag transformItem(CompoundTag item) {
         String itemId = item.getString("id");
         short damage = item.getShort("Damage");
-        BaseBlock remapped = remapper.remapItem(itemId, damage);
+        BaseItem remapped = remapper.remapItem(itemId, damage);
         Map<String, com.sk89q.jnbt.Tag> map = ReflectionUtils.getMap(item.getValue());
-        map.put("id", new ShortTag((short) remapped.getId()));
+        map.put("id", new ShortTag((short) remapped.getType()));
         map.put("Damage", new ShortTag((short) remapped.getData()));
 
         CompoundTag tag = (CompoundTag) item.getValue().get("tag");
@@ -476,8 +477,8 @@ public class MCAFile2LevelDB extends MapConverter {
                     String item = tag.getString("Item");
                     if (item != null) {
                         short damage = tag.getShort("Data");
-                        BaseBlock remapped = remapper.remapItem(item, damage);
-                        map.put("Item", new ShortTag((short) remapped.getId()));
+                        BaseItem remapped = remapper.remapItem(item, damage);
+                        map.put("Item", new ShortTag((short) remapped.getType()));
                         map.put("mData", new IntTag(remapped.getData()));
                     }
                 }

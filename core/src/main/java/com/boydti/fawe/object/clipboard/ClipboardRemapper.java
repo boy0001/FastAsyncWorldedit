@@ -8,9 +8,9 @@ import com.google.gson.JsonParser;
 import com.intellectualcrafters.plot.util.MathMan;
 import com.sk89q.jnbt.CompoundTag;
 import com.sk89q.worldedit.BlockVector;
-import com.sk89q.worldedit.EditSession;
 import com.sk89q.worldedit.WorldEditException;
 import com.sk89q.worldedit.blocks.BaseBlock;
+import com.sk89q.worldedit.blocks.BaseItem;
 import com.sk89q.worldedit.extent.clipboard.BlockArrayClipboard;
 import com.sk89q.worldedit.extent.clipboard.Clipboard;
 import com.sk89q.worldedit.regions.Region;
@@ -50,12 +50,13 @@ public class ClipboardRemapper {
         return tmp;
     }
 
-    public BaseBlock remapItem(String name, int damage) {
-        if (name.isEmpty()) return EditSession.nullBlock;
+    public BaseItem remapItem(String name, int damage) {
+        if (name.isEmpty()) return new BaseItem(0);
         if (from == RemapPlatform.PC) {
             BundledBlockData.BlockEntry state = BundledBlockData.getInstance().findById(name);
             if (state != null) {
-                return remap(new BaseBlock(state.legacyId, damage));
+                BaseBlock remapped = remap(new BaseBlock(state.legacyId, damage));
+                return new BaseItem(remapped.getId(), (short) remapped.getData());
             } else {
                 try {
                     name = name.replace("minecraft:", "");
@@ -64,14 +65,14 @@ public class ClipboardRemapper {
                     Map<String, Integer> mapTo = scraper.scapeOrCache(from.opposite());
                     scraper.expand(mapTo);
                     switch (name) {
-                        case "spruce_boat":  return new BaseBlock(333, 1);
-                        case "birch_boat":  return new BaseBlock(333, 2);
-                        case "jungle_boat":  return new BaseBlock(333, 3);
-                        case "acacia_boat":  return new BaseBlock(333, 4);
-                        case "dark_oak_boat": return new BaseBlock(333, 5);
-                        case "water_bucket": return new BaseBlock(325, 8);
-                        case "lava_bucket": return new BaseBlock(325, 10);
-                        case "milk_bucket": return new BaseBlock(325, 1);
+                        case "spruce_boat":  return new BaseItem(333, (short) 1);
+                        case "birch_boat":  return new BaseItem(333, (short) 2);
+                        case "jungle_boat":  return new BaseItem(333, (short) 3);
+                        case "acacia_boat":  return new BaseItem(333, (short) 4);
+                        case "dark_oak_boat": return new BaseItem(333, (short) 5);
+                        case "water_bucket": return new BaseItem(325, (short) 8);
+                        case "lava_bucket": return new BaseItem(325, (short) 10);
+                        case "milk_bucket": return new BaseItem(325, (short) 1);
                         case "tipped_arrow":
                         case "spectral_arrow":
                             name = "arrow"; // Unsupported
@@ -86,13 +87,13 @@ public class ClipboardRemapper {
                     Integer itemId = mapTo.get(name);
                     if (itemId == null) itemId = mapTo.get(name.replace("_", ""));
                     if (itemId == null) itemId = mapFrom.get(name);
-                    if (itemId != null) return new BaseBlock(itemId, damage);
+                    if (itemId != null) return new BaseItem(itemId, (short) damage);
                 } catch (IOException ignore) {
                     ignore.printStackTrace();
                 }
             }
         }
-        return EditSession.nullBlock;
+        return new BaseItem(0);
     }
 
     public Map.Entry<String, Integer> remapItem(int id, int data) {
