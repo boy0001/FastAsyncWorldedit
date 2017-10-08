@@ -40,12 +40,14 @@ import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.ForkJoinPool;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.LongAdder;
@@ -68,6 +70,8 @@ public class MCAFile2LevelDB extends MapConverter {
     private long time;
 
     private boolean remap;
+
+    private ConcurrentLinkedQueue<CompoundTag> portals = new ConcurrentLinkedQueue<>();
 
     private ConcurrentHashMap<Thread, WriteBatch> batches = new ConcurrentHashMap<Thread, WriteBatch>() {
 
@@ -137,8 +141,9 @@ public class MCAFile2LevelDB extends MapConverter {
         }
     }
 
-    public MCAFilter<MutableLong> toFilter(final int dimension) {
+    public DelegateMCAFilter<MutableLong> toFilter(final int dimension) {
         RemapFilter filter = new RemapFilter(ClipboardRemapper.RemapPlatform.PC, ClipboardRemapper.RemapPlatform.PE);
+        filter.setDimension(dimension);
         DelegateMCAFilter<MutableLong> delegate = new DelegateMCAFilter<MutableLong>(filter) {
             @Override
             public void finishFile(MCAFile file, MutableLong cache) {
@@ -170,16 +175,30 @@ public class MCAFile2LevelDB extends MapConverter {
             }
         }
 
+        List<CompoundTag> portals = new ArrayList<>();
         String[] dimDirs = {"region", "DIM-1/region", "DIM1/region"};
         for (int dim = 0; dim < 3; dim++) {
             File source = new File(folderFrom, dimDirs[dim]);
             if (source.exists()) {
-                MCAFilter filter = toFilter(dim);
+                DelegateMCAFilter filter = toFilter(dim);
                 MCAQueue queue = new MCAQueue(null, source, true);
 
                 MCAFilter result = queue.filterWorld(filter);
+                portals.addAll(((RemapFilter) filter.getFilter()).getPortals());
             }
         }
+
+        // Portals
+        if (!portals.isEmpty()) {
+            CompoundTag portalData = new CompoundTag(Collections.singletonMap("PortalRecords", new ListTag(CompoundTag.class, portals)));
+            CompoundTag portalsTag = new CompoundTag(Collections.singletonMap("data", portalData));
+            try {
+                db.put("portals".getBytes(), write(Arrays.asList(portalsTag)));
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+
 
         try {
             flush(false);
