@@ -283,6 +283,7 @@ public class ConverterFrame extends JFrame {
 
     public void prompt(String message) {
         JOptionPane.showMessageDialog(null, message);
+        Fawe.debug(message);
     }
 
     public void debug(String m) {
@@ -327,16 +328,8 @@ public class ConverterFrame extends JFrame {
 
                     File lib = new File("lib");
 
-                    File leveldb;
-                    URL levelDbUrl;
-
-                    if (new File(dirMc, "db").exists()) {
-                        leveldb = new File(lib, "leveldb.jar");
-                        levelDbUrl = new URL("https://git.io/vdZ9e");
-                    } else {
-                        leveldb = new File(lib, "leveldb-nukkit.jar");
-                        levelDbUrl = new URL("https://github.com/Nukkit/Nukkit/raw/master/lib/leveldb.jar");
-                    }
+                    File leveldb = new File(lib, "leveldb.jar");
+                    URL levelDbUrl = new URL("https://git.io/vdZ9e");
 
 
 //                    File blocksPE = new File(lib, "blocks-pe.json");

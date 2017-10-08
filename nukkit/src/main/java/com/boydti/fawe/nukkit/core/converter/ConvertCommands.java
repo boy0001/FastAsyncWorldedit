@@ -50,7 +50,7 @@ public class ConvertCommands extends MethodCommands {
                         @Override
                         public void run(MCAChunk value) {
                             try {
-                                converter.write(value, !skipRemap);
+                                converter.write(value, !skipRemap, 0);
                             } catch (IOException e) {
                                 e.printStackTrace();
                             }
