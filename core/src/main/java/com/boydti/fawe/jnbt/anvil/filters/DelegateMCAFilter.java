@@ -97,4 +97,8 @@ public class DelegateMCAFilter<T> extends MCAFilter<T> {
     public DelegateMCAFilter(MCAFilter<T> filter) {
         this.filter = filter;
     }
+
+    public MCAFilter<T> getFilter() {
+        return filter;
+    }
 }

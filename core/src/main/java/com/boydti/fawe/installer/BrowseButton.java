@@ -9,8 +9,11 @@ import javafx.embed.swing.JFXPanel;
 import javafx.stage.DirectoryChooser;
 
 public abstract class BrowseButton extends InteractiveButton {
-    public BrowseButton() {
+    private final String id;
+
+    public BrowseButton(String id) {
         super("Browse");
+        this.id = id;
     }
 
     public abstract void onSelect(File folder);
@@ -32,7 +35,8 @@ public abstract class BrowseButton extends InteractiveButton {
             File file = folderChooser.showDialog(null);
             if (file != null && file.exists()) {
                 File parent = file.getParentFile();
-                Preferences.userRoot().node(Fawe.class.getName()).put("LAST_USED_FOLDER", file.getPath());
+                if (parent == null) parent = file;
+                Preferences.userRoot().node(Fawe.class.getName()).put("LAST_USED_FOLDER" + id, parent.getPath());
                 onSelect(file);
             }
         });
