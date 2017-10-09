@@ -1,6 +1,8 @@
-package com.boydti.fawe.object.clipboard;
+package com.boydti.fawe.object.clipboard.remap;
 
 import com.boydti.fawe.jnbt.NBTStreamer;
+import com.boydti.fawe.object.clipboard.AbstractDelegateFaweClipboard;
+import com.boydti.fawe.object.clipboard.FaweClipboard;
 import com.sk89q.worldedit.blocks.BaseBlock;
 
 public class RemappedClipboard extends AbstractDelegateFaweClipboard {

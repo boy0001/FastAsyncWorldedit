@@ -1,4 +1,4 @@
-package com.boydti.fawe.object.clipboard;
+package com.boydti.fawe.object.clipboard.remap;
 
 import com.boydti.fawe.FaweCache;
 import com.google.common.io.Resources;
@@ -40,12 +40,12 @@ public class ClipboardRemapper {
         this.from = null;
     }
 
-    private ItemWikiScraper scraper;
+    private WikiScraper scraper;
 
-    private synchronized ItemWikiScraper loadItemMapping() throws IOException {
-        ItemWikiScraper tmp = scraper;
+    public synchronized WikiScraper loadItemMapping() throws IOException {
+        WikiScraper tmp = scraper;
         if (tmp == null) {
-            scraper = tmp = new ItemWikiScraper();
+            scraper = tmp = new WikiScraper();
         }
         return tmp;
     }
@@ -60,9 +60,9 @@ public class ClipboardRemapper {
             } else {
                 try {
                     name = name.replace("minecraft:", "");
-                    ItemWikiScraper scraper = loadItemMapping();
-                    Map<String, Integer> mapFrom = scraper.scapeOrCache(from);
-                    Map<String, Integer> mapTo = scraper.scapeOrCache(from.opposite());
+                    WikiScraper scraper = loadItemMapping();
+                    Map<String, Integer> mapFrom = scraper.scapeOrCache(WikiScraper.Wiki.valueOf("ITEM_MAPPINGS_" + from.name()));
+                    Map<String, Integer> mapTo = scraper.scapeOrCache(WikiScraper.Wiki.valueOf("ITEM_MAPPINGS_" + from.opposite().name()));
                     scraper.expand(mapTo);
                     switch (name) {
                         case "spruce_boat":  return new BaseItem(333, (short) 1);
@@ -100,7 +100,19 @@ public class ClipboardRemapper {
         throw new UnsupportedOperationException("TODO");
     }
 
-    public String remapEntityId(String id) {
+    public int remapEntityId(String id) {
+        try {
+            Map<String, Integer> mappings = loadItemMapping().scapeOrCache(WikiScraper.Wiki.ENTITY_MAPPINGS);
+            id = id.replace("minecraft:", "");
+            Integer legacyId = mappings.get(id);
+            if (legacyId != null) return legacyId;
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return -1;
+    }
+
+    public String remapBlockEntityId(String id) {
         if (from == null) return id;
         switch (from) {
             case PE: {

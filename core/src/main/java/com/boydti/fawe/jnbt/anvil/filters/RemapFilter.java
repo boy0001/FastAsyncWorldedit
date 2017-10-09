@@ -5,7 +5,7 @@ import com.boydti.fawe.jnbt.anvil.MCAChunk;
 import com.boydti.fawe.jnbt.anvil.MCAFile;
 import com.boydti.fawe.jnbt.anvil.MCAFilterCounter;
 import com.boydti.fawe.jnbt.anvil.MutableMCABackedBaseBlock;
-import com.boydti.fawe.object.clipboard.ClipboardRemapper;
+import com.boydti.fawe.object.clipboard.remap.ClipboardRemapper;
 import com.boydti.fawe.object.collection.BlockVectorSet;
 import com.boydti.fawe.object.number.MutableLong;
 import com.boydti.fawe.util.ReflectionUtils;
@@ -84,9 +84,10 @@ public class RemapFilter extends MCAFilterCounter {
                 case PC: {
                     int newLight = 0;
                     switch (id) {
-                        case 90:
+                        case 90: {
                             pLocs.add(x, y, z);
-                            if (pLocs.contains(x, y - 1, z) || pLocs.contains(x - 1, y, z) || pLocs.contains(x, y, z - 1)) break;
+                            if (pLocs.contains(x, y - 1, z) || pLocs.contains(x - 1, y, z) || pLocs.contains(x, y, z - 1))
+                                break;
                             Map<String, Tag> tag = new HashMap<>();
                             tag.put("Span", new ByteTag((byte) 1));
                             tag.put("TpX", new IntTag(x));
@@ -98,8 +99,10 @@ public class RemapFilter extends MCAFilterCounter {
                             tag.put("Za", new ByteTag((byte) ((data == 2) ? 1 : 0)));
                             portals.add(new CompoundTag(tag));
                             break;
+                        }
                         case 29:
-                        case 33:
+                        case 33: {
+                            int data = block.getData();
                             Map<String, Object> map = new HashMap<>();
                             map.put("Progress", 1f);
                             map.put("State", (byte) 2);
@@ -114,6 +117,7 @@ public class RemapFilter extends MCAFilterCounter {
                             map.put("z", z);
                             block.setNbtData(FaweCache.asTag(map));
                             break;
+                        }
                         case 44:
                         case 182:
                         case 158:

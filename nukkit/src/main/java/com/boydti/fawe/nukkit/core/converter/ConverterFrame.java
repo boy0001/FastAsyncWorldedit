@@ -11,8 +11,7 @@ import com.boydti.fawe.installer.MinimizeButton;
 import com.boydti.fawe.installer.MovablePanel;
 import com.boydti.fawe.installer.TextAreaOutputStream;
 import com.boydti.fawe.installer.URLButton;
-import com.boydti.fawe.object.clipboard.ClipboardRemapper;
-import com.boydti.fawe.object.clipboard.ItemWikiScraper;
+import com.boydti.fawe.object.clipboard.remap.WikiScraper;
 import com.boydti.fawe.util.MainUtil;
 import com.boydti.fawe.wrappers.FakePlayer;
 import java.awt.BorderLayout;
@@ -359,7 +358,7 @@ public class ConverterFrame extends JFrame {
             if (dependenciesLoaded.get()) return;
             try {
                 ExecutorService pool = Executors.newCachedThreadPool();
-                ItemWikiScraper scraper = new ItemWikiScraper();
+                WikiScraper scraper = new WikiScraper();
 
                 File lib = new File("lib");
                 File leveldb = new File(lib, "leveldb_v1.jar");
@@ -376,7 +375,7 @@ public class ConverterFrame extends JFrame {
 
                 pool.submit((Runnable) () -> {
                     try {
-                        scraper.scapeOrCache(ClipboardRemapper.RemapPlatform.PE);
+                        scraper.scapeOrCache(WikiScraper.Wiki.ITEM_MAPPINGS_PE);
                     } catch (IOException e) {
                         e.printStackTrace();
                     }
@@ -384,7 +383,15 @@ public class ConverterFrame extends JFrame {
 
                 pool.submit((Runnable) () -> {
                     try {
-                        scraper.scapeOrCache(ClipboardRemapper.RemapPlatform.PC);
+                        scraper.scapeOrCache(WikiScraper.Wiki.ITEM_MAPPINGS_PC);
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                });
+
+                pool.submit((Runnable) () -> {
+                    try {
+                        scraper.scapeOrCache(WikiScraper.Wiki.ENTITY_MAPPINGS);
                     } catch (IOException e) {
                         e.printStackTrace();
                     }

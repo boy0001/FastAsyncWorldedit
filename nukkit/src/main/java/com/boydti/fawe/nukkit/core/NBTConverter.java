@@ -128,7 +128,7 @@ public final class NBTConverter {
 
     private static cn.nukkit.nbt.tag.ListTag toNative(ListTag tag) {
         cn.nukkit.nbt.tag.ListTag list = new cn.nukkit.nbt.tag.ListTag();
-        for (Tag child : tag.getValue()) {
+        for (Tag child : (List<? extends Tag>) tag.getValue()) {
             if (child instanceof EndTag) {
                 continue;
             }

@@ -11,10 +11,10 @@ import static com.google.common.base.Preconditions.checkNotNull;
 /**
  * The {@code TAG_List} tag.
  */
-public final class ListTag extends Tag {
+public final class ListTag<T extends Tag> extends Tag {
 
-    private final Class<? extends Tag> type;
-    private final List<Tag> value;
+    private final Class<T> type;
+    private final List<T> value;
 
     /**
      * Creates the tag with an empty name.
@@ -22,11 +22,11 @@ public final class ListTag extends Tag {
      * @param type the type of tag
      * @param value the value of the tag
      */
-    public ListTag(Class<? extends Tag> type, List<? extends Tag> value) {
+    public ListTag(Class<T> type, List<T> value) {
         super();
         checkNotNull(value);
         this.type = type;
-        this.value = Collections.unmodifiableList(value);
+        this.value = value;
     }
 
     @Override
@@ -43,12 +43,12 @@ public final class ListTag extends Tag {
      *
      * @return The type of item in this list.
      */
-    public Class<? extends Tag> getType() {
+    public Class<T> getType() {
         return type;
     }
 
     @Override
-    public List<Tag> getValue() {
+    public List<T> getValue() {
         return value;
     }
 

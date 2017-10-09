@@ -9,7 +9,7 @@ import com.boydti.fawe.jnbt.anvil.filters.DelegateMCAFilter;
 import com.boydti.fawe.jnbt.anvil.filters.RemapFilter;
 import com.boydti.fawe.object.FaweQueue;
 import com.boydti.fawe.object.RunnableVal;
-import com.boydti.fawe.object.clipboard.ClipboardRemapper;
+import com.boydti.fawe.object.clipboard.remap.ClipboardRemapper;
 import com.boydti.fawe.object.number.MutableLong;
 import com.boydti.fawe.util.SetQueue;
 import com.sk89q.minecraft.util.commands.Command;

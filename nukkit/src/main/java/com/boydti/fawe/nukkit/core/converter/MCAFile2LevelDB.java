@@ -9,7 +9,7 @@ import com.boydti.fawe.jnbt.anvil.MCAQueue;
 import com.boydti.fawe.jnbt.anvil.filters.DelegateMCAFilter;
 import com.boydti.fawe.jnbt.anvil.filters.RemapFilter;
 import com.boydti.fawe.object.RunnableVal;
-import com.boydti.fawe.object.clipboard.ClipboardRemapper;
+import com.boydti.fawe.object.clipboard.remap.ClipboardRemapper;
 import com.boydti.fawe.object.io.LittleEndianOutputStream;
 import com.boydti.fawe.object.number.MutableLong;
 import com.boydti.fawe.util.MainUtil;
@@ -432,7 +432,7 @@ public class MCAFile2LevelDB extends MapConverter {
                     List<com.sk89q.jnbt.Tag> tiles = new ArrayList<>();
                     for (Map.Entry<Short, CompoundTag> entry : chunk.getTiles().entrySet()) {
                         CompoundTag tag = entry.getValue();
-                        if (transform(chunk, tag) && time != 0l) {
+                        if (transform(chunk, tag, false) && time != 0l) {
                             // Needs tick
                             if (tickList == null) tickList = new ArrayList<>();
 
@@ -464,7 +464,7 @@ public class MCAFile2LevelDB extends MapConverter {
                 if (!chunk.entities.isEmpty()) {
                     List<com.sk89q.jnbt.Tag> entities = new ArrayList<>();
                     for (CompoundTag tag : chunk.getEntities()) {
-                        transform(chunk, tag);
+                        transform(chunk, tag, true);
                         entities.add(tag);
                     }
                     update(getKey(chunk, Tag.Entity, dim), write(entities));
@@ -590,13 +590,14 @@ public class MCAFile2LevelDB extends MapConverter {
         Map<String, com.sk89q.jnbt.Tag> map = ReflectionUtils.getMap(item.getValue());
         map.put("id", new ShortTag((short) remapped.getType()));
         map.put("Damage", new ShortTag((short) remapped.getData()));
+        if (!map.containsKey("Count")) map.put("Count", new ByteTag((byte) 0));
 
         CompoundTag tag = (CompoundTag) item.getValue().get("tag");
         if (tag != null) {
             Map<String, com.sk89q.jnbt.Tag> tagMap = ReflectionUtils.getMap(tag.getValue());
-            List<CompoundTag> enchants = (List) tag.getList("ench");
+            ListTag<CompoundTag> enchants = (ListTag<CompoundTag>) tagMap.get("ench");
             if (enchants != null) {
-                for (CompoundTag ench : enchants) {
+                for (CompoundTag ench : enchants.getValue()) {
                     Map<String, com.sk89q.jnbt.Tag> value = ReflectionUtils.getMap(ench.getValue());
                     String id = ench.getString("id");
                     String lvl = ench.getString("lvl");
@@ -612,19 +613,48 @@ public class MCAFile2LevelDB extends MapConverter {
         return item;
     }
 
-    private boolean transform(MCAChunk chunk, CompoundTag tag) {
+    private boolean transform(MCAChunk chunk, CompoundTag tag, boolean entity) {
         try {
             String id = tag.getString("id");
             if (id != null) {
                 Map<String, com.sk89q.jnbt.Tag> map = ReflectionUtils.getMap(tag.getValue());
-                id = remapper.remapEntityId(id);
-                map.put("id", new StringTag(id));
-                if (map.containsKey("Pos")) {
-                    map.put("id", new IntTag(11));
+                if (entity) {
+                    int legacyId = remapper.remapEntityId(id);
+                    if (legacyId != -1) map.put("id", new IntTag(legacyId));
+                } else {
+                    id = remapper.remapBlockEntityId(id);
+                    map.put("id", new StringTag(id));
+                }
+                { // Hand items
+                    com.sk89q.jnbt.ListTag items = (ListTag) map.remove("HandItems");
+                    if (items != null) {
+                        CompoundTag hand = transformItem((CompoundTag) items.getValue().get(0));
+                        CompoundTag offHand = transformItem((CompoundTag) items.getValue().get(1));
+                        map.put("Mainhand", hand);
+                        map.put("Offhand", offHand);
+                    }
+                }
+                { // Convert armor
+                    com.sk89q.jnbt.ListTag items = (ListTag) map.remove("ArmorItems");
+                    if (items != null) {
+                        ((List<CompoundTag>) items.getValue()).forEach(this::transformItem);
+                        Collections.reverse(items.getValue());
+                        map.put("Armor", items);
+                    }
                 }
                 { // Convert items
                     com.sk89q.jnbt.ListTag items = tag.getListTag("Items");
-                    ((List<CompoundTag>) (List) items.getValue()).forEach(this::transformItem);
+                    if (items != null) {
+                        ((List<CompoundTag>) items.getValue()).forEach(this::transformItem);
+                    }
+                }
+                { // Convert color
+                    for (String key : new String[] {"color", "Color"}) {
+                        com.sk89q.jnbt.Tag value = map.get(key);
+                        if (value instanceof IntTag) {
+                            map.put(key, new ByteTag((byte) (int) ((IntTag) value).getValue()));
+                        }
+                    }
                 }
                 { // Convert item
                     String item = tag.getString("Item");

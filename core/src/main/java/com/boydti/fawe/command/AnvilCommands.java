@@ -28,7 +28,7 @@ import com.boydti.fawe.object.FaweQueue;
 import com.boydti.fawe.object.RegionWrapper;
 import com.boydti.fawe.object.RunnableVal4;
 import com.boydti.fawe.object.changeset.AnvilHistory;
-import com.boydti.fawe.object.clipboard.ClipboardRemapper;
+import com.boydti.fawe.object.clipboard.remap.ClipboardRemapper;
 import com.boydti.fawe.object.mask.FaweBlockMatcher;
 import com.boydti.fawe.util.MainUtil;
 import com.boydti.fawe.util.SetQueue;
