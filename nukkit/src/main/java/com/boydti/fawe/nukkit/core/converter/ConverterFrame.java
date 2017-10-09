@@ -11,6 +11,8 @@ import com.boydti.fawe.installer.MinimizeButton;
 import com.boydti.fawe.installer.MovablePanel;
 import com.boydti.fawe.installer.TextAreaOutputStream;
 import com.boydti.fawe.installer.URLButton;
+import com.boydti.fawe.object.clipboard.ClipboardRemapper;
+import com.boydti.fawe.object.clipboard.ItemWikiScraper;
 import com.boydti.fawe.util.MainUtil;
 import com.boydti.fawe.wrappers.FakePlayer;
 import java.awt.BorderLayout;
@@ -30,6 +32,10 @@ import java.net.URL;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.Map;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 import javax.imageio.ImageIO;
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
@@ -37,13 +43,17 @@ import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
+import javax.swing.JProgressBar;
 import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
 import javax.swing.SwingConstants;
+import javax.swing.border.Border;
 import javax.swing.border.EmptyBorder;
+import javax.swing.border.TitledBorder;
 
 public class ConverterFrame extends JFrame {
     private final InvisiblePanel loggerPanel;
+    private final JProgressBar progressBar;
     private Color LIGHT_GRAY = new Color(0x66, 0x66, 0x66);
     private Color GRAY = new Color(0x44, 0x44, 0x46);
     private Color DARK_GRAY = new Color(0x33, 0x33, 0x36);
@@ -56,6 +66,8 @@ public class ConverterFrame extends JFrame {
     private BrowseButton browseSave;
 
     public ConverterFrame() throws Exception {
+        async(() -> downloadDependencies());
+
         final MovablePanel movable = new MovablePanel(this);
         movable.setBorder(BorderFactory.createLineBorder(new Color(0x28, 0x28, 0x29)));
 
@@ -69,11 +81,13 @@ public class ConverterFrame extends JFrame {
         int y = (int) ((dimension.getHeight() - this.getHeight()) / 2);
         this.setLocation(x, y);
         this.setVisible(true);
-        this.setOpacity(0);
+
+        if (this.transparency(0)) {
+            fadeIn();
+        }
+
         movable.setBackground(DARK_GRAY);
         movable.setLayout(new BorderLayout());
-
-        fadeIn();
 
         JPanel topBar = new InvisiblePanel(new BorderLayout());
         {
@@ -81,11 +95,13 @@ public class ConverterFrame extends JFrame {
             JPanel topBarCenter = new InvisiblePanel();
             JPanel topBarRight = new InvisiblePanel();
 
-            JLabel title = new JLabel("(FAWE) Anvil and LevelDB converter");
+            JLabel title = new JLabel();
             title.setHorizontalAlignment(SwingConstants.CENTER);
             title.setAlignmentX(Component.RIGHT_ALIGNMENT);
             title.setForeground(Color.LIGHT_GRAY);
+            title.setText("(FAWE) Anvil and LevelDB converter");
             title.setFont(new Font("Lucida Sans Unicode", Font.PLAIN, 15));
+            setTitle(null);
 
             MinimizeButton minimize = new MinimizeButton(this);
             CloseButton exit = new CloseButton();
@@ -195,8 +211,7 @@ public class ConverterFrame extends JFrame {
             installContent.add(install);
             installContent.setBorder(new EmptyBorder(10, 0, 10, 0));
             this.loggerPanel = new InvisiblePanel(new BorderLayout());
-            this.loggerPanel.setBackground(Color.GREEN);
-            loggerPanel.setPreferredSize(new Dimension(416, 442));
+            loggerPanel.setPreferredSize(new Dimension(Integer.MAX_VALUE, 380));
             loggerTextArea = new JTextArea();
             loggerTextArea.setBackground(Color.GRAY);
             loggerTextArea.setForeground(Color.DARK_GRAY);
@@ -208,10 +223,22 @@ public class ConverterFrame extends JFrame {
             loggerPanel.add(scroll);
             loggerPanel.setVisible(false);
 
+            this.progressBar = new JProgressBar();
+            progressBar.setVisible(false);
+            progressBar.setStringPainted(true);
+            progressBar.setBackground(DARK_GRAY);
+            progressBar.setForeground(OFF_WHITE);
+
             mainContent.setBorder(new EmptyBorder(6, 32, 6, 32));
             mainContent.add(browseContent, BorderLayout.NORTH);
             mainContent.add(installContent, BorderLayout.CENTER);
-            mainContent.add(loggerPanel, BorderLayout.SOUTH);
+
+            final JPanel console = new InvisiblePanel(new BorderLayout());
+            console.setBorder(new EmptyBorder(6, 0, 6, 0));
+            console.add(progressBar, BorderLayout.SOUTH);
+            console.add(loggerPanel, BorderLayout.NORTH);
+
+            mainContent.add(console, BorderLayout.SOUTH);
         }
         JPanel bottomBar = new InvisiblePanel();
         {
@@ -270,6 +297,47 @@ public class ConverterFrame extends JFrame {
         this.repaint();
     }
 
+    public void prompt(String message) {
+        JOptionPane.showMessageDialog(null, message);
+        Fawe.debug(message);
+    }
+
+    public void debug(String m) {
+        System.out.println(m);
+    }
+
+    public void setProgress(String text, int percent) {
+        Border border = BorderFactory.createTitledBorder(new EmptyBorder(0, 0, 0, 0), "Time remaining: " + text, TitledBorder.DEFAULT_JUSTIFICATION, TitledBorder.DEFAULT_POSITION, new Font("Lucida Sans Unicode",Font.PLAIN,12), OFF_WHITE);
+        progressBar.setVisible(true);
+        progressBar.setBorder(border);
+        progressBar.setValue(percent);
+        repaint();
+    }
+
+    private void fadeIn() {
+        async(() -> {
+            for (float i = 0; i <= 1.015; i += 0.016) {
+                if (!transparency(Math.min(1, i))) return;
+                try {
+                    Thread.sleep(16);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                } catch (UnsupportedOperationException ignore) {
+                    return;
+                }
+            }
+        });
+    }
+
+    private boolean transparency(float val) {
+        try {
+            super.setOpacity(val);
+            return true;
+        } catch (UnsupportedOperationException ignore) {
+            return false;
+        }
+    }
+
     private File getDefaultOutput() {
         if (MainUtil.getPlatform() == MainUtil.OS.WINDOWS) {
             String applicationData = System.getenv("APPDATA");
@@ -281,16 +349,61 @@ public class ConverterFrame extends JFrame {
         return new File(".");
     }
 
-    public void prompt(String message) {
-        JOptionPane.showMessageDialog(null, message);
-        Fawe.debug(message);
+    private void async(Runnable r) {
+        new Thread(r).start();
     }
 
-    public void debug(String m) {
-        System.out.println(m);
+    private AtomicBoolean dependenciesLoaded = new AtomicBoolean(false);
+    private void downloadDependencies() {
+        synchronized (dependenciesLoaded) {
+            if (dependenciesLoaded.get()) return;
+            try {
+                ExecutorService pool = Executors.newCachedThreadPool();
+                ItemWikiScraper scraper = new ItemWikiScraper();
+
+                File lib = new File("lib");
+                File leveldb = new File(lib, "leveldb_v1.jar");
+                URL levelDbUrl = new URL("https://git.io/vdZ9e");
+
+                pool.submit((Runnable) () -> {
+                    try {
+                        MainUtil.download(levelDbUrl, leveldb);
+                        MainUtil.loadURLClasspath(leveldb.toURL());
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                });
+
+                pool.submit((Runnable) () -> {
+                    try {
+                        scraper.scapeOrCache(ClipboardRemapper.RemapPlatform.PE);
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                });
+
+                pool.submit((Runnable) () -> {
+                    try {
+                        scraper.scapeOrCache(ClipboardRemapper.RemapPlatform.PC);
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                });
+
+                pool.shutdown();
+                try {
+                    pool.awaitTermination(Long.MAX_VALUE, TimeUnit.MILLISECONDS);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+                dependenciesLoaded.set(true);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
     }
 
-    public void install(String input, String output) throws Exception {
+    private void install(String input, String output) throws Exception {
         if (!loggerPanel.isVisible()) {
             loggerPanel.setVisible(true);
             this.repaint();
@@ -324,30 +437,10 @@ public class ConverterFrame extends JFrame {
             public void run() {
                 FakePlayer console = FakePlayer.getConsole();
                 try {
-                    debug("Loading leveldb.jar");
-
-                    File lib = new File("lib");
-
-                    File leveldb = new File(lib, "leveldb.jar");
-                    URL levelDbUrl = new URL("https://git.io/vdZ9e");
-
-
-//                    File blocksPE = new File(lib, "blocks-pe.json");
-//                    File blocksPC = new File(lib, "blocks-pc.json");
-
-//                    URL urlPE = new URL("https://git.io/vdZSj");
-//                    URL urlPC = new URL("https://git.io/vdZSx");
-
-                    MainUtil.download(levelDbUrl, leveldb);
-//                    MainUtil.download(urlPE, blocksPC);
-//                    MainUtil.download(urlPC, blocksPE);
-
-                    MainUtil.loadURLClasspath(leveldb.toURL());
-
-                    File newWorldFile = new File(output, dirMc.getName());
-
+                    debug("Downloading levedb.jar and mappings (~4MB), please wait...");
+                    downloadDependencies();
                     debug("Starting converter...");
-
+                    File newWorldFile = new File(output, dirMc.getName());
                     MapConverter converter = MapConverter.get(dirMc, newWorldFile);
                     converter.accept(ConverterFrame.this);
                 } catch (Throwable e) {
@@ -355,26 +448,11 @@ public class ConverterFrame extends JFrame {
                     prompt("[ERROR] Conversion failed, you will have to do it manually (Nukkit server + anvil2leveldb command)");
                     return;
                 }
+                System.gc();
+                System.gc();
             }
         });
         installThread.start();
-    }
-
-    public void fadeIn() {
-        Thread thread = new Thread(new Runnable() {
-            @Override
-            public void run() {
-                for (float i = 0; i <= 1.015; i += 0.016) {
-                    ConverterFrame.this.setOpacity(Math.min(1, i));
-                    try {
-                        Thread.sleep(16);
-                    } catch (InterruptedException e) {
-                        e.printStackTrace();
-                    }
-                }
-            }
-        });
-        thread.start();
     }
 
     public static void main(String[] args) throws Exception {

@@ -1,7 +1,6 @@
 package com.boydti.fawe.object.clipboard;
 
 
-import com.boydti.fawe.Fawe;
 import com.boydti.fawe.util.MainUtil;
 import com.google.common.io.Resources;
 import com.google.common.reflect.TypeToken;
@@ -58,7 +57,6 @@ public class ItemWikiScraper {
     }
 
     private Map<String, Integer> scrape(ClipboardRemapper.RemapPlatform platform) throws IOException {
-        Fawe.debug("Downloading item mappings for " + platform + ". Please wait...");
         String url = (platform == ClipboardRemapper.RemapPlatform.PC) ? PC : PE;
         String text = MainUtil.getText(url);
 
@@ -96,7 +94,6 @@ public class ItemWikiScraper {
             }
             id++;
         }
-        Fawe.debug("Download complete.");
         return map;
     }
 }

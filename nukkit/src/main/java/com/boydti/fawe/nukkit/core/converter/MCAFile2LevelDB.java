@@ -12,6 +12,7 @@ import com.boydti.fawe.object.RunnableVal;
 import com.boydti.fawe.object.clipboard.ClipboardRemapper;
 import com.boydti.fawe.object.io.LittleEndianOutputStream;
 import com.boydti.fawe.object.number.MutableLong;
+import com.boydti.fawe.util.MainUtil;
 import com.boydti.fawe.util.MemUtil;
 import com.boydti.fawe.util.ReflectionUtils;
 import com.boydti.fawe.util.StringMan;
@@ -52,6 +53,7 @@ import java.util.concurrent.ForkJoinPool;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.LongAdder;
 import java.util.zip.GZIPInputStream;
+import org.iq80.leveldb.CompressionType;
 import org.iq80.leveldb.DB;
 import org.iq80.leveldb.Options;
 import org.iq80.leveldb.WriteBatch;
@@ -61,15 +63,21 @@ public class MCAFile2LevelDB extends MapConverter {
     private final byte[] VERSION = new byte[] { 4 };
     private final byte[] COMPLETE_STATE = new byte[] { 2, 0, 0, 0 };
 
-    private DB db;
+    private final DB db;
     private final ClipboardRemapper remapper;
     private final ForkJoinPool pool;
     private boolean closed;
-    private LongAdder submitted = new LongAdder();
+    private LongAdder submittedChunks = new LongAdder();
+    private LongAdder submittedFiles = new LongAdder();
+
+    private LongAdder totalOperations = new LongAdder();
+    private long estimatedOperations;
 
     private long time;
-
     private boolean remap;
+
+    private final long startTime;
+    private ConverterFrame app;
 
     private ConcurrentLinkedQueue<CompoundTag> portals = new ConcurrentLinkedQueue<>();
 
@@ -79,7 +87,7 @@ public class MCAFile2LevelDB extends MapConverter {
         public WriteBatch get(Object key) {
             WriteBatch value = super.get(key);
             if (value == null) {
-                synchronized (batches) {
+                synchronized (MCAFile2LevelDB.this) {
                     synchronized (Thread.currentThread()) {
                         value = db.createWriteBatch();
                         put((Thread) key, value);
@@ -92,6 +100,7 @@ public class MCAFile2LevelDB extends MapConverter {
 
     public MCAFile2LevelDB(File folderFrom, File folderTo) {
         super(folderFrom, folderTo);
+        this.startTime = System.currentTimeMillis();
         try {
             if (!folderTo.exists()) {
                 folderTo.mkdirs();
@@ -104,15 +113,61 @@ public class MCAFile2LevelDB extends MapConverter {
             this.pool = new ForkJoinPool();
             this.remapper = new ClipboardRemapper(ClipboardRemapper.RemapPlatform.PC, ClipboardRemapper.RemapPlatform.PE);
             BundledBlockData.getInstance().loadFromResource();
-            flush(true);
+
+            int bufferSize = (int) Math.min(Integer.MAX_VALUE, Math.max((long) (MemUtil.getFreeBytes() * 0.8), 134217728));
+            this.db = Iq80DBFactory.factory.open(new File(folderTo, "db"),
+                    new Options()
+                            .createIfMissing(true)
+                            .verifyChecksums(false)
+                            .compressionType(CompressionType.ZLIB)
+                            .blockSize(262144) // 256K
+                            .cacheSize(8388608) // 8MB
+                            .writeBufferSize(134217728) // >=512MB
+            );
+
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
     }
 
-    public void flush(boolean openDB) throws IOException {
+    private double lastPercent;
+    private double lastTimeRatio;
+
+    private void progress(int increment) {
+        if (app == null) return;
+        totalOperations.add(increment);
+
+        long completedOps = totalOperations.longValue();
+        double percent = Math.max(0, Math.min(100, (Math.pow(completedOps, 1.5) * 100 / Math.pow(estimatedOperations, 1.5))));
+        double lastPercent = (this.lastPercent == 0 ? percent : this.lastPercent);
+        percent = (percent + lastPercent * 19) / 20;
+        if (increment != 0) this.lastPercent = percent;
+
+        double remaining = estimatedOperations - completedOps;
+        long timeSpent = System.currentTimeMillis() - startTime;
+
+        double totalTime = Math.pow(estimatedOperations, 1.5) * 1000;
+        double estimatedTimeSpent = Math.pow(completedOps, 1.5) * 1000;
+
+        double timeRemaining;
+        if (completedOps > 32) {
+            double timeRatio = (timeSpent * totalTime / estimatedTimeSpent);
+            double lastTimeRatio = this.lastTimeRatio == 0 ? timeRatio : this.lastTimeRatio;
+            timeRatio = (timeRatio + lastTimeRatio * 19) / 20;
+            if (increment != 0) this.lastTimeRatio = timeRatio;
+            timeRemaining = timeRatio - timeSpent;
+        } else {
+            timeRemaining = ((long) totalTime >> 5) - timeSpent;
+        }
+        String msg = MainUtil.secToTime((long) (timeRemaining / 1000));
+        app.setProgress(msg, (int) percent);
+    }
+
+    public synchronized void flush() throws IOException {
         pool.awaitQuiescence(Long.MAX_VALUE, TimeUnit.MILLISECONDS);
-        synchronized (batches) {
+        progress(1);
+        synchronized (MCAFile2LevelDB.this) {
+            int count = pool.getParallelism();
             Iterator<Map.Entry<Thread, WriteBatch>> iter = batches.entrySet().iterator();
             while (iter.hasNext()) {
                 Map.Entry<Thread, WriteBatch> entry = iter.next();
@@ -121,29 +176,20 @@ public class MCAFile2LevelDB extends MapConverter {
                     db.write(batch);
                     batch.close();
                     iter.remove();
+                    progress(2);
+                    count--;
                 }
             }
-            if (openDB) {
-                Fawe.debug("Flushing changes, please wait");
-                if (db != null) db.close();
-                System.gc();
-                System.gc();
-                int bufferSize = (int) Math.min(Integer.MAX_VALUE, Math.max((long) (MemUtil.getFreeBytes() * 0.8), 134217728));
-                this.db = Iq80DBFactory.factory.open(new File(folderTo, "db"),
-                        new Options()
-                                .createIfMissing(true)
-                                .verifyChecksums(false)
-                                .blockSize(262144) // 256K
-                                .cacheSize(8388608) // 8MB
-                                .writeBufferSize(536870912) // >=512MB
-                );
-            }
+            System.gc();
+            System.gc();
+            progress(count * 2);
         }
     }
 
     public DelegateMCAFilter<MutableLong> toFilter(final int dimension) {
         RemapFilter filter = new RemapFilter(ClipboardRemapper.RemapPlatform.PC, ClipboardRemapper.RemapPlatform.PE);
         filter.setDimension(dimension);
+
         DelegateMCAFilter<MutableLong> delegate = new DelegateMCAFilter<MutableLong>(filter) {
             @Override
             public void finishFile(MCAFile file, MutableLong cache) {
@@ -158,6 +204,16 @@ public class MCAFile2LevelDB extends MapConverter {
                     }
                 });
                 file.clear();
+
+                progress(1);
+                submittedFiles.increment();
+                if ((submittedFiles.longValue() & 7) == 0) {
+                    try {
+                        flush();
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                }
             }
         };
         return delegate;
@@ -166,6 +222,7 @@ public class MCAFile2LevelDB extends MapConverter {
 
     @Override
     public void accept(ConverterFrame app) {
+        this.app = app;
         File levelDat = new File(folderFrom, "level.dat");
         if (levelDat.exists()) {
             try {
@@ -177,12 +234,34 @@ public class MCAFile2LevelDB extends MapConverter {
 
         List<CompoundTag> portals = new ArrayList<>();
         String[] dimDirs = {"region", "DIM-1/region", "DIM1/region"};
+        File[] regionFolders = new File[dimDirs.length];
+        int totalFiles = 0;
         for (int dim = 0; dim < 3; dim++) {
             File source = new File(folderFrom, dimDirs[dim]);
             if (source.exists()) {
+                regionFolders[dim] = source;
+                totalFiles += source.listFiles().length;
+            }
+        }
+        this.estimatedOperations = totalFiles + (totalFiles >> 3) + (totalFiles >> 3) * pool.getParallelism() * 2;
+
+        Thread progressThread = new Thread(() -> {
+            while (!Thread.currentThread().isInterrupted()) {
+                try {
+                    Thread.sleep(1000);
+                    progress(0);
+                } catch (InterruptedException e) {
+                    return;
+                }
+            }
+        });
+        progressThread.start();
+
+        for (int dim = 0; dim < regionFolders.length; dim++) {
+            File source = regionFolders[dim];
+            if (source != null) {
                 DelegateMCAFilter filter = toFilter(dim);
                 MCAQueue queue = new MCAQueue(null, source, true);
-
                 MCAFilter result = queue.filterWorld(filter);
                 portals.addAll(((RemapFilter) filter.getFilter()).getPortals());
             }
@@ -201,11 +280,13 @@ public class MCAFile2LevelDB extends MapConverter {
 
 
         try {
-            flush(false);
+            flush();
         } catch (IOException e) {
             e.printStackTrace();
         }
+        progressThread.interrupt();
         close();
+        app.setProgress("Done", 0);
         app.prompt(
                 "Conversion complete!\n" +
                         " - The world save is still being compacted, but you can close the program anytime\n" +
@@ -223,7 +304,7 @@ public class MCAFile2LevelDB extends MapConverter {
     }
 
     @Override
-    public void close() {
+    public synchronized void close() {
         try {
             if (closed == (closed = true)) return;
             Fawe.debug("Collecting threads");
@@ -238,7 +319,7 @@ public class MCAFile2LevelDB extends MapConverter {
         }
     }
 
-    public void compact() {
+    public synchronized void compact() {
         // Since the library doesn't support it, only way to flush the cache is to loop over everything
         try (DB newDb = Iq80DBFactory.factory.open(new File(folderTo, "db"), new Options()
                 .verifyChecksums(false)
@@ -315,8 +396,9 @@ public class MCAFile2LevelDB extends MapConverter {
     }
 
     public void write(MCAChunk chunk, boolean remap, int dim) throws IOException {
-        submitted.add(1);
-        if ((submitted.longValue() & 1023) == 0) {
+        submittedChunks.add(1);
+        long numChunks = submittedChunks.longValue();
+        if ((numChunks & 1023) == 0) {
             long queued = pool.getQueuedTaskCount() + pool.getQueuedSubmissionCount();
             if (queued > 127) {
                 System.gc();
@@ -329,110 +411,106 @@ public class MCAFile2LevelDB extends MapConverter {
                     }
                 }
             }
-            if ((submitted.longValue() & 8191) == 0) {
-                boolean reopen = (submitted.longValue() & 65535) == 0;
-                flush(reopen);
+        }
+        synchronized (MCAFile2LevelDB.this) {
+            try {
+                update(getKey(chunk, Tag.Version, dim), VERSION);
+                update(getKey(chunk, Tag.FinalizedState, dim), COMPLETE_STATE);
+
+                ByteBuffer data2d = ByteBuffer.wrap(new byte[512 + 256]);
+                int[] heightMap = chunk.getHeightMapArray();
+                for (int i = 0; i < heightMap.length; i++) {
+                    data2d.putShort((short) heightMap[i]);
+                }
+                if (chunk.biomes != null) {
+                    System.arraycopy(chunk.biomes, 0, data2d.array(), 512, 256);
+                }
+                update(getKey(chunk, Tag.Data2D, dim), data2d.array());
+
+                if (!chunk.tiles.isEmpty()) {
+                    List<CompoundTag> tickList = null;
+                    List<com.sk89q.jnbt.Tag> tiles = new ArrayList<>();
+                    for (Map.Entry<Short, CompoundTag> entry : chunk.getTiles().entrySet()) {
+                        CompoundTag tag = entry.getValue();
+                        if (transform(chunk, tag) && time != 0l) {
+                            // Needs tick
+                            if (tickList == null) tickList = new ArrayList<>();
+
+                            int x = tag.getInt("x");
+                            int y = tag.getInt("y");
+                            int z = tag.getInt("z");
+                            BaseBlock block = chunk.getBlock(x & 15, y, z & 15);
+
+                            Map<String, com.sk89q.jnbt.Tag> tickable = new HashMap<>();
+                            tickable.put("tileID", new ByteTag((byte) block.getId()));
+                            tickable.put("x", new IntTag(x));
+                            tickable.put("y", new IntTag(y));
+                            tickable.put("z", new IntTag(z));
+                            tickable.put("time", new LongTag(1));
+                            tickList.add(new CompoundTag(tickable));
+                        }
+
+                        tiles.add(tag);
+                    }
+                    update(getKey(chunk, Tag.BlockEntity, dim), write(tiles));
+
+                    if (tickList != null) {
+                        HashMap<String, com.sk89q.jnbt.Tag> root = new HashMap<String, com.sk89q.jnbt.Tag>();
+                        root.put("tickList", new ListTag(CompoundTag.class, tickList));
+                        update(getKey(chunk, Tag.PendingTicks, dim), write(Arrays.asList(new CompoundTag(root))));
+                    }
+                }
+
+                if (!chunk.entities.isEmpty()) {
+                    List<com.sk89q.jnbt.Tag> entities = new ArrayList<>();
+                    for (CompoundTag tag : chunk.getEntities()) {
+                        transform(chunk, tag);
+                        entities.add(tag);
+                    }
+                    update(getKey(chunk, Tag.Entity, dim), write(entities));
+                }
+
+                int maxLayer = chunk.ids.length - 1;
+                while (maxLayer >= 0 && chunk.ids[maxLayer] == null) maxLayer--;
+                if (maxLayer >= 0) {
+                    for (int layer = 0; layer <= maxLayer; layer++) {
+                        // Set layer
+                        byte[] key = getSectionKey(chunk, layer, dim);
+                        byte[] value = new byte[1 + 4096 + 2048 + 2048 + 2048];
+                        byte[] ids = chunk.ids[layer];
+                        if (ids == null) {
+                            Arrays.fill(value, (byte) 0);
+                        } else {
+                            byte[] data = chunk.data[layer];
+                            byte[] skyLight = chunk.skyLight[layer];
+                            byte[] blockLight = chunk.blockLight[layer];
+
+                            if (remap) {
+                                copySection(ids, value, 1);
+                                copySection(data, value, 1 + 4096);
+                                copySection(skyLight, value, 1 + 4096 + 2048);
+                                copySection(blockLight, value, 1 + 4096 + 2048 + 2048);
+                            } else {
+                                System.arraycopy(ids, 0, value, 1, ids.length);
+                                System.arraycopy(data, 0, value, 1 + 4096, data.length);
+                                System.arraycopy(skyLight, 0, value, 1 + 4096 + 2048, skyLight.length);
+                                System.arraycopy(blockLight, 0, value, 1 + 4096 + 2048 + 2048, blockLight.length);
+                            }
+                        }
+                        update(key, value);
+                    }
+                }
+            } catch (Throwable e) {
+                e.printStackTrace();
             }
         }
-        pool.submit((Runnable) () -> {
-            synchronized (Thread.currentThread()) {
-                try {
-                    update(getKey(chunk, Tag.Version, dim), VERSION);
-                    update(getKey(chunk, Tag.FinalizedState, dim), COMPLETE_STATE);
-
-                    ByteBuffer data2d = ByteBuffer.wrap(new byte[512 + 256]);
-                    int[] heightMap = chunk.getHeightMapArray();
-                    for (int i = 0; i < heightMap.length; i++) {
-                        data2d.putShort((short) heightMap[i]);
-                    }
-                    if (chunk.biomes != null) {
-                        System.arraycopy(chunk.biomes, 0, data2d.array(), 512, 256);
-                    }
-                    update(getKey(chunk, Tag.Data2D, dim), data2d.array());
-
-                    if (!chunk.tiles.isEmpty()) {
-                        List<CompoundTag> tickList = null;
-                        List<com.sk89q.jnbt.Tag> tiles = new ArrayList<>();
-                        for (Map.Entry<Short, CompoundTag> entry : chunk.getTiles().entrySet()) {
-                            CompoundTag tag = entry.getValue();
-                            if (transform(chunk, tag) && time != 0l) {
-                                // Needs tick
-                                if (tickList == null) tickList = new ArrayList<>();
-
-                                int x = tag.getInt("x");
-                                int y = tag.getInt("y");
-                                int z = tag.getInt("z");
-                                BaseBlock block = chunk.getBlock(x & 15, y, z & 15);
-
-                                Map<String, com.sk89q.jnbt.Tag> tickable = new HashMap<>();
-                                tickable.put("tileID", new ByteTag((byte) block.getId()));
-                                tickable.put("x", new IntTag(x));
-                                tickable.put("y", new IntTag(y));
-                                tickable.put("z", new IntTag(z));
-                                tickable.put("time", new LongTag(1));
-                                tickList.add(new CompoundTag(tickable));
-                            }
-
-                            tiles.add(tag);
-                        }
-                        update(getKey(chunk, Tag.BlockEntity, dim), write(tiles));
-
-                        if (tickList != null) {
-                            HashMap<String, com.sk89q.jnbt.Tag> root = new HashMap<String, com.sk89q.jnbt.Tag>();
-                            root.put("tickList", new ListTag(CompoundTag.class, tickList));
-                            update(getKey(chunk, Tag.PendingTicks, dim), write(Arrays.asList(new CompoundTag(root))));
-                        }
-                    }
-
-                    if (!chunk.entities.isEmpty()) {
-                        List<com.sk89q.jnbt.Tag> entities = new ArrayList<>();
-                        for (CompoundTag tag : chunk.getEntities()) {
-                            transform(chunk, tag);
-                            entities.add(tag);
-                        }
-                        update(getKey(chunk, Tag.Entity, dim), write(entities));
-                    }
-
-                    int maxLayer = chunk.ids.length - 1;
-                    while (maxLayer >= 0 && chunk.ids[maxLayer] == null) maxLayer--;
-                    if (maxLayer >= 0) {
-                        for (int layer = maxLayer; layer >= 0; layer--) {
-                            // Set layer
-                            byte[] key = getSectionKey(chunk, layer, dim);
-                            byte[] value = new byte[1 + 4096 + 2048 + 2048 + 2048];
-                            byte[] ids = chunk.ids[layer];
-                            if (ids == null) {
-                                Arrays.fill(value, (byte) 0);
-                            } else {
-                                byte[] data = chunk.data[layer];
-                                byte[] skyLight = chunk.skyLight[layer];
-                                byte[] blockLight = chunk.blockLight[layer];
-
-                                if (remap) {
-                                    copySection(ids, value, 1);
-                                    copySection(data, value, 1 + 4096);
-                                    copySection(skyLight, value, 1 + 4096 + 2048);
-                                    copySection(blockLight, value, 1 + 4096 + 2048 + 2048);
-                                } else {
-                                    System.arraycopy(ids, 0, value, 1, ids.length);
-                                    System.arraycopy(data, 0, value, 1 + 4096, data.length);
-                                    System.arraycopy(skyLight, 0, value, 1 + 4096 + 2048, skyLight.length);
-                                    System.arraycopy(blockLight, 0, value, 1 + 4096 + 2048 + 2048, blockLight.length);
-                                }
-                            }
-                            update(key, value);
-                        }
-                    }
-                } catch (Throwable e) {
-                    e.printStackTrace();
-                }
-            }
-        });
     }
 
     private void update(byte[] key, byte[] value) {
-        WriteBatch batch = batches.get(Thread.currentThread());
-        batch.put(key, value);
+        synchronized (Thread.currentThread()) {
+            WriteBatch batch = batches.get(Thread.currentThread());
+            batch.put(key, value);
+        }
     }
 
     private void copySection(byte[] src, byte[] dest, int destPos) {
@@ -541,6 +619,9 @@ public class MCAFile2LevelDB extends MapConverter {
                 Map<String, com.sk89q.jnbt.Tag> map = ReflectionUtils.getMap(tag.getValue());
                 id = remapper.remapEntityId(id);
                 map.put("id", new StringTag(id));
+                if (map.containsKey("Pos")) {
+                    map.put("id", new IntTag(11));
+                }
                 { // Convert items
                     com.sk89q.jnbt.ListTag items = tag.getListTag("Items");
                     ((List<CompoundTag>) (List) items.getValue()).forEach(this::transformItem);
@@ -555,13 +636,21 @@ public class MCAFile2LevelDB extends MapConverter {
                     }
                 }
                 { // Health
-                    com.sk89q.jnbt.Tag health = map.get("Health");
-                    if (health != null && health instanceof FloatTag) {
-                        map.put("Health", new ShortTag((short) tag.getFloat("Health")));
+                    com.sk89q.jnbt.Tag tVal = map.get("Health");
+                    if (tVal != null) {
+                        short newVal = ((Number) tVal.getValue()).shortValue();
+                        map.put("Health", new ShortTag((short) (newVal * 2)));
+                    }
+                }
+                for (String key : new String[] {"Age", "Health"}) {
+                    com.sk89q.jnbt.Tag tVal = map.get(key);
+                    if (tVal != null) {
+                        short newVal = ((Number) tVal.getValue()).shortValue();
+                        map.put(key, new ShortTag(newVal));
                     }
                 }
                 { // Orientation / Position
-                    for (String key : new String[] {"Orientation", "Position"}) {
+                    for (String key : new String[] {"Orientation", "Position", "Rotation", "Pos", "Motion"}) {
                         ListTag list = (ListTag) map.get(key);
                         if (list != null) {
                             List<com.sk89q.jnbt.Tag> value = list.getValue();
