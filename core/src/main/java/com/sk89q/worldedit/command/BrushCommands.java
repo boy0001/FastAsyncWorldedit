@@ -106,8 +106,8 @@ import java.util.List;
 /**
  * Commands to set brush shape.
  */
-@Command(aliases = {"brush", "br", "tool"},
-        desc = "Commands to build and draw from far away. [More Info](https://git.io/vSPYf)"
+@Command(aliases = {"brush", "br", "tool"}, 
+        desc = "Команды строения и рисования издалека. [Больше информации](https://git.io/vSPYf)"               
 )
 public class BrushCommands extends MethodCommands {
 
@@ -131,10 +131,10 @@ public class BrushCommands extends MethodCommands {
 
     @Command(
             aliases = {"blendball", "bb", "blend"},
-            usage = "[radius=5]",
-            desc = "Smooths and blends terrain",
-            help = "Smooths and blends terrain\n" +
-                    "Pic: https://i.imgur.com/cNUQUkj.png -> https://i.imgur.com/hFOFsNf.png",
+            usage = "[радиус=5]",
+            desc = "Сгладить и смешивает ландшафт",
+            help = "Сгладить и смешивает ландшафт\n" +
+                    "Картинка: https://i.imgur.com/cNUQUkj.png -> https://i.imgur.com/hFOFsNf.png",
             min = 0,
             max = 1
     )
@@ -146,9 +146,9 @@ public class BrushCommands extends MethodCommands {
 
     @Command(
             aliases = {"erode", "e"},
-            usage = "[radius=5]",
-            desc = "Erodes terrain",
-            help = "Erodes terrain",
+            usage = "[радиус=5]",
+            desc = "Подрыть местность",
+            help = "Подрыть местность",
             min = 0,
             max = 1
     )
@@ -160,9 +160,9 @@ public class BrushCommands extends MethodCommands {
 
     @Command(
             aliases = {"pull"},
-            usage = "[radius=5]",
-            desc = "Pull terrain towards you",
-            help = "Pull terrain towards you",
+            usage = "[радиус=5]",
+            desc = "Потянуть рельеф к себе",
+            help = "Потянуть рельеф к себе",
             min = 0,
             max = 1
     )
@@ -174,10 +174,10 @@ public class BrushCommands extends MethodCommands {
 
     @Command(
             aliases = {"circle"},
-            usage = "<pattern> [radius=5]",
-            desc = "Creates a circle which revolves around your facing direction",
-            help = "Creates a circle which revolves around your facing direction.\n" +
-                    "Note: Decrease brush radius, and enabled visualization to assist with placement mid-air",
+            usage = "<шаблон> [радиус=5]",
+            desc = "Создать круг, который вращается вокруг вашего направления",
+            help = "Создать круг, который вращается вокруг вашего направления.\n" +
+                    "Заметка: Уменьшить радиус кисти и включить визуализацию, чтобы помочь с размещением в воздухе",
             min = 1,
             max = 2
     )
@@ -189,11 +189,11 @@ public class BrushCommands extends MethodCommands {
 
     @Command(
             aliases = {"recursive", "recurse", "r"},
-            usage = "<pattern-to> [radius=5]",
-            desc = "Set all connected blocks",
-            help = "Set all connected blocks\n" +
-                    "The -d flag Will apply in depth first order\n" +
-                    "Note: Set a mask to recurse along specific blocks",
+            usage = "<шаблон-к> [радиус=5]",
+            desc = "Установить все подключенные блоки",
+            help = "Установить все подключенные блоки\n" +
+                    "Флаг -d будет применяться в глубине первого порядка\n" +
+                    "Заметка: Установите маску для повторной обработки по определенным блокам",
             min = 0,
             max = 3
     )
@@ -209,14 +209,14 @@ public class BrushCommands extends MethodCommands {
 
     @Command(
             aliases = {"line", "l"},
-            usage = "<pattern> [radius=0]",
+            usage = "<шаблон> [радиус=0]",
             flags = "hsf",
-            desc = "Create lines",
+            desc = "Создать линии",
             help =
-                    "Create lines.\n" +
-                            "The -h flag creates only a shell\n" +
-                            "The -s flag selects the clicked point after drawing\n" +
-                            "The -f flag creates a flat line",
+                    "Создать линии.\n" +
+                            "Флаг -h создает только оболочку\n" +
+                            "Флаг -s выбирает точку щелчка после рисования\n" +
+                            "Флаг -f создает плоскую линию",
             min = 1,
             max = 2
     )
@@ -231,12 +231,12 @@ public class BrushCommands extends MethodCommands {
 
     @Command(
             aliases = {"spline", "spl", "curve"},
-            usage = "<pattern>",
-            desc = "Join multiple objects together in a curve",
-            help = "Click to select some objects,click the same block twice to connect the objects.\n" +
-                    "Insufficient brush radius, or clicking the the wrong spot will result in undesired shapes. The shapes must be simple lines or loops.\n" +
-                    "Pic1: http://i.imgur.com/CeRYAoV.jpg -> http://i.imgur.com/jtM0jA4.png\n" +
-                    "Pic2: http://i.imgur.com/bUeyc72.png -> http://i.imgur.com/tg6MkcF.png",
+            usage = "<шаблон>",
+            desc = "Объединение нескольких объектов вместе на кривой",
+            help = "Нажмите, чтобы выбрать некоторые объекты, дважды щелкните один и тот же блок, чтобы подключить объекты.\n" +
+                    "Недостаточный радиус кисти или щелчок на неправильном месте приведет к нежелательным формам. Формы должны быть простыми линиями или петлями.\n" +
+                    "Картинка1: http://i.imgur.com/CeRYAoV.jpg -> http://i.imgur.com/jtM0jA4.png\n" +
+                    "Картинка2: http://i.imgur.com/bUeyc72.png -> http://i.imgur.com/tg6MkcF.png",
             min = 0,
             max = 2
     )
@@ -288,10 +288,10 @@ public class BrushCommands extends MethodCommands {
 
     @Command(
             aliases = {"sspl", "sspline", "surfacespline"},
-            usage = "<pattern> [size=0] [tension=0] [bias=0] [continuity=0] [quality=10]",
-            desc = "Draws a spline (curved line) on the surface",
-            help = "Create a spline on the surface\n" +
-                    "Video: https://www.youtube.com/watch?v=zSN-2jJxXlM",
+            usage = "<шаблон> [размер=0] [расстяжение=0] [смещение=0] [сплошность=0] [качество=10]",
+            desc = "Рисует сплайн (криволинейная линия) на поверхности",
+            help = "Создайте сплайн на поверхности\n" +
+                    "Видео: https://www.youtube.com/watch?v=zSN-2jJxXlM",
             min = 0,
             max = 6
     )
@@ -326,12 +326,12 @@ public class BrushCommands extends MethodCommands {
 
     @Command(
             aliases = {"sphere", "s"},
-            usage = "<pattern> [radius=2]",
+            usage = "<шаблон> [радиус=2]",
             flags = "h",
-            desc = "Creates a sphere",
+            desc = "Создать сферу",
             help =
-                    "Creates a sphere.\n" +
-                            "The -h flag creates hollow spheres instead.",
+                    "Создать сферу.\n" +
+                            "Флаг -h создает полые сферы вместо.",
             min = 1,
             max = 2
     )
@@ -362,11 +362,11 @@ public class BrushCommands extends MethodCommands {
 
     @Command(
             aliases = {"shatter", "partition", "split"},
-            usage = "<pattern> [radius=10] [count=10]",
-            desc = "Creates random lines to break the terrain into pieces",
+            usage = "<радиус> [радиус=10] [количество=10]",
+            desc = "Создает случайные линии, чтобы разбить рельеф на куски",
             help =
-                    "Creates uneven lines separating terrain into multiple pieces\n" +
-                            "Pic: https://i.imgur.com/2xKsZf2.png",
+                    "Создает случайные линии, чтобы разбить рельеф на куски\n" +
+                            "Картинка: https://i.imgur.com/2xKsZf2.png",
             min = 1,
             max = -1
     )
@@ -382,12 +382,12 @@ public class BrushCommands extends MethodCommands {
 
     @Command(
             aliases = {"stencil", "color"},
-            usage = "<pattern> [radius=5] [file|#clipboard|imgur=null] [rotation=360] [yscale=1.0]",
-            desc = "Use a height map to paint a surface",
+            usage = "<шаблон> [радиус=5] [file|#clipboard|imgur=null] [вращение=360] [yscale=1.0]",
+            desc = "Используйте карту высоты, чтобы нарисовать поверхность",
             help =
-                    "Use a height map to paint any surface.\n" +
-                            "The -w flag will only apply at maximum saturation\n" +
-                            "The -r flag will apply random rotation",
+                    "Используйте карту высоты, чтобы нарисовать поверхность.\n" +
+                            "Флаг -w будет применяться только при максимальной насыщенности\n" +
+                            "Флаг -r будет применять случайное вращение",
             min = 1,
             max = -1
     )
@@ -412,12 +412,12 @@ public class BrushCommands extends MethodCommands {
 
     @Command(
             aliases = {"surface", "surf"},
-            usage = "<pattern> [radius=5]",
-            desc = "Use a height map to paint a surface",
+            usage = "<шаблон> [радиус=5]",
+            desc = "Используйте карту высоты, чтобы нарисовать поверхность",
             help =
-                    "Use a height map to paint any surface.\n" +
-                            "The -w flag will only apply at maximum saturation\n" +
-                            "The -r flag will apply random rotation",
+                    "Используйте карту высоты, чтобы нарисовать поверхность.\n" +
+                            "Флаг -w будет применяться только при максимальной насыщенности\n" +
+                            "Флаг -r будет применять случайное вращение",
             min = 1,
             max = -1
     )
@@ -429,12 +429,12 @@ public class BrushCommands extends MethodCommands {
 
     @Command(
             aliases = {"scatter", "scat"},
-            usage = "<pattern> [radius=5] [points=5] [distance=1]",
-            desc = "Scatter a pattern on a surface",
+            usage = "<шаблон> [радиус=5] [точки=5] [дистанция=1]",
+            desc = "Разброс рисунка на поверхности",
             help =
-                    "Set a number of blocks randomly on a surface each a certain distance apart.\n" +
-                            " The -o flag will overlay the block\n" +
-                            "Video: https://youtu.be/RPZIaTbqoZw?t=34s",
+                    "Настройте несколько блоков на поверхности на определенном расстоянии друг от друга.\n" +
+                            " Флаг -o накладывает блок\n" +
+                            "Видео: https://youtu.be/RPZIaTbqoZw?t=34s",
             flags = "o",
             min = 1,
             max = 4
@@ -456,11 +456,11 @@ public class BrushCommands extends MethodCommands {
 
     @Command(
             aliases = {"populateschematic", "populateschem", "popschem", "pschem", "ps"},
-            usage = "<mask> <file|folder|url> [radius=30] [points=5]",
-            desc = "Scatter a schematic on a surface",
+            usage = "<маска> <file|folder|url> [радиус=30] [точки=5]",
+            desc = "Рассеять схематик на поверхности",
             help =
-                    "Chooses the scatter schematic brush.\n" +
-                            "The -r flag will apply random rotation",
+                    "Выбирает схематик разброса.\n" +
+                            "Флаг -r будет применять случайное вращение",
             flags = "r",
             min = 2,
             max = 4
@@ -485,11 +485,11 @@ public class BrushCommands extends MethodCommands {
 
     @Command(
             aliases = {"layer"},
-            usage = "<radius> [color|<pattern1> <patern2>...]",
-            desc = "Replaces terrain with a layer.",
-            help = "Replaces terrain with a layer.\n" +
-                    "Example: /br layer 5 95:1 95:2 35:15 - Places several layers on a surface\n" +
-                    "Pic: https://i.imgur.com/XV0vYoX.png",
+            usage = "<радиус> [color|<шаблон1> <patern2>...]",
+            desc = "Заменить ландшафт слоем.",
+            help = "Заменить ландшафт слоем.\n" +
+                    "Например: /br layer 5 95:1 95:2 35:15 - Накладывает несколько слоев на поверхность\n" +
+                    "Картинка: https://i.imgur.com/XV0vYoX.png",
             min = 0,
             max = 999
     )
@@ -524,12 +524,12 @@ public class BrushCommands extends MethodCommands {
 
     @Command(
             aliases = {"splatter", "splat"},
-            usage = "<pattern> [radius=5] [seeds=1] [recursion=5] [solid=true]",
-            desc = "Splatter a pattern on a surface",
-            help = "Sets a bunch of blocks randomly on a surface.\n" +
-                    "Pic: https://i.imgur.com/hMD29oO.png\n" +
-                    "Example: /br splatter stone,dirt 30 15\n" +
-                    "Note: The seeds define how many splotches there are, recursion defines how large, solid defines whether the pattern is applied per seed, else per block.",
+            usage = "<шаблон> [радиус=5] [сид=1] [рекурсия=5] [твердость=true]",
+            desc = "Разбрызгивание рисунка на поверхности",
+            help = "Устанавливает кучу блоков случайным образом на поверхности.\n" +
+                    "Картинка: https://i.imgur.com/hMD29oO.png\n" +
+                    "Например: /br splatter stone,dirt 30 15\n" +
+                    "Заметка: Семена определяют, сколько фрагментов есть, рекурсия определяет, как большой, твердый определяет, применяется ли шаблон для каждого семени, иначе для каждого блока.",
             min = 1,
             max = 5
     )
@@ -544,13 +544,13 @@ public class BrushCommands extends MethodCommands {
 
     @Command(
             aliases = {"scmd", "scattercmd", "scattercommand", "scommand"},
-            usage = "<scatter-radius> <points> <cmd-radius=1> <cmd1;cmd2...>",
-            desc = "Run commands at random points on a surface",
+            usage = "<радиус-разброса> <точки> <cmd-radius=1> <cmd1;cmd2...>",
+            desc = "Выполнять команды в случайных точках на поверхности",
             help =
-                    "Run commands at random points on a surface\n" +
-                            " - The scatter radius is the min distance between each point\n" +
-                            " - Your selection will be expanded to the specified size around each point\n" +
-                            " - Placeholders: {x}, {y}, {z}, {world}, {size}",
+                    "Выполнять команды в случайных точках на поверхности\n" +
+                            " - Радиус рассеяния - это минимальное расстояние между каждой точкой\n" +
+                            " - Ваш выбор будет расширен до указанного размера вокруг каждой точки\n" +
+                            " - Заполнители: {x}, {y}, {z}, {world}, {size}",
             min = 1,
             max = -1
     )
@@ -564,12 +564,12 @@ public class BrushCommands extends MethodCommands {
 
     @Command(
             aliases = {"cylinder", "cyl", "c", "disk", "disc"},
-            usage = "<pattern> [radius=2] [height=1]",
+            usage = "<блок> [радиус=2] [высота=1]",
             flags = "h",
-            desc = "Creates a cylinder",
+            desc = "Создать цилиндр",
             help =
-                    "Creates a cylinder.\n" +
-                            "The -h flag creates hollow cylinders instead.",
+                    "Создать цилиндр.\n" +
+                            "Флаг -h создает полые цилиндры.",
             min = 1,
             max = 3
     )
@@ -593,13 +593,13 @@ public class BrushCommands extends MethodCommands {
     @Command(
             aliases = {"clipboard"},
             usage = "",
-            desc = "Choose the clipboard brush (Recommended: `/br copypaste`)",
+            desc = "Выбрать кисть в буфере обмена (Рекомендуемое: `/br copypaste`)",
             help =
-                    "Chooses the clipboard brush.\n" +
-                            "The -a flag makes it not paste air.\n" +
-                            "Without the -p flag, the paste will appear centered at the target location. " +
-                            "With the flag, then the paste will appear relative to where you had " +
-                            "stood relative to the copied area when you copied it."
+                    "Выбрать кисть в буфере обмена.\n" +
+                            "Флаг -a заставляет его не вставлять воздух.\n" +
+                            "Без флага -p вставка будет отображаться по центру в целевом местоположении. " +
+                            "С флагом, вставка будет отображаться относительно того, где вы " +
+                            "стояли относительно скопированной области, когда вы ее скопировали."
     )
     @CommandPermissions("worldedit.brush.clipboard")
     public BrushSettings clipboardBrush(Player player, LocalSession session, @Switch('a') boolean ignoreAir, @Switch('p') boolean usingOrigin, CommandContext context) throws WorldEditException {
@@ -616,12 +616,12 @@ public class BrushCommands extends MethodCommands {
 
     @Command(
             aliases = {"smooth"},
-            usage = "[size=2] [iterations=4]",
+            usage = "[размер=2] [интерации=4]",
             flags = "n",
-            desc = "Smooths terrain (Recommended: `/br blendball`)",
+            desc = "Плавный ландшафт (Рекомендуемое: `/br blendball`)",
             help =
-                    "Chooses the terrain softener brush.\n" +
-                            "The -n flag makes it only consider naturally occurring blocks.",
+                    "Выбирает щетку для смягчения ландшафта.\n" +
+                            "Флаг -n позволяет рассматривать только естественные блоки.",
             min = 0,
             max = 2
     )
@@ -643,8 +643,8 @@ public class BrushCommands extends MethodCommands {
 
     @Command(
             aliases = {"ex", "extinguish"},
-            usage = "[radius=5]",
-            desc = "Shortcut fire extinguisher brush",
+            usage = "[радиус=5]",
+            desc = "Яркая огнетушительная щетка",
             min = 0,
             max = 1
     )
@@ -662,13 +662,13 @@ public class BrushCommands extends MethodCommands {
 
     @Command(
             aliases = {"gravity", "grav"},
-            usage = "[radius=5]",
+            usage = "[радиус=5]",
             flags = "h",
-            desc = "Gravity brush",
+            desc = "Гравитационная кисть",
             help =
-                    "This brush simulates the affect of gravity.\n" +
-                            "The -h flag makes it affect blocks starting at the world's max y, " +
-                            "instead of the clicked block's y + radius.",
+                    "Эта кисть имитирует влияние гравитации.\n" +
+                            "Флаг -h влияет на блоки, начинающиеся с максимума в мире y, " +
+                            "вместо радиуса y + блока щелчка.",
             min = 0,
             max = 1
     )
@@ -683,16 +683,16 @@ public class BrushCommands extends MethodCommands {
 
     @Command(
             aliases = {"height", "heightmap"},
-            usage = "[radius=5] [file|#clipboard|imgur=null] [rotation=0] [yscale=1.00]",
+            usage = "[радиус=5] [file|#clipboard|imgur=null] [поворот=0] [yscale=1.00]",
             flags = "h",
-            desc = "Raise or lower terrain using a heightmap",
+            desc = "Поднять или уменьшить ландшафт с помощью карты высот",
             help =
-                    "This brush raises and lowers land.\n" +
-                            " - The `-r` flag enables random off-axis rotation\n" +
-                            " - The `-l` flag will work on snow layers\n" +
-                            " - The `-s` flag disables smoothing\n" +
-                            "Note: Use a negative yscale to reduce height\n" +
-                            "Snow Pic: https://i.imgur.com/Hrzn0I4.png",
+                    "Эта кисть поднимает и опускает землю.\n" +
+                            " - Флаг `-r` позволяет случайное вращение вне оси\n" +
+                            " - Флаг `-l` будет работать на слоях снега\n" +
+                            " - Флаг `-s` отключает сглаживание\n" +
+                            "Заметка: Используйте отрицательный yscale для уменьшения высоты\n" +
+                            "Картинка: https://i.imgur.com/Hrzn0I4.png",
             min = 1,
             max = 4
     )
@@ -703,14 +703,14 @@ public class BrushCommands extends MethodCommands {
 
     @Command(
             aliases = {"cliff", "flatcylinder"},
-            usage = "[radius=5] [file|#clipboard|imgur=null] [rotation=0] [yscale=1.00]",
+            usage = "[радиус=5] [file|#clipboard|imgur=null] [вращение=0] [yscale=1.00]",
             flags = "h",
-            desc = "Cliff brush",
+            desc = "Клифф-кисть",
             help =
-                    "This brush flattens terrain and creates cliffs.\n" +
-                            " - The `-r` flag enables random off-axis rotation\n" +
-                            " - The `-l` flag will work on snow layers\n" +
-                            " - The `-s` flag disables smoothing",
+                    "Эта кисть выравнивает рельеф местности и создает скалы.\n" +
+                            " - Флаг `-r` позволяет случайное вращение вне оси\n" +
+                            " - Флаг `-l` будет работать на слоях снега\n" +
+                            " - Флаг `-s` отключает сглаживание",
             min = 1,
             max = 4
     )
@@ -721,13 +721,13 @@ public class BrushCommands extends MethodCommands {
 
     @Command(
             aliases = {"flatten", "flatmap", "flat"},
-            usage = "[radius=5] [file|#clipboard|imgur=null] [rotation=0] [yscale=1.00]",
+            usage = "[радиус=5] [file|#clipboard|imgur=null] [вращение=0] [yscale=1.00]",
             flags = "h",
-            help = "Flatten brush flattens terrain\n" +
-                    " - The `-r` flag enables random off-axis rotation\n" +
-                    " - The `-l` flag will work on snow layers\n" +
-                    " - The `-s` flag disables smoothing",
-            desc = "This brush raises or lowers land towards the clicked point",
+            help = "Сглаживающая кисть выравнивает рельеф\n" +
+                    " - Флаг `-r` позволяет случайное вращение вне оси\n" +
+                    " - Флаг `-l` будет работать на слоях снега\n" +
+                    " - Флаг `-s` отключает сглаживание",
+            desc = "Эта кисть поднимает и опускает землю в направлении щелкнутой точки\n",
             min = 1,
             max = 4
     )
@@ -795,14 +795,13 @@ public class BrushCommands extends MethodCommands {
 
     @Command(
             aliases = {"copypaste", "copy", "paste", "cp", "copypasta"},
-            usage = "[depth=5]",
-            desc = "Copy Paste brush",
-            help = "Left click the base of an object to copy.\n" +
-                    "Right click to paste\n" +
-                    "The -r flag Will apply random rotation on paste\n" +
-                    "The -a flag Will apply auto view based rotation on paste\n" +
-                    "Note: Works well with the clipboard scroll action\n" +
-                    "Video: https://www.youtube.com/watch?v=RPZIaTbqoZw",
+            usage = "[глубина=5]",
+            desc = "Копировать вставить кисть",
+            help = "Щелкните левой кнопкой мыши по основанию объекта для копирования.\n" +
+                    "Щелкните правой кнопкой мыши, чтобы вставить\n" +
+                    "Флаг -r применит случайное вращение на вставке\n" +
+                    "Заметка: Хорошо работает с действием прокрутки буфера обмена\n" +
+                    "Видео: https://www.youtube.com/watch?v=RPZIaTbqoZw",
             min = 0,
             max = 1
     )
@@ -818,12 +817,12 @@ public class BrushCommands extends MethodCommands {
 
     @Command(
             aliases = {"command", "cmd"},
-            usage = "<radius> [cmd1;cmd2...]",
-            desc = "Command brush",
+            usage = "<радиус> [cmd1;cmd2...]",
+            desc = "Кисть команд",
             help =
-                    "Run the commands at the clicked position.\n" +
-                            " - Your selection will be expanded to the specified size around each point\n" +
-                            " - Placeholders: {x}, {y}, {z}, {world}, {size}",
+                    "Запуск команд в нажатом положении.\n" +
+                            " - Ваш выбор будет расширен до указанного размера вокруг каждой точки\n" +
+                            " - Заполнители: {x}, {y}, {z}, {world}, {size}",
 
             min = 2,
             max = 99
@@ -838,20 +837,20 @@ public class BrushCommands extends MethodCommands {
 
     @Command(
             aliases = {"butcher", "kill"},
-            usage = "[radius=5]",
+            usage = "[радиус=5]",
             flags = "plangbtfr",
-            desc = "Butcher brush",
-            help = "Kills nearby mobs within the specified radius.\n" +
-                    "Flags:\n" +
-                    "  -p also kills pets.\n" +
-                    "  -n also kills NPCs.\n" +
-                    "  -g also kills Golems.\n" +
-                    "  -a also kills animals.\n" +
-                    "  -b also kills ambient mobs.\n" +
-                    "  -t also kills mobs with name tags.\n" +
-                    "  -f compounds all previous flags.\n" +
-                    "  -r also destroys armor stands.\n" +
-                    "  -l currently does nothing.",
+            desc = "Мясная щетка",
+            help = "Убивает близлежащих мобов в указанном радиусе.\n" +
+                    "Флаги:\n" +
+                    "  -p убивает питомцев.\n" +
+                    "  -n убивает NPC.\n" +
+                    "  -g убивает Големов.\n" +
+                    "  -a убивает животных.\n" +
+                    "  -b убивает окружающих мобов.\n" +
+                    "  -t убивает мобов с именами.\n" +
+                    "  -f обьеденяет все предыдущие флаги\n" +
+                    "  -r убивает стойки.\n" +
+                    "  -l в настоящее время ничего не делает.",
             min = 0,
             max = 1
     )

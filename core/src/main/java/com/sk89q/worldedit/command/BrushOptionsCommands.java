@@ -44,7 +44,7 @@ import java.util.zip.GZIPInputStream;
  * Tool commands.
  */
 
-@Command(aliases = {"brush", "br", "/b"}, desc = "Tool commands")
+@Command(aliases = {"brush", "br", "/b"}, desc = "Команды инструментов")
 public class BrushOptionsCommands extends MethodCommands {
 
     public BrushOptionsCommands(WorldEdit we) {
@@ -54,7 +54,7 @@ public class BrushOptionsCommands extends MethodCommands {
     @Command(
             aliases = {"savebrush", "save"},
             usage = "[name]",
-            desc = "Save your current brush",
+            desc = "Сохранить текущую кисть",
             help = "Save your current brush\n" +
                     "use the -g flag to save globally",
             min = 1
@@ -91,7 +91,7 @@ public class BrushOptionsCommands extends MethodCommands {
 
     @Command(
             aliases = {"loadbrush", "load"},
-            desc = "load a brush",
+            desc = "Загрузить кисть",
             usage = "[name]",
             min = 1
     )
@@ -128,13 +128,13 @@ public class BrushOptionsCommands extends MethodCommands {
 
     @Command(
             aliases = {"/listbrush"},
-            desc = "List saved brushes",
+            desc = "Список сохраненных кистей",
             usage = "[mine|<filter>] [page=1]",
             min = 0,
             max = -1,
             flags = "dnp",
-            help = "List all brushes in the brush directory\n" +
-                    " -p <page> prints the requested page\n"
+            help = "Список всех кистей в каталоге кисти\n" +
+                    " -p <страница> скопировать запрошенную страницу\n"
     )
     @CommandPermissions("worldedit.brush.list")
     public void list(Actor actor, CommandContext args, @Switch('p') @Optional("1") int page) throws WorldEditException {
@@ -146,7 +146,7 @@ public class BrushOptionsCommands extends MethodCommands {
     @Command(
             aliases = {"none", "/none"},
             usage = "",
-            desc = "Unbind a bound tool from your current item",
+            desc = "Отвязать привязанный инструмент от вашего текущего предмета",
             min = 0,
             max = 0
     )
@@ -158,7 +158,7 @@ public class BrushOptionsCommands extends MethodCommands {
     @Command(
             aliases = {"/", ","},
             usage = "[on|off]",
-            desc = "Toggle the super pickaxe function",
+            desc = "Переключить функцию супер-кирки",
             min = 0,
             max = 1
     )
@@ -187,8 +187,8 @@ public class BrushOptionsCommands extends MethodCommands {
     @Command(
             aliases = {"primary"},
             usage = "[brush-arguments]",
-            desc = "Set the right click brush",
-            help = "Set the right click brush",
+            desc = "Установите кисть правого щелчка",
+            help = "Установите кисть правого щелчка",
             min = 1
     )
     public void primary(Player player, LocalSession session, CommandContext args) throws WorldEditException {
@@ -207,8 +207,8 @@ public class BrushOptionsCommands extends MethodCommands {
     @Command(
             aliases = {"secondary"},
             usage = "[brush-arguments]",
-            desc = "Set the left click brush",
-            help = "Set the left click brush",
+            desc = "Установите кисть левого щелчка",
+            help = "Установите кисть левого щелчка",
             min = 1
     )
     public void secondary(Player player, LocalSession session, CommandContext args) throws WorldEditException {
@@ -226,6 +226,7 @@ public class BrushOptionsCommands extends MethodCommands {
 
     @Command(
             aliases = {"visualize", "visual", "vis"},
+
             usage = "[mode=0]",
             desc = "Toggle between different visualization modes",
             help = "Toggle between different visualization modes\n" +
@@ -250,7 +251,7 @@ public class BrushOptionsCommands extends MethodCommands {
     @Command(
             aliases = {"target", "tar"},
             usage = "[mode]",
-            desc = "Toggle between different target modes",
+            desc = "Переключение между различными целевыми режимами",
             min = 0,
             max = 1
     )
@@ -269,7 +270,7 @@ public class BrushOptionsCommands extends MethodCommands {
     @Command(
             aliases = {"targetmask", "tarmask", "tm"},
             usage = "[mask]",
-            desc = "Set the targeting mask",
+            desc = "Установить маску таргетинга",
             min = 1,
             max = -1
     )
@@ -309,7 +310,7 @@ public class BrushOptionsCommands extends MethodCommands {
     @Command(
             aliases = {"scroll"},
             usage = "[none|clipboard|mask|pattern|range|size|visual|target]",
-            desc = "Toggle between different target modes",
+            desc = "Переключение между различными целевыми режимами",
             min = 1,
             max = -1
     )
@@ -335,7 +336,7 @@ public class BrushOptionsCommands extends MethodCommands {
     @Command(
             aliases = {"mask", "/mask"},
             usage = "[mask]",
-            desc = "Set the brush destination mask",
+            desc = "Установить маску назначения кисти",
             min = 0,
             max = -1
     )
@@ -367,8 +368,8 @@ public class BrushOptionsCommands extends MethodCommands {
     @Command(
             aliases = {"smask", "/smask", "/sourcemask", "sourcemask"},
             usage = "[mask]",
-            desc = "Set the brush source mask",
-            help = "Set the brush source mask",
+            desc = "Установить маску источника кисти",
+            help = "Установить маску источника кисти",
             min = 0,
             max = -1
     )
@@ -400,7 +401,7 @@ public class BrushOptionsCommands extends MethodCommands {
     @Command(
             aliases = {"transform"},
             usage = "[transform]",
-            desc = "Set the brush transform",
+            desc = "Задать преобразование кисти",
             min = 0,
             max = -1
     )
@@ -432,7 +433,7 @@ public class BrushOptionsCommands extends MethodCommands {
     @Command(
             aliases = {"mat", "material"},
             usage = "[pattern]",
-            desc = "Set the brush material",
+            desc = "Установить материал кисти",
             min = 1,
             max = 1
     )
@@ -458,7 +459,7 @@ public class BrushOptionsCommands extends MethodCommands {
     @Command(
             aliases = {"range"},
             usage = "[pattern]",
-            desc = "Set the brush range",
+            desc = "Установите диапазон кисти",
             min = 1,
             max = 1
     )
@@ -477,7 +478,7 @@ public class BrushOptionsCommands extends MethodCommands {
     @Command(
             aliases = {"size"},
             usage = "[pattern]",
-            desc = "Set the brush size",
+            desc = "Установить размер кисти",
             min = 1,
             max = 1
     )

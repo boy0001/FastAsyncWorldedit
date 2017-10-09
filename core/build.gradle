@@ -18,6 +18,10 @@ dependencies {
     compile 'org.inventivetalent:mapmanager:1.4.0-SNAPSHOT'
 }
 
+compileJava {
+  options.encoding = "UTF-8"
+}
+
 processResources {
     from('src/main/resources') {
         include 'fawe.properties'

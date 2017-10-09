@@ -44,7 +44,7 @@ import com.sk89q.worldedit.function.pattern.Pattern;
 import com.sk89q.worldedit.util.TreeGenerator;
 import com.sk89q.worldedit.util.command.parametric.Optional;
 
-@Command(aliases = {"brush", "br", "tool"}, desc = "Bind functions to held items: [More Info](https://goo.gl/xPnPxj)")
+@Command(aliases = {"brush", "br", "tool"}, desc = "Функция привязки к удерживаемым предметам: [Больше информации](https://goo.gl/xPnPxj)")
 public class ToolCommands {
     private final WorldEdit we;
 
@@ -55,7 +55,7 @@ public class ToolCommands {
     @Command(
             aliases = {"info", "/info"},
             usage = "",
-            desc = "Block information tool",
+            desc = "Инструмент информации о блоках",
             min = 0,
             max = 0
     )
@@ -68,9 +68,9 @@ public class ToolCommands {
     @Command(
             aliases = {"inspect"},
             usage = "",
-            desc = "Inspect edits within a radius",
+            desc = "Проверить изменения в радиусе",
             help =
-                    "Chooses the inspect brush",
+                    "Выбирает контрольную кисть",
             min = 0,
             max = 0
     )
@@ -83,7 +83,7 @@ public class ToolCommands {
     @Command(
             aliases = {"tree"},
             usage = "[type]",
-            desc = "Tree generator tool",
+            desc = "Инструмент для создания деревьев",
             min = 0,
             max = 1
     )
@@ -96,8 +96,8 @@ public class ToolCommands {
 
     @Command(
             aliases = {"repl"},
-            usage = "<block>",
-            desc = "Block replacer tool",
+            usage = "<блок>",
+            desc = "Инструмент замены блока",
             min = 1,
             max = 1
     )
@@ -111,7 +111,7 @@ public class ToolCommands {
     @Command(
             aliases = {"cycler"},
             usage = "",
-            desc = "Block data cycler tool",
+            desc = "Инструмент смены данных блоков",
             min = 0,
             max = 0
     )
@@ -124,8 +124,8 @@ public class ToolCommands {
 
     @Command(
             aliases = {"floodfill", "flood"},
-            usage = "<pattern> <range>",
-            desc = "Flood fill tool",
+            usage = "<шаблон> <диапазон>",
+            desc = "Инструмент заполнения наводнений",
             min = 2,
             max = 2
     )
@@ -143,7 +143,7 @@ public class ToolCommands {
     @Command(
             aliases = {"deltree"},
             usage = "",
-            desc = "Floating tree remover tool",
+            desc = "Инструмент для удаления плавающего дерева",
             min = 0,
             max = 0
     )
@@ -156,7 +156,7 @@ public class ToolCommands {
     @Command(
             aliases = {"farwand"},
             usage = "",
-            desc = "Wand at a distance tool",
+            desc = "Инструмент палочка на расстоянии",
             min = 0,
             max = 0
     )
@@ -169,7 +169,7 @@ public class ToolCommands {
     @Command(
             aliases = {"lrbuild", "/lrbuild"},
             usage = "<leftclick block> <rightclick block>",
-            desc = "Long-range building tool",
+            desc = "Инструмент для строительства дальнего действия",
             min = 2,
             max = 2
     )
