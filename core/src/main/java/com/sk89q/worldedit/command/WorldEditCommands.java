@@ -48,7 +48,7 @@ import java.util.Map;
 import java.util.Scanner;
 import java.util.TimeZone;
 
-@Command(aliases = {"worldedit", "we", "fawe"}, desc = "Updating, informational, debug and help commands")
+@Command(aliases = {"worldedit", "we", "fawe"}, desc = "Обновить информацию, отладку и команды помощи")
 public class WorldEditCommands {
     private static final DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss z");
 
@@ -61,52 +61,22 @@ public class WorldEditCommands {
     @Command(
             aliases = {"version", "ver"},
             usage = "",
-            desc = "Get WorldEdit/FAWE version",
+            desc = "Показать версию WorldEdit/FAWE",
             min = 0,
             max = 0
     )
     public void version(Actor actor) throws WorldEditException {
         FaweVersion fVer = Fawe.get().getVersion();
-        String fVerStr = fVer == null ? "unknown" : fVer.year + "." + fVer.month + "." + fVer.day + "-" + Integer.toHexString(fVer.hash) + "-" + fVer.build;
-        actor.print(BBC.getPrefix() + "FAWE " + fVerStr + " by Empire92");
-        if (fVer != null) {
-            actor.printDebug("------------------------------------");
-            FaweVersion version = Fawe.get().getVersion();
-            Date date = new GregorianCalendar(2000 + version.year, version.month - 1, version.day).getTime();
-            actor.printDebug(" - DATE: " + date.toLocaleString());
-            actor.printDebug(" - COMMIT: " + Integer.toHexString(version.hash));
-            actor.printDebug(" - BUILD: #" + version.build);
-            actor.printDebug(" - PLATFORM: " + Settings.IMP.PLATFORM);
-            Updater updater = Fawe.get().getUpdater();
-            if (updater == null) {
-                actor.printDebug(" - UPDATES: DISABLED");
-            } else if (updater.isOutdated()) {
-                actor.printDebug(" - UPDATES: " + updater.getChanges().split("\n").length + " (see /fawe cl)");
-            } else {
-                actor.printDebug(" - UPDATES: Latest Version");
-            }
-            actor.printDebug("------------------------------------");
-        }
-        actor.print(BBC.getPrefix() + "WorldEdit " + WorldEdit.getVersion() + " by sk89q");
-        PlatformManager pm = we.getPlatformManager();
-        actor.printDebug("------------------------------------");
-        actor.printDebug("Platforms:");
-        for (Platform platform : pm.getPlatforms()) {
-            actor.printDebug(String.format(" - %s (%s)", platform.getPlatformName(), platform.getPlatformVersion()));
-        }
-        actor.printDebug("Capabilities:");
-        for (Capability capability : Capability.values()) {
-            Platform platform = pm.queryCapability(capability);
-            actor.printDebug(String.format(" - %s: %s", capability.name(), platform != null ? platform.getPlatformName() : "NONE"));
-        }
-        actor.printDebug("------------------------------------");
-        actor.printDebug("Wiki: " + "https://github.com/boy0001/FastAsyncWorldedit/wiki");
+        String fVerStr = fVer == null ? "неизвестно" : fVer.year + "." + fVer.month + "." + fVer.day + "-" + Integer.toHexString(fVer.hash) + "-" + fVer.build;
+        actor.print(BBC.getPrefix() + "§aВерсия FAWE " + fVerStr + " by Empire92");
+        actor.print(BBC.getPrefix() + "§aВерсия WorldEdit " + WorldEdit.getVersion() + " by sk89q");
+        actor.print(BBC.getPrefix() + "§7Перевел §eDarkFort §7§l| §ahttp://vk.com/darkfortmc");
     }
 
     @Command(
             aliases = {"reload"},
             usage = "",
-            desc = "Reload configuration",
+            desc = "Перезагрузить конфигурацию",
             min = 0,
             max = 0
     )
@@ -115,13 +85,13 @@ public class WorldEditCommands {
         we.getServer().reload();
         we.getEventBus().post(new ConfigurationLoadEvent(we.getPlatformManager().queryCapability(Capability.CONFIGURATION).getConfiguration()));
         Fawe.get().setupConfigs();
-        actor.print(BBC.getPrefix() + "Reloaded WorldEdit " + we.getVersion() + " and FAWE (" + Fawe.get().getVersion() + ")");
+        actor.print(BBC.getPrefix() + "§aКонфигурация WorldEdit и FAWE перезагружена!");
     }
 
     @Command(
             aliases = {"changelog", "cl"},
             usage = "",
-            desc = "View the FAWE changelog",
+            desc = "Посмотреть лог изменений FAWE",
             min = 0,
             max = 0
     )
@@ -145,7 +115,7 @@ public class WorldEditCommands {
     @Command(
             aliases = {"debugpaste"},
             usage = "",
-            desc = "Upload debug information to hastebin.com",
+            desc = "Загрузить отладочную информацию на hastebin.com",
             min = 0,
             max = 0
     )
@@ -157,7 +127,7 @@ public class WorldEditCommands {
     @Command(
             aliases = {"threads"},
             usage = "",
-            desc = "Print all thread stacks",
+            desc = "Распечатать все стеки потоков",
             min = 0,
             max = 0
     )
@@ -177,7 +147,7 @@ public class WorldEditCommands {
     @Command(
             aliases = {"cui"},
             usage = "",
-            desc = "Complete CUI handshake (internal usage)",
+            desc = "Полное рукопожатие CUI (внутреннее использование)",
             min = 0,
             max = 0
     )
@@ -189,7 +159,7 @@ public class WorldEditCommands {
     @Command(
             aliases = {"tz"},
             usage = "[timezone]",
-            desc = "Set your timezone for snapshots",
+            desc = "Установить часовой пояс для снапшотов",
             min = 1,
             max = 1
     )
@@ -202,8 +172,8 @@ public class WorldEditCommands {
 
     @Command(
             aliases = {"help"},
-            usage = "[<command>]",
-            desc = "Displays help for FAWE commands",
+            usage = "[<команда>]",
+            desc = "Отобразить справку по командам FAWE",
             min = 0,
             max = -1
     )

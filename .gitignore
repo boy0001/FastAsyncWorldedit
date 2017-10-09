@@ -24,8 +24,12 @@ gradle.log
 /bukkit0/build
 /bukkit19/build
 /bukkit18/build
+/nukkit*/
+/forge*/
+/nukkit/
 build
 /mvn
 spigot-1.10
 wiki_permissions.md
 /textures
+core/src/main/java/com/sk89q/worldedit/util/command/parametric/ParametricCallable.java

@@ -33,7 +33,7 @@ public class Rollback extends FaweCommand {
             return false;
         }
         if (args.length != 3) {
-            BBC.COMMAND_SYNTAX.send(player, "/frb u:<uuid> r:<radius> t:<time>");
+            BBC.COMMAND_SYNTAX.send(player, "/frb u:<uuid> r:<радиус> t:<время>");
             return false;
         }
         switch (args[0]) {
@@ -41,25 +41,25 @@ public class Rollback extends FaweCommand {
             case "info":
             case "undo":
             case "revert":
-                BBC.COMMAND_SYNTAX.send(player, "/frb u:<uuid> r:<radius> t:<time>");
+                BBC.COMMAND_SYNTAX.send(player, "/frb u:<uuid> r:<радиус> t:<время>");
                 return false;
         }
 
 
         if (args.length < 1) {
-            BBC.COMMAND_SYNTAX.send(player, "/frb <info|undo> u:<uuid> r:<radius> t:<time>");
+            BBC.COMMAND_SYNTAX.send(player, "/frb <info|undo> u:<uuid> r:<радиус> t:<время>");
             return false;
         }
         World world = player.getWorld();
         switch (args[0]) {
             default: {
-                BBC.COMMAND_SYNTAX.send(player, "/frb info u:<uuid> r:<radius> t:<time>");
+                BBC.COMMAND_SYNTAX.send(player, "/frb info u:<uuid> r:<радиус> t:<время>");
                 return false;
             }
             case "i":
             case "info": {
                 if (args.length < 2) {
-                    BBC.COMMAND_SYNTAX.send(player, "/frb <info|undo> u:<uuid> r:<radius> t:<time>");
+                    BBC.COMMAND_SYNTAX.send(player, "/frb <info|undo> u:<uuid> r:<радиус> t:<время>");
                     return false;
                 }
                 player.deleteMeta(FawePlayer.METADATA_KEYS.ROLLBACK);
@@ -68,7 +68,7 @@ public class Rollback extends FaweCommand {
                     @Override
                     public void run(List<DiskStorageHistory> edits) {
                         long total = 0;
-                        player.sendMessage("&d=| Username | Bounds | Distance | Changes | Age |=");
+                        player.sendMessage("&d=| Ник | Границы | Расстояние | Изменения | Возраст |=");
                         for (DiskStorageHistory edit : edits) {
                             DiskStorageHistory.DiskStorageSummary summary = edit.summarize(new RegionWrapper(origin.x, origin.x, origin.z, origin.z), !player.hasPermission("fawe.rollback.deep"));
                             RegionWrapper region = new RegionWrapper(summary.minX, summary.maxX, summary.minZ, summary.maxZ);
@@ -88,8 +88,8 @@ public class Rollback extends FaweCommand {
                             player.sendMessage("&8 - &7(" + percentString + ")");
                         }
                         player.sendMessage("&d==================================================");
-                        player.sendMessage("&dSize: " + (((double) (total / 1024)) / 1000) + "MB");
-                        player.sendMessage("&dTo rollback: /frb undo");
+                        player.sendMessage("&dРазмер: " + (((double) (total / 1024)) / 1000) + "MB");
+                        player.sendMessage("&dДля отката: /frb undo");
                         player.sendMessage("&d==================================================");
                         player.setMeta(FawePlayer.METADATA_KEYS.ROLLBACK, edits);
                     }
@@ -105,14 +105,14 @@ public class Rollback extends FaweCommand {
                 final List<DiskStorageHistory> edits = (List<DiskStorageHistory>) player.getMeta(FawePlayer.METADATA_KEYS.ROLLBACK);
                 player.deleteMeta(FawePlayer.METADATA_KEYS.ROLLBACK);
                 if (edits == null) {
-                    BBC.COMMAND_SYNTAX.send(player, "/frb info u:<uuid> r:<radius> t:<time>");
+                    BBC.COMMAND_SYNTAX.send(player, "/frb info u:<uuid> r:<радиус> t:<время>");
                     return false;
                 }
                 final Runnable task = new Runnable() {
                     @Override
                     public void run() {
                         if (edits.size() == 0) {
-                            player.sendMessage("Rollback complete!");
+                            player.sendMessage("Откат завершен!");
                             return;
                         }
                         DiskStorageHistory edit = edits.remove(0);
@@ -136,7 +136,7 @@ public class Rollback extends FaweCommand {
         for (int i = 0; i < args.length; i++) {
             String[] split = args[i].split(":");
             if (split.length != 2) {
-                BBC.COMMAND_SYNTAX.send(player, "/frb <info|undo> u:<uuid> r:<radius> t:<time>");
+                BBC.COMMAND_SYNTAX.send(player, "/frb <info|undo> u:<uuid> r:<радиус> t:<время>");
                 return;
             }
             switch (split[0].toLowerCase()) {
@@ -152,7 +152,7 @@ public class Rollback extends FaweCommand {
                     } catch (IllegalArgumentException e) {
                     }
                     if (user == null) {
-                        player.sendMessage("&dInvalid user: " + split[1]);
+                        player.sendMessage("&dНедействительный игрок: " + split[1]);
                         return;
                     }
                     break;
@@ -160,7 +160,7 @@ public class Rollback extends FaweCommand {
                 case "r":
                 case "radius": {
                     if (!MathMan.isInteger(split[1])) {
-                        player.sendMessage("&dInvalid radius: " + split[1]);
+                        player.sendMessage("&dНедопустимый радиус: " + split[1]);
                         return;
                     }
                     radius = Integer.parseInt(split[1]);
@@ -172,7 +172,7 @@ public class Rollback extends FaweCommand {
                     break;
                 }
                 default: {
-                    BBC.COMMAND_SYNTAX.send(player, "/frb <info|undo> u:<uuid> r:<radius> t:<time>");
+                    BBC.COMMAND_SYNTAX.send(player, "/frb <info|undo> u:<uuid> r:<радиус> t:<время>");
                     return;
                 }
             }
@@ -180,11 +180,11 @@ public class Rollback extends FaweCommand {
         FaweLocation origin = player.getLocation();
         List<DiskStorageHistory> edits = FaweAPI.getBDFiles(origin, user, radius, time, shallow);
         if (edits == null) {
-            player.sendMessage("&cToo broad, try refining your search!");
+            player.sendMessage("&cСлишком много, попробуйте уточнить ваш поиск!");
             return;
         }
         if (edits.size() == 0) {
-            player.sendMessage("&cNo edits found!");
+            player.sendMessage("&cРедактирования не найдено!");
             return;
         }
         result.run(edits);

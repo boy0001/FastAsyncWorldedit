@@ -31,6 +31,10 @@ dependencies {
     compile 'com.comphenix.protocol:ProtocolLib-API:4.4.0-SNAPSHOT'
 }
 
+compileJava {
+  options.encoding = "UTF-8"
+}
+
 processResources {
     from('src/main/resources') {
         include 'plugin.yml'
