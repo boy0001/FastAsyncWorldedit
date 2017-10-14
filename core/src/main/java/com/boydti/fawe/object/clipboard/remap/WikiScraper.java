@@ -81,8 +81,6 @@ public class WikiScraper {
             int endIndex = text.indexOf(footer, headerIndex);
             String part = text.substring(headerIndex, endIndex == -1 ? text.length() : endIndex);
 
-//        System.out.println(part);
-
             for (String line : part.split("\n")) {
                 if (line.startsWith("| {{")) {
                     String[] split = line.split("\\|\\|");

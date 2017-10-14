@@ -65,8 +65,6 @@ public class ConverterFrame extends JFrame {
     private BrowseButton browseSave;
 
     public ConverterFrame() throws Exception {
-        async(() -> downloadDependencies());
-
         final MovablePanel movable = new MovablePanel(this);
         movable.setBorder(BorderFactory.createLineBorder(new Color(0x28, 0x28, 0x29)));
 
@@ -294,6 +292,8 @@ public class ConverterFrame extends JFrame {
         movable.add(bottomBar, BorderLayout.SOUTH);
         this.setVisible(true);
         this.repaint();
+
+        async(() -> downloadDependencies());
     }
 
     public void prompt(String message) {
@@ -368,7 +368,7 @@ public class ConverterFrame extends JFrame {
                     try {
                         MainUtil.download(levelDbUrl, leveldb);
                         MainUtil.loadURLClasspath(leveldb.toURL());
-                    } catch (IOException e) {
+                    } catch (Throwable e) {
                         e.printStackTrace();
                     }
                 });
@@ -376,7 +376,7 @@ public class ConverterFrame extends JFrame {
                 pool.submit((Runnable) () -> {
                     try {
                         scraper.scapeOrCache(WikiScraper.Wiki.ITEM_MAPPINGS_PE);
-                    } catch (IOException e) {
+                    } catch (Throwable e) {
                         e.printStackTrace();
                     }
                 });
@@ -384,7 +384,7 @@ public class ConverterFrame extends JFrame {
                 pool.submit((Runnable) () -> {
                     try {
                         scraper.scapeOrCache(WikiScraper.Wiki.ITEM_MAPPINGS_PC);
-                    } catch (IOException e) {
+                    } catch (Throwable e) {
                         e.printStackTrace();
                     }
                 });
@@ -392,7 +392,7 @@ public class ConverterFrame extends JFrame {
                 pool.submit((Runnable) () -> {
                     try {
                         scraper.scapeOrCache(WikiScraper.Wiki.ENTITY_MAPPINGS);
-                    } catch (IOException e) {
+                    } catch (Throwable e) {
                         e.printStackTrace();
                     }
                 });

@@ -6,7 +6,7 @@ import com.boydti.fawe.jnbt.anvil.MCAQueue;
 import com.boydti.fawe.jnbt.anvil.MCAQueueMap;
 import com.boydti.fawe.jnbt.anvil.MutableMCABackedBaseBlock;
 import com.boydti.fawe.jnbt.anvil.filters.RemapFilter;
-import com.boydti.fawe.object.clipboard.ClipboardRemapper;
+import com.boydti.fawe.object.clipboard.remap.ClipboardRemapper;
 import com.boydti.fawe.object.io.PGZIPOutputStream;
 import com.boydti.fawe.util.MemUtil;
 import com.boydti.fawe.util.ReflectionUtils;
@@ -158,16 +158,19 @@ public class LevelDBToMCAFile extends MapConverter {
                         List<NamedTag> tags = read(value);
                         for (NamedTag nt : tags) {
                             com.sk89q.jnbt.Tag ent = nt.getTag();
-//                            chunk.setEntity((CompoundTag) ent);
+                            chunk.setEntity((CompoundTag) ent);
                         }
+                        break;
+                    case PendingTicks:
+                        break;
+                    case BlockExtraData:
+                        System.out.println("EXTRA " + chunk.getX() + "," + chunk.getZ());
                         break;
                     case LegacyTerrain:
                     case Data2DLegacy:
                         Fawe.debug("Legacy terrain not supported, please update. " + tag);
                     case BiomeState:
                     case FinalizedState:
-                    case PendingTicks:
-                    case BlockExtraData:
                     case Version:
                         break;
                 }
