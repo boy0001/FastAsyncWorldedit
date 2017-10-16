@@ -19,7 +19,6 @@ import com.boydti.fawe.util.ReflectionUtils;
 import com.boydti.fawe.util.StringMan;
 import com.github.luben.zstd.ZstdInputStream;
 import com.github.luben.zstd.ZstdOutputStream;
-import com.google.common.primitives.UnsignedBytes;
 import com.sk89q.jnbt.ByteTag;
 import com.sk89q.jnbt.CompoundTag;
 import com.sk89q.jnbt.FloatTag;
@@ -60,7 +59,6 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.ForkJoinPool;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.LongAdder;
-import java.util.function.Consumer;
 import java.util.zip.GZIPInputStream;
 import net.jpountz.lz4.LZ4BlockInputStream;
 import net.jpountz.lz4.LZ4BlockOutputStream;
@@ -410,53 +408,6 @@ public class MCAFile2LevelDB extends MapConverter {
         } catch (IOException e) {
             e.printStackTrace();
         }
-    }
-
-    public static void main(String[] args) throws IOException {
-        byte[] data = new byte[9];
-        Tag[] tags = Tag.values().clone();
-        Arrays.sort(tags, new Comparator<Tag>() {
-            @Override
-            public int compare(Tag left, Tag right) {
-                return left.value - right.value;
-            }
-        });
-        MainUtil.deleteDirectory(new File("db"));
-        DB db = Iq80DBFactory.factory.open(new File("db"),
-                new Options().createIfMissing(true)
-        );
-        for (Tag tag : tags) {
-            System.out.println(tag.name() + " | " + tag.value);
-            db.put(tag.fill(0, 0, new byte[9]), new byte[] { 1 });
-        }
-        db.put(getSectionKey(0, -1, 0, 0), new byte[] { 5 });
-        db.put(getSectionKey(0, -2, 0, 0), new byte[] { 5 });
-        db.put(getSectionKey(0, -256, 0, 0), new byte[] { 7 });
-        db.put(getSectionKey(0, 0, 0, 0), new byte[] { 2 });
-        db.put(getSectionKey(0, 1, 0, 0), new byte[] { 2 });
-        System.out.println("=========");
-        List<byte[]> bytes = new ArrayList<>();
-        db.forEach(new Consumer<Map.Entry<byte[], byte[]>>() {
-            @Override
-            public void accept(Map.Entry<byte[], byte[]> entry) {
-                byte[] key = entry.getKey();
-                Tag tag;
-                if (key.length < 13) {
-                    tag = Tag.valueOf(entry.getKey()[8]);
-                } else {
-                    tag = Tag.valueOf(entry.getKey()[12]);
-                }
-                System.out.println(tag.name() + " | " + tag.value + " | " + entry.getValue()[0] + " | " + StringMan.getString(key));
-                bytes.add(key);
-            }
-        });
-        System.out.println("==========");
-        Collections.sort(bytes, UnsignedBytes.lexicographicalComparator());
-        for (byte[] b : bytes) {
-            System.out.println(StringMan.getString(b));
-        }
-
-
     }
 
     public void write(MCAChunk chunk, boolean remap, int dim) throws IOException {

@@ -716,11 +716,6 @@ public class EditSession extends AbstractWorld implements HasFaweQueue, Lighting
         return null;
     }
 
-    private void initTransform(Vector pos) {
-        ResettableExtent tfx = getTransform();
-        if (tfx != null) tfx.init(pos);
-    }
-
     /**
      * Set a mask.
      *
@@ -1490,7 +1485,6 @@ public class EditSession extends AbstractWorld implements HasFaweQueue, Lighting
         checkNotNull(pattern);
         checkArgument(radius >= 0, "radius >= 0");
         checkArgument(depth >= 1, "depth >= 1");
-        initTransform(origin);
         if (direction.equals(new Vector(0, -1, 0))) {
             return fillXZ(origin, pattern, radius, depth, false);
         }
@@ -1543,7 +1537,6 @@ public class EditSession extends AbstractWorld implements HasFaweQueue, Lighting
         checkNotNull(pattern);
         checkArgument(radius >= 0, "radius >= 0");
         checkArgument(depth >= 1, "depth >= 1");
-        initTransform(origin);
         final MaskIntersection mask = new MaskIntersection(new RegionMask(new EllipsoidRegion(null, origin, new Vector(radius, radius, radius))), new BoundedHeightMask(Math.max(
                 (origin.getBlockY() - depth) + 1, getMinimumPoint().getBlockY()), Math.min(getMaximumPoint().getBlockY(), origin.getBlockY())), Masks.negate(new ExistingBlockMask(EditSession.this)));
 
