@@ -288,7 +288,7 @@ public final class FaweAdapter_1_11 implements BukkitImplAdapter
             return new NBTTagIntArray(((IntArrayTag) foreign).getValue());
         } else if (foreign instanceof ListTag) {
             NBTTagList tag = new NBTTagList();
-            ListTag foreignList = (ListTag) foreign;
+            ListTag<Tag> foreignList = (ListTag) foreign;
             for (Tag t : foreignList.getValue()) {
                 tag.add(fromNative(t));
             }
