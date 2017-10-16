@@ -3,7 +3,6 @@ package com.sk89q.worldedit.command;
 import com.boydti.fawe.Fawe;
 import com.boydti.fawe.config.BBC;
 import com.boydti.fawe.config.Commands;
-import com.boydti.fawe.object.RunnableVal2;
 import com.boydti.fawe.object.brush.BrushSettings;
 import com.boydti.fawe.object.brush.TargetMode;
 import com.boydti.fawe.object.brush.scroll.ScrollAction;
@@ -12,7 +11,6 @@ import com.boydti.fawe.object.extent.ResettableExtent;
 import com.boydti.fawe.object.io.PGZIPOutputStream;
 import com.boydti.fawe.util.MainUtil;
 import com.boydti.fawe.util.MathMan;
-import com.boydti.fawe.util.chat.Message;
 import com.sk89q.minecraft.util.commands.Command;
 import com.sk89q.minecraft.util.commands.CommandContext;
 import com.sk89q.minecraft.util.commands.CommandPermissions;
@@ -142,12 +140,13 @@ public class BrushOptionsCommands extends MethodCommands {
     public void list(Actor actor, CommandContext args, @Switch('p') @Optional("1") int page) throws WorldEditException {
         String baseCmd = Commands.getAlias(BrushCommands.class, "brush") + " " + Commands.getAlias(BrushOptionsCommands.class, "loadbrush");
         File dir = MainUtil.getFile(Fawe.imp().getDirectory(), "brushes");
-        UtilityCommands.list(dir, actor, args, page, null, true, new RunnableVal2<Message, String[]>() {
-            @Override
-            public void run(Message msg, String[] info) {
-
-            }
-        });
+        UtilityCommands.list(dir, actor, args, page, null, true, baseCmd);
+//                new RunnableVal2<Message, String[]>() {
+//            @Override
+//            public void run(Message msg, String[] info) {
+//
+//            }
+//        });
     }
 
     @Command(
