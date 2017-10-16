@@ -53,6 +53,7 @@ import javax.swing.border.TitledBorder;
 public class ConverterFrame extends JFrame {
     private final InvisiblePanel loggerPanel;
     private final JProgressBar progressBar;
+    private final JLabel title;
     private Color LIGHT_GRAY = new Color(0x66, 0x66, 0x66);
     private Color GRAY = new Color(0x44, 0x44, 0x46);
     private Color DARK_GRAY = new Color(0x33, 0x33, 0x36);
@@ -92,11 +93,10 @@ public class ConverterFrame extends JFrame {
             JPanel topBarCenter = new InvisiblePanel();
             JPanel topBarRight = new InvisiblePanel();
 
-            JLabel title = new JLabel();
+            this.title = new JLabel();
             title.setHorizontalAlignment(SwingConstants.CENTER);
             title.setAlignmentX(Component.RIGHT_ALIGNMENT);
             title.setForeground(Color.LIGHT_GRAY);
-            title.setText("(FAWE) Anvil and LevelDB converter");
             title.setFont(new Font("Lucida Sans Unicode", Font.PLAIN, 15));
             setTitle(null);
 
@@ -294,6 +294,13 @@ public class ConverterFrame extends JFrame {
         this.repaint();
 
         async(() -> downloadDependencies());
+    }
+
+    public void setTitle(String title) {
+        if (title == null) title = "(FAWE) Anvil and LevelDB converter";
+        this.title.setText(title);
+        debug(title);
+        repaint();
     }
 
     public void prompt(String message) {

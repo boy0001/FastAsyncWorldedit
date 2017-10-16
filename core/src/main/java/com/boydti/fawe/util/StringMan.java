@@ -123,7 +123,7 @@ public class StringMan {
                 result += prefix + getString(Array.get(obj, i));
                 prefix = ",";
             }
-            return "( " + result + " )";
+            return "{ " + result + " }";
         } else if (obj instanceof Collection<?>) {
             String result = "";
             String prefix = "";
@@ -131,7 +131,7 @@ public class StringMan {
                 result += prefix + getString(element);
                 prefix = ",";
             }
-            return "[ " + result + " ]";
+            return "( " + result + " )";
         } else {
             return obj.toString();
         }

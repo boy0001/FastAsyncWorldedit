@@ -8,7 +8,8 @@ import com.boydti.fawe.jnbt.anvil.MCAFilter;
 import com.boydti.fawe.jnbt.anvil.MCAQueue;
 import com.boydti.fawe.jnbt.anvil.filters.DelegateMCAFilter;
 import com.boydti.fawe.jnbt.anvil.filters.RemapFilter;
-import com.boydti.fawe.object.RunnableVal;
+import com.boydti.fawe.object.FaweInputStream;
+import com.boydti.fawe.object.FaweOutputStream;
 import com.boydti.fawe.object.clipboard.remap.ClipboardRemapper;
 import com.boydti.fawe.object.io.LittleEndianOutputStream;
 import com.boydti.fawe.object.number.MutableLong;
@@ -16,6 +17,9 @@ import com.boydti.fawe.util.MainUtil;
 import com.boydti.fawe.util.MemUtil;
 import com.boydti.fawe.util.ReflectionUtils;
 import com.boydti.fawe.util.StringMan;
+import com.github.luben.zstd.ZstdInputStream;
+import com.github.luben.zstd.ZstdOutputStream;
+import com.google.common.primitives.UnsignedBytes;
 import com.sk89q.jnbt.ByteTag;
 import com.sk89q.jnbt.CompoundTag;
 import com.sk89q.jnbt.FloatTag;
@@ -30,7 +34,11 @@ import com.sk89q.jnbt.StringTag;
 import com.sk89q.worldedit.blocks.BaseBlock;
 import com.sk89q.worldedit.blocks.BaseItem;
 import com.sk89q.worldedit.world.registry.BundledBlockData;
+import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
+import java.io.BufferedInputStream;
+import java.io.BufferedOutputStream;
 import java.io.ByteArrayOutputStream;
+import java.io.Closeable;
 import java.io.DataOutput;
 import java.io.File;
 import java.io.FileInputStream;
@@ -42,21 +50,23 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.ForkJoinPool;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.LongAdder;
+import java.util.function.Consumer;
 import java.util.zip.GZIPInputStream;
+import net.jpountz.lz4.LZ4BlockInputStream;
+import net.jpountz.lz4.LZ4BlockOutputStream;
 import org.iq80.leveldb.CompressionType;
 import org.iq80.leveldb.DB;
 import org.iq80.leveldb.Options;
-import org.iq80.leveldb.WriteBatch;
 import org.iq80.leveldb.impl.Iq80DBFactory;
 
 public class MCAFile2LevelDB extends MapConverter {
@@ -76,27 +86,10 @@ public class MCAFile2LevelDB extends MapConverter {
     private long time;
     private boolean remap;
 
-    private final long startTime;
+    private long startTime;
     private ConverterFrame app;
 
     private ConcurrentLinkedQueue<CompoundTag> portals = new ConcurrentLinkedQueue<>();
-
-    private ConcurrentHashMap<Thread, WriteBatch> batches = new ConcurrentHashMap<Thread, WriteBatch>() {
-
-        @Override
-        public WriteBatch get(Object key) {
-            WriteBatch value = super.get(key);
-            if (value == null) {
-                synchronized (MCAFile2LevelDB.this) {
-                    synchronized (Thread.currentThread()) {
-                        value = db.createWriteBatch();
-                        put((Thread) key, value);
-                    }
-                }
-            }
-            return value;
-        }
-    };
 
     public MCAFile2LevelDB(File folderFrom, File folderTo) {
         super(folderFrom, folderTo);
@@ -124,7 +117,11 @@ public class MCAFile2LevelDB extends MapConverter {
                             .cacheSize(8388608) // 8MB
                             .writeBufferSize(134217728) // >=512MB
             );
-
+//            try {
+//                this.db.suspendCompactions();
+//            } catch (InterruptedException e) {
+//                e.printStackTrace();
+//            }
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
@@ -133,57 +130,42 @@ public class MCAFile2LevelDB extends MapConverter {
     private double lastPercent;
     private double lastTimeRatio;
 
+    private void resetProgress(int estimatedOperations) {
+        startTime = System.currentTimeMillis();
+        lastPercent = 0;
+        lastTimeRatio = 0;
+        this.totalOperations.reset();
+        this.estimatedOperations = estimatedOperations;
+    }
+
     private void progress(int increment) {
         if (app == null) return;
         totalOperations.add(increment);
 
         long completedOps = totalOperations.longValue();
-        double percent = Math.max(0, Math.min(100, (Math.pow(completedOps, 1.5) * 100 / Math.pow(estimatedOperations, 1.5))));
+        double percent = Math.max(0, Math.min(100, (Math.pow(completedOps, 1.3) * 100 / Math.pow(estimatedOperations, 1.3))));
         double lastPercent = (this.lastPercent == 0 ? percent : this.lastPercent);
-        percent = (percent + lastPercent * 19) / 20;
+        percent = (percent + lastPercent * 7) / 8;
         if (increment != 0) this.lastPercent = percent;
 
         double remaining = estimatedOperations - completedOps;
         long timeSpent = System.currentTimeMillis() - startTime;
 
-        double totalTime = Math.pow(estimatedOperations, 1.5) * 1000;
-        double estimatedTimeSpent = Math.pow(completedOps, 1.5) * 1000;
+        double totalTime = Math.pow(estimatedOperations, 1.3) * 1000;
+        double estimatedTimeSpent = Math.pow(completedOps, 1.3) * 1000;
 
         double timeRemaining;
-        if (completedOps > 32) {
+        if (completedOps > 16) {
             double timeRatio = (timeSpent * totalTime / estimatedTimeSpent);
             double lastTimeRatio = this.lastTimeRatio == 0 ? timeRatio : this.lastTimeRatio;
-            timeRatio = (timeRatio + lastTimeRatio * 19) / 20;
+            timeRatio = (timeRatio + lastTimeRatio * 7) / 8;
             if (increment != 0) this.lastTimeRatio = timeRatio;
             timeRemaining = timeRatio - timeSpent;
         } else {
-            timeRemaining = ((long) totalTime >> 5) - timeSpent;
+            timeRemaining = ((long) totalTime >> 4) - timeSpent;
         }
         String msg = MainUtil.secToTime((long) (timeRemaining / 1000));
         app.setProgress(msg, (int) percent);
-    }
-
-    public synchronized void flush() throws IOException {
-        pool.awaitQuiescence(Long.MAX_VALUE, TimeUnit.MILLISECONDS);
-        progress(1);
-        synchronized (MCAFile2LevelDB.this) {
-            int count = pool.getParallelism();
-            Iterator<Map.Entry<Thread, WriteBatch>> iter = batches.entrySet().iterator();
-            while (iter.hasNext()) {
-                Map.Entry<Thread, WriteBatch> entry = iter.next();
-                synchronized (entry.getKey()) {
-                    WriteBatch batch = entry.getValue();
-                    db.write(batch);
-                    batch.close();
-                    iter.remove();
-                    progress(2);
-                    count--;
-                }
-            }
-            System.gc();
-            System.gc();
-            progress(count * 2);
-        }
     }
 
     public DelegateMCAFilter<MutableLong> toFilter(final int dimension) {
@@ -193,26 +175,24 @@ public class MCAFile2LevelDB extends MapConverter {
         DelegateMCAFilter<MutableLong> delegate = new DelegateMCAFilter<MutableLong>(filter) {
             @Override
             public void finishFile(MCAFile file, MutableLong cache) {
-                file.forEachChunk(new RunnableVal<MCAChunk>() {
-                    @Override
-                    public void run(MCAChunk value) {
-                        try {
-                            write(value, !file.getFile().getName().endsWith(".mcapm"), dimension);
-                        } catch (IOException e) {
-                            e.printStackTrace();
+                for (int x = 0; x < 32; x++) {
+                    for (int z = 0; z < 32; z++) {
+                        MCAChunk chunk = file.getCachedChunk(x, z);
+                        if (chunk != null) {
+                            try {
+                                write(chunk, !file.getFile().getName().endsWith(".mcapm"), dimension);
+                            } catch (IOException e) {
+                                e.printStackTrace();
+                            }
                         }
                     }
-                });
+                }
                 file.clear();
 
                 progress(1);
                 submittedFiles.increment();
                 if ((submittedFiles.longValue() & 7) == 0) {
-                    try {
-                        flush();
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    }
+//                    flush();
                 }
             }
         };
@@ -221,8 +201,10 @@ public class MCAFile2LevelDB extends MapConverter {
 
 
     @Override
-    public void accept(ConverterFrame app) {
+    public synchronized void accept(ConverterFrame app) {
         this.app = app;
+
+        app.setTitle("Copying level data");
         File levelDat = new File(folderFrom, "level.dat");
         if (levelDat.exists()) {
             try {
@@ -232,18 +214,20 @@ public class MCAFile2LevelDB extends MapConverter {
             }
         }
 
+        app.setTitle("Scanning worlds...");
         List<CompoundTag> portals = new ArrayList<>();
-        String[] dimDirs = {"region", "DIM-1/region", "DIM1/region"};
+        String[] dimDirs = {"DIM-1/region", "DIM1/region", "region"};
+        int[] dimIds = {1, 2, 0};
         File[] regionFolders = new File[dimDirs.length];
         int totalFiles = 0;
-        for (int dim = 0; dim < 3; dim++) {
-            File source = new File(folderFrom, dimDirs[dim]);
+        for (int i = 0; i < dimDirs.length; i++) {
+            File source = new File(folderFrom, dimDirs[i]);
             if (source.exists()) {
-                regionFolders[dim] = source;
+                regionFolders[i] = source;
                 totalFiles += source.listFiles().length;
             }
         }
-        this.estimatedOperations = totalFiles + (totalFiles >> 3) + (totalFiles >> 3) * pool.getParallelism() * 2;
+        this.estimatedOperations = totalFiles;
 
         Thread progressThread = new Thread(() -> {
             while (!Thread.currentThread().isInterrupted()) {
@@ -257,16 +241,46 @@ public class MCAFile2LevelDB extends MapConverter {
         });
         progressThread.start();
 
-        for (int dim = 0; dim < regionFolders.length; dim++) {
-            File source = regionFolders[dim];
+        for (int i = 0; i < regionFolders.length; i++) {
+            File source = regionFolders[i];
             if (source != null) {
-                DelegateMCAFilter filter = toFilter(dim);
+                Fawe.debugPlain(" - dimension " + dimIds[i] + " (" + dimDirs[i] + ")");
+
+                DelegateMCAFilter filter = toFilter(dimIds[i]);
                 MCAQueue queue = new MCAQueue(null, source, true);
-                MCAFilter result = queue.filterWorld(filter);
+
+                Comparator<File> seqUnsPos = new Comparator<File>() {
+                    @Override
+                    public int compare(File f1, File f2) {
+                        int[] left = MainUtil.regionNameToCoords(f1.getPath());
+                        int[] right = MainUtil.regionNameToCoords(f2.getPath());
+//
+                        int minLength = Math.min(left.length, right.length);
+
+                        for(int i = 0; i < minLength; ++i) {
+                            int lb = left[i] << 5;
+                            int rb = right[i] << 5;
+                            for (int j = 0; j < 4; j++) {
+                                int shift = (j << 3);
+                                int sbl = (lb >> shift) & 0xFF;
+                                int sbr = (rb >> shift) & 0xFF;
+                                int result = sbl - sbr;
+                                if(result != 0) {
+                                    return result;
+                                }
+                            }
+                        }
+
+                        return left.length - right.length;
+                    }
+                };
+
+                MCAFilter result = queue.filterWorld(filter, seqUnsPos);
                 portals.addAll(((RemapFilter) filter.getFilter()).getPortals());
             }
         }
 
+        Fawe.debugPlain(" - including portals");
         // Portals
         if (!portals.isEmpty()) {
             CompoundTag portalData = new CompoundTag(Collections.singletonMap("PortalRecords", new ListTag(CompoundTag.class, portals)));
@@ -278,15 +292,11 @@ public class MCAFile2LevelDB extends MapConverter {
             }
         }
 
-
-        try {
-            flush();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        progressThread.interrupt();
+        app.setTitle("Writing converted data...");
         close();
+        progressThread.interrupt();
         app.setProgress("Done", 0);
+        app.setTitle(null);
         app.prompt(
                 "Conversion complete!\n" +
                         " - The world save is still being compacted, but you can close the program anytime\n" +
@@ -298,7 +308,7 @@ public class MCAFile2LevelDB extends MapConverter {
                         " - Any custom generator settings may not work\n" +
                         " - May not match up with new terrain"
         );
-        Fawe.debug("Starting compaction");
+        Fawe.debugPlain("Starting compaction");
         compact();
         app.prompt("Compaction complete!");
     }
@@ -307,13 +317,22 @@ public class MCAFile2LevelDB extends MapConverter {
     public synchronized void close() {
         try {
             if (closed == (closed = true)) return;
-            Fawe.debug("Collecting threads");
+
+            Fawe.debugPlain("Collecting threads");
             pool.shutdown();
             pool.awaitTermination(Long.MAX_VALUE, TimeUnit.MILLISECONDS);
 
-            Fawe.debug("Closing");
+            resetProgress(cache.size());
+            ArrayList<FileCache> files = new ArrayList<>(cache.values());
+            Collections.sort(files);
+            for (FileCache file : files) {
+                file.close();
+                progress(1);
+            }
+
+            Fawe.debugPlain("Closing");
             db.close();
-            Fawe.debug("Done! (but still compacting)");
+            Fawe.debugPlain("Done! (but still compacting)");
         } catch (Throwable e) {
             e.printStackTrace();
         }
@@ -328,9 +347,7 @@ public class MCAFile2LevelDB extends MapConverter {
                 .writeBufferSize(134217728) // >=128MB
         )) {
             newDb.close();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+        } catch (Throwable ignore) {}
         Fawe.debug("Done compacting!");
     }
 
@@ -395,6 +412,53 @@ public class MCAFile2LevelDB extends MapConverter {
         }
     }
 
+    public static void main(String[] args) throws IOException {
+        byte[] data = new byte[9];
+        Tag[] tags = Tag.values().clone();
+        Arrays.sort(tags, new Comparator<Tag>() {
+            @Override
+            public int compare(Tag left, Tag right) {
+                return left.value - right.value;
+            }
+        });
+        MainUtil.deleteDirectory(new File("db"));
+        DB db = Iq80DBFactory.factory.open(new File("db"),
+                new Options().createIfMissing(true)
+        );
+        for (Tag tag : tags) {
+            System.out.println(tag.name() + " | " + tag.value);
+            db.put(tag.fill(0, 0, new byte[9]), new byte[] { 1 });
+        }
+        db.put(getSectionKey(0, -1, 0, 0), new byte[] { 5 });
+        db.put(getSectionKey(0, -2, 0, 0), new byte[] { 5 });
+        db.put(getSectionKey(0, -256, 0, 0), new byte[] { 7 });
+        db.put(getSectionKey(0, 0, 0, 0), new byte[] { 2 });
+        db.put(getSectionKey(0, 1, 0, 0), new byte[] { 2 });
+        System.out.println("=========");
+        List<byte[]> bytes = new ArrayList<>();
+        db.forEach(new Consumer<Map.Entry<byte[], byte[]>>() {
+            @Override
+            public void accept(Map.Entry<byte[], byte[]> entry) {
+                byte[] key = entry.getKey();
+                Tag tag;
+                if (key.length < 13) {
+                    tag = Tag.valueOf(entry.getKey()[8]);
+                } else {
+                    tag = Tag.valueOf(entry.getKey()[12]);
+                }
+                System.out.println(tag.name() + " | " + tag.value + " | " + entry.getValue()[0] + " | " + StringMan.getString(key));
+                bytes.add(key);
+            }
+        });
+        System.out.println("==========");
+        Collections.sort(bytes, UnsignedBytes.lexicographicalComparator());
+        for (byte[] b : bytes) {
+            System.out.println(StringMan.getString(b));
+        }
+
+
+    }
+
     public void write(MCAChunk chunk, boolean remap, int dim) throws IOException {
         submittedChunks.add(1);
         long numChunks = submittedChunks.longValue();
@@ -412,11 +476,9 @@ public class MCAFile2LevelDB extends MapConverter {
                 }
             }
         }
-        synchronized (MCAFile2LevelDB.this) {
-            try {
-                update(getKey(chunk, Tag.Version, dim), VERSION);
-                update(getKey(chunk, Tag.FinalizedState, dim), COMPLETE_STATE);
-
+        try {
+            FileCache cached = getFileCache(chunk, dim);
+            { // Data2D
                 ByteBuffer data2d = ByteBuffer.wrap(new byte[512 + 256]);
                 int[] heightMap = chunk.getHeightMapArray();
                 for (int i = 0; i < heightMap.length; i++) {
@@ -425,51 +487,10 @@ public class MCAFile2LevelDB extends MapConverter {
                 if (chunk.biomes != null) {
                     System.arraycopy(chunk.biomes, 0, data2d.array(), 512, 256);
                 }
-                update(getKey(chunk, Tag.Data2D, dim), data2d.array());
+                cached.update(getKey(chunk, Tag.Data2D, dim), data2d.array());
+            }
 
-                if (!chunk.tiles.isEmpty()) {
-                    List<CompoundTag> tickList = null;
-                    List<com.sk89q.jnbt.Tag> tiles = new ArrayList<>();
-                    for (Map.Entry<Short, CompoundTag> entry : chunk.getTiles().entrySet()) {
-                        CompoundTag tag = entry.getValue();
-                        if (transform(chunk, tag, false) && time != 0l) {
-                            // Needs tick
-                            if (tickList == null) tickList = new ArrayList<>();
-
-                            int x = tag.getInt("x");
-                            int y = tag.getInt("y");
-                            int z = tag.getInt("z");
-                            BaseBlock block = chunk.getBlock(x & 15, y, z & 15);
-
-                            Map<String, com.sk89q.jnbt.Tag> tickable = new HashMap<>();
-                            tickable.put("tileID", new ByteTag((byte) block.getId()));
-                            tickable.put("x", new IntTag(x));
-                            tickable.put("y", new IntTag(y));
-                            tickable.put("z", new IntTag(z));
-                            tickable.put("time", new LongTag(1));
-                            tickList.add(new CompoundTag(tickable));
-                        }
-
-                        tiles.add(tag);
-                    }
-                    update(getKey(chunk, Tag.BlockEntity, dim), write(tiles));
-
-                    if (tickList != null) {
-                        HashMap<String, com.sk89q.jnbt.Tag> root = new HashMap<String, com.sk89q.jnbt.Tag>();
-                        root.put("tickList", new ListTag(CompoundTag.class, tickList));
-                        update(getKey(chunk, Tag.PendingTicks, dim), write(Arrays.asList(new CompoundTag(root))));
-                    }
-                }
-
-                if (!chunk.entities.isEmpty()) {
-                    List<com.sk89q.jnbt.Tag> entities = new ArrayList<>();
-                    for (CompoundTag tag : chunk.getEntities()) {
-                        transform(chunk, tag, true);
-                        entities.add(tag);
-                    }
-                    update(getKey(chunk, Tag.Entity, dim), write(entities));
-                }
-
+            { // SubChunkPrefix
                 int maxLayer = chunk.ids.length - 1;
                 while (maxLayer >= 0 && chunk.ids[maxLayer] == null) maxLayer--;
                 if (maxLayer >= 0) {
@@ -497,19 +518,144 @@ public class MCAFile2LevelDB extends MapConverter {
                                 System.arraycopy(blockLight, 0, value, 1 + 4096 + 2048 + 2048, blockLight.length);
                             }
                         }
-                        update(key, value);
+                        cached.update(key, value);
                     }
                 }
-            } catch (Throwable e) {
-                e.printStackTrace();
             }
+
+            {
+                List<CompoundTag> tickList = null;
+
+                // BlockEntity
+                if (!chunk.tiles.isEmpty()) {
+                    List<com.sk89q.jnbt.Tag> tiles = new ArrayList<>();
+                    for (Map.Entry<Short, CompoundTag> entry : chunk.getTiles().entrySet()) {
+                        CompoundTag tag = entry.getValue();
+                        if (transform(chunk, tag, false) && time != 0l) {
+                            // Needs tick
+                            if (tickList == null) tickList = new ArrayList<>();
+
+                            int x = tag.getInt("x");
+                            int y = tag.getInt("y");
+                            int z = tag.getInt("z");
+                            BaseBlock block = chunk.getBlock(x & 15, y, z & 15);
+
+                            Map<String, com.sk89q.jnbt.Tag> tickable = new HashMap<>();
+                            tickable.put("tileID", new ByteTag((byte) block.getId()));
+                            tickable.put("x", new IntTag(x));
+                            tickable.put("y", new IntTag(y));
+                            tickable.put("z", new IntTag(z));
+                            tickable.put("time", new LongTag(1));
+                            tickList.add(new CompoundTag(tickable));
+                        }
+
+                        tiles.add(tag);
+                    }
+                    cached.update(getKey(chunk, Tag.BlockEntity, dim), write(tiles));
+                }
+
+                // Entity
+                if (!chunk.entities.isEmpty()) {
+                    List<com.sk89q.jnbt.Tag> entities = new ArrayList<>();
+                    for (CompoundTag tag : chunk.getEntities()) {
+                        transform(chunk, tag, true);
+                        entities.add(tag);
+                    }
+                    cached.update(getKey(chunk, Tag.Entity, dim), write(entities));
+                }
+
+                // PendingTicks
+                if (tickList != null) {
+                    HashMap<String, com.sk89q.jnbt.Tag> root = new HashMap<String, com.sk89q.jnbt.Tag>();
+                    root.put("tickList", new ListTag(CompoundTag.class, tickList));
+                    cached.update(getKey(chunk, Tag.PendingTicks, dim), write(Arrays.asList(new CompoundTag(root))));
+                }
+            }
+
+            cached.update(getKey(chunk, Tag.FinalizedState, dim), COMPLETE_STATE);
+
+            cached.update(getKey(chunk, Tag.Version, dim), VERSION);
+        } catch (Throwable e) {
+            e.printStackTrace();
         }
     }
 
-    private void update(byte[] key, byte[] value) {
-        synchronized (Thread.currentThread()) {
-            WriteBatch batch = batches.get(Thread.currentThread());
-            batch.put(key, value);
+    private byte[] last;
+
+    private class FileCache implements Comparable<FileCache>, Closeable {
+        private FaweOutputStream os;
+        private final File file;
+        private int id;
+        int numKeys = 0;
+
+        public FileCache(int id) throws IOException {
+            this.id = id;
+            this.file = new File(getFolderTo() + File.separator + "cache" + File.separator + Integer.toHexString(id));
+        }
+
+        public void update(byte[] key, byte[] value) throws IOException {
+            numKeys++;
+            try {
+                updateUnsafe(key, value);
+            } catch (NullPointerException e) {
+                file.getParentFile().mkdirs();
+                file.createNewFile();
+                this.os = new FaweOutputStream(new BufferedOutputStream(new ZstdOutputStream(new LZ4BlockOutputStream(new FileOutputStream(file)))));
+                updateUnsafe(key, value);
+            }
+        }
+
+        private void updateUnsafe(byte[] key, byte[] value) throws IOException {
+            os.writeVarInt(key.length);
+            os.write(key);
+            os.writeVarInt(value.length);
+            os.write(value);
+        }
+
+        @Override
+        public void close() throws IOException {
+            try {
+                this.os.close();
+
+                FaweInputStream in = new FaweInputStream(new ZstdInputStream(new LZ4BlockInputStream(new BufferedInputStream(new FileInputStream(file)))));
+                for (int i = 0; i < numKeys; i++) {
+                    int len = in.readVarInt();
+                    byte[] key = new byte[len];
+                    in.readFully(key);
+
+                    len = in.readVarInt();
+                    byte[] value = new byte[len];
+                    in.readFully(value);
+                    db.put(key, value);
+                }
+                in.close();
+                file.delete();
+            } catch (Throwable e) {
+                e.printStackTrace();
+                throw e;
+            }
+        }
+
+        @Override
+        public int compareTo(FileCache other) {
+            return Integer.compareUnsigned(this.id, other.id);
+        }
+    }
+
+    private Int2ObjectOpenHashMap<FileCache> cache = new Int2ObjectOpenHashMap<>();
+
+    private FileCache getFileCache(MCAChunk chunk, int dim) throws IOException {
+        synchronized (cache) {
+            int key = (chunk.getX() & 0xFFFFFF);
+            if (dim == 0) {
+//                key += 0xFFFFFFF;
+            }
+            FileCache cached = cache.get(key);
+            if (cached == null) {
+                cached = new FileCache(key);
+                cache.put(key, cached);
+            }
+            return cached;
         }
     }
 
@@ -601,8 +747,8 @@ public class MCAFile2LevelDB extends MapConverter {
                     Map<String, com.sk89q.jnbt.Tag> value = ReflectionUtils.getMap(ench.getValue());
                     String id = ench.getString("id");
                     String lvl = ench.getString("lvl");
-                    if (id != null) value.put("id", new ShortTag(Short.parseShort(id)));
-                    if (id != null) value.put("lvl", new ShortTag(Short.parseShort(id)));
+                    if (id != null && !id.isEmpty()) value.put("id", new ShortTag(Short.parseShort(id)));
+                    if (lvl != null && !lvl.isEmpty()) value.put("lvl", new ShortTag(Short.parseShort(lvl)));
                 }
             }
             CompoundTag tile = (CompoundTag) tagMap.get("BlockEntityTag");
@@ -750,13 +896,17 @@ public class MCAFile2LevelDB extends MapConverter {
     }
 
     private byte[] getSectionKey(MCAChunk chunk, int layer, int dimension) {
+        return getSectionKey(chunk.getX(), chunk.getZ(), layer, dimension);
+    }
+
+    private static byte[] getSectionKey(int x, int z, int layer, int dimension) {
         if (dimension == 0) {
-            byte[] key = Tag.SubChunkPrefix.fill(chunk.getX(), chunk.getZ(), new byte[10]);
+            byte[] key = Tag.SubChunkPrefix.fill(x, z, new byte[10]);
             key[9] = (byte) layer;
             return key;
         }
         byte[] key = new byte[14];
-        Tag.SubChunkPrefix.fill(chunk.getX(), chunk.getZ(), key);
+        Tag.SubChunkPrefix.fill(x, z, key);
         key[12] = key[8];
         key[8] = (byte) dimension;
         key[13] = (byte) layer;

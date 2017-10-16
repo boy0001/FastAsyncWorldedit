@@ -60,6 +60,7 @@ import java.nio.file.StandardCopyOption;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Comparator;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -221,6 +222,22 @@ public class MainUtil {
             });
         } catch (IOException e) {
             throw new AssertionError("walkFileTree will not throw IOException if the FileVisitor does not");
+        }
+    }
+
+    public static void forEachFile(Path path, final RunnableVal2<Path, BasicFileAttributes> onEach, Comparator<File> comparator) {
+        File dir = path.toFile();
+        if (!dir.exists()) return;
+        File[] files = path.toFile().listFiles();
+        if (comparator != null) Arrays.sort(files, comparator);
+        for (File file : files) {
+            Path filePath = file.toPath();
+            try {
+                BasicFileAttributes attr = Files.readAttributes(filePath, BasicFileAttributes.class);
+                onEach.run(file.toPath(), attr);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
         }
     }
 

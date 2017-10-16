@@ -22,6 +22,14 @@ public abstract class MapConverter implements Consumer<ConverterFrame>, Closeabl
         }
     }
 
+    public File getFolderTo() {
+        return folderTo;
+    }
+
+    public File getFolderFrom() {
+        return folderFrom;
+    }
+
     private static Tag[] tags = new Tag[256];
 
     public enum Tag {

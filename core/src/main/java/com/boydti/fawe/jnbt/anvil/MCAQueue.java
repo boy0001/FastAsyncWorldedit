@@ -26,6 +26,7 @@ import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.Collection;
+import java.util.Comparator;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
@@ -502,7 +503,6 @@ public class MCAQueue extends NMSMappedFaweQueue<FaweQueue, FaweChunk, FaweChunk
                     final int mcaZ = Integer.parseInt(split[2]);
                     if (filter.appliesFile(mcaX, mcaZ)) {
                         File file = path.toFile();
-                        Fawe.debug("Apply file: " + file.getName());
                         final MCAFile original = new MCAFile(MCAQueue.this, file);
                         final MCAFile finalFile = filter.applyFile(original);
                         if (finalFile != null && !finalFile.isDeleted()) {
@@ -606,6 +606,15 @@ public class MCAQueue extends NMSMappedFaweQueue<FaweQueue, FaweChunk, FaweChunk
             @Override
             public void run(Path value1, RunnableVal2<Path, BasicFileAttributes> value2) {
                 MainUtil.traverse(value1, value2);
+            }
+        });
+    }
+
+    public <G, T extends MCAFilter<G>> T filterWorld(final T filter, Comparator<File> comparator) {
+        return filterWorld(filter, new RunnableVal2<Path, RunnableVal2<Path, BasicFileAttributes>>() {
+            @Override
+            public void run(Path value1, RunnableVal2<Path, BasicFileAttributes> value2) {
+                MainUtil.forEachFile(value1, value2, comparator);
             }
         });
     }
