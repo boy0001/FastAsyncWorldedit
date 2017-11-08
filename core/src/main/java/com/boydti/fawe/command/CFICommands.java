@@ -7,6 +7,7 @@ import com.boydti.fawe.config.Commands;
 import com.boydti.fawe.jnbt.anvil.HeightMapMCAGenerator;
 import com.boydti.fawe.object.FawePlayer;
 import com.boydti.fawe.object.RunnableVal;
+import com.boydti.fawe.object.clipboard.MultiClipboardHolder;
 import com.boydti.fawe.util.CleanTextureUtil;
 import com.boydti.fawe.util.FilteredTextureUtil;
 import com.boydti.fawe.util.ImgurUtility;
@@ -452,14 +453,14 @@ public class CFICommands extends MethodCommands {
 
         World world = fp.getWorld();
         WorldData wd = world.getWorldData();
-        ClipboardHolder[] clipboards = ClipboardFormat.SCHEMATIC.loadAllFromInput(fp.getPlayer(), wd, schematic, true);
-        if (clipboards == null) {
+        MultiClipboardHolder multi = ClipboardFormat.SCHEMATIC.loadAllFromInput(fp.getPlayer(), wd, schematic, true);
+        if (multi == null) {
             return;
         }
         if (imageMask == null) {
-            gen.addSchems(mask, wd, clipboards, rarity, distance, rotate);
+            gen.addSchems(mask, wd, multi.getHolders(), rarity, distance, rotate);
         } else {
-            gen.addSchems(imageMask, mask, wd, clipboards, rarity, distance, rotate);
+            gen.addSchems(imageMask, mask, wd, multi.getHolders(), rarity, distance, rotate);
         }
         msg("Added schematics!").send(fp);
         populate(fp);

@@ -11,14 +11,15 @@ import com.sk89q.worldedit.function.mask.Mask;
 import com.sk89q.worldedit.function.pattern.Pattern;
 import com.sk89q.worldedit.regions.CuboidRegion;
 import com.sk89q.worldedit.session.ClipboardHolder;
+import java.util.List;
 
 public class PopulateSchem implements Brush {
     private final Mask mask;
     private final boolean randomRotate;
-    private final ClipboardHolder[] clipboards;
+    private final List<ClipboardHolder> clipboards;
     private final int rarity;
 
-    public PopulateSchem(Mask mask, ClipboardHolder[] clipboards, int rarity, boolean randomRotate) {
+    public PopulateSchem(Mask mask, List<ClipboardHolder> clipboards, int rarity, boolean randomRotate) {
         this.mask = mask;
         this.clipboards = clipboards;
         this.rarity = rarity;

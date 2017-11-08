@@ -164,7 +164,6 @@ public class LevelDBToMCAFile extends MapConverter {
                     case PendingTicks:
                         break;
                     case BlockExtraData:
-                        System.out.println("EXTRA " + chunk.getX() + "," + chunk.getZ());
                         break;
                     case LegacyTerrain:
                     case Data2DLegacy:

@@ -5,9 +5,9 @@ import static com.google.common.base.Preconditions.checkNotNull;
 /**
  * Some data with a name
  */
-public class NamedData {
+public class NamedData<T> {
     private final String name;
-    private final Object data;
+    private final T data;
 
     /**
      * Create a new named tag.
@@ -15,7 +15,7 @@ public class NamedData {
      * @param name the name
      * @param data the data
      */
-    public NamedData(String name, Object data) {
+    public NamedData(String name, T data) {
         checkNotNull(name);
         this.name = name;
         this.data = data;
@@ -35,7 +35,7 @@ public class NamedData {
      *
      * @return the tag
      */
-    public Object getValue() {
+    public T getValue() {
         return data;
     }
 }

@@ -51,6 +51,7 @@ import com.boydti.fawe.object.brush.SurfaceSphereBrush;
 import com.boydti.fawe.object.brush.SurfaceSpline;
 import com.boydti.fawe.object.brush.heightmap.ScalableHeightMap;
 import com.boydti.fawe.object.brush.sweep.SweepBrush;
+import com.boydti.fawe.object.clipboard.MultiClipboardHolder;
 import com.boydti.fawe.object.mask.IdMask;
 import com.boydti.fawe.util.ColorUtil;
 import com.boydti.fawe.util.MathMan;
@@ -471,12 +472,12 @@ public class BrushCommands extends MethodCommands {
 
 
         try {
-            ClipboardHolder[] clipboards = ClipboardFormat.SCHEMATIC.loadAllFromInput(player, player.getWorld().getWorldData(), clipboard, true);
+            MultiClipboardHolder clipboards = ClipboardFormat.SCHEMATIC.loadAllFromInput(player, player.getWorld().getWorldData(), clipboard, true);
             if (clipboards == null) {
                 return null;
             }
             return get(context)
-                    .setBrush(new PopulateSchem(mask, clipboards, (int) density, rotate))
+                    .setBrush(new PopulateSchem(mask, clipboards.getHolders(), (int) density, rotate))
                     .setSize(radius);
         } catch (IOException e) {
             throw new RuntimeException(e);

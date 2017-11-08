@@ -3,6 +3,7 @@ package com.sk89q.worldedit.command;
 import com.boydti.fawe.Fawe;
 import com.boydti.fawe.object.DataAnglePattern;
 import com.boydti.fawe.object.FawePlayer;
+import com.boydti.fawe.object.clipboard.MultiClipboardHolder;
 import com.boydti.fawe.object.collection.RandomCollection;
 import com.boydti.fawe.object.pattern.AngleColorPattern;
 import com.boydti.fawe.object.pattern.AverageColorPattern;
@@ -59,6 +60,8 @@ import com.sk89q.worldedit.util.command.parametric.Optional;
 import com.sk89q.worldedit.world.biome.BaseBiome;
 import java.awt.Color;
 import java.io.IOException;
+import java.util.Collections;
+import java.util.List;
 import java.util.Set;
 
 @Command(aliases = {"patterns"},
@@ -209,7 +212,7 @@ public class PatternCommands extends MethodCommands {
             max = 2
     )
     public Pattern fullcopy(Player player, Extent extent, LocalSession session, @Optional("#copy") String location, @Optional("false") boolean rotate, @Optional("false") boolean flip) throws EmptyClipboardException, InputParseException, IOException {
-        ClipboardHolder[] clipboards;
+        List<ClipboardHolder> clipboards;
         switch (location.toLowerCase()) {
             case "#copy":
             case "#clipboard":
@@ -220,10 +223,11 @@ public class PatternCommands extends MethodCommands {
                 if (!rotate && !flip) {
                     return new FullClipboardPattern(extent, clipboard.getClipboard());
                 }
-                clipboards = new ClipboardHolder[]{clipboard};
+                clipboards = Collections.singletonList(clipboard);
                 break;
             default:
-                clipboards = ClipboardFormat.SCHEMATIC.loadAllFromInput(player, player.getWorld().getWorldData(), location, true);
+                MultiClipboardHolder multi = ClipboardFormat.SCHEMATIC.loadAllFromInput(player, player.getWorld().getWorldData(), location, true);
+                clipboards = multi != null ? multi.getHolders() : null;
                 break;
         }
         if (clipboards == null) {

@@ -1,6 +1,5 @@
 package com.sk89q.worldedit.internal.expression.runtime;
 
-import com.sk89q.worldedit.command.UtilityCommands;
 import com.sk89q.worldedit.internal.expression.Expression;
 import com.sk89q.worldedit.internal.expression.parser.ParserException;
 
@@ -31,7 +30,7 @@ public class For extends Node {
             }
 
             if(Thread.currentThread().isInterrupted()){
-                throw new EvaluationException(this.getPosition(), "Thread has been interuppted.");
+                throw new EvaluationException(this.getPosition(), "Thread has been interrupted.");
             }
 
             ++iterations;

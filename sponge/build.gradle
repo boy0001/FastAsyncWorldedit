@@ -22,7 +22,7 @@ buildscript {
 }
 
 plugins {
-    id 'org.spongepowered.plugin' version '0.6'
+    id 'org.spongepowered.plugin' version '0.8.1'
 }
 
 apply plugin: 'net.minecrell.vanilla.server.library'
@@ -49,15 +49,14 @@ repositories {
 
 dependencies {
     compile project(':core')
-    compile 'org.spongepowered:spongeapi:6.1.0-SNAPSHOT'
-    compile 'org.spongepowered:mixin:0.7-SNAPSHOT'
-    compile 'com.sk89q.worldedit:worldedit-sponge:6.1.7-SNAPSHOT'
-    compile name: 'worldedit-core-6.1.7-SNAPSHOT-dist'
+    compile 'org.spongepowered:spongeapi:7.0.0-SNAPSHOT'
+    compile name: 'worldedit-sponge-6.1.9-SNAPSHOT-dist'
+    compile name: 'worldedit-core-6.1.9-SNAPSHOT-dist'
 }
 
 minecraft {
     version = "1.12"
-    mappings = "snapshot_20170726"
+    mappings = "snapshot_20170713"
     runDir = 'run'
 }
 

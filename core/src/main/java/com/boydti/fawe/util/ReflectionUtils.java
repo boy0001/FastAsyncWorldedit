@@ -67,6 +67,10 @@ public class ReflectionUtils {
         }
     }
 
+    public static <T> T as(Class<T> t, Object o) {
+        return t.isInstance(o) ? t.cast(o) : null;
+    }
+
     @SuppressWarnings("unchecked")
     public static <T extends Enum<?>> T addEnum(Class<T> enumType, String enumName) {
 
@@ -186,6 +190,7 @@ public class ReflectionUtils {
     public static <T> List<T> getList(List<T> list) {
         try {
             Class<? extends List> clazz = (Class<? extends List>) Class.forName("java.util.Collections$UnmodifiableList");
+            if (!clazz.isInstance(list)) return list;
             Field m = clazz.getDeclaredField("list");
             m.setAccessible(true);
             return (List<T>) m.get(list);

@@ -1,5 +1,6 @@
 package com.sk89q.jnbt;
 
+import com.sk89q.worldedit.function.entity.ExtentEntityCopy;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -406,4 +407,7 @@ public final class CompoundTag extends Tag {
         return bldr.toString();
     }
 
+    public static Class<?> inject() {
+        return CompoundTag.class;
+    }
 }

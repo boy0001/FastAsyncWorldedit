@@ -15,19 +15,20 @@ import com.sk89q.worldedit.session.ClipboardHolder;
 import com.sk89q.worldedit.world.registry.WorldData;
 import java.io.IOException;
 import java.io.NotSerializableException;
+import java.util.List;
 
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
 public class RandomFullClipboardPattern extends AbstractPattern {
     private final Extent extent;
-    private final ClipboardHolder[] clipboards;
     private final MutableBlockVector mutable = new MutableBlockVector();
+    private final List<ClipboardHolder> clipboards;
     private boolean randomRotate;
     private boolean randomFlip;
     private WorldData worldData;
 
-    public RandomFullClipboardPattern(Extent extent, WorldData worldData, ClipboardHolder[] clipboards, boolean randomRotate, boolean randomFlip) {
+    public RandomFullClipboardPattern(Extent extent, WorldData worldData, List<ClipboardHolder> clipboards, boolean randomRotate, boolean randomFlip) {
         checkNotNull(clipboards);
         this.clipboards = clipboards;
         this.extent = extent;
@@ -37,7 +38,7 @@ public class RandomFullClipboardPattern extends AbstractPattern {
 
     @Override
     public boolean apply(Extent extent, Vector setPosition, Vector getPosition) throws WorldEditException {
-        ClipboardHolder holder = clipboards[PseudoRandom.random.random(clipboards.length)];
+        ClipboardHolder holder = clipboards.get(PseudoRandom.random.random(clipboards.size()));
         AffineTransform transform = new AffineTransform();
         if (randomRotate) {
             transform = transform.rotateY(PseudoRandom.random.random(4) * 90);

@@ -13,7 +13,7 @@ import com.sk89q.worldedit.regions.CuboidRegion;
 import com.sk89q.worldedit.regions.Region;
 import com.sk89q.worldedit.util.Location;
 import com.sk89q.worldedit.world.biome.BaseBiome;
-import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import javax.annotation.Nullable;
 
@@ -26,17 +26,17 @@ public class EmptyClipboard implements Clipboard {
 
     @Override
     public Region getRegion() {
-        return new CuboidRegion(new Vector(), new Vector());
+        return new CuboidRegion(Vector.ZERO, Vector.ZERO);
     }
 
     @Override
     public Vector getDimensions() {
-        return new Vector();
+        return Vector.ZERO;
     }
 
     @Override
     public Vector getOrigin() {
-        return new Vector();
+        return Vector.ZERO;
     }
 
     @Override
@@ -45,22 +45,22 @@ public class EmptyClipboard implements Clipboard {
 
     @Override
     public Vector getMinimumPoint() {
-        return new Vector();
+        return Vector.ZERO;
     }
 
     @Override
     public Vector getMaximumPoint() {
-        return new Vector();
+        return Vector.ZERO;
     }
 
     @Override
     public List<? extends Entity> getEntities(Region region) {
-        return new ArrayList<>();
+        return Collections.emptyList();
     }
 
     @Override
     public List<? extends Entity> getEntities() {
-        return new ArrayList<>();
+        return Collections.emptyList();
     }
 
     @Nullable

@@ -1,6 +1,7 @@
 package com.boydti.fawe.object.brush.scroll;
 
 import com.boydti.fawe.config.BBC;
+import com.boydti.fawe.object.clipboard.MultiClipboardHolder;
 import com.sk89q.worldedit.LocalConfiguration;
 import com.sk89q.worldedit.LocalSession;
 import com.sk89q.worldedit.WorldEdit;
@@ -11,7 +12,6 @@ import com.sk89q.worldedit.extension.input.ParserContext;
 import com.sk89q.worldedit.extent.clipboard.io.ClipboardFormat;
 import com.sk89q.worldedit.function.mask.Mask;
 import com.sk89q.worldedit.function.pattern.Pattern;
-import com.sk89q.worldedit.session.ClipboardHolder;
 import java.io.IOException;
 
 public abstract class ScrollAction implements ScrollTool {
@@ -34,11 +34,11 @@ public abstract class ScrollAction implements ScrollTool {
                 }
                 String filename = split[1];
                 try {
-                    ClipboardHolder[] clipboards = ClipboardFormat.SCHEMATIC.loadAllFromInput(player, player.getWorld().getWorldData(), filename, message);
-                    if (clipboards == null) {
+                    MultiClipboardHolder multi = ClipboardFormat.SCHEMATIC.loadAllFromInput(player, player.getWorld().getWorldData(), filename, message);
+                    if (multi == null) {
                         return null;
                     }
-                    return (new ScrollClipboard(tool, session, clipboards));
+                    return (new ScrollClipboard(tool, session, multi.getHolders()));
                 } catch (IOException e) {
                     throw new RuntimeException(e);
                 }

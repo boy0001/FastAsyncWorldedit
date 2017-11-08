@@ -47,6 +47,10 @@ public class Message {
         return this;
     }
 
+    public boolean supportsInteraction() {
+        return active;
+    }
+
     public Message text(BBC caption, Object... args) {
         return text(caption.format(args));
     }

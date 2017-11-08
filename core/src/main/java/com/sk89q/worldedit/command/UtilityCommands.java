@@ -19,11 +19,13 @@
 
 package com.sk89q.worldedit.command;
 
+import com.boydti.fawe.Fawe;
 import com.boydti.fawe.FaweAPI;
 import com.boydti.fawe.config.BBC;
 import com.boydti.fawe.config.Commands;
 import com.boydti.fawe.object.FaweLimit;
 import com.boydti.fawe.object.FawePlayer;
+import com.boydti.fawe.object.RunnableVal3;
 import com.boydti.fawe.util.MathMan;
 import com.boydti.fawe.util.StringMan;
 import com.boydti.fawe.util.chat.Message;
@@ -75,6 +77,7 @@ import com.sk89q.worldedit.util.command.parametric.Optional;
 import com.sk89q.worldedit.util.command.parametric.ParametricCallable;
 import com.sk89q.worldedit.world.World;
 import java.io.File;
+import java.io.FileFilter;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -87,7 +90,13 @@ import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
 import java.util.UUID;
-import java.util.concurrent.*;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 import java.util.stream.Collectors;
 
 
@@ -632,43 +641,98 @@ public class UtilityCommands extends MethodCommands {
     }
 
     public static void list(File dir, Actor actor, CommandContext args, @Range(min = 0) int page, String formatName, boolean playerFolder, String onClickCmd) {
-        List<File> fileList = new ArrayList<>();
+        list(dir, actor, args, page, formatName, playerFolder, new RunnableVal3<Message, URI, String>() {
+            @Override
+            public void run(Message m, URI uri, String fileName) {
+                m.text(BBC.SCHEMATIC_LIST_ELEM, fileName, "");
+                if (onClickCmd != null) m.cmdTip(onClickCmd + " " + fileName);
+            }
+        });
+    }
+
+    public static void list(File dir, Actor actor, CommandContext args, @Range(min = 0) int page, String formatName, boolean playerFolder, RunnableVal3<Message, URI, String> eachMsg) {
         int len = args.argsLength();
         List<String> filters = new ArrayList<>();
-        boolean mine = false;
+
+        String dirFilter = File.separator;
+
+        boolean listMine = false;
+        boolean listGlobal = false;
         if (len > 0) {
             int max = len;
             if (MathMan.isInteger(args.getString(len - 1))) {
                 page = args.getInteger(--len);
             }
             for (int i = 0; i < len; i++) {
-                switch (args.getString(i).toLowerCase()) {
+                String arg = args.getString(i);
+                switch (arg.toLowerCase()) {
                     case "me":
                     case "mine":
-                        mine = true;
+                    case "local":
+                    case "private":
+                        listMine = true;
+                        break;
+                    case "public":
+                    case "global":
+                        listGlobal = true;
+                        break;
+                    case "all":
+                        listMine = true;
+                        listGlobal = true;
                         break;
                     default:
-                        filters.add(args.getString(i));
+                        if (arg.endsWith("/") || arg.endsWith(File.separator)) {
+                            arg = arg.replace("/", File.separator);
+                            String newDirFilter = dirFilter + arg;
+                            boolean exists = new File(dir, newDirFilter).exists() || playerFolder && new File(dir, actor.getUniqueId() + newDirFilter).exists();
+                            if (!exists) {
+                                arg = arg.substring(0, arg.length() - File.separator.length());
+                                if (arg.length() > 3 && arg.length() <= 16) {
+                                    UUID fromName = Fawe.imp().getUUID(arg);
+                                    if (fromName != null) {
+                                        newDirFilter = dirFilter + fromName + File.separator;
+                                        listGlobal = true;
+                                    }
+                                }
+                            }
+                            dirFilter = newDirFilter;
+                        }
+                        else {
+                            filters.add(arg);
+                        }
                         break;
                 }
             }
         }
+        if (!listMine && !listGlobal) {
+            listMine = true;
+        }
+
+        FileFilter ignoreUUIDs = f -> {
+            try {
+                if (f.isDirectory()) {
+                    UUID uuid = UUID.fromString(f.getName());
+                    return false;
+                }
+            } catch (IllegalArgumentException exception) {}
+            return true;
+        };
+
+        List<File> fileList = new ArrayList<>();
         if (playerFolder) {
-            File playerDir = new File(dir, actor.getUniqueId().toString());
-            if (playerDir.exists()) {
-                fileList.addAll(allFiles(playerDir, true));
+            if (listMine) {
+                File playerDir = new File(dir, actor.getUniqueId() + dirFilter);
+                if (playerDir.exists()) fileList.addAll(allFiles(playerDir.listFiles(), false));
             }
-            if (!mine) {
-                fileList.addAll(allFiles(dir, false));
+            if (listGlobal) {
+                File rel = new File(dir, dirFilter);
+                if (rel.exists()) fileList.addAll(allFiles(rel.listFiles(ignoreUUIDs), false));
             }
         } else {
-            fileList.addAll(allFiles(dir, true));
+            File rel = new File(dir, dirFilter);
+            if (rel.exists()) fileList.addAll(allFiles(rel.listFiles(), false));
         }
-        if (!filters.isEmpty()) {
-            for (String filter : filters) {
-                fileList.removeIf(file -> !file.getPath().contains(filter));
-            }
-        }
+
         if (fileList.isEmpty()) {
             BBC.SCHEMATIC_NONE.send(actor);
             return;
@@ -680,10 +744,10 @@ public class UtilityCommands extends MethodCommands {
                     .collect(Collectors.toList());
 
         }
-        File[] files = new File[fileList.size()];
-        fileList.toArray(files);
+        fileList = filter(fileList, filters);
+
         final int perPage = actor instanceof Player ? 12 : 20; // More pages for console
-        int pageCount = (files.length + perPage - 1) / perPage;
+        int pageCount = (fileList.size() + perPage - 1) / perPage;
         if (page < 1) {
             BBC.SCHEMATIC_PAGE.send(actor, ">0");
             return;
@@ -695,9 +759,12 @@ public class UtilityCommands extends MethodCommands {
 
         final int sortType = args.hasFlag('d') ? -1 : args.hasFlag('n') ? 1 : 0;
         // cleanup file list
-        Arrays.sort(files, new Comparator<File>() {
+        Collections.sort(fileList, new Comparator<File>() {
             @Override
             public int compare(File f1, File f2) {
+                boolean dir1 = f1.isDirectory();
+                boolean dir2 = f2.isDirectory();
+                if (dir1 != dir2) return dir1 ? -1 : 1;
                 int res;
                 if (sortType == 0) { // use name by default
                     int p = f1.getParent().compareTo(f2.getParent());
@@ -714,10 +781,9 @@ public class UtilityCommands extends MethodCommands {
             }
         });
 
-        List<String[]> schematics = listFiles(dir, files, playerFolder ? actor.getUniqueId() : null);
         int offset = (page - 1) * perPage;
 
-        int limit = Math.min(offset + perPage, schematics.size());
+        int limit = Math.min(offset + perPage, fileList.size());
 
         String fullArgs = (String) args.getLocals().get("arguments");
         String baseCmd = null;
@@ -726,12 +792,11 @@ public class UtilityCommands extends MethodCommands {
         }
         Message m = new Message(BBC.SCHEMATIC_LIST, page, pageCount);
 
+        UUID uuid = playerFolder ? actor.getUniqueId() : null;
         for (int i = offset; i < limit; i++) {
-            String[] fileinfo = schematics.get(i);
-            String fileName = fileinfo[0];
-            String fileFormat = fileinfo[1];
-            m.newline().text(BBC.SCHEMATIC_LIST_ELEM, fileName, fileFormat);
-            if (onClickCmd != null) m.cmdTip(onClickCmd + " " + fileName);
+            m.newline();
+            File file = fileList.get(i);
+            eachMsg.run(m, file.toURI(), getPath(dir, file, uuid));
         }
         if (baseCmd != null) {
             m.newline().paginate(baseCmd, page, pageCount);
@@ -739,16 +804,57 @@ public class UtilityCommands extends MethodCommands {
         m.send(actor);
     }
 
-    private static List<File> allFiles(File root, boolean recursive) {
-        File[] files = root.listFiles();
-        if (files == null) return new ArrayList<>();
+    private static List<File> filter(List<File> fileList, List<String> filters) {
+
+        String[] normalizedNames = new String[fileList.size()];
+        for (int i = 0; i < fileList.size(); i++) {
+            String normalized = fileList.get(i).getName().toLowerCase();
+            if (normalized.startsWith("../")) normalized = normalized.substring(3);
+            normalizedNames[i] = normalized.replace("/", File.separator);
+        }
+
+        for (String filter : filters) {
+            if (fileList.isEmpty()) return fileList;
+            String lowerFilter = filter.toLowerCase().replace("/", File.separator);
+            List<File> newList = new ArrayList<>();
+
+            for (int i = 0; i < normalizedNames.length; i++) {
+                if (normalizedNames[i].startsWith(lowerFilter)) newList.add(fileList.get(i));
+            }
+            if (newList.isEmpty()) {
+                for (int i = 0; i < normalizedNames.length; i++) {
+                    if (normalizedNames[i].contains(lowerFilter)) newList.add(fileList.get(i));
+                }
+
+                if (newList.isEmpty()) {
+                    String checkName = filter.replace("\\", "/").split("/")[0];
+                    if (checkName.length() > 3 && checkName.length() <= 16) {
+                        UUID fromName = Fawe.imp().getUUID(checkName);
+                        if (fromName != null) {
+                            lowerFilter = filter.replaceFirst(checkName, fromName.toString()).toLowerCase();
+                            for (int i = 0; i < normalizedNames.length; i++) {
+                                if (normalizedNames[i].startsWith(lowerFilter)) newList.add(fileList.get(i));
+                            }
+                        }
+                    }
+                }
+            }
+            fileList = newList;
+        }
+        return fileList;
+    }
+
+    private static List<File> allFiles(File[] files, boolean recursive) {
+        if (files == null || files.length == 0) return Arrays.asList();
         List<File> fileList = new ArrayList<File>();
         for (File f : files) {
             if (f.isDirectory()) {
                 if (recursive) {
-                    List<File> subFiles = allFiles(f, recursive);
+                    List<File> subFiles = allFiles(f.listFiles(), recursive);
                     if (subFiles == null || subFiles.isEmpty()) continue; // empty subdir
                     fileList.addAll(subFiles);
+                } else {
+                    fileList.add(f);
                 }
             } else {
                 fileList.add(f);
@@ -757,34 +863,23 @@ public class UtilityCommands extends MethodCommands {
         return fileList;
     }
 
-    private static List<String[]> listFiles(File root, File[] files, UUID uuid) {
-        // List Elem [ File Name, Format Name ]
+    private static String getPath(File root, File file, UUID uuid) {
         File dir;
         if (uuid != null) {
             dir = new File(root, uuid.toString());
         } else {
             dir = root;
         }
-        List<String[]> result = new ArrayList<>();
-        for (File file : files) {
-            ClipboardFormat format = ClipboardFormat.findByFile(file);
-            URI relative = dir.toURI().relativize(file.toURI());
-            String name = "";
-            if (relative.isAbsolute()) {
-                relative = root.toURI().relativize(file.toURI());
-                name += "../";
-            }
-            name += relative.getPath();
-            String formatName;
-            if (format == null) {
-                String[] split = file.getName().split("\\.");
-                formatName = split.length > 1 ? split[split.length - 1].toUpperCase() : "Unknown";
-            } else {
-                formatName = format.toString();
-            }
-            result.add(new String[] {name, formatName} );
+
+        ClipboardFormat format = ClipboardFormat.findByFile(file);
+        URI relative = dir.toURI().relativize(file.toURI());
+        StringBuilder name = new StringBuilder();
+        if (relative.isAbsolute()) {
+            relative = root.toURI().relativize(file.toURI());
+            name.append("../");
         }
-        return result;
+        name.append(relative.getPath());
+        return name.toString();
     }
 
     public static void help(CommandContext args, WorldEdit we, Actor actor) {

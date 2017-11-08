@@ -21,6 +21,7 @@ package com.sk89q.worldedit.command;
 
 import com.boydti.fawe.config.BBC;
 import com.boydti.fawe.object.FawePlayer;
+import com.boydti.fawe.object.clipboard.URIClipboardHolder;
 import com.boydti.fawe.object.mask.IdMask;
 import com.boydti.fawe.object.regions.selector.FuzzyRegionSelector;
 import com.boydti.fawe.object.regions.selector.PolyhedralRegionSelector;
@@ -62,6 +63,10 @@ import com.sk89q.worldedit.util.formatting.StyledFragment;
 import com.sk89q.worldedit.util.formatting.component.CommandListBox;
 import com.sk89q.worldedit.world.World;
 import com.sk89q.worldedit.world.storage.ChunkStore;
+import java.io.File;
+import java.net.MalformedURLException;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
@@ -578,16 +583,44 @@ public class SelectionCommands {
     @CommandPermissions("worldedit.selection.size")
     public void size(Player player, LocalSession session, CommandContext args) throws WorldEditException {
         if (args.hasFlag('c')) {
-            ClipboardHolder holder = session.getClipboard();
-            Clipboard clipboard = holder.getClipboard();
-            Region region = clipboard.getRegion();
-            Vector size = region.getMaximumPoint().subtract(region.getMinimumPoint());
-            Vector origin = clipboard.getOrigin();
+            ClipboardHolder root = session.getClipboard();
+//            Clipboard clipboard = holder.getClipboard();
+            int index = 0;
+            for (ClipboardHolder holder : root.getHolders()) {
+                Clipboard clipboard = holder.getClipboard();
+                String name;
+                if (holder instanceof URIClipboardHolder) {
+                    URI uri = ((URIClipboardHolder) holder).getUri();
+                    if (uri.toString().startsWith("file:/")) {
+                        name = new File(uri.getPath()).getName();
+                    } else {
+                        name = uri.getFragment();
+                    }
+                } else {
+                    name = Integer.toString(index);
+                }
 
-            player.print(BBC.getPrefix() + "Cuboid dimensions (max - min): " + size);
-            player.print(BBC.getPrefix() + "Offset: " + origin);
-            player.print(BBC.getPrefix() + "Cuboid distance: " + size.distance(Vector.ONE));
-            player.print(BBC.getPrefix() + "# of blocks: " + (int) (size.getX() * size.getY() * size.getZ()));
+                Region region = clipboard.getRegion();
+                Vector size = region.getMaximumPoint().subtract(region.getMinimumPoint()).add(Vector.ONE);
+                Vector origin = clipboard.getOrigin();
+
+                String sizeStr = size.getBlockX() + "*" + size.getBlockY() + "*" + size.getBlockZ();
+                String originStr = origin.getBlockX() + "," + origin.getBlockY() + "," + origin.getBlockZ();
+
+                long numBlocks = ((long) size.getBlockX() * size.getBlockY() * size.getBlockZ());
+
+                String msg = String.format("%1$s: %2$s @ %3$s (%4$d blocks)", name, sizeStr, originStr, numBlocks);
+                player.print(BBC.getPrefix() + msg);
+
+                index++;
+            }
+
+
+
+//            player.print(BBC.getPrefix() + "Cuboid dimensions (max - min): " + size);
+//            player.print(BBC.getPrefix() + "Offset: " + origin);
+//            player.print(BBC.getPrefix() + "Cuboid distance: " + size.distance(Vector.ONE));
+//            player.print(BBC.getPrefix() + "# of blocks: " + (int) (size.getX() * size.getY() * size.getZ()));
             return;
         }
 

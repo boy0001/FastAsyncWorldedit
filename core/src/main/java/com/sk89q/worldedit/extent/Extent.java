@@ -152,7 +152,7 @@ public interface Extent extends InputExtent, OutputExtent {
         }
     }
 
-    default public void addSchems(Region region, Mask mask, WorldData worldData, ClipboardHolder[] clipboards, int rarity, boolean rotate) throws WorldEditException {
+    default public void addSchems(Region region, Mask mask, WorldData worldData, List<ClipboardHolder> clipboards, int rarity, boolean rotate) throws WorldEditException {
         spawnResource(region, new SchemGen(mask, this, worldData, clipboards, rotate), rarity, 1);
     }
 

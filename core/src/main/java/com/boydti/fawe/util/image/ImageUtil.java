@@ -80,8 +80,8 @@ public class ImageUtil {
                     throw new IOException("Failed to read " + url + ", please try again later");
                 }
                 return img;
-            } else if (arg.startsWith("file://")) {
-                arg = arg.substring(7);
+            } else if (arg.startsWith("file:/")) {
+                arg = arg.replaceFirst("file:/+", "");
                 File file = MainUtil.getFile(MainUtil.getFile(Fawe.imp().getDirectory(), com.boydti.fawe.config.Settings.IMP.PATHS.HEIGHTMAP), arg);
                 return MainUtil.readImage(file);
             } else {

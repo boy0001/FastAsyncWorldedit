@@ -34,6 +34,7 @@ import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.util.Arrays;
+import java.util.List;
 
 public class HeightMapMCAGenerator extends MCAWriter implements Extent {
     private final MutableBlockVector mutable = new MutableBlockVector();
@@ -238,13 +239,13 @@ public class HeightMapMCAGenerator extends MCAWriter implements Extent {
     }
 
     @Deprecated
-    public void addSchems(Mask mask, WorldData worldData, ClipboardHolder[] clipboards, int rarity, boolean rotate) throws WorldEditException {
+    public void addSchems(Mask mask, WorldData worldData, List<ClipboardHolder> clipboards, int rarity, boolean rotate) throws WorldEditException {
         CuboidRegion region = new CuboidRegion(new Vector(0, 0, 0), new Vector(getWidth(), 255, getLength()));
         addSchems(region, mask, worldData, clipboards, rarity, rotate);
         update();
     }
 
-    public void addSchems(BufferedImage img, Mask mask, WorldData worldData, ClipboardHolder[] clipboards, int rarity, int distance, boolean randomRotate) throws WorldEditException {
+    public void addSchems(BufferedImage img, Mask mask, WorldData worldData, List<ClipboardHolder> clipboards, int rarity, int distance, boolean randomRotate) throws WorldEditException {
         if (img.getWidth() != getWidth() || img.getHeight() != getLength())
             throw new IllegalArgumentException("Input image dimensions do not match the current height map!");
         double doubleRarity = rarity / 100d;
@@ -268,7 +269,7 @@ public class HeightMapMCAGenerator extends MCAWriter implements Extent {
                     continue;
                 }
                 placed.add(x, z);
-                ClipboardHolder holder = clipboards[PseudoRandom.random.random(clipboards.length)];
+                ClipboardHolder holder = clipboards.get(PseudoRandom.random.random(clipboards.size()));
                 if (randomRotate) {
                     int rotate = PseudoRandom.random.random(4) * 90;
                     if (rotate != 0) {
@@ -296,7 +297,7 @@ public class HeightMapMCAGenerator extends MCAWriter implements Extent {
         update();
     }
 
-    public void addSchems(Mask mask, WorldData worldData, ClipboardHolder[] clipboards, int rarity, int distance, boolean randomRotate) throws WorldEditException {
+    public void addSchems(Mask mask, WorldData worldData, List<ClipboardHolder> clipboards, int rarity, int distance, boolean randomRotate) throws WorldEditException {
         int scaledRarity = (256 * rarity) / 100;
         int index = 0;
         AffineTransform identity = new AffineTransform();
@@ -318,7 +319,7 @@ public class HeightMapMCAGenerator extends MCAWriter implements Extent {
                 }
                 mutable.mutY(y + 1);
                 placed.add(x, z);
-                ClipboardHolder holder = clipboards[PseudoRandom.random.random(clipboards.length)];
+                ClipboardHolder holder = clipboards.get(PseudoRandom.random.random(clipboards.size()));
                 if (randomRotate) {
                     int rotate = PseudoRandom.random.random(4) * 90;
                     if (rotate != 0) {

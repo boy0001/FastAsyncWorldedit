@@ -54,7 +54,7 @@ public class BukkitImageListener implements Listener {
         Bukkit.getPluginManager().registerEvents(this, plugin);
     }
 
-    @EventHandler(priority = EventPriority.LOWEST)
+    @EventHandler(priority = EventPriority.LOWEST, ignoreCancelled = true)
     public void onPlayerInteractEntity(AsyncPlayerChatEvent event) {
         Set<Player> recipients = event.getRecipients();
         Iterator<Player> iter = recipients.iterator();

@@ -21,8 +21,12 @@ import com.boydti.fawe.util.chat.ChatManager;
 import com.boydti.fawe.util.chat.PlainChatManager;
 import com.boydti.fawe.util.cui.CUI;
 import com.boydti.fawe.util.metrics.BStats;
+import com.sk89q.jnbt.CompoundTag;
+import com.sk89q.jnbt.CompoundTagBuilder;
+import com.sk89q.jnbt.ListTag;
 import com.sk89q.jnbt.NBTInputStream;
 import com.sk89q.jnbt.NBTOutputStream;
+import com.sk89q.jnbt.Tag;
 import com.sk89q.worldedit.BlockVector;
 import com.sk89q.worldedit.BlockWorldVector;
 import com.sk89q.worldedit.CuboidClipboard;
@@ -118,6 +122,8 @@ import com.sk89q.worldedit.internal.expression.Expression;
 import com.sk89q.worldedit.internal.expression.runtime.ExpressionEnvironment;
 import com.sk89q.worldedit.internal.expression.runtime.For;
 import com.sk89q.worldedit.internal.expression.runtime.Functions;
+import com.sk89q.worldedit.internal.expression.runtime.SimpleFor;
+import com.sk89q.worldedit.internal.expression.runtime.While;
 import com.sk89q.worldedit.math.convolution.HeightMap;
 import com.sk89q.worldedit.math.interpolation.KochanekBartelsInterpolation;
 import com.sk89q.worldedit.math.transform.AffineTransform;
@@ -647,6 +653,8 @@ public class Fawe {
             Expression.inject(); // Optimizations
             Functions.inject(); // Optimizations
             For.inject(); // Fixes
+            SimpleFor.inject(); // Fixes
+            While.inject(); // Fixes
             // BlockData
             BlockData.inject(); // Temporary fix for 1.9.4
             BundledBlockData.inject(); // Add custom rotation
@@ -663,6 +671,10 @@ public class Fawe {
             // NBT
             NBTInputStream.inject(); // Add actual streaming + Optimizations + New methods
             NBTOutputStream.inject(); // New methods
+            Tag.inject(); // Expose raw data
+            CompoundTag.inject(); // Expose raw data
+            CompoundTagBuilder.inject(); // make accessible
+            ListTag.inject(); // Expose raw data
             // Math
             KochanekBartelsInterpolation.inject(); // Optimizations
             AffineTransform.inject(); // Optimizations

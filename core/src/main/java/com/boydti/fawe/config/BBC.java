@@ -194,6 +194,7 @@ public enum BBC {
     SCHEMATIC_LIST("Available files (Filename: Format) [%s0/%s1]:", "Worldedit.Schematic"),
     SCHEMATIC_LIST_ELEM("&8 - &a%s0 &8- &7%s1", "Worldedit.Schematic"),
 
+    CLIPBOARD_URI_NOT_FOUND("You do not have %s0 loaded", "WorldEdit.Clipboard"),
     CLIPBOARD_CLEARED("Clipboard cleared", "WorldEdit.Clipboard"),
     CLIPBOARD_INVALID_FORMAT("Unknown clipboard format:  %s0", "WorldEdit.Clipboard"),
 

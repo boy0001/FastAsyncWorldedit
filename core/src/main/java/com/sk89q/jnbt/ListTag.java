@@ -419,4 +419,8 @@ public final class ListTag<T extends Tag> extends Tag {
         return bldr.toString();
     }
 
+    public static Class<?> inject() {
+        return ListTag.class;
+    }
+
 }

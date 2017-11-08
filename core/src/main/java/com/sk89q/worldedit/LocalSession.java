@@ -789,8 +789,12 @@ public class LocalSession {
      * @param clipboard the clipboard, or null if the clipboard is to be cleared
      */
     public void setClipboard(@Nullable ClipboardHolder clipboard) {
+        if (this.clipboard == clipboard) return;
+
         if (this.clipboard != null) {
-            this.clipboard.close();
+            if (clipboard == null || !clipboard.contains(this.clipboard.getClipboard())) {
+                this.clipboard.close();
+            }
         }
         this.clipboard = clipboard;
     }

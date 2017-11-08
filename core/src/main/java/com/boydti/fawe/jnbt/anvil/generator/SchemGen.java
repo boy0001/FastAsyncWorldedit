@@ -11,18 +11,19 @@ import com.sk89q.worldedit.math.transform.AffineTransform;
 import com.sk89q.worldedit.math.transform.Transform;
 import com.sk89q.worldedit.session.ClipboardHolder;
 import com.sk89q.worldedit.world.registry.WorldData;
+import java.util.List;
 
 public class SchemGen extends Resource {
 
     private final Extent extent;
     private final WorldData worldData;
-    private final ClipboardHolder[] clipboards;
+    private final List<ClipboardHolder> clipboards;
     private final boolean randomRotate;
     private final Mask mask;
 
     private MutableBlockVector mutable = new MutableBlockVector();
 
-    public SchemGen(Mask mask, Extent extent, WorldData worldData, ClipboardHolder[] clipboards, boolean randomRotate) {
+    public SchemGen(Mask mask, Extent extent, WorldData worldData, List<ClipboardHolder> clipboards, boolean randomRotate) {
         this.mask = mask;
         this.extent = extent;
         this.worldData = worldData;
@@ -41,7 +42,7 @@ public class SchemGen extends Resource {
             return false;
         }
         mutable.mutY(y + 1);
-        ClipboardHolder holder = clipboards[PseudoRandom.random.random(clipboards.length)];
+        ClipboardHolder holder = clipboards.get(PseudoRandom.random.random(clipboards.size()));
         if (randomRotate) {
             holder.setTransform(new AffineTransform().rotateY(PseudoRandom.random.random(4) * 90));
         }

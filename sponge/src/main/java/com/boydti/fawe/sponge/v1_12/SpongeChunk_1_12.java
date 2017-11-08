@@ -258,24 +258,26 @@ public class SpongeChunk_1_12 extends CharFaweChunk<Chunk, SpongeQueue_1_12> {
             }
             // Trim tiles
             if (!tiles.isEmpty()) {
-                Set<Map.Entry<BlockPos, TileEntity>> entryset = tiles.entrySet();
-                Iterator<Map.Entry<BlockPos, TileEntity>> iterator = entryset.iterator();
-                while (iterator.hasNext()) {
-                    Map.Entry<BlockPos, TileEntity> tile = iterator.next();
-                    BlockPos pos = tile.getKey();
-                    int lx = pos.getX() & 15;
-                    int ly = pos.getY();
-                    int lz = pos.getZ() & 15;
-                    int j = FaweCache.CACHE_I[ly][lz][lx];
-                    char[] array = this.getIdArray(j);
-                    if (array == null) {
-                        continue;
-                    }
-                    int k = FaweCache.CACHE_J[ly][lz][lx];
-                    if (array[k] != 0) {
-                        synchronized (SpongeChunk_1_12.class) {
-                            iterator.remove();
-                            tile.getValue().invalidate();
+                synchronized (SpongeChunk_1_12.class) {
+                    Set<Map.Entry<BlockPos, TileEntity>> entryset = tiles.entrySet();
+                    Iterator<Map.Entry<BlockPos, TileEntity>> iterator = entryset.iterator();
+                    while (iterator.hasNext()) {
+                        Map.Entry<BlockPos, TileEntity> tile = iterator.next();
+                        BlockPos pos = tile.getKey();
+                        int lx = pos.getX() & 15;
+                        int ly = pos.getY();
+                        int lz = pos.getZ() & 15;
+                        int j = FaweCache.CACHE_I[ly][lz][lx];
+                        char[] array = this.getIdArray(j);
+                        if (array == null) {
+                            continue;
+                        }
+                        int k = FaweCache.CACHE_J[ly][lz][lx];
+                        if (array[k] != 0) {
+                            synchronized (SpongeChunk_1_12.class) {
+                                iterator.remove();
+                                tile.getValue().invalidate();
+                            }
                         }
                     }
                 }

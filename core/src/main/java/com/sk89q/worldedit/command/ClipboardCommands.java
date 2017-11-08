@@ -437,7 +437,10 @@ public class ClipboardCommands extends MethodCommands {
                       @Switch('a') final boolean ignoreAirBlocks, @Switch('o') boolean atOrigin,
                       @Switch('s') boolean selectPasted) throws WorldEditException {
         ClipboardHolder holder = session.getClipboard();
+        System.out.println(holder);
         final Clipboard clipboard = holder.getClipboard();
+        System.out.println(clipboard.getDimensions());
+        System.out.println(clipboard.getClass());
         final Vector origin = clipboard.getOrigin();
         final Vector to = atOrigin ? origin : session.getPlacementPosition(player);
 
@@ -500,6 +503,7 @@ public class ClipboardCommands extends MethodCommands {
         BBC.COMMAND_FLIPPED.send(player);
     }
 
+    @Deprecated // See SchematicCommands#clear
     @Command(
             aliases = {"clearclipboard"},
             usage = "",
