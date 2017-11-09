@@ -394,7 +394,6 @@ public class ForgeQueue_All extends NMSMappedFaweQueue<World, Chunk, ExtendedBlo
                 net.minecraft.world.biome.Biome[] existingBiomes = new net.minecraft.world.biome.Biome[256];
                 Arrays.fill(existingBiomes, base);
                 fieldBiomes.set(generator, existingBiomes);
-                boolean cold = base.getTemperature() <= 1;
                 IChunkGenerator existingGenerator = (IChunkGenerator) fieldChunkGenerator.get(nmsWorld.getChunkProvider());
                 long existingSeed = world.getSeed();
                 {
