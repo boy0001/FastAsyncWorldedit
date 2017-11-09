@@ -139,7 +139,7 @@ public class OptionsCommands {
             min = 0,
             max = -1
     )
-    @CommandPermissions("worldedit.global-trasnform")
+    @CommandPermissions("worldedit.global-transform")
     public void gtransform(Player player, EditSession editSession, LocalSession session, @Optional CommandContext context) throws WorldEditException {
         if (context == null || context.argsLength() == 0) {
             session.setTransform(null);
