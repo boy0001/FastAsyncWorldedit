@@ -1,14 +1,7 @@
 buildscript {
     repositories {
         jcenter()
-        maven {
-            name = "forge"
-            url = "http://files.minecraftforge.net/maven"
-        }
-        maven {
-            name = 'minecrell'
-            url = 'http://repo.minecrell.net/releases'
-        }
+        maven { url = 'https://plugins.gradle.org/m2' }
         maven {url = "https://oss.sonatype.org/content/repositories/snapshots/"}
         maven {url = "http://repo.minecrell.net/snapshots"}
         maven { url = "http://files.minecraftforge.net/maven" }
@@ -16,7 +9,7 @@ buildscript {
         maven { url = "https://oss.sonatype.org/content/repositories/snapshots/" }
     }
     dependencies {
-        classpath 'net.minecrell:VanillaGradle:2.0.3_1'
+        classpath 'gradle.plugin.net.minecrell:vanillagradle:2.2-6'
         classpath 'net.minecraftforge.gradle:ForgeGradle:2.3-SNAPSHOT'
     }
 }
@@ -25,7 +18,7 @@ plugins {
     id 'org.spongepowered.plugin' version '0.8.1'
 }
 
-apply plugin: 'net.minecrell.vanilla.server.library'
+apply plugin: 'net.minecrell.vanillagradle.server'
 apply plugin: 'com.github.johnrengelman.shadow'
 
 sourceCompatibility = 1.8
@@ -55,8 +48,8 @@ dependencies {
 }
 
 minecraft {
-    version = "1.12"
-    mappings = "snapshot_20171108"
+    version = "1.12.2"
+    mappings = "snapshot_20171022"
     runDir = 'run'
 }
 
