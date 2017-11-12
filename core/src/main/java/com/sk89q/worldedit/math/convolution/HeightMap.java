@@ -136,6 +136,7 @@ public class HeightMap {
 //    }
 
     public int applyLayers(int[] data) throws WorldEditException {
+        System.out.println("Layers");
         checkNotNull(data);
 
         Vector minY = region.getMinimumPoint();
@@ -147,6 +148,8 @@ public class HeightMap {
         BaseBlock fillerAir = EditSession.nullBlock;
 
         int blocksChanged = 0;
+
+        BaseBlock tmpBlock = EditSession.nullBlock;
 
         // Apply heightmap
         int maxY4 = maxY << 4;
@@ -160,9 +163,6 @@ public class HeightMap {
                 int newBlock = (newHeight + 7) >> 3;
                 int xr = x + originX;
 
-                // We are keeping the topmost blocks so take that in account for the scale
-                double scale = (double) (curHeight - originY) / (double) (newHeight - originY);
-
                 // Depending on growing or shrinking we need to start at the bottom or top
                 if (newHeight > curHeight) {
                     // Set the top block of the column to be the same type (this might go wrong with rounding)
@@ -171,9 +171,10 @@ public class HeightMap {
                     // Skip water/lava
                     if (!FaweCache.isLiquidOrGas(existing.getId())) {
                         // Grow -- start from 1 below top replacing airblocks
-                        for (int y = newBlock - 1 - originY; y >= curBlock; --y) {
-                            int copyFrom = (int) (y * scale);
-                            session.setBlock(xr, originY + y, zr, session.getBlock(xr, originY + copyFrom, zr));
+                        for (int setY = newBlock - 1, getY = curBlock; setY >= curBlock; --setY, getY--) {
+                            BaseBlock get = session.getBlock(xr, getY, zr);
+                            if (get != EditSession.nullBlock) tmpBlock = get;
+                            session.setBlock(xr, setY, zr, tmpBlock);
                             ++blocksChanged;
                         }
                         int setData = newHeight & 7;
@@ -213,6 +214,7 @@ public class HeightMap {
     }
 
     public int apply(int[] data) throws WorldEditException {
+        long start = System.currentTimeMillis();
         checkNotNull(data);
 
         Vector minY = region.getMinimumPoint();
@@ -225,6 +227,8 @@ public class HeightMap {
 
         int blocksChanged = 0;
 
+        BaseBlock tmpBlock = EditSession.nullBlock;
+
         // Apply heightmap
         int index = 0;
         for (int z = 0; z < height; ++z) {
@@ -234,22 +238,21 @@ public class HeightMap {
                 int newHeight = Math.min(maxY, data[index++]);
                 int xr = x + originX;
 
-                // We are keeping the topmost blocks so take that in account for the scale
-                double scale = (double) (curHeight - originY) / (double) (newHeight - originY);
-
                 // Depending on growing or shrinking we need to start at the bottom or top
                 if (newHeight > curHeight) {
                     // Set the top block of the column to be the same type (this might go wrong with rounding)
                     BaseBlock existing = session.getBlock(xr, curHeight, zr);
 
+
                     // Skip water/lava
                     if (!FaweCache.isLiquidOrGas(existing.getId())) {
-                        for (int y = curHeight; y <= newHeight - 1 - originY; y++) {
-                            int copyFrom = (int) (y * scale);
-                            session.setBlock(xr, originY + y, zr, session.getBlock(xr, originY + copyFrom, zr));
+                        int y0 = newHeight - 1;
+                        for (int setY = y0, getY = curHeight - 1; setY >= curHeight; setY--, getY--) {
+                            BaseBlock get = session.getBlock(xr, getY, zr);
+                            if (get != EditSession.nullBlock) tmpBlock = get;
+                            session.setBlock(xr, setY, zr, tmpBlock);
                             ++blocksChanged;
                         }
-
                         session.setBlock(xr, newHeight, zr, existing);
                         ++blocksChanged;
                     }
@@ -267,7 +270,6 @@ public class HeightMap {
                 }
             }
         }
-
         return blocksChanged;
     }
 

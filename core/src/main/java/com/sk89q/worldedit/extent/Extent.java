@@ -7,6 +7,7 @@ import com.boydti.fawe.jnbt.anvil.generator.OreGen;
 import com.boydti.fawe.jnbt.anvil.generator.Resource;
 import com.boydti.fawe.jnbt.anvil.generator.SchemGen;
 import com.boydti.fawe.object.PseudoRandom;
+import com.sk89q.worldedit.EditSession;
 import com.sk89q.worldedit.MutableBlockVector;
 import com.sk89q.worldedit.Vector;
 import com.sk89q.worldedit.Vector2D;
@@ -121,21 +122,21 @@ public interface Extent extends InputExtent, OutputExtent {
         for (int d = 0; d <= clearance; d++) {
             int y1 = y + d;
             block = getLazyBlock(x, y1, z);
-            if (FaweCache.canPassThrough(block.getId(), block.getData()) != state) return y1 - offset;
+            if (FaweCache.canPassThrough(block.getId(), block.getData()) != state && block != EditSession.nullBlock) return y1 - offset;
             int y2 = y - d;
             block = getLazyBlock(x, y2, z);
-            if (FaweCache.canPassThrough(block.getId(), block.getData()) != state) return y2 + offset;
+            if (FaweCache.canPassThrough(block.getId(), block.getData()) != state && block != EditSession.nullBlock) return y2 + offset;
         }
         if (clearanceAbove != clearanceBelow) {
             if (clearanceAbove < clearanceBelow) {
                 for (int layer = y - clearance - 1; layer >= minY; layer--) {
                     block = getLazyBlock(x, layer, z);
-                    if (FaweCache.canPassThrough(block.getId(), block.getData()) != state) return layer + offset;
+                    if (FaweCache.canPassThrough(block.getId(), block.getData()) != state && block != EditSession.nullBlock) return layer + offset;
                 }
             } else {
                 for (int layer = y + clearance + 1; layer <= maxY; layer++) {
                     block = getLazyBlock(x, layer, z);
-                    if (FaweCache.canPassThrough(block.getId(), block.getData()) != state) return layer - offset;
+                    if (FaweCache.canPassThrough(block.getId(), block.getData()) != state && block != EditSession.nullBlock) return layer - offset;
                 }
             }
         }

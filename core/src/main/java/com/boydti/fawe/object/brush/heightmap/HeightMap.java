@@ -74,6 +74,7 @@ public interface HeightMap {
         if (towards) {
             double sizePow = Math.pow(size, yscale);
             int targetY = pos.getBlockY();
+            int tmpY = targetY;
             for (int x = -size; x <= size; x++) {
                 int xx = centerX + x;
                 mutablePos.mutX(xx);
@@ -97,9 +98,9 @@ public interface HeightMap {
                     }
                     int height;
                     if (layers) {
-                        height = session.getNearestSurfaceLayer(xx, zz, pos.getBlockY(), 0, maxY);
+                        height = tmpY = session.getNearestSurfaceLayer(xx, zz, tmpY, 0, maxY);
                     } else {
-                        height = session.getNearestSurfaceTerrainBlock(xx, zz, pos.getBlockY(), 0, maxY);
+                        height = tmpY = session.getNearestSurfaceTerrainBlock(xx, zz, tmpY, 0, maxY);
                         if (height == -1) continue;
                     }
                     oldData[index] = height;
