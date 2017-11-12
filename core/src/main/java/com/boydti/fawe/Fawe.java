@@ -231,9 +231,6 @@ public class Fawe {
     private DefaultTransformParser transformParser;
     private ChatManager chatManager = new PlainChatManager();
 
-//    @Deprecated
-//    private boolean isJava8 = MainUtil.getJavaVersion() >= 1.8;
-
     /**
      * Get the implementation specific class
      *

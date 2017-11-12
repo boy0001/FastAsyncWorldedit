@@ -2,7 +2,6 @@ package com.boydti.fawe.object.mask;
 
 import com.sk89q.worldedit.MutableBlockVector;
 import com.sk89q.worldedit.Vector;
-import com.sk89q.worldedit.blocks.BaseBlock;
 import com.sk89q.worldedit.extent.Extent;
 import com.sk89q.worldedit.function.mask.Mask2D;
 import com.sk89q.worldedit.function.mask.SolidBlockMask;
@@ -47,7 +46,10 @@ public class AngleMask extends SolidBlockMask implements ResettableMask {
     private transient int cacheBotX = Integer.MIN_VALUE;
     private transient int cacheBotZ = Integer.MIN_VALUE;
     private transient int cacheCenterZ;
+
     private transient byte[] cacheHeights;
+    private transient byte[] cacheDistance;
+
     private transient int lastY;
     private transient int lastX = Integer.MIN_VALUE;
     private transient int lastZ = Integer.MIN_VALUE;
@@ -55,34 +57,38 @@ public class AngleMask extends SolidBlockMask implements ResettableMask {
     private transient boolean lastValue;
 
     public int getHeight(int x, int y, int z) {
-        return getExtent().getNearestSurfaceTerrainBlock(x, z, y, 0, maxY);
-//        try {
-//            int rx = x - cacheBotX + 16;
-//            int rz = z - cacheBotZ + 16;
-//            int index;
-//            if (((rx & 0xFF) != rx || (rz & 0xFF) != rz)) {
-//                cacheBotX = x - 16;
-//                cacheBotZ = z - 16;
-//                rx = x - cacheBotX + 16;
-//                rz = z - cacheBotZ + 16;
-//                index = rx + (rz << 8);
-//                if (cacheHeights == null) {
-//                    cacheHeights = new byte[65536];
-//                } else {
-//                    Arrays.fill(cacheHeights, (byte) 0);
-//                }
-//            } else {
-//                index = rx + (rz << 8);
-//            }
-//            int result = cacheHeights[index] & 0xFF;
-//            if (result == 0) {
-//                cacheHeights[index] = (byte) (result = lastY = getExtent().getNearestSurfaceTerrainBlock(x, z, lastY, 0, maxY));
-//            }
-//            return result;
-//        } catch (Throwable e) {
-//            e.printStackTrace();
-//            throw e;
-//        }
+//        return getExtent().getNearestSurfaceTerrainBlock(x, z, y, 0, maxY);
+        try {
+            int rx = x - cacheBotX + 16;
+            int rz = z - cacheBotZ + 16;
+            int index;
+            if (((rx & 0xFF) != rx || (rz & 0xFF) != rz)) {
+                cacheBotX = x - 16;
+                cacheBotZ = z - 16;
+                rx = x - cacheBotX + 16;
+                rz = z - cacheBotZ + 16;
+                index = rx + (rz << 8);
+                if (cacheHeights == null) {
+                    cacheHeights = new byte[65536];
+                    cacheDistance = new byte[65536];
+                } else {
+                    Arrays.fill(cacheHeights, (byte) 0);
+                    Arrays.fill(cacheDistance, (byte) 0);
+                }
+            } else {
+                index = rx + (rz << 8);
+            }
+            int result = cacheHeights[index] & 0xFF;
+            int distance = cacheDistance[index] & 0xFF;
+            if (result == 0 || distance < Math.abs(result - y)) {
+                cacheHeights[index] = (byte) (result = lastY = getExtent().getNearestSurfaceTerrainBlock(x, z, lastY, 0, maxY));
+                cacheDistance[index] = (byte) Math.abs(result - y);
+            }
+            return result;
+        } catch (Throwable e) {
+            e.printStackTrace();
+            throw e;
+        }
     }
 
     private boolean testSlope(int x, int y, int z) {
@@ -105,22 +111,22 @@ public class AngleMask extends SolidBlockMask implements ResettableMask {
         int x = v.getBlockX();
         int y = v.getBlockY();
         int z = v.getBlockZ();
-        if (mask.test(x + 1, y, z)) {
+        if (!mask.test(x + 1, y, z)) {
             return true;
         }
-        if (mask.test(x - 1, y, z)) {
+        if (!mask.test(x - 1, y, z)) {
             return true;
         }
-        if (mask.test(x, y, z + 1)) {
+        if (!mask.test(x, y, z + 1)) {
             return true;
         }
-        if (mask.test(x, y, z - 1)) {
+        if (!mask.test(x, y, z - 1)) {
             return true;
         }
-        if (y < 256 && mask.test(x, y + 1, z)) {
+        if (y < 255 && !mask.test(x, y + 1, z)) {
             return true;
         }
-        if (y > 0 && mask.test(x, y - 1, z)) {
+        if (y > 0 && !mask.test(x, y - 1, z)) {
             return true;
         }
         return false;
@@ -131,13 +137,11 @@ public class AngleMask extends SolidBlockMask implements ResettableMask {
         int x = vector.getBlockX();
         int y = vector.getBlockY();
         int z = vector.getBlockZ();
-        BaseBlock block = getExtent().getLazyBlock(x, y, z);
-        if (!test(block.getId(), block.getData())) {
+        if (!mask.test(x, y, z)) {
             return false;
         }
         if (overlay) {
-            block = getExtent().getLazyBlock(x, y + 1, z);
-            if (test(block.getId(), block.getData())) return lastValue = false;
+            if (y < 255 && !mask.test(x, y + 1, z)) return lastValue = false;
         } else if (!adjacentAir(vector)) {
             return false;
         }

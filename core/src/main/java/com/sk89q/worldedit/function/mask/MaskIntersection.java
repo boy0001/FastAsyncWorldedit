@@ -26,6 +26,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 import javax.annotation.Nullable;
@@ -40,7 +41,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
  */
 public class MaskIntersection extends AbstractMask implements Serializable {
 
-    private transient Set<Mask> masks = new HashSet<Mask>();
+    private transient Set<Mask> masks = new LinkedHashSet<>();
     private Mask[] masksArray;
 
     /**
@@ -100,7 +101,7 @@ public class MaskIntersection extends AbstractMask implements Serializable {
         return masks;
     }
 
-    public Mask[] getMasksArray() {
+    public final Mask[] getMasksArray() {
         return masksArray;
     }
 
