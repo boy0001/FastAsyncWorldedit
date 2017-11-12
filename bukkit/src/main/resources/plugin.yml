@@ -49,7 +49,7 @@ permissions:
       worldedit.clipboard.rotate: true
       worldedit.help: true
       worldedit.global-mask: true
-      worldedit.global-trasnform: true
+      worldedit.global-transform: true
       worldedit.generation.cylinder: true
       worldedit.generation.sphere: true
       worldedit.generation.forest: true

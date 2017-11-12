@@ -380,21 +380,24 @@ public class SpongeChunk_1_11 extends CharFaweChunk<Chunk, SpongeQueue_1_11> {
             }
             // Set tiles
             Map<Short, CompoundTag> tilesToSpawn = this.getTiles();
-
-            for (Map.Entry<Short, CompoundTag> entry : tilesToSpawn.entrySet()) {
-                CompoundTag nativeTag = entry.getValue();
-                short blockHash = entry.getKey();
-                int x = (blockHash >> 12 & 0xF) + bx;
-                int y = (blockHash & 0xFF);
-                int z = (blockHash >> 8 & 0xF) + bz;
-                BlockPos pos = new BlockPos(x, y, z); // Set pos
-                TileEntity tileEntity = nmsWorld.getTileEntity(pos);
-                if (tileEntity != null) {
-                    NBTTagCompound tag = (NBTTagCompound) SpongeQueue_1_11.methodFromNative.invoke(SpongeQueue_1_11.adapter, nativeTag);
-                    tag.setInteger("x", pos.getX());
-                    tag.setInteger("y", pos.getY());
-                    tag.setInteger("z", pos.getZ());
-                    tileEntity.readFromNBT(tag); // ReadTagIntoTile
+            if (!tilesToSpawn.isEmpty()) {
+                synchronized (SpongeChunk_1_11.class) {
+                    for (Map.Entry<Short, CompoundTag> entry : tilesToSpawn.entrySet()) {
+                        CompoundTag nativeTag = entry.getValue();
+                        short blockHash = entry.getKey();
+                        int x = (blockHash >> 12 & 0xF) + bx;
+                        int y = (blockHash & 0xFF);
+                        int z = (blockHash >> 8 & 0xF) + bz;
+                        BlockPos pos = new BlockPos(x, y, z); // Set pos
+                        TileEntity tileEntity = nmsWorld.getTileEntity(pos);
+                        if (tileEntity != null) {
+                            NBTTagCompound tag = (NBTTagCompound) SpongeQueue_1_11.methodFromNative.invoke(SpongeQueue_1_11.adapter, nativeTag);
+                            tag.setInteger("x", pos.getX());
+                            tag.setInteger("y", pos.getY());
+                            tag.setInteger("z", pos.getZ());
+                            tileEntity.readFromNBT(tag); // ReadTagIntoTile
+                        }
+                    }
                 }
             }
         } catch (Throwable e) {

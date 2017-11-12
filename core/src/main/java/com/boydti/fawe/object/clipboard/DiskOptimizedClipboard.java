@@ -284,7 +284,6 @@ public class DiskOptimizedClipboard extends FaweClipboard implements Closeable {
 
     @Override
     public void close() {
-        MainUtil.stacktrace();
         try {
             if (mbb != null) {
                 mbb.force();
