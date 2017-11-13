@@ -9,6 +9,7 @@ import com.boydti.fawe.util.MainUtil;
 import com.thevoxelbox.voxelsniper.RangeBlockHelper;
 import com.thevoxelbox.voxelsniper.SnipeData;
 import com.thevoxelbox.voxelsniper.Sniper;
+import com.thevoxelbox.voxelsniper.brush.WarpBrush;
 import com.thevoxelbox.voxelsniper.brush.perform.PerformBrush;
 import com.thevoxelbox.voxelsniper.command.VoxelVoxelCommand;
 import com.thevoxelbox.voxelsniper.event.SniperBrushChangedEvent;
@@ -62,6 +63,8 @@ public class Favs extends JavaPlugin {
             RangeBlockHelper.inject();
             SniperBrushChangedEvent.inject();
             SniperMaterialChangedEvent.inject();
+
+            WarpBrush.inject(); // Fixes for async tp
             // Forward the commands so //p and //d will work
             setupCommand("/p", new FaweCommand("voxelsniper.sniper") {
                 @Override
