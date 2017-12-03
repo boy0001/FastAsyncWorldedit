@@ -60,7 +60,7 @@ worldedit:
   general:
     mask_disabled: Maschera globale disabilitata
     mask: Maschera globale impostata
-    source_mask_disabled: Global source mask disabled
+    source_mask_disabled: Maschera sorgente globale disabilitata
     source_mask: Global source mask set
     transform_disabled: Trasformazione globale disabilitata
     transform: Trasformazione globale impostata
@@ -127,14 +127,13 @@ worldedit:
     brush_target_offset_set: Set target offset to %s0
     brush_equipped: Equipaggiato il pennello %s0
     brush_try_other: |-
-      &cThere are other more suitable brushes e.g.
+      &cCi sono altri pennelli più adatti es.
       &8 - &7//br height [radius=5] [#clipboard|file=null] [rotation=0] [yscale=1.00]
-    brush_copy: Left click the base of an object to copy, right click to paste. Increase
-      the brush radius if necessary.
+    brush_copy: Left click the base of an object to copy, right click to paste. Increase the brush radius if necessary.
     brush_height_invalid: Invalid height map file (%s0)
     brush_smooth: 'Note: Use the blend brush if you want to smooth overhangs or caves.'
-    brush_spline: Click to add a point, click the same spot to finish
-    brush_line_primary: Added point %s0, click another position to create the line
+    brush_spline: Clicca per aggiungere un punto, clicca nello stesso punto per finire
+    brush_line_primary: Aggiunto il punto %s0, clicca su un'altra posizione per creare la linea
     brush_line_secondary: Created spline
     brush_spline_primary_2: Added position, Click the same spot to join!
     brush_spline_secondary_error: Not enough positions set!
@@ -161,24 +160,24 @@ worldedit:
     tool_repl: Block replacer tool bound to %s0.
     tool_cycler: Block data cycler tool bound to %s0.
     tool_flood_fill: Block flood fill tool bound to %s0.
-    tool_range_error: 'Maximum range: %s0.'
-    tool_radius_error: 'Maximum allowed brush radius: %s0.'
+    tool_range_error: 'Raggio massimo: %s0.'
+    tool_radius_error: 'Massimo raggio del pennello consentito: %s0.'
     tool_deltree: Floating tree remover tool bound to %s0.
     tool_farwand: Far wand tool bound to %s0.
     tool_lrbuild_bound: Long-range building tool bound to %s0.
-    tool_lrbuild_info: Left-click set to %s0; right-click set to %s1.
+    tool_lrbuild_info: Click-sinistro per impostare a %s0; click-destro per impostare a %s1.
     superpickaxe_enabled: Super Piccone abilitato.
     superpickaxe_disabled: Super Piccone disabilitato.
-    superpickaxe_area_enabled: Mode changed. Left click with a pickaxe. // to disable.
+    superpickaxe_area_enabled: Modalità cambiata. Click sinistro con un piccone. // per disabilitare.
   snapshot:
     snapshot_loaded: Snapshot '%s0' loaded; now restoring...
     snapshot_set: 'Snapshot set to: %s0'
     snapshot_newest: Now using newest snapshot.
     snapshot_list_header: 'Snapshots for world (%s0):'
-    snapshot_list_footer: Use /snap use [snapshot] or /snap use latest.
+    snapshot_list_footer: Usa /snap use [snapshot] o /snap use latest.
   biome:
     biome_list_header: 'Biomi (pagina %s0/%s1):'
-    biome_changed: Biomes were changed in %s0 columns.
+    biome_changed: I biomi sono stati cambiati in %s0 colonne.
   utility:
     kill_success: Uccise %s0 entità in un raggio di %s1.
     nothing_confirmed: Non hai azioni in attesa di conferma.
@@ -192,32 +191,32 @@ worldedit:
     schematic_list: 'File disponibili (Nome file: Formato) [%s0/%s1]:'
     schematic_list_elem: '&8 - &a%s0 &8- &7%s1'
   clipboard:
-    clipboard_uri_not_found: You do not have %s0 loaded
+    clipboard_uri_not_found: Non hai %s0 caricato
     clipboard_cleared: Appunti cancellati
-    clipboard_invalid_format: 'Unknown clipboard format:  %s0'
+    clipboard_invalid_format: 'Formato di appunti sconosciuto:  %s0'
   visitor:
     visitor_block: '%s0 blocks affected'
     visitor_entity: '%s0 entities affected'
     visitor_flat: '%s0 columns affected'
   selector:
-    selector_fuzzy_pos1: Region set and expanded from %s0 %s1.
+    selector_fuzzy_pos1: Regione impostata ed espansa da %s0 %s1.
     selector_fuzzy_pos2: Added expansion of %s0 %s1.
-    selector_pos: pos%s0 set to %s1 (%s2).
-    selector_center: Center set to %s0 (%s1).
-    selector_radius: Radius set to %s0 (%s1).
-    selector_expanded: Expanded region to %s0 (%s1)
-    selector_invalid_coordinates: Invalid coordinates %s0
-    selector_already_set: Position already set.
-    selector_set_default: Your default region selector is now %s0.
+    selector_pos: pos%s0 impostata a %s1 (%s2).
+    selector_center: Centro impostato a %s0 (%s1).
+    selector_radius: Raggio impostato a %s0 (%s1).
+    selector_expanded: Regione espansa a %s0 (%s1)
+    selector_invalid_coordinates: Coordinate %s0 non valide
+    selector_already_set: Posizione già impostata.
+    selector_set_default: Il tuo selettore di regioni predefinito è ora %s0.
   timezone:
-    timezone_set: 'Timezone set for this session to: %s0'
-    timezone_display: 'The current time in that timezone is:  %s0'
+    timezone_set: 'Fuso orario impostato per questa sessione a: %s0'
+    timezone_display: 'L''ora corrente in quel fuso orario è:  %s0'
   command:
     command_invalid_syntax: Il comando non è stato usato correttamente (nessun altro aiuto disponibile).
   help:
     command_clarifying_bracket: '&7Added clarifying bracket for &c%s0'
-    help_suggest: '&7Couldn''t find %s0. Maybe try one of &c%s1 &7?'
-    help_header_categories: Command Types
+    help_suggest: '&7Non è stato possibile trovare %s0. Forse provane uno di &c%s1 &7?'
+    help_header_categories: Tipi di Comando
     help_header_subcommands: Sottocomandi
     help_header_command: '&cAiuto per: &7%s0'
     help_item_allowed: '&a%s0&8 - &7%s1'
@@ -226,7 +225,7 @@ worldedit:
     help_footer: '&7Wiki: https://git.io/vSKE5'
 progress:
   progress_message: '%s1/%s0 (%s2%) @%s3cps %s4s left'
-  progress_finished: '[ Done! ]'
+  progress_finished: '[ Fatto! ]'
 cancel:
   worldedit_cancel_count: '&cCancellate %s0 modifiche.'
   worldedit_cancel_reason_confirm: '&7La tua selezione è grande (%s0 -> %s1). Usa &c//confirm &7per eseguire &c%s2'
@@ -239,7 +238,7 @@ cancel:
   worldedit_cancel_reason_max_entities: Troppe entità
   worldedit_cancel_reason_max_iterations: Iterazioni massime
   worldedit_cancel_reason_max_fails: Fuori dalla regione consentita (bypassa con /wea, o disabilita `region-restrictions` in config.yml)
-  worldedit_cancel_reason_no_region: No allowed region (bypass with /wea, or disable `region-restrictions` in config.yml)
+  worldedit_cancel_reason_no_region: Nessuna regione consentita (bypassa con /wea, o disabilita `region-restrictions` in config.yml)
   worldedit_failed_load_chunk: '&cSaltato il caricamento del chunk: &7%s0;%s1&c. Prova aumentando chunk-wait.'
 navigation:
   ascend_fail: No free spot above you found.
@@ -251,54 +250,51 @@ navigation:
   descend_singular: Disceso di un livello.
   whoosh: Whoosh!
   poof: Poof!
-  thru_fail: No free spot ahead of you found.
-  no_block: No block in sight! (or too far)
-  up_fail: You would hit something above you.
+  thru_fail: Nessun punto libero trovato davanti a te.
+  no_block: Nessun blocco in vista! (o troppo lontano)
+  up_fail: Colpiresti qualcosa sopra di te.
 selection:
-  sel_cuboid: 'Cuboid: left click for point 1, right click for point 2'
-  sel_cuboid_extend: 'Cuboid: left click for a starting point, right click to extend'
-  sel_2d_polygon: '2D polygon selector: Left/right click to add a point.'
-  sel_ellipsiod: 'Ellipsoid selector: left click=center, right click to extend'
-  sel_sphere: 'Sphere selector: left click=center, right click to set radius'
-  sel_cylindrical: 'Cylindrical selector: Left click=center, right click to extend.'
+  sel_cuboid: 'Cuboide: click sinistro per il punto 1, click destro per il punto 2'
+  sel_cuboid_extend: 'Cuboide: click sinistro per un punto di partenza, click destro per estendere'
+  sel_2d_polygon: 'Selettore poligono 2D: Click sinistro/destro per aggiungere un punto.'
+  sel_ellipsiod: 'Selettore ellissoide: Click sinistro=centro, click destro per estendere'
+  sel_sphere: 'Selettore sfere: Click sinistro=centro, click destro per impostare il raggio'
+  sel_cylindrical: 'Selettore cilindrico: Click sinistro=centro, click destro per estendere.'
   sel_max: '%s0 points maximum.'
   sel_fuzzy: 'Fuzzy selector: Left click to select all contingent blocks, right click
     to add. To select an air cavity, use //pos1.'
-  sel_convex_polyhedral: 'Convex polyhedral selector: Left click=First vertex, right
-    click to add more.'
-  sel_list: For a list of selection types use:&c //sel list
-  sel_modes: 'Select one of the modes below:'
+  sel_convex_polyhedral: 'Selettore poliedrico convesso: Click sinistro=Primo vertice, click destro per aggiungerne altri.'
+  sel_list: Per una lista di tipi di selezione usa:&c //sel list
+  sel_modes: 'Seleziona una delle modalità qui sotto:'
 tips:
-  tip_sel_list: 'Tip: See the different selection modes with &c//sel list'
-  tip_select_connected: 'Tip: Select all connected blocks with //sel fuzzy'
-  tip_set_pos1: 'Tip: Use pos1 as a pattern with &c//set pos1'
-  tip_farwand: 'Tip: Select distant points with &c//farwand'
-  tip_lazycut: '&7Tip: It is safer to use &c//lazycut'
+  tip_sel_list: 'Consiglio: Vedi le diverse modalità di selezione con &c//sel list'
+  tip_select_connected: 'Consiglio: Seleziona tutti i blocchi collegati con //sel fuzzy'
+  tip_set_pos1: 'Consiglio: Usa pos1 come un pattern con &c//set pos1'
+  tip_farwand: 'Consiglio: Seleziona i punti distanti con &c//farwand'
+  tip_lazycut: '&7Consiglio: È più sicuro usare &c//lazycut'
   tip_fast: '&7Tip: Set fast and without undo using &c//fast'
-  tip_cancel: '&7Tip: You can &c//cancel &7an edit in progress'
-  tip_mask: '&7Tip: Set a global destination mask with &c/gmask'
+  tip_cancel: '&7Consiglio: Puoi cancellare con &c//cancel &7una modifica in corso'
+  tip_mask: '&7Consiglio: Imposta una maschera di destinazione globale con &c/gmask'
   tip_mask_angle: 'Tip: Replace upward slopes of 3-20 blocks using&c //replace /[-20][-3]
     bedrock'
-  tip_set_linear: '&7Tip: Set blocks linearly with&c //set #l3d[wood,bedrock]'
+  tip_set_linear: '&7Consiglio: Imposta i blocchi linearmente con&c //set #l3d[wood,bedrock]'
   tip_surface_spread: '&7Tip: Spread a flat surface with&c //set #surfacespread[5][0][5][#existing]'
-  tip_set_hand: '&7Tip: Use your current hand with &c//set hand'
-  tip_replace_id: '&7Tip: Replace only the block id:&c //replace woodenstair #id[cobblestair]'
-  tip_replace_light: 'Tip: Remove light sources with&c //replace #brightness[1][15]
-    0'
+  tip_set_hand: '&7Consiglio: Usa la tua mano attuale con &c//set hand'
+  tip_replace_id: '&7Consiglio: Sostituisci solo l''id del blocco:&c //replace woodenstair #id[cobblestair]'
+  tip_replace_light: 'Consiglio: Rimuovi le sorgenti di luce con&c //replace #brightness[1][15] 0'
   tip_tab_complete: 'Tip: The replace command supports tab completion'
   tip_flip: 'Tip: Mirror with &c//flip'
-  tip_deform: 'Tip: Reshape with &c//deform'
-  tip_transform: 'Tip: Set a transform with &c//gtransform'
-  tip_copypaste: 'Tip: Paste on click with &c//br copypaste'
-  tip_source_mask: 'Tip: Set a source mask with &c/gsmask <mask>&7'
-  tip_replace_marker: 'Tip: Replace a block with your full clipboard using &c//replace
-    wool #fullcopy'
-  tip_paste: 'Tip: Place with &c//paste'
+  tip_deform: 'Consiglio: Rimodella con &c//deform'
+  tip_transform: 'Consiglio: Imposta una trasformazione con &c//gtransform'
+  tip_copypaste: 'Consiglio: Incolla al click con &c//br copypaste'
+  tip_source_mask: 'Consiglio: Imposta una maschera sorgente con &c/gsmask <maschera>&7'
+  tip_replace_marker: 'Consiglio: Sostituisci un blocco con i tuoi appunti completi usando &c//replace wool #fullcopy'
+  tip_paste: 'Consiglio: Colloca con &c//paste'
   tip_lazycopy: 'Consiglio: lazycopy è più veloce'
   tip_download: 'Consiglio: Prova &c//download'
-  tip_rotate: 'Tip: Orientate with &c//rotate'
+  tip_rotate: 'Consiglio: Orienta con &c//rotate'
   tip_copy_pattern: 'Tip: To use as a pattern try &c#copy'
-  tip_regen_0: 'Tip: Use a biome with /regen [biome]'
-  tip_regen_1: 'Tip: Use a seed with /regen [biome] [seed]'
-  tip_biome_pattern: 'Tip: The &c#biome:forest&7 pattern can be used in any command'
-  tip_biome_mask: 'Tip: Restrict to a biome with the `$jungle` mask'
+  tip_regen_0: 'Consiglio: Usa un bioma con /regen [biome]'
+  tip_regen_1: 'Consiglio: Usa un seme con /regen [biome] [seed]'
+  tip_biome_pattern: 'Consiglio: Il pattern &c#biome:forest&7 può essere usato in qualsiasi comando'
+  tip_biome_mask: 'Consiglio: Limita a un bioma con la maschera `$jungle`'
