@@ -42,7 +42,7 @@ error:
   not_player: '&cDevi essere un giocatore per eseguire questa azione!'
   player_not_found: '&cGiocatore non trovato:&7 %s0'
   oom: |-
-    &8[&cCritico&8] &cRilevata poca memoria i.e. < 1%. Prenderemo le seguenti azioni:
+    &8[&cCritico&8] &cRilevata poca memoria cioè < 1%. Prenderemo le seguenti azioni:
     &8 - &7Terminare il posizionamento di WE dei blocchi
     &8 - &7Cancellare la cronologia di WE
     &8 - &7Scaricare i chunk non essenziali
@@ -71,7 +71,7 @@ worldedit:
   copy:
     command_copy: '%s0 blocchi sono stati copiati.'
   cut:
-    command_cut_slow: '%s0 sono stati tagliati.'
+    command_cut_slow: '%s0 blocchi sono stati tagliati.'
     command_cut_lazy: '%s0 blocchi saranno rimossi al momento dell''incollaggio'
   paste:
     command_paste: Gli appunti sono stati incollati a %s0
@@ -103,11 +103,11 @@ worldedit:
     selection_wand_enable: Bacchetta modifica abilitata.
     selection_chunk: Chunk selezionato (%s0)
     selection_chunks: Chunk selezionati (%s0) - (%s1)
-    selection_contract: Region contracted %s0 blocks.
+    selection_contract: Regione contratta di %s0 blocchi.
     selection_count: Contati %s0 blocchi.
     selection_distr: '# blocchi totali: %s0'
-    selection_expand: Region expanded %s0 blocks
-    selection_expand_vert: Region expanded %s0 blocks (top to bottom)
+    selection_expand: Regione espansa di %s0 blocchi
+    selection_expand_vert: Regione espansa di %s0 blocchi (dall'alto al basso)
     selection_inset: Region inset
     selection_outset: Region outset
     selection_shift: Region shifted
@@ -119,10 +119,10 @@ worldedit:
   brush:
     brush_reset: Ripristina il tuo pennello.
     brush_none: Non stai tenendo un pennello!
-    brush_scroll_action_set: Set scroll action to %s0
+    brush_scroll_action_set: Azione di scorrimento impostata a %s0
     brush_scroll_action_unset: Azione di scorrimento rimossa
-    brush_visual_mode_set: Set visual mode to %s0
-    brush_target_mode_set: Set target mode to %s0
+    brush_visual_mode_set: Modalità visuale impostata a %s0
+    brush_target_mode_set: Modalità obbiettivo impostata a %s0
     brush_target_mask_set: Set target mask to %s0
     brush_target_offset_set: Set target offset to %s0
     brush_equipped: Equipaggiato il pennello %s0
@@ -131,28 +131,28 @@ worldedit:
       &8 - &7//br height [radius=5] [#clipboard|file=null] [rotation=0] [yscale=1.00]
     brush_copy: Click sinistro sulla base di un oggetto da copiare, click destro per incollare. Aumenta il raggio del pennello se necessario.
     brush_height_invalid: Invalid height map file (%s0)
-    brush_smooth: 'Note: Use the blend brush if you want to smooth overhangs or caves.'
+    brush_smooth: 'Nota: Usa il pennello sfumato per levigare sporgenze o grotte.'
     brush_spline: Clicca per aggiungere un punto, clicca nello stesso punto per finire
     brush_line_primary: Aggiunto il punto %s0, clicca su un'altra posizione per creare la linea
     brush_line_secondary: Created spline
     brush_spline_primary_2: Added position, Click the same spot to join!
-    brush_spline_secondary_error: Not enough positions set!
+    brush_spline_secondary_error: Non sono state impostate abbastanza posizioni!
     brush_spline_secondary: Created spline
-    brush_size: Brush size set
-    brush_range: Brush size set
-    brush_mask_disabled: Brush mask disabled
-    brush_mask: Brush mask set
+    brush_size: Dimensione pennello impostata
+    brush_range: Dimensione pennello impostata
+    brush_mask_disabled: Maschera pennello disabilitata
+    brush_mask: Maschera pennello impostata
     brush_source_mask_disabled: Brush source mask disabled
     brush_source_mask: Brush source mask set
     brush_transform_disabled: Brush transform disabled
     brush_transform: Brush transform set
-    brush_material: Brush material set
+    brush_material: Materiale pennello impostato
   rollback:
-    rollback_element: Undoing %s0
+    rollback_element: Annullando %s0
   tool:
     tool_inspect: Inspect tool bound to %s0.
-    tool_inspect_info: '&7%s0 changed %s1 to %s2 %s3 ago'
-    tool_inspect_info_footer: '&6Total: &7%s0 changes'
+    tool_inspect_info: '&7%s0 ha modificato %s1 a %s2 %s3 fa'
+    tool_inspect_info_footer: '&6Totale: &7%s0 modifiche'
     tool_none: Tool unbound from your current item.
     tool_info: Info tool bound to %s0.
     tool_tree: Tree tool bound to %s0.
@@ -170,10 +170,10 @@ worldedit:
     superpickaxe_disabled: Super Piccone disabilitato.
     superpickaxe_area_enabled: Modalità cambiata. Click sinistro con un piccone. // per disabilitare.
   snapshot:
-    snapshot_loaded: Snapshot '%s0' loaded; now restoring...
-    snapshot_set: 'Snapshot set to: %s0'
-    snapshot_newest: Now using newest snapshot.
-    snapshot_list_header: 'Snapshots for world (%s0):'
+    snapshot_loaded: Snapshot '%s0' caricato; ora ripristinando...
+    snapshot_set: 'Snapshot impostato a: %s0'
+    snapshot_newest: Ora usando lo snapshot più recente.
+    snapshot_list_header: 'Snapshot per il mondo (%s0):'
     snapshot_list_footer: Usa /snap use [snapshot] o /snap use latest.
   biome:
     biome_list_header: 'Biomi (pagina %s0/%s1):'
@@ -195,12 +195,12 @@ worldedit:
     clipboard_cleared: Appunti cancellati
     clipboard_invalid_format: 'Formato di appunti sconosciuto:  %s0'
   visitor:
-    visitor_block: '%s0 blocks affected'
-    visitor_entity: '%s0 entities affected'
-    visitor_flat: '%s0 columns affected'
+    visitor_block: '%s0 blocchi interessati'
+    visitor_entity: '%s0 entità interessate'
+    visitor_flat: '%s0 colonne interessate'
   selector:
     selector_fuzzy_pos1: Regione impostata ed espansa da %s0 %s1.
-    selector_fuzzy_pos2: Added expansion of %s0 %s1.
+    selector_fuzzy_pos2: Aggiunta espansione di %s0 %s1.
     selector_pos: pos%s0 impostata a %s1 (%s2).
     selector_center: Centro impostato a %s0 (%s1).
     selector_radius: Raggio impostato a %s0 (%s1).
@@ -214,7 +214,7 @@ worldedit:
   command:
     command_invalid_syntax: Il comando non è stato usato correttamente (nessun altro aiuto disponibile).
   help:
-    command_clarifying_bracket: '&7Added clarifying bracket for &c%s0'
+    command_clarifying_bracket: '&7Aggiunta una parentesi di chiarimento per &c%s0'
     help_suggest: '&7Non è stato possibile trovare %s0. Forse provane uno di &c%s1 &7?'
     help_header_categories: Tipi di Comando
     help_header_subcommands: Sottocomandi
@@ -233,15 +233,15 @@ cancel:
   worldedit_cancel_reason_manual: Cancellazione manuale
   worldedit_cancel_reason_low_memory: Poca memoria
   worldedit_cancel_reason_max_changes: Troppi blocchi cambiati
-  worldedit_cancel_reason_max_checks: Too many block checks
-  worldedit_cancel_reason_max_tiles: Too many blockstates
+  worldedit_cancel_reason_max_checks: Troppi controlli di blocchi
+  worldedit_cancel_reason_max_tiles: Troppi stati di blocchi
   worldedit_cancel_reason_max_entities: Troppe entità
   worldedit_cancel_reason_max_iterations: Iterazioni massime
   worldedit_cancel_reason_max_fails: Fuori dalla regione consentita (bypassa con /wea, o disabilita `region-restrictions` in config.yml)
   worldedit_cancel_reason_no_region: Nessuna regione consentita (bypassa con /wea, o disabilita `region-restrictions` in config.yml)
   worldedit_failed_load_chunk: '&cSaltato il caricamento del chunk: &7%s0;%s1&c. Prova aumentando chunk-wait.'
 navigation:
-  ascend_fail: No free spot above you found.
+  ascend_fail: Nessun posto libero trovato sopra di te.
   ascended_plural: Asceso di %s0 livelli.
   ascended_singular: Asceso di un livello.
   unstuck: Ci si va!
@@ -272,18 +272,17 @@ tips:
   tip_set_pos1: 'Consiglio: Usa pos1 come un pattern con &c//set pos1'
   tip_farwand: 'Consiglio: Seleziona i punti distanti con &c//farwand'
   tip_lazycut: '&7Consiglio: È più sicuro usare &c//lazycut'
-  tip_fast: '&7Tip: Set fast and without undo using &c//fast'
+  tip_fast: '&7Consiglio: Imposta velocemente e senza l''annullamento usando &c//fast'
   tip_cancel: '&7Consiglio: Puoi cancellare con &c//cancel &7una modifica in corso'
   tip_mask: '&7Consiglio: Imposta una maschera di destinazione globale con &c/gmask'
-  tip_mask_angle: 'Tip: Replace upward slopes of 3-20 blocks using&c //replace /[-20][-3]
-    bedrock'
+  tip_mask_angle: 'Consiglio: Sostituire le pendenze verso l'alto di 3-20 blocchi usando&c //replace /[-20][-3] bedrock'
   tip_set_linear: '&7Consiglio: Imposta i blocchi linearmente con&c //set #l3d[wood,bedrock]'
-  tip_surface_spread: '&7Tip: Spread a flat surface with&c //set #surfacespread[5][0][5][#existing]'
+  tip_surface_spread: '&7Consiglio: Propaga una superficie piana con&c //set #surfacespread[5][0][5][#existing]'
   tip_set_hand: '&7Consiglio: Usa la tua mano attuale con &c//set hand'
   tip_replace_id: '&7Consiglio: Sostituisci solo l''id del blocco:&c //replace woodenstair #id[cobblestair]'
   tip_replace_light: 'Consiglio: Rimuovi le sorgenti di luce con&c //replace #brightness[1][15] 0'
-  tip_tab_complete: 'Tip: The replace command supports tab completion'
-  tip_flip: 'Tip: Mirror with &c//flip'
+  tip_tab_complete: 'Consiglio: Il comando replace supporta il completamento del tabulatore'
+  tip_flip: 'Consiglio: Specchia con &c//flip'
   tip_deform: 'Consiglio: Rimodella con &c//deform'
   tip_transform: 'Consiglio: Imposta una trasformazione con &c//gtransform'
   tip_copypaste: 'Consiglio: Incolla al click con &c//br copypaste'
