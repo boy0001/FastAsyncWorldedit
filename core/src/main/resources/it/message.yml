@@ -129,7 +129,7 @@ worldedit:
     brush_try_other: |-
       &cCi sono altri pennelli più adatti es.
       &8 - &7//br height [radius=5] [#clipboard|file=null] [rotation=0] [yscale=1.00]
-    brush_copy: Left click the base of an object to copy, right click to paste. Increase the brush radius if necessary.
+    brush_copy: Click sinistro sulla base di un oggetto da copiare, click destro per incollare. Aumenta il raggio del pennello se necessario.
     brush_height_invalid: Invalid height map file (%s0)
     brush_smooth: 'Note: Use the blend brush if you want to smooth overhangs or caves.'
     brush_spline: Clicca per aggiungere un punto, clicca nello stesso punto per finire
@@ -156,7 +156,7 @@ worldedit:
     tool_none: Tool unbound from your current item.
     tool_info: Info tool bound to %s0.
     tool_tree: Tree tool bound to %s0.
-    tool_tree_error: Tree type %s0 is unknown.
+    tool_tree_error: Il tipo di albero %s0 è sconosciuto.
     tool_repl: Block replacer tool bound to %s0.
     tool_cycler: Block data cycler tool bound to %s0.
     tool_flood_fill: Block flood fill tool bound to %s0.
