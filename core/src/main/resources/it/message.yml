@@ -110,7 +110,7 @@ worldedit:
     selection_expand_vert: Regione espansa di %s0 blocchi (dall'alto al basso)
     selection_inset: Region inset
     selection_outset: Region outset
-    selection_shift: Region shifted
+    selection_shift: Regione spostata
     selection_cleared: Selezione cancellata
   navigation:
     navigation_wand_error: '&cNiente da attraversare'
@@ -123,48 +123,48 @@ worldedit:
     brush_scroll_action_unset: Azione di scorrimento rimossa
     brush_visual_mode_set: Modalità visuale impostata a %s0
     brush_target_mode_set: Modalità obbiettivo impostata a %s0
-    brush_target_mask_set: Set target mask to %s0
-    brush_target_offset_set: Set target offset to %s0
+    brush_target_mask_set: Impostata la maschera di destinazione a %s0
+    brush_target_offset_set: Impostato l'offset di destinazione a %s0
     brush_equipped: Equipaggiato il pennello %s0
     brush_try_other: |-
       &cCi sono altri pennelli più adatti es.
       &8 - &7//br height [radius=5] [#clipboard|file=null] [rotation=0] [yscale=1.00]
     brush_copy: Click sinistro sulla base di un oggetto da copiare, click destro per incollare. Aumenta il raggio del pennello se necessario.
-    brush_height_invalid: Invalid height map file (%s0)
+    brush_height_invalid: File della height map non valido (%s0)
     brush_smooth: 'Nota: Usa il pennello sfumato per levigare sporgenze o grotte.'
     brush_spline: Clicca per aggiungere un punto, clicca nello stesso punto per finire
     brush_line_primary: Aggiunto il punto %s0, clicca su un'altra posizione per creare la linea
-    brush_line_secondary: Created spline
-    brush_spline_primary_2: Added position, Click the same spot to join!
+    brush_line_secondary: Creata una scanalatura
+    brush_spline_primary_2: Posizione aggiunta, Clicca sullo stesso punto per unirla!
     brush_spline_secondary_error: Non sono state impostate abbastanza posizioni!
-    brush_spline_secondary: Created spline
+    brush_spline_secondary: Creata una scanalatura
     brush_size: Dimensione pennello impostata
     brush_range: Dimensione pennello impostata
     brush_mask_disabled: Maschera pennello disabilitata
     brush_mask: Maschera pennello impostata
-    brush_source_mask_disabled: Brush source mask disabled
-    brush_source_mask: Brush source mask set
-    brush_transform_disabled: Brush transform disabled
-    brush_transform: Brush transform set
+    brush_source_mask_disabled: Maschera sorgente del pennello disabilitata
+    brush_source_mask: Maschera sorgente del pennello impostata
+    brush_transform_disabled: Trasformazione pennello disabilitata
+    brush_transform: Trasformazione pennello impostata
     brush_material: Materiale pennello impostato
   rollback:
     rollback_element: Annullando %s0
   tool:
-    tool_inspect: Inspect tool bound to %s0.
+    tool_inspect: Strumento di ispezione associato a %s0.
     tool_inspect_info: '&7%s0 ha modificato %s1 a %s2 %s3 fa'
     tool_inspect_info_footer: '&6Totale: &7%s0 modifiche'
-    tool_none: Tool unbound from your current item.
-    tool_info: Info tool bound to %s0.
-    tool_tree: Tree tool bound to %s0.
+    tool_none: Strumento disassociato dal tuo oggetto corrente.
+    tool_info: Strumento di informazioni associato a %s0.
+    tool_tree: Strumento di generazione di alberi associato a %s0.
     tool_tree_error: Il tipo di albero %s0 è sconosciuto.
-    tool_repl: Block replacer tool bound to %s0.
+    tool_repl: Strumento di sostituzione blocchi associato a %s0.
     tool_cycler: Block data cycler tool bound to %s0.
-    tool_flood_fill: Block flood fill tool bound to %s0.
+    tool_flood_fill: Strumento per riempire di blocchi associato a %s0.
     tool_range_error: 'Raggio massimo: %s0.'
     tool_radius_error: 'Massimo raggio del pennello consentito: %s0.'
-    tool_deltree: Floating tree remover tool bound to %s0.
-    tool_farwand: Far wand tool bound to %s0.
-    tool_lrbuild_bound: Long-range building tool bound to %s0.
+    tool_deltree: Strumento di rimozione alberi volanti associato a %s0.
+    tool_farwand: Strumento bacchetta a distanza associato a %s0.
+    tool_lrbuild_bound: Strumento di costruzione a lungo raggio associato a %s0.
     tool_lrbuild_info: Click-sinistro per impostare a %s0; click-destro per impostare a %s1.
     superpickaxe_enabled: Super Piccone abilitato.
     superpickaxe_disabled: Super Piccone disabilitato.
@@ -183,7 +183,7 @@ worldedit:
     nothing_confirmed: Non hai azioni in attesa di conferma.
     page_footer: Usa %s0 per andare alla pagina successiva
   schematic:
-    schematic_format: 'Available formats (Name: Lookup names)'
+    schematic_format: 'Formati disponibili (Nome: Nomi di ricerca)'
     schematic_loaded: '%s0 caricato. Incollalo con //paste'
     schematic_saved: '%s0 salvato.'
     schematic_page: La pagina deve essere %s
@@ -224,7 +224,7 @@ worldedit:
     help_header: 'Aiuto: pagina %s0/%s1'
     help_footer: '&7Wiki: https://git.io/vSKE5'
 progress:
-  progress_message: '%s1/%s0 (%s2%) @%s3cps %s4s left'
+  progress_message: '%s1/%s0 (%s2%) @%s3cps %s4s rimanenti'
   progress_finished: '[ Fatto! ]'
 cancel:
   worldedit_cancel_count: '&cCancellate %s0 modifiche.'
@@ -260,9 +260,8 @@ selection:
   sel_ellipsiod: 'Selettore ellissoide: Click sinistro=centro, click destro per estendere'
   sel_sphere: 'Selettore sfere: Click sinistro=centro, click destro per impostare il raggio'
   sel_cylindrical: 'Selettore cilindrico: Click sinistro=centro, click destro per estendere.'
-  sel_max: '%s0 points maximum.'
-  sel_fuzzy: 'Fuzzy selector: Left click to select all contingent blocks, right click
-    to add. To select an air cavity, use //pos1.'
+  sel_max: '%s0 punti al massimo.'
+  sel_fuzzy: 'Selettore sfocato: Click sinistro per selezionare tutti i blocchi contingenti, click destro per aggiungere. Per selezionare una cavità d''aria, usa //pos1.'
   sel_convex_polyhedral: 'Selettore poliedrico convesso: Click sinistro=Primo vertice, click destro per aggiungerne altri.'
   sel_list: Per una lista di tipi di selezione usa:&c //sel list
   sel_modes: 'Seleziona una delle modalità qui sotto:'
@@ -292,7 +291,7 @@ tips:
   tip_lazycopy: 'Consiglio: lazycopy è più veloce'
   tip_download: 'Consiglio: Prova &c//download'
   tip_rotate: 'Consiglio: Orienta con &c//rotate'
-  tip_copy_pattern: 'Tip: To use as a pattern try &c#copy'
+  tip_copy_pattern: 'Consiglio: Per usarlo come un pattern prova &c#copy'
   tip_regen_0: 'Consiglio: Usa un bioma con /regen [biome]'
   tip_regen_1: 'Consiglio: Usa un seme con /regen [biome] [seed]'
   tip_biome_pattern: 'Consiglio: Il pattern &c#biome:forest&7 può essere usato in qualsiasi comando'
