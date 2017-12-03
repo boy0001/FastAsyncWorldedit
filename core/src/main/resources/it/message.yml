@@ -61,7 +61,7 @@ worldedit:
     mask_disabled: Maschera globale disabilitata
     mask: Maschera globale impostata
     source_mask_disabled: Maschera sorgente globale disabilitata
-    source_mask: Global source mask set
+    source_mask: Maschera sorgente globale impostata
     transform_disabled: Trasformazione globale disabilitata
     transform: Trasformazione globale impostata
     fast_enabled: Modalità veloce abilitata. La cronologia e le restrizioni di modifica saranno ignorate.
@@ -108,8 +108,8 @@ worldedit:
     selection_distr: '# blocchi totali: %s0'
     selection_expand: Regione espansa di %s0 blocchi
     selection_expand_vert: Regione espansa di %s0 blocchi (dall'alto al basso)
-    selection_inset: Region inset
-    selection_outset: Region outset
+    selection_inset: Regione contratta in tutte le direzioni
+    selection_outset: Regione espansa in tutte le direzioni
     selection_shift: Regione spostata
     selection_cleared: Selezione cancellata
   navigation:
@@ -158,7 +158,7 @@ worldedit:
     tool_tree: Strumento di generazione di alberi associato a %s0.
     tool_tree_error: Il tipo di albero %s0 è sconosciuto.
     tool_repl: Strumento di sostituzione blocchi associato a %s0.
-    tool_cycler: Block data cycler tool bound to %s0.
+    tool_cycler: Strumento per ciclare i dati dei blocchi associato a %s0.
     tool_flood_fill: Strumento per riempire di blocchi associato a %s0.
     tool_range_error: 'Raggio massimo: %s0.'
     tool_radius_error: 'Massimo raggio del pennello consentito: %s0.'
