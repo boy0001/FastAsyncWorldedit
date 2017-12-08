@@ -1729,7 +1729,7 @@ public class EditSession extends AbstractWorld implements HasFaweQueue, Lighting
 //            return changes = region.getArea();
 //        }
         // TODO fast replace
-        return this.replaceBlocks(region, filter, (replacement));
+        return this.replaceBlocks(region, filter, new BlockPattern(replacement));
     }
 
 
