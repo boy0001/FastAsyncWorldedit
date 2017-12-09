@@ -26,6 +26,7 @@ import com.sk89q.worldedit.BlockVector;
 import com.sk89q.worldedit.IncompleteRegionException;
 import com.sk89q.worldedit.LocalSession;
 import com.sk89q.worldedit.Vector;
+import com.sk89q.worldedit.WorldEdit;
 import com.sk89q.worldedit.command.SelectionCommands;
 import com.sk89q.worldedit.extension.platform.Actor;
 import com.sk89q.worldedit.internal.cui.CUIRegion;
@@ -161,7 +162,8 @@ public class CuboidRegionSelector extends com.sk89q.worldedit.regions.CuboidRegi
         } else {
             msg = BBC.SELECTOR_POS.m(1, position1, "");
         }
-        String cmd = Commands.getAlias(SelectionCommands.class, "/pos1") + " " + pos.getBlockX() + "," + pos.getBlockY() + "," + pos.getBlockZ();
+        String prefix = WorldEdit.getInstance().getConfiguration().noDoubleSlash ? "" : "/";
+        String cmd = prefix + Commands.getAlias(SelectionCommands.class, "/pos1") + " " + pos.getBlockX() + "," + pos.getBlockY() + "," + pos.getBlockZ();
         msg.suggestTip(cmd).send(player);
 
         session.dispatchCUIEvent(player, new SelectionPointEvent(0, pos, getArea()));
@@ -179,7 +181,8 @@ public class CuboidRegionSelector extends com.sk89q.worldedit.regions.CuboidRegi
         } else {
             msg = BBC.SELECTOR_POS.m(2, position2, "");
         }
-        String cmd = Commands.getAlias(SelectionCommands.class, "/pos2") + " " + pos.getBlockX() + "," + pos.getBlockY() + "," + pos.getBlockZ();
+        String prefix = WorldEdit.getInstance().getConfiguration().noDoubleSlash ? "" : "/";
+        String cmd = prefix + Commands.getAlias(SelectionCommands.class, "/pos2") + " " + pos.getBlockX() + "," + pos.getBlockY() + "," + pos.getBlockZ();
         msg.suggestTip(cmd).send(player);
 
         session.dispatchCUIEvent(player, new SelectionPointEvent(1, pos, getArea()));
