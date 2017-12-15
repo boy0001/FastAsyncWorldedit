@@ -37,8 +37,8 @@ public class ResidenceFeature extends BukkitMaskManager implements Listener {
             }
             if (isAllowed) {
                 final CuboidArea area = residence.getAreaArray()[0];
-                final Location pos1 = area.getHighLoc();
-                final Location pos2 = area.getLowLoc();
+                final Location pos1 = area.getLowLoc();
+                final Location pos2 = area.getHighLoc();
                 final ClaimedResidence finalResidence = residence;
                 return new BukkitMask(pos1, pos2) {
                     @Override
