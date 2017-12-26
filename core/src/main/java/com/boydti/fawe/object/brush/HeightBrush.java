@@ -91,10 +91,10 @@ public class HeightBrush implements Brush {
             int minIndex = -(size * 2) - 1;
             int width = hmmg.getWidth();
 
-            int minX = Math.max(-size, origin.getBlockX() - bx);
-            int minZ = Math.max(-size, origin.getBlockZ() - bz);
-            int maxX = Math.min(size, origin.getBlockX() + hmmg.getWidth() - 1 - bx);
-            int maxZ = Math.min(size, origin.getBlockZ() + hmmg.getLength() - 1 - bz);
+            int minX = Math.max(-size, -bx);
+            int minZ = Math.max(-size, -bz);
+            int maxX = Math.min(size, hmmg.getWidth() - 1 - bx);
+            int maxZ = Math.min(size, hmmg.getLength() - 1 - bz);
 
             int zIndex = (bz + minZ) * width;
             for (int z = minZ; z <= maxZ; z++, zIndex += width) {
@@ -102,7 +102,7 @@ public class HeightBrush implements Brush {
                 int index = zIndex + (bx + minX);
                 if (index < minIndex) continue;
                 if (index >= metaHeight.length) break;
-                for (int x = maxX; x <= maxX; x++, index++) {
+                for (int x = minX; x <= maxX; x++, index++) {
                     if (index < 0) continue;
                     if (index >= metaHeight.length) break;
 
