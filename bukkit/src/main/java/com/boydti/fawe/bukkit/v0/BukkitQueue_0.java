@@ -36,6 +36,7 @@ import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import org.bukkit.Bukkit;
 import org.bukkit.Chunk;
+import org.bukkit.ChunkSnapshot;
 import org.bukkit.Location;
 import org.bukkit.World;
 import org.bukkit.WorldCreator;
@@ -141,7 +142,7 @@ public abstract class BukkitQueue_0<CHUNK, CHUNKSECTIONS, SECTION> extends NMSMa
     public boolean queueChunkLoad(int cx, int cz, RunnableVal<CHUNK> operation) {
         if (PAPER) {
             try {
-                getImpWorld().getChunkAtAsync(cx, cz, new World.ChunkLoadCallback() {
+                new PaperChunkCallback(getImpWorld(), cx, cz) {
                     @Override
                     public void onLoad(Chunk bukkitChunk) {
                         try {
@@ -155,7 +156,7 @@ public abstract class BukkitQueue_0<CHUNK, CHUNKSECTIONS, SECTION> extends NMSMa
                             PAPER = false;
                         }
                     }
-                });
+                };
                 return true;
             } catch (Throwable ignore) {
                 PAPER = false;
