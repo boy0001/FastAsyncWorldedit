@@ -5,7 +5,7 @@ import com.boydti.fawe.bukkit.v0.BukkitQueue_0;
 import com.boydti.fawe.object.FaweQueue;
 import com.boydti.fawe.object.HasFaweQueue;
 import com.boydti.fawe.object.RunnableVal;
-import com.boydti.fawe.util.DelegateFaweQueue;
+import com.boydti.fawe.object.queue.DelegateFaweQueue;
 import com.boydti.fawe.util.SetQueue;
 import com.boydti.fawe.util.StringMan;
 import com.boydti.fawe.util.TaskManager;

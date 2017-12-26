@@ -46,6 +46,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
 public class AbstractDelegateExtent implements LightingExtent {
 
     private transient final Extent extent;
+    private MutableBlockVector mutable = new MutableBlockVector(0, 0, 0);
 
     /**
      * Create a new instance.
@@ -62,6 +63,11 @@ public class AbstractDelegateExtent implements LightingExtent {
             return ((LightingExtent) extent).getSkyLight(x, y, z);
         }
         return 0;
+    }
+
+    @Override
+    public int getMaxY() {
+        return extent.getMaxY();
     }
 
     public int getBlockLight(int x, int y, int z) {
@@ -114,8 +120,6 @@ public class AbstractDelegateExtent implements LightingExtent {
     public BaseBlock getBlock(Vector position) {
         return extent.getLazyBlock(position);
     }
-
-    private MutableBlockVector mutable = new MutableBlockVector(0, 0, 0);
 
     @Override
     public BaseBlock getLazyBlock(int x, int y, int z) {
@@ -186,6 +190,16 @@ public class AbstractDelegateExtent implements LightingExtent {
     @Override
     public String toString() {
         return super.toString() + ":" + extent.toString();
+    }
+
+    @Override
+    public int getNearestSurfaceLayer(int x, int z, int y, int minY, int maxY) {
+        return extent.getNearestSurfaceLayer(x, z, y, minY, maxY);
+    }
+
+    @Override
+    public int getNearestSurfaceTerrainBlock(int x, int z, int y, int minY, int maxY) {
+        return extent.getNearestSurfaceTerrainBlock(x, z, y, minY, maxY);
     }
 
     @Override

@@ -1,14 +1,18 @@
 package com.boydti.fawe.object.brush;
 
 import com.boydti.fawe.config.BBC;
+import com.boydti.fawe.jnbt.anvil.HeightMapMCAGenerator;
+import com.boydti.fawe.object.FaweQueue;
 import com.boydti.fawe.object.PseudoRandom;
 import com.boydti.fawe.object.brush.heightmap.HeightMap;
 import com.boydti.fawe.object.brush.heightmap.RotatableHeightMap;
 import com.boydti.fawe.object.brush.heightmap.ScalableHeightMap;
 import com.boydti.fawe.object.exception.FaweException;
+import com.boydti.fawe.util.MathMan;
 import com.sk89q.worldedit.EditSession;
 import com.sk89q.worldedit.MaxChangedBlocksException;
 import com.sk89q.worldedit.Vector;
+import com.sk89q.worldedit.Vector2D;
 import com.sk89q.worldedit.command.tool.brush.Brush;
 import com.sk89q.worldedit.extent.clipboard.Clipboard;
 import com.sk89q.worldedit.function.mask.Mask;
@@ -66,12 +70,85 @@ public class HeightBrush implements Brush {
     @Override
     public void build(EditSession editSession, Vector position, Pattern pattern, double sizeDouble) throws MaxChangedBlocksException {
         int size = (int) sizeDouble;
+        HeightMap map = getHeightMap();
+        map.setSize(size);
+
+        FaweQueue queue = editSession.getQueue();
+        // Optimized application of height map
+        if (queue instanceof HeightMapMCAGenerator) {
+            HeightMapMCAGenerator hmmg = (HeightMapMCAGenerator) queue;
+
+            byte[] metaHeight = hmmg.getMetaData().getMeta("PRECISION_HEIGHT");
+            if (metaHeight == null) {
+                hmmg.getMetaData().setMeta("PRECISION_HEIGHT", metaHeight = new byte[hmmg.getArea()]);
+            }
+
+            Vector origin = hmmg.getOrigin();
+
+            int bx = position.getBlockX();
+            int bz = position.getBlockZ();
+
+            int minIndex = -(size * 2) - 1;
+            int width = hmmg.getWidth();
+
+            int minX = Math.max(-size, origin.getBlockX() - bx);
+            int minZ = Math.max(-size, origin.getBlockZ() - bz);
+            int maxX = Math.min(size, origin.getBlockX() + hmmg.getWidth() - 1 - bx);
+            int maxZ = Math.min(size, origin.getBlockZ() + hmmg.getLength() - 1 - bz);
+
+            int zIndex = (bz + minZ) * width;
+            for (int z = minZ; z <= maxZ; z++, zIndex += width) {
+                int zz = bz + z;
+                int index = zIndex + (bx + minX);
+                if (index < minIndex) continue;
+                if (index >= metaHeight.length) break;
+                for (int x = maxX; x <= maxX; x++, index++) {
+                    if (index < 0) continue;
+                    if (index >= metaHeight.length) break;
+
+                    int xx = bx + x;
+                    int currentBlockHeight = hmmg.getHeight(index);
+                    int currentLayer = metaHeight[index] & 0xFF;
+
+                    double addHeight = heightMap.getHeight(x, z) * yscale;
+                    int addBlockHeight = (int) addHeight;
+                    int addLayer = (int) ((addHeight - addBlockHeight) * 256);
+
+                    int newLayer = addLayer + currentLayer;
+                    int newBlockHeight = currentBlockHeight + addBlockHeight;
+
+                    int newLayerAbs = MathMan.absByte(newLayer);
+
+                    if (newLayerAbs >= 256) {
+                        int newLayerBlocks = (newLayer >> 8);
+                        newBlockHeight += newLayerBlocks;
+                        newLayer -= newLayerBlocks << 8;
+                    }
+
+                    hmmg.setHeight(index, newBlockHeight);
+                    metaHeight[index] = (byte) newLayer;
+                }
+            }
+
+            if (smooth) {
+                Vector2D min = new Vector2D(Math.max(0, bx - size), Math.max(0, bz - size));
+                Vector2D max = new Vector2D(Math.min(hmmg.getWidth() - 1, bx + size), Math.min(hmmg.getLength() - 1, bz + size));
+                hmmg.smooth(min, max, 8, 1);
+
+                if (size > 20) {
+                    int smoothSize = size + 8;
+                    min = new Vector2D(Math.max(0, bx - smoothSize), Math.max(0, bz - smoothSize));
+                    max = new Vector2D(Math.min(hmmg.getWidth() - 1, bx + smoothSize), Math.min(hmmg.getLength() - 1, bz + smoothSize));
+                    hmmg.smooth(min, max, 1, 1);
+                }
+            }
+
+            return;
+        }
         Mask mask = editSession.getMask();
         if (mask == Masks.alwaysTrue() || mask == Masks.alwaysTrue2D()) {
             mask = null;
         }
-        HeightMap map = getHeightMap();
-        map.setSize(size);
         map.perform(editSession, mask, position, size, rotation, yscale, smooth, false, layers);
     }
 }

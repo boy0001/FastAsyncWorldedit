@@ -40,6 +40,11 @@ public class FastWorldEditExtent extends AbstractDelegateExtent implements HasFa
     }
 
     @Override
+    public int getMaxY() {
+        return queue.getMaxY();
+    }
+
+    @Override
     public int getLight(int x, int y, int z) {
         return queue.getLight(x, y, z);
     }

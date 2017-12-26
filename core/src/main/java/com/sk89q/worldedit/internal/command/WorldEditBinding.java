@@ -19,6 +19,7 @@
 
 package com.sk89q.worldedit.internal.command;
 
+import com.boydti.fawe.object.FawePlayer;
 import com.sk89q.worldedit.EditSession;
 import com.sk89q.worldedit.IncompleteRegionException;
 import com.sk89q.worldedit.LocalSession;
@@ -85,7 +86,7 @@ public class WorldEditBinding extends BindingHelper {
     public Object getSelection(ArgumentStack context, Selection selection) throws IncompleteRegionException, ParameterException {
         Player sender = getPlayer(context);
         LocalSession session = worldEdit.getSessionManager().get(sender);
-        return session.getSelection(sender.getWorld());
+        return session.getSelection(FawePlayer.wrap(sender).getWorldForEditing());
     }
 
     /**

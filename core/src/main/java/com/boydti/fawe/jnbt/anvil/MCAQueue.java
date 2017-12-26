@@ -620,6 +620,14 @@ public class MCAQueue extends NMSMappedFaweQueue<FaweQueue, FaweChunk, FaweChunk
     }
 
     @Override
+    public boolean supports(Capability capability) {
+        switch (capability) {
+            case CHANGE_TASKS: return false;
+        }
+        return super.supports(capability);
+    }
+
+    @Override
     public void relight(int x, int y, int z) {
         throw new UnsupportedOperationException("Not supported");
     }

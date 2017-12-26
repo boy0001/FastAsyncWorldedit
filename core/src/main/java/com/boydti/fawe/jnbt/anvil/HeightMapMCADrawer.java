@@ -27,11 +27,12 @@ public final class HeightMapMCADrawer {
 
     public BufferedImage draw() {
         BufferedImage img = new BufferedImage(gen.getWidth(), gen.getLength(), BufferedImage.TYPE_INT_RGB);
-        final char[] overlay = gen.overlay == null ? gen.floor : gen.overlay;
-        final char[] floor = gen.floor;
-        final char[] main = gen.main;
-        final byte[] heights = gen.heights;
-        final int waterHeight = gen.waterHeight;
+        final char[] overlay = gen.overlay == null ? gen.floor.get() : gen.overlay.get();
+        final char[] floor = gen.floor.get();
+        final char[] main = gen.main.get();
+        final byte[] heights = gen.heights.get();
+        final byte[] biomes = gen.biomes.get();
+        final int waterHeight = gen.primtives.waterHeight;
         final int width = gen.getWidth();
         final int length = gen.getLength();
 
@@ -58,7 +59,7 @@ public final class HeightMapMCADrawer {
                     int color;
                     switch (combined >> 4) {
                         case 2:
-                            color = getAverageBiomeColor(gen.biomes, width, index);
+                            color = getAverageBiomeColor(biomes, width, index);
                             break;
                         case 78:
                             color = (0xDD << 16) + (0xDD << 8) + (0xDD << 0);
@@ -76,7 +77,7 @@ public final class HeightMapMCADrawer {
                         color = (r << 16) + (g << 8) + (b << 0);
                     }
                     if (height + 1 < waterHeight) {
-                        byte waterId = gen.waterId;
+                        byte waterId = gen.primtives.waterId;
                         int waterColor = 0;
                         switch (waterId) {
                             case BlockID.WATER:

@@ -34,11 +34,13 @@ import com.sk89q.minecraft.util.commands.CommandContext;
 import com.sk89q.minecraft.util.commands.CommandException;
 import com.sk89q.minecraft.util.commands.CommandPermissions;
 import com.sk89q.worldedit.EmptyClipboardException;
+import com.sk89q.worldedit.LocalSession;
 import com.sk89q.worldedit.Vector;
 import com.sk89q.worldedit.WorldEdit;
 import com.sk89q.worldedit.WorldEditException;
 import com.sk89q.worldedit.blocks.BaseBlock;
 import com.sk89q.worldedit.command.MethodCommands;
+import com.sk89q.worldedit.entity.Player;
 import com.sk89q.worldedit.extension.input.InputParseException;
 import com.sk89q.worldedit.extension.input.ParserContext;
 import com.sk89q.worldedit.extent.clipboard.Clipboard;
@@ -64,6 +66,7 @@ import java.net.URL;
 import java.util.ArrayDeque;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.UUID;
 import javax.imageio.ImageIO;
 
 @Command(aliases = {"/cfi"}, desc = "Create a world from images: [More Info](https://git.io/v5iDy)")
@@ -81,6 +84,10 @@ public class CFICommands extends MethodCommands {
         this.dispathcer= dispatcher;
     }
 
+    private File getFolder(String worldName) {
+        return new File(PS.imp().getWorldContainer(), worldName + File.separator + "region");
+    }
+
     @Command(
             aliases = {"heightmap"},
             usage = "<url>",
@@ -88,7 +95,7 @@ public class CFICommands extends MethodCommands {
     )
     @CommandPermissions("worldedit.anvil.cfi")
     public void heightmap(FawePlayer fp, BufferedImage image) {
-        HeightMapMCAGenerator generator = new HeightMapMCAGenerator(image, null);
+        HeightMapMCAGenerator generator = new HeightMapMCAGenerator(image, getFolder("CFI-" + UUID.randomUUID()));
         setup(generator, fp);
     }
 
@@ -99,14 +106,16 @@ public class CFICommands extends MethodCommands {
     )
     @CommandPermissions("worldedit.anvil.cfi")
     public void heightmap(FawePlayer fp, int width, int length) {
-        HeightMapMCAGenerator generator = new HeightMapMCAGenerator(width, length, null);
+        HeightMapMCAGenerator generator = new HeightMapMCAGenerator(width, length, getFolder("CFI-" + UUID.randomUUID()));
         setup(generator, fp);
     }
 
     private void setup(HeightMapMCAGenerator generator, FawePlayer fp) {
         CFISettings settings = getSettings(fp);
         settings.remove().setGenerator(generator).bind();
+        generator.setPacketViewer(fp);
         generator.setImageViewer(Fawe.imp().getImageViewer(fp));
+        generator.update();
         mainMenu(fp);
     }
 
@@ -202,12 +211,14 @@ public class CFICommands extends MethodCommands {
             });
             if (plot == null) return;
 
-            File folder = new File(PS.imp().getWorldContainer(), plot.getWorldName() + File.separator + "region");
+            File folder = getFolder(plot.getWorldName());
             HeightMapMCAGenerator generator = settings.getGenerator();
             generator.setFolder(folder);
 
             fp.sendMessage(BBC.getPrefix() + "Generating");
             generator.generate();
+            generator.setPacketViewer(null);
+            generator.setImageViewer(null);
             settings.remove();
             fp.sendMessage(BBC.getPrefix() + "Done!");
             TaskManager.IMP.sync(new RunnableVal<Object>() {
@@ -556,6 +567,60 @@ public class CFICommands extends MethodCommands {
     }
 
     @Command(
+            aliases = {"baseid", "bedrockid"},
+            usage = "<block>",
+            desc = "Change the block used for the base\n" +
+                    "e.g. Bedrock"
+    )
+    @CommandPermissions("worldedit.anvil.cfi")
+    public void baseId(FawePlayer fp, BaseBlock block) throws ParameterException, WorldEditException {
+        CFISettings settings = assertSettings(fp);
+        settings.getGenerator().setBedrockId(block.getId());
+        msg("Set base id!").send(fp);
+        settings.resetComponent();
+        component(fp);
+    }
+
+    @Command(
+            aliases = {"thickness", "width", "floorthickness"},
+            usage = "<height>",
+            desc = "Set the thickness of the generated world from the floor\n" +
+                    " - A value of 0 is the default and will only set the top block"
+    )
+    @CommandPermissions("worldedit.anvil.cfi")
+    public void floorthickness(FawePlayer fp, int height) throws ParameterException, WorldEditException {
+        assertSettings(fp).getGenerator().setFloorThickness(height);
+        msg("Set world thickness!").send(fp);
+        component(fp);
+    }
+
+    @Command(
+            aliases = {"update", "refresh", "resend"},
+            desc = "Resend the CFI chunks"
+    )
+    @CommandPermissions("worldedit.anvil.cfi")
+    public void update(FawePlayer fp) throws ParameterException, WorldEditException {
+        assertSettings(fp).getGenerator().update();
+        msg("Chunks refreshed!").send(fp);
+        mainMenu(fp);
+    }
+
+    @Command(
+            aliases = {"tp", "visit", "home"},
+            desc = "Teleport to the CFI virtual world"
+    )
+    @CommandPermissions("worldedit.anvil.cfi")
+    public void tp(FawePlayer fp) throws ParameterException, WorldEditException {
+        HeightMapMCAGenerator gen = assertSettings(fp).getGenerator();
+        msg("Teleporting...").send(fp);
+        Vector origin = gen.getOrigin();
+        Player player = fp.getPlayer();
+        player.setPosition(origin.subtract(16, 0, 16));
+        player.findFreePosition();
+        mainMenu(fp);
+    }
+
+    @Command(
             aliases = {"waterheight", "sealevel", "setwaterheight"},
             usage = "<height>",
             desc = "Set the level water is generated at\n" +
@@ -565,7 +630,7 @@ public class CFICommands extends MethodCommands {
     @CommandPermissions("worldedit.anvil.cfi")
     public void waterheight(FawePlayer fp, int height) throws ParameterException, WorldEditException {
         assertSettings(fp).getGenerator().setWaterHeight(height);
-        msg("Set height!").send(fp);
+        msg("Set water height!").send(fp);
         component(fp);
     }
 
@@ -877,6 +942,8 @@ public class CFICommands extends MethodCommands {
         .newline()
         .text("&7[&aWaterHeight&7]").suggestTip(alias() + " " + alias("waterheight") + " 60").text(" - Sea level for whole map")
         .newline()
+        .text("&7[&aFloorThickness&7]").suggestTip(alias() + " " + alias("floorthickness") + " 60").text(" - Floor thickness of entire map")
+        .newline()
         .text("&7[&aSnow&7]").suggestTip(alias() + " " + alias("snow") + maskArgs).text(" - Set snow in the masked areas")
         .newline();
 
@@ -884,6 +951,7 @@ public class CFICommands extends MethodCommands {
             String disabled = "You must specify a pattern";
             msg
             .text("&7[&cWaterId&7]").tooltip(disabled).newline()
+            .text("&7[&cBedrockId&7]").tooltip(disabled).newline()
             .text("&7[&cFloor&7]").tooltip(disabled).newline()
             .text("&7[&cMain&7]").tooltip(disabled).newline()
             .text("&7[&cColumn&7]").tooltip(disabled).newline()
@@ -894,6 +962,7 @@ public class CFICommands extends MethodCommands {
 
             msg
             .text("&7[&aWaterId&7]").cmdTip(alias() + " waterId " + pattern).text(" - Water id for whole map").newline()
+            .text("&7[&aBedrockId&7]").cmdTip(alias() + " baseId " + pattern).text(" - Bedrock id for whole map").newline()
             .text("&7[&aFloor&7]").cmdTip(alias() + " floor" + compArgs).text(" - Set the floor in the masked areas").newline()
             .text("&7[&aMain&7]").cmdTip(alias() + " main" + compArgs).text(" - Set the main block in the masked areas").newline()
             .text("&7[&aColumn&7]").cmdTip(alias() + " column" + compArgs).text(" - Set the columns in the masked areas").newline()
@@ -1012,8 +1081,14 @@ public class CFICommands extends MethodCommands {
         }
 
         public CFISettings remove() {
-            popMessages(fp);
             fp.deleteMeta("CFISettings");
+            HeightMapMCAGenerator gen = this.generator;
+            if (gen != null) {
+                gen.close();
+                LocalSession session = fp.getSession();
+                session.clearHistory();
+            }
+            popMessages(fp);
             generator = null;
             image = null;
             imageArg = null;

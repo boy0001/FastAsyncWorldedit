@@ -8,6 +8,7 @@ import com.sk89q.worldedit.blocks.BaseBlock;
 import com.sk89q.worldedit.entity.BaseEntity;
 import com.sk89q.worldedit.entity.Player;
 import com.sk89q.worldedit.extent.inventory.BlockBag;
+import com.sk89q.worldedit.internal.LocalWorldAdapter;
 import com.sk89q.worldedit.internal.cui.CUIEvent;
 import com.sk89q.worldedit.session.SessionKey;
 import com.sk89q.worldedit.util.Location;
@@ -20,6 +21,7 @@ public class PlayerProxy extends AbstractPlayerActor {
     private final Actor permActor;
     private final Actor cuiActor;
     private final World world;
+    private Vector offset = Vector.ZERO;
 
     public PlayerProxy(Player basePlayer, Actor permActor, Actor cuiActor, World world) {
         Preconditions.checkNotNull(basePlayer);
@@ -30,6 +32,10 @@ public class PlayerProxy extends AbstractPlayerActor {
         this.permActor = permActor;
         this.cuiActor = cuiActor;
         this.world = world;
+    }
+
+    public void setOffset(Vector position) {
+        this.offset = position;
     }
 
     public UUID getUniqueId() {
@@ -62,11 +68,13 @@ public class PlayerProxy extends AbstractPlayerActor {
     }
 
     public Location getLocation() {
-        return this.basePlayer.getLocation();
+        Location loc = this.basePlayer.getLocation();
+        return new Location(loc.getExtent(), loc.toVector().add(offset), loc.getDirection());
     }
 
     public WorldVector getPosition() {
-        return this.basePlayer.getPosition();
+        WorldVector wv = this.basePlayer.getPosition();
+        return new WorldVector(LocalWorldAdapter.wrap(world), wv.add(offset));
     }
 
     public double getPitch() {

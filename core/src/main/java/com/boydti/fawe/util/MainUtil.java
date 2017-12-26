@@ -946,10 +946,14 @@ public class MainUtil {
             int innerArrayLength = Array.getLength(arr);
             Class component = arr.getClass().getComponentType();
             Object newInnerArray = Array.newInstance(component, innerArrayLength);
-            //copy each elem of the array
-            for (int i = 0; i < innerArrayLength; i++) {
-                Object elem = copyNd(Array.get(arr, i));
-                Array.set(newInnerArray, i, elem);
+            if (component.isPrimitive()) {
+                System.arraycopy(arr, 0, newInnerArray, 0, innerArrayLength);
+            } else {
+                //copy each elem of the array
+                for (int i = 0; i < innerArrayLength; i++) {
+                    Object elem = copyNd(Array.get(arr, i));
+                    Array.set(newInnerArray, i, elem);
+                }
             }
             return newInnerArray;
         } else {

@@ -4,14 +4,23 @@ import com.boydti.fawe.Fawe;
 import com.boydti.fawe.FaweCache;
 import com.boydti.fawe.bukkit.BukkitPlayer;
 import com.boydti.fawe.bukkit.FaweBukkit;
+import com.boydti.fawe.bukkit.v1_12.packet.FaweChunkPacket;
+import com.boydti.fawe.bukkit.v1_12.packet.MCAChunkPacket;
 import com.boydti.fawe.example.CharFaweChunk;
 import com.boydti.fawe.example.NMSMappedFaweQueue;
+import com.boydti.fawe.jnbt.anvil.MCAChunk;
 import com.boydti.fawe.object.FaweChunk;
 import com.boydti.fawe.object.FawePlayer;
 import com.boydti.fawe.object.RunnableVal;
+import com.boydti.fawe.object.queue.LazyFaweChunk;
 import com.boydti.fawe.object.visitor.FaweChunkVisitor;
 import com.boydti.fawe.util.MathMan;
+import com.boydti.fawe.util.ReflectionUtils;
 import com.boydti.fawe.util.TaskManager;
+import com.comphenix.protocol.PacketType;
+import com.comphenix.protocol.ProtocolLibrary;
+import com.comphenix.protocol.ProtocolManager;
+import com.comphenix.protocol.injector.netty.WirePacket;
 import com.sk89q.jnbt.Tag;
 import com.sk89q.worldedit.bukkit.WorldEditPlugin;
 import com.sk89q.worldedit.bukkit.adapter.BukkitImplAdapter;
@@ -36,14 +45,26 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.world.ChunkLoadEvent;
 import org.bukkit.event.world.ChunkUnloadEvent;
 import org.bukkit.event.world.WorldInitEvent;
+import org.bukkit.plugin.Plugin;
 
 public abstract class BukkitQueue_0<CHUNK, CHUNKSECTIONS, SECTION> extends NMSMappedFaweQueue<World, CHUNK, CHUNKSECTIONS, SECTION> implements Listener {
 
+    protected static boolean PAPER = true;
     private static BukkitImplAdapter adapter;
     private static FaweAdapter_All backupAdaper;
     private static Method methodToNative;
     private static Method methodFromNative;
     private static boolean setupAdapter = false;
+    private static Method methodGetHandle;
+
+    static {
+        Class<?> classCraftChunk = ReflectionUtils.getCbClass("CraftChunk");
+        try {
+            methodGetHandle = ReflectionUtils.setAccessible(classCraftChunk.getDeclaredMethod("getHandle"));
+        } catch (NoSuchMethodException e) {
+            e.printStackTrace();
+        }
+    }
 
     public BukkitQueue_0(final com.sk89q.worldedit.world.World world) {
         super(world);
@@ -61,6 +82,86 @@ public abstract class BukkitQueue_0<CHUNK, CHUNKSECTIONS, SECTION> extends NMSMa
             registered = true;
             Bukkit.getServer().getPluginManager().registerEvents(this, ((FaweBukkit) Fawe.imp()).getPlugin());
         }
+    }
+
+    @Override
+    public boolean supports(Capability capability) {
+        switch (capability) {
+            case CHUNK_PACKETS:
+                Plugin plib = Bukkit.getPluginManager().getPlugin("ProtocolLib");
+                return plib != null && plib.isEnabled();
+        }
+        return super.supports(capability);
+    }
+
+    @Override
+    public void sendChunkUpdate(FaweChunk chunk, FawePlayer... players) {
+        if (supports(Capability.CHUNK_PACKETS)) {
+            sendChunkUpdatePLIB(chunk, players);
+        } else {
+            sendBlockUpdate(chunk, players);
+        }
+    }
+
+    public void sendChunkUpdatePLIB(FaweChunk chunk, FawePlayer... players) {
+        ProtocolManager manager = ProtocolLibrary.getProtocolManager();
+        WirePacket packet = null;
+        int viewDistance = Bukkit.getViewDistance();
+        try {
+            for (int i = 0; i < players.length; i++) {
+                int cx = chunk.getX();
+                int cz = chunk.getZ();
+
+                Player player = ((BukkitPlayer) players[i]).parent;
+                Location loc = player.getLocation();
+
+                if (Math.abs((loc.getBlockX() >> 4) - cx) <= viewDistance && Math.abs((loc.getBlockZ() >> 4) - cz) <= viewDistance) {
+                    if (packet == null) {
+                        byte[] data;
+                        byte[] buffer = new byte[8192];
+                        if (chunk instanceof LazyFaweChunk) {
+                            chunk = (FaweChunk) chunk.getChunk();
+                        }
+                        if (chunk instanceof MCAChunk) {
+                            data = new MCAChunkPacket((MCAChunk) chunk, true, true, hasSky()).apply(buffer);
+                        } else {
+                            data = new FaweChunkPacket(chunk, true, true, hasSky()).apply(buffer);
+                        }
+                        packet = new WirePacket(PacketType.Play.Server.MAP_CHUNK, data);
+                    }
+                    manager.sendWirePacket(player, packet);
+                }
+            }
+        } catch (InvocationTargetException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    @Override
+    public boolean queueChunkLoad(int cx, int cz, RunnableVal<CHUNK> operation) {
+        if (PAPER) {
+            try {
+                getImpWorld().getChunkAtAsync(cx, cz, new World.ChunkLoadCallback() {
+                    @Override
+                    public void onLoad(Chunk bukkitChunk) {
+                        try {
+                            CHUNK chunk = (CHUNK) methodGetHandle.invoke(bukkitChunk);
+                            try {
+                                operation.run(chunk);
+                            } catch (Throwable e) {
+                                e.printStackTrace();
+                            }
+                        } catch (Throwable e) {
+                            PAPER = false;
+                        }
+                    }
+                });
+                return true;
+            } catch (Throwable ignore) {
+                PAPER = false;
+            }
+        }
+        return super.queueChunkLoad(cx, cz);
     }
 
     public static BukkitImplAdapter getAdapter() {

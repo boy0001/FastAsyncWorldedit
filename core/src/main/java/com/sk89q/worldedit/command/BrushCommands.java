@@ -474,10 +474,17 @@ public class BrushCommands extends MethodCommands {
         try {
             MultiClipboardHolder clipboards = ClipboardFormat.SCHEMATIC.loadAllFromInput(player, player.getWorld().getWorldData(), clipboard, true);
             if (clipboards == null) {
+                BBC.SCHEMATIC_NOT_FOUND.send(player, clipboard);
                 return null;
             }
+            List<ClipboardHolder> holders = clipboards.getHolders();
+            if (holders == null) {
+                BBC.SCHEMATIC_NOT_FOUND.send(player, clipboard);
+                return null;
+            }
+
             return get(context)
-                    .setBrush(new PopulateSchem(mask, clipboards.getHolders(), (int) density, rotate))
+                    .setBrush(new PopulateSchem(mask, holders, (int) density, rotate))
                     .setSize(radius);
         } catch (IOException e) {
             throw new RuntimeException(e);

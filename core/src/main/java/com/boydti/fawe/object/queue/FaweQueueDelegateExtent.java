@@ -3,7 +3,6 @@ package com.boydti.fawe.object.queue;
 import com.boydti.fawe.FaweCache;
 import com.boydti.fawe.object.FaweQueue;
 import com.boydti.fawe.object.exception.FaweException;
-import com.boydti.fawe.util.DelegateFaweQueue;
 import com.sk89q.jnbt.CompoundTag;
 import com.sk89q.worldedit.MutableBlockVector2D;
 import com.sk89q.worldedit.Vector;

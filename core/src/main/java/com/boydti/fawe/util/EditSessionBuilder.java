@@ -189,6 +189,6 @@ public class EditSessionBuilder {
     }
 
     public EditSession build() {
-        return new EditSession(worldName, world, queue, player, limit, changeSet, allowedRegions, autoQueue, fastmode, checkMemory, combineStages, blockBag, eventBus, event);
+            return new EditSession(worldName, world, queue, player, limit, changeSet, allowedRegions, autoQueue, fastmode, checkMemory, combineStages, blockBag, eventBus, event);
     }
 }

@@ -1,5 +1,6 @@
-package com.boydti.fawe.bukkit.util.image;
+package com.boydti.fawe.bukkit.listener;
 
+import com.boydti.fawe.bukkit.util.image.BukkitImageViewer;
 import com.boydti.fawe.command.CFICommands;
 import com.boydti.fawe.jnbt.anvil.HeightMapMCAGenerator;
 import com.boydti.fawe.object.FawePlayer;
@@ -60,17 +61,21 @@ public class BukkitImageListener implements Listener {
         Iterator<Player> iter = recipients.iterator();
         while (iter.hasNext()) {
             Player player = iter.next();
+            if (player.equals(event.getPlayer())) continue;
+
             FawePlayer<Object> fp = FawePlayer.wrap(player);
+            if (!fp.hasMeta()) continue;
+
             CFICommands.CFISettings settings = fp.getMeta("CFISettings");
-            if (settings != null && settings.hasGenerator()) {
-                String name = player.getName().toLowerCase();
-                if (!event.getMessage().toLowerCase().contains(name)) {
-                    ArrayDeque<String> buffered = fp.getMeta("CFIBufferedMessages");
-                    if (buffered == null) fp.setMeta("CFIBufferedMessaged", buffered = new ArrayDeque<String>());
-                    String full = String.format(event.getFormat(), event.getPlayer().getDisplayName(), event.getMessage());
-                    buffered.add(full);
-                    iter.remove();
-                }
+            if (settings == null || !settings.hasGenerator()) continue;
+
+            String name = player.getName().toLowerCase();
+            if (!event.getMessage().toLowerCase().contains(name)) {
+                ArrayDeque<String> buffered = fp.getMeta("CFIBufferedMessages");
+                if (buffered == null) fp.setMeta("CFIBufferedMessaged", buffered = new ArrayDeque<String>());
+                String full = String.format(event.getFormat(), event.getPlayer().getDisplayName(), event.getMessage());
+                buffered.add(full);
+                iter.remove();
             }
         }
     }
@@ -183,7 +188,7 @@ public class BukkitImageListener implements Listener {
             TaskManager.IMP.laterAsync(new Runnable() {
                 @Override
                 public void run() {
-                    viewer.view(generator.draw());
+                    viewer.view(generator);
                 }
             }, 1);
             return;
@@ -263,7 +268,7 @@ public class BukkitImageListener implements Listener {
                                 e.printStackTrace();
                             }
                             es.flushQueue();
-                            viewer.view(generator.draw());
+                            viewer.view(generator);
                         }
                     }, true, true);
 
@@ -274,11 +279,5 @@ public class BukkitImageListener implements Listener {
                 }
             }
         }
-
-
-
-
-
-
     }
 }

@@ -43,7 +43,7 @@ public class ScalableHeightMap implements com.boydti.fawe.object.brush.heightmap
         if (d2 > size2) {
             return 0;
         }
-        return size - MathMan.sqrtApprox(d2);
+        return Math.max(0, size - MathMan.sqrtApprox(d2));
     }
 
     public static ScalableHeightMap fromShape(Shape shape) {

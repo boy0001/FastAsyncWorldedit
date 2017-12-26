@@ -21,6 +21,10 @@ public class Metadatable {
         return (T) this.meta.put(key, value);
     }
 
+    public boolean hasMeta() {
+        return !meta.isEmpty();
+    }
+
     /**
      * Get the metadata for a key.
      *

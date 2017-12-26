@@ -62,7 +62,11 @@ public abstract class IterableThreadLocal<T> extends ThreadLocal<T> implements I
                             methodRemove = tlm.getClass().getDeclaredMethod("remove", ThreadLocal.class);
                             methodRemove.setAccessible(true);
                         }
-                        methodRemove.invoke(tlm, instance);
+                        if (methodRemove != null) {
+                            try {
+                                methodRemove.invoke(tlm, instance);
+                            } catch (Throwable ignore) {}
+                        }
                     }
                 }
             }

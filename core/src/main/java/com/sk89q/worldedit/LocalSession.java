@@ -190,6 +190,7 @@ public class LocalSession {
         if (Settings.IMP.HISTORY.USE_DISK) {
             MAX_HISTORY_SIZE = Integer.MAX_VALUE;
         }
+        world = WorldWrapper.unwrap(world);
         if (!world.equals(currentWorld)) {
             this.uuid = uuid;
             // Save history
@@ -354,6 +355,7 @@ public class LocalSession {
         history.clear();
         historyNegativeIndex = 0;
         historySize = 0;
+        currentWorld = null;
     }
 
     /**
@@ -440,7 +442,7 @@ public class LocalSession {
             return;
         }
         // Don't store anything if no changes were made
-        if (editSession.size() == 0 || editSession.hasFastMode()) {
+        if (editSession.size() == 0) {
             return;
         }
         FaweChangeSet changeSet = (FaweChangeSet) editSession.getChangeSet();
@@ -510,10 +512,10 @@ public class LocalSession {
      */
     public EditSession undo(@Nullable BlockBag newBlockBag, Player player) {
         checkNotNull(player);
-        loadSessionHistoryFromDisk(player.getUniqueId(), player.getWorld());
+        FawePlayer fp = FawePlayer.wrap(player);
+        loadSessionHistoryFromDisk(player.getUniqueId(), fp.getWorldForEditing());
         if (getHistoryNegativeIndex() < history.size()) {
             FaweChangeSet changeSet = getChangeSet(history.get(getHistoryIndex()));
-            final FawePlayer fp = FawePlayer.wrap(player);
             EditSession newEditSession = new EditSessionBuilder(changeSet.getWorld())
                     .allowedRegionsEverywhere()
                     .checkMemory(false)
@@ -557,12 +559,12 @@ public class LocalSession {
      */
     public EditSession redo(@Nullable BlockBag newBlockBag, Player player) {
         checkNotNull(player);
-        loadSessionHistoryFromDisk(player.getUniqueId(), player.getWorld());
+        FawePlayer fp = FawePlayer.wrap(player);
+        loadSessionHistoryFromDisk(player.getUniqueId(), fp.getWorldForEditing());
         if (getHistoryNegativeIndex() > 0) {
             setDirty();
             historyNegativeIndex--;
             FaweChangeSet changeSet = getChangeSet(history.get(getHistoryIndex()));
-            final FawePlayer fp = FawePlayer.wrap(player);
             EditSession newEditSession = new EditSessionBuilder(changeSet.getWorld())
                     .allowedRegionsEverywhere()
                     .checkMemory(false)
@@ -1288,11 +1290,15 @@ public class LocalSession {
 
         BlockBag blockBag = getBlockBag(player);
 
-        // Create an edit session
-        EditSession editSession = WorldEdit.getInstance().getEditSessionFactory()
-                .getEditSession(player.isPlayer() ? player.getWorld() : null,
-                        getBlockChangeLimit(), blockBag, player);
-        editSession.setFastMode(fastMode);
+        World world = player.getWorld();
+        boolean isPlayer = player.isPlayer();
+        EditSessionBuilder builder = new EditSessionBuilder(world);
+        if (player.isPlayer()) builder.player(FawePlayer.wrap(player));
+        builder.blockBag(blockBag);
+        builder.fastmode(fastMode);
+
+        EditSession editSession = builder.build();
+
         Request.request().setEditSession(editSession);
         if (mask != null) {
             editSession.setMask(mask);

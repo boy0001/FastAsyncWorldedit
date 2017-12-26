@@ -25,6 +25,7 @@ import com.boydti.fawe.FaweCache;
 import com.boydti.fawe.config.BBC;
 import com.boydti.fawe.config.Settings;
 import com.boydti.fawe.example.MappedFaweQueue;
+import com.boydti.fawe.jnbt.anvil.HeightMapMCAGenerator;
 import com.boydti.fawe.jnbt.anvil.MCAQueue;
 import com.boydti.fawe.jnbt.anvil.MCAWorld;
 import com.boydti.fawe.logging.LoggingChangeSet;
@@ -48,7 +49,6 @@ import com.boydti.fawe.object.exception.FaweException;
 import com.boydti.fawe.object.extent.FastWorldEditExtent;
 import com.boydti.fawe.object.extent.FaweRegionExtent;
 import com.boydti.fawe.object.extent.HeightBoundExtent;
-import com.boydti.fawe.object.extent.LightingExtent;
 import com.boydti.fawe.object.extent.MultiRegionExtent;
 import com.boydti.fawe.object.extent.NullExtent;
 import com.boydti.fawe.object.extent.ProcessedWEExtent;
@@ -102,7 +102,6 @@ import com.sk89q.worldedit.function.mask.NoiseFilter2D;
 import com.sk89q.worldedit.function.mask.RegionMask;
 import com.sk89q.worldedit.function.operation.ChangeSetExecutor;
 import com.sk89q.worldedit.function.operation.ForwardExtentCopy;
-import com.sk89q.worldedit.function.operation.Operation;
 import com.sk89q.worldedit.function.operation.Operations;
 import com.sk89q.worldedit.function.pattern.BlockPattern;
 import com.sk89q.worldedit.function.util.RegionOffset;
@@ -137,7 +136,7 @@ import com.sk89q.worldedit.regions.shape.WorldEditExpressionEnvironment;
 import com.sk89q.worldedit.util.Countable;
 import com.sk89q.worldedit.util.TreeGenerator;
 import com.sk89q.worldedit.util.eventbus.EventBus;
-import com.sk89q.worldedit.world.AbstractWorld;
+import com.sk89q.worldedit.world.SimpleWorld;
 import com.sk89q.worldedit.world.World;
 import com.sk89q.worldedit.world.biome.BaseBiome;
 import com.sk89q.worldedit.world.registry.WorldData;
@@ -168,7 +167,7 @@ import static com.sk89q.worldedit.regions.Regions.minimumBlockY;
  * {@link Extent}s that are chained together. For example, history is logged
  * using the {@link ChangeSetExtent}.</p>
  */
-public class EditSession extends AbstractWorld implements HasFaweQueue, LightingExtent {
+public class EditSession extends AbstractDelegateExtent implements HasFaweQueue, SimpleWorld {
     /**
      * Used by {@link #setBlock(Vector, BaseBlock, Stage)} to
      * determine which {@link Extent}s should be bypassed.
@@ -181,6 +180,7 @@ public class EditSession extends AbstractWorld implements HasFaweQueue, Lighting
     private String worldName;
     private FaweQueue queue;
     private boolean wrapped;
+    private boolean fastMode;
     private AbstractDelegateExtent extent;
     private HistoryExtent history;
     private AbstractDelegateExtent bypassHistory;
@@ -214,9 +214,10 @@ public class EditSession extends AbstractWorld implements HasFaweQueue, Lighting
     }
 
     public EditSession(@Nullable String worldName, @Nullable World world, @Nullable FaweQueue queue, @Nullable FawePlayer player, @Nullable FaweLimit limit, @Nullable FaweChangeSet changeSet, @Nullable RegionWrapper[] allowedRegions, @Nullable Boolean autoQueue, @Nullable Boolean fastmode, @Nullable Boolean checkMemory, @Nullable Boolean combineStages, @Nullable BlockBag blockBag, @Nullable EventBus bus, @Nullable EditSessionEvent event) {
+        super(world);
         this.worldName = worldName == null ? world == null ? queue == null ? "" : queue.getWorldName() : Fawe.imp().getWorldName(world) : worldName;
         if (world == null && this.worldName != null) world = FaweAPI.getWorld(this.worldName);
-        this.world = world = WorldWrapper.wrap((AbstractWorld) world);
+        this.world = world = WorldWrapper.wrap(world);
         if (bus == null) {
             bus = WorldEdit.getInstance().getEventBus();
         }
@@ -235,11 +236,6 @@ public class EditSession extends AbstractWorld implements HasFaweQueue, Lighting
                 limit = player.getLimit();
             }
         }
-        if (allowedRegions == null) {
-            if (player != null && !player.hasWorldEditBypass()) {
-                allowedRegions = player.getCurrentRegions();
-            }
-        }
         if (autoQueue == null) {
             autoQueue = true;
         }
@@ -250,8 +246,9 @@ public class EditSession extends AbstractWorld implements HasFaweQueue, Lighting
                 fastmode = player.getSession().hasFastMode();
             }
         }
+        this.fastMode = fastmode;
         if (checkMemory == null) {
-            checkMemory = player != null && !fastmode;
+            checkMemory = player != null && !this.fastMode;
         }
         if (checkMemory) {
             if (MemUtil.isMemoryLimitedSlow()) {
@@ -264,21 +261,30 @@ public class EditSession extends AbstractWorld implements HasFaweQueue, Lighting
         this.originalLimit = limit;
         this.blockBag = limit.INVENTORY_MODE != 0 ? blockBag : null;
         this.limit = limit.copy();
+
         if (queue == null) {
-            if (world instanceof MCAWorld) {
-                queue = ((MCAWorld) world).getQueue();
+            boolean placeChunks = this.fastMode || this.limit.FAST_PLACEMENT;
+            World unwrapped = WorldWrapper.unwrap(world);
+            if (unwrapped instanceof FaweQueue) {
+                queue = (FaweQueue) unwrapped;
+            } else if (unwrapped instanceof MCAWorld) {
+                queue = ((MCAWorld) unwrapped).getQueue();
+            } else if (player != null && world.equals(player.getWorld())) {
+                queue = player.getFaweQueue(placeChunks, autoQueue);
             } else {
-                queue = SetQueue.IMP.getNewQueue(this, fastmode || this.limit.FAST_PLACEMENT, autoQueue);
+                queue = SetQueue.IMP.getNewQueue(world, placeChunks, autoQueue);
             }
         }
         if (combineStages == null) {
-            combineStages = Settings.IMP.HISTORY.COMBINE_STAGES && !(queue instanceof MCAQueue);
-        }
-        if (!this.limit.FAST_PLACEMENT || !queue.supportsChangeTask()) {
-            combineStages = false;
-        }
-        if (this.blockBag != null) {
-            combineStages = false;
+            combineStages =
+                    // If it's enabled in the settings
+                    Settings.IMP.HISTORY.COMBINE_STAGES
+                    // If fast placement is disabled, it's slower to perform a copy on each chunk
+                    && this.limit.FAST_PLACEMENT
+                    // If the specific queue doesn't support it
+                    && queue.supports(FaweQueue.Capability.CHANGE_TASKS)
+                    // If the edit uses items from the inventory we can't use a delayed task
+                    && this.blockBag == null;
         }
         if (Settings.IMP.EXPERIMENTAL.ANVIL_QUEUE_MODE && !(queue instanceof MCAQueue)) {
             queue = new MCAQueue(queue);
@@ -298,7 +304,7 @@ public class EditSession extends AbstractWorld implements HasFaweQueue, Lighting
         }
         this.bypassAll = wrapExtent(new FastWorldEditExtent(world, queue), bus, event, Stage.BEFORE_CHANGE);
         this.bypassHistory = (this.extent = wrapExtent(bypassAll, bus, event, Stage.BEFORE_REORDER));
-        if (!fastmode || changeSet != null) {
+        if (!this.fastMode || changeSet != null) {
             if (changeSet == null) {
                 if (Settings.IMP.HISTORY.USE_DISK) {
                     UUID uuid = player == null ? CONSOLE : player.getUUID();
@@ -337,6 +343,11 @@ public class EditSession extends AbstractWorld implements HasFaweQueue, Lighting
                 }
             }
         }
+        if (allowedRegions == null) {
+            if (player != null && !player.hasWorldEditBypass() && !(queue instanceof HeightMapMCAGenerator)) {
+                allowedRegions = player.getCurrentRegions();
+            }
+        }
         this.maxY = getWorld() == null ? 255 : world.getMaxY();
         if (allowedRegions != null) {
             if (allowedRegions.length == 0) {
@@ -354,6 +365,7 @@ public class EditSession extends AbstractWorld implements HasFaweQueue, Lighting
             this.extent = new HeightBoundExtent(this.extent, this.limit, 0, maxY);
         }
         this.extent = wrapExtent(this.extent, bus, event, Stage.BEFORE_HISTORY);
+        setExtent(this.extent);
     }
 
     /**
@@ -603,11 +615,21 @@ public class EditSession extends AbstractWorld implements HasFaweQueue, Lighting
      * @return the change set
      */
     public ChangeSet getChangeSet() {
-        return history != null ? history.getChangeSet() : changeTask;
+        return changeTask != null ? changeTask : history != null ? history.getChangeSet() : null;
     }
 
     public FaweChangeSet getChangeTask() {
         return changeTask;
+    }
+
+    /**
+     * Set the ChangeSet without hooking into any recording mechanism or triggering any actions.<br/>
+     * Used internally to set the ChangeSet during completion to record custom changes which aren't normally recorded
+     * @param set
+     */
+    public void setRawChangeSet(@Nullable FaweChangeSet set) {
+        changeTask = set;
+        changes++;
     }
 
     /**
@@ -819,6 +841,7 @@ public class EditSession extends AbstractWorld implements HasFaweQueue, Lighting
      * @param enabled true to enable
      */
     public void setFastMode(final boolean enabled) {
+        this.fastMode = enabled;
         disableHistory(enabled);
     }
 
@@ -1150,6 +1173,17 @@ public class EditSession extends AbstractWorld implements HasFaweQueue, Lighting
         }
     }
 
+    @Override
+    public boolean setBlock(Vector position, BaseBlock block) throws MaxChangedBlocksException {
+        try {
+            return setBlock(position, block, Stage.BEFORE_HISTORY);
+        } catch (MaxChangedBlocksException e) {
+            throw e;
+        } catch (WorldEditException e) {
+            throw new RuntimeException("Unexpected exception", e);
+        }
+    }
+
     public boolean setBlock(int x, int y, int z, BaseBlock block) {
         this.changes++;
         try {
@@ -1365,13 +1399,6 @@ public class EditSession extends AbstractWorld implements HasFaweQueue, Lighting
                 ((FaweChangeSet) getChangeSet()).close();
             }
         }
-    }
-
-    @Override
-    public
-    @Nullable
-    Operation commit() {
-        return null;
     }
 
     /**

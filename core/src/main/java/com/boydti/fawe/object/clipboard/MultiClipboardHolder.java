@@ -107,7 +107,7 @@ public class MultiClipboardHolder extends URIClipboardHolder {
     @Override
     public List<ClipboardHolder> getHolders() {
         ArrayList<ClipboardHolder> holders = new ArrayList<>();
-        for (ClipboardHolder holder : holders) {
+        for (ClipboardHolder holder : this.holders) {
             holders.addAll(holder.getHolders());
         }
         return holders;

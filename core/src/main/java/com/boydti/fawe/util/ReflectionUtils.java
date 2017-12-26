@@ -345,9 +345,14 @@ public class ReflectionUtils {
         return null;
     }
 
-    private static Method[] sortMethods(Method[] methods) {
+    public static Method[] sortMethods(Method[] methods) {
         Arrays.sort(methods, (o1, o2) -> o1.getName().compareTo(o2.getName()));
         return methods;
+    }
+
+    public static Field[] sortFields(Field[] fields) {
+        Arrays.sort(fields, (o1, o2) -> o1.getName().compareTo(o2.getName()));
+        return fields;
     }
 
     public static Method findMethod(final Class<?> clazz, int index, final Class<?> returnType, Class... params) {

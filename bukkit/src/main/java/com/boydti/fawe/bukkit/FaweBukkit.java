@@ -4,6 +4,7 @@ import com.boydti.fawe.Fawe;
 import com.boydti.fawe.IFawe;
 import com.boydti.fawe.bukkit.chat.BukkitChatManager;
 import com.boydti.fawe.bukkit.listener.BrushListener;
+import com.boydti.fawe.bukkit.listener.CFIPacketListener;
 import com.boydti.fawe.bukkit.listener.RenderListener;
 import com.boydti.fawe.bukkit.regions.FactionsFeature;
 import com.boydti.fawe.bukkit.regions.FactionsOneFeature;
@@ -19,7 +20,7 @@ import com.boydti.fawe.bukkit.util.ItemUtil;
 import com.boydti.fawe.bukkit.util.VaultUtil;
 import com.boydti.fawe.bukkit.util.cui.CUIListener;
 import com.boydti.fawe.bukkit.util.cui.StructureCUI;
-import com.boydti.fawe.bukkit.util.image.BukkitImageListener;
+import com.boydti.fawe.bukkit.listener.BukkitImageListener;
 import com.boydti.fawe.bukkit.util.image.BukkitImageViewer;
 import com.boydti.fawe.bukkit.v0.BukkitQueue_0;
 import com.boydti.fawe.bukkit.v0.BukkitQueue_All;
@@ -80,6 +81,7 @@ public class FaweBukkit implements IFawe, Listener {
 
     private boolean listeningImages;
     private BukkitImageListener imageListener;
+    private CFIPacketListener packetListener;
 
     private boolean listeningCui;
     private CUIListener cuiListener;
@@ -136,10 +138,15 @@ public class FaweBukkit implements IFawe, Listener {
             MainUtil.handleError(e);
             Bukkit.getServer().shutdown();
         }
+
+        // Registered delayed Event Listeners
         TaskManager.IMP.task(new Runnable() {
             @Override
             public void run() {
+                // This class
                 Bukkit.getPluginManager().registerEvents(FaweBukkit.this, FaweBukkit.this.plugin);
+
+                // The tick limiter
                 new ChunkListener();
             }
         });
@@ -169,6 +176,10 @@ public class FaweBukkit implements IFawe, Listener {
         try {
             listeningImages = true;
             PluginManager manager = Bukkit.getPluginManager();
+            if (manager.getPlugin("ProtocolLib") != null) {
+                packetListener = new CFIPacketListener(plugin);
+            }
+
             if (manager.getPlugin("PacketListenerApi") == null) {
                 File output = new File(plugin.getDataFolder().getParentFile(), "PacketListenerAPI_v3.6.0-SNAPSHOT.jar");
                 byte[] jarData = Jars.PL_v3_6_0.download();

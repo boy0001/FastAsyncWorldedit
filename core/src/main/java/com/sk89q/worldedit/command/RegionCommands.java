@@ -30,7 +30,6 @@ import com.boydti.fawe.object.RegionWrapper;
 import com.boydti.fawe.object.exception.FaweException;
 import com.boydti.fawe.object.visitor.Fast2DIterator;
 import com.boydti.fawe.util.MathMan;
-import com.boydti.fawe.util.SetQueue;
 import com.sk89q.jnbt.CompoundTag;
 import com.sk89q.minecraft.util.commands.Command;
 import com.sk89q.minecraft.util.commands.CommandContext;
@@ -138,7 +137,7 @@ public class RegionCommands extends MethodCommands {
     public void getlighting(Player player) throws WorldEditException {
         FawePlayer fp = FawePlayer.wrap(player);
         final FaweLocation loc = fp.getLocation();
-        FaweQueue queue = SetQueue.IMP.getNewQueue(loc.world, true, false);
+        FaweQueue queue = fp.getFaweQueue(false);
         fp.sendMessage("Light: " + queue.getEmmittedLight(loc.x, loc.y, loc.z) + " | " + queue.getSkyLight(loc.x, loc.y, loc.z));
     }
 
@@ -193,7 +192,7 @@ public class RegionCommands extends MethodCommands {
         final FaweLocation loc = fp.getLocation();
         final int cx = loc.x >> 4;
         final int cz = loc.z >> 4;
-        final NMSMappedFaweQueue queue = (NMSMappedFaweQueue) SetQueue.IMP.getNewQueue(fp.getWorld(), true, false);
+        final NMSMappedFaweQueue queue = (NMSMappedFaweQueue) fp.getFaweQueue(false);
         for (Vector pt : region) {
             queue.setBlockLight((int) pt.getX(), (int) pt.getY(), (int) pt.getZ(), value);
         }
@@ -217,7 +216,7 @@ public class RegionCommands extends MethodCommands {
         final FaweLocation loc = fp.getLocation();
         final int cx = loc.x >> 4;
         final int cz = loc.z >> 4;
-        final NMSMappedFaweQueue queue = (NMSMappedFaweQueue) SetQueue.IMP.getNewQueue(fp.getWorld(), true, false);
+        final NMSMappedFaweQueue queue = (NMSMappedFaweQueue) fp.getFaweQueue(false);
         for (Vector pt : region) {
             queue.setSkyLight((int) pt.getX(), (int) pt.getY(), (int) pt.getZ(), value);
         }

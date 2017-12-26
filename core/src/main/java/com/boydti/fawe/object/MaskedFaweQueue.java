@@ -4,7 +4,7 @@ import com.boydti.fawe.object.extent.FaweRegionExtent;
 import com.boydti.fawe.object.extent.HeightBoundExtent;
 import com.boydti.fawe.object.extent.MultiRegionExtent;
 import com.boydti.fawe.object.extent.SingleRegionExtent;
-import com.boydti.fawe.util.DelegateFaweQueue;
+import com.boydti.fawe.object.queue.DelegateFaweQueue;
 import com.sk89q.jnbt.CompoundTag;
 import com.sk89q.worldedit.Vector;
 import com.sk89q.worldedit.Vector2D;

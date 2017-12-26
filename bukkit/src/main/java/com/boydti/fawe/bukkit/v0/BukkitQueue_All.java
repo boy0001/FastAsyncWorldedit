@@ -30,7 +30,6 @@ import org.bukkit.block.Biome;
 public class BukkitQueue_All extends BukkitQueue_0<ChunkSnapshot, ChunkSnapshot, ChunkSnapshot> {
 
     public static int ALLOCATE;
-    private static int LIGHT_MASK = 0x739C0;
     private ConcurrentMap<Long, ChunkSnapshot> chunkCache = new MapMaker()
             .weakValues()
             .makeMap();
@@ -51,6 +50,29 @@ public class BukkitQueue_All extends BukkitQueue_0<ChunkSnapshot, ChunkSnapshot,
             Settings.IMP.QUEUE.EXTRA_TIME_MS = Integer.MIN_VALUE;
             Settings.IMP.QUEUE.PARALLEL_THREADS = 1;
         }
+    }
+
+    @Override
+    public boolean queueChunkLoad(int cx, int cz, RunnableVal<ChunkSnapshot> operation) {
+        if (PAPER) {
+            try {
+                getImpWorld().getChunkAtAsync(cx, cz, new World.ChunkLoadCallback() {
+                    @Override
+                    public void onLoad(Chunk chunk) {
+                        try {
+                            ChunkSnapshot snapshot = chunk.getChunkSnapshot();
+                            operation.run(snapshot);
+                        } catch (Throwable e) {
+                            e.printStackTrace();
+                        }
+                    }
+                });
+                return true;
+            } catch (Throwable ignore) {
+                PAPER = false;
+            }
+        }
+        return super.queueChunkLoad(cx, cz);
     }
 
     @Override
@@ -307,8 +329,11 @@ public class BukkitQueue_All extends BukkitQueue_0<ChunkSnapshot, ChunkSnapshot,
     }
 
     @Override
-    public boolean supportsChangeTask() {
-        return getAdapter() != null;
+    public boolean supports(Capability capability) {
+        switch (capability) {
+            case CHANGE_TASKS: return getAdapter() != null;
+        }
+        return super.supports(capability);
     }
 
     private int skip;

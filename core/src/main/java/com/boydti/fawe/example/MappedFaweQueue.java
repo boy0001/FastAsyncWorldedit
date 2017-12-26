@@ -1,12 +1,14 @@
 package com.boydti.fawe.example;
 
 import com.boydti.fawe.Fawe;
+import com.boydti.fawe.FaweAPI;
 import com.boydti.fawe.FaweCache;
 import com.boydti.fawe.config.Settings;
 import com.boydti.fawe.object.FaweChunk;
 import com.boydti.fawe.object.FaweQueue;
 import com.boydti.fawe.object.IntegerPair;
 import com.boydti.fawe.object.RunnableVal;
+import com.boydti.fawe.object.RunnableVal2;
 import com.boydti.fawe.object.exception.FaweException;
 import com.boydti.fawe.object.extent.LightingExtent;
 import com.boydti.fawe.util.MainUtil;
@@ -14,17 +16,20 @@ import com.boydti.fawe.util.MathMan;
 import com.boydti.fawe.util.SetQueue;
 import com.boydti.fawe.util.TaskManager;
 import com.sk89q.jnbt.CompoundTag;
+import com.sk89q.worldedit.EditSession;
 import com.sk89q.worldedit.blocks.BlockMaterial;
 import com.sk89q.worldedit.world.World;
 import com.sk89q.worldedit.world.biome.BaseBiome;
 import com.sk89q.worldedit.world.registry.BundledBlockData;
 import java.util.ArrayDeque;
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.UUID;
+import java.util.concurrent.ConcurrentLinkedDeque;
 import java.util.concurrent.ForkJoinPool;
 import java.util.concurrent.TimeUnit;
 
-public abstract class MappedFaweQueue<WORLD, CHUNK, CHUNKSECTIONS, SECTION> extends FaweQueue implements LightingExtent {
+public abstract class MappedFaweQueue<WORLD, CHUNK, CHUNKSECTIONS, SECTION> implements LightingExtent, FaweQueue {
 
     private WORLD impWorld;
 
@@ -36,6 +41,17 @@ public abstract class MappedFaweQueue<WORLD, CHUNK, CHUNKSECTIONS, SECTION> exte
     public CHUNK lastChunk;
     public CHUNKSECTIONS lastChunkSections;
     public SECTION lastSection;
+
+
+    private World weWorld;
+    private String world;
+    private ConcurrentLinkedDeque<EditSession> sessions;
+    private long modified = System.currentTimeMillis();
+    private RunnableVal2<FaweChunk, FaweChunk> changeTask;
+    private RunnableVal2<ProgressType, Integer> progressTask;
+    private SetQueue.QueueStage stage;
+    private Settings settings = Settings.IMP;
+    public ConcurrentLinkedDeque<Runnable> tasks = new ConcurrentLinkedDeque<>();
 
     private CHUNK cachedLoadChunk;
     public final RunnableVal<IntegerPair> loadChunk = new RunnableVal<IntegerPair>() {
@@ -55,12 +71,12 @@ public abstract class MappedFaweQueue<WORLD, CHUNK, CHUNKSECTIONS, SECTION> exte
     }
 
     public MappedFaweQueue(final String world) {
-        super(world);
+        this.world = world;
         map = Settings.IMP.PREVENT_CRASHES ? new WeakFaweQueueMap(this) : new DefaultFaweQueueMap(this);
     }
 
     public MappedFaweQueue(final String world, IFaweQueueMap map) {
-        super(world);
+        this.world = world;
         if (map == null) {
             map = Settings.IMP.PREVENT_CRASHES ? new WeakFaweQueueMap(this) : new DefaultFaweQueueMap(this);
         }
@@ -68,11 +84,17 @@ public abstract class MappedFaweQueue<WORLD, CHUNK, CHUNKSECTIONS, SECTION> exte
     }
 
     public MappedFaweQueue(final World world, IFaweQueueMap map) {
-        super(world);
+        this.weWorld = world;
+        if (world != null) this.world = Fawe.imp().getWorldName(world);
         if (map == null) {
             map = Settings.IMP.PREVENT_CRASHES ? new WeakFaweQueueMap(this) : new DefaultFaweQueueMap(this);
         }
         this.map = map;
+    }
+
+    @Override
+    public int getMaxY() {
+        return weWorld == null ? 255 : weWorld.getMaxY();
     }
 
     public IFaweQueueMap getFaweQueueMap() {
@@ -212,7 +234,26 @@ public abstract class MappedFaweQueue<WORLD, CHUNK, CHUNKSECTIONS, SECTION> exte
 
     @Override
     public void runTasks() {
-        super.runTasks();
+        synchronized (this) {
+            this.notifyAll();
+        }
+        if (getProgressTask() != null) {
+            try {
+                getProgressTask().run(ProgressType.DONE, 1);
+            } catch (Throwable e) {
+                e.printStackTrace();
+            }
+        }
+        while (!tasks.isEmpty()) {
+            Runnable task = tasks.poll();
+            if (task != null) {
+                try {
+                    task.run();
+                } catch (Throwable e) {
+                    MainUtil.handleError(e);
+                }
+            }
+        }
         if (getProgressTask() != null) {
             try {
                 getProgressTask().run(ProgressType.DONE, 1);
@@ -229,6 +270,94 @@ public abstract class MappedFaweQueue<WORLD, CHUNK, CHUNKSECTIONS, SECTION> exte
                 MainUtil.handleError(e);
             }
         }
+    }
+
+    public Settings getSettings() {
+        return settings;
+    }
+
+    public void setSettings(Settings settings) {
+        this.settings = settings == null ? Settings.IMP : settings;
+    }
+
+    public void setWorld(String world) {
+        this.world = world;
+        this.weWorld = null;
+    }
+
+    public World getWEWorld() {
+        return weWorld != null ? weWorld : (weWorld = FaweAPI.getWorld(world));
+    }
+
+    public String getWorldName() {
+        return world;
+    }
+
+    @Override
+    public Collection<EditSession> getEditSessions() {
+        Collection<EditSession> tmp = sessions;
+        if (tmp == null) tmp = new HashSet<>();
+        return tmp;
+    }
+
+    @Override
+    public void addEditSession(EditSession session) {
+        ConcurrentLinkedDeque<EditSession> tmp = sessions;
+        if (tmp == null) tmp = new ConcurrentLinkedDeque<>();
+        tmp.add(session);
+        this.sessions = tmp;
+    }
+
+    @Override
+    public boolean supports(Capability capability) {
+        switch (capability) {
+            case CHANGE_TASKS: return true;
+        }
+        return false;
+    }
+
+    public void setSessions(ConcurrentLinkedDeque<EditSession> sessions) {
+        this.sessions = sessions;
+    }
+
+    public long getModified() {
+        return modified;
+    }
+
+    public void setModified(long modified) {
+        this.modified = modified;
+    }
+
+    public RunnableVal2<ProgressType, Integer> getProgressTask() {
+        return progressTask;
+    }
+
+    public void setProgressTask(RunnableVal2<ProgressType, Integer> progressTask) {
+        this.progressTask = progressTask;
+    }
+
+    public void setChangeTask(RunnableVal2<FaweChunk, FaweChunk> changeTask) {
+        this.changeTask = changeTask;
+    }
+
+    public RunnableVal2<FaweChunk, FaweChunk> getChangeTask() {
+        return changeTask;
+    }
+
+    public SetQueue.QueueStage getStage() {
+        return stage;
+    }
+
+    public void setStage(SetQueue.QueueStage stage) {
+        this.stage = stage;
+    }
+
+    public void addNotifyTask(Runnable runnable) {
+        this.tasks.add(runnable);
+    }
+
+    public void addTask(Runnable whenFree) {
+        tasks.add(whenFree);
     }
 
     @Override
@@ -261,6 +390,15 @@ public abstract class MappedFaweQueue<WORLD, CHUNK, CHUNKSECTIONS, SECTION> exte
     }
 
     public abstract int getCombinedId4Data(SECTION section, int x, int y, int z);
+
+    public int getLocalCombinedId4Data(CHUNK chunk, int x, int y, int z) {
+        CHUNKSECTIONS sections = getSections(lastChunk);
+        SECTION section = getCachedSection(sections, y >> 4);
+        if (section == null) {
+            return 0;
+        }
+        return getCombinedId4Data(lastSection, x, y, z);
+    }
 
     public abstract int getBiome(CHUNK chunk, int x, int z);
 
@@ -295,6 +433,23 @@ public abstract class MappedFaweQueue<WORLD, CHUNK, CHUNKSECTIONS, SECTION> exte
                 }
             });
             return true;
+        }
+        return false;
+    }
+
+    public boolean queueChunkLoad(final int cx, final int cz, RunnableVal<CHUNK> operation) {
+        operation.value = getCachedChunk(getWorld(), cx, cz);
+        if (operation.value == null) {
+            SetQueue.IMP.addTask(new Runnable() {
+                @Override
+                public void run() {
+                    operation.value = loadChunk(getWorld(), cx, cz, true);
+                    if (operation.value != null) TaskManager.IMP.async(operation);
+                }
+            });
+            return true;
+        } else {
+            TaskManager.IMP.async(operation);
         }
         return false;
     }

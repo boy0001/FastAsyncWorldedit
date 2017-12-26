@@ -20,13 +20,14 @@ public class MaskedTargetBlock extends TargetBlock {
         boolean searchForLastBlock = true;
         BlockWorldVector lastBlock = null;
         while (getNextBlock() != null) {
-            if (!mask.test(getCurrentBlock())) {
+            BlockWorldVector current = getCurrentBlock();
+            if (!mask.test(current)) {
                 if (searchForLastBlock) {
-                    lastBlock = getCurrentBlock();
+                    lastBlock = current;
                     if (lastBlock.getBlockY() <= 0 || lastBlock.getBlockY() >= world.getMaxY()) {
                         searchForLastBlock = false;
                     }
-                }
+                } else if (current.getBlockY() <= 0) break;
             } else {
                 break;
             }

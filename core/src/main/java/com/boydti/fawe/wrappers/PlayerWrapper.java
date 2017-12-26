@@ -3,15 +3,14 @@ package com.boydti.fawe.wrappers;
 import com.boydti.fawe.Fawe;
 import com.boydti.fawe.object.FawePlayer;
 import com.boydti.fawe.object.RunnableVal;
+import com.boydti.fawe.util.EditSessionBuilder;
 import com.boydti.fawe.util.TaskManager;
 import com.sk89q.worldedit.BlockWorldVector;
 import com.sk89q.worldedit.EditSession;
-import com.sk89q.worldedit.EditSessionFactory;
 import com.sk89q.worldedit.LocalSession;
 import com.sk89q.worldedit.LocalWorld;
 import com.sk89q.worldedit.PlayerDirection;
 import com.sk89q.worldedit.Vector;
-import com.sk89q.worldedit.WorldEdit;
 import com.sk89q.worldedit.WorldEditException;
 import com.sk89q.worldedit.WorldVector;
 import com.sk89q.worldedit.WorldVectorFace;
@@ -200,10 +199,9 @@ public class PlayerWrapper extends AbstractPlayerActor {
 
     @Override
     public void floatAt(final int x, final int y, final int z, final boolean alwaysGlass) {
-        EditSessionFactory factory = WorldEdit.getInstance().getEditSessionFactory();
         RuntimeException caught = null;
         try {
-            final EditSession edit = factory.getEditSession(parent.getWorld(), -1, null, this);
+            EditSession edit = new EditSessionBuilder(parent.getWorld()).player(FawePlayer.wrap(this)).build();
             edit.setBlockFast(new Vector(x, y - 1, z), new BaseBlock(BlockType.GLASS.getID()));
             edit.flushQueue();
             LocalSession session = Fawe.get().getWorldEdit().getSession(this);

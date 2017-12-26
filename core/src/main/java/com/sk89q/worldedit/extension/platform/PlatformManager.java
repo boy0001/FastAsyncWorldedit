@@ -53,7 +53,6 @@ import com.sk89q.worldedit.session.request.Request;
 import com.sk89q.worldedit.util.Location;
 import com.sk89q.worldedit.util.eventbus.Subscribe;
 import com.sk89q.worldedit.world.World;
-import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.EnumMap;
@@ -277,24 +276,8 @@ public class PlatformManager {
 
         if (base instanceof Player) {
             Player player = (Player) base;
-
-            Player permActor = queryCapability(Capability.PERMISSIONS).matchPlayer(player);
-            if (permActor == null) {
-                permActor = player;
-            }
-
-            Player cuiActor = queryCapability(Capability.WORLDEDIT_CUI).matchPlayer(player);
-            if (cuiActor == null) {
-                cuiActor = player;
-            }
-            try {
-                Class<?> clazz = Class.forName("com.sk89q.worldedit.extension.platform.PlayerProxy");
-                Constructor<?> constructor = clazz.getDeclaredConstructor(Player.class, Actor.class, Actor.class, World.class);
-                constructor.setAccessible(true);
-                return (T) constructor.newInstance(player, permActor, cuiActor, getWorldForEditing(player.getWorld()));
-            } catch (Throwable e) {
-                throw new RuntimeException(e);
-            }
+            FawePlayer fp = FawePlayer.wrap(player);
+            return (T) fp.createProxy();
         } else {
             return base;
         }

@@ -25,9 +25,11 @@ public class BrushProcessor implements CallableProcessor<BrushSettings> {
         LocalSession session = worldEdit.getSessionManager().get(actor);
         session.setTool(null, (Player) actor);
         BrushTool tool = session.getBrushTool((Player) actor);
-        tool.setPrimary(settings);
-        tool.setSecondary(settings);
-        BBC.BRUSH_EQUIPPED.send(actor, ((String) locals.get("arguments")).split(" ")[1]);
+        if (tool != null) {
+            tool.setPrimary(settings);
+            tool.setSecondary(settings);
+            BBC.BRUSH_EQUIPPED.send(actor, ((String) locals.get("arguments")).split(" ")[1]);
+        }
         return null;
     }
 }

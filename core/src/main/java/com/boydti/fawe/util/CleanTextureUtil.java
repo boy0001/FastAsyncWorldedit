@@ -17,6 +17,8 @@ public class CleanTextureUtil extends TextureUtil {
         for (; minIndex > 0 && parent.distances[minIndex - 1] == min; minIndex--) ;
         for (; maxIndex < parent.distances.length - 1 && parent.distances[maxIndex + 1] == max; maxIndex++) ;
         int num = maxIndex - minIndex + 1;
+        this.validMixBiomeColors = parent.validMixBiomeColors;
+        this.validMixBiomeIds = parent.validMixBiomeIds;
         this.validBiomes = parent.validBiomes;
         this.blockColors = parent.blockColors;
         this.blockDistance = parent.blockDistance;

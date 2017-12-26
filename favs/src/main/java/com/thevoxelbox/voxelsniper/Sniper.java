@@ -1,7 +1,6 @@
 package com.thevoxelbox.voxelsniper;
 
 import com.boydti.fawe.Fawe;
-import com.boydti.fawe.FaweAPI;
 import com.boydti.fawe.bukkit.wrapper.AsyncWorld;
 import com.boydti.fawe.config.BBC;
 import com.boydti.fawe.config.Settings;
@@ -167,7 +166,7 @@ public class Sniper {
         Player bukkitPlayer = getPlayer();
         World bukkitWorld = bukkitPlayer.getWorld();
 
-        FaweQueue baseQueue = FaweAPI.createQueue(fp.getLocation().world, false);
+        FaweQueue baseQueue = fp.getFaweQueue(false);
         RegionWrapper[] mask = WEManager.IMP.getMask(fp);
         if (mask.length == 0) {
             BBC.NO_REGION.send(fp);

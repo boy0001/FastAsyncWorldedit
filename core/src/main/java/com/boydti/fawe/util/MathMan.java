@@ -530,6 +530,10 @@ public class MathMan {
         return Math.sqrt(sd / array.length);
     }
 
+    public static final int absByte(int value) {
+        return (value ^ (value >> 8)) - (value >> 8);
+    }
+
     public static final int mod(int x, int y) {
         if (isPowerOfTwo(y)) {
             return x & (y - 1);

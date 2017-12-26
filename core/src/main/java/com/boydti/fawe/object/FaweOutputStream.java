@@ -61,6 +61,29 @@ public class FaweOutputStream extends DataOutputStream {
         nbtOut.writeNamedTag(name, tag);
     }
 
+    public void writePrimitive(Object value) throws IOException {
+        Class<? extends Object> clazz = value.getClass();
+        if (clazz == long.class || clazz == Long.class) {
+            writeLong((long) value);
+        } else if (clazz == double.class || clazz == Double.class) {
+            writeDouble((double) value);
+        } else if (clazz == float.class || clazz == Float.class) {
+            writeFloat((float) value);
+        } else if (clazz == int.class || clazz == Integer.class) {
+            writeInt((int) value);
+        } else if (clazz == short.class || clazz == Short.class) {
+            writeShort((short) value);
+        } else if (clazz == char.class || clazz == Character.class) {
+            writeChar((char) value);
+        } else if (clazz == byte.class || clazz == Byte.class) {
+            writeByte((byte) value);
+        } else if (clazz == boolean.class || clazz == Boolean.class) {
+            writeBoolean((boolean) value);
+        } else {
+            throw new UnsupportedOperationException("Unknown class " + clazz);
+        }
+    }
+
     @Override
     public void close() throws IOException {
         if (nbtOut != null) {

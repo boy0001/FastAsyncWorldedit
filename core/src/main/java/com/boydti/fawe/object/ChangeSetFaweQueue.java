@@ -2,7 +2,7 @@ package com.boydti.fawe.object;
 
 import com.boydti.fawe.FaweCache;
 import com.boydti.fawe.object.changeset.FaweChangeSet;
-import com.boydti.fawe.util.DelegateFaweQueue;
+import com.boydti.fawe.object.queue.DelegateFaweQueue;
 import com.sk89q.jnbt.CompoundTag;
 import com.sk89q.worldedit.world.biome.BaseBiome;
 

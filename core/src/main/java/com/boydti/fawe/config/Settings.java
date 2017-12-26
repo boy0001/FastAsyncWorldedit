@@ -290,7 +290,9 @@ public class Settings extends Config {
     }
 
     @Comment({
-            "Experimental options, use at your own risk"
+            "Experimental options, use at your own risk",
+            " - UNSAFE = Can cause permanent damage to the server",
+            " - SAFE = Can be buggy but unlikely to cause any damage"
     })
     public static class EXPERIMENTAL {
         @Comment({
@@ -307,11 +309,11 @@ public class Settings extends Config {
         })
         public boolean DYNAMIC_CHUNK_RENDERING = false;
         @Comment({
-                "Allows brushes to be persistent",
+                "[SAFE] Allows brushes to be persistent",
         })
         public boolean PERSISTENT_BRUSHES = false;
         @Comment({
-                "Enable CUI without needing the mod installed (Requires ProtocolLib)",
+                "[SAFE] Enable CUI without needing the mod installed (Requires ProtocolLib)",
         })
         public boolean VANILLA_CUI = false;
 

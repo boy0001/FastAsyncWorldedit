@@ -1,81 +1,92 @@
 package com.boydti.fawe.bukkit.v1_12.packet;
 
-import com.boydti.fawe.FaweCache;
-import com.boydti.fawe.jnbt.anvil.MCAChunk;
+import com.boydti.fawe.object.FaweChunk;
 import com.boydti.fawe.object.FaweOutputStream;
 import com.boydti.fawe.object.io.FastByteArrayOutputStream;
-import com.comphenix.protocol.events.PacketContainer;
-import com.comphenix.protocol.reflect.StructureModifier;
-import com.comphenix.protocol.wrappers.nbt.NbtBase;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.function.Function;
 
-public class FaweChunkPacket {
+public class FaweChunkPacket implements Function<byte[], byte[]> {
 
-    private final MCAChunk chunk;
+    private final FaweChunk chunk;
     private final boolean full;
     private final boolean biomes;
     private final boolean sky;
 
-    public FaweChunkPacket(MCAChunk fc, boolean replaceAllSections, boolean sendBiomeData, boolean hasSky) {
+    public FaweChunkPacket(FaweChunk fc, boolean replaceAllSections, boolean sendBiomeData, boolean hasSky) {
         this.chunk = fc;
         this.full = replaceAllSections;
         this.biomes = sendBiomeData;
         this.sky = hasSky;
     }
 
-    public void write(PacketContainer packet) throws IOException {
+    @Override
+    public byte[] apply(byte[] buffer) {
         try {
-            StructureModifier<Integer> ints = packet.getIntegers();
-            StructureModifier<byte[]> byteArray = packet.getByteArrays();
-            StructureModifier<Boolean> bools = packet.getBooleans();
-            ints.write(0, this.chunk.getX());
-            ints.write(1, this.chunk.getZ());
+            FastByteArrayOutputStream baos = new FastByteArrayOutputStream();
+            FaweOutputStream fos = new FaweOutputStream(baos);
 
-            bools.write(0, this.full);
-            ints.write(2, this.chunk.getBitMask()); // writeVarInt
+            fos.writeInt(this.chunk.getX());
+            fos.writeInt(this.chunk.getZ());
 
-            FastByteArrayOutputStream fbaos = new FastByteArrayOutputStream();
-            FaweOutputStream buffer = new FaweOutputStream(fbaos);
-            byte[][] ids = chunk.ids;
+            fos.writeBoolean(this.full);
+            fos.writeVarInt(this.chunk.getBitMask()); // writeVarInt
+
+            FastByteArrayOutputStream sectionByteArray = new FastByteArrayOutputStream(buffer);
+            FaweOutputStream sectionWriter = new FaweOutputStream(sectionByteArray);
+
+            char[][] ids = chunk.getCombinedIdArrays();
+            byte[][] blockLight = chunk.getBlockLightArray();
+            byte[][] skyLight = chunk.getSkyLightArray();
 
             for (int layer = 0; layer < ids.length; layer++) {
-                byte[] layerIds = ids[layer];
+                char[] layerIds = ids[layer];
                 if (layerIds == null) {
                     continue;
                 }
-                byte[] layerData = chunk.data[layer];
-                int num = 9;
-                buffer.write(num); // num blocks, anything > 8 - doesn't need to be accurate
-                buffer.writeVarInt(0); // varint 0 - data palette global
+                int num = 13;
+                sectionWriter.write(num); // num blocks, anything > 8 - doesn't need to be accurate
+                sectionWriter.writeVarInt(0); // varint 0 - data palette global
                 BitArray bits = new BitArray(num, 4096);
                 for (int i = 0; i < 4096; i++) {
-                    int id = layerIds[i];
-                    if (id != 0) {
-                        int data = FaweCache.hasData(id) ? chunk.getNibble(i, layerData) : 0;
-                        int combined = FaweCache.getCombined(id, data);
-                        bits.setAt(i, combined);
+                    char combinedId = layerIds[i];
+                    if (combinedId != 0) {
+                        bits.setAt(i, combinedId);
                     }
                 }
-                buffer.write(bits.getBackingLongArray());
+                sectionWriter.write(bits.getBackingLongArray());
 
-                buffer.write(chunk.blockLight[layer]);
+                if (blockLight != null && blockLight[layer] != null) {
+                    sectionWriter.write(blockLight[layer]);
+                } else {
+                    sectionWriter.write(0, 2048);
+                }
                 if (sky) {
-                    buffer.write(chunk.skyLight[layer]);
+                    if (skyLight != null && skyLight[layer] != null) {
+                        sectionWriter.write(skyLight[layer]);
+                    } else {
+                        sectionWriter.write((byte) 255, 2048);
+                    }
                 }
             }
 
-            if (this.biomes && chunk.biomes != null) {
-                buffer.write(chunk.biomes);
+            if (this.biomes) {
+                byte[] biomeArr = chunk.getBiomeArray();
+                if (biomeArr != null) {
+                    sectionWriter.write(biomeArr);
+                }
             }
 
-            byteArray.write(0, fbaos.toByteArray());
-            // TODO - empty
-            StructureModifier<List<NbtBase<?>>> list = packet.getListNbtModifier();
-            list.write(0, new ArrayList<>());
+            fos.writeVarInt(sectionByteArray.getSize());
+            for (byte[] arr : sectionByteArray.toByteArrays()) {
+                fos.write(arr);
+            }
+            fos.writeVarInt(0);
+
+            fos.close();
+            sectionWriter.close();
+            return baos.toByteArray();
         } catch (Throwable e) {
-            e.printStackTrace();
+            throw new RuntimeException(e);
         }
     }
 }

@@ -56,14 +56,11 @@ public class BukkitChunk_All extends CharFaweChunk<Chunk, BukkitQueue_All> {
         if (shallow) {
             copy = new BukkitChunk_All(getParent(), getX(), getZ(), ids, count, air, heightMap);
             copy.biomes = biomes;
-            copy.chunk = chunk;
         } else {
             copy = new BukkitChunk_All(getParent(), getX(), getZ(), (char[][]) MainUtil.copyNd(ids), count.clone(), air.clone(), heightMap.clone());
-            copy.biomes = biomes;
-            copy.chunk = chunk;
             copy.biomes = biomes.clone();
-            copy.chunk = chunk;
         }
+        copy.chunk = chunk;
         return copy;
     }
 

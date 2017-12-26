@@ -66,6 +66,10 @@ public interface Extent extends InputExtent, OutputExtent {
         return getLazyBlock(MutableBlockVector.get(x, y, z));
     }
 
+    default int getMaxY() {
+        return 255;
+    }
+
     default public int getNearestSurfaceLayer(int x, int z, int y, int minY, int maxY) {
         int clearanceAbove = maxY - y;
         int clearanceBelow = y - minY;
@@ -95,7 +99,12 @@ public interface Extent extends InputExtent, OutputExtent {
                 for (int layer = y - clearance - 1; layer >= minY; layer--) {
                     block = getLazyBlock(x, layer, z);
                     if (FaweCache.isLiquidOrGas(block.getId()) != state) {
-                        return ((layer + offset) << 3) - (7 - (state ? block.getData() : data1));
+
+//                        int blockHeight = (newHeight) >> 3;
+//                        int layerHeight = (newHeight) & 0x7;
+
+                        int data = (state ? block.getData() : data1);
+                        return ((layer + offset) << 3) + 0;
                     }
                     data1 = block.getData();
                 }
@@ -169,6 +178,12 @@ public interface Extent extends InputExtent, OutputExtent {
                 gen.spawn(random, x, z);
             }
         }
+    }
+
+    default boolean contain(Vector pt) {
+        Vector min = getMinimumPoint();
+        Vector max = getMaximumPoint();
+        return (pt.containedWithin(min, max));
     }
 
     default public void addOre(Region region, Mask mask, Pattern material, int size, int frequency, int rarity, int minY, int maxY) throws WorldEditException {

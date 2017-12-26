@@ -2,11 +2,14 @@ package com.boydti.fawe.object;
 
 import com.boydti.fawe.Fawe;
 import com.boydti.fawe.FaweAPI;
+import com.boydti.fawe.command.CFICommands;
 import com.boydti.fawe.config.BBC;
 import com.boydti.fawe.config.Settings;
+import com.boydti.fawe.jnbt.anvil.HeightMapMCAGenerator;
 import com.boydti.fawe.object.clipboard.DiskOptimizedClipboard;
 import com.boydti.fawe.object.exception.FaweException;
 import com.boydti.fawe.regions.FaweMaskManager;
+import com.boydti.fawe.util.EditSessionBuilder;
 import com.boydti.fawe.util.MainUtil;
 import com.boydti.fawe.util.SetQueue;
 import com.boydti.fawe.util.TaskManager;
@@ -26,7 +29,10 @@ import com.sk89q.worldedit.command.tool.Tool;
 import com.sk89q.worldedit.entity.Player;
 import com.sk89q.worldedit.event.platform.CommandEvent;
 import com.sk89q.worldedit.extension.platform.Actor;
+import com.sk89q.worldedit.extension.platform.Capability;
 import com.sk89q.worldedit.extension.platform.CommandManager;
+import com.sk89q.worldedit.extension.platform.PlatformManager;
+import com.sk89q.worldedit.extension.platform.PlayerProxy;
 import com.sk89q.worldedit.extent.clipboard.Clipboard;
 import com.sk89q.worldedit.regions.Region;
 import com.sk89q.worldedit.regions.RegionOperationException;
@@ -39,9 +45,9 @@ import java.io.File;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.Map;
-import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedDeque;
@@ -350,8 +356,21 @@ public abstract class FawePlayer<T> extends Metadatable {
         return FaweAPI.getWorld(getLocation().world);
     }
 
+    public FaweQueue getFaweQueue(boolean autoQueue) {
+        return getFaweQueue(true, autoQueue);
+    }
+
+    public FaweQueue getFaweQueue(boolean fast, boolean autoQueue) {
+        CFICommands.CFISettings settings = this.getMeta("CFISettings");
+        if (settings != null && settings.hasGenerator()) {
+            return settings.getGenerator();
+        } else {
+            return SetQueue.IMP.getNewQueue(getWorld(), true, autoQueue);
+        }
+    }
+
     public FaweQueue getMaskedFaweQueue(boolean autoQueue) {
-        FaweQueue queue = SetQueue.IMP.getNewQueue(getWorld(), true, autoQueue);
+        FaweQueue queue = getFaweQueue(autoQueue);
         RegionWrapper[] allowedRegions = getCurrentRegions();
         if (allowedRegions.length == 1 && allowedRegions[0].isGlobal()) {
             return queue;
@@ -574,7 +593,43 @@ public abstract class FawePlayer<T> extends Metadatable {
      * Get a new EditSession from this player
      */
     public EditSession getNewEditSession() {
-        return WorldEdit.getInstance().getEditSessionFactory().getEditSession(getWorld(), -1, toWorldEditPlayer());
+        return new EditSessionBuilder(getWorld()).player(this).build();
+    }
+
+    /**
+     * Get the World the player is editing in (may not match the world they are in)<br/>
+     * - e.g. If they are editing a CFI world.<br/>
+     * @return Editing world
+     */
+    public World getWorldForEditing() {
+        CFICommands.CFISettings cfi = getMeta("CFISettings");
+        if (cfi != null && cfi.hasGenerator() && cfi.getGenerator().hasPacketViewer()) {
+            return cfi.getGenerator();
+        }
+        return WorldEdit.getInstance().getPlatformManager().getWorldForEditing(getWorld());
+    }
+
+    public PlayerProxy createProxy() {
+        Player player = getPlayer();
+        World world = getWorldForEditing();
+
+        PlatformManager platformManager = WorldEdit.getInstance().getPlatformManager();
+
+        Player permActor = platformManager.queryCapability(Capability.PERMISSIONS).matchPlayer(player);
+        if (permActor == null) {
+            permActor = player;
+        }
+
+        Player cuiActor = platformManager.queryCapability(Capability.WORLDEDIT_CUI).matchPlayer(player);
+        if (cuiActor == null) {
+            cuiActor = player;
+        }
+
+        PlayerProxy proxy = new PlayerProxy(player, permActor, cuiActor, world);
+        if (world instanceof HeightMapMCAGenerator) {
+            proxy.setOffset(Vector.ZERO.subtract(((HeightMapMCAGenerator) world).getOrigin()));
+        }
+        return proxy;
     }
 
 
@@ -589,7 +644,7 @@ public abstract class FawePlayer<T> extends Metadatable {
         Map<EditSession, SetQueue.QueueStage> map = new ConcurrentHashMap<>(8, 0.9f, 1);
         if (requiredStage == null || requiredStage == SetQueue.QueueStage.ACTIVE) {
             for (FaweQueue queue : SetQueue.IMP.getActiveQueues()) {
-                Set<EditSession> sessions = queue.getEditSessions();
+                Collection<EditSession> sessions = queue.getEditSessions();
                 for (EditSession session : sessions) {
                     FawePlayer currentPlayer = session.getPlayer();
                     if (currentPlayer == this) {
@@ -600,7 +655,7 @@ public abstract class FawePlayer<T> extends Metadatable {
         }
         if (requiredStage == null || requiredStage == SetQueue.QueueStage.INACTIVE) {
             for (FaweQueue queue : SetQueue.IMP.getInactiveQueues()) {
-                Set<EditSession> sessions = queue.getEditSessions();
+                Collection<EditSession> sessions = queue.getEditSessions();
                 for (EditSession session : sessions) {
                     FawePlayer currentPlayer = session.getPlayer();
                     if (currentPlayer == this) {

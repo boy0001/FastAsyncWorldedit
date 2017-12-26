@@ -1,7 +1,6 @@
 package com.boydti.fawe.object;
 
 import com.boydti.fawe.Fawe;
-import com.boydti.fawe.FaweAPI;
 import com.boydti.fawe.FaweCache;
 import com.boydti.fawe.config.BBC;
 import com.boydti.fawe.config.Settings;
@@ -27,50 +26,51 @@ import com.sk89q.worldedit.world.biome.BaseBiome;
 import com.sk89q.worldedit.world.registry.BundledBlockData;
 import java.io.File;
 import java.util.Collection;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.Collections;
 import java.util.UUID;
-import java.util.concurrent.ConcurrentLinkedDeque;
 import javax.annotation.Nullable;
 
-public abstract class FaweQueue implements HasFaweQueue, Extent {
+/**
+ * A queue based Extent capable of queing chunk and region changes
+ */
+public interface FaweQueue extends HasFaweQueue, Extent {
 
-    private World weWorld;
-    private String world;
-    private ConcurrentLinkedDeque<EditSession> sessions;
-    private long modified = System.currentTimeMillis();
-    private RunnableVal2<FaweChunk, FaweChunk> changeTask;
-    private RunnableVal2<ProgressType, Integer> progressTask;
-    private SetQueue.QueueStage stage;
-    private Settings settings = Settings.IMP;
-
-    public FaweQueue(String world) {
-        this.world = world;
+    enum ProgressType {
+        QUEUE,
+        DISPATCH,
+        DONE,
     }
 
-    public FaweQueue(World world) {
-        if (world != null) {
-            this.weWorld = world;
-            this.world = Fawe.imp().getWorldName(world);
-        }
+    enum RelightMode {
+        NONE,
+        OPTIMAL,
+        ALL,
     }
 
-    public Relighter getRelighter() {
+    enum Capability {
+        // If history can be recorded in an async task by the dispatcher
+        CHANGE_TASKS,
+        // If custom chunk packets can be sent
+        CHUNK_PACKETS
+        //
+    }
+
+    default Relighter getRelighter() {
         return NullRelighter.INSTANCE;
     }
 
     @Override
-    public Vector getMinimumPoint() {
+    default Vector getMinimumPoint() {
         return new Vector(-30000000, 0, -30000000);
     }
 
     @Override
-    public Vector getMaximumPoint() {
+    default Vector getMaximumPoint() {
         return new Vector(30000000, getMaxY(), 30000000);
     }
 
     @Override
-    public BaseBlock getLazyBlock(int x, int y, int z) {
+    default BaseBlock getLazyBlock(int x, int y, int z) {
         int combinedId4Data = getCachedCombinedId4Data(x, y, z, 0);
         int id = FaweCache.getId(combinedId4Data);
         if (!FaweCache.hasNBT(id)) {
@@ -90,76 +90,43 @@ public abstract class FaweQueue implements HasFaweQueue, Extent {
     }
 
     @Override
-    public boolean setBlock(int x, int y, int z, BaseBlock block) throws WorldEditException {
+    default boolean setBlock(int x, int y, int z, BaseBlock block) throws WorldEditException {
         return setBlock(x, y, z, block.getId(), block.getData(), block.getNbtData());
     }
 
     @Override
-    public BaseBlock getBlock(Vector position) {
+    default BaseBlock getBlock(Vector position) {
         return getLazyBlock(position.getBlockX(), position.getBlockY(), position.getBlockZ());
     }
 
     @Override
-    public BaseBiome getBiome(Vector2D position) {
+    default BaseBiome getBiome(Vector2D position) {
         return null;
     }
 
     @Override
-    public boolean setBlock(Vector position, BaseBlock block) throws WorldEditException {
+    default boolean setBlock(Vector position, BaseBlock block) throws WorldEditException {
         return setBlock(position.getBlockX(), position.getBlockY(), position.getBlockZ(), block);
     }
 
     @Override
-    public boolean setBiome(Vector2D position, BaseBiome biome) {
+    default boolean setBiome(Vector2D position, BaseBiome biome) {
         return setBiome(position.getBlockX(), position.getBlockZ(), biome);
     }
 
-    public enum ProgressType {
-        QUEUE,
-        DISPATCH,
-        DONE,
-    }
-
-    public enum RelightMode {
-        NONE,
-        OPTIMAL,
-        ALL,
-    }
-
     @Override
-    public FaweQueue getQueue() {
+    default FaweQueue getQueue() {
         return this;
     }
 
-    public Settings getSettings() {
-        return settings;
-    }
 
-    public void setSettings(Settings settings) {
-        this.settings = settings == null ? Settings.IMP : settings;
-    }
 
-    public void setWorld(String world) {
-        this.world = world;
-        this.weWorld = null;
-    }
-
-    public void addEditSession(EditSession session) {
+    default void addEditSession(EditSession session) {
         if (session == null) {
             return;
         }
-        if (this.getSessions() == null) {
-            setSessions(new ConcurrentLinkedDeque<EditSession>());
-        }
-        getSessions().add(session);
-    }
-
-    public World getWEWorld() {
-        return weWorld != null ? weWorld : (weWorld = FaweAPI.getWorld(world));
-    }
-
-    public String getWorldName() {
-        return world;
+        Collection<EditSession> sessions = getEditSessions();
+        sessions.add(session);
     }
 
     /**
@@ -169,54 +136,21 @@ public abstract class FaweQueue implements HasFaweQueue, Extent {
      *
      * @param progressTask
      */
-    public void setProgressTracker(RunnableVal2<ProgressType, Integer> progressTask) {
+    default void setProgressTracker(RunnableVal2<ProgressType, Integer> progressTask) {
         this.setProgressTask(progressTask);
     }
 
-    public Set<EditSession> getEditSessions() {
-        return getSessions() == null ? new HashSet<EditSession>() : new HashSet<>(getSessions());
+    default Collection<EditSession> getEditSessions() {
+        return Collections.emptySet();
     }
 
-    public ConcurrentLinkedDeque<EditSession> getSessions() {
-        return sessions;
+    default boolean supports(Capability capability) {
+        return false;
     }
 
-    public void setSessions(ConcurrentLinkedDeque<EditSession> sessions) {
-        this.sessions = sessions;
-    }
+    default void optimize() {}
 
-    public long getModified() {
-        return modified;
-    }
-
-    public void setModified(long modified) {
-        this.modified = modified;
-    }
-
-    public RunnableVal2<ProgressType, Integer> getProgressTask() {
-        return progressTask;
-    }
-
-    public void setProgressTask(RunnableVal2<ProgressType, Integer> progressTask) {
-        this.progressTask = progressTask;
-    }
-
-    public boolean supportsChangeTask() {
-        return true;
-    }
-
-    public void setChangeTask(RunnableVal2<FaweChunk, FaweChunk> changeTask) {
-        this.changeTask = changeTask;
-    }
-
-    public RunnableVal2<FaweChunk, FaweChunk> getChangeTask() {
-        return changeTask;
-    }
-
-    public void optimize() {
-    }
-
-    public int setBlocks(CuboidRegion cuboid, final int id, final int data) {
+    default int setBlocks(CuboidRegion cuboid, final int id, final int data) {
         RegionWrapper current = new RegionWrapper(cuboid.getMinimumPoint(), cuboid.getMaximumPoint());
         final int minY = cuboid.getMinimumY();
         final int maxY = cuboid.getMaximumY();
@@ -258,13 +192,13 @@ public abstract class FaweQueue implements HasFaweQueue, Extent {
         return cuboid.getArea();
     }
 
-    public abstract boolean setBlock(final int x, final int y, final int z, final int id, final int data);
+    boolean setBlock(final int x, final int y, final int z, final int id, final int data);
 
-    public boolean setBlock(int x, int y, int z, int id) {
+    default boolean setBlock(int x, int y, int z, int id) {
         return setBlock(x, y, z, id, 0);
     }
 
-    public boolean setBlock(int x, int y, int z, int id, int data, CompoundTag nbt) {
+    default boolean setBlock(int x, int y, int z, int id, int data, CompoundTag nbt) {
         if (nbt != null) {
             if (setBlock(x, y, z, id, data)) {
                 MainUtil.setPosition(nbt, x, y, z);
@@ -277,32 +211,69 @@ public abstract class FaweQueue implements HasFaweQueue, Extent {
         }
     }
 
-    public abstract void setTile(int x, int y, int z, CompoundTag tag);
+    void setTile(int x, int y, int z, CompoundTag tag);
 
-    public abstract void setEntity(int x, int y, int z, CompoundTag tag);
+    void setEntity(int x, int y, int z, CompoundTag tag);
 
-    public abstract void removeEntity(int x, int y, int z, UUID uuid);
+    void removeEntity(int x, int y, int z, UUID uuid);
 
-    public abstract boolean setBiome(final int x, final int z, final BaseBiome biome);
+    boolean setBiome(final int x, final int z, final BaseBiome biome);
 
-    public abstract FaweChunk getFaweChunk(int x, int z);
+    FaweChunk getFaweChunk(int x, int z);
 
-    public abstract Collection<FaweChunk> getFaweChunks();
+    Collection<FaweChunk> getFaweChunks();
 
-    public boolean setMCA(int mcaX, int mcaZ, RegionWrapper region, Runnable whileLocked, boolean save, boolean load) {
+    default boolean setMCA(int mcaX, int mcaZ, RegionWrapper region, Runnable whileLocked, boolean save, boolean load) {
         if (whileLocked != null) whileLocked.run();
         return true;
     }
 
-    public abstract void setChunk(final FaweChunk chunk);
+    void setChunk(final FaweChunk chunk);
 
-    public abstract File getSaveFolder();
+    File getSaveFolder();
 
-    public int getMaxY() {
+    default int getMaxY() {
+        World weWorld = getWEWorld();
         return weWorld == null ? 255 : weWorld.getMaxY();
     }
 
-    public void forEachBlockInChunk(int cx, int cz, RunnableVal2<Vector, BaseBlock> onEach) {
+    default Settings getSettings() {
+        return Settings.IMP;
+    }
+
+    default void setSettings(Settings settings) {
+
+    }
+
+    void setWorld(String world);
+
+    World getWEWorld();
+
+    String getWorldName();
+
+    long getModified();
+
+    void setModified(long modified);
+
+    RunnableVal2<ProgressType, Integer> getProgressTask();
+
+    void setProgressTask(RunnableVal2<ProgressType, Integer> progressTask);
+
+    void setChangeTask(RunnableVal2<FaweChunk, FaweChunk> changeTask);
+
+    RunnableVal2<FaweChunk, FaweChunk> getChangeTask();
+
+    SetQueue.QueueStage getStage();
+
+    void setStage(SetQueue.QueueStage stage);
+
+    void addNotifyTask(Runnable runnable);
+
+    void runTasks();
+
+    void addTask(Runnable whenFree);
+
+    default void forEachBlockInChunk(int cx, int cz, RunnableVal2<Vector, BaseBlock> onEach) {
         int bx = cx << 4;
         int bz = cz << 4;
         MutableBlockVector mutable = new MutableBlockVector(0, 0, 0);
@@ -331,7 +302,7 @@ public abstract class FaweQueue implements HasFaweQueue, Extent {
         }
     }
 
-    public void forEachTileInChunk(int cx, int cz, RunnableVal2<Vector, BaseBlock> onEach) {
+    default void forEachTileInChunk(int cx, int cz, RunnableVal2<Vector, BaseBlock> onEach) {
         int bx = cx << 4;
         int bz = cz << 4;
         MutableBlockVector mutable = new MutableBlockVector(0, 0, 0);
@@ -359,22 +330,22 @@ public abstract class FaweQueue implements HasFaweQueue, Extent {
     }
 
     @Deprecated
-    public boolean regenerateChunk(int x, int z) {
+    default boolean regenerateChunk(int x, int z) {
         return regenerateChunk(x, z, null, null);
     }
 
-    public abstract boolean regenerateChunk(int x, int z, @Nullable BaseBiome biome, @Nullable Long seed);
+    boolean regenerateChunk(int x, int z, @Nullable BaseBiome biome, @Nullable Long seed);
 
-    public void startSet(boolean parallel) {
+    default void startSet(boolean parallel) {
     }
 
-    public void endSet(boolean parallel) {
+    default void endSet(boolean parallel) {
     }
 
-    public int cancel() {
+    default int cancel() {
         clear();
         int count = 0;
-        for (EditSession session : getSessions()) {
+        for (EditSession session : getEditSessions()) {
             if (session.cancel()) {
                 count++;
             }
@@ -382,10 +353,14 @@ public abstract class FaweQueue implements HasFaweQueue, Extent {
         return count;
     }
 
-    public abstract void sendBlockUpdate(FaweChunk chunk, FawePlayer... players);
+    void sendBlockUpdate(FaweChunk chunk, FawePlayer... players);
+
+    default void sendChunkUpdate(FaweChunk chunk, FawePlayer... players) {
+        sendBlockUpdate(chunk, players);
+    }
 
     @Deprecated
-    public boolean next() {
+    default boolean next() {
         int amount = Settings.IMP.QUEUE.PARALLEL_THREADS;
         long time = 20; // 30ms
         return next(amount, time);
@@ -396,9 +371,9 @@ public abstract class FaweQueue implements HasFaweQueue, Extent {
      *
      * @return
      */
-    public abstract boolean next(int amount, long time);
+    boolean next(int amount, long time);
 
-    public void saveMemory() {
+    default void saveMemory() {
         MainUtil.sendAdmin(BBC.OOM.s());
         // Set memory limited
         MemUtil.memoryLimitedTask();
@@ -411,28 +386,28 @@ public abstract class FaweQueue implements HasFaweQueue, Extent {
         // Unload chunks
     }
 
-    public abstract void sendChunk(FaweChunk chunk);
+    void sendChunk(FaweChunk chunk);
 
-    public abstract void sendChunk(int x, int z, int bitMask);
+    void sendChunk(int x, int z, int bitMask);
 
     /**
      * This method is called when the server is < 1% available memory
      */
-    public abstract void clear();
+    void clear();
 
-    public abstract void addNotifyTask(int x, int z, Runnable runnable);
+    void addNotifyTask(int x, int z, Runnable runnable);
 
-    public boolean hasBlock(int x, int y, int z) throws FaweException.FaweChunkLoadException {
+    default boolean hasBlock(int x, int y, int z) throws FaweException.FaweChunkLoadException {
         return getCombinedId4Data(x, y, z) != 0;
     }
 
-    public abstract int getBiomeId(int x, int z) throws FaweException.FaweChunkLoadException;
+    int getBiomeId(int x, int z) throws FaweException.FaweChunkLoadException;
 
-    public abstract int getCombinedId4Data(int x, int y, int z) throws FaweException.FaweChunkLoadException;
+    int getCombinedId4Data(int x, int y, int z) throws FaweException.FaweChunkLoadException;
 
-    public abstract int getCachedCombinedId4Data(int x, int y, int z) throws FaweException.FaweChunkLoadException;
+    int getCachedCombinedId4Data(int x, int y, int z) throws FaweException.FaweChunkLoadException;
 
-    public int getAdjacentLight(int x, int y, int z) {
+    default int getAdjacentLight(int x, int y, int z) {
         int light = 0;
         if ((light = Math.max(light, getSkyLight(x - 1, y, z))) == 15) {
             return light;
@@ -446,22 +421,22 @@ public abstract class FaweQueue implements HasFaweQueue, Extent {
         return Math.max(light, getSkyLight(x, y, z + 1));
     }
 
-    public abstract boolean hasSky();
+    boolean hasSky();
 
-    public abstract int getSkyLight(int x, int y, int z);
+    int getSkyLight(int x, int y, int z);
 
-    public int getLight(int x, int y, int z) {
+    default int getLight(int x, int y, int z) {
         if (!hasSky()) {
             return getEmmittedLight(x, y, z);
         }
         return Math.max(getSkyLight(x, y, z), getEmmittedLight(x, y, z));
     }
 
-    public abstract int getEmmittedLight(int x, int y, int z);
+    int getEmmittedLight(int x, int y, int z);
 
-    public abstract CompoundTag getTileEntity(int x, int y, int z) throws FaweException.FaweChunkLoadException;
+    CompoundTag getTileEntity(int x, int y, int z) throws FaweException.FaweChunkLoadException;
 
-    public int getCombinedId4Data(int x, int y, int z, int def) {
+    default int getCombinedId4Data(int x, int y, int z, int def) {
         try {
             return getCombinedId4Data(x, y, z);
         } catch (FaweException ignore) {
@@ -469,7 +444,7 @@ public abstract class FaweQueue implements HasFaweQueue, Extent {
         }
     }
 
-    public int getCachedCombinedId4Data(int x, int y, int z, int def) {
+    default int getCachedCombinedId4Data(int x, int y, int z, int def) {
         try {
             return getCachedCombinedId4Data(x, y, z);
         } catch (FaweException ignore) {
@@ -477,7 +452,7 @@ public abstract class FaweQueue implements HasFaweQueue, Extent {
         }
     }
 
-    public int getCombinedId4DataDebug(int x, int y, int z, int def, EditSession session) {
+    default int getCombinedId4DataDebug(int x, int y, int z, int def, EditSession session) {
         try {
             return getCombinedId4Data(x, y, z);
         } catch (FaweException ignore) {
@@ -488,7 +463,7 @@ public abstract class FaweQueue implements HasFaweQueue, Extent {
         }
     }
 
-    public int getBrightness(int x, int y, int z) {
+    default int getBrightness(int x, int y, int z) {
         int combined = getCombinedId4Data(x, y, z);
         if (combined == 0) {
             return 0;
@@ -500,11 +475,11 @@ public abstract class FaweQueue implements HasFaweQueue, Extent {
         return block.getLightValue();
     }
 
-    public int getOpacityBrightnessPair(int x, int y, int z) {
+    default int getOpacityBrightnessPair(int x, int y, int z) {
         return MathMan.pair16(Math.min(15, getOpacity(x, y, z)), getBrightness(x, y, z));
     }
 
-    public int getOpacity(int x, int y, int z) {
+    default int getOpacity(int x, int y, int z) {
         int combined = getCombinedId4Data(x, y, z);
         if (combined == 0) {
             return 0;
@@ -516,31 +491,23 @@ public abstract class FaweQueue implements HasFaweQueue, Extent {
         return block.getLightOpacity();
     }
 
-    public abstract int size();
+    int size();
 
-    public boolean isEmpty() {
+    default boolean isEmpty() {
         return size() == 0;
     }
 
     /**
      * Lock the thread until the queue is empty
      */
-    public void flush() {
+    default void flush() {
         flush(10000);
-    }
-
-    public SetQueue.QueueStage getStage() {
-        return stage;
-    }
-
-    public void setStage(SetQueue.QueueStage stage) {
-        this.stage = stage;
     }
 
     /**
      * Lock the thread until the queue is empty
      */
-    public void flush(int time) {
+    default void flush(int time) {
         if (size() > 0) {
             if (Fawe.isMainThread()) {
                 SetQueue.IMP.flush(this);
@@ -560,45 +527,11 @@ public abstract class FaweQueue implements HasFaweQueue, Extent {
         }
     }
 
-    public ConcurrentLinkedDeque<Runnable> tasks = new ConcurrentLinkedDeque<>();
-
-    public void addNotifyTask(Runnable runnable) {
-        this.tasks.add(runnable);
-    }
-
-
-    public void runTasks() {
-        synchronized (this) {
-            this.notifyAll();
-        }
-        if (getProgressTask() != null) {
-            try {
-                getProgressTask().run(ProgressType.DONE, 1);
-            } catch (Throwable e) {
-                e.printStackTrace();
-            }
-        }
-        while (!tasks.isEmpty()) {
-            Runnable task = tasks.poll();
-            if (task != null) {
-                try {
-                    task.run();
-                } catch (Throwable e) {
-                    MainUtil.handleError(e);
-                }
-            }
-        }
-    }
-
-    public void addTask(Runnable whenFree) {
-        tasks.add(whenFree);
-    }
-
-    public boolean enqueue() {
+    default boolean enqueue() {
         return SetQueue.IMP.enqueue(this);
     }
 
-    public void dequeue() {
+    default void dequeue() {
         SetQueue.IMP.dequeue(this);
     }
 }

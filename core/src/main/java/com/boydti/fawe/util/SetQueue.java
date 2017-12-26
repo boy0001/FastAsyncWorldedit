@@ -3,6 +3,7 @@ package com.boydti.fawe.util;
 import com.boydti.fawe.Fawe;
 import com.boydti.fawe.config.Settings;
 import com.boydti.fawe.object.FaweQueue;
+import com.boydti.fawe.wrappers.WorldWrapper;
 import com.sk89q.worldedit.world.World;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -242,6 +243,8 @@ public class SetQueue {
     }
 
     public FaweQueue getNewQueue(World world, boolean fast, boolean autoqueue) {
+        world = WorldWrapper.unwrap(world);
+        if (world instanceof FaweQueue) return (FaweQueue) world;
         FaweQueue queue = Fawe.imp().getNewQueue(world, fast);
         if (autoqueue) {
             queue.setStage(QueueStage.INACTIVE);

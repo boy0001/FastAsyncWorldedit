@@ -2,41 +2,73 @@ package com.boydti.fawe.jnbt.anvil;
 
 import com.boydti.fawe.Fawe;
 import com.boydti.fawe.FaweCache;
+import com.boydti.fawe.example.SimpleCharFaweChunk;
+import com.boydti.fawe.object.FaweChunk;
+import com.boydti.fawe.object.FaweInputStream;
+import com.boydti.fawe.object.FaweLocation;
+import com.boydti.fawe.object.FaweOutputStream;
+import com.boydti.fawe.object.FawePlayer;
+import com.boydti.fawe.object.FaweQueue;
+import com.boydti.fawe.object.Metadatable;
 import com.boydti.fawe.object.PseudoRandom;
+import com.boydti.fawe.object.RunnableVal2;
+import com.boydti.fawe.object.change.StreamChange;
+import com.boydti.fawe.object.changeset.CFIChangeSet;
+import com.boydti.fawe.object.collection.DifferentialArray;
+import com.boydti.fawe.object.collection.DifferentialBlockBuffer;
 import com.boydti.fawe.object.collection.IterableThreadLocal;
 import com.boydti.fawe.object.collection.LocalBlockVector2DSet;
 import com.boydti.fawe.object.collection.SummedAreaTable;
+import com.boydti.fawe.object.exception.FaweException;
+import com.boydti.fawe.object.queue.LazyFaweChunk;
 import com.boydti.fawe.object.schematic.Schematic;
 import com.boydti.fawe.util.CachedTextureUtil;
-import com.boydti.fawe.util.MathMan;
 import com.boydti.fawe.util.RandomTextureUtil;
+import com.boydti.fawe.util.ReflectionUtils;
+import com.boydti.fawe.util.SetQueue;
+import com.boydti.fawe.util.TaskManager;
 import com.boydti.fawe.util.TextureUtil;
+import com.boydti.fawe.util.image.Drawable;
 import com.boydti.fawe.util.image.ImageViewer;
+import com.sk89q.jnbt.CompoundTag;
+import com.sk89q.worldedit.BlockVector;
 import com.sk89q.worldedit.EditSession;
+import com.sk89q.worldedit.MaxChangedBlocksException;
 import com.sk89q.worldedit.MutableBlockVector;
 import com.sk89q.worldedit.Vector;
 import com.sk89q.worldedit.Vector2D;
 import com.sk89q.worldedit.WorldEditException;
 import com.sk89q.worldedit.blocks.BaseBlock;
+import com.sk89q.worldedit.blocks.BaseItemStack;
 import com.sk89q.worldedit.blocks.BlockID;
-import com.sk89q.worldedit.extent.Extent;
 import com.sk89q.worldedit.extent.clipboard.Clipboard;
 import com.sk89q.worldedit.function.mask.Mask;
+import com.sk89q.worldedit.function.operation.Operation;
 import com.sk89q.worldedit.function.pattern.Pattern;
 import com.sk89q.worldedit.math.transform.AffineTransform;
 import com.sk89q.worldedit.math.transform.Transform;
 import com.sk89q.worldedit.regions.CuboidRegion;
+import com.sk89q.worldedit.regions.Region;
 import com.sk89q.worldedit.session.ClipboardHolder;
+import com.sk89q.worldedit.util.TreeGenerator;
+import com.sk89q.worldedit.world.SimpleWorld;
+import com.sk89q.worldedit.world.World;
 import com.sk89q.worldedit.world.biome.BaseBiome;
 import com.sk89q.worldedit.world.registry.WorldData;
-import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import java.awt.image.BufferedImage;
+import java.io.Closeable;
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.lang.reflect.Field;
 import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
+import java.util.UUID;
+import javax.annotation.Nullable;
 
-public class HeightMapMCAGenerator extends MCAWriter implements Extent {
+public class HeightMapMCAGenerator extends MCAWriter implements SimpleWorld, FaweQueue, StreamChange, Closeable, Drawable {
     private final MutableBlockVector mutable = new MutableBlockVector();
 
     private final ThreadLocal<int[]> indexStore = new ThreadLocal<int[]>() {
@@ -46,20 +78,147 @@ public class HeightMapMCAGenerator extends MCAWriter implements Extent {
         }
     };
 
-    private final Int2ObjectOpenHashMap<char[][][]> blocks = new Int2ObjectOpenHashMap<>();
+    private final DifferentialBlockBuffer blocks;
+    protected final DifferentialArray<byte[]> heights;
+    protected final DifferentialArray<byte[]> biomes;
+    protected final DifferentialArray<char[]> floor;
+    protected final DifferentialArray<char[]> main;
+    protected DifferentialArray<char[]> overlay;
 
-    protected final byte[] heights;
-    protected final byte[] biomes;
-    protected final char[] floor;
-    protected final char[] main;
-    protected char[] overlay;
-    protected int waterHeight = 0;
+    protected final CFIPrimtives primtives = new CFIPrimtives();
+    private CFIPrimtives oldPrimitives = new CFIPrimtives();
+
+    public final class CFIPrimtives implements Cloneable {
+        protected int waterHeight = 0;
+        protected int floorThickness = 0;
+        protected boolean randomVariation = true;
+        protected int biomePriority = 0;
+        protected byte waterId = BlockID.STATIONARY_WATER;
+        protected byte bedrockId = 7;
+        protected boolean modifiedMain = false;
+
+        @Override
+        public boolean equals(Object obj) {
+            if (obj == null || !(obj instanceof CFIPrimtives)) {
+                return false;
+            }
+            try {
+                for (Field field : CFIPrimtives.class.getDeclaredFields()) {
+                    if (field.get(this) != field.get(obj)) return false;
+                }
+            } catch (IllegalAccessException e) {
+                e.printStackTrace();
+            }
+            return true;
+        }
+
+        @Override
+        protected Object clone() throws CloneNotSupportedException {
+            return super.clone();
+        }
+    }
+
+
+    protected Metadatable metaData = new Metadatable();
     protected TextureUtil textureUtil;
-    protected boolean randomVariation = true;
-    protected int biomePriority = 0;
-    protected byte waterId = BlockID.STATIONARY_WATER;
-    protected boolean modifiedMain = false;
+
+    @Override
+    public void flushChanges(FaweOutputStream out) throws IOException {
+        heights.flushChanges(out);
+        biomes.flushChanges(out);
+        floor.flushChanges(out);
+        main.flushChanges(out);
+        out.writeBoolean(overlay != null);
+        if (overlay != null) overlay.flushChanges(out);
+        try {
+            for (Field field : ReflectionUtils.sortFields(CFIPrimtives.class.getDeclaredFields())) {
+                Object now = field.get(primtives);
+                Object old = field.get(oldPrimitives);
+                boolean diff = old != now;
+                out.writeBoolean(diff);
+                if (diff) {
+                    out.writePrimitive(old);
+                    out.writePrimitive(now);
+                }
+            }
+            resetPrimtives();
+        } catch (Throwable neverHappens) { neverHappens.printStackTrace(); }
+
+        blocks.flushChanges(out);
+    }
+
+    public boolean isModified() {
+        return blocks.isModified() ||
+                heights.isModified() ||
+                biomes.isModified() ||
+                (overlay != null && overlay.isModified()) ||
+                !primtives.equals(oldPrimitives);
+    }
+
+    private void resetPrimtives() throws CloneNotSupportedException {
+        oldPrimitives = (CFIPrimtives) primtives.clone();
+    }
+
+    @Override
+    public void undoChanges(FaweInputStream in) throws IOException {
+        heights.undoChanges(in);
+        biomes.undoChanges(in);
+        floor.undoChanges(in);
+        main.undoChanges(in);
+        if (in.readBoolean()) overlay.undoChanges(in);
+        try {
+            for (Field field : ReflectionUtils.sortFields(CFIPrimtives.class.getDeclaredFields())) {
+                if (in.readBoolean()) {
+                    field.set(primtives, in.readPrimitive(field.getType())); // old
+                    in.readPrimitive(field.getType()); // new
+                }
+            }
+            resetPrimtives();
+        } catch (Throwable neverHappens) { neverHappens.printStackTrace(); }
+        blocks.undoChanges(in);
+    }
+
+    @Override
+    public void redoChanges(FaweInputStream in) throws IOException {
+        heights.redoChanges(in);
+        biomes.redoChanges(in);
+        floor.redoChanges(in);
+        main.redoChanges(in);
+        if (in.readBoolean()) overlay.redoChanges(in);
+
+        try {
+            for (Field field : ReflectionUtils.sortFields(CFIPrimtives.class.getDeclaredFields())) {
+                if (in.readBoolean()) {
+                    in.readPrimitive(field.getType()); // old
+                    field.set(primtives, in.readPrimitive(field.getType())); // new
+                }
+            }
+            resetPrimtives();
+        } catch (Throwable neverHappens) { neverHappens.printStackTrace(); }
+
+        blocks.clearChanges(); // blocks.redoChanges(in); Unsupported
+    }
+
+    @Override
+    public void addEditSession(EditSession session) {
+        session.setFastMode(true);
+        this.editSession = session;
+    }
+
+    @Override
+    public boolean supports(Capability capability) {
+        return false;
+    }
+
+    // Used for visualizing the world on a map
     private ImageViewer viewer;
+    // Used for visualizing the world by sending chunk packets
+    // These three variables should be set together
+//    private FaweQueue packetQueue;
+    private FawePlayer player;
+    private Vector2D chunkOffset = Vector2D.ZERO;
+    private EditSession editSession;
+    // end
 
     public HeightMapMCAGenerator(BufferedImage img, File regionFolder) {
         this(img.getWidth(), img.getHeight(), regionFolder);
@@ -69,28 +228,108 @@ public class HeightMapMCAGenerator extends MCAWriter implements Extent {
     public HeightMapMCAGenerator(int width, int length, File regionFolder) {
         super(width, length, regionFolder);
         int area = getArea();
-        heights = new byte[getArea()];
-        biomes = new byte[getArea()];
-        floor = new char[getArea()];
-        main = new char[getArea()];
+
+        blocks = new DifferentialBlockBuffer(width, length);
+        heights = new DifferentialArray(new byte[getArea()]);
+        biomes = new DifferentialArray(new byte[getArea()]);
+        floor = new DifferentialArray(new char[getArea()]);
+        main = new DifferentialArray(new char[getArea()]);
+
         char stone = (char) FaweCache.getCombined(1, 0);
         char grass = (char) FaweCache.getCombined(2, 0);
-        Arrays.fill(main, stone);
-        Arrays.fill(floor, grass);
+        Arrays.fill(main.getCharArray(), stone);
+        Arrays.fill(floor.getCharArray(), grass);
+    }
+
+    public Metadatable getMetaData() {
+        return metaData;
+    }
+
+    @Override
+    public FaweQueue getQueue() {
+        throw new UnsupportedOperationException("Not supported: Queue is not backed by a real world");
+    }
+
+    public Vector getOrigin() {
+        return new BlockVector(chunkOffset.getBlockX() << 4, 0, chunkOffset.getBlockZ() << 4);
+    }
+
+    public boolean hasPacketViewer() {
+        return player != null;
+    }
+
+    public void setPacketViewer(FawePlayer player) {
+        this.player = player;
+        if (player != null) {
+            FaweLocation pos = player.getLocation();
+            this.chunkOffset = new Vector2D(pos.x >> 4, pos.z >> 4);
+        }
+    }
+
+    public FawePlayer getOwner() {
+        return player;
+    }
+
+    private char[][][] getChunkArray(int x, int z) {
+        char[][][][][] blocksData = blocks.get();
+        if (blocksData == null) return null;
+        char[][][][] arr = blocksData[z];
+        return arr != null ? arr[x] : null;
     }
 
     public void setImageViewer(ImageViewer viewer) {
         this.viewer = viewer;
-        update();
     }
 
     public ImageViewer getImageViewer() {
         return viewer;
     }
 
-    private void update() {
+    public void update() {
         if (viewer != null) {
-            viewer.view(draw());
+            viewer.view(this);
+        }
+        if (chunkOffset != null && player != null) {
+            FaweQueue packetQueue = SetQueue.IMP.getNewQueue(player.getWorld(), true, false);
+
+            if (!packetQueue.supports(Capability.CHUNK_PACKETS)) {
+                return;
+            }
+
+            int lenCX = (getWidth() + 15) >> 4;
+            int lenCZ = (getLength() + 15) >> 4;
+
+            int OX = chunkOffset.getBlockX();
+            int OZ = chunkOffset.getBlockZ();
+
+            FaweLocation position = player.getLocation();
+            int pcx = (position.x >> 4) - OX;
+            int pcz = (position.z >> 4) - OZ;
+
+            int scx = Math.max(0, pcx - 10);
+            int scz = Math.max(0, pcz - 10);
+            int ecx = Math.min(lenCX - 1, pcx + 10);
+            int ecz = Math.min(lenCZ - 1, pcz + 10);
+
+            MCAChunk chunk = new MCAChunk(this, 0, 0);
+            for (int cz = scz; cz <= ecz; cz++) {
+                for (int cx = scx; cx <= ecx; cx++) {
+                    final int finalCX = cx;
+                    final int finalCZ = cz;
+                    TaskManager.IMP.getPublicForkJoinPool().submit((Runnable) () -> {
+                        try {
+                            FaweChunk toSend = getSnapshot(finalCX, finalCZ);
+                            toSend.setLoc(HeightMapMCAGenerator.this, finalCX + OX, finalCZ + OZ);
+                            packetQueue.sendChunkUpdate(toSend, player);
+                        } catch (Throwable e) {
+                            e.printStackTrace();
+                        }
+                    });
+//                    FaweChunk toSend = getSnapshot(chunk, finalCX, finalCZ);
+//                    toSend.setLoc(HeightMapMCAGenerator.this, finalCX + OX, finalCZ + OZ);
+//                    packetQueue.sendChunkUpdate(toSend, player);
+                }
+            }
         }
     }
 
@@ -106,7 +345,7 @@ public class HeightMapMCAGenerator extends MCAWriter implements Extent {
             textureUtil = Fawe.get().getTextureUtil();
         }
         try {
-            if (randomVariation) {
+            if (primtives.randomVariation) {
                 return new RandomTextureUtil(textureUtil);
             } else if (textureUtil instanceof CachedTextureUtil) {
                 return textureUtil;
@@ -119,22 +358,28 @@ public class HeightMapMCAGenerator extends MCAWriter implements Extent {
         }
     }
 
+    public void setBedrockId(int bedrockId) {
+        this.primtives.bedrockId = (byte) bedrockId;
+    }
+
+    public void setFloorThickness(int floorThickness) {
+        this.primtives.floorThickness = floorThickness;
+    }
+
     public void setWaterHeight(int waterHeight) {
-        this.waterHeight = waterHeight;
-        update();
+        this.primtives.waterHeight = waterHeight;
     }
 
     public void setWaterId(int waterId) {
-        this.waterId = (byte) waterId;
-        update();
+        this.primtives.waterId = (byte) waterId;
     }
 
     public void setTextureRandomVariation(boolean randomVariation) {
-        this.randomVariation = randomVariation;
+        this.primtives.randomVariation = randomVariation;
     }
 
     public boolean getTextureRandomVariation() {
-        return this.randomVariation;
+        return this.primtives.randomVariation;
     }
 
     public void setTextureUtil(TextureUtil textureUtil) {
@@ -149,100 +394,166 @@ public class HeightMapMCAGenerator extends MCAWriter implements Extent {
         smooth(null, mask, false, radius, iterations);
     }
 
-    private void smooth(BufferedImage img, Mask mask, boolean white, int radius, int iterations) {
-        char snow = 78 << 4;
-        long[] copy = new long[heights.length];
-        char[] layers = new char[heights.length];
+    public void smooth(Vector2D min, Vector2D max, int radius, int iterations) {
+        char snowLayer = 78 << 4;
+        char snowBlock = 80;
+
+        char[] floor = this.floor.get();
+        byte[] heights = this.heights.get();
+
         int width = getWidth();
         int length = getLength();
-        SummedAreaTable table = new SummedAreaTable(copy, layers, width, radius);
+
+        int minX = min.getBlockX();
+        int minZ = min.getBlockZ();
+
+        int maxX = max.getBlockX();
+        int maxZ = max.getBlockZ();
+
+        int tableWidth = (maxX - minX + 1);
+        int tableLength = (maxZ - minZ + 1);
+        int smoothArea = tableWidth * tableLength;
+
+        long[] copy = new long[smoothArea];
+        char[] layers = new char[smoothArea];
+
+        SummedAreaTable table = new SummedAreaTable(copy, layers, tableWidth, radius);
         for (int j = 0; j < iterations; j++) {
-            for (int i = 0; i < heights.length; i++) {
-                char combined = floor[i];
-                int id = combined >> 4;
-                if (id == 78 || id == 80) {
-                    layers[i] = (char) (((heights[i] & 0xFF) << 3) + (floor[i] & 0x7) + 1);
-                } else {
-                    layers[i] = (char) (((heights[i] & 0xFF) << 3) + 9);
+
+            { // Copy to table
+                int localIndex = 0;
+                int zIndex = (minZ * getWidth());
+                for (int z = minZ; z <= maxZ; z++, zIndex += getWidth()) {
+                    int index = zIndex + minX;
+                    for (int x = minX; x <= maxX; x++, index++, localIndex++) {
+                        char combined = floor[index];
+                        int id = combined >> 4;
+                        if (id == 78) {
+                            layers[localIndex] = (char) (((heights[index] & 0xFF) << 3) + (floor[index] & 0x7) - 7);
+                        } else {
+                            layers[localIndex] = (char) (((heights[index] & 0xFF) << 3));
+                        }
+                    }
                 }
             }
-            int index = 0;
+            // Process table
             table.processSummedAreaTable();
-            if (img != null) {
-                for (int z = 0; z < getLength(); z++) {
-                    for (int x = 0; x < getWidth(); x++, index++) {
-                        int height = img.getRGB(x, z) & 0xFF;
-                        if (height == 255 || height > 0 && !white && PseudoRandom.random.nextInt(256) <= height) {
-                            int newHeight = table.average(x, z, index) - 1;
-                            int blockHeight = (newHeight) >> 3;
-                            int layerHeight = (newHeight) & 0x7;
-                            heights[index] = (byte) blockHeight;
-                            int id = floor[index] >> 4;
-                            if (id == 78 || id == 80) {
-                                floor[index] = (char) (snow + layerHeight);
-                            }
-                        }
-                    }
-                }
-            } else if (mask != null) {
-                for (int z = 0; z < getLength(); z++) {
-                    mutable.mutZ(z);
-                    for (int x = 0; x < getWidth(); x++, index++) {
+            { // Copy from table
+                int localIndex = 0;
+                int zIndex = (minZ * getWidth());
+                for (int z = minZ, localZ = 0; z <= maxZ; z++, localZ++, zIndex += getWidth()) {
+                    int index = zIndex + minX;
+                    for (int x = minX, localX = 0; x <= maxX; x++, localX++, index++, localIndex++) {
                         int y = heights[index] & 0xFF;
-                        mutable.mutX(x);
-                        mutable.mutY(y);
-                        if (mask.test(mutable)) {
-                            int newHeight = table.average(x, z, index) - 1;
-                            int blockHeight = (newHeight) >> 3;
-                            int layerHeight = (newHeight) & 0x7;
-                            heights[index] = (byte) blockHeight;
-                            int id = floor[index] >> 4;
-                            if (id == 78 || id == 80) {
-                                floor[index] = (char) (snow + layerHeight);
-                            }
-                        }
-                    }
-                }
-            } else {
-                for (int z = 0; z < getLength(); z++) {
-                    for (int x = 0; x < getWidth(); x++, index++) {
-                        int y = heights[index] & 0xFF;
-                        int newHeight = table.average(x, z, index) - 1;
-                        int blockHeight = (newHeight) >> 3;
-                        int layerHeight = (newHeight) & 0x7;
-                        heights[index] = (byte) blockHeight;
-                        int id = floor[index] >> 4;
-                        if (id == 78 || id == 80) {
-                            floor[index] = (char) (snow + layerHeight);
-                        }
+                        int newHeight = table.average(localX, localZ, localIndex);
+                        setLayerHeight(index, newHeight);
                     }
                 }
             }
         }
-        update();
+    }
+
+    private final void setLayerHeight(int index, int height) {
+        int blockHeight = (height) >> 3;
+        int layerHeight = (height) & 0x7;
+        setLayerHeight(index, blockHeight, layerHeight);
+    }
+
+    private final void setLayerHeight(int index, int blockHeight, int layerHeight) {
+        int floorId = floor.get()[index] >> 4;
+        if (floorId == 78 || floorId == 80) {
+            if (layerHeight != 0) {
+                this.heights.setByte(index, (byte) (blockHeight + 1));
+                this.floor.setChar(index, (char) (1248 + layerHeight));
+            } else {
+                this.heights.setByte(index, (byte) (blockHeight));
+                this.floor.setChar(index, (char) (1280));
+            }
+        } else {
+            this.heights.setByte(index, (byte) (blockHeight));
+
+        }
+    }
+
+    private void smooth(BufferedImage img, Mask mask, boolean white, int radius, int iterations) {
+        char snowLayer = 78 << 4;
+        char snowBlock = 80;
+
+        char[] floor = this.floor.get();
+        byte[] heights = this.heights.get();
+
+        long[] copy = new long[heights.length];
+        char[] layers = new char[heights.length];
+
+        this.floor.record(() -> HeightMapMCAGenerator.this.heights.record(() -> {
+            int width = getWidth();
+            int length = getLength();
+            SummedAreaTable table = new SummedAreaTable(copy, layers, width, radius);
+            for (int j = 0; j < iterations; j++) {
+                for (int i = 0; i < heights.length; i++) {
+                    char combined = floor[i];
+                    int id = combined >> 4;
+                    if (id == 78) {
+                        layers[i] = (char) (((heights[i] & 0xFF) << 3) + (floor[i] & 0x7) - 7);
+                    } else {
+                        layers[i] = (char) (((heights[i] & 0xFF) << 3));
+                    }
+                }
+                int index = 0;
+                table.processSummedAreaTable();
+                if (img != null) {
+                    for (int z = 0; z < getLength(); z++) {
+                        for (int x = 0; x < getWidth(); x++, index++) {
+                            int height = img.getRGB(x, z) & 0xFF;
+                            if (height == 255 || height > 0 && !white && PseudoRandom.random.nextInt(256) <= height) {
+                                int newHeight = table.average(x, z, index);
+                                setLayerHeight(index, newHeight);
+                            }
+                        }
+                    }
+                } else if (mask != null) {
+                    for (int z = 0; z < getLength(); z++) {
+                        mutable.mutZ(z);
+                        for (int x = 0; x < getWidth(); x++, index++) {
+                            int y = heights[index] & 0xFF;
+                            mutable.mutX(x);
+                            mutable.mutY(y);
+                            if (mask.test(mutable)) {
+                                int newHeight = table.average(x, z, index);
+                                setLayerHeight(index, newHeight);
+                            }
+                        }
+                    }
+                } else {
+                    for (int z = 0; z < getLength(); z++) {
+                        for (int x = 0; x < getWidth(); x++, index++) {
+                            int newHeight = table.average(x, z, index);
+                            setLayerHeight(index, newHeight);
+                        }
+                    }
+                }
+            }
+        }));
     }
 
     public void setHeight(BufferedImage img) {
         int index = 0;
         for (int z = 0; z < getLength(); z++) {
             for (int x = 0; x < getWidth(); x++, index++) {
-                heights[index] = (byte) (img.getRGB(x, z) >> 8);
+                heights.setByte(index, (byte) (img.getRGB(x, z) >> 8));
             }
         }
-        update();
     }
 
     public void addCaves() throws WorldEditException {
         CuboidRegion region = new CuboidRegion(new Vector(0, 0, 0), new Vector(getWidth(), 255, getLength()));
         addCaves(region);
-        update();
     }
 
     @Deprecated
     public void addSchems(Mask mask, WorldData worldData, List<ClipboardHolder> clipboards, int rarity, boolean rotate) throws WorldEditException {
         CuboidRegion region = new CuboidRegion(new Vector(0, 0, 0), new Vector(getWidth(), 255, getLength()));
         addSchems(region, mask, worldData, clipboards, rarity, rotate);
-        update();
     }
 
     public void addSchems(BufferedImage img, Mask mask, WorldData worldData, List<ClipboardHolder> clipboards, int rarity, int distance, boolean randomRotate) throws WorldEditException {
@@ -255,7 +566,7 @@ public class HeightMapMCAGenerator extends MCAWriter implements Extent {
         for (int z = 0; z < getLength(); z++) {
             mutable.mutZ(z);
             for (int x = 0; x < getWidth(); x++, index++) {
-                int y = heights[index];
+                int y = heights.getByte(index) & 0xFF;
                 int height = img.getRGB(x, z) & 0xFF;
                 if (height == 0 || PseudoRandom.random.nextInt(256) > height * doubleRarity) {
                     continue;
@@ -294,7 +605,6 @@ public class HeightMapMCAGenerator extends MCAWriter implements Extent {
                 }
             }
         }
-        update();
     }
 
     public void addSchems(Mask mask, WorldData worldData, List<ClipboardHolder> clipboards, int rarity, int distance, boolean randomRotate) throws WorldEditException {
@@ -305,7 +615,7 @@ public class HeightMapMCAGenerator extends MCAWriter implements Extent {
         for (int z = 0; z < getLength(); z++) {
             mutable.mutZ(z);
             for (int x = 0; x < getWidth(); x++, index++) {
-                int y = heights[index];
+                int y = heights.getByte(index) & 0xFF;
                 if (PseudoRandom.random.nextInt(256) > scaledRarity) {
                     continue;
                 }
@@ -344,18 +654,15 @@ public class HeightMapMCAGenerator extends MCAWriter implements Extent {
                 }
             }
         }
-        update();
     }
 
     public void addOre(Mask mask, Pattern material, int size, int frequency, int rarity, int minY, int maxY) throws WorldEditException {
         CuboidRegion region = new CuboidRegion(new Vector(0, 0, 0), new Vector(getWidth(), 255, getLength()));
         addOre(region, mask, material, size, frequency, rarity, minY, maxY);
-        update();
     }
 
     public void addDefaultOres(Mask mask) throws WorldEditException {
         addOres(new CuboidRegion(new Vector(0, 0, 0), new Vector(getWidth(), 255, getLength())), mask);
-        update();
     }
 
     @Override
@@ -375,63 +682,351 @@ public class HeightMapMCAGenerator extends MCAWriter implements Extent {
 
     @Override
     public boolean setBiome(Vector2D position, BaseBiome biome) {
-        int index = position.getBlockZ() * getWidth() + position.getBlockX();
-        if (index < 0 || index >= heights.length) index = Math.floorMod(index, heights.length);
-        biomes[index] = (byte) biome.getId();
-        return true;
+        return this.setBiome(position.getBlockX(), position.getBlockZ(), biome);
     }
 
-    @Override
-    public boolean setBlock(int x, int y, int z, BaseBlock block) throws WorldEditException {
+    private boolean setBlock(int x, int y, int z, char combined) {
         int index = z * getWidth() + x;
-        if (index < 0 || index >= heights.length) index = Math.floorMod(index, heights.length);
-        int height = heights[index] & 0xFF;
-        char combined = (char) block.getCombined();
+        if (index < 0 || index >= getArea()) return false;
+        int height = heights.getByte(index) & 0xFF;
         switch (y - height) {
             case 0:
-                floor[index] = combined;
+                floor.setChar(index, combined);
                 return true;
             case 1:
-                char mainId = main[index];
-                char floorId = floor[index];
-                floor[index] = combined;
-                heights[index]++;
+                char mainId = main.getChar(index);
+                char floorId = floor.getChar(index);
+                floor.setChar(index, combined);
+
+                byte currentHeight = heights.getByte(index);
+                currentHeight++;
+                heights.setByte(index, currentHeight);
                 if (mainId == floorId) return true;
                 y--;
                 combined = floorId;
             default:
-                short chunkX = (short) (x >> 4);
-                short chunkZ = (short) (z >> 4);
-                int pair = MathMan.pair(chunkX, chunkZ);
-                char[][][] map = blocks.get(pair);
-                if (map == null) {
-                    map = new char[256][][];
-                    blocks.put(pair, map);
+                try {
+                    short chunkX = (short) (x >> 4);
+                    short chunkZ = (short) (z >> 4);
+                    blocks.set(x, y, z, combined);
+                    return true;
+                } catch (IndexOutOfBoundsException ignore) {
+                    return false;
                 }
-                char[][] yMap = map[y];
-                if (yMap == null) {
-                    map[y] = yMap = new char[16][];
-                }
-                z = z & 15;
-                char[] zMap = yMap[z];
-                if (zMap == null) {
-                    yMap[z] = zMap = new char[16];
-                }
-                zMap[x & 15] = combined != 0 ? combined : 1;
-                return true;
         }
     }
 
     @Override
+    public boolean setBlock(int x, int y, int z, int id, int data) {
+        return this.setBlock(x, y, z, (char) FaweCache.getCombined(id, data));
+    }
+
+    @Override
+    public void setTile(int x, int y, int z, CompoundTag tag) {
+        // Not implemented
+    }
+
+    @Override
+    public void setEntity(int x, int y, int z, CompoundTag tag) {
+        // Not implemented
+    }
+
+    @Override
+    public void removeEntity(int x, int y, int z, UUID uuid) {
+        // Not implemented
+    }
+
+    @Override
+    public boolean setBiome(int x, int z, BaseBiome biome) {
+        int index = z * getWidth() + x;
+        if (index < 0 || index >= getArea()) return false;
+        biomes.setByte(index, (byte) biome.getId());
+        return true;
+    }
+
+    @Override
+    public FaweChunk getFaweChunk(int chunkX, int chunkZ) {
+        return new SimpleCharFaweChunk(this, chunkX, chunkZ);
+    }
+
+    public FaweChunk getSnapshot(int chunkX, int chunkZ) {
+        return getSnapshot(null, chunkX, chunkZ);
+    }
+
+    private FaweChunk getSnapshot(final MCAChunk chunk, int chunkX, int chunkZ) {
+        return new LazyFaweChunk<MCAChunk>(this, chunkX, chunkZ) {
+            @Override
+            public MCAChunk getChunk() {
+                MCAChunk tmp = chunk;
+                if (tmp == null) {
+                    tmp = new MCAChunk(HeightMapMCAGenerator.this, chunkX, chunkZ);
+                } else {
+                    tmp.setLoc(HeightMapMCAGenerator.this, chunkX, chunkZ);
+                }
+                int cbx = chunkX << 4;
+                int cbz = chunkZ << 4;
+                int csx = Math.max(0, cbx);
+                int csz = Math.max(0, cbz);
+                int cex = Math.min(getWidth(), cbx + 15);
+                int cez = Math.min(getLength(), cbz + 15);
+                write(tmp, csx, cex, csz, cez);
+                tmp.setLoc(HeightMapMCAGenerator.this, getX(), getZ());
+                return tmp;
+            }
+
+            @Override
+            public void addToQueue() {
+                MCAChunk cached = getCachedChunk();
+                if (cached != null) setChunk(cached);
+            }
+        };
+    }
+
+    @Override
+    public Collection<FaweChunk> getFaweChunks() {
+        return Collections.emptyList();
+    }
+
+    @Override
+    public void setChunk(FaweChunk chunk) {
+        System.out.println(((SimpleCharFaweChunk) chunk).getTotalCount());
+        char[][] src = chunk.getCombinedIdArrays();
+        for (int i = 0; i < src.length; i++) {
+            if (src[i] != null) {
+                int bx = chunk.getX() << 4;
+                int bz = chunk.getZ() << 4;
+                int by = i << 4;
+                for (int layer = i; layer < src.length; layer++) {
+                    char[] srcLayer = src[layer];
+                    if (srcLayer != null) {
+                        int index = 0;
+                        for (int y = 0; y < 16; y++) {
+                            int yy = by + y;
+                            for (int z = 0; z < 16; z++) {
+                                int zz = bz + z;
+                                for (int x = 0; x < 16; x++, index++) {
+                                    char combined = srcLayer[index];
+                                    if (combined != 0) {
+                                        setBlock(bx + x, yy, zz, combined);
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+                break;
+            }
+        }
+    }
+
+    @Override
+    public File getSaveFolder() {
+        return getFolder();
+    }
+
+    @Override
+    public boolean regenerateChunk(int x, int z, @Nullable BaseBiome biome, @Nullable Long seed) {
+        // Unsupported
+        return false;
+    }
+
+    @Override
+    public void sendBlockUpdate(FaweChunk chunk, FawePlayer... players) {
+
+    }
+
+    @Override
+    public void flush(int time) {
+        next(0, time);
+    }
+
+    @Override
+    public boolean next(int amount, long time) {
+        EditSession curES = editSession;
+        if (curES != null && isModified()) {
+            try {
+                update();
+                FawePlayer esPlayer = curES.getPlayer();
+                UUID uuid = esPlayer != null ? esPlayer.getUUID() : EditSession.CONSOLE;
+                try {
+                    curES.setRawChangeSet(new CFIChangeSet(this, uuid));
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            } catch (Throwable e) {
+                e.printStackTrace();
+            }
+        }
+        clear();
+        return false;
+    }
+
+    @Override
+    public void sendChunk(FaweChunk chunk) {
+    }
+
+    @Override
+    public void sendChunk(int x, int z, int bitMask) {
+    }
+
+    @Override
+    public void clear() {
+        this.editSession = null;
+    }
+
+    @Override
+    public void close() {
+        clear();
+        if (chunkOffset != null && player != null) {
+            FaweQueue packetQueue = SetQueue.IMP.getNewQueue(player.getWorld(), true, false);
+
+            int lenCX = (getWidth() + 15) >> 4;
+            int lenCZ = (getLength() + 15) >> 4;
+
+            int OX = chunkOffset.getBlockX();
+            int OZ = chunkOffset.getBlockZ();
+
+            FaweLocation position = player.getLocation();
+            int pcx = (position.x >> 4) - OX;
+            int pcz = (position.z >> 4) - OZ;
+
+            int scx = Math.max(0, pcx - 10);
+            int scz = Math.max(0, pcz - 10);
+            int ecx = Math.min(lenCX - 1, pcx + 10);
+            int ecz = Math.min(lenCZ - 1, pcz + 10);
+
+            for (int cz = scz; cz <= ecz; cz++) {
+                for (int cx = scx; cx <= ecx; cx++) {
+                    packetQueue.sendChunk(cx + OX, cz + OZ, 0);
+                }
+            }
+        }
+        player = null;
+        chunkOffset = null;
+    }
+
+    @Override
+    public void addNotifyTask(int x, int z, Runnable runnable) {
+        if (runnable != null) runnable.run();
+    }
+
+    @Override
+    public int getBiomeId(int x, int z) throws FaweException.FaweChunkLoadException {
+        int index = z * getWidth() + x;
+        if (index < 0 || index >= getArea()) index = Math.floorMod(index, getArea());
+        return biomes.getByte(index) & 0xFF;
+    }
+
+    @Override
+    public int getCombinedId4Data(int x, int y, int z) throws FaweException.FaweChunkLoadException {
+        int index = z * getWidth() + x;
+        if (y < 0) return 0;
+        if (index < 0 || index >= getArea()) index = Math.floorMod(index, getArea());
+        int height = heights.getByte(index) & 0xFF;
+        if (y > height) {
+            if (y == height + 1) {
+                return overlay != null ? overlay.getChar(index) : 0;
+            }
+            if (blocks != null) {
+                short chunkX = (short) (x >> 4);
+                short chunkZ = (short) (z >> 4);
+                char[][][] map = getChunkArray(chunkX, chunkZ);
+                if (map != null) {
+                    char combined = get(map, x, y, z);
+                    if (combined != 0) {
+                        return combined;
+                    }
+                }
+            }
+            if (y <= primtives.waterHeight) {
+                return primtives.waterId << 4;
+            }
+            return 0;
+        } else if (y == height) {
+            return floor.getChar(index);
+        } else {
+            if (blocks != null) {
+                short chunkX = (short) (x >> 4);
+                short chunkZ = (short) (z >> 4);
+                char[][][] map = getChunkArray(chunkX, chunkZ);
+                if (map != null) {
+                    char combined = get(map, x, y, z);
+                    if (combined != 0) {
+                        return combined;
+                    }
+                }
+            }
+            return main.getChar(index);
+        }
+    }
+
+    @Override
+    public int getCombinedId4Data(int x, int y, int z, int def) {
+        return getCombinedId4Data(x, y, z);
+    }
+
+    @Override
+    public int getCachedCombinedId4Data(int x, int y, int z) throws FaweException.FaweChunkLoadException {
+        return getCombinedId4Data(x, y, z);
+    }
+
+    @Override
+    public boolean hasSky() {
+        return true;
+    }
+
+    @Override
+    public int getSkyLight(int x, int y, int z) {
+        return getNearestSurfaceTerrainBlock(x, z, y, 0, 255) < y ? 15 : 0;
+    }
+
+    @Override
+    public int getEmmittedLight(int x, int y, int z) {
+        return 0;
+    }
+
+    @Override
+    public CompoundTag getTileEntity(int x, int y, int z) throws FaweException.FaweChunkLoadException {
+        return null;
+    }
+
+    @Override
+    public int size() {
+        return 0;
+    }
+
+    @Override
+    public boolean setBlock(int x, int y, int z, BaseBlock block) throws WorldEditException {
+        return this.setBlock(x, y, z, (char) block.getCombined());
+    }
+
+    @Override
     public BaseBiome getBiome(Vector2D position) {
-        int index = position.getBlockZ() * getWidth() + position.getBlockX();
-        if (index < 0 || index >= heights.length) index = Math.floorMod(index, heights.length);
-        return FaweCache.CACHE_BIOME[biomes[index] & 0xFF];
+        return FaweCache.CACHE_BIOME[getBiomeId(position.getBlockX(), position.getBlockZ())];
     }
 
     @Override
     public BaseBlock getBlock(Vector position) {
         return getLazyBlock(position);
+    }
+
+    public BaseBlock getFloor(int x, int z) {
+        int index = z * getWidth() + x;
+        return FaweCache.CACHE_BLOCK[floor.getChar(index)];
+    }
+
+    public int getHeight(int x, int z) {
+        int index = z * getWidth() + x;
+        return heights.getByte(index) & 0xFF;
+    }
+
+    public int getHeight(int index) {
+        return heights.getByte(index) & 0xFF;
+    }
+
+    public void setFloor(int x, int z, BaseBlock block) {
+        int index = z * getWidth() + x;
+        floor.setChar(index, (char) block.getCombined());
     }
 
     @Override
@@ -441,76 +1036,41 @@ public class HeightMapMCAGenerator extends MCAWriter implements Extent {
 
     @Override
     public BaseBlock getLazyBlock(int x, int y, int z) {
-        int index = z * getWidth() + x;
-        if (y < 0) return EditSession.nullBlock;
-        if (index < 0 || index >= heights.length) index = Math.floorMod(index, heights.length);
-        int height = heights[index] & 0xFF;
-        if (y > height) {
-            if (y == height + 1) {
-                return FaweCache.CACHE_BLOCK[overlay != null ? overlay[index] : 0];
-            }
-            if (!blocks.isEmpty()) {
-                short chunkX = (short) (x >> 4);
-                short chunkZ = (short) (z >> 4);
-                int pair = MathMan.pair(chunkX, chunkZ);
-                char[][][] map = blocks.get(pair);
-                if (map != null) {
-                    char combined = get(map, x, y, z);
-                    if (combined != 0) {
-                        return FaweCache.CACHE_BLOCK[combined];
-                    }
-                }
-            }
-            if (y > waterHeight) {
-                return FaweCache.CACHE_BLOCK[waterId << 4];
-            }
-            return FaweCache.CACHE_BLOCK[0];
-        } else if (y == height) {
-            return FaweCache.CACHE_BLOCK[floor[index]];
-        } else {
-            if (!blocks.isEmpty()) {
-                short chunkX = (short) (x >> 4);
-                short chunkZ = (short) (z >> 4);
-                int pair = MathMan.pair(chunkX, chunkZ);
-                char[][][] map = blocks.get(pair);
-                if (map != null) {
-                    char combined = get(map, x, y, z);
-                    if (combined != 0) {
-                        return FaweCache.CACHE_BLOCK[combined];
-                    }
-                }
-            }
-            return FaweCache.CACHE_BLOCK[main[index]];
-        }
+        return FaweCache.CACHE_BLOCK[getCombinedId4Data(x, y, z)];
     }
 
     @Override
     public int getNearestSurfaceLayer(int x, int z, int y, int minY, int maxY) {
         int index = z * getWidth() + x;
-        if (index < 0 || index >= heights.length) index = Math.floorMod(index, heights.length);
-        return ((heights[index] & 0xFF) << 3) + (floor[index] & 0xFF) + 1;
+        if (index < 0 || index >= getArea()) index = Math.floorMod(index, getArea());
+        return ((heights.getByte(index) & 0xFF) << 3) + (floor.getChar(index) & 0xFF) + 1;
     }
 
     @Override
     public int getNearestSurfaceTerrainBlock(int x, int z, int y, int minY, int maxY) {
         int index = z * getWidth() + x;
-        if (index < 0 || index >= heights.length) index = Math.floorMod(index, heights.length);
-        return heights[index] & 0xFF;
+        if (index < 0 || index >= getArea()) index = Math.floorMod(index, getArea());
+        return heights.getByte(index) & 0xFF;
     }
 
     public void setBiome(BufferedImage img, byte biome, boolean white) {
         if (img.getWidth() != getWidth() || img.getHeight() != getLength())
             throw new IllegalArgumentException("Input image dimensions do not match the current height map!");
-        int index = 0;
-        for (int z = 0; z < getLength(); z++) {
-            for (int x = 0; x < getWidth(); x++, index++) {
-                int height = img.getRGB(x, z) & 0xFF;
-                if (height == 255 || height > 0 && !white && PseudoRandom.random.nextInt(256) <= height) {
-                    biomes[index] = biome;
+        biomes.record(new Runnable() {
+            @Override
+            public void run() {
+                byte[] biomeArr = biomes.get();
+                int index = 0;
+                for (int z = 0; z < getLength(); z++) {
+                    for (int x = 0; x < getWidth(); x++, index++) {
+                        int height = img.getRGB(x, z) & 0xFF;
+                        if (height == 255 || height > 0 && !white && PseudoRandom.random.nextInt(256) <= height) {
+                            biomeArr[index] = biome;
+                        }
+                    }
                 }
             }
-        }
-        update();
+        });
     }
 
     public BufferedImage draw() {
@@ -518,11 +1078,11 @@ public class HeightMapMCAGenerator extends MCAWriter implements Extent {
     }
 
     public void setBiomePriority(int value) {
-        this.biomePriority = ((value * 65536) / 100) - 32768;
+        this.primtives.biomePriority = ((value * 65536) / 100) - 32768;
     }
 
     public int getBiomePriority() {
-        return ((biomePriority + 32768) * 100) / 65536;
+        return ((primtives.biomePriority + 32768) * 100) / 65536;
     }
 
     public void setBlockAndBiomeColor(BufferedImage img, Mask mask, BufferedImage imgMask, boolean whiteOnly) {
@@ -533,77 +1093,94 @@ public class HeightMapMCAGenerator extends MCAWriter implements Extent {
         if (img.getWidth() != getWidth() || img.getHeight() != getLength())
             throw new IllegalArgumentException("Input image dimensions do not match the current height map!");
         TextureUtil textureUtil = getTextureUtil();
-        int index = 0;
+
         int widthIndex = img.getWidth() - 1;
         int heightIndex = img.getHeight() - 1;
-        int maxIndex = biomes.length - 1;
+        int maxIndex = getArea() - 1;
 
-        int[] buffer = new int[2];
-        for (int z = 0; z < img.getHeight(); z++) {
-            mutable.mutZ(z);
-            for (int x = 0; x < img.getWidth(); x++, index++) {
-                if (mask != null) {
-                    mutable.mutX(z);
-                    mutable.mutY(heights[index] & 0xFF);
-                    if (!mask.test(mutable)) continue;
+        biomes.record(() -> floor.record(() -> main.record(() -> {
+            char[] mainArr = main.get();
+            char[] floorArr = floor.get();
+            byte[] biomesArr = biomes.get();
+
+            int index = 0;
+            int[] buffer = new int[2];
+            for (int z = 0; z < img.getHeight(); z++) {
+                mutable.mutZ(z);
+                for (int x = 0; x < img.getWidth(); x++, index++) {
+                    if (mask != null) {
+                        mutable.mutX(z);
+                        mutable.mutY(heights.getByte(index) & 0xFF);
+                        if (!mask.test(mutable)) continue;
+                    }
+                    if (imgMask != null) {
+                        int height = imgMask.getRGB(x, z) & 0xFF;
+                        if (height != 255 && (height <= 0 || !whiteOnly || PseudoRandom.random.nextInt(256) > height)) continue;
+                    }
+                    int color = img.getRGB(x, z);
+                    if (textureUtil.getIsBlockCloserThanBiome(buffer, color, primtives.biomePriority)) {
+                        char combined = (char) buffer[0];
+                        mainArr[index] = combined;
+                        floorArr[index] = combined;
+                    }
+                    biomesArr[index] = (byte) buffer[1];
                 }
-                if (imgMask != null) {
-                    int height = imgMask.getRGB(x, z) & 0xFF;
-                    if (height != 255 && (height <= 0 || !whiteOnly || PseudoRandom.random.nextInt(256) > height)) continue;
-                }
-                int color = img.getRGB(x, z);
-                if (textureUtil.getIsBlockCloserThanBiome(buffer, color, biomePriority)) {
-                    char combined = (char) buffer[0];
-                    main[index] = combined;
-                    floor[index] = combined;
-                }
-                biomes[index] = (byte) buffer[1];
             }
-        }
-        update();
+        })));
     }
 
     public void setBlockAndBiomeColor(BufferedImage img) {
         if (img.getWidth() != getWidth() || img.getHeight() != getLength())
             throw new IllegalArgumentException("Input image dimensions do not match the current height map!");
         TextureUtil textureUtil = getTextureUtil();
-        int index = 0;
         int widthIndex = img.getWidth() - 1;
         int heightIndex = img.getHeight() - 1;
-        int maxIndex = biomes.length - 1;
+        int maxIndex = getArea() - 1;
 
-        int[] buffer = new int[2];
-        for (int y = 0; y < img.getHeight(); y++) {
-            boolean yBiome = y > 0 && y < heightIndex;
-            for (int x = 0; x < img.getWidth(); x++, index++) {
-                int color = img.getRGB(x, y);
-                if (textureUtil.getIsBlockCloserThanBiome(buffer, color, biomePriority)) {
-                    char combined = (char) buffer[0];
-                    main[index] = combined;
-                    floor[index] = combined;
+        biomes.record(() -> floor.record(() -> main.record(() -> {
+            char[] mainArr = main.get();
+            char[] floorArr = floor.get();
+            byte[] biomesArr = biomes.get();
+
+            int[] buffer = new int[2];
+            int index = 0;
+            for (int y = 0; y < img.getHeight(); y++) {
+                boolean yBiome = y > 0 && y < heightIndex;
+                for (int x = 0; x < img.getWidth(); x++, index++) {
+                    int color = img.getRGB(x, y);
+                    if (textureUtil.getIsBlockCloserThanBiome(buffer, color, primtives.biomePriority)) {
+                        char combined = (char) buffer[0];
+                        mainArr[index] = combined;
+                        floorArr[index] = combined;
+                    }
+                    biomesArr[index] = (byte) buffer[1];
                 }
-                biomes[index] = (byte) buffer[1];
             }
-        }
-        update();
+        })));
     }
 
     public void setBiomeColor(BufferedImage img) {
         if (img.getWidth() != getWidth() || img.getHeight() != getLength())
             throw new IllegalArgumentException("Input image dimensions do not match the current height map!");
         TextureUtil textureUtil = getTextureUtil();
-        int index = 0;
-        for (int y = 0; y < img.getHeight(); y++) {
-            for (int x = 0; x < img.getWidth(); x++) {
-                int color = img.getRGB(x, y);
-                TextureUtil.BiomeColor biome = textureUtil.getNearestBiome(color);
-                if (biome != null) {
-                    biomes[index] = (byte) biome.id;
+
+        biomes.record(new Runnable() {
+            @Override
+            public void run() {
+                byte[] biomesArr = biomes.get();
+                int index = 0;
+                for (int y = 0; y < img.getHeight(); y++) {
+                    for (int x = 0; x < img.getWidth(); x++) {
+                        int color = img.getRGB(x, y);
+                        TextureUtil.BiomeColor biome = textureUtil.getNearestBiome(color);
+                        if (biome != null) {
+                            biomesArr[index] = (byte) biome.id;
+                        }
+                        index++;
+                    }
                 }
-                index++;
             }
-        }
-        update();
+        });
     }
 
     public void setColor(BufferedImage img, BufferedImage mask, boolean white) {
@@ -611,89 +1188,110 @@ public class HeightMapMCAGenerator extends MCAWriter implements Extent {
             throw new IllegalArgumentException("Input image dimensions do not match the current height map!");
         if (mask.getWidth() != getWidth() || mask.getHeight() != getLength())
             throw new IllegalArgumentException("Input image dimensions do not match the current height map!");
-        modifiedMain = true;
+        primtives.modifiedMain = true;
         TextureUtil textureUtil = getTextureUtil();
-        int index = 0;
-        for (int z = 0; z < getLength(); z++) {
-            for (int x = 0; x < getWidth(); x++, index++) {
-                int height = mask.getRGB(x, z) & 0xFF;
-                if (height == 255 || height > 0 && !white && PseudoRandom.random.nextInt(256) <= height) {
-                    int color = img.getRGB(x, z);
-                    BaseBlock block = textureUtil.getNearestBlock(color);
-                    if (block != null) {
-                        char combined = (char) block.getCombined();
-                        main[index] = combined;
-                        floor[index] = combined;
+
+        floor.record(() -> main.record(() -> {
+            char[] mainArr = main.get();
+            char[] floorArr = floor.get();
+
+            int index = 0;
+            for (int z = 0; z < getLength(); z++) {
+                for (int x = 0; x < getWidth(); x++, index++) {
+                    int height = mask.getRGB(x, z) & 0xFF;
+                    if (height == 255 || height > 0 && !white && PseudoRandom.random.nextInt(256) <= height) {
+                        int color = img.getRGB(x, z);
+                        BaseBlock block = textureUtil.getNearestBlock(color);
+                        if (block != null) {
+                            char combined = (char) block.getCombined();
+                            mainArr[index] = combined;
+                            floorArr[index] = combined;
+                        }
                     }
                 }
             }
-        }
-        update();
+        }));
     }
 
     public void setColor(BufferedImage img, Mask mask) {
         if (img.getWidth() != getWidth() || img.getHeight() != getLength())
             throw new IllegalArgumentException("Input image dimensions do not match the current height map!");
-        modifiedMain = true;
+        primtives.modifiedMain = true;
         TextureUtil textureUtil = getTextureUtil();
-        int index = 0;
-        for (int z = 0; z < getLength(); z++) {
-            mutable.mutZ(z);
-            for (int x = 0; x < getWidth(); x++, index++) {
-                mutable.mutX(x);
-                mutable.mutY(heights[index] & 0xFF);
-                if (mask.test(mutable)) {
-                    int color = img.getRGB(x, z);
-                    BaseBlock block = textureUtil.getNearestBlock(color);
-                    if (block != null) {
-                        char combined = (char) block.getCombined();
-                        main[index] = combined;
-                        floor[index] = combined;
+
+
+        floor.record(() -> main.record(() -> {
+            char[] mainArr = main.get();
+            char[] floorArr = floor.get();
+
+            int index = 0;
+            for (int z = 0; z < getLength(); z++) {
+                mutable.mutZ(z);
+                for (int x = 0; x < getWidth(); x++, index++) {
+                    mutable.mutX(x);
+                    mutable.mutY(heights.getByte(index) & 0xFF);
+                    if (mask.test(mutable)) {
+                        int color = img.getRGB(x, z);
+                        BaseBlock block = textureUtil.getNearestBlock(color);
+                        if (block != null) {
+                            char combined = (char) block.getCombined();
+                            mainArr[index] = combined;
+                            floorArr[index] = combined;
+                        }
                     }
                 }
             }
-        }
-        update();
+        }));
     }
 
     public void setColor(BufferedImage img) {
         if (img.getWidth() != getWidth() || img.getHeight() != getLength())
             throw new IllegalArgumentException("Input image dimensions do not match the current height map!");
-        modifiedMain = true;
+        primtives.modifiedMain = true;
         TextureUtil textureUtil = getTextureUtil();
-        int index = 0;
-        for (int z = 0; z < img.getHeight(); z++) {
-            for (int x = 0; x < img.getWidth(); x++) {
-                int color = img.getRGB(x, z);
-                BaseBlock block = textureUtil.getNearestBlock(color);
-                if (block != null) {
-                    char combined = (char) block.getCombined();
-                    main[index] = combined;
-                    floor[index] = combined;
+
+        floor.record(() -> main.record(() -> {
+            char[] mainArr = main.get();
+            char[] floorArr = floor.get();
+
+            int index = 0;
+            for (int z = 0; z < img.getHeight(); z++) {
+                for (int x = 0; x < img.getWidth(); x++) {
+                    int color = img.getRGB(x, z);
+                    BaseBlock block = textureUtil.getNearestBlock(color);
+                    if (block != null) {
+                        char combined = (char) block.getCombined();
+                        mainArr[index] = combined;
+                        floorArr[index] = combined;
+                    }
+                    index++;
                 }
-                index++;
             }
-        }
-        update();
+        }));
     }
 
     public void setColorWithGlass(BufferedImage img) {
         if (img.getWidth() != getWidth() || img.getHeight() != getLength())
             throw new IllegalArgumentException("Input image dimensions do not match the current height map!");
         TextureUtil textureUtil = getTextureUtil();
-        int index = 0;
-        for (int y = 0; y < img.getHeight(); y++) {
-            for (int x = 0; x < img.getWidth(); x++) {
-                int color = img.getRGB(x, y);
-                char[] layer = textureUtil.getNearestLayer(color);
-                if (layer != null) {
-                    floor[index] = layer[0];
-                    main[index] = layer[1];
+
+        floor.record(() -> main.record(() -> {
+            char[] mainArr = main.get();
+            char[] floorArr = floor.get();
+
+            int index = 0;
+            for (int y = 0; y < img.getHeight(); y++) {
+                for (int x = 0; x < img.getWidth(); x++) {
+                    int color = img.getRGB(x, y);
+                    char[] layer = textureUtil.getNearestLayer(color);
+                    if (layer != null) {
+                        floorArr[index] = layer[0];
+                        mainArr[index] = layer[1];
+                    }
+                    index++;
                 }
-                index++;
             }
-        }
-        update();
+        }));
     }
 
     public void setBiome(Mask mask, byte biome) {
@@ -701,15 +1299,14 @@ public class HeightMapMCAGenerator extends MCAWriter implements Extent {
         for (int z = 0; z < getLength(); z++) {
             mutable.mutZ(z);
             for (int x = 0; x < getWidth(); x++, index++) {
-                int y = heights[index] & 0xFF;
+                int y = heights.getByte(index) & 0xFF;
                 mutable.mutX(x);
                 mutable.mutY(y);
                 if (mask.test(mutable)) {
-                    biomes[index] = biome;
+                    biomes.setByte(index, biome);
                 }
             }
         }
-        update();
     }
 
     public void setOverlay(BufferedImage img, Pattern pattern, boolean white) {
@@ -718,21 +1315,27 @@ public class HeightMapMCAGenerator extends MCAWriter implements Extent {
         } else {
             if (img.getWidth() != getWidth() || img.getHeight() != getLength())
                 throw new IllegalArgumentException("Input image dimensions do not match the current height map!");
-            if (overlay == null) overlay = new char[getArea()];
-            int index = 0;
-            for (int z = 0; z < getLength(); z++) {
-                mutable.mutZ(z);
-                for (int x = 0; x < getWidth(); x++, index++) {
-                    int height = img.getRGB(x, z) & 0xFF;
-                    if (height == 255 || height > 0 && !white && PseudoRandom.random.nextInt(256) <= height) {
-                        mutable.mutX(x);
-                        mutable.mutY(height);
-                        overlay[index] = (char) pattern.apply(mutable).getCombined();
+            if (overlay == null) {
+                overlay = new DifferentialArray<>(new char[getArea()]);
+            }
+
+            overlay.record(() -> {
+                char[] overlayArr = overlay.get();
+                int index = 0;
+                for (int z = 0; z < getLength(); z++) {
+                    mutable.mutZ(z);
+                    for (int x = 0; x < getWidth(); x++, index++) {
+                        int height = img.getRGB(x, z) & 0xFF;
+                        if (height == 255 || height > 0 && !white && PseudoRandom.random.nextInt(256) <= height) {
+                            mutable.mutX(x);
+                            mutable.mutY(height);
+                            overlayArr[index] = (char) pattern.apply(mutable).getCombined();
+                        }
                     }
                 }
-            }
+            });
+
         }
-        update();
     }
 
     public void setMain(BufferedImage img, Pattern pattern, boolean white) {
@@ -741,21 +1344,24 @@ public class HeightMapMCAGenerator extends MCAWriter implements Extent {
         } else {
             if (img.getWidth() != getWidth() || img.getHeight() != getLength())
                 throw new IllegalArgumentException("Input image dimensions do not match the current height map!");
-            modifiedMain = true;
-            int index = 0;
-            for (int z = 0; z < getLength(); z++) {
-                mutable.mutZ(z);
-                for (int x = 0; x < getWidth(); x++, index++) {
-                    int height = img.getRGB(x, z) & 0xFF;
-                    if (height == 255 || height > 0 && !white && PseudoRandom.random.nextInt(256) <= height) {
-                        mutable.mutX(x);
-                        mutable.mutY(height);
-                        main[index] = (char) pattern.apply(mutable).getCombined();
+            primtives.modifiedMain = true;
+
+            main.record(() -> {
+                char[] mainArr = main.get();
+                int index = 0;
+                for (int z = 0; z < getLength(); z++) {
+                    mutable.mutZ(z);
+                    for (int x = 0; x < getWidth(); x++, index++) {
+                        int height = img.getRGB(x, z) & 0xFF;
+                        if (height == 255 || height > 0 && !white && PseudoRandom.random.nextInt(256) <= height) {
+                            mutable.mutX(x);
+                            mutable.mutY(height);
+                            mainArr[index] = (char) pattern.apply(mutable).getCombined();
+                        }
                     }
                 }
-            }
+            });
         }
-        update();
     }
 
     public void setFloor(BufferedImage img, Pattern pattern, boolean white) {
@@ -764,20 +1370,23 @@ public class HeightMapMCAGenerator extends MCAWriter implements Extent {
         } else {
             if (img.getWidth() != getWidth() || img.getHeight() != getLength())
                 throw new IllegalArgumentException("Input image dimensions do not match the current height map!");
-            int index = 0;
-            for (int z = 0; z < getLength(); z++) {
-                mutable.mutZ(z);
-                for (int x = 0; x < getWidth(); x++, index++) {
-                    int height = img.getRGB(x, z) & 0xFF;
-                    if (height == 255 || height > 0 && !white && PseudoRandom.random.nextInt(256) <= height) {
-                        mutable.mutX(x);
-                        mutable.mutY(height);
-                        floor[index] = (char) pattern.apply(mutable).getCombined();
+
+            floor.record(() -> {
+                char[] floorArr = floor.get();
+                int index = 0;
+                for (int z = 0; z < getLength(); z++) {
+                    mutable.mutZ(z);
+                    for (int x = 0; x < getWidth(); x++, index++) {
+                        int height = img.getRGB(x, z) & 0xFF;
+                        if (height == 255 || height > 0 && !white && PseudoRandom.random.nextInt(256) <= height) {
+                            mutable.mutX(x);
+                            mutable.mutY(height);
+                            floorArr[index] = (char) pattern.apply(mutable).getCombined();
+                        }
                     }
                 }
-            }
+            });
         }
-        update();
     }
 
     public void setColumn(BufferedImage img, Pattern pattern, boolean white) {
@@ -786,23 +1395,27 @@ public class HeightMapMCAGenerator extends MCAWriter implements Extent {
         } else {
             if (img.getWidth() != getWidth() || img.getHeight() != getLength())
                 throw new IllegalArgumentException("Input image dimensions do not match the current height map!");
-            modifiedMain = true;
-            int index = 0;
-            for (int z = 0; z < getLength(); z++) {
-                mutable.mutZ(z);
-                for (int x = 0; x < getWidth(); x++, index++) {
-                    int height = img.getRGB(x, z) & 0xFF;
-                    if (height == 255 || height > 0 && !white && PseudoRandom.random.nextInt(256) <= height) {
-                        mutable.mutX(x);
-                        mutable.mutY(height);
-                        char combined = (char) pattern.apply(mutable).getCombined();
-                        main[index] = combined;
-                        floor[index] = combined;
+            primtives.modifiedMain = true;
+
+            main.record(() -> floor.record(() -> {
+                char[] floorArr = floor.get();
+                char[] mainArr = main.get();
+                int index = 0;
+                for (int z = 0; z < getLength(); z++) {
+                    mutable.mutZ(z);
+                    for (int x = 0; x < getWidth(); x++, index++) {
+                        int height = img.getRGB(x, z) & 0xFF;
+                        if (height == 255 || height > 0 && !white && PseudoRandom.random.nextInt(256) <= height) {
+                            mutable.mutX(x);
+                            mutable.mutY(height);
+                            char combined = (char) pattern.apply(mutable).getCombined();
+                            mainArr[index] = combined;
+                            floorArr[index] = combined;
+                        }
                     }
                 }
-            }
+            }));
         }
-        update();
     }
 
     public void setOverlay(Mask mask, Pattern pattern) {
@@ -810,20 +1423,19 @@ public class HeightMapMCAGenerator extends MCAWriter implements Extent {
             setOverlay(mask, (char) ((BaseBlock) pattern).getCombined());
         } else {
             int index = 0;
-            if (overlay == null) overlay = new char[getArea()];
+            if (overlay == null) overlay = new DifferentialArray<>(new char[getArea()]);
             for (int z = 0; z < getLength(); z++) {
                 mutable.mutZ(z);
                 for (int x = 0; x < getWidth(); x++, index++) {
-                    int y = heights[index] & 0xFF;
+                    int y = heights.getByte(index) & 0xFF;
                     mutable.mutX(x);
                     mutable.mutY(y);
                     if (mask.test(mutable)) {
-                        overlay[index] = (char) pattern.apply(mutable).getCombined();
+                        overlay.setChar(index, (char) pattern.apply(mutable).getCombined());
                     }
                 }
             }
         }
-        update();
     }
 
     public void setFloor(Mask mask, Pattern pattern) {
@@ -834,145 +1446,161 @@ public class HeightMapMCAGenerator extends MCAWriter implements Extent {
             for (int z = 0; z < getLength(); z++) {
                 mutable.mutZ(z);
                 for (int x = 0; x < getWidth(); x++, index++) {
-                    int y = heights[index] & 0xFF;
+                    int y = heights.getByte(index) & 0xFF;
                     mutable.mutX(x);
                     mutable.mutY(y);
                     if (mask.test(mutable)) {
-                        floor[index] = (char) pattern.apply(mutable).getCombined();
+                        floor.setChar(index, (char) pattern.apply(mutable).getCombined());
                     }
                 }
             }
         }
-        update();
     }
 
     public void setMain(Mask mask, Pattern pattern) {
         if (pattern instanceof BaseBlock) {
             setMain(mask, (char) ((BaseBlock) pattern).getCombined());
         } else {
-            modifiedMain = true;
+            primtives.modifiedMain = true;
             int index = 0;
             for (int z = 0; z < getLength(); z++) {
                 mutable.mutZ(z);
                 for (int x = 0; x < getWidth(); x++, index++) {
-                    int y = heights[index] & 0xFF;
+                    int y = heights.getByte(index) & 0xFF;
                     mutable.mutX(x);
                     mutable.mutY(y);
                     if (mask.test(mutable)) {
-                        main[index] = (char) pattern.apply(mutable).getCombined();
+                        main.setChar(index, (char) pattern.apply(mutable).getCombined());
                     }
                 }
             }
         }
-        update();
     }
 
     public void setColumn(Mask mask, Pattern pattern) {
         if (pattern instanceof BaseBlock) {
             setColumn(mask, (char) ((BaseBlock) pattern).getCombined());
         } else {
-            modifiedMain = true;
+            primtives.modifiedMain = true;
             int index = 0;
             for (int z = 0; z < getLength(); z++) {
                 mutable.mutZ(z);
                 for (int x = 0; x < getWidth(); x++, index++) {
-                    int y = heights[index] & 0xFF;
+                    int y = heights.getByte(index) & 0xFF;
                     mutable.mutX(x);
                     mutable.mutY(y);
                     if (mask.test(mutable)) {
                         char combined = (char) pattern.apply(mutable).getCombined();
-                        floor[index] = combined;
-                        main[index] = combined;
+                        floor.setChar(index, combined);
+                        main.setChar(index, combined);
                     }
                 }
             }
         }
-        update();
     }
 
     public void setBiome(int biome) {
-        Arrays.fill(biomes, (byte) biome);
-        update();
+        biomes.record(() -> Arrays.fill(biomes.get(), (byte) biome));
     }
 
     public void setFloor(Pattern value) {
         if (value instanceof BaseBlock) {
             setFloor(((BaseBlock) value).getCombined());
         } else {
-            int index = 0;
-            for (int z = 0; z < getLength(); z++) {
-                mutable.mutZ(z);
-                for (int x = 0; x < getWidth(); x++, index++) {
-                    int y = heights[index] & 0xFF;
-                    mutable.mutX(x);
-                    mutable.mutY(y);
-                    floor[index] = (char) value.apply(mutable).getCombined();
+            floor.record(() -> {
+                char[] floorArr = floor.get();
+                int index = 0;
+                for (int z = 0; z < getLength(); z++) {
+                    mutable.mutZ(z);
+                    for (int x = 0; x < getWidth(); x++, index++) {
+                        int y = heights.getByte(index) & 0xFF;
+                        mutable.mutX(x);
+                        mutable.mutY(y);
+                        floorArr[index] = (char) value.apply(mutable).getCombined();
+                    }
                 }
-            }
+            });
         }
-        update();
     }
 
     public void setColumn(Pattern value) {
         if (value instanceof BaseBlock) {
             setColumn(((BaseBlock) value).getCombined());
         } else {
-            int index = 0;
-            for (int z = 0; z < getLength(); z++) {
-                mutable.mutZ(z);
-                for (int x = 0; x < getWidth(); x++, index++) {
-                    int y = heights[index] & 0xFF;
-                    mutable.mutX(x);
-                    mutable.mutY(y);
-                    char combined = (char) value.apply(mutable).getCombined();
-                    main[index] = combined;
-                    floor[index] = combined;
+            main.record(() -> floor.record(() -> {
+                char[] floorArr = floor.get();
+                char[] mainArr = main.get();
+                int index = 0;
+                for (int z = 0; z < getLength(); z++) {
+                    mutable.mutZ(z);
+                    for (int x = 0; x < getWidth(); x++, index++) {
+                        int y = heights.getByte(index) & 0xFF;
+                        mutable.mutX(x);
+                        mutable.mutY(y);
+                        char combined = (char) value.apply(mutable).getCombined();
+                        mainArr[index] = combined;
+                        floorArr[index] = combined;
+                    }
                 }
-            }
+            }));
         }
-        update();
     }
 
     public void setMain(Pattern value) {
         if (value instanceof BaseBlock) {
             setMain(((BaseBlock) value).getCombined());
         } else {
-            int index = 0;
-            for (int z = 0; z < getLength(); z++) {
-                mutable.mutZ(z);
-                for (int x = 0; x < getWidth(); x++, index++) {
-                    int y = heights[index] & 0xFF;
-                    mutable.mutX(x);
-                    mutable.mutY(y);
-                    main[index] = (char) value.apply(mutable).getCombined();
+            main.record(() -> {
+                char[] mainArr = main.get();
+                int index = 0;
+                for (int z = 0; z < getLength(); z++) {
+                    mutable.mutZ(z);
+                    for (int x = 0; x < getWidth(); x++, index++) {
+                        int y = heights.getByte(index) & 0xFF;
+                        mutable.mutX(x);
+                        mutable.mutY(y);
+                        mainArr[index] = (char) value.apply(mutable).getCombined();
+                    }
                 }
-            }
+            });
         }
-        update();
     }
 
     public void setOverlay(Pattern value) {
-        if (overlay == null) overlay = new char[getArea()];
+        if (overlay == null) overlay = new DifferentialArray<>(new char[getArea()]);
         if (value instanceof BaseBlock) {
             setOverlay(((BaseBlock) value).getCombined());
         } else {
-            int index = 0;
-            for (int z = 0; z < getLength(); z++) {
-                mutable.mutZ(z);
-                for (int x = 0; x < getWidth(); x++, index++) {
-                    int y = heights[index] & 0xFF;
-                    mutable.mutX(x);
-                    mutable.mutY(y);
-                    overlay[index] = (char) value.apply(mutable).getCombined();
+            overlay.record(() -> {
+                char[] overlayArr = overlay.get();
+                int index = 0;
+                for (int z = 0; z < getLength(); z++) {
+                    mutable.mutZ(z);
+                    for (int x = 0; x < getWidth(); x++, index++) {
+                        int y = heights.getByte(index) & 0xFF;
+                        mutable.mutX(x);
+                        mutable.mutY(y);
+                        overlayArr[index] = (char) value.apply(mutable).getCombined();
+                    }
                 }
-            }
+            });
         }
-        update();
+    }
+
+    public void setHeight(int x, int z, int height) {
+        int index = z * getWidth() + x;
+        if (index < 0 || index >= getArea()) return;
+        heights.setByte(index, (byte) height);
+    }
+
+    public void setHeight(int index, int height) {
+        heights.setByte(index, (byte) height);
     }
 
     public void setHeights(int value) {
-        Arrays.fill(heights, (byte) value);
-        update();
+        heights.record(() -> {
+            Arrays.fill(heights.get(), (byte) value);
+        });
     }
 
     @Override
@@ -982,6 +1610,11 @@ public class HeightMapMCAGenerator extends MCAWriter implements Extent {
 
     @Override
     public MCAChunk write(MCAChunk chunk, int csx, int cex, int csz, int cez) {
+        byte[] heights = this.heights.get();
+        byte[] biomes = this.biomes.get();
+        char[] main = this.main.get();
+        char[] floor = this.floor.get();
+        char[] overlay = this.overlay != null ? this.overlay.get() : null;
         try {
             int[] indexes = indexStore.get();
             for (int i = 0; i < chunk.ids.length; i++) {
@@ -1001,7 +1634,6 @@ public class HeightMapMCAGenerator extends MCAWriter implements Extent {
                 index = (z & 15) << 4;
                 for (int x = csx; x <= cex; x++, index++, globalIndex++) {
                     indexes[index] = globalIndex;
-                    chunk.biomes[index] = biomes[globalIndex];
                     int height = heights[globalIndex] & 0xFF;
                     heightMap[index] = height;
                     maxY = Math.max(maxY, height);
@@ -1022,11 +1654,11 @@ public class HeightMapMCAGenerator extends MCAWriter implements Extent {
                     chunk.blockLight[layer] = new byte[2048];
                 }
             }
-            if (waterHeight != 0) {
-                maxY = Math.max(maxY, waterHeight);
-                int maxWaterLayer = ((waterHeight + 15) >> 4);
+            if (primtives.waterHeight != 0) {
+                maxY = Math.max(maxY, primtives.waterHeight);
+                int maxWaterLayer = ((primtives.waterHeight + 15) >> 4);
                 for (int layer = 0; layer < maxWaterLayer; layer++) {
-                    boolean fillAll = (layer << 4) + 15 <= waterHeight;
+                    boolean fillAll = (layer << 4) + 15 <= primtives.waterHeight;
                     byte[] ids = chunk.ids[layer];
                     if (ids == null) {
                         chunk.ids[layer] = ids = new byte[4096];
@@ -1036,14 +1668,15 @@ public class HeightMapMCAGenerator extends MCAWriter implements Extent {
                         Arrays.fill(chunk.skyLight[layer], (byte) 255);
                     }
                     if (fillAll) {
-                        Arrays.fill(ids, waterId);
+                        Arrays.fill(ids, primtives.waterId);
                     } else {
-                        int maxIndex = maxWaterLayer << 8;
-                        Arrays.fill(ids, 0, maxIndex, waterId);
+                        int maxIndex = (primtives.waterHeight & 15) << 8;
+                        Arrays.fill(ids, 0, maxIndex, primtives.waterId);
                     }
                 }
             }
-            if (modifiedMain) { // If the main block is modified, we can't short circuit this
+
+            if (primtives.modifiedMain) { // If the main block is modified, we can't short circuit this
                 for (int layer = 0; layer < fillLayers; layer++) {
                     byte[] layerIds = chunk.ids[layer];
                     byte[] layerDatas = chunk.data[layer];
@@ -1071,6 +1704,7 @@ public class HeightMapMCAGenerator extends MCAWriter implements Extent {
                     Arrays.fill(chunk.ids[layer], (byte) 1);
                 }
             }
+
             for (int layer = fillLayers; layer <= maxLayer; layer++) {
                 Arrays.fill(chunk.skyLight[layer], (byte) 255);
                 byte[] layerIds = chunk.ids[layer];
@@ -1133,22 +1767,24 @@ public class HeightMapMCAGenerator extends MCAWriter implements Extent {
                     }
                 }
             }
+
             int maxYMod = 15 + (maxLayer << 4);
             for (int layer = (maxY >> 4) + 1; layer < 16; layer++) {
                 chunk.ids[layer] = null;
                 chunk.data[layer] = null;
             }
-            { // Bedrock
+
+            if (primtives.bedrockId != 0) { // Bedrock
                 byte[] layerIds = chunk.ids[0];
                 for (int z = csz; z <= cez; z++) {
                     index = (z & 15) << 4;
                     for (int x = csx; x <= cex; x++) {
-                        layerIds[index++] = (byte) 7;
+                        layerIds[index++] = primtives.bedrockId;
                     }
                 }
             }
-            int chunkPair = MathMan.pair((short) chunk.getX(), (short) chunk.getZ());
-            char[][][] localBlocks = blocks.get(chunkPair);
+
+            char[][][] localBlocks = getChunkArray(chunk.getX(), chunk.getZ());
             if (localBlocks != null) {
                 for (int layer = 0; layer < 16; layer++) {
                     int by = layer << 4;
@@ -1162,6 +1798,7 @@ public class HeightMapMCAGenerator extends MCAWriter implements Extent {
                                 chunk.data[layer] = new byte[2048];
                                 chunk.skyLight[layer] = new byte[2048];
                                 chunk.blockLight[layer] = new byte[2048];
+                                Arrays.fill(chunk.skyLight[layer], (byte) 255);
                             }
                             byte[] idsLayer = chunk.ids[layer];
                             byte[] dataLayer = chunk.data[layer];
@@ -1173,7 +1810,8 @@ public class HeightMapMCAGenerator extends MCAWriter implements Extent {
                                         char combined = zBlocks[x];
                                         if (combined == 0) continue;
                                         int id = FaweCache.getId(combined);
-                                        if (!FaweCache.hasData(id)) {
+                                        int data = FaweCache.getData(combined);
+                                        if (data == 0) {
                                             chunk.setIdUnsafe(idsLayer, zIndex, (byte) id);
                                         } else {
                                             chunk.setBlockUnsafe(idsLayer, dataLayer, zIndex, (byte) id, FaweCache.getData(combined));
@@ -1185,10 +1823,86 @@ public class HeightMapMCAGenerator extends MCAWriter implements Extent {
                     }
                 }
             }
+
+            if (primtives.floorThickness != 0) {
+                // Use biomes array as temporary buffer
+                byte[] minArr = chunk.biomes;
+                for (int z = csz; z <= cez; z++) {
+                    index = (z & 15) << 4;
+                    for (int x = csx; x <= cex; x++, index++) {
+                        int gi = indexes[index];
+                        int height = heightMap[index];
+                        int min = height;
+                        if (x > 0) min = Math.min(heights[gi - 1] & 0xFF, min);
+                        if (x < getWidth() - 1) min = Math.min(heights[gi + 1] & 0xFF, min);
+                        if (z > 0) min = Math.min(heights[gi - getWidth()] & 0xFF, min);
+                        if (z < getLength() - 1) min = Math.min(heights[gi + getWidth()] & 0xFF, min);
+                        minArr[index] = (byte) min;
+                    }
+                }
+
+                int minLayer = Math.max(0, (minY - primtives.floorThickness) >> 4);
+                for (int layer = 0; layer < minLayer; layer++) {
+                    chunk.ids[layer] = null;
+                    chunk.data[layer] = null;
+                }
+                for (int layer = minLayer; layer <= maxLayer; layer++) {
+                    byte[] layerIds = chunk.ids[layer];
+                    byte[] layerDatas = chunk.data[layer];
+                    int startY = layer << 4;
+                    int endY = startY + 15;
+                    for (int z = csz; z <= cez; z++) {
+                        index = (z & 15) << 4;
+                        for (int x = csx; x <= cex; x++, index++) {
+                            globalIndex = indexes[index];
+                            int height = heightMap[index];
+
+                            int min = (minArr[index] & 0xFF) - primtives.floorThickness;
+                            int localMin = min - startY;
+                            if (localMin > 0) {
+                                char floorCombined = floor[globalIndex];
+                                final byte id = (byte) FaweCache.getId(floorCombined);
+                                final int data = FaweCache.getData(floorCombined);
+
+                                for (int y = 0; y < localMin; y++) {
+                                    int floorIndex = index + ((y & 15) << 8);
+                                    layerIds[floorIndex] = 0;
+                                    if (data != 0) {
+                                        chunk.setNibble(floorIndex, layerDatas, 0);
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+
+                for (int layer = fillLayers; layer <= maxLayer; layer++) {
+                    Arrays.fill(chunk.skyLight[layer], (byte) 255);
+
+                }
+            }
+
+            for (int i = 0; i < 256; i++) {
+                chunk.biomes[i] = biomes[indexes[i]];
+            }
+
+
         } catch (Throwable e) {
             e.printStackTrace();
         }
         return chunk;
+    }
+
+    private void setUnsafe(char[][][] map, char combined, int x, int y, int z) {
+        char[][] yMap = map[y];
+        if (yMap == null) {
+            map[y] = yMap = new char[16][];
+        }
+        char[] zMap = yMap[z];
+        if (zMap == null) {
+            yMap[z] = zMap = new char[16];
+        }
+        zMap[x] = combined;
     }
 
     private char get(char[][][] map, int x, int y, int z) {
@@ -1205,15 +1919,15 @@ public class HeightMapMCAGenerator extends MCAWriter implements Extent {
 
     private void setOverlay(Mask mask, char combined) {
         int index = 0;
-        if (overlay == null) overlay = new char[getArea()];
+        if (overlay == null) overlay = new DifferentialArray<>(new char[getArea()]);
         for (int z = 0; z < getLength(); z++) {
             mutable.mutZ(z);
             for (int x = 0; x < getWidth(); x++, index++) {
-                int y = heights[index] & 0xFF;
+                int y = heights.getByte(index) & 0xFF;
                 mutable.mutX(x);
                 mutable.mutY(y);
                 if (mask.test(mutable)) {
-                    overlay[index] = combined;
+                    overlay.setChar(index, combined);
                 }
             }
         }
@@ -1224,51 +1938,51 @@ public class HeightMapMCAGenerator extends MCAWriter implements Extent {
         for (int z = 0; z < getLength(); z++) {
             mutable.mutZ(z);
             for (int x = 0; x < getWidth(); x++, index++) {
-                int y = heights[index] & 0xFF;
+                int y = heights.getByte(index) & 0xFF;
                 mutable.mutX(x);
                 mutable.mutY(y);
                 if (mask.test(mutable)) {
-                    floor[index] = combined;
+                    floor.setChar(index, combined);
                 }
             }
         }
     }
 
     private void setMain(Mask mask, char combined) {
-        modifiedMain = true;
+        primtives.modifiedMain = true;
         int index = 0;
         for (int z = 0; z < getLength(); z++) {
             mutable.mutZ(z);
             for (int x = 0; x < getWidth(); x++, index++) {
-                int y = heights[index] & 0xFF;
+                int y = heights.getByte(index) & 0xFF;
                 mutable.mutX(x);
                 mutable.mutY(y);
                 if (mask.test(mutable)) {
-                    main[index] = combined;
+                    main.setChar(index, combined);
                 }
             }
         }
     }
 
     private void setColumn(Mask mask, char combined) {
-        modifiedMain = true;
+        primtives.modifiedMain = true;
         int index = 0;
         for (int z = 0; z < getLength(); z++) {
             mutable.mutZ(z);
             for (int x = 0; x < getWidth(); x++, index++) {
-                int y = heights[index] & 0xFF;
+                int y = heights.getByte(index) & 0xFF;
                 mutable.mutX(x);
                 mutable.mutY(y);
                 if (mask.test(mutable)) {
-                    floor[index] = combined;
-                    main[index] = combined;
+                    floor.setChar(index, combined);
+                    main.setChar(index, combined);
                 }
             }
         }
     }
 
     private void setFloor(int value) {
-        Arrays.fill(floor, (char) value);
+        floor.record(() -> Arrays.fill(floor.get(), (char) value));
     }
 
     private void setColumn(int value) {
@@ -1277,78 +1991,223 @@ public class HeightMapMCAGenerator extends MCAWriter implements Extent {
     }
 
     private void setMain(int value) {
-        modifiedMain = true;
-        Arrays.fill(main, (char) value);
+        primtives.modifiedMain = true;
+        main.record(() -> Arrays.fill(main.get(), (char) value));
     }
 
     private void setOverlay(int value) {
-        if (overlay == null) overlay = new char[getArea()];
-        Arrays.fill(overlay, (char) value);
+        if (overlay == null) overlay = new DifferentialArray<>(new char[getArea()]);
+        overlay.record(() -> Arrays.fill(overlay.get(), (char) value));
     }
 
     private void setOverlay(BufferedImage img, char combined, boolean white) {
         if (img.getWidth() != getWidth() || img.getHeight() != getLength())
             throw new IllegalArgumentException("Input image dimensions do not match the current height map!");
-        if (overlay == null) overlay = new char[getArea()];
-        int index = 0;
-        for (int z = 0; z < getLength(); z++) {
-            for (int x = 0; x < getWidth(); x++, index++) {
-                int height = img.getRGB(x, z) & 0xFF;
-                if (height == 255 || height > 0 && white && PseudoRandom.random.nextInt(256) <= height) {
-                    overlay[index] = combined;
+        if (overlay == null) overlay = new DifferentialArray<>(new char[getArea()]);
+
+        overlay.record(() -> {
+            int index = 0;
+            for (int z = 0; z < getLength(); z++) {
+                for (int x = 0; x < getWidth(); x++, index++) {
+                    int height = img.getRGB(x, z) & 0xFF;
+                    if (height == 255 || height > 0 && white && PseudoRandom.random.nextInt(256) <= height) {
+                        overlay.get()[index] = combined;
+                    }
                 }
             }
-        }
+        });
     }
 
     private void setMain(BufferedImage img, char combined, boolean white) {
         if (img.getWidth() != getWidth() || img.getHeight() != getLength())
             throw new IllegalArgumentException("Input image dimensions do not match the current height map!");
-        modifiedMain = true;
-        int index = 0;
-        for (int z = 0; z < getLength(); z++) {
-            for (int x = 0; x < getWidth(); x++, index++) {
-                int height = img.getRGB(x, z) & 0xFF;
-                if (height == 255 || height > 0 && !white && PseudoRandom.random.nextInt(256) <= height) {
-                    main[index] = combined;
+        primtives.modifiedMain = true;
+
+        main.record(() -> {
+            int index = 0;
+            for (int z = 0; z < getLength(); z++) {
+                for (int x = 0; x < getWidth(); x++, index++) {
+                    int height = img.getRGB(x, z) & 0xFF;
+                    if (height == 255 || height > 0 && !white && PseudoRandom.random.nextInt(256) <= height) {
+                        main.get()[index] = combined;
+                    }
                 }
             }
-        }
+        });
     }
 
     private void setFloor(BufferedImage img, char combined, boolean white) {
         if (img.getWidth() != getWidth() || img.getHeight() != getLength())
             throw new IllegalArgumentException("Input image dimensions do not match the current height map!");
-        int index = 0;
-        for (int z = 0; z < getLength(); z++) {
-            for (int x = 0; x < getWidth(); x++, index++) {
-                int height = img.getRGB(x, z) & 0xFF;
-                if (height == 255 || height > 0 && !white && PseudoRandom.random.nextInt(256) <= height) {
-                    floor[index] = combined;
+
+        floor.record(() -> {
+            int index = 0;
+            for (int z = 0; z < getLength(); z++) {
+                for (int x = 0; x < getWidth(); x++, index++) {
+                    int height = img.getRGB(x, z) & 0xFF;
+                    if (height == 255 || height > 0 && !white && PseudoRandom.random.nextInt(256) <= height) {
+                        floor.get()[index] = combined;
+                    }
                 }
             }
-        }
+        });
     }
 
     private void setColumn(BufferedImage img, char combined, boolean white) {
         if (img.getWidth() != getWidth() || img.getHeight() != getLength())
             throw new IllegalArgumentException("Input image dimensions do not match the current height map!");
-        modifiedMain = true;
-        int index = 0;
-        for (int z = 0; z < getLength(); z++) {
-            for (int x = 0; x < getWidth(); x++, index++) {
-                int height = img.getRGB(x, z) & 0xFF;
-                if (height == 255 || height > 0 && !white && PseudoRandom.random.nextInt(256) <= height) {
-                    main[index] = combined;
-                    floor[index] = combined;
+        primtives.modifiedMain = true;
+
+        main.record(() -> floor.record(() -> {
+            int index = 0;
+            for (int z = 0; z < getLength(); z++) {
+                for (int x = 0; x < getWidth(); x++, index++) {
+                    int height = img.getRGB(x, z) & 0xFF;
+                    if (height == 255 || height > 0 && !white && PseudoRandom.random.nextInt(256) <= height) {
+                        main.get()[index] = combined;
+                        floor.get()[index] = combined;
+                    }
                 }
             }
-        }
+        }));
     }
 
     @Override
     protected void finalize() throws Throwable {
         IterableThreadLocal.clean(indexStore);
         super.finalize();
+    }
+
+    @Override
+    public int getMaxY() {
+        return SimpleWorld.super.getMaxY();
+    }
+
+    @Override
+    public void setWorld(String world) {
+
+    }
+
+    @Override
+    public World getWEWorld() {
+        return this;
+    }
+
+    @Override
+    public String getWorldName() {
+        return getName();
+    }
+
+    @Override
+    public long getModified() {
+        return 0;
+    }
+
+    @Override
+    public void setModified(long modified) {
+        // Unsupported
+    }
+
+    @Override
+    public RunnableVal2<ProgressType, Integer> getProgressTask() {
+        return null;
+    }
+
+    @Override
+    public void setProgressTask(RunnableVal2<ProgressType, Integer> progressTask) {
+
+    }
+
+    @Override
+    public void setChangeTask(RunnableVal2<FaweChunk, FaweChunk> changeTask) {
+
+    }
+
+    @Override
+    public RunnableVal2<FaweChunk, FaweChunk> getChangeTask() {
+        return null;
+    }
+
+    @Override
+    public SetQueue.QueueStage getStage() {
+        return SetQueue.QueueStage.NONE;
+    }
+
+    @Override
+    public void setStage(SetQueue.QueueStage stage) {
+        // Not supported
+    }
+
+    @Override
+    public void addNotifyTask(Runnable runnable) {
+        runnable.run();
+    }
+
+    @Override
+    public void runTasks() {
+
+    }
+
+    @Override
+    public void addTask(Runnable whenFree) {
+        whenFree.run();
+    }
+
+    @Override
+    public boolean isEmpty() {
+        return !isModified();
+    }
+
+    @Nullable
+    @Override
+    public Operation commit() {
+        return null;
+    }
+
+    @Override
+    public String getName() {
+        File folder = getFolder();
+        if (folder != null) {
+            String name = folder.getName();
+            if (name.equalsIgnoreCase("region")) return folder.getParentFile().getName();
+            return name;
+        }
+        return Integer.toString(hashCode());
+    }
+
+    @Override
+    public boolean setBlock(Vector position, BaseBlock block, boolean notifyAndLight) throws WorldEditException {
+        return setBlock(position, block);
+    }
+
+    // These aren't implemented yet...
+    @Override
+    public int getBlockLightLevel(Vector position) {
+        return 0;
+    }
+
+    @Override
+    public boolean clearContainerBlockContents(Vector position) {
+        return false;
+    }
+
+    @Override
+    public void dropItem(Vector position, BaseItemStack item) {
+
+    }
+
+    @Override
+    public boolean regenerate(Region region, EditSession editSession) {
+        return false;
+    }
+
+    @Override
+    public boolean generateTree(TreeGenerator.TreeType type, EditSession editSession, Vector position) throws MaxChangedBlocksException {
+        return false;
+    }
+
+    @Override
+    public WorldData getWorldData() {
+        return null;
     }
 }

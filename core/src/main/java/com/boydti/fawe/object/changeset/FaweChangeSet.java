@@ -159,7 +159,6 @@ public abstract class FaweChangeSet implements ChangeSet {
             builder.allowedRegionsEverywhere();
         }
         EditSession editSession = builder.build();
-        editSession.setSize(1);
         return editSession;
     }
 
