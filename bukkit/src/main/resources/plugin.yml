@@ -6,7 +6,6 @@ authors: [Empire92]
 loadbefore: [WorldEdit,AsyncWorldEdit,AsyncWorldEditInjector]
 load: STARTUP
 database: false
-softdepend: [ProtocolLib]
 #softdepend: [WorldGuard, PlotSquared, MCore, Factions, GriefPrevention, Residence, Towny, PlotMe, PreciousStones]
 commands:
   fcancel:
