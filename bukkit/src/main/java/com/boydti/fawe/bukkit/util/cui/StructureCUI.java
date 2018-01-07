@@ -162,9 +162,9 @@ public class StructureCUI extends CUI {
         double rotX = playerLoc.getYaw();
         double rotY = playerLoc.getPitch();
         double xz = Math.cos(Math.toRadians(rotY));
-        int x = (int) (playerLoc.getX() - (-xz * Math.sin(Math.toRadians(rotX))) * 3);
-        int z = (int) (playerLoc.getZ() - (xz * Math.cos(Math.toRadians(rotX))) * 3);
-        int y = Math.min(Math.min(255, max.getBlockY() + 32), playerLoc.getBlockY() + 3);
+        int x = (int) (playerLoc.getX() - (-xz * Math.sin(Math.toRadians(rotX))) * 12);
+        int z = (int) (playerLoc.getZ() - (xz * Math.cos(Math.toRadians(rotX))) * 12);
+        int y = Math.max(0, Math.min(Math.min(255, max.getBlockY() + 32), playerLoc.getBlockY() + 3));
         int minX = Math.max(Math.min(32, min.getBlockX() - x), -32);
         int maxX = Math.max(Math.min(32, max.getBlockX() - x + 1), -32);
         int minY = Math.max(Math.min(32, min.getBlockY() - y), -32);
