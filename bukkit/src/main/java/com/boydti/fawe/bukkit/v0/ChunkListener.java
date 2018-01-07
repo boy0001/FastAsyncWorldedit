@@ -34,18 +34,13 @@ public class ChunkListener implements Listener {
             TaskManager.IMP.repeat(new Runnable() {
                 @Override
                 public void run() {
-                    physSkip = 0;
-                    physCancelPair = Long.MIN_VALUE;
-                    physCancel = false;
-                }
-            }, 1);
-            TaskManager.IMP.repeat(new Runnable() {
-                @Override
-                public void run() {
                     rateLimit--;
                     physicsFreeze = false;
                     itemFreeze = false;
                     lastZ = Integer.MIN_VALUE;
+                    physSkip = 0;
+                    physCancelPair = Long.MIN_VALUE;
+                    physCancel = false;
 
                     counter.clear();
                     for (Long2ObjectMap.Entry<Boolean> entry : badChunks.long2ObjectEntrySet()) {
@@ -211,21 +206,24 @@ public class ChunkListener implements Listener {
 
         for (int frame = start; frame < depth; frame++) {
             StackTraceElement elem = SharedSecrets.getJavaLangAccess().getStackTraceElement(e, frame);
-            String fileName = elem.getFileName();
-            if (fileName.charAt(0) == 'E' && fileName.equals("EntityFireworks.java")) {
-                int chunkRange = 2;
-                for (int ocx = -chunkRange; ocx <= chunkRange; ocx++) {
-                    for (int ocz = -chunkRange; ocz <= chunkRange; ocz++) {
-                        int cx = chunk.getX() + ocx;
-                        int cz = chunk.getZ() + ocz;
-                        if (world.isChunkLoaded(cx, cz)) {
-                            Chunk relativeChunk = world.getChunkAt(cx, cz);
-                            Entity[] ents = relativeChunk.getEntities();
-                            for (Entity ent : ents) {
-                                switch (ent.getType()) {
-                                    case FIREWORK:
-                                        Fawe.debug("[FAWE `tick-limiter`] Detected and cancelled rogue FireWork at " + ent.getLocation());
-                                        ent.remove();
+            String className = elem.getClassName();
+            int len = className.length();
+            if (className != null) {
+                if (className.charAt(len - 15) == 'E' && className.endsWith("EntityFireworks")) {
+                    int chunkRange = 2;
+                    for (int ocx = -chunkRange; ocx <= chunkRange; ocx++) {
+                        for (int ocz = -chunkRange; ocz <= chunkRange; ocz++) {
+                            int cx = chunk.getX() + ocx;
+                            int cz = chunk.getZ() + ocz;
+                            if (world.isChunkLoaded(cx, cz)) {
+                                Chunk relativeChunk = world.getChunkAt(cx, cz);
+                                Entity[] ents = relativeChunk.getEntities();
+                                for (Entity ent : ents) {
+                                    switch (ent.getType()) {
+                                        case FIREWORK:
+                                            Fawe.debug("[FAWE `tick-limiter`] Detected and cancelled rogue FireWork at " + ent.getLocation());
+                                            ent.remove();
+                                    }
                                 }
                             }
                         }
