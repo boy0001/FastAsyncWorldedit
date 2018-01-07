@@ -354,7 +354,7 @@ public class Settings extends Config {
         @Comment("Max falling blocks per interval (per chunk)")
         public int FALLING = 64;
         @Comment("Max physics per interval (per chunk)")
-        public int PHYSICS = 8192;
+        public int PHYSICS = 256;
         @Comment("Max item spawns per interval (per chunk)")
         public int ITEMS = 256;
     }
