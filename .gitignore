@@ -29,3 +29,4 @@ build
 spigot-1.10
 wiki_permissions.md
 /textures
+*.iml
