@@ -14,6 +14,7 @@ import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.ints.IntArraySet;
 import it.unimi.dsi.fastutil.longs.LongArrayList;
+import java.awt.Color;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -432,7 +433,7 @@ public class TextureUtil {
         int blockColor = getColor(block);
         blockAndBiomeIdOutput[0] = block.getCombined();
         blockAndBiomeIdOutput[1] = biome.id;
-        if (colorDistance(biome.grass, color) - biomePriority > colorDistance(blockColor, color)) {
+        if (colorDistance(biome.grassCombined, color) - biomePriority > colorDistance(blockColor, color)) {
             return true;
         }
         return false;
@@ -475,7 +476,7 @@ public class TextureUtil {
         int blue = (color >> 0) & 0xFF;
         for (int i = 0; i < validBiomes.length; i++) {
             BiomeColor biome = validBiomes[i];
-            long distance = colorDistance(red, green, blue, biome.grass);
+            long distance = colorDistance(red, green, blue, biome.grassCombined);
             if (distance < min) {
                 min = distance;
                 closest = biome;
