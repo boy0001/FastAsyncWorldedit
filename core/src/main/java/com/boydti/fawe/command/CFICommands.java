@@ -582,7 +582,7 @@ public class CFICommands extends MethodCommands {
     }
 
     @Command(
-            aliases = {"thickness", "width", "worldthickness"},
+            aliases = {"worldthickness", "width", "thickness"},
             usage = "<height>",
             desc = "Set the thickness of the generated world\n" +
                     " - A value of 0 is the default and will not modify the height"

@@ -1854,12 +1854,7 @@ public class HeightMapMCAGenerator extends MCAWriter implements SimpleWorld, Faw
                 }
 
                 int minLayer = Math.max(0, (minY - primtives.floorThickness) >> 4);
-                if (primtives.worldThickness != 0) {
-                    for (int layer = 0; layer < minLayer; layer++) {
-                        chunk.ids[layer] = null;
-                        chunk.data[layer] = null;
-                    }
-                }
+
                 if (primtives.floorThickness != 0) {
                     for (int layer = minLayer; layer <= maxLayer; layer++) {
                         byte[] layerIds = chunk.ids[layer];
@@ -1898,6 +1893,10 @@ public class HeightMapMCAGenerator extends MCAWriter implements SimpleWorld, Faw
                     }
                 }
                 if (primtives.worldThickness != 0) {
+                    for (int layer = 0; layer < minLayer; layer++) {
+                        chunk.ids[layer] = null;
+                        chunk.data[layer] = null;
+                    }
                     for (int layer = minLayer; layer <= maxLayer; layer++) {
                         byte[] layerIds = chunk.ids[layer];
                         byte[] layerDatas = chunk.data[layer];
@@ -1909,7 +1908,7 @@ public class HeightMapMCAGenerator extends MCAWriter implements SimpleWorld, Faw
                                 globalIndex = indexes[index];
                                 int height = heightMap[index];
 
-                                int min = (minArr[index] & 0xFF) - primtives.floorThickness;
+                                int min = (minArr[index] & 0xFF) - primtives.worldThickness;
                                 int localMin = min - startY;
                                 if (localMin > 0) {
                                     char floorCombined = floor[globalIndex];
