@@ -3,6 +3,7 @@ package com.boydti.fawe.nukkit.optimization.queue;
 import cn.nukkit.Player;
 import cn.nukkit.block.Block;
 import cn.nukkit.blockentity.BlockEntity;
+import cn.nukkit.entity.Entity;
 import cn.nukkit.level.Level;
 import cn.nukkit.level.Position;
 import cn.nukkit.level.format.generic.BaseFullChunk;
@@ -26,6 +27,7 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -254,6 +256,16 @@ public class NukkitQueue extends NMSMappedFaweQueue<Level, BaseFullChunk, BaseFu
 
     @Override
     public boolean regenerateChunk(Level level, int x, int z, BaseBiome biome, Long seed) {
+        Map<Long, Entity> ents = level.getChunkEntities(x, z);
+        if (!ents.isEmpty()) {
+            Iterator<Map.Entry<Long, Entity>> iter = ents.entrySet().iterator();
+            while (iter.hasNext()) {
+                Map.Entry<Long, Entity> entry = iter.next();
+                Entity entity = entry.getValue();
+                iter.remove();
+                level.removeEntity(entity);
+            }
+        }
         level.regenerateChunk(x, z);
         return true;
     }
