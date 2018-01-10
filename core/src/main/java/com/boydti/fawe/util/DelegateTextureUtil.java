@@ -124,11 +124,6 @@ public class DelegateTextureUtil extends TextureUtil {
     }
 
     @Override
-    public int getColor(BufferedImage image) {
-        return parent.getColor(image);
-    }
-
-    @Override
     public long getDistance(BufferedImage image, int c1) {
         return parent.getDistance(image, c1);
     }

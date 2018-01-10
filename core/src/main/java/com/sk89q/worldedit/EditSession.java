@@ -2665,6 +2665,7 @@ public class EditSession extends AbstractDelegateExtent implements HasFaweQueue,
                 if (dx2 + dz2 > radiusSq) {
                     continue;
                 }
+                outer:
                 for (int y = maxY; y >= 1; --y) {
                     final int id = FaweCache.getId(queue.getCombinedId4Data(x, y, z));
                     if (id == BlockID.AIR) {
@@ -2678,7 +2679,13 @@ public class EditSession extends AbstractDelegateExtent implements HasFaweQueue,
 
                     // Snow should not cover these blocks
                     if (BlockType.isTranslucent(id)) {
-                        break;
+                        switch (id) {
+                            case BlockID.LEAVES:
+                            case BlockID.LEAVES2:
+                                break;
+                            default:
+                                break outer;
+                        }
                     }
 
                     // Too high?

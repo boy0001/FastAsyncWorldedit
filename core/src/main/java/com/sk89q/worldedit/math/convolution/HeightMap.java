@@ -179,6 +179,7 @@ public class HeightMap {
             int zr = z + originZ;
             for (int x = 0; x < width; ++x) {
                 int curHeight = this.data[index];
+                if (curHeight == -1) continue;
                 int newHeight = Math.min(maxY4, data[index++]);
                 int curBlock = (curHeight) >> 3;
                 int newBlock = (newHeight + 7) >> 3;
@@ -255,6 +256,7 @@ public class HeightMap {
             int zr = z + originZ;
             for (int x = 0; x < width; ++x) {
                 int curHeight = this.data[index];
+                if (curHeight == -1) continue;
                 int newHeight = Math.min(maxY, data[index++]);
                 int xr = x + originX;
 

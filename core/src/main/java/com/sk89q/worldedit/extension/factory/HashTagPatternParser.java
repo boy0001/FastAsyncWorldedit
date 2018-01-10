@@ -33,6 +33,7 @@ public class HashTagPatternParser extends FaweParser<Pattern> {
         this.register(new PatternCommands(worldEdit));
     }
 
+    @Override
     public Dispatcher getDispatcher() {
         return dispatcher;
     }

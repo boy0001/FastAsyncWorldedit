@@ -21,6 +21,7 @@ package com.sk89q.worldedit.command;
 
 import com.boydti.fawe.Fawe;
 import com.boydti.fawe.FaweAPI;
+import com.boydti.fawe.command.FaweParser;
 import com.boydti.fawe.config.BBC;
 import com.boydti.fawe.config.Commands;
 import com.boydti.fawe.object.FaweLimit;
@@ -48,6 +49,8 @@ import com.sk89q.worldedit.command.util.CreatureButcher;
 import com.sk89q.worldedit.command.util.EntityRemover;
 import com.sk89q.worldedit.entity.Entity;
 import com.sk89q.worldedit.entity.Player;
+import com.sk89q.worldedit.extension.factory.DefaultMaskParser;
+import com.sk89q.worldedit.extension.factory.DefaultTransformParser;
 import com.sk89q.worldedit.extension.factory.HashTagPatternParser;
 import com.sk89q.worldedit.extension.platform.Actor;
 import com.sk89q.worldedit.extension.platform.Capability;
@@ -122,7 +125,7 @@ public class UtilityCommands extends MethodCommands {
                     "More Info: https://git.io/vSPmA"
     )
     public void patterns(Player player, LocalSession session, CommandContext args) throws WorldEditException {
-        displayModifierHelp(player, args);
+        displayModifierHelp(player, HashTagPatternParser.class, args);
     }
 
     @Command(
@@ -137,7 +140,7 @@ public class UtilityCommands extends MethodCommands {
                     "More Info: https://git.io/v9r4K"
     )
     public void masks(Player player, LocalSession session, CommandContext args) throws WorldEditException {
-        displayModifierHelp(player, args);
+        displayModifierHelp(player, DefaultMaskParser.class, args);
     }
 
     @Command(
@@ -151,17 +154,17 @@ public class UtilityCommands extends MethodCommands {
                     "More Info: https://git.io/v9KHO"
     )
     public void transforms(Player player, LocalSession session, CommandContext args) throws WorldEditException {
-        displayModifierHelp(player, args);
+        displayModifierHelp(player, DefaultTransformParser.class, args);
     }
 
-    private void displayModifierHelp(Player player, CommandContext args) {
+    private void displayModifierHelp(Player player, Class<? extends FaweParser> clazz, CommandContext args) {
+        FaweParser parser = FaweAPI.getParser(clazz);
         if (args.argsLength() == 0) {
             String base = getCommand().aliases()[0];
             UsageMessage msg = new UsageMessage(getCallable(), (WorldEdit.getInstance().getConfiguration().noDoubleSlash ? "" : "/") + base, args.getLocals());
             msg.newline().paginate(base, 0, 1).send(player);
             return;
         }
-        HashTagPatternParser parser = FaweAPI.getParser(HashTagPatternParser.class);
         if (parser != null) {
             CommandMapping mapping = parser.getDispatcher().get(args.getString(0));
             if (mapping != null) {

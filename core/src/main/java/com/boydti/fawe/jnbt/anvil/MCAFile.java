@@ -123,6 +123,9 @@ public class MCAFile {
         return queue;
     }
 
+    /**
+     * Loads the location header from disk
+     */
     public void init() {
         try {
             if (raf == null) {
@@ -403,7 +406,9 @@ public class MCAFile {
         if (raf.length() - offset < len) {
             raf.setLength(((offset + len + 4095) / 4096) * 4096);
         }
+        // Length of remaining data
         raf.writeInt(data.length + 1);
+        // Compression type
         raf.write(2);
         raf.write(data);
     }
@@ -458,24 +463,38 @@ public class MCAFile {
         return false;
     }
 
+    /**
+     * Write the chunk to the file
+     * @param pool
+     */
     public void flush(ForkJoinPool pool) {
         synchronized (raf) {
+            // If the file is marked as deleted, nothing is written
             if (isDeleted()) {
                 clear();
                 file.delete();
                 return;
             }
-            boolean wait;
+
+            boolean wait; // If the flush method needs to wait for the pool
             if (pool == null) {
                 wait = true;
                 pool = new ForkJoinPool();
             } else wait = false;
+
+            // Chunks that need to be relocated
             Int2ObjectOpenHashMap<byte[]> relocate = new Int2ObjectOpenHashMap<>();
+            // The position of each chunk
             final Int2ObjectOpenHashMap<Integer> offsetMap = new Int2ObjectOpenHashMap<>(); // Offset -> <byte cx, byte cz, short size>
+            // The data of each modified chunk
             final Int2ObjectOpenHashMap<byte[]> compressedMap = new Int2ObjectOpenHashMap<>();
+            // The data of each chunk that needs to be moved
             final Int2ObjectOpenHashMap<byte[]> append = new Int2ObjectOpenHashMap<>();
             boolean modified = false;
+            // Get the current time for the chunk timestamp
             long now = System.currentTimeMillis();
+
+            // Load the chunks into the append or compressed map
             for (MCAChunk chunk : getCachedChunks()) {
                 if (chunk.isModified() || chunk.isDeleted()) {
                     modified = true;
@@ -504,8 +523,12 @@ public class MCAFile {
                     }
                 }
             }
+
+            // If any changes were detected
             if (modified) {
                 file.setLastModified(now);
+
+                // Load the offset data into the offset map
                 forEachChunk(new RunnableVal4<Integer, Integer, Integer, Integer>() {
                     @Override
                     public void run(Integer cx, Integer cz, Integer offset, Integer size) {
@@ -514,29 +537,41 @@ public class MCAFile {
                         offsetMap.put((int) offset, (Integer) MathMan.pair(pair1, pair2));
                     }
                 });
+                // Wait for previous tasks
                 pool.awaitQuiescence(Long.MAX_VALUE, TimeUnit.MILLISECONDS);
+
+
                 int start = 8192;
                 int written = start;
                 int end = 8192;
                 int nextOffset = 8192;
                 try {
                     for (int count = 0; count < offsetMap.size(); count++) {
+                        // Get the previous position of the next chunk
                         Integer loc = offsetMap.get(nextOffset);
                         while (loc == null) {
                             nextOffset += 4096;
                             loc = offsetMap.get(nextOffset);
                         }
                         int offset = nextOffset;
+
+                        // Get the x/z from the paired location
                         short cxz = MathMan.unpairX(loc);
                         int cx = MathMan.unpairShortX(cxz);
                         int cz = MathMan.unpairShortY(cxz);
+
+                        // Get the size from the pair
                         int size = MathMan.unpairY(loc) << 12;
+
                         nextOffset += size;
                         end = Math.min(start + size, end);
                         int pair = MathMan.pair((short) (cx & 31), (short) (cz & 31));
                         byte[] newBytes = relocate.get(pair);
+
+                        // newBytes is null if the chunk isn't modified or marked for moving
                         if (newBytes == null) {
                             MCAChunk cached = getCachedChunk(cx, cz);
+                            // If the previous offset marks the current write position (start) then we only write the header
                             if (offset == start) {
                                 if (cached == null || !cached.isModified()) {
                                     writeHeader(raf, cx, cz, start >> 12, size >> 12, true);
@@ -547,6 +582,7 @@ public class MCAFile {
                                     newBytes = compressedMap.get(pair);
                                 }
                             } else {
+                                // The chunk needs to be moved, fetch the data if necessary
                                 newBytes = compressedMap.get(pair);
                                 if (newBytes == null) {
                                     if (cached == null || !cached.isDeleted()) {
@@ -555,14 +591,19 @@ public class MCAFile {
                                 }
                             }
                         }
+
                         if (newBytes == null) {
                             writeHeader(raf, cx, cz, 0, 0, false);
                             continue;
                         }
+
+                        // The length to be written (compressed data + 5 byte chunk header)
                         int len = newBytes.length + 5;
                         int oldSize = (size + 4095) >> 12;
                         int newSize = (len + 4095) >> 12;
                         int nextOffset2 = end;
+
+                        // If the current write position (start) + length of data to write (len) are longer than the position of the next chunk, we need to move the next chunks
                         while (start + len > end) {
                             Integer nextLoc = offsetMap.get(nextOffset2);
                             if (nextLoc != null) {
@@ -582,11 +623,16 @@ public class MCAFile {
                                 nextOffset2 += 4096;
                             }
                         }
+                        // Write the chunk + chunk header
                         writeSafe(raf, start, newBytes);
+                        // Write the location data (beginning of file)
                         writeHeader(raf, cx, cz, start >> 12, newSize, true);
+
                         written = start + newBytes.length + 5;
                         start += newSize << 12;
                     }
+
+                    // Write all the chunks which need to be appended
                     if (!append.isEmpty()) {
                         for (Int2ObjectMap.Entry<byte[]> entry : append.int2ObjectEntrySet()) {
                             int pair = entry.getIntKey();
@@ -601,6 +647,7 @@ public class MCAFile {
                             start += newSize << 12;
                         }
                     }
+                    // Round the file length, since the vanilla server doesn't like it for some reason
                     raf.setLength(4096 * ((written + 4095) / 4096));
                     if (raf instanceof BufferedRandomAccessFile) {
                         ((BufferedRandomAccessFile) raf).flush();

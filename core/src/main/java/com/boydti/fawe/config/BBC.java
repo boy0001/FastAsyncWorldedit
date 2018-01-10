@@ -43,7 +43,6 @@ public enum BBC {
     WORLDEDIT_ITERATIONS("&7You cannot iterate %current% times. The maximum number of iterations allowed is %max%.", "Info"),
     WORLDEDIT_UNSAFE("&7Access to that command has been blocked", "Info"),
     WORLDEDIT_DANGEROUS_WORLDEDIT("&cProcessed unsafe edit at %s0 by %s1", "Info"),
-    WORLDEDIT_BYPASS("&7&oTo bypass your restrictions use &c/wea", "Info"),
     WORLDEDIT_EXTEND("&cYour edit may have extended outside your allowed region.", "Error"),
     WORLDEDIT_TOGGLE_TIPS_ON("&7Disabled FAWE tips.", "Info"),
     WORLDEDIT_TOGGLE_TIPS_OFF("&7Enabled FAWE tips.", "Info"),

@@ -363,6 +363,32 @@ public class BundledBlockData {
         return legacyMap[id];
     }
 
+    public String getName(BaseBlock block) {
+        BlockEntry entry = legacyMap[block.getId()];
+        if (entry != null) {
+            String name = entry.id;
+            if (block.getData() == 0) return name;
+            StringBuilder append = new StringBuilder();
+            Map<String, FaweState> states = entry.states;
+            FaweState variants = states.get("variant");
+            if (variants == null) variants = states.get("color");
+            if (variants == null && !states.isEmpty()) variants = states.entrySet().iterator().next().getValue();
+            if (variants != null) {
+                for (Map.Entry<String, FaweStateValue> variant : variants.valueMap().entrySet()) {
+                    FaweStateValue state = variant.getValue();
+                    if (state.isSet(block)) {
+                        append.append(append.length() == 0 ? ":" : "|");
+                        append.append(variant.getKey());
+                    }
+                }
+            }
+            if (append.length() == 0) return name + ":" + block.getData();
+            return name + append;
+        }
+        if (block.getData() == 0) return Integer.toString(block.getId());
+        return block.getId() + ":" + block.getData();
+    }
+
     /**
      * Convert the given string ID to a legacy numeric ID.
      *

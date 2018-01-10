@@ -122,6 +122,7 @@ public interface Extent extends InputExtent, OutputExtent {
     }
 
     public default int getNearestSurfaceTerrainBlock(int x, int z, int y, int minY, int maxY) {
+        y = Math.max(minY, Math.min(maxY, y));
         int clearanceAbove = maxY - y;
         int clearanceBelow = y - minY;
         int clearance = Math.min(clearanceAbove, clearanceBelow);

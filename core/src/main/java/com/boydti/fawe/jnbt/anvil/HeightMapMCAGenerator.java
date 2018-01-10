@@ -91,6 +91,7 @@ public class HeightMapMCAGenerator extends MCAWriter implements SimpleWorld, Faw
     public final class CFIPrimtives implements Cloneable {
         protected int waterHeight = 0;
         protected int floorThickness = 0;
+        protected int worldThickness = 0;
         protected boolean randomVariation = true;
         protected int biomePriority = 0;
         protected byte waterId = BlockID.STATIONARY_WATER;
@@ -366,6 +367,10 @@ public class HeightMapMCAGenerator extends MCAWriter implements SimpleWorld, Faw
         this.primtives.floorThickness = floorThickness;
     }
 
+    public void setWorldThickness(int height) {
+        this.primtives.worldThickness = height;
+    }
+
     public void setWaterHeight(int waterHeight) {
         this.primtives.waterHeight = waterHeight;
     }
@@ -546,13 +551,13 @@ public class HeightMapMCAGenerator extends MCAWriter implements SimpleWorld, Faw
     }
 
     public void addCaves() throws WorldEditException {
-        CuboidRegion region = new CuboidRegion(new Vector(0, 0, 0), new Vector(getWidth(), 255, getLength()));
+        CuboidRegion region = new CuboidRegion(new Vector(0, 0, 0), new Vector(getWidth() -1, 255, getLength() -1));
         addCaves(region);
     }
 
     @Deprecated
     public void addSchems(Mask mask, WorldData worldData, List<ClipboardHolder> clipboards, int rarity, boolean rotate) throws WorldEditException {
-        CuboidRegion region = new CuboidRegion(new Vector(0, 0, 0), new Vector(getWidth(), 255, getLength()));
+        CuboidRegion region = new CuboidRegion(new Vector(0, 0, 0), new Vector(getWidth() -1, 255, getLength() -1));
         addSchems(region, mask, worldData, clipboards, rarity, rotate);
     }
 
@@ -657,12 +662,12 @@ public class HeightMapMCAGenerator extends MCAWriter implements SimpleWorld, Faw
     }
 
     public void addOre(Mask mask, Pattern material, int size, int frequency, int rarity, int minY, int maxY) throws WorldEditException {
-        CuboidRegion region = new CuboidRegion(new Vector(0, 0, 0), new Vector(getWidth(), 255, getLength()));
+        CuboidRegion region = new CuboidRegion(new Vector(0, 0, 0), new Vector(getWidth() -1, 255, getLength() -1));
         addOre(region, mask, material, size, frequency, rarity, minY, maxY);
     }
 
     public void addDefaultOres(Mask mask) throws WorldEditException {
-        addOres(new CuboidRegion(new Vector(0, 0, 0), new Vector(getWidth(), 255, getLength())), mask);
+        addOres(new CuboidRegion(new Vector(0, 0, 0), new Vector(getWidth() -1, 255, getLength() -1)), mask);
     }
 
     @Override
@@ -921,7 +926,7 @@ public class HeightMapMCAGenerator extends MCAWriter implements SimpleWorld, Faw
     public int getCombinedId4Data(int x, int y, int z) throws FaweException.FaweChunkLoadException {
         int index = z * getWidth() + x;
         if (y < 0) return 0;
-        if (index < 0 || index >= getArea()) index = Math.floorMod(index, getArea());
+        if (index < 0 || index >= getArea() || x < 0 || x >= getWidth()) return 0;
         int height = heights.getByte(index) & 0xFF;
         if (y > height) {
             if (y == height + 1) {
@@ -1824,7 +1829,7 @@ public class HeightMapMCAGenerator extends MCAWriter implements SimpleWorld, Faw
                 }
             }
 
-            if (primtives.floorThickness != 0) {
+            if (primtives.floorThickness != 0 || primtives.worldThickness != 0) {
                 // Use biomes array as temporary buffer
                 byte[] minArr = chunk.biomes;
                 for (int z = csz; z <= cez; z++) {
@@ -1842,33 +1847,74 @@ public class HeightMapMCAGenerator extends MCAWriter implements SimpleWorld, Faw
                 }
 
                 int minLayer = Math.max(0, (minY - primtives.floorThickness) >> 4);
-                for (int layer = 0; layer < minLayer; layer++) {
-                    chunk.ids[layer] = null;
-                    chunk.data[layer] = null;
+                if (primtives.worldThickness != 0) {
+                    for (int layer = 0; layer < minLayer; layer++) {
+                        chunk.ids[layer] = null;
+                        chunk.data[layer] = null;
+                    }
                 }
-                for (int layer = minLayer; layer <= maxLayer; layer++) {
-                    byte[] layerIds = chunk.ids[layer];
-                    byte[] layerDatas = chunk.data[layer];
-                    int startY = layer << 4;
-                    int endY = startY + 15;
-                    for (int z = csz; z <= cez; z++) {
-                        index = (z & 15) << 4;
-                        for (int x = csx; x <= cex; x++, index++) {
-                            globalIndex = indexes[index];
-                            int height = heightMap[index];
+                if (primtives.floorThickness != 0) {
+                    for (int layer = minLayer; layer <= maxLayer; layer++) {
+                        byte[] layerIds = chunk.ids[layer];
+                        byte[] layerDatas = chunk.data[layer];
+                        int startY = layer << 4;
+                        int endY = startY + 15;
+                        for (int z = csz; z <= cez; z++) {
+                            index = (z & 15) << 4;
+                            for (int x = csx; x <= cex; x++, index++) {
+                                globalIndex = indexes[index];
+                                int height = heightMap[index];
 
-                            int min = (minArr[index] & 0xFF) - primtives.floorThickness;
-                            int localMin = min - startY;
-                            if (localMin > 0) {
-                                char floorCombined = floor[globalIndex];
-                                final byte id = (byte) FaweCache.getId(floorCombined);
-                                final int data = FaweCache.getData(floorCombined);
+                                int min = (minArr[index] & 0xFF) - primtives.floorThickness;
+                                int localMin = min - startY;
 
-                                for (int y = 0; y < localMin; y++) {
-                                    int floorIndex = index + ((y & 15) << 8);
-                                    layerIds[floorIndex] = 0;
-                                    if (data != 0) {
-                                        chunk.setNibble(floorIndex, layerDatas, 0);
+                                int max = height + 1;
+                                if (min < startY) min = startY;
+                                if (max > endY) max = endY + 1;
+
+
+                                if (min < max) {
+                                    char floorCombined = floor[globalIndex];
+                                    final byte id = (byte) FaweCache.getId(floorCombined);
+                                    final int data = FaweCache.getData(floorCombined);
+                                    for (int y = min; y < max; y++) {
+                                        int floorIndex = index + ((y & 15) << 8);
+                                        layerIds[floorIndex] = id;
+                                        if (data != 0) {
+                                            chunk.setNibble(floorIndex, layerDatas, data);
+                                        }
+                                    }
+                                }
+
+                            }
+                        }
+                    }
+                }
+                if (primtives.worldThickness != 0) {
+                    for (int layer = minLayer; layer <= maxLayer; layer++) {
+                        byte[] layerIds = chunk.ids[layer];
+                        byte[] layerDatas = chunk.data[layer];
+                        int startY = layer << 4;
+                        int endY = startY + 15;
+                        for (int z = csz; z <= cez; z++) {
+                            index = (z & 15) << 4;
+                            for (int x = csx; x <= cex; x++, index++) {
+                                globalIndex = indexes[index];
+                                int height = heightMap[index];
+
+                                int min = (minArr[index] & 0xFF) - primtives.floorThickness;
+                                int localMin = min - startY;
+                                if (localMin > 0) {
+                                    char floorCombined = floor[globalIndex];
+                                    final byte id = (byte) FaweCache.getId(floorCombined);
+                                    final int data = FaweCache.getData(floorCombined);
+
+                                    for (int y = 0; y < localMin; y++) {
+                                        int floorIndex = index + ((y & 15) << 8);
+                                        layerIds[floorIndex] = 0;
+                                        if (data != 0) {
+                                            chunk.setNibble(floorIndex, layerDatas, 0);
+                                        }
                                     }
                                 }
                             }

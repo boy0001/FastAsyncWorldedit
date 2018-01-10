@@ -582,15 +582,28 @@ public class CFICommands extends MethodCommands {
     }
 
     @Command(
-            aliases = {"thickness", "width", "floorthickness"},
+            aliases = {"thickness", "width", "worldthickness"},
             usage = "<height>",
-            desc = "Set the thickness of the generated world from the floor\n" +
+            desc = "Set the thickness of the generated world\n" +
+                    " - A value of 0 is the default and will not modify the height"
+    )
+    @CommandPermissions("worldedit.anvil.cfi")
+    public void worldthickness(FawePlayer fp, int height) throws ParameterException, WorldEditException {
+        assertSettings(fp).getGenerator().setWorldThickness(height);
+        msg("Set world thickness!").send(fp);
+        component(fp);
+    }
+
+    @Command(
+            aliases = {"floorthickness", "floorheight", "floorwidth"},
+            usage = "<height>",
+            desc = "Set the thickness of the top layer\n" +
                     " - A value of 0 is the default and will only set the top block"
     )
     @CommandPermissions("worldedit.anvil.cfi")
     public void floorthickness(FawePlayer fp, int height) throws ParameterException, WorldEditException {
         assertSettings(fp).getGenerator().setFloorThickness(height);
-        msg("Set world thickness!").send(fp);
+        msg("Set floor thickness!").send(fp);
         component(fp);
     }
 
@@ -943,6 +956,8 @@ public class CFICommands extends MethodCommands {
         .text("&7[&aWaterHeight&7]").suggestTip(alias() + " " + alias("waterheight") + " 60").text(" - Sea level for whole map")
         .newline()
         .text("&7[&aFloorThickness&7]").suggestTip(alias() + " " + alias("floorthickness") + " 60").text(" - Floor thickness of entire map")
+        .newline()
+        .text("&7[&aWorldThickness&7]").suggestTip(alias() + " " + alias("worldthickness") + " 60").text(" - World thickness of entire map")
         .newline()
         .text("&7[&aSnow&7]").suggestTip(alias() + " " + alias("snow") + maskArgs).text(" - Set snow in the masked areas")
         .newline();

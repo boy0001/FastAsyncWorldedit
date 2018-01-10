@@ -68,6 +68,30 @@ public class ImageUtil {
         return ret;
     }
 
+    public static int getColor(BufferedImage image) {
+        int width = image.getWidth();
+        int height = image.getHeight();
+        long totalRed = 0;
+        long totalGreen = 0;
+        long totalBlue = 0;
+        long totalAlpha = 0;
+        for (int x = 0; x < width; x++) {
+            for (int y = 0; y < height; y++) {
+                int color = image.getRGB(x, y);
+                totalRed += (color >> 16) & 0xFF;
+                totalGreen += (color >> 8) & 0xFF;
+                totalBlue += (color >> 0) & 0xFF;
+                totalAlpha += (color >> 24) & 0xFF;
+            }
+        }
+        int a = width * height;
+        int red = (int) (totalRed / a);
+        int green = (int) (totalGreen / a);
+        int blue = (int) (totalBlue / a);
+        int alpha = (int) (totalAlpha / a);
+        return (alpha << 24) + (red << 16) + (green << 8) + (blue << 0);
+    }
+
     public static BufferedImage getImage(String arg) throws ParameterException {
         try {
             if (arg.startsWith("http")) {

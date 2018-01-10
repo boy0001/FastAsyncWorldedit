@@ -5,6 +5,7 @@ import com.sk89q.worldedit.WorldEdit;
 import com.sk89q.worldedit.extension.input.InputParseException;
 import com.sk89q.worldedit.extension.input.ParserContext;
 import com.sk89q.worldedit.internal.registry.InputParser;
+import com.sk89q.worldedit.util.command.Dispatcher;
 import java.util.AbstractMap;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -24,6 +25,8 @@ public abstract class FaweParser<T> extends InputParser<T> {
             throw e;
         }
     }
+
+    public abstract Dispatcher getDispatcher();
 
     public List<String> suggestRemaining(String input, String... expected) throws InputParseException {
         List<String> remainder = StringMan.split(input, ':');

@@ -449,6 +449,7 @@ public class LocalSession {
         if (changeSet.isEmpty()) {
             return;
         }
+
         FawePlayer fp = editSession.getPlayer();
         if (fp != null) {
             loadSessionHistoryFromDisk(fp.getUUID(), editSession.getWorld());

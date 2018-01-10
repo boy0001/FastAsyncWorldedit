@@ -42,7 +42,7 @@ repositories {
 
 dependencies {
     compile project(':core')
-    compile 'org.spongepowered:spongeapi:7.0.0-SNAPSHOT'
+    compile 'org.spongepowered:spongeapi:7.1.0-SNAPSHOT'
     compile name: 'worldedit-sponge-6.1.9-SNAPSHOT-dist'
     compile name: 'worldedit-core-6.1.9-SNAPSHOT-dist'
 }

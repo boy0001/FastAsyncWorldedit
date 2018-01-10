@@ -3,6 +3,7 @@ package com.boydti.fawe.util;
 import com.boydti.fawe.Fawe;
 import com.boydti.fawe.FaweCache;
 import com.boydti.fawe.config.Settings;
+import com.boydti.fawe.util.image.ImageUtil;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 import com.google.gson.stream.JsonReader;
@@ -58,7 +59,6 @@ public class TextureUtil {
 
     protected int[] validMixBiomeColors;
     protected long[] validMixBiomeIds;
-
 
     /**
      * https://github.com/erich666/Mineways/blob/master/Win/biomes.cpp
@@ -638,7 +638,7 @@ public class TextureUtil {
                             ZipEntry textureEntry = zipFile.getEntry(path);
                             try (InputStream is = zipFile.getInputStream(textureEntry)) {
                                 BufferedImage image = ImageIO.read(is);
-                                int color = getColor(image);
+                                int color = ImageUtil.getColor(image);
                                 long distance = getDistance(image, color);
                                 distanceMap.put((int) combined, (Long) distance);
                                 colorMap.put((int) combined, (Integer) color);
@@ -1000,30 +1000,6 @@ public class TextureUtil {
         long g = (green1 * factor1 - green2 * factor2);
         long b = (767 * (blue1 * factor1 - blue2 * factor2)) >> 10;
         return (int) ((r * r + g * g + b * b) >> 25);
-    }
-
-    protected int getColor(BufferedImage image) {
-        int width = image.getWidth();
-        int height = image.getHeight();
-        long totalRed = 0;
-        long totalGreen = 0;
-        long totalBlue = 0;
-        long totalAlpha = 0;
-        for (int x = 0; x < width; x++) {
-            for (int y = 0; y < height; y++) {
-                int color = image.getRGB(x, y);
-                totalRed += (color >> 16) & 0xFF;
-                totalGreen += (color >> 8) & 0xFF;
-                totalBlue += (color >> 0) & 0xFF;
-                totalAlpha += (color >> 24) & 0xFF;
-            }
-        }
-        int a = width * height;
-        int red = (int) (totalRed / a);
-        int green = (int) (totalGreen / a);
-        int blue = (int) (totalBlue / a);
-        int alpha = (int) (totalAlpha / a);
-        return (alpha << 24) + (red << 16) + (green << 8) + (blue << 0);
     }
 
     public long getDistance(BufferedImage image, int c1) {

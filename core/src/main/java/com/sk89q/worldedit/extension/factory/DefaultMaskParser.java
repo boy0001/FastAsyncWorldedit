@@ -38,6 +38,7 @@ public class DefaultMaskParser extends FaweParser<Mask> {
         this.register(new MaskCommands(worldEdit));
     }
 
+    @Override
     public Dispatcher getDispatcher() {
         return dispatcher;
     }
