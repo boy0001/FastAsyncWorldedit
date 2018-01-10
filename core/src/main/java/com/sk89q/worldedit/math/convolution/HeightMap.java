@@ -25,6 +25,7 @@ public class HeightMap {
 
     private final boolean layers;
     private int[] data;
+    private boolean[] invalid;
     private int width;
     private int height;
 
@@ -62,12 +63,12 @@ public class HeightMap {
         int minZ = region.getMinimumPoint().getBlockZ();
         int maxY = region.getMaximumPoint().getBlockY();
 
+        data = new int[width * height];
+        invalid = new boolean[data.length];
+
         if (layers) {
             Vector min = region.getMinimumPoint();
             Vector max = region.getMaximumPoint();
-            int width = region.getWidth();
-            int height = region.getLength();
-            data = new int[width * height];
             int bx = min.getBlockX();
             int bz = min.getBlockZ();
             Iterable<Vector2D> flat = Regions.asFlatRegion(region).asFlatRegion();
@@ -83,7 +84,6 @@ public class HeightMap {
             }
         } else {
             // Store current heightmap data
-            data = new int[width * height];
             int index = 0;
             if (naturalOnly) {
                 for (int z = 0; z < height; ++z) {
@@ -95,13 +95,25 @@ public class HeightMap {
                 int yTmp = 255;
                 for (int z = 0; z < height; ++z) {
                     for (int x = 0; x < width; ++x, index++) {
-                        data[index] = yTmp = session.getNearestSurfaceTerrainBlock(x + minX, z + minZ, yTmp, minY, maxY);
+                        yTmp = session.getNearestSurfaceTerrainBlock(x + minX, z + minZ, yTmp, minY, maxY, Integer.MIN_VALUE, Integer.MAX_VALUE);
+                        switch (yTmp) {
+                            case Integer.MIN_VALUE:
+                                yTmp = minY;
+                                invalid[index] = true;
+                                break;
+                            case Integer.MAX_VALUE:
+                                yTmp = maxY;
+                                invalid[index] = true;
+                                break;
+                        }
+                        data[index] = yTmp;
                     }
                 }
             }
         }
     }
 
+    @Deprecated
     public HeightMap(EditSession session, Region region, int[] data, boolean layers) {
         this.session = session;
         this.region = region;
@@ -179,7 +191,7 @@ public class HeightMap {
             int zr = z + originZ;
             for (int x = 0; x < width; ++x) {
                 int curHeight = this.data[index];
-                if (curHeight == -1) continue;
+                if (this.invalid != null && this.invalid[index]) continue;
                 int newHeight = Math.min(maxY4, data[index++]);
                 int curBlock = (curHeight) >> 3;
                 int newBlock = (newHeight + 7) >> 3;
@@ -235,7 +247,6 @@ public class HeightMap {
     }
 
     public int apply(int[] data) throws WorldEditException {
-        long start = System.currentTimeMillis();
         checkNotNull(data);
 
         Vector minY = region.getMinimumPoint();
@@ -254,10 +265,11 @@ public class HeightMap {
         int index = 0;
         for (int z = 0; z < height; ++z) {
             int zr = z + originZ;
-            for (int x = 0; x < width; ++x) {
+            for (int x = 0; x < width; ++x, index++) {
                 int curHeight = this.data[index];
-                if (curHeight == -1) continue;
-                int newHeight = Math.min(maxY, data[index++]);
+                if (this.invalid != null && this.invalid[index]) continue;
+                int newHeight = Math.min(maxY, data[index]);
+
                 int xr = x + originX;
 
                 // Depending on growing or shrinking we need to start at the bottom or top

@@ -1058,6 +1058,13 @@ public class HeightMapMCAGenerator extends MCAWriter implements SimpleWorld, Faw
         return heights.getByte(index) & 0xFF;
     }
 
+    @Override
+    public int getNearestSurfaceTerrainBlock(int x, int z, int y, int minY, int maxY, int failedMin, int failedMax) {
+        int index = z * getWidth() + x;
+        if (index < 0 || index >= getArea()) index = Math.floorMod(index, getArea());
+        return heights.getByte(index) & 0xFF;
+    }
+
     public void setBiome(BufferedImage img, byte biome, boolean white) {
         if (img.getWidth() != getWidth() || img.getHeight() != getLength())
             throw new IllegalArgumentException("Input image dimensions do not match the current height map!");

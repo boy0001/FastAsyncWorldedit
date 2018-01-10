@@ -484,6 +484,11 @@ public interface IDelegateFaweQueue extends FaweQueue {
     }
 
     @Override
+    default int getNearestSurfaceTerrainBlock(int x, int z, int y, int minY, int maxY, int failedMin, int failedMax) {
+        return getQueue().getNearestSurfaceTerrainBlock(x, z, y, minY, maxY, failedMin, failedMax);
+    }
+
+    @Override
     default void addCaves(Region region) throws WorldEditException {
         getQueue().addCaves(region);
     }

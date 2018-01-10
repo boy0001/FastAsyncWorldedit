@@ -203,6 +203,11 @@ public class AbstractDelegateExtent implements LightingExtent {
     }
 
     @Override
+    public int getNearestSurfaceTerrainBlock(int x, int z, int y, int minY, int maxY, int failedMin, int failedMax) {
+        return extent.getNearestSurfaceTerrainBlock(x, z, y, minY, maxY, failedMin, failedMax);
+    }
+
+    @Override
     public final
     @Nullable
     Operation commit() {

@@ -118,10 +118,14 @@ public interface Extent extends InputExtent, OutputExtent {
                 }
             }
         }
-        return maxY << 4;
+        return (state ? minY : maxY) << 4;
     }
 
     public default int getNearestSurfaceTerrainBlock(int x, int z, int y, int minY, int maxY) {
+        return getNearestSurfaceTerrainBlock(x, z, y, minY, maxY, minY, maxY);
+    }
+
+    public default int getNearestSurfaceTerrainBlock(int x, int z, int y, int minY, int maxY, int failedMin, int failedMax) {
         y = Math.max(minY, Math.min(maxY, y));
         int clearanceAbove = maxY - y;
         int clearanceBelow = y - minY;
@@ -150,7 +154,7 @@ public interface Extent extends InputExtent, OutputExtent {
                 }
             }
         }
-        return maxY == 255 && minY == 0 ? maxY : -1;
+        return state ? failedMin : failedMax;
     }
 
     default public void addCaves(Region region) throws WorldEditException {
