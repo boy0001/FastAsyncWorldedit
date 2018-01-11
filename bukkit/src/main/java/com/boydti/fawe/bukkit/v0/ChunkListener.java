@@ -3,6 +3,7 @@ package com.boydti.fawe.bukkit.v0;
 import com.boydti.fawe.Fawe;
 import com.boydti.fawe.bukkit.FaweBukkit;
 import com.boydti.fawe.config.Settings;
+import com.boydti.fawe.util.FaweTimer;
 import com.boydti.fawe.util.MathMan;
 import com.boydti.fawe.util.TaskManager;
 import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
@@ -21,12 +22,11 @@ import org.bukkit.event.block.BlockPhysicsEvent;
 import org.bukkit.event.entity.EntityChangeBlockEvent;
 import org.bukkit.event.entity.ItemSpawnEvent;
 import org.bukkit.event.world.ChunkLoadEvent;
-import sun.misc.SharedSecrets;
 
-public class ChunkListener implements Listener {
+public abstract class ChunkListener implements Listener {
 
     private int rateLimit = 0;
-    private int[] badLimit = new int[]{Settings.IMP.TICK_LIMITER.PHYSICS, Settings.IMP.TICK_LIMITER.FALLING, Settings.IMP.TICK_LIMITER.ITEMS};
+    private int[] badLimit = new int[]{Settings.IMP.TICK_LIMITER.PHYSICS_MS, Settings.IMP.TICK_LIMITER.FALLING, Settings.IMP.TICK_LIMITER.ITEMS};
 
     public ChunkListener() {
         if (Settings.IMP.TICK_LIMITER.ENABLED) {
@@ -54,6 +54,9 @@ public class ChunkListener implements Listener {
             }, Settings.IMP.TICK_LIMITER.INTERVAL);
         }
     }
+
+    protected abstract int getDepth(Exception ex);
+    protected abstract StackTraceElement getElement(Exception ex, int index);
 
     public static boolean physicsFreeze = false;
     public static boolean itemFreeze = false;
@@ -91,6 +94,9 @@ public class ChunkListener implements Listener {
     private boolean physCancel;
     private long physCancelPair;
 
+    private long physStart;
+    private long physTick;
+
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
     public void onPhysics(BlockPhysicsEvent event) {
         if (physCancel) {
@@ -105,25 +111,34 @@ public class ChunkListener implements Listener {
                 event.setCancelled(true);
                 return;
             }
+        } else {
+            if ((++physSkip & 1023) != 0) return;
+            FaweTimer timer = Fawe.get().getTimer();
+            if (timer.getTick() != physTick) {
+                physTick = timer.getTick();
+                physStart = System.currentTimeMillis();
+                return;
+            } else if (System.currentTimeMillis() - physStart < Settings.IMP.TICK_LIMITER.PHYSICS_MS) {
+                return;
+            }
         }
         if (physicsFreeze) {
             event.setCancelled(true);
             return;
         }
-        // For performance reasons, skip most checks
-        if ((++physSkip & 2047) != 0) return;
         if (event.getChangedTypeId() == 0) return;
         Exception e = new Exception();
-        int depth = SharedSecrets.getJavaLangAccess().getStackTraceDepth(e);
-        if (depth >= Settings.IMP.TICK_LIMITER.PHYSICS) {
+        int depth = getDepth(e);
+        if (depth >= 256) {
             for (int frame = 25; frame < 33; frame++) {
-                StackTraceElement elem = SharedSecrets.getJavaLangAccess().getStackTraceElement(e, frame);
+                StackTraceElement elem = getElement(e, frame);
                 String methodName = elem.getMethodName();
                 // setAir (hacky, but this needs to be efficient)
                 if (methodName.charAt(0) == 's' && methodName.length() == 6) {
                     Block block = event.getBlock();
                     int cx = block.getX() >> 4;
                     int cz = block.getZ() >> 4;
+                    physCancelPair = MathMan.pairInt(cx, cz);
                     if (rateLimit <= 0) {
                         rateLimit = 20;
                         Fawe.debug("[FAWE `tick-limiter`] Detected and cancelled physics  lag source at " + block.getLocation());
@@ -145,12 +160,21 @@ public class ChunkListener implements Listener {
         cancel(cx - 1, cz);
         cancel(cx, cz + 1);
         cancel(cx, cz - 1);
+        cancel(cx - 1, cz - 1);
+        cancel(cx - 1, cz + 1);
+        cancel(cx + 1, cz - 1);
+        cancel(cx + 1, cz + 1);
     }
 
     private void cancel(int cx, int cz) {
         long key = MathMan.pairInt(cx, cz);
         badChunks.put(key, (Boolean) true);
         counter.put(key, badLimit);
+        int[] count = getCount(cx, cz);
+        count[0] = Integer.MAX_VALUE;
+        count[1] = Integer.MAX_VALUE;
+        count[2] = Integer.MAX_VALUE;
+
     }
 
     // Falling
@@ -202,10 +226,10 @@ public class ChunkListener implements Listener {
         Exception e = new Exception();
         int start = 14;
         int end = 22;
-        int depth = Math.min(end, SharedSecrets.getJavaLangAccess().getStackTraceDepth(e));
+        int depth = Math.min(end, getDepth(e));
 
         for (int frame = start; frame < depth; frame++) {
-            StackTraceElement elem = SharedSecrets.getJavaLangAccess().getStackTraceElement(e, frame);
+            StackTraceElement elem = getElement(e, frame);
             String className = elem.getClassName();
             int len = className.length();
             if (className != null) {
