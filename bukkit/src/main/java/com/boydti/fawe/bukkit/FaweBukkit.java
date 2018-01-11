@@ -101,6 +101,7 @@ public class FaweBukkit implements IFawe, Listener {
     public FaweBukkit(BukkitMain plugin) {
         this.plugin = plugin;
         try {
+            Settings.IMP.TICK_LIMITER.ENABLED = !Bukkit.hasWhitelist();
             Fawe.set(this);
             setupInjector();
             try {
@@ -151,8 +152,7 @@ public class FaweBukkit implements IFawe, Listener {
                 try {
                     Class.forName("sun.misc.SharedSecrets");
                     new ChunkListener_8();
-                }  catch( ClassNotFoundException e )
-                {
+                } catch (ClassNotFoundException e) {
                     new ChunkListener_9();
                 }
             }
