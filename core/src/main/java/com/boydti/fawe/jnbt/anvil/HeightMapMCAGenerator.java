@@ -794,7 +794,6 @@ public class HeightMapMCAGenerator extends MCAWriter implements SimpleWorld, Faw
 
     @Override
     public void setChunk(FaweChunk chunk) {
-        System.out.println(((SimpleCharFaweChunk) chunk).getTotalCount());
         char[][] src = chunk.getCombinedIdArrays();
         for (int i = 0; i < src.length; i++) {
             if (src[i] != null) {

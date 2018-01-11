@@ -357,6 +357,12 @@ public class Settings extends Config {
         public int PHYSICS_MS = 50;
         @Comment("Max item spawns per interval (per chunk)")
         public int ITEMS = 256;
+        @Comment({
+                "Whether fireworks can load chunks",
+                " - Fireworks usually travel vertically so do not load any chunks",
+                " - Horizontal fireworks can be hacked in to crash a server"
+        })
+        public boolean FIREWORKS_LOAD_CHUNKS = false;
     }
 
     public static class CLIPBOARD {

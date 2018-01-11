@@ -25,7 +25,7 @@ import org.bukkit.event.world.ChunkLoadEvent;
 
 public abstract class ChunkListener implements Listener {
 
-    private int rateLimit = 0;
+    protected int rateLimit = 0;
     private int[] badLimit = new int[]{Settings.IMP.TICK_LIMITER.PHYSICS_MS, Settings.IMP.TICK_LIMITER.FALLING, Settings.IMP.TICK_LIMITER.ITEMS};
 
     public ChunkListener() {
@@ -61,7 +61,7 @@ public abstract class ChunkListener implements Listener {
     public static boolean physicsFreeze = false;
     public static boolean itemFreeze = false;
 
-    private Long2ObjectOpenHashMap<Boolean> badChunks = new Long2ObjectOpenHashMap<>();
+    protected Long2ObjectOpenHashMap<Boolean> badChunks = new Long2ObjectOpenHashMap<>();
     private Long2ObjectOpenHashMap<int[]> counter = new Long2ObjectOpenHashMap<>();
     private int lastX = Integer.MIN_VALUE, lastZ = Integer.MIN_VALUE;
     private int[] lastCount;
@@ -90,12 +90,13 @@ public abstract class ChunkListener implements Listener {
 
     }
 
-    private int physSkip;
-    private boolean physCancel;
-    private long physCancelPair;
+    protected int physSkip;
+    protected boolean physCancel;
+    protected long physCancelPair;
 
-    private long physStart;
-    private long physTick;
+    protected long physStart;
+    protected long physTick;
+
 
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
     public void onPhysics(BlockPhysicsEvent event) {
@@ -130,31 +131,40 @@ public abstract class ChunkListener implements Listener {
         Exception e = new Exception();
         int depth = getDepth(e);
         if (depth >= 256) {
-            for (int frame = 25; frame < 33; frame++) {
-                StackTraceElement elem = getElement(e, frame);
-                String methodName = elem.getMethodName();
-                // setAir (hacky, but this needs to be efficient)
-                if (methodName.charAt(0) == 's' && methodName.length() == 6) {
-                    Block block = event.getBlock();
-                    int cx = block.getX() >> 4;
-                    int cz = block.getZ() >> 4;
-                    physCancelPair = MathMan.pairInt(cx, cz);
+            if (containsSetAir(e, event)) {
+                Block block = event.getBlock();
+                int cx = block.getX() >> 4;
+                int cz = block.getZ() >> 4;
+                physCancelPair = MathMan.pairInt(cx, cz);
                     if (rateLimit <= 0) {
-                        rateLimit = 20;
-                        Fawe.debug("[FAWE `tick-limiter`] Detected and cancelled physics  lag source at " + block.getLocation());
+                rateLimit = 20;
+                Fawe.debug("[FAWE `tick-limiter`] Detected and cancelled physics  lag source at " + block.getLocation());
                     }
-                    cancelNearby(cx, cz);
-                    event.setCancelled(true);
-                    physCancel = true;
-                    return;
-                }
+                cancelNearby(cx, cz);
+                event.setCancelled(true);
+                physCancel = true;
+                return;
             }
         }
         physSkip = 1;
         physCancel = false;
     }
 
-    private void cancelNearby(int cx, int cz) {
+    protected boolean containsSetAir(Exception e, BlockPhysicsEvent event) {
+        for (int frame = 25; frame < 33; frame++) {
+            StackTraceElement elem = getElement(e, frame);
+            if (elem != null) {
+                String methodName = elem.getMethodName();
+                // setAir (hacky, but this needs to be efficient)
+                if (methodName.charAt(0) == 's' && methodName.length() == 6) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    protected void cancelNearby(int cx, int cz) {
         cancel(cx, cz);
         cancel(cx + 1, cz);
         cancel(cx - 1, cz);
@@ -219,34 +229,37 @@ public abstract class ChunkListener implements Listener {
      */
     @EventHandler(priority = EventPriority.LOWEST)
     public void onChunkLoad(ChunkLoadEvent event) {
-        Chunk chunk = event.getChunk();
-        Entity[] entities = chunk.getEntities();
-        World world = chunk.getWorld();
+        if (!Settings.IMP.TICK_LIMITER.FIREWORKS_LOAD_CHUNKS) {
+            Chunk chunk = event.getChunk();
+            Entity[] entities = chunk.getEntities();
+            World world = chunk.getWorld();
 
-        Exception e = new Exception();
-        int start = 14;
-        int end = 22;
-        int depth = Math.min(end, getDepth(e));
+            Exception e = new Exception();
+            int start = 14;
+            int end = 22;
+            int depth = Math.min(end, getDepth(e));
 
-        for (int frame = start; frame < depth; frame++) {
-            StackTraceElement elem = getElement(e, frame);
-            String className = elem.getClassName();
-            int len = className.length();
-            if (className != null) {
-                if (className.charAt(len - 15) == 'E' && className.endsWith("EntityFireworks")) {
-                    int chunkRange = 2;
-                    for (int ocx = -chunkRange; ocx <= chunkRange; ocx++) {
-                        for (int ocz = -chunkRange; ocz <= chunkRange; ocz++) {
-                            int cx = chunk.getX() + ocx;
-                            int cz = chunk.getZ() + ocz;
-                            if (world.isChunkLoaded(cx, cz)) {
-                                Chunk relativeChunk = world.getChunkAt(cx, cz);
-                                Entity[] ents = relativeChunk.getEntities();
-                                for (Entity ent : ents) {
-                                    switch (ent.getType()) {
-                                        case FIREWORK:
-                                            Fawe.debug("[FAWE `tick-limiter`] Detected and cancelled rogue FireWork at " + ent.getLocation());
-                                            ent.remove();
+            for (int frame = start; frame < depth; frame++) {
+                StackTraceElement elem = getElement(e, frame);
+                if (elem == null) return;
+                String className = elem.getClassName();
+                int len = className.length();
+                if (className != null) {
+                    if (len > 15 && className.charAt(len - 15) == 'E' && className.endsWith("EntityFireworks")) {
+                        int chunkRange = 2;
+                        for (int ocx = -chunkRange; ocx <= chunkRange; ocx++) {
+                            for (int ocz = -chunkRange; ocz <= chunkRange; ocz++) {
+                                int cx = chunk.getX() + ocx;
+                                int cz = chunk.getZ() + ocz;
+                                if (world.isChunkLoaded(cx, cz)) {
+                                    Chunk relativeChunk = world.getChunkAt(cx, cz);
+                                    Entity[] ents = relativeChunk.getEntities();
+                                    for (Entity ent : ents) {
+                                        switch (ent.getType()) {
+                                            case FIREWORK:
+                                                Fawe.debug("[FAWE `tick-limiter`] Detected and cancelled rogue FireWork at " + ent.getLocation());
+                                                ent.remove();
+                                        }
                                     }
                                 }
                             }
