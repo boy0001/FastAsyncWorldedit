@@ -18,7 +18,6 @@ import org.bukkit.event.block.BlockFromToEvent;
 import org.bukkit.event.block.BlockGrowEvent;
 import org.bukkit.event.block.BlockIgniteEvent;
 import org.bukkit.event.block.BlockPhysicsEvent;
-import org.bukkit.event.block.BlockPistonEvent;
 import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.event.block.BlockRedstoneEvent;
 import org.bukkit.event.block.CauldronLevelChangeEvent;
@@ -74,9 +73,6 @@ public class ChunkListener_9 extends ChunkListener {
 
     @EventHandler(priority = EventPriority.LOWEST)
     public void event(BlockIgniteEvent event) { reset(); }
-
-    @EventHandler(priority = EventPriority.LOWEST)
-    public void event( BlockPistonEvent event) { reset(); }
 
     @EventHandler(priority = EventPriority.LOWEST)
     public void event(BlockPlaceEvent event) { reset(); }
