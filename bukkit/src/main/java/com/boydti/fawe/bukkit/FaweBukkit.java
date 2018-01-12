@@ -7,6 +7,7 @@ import com.boydti.fawe.bukkit.listener.BrushListener;
 import com.boydti.fawe.bukkit.listener.BukkitImageListener;
 import com.boydti.fawe.bukkit.listener.CFIPacketListener;
 import com.boydti.fawe.bukkit.listener.RenderListener;
+import com.boydti.fawe.bukkit.regions.ASkyBlockHook;
 import com.boydti.fawe.bukkit.regions.FactionsFeature;
 import com.boydti.fawe.bukkit.regions.FactionsOneFeature;
 import com.boydti.fawe.bukkit.regions.FactionsUUIDFeature;
@@ -559,6 +560,18 @@ public class FaweBukkit implements IFawe, Listener {
                 MainUtil.handleError(e);
             }
         }
+
+
+        final Plugin aSkyBlock = Bukkit.getServer().getPluginManager().getPlugin("ASkyBlock");
+        if ((aSkyBlock != null) && aSkyBlock.isEnabled()) {
+            try {
+                managers.add(new ASkyBlockHook(aSkyBlock, this));
+                Fawe.debug("Plugin 'ASkyBlock' found. Using it now.");
+            } catch (final Throwable e) {
+                MainUtil.handleError(e);
+            }
+        }
+
         return managers;
     }
 //

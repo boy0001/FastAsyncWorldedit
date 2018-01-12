@@ -40,4 +40,8 @@ public abstract class FaweMaskManager<T> {
     public RegionFilter getFilter(String world) {
         return null;
     }
+
+    private boolean hasMemberPermission(FawePlayer fp) {
+        return fp.hasPermission("fawe." + getKey() + ".member");
+    }
 }

@@ -1,5 +1,6 @@
 repositories {
     flatDir {dirs 'lib'}
+    maven {url "http://dl.bintray.com/tastybento/maven-repo"}
 }
 dependencies {
     compile project(':core')
@@ -29,6 +30,7 @@ dependencies {
     compile 'org.bukkit.craftbukkit:Craftbukkit:1.7.10'
     compile 'org.bukkit.craftbukkit:CraftBukkit:1.8.8'
     compile 'com.comphenix.protocol:ProtocolLib-API:4.4.0-SNAPSHOT'
+    compile 'com.wasteofplastic:askyblock:3.0.8.2'
 }
 
 processResources {
