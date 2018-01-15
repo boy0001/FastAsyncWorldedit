@@ -1,6 +1,5 @@
 repositories {
     flatDir {dirs 'lib'}
-    maven {url "http://dl.bintray.com/tastybento/maven-repo"}
 }
 dependencies {
     compile project(':core')

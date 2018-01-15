@@ -9,6 +9,7 @@ import java.util.Iterator;
 import java.util.concurrent.ForkJoinPool;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.function.Supplier;
 import javax.annotation.Nullable;
 
 public abstract class TaskManager {
@@ -284,6 +285,10 @@ public abstract class TaskManager {
         return sync(function, Integer.MAX_VALUE);
     }
 
+    public <T> T sync(final Supplier<T> function) {
+        return sync(function, Integer.MAX_VALUE);
+    }
+
     public void wait(AtomicBoolean running, int timout) {
         try {
             long start = System.currentTimeMillis();
@@ -380,16 +385,19 @@ public abstract class TaskManager {
      * @return
      */
     public <T> T sync(final RunnableVal<T> function, int timeout) {
+        return sync((Supplier<T>) function, timeout);
+    }
+
+    public <T> T sync(final Supplier<T> function, int timeout) {
         if (Fawe.get().getMainThread() == Thread.currentThread()) {
-            function.run();
-            return function.value;
+            return function.get();
         }
         final AtomicBoolean running = new AtomicBoolean(true);
-        RunnableVal<RuntimeException> run = new RunnableVal<RuntimeException>() {
+        RunnableVal<Object> run = new RunnableVal<Object>() {
             @Override
-            public void run(RuntimeException value) {
+            public void run(Object value) {
                 try {
-                    function.run();
+                    this.value = function.get();
                 } catch (RuntimeException e) {
                     this.value = e;
                 } catch (Throwable neverHappens) {
@@ -412,9 +420,9 @@ public abstract class TaskManager {
         } catch (InterruptedException e) {
             MainUtil.handleError(e);
         }
-        if (run.value != null) {
-            throw run.value;
+        if (run.value != null && run.value instanceof RuntimeException) {
+            throw (RuntimeException) run.value;
         }
-        return function.value;
+        return (T) run.value;
     }
 }
