@@ -236,7 +236,7 @@ public abstract class ChunkListener implements Listener {
     }
 
     protected boolean containsSetAir(Exception e, BlockPhysicsEvent event) {
-        for (int frame = 25; frame < 33; frame++) {
+        for (int frame = 25; frame < 35; frame++) {
             StackTraceElement elem = getElement(e, frame);
             if (elem != null) {
                 String methodName = elem.getMethodName();
