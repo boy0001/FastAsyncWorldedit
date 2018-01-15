@@ -25,6 +25,7 @@ import com.google.common.collect.ClassToInstanceMap;
 import com.google.common.collect.HashBiMap;
 import com.google.common.collect.ImmutableBiMap;
 import com.google.common.collect.MutableClassToInstanceMap;
+import com.sk89q.worldedit.EditSession;
 import com.sk89q.worldedit.LocalSession;
 import com.sk89q.worldedit.extent.MaskingExtent;
 import com.sk89q.worldedit.function.mask.Mask;
@@ -465,8 +466,11 @@ public class Sniper {
             public void run() {
                 int count = 0;
                 for (int i = 0; i < amount; i++) {
-                    if (fp.getSession().undo(null, fp.getPlayer()) == null) {
+                    EditSession es = fp.getSession().undo(null, fp.getPlayer());
+                    if (es == null) {
                         break;
+                    } else {
+                        es.flushQueue();
                     }
                     count++;
                 }
