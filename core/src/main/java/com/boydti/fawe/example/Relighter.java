@@ -7,6 +7,13 @@ public interface Relighter {
 
     void fixLightingSafe(boolean sky);
 
+    default void removeAndRelight(boolean sky) {
+        removeLighting();
+        fixLightingSafe(sky);
+    }
+
+    void removeLighting();
+
     void fixBlockLighting();
 
     void fixSkyLighting();

@@ -25,13 +25,13 @@ public class ItemUtil {
     private SoftReference<Int2ObjectOpenHashMap<WeakReference<Tag>>> hashToNMSTag = new SoftReference(new Int2ObjectOpenHashMap<>());
 
     public ItemUtil() throws Exception {
-        this.classCraftItemStack = ReflectionUtils.getCbClass("inventory.CraftItemStack");
-        this.classNMSItem = ReflectionUtils.getNmsClass("ItemStack");
+        this.classCraftItemStack = BukkitReflectionUtils.getCbClass("inventory.CraftItemStack");
+        this.classNMSItem = BukkitReflectionUtils.getNmsClass("ItemStack");
         this.methodAsNMSCopy = ReflectionUtils.setAccessible(classCraftItemStack.getDeclaredMethod("asNMSCopy", ItemStack.class));
         this.methodHasTag = ReflectionUtils.setAccessible(classNMSItem.getDeclaredMethod("hasTag"));
         this.methodGetTag = ReflectionUtils.setAccessible(classNMSItem.getDeclaredMethod("getTag"));
         this.fieldHandle = ReflectionUtils.setAccessible(classCraftItemStack.getDeclaredField("handle"));
-        Class<?> classNBTTagCompound = ReflectionUtils.getNmsClass("NBTTagCompound");
+        Class<?> classNBTTagCompound = BukkitReflectionUtils.getNmsClass("NBTTagCompound");
         this.methodSetTag = ReflectionUtils.setAccessible(classNMSItem.getDeclaredMethod("setTag", classNBTTagCompound));
         this.methodAsBukkitCopy = ReflectionUtils.setAccessible(classCraftItemStack.getDeclaredMethod("asBukkitCopy", classNMSItem));
     }

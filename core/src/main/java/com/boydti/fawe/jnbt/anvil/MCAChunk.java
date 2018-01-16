@@ -510,7 +510,6 @@ public class MCAChunk extends FaweChunk<Void> {
                 if (entities == null) {
                     entities = new HashMap<UUID, CompoundTag>();
                 }
-
                 long least = entityTag.getLong("UUIDLeast");
                 long most = entityTag.getLong("UUIDMost");
                 entities.put(new UUID(most, least), entityTag);
@@ -733,14 +732,18 @@ public class MCAChunk extends FaweChunk<Void> {
 
     public void removeLight() {
         for (int i = 0; i < skyLight.length; i++) {
-            byte[] array1 = skyLight[i];
-            if (array1 == null) {
-                continue;
-            }
-            byte[] array2 = blockLight[i];
-            Arrays.fill(array1, (byte) 0);
-            Arrays.fill(array2, (byte) 0);
+            removeLight(i);
         }
+    }
+
+    public void removeLight(int i) {
+        byte[] array1 = skyLight[i];
+        if (array1 == null) {
+            return;
+        }
+        byte[] array2 = blockLight[i];
+        Arrays.fill(array1, (byte) 0);
+        Arrays.fill(array2, (byte) 0);
     }
 
     public int getNibble(int index, byte[] array) {

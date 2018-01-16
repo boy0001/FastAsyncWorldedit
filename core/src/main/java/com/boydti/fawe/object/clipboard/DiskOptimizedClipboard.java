@@ -23,6 +23,7 @@ import java.io.Closeable;
 import java.io.File;
 import java.io.IOException;
 import java.io.RandomAccessFile;
+import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.nio.ByteBuffer;
 import java.nio.MappedByteBuffer;
@@ -273,6 +274,16 @@ public class DiskOptimizedClipboard extends FaweClipboard implements Closeable {
             clean.setAccessible(true);
             clean.invoke(cleaner.invoke(cb));
         } catch (Exception ex) {
+            try {
+                final Class<?> unsafeClass = Class.forName("sun.misc.Unsafe");
+                final Field theUnsafeField = unsafeClass.getDeclaredField("theUnsafe");
+                theUnsafeField.setAccessible(true);
+                final Object theUnsafe = theUnsafeField.get(null);
+                final Method invokeCleanerMethod = unsafeClass.getMethod("invokeCleaner", ByteBuffer.class);
+                invokeCleanerMethod.invoke(theUnsafe, cb);
+            } catch (Exception e) {
+                System.gc();
+            }
         }
         cb = null;
     }

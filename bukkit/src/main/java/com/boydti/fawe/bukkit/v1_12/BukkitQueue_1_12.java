@@ -730,19 +730,15 @@ public class BukkitQueue_1_12 extends BukkitQueue_0<net.minecraft.server.v1_12_R
     }
 
     @Override
-    public boolean removeLighting(ChunkSection[] sections, RelightMode mode, boolean sky) {
-        if (mode != RelightMode.NONE) {
-            for (int i = 0; i < sections.length; i++) {
-                ChunkSection section = sections[i];
-                if (section != null) {
-                    section.a(new NibbleArray()); // Emitted
-                    if (sky) {
-                        section.b(new NibbleArray()); // Skylight
-                    }
-                }
+    public boolean removeSectionLighting(ChunkSection section, int layer, boolean sky) {
+        if (section != null) {
+            section.a(null);
+            if (sky) {
+                section.b(null);
             }
+            return true;
         }
-        return true;
+        return false;
     }
 
     @Override

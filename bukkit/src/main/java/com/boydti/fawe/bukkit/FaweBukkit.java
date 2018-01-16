@@ -17,6 +17,7 @@ import com.boydti.fawe.bukkit.regions.PreciousStonesFeature;
 import com.boydti.fawe.bukkit.regions.ResidenceFeature;
 import com.boydti.fawe.bukkit.regions.TownyFeature;
 import com.boydti.fawe.bukkit.regions.Worldguard;
+import com.boydti.fawe.bukkit.util.BukkitReflectionUtils;
 import com.boydti.fawe.bukkit.util.BukkitTaskMan;
 import com.boydti.fawe.bukkit.util.ItemUtil;
 import com.boydti.fawe.bukkit.util.VaultUtil;
@@ -374,7 +375,7 @@ public class FaweBukkit implements IFawe, Listener {
     public FaweQueue getNewQueue(String world, boolean fast) {
         if (playerChunk != (playerChunk = true)) {
             try {
-                Field fieldDirtyCount = ReflectionUtils.getRefClass("{nms}.PlayerChunk").getField("dirtyCount").getRealField();
+                Field fieldDirtyCount = BukkitReflectionUtils.getRefClass("{nms}.PlayerChunk").getField("dirtyCount").getRealField();
                 fieldDirtyCount.setAccessible(true);
                 int mod = fieldDirtyCount.getModifiers();
                 if ((mod & Modifier.VOLATILE) == 0) {
@@ -427,7 +428,7 @@ public class FaweBukkit implements IFawe, Listener {
         if (fast) {
             if (playerChunk != (playerChunk = true)) {
                 try {
-                    Field fieldDirtyCount = ReflectionUtils.getRefClass("{nms}.PlayerChunk").getField("dirtyCount").getRealField();
+                    Field fieldDirtyCount = BukkitReflectionUtils.getRefClass("{nms}.PlayerChunk").getField("dirtyCount").getRealField();
                     fieldDirtyCount.setAccessible(true);
                     int mod = fieldDirtyCount.getModifiers();
                     if ((mod & Modifier.VOLATILE) == 0) {

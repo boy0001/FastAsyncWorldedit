@@ -4,8 +4,10 @@ import com.boydti.fawe.jnbt.anvil.MCAChunk;
 import com.boydti.fawe.jnbt.anvil.MCAFile;
 import com.boydti.fawe.jnbt.anvil.MCAFilter;
 import com.boydti.fawe.jnbt.anvil.MCAQueue;
+import com.boydti.fawe.object.FaweQueue;
 import com.boydti.fawe.util.MainUtil;
 import com.boydti.fawe.util.MathMan;
+import com.boydti.fawe.util.SetQueue;
 import com.intellectualcrafters.plot.PS;
 import com.intellectualcrafters.plot.object.ChunkLoc;
 import com.intellectualcrafters.plot.object.Location;
@@ -21,14 +23,11 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
-import org.bukkit.Bukkit;
-import org.bukkit.event.Listener;
-import org.bukkit.plugin.Plugin;
 
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
-public class PlotTrim implements Listener {
+public class PlotTrim {
     private final MCAQueue queue;
     private final PlotArea area;
     private final PlotPlayer player;
@@ -39,8 +38,10 @@ public class PlotTrim implements Listener {
     private boolean deleteUnowned = true;
 
     public PlotTrim(PlotPlayer player, PlotArea area, String worldName, boolean deleteUnowned) {
-        this.root = new File(Bukkit.getWorldContainer(), worldName + "-Copy" + File.separator + "region");
-        this.originalRoot = new File(Bukkit.getWorldContainer(), worldName + File.separator + "region");
+        FaweQueue tmpQueue = SetQueue.IMP.getNewQueue(worldName, true, false);
+        File saveFolder = tmpQueue.getSaveFolder();
+        this.root = new File(saveFolder.getParentFile().getParentFile(), worldName + "-Copy" + File.separator + "region");
+        this.originalRoot = saveFolder;
         this.originalQueue = new MCAQueue(worldName, originalRoot, true);
         this.queue = new MCAQueue(worldName + "-Copy", root, true);
         this.area = area;
@@ -76,7 +77,6 @@ public class PlotTrim implements Listener {
     }
 
     public void run() {
-        Bukkit.getPluginManager().registerEvents(this, (Plugin) PS.get().IMP);
         final Set<ChunkLoc> mcas = new HashSet<>();
         if (deleteUnowned && area != null) {
             originalQueue.filterWorld(new MCAFilter() {

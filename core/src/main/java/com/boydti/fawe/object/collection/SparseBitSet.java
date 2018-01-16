@@ -39,7 +39,7 @@ import java.io.Serializable;
  * <p>
  * A <code>SparseBitSet</code> is not safe for multithreaded use without
  * external synchronization.
- *
+ * @see <a href="https://github.com/brettwooldridge/SparseBitSet">source</a>
  * @author Bruce K. Haddon
  * @author Arthur van Hoff
  * @author Michael McCloskey

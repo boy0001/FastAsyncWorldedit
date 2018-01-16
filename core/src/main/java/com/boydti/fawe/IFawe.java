@@ -6,6 +6,7 @@ import com.boydti.fawe.object.FaweQueue;
 import com.boydti.fawe.regions.FaweMaskManager;
 import com.boydti.fawe.util.TaskManager;
 import com.boydti.fawe.util.cui.CUI;
+import com.boydti.fawe.util.gui.FormBuilder;
 import com.boydti.fawe.util.image.ImageViewer;
 import com.sk89q.worldedit.world.World;
 import java.io.File;
@@ -57,5 +58,9 @@ public interface IFawe {
 
     public default String getDebugInfo() {
         return "";
+    }
+
+    public default FormBuilder getFormBuilder() {
+        return null;
     }
 }

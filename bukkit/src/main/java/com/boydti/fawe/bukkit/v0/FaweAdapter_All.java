@@ -1,6 +1,7 @@
 package com.boydti.fawe.bukkit.v0;
 
 import com.boydti.fawe.FaweCache;
+import com.boydti.fawe.bukkit.util.BukkitReflectionUtils;
 import com.boydti.fawe.util.ReflectionUtils;
 import com.sk89q.jnbt.ByteArrayTag;
 import com.sk89q.jnbt.ByteTag;
@@ -82,13 +83,13 @@ public class FaweAdapter_All implements BukkitImplAdapter {
     private Map<Class<? extends Tag>, Integer> TagToId = new ConcurrentHashMap<>();
 
     public FaweAdapter_All() throws Throwable {
-        ReflectionUtils.init();
-        classCraftWorld = ReflectionUtils.getCbClass("CraftWorld");
-        classCraftBlock = ReflectionUtils.getCbClass("block.CraftBlock");
-        classCraftEntity = ReflectionUtils.getCbClass("entity.CraftEntity");
-        classBiomeBase = ReflectionUtils.getNmsClass("BiomeBase");
-        classWorld = ReflectionUtils.getNmsClass("World");
-        classTileEntity = ReflectionUtils.getNmsClass("TileEntity");
+        BukkitReflectionUtils.init();
+        classCraftWorld = BukkitReflectionUtils.getCbClass("CraftWorld");
+        classCraftBlock = BukkitReflectionUtils.getCbClass("block.CraftBlock");
+        classCraftEntity = BukkitReflectionUtils.getCbClass("entity.CraftEntity");
+        classBiomeBase = BukkitReflectionUtils.getNmsClass("BiomeBase");
+        classWorld = BukkitReflectionUtils.getNmsClass("World");
+        classTileEntity = BukkitReflectionUtils.getNmsClass("TileEntity");
 
         biomeToBiomeBase = ReflectionUtils.setAccessible(classCraftBlock.getDeclaredMethod("biomeToBiomeBase", Biome.class));
         biomeBaseToBiome = ReflectionUtils.setAccessible(classCraftBlock.getDeclaredMethod("biomeBaseToBiome", classBiomeBase));
@@ -97,7 +98,7 @@ public class FaweAdapter_All implements BukkitImplAdapter {
         getHandleWorld = ReflectionUtils.setAccessible(classCraftWorld.getDeclaredMethod("getHandle"));
         getHandleEntity = ReflectionUtils.setAccessible(classCraftEntity.getDeclaredMethod("getHandle"));
         try {
-            classBlockPosition = ReflectionUtils.getNmsClass("BlockPosition");
+            classBlockPosition = BukkitReflectionUtils.getNmsClass("BlockPosition");
         } catch (Throwable ignore) {
         }
         if (classBlockPosition != null) {
@@ -109,9 +110,9 @@ public class FaweAdapter_All implements BukkitImplAdapter {
             getTileEntity2 = ReflectionUtils.setAccessible(classWorld.getDeclaredMethod("getTileEntity", int.class, int.class, int.class));
         }
 
-        classNBTTagCompound = ReflectionUtils.getNmsClass("NBTTagCompound");
-        classNBTBase = ReflectionUtils.getNmsClass("NBTBase");
-        classNBTTagInt = ReflectionUtils.getNmsClass("NBTTagInt");
+        classNBTTagCompound = BukkitReflectionUtils.getNmsClass("NBTTagCompound");
+        classNBTBase = BukkitReflectionUtils.getNmsClass("NBTBase");
+        classNBTTagInt = BukkitReflectionUtils.getNmsClass("NBTTagInt");
         newNBTTagInt = ReflectionUtils.setAccessible(classNBTTagInt.getConstructor(int.class));
         setNBTTagCompound = ReflectionUtils.setAccessible(classNBTTagCompound.getDeclaredMethod("set", String.class, classNBTBase));
         newNBTTagCompound = ReflectionUtils.setAccessible(classNBTTagCompound.getConstructor());
@@ -139,7 +140,7 @@ public class FaweAdapter_All implements BukkitImplAdapter {
         int noMods = Modifier.STATIC;
         int hasMods = 0;
         for (int i = 0; i < nmsClasses.size(); i++) {
-            Class<?> nmsClass = ReflectionUtils.getNmsClass(nmsClasses.get(i));
+            Class<?> nmsClass = BukkitReflectionUtils.getNmsClass(nmsClasses.get(i));
             Class<? extends Tag> weClass = weClasses.get(i);
             TagToId.put(weClass, ids[i]);
 
@@ -217,15 +218,15 @@ public class FaweAdapter_All implements BukkitImplAdapter {
             }
         }
         try {
-            classEntity = ReflectionUtils.getNmsClass("Entity");
-            classEntityTypes = ReflectionUtils.getNmsClass("EntityTypes");
+            classEntity = BukkitReflectionUtils.getNmsClass("Entity");
+            classEntityTypes = BukkitReflectionUtils.getNmsClass("EntityTypes");
 
             getBukkitEntity = ReflectionUtils.setAccessible(classEntity.getDeclaredMethod("getBukkitEntity"));
             addEntity = ReflectionUtils.setAccessible(classWorld.getDeclaredMethod("addEntity", classEntity, CreatureSpawnEvent.SpawnReason.class));
             setLocation = ReflectionUtils.setAccessible(classEntity.getDeclaredMethod("setLocation", double.class, double.class, double.class, float.class, float.class));
 
             try {
-                classMinecraftKey = ReflectionUtils.getNmsClass("MinecraftKey");
+                classMinecraftKey = BukkitReflectionUtils.getNmsClass("MinecraftKey");
                 newMinecraftKey = classMinecraftKey.getConstructor(String.class);
             } catch (Throwable ignore) {
             }

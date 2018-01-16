@@ -19,6 +19,7 @@
 
 package com.boydti.fawe.nukkit.core;
 
+import cn.nukkit.AdventureSettings;
 import cn.nukkit.Player;
 import cn.nukkit.inventory.PlayerInventory;
 import cn.nukkit.item.Item;
@@ -174,7 +175,8 @@ public class NukkitPlayer extends LocalPlayer {
         }
 
         setPosition(new Vector(x + 0.5, y, z + 0.5));
-        player.getAdventureSettings().setCanFly(true);
+        player.getAdventureSettings().set(AdventureSettings.Type.ALLOW_FLIGHT, true);
+        player.getAdventureSettings().set(AdventureSettings.Type.FLYING, true);
         player.getAdventureSettings().update();
     }
 

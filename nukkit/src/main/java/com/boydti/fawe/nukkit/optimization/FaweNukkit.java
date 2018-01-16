@@ -4,12 +4,14 @@ import cn.nukkit.Nukkit;
 import cn.nukkit.Player;
 import cn.nukkit.event.EventHandler;
 import cn.nukkit.event.Listener;
+import cn.nukkit.event.player.PlayerFormRespondedEvent;
 import cn.nukkit.event.player.PlayerQuitEvent;
 import com.boydti.fawe.Fawe;
 import com.boydti.fawe.IFawe;
 import com.boydti.fawe.config.Settings;
 import com.boydti.fawe.nukkit.core.NukkitTaskManager;
 import com.boydti.fawe.nukkit.core.NukkitWorldEdit;
+import com.boydti.fawe.nukkit.core.gui.NukkitFormBuilder;
 import com.boydti.fawe.nukkit.listener.BrushListener;
 import com.boydti.fawe.nukkit.optimization.queue.NukkitQueue;
 import com.boydti.fawe.object.FaweChunk;
@@ -19,6 +21,7 @@ import com.boydti.fawe.object.FaweQueue;
 import com.boydti.fawe.object.brush.visualization.VisualChunk;
 import com.boydti.fawe.regions.FaweMaskManager;
 import com.boydti.fawe.util.TaskManager;
+import com.boydti.fawe.util.gui.FormBuilder;
 import com.sk89q.worldedit.world.World;
 import java.io.File;
 import java.util.ArrayList;
@@ -34,6 +37,9 @@ public class FaweNukkit implements IFawe, Listener {
         this.plugin = mod;
         FaweChunk.HEIGHT = 256;
         VisualChunk.VISUALIZE_BLOCK = 20 << 4;
+
+
+
         plugin.getServer().getPluginManager().registerEvents(this, plugin);
         try {
             new BrushListener(mod);
@@ -42,6 +48,11 @@ public class FaweNukkit implements IFawe, Listener {
             e.printStackTrace();
             debug("===================================");
         }
+    }
+
+    @Override
+    public FormBuilder getFormBuilder() {
+        return new NukkitFormBuilder();
     }
 
     @Override
@@ -57,6 +68,11 @@ public class FaweNukkit implements IFawe, Listener {
     @Override
     public String getPlatformVersion() {
         return Nukkit.VERSION;
+    }
+
+    @EventHandler
+    public void onFormSubmit(PlayerFormRespondedEvent event) {
+        // TODO
     }
 
 	@EventHandler
@@ -86,6 +102,8 @@ public class FaweNukkit implements IFawe, Listener {
     @Override
     public void setupCommand(String label, final FaweCommand cmd) {
         plugin.getServer().getCommandMap().register(label, new NukkitCommand(label, cmd));
+
+
     }
 
     @Override

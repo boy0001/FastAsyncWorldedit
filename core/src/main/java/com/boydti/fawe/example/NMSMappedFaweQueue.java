@@ -42,7 +42,11 @@ public abstract class NMSMappedFaweQueue<WORLD, CHUNK, CHUNKSECTION, SECTION> ex
             TaskManager.IMP.async(new Runnable() {
                 @Override
                 public void run() {
-                    getRelighter().fixLightingSafe(hasSky());
+                    if (Settings.IMP.LIGHTING.REMOVE_FIRST) {
+                        getRelighter().removeAndRelight(hasSky());
+                    } else {
+                        getRelighter().fixLightingSafe(hasSky());
+                    }
                 }
             });
         }
@@ -109,7 +113,18 @@ public abstract class NMSMappedFaweQueue<WORLD, CHUNK, CHUNKSECTION, SECTION> ex
 
     public abstract void setFullbright(CHUNKSECTION sections);
 
-    public abstract boolean removeLighting(CHUNKSECTION sections, RelightMode mode, boolean hasSky);
+    public boolean removeLighting(CHUNKSECTION sections, RelightMode mode, boolean hasSky) {
+        boolean result = false;
+        for (int i = 0; i < 16; i++) {
+            SECTION section = getCachedSection(sections, i);
+            if (section != null) {
+                result |= removeSectionLighting(section, i, hasSky);
+            }
+        }
+        return result;
+    }
+
+    public abstract boolean removeSectionLighting(SECTION sections, int layer, boolean hasSky);
 
     public boolean isSurrounded(final char[][] sections, final int x, final int y, final int z) {
         return this.isSolid(this.getId(sections, x, y + 1, z))

@@ -4,6 +4,7 @@ import com.boydti.fawe.Fawe;
 import com.boydti.fawe.FaweCache;
 import com.boydti.fawe.bukkit.BukkitPlayer;
 import com.boydti.fawe.bukkit.FaweBukkit;
+import com.boydti.fawe.bukkit.util.BukkitReflectionUtils;
 import com.boydti.fawe.bukkit.v1_12.packet.FaweChunkPacket;
 import com.boydti.fawe.bukkit.v1_12.packet.MCAChunkPacket;
 import com.boydti.fawe.example.CharFaweChunk;
@@ -36,7 +37,6 @@ import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import org.bukkit.Bukkit;
 import org.bukkit.Chunk;
-import org.bukkit.ChunkSnapshot;
 import org.bukkit.Location;
 import org.bukkit.World;
 import org.bukkit.WorldCreator;
@@ -59,7 +59,7 @@ public abstract class BukkitQueue_0<CHUNK, CHUNKSECTIONS, SECTION> extends NMSMa
     private static Method methodGetHandle;
 
     static {
-        Class<?> classCraftChunk = ReflectionUtils.getCbClass("CraftChunk");
+        Class<?> classCraftChunk = BukkitReflectionUtils.getCbClass("CraftChunk");
         try {
             methodGetHandle = ReflectionUtils.setAccessible(classCraftChunk.getDeclaredMethod("getHandle"));
         } catch (NoSuchMethodException e) {
@@ -218,6 +218,11 @@ public abstract class BukkitQueue_0<CHUNK, CHUNKSECTIONS, SECTION> extends NMSMa
 
     @Override
     public boolean removeLighting(CHUNKSECTIONS sections, RelightMode mode, boolean hasSky) {
+        return false;
+    }
+
+    @Override
+    public boolean removeSectionLighting(SECTION sections, int layer, boolean hasSky) {
         return false;
     }
 

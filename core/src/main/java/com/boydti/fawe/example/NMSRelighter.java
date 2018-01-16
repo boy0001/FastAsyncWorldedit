@@ -40,6 +40,7 @@ public class NMSRelighter implements Relighter {
     public final IntegerTrio mutableBlockPos = new IntegerTrio();
 
     private static final int DISPATCH_SIZE = 64;
+    private boolean removeFirst;
 
     public NMSRelighter(NMSMappedFaweQueue queue) {
         this.queue = queue;
@@ -53,6 +54,13 @@ public class NMSRelighter implements Relighter {
     @Override
     public boolean isEmpty() {
         return skyToRelight.isEmpty() && lightQueue.isEmpty() && queuedSkyToRelight.isEmpty() && concurrentLightQueue.isEmpty();
+    }
+
+    @Override
+    public synchronized void removeAndRelight(boolean sky) {
+        removeFirst = true;
+        fixLightingSafe(true);
+        removeFirst = false;
     }
 
     private void set(int x, int y, int z, long[][][] map) {
@@ -392,6 +400,11 @@ public class NMSRelighter implements Relighter {
                 Object section = queue.getCachedSection(sections, layer);
                 if (section == null) continue;
                 chunk.smooth = false;
+
+                if (removeFirst && (y & 15) == 15) {
+                    queue.removeSectionLighting(sections, y >> 4, true);
+                }
+
                 for (int j = 0; j <= maxY; j++) {
                     int x = cacheX[j];
                     int z = cacheZ[j];

@@ -245,8 +245,10 @@ public class BukkitChunk_1_12 extends CharFaweChunk<Chunk, BukkitQueue_1_12> {
                                 if (copy != null) {
                                     copy.storeEntity(entity);
                                 }
-                                removeEntity(entity);
                                 iter.remove();
+                                synchronized (BukkitQueue_0.class) {
+                                    removeEntity(entity);
+                                }
                             }
                         }
                     }
@@ -290,7 +292,9 @@ public class BukkitChunk_1_12 extends CharFaweChunk<Chunk, BukkitQueue_1_12> {
                                     copy.storeEntity(entity);
                                 }
                                 iter.remove();
-                                removeEntity(entity);
+                                synchronized (BukkitQueue_0.class) {
+                                    removeEntity(entity);
+                                }
                             }
                         }
                     }
@@ -340,7 +344,9 @@ public class BukkitChunk_1_12 extends CharFaweChunk<Chunk, BukkitQueue_1_12> {
                                     entity.f(tag);
                                 }
                                 entity.setLocation(x, y, z, yaw, pitch);
-                                nmsWorld.addEntity(entity, CreatureSpawnEvent.SpawnReason.CUSTOM);
+                                synchronized (BukkitQueue_0.class) {
+                                    nmsWorld.addEntity(entity, CreatureSpawnEvent.SpawnReason.CUSTOM);
+                                }
                                 createdEntities.add(entity.getUniqueID());
                             }
                         }
@@ -373,15 +379,16 @@ public class BukkitChunk_1_12 extends CharFaweChunk<Chunk, BukkitQueue_1_12> {
                 }
             }
             if (toRemove != null) {
-                for (Map.Entry<BlockPosition, TileEntity> entry : toRemove.entrySet()) {
-                    BlockPosition bp = entry.getKey();
-                    TileEntity tile = entry.getValue();
-                    tiles.remove(bp);
-                    tile.z();
-                    nmsWorld.s(bp);
-                    tile.invalidateBlockCache();
+                synchronized (BukkitQueue_0.class) {
+                    for (Map.Entry<BlockPosition, TileEntity> entry : toRemove.entrySet()) {
+                        BlockPosition bp = entry.getKey();
+                        TileEntity tile = entry.getValue();
+                        tiles.remove(bp);
+                        tile.z();
+                        nmsWorld.s(bp);
+                        tile.invalidateBlockCache();
+                    }
                 }
-
             }
             // Set blocks
             for (int j = 0; j < sections.length; j++) {
@@ -485,16 +492,18 @@ public class BukkitChunk_1_12 extends CharFaweChunk<Chunk, BukkitQueue_1_12> {
                 int y = (blockHash & 0xFF);
                 int z = (blockHash >> 8 & 0xF) + bz;
                 BlockPosition pos = new BlockPosition(x, y, z); // Set pos
-                TileEntity tileEntity = nmsWorld.getTileEntity(pos);
-                if (tileEntity != null) {
-                    NBTTagCompound tag = (NBTTagCompound) BukkitQueue_1_12.fromNative(nativeTag);
-                    tag.set("x", new NBTTagInt(x));
-                    tag.set("y", new NBTTagInt(y));
-                    tag.set("z", new NBTTagInt(z));
-                    if (BukkitQueue_1_12.methodTileEntityLoad != null) {
-                        BukkitQueue_1_12.methodTileEntityLoad.invoke(tileEntity, tag);  // ReadTagIntoTile
-                    } else {
-                        tileEntity.load(tag);
+                synchronized (BukkitQueue_0.class) {
+                    TileEntity tileEntity = nmsWorld.getTileEntity(pos);
+                    if (tileEntity != null) {
+                        NBTTagCompound tag = (NBTTagCompound) BukkitQueue_1_12.fromNative(nativeTag);
+                        tag.set("x", new NBTTagInt(x));
+                        tag.set("y", new NBTTagInt(y));
+                        tag.set("z", new NBTTagInt(z));
+                        if (BukkitQueue_1_12.methodTileEntityLoad != null) {
+                            BukkitQueue_1_12.methodTileEntityLoad.invoke(tileEntity, tag);  // ReadTagIntoTile
+                        } else {
+                            tileEntity.load(tag);
+                        }
                     }
                 }
             }

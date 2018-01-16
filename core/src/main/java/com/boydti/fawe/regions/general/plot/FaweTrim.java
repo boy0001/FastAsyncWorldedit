@@ -7,8 +7,8 @@ import com.intellectualcrafters.plot.commands.SubCommand;
 import com.intellectualcrafters.plot.config.C;
 import com.intellectualcrafters.plot.object.Location;
 import com.intellectualcrafters.plot.object.PlotPlayer;
+import com.intellectualcrafters.plot.util.WorldUtil;
 import com.plotsquared.general.commands.CommandDeclaration;
-import org.bukkit.Bukkit;
 
 @CommandDeclaration(
         command = "trimchunks",
@@ -32,7 +32,7 @@ public class FaweTrim extends SubCommand {
             plotPlayer.sendMessage("use /plot trimall <world> <boolean-delete-unowned>");
             return false;
         }
-        if (Bukkit.getWorld(strings[0]) == null) {
+        if (!WorldUtil.IMP.isWorld(strings[0])) {
             C.NOT_VALID_PLOT_WORLD.send(plotPlayer, strings[0]);
             return false;
         }

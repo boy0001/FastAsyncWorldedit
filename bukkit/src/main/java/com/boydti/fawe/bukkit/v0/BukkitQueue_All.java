@@ -1,6 +1,7 @@
 package com.boydti.fawe.bukkit.v0;
 
 import com.boydti.fawe.FaweCache;
+import com.boydti.fawe.bukkit.util.BukkitReflectionUtils;
 import com.boydti.fawe.config.Settings;
 import com.boydti.fawe.example.NullRelighter;
 import com.boydti.fawe.example.Relighter;
@@ -101,17 +102,17 @@ public class BukkitQueue_All extends BukkitQueue_0<ChunkSnapshot, ChunkSnapshot,
 
     static {
         try {
-            ReflectionUtils.init();
-            classRegionFileCache = ReflectionUtils.getNmsClass("RegionFileCache");
-            classRegionFile = ReflectionUtils.getNmsClass("RegionFile");
-            classCraftChunk = ReflectionUtils.getCbClass("CraftChunk");
-            classNMSChunk = ReflectionUtils.getNmsClass("Chunk");
-            classCraftWorld = ReflectionUtils.getCbClass("CraftWorld");
-            classNMSWorld = ReflectionUtils.getNmsClass("World");
-            classChunkProviderServer = ReflectionUtils.getNmsClass("ChunkProviderServer");
-            classIChunkProvider = ReflectionUtils.getNmsClass("IChunkProvider");
-            classIChunkLoader = ReflectionUtils.getNmsClass("IChunkLoader");
-            classChunkRegionLoader = ReflectionUtils.getNmsClass("ChunkRegionLoader");
+            BukkitReflectionUtils.init();
+            classRegionFileCache = BukkitReflectionUtils.getNmsClass("RegionFileCache");
+            classRegionFile = BukkitReflectionUtils.getNmsClass("RegionFile");
+            classCraftChunk = BukkitReflectionUtils.getCbClass("CraftChunk");
+            classNMSChunk = BukkitReflectionUtils.getNmsClass("Chunk");
+            classCraftWorld = BukkitReflectionUtils.getCbClass("CraftWorld");
+            classNMSWorld = BukkitReflectionUtils.getNmsClass("World");
+            classChunkProviderServer = BukkitReflectionUtils.getNmsClass("ChunkProviderServer");
+            classIChunkProvider = BukkitReflectionUtils.getNmsClass("IChunkProvider");
+            classIChunkLoader = BukkitReflectionUtils.getNmsClass("IChunkLoader");
+            classChunkRegionLoader = BukkitReflectionUtils.getNmsClass("ChunkRegionLoader");
 
             methodGetHandleChunk = ReflectionUtils.setAccessible(classCraftChunk.getDeclaredMethod("getHandle"));
             methodGetHandleWorld = ReflectionUtils.setAccessible(classCraftWorld.getDeclaredMethod("getHandle"));

@@ -563,19 +563,14 @@ public class SpongeQueue_1_11 extends NMSMappedFaweQueue<World, net.minecraft.wo
     }
 
     @Override
-    public boolean removeLighting(ExtendedBlockStorage[] sections, RelightMode mode, boolean sky) {
-        if (mode == RelightMode.ALL) {
-            for (int i = 0; i < sections.length; i++) {
-                ExtendedBlockStorage section = sections[i];
-                if (section != null) {
-                    section.setBlocklightArray(new NibbleArray());
-                    if (sky) {
-                        section.setSkylightArray(new NibbleArray());
-                    }
-                }
+    public boolean removeSectionLighting(ExtendedBlockStorage section, int layer, boolean sky) {
+        if (section != null) {
+            section.setBlocklightArray(new NibbleArray());
+            if (sky) {
+                section.setSkylightArray(new NibbleArray());
             }
         }
-        return true;
+        return section != null;
     }
 
     @Override

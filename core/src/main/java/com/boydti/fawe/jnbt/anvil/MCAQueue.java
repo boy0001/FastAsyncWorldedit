@@ -688,6 +688,22 @@ public class MCAQueue extends NMSMappedFaweQueue<FaweQueue, FaweChunk, FaweChunk
     }
 
     @Override
+    public boolean removeSectionLighting(FaweChunk sections, int layer, boolean hasSky) {
+        if (sections.getClass() == MCAChunk.class) {
+            ((MCAChunk) sections).removeLight(layer);
+        } else if (parentNMS != null) {
+            int cx = sections.getX();
+            int cz = sections.getZ();
+            parentNMS.ensureChunkLoaded(cx, cz);
+            Object parentSections = parentNMS.getCachedSections(parentNMS.getWorld(), cx, cz);
+            if (parentSections != null) {
+                parentNMS.removeSectionLighting(sections, layer, hasSky);
+            }
+        }
+        return true;
+    }
+
+    @Override
     public boolean removeLighting(FaweChunk sections, RelightMode mode, boolean hasSky) {
         if (mode != RelightMode.NONE) {
             if (sections.getClass() == MCAChunk.class) {

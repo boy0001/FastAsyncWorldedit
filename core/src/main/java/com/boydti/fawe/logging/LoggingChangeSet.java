@@ -6,7 +6,6 @@ import com.boydti.fawe.object.FawePlayer;
 import com.boydti.fawe.object.changeset.AbstractDelegateChangeSet;
 import com.boydti.fawe.object.changeset.FaweChangeSet;
 import java.lang.reflect.Constructor;
-import org.bukkit.entity.Player;
 import org.primesoft.blockshub.IBlocksHubApi;
 import org.primesoft.blockshub.api.IPlayer;
 import org.primesoft.blockshub.api.IWorld;
@@ -15,7 +14,7 @@ public class LoggingChangeSet extends AbstractDelegateChangeSet {
 
     private static boolean initialized = false;
 
-    public static FaweChangeSet wrap(FawePlayer<Player> player, FaweChangeSet parent) {
+    public static FaweChangeSet wrap(FawePlayer player, FaweChangeSet parent) {
         if (!initialized) {
             initialized = true;
             api = (IBlocksHubApi) Fawe.imp().getBlocksHubApi();

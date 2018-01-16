@@ -3,6 +3,7 @@ repositories {
 }
 dependencies {
     compile project(':core')
+    compile 'com.sk89q:worldguard:6.0.0-SNAPSHOT'
     compile('com.destroystokyo.paper:paper-api:1.12-R0.1-SNAPSHOT') {
         exclude group: 'net.md-5'
     }
@@ -30,6 +31,7 @@ dependencies {
     compile 'org.bukkit.craftbukkit:CraftBukkit:1.8.8'
     compile 'com.comphenix.protocol:ProtocolLib-API:4.4.0-SNAPSHOT'
     compile 'com.wasteofplastic:askyblock:3.0.8.2'
+    compile 'org.inventivetalent:mapmanager:1.4.0-SNAPSHOT'
 }
 
 processResources {

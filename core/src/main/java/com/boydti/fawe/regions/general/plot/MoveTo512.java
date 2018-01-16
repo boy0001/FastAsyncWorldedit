@@ -26,6 +26,7 @@ import com.intellectualcrafters.plot.object.RunnableVal2;
 import com.intellectualcrafters.plot.object.RunnableVal3;
 import com.intellectualcrafters.plot.object.SetupObject;
 import com.intellectualcrafters.plot.util.SetupUtils;
+import com.intellectualcrafters.plot.util.WorldUtil;
 import com.plotsquared.general.commands.Command;
 import com.plotsquared.general.commands.CommandDeclaration;
 import java.io.File;
@@ -33,8 +34,6 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Map;
-import org.bukkit.Bukkit;
-import org.bukkit.World;
 
 @CommandDeclaration(
         command = "moveto512",
@@ -160,9 +159,7 @@ public class MoveTo512 extends Command {
         check(area, C.COMMAND_SYNTAX, getUsage());
         checkTrue(area instanceof HybridPlotWorld, C.NOT_VALID_HYBRID_PLOT_WORLD);
 
-        for (World world : Bukkit.getWorlds()) {
-            world.save();
-        }
+        WorldUtil.IMP.saveWorld(area.worldname);
 
         FaweQueue defaultQueue = SetQueue.IMP.getNewQueue(area.worldname, true, false);
         MCAQueue queueFrom = new MCAQueue(area.worldname, defaultQueue.getSaveFolder(), defaultQueue.hasSky());

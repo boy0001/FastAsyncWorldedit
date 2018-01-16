@@ -31,6 +31,7 @@ import com.boydti.fawe.util.MathMan;
 import com.boydti.fawe.util.StringMan;
 import com.boydti.fawe.util.chat.Message;
 import com.boydti.fawe.util.chat.UsageMessage;
+import com.boydti.fawe.util.gui.FormBuilder;
 import com.google.common.base.Joiner;
 import com.sk89q.minecraft.util.commands.Command;
 import com.sk89q.minecraft.util.commands.CommandContext;
@@ -100,6 +101,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
+import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 
@@ -887,6 +889,33 @@ public class UtilityCommands extends MethodCommands {
 
     public static void help(CommandContext args, WorldEdit we, Actor actor) {
         help(args, we, actor, "/", null);
+    }
+
+    @Command(
+            aliases = {"/gui"},
+            desc = "Open the GUI"
+    )
+    @Logging(PLACEMENT)
+    public void gui(FawePlayer fp, LocalSession session, CommandContext args) throws WorldEditException {
+        FormBuilder gui = Fawe.imp().getFormBuilder();
+        if (gui == null) throw new UnsupportedOperationException("Not implemented");
+
+        Dispatcher callable = worldEdit.getPlatformManager().getCommandManager().getDispatcher();
+        CommandLocals locals = args.getLocals();
+
+        // TODO build form
+
+
+        gui.display(fp, new Consumer<List<String>>() {
+            @Override
+            public void accept(List<String> strings) {
+
+            }
+        });
+    }
+
+    private void help(CommandCallable callable) {
+
     }
 
     public static void help(CommandContext args, WorldEdit we, Actor actor, String prefix, CommandCallable callable) {

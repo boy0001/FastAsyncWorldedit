@@ -48,7 +48,8 @@ public class FuzzyRegion extends AbstractRegion {
     public void select(int x, int y, int z) {
         RecursiveVisitor search = new RecursiveVisitor(mask, new RegionFunction() {
             @Override
-            public boolean apply(Vector position) throws WorldEditException {
+            public boolean apply(Vector p) throws WorldEditException {
+                setMinMax(p.getBlockX(), p.getBlockY(), p.getBlockZ());
                 return true;
             }
         }, 256, extent instanceof HasFaweQueue ? (HasFaweQueue) extent : null);
@@ -62,8 +63,7 @@ public class FuzzyRegion extends AbstractRegion {
         return (Iterator) set.iterator();
     }
 
-    public void set(int x, int y, int z) throws RegionOperationException {
-        set.add(x, y, z);
+    private final void setMinMax(int x, int y, int z) {
         if (x > maxX) {
             maxX = x;
         }
@@ -82,6 +82,11 @@ public class FuzzyRegion extends AbstractRegion {
         if (y < minY) {
             minY = y;
         }
+    }
+
+    public final void set(int x, int y, int z) throws RegionOperationException {
+        set.add(x, y, z);
+        setMinMax(x, y, z);
     }
 
     public boolean contains(int x, int y, int z) {

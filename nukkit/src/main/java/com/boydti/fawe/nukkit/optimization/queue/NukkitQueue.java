@@ -194,6 +194,21 @@ public class NukkitQueue extends NMSMappedFaweQueue<Level, BaseFullChunk, BaseFu
     }
 
     @Override
+    public boolean removeSectionLighting(BaseFullChunk section, int layer, boolean hasSky) {
+        int minY = layer << 4;
+        int maxY = minY + 15;
+        for (int y = minY; y < maxY; y++) {
+            for (int z = 0; z < 16; z++) {
+                for (int x = 0; x < 16; x++) {
+                    section.setBlockSkyLight(x, y, z, 0);
+                    section.setBlockLight(x, y, z, 0);
+                }
+            }
+        }
+        return true;
+    }
+
+    @Override
     public boolean removeLighting(BaseFullChunk sections, RelightMode mode, boolean hasSky) {
         for (int y = 0; y < 256; y++) {
             for (int z = 0; z < 16; z++) {

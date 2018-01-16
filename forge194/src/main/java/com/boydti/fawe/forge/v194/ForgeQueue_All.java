@@ -465,19 +465,14 @@ public class ForgeQueue_All extends NMSMappedFaweQueue<World, Chunk, ExtendedBlo
     }
 
     @Override
-    public boolean removeLighting(ExtendedBlockStorage[] sections, RelightMode mode, boolean sky) {
-        if (mode == RelightMode.ALL) {
-            for (int i = 0; i < sections.length; i++) {
-                ExtendedBlockStorage section = sections[i];
-                if (section != null) {
-                    section.setBlocklightArray(new NibbleArray());
-                    if (sky) {
-                        section.setSkylightArray(new NibbleArray());
-                    }
-                }
+    public boolean removeSectionLighting(ExtendedBlockStorage sections, int layer, boolean sky) {
+        if (section != null) {
+            section.setBlocklightArray(new NibbleArray());
+            if (sky) {
+                section.setSkylightArray(new NibbleArray());
             }
         }
-        return true;
+        return section != null;
     }
 
     public void setPalette(ExtendedBlockStorage section, BlockStateContainer palette) throws NoSuchFieldException, IllegalAccessException {

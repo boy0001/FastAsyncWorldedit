@@ -394,9 +394,11 @@ public class Settings extends Config {
                 "The relighting mode to use:",
                 " - 0 = None (Do no relighting)",
                 " - 1 = Optimal (Relight changed light sources and changed blocks)",
-                " - 2 = All (Slowly relight every blocks)"
+                " - 2 = All (Slowly relight every blocks)",
         })
         public int MODE = 1;
+        @Comment({"If existing lighting should be removed before relighting"})
+        public boolean REMOVE_FIRST = false;
     }
 
     public void reload(File file) {
