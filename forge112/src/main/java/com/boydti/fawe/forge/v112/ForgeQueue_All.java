@@ -674,7 +674,7 @@ public class ForgeQueue_All extends NMSMappedFaweQueue<World, Chunk, ExtendedBlo
     }
 
     @Override
-    public boolean removeSectionLighting(ExtendedBlockStorage sections, int layer, boolean sky) {
+    public boolean removeSectionLighting(ExtendedBlockStorage section, int layer, boolean sky) {
         if (section != null) {
             section.setBlockLight(new NibbleArray());
             if (sky) {
