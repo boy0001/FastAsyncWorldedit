@@ -732,9 +732,9 @@ public class BukkitQueue_1_12 extends BukkitQueue_0<net.minecraft.server.v1_12_R
     @Override
     public boolean removeSectionLighting(ChunkSection section, int layer, boolean sky) {
         if (section != null) {
-            section.a(null);
+            Arrays.fill(section.getEmittedLightArray().asBytes(), (byte) 0);
             if (sky) {
-                section.b(null);
+                Arrays.fill(section.getSkyLightArray().asBytes(), (byte) 0);
             }
             return true;
         }

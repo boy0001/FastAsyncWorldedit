@@ -402,7 +402,7 @@ public class NMSRelighter implements Relighter {
                 chunk.smooth = false;
 
                 if (removeFirst && (y & 15) == 15) {
-                    queue.removeSectionLighting(sections, y >> 4, true);
+                    queue.removeSectionLighting(section, y >> 4, true);
                 }
 
                 for (int j = 0; j <= maxY; j++) {
