@@ -94,10 +94,10 @@ subprojects {
     }
 
     repositories {
+        maven {url "https://mvnrepository.com/artifact/"}
         mavenCentral()
         maven {url "http://repo.dmulloy2.net/content/groups/public/"}
         maven {url "https://repo.destroystokyo.com/repository/maven-public//"}
-        maven { url = "https://mvnrepository.com/artifact/"}
         maven {url "http://ci.emc.gs/nexus/content/groups/aikar/" }
         maven {url "http://ci.mengcraft.com:8080/plugin/repository/everything"}
         maven {url "http://ci.athion.net/job/PlotSquared/ws/mvn/"}

@@ -81,6 +81,14 @@ public class BStats implements Closeable {
         this.online = online;
 
         File configFile = new File(getJarFile().getParentFile(), "bStats" + File.separator + "config.yml");
+        if (!configFile.exists()) {
+            configFile.getParentFile().mkdirs();
+            try {
+                configFile.createNewFile();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
 
         YamlConfiguration config = YamlConfiguration.loadConfiguration(configFile);
 

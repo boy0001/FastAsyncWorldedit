@@ -45,6 +45,7 @@ dependencies {
     compile 'org.spongepowered:spongeapi:7.1.0-SNAPSHOT'
     compile name: 'worldedit-sponge-6.1.9-SNAPSHOT-dist'
     compile name: 'worldedit-core-6.1.9-SNAPSHOT-dist'
+    compile 'org.yaml:snakeyaml:1.18'
 }
 
 minecraft {
@@ -67,12 +68,12 @@ shadowJar {
     relocate 'org.yaml.snakeyaml', 'com.boydti.fawe.yaml'
     dependencies {
         include(dependency(':core'))
+        include(dependency('org.yaml:snakeyaml:1.18'))
         include(dependency('com.github.luben:zstd-jni:1.1.1'))
 //        include(dependency('org.javassist:javassist:3.22.0-CR1'))
         include(dependency('co.aikar:fastutil-lite:1.0'))
+        include(dependency(name: 'worldedit-sponge-6.1.9-SNAPSHOT-dist'))
         include(dependency(name: 'worldedit-core-6.1.9-SNAPSHOT-dist'))
-        include(dependency('com.sk89q.worldedit:worldedit-sponge:6.1.9-SNAPSHOT'))
-        include(dependency('org.yaml:snakeyaml:1.16'))
     }
     archiveName = "${parent.name}-${project.name}-${parent.version}.jar"
     destinationDir = file '../target'
