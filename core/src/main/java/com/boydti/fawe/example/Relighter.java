@@ -12,6 +12,8 @@ public interface Relighter {
         fixLightingSafe(sky);
     }
 
+    void clear();
+
     void removeLighting();
 
     void fixBlockLighting();
