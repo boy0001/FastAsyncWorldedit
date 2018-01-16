@@ -217,11 +217,6 @@ public abstract class BukkitQueue_0<CHUNK, CHUNKSECTIONS, SECTION> extends NMSMa
     public void relightSky(int x, int y, int z) {}
 
     @Override
-    public boolean removeLighting(CHUNKSECTIONS sections, RelightMode mode, boolean hasSky) {
-        return false;
-    }
-
-    @Override
     public boolean removeSectionLighting(SECTION sections, int layer, boolean hasSky) {
         return false;
     }
