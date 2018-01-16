@@ -59,7 +59,7 @@ public class NMSRelighter implements Relighter {
     @Override
     public synchronized void removeAndRelight(boolean sky) {
         removeFirst = true;
-        fixLightingSafe(true);
+        fixLightingSafe(sky);
         removeFirst = false;
     }
 
