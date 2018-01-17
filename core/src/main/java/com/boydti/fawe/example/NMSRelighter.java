@@ -6,7 +6,7 @@ import com.boydti.fawe.object.FaweChunk;
 import com.boydti.fawe.object.FaweQueue;
 import com.boydti.fawe.object.IntegerTrio;
 import com.boydti.fawe.object.RunnableVal;
-import com.boydti.fawe.object.collection.LocalBlockVector2DSet;
+import com.boydti.fawe.object.collection.BlockVectorSet;
 import com.boydti.fawe.util.MathMan;
 import com.boydti.fawe.util.TaskManager;
 import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
@@ -390,18 +390,18 @@ public class NMSRelighter implements Relighter {
     private void fixSkyLighting(List<RelightSkyEntry> sorted) {
         RelightSkyEntry[] chunks = sorted.toArray(new RelightSkyEntry[sorted.size()]);
         boolean remove = this.removeFirst;
-        LocalBlockVector2DSet chunkSet = null;
+        BlockVectorSet chunkSet = null;
         if (remove) {
-            chunkSet = new LocalBlockVector2DSet();
-            LocalBlockVector2DSet tmpSet = new LocalBlockVector2DSet();
+            chunkSet = new BlockVectorSet();
+            BlockVectorSet tmpSet = new BlockVectorSet();
             for (RelightSkyEntry chunk : chunks) {
-                chunkSet.add(chunk.x, chunk.z);
+                tmpSet.add(chunk.x, 0, chunk.z);
             }
             for (RelightSkyEntry chunk : chunks) {
                 int x = chunk.x;
                 int z = chunk.z;
-                if (tmpSet.contains(x + 1, z) && tmpSet.contains(x - 1, z) && tmpSet.contains(x, z + 1) && tmpSet.contains(x, z - 1)) {
-                    chunkSet.add(x, z);
+                if (tmpSet.contains(x + 1, 0, z) && tmpSet.contains(x - 1, 0, z) && tmpSet.contains(x, 0, z + 1) && tmpSet.contains(x, 0, z - 1)) {
+                    chunkSet.add(x, 0, z);
                 }
             }
         }
@@ -427,7 +427,7 @@ public class NMSRelighter implements Relighter {
                 if (section == null) continue;
                 chunk.smooth = false;
 
-                if (remove && (y & 15) == 15 && chunkSet.contains(chunk.x, chunk.z)) {
+                if (remove && (y & 15) == 15 && chunkSet.contains(chunk.x, 0, chunk.z)) {
                     queue.removeSectionLighting(section, y >> 4, true);
                 }
 

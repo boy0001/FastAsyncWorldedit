@@ -30,7 +30,7 @@ public class FastWorldEditExtent extends AbstractDelegateExtent implements HasFa
     private final int maxY;
 
     public FastWorldEditExtent(final World world, FaweQueue queue) {
-        super(world);
+        super(queue);
         this.queue = queue;
         this.maxY = world.getMaxY();
     }

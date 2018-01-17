@@ -1,5 +1,6 @@
 package com.boydti.fawe.bukkit.wrapper.state;
 
+import com.boydti.fawe.bukkit.chat.FancyMessage;
 import com.boydti.fawe.bukkit.wrapper.AsyncBlock;
 import com.boydti.fawe.bukkit.wrapper.AsyncBlockState;
 import com.boydti.fawe.util.ReflectionUtils;
@@ -20,16 +21,26 @@ public class AsyncSign extends AsyncBlockState implements Sign {
         String[] data = new String[4];
         if (nbt != null) {
             for (int i = 1; i <= 4; i++) {
-                data[i - 1] = nbt.getString("Text" + i);
+                data[i - 1] = fromJson(nbt.getString("Text" + i));
             }
         }
         return data;
     }
 
+    private String fromJson(String jsonInput) {
+        if (jsonInput == null) return "";
+        return FancyMessage.deserialize(jsonInput).toOldMessageFormat();
+    }
+
+    private String toJson(String oldInput) {
+        if (oldInput == null || oldInput.isEmpty()) return "";
+        return new FancyMessage("").color(oldInput).toJSONString();
+    }
+
     @Override
     public String getLine(int index) throws IndexOutOfBoundsException {
         CompoundTag nbt = getNbtData();
-        return nbt == null ? null : nbt.getString("Text" + (index + 1));
+        return nbt == null ? null : fromJson(nbt.getString("Text" + (index + 1)));
     }
 
     @Override
@@ -37,7 +48,7 @@ public class AsyncSign extends AsyncBlockState implements Sign {
         CompoundTag nbt = getNbtData();
         if (nbt != null) {
             Map<String, Tag> map = ReflectionUtils.getMap(nbt.getValue());
-            map.put("Text" + (index + 1), new StringTag(line));
+            map.put("Text" + (index + 1), new StringTag(toJson(line)));
         }
     }
 }
