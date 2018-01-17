@@ -1,7 +1,6 @@
 package com.boydti.fawe.example;
 
 import com.boydti.fawe.FaweCache;
-import com.boydti.fawe.config.Settings;
 import com.boydti.fawe.object.FaweChunk;
 import com.boydti.fawe.util.MainUtil;
 import com.boydti.fawe.util.TaskManager;
@@ -42,7 +41,7 @@ public abstract class NMSMappedFaweQueue<WORLD, CHUNK, CHUNKSECTION, SECTION> ex
             TaskManager.IMP.async(new Runnable() {
                 @Override
                 public void run() {
-                    if (Settings.IMP.LIGHTING.REMOVE_FIRST) {
+                    if (getSettings().IMP.LIGHTING.REMOVE_FIRST) {
                         getRelighter().removeAndRelight(hasSky());
                     } else {
                         getRelighter().fixLightingSafe(hasSky());
@@ -52,7 +51,7 @@ public abstract class NMSMappedFaweQueue<WORLD, CHUNK, CHUNKSECTION, SECTION> ex
         }
     }
 
-    private final Relighter relighter = Settings.IMP.LIGHTING.MODE > 0 ? new NMSRelighter(this) : NullRelighter.INSTANCE;
+    private final Relighter relighter = getSettings().IMP.LIGHTING.MODE > 0 ? new NMSRelighter(this) : NullRelighter.INSTANCE;
 
     @Override
     public Relighter getRelighter() {
@@ -62,14 +61,14 @@ public abstract class NMSMappedFaweQueue<WORLD, CHUNK, CHUNKSECTION, SECTION> ex
     @Override
     public void end(FaweChunk chunk) {
         super.end(chunk);
-        if (Settings.IMP.LIGHTING.MODE == 0) {
+        if (getSettings().IMP.LIGHTING.MODE == 0) {
             sendChunk(chunk);
             return;
         }
-        if (!Settings.IMP.LIGHTING.DELAY_PACKET_SENDING) {
+        if (!getSettings().IMP.LIGHTING.DELAY_PACKET_SENDING) {
             sendChunk(chunk);
         }
-        if (Settings.IMP.LIGHTING.MODE == 2) {
+        if (getSettings().IMP.LIGHTING.MODE == 2) {
             getRelighter().addChunk(chunk.getX(), chunk.getZ(), null, chunk.getBitMask());
             return;
         }
@@ -95,7 +94,7 @@ public abstract class NMSMappedFaweQueue<WORLD, CHUNK, CHUNKSECTION, SECTION> ex
         }
         if (relight) {
             getRelighter().addChunk(chunk.getX(), chunk.getZ(), fix, chunk.getBitMask());
-        } else if (Settings.IMP.LIGHTING.DELAY_PACKET_SENDING) {
+        } else if (getSettings().IMP.LIGHTING.DELAY_PACKET_SENDING) {
             sendChunk(chunk);
         }
     }

@@ -72,13 +72,13 @@ public abstract class MappedFaweQueue<WORLD, CHUNK, CHUNKSECTIONS, SECTION> impl
 
     public MappedFaweQueue(final String world) {
         this.world = world;
-        map = Settings.IMP.PREVENT_CRASHES ? new WeakFaweQueueMap(this) : new DefaultFaweQueueMap(this);
+        map = getSettings().PREVENT_CRASHES ? new WeakFaweQueueMap(this) : new DefaultFaweQueueMap(this);
     }
 
     public MappedFaweQueue(final String world, IFaweQueueMap map) {
         this.world = world;
         if (map == null) {
-            map = Settings.IMP.PREVENT_CRASHES ? new WeakFaweQueueMap(this) : new DefaultFaweQueueMap(this);
+            map = getSettings().PREVENT_CRASHES ? new WeakFaweQueueMap(this) : new DefaultFaweQueueMap(this);
         }
         this.map = map;
     }
@@ -87,7 +87,7 @@ public abstract class MappedFaweQueue<WORLD, CHUNK, CHUNKSECTIONS, SECTION> impl
         this.weWorld = world;
         if (world != null) this.world = Fawe.imp().getWorldName(world);
         if (map == null) {
-            map = Settings.IMP.PREVENT_CRASHES ? new WeakFaweQueueMap(this) : new DefaultFaweQueueMap(this);
+            map = getSettings().PREVENT_CRASHES ? new WeakFaweQueueMap(this) : new DefaultFaweQueueMap(this);
         }
         this.map = map;
     }
@@ -412,11 +412,11 @@ public abstract class MappedFaweQueue<WORLD, CHUNK, CHUNKSECTIONS, SECTION> impl
         boolean sync = Thread.currentThread() == Fawe.get().getMainThread();
         if (sync) {
             return loadChunk(getWorld(), cx, cz, true);
-        } else if (Settings.IMP.HISTORY.CHUNK_WAIT_MS > 0) {
+        } else if (getSettings().HISTORY.CHUNK_WAIT_MS > 0) {
             cachedLoadChunk = null;
             loadChunk.value.x = cx;
             loadChunk.value.z = cz;
-            TaskManager.IMP.syncWhenFree(loadChunk, Settings.IMP.HISTORY.CHUNK_WAIT_MS);
+            TaskManager.IMP.syncWhenFree(loadChunk, getSettings().HISTORY.CHUNK_WAIT_MS);
             return cachedLoadChunk;
         } else {
             return null;
