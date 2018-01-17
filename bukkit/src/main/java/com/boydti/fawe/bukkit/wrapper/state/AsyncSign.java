@@ -28,7 +28,7 @@ public class AsyncSign extends AsyncBlockState implements Sign {
     }
 
     private String fromJson(String jsonInput) {
-        if (jsonInput == null) return "";
+        if (jsonInput == null || jsonInput.isEmpty()) return "";
         return FancyMessage.deserialize(jsonInput).toOldMessageFormat();
     }
 
