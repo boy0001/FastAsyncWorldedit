@@ -8,6 +8,7 @@ import com.boydti.fawe.regions.general.RegionFilter;
 import com.intellectualcrafters.plot.PS;
 import com.intellectualcrafters.plot.commands.MainCommand;
 import com.intellectualcrafters.plot.config.Settings;
+import com.intellectualcrafters.plot.flag.Flags;
 import com.intellectualcrafters.plot.generator.HybridPlotManager;
 import com.intellectualcrafters.plot.object.Plot;
 import com.intellectualcrafters.plot.object.PlotArea;
@@ -117,6 +118,9 @@ public class PlotSquaredFeature extends FaweMaskManager {
         final BlockVector pos1 = new BlockVector(region.minX, min, region.minZ);
         final BlockVector pos2 = new BlockVector(region.maxX, max, region.maxZ);
         final Plot finalPlot = plot;
+        if (Settings.Done.RESTRICT_BUILDING && Flags.DONE.isSet(finalPlot)) {
+            return null;
+        }
         return new FaweMask(pos1, pos2) {
             @Override
             public String getName() {
@@ -130,6 +134,9 @@ public class PlotSquaredFeature extends FaweMaskManager {
 
             @Override
             public boolean isValid(FawePlayer player, MaskType type) {
+                if (Settings.Done.RESTRICT_BUILDING && Flags.DONE.isSet(finalPlot)) {
+                    return false;
+                }
                 return isAllowed(player, finalPlot, type);
             }
 
