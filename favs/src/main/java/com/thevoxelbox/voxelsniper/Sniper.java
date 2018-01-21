@@ -363,6 +363,15 @@ public class Sniper {
                             }
                         });
                         break;
+                    case "WarpBrush":
+                        TaskManager.IMP.sync(new RunnableVal<Object>() {
+                            @Override
+                            public void run(Object value) {
+                                Block bukkitTargetBlock = bukkitWorld.getBlockAt(targetBlock.getLocation());
+                                brush.perform(snipeAction, snipeData, bukkitTargetBlock, lastBlock);
+                            }
+                        });
+                        break;
                     default:
                         if (sniperTool.getCurrentBrush() instanceof PerformBrush) {
                             PerformBrush performerBrush = (PerformBrush) sniperTool.getCurrentBrush();
