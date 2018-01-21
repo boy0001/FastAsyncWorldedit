@@ -4,7 +4,6 @@ import com.boydti.fawe.object.RunnableVal;
 import com.boydti.fawe.util.TaskManager;
 import com.thevoxelbox.voxelsniper.Message;
 import com.thevoxelbox.voxelsniper.SnipeData;
-import com.thevoxelbox.voxelsniper.brush.perform.PerformBrush;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
@@ -36,8 +35,13 @@ public class WarpBrush extends Brush
         Location playerLocation = player.getLocation();
         location.setPitch(playerLocation.getPitch());
         location.setYaw(playerLocation.getYaw());
-
-        player.teleport(location);
+        location.setWorld(Bukkit.getWorld(location.getWorld().getName()));
+        TaskManager.IMP.sync(new RunnableVal<Object>() {
+            @Override
+            public void run(Object value) {
+                player.teleport(location);
+            }
+        });
     }
 
     @Override
