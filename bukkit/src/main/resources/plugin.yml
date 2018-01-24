@@ -18,6 +18,9 @@ permissions:
     default: true
   fawe.bypass:
     default: false
+    children:
+      fawe.bypass.regions: true
+      fawe.limit.*: true
   fawe.tips:
     default: false
   fawe.admin:

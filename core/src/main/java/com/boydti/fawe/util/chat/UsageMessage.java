@@ -69,7 +69,7 @@ public class UsageMessage extends Message {
         }
     }
 
-    public String separateArg(String arg) {
+    protected String separateArg(String arg) {
         return " " + arg;
     }
 

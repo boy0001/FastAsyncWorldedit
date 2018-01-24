@@ -6,12 +6,19 @@ import cn.nukkit.event.EventHandler;
 import cn.nukkit.event.Listener;
 import cn.nukkit.event.player.PlayerFormRespondedEvent;
 import cn.nukkit.event.player.PlayerQuitEvent;
+import cn.nukkit.form.element.ElementButton;
+import cn.nukkit.form.response.FormResponse;
+import cn.nukkit.form.response.FormResponseCustom;
+import cn.nukkit.form.response.FormResponseData;
+import cn.nukkit.form.response.FormResponseSimple;
+import cn.nukkit.form.window.FormWindow;
 import com.boydti.fawe.Fawe;
 import com.boydti.fawe.IFawe;
 import com.boydti.fawe.config.Settings;
 import com.boydti.fawe.nukkit.core.NukkitTaskManager;
 import com.boydti.fawe.nukkit.core.NukkitWorldEdit;
 import com.boydti.fawe.nukkit.core.gui.NukkitFormBuilder;
+import com.boydti.fawe.nukkit.core.gui.ResponseFormWindow;
 import com.boydti.fawe.nukkit.listener.BrushListener;
 import com.boydti.fawe.nukkit.optimization.queue.NukkitQueue;
 import com.boydti.fawe.object.FaweChunk;
@@ -26,6 +33,9 @@ import com.sk89q.worldedit.world.World;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.UUID;
 import java.util.logging.Level;
 
@@ -72,6 +82,40 @@ public class FaweNukkit implements IFawe, Listener {
 
     @EventHandler
     public void onFormSubmit(PlayerFormRespondedEvent event) {
+        FormWindow window = event.getWindow();
+        if (window instanceof ResponseFormWindow) {
+            ResponseFormWindow responseWindow = (ResponseFormWindow) window;
+            FormResponse response = event.getResponse();
+            if (response instanceof FormResponseSimple) {
+                FormResponseSimple simple = (FormResponseSimple) response;
+                ElementButton button = simple.getClickedButton();
+                int index = simple.getClickedButtonId();
+
+                System.out.println("Simple: " + index);
+
+                responseWindow.respond(Collections.singletonMap(index, "true"));
+
+            } else if (response instanceof FormResponseCustom) {
+                FormResponseCustom custom = (FormResponseCustom) response;
+                HashMap<Integer, Object> responses = custom.getResponses();
+
+                HashMap<Integer, Object> parsedResponses = new HashMap<>();
+                for (Map.Entry<Integer, Object> responseEntry : responses.entrySet()) {
+                    int index = responseEntry.getKey();
+                    Object value = responseEntry.getValue();
+                    if (value instanceof FormResponseData) {
+                        value = ((FormResponseData) value).getElementContent();
+                    } else if (value instanceof Float) {
+                        value = (double) (float) value;
+                    }
+                    parsedResponses.put(index, value);
+                }
+
+                responseWindow.respond(parsedResponses);
+
+                System.out.println("Custom: " + parsedResponses);
+            }
+        }
         // TODO
     }
 

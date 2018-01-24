@@ -191,7 +191,7 @@ public abstract class FawePlayer<T> extends Metadatable {
         if (allowed.length == 0) {
             throw new FaweException(BBC.WORLDEDIT_CANCEL_REASON_NO_REGION);
         } else if (!WEManager.IMP.regionContains(wrappedSelection, allowedSet)) {
-            throw new FaweException(BBC.WORLDEDIT_CANCEL_REASON_MAX_FAILS);
+            throw new FaweException(BBC.WORLDEDIT_CANCEL_REASON_OUTSIDE_REGION);
         }
     }
 

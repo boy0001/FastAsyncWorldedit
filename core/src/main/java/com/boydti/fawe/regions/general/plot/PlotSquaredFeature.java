@@ -121,6 +121,7 @@ public class PlotSquaredFeature extends FaweMaskManager {
         if (Settings.Done.RESTRICT_BUILDING && Flags.DONE.isSet(finalPlot)) {
             return null;
         }
+
         return new FaweMask(pos1, pos2) {
             @Override
             public String getName() {

@@ -25,59 +25,19 @@ import com.boydti.fawe.config.BBC;
 import com.boydti.fawe.config.Settings;
 import com.boydti.fawe.object.FaweLimit;
 import com.boydti.fawe.object.FawePlayer;
-import com.boydti.fawe.object.brush.BlendBall;
-import com.boydti.fawe.object.brush.BlobBrush;
-import com.boydti.fawe.object.brush.BrushSettings;
-import com.boydti.fawe.object.brush.CatenaryBrush;
-import com.boydti.fawe.object.brush.CircleBrush;
-import com.boydti.fawe.object.brush.CommandBrush;
-import com.boydti.fawe.object.brush.CopyPastaBrush;
-import com.boydti.fawe.object.brush.ErodeBrush;
-import com.boydti.fawe.object.brush.FlattenBrush;
-import com.boydti.fawe.object.brush.HeightBrush;
-import com.boydti.fawe.object.brush.LayerBrush;
-import com.boydti.fawe.object.brush.LineBrush;
-import com.boydti.fawe.object.brush.PopulateSchem;
-import com.boydti.fawe.object.brush.RaiseBrush;
-import com.boydti.fawe.object.brush.RecurseBrush;
-import com.boydti.fawe.object.brush.ScatterBrush;
-import com.boydti.fawe.object.brush.ScatterCommand;
-import com.boydti.fawe.object.brush.ScatterOverlayBrush;
-import com.boydti.fawe.object.brush.ShatterBrush;
-import com.boydti.fawe.object.brush.SplatterBrush;
-import com.boydti.fawe.object.brush.SplineBrush;
-import com.boydti.fawe.object.brush.StencilBrush;
-import com.boydti.fawe.object.brush.SurfaceSphereBrush;
-import com.boydti.fawe.object.brush.SurfaceSpline;
+import com.boydti.fawe.object.brush.*;
 import com.boydti.fawe.object.brush.heightmap.ScalableHeightMap;
 import com.boydti.fawe.object.brush.sweep.SweepBrush;
 import com.boydti.fawe.object.clipboard.MultiClipboardHolder;
 import com.boydti.fawe.object.mask.IdMask;
 import com.boydti.fawe.util.ColorUtil;
 import com.boydti.fawe.util.MathMan;
-import com.sk89q.minecraft.util.commands.Command;
-import com.sk89q.minecraft.util.commands.CommandContext;
-import com.sk89q.minecraft.util.commands.CommandLocals;
-import com.sk89q.minecraft.util.commands.CommandPermissions;
-import com.sk89q.worldedit.EditSession;
-import com.sk89q.worldedit.EmptyClipboardException;
-import com.sk89q.worldedit.LocalConfiguration;
-import com.sk89q.worldedit.LocalSession;
-import com.sk89q.worldedit.Vector;
-import com.sk89q.worldedit.WorldEdit;
-import com.sk89q.worldedit.WorldEditException;
+import com.sk89q.minecraft.util.commands.*;
+import com.sk89q.worldedit.*;
 import com.sk89q.worldedit.blocks.BaseBlock;
 import com.sk89q.worldedit.blocks.BlockID;
 import com.sk89q.worldedit.command.tool.InvalidToolBindException;
-import com.sk89q.worldedit.command.tool.brush.Brush;
-import com.sk89q.worldedit.command.tool.brush.ButcherBrush;
-import com.sk89q.worldedit.command.tool.brush.ClipboardBrush;
-import com.sk89q.worldedit.command.tool.brush.CylinderBrush;
-import com.sk89q.worldedit.command.tool.brush.GravityBrush;
-import com.sk89q.worldedit.command.tool.brush.HollowCylinderBrush;
-import com.sk89q.worldedit.command.tool.brush.HollowSphereBrush;
-import com.sk89q.worldedit.command.tool.brush.SmoothBrush;
-import com.sk89q.worldedit.command.tool.brush.SphereBrush;
+import com.sk89q.worldedit.command.tool.brush.*;
 import com.sk89q.worldedit.command.util.CreatureButcher;
 import com.sk89q.worldedit.entity.Player;
 import com.sk89q.worldedit.extension.input.ParserContext;
@@ -93,11 +53,7 @@ import com.sk89q.worldedit.util.command.binding.Range;
 import com.sk89q.worldedit.util.command.binding.Switch;
 import com.sk89q.worldedit.util.command.parametric.Optional;
 import java.awt.Color;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.io.InputStream;
+import java.io.*;
 import java.net.URL;
 import java.nio.channels.Channels;
 import java.nio.channels.ReadableByteChannel;
@@ -337,7 +293,7 @@ public class BrushCommands extends MethodCommands {
             max = 2
     )
     @CommandPermissions("worldedit.brush.sphere")
-    public BrushSettings sphereBrush(Player player, EditSession editSession, LocalSession session, Pattern fill, @Optional("2") double radius, @Switch('h') boolean hollow, CommandContext context) throws WorldEditException {
+    public BrushSettings sphereBrush(Player player, EditSession editSession, LocalSession session, Pattern fill, @Optional("2") @Range(min=0) double radius, @Switch('h') boolean hollow, CommandContext context) throws WorldEditException {
         worldEdit.checkMaxBrushRadius(radius);
 
         Brush brush;
@@ -393,12 +349,12 @@ public class BrushCommands extends MethodCommands {
             max = -1
     )
     @CommandPermissions("worldedit.brush.stencil")
-    public BrushSettings stencilBrush(Player player, EditSession editSession, LocalSession session, Pattern fill, @Optional("5") double radius, @Optional("") final String filename, @Optional("0") final int rotation, @Optional("1") final double yscale, @Switch('w') boolean onlyWhite, @Switch('r') boolean randomRotate, CommandContext context) throws WorldEditException {
+    public BrushSettings stencilBrush(Player player, EditSession editSession, LocalSession session, Pattern fill, @Optional("5") double radius, @Optional("") final String image, @Optional("0") @Step(90) @Range(min=0, max=360) final int rotation, @Optional("1") final double yscale, @Switch('w') boolean onlyWhite, @Switch('r') boolean randomRotate, CommandContext context) throws WorldEditException {
         worldEdit.checkMaxBrushRadius(radius);
-        InputStream stream = getHeightmapStream(filename);
+        InputStream stream = getHeightmapStream(image);
         HeightBrush brush;
         try {
-            brush = new StencilBrush(stream, rotation, yscale, onlyWhite, filename.equalsIgnoreCase("#clipboard") ? session.getClipboard().getClipboard() : null);
+            brush = new StencilBrush(stream, rotation, yscale, onlyWhite, image.equalsIgnoreCase("#clipboard") ? session.getClipboard().getClipboard() : null);
         } catch (EmptyClipboardException ignore) {
             brush = new StencilBrush(stream, rotation, yscale, onlyWhite, null);
         }
@@ -705,8 +661,8 @@ public class BrushCommands extends MethodCommands {
             max = 4
     )
     @CommandPermissions("worldedit.brush.height")
-    public BrushSettings heightBrush(Player player, LocalSession session, @Optional("5") double radius, @Optional("") final String filename, @Optional("0") final int rotation, @Optional("1") final double yscale, @Switch('r') boolean randomRotate, @Switch('l') boolean layers, @Switch('s') boolean dontSmooth, CommandContext context) throws WorldEditException {
-        return terrainBrush(player, session, radius, filename, rotation, yscale, false, randomRotate, layers, !dontSmooth, ScalableHeightMap.Shape.CONE, context);
+    public BrushSettings heightBrush(Player player, LocalSession session, @Optional("5") double radius, @Optional("") final String image, @Optional("0") @Step(90) @Range(min=0, max=360) final int rotation, @Optional("1") final double yscale, @Switch('r') boolean randomRotate, @Switch('l') boolean layers, @Switch('s') boolean dontSmooth, CommandContext context) throws WorldEditException {
+        return terrainBrush(player, session, radius, image, rotation, yscale, false, randomRotate, layers, !dontSmooth, ScalableHeightMap.Shape.CONE, context);
     }
 
     @Command(
@@ -723,8 +679,8 @@ public class BrushCommands extends MethodCommands {
             max = 4
     )
     @CommandPermissions("worldedit.brush.height")
-    public BrushSettings cliffBrush(Player player, LocalSession session, @Optional("5") double radius, @Optional("") final String filename, @Optional("0") final int rotation, @Optional("1") final double yscale, @Switch('r') boolean randomRotate, @Switch('l') boolean layers, @Switch('s') boolean dontSmooth, CommandContext context) throws WorldEditException {
-        return terrainBrush(player, session, radius, filename, rotation, yscale, true, randomRotate, layers, !dontSmooth, ScalableHeightMap.Shape.CYLINDER, context);
+    public BrushSettings cliffBrush(Player player, LocalSession session, @Optional("5") double radius, @Optional("") final String image, @Optional("0") @Step(90) @Range(min=0, max=360) final int rotation, @Optional("1") final double yscale, @Switch('r') boolean randomRotate, @Switch('l') boolean layers, @Switch('s') boolean dontSmooth, CommandContext context) throws WorldEditException {
+        return terrainBrush(player, session, radius, image, rotation, yscale, true, randomRotate, layers, !dontSmooth, ScalableHeightMap.Shape.CYLINDER, context);
     }
 
     @Command(
@@ -740,8 +696,8 @@ public class BrushCommands extends MethodCommands {
             max = 4
     )
     @CommandPermissions("worldedit.brush.height")
-    public BrushSettings flattenBrush(Player player, LocalSession session, @Optional("5") double radius, @Optional("") final String filename, @Optional("0") final int rotation, @Optional("1") final double yscale, @Switch('r') boolean randomRotate, @Switch('l') boolean layers, @Switch('s') boolean dontSmooth, CommandContext context) throws WorldEditException {
-        return terrainBrush(player, session, radius, filename, rotation, yscale, true, randomRotate, layers, !dontSmooth, ScalableHeightMap.Shape.CONE, context);
+    public BrushSettings flattenBrush(Player player, LocalSession session, @Optional("5") double radius, @Optional("") final String image, @Optional("0") @Step(90) @Range(min=0, max=360) final int rotation, @Optional("1") final double yscale, @Switch('r') boolean randomRotate, @Switch('l') boolean layers, @Switch('s') boolean dontSmooth, CommandContext context) throws WorldEditException {
+        return terrainBrush(player, session, radius, image, rotation, yscale, true, randomRotate, layers, !dontSmooth, ScalableHeightMap.Shape.CONE, context);
     }
 
     private InputStream getHeightmapStream(String filename) {
@@ -775,19 +731,19 @@ public class BrushCommands extends MethodCommands {
         return null;
     }
 
-    private BrushSettings terrainBrush(Player player, LocalSession session, double radius, String filename, int rotation, double yscale, boolean flat, boolean randomRotate, boolean layers, boolean smooth, ScalableHeightMap.Shape shape, CommandContext context) throws WorldEditException {
+    private BrushSettings terrainBrush(Player player, LocalSession session, double radius, String image, int rotation, double yscale, boolean flat, boolean randomRotate, boolean layers, boolean smooth, ScalableHeightMap.Shape shape, CommandContext context) throws WorldEditException {
         worldEdit.checkMaxBrushRadius(radius);
-        InputStream stream = getHeightmapStream(filename);
+        InputStream stream = getHeightmapStream(image);
         HeightBrush brush;
         if (flat) {
             try {
-                brush = new FlattenBrush(stream, rotation, yscale, layers, smooth, filename.equalsIgnoreCase("#clipboard") ? session.getClipboard().getClipboard() : null, shape);
+                brush = new FlattenBrush(stream, rotation, yscale, layers, smooth, image.equalsIgnoreCase("#clipboard") ? session.getClipboard().getClipboard() : null, shape);
             } catch (EmptyClipboardException ignore) {
                 brush = new FlattenBrush(stream, rotation, yscale, layers, smooth, null, shape);
             }
         } else {
             try {
-                brush = new HeightBrush(stream, rotation, yscale, layers, smooth, filename.equalsIgnoreCase("#clipboard") ? session.getClipboard().getClipboard() : null);
+                brush = new HeightBrush(stream, rotation, yscale, layers, smooth, image.equalsIgnoreCase("#clipboard") ? session.getClipboard().getClipboard() : null);
             } catch (EmptyClipboardException ignore) {
                 brush = new HeightBrush(stream, rotation, yscale, layers, smooth, null);
             }

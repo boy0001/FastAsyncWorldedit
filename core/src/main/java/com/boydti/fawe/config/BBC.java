@@ -257,7 +257,8 @@ public enum BBC {
     WORLDEDIT_CANCEL_REASON_MAX_TILES("Too many blockstates", "Cancel"),
     WORLDEDIT_CANCEL_REASON_MAX_ENTITIES("Too many entities", "Cancel"),
     WORLDEDIT_CANCEL_REASON_MAX_ITERATIONS("Max iterations", "Cancel"),
-    WORLDEDIT_CANCEL_REASON_MAX_FAILS("Outside allowed region (bypass with /wea, or disable `region-restrictions` in config.yml)", "Cancel"),
+    WORLDEDIT_CANCEL_REASON_OUTSIDE_WORLD("Cancel", "Outside world"),
+    WORLDEDIT_CANCEL_REASON_OUTSIDE_REGION("Outside allowed region (bypass with /wea, or disable `region-restrictions` in config.yml)", "Cancel"),
     WORLDEDIT_CANCEL_REASON_NO_REGION("No allowed region (bypass with /wea, or disable `region-restrictions` in config.yml)", "Cancel"),
     WORLDEDIT_FAILED_LOAD_CHUNK("&cSkipped loading chunk: &7%s0;%s1&c. Try increasing chunk-wait.", "Cancel"),
 

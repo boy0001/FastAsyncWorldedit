@@ -344,7 +344,7 @@ public class EditSession extends AbstractDelegateExtent implements HasFaweQueue,
             }
         }
         if (allowedRegions == null) {
-            if (player != null && !player.hasWorldEditBypass() && !(queue instanceof HeightMapMCAGenerator)) {
+            if (player != null && !player.hasPermission("fawe.bypass") && !player.hasPermission("fawe.bypass.regions") && !(queue instanceof HeightMapMCAGenerator)) {
                 allowedRegions = player.getCurrentRegions();
             }
         }
@@ -1376,8 +1376,10 @@ public class EditSession extends AbstractDelegateExtent implements HasFaweQueue,
         if (used.MAX_FAILS > 0) {
             if (used.MAX_CHANGES > 0 || used.MAX_ENTITIES > 0) {
                 BBC.WORLDEDIT_SOME_FAILS.send(player, used.MAX_FAILS);
+            } else if (new ExtentTraverser(this).findAndGet(FaweRegionExtent.class) != null){
+                BBC.WORLDEDIT_CANCEL_REASON_OUTSIDE_REGION.send(player);
             } else {
-                BBC.WORLDEDIT_CANCEL_REASON_MAX_FAILS.send(player);
+                BBC.WORLDEDIT_CANCEL_REASON_OUTSIDE_WORLD.send(player);
             }
         }
         // Reset limit
@@ -3452,7 +3454,7 @@ public class EditSession extends AbstractDelegateExtent implements HasFaweQueue,
             Vector max = region.getMaximumPoint();
             Vector min = region.getMinimumPoint();
             if (!fe.contains(max.getBlockX(), max.getBlockY(), max.getBlockZ()) && !fe.contains(min.getBlockX(), min.getBlockY(), min.getBlockZ())) {
-                throw new FaweException(BBC.WORLDEDIT_CANCEL_REASON_MAX_FAILS);
+                throw new FaweException(BBC.WORLDEDIT_CANCEL_REASON_OUTSIDE_REGION);
             }
         }
         final Set<Vector2D> chunks = region.getChunks();

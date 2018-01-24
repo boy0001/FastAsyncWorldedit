@@ -36,7 +36,7 @@ public class FaweNukkitPlayer extends FawePlayer<Player> {
 
     @Override
     public void setPermission(final String perm, final boolean flag) {
-        this.parent.addAttachment(Fawe.<FaweNukkit> imp().getPlugin()).setPermission("fawe.bypass", flag);
+        this.parent.addAttachment(Fawe.<FaweNukkit> imp().getPlugin()).setPermission(perm, flag);
     }
 
 

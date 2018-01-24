@@ -302,7 +302,7 @@ public class BukkitChunk_1_12 extends CharFaweChunk<Chunk, BukkitQueue_1_12> {
             }
             // Set entities
             Set<CompoundTag> entitiesToSpawn = this.getEntities();
-            Set<UUID> createdEntities = new HashSet<>();
+//            Set<UUID> createdEntities = new HashSet<>();
             if (!entitiesToSpawn.isEmpty()) {
                 synchronized (BukkitQueue_0.class) {
                     for (CompoundTag nativeTag : entitiesToSpawn) {
@@ -347,7 +347,7 @@ public class BukkitChunk_1_12 extends CharFaweChunk<Chunk, BukkitQueue_1_12> {
                                 synchronized (BukkitQueue_0.class) {
                                     nmsWorld.addEntity(entity, CreatureSpawnEvent.SpawnReason.CUSTOM);
                                 }
-                                createdEntities.add(entity.getUniqueID());
+//                                createdEntities.add(entity.getUniqueID());
                             }
                         }
                     }

@@ -734,7 +734,10 @@ public class BukkitQueue_1_12 extends BukkitQueue_0<net.minecraft.server.v1_12_R
         if (section != null) {
             Arrays.fill(section.getEmittedLightArray().asBytes(), (byte) 0);
             if (sky) {
-                Arrays.fill(section.getSkyLightArray().asBytes(), (byte) 0);
+                byte[] light = section.getSkyLightArray().asBytes();
+                if (light != null) {
+                    Arrays.fill(light, (byte) 0);
+                }
             }
             return true;
         }

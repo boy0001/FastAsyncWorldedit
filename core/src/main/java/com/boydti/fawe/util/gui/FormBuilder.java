@@ -2,7 +2,7 @@ package com.boydti.fawe.util.gui;
 
 import com.boydti.fawe.object.FawePlayer;
 import java.net.URL;
-import java.util.List;
+import java.util.Map;
 import java.util.function.Consumer;
 import javax.annotation.Nullable;
 
@@ -25,5 +25,7 @@ public interface FormBuilder<T> {
 
     FormBuilder addToggle(String text, boolean def);
 
-    void display(FawePlayer<T> fp, Consumer<List<String>> response);
+    FormBuilder setResponder(Consumer<Map<Integer, Object>> handler);
+
+    void display(FawePlayer<T> fp);
 }

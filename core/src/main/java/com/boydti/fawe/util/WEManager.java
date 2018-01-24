@@ -88,7 +88,7 @@ public class WEManager {
      * @return
      */
     public RegionWrapper[] getMask(final FawePlayer<?> player, FaweMaskManager.MaskType type) {
-        if (player.hasPermission("fawe.bypass") || !Settings.IMP.REGION_RESTRICTIONS) {
+        if (!Settings.IMP.REGION_RESTRICTIONS || player.hasPermission("fawe.bypass") || player.hasPermission("fawe.bypass.regions")) {
             return new RegionWrapper[]{RegionWrapper.GLOBAL()};
         }
         FaweLocation loc = player.getLocation();

@@ -19,12 +19,14 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 import java.util.function.Consumer;
 
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
 public class NukkitFormBuilder implements FormBuilder<Player> {
+    private Consumer<Map<Integer, Object>> response;
     private final List<Element> elements;
     private final List<ElementButton> buttons;
     private String title = "";
@@ -125,21 +127,28 @@ public class NukkitFormBuilder implements FormBuilder<Player> {
     }
 
     @Override
-    public void display(FawePlayer<Player> fp, Consumer<List<String>> response) {
+    public FormBuilder setResponder(Consumer<Map<Integer, Object>> handler) {
+        this.response = handler;
+        return this;
+    }
+
+    @Override
+    public void display(FawePlayer<Player> fp) {
         FormWindow window;
         if (buttons.isEmpty()) {
             if (icon == null) {
-                window = new FormWindowCustom("Title", elements);
+                window = new FormWindowCustom(title, elements);
             } else {
-                window = new FormWindowCustom("Title", elements, icon);
+                window = new FormWindowCustom(title, elements, icon);
             }
         } else {
-            window = new FormWindowSimple("Title", "", buttons);
+            window = new FormWindowSimple(title, "", buttons);
         }
 
         if (response != null) {
             window = new ResponseFormWindow(window, response);
         }
+
 
         Player player = fp.parent;
         player.showFormWindow(window);

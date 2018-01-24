@@ -408,7 +408,7 @@ public class Settings extends Config {
 
     public FaweLimit getLimit(FawePlayer player) {
         FaweLimit limit;
-        if (player.hasWorldEditBypass()) {
+        if (player.hasPermission("fawe.limit.*") || player.hasPermission("fawe.bypass")) {
             limit = FaweLimit.MAX.copy();
         } else {
             limit = new FaweLimit();

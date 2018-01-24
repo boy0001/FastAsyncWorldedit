@@ -31,14 +31,11 @@ import org.bukkit.event.block.BlockIgniteEvent;
 import org.bukkit.event.block.BlockPhysicsEvent;
 import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.event.block.BlockRedstoneEvent;
-import org.bukkit.event.block.CauldronLevelChangeEvent;
 import org.bukkit.event.block.LeavesDecayEvent;
 import org.bukkit.event.block.NotePlayEvent;
 import org.bukkit.event.block.SignChangeEvent;
 import org.bukkit.event.entity.EntityChangeBlockEvent;
 import org.bukkit.event.entity.ItemSpawnEvent;
-import org.bukkit.event.inventory.BrewEvent;
-import org.bukkit.event.inventory.BrewingStandFuelEvent;
 import org.bukkit.event.inventory.FurnaceBurnEvent;
 import org.bukkit.event.inventory.FurnaceSmeltEvent;
 import org.bukkit.event.world.ChunkLoadEvent;
@@ -156,14 +153,14 @@ public abstract class ChunkListener implements Listener {
     @EventHandler(priority = EventPriority.LOWEST)
     public void event(BlockPlaceEvent event) { reset(); }
 
-    @EventHandler(priority = EventPriority.LOWEST)
-    public void event(BrewEvent event) { reset(); }
-
-    @EventHandler(priority = EventPriority.LOWEST)
-    public void event(BrewingStandFuelEvent event) { reset(); }
-
-    @EventHandler(priority = EventPriority.LOWEST)
-    public void event(CauldronLevelChangeEvent event) { reset(); }
+//    @EventHandler(priority = EventPriority.LOWEST)
+//    public void event(BrewEvent event) { reset(); }
+//
+//    @EventHandler(priority = EventPriority.LOWEST)
+//    public void event(BrewingStandFuelEvent event) { reset(); }
+//
+//    @EventHandler(priority = EventPriority.LOWEST)
+//    public void event(CauldronLevelChangeEvent event) { reset(); }
 
     @EventHandler(priority = EventPriority.LOWEST)
     public void event(FurnaceBurnEvent event) { reset(); }
