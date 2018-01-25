@@ -5,6 +5,7 @@ import cn.nukkit.blockentity.BlockEntityChest;
 import cn.nukkit.entity.Entity;
 import cn.nukkit.inventory.InventoryHolder;
 import cn.nukkit.item.Item;
+import cn.nukkit.item.ItemPickaxeDiamond;
 import cn.nukkit.level.Level;
 import cn.nukkit.math.Vector3;
 import com.sk89q.worldedit.BlockVector2D;
@@ -267,7 +268,7 @@ public class NukkitWorld extends LocalWorld {
 
     @Override
     public boolean playEffect(Vector position, int type, int data) {
-        throw new UnsupportedOperationException("Not implemented yet");
+        return false;
     }
 
     @Override
@@ -277,7 +278,8 @@ public class NukkitWorld extends LocalWorld {
 
     @Override
     public void simulateBlockMine(Vector pt) {
-        getLevel().getBlock(setMutable(pt)).onBreak(null);
+        ItemPickaxeDiamond item = new ItemPickaxeDiamond(Integer.MAX_VALUE);
+        getLevel().useBreakOn(setMutable(pt), item, null, true);
     }
 
     @Override

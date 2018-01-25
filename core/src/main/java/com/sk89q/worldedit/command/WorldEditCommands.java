@@ -135,7 +135,7 @@ public class WorldEditCommands {
                     changes = scanner.useDelimiter("\\A").next();
                 }
             }
-            changes = changes.replaceAll("#([0-9]+)", "github.com/boy0001/FastAsyncWorldedit/pulls/$1");
+            changes = changes.replaceAll("#([0-9]+)", "github.com/boy0001/FastAsyncWorldedit/issues/$1");
             actor.print(BBC.getPrefix() + changes);
         } catch (IOException e) {
             throw new RuntimeException(e);
