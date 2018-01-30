@@ -122,7 +122,7 @@ public class FaweNukkit implements IFawe, Listener {
 	@EventHandler
 	public void onPlayerQuit(PlayerQuitEvent event) {
 		Player player = event.getPlayer();
-        FawePlayer fp = FawePlayer.wrap(player);
+        FawePlayer fp = Fawe.get().getCachedPlayer(player.getName());
         if (fp != null) {
             fp.unregister();
         }
