@@ -3,9 +3,7 @@ package com.boydti.fawe.config;
 import com.boydti.fawe.object.FaweLimit;
 import com.boydti.fawe.object.FawePlayer;
 import java.io.File;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
+import java.util.*;
 
 public class Settings extends Config {
     @Ignore
@@ -25,7 +23,7 @@ public class Settings extends Config {
     @Final
     public String PLATFORM; // These values are set from FAWE before loading
 
-    @Comment({"Options: de",
+    @Comment({"Options: de, ru, tr",
             "Create a PR to contribute a translation: https://github.com/boy0001/FastAsyncWorldedit/new/master/core/src/main/resources",})
     public String LANGUAGE = "";
     @Comment("Allow the plugin to update")

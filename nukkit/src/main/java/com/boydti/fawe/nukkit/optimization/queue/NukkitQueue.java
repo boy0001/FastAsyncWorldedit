@@ -63,12 +63,12 @@ public class NukkitQueue extends NMSMappedFaweQueue<Level, BaseFullChunk, BaseFu
     public void setHeightMap(FaweChunk chunk, byte[] heightMap) {
         BaseFullChunk forgeChunk = (BaseFullChunk) chunk.getChunk();
         if (forgeChunk != null) {
-            int[] otherMap = forgeChunk.getHeightMapArray();
+            byte[] otherMap = forgeChunk.getHeightMapArray();
             for (int i = 0; i < heightMap.length; i++) {
                 int newHeight = heightMap[i] & 0xFF;
-                int currentHeight = otherMap[i];
+                int currentHeight = otherMap[i] & 0xFF;
                 if (newHeight > currentHeight) {
-                    otherMap[i] = newHeight;
+                    otherMap[i] = (byte) newHeight;
                 }
             }
         }
@@ -236,7 +236,7 @@ public class NukkitQueue extends NMSMappedFaweQueue<Level, BaseFullChunk, BaseFu
 
     @Override
     public void relightBlock(int x, int y, int z) {
-        world.updateBlockLight(x, y, z);
+        world.addLightUpdate(x, y, z);
     }
 
     @Override

@@ -77,7 +77,6 @@ public class NukkitChunk extends CharFaweChunk<BaseFullChunk, NukkitQueue> {
         // Set heightmap
         NukkitQueue parent = (NukkitQueue) getParent();
         Level world = ((NukkitQueue) getParent()).getWorld();
-        world.clearCache(true);
         final BaseFullChunk chunk = getChunk();
         getParent().setHeightMap(this, heightMap);
         char[][] sections = getCombinedIdArrays();

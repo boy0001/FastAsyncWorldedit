@@ -99,7 +99,6 @@ subprojects {
         maven {url "http://repo.dmulloy2.net/content/groups/public/"}
         maven {url "https://repo.destroystokyo.com/repository/maven-public//"}
         maven {url "http://ci.emc.gs/nexus/content/groups/aikar/" }
-        maven {url "http://ci.mengcraft.com:8080/plugin/repository/everything"}
         maven {url "http://ci.athion.net/job/PlotSquared/ws/mvn/"}
         maven {url "http://empcraft.com/maven2"}
         maven {url "https://hub.spigotmc.org/nexus/content/groups/public/"}

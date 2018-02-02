@@ -484,6 +484,7 @@ public class Fawe {
         MainUtil.copyFile(MainUtil.getJarFile(), "de/message.yml", null);
         MainUtil.copyFile(MainUtil.getJarFile(), "ru/message.yml", null);
         MainUtil.copyFile(MainUtil.getJarFile(), "ru/commands.yml", null);
+        MainUtil.copyFile(MainUtil.getJarFile(), "tr/message.yml", null);
         // Setting up config.yml
         File file = new File(this.IMP.getDirectory(), "config.yml");
         Settings.IMP.PLATFORM = IMP.getPlatform().replace("\"", "");
@@ -698,7 +699,7 @@ public class Fawe {
             debug(" - Any other errors in the startup log");
             debug("Contact Empire92 if you need assistance:");
             debug(" - Send me a PM or ask on IRC/Discord");
-            debug(" - http://webchat.esper.net/?nick=&channels=IntellectualCrafters");
+            debug(" - https://discord.gg/ngZCzbU");
             debug("=======================================");
         }
         try {

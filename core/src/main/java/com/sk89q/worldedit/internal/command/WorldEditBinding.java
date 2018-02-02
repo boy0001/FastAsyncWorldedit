@@ -218,6 +218,14 @@ public class WorldEditBinding extends BindingHelper {
         }
     }
 
+    @BindingMatch(type = Pattern.class,
+            behavior = BindingBehavior.CONSUMES,
+            consumedCount = 1)
+    @Deprecated
+    public com.sk89q.worldedit.patterns.Pattern getLegacyPattern(ArgumentStack context) throws ParameterException, WorldEditException {
+        return getPattern(context);
+    }
+
     /**
      * Gets an {@link Mask} from a {@link ArgumentStack}.
      *
@@ -245,6 +253,14 @@ public class WorldEditBinding extends BindingHelper {
         } catch (NoMatchException e) {
             throw new ParameterException(e.getMessage(), e);
         }
+    }
+
+    @BindingMatch(type = com.sk89q.worldedit.masks.Mask.class,
+            behavior = BindingBehavior.CONSUMES,
+            consumedCount = 1)
+    @Deprecated
+    public com.sk89q.worldedit.masks.Mask getLegacyMask(ArgumentStack context) throws ParameterException, WorldEditException {
+        return getMask(context);
     }
 
     /**
