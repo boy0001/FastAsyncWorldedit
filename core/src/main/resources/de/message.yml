@@ -148,7 +148,7 @@ worldedit:
     brush_transform: Brush-Transformation gesetzt
     brush_material: Brush-Material gesetzt
     brush_try_other: |-
-      &cFAWE fügt andere, passendere Brushes. z.B.:
+      &cFAWE verfügt über andere, passendere Brushes. z.B.:
       &8 - &7//br height [radius=5] [#clipboard|file=null] [rotation=0] [yscale=1.00]
     brush_none: Du hältst kein Tool in der Hand, das man als Brush verwenden kann!
     brush_source_mask_disabled: Brush Quell-Maske deaktiviert
