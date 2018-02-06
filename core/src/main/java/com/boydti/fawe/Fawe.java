@@ -128,6 +128,8 @@ import com.sk89q.worldedit.math.convolution.HeightMap;
 import com.sk89q.worldedit.math.interpolation.KochanekBartelsInterpolation;
 import com.sk89q.worldedit.math.transform.AffineTransform;
 import com.sk89q.worldedit.regions.CuboidRegion;
+import com.sk89q.worldedit.regions.CylinderRegion;
+import com.sk89q.worldedit.regions.EllipsoidRegion;
 import com.sk89q.worldedit.regions.selector.ConvexPolyhedralRegionSelector;
 import com.sk89q.worldedit.regions.selector.CuboidRegionSelector;
 import com.sk89q.worldedit.regions.selector.CylinderRegionSelector;
@@ -599,6 +601,8 @@ public class Fawe {
             ClipboardHolder.inject(); // Closeable
             // Regions
             CuboidRegion.inject(); // Optimizations
+            CylinderRegion.inject(); // Optimizations
+            EllipsoidRegion.inject(); // Optimizations
             // Extents
             MaskingExtent.inject(); // Features
             BlockTransformExtent.inject(); // Fix for cache not being mutable

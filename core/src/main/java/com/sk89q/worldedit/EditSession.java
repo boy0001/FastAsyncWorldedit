@@ -1379,7 +1379,7 @@ public class EditSession extends AbstractDelegateExtent implements HasFaweQueue,
             } else if (new ExtentTraverser(this).findAndGet(FaweRegionExtent.class) != null){
                 BBC.WORLDEDIT_CANCEL_REASON_OUTSIDE_REGION.send(player);
             } else {
-                BBC.WORLDEDIT_CANCEL_REASON_OUTSIDE_WORLD.send(player);
+                BBC.WORLDEDIT_CANCEL_REASON_OUTSIDE_LEVEL.send(player);
             }
         }
         // Reset limit

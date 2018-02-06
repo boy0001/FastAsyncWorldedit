@@ -46,6 +46,7 @@ public class CachedMask extends AbstractDelegateMask implements ResettableMask {
     }
 
     public boolean test(int x, int y, int z) {
+        if (y < 0 || y > 255) return getMask().test(mutable.setComponents(x, y, z));
         if (cache_checked.contains(x, y, z)) {
             return cache_results.contains(x, y, z);
         }
