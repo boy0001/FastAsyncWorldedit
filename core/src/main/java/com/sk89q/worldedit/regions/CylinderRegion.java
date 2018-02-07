@@ -200,7 +200,7 @@ public class CylinderRegion extends AbstractRegion implements FlatRegion {
 
     @Override
     public int getMaximumY() {
-        int worldMax = world.getMaxY() - 1;
+        int worldMax = world != null ? world.getMaxY() - 1 : 255;
         if (maxY > worldMax) {
             return maxY = worldMax;
         }
