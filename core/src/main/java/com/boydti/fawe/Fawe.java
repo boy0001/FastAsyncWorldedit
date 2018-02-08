@@ -12,7 +12,6 @@ import com.boydti.fawe.util.chat.ChatManager;
 import com.boydti.fawe.util.chat.PlainChatManager;
 import com.boydti.fawe.util.cui.CUI;
 import com.boydti.fawe.util.metrics.BStats;
-import com.intellectualcrafters.plot.config.C;
 import com.sk89q.jnbt.*;
 import com.sk89q.worldedit.*;
 import com.sk89q.worldedit.Vector;
@@ -191,7 +190,7 @@ public class Fawe {
         if (INSTANCE != null) {
             INSTANCE.IMP.debug(s);
         } else {
-            System.out.println(BBC.stripColor(C.color(s)));
+            System.out.println(BBC.stripColor(BBC.color(s)));
         }
     }
 
