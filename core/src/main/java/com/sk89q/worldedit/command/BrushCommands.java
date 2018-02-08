@@ -284,32 +284,39 @@ public class BrushCommands extends MethodCommands {
     @Command(
             aliases = {"sphere", "s"},
             usage = "<pattern> [radius=2]",
-            flags = "h",
+            flags = "hf",
             desc = "Creates a sphere",
             help =
                     "Creates a sphere.\n" +
-                            "The -h flag creates hollow spheres instead.",
+                            "The -h flag creates hollow spheres instead." +
+                            "The -f flag creates falling spheres.",
             min = 1,
             max = 2
     )
     @CommandPermissions("worldedit.brush.sphere")
-    public BrushSettings sphereBrush(Player player, EditSession editSession, LocalSession session, Pattern fill, @Optional("2") @Range(min=0) double radius, @Switch('h') boolean hollow, CommandContext context) throws WorldEditException {
+    public BrushSettings sphereBrush(Player player, EditSession editSession, LocalSession session, Pattern fill, @Optional("2") @Range(min=0) double radius, @Switch('h') boolean hollow, @Switch('f') boolean falling, CommandContext context) throws WorldEditException {
         worldEdit.checkMaxBrushRadius(radius);
 
         Brush brush;
         if (hollow) {
             brush = new HollowSphereBrush();
         } else {
-            brush = new SphereBrush();
-        }
-        if (fill instanceof BaseBlock) {
-            BaseBlock block = (BaseBlock) fill;
-            switch (block.getId()) {
-                case BlockID.SAND:
-                case BlockID.GRAVEL:
-                    BBC.BRUSH_TRY_OTHER.send(player);
-                    break;
+            if (fill instanceof BaseBlock) {
+                BaseBlock block = (BaseBlock) fill;
+                switch (block.getId()) {
+                    case BlockID.SAND:
+                    case BlockID.GRAVEL:
+                        BBC.BRUSH_TRY_OTHER.send(player);
+                        falling = true;
+                        break;
+                }
             }
+            if (falling) {
+                brush = new FallingSphere();
+            } else {
+                brush = new SphereBrush();
+            }
+
         }
         return get(context)
                 .setBrush(brush)

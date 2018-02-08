@@ -115,6 +115,11 @@ public class BlockArrayClipboard implements Clipboard, LightingExtent {
         this.mz = origin.getBlockZ();
     }
 
+    @Override
+    protected void finalize() throws Throwable {
+        close();
+    }
+
     public void close() {
         IMP.close();
     }
