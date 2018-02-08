@@ -3,18 +3,11 @@ package com.boydti.fawe.util;
 import com.boydti.fawe.object.io.FastByteArrayOutputStream;
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
-import java.io.BufferedInputStream;
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.OutputStreamWriter;
+import java.io.*;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.net.URLEncoder;
-import javax.xml.bind.DatatypeConverter;
+import java.util.Base64;
 
 public class ImgurUtility {
     public static final String CLIENT_ID = "50e34b65351eb07";
@@ -44,7 +37,7 @@ public class ImgurUtility {
     }
 
     public static String getImgurContent(String clientID, byte[] image) throws IOException {
-        String imageString = DatatypeConverter.printBase64Binary(image);
+        String imageString = Base64.getEncoder().encodeToString(image);
         URL url = new URL("https://api.imgur.com/3/image");
         HttpURLConnection conn = (HttpURLConnection) url.openConnection();
         String data = URLEncoder.encode("image", "UTF-8") + "=" + URLEncoder.encode(imageString, "UTF-8");
