@@ -174,6 +174,11 @@ public class AbstractDelegateExtent implements LightingExtent {
     }
 
     @Override
+    public boolean setBiome(int x, int y, int z, BaseBiome biome) {
+        return extent.setBiome(x, y, z, biome);
+    }
+
+    @Override
     public Vector getMinimumPoint() {
         return extent.getMinimumPoint();
     }
