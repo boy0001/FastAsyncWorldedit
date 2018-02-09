@@ -70,7 +70,8 @@ public class ClipboardSpline extends Spline {
         this.originalOrigin = clipboard.getOrigin();
 
         Region region = clipboard.getRegion();
-        center = region.getCenter().setY(region.getMinimumPoint().getY());
+        Vector origin = clipboard.getOrigin();
+        center = region.getCenter().setY(origin.getY() - 1);
         this.centerOffset = center.subtract(center.round());
         this.center = center.subtract(centerOffset);
         this.transform = transform;
