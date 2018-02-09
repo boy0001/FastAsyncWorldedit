@@ -42,6 +42,11 @@ public class BlockTranslateExtent extends AbstractDelegateExtent {
     }
 
     @Override
+    public boolean setBiome(int x, int y, int z, BaseBiome biome) {
+        return super.setBiome(x + dx, y + dy, z + dz, biome);
+    }
+
+    @Override
     public BaseBiome getBiome(Vector2D position) {
         return super.getBiome(position.add(dx, dz));
     }

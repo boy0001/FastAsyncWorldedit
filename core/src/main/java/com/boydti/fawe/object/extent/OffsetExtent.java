@@ -25,6 +25,11 @@ public class OffsetExtent extends ResettableExtent {
     }
 
     @Override
+    public boolean setBiome(int x, int y, int z, BaseBiome biome) {
+        return getExtent().setBiome(x + dx, y + dy, z + dz, biome);
+    }
+
+    @Override
     public boolean setBlock(Vector location, BaseBlock block) throws WorldEditException {
         return getExtent().setBlock(location.getBlockX() + dx, location.getBlockY() + dy, location.getBlockZ() + dz, block);
     }

@@ -23,8 +23,8 @@ public class BiomePattern extends ExistingPattern {
     }
 
     @Override
-    public boolean apply(Extent extent, Vector setPosition, Vector getPosition) throws WorldEditException {
-        return extent.setBiome(mutable.setComponents(setPosition.getBlockX(), setPosition.getBlockZ()), biome);
+    public boolean apply(Extent extent, Vector set, Vector getPosition) throws WorldEditException {
+        return extent.setBiome(set.getBlockX(), set.getBlockY(), set.getBlockZ(), biome);
     }
 
     public class BiomePatternException extends RuntimeException {

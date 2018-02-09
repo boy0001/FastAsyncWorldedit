@@ -984,6 +984,12 @@ public class EditSession extends AbstractDelegateExtent implements HasFaweQueue,
     }
 
     @Override
+    public boolean setBiome(int x, int y, int z, BaseBiome biome) {
+        this.changes++;
+        return this.extent.setBiome(x, y, z, biome);
+    }
+
+    @Override
     public int getLight(int x, int y, int z) {
         return queue.getLight(x, y, z);
     }

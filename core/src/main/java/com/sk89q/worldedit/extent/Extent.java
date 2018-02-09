@@ -7,11 +7,7 @@ import com.boydti.fawe.jnbt.anvil.generator.OreGen;
 import com.boydti.fawe.jnbt.anvil.generator.Resource;
 import com.boydti.fawe.jnbt.anvil.generator.SchemGen;
 import com.boydti.fawe.object.PseudoRandom;
-import com.sk89q.worldedit.EditSession;
-import com.sk89q.worldedit.MutableBlockVector;
-import com.sk89q.worldedit.Vector;
-import com.sk89q.worldedit.Vector2D;
-import com.sk89q.worldedit.WorldEditException;
+import com.sk89q.worldedit.*;
 import com.sk89q.worldedit.blocks.BaseBlock;
 import com.sk89q.worldedit.blocks.BlockID;
 import com.sk89q.worldedit.entity.BaseEntity;
@@ -22,6 +18,7 @@ import com.sk89q.worldedit.function.pattern.Pattern;
 import com.sk89q.worldedit.regions.Region;
 import com.sk89q.worldedit.session.ClipboardHolder;
 import com.sk89q.worldedit.util.Location;
+import com.sk89q.worldedit.world.biome.BaseBiome;
 import com.sk89q.worldedit.world.registry.WorldData;
 import java.util.ArrayList;
 import java.util.List;
@@ -68,6 +65,10 @@ public interface Extent extends InputExtent, OutputExtent {
 
     default int getMaxY() {
         return 255;
+    }
+
+    default boolean setBiome(int x, int y, int z, BaseBiome biome) {
+        return setBiome(MutableBlockVector2D.get(x, z), biome);
     }
 
     default public int getNearestSurfaceLayer(int x, int z, int y, int minY, int maxY) {

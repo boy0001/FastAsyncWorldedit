@@ -86,6 +86,22 @@ public class MaskCommands extends MethodCommands {
     }
 
     @Command(
+            aliases = {"false"},
+            desc = "Always false"
+    )
+    public Mask falseMask(Extent extent) {
+        return Masks.alwaysFalse();
+    }
+
+    @Command(
+            aliases = {"true"},
+            desc = "Always true"
+    )
+    public Mask trueMask(Extent extent) {
+        return Masks.alwaysTrue();
+    }
+
+    @Command(
             aliases = {"#skylight"},
             desc = "Restrict to specific sky light levels",
             usage = "<min> <max>",

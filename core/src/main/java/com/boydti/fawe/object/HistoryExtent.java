@@ -4,10 +4,7 @@ import com.boydti.fawe.FaweCache;
 import com.boydti.fawe.object.changeset.FaweChangeSet;
 import com.boydti.fawe.object.exception.FaweException;
 import com.sk89q.jnbt.CompoundTag;
-import com.sk89q.worldedit.EditSession;
-import com.sk89q.worldedit.Vector;
-import com.sk89q.worldedit.Vector2D;
-import com.sk89q.worldedit.WorldEditException;
+import com.sk89q.worldedit.*;
 import com.sk89q.worldedit.blocks.BaseBlock;
 import com.sk89q.worldedit.entity.BaseEntity;
 import com.sk89q.worldedit.entity.Entity;
@@ -137,6 +134,17 @@ public class HistoryExtent extends AbstractDelegateExtent {
         if (oldBiome.getId() != newBiome.getId()) {
             this.changeSet.addBiomeChange(position.getBlockX(), position.getBlockZ(), oldBiome, newBiome);
             return getExtent().setBiome(position, newBiome);
+        } else {
+            return false;
+        }
+    }
+
+    @Override
+    public boolean setBiome(int x, int y, int z, BaseBiome newBiome) {
+        BaseBiome oldBiome = this.getBiome(MutableBlockVector2D.get(x, z));
+        if (oldBiome.getId() != newBiome.getId()) {
+            this.changeSet.addBiomeChange(x, z, oldBiome, newBiome);
+            return getExtent().setBiome(x, y, z, newBiome);
         } else {
             return false;
         }

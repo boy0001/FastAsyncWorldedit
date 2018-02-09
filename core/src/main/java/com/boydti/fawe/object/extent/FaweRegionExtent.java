@@ -87,6 +87,17 @@ public abstract class FaweRegionExtent extends ResettableExtent {
     }
 
     @Override
+    public boolean setBiome(int x, int y, int z, BaseBiome biome) {
+        if (!contains(x, y, z)) {
+            if (!limit.MAX_FAILS()) {
+                WEManager.IMP.cancelEditSafe(this, BBC.WORLDEDIT_CANCEL_REASON_OUTSIDE_REGION);
+            }
+            return false;
+        }
+        return super.setBiome(x, y, z, biome);
+    }
+
+    @Override
     public BaseBiome getBiome(Vector2D position) {
         if (!contains(position)) {
             if (!limit.MAX_FAILS()) {

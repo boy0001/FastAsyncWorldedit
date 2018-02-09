@@ -62,6 +62,11 @@ public class EmptyExtent implements Extent {
         return false;
     }
 
+    @Override
+    public boolean setBiome(int x, int y, int z, BaseBiome biome) {
+        return false;
+    }
+
     @Nullable
     public Operation commit() {
         return null;
