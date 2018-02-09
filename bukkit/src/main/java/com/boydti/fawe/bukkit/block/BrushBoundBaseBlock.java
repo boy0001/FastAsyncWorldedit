@@ -59,7 +59,11 @@ public class BrushBoundBaseBlock extends BaseBlock implements BrushHolder {
                     this.tool.setHolder(this);
                     brushCache.put(getKey(item), tool);
                 } catch (Throwable ignore) {
-                    ignore.printStackTrace();
+                    Fawe.debug("Invalid brush for " + player + " holding " + item + ": " + json.getValue());
+                    if (item != null) {
+                        item = Fawe.<FaweBukkit>imp().getItemUtil().setNBT(item, null);
+                        brushCache.remove(getKey(item));
+                    }
                 }
             }
         }
