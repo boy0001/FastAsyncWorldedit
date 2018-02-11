@@ -12,8 +12,8 @@ public enum Jars {
     WE_B_6_1_7_2("https://addons.cursecdn.com/files/2431/372/worldedit-bukkit-6.1.7.2.jar",
             "CRVJCWGJJ6UK40CTGHXQVK2/3C9BBTOS25FWI0ZHD4S=", 1726340),
 
-    VS_B_5_171_0("https://addons-origin.cursecdn.com/files/912/511/VoxelSniper-5.171.0-SNAPSHOT.jar",
-            "KSW7OCOODY5FA2OB0OVM/RFD9NYUU9KLUTBMVGI4II8=", 3632776),
+    VS_B_5_171_0("https://media.forgecdn.net/files/2488/589/VoxelSniper-5.172.0-SNAPSHOT.jar",
+            "4CTEDDEKCAN/M6R0DHS925++HBSJ/TUYAAKAR4CUWC4=", 3615020),
 
     MM_v1_4_0("https://github.com/InventivetalentDev/MapManager/releases/download/1.4.0-SNAPSHOT/MapManager_v1.4.0-SNAPSHOT.jar",
             "AEO5SKBUGN4YJRS8XGGNLBM2QRZPTI1KF0/1W1URTGA=", 163279),
@@ -61,7 +61,8 @@ public enum Jars {
                 Fawe.debug(this.digest);
                 return jarBytes;
             } else {
-                System.out.println(jarDigest + " | " + url);
+
+                Fawe.debug(jarDigest + " | " + url);
                 throw new IllegalStateException("downloaded jar does not match the hash");
             }
         } catch (NoSuchAlgorithmException e) {
