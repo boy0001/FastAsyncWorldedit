@@ -2,6 +2,7 @@ package com.boydti.fawe.nukkit.optimization;
 
 import cn.nukkit.Nukkit;
 import cn.nukkit.Player;
+import cn.nukkit.Server;
 import cn.nukkit.event.EventHandler;
 import cn.nukkit.event.Listener;
 import cn.nukkit.event.player.PlayerFormRespondedEvent;
@@ -27,16 +28,13 @@ import com.boydti.fawe.object.FawePlayer;
 import com.boydti.fawe.object.FaweQueue;
 import com.boydti.fawe.object.brush.visualization.VisualChunk;
 import com.boydti.fawe.regions.FaweMaskManager;
+import com.boydti.fawe.regions.general.plot.PlotSquaredFeature;
 import com.boydti.fawe.util.TaskManager;
 import com.boydti.fawe.util.gui.FormBuilder;
+import com.google.common.base.Charsets;
 import com.sk89q.worldedit.world.World;
 import java.io.File;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
 import java.util.logging.Level;
 
 public class FaweNukkit implements IFawe, Listener {
@@ -220,12 +218,42 @@ public class FaweNukkit implements IFawe, Listener {
         try {
             return UUID.fromString(name);
         } catch (Exception e) {
-            return null;
+            return UUID.nameUUIDFromBytes(("OfflinePlayer:" + name.toLowerCase()).getBytes(Charsets.UTF_8));
         }
     }
 
+    private Map<UUID, String> names = new HashMap<>();
+
     @Override
     public String getName(UUID uuid) {
+        try {
+            Class.forName("com.boydti.fawe.regions.general.plot.PlotSquaredFeature");
+            String name = PlotSquaredFeature.getName(uuid);
+            if (name != null) return name;
+        } catch (Throwable ignore){
+            String mapped = names.get(uuid);
+            if (mapped != null) return mapped;
+
+            boolean namesEmpty = names.isEmpty();
+            for (Player player : Server.getInstance().getOnlinePlayers().values()) {
+                String name = player.getName();
+                UUID plrUUID = UUID.nameUUIDFromBytes(("OfflinePlayer:" + name.toLowerCase()).getBytes(Charsets.UTF_8));
+                names.put(plrUUID, name);
+            }
+
+            if (namesEmpty) {
+                for (File file : new File("players").listFiles()) {
+                    String name = file.getName();
+                    name = name.substring(0, name.length() - 4);
+                    UUID plrUUID = UUID.nameUUIDFromBytes(("OfflinePlayer:" + name.toLowerCase()).getBytes(Charsets.UTF_8));
+                    names.put(plrUUID, name);
+
+                }
+            }
+
+            mapped = names.get(uuid);
+            if (mapped != null) return mapped;
+        }
         return uuid.toString();
     }
 

@@ -9,6 +9,7 @@ import com.boydti.fawe.nukkit.core.NukkitPlatform;
 import com.boydti.fawe.nukkit.core.NukkitPlayer;
 import com.boydti.fawe.object.FaweLocation;
 import com.boydti.fawe.object.FawePlayer;
+import com.google.common.base.Charsets;
 import java.util.UUID;
 
 public class FaweNukkitPlayer extends FawePlayer<Player> {
@@ -26,7 +27,7 @@ public class FaweNukkitPlayer extends FawePlayer<Player> {
 
     @Override
     public UUID getUUID() {
-        return this.parent.getUniqueId();
+        return UUID.nameUUIDFromBytes(("OfflinePlayer:" + parent.getName().toLowerCase()).getBytes(Charsets.UTF_8));
     }
 
     @Override

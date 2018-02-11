@@ -24,12 +24,8 @@ import cn.nukkit.Player;
 import cn.nukkit.inventory.PlayerInventory;
 import cn.nukkit.item.Item;
 import cn.nukkit.level.Location;
-import com.sk89q.worldedit.EditSession;
-import com.sk89q.worldedit.LocalPlayer;
-import com.sk89q.worldedit.LocalWorld;
-import com.sk89q.worldedit.Vector;
-import com.sk89q.worldedit.WorldEditException;
-import com.sk89q.worldedit.WorldVector;
+import com.google.common.base.Charsets;
+import com.sk89q.worldedit.*;
 import com.sk89q.worldedit.blocks.BaseBlock;
 import com.sk89q.worldedit.entity.BaseEntity;
 import com.sk89q.worldedit.extent.inventory.BlockBag;
@@ -50,7 +46,7 @@ public class NukkitPlayer extends LocalPlayer {
 
     @Override
     public UUID getUniqueId() {
-        return player.getUniqueId();
+        return UUID.nameUUIDFromBytes(("OfflinePlayer:" + player.getName().toLowerCase()).getBytes(Charsets.UTF_8));
     }
 
     @Override
