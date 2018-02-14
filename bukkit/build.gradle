@@ -11,7 +11,7 @@ dependencies {
     compile 'org.bukkit.craftbukkitv1_11:Craftbukkit:1.11'
 //    compile 'org.bukkit.craftbukkitv1_12:Craftbukkit:1.12'
     compile 'org.bukkit.craftbukkitv1_12_R1:Craftbukkit:1.12.1'
-    compile 'net.milkbowl.vault:VaultAPI:1.5'
+    compile 'net.milkbowl.vault:VaultAPI:1.6'
     compile 'com.massivecraft:factions:2.8.0'
     compile 'com.drtshock:factions:1.6.9.5'
     compile 'com.factionsone:FactionsOne:1.2.2'
