@@ -27,7 +27,7 @@ public class SurfaceRegionFunction implements FlatRegionFunction {
     public boolean apply(Vector2D position) throws WorldEditException {
         int x = position.getBlockX();
         int z = position.getBlockZ();
-        int layer = extent.getNearestSurfaceTerrainBlock(x, z, lastY, minY, maxY);
+        int layer = extent.getNearestSurfaceTerrainBlock(x, z, lastY, minY, maxY, false);
         if (layer != -1) {
             lastY = layer;
             return function.apply(mutable.setComponents(x, layer, z));
