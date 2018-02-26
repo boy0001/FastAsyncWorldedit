@@ -37,13 +37,9 @@ import com.boydti.fawe.util.MathMan;
 import com.sk89q.minecraft.util.commands.Command;
 import com.sk89q.minecraft.util.commands.CommandContext;
 import com.sk89q.minecraft.util.commands.CommandPermissions;
-import com.sk89q.worldedit.EditSession;
-import com.sk89q.worldedit.LocalSession;
-import com.sk89q.worldedit.Vector;
-import com.sk89q.worldedit.WorldEdit;
-import com.sk89q.worldedit.WorldEditException;
-import com.sk89q.worldedit.WorldVector;
+import com.sk89q.worldedit.*;
 import com.sk89q.worldedit.entity.Player;
+import com.sk89q.worldedit.regions.Region;
 import com.sk89q.worldedit.util.command.binding.Range;
 import com.sk89q.worldedit.util.command.parametric.Optional;
 import com.sk89q.worldedit.world.World;
@@ -181,7 +177,7 @@ public class HistoryCommands {
         final FawePlayer fp = FawePlayer.wrap(player);
 
         final FaweQueue finalQueue;
-        RegionWrapper[] allowedRegions = fp.getCurrentRegions(FaweMaskManager.MaskType.OWNER);
+        Region[] allowedRegions = fp.getCurrentRegions(FaweMaskManager.MaskType.OWNER);
         if (allowedRegions == null) {
             BBC.NO_REGION.send(fp);
             return;

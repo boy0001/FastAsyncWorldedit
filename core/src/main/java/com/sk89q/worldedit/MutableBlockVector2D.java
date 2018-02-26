@@ -3,7 +3,7 @@ package com.sk89q.worldedit;
 import java.io.IOException;
 import java.io.Serializable;
 
-public final class MutableBlockVector2D extends Vector2D implements Serializable {
+public final class MutableBlockVector2D extends BlockVector2D implements Serializable {
     private static ThreadLocal<MutableBlockVector2D> MUTABLE_CACHE = new ThreadLocal<MutableBlockVector2D>() {
         @Override
         protected MutableBlockVector2D initialValue() {
@@ -18,6 +18,7 @@ public final class MutableBlockVector2D extends Vector2D implements Serializable
     private transient int x, z;
 
     public MutableBlockVector2D() {
+        super(0, 0);
         this.x = 0;
         this.z = 0;
     }

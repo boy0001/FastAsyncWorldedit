@@ -25,6 +25,7 @@ public abstract class FaweMaskManager<T> {
         return this.key;
     }
 
+    @Deprecated
     public FaweMask getMask(final FawePlayer<T> player) {
         return getMask(player, MaskType.MEMBER);
     }

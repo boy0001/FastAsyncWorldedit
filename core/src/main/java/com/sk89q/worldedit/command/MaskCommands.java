@@ -1,25 +1,7 @@
 package com.sk89q.worldedit.command;
 
-import com.boydti.fawe.object.mask.AdjacentAnyMask;
-import com.boydti.fawe.object.mask.AdjacentMask;
-import com.boydti.fawe.object.mask.AngleMask;
-import com.boydti.fawe.object.mask.BiomeMask;
-import com.boydti.fawe.object.mask.BlockLightMask;
-import com.boydti.fawe.object.mask.BrightnessMask;
-import com.boydti.fawe.object.mask.DataMask;
-import com.boydti.fawe.object.mask.IdDataMask;
-import com.boydti.fawe.object.mask.IdMask;
-import com.boydti.fawe.object.mask.LightMask;
-import com.boydti.fawe.object.mask.OpacityMask;
-import com.boydti.fawe.object.mask.RadiusMask;
-import com.boydti.fawe.object.mask.RandomMask;
-import com.boydti.fawe.object.mask.SimplexMask;
-import com.boydti.fawe.object.mask.SkyLightMask;
-import com.boydti.fawe.object.mask.SurfaceMask;
-import com.boydti.fawe.object.mask.WallMask;
-import com.boydti.fawe.object.mask.XAxisMask;
-import com.boydti.fawe.object.mask.YAxisMask;
-import com.boydti.fawe.object.mask.ZAxisMask;
+import com.boydti.fawe.FaweCache;
+import com.boydti.fawe.object.mask.*;
 import com.sk89q.minecraft.util.commands.Command;
 import com.sk89q.worldedit.IncompleteRegionException;
 import com.sk89q.worldedit.LocalSession;
@@ -28,16 +10,7 @@ import com.sk89q.worldedit.WorldEdit;
 import com.sk89q.worldedit.blocks.BaseBlock;
 import com.sk89q.worldedit.entity.Player;
 import com.sk89q.worldedit.extent.Extent;
-import com.sk89q.worldedit.function.mask.BlockMask;
-import com.sk89q.worldedit.function.mask.ExistingBlockMask;
-import com.sk89q.worldedit.function.mask.ExpressionMask;
-import com.sk89q.worldedit.function.mask.Mask;
-import com.sk89q.worldedit.function.mask.MaskIntersection;
-import com.sk89q.worldedit.function.mask.MaskUnion;
-import com.sk89q.worldedit.function.mask.Masks;
-import com.sk89q.worldedit.function.mask.OffsetMask;
-import com.sk89q.worldedit.function.mask.RegionMask;
-import com.sk89q.worldedit.function.mask.SolidBlockMask;
+import com.sk89q.worldedit.function.mask.*;
 import com.sk89q.worldedit.internal.expression.Expression;
 import com.sk89q.worldedit.internal.expression.ExpressionException;
 import com.sk89q.worldedit.regions.shape.WorldEditExpressionEnvironment;
@@ -186,6 +159,19 @@ public class MaskCommands extends MethodCommands {
     )
     public Mask solid(Extent extent) {
         return new SolidBlockMask(extent);
+    }
+
+    @Command(
+            aliases = {"#liquid"},
+            desc = "If there is a solid block"
+    )
+    public Mask liquid(Extent extent) {
+        return new ConditionalMask(extent) {
+            @Override
+            public boolean applies(BaseBlock block) {
+                return FaweCache.isLiquid(block.getId());
+            }
+        };
     }
 
     @Command(

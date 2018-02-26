@@ -133,7 +133,7 @@ public class CuboidRegion extends AbstractRegion implements FlatRegion {
     /**
      * Clamps the cuboid according to boundaries of the world.
      */
-    private void recalculate() {
+    protected void recalculate() {
         if (pos1 == null || pos2 == null) {
             return;
         }
@@ -413,6 +413,7 @@ public class CuboidRegion extends AbstractRegion implements FlatRegion {
 //    private int lz = Integer.MIN_VALUE;
 //    private boolean lr, lry, lrz;
 
+    @Override
     public boolean contains(int x, int y, int z) {
         return x >= this.minX && x <= this.maxX && z >= this.minZ && z <= this.maxZ && y >= this.minY && y <= this.maxY;
 //        if (z != lz) {
@@ -429,6 +430,11 @@ public class CuboidRegion extends AbstractRegion implements FlatRegion {
 //            lr = lrz && lry;
 //        }
 //        return lr && (x >= this.minX && x <= this.maxX);
+    }
+
+    @Override
+    public boolean contains(int x, int z) {
+        return x >= this.minX && x <= this.maxX && z >= this.minZ && z <= this.maxZ;
     }
 
     @Override

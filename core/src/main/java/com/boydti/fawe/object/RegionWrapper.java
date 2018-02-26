@@ -1,17 +1,20 @@
 package com.boydti.fawe.object;
 
 import com.sk89q.worldedit.Vector;
+import com.sk89q.worldedit.regions.CuboidRegion;
 
-public class RegionWrapper {
-    public final int minX;
-    public final int maxX;
-    public final int minY;
-    public final int maxY;
-    public final int minZ;
-    public final int maxZ;
+public class RegionWrapper extends CuboidRegion {
+    private final static RegionWrapper GLOBAL = new RegionWrapper(Integer.MIN_VALUE, Integer.MAX_VALUE, Integer.MIN_VALUE, Integer.MAX_VALUE);
+
+    public int minX;
+    public int maxX;
+    public int minY;
+    public int maxY;
+    public int minZ;
+    public int maxZ;
 
     public static RegionWrapper GLOBAL() {
-        return new RegionWrapper(Integer.MIN_VALUE, Integer.MAX_VALUE, Integer.MIN_VALUE, Integer.MAX_VALUE);
+        return GLOBAL;
     }
 
     public RegionWrapper(final int minX, final int maxX, final int minZ, final int maxZ) {
@@ -19,15 +22,24 @@ public class RegionWrapper {
     }
 
     public RegionWrapper(final int minX, final int maxX, final int minY, final int maxY, final int minZ, final int maxZ) {
-        this.maxX = maxX;
-        this.minX = minX;
-        this.maxZ = maxZ;
-        this.minZ = minZ;
-        this.minY = minY;
-        this.maxY = Math.min(255, maxY);
+        this(new Vector(minX, 0, minZ), new Vector(maxX, 255, maxZ));
     }
 
     public RegionWrapper(final Vector pos1, final Vector pos2) {
+        super(pos1, pos2);
+        this.minX = Math.min(pos1.getBlockX(), pos2.getBlockX());
+        this.minZ = Math.min(pos1.getBlockZ(), pos2.getBlockZ());
+        this.maxX = Math.max(pos1.getBlockX(), pos2.getBlockX());
+        this.maxZ = Math.max(pos1.getBlockZ(), pos2.getBlockZ());
+        this.minY = Math.min(pos1.getBlockY(), pos2.getBlockY());
+        this.maxY = Math.max(pos1.getBlockY(), pos2.getBlockY());
+    }
+
+    @Override
+    protected void recalculate() {
+        super.recalculate();
+        Vector pos1 = getMinimumPoint();
+        Vector pos2 = getMaximumPoint();
         this.minX = Math.min(pos1.getBlockX(), pos2.getBlockX());
         this.minZ = Math.min(pos1.getBlockZ(), pos2.getBlockZ());
         this.maxX = Math.max(pos1.getBlockX(), pos2.getBlockX());
@@ -110,14 +122,6 @@ public class RegionWrapper {
     @Override
     public String toString() {
         return this.minX + "," + this.minY + "," + this.minZ + "->" + this.maxX + "," + this.maxY + "," + this.maxZ;
-    }
-
-    public Vector getBottomVector() {
-        return new Vector(this.minX, 1, this.minZ);
-    }
-
-    public Vector getTopVector() {
-        return new Vector(this.maxX, 255, this.maxZ);
     }
 
     public boolean isGlobal() {

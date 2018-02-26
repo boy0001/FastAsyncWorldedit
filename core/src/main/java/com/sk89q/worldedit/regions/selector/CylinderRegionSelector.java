@@ -63,6 +63,11 @@ public class CylinderRegionSelector extends com.sk89q.worldedit.regions.Cylinder
         this((World) null);
     }
 
+    public CylinderRegionSelector(CylinderRegion region) {
+        checkNotNull(region);
+        this.region = region;
+    }
+
     /**
      * Create a new region selector.
      *

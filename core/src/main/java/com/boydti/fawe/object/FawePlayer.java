@@ -9,46 +9,29 @@ import com.boydti.fawe.jnbt.anvil.HeightMapMCAGenerator;
 import com.boydti.fawe.object.clipboard.DiskOptimizedClipboard;
 import com.boydti.fawe.object.exception.FaweException;
 import com.boydti.fawe.regions.FaweMaskManager;
-import com.boydti.fawe.util.EditSessionBuilder;
-import com.boydti.fawe.util.MainUtil;
-import com.boydti.fawe.util.SetQueue;
-import com.boydti.fawe.util.TaskManager;
-import com.boydti.fawe.util.WEManager;
+import com.boydti.fawe.util.*;
 import com.boydti.fawe.wrappers.FakePlayer;
 import com.boydti.fawe.wrappers.LocationMaskedPlayerWrapper;
 import com.boydti.fawe.wrappers.PlayerWrapper;
-import com.sk89q.worldedit.EditSession;
-import com.sk89q.worldedit.EmptyClipboardException;
-import com.sk89q.worldedit.IncompleteRegionException;
-import com.sk89q.worldedit.LocalSession;
+import com.sk89q.worldedit.*;
 import com.sk89q.worldedit.Vector;
-import com.sk89q.worldedit.WorldEdit;
-import com.sk89q.worldedit.WorldEditException;
 import com.sk89q.worldedit.command.tool.BrushTool;
 import com.sk89q.worldedit.command.tool.Tool;
 import com.sk89q.worldedit.entity.Player;
 import com.sk89q.worldedit.event.platform.CommandEvent;
-import com.sk89q.worldedit.extension.platform.Actor;
-import com.sk89q.worldedit.extension.platform.Capability;
-import com.sk89q.worldedit.extension.platform.CommandManager;
-import com.sk89q.worldedit.extension.platform.PlatformManager;
-import com.sk89q.worldedit.extension.platform.PlayerProxy;
+import com.sk89q.worldedit.extension.platform.*;
 import com.sk89q.worldedit.extent.clipboard.Clipboard;
-import com.sk89q.worldedit.regions.Region;
-import com.sk89q.worldedit.regions.RegionOperationException;
-import com.sk89q.worldedit.regions.RegionSelector;
+import com.sk89q.worldedit.regions.*;
+import com.sk89q.worldedit.regions.selector.ConvexPolyhedralRegionSelector;
 import com.sk89q.worldedit.regions.selector.CuboidRegionSelector;
+import com.sk89q.worldedit.regions.selector.CylinderRegionSelector;
 import com.sk89q.worldedit.session.ClipboardHolder;
 import com.sk89q.worldedit.world.World;
 import com.sk89q.worldedit.world.registry.WorldData;
 import java.io.File;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedDeque;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -181,13 +164,9 @@ public abstract class FawePlayer<T> extends Metadatable {
         }
     }
 
-    public void checkAllowedRegion(Region selection) {
-        checkAllowedRegion(new RegionWrapper(selection.getMinimumPoint(), selection.getMaximumPoint()));
-    }
-
-    public void checkAllowedRegion(RegionWrapper wrappedSelection) {
-        RegionWrapper[] allowed = WEManager.IMP.getMask(this, FaweMaskManager.MaskType.OWNER);
-        HashSet<RegionWrapper> allowedSet = new HashSet<>(Arrays.asList(allowed));
+    public void checkAllowedRegion(Region wrappedSelection) {
+        Region[] allowed = WEManager.IMP.getMask(this, FaweMaskManager.MaskType.OWNER);
+        HashSet<Region> allowedSet = new HashSet<>(Arrays.asList(allowed));
         if (allowed.length == 0) {
             throw new FaweException(BBC.WORLDEDIT_CANCEL_REASON_NO_REGION);
         } else if (!WEManager.IMP.regionContains(wrappedSelection, allowedSet)) {
@@ -371,7 +350,7 @@ public abstract class FawePlayer<T> extends Metadatable {
 
     public FaweQueue getMaskedFaweQueue(boolean autoQueue) {
         FaweQueue queue = getFaweQueue(autoQueue);
-        RegionWrapper[] allowedRegions = getCurrentRegions();
+        Region[] allowedRegions = getCurrentRegions();
         if (allowedRegions.length == 1 && allowedRegions[0].isGlobal()) {
             return queue;
         }
@@ -507,11 +486,13 @@ public abstract class FawePlayer<T> extends Metadatable {
      *
      * @return
      */
-    public RegionWrapper[] getCurrentRegions() {
+    @Deprecated
+    public Region[] getCurrentRegions() {
         return WEManager.IMP.getMask(this);
     }
 
-    public RegionWrapper[] getCurrentRegions(FaweMaskManager.MaskType type) {
+    @Deprecated
+    public Region[] getCurrentRegions(FaweMaskManager.MaskType type) {
         return WEManager.IMP.getMask(this, type);
     }
 
@@ -520,11 +501,34 @@ public abstract class FawePlayer<T> extends Metadatable {
      *
      * @param region
      */
+    @Deprecated
     public void setSelection(final RegionWrapper region) {
         final Player player = this.getPlayer();
-        Vector top = region.getTopVector();
+        Vector top = region.getMaximumPoint();
         top.mutY(getWorld().getMaxY());
-        final RegionSelector selector = new CuboidRegionSelector(player.getWorld(), region.getBottomVector(), top);
+        final RegionSelector selector = new CuboidRegionSelector(player.getWorld(), region.getMinimumPoint(), top);
+        this.getSession().setRegionSelector(player.getWorld(), selector);
+    }
+
+    public void setSelection(Region region) {
+        RegionSelector selector;
+        switch (region.getClass().getName()) {
+            case "ConvexPolyhedralRegion":
+                selector = new ConvexPolyhedralRegionSelector((ConvexPolyhedralRegion) region);
+                break;
+            case "CylinderRegion":
+                selector = new CylinderRegionSelector((CylinderRegion) region);
+                break;
+            case "Polygonal2DRegion":
+                selector = new com.sk89q.worldedit.regions.selector.Polygonal2DRegionSelector((Polygonal2DRegion) region);
+                break;
+            default:
+                selector = new CuboidRegionSelector(null, region.getMinimumPoint(), region.getMaximumPoint());
+                break;
+        }
+        selector.setWorld(region.getWorld());
+
+        final Player player = this.getPlayer();
         this.getSession().setRegionSelector(player.getWorld(), selector);
     }
 
@@ -542,11 +546,11 @@ public abstract class FawePlayer<T> extends Metadatable {
      *
      * @return
      */
-    public RegionWrapper getLargestRegion() {
+    public Region getLargestRegion() {
         int area = 0;
-        RegionWrapper max = null;
-        for (final RegionWrapper region : this.getCurrentRegions()) {
-            final int tmp = (region.maxX - region.minX) * (region.maxZ - region.minZ);
+        Region max = null;
+        for (final Region region : this.getCurrentRegions()) {
+            final int tmp = region.getArea();
             if (tmp > area) {
                 area = tmp;
                 max = region;

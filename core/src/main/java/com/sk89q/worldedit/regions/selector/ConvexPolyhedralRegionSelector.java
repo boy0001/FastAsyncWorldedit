@@ -70,6 +70,11 @@ public class ConvexPolyhedralRegionSelector extends com.sk89q.worldedit.regions.
         region = new ConvexPolyhedralRegion(world);
     }
 
+    public ConvexPolyhedralRegionSelector(ConvexPolyhedralRegion region) {
+        checkNotNull(region);
+        this.region = region;
+    }
+
     /**
      * Create a new selector.
      *

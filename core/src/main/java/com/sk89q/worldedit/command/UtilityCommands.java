@@ -157,7 +157,7 @@ public class UtilityCommands extends MethodCommands {
 
     @Command(
             aliases = {"/fill"},
-            usage = "<pattern> <radius> [depth]",
+            usage = "<pattern> <radius> [depth] [direction]",
             desc = "Fill a hole",
             min = 2,
             max = 4

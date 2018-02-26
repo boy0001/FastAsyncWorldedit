@@ -267,7 +267,7 @@ public class FaweAPI {
      * @param player
      * @return
      */
-    public static RegionWrapper[] getRegions(FawePlayer player) {
+    public static Region[] getRegions(FawePlayer player) {
         return WEManager.IMP.getMask(player);
     }
 

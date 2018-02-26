@@ -9,12 +9,13 @@ import com.boydti.fawe.object.exception.FaweException;
 import com.boydti.fawe.object.extent.NullExtent;
 import com.boydti.fawe.regions.FaweMask;
 import com.boydti.fawe.regions.FaweMaskManager;
+import com.sk89q.worldedit.Vector;
 import com.sk89q.worldedit.WorldEditException;
 import com.sk89q.worldedit.extent.AbstractDelegateExtent;
 import com.sk89q.worldedit.extent.Extent;
+import com.sk89q.worldedit.regions.Region;
 import java.lang.reflect.Field;
 import java.util.ArrayDeque;
-import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -68,15 +69,13 @@ public class WEManager {
     }
 
     @Deprecated
-    public RegionWrapper[] getMask(final FawePlayer<?> player) {
+    public Region[] getMask(final FawePlayer<?> player) {
         return getMask(player, FaweMaskManager.MaskType.MEMBER);
     }
 
-    public boolean isIn(int x, int y, int z, Collection<RegionWrapper> regions) {
-        for (RegionWrapper region : regions) {
-            if (region.isIn(x, y, z)) {
-                return true;
-            }
+    public boolean isIn(int x, int y, int z, Region region) {
+        if (region.contains(x, y, z)) {
+            return true;
         }
         return false;
     }
@@ -87,9 +86,9 @@ public class WEManager {
      * @param player
      * @return
      */
-    public RegionWrapper[] getMask(final FawePlayer<?> player, FaweMaskManager.MaskType type) {
+    public Region[] getMask(final FawePlayer<?> player, FaweMaskManager.MaskType type) {
         if (!Settings.IMP.REGION_RESTRICTIONS || player.hasPermission("fawe.bypass") || player.hasPermission("fawe.bypass.regions")) {
-            return new RegionWrapper[]{RegionWrapper.GLOBAL()};
+            return new Region[]{RegionWrapper.GLOBAL()};
         }
         FaweLocation loc = player.getLocation();
         String world = loc.world;
@@ -99,7 +98,7 @@ public class WEManager {
         }
         player.setMeta("lastMaskWorld", world);
         Set<FaweMask> masks = player.getMeta("lastMask");
-        HashSet<RegionWrapper> regions = new HashSet<>();
+        HashSet<Region> regions = new HashSet<>();
         if (masks == null) {
             masks = new HashSet<>();
         } else {
@@ -108,18 +107,15 @@ public class WEManager {
                 removed = true;
             } else {
                 for (FaweMask mask : masks) {
-                    HashSet<RegionWrapper> curRegions = mask.getRegions();
-                    for (RegionWrapper region : curRegions) {
-                        if (!isIn(loc.x, loc.y, loc.z, curRegions)) {
-                            removed = true;
-                            break;
-                        }
+                    Region region = mask.getRegion();
+                    if (!region.contains(loc.x, loc.y, loc.z)) {
+                        removed = true;
                     }
                     if (!mask.isValid(player, type)) {
                         removed = true;
                         break;
                     }
-                    regions.addAll(curRegions);
+                    regions.add(region);
                 }
             }
             if (removed) {
@@ -132,11 +128,10 @@ public class WEManager {
         for (final FaweMaskManager manager : managers) {
             if (player.hasPermission("fawe." + manager.getKey())) {
                 try {
-                    final FaweMask fm = manager.getMask(player);
-                    if (fm != null) {
-                        HashSet<RegionWrapper> cur = fm.getRegions();
-                        regions.addAll(cur);
-                        masks.add(fm);
+                    final FaweMask mask = manager.getMask(player, FaweMaskManager.MaskType.MEMBER);
+                    if (mask != null) {
+                        regions.add(mask.getRegion());
+                        masks.add(mask);
                     }
                 } catch (Throwable e) {
                     e.printStackTrace();
@@ -152,12 +147,17 @@ public class WEManager {
     }
 
 
-    public boolean intersects(final RegionWrapper region1, final RegionWrapper region2) {
-        return (region1.minX <= region2.maxX) && (region1.maxX >= region2.minX) && (region1.minZ <= region2.maxZ) && (region1.maxZ >= region2.minZ);
+    public boolean intersects(final Region region1, final Region region2) {
+        Vector rg1P1 = region1.getMinimumPoint();
+        Vector rg1P2 = region1.getMaximumPoint();
+        Vector rg2P1 = region2.getMinimumPoint();
+        Vector rg2P2 = region2.getMaximumPoint();
+
+        return (rg1P1.getBlockX() <= rg2P2.getBlockX()) && (rg1P2.getBlockX() >= rg2P1.getBlockX()) && (rg1P1.getBlockZ() <= rg2P2.getBlockZ()) && (rg1P2.getBlockZ() >= rg2P1.getBlockZ());
     }
 
-    public boolean regionContains(final RegionWrapper selection, final HashSet<RegionWrapper> mask) {
-        for (final RegionWrapper region : mask) {
+    public boolean regionContains(final Region selection, final HashSet<Region> mask) {
+        for (final Region region : mask) {
             if (this.intersects(region, selection)) {
                 return true;
             }

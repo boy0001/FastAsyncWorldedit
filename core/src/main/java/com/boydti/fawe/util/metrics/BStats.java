@@ -52,7 +52,7 @@ public class BStats implements Closeable {
     private Gson gson = new Gson();
 
     // Is bStats enabled on this server?
-    private boolean enabled;
+    private volatile boolean enabled;
 
     // The uuid of the server
     private UUID serverUUID;

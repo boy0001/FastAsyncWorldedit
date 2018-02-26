@@ -3,11 +3,22 @@ package com.boydti.fawe.bukkit.regions;
 import com.boydti.fawe.bukkit.FaweBukkit;
 import com.boydti.fawe.bukkit.filter.WorldGuardFilter;
 import com.boydti.fawe.object.FawePlayer;
+import com.boydti.fawe.object.RegionWrapper;
+import com.boydti.fawe.regions.FaweMask;
 import com.boydti.fawe.regions.general.RegionFilter;
+import com.sk89q.worldedit.BlockVector;
+import com.sk89q.worldedit.Vector;
+import com.sk89q.worldedit.regions.AbstractRegion;
+import com.sk89q.worldedit.regions.CuboidRegion;
+import com.sk89q.worldedit.regions.Polygonal2DRegion;
+import com.sk89q.worldedit.regions.Region;
 import com.sk89q.worldguard.LocalPlayer;
 import com.sk89q.worldguard.bukkit.WorldGuardPlugin;
 import com.sk89q.worldguard.protection.ApplicableRegionSet;
 import com.sk89q.worldguard.protection.managers.RegionManager;
+import com.sk89q.worldguard.protection.regions.GlobalProtectedRegion;
+import com.sk89q.worldguard.protection.regions.ProtectedCuboidRegion;
+import com.sk89q.worldguard.protection.regions.ProtectedPolygonalRegion;
 import com.sk89q.worldguard.protection.regions.ProtectedRegion;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
@@ -81,7 +92,7 @@ public class Worldguard extends BukkitMaskManager implements Listener {
     }
 
     @Override
-    public BukkitMask getMask(final FawePlayer<Player> fp) {
+    public FaweMask getMask(FawePlayer<Player> fp, MaskType type) {
         final Player player = fp.parent;
         final com.sk89q.worldguard.LocalPlayer localplayer = this.worldguard.wrapPlayer(player);
         final Location location = player.getLocation();
@@ -93,8 +104,17 @@ public class Worldguard extends BukkitMaskManager implements Listener {
                 pos1 = new Location(location.getWorld(), Integer.MIN_VALUE, 0, Integer.MIN_VALUE);
                 pos2 = new Location(location.getWorld(), Integer.MAX_VALUE, 255, Integer.MAX_VALUE);
             } else {
-                pos1 = new Location(location.getWorld(), myregion.getMinimumPoint().getBlockX(), myregion.getMinimumPoint().getBlockY(), myregion.getMinimumPoint().getBlockZ());
-                pos2 = new Location(location.getWorld(), myregion.getMaximumPoint().getBlockX(), myregion.getMaximumPoint().getBlockY(), myregion.getMaximumPoint().getBlockZ());
+                if (myregion instanceof ProtectedCuboidRegion) {
+                    pos1 = new Location(location.getWorld(), myregion.getMinimumPoint().getBlockX(), myregion.getMinimumPoint().getBlockY(), myregion.getMinimumPoint().getBlockZ());
+                    pos2 = new Location(location.getWorld(), myregion.getMaximumPoint().getBlockX(), myregion.getMaximumPoint().getBlockY(), myregion.getMaximumPoint().getBlockZ());
+                } else {
+                    return new FaweMask(adapt(myregion), myregion.getId()) {
+                        @Override
+                        public boolean isValid(FawePlayer player, MaskType type) {
+                            return isAllowed(worldguard.wrapPlayer((Player) player.parent), myregion);
+                        }
+                    };
+                }
             }
             return new BukkitMask(pos1, pos2) {
                 @Override
@@ -115,5 +135,55 @@ public class Worldguard extends BukkitMaskManager implements Listener {
     @Override
     public RegionFilter getFilter(String world) {
         return new WorldGuardFilter(Bukkit.getWorld(world));
+    }
+
+    private static class AdaptedRegion extends AbstractRegion {
+        private final ProtectedRegion region;
+
+        public AdaptedRegion(ProtectedRegion region) {
+            super(null);
+            this.region = region;
+        }
+
+        @Override
+        public Vector getMinimumPoint() {
+            return region.getMinimumPoint();
+        }
+
+        @Override
+        public Vector getMaximumPoint() {
+            return region.getMaximumPoint();
+        }
+
+        @Override
+        public void expand(Vector... changes) {
+            throw new UnsupportedOperationException("Region is immutable");
+        }
+
+        @Override
+        public void contract(Vector... changes) {
+            throw new UnsupportedOperationException("Region is immutable");
+        }
+
+        @Override
+        public boolean contains(Vector position) {
+            return region.contains(position);
+        }
+    }
+
+    private static Region adapt(ProtectedRegion region) {
+        if (region instanceof ProtectedCuboidRegion) {
+            return new CuboidRegion(region.getMinimumPoint(), region.getMaximumPoint());
+        }
+        if (region instanceof GlobalProtectedRegion) {
+            return RegionWrapper.GLOBAL();
+        }
+        if (region instanceof ProtectedPolygonalRegion) {
+            ProtectedPolygonalRegion casted = (ProtectedPolygonalRegion) region;
+            BlockVector max = region.getMaximumPoint();
+            BlockVector min = region.getMinimumPoint();
+            return new Polygonal2DRegion(null, casted.getPoints(), min.getBlockY(), max.getBlockY());
+        }
+        return new AdaptedRegion(region);
     }
 }

@@ -12,6 +12,7 @@ import com.boydti.fawe.util.MainUtil;
 import com.sk89q.jnbt.NBTInputStream;
 import com.sk89q.jnbt.NBTOutputStream;
 import com.sk89q.worldedit.EditSession;
+import com.sk89q.worldedit.regions.Region;
 import com.sk89q.worldedit.world.World;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import java.io.DataOutput;
@@ -136,7 +137,7 @@ public class DiskStorageHistory extends FaweStreamChangeSet {
         enttFile.delete();
     }
 
-    public void undo(FawePlayer fp, RegionWrapper[] regions) {
+    public void undo(FawePlayer fp, Region[] regions) {
         EditSession session = toEditSession(fp, regions);
         session.undo(session);
         deleteFiles();

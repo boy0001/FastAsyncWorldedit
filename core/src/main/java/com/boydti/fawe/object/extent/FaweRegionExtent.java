@@ -2,7 +2,6 @@ package com.boydti.fawe.object.extent;
 
 import com.boydti.fawe.config.BBC;
 import com.boydti.fawe.object.FaweLimit;
-import com.boydti.fawe.object.RegionWrapper;
 import com.boydti.fawe.util.WEManager;
 import com.sk89q.worldedit.EditSession;
 import com.sk89q.worldedit.Vector;
@@ -12,6 +11,7 @@ import com.sk89q.worldedit.blocks.BaseBlock;
 import com.sk89q.worldedit.entity.BaseEntity;
 import com.sk89q.worldedit.entity.Entity;
 import com.sk89q.worldedit.extent.Extent;
+import com.sk89q.worldedit.regions.Region;
 import com.sk89q.worldedit.util.Location;
 import com.sk89q.worldedit.world.biome.BaseBiome;
 import java.util.Collection;
@@ -34,10 +34,10 @@ public abstract class FaweRegionExtent extends ResettableExtent {
 
     public abstract boolean contains(int x, int z);
 
-    public abstract Collection<RegionWrapper> getRegions();
+    public abstract Collection<Region> getRegions();
 
     public boolean isGlobal() {
-        for (RegionWrapper region : getRegions()) {
+        for (Region region : getRegions()) {
             if (region.isGlobal()) {
                 return true;
             }

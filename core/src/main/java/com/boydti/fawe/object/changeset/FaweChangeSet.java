@@ -7,7 +7,6 @@ import com.boydti.fawe.config.Settings;
 import com.boydti.fawe.object.FaweChunk;
 import com.boydti.fawe.object.FawePlayer;
 import com.boydti.fawe.object.FaweQueue;
-import com.boydti.fawe.object.RegionWrapper;
 import com.boydti.fawe.object.RunnableVal2;
 import com.boydti.fawe.util.EditSessionBuilder;
 import com.boydti.fawe.util.MainUtil;
@@ -23,6 +22,7 @@ import com.sk89q.worldedit.history.change.Change;
 import com.sk89q.worldedit.history.change.EntityCreate;
 import com.sk89q.worldedit.history.change.EntityRemove;
 import com.sk89q.worldedit.history.changeset.ChangeSet;
+import com.sk89q.worldedit.regions.Region;
 import com.sk89q.worldedit.world.World;
 import com.sk89q.worldedit.world.biome.BaseBiome;
 import java.util.Iterator;
@@ -151,7 +151,7 @@ public abstract class FaweChangeSet implements ChangeSet {
         return toEditSession(player, null);
     }
 
-    public EditSession toEditSession(FawePlayer player, RegionWrapper[] regions) {
+    public EditSession toEditSession(FawePlayer player, Region[] regions) {
         EditSessionBuilder builder = new EditSessionBuilder(getWorld()).player(player).autoQueue(false).fastmode(false).checkMemory(false).changeSet(this).limitUnlimited();
         if (regions != null) {
             builder.allowedRegions(regions);

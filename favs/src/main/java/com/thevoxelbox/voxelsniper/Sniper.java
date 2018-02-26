@@ -30,12 +30,7 @@ import com.boydti.fawe.bukkit.wrapper.AsyncWorld;
 import com.boydti.fawe.config.BBC;
 import com.boydti.fawe.config.Settings;
 import com.boydti.fawe.logging.LoggingChangeSet;
-import com.boydti.fawe.object.ChangeSetFaweQueue;
-import com.boydti.fawe.object.FawePlayer;
-import com.boydti.fawe.object.FaweQueue;
-import com.boydti.fawe.object.MaskedFaweQueue;
-import com.boydti.fawe.object.RegionWrapper;
-import com.boydti.fawe.object.RunnableVal;
+import com.boydti.fawe.object.*;
 import com.boydti.fawe.object.changeset.FaweChangeSet;
 import com.boydti.fawe.object.extent.ResettableExtent;
 import com.boydti.fawe.object.extent.SourceMaskExtent;
@@ -45,11 +40,7 @@ import com.boydti.fawe.util.SetQueue;
 import com.boydti.fawe.util.TaskManager;
 import com.boydti.fawe.util.WEManager;
 import com.google.common.base.Preconditions;
-import com.google.common.collect.BiMap;
-import com.google.common.collect.ClassToInstanceMap;
-import com.google.common.collect.HashBiMap;
-import com.google.common.collect.ImmutableBiMap;
-import com.google.common.collect.MutableClassToInstanceMap;
+import com.google.common.collect.*;
 import com.sk89q.worldedit.EditSession;
 import com.sk89q.worldedit.LocalSession;
 import com.sk89q.worldedit.extent.MaskingExtent;
@@ -83,6 +74,8 @@ public class Sniper {
     private Map<String, SniperTool> tools = new HashMap<>();
 
     public Sniper(VoxelSniper plugin, Player player) {
+        Preconditions.checkNotNull(plugin);
+        Preconditions.checkNotNull(player);
         this.plugin = plugin;
         this.player = player.getUniqueId();
         SniperTool sniperTool = new SniperTool(this);
@@ -554,6 +547,8 @@ public class Sniper {
         }
 
         private SniperTool(Class<? extends IBrush> currentBrush, SnipeData snipeData) {
+            Preconditions.checkNotNull(currentBrush);
+            Preconditions.checkNotNull(snipeData);
             this.snipeData = snipeData;
             messageHelper = new Message(snipeData);
             snipeData.setVoxelMessage(messageHelper);

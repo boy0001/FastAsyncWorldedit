@@ -30,44 +30,18 @@ import com.boydti.fawe.jnbt.anvil.MCAQueue;
 import com.boydti.fawe.jnbt.anvil.MCAWorld;
 import com.boydti.fawe.logging.LoggingChangeSet;
 import com.boydti.fawe.logging.rollback.RollbackOptimizedHistory;
-import com.boydti.fawe.object.FaweLimit;
-import com.boydti.fawe.object.FawePlayer;
-import com.boydti.fawe.object.FaweQueue;
-import com.boydti.fawe.object.HasFaweQueue;
-import com.boydti.fawe.object.HistoryExtent;
-import com.boydti.fawe.object.NullChangeSet;
-import com.boydti.fawe.object.RegionWrapper;
-import com.boydti.fawe.object.RunnableVal;
-import com.boydti.fawe.object.changeset.BlockBagChangeSet;
-import com.boydti.fawe.object.changeset.CPUOptimizedChangeSet;
-import com.boydti.fawe.object.changeset.DiskStorageHistory;
-import com.boydti.fawe.object.changeset.FaweChangeSet;
-import com.boydti.fawe.object.changeset.MemoryOptimizedHistory;
+import com.boydti.fawe.object.*;
+import com.boydti.fawe.object.changeset.*;
 import com.boydti.fawe.object.clipboard.WorldCopyClipboard;
 import com.boydti.fawe.object.collection.LocalBlockVectorSet;
 import com.boydti.fawe.object.exception.FaweException;
-import com.boydti.fawe.object.extent.FastWorldEditExtent;
-import com.boydti.fawe.object.extent.FaweRegionExtent;
-import com.boydti.fawe.object.extent.HeightBoundExtent;
-import com.boydti.fawe.object.extent.MultiRegionExtent;
-import com.boydti.fawe.object.extent.NullExtent;
-import com.boydti.fawe.object.extent.ProcessedWEExtent;
-import com.boydti.fawe.object.extent.ResettableExtent;
-import com.boydti.fawe.object.extent.SingleRegionExtent;
-import com.boydti.fawe.object.extent.SlowExtent;
-import com.boydti.fawe.object.extent.SourceMaskExtent;
+import com.boydti.fawe.object.extent.*;
 import com.boydti.fawe.object.function.SurfaceRegionFunction;
 import com.boydti.fawe.object.mask.ResettableMask;
 import com.boydti.fawe.object.pattern.ExistingPattern;
 import com.boydti.fawe.object.progress.ChatProgressTracker;
 import com.boydti.fawe.object.progress.DefaultProgressTracker;
-import com.boydti.fawe.util.ExtentTraverser;
-import com.boydti.fawe.util.MaskTraverser;
-import com.boydti.fawe.util.MathMan;
-import com.boydti.fawe.util.MemUtil;
-import com.boydti.fawe.util.Perm;
-import com.boydti.fawe.util.SetQueue;
-import com.boydti.fawe.util.TaskManager;
+import com.boydti.fawe.util.*;
 import com.boydti.fawe.wrappers.WorldWrapper;
 import com.sk89q.jnbt.CompoundTag;
 import com.sk89q.worldedit.blocks.BaseBlock;
@@ -91,27 +65,13 @@ import com.sk89q.worldedit.function.RegionMaskingFilter;
 import com.sk89q.worldedit.function.block.BlockReplace;
 import com.sk89q.worldedit.function.block.Naturalizer;
 import com.sk89q.worldedit.function.generator.GardenPatchGenerator;
-import com.sk89q.worldedit.function.mask.BlockMask;
-import com.sk89q.worldedit.function.mask.BoundedHeightMask;
-import com.sk89q.worldedit.function.mask.ExistingBlockMask;
-import com.sk89q.worldedit.function.mask.FuzzyBlockMask;
-import com.sk89q.worldedit.function.mask.Mask;
-import com.sk89q.worldedit.function.mask.MaskIntersection;
-import com.sk89q.worldedit.function.mask.Masks;
-import com.sk89q.worldedit.function.mask.NoiseFilter2D;
-import com.sk89q.worldedit.function.mask.RegionMask;
+import com.sk89q.worldedit.function.mask.*;
 import com.sk89q.worldedit.function.operation.ChangeSetExecutor;
 import com.sk89q.worldedit.function.operation.ForwardExtentCopy;
 import com.sk89q.worldedit.function.operation.Operations;
 import com.sk89q.worldedit.function.pattern.BlockPattern;
 import com.sk89q.worldedit.function.util.RegionOffset;
-import com.sk89q.worldedit.function.visitor.DirectionalVisitor;
-import com.sk89q.worldedit.function.visitor.DownwardVisitor;
-import com.sk89q.worldedit.function.visitor.FlatRegionVisitor;
-import com.sk89q.worldedit.function.visitor.LayerVisitor;
-import com.sk89q.worldedit.function.visitor.NonRisingVisitor;
-import com.sk89q.worldedit.function.visitor.RecursiveVisitor;
-import com.sk89q.worldedit.function.visitor.RegionVisitor;
+import com.sk89q.worldedit.function.visitor.*;
 import com.sk89q.worldedit.history.UndoContext;
 import com.sk89q.worldedit.history.change.BlockChange;
 import com.sk89q.worldedit.history.changeset.ChangeSet;
@@ -124,11 +84,7 @@ import com.sk89q.worldedit.math.interpolation.Node;
 import com.sk89q.worldedit.math.noise.RandomNoise;
 import com.sk89q.worldedit.math.transform.AffineTransform;
 import com.sk89q.worldedit.patterns.Pattern;
-import com.sk89q.worldedit.regions.CuboidRegion;
-import com.sk89q.worldedit.regions.EllipsoidRegion;
-import com.sk89q.worldedit.regions.FlatRegion;
-import com.sk89q.worldedit.regions.Region;
-import com.sk89q.worldedit.regions.Regions;
+import com.sk89q.worldedit.regions.*;
 import com.sk89q.worldedit.regions.shape.ArbitraryBiomeShape;
 import com.sk89q.worldedit.regions.shape.ArbitraryShape;
 import com.sk89q.worldedit.regions.shape.RegionShape;
@@ -140,15 +96,7 @@ import com.sk89q.worldedit.world.SimpleWorld;
 import com.sk89q.worldedit.world.World;
 import com.sk89q.worldedit.world.biome.BaseBiome;
 import com.sk89q.worldedit.world.registry.WorldData;
-import java.util.ArrayDeque;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
@@ -213,7 +161,12 @@ public class EditSession extends AbstractDelegateExtent implements HasFaweQueue,
         this(null, world, queue, player, limit, changeSet, allowedRegions, autoQueue, fastmode, checkMemory, combineStages, blockBag, bus, event);
     }
 
+    @Deprecated
     public EditSession(@Nullable String worldName, @Nullable World world, @Nullable FaweQueue queue, @Nullable FawePlayer player, @Nullable FaweLimit limit, @Nullable FaweChangeSet changeSet, @Nullable RegionWrapper[] allowedRegions, @Nullable Boolean autoQueue, @Nullable Boolean fastmode, @Nullable Boolean checkMemory, @Nullable Boolean combineStages, @Nullable BlockBag blockBag, @Nullable EventBus bus, @Nullable EditSessionEvent event) {
+        this(worldName, world, queue, player, limit, changeSet, (Region[]) allowedRegions, autoQueue, fastmode, checkMemory, combineStages, blockBag, bus, event);
+    }
+
+    public EditSession(@Nullable String worldName, @Nullable World world, @Nullable FaweQueue queue, @Nullable FawePlayer player, @Nullable FaweLimit limit, @Nullable FaweChangeSet changeSet, @Nullable Region[] allowedRegions, @Nullable Boolean autoQueue, @Nullable Boolean fastmode, @Nullable Boolean checkMemory, @Nullable Boolean combineStages, @Nullable BlockBag blockBag, @Nullable EventBus bus, @Nullable EditSessionEvent event) {
         super(world);
         this.worldName = worldName == null ? world == null ? queue == null ? "" : queue.getWorldName() : Fawe.imp().getWorldName(world) : worldName;
         if (world == null && this.worldName != null) world = FaweAPI.getWorld(this.worldName);
@@ -355,7 +308,7 @@ public class EditSession extends AbstractDelegateExtent implements HasFaweQueue,
             } else {
                 this.extent = new ProcessedWEExtent(this.extent, this.limit);
                 if (allowedRegions.length == 1) {
-                    RegionWrapper region = allowedRegions[0];
+                    Region region = allowedRegions[0];
                     this.extent = new SingleRegionExtent(this.extent, this.limit, allowedRegions[0]);
                 } else {
                     this.extent = new MultiRegionExtent(this.extent, this.limit, allowedRegions);
@@ -1081,50 +1034,6 @@ public class EditSession extends AbstractDelegateExtent implements HasFaweQueue,
     }
 
     /**
-     * Returns the highest solid 'terrain' block which can occur naturally.
-     *
-     * @param x    the X coordinate
-     * @param z    the Z cooridnate
-     * @param minY minimal height
-     * @param maxY maximal height
-     * @return height of highest block found or 'minY'
-     */
-    public int getHighestTerrainBlock(final int x, final int z, final int minY, final int maxY) {
-        return this.getHighestTerrainBlock(x, z, minY, maxY, false);
-    }
-
-    /**
-     * Returns the highest solid 'terrain' block which can occur naturally.
-     *
-     * @param x           the X coordinate
-     * @param z           the Z coordinate
-     * @param minY        minimal height
-     * @param maxY        maximal height
-     * @param naturalOnly look at natural blocks or all blocks
-     * @return height of highest block found or 'minY'
-     */
-    public int getHighestTerrainBlock(final int x, final int z, int minY, int maxY, final boolean naturalOnly) {
-        maxY = Math.min(maxY, Math.max(0, maxY));
-        minY = Math.max(0, minY);
-        if (naturalOnly) {
-            for (int y = maxY; y >= minY; --y) {
-                BaseBlock block = getLazyBlock(x, y, z);
-                if (BlockType.isNaturalTerrainBlock(block.getId(), block.getData())) {
-                    return y;
-                }
-            }
-        } else {
-            for (int y = maxY; y >= minY; --y) {
-                BaseBlock block = getLazyBlock(x, y, z);
-                if (!FaweCache.canPassThrough(block.getId(), block.getData())) {
-                    return y;
-                }
-            }
-        }
-        return minY;
-    }
-
-    /**
      * Set a block, bypassing both history and block re-ordering.
      *
      * @param position the position to set the block at
@@ -1667,8 +1576,8 @@ public class EditSession extends AbstractDelegateExtent implements HasFaweQueue,
             Vector pos1 = region.getMinimumPoint();
             Vector pos2 = region.getMaximumPoint();
             boolean contains = false;
-            for (RegionWrapper current : regionExtent.getRegions()) {
-                if (current.isIn((int) pos1.getX(), pos1.getBlockY(), pos1.getBlockZ()) && current.isIn(pos2.getBlockX(), pos2.getBlockY(), pos2.getBlockZ())) {
+            for (Region current : regionExtent.getRegions()) {
+                if (current.contains((int) pos1.getX(), pos1.getBlockY(), pos1.getBlockZ()) && current.contains(pos2.getBlockX(), pos2.getBlockY(), pos2.getBlockZ())) {
                     contains = true;
                     break;
                 }

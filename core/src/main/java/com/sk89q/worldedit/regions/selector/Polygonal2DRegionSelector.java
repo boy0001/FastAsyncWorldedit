@@ -68,6 +68,11 @@ public class Polygonal2DRegionSelector extends com.sk89q.worldedit.regions.Polyg
         region = new Polygonal2DRegion(world);
     }
 
+
+    public Polygonal2DRegionSelector(Polygonal2DRegion region) {
+        this.region = region;
+    }
+
     /**
      * Create a new selector from another one.
      *

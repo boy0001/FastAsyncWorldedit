@@ -1,15 +1,12 @@
 package com.sk89q.worldedit.extent;
 
 import com.boydti.fawe.FaweCache;
-import com.boydti.fawe.jnbt.anvil.generator.CavesGen;
-import com.boydti.fawe.jnbt.anvil.generator.GenBase;
-import com.boydti.fawe.jnbt.anvil.generator.OreGen;
-import com.boydti.fawe.jnbt.anvil.generator.Resource;
-import com.boydti.fawe.jnbt.anvil.generator.SchemGen;
+import com.boydti.fawe.jnbt.anvil.generator.*;
 import com.boydti.fawe.object.PseudoRandom;
 import com.sk89q.worldedit.*;
 import com.sk89q.worldedit.blocks.BaseBlock;
 import com.sk89q.worldedit.blocks.BlockID;
+import com.sk89q.worldedit.blocks.BlockType;
 import com.sk89q.worldedit.entity.BaseEntity;
 import com.sk89q.worldedit.entity.Entity;
 import com.sk89q.worldedit.function.mask.Mask;
@@ -69,6 +66,50 @@ public interface Extent extends InputExtent, OutputExtent {
 
     default boolean setBiome(int x, int y, int z, BaseBiome biome) {
         return setBiome(MutableBlockVector2D.get(x, z), biome);
+    }
+
+    /**
+     * Returns the highest solid 'terrain' block which can occur naturally.
+     *
+     * @param x    the X coordinate
+     * @param z    the Z cooridnate
+     * @param minY minimal height
+     * @param maxY maximal height
+     * @return height of highest block found or 'minY'
+     */
+    default int getHighestTerrainBlock(final int x, final int z, final int minY, final int maxY) {
+        return this.getHighestTerrainBlock(x, z, minY, maxY, false);
+    }
+
+    /**
+     * Returns the highest solid 'terrain' block which can occur naturally.
+     *
+     * @param x           the X coordinate
+     * @param z           the Z coordinate
+     * @param minY        minimal height
+     * @param maxY        maximal height
+     * @param naturalOnly look at natural blocks or all blocks
+     * @return height of highest block found or 'minY'
+     */
+    default int getHighestTerrainBlock(final int x, final int z, int minY, int maxY, final boolean naturalOnly) {
+        maxY = Math.min(maxY, Math.max(0, maxY));
+        minY = Math.max(0, minY);
+        if (naturalOnly) {
+            for (int y = maxY; y >= minY; --y) {
+                BaseBlock block = getLazyBlock(x, y, z);
+                if (BlockType.isNaturalTerrainBlock(block.getId(), block.getData())) {
+                    return y;
+                }
+            }
+        } else {
+            for (int y = maxY; y >= minY; --y) {
+                BaseBlock block = getLazyBlock(x, y, z);
+                if (!FaweCache.canPassThrough(block.getId(), block.getData())) {
+                    return y;
+                }
+            }
+        }
+        return minY;
     }
 
     default public int getNearestSurfaceLayer(int x, int z, int y, int minY, int maxY) {
