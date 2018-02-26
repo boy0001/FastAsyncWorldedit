@@ -26,31 +26,21 @@ import com.boydti.fawe.bukkit.block.BrushBoundBaseBlock;
 import com.boydti.fawe.config.Settings;
 import com.boydti.fawe.wrappers.WorldWrapper;
 import com.sk89q.util.StringUtil;
-import com.sk89q.worldedit.EditSession;
-import com.sk89q.worldedit.LocalPlayer;
-import com.sk89q.worldedit.LocalWorld;
-import com.sk89q.worldedit.ServerInterface;
-import com.sk89q.worldedit.Vector;
-import com.sk89q.worldedit.WorldEdit;
-import com.sk89q.worldedit.WorldEditException;
-import com.sk89q.worldedit.WorldVector;
-import com.sk89q.worldedit.blocks.BaseBlock;
-import com.sk89q.worldedit.blocks.BlockID;
-import com.sk89q.worldedit.blocks.BlockType;
-import com.sk89q.worldedit.blocks.ItemID;
-import com.sk89q.worldedit.blocks.SkullBlock;
+import com.sk89q.worldedit.*;
+import com.sk89q.worldedit.blocks.*;
 import com.sk89q.worldedit.entity.BaseEntity;
 import com.sk89q.worldedit.extent.inventory.BlockBag;
 import com.sk89q.worldedit.internal.cui.CUIEvent;
 import com.sk89q.worldedit.session.SessionKey;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.UUID;
 import javax.annotation.Nullable;
-import org.bukkit.Bukkit;
-import org.bukkit.DyeColor;
-import org.bukkit.GameMode;
+import org.bukkit.*;
 import org.bukkit.Location;
-import org.bukkit.World;
+import org.bukkit.entity.Item;
 import org.bukkit.entity.Player;
+import org.bukkit.event.player.PlayerDropItemEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
 import org.bukkit.material.Dye;
@@ -141,7 +131,17 @@ public class BukkitPlayer extends LocalPlayer {
         final ItemStack item = player.getItemInHand();
         player.setItemInHand(newItem);
         if (item != null) {
-            inv.addItem(item);
+            HashMap<Integer, ItemStack> overflow = inv.addItem(item);
+            if (overflow != null && !overflow.isEmpty()) {
+                for (Map.Entry<Integer, ItemStack> entry : overflow.entrySet()) {
+                    ItemStack stack = entry.getValue();
+                    Item dropped = player.getWorld().dropItem(player.getLocation(), stack);
+                    PlayerDropItemEvent event = new PlayerDropItemEvent(player, dropped);
+                    if (event.isCancelled()) {
+                        dropped.remove();
+                    }
+                }
+            }
         }
         player.updateInventory();
     }
