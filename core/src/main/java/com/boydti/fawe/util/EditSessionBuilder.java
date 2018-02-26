@@ -148,7 +148,7 @@ public class EditSessionBuilder {
     }
 
     public EditSessionBuilder allowedRegionsEverywhere() {
-        return allowedRegions(new RegionWrapper[]{RegionWrapper.GLOBAL()});
+        return allowedRegions(new Region[]{RegionWrapper.GLOBAL()});
     }
 
     public EditSessionBuilder autoQueue(@Nullable Boolean autoQueue) {

@@ -122,7 +122,7 @@ public class WEManager {
                 masks.clear();
                 regions.clear();
             } else {
-                return regions.toArray(new RegionWrapper[regions.size()]);
+                return regions.toArray(new Region[regions.size()]);
             }
         }
         for (final FaweMaskManager manager : managers) {
@@ -143,7 +143,7 @@ public class WEManager {
         } else {
             player.deleteMeta("lastMask");
         }
-        return regions.toArray(new RegionWrapper[regions.size()]);
+        return regions.toArray(new Region[regions.size()]);
     }
 
 
