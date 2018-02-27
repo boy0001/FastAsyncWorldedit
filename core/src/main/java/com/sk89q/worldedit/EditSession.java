@@ -2770,7 +2770,7 @@ public class EditSession extends AbstractDelegateExtent implements HasFaweQueue,
      * @return the results
      */
     public List<Countable<Integer>> getBlockDistribution(final Region region) {
-        int[] counter = new int[256];
+        int[] counter = new int[4096];
 
         if (region instanceof CuboidRegion) {
             // Doing this for speed
