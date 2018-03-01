@@ -46,6 +46,7 @@ import com.sk89q.worldedit.LocalSession;
 import com.sk89q.worldedit.extent.MaskingExtent;
 import com.sk89q.worldedit.function.mask.Mask;
 import com.sk89q.worldedit.function.mask.Masks;
+import com.sk89q.worldedit.regions.Region;
 import com.sk89q.worldedit.session.request.Request;
 import com.thevoxelbox.voxelsniper.brush.IBrush;
 import com.thevoxelbox.voxelsniper.brush.SnipeBrush;
@@ -186,7 +187,7 @@ public class Sniper {
         World bukkitWorld = bukkitPlayer.getWorld();
 
         FaweQueue baseQueue = fp.getFaweQueue(false);
-        RegionWrapper[] mask = WEManager.IMP.getMask(fp);
+        Region[] mask = WEManager.IMP.getMask(fp);
         if (mask.length == 0) {
             BBC.NO_REGION.send(fp);
             return false;
