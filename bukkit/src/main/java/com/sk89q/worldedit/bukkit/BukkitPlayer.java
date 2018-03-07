@@ -24,6 +24,8 @@ import com.boydti.fawe.FaweCache;
 import com.boydti.fawe.bukkit.FaweBukkit;
 import com.boydti.fawe.bukkit.block.BrushBoundBaseBlock;
 import com.boydti.fawe.config.Settings;
+import com.boydti.fawe.object.RunnableVal;
+import com.boydti.fawe.util.TaskManager;
 import com.boydti.fawe.wrappers.WorldWrapper;
 import com.sk89q.util.StringUtil;
 import com.sk89q.worldedit.*;
@@ -133,14 +135,19 @@ public class BukkitPlayer extends LocalPlayer {
         if (item != null) {
             HashMap<Integer, ItemStack> overflow = inv.addItem(item);
             if (overflow != null && !overflow.isEmpty()) {
-                for (Map.Entry<Integer, ItemStack> entry : overflow.entrySet()) {
-                    ItemStack stack = entry.getValue();
-                    Item dropped = player.getWorld().dropItem(player.getLocation(), stack);
-                    PlayerDropItemEvent event = new PlayerDropItemEvent(player, dropped);
-                    if (event.isCancelled()) {
-                        dropped.remove();
+                TaskManager.IMP.sync(new RunnableVal<Object>() {
+                    @Override
+                    public void run(Object value) {
+                        for (Map.Entry<Integer, ItemStack> entry : overflow.entrySet()) {
+                            ItemStack stack = entry.getValue();
+                            Item dropped = player.getWorld().dropItem(player.getLocation(), stack);
+                            PlayerDropItemEvent event = new PlayerDropItemEvent(player, dropped);
+                            if (event.isCancelled()) {
+                                dropped.remove();
+                            }
+                        }
                     }
-                }
+                });
             }
         }
         player.updateInventory();
