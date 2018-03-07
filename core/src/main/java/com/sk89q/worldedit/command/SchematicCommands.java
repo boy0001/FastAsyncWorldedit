@@ -238,7 +238,7 @@ public class SchematicCommands extends MethodCommands {
                 if (filename.startsWith("#")) {
                     f = player.openFileOpenDialog(new String[] { format.getExtension() });
                     if (!f.exists()) {
-                        player.printError("Schematic " + filename + " does not exist!");
+                        player.printError("Schematic " + filename + " does not exist! (" + f + ")");
                         return;
                     }
                 } else {
@@ -267,7 +267,7 @@ public class SchematicCommands extends MethodCommands {
                     }
                 }
                 if (!f.exists() || !MainUtil.isInSubDirectory(working, f)) {
-                    player.printError("Schematic " + filename + " does not exist!");
+                    player.printError("Schematic " + filename + " does not exist! (" + f.exists() + "|" + f + "|" + (!MainUtil.isInSubDirectory(working, f)) + ")");
                     return;
                 }
                 in = new FileInputStream(f);
