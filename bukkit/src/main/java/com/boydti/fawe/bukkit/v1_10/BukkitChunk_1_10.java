@@ -365,8 +365,8 @@ public class BukkitChunk_1_10 extends CharFaweChunk<Chunk, BukkitQueue_1_10> {
                     net.minecraft.server.v1_10_R1.BlockPosition bp = entry.getKey();
                     net.minecraft.server.v1_10_R1.TileEntity tile = entry.getValue();
                     tiles.remove(bp);
-                    tile.y();
                     nmsWorld.s(bp);
+                    tile.y();
                     tile.invalidateBlockCache();
                 }
 

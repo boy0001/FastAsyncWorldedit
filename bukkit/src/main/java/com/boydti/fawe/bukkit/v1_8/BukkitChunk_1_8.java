@@ -213,8 +213,8 @@ public class BukkitChunk_1_8 extends CharFaweChunk<Chunk, BukkitQueue18R3> {
                     BlockPosition bp = entry.getKey();
                     TileEntity tile = entry.getValue();
                     tiles.remove(bp);
-                    tile.y();
                     nmsWorld.t(bp);
+                    tile.y();
                     tile.E();
                 }
 
