@@ -76,8 +76,13 @@ public class NukkitWorldEdit extends PluginBase {
     @Override
     public void onEnable() {
         try {
+            { // Defaults
+                Settings.IMP.WEB.SHORTEN_URLS = true;
+            }
+
             Fawe.set(new FaweNukkit(this));
             Fawe.setupInjector();
+
             Settings.IMP.HISTORY.COMBINE_STAGES = false;
             logger = Logger.getLogger(NukkitWorldEdit.class.getCanonicalName());
             createDefaultConfiguration("config-basic.yml");

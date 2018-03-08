@@ -19,6 +19,7 @@
 
 package com.sk89q.worldedit.command;
 
+import com.boydti.fawe.Fawe;
 import com.boydti.fawe.FaweAPI;
 import com.boydti.fawe.config.BBC;
 import com.boydti.fawe.config.Settings;
@@ -30,17 +31,12 @@ import com.boydti.fawe.object.exception.FaweException;
 import com.boydti.fawe.object.io.FastByteArrayOutputStream;
 import com.boydti.fawe.object.schematic.Schematic;
 import com.boydti.fawe.util.ImgurUtility;
+import com.boydti.fawe.util.MainUtil;
 import com.boydti.fawe.util.MaskTraverser;
-import com.sk89q.minecraft.util.commands.Command;
-import com.sk89q.minecraft.util.commands.CommandContext;
-import com.sk89q.minecraft.util.commands.CommandException;
-import com.sk89q.minecraft.util.commands.CommandPermissions;
-import com.sk89q.minecraft.util.commands.Logging;
-import com.sk89q.worldedit.EditSession;
-import com.sk89q.worldedit.LocalSession;
-import com.sk89q.worldedit.Vector;
-import com.sk89q.worldedit.WorldEdit;
-import com.sk89q.worldedit.WorldEditException;
+import com.boydti.fawe.util.gui.FormBuilder;
+import com.boydti.fawe.wrappers.FakePlayer;
+import com.sk89q.minecraft.util.commands.*;
+import com.sk89q.worldedit.*;
 import com.sk89q.worldedit.entity.Player;
 import com.sk89q.worldedit.extent.clipboard.BlockArrayClipboard;
 import com.sk89q.worldedit.extent.clipboard.Clipboard;
@@ -65,6 +61,7 @@ import com.sk89q.worldedit.util.command.binding.Switch;
 import com.sk89q.worldedit.util.command.parametric.Optional;
 import java.io.IOException;
 import java.net.URL;
+import java.net.URLEncoder;
 
 
 import static com.sk89q.minecraft.util.commands.Logging.LogMode.PLACEMENT;
@@ -315,7 +312,25 @@ public class ClipboardCommands extends MethodCommands {
         if (url == null) {
             BBC.GENERATING_LINK_FAILED.send(player);
         } else {
-            BBC.DOWNLOAD_LINK.send(player, url);
+            String urlText = url.toString();
+            if (Settings.IMP.WEB.SHORTEN_URLS) {
+                try {
+                    urlText = MainUtil.getText("http://empcraft.com/s/?" + URLEncoder.encode(url.toString(), "UTF-8"));
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+            if (Fawe.imp().getPlatform().equalsIgnoreCase("nukkit")) {
+                FormBuilder form = Fawe.imp().getFormBuilder();
+                FawePlayer<Object> fp = FawePlayer.wrap(player);
+                if (form != null && fp != FakePlayer.getConsole().toFawePlayer()) {
+                    form.setTitle("Download Clipboard");
+                    form.addInput("url:", urlText, urlText);
+                    form.display(fp);
+                    return;
+                }
+            }
+            BBC.DOWNLOAD_LINK.send(player, urlText);
         }
     }
 

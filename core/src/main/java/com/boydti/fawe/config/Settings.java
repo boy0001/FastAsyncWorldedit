@@ -319,6 +319,10 @@ public class Settings extends Config {
 
     public static class WEB {
         @Comment({
+            "Should download urls be shortened?"
+        })
+        public boolean SHORTEN_URLS = false;
+        @Comment({
                 "The web interface for clipboards",
                 " - All schematics are anonymous and private",
                 " - Downloads can be deleted by the user",
