@@ -41,6 +41,8 @@ public class PlotTrimFilter extends DeleteUninhabitedFilter {
 
     public PlotTrimFilter(World world, long fileDuration, long inhabitedTicks, long chunkInactivity) {
         super(fileDuration, inhabitedTicks, chunkInactivity);
+        Fawe.debug("Initializing Plot trim...");
+
         String worldName = Fawe.imp().getWorldName(world);
         PlotArea area = PS.get().getPlotAreaByString(worldName);
         IndependentPlotGenerator gen = area.getGenerator();
@@ -57,6 +59,7 @@ public class PlotTrimFilter extends DeleteUninhabitedFilter {
 
         this.reference = calculateReference();
 
+        Fawe.debug(" - calculating claims");
         this.calculateClaimedArea();
     }
 
@@ -114,6 +117,7 @@ public class PlotTrimFilter extends DeleteUninhabitedFilter {
 
     @Override
     public boolean shouldDelete(File file, BasicFileAttributes attr, int mcaX, int mcaZ) throws IOException {
+        Fawe.debug("Apply file: " + file);
         return !occupiedRegions.containsKey(mcaX, mcaZ) || super.shouldDelete(file, attr, mcaX, mcaZ);
     }
 
