@@ -294,7 +294,10 @@ public class AnvilCommands {
         String folder = Fawe.imp().getWorldName(player.getWorld());
         int visitTime = deleteUnvisited ? 1 : -1;
         PlotTrimFilter filter = new PlotTrimFilter(player.getWorld(), 0, visitTime, 600000);
-        PlotTrimFilter result = runWithWorld(player, folder, filter, true);
+//        PlotTrimFilter result = runWithWorld(player, folder, filter, true);
+        FaweQueue defaultQueue = SetQueue.IMP.getNewQueue(folder, true, false);
+        MCAQueue queue = new MCAQueue(defaultQueue);
+        PlotTrimFilter result = queue.filterWorld(filter);
         if (result != null) player.print(BBC.getPrefix() + BBC.VISITOR_BLOCK.format(result.getTotal()));
     }
 
