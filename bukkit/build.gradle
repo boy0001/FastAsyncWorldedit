@@ -34,6 +34,8 @@ dependencies {
     compile 'org.inventivetalent:mapmanager:1.4.0-SNAPSHOT'
 }
 
+clean { delete "target" }
+
 processResources {
     from('src/main/resources') {
         include 'plugin.yml'

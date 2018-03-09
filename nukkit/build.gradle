@@ -2,6 +2,9 @@ repositories {
     flatDir {dirs 'lib'}
 //    maven {url "https://repo.potestas.xyz/main/"}
 }
+
+clean { delete "target" }
+
 dependencies {
     compile project(':core')
 //    compile 'cn.nukkit:nukkit:1.0-SNAPSHOT'

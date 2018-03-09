@@ -15,6 +15,8 @@ buildscript {
 apply plugin: 'forge'
 apply plugin: 'com.github.johnrengelman.shadow'
 
+clean { delete "target" }
+
 dependencies {
     compile project(':core')
     compile 'com.sk89q.worldedit:worldedit-forge-mc1.7.10:6.1.1-20151030.011615-19'

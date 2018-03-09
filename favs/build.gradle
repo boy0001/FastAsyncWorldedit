@@ -2,6 +2,8 @@ dependencies {
     compile project(':bukkit')
 }
 
+clean { delete "target" }
+
 processResources {
     from('src/main/resources') {
         include 'plugin.yml'
