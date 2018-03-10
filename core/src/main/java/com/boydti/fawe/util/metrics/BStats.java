@@ -92,13 +92,18 @@ public class BStats implements Closeable {
 
         YamlConfiguration config = YamlConfiguration.loadConfiguration(configFile);
 
+        if (config.isSet("serverUuid")) {
+            try {
+                serverUUID = UUID.fromString(config.getString("serverUuid"));
+            } catch (IllegalArgumentException ignore) {}
+        }
         // Check if the config file exists
-        if (!config.isSet("serverUuid")) {
+        if (serverUUID == null) {
 
             // Add default values
             config.addDefault("enabled", true);
             // Every server gets it's unique random id.
-            config.addDefault("serverUuid", UUID.randomUUID().toString());
+            config.addDefault("serverUuid", (serverUUID = UUID.randomUUID()).toString());
             // Should failed request be logged?
             config.addDefault("logFailedRequests", false);
 
@@ -114,8 +119,6 @@ public class BStats implements Closeable {
             } catch (IOException ignored) { }
         }
 
-        // Load the data
-        serverUUID = UUID.fromString(config.getString("serverUuid"));
 
         if (usedMetricsClass != null) {
             // Already an instance of this class
