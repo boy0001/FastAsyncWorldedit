@@ -122,6 +122,16 @@ public abstract class FawePlayer<T> extends Metadatable {
         }
     }
 
+    public void checkConfirmation(String command, int times, int limit) throws RegionOperationException {
+        if (command == null || getMeta("cmdConfirmRunning", false)) {
+            return;
+        }
+        if (times > limit) {
+            setMeta("cmdConfirm", command);
+            throw new RegionOperationException(BBC.WORLDEDIT_CANCEL_REASON_CONFIRM.f(0, times, command));
+        }
+    }
+
     public void checkConfirmationRadius(String command, int radius) throws RegionOperationException {
         if (command == null || getMeta("cmdConfirmRunning", false)) {
             return;

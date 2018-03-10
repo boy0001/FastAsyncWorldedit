@@ -47,16 +47,11 @@ import java.io.File;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicInteger;
 
-
-import static com.google.common.base.Preconditions.checkNotNull;
-
 /**
  * Commands to undo, redo, and clear history.
  */
 @Command(aliases = {}, desc = "Commands to undo, redo, and clear history: [More Info](http://wiki.sk89q.com/wiki/WorldEdit/Features#History)")
-public class HistoryCommands {
-
-    private final WorldEdit worldEdit;
+public class HistoryCommands extends MethodCommands {
 
     /**
      * Create a new instance.
@@ -64,8 +59,7 @@ public class HistoryCommands {
      * @param worldEdit reference to WorldEdit
      */
     public HistoryCommands(WorldEdit worldEdit) {
-        checkNotNull(worldEdit);
-        this.worldEdit = worldEdit;
+        super(worldEdit);
     }
 
     @Command(
@@ -217,17 +211,20 @@ public class HistoryCommands {
             max = 2
     )
     @CommandPermissions("worldedit.history.undo")
-    public void undo(Player player, LocalSession session, CommandContext args) throws WorldEditException {
-        int times = Math.max(1, args.getInteger(0, 1));
+    public void undo(Player player, LocalSession session, CommandContext context) throws WorldEditException {
+        int times = Math.max(1, context.getInteger(0, 1));
+        if (times > 50) {
+            FawePlayer.wrap(player).checkConfirmation(getArguments(context), times, 50);
+        }
         for (int i = 0; i < times; ++i) {
             EditSession undone;
-            if (args.argsLength() < 2) {
+            if (context.argsLength() < 2) {
                 undone = session.undo(session.getBlockBag(player), player);
             } else {
                 player.checkPermission("worldedit.history.undo.other");
-                LocalSession sess = worldEdit.getSession(args.getString(1));
+                LocalSession sess = worldEdit.getSession(context.getString(1));
                 if (sess == null) {
-                    BBC.COMMAND_HISTORY_OTHER_ERROR.send(player, args.getString(1));
+                    BBC.COMMAND_HISTORY_OTHER_ERROR.send(player, context.getString(1));
                     break;
                 }
                 undone = sess.undo(session.getBlockBag(player), player);

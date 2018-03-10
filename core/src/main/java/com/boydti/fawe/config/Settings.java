@@ -319,7 +319,8 @@ public class Settings extends Config {
 
     public static class WEB {
         @Comment({
-            "Should download urls be shortened?"
+            "Should download urls be shortened?",
+             " - Links are less secure as they could be brute forced"
         })
         public boolean SHORTEN_URLS = false;
         @Comment({
