@@ -2005,7 +2005,8 @@ public class EditSession extends AbstractDelegateExtent implements HasFaweQueue,
                 mutable.mutX((position.getX() - displace.getX()));
                 mutable.mutY((position.getY() - displace.getY()));
                 mutable.mutZ((position.getZ() - displace.getZ()));
-                if (region.contains(mutable)) {
+
+                if (copyAir && region.contains(mutable)) {
                     return false;
                 }
                 return super.apply(position);

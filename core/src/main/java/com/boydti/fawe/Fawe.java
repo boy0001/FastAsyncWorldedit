@@ -37,6 +37,7 @@ import com.sk89q.worldedit.extent.clipboard.io.SchematicReader;
 import com.sk89q.worldedit.extent.clipboard.io.SchematicWriter;
 import com.sk89q.worldedit.extent.inventory.BlockBagExtent;
 import com.sk89q.worldedit.extent.transform.BlockTransformExtent;
+import com.sk89q.worldedit.function.CombinedRegionFunction;
 import com.sk89q.worldedit.function.block.BlockReplace;
 import com.sk89q.worldedit.function.block.ExtentBlockCopy;
 import com.sk89q.worldedit.function.entity.ExtentEntityCopy;
@@ -568,6 +569,7 @@ public class Fawe {
             ExtentBlockCopy.inject(); // Optimizations
             BlockReplace.inject(); // Optimizations + Features
             ForwardExtentCopy.inject(); // Fixes + optimizations
+            CombinedRegionFunction.inject(); // Optimizations
             ChangeSetExecutor.inject(); // Optimizations
             // Expression
             ExpressionEnvironment.inject(); // Optimizations + features

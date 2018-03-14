@@ -275,15 +275,15 @@ public class ForwardExtentCopy implements Operation {
                 if (this.filterFunction != null) {
                     copy = new IntersectRegionFunction(filterFunction, copy);
                 }
+                if (sourceFunction != null) {
+                    copy = CombinedRegionFunction.combine(copy, sourceFunction);
+                }
                 if (sourceMask != Masks.alwaysTrue()) {
                     new MaskTraverser(sourceMask).reset(transExt);
                     copy = new RegionMaskingFilter(sourceMask, copy);
                 }
-                if (sourceFunction != null) {
-                    copy = new CombinedRegionFunction(copy, sourceFunction);
-                }
                 if (copyBiomes && (!(source instanceof BlockArrayClipboard) || ((BlockArrayClipboard) source).IMP.hasBiomes())) {
-                    copy = new CombinedRegionFunction(copy, new BiomeCopy(source, finalDest));
+                    copy = CombinedRegionFunction.combine(copy, new BiomeCopy(source, finalDest));
                 }
                 blockCopy = new BackwardsExtentBlockCopy(transExt, region, finalDest, from, transform, copy);
             } else {
@@ -302,10 +302,10 @@ public class ForwardExtentCopy implements Operation {
                 copy = new RegionMaskingFilter(sourceMask, copy);
             }
             if (sourceFunction != null) {
-                copy = new CombinedRegionFunction(copy, sourceFunction);
+                copy = CombinedRegionFunction.combine(copy, sourceFunction);
             }
             if (copyBiomes && (!(source instanceof BlockArrayClipboard) || ((BlockArrayClipboard) source).IMP.hasBiomes())) {
-                copy = new CombinedRegionFunction(copy, new BiomeCopy(source, finalDest));
+                copy = CombinedRegionFunction.combine(copy, new BiomeCopy(source, finalDest));
             }
             blockCopy = new RegionVisitor(region, copy, queue instanceof MappedFaweQueue ? (MappedFaweQueue) queue : null);
         }
