@@ -64,6 +64,9 @@ public class CombinedRegionFunction implements RegionFunction {
         if (function instanceof CombinedRegionFunction) {
             combined = ((CombinedRegionFunction) function);
             combined.add(add);
+        } else if (add instanceof CombinedRegionFunction) {
+            combined = new CombinedRegionFunction(function);
+            combined.add(((CombinedRegionFunction) add).functions);
         } else {
             combined = new CombinedRegionFunction(function, add);
         }

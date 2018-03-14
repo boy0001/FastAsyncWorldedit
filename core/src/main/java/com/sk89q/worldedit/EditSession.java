@@ -1983,7 +1983,7 @@ public class EditSession extends AbstractDelegateExtent implements HasFaweQueue,
         final Vector displace = dir.multiply(distance);
 
         final Vector size = region.getMaximumPoint().subtract(region.getMinimumPoint()).add(1, 1, 1);
-        final Vector to = region.getMinimumPoint();
+        final Vector to = region.getMinimumPoint().add(dir.multiply(distance));
 
         Vector disAbs = displace.positive();
 
@@ -1992,32 +1992,15 @@ public class EditSession extends AbstractDelegateExtent implements HasFaweQueue,
             queue.dequeue();
         }
 
-
         final ForwardExtentCopy copy = new ForwardExtentCopy(EditSession.this, region, EditSession.this, to);
 
         if (replacement == null) replacement = nullBlock;
-        final BlockReplace remove = replacement instanceof ExistingPattern ? null : new BlockReplace(EditSession.this, replacement) {
-            private MutableBlockVector mutable = new MutableBlockVector();
-
-            @Override
-            // Only copy what's necessary
-            public boolean apply(Vector position) throws WorldEditException {
-                mutable.mutX((position.getX() - displace.getX()));
-                mutable.mutY((position.getY() - displace.getY()));
-                mutable.mutZ((position.getZ() - displace.getZ()));
-
-                if (copyAir && region.contains(mutable)) {
-                    return false;
-                }
-                return super.apply(position);
-            }
-        };
+        final BlockReplace remove = replacement instanceof ExistingPattern ? null : new BlockReplace(EditSession.this, replacement);
 
         copy.setCopyBiomes(copyBiomes);
         copy.setCopyEntities(copyEntities);
         copy.setSourceFunction(remove);
         copy.setRepetitions(1);
-        copy.setTransform(new AffineTransform().translate(dir.multiply(distance)));
         Mask sourceMask = getSourceMask();
         if (sourceMask != null) {
             new MaskTraverser(sourceMask).reset(EditSession.this);
