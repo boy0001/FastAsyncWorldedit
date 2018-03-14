@@ -131,7 +131,7 @@ public class WorldEditCommands {
             Updater updater = Fawe.get().getUpdater();
             String changes = updater != null ? updater.getChanges() : null;
             if (changes == null) {
-                try (Scanner scanner = new Scanner(new URL("http://empcraft.com/fawe/cl?" + Integer.toHexString(Fawe.get().getVersion().hash)).openStream(), "UTF-8")) {
+                try (Scanner scanner = new Scanner(new URL("https://empcraft.com/fawe/cl?" + Integer.toHexString(Fawe.get().getVersion().hash)).openStream(), "UTF-8")) {
                     changes = scanner.useDelimiter("\\A").next();
                 }
             }

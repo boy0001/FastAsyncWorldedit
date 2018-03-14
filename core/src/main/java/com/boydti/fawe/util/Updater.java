@@ -16,7 +16,7 @@ public class Updater {
 
     public String getChanges() {
         if (changes == null) {
-            try (Scanner scanner = new Scanner(new URL("http://empcraft.com/fawe/cl?" + Integer.toHexString(Fawe.get().getVersion().hash)).openStream(), "UTF-8")) {
+            try (Scanner scanner = new Scanner(new URL("https://empcraft.com/fawe/cl?" + Integer.toHexString(Fawe.get().getVersion().hash)).openStream(), "UTF-8")) {
                 changes = scanner.useDelimiter("\\A").next();
             } catch (IOException e) {
                 e.printStackTrace();
@@ -36,7 +36,7 @@ public class Updater {
         }
         try {
             String downloadUrl = "https://ci.athion.net/job/FastAsyncWorldEdit/lastSuccessfulBuild/artifact/target/FastAsyncWorldEdit-%platform%-%version%.jar";
-            String versionUrl = "http://empcraft.com/fawe/version.php?%platform%";
+            String versionUrl = "https://empcraft.com/fawe/version.php?%platform%";
             URL url = new URL(versionUrl.replace("%platform%", platform));
             try (Scanner reader = new Scanner(url.openStream())) {
                 String versionString = reader.next();
@@ -63,7 +63,7 @@ public class Updater {
                         }
                         outFile.renameTo(finalFile);
                         Fawe.debug("Updated FAWE to " + versionString);
-                        MainUtil.sendAdmin("&7Restart to update FAWE with these changes: &c/fawe changelog &7or&c " + "http://empcraft.com/fawe/cl?" + Integer.toHexString(currentVersion.hash));
+                        MainUtil.sendAdmin("&7Restart to update FAWE with these changes: &c/fawe changelog &7or&c " + "https://empcraft.com/fawe/cl?" + Integer.toHexString(currentVersion.hash));
                     }
                 }
             }
