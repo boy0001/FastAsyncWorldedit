@@ -4,23 +4,8 @@ import com.boydti.fawe.Fawe;
 import com.boydti.fawe.FaweAPI;
 import com.boydti.fawe.FaweCache;
 import com.boydti.fawe.config.BBC;
-import com.boydti.fawe.jnbt.anvil.MCAClipboard;
-import com.boydti.fawe.jnbt.anvil.MCAFile;
-import com.boydti.fawe.jnbt.anvil.MCAFilter;
-import com.boydti.fawe.jnbt.anvil.MCAFilterCounter;
-import com.boydti.fawe.jnbt.anvil.MCAQueue;
-import com.boydti.fawe.jnbt.anvil.filters.CountFilter;
-import com.boydti.fawe.jnbt.anvil.filters.CountIdFilter;
-import com.boydti.fawe.jnbt.anvil.filters.DeleteOldFilter;
-import com.boydti.fawe.jnbt.anvil.filters.DeleteUnclaimedFilter;
-import com.boydti.fawe.jnbt.anvil.filters.DeleteUninhabitedFilter;
-import com.boydti.fawe.jnbt.anvil.filters.MappedReplacePatternFilter;
-import com.boydti.fawe.jnbt.anvil.filters.PlotTrimFilter;
-import com.boydti.fawe.jnbt.anvil.filters.RemapFilter;
-import com.boydti.fawe.jnbt.anvil.filters.RemoveLayerFilter;
-import com.boydti.fawe.jnbt.anvil.filters.ReplacePatternFilter;
-import com.boydti.fawe.jnbt.anvil.filters.ReplaceSimpleFilter;
-import com.boydti.fawe.jnbt.anvil.filters.TrimAirFilter;
+import com.boydti.fawe.jnbt.anvil.*;
+import com.boydti.fawe.jnbt.anvil.filters.*;
 import com.boydti.fawe.jnbt.anvil.history.IAnvilHistory;
 import com.boydti.fawe.jnbt.anvil.history.NullAnvilHistory;
 import com.boydti.fawe.object.FawePlayer;
@@ -35,11 +20,8 @@ import com.boydti.fawe.util.SetQueue;
 import com.boydti.fawe.util.StringMan;
 import com.sk89q.minecraft.util.commands.Command;
 import com.sk89q.minecraft.util.commands.CommandPermissions;
-import com.sk89q.worldedit.EditSession;
-import com.sk89q.worldedit.LocalSession;
+import com.sk89q.worldedit.*;
 import com.sk89q.worldedit.Vector;
-import com.sk89q.worldedit.WorldEdit;
-import com.sk89q.worldedit.WorldEditException;
 import com.sk89q.worldedit.blocks.BaseBlock;
 import com.sk89q.worldedit.blocks.BlockType;
 import com.sk89q.worldedit.entity.Player;
@@ -53,11 +35,7 @@ import com.sk89q.worldedit.util.command.parametric.Optional;
 import com.sk89q.worldedit.world.World;
 import java.io.IOException;
 import java.io.RandomAccessFile;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.function.Consumer;
 
 
@@ -568,6 +546,21 @@ public class AnvilCommands {
             }
             filter = new ReplacePatternFilter(matchFrom, to);
         }
+        MCAFilterCounter result = runWithSelection(player, editSession, selection, filter);
+        if (result != null) {
+            player.print(BBC.getPrefix() + BBC.VISITOR_BLOCK.format(result.getTotal()));
+        }
+    }
+
+    @Command(
+            aliases = {"set"},
+            usage = "<to-pattern>",
+            desc = "Set all blocks in the selection with a pattern"
+    )
+    @CommandPermissions("worldedit.anvil.set")
+    // Player player, String folder, @Optional String from, final Pattern to, @Switch('d') boolean useData, @Switch('m') boolean useMap
+    public void set(Player player, EditSession editSession, @Selection Region selection, final Pattern to) throws WorldEditException {
+        MCAFilterCounter filter = new SetPatternFilter(to);
         MCAFilterCounter result = runWithSelection(player, editSession, selection, filter);
         if (result != null) {
             player.print(BBC.getPrefix() + BBC.VISITOR_BLOCK.format(result.getTotal()));
