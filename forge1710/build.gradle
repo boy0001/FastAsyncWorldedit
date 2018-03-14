@@ -15,7 +15,7 @@ buildscript {
 apply plugin: 'forge'
 apply plugin: 'com.github.johnrengelman.shadow'
 
-clean { delete "target" }
+clean { delete "../target" }
 
 dependencies {
     compile project(':core')

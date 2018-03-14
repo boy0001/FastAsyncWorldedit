@@ -3,7 +3,7 @@ repositories {
 //    maven {url "https://repo.potestas.xyz/main/"}
 }
 
-clean { delete "target" }
+clean { delete "../target" }
 
 dependencies {
     compile project(':core')

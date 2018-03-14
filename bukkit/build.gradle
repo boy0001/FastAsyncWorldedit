@@ -34,7 +34,7 @@ dependencies {
     compile 'org.inventivetalent:mapmanager:1.4.0-SNAPSHOT'
 }
 
-clean { delete "target" }
+clean { delete "../target" }
 
 processResources {
     from('src/main/resources') {

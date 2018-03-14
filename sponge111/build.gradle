@@ -31,7 +31,7 @@ apply plugin: 'com.github.johnrengelman.shadow'
 sourceCompatibility = 1.8
 targetCompatibility = 1.8
 
-clean { delete "target" }
+clean { delete "../target" }
 
 repositories {
     flatDir {dirs 'lib'}

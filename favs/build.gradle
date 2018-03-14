@@ -2,7 +2,7 @@ dependencies {
     compile project(':bukkit')
 }
 
-clean { delete "target" }
+clean { delete "../target" }
 
 processResources {
     from('src/main/resources') {
