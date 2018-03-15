@@ -14,7 +14,7 @@ public class SetPatternFilter extends MCAFilterCounter {
     }
 
     @Override
-    public void applyBlock(int x, int y, int z, BaseBlock block, MutableLong ignore) {
+    public void applyBlock(int x, int y, int z, BaseBlock block, MutableLong count) {
         BaseBlock newBlock = to.apply(x, y, z);
         int currentId = block.getId();
         if (FaweCache.hasNBT(currentId)) {
@@ -22,5 +22,6 @@ public class SetPatternFilter extends MCAFilterCounter {
         }
         block.setId(newBlock.getId());
         block.setData(newBlock.getData());
+        count.increment();
     }
 }
