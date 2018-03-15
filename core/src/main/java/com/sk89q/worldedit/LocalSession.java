@@ -1220,7 +1220,7 @@ public class LocalSession {
                 String msg = e.getMessage();
                 if (msg != null && msg.length() > 256) msg = msg.substring(0, 256);
                 this.failedCuiAttempts++;
-                WorldEdit.logger.warning("Error while reading CUI init message: " + msg);
+                WorldEdit.logger.warning("Error while reading CUI init message for player " + uuid + ": " + msg);
 
             }
         }

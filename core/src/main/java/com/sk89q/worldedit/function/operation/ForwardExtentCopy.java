@@ -24,9 +24,11 @@ import com.boydti.fawe.object.FaweQueue;
 import com.boydti.fawe.object.extent.BlockTranslateExtent;
 import com.boydti.fawe.object.extent.PositionTransformExtent;
 import com.boydti.fawe.object.function.block.BiomeCopy;
+import com.boydti.fawe.object.function.block.CombinedBlockCopy;
 import com.boydti.fawe.object.function.block.SimpleBlockCopy;
 import com.boydti.fawe.util.MaskTraverser;
 import com.sk89q.worldedit.EditSession;
+import com.sk89q.worldedit.MutableBlockVector;
 import com.sk89q.worldedit.Vector;
 import com.sk89q.worldedit.WorldEditException;
 import com.sk89q.worldedit.entity.Entity;
@@ -34,6 +36,7 @@ import com.sk89q.worldedit.extent.Extent;
 import com.sk89q.worldedit.extent.clipboard.BlockArrayClipboard;
 import com.sk89q.worldedit.function.CombinedRegionFunction;
 import com.sk89q.worldedit.function.RegionFunction;
+import com.sk89q.worldedit.function.RegionMaskTestFunction;
 import com.sk89q.worldedit.function.RegionMaskingFilter;
 import com.sk89q.worldedit.function.entity.ExtentEntityCopy;
 import com.sk89q.worldedit.function.mask.Mask;
@@ -193,6 +196,7 @@ public class ForwardExtentCopy implements Operation {
      *
      * @param function a source function, or null if none is to be applied
      */
+    @Deprecated
     public void setSourceFunction(RegionFunction function) {
         this.sourceFunction = function;
     }
@@ -264,14 +268,15 @@ public class ForwardExtentCopy implements Operation {
             finalDest = new BlockTranslateExtent(finalDest, translation.getBlockX(), translation.getBlockY(), translation.getBlockZ());
         }
 
+        RegionFunction copy;
         Operation blockCopy = null;
         PositionTransformExtent transExt = null;
         if (!currentTransform.isIdentity()) {
+            System.out.println("Has translation");
             if (!(currentTransform instanceof AffineTransform) || ((AffineTransform) currentTransform).isOffAxis()) {
                 transExt = new PositionTransformExtent(source, currentTransform.inverse());
                 transExt.setOrigin(from);
-
-                RegionFunction copy = new SimpleBlockCopy(transExt, finalDest);
+                copy = new SimpleBlockCopy(transExt, finalDest);
                 if (this.filterFunction != null) {
                     copy = new IntersectRegionFunction(filterFunction, copy);
                 }
@@ -294,15 +299,48 @@ public class ForwardExtentCopy implements Operation {
         }
 
         if (blockCopy == null) {
-            RegionFunction copy = new SimpleBlockCopy(source, finalDest);
+            RegionFunction maskFunc = null;
+
+            if (sourceFunction != null) {
+                Vector disAbs = translation.positive();
+                Vector size = region.getMaximumPoint().subtract(region.getMinimumPoint()).add(1, 1, 1);
+                boolean overlap = (disAbs.getBlockX() < size.getBlockX() && disAbs.getBlockY() < size.getBlockY() && disAbs.getBlockZ() < size.getBlockZ());
+
+                RegionFunction copySrcFunc = sourceFunction;
+                if (overlap) {
+                    MutableBlockVector mutable = new MutableBlockVector();
+
+                    int x = translation.getBlockX();
+                    int y = translation.getBlockY();
+                    int z = translation.getBlockZ();
+
+                    maskFunc = position -> {
+                        mutable.setComponents(position.getBlockX() + x, position.getBlockY() + y, position.getBlockZ() + z);
+                        if (region.contains(mutable)) {
+                            return sourceFunction.apply(mutable);
+                        }
+                        return false;
+                    };
+
+                    copySrcFunc = position -> {
+                        mutable.setComponents(position.getBlockX() - x, position.getBlockY() - y, position.getBlockZ() - z);
+                        if (!region.contains(mutable)) {
+                            return sourceFunction.apply(position);
+                        }
+                        return false;
+                    };
+                }
+                copy = new CombinedBlockCopy(source, finalDest, copySrcFunc);
+            }
+            else {
+                copy = new SimpleBlockCopy(source, finalDest);
+            }
             if (this.filterFunction != null) {
                 copy = new IntersectRegionFunction(filterFunction, copy);
             }
             if (sourceMask != Masks.alwaysTrue()) {
-                copy = new RegionMaskingFilter(sourceMask, copy);
-            }
-            if (sourceFunction != null) {
-                copy = CombinedRegionFunction.combine(copy, sourceFunction);
+                if (maskFunc != null) copy = new RegionMaskTestFunction(sourceMask, copy, maskFunc);
+                else copy = new RegionMaskingFilter(sourceMask, copy);
             }
             if (copyBiomes && (!(source instanceof BlockArrayClipboard) || ((BlockArrayClipboard) source).IMP.hasBiomes())) {
                 copy = CombinedRegionFunction.combine(copy, new BiomeCopy(source, finalDest));
