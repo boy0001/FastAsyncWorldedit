@@ -476,7 +476,27 @@ public class HeightMapMCAGenerator extends MCAWriter implements SimpleWorld, Faw
             }
         } else {
             this.heights.setByte(index, (byte) (blockHeight));
+        }
+    }
 
+    private final void setLayerHeightRaw(int index, int height) {
+        int blockHeight = (height) >> 3;
+        int layerHeight = (height) & 0x7;
+        setLayerHeightRaw(index, blockHeight, layerHeight);
+    }
+
+    private final void setLayerHeightRaw(int index, int blockHeight, int layerHeight) {
+        int floorId = floor.get()[index] >> 4;
+        if (floorId == 78 || floorId == 80) {
+            if (layerHeight != 0) {
+                this.heights.getByteArray()[index] = (byte) (blockHeight + 1);
+                this.floor.getCharArray()[index] = (char) (1248 + layerHeight);
+            } else {
+                this.heights.getByteArray()[index] = (byte) (blockHeight);
+                this.floor.getCharArray()[index] = (char) (1280);
+            }
+        } else {
+            this.heights.getByteArray()[index] = (byte) (blockHeight);
         }
     }
 
@@ -512,7 +532,7 @@ public class HeightMapMCAGenerator extends MCAWriter implements SimpleWorld, Faw
                             int height = img.getRGB(x, z) & 0xFF;
                             if (height == 255 || height > 0 && !white && PseudoRandom.random.nextInt(256) <= height) {
                                 int newHeight = table.average(x, z, index);
-                                setLayerHeight(index, newHeight);
+                                setLayerHeightRaw(index, newHeight);
                             }
                         }
                     }
@@ -525,7 +545,7 @@ public class HeightMapMCAGenerator extends MCAWriter implements SimpleWorld, Faw
                             mutable.mutY(y);
                             if (mask.test(mutable)) {
                                 int newHeight = table.average(x, z, index);
-                                setLayerHeight(index, newHeight);
+                                setLayerHeightRaw(index, newHeight);
                             }
                         }
                     }
@@ -533,7 +553,7 @@ public class HeightMapMCAGenerator extends MCAWriter implements SimpleWorld, Faw
                     for (int z = 0; z < getLength(); z++) {
                         for (int x = 0; x < getWidth(); x++, index++) {
                             int newHeight = table.average(x, z, index);
-                            setLayerHeight(index, newHeight);
+                            setLayerHeightRaw(index, newHeight);
                         }
                     }
                 }

@@ -60,8 +60,8 @@ public final class DifferentialArray<T> implements DifferentialCollection<T> {
                 changes = (T) (changesChars = new char[length]);
             }
         }
-        boolean changed = false;
         T tmp;
+        boolean changed = this.changed;
         if (changed) {
             tmp = (T) MainUtil.copyNd(data);
         } else {
@@ -83,9 +83,11 @@ public final class DifferentialArray<T> implements DifferentialCollection<T> {
                 if (tmpChar != dataChar) {
                     this.changed = true;
                     tmpChars[i] -= dataChar;
+                } else {
+                    tmpChars[i] = 0;
                 }
             }
-            if (tmp != changes) {
+            if (changed) {
                 for (int i = 0; i < tmpChars.length; i++) {
                     changesChars[i] += tmpChars[i];
                 }
@@ -98,9 +100,11 @@ public final class DifferentialArray<T> implements DifferentialCollection<T> {
                 if (tmpByte != dataByte) {
                     this.changed = true;
                     tmpBytes[i] -= dataByte;
+                } else {
+                    tmpBytes[i] = 0;
                 }
             }
-            if (tmp != changes) {
+            if (changed) {
                 for (int i = 0; i < tmpBytes.length; i++) {
                     changesBytes[i] += tmpBytes[i];
                 }
