@@ -386,7 +386,8 @@ public class SchematicCommands extends MethodCommands {
         final LocalConfiguration config = this.worldEdit.getConfiguration();
         final String filename = args.getString(0);
 
-        final File dir = this.worldEdit.getWorkingDirectoryFile(config.saveDir);
+        final File working = this.worldEdit.getWorkingDirectoryFile(config.saveDir);
+        final File dir = Settings.IMP.PATHS.PER_PLAYER_SCHEMATICS ? new File(working, player.getUniqueId().toString()) : working;
         final File f = this.worldEdit.getSafeSaveFile(player, dir, filename, "schematic", "schematic");
         if (!f.exists()) {
             player.printError("Schematic " + filename + " does not exist!");
