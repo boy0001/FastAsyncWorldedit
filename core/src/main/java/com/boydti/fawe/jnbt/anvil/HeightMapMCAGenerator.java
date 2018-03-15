@@ -2259,6 +2259,7 @@ public class HeightMapMCAGenerator extends MCAWriter implements SimpleWorld, Faw
 
     @Override
     public WorldData getWorldData() {
+        if (player != null) return player.getWorld().getWorldData();
         return null;
     }
 }
