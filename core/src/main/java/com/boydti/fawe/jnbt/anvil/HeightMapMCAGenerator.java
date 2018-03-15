@@ -263,7 +263,7 @@ public class HeightMapMCAGenerator extends MCAWriter implements SimpleWorld, Faw
         this.player = player;
         if (player != null) {
             FaweLocation pos = player.getLocation();
-            this.chunkOffset = new Vector2D(pos.x >> 4, pos.z >> 4);
+            this.chunkOffset = new Vector2D(1 + (pos.x >> 4), 1 + (pos.z >> 4));
         }
     }
 
