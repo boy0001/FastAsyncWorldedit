@@ -4,6 +4,7 @@ import com.boydti.fawe.Fawe;
 import com.boydti.fawe.FaweAPI;
 import com.boydti.fawe.FaweCache;
 import com.boydti.fawe.config.Settings;
+import com.boydti.fawe.logging.rollback.RollbackOptimizedHistory;
 import com.boydti.fawe.object.FaweChunk;
 import com.boydti.fawe.object.FawePlayer;
 import com.boydti.fawe.object.FaweQueue;
@@ -42,7 +43,11 @@ public abstract class FaweChangeSet implements ChangeSet {
 
     public static FaweChangeSet getDefaultChangeSet(World world, UUID uuid) {
         if (Settings.IMP.HISTORY.USE_DISK) {
-            return new DiskStorageHistory(world, uuid);
+            if (Settings.IMP.HISTORY.USE_DATABASE) {
+                return new RollbackOptimizedHistory(world, uuid);
+            } else {
+                return new DiskStorageHistory(world, uuid);
+            }
         } else {
             return new MemoryOptimizedHistory(world);
         }
