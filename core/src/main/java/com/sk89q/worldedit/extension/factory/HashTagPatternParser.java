@@ -114,8 +114,10 @@ public class HashTagPatternParser extends FaweParser<Pattern> {
                     }
                     pattern = (Pattern) dispatcher.call(command, locals, new String[0]);
                 }
-                patterns.add(pattern);
-                chances.add(chance);
+                if (pattern != null) {
+                    patterns.add(pattern);
+                    chances.add(chance);
+                }
             }
         } catch (CommandException | ExpressionException e) {
             throw new RuntimeException(e);
