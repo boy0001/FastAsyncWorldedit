@@ -7,6 +7,7 @@ import com.boydti.fawe.jnbt.anvil.MCAFilterCounter;
 import com.boydti.fawe.object.RunnableVal;
 import com.boydti.fawe.object.number.MutableLong;
 import com.sk89q.worldedit.blocks.BlockID;
+import java.util.Arrays;
 
 public class DebugFixAir extends MCAFilterCounter {
     @Override
@@ -59,7 +60,10 @@ public class DebugFixAir extends MCAFilterCounter {
                 cache.add(256);
             }
         }
-        if (modified) chunk.setModified();
+        if (modified) {
+            Arrays.fill(chunk.skyLight[4], (byte) 255);
+            chunk.setModified();
+        }
         return null;
     }
 
