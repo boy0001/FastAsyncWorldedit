@@ -272,7 +272,6 @@ public class ForwardExtentCopy implements Operation {
         Operation blockCopy = null;
         PositionTransformExtent transExt = null;
         if (!currentTransform.isIdentity()) {
-            System.out.println("Has translation");
             if (!(currentTransform instanceof AffineTransform) || ((AffineTransform) currentTransform).isOffAxis()) {
                 transExt = new PositionTransformExtent(source, currentTransform.inverse());
                 transExt.setOrigin(from);
@@ -307,7 +306,7 @@ public class ForwardExtentCopy implements Operation {
                 boolean overlap = (disAbs.getBlockX() < size.getBlockX() && disAbs.getBlockY() < size.getBlockY() && disAbs.getBlockZ() < size.getBlockZ());
 
                 RegionFunction copySrcFunc = sourceFunction;
-                if (overlap) {
+                if (overlap && translation.length() != 0) {
                     MutableBlockVector mutable = new MutableBlockVector();
 
                     int x = translation.getBlockX();
