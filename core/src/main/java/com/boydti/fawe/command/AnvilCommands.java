@@ -68,6 +68,12 @@ public class AnvilCommands {
      */
     @Deprecated
     public static <G, T extends MCAFilter<G>> T runWithWorld(Player player, String folder, T filter, boolean force) {
+        return runWithWorld(player, folder, filter, force, false);
+    }
+
+
+    @Deprecated
+    public static <G, T extends MCAFilter<G>> T runWithWorld(Player player, String folder, T filter, boolean force, boolean unsafe) {
         boolean copy = false;
         if (FaweAPI.getWorld(folder) != null) {
             if (!force) {
@@ -78,7 +84,7 @@ public class AnvilCommands {
         }
         FaweQueue defaultQueue = SetQueue.IMP.getNewQueue(folder, true, false);
         MCAQueue queue = new MCAQueue(defaultQueue);
-        if (copy) {
+        if (copy && !unsafe) {
             return queue.filterCopy(filter, RegionWrapper.GLOBAL());
         } else {
             return queue.filterWorld(filter);
@@ -284,9 +290,21 @@ public class AnvilCommands {
             desc = "Trim all air in the world"
     )
     @CommandPermissions("worldedit.anvil.trimallair")
-    public void trimAllAir(Player player, String folder) throws WorldEditException {
+    public void trimAllAir(Player player, String folder, @Switch('u') boolean unsafe) throws WorldEditException {
         TrimAirFilter filter = new TrimAirFilter();
-        TrimAirFilter result = runWithWorld(player, folder, filter, true);
+        TrimAirFilter result = runWithWorld(player, folder, filter, true, unsafe);
+        if (result != null) player.print(BBC.getPrefix() + BBC.VISITOR_BLOCK.format(result.getTotal()));
+    }
+
+
+    @Command(
+            aliases = {"debugfixair", },
+            desc = "debug"
+    )
+    @CommandPermissions("worldedit.anvil.debugfixair")
+    public void debugfixair(Player player, String folder) throws WorldEditException {
+        DebugFixAir filter = new DebugFixAir();
+        DebugFixAir result = runWithWorld(player, folder, filter, true, true);
         if (result != null) player.print(BBC.getPrefix() + BBC.VISITOR_BLOCK.format(result.getTotal()));
     }
 

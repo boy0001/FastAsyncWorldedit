@@ -23,6 +23,7 @@ public class TrimAirFilter extends MCAFilterCounter {
                 chunk.setModified();
             }
         }
+        cache.add(Character.MAX_VALUE);
         chunk.setDeleted(true);
         return null;
     }
