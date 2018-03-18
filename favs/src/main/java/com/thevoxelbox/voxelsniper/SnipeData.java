@@ -24,10 +24,13 @@
  */
 package com.thevoxelbox.voxelsniper;
 
+import com.sk89q.worldedit.WorldEdit;
 import com.sk89q.worldedit.extent.Extent;
 import com.sk89q.worldedit.function.pattern.Pattern;
 import com.thevoxelbox.voxelsniper.util.VoxelList;
+import org.bukkit.ChatColor;
 import org.bukkit.World;
+import org.bukkit.entity.Player;
 
 /**
  * @author Piotr
@@ -268,6 +271,15 @@ public class SnipeData {
      * @param voxelId the voxelId to set
      */
     public final void setVoxelId(final int voxelId) {
+        if (WorldEdit.getInstance().getConfiguration().disallowedBlocks.contains(voxelId)) {
+            if (owner != null) {
+                Player plr = owner.getPlayer();
+                if (plr != null) {
+                    plr.sendMessage(ChatColor.RED + "You are not allowed to use '" + voxelId + "'");
+                    return;
+                }
+            }
+        }
         this.voxelId = voxelId;
     }
 
