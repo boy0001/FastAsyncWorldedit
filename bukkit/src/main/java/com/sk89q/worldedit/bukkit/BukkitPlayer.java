@@ -140,10 +140,12 @@ public class BukkitPlayer extends LocalPlayer {
                     public void run(Object value) {
                         for (Map.Entry<Integer, ItemStack> entry : overflow.entrySet()) {
                             ItemStack stack = entry.getValue();
-                            Item dropped = player.getWorld().dropItem(player.getLocation(), stack);
-                            PlayerDropItemEvent event = new PlayerDropItemEvent(player, dropped);
-                            if (event.isCancelled()) {
-                                dropped.remove();
+                            if (stack.getType() != Material.AIR && stack.getAmount() > 0) {
+                                Item dropped = player.getWorld().dropItem(player.getLocation(), stack);
+                                PlayerDropItemEvent event = new PlayerDropItemEvent(player, dropped);
+                                if (event.isCancelled()) {
+                                    dropped.remove();
+                                }
                             }
                         }
                     }
