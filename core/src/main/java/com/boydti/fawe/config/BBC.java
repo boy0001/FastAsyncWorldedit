@@ -325,7 +325,7 @@ public enum BBC {
     TIP_REGEN_0("Tip: Use a biome with /regen [biome]", "Tips"),
     TIP_REGEN_1("Tip: Use a seed with /regen [biome] [seed]", "Tips"),
 
-    TIP_BIOME_PATTERN("Tip: The &c#biome:forest&7 pattern can be used in any command", "Tips"),
+    TIP_BIOME_PATTERN("Tip: The &c#biome[forest]&7 pattern can be used in any command", "Tips"),
     TIP_BIOME_MASK("Tip: Restrict to a biome with the `$jungle` mask", "Tips"),;
 
 
