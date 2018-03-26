@@ -96,6 +96,18 @@ public abstract class BukkitQueue_0<CHUNK, CHUNKSECTIONS, SECTION> extends NMSMa
     }
 
     @Override
+    public void sendChunk(FaweChunk fc) {
+        if (!Fawe.isMainThread()) {
+            startSet(true);
+            try {
+                super.sendChunk(fc);
+            } finally {
+                endSet(true);
+            }
+        }
+    }
+
+    @Override
     public void sendChunkUpdate(FaweChunk chunk, FawePlayer... players) {
         if (supports(Capability.CHUNK_PACKETS)) {
             sendChunkUpdatePLIB(chunk, players);
