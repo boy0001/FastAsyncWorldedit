@@ -104,7 +104,7 @@ public abstract class BukkitQueue_0<CHUNK, CHUNKSECTIONS, SECTION> extends NMSMa
             } finally {
                 endSet(true);
             }
-        }
+        } else super.sendChunk(fc);
     }
 
     @Override
