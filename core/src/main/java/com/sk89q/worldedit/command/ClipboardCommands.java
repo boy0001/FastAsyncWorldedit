@@ -25,7 +25,10 @@ import com.boydti.fawe.config.BBC;
 import com.boydti.fawe.config.Settings;
 import com.boydti.fawe.object.FaweLimit;
 import com.boydti.fawe.object.FawePlayer;
+import com.boydti.fawe.object.RunnableVal;
+import com.boydti.fawe.object.clipboard.MultiClipboardHolder;
 import com.boydti.fawe.object.clipboard.ReadOnlyClipboard;
+import com.boydti.fawe.object.clipboard.URIClipboardHolder;
 import com.boydti.fawe.object.clipboard.WorldCutClipboard;
 import com.boydti.fawe.object.exception.FaweException;
 import com.boydti.fawe.object.io.FastByteArrayOutputStream;
@@ -59,9 +62,17 @@ import com.sk89q.worldedit.regions.selector.CuboidRegionSelector;
 import com.sk89q.worldedit.session.ClipboardHolder;
 import com.sk89q.worldedit.util.command.binding.Switch;
 import com.sk89q.worldedit.util.command.parametric.Optional;
+import java.io.File;
 import java.io.IOException;
+import java.io.OutputStream;
+import java.net.URI;
 import java.net.URL;
 import java.net.URLEncoder;
+import java.nio.file.Files;
+import java.util.HashSet;
+import java.util.Set;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipOutputStream;
 
 
 import static com.sk89q.minecraft.util.commands.Logging.LogMode.PLACEMENT;
@@ -270,44 +281,81 @@ public class ClipboardCommands extends MethodCommands {
             BBC.CLIPBOARD_INVALID_FORMAT.send(player, formatName);
             return;
         }
-        ClipboardHolder holder = session.getClipboard();
-        Clipboard clipboard = holder.getClipboard();
-        final Transform transform = holder.getTransform();
-        final Clipboard target;
-        // If we have a transform, bake it into the copy
-        if (!transform.isIdentity()) {
-            final FlattenedClipboardTransform result = FlattenedClipboardTransform.transform(clipboard, transform, holder.getWorldData());
-            target = new BlockArrayClipboard(result.getTransformedRegion(), player.getUniqueId());
-            target.setOrigin(clipboard.getOrigin());
-            Operations.completeLegacy(result.copyTo(target));
-        } else {
-            target = clipboard;
-        }
+
         BBC.GENERATING_LINK.send(player, formatName);
+        ClipboardHolder holder = session.getClipboard();
+
         URL url;
-        switch (format) {
-            case PNG:
-                try {
-                    FastByteArrayOutputStream baos = new FastByteArrayOutputStream(Short.MAX_VALUE);
-                    ClipboardWriter writer = format.getWriter(baos);
-                    writer.write(target, null);
-                    baos.flush();
-                    url = ImgurUtility.uploadImage(baos.toByteArray());
-                } catch (IOException e) {
-                    e.printStackTrace();
+        if (holder instanceof MultiClipboardHolder) {
+            MultiClipboardHolder multi = (MultiClipboardHolder) holder;
+            Set<File> files = new HashSet<>();
+            Set<URI> invalid = new HashSet<>();
+            for (ClipboardHolder cur : multi.getHolders()) {
+                if (cur instanceof URIClipboardHolder) {
+                    URIClipboardHolder uriHolder = (URIClipboardHolder) cur;
+                    URI uri = uriHolder.getUri();
+                    File file = new File(uri.getPath());
+                    if (file.exists() && file.isFile()) {
+                        files.add(file);
+                        System.out.println("Valid " + file);
+                    } else if (!uri.getPath().isEmpty()) {
+                        System.out.println("Invalid " + uri);
+                        invalid.add(uri);
+                    }
+                }
+            }
+            url = MainUtil.upload(null, null, "zip", new RunnableVal<OutputStream>() {
+                @Override
+                public void run(OutputStream out) {
+                    try (ZipOutputStream zos = new ZipOutputStream(out)) {
+                        for (File file : files) {
+                            ZipEntry ze = new ZipEntry(file.getName());
+                            zos.putNextEntry(ze);
+                            Files.copy(file.toPath(), zos);
+                            zos.closeEntry();
+                        }
+                    } catch (IOException e) {
+                        throw new RuntimeException(e);
+                    }
+                }
+            });
+        } else {
+            Clipboard clipboard = holder.getClipboard();
+            final Transform transform = holder.getTransform();
+            final Clipboard target;
+            // If we have a transform, bake it into the copy
+            if (!transform.isIdentity()) {
+                final FlattenedClipboardTransform result = FlattenedClipboardTransform.transform(clipboard, transform, holder.getWorldData());
+                target = new BlockArrayClipboard(result.getTransformedRegion(), player.getUniqueId());
+                target.setOrigin(clipboard.getOrigin());
+                Operations.completeLegacy(result.copyTo(target));
+            } else {
+                target = clipboard;
+            }
+            switch (format) {
+                case PNG:
+                    try {
+                        FastByteArrayOutputStream baos = new FastByteArrayOutputStream(Short.MAX_VALUE);
+                        ClipboardWriter writer = format.getWriter(baos);
+                        writer.write(target, null);
+                        baos.flush();
+                        url = ImgurUtility.uploadImage(baos.toByteArray());
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                        url = null;
+                    }
+                    break;
+                case SCHEMATIC:
+                    if (Settings.IMP.WEB.URL.isEmpty()) {
+                        BBC.SETTING_DISABLE.send(player, "web.url");
+                        return;
+                    }
+                    url = FaweAPI.upload(target, format);
+                    break;
+                default:
                     url = null;
-                }
-                break;
-            case SCHEMATIC:
-                if (Settings.IMP.WEB.URL.isEmpty()) {
-                    BBC.SETTING_DISABLE.send(player, "web.url");
-                    return;
-                }
-                url = FaweAPI.upload(target, format);
-                break;
-            default:
-                url = null;
-                break;
+                    break;
+            }
         }
         if (url == null) {
             BBC.GENERATING_LINK_FAILED.send(player);

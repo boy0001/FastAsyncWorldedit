@@ -473,7 +473,7 @@ public class MainUtil {
                 };
                 writeTask.value = nonClosable;
                 writeTask.run();
-                output.flush();
+                nonClosable.flush();
                 writer.append(CRLF).flush();
                 writer.append("--" + boundary + "--").append(CRLF).flush();
             }
