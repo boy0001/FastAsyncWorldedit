@@ -324,5 +324,5 @@ tips:
   tip_lazycut: '&7Tipp: Es ist sicherer den Befehl &c//lazycut zu verwenden.'
   tip_regen_0: 'Tip: Use a biome with /regen [biome]'
   tip_regen_1: 'Tip: Use a seed with /regen [biome] [seed]'
-  tip_biome_pattern: 'Tip: The &c#biome:forest&7 pattern can be used in any command'
+  tip_biome_pattern: 'Tip: The &c#biome[forest]&7 pattern can be used in any command'
   tip_biome_mask: 'Tip: Restrict to a biome with the `$jungle` mask'

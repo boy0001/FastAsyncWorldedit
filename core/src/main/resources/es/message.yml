@@ -324,6 +324,6 @@ tips:
   tip_copy_pattern: 'Sugerencia: Para usar como un patrón try &4#copiar'
   tip_regen_0: 'Sugerencia: Utilice un bioma con /regen [biome]'
   tip_regen_1: 'Sugerencia: Utilice una semilla con /regen [biome] [seed]'
-  tip_biome_pattern: 'Sugerencia: El &c#biome:forest&7 pattern se puede usar en cualquier
+  tip_biome_pattern: 'Sugerencia: El &c#biome[forest]&7 pattern se puede usar en cualquier
     comando'
   tip_biome_mask: 'Sugerencia: Restrinja a un bioma con la máscara `$jungle`'

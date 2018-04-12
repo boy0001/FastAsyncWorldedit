@@ -294,5 +294,5 @@ tips:
   tÄ±p_copy_pattern: "&7HatÄ±rlatma: &aDesen Olarak Kullanmak Ä°Ã§in: &c#copy"
   tÄ±p_regen_0: "&7HatÄ±rlatma: &aBiyomlarÄ± Kullanmak Ä°Ã§in: &c/regen <Biyom>"
   tÄ±p_regen_1: "&7HatÄ±rlatma: &aBiyom DeÄŸeri Ä°Ã§in: &c/regen <Biyom> <DeÄŸer>"
-  tÄ±p_bÄ±ome_pattern: "&7HatÄ±rlatma: &c#biome:forest &eDeseni Herhangi Bir Komutta KullanÄ±labilir"
+  tÄ±p_bÄ±ome_pattern: "&7HatÄ±rlatma: &c#biome[forest] &eDeseni Herhangi Bir Komutta KullanÄ±labilir"
   tÄ±p_bÄ±ome_mask: "&7HatÄ±rlatma: &c`$jungle` &eMaskesini Bir Biyoma KÄ±sÄ±tla"
