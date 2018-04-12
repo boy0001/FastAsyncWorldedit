@@ -297,9 +297,7 @@ public class ClipboardCommands extends MethodCommands {
                     File file = new File(uri.getPath());
                     if (file.exists() && file.isFile()) {
                         files.add(file);
-                        System.out.println("Valid " + file);
                     } else if (!uri.getPath().isEmpty()) {
-                        System.out.println("Invalid " + uri);
                         invalid.add(uri);
                     }
                 }
