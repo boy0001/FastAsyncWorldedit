@@ -86,6 +86,17 @@ public class MCAFile {
         Z = Integer.parseInt(split[2]);
     }
 
+    public MCAFile(FaweQueue parent, int mcrX, int mcrZ) throws Exception {
+        this(parent, mcrX, mcrZ, new File(parent.getSaveFolder(), "r." + mcrX + "." + mcrZ + ".mca"));
+    }
+
+    public MCAFile(FaweQueue parent, int mcrX, int mcrZ, File file) {
+        this.queue = parent;
+        this.file = file;
+        X = mcrX;
+        Z = mcrZ;
+    }
+
     public void clear() {
         if (raf != null) {
             try {
@@ -130,21 +141,19 @@ public class MCAFile {
         try {
             if (raf == null) {
                 this.locations = new byte[4096];
-                this.raf = new RandomAccessFile(file, "rw");
-                if (raf.length() < 8192) {
-                    raf.setLength(8192);
-                } else {
-                    raf.seek(0);
-                    raf.readFully(locations);
+                if (file != null) {
+                    this.raf = new RandomAccessFile(file, "rw");
+                    if (raf.length() < 8192) {
+                        raf.setLength(8192);
+                    } else {
+                        raf.seek(0);
+                        raf.readFully(locations);
+                    }
                 }
             }
         } catch (Throwable e) {
             e.printStackTrace();
         }
-    }
-
-    public MCAFile(FaweQueue parent, int mcrX, int mcrZ) throws Exception {
-        this(parent, new File(parent.getSaveFolder(), "r." + mcrX + "." + mcrZ + ".mca"));
     }
 
     public int getX() {
@@ -196,7 +205,7 @@ public class MCAFile {
             return null;
         }
         NBTInputStream nis = getChunkIS(offset);
-        MCAChunk chunk = new MCAChunk(nis, queue, cx, cz, size);
+        MCAChunk chunk = new MCAChunk(nis, queue, cx, cz, false);
         nis.close();
         int pair = MathMan.pair((short) (cx & 31), (short) (cz & 31));
         synchronized (chunks) {

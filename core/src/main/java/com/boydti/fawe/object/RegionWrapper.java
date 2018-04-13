@@ -3,6 +3,7 @@ package com.boydti.fawe.object;
 import com.sk89q.worldedit.Vector;
 import com.sk89q.worldedit.regions.CuboidRegion;
 
+@Deprecated
 public class RegionWrapper extends CuboidRegion {
     private final static RegionWrapper GLOBAL = new RegionWrapper(Integer.MIN_VALUE, Integer.MAX_VALUE, Integer.MIN_VALUE, Integer.MAX_VALUE);
 

@@ -1,5 +1,6 @@
 package com.boydti.fawe.object;
 
+import com.boydti.fawe.util.IOUtil;
 import com.sk89q.jnbt.NBTInputStream;
 import com.sk89q.jnbt.NamedTag;
 import java.io.DataInputStream;
@@ -64,16 +65,8 @@ public class FaweInputStream extends DataInputStream {
         }
     }
 
-    public int readVarInt() throws IOException {
-        int i = 0;
-        int offset = 0;
-        int b;
-        while ((b = read()) > 127) {
-            i |= (b - 128) << offset;
-            offset += 7;
-        }
-        i |= b << offset;
-        return i;
+    public final int readVarInt() throws IOException {
+        return IOUtil.readVarInt(this);
     }
 
     @Override

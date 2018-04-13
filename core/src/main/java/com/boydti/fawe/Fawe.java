@@ -628,29 +628,31 @@ public class Fawe {
             debug(" - https://discord.gg/ngZCzbU");
             debug("=======================================");
         }
-        try {
-            com.github.luben.zstd.util.Native.load();
-        } catch (Throwable e) {
-            if (Settings.IMP.CLIPBOARD.COMPRESSION_LEVEL > 6 || Settings.IMP.HISTORY.COMPRESSION_LEVEL > 6) {
-                Settings.IMP.CLIPBOARD.COMPRESSION_LEVEL = Math.min(6, Settings.IMP.CLIPBOARD.COMPRESSION_LEVEL);
-                Settings.IMP.HISTORY.COMPRESSION_LEVEL = Math.min(6, Settings.IMP.HISTORY.COMPRESSION_LEVEL);
-                debug("====== ZSTD COMPRESSION BINDING NOT FOUND ======");
+        if (!Settings.IMP.EXPERIMENTAL.DISABLE_NATIVES) {
+            try {
+                com.github.luben.zstd.util.Native.load();
+            } catch (Throwable e) {
+                if (Settings.IMP.CLIPBOARD.COMPRESSION_LEVEL > 6 || Settings.IMP.HISTORY.COMPRESSION_LEVEL > 6) {
+                    Settings.IMP.CLIPBOARD.COMPRESSION_LEVEL = Math.min(6, Settings.IMP.CLIPBOARD.COMPRESSION_LEVEL);
+                    Settings.IMP.HISTORY.COMPRESSION_LEVEL = Math.min(6, Settings.IMP.HISTORY.COMPRESSION_LEVEL);
+                    debug("====== ZSTD COMPRESSION BINDING NOT FOUND ======");
+                    debug(e);
+                    debug("===============================================");
+                    debug("FAWE will work but won't compress data as much");
+                    debug("===============================================");
+                }
+            }
+            try {
+                net.jpountz.util.Native.load();
+            } catch (Throwable e) {
+                debug("====== LZ4 COMPRESSION BINDING NOT FOUND ======");
                 debug(e);
                 debug("===============================================");
-                debug("FAWE will work but won't compress data as much");
+                debug("FAWE will work but compression will be slower");
+                debug(" - Try updating your JVM / OS");
+                debug(" - Report this issue if you cannot resolve it");
                 debug("===============================================");
             }
-        }
-        try {
-            net.jpountz.util.Native.load();
-        } catch (Throwable e) {
-            debug("====== LZ4 COMPRESSION BINDING NOT FOUND ======");
-            debug(e);
-            debug("===============================================");
-            debug("FAWE will work but compression will be slower");
-            debug(" - Try updating your JVM / OS");
-            debug(" - Report this issue if you cannot resolve it");
-            debug("===============================================");
         }
         try {
             String arch = System.getenv("PROCESSOR_ARCHITECTURE");

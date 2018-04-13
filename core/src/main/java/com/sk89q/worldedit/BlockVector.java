@@ -19,6 +19,8 @@
 
 package com.sk89q.worldedit;
 
+import java.io.IOException;
+
 /**
  * Extension of {@code Vector} that that compares with other instances
  * using integer components.
@@ -91,6 +93,19 @@ public class BlockVector extends Vector {
     @Override
     public int hashCode() {
         return ((int) getX() ^ ((int) getZ() << 16)) ^ ((int) getY() << 30);
+    }
+
+    private void writeObject(java.io.ObjectOutputStream stream) throws IOException {
+        if (!(this instanceof MutableBlockVector)) {
+            stream.writeInt(getBlockX());
+            stream.writeInt(getBlockY());
+            stream.writeInt(getBlockZ());
+        }
+    }
+
+    private void readObject(java.io.ObjectInputStream stream) throws IOException, ClassNotFoundException {
+        if (this instanceof MutableBlockVector) return;
+        this.setComponents(stream.readInt(), stream.readInt(), stream.readInt());
     }
 
     @Override

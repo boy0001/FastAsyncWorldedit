@@ -5,7 +5,7 @@ import com.boydti.fawe.FaweAPI;
 import com.boydti.fawe.command.CFICommands;
 import com.boydti.fawe.config.BBC;
 import com.boydti.fawe.config.Settings;
-import com.boydti.fawe.jnbt.anvil.HeightMapMCAGenerator;
+import com.boydti.fawe.object.brush.visualization.VirtualWorld;
 import com.boydti.fawe.object.clipboard.DiskOptimizedClipboard;
 import com.boydti.fawe.object.exception.FaweException;
 import com.boydti.fawe.regions.FaweMaskManager;
@@ -300,6 +300,13 @@ public abstract class FawePlayer<T> extends Metadatable {
             TaskManager.IMP.taskNow(ifFree, async);
         }
         return false;
+    }
+
+    public boolean checkAction() {
+        long time = getMeta("faweActionTick", Long.MIN_VALUE);
+        long tick = Fawe.get().getTimer().getTick();
+        setMeta("faweActionTick", tick);
+        return tick > time;
     }
 
     /**
@@ -610,16 +617,24 @@ public abstract class FawePlayer<T> extends Metadatable {
         return new EditSessionBuilder(getWorld()).player(this).build();
     }
 
+    public void setVirtualWorld(VirtualWorld world) {
+        getSession().setVirtualWorld(world);
+    }
+
     /**
      * Get the World the player is editing in (may not match the world they are in)<br/>
      * - e.g. If they are editing a CFI world.<br/>
      * @return Editing world
      */
     public World getWorldForEditing() {
-        CFICommands.CFISettings cfi = getMeta("CFISettings");
-        if (cfi != null && cfi.hasGenerator() && cfi.getGenerator().hasPacketViewer()) {
-            return cfi.getGenerator();
+        VirtualWorld virtual = getSession().getVirtualWorld();
+        if (virtual != null) {
+            return virtual;
         }
+//        CFICommands.CFISettings cfi = getMeta("CFISettings");
+//        if (cfi != null && cfi.hasGenerator() && cfi.getGenerator().hasPacketViewer()) {
+//            return cfi.getGenerator();
+//        }
         return WorldEdit.getInstance().getPlatformManager().getWorldForEditing(getWorld());
     }
 
@@ -640,8 +655,8 @@ public abstract class FawePlayer<T> extends Metadatable {
         }
 
         PlayerProxy proxy = new PlayerProxy(player, permActor, cuiActor, world);
-        if (world instanceof HeightMapMCAGenerator) {
-            proxy.setOffset(Vector.ZERO.subtract(((HeightMapMCAGenerator) world).getOrigin()));
+        if (world instanceof VirtualWorld) {
+            proxy.setOffset(Vector.ZERO.subtract(((VirtualWorld) world).getOrigin()));
         }
         return proxy;
     }

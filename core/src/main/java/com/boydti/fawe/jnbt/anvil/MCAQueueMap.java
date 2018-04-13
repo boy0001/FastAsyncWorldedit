@@ -53,13 +53,19 @@ public class MCAQueueMap implements IFaweQueueMap {
         if (lastFile == null) {
             try {
                 queue.setMCA(lastFileX, lastFileZ, RegionWrapper.GLOBAL(), null, true, false);
-                File file = new File(queue.getSaveFolder(), "r." + lastFileX + "." + lastFileZ + ".mca");
-                if (create) {
-                    File parent = file.getParentFile();
-                    if (!parent.exists()) parent.mkdirs();
-                    if (!file.exists()) file.createNewFile();
+                File save = queue.getSaveFolder();
+                File file;
+                if (save != null) {
+                    file = new File(queue.getSaveFolder(), "r." + lastFileX + "." + lastFileZ + ".mca");
+                    if (create) {
+                        File parent = file.getParentFile();
+                        if (!parent.exists()) parent.mkdirs();
+                        if (!file.exists()) file.createNewFile();
+                    }
+                } else {
+                    file = null;
                 }
-                lastFile = tmp = new MCAFile(queue, file);
+                lastFile = tmp = new MCAFile(queue, mcaX, mcaZ, file);
             } catch (FaweException.FaweChunkLoadException ignore) {
                 lastFile = null;
                 return null;

@@ -38,7 +38,7 @@ public interface Extent extends InputExtent, OutputExtent {
     default
     @Nullable
     Entity createEntity(Location location, BaseEntity entity) {
-        throw new UnsupportedOperationException(getClass() + " does not support entity creation!");
+        return null;
     }
 
     @Override
@@ -240,7 +240,7 @@ public interface Extent extends InputExtent, OutputExtent {
         }
     }
 
-    default boolean contain(Vector pt) {
+    default boolean contains(Vector pt) {
         Vector min = getMinimumPoint();
         Vector max = getMaximumPoint();
         return (pt.containedWithin(min, max));

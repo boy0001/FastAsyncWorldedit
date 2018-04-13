@@ -68,7 +68,7 @@ public class FaweForge implements IFawe {
 
     @Override
     public String getPlatformVersion() {
-        return FMLCommonHandler.instance().getMinecraftServerInstance().getMinecraftVersion();
+        return "1.12";
     }
 
     @Override

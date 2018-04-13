@@ -18,7 +18,6 @@ public class FaweLimit {
     public boolean FAST_PLACEMENT = false;
     public boolean CONFIRM_LARGE = true;
 
-
     public static FaweLimit MAX;
 
     static {

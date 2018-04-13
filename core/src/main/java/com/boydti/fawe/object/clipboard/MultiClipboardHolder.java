@@ -6,9 +6,7 @@ import com.sk89q.worldedit.extent.clipboard.Clipboard;
 import com.sk89q.worldedit.session.ClipboardHolder;
 import com.sk89q.worldedit.world.registry.WorldData;
 import java.net.URI;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 
 
 import static com.google.common.base.Preconditions.checkNotNull;
@@ -137,6 +135,18 @@ public class MultiClipboardHolder extends URIClipboardHolder {
 
         int index = PseudoRandom.random.nextInt(available.length);
         return available[index];
+    }
+
+    @Override
+    public Set<URI> getURIs() {
+        Set<URI> set = new HashSet<>();
+        for (ClipboardHolder holder : getHolders()) {
+            if (holder instanceof URIClipboardHolder) {
+                URI uri = ((URIClipboardHolder) holder).getUri();
+                if (!uri.toString().isEmpty()) set.add(uri);
+            }
+        }
+        return set;
     }
 
     @Override

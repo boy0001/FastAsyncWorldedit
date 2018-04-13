@@ -56,7 +56,7 @@ public class DebugFixAir extends MCAFilterCounter {
                     }
                 }
                 ids0[i] = BlockID.BEDROCK;
-                chunk.ids[4][i] = BlockID.GRASS;
+                if (chunk.ids[4][i] == 0) chunk.ids[4][i] = BlockID.GRASS;
                 cache.add(256);
             }
         }

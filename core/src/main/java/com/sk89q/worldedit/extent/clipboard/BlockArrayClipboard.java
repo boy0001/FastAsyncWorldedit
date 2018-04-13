@@ -39,6 +39,7 @@ import com.sk89q.worldedit.regions.Region;
 import com.sk89q.worldedit.util.Location;
 import com.sk89q.worldedit.world.biome.BaseBiome;
 import com.sk89q.worldedit.world.registry.BundledBlockData;
+import java.io.Closeable;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -52,7 +53,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
  * Stores block data as a multi-dimensional array of {@link BaseBlock}s and
  * other data as lists or maps.
  */
-public class BlockArrayClipboard implements Clipboard, LightingExtent {
+public class BlockArrayClipboard implements Clipboard, LightingExtent, Closeable {
 
     private Region region;
     public FaweClipboard IMP;
@@ -120,6 +121,7 @@ public class BlockArrayClipboard implements Clipboard, LightingExtent {
         close();
     }
 
+    @Override
     public void close() {
         IMP.close();
     }

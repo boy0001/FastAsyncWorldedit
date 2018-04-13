@@ -13,7 +13,9 @@ commands:
     aliases: [fawecancel,/fcancel,/cancel,/fawecancel]
 permissions:
   fawe.plotsquared:
-    default: true
+      default: true
+      children:
+        fawe.plotsquared.trusted: true
   fawe.plotme:
     default: true
   fawe.bypass:

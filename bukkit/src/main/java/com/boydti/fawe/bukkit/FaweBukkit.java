@@ -168,14 +168,20 @@ public class FaweBukkit implements IFawe, Listener {
     }
 
     @Override
+    public void registerPacketListener() {
+        PluginManager manager = Bukkit.getPluginManager();
+        if (packetListener == null && manager.getPlugin("ProtocolLib") != null) {
+            packetListener = new CFIPacketListener(plugin);
+        }
+    }
+
+    @Override
     public synchronized ImageViewer getImageViewer(FawePlayer fp) {
         if (listeningImages && imageListener == null) return null;
         try {
             listeningImages = true;
+            registerPacketListener();
             PluginManager manager = Bukkit.getPluginManager();
-            if (manager.getPlugin("ProtocolLib") != null) {
-                packetListener = new CFIPacketListener(plugin);
-            }
 
             if (manager.getPlugin("PacketListenerApi") == null) {
                 File output = new File(plugin.getDataFolder().getParentFile(), "PacketListenerAPI_v3.6.0-SNAPSHOT.jar");

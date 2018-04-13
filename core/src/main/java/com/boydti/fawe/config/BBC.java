@@ -185,7 +185,15 @@ public enum BBC {
     NOTHING_CONFIRMED("You have no actions pending confirmation.", "WorldEdit.Utility"),
 
 
+    SCHEMATIC_PROMPT_CLEAR("&7You may want to use &c%s0 &7to clear your current clipboard first", "Worldedit.Schematic"),
+    SCHEMATIC_SHOW("&7Displaying &a%s0&7 schematics from &a%s1&7:\n" +
+            "&8 - &aLeft click &7a structure to set your clipboard\n" +
+            "&8 - &aRight click &7to add a structure to your multi-clipboard\n" +
+            "&8 - &7Use &a%s2&7 to go back to the world", "Worldedit.Schematic"),
     SCHEMATIC_FORMAT("Available formats (Name: Lookup names)", "Worldedit.Schematic"),
+    SCHEMATIC_MOVE_EXISTS("&c%s0 already exists", "Worldedit.Schematic"),
+    SCHEMATIC_MOVE_SUCCESS("&a%s0 -> %s1", "Worldedit.Schematic"),
+    SCHEMATIC_MOVE_FAILED("&a%s0 no moved: %s1", "Worldedit.Schematic"),
     SCHEMATIC_LOADED("%s0 loaded. Paste it with //paste", "Worldedit.Schematic"),
     SCHEMATIC_SAVED("%s0 saved.", "Worldedit.Schematic"),
     SCHEMATIC_PAGE("Page must be %s", "WorldEdit.Schematic"),

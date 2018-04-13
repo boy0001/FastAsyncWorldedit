@@ -72,7 +72,10 @@ public class Settings extends Config {
         public String TEXTURES = "textures";
         public String HEIGHTMAP = "heightmap";
         public String HISTORY = "history";
-        @Comment("Multiple servers can use the same clipboards")
+        @Comment({
+                "Multiple servers can use the same clipboards",
+                " - Use a shared directory or NFS/Samba"
+        })
         public String CLIPBOARD = "clipboard";
         @Comment("Each player has their own sub directory for schematics")
         public boolean PER_PLAYER_SCHEMATICS = true;
@@ -315,6 +318,11 @@ public class Settings extends Config {
         })
         public boolean VANILLA_CUI = false;
 
+
+        @Comment({
+                "Disable using native libraries",
+        })
+        public boolean DISABLE_NATIVES = false;
     }
 
     public static class WEB {

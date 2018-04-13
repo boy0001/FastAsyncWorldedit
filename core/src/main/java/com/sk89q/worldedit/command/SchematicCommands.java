@@ -29,6 +29,7 @@ import com.boydti.fawe.object.clipboard.MultiClipboardHolder;
 import com.boydti.fawe.object.clipboard.URIClipboardHolder;
 import com.boydti.fawe.object.clipboard.remap.ClipboardRemapper;
 import com.boydti.fawe.object.schematic.StructureFormat;
+import com.boydti.fawe.object.schematic.visualizer.SchemVis;
 import com.boydti.fawe.util.MainUtil;
 import com.boydti.fawe.util.chat.Message;
 import com.sk89q.minecraft.util.commands.Command;
@@ -44,9 +45,7 @@ import com.sk89q.worldedit.extension.platform.Actor;
 import com.sk89q.worldedit.extent.clipboard.BlockArrayClipboard;
 import com.sk89q.worldedit.extent.clipboard.Clipboard;
 import com.sk89q.worldedit.extent.clipboard.io.ClipboardFormat;
-import com.sk89q.worldedit.extent.clipboard.io.ClipboardReader;
 import com.sk89q.worldedit.extent.clipboard.io.ClipboardWriter;
-import com.sk89q.worldedit.extent.clipboard.io.SchematicReader;
 import com.sk89q.worldedit.function.operation.Operations;
 import com.sk89q.worldedit.math.transform.Transform;
 import com.sk89q.worldedit.session.ClipboardHolder;
@@ -54,18 +53,15 @@ import com.sk89q.worldedit.util.command.binding.Switch;
 import com.sk89q.worldedit.util.command.parametric.Optional;
 import com.sk89q.worldedit.util.io.file.FilenameException;
 import com.sk89q.worldedit.world.registry.WorldData;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
+import java.io.*;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.nio.channels.Channels;
 import java.nio.channels.ReadableByteChannel;
 import java.nio.file.Files;
-import java.util.UUID;
+import java.util.*;
+import java.util.concurrent.atomic.LongAdder;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Pattern;
@@ -110,20 +106,7 @@ public class SchematicCommands extends MethodCommands {
 
             MultiClipboardHolder all = format.loadAllFromInput(player, wd, filename, true);
             if (all != null) {
-                ClipboardHolder existing = session.getExistingClipboard();
-                MultiClipboardHolder multi;
-                if (existing instanceof MultiClipboardHolder) {
-                    multi = (MultiClipboardHolder) existing;
-                    for (ClipboardHolder holder : all.getHolders()) {
-                        multi.add(holder);
-                    }
-                } else  {
-                    multi = all;
-                    if (existing != null) {
-                        multi.add(existing);
-                    }
-                }
-                session.setClipboard(multi);
+                session.addClipboard(all);
                 BBC.SCHEMATIC_LOADED.send(player, filename);
             }
         } catch (IOException e) {
@@ -274,18 +257,7 @@ public class SchematicCommands extends MethodCommands {
 
                 uri = f.toURI();
             }
-            final ClipboardReader reader = format.getReader(in);
-            final WorldData worldData = player.getWorld().getWorldData();
-            final Clipboard clipboard;
-            session.setClipboard(null);
-            if (reader instanceof SchematicReader) {
-                clipboard = ((SchematicReader) reader).read(player.getWorld().getWorldData(), player.getUniqueId());
-            } else if (reader instanceof StructureFormat) {
-                clipboard = ((StructureFormat) reader).read(player.getWorld().getWorldData(), player.getUniqueId());
-            } else {
-                clipboard = reader.read(player.getWorld().getWorldData());
-            }
-            session.setClipboard(new URIClipboardHolder(uri, clipboard, worldData));
+            format.hold(player, uri, in);
             BBC.SCHEMATIC_LOADED.send(player, filename);
         } catch (IllegalArgumentException e) {
             player.printError("Unknown filename: " + filename);
@@ -380,24 +352,107 @@ public class SchematicCommands extends MethodCommands {
         }
     }
 
-    @Command(aliases = {"delete", "d"}, usage = "<filename>", desc = "Delete a saved schematic", help = "Delete a schematic from the schematic list", min = 1, max = 1)
-    @CommandPermissions("worldedit.schematic.delete")
-    public void delete(final Player player, final LocalSession session, final CommandContext args) throws WorldEditException {
+    @Command(aliases = {"move", "m"}, usage = "<directory>", desc = "Move your loaded schematic", help = "Move your currently loaded schematics", min = 1, max = 1)
+    @CommandPermissions({"worldedit.schematic.move", "worldedit.schematic.move.other"})
+    public void move(final Player player, final LocalSession session, final CommandContext args) throws WorldEditException {
         final LocalConfiguration config = this.worldEdit.getConfiguration();
-        final String filename = args.getString(0);
-
         final File working = this.worldEdit.getWorkingDirectoryFile(config.saveDir);
         final File dir = Settings.IMP.PATHS.PER_PLAYER_SCHEMATICS ? new File(working, player.getUniqueId().toString()) : working;
-        final File f = this.worldEdit.getSafeSaveFile(player, dir, filename, "schematic", "schematic");
-        if (!f.exists()) {
-            player.printError("Schematic " + filename + " does not exist!");
+        File destDir = new File(dir, args.getString(0));
+        if (!MainUtil.isInSubDirectory(working, destDir)) {
+            player.printError("Directory " + destDir + " does not exist!");
             return;
         }
-        if (!f.delete()) {
-            player.printError("Deletion of " + filename + " failed! Maybe it is read-only.");
+        if (Settings.IMP.PATHS.PER_PLAYER_SCHEMATICS && !MainUtil.isInSubDirectory(dir, destDir) && !player.hasPermission("worldedit.schematic.move.other")) {
+            BBC.NO_PERM.send(player, "worldedit.schematic.move.other");
             return;
         }
-        BBC.FILE_DELETED.send(player, filename);
+        ClipboardHolder clipboard = session.getClipboard();
+        List<File> sources = getFiles(clipboard);
+        if (sources.isEmpty()) {
+            BBC.SCHEMATIC_NONE.send(player);
+            return;
+        }
+        if (!destDir.exists() && !destDir.mkdirs()) {
+            player.printError("Creation of " + destDir + " failed! (check file permissions)");
+            return;
+        }
+        for (File source : sources) {
+            File destFile = new File(destDir, source.getName());
+            if (destFile.exists()) {
+                BBC.SCHEMATIC_MOVE_EXISTS.send(player, destFile);
+                continue;
+            }
+            if (Settings.IMP.PATHS.PER_PLAYER_SCHEMATICS && (!MainUtil.isInSubDirectory(dir, destFile) || !MainUtil.isInSubDirectory(dir, source)) && !player.hasPermission("worldedit.schematic.delete.other")) {
+                BBC.SCHEMATIC_MOVE_FAILED.send(player, destFile, BBC.NO_PERM.f("worldedit.schematic.move.other"));
+                continue;
+            }
+            try {
+                File cached = new File(source.getParentFile(), "." + source.getName() + ".cached");
+                Files.move(source.toPath(), destFile.toPath());
+                if (cached.exists()) Files.move(cached.toPath(), destFile.toPath());
+                BBC.SCHEMATIC_MOVE_SUCCESS.send(player, source, destFile);
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+        }
+    }
+
+    @Command(aliases = {"delete", "d"}, usage = "<filename|*>", desc = "Delete a saved schematic", help = "Delete a schematic from the schematic list", min = 1, max = 1)
+    @CommandPermissions({"worldedit.schematic.delete", "worldedit.schematic.other"})
+    public void delete(final Player player, final LocalSession session, final CommandContext args) throws WorldEditException {
+        final LocalConfiguration config = this.worldEdit.getConfiguration();
+        final File working = this.worldEdit.getWorkingDirectoryFile(config.saveDir);
+        final File dir = Settings.IMP.PATHS.PER_PLAYER_SCHEMATICS ? new File(working, player.getUniqueId().toString()) : working;
+        List<File> files = new ArrayList<>();
+
+        final String filename = args.getString(0);
+
+        if (filename.equalsIgnoreCase("*")) {
+            files.addAll(getFiles(session.getClipboard()));
+        } else {
+            files.add(new File(dir, filename));
+        }
+        if (files.isEmpty()) {
+            BBC.SCHEMATIC_NONE.send(player);
+            return;
+        }
+        for (File f : files) {
+            if (!MainUtil.isInSubDirectory(working, f) || !f.exists()) {
+                player.printError("Schematic " + filename + " does not exist! (" + f.exists() + "|" + f + "|" + (!MainUtil.isInSubDirectory(working, f)) + ")");
+                continue;
+            }
+            if (Settings.IMP.PATHS.PER_PLAYER_SCHEMATICS && !MainUtil.isInSubDirectory(dir, f) && !player.hasPermission("worldedit.schematic.delete.other")) {
+                BBC.NO_PERM.send(player, "worldedit.schematic.delete.other");
+                continue;
+            }
+            if (!delete(f)) {
+                player.printError("Deletion of " + filename + " failed! Maybe it is read-only.");
+                continue;
+            }
+            BBC.FILE_DELETED.send(player, filename);
+        }
+    }
+
+    private List<File> getFiles(ClipboardHolder clipboard) {
+        List<File> files = new ArrayList<>();
+        Collection<URI> uris = Collections.emptyList();
+        if (clipboard instanceof URIClipboardHolder) {
+            uris = ((URIClipboardHolder) clipboard).getURIs();
+        }
+        for (URI uri : uris) {
+            File file = new File(uri);
+            if (file.exists()) files.add(file);
+        }
+        return files;
+    }
+
+    private boolean delete(File file) {
+        if (file.delete()) {
+            new File(file.getParentFile(), "." + file.getName() + ".cached").delete();
+            return true;
+        }
+        return false;
     }
 
     @Command(aliases = {"formats", "listformats", "f"}, desc = "List available formats", max = 0)
@@ -422,6 +477,58 @@ public class SchematicCommands extends MethodCommands {
             first = true;
         }
         m.send(actor);
+    }
+
+
+    @Command(
+            aliases = {"show"},
+            desc = "Show a schematic",
+            usage = "[global|mine|<filter>] [page=1]",
+            min = 0,
+            max = -1,
+            flags = "dnp",
+            help = "List all schematics in the schematics directory\n" +
+                    " -p <page> prints the requested page\n" +
+                    " -f <format> restricts by format\n"
+    )
+    @CommandPermissions("worldedit.heightmap.list")
+    public void show(Player player, CommandContext args, @Switch('p') @Optional("1") int page) {
+        FawePlayer fp = FawePlayer.wrap(player);
+        if (args.argsLength() == 0 && fp.getSession().getVirtualWorld() != null) {
+            fp.setVirtualWorld(null);
+            return;
+        }
+        LocalConfiguration config = worldEdit.getConfiguration();
+        File dir = worldEdit.getWorkingDirectoryFile(config.saveDir);
+        try {
+            SchemVis visExtent = new SchemVis(fp);
+            LongAdder count = new LongAdder();
+            UtilityCommands.getFiles(dir, player, args, 0, Character.MAX_VALUE, null, Settings.IMP.PATHS.PER_PLAYER_SCHEMATICS, file -> {
+                if (file.isFile()) {
+                    try {
+                        visExtent.add(file);
+                        count.add(1);
+                    } catch (IOException e) {
+                        throw new RuntimeException(e);
+                    }
+                }
+            });
+            visExtent.bind();
+            visExtent.update();
+
+            String cmdPrefix = "/" + (config.noDoubleSlash ? "" : "/");
+            String cmdShow = Commands.getAlias(ClipboardCommands.class, "schematic") + " " + Commands.getAlias(ClipboardCommands.class, "show");
+            BBC.SCHEMATIC_SHOW.send(fp, count.longValue(), args.getJoinedStrings(0), cmdShow);
+
+            if (fp.getSession().getExistingClipboard() != null) {
+                String cmd = cmdPrefix + Commands.getAlias(ClipboardCommands.class, "clipboard") + " " + Commands.getAlias(ClipboardCommands.class, "clear");
+                BBC.SCHEMATIC_PROMPT_CLEAR.send(fp, cmd);
+            }
+
+        } catch (Throwable e) {
+            fp.setVirtualWorld(null);
+            throw e;
+        }
     }
 
     @Command(
@@ -454,7 +561,7 @@ public class SchematicCommands extends MethodCommands {
 
         URIClipboardHolder multi = as(URIClipboardHolder.class, fp.getSession().getExistingClipboard());
 
-        UtilityCommands.list(dir, actor, args, page, formatName, Settings.IMP.PATHS.PER_PLAYER_SCHEMATICS, new RunnableVal3<Message, URI, String>() {
+        UtilityCommands.list(dir, actor, args, page, -1, formatName, Settings.IMP.PATHS.PER_PLAYER_SCHEMATICS, new RunnableVal3<Message, URI, String>() {
             @Override
             public void run(Message msg, URI uri, String relFilePath) {
                 boolean isDir = false;

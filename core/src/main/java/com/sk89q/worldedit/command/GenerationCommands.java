@@ -117,7 +117,7 @@ public class GenerationCommands extends MethodCommands {
     @Command(
             aliases = {"/image", "/img"},
             desc = "Generate an image",
-            usage = "<imgur> [randomize=true] [complexity=100]",
+            usage = "<imgur> [randomize=true] [complexity=100] [dimensions]",
             min = 1,
             max = 3
     )

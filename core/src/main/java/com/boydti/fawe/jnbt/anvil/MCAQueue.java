@@ -116,38 +116,38 @@ public class MCAQueue extends NMSMappedFaweQueue<FaweQueue, FaweChunk, FaweChunk
         int otherBCZ = (obz) >> 4;
         int otherTCX = (otx) >> 4;
         int otherTCZ = (otz) >> 4;
-        int cx = newChunk.getX();
-        int cz = newChunk.getZ();
-        int cbx = (cx << 4) - oX;
-        int cbz = (cz << 4) - oZ;
+    int cx = newChunk.getX();
+    int cz = newChunk.getZ();
+    int cbx = (cx << 4) - oX;
+    int cbz = (cz << 4) - oZ;
 
-        boolean changed = false;
+    boolean changed = false;
         for (int otherCZ = otherBCZ; otherCZ <= otherTCZ; otherCZ++) {
-            for (int otherCX = otherBCX; otherCX <= otherTCX; otherCX++) {
-                FaweChunk chunk;
-                synchronized (this) {
-                    chunk = this.getFaweChunk(otherCX, otherCZ);
-                }
-                if (!(chunk instanceof NullFaweChunk)) {
-                    changed = true;
-                    MCAChunk other = (MCAChunk) chunk;
-                    int ocbx = otherCX << 4;
-                    int ocbz = otherCZ << 4;
-                    int octx = ocbx + 15;
-                    int octz = ocbz + 15;
-                    int offsetY = 0;
-                    int minX = obx > ocbx ? (obx - ocbx) & 15 : 0;
-                    int maxX = otx < octx ? (otx - ocbx) : 15;
-                    int minZ = obz > ocbz ? (obz - ocbz) & 15 : 0;
-                    int maxZ = otz < octz ? (otz - ocbz) : 15;
-                    int offsetX = ocbx - cbx;
-                    int offsetZ = ocbz - cbz;
-                    newChunk.copyFrom(other, minX, maxX, 0, 255, minZ, maxZ, offsetX, offsetY, offsetZ);
-                }
+        for (int otherCX = otherBCX; otherCX <= otherTCX; otherCX++) {
+            FaweChunk chunk;
+            synchronized (this) {
+                chunk = this.getFaweChunk(otherCX, otherCZ);
+            }
+            if (!(chunk instanceof NullFaweChunk)) {
+                changed = true;
+                MCAChunk other = (MCAChunk) chunk;
+                int ocbx = otherCX << 4;
+                int ocbz = otherCZ << 4;
+                int octx = ocbx + 15;
+                int octz = ocbz + 15;
+                int offsetY = 0;
+                int minX = obx > ocbx ? (obx - ocbx) & 15 : 0;
+                int maxX = otx < octx ? (otx - ocbx) : 15;
+                int minZ = obz > ocbz ? (obz - ocbz) & 15 : 0;
+                int maxZ = otz < octz ? (otz - ocbz) : 15;
+                int offsetX = ocbx - cbx;
+                int offsetZ = ocbz - cbz;
+                newChunk.copyFrom(other, minX, maxX, 0, 255, minZ, maxZ, offsetX, offsetY, offsetZ);
             }
         }
-        return changed;
     }
+        return changed;
+}
 
     @Override
     public boolean setMCA(int mcaX, int mcaZ, RegionWrapper region, Runnable whileLocked, boolean save, boolean unload) {

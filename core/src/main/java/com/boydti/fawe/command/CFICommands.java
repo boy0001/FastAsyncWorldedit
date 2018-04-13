@@ -8,12 +8,7 @@ import com.boydti.fawe.jnbt.anvil.HeightMapMCAGenerator;
 import com.boydti.fawe.object.FawePlayer;
 import com.boydti.fawe.object.RunnableVal;
 import com.boydti.fawe.object.clipboard.MultiClipboardHolder;
-import com.boydti.fawe.util.CleanTextureUtil;
-import com.boydti.fawe.util.FilteredTextureUtil;
-import com.boydti.fawe.util.ImgurUtility;
-import com.boydti.fawe.util.StringMan;
-import com.boydti.fawe.util.TaskManager;
-import com.boydti.fawe.util.TextureUtil;
+import com.boydti.fawe.util.*;
 import com.boydti.fawe.util.chat.Message;
 import com.boydti.fawe.util.image.ImageUtil;
 import com.intellectualcrafters.plot.PS;
@@ -33,11 +28,8 @@ import com.sk89q.minecraft.util.commands.Command;
 import com.sk89q.minecraft.util.commands.CommandContext;
 import com.sk89q.minecraft.util.commands.CommandException;
 import com.sk89q.minecraft.util.commands.CommandPermissions;
-import com.sk89q.worldedit.EmptyClipboardException;
-import com.sk89q.worldedit.LocalSession;
+import com.sk89q.worldedit.*;
 import com.sk89q.worldedit.Vector;
-import com.sk89q.worldedit.WorldEdit;
-import com.sk89q.worldedit.WorldEditException;
 import com.sk89q.worldedit.blocks.BaseBlock;
 import com.sk89q.worldedit.command.MethodCommands;
 import com.sk89q.worldedit.entity.Player;
@@ -63,10 +55,9 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.net.URL;
-import java.util.ArrayDeque;
-import java.util.HashSet;
-import java.util.Set;
-import java.util.UUID;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.util.*;
 import javax.imageio.ImageIO;
 
 @Command(aliases = {"/cfi"}, desc = "Create a world from images: [More Info](https://git.io/v5iDy)")
@@ -95,7 +86,7 @@ public class CFICommands extends MethodCommands {
     )
     @CommandPermissions("worldedit.anvil.cfi")
     public void heightmap(FawePlayer fp, BufferedImage image) {
-        HeightMapMCAGenerator generator = new HeightMapMCAGenerator(image, getFolder("CFI-" + UUID.randomUUID()));
+        HeightMapMCAGenerator generator = new HeightMapMCAGenerator(image, getFolder(generateName()));
         setup(generator, fp);
     }
 
@@ -106,14 +97,20 @@ public class CFICommands extends MethodCommands {
     )
     @CommandPermissions("worldedit.anvil.cfi")
     public void heightmap(FawePlayer fp, int width, int length) {
-        HeightMapMCAGenerator generator = new HeightMapMCAGenerator(width, length, getFolder("CFI-" + UUID.randomUUID()));
+        HeightMapMCAGenerator generator = new HeightMapMCAGenerator(width, length, getFolder(generateName()));
         setup(generator, fp);
     }
 
+    private String generateName() {
+        DateFormat df = new SimpleDateFormat("dd.MM.yyyy HH.mm.ss");
+        String data = df.format(new Date());
+        return data;
+    }
+
     private void setup(HeightMapMCAGenerator generator, FawePlayer fp) {
-        CFISettings settings = getSettings(fp);
-        settings.remove().setGenerator(generator).bind();
+        CFISettings settings = getSettings(fp).remove();
         generator.setPacketViewer(fp);
+        settings.setGenerator(generator).bind();
         generator.setImageViewer(Fawe.imp().getImageViewer(fp));
         generator.update();
         mainMenu(fp);
@@ -1021,6 +1018,8 @@ public class CFICommands extends MethodCommands {
 
         protected String category;
 
+        private boolean bound;
+
         public CFISettings(FawePlayer player) {
             this.fp = player;
         }
@@ -1078,10 +1077,13 @@ public class CFICommands extends MethodCommands {
 
         public CFISettings setGenerator(HeightMapMCAGenerator generator) {
             this.generator = generator;
+            if (bound) fp.getSession().setVirtualWorld(generator);
             return this;
         }
 
         public CFISettings bind() {
+            if (generator != null) fp.getSession().setVirtualWorld(generator);
+            bound = true;
             fp.setMeta("CFISettings", this);
             return this;
         }
@@ -1099,11 +1101,10 @@ public class CFICommands extends MethodCommands {
             fp.deleteMeta("CFISettings");
             HeightMapMCAGenerator gen = this.generator;
             if (gen != null) {
-                gen.close();
-                LocalSession session = fp.getSession();
-                session.clearHistory();
+                fp.getSession().setVirtualWorld(null);
             }
             popMessages(fp);
+            bound = false;
             generator = null;
             image = null;
             imageArg = null;

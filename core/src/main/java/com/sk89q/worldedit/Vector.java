@@ -889,7 +889,7 @@ public class Vector implements Comparable<Vector>, Serializable {
     }
 
     private void writeObject(java.io.ObjectOutputStream stream) throws IOException {
-        if (!(this instanceof Vector)) {
+        if (!(this instanceof MutableBlockVector)) {
             stream.writeDouble(x);
             stream.writeDouble(y);
             stream.writeDouble(z);

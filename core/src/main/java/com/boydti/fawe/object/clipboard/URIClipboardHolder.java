@@ -4,6 +4,8 @@ import com.sk89q.worldedit.extent.clipboard.Clipboard;
 import com.sk89q.worldedit.session.ClipboardHolder;
 import com.sk89q.worldedit.world.registry.WorldData;
 import java.net.URI;
+import java.util.Collections;
+import java.util.Set;
 
 
 import static com.google.common.base.Preconditions.checkNotNull;
@@ -29,5 +31,9 @@ public class URIClipboardHolder extends ClipboardHolder {
     @Deprecated
     public URI getUri() {
         return uri;
+    }
+
+    public Set<URI> getURIs() {
+        return Collections.singleton(uri);
     }
 }

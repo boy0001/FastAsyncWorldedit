@@ -15,11 +15,7 @@ import com.boydti.fawe.object.RunnableVal;
 import com.boydti.fawe.object.brush.visualization.VisualChunk;
 import com.boydti.fawe.object.queue.LazyFaweChunk;
 import com.boydti.fawe.object.visitor.FaweChunkVisitor;
-import com.boydti.fawe.util.MainUtil;
-import com.boydti.fawe.util.MathMan;
-import com.boydti.fawe.util.ReflectionUtils;
-import com.boydti.fawe.util.SetQueue;
-import com.boydti.fawe.util.TaskManager;
+import com.boydti.fawe.util.*;
 import com.comphenix.protocol.PacketType;
 import com.comphenix.protocol.ProtocolLibrary;
 import com.comphenix.protocol.ProtocolManager;
@@ -36,49 +32,9 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Iterator;
-import java.util.Map;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 import java.util.concurrent.atomic.LongAdder;
-import net.minecraft.server.v1_12_R1.BiomeBase;
-import net.minecraft.server.v1_12_R1.BiomeCache;
-import net.minecraft.server.v1_12_R1.Block;
-import net.minecraft.server.v1_12_R1.BlockPosition;
-import net.minecraft.server.v1_12_R1.ChunkProviderGenerate;
-import net.minecraft.server.v1_12_R1.ChunkProviderServer;
-import net.minecraft.server.v1_12_R1.ChunkSection;
-import net.minecraft.server.v1_12_R1.DataPaletteBlock;
-import net.minecraft.server.v1_12_R1.Entity;
-import net.minecraft.server.v1_12_R1.EntityPlayer;
-import net.minecraft.server.v1_12_R1.EntityTracker;
-import net.minecraft.server.v1_12_R1.EntityTypes;
-import net.minecraft.server.v1_12_R1.EnumDifficulty;
-import net.minecraft.server.v1_12_R1.EnumGamemode;
-import net.minecraft.server.v1_12_R1.EnumSkyBlock;
-import net.minecraft.server.v1_12_R1.IBlockData;
-import net.minecraft.server.v1_12_R1.IDataManager;
-import net.minecraft.server.v1_12_R1.MinecraftServer;
-import net.minecraft.server.v1_12_R1.NBTTagCompound;
-import net.minecraft.server.v1_12_R1.NibbleArray;
-import net.minecraft.server.v1_12_R1.PacketDataSerializer;
-import net.minecraft.server.v1_12_R1.PacketPlayOutMapChunk;
-import net.minecraft.server.v1_12_R1.PacketPlayOutMultiBlockChange;
-import net.minecraft.server.v1_12_R1.PlayerChunk;
-import net.minecraft.server.v1_12_R1.PlayerChunkMap;
-import net.minecraft.server.v1_12_R1.RegionFile;
-import net.minecraft.server.v1_12_R1.RegionFileCache;
-import net.minecraft.server.v1_12_R1.ServerNBTManager;
-import net.minecraft.server.v1_12_R1.TileEntity;
-import net.minecraft.server.v1_12_R1.WorldChunkManager;
-import net.minecraft.server.v1_12_R1.WorldData;
-import net.minecraft.server.v1_12_R1.WorldManager;
-import net.minecraft.server.v1_12_R1.WorldServer;
-import net.minecraft.server.v1_12_R1.WorldSettings;
-import net.minecraft.server.v1_12_R1.WorldType;
+import net.minecraft.server.v1_12_R1.*;
 import org.bukkit.Bukkit;
 import org.bukkit.Chunk;
 import org.bukkit.World;
@@ -583,6 +539,7 @@ public class BukkitQueue_1_12 extends BukkitQueue_0<net.minecraft.server.v1_12_R
             for (int i = 0; i < players.length; i++) {
                 CraftPlayer bukkitPlayer = ((CraftPlayer) ((BukkitPlayer) players[i]).parent);
                 EntityPlayer player = bukkitPlayer.getHandle();
+
                 if (playerManager.a(player, chunk.getX(), chunk.getZ())) {
                     if (packet == null) {
                         byte[] data;
@@ -660,6 +617,15 @@ public class BukkitQueue_1_12 extends BukkitQueue_0<net.minecraft.server.v1_12_R
     @Override
     public void refreshChunk(FaweChunk fc) {
         sendChunk(fc.getX(), fc.getZ(), fc.getBitMask());
+    }
+
+    public void sendPacket(int cx, int cz, Packet packet) {
+        PlayerChunk chunk = getPlayerChunk(nmsWorld, cx, cz);
+        if (chunk != null) {
+            for (EntityPlayer player : chunk.c) {
+                player.playerConnection.sendPacket(packet);
+            }
+        }
     }
 
     private PlayerChunk getPlayerChunk(WorldServer w, int cx, int cz) {

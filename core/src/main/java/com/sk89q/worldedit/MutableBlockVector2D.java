@@ -78,4 +78,33 @@ public final class MutableBlockVector2D extends BlockVector2D implements Seriali
         this.x = stream.readInt();
         this.z = stream.readInt();
     }
+
+    public MutableBlockVector2D nextPosition() {
+        int absX = Math.abs(x);
+        int absY = Math.abs(z);
+        if (absX > absY) {
+            if (x > 0) {
+                return setComponents(x, z + 1);
+            } else {
+                return setComponents(x, z - 1);
+            }
+        } else if (absY > absX) {
+            if (z > 0) {
+                return setComponents(x - 1, z);
+            } else {
+                return setComponents(x + 1, z);
+            }
+        } else {
+            if (x == z && x > 0) {
+                return setComponents(x, z + 1);
+            }
+            if (x == absX) {
+                return setComponents(x, z + 1);
+            }
+            if (z == absY) {
+                return setComponents(x, z - 1);
+            }
+            return setComponents(x + 1, z);
+        }
+    }
 }

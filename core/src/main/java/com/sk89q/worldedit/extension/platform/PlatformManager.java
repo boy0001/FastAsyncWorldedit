@@ -21,6 +21,7 @@ package com.sk89q.worldedit.extension.platform;
 
 import com.boydti.fawe.config.BBC;
 import com.boydti.fawe.object.FawePlayer;
+import com.boydti.fawe.object.brush.visualization.VirtualWorld;
 import com.boydti.fawe.object.exception.FaweException;
 import com.boydti.fawe.object.pattern.PatternTraverser;
 import com.boydti.fawe.util.MainUtil;
@@ -328,10 +329,6 @@ public class PlatformManager {
         return tool;
     }
 
-    public void handleMove() {
-
-    }
-
     @SuppressWarnings("deprecation")
     @Subscribe
     public void handleBlockInteract(BlockInteractEvent event) {
@@ -347,6 +344,13 @@ public class PlatformManager {
             if (actor instanceof Player) {
                 final LocalSession session = worldEdit.getSessionManager().get(actor);
                 Player playerActor = (Player) actor;
+
+                VirtualWorld virtual = session.getVirtualWorld();
+                if (virtual != null) {
+                    virtual.handleBlockInteract(playerActor, vector, event);
+                    if (event.isCancelled()) return;
+                }
+
                 if (event.getType() == Interaction.HIT) {
                     if (session.isToolControlEnabled() && playerActor.getItemInHand() == getConfiguration().wandItem) {
                         FawePlayer<?> fp = FawePlayer.wrap(playerActor);
@@ -394,6 +398,7 @@ public class PlatformManager {
                                 }
                             }, true, true);
                             event.setCancelled(true);
+                            return;
                         }
                     }
                 } else if (event.getType() == Interaction.OPEN) {
@@ -402,17 +407,18 @@ public class PlatformManager {
                         if (!actor.hasPermission("worldedit.selection.pos")) {
                             return;
                         }
-                        final RegionSelector selector = session.getRegionSelector(playerActor.getWorld());
-                        final Player player = new LocationMaskedPlayerWrapper(PlayerWrapper.wrap((Player) actor), ((Player) actor).getLocation());
-                        fp.runAction(new Runnable() {
-                            @Override
-                            public void run() {
-                                if (selector.selectSecondary(vector, ActorSelectorLimits.forActor(player))) {
-                                    selector.explainSecondarySelection(actor, session, vector);
+                        if (fp.checkAction()) {
+                            final RegionSelector selector = session.getRegionSelector(playerActor.getWorld());
+                            final Player player = new LocationMaskedPlayerWrapper(PlayerWrapper.wrap((Player) actor), ((Player) actor).getLocation());
+                            fp.runAction(new Runnable() {
+                                @Override
+                                public void run() {
+                                    if (selector.selectSecondary(vector, ActorSelectorLimits.forActor(player))) {
+                                        selector.explainSecondarySelection(actor, session, vector);
+                                    }
                                 }
-                            }
-                        }, true, true);
-
+                            }, true, true);
+                        }
                         event.setCancelled(true);
                         return;
                     }
@@ -421,18 +427,21 @@ public class PlatformManager {
                     if (tool != null && tool instanceof BlockTool) {
                         if (tool.canUse(playerActor)) {
                             FawePlayer<?> fp = FawePlayer.wrap(playerActor);
-                            final Player player = new LocationMaskedPlayerWrapper(PlayerWrapper.wrap((Player) actor), ((Player) actor).getLocation());
-                            fp.runAction(new Runnable() {
-                                @Override
-                                public void run() {
-                                    if (tool instanceof BrushTool) {
-                                        ((BlockTool) tool).actPrimary(queryCapability(Capability.WORLD_EDITING), getConfiguration(), player, session, location);
-                                    } else {
-                                        reset((BlockTool) tool).actPrimary(queryCapability(Capability.WORLD_EDITING), getConfiguration(), player, session, location);
+                            if (fp.checkAction()) {
+                                final Player player = new LocationMaskedPlayerWrapper(PlayerWrapper.wrap((Player) actor), ((Player) actor).getLocation());
+                                fp.runAction(new Runnable() {
+                                    @Override
+                                    public void run() {
+                                        if (tool instanceof BrushTool) {
+                                            ((BlockTool) tool).actPrimary(queryCapability(Capability.WORLD_EDITING), getConfiguration(), player, session, location);
+                                        } else {
+                                            reset((BlockTool) tool).actPrimary(queryCapability(Capability.WORLD_EDITING), getConfiguration(), player, session, location);
+                                        }
                                     }
-                                }
-                            }, true, true);
-                            event.setCancelled(true);
+                                }, true, true);
+                                event.setCancelled(true);
+                                return;
+                            }
                         }
                     }
                 }
@@ -460,6 +469,13 @@ public class PlatformManager {
         // making changes to the world
         Player actor = createProxyActor(event.getPlayer());
         final Player player = new LocationMaskedPlayerWrapper(PlayerWrapper.wrap(actor), actor.getLocation(), true);
+        final LocalSession session = worldEdit.getSessionManager().get(player);
+
+        VirtualWorld virtual = session.getVirtualWorld();
+        if (virtual != null) {
+            virtual.handlePlayerInput(player,  event);
+            if (event.isCancelled()) return;
+        }
 
         try {
             switch (event.getInputType()) {
@@ -483,8 +499,6 @@ public class PlatformManager {
                         event.setCancelled(true);
                         return;
                     }
-
-                    final LocalSession session = worldEdit.getSessionManager().get(player);
 
                     final Tool tool = session.getTool(player);
                     if (tool != null && tool instanceof DoubleActionTraceTool) {
@@ -520,8 +534,6 @@ public class PlatformManager {
                         event.setCancelled(true);
                         return;
                     }
-
-                    final LocalSession session = worldEdit.getSessionManager().get(player);
 
                     final Tool tool = session.getTool(player);
                     if (tool != null && tool instanceof TraceTool) {

@@ -3,41 +3,20 @@ package com.boydti.fawe.jnbt.anvil;
 import com.boydti.fawe.Fawe;
 import com.boydti.fawe.FaweCache;
 import com.boydti.fawe.example.SimpleCharFaweChunk;
-import com.boydti.fawe.object.FaweChunk;
-import com.boydti.fawe.object.FaweInputStream;
-import com.boydti.fawe.object.FaweLocation;
-import com.boydti.fawe.object.FaweOutputStream;
-import com.boydti.fawe.object.FawePlayer;
-import com.boydti.fawe.object.FaweQueue;
-import com.boydti.fawe.object.Metadatable;
-import com.boydti.fawe.object.PseudoRandom;
-import com.boydti.fawe.object.RunnableVal2;
+import com.boydti.fawe.object.*;
+import com.boydti.fawe.object.brush.visualization.VirtualWorld;
 import com.boydti.fawe.object.change.StreamChange;
 import com.boydti.fawe.object.changeset.CFIChangeSet;
-import com.boydti.fawe.object.collection.DifferentialArray;
-import com.boydti.fawe.object.collection.DifferentialBlockBuffer;
-import com.boydti.fawe.object.collection.IterableThreadLocal;
-import com.boydti.fawe.object.collection.LocalBlockVector2DSet;
-import com.boydti.fawe.object.collection.SummedAreaTable;
+import com.boydti.fawe.object.collection.*;
 import com.boydti.fawe.object.exception.FaweException;
 import com.boydti.fawe.object.queue.LazyFaweChunk;
 import com.boydti.fawe.object.schematic.Schematic;
-import com.boydti.fawe.util.CachedTextureUtil;
-import com.boydti.fawe.util.RandomTextureUtil;
-import com.boydti.fawe.util.ReflectionUtils;
-import com.boydti.fawe.util.SetQueue;
-import com.boydti.fawe.util.TaskManager;
-import com.boydti.fawe.util.TextureUtil;
+import com.boydti.fawe.util.*;
 import com.boydti.fawe.util.image.Drawable;
 import com.boydti.fawe.util.image.ImageViewer;
 import com.sk89q.jnbt.CompoundTag;
-import com.sk89q.worldedit.BlockVector;
-import com.sk89q.worldedit.EditSession;
-import com.sk89q.worldedit.MaxChangedBlocksException;
-import com.sk89q.worldedit.MutableBlockVector;
+import com.sk89q.worldedit.*;
 import com.sk89q.worldedit.Vector;
-import com.sk89q.worldedit.Vector2D;
-import com.sk89q.worldedit.WorldEditException;
 import com.sk89q.worldedit.blocks.BaseBlock;
 import com.sk89q.worldedit.blocks.BaseItemStack;
 import com.sk89q.worldedit.blocks.BlockID;
@@ -51,24 +30,18 @@ import com.sk89q.worldedit.regions.CuboidRegion;
 import com.sk89q.worldedit.regions.Region;
 import com.sk89q.worldedit.session.ClipboardHolder;
 import com.sk89q.worldedit.util.TreeGenerator;
-import com.sk89q.worldedit.world.SimpleWorld;
 import com.sk89q.worldedit.world.World;
 import com.sk89q.worldedit.world.biome.BaseBiome;
 import com.sk89q.worldedit.world.registry.WorldData;
 import java.awt.image.BufferedImage;
-import java.io.Closeable;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.lang.reflect.Field;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 import javax.annotation.Nullable;
 
-public class HeightMapMCAGenerator extends MCAWriter implements SimpleWorld, FaweQueue, StreamChange, Closeable, Drawable {
+public class HeightMapMCAGenerator extends MCAWriter implements StreamChange, Drawable, VirtualWorld {
     private final MutableBlockVector mutable = new MutableBlockVector();
 
     private final ThreadLocal<int[]> indexStore = new ThreadLocal<int[]>() {
@@ -251,6 +224,7 @@ public class HeightMapMCAGenerator extends MCAWriter implements SimpleWorld, Faw
         throw new UnsupportedOperationException("Not supported: Queue is not backed by a real world");
     }
 
+    @Override
     public Vector getOrigin() {
         return new BlockVector(chunkOffset.getBlockX() << 4, 0, chunkOffset.getBlockZ() << 4);
     }
@@ -286,6 +260,7 @@ public class HeightMapMCAGenerator extends MCAWriter implements SimpleWorld, Faw
         return viewer;
     }
 
+    @Override
     public void update() {
         if (viewer != null) {
             viewer.view(this);
@@ -326,9 +301,6 @@ public class HeightMapMCAGenerator extends MCAWriter implements SimpleWorld, Faw
                             e.printStackTrace();
                         }
                     });
-//                    FaweChunk toSend = getSnapshot(chunk, finalCX, finalCZ);
-//                    toSend.setLoc(HeightMapMCAGenerator.this, finalCX + OX, finalCZ + OZ);
-//                    packetQueue.sendChunkUpdate(toSend, player);
                 }
             }
         }
@@ -696,6 +668,11 @@ public class HeightMapMCAGenerator extends MCAWriter implements SimpleWorld, Faw
     }
 
     @Override
+    public FawePlayer getPlayer() {
+        return player;
+    }
+
+    @Override
     public Vector getMaximumPoint() {
         return new Vector(getWidth() - 1, 255, getLength() - 1);
     }
@@ -774,6 +751,7 @@ public class HeightMapMCAGenerator extends MCAWriter implements SimpleWorld, Faw
         return new SimpleCharFaweChunk(this, chunkX, chunkZ);
     }
 
+    @Override
     public FaweChunk getSnapshot(int chunkX, int chunkZ) {
         return getSnapshot(null, chunkX, chunkZ);
     }
@@ -899,9 +877,9 @@ public class HeightMapMCAGenerator extends MCAWriter implements SimpleWorld, Faw
     }
 
     @Override
-    public void close() {
+    public void close(boolean update) {
         clear();
-        if (chunkOffset != null && player != null) {
+        if (chunkOffset != null && player != null && update) {
             FaweQueue packetQueue = SetQueue.IMP.getNewQueue(player.getWorld(), true, false);
 
             int lenCX = (getWidth() + 15) >> 4;
@@ -924,6 +902,11 @@ public class HeightMapMCAGenerator extends MCAWriter implements SimpleWorld, Faw
                     packetQueue.sendChunk(cx + OX, cz + OZ, 0);
                 }
             }
+        }
+        if (player != null) {
+            player.deleteMeta("CFISettings");
+            LocalSession session = player.getSession();
+            session.clearHistory();
         }
         player = null;
         chunkOffset = null;
@@ -2151,7 +2134,7 @@ public class HeightMapMCAGenerator extends MCAWriter implements SimpleWorld, Faw
 
     @Override
     public int getMaxY() {
-        return SimpleWorld.super.getMaxY();
+        return 255;
     }
 
     @Override

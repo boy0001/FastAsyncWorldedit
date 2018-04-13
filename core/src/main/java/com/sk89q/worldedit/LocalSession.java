@@ -26,9 +26,11 @@ import com.boydti.fawe.object.FaweInputStream;
 import com.boydti.fawe.object.FaweLimit;
 import com.boydti.fawe.object.FaweOutputStream;
 import com.boydti.fawe.object.FawePlayer;
+import com.boydti.fawe.object.brush.visualization.VirtualWorld;
 import com.boydti.fawe.object.changeset.AnvilHistory;
 import com.boydti.fawe.object.changeset.DiskStorageHistory;
 import com.boydti.fawe.object.changeset.FaweChangeSet;
+import com.boydti.fawe.object.clipboard.MultiClipboardHolder;
 import com.boydti.fawe.object.collection.SparseBitSet;
 import com.boydti.fawe.object.extent.ResettableExtent;
 import com.boydti.fawe.util.EditSessionBuilder;
@@ -41,12 +43,7 @@ import com.sk89q.jchronic.Options;
 import com.sk89q.jchronic.utils.Span;
 import com.sk89q.jchronic.utils.Time;
 import com.sk89q.worldedit.blocks.BaseBlock;
-import com.sk89q.worldedit.command.tool.BlockTool;
-import com.sk89q.worldedit.command.tool.BrushHolder;
-import com.sk89q.worldedit.command.tool.BrushTool;
-import com.sk89q.worldedit.command.tool.InvalidToolBindException;
-import com.sk89q.worldedit.command.tool.SinglePickaxe;
-import com.sk89q.worldedit.command.tool.Tool;
+import com.sk89q.worldedit.command.tool.*;
 import com.sk89q.worldedit.entity.Player;
 import com.sk89q.worldedit.extension.platform.Actor;
 import com.sk89q.worldedit.extent.inventory.BlockBag;
@@ -65,21 +62,10 @@ import com.sk89q.worldedit.session.ClipboardHolder;
 import com.sk89q.worldedit.session.request.Request;
 import com.sk89q.worldedit.world.World;
 import com.sk89q.worldedit.world.snapshot.Snapshot;
-import java.io.File;
-import java.io.FileFilter;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.util.Calendar;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.ListIterator;
-import java.util.Map;
-import java.util.TimeZone;
-import java.util.UUID;
+import java.io.*;
+import java.util.*;
 import java.util.concurrent.atomic.AtomicBoolean;
+import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
 
@@ -137,6 +123,8 @@ public class LocalSession {
     private transient World currentWorld;
     private transient UUID uuid;
     private transient volatile long historySize = 0;
+
+    private transient VirtualWorld virtual;
 
     // Saved properties
     private String lastScript;
@@ -733,6 +721,29 @@ public class LocalSession {
         return selector.getRegion();
     }
 
+    public synchronized @Nullable VirtualWorld getVirtualWorld() {
+        return virtual;
+    }
+
+    public void setVirtualWorld(@Nullable VirtualWorld world) {
+        VirtualWorld tmp;
+        synchronized (this) {
+            tmp = this.virtual;
+            this.virtual = world;
+        }
+        if (tmp != null) {
+            try {
+                tmp.close(world == null);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+        if (world != null) {
+            Fawe.imp().registerPacketListener();
+            world.update();
+        }
+    }
+
     /**
      * Get the selection world.
      *
@@ -783,6 +794,24 @@ public class LocalSession {
     @Nullable
     public ClipboardHolder getExistingClipboard() {
         return clipboard;
+    }
+
+    public void addClipboard(@Nonnull MultiClipboardHolder toAppend) {
+        checkNotNull(toAppend);
+        ClipboardHolder existing = getExistingClipboard();
+        MultiClipboardHolder multi;
+        if (existing instanceof MultiClipboardHolder) {
+            multi = (MultiClipboardHolder) existing;
+            for (ClipboardHolder holder : toAppend.getHolders()) {
+                multi.add(holder);
+            }
+        } else  {
+            multi = toAppend;
+            if (existing != null) {
+                multi.add(existing);
+            }
+        }
+        setClipboard(multi);
     }
 
     /**
