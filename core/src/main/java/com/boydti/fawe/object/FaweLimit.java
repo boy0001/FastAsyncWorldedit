@@ -17,6 +17,7 @@ public class FaweLimit {
     public int SPEED_REDUCTION = Integer.MAX_VALUE;
     public boolean FAST_PLACEMENT = false;
     public boolean CONFIRM_LARGE = true;
+//    public boolean[] STRIP_NBT = null;
 
     public static FaweLimit MAX;
 
@@ -65,6 +66,7 @@ public class FaweLimit {
         MAX.MAX_EXPRESSION_MS = 50;
         MAX.FAST_PLACEMENT = true;
         MAX.CONFIRM_LARGE = true;
+//        MAX.STRIP_NBT = null;
     }
 
     public boolean MAX_CHANGES() {

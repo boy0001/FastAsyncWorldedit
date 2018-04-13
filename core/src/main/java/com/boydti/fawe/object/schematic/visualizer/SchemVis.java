@@ -41,6 +41,8 @@ import java.util.*;
  * An Immutable virtual world used to display & select schematics
  */
 public class SchemVis extends ImmutableVirtualWorld {
+    private static final WeakHashMap<File, Integer> DIMENSION_CACHE = new WeakHashMap<>();
+
     private final WorldData worldData;
 
     private final Long2ObjectOpenHashMap<Map.Entry<File, Long>> files;
@@ -260,28 +262,33 @@ public class SchemVis extends ImmutableVirtualWorld {
      * @param schemDimensions
      * @return
      */
-    private BlockVector2D registerAndGetChunkOffset(BlockVector schemDimensions, File file) {
+    private BlockVector2D registerAndGetChunkOffset(BlockVector2D schemDimensions, File file) {
         int chunkX = schemDimensions.getBlockX() >> 4;
         int chunkZ = schemDimensions.getBlockZ() >> 4;
         MutableBlockVector2D pos2 = new MutableBlockVector2D();
         MutableBlockVector2D curPos = lastPos;
         // Find next free position
         while (!isAreaFree(curPos, pos2.setComponents(curPos.getBlockX() + chunkX, curPos.getBlockZ() + chunkZ))) {
-            if (curPos == lastPos && !files.containsKey(MathMan.pairInt(curPos.getBlockX(), curPos.getBlockZ()))) {
-                curPos = new MutableBlockVector2D();
-                curPos.setComponents(lastPos.getBlockX(), lastPos.getBlockZ());
-            }
+//            if (curPos == lastPos && !files.containsKey(MathMan.pairInt(curPos.getBlockX(), curPos.getBlockZ()))) {
+//                curPos = new MutableBlockVector2D();
+//                curPos.setComponents(lastPos.getBlockX(), lastPos.getBlockZ());
+//            }
             curPos.nextPosition();
         }
         // Register the chunks
         Map.Entry<File, Long> originValue = getEntry(file, MathMan.pairInt(curPos.getBlockX(), curPos.getBlockZ()));
+        long pairX, pos;
         for (int x = 0; x <= chunkX; x++) {
+            int xx = curPos.getBlockX() + x;
+            pairX = ((long) xx) << 32;
             for (int z = 0; z <= chunkZ; z++) {
-                long pos = MathMan.pairInt(curPos.getBlockX() + x, curPos.getBlockZ() + z);
+                int zz = curPos.getBlockZ() + z;
+                pos = pairX + (zz & 0xffffffffL);
                 files.put(pos, originValue);
             }
         }
-        return curPos;
+        for (int i = 0; i < Math.min(chunkX, chunkZ); i++) curPos.nextPosition();
+        return curPos.toBlockVector2D();
     }
 
     private boolean isAreaFree(BlockVector2D chunkPos1, BlockVector2D chunkPos2 /* inclusive */) {
@@ -305,9 +312,18 @@ public class SchemVis extends ImmutableVirtualWorld {
 
     public void add(File file) throws IOException {
         File cached = new File(file.getParentFile(), "." + file.getName() + ".cached");
+        Integer dimensionPair = DIMENSION_CACHE.get(file);
+        if (dimensionPair != null) {
+            int width = (char) MathMan.unpairX(dimensionPair);
+            int length = (char) MathMan.unpairY(dimensionPair);
+            BlockVector2D dimensions = new BlockVector2D(width, length);
+            BlockVector2D offset = registerAndGetChunkOffset(dimensions, cached);
+            return;
+        }
         if (cached.exists() && file.lastModified() <= cached.lastModified()) {
-            try (FileInputStream fis = new FileInputStream(cached)) {
-                BlockVector dimensions = new BlockVector(IOUtil.readVarInt(fis), IOUtil.readVarInt(fis), IOUtil.readVarInt(fis));
+            try (InputStream fis = new BufferedInputStream(new FileInputStream(cached), 4)) {
+                BlockVector2D dimensions = new BlockVector2D(IOUtil.readVarInt(fis), IOUtil.readVarInt(fis));
+                DIMENSION_CACHE.put(file, MathMan.pair((short) dimensions.getBlockX(), (short) dimensions.getBlockZ()));
                 BlockVector2D offset = registerAndGetChunkOffset(dimensions, cached);
             }
         } else {
@@ -321,12 +337,11 @@ public class SchemVis extends ImmutableVirtualWorld {
                     clipboard.setOrigin(clipboard.getMinimumPoint());
                     try {
                         MCAQueue queue = new MCAQueue(null, null, false);
-                        BlockVector dimensions = clipboard.getDimensions().toBlockVector();
+                        BlockVector2D dimensions = clipboard.getDimensions().toVector2D().toBlockVector2D();
                         BlockVector2D offset = registerAndGetChunkOffset(dimensions, cached);
                         new Schematic(clipboard).paste(queue, Vector.ZERO, true);
                         try (FileOutputStream fos = new FileOutputStream(cached)) {
                             IOUtil.writeVarInt(fos, dimensions.getBlockX());
-                            IOUtil.writeVarInt(fos, dimensions.getBlockY());
                             IOUtil.writeVarInt(fos, dimensions.getBlockZ());
 
                             try (FaweOutputStream cos = MainUtil.getCompressedOS(fos, 2)) {
@@ -354,6 +369,8 @@ public class SchemVis extends ImmutableVirtualWorld {
                                 java.nio.file.Files.setAttribute(path, "dos:hidden", Boolean.TRUE, LinkOption.NOFOLLOW_LINKS);
                             }
                         }
+
+                        DIMENSION_CACHE.put(file, MathMan.pair((short) dimensions.getBlockX(), (short) dimensions.getBlockZ()));
                     } finally {
                         if (clipboard instanceof Closeable) {
                             ((Closeable) clipboard).close();
@@ -398,7 +415,7 @@ public class SchemVis extends ImmutableVirtualWorld {
                     int OCZ = MathMan.unpairIntY(origin);
                     try {
                         try (FileInputStream fis = new FileInputStream(cached)) {
-                            BlockVector dimensions = new BlockVector(IOUtil.readVarInt(fis), IOUtil.readVarInt(fis), IOUtil.readVarInt(fis));
+                            BlockVector2D dimensions = new BlockVector2D(IOUtil.readVarInt(fis), IOUtil.readVarInt(fis));
                             try (FaweInputStream in = MainUtil.getCompressedIS(fis)) {
                                 try (NBTInputStream nis = new NBTInputStream(in)) {
 
