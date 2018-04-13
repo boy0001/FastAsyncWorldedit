@@ -332,48 +332,50 @@ public class SchemVis extends ImmutableVirtualWorld {
                 cached.createNewFile();
                 try (FileInputStream in = new FileInputStream(file)) {
                     ClipboardFormat format = ClipboardFormat.findByFile(file);
-                    ClipboardReader reader = format.getReader(in);
-                    Clipboard clipboard = reader.read(worldData);
-                    clipboard.setOrigin(clipboard.getMinimumPoint());
-                    try {
-                        MCAQueue queue = new MCAQueue(null, null, false);
-                        BlockVector2D dimensions = clipboard.getDimensions().toVector2D().toBlockVector2D();
-                        BlockVector2D offset = registerAndGetChunkOffset(dimensions, cached);
-                        new Schematic(clipboard).paste(queue, Vector.ZERO, true);
-                        try (FileOutputStream fos = new FileOutputStream(cached)) {
-                            IOUtil.writeVarInt(fos, dimensions.getBlockX());
-                            IOUtil.writeVarInt(fos, dimensions.getBlockZ());
+                    if (format != null) {
+                        ClipboardReader reader = format.getReader(in);
+                        Clipboard clipboard = reader.read(worldData);
+                        clipboard.setOrigin(clipboard.getMinimumPoint());
+                        try {
+                            MCAQueue queue = new MCAQueue(null, null, false);
+                            BlockVector2D dimensions = clipboard.getDimensions().toVector2D().toBlockVector2D();
+                            BlockVector2D offset = registerAndGetChunkOffset(dimensions, cached);
+                            new Schematic(clipboard).paste(queue, Vector.ZERO, true);
+                            try (FileOutputStream fos = new FileOutputStream(cached)) {
+                                IOUtil.writeVarInt(fos, dimensions.getBlockX());
+                                IOUtil.writeVarInt(fos, dimensions.getBlockZ());
 
-                            try (FaweOutputStream cos = MainUtil.getCompressedOS(fos, 2)) {
-                                NBTOutputStream nos = new NBTOutputStream((DataOutput) cos);
-                                Collection<FaweChunk> writeChunks = queue.getFaweChunks();
-                                cos.writeInt(writeChunks.size());
+                                try (FaweOutputStream cos = MainUtil.getCompressedOS(fos, 2)) {
+                                    NBTOutputStream nos = new NBTOutputStream((DataOutput) cos);
+                                    Collection<FaweChunk> writeChunks = queue.getFaweChunks();
+                                    cos.writeInt(writeChunks.size());
 
-                                boolean selected = isSelected(file);
+                                    boolean selected = isSelected(file);
 
-                                for (FaweChunk chunk : writeChunks) {
-                                    MCAChunk mcaChunk = ((MCAChunk) chunk);
-                                    mcaChunk.write(nos);
-                                    mcaChunk.setLoc(this, mcaChunk.getX() + offset.getBlockX(), mcaChunk.getZ() + offset.getBlockZ());
-                                    if (Math.abs(mcaChunk.getX()) <= 15 && Math.abs(mcaChunk.getZ()) <= 15) {
-                                        cacheChunk(cached, mcaChunk, selected);
+                                    for (FaweChunk chunk : writeChunks) {
+                                        MCAChunk mcaChunk = ((MCAChunk) chunk);
+                                        mcaChunk.write(nos);
+                                        mcaChunk.setLoc(this, mcaChunk.getX() + offset.getBlockX(), mcaChunk.getZ() + offset.getBlockZ());
+                                        if (Math.abs(mcaChunk.getX()) <= 15 && Math.abs(mcaChunk.getZ()) <= 15) {
+                                            cacheChunk(cached, mcaChunk, selected);
+                                        }
                                     }
                                 }
                             }
-                        }
-                        if (System.getProperty("os.name").contains("Windows")) {
-                            Path path = cached.toPath();
-                            Object hidden = java.nio.file.Files.getAttribute(path, "dos:hidden", LinkOption.NOFOLLOW_LINKS);
-                            if (hidden != null) {
-                                //link file to DosFileAttributes
-                                java.nio.file.Files.setAttribute(path, "dos:hidden", Boolean.TRUE, LinkOption.NOFOLLOW_LINKS);
+                            if (System.getProperty("os.name").contains("Windows")) {
+                                Path path = cached.toPath();
+                                Object hidden = java.nio.file.Files.getAttribute(path, "dos:hidden", LinkOption.NOFOLLOW_LINKS);
+                                if (hidden != null) {
+                                    //link file to DosFileAttributes
+                                    java.nio.file.Files.setAttribute(path, "dos:hidden", Boolean.TRUE, LinkOption.NOFOLLOW_LINKS);
+                                }
                             }
-                        }
 
-                        DIMENSION_CACHE.put(file, MathMan.pair((short) dimensions.getBlockX(), (short) dimensions.getBlockZ()));
-                    } finally {
-                        if (clipboard instanceof Closeable) {
-                            ((Closeable) clipboard).close();
+                            DIMENSION_CACHE.put(file, MathMan.pair((short) dimensions.getBlockX(), (short) dimensions.getBlockZ()));
+                        } finally {
+                            if (clipboard instanceof Closeable) {
+                                ((Closeable) clipboard).close();
+                            }
                         }
                     }
                 }
