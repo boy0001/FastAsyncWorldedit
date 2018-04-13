@@ -483,19 +483,21 @@ public class SchematicCommands extends MethodCommands {
     @Command(
             aliases = {"show"},
             desc = "Show a schematic",
-            usage = "[global|mine|<filter>] [page=1]",
+            usage = "[global|mine|<filter>]",
             min = 0,
             max = -1,
             flags = "dnp",
             help = "List all schematics in the schematics directory\n" +
-                    " -p <page> prints the requested page\n" +
                     " -f <format> restricts by format\n"
     )
     @CommandPermissions("worldedit.heightmap.list")
-    public void show(Player player, CommandContext args, @Switch('p') @Optional("1") int page) {
+    public void show(Player player, CommandContext args, @Switch('f') String formatName) {
         FawePlayer fp = FawePlayer.wrap(player);
-        if (args.argsLength() == 0 && fp.getSession().getVirtualWorld() != null) {
-            fp.setVirtualWorld(null);
+        if (args.argsLength() == 0) {
+            if (fp.getSession().getVirtualWorld() != null) fp.setVirtualWorld(null);
+            else {
+                BBC.COMMAND_SYNTAX.send(player, "/" + Commands.getAlias(SchematicCommands.class, "schematic") + " " + getCommand().aliases()[0] + " " + getCommand().usage());
+            }
             return;
         }
         LocalConfiguration config = worldEdit.getConfiguration();
@@ -503,7 +505,7 @@ public class SchematicCommands extends MethodCommands {
         try {
             SchemVis visExtent = new SchemVis(fp);
             LongAdder count = new LongAdder();
-            UtilityCommands.getFiles(dir, player, args, 0, Character.MAX_VALUE, null, Settings.IMP.PATHS.PER_PLAYER_SCHEMATICS, file -> {
+            UtilityCommands.getFiles(dir, player, args, 0, Character.MAX_VALUE, formatName, Settings.IMP.PATHS.PER_PLAYER_SCHEMATICS, file -> {
                 if (file.isFile()) {
                     try {
                         visExtent.add(file);
