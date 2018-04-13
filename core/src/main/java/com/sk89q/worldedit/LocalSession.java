@@ -721,13 +721,15 @@ public class LocalSession {
         return selector.getRegion();
     }
 
-    public synchronized @Nullable VirtualWorld getVirtualWorld() {
-        return virtual;
+    public @Nullable VirtualWorld getVirtualWorld() {
+        synchronized (dirty) {
+            return virtual;
+        }
     }
 
     public void setVirtualWorld(@Nullable VirtualWorld world) {
         VirtualWorld tmp;
-        synchronized (this) {
+        synchronized (dirty) {
             tmp = this.virtual;
             this.virtual = world;
         }
