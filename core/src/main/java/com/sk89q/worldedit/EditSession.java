@@ -440,6 +440,7 @@ public class EditSession extends AbstractDelegateExtent implements HasFaweQueue,
 
     public void setExtent(AbstractDelegateExtent extent) {
         this.extent = extent;
+        new ExtentTraverser(this).setNext(extent);
     }
 
     /**
