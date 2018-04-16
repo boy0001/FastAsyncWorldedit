@@ -423,6 +423,11 @@ public abstract class FawePlayer<T> extends Metadatable {
      */
     public abstract UUID getUUID();
 
+
+    public boolean isSneaking() {
+        return false;
+    }
+
     /**
      * Check the player's permission
      *

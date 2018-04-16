@@ -20,6 +20,7 @@ import com.sk89q.worldedit.*;
 import com.sk89q.worldedit.Vector;
 import com.sk89q.worldedit.blocks.BlockID;
 import com.sk89q.worldedit.entity.Player;
+import com.sk89q.worldedit.event.platform.InputType;
 import com.sk89q.worldedit.event.platform.PlayerInputEvent;
 import com.sk89q.worldedit.extent.clipboard.Clipboard;
 import com.sk89q.worldedit.extent.clipboard.io.ClipboardFormat;
@@ -52,6 +53,7 @@ public class SchemVis extends ImmutableVirtualWorld {
     private final FawePlayer player;
     private final Location origin;
     private final BlockVector2D chunkOffset;
+    private BlockVector2D lastPosition;
 
     public SchemVis(FawePlayer player) {
         this.files = new Long2ObjectOpenHashMap<>();
@@ -63,6 +65,27 @@ public class SchemVis extends ImmutableVirtualWorld {
         FaweLocation pos = player.getLocation();
         this.origin = player.getPlayer().getLocation();
         this.chunkOffset = new BlockVector2D(pos.x >> 4,pos.z >> 4);
+    }
+
+    private Set<File> getFiles(BlockVector2D chunkPosA, BlockVector2D chunkPosB) {
+        BlockVector2D pos1 = new BlockVector2D(Math.min(chunkPosA.getBlockX(), chunkPosB.getBlockX()), Math.min(chunkPosA.getBlockZ(), chunkPosB.getBlockZ()));
+        BlockVector2D pos2 = new BlockVector2D(Math.max(chunkPosA.getBlockX(), chunkPosB.getBlockX()), Math.max(chunkPosA.getBlockZ(), chunkPosB.getBlockZ()));
+        Set<File> contained = new HashSet<>();
+        for (Long2ObjectMap.Entry<Map.Entry<File, Long>> entry : files.long2ObjectEntrySet()) {
+            long key = entry.getLongKey();
+            int chunkX = MathMan.unpairIntX(key);
+            if (chunkX < pos1.getBlockX() || chunkX > pos2.getBlockX()) continue;
+            int chunkZ = MathMan.unpairIntY(key);
+            if (chunkZ < pos1.getBlockZ() || chunkZ > pos2.getBlockZ()) continue;
+            contained.add(entry.getValue().getKey());
+
+        }
+        return contained;
+    }
+
+    private File getRealFile(File cached) {
+        String fileName = cached.getName();
+        return  new File(cached.getParentFile(), fileName.substring(1, fileName.length() - 7));
     }
 
     @Override
@@ -77,68 +100,83 @@ public class SchemVis extends ImmutableVirtualWorld {
             if (entry != null) {
                 File cachedFile = entry.getKey();
                 String filename = cachedFile.getName();
-                // get non `.cached` file
-                File file = new File(cachedFile.getParentFile(), filename.substring(1, filename.length() - 7));
-                URI uri = file.toURI();
 
-                ClipboardFormat format = ClipboardFormat.findByFile(file);
-                if (format != null) {
-                    LocalSession session = this.player.getSession();
+                LocalSession session = this.player.getSession();
+                synchronized (this) {
                     try {
-                        synchronized (this) {
-                            switch (event.getInputType()) {
-                                case PRIMARY: // set clipboard
-                                    format.hold(player, uri, new FileInputStream(file));
-                                    BBC.SCHEMATIC_LOADED.send(player, filename);
-                                    session.setVirtualWorld(null);
-                                    break;
-                                case SECONDARY: // add/remove clipboard
-                                    ClipboardHolder existing = session.getExistingClipboard();
+                        BlockVector2D tmpLastPosition = lastPosition;
+                        lastPosition = new BlockVector2D(chunkX, chunkZ);
 
-                                    boolean contains = existing instanceof URIClipboardHolder && ((URIClipboardHolder) existing).contains(uri);
-                                    if (contains) {
-                                        // Remove it
-                                        if (existing instanceof MultiClipboardHolder) {
-                                            MultiClipboardHolder multi = ((MultiClipboardHolder) existing);
-                                            multi.remove(uri);
-                                            if (multi.getClipboards().isEmpty()) session.setClipboard(null);
-                                        } else {
-                                            session.setClipboard(null);
-                                        }
-                                        BBC.CLIPBOARD_CLEARED.send(player);
+                        boolean sneaking = this.player.isSneaking();
+                        if (event.getInputType() == InputType.PRIMARY && !sneaking) {
+
+                            File file = new File(cachedFile.getParentFile(), filename.substring(1, filename.length() - 7));
+                            URI uri = file.toURI();
+                            ClipboardFormat format = ClipboardFormat.findByFile(file);
+                            format.hold(player, uri, new FileInputStream(file));
+                            BBC.SCHEMATIC_LOADED.send(player, filename);
+                            session.setVirtualWorld(null);
+                            return;
+                        }
+                        Set<File> toSelect;
+                        if (sneaking && tmpLastPosition != null) toSelect = getFiles(tmpLastPosition, lastPosition);
+                        else toSelect = Collections.singleton(cachedFile);
+
+                        Map<File, Boolean> select = new HashMap<>();
+                        for (File clicked : toSelect) {
+                            ClipboardHolder existing = session.getExistingClipboard();
+
+                            File file = new File(clicked.getParentFile(), filename.substring(1, filename.length() - 7));
+                            URI uri = file.toURI();
+                            ClipboardFormat format = ClipboardFormat.findByFile(file);
+
+                            boolean contains = existing instanceof URIClipboardHolder && ((URIClipboardHolder) existing).contains(uri);
+                            if (contains) {
+                                if (!sneaking) {
+                                    // Remove it
+                                    if (existing instanceof MultiClipboardHolder) {
+                                        MultiClipboardHolder multi = ((MultiClipboardHolder) existing);
+                                        multi.remove(uri);
+                                        if (multi.getClipboards().isEmpty()) session.setClipboard(null);
                                     } else {
-                                        // Add it
-                                        ByteSource source = Files.asByteSource(file);
-                                        MultiClipboardHolder multi = new MultiClipboardHolder(URI.create(""), worldData, new LazyClipboardHolder(uri, source, format, worldData, null));
-                                        session.addClipboard(multi);
-                                        BBC.SCHEMATIC_LOADED.send(player, filename);
+                                        session.setClipboard(null);
                                     }
-
-                                    // Resend relevant chunks
-                                    FaweQueue packetQueue = SetQueue.IMP.getNewQueue(this.player.getWorld(), true, false);
-                                    if (packetQueue.supports(Capability.CHUNK_PACKETS)) {
-                                        ArrayDeque<Long> toSend = new ArrayDeque<>();
-                                        int OX = chunkOffset.getBlockX();
-                                        int OZ = chunkOffset.getBlockZ();
-                                        ObjectIterator<Long2ObjectMap.Entry<MCAChunk>> iter = chunks.long2ObjectEntrySet().fastIterator();
-                                        while (iter.hasNext()) {
-                                            Long2ObjectMap.Entry<MCAChunk> mcaChunkEntry = iter.next();
-                                            long curChunkPos = mcaChunkEntry.getLongKey();
-                                            Map.Entry<File, Long> curFileEntry = files.get(curChunkPos);
-                                            if (curFileEntry != null && curFileEntry == entry) {
-                                                MCAChunk chunk = mcaChunkEntry.getValue();
-                                                if (contains) {
-                                                    iter.remove();
-                                                }
-                                                else select(chunk);
-                                                toSend.add(curChunkPos);
-                                            }
-                                        }
-                                        for (long curChunkPos : toSend) send(packetQueue, MathMan.unpairIntX(curChunkPos), MathMan.unpairIntY(curChunkPos));
-                                    }
-
-                                    break;
+                                    select.put(clicked, false);
+                                    BBC.CLIPBOARD_CLEARED.send(player);
+                                }
+                            } else {
+                                // Add it
+                                ByteSource source = Files.asByteSource(file);
+                                MultiClipboardHolder multi = new MultiClipboardHolder(URI.create(""), worldData, new LazyClipboardHolder(uri, source, format, worldData, null));
+                                session.addClipboard(multi);
+                                select.put(clicked, true);
+                                BBC.SCHEMATIC_LOADED.send(player, file.getName());
                             }
+                        }
+                        // Resend relevant chunks
+                        FaweQueue packetQueue = SetQueue.IMP.getNewQueue(this.player.getWorld(), true, false);
+                        if (packetQueue.supports(Capability.CHUNK_PACKETS)) {
+                            ArrayDeque<Long> toSend = new ArrayDeque<>();
+                            int OX = chunkOffset.getBlockX();
+                            int OZ = chunkOffset.getBlockZ();
+                            ObjectIterator<Long2ObjectMap.Entry<MCAChunk>> iter = chunks.long2ObjectEntrySet().fastIterator();
+                            while (iter.hasNext()) {
+                                Long2ObjectMap.Entry<MCAChunk> mcaChunkEntry = iter.next();
+                                long curChunkPos = mcaChunkEntry.getLongKey();
+                                Map.Entry<File, Long> curFileEntry = files.get(curChunkPos);
+                                if (curFileEntry != null) {
+                                    Boolean selected = select.get(curFileEntry.getKey());
+                                    if (selected != null) {
+                                        if (!selected) {
+                                            iter.remove();
+                                        } else {
+                                            select(mcaChunkEntry.getValue());
+                                        }
+                                        toSend.add(curChunkPos);
+                                    }
+                                }
+                            }
+                            for (long curChunkPos : toSend) send(packetQueue, MathMan.unpairIntX(curChunkPos), MathMan.unpairIntY(curChunkPos));
                         }
                     } catch (IOException e) {
                         throw new RuntimeException(e);

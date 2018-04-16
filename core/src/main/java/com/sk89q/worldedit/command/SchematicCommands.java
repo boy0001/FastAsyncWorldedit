@@ -399,7 +399,7 @@ public class SchematicCommands extends MethodCommands {
     }
 
     @Command(aliases = {"delete", "d"}, usage = "<filename|*>", desc = "Delete a saved schematic", help = "Delete a schematic from the schematic list", min = 1, max = 1)
-    @CommandPermissions({"worldedit.schematic.delete", "worldedit.schematic.other"})
+    @CommandPermissions({"worldedit.schematic.delete", "worldedit.schematic.delete.other"})
     public void delete(final Player player, final LocalSession session, final CommandContext args) throws WorldEditException {
         final LocalConfiguration config = this.worldEdit.getConfiguration();
         final File working = this.worldEdit.getWorkingDirectoryFile(config.saveDir);
@@ -490,7 +490,7 @@ public class SchematicCommands extends MethodCommands {
             help = "List all schematics in the schematics directory\n" +
                     " -f <format> restricts by format\n"
     )
-    @CommandPermissions("worldedit.heightmap.list")
+    @CommandPermissions("worldedit.schematic.show")
     public void show(Player player, CommandContext args, @Switch('f') String formatName) {
         FawePlayer fp = FawePlayer.wrap(player);
         if (args.argsLength() == 0) {
@@ -560,9 +560,11 @@ public class SchematicCommands extends MethodCommands {
         String unload = schemCmd + " " + Commands.getAlias(SchematicCommands.class, "unload");
         String delete = schemCmd + " " + Commands.getAlias(SchematicCommands.class, "delete");
         String list = schemCmd + " " + Commands.getAlias(SchematicCommands.class, "list");
+        String showCmd = schemCmd + " " + Commands.getAlias(SchematicCommands.class, "show");
 
         URIClipboardHolder multi = as(URIClipboardHolder.class, fp.getSession().getExistingClipboard());
 
+        final boolean hasShow = actor.hasPermission("worldedit.schematic.show");
         UtilityCommands.list(dir, actor, args, page, -1, formatName, Settings.IMP.PATHS.PER_PLAYER_SCHEMATICS, new RunnableVal3<Message, URI, String>() {
             @Override
             public void run(Message msg, URI uri, String relFilePath) {
@@ -596,6 +598,7 @@ public class SchematicCommands extends MethodCommands {
                     } else {
                         msg.text("&7[&a+&7]").command(loadMulti + " " + relFilePath).tooltip("(WIP) Append this to your clipboard");
                     }
+                    if (hasShow) msg.text("&7[&3O&7]").cmdTip(showCmd + " " + args.getJoinedStrings(0) + " " + relFilePath);
                     if (!isDir) msg.text("&7[&cX&7]").suggestTip("/" + delete + " " + relFilePath);
                     msg.text(color + relFilePath);
                     if (isDir) {

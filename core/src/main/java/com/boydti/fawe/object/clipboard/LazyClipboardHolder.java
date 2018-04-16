@@ -58,6 +58,11 @@ public class LazyClipboardHolder extends URIClipboardHolder {
     }
 
     @Override
+    public URI getURI(Clipboard clipboard) {
+        return (this.clipboard == clipboard) ? getUri() : null;
+    }
+
+    @Override
     public synchronized void close() {
         if (clipboard instanceof BlockArrayClipboard) {
             ((BlockArrayClipboard) clipboard).close();

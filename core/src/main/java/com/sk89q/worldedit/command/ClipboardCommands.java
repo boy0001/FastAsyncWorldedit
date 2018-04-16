@@ -297,18 +297,24 @@ public class ClipboardCommands extends MethodCommands {
                     URI uri = uriHolder.getUri();
                     File file = new File(uri.getPath());
                     if (file.exists() && file.isFile()) {
-                        files.add(file);
+                        files.add(file.getAbsoluteFile());
                     } else if (!uri.getPath().isEmpty()) {
                         invalid.add(uri);
                     }
                 }
             }
+
+            final LocalConfiguration config = this.worldEdit.getConfiguration();
+            final File working = this.worldEdit.getWorkingDirectoryFile(config.saveDir).getAbsoluteFile();
+
             url = MainUtil.upload(null, null, "zip", new RunnableVal<OutputStream>() {
                 @Override
                 public void run(OutputStream out) {
                     try (ZipOutputStream zos = new ZipOutputStream(out)) {
                         for (File file : files) {
-                            ZipEntry ze = new ZipEntry(file.getName());
+                            String fileName = file.getName();
+                            if (MainUtil.isInSubDirectory(working, file)) fileName = working.toURI().relativize(file.toURI()).getPath();
+                            ZipEntry ze = new ZipEntry(fileName);
                             zos.putNextEntry(ze);
                             Files.copy(file.toPath(), zos);
                             zos.closeEntry();

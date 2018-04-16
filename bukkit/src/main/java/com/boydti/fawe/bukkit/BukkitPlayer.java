@@ -36,6 +36,11 @@ public class BukkitPlayer extends FawePlayer<Player> {
     }
 
     @Override
+    public boolean isSneaking() {
+        return parent.isSneaking();
+    }
+
+    @Override
     public void setPermission(final String perm, final boolean flag) {
         /*
          *  Permissions are used to managing WorldEdit region restrictions

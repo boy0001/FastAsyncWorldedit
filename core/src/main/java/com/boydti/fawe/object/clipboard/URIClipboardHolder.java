@@ -36,4 +36,8 @@ public class URIClipboardHolder extends ClipboardHolder {
     public Set<URI> getURIs() {
         return Collections.singleton(uri);
     }
+
+    public URI getURI(Clipboard clipboard) {
+        return getClipboard() == clipboard ? getUri() : null;
+    }
 }
