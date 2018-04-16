@@ -41,6 +41,7 @@ import com.boydti.fawe.wrappers.FakePlayer;
 import com.sk89q.minecraft.util.commands.*;
 import com.sk89q.worldedit.*;
 import com.sk89q.worldedit.entity.Player;
+import com.sk89q.worldedit.event.extent.PasteEvent;
 import com.sk89q.worldedit.extent.clipboard.BlockArrayClipboard;
 import com.sk89q.worldedit.extent.clipboard.Clipboard;
 import com.sk89q.worldedit.extent.clipboard.io.ClipboardFormat;
@@ -453,6 +454,8 @@ public class ClipboardCommands extends MethodCommands {
         Clipboard clipboard = holder.getClipboard();
         Region region = clipboard.getRegion();
         Vector to = atOrigin ? clipboard.getOrigin() : session.getPlacementPosition(player);
+        checkPaste(player, editSession, to, holder, clipboard);
+
         Operation operation = holder
                 .createPaste(editSession, editSession.getWorldData())
                 .to(to)
@@ -474,6 +477,14 @@ public class ClipboardCommands extends MethodCommands {
         BBC.COMMAND_PASTE.send(player, to);
         if (!FawePlayer.wrap(player).hasPermission("fawe.tips"))
             BBC.TIP_COPYPASTE.or(BBC.TIP_SOURCE_MASK, BBC.TIP_REPLACE_MARKER).send(player, to);
+    }
+
+    private void checkPaste(Player player, EditSession editSession, Vector to, ClipboardHolder holder, Clipboard clipboard) {
+        URI uri = null;
+        if (holder instanceof URIClipboardHolder) uri = ((URIClipboardHolder) holder).getURI(clipboard);
+        PasteEvent event = new PasteEvent(player, clipboard, uri, editSession, to);
+        worldEdit.getEventBus().post(event);
+        if (event.isCancelled()) throw new FaweException(BBC.WORLDEDIT_CANCEL_REASON_MANUAL);
     }
 
     @Command(
@@ -501,6 +512,7 @@ public class ClipboardCommands extends MethodCommands {
         final Clipboard clipboard = holder.getClipboard();
         final Vector origin = clipboard.getOrigin();
         final Vector to = atOrigin ? origin : session.getPlacementPosition(player);
+        checkPaste(player, editSession, to, holder, clipboard);
 
         Schematic schem = new Schematic(clipboard);
         schem.paste(editSession, to, !ignoreAirBlocks);
