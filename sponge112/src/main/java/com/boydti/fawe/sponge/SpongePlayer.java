@@ -8,8 +8,10 @@ import com.sk89q.worldedit.WorldEdit;
 import com.sk89q.worldedit.extension.platform.Capability;
 import com.sk89q.worldedit.extension.platform.Platform;
 import java.lang.reflect.Method;
+import java.util.Optional;
 import java.util.UUID;
 import org.spongepowered.api.Sponge;
+import org.spongepowered.api.data.manipulator.mutable.entity.SneakingData;
 import org.spongepowered.api.entity.living.player.Player;
 import org.spongepowered.api.text.Text;
 import org.spongepowered.api.text.serializer.TextSerializers;
@@ -88,5 +90,14 @@ public class SpongePlayer extends FawePlayer<Player> {
             e.printStackTrace();
             return null;
         }
+    }
+
+    @Override
+    public boolean isSneaking() {
+        Optional<SneakingData> sneak = parent.get(SneakingData.class);
+        if (sneak.isPresent() && sneak.get().sneaking().get()) {
+            return true;
+        }
+        return false;
     }
 }

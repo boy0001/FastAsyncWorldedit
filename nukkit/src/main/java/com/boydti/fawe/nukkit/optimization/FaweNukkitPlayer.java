@@ -71,4 +71,8 @@ public class FaweNukkitPlayer extends FawePlayer<Player> {
         return new NukkitPlayer((NukkitPlatform) Fawe.<FaweNukkit> imp().getPlugin().getPlatform(), parent);
     }
 
+    @Override
+    public boolean isSneaking() {
+        return parent.isSneaking();
+    }
 }
