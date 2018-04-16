@@ -121,7 +121,14 @@ public class BrushSettings {
     }
 
     public BrushSettings setBrush(Brush brush) {
-        this.brush = brush;
+        Brush tmp = this.brush;
+        if (tmp != brush) {
+            if (brush == null || (tmp != null && tmp.getClass() != brush.getClass())) {
+                // clear
+                clear();
+            }
+            this.brush = brush;
+        }
         return this;
     }
 

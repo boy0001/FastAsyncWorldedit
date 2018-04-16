@@ -49,21 +49,29 @@ public class BrushBoundBaseBlock extends BaseBlock implements BrushHolder {
         this.session = session;
     }
 
+    private static final ThreadLocal<Boolean> RECURSION = new ThreadLocal<>();
+
     @Override
     public BrushTool getTool() {
         if (tool == null && hasNbtData()) {
             StringTag json = (StringTag) getNbtData().getValue().get("weBrushJson");
             if (json != null) {
                 try {
+                    if (RECURSION.get() != null) return null;
+                    RECURSION.set(true);
+
                     this.tool = BrushTool.fromString(player, session, json.getValue());
                     this.tool.setHolder(this);
                     brushCache.put(getKey(item), tool);
                 } catch (Throwable ignore) {
-                    Fawe.debug("Invalid brush for " + player + " holding " + item + ": " + json.getValue());
+                    ignore.printStackTrace();
+                    Fawe.debug("Invalid brush for " + player + " holding " + item.getType() + ": " + json.getValue());
                     if (item != null) {
                         item = Fawe.<FaweBukkit>imp().getItemUtil().setNBT(item, null);
                         brushCache.remove(getKey(item));
                     }
+                } finally {
+                    RECURSION.remove();
                 }
             }
         }
