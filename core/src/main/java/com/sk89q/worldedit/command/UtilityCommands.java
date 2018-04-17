@@ -697,7 +697,9 @@ public class UtilityCommands extends MethodCommands {
         m.send(actor);
     }
 
-    protected static int getFiles(File dir, Actor actor, CommandContext args, @Range(min = 0) int page, int perPage, String formatName, boolean playerFolder, Consumer<File> forEachFile) {
+    public static int getFiles(File dir, Actor actor, CommandContext args, @Range(min = 0) int page, int perPage, String formatName, boolean playerFolder, Consumer<File> forEachFile) {
+        Consumer<File> rootFunction = forEachFile;
+
         int len = args.argsLength();
         List<String> filters = new ArrayList<>();
 
@@ -765,6 +767,16 @@ public class UtilityCommands extends MethodCommands {
             return true;
         };
 
+        List<File> toFilter = new ArrayList<>();
+        if (!filters.isEmpty()) {
+            forEachFile = new DelegateConsumer<File>(forEachFile) {
+                @Override
+                public void accept(File file) {
+                    toFilter.add(file);
+                }
+            };
+        }
+
         if (formatName != null) {
             final ClipboardFormat cf = ClipboardFormat.findByAlias(formatName);
             forEachFile = new DelegateConsumer<File>(forEachFile) {
@@ -781,7 +793,6 @@ public class UtilityCommands extends MethodCommands {
                 }
             };
         }
-
         if (playerFolder) {
             if (listMine) {
                 File playerDir = new File(dir, actor.getUniqueId() + dirFilter);
@@ -806,6 +817,10 @@ public class UtilityCommands extends MethodCommands {
         } else {
             File rel = new File(dir, dirFilter);
             if (rel.exists()) allFiles(rel.listFiles(), false, forEachFile);
+        }
+        if (!filters.isEmpty() && !toFilter.isEmpty()) {
+            List<File> result = filter(toFilter, filters);
+            for (File file : result) rootFunction.accept(file);
         }
         return page;
     }
@@ -850,7 +865,7 @@ public class UtilityCommands extends MethodCommands {
         return fileList;
     }
 
-    private static void allFiles(File[] files, boolean recursive, Consumer<File> task) {
+    public static void allFiles(File[] files, boolean recursive, Consumer<File> task) {
         if (files == null || files.length == 0) return;
         for (File f : files) {
             if (f.isDirectory()) {
