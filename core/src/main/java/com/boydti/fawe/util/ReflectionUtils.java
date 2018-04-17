@@ -109,8 +109,12 @@ public class ReflectionUtils {
         modifiers &= ~Modifier.FINAL;
         modifiersField.setInt(field, modifiers);
 
-        FieldAccessor fa = ReflectionFactory.getReflectionFactory().newFieldAccessor(field, false);
-        fa.set(target, value);
+        try {
+            FieldAccessor fa = ReflectionFactory.getReflectionFactory().newFieldAccessor(field, false);
+            fa.set(target, value);
+        } catch (NoSuchMethodError error) {
+            field.set(target, value);
+        }
     }
 
     private static void blankField(Class<?> enumClass, String fieldName)
