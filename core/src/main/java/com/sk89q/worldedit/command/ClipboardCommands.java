@@ -525,8 +525,10 @@ public class ClipboardCommands extends MethodCommands {
 
         Region region = clipboard.getRegion().clone();
         if (selectPasted) {
-            Vector max = to.add(region.getMaximumPoint().subtract(region.getMinimumPoint()));
-            RegionSelector selector = new CuboidRegionSelector(player.getWorld(), to, max);
+            Vector clipboardOffset = clipboard.getRegion().getMinimumPoint().subtract(clipboard.getOrigin());
+            Vector realTo = to.add(new Vector(holder.getTransform().apply(clipboardOffset)));
+            Vector max = realTo.add(new Vector(holder.getTransform().apply(region.getMaximumPoint().subtract(region.getMinimumPoint()))));
+            RegionSelector selector = new CuboidRegionSelector(player.getWorld(), realTo, max);
             session.setRegionSelector(player.getWorld(), selector);
             selector.learnChanges();
             selector.explainRegionAdjust(player, session);
