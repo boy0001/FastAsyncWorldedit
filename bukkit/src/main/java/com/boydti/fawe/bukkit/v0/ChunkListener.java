@@ -237,8 +237,8 @@ public abstract class ChunkListener implements Listener {
             StackTraceElement elem = getElement(e, frame);
             if (elem != null) {
                 String methodName = elem.getMethodName();
-                // setAir (hacky, but this needs to be efficient)
-                if (methodName.charAt(0) == 's' && methodName.length() == 6) {
+                // setAir | setTypeAndData (hacky, but this needs to be efficient)
+                if (methodName.charAt(0) == 's' && methodName.length() == 6 || methodName.length() == 14) {
                     return true;
                 }
             }
