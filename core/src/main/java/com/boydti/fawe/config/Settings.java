@@ -66,6 +66,7 @@ public class Settings extends Config {
 
     @Comment("Paths for various directories")
     public static final class PATHS {
+        public String TOKENS = "tokens";
         @Comment({
                 "Put any minecraft or mod jars for FAWE to be aware of block textures",
         })
