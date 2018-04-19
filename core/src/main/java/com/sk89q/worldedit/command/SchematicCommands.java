@@ -523,7 +523,7 @@ public class SchematicCommands extends MethodCommands {
             BBC.SCHEMATIC_SHOW.send(fp, count.longValue(), args.getJoinedStrings(0), cmdShow);
 
             if (fp.getSession().getExistingClipboard() != null) {
-                String cmd = cmdPrefix + Commands.getAlias(ClipboardCommands.class, "clipboard") + " " + Commands.getAlias(ClipboardCommands.class, "clear");
+                String cmd = cmdPrefix + Commands.getAlias(ClipboardCommands.class, "clearclipboard");
                 BBC.SCHEMATIC_PROMPT_CLEAR.send(fp, cmd);
             }
 
