@@ -9,6 +9,7 @@ import com.boydti.fawe.object.clipboard.LazyClipboardHolder;
 import com.boydti.fawe.object.clipboard.MultiClipboardHolder;
 import com.boydti.fawe.object.clipboard.URIClipboardHolder;
 import com.boydti.fawe.object.exception.FaweException;
+import com.boydti.fawe.object.io.NonCloseableInputStream;
 import com.boydti.fawe.object.queue.LazyFaweChunk;
 import com.boydti.fawe.object.schematic.Schematic;
 import com.boydti.fawe.util.*;
@@ -457,7 +458,8 @@ public class SchemVis extends ImmutableVirtualWorld {
                         try (FileInputStream fis = new FileInputStream(cached)) {
                             BlockVector2D dimensions = new BlockVector2D(IOUtil.readVarInt(fis), IOUtil.readVarInt(fis));
                             try (FaweInputStream in = MainUtil.getCompressedIS(fis)) {
-                                try (NBTInputStream nis = new NBTInputStream(in)) {
+                                NonCloseableInputStream nonCloseable = new NonCloseableInputStream(in);
+                                try (NBTInputStream nis = new NBTInputStream(nonCloseable)) {
 
                                     int numChunks = in.readInt();
                                     for (int i = 0; i < numChunks; i++) {

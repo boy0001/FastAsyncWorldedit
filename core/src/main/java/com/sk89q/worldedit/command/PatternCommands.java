@@ -96,7 +96,7 @@ public class PatternCommands extends MethodCommands {
 
     @Command(
             aliases = {"#simplex"},
-            desc = "Use simplex noise to randomize blocks",
+            desc = "Use simplex noise to randomize blocks. Tutorial: https://imgur.com/a/rwVAE",
             usage = "<scale=10> <pattern>",
             min = 2,
             max = 2
@@ -377,7 +377,7 @@ public class PatternCommands extends MethodCommands {
 
     @Command(
             aliases = {"#surfacespread"},
-            desc = "Applies to only blocks on a surface. Selects a block from provided pattern with a given ranomized offset [0, <distance>). e.g. Use `#existing` to randomly offset blocks in the world, or `#copy` to offset blocks in your clipboard",
+            desc = "Applies to only blocks on a surface. Selects a block from provided pattern with a given ranomized offset `[0, <distance>)`. e.g. Use `#existing` to randomly offset blocks in the world, or `#copy` to offset blocks in your clipboard",
             usage = "<distance> <pattern>",
             min = 2,
             max = 2
