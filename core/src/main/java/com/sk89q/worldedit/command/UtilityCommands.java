@@ -632,6 +632,7 @@ public class UtilityCommands extends MethodCommands {
     public static void list(File dir, Actor actor, CommandContext args, @Range(min = 0) int page, int perPage, String formatName, boolean playerFolder, RunnableVal3<Message, URI, String> eachMsg) {
         AtomicInteger pageInt = new AtomicInteger(page);
         List<File> fileList = new ArrayList<>();
+        if (perPage == -1) perPage = actor instanceof Player ? 12 : 20; // More pages for console
         page = getFiles(dir, actor, args, page, perPage, formatName, playerFolder, file -> fileList.add(file));
 
         if (fileList.isEmpty()) {
@@ -639,7 +640,6 @@ public class UtilityCommands extends MethodCommands {
             return;
         }
 
-        if (perPage == -1) perPage = actor instanceof Player ? 12 : 20; // More pages for console
         int pageCount = (fileList.size() + perPage - 1) / perPage;
         if (page < 1) {
             BBC.SCHEMATIC_PAGE.send(actor, ">0");

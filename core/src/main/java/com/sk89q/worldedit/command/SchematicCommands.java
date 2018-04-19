@@ -582,6 +582,9 @@ public class SchematicCommands extends MethodCommands {
                         color = "&6";
                     } else {
                         color = "&a";
+                        System.out.println("Name " + name + " | " + name.lastIndexOf('.'));
+                        if (name.indexOf('.') != -1) name = name.substring(0, name.lastIndexOf('.'));
+                        System.out.println(" -> " + name);
                     }
                 } else if (uriStr.startsWith("http://") || uriStr.startsWith("https://")) {
                     // url
@@ -594,17 +597,17 @@ public class SchematicCommands extends MethodCommands {
 
                 if (msg.supportsInteraction()) {
                     if (loaded) {
-                        msg.text("&7[&c-&7]").command(unload + " " + relFilePath).tooltip("Unload this schematic");
+                        msg.text("&7[&c-&7]").command(unload + " " + relFilePath).tooltip("Unload");
                     } else {
-                        msg.text("&7[&a+&7]").command(loadMulti + " " + relFilePath).tooltip("(WIP) Append this to your clipboard");
+                        msg.text("&7[&a+&7]").command(loadMulti + " " + relFilePath).tooltip("Add to clipboard");
                     }
-                    if (hasShow) msg.text("&7[&3O&7]").cmdTip(showCmd + " " + args.getJoinedStrings(0) + " " + relFilePath);
-                    if (!isDir) msg.text("&7[&cX&7]").suggestTip("/" + delete + " " + relFilePath);
-                    msg.text(color + relFilePath);
+                    if (!isDir) msg.text("&7[&cX&7]").suggest("/" + delete + " " + relFilePath).tooltip("Delete");
+                    else if (hasShow) msg.text("&7[&3O&7]").command(showCmd + " " + args.getJoinedStrings(0) + " " + relFilePath).tooltip("Show");
+                    msg.text(color + name);
                     if (isDir) {
-                        msg.cmdTip(list + " " + args.getJoinedStrings(0) + " " + relFilePath);
+                        msg.command(list + " " + args.getJoinedStrings(0) + " " + relFilePath).tooltip("Load");
                     } else {
-                        msg.cmdTip(loadSingle + " " + relFilePath);
+                        msg.command(loadSingle + " " + relFilePath).tooltip("Load");
                     }
                 } else {
                     msg.text(color).text(name);
