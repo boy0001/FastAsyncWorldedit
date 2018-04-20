@@ -329,45 +329,6 @@ public class BukkitChunk_1_12 extends CharFaweChunk<Chunk, BukkitQueue_1_12> {
                     }
                 }
             }
-            // Trim tiles
-            HashMap<BlockPosition, TileEntity> toRemove = null;
-            if (!tiles.isEmpty()) {
-                Iterator<Map.Entry<BlockPosition, TileEntity>> iterator = tiles.entrySet().iterator();
-                while (iterator.hasNext()) {
-                    Map.Entry<BlockPosition, TileEntity> tile = iterator.next();
-                    BlockPosition pos = tile.getKey();
-                    int lx = pos.getX() & 15;
-                    int ly = pos.getY();
-                    int lz = pos.getZ() & 15;
-                    int j = FaweCache.CACHE_I[ly][lz][lx];
-                    char[] array = this.getIdArray(j);
-                    if (array == null) {
-                        continue;
-                    }
-                    int k = FaweCache.CACHE_J[ly][lz][lx];
-                    if (array[k] != 0) {
-                        if (toRemove == null) {
-                            toRemove = new HashMap<>();
-                        }
-                        if (copy != null) {
-                            copy.storeTile(tile.getValue(), tile.getKey());
-                        }
-                        toRemove.put(tile.getKey(), tile.getValue());
-                    }
-                }
-                if (toRemove != null) {
-                    synchronized (BukkitQueue_0.class) {
-                        for (Map.Entry<BlockPosition, TileEntity> entry : toRemove.entrySet()) {
-                            BlockPosition bp = entry.getKey();
-                            TileEntity tile = entry.getValue();
-                            nmsWorld.s(bp);
-                            tiles.remove(bp);
-                            tile.z();
-                            tile.invalidateBlockCache();
-                        }
-                    }
-                }
-            }
             // Set blocks
             for (int j = 0; j < sections.length; j++) {
                 int count = this.getCount(j);
@@ -449,6 +410,47 @@ public class BukkitChunk_1_12 extends CharFaweChunk<Chunk, BukkitQueue_1_12> {
                 }
                 getParent().setCount(0, getParent().getNonEmptyBlockCount(section) + nonEmptyBlockCount, section);
             }
+
+            // Trim tiles
+            HashMap<BlockPosition, TileEntity> toRemove = null;
+            if (!tiles.isEmpty()) {
+                Iterator<Map.Entry<BlockPosition, TileEntity>> iterator = tiles.entrySet().iterator();
+                while (iterator.hasNext()) {
+                    Map.Entry<BlockPosition, TileEntity> tile = iterator.next();
+                    BlockPosition pos = tile.getKey();
+                    int lx = pos.getX() & 15;
+                    int ly = pos.getY();
+                    int lz = pos.getZ() & 15;
+                    int j = FaweCache.CACHE_I[ly][lz][lx];
+                    char[] array = this.getIdArray(j);
+                    if (array == null) {
+                        continue;
+                    }
+                    int k = FaweCache.CACHE_J[ly][lz][lx];
+                    if (array[k] != 0) {
+                        if (toRemove == null) {
+                            toRemove = new HashMap<>();
+                        }
+                        if (copy != null) {
+                            copy.storeTile(tile.getValue(), tile.getKey());
+                        }
+                        toRemove.put(tile.getKey(), tile.getValue());
+                    }
+                }
+                if (toRemove != null) {
+                    synchronized (BukkitQueue_0.class) {
+                        for (Map.Entry<BlockPosition, TileEntity> entry : toRemove.entrySet()) {
+                            BlockPosition bp = entry.getKey();
+                            TileEntity tile = entry.getValue();
+                            nmsWorld.s(bp);
+                            tiles.remove(bp);
+                            tile.z();
+                            tile.invalidateBlockCache();
+                        }
+                    }
+                }
+            }
+
             // Set biomes
             if (this.biomes != null) {
                 if (copy != null) {
