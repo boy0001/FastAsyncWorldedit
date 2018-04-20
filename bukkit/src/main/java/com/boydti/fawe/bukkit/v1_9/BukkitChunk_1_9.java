@@ -9,35 +9,12 @@ import com.boydti.fawe.object.FaweQueue;
 import com.boydti.fawe.util.MainUtil;
 import com.boydti.fawe.util.MathMan;
 import com.boydti.fawe.util.ReflectionUtils;
-import com.sk89q.jnbt.CompoundTag;
-import com.sk89q.jnbt.ListTag;
-import com.sk89q.jnbt.LongTag;
-import com.sk89q.jnbt.StringTag;
-import com.sk89q.jnbt.Tag;
+import com.sk89q.jnbt.*;
 import com.sk89q.worldedit.internal.Constants;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.Map;
-import java.util.Set;
-import java.util.UUID;
-import net.minecraft.server.v1_9_R2.Block;
-import net.minecraft.server.v1_9_R2.BlockPosition;
-import net.minecraft.server.v1_9_R2.ChunkSection;
-import net.minecraft.server.v1_9_R2.DataBits;
-import net.minecraft.server.v1_9_R2.DataPalette;
-import net.minecraft.server.v1_9_R2.DataPaletteBlock;
-import net.minecraft.server.v1_9_R2.DataPaletteGlobal;
-import net.minecraft.server.v1_9_R2.Entity;
-import net.minecraft.server.v1_9_R2.EntityPlayer;
-import net.minecraft.server.v1_9_R2.EntityTypes;
-import net.minecraft.server.v1_9_R2.IBlockData;
-import net.minecraft.server.v1_9_R2.NBTTagCompound;
-import net.minecraft.server.v1_9_R2.NBTTagInt;
-import net.minecraft.server.v1_9_R2.TileEntity;
+import java.util.*;
+import net.minecraft.server.v1_9_R2.*;
 import org.bukkit.Chunk;
 import org.bukkit.World;
 import org.bukkit.craftbukkit.v1_9_R2.CraftChunk;
@@ -289,39 +266,6 @@ public class BukkitChunk_1_9 extends CharFaweChunk<Chunk, BukkitQueue_1_9_R1> {
                 CharFaweChunk previous = getParent().getPrevious(this, sections, tiles, entities, createdEntities, false);
                 getParent().getChangeTask().run(previous, this);
             }
-            // Trim tiles
-            Iterator<Map.Entry<BlockPosition, TileEntity>> iterator = tiles.entrySet().iterator();
-            HashMap<BlockPosition, TileEntity> toRemove = null;
-            while (iterator.hasNext()) {
-                Map.Entry<BlockPosition, TileEntity> tile = iterator.next();
-                BlockPosition pos = tile.getKey();
-                int lx = pos.getX() & 15;
-                int ly = pos.getY();
-                int lz = pos.getZ() & 15;
-                int j = FaweCache.CACHE_I[ly][lz][lx];
-                char[] array = this.getIdArray(j);
-                if (array == null) {
-                    continue;
-                }
-                int k = FaweCache.CACHE_J[ly][lz][lx];
-                if (array[k] != 0) {
-                    if (toRemove == null) {
-                        toRemove = new HashMap<>();
-                    }
-                    toRemove.put(tile.getKey(), tile.getValue());
-                }
-            }
-            if (toRemove != null) {
-                for (Map.Entry<BlockPosition, TileEntity> entry : toRemove.entrySet()) {
-                    BlockPosition bp = entry.getKey();
-                    TileEntity tile = entry.getValue();
-                    tiles.remove(bp);
-                    nmsWorld.s(bp);
-                    tile.y();
-                    tile.invalidateBlockCache();
-                }
-
-            }
             // Set blocks
             for (int j = 0; j < sections.length; j++) {
                 int count = this.getCount(j);
@@ -404,6 +348,39 @@ public class BukkitChunk_1_9 extends CharFaweChunk<Chunk, BukkitQueue_1_9_R1> {
                     }
                 }
                 getParent().setCount(0, getParent().getNonEmptyBlockCount(section) + nonEmptyBlockCount, section);
+            }
+            // Trim tiles
+            Iterator<Map.Entry<BlockPosition, TileEntity>> iterator = tiles.entrySet().iterator();
+            HashMap<BlockPosition, TileEntity> toRemove = null;
+            while (iterator.hasNext()) {
+                Map.Entry<BlockPosition, TileEntity> tile = iterator.next();
+                BlockPosition pos = tile.getKey();
+                int lx = pos.getX() & 15;
+                int ly = pos.getY();
+                int lz = pos.getZ() & 15;
+                int j = FaweCache.CACHE_I[ly][lz][lx];
+                char[] array = this.getIdArray(j);
+                if (array == null) {
+                    continue;
+                }
+                int k = FaweCache.CACHE_J[ly][lz][lx];
+                if (array[k] != 0) {
+                    if (toRemove == null) {
+                        toRemove = new HashMap<>();
+                    }
+                    toRemove.put(tile.getKey(), tile.getValue());
+                }
+            }
+            if (toRemove != null) {
+                for (Map.Entry<BlockPosition, TileEntity> entry : toRemove.entrySet()) {
+                    BlockPosition bp = entry.getKey();
+                    TileEntity tile = entry.getValue();
+                    tiles.remove(bp);
+                    nmsWorld.s(bp);
+                    tile.y();
+                    tile.invalidateBlockCache();
+                }
+
             }
             // Set biomes
             byte[] biomes = this.biomes;

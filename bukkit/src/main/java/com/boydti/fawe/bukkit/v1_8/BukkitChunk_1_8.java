@@ -13,21 +13,8 @@ import com.sk89q.jnbt.ListTag;
 import com.sk89q.jnbt.StringTag;
 import com.sk89q.jnbt.Tag;
 import com.sk89q.worldedit.internal.Constants;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.Map;
-import java.util.Set;
-import java.util.UUID;
-import net.minecraft.server.v1_8_R3.BlockPosition;
-import net.minecraft.server.v1_8_R3.ChunkSection;
-import net.minecraft.server.v1_8_R3.Entity;
-import net.minecraft.server.v1_8_R3.EntityPlayer;
-import net.minecraft.server.v1_8_R3.EntityTypes;
-import net.minecraft.server.v1_8_R3.NBTTagCompound;
-import net.minecraft.server.v1_8_R3.NBTTagInt;
-import net.minecraft.server.v1_8_R3.TileEntity;
+import java.util.*;
+import net.minecraft.server.v1_8_R3.*;
 import org.bukkit.Bukkit;
 import org.bukkit.Chunk;
 import org.bukkit.World;
@@ -186,39 +173,6 @@ public class BukkitChunk_1_8 extends CharFaweChunk<Chunk, BukkitQueue18R3> {
                 CharFaweChunk previous = getParent().getPrevious(this, sections, tiles, entities, createdEntities, false);
                 getParent().getChangeTask().run(previous, this);
             }
-            // Trim tiles
-            Iterator<Map.Entry<BlockPosition, TileEntity>> iterator = tiles.entrySet().iterator();
-            HashMap<BlockPosition, TileEntity> toRemove = null;
-            while (iterator.hasNext()) {
-                Map.Entry<BlockPosition, TileEntity> tile = iterator.next();
-                BlockPosition pos = tile.getKey();
-                int lx = pos.getX() & 15;
-                int ly = pos.getY();
-                int lz = pos.getZ() & 15;
-                int j = FaweCache.CACHE_I[ly][lz][lx];
-                char[] array = this.getIdArray(j);
-                if (array == null) {
-                    continue;
-                }
-                int k = FaweCache.CACHE_J[ly][lz][lx];
-                if (array[k] != 0) {
-                    if (toRemove == null) {
-                        toRemove = new HashMap<>();
-                    }
-                    toRemove.put(tile.getKey(), tile.getValue());
-                }
-            }
-            if (toRemove != null) {
-                for (Map.Entry<BlockPosition, TileEntity> entry : toRemove.entrySet()) {
-                    BlockPosition bp = entry.getKey();
-                    TileEntity tile = entry.getValue();
-                    tiles.remove(bp);
-                    nmsWorld.t(bp);
-                    tile.y();
-                    tile.E();
-                }
-
-            }
             // Set blocks
             for (int j = 0; j < sections.length; j++) {
                 int count = this.getCount(j);
@@ -287,7 +241,39 @@ public class BukkitChunk_1_8 extends CharFaweChunk<Chunk, BukkitQueue18R3> {
                 }
                 getParent().setCount(0, getParent().getNonEmptyBlockCount(section) + solid, section);
             }
+            // Trim tiles
+            Iterator<Map.Entry<BlockPosition, TileEntity>> iterator = tiles.entrySet().iterator();
+            HashMap<BlockPosition, TileEntity> toRemove = null;
+            while (iterator.hasNext()) {
+                Map.Entry<BlockPosition, TileEntity> tile = iterator.next();
+                BlockPosition pos = tile.getKey();
+                int lx = pos.getX() & 15;
+                int ly = pos.getY();
+                int lz = pos.getZ() & 15;
+                int j = FaweCache.CACHE_I[ly][lz][lx];
+                char[] array = this.getIdArray(j);
+                if (array == null) {
+                    continue;
+                }
+                int k = FaweCache.CACHE_J[ly][lz][lx];
+                if (array[k] != 0) {
+                    if (toRemove == null) {
+                        toRemove = new HashMap<>();
+                    }
+                    toRemove.put(tile.getKey(), tile.getValue());
+                }
+            }
+            if (toRemove != null) {
+                for (Map.Entry<BlockPosition, TileEntity> entry : toRemove.entrySet()) {
+                    BlockPosition bp = entry.getKey();
+                    TileEntity tile = entry.getValue();
+                    tiles.remove(bp);
+                    nmsWorld.t(bp);
+                    tile.y();
+                    tile.E();
+                }
 
+            }
             // Set biomes
             if (this.biomes != null) {
                 byte[] currentBiomes = nmsChunk.getBiomeIndex();
