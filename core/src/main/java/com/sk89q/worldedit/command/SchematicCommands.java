@@ -325,7 +325,7 @@ public class SchematicCommands extends MethodCommands {
                 // If we have a transform, bake it into the copy
                 if (!transform.isIdentity()) {
                     final FlattenedClipboardTransform result = FlattenedClipboardTransform.transform(clipboard, transform, holder.getWorldData());
-                    target = new BlockArrayClipboard(result.getTransformedRegion(), player.getUniqueId());
+                    target = new BlockArrayClipboard(result.getTransformedRegion(), UUID.randomUUID());
                     target.setOrigin(clipboard.getOrigin());
                     Operations.completeLegacy(result.copyTo(target));
                 } else {
