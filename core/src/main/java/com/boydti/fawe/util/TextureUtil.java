@@ -14,24 +14,13 @@ import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.ints.IntArraySet;
 import it.unimi.dsi.fastutil.longs.LongArrayList;
+import java.awt.Color;
 import java.awt.image.BufferedImage;
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FilenameFilter;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
+import java.io.*;
 import java.lang.reflect.Type;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.Enumeration;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.regex.Pattern;
 import java.util.zip.ZipEntry;
@@ -627,7 +616,12 @@ public class TextureUtil {
                                         combined += 8;
                                         break;
                                 }
-                                idMap.put(combined, texture);
+                                idMap.putIfAbsent(combined, texture);
+                            }
+
+
+                            if (block.getId() == 100) {
+                                System.out.println(100 + "Texture " + texture + " | " + id + " | " + block);
                             }
                         }
                     }
@@ -949,7 +943,11 @@ public class TextureUtil {
                         names.add(name.replaceAll("leaves_", "leaves2_"));
                         break;
                     case "mushroom":
-                        names.add(name.replaceAll("mushroom_block_skin_", "mushroom_block_"));
+                        if (name.contains("mushroom_block_skin_")) names.add(name.replaceAll("mushroom_block_skin_", "mushroom_block_"));
+                        if (name.contains("_red")) name = "red_" + name.replaceAll("_red", "");
+                        if (name.contains("_brown")) name = "brown_" + name.replaceAll("_brown", "");
+                        if (!name.contains("stem")) name = name.replaceAll("skin", "all_outside");
+                        names.add(name);
                         break;
                     case "half":
                         names.add(name.replaceAll("half_", "double_stone_"));
