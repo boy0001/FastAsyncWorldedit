@@ -20,6 +20,7 @@
 package com.boydti.fawe.util;
 
 import com.boydti.fawe.command.AnvilCommands;
+import com.boydti.fawe.command.CFICommands;
 import com.sk89q.minecraft.util.commands.Command;
 import com.sk89q.minecraft.util.commands.CommandPermissions;
 import com.sk89q.minecraft.util.commands.NestedCommand;
@@ -119,13 +120,14 @@ public final class DocumentationPrinter {
             writePermissionsWikiTable(stream, builder, "", MaskCommands.class, "/Masks");
             writePermissionsWikiTable(stream, builder, "", PatternCommands.class, "/Patterns");
             writePermissionsWikiTable(stream, builder, "", TransformCommands.class, "/Transforms");
+            writePermissionsWikiTable(stream, builder, "/cfi ", CFICommands.class, "Create From Image");
             stream.println();
             stream.print("#### Uncategorized\n");
             stream.append("| Aliases | Permission | flags | Usage |\n");
             stream.append("| --- | --- | --- | --- |\n");
             stream.append("| //cancel | fawe.cancel | | Cancels your current operations |\n");
             stream.append("| /plot replaceall | plots.replaceall | | Replace all blocks in the plot world |\n");
-            stream.append("| /plot createfromimage | plots.createfromimage | | Starts world creation from a heightmap image: [More Info](https://github.com/boy0001/FastAsyncWorldedit/wiki/CreateFromImage) |\n");
+//            stream.append("| /plot createfromimage | plots.createfromimage | | Starts world creation from a heightmap image: [More Info](https://github.com/boy0001/FastAsyncWorldedit/wiki/CreateFromImage) |\n");
             stream.print("\n---\n");
 
             stream.print(builder);

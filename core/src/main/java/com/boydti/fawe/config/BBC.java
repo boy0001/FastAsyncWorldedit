@@ -256,7 +256,7 @@ public enum BBC {
     WORLDEDIT_SOME_FAILS_BLOCKBAG("&cMissing blocks: %s0", "Error"),
 
     WORLDEDIT_CANCEL_COUNT("&cCancelled %s0 edits.", "Cancel"),
-    WORLDEDIT_CANCEL_REASON_CONFIRM("&7Your selection is large (%s0 -> %s1). Use &c//confirm &7to execute &c%s2", "Cancel"),
+    WORLDEDIT_CANCEL_REASON_CONFIRM("&7Your selection is large (&c%s0 &7-> &c%s1&7, containing &c%s3&7 blocks). Use &c//confirm &7to execute &c%s2", "Cancel"),
     WORLDEDIT_CANCEL_REASON("&cYour WorldEdit action was cancelled:&7 %s0&c.", "Cancel"),
     WORLDEDIT_CANCEL_REASON_MANUAL("Manual cancellation", "Cancel"),
     WORLDEDIT_CANCEL_REASON_LOW_MEMORY("Low memory", "Cancel"),

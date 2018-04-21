@@ -113,4 +113,8 @@ public class BlockVector extends Vector {
         return this;
     }
 
+    @Override
+    public String toString() {
+        return "(" + getBlockX() + ", " + getBlockY() + ", " + getBlockZ() + ")";
+    }
 }

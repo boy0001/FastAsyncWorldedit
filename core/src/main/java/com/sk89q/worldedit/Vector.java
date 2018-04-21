@@ -530,6 +530,10 @@ public class Vector implements Comparable<Vector>, Serializable {
         return getX() * getX() + getY() * getY() + getZ() * getZ();
     }
 
+    public double volume() {
+        return getX() * getY() * getZ();
+    }
+
     /**
      * Get the distance between this vector and another vector.
      *

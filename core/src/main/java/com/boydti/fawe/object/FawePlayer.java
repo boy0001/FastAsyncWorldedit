@@ -31,6 +31,7 @@ import com.sk89q.worldedit.world.registry.WorldData;
 import java.io.File;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
+import java.text.NumberFormat;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedDeque;
@@ -128,7 +129,8 @@ public abstract class FawePlayer<T> extends Metadatable {
         }
         if (times > limit) {
             setMeta("cmdConfirm", command);
-            throw new RegionOperationException(BBC.WORLDEDIT_CANCEL_REASON_CONFIRM.f(0, times, command));
+            String volume = "<unspecified>";
+            throw new RegionOperationException(BBC.WORLDEDIT_CANCEL_REASON_CONFIRM.f(0, times, command, volume));
         }
     }
 
@@ -139,7 +141,8 @@ public abstract class FawePlayer<T> extends Metadatable {
         if (radius > 0) {
             if (radius > 448) {
                 setMeta("cmdConfirm", command);
-                throw new RegionOperationException(BBC.WORLDEDIT_CANCEL_REASON_CONFIRM.f(0, radius, command));
+                long volume = (long) (Math.PI * ((double) radius * radius));
+                throw new RegionOperationException(BBC.WORLDEDIT_CANCEL_REASON_CONFIRM.f(0, radius, command, NumberFormat.getNumberInstance().format(volume)));
             }
         }
     }
@@ -149,12 +152,13 @@ public abstract class FawePlayer<T> extends Metadatable {
             return;
         }
         if (region != null) {
-            Vector min = region.getMinimumPoint();
-            Vector max = region.getMaximumPoint();
+            Vector min = region.getMinimumPoint().toBlockVector();
+            Vector max = region.getMaximumPoint().toBlockVector();
             long area = (long) ((max.getX() - min.getX()) * (max.getZ() - min.getZ() + 1)) * times;
             if (area > 2 << 18) {
                 setMeta("cmdConfirm", command);
-                throw new RegionOperationException(BBC.WORLDEDIT_CANCEL_REASON_CONFIRM.f(min, max, command));
+                long volume = (long) max.subtract(min).add(Vector.ONE).volume() * times;
+                throw new RegionOperationException(BBC.WORLDEDIT_CANCEL_REASON_CONFIRM.f(min, max, command, NumberFormat.getNumberInstance().format(volume)));
             }
         }
     }
@@ -164,12 +168,13 @@ public abstract class FawePlayer<T> extends Metadatable {
             return;
         }
         if (region != null) {
-            Vector min = region.getMinimumPoint();
-            Vector max = region.getMaximumPoint();
+            Vector min = region.getMinimumPoint().toBlockVector();
+            Vector max = region.getMaximumPoint().toBlockVector();
             long area = (long) ((max.getX() - min.getX()) * (max.getZ() - min.getZ() + 1));
             if (area > 2 << 18) {
                 setMeta("cmdConfirm", command);
-                throw new RegionOperationException(BBC.WORLDEDIT_CANCEL_REASON_CONFIRM.f(min, max, command));
+                long volume = (long) max.subtract(min).add(Vector.ONE).volume();
+                throw new RegionOperationException(BBC.WORLDEDIT_CANCEL_REASON_CONFIRM.f(min, max, command, NumberFormat.getNumberInstance().format(volume)));
             }
         }
     }
